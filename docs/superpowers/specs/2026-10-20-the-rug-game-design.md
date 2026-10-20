@@ -115,6 +115,8 @@ New for this game:
 
 That is about 300 illustrations and about 260 rules entries.
 
+After #2, some content that no source shows is left out. The full tapestry deck is 120 cards instead of 123: two Plans & Ploys cards and one Fantasies & Futures card are missing. Some solo content is missing too, and the Automa can't play with the arts track. The README's "Rules conventions" lists all of it.
+
 ## 6. Build plan: milestones and issues
 
 Each numbered item becomes one GitHub issue, and each milestone becomes a GitHub milestone. The owner set the order:

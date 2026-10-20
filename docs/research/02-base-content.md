@@ -1,5 +1,7 @@
 # 02 — Tapestry (2019) BASE GAME card-like content catalogue
 
+> **Decisions:** every **[UNVERIFIED]** item and open question in this file is decided in the README's [Rules conventions](../../README.md#rules-conventions) (R1–R104). Follow those decisions, not the working assumptions here.
+
 Scope: the base game's civilizations, civ balance adjustments, tapestry cards, tech cards, landmarks, capital city mats, territory/space tiles and map, achievements, and the Automa + Shadow Empire solo system. Advancement-track spaces and core turn rules belong to the other researcher. They appear here only where a card refers to them.
 
 Conventions

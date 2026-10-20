@@ -62,9 +62,13 @@ Updated 2026-10-20. Update this section whenever a milestone moves.
   - The approved desktop main game screen (`docs/ui/`).
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1 and #44 are done:** the Node server, tests and CI exist, and the client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
+- **#1, #2 and #44 are done.**
+  - The Node server, tests and CI exist.
+  - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
+  - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R104).
 - **Ready to start:**
-  - #2 Settle the unverified rules. The owner, who has a physical copy of the base game but no expansions, confirms the base-game answers.
+  - #12 Encode the base game data. This is the first rules-engine issue, now unblocked.
+  - #45 Check the 20 "owner-check" rules against the physical box. This is the owner's job and blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin).
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
@@ -181,7 +185,11 @@ How to read the research:
   3. the base rulebook;
   4. the printed art;
   5. the Board Game Arena implementation.
-- About 95 items are marked **[UNVERIFIED]**. #2 settles each one into a "Rules conventions" section of the README. Never guess one silently in code.
+- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R104**.
+  - Follow those decisions, not the research's working assumptions.
+  - Cite the id in code comments and test names, for example `// R16`.
+  - Content listed there as "left out" is never invented.
+  - A detail that no rule covers gets a new issue, never a guess.
 
 ## Not version-controlled
 
