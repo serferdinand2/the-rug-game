@@ -2,9 +2,16 @@
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import { spawn } from 'node:child_process';
+import { symlink, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { server } from '../server.mjs';
 
-const listeningOnImport = server.listening;
+// listen() binds a tick after it is called, so wait before checking that the import didn't call it.
+await new Promise(resolve => setTimeout(resolve, 50));
+const addressAfterImport = server.address();
 let port;
 
 before(async () => {
@@ -24,7 +31,25 @@ const get = (path, headers = {}) => new Promise((resolve, reject) => {
 });
 
 test('importing the server does not listen', () => {
-  assert.equal(listeningOnImport, false);
+  assert.equal(addressAfterImport, null);
+});
+
+test('starts when run through a symlinked path', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'rug-'));
+  const link = join(dir, 'app');
+  await symlink(fileURLToPath(new URL('..', import.meta.url)), link);
+  const child = spawn(process.execPath, [join(link, 'server.mjs')], { env: { ...process.env, PORT: '0' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  try {
+    const output = await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('no startup line within 5 seconds')), 5000);
+      child.stdout.on('data', chunk => { clearTimeout(timer); resolve(String(chunk)); });
+      child.on('exit', code => { clearTimeout(timer); resolve(`exited with code ${code}`); });
+    });
+    assert.match(output, /The Rug Game: http:/);
+  } finally {
+    child.kill();
+    await rm(dir, { recursive: true, force: true });
+  }
 });
 
 test('serves the placeholder page', async () => {
@@ -64,8 +89,10 @@ test('never serves files outside public/', async () => {
   }
 });
 
-test('rejects malformed percent-encoding', async () => {
-  assert.equal((await get('/%E0%A4%A')).status, 400);
+test('rejects malformed percent-encoding and unparseable paths', async () => {
+  for (const path of ['/%E0%A4%A', '//', '//[']) {
+    assert.equal((await get(path)).status, 400, path);
+  }
   assert.equal((await get('/')).status, 200, 'the server keeps answering');
 });
 

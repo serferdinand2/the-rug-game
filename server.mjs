@@ -1,5 +1,6 @@
 // The Rug Game's HTTP server: serves public/ and answers /api/ requests. All table state will live in memory.
 import http from 'node:http';
+import { realpathSync } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -91,8 +92,15 @@ async function serveStatic(req, res, pathname) {
 export const server = http.createServer(async (req, res) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer');
+  let pathname;
   try {
-    const { pathname } = new URL(req.url, 'http://localhost');
+    ({ pathname } = new URL(req.url, 'http://localhost'));
+  } catch {
+    // Paths such as // or //[ read as a host name and can't be parsed; they are the client's mistake.
+    res.writeHead(400);
+    return res.end('Bad request');
+  }
+  try {
     if (pathname.startsWith('/api/')) {
       return await handleApi(req, res);
     }
@@ -110,8 +118,9 @@ export const server = http.createServer(async (req, res) => {
 // Request counts for quiet addresses are forgotten every minute.
 setInterval(() => apiLimiter.sweep(), 60_000).unref();
 
-// Listen only when run directly, so tests can import the server and choose their own port.
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Listen only when run directly, so tests can import the server and choose their own port. The started path is
+// resolved through symlinks because import.meta.url always holds the real path (as in /srv/app/current/server.mjs).
+if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   server.listen(config.port, config.host, () => {
     const shown = ['0.0.0.0', '::'].includes(config.host) ? '127.0.0.1' : config.host.includes(':') ? `[${config.host}]` : config.host;
     console.log(`The Rug Game: http://${shown}:${config.port}`);
