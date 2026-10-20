@@ -1,17 +1,30 @@
 // Vite builds the Svelte client in client/ into public/, which server.mjs serves.
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 
+// npm run dev starts the server with .env; load it here too, so the dev proxy targets the same port.
+try {
+	process.loadEnvFile();
+} catch {
+	// No .env file: the defaults below apply.
+}
+
+/** @param {string} path - A path relative to this file */
+const fromHere = (path) => fileURLToPath(new URL(path, import.meta.url));
+
 export default defineConfig({
-	root: 'client',
+	root: fromHere('./client'),
 	publicDir: 'static',
-	plugins: [svelte()],
+	// Vite's root is client/, so point the plugin at the project's svelte.config.js explicitly (it forces runes).
+	plugins: [svelte({ configFile: fromHere('./svelte.config.js') })],
 	build: {
-		outDir: '../public',
+		outDir: fromHere('./public'),
 		emptyOutDir: true,
 	},
 	server: {
-		// During `npm run dev`, API calls go to the Node server started beside Vite.
+		// Match the server's default of 127.0.0.1; "localhost" may bind only to IPv6 (::1).
+		host: '127.0.0.1',
 		proxy: {
 			'/api': `http://127.0.0.1:${process.env.PORT || 3020}`,
 		},

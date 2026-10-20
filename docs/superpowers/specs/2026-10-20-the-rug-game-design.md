@@ -54,7 +54,7 @@ The rules come from the research in `docs/research/`.
 
 From the sibling projects (owner: "same setup and approach"):
 - **Server and code:**
-  - Node.js 22.9+. No runtime packages on the server or in the rules engine.
+  - Node.js 22.12+ (Vite 8 needs it). No runtime packages on the server or in the rules engine.
   - **The browser client is Svelte 5 (runes) built with Vite, without SvelteKit** (owner, 2026-10-20).
     - Written in JavaScript with JSDoc; the rules are in `CONVENTIONS.md`.
     - Sources are in `client/` and build into `public/`, which a single `server.mjs` serves.

@@ -28,7 +28,7 @@ This section always shows the latest approved or built interface. The colours an
 
 ## Run locally
 
-You need Node.js 22.9 or newer. The only packages are development tools (Svelte, Vite, svelte-check, Prettier). The server itself has no runtime packages.
+You need Node.js 22.12 or newer. The only packages are development tools (Svelte, Vite, svelte-check, Prettier). The server itself has no runtime packages.
 
 ```sh
 npm install

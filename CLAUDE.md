@@ -75,7 +75,7 @@ Updated 2026-10-20. Update this section whenever a milestone moves.
 ## Starting on a new computer
 
 1. Clone `https://github.com/serferdinand2/the-rug-game` and run `gh auth login` with your own GitHub account. The owner (serferdinand2) must have added you as a collaborator before you can push, comment or close issues.
-2. Install Node.js 22.9 or newer, then run `npm test` and `npm start` (see Commands).
+2. Install Node.js 22.12 or newer (Vite 8 needs it), then run `npm install`, `npm test` and `npm start` (see Commands).
 3. Optionally clone the sibling projects next to this repository, read-only, to copy their setup. All are public:
    - [lazar-milin/fablewood-rummy](https://github.com/lazar-milin/fablewood-rummy) is the closest template.
    - [lazar-milin/birdcard-ripoff](https://github.com/lazar-milin/birdcard-ripoff) is Bird Table.
@@ -139,7 +139,7 @@ The design document has the details. In short:
 
 Read the sibling projects' `CLAUDE.md` files before scaffolding (#1). The patterns to reuse:
 - **Code:**
-  - Node.js 22.9+ and ES modules. No runtime packages on the server or in the engine. The Svelte client is the one exception with a build step.
+  - Node.js 22.12+ (the floor Vite 8 sets) and ES modules. No runtime packages on the server or in the engine. The Svelte client is the one exception with a build step.
   - A DOM-independent rules engine shared by the server and the browser.
   - `createGame()`, and `play()`, which returns a new state from a `structuredClone`.
   - `PlayerError` for messages meant for players.
