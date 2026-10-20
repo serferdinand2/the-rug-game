@@ -158,6 +158,6 @@ const page = `${css}${extra}<div class="lay">
 // --standalone writes a page that opens without the brainstorm companion.
 const standalone = process.argv[3] === '--standalone';
 writeFileSync(out, standalone
-  ? `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Rug Game · main screen reference</title><style>body{margin:0;padding:24px;background:#18121f}.lay{max-width:1200px;margin:auto}</style></head><body>${page.replaceAll('/files/', 'fonts/')}</body></html>`
+  ? `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Rug Game · main screen reference</title><style>body{margin:0;padding:24px;background:#18121f}.lay{max-width:1200px;margin:auto}</style></head><body>${page.replaceAll('/files/', '../../public/fonts/')}</body></html>`
   : page);
 console.log('wrote', out);

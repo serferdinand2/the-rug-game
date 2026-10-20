@@ -13,6 +13,28 @@ The owner wants it to:
 
 `README.md` is the public overview. [docs/superpowers/specs/2026-10-20-the-rug-game-design.md](docs/superpowers/specs/2026-10-20-the-rug-game-design.md) is the full design document: decisions, scope and the 43-issue build plan.
 
+## Commands
+
+```sh
+npm start                     # http://127.0.0.1:3020; loads .env if present (HOST, PORT, TRUST_PROXY)
+npm test                      # every test in tests/, also run by GitHub Actions on each push
+node --test tests/static.test.mjs                        # one test file
+node --test --test-name-pattern="ETag" tests/*.test.mjs  # tests whose name matches
+```
+
+There are no runtime packages and no build step, so `npm install` isn't needed.
+
+## Architecture
+
+- `server.mjs` is the `node:http` server.
+  - It exports `server` and `config` and only calls `listen()` when run directly, so tests start it in-process on port 0.
+  - It serves files only from `public/`, resolving decoded paths and refusing anything outside the folder.
+  - Fonts and `art/` are cached for a week. Everything else gets `no-cache` with a weak ETag.
+  - `/api/*` requests pass a per-address rate limiter (1,800 a minute). The table API arrives in #22–#23.
+- `limits.mjs` holds `rateLimiter()` and `clientAddress()`. With `TRUST_PROXY=true`, the last `X-Forwarded-For` address counts; otherwise the header is ignored.
+- `public/` is everything the browser receives. For now that is a placeholder page (`index.html`, `style.css`), the favicon (the style C Lighthouse) and the fonts with their licence notices.
+- `tests/` holds `node:test` suites. Server tests import `server` and listen on port 0, so they never need fixed ports.
+
 ## Where the work stands
 
 Updated 2026-10-20. Update this section whenever a milestone moves.
@@ -23,17 +45,16 @@ Updated 2026-10-20. Update this section whenever a milestone moves.
   - The approved desktop main game screen (`docs/ui/`).
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **No code exists yet.** There is no `package.json`, `public/` or test suite.
+- **#1 is done:** the Node project, server, tests and CI exist. The page is a placeholder until #25.
 - **Ready to start:**
-  - #1 Set up the Node project.
-  - #2 Settle the unverified rules. This needs the owner, who has a physical copy of the base game, but no expansions.
-  - #3 Design the remaining screens.
+  - #2 Settle the unverified rules. The owner, who has a physical copy of the base game but no expansions, confirms the base-game answers.
+  - #3 Design the remaining screens (assigned to lazar-milin).
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
 ## Starting on a new computer
 
 1. Clone `https://github.com/serferdinand2/the-rug-game` and run `gh auth login` with your own GitHub account. The owner (serferdinand2) must have added you as a collaborator before you can push, comment or close issues.
-2. Install Node.js 22.9 or newer. Once #1 lands, `npm start` and `npm test` are the commands.
+2. Install Node.js 22.9 or newer, then run `npm test` and `npm start` (see Commands).
 3. Optionally clone the sibling projects next to this repository, read-only, to copy their setup. All are public:
    - [lazar-milin/fablewood-rummy](https://github.com/lazar-milin/fablewood-rummy) is the closest template.
    - [lazar-milin/birdcard-ripoff](https://github.com/lazar-milin/birdcard-ripoff) is Bird Table.
@@ -108,7 +129,7 @@ Read the sibling projects' `CLAUDE.md` files before scaffolding (#1). The patter
   - `limits.mjs` holds the rate limits, and `.env` holds `HOST`, `PORT` (3020 here) and `TRUST_PROXY`.
 - **Tests:** `node --test`, with randomized invariant tests for the engine and the rooms, also run in GitHub Actions.
 - **Look:**
-  - Alagard for titles and VCR OSD Mono for the interface. Copies with their licence notices are in `docs/ui/fonts/`; #1 moves them to `public/fonts/`.
+  - Alagard for titles and VCR OSD Mono for the interface. The single copies, with their licence notices, are in `public/fonts/`. `docs/ui/main-screen.html` loads them from there.
   - Art production notes stay in `docs/art/`, never in `public/`.
 - **Discord Activity (#43):** follow Bird Table.
 

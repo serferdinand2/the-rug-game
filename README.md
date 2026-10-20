@@ -9,7 +9,7 @@ It is built like the author's other table games, [Fablewood Rummy](https://githu
 
 No official Stonemaier artwork, logos or rulebook text are used.
 
-> **Status: design phase.** The rules research, the design plan, the main game screen and the art style are approved. No game code exists yet. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order, starting with [#1](https://github.com/serferdinand2/the-rug-game/issues/1), [#2](https://github.com/serferdinand2/the-rug-game/issues/2) and [#3](https://github.com/serferdinand2/the-rug-game/issues/3).
+> **Status: design phase.** The rules research, the design plan, the main game screen and the art style are approved. The server, tests and CI are set up; the game itself starts with the rules engine in M3. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order, starting with [#1](https://github.com/serferdinand2/the-rug-game/issues/1), [#2](https://github.com/serferdinand2/the-rug-game/issues/2) and [#3](https://github.com/serferdinand2/the-rug-game/issues/3).
 
 ## Current interface
 
@@ -24,6 +24,17 @@ This section always shows the latest approved or built interface. The colours an
 | ![Map tab](docs/ui/screens/2-map.png) | ![Capital tab](docs/ui/screens/3-capital.png) |
 | **Cards** | **Players** |
 | ![Cards tab](docs/ui/screens/4-cards.png) | ![Players tab](docs/ui/screens/5-players.png) |
+
+## Run locally
+
+You need Node.js 22.9 or newer. There are no packages to install.
+
+```sh
+npm start   # http://127.0.0.1:3020
+npm test
+```
+
+Copy [.env.example](.env.example) to `.env` to change the host or port, or to trust a reverse proxy. For now the server shows a placeholder page; the game screens arrive with milestone M5.
 
 ## Art style
 
@@ -60,4 +71,4 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 ## Licence
 
-The planned licence is GPL-3.0-only, like the sibling projects. It will be added with the project setup in [#1](https://github.com/serferdinand2/the-rug-game/issues/1). The Alagard font is by Hewett Tsoi (Pix3M), and VCR OSD Mono is by Riciery Leal (MrManet). Their notices are in [docs/ui/fonts/](docs/ui/fonts/).
+[GPL-3.0-only](LICENSE), like the sibling projects. The fonts keep their authors' terms: Alagard by Hewett Tsoi (Pix3M) and VCR OSD Mono by Riciery Leal (MrManet). Their notices are in [public/fonts/](public/fonts/).
