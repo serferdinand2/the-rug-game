@@ -1,0 +1,29 @@
+/* Design tokens: the night palette and fonts of the approved designs in docs/ui/. Components use these, never raw colours. */
+:root {
+	--night: #18121f;
+	--dusk: #2b2142;
+	--panel: #30233c;
+	--panel-deep: #251d2d;
+	--line: #4b3a63;
+	--outline: #1a1326;
+	--text: #efe6d2;
+	--muted: #c9bfe0;
+	--faint: #a99cc4;
+	--gold: #f2d58c;
+	--frame: #e2c27a;
+	--ok: #9fe09a;
+
+	--exploration: #3f8fd0;
+	--science: #5aad5a;
+	--technology: #e09a2b;
+	--military: #c8473c;
+
+	--player-1: #4fa3e0;
+	--player-2: #e0675b;
+	--player-3: #6cc06a;
+	--player-4: #f2c14e;
+	--player-5: #b48ee6;
+
+	--font-title: Alagard, serif;
+	--font-body: VCR, ui-monospace, monospace;
+}

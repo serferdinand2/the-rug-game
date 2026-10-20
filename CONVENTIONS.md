@@ -30,7 +30,7 @@ These are the coding conventions for The Rug Game. Every contributor and coding 
 
 ## Project layout
 
-The target layout is below. The Svelte client setup issue creates the `client/` folder. Until then, `public/` holds a hand-written placeholder page.
+This is the layout. `engine/` arrives with the rules engine (#12).
 
 ```
 server.mjs, limits.mjs   Node HTTP server and its pure helpers (no packages)
@@ -43,7 +43,8 @@ client/                  Svelte app (Vite root)
   src/lib/               Plain JS modules: component-event.js, api.js, game.svelte.js …
   src/styles/            tokens.css (design tokens) and base.css
   static/                Copied as-is into the build: fonts/, art/, favicon.svg
-public/                  Vite build output, served by server.mjs (git-ignored once the client exists)
+public/                  Vite build output, served by server.mjs (git-ignored)
+scripts/dev.mjs          Runs the Node server and Vite's dev server together (npm run dev)
 tests/                   node:test suites (*.test.mjs)
 docs/                    Research, design, plans, interface designs, art notes
 ```
@@ -53,7 +54,7 @@ docs/                    Research, design, plans, interface designs, art notes
 
 ## Formatting
 
-**Prettier** formats every file, with the same settings as the owner's other Svelte projects:
+**Prettier** formats the code (JavaScript, Svelte, CSS, HTML, JSON and YAML) with the same settings as the owner's other Svelte projects. Markdown, the generated mockup and the build output are left alone (see `.prettierignore`).
 
 ```json
 {
@@ -179,12 +180,17 @@ Use a separate `<script module>` block for type definitions:
 	 */
 
 	/**
-	 * Properties for the TrackSpace component.
-	 * @typedef {Object} TrackSpaceProps
+	 * Properties of the TrackSpace component itself.
+	 * @typedef {Object} TrackSpaceOwnProps
 	 * @property {number} space - Space number, 0–12 (0 is the start)
 	 * @property {string} name - Space name, e.g. 'Navigation'
 	 * @property {TrackToken[]} [tokens] - Tokens on this space
 	 * @property {Function} [onTrackSpaceClick] - Callback fired when the space is chosen
+	 */
+
+	/**
+	 * Properties for the TrackSpace component, including any attributes for its root button.
+	 * @typedef {TrackSpaceOwnProps & import('svelte/elements').HTMLButtonAttributes} TrackSpaceProps
 	 *
 	 * @example
 	 * <TrackSpace
@@ -202,6 +208,16 @@ Key rules:
 3. Mark optional properties with `[propertyName]`, and defaults with `[size='small']`.
 4. Include an `@example`.
 5. Types that several components share, or that come from the engine, live in a `.js` module as `@typedef` and are imported with `/** @typedef {import('…').Name} Name */`.
+6. **A props type is the component's own props joined with its root element's attributes**, so `...attr` and `attr.class` type-check under `strict`:
+
+```js
+/**
+ * Properties for the TrackSpace component, including any attributes for its root button.
+ * @typedef {TrackSpaceOwnProps & import('svelte/elements').HTMLButtonAttributes} TrackSpaceProps
+ */
+```
+
+   Name the own-props typedef `{Component}OwnProps`. Use the attributes type that matches the root element: `HTMLAttributes<HTMLElement>`, `HTMLButtonAttributes`, `HTMLInputAttributes` and so on.
 
 ### Props
 
@@ -355,8 +371,8 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 	 */
 
 	/**
-	 * Properties for the TrackSpace component.
-	 * @typedef {Object} TrackSpaceProps
+	 * Properties of the TrackSpace component itself.
+	 * @typedef {Object} TrackSpaceOwnProps
 	 * @property {string} track - Track id, e.g. 'exploration'
 	 * @property {number} space - Space number, 0–12
 	 * @property {string} name - Space name
@@ -365,6 +381,11 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 	 * @property {string} [cost] - Cost text shown on the next space
 	 * @property {boolean} [affordable=false] - The viewing player can pay the cost
 	 * @property {Function} [onTrackSpaceClick] - Callback fired when the space is chosen
+	 */
+
+	/**
+	 * Properties for the TrackSpace component, including any attributes for its root button.
+	 * @typedef {TrackSpaceOwnProps & import('svelte/elements').HTMLButtonAttributes} TrackSpaceProps
 	 *
 	 * @example
 	 * <TrackSpace
@@ -495,7 +516,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 ## Styling, art and motion
 
 - **Design tokens.** Colours, fonts and spacing are CSS custom properties in `client/src/styles/tokens.css`, taken from the approved designs in `docs/ui/`. Components use `var(--…)` and never hard-code colours. Art is the only exception.
-- **Fonts.** Use Alagard for titles and VCR OSD Mono for everything else. Each has one copy, in `client/static/fonts/` (in `public/fonts/` until the client exists).
+- **Fonts.** Use Alagard for titles and VCR OSD Mono for everything else. Each has one copy, in `client/static/fonts/`.
 - **Art** is vector pixel SVG, drawn with one `crispEdges` path per colour (see `docs/art/`). Reference art by its stable asset id. Never inline large SVGs in components.
 - **Layout.** Every screen works from phone width (16px side gutters, no horizontal page scroll) up to desktop. Check both before calling interface work done.
 - **Motion.** Use `svelte/transition` and `animate:flip` for tokens, cards and buildings moving. Respect `prefers-reduced-motion`: no motion when it is set.

@@ -18,28 +18,38 @@ The owner wants it to:
 ## Commands
 
 ```sh
-npm start                     # http://127.0.0.1:3020; loads .env if present (HOST, PORT, TRUST_PROXY)
-npm test                      # every test in tests/, also run by GitHub Actions on each push
-node --test tests/static.test.mjs                        # one test file
+npm install                   # dev tools only (Svelte, Vite, svelte-check, Prettier); there are no runtime packages
+npm start                     # builds the client, then serves http://127.0.0.1:3020; loads .env if present
+npm run dev                   # Vite dev server with hot reload (http://127.0.0.1:5173) plus node --watch server.mjs
+npm run build                 # Vite builds client/ into public/
+npm test                      # builds, then runs every test in tests/
+npm run check                 # svelte-check: JSDoc types in client/ and engine/, must report 0 errors and 0 warnings
+npm run format                # Prettier (tabs, single quotes); Markdown is left alone
+node --test tests/static.test.mjs                        # one test file (run npm run build first)
 node --test --test-name-pattern="ETag" tests/*.test.mjs  # tests whose name matches
 ```
 
-The server and the engine have no runtime packages. Until the Svelte client setup issue lands, there is also no build step and nothing to install. After that, the client needs `npm install`, and Vite builds `client/` into `public/`. The setup issue adds `npm run dev`, `npm run build`, `npm run check` and `npm run format`.
+GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
 
 ## Architecture
 
 - `server.mjs` is the `node:http` server.
   - It exports `server` and `config` and only calls `listen()` when run directly, so tests start it in-process on port 0.
   - It serves files only from `public/`, resolving decoded paths and refusing anything outside the folder.
-  - Fonts and `art/` are cached for a week. Everything else gets `no-cache` with a weak ETag.
+  - Vite's hashed bundles in `assets/` are cached for a year (`immutable`), and `fonts/` and `art/` for a week. Everything else, including the page, gets `no-cache` with a weak ETag, so a new deploy is picked up at once.
   - `/api/*` requests pass a per-address rate limiter (1,800 a minute). The table API arrives in #22–#23.
 - `limits.mjs` holds `rateLimiter()` and `clientAddress()`. With `TRUST_PROXY=true`, the last `X-Forwarded-For` address counts; otherwise the header is ignored.
-- `public/` is everything the browser receives. For now that is a hand-written placeholder page (`index.html`, `style.css`), the favicon (the style C Lighthouse) and the fonts with their licence notices.
-- **Client (decided 2026-10-20).**
-  - The browser interface is **Svelte 5** with runes (5.57.2, the latest), built by **Vite** (8.3.4). SvelteKit is not used.
-  - Sources go in `client/`, and the build output goes to `public/`.
-  - The rules engine moves to `engine/`, shared by the server and the client.
-  - The target layout is in CONVENTIONS.md.
+- **Client.** The browser interface is **Svelte 5** with runes forced on (5.57.2), built by **Vite** (8.3.4), without SvelteKit. Its layout is in CONVENTIONS.md.
+  - `client/` is Vite's root:
+    - `index.html` is the shell;
+    - `src/main.js` mounts `src/App.svelte`, which is the placeholder page until #25;
+    - `src/lib/component-event.js` holds `ComponentEvent`;
+    - `src/styles/` holds `tokens.css` (design tokens) and `base.css` (fonts and page);
+    - `static/` is copied into the build as is: `fonts/` and `favicon.svg`.
+  - `public/` is the build output that `server.mjs` serves. It is git-ignored; never edit it.
+  - `scripts/dev.mjs` runs the Node server and Vite side by side. Vite proxies `/api` to the server.
+  - The configuration lives in `vite.config.js`, `svelte.config.js` (`runes: true`), `jsconfig.json` (`checkJs`, `strict`, Vite client types), `.prettierrc` and `.prettierignore`.
+  - The rules engine will live in `engine/` (#12 onward), shared by the server and the client.
 - `tests/` holds `node:test` suites. Server tests import `server` and listen on port 0, so they never need fixed ports.
 
 ## Where the work stands
@@ -52,11 +62,10 @@ Updated 2026-10-20. Update this section whenever a milestone moves.
   - The approved desktop main game screen (`docs/ui/`).
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1 is done:** the Node project, server, tests and CI exist. The page is a placeholder until #25.
+- **#1 and #44 are done:** the Node server, tests and CI exist, and the client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
 - **Ready to start:**
   - #2 Settle the unverified rules. The owner, who has a physical copy of the base game but no expansions, confirms the base-game answers.
   - #3 Design the remaining screens (assigned to lazar-milin).
-  - #44 Set up the Svelte 5 client with Vite. It blocks #4 (asset gallery) and #25 (first game screens).
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
 ## Starting on a new computer
@@ -138,7 +147,7 @@ Read the sibling projects' `CLAUDE.md` files before scaffolding (#1). The patter
   - `limits.mjs` holds the rate limits, and `.env` holds `HOST`, `PORT` (3020 here) and `TRUST_PROXY`.
 - **Tests:** `node --test`, with randomized invariant tests for the engine and the rooms, also run in GitHub Actions.
 - **Look:**
-  - Alagard for titles and VCR OSD Mono for the interface. The single copies, with their licence notices, are in `public/fonts/`. `docs/ui/main-screen.html` loads them from there.
+  - Alagard for titles and VCR OSD Mono for the interface. The single copies, with their licence notices, are in `client/static/fonts/`. `docs/ui/main-screen.html` loads them from there.
   - Art production notes stay in `docs/art/`, never in `public/`.
 - **Discord Activity (#43):** follow Bird Table.
 

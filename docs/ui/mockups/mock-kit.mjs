@@ -1,69 +1,257 @@
 // Shared wireframe pieces for the brainstorm mockups.
 const P = { you: '#4fa3e0', ana: '#e0675b', marko: '#6cc06a', vera: '#f2c14e' };
 const TRACKS = [
-  { key: 'exp', name: 'Exploration', color: '#3f8fd0', res: 'food', spaces: ['Scouting', 'Rafts', 'Wagons', 'Navigation', 'Ships', 'Tunnels', 'Trains', 'Cars', 'Airplanes', 'Space Shuttle', 'Interstellar', 'Warpgates'], at: { you: 4, ana: 2, marko: 5, vera: 1 } },
-  { key: 'sci', name: 'Science', color: '#5aad5a', res: 'worker', spaces: ['Astronomy', 'Mathematics', 'Herbalism', 'Medicine', 'Chemistry', 'Biology', 'Academic Res.', 'Nutrition', 'Physics', 'Neuroscience', 'Quantum Physics', 'Alien Biology'], at: { you: 2, ana: 1, marko: 3, vera: 6 } },
-  { key: 'tec', name: 'Technology', color: '#e09a2b', res: 'coin', spaces: ['Pottery', 'Carpentry', 'Stone Tools', 'Metallurgy', 'Glass', 'Steel', 'Rubber', 'Plastic', 'Electronics', 'Computers', 'Nanotech', 'AI Singularity'], at: { you: 5, ana: 0, marko: 2, vera: 3 } },
-  { key: 'mil', name: 'Military', color: '#c8473c', res: 'culture', spaces: ['Archery', 'Bladed Weapons', 'Walls', 'Standing Army', 'Cavalry', 'Gunpowder', 'Tanks', 'Warplanes', 'Anti-Aircraft', 'Nuclear Bomb', 'Drone Assassins', 'Mechs'], at: { you: 1, ana: 6, marko: 0, vera: 2 } },
+	{
+		key: 'exp',
+		name: 'Exploration',
+		color: '#3f8fd0',
+		res: 'food',
+		spaces: [
+			'Scouting',
+			'Rafts',
+			'Wagons',
+			'Navigation',
+			'Ships',
+			'Tunnels',
+			'Trains',
+			'Cars',
+			'Airplanes',
+			'Space Shuttle',
+			'Interstellar',
+			'Warpgates',
+		],
+		at: { you: 4, ana: 2, marko: 5, vera: 1 },
+	},
+	{
+		key: 'sci',
+		name: 'Science',
+		color: '#5aad5a',
+		res: 'worker',
+		spaces: [
+			'Astronomy',
+			'Mathematics',
+			'Herbalism',
+			'Medicine',
+			'Chemistry',
+			'Biology',
+			'Academic Res.',
+			'Nutrition',
+			'Physics',
+			'Neuroscience',
+			'Quantum Physics',
+			'Alien Biology',
+		],
+		at: { you: 2, ana: 1, marko: 3, vera: 6 },
+	},
+	{
+		key: 'tec',
+		name: 'Technology',
+		color: '#e09a2b',
+		res: 'coin',
+		spaces: [
+			'Pottery',
+			'Carpentry',
+			'Stone Tools',
+			'Metallurgy',
+			'Glass',
+			'Steel',
+			'Rubber',
+			'Plastic',
+			'Electronics',
+			'Computers',
+			'Nanotech',
+			'AI Singularity',
+		],
+		at: { you: 5, ana: 0, marko: 2, vera: 3 },
+	},
+	{
+		key: 'mil',
+		name: 'Military',
+		color: '#c8473c',
+		res: 'culture',
+		spaces: [
+			'Archery',
+			'Bladed Weapons',
+			'Walls',
+			'Standing Army',
+			'Cavalry',
+			'Gunpowder',
+			'Tanks',
+			'Warplanes',
+			'Anti-Aircraft',
+			'Nuclear Bomb',
+			'Drone Assassins',
+			'Mechs',
+		],
+		at: { you: 1, ana: 6, marko: 0, vera: 2 },
+	},
 ];
-const RES = [['Coin', '#e8c14a', 3], ['Worker', '#a9a6b8', 2], ['Food', '#b7834a', 4], ['Culture', '#d0555d', 1]];
+const RES = [
+	['Coin', '#e8c14a', 3],
+	['Worker', '#a9a6b8', 2],
+	['Food', '#b7834a', 4],
+	['Culture', '#d0555d', 1],
+];
 
-const tokens = at => Object.entries(at).map(([p, s]) => ({ p, s }));
+const tokens = (at) => Object.entries(at).map(([p, s]) => ({ p, s }));
 function trackStrip(t, { vertical = false, names = false, cell = 30 } = {}) {
-  const cells = [];
-  for (let i = 0; i <= 12; i++) {
-    const here = tokens(t.at).filter(k => k.s === i).map(k => `<i class="tok" style="background:${P[k.p]}"></i>`).join('');
-    const lm = [4, 7, 10].includes(i) && !Object.values(t.at).some(s => s >= i) ? '<b class="lm" title="landmark"></b>' : '';
-    const tier = i === 0 ? 'start' : i === 4 || i === 7 || i === 10 ? 'tierstart' : '';
-    cells.push(`<div class="sp ${tier}" style="--c:${t.color}">${names && i ? `<span class="nm">${t.spaces[i - 1]}</span>` : `<span class="no">${i || '▸'}</span>`}${lm}<span class="toks">${here}</span></div>`);
-  }
-  return `<div class="track ${vertical ? 'v' : 'h'}" style="--c:${t.color};--cell:${cell}px"><div class="tname">${t.name}</div><div class="cells">${vertical ? cells.reverse().join('') : cells.join('')}</div></div>`;
+	const cells = [];
+	for (let i = 0; i <= 12; i++) {
+		const here = tokens(t.at)
+			.filter((k) => k.s === i)
+			.map((k) => `<i class="tok" style="background:${P[k.p]}"></i>`)
+			.join('');
+		const lm =
+			[4, 7, 10].includes(i) && !Object.values(t.at).some((s) => s >= i)
+				? '<b class="lm" title="landmark"></b>'
+				: '';
+		const tier =
+			i === 0
+				? 'start'
+				: i === 4 || i === 7 || i === 10
+					? 'tierstart'
+					: '';
+		cells.push(
+			`<div class="sp ${tier}" style="--c:${t.color}">${names && i ? `<span class="nm">${t.spaces[i - 1]}</span>` : `<span class="no">${i || '▸'}</span>`}${lm}<span class="toks">${here}</span></div>`
+		);
+	}
+	return `<div class="track ${vertical ? 'v' : 'h'}" style="--c:${t.color};--cell:${cell}px"><div class="tname">${t.name}</div><div class="cells">${vertical ? cells.reverse().join('') : cells.join('')}</div></div>`;
 }
 
 function hexMap(cols = 9, rows = 7, r = 18) {
-  const w = Math.sqrt(3) * r, terr = ['#3f7a45', '#8d8794', '#d8b56a', '#b9c96a'];
-  let seed = 3; const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
-  const hexes = [];
-  for (let row = 0; row < rows; row++) for (let col = 0; col < cols; col++) {
-    const cx = w * col + (row % 2 ? w / 2 : 0) + w / 2 + 2, cy = r * 1.5 * row + r + 2;
-    const edge = row === 0 || row === rows - 1 || col === 0 || col === cols - 1;
-    const pts = Array.from({ length: 6 }, (_, k) => { const a = Math.PI / 180 * (60 * k - 30); return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`; }).join(' ');
-    const explored = !edge && rand() > 0.45;
-    const fill = edge ? '#2c5d9a' : explored ? terr[Math.floor(rand() * terr.length)] : '#2a2140';
-    hexes.push(`<polygon points="${pts}" fill="${fill}" stroke="${edge ? '#24508e' : '#1a1326'}" stroke-width="1.5"${explored || edge ? '' : ' stroke-dasharray="3 2"'}/>`);
-    if (explored && rand() > 0.55) { const p = Object.values(P)[Math.floor(rand() * 4)]; hexes.push(`<circle cx="${cx}" cy="${cy}" r="${r * 0.28}" fill="${p}" stroke="#1a1326" stroke-width="1.5"/>`); }
-  }
-  const cw = w * cols + w / 2 + 4, ch = r * 1.5 * (rows - 1) + 2 * r + 4;
-  return `<svg class="map" viewBox="0 0 ${cw.toFixed(0)} ${ch.toFixed(0)}" preserveAspectRatio="xMidYMid meet">${hexes.join('')}</svg>`;
+	const w = Math.sqrt(3) * r,
+		terr = ['#3f7a45', '#8d8794', '#d8b56a', '#b9c96a'];
+	let seed = 3;
+	const rand = () =>
+		(seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+	const hexes = [];
+	for (let row = 0; row < rows; row++)
+		for (let col = 0; col < cols; col++) {
+			const cx = w * col + (row % 2 ? w / 2 : 0) + w / 2 + 2,
+				cy = r * 1.5 * row + r + 2;
+			const edge =
+				row === 0 || row === rows - 1 || col === 0 || col === cols - 1;
+			const pts = Array.from({ length: 6 }, (_, k) => {
+				const a = (Math.PI / 180) * (60 * k - 30);
+				return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
+			}).join(' ');
+			const explored = !edge && rand() > 0.45;
+			const fill = edge
+				? '#2c5d9a'
+				: explored
+					? terr[Math.floor(rand() * terr.length)]
+					: '#2a2140';
+			hexes.push(
+				`<polygon points="${pts}" fill="${fill}" stroke="${edge ? '#24508e' : '#1a1326'}" stroke-width="1.5"${explored || edge ? '' : ' stroke-dasharray="3 2"'}/>`
+			);
+			if (explored && rand() > 0.55) {
+				const p = Object.values(P)[Math.floor(rand() * 4)];
+				hexes.push(
+					`<circle cx="${cx}" cy="${cy}" r="${r * 0.28}" fill="${p}" stroke="#1a1326" stroke-width="1.5"/>`
+				);
+			}
+		}
+	const cw = w * cols + w / 2 + 4,
+		ch = r * 1.5 * (rows - 1) + 2 * r + 4;
+	return `<svg class="map" viewBox="0 0 ${cw.toFixed(0)} ${ch.toFixed(0)}" preserveAspectRatio="xMidYMid meet">${hexes.join('')}</svg>`;
 }
 
 function capital(cell = 14) {
-  const blocked = new Set(['0,0', '0,1', '1,0', '8,8', '7,8', '8,7', '0,8', '8,0', '4,4', '0,4', '4,0', '8,4', '4,8', '1,8', '8,1', '2,0']);
-  const built = { '3,3': '#e8c14a', '3,4': '#a9a6b8', '5,2': '#b7834a', '2,6': '#c8473c', '6,6': '#e8c14a' };
-  let cells = '';
-  for (let y = 0; y < 9; y++) for (let x = 0; x < 9; x++) {
-    const k = `${x},${y}`, lh = x >= 5 && x <= 6 && y >= 3 && y <= 4;
-    cells += `<i style="background:${blocked.has(k) ? '#1a1326' : lh ? '#3f8fd0' : built[k] || '#3b2f52'}"></i>`;
-  }
-  return `<div class="capital" style="--cell:${cell}px">${cells}</div>`;
+	const blocked = new Set([
+		'0,0',
+		'0,1',
+		'1,0',
+		'8,8',
+		'7,8',
+		'8,7',
+		'0,8',
+		'8,0',
+		'4,4',
+		'0,4',
+		'4,0',
+		'8,4',
+		'4,8',
+		'1,8',
+		'8,1',
+		'2,0',
+	]);
+	const built = {
+		'3,3': '#e8c14a',
+		'3,4': '#a9a6b8',
+		'5,2': '#b7834a',
+		'2,6': '#c8473c',
+		'6,6': '#e8c14a',
+	};
+	let cells = '';
+	for (let y = 0; y < 9; y++)
+		for (let x = 0; x < 9; x++) {
+			const k = `${x},${y}`,
+				lh = x >= 5 && x <= 6 && y >= 3 && y <= 4;
+			cells += `<i style="background:${blocked.has(k) ? '#1a1326' : lh ? '#3f8fd0' : built[k] || '#3b2f52'}"></i>`;
+		}
+	return `<div class="capital" style="--cell:${cell}px">${cells}</div>`;
 }
 
 function incomeMat(small = false) {
-  const cols = [['Markets', '#e8c14a', 2], ['Houses', '#a9a6b8', 1], ['Farms', '#b7834a', 2], ['Armories', '#c8473c', 1]];
-  const col = ([n, c, used]) => `<div class="icol"><span>${small ? n[0] : n}</span>${Array.from({ length: 6 }, (_, i) => `<i style="background:${i < used ? '#2a2140' : c}">${i < used ? '+' : ''}</i>`).join('')}</div>`;
-  const slots = ['Maker of Fire', 'Trade Economy', '', '', ''].map((t, i) => `<i class="${t ? 'full' : ''}">${small ? (t ? 'E' + (i + 1) : '') : t || 'Era ' + (i + 1)}</i>`).join('');
-  return `<div class="income ${small ? 'small' : ''}"><div class="icols">${cols.map(col).join('')}</div><div class="slots">${slots}</div></div>`;
+	const cols = [
+		['Markets', '#e8c14a', 2],
+		['Houses', '#a9a6b8', 1],
+		['Farms', '#b7834a', 2],
+		['Armories', '#c8473c', 1],
+	];
+	const col = ([n, c, used]) =>
+		`<div class="icol"><span>${small ? n[0] : n}</span>${Array.from({ length: 6 }, (_, i) => `<i style="background:${i < used ? '#2a2140' : c}">${i < used ? '+' : ''}</i>`).join('')}</div>`;
+	const slots = ['Maker of Fire', 'Trade Economy', '', '', '']
+		.map(
+			(t, i) =>
+				`<i class="${t ? 'full' : ''}">${small ? (t ? 'E' + (i + 1) : '') : t || 'Era ' + (i + 1)}</i>`
+		)
+		.join('');
+	return `<div class="income ${small ? 'small' : ''}"><div class="icols">${cols.map(col).join('')}</div><div class="slots">${slots}</div></div>`;
 }
 
-const resources = () => `<div class="res">${RES.map(([n, c, v]) => `<span><i style="background:${c}"></i>${v}<em>${n}</em></span>`).join('')}<span class="vp">37<em>VP</em></span><span class="era">Era 2</span></div>`;
-const hand = (n = 3) => `<div class="hand">${['Trade Economy', 'Marathon', 'Trap', 'Alliance'].slice(0, n).map(t => `<div class="card">${t}</div>`).join('')}</div>`;
-const tech = () => `<div class="tech"><div class="trow"><span>Top</span><div class="card t">Printing Press</div></div><div class="trow"><span>Mid</span><div class="card t">Irrigation</div></div><div class="trow"><span>Bottom</span><div class="card t">Bakery</div><div class="card t">Gunpowder</div></div></div>`;
-const header = () => `<div class="hdr"><b>The Rug Game</b><div class="chips">${[['You', 'Alchemists', 37, P.you, true], ['Ana', 'Militants', 41, P.ana], ['Marko', 'Nomads', 33, P.marko], ['Vera', 'Futurists', 29, P.vera]].map(([n, c, v, col, me]) => `<span class="chip ${me ? 'me' : ''}" style="--p:${col}"><i></i>${n}<em>${c} · ${v} VP</em></span>`).join('')}</div><div class="ctl">♪ ⏱ ↶ ☰</div></div>`;
-const decision = (wide = true) => `<div class="decide"><b>Your turn · Era 2.</b> ${wide ? 'Choose a track to advance, or take your income turn.' : 'Advance or take income.'}<button>Income turn</button></div>`;
+const resources = () =>
+	`<div class="res">${RES.map(([n, c, v]) => `<span><i style="background:${c}"></i>${v}<em>${n}</em></span>`).join('')}<span class="vp">37<em>VP</em></span><span class="era">Era 2</span></div>`;
+const hand = (n = 3) =>
+	`<div class="hand">${['Trade Economy', 'Marathon', 'Trap', 'Alliance']
+		.slice(0, n)
+		.map((t) => `<div class="card">${t}</div>`)
+		.join('')}</div>`;
+const tech = () =>
+	`<div class="tech"><div class="trow"><span>Top</span><div class="card t">Printing Press</div></div><div class="trow"><span>Mid</span><div class="card t">Irrigation</div></div><div class="trow"><span>Bottom</span><div class="card t">Bakery</div><div class="card t">Gunpowder</div></div></div>`;
+const header = () =>
+	`<div class="hdr"><b>The Rug Game</b><div class="chips">${[
+		['You', 'Alchemists', 37, P.you, true],
+		['Ana', 'Militants', 41, P.ana],
+		['Marko', 'Nomads', 33, P.marko],
+		['Vera', 'Futurists', 29, P.vera],
+	]
+		.map(
+			([n, c, v, col, me]) =>
+				`<span class="chip ${me ? 'me' : ''}" style="--p:${col}"><i></i>${n}<em>${c} · ${v} VP</em></span>`
+		)
+		.join('')}</div><div class="ctl">♪ ⏱ ↶ ☰</div></div>`;
+const decision = (wide = true) =>
+	`<div class="decide"><b>Your turn · Era 2.</b> ${wide ? 'Choose a track to advance, or take your income turn.' : 'Advance or take income.'}<button>Income turn</button></div>`;
 
 function nextMoves() {
-  const info = { exp: ['Ships', '+1 VP per territory you control', 'food + any', true], sci: ['Herbalism', 'Roll the science die, or gain a house', 'any', true], tec: ['Steel', 'Gain 1 market, +1 VP per armory', 'coin + any', true], mil: ['Bladed Weapons', 'Gain 1 tapestry card', 'any', true] };
-  return `<div class="moves"><h4>Your next moves</h4>${TRACKS.map(t => { const [nm, ben, cost, ok] = info[t.key]; return `<div class="move" style="--c:${t.color}"><div><b>${t.name} → ${nm}</b><small>${ben}</small></div><div class="cost ${ok ? 'ok' : ''}">${cost}</div></div>`; }).join('')}<div class="move inc"><div><b>Income turn (Era 3)</b><small>Civ ability · play a tapestry card · upgrade a tech · score · income</small></div></div></div>`;
+	const info = {
+		exp: ['Ships', '+1 VP per territory you control', 'food + any', true],
+		sci: [
+			'Herbalism',
+			'Roll the science die, or gain a house',
+			'any',
+			true,
+		],
+		tec: ['Steel', 'Gain 1 market, +1 VP per armory', 'coin + any', true],
+		mil: ['Bladed Weapons', 'Gain 1 tapestry card', 'any', true],
+	};
+	return `<div class="moves"><h4>Your next moves</h4>${TRACKS.map((t) => {
+		const [nm, ben, cost, ok] = info[t.key];
+		return `<div class="move" style="--c:${t.color}"><div><b>${t.name} → ${nm}</b><small>${ben}</small></div><div class="cost ${ok ? 'ok' : ''}">${cost}</div></div>`;
+	}).join(
+		''
+	)}<div class="move inc"><div><b>Income turn (Era 3)</b><small>Civ ability · play a tapestry card · upgrade a tech · score · income</small></div></div></div>`;
 }
 
 const css = `<style>
@@ -100,5 +288,19 @@ const css = `<style>
 .note{position:absolute;background:#f2d58c;color:#1a1326;font-size:10px;padding:3px 6px;border-radius:4px;font-family:VCR,monospace}
 </style>`;
 
-
-export { P, TRACKS, RES, trackStrip, hexMap, capital, incomeMat, resources, hand, tech, header, decision, nextMoves, css };
+export {
+	P,
+	TRACKS,
+	RES,
+	trackStrip,
+	hexMap,
+	capital,
+	incomeMat,
+	resources,
+	hand,
+	tech,
+	header,
+	decision,
+	nextMoves,
+	css,
+};

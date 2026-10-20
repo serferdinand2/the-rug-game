@@ -28,14 +28,16 @@ This section always shows the latest approved or built interface. The colours an
 
 ## Run locally
 
-You need Node.js 22.9 or newer. There are no packages to install.
+You need Node.js 22.9 or newer. The only packages are development tools (Svelte, Vite, svelte-check, Prettier). The server itself has no runtime packages.
 
 ```sh
-npm start   # http://127.0.0.1:3020
+npm install
+npm start      # builds the Svelte client, then serves http://127.0.0.1:3020
+npm run dev    # hot-reloading development server on http://127.0.0.1:5173
 npm test
 ```
 
-Copy [.env.example](.env.example) to `.env` to change the host or port, or to trust a reverse proxy. For now the server shows a placeholder page; the game screens arrive with milestone M5.
+Copy [.env.example](.env.example) to `.env` to change the host or port, or to trust a reverse proxy. For now the app shows a placeholder page; the game screens arrive with milestone M5.
 
 ## Art style
 
@@ -73,4 +75,4 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 ## Licence
 
-[GPL-3.0-only](LICENSE), like the sibling projects. The fonts keep their authors' terms: Alagard by Hewett Tsoi (Pix3M) and VCR OSD Mono by Riciery Leal (MrManet). Their notices are in [public/fonts/](public/fonts/).
+[GPL-3.0-only](LICENSE), like the sibling projects. The fonts keep their authors' terms: Alagard by Hewett Tsoi (Pix3M) and VCR OSD Mono by Riciery Leal (MrManet). Their notices are in [client/static/fonts/](client/static/fonts/).

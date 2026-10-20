@@ -1,0 +1,29 @@
+/* Global base styles: the pixel fonts and the page background. Component styles live in their components. */
+@font-face {
+	font-family: Alagard;
+	src: url('/fonts/alagard.ttf') format('truetype');
+	font-display: swap;
+}
+
+@font-face {
+	font-family: VCR;
+	src: url('/fonts/vcr-osd-mono.ttf') format('truetype');
+	font-display: swap;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	background: radial-gradient(circle at 50% 30%, var(--dusk), var(--night))
+		fixed var(--night);
+	color: var(--text);
+	font-family: var(--font-body);
+}
+
+a {
+	color: var(--gold);
+}
