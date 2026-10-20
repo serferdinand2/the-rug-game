@@ -4,6 +4,8 @@ These are the approved interface designs for The Rug Game. Build the game screen
 
 The colours and boxes are placeholders. The final artwork follows art style C (see the design document).
 
+Whenever a design here changes, or a screen gets built, update `screens/` and the "Current interface" section of the root [README.md](../../README.md) in the same commit. The README always shows the newest interface.
+
 ## Main game screen (desktop)
 
 Approved by the owner on 2026-10-20. It is layout B from the brainstorm, with the "Your next moves" list removed so the tracks get the full width.

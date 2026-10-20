@@ -4,71 +4,146 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-The Rug Game will be a browser version of Stonemaier Games' **Tapestry** (2019). It keeps Tapestry's original theme: civilizations advancing through eras on the exploration, science, technology and military tracks, plus arts with Arts & Architecture. It will include every official expansion.
+The Rug Game is a browser version of Stonemaier Games' **Tapestry**, with every official expansion. It keeps Tapestry's original theme: civilizations advancing through eras on the exploration, science, technology and military tracks, plus arts with Arts & Architecture.
 
-The project's owner set three requirements:
-- Use the same setup and approach as the sibling projects Fablewood Rummy and Bird Table.
-- Use the same pixel-art style as those games.
-- Meet the same goals as those games.
+The owner wants it to:
+- use the same setup and approach as their games Fablewood Rummy and Bird Table;
+- look like those games;
+- meet the same goals: online tables, hot-seat play and solo play.
 
-**Current state:** research only. There is no code, `package.json`, test suite or git repository yet. Before writing code, finish the design conversation, write a design document and get the owner's approval. Then plan the build in playable stages: base game, bots, Plans & Ploys, Arts & Architecture, then Fantasies & Futures. Each stage is large.
+`README.md` is the public overview. [docs/superpowers/specs/2026-10-20-the-rug-game-design.md](docs/superpowers/specs/2026-10-20-the-rug-game-design.md) is the full design document: decisions, scope and the 43-issue build plan.
 
-## Reference projects
+## Where the work stands
 
-These sibling directories under `~/Work` define the setup to copy. Read their `CLAUDE.md` before scaffolding anything, and never modify them.
+Updated 2026-10-20. Update this section whenever a milestone moves.
 
-- `../fablewood-rummy` is the closest template:
-  - Node.js 22.9+, no runtime packages and no build step.
-  - A DOM-independent rules engine in `public/engine.js`, shared by the server and the browser.
-  - `server.mjs` with in-memory rooms keyed by table codes, rate limits in `limits.mjs`, and every response filtered through `view()`.
-  - Online, hot-seat and bot practice modes, with host controls for timer and undo.
-  - Tests run with `node --test tests/*.test.mjs`.
-  - Alagard and VCR OSD Mono fonts.
-  - Vector pixel-art SVGs, produced with `tools/px2svg.py`.
-  - Art prompts are kept in `docs/art/`, outside `public/`.
-- `../birdcard-ripoff` (Bird Table) adds:
-  - Running as a Discord Activity.
-  - Long polling with `GET /api/state?since=<version>`.
-  - Typed per-move events driving animation, sound and the table log.
-  - Pure room transitions with randomized invariant tests.
-- `../bugtile-ripoff` (BugTile) shows host-selectable, combinable expansions.
+- **Done:**
+  - Rules research (`docs/research/`).
+  - The approved design document.
+  - The approved desktop main game screen (`docs/ui/`).
+  - The approved art style C (`docs/art/`).
+  - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
+- **No code exists yet.** There is no `package.json`, `public/` or test suite.
+- **Ready to start:**
+  - #1 Set up the Node project.
+  - #2 Settle the unverified rules. This needs the owner, who has a physical copy of the base game, but no expansions.
+  - #3 Design the remaining screens.
+- **Everything else is blocked** until earlier issues close (see "Working on issues").
+
+## Starting on a new computer
+
+1. Clone `https://github.com/serferdinand2/the-rug-game` and run `gh auth login` with your own GitHub account. The owner (serferdinand2) must have added you as a collaborator before you can push, comment or close issues.
+2. Install Node.js 22.9 or newer. Once #1 lands, `npm start` and `npm test` are the commands.
+3. Optionally clone the sibling projects next to this repository, read-only, to copy their setup. All are public:
+   - [lazar-milin/fablewood-rummy](https://github.com/lazar-milin/fablewood-rummy) is the closest template.
+   - [lazar-milin/birdcard-ripoff](https://github.com/lazar-milin/birdcard-ripoff) is Bird Table.
+   - [lazar-milin/bugtile-ripoff](https://github.com/lazar-milin/bugtile-ripoff) is BugTile.
+
+   Never modify them from this project.
+4. These things are not in the repository and don't need to be:
+   - the research source PDFs, which are copyrighted (each research file lists its source URLs);
+   - the brainstorming companion's session files (`.superpowers/`, ignored);
+   - the previous agent's local memory. Everything that matters is in this file and `docs/`.
+
+## Working on issues
+
+- **Order.** Work milestone by milestone, M0 to M11, as shown by the `M… · …` labels and milestones.
+  - Before starting an issue, check its blockers. Never start a blocked issue.
+  - On GitHub, the blockers are under **Relationships → Blocked by**, and each blocked issue also has a "Blocked by" comment.
+  - From the command line: `gh api repos/serferdinand2/the-rug-game/issues/<n>/dependencies/blocked_by --jq '.[] | "\(.number) \(.state) \(.title)"'`.
+  - An issue is ready when every blocker is `closed`.
+- **Pace.** The owner works issue by issue. Plan each issue before coding: break it into steps, then build it test-first. Reference the issue number in commits and pull requests, as in "Fix #12: …" or "Refs #9: …", and close the issue only when its checklist is done.
+- **New issues** use the layout of the existing ones:
+  - **Issue** (with an **Example**);
+  - **Current problem** (only if something is wrong today);
+  - **Proposed solution** (with a checkbox list);
+  - **Related issues**.
+
+  Give each one a type label (`enhancement`, `bug` or `documentation`), its milestone, and the matching `M… · …` label. If it depends on other issues, add a blocked-by link with `gh api -X POST repos/serferdinand2/the-rug-game/issues/<n>/dependencies/blocked_by -F issue_id=<database id of the blocker>`, plus a "Blocked by" comment. The database id comes from `gh api repos/serferdinand2/the-rug-game/issues/<blocker> --jq .id`. GitHub sometimes answers 5xx on this endpoint; retrying works.
+- **Owner approvals.** The owner approves anything visual before it is built:
+  - Show interface ideas as clickable HTML mockups with screenshots, not descriptions.
+  - The owner approves each art batch in the asset gallery (#4).
+  - Keep asking for decisions that change what gets built, and record each answer in the design document.
+
+## The README always shows the current interface
+
+The owner's standing rule: whenever the interface changes, `README.md` must show the newest version in the same commit. This applies both to an approved mockup and to a built screen.
+
+- Screenshots live in `docs/ui/screens/`. Replace them, and update the "Current interface" section and `docs/ui/README.md`.
+- Mockups are regenerated with `node docs/ui/mockups/gen-tabs.mjs docs/ui/main-screen.html --standalone`. Serve `docs/ui/` over HTTP, for example with `python3 -m http.server 52990 --bind 127.0.0.1`, because some browser tools block `file://`. Then screenshot each `.sec .screen` element.
+- Once the game exists, take the screenshots from the running game instead of the mockups.
+
+## Decisions already made
+
+The design document has the details. In short:
+- **Tables.**
+  - Online (table code), hot-seat and solo modes, for 1–5 players.
+  - The creator of a table chooses its expansions and its version: the original 2019 printing, or the current official rules with all errata and adjustments.
+  - The 2024 Revised Civilization Pack is out of scope.
+  - A player who leaves keeps an "away" seat, as in Bird Table.
+- **Bots.** The only bots are the official Automa and Shadow Empire, exactly as in the real game. There are no bot seats in multiplayer and no bot takeover of a seat.
+- **Art.**
+  - Style C: 64×64 pixel-art scenes in card frames, drawn as vector SVG with one `crispEdges` path per colour. The reference is `docs/art/style-c/lighthouse-scene.svg`.
+  - Small pieces, such as resources, buildings, outposts, dice, terrain and landmark grid markers, are simple icons in the same palette.
+  - The order is to design the interface first, then show every asset in a gallery page, then build the game.
+- **Interface.** The main screen has a tabbed centre view (Tracks, Map, Capital, Cards, Players), a decision bar beneath it and a status panel on the right.
+  - Tracks is the default view on your turn. Your next space on each track shows its cost.
+  - The view switches by itself when a choice needs another tab.
+  - See `docs/ui/README.md`.
+- **Gaps in the sources.** The owner has only the base game. Expansion content that no source shows is left out, never invented, and the README lists it (#2).
+
+## Setup to copy from the sibling projects
+
+Read the sibling projects' `CLAUDE.md` files before scaffolding (#1). The patterns to reuse:
+- **Code:**
+  - Node.js 22.9+, ES modules, no runtime packages and no build step for our own code.
+  - A DOM-independent rules engine shared by the server and the browser.
+  - `createGame()`, and `play()`, which returns a new state from a `structuredClone`.
+  - `PlayerError` for messages meant for players.
+  - Typed events with an increasing `seq`.
+- **Server:**
+  - `server.mjs` on `node:http` keeps rooms in memory.
+  - Every response goes through `view()`, which hides private information.
+  - Clients long-poll `GET /api/state?since=<version>`, and stale moves are rejected with 409.
+  - `limits.mjs` holds the rate limits, and `.env` holds `HOST`, `PORT` (3020 here) and `TRUST_PROXY`.
+- **Tests:** `node --test`, with randomized invariant tests for the engine and the rooms, also run in GitHub Actions.
+- **Look:**
+  - Alagard for titles and VCR OSD Mono for the interface. Copies with their licence notices are in `docs/ui/fonts/`; #1 moves them to `public/fonts/`.
+  - Art production notes stay in `docs/art/`, never in `public/`.
+- **Discord Activity (#43):** follow Bird Table.
 
 ## Rules research (`docs/research/`)
 
 These files are the rules source for the engine. Use them instead of researching Tapestry again.
 
-- `01-base-core-rules.md` covers setup, the four tracks space by space, income turns, the income mat, capital cities, the map, conquering, achievements, scoring and the official FAQ.
-  - Its §6 and appendices A and B have all 6 capital-mat grids, the pre-printed map hexes and all 48 territory tiles.
-  - `02-base-content.md` §6–7 is incomplete on these, so take them from 01.
+- `01-base-core-rules.md` covers:
+  - setup, the four tracks space by space, income turns and the income mat;
+  - the capital city, the map, conquering, achievements and scoring;
+  - the official FAQ.
+
+  Its §6 and appendices A and B have all 6 capital-mat grids, the map hexes and all 48 territory tiles. `02-base-content.md` §6–7 is incomplete on these, so take them from 01.
 - `02-base-content.md` covers:
-  - The 16 base civilizations and their balance adjustments.
-  - The 43 tapestry cards plus 7 traps.
-  - The 33 tech cards and 18 landmarks with footprints.
-  - The full Automa and Shadow Empire solo procedure.
-- `03-expansions.md` covers Plans & Ploys, Arts & Architecture, Fantasies & Futures, the 2024 Revised Civilization Pack, and the setup-adjustment history.
-  - Its §7 holds the cross-expansion combination rules, for example:
-    - Removing cards that mention the arts track when that track is off.
-    - Never mixing basic and advanced capital mats.
-    - Using the d20 science die when the arts track is in play.
-  - There are no promos.
+  - the 16 base civilizations and their balance adjustments;
+  - 43 tapestry cards plus 7 traps;
+  - 33 tech cards and 18 landmarks with footprints;
+  - the full Automa and Shadow Empire procedure.
+- `03-expansions.md` covers:
+  - Plans & Ploys, Arts & Architecture and Fantasies & Futures;
+  - the Revised Civilization Pack, kept for reference only;
+  - the history of setup adjustments.
 
-How to read the research files:
-- Effects are paraphrased, with every number kept exact.
-- Source tags show where a fact came from. The trust order is: the Fantasies & Futures integrated rulebook, then the Plans & Ploys rulebook and the Stonemaier FAQ, then the base rulebook, then the printed art, then the open-source Board Game Arena implementation.
-- A civilization uses either its original mat with the Fantasies & Futures adjustment list, or its revised mat with no adjustments. Never mix both for one civilization.
-- Items marked **[UNVERIFIED]** are working assumptions. When the engine depends on one, choose a rule deliberately, cover it in tests and record it as a rules convention. Bird Table's `README.md` and `CLAUDE.md` show how. Known cases:
-  - Nothing official breaks a tie left after the tallest-landmark tiebreaker.
-  - One Plans & Ploys tapestry card is known only by a partial name.
-  - The Polluters civilization's text is incomplete.
-  - Landmark rotation is unconfirmed.
+  Its §7 holds the cross-expansion combination rules. There are no promos.
 
-## Open decisions
+How to read the research:
+- Effects are paraphrased, with every number exact.
+- The source trust order is:
+  1. the Fantasies & Futures integrated rulebook;
+  2. the Plans & Ploys rulebook and the Stonemaier FAQ;
+  3. the base rulebook;
+  4. the printed art;
+  5. the Board Game Arena implementation.
+- About 95 items are marked **[UNVERIFIED]**. #2 settles each one into a "Rules conventions" section of the README. Never guess one silently in code.
 
-The owner has not settled these. Ask before assuming them:
-- **Artwork.** Will the owner generate images themselves, as with Fablewood's OpenAI images converted through `px2svg.py`, or should the art be code-drawn pixel SVG?
-- **Discord Activity.** Should the game run inside Discord, like Bird Table and BugTile?
-- **Expansions.** Can the host toggle each expansion on and off?
-- **Bots.** Should the official Automa and Shadow Empire act as the practice bots?
-- **Name and branding.** Should the game be called "The Rug Game" and ship without Stonemaier logos or artwork? The sibling projects ship no official art.
+## Not version-controlled
 
-`.playwright-mcp/` holds browser-session logs from earlier exploration, not project files. Leave it out of version control.
+`.playwright-mcp/` (browser-tool logs) and `.superpowers/` (brainstorm sessions) are local scratch folders and stay ignored.

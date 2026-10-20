@@ -1,6 +1,6 @@
 # The Rug Game: design and build plan
 
-Date: 2026-10-20. Status: draft for the owner's review. Once approved, each item in the build plan becomes one GitHub issue in `serferdinand2/the-rug-game`.
+Date: 2026-10-20. Status: approved by the owner. Every item in the build plan is filed as a GitHub issue with the same number in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues) (#1–#43), with blocked-by links that enforce the order.
 
 Items marked **(my call)** are decisions I made that the owner has not confirmed. Everything else is either the owner's decision or comes from the sibling projects the owner said to copy.
 
