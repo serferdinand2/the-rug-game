@@ -54,9 +54,12 @@ The rules come from the research in `docs/research/`.
 
 From the sibling projects (owner: "same setup and approach"):
 - **Server and code:**
-  - Node.js 22.9+, no runtime packages, no build step for our own code.
-  - Plain ES modules in `public/`, served by a single `server.mjs`.
-  - The rules engine is DOM-independent and shared by the server and the browser.
+  - Node.js 22.9+. No runtime packages on the server or in the rules engine.
+  - **The browser client is Svelte 5 (runes) built with Vite, without SvelteKit** (owner, 2026-10-20).
+    - Written in JavaScript with JSDoc; the rules are in `CONVENTIONS.md`.
+    - Sources are in `client/` and build into `public/`, which a single `server.mjs` serves.
+    - This replaces Fablewood's "no build step" rule for the client only.
+  - The rules engine is DOM-independent, lives in `engine/`, and is shared by the server and the browser.
   - Every response goes through `view()`, which hides private information.
   - `PlayerError` carries the messages meant for players.
   - Clients long-poll `GET /api/state?since=<version>`, and stale moves are rejected with 409.

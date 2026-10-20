@@ -11,6 +11,8 @@ The owner wants it to:
 - look like those games;
 - meet the same goals: online tables, hot-seat play and solo play.
 
+**Before writing any code, read [CONVENTIONS.md](CONVENTIONS.md).** It has the coding conventions: JavaScript with JSDoc (no TypeScript), Svelte 5 component structure, BEM classes with the `rg-` prefix, handler and callback naming, `ComponentEvent`, engine rules, tests and commits. The quick checklist is repeated at the end of this file.
+
 `README.md` is the public overview. [docs/superpowers/specs/2026-10-20-the-rug-game-design.md](docs/superpowers/specs/2026-10-20-the-rug-game-design.md) is the full design document: decisions, scope and the 43-issue build plan.
 
 ## Commands
@@ -22,7 +24,7 @@ node --test tests/static.test.mjs                        # one test file
 node --test --test-name-pattern="ETag" tests/*.test.mjs  # tests whose name matches
 ```
 
-There are no runtime packages and no build step, so `npm install` isn't needed.
+The server and the engine have no runtime packages. Until the Svelte client setup issue lands, there is also no build step and nothing to install. After that, the client needs `npm install`, and Vite builds `client/` into `public/`. The setup issue adds `npm run dev`, `npm run build`, `npm run check` and `npm run format`.
 
 ## Architecture
 
@@ -32,7 +34,12 @@ There are no runtime packages and no build step, so `npm install` isn't needed.
   - Fonts and `art/` are cached for a week. Everything else gets `no-cache` with a weak ETag.
   - `/api/*` requests pass a per-address rate limiter (1,800 a minute). The table API arrives in #22–#23.
 - `limits.mjs` holds `rateLimiter()` and `clientAddress()`. With `TRUST_PROXY=true`, the last `X-Forwarded-For` address counts; otherwise the header is ignored.
-- `public/` is everything the browser receives. For now that is a placeholder page (`index.html`, `style.css`), the favicon (the style C Lighthouse) and the fonts with their licence notices.
+- `public/` is everything the browser receives. For now that is a hand-written placeholder page (`index.html`, `style.css`), the favicon (the style C Lighthouse) and the fonts with their licence notices.
+- **Client (decided 2026-10-20).**
+  - The browser interface is **Svelte 5** with runes (5.57.2, the latest), built by **Vite** (8.3.4). SvelteKit is not used.
+  - Sources go in `client/`, and the build output goes to `public/`.
+  - The rules engine moves to `engine/`, shared by the server and the client.
+  - The target layout is in CONVENTIONS.md.
 - `tests/` holds `node:test` suites. Server tests import `server` and listen on port 0, so they never need fixed ports.
 
 ## Where the work stands
@@ -49,6 +56,7 @@ Updated 2026-10-20. Update this section whenever a milestone moves.
 - **Ready to start:**
   - #2 Settle the unverified rules. The owner, who has a physical copy of the base game but no expansions, confirms the base-game answers.
   - #3 Design the remaining screens (assigned to lazar-milin).
+  - #44 Set up the Svelte 5 client with Vite. It blocks #4 (asset gallery) and #25 (first game screens).
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
 ## Starting on a new computer
@@ -111,13 +119,14 @@ The design document has the details. In short:
   - Tracks is the default view on your turn. Your next space on each track shows its cost.
   - The view switches by itself when a choice needs another tab.
   - See `docs/ui/README.md`.
+- **Client framework.** Svelte 5 (runes) and Vite for the browser only, written in JavaScript with JSDoc. SvelteKit adds nothing for a single game screen behind a custom long-poll server. The server and the rules engine stay plain Node with no packages.
 - **Gaps in the sources.** The owner has only the base game. Expansion content that no source shows is left out, never invented, and the README lists it (#2).
 
 ## Setup to copy from the sibling projects
 
 Read the sibling projects' `CLAUDE.md` files before scaffolding (#1). The patterns to reuse:
 - **Code:**
-  - Node.js 22.9+, ES modules, no runtime packages and no build step for our own code.
+  - Node.js 22.9+ and ES modules. No runtime packages on the server or in the engine. The Svelte client is the one exception with a build step.
   - A DOM-independent rules engine shared by the server and the browser.
   - `createGame()`, and `play()`, which returns a new state from a `structuredClone`.
   - `PlayerError` for messages meant for players.
@@ -168,3 +177,21 @@ How to read the research:
 ## Not version-controlled
 
 `.playwright-mcp/` (browser-tool logs) and `.superpowers/` (brainstorm sessions) are local scratch folders and stay ignored.
+
+## Conventions quick checklist
+
+The full rules, with examples, are in [CONVENTIONS.md](CONVENTIONS.md).
+
+- [ ] Prettier formatting (tabs, single quotes), braces on every `if`/`else`, and `npm run check` is clean
+- [ ] The file starts with a one-line comment; exported functions and types have JSDoc; no TypeScript
+- [ ] Game rules live in `engine/`, never in the server or a component; engine functions are pure, return new state, emit events and throw `PlayerError` for player mistakes
+- [ ] No `Math.random()` in game logic, because randomness is injected
+- [ ] Svelte components:
+  - a `<script module>` with `@typedef`, `@property` and `@example`;
+  - `$props()` with a `/** @type {Props} */` annotation;
+  - `{...attr}` spread on the root element, with `class` merged.
+- [ ] Handlers are named `{action}Handler`; callback props are named `on{ComponentName}{Action}` and receive a `ComponentEvent`
+- [ ] CSS classes use the `rg-{component}--{element|modifier}` BEM pattern; colours come from design tokens
+- [ ] State uses `$state()`, `$derived()` (preferred) and `$effect()`; bindable props use `$bindable()`
+- [ ] Phone and desktop widths are checked; reduced motion and the keyboard work
+- [ ] Tests were written first and `npm test` passes; the commit references its issue; the README shows the current interface

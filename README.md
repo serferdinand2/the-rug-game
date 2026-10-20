@@ -3,8 +3,9 @@
 A browser version of Stonemaier Games' **Tapestry** with every official expansion: Plans & Ploys, Arts & Architecture, and Fantasies & Futures. You can play it online with a table code, hot-seat on one screen, or solo against the official Automa and Shadow Empire. The table's creator picks the version and expansions. Version means the original 2019 printing or the current official rules.
 
 It is built like the author's other table games, [Fablewood Rummy](https://github.com/lazar-milin/fablewood-rummy) and [Bird Table](https://github.com/lazar-milin/birdcard-ripoff):
-- plain Node.js with no runtime packages;
+- a plain Node.js server with no runtime packages;
 - a shared rules engine;
+- a Svelte 5 interface built with Vite;
 - vector pixel-art in the Alagard and VCR OSD Mono fonts.
 
 No official Stonemaier artwork, logos or rulebook text are used.
@@ -68,6 +69,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 | [docs/ui/](docs/ui/) | Approved interface designs, screenshots, and the scripts that generate them |
 | [docs/art/](docs/art/) | Art production notes and the approved style reference |
 | [CLAUDE.md](CLAUDE.md) | Guidance for contributors and coding agents, including where the work stands |
+| [CONVENTIONS.md](CONVENTIONS.md) | Coding conventions: JavaScript with JSDoc, Svelte 5 components, BEM classes, the engine, tests and commits |
 
 ## Licence
 
