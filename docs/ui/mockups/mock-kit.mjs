@@ -21,7 +21,7 @@ function trackStrip(t, { vertical = false, names = false, cell = 30 } = {}) {
 }
 
 function hexMap(cols = 9, rows = 7, r = 18) {
-  const w = Math.sqrt(3) * r, terr = ['#9ab35a', '#3f7a45', '#8d8794', '#d8b56a', '#b9c96a'];
+  const w = Math.sqrt(3) * r, terr = ['#3f7a45', '#8d8794', '#d8b56a', '#b9c96a'];
   let seed = 3; const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
   const hexes = [];
   for (let row = 0; row < rows; row++) for (let col = 0; col < cols; col++) {

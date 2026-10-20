@@ -40,7 +40,7 @@ function tracksView() {
 
 // ---------- Map ----------
 function mapView() {
-  const legend = [['Plains', '#9ab35a'], ['Forest', '#3f7a45'], ['Mountains', '#8d8794'], ['Desert', '#d8b56a'], ['Grassland', '#b9c96a'], ['Sea', '#2c5d9a'], ['Unexplored', '#2a2140']]
+  const legend = [['Forest', '#3f7a45'], ['Mountain', '#8d8794'], ['Desert', '#d8b56a'], ['Grassland', '#b9c96a'], ['Sea', '#2c5d9a'], ['Unexplored', '#2a2140']]
     .map(([n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join('');
   return `<div class="mapwrap">${hexMap(11, 8, 22)}<div class="legend"><h4>Map</h4>${legend}<h4>Outposts</h4>${Object.entries({ You: P.you, Ana: P.ana, Marko: P.marko, Vera: P.vera }).map(([n, c]) => `<span><i style="background:${c};border-radius:50%"></i>${n}</span>`).join('')}<p class="hint">When you explore or conquer, the hexes you may choose light up and everything else dims.</p></div></div>`;
 }
