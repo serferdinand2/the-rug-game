@@ -39,6 +39,19 @@ npm test
 
 Copy [.env.example](.env.example) to `.env` to change the host or port, or to trust a reverse proxy. For now the app shows a placeholder page; the game screens arrive with milestone M5.
 
+## Deploying
+
+Run a single server process: tables live in its memory. The build needs the development tools, but running the built app doesn't.
+
+```sh
+npm ci                     # install, including the build tools
+npm run build              # Vite builds the client into public/
+npm prune --omit=dev       # optional: drop the build tools on the host
+npm run serve              # serve the existing build (npm start would try to rebuild)
+```
+
+Set `HOST=0.0.0.0` when the host requires it, and `TRUST_PROXY=true` behind exactly one reverse proxy (see [.env.example](.env.example)).
+
 ## Art style
 
 Every illustration is a 64×64 pixel-art scene in a card frame. This is style C, approved on 2026-10-20.

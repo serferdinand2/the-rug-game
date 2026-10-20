@@ -7,6 +7,7 @@
 		"build": "vite build",
 		"prestart": "npm run build",
 		"start": "node --env-file-if-exists=.env server.mjs",
+		"serve": "node --env-file-if-exists=.env server.mjs",
 		"dev": "node scripts/dev.mjs",
 		"check": "svelte-check --tsconfig ./jsconfig.json --fail-on-warnings",
 		"format": "prettier --write .",

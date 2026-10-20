@@ -1,5 +1,5 @@
 # Build output, generated files and prose that Prettier must not rewrite.
-public/
+/public/
 node_modules/
 package-lock.json
 *.md

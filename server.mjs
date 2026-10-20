@@ -112,8 +112,10 @@ async function serveStatic(req, res, pathname) {
 		res.writeHead(200, { ...headers, 'Content-Encoding': 'gzip' });
 		return res.end(cached.data);
 	}
+	// Read before writing the head: a file that fails to read must become an error, not an empty 200.
+	const data = await readFile(file);
 	res.writeHead(200, headers);
-	res.end(await readFile(file));
+	res.end(data);
 }
 
 export const server = http.createServer(async (req, res) => {
@@ -128,7 +130,7 @@ export const server = http.createServer(async (req, res) => {
 		return res.end('Bad request');
 	}
 	try {
-		if (pathname.startsWith('/api/')) {
+		if (pathname === '/api' || pathname.startsWith('/api/')) {
 			return await handleApi(req, res);
 		}
 		return await serveStatic(req, res, pathname);

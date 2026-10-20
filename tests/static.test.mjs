@@ -2,8 +2,9 @@
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import { existsSync } from 'node:fs';
 import { spawn } from 'node:child_process';
-import { symlink, mkdtemp, rm } from 'node:fs/promises';
+import { symlink, mkdtemp, rm, writeFile, chmod } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +16,15 @@ const addressAfterImport = server.address();
 let port;
 
 before(async () => {
+	if (
+		!existsSync(
+			fileURLToPath(new URL('../public/index.html', import.meta.url))
+		)
+	) {
+		throw new Error(
+			'public/index.html is missing: run npm run build first (npm test does this for you).'
+		);
+	}
 	await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 	port = server.address().port;
 });
@@ -69,11 +79,12 @@ test('starts when run through a symlinked path', async () => {
 	}
 });
 
-test('serves the placeholder page', async () => {
+test('serves the app shell', async () => {
 	const home = await get('/');
 	assert.equal(home.status, 200);
 	assert.match(home.headers['content-type'], /^text\/html/);
-	assert.match(home.body, /The Rug Game/);
+	assert.match(home.body, /<title>The Rug Game<\/title>/);
+	assert.match(home.body, /<div id="app">/);
 	assert.equal(home.headers['x-content-type-options'], 'nosniff');
 });
 
@@ -110,7 +121,10 @@ test('never serves files outside public/', async () => {
 	];
 	for (const path of attacks) {
 		const res = await get(path);
-		assert.notEqual(res.status, 200, path);
+		assert.ok(
+			[400, 403, 404].includes(res.status),
+			`${path} answered ${res.status}`
+		);
 		assert.doesNotMatch(
 			res.body,
 			/node:http|repositoryformatversion|localhost/,
@@ -148,6 +162,34 @@ test('serves built bundles with immutable caching', async () => {
 
 test('unknown API paths answer JSON', async () => {
 	const res = await get('/api/nothing');
+	assert.equal(res.status, 404);
+	assert.match(res.headers['content-type'], /^application\/json/);
+	assert.deepEqual(JSON.parse(res.body), { error: 'Unknown request.' });
+});
+
+test(
+	'a file that cannot be read answers 500, not an empty 200',
+	{ skip: process.getuid?.() === 0 && 'root can read any file' },
+	async () => {
+		const file = fileURLToPath(
+			new URL('../public/unreadable.txt', import.meta.url)
+		);
+		await writeFile(file, 'secret');
+		await chmod(file, 0o000);
+		try {
+			const res = await get('/unreadable.txt');
+			assert.equal(res.status, 500);
+			assert.deepEqual(JSON.parse(res.body), {
+				error: 'Something went wrong. Try again.',
+			});
+		} finally {
+			await rm(file, { force: true });
+		}
+	}
+);
+
+test('/api without a slash answers JSON', async () => {
+	const res = await get('/api');
 	assert.equal(res.status, 404);
 	assert.match(res.headers['content-type'], /^application\/json/);
 	assert.deepEqual(JSON.parse(res.body), { error: 'Unknown request.' });

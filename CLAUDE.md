@@ -22,6 +22,7 @@ npm install                   # dev tools only (Svelte, Vite, svelte-check, Pret
 npm start                     # builds the client, then serves http://127.0.0.1:3020; loads .env if present
 npm run dev                   # Vite dev server with hot reload (http://127.0.0.1:5173) plus node --watch server.mjs
 npm run build                 # Vite builds client/ into public/
+npm run serve                 # serves an existing build without rebuilding (for hosts without dev tools)
 npm test                      # builds, then runs every test in tests/
 npm run check                 # svelte-check: JSDoc types in client/ and engine/, must report 0 errors and 0 warnings
 npm run format                # Prettier (tabs, single quotes); Markdown is left alone
@@ -62,14 +63,13 @@ Updated 2026-10-20. Update this section whenever a milestone moves.
   - The approved desktop main game screen (`docs/ui/`).
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2 and #44 are done.**
+- **#1, #2, #44 and #46 are done.**
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R104).
-- **Ready to start:**
-  - #12 Encode the base game data. This is the first rules-engine issue, now unblocked.
-  - #45 Check the 20 "owner-check" rules against the physical box. This is the owner's job and blocks nothing.
-  - #46 Tidy up seven minor findings from the code reviews of #1 and #44. This blocks nothing.
+- **Next:**
+  - #45 Check the 20 "owner-check" rules against the physical box. This is the owner's job.
+  - #12 Encode the base game data. This is the first rules-engine issue. The owner wants #45 done first, so #12 is blocked by it.
   - #3 Design the remaining screens (assigned to lazar-milin).
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
