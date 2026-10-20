@@ -69,6 +69,7 @@ Updated 2026-10-20. Update this section whenever a milestone moves.
 - **Ready to start:**
   - #12 Encode the base game data. This is the first rules-engine issue, now unblocked.
   - #45 Check the 20 "owner-check" rules against the physical box. This is the owner's job and blocks nothing.
+  - #46 Tidy up seven minor findings from the code reviews of #1 and #44. This blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin).
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
