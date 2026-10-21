@@ -19,7 +19,7 @@ const SIZE = 96;
 
 /** The villa's walls. */
 const LEFT = 30;
-const RIGHT = 92;
+const RIGHT = 89;
 const GROUND = 84;
 
 /**

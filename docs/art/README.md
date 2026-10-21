@@ -21,7 +21,8 @@ The design is in [2026-10-21-art-toolkit-design.md](../superpowers/specs/2026-10
 |---|---|
 | `art/painter.js` | The canvas, drawing helpers, `outline`, `mix`, `seededRandom`, `underlay` and `toSvg` |
 | `art/palette.js` | `PALETTE`: every named style C colour |
-| `art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure` |
+| `art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure`, `drawSmoke` (smoke, steam), `drawClassical` (pediment, flat), `drawFactory`, `drawSkyline` (night, dusk, day) and `drawStreet` |
+| `art/footprints.js` | `FOOTPRINTS` for the 33 landmarks, `PLOT_SIZE` (32), `footprintMismatches` and `clipToFootprint` |
 | `art/catalog.js` | `ASSETS`: every asset the game needs, with its stable id, plus `GROUPS` and `EXPANSIONS` |
 | `art/drawings/` | One module per drawn asset, at `art/drawings/<id>.js` |
 | `art/build.mjs` | Writes each drawing to `client/static/art/<id>.svg` |

@@ -72,7 +72,7 @@ function drawDome(scene) {
 	}
 	for (let y = 0; y <= 12; y++) {
 		for (let x = 48; x <= 79; x++) {
-			const d = Math.hypot((x - DOME_X) / 15, (y - 12.5) / 11);
+			const d = Math.hypot((x - DOME_X) / 15, (y - 12.5) / 10);
 			if (d > 1) {
 				continue;
 			}
@@ -88,8 +88,8 @@ function drawDome(scene) {
 			set(scene, x, y, colour);
 		}
 	}
-	rect(scene, 62, 0, 4, 2, C.gold);
-	set(scene, 63, 0, C.lampGlow);
+	rect(scene, 62, 1, 4, 2, C.gold);
+	set(scene, 63, 1, C.lampGlow);
 }
 
 /**

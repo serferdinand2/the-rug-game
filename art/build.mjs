@@ -140,7 +140,8 @@ async function drawAsset(id, drawingsDir) {
  * Every drawing is checked and drawn before anything is written, so a failure leaves the folder as it was.
  * @param {{ drawingsDir?: string, outDir?: string, assets?: readonly Asset[] }} [options]
  * @returns {Promise<{ written: string[], removed: string[] }>}
- * @throws {Error} When a drawing has no catalog entry, or an illustration isn't 64×64.
+ * @throws {Error} When a drawing has no catalog entry, an illustration other than a landmark isn't 64×64,
+ * or a landmark's picture has no footprint or doesn't cover exactly its footprint.
  */
 export async function buildArt({
 	drawingsDir = DRAWINGS_DIR,

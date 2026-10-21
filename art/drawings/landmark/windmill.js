@@ -89,7 +89,7 @@ function drawTower(scene) {
 }
 
 /** How far each sail reaches from the hub, and how wide its cloth is. */
-const SAIL_LENGTH = 30;
+const SAIL_LENGTH = 22;
 const SAIL_WIDTH = 6;
 
 /**

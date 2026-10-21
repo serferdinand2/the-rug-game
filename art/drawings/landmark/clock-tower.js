@@ -85,7 +85,7 @@ function drawSpire(scene) {
 			);
 		}
 	}
-	rect(scene, 31, 0, 2, 3, C.gold);
+	rect(scene, 31, 1, 2, 2, C.gold);
 }
 
 /**

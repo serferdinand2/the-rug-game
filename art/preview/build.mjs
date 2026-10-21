@@ -180,7 +180,7 @@ function escape(text) {
  * Sets an SVG's displayed size to its own size times a scale, without cropping or padding it.
  * @param {string} svg - As written by toSvg
  * @param {number} scale
- * @param {boolean} [plots] - Lay the 16-pixel plot grid over it, so a footprint can be checked by eye
+ * @param {boolean} [plots] - Lay the plot grid (PLOT_SIZE pixels per plot) over it, so a footprint can be checked by eye
  * @returns {string}
  */
 function sized(svg, scale, plots = false) {

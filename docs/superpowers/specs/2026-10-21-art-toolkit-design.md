@@ -4,7 +4,7 @@ Written 2026-10-21. It covers the parts of issue #4 that don't depend on the new
 
 ## 1. Why, and why now
 
-Every picture in the game is a 64×64 pixel-art scene in art style C, approved on 2026-10-20. The reference is `docs/art/style-c/lighthouse-scene.svg`, drawn by the one-off script `docs/art/style-c/lighthouse.mjs`. There are 293 illustrations, 70 icons and 82 boards, tiles and hexes to draw (#5–#11). They need:
+Every picture in the game is a 64×64 pixel-art scene in art style C, approved on 2026-10-20. The reference is `docs/art/style-c/lighthouse-scene.svg`, drawn by the one-off script `docs/art/style-c/lighthouse.mjs`. There are 293 illustrations, 37 icons and 82 boards, tiles and hexes to draw (#5–#11). (The count was 70 icons until the 33 landmark grid markers were dropped on 2026-10-21; see §7.4.) They need:
 - a shared way to draw them;
 - one list of what exists, so progress can be tracked and the game can refer to each picture by a stable id.
 
