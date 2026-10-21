@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { ASSETS } from '../art/catalog.js';
 import { buildGallery } from '../art/preview/build.mjs';
+import { FOOTPRINTS } from '../art/footprints.js';
 
 const PART_LABELS = [
 	'sky: night',
@@ -180,6 +181,35 @@ test('the gallery opens from disk', () => {
 	assert.doesNotMatch(html, /\s(src|href)=/);
 	assert.doesNotMatch(html, /<link|<script/);
 	assert.match(html, /^<!doctype html>/);
+});
+
+test('landmarks are listed from the largest footprint to the smallest', () => {
+	const section = html.slice(
+		html.indexOf('<section data-group="landmark">'),
+		html.indexOf(
+			'</section>',
+			html.indexOf('<section data-group="landmark">')
+		)
+	);
+	const slugs = [...section.matchAll(/data-id="landmark\/([^"]+)"/g)].map(
+		(m) => m[1]
+	);
+	const plots = slugs.map(
+		(slug) => FOOTPRINTS[slug].join('').split('X').length - 1
+	);
+	assert.equal(slugs.length, 33);
+	assert.deepEqual(
+		plots,
+		[...plots].sort((a, b) => b - a)
+	);
+	assert.equal(plots[0], 12);
+	assert.equal(plots[32], 4);
+});
+
+test('each landmark tile names its expansion, since the list mixes them', () => {
+	const castle = figureFor(html, 'landmark/castle');
+	assert.ok(castle.includes('Arts &amp; Architecture'));
+	assert.ok(figureFor(html, 'landmark/forge').includes('Base game'));
 });
 
 test('names are escaped', () => {

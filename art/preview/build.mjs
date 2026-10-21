@@ -15,7 +15,7 @@ import { drawFactory } from '../parts/factory.js';
 import { drawSkyline } from '../parts/skyline.js';
 import { drawStreet } from '../parts/street.js';
 import { ASSETS, GROUPS, EXPANSIONS } from '../catalog.js';
-import { PLOT_SIZE } from '../footprints.js';
+import { PLOT_SIZE, FOOTPRINTS } from '../footprints.js';
 import { DRAWINGS_DIR, listDrawingIds, renderAsset } from '../build.mjs';
 
 /** @typedef {import('../painter.js').Canvas} Canvas */
@@ -208,18 +208,48 @@ function partTile(label, svg) {
  * One asset tile: the drawing at each scale, or a labelled empty slot.
  * @param {Asset} asset
  * @param {string | undefined} svg - The asset's SVG, when it is drawn
+ * @param {boolean} [showExpansion] - Name the expansion, for lists that mix them
  * @returns {string}
  */
-function assetTile(asset, svg) {
+function assetTile(asset, svg, showExpansion = false) {
 	const id = escape(asset.id);
 	const name = escape(asset.name);
+	const expansion = showExpansion
+		? `<span>${escape(EXPANSION_NAMES.get(asset.expansion) ?? asset.expansion)}</span>`
+		: '';
 	if (!svg) {
-		return `<figure class="asset" data-id="${id}" data-drawn="no"><div class="slot"><span>${id}</span><b>${name}</b><i>#${asset.issue}</i></div></figure>`;
+		return `<figure class="asset" data-id="${id}" data-drawn="no"><div class="slot"><span>${id}</span><b>${name}</b>${expansion}<i>#${asset.issue}</i></div></figure>`;
 	}
 	const plots = asset.group === 'landmark';
 	const pictures = SCALES.map((scale) => sized(svg, scale, plots)).join('');
 	const classes = plots ? 'asset plots' : 'asset';
-	return `<figure class="${classes}" data-id="${id}" data-drawn="yes">${pictures}<figcaption><b>${name}</b><span>${id}</span></figcaption></figure>`;
+	return `<figure class="${classes}" data-id="${id}" data-drawn="yes">${pictures}<figcaption><b>${name}</b>${expansion}<span>${id}</span></figcaption></figure>`;
+}
+
+/** Expansion names by code, for tile captions. */
+const EXPANSION_NAMES = new Map(
+	EXPANSIONS.map(({ code, name }) => [code, name])
+);
+
+/**
+ * Orders landmarks by footprint size: most plots first, then the larger bounding box,
+ * then the catalog's order. A landmark without a footprint goes last.
+ * @param {Asset[]} landmarks
+ * @returns {Asset[]}
+ */
+function bySize(landmarks) {
+	const size = (/** @type {Asset} */ asset) => {
+		const rows = Object.hasOwn(FOOTPRINTS, asset.id.split('/')[1])
+			? FOOTPRINTS[asset.id.split('/')[1]]
+			: [];
+		const plots = rows.join('').split('X').length - 1;
+		const box = rows.length * (rows[0]?.length ?? 0);
+		return { plots, box };
+	};
+	return landmarks
+		.map((asset, index) => ({ asset, index, ...size(asset) }))
+		.sort((a, b) => b.plots - a.plots || b.box - a.box || a.index - b.index)
+		.map(({ asset }) => asset);
 }
 
 /**
@@ -248,6 +278,14 @@ export async function buildGallery({
 			return '';
 		}
 		const done = members.filter((asset) => svgs.has(asset.id)).length;
+		const heading = `<h2>${escape(group.label)} · ${members.length} · ${done} drawn</h2>`;
+		if (group.id === 'landmark') {
+			// Landmarks are reviewed by size, largest footprint first, across all expansions.
+			const tiles = bySize(members)
+				.map((asset) => assetTile(asset, svgs.get(asset.id), true))
+				.join('');
+			return `<section data-group="landmark">${heading}<div class="grid">${tiles}</div></section>`;
+		}
 		const byExpansion = EXPANSIONS.map(({ code, name }) => {
 			const list = members.filter((asset) => asset.expansion === code);
 			if (list.length === 0) {
@@ -258,7 +296,7 @@ export async function buildGallery({
 				.join('');
 			return `<h3>${escape(name)}</h3><div class="grid">${tiles}</div>`;
 		}).join('');
-		return `<section data-group="${escape(group.id)}"><h2>${escape(group.label)} · ${members.length} · ${done} drawn</h2>${byExpansion}</section>`;
+		return `<section data-group="${escape(group.id)}">${heading}${byExpansion}</section>`;
 	}).join('\n');
 	return `<!doctype html>
 <html lang="en">
