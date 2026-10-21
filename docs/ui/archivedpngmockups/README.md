@@ -12,7 +12,7 @@ The current UI/UX manifest is [../README.md](../README.md). Use its launch, lobb
 | Cards | [4-cards.png](4-cards.png) |
 | Players | [5-players.png](5-players.png) |
 
-The [earlier standalone main-screen page](main-screen.html) and [original interface notes](original-interface-reference.md) are preserved alongside the PNGs. The HTML's font paths were adjusted for its archive location; the older font files remain in `client/static/fonts/`.
+The [earlier standalone main-screen page](main-screen.html) and [original interface notes](original-interface-reference.md) are preserved alongside the PNGs. Its Alagard and VCR OSD Mono fonts, with their licence notices, are in [fonts/](fonts/); the game no longer uses them.
 
 The old generator and shared wireframe kit are under [mockups/](mockups/). If historical regeneration is needed, run from the repository root:
 

@@ -44,31 +44,36 @@
 
 <style>
 	.rg-placeholder {
-		max-width: 560px;
-		margin: 0 auto;
-		padding: 64px 16px;
+		min-height: 100vh;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: calc(var(--space-11) * 2) var(--space-8);
+		background: var(--texture) var(--surface);
 		text-align: center;
-		line-height: 1.6;
+		line-height: var(--leading-normal);
 	}
 
 	.rg-placeholder--emblem {
 		max-width: 60vw;
 		height: auto;
 		image-rendering: pixelated;
-		border: 4px solid var(--frame);
-		border-radius: 10px;
-		box-shadow: 0 0 0 3px var(--line);
+		border: var(--border-thick) solid var(--gold);
+		border-radius: var(--radius);
 	}
 
 	.rg-placeholder--title {
-		margin: 24px 0 12px;
+		margin: var(--space-10) 0 var(--space-6);
 		font-family: var(--font-title);
-		font-weight: normal;
-		font-size: clamp(32px, 8vw, 48px);
+		font-weight: var(--weight-bold);
+		font-size: var(--font-size-display);
+		letter-spacing: var(--letter-spacing-title);
 		color: var(--gold);
 	}
 
 	.rg-placeholder--text {
+		max-width: var(--launch-width);
+		margin: 0 0 var(--space-6);
 		color: var(--muted);
 	}
 </style>

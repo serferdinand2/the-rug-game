@@ -1,29 +1,60 @@
-/* Global base styles: the pixel fonts and the page background. Component styles live in their components. */
+/* Global base styles: the self-hosted fonts, the page and focus. Component styles live in their components. */
 @font-face {
-	font-family: Alagard;
-	src: url('/fonts/alagard.ttf') format('truetype');
+	font-family: 'Cinzel';
+	src: url('/fonts/cinzel.ttf') format('truetype');
+	font-weight: 400 900;
 	font-display: swap;
 }
 
 @font-face {
-	font-family: VCR;
-	src: url('/fonts/vcr-osd-mono.ttf') format('truetype');
+	font-family: 'Atkinson Hyperlegible';
+	src: url('/fonts/atkinson-hyperlegible-regular.ttf') format('truetype');
+	font-weight: 400;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Atkinson Hyperlegible';
+	src: url('/fonts/atkinson-hyperlegible-bold.ttf') format('truetype');
+	font-weight: 700;
 	font-display: swap;
 }
 
 * {
 	box-sizing: border-box;
+	scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+	display: none;
 }
 
 body {
 	margin: 0;
 	min-height: 100vh;
-	background: radial-gradient(circle at 50% 30%, var(--dusk), var(--night))
-		fixed var(--night);
+	background: var(--ink);
 	color: var(--text);
-	font-family: var(--font-body);
+	font: var(--weight-regular) var(--font-size-base) / var(--leading-snug)
+		var(--font-body);
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
+	color: inherit;
+}
+
+button {
+	cursor: pointer;
 }
 
 a {
 	color: var(--gold);
+}
+
+:focus-visible {
+	outline: var(--focus-outline);
+	outline-offset: var(--focus-offset);
 }

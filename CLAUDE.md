@@ -46,8 +46,11 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
     - `index.html` is the shell;
     - `src/main.js` mounts `src/App.svelte`, which is the placeholder page until #25;
     - `src/lib/component-event.js` holds `ComponentEvent`;
-    - `src/styles/` holds `tokens.css` (design tokens) and `base.css` (fonts and page);
-    - `static/` is copied into the build as is: `fonts/` and `favicon.svg`.
+    - `src/styles/` holds `tokens.css`, `base.css` and `pixel-noise.svg`:
+      - `tokens.css` is the single source of truth for colours, the texture, type, spacing, layout sizes, borders, shadows, motion and layers;
+      - `base.css` has the `@font-face` rules, the page and the focus outline;
+      - `pixel-noise.svg` is the surface texture, a 256×256 tile cropped from `docs/ui/assets/middle-pixel-noise.svg`, which Vite hashes into `assets/`;
+    - `static/` is copied into the build as is: `fonts/` (Cinzel and Atkinson Hyperlegible, with their licences) and `favicon.svg`.
   - `public/` is the build output that `server.mjs` serves. It is git-ignored; never edit it.
   - `scripts/dev.mjs` runs the Node server and Vite side by side. Vite proxies `/api` to the server.
   - The configuration lives in `vite.config.js`, `svelte.config.js` (`runes: true`), `jsconfig.json` (`checkJs`, `strict`, Vite client types), `.prettierrc` and `.prettierignore`.
@@ -67,6 +70,7 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - Rules research (`docs/research/`).
   - The approved design document.
   - The phase-one desktop UI/UX manifest and interactive launch, lobby, play and player-overview mockups (`docs/ui/README.md`, 2026-10-21).
+  - The production styles that follow it: `tokens.css` and `base.css`, with self-hosted Cinzel and Atkinson Hyperlegible (2026-10-21).
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
 - **#1, #2, #4, #7, #44 and #46 are done.**
@@ -79,11 +83,12 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - There is no phone layout.
   - The card gallery doubles as the in-game card reference (#47).
   - A components library page is #48.
-  - #47 and #48 wait for #3's new `base.css`, `tokens.css` and `docs/ui/`.
+  - #47 and #48 waited for #3's new `base.css`, `tokens.css` and `docs/ui/`. All three are in now; their GitHub blockers still decide when they start.
+  - The lobby's **Add bot** seat control is shelved (owner).
 - **Next:**
   - #45 Check the 20 "owner-check" rules against the physical box. This is the owner's job.
   - #12 Encode the base game data. This is the first rules-engine issue. The owner wants #45 done first, so #12 is blocked by it.
-  - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. This handoff does not close #3 or implement production style files.
+  - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
   - #5, #6 and #8–#11 Draw the rest of the art with the toolkit.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
@@ -138,7 +143,7 @@ The design document has the details. In short:
   - The creator of a table chooses its expansions and its version: the original 2019 printing, or the current official rules with all errata and adjustments.
   - The 2024 Revised Civilization Pack is out of scope.
   - A player who leaves keeps an "away" seat, as in Bird Table.
-- **Bots.** The only bots are the official Automa and Shadow Empire, exactly as in the real game. There are no bot seats in multiplayer and no bot takeover of a seat.
+- **Bots.** The only bots are the official Automa and Shadow Empire, exactly as in the real game. There are no bot seats in multiplayer and no bot takeover of a seat. The lobby mockup's **Add bot** seat control is shelved (owner, 2026-10-21): don't build it.
 - **Art.**
   - Style C: 64×64 pixel-art scenes in card frames, drawn as vector SVG with one `crispEdges` path per colour. The reference is `docs/art/style-c/lighthouse-scene.svg`.
   - Small pieces, such as resources, buildings, outposts, dice and terrain, are simple icons in the same palette.
@@ -168,7 +173,9 @@ Read the sibling projects' `CLAUDE.md` files before scaffolding (#1). The patter
   - `limits.mjs` holds the rate limits, and `.env` holds `HOST`, `PORT` (3020 here) and `TRUST_PROXY`.
 - **Tests:** `node --test`, with randomized invariant tests for the engine and the rooms, also run in GitHub Actions.
 - **Look:**
-  - Phase one selects Cinzel and Atkinson Hyperlegible with the roles in `docs/ui/README.md`. The references currently load them from Google Fonts. The scaffold still bundles Alagard/VCR; migrating production tokens, fonts and their license notices is future UI work.
+  - Cinzel for the names of game things and Atkinson Hyperlegible for everything else, with the roles in `docs/ui/README.md`. The single copies, with their licence notices, are in `client/static/fonts/`. The HTML mockups still load them from Google Fonts.
+  - `client/src/styles/tokens.css` is the single source of truth for the look. Where the mockups disagree with it, for example the lobby's player colours, follow `tokens.css`.
+  - The superseded Alagard and VCR OSD Mono fonts live only in `docs/ui/archivedpngmockups/fonts/`, for the archived mockup.
   - Art production notes stay in `docs/art/`, never in `public/`.
 - **Discord Activity (#43):** follow Bird Table.
 

@@ -44,7 +44,7 @@ client/                  Svelte app (Vite root)
   src/App.svelte
   src/components/<area>/ Components grouped by area: board, player, prompts, lobby, gallery, ui
   src/lib/               Plain JS modules: component-event.js, api.js, game.svelte.js …
-  src/styles/            tokens.css (design tokens) and base.css
+  src/styles/            tokens.css (design tokens), base.css (fonts, page, focus) and pixel-noise.svg (texture)
   static/                Copied as-is into the build: fonts/, art/ (generated SVGs), favicon.svg
 public/                  Vite build output, served by server.mjs (git-ignored)
 scripts/dev.mjs          Runs the Node server and Vite's dev server together (npm run dev)
@@ -460,7 +460,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 		height: 58px;
 		padding: 2px;
 		border: 1px solid var(--track-border);
-		border-radius: 3px;
+		border-radius: var(--radius);
 		background: var(--track-fill);
 		color: var(--text);
 		font: inherit;
@@ -495,8 +495,8 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 		inset: auto 2px 13px;
 		font-size: 8px;
 		text-align: center;
-		background: var(--night);
-		border-radius: 2px;
+		background: var(--ink);
+		border-radius: var(--radius);
 	}
 
 	.rg-track-space--tokens {
@@ -510,7 +510,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 	.rg-track-space--token {
 		width: 7px;
 		height: 7px;
-		border: 1px solid var(--outline);
+		border: 1px solid var(--ink);
 		border-radius: 50%;
 	}
 </style>
@@ -518,8 +518,22 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 
 ## Styling, art and motion
 
-- **Design tokens.** Colours, fonts and spacing are CSS custom properties in `client/src/styles/tokens.css`, taken from the approved designs in `docs/ui/`. Components use `var(--…)` and never hard-code colours. Art is the only exception.
-- **Fonts.** The phase-one manifest in `docs/ui/README.md` supersedes the old font choice: Cinzel for named game elements and Atkinson Hyperlegible for player names, instructions, controls and data. Follow its role table. Production must self-host one copy of each selected font with its license notice; the current scaffold still has the legacy Alagard/VCR files. Do not treat the old files or `tokens.css` as the new design.
+- **Design tokens.** `client/src/styles/tokens.css` is the single source of truth for the look. It was taken from the phase-one designs in `docs/ui/`, and it holds:
+  - colours: surfaces, lines, text, accents, tracks, players, resources, terrain and expansions;
+  - the pixel texture;
+  - type: families, weights, sizes, line heights and letter spacing;
+  - spacing, layout sizes, borders and corners;
+  - shadows, glows, focus, motion and layers.
+
+  Where a mockup disagrees with `tokens.css`, `tokens.css` wins.
+- **Using the tokens.**
+  - Components use `var(--…)` and never hard-code a colour. Art is the only exception.
+  - Derive a tint from a token with `color-mix()`, for example `color-mix(in srgb, var(--gold) 20%, var(--control))`, instead of adding a new hex value.
+  - A colour the design needs that `tokens.css` lacks goes into `tokens.css` first.
+  - `tests/styles.test.mjs` fails on a hard-coded colour or an undeclared custom property.
+- **Corners and shadows.** Corners are square (`var(--radius)` is 0). Ordinary panels get no shadow; only floating things (`--shadow-float`), overview cards (`--shadow-card`) and the glows have one.
+- **Surfaces.** The middle play area is `background: var(--texture) var(--surface)`. Header, footer and panels are `var(--chrome)`.
+- **Fonts.** Use Cinzel (`--font-title`) for the names of game things: tracks, spaces, civilizations, landmarks, buildings and terrain. Use Atkinson Hyperlegible (`--font-body`) for player names, instructions, controls and data. Follow the role table in `docs/ui/README.md`. Player names never use Cinzel. Each font has one copy, with its licence, in `client/static/fonts/`.
 - **Art** is vector pixel SVG, drawn with one `crispEdges` path per colour (see `docs/art/`). Reference art by its stable asset id. Never inline large SVGs in components.
 - **Layout.** The game is for desktop screens only; there is no phone layout (owner decision, 2026-10-21). Check interface work at desktop width before calling it done.
 - **Motion.** Use `svelte/transition` and `animate:flip` for tokens, cards and buildings moving. Respect `prefers-reduced-motion`: no motion when it is set.

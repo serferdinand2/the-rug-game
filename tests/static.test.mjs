@@ -92,12 +92,34 @@ test('serves the favicon and fonts with long caching', async () => {
 	const icon = await get('/favicon.svg');
 	assert.equal(icon.status, 200);
 	assert.equal(icon.headers['content-type'], 'image/svg+xml');
-	for (const name of ['alagard', 'vcr-osd-mono']) {
+	for (const name of [
+		'cinzel',
+		'atkinson-hyperlegible-regular',
+		'atkinson-hyperlegible-bold',
+	]) {
 		const font = await get(`/fonts/${name}.ttf`);
 		assert.equal(font.status, 200, name);
 		assert.equal(font.headers['content-type'], 'font/ttf');
 		assert.equal(font.headers['cache-control'], 'public, max-age=604800');
 	}
+});
+
+test('the built stylesheet uses the pixel texture as a hashed asset', async () => {
+	const home = await get('/');
+	const css = home.body.match(/href="(\/assets\/[^"]+\.css)"/)?.[1];
+	assert.ok(css, 'the page links no stylesheet');
+	const sheet = await get(css);
+	const texture = sheet.body.match(
+		/url\((\/assets\/pixel-noise-[\w-]+\.svg)\)/
+	)?.[1];
+	assert.ok(texture, 'the stylesheet does not use the hashed texture');
+	const image = await get(texture);
+	assert.equal(image.status, 200);
+	assert.equal(image.headers['content-type'], 'image/svg+xml');
+	assert.equal(
+		image.headers['cache-control'],
+		'public, max-age=31536000, immutable'
+	);
 });
 
 test('revalidates with weak ETags', async () => {

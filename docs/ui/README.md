@@ -6,6 +6,8 @@ This README is the implementation handoff for the first phase of [issue #3: Desi
 
 This is a phase-one milestone, not completion of issue #3. The missing screens and production requirements are listed below. The project's rules research and root README's rules conventions remain authoritative for game rules; fixture values and placeholder options in these pages do not change those rules.
 
+**[client/src/styles/tokens.css](../../client/src/styles/tokens.css) is the single source of truth for the look** (owner, 2026-10-21). It holds the colours, texture, type, spacing, layout sizes, borders, shadows and motion taken from these references, with one value per role. Where a reference page or a swatch below disagrees with it, `tokens.css` wins. This manifest stays the source for layout, roles and behaviour.
+
 ## Reference files and preview
 
 | File | Purpose |
@@ -15,6 +17,7 @@ This is a phase-one milestone, not completion of issue #3. The missing screens a
 | [main-screen.html](main-screen.html) | Play page: tracks/map, private tabs, footer decisions, city placement and player overview |
 | [screens/](screens/) | Current screenshots captured from these HTML files at 1920×1080 |
 | [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) | Editable source of the shared pixel texture embedded in the pages |
+| [tokens.css](../../client/src/styles/tokens.css) and [base.css](../../client/src/styles/base.css) | The production design tokens, fonts, page and focus styles made from these references |
 | [preview.mjs](preview.mjs) | Optional local server for these references only |
 | [archivedpngmockups/](archivedpngmockups/README.md) | Superseded PNGs, HTML and generator from the earlier design |
 
@@ -32,7 +35,7 @@ Then use:
 
 Set `UI_PORT` to choose another port. This preview is separate from the actual application on port 3020. The navigation menus and Start game button link between the reference pages; they do not create or start a real table.
 
-The main-screen page has an inline snapshot of the Lighthouse footprint so its interactions work when opened from disk. The pixel background and Lighthouse picture are embedded SVG snapshots, so no absolute `/art/…` request is needed. Fonts are still loaded from Google Fonts; the exact appearance needs those requests to succeed. Self-host the selected fonts, with their license notices, when implementing production styles.
+The main-screen page has an inline snapshot of the Lighthouse footprint so its interactions work when opened from disk. The pixel background and Lighthouse picture are embedded SVG snapshots, so no absolute `/art/…` request is needed. The reference pages still load their fonts from Google Fonts, so their exact appearance needs those requests to succeed. The game itself self-hosts the same fonts from `client/static/fonts/`.
 
 The reference review size is **1920×1080 CSS pixels**, at 100% zoom. Play and lobby have fixed-size canvases; launch is evaluated at the same size. There is no approved phone layout. Narrow-screen media rules left in a prototype are not a separate approved design. The play page keeps content scrollable while hiding scrollbars. Do not reflow the capital grid or enlarge its cells to fit a building.
 
@@ -51,27 +54,36 @@ The reference review size is **1920×1080 CSS pixels**, at 100% zoom. Play and l
 
 Player names must never use Cinzel. Capital headings use Atkinson except for the capital type, such as **Mountain**, in Cinzel. Right-panel tabs use the full words **Civilization** and **Technology**; overview summary rows use the compact label **Tech**.
 
-The launch headline “Advance through…” and the lobby invitation use Cinzel. The launch header sentence “Build a civilization that stands the test of time”, form labels and buttons use Atkinson. These roles replace the old Alagard/VCR guidance; the currently scaffolded application has not yet migrated its font files or style tokens.
+The launch headline “Advance through…” and the lobby invitation use Cinzel. The launch header sentence “Build a civilization that stands the test of time”, form labels and buttons use Atkinson. These roles replace the old Alagard/VCR guidance. In code, Cinzel is `--font-title` and Atkinson Hyperlegible is `--font-body`; the size scale (`--font-size-4xs` to `--font-size-display`), weights, line heights and letter spacing are in `tokens.css`.
 
 ### Surfaces, colours and selection
 
-| Role | Current swatch |
-|---|---|
-| Deep background / grid backing | `#121517` |
-| Header, footer, lobby panels, overview background | `#171a1d` |
-| Middle play surface / pixel-texture average | `#242a2e` |
-| Raised control / selected tab surface | `#30383c` |
-| Rules, separators and borders | `#465257` |
-| Main text / muted text | `#e8ddc4` / `#b9af9b` |
-| Gold selection and proper-name accent | `#e2b857` |
-| Exploration / Science / Technology / Military | `#3f83a8` / `#579274` / `#b57a3b` / `#a94f4f` |
-| Expansion badges: Arts & Architecture / Plans & Ploys / Fantasies & Futures | `#bd9155` / `#7e9f86` / `#9d83ae` |
+| Role | Token | Swatch |
+|---|---|---|
+| Deep background / grid backing / inputs | `--ink` | `#121517` |
+| Header, footer, lobby panels, overview background | `--chrome` | `#171a1d` |
+| Buttons, chips, cards and list rows | `--control` | `#202529` |
+| Middle play surface / pixel-texture average | `--surface` | `#242a2e` |
+| Raised control / selected tab surface | `--raised` | `#30383c` |
+| Panel borders / rules and separators / small-button borders | `--line-soft` / `--line` / `--line-strong` | `#3d4549` / `#465257` / `#596166` |
+| Main text / muted text / inactive tabs and icons | `--text` / `--muted` / `--faint` | `#e8ddc4` / `#b9af9b` / `#737d81` |
+| Gold selection and proper-name accent | `--gold` | `#e2b857` |
+| District boundaries, eyebrows | `--bronze` | `#b88746` |
+| Primary action and current-player glow / placement, confirmation and readiness | `--action` / `--ok` | `#79b99b` / `#8fd0aa` |
+| Mute slash, impassable plots, remove controls | `--danger` | `#e05f5f` |
+| Exploration / Science / Technology / Military | `--exploration` … `--military` | `#3f83a8` / `#579274` / `#b57a3b` / `#a94f4f` |
+| Players, seats 1–5 | `--player-1` … `--player-5` | `#4ea1d3` / `#e06a55` / `#64ae67` / `#e1b84d` / `#b07fd0` |
+| Coin (markets) / worker (houses) / food (farms) / culture (armories) | `--coin` … `--culture` | `#e2b857` / `#aab2b5` / `#b88746` / `#c8644b` |
+| Sea / desert / forest / grassland / mountain / unexplored | `--sea` … `--unexplored` | `#396d98` / `#c9a55d` / `#477a50` / `#91a85a` / `#85878a` / `#30383c` |
+| Expansion badges: Arts & Architecture / Plans & Ploys / Fantasies & Futures | `--arts-architecture` … | `#bd9155` / `#7e9f86` / `#9d83ae` |
 
-The pixel texture consists of small, crisp, low-contrast gray squares. Keep it visible behind both middle sections, including behind the right-panel tabs. The source SVG is 1920×1080 with 8px marks and is intended as a repeated texture. The same embedded texture is used by launch and lobby; do not introduce a separate flat-background variant when serving over HTTP.
+The references used several near-identical values for some roles, for example `#202529` and `#202629` for controls, `#4385a8` and `#3f83a8` for exploration, and three reds for the mute slash, the impassable X and the remove control. `tokens.css` keeps one value for each. Other tints, such as the gold-tinted button backgrounds, are derived from these tokens with `color-mix()`.
 
-Player identity and track identity are separate colour systems. The launch/lobby player swatches are blue `#3f83a8`, red `#a94f4f`, green `#579274`, bronze `#b57a3b`, and **purple `#a98bba` for seat five**. The play fixture uses brighter player swatches `#4ea1d3`, `#e06a55`, `#64ae67`, and `#e1b84d`. Preserve the references for this handoff; establish shared player tokens during the production style migration rather than silently mixing the two sets. The old application's `tokens.css` still has its earlier palette and is not the phase-one visual reference.
+The pixel texture consists of small, crisp, low-contrast gray squares. Keep it visible behind both middle sections, including behind the right-panel tabs. The source SVG is 1920×1080 with 8px marks and is intended as a repeated texture. The game uses `--texture`: a 256×256 tile cropped from the source, with one path per colour, repeated over `--surface`. The same texture is used by launch and lobby; do not introduce a separate flat-background variant.
 
-The play mockup uses **square corners throughout**, including selected tabs, player cards, controls and selection outlines. Lobby mute/menu controls match the game's dark 36×36 control buttons and red diagonal mute slash; their small corner radius is visible in the lobby reference. Ordinary panels should not gain new drop shadows. Header/footer separation uses thin divider rules; in player-overview mode remove the header divider over the overview area and keep the footer divider.
+Player identity and track identity are separate colour systems. **The game uses the play page's brighter player colours, with purple `#b07fd0` added for seat five** (`--player-1` to `--player-5`). The launch and lobby references still show their earlier swatches, which reuse the track colours (blue `#3f83a8`, red `#a94f4f`, green `#579274`, bronze `#b57a3b`, purple `#a98bba`); build those pages with the player tokens instead. Seat four's yellow is close to the gold selection colour, so a selection must also show its outline, never colour alone.
+
+**Corners are square throughout** (`--radius: 0`), including selected tabs, player cards, controls and selection outlines. Lobby mute/menu controls match the game's dark 36×36 control buttons and red diagonal mute slash; the small corner radius visible in the lobby reference is not carried into the game. Ordinary panels should not gain new drop shadows. Header/footer separation uses thin divider rules; in player-overview mode remove the header divider over the overview area and keep the footer divider.
 
 Use gold for selection, track colours for selected track names, and green for the current player glow, valid placement guidance and confirmation. Keep names, outlines and symbols as additional signals; colour alone must not carry state. The placeholder resource-cost symbols are the existing small square and diamond shapes in the track era prices. Use the same placeholders in overview resources and footer costs until final resource art is wired in.
 
@@ -130,10 +142,12 @@ The X appears at the top right on hover/focus where applicable. It must never hi
 
 **Bot scope clarification from the designer:** these controls describe the seat UI and host interactions. They do not decide which bots the game will use. Bot types and their rules are work for later; this manifest does not change the existing official-solo-bot policy.
 
+**Add bot is shelved (owner, 2026-10-21).** Don't build the **+ Add bot** choice, the bot seat row above, or the host's bot civilization control below. Until it returns, an unconfigured slot shows only **+ Open seat**, filling the same 112px slot, and the host's X returns a slot to that single choice. Solo play with the official Automa and Shadow Empire still needs its own setup design under #3.
+
 ### Civilization chooser
 
 - Clicking your chosen civilization reopens the chooser, so it can be changed.
-- The host can also open the chooser from a bot's civilization control and change that bot's selection.
+- The host can also open the chooser from a bot's civilization control and change that bot's selection. (Shelved with Add bot.)
 - The panel's border matches **the player being edited**, not always the local player. Seat five therefore opens a purple-bordered chooser.
 - **Choose your civilization** is an Atkinson heading. **Random** sits on the same row at the top right, before the list of choices. Civilization tiles use Cinzel.
 - Choosing a tile, or Random, updates the target player and closes the panel. The prototype offers five example civilizations and local random selection; production must use the legal available civilization data.
@@ -250,11 +264,11 @@ In overview mode the footer is always the base dark gray, even if Ships is await
 
 ## Assets and provenance
 
-- The pixel SVG is included as [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) and embedded in each HTML reference. Keep those embedded copies in sync if editing the texture.
+- The pixel SVG is included as [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) and embedded in each HTML reference. Keep those embedded copies in sync if editing the texture. The game's tile, `client/src/styles/pixel-noise.svg`, is its top-left 256×256 with one path per colour; crop it again after editing the source.
 - The Lighthouse SVG is a snapshot of `client/static/art/landmark/lighthouse.svg`, imported while the mockups were based on upstream commit `a583cf1`. Its 2×2 footprint is from `art/footprints.js` at that point. It is embedded in `main-screen.html` only for standalone review.
 - The real game must reuse stable asset IDs and the canonical `art/footprints.js` data. Do not introduce another production footprint table, duplicate the full artwork tree into `docs/ui`, or copy large inline SVG blobs into Svelte components.
 - Existing generated game artwork and its gallery remain under the art toolkit. Run `npm run art` and open `art/preview/index.html` for the complete catalog. This handoff does not change the approved art style or regenerate game assets.
-- Google Fonts currently supplies Cinzel 600/700 and Atkinson Hyperlegible 400/700. The old self-hosted fonts remain for the current scaffold and legacy reference. Installing production font files and updating `tokens.css` / `base.css` is follow-on implementation work.
+- The game self-hosts Cinzel (one variable file, weights 400–900) and Atkinson Hyperlegible (Regular 400 and Bold 700) in `client/static/fonts/`, with their SIL Open Font License notices. They come from Google's own font repository, [google/fonts](https://github.com/google/fonts). The reference pages load the same families from Google Fonts. The superseded Alagard and VCR OSD Mono files are kept only in [archivedpngmockups/fonts/](archivedpngmockups/fonts/) for the archived page.
 
 ## Implementation boundaries and phase two
 
@@ -268,7 +282,7 @@ The following are **not complete** in phase one:
 - Full setup for solo play, official bot controls, Automa difficulty, timers and every supported setting combination.
 - End-of-game results, reconnect/away states, table errors, loading, empty states and complete production menu/help.
 - Keyboard alternatives for every pointer/hover interaction, visible focus, proper tab semantics and reduced-motion handling. These remain required by [CONVENTIONS.md](../../CONVENTIONS.md); prototype hover-only controls are not permission to omit them.
-- A unified production font/palette migration and final resource icons. The existing app and its earlier tokens remain unchanged by this documentation-only handoff.
+- Final resource icons. (The unified production fonts and palette are done: `tokens.css` and `base.css`, 2026-10-21.)
 
 The phase-one HTML is the visual and interaction baseline for #25–#30. Complete the missing designs under #3 before treating their layouts or rule settings as approved. Keep #3 open until its remaining checklist is finished; this commit is a **Refs #3** milestone, not a closing fix.
 
