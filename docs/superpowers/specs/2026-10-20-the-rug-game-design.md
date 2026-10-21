@@ -106,7 +106,7 @@ New for this game:
 | Content | Base | P&P | A&A | F&F | Total |
 |---|---|---|---|---|---|
 | Civilizations | 16 | 10 | 5 | 10 | 41 |
-| Tapestry cards | 43 + trap | 15 | 20 | 38 | 117 different pictures |
+| Tapestry cards | 43 + trap | 13 | 20 | 37 | 114 different pictures |
 | Tech cards | 33 | – | 11 | 12 | 56 |
 | Landmarks | 18 | 7 | 8 | – | 33 |
 | Landmark cards | – | 5 | 5 | – | 10 |
@@ -114,7 +114,7 @@ New for this game:
 | Capital mats | 6 | – | 6 advanced | 6 advanced | 18 |
 | Masterpieces | – | – | 20 | – | 20 |
 
-That is about 300 illustrations and about 260 rules entries.
+That is 293 illustrations and about 260 rules entries. The full asset catalog, with icons and boards, is in [2026-10-21-art-toolkit-design.md](2026-10-21-art-toolkit-design.md).
 
 After #2, some content that no source shows is left out. The full tapestry deck is 120 cards instead of 123: two Plans & Ploys cards and one Fantasies & Futures card are missing. Some solo content is missing too, and the Automa can't play with the arts track. The README's "Rules conventions" lists all of it.
 
@@ -159,11 +159,11 @@ Every issue is done when:
 
 ### Milestone 2: Assets (style C)
 
-4. **Art toolkit and asset gallery.**
+4. **Art toolkit and asset catalog.** The design is in [2026-10-21-art-toolkit-design.md](2026-10-21-art-toolkit-design.md).
    - A pixel-painter library producing crispEdges SVGs, based on the lighthouse prototype.
-   - A shared palette, reusable scene parts (skies, sea, terrain, buildings, figures) and the card frames.
-   - A gallery page that shows every asset, grouped by type and expansion. Assets not drawn yet appear as labelled empty slots, so progress is visible.
-   - Done when: the gallery lists all ~300 illustrations and every icon, and the lighthouse is rebuilt with the toolkit.
+   - A shared palette and reusable scene parts (skies, sea, terrain, buildings, figures).
+   - A catalog of every asset with a stable id, grouped by type and expansion.
+   - Done when: the catalog lists every illustration, icon and board, and the lighthouse is rebuilt with the toolkit.
 5. **Icons and small pieces.**
    - Resources, the four income buildings, outposts, player tokens, dice faces, terrain, and the track symbols (including arts).
    - Top-down capital-grid markers for all 33 landmarks.
@@ -171,13 +171,20 @@ Every issue is done when:
    - Map terrain and both map sides, the track board, all 18 capital mats, the income mat with its overlays, and the table background.
 7. **Landmarks:** 33 illustrations.
 8. **Civilizations:** 41 portraits.
-9. **Tapestry cards:** 117 illustrations, in batches by set.
+9. **Tapestry cards:** 114 illustrations, in batches by set.
 10. **Tech cards:** 56 illustrations.
 11. **Other cards and tiles:** 20 masterpieces, 10 landmark cards, 19 space tiles and the inspiration tiles.
 
 Each art issue (5–11) is done when:
-- every picture in it is shown in the gallery;
+- every picture in it is shown in the gallery (47);
 - the owner has approved it there.
+
+Added on 2026-10-21, when issue 4 was split:
+
+47. **Card frames and card gallery page** (split from 4 on 2026-10-21; waits for the new interface base from 3).
+   - Card frames in the new interface style.
+   - One page that shows every asset, grouped by type and expansion. Assets not drawn yet appear as labelled empty slots, so progress is visible.
+   - The same page is the players' card reference during a game. It shows card text once the rules data exists. **(owner, 2026-10-21)**
 
 ### Milestone 3: Base game rules engine (no interface)
 
@@ -249,6 +256,10 @@ Built to the approved designs from issue 3, using the assets from milestone 2.
 30. **Hot-seat pass screen.**
     - Done when: a hot-seat game never shows one player's hand to the next player.
 
+Added on 2026-10-21:
+
+48. **Components library page** (added 2026-10-21). A page that shows every interface component in each of its states. Each new component is added to it in the same change.
+
 ### Milestone 6: Solo play
 
 31. **Automa and Shadow Empire,** exactly as in the real game.
@@ -277,7 +288,7 @@ Built to the approved designs from issue 3, using the assets from milestone 2.
 
 ### Milestone 10: Rules pages
 
-42. **Rules pages:** a "How to play" panel and a reference for each civilization and card, written in our own words.
+42. **Rules pages:** a "How to play" panel and a reference for each civilization and card, written in our own words. The reference text appears on the card gallery page (47).
 
 ### Milestone 11: Discord Activity
 
