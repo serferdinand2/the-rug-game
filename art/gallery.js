@@ -13,6 +13,7 @@ import { drawFactory } from './parts/factory.js';
 import { drawSkyline } from './parts/skyline.js';
 import { drawStreet } from './parts/street.js';
 import { drawShip } from './parts/ship.js';
+import { drawInterior } from './parts/interior.js';
 import { GROUPS, EXPANSIONS } from '../src/lib/art/catalog.js';
 import { PLOT_SIZE, FOOTPRINTS } from '../src/lib/art/footprints.js';
 
@@ -190,6 +191,19 @@ export const PART_SAMPLES = Object.freeze([
 			return c;
 		},
 	},
+	.../** @type {const} */ (['plaster', 'stone', 'panel']).map((wall) => ({
+		label: `interior: ${wall}`,
+		draw: () => {
+			const c = createCanvas(64, 64);
+			drawInterior(c, {
+				floor: 44,
+				random: seededRandom(7),
+				wall,
+				window: { x: 24, y: 6, w: 16, h: 16, time: 'night' },
+			});
+			return c;
+		},
+	})),
 ]);
 
 /** Expansion names by code. */

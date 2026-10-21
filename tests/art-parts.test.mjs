@@ -14,6 +14,7 @@ import { drawFactory } from '../art/parts/factory.js';
 import { drawSkyline } from '../art/parts/skyline.js';
 import { drawStreet } from '../art/parts/street.js';
 import { drawShip } from '../art/parts/ship.js';
+import { drawInterior } from '../art/parts/interior.js';
 
 const PALETTE_COLOURS = new Set(Object.values(PALETTE));
 const SMOKE_TONES = ['smoke', 'steam'];
@@ -23,6 +24,8 @@ const SKY_TIMES = ['night', 'day', 'dusk'];
 const SEA_TIMES = ['night', 'day'];
 const TERRAIN_KINDS = ['forest', 'mountain', 'desert', 'grassland'];
 const BUILDING_KINDS = ['house', 'tower', 'wall'];
+const INTERIOR_WALLS = ['plaster', 'stone', 'panel'];
+const WINDOW = { x: 24, y: 10, w: 16, h: 20 };
 
 /**
  * Lists the rows that are completely filled and the rows that are completely empty.
@@ -116,6 +119,17 @@ const SAMPLES = [
 		random: false,
 		draw: (c) => drawShip(c, { x: 8, y: 50, masts: 1 }),
 	},
+	...INTERIOR_WALLS.map((wall) => ({
+		label: `interior: ${wall}`,
+		random: true,
+		draw: (c, random) =>
+			drawInterior(c, {
+				floor: 44,
+				random,
+				wall,
+				window: { ...WINDOW, time: 'night' },
+			}),
+	})),
 ];
 
 /** Draws one sample with a seed. */
@@ -279,6 +293,54 @@ test('a ship has the sail colour it is given and one mast per mast asked for', (
 	assert.ok(one.w < three.w, `1 mast: ${one.w} wide, 3 masts: ${three.w}`);
 });
 
+test('an interior fills every pixel', () => {
+	for (const wall of INTERIOR_WALLS) {
+		const c = createCanvas(64, 64);
+		drawInterior(c, { floor: 44, random: seededRandom(2), wall });
+		assert.ok(c.p.every(Boolean), wall);
+	}
+});
+
+test('an interior window shows the sky of its time', () => {
+	const ramps = {
+		day: ['daySky1', 'daySky2', 'daySky3', 'daySky4', 'daySky5', 'daySky6'],
+		night: [
+			'nightSky1',
+			'nightSky2',
+			'nightSky3',
+			'nightSky4',
+			'nightSky5',
+			'nightSky6',
+		],
+	};
+	for (const [time, other] of [
+		['day', 'night'],
+		['night', 'day'],
+	]) {
+		const c = createCanvas(64, 64);
+		drawInterior(c, {
+			floor: 44,
+			random: seededRandom(2),
+			window: { ...WINDOW, time },
+		});
+		const pane = [];
+		for (let y = WINDOW.y; y < WINDOW.y + WINDOW.h; y++) {
+			for (let x = WINDOW.x; x < WINDOW.x + WINDOW.w; x++) {
+				pane.push(c.p[y * 64 + x]);
+			}
+		}
+		const has = (name) => pane.includes(PALETTE[name]);
+		assert.ok(
+			ramps[time].some(has),
+			`${time}: no ${time} sky in the window`
+		);
+		assert.ok(
+			!ramps[other].some(has),
+			`${time}: ${other} sky in the window`
+		);
+	}
+});
+
 test('every part draws the same pixels for the same seed', () => {
 	for (const sample of SAMPLES) {
 		assert.deepEqual(render(sample, 3), render(sample, 3), sample.label);
@@ -327,6 +389,19 @@ test('parts refuse kinds and times they do not know', () => {
 	);
 	assert.throws(() => drawShip(c, { x: 0, y: 7, facing: 'up' }), /up/);
 	assert.throws(() => drawShip(c, { x: 0, y: 7, masts: 4 }), /4/);
+	assert.throws(
+		() => drawInterior(c, { floor: 6, random, wall: 'glass' }),
+		/glass/
+	);
+	assert.throws(
+		() =>
+			drawInterior(c, {
+				floor: 6,
+				random,
+				window: { x: 1, y: 1, w: 3, h: 3, time: 'noon' },
+			}),
+		/noon/
+	);
 });
 
 test('a skyline stands on its base row and stays below its height', () => {

@@ -21,7 +21,7 @@ The design is in [2026-10-21-art-toolkit-design.md](../superpowers/specs/2026-10
 |---|---|
 | `art/painter.js` | The canvas, drawing helpers, `outline`, `mix`, `seededRandom`, `underlay` and `toSvg` |
 | `art/palette.js` | `PALETTE`: every named style C colour |
-| `art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure`, `drawSmoke` (smoke, steam), `drawClassical` (pediment, flat), `drawFactory`, `drawSkyline` (night, dusk, day), `drawStreet` and `drawShip` (1–3 masts, either way) |
+| `art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure`, `drawSmoke` (smoke, steam), `drawClassical` (pediment, flat), `drawFactory`, `drawSkyline` (night, dusk, day), `drawStreet`, `drawShip` (1–3 masts, either way) and `drawInterior` (plaster, stone, panel; with a window onto any sky) |
 | `src/lib/art/footprints.js` | `FOOTPRINTS` for the 33 landmarks, `PLOT_SIZE` (32), `footprintMismatches` and `clipToFootprint` |
 | `src/lib/art/catalog.js` | `ASSETS`: every asset the game needs, with its stable id, plus `GROUPS` and `EXPANSIONS` |
 | `art/drawings/` | One module per drawn asset, at `art/drawings/<id>.js` |

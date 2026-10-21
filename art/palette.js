@@ -119,6 +119,14 @@ const COLOURS = {
 	// People
 	skin: '#e9b48a',
 	skinShade: '#c58c66',
+
+	// Interiors: warm plaster walls and dark floorboards
+	plasterLight: '#e3cfa8',
+	plaster: '#c9b088',
+	plasterShade: '#9c8463',
+	floorLight: '#7d5a44',
+	floor: '#5e4232',
+	floorShade: '#3f2b22',
 };
 
 /**
