@@ -7,7 +7,7 @@ import { DRAWINGS_DIR, listDrawingIds } from '../art/build.mjs';
 import { ASSETS, EXPANSIONS } from '../src/lib/art/catalog.js';
 
 /** The sets whose every card must be drawn. Each batch adds its code once the owner has it to review. */
-const FINISHED = [];
+const FINISHED = ['base'];
 
 const drawn = (await listDrawingIds()).filter((id) =>
 	id.startsWith('tapestry/')
@@ -62,15 +62,5 @@ test('every card of each finished set is drawn', () => {
 			.map((asset) => asset.id)
 			.filter((id) => !drawn.includes(id));
 		assert.deepEqual(missing, [], `${code}: cards not drawn yet`);
-	}
-});
-
-test('the samples are drawn', () => {
-	for (const id of [
-		'tapestry/age-of-sail',
-		'tapestry/monarchy',
-		'tapestry/dark-ages',
-	]) {
-		assert.ok(drawn.includes(id), `${id} is not drawn`);
 	}
 });
