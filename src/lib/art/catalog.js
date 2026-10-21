@@ -1,6 +1,6 @@
 // The asset catalog: every picture the game needs, with the stable id the game refers to it by.
 // Plain data with no imports, so the browser client can load it too. Content the README's
-// rules conventions leave out (R43, R44, R77 and the left-out Automa content) has no entry.
+// rules conventions leave out (R43, R44 and the left-out Automa content) has no entry.
 
 /** @typedef {'base' | 'pp' | 'aa' | 'ff'} ExpansionCode */
 /** @typedef {'illustration' | 'icon' | 'board'} AssetKind */
@@ -293,6 +293,7 @@ const LISTS = {
 			['astral-expeditions', 'Astral Expeditions'],
 			['chimera-citizen-rights', 'Chimera-Citizen Rights'],
 			['citadel-of-power', 'Citadel of Power'],
+			['cloud-colonies', 'Cloud Colonies'],
 			['deja-vu', 'Déjà Vu'],
 			['doppelgangers', 'Doppelgangers'],
 			['dream-monitors', 'Dream Monitors'],

@@ -106,13 +106,14 @@ New for this game:
   - "The Rug Game", with the default port 3020.
   - Civilization and card names stay as in Tapestry, because they are ordinary words. Only the art and wording are our own.
 - **Unverified rules.** The research has about 95 [UNVERIFIED] items, mostly icon details. Each one is settled deliberately in issue 2, listed under "Rules conventions" in the README and covered by a test. Answers are never guessed silently in code.
+  - The base-game decisions marked owner-check are settled against the Board Game Arena implementation (code, data and component images) instead of the physical box, so the rules engine can start. The two that BGA can't answer, R12 (landmark heights) and R39 (decision-card arrows), stay with the owner in issue 45, which blocks nothing. **(owner, 2026-10-21)**
 
 ## 5. How much there is
 
 | Content | Base | P&P | A&A | F&F | Total |
 |---|---|---|---|---|---|
 | Civilizations | 16 | 10 | 5 | 10 | 41 |
-| Tapestry cards | 43 + trap | 13 | 20 | 37 | 114 different pictures |
+| Tapestry cards | 43 + trap | 13 | 20 | 38 | 115 different pictures |
 | Tech cards | 33 | – | 11 | 12 | 56 |
 | Landmarks | 18 | 7 | 8 | – | 33 |
 | Landmark cards | – | 5 | 5 | – | 10 |
@@ -120,9 +121,9 @@ New for this game:
 | Capital mats | 6 | – | 6 advanced | 6 advanced | 18 |
 | Masterpieces | – | – | 20 | – | 20 |
 
-That is 293 illustrations and about 260 rules entries. The full asset catalog, with icons and boards, is in [2026-10-21-art-toolkit-design.md](2026-10-21-art-toolkit-design.md).
+That is 294 illustrations and about 260 rules entries. The full asset catalog, with icons and boards, is in [2026-10-21-art-toolkit-design.md](2026-10-21-art-toolkit-design.md).
 
-After #2, some content that no source shows is left out. The full tapestry deck is 120 cards instead of 123: two Plans & Ploys cards and one Fantasies & Futures card are missing. Some solo content is missing too, and the Automa can't play with the arts track. The README's "Rules conventions" lists all of it.
+After #2, some content that no source shows is left out. The full tapestry deck is 121 cards instead of 123: two Plans & Ploys cards are missing. Some solo content is missing too, and the Automa can't play with the arts track. The README's "Rules conventions" lists all of it.
 
 ## 6. Build plan: milestones and issues
 
@@ -177,7 +178,7 @@ Every issue is done when:
    - Map terrain and both map sides, the track board, all 18 capital mats, the income mat with its overlays, and the table background.
 7. **Landmarks:** 33 pictures, each drawn in its footprint's shape so it covers exactly its plots on the board ([2026-10-21-landmarks-design.md](2026-10-21-landmarks-design.md)).
 8. **Civilizations:** 41 portraits.
-9. **Tapestry cards:** 114 illustrations, in batches by set.
+9. **Tapestry cards:** 115 illustrations, in batches by set.
 10. **Tech cards:** 56 illustrations.
 11. **Other cards and tiles:** 20 masterpieces, 10 landmark cards, 19 space tiles and the inspiration tiles.
 
@@ -291,6 +292,10 @@ Added on 2026-10-21:
 39. **Rules:** charms, reservations for income turn 5, income-mat overlays and the 5 replacement cards.
 40. **Content:** 10 civilizations, 38 tapestry cards, 12 tech cards and 6 advanced capital mats, with tests.
 41. **Automa:** the Charmers, Erratics and Time Travelers Automa cards.
+
+Added on 2026-10-21:
+
+49. **Cloud Colonies** (added 2026-10-21). The 38th Fantasies & Futures tapestry card, at first left out by R77 because no source lists which base territories show clouds. The same day the owner had the cloud pictures read from BGA's territory-tile and board images (R77), so the card is back; this issue adds it. The territory-tile and map art (#6) must show clouds on exactly those territories. **(owner, 2026-10-21)**
 
 ### Milestone 10: Rules pages
 

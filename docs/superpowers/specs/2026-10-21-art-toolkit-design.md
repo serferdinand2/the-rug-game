@@ -145,7 +145,7 @@ Groups and counts after the left-out rules (names in Appendix A):
 | Group | Kind | Base | P&P | A&A | F&F | Total | Art issue |
 |---|---|---|---|---|---|---|---|
 | `civ` | illustration | 16 | 10 | 5 | 10 | 41 | #8 |
-| `tapestry` | illustration | 44 | 13 | 20 | 37 | 114 | #9 |
+| `tapestry` | illustration | 44 | 13 | 20 | 38 | 115 | #9 |
 | `tech` | illustration | 33 | – | 11 | 12 | 56 | #10 |
 | `landmark` | illustration | 18 | 7 | 8 | – | 33 | #7 |
 | `landmark-card` | illustration | – | 5 | 5 | – | 10 | #11 |
@@ -163,10 +163,10 @@ Groups and counts after the left-out rules (names in Appendix A):
 | `capital-mat` | board | 6 | – | 6 | 6 | 18 | #6 |
 | `inspiration-tile` | board | – | – | 4 | – | 4 | #11 |
 
-That gives 293 illustrations, 37 icons and 82 boards (412 assets). On 2026-10-21 the owner dropped the 33 `landmark-marker` icons: the board shows each landmark's own picture, drawn in its footprint's shape (see [2026-10-21-landmarks-design.md](2026-10-21-landmarks-design.md)).
+That gives 294 illustrations, 37 icons and 82 boards (413 assets). On 2026-10-21 the owner dropped the 33 `landmark-marker` icons: the board shows each landmark's own picture, drawn in its footprint's shape (see [2026-10-21-landmarks-design.md](2026-10-21-landmarks-design.md)).
 
 Notes on the counts:
-- **Tapestry.** The Trap is one picture for its 7 copies. Infrastructure Boost, the unnamed "Arc…" card (R43, R44) and Cloud Colonies (R77) are left out.
+- **Tapestry.** The Trap is one picture for its 7 copies. Infrastructure Boost and the unnamed "Arc…" card (R43, R44) are left out. Cloud Colonies was left out too until 2026-10-21, when R77 listed its cloud territories from BGA's images.
 - **Replacement cards are not separate pictures.** The F&F Oil Paint, Migration and the three corrected landmark cards, and the P&P space tile 11, each replace the original.
 - **Pieces.** These are an upright outpost, a toppled outpost and a player token, each drawn once and recoloured per player. The recolouring technique is the builder's call, for example marking the player-colour paths so CSS can fill them.
 - **Dice.** The science faces show the four track symbols. Red: 4, 5, 6 and 7 VP and "1 VP per territory". Black: coin, worker, food, culture and "?". A&A adds the arts face for the d20.

@@ -7,7 +7,7 @@ import { ASSETS, GROUPS, EXPANSIONS } from '../src/lib/art/catalog.js';
 /** Counts per group and expansion, copied from the design's §7.4 table. */
 const EXPECTED_COUNTS = {
 	civ: { base: 16, pp: 10, aa: 5, ff: 10 },
-	tapestry: { base: 44, pp: 13, aa: 20, ff: 37 },
+	tapestry: { base: 44, pp: 13, aa: 20, ff: 38 },
 	tech: { base: 33, aa: 11, ff: 12 },
 	landmark: { base: 18, pp: 7, aa: 8 },
 	'landmark-card': { pp: 5, aa: 5 },
@@ -91,9 +91,9 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 293 illustrations, 37 icons and 82 boards', () => {
+test('there are 294 illustrations, 37 icons and 82 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
-	assert.equal(count('illustration'), 293);
+	assert.equal(count('illustration'), 294);
 	assert.equal(count('icon'), 37);
 	assert.equal(count('board'), 82);
 });
@@ -119,7 +119,7 @@ test('card slugs follow the slug rules', () => {
 
 test('left-out cards have no entry', () => {
 	const names = new Set(ASSETS.map((a) => a.name));
-	for (const name of ['Infrastructure Boost', 'Cloud Colonies']) {
+	for (const name of ['Infrastructure Boost']) {
 		assert.ok(!names.has(name), name);
 	}
 });

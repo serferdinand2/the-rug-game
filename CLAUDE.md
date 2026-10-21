@@ -49,7 +49,7 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
     - `component-event.js` holds `ComponentEvent`;
     - `ui.js` holds the shared interface ids (tracks, resources, terrain, seats) and turns them into token references;
     - `capital.js` holds the capital-grid geometry the interface needs: footprint rotation, legal positions and completed groups;
-    - `art/catalog.js` lists all 412 assets with stable `<group>/<slug>` ids. It imports nothing, so the app and the engine can load it;
+    - `art/catalog.js` lists all 413 assets with stable `<group>/<slug>` ids. It imports nothing, so the app and the engine can load it;
     - `art/footprints.js` holds the 33 landmark footprints. A landmark's picture is drawn in its footprint's shape at 32 pixels per plot, and the art build refuses one that covers the wrong plots. The rules engine must reuse this module;
     - `engine/` will hold the rules engine (#12 onward), shared by the server and the app.
   - `src/styles/` holds `tokens.css`, `base.css` and `pixel-noise.svg`:
@@ -93,9 +93,11 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - #47 waits for #3's new `base.css`, `tokens.css` and `docs/ui/`. All three are in now; its GitHub blockers still decide when it starts. #48 is done.
   - The lobby's **Add bot** seat control is shelved (owner).
   - The asset gallery is part of the component library now, in its Art area (owner).
+  - Cloud Colonies is back (owner). R77 lists the territories that show clouds, read from BGA's tile and board images, and #49 adds the card. The territory-tile and map art (#6) must show clouds on exactly those territories.
+  - The owner-check rules are settled by Board Game Arena for now, not the physical box (owner). 17 are marked **BGA** in the README's "Rules conventions"; R28 and R40 were corrected to match BGA, and R66 now gives the track order from BGA's board images, so Twin Impact is in. R12 and R39 stay owner-check, because BGA has no data for them.
 - **Next:**
-  - #45 Check the 20 "owner-check" rules against the physical box. This is the owner's job.
-  - #12 Encode the base game data. This is the first rules-engine issue. The owner wants #45 done first, so #12 is blocked by it.
+  - #12 Encode the base game data. This is the first rules-engine issue, and it is ready.
+  - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
   - #5, #6 and #8–#11 Draw the rest of the art with the toolkit.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
