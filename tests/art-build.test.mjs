@@ -130,32 +130,41 @@ test('buildArt refuses an illustration that is not 64×64', async () => {
 	}
 });
 
-test('buildArt refuses a board piece that does not match its footprint', async () => {
-	// A 32×32 Forge piece (2×2 plots) with one empty pixel in its top-left plot.
-	const holed = `export function draw() {
-	const p = new Array(32 * 32).fill('#aa0000');
-	p[0] = null;
-	return { w: 32, h: 32, p };
+/**
+ * Returns a drawing module whose draw() fills a w×h canvas, leaving the listed pixel indexes empty.
+ * @param {number} w
+ * @param {number} h
+ * @param {number[]} [holes]
+ */
+function filledDrawing(w, h, holes = []) {
+	return `export function draw() {
+	const p = new Array(${w * h}).fill('#aa0000');
+	for (const i of ${JSON.stringify(holes)}) { p[i] = null; }
+	return { w: ${w}, h: ${h}, p };
 }
 `;
+}
+
+/** A landmark asset for a synthetic catalog. */
+const landmark = (/** @type {string} */ slug) => ({
+	id: `landmark/${slug}`,
+	kind: 'illustration',
+	group: 'landmark',
+});
+
+test('buildArt refuses a landmark picture that does not match its footprint', async () => {
+	// A 64×64 Forge picture (2×2 plots at 32 pixels) with one empty pixel in its top-left plot.
 	const { root, drawingsDir, outDir } = await scratch({
-		'landmark-marker/forge.js': holed,
+		'landmark/forge.js': filledDrawing(64, 64, [0]),
 	});
 	try {
-		const assets = [
-			{
-				id: 'landmark-marker/forge',
-				kind: 'icon',
-				group: 'landmark-marker',
-			},
-		];
 		await assert.rejects(
 			buildArt({
 				drawingsDir,
 				outDir,
-				assets: /** @type {any} */ (assets),
+				assets: /** @type {any} */ ([landmark('forge')]),
 			}),
-			/landmark-marker\/forge: the board piece doesn't match its footprint: plot \(0, 0\) is in the footprint but pixel \(0, 0\) is empty/
+			/landmark\/forge: the picture doesn't match its footprint: plot \(0, 0\) is in the footprint but pixel \(0, 0\) is empty/
 		);
 		assert.equal(existsSync(outDir), false);
 	} finally {
@@ -163,25 +172,35 @@ test('buildArt refuses a board piece that does not match its footprint', async (
 	}
 });
 
-test('buildArt refuses a board piece for a landmark with no footprint', async () => {
+test('buildArt takes a landmark picture in its footprint shape, whatever its size', async () => {
+	// The Launch Pad is 3×2 plots, so its picture is 96×64, not the 64×64 of other illustrations.
 	const { root, drawingsDir, outDir } = await scratch({
-		'landmark-marker/nowhere.js': TWO_BY_TWO,
+		'landmark/launch-pad.js': filledDrawing(96, 64),
 	});
 	try {
-		const assets = [
-			{
-				id: 'landmark-marker/nowhere',
-				kind: 'icon',
-				group: 'landmark-marker',
-			},
-		];
+		const result = await buildArt({
+			drawingsDir,
+			outDir,
+			assets: /** @type {any} */ ([landmark('launch-pad')]),
+		});
+		assert.deepEqual(result.written, ['landmark/launch-pad']);
+	} finally {
+		await rm(root, { recursive: true, force: true });
+	}
+});
+
+test('buildArt refuses a landmark picture with no footprint', async () => {
+	const { root, drawingsDir, outDir } = await scratch({
+		'landmark/nowhere.js': filledDrawing(64, 64),
+	});
+	try {
 		await assert.rejects(
 			buildArt({
 				drawingsDir,
 				outDir,
-				assets: /** @type {any} */ (assets),
+				assets: /** @type {any} */ ([landmark('nowhere')]),
 			}),
-			/landmark-marker\/nowhere: no footprint for this landmark/
+			/landmark\/nowhere: no footprint for this landmark/
 		);
 	} finally {
 		await rm(root, { recursive: true, force: true });

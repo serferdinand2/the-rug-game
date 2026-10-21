@@ -157,14 +157,13 @@ Groups and counts after the left-out rules (names in Appendix A):
 | `die` | icon | 14 | – | 1 | – | 15 | #5 |
 | `terrain` | icon | 5 | – | – | – | 5 | #5 |
 | `track` | icon | 4 | – | 1 | – | 5 | #5 |
-| `landmark-marker` | icon | 18 | 7 | 8 | – | 33 | #7 (moved from #5 on 2026-10-21) |
 | `board` | board | 5 | – | – | 1 | 6 | #6 |
 | `hex` | board | 6 | – | – | – | 6 | #6 |
 | `territory-tile` | board | 48 | – | – | – | 48 | #6 |
 | `capital-mat` | board | 6 | – | 6 | 6 | 18 | #6 |
 | `inspiration-tile` | board | – | – | 4 | – | 4 | #11 |
 
-That gives 293 illustrations, 70 icons and 82 boards (445 assets).
+That gives 293 illustrations, 37 icons and 82 boards (412 assets). On 2026-10-21 the owner dropped the 33 `landmark-marker` icons: the board shows each landmark's own picture, drawn in its footprint's shape (see [2026-10-21-landmarks-design.md](2026-10-21-landmarks-design.md)).
 
 Notes on the counts:
 - **Tapestry.** The Trap is one picture for its 7 copies. Infrastructure Boost, the unnamed "Arc…" card (R43, R44) and Cloud Colonies (R77) are left out.
@@ -263,7 +262,7 @@ Spellings follow the research catalogues: 02 for base content, and 03's card lis
 - **A&A:** Astrolabe, Automation, Calculus, Duct Tape, Jet Fuel, Microphone, Oil Paint, Opera, Public Art, Suburbs, War College.
 - **F&F:** Golem Minions, Levitation, Mind Control, Object Cloning, Perfect Memory, Pyrokinesis, Remote Viewing, Superhuman Strength, Super Speed, Teleportation, Transmogrification, Weather Control.
 
-**Landmarks** (the same names are used for `landmark-marker`).
+**Landmarks.**
 - **Base:**
   - Track landmarks: Lighthouse, Train Station, Launch Pad, Apothecary, Academy, Laboratory, Forge, Rubber Works, Tech Hub, Barracks, Tank Factory, Fusion Reactor.
   - From tech cards: Bakery, Barn, Com Tower, Library, Stock Market, Treasury.
@@ -297,7 +296,6 @@ Spellings follow the research catalogues: 02 for base content, and 03's card lis
   - Science: `die/science-exploration`, `die/science-science`, `die/science-technology`, `die/science-military`, and `die/science-arts` (A&A, on the d20).
   - Red: `die/red-4-vp`, `die/red-5-vp`, `die/red-6-vp`, `die/red-7-vp`, `die/red-vp-per-territory`.
   - Black: `die/black-coin`, `die/black-worker`, `die/black-food`, `die/black-culture`, and `die/black-tile-benefit`. That is the "?" face, which gives the conquered territory tile's benefit (R8).
-- **Landmark markers:** `landmark-marker/<slug>`, with the same slug as the landmark.
 
 **Boards.**
 - **Base:** `board/map-large`, `board/map-small`, `board/tracks`, `board/income-mat`, `board/table`.

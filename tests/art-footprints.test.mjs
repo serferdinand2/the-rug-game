@@ -1,4 +1,4 @@
-// Landmark footprints: the plots each landmark covers, and the check that a board piece covers exactly those.
+// Landmark footprints: the plots each landmark covers, and the check that a landmark's picture covers exactly those.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ASSETS } from '../art/catalog.js';
@@ -7,6 +7,7 @@ import {
 	FOOTPRINTS,
 	footprintMismatches,
 } from '../art/footprints.js';
+import { draw as drawLighthouse } from '../art/drawings/landmark/lighthouse.js';
 
 /** Plot counts from the landmarks design §6.1 (02 §5, 03 §1.6, 03 §2.10, R63, R65). */
 const EXPECTED_PLOTS = {
@@ -129,15 +130,15 @@ test('footprintMismatches accepts an exact piece', () => {
 test('footprintMismatches reports a transposed canvas', () => {
 	const sideways = exactPiece(['XX', 'XX', 'XX']);
 	assert.deepEqual(footprintMismatches(sideways, ['XXX', 'XXX']), [
-		'canvas is 32×48, expected 48×32',
+		'canvas is 64×96, expected 96×64',
 	]);
 });
 
 test('footprintMismatches reports a hole in the footprint', () => {
 	const piece = exactPiece(['XX', 'XX']);
-	piece.p[3 * piece.w + 17] = null;
+	piece.p[3 * piece.w + 40] = null;
 	assert.deepEqual(footprintMismatches(piece, ['XX', 'XX']), [
-		'plot (1, 0) is in the footprint but pixel (17, 3) is empty',
+		'plot (1, 0) is in the footprint but pixel (40, 3) is empty',
 	]);
 });
 
@@ -154,9 +155,16 @@ test('footprintMismatches reports only the first bad pixel of each plot', () => 
 	const piece = exactPiece(['XX', 'XX']);
 	piece.p[0] = null;
 	piece.p[1] = null;
-	piece.p[16 * piece.w + 20] = null;
+	piece.p[40 * piece.w + 40] = null;
 	assert.deepEqual(footprintMismatches(piece, ['XX', 'XX']), [
 		'plot (0, 0) is in the footprint but pixel (0, 0) is empty',
-		'plot (1, 1) is in the footprint but pixel (20, 16) is empty',
+		'plot (1, 1) is in the footprint but pixel (40, 40) is empty',
 	]);
+});
+
+test('pictures use 32 pixels per plot, so the approved 2×2 Lighthouse fits its footprint exactly', () => {
+	assert.deepEqual(
+		footprintMismatches(drawLighthouse(), FOOTPRINTS.lighthouse),
+		[]
+	);
 });

@@ -14,16 +14,20 @@ import { drawSky } from '../../parts/sky.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 
+/** The picture fills the pad's 3×2 plots at 32 pixels each. */
+const W = 96;
+const H = 64;
+
 /** The rocket's leftmost column; it is 8 pixels wide. */
-const ROCKET = 28;
+const ROCKET = 44;
 
 /**
  * Draws the Launch Pad scene.
- * @returns {Canvas} A 64×64 canvas.
+ * @returns {Canvas} A 96×64 canvas, the shape of its 3×2 footprint.
  */
 export function draw() {
-	const scene = createCanvas(64, 64);
-	const layer = createCanvas(64, 64);
+	const scene = createCanvas(W, H);
+	const layer = createCanvas(W, H);
 	const random = seededRandom(37);
 
 	drawSky(layer, {
@@ -31,35 +35,36 @@ export function draw() {
 		horizon: 48,
 		random,
 		sparkles: [
-			[8, 7],
-			[55, 12],
+			[10, 7],
+			[84, 9],
 		],
-		moon: { x: 50, y: 30 },
+		moon: { x: 80, y: 24 },
 	});
 	drawConcrete(layer);
 	drawFloodBeams(layer);
 
+	drawBunker(scene);
 	drawPad(scene);
 	drawGantry(scene);
 	drawRocket(scene);
 	drawFloodlights(scene);
 	outline(scene, C.ink);
 	// Warning lights sit on top of the outline.
-	set(scene, 17, 4, C.brickRedLight);
-	set(scene, 3, 36, C.lampGlow);
-	set(scene, 60, 36, C.lampGlow);
+	set(scene, 33, 4, C.brickRedLight);
+	set(scene, 6, 36, C.lampGlow);
+	set(scene, 89, 36, C.lampGlow);
 	underlay(scene, layer);
 	return scene;
 }
 
 /**
- * The concrete apron, lit near the pad and fading into the dark, with the flame trench.
+ * The concrete apron, lit around the pad and fading into the dark, with the flame trench.
  * @param {Canvas} layer
  */
 function drawConcrete(layer) {
-	for (let y = 49; y < 64; y++) {
-		for (let x = 0; x < 64; x++) {
-			const lit = Math.abs(x - 31.5) < 22 - (y - 49);
+	for (let y = 49; y < H; y++) {
+		for (let x = 0; x < W; x++) {
+			const lit = Math.abs(x - (ROCKET + 3.5)) < 30 - (y - 49) * 1.5;
 			let colour = lit ? C.stoneMid : C.stoneShade;
 			if (y === 49) {
 				colour = C.stone;
@@ -69,7 +74,7 @@ function drawConcrete(layer) {
 			set(layer, x, y, colour);
 		}
 	}
-	rect(layer, 22, 58, 20, 4, C.night);
+	rect(layer, ROCKET - 10, 58, 28, 4, C.night);
 }
 
 /**
@@ -78,11 +83,11 @@ function drawConcrete(layer) {
  */
 function drawFloodBeams(layer) {
 	for (const [x0, step] of [
-		[4, 1],
-		[59, -1],
+		[7, 1],
+		[88, -1],
 	]) {
-		for (let i = 1; i <= 30; i++) {
-			const cx = x0 + step * Math.round(i * 0.75);
+		for (let i = 1; i <= 34; i++) {
+			const cx = x0 + step * Math.round(i * 0.95);
 			const cy = 36 - i;
 			const spread = Math.floor(i * 0.25);
 			for (let dx = -spread; dx <= spread; dx++) {
@@ -92,7 +97,7 @@ function drawFloodBeams(layer) {
 					const t =
 						0.35 *
 						(1 - Math.abs(dx) / (spread + 1.5)) *
-						(1 - i / 40);
+						(1 - i / 44);
 					set(layer, x, cy, mix(behind, C.beamLight, t));
 				}
 			}
@@ -101,14 +106,38 @@ function drawFloodBeams(layer) {
 }
 
 /**
+ * The low control bunker to the right, its windows lit.
+ * @param {Canvas} scene
+ */
+function drawBunker(scene) {
+	for (let y = 38; y <= 50; y++) {
+		const inset = Math.max(0, 40 - y);
+		for (let x = 64 + inset; x <= 84 - inset; x++) {
+			let colour = C.stone;
+			if (y <= 39) {
+				colour = C.stoneLight;
+			} else if (x >= 82) {
+				colour = C.stoneShade;
+			}
+			set(scene, x, y, colour);
+		}
+	}
+	for (const x of [67, 72, 77]) {
+		rect(scene, x, 43, 3, 2, C.lampGlow);
+	}
+	rect(scene, 73, 30, 1, 8, C.stoneShade);
+	rect(scene, 70, 30, 7, 1, C.stoneMid);
+}
+
+/**
  * The raised launch platform under the rocket.
  * @param {Canvas} scene
  */
 function drawPad(scene) {
-	rect(scene, 18, 47, 28, 1, C.stoneLight);
-	rect(scene, 18, 48, 28, 3, C.stone);
-	rect(scene, 44, 48, 2, 3, C.stoneShade);
-	for (const x of [20, 30, 41]) {
+	rect(scene, ROCKET - 10, 47, 28, 1, C.stoneLight);
+	rect(scene, ROCKET - 10, 48, 28, 3, C.stone);
+	rect(scene, ROCKET + 16, 48, 2, 3, C.stoneShade);
+	for (const x of [ROCKET - 8, ROCKET + 2, ROCKET + 13]) {
 		rect(scene, x, 51, 3, 4, C.stoneShade);
 	}
 }
@@ -118,21 +147,22 @@ function drawPad(scene) {
  * @param {Canvas} scene
  */
 function drawGantry(scene) {
+	const left = ROCKET - 14;
 	for (let y = 6; y <= 46; y++) {
-		set(scene, 14, y, C.stoneMid);
-		set(scene, 19, y, C.stoneShade);
+		set(scene, left, y, C.stoneMid);
+		set(scene, left + 5, y, C.stoneShade);
 		const k = (y - 6) % 8;
-		set(scene, 15 + (Math.min(k, 7 - k) % 4), y, C.stoneShade);
-		set(scene, 18 - (Math.min(k, 7 - k) % 4), y, C.stoneShade);
+		set(scene, left + 1 + (Math.min(k, 7 - k) % 4), y, C.stoneShade);
+		set(scene, left + 4 - (Math.min(k, 7 - k) % 4), y, C.stoneShade);
 	}
 	for (const y of [6, 14, 22, 30, 38, 46]) {
-		rect(scene, 14, y, 6, 1, C.stoneMid);
+		rect(scene, left, y, 6, 1, C.stoneMid);
 	}
-	rect(scene, 13, 5, 8, 1, C.stone);
-	rect(scene, 17, 4, 1, 1, C.stone);
+	rect(scene, left - 1, 5, 8, 1, C.stone);
+	rect(scene, left + 3, 4, 1, 1, C.stone);
 	for (const y of [16, 30]) {
-		rect(scene, 20, y, ROCKET - 20, 2, C.stoneMid);
-		rect(scene, 20, y + 1, ROCKET - 20, 1, C.stoneShade);
+		rect(scene, left + 6, y, ROCKET - left - 6, 2, C.stoneMid);
+		rect(scene, left + 6, y + 1, ROCKET - left - 6, 1, C.stoneShade);
 	}
 }
 
@@ -164,22 +194,9 @@ function drawRocket(scene) {
 	rect(scene, ROCKET + 3, 23, 2, 2, C.daySky2);
 	// Fins.
 	for (let i = 0; i < 6; i++) {
-		rect(
-			scene,
-			ROCKET - 1 - Math.floor(i / 2),
-			35 + i,
-			1 + Math.floor(i / 2),
-			1,
-			C.brickRed
-		);
-		rect(
-			scene,
-			ROCKET + 8,
-			35 + i,
-			1 + Math.floor(i / 2),
-			1,
-			C.brickRedShade
-		);
+		const reach = 1 + Math.floor(i / 2);
+		rect(scene, ROCKET - reach, 35 + i, reach, 1, C.brickRed);
+		rect(scene, ROCKET + 8, 35 + i, reach, 1, C.brickRedShade);
 	}
 	// Engine bell.
 	rect(scene, ROCKET + 1, 41, 6, 2, C.stoneShade);
@@ -208,7 +225,7 @@ function hullColour(x) {
  * @param {Canvas} scene
  */
 function drawFloodlights(scene) {
-	for (const x of [3, 60]) {
+	for (const x of [6, 89]) {
 		rect(scene, x, 38, 1, 13, C.stoneShade);
 		rect(scene, x - 1, 35, 3, 3, C.gold);
 	}

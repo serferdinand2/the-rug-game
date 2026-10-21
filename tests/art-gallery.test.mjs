@@ -140,17 +140,17 @@ test('drawn assets keep their own size', async () => {
 	}
 });
 
-test('board pieces sit on a plot grid', async () => {
+test('landmark pictures sit on their plot grid, 32 pixels per plot', async () => {
 	const { root, drawingsDir } = await scratch({
-		'landmark-marker/forge.js': filledDrawing(32, 32),
+		'landmark/forge.js': filledDrawing(64, 64),
 	});
 	try {
 		const assets = [
 			{
-				id: 'landmark-marker/forge',
+				id: 'landmark/forge',
 				name: 'Forge',
-				kind: 'icon',
-				group: 'landmark-marker',
+				kind: 'illustration',
+				group: 'landmark',
 				expansion: 'base',
 				issue: 7,
 			},
@@ -159,10 +159,11 @@ test('board pieces sit on a plot grid', async () => {
 			drawingsDir,
 			assets: /** @type {any} */ (assets),
 		});
-		assert.match(
-			figureFor(page, 'landmark-marker/forge'),
-			/class="asset plots"/
-		);
+		const forge = figureFor(page, 'landmark/forge');
+		assert.match(forge, /class="asset plots"/);
+		// At 2× a plot is 64 pixels on screen, at 4× it is 128.
+		assert.match(forge, /--plot:64px/);
+		assert.match(forge, /--plot:128px/);
 	} finally {
 		await rm(root, { recursive: true, force: true });
 	}

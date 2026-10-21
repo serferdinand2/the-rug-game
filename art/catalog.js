@@ -71,12 +71,6 @@ export const GROUPS = Object.freeze(
 		{ id: 'die', label: 'Dice faces', kind: 'icon', issue: 5 },
 		{ id: 'terrain', label: 'Terrain', kind: 'icon', issue: 5 },
 		{ id: 'track', label: 'Track symbols', kind: 'icon', issue: 5 },
-		{
-			id: 'landmark-marker',
-			label: 'Landmark grid markers',
-			kind: 'icon',
-			issue: 7,
-		},
 		{ id: 'board', label: 'Boards', kind: 'board', issue: 6 },
 		{ id: 'hex', label: 'Map hexes', kind: 'board', issue: 6 },
 		{
@@ -510,7 +504,6 @@ const LISTS = {
 		],
 		aa: [['arts', 'Arts']],
 	},
-	'landmark-marker': LANDMARKS,
 	board: {
 		base: [
 			['map-large', 'Large map (4–5 players)'],

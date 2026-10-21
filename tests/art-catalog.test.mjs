@@ -19,7 +19,6 @@ const EXPECTED_COUNTS = {
 	die: { base: 14, aa: 1 },
 	terrain: { base: 5 },
 	track: { base: 4, aa: 1 },
-	'landmark-marker': { base: 18, pp: 7, aa: 8 },
 	board: { base: 5, ff: 1 },
 	hex: { base: 6 },
 	'territory-tile': { base: 48 },
@@ -36,7 +35,6 @@ const SLUGGED_GROUPS = [
 	'masterpiece',
 	'capital-mat',
 	'inspiration-tile',
-	'landmark-marker',
 ];
 
 /** The design's slug rules, written independently of the catalog. */
@@ -93,10 +91,10 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 293 illustrations, 70 icons and 82 boards', () => {
+test('there are 293 illustrations, 37 icons and 82 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 293);
-	assert.equal(count('icon'), 70);
+	assert.equal(count('icon'), 37);
 	assert.equal(count('board'), 82);
 });
 
@@ -126,12 +124,10 @@ test('left-out cards have no entry', () => {
 	}
 });
 
-test('every landmark has a grid marker with the same slug and expansion', () => {
-	const landmarks = ASSETS.filter((a) => a.group === 'landmark');
-	const markers = ASSETS.filter((a) => a.group === 'landmark-marker');
-	assert.deepEqual(
-		markers.map((m) => [m.id.split('/')[1], m.name, m.expansion]),
-		landmarks.map((l) => [l.id.split('/')[1], l.name, l.expansion])
+test('landmarks have no separate board pieces: the board shows their pictures', () => {
+	assert.equal(
+		ASSETS.some((a) => a.group === 'landmark-marker'),
+		false
 	);
 });
 
@@ -153,7 +149,7 @@ test('spot checks match the agreed spellings', () => {
 		['space-tile/technology-5-vp', 'Technology 5 VP', 'pp', 11],
 		['board/income-overlay', 'Income-mat overlay [5]', 'ff', 6],
 		['inspiration-tile/armories', 'Armories', 'aa', 11],
-		['landmark-marker/forge', 'Forge', 'base', 7],
+		['landmark/forge', 'Forge', 'base', 7],
 	];
 	for (const [id, name, expansion, issue] of expected) {
 		const asset = byId.get(id);

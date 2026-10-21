@@ -54,7 +54,8 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
   - The rules engine will live in `engine/` (#12 onward), shared by the server and the client.
 - `art/` is the art toolkit (#4). See `docs/art/README.md`.
   - `painter.js`, `palette.js` and `parts/` draw style C pixel art. `drawings/<id>.js` holds one module per drawn asset.
-  - `catalog.js` lists all 445 assets with stable `<group>/<slug>` ids. It imports nothing, so the client can load it.
+  - `catalog.js` lists all 412 assets with stable `<group>/<slug>` ids. It imports nothing, so the client can load it.
+  - `footprints.js` holds the 33 landmark footprints. A landmark's picture is drawn in its footprint's shape at 32 pixels per plot, and the build refuses one that covers the wrong plots. The rules engine (#12) must reuse this module.
   - `npm run art` writes the SVGs into `client/static/art/`, which are committed, and the git-ignored asset gallery `art/preview/index.html`, which shows every asset in the catalog (drawn or not) and opens straight from disk. Tests fail when a committed SVG is out of date.
 - `tests/` holds `node:test` suites. Server tests import `server` and listen on port 0, so they never need fixed ports.
 
@@ -139,7 +140,8 @@ The design document has the details. In short:
 - **Bots.** The only bots are the official Automa and Shadow Empire, exactly as in the real game. There are no bot seats in multiplayer and no bot takeover of a seat.
 - **Art.**
   - Style C: 64×64 pixel-art scenes in card frames, drawn as vector SVG with one `crispEdges` path per colour. The reference is `docs/art/style-c/lighthouse-scene.svg`.
-  - Small pieces, such as resources, buildings, outposts, dice, terrain and landmark grid markers, are simple icons in the same palette.
+  - Small pieces, such as resources, buildings, outposts, dice and terrain, are simple icons in the same palette.
+  - Each landmark is one picture drawn in its footprint's shape, shown on its card and on the capital grid.
   - The order is to design the interface first, then show every asset in a gallery page, then build the game.
 - **Interface.** The main screen has a tabbed centre view (Tracks, Map, Capital, Cards, Players), a decision bar beneath it and a status panel on the right.
   - Tracks is the default view on your turn. Your next space on each track shows its cost.

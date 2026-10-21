@@ -1,9 +1,12 @@
-// Landmark footprints: the capital-city plots each landmark covers, and the check that a board piece covers exactly those.
+// Landmark footprints: the capital-city plots each landmark covers, and the check that a landmark's picture covers exactly those.
 // Plain data with no imports, so the client and the rules engine can load it. The rules engine (#12) must reuse this
 // module (or move it into engine/ and have art/ import it from there) so the footprints never exist twice.
 
-/** A board piece is drawn at this many pixels per plot. */
-export const PLOT_SIZE = 16;
+/**
+ * A landmark's picture is drawn in its footprint's shape at this many pixels per plot, and the
+ * same picture is shown on its card and on the capital grid. A 2×2 landmark is 64×64, like the approved Lighthouse.
+ */
+export const PLOT_SIZE = 32;
 
 /**
  * Each landmark's footprint, keyed by its catalog slug: rows top first, as printed,
@@ -58,10 +61,10 @@ export const FOOTPRINTS = Object.freeze(
 );
 
 /**
- * Checks that a board piece covers exactly its footprint: the canvas is the footprint's size
+ * Checks that a landmark's picture covers exactly its footprint: the canvas is the footprint's size
  * at PLOT_SIZE pixels per plot, every pixel of an occupied plot is filled, and every pixel of
  * an empty plot is empty.
- * @param {{ w: number, h: number, p: (string | null)[] }} canvas - The drawn board piece
+ * @param {{ w: number, h: number, p: (string | null)[] }} canvas - The landmark's drawn picture
  * @param {readonly string[]} rows - The footprint
  * @returns {string[]} One message per problem, at most one per plot; empty when the piece matches.
  */

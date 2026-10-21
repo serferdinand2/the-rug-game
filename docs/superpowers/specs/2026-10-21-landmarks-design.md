@@ -1,54 +1,61 @@
-# Landmarks: 33 pictures and 33 board pieces (#7): design
+# Landmarks: 33 pictures in their footprint's shape (#7): design
 
-Written 2026-10-21. It builds on the art toolkit from #4 ([2026-10-21-art-toolkit-design.md](2026-10-21-art-toolkit-design.md)) and its catalog ids.
+Written 2026-10-21 and revised the same day after the owner reviewed the first samples. It builds on the art toolkit from #4 ([2026-10-21-art-toolkit-design.md](2026-10-21-art-toolkit-design.md)) and its catalog ids.
 
 ## 1. What and why
 
-Every landmark needs two pictures:
-- **A card picture.** A 64×64 style C scene, framed like the approved Lighthouse (`landmark/<slug>`). The asset gallery, the players' card gallery (#47) and the game's cards show it.
-- **A board piece.** A top-down picture that sits on the capital-city grid and covers exactly the landmark's footprint (`landmark-marker/<slug>`). The Capital view shows it when a landmark is placed.
+Each landmark gets **one picture, drawn in the shape of its footprint**.
+- **On the board,** that picture covers exactly the landmark's plots on the capital-city grid.
+- **On the card,** the same picture sits inside the card frame. The frame is #47.
 
-The owner's one firm requirement is that every landmark **takes exactly the right squares on the board**. The look of the pictures is left to the builder.
+There are no separate board pieces. The owner's firm requirement is that every landmark **takes exactly the right squares on the board**. The look of the pictures is left to the builder.
 
 ## 2. What the owner decided (2026-10-21)
 
 - **The look is the builder's call**, within art style C.
-- **The board pieces are part of #7**, so the owner approves each landmark's picture and board piece together. Until now they were planned for #5.
-- **Footprints must be exact.** The plot count and shape must match the rules, and a test proves it.
+- **One picture per landmark, in its footprint's shape**, used both on the card and on the board.
+  - The first version of this design had a 64×64 card picture plus a separate top-down board piece. After seeing the samples, the owner dropped the top-down pieces.
+- **32 pixels per plot.**
+  - A 2×2 landmark is 64×64, exactly the size of the approved Lighthouse, so the Lighthouse and the Forge stay as drawn.
+  - Bigger footprints get bigger pictures: 96×96 for 3×3, and up to 128×128 for the Rubber Works.
+  - On a card, larger landmarks are scaled down to fit the frame.
+- **Footprints must be exact.** The plot count and shape must match the rules, and the build and a test prove it.
 - **An asset gallery in `art/preview/`, for now.**
   - It shows every sprite and SVG in the catalog: drawn ones as pictures, the rest as labelled empty slots.
-  - It replaces the preview sheet from #4, and the owner approves art there, including #7's landmarks.
-  - The players' gallery with card frames and card text (#47) stays for later, still waiting for #3.
+  - The owner approves art there, including #7's landmarks.
+  - The players' gallery with card frames (#47) stays for later and still waits for #3.
 
 ## 3. Goals
 
 1. **Footprint data** for all 33 landmarks, taken from the research and the rules conventions, in one plain data module.
-2. **33 board pieces.** Each covers every plot of its footprint and nothing outside it, checked by tests.
-3. **33 card pictures**, varied by era and time of day, so the set reads as a journey through history.
-4. **A review step.** Three sample landmarks first, to approve the direction, then the other 30.
-5. **The asset gallery** in `art/preview/`, built first, where the owner reviews all of it (6.7).
+2. **33 landmark pictures**, each covering exactly its footprint at 32 pixels per plot. They vary by era and time of day, so the set reads as a journey through history.
+3. **The asset gallery** in `art/preview/`, where the owner reviews everything (6.5).
+4. **A review step.** Three sample landmarks first, then the other 29. The Lighthouse is already done.
 
 ## 4. Non-goals
 
-- **Card frames and the players' gallery page.** They are #47 and wait for #3. Review happens in the asset gallery in `art/preview/` (6.7).
-- **Placement rules.** Rotating, placing and checking a landmark against the grid belong to the rules engine (#12 onward) and the Capital view (#27). This work only supplies footprints and art.
-- **The other icons in #5:** resources, buildings, dice and so on.
+- **Card frames and the players' gallery page.** They are #47 and wait for #3. #47 decides how a non-square picture sits in the frame.
+- **Placement rules.** Rotating, placing and checking a landmark against the grid belong to the rules engine (#12 onward) and the Capital view (#27). This work only supplies footprints and pictures.
+- **The icons in #5:** resources, buildings, dice and so on.
 - **Landmark heights**, used for a tie-breaker. That is rules data for #12.
 
 ## 5. Anti-goals
 
 These would make the work a failure even if it ran:
-- **A board piece that covers the wrong plots.** One plot too many or too few counts.
+- **A picture that covers the wrong plots.** One plot too many or too few counts.
 - **A mirrored footprint.** The Villa, Birdwatching Perch and Castle use the corrected footprints that match the miniatures (R65). Mirroring is never legal (R15).
 - **Copying Stonemaier's miniatures or card art.** The pictures are our own interpretation of each landmark's name.
 - **Changing the approved Lighthouse.** `landmark/lighthouse` stays exactly as it is.
+- **A landmark cut off by its own shape.** In an uneven footprint, the landmark itself sits inside the shape. Only background (sky, ground) fills the outer plots.
 
 ## 6. Design
 
 ### 6.1 Footprint data
 
-- **The module.** A new `art/footprints.js` exports `FOOTPRINTS`: a frozen record from landmark slug to rows. Each row is a string of `X` (occupied plot) and `.` (empty), with the top row first, exactly as printed.
-  - Example: `'rubber-works': ['..XX', '..XX', 'XXXX', 'XXXX']`.
+- **The module.** `art/footprints.js` exports:
+  - `FOOTPRINTS`, a frozen record from landmark slug to rows. Each row is a string of `X` (occupied plot) and `.` (empty), with the top row first, exactly as printed. Example: `'rubber-works': ['..XX', '..XX', 'XXXX', 'XXXX']`.
+  - `PLOT_SIZE = 32`.
+  - `footprintMismatches(canvas, rows)`.
 - **No imports.** Like the catalog, it is plain data, so the client and the rules engine can load it.
 - **Sources:** 02 §5 for the 18 base landmarks, 03 §1.6 for Plans & Ploys, and 03 §2.10 for Arts & Architecture. Two rules settle the doubts: R63 (Castle, 12 plots) and R65 (corrected footprints).
 - **One source of truth.** The rules engine (#12) must use this module, or move it into `engine/` and have `art/` import it from there. The footprints must never exist twice.
@@ -74,19 +81,16 @@ These would make the work a failure even if it ran:
 | | | | | Opera House | `XX/XX/.X` | 5 |
 | | | | | Holocenter | `XXX/XXX/XXX/.X.` | 10 |
 
-### 6.2 Board pieces
+### 6.2 The pictures
 
-- **Files.** One drawing per landmark at `art/drawings/landmark-marker/<slug>.js`, built to `client/static/art/landmark-marker/<slug>.svg` like any other asset.
-- **Scale.** 16 pixels per plot. A piece's canvas is `columns × 16` wide and `rows × 16` tall, so the Forge is 32×32 and the Rubber Works 64×64.
-- **The exact-footprint rule.** Every pixel inside an occupied plot is filled, and every pixel inside an empty plot is empty. A piece fills its plots edge to edge; the board draws the grid lines.
-- **Orientation.** Pieces are drawn in the footprint's printed orientation. The Capital view rotates them in 90° steps for rotated placements (R15). Nothing is ever mirrored.
-  - The sources disagree for two landmarks. 02 §5 draws the Launch Pad and the Library wider than tall, while 01 §6.3 has them taller than wide. This document follows 02. All four rotations are legal, so this only sets the default way the piece faces. **(builder's call)**
-- **Look.** A top-down view of the landmark: roofs, towers, yards and the like, seen from above. Each piece uses its card picture's colours, so the two read as one landmark. A building whose footprint isn't a rectangle (the Rubber Works, the Castle, the Holocenter) fills its exact shape.
-
-### 6.3 Card pictures
-
-- **Files.** One drawing per landmark at `art/drawings/landmark/<slug>.js`, 64×64. The build already refuses illustrations of any other size.
-- **Framing.** As in the Lighthouse: the landmark is the large subject, standing in its own setting, with an outline pass and the background drawn from the scene parts.
+- **Files.** One drawing per landmark at `art/drawings/landmark/<slug>.js`, built to `client/static/art/landmark/<slug>.svg`.
+- **Size and shape.** The canvas is `columns × 32` wide and `rows × 32` tall: the Forge is 64×64, the Launch Pad 96×64 and the Rubber Works 128×128.
+  - Every pixel inside an occupied plot is filled.
+  - Every pixel inside an empty plot is empty, so on the board the picture covers exactly its plots.
+  - The build refuses a landmark picture that breaks this. The 64×64 rule for other illustrations doesn't apply to landmarks.
+- **Orientation.** Pictures are drawn in the footprint's printed orientation. The Capital view rotates them in 90° steps for rotated placements (R15). Nothing is ever mirrored.
+  - The sources disagree for two landmarks. 02 §5 draws the Launch Pad and the Library wider than tall, while 01 §6.3 has them taller than wide. This document follows 02. All four rotations are legal, so this only sets the default way the picture faces. **(builder's call)**
+- **Framing.** As in the Lighthouse: the landmark is the large subject, standing in its own setting, with an outline pass and the background drawn from the scene parts. In an uneven footprint, compose the landmark inside the shape (anti-goals).
 - **Era and time of day.** These set the mood. Tier II and the older landmarks are in daylight, tier III and the industrial and modern ones at dusk, and tier IV and the future ones at night with glowing lights. The Lighthouse keeps its approved night scene.
 
 | Landmark | Subject (builder may refine) | Time |
@@ -125,76 +129,63 @@ These would make the work a failure even if it ran:
 | Opera House | An opera house front with lit arches | dusk |
 | Holocenter | A futuristic hall with a hologram above it | night |
 
-### 6.4 Palette and parts
+### 6.3 Palette and parts
 
 - **Colours.** New colours go into `PALETTE`, as the toolkit's rules require.
-- **Parts.** A shape that two or more landmarks need, such as a city skyline, smoke or floodlights, becomes a scene part in `art/parts/`, tested like the others. Anything used once stays in its drawing.
+- **Parts.** A shape that two or more landmarks need, such as a city skyline, smoke or floodlights, becomes a scene part in `art/parts/`, tested like the others. Smoke and steam are already one (`art/parts/smoke.js`). Anything used once stays in its drawing.
 
-### 6.5 Tests
+### 6.4 Tests
 
 - **Footprints:**
   - there is one entry per landmark in the catalog, and no others;
   - each row has the same length and contains only `X` and `.`;
   - no edge row or edge column is completely empty;
-  - each landmark's plot count matches the table in 6.1. The expected counts are written as literals in the test.
-- **Board pieces:**
-  - each piece's canvas is `columns × 16` by `rows × 16`;
-  - every pixel in an occupied plot is filled;
-  - every pixel in an empty plot is empty.
-  - The test runs over every board piece that exists, so it covers each batch as it lands.
-- **Completeness:** every landmark has both a card picture and a board piece. This test is added with the last batch.
+  - each landmark's plot count matches the table in 6.1, written as literals in the test;
+  - the checker reports a wrong size, a hole, and paint outside the footprint.
+- **The scale:** the approved Lighthouse covers its 2×2 footprint exactly at 32 pixels per plot.
+- **Every drawn landmark** covers exactly its footprint. The test runs over whatever is drawn, so it covers each batch as it lands, and the build refuses a mismatch.
+- **Completeness:** every landmark in the catalog is drawn. This test is added with the last batch.
 - **No regressions:** the Lighthouse still matches the approved prototype. The #4 tests already pin it.
 
-### 6.6 Review and order
-
-1. **The asset gallery** (6.7) comes first, because every review happens there.
-2. **Footprint data and tests** come next, because they are the owner's firm requirement.
-3. **Three samples** follow, one per era: Forge (day), Train Station (dusk) and Launch Pad (night), each with its board piece. The owner sees them in the gallery, with each board piece shown on its plot grid. This approves the direction before 30 more are drawn.
-4. **The other 30**, plus the Lighthouse's board piece, follow in two commits: the base game first, then Plans & Ploys and Arts & Architecture. The owner approves the whole set in the gallery, and #7 closes.
-
-### 6.7 The asset gallery (`art/preview/`)
+### 6.5 The asset gallery (`art/preview/`)
 
 The owner's working gallery, until the players' gallery (#47) exists.
 
-- **Where it lives.** `npm run art` writes `art/preview/index.html`, generated by `art/preview/build.mjs` (moved from `art/preview.mjs`).
+- **Where it lives.** `npm run art` writes `art/preview/index.html`, generated by `art/preview/build.mjs`.
   - The page is self-contained, with every SVG inline, so it opens straight from disk without a server.
-  - It is git-ignored, like the preview sheet it replaces (`docs/art/preview.html` goes away).
+  - It is git-ignored.
 - **What it shows.**
-  - The scene parts on their own, as on today's sheet.
-  - **Every asset in the catalog**, in `GROUPS` order, each group under its label with counts, for example "Landmarks · 33 · 1 drawn". Within a group, assets are listed by expansion, under the expansion's name.
-  - **Each drawn asset** as its SVG at its own size, scaled up 2× and 4×, with its id and name. Nothing is cropped or padded to 64×64; this fixes a minor item deferred from #4.
+  - The scene parts on their own.
+  - **Every asset in the catalog**, in `GROUPS` order, each group under its label with counts, for example "Landmarks · 33 · 4 drawn". Within a group, assets are listed by expansion.
+  - **Each drawn asset** as its SVG at its own size, scaled 2× and 4×, with its id and name.
   - **Each asset not drawn yet** as a labelled empty slot with its id, name and the issue that will draw it.
-  - **Each board piece** over a grid of 16-pixel plots, so its footprint can be checked by eye.
-- **Tests** (in `tests/art-build.test.mjs`):
-  - the page lists every catalog id exactly once;
-  - each group's heading shows its total and drawn counts;
-  - drawn assets appear as SVG and undrawn ones as empty slots;
-  - board pieces are drawn over a plot grid.
+  - **Each landmark** with its 32-pixel plot grid laid over it, so the footprint can be checked by eye.
+
+### 6.6 Review and order
+
+1. **The gallery, the footprint data and the build check** come first. Done.
+2. **Three samples:** Forge (day), Train Station (dusk) and Launch Pad (night). The owner reviews them in the gallery to approve the direction.
+3. **The other 29** follow in two commits: the rest of the base game, then Plans & Ploys and Arts & Architecture. The owner approves the whole set in the gallery, and #7 closes.
 
 ## 7. Changes to other documents and issues
 
-- **The catalog.** The `landmark-marker` group's `issue` changes from 5 to 7. The asset counts don't change.
-- **The toolkit design §7.4 and the main design document §6:** landmark grid markers move from #5 to #7.
-- **Issue #5:** remove the landmark markers.
-- **Issue #7:**
-  - add the board pieces and the exact-footprint requirement;
-  - "the gallery" in its checklist means the asset gallery in `art/preview/`.
-- **CLAUDE.md, `docs/art/README.md`, `.gitignore` and `.prettierignore`:**
-  - mention `art/footprints.js` and the board-piece rule;
-  - replace `docs/art/preview.html` with `art/preview/index.html`.
+- **The catalog.**
+  - The `landmark-marker` group is removed: the board shows each landmark's picture.
+  - The catalog drops from 445 to 412 assets (293 illustrations, 37 icons, 82 boards).
+- **The toolkit design §7.4 and the main design document:** remove the landmark grid markers, and update the counts.
+- **Issue #5:** the landmark markers are dropped, not moved.
+- **Issue #7:** one picture per landmark in its footprint's shape. "The gallery" in its checklist means the asset gallery in `art/preview/`.
+- **CLAUDE.md and `docs/art/README.md`:** the landmark picture rule, `art/footprints.js` and the new asset count.
 
 ## 8. Calls made in this document (not yet confirmed by the owner)
 
-- The era and time-of-day scheme, and every subject in 6.3.
-- Board pieces at 16 pixels per plot, filling their plots edge to edge, drawn in the printed orientation.
+- The era and time-of-day scheme, and every subject in 6.2.
 - The footprints living in `art/footprints.js` for now, with #12 required to reuse them.
 - Review in two steps: three samples, then the rest.
-- The gallery page: generated and git-ignored, self-contained so it opens from disk, with 2× and 4× sizes, grouped by group and then expansion.
 - New scene parts only for shapes two or more landmarks share.
+- The gallery page: generated and git-ignored, self-contained so it opens from disk, with 2× and 4× sizes, grouped by group and then expansion.
 
 ## 9. Left to the builder
 
-- Each picture's composition and details, within the subjects in 6.3.
-- The top-down design of each board piece, within the exact-footprint rule.
+- Each picture's composition and details, within the subjects in 6.2 and the footprint's shape.
 - Which new parts and palette colours to add.
-- The preview sheet's layout for board pieces.

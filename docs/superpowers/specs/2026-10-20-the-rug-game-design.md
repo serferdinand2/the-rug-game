@@ -89,7 +89,7 @@ New for this game:
 - **Art.** The owner chose style C.
   - Style C is used for every illustration: civilizations, tapestry cards, tech cards, landmarks, masterpieces, space tiles and landmark cards.
   - Small game pieces use simple pixel icons in the same palette: resources, income buildings, outposts, dice, terrain and track symbols. The comparison page showed that a 64×64 scene can't be read at 24px. **(my call)**
-  - Landmarks also need a small top-down marker sized to their footprint, for when they sit on the capital-city grid. **(my call)**
+  - Each landmark's picture is drawn in the shape of its footprint (32 pixels per plot), and the same picture is shown on its card and on the capital-city grid. **(owner, 2026-10-21)**
   - The owner reviews each art batch in the asset gallery before it is merged.
 - **Interface (owner).** The approved designs live in `docs/ui/`.
   - The main game screen is a tabbed centre view (Tracks, Map, Capital, Cards, Players), with a decision bar beneath it and your own status panel on the right.
@@ -166,10 +166,10 @@ Every issue is done when:
    - Done when: the catalog lists every illustration, icon and board, and the lighthouse is rebuilt with the toolkit.
 5. **Icons and small pieces.**
    - Resources, the four income buildings, outposts, player tokens, dice faces, terrain, and the track symbols (including arts).
-   - The top-down capital-grid markers for the 33 landmarks moved to item 7 on 2026-10-21.
+   - No separate capital-grid markers for landmarks: the grid shows each landmark's own picture (owner, 2026-10-21).
 6. **Boards.**
    - Map terrain and both map sides, the track board, all 18 capital mats, the income mat with its overlays, and the table background.
-7. **Landmarks:** 33 illustrations, and 33 top-down board pieces that cover exactly each footprint ([2026-10-21-landmarks-design.md](2026-10-21-landmarks-design.md)).
+7. **Landmarks:** 33 pictures, each drawn in its footprint's shape so it covers exactly its plots on the board ([2026-10-21-landmarks-design.md](2026-10-21-landmarks-design.md)).
 8. **Civilizations:** 41 portraits.
 9. **Tapestry cards:** 114 illustrations, in batches by set.
 10. **Tech cards:** 56 illustrations.

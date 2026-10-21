@@ -24,12 +24,13 @@ export const OUT_DIR = fileURLToPath(
 const ILLUSTRATION_SIZE = 64;
 
 /**
- * Throws unless a landmark's board piece covers exactly its footprint.
- * @param {string} id - e.g. 'landmark-marker/forge'
+ * Throws unless a landmark's picture covers exactly its footprint. The same picture is
+ * shown on the landmark's card and on the capital grid, so its shape is its footprint.
+ * @param {string} id - e.g. 'landmark/forge'
  * @param {Canvas} canvas
- * @throws {Error} When the landmark has no footprint or the piece doesn't match it.
+ * @throws {Error} When the landmark has no footprint or the picture doesn't match it.
  */
-function checkBoardPiece(id, canvas) {
+function checkLandmarkPicture(id, canvas) {
 	const rows = FOOTPRINTS[id.split('/')[1]];
 	if (!rows) {
 		throw new Error(`${id}: no footprint for this landmark`);
@@ -37,7 +38,7 @@ function checkBoardPiece(id, canvas) {
 	const [problem] = footprintMismatches(canvas, rows);
 	if (problem) {
 		throw new Error(
-			`${id}: the board piece doesn't match its footprint: ${problem}`
+			`${id}: the picture doesn't match its footprint: ${problem}`
 		);
 	}
 }
@@ -157,15 +158,15 @@ export async function buildArt({
 	const drawn = [];
 	for (const id of ids) {
 		const canvas = await drawAsset(id, drawingsDir);
+		const asset = byId.get(id);
 		const wrongSize =
 			canvas.w !== ILLUSTRATION_SIZE || canvas.h !== ILLUSTRATION_SIZE;
-		if (byId.get(id)?.kind === 'illustration' && wrongSize) {
+		if (asset?.group === 'landmark') {
+			checkLandmarkPicture(id, canvas);
+		} else if (asset?.kind === 'illustration' && wrongSize) {
 			throw new Error(
 				`${id}: an illustration must be ${ILLUSTRATION_SIZE}×${ILLUSTRATION_SIZE}, not ${canvas.w}×${canvas.h}`
 			);
-		}
-		if (byId.get(id)?.group === 'landmark-marker') {
-			checkBoardPiece(id, canvas);
 		}
 		drawn.push([id, toSvg(canvas)]);
 	}
