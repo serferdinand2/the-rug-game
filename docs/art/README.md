@@ -22,10 +22,10 @@ The design is in [2026-10-21-art-toolkit-design.md](../superpowers/specs/2026-10
 | `art/painter.js` | The canvas, drawing helpers, `outline`, `mix`, `seededRandom`, `underlay` and `toSvg` |
 | `art/palette.js` | `PALETTE`: every named style C colour |
 | `art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure`, `drawSmoke` (smoke, steam), `drawClassical` (pediment, flat), `drawFactory`, `drawSkyline` (night, dusk, day) and `drawStreet` |
-| `art/footprints.js` | `FOOTPRINTS` for the 33 landmarks, `PLOT_SIZE` (32), `footprintMismatches` and `clipToFootprint` |
-| `art/catalog.js` | `ASSETS`: every asset the game needs, with its stable id, plus `GROUPS` and `EXPANSIONS` |
+| `src/lib/art/footprints.js` | `FOOTPRINTS` for the 33 landmarks, `PLOT_SIZE` (32), `footprintMismatches` and `clipToFootprint` |
+| `src/lib/art/catalog.js` | `ASSETS`: every asset the game needs, with its stable id, plus `GROUPS` and `EXPANSIONS` |
 | `art/drawings/` | One module per drawn asset, at `art/drawings/<id>.js` |
-| `art/build.mjs` | Writes each drawing to `client/static/art/<id>.svg` |
+| `art/build.mjs` | Writes each drawing to `static/art/<id>.svg` |
 | `art/preview/build.mjs` | Writes the asset gallery, `art/preview/index.html` |
 
 ### Asset ids
@@ -34,19 +34,19 @@ Every asset has a stable id, `<group>/<slug>`, such as `landmark/lighthouse`, `t
 
 ### Adding a drawing
 
-1. Find the asset's id in `art/catalog.js`.
+1. Find the asset's id in `src/lib/art/catalog.js`.
 2. Create `art/drawings/<id>.js`, with a one-line comment at the top, exporting `draw()`. It returns a canvas: 64×64 for an illustration.
-3. Run `npm run art`. It writes `client/static/art/<id>.svg` and refreshes the asset gallery.
+3. Run `npm run art`. It writes `static/art/<id>.svg` and refreshes the asset gallery.
 4. Look at it in the asset gallery: open `art/preview/index.html` in a browser, straight from disk. Every asset in the catalog is there, drawn or as an empty slot, and landmarks sit under their plot grid.
 5. Commit the drawing and its SVG together. `npm test` fails when a committed SVG doesn't match its drawing, when a drawing has no catalog entry, and when an SVG has no drawing.
 
-`client/static/art/` is build output only. Never put a hand-made SVG there: `npm run art` deletes every SVG in it that has no drawing. Drawings must be `.js` files; `npm run art` refuses any other file in `art/drawings/`, an illustration that isn't 64×64, and a landmark picture that doesn't match its footprint.
+`static/art/` is build output only. Never put a hand-made SVG there: `npm run art` deletes every SVG in it that has no drawing. Drawings must be `.js` files; `npm run art` refuses any other file in `art/drawings/`, an illustration that isn't 64×64, and a landmark picture that doesn't match its footprint.
 
 ### Landmark pictures
 
 Each landmark is one picture, drawn in the shape of its footprint, and the game shows that same picture on its card and on the capital grid.
 - **Size.** 32 pixels per plot: `columns × 32` by `rows × 32`, so a 2×2 landmark is 64×64 like the Lighthouse, and the Rubber Works is 128×128.
-- **Footprints** are in `art/footprints.js`, top row first, as printed. Draw that orientation and never mirror it; the board rotates pictures in 90° steps (R15).
+- **Footprints** are in `src/lib/art/footprints.js`, top row first, as printed. Draw that orientation and never mirror it; the board rotates pictures in 90° steps (R15).
 - **Exact plots.** Every pixel of an occupied plot is filled and every pixel of an empty plot is left empty. `npm run art` and the tests refuse anything else.
 - **Uneven shapes.** Keep the landmark itself inside the shape; let sky and ground fill the outer plots. Paint the scene across the whole canvas, then finish with `clipToFootprint(scene, FOOTPRINTS[slug])` to empty the plots outside the footprint (see the Rubber Works or the Castle).
 

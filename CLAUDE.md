@@ -21,12 +21,12 @@ The owner wants it to:
 npm install                   # dev tools only (Svelte, Vite, svelte-check, Prettier); there are no runtime packages
 npm start                     # builds the client, then serves http://127.0.0.1:3020; loads .env if present
 npm run dev                   # Vite dev server with hot reload (http://127.0.0.1:5173) plus node --watch server.mjs
-npm run build                 # Vite builds client/ into public/
+npm run build                 # Vite builds index.html and src/ into public/
 npm run serve                 # serves an existing build without rebuilding (for hosts without dev tools)
 npm test                      # builds, then runs every test in tests/
-npm run check                 # svelte-check: JSDoc types in client/ and engine/, must report 0 errors and 0 warnings
+npm run check                 # svelte-check: JSDoc types in src/ and art/, must report 0 errors and 0 warnings
 npm run format                # Prettier (tabs, single quotes); Markdown is left alone
-npm run art                   # draws every art/drawings/<id>.js into client/static/art/<id>.svg and writes the asset gallery art/preview/index.html
+npm run art                   # draws every art/drawings/<id>.js into static/art/<id>.svg and writes the asset gallery art/preview/index.html
 node --test tests/static.test.mjs                        # one test file (run npm run build first)
 node --test --test-name-pattern="ETag" tests/*.test.mjs  # tests whose name matches
 ```
@@ -41,25 +41,26 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
   - Vite's hashed bundles in `assets/` are cached for a year (`immutable`), and `fonts/` and `art/` for a week. Everything else, including the page, gets `no-cache` with a weak ETag, so a new deploy is picked up at once.
   - `/api/*` requests pass a per-address rate limiter (1,800 a minute). The table API arrives in #22–#23.
 - `limits.mjs` holds `rateLimiter()` and `clientAddress()`. With `TRUST_PROXY=true`, the last `X-Forwarded-For` address counts; otherwise the header is ignored.
-- **Client.** The browser interface is **Svelte 5** with runes forced on (5.57.2), built by **Vite** (8.3.4), without SvelteKit. Its layout is in CONVENTIONS.md.
-  - `client/` is Vite's root:
-    - `index.html` is the shell;
-    - `src/main.js` mounts `src/App.svelte`, which is the placeholder page until #25;
-    - `src/lib/component-event.js` holds `ComponentEvent`;
-    - `src/styles/` holds `tokens.css`, `base.css` and `pixel-noise.svg`:
-      - `tokens.css` is the single source of truth for colours, the texture, type, spacing, layout sizes, borders, shadows, motion and layers;
-      - `base.css` has the `@font-face` rules, the page and the focus outline;
-      - `pixel-noise.svg` is the surface texture, a 256×256 tile cropped from `docs/ui/assets/middle-pixel-noise.svg`, which Vite hashes into `assets/`;
-    - `static/` is copied into the build as is: `fonts/` (Cinzel and Atkinson Hyperlegible, with their licences) and `favicon.svg`.
+- **Client.** The browser interface is **Svelte 5** with runes forced on (5.57.2), built by **Vite** (8.3.4), without SvelteKit. The project root is Vite's root, laid out like the owner's other Svelte projects (owner, 2026-10-21). The full layout is in CONVENTIONS.md.
+  - `index.html` is the game page. `src/main.js` mounts `src/App.svelte`, which is the placeholder page until #25.
+  - `src/lib/` holds everything the app shares:
+    - `components/<area>/` holds the Svelte components, grouped by area;
+    - `component-event.js` holds `ComponentEvent`;
+    - `art/catalog.js` lists all 412 assets with stable `<group>/<slug>` ids. It imports nothing, so the app and the engine can load it;
+    - `art/footprints.js` holds the 33 landmark footprints. A landmark's picture is drawn in its footprint's shape at 32 pixels per plot, and the art build refuses one that covers the wrong plots. The rules engine must reuse this module;
+    - `engine/` will hold the rules engine (#12 onward), shared by the server and the app.
+  - `src/styles/` holds `tokens.css`, `base.css` and `pixel-noise.svg`:
+    - `tokens.css` is the single source of truth for colours, the texture, type, spacing, layout sizes, borders, shadows, motion and layers;
+    - `base.css` has the `@font-face` rules, the page and the focus outline;
+    - `pixel-noise.svg` is the surface texture, a 256×256 tile cropped from `docs/ui/assets/middle-pixel-noise.svg`, which Vite hashes into `assets/`.
+  - `static/` is copied into the build as is: `fonts/` (Cinzel and Atkinson Hyperlegible, with their licences), `art/` (the drawn SVGs) and `favicon.svg`.
   - `public/` is the build output that `server.mjs` serves. It is git-ignored; never edit it.
   - `scripts/dev.mjs` runs the Node server and Vite side by side. Vite proxies `/api` to the server.
   - The configuration lives in `vite.config.js`, `svelte.config.js` (`runes: true`), `jsconfig.json` (`checkJs`, `strict`, Vite client types), `.prettierrc` and `.prettierignore`.
-  - The rules engine will live in `engine/` (#12 onward), shared by the server and the client.
-- `art/` is the art toolkit (#4). See `docs/art/README.md`.
+- `art/` is the art drawing toolkit (#4), a build-time tool. See `docs/art/README.md`.
   - `painter.js`, `palette.js` and `parts/` draw style C pixel art. `drawings/<id>.js` holds one module per drawn asset.
-  - `catalog.js` lists all 412 assets with stable `<group>/<slug>` ids. It imports nothing, so the client can load it.
-  - `footprints.js` holds the 33 landmark footprints. A landmark's picture is drawn in its footprint's shape at 32 pixels per plot, and the build refuses one that covers the wrong plots. The rules engine (#12) must reuse this module.
-  - `npm run art` writes the SVGs into `client/static/art/`, which are committed, and the git-ignored asset gallery `art/preview/index.html`, which shows every asset in the catalog (drawn or not) and opens straight from disk. Tests fail when a committed SVG is out of date.
+  - It reads the asset ids and footprints from `src/lib/art/`.
+  - `npm run art` writes the SVGs into `static/art/`, which are committed, and the git-ignored asset gallery `art/preview/index.html`, which shows every asset in the catalog (drawn or not) and opens straight from disk. Tests fail when a committed SVG is out of date.
 - `tests/` holds `node:test` suites. Server tests import `server` and listen on port 0, so they never need fixed ports.
 
 ## Where the work stands
@@ -173,8 +174,8 @@ Read the sibling projects' `CLAUDE.md` files before scaffolding (#1). The patter
   - `limits.mjs` holds the rate limits, and `.env` holds `HOST`, `PORT` (3020 here) and `TRUST_PROXY`.
 - **Tests:** `node --test`, with randomized invariant tests for the engine and the rooms, also run in GitHub Actions.
 - **Look:**
-  - Cinzel for the names of game things and Atkinson Hyperlegible for everything else, with the roles in `docs/ui/README.md`. The single copies, with their licence notices, are in `client/static/fonts/`. The HTML mockups still load them from Google Fonts.
-  - `client/src/styles/tokens.css` is the single source of truth for the look. Where the mockups disagree with it, for example the lobby's player colours, follow `tokens.css`.
+  - Cinzel for the names of game things and Atkinson Hyperlegible for everything else, with the roles in `docs/ui/README.md`. The single copies, with their licence notices, are in `static/fonts/`. The HTML mockups still load them from Google Fonts.
+  - `src/styles/tokens.css` is the single source of truth for the look. Where the mockups disagree with it, for example the lobby's player colours, follow `tokens.css`.
   - The superseded Alagard and VCR OSD Mono fonts live only in `docs/ui/archivedpngmockups/fonts/`, for the archived mockup.
   - Art production notes stay in `docs/art/`, never in `public/`.
 - **Discord Activity (#43):** follow Bird Table.
@@ -225,7 +226,7 @@ The full rules, with examples, are in [CONVENTIONS.md](CONVENTIONS.md).
 
 - [ ] Prettier formatting (tabs, single quotes), braces on every `if`/`else`, and `npm run check` is clean
 - [ ] The file starts with a one-line comment; exported functions and types have JSDoc; no TypeScript
-- [ ] Game rules live in `engine/`, never in the server or a component; engine functions are pure, return new state, emit events and throw `PlayerError` for player mistakes
+- [ ] Game rules live in `src/lib/engine/`, never in the server or a component; engine functions are pure, return new state, emit events and throw `PlayerError` for player mistakes
 - [ ] No `Math.random()` in game logic, because randomness is injected
 - [ ] Svelte components:
   - a `<script module>` with `@typedef`, `@property` and `@example`;

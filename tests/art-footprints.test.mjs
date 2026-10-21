@@ -1,13 +1,13 @@
 // Landmark footprints: the plots each landmark covers, and the check that a landmark's picture covers exactly those.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ASSETS } from '../art/catalog.js';
+import { ASSETS } from '../src/lib/art/catalog.js';
 import {
 	PLOT_SIZE,
 	FOOTPRINTS,
 	footprintMismatches,
 	clipToFootprint,
-} from '../art/footprints.js';
+} from '../src/lib/art/footprints.js';
 import { draw as drawLighthouse } from '../art/drawings/landmark/lighthouse.js';
 
 /** Plot counts from the landmarks design §6.1 (02 §5, 03 §1.6, 03 §2.10, R63, R65). */

@@ -57,9 +57,9 @@ From the sibling projects (owner: "same setup and approach"):
   - Node.js 22.12+ (Vite 8 needs it). No runtime packages on the server or in the rules engine.
   - **The browser client is Svelte 5 (runes) built with Vite, without SvelteKit** (owner, 2026-10-20).
     - Written in JavaScript with JSDoc; the rules are in `CONVENTIONS.md`.
-    - Sources are in `client/` and build into `public/`, which a single `server.mjs` serves.
+    - Sources are in `src/`, with the pages at the root, and build into `public/`, which a single `server.mjs` serves. The layout follows the owner's own Svelte projects: components in `src/lib/components/<area>/`, shared modules in `src/lib/`, and `static/` at the root. **(owner, 2026-10-21)**
     - This replaces Fablewood's "no build step" rule for the client only.
-  - The rules engine is DOM-independent, lives in `engine/`, and is shared by the server and the browser.
+  - The rules engine is DOM-independent, lives in `src/lib/engine/`, and is shared by the server and the browser.
   - Every response goes through `view()`, which hides private information.
   - `PlayerError` carries the messages meant for players.
   - Clients long-poll `GET /api/state?since=<version>`, and stale moves are rejected with 409.
@@ -67,7 +67,7 @@ From the sibling projects (owner: "same setup and approach"):
   - Tests run with `node --test`, and GitHub Actions runs them too.
   - The rate limits and `.env` settings work like Fablewood's.
 - **Art and licence:**
-  - Phase-one UI fonts (2026-10-21): Cinzel for named game elements and Atkinson Hyperlegible for players, instructions, controls and data. Both are self-hosted in `client/static/fonts/` with their SIL Open Font License notices. Alagard and VCR OSD Mono are kept only for the archived mockup.
+  - Phase-one UI fonts (2026-10-21): Cinzel for named game elements and Atkinson Hyperlegible for players, instructions, controls and data. Both are self-hosted in `static/fonts/` with their SIL Open Font License notices. Alagard and VCR OSD Mono are kept only for the archived mockup.
   - Art is vector pixel SVG, using one crispEdges path per colour. Production notes live in `docs/art/`, never in `public/`.
   - Licence: GPL-3.0-only, like the siblings. **(my call)**
 
@@ -97,7 +97,7 @@ New for this game:
   - The view switches to whatever the current engine decision needs; the prototype demonstrates only selected examples. Phase two still covers income turns, the remaining decisions and results.
   - There is no phone layout. The game is for desktop screens only. The owner decided this on 2026-10-21, while #3 was in progress.
   - Cinzel names game elements; Atkinson Hyperlegible names players and carries instructions, controls and data.
-  - `client/src/styles/tokens.css` is the single source of truth for colours, texture, type, spacing, borders, shadows and motion, taken from the phase-one mockups with one value per role. Where a mockup disagrees, `tokens.css` wins. **(owner, 2026-10-21)**
+  - `src/styles/tokens.css` is the single source of truth for colours, texture, type, spacing, borders, shadows and motion, taken from the phase-one mockups with one value per role. Where a mockup disagrees, `tokens.css` wins. **(owner, 2026-10-21)**
   - One set of player colours: the play page's brighter set, with purple for seat five. The lobby's earlier set reused the track colours, and players and tracks must stay separate colour systems. Corners are square everywhere. **(my call, 2026-10-21)**
   - The lobby bot controls describe seat/host interactions only. Which bots are supported remains governed by the existing bot policy; the designer explicitly deferred that implementation decision.
   - The lobby's **Add bot** seat control is shelved: it is not built for now, and an empty slot offers only **Open seat**. **(owner, 2026-10-21)**

@@ -30,29 +30,32 @@ These are the coding conventions for The Rug Game. Every contributor and coding 
 
 ## Project layout
 
-This is the layout. `engine/` arrives with the rules engine (#12).
+This is the layout. It follows the owner's other Svelte projects: everything the app ships is in `src/`, shared code in `src/lib/`, and `static/` at the root. `src/lib/engine/` arrives with the rules engine (#12).
 
 ```
+index.html               The game page (Vite's root is the project root)
+src/
+  main.js                Mounts App.svelte
+  App.svelte
+  lib/                   Everything the app shares
+    components/<area>/   Svelte components grouped by area: ui, board, player, prompts, lobby, gallery
+    engine/              Rules engine: pure JS, shared by the server and the app (#12)
+    art/                 catalog.js (asset ids) and footprints.js (landmark footprints), read by the app, the engine and the art toolkit
+    component-event.js   Plain JS modules: component-event.js, api.js, game.svelte.js …
+  styles/                tokens.css (design tokens), base.css (fonts, page, focus) and pixel-noise.svg (texture)
+static/                  Copied as-is into the build: fonts/, art/ (generated SVGs), favicon.svg
 server.mjs, limits.mjs   Node HTTP server and its pure helpers (no packages)
-engine/                  Rules engine: pure JS, shared by the server and the client
-art/                     Art toolkit: painter, palette, scene parts, asset catalog, drawings/<id>.js
-  build.mjs              Draws art into client/static/art/ (npm run art)
+art/                     Art toolkit (build time): painter, palette, scene parts, drawings/<id>.js
+  build.mjs              Draws art into static/art/ (npm run art)
   preview/build.mjs      Writes the asset gallery, art/preview/index.html (npm run art)
-client/                  Svelte app (Vite root)
-  index.html
-  src/main.js            Mounts App.svelte
-  src/App.svelte
-  src/components/<area>/ Components grouped by area: board, player, prompts, lobby, gallery, ui
-  src/lib/               Plain JS modules: component-event.js, api.js, game.svelte.js …
-  src/styles/            tokens.css (design tokens), base.css (fonts, page, focus) and pixel-noise.svg (texture)
-  static/                Copied as-is into the build: fonts/, art/ (generated SVGs), favicon.svg
 public/                  Vite build output, served by server.mjs (git-ignored)
 scripts/dev.mjs          Runs the Node server and Vite's dev server together (npm run dev)
 tests/                   node:test suites (*.test.mjs)
 docs/                    Research, design, plans, interface designs, art notes
 ```
 
-- `engine/`, `art/**/*.js` and `client/src/lib/*.js` import nothing from the DOM or Svelte, unless the file is a `.svelte.js` rune module. That way they run under `node --test`.
+- `src/lib/**/*.js` and `art/**/*.js` import nothing from the DOM or Svelte, unless the file is a `.svelte.js` rune module. That way they run under `node --test`.
+- `src/lib/` never imports from `art/`; the toolkit imports from `src/lib/art/`, not the other way round.
 - The only files under `public/` are build output. Never edit them by hand.
 
 ## Formatting
@@ -166,8 +169,8 @@ Every component has this structure:
 </style>
 ```
 
-- One component per file. Group files by area under `client/src/components/<area>/`.
-- Keep game logic out of components. A component renders the state it gets and reports what the player did. Anything worth testing goes in a plain module in `client/src/lib/`.
+- One component per file. Group files by area under `src/lib/components/<area>/`. Import them with relative paths, such as `../../component-event.js` from a component.
+- Keep game logic out of components. A component renders the state it gets and reports what the player did. Anything worth testing goes in a plain module in `src/lib/`.
 
 ### JSDoc type definitions
 
@@ -228,7 +231,7 @@ Use the `$props()` rune with a JSDoc type annotation:
 
 ```svelte
 <script>
-	import { ComponentEvent } from '../../lib/component-event.js';
+	import { ComponentEvent } from '../../component-event.js';
 
 	/** @type {TrackSpaceProps} */
 	let { space, name, tokens = [], next = false, onTrackSpaceClick, ...attr } = $props();
@@ -268,7 +271,7 @@ Always spread `...attr` on the root element and merge its `class`, so the parent
  */
 ```
 
-**Callbacks receive a `ComponentEvent`.** It is defined in `client/src/lib/component-event.js`:
+**Callbacks receive a `ComponentEvent`.** It is defined in `src/lib/component-event.js`:
 
 ```js
 // ComponentEvent(value, target, originalEvent)
@@ -359,7 +362,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 ```
 
 - Element references are `$state()`, typed with JSDoc: `/** @type {HTMLButtonElement | undefined} */ let element = $state();`, then `bind:this={element}`.
-- The table and game state the client receives lives in one rune module, `client/src/lib/game.svelte.js`, updated from the long poll. Components read it through props rather than importing it everywhere.
+- The table and game state the client receives lives in one rune module, `src/lib/game.svelte.js`, updated from the long poll. Components read it through props rather than importing it everywhere.
 - Prefer `$derived` over `$effect` for anything that can be computed.
 
 ### Complete example
@@ -404,7 +407,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 </script>
 
 <script>
-	import { ComponentEvent } from '../../lib/component-event.js';
+	import { ComponentEvent } from '../../component-event.js';
 
 	/** @type {TrackSpaceProps} */
 	let {
@@ -518,7 +521,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 
 ## Styling, art and motion
 
-- **Design tokens.** `client/src/styles/tokens.css` is the single source of truth for the look. It was taken from the phase-one designs in `docs/ui/`, and it holds:
+- **Design tokens.** `src/styles/tokens.css` is the single source of truth for the look. It was taken from the phase-one designs in `docs/ui/`, and it holds:
   - colours: surfaces, lines, text, accents, tracks, players, resources, terrain and expansions;
   - the pixel texture;
   - type: families, weights, sizes, line heights and letter spacing;
@@ -533,7 +536,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
   - `tests/styles.test.mjs` fails on a hard-coded colour or an undeclared custom property.
 - **Corners and shadows.** Corners are square (`var(--radius)` is 0). Ordinary panels get no shadow; only floating things (`--shadow-float`), overview cards (`--shadow-card`) and the glows have one.
 - **Surfaces.** The middle play area is `background: var(--texture) var(--surface)`. Header, footer and panels are `var(--chrome)`.
-- **Fonts.** Use Cinzel (`--font-title`) for the names of game things: tracks, spaces, civilizations, landmarks, buildings and terrain. Use Atkinson Hyperlegible (`--font-body`) for player names, instructions, controls and data. Follow the role table in `docs/ui/README.md`. Player names never use Cinzel. Each font has one copy, with its licence, in `client/static/fonts/`.
+- **Fonts.** Use Cinzel (`--font-title`) for the names of game things: tracks, spaces, civilizations, landmarks, buildings and terrain. Use Atkinson Hyperlegible (`--font-body`) for player names, instructions, controls and data. Follow the role table in `docs/ui/README.md`. Player names never use Cinzel. Each font has one copy, with its licence, in `static/fonts/`.
 - **Art** is vector pixel SVG, drawn with one `crispEdges` path per colour (see `docs/art/`). Reference art by its stable asset id. Never inline large SVGs in components.
 - **Layout.** The game is for desktop screens only; there is no phone layout (owner decision, 2026-10-21). Check interface work at desktop width before calling it done.
 - **Motion.** Use `svelte/transition` and `animate:flip` for tokens, cards and buildings moving. Respect `prefers-reduced-motion`: no motion when it is set.
@@ -569,7 +572,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 
   Give each a type label, its milestone, the matching `M… · …` label, and blocked-by links (see CLAUDE.md).
 - **The README always shows the current interface.** Any interface change updates `docs/ui/screens/`, the README's "Current interface" section and `docs/ui/README.md` in the same commit.
-- **Documentation** uses plain words and short sentences. It lives in `docs/`, never in `public/` or `client/static/`.
+- **Documentation** uses plain words and short sentences. It lives in `docs/`, never in `public/` or `static/`.
 
 ## Quick reference checklist
 
@@ -577,7 +580,7 @@ When writing or changing code, make sure:
 
 - [ ] Prettier formatting (tabs, single quotes), braces on every `if`/`else`, and `npm run check` is clean
 - [ ] The file starts with a one-line comment; exported functions and types have JSDoc
-- [ ] Game rules live in `engine/`, never in the server or a component
+- [ ] Game rules live in `src/lib/engine/`, never in the server or a component
 - [ ] Engine changes are pure and return new state; player-facing errors use `PlayerError`; changes emit events
 - [ ] No `Math.random()` in game logic
 - [ ] Components have a separate `<script module>` with `@typedef`, `@property` and `@example`

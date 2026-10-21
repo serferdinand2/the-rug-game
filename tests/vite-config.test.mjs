@@ -40,6 +40,17 @@ test('the build enforces runes mode from svelte.config.js', async () => {
 	}
 });
 
+test('the app builds from the project root, copying static/ as is', async () => {
+	const config = await resolveConfig(
+		{ configFile, logLevel: 'silent' },
+		'build'
+	);
+	const root = fileURLToPath(new URL('..', import.meta.url));
+	assert.equal(join(config.root, '/'), root);
+	assert.equal(config.publicDir, join(root, 'static'));
+	assert.equal(config.build.outDir, join(root, 'public'));
+});
+
 test('the dev server answers on 127.0.0.1', async () => {
 	const server = await createServer({
 		configFile,

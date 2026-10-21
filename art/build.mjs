@@ -1,13 +1,13 @@
-// The art build: draws every asset that has a drawing into client/static/art/<id>.svg (npm run art).
+// The art build: draws every asset that has a drawing into static/art/<id>.svg (npm run art).
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { realpathSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { toSvg } from './painter.js';
-import { ASSETS } from './catalog.js';
-import { FOOTPRINTS, footprintMismatches } from './footprints.js';
+import { ASSETS } from '../src/lib/art/catalog.js';
+import { FOOTPRINTS, footprintMismatches } from '../src/lib/art/footprints.js';
 
-/** @typedef {import('./catalog.js').Asset} Asset */
+/** @typedef {import('../src/lib/art/catalog.js').Asset} Asset */
 /** @typedef {import('./painter.js').Canvas} Canvas */
 
 /** Where drawings live: one module per asset, at `<id>.js`. */
@@ -17,7 +17,7 @@ export const DRAWINGS_DIR = fileURLToPath(
 
 /** Where the finished SVGs go; Vite copies them into public/art/. */
 export const OUT_DIR = fileURLToPath(
-	new URL('../client/static/art/', import.meta.url)
+	new URL('../static/art/', import.meta.url)
 );
 
 /** An illustration is a 64×64 scene (art style C). */
@@ -195,6 +195,6 @@ if (
 ) {
 	const { written, removed } = await buildArt();
 	console.log(
-		`art: wrote ${written.length} SVG file(s) to client/static/art, removed ${removed.length}`
+		`art: wrote ${written.length} SVG file(s) to static/art, removed ${removed.length}`
 	);
 }

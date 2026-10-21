@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { ASSETS, GROUPS, EXPANSIONS } from '../art/catalog.js';
+import { ASSETS, GROUPS, EXPANSIONS } from '../src/lib/art/catalog.js';
 
 /** Counts per group and expansion, copied from the design's §7.4 table. */
 const EXPECTED_COUNTS = {
@@ -168,7 +168,7 @@ test('spot checks match the agreed spellings', () => {
 
 test('the catalog imports nothing, so the client can load it', async () => {
 	const source = await readFile(
-		new URL('../art/catalog.js', import.meta.url),
+		new URL('../src/lib/art/catalog.js', import.meta.url),
 		'utf8'
 	);
 	assert.doesNotMatch(source, /^\s*import\s/m);

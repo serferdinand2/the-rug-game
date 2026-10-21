@@ -1,4 +1,4 @@
-// Vite builds the Svelte client in client/ into public/, which server.mjs serves.
+// Vite builds the Svelte app (index.html and src/) into public/, which server.mjs serves.
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
@@ -14,10 +14,13 @@ try {
 const fromHere = (path) => fileURLToPath(new URL(path, import.meta.url));
 
 export default defineConfig({
-	root: fromHere('./client'),
+	root: fromHere('./'),
 	publicDir: 'static',
-	// Vite's root is client/, so point the plugin at the project's svelte.config.js explicitly (it forces runes).
 	plugins: [svelte({ configFile: fromHere('./svelte.config.js') })],
+	// The root also holds the docs' standalone HTML mockups; only the app's own pages are entries.
+	optimizeDeps: {
+		entries: ['index.html'],
+	},
 	build: {
 		outDir: fromHere('./public'),
 		emptyOutDir: true,

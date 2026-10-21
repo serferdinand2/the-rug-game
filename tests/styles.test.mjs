@@ -7,11 +7,9 @@ import { fileURLToPath } from 'node:url';
 /** @param {string} path - A path relative to the repository root */
 const read = (path) =>
 	readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
-const tokensCss = read('client/src/styles/tokens.css');
-const baseCss = read('client/src/styles/base.css');
-const fontsDir = fileURLToPath(
-	new URL('../client/static/fonts/', import.meta.url)
-);
+const tokensCss = read('src/styles/tokens.css');
+const baseCss = read('src/styles/base.css');
+const fontsDir = fileURLToPath(new URL('../static/fonts/', import.meta.url));
 
 /**
  * The custom properties declared in a block of CSS, as name → value.
@@ -29,14 +27,14 @@ function declarations(css) {
 const rootBlock = tokensCss.match(/:root\s*\{([^}]*)\}/)?.[1] ?? '';
 const tokens = declarations(rootBlock);
 
-/** Every stylesheet and Svelte component under client/src, as [path, contents]. */
+/** Every stylesheet and Svelte component under src, as [path, contents]. */
 const sources = readdirSync(
-	fileURLToPath(new URL('../client/src/', import.meta.url)),
+	fileURLToPath(new URL('../src/', import.meta.url)),
 	{ recursive: true }
 )
 	.map(String)
 	.filter((path) => /\.(css|svelte)$/.test(path))
-	.map((path) => [path, read(`client/src/${path}`)]);
+	.map((path) => [path, read(`src/${path}`)]);
 
 /**
  * The CSS of a source file: the whole file for a stylesheet, the <style> blocks for a component.
@@ -161,7 +159,7 @@ test('the font tokens name Cinzel for titles and Atkinson Hyperlegible for the r
 	);
 });
 
-test('base.css loads every weight the design uses from client/static/fonts', () => {
+test('base.css loads every weight the design uses from static/fonts', () => {
 	const faces = [...baseCss.matchAll(/@font-face\s*\{([^}]*)\}/g)].map(
 		([, body]) => ({
 			family: body.match(/font-family:\s*'([^']+)'/)?.[1],
@@ -182,7 +180,7 @@ test('base.css loads every weight the design uses from client/static/fonts', () 
 	}
 });
 
-test('client/static/fonts holds only the chosen fonts and their licences', () => {
+test('static/fonts holds only the chosen fonts and their licences', () => {
 	assert.deepEqual(readdirSync(fontsDir).sort(), [
 		'LICENSE-atkinson-hyperlegible.txt',
 		'LICENSE-cinzel.txt',
@@ -204,10 +202,7 @@ test('no stylesheet loads fonts or images from another site', () => {
 		assert.doesNotMatch(css, /@import/, path);
 		assert.doesNotMatch(css, /url\(\s*['"]?(https?:)?\/\//, path);
 	}
-	assert.doesNotMatch(
-		read('client/index.html'),
-		/<link[^>]+href="(https?:)?\/\//
-	);
+	assert.doesNotMatch(read('index.html'), /<link[^>]+href="(https?:)?\/\//);
 });
 
 test('the pixel texture token points at the texture beside tokens.css', () => {
@@ -215,9 +210,7 @@ test('the pixel texture token points at the texture beside tokens.css', () => {
 	assert.ok(url, 'tokens.css has no --texture url');
 	assert.ok(
 		existsSync(
-			fileURLToPath(
-				new URL(`../client/src/styles/${url}`, import.meta.url)
-			)
+			fileURLToPath(new URL(`../src/styles/${url}`, import.meta.url))
 		),
 		`missing ${url}`
 	);

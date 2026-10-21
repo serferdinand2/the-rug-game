@@ -1,11 +1,11 @@
-// The art build: drawings become committed SVGs in client/static/art, kept in step with the catalog and the code.
+// The art build: drawings become committed SVGs in static/art, kept in step with the catalog and the code.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
-import { ASSETS } from '../art/catalog.js';
+import { ASSETS } from '../src/lib/art/catalog.js';
 import {
 	OUT_DIR,
 	listDrawingIds,
@@ -58,7 +58,7 @@ test('every committed SVG is up to date with its drawing', async () => {
 	}
 });
 
-test('every SVG in client/static/art belongs to a drawing', async () => {
+test('every SVG in static/art belongs to a drawing', async () => {
 	const drawings = new Set(await listDrawingIds());
 	for (const id of await listSvgIds()) {
 		assert.ok(

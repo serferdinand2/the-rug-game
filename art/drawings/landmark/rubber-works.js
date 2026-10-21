@@ -8,7 +8,10 @@ import {
 	underlay,
 } from '../../painter.js';
 import { PALETTE as C } from '../../palette.js';
-import { FOOTPRINTS, clipToFootprint } from '../../footprints.js';
+import {
+	FOOTPRINTS,
+	clipToFootprint,
+} from '../../../src/lib/art/footprints.js';
 import { drawSky } from '../../parts/sky.js';
 import { drawSmoke } from '../../parts/smoke.js';
 import { drawFactory } from '../../parts/factory.js';

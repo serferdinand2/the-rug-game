@@ -6,7 +6,7 @@ This README is the implementation handoff for the first phase of [issue #3: Desi
 
 This is a phase-one milestone, not completion of issue #3. The missing screens and production requirements are listed below. The project's rules research and root README's rules conventions remain authoritative for game rules; fixture values and placeholder options in these pages do not change those rules.
 
-**[client/src/styles/tokens.css](../../client/src/styles/tokens.css) is the single source of truth for the look** (owner, 2026-10-21). It holds the colours, texture, type, spacing, layout sizes, borders, shadows and motion taken from these references, with one value per role. Where a reference page or a swatch below disagrees with it, `tokens.css` wins. This manifest stays the source for layout, roles and behaviour.
+**[src/styles/tokens.css](../../src/styles/tokens.css) is the single source of truth for the look** (owner, 2026-10-21). It holds the colours, texture, type, spacing, layout sizes, borders, shadows and motion taken from these references, with one value per role. Where a reference page or a swatch below disagrees with it, `tokens.css` wins. This manifest stays the source for layout, roles and behaviour.
 
 ## Reference files and preview
 
@@ -17,7 +17,7 @@ This is a phase-one milestone, not completion of issue #3. The missing screens a
 | [main-screen.html](main-screen.html) | Play page: tracks/map, private tabs, footer decisions, city placement and player overview |
 | [screens/](screens/) | Current screenshots captured from these HTML files at 1920×1080 |
 | [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) | Editable source of the shared pixel texture embedded in the pages |
-| [tokens.css](../../client/src/styles/tokens.css) and [base.css](../../client/src/styles/base.css) | The production design tokens, fonts, page and focus styles made from these references |
+| [tokens.css](../../src/styles/tokens.css) and [base.css](../../src/styles/base.css) | The production design tokens, fonts, page and focus styles made from these references |
 | [preview.mjs](preview.mjs) | Optional local server for these references only |
 | [archivedpngmockups/](archivedpngmockups/README.md) | Superseded PNGs, HTML and generator from the earlier design |
 
@@ -35,7 +35,7 @@ Then use:
 
 Set `UI_PORT` to choose another port. This preview is separate from the actual application on port 3020. The navigation menus and Start game button link between the reference pages; they do not create or start a real table.
 
-The main-screen page has an inline snapshot of the Lighthouse footprint so its interactions work when opened from disk. The pixel background and Lighthouse picture are embedded SVG snapshots, so no absolute `/art/…` request is needed. The reference pages still load their fonts from Google Fonts, so their exact appearance needs those requests to succeed. The game itself self-hosts the same fonts from `client/static/fonts/`.
+The main-screen page has an inline snapshot of the Lighthouse footprint so its interactions work when opened from disk. The pixel background and Lighthouse picture are embedded SVG snapshots, so no absolute `/art/…` request is needed. The reference pages still load their fonts from Google Fonts, so their exact appearance needs those requests to succeed. The game itself self-hosts the same fonts from `static/fonts/`.
 
 The reference review size is **1920×1080 CSS pixels**, at 100% zoom. Play and lobby have fixed-size canvases; launch is evaluated at the same size. There is no approved phone layout. Narrow-screen media rules left in a prototype are not a separate approved design. The play page keeps content scrollable while hiding scrollbars. Do not reflow the capital grid or enlarge its cells to fit a building.
 
@@ -264,11 +264,11 @@ In overview mode the footer is always the base dark gray, even if Ships is await
 
 ## Assets and provenance
 
-- The pixel SVG is included as [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) and embedded in each HTML reference. Keep those embedded copies in sync if editing the texture. The game's tile, `client/src/styles/pixel-noise.svg`, is its top-left 256×256 with one path per colour; crop it again after editing the source.
-- The Lighthouse SVG is a snapshot of `client/static/art/landmark/lighthouse.svg`, imported while the mockups were based on upstream commit `a583cf1`. Its 2×2 footprint is from `art/footprints.js` at that point. It is embedded in `main-screen.html` only for standalone review.
-- The real game must reuse stable asset IDs and the canonical `art/footprints.js` data. Do not introduce another production footprint table, duplicate the full artwork tree into `docs/ui`, or copy large inline SVG blobs into Svelte components.
+- The pixel SVG is included as [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) and embedded in each HTML reference. Keep those embedded copies in sync if editing the texture. The game's tile, `src/styles/pixel-noise.svg`, is its top-left 256×256 with one path per colour; crop it again after editing the source.
+- The Lighthouse SVG is a snapshot of `static/art/landmark/lighthouse.svg`, imported while the mockups were based on upstream commit `a583cf1`. Its 2×2 footprint is from `art/footprints.js` at that point, now `src/lib/art/footprints.js`. It is embedded in `main-screen.html` only for standalone review.
+- The real game must reuse stable asset IDs and the canonical `src/lib/art/footprints.js` data. Do not introduce another production footprint table, duplicate the full artwork tree into `docs/ui`, or copy large inline SVG blobs into Svelte components.
 - Existing generated game artwork and its gallery remain under the art toolkit. Run `npm run art` and open `art/preview/index.html` for the complete catalog. This handoff does not change the approved art style or regenerate game assets.
-- The game self-hosts Cinzel (one variable file, weights 400–900) and Atkinson Hyperlegible (Regular 400 and Bold 700) in `client/static/fonts/`, with their SIL Open Font License notices. They come from Google's own font repository, [google/fonts](https://github.com/google/fonts). The reference pages load the same families from Google Fonts. The superseded Alagard and VCR OSD Mono files are kept only in [archivedpngmockups/fonts/](archivedpngmockups/fonts/) for the archived page.
+- The game self-hosts Cinzel (one variable file, weights 400–900) and Atkinson Hyperlegible (Regular 400 and Bold 700) in `static/fonts/`, with their SIL Open Font License notices. They come from Google's own font repository, [google/fonts](https://github.com/google/fonts). The reference pages load the same families from Google Fonts. The superseded Alagard and VCR OSD Mono files are kept only in [archivedpngmockups/fonts/](archivedpngmockups/fonts/) for the archived page.
 
 ## Implementation boundaries and phase two
 

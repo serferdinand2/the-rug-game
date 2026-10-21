@@ -16,7 +16,7 @@ No official Stonemaier artwork, logos or rulebook text are used.
 
 The **phase-one UI/UX handoff for #3** is in [docs/ui/README.md](docs/ui/README.md). It is the manifest for building the real game pages: layout, typography, colours, control states, placement and decision examples, and the remaining designs. The HTML pages are interactive mockups with fixture data; the Svelte application is still a placeholder.
 
-The colours, texture, type, spacing, shadows and motion of these designs are in [client/src/styles/tokens.css](client/src/styles/tokens.css), the single source of truth for the look.
+The colours, texture, type, spacing, shadows and motion of these designs are in [src/styles/tokens.css](src/styles/tokens.css), the single source of truth for the look.
 
 Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html).
 
@@ -339,4 +339,4 @@ How the ranking was built:
 
 ## Licence
 
-[GPL-3.0-only](LICENSE), like the sibling projects. The fonts keep their authors' terms, the SIL Open Font License 1.1: Cinzel by The Cinzel Project Authors and Atkinson Hyperlegible by the Braille Institute of America. Their notices are in [client/static/fonts/](client/static/fonts/). The archived mockup's Alagard by Hewett Tsoi (Pix3M) and VCR OSD Mono by Riciery Leal (MrManet) keep their notices in [docs/ui/archivedpngmockups/fonts/](docs/ui/archivedpngmockups/fonts/).
+[GPL-3.0-only](LICENSE), like the sibling projects. The fonts keep their authors' terms, the SIL Open Font License 1.1: Cinzel by The Cinzel Project Authors and Atkinson Hyperlegible by the Braille Institute of America. Their notices are in [static/fonts/](static/fonts/). The archived mockup's Alagard by Hewett Tsoi (Pix3M) and VCR OSD Mono by Riciery Leal (MrManet) keep their notices in [docs/ui/archivedpngmockups/fonts/](docs/ui/archivedpngmockups/fonts/).

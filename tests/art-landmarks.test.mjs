@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 import { DRAWINGS_DIR, listDrawingIds } from '../art/build.mjs';
-import { FOOTPRINTS, footprintMismatches } from '../art/footprints.js';
-import { ASSETS } from '../art/catalog.js';
+import { FOOTPRINTS, footprintMismatches } from '../src/lib/art/footprints.js';
+import { ASSETS } from '../src/lib/art/catalog.js';
 
 const drawings = await listDrawingIds();
 const landmarks = drawings.filter((id) => id.startsWith('landmark/'));

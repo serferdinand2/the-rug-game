@@ -10,7 +10,10 @@ import {
 	underlay,
 } from '../../painter.js';
 import { PALETTE as C } from '../../palette.js';
-import { FOOTPRINTS, clipToFootprint } from '../../footprints.js';
+import {
+	FOOTPRINTS,
+	clipToFootprint,
+} from '../../../src/lib/art/footprints.js';
 import { drawSky } from '../../parts/sky.js';
 import { drawFigure } from '../../parts/figures.js';
 

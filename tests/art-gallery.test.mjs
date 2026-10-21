@@ -4,9 +4,9 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
-import { ASSETS } from '../art/catalog.js';
+import { ASSETS } from '../src/lib/art/catalog.js';
 import { buildGallery } from '../art/preview/build.mjs';
-import { FOOTPRINTS } from '../art/footprints.js';
+import { FOOTPRINTS } from '../src/lib/art/footprints.js';
 
 const PART_LABELS = [
 	'sky: night',

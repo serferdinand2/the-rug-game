@@ -1,7 +1,7 @@
 // ComponentEvent: the value every Svelte callback prop receives.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ComponentEvent } from '../client/src/lib/component-event.js';
+import { ComponentEvent } from '../src/lib/component-event.js';
 
 test('carries the value, the target and the original event', () => {
 	const target = { tagName: 'BUTTON' };

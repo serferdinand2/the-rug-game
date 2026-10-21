@@ -14,12 +14,12 @@ import { drawClassical } from '../parts/classical.js';
 import { drawFactory } from '../parts/factory.js';
 import { drawSkyline } from '../parts/skyline.js';
 import { drawStreet } from '../parts/street.js';
-import { ASSETS, GROUPS, EXPANSIONS } from '../catalog.js';
-import { PLOT_SIZE, FOOTPRINTS } from '../footprints.js';
+import { ASSETS, GROUPS, EXPANSIONS } from '../../src/lib/art/catalog.js';
+import { PLOT_SIZE, FOOTPRINTS } from '../../src/lib/art/footprints.js';
 import { DRAWINGS_DIR, listDrawingIds, renderAsset } from '../build.mjs';
 
 /** @typedef {import('../painter.js').Canvas} Canvas */
-/** @typedef {import('../catalog.js').Asset} Asset */
+/** @typedef {import('../../src/lib/art/catalog.js').Asset} Asset */
 
 /** Where the gallery is written. It is git-ignored, self-contained and opens straight from disk. */
 export const GALLERY_FILE = fileURLToPath(
