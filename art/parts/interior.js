@@ -161,9 +161,13 @@ function skirting(canvas, floor) {
  * @param {() => number} random
  */
 function boardFloor(canvas, floor, random) {
+	let joint = 0;
 	for (let y = floor; y < canvas.h; y++) {
 		const plank = Math.floor((y - floor) / 3);
-		const joint = Math.floor(random() * 16);
+		// One joint per plank, so both of its rows end at the same column.
+		if ((y - floor) % 3 === 0) {
+			joint = Math.floor(random() * 16);
+		}
 		for (let x = 0; x < canvas.w; x++) {
 			let colour = y - floor < 3 ? PALETTE.floorShade : PALETTE.floor;
 			if ((y - floor) % 3 === 2 || (x + joint + plank * 7) % 16 === 0) {

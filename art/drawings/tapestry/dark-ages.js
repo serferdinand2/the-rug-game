@@ -31,7 +31,7 @@ export function draw() {
 		random,
 		stars: 24,
 		starRows: 20,
-		moon: { x: 46, y: 10 },
+		moon: { x: 47, y: 6 },
 	});
 	drawStormClouds(layer);
 	drawLightning(layer);
@@ -43,7 +43,7 @@ export function draw() {
 	drawTree(scene, random);
 	outline(scene, C.ink);
 	underlay(scene, layer);
-	drawCrows(scene);
+	drawCrow(scene);
 	return scene;
 }
 
@@ -309,18 +309,17 @@ function branch(scene, x, y, dx, dy, length, random) {
 }
 
 /**
- * A crow on its own low limb, its back caught by the moon.
+ * A crow standing on a limb that crosses the moon, so its dark shape shows against the light.
  * @param {Canvas} scene
  */
-function drawCrows(scene) {
-	// The limb, reaching left from the trunk.
-	for (let x = 40; x <= 51; x++) {
-		const y = 23 + Math.round((x - 40) * 0.35);
-		set(scene, x, y, C.wood);
-		set(scene, x, y - 1, x < 50 ? C.timber : C.wood);
+function drawCrow(scene) {
+	// The limb: level under the crow, then dropping to the trunk.
+	for (let x = 38; x <= 51; x++) {
+		const y = x <= 46 ? 15 : 15 + Math.round((x - 46) * 1.4);
+		set(scene, x, y, C.timber);
+		set(scene, x, y + 1, C.wood);
 	}
-	set(scene, 39, 22, C.wood);
-	sprite(scene, 41, 15, [
+	sprite(scene, 41, 9, [
 		'..hhh..',
 		'.ekkkh.',
 		'bkkkkkh',

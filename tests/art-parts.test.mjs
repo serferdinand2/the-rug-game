@@ -349,6 +349,18 @@ test('an interior fills every pixel', () => {
 	}
 });
 
+test('floorboards keep their joints in line along each plank', () => {
+	const floor = 44;
+	const c = createCanvas(64, 64);
+	drawInterior(c, { floor, random: seededRandom(2), wall: 'plaster' });
+	const joints = (y) =>
+		range(0, 63).filter((x) => c.p[y * 64 + x] === PALETTE.floorShade);
+	// Each plank after the shaded first one is two board rows and a seam row.
+	for (let top = floor + 3; top + 1 < 64; top += 3) {
+		assert.deepEqual(joints(top + 1), joints(top), `plank at row ${top}`);
+	}
+});
+
 test('an interior window shows the sky of its time', () => {
 	const ramps = {
 		day: ['daySky1', 'daySky2', 'daySky3', 'daySky4', 'daySky5', 'daySky6'],

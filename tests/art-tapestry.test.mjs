@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 import { DRAWINGS_DIR, listDrawingIds } from '../art/build.mjs';
-import { ASSETS } from '../src/lib/art/catalog.js';
+import { ASSETS, EXPANSIONS } from '../src/lib/art/catalog.js';
 
 /** The sets whose every card must be drawn. Each batch adds its code once the owner has it to review. */
 const FINISHED = [];
@@ -44,6 +44,13 @@ test('no two tapestry pictures are the same', () => {
 			`${id} is the same picture as ${seen.get(key)}`
 		);
 		seen.set(key, id);
+	}
+});
+
+test('every finished set is a known expansion', () => {
+	const codes = EXPANSIONS.map((expansion) => expansion.code);
+	for (const code of FINISHED) {
+		assert.ok(codes.includes(code), `"${code}" is not an expansion code`);
 	}
 });
 
