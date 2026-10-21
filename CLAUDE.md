@@ -26,7 +26,7 @@ npm run serve                 # serves an existing build without rebuilding (for
 npm test                      # builds, then runs every test in tests/
 npm run check                 # svelte-check: JSDoc types in client/ and engine/, must report 0 errors and 0 warnings
 npm run format                # Prettier (tabs, single quotes); Markdown is left alone
-npm run art                   # draws every art/drawings/<id>.js into client/static/art/<id>.svg and writes docs/art/preview.html
+npm run art                   # draws every art/drawings/<id>.js into client/static/art/<id>.svg and writes the asset gallery art/preview/index.html
 node --test tests/static.test.mjs                        # one test file (run npm run build first)
 node --test --test-name-pattern="ETag" tests/*.test.mjs  # tests whose name matches
 ```
@@ -55,7 +55,7 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
 - `art/` is the art toolkit (#4). See `docs/art/README.md`.
   - `painter.js`, `palette.js` and `parts/` draw style C pixel art. `drawings/<id>.js` holds one module per drawn asset.
   - `catalog.js` lists all 445 assets with stable `<group>/<slug>` ids. It imports nothing, so the client can load it.
-  - `npm run art` writes the SVGs into `client/static/art/`, which are committed, and the ignored review sheet `docs/art/preview.html`. Tests fail when a committed SVG is out of date.
+  - `npm run art` writes the SVGs into `client/static/art/`, which are committed, and the git-ignored asset gallery `art/preview/index.html`, which shows every asset in the catalog (drawn or not) and opens straight from disk. Tests fail when a committed SVG is out of date.
 - `tests/` holds `node:test` suites. Server tests import `server` and listen on port 0, so they never need fixed ports.
 
 ## Where the work stands

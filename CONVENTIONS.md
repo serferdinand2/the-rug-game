@@ -36,7 +36,8 @@ This is the layout. `engine/` arrives with the rules engine (#12).
 server.mjs, limits.mjs   Node HTTP server and its pure helpers (no packages)
 engine/                  Rules engine: pure JS, shared by the server and the client
 art/                     Art toolkit: painter, palette, scene parts, asset catalog, drawings/<id>.js
-  build.mjs, preview.mjs Draw art into client/static/art/ and the review sheet (npm run art)
+  build.mjs              Draws art into client/static/art/ (npm run art)
+  preview/build.mjs      Writes the asset gallery, art/preview/index.html (npm run art)
 client/                  Svelte app (Vite root)
   index.html
   src/main.js            Mounts App.svelte

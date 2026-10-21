@@ -13,7 +13,6 @@ import {
 	renderAsset,
 	buildArt,
 } from '../art/build.mjs';
-import { buildPreview } from '../art/preview.mjs';
 
 const TWO_BY_TWO = `export function draw() {
 	return { w: 2, h: 2, p: ['#aa0000', null, null, '#0000bb'] };
@@ -177,30 +176,6 @@ test('renderAsset explains a drawing without draw()', async () => {
 	} finally {
 		await rm(root, { recursive: true, force: true });
 	}
-});
-
-test('the preview shows every part sample and every drawing', async () => {
-	const html = await buildPreview();
-	const labels = [
-		'sky: night',
-		'sky: day',
-		'sky: dusk',
-		'sea: night',
-		'sea: day',
-		'terrain: forest',
-		'terrain: mountain',
-		'terrain: desert',
-		'terrain: grassland',
-		'building: house',
-		'building: tower',
-		'building: wall',
-		'figure',
-	];
-	for (const label of labels) {
-		assert.ok(html.includes(`>${label}<`), label);
-	}
-	assert.ok(html.includes('landmark/lighthouse'));
-	assert.match(html, /^<!doctype html>/);
 });
 
 test('the build copies the Lighthouse into public/art', async () => {
