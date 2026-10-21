@@ -38,8 +38,11 @@ const COLOURS = {
 	stoneMid: '#7c7990',
 	stoneShade: '#5c596c',
 
-	// Wood
+	// Wood and timber shingles
 	wood: '#3a2a22',
+	timberLight: '#9a6a40',
+	timber: '#74492b',
+	timberShade: '#4f301d',
 
 	// Night sky, from the top down
 	nightSky1: '#120d24',

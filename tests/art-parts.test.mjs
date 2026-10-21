@@ -8,8 +8,10 @@ import { drawSea } from '../art/parts/sea.js';
 import { drawTerrain } from '../art/parts/terrain.js';
 import { drawBuilding } from '../art/parts/buildings.js';
 import { drawFigure } from '../art/parts/figures.js';
+import { drawSmoke } from '../art/parts/smoke.js';
 
 const PALETTE_COLOURS = new Set(Object.values(PALETTE));
+const SMOKE_TONES = ['smoke', 'steam'];
 const SKY_TIMES = ['night', 'day', 'dusk'];
 const SEA_TIMES = ['night', 'day'];
 const TERRAIN_KINDS = ['forest', 'mountain', 'desert', 'grassland'];
@@ -72,6 +74,11 @@ const SAMPLES = [
 		random: false,
 		draw: (c) => drawFigure(c, { x: 20, y: 50 }),
 	},
+	...SMOKE_TONES.map((tone) => ({
+		label: `smoke: ${tone}`,
+		random: false,
+		draw: (c) => drawSmoke(c, { x: 20, y: 50, tone }),
+	})),
 ];
 
 /** Draws one sample with a seed. */
@@ -222,6 +229,30 @@ test('parts refuse kinds and times they do not know', () => {
 		() => drawBuilding(c, { kind: 'castle', x: 0, y: 7 }),
 		/castle/
 	);
+	assert.throws(() => drawSmoke(c, { x: 4, y: 7, tone: 'fog' }), /fog/);
+});
+
+test('smoke rises from its source and drifts the way it is told', () => {
+	for (const drift of [1, -1]) {
+		const c = createCanvas(64, 64);
+		drawSmoke(c, { x: 32, y: 50, tone: 'smoke', puffs: 3, drift });
+		const filled = c.p
+			.map((colour, i) => (colour ? i : -1))
+			.filter((i) => i >= 0);
+		assert.ok(filled.length > 0, `drift ${drift}: drew nothing`);
+		for (const i of filled) {
+			assert.ok(
+				Math.floor(i / 64) <= 50,
+				`drift ${drift}: smoke below its source`
+			);
+		}
+		const meanX =
+			filled.reduce((sum, i) => sum + (i % 64), 0) / filled.length;
+		assert.ok(
+			drift > 0 ? meanX > 32 : meanX < 32,
+			`drift ${drift}: smoke leans the wrong way (mean x ${meanX})`
+		);
+	}
 });
 
 test('every palette colour is lowercase #rrggbb', () => {

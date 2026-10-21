@@ -9,6 +9,7 @@ import { drawSea } from '../parts/sea.js';
 import { drawTerrain } from '../parts/terrain.js';
 import { drawBuilding } from '../parts/buildings.js';
 import { drawFigure } from '../parts/figures.js';
+import { drawSmoke } from '../parts/smoke.js';
 import { ASSETS, GROUPS, EXPANSIONS } from '../catalog.js';
 import { DRAWINGS_DIR, listDrawingIds, renderAsset } from '../build.mjs';
 
@@ -100,6 +101,19 @@ const PART_SAMPLES = [
 			return c;
 		},
 	},
+	...['smoke', 'steam'].map((tone) => ({
+		label: `smoke: ${tone}`,
+		draw: () => {
+			const c = createCanvas(64, 64);
+			drawSmoke(c, {
+				x: 24,
+				y: 58,
+				tone: /** @type {'smoke' | 'steam'} */ (tone),
+				puffs: 4,
+			});
+			return c;
+		},
+	})),
 ];
 
 /**

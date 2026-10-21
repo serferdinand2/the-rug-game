@@ -21,6 +21,8 @@ const PART_LABELS = [
 	'building: tower',
 	'building: wall',
 	'figure',
+	'smoke: smoke',
+	'smoke: steam',
 ];
 
 /**
@@ -73,10 +75,29 @@ test('the gallery lists every catalog asset exactly once', () => {
 	assert.deepEqual([...ids].sort(), ASSETS.map((asset) => asset.id).sort());
 });
 
-test('each group heading shows its total and drawn counts', () => {
-	assert.match(html, /<h2>Landmarks · 33 · 1 drawn<\/h2>/);
-	assert.match(html, /<h2>Tapestry cards · 114 · 0 drawn<\/h2>/);
-	assert.match(html, /<h2>Territory tiles · 48 · 0 drawn<\/h2>/);
+test('each group heading shows its total and drawn counts', async () => {
+	assert.match(html, /<h2>Landmarks · 33 · \d+ drawn<\/h2>/);
+	assert.match(html, /<h2>Territory tiles · 48 · \d+ drawn<\/h2>/);
+	const { root, drawingsDir } = await scratch({
+		'landmark/drawn.js': filledDrawing(64, 64),
+	});
+	try {
+		const asset = (/** @type {string} */ slug) => ({
+			id: `landmark/${slug}`,
+			name: slug,
+			kind: 'illustration',
+			group: 'landmark',
+			expansion: 'base',
+			issue: 7,
+		});
+		const page = await buildGallery({
+			drawingsDir,
+			assets: /** @type {any} */ ([asset('drawn'), asset('waiting')]),
+		});
+		assert.match(page, /<h2>Landmarks · 2 · 1 drawn<\/h2>/);
+	} finally {
+		await rm(root, { recursive: true, force: true });
+	}
 });
 
 test('drawn assets show their SVG and the rest show a labelled slot', () => {
