@@ -94,9 +94,14 @@ test('the groups come in catalog order with their total and drawn counts', () =>
 });
 
 test('a tile knows whether its asset is drawn and which issue draws it', () => {
-	const lighthouse = tiles.find((t) => t.asset.id === 'landmark/lighthouse');
+	// Its own drawn set, so the test holds as more art lands.
+	const own = gallerySections(
+		ASSETS,
+		new Set(['landmark/lighthouse'])
+	).flatMap((section) => section.lists.flatMap((list) => list.tiles));
+	const lighthouse = own.find((t) => t.asset.id === 'landmark/lighthouse');
 	assert.equal(lighthouse?.drawn, true);
-	const ageOfSail = tiles.find((t) => t.asset.id === 'tapestry/age-of-sail');
+	const ageOfSail = own.find((t) => t.asset.id === 'tapestry/age-of-sail');
 	assert.equal(ageOfSail?.drawn, false);
 	assert.equal(ageOfSail?.asset.issue, 9);
 	assert.equal(ageOfSail?.asset.name, 'Age of Sail');

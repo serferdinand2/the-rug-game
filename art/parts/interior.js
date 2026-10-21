@@ -177,32 +177,38 @@ function boardFloor(canvas, floor, random) {
 }
 
 /**
- * Square flagstones, shaded by the wall and lighter towards the viewer.
+ * Flagstones that grow deeper towards the viewer, darker than the walls, shaded by the wall.
  * @param {Canvas} canvas
  * @param {number} floor
  * @param {() => number} random
  */
 function flagstoneFloor(canvas, floor, random) {
-	for (let y = floor; y < canvas.h; y++) {
-		const row = Math.floor((y - floor) / 5);
-		const offset = (row % 2) * 5;
-		for (let x = 0; x < canvas.w; x++) {
-			let colour = y - floor < 2 ? PALETTE.stoneShade : PALETTE.stoneMid;
-			if ((y - floor) % 5 === 4 || (x + offset) % 10 === 0) {
-				colour = PALETTE.stoneShade;
-			} else if ((y - floor) % 5 === 0 && y - floor >= 5) {
-				colour = PALETTE.stone;
+	let top = floor;
+	for (let course = 0; top < canvas.h; course++) {
+		const depth = 2 + course;
+		const width = 6 + course * 3;
+		const offset = (course % 2) * Math.floor(width / 2);
+		for (let y = top; y < Math.min(top + depth, canvas.h); y++) {
+			for (let x = 0; x < canvas.w; x++) {
+				let colour =
+					course === 0 ? PALETTE.roofShade : PALETTE.stoneShade;
+				if (y === top + depth - 1 || (x + offset) % width === 0) {
+					colour = PALETTE.roofShade;
+				} else if (y === top && course > 0) {
+					colour = PALETTE.stoneMid;
+				}
+				set(canvas, x, y, colour);
 			}
-			set(canvas, x, y, colour);
 		}
+		top += depth;
 	}
 	for (let i = 0; i < 10; i++) {
 		const x = Math.floor(random() * canvas.w);
 		const y =
 			floor +
-			2 +
-			Math.floor(random() * Math.max(1, canvas.h - floor - 2));
-		set(canvas, x, y, PALETTE.stone);
+			3 +
+			Math.floor(random() * Math.max(1, canvas.h - floor - 3));
+		set(canvas, x, y, PALETTE.stoneMid);
 	}
 }
 

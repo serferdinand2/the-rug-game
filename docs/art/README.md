@@ -65,6 +65,9 @@ The Lighthouse (`art/drawings/landmark/lighthouse.js`) is the worked example:
   - Scene parts paint only `PALETTE` colours. A test checks this. Add a new colour to the palette instead of writing it inline.
   - Drawings may also blend palette colours with `mix()`, for glows and highlights.
   - Colours are lowercase `#rrggbb`. `set()` throws on anything else, and on coordinates that aren't whole numbers.
+- **Illustrations other than landmarks.**
+  - They paint every pixel of their 64×64 canvas (full bleed), because the card frame needs a picture with no holes. `tests/art-tapestry.test.mjs` checks the tapestry cards.
+  - They carry no lettering, and no real flags, emblems, political or religious symbols, or real people. The frame carries the card's name.
 - **Randomness.**
   - Use `seededRandom(seed)`, never `Math.random()`, so a drawing comes out the same every time.
   - Give every part in one scene the same random stream.
