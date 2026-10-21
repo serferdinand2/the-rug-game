@@ -166,10 +166,10 @@ Every issue is done when:
    - Done when: the catalog lists every illustration, icon and board, and the lighthouse is rebuilt with the toolkit.
 5. **Icons and small pieces.**
    - Resources, the four income buildings, outposts, player tokens, dice faces, terrain, and the track symbols (including arts).
-   - Top-down capital-grid markers for all 33 landmarks.
+   - The top-down capital-grid markers for the 33 landmarks moved to item 7 on 2026-10-21.
 6. **Boards.**
    - Map terrain and both map sides, the track board, all 18 capital mats, the income mat with its overlays, and the table background.
-7. **Landmarks:** 33 illustrations.
+7. **Landmarks:** 33 illustrations, and 33 top-down board pieces that cover exactly each footprint ([2026-10-21-landmarks-design.md](2026-10-21-landmarks-design.md)).
 8. **Civilizations:** 41 portraits.
 9. **Tapestry cards:** 114 illustrations, in batches by set.
 10. **Tech cards:** 56 illustrations.

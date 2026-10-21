@@ -75,7 +75,7 @@ export const GROUPS = Object.freeze(
 			id: 'landmark-marker',
 			label: 'Landmark grid markers',
 			kind: 'icon',
-			issue: 5,
+			issue: 7,
 		},
 		{ id: 'board', label: 'Boards', kind: 'board', issue: 6 },
 		{ id: 'hex', label: 'Map hexes', kind: 'board', issue: 6 },

@@ -5,6 +5,7 @@ import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { toSvg } from './painter.js';
 import { ASSETS } from './catalog.js';
+import { FOOTPRINTS, footprintMismatches } from './footprints.js';
 
 /** @typedef {import('./catalog.js').Asset} Asset */
 /** @typedef {import('./painter.js').Canvas} Canvas */
@@ -21,6 +22,25 @@ export const OUT_DIR = fileURLToPath(
 
 /** An illustration is a 64×64 scene (art style C). */
 const ILLUSTRATION_SIZE = 64;
+
+/**
+ * Throws unless a landmark's board piece covers exactly its footprint.
+ * @param {string} id - e.g. 'landmark-marker/forge'
+ * @param {Canvas} canvas
+ * @throws {Error} When the landmark has no footprint or the piece doesn't match it.
+ */
+function checkBoardPiece(id, canvas) {
+	const rows = FOOTPRINTS[id.split('/')[1]];
+	if (!rows) {
+		throw new Error(`${id}: no footprint for this landmark`);
+	}
+	const [problem] = footprintMismatches(canvas, rows);
+	if (problem) {
+		throw new Error(
+			`${id}: the board piece doesn't match its footprint: ${problem}`
+		);
+	}
+}
 
 /**
  * Lists the files under a folder, skipping hidden files and folders such as .DS_Store.
@@ -143,6 +163,9 @@ export async function buildArt({
 			throw new Error(
 				`${id}: an illustration must be ${ILLUSTRATION_SIZE}×${ILLUSTRATION_SIZE}, not ${canvas.w}×${canvas.h}`
 			);
+		}
+		if (byId.get(id)?.group === 'landmark-marker') {
+			checkBoardPiece(id, canvas);
 		}
 		drawn.push([id, toSvg(canvas)]);
 	}

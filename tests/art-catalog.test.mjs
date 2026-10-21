@@ -153,6 +153,7 @@ test('spot checks match the agreed spellings', () => {
 		['space-tile/technology-5-vp', 'Technology 5 VP', 'pp', 11],
 		['board/income-overlay', 'Income-mat overlay [5]', 'ff', 6],
 		['inspiration-tile/armories', 'Armories', 'aa', 11],
+		['landmark-marker/forge', 'Forge', 'base', 7],
 	];
 	for (const [id, name, expansion, issue] of expected) {
 		const asset = byId.get(id);

@@ -157,7 +157,7 @@ Groups and counts after the left-out rules (names in Appendix A):
 | `die` | icon | 14 | – | 1 | – | 15 | #5 |
 | `terrain` | icon | 5 | – | – | – | 5 | #5 |
 | `track` | icon | 4 | – | 1 | – | 5 | #5 |
-| `landmark-marker` | icon | 18 | 7 | 8 | – | 33 | #5 |
+| `landmark-marker` | icon | 18 | 7 | 8 | – | 33 | #7 (moved from #5 on 2026-10-21) |
 | `board` | board | 5 | – | – | 1 | 6 | #6 |
 | `hex` | board | 6 | – | – | – | 6 | #6 |
 | `territory-tile` | board | 48 | – | – | – | 48 | #6 |

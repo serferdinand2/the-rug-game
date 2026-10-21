@@ -130,6 +130,64 @@ test('buildArt refuses an illustration that is not 64×64', async () => {
 	}
 });
 
+test('buildArt refuses a board piece that does not match its footprint', async () => {
+	// A 32×32 Forge piece (2×2 plots) with one empty pixel in its top-left plot.
+	const holed = `export function draw() {
+	const p = new Array(32 * 32).fill('#aa0000');
+	p[0] = null;
+	return { w: 32, h: 32, p };
+}
+`;
+	const { root, drawingsDir, outDir } = await scratch({
+		'landmark-marker/forge.js': holed,
+	});
+	try {
+		const assets = [
+			{
+				id: 'landmark-marker/forge',
+				kind: 'icon',
+				group: 'landmark-marker',
+			},
+		];
+		await assert.rejects(
+			buildArt({
+				drawingsDir,
+				outDir,
+				assets: /** @type {any} */ (assets),
+			}),
+			/landmark-marker\/forge: the board piece doesn't match its footprint: plot \(0, 0\) is in the footprint but pixel \(0, 0\) is empty/
+		);
+		assert.equal(existsSync(outDir), false);
+	} finally {
+		await rm(root, { recursive: true, force: true });
+	}
+});
+
+test('buildArt refuses a board piece for a landmark with no footprint', async () => {
+	const { root, drawingsDir, outDir } = await scratch({
+		'landmark-marker/nowhere.js': TWO_BY_TWO,
+	});
+	try {
+		const assets = [
+			{
+				id: 'landmark-marker/nowhere',
+				kind: 'icon',
+				group: 'landmark-marker',
+			},
+		];
+		await assert.rejects(
+			buildArt({
+				drawingsDir,
+				outDir,
+				assets: /** @type {any} */ (assets),
+			}),
+			/landmark-marker\/nowhere: no footprint for this landmark/
+		);
+	} finally {
+		await rm(root, { recursive: true, force: true });
+	}
+});
+
 test('a drawing saved with another extension is refused, not skipped', async () => {
 	const { root, drawingsDir } = await scratch({
 		'landmark/tiny.js': TWO_BY_TWO,
