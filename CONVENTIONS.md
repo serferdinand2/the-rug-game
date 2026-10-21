@@ -518,7 +518,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 - **Design tokens.** Colours, fonts and spacing are CSS custom properties in `client/src/styles/tokens.css`, taken from the approved designs in `docs/ui/`. Components use `var(--…)` and never hard-code colours. Art is the only exception.
 - **Fonts.** Use Alagard for titles and VCR OSD Mono for everything else. Each has one copy, in `client/static/fonts/`.
 - **Art** is vector pixel SVG, drawn with one `crispEdges` path per colour (see `docs/art/`). Reference art by its stable asset id. Never inline large SVGs in components.
-- **Layout.** Every screen works from phone width (16px side gutters, no horizontal page scroll) up to desktop. Check both before calling interface work done.
+- **Layout.** The game is for desktop screens only; there is no phone layout (owner decision, 2026-10-21). Check interface work at desktop width before calling it done.
 - **Motion.** Use `svelte/transition` and `animate:flip` for tokens, cards and buildings moving. Respect `prefers-reduced-motion`: no motion when it is set.
 - **Accessibility.**
   - Actions are `<button>`s. Icons carry `aria-label`s.
@@ -569,6 +569,6 @@ When writing or changing code, make sure:
 - [ ] CSS classes follow `rg-{component}--{element|modifier}`; colours come from tokens
 - [ ] State uses `$state()`, `$derived()` and `$effect()`, preferring `$derived()`; bindable props use `$bindable()`
 - [ ] Type casts use `/** @type {Type} */ (value)`
-- [ ] Phone and desktop widths checked; reduced motion and the keyboard work
+- [ ] Desktop width checked; reduced motion and the keyboard work
 - [ ] Tests were written first and `npm test` passes
 - [ ] The commit references its issue, and the README shows the current interface

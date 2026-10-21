@@ -132,6 +132,7 @@ The design document has the details. In short:
 - **Interface.** The main screen has a tabbed centre view (Tracks, Map, Capital, Cards, Players), a decision bar beneath it and a status panel on the right.
   - Tracks is the default view on your turn. Your next space on each track shows its cost.
   - The view switches by itself when a choice needs another tab.
+  - There is no phone layout. The game is for desktop screens only (owner, 2026-10-21).
   - See `docs/ui/README.md`.
 - **Client framework.** Svelte 5 (runes) and Vite for the browser only, written in JavaScript with JSDoc. SvelteKit adds nothing for a single game screen behind a custom long-poll server. The server and the rules engine stay plain Node with no packages.
 - **Gaps in the sources.** The owner has only the base game. Expansion content that no source shows is left out, never invented, and the README lists it (#2).
@@ -211,5 +212,5 @@ The full rules, with examples, are in [CONVENTIONS.md](CONVENTIONS.md).
 - [ ] Handlers are named `{action}Handler`; callback props are named `on{ComponentName}{Action}` and receive a `ComponentEvent`
 - [ ] CSS classes use the `rg-{component}--{element|modifier}` BEM pattern; colours come from design tokens
 - [ ] State uses `$state()`, `$derived()` (preferred) and `$effect()`; bindable props use `$bindable()`
-- [ ] Phone and desktop widths are checked; reduced motion and the keyboard work
+- [ ] Desktop width is checked (there is no phone layout); reduced motion and the keyboard work
 - [ ] Tests were written first and `npm test` passes; the commit references its issue; the README shows the current interface

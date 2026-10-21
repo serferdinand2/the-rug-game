@@ -74,8 +74,7 @@ Approved by the owner on 2026-10-20. It is layout B from the brainstorm, with th
 
 ## Still to design
 
-1. The phone layout.
-2. The landing page, the new-table setup (mode, versions, expansions, solo difficulty, timer, undo) and the lobby.
-3. The details of every kind of decision prompt.
-4. The income-turn sequence.
-5. The end-of-game results.
+1. The landing page, the new-table setup (mode, versions, expansions, solo difficulty, timer, undo) and the lobby.
+2. The details of every kind of decision prompt.
+3. The income-turn sequence.
+4. The end-of-game results.

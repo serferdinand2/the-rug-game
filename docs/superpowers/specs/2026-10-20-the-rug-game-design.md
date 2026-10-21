@@ -95,6 +95,7 @@ New for this game:
   - The main game screen is a tabbed centre view (Tracks, Map, Capital, Cards, Players), with a decision bar beneath it and your own status panel on the right.
   - Tracks is the default view on your turn. Your next space on each track shows its cost.
   - The view switches by itself to whatever the current choice needs.
+  - There is no phone layout. The game is for desktop screens only. The owner decided this on 2026-10-21, while #3 was in progress.
 - **Naming** **(my call)**
   - "The Rug Game", with the default port 3020.
   - Civilization and card names stay as in Tapestry, because they are ordinary words. Only the art and wording are our own.
@@ -127,7 +128,7 @@ Each numbered item becomes one GitHub issue, and each milestone becomes a GitHub
 Every issue is done when:
 - its "Done when" line is true;
 - `npm test` passes;
-- any interface change has been checked at phone and desktop widths.
+- any interface change has been checked at desktop width.
 
 ### Milestone 0: Groundwork
 
@@ -147,7 +148,7 @@ Every issue is done when:
      - the landing page;
      - the new-table setup (mode, versions, expansions, solo difficulty, timer and undo);
      - the lobby;
-     - the main game screen at desktop and phone sizes;
+     - the main game screen;
      - every kind of decision prompt;
      - the income-turn sequence;
      - inspecting other players;
@@ -245,8 +246,8 @@ Built to the approved designs from issue 3, using the assets from milestone 2.
     - Done when: a full base game can be played with the mouse alone.
 29. **Table log, scoreboard, results, sound and motion.**
     - Event-driven, as in Bird Table: no replay after a refresh, and no motion when the reduce-motion setting is on.
-30. **Hot-seat pass screen and phone layout.**
-    - Done when: a full game is playable on a phone-sized screen.
+30. **Hot-seat pass screen.**
+    - Done when: a hot-seat game never shows one player's hand to the next player.
 
 ### Milestone 6: Solo play
 

@@ -69,7 +69,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 | M2 · Assets | About 300 illustrations and every icon, in an asset gallery |
 | M3 · Base game rules engine | The complete base-game rules, tested |
 | M4 · Tables and server | Tables, the HTTP API, the timer and undo |
-| M5 · Playable base game | The full base game online and hot-seat, on desktop and phone |
+| M5 · Playable base game | The full base game online and hot-seat, on desktop |
 | M6 · Solo play | The official Automa and Shadow Empire |
 | M7–M9 | Plans & Ploys, Arts & Architecture, Fantasies & Futures |
 | M10 · Rules pages | In-game help and a card reference |
