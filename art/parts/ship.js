@@ -15,6 +15,7 @@ import { PALETTE } from '../palette.js';
  * @property {Colour} [sails] - A palette colour for the sails; cream by default
  * @property {Colour} [flag] - A palette colour for a pennant at the mainmast's top; none by default
  * @property {1 | 2 | 3} [masts=3] - How many masts
+ * @property {boolean} [furled=false] - Sails rolled up under their yards, as in harbour; no jib
  */
 
 /** The shade each sail colour takes on the side away from the light. Other colours stay flat. */
@@ -42,7 +43,15 @@ const BOWSPRIT = 5;
  */
 export function drawShip(
 	canvas,
-	{ x, y, facing = 'right', sails = PALETTE.cream, flag, masts = 3 }
+	{
+		x,
+		y,
+		facing = 'right',
+		sails = PALETTE.cream,
+		flag,
+		masts = 3,
+		furled = false,
+	}
 ) {
 	if (facing !== 'right' && facing !== 'left') {
 		throw new Error(`drawShip: unknown facing "${facing}"`);
@@ -64,7 +73,7 @@ export function drawShip(
 	};
 
 	drawHull(put, length, y);
-	const top = drawRig(put, { length, deck, sails, flag, masts });
+	const top = drawRig(put, { length, deck, sails, flag, masts, furled });
 	return { x, y: top, w, h: y - top + 1 };
 }
 
@@ -118,10 +127,10 @@ function drawHull(put, length, y) {
 /**
  * The masts, their yards and square sails, a jib, and the pennant.
  * @param {(dx: number, row: number, colour: Colour) => void} put
- * @param {{ length: number, deck: number, sails: Colour, flag?: Colour, masts: number }} rig
+ * @param {{ length: number, deck: number, sails: Colour, flag?: Colour, masts: number, furled: boolean }} rig
  * @returns {number} The topmost row drawn.
  */
-function drawRig(put, { length, deck, sails, flag, masts }) {
+function drawRig(put, { length, deck, sails, flag, masts, furled }) {
 	const shade = SAIL_SHADES.get(sails) ?? sails;
 	const main = masts === 3 ? 1 : masts - 1;
 	let top = deck;
@@ -147,6 +156,17 @@ function drawRig(put, { length, deck, sails, flag, masts }) {
 			for (let dx = -half; dx <= half; dx++) {
 				put(mx + dx, yard, PALETTE.wood);
 			}
+			if (furled) {
+				// The sail rolled tight along the underside of its yard.
+				for (let dx = -half; dx <= half; dx++) {
+					put(mx + dx, yard + 1, sails);
+				}
+				for (let dx = -half + 1; dx <= half - 1; dx++) {
+					put(mx + dx, yard + 2, shade);
+				}
+				bottom = yard - 1;
+				continue;
+			}
 			for (let row = yard + 1; row <= bottom; row++) {
 				const inset = row === bottom ? 1 : 0;
 				for (let dx = -half + inset; dx <= half - inset; dx++) {
@@ -163,6 +183,9 @@ function drawRig(put, { length, deck, sails, flag, masts }) {
 			put(mx + 1, mastTop + 1, flag);
 			put(mx + 2, mastTop + 1, flag);
 		}
+	}
+	if (furled) {
+		return top;
 	}
 	// A jib from the foremast's head down to the bowsprit.
 	const fore = 8 + (masts - 1) * MAST_SPACING;

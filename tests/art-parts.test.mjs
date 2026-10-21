@@ -332,6 +332,25 @@ test('a ship facing left is the mirror of one facing right', () => {
 	}
 });
 
+test('a furled ship keeps its box but rolls its sails up under the yards', () => {
+	const set = createCanvas(64, 64);
+	const furled = createCanvas(64, 64);
+	const options = { x: 8, y: 50, sails: PALETTE.brickRed };
+	const setBox = drawShip(set, options);
+	const furledBox = drawShip(furled, { ...options, furled: true });
+	assert.deepEqual(furledBox, setBox);
+	const count = (c) =>
+		c.p.filter(
+			(colour) =>
+				colour === PALETTE.brickRed || colour === PALETTE.brickRedShade
+		).length;
+	assert.ok(count(furled) > 0, 'no furled canvas');
+	assert.ok(
+		count(furled) * 3 < count(set),
+		`furled ${count(furled)} vs set ${count(set)} sail pixels`
+	);
+});
+
 test('a ship has the sail colour it is given and one mast per mast asked for', () => {
 	const red = createCanvas(64, 64);
 	drawShip(red, { x: 8, y: 50, sails: PALETTE.brickRed });
@@ -401,18 +420,19 @@ test('an interior window shows the sky of its time', () => {
 	}
 });
 
-test('a banner flies its cloth colour and its device', () => {
+test('a banner flies its cloth colour, and its device only when given one', () => {
 	for (const kind of BANNER_KINDS) {
-		const c = createCanvas(64, 64);
-		drawBanner(c, {
-			kind,
-			x: 20,
-			y: 50,
-			cloth: PALETTE.pine,
-			device: PALETTE.gold,
-		});
-		assert.ok(c.p.includes(PALETTE.pine), `${kind}: no cloth`);
-		assert.ok(c.p.includes(PALETTE.gold), `${kind}: no device`);
+		const plain = createCanvas(64, 64);
+		const marked = createCanvas(64, 64);
+		const options = { kind, x: 20, y: 50, cloth: PALETTE.pine };
+		drawBanner(plain, options);
+		drawBanner(marked, { ...options, device: PALETTE.cream });
+		assert.ok(plain.p.includes(PALETTE.pine), `${kind}: no cloth`);
+		assert.ok(
+			!plain.p.includes(PALETTE.cream),
+			`${kind}: a device unasked`
+		);
+		assert.ok(marked.p.includes(PALETTE.cream), `${kind}: no device`);
 	}
 });
 
