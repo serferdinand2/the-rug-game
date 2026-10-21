@@ -1,6 +1,6 @@
 // The art shown on the component library page: one sample per scene part, and every catalog asset grouped for review.
 // Plain JS with no Node APIs, so the library page runs it in the browser and the art build shares its checks.
-import { createCanvas, outline, seededRandom } from './painter.js';
+import { createCanvas, outline, seededRandom, underlay } from './painter.js';
 import { PALETTE } from './palette.js';
 import { drawSky } from './parts/sky.js';
 import { drawSea } from './parts/sea.js';
@@ -12,6 +12,7 @@ import { drawClassical } from './parts/classical.js';
 import { drawFactory } from './parts/factory.js';
 import { drawSkyline } from './parts/skyline.js';
 import { drawStreet } from './parts/street.js';
+import { drawShip } from './parts/ship.js';
 import { GROUPS, EXPANSIONS } from '../src/lib/art/catalog.js';
 import { PLOT_SIZE, FOOTPRINTS } from '../src/lib/art/footprints.js';
 
@@ -174,6 +175,18 @@ export const PART_SAMPLES = Object.freeze([
 		draw: () => {
 			const c = createCanvas(64, 64);
 			drawStreet(c, { top: 40 });
+			return c;
+		},
+	},
+	{
+		label: 'ship',
+		draw: () => {
+			const c = createCanvas(64, 64);
+			const sea = createCanvas(64, 64);
+			drawSea(sea, { time: 'day', top: 44, random: seededRandom(7) });
+			drawShip(c, { x: 12, y: 50, flag: PALETTE.brickRed });
+			outline(c, PALETTE.ink);
+			underlay(c, sea);
 			return c;
 		},
 	},

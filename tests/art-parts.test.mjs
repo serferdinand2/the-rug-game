@@ -13,6 +13,7 @@ import { drawClassical } from '../art/parts/classical.js';
 import { drawFactory } from '../art/parts/factory.js';
 import { drawSkyline } from '../art/parts/skyline.js';
 import { drawStreet } from '../art/parts/street.js';
+import { drawShip } from '../art/parts/ship.js';
 
 const PALETTE_COLOURS = new Set(Object.values(PALETTE));
 const SMOKE_TONES = ['smoke', 'steam'];
@@ -105,6 +106,16 @@ const SAMPLES = [
 		random: true,
 		draw: (c, random) => drawSkyline(c, { base: 50, time, random }),
 	})),
+	{
+		label: 'ship: 3 masts',
+		random: false,
+		draw: (c) => drawShip(c, { x: 8, y: 50, flag: PALETTE.brickRed }),
+	},
+	{
+		label: 'ship: 1 mast',
+		random: false,
+		draw: (c) => drawShip(c, { x: 8, y: 50, masts: 1 }),
+	},
 ];
 
 /** Draws one sample with a seed. */
@@ -177,6 +188,14 @@ test('buildings and the figure draw only inside the box they return', () => {
 			label: 'factory',
 			draw: (c) => drawFactory(c, { x: 20, y: 50, width: 40 }),
 		},
+		{
+			label: 'ship',
+			draw: (c) => drawShip(c, { x: 20, y: 50, flag: PALETTE.gold }),
+		},
+		{
+			label: 'ship facing left',
+			draw: (c) => drawShip(c, { x: 20, y: 50, facing: 'left' }),
+		},
 	];
 	for (const piece of pieces) {
 		const c = createCanvas(64, 64);
@@ -235,6 +254,31 @@ test('a figure facing left is the mirror of one facing right', () => {
 	}
 });
 
+test('a ship facing left is the mirror of one facing right', () => {
+	const right = createCanvas(64, 64);
+	const left = createCanvas(64, 64);
+	const box = drawShip(right, { x: 20, y: 50, flag: PALETTE.gold });
+	drawShip(left, { x: 20, y: 50, facing: 'left', flag: PALETTE.gold });
+	for (let y = box.y; y < box.y + box.h; y++) {
+		for (let dx = 0; dx < box.w; dx++) {
+			assert.equal(
+				left.p[y * 64 + box.x + dx],
+				right.p[y * 64 + box.x + box.w - 1 - dx],
+				`(${dx}, ${y})`
+			);
+		}
+	}
+});
+
+test('a ship has the sail colour it is given and one mast per mast asked for', () => {
+	const red = createCanvas(64, 64);
+	drawShip(red, { x: 8, y: 50, sails: PALETTE.brickRed });
+	assert.ok(red.p.includes(PALETTE.brickRed), 'no red sails');
+	const one = drawShip(createCanvas(64, 64), { x: 8, y: 50, masts: 1 });
+	const three = drawShip(createCanvas(64, 64), { x: 8, y: 50, masts: 3 });
+	assert.ok(one.w < three.w, `1 mast: ${one.w} wide, 3 masts: ${three.w}`);
+});
+
 test('every part draws the same pixels for the same seed', () => {
 	for (const sample of SAMPLES) {
 		assert.deepEqual(render(sample, 3), render(sample, 3), sample.label);
@@ -281,6 +325,8 @@ test('parts refuse kinds and times they do not know', () => {
 		() => drawSkyline(c, { base: 7, time: 'noon', random }),
 		/noon/
 	);
+	assert.throws(() => drawShip(c, { x: 0, y: 7, facing: 'up' }), /up/);
+	assert.throws(() => drawShip(c, { x: 0, y: 7, masts: 4 }), /4/);
 });
 
 test('a skyline stands on its base row and stays below its height', () => {

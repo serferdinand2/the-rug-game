@@ -56,6 +56,7 @@ test('the scene parts are shown one sample each, on 64×64 canvases', () => {
 			'skyline: dusk',
 			'skyline: day',
 			'street',
+			'ship',
 		]
 	);
 	for (const sample of PART_SAMPLES) {
