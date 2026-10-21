@@ -77,10 +77,10 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - The approved design document.
   - The phase-one desktop UI/UX manifest and interactive launch, lobby, play and player-overview mockups (`docs/ui/README.md`, 2026-10-21).
   - The production styles that follow it: `tokens.css` and `base.css`, with self-hosted Cinzel and Atkinson Hyperlegible (2026-10-21).
-  - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. #48 stays open until #3 closes (it is its blocker) and the owner approves the page.
+  - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. The owner closed #48 on 2026-10-21, ahead of its blocker #3.
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2, #4, #7, #44 and #46 are done.**
+- **#1, #2, #4, #7, #44, #46 and #48 are done.**
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R104).
@@ -90,7 +90,7 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - There is no phone layout.
   - The card gallery doubles as the in-game card reference (#47).
   - A components library page is #48.
-  - #47 and #48 waited for #3's new `base.css`, `tokens.css` and `docs/ui/`. All three are in now; their GitHub blockers still decide when they start.
+  - #47 waits for #3's new `base.css`, `tokens.css` and `docs/ui/`. All three are in now; its GitHub blockers still decide when it starts. #48 is done.
   - The lobby's **Add bot** seat control is shelved (owner).
   - The asset gallery is part of the component library now, in its Art area (owner).
 - **Next:**
