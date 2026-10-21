@@ -13,6 +13,7 @@ There are no separate board pieces. The owner's firm requirement is that every l
 ## 2. What the owner decided (2026-10-21)
 
 - **The look is the builder's call**, within art style C.
+- **Approved.** The owner reviewed all 33 pictures in the asset gallery, sorted from the largest footprint to the smallest, and approved them on 2026-10-21.
 - **One picture per landmark, in its footprint's shape**, used both on the card and on the board.
   - The first version of this design had a 64×64 card picture plus a separate top-down board piece. After seeing the samples, the owner dropped the top-down pieces.
 - **32 pixels per plot.**
