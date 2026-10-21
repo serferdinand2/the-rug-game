@@ -519,7 +519,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 ## Styling, art and motion
 
 - **Design tokens.** Colours, fonts and spacing are CSS custom properties in `client/src/styles/tokens.css`, taken from the approved designs in `docs/ui/`. Components use `var(--…)` and never hard-code colours. Art is the only exception.
-- **Fonts.** Use Alagard for titles and VCR OSD Mono for everything else. Each has one copy, in `client/static/fonts/`.
+- **Fonts.** The phase-one manifest in `docs/ui/README.md` supersedes the old font choice: Cinzel for named game elements and Atkinson Hyperlegible for player names, instructions, controls and data. Follow its role table. Production must self-host one copy of each selected font with its license notice; the current scaffold still has the legacy Alagard/VCR files. Do not treat the old files or `tokens.css` as the new design.
 - **Art** is vector pixel SVG, drawn with one `crispEdges` path per colour (see `docs/art/`). Reference art by its stable asset id. Never inline large SVGs in components.
 - **Layout.** The game is for desktop screens only; there is no phone layout (owner decision, 2026-10-21). Check interface work at desktop width before calling it done.
 - **Motion.** Use `svelte/transition` and `animate:flip` for tokens, cards and buildings moving. Respect `prefers-reduced-motion`: no motion when it is set.

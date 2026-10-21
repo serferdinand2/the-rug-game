@@ -8,3 +8,9 @@ LICENSE
 .superpowers/
 .playwright-mcp/
 art/preview/index.html
+
+# Preserve reviewed standalone snapshots and historical mockups.
+docs/ui/launch.html
+docs/ui/lobby.html
+docs/ui/archivedpngmockups/
+docs/ui/assets/

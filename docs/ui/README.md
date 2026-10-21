@@ -1,80 +1,292 @@
-# Interface reference
+# UI/UX manifest · phase one
 
-These are the approved interface designs for The Rug Game. Build the game screens to match them.
+This README is the implementation handoff for the first phase of [issue #3: Design every screen of the game](https://github.com/serferdinand2/the-rug-game/issues/3). It records the interface developed with lazar-milin through **2026-10-21**. The accompanying HTML pages are interactive design references for building the real Svelte game pages. They are not the playable game, a rules engine, or finished server-backed screens.
 
-The colours and boxes are placeholders. The final artwork follows art style C (see the design document).
+**Use this manifest and the current HTML references for UI/UX decisions.** They supersede the older main-screen design, Alagard/VCR typography, purple panel backgrounds, token-based track progress, and five-tab centre layout. The old PNGs and their reference page are preserved in [archivedpngmockups/](archivedpngmockups/README.md). Do not use them to override the phase-one layout.
 
-Whenever a design here changes, or a screen gets built, update `screens/` and the "Current interface" section of the root [README.md](../../README.md) in the same commit. The README always shows the newest interface.
+This is a phase-one milestone, not completion of issue #3. The missing screens and production requirements are listed below. The project's rules research and root README's rules conventions remain authoritative for game rules; fixture values and placeholder options in these pages do not change those rules.
 
-## Main game screen (desktop)
+## Reference files and preview
 
-Approved by the owner on 2026-10-20. It is layout B from the brainstorm, with the "Your next moves" list removed so the tracks get the full width.
-
-- Open `main-screen.html` in a browser to see every tab at full size.
-- Regenerate it with `node mockups/gen-tabs.mjs main-screen.html --standalone`.
-
-### Structure
-
-| Area | Contents |
+| File | Purpose |
 |---|---|
-| Header | Title; one chip per player with colour, civilization and VP (your chip is outlined); controls for sound, timer, undo and the menu |
-| Centre | Tabbed view: **Tracks · Map · Capital · Cards · Players** |
-| Decision bar | Under the centre view. It always says what is happening and holds the buttons for the current choice |
-| Right panel | Your resources, VP and era; small versions of your capital city and income mat; your hand |
+| [launch.html](launch.html) | Entry page: name, create/join table and public table list |
+| [lobby.html](lobby.html) | Table setup, seat controls, readiness and civilization chooser |
+| [main-screen.html](main-screen.html) | Play page: tracks/map, private tabs, footer decisions, city placement and player overview |
+| [screens/](screens/) | Current screenshots captured from these HTML files at 1920×1080 |
+| [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) | Editable source of the shared pixel texture embedded in the pages |
+| [preview.mjs](preview.mjs) | Optional local server for these references only |
+| [archivedpngmockups/](archivedpngmockups/README.md) | Superseded PNGs, HTML and generator from the earlier design |
 
-### Tabs
+Open `launch.html` in a browser, or run this from the repository root:
 
-**Tracks** is the default view on your turn.
+```sh
+node docs/ui/preview.mjs
+```
 
-![Tracks tab](screens/1-tracks.png)
+Then use:
 
-- One row per track, with the arts track as a fifth row when that expansion is on.
-- Tier costs run across the top. Every space shows its name and every player's token.
-- Landmarks show their name, in gold while still free and in the owner's colour once taken.
-- **Your next space** on each track has a gold outline and its cost inside it. The cost is green when you can afford it. This replaces the removed "next moves" list.
-- Clicking a space opens **Selected space**: tier, cost, what it gives you right now (for example "you control 4, so +4 VP"), the optional bonus, and **Advance here**.
-- The achievements are below the tracks.
+- Launch: <http://127.0.0.1:52990/launch.html>
+- Lobby: <http://127.0.0.1:52990/lobby.html?mode=create&name=Cedarwyn>
+- Game: <http://127.0.0.1:52990/main-screen.html>
 
-**Map**
+Set `UI_PORT` to choose another port. This preview is separate from the actual application on port 3020. The navigation menus and Start game button link between the reference pages; they do not create or start a real table.
 
-![Map tab](screens/2-map.png)
+The main-screen page has an inline snapshot of the Lighthouse footprint so its interactions work when opened from disk. The pixel background and Lighthouse picture are embedded SVG snapshots, so no absolute `/art/…` request is needed. Fonts are still loaded from Google Fonts; the exact appearance needs those requests to succeed. Self-host the selected fonts, with their license notices, when implementing production styles.
 
-- The full-width hex map with a legend for terrain and outposts.
-- When you explore or conquer, the hexes you may choose light up and the rest dims.
+The reference review size is **1920×1080 CSS pixels**, at 100% zoom. Play and lobby have fixed-size canvases; launch is evaluated at the same size. There is no approved phone layout. Narrow-screen media rules left in a prototype are not a separate approved design. The play page keeps content scrollable while hiding scrollbars. Do not reflow the capital grid or enlarge its cells to fit a building.
 
-**Capital**, shown here placing a landmark.
+## Shared visual language
 
-![Capital tab](screens/3-capital.png)
+### Typography
 
-- A large 9×9 city with the districts and impassable plots marked. ✓ marks a completed row or column.
-- A gained building or landmark follows the pointer as a green ghost. Rotate it with the button or R, then place it.
-- Your civilization's ability is beside the city.
-- The full income mat shows every innovation by name, with uncovered spaces open and covered ones showing the building. The era slots for played tapestry cards are underneath.
+| Role | Font and treatment |
+|---|---|
+| Brand, track names, tile names, civilization names, landmark/building names, terrain names | **Cinzel**, usually 600 or 700 |
+| Player names, labels, instructions, resource counts, VP, controls and tabs | **Atkinson Hyperlegible**, 400 or 700 |
+| Advancement Tracks and World Map selectors | Atkinson Hyperlegible, upright; no italic styling |
+| Your turn | Italic title-font treatment; it is a text label, not a button |
+| Action descriptions | Atkinson; Cinzel is reserved for proper names such as Ships or Farm |
+| Civilization and era | Civilization in Cinzel/gold; era after a middle dot in the legible font |
 
-**Cards**, shown during an income turn.
+Player names must never use Cinzel. Capital headings use Atkinson except for the capital type, such as **Mountain**, in Cinzel. Right-panel tabs use the full words **Civilization** and **Technology**; overview summary rows use the compact label **Tech**.
 
-![Cards tab](screens/4-cards.png)
+The launch headline “Advance through…” and the lobby invitation use Cinzel. The launch header sentence “Build a civilization that stands the test of time”, form labels and buttons use Atkinson. These roles replace the old Alagard/VCR guidance; the currently scaffolded application has not yet migrated its font files or style tokens.
 
-- Your tapestry hand, large, with each card's full text and its timing (when played, this era, or trap).
-- Your tech cards in their three rows. A green outline means a card is ready to upgrade.
-- The three face-up tech cards you could invent, and the deck.
+### Surfaces, colours and selection
 
-**Players**, shown while someone else plays.
+| Role | Current swatch |
+|---|---|
+| Deep background / grid backing | `#121517` |
+| Header, footer, lobby panels, overview background | `#171a1d` |
+| Middle play surface / pixel-texture average | `#242a2e` |
+| Raised control / selected tab surface | `#30383c` |
+| Rules, separators and borders | `#465257` |
+| Main text / muted text | `#e8ddc4` / `#b9af9b` |
+| Gold selection and proper-name accent | `#e2b857` |
+| Exploration / Science / Technology / Military | `#3f83a8` / `#579274` / `#b57a3b` / `#a94f4f` |
+| Expansion badges: Arts & Architecture / Plans & Ploys / Fantasies & Futures | `#bd9155` / `#7e9f86` / `#9d83ae` |
 
-![Players tab](screens/5-players.png)
+The pixel texture consists of small, crisp, low-contrast gray squares. Keep it visible behind both middle sections, including behind the right-panel tabs. The source SVG is 1920×1080 with 8px marks and is intended as a repeated texture. The same embedded texture is used by launch and lobby; do not introduce a separate flat-background variant when serving over HTTP.
 
-- One card per opponent: VP, resources, track progress, a small city, landmarks, tech and hand counts, and played tapestry cards.
-- **Open full view** shows that player's whole city and mats.
+Player identity and track identity are separate colour systems. The launch/lobby player swatches are blue `#3f83a8`, red `#a94f4f`, green `#579274`, bronze `#b57a3b`, and **purple `#a98bba` for seat five**. The play fixture uses brighter player swatches `#4ea1d3`, `#e06a55`, `#64ae67`, and `#e1b84d`. Preserve the references for this handoff; establish shared player tokens during the production style migration rather than silently mixing the two sets. The old application's `tokens.css` still has its earlier palette and is not the phase-one visual reference.
 
-### Behaviour
+The play mockup uses **square corners throughout**, including selected tabs, player cards, controls and selection outlines. Lobby mute/menu controls match the game's dark 36×36 control buttons and red diagonal mute slash; their small corner radius is visible in the lobby reference. Ordinary panels should not gain new drop shadows. Header/footer separation uses thin divider rules; in player-overview mode remove the header divider over the overview area and keep the footer divider.
 
-- **Automatic tab switching.** When a choice needs a particular view, the centre switches to it by itself: Map for exploring or conquering, Capital for placing a building or landmark, Cards for playing a tapestry card or upgrading a tech card. Players can still open any tab themselves.
-- **Decision bar.** On your turn it names the step, for example "Income turn · step 2 of 4: play a tapestry card", with the matching buttons. On someone else's turn it says what they are doing, for example "Ana is choosing where to conquer…", in their colour.
-- The information on screen is only what the rules make public. Opponents' hands appear as counts only.
+Use gold for selection, track colours for selected track names, and green for the current player glow, valid placement guidance and confirmation. Keep names, outlines and symbols as additional signals; colour alone must not carry state. The placeholder resource-cost symbols are the existing small square and diamond shapes in the track era prices. Use the same placeholders in overview resources and footer costs until final resource art is wired in.
 
-## Still to design
+## Launch page
 
-1. The landing page, the new-table setup (mode, versions, expansions, solo difficulty, timer, undo) and the lobby.
-2. The details of every kind of decision prompt.
-3. The income-turn sequence.
-4. The end-of-game results.
+![Launch page](screens/launch.png)
+
+The page flows vertically beneath the header and has no footer. The brand sits at the left, the Atkinson header sentence is centered, and sound/menu controls sit at the right. A large centered Cinzel headline names Exploration, Science, Technology and Military in their track colours.
+
+The central panel stack is about 530px wide at the review size. Both panels have the dark header background and align to the same width:
+
+1. A **Your name** label and name input. The explanatory text belongs inside the empty input: “Leave it empty to generate a mythical or historical name”. A blank submission generates an example name.
+2. **Create a table** below the name field.
+3. A thin divider paused by italic “or join friends”.
+4. A table-code input with the exact left-aligned placeholder **8-character code**, in normal case, then **Join table**. Invalid codes show a short validation message. The prototype accepts eight alphanumeric characters.
+5. A separate **Open tables** panel underneath. Each example row has Join on the left, the eight-character code with five small seat rectangles underneath, and rules/expansion badges in the remaining area. Fill occupied seat rectangles from left to right with player colours; do not replace them with “2/5” text or fictional table names.
+
+The three advertised tables are fixtures. Production must obtain open tables from the table API and define loading, empty, full, unavailable and failed-join states. Creating and joining in this mockup only navigates to the lobby with example query parameters. The local name generator, table codes and expansion badges are not server implementation.
+
+## Lobby page
+
+![Lobby page](screens/lobby.png)
+
+The lobby uses a fixed 1920×1080 canvas. The main stack is **1000px wide**, centered horizontally, with the invitation above it. Its intentional two-line break is:
+
+> Invite your friends, choose your civilization,<br>
+> and prepare to make history.
+
+Do not move the whole stack upward when opening civilization choices. The chooser is inserted below the player panel and pushes the rules panel down.
+
+### Top controls
+
+The first row has two compact panels. The left contains **Mode:**, Online mode, Local mode, and a right-aligned read-only code field immediately beside **COPY**. The selected mode is filled with colour and uses dark inverse text, without changing font weight or shifting its neighbours. Local mode replaces the code and copy control with the right-aligned sentence **“Classic hot-seat gaming. Your friends and you will share a screen.”**
+
+The right panel explains its controls in exactly two lines:
+
+> Start the game, mark yourself<br>
+> as ready, or leave the table!
+
+Give each line enough width to prevent a third line. The Start game (green), I'm ready (gold when selected), and Leave table (red) buttons share one row. The ready checkmark is green. Readiness also appears beside the current player's YOU and HOST labels. In the example, the blue player is the host.
+
+### Player cards and seat states
+
+The **Players** heading is Atkinson. There are five equal-width slots. Each filled card and each empty slot occupies the same **112px total height**. A pair of Open seat/Add bot choices must occupy exactly one filled card's width and height, with no growth of the grid row. The gap between adjacent slots remains constant.
+
+Joined-player cards have a thick border in the player's colour. Player names use Atkinson. The civilization name or Choose civilization control uses Cinzel/gold. YOU and HOST are small gold text at the top left, separated by a light middle dot; readiness follows them. Do not use the old coloured dot or a separate “active player” label.
+
+| Slot state | Visible controls | Host X result |
+|---|---|---|
+| Unconfigured slot | Two stacked, borderless choices: **+ Open seat** and **+ Add bot** | No X in this state |
+| Open seat | One full-size gold-highlighted **Take the seat!** prompt | Return to the two choices in the same slot |
+| Joined player | Player name, civilization and applicable badges | Return to the two choices in the same slot |
+| Bot seat | Bot name and editable civilization | Return to the two choices in the same slot |
+
+The X appears at the top right on hover/focus where applicable. It must never hide or remove the grid slot, close a column, or shift the other cards. Taking an available seat moves the example local player into that seat. The mockup does not enforce real authentication or host permissions; production must do so server-side.
+
+**Bot scope clarification from the designer:** these controls describe the seat UI and host interactions. They do not decide which bots the game will use. Bot types and their rules are work for later; this manifest does not change the existing official-solo-bot policy.
+
+### Civilization chooser
+
+- Clicking your chosen civilization reopens the chooser, so it can be changed.
+- The host can also open the chooser from a bot's civilization control and change that bot's selection.
+- The panel's border matches **the player being edited**, not always the local player. Seat five therefore opens a purple-bordered chooser.
+- **Choose your civilization** is an Atkinson heading. **Random** sits on the same row at the top right, before the list of choices. Civilization tiles use Cinzel.
+- Choosing a tile, or Random, updates the target player and closes the panel. The prototype offers five example civilizations and local random selection; production must use the legal available civilization data.
+
+![Chooser targeting the fifth player's purple seat](screens/lobby-civ-picker.png)
+
+### Table settings
+
+The full-width settings panel sits below the players and optional chooser. Its left side has Rules, Expansions and Map rows. Each row reads **title → thin rule → choices**, rather than stacking the title over the choices. The right side has Undo rules and separate rows for Landmarks draft, Random civilizations and Open information. The latter rows use Yes/No pairs. Selection uses the option's reserved colour.
+
+The arrangement and selection styling are the reference. Labels such as Archipelago, Continents and the additional-rule choices are mockup examples, not additions to the game's rule set. Derive supported settings, incompatibilities and mode-specific controls from the approved specification and engine. Solo/Automa difficulty, timer, readiness gates and complete original/current-rules setup still need integration and design review.
+
+## Play page
+
+![Tracks and capital](screens/tracks-capital.png)
+
+### Three horizontal bands
+
+Use a compact, full-width **header**, **middle play area**, and **turn footer**. Header and footer have the same short height, approximately 58px in the reference, and the same dark gray background. There are no outer side borders. The middle uses mid-gray pixel-textured surfaces, divided **3/4 shared area to 1/4 player area**.
+
+The header has the title at left, centered player chips, and controls at right. Each chip shows the player name in Atkinson and civilization in Cinzel/gold, with VP. Keep chip widths and gaps constant. A player-colour square begins each chip; when the overview opens, a separate colour layer slides across the existing chip and its text disappears without changing its dimensions. The current player has a green glow around the whole chip, not just the name. Blue is the current player in the fixture.
+
+The reference menu navigates among launch, lobby and game mockups. Sound toggles the red diagonal slash over a still-light note; the prototype plays no audio. The undo/history icon is visual only. Production menus, history and audio services are outside this phase.
+
+### Shared-area selectors
+
+At the top of the shared area, show the selected selector's icon and inline title. The selected box keeps the light raised-surface highlight permanently; do not rely on hover to show it. Inactive selectors are gray icons with the title collapsed.
+
+- **Advancement Tracks:** four short, right-pointing bands, coloured with the four tracks when selected. Their horizontal length is reduced relative to the first icon draft.
+- **World Map:** seven point-up hexagons in a **2 / 3 / 2** arrangement, coloured by terrain when selected.
+
+Both titles use upright Atkinson. There is no redundant “Shared board” heading or player colour-key strip. The map is a schematic view in this handoff; exploration/conquest targeting remains to be designed.
+
+### Advancement tracks
+
+Each of the four track sections has this order:
+
+1. Cinzel track title at the left, followed by a thin separator line to the right edge.
+2. Four price groups, each centered above its three tiles, interrupting a horizontal line. Each interruption contains Cinzel **I–IV**, a middle dot, and the existing price symbols. Keep the gap above and below the cost line even and compact. Hovering a tile turns its group's cost line gold; the line has the same visual thickness as the player-progress lines.
+3. Twelve tiles, without a separate Start tile. Titles sit at the top left in Cinzel. Track names are sized to fit their allocated heading area.
+4. Player-progress lanes underneath, with room between tracks. Use one lane per present player, up to five, and reclaim missing-player lanes.
+
+The stable tile body is approximately square. A right-facing arrow tip extends beyond the body and overlaps the next tile without moving the next tile's start. Subsequent tiles have a matching left inlet, about **16px at the reference size**. The first left edge is flat; the final tile is square with a diagonally dashed finish-line right edge. Do not draw a coloured/thick left inlet border on tiles after the first. Keep the other polygon borders angular. The subdued small number belongs in the tip area in Atkinson, not as a prominent top-of-tile label.
+
+Landmark/building names sit at the bottom left, using the same left inset as the tile name. The bottom third has a darker **track-coloured gradient**, not a separate label rectangle or a lighter highlight. Names and borders follow the pointed tile silhouette. A selected tile gets a gold polygon outline without growing or shifting the tile.
+
+Progress lines start below the first tile and stop beneath the middle of the reached tile. Leave at least one line-thickness, preferably 1.5, between lanes. Use a small terminal mark; the all-square final mockup makes it square. Hovering a next tile extends the relevant player's line to that tile's middle with a dashed line of the same thickness. Do not reintroduce one simple token per tile as the primary progression display. The old achievements/“3 points” strip beneath the tracks has been removed from this layout.
+
+### Right-hand tabs
+
+The right-hand 1/4 has **Capital · Hand (with size) · Income · Civilization · Technology · Terrain** tabs, with the hand count part of the Hand control. Each tab's width follows its text. Reserve the selected/bold width before selection so nothing moves horizontally when a tab changes. Match the shared selector's active surface and text colour. The tab bar itself is transparent over the same textured background as the body.
+
+Capital is the developed example. Hand, Income, Civilization, Technology and Terrain currently show placeholder copy. Their tab labels and navigation pattern are approved references; their detailed contents are not finished designs.
+
+### Footer and Ships example
+
+The footer always describes the current decision or what another player is doing. Instructions use Atkinson; proper names may use Cinzel. A selected track space's proper name is coloured with its track. Cost symbols sit together in a container immediately before the action buttons at the right.
+
+| State | Footer content and interaction |
+|---|---|
+| Neutral | “The table is waiting for your move”; income description and Take income are visible on the left, with no surrounding box. Only the income button highlights on hover. |
+| Tile selected | Gold outline on the tile; footer changes to Advance to [name], its benefit, price and commit action. Income moves into a hover/focus reveal accessed through Your turn. |
+| Ships selected by blue | “Gain 1 VP per territory you control. You control 4 territories.” Price icons and **Advance · +4 VP** are shown. |
+| Ships committed | Footer changes to the exploration-coloured optional **Build a Farm [farm icon]?** prompt with price, **Pay & build** and **Skip**. Income reveal is disabled in this state. |
+| Optional choice finished | Either Pay & build or Skip resets the Ships demonstration to its initial unbought, neutral state, intentionally allowing repeated review. |
+
+The income description and button are separated from Your turn by a thin vertical rule after the button. The revealed version starts at the left edge where Your turn sat and has the same spacing discipline. Do not bring back the enclosing income box. The income button is an access pattern demonstration; the actual income sequence is a phase-two design.
+
+![Ships selected](screens/ships-selected.png)
+
+![Optional Farm action](screens/optional-farm.png)
+
+No costs are really paid, no VP totals are persisted, and no Farm is placed by the optional-action example. All other track selections use generic fixture descriptions. Read actual legal moves, benefits, costs and optional decisions from the engine when implementing this page.
+
+### Capital city and landmark placement
+
+The capital is always **9×9**. Its title is Atkinson with only the mat type, such as Mountain, in Cinzel. There is no separate legend or second city grid. Three equal-width completion counters sit beneath the grid with a gap equal to their mutual gaps; together they span the grid width. Use horizontal-line, vertical-line and square symbols for rows, columns and districts. Do not add the heading “Completed”.
+
+- Impassable plots have a small, thick red X. District boundaries are thin dashed overlays between 3×3 districts; they do not recolour the ordinary plot borders.
+- Completion counts derive from filled rows, columns and nine-plot districts. Hovering a counter adds one flat transparent green rectangle across each whole completed group. It has no border, no glow, and covers all buildings, including a newly locked landmark. Do not highlight each plot as a separate green box.
+- A **To be placed** section appears only when an item is pending. It is full width, outlined to attract attention, and holds the item's Cinzel name. Selecting the item gives it an outline. The name stays in the tray and is not shown over the grid while dragging.
+- The Lighthouse example uses the actual landmark illustration and **four plots, a 2×2 footprint**. The whole piece is draggable. On release, it snaps to a legal position; it cannot enlarge or wrap the grid. It can be moved again before confirmation.
+- Once positioned, small green rotation and confirmation controls sit on the piece, with confirmation under rotation. A return control sends it back to To be placed; dragging it back to that tray also returns it.
+- Keep the capital's green outline visible while placement is pending, including while idle. It also guides movement into the grid. The Lighthouse's own outline is exploration blue, not green.
+- Confirmation locks placement, hides placement controls and removes the grid's pending-placement outline. The fresh-placement glow clears after subsequent hover or a tab change. Unconfirmed placements do not count toward completed groups.
+
+![Lighthouse placed in the capital](screens/lighthouse-placement.png)
+
+The plot arrangements, buildings and mat data are review fixtures. They are not the researched Mountain mat or a valid saved game. Production must use the canonical capital data, occupancy model and landmark footprints; the screenshot is a layout and interaction reference.
+
+### Player overview and inspecting another player
+
+![Player overview](screens/players-overview.png)
+
+Clicking any header player chip or the player-chip area opens an overview extending from header to footer. It retains the **3/4 + 1/4** middle split. The overview background is exactly the header/footer gray, continuous with the header over the left 3/4, without a gradient or shadow underneath it. Header chips keep their dimensions, fill with player colour, hide all text and retain the current player's green glow.
+
+The left region holds vertically centered player cards, each **one fifth of the left 3/4**, not one fifth of the full screen. The four example cards have equal fixed height sufficient for their contents. Their borders use player colours. Player names are left-aligned in Atkinson, with VP held at the right. The blue player's YOU · HOST indicators precede the name without shifting the row vertically. Do not reserve space for the discarded colour-square icon in these card headings.
+
+Each card contains, in order:
+
+1. Name and VP.
+2. A selectable Cinzel civilization name with era after a middle dot, aligned to the left and separated clearly.
+3. Compact **Resources** in Atkinson, with the same placeholder icons used in tier prices and their amounts.
+4. Four compact track rows: Cinzel track name, a thin unfilled guide rule, and reached-space number. These rules are not progress bars.
+5. Hand size as a count, Capital points, Tech count, then Terrain. Do not add a Space tiles row.
+
+Civilization/era, Capital and Tech summary rows are clickable examples. Hand size, resource amounts and track summaries are not clickable. A selected row gets a whole-row gray background without moving its text, expanding the card or keeping an internal border around letters. Hide the usual row-bottom separator while that row is selected.
+
+The right region initially says **Waiting for overview** at its centre. Ana's Capital row is the developed drill-down: it shows a second 9×9 capital with the same sizing, red Xs and completion-counter layout as the ordinary right-panel Capital tab. Its example filled rows, columns and districts can be inspected by hover or toggled by click. Other clickable rows only demonstrate selection and retain the waiting panel; do not treat them as completed views. Opponents' hands remain private and show counts only.
+
+![Inspecting Ana's capital](screens/opponent-capital.png)
+
+In overview mode the footer is always the base dark gray, even if Ships is awaiting its optional action underneath. It contains only bold uppercase Atkinson **CLOSE THE PLAYERS OVERVIEW**, with one subdued upward chevron on each side. Both text and chevrons glow gold on footer hover. Clicking that footer, the header players, or outside the overview's player/drill-down regions closes it. Preserve the underlying decision state.
+
+## Assets and provenance
+
+- The pixel SVG is included as [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) and embedded in each HTML reference. Keep those embedded copies in sync if editing the texture.
+- The Lighthouse SVG is a snapshot of `client/static/art/landmark/lighthouse.svg`, imported while the mockups were based on upstream commit `a583cf1`. Its 2×2 footprint is from `art/footprints.js` at that point. It is embedded in `main-screen.html` only for standalone review.
+- The real game must reuse stable asset IDs and the canonical `art/footprints.js` data. Do not introduce another production footprint table, duplicate the full artwork tree into `docs/ui`, or copy large inline SVG blobs into Svelte components.
+- Existing generated game artwork and its gallery remain under the art toolkit. Run `npm run art` and open `art/preview/index.html` for the complete catalog. This handoff does not change the approved art style or regenerate game assets.
+- Google Fonts currently supplies Cinzel 600/700 and Atkinson Hyperlegible 400/700. The old self-hosted fonts remain for the current scaffold and legacy reference. Installing production font files and updating `tokens.css` / `base.css` is follow-on implementation work.
+
+## Implementation boundaries and phase two
+
+Build real pages with the repository's Svelte 5/JavaScript conventions. Port the visual roles and interactions into reusable components and shared tokens; do not ship these standalone HTML files as the game client. The sample names, cards, map, code, VP, incomes, resource amounts, legal placements and progress are fixtures. The server and engine determine permissions, privacy, legal choices and persistence.
+
+The following are **not complete** in phase one:
+
+- Every decision family: payment, choosing resources, hexes, cards, dice, trap responses and all chained decisions.
+- The full income-turn sequence, income mat, tapestry play and technology upgrades.
+- Production map exploration/conquest interaction, five-track Arts & Architecture layout, the full right-tab contents and all opponent drill-downs.
+- Full setup for solo play, official bot controls, Automa difficulty, timers and every supported setting combination.
+- End-of-game results, reconnect/away states, table errors, loading, empty states and complete production menu/help.
+- Keyboard alternatives for every pointer/hover interaction, visible focus, proper tab semantics and reduced-motion handling. These remain required by [CONVENTIONS.md](../../CONVENTIONS.md); prototype hover-only controls are not permission to omit them.
+- A unified production font/palette migration and final resource icons. The existing app and its earlier tokens remain unchanged by this documentation-only handoff.
+
+The phase-one HTML is the visual and interaction baseline for #25–#30. Complete the missing designs under #3 before treating their layouts or rule settings as approved. Keep #3 open until its remaining checklist is finished; this commit is a **Refs #3** milestone, not a closing fix.
+
+## Review and maintenance
+
+The current screenshots are taken at 1920×1080 from these exact references, with the two selected fonts loaded. During the handoff, the references were checked from both disk and HTTP for navigation, seat-state transitions, targeted civilization selection, random selection, readiness, Ships/optional reset, overview switching and Lighthouse placement.
+
+Validation on 2026-10-21:
+
+- Browser walkthrough passed with no page-script errors or failed local requests. It checked all five slot dimensions, both X transitions, fifth-seat purple targeting, chooser reopening and random selection, the green ready check, local mode, 48 track tiles, footer state changes, unchanged header-chip dimensions, Ana's 81 plots, and drag/rotate/return/lock of the Lighthouse. Locking it into the top-left district changed the district counter to 1 and produced one continuous completion overlay.
+- The preview served all three pages, query-string lobby URLs and the SVG source successfully. Direct-file loading also passed. The standalone main screen has no external JavaScript import.
+- `npm run format` and `npm run check` completed; the latter reported **0 errors and 0 warnings**. Formatting-only line-ending changes outside the handoff were removed.
+- `npm test` built the client successfully and passed **100 of 102 tests**. Two unchanged server tests fail on this Windows environment: `starts when run through a symlinked path` requires symlink privileges (`EPERM`), and `a file that cannot be read answers 500, not an empty 200` assumes Unix-style `chmod` read restrictions. This documentation handoff does not change the server or those tests.
+
+When revising a reference:
+
+1. Edit the current HTML and this manifest together. Preserve the distinction between intended behavior and demo-only shortcuts.
+2. Review it at the desktop reference size, including selected, hovered and expanded states.
+3. Replace the relevant current PNGs in `screens/` and the root README's **Current interface** section in the same commit.
+4. Retain `archivedpngmockups/` as historical material. Its generator creates the earlier design only; it must never overwrite the current `main-screen.html`.
+5. Record newly approved product or rules decisions in the design specification as well, rather than inferring them from a fixture label.

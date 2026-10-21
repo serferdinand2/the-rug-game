@@ -6,7 +6,7 @@ It is built like the author's other table games, [Fablewood Rummy](https://githu
 - a plain Node.js server with no runtime packages;
 - a shared rules engine;
 - a Svelte 5 interface built with Vite;
-- vector pixel-art in the Alagard and VCR OSD Mono fonts.
+- vector pixel-art, with Cinzel and Atkinson Hyperlegible selected for the phase-one interface.
 
 No official Stonemaier artwork, logos or rulebook text are used.
 
@@ -14,17 +14,23 @@ No official Stonemaier artwork, logos or rulebook text are used.
 
 ## Current interface
 
-This section always shows the latest approved or built interface. The colours and boxes are placeholders until the artwork lands. Full design notes are in [docs/ui/README.md](docs/ui/README.md).
+The **phase-one UI/UX handoff for #3** is in [docs/ui/README.md](docs/ui/README.md). It is the manifest for building the real game pages: layout, typography, colours, control states, placement and decision examples, and the remaining designs. The HTML pages are interactive mockups with fixture data; the Svelte application is still a placeholder.
 
-**Tracks:** the main view on your turn. Your next space on each track shows its cost, in green when you can afford it.
+Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html).
 
-![Tracks tab](docs/ui/screens/1-tracks.png)
-
-| Map | Capital |
+| Launch | Lobby |
 |---|---|
-| ![Map tab](docs/ui/screens/2-map.png) | ![Capital tab](docs/ui/screens/3-capital.png) |
-| **Cards** | **Players** |
-| ![Cards tab](docs/ui/screens/4-cards.png) | ![Players tab](docs/ui/screens/5-players.png) |
+| ![Phase-one launch page](docs/ui/screens/launch.png) | ![Phase-one lobby page](docs/ui/screens/lobby.png) |
+
+**Game: tracks and capital, at the 1920×1080 desktop reference size.**
+
+![Phase-one play page](docs/ui/screens/tracks-capital.png)
+
+| Player overview | Optional advancement action |
+|---|---|
+| ![Player overview](docs/ui/screens/players-overview.png) | ![Optional Farm action after Ships](docs/ui/screens/optional-farm.png) |
+
+The earlier PNG mockups and their HTML/generator are preserved in [docs/ui/archivedpngmockups/](docs/ui/archivedpngmockups/README.md). They are superseded references. Issue #3 remains open for the income sequence, additional decision prompts, results and the other gaps listed in the manifest.
 
 ## Run locally
 
@@ -324,11 +330,11 @@ How the ranking was built:
 |---|---|
 | [docs/research/](docs/research/) | Rules research for the base game and every expansion, with sources |
 | [docs/superpowers/specs/](docs/superpowers/specs/) | The design document: decisions, scope and the build plan |
-| [docs/ui/](docs/ui/) | Approved interface designs, screenshots, and the scripts that generate them |
+| [docs/ui/](docs/ui/) | Phase-one UI/UX manifest, interactive mockups, current screenshots and the archived earlier design |
 | [docs/art/](docs/art/) | Art production notes and the approved style reference |
 | [CLAUDE.md](CLAUDE.md) | Guidance for contributors and coding agents, including where the work stands |
 | [CONVENTIONS.md](CONVENTIONS.md) | Coding conventions: JavaScript with JSDoc, Svelte 5 components, BEM classes, the engine, tests and commits |
 
 ## Licence
 
-[GPL-3.0-only](LICENSE), like the sibling projects. The fonts keep their authors' terms: Alagard by Hewett Tsoi (Pix3M) and VCR OSD Mono by Riciery Leal (MrManet). Their notices are in [client/static/fonts/](client/static/fonts/).
+[GPL-3.0-only](LICENSE), like the sibling projects. The fonts keep their authors' terms: Alagard by Hewett Tsoi (Pix3M) and VCR OSD Mono by Riciery Leal (MrManet). Their notices are in [client/static/fonts/](client/static/fonts/). The phase-one references load Cinzel and Atkinson Hyperlegible from Google Fonts; production font files and their license notices are still to be added during the UI implementation.

@@ -67,7 +67,7 @@ From the sibling projects (owner: "same setup and approach"):
   - Tests run with `node --test`, and GitHub Actions runs them too.
   - The rate limits and `.env` settings work like Fablewood's.
 - **Art and licence:**
-  - Fonts: Alagard for titles, VCR OSD Mono for the interface.
+  - Phase-one UI fonts (2026-10-21): Cinzel for named game elements and Atkinson Hyperlegible for players, instructions, controls and data. The old scaffold fonts are migrated during UI implementation.
   - Art is vector pixel SVG, using one crispEdges path per colour. Production notes live in `docs/art/`, never in `public/`.
   - Licence: GPL-3.0-only, like the siblings. **(my call)**
 
@@ -92,10 +92,12 @@ New for this game:
   - Each landmark's picture is drawn in the shape of its footprint (32 pixels per plot), and the same picture is shown on its card and on the capital-city grid. **(owner, 2026-10-21)**
   - The owner reviews each art batch in the asset gallery before it is merged.
 - **Interface (owner).** The approved designs live in `docs/ui/`.
-  - The main game screen is a tabbed centre view (Tracks, Map, Capital, Cards, Players), with a decision bar beneath it and your own status panel on the right.
-  - Tracks is the default view on your turn. Your next space on each track shows its cost.
-  - The view switches by itself to whatever the current choice needs.
+  - Phase-one handoff, 2026-10-21: a compact full-width header and turn footer enclose a 3/4 shared Tracks/World Map region and 1/4 player-tab region. Clicking header players opens the player overview in the same split. Launch and lobby are included. The UI/UX manifest in `docs/ui/README.md` supersedes the earlier five-tab centre design.
+  - Tracks is the default shared view. The phase-one mockup shows tier prices above pointed tiles, player progress lanes below, and a footer selection/commit/optional-action example. See the manifest for exact visual and interaction roles.
+  - The view switches to whatever the current engine decision needs; the prototype demonstrates only selected examples. Phase two still covers income turns, the remaining decisions and results.
   - There is no phone layout. The game is for desktop screens only. The owner decided this on 2026-10-21, while #3 was in progress.
+  - Cinzel names game elements; Atkinson Hyperlegible names players and carries instructions, controls and data. Production styles/fonts are not migrated by this mockup handoff.
+  - The lobby bot controls describe seat/host interactions only. Which bots are supported remains governed by the existing bot policy; the designer explicitly deferred that implementation decision.
 - **Naming** **(my call)**
   - "The Rug Game", with the default port 3020.
   - Civilization and card names stay as in Tapestry, because they are ordinary words. Only the art and wording are our own.

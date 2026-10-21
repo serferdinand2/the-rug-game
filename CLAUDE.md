@@ -66,7 +66,7 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
 - **Done:**
   - Rules research (`docs/research/`).
   - The approved design document.
-  - The approved desktop main game screen (`docs/ui/`).
+  - The phase-one desktop UI/UX manifest and interactive launch, lobby, play and player-overview mockups (`docs/ui/README.md`, 2026-10-21).
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
 - **#1, #2, #4, #7, #44 and #46 are done.**
@@ -83,7 +83,7 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
 - **Next:**
   - #45 Check the 20 "owner-check" rules against the physical box. This is the owner's job.
   - #12 Encode the base game data. This is the first rules-engine issue. The owner wants #45 done first, so #12 is blocked by it.
-  - #3 Design the remaining screens (assigned to lazar-milin). A new interface base is in progress.
+  - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. This handoff does not close #3 or implement production style files.
   - #5, #6 and #8–#11 Draw the rest of the art with the toolkit.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
@@ -127,7 +127,7 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
 The owner's standing rule: whenever the interface changes, `README.md` must show the newest version in the same commit. This applies both to an approved mockup and to a built screen.
 
 - Screenshots live in `docs/ui/screens/`. Replace them, and update the "Current interface" section and `docs/ui/README.md`.
-- Mockups are regenerated with `node docs/ui/mockups/gen-tabs.mjs docs/ui/main-screen.html --standalone`. Serve `docs/ui/` over HTTP, for example with `python3 -m http.server 52990 --bind 127.0.0.1`, because some browser tools block `file://`. Then screenshot each `.sec .screen` element.
+- The current references are the hand-edited `docs/ui/launch.html`, `lobby.html` and `main-screen.html`. Open them directly or run `node docs/ui/preview.mjs` and capture at 1920×1080. The superseded generator and PNGs live in `docs/ui/archivedpngmockups/`; never use that generator to overwrite the current play reference.
 - Once the game exists, take the screenshots from the running game instead of the mockups.
 
 ## Decisions already made
@@ -144,8 +144,8 @@ The design document has the details. In short:
   - Small pieces, such as resources, buildings, outposts, dice and terrain, are simple icons in the same palette.
   - Each landmark is one picture drawn in its footprint's shape, shown on its card and on the capital grid.
   - The order is to design the interface first, then show every asset in a gallery page, then build the game.
-- **Interface.** The main screen has a tabbed centre view (Tracks, Map, Capital, Cards, Players), a decision bar beneath it and a status panel on the right.
-  - Tracks is the default view on your turn. Your next space on each track shows its cost.
+- **Interface.** Phase one supersedes the earlier five-tab centre layout: full-width header and turn footer, a 3/4 shared Tracks/World Map region, and a 1/4 player-tab region. The header opens a player overview with the same 3/4 + 1/4 split. Follow `docs/ui/README.md`, including its documented prototype limitations.
+  - Tracks is the default shared view. Tier prices sit above groups of three pointed tiles; colour-coded progress lanes sit below. The Ships example demonstrates selecting, committing and resolving an optional action in the footer.
   - The view switches by itself when a choice needs another tab.
   - There is no phone layout. The game is for desktop screens only (owner, 2026-10-21).
   - See `docs/ui/README.md`.
@@ -168,7 +168,7 @@ Read the sibling projects' `CLAUDE.md` files before scaffolding (#1). The patter
   - `limits.mjs` holds the rate limits, and `.env` holds `HOST`, `PORT` (3020 here) and `TRUST_PROXY`.
 - **Tests:** `node --test`, with randomized invariant tests for the engine and the rooms, also run in GitHub Actions.
 - **Look:**
-  - Alagard for titles and VCR OSD Mono for the interface. The single copies, with their licence notices, are in `client/static/fonts/`. `docs/ui/main-screen.html` loads them from there.
+  - Phase one selects Cinzel and Atkinson Hyperlegible with the roles in `docs/ui/README.md`. The references currently load them from Google Fonts. The scaffold still bundles Alagard/VCR; migrating production tokens, fonts and their license notices is future UI work.
   - Art production notes stay in `docs/art/`, never in `public/`.
 - **Discord Activity (#43):** follow Bird Table.
 

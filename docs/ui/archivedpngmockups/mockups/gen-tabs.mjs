@@ -404,7 +404,7 @@ const standalone = process.argv[3] === '--standalone';
 writeFileSync(
 	out,
 	standalone
-		? `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Rug Game · main screen reference</title><style>body{margin:0;padding:24px;background:#18121f}.lay{max-width:1200px;margin:auto}</style></head><body>${page.replaceAll('/files/', '../../client/static/fonts/')}</body></html>`
+		? `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Rug Game · main screen reference</title><style>body{margin:0;padding:24px;background:#18121f}.lay{max-width:1200px;margin:auto}</style></head><body>${page.replaceAll('/files/', '../../../client/static/fonts/')}</body></html>`
 		: page
 );
 console.log('wrote', out);
