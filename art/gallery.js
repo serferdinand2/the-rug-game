@@ -14,6 +14,8 @@ import { drawSkyline } from './parts/skyline.js';
 import { drawStreet } from './parts/street.js';
 import { drawShip } from './parts/ship.js';
 import { drawInterior } from './parts/interior.js';
+import { drawBanner } from './parts/banner.js';
+import { drawCrowd } from './parts/crowd.js';
 import { GROUPS, EXPANSIONS } from '../src/lib/art/catalog.js';
 import { PLOT_SIZE, FOOTPRINTS } from '../src/lib/art/footprints.js';
 
@@ -204,6 +206,37 @@ export const PART_SAMPLES = Object.freeze([
 			return c;
 		},
 	})),
+	.../** @type {const} */ (['flag', 'hanging']).map((kind) => ({
+		label: `banner: ${kind}`,
+		draw: () => {
+			const c = createCanvas(64, 64);
+			drawBanner(c, {
+				kind,
+				x: 8,
+				y: 50,
+				cloth: PALETTE.brickRed,
+				device: PALETTE.gold,
+			});
+			drawBanner(c, {
+				kind,
+				x: 42,
+				y: 50,
+				cloth: PALETTE.roof,
+				facing: 'left',
+			});
+			outline(c, PALETTE.ink);
+			return c;
+		},
+	})),
+	{
+		label: 'crowd',
+		draw: () => {
+			const c = createCanvas(64, 64);
+			drawCrowd(c, { x: 4, y: 58, count: 13, random: seededRandom(4) });
+			outline(c, PALETTE.ink);
+			return c;
+		},
+	},
 ]);
 
 /** Expansion names by code. */

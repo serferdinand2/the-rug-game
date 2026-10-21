@@ -15,6 +15,8 @@ import { drawSkyline } from '../art/parts/skyline.js';
 import { drawStreet } from '../art/parts/street.js';
 import { drawShip } from '../art/parts/ship.js';
 import { drawInterior } from '../art/parts/interior.js';
+import { drawBanner } from '../art/parts/banner.js';
+import { drawCrowd } from '../art/parts/crowd.js';
 
 const PALETTE_COLOURS = new Set(Object.values(PALETTE));
 const SMOKE_TONES = ['smoke', 'steam'];
@@ -26,6 +28,7 @@ const TERRAIN_KINDS = ['forest', 'mountain', 'desert', 'grassland'];
 const BUILDING_KINDS = ['house', 'tower', 'wall'];
 const INTERIOR_WALLS = ['plaster', 'stone', 'panel'];
 const WINDOW = { x: 24, y: 10, w: 16, h: 20 };
+const BANNER_KINDS = ['flag', 'hanging'];
 
 /**
  * Lists the rows that are completely filled and the rows that are completely empty.
@@ -119,6 +122,23 @@ const SAMPLES = [
 		random: false,
 		draw: (c) => drawShip(c, { x: 8, y: 50, masts: 1 }),
 	},
+	...BANNER_KINDS.map((kind) => ({
+		label: `banner: ${kind}`,
+		random: false,
+		draw: (c) =>
+			drawBanner(c, {
+				kind,
+				x: 20,
+				y: 50,
+				cloth: PALETTE.brickRed,
+				device: PALETTE.gold,
+			}),
+	})),
+	{
+		label: 'crowd',
+		random: true,
+		draw: (c, random) => drawCrowd(c, { x: 4, y: 50, count: 9, random }),
+	},
 	...INTERIOR_WALLS.map((wall) => ({
 		label: `interior: ${wall}`,
 		random: true,
@@ -209,6 +229,34 @@ test('buildings and the figure draw only inside the box they return', () => {
 		{
 			label: 'ship facing left',
 			draw: (c) => drawShip(c, { x: 20, y: 50, facing: 'left' }),
+		},
+		...BANNER_KINDS.flatMap((kind) => [
+			{
+				label: `banner: ${kind}`,
+				draw: (c) =>
+					drawBanner(c, { kind, x: 20, y: 50, cloth: PALETTE.pine }),
+			},
+			{
+				label: `banner: ${kind} flying left`,
+				draw: (c) =>
+					drawBanner(c, {
+						kind,
+						x: 20,
+						y: 50,
+						cloth: PALETTE.pine,
+						facing: 'left',
+					}),
+			},
+		]),
+		{
+			label: 'crowd',
+			draw: (c) =>
+				drawCrowd(c, {
+					x: 20,
+					y: 50,
+					count: 6,
+					random: seededRandom(1),
+				}),
 		},
 	];
 	for (const piece of pieces) {
@@ -341,6 +389,57 @@ test('an interior window shows the sky of its time', () => {
 	}
 });
 
+test('a banner flies its cloth colour and its device', () => {
+	for (const kind of BANNER_KINDS) {
+		const c = createCanvas(64, 64);
+		drawBanner(c, {
+			kind,
+			x: 20,
+			y: 50,
+			cloth: PALETTE.pine,
+			device: PALETTE.gold,
+		});
+		assert.ok(c.p.includes(PALETTE.pine), `${kind}: no cloth`);
+		assert.ok(c.p.includes(PALETTE.gold), `${kind}: no device`);
+	}
+});
+
+test('a banner flying left is the mirror of one flying right', () => {
+	for (const kind of BANNER_KINDS) {
+		const right = createCanvas(64, 64);
+		const left = createCanvas(64, 64);
+		const options = { kind, x: 20, y: 50, cloth: PALETTE.pine };
+		const box = drawBanner(right, options);
+		drawBanner(left, { ...options, facing: 'left' });
+		for (let y = box.y; y < box.y + box.h; y++) {
+			for (let dx = 0; dx < box.w; dx++) {
+				assert.equal(
+					left.p[y * 64 + box.x + dx],
+					right.p[y * 64 + box.x + box.w - 1 - dx],
+					`${kind} (${dx}, ${y})`
+				);
+			}
+		}
+	}
+});
+
+test('a crowd widens with each person in it', () => {
+	const random = seededRandom(1);
+	const three = drawCrowd(createCanvas(64, 64), {
+		x: 2,
+		y: 50,
+		count: 3,
+		random,
+	});
+	const six = drawCrowd(createCanvas(64, 64), {
+		x: 2,
+		y: 50,
+		count: 6,
+		random,
+	});
+	assert.ok(six.w > three.w, `3: ${three.w} wide, 6: ${six.w}`);
+});
+
 test('every part draws the same pixels for the same seed', () => {
 	for (const sample of SAMPLES) {
 		assert.deepEqual(render(sample, 3), render(sample, 3), sample.label);
@@ -393,6 +492,22 @@ test('parts refuse kinds and times they do not know', () => {
 		() => drawInterior(c, { floor: 6, random, wall: 'glass' }),
 		/glass/
 	);
+	assert.throws(
+		() => drawBanner(c, { kind: 'kite', x: 0, y: 7, cloth: PALETTE.pine }),
+		/kite/
+	);
+	assert.throws(
+		() =>
+			drawBanner(c, {
+				kind: 'flag',
+				x: 0,
+				y: 7,
+				cloth: PALETTE.pine,
+				facing: 'up',
+			}),
+		/up/
+	);
+	assert.throws(() => drawCrowd(c, { x: 0, y: 7, count: 0, random }), /0/);
 	assert.throws(
 		() =>
 			drawInterior(c, {
