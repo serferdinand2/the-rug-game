@@ -20,24 +20,12 @@ function missing(slugs) {
 		.filter((id) => !drawings.includes(id));
 }
 
-/**
- * The catalog's landmark slugs for one expansion.
- * @param {string} expansion
- */
-function catalogSlugs(expansion) {
-	return ASSETS.filter(
-		(a) => a.group === 'landmark' && a.expansion === expansion
-	).map((a) => a.id.split('/')[1]);
-}
-
-test('the sample landmarks are drawn', () => {
-	assert.deepEqual(missing(['forge', 'train-station', 'launch-pad']), []);
-});
-
-test('the base-game landmarks are drawn', () => {
-	const base = catalogSlugs('base');
-	assert.equal(base.length, 18);
-	assert.deepEqual(missing(base), []);
+test('every landmark in the catalog is drawn', () => {
+	const slugs = ASSETS.filter((a) => a.group === 'landmark').map(
+		(a) => a.id.split('/')[1]
+	);
+	assert.equal(slugs.length, 33);
+	assert.deepEqual(missing(slugs), []);
 });
 
 test('every drawn landmark covers exactly its footprint', async () => {
