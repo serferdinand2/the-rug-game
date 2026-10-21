@@ -35,6 +35,8 @@ This is the layout. `engine/` arrives with the rules engine (#12).
 ```
 server.mjs, limits.mjs   Node HTTP server and its pure helpers (no packages)
 engine/                  Rules engine: pure JS, shared by the server and the client
+art/                     Art toolkit: painter, palette, scene parts, asset catalog, drawings/<id>.js
+  build.mjs, preview.mjs Draw art into client/static/art/ and the review sheet (npm run art)
 client/                  Svelte app (Vite root)
   index.html
   src/main.js            Mounts App.svelte
@@ -42,14 +44,14 @@ client/                  Svelte app (Vite root)
   src/components/<area>/ Components grouped by area: board, player, prompts, lobby, gallery, ui
   src/lib/               Plain JS modules: component-event.js, api.js, game.svelte.js …
   src/styles/            tokens.css (design tokens) and base.css
-  static/                Copied as-is into the build: fonts/, art/, favicon.svg
+  static/                Copied as-is into the build: fonts/, art/ (generated SVGs), favicon.svg
 public/                  Vite build output, served by server.mjs (git-ignored)
 scripts/dev.mjs          Runs the Node server and Vite's dev server together (npm run dev)
 tests/                   node:test suites (*.test.mjs)
 docs/                    Research, design, plans, interface designs, art notes
 ```
 
-- `engine/` and `client/src/lib/*.js` import nothing from the DOM or Svelte, unless the file is a `.svelte.js` rune module. That way they run under `node --test`.
+- `engine/`, `art/**/*.js` and `client/src/lib/*.js` import nothing from the DOM or Svelte, unless the file is a `.svelte.js` rune module. That way they run under `node --test`.
 - The only files under `public/` are build output. Never edit them by hand.
 
 ## Formatting

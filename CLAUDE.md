@@ -26,6 +26,7 @@ npm run serve                 # serves an existing build without rebuilding (for
 npm test                      # builds, then runs every test in tests/
 npm run check                 # svelte-check: JSDoc types in client/ and engine/, must report 0 errors and 0 warnings
 npm run format                # Prettier (tabs, single quotes); Markdown is left alone
+npm run art                   # draws every art/drawings/<id>.js into client/static/art/<id>.svg and writes docs/art/preview.html
 node --test tests/static.test.mjs                        # one test file (run npm run build first)
 node --test --test-name-pattern="ETag" tests/*.test.mjs  # tests whose name matches
 ```
@@ -51,11 +52,15 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
   - `scripts/dev.mjs` runs the Node server and Vite side by side. Vite proxies `/api` to the server.
   - The configuration lives in `vite.config.js`, `svelte.config.js` (`runes: true`), `jsconfig.json` (`checkJs`, `strict`, Vite client types), `.prettierrc` and `.prettierignore`.
   - The rules engine will live in `engine/` (#12 onward), shared by the server and the client.
+- `art/` is the art toolkit (#4). See `docs/art/README.md`.
+  - `painter.js`, `palette.js` and `parts/` draw style C pixel art. `drawings/<id>.js` holds one module per drawn asset.
+  - `catalog.js` lists all 445 assets with stable `<group>/<slug>` ids. It imports nothing, so the client can load it.
+  - `npm run art` writes the SVGs into `client/static/art/`, which are committed, and the ignored review sheet `docs/art/preview.html`. Tests fail when a committed SVG is out of date.
 - `tests/` holds `node:test` suites. Server tests import `server` and listen on port 0, so they never need fixed ports.
 
 ## Where the work stands
 
-Updated 2026-10-20. Update this section whenever a milestone moves.
+Updated 2026-10-21. Update this section whenever a milestone moves.
 
 - **Done:**
   - Rules research (`docs/research/`).
@@ -67,10 +72,17 @@ Updated 2026-10-20. Update this section whenever a milestone moves.
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R104).
+- **#4 is built** (art toolkit and asset catalog). It closes once the owner approves the scene parts on the preview sheet.
+- **Decided 2026-10-21:**
+  - There is no phone layout.
+  - The card gallery doubles as the in-game card reference (#47).
+  - A components library page is #48.
+  - #47 and #48 wait for #3's new `base.css`, `tokens.css` and `docs/ui/`.
 - **Next:**
   - #45 Check the 20 "owner-check" rules against the physical box. This is the owner's job.
   - #12 Encode the base game data. This is the first rules-engine issue. The owner wants #45 done first, so #12 is blocked by it.
-  - #3 Design the remaining screens (assigned to lazar-milin).
+  - #3 Design the remaining screens (assigned to lazar-milin). A new interface base is in progress.
+  - #5–#11 Draw the art with the toolkit, once #4 closes.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
 ## Starting on a new computer
