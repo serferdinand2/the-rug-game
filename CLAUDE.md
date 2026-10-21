@@ -83,7 +83,8 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - #45 Check the 20 "owner-check" rules against the physical box. This is the owner's job.
   - #12 Encode the base game data. This is the first rules-engine issue. The owner wants #45 done first, so #12 is blocked by it.
   - #3 Design the remaining screens (assigned to lazar-milin). A new interface base is in progress.
-  - #5–#11 Draw the art with the toolkit. They are unblocked now that #4 is closed.
+  - #7 (landmarks) is drawn: all 33, each one picture in its footprint's shape. It waits for the owner's approval in the asset gallery (`art/preview/index.html`).
+  - #5, #6 and #8–#11 Draw the rest of the art with the toolkit.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
 ## Starting on a new computer

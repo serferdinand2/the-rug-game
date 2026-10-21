@@ -47,7 +47,7 @@ Each landmark is one picture, drawn in the shape of its footprint, and the game 
 - **Size.** 32 pixels per plot: `columns × 32` by `rows × 32`, so a 2×2 landmark is 64×64 like the Lighthouse, and the Rubber Works is 128×128.
 - **Footprints** are in `art/footprints.js`, top row first, as printed. Draw that orientation and never mirror it; the board rotates pictures in 90° steps (R15).
 - **Exact plots.** Every pixel of an occupied plot is filled and every pixel of an empty plot is left empty. `npm run art` and the tests refuse anything else.
-- **Uneven shapes.** Keep the landmark itself inside the shape; let sky and ground fill the outer plots.
+- **Uneven shapes.** Keep the landmark itself inside the shape; let sky and ground fill the outer plots. Paint the scene across the whole canvas, then finish with `clipToFootprint(scene, FOOTPRINTS[slug])` to empty the plots outside the footprint (see the Rubber Works or the Castle).
 
 ### Composing a scene
 
