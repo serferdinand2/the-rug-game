@@ -9,9 +9,15 @@ import { drawTerrain } from '../art/parts/terrain.js';
 import { drawBuilding } from '../art/parts/buildings.js';
 import { drawFigure } from '../art/parts/figures.js';
 import { drawSmoke } from '../art/parts/smoke.js';
+import { drawClassical } from '../art/parts/classical.js';
+import { drawFactory } from '../art/parts/factory.js';
+import { drawSkyline } from '../art/parts/skyline.js';
+import { drawStreet } from '../art/parts/street.js';
 
 const PALETTE_COLOURS = new Set(Object.values(PALETTE));
 const SMOKE_TONES = ['smoke', 'steam'];
+const CLASSICAL_ROOFS = ['pediment', 'flat'];
+const SKYLINE_TIMES = ['night', 'dusk', 'day'];
 const SKY_TIMES = ['night', 'day', 'dusk'];
 const SEA_TIMES = ['night', 'day'];
 const TERRAIN_KINDS = ['forest', 'mountain', 'desert', 'grassland'];
@@ -79,6 +85,26 @@ const SAMPLES = [
 		random: false,
 		draw: (c) => drawSmoke(c, { x: 20, y: 50, tone }),
 	})),
+	...CLASSICAL_ROOFS.map((roof) => ({
+		label: `classical: ${roof}`,
+		random: false,
+		draw: (c) => drawClassical(c, { x: 8, y: 50, width: 40, roof }),
+	})),
+	{
+		label: 'factory',
+		random: false,
+		draw: (c) => drawFactory(c, { x: 8, y: 50, width: 44 }),
+	},
+	{
+		label: 'street',
+		random: false,
+		draw: (c) => drawStreet(c, { top: 44 }),
+	},
+	...SKYLINE_TIMES.map((time) => ({
+		label: `skyline: ${time}`,
+		random: true,
+		draw: (c, random) => drawSkyline(c, { base: 50, time, random }),
+	})),
 ];
 
 /** Draws one sample with a seed. */
@@ -112,6 +138,15 @@ test('every sea time fills every pixel from its top row down', () => {
 	}
 });
 
+test('a street fills every pixel from its top row down and nothing above', () => {
+	const c = createCanvas(64, 64);
+	drawStreet(c, { top: 44 });
+	assert.deepEqual(rowStates(c), {
+		full: range(44, 63),
+		empty: range(0, 43),
+	});
+});
+
 test('every terrain kind fills every pixel from its top row down', () => {
 	for (const kind of TERRAIN_KINDS) {
 		const c = createCanvas(64, 64);
@@ -133,6 +168,14 @@ test('buildings and the figure draw only inside the box they return', () => {
 		{
 			label: 'figure facing left',
 			draw: (c) => drawFigure(c, { x: 20, y: 50, facing: 'left' }),
+		},
+		...CLASSICAL_ROOFS.map((roof) => ({
+			label: `classical: ${roof}`,
+			draw: (c) => drawClassical(c, { x: 20, y: 50, width: 36, roof }),
+		})),
+		{
+			label: 'factory',
+			draw: (c) => drawFactory(c, { x: 20, y: 50, width: 40 }),
 		},
 	];
 	for (const piece of pieces) {
@@ -230,6 +273,43 @@ test('parts refuse kinds and times they do not know', () => {
 		/castle/
 	);
 	assert.throws(() => drawSmoke(c, { x: 4, y: 7, tone: 'fog' }), /fog/);
+	assert.throws(
+		() => drawClassical(c, { x: 0, y: 7, width: 8, roof: 'dome' }),
+		/dome/
+	);
+	assert.throws(
+		() => drawSkyline(c, { base: 7, time: 'noon', random }),
+		/noon/
+	);
+});
+
+test('a skyline stands on its base row and stays below its height', () => {
+	for (const time of SKYLINE_TIMES) {
+		const c = createCanvas(64, 64);
+		drawSkyline(c, { base: 50, time, random: seededRandom(2), height: 20 });
+		const { full } = rowStates(c);
+		assert.ok(full.includes(50), `${time}: the base row is not continuous`);
+		c.p.forEach((colour, i) => {
+			const y = Math.floor(i / 64);
+			if (colour) {
+				assert.ok(y >= 30 && y <= 50, `${time}: pixel on row ${y}`);
+			}
+		});
+	}
+});
+
+test('a classical front has a column per requested column', () => {
+	const c = createCanvas(64, 64);
+	drawClassical(c, { x: 4, y: 60, width: 50, columns: 6 });
+	// Count the lit left edges of the columns along one row of the colonnade.
+	const row = 50;
+	let columns = 0;
+	for (let x = 4; x < 54; x++) {
+		if (c.p[row * 64 + x] === PALETTE.creamLight) {
+			columns++;
+		}
+	}
+	assert.equal(columns, 6);
 });
 
 test('smoke rises from its source and drifts the way it is told', () => {

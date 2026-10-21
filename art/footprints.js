@@ -98,3 +98,20 @@ export function footprintMismatches(canvas, rows) {
 	});
 	return problems;
 }
+
+/**
+ * Empties every pixel outside a footprint, so a scene painted across the whole canvas
+ * keeps only the plots the landmark covers. Use it last, after the outline and underlay.
+ * @param {{ w: number, h: number, p: (string | null)[] }} canvas - The landmark's picture, changed in place
+ * @param {readonly string[]} rows - The footprint
+ */
+export function clipToFootprint(canvas, rows) {
+	for (let y = 0; y < canvas.h; y++) {
+		const row = rows[Math.floor(y / PLOT_SIZE)] ?? '';
+		for (let x = 0; x < canvas.w; x++) {
+			if (row[Math.floor(x / PLOT_SIZE)] !== 'X') {
+				canvas.p[y * canvas.w + x] = null;
+			}
+		}
+	}
+}

@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 import { DRAWINGS_DIR, listDrawingIds } from '../art/build.mjs';
 import { FOOTPRINTS, footprintMismatches } from '../art/footprints.js';
+import { ASSETS } from '../art/catalog.js';
 
 const drawings = await listDrawingIds();
 const landmarks = drawings.filter((id) => id.startsWith('landmark/'));
@@ -19,8 +20,24 @@ function missing(slugs) {
 		.filter((id) => !drawings.includes(id));
 }
 
+/**
+ * The catalog's landmark slugs for one expansion.
+ * @param {string} expansion
+ */
+function catalogSlugs(expansion) {
+	return ASSETS.filter(
+		(a) => a.group === 'landmark' && a.expansion === expansion
+	).map((a) => a.id.split('/')[1]);
+}
+
 test('the sample landmarks are drawn', () => {
 	assert.deepEqual(missing(['forge', 'train-station', 'launch-pad']), []);
+});
+
+test('the base-game landmarks are drawn', () => {
+	const base = catalogSlugs('base');
+	assert.equal(base.length, 18);
+	assert.deepEqual(missing(base), []);
 });
 
 test('every drawn landmark covers exactly its footprint', async () => {

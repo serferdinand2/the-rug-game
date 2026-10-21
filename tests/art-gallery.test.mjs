@@ -23,6 +23,13 @@ const PART_LABELS = [
 	'figure',
 	'smoke: smoke',
 	'smoke: steam',
+	'classical: pediment',
+	'classical: flat',
+	'factory',
+	'skyline: night',
+	'skyline: dusk',
+	'skyline: day',
+	'street',
 ];
 
 /**

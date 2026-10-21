@@ -10,6 +10,10 @@ import { drawTerrain } from '../parts/terrain.js';
 import { drawBuilding } from '../parts/buildings.js';
 import { drawFigure } from '../parts/figures.js';
 import { drawSmoke } from '../parts/smoke.js';
+import { drawClassical } from '../parts/classical.js';
+import { drawFactory } from '../parts/factory.js';
+import { drawSkyline } from '../parts/skyline.js';
+import { drawStreet } from '../parts/street.js';
 import { ASSETS, GROUPS, EXPANSIONS } from '../catalog.js';
 import { PLOT_SIZE } from '../footprints.js';
 import { DRAWINGS_DIR, listDrawingIds, renderAsset } from '../build.mjs';
@@ -112,6 +116,51 @@ const PART_SAMPLES = [
 			return c;
 		},
 	})),
+	...['pediment', 'flat'].map((roof) => ({
+		label: `classical: ${roof}`,
+		draw: () => {
+			const c = createCanvas(64, 64);
+			drawClassical(c, {
+				x: 6,
+				y: 58,
+				width: 52,
+				columns: 6,
+				roof: /** @type {'pediment' | 'flat'} */ (roof),
+			});
+			outline(c, PALETTE.ink);
+			return c;
+		},
+	})),
+	{
+		label: 'factory',
+		draw: () => {
+			const c = createCanvas(64, 64);
+			drawFactory(c, { x: 6, y: 58, width: 52 });
+			outline(c, PALETTE.ink);
+			return c;
+		},
+	},
+	...['night', 'dusk', 'day'].map((time) => ({
+		label: `skyline: ${time}`,
+		draw: () => {
+			const c = createCanvas(64, 64);
+			drawSkyline(c, {
+				base: 63,
+				time: /** @type {'night' | 'dusk' | 'day'} */ (time),
+				random: seededRandom(7),
+				height: 40,
+			});
+			return c;
+		},
+	})),
+	{
+		label: 'street',
+		draw: () => {
+			const c = createCanvas(64, 64);
+			drawStreet(c, { top: 40 });
+			return c;
+		},
+	},
 ];
 
 /**

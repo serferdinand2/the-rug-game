@@ -6,6 +6,7 @@ import {
 	PLOT_SIZE,
 	FOOTPRINTS,
 	footprintMismatches,
+	clipToFootprint,
 } from '../art/footprints.js';
 import { draw as drawLighthouse } from '../art/drawings/landmark/lighthouse.js';
 
@@ -160,6 +161,16 @@ test('footprintMismatches reports only the first bad pixel of each plot', () => 
 		'plot (0, 0) is in the footprint but pixel (0, 0) is empty',
 		'plot (1, 1) is in the footprint but pixel (40, 40) is empty',
 	]);
+});
+
+test('clipToFootprint empties exactly the plots outside the footprint', () => {
+	const rows = ['..XX', '..XX', 'XXXX', 'XXXX'];
+	const w = 4 * PLOT_SIZE;
+	const piece = { w, h: w, p: new Array(w * w).fill(RED) };
+	clipToFootprint(piece, rows);
+	assert.deepEqual(footprintMismatches(piece, rows), []);
+	assert.equal(piece.p[0], null);
+	assert.equal(piece.p[2 * PLOT_SIZE], RED);
 });
 
 test('pictures use 32 pixels per plot, so the approved 2×2 Lighthouse fits its footprint exactly', () => {
