@@ -162,12 +162,16 @@ function drawCottages(layer) {
 }
 
 /**
- * The hill the manor stands on, rising at the left and falling away to the fields.
+ * The hill the manor stands on, level under its walls and falling away to the fields.
  * @param {Canvas} canvas
  */
 function drawHill(canvas) {
 	for (let x = 0; x < 64; x++) {
-		const top = Math.round(26 + (x - 16) ** 2 * 0.028);
+		// A level top under the manor, then a rounded shoulder falling to the fields.
+		const top =
+			x <= 34
+				? Math.min(29, Math.round(26 + (x - 16) ** 2 * 0.028))
+				: Math.round(29 + (x - 34) ** 2 * 0.2);
 		const foot = FIELDS + 6 - Math.floor(x / 6);
 		for (let y = top; y <= Math.min(foot, 63); y++) {
 			const t = (y - top) / Math.max(1, foot - top);

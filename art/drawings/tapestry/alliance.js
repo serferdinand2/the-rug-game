@@ -1,4 +1,4 @@
-// Alliance: two crossed banners of different colours above a red and a blue pavilion sharing one campfire at dusk.
+// Alliance: two crossed standards, one striped red and cream, one quartered blue and cream, above matching pavilions sharing a campfire at dusk.
 import {
 	createCanvas,
 	get,
@@ -20,8 +20,9 @@ const CX = 32;
 const FIRE_Y = 55;
 
 /**
- * The two allies' colours: a cloth, its shade, its light and the device on their flag.
- * @typedef {{ cloth: Colour, shade: Colour, light: Colour, device: Colour }} Ally
+ * An ally's colours and the invented pattern on their flag: a cloth, its shade and its light,
+ * worked with cream either in stripes (paly) or in four quarters (quarterly).
+ * @typedef {{ cloth: Colour, shade: Colour, light: Colour, pattern: 'paly' | 'quarterly' }} Ally
  */
 
 /** @type {Ally} */
@@ -29,14 +30,14 @@ const RED = {
 	cloth: C.brickRed,
 	shade: C.brickRedShade,
 	light: C.brickRedLight,
-	device: C.gold,
+	pattern: 'paly',
 };
 /** @type {Ally} */
 const BLUE = {
 	cloth: C.daySea2,
 	shade: C.daySea3,
 	light: C.daySea1,
-	device: C.creamLight,
+	pattern: 'quarterly',
 };
 
 /**
@@ -164,32 +165,23 @@ function drawStandard(canvas, foot, top, side, ally) {
 				continue;
 			}
 			const folded = Math.sin(i * 0.6) < -0.35;
-			let colour = folded ? ally.shade : ally.cloth;
-			if (j === tail && !folded) {
-				colour = ally.light;
+			const lit = j === tail && !folded;
+			if (onPattern(ally.pattern, i, j)) {
+				set(
+					canvas,
+					x,
+					y,
+					folded ? C.creamShade : lit ? C.creamLight : C.cream
+				);
+			} else {
+				set(
+					canvas,
+					x,
+					y,
+					folded ? ally.shade : lit ? ally.light : ally.cloth
+				);
 			}
-			set(canvas, x, y, colour);
 		}
-	}
-	// A diamond device in the middle of the flag.
-	const dcx = poleAt(ty + 7) + side * 7;
-	const dcy = ty + 7 + Math.round(Math.sin(7 * 0.6) * 1.1);
-	for (const [dx, dy] of [
-		[0, -2],
-		[-1, -1],
-		[0, -1],
-		[1, -1],
-		[-2, 0],
-		[-1, 0],
-		[0, 0],
-		[1, 0],
-		[2, 0],
-		[-1, 1],
-		[0, 1],
-		[1, 1],
-		[0, 2],
-	]) {
-		set(canvas, dcx + dx, dcy + dy, ally.device);
 	}
 	// The pole, two pixels thick so it reads on its slant, drawn over the flag's hoist.
 	for (let y = ty; y <= fy; y++) {
@@ -200,6 +192,21 @@ function drawStandard(canvas, foot, top, side, ally) {
 	set(canvas, tx, ty - 1, C.gold);
 	set(canvas, tx + 1, ty - 1, C.amber);
 	set(canvas, tx, ty - 2, C.lampGlow);
+}
+
+/**
+ * Tells whether a point of a flag falls on its cream pattern. Columns are counted from the pole,
+ * so the pattern follows the cloth as it hangs from the slanting pole.
+ * @param {Ally['pattern']} pattern - Stripes running out from the pole, or four quarters
+ * @param {number} i - Columns from the pole, 1 to 14
+ * @param {number} j - Rows from the flag's top, 0 to 9
+ * @returns {boolean}
+ */
+function onPattern(pattern, i, j) {
+	if (pattern === 'paly') {
+		return Math.floor((i - 1) / 3) % 2 === 1;
+	}
+	return i <= 7 !== j <= 4;
 }
 
 /**

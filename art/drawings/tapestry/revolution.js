@@ -261,7 +261,8 @@ function torch(scene, x, feet, flames) {
 }
 
 /**
- * The flag bearer on the summit, holding a tall pole with a broad flag rippling out over the crowd.
+ * The flag bearer on the summit, holding a tall pole with a broad flag rippling out over the crowd:
+ * an invented flag of a gold band over a purple band, with an open cream ring.
  * @param {Canvas} scene
  */
 function drawFlagBearer(scene) {
@@ -274,50 +275,41 @@ function drawFlagBearer(scene) {
 		set(scene, pole, y, C.timber);
 	}
 	set(scene, pole, 3, C.gold);
-	// The flag flies left from the pole's top, rippling.
+	// The flag flies left from the pole's top, rippling: a gold band over a purple band.
 	const reach = 20;
+	const height = 12;
+	/**
+	 * How far a column of the flag dips as it ripples.
+	 * @param {number} i - Columns out from the pole
+	 * @returns {number}
+	 */
+	const wave = (i) => Math.round(Math.sin(i * 0.45) * 1.4);
 	for (let i = 1; i <= reach; i++) {
-		const wave = Math.round(Math.sin(i * 0.45) * 1.4);
 		const folded = Math.cos(i * 0.45) < -0.35;
-		for (let j = 0; j < 11; j++) {
-			const colour = folded
-				? C.brickRedShade
-				: j === 0
-					? C.brickRedLight
-					: C.brickRed;
-			set(scene, pole - i, 5 + j + wave, colour);
+		for (let j = 0; j < height; j++) {
+			let colour;
+			if (j < height / 2) {
+				colour = folded ? C.amber : j === 0 ? C.lampGlow : C.gold;
+			} else {
+				colour = folded ? C.roof : C.roofLight;
+			}
+			set(scene, pole - i, 4 + j + wave(i), colour);
 		}
 	}
-	// A gold band along the hoist and a gold diamond.
-	for (let j = 0; j < 11; j++) {
-		set(scene, pole - 1, 5 + j + Math.round(Math.sin(0.45) * 1.4), C.gold);
-	}
-	const cx = pole - 10;
-	const cy = 10 + Math.round(Math.sin(10 * 0.45) * 1.4);
-	for (const [dx, dy] of [
-		[0, -2],
-		[-1, -1],
-		[0, -1],
-		[1, -1],
-		[-2, 0],
-		[-1, 0],
-		[0, 0],
-		[1, 0],
-		[2, 0],
-		[-1, 1],
-		[0, 1],
-		[1, 1],
-		[0, 2],
-	]) {
-		set(
-			scene,
-			cx + dx,
-			cy +
-				dy +
-				Math.round(Math.sin((10 + dx) * 0.45) * 1.4) -
-				Math.round(Math.sin(10 * 0.45) * 1.4),
-			C.gold
-		);
+	// The device: an open cream ring astride the two bands.
+	const ring = 11;
+	for (let dy = -3; dy <= 3; dy++) {
+		for (let dx = -3; dx <= 3; dx++) {
+			const d = dx * dx + dy * dy;
+			if (d >= 8 && d <= 10) {
+				set(
+					scene,
+					pole - ring - dx,
+					4 + height / 2 + dy + wave(ring + dx),
+					C.creamLight
+				);
+			}
+		}
 	}
 }
 

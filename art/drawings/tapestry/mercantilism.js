@@ -1,10 +1,8 @@
 // Mercantilism: a merchant ship moored at a stone quay, sails furled, a crane swinging a crate aboard past stacks of crates and barrels.
 import {
 	createCanvas,
-	get,
 	set,
 	rect,
-	clear,
 	outline,
 	mix,
 	seededRandom,
@@ -114,51 +112,14 @@ function drawQuay(layer, random) {
  * @param {Canvas} canvas
  */
 function drawMooredShip(canvas) {
-	// Drawn with stone sails, which are then taken in: only the bare yards and the furled canvas stay.
 	drawShip(canvas, {
 		x: 1,
 		y: WATERLINE,
 		facing: 'left',
-		sails: C.stone,
+		sails: C.creamLight,
 		flag: C.gold,
+		furled: true,
 	});
-	for (let y = 0; y < 64; y++) {
-		for (let x = 0; x < 64; x++) {
-			const colour = get(canvas, x, y);
-			if (colour === C.stone || colour === C.stoneShade) {
-				clear(canvas, x, y);
-			}
-		}
-	}
-	// The sails covered the masts; put the bare masts back, from each masthead to the deck.
-	for (let x = 0; x < 64; x++) {
-		let top = -1;
-		for (let y = 0; y < WATERLINE - 5 && top < 0; y++) {
-			if (
-				get(canvas, x, y) === C.wood &&
-				get(canvas, x, y + 1) === C.wood
-			) {
-				top = y;
-			}
-		}
-		for (let y = top; top >= 0 && y < WATERLINE - 4; y++) {
-			if (get(canvas, x, y) === null) {
-				set(canvas, x, y, C.wood);
-			}
-		}
-	}
-	for (let y = 0; y < WATERLINE - 5; y++) {
-		for (let x = 1; x < 63; x++) {
-			const yard =
-				get(canvas, x, y) === C.wood &&
-				(get(canvas, x - 1, y) === C.wood ||
-					get(canvas, x + 1, y) === C.wood);
-			if (yard && get(canvas, x, y + 1) === null) {
-				const end = get(canvas, x + 1, y) !== C.wood;
-				set(canvas, x, y + 1, end ? C.creamShade : C.cream);
-			}
-		}
-	}
 }
 
 /**

@@ -1,4 +1,4 @@
-// Wartime Economy: at night, a gun works' great door blazes with furnace light as cannons roll out into the yard under crossing searchlights.
+// Wartime Economy: at night, a gun works' great door blazes with furnace light as cannons roll out into the yard, searchlights on its roof sweeping the sky.
 import {
 	createCanvas,
 	get,
@@ -25,6 +25,31 @@ const ARCH_Y = 34;
 const ARCH_R = 10;
 
 /**
+ * The searchlights on the roof: each lamp's centre, where its beam's centre leaves the sky,
+ * and half the beam's width there. All sweep up to the right, so no two beams cross.
+ */
+const LIGHTS = [
+	{ x: 18, y: 18, to: [30, -1], spread: 5 },
+	{ x: 32, y: 12, to: [45, -1], spread: 3 },
+	{ x: 46, y: 18, to: [61, -1], spread: 4 },
+];
+
+/** A beam's light in three steps of distance from its lamp: a near-white core in a softer edge. */
+const BEAM_STEPS = [
+	{ until: 0.4, core: C.lampGlow, edge: mix(C.lampGlow, C.nightSky4, 0.45) },
+	{
+		until: 0.75,
+		core: mix(C.lampGlow, C.nightSky3, 0.25),
+		edge: mix(C.lampGlow, C.nightSky3, 0.6),
+	},
+	{
+		until: 1,
+		core: mix(C.lampGlow, C.nightSky2, 0.45),
+		edge: mix(C.lampGlow, C.nightSky2, 0.72),
+	},
+];
+
+/**
  * Draws the Wartime Economy scene.
  * @returns {Canvas} A 64×64 canvas.
  */
@@ -40,15 +65,21 @@ export function draw() {
 		stars: 26,
 		starRows: 24,
 	});
-	drawBeam(layer, 4, 30, 24, 0, 6);
-	drawBeam(layer, 59, 30, 63, -2, 5);
-	drawBeam(layer, 44, 22, 56, 0, 4);
+	for (const light of LIGHTS) {
+		drawBeam(layer, light.x + 2, light.y - 2, light.to, light.spread);
+	}
 	drawYard(layer);
 
 	// The works stand behind the guns, so they get their own outline.
 	const works = createCanvas(64, 64);
 	drawWorks(works);
+	for (const light of LIGHTS) {
+		drawLampHousing(works, light.x, light.y);
+	}
 	outline(works, C.ink);
+	for (const light of LIGHTS) {
+		drawLampFace(works, light.x, light.y);
+	}
 	drawDoorway(works);
 	drawSecondGun(works);
 
@@ -62,43 +93,39 @@ export function draw() {
 }
 
 /**
- * A searchlight beam sweeping up into the sky, a white core in a soft blue-white edge,
- * widening and fading as it goes.
+ * A searchlight beam sweeping up into the sky from its lamp's face: a near-white core with a
+ * softer, dithered edge, widening and dimming in steps as it goes.
  * @param {Canvas} layer
- * @param {number} x0 - The light's column
- * @param {number} y0 - The light's row
- * @param {number} x1 - Where the beam's centre leaves the sky
- * @param {number} y1
+ * @param {number} x0 - The lamp face's column
+ * @param {number} y0 - The lamp face's row
+ * @param {number[]} to - Where the beam's centre leaves the sky, as [column, row]
  * @param {number} spread - Half the beam's width where it leaves the sky
  */
-function drawBeam(layer, x0, y0, x1, y1, spread) {
+function drawBeam(layer, x0, y0, [x1, y1], spread) {
 	const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) * 2;
 	const length = Math.hypot(x1 - x0, y1 - y0);
 	const nx = -(y1 - y0) / length;
 	const ny = (x1 - x0) / length;
-	/** @type {Set<number>} */
-	const done = new Set();
+	/** @type {Map<number, number>} The brightest light each pixel has had so far: 2 core, 1 edge. */
+	const lit = new Map();
 	for (let i = 0; i <= steps; i++) {
 		const t = i / steps;
-		const cx = x0 + (x1 - x0) * t;
-		const cy = y0 + (y1 - y0) * t;
-		const half = 0.6 + spread * t;
+		const step = BEAM_STEPS.find((s) => t <= s.until) ?? BEAM_STEPS[2];
+		const half = 0.5 + spread * t;
 		for (let k = -half; k <= half; k += 0.5) {
-			const x = Math.round(cx + nx * k);
-			const y = Math.round(cy + ny * k);
+			const x = Math.round(x0 + (x1 - x0) * t + nx * k);
+			const y = Math.round(y0 + (y1 - y0) * t + ny * k);
 			const key = y * 64 + x;
-			const behind = get(layer, x, y);
-			if (!behind || done.has(key) || y > HORIZON) {
+			const core = Math.abs(k) <= Math.max(0.5, half * 0.4);
+			const rank = core ? 2 : 1;
+			if (!get(layer, x, y) || (lit.get(key) ?? 0) >= rank) {
 				continue;
 			}
-			done.add(key);
-			const edge = Math.abs(k) > half * 0.7;
-			if (edge && (x + y) % 2 === 0) {
+			if (!core && Math.abs(k) > half * 0.75 && (x + y) % 2 === 0) {
 				continue;
 			}
-			const core = Math.abs(k) < half * 0.35;
-			const strength = (core ? 0.85 : 0.5) * (1 - t * 0.45);
-			set(layer, x, y, mix(behind, core ? C.white : C.starDim, strength));
+			lit.set(key, rank);
+			set(layer, x, y, core ? step.core : step.edge);
 		}
 	}
 }
@@ -129,8 +156,8 @@ function drawYard(layer) {
 }
 
 /**
- * The gun works: a broad gabled hall of dark brick with a half-round window in its gable,
- * and two short chimneys with glowing tops.
+ * The gun works: a broad, low-gabled hall of dark brick with two lit side windows and a
+ * tall chimney.
  * @param {Canvas} works
  */
 function drawWorks(works) {
@@ -139,17 +166,14 @@ function drawWorks(works) {
 	const mortar = mix(C.brickRedShade, C.night, 0.6);
 	const left = 4;
 	const right = 59;
-	// The chimneys behind the roof.
-	for (const sx of [10, 51]) {
-		rect(works, sx, 8, 4, 16, brick);
-		rect(works, sx, 8, 1, 16, brickLight);
-		rect(works, sx - 1, 7, 6, 2, mix(C.stoneShade, C.night, 0.3));
-		rect(works, sx, 6, 4, 1, C.amber);
-		set(works, sx + 1, 5, C.gold);
-	}
+	// A tall chimney behind the roof's left end, kept dark so the searchlights are the only
+	// lights on the skyline.
+	rect(works, 7, 12, 4, 16, brick);
+	rect(works, 7, 12, 1, 16, brickLight);
+	rect(works, 6, 11, 6, 2, mix(C.stoneShade, C.night, 0.3));
 	// The walls and the gable.
 	for (let x = left; x <= right; x++) {
-		const roof = Math.round(12 + Math.abs(x - CX) * 0.52);
+		const roof = roofRow(x);
 		for (let y = roof; y <= YARD; y++) {
 			let colour = brick;
 			if (x === left) {
@@ -166,28 +190,69 @@ function drawWorks(works) {
 		set(works, x, roof - 1, x < CX ? C.roofLight : C.roof);
 		set(works, x, roof - 2, C.roofShade);
 	}
-	// A half-round window high in the gable, lit from within, with two mullions.
-	for (let y = 15; y <= 21; y++) {
-		for (let x = CX - 6; x <= CX + 6; x++) {
-			const d = (x - CX) ** 2 + (y - 21) ** 2;
-			if (d <= 36) {
-				const bar = x === CX - 2 || x === CX + 2;
-				set(
-					works,
-					x,
-					y,
-					bar ? C.lampFrame : d <= 12 ? C.lampGlow : C.gold
-				);
-			}
-		}
-	}
 	// Two tall side windows.
 	for (const wx of [9, 52]) {
-		rect(works, wx, 30, 3, 10, C.amber);
-		rect(works, wx, 30, 3, 2, C.gold);
-		set(works, wx + 1, 34, C.lampFrame);
-		set(works, wx + 1, 37, C.lampFrame);
+		rect(works, wx, 32, 3, 10, C.amber);
+		rect(works, wx, 32, 3, 2, C.gold);
+		set(works, wx + 1, 36, C.lampFrame);
+		set(works, wx + 1, 39, C.lampFrame);
 	}
+}
+
+/**
+ * The roof's eaves row at a column: the gable's slope.
+ * @param {number} x
+ * @returns {number}
+ */
+function roofRow(x) {
+	return Math.round(18 + Math.abs(x - CX) * 0.45);
+}
+
+/**
+ * A searchlight's housing: a round iron drum on a short post standing on the roof.
+ * @param {Canvas} works
+ * @param {number} x - The drum's centre column
+ * @param {number} y - The drum's centre row
+ */
+function drawLampHousing(works, x, y) {
+	const iron = mix(C.stoneShade, C.night, 0.3);
+	rect(works, x, y + 2, 1, roofRow(x) - 2 - (y + 2), iron);
+	for (let dy = -2; dy <= 2; dy++) {
+		for (let dx = -2; dx <= 2; dx++) {
+			if (Math.abs(dx) === 2 && Math.abs(dy) === 2) {
+				continue;
+			}
+			set(works, x + dx, y + dy, dx + dy < -1 ? C.stoneMid : iron);
+		}
+	}
+}
+
+/**
+ * A searchlight's face: a blazing lens on the drum's upper right, facing along its beam.
+ * Drawn after the outline, so the lens runs into the beam with no ink between them.
+ * @param {Canvas} works
+ * @param {number} x - The drum's centre column
+ * @param {number} y - The drum's centre row
+ */
+function drawLampFace(works, x, y) {
+	for (const [dx, dy] of [
+		[0, -2],
+		[1, -2],
+		[1, -1],
+		[2, -1],
+		[2, 0],
+		[1, -3],
+		[2, -2],
+		[3, -1],
+	]) {
+		set(
+			works,
+			x + dx,
+			y + dy,
+			dx === 2 && dy === -2 ? C.white : C.lampGlow
+		);
+	}
+	set(works, x + 1, y - 1, C.white);
 }
 
 /**

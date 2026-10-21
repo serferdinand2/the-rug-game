@@ -1,10 +1,11 @@
-// Meritocracy: a lone climber halfway up a long stone stair to a hilltop temple crowned with a laurel wreath.
+// Meritocracy: a lone climber halfway up a long, broad stone stair that rises to a small temple crowned with a laurel wreath.
 import {
 	createCanvas,
+	get,
 	set,
-	rect,
-	mix,
+	clear,
 	outline,
+	mix,
 	seededRandom,
 	underlay,
 } from '../../painter.js';
@@ -12,15 +13,22 @@ import { PALETTE as C } from '../../palette.js';
 import { drawSky } from '../../parts/sky.js';
 import { drawSea } from '../../parts/sea.js';
 import { drawClassical } from '../../parts/classical.js';
-import { drawFigure } from '../../parts/figures.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 /** @typedef {import('../../painter.js').Colour} Colour */
 
-/** The horizon row, the hilltop's row, and how many steps the stair has. */
-const HORIZON = 45;
-const SUMMIT = 34;
+/** The far sea's horizon, and the stair: how many steps, each one's rise and shift to the right. */
+const HORIZON = 44;
 const STEPS = 9;
+const RISE = 4;
+const SHIFT = 4;
+
+/** The summit's row (the top step's tread), and the temple's left column and width. */
+const SUMMIT = 59 - RISE * (STEPS - 1);
+const TEMPLE = { x: 30, width: 20 };
+
+/** The sunlit top of each tread, paler than any stone in the palette. */
+const TREAD = mix(C.stoneLight, C.white, 0.45);
 
 /**
  * Draws the Meritocracy scene.
@@ -33,161 +41,260 @@ export function draw() {
 
 	drawSky(layer, { time: 'day', horizon: HORIZON, random });
 	drawSea(layer, { time: 'day', top: HORIZON + 1, random });
+	drawIsland(layer);
 
 	drawHill(scene, random);
 	drawStair(scene);
-	const temple = drawClassical(scene, {
-		x: 36,
+	drawClassical(scene, {
+		x: TEMPLE.x,
 		y: SUMMIT - 1,
-		width: 26,
+		width: TEMPLE.width,
 		columns: 4,
-		height: 10,
+		height: 6,
 	});
-	drawCypress(scene, 33, SUMMIT - 1);
-	drawFigure(scene, { x: 15, y: stepRow(5) - 1, clothes: C.brickRed });
+	for (const [i, h] of [
+		[1, 17],
+		[3, 15],
+		[5, 13],
+		[7, 11],
+	]) {
+		drawCypress(scene, stepRight(i) + 7, stepTread(i) + RISE + 3, h);
+	}
+	drawClimber(scene, stepLeft(3) + 7, stepTread(3) - 1);
 	outline(scene, C.ink);
 	underlay(scene, layer);
 
-	// The wreath on the pediment's peak gets its own outline, over the sky.
+	// The wreath above the pediment gets its own outline, over the sky.
 	const wreath = createCanvas(64, 64);
-	drawWreath(wreath, temple.x + Math.floor(temple.w / 2), temple.y - 1);
+	const centre = { x: TEMPLE.x + TEMPLE.width / 2, y: 4 };
+	drawWreath(wreath, centre.x, centre.y);
 	outline(wreath, C.ink);
+	// The outline would fill the ring's small centre; clear it so the sky shows through.
+	for (let y = centre.y - 2; y <= centre.y + 2; y++) {
+		for (let x = centre.x - 3; x <= centre.x + 2; x++) {
+			if (Math.hypot(x - centre.x + 0.5, y - centre.y) < 1.9) {
+				clear(wreath, x, y);
+			}
+		}
+	}
 	underlay(wreath, scene);
 	return wreath;
 }
 
 /**
- * The tread row of step i, counted from the bottom.
+ * The tread's first row of step i, counted from the bottom.
  * @param {number} i
  * @returns {number}
  */
-function stepRow(i) {
-	return 61 - 3 * i;
+function stepTread(i) {
+	return 59 - RISE * i;
 }
 
 /**
- * The hill: a grassy slope rising from the bottom left to a flat summit, the summit's flank
- * a rugged sandstone bluff with grass spilling over its edge.
+ * The leftmost column of step i.
+ * @param {number} i
+ * @returns {number}
+ */
+function stepLeft(i) {
+	return SHIFT * i - 3;
+}
+
+/**
+ * The rightmost column of step i: the steps narrow a little as they climb away from the viewer.
+ * @param {number} i
+ * @returns {number}
+ */
+function stepRight(i) {
+	return stepLeft(i) + 21 - i;
+}
+
+/**
+ * A low, hazy island on the far sea.
+ * @param {Canvas} layer
+ */
+function drawIsland(layer) {
+	const haze = mix(C.daySky4, C.stoneMid, 0.35);
+	for (let x = 0; x < 16; x++) {
+		const top = HORIZON - Math.round(2.5 - Math.abs(x - 7) * 0.35);
+		for (let y = top; y <= HORIZON; y++) {
+			set(layer, x, y, haze);
+		}
+	}
+}
+
+/**
+ * The hillside the stair climbs: grass falling away below the stair to the right, shaded towards
+ * the viewer, with olive bushes and pale boulders, and a flat summit around the temple.
  * @param {Canvas} scene
  * @param {() => number} random
  */
 function drawHill(scene, random) {
+	const olive = mix(C.pineShade, C.stoneShade, 0.3);
+	const oliveLight = mix(C.grassLight, C.stoneLight, 0.35);
 	for (let x = 0; x < 64; x++) {
-		const i = Math.min(STEPS, Math.floor(x / 3));
-		const top = x >= STEPS * 3 + 3 ? SUMMIT : stepRow(i) + 4;
+		// The hill's skyline: up along the stair's right side, then flat across the summit.
+		const top = Math.max(SUMMIT, Math.round(64 - (x - 15) * 1.3));
 		for (let y = top; y < 64; y++) {
 			const depth = y - top;
-			// The bluff's ragged left edge leans out as it falls.
-			const edge =
-				36 -
-				Math.floor((y - SUMMIT) * 0.25) +
-				Math.round(Math.sin(y * 0.9) * 1.5);
 			let colour = C.grass;
 			if (depth === 0) {
 				colour = C.grassLight;
-			} else if (y >= SUMMIT + 3 && x >= edge) {
-				colour = x === edge ? C.sandLight : rock(x, y);
-			} else if (depth > 14 || (depth > 8 && (x + y) % 2 === 0)) {
+			} else if (y > 54 || (y > 46 && (x + y) % 2 === 0)) {
 				colour = C.grassShade;
+			} else if ((x * 5 + y * 3) % 11 === 0) {
+				colour = C.grassLight;
 			}
 			set(scene, x, y, colour);
 		}
 	}
-	// Grass hanging over the bluff's top edge, and tufts in its ledges.
-	for (let x = 34; x < 64; x++) {
-		if ((x * 7) % 5 < 2) {
-			set(scene, x, SUMMIT + 3, C.grass);
+	// Olive bushes: round, grey-green, lit on the upper left.
+	for (const [bx, by] of [
+		[52, 40],
+		[60, 47],
+		[45, 52],
+		[56, 58],
+		[38, 60],
+		[62, 35],
+	]) {
+		for (let y = by - 2; y <= by + 1; y++) {
+			for (let x = bx - 2; x <= bx + 2; x++) {
+				if ((x - bx) ** 2 + ((y - by) * 1.3) ** 2 > 6) {
+					continue;
+				}
+				set(scene, x, y, x - bx + (y - by) < -1 ? oliveLight : olive);
+			}
 		}
 	}
-	for (let n = 0; n < 8; n++) {
-		const x = 40 + Math.floor(random() * 23);
-		const y = SUMMIT + 6 + Math.floor(random() * 22);
-		set(scene, x, y, C.grassLight);
-		set(scene, x + 1, y, C.grass);
+	// Pale boulders in the turf.
+	for (let n = 0; n < 6; n++) {
+		const x = 36 + Math.floor(random() * 26);
+		const y = 38 + Math.floor(random() * 24);
+		if (get(scene, x, y) === C.grass || get(scene, x, y) === C.grassShade) {
+			set(scene, x, y, C.stoneLight);
+			set(scene, x + 1, y, C.stone);
+		}
 	}
 }
 
 /**
- * One pixel of the sandstone bluff: wavy strata with shaded undersides and a few cracks.
- * @param {number} x
- * @param {number} y
- * @returns {Colour}
- */
-function rock(x, y) {
-	const wave = Math.round(
-		Math.sin(x * 0.35) * 1.2 + Math.sin(x * 0.13 + 1) * 1.5
-	);
-	const band = (y + wave - SUMMIT) % 6;
-	if (band === 5) {
-		return C.sandShade;
-	}
-	if (band === 0) {
-		return C.sandLight;
-	}
-	if ((x * 3 + Math.floor((y + wave) / 6) * 7) % 13 === 0 && band > 1) {
-		return C.sandShade;
-	}
-	return x > 58 ? mix(C.sand, C.sandShade, 0.5) : C.sand;
-}
-
-/**
- * The long stone stair, seen from the side: each step a lit tread over a shaded riser, on a stone footing.
+ * The stair: broad stone steps climbing from the bottom left to the summit. Each has a lit tread,
+ * a shaded riser below it and a dark end face on the right; the left ends step down against the sky.
  * @param {Canvas} scene
  */
 function drawStair(scene) {
-	for (let i = 0; i <= STEPS; i++) {
-		const tread = stepRow(i);
-		for (let x = 3 * i; x < 3 * i + 3 && x < 64; x++) {
-			const last = x === 3 * i + 2;
-			for (let y = tread; y < tread + 4; y++) {
-				let colour = C.stone;
-				if (y === tread) {
+	for (let i = 0; i < STEPS; i++) {
+		const tread = stepTread(i);
+		const left = stepLeft(i);
+		const right = stepRight(i);
+		const bottom = i === 0 ? 63 : tread + RISE - 1;
+		for (let y = tread; y <= bottom; y++) {
+			for (let x = left; x <= right; x++) {
+				const row = y - tread;
+				let colour;
+				if (row === 0) {
+					colour = x === left ? C.white : TREAD;
+				} else if (row === 1) {
 					colour = C.stoneLight;
-				} else if (last || y === tread + 3) {
+				} else if (row === 2) {
 					colour = C.stoneShade;
-				} else if ((x + y) % 4 === 0) {
-					colour = C.stoneMid;
+				} else {
+					colour = (x + i * 3) % 7 === 0 ? C.stoneShade : C.stoneMid;
+				}
+				if (x >= right - 1) {
+					colour = row < 2 ? C.stone : mix(C.stoneShade, C.ink, 0.3);
 				}
 				set(scene, x, y, colour);
 			}
 		}
 	}
-	// The landing at the top, leading to the temple's steps.
-	rect(scene, 3 * (STEPS + 1), SUMMIT, 4, 1, C.stoneLight);
-	rect(scene, 3 * (STEPS + 1), SUMMIT + 1, 4, 2, C.stone);
+	// The landing at the top, running under the temple.
+	for (let x = stepLeft(STEPS - 1); x <= TEMPLE.x + TEMPLE.width + 2; x++) {
+		set(scene, x, SUMMIT, C.stoneLight);
+		set(scene, x, SUMMIT + 1, C.stone);
+	}
 }
 
 /**
- * A slim dark cypress beside the temple.
+ * A slim dark cypress, one of the avenue lining the stair.
  * @param {Canvas} scene
  * @param {number} cx - The trunk's column
  * @param {number} base - The row it stands on
+ * @param {number} height - From the base to the tip
  */
-function drawCypress(scene, cx, base) {
+function drawCypress(scene, cx, base, height) {
 	set(scene, cx, base, C.wood);
-	for (let y = base - 14; y < base; y++) {
-		const k = y - (base - 14);
-		// A pointed tip, then a slim body that swells a little in the middle.
-		const half = k < 2 ? 0 : 1;
-		const swell = k > 3 && k < 11 ? 1 : 0;
-		for (let x = cx - half; x <= cx + half + swell; x++) {
+	const top = base - height;
+	for (let y = top; y < base; y++) {
+		const k = y - top;
+		// A pointed tip, a slim body swelling a little in the middle, and a narrower foot.
+		const left = k < 2 ? 0 : 1;
+		const right = k < 2 ? 0 : k > 3 && k < height - 3 ? 2 : 1;
+		for (let x = cx - left; x <= cx + right; x++) {
 			const colour =
-				x === cx - half ? C.pineLight : x > cx ? C.pineShade : C.pine;
+				x === cx - left ? C.pineLight : x > cx ? C.pineShade : C.pine;
 			set(scene, x, y, colour);
 		}
 	}
 }
 
 /**
- * The gilded laurel wreath crowning the temple: a branch curving round from each side of a red tie,
- * leaves sprouting along both edges, open at the top. Draw it on its own canvas so the outline
- * pass rings it in ink.
+ * The climber, caught mid-step: back foot on one step, front foot on the next, leaning into the climb
+ * with a staff. H hair, S skin, s skin shade, C red tunic, c its shade, l its light, B belt, W staff.
+ * @param {Canvas} scene
+ * @param {number} x - The back foot's column
+ * @param {number} bottom - The back foot's row
+ */
+function drawClimber(scene, x, bottom) {
+	const rows = [
+		'.....HHH..',
+		'....HHHHS.',
+		'....HHSSS.',
+		'.....SSSs.',
+		'......sS.W',
+		'....lCCcSW',
+		'...lCCCcS.',
+		'...lCCCc.W',
+		'...lCCCc.W',
+		'....BBBB.W',
+		'....CCCcssW',
+		'....Cc..sW',
+		'...ss...sW',
+		'..ss....sW',
+		'..s.....ss',
+		'.s........',
+		'.s........',
+		'ss........',
+	];
+	/** @type {Record<string, Colour>} */
+	const colours = {
+		H: C.wood,
+		S: C.skin,
+		s: C.skinShade,
+		C: C.brickRed,
+		c: C.brickRedShade,
+		l: C.brickRedLight,
+		B: C.wood,
+		W: C.timberLight,
+	};
+	const top = bottom - rows.length + 1;
+	rows.forEach((line, j) => {
+		[...line].forEach((key, i) => {
+			if (colours[key]) {
+				set(scene, x + i, top + j, colours[key]);
+			}
+		});
+	});
+}
+
+/**
+ * The laurel wreath crowning the temple: a closed ring of leaves, packed in clusters that ruffle its
+ * edges, around a sky-blue centre, with a red bow whose ends rest on the pediment. Draw it on its own
+ * canvas so the outline pass rings it in ink.
  * @param {Canvas} canvas
  * @param {number} cx - The wreath's centre column
- * @param {number} bottom - The row of its tie
+ * @param {number} cy - The wreath's centre row
  */
-function drawWreath(canvas, cx, bottom) {
-	const cy = bottom - 5;
+function drawWreath(canvas, cx, cy) {
 	/**
 	 * Paints the wreath's pixel at an angle and a distance from its centre.
 	 * @param {number} a - The angle in radians
@@ -201,22 +308,27 @@ function drawWreath(canvas, cx, bottom) {
 			Math.round(cy + Math.sin(a) * r),
 			colour
 		);
-	for (let step = 0; step <= 24; step++) {
-		// From the bottom (90°) round each side to the top, leaving a gap there.
-		const sweep = (step / 24) * 145;
-		for (const side of [-1, 1]) {
-			const a = ((90 + side * sweep) * Math.PI) / 180;
-			at(a, 4.5, C.amber);
-			if (step % 3 === 1) {
-				// A leaf on the outside and one on the inside of the branch.
-				at(a, 5.8, C.gold);
-				at(a + side * 0.12, 6.2, step < 18 ? C.gold : C.lampGlow);
-				at(a, 3.3, C.gold);
-			}
-		}
+	// The body of the ring, darker on its lower right, away from the sun.
+	for (let step = 0; step < 64; step++) {
+		const a = (step / 64) * Math.PI * 2;
+		const away = Math.cos(a) + Math.sin(a) > 0.4;
+		at(a, 2.6, away ? C.pineShade : C.pine);
+		at(a, 3.6, away ? C.pine : C.grass);
 	}
-	// The red tie and its two ribbon ends.
-	rect(canvas, cx - 1, cy + 4, 2, 2, C.brickRed);
-	set(canvas, cx - 2, cy + 6, C.brickRedLight);
-	set(canvas, cx + 1, cy + 6, C.brickRedLight);
+	// Leaf clusters pushing out of the ring, ruffling its edge.
+	for (let n = 0; n < 12; n++) {
+		const a = (n / 12) * Math.PI * 2 + 0.2;
+		const away = Math.cos(a) + Math.sin(a) > 0.4;
+		at(a, 4.7, away ? C.grass : C.grassLight);
+		at(a + 0.22, 4.4, away ? C.grassShade : C.grassLight);
+	}
+	// The red bow at the bottom and its two tails.
+	const x = Math.floor(cx);
+	const bow = Math.round(cy + 3.8);
+	set(canvas, x - 1, bow, C.brickRed);
+	set(canvas, x, bow, C.brickRedLight);
+	set(canvas, x - 2, bow + 1, C.brickRed);
+	set(canvas, x + 1, bow + 1, C.brickRed);
+	set(canvas, x - 3, bow + 2, C.brickRedShade);
+	set(canvas, x + 2, bow + 2, C.brickRedShade);
 }
