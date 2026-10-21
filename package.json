@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "vite build",
-		"art": "node art/build.mjs && node art/preview/build.mjs",
+		"art": "node art/build.mjs",
 		"prestart": "npm run build",
 		"start": "node --env-file-if-exists=.env server.mjs",
 		"serve": "node --env-file-if-exists=.env server.mjs",

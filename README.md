@@ -32,7 +32,11 @@ Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [La
 |---|---|
 | ![Player overview](docs/ui/screens/players-overview.png) | ![Optional Farm action after Ships](docs/ui/screens/optional-farm.png) |
 
-**Component library (#48).** Every interface component built from these designs is shown in all its states on the component library page, `/components.html`. Run `npm run dev` and open <http://127.0.0.1:5173/components.html>, or `npm start` and open <http://127.0.0.1:3020/components.html>. The components are indexed in [src/lib/components/README.md](src/lib/components/README.md); several show placeholders until their art lands.
+**Component library (#48).** Every interface component built from these designs is shown in all its states on the component library page, `/components.html`. Run `npm run dev` and open <http://127.0.0.1:5173/components.html>, or `npm start` and open <http://127.0.0.1:3020/components.html>. The components are indexed in [src/lib/components/README.md](src/lib/components/README.md); several show placeholders until their art lands. The same page shows the art: every scene part, and every asset in the catalog, drawn or still to draw.
+
+| Components | Art |
+|---|---|
+| ![The component library, showing the track board](docs/ui/screens/component-library.png) | ![The Art part of the component library, showing landmarks under their plot grid](docs/ui/screens/component-library-art.png) |
 
 The earlier PNG mockups and their HTML/generator are preserved in [docs/ui/archivedpngmockups/](docs/ui/archivedpngmockups/README.md). They are superseded references. Issue #3 remains open for the income sequence, additional decision prompts, results and the other gaps listed in the manifest.
 
@@ -76,7 +80,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 |---|---|
 | M0 · Groundwork | Project setup, and the rule conventions for details the research couldn't confirm |
 | M1 · Interface design | Approved designs for every screen |
-| M2 · Assets | About 300 illustrations and every icon, in an asset gallery |
+| M2 · Assets | About 300 illustrations and every icon, shown in the component library |
 | M3 · Base game rules engine | The complete base-game rules, tested |
 | M4 · Tables and server | Tables, the HTTP API, the timer and undo |
 | M5 · Playable base game | The full base game online and hot-seat, on desktop |

@@ -1,224 +1,158 @@
-// The asset gallery in art/preview/: every catalog asset, drawn or not, on one self-contained page.
+// The art on the library page: every scene part and every catalog asset, drawn or not, grouped as the owner reviews them.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
-import { ASSETS } from '../src/lib/art/catalog.js';
-import { buildGallery } from '../art/preview/build.mjs';
-import { FOOTPRINTS } from '../src/lib/art/footprints.js';
+import { ASSETS, GROUPS, EXPANSIONS } from '../src/lib/art/catalog.js';
+import { FOOTPRINTS, PLOT_SIZE } from '../src/lib/art/footprints.js';
+import { listDrawingIds } from '../art/build.mjs';
+import {
+	PART_SAMPLES,
+	drawingCanvas,
+	gallerySections,
+} from '../art/gallery.js';
 
-const PART_LABELS = [
-	'sky: night',
-	'sky: day',
-	'sky: dusk',
-	'sea: night',
-	'sea: day',
-	'terrain: forest',
-	'terrain: mountain',
-	'terrain: desert',
-	'terrain: grassland',
-	'building: house',
-	'building: tower',
-	'building: wall',
-	'figure',
-	'smoke: smoke',
-	'smoke: steam',
-	'classical: pediment',
-	'classical: flat',
-	'factory',
-	'skyline: night',
-	'skyline: dusk',
-	'skyline: day',
-	'street',
-];
+const drawn = new Set(await listDrawingIds());
+const sections = gallerySections(ASSETS, drawn);
+const tiles = sections.flatMap((section) =>
+	section.lists.flatMap((list) => list.tiles)
+);
 
 /**
- * Returns a drawing module whose draw() fills a canvas of the given size.
- * @param {number} w
- * @param {number} h
+ * A made-up landmark asset.
+ * @param {string} slug
  */
-function filledDrawing(w, h) {
-	return `export function draw() {
-	return { w: ${w}, h: ${h}, p: new Array(${w * h}).fill('#aa0000') };
-}
-`;
-}
-
-/**
- * Makes a throwaway drawings folder holding the given files.
- * @param {Record<string, string>} files - Relative path → contents
- */
-async function scratch(files) {
-	const root = await mkdtemp(join(tmpdir(), 'rg-gallery-'));
-	const drawingsDir = join(root, 'drawings');
-	await mkdir(drawingsDir, { recursive: true });
-	await writeFile(join(root, 'package.json'), '{ "type": "module" }');
-	for (const [path, contents] of Object.entries(files)) {
-		await mkdir(dirname(join(drawingsDir, path)), { recursive: true });
-		await writeFile(join(drawingsDir, path), contents);
-	}
-	return { root, drawingsDir };
-}
-
-/**
- * Picks out one asset's figure from the page.
- * @param {string} html
- * @param {string} id
- */
-function figureFor(html, id) {
-	const start = html.indexOf(`data-id="${id}"`);
-	assert.notEqual(start, -1, `${id} is missing`);
-	const open = html.lastIndexOf('<figure', start);
-	return html.slice(
-		open,
-		html.indexOf('</figure>', start) + '</figure>'.length
-	);
-}
-
-const html = await buildGallery();
-
-test('the gallery lists every catalog asset exactly once', () => {
-	const ids = [...html.matchAll(/data-id="([^"]+)"/g)].map((m) => m[1]);
-	assert.deepEqual([...ids].sort(), ASSETS.map((asset) => asset.id).sort());
-});
-
-test('each group heading shows its total and drawn counts', async () => {
-	assert.match(html, /<h2>Landmarks · 33 · \d+ drawn<\/h2>/);
-	assert.match(html, /<h2>Territory tiles · 48 · \d+ drawn<\/h2>/);
-	const { root, drawingsDir } = await scratch({
-		'landmark/drawn.js': filledDrawing(64, 64),
+const landmark = (slug) =>
+	/** @type {import('../src/lib/art/catalog.js').Asset} */ ({
+		id: `landmark/${slug}`,
+		name: slug,
+		kind: 'illustration',
+		group: 'landmark',
+		expansion: 'base',
+		issue: 7,
 	});
-	try {
-		const asset = (/** @type {string} */ slug) => ({
-			id: `landmark/${slug}`,
-			name: slug,
-			kind: 'illustration',
-			group: 'landmark',
-			expansion: 'base',
-			issue: 7,
-		});
-		const page = await buildGallery({
-			drawingsDir,
-			assets: /** @type {any} */ ([asset('drawn'), asset('waiting')]),
-		});
-		assert.match(page, /<h2>Landmarks · 2 · 1 drawn<\/h2>/);
-	} finally {
-		await rm(root, { recursive: true, force: true });
-	}
-});
 
-test('drawn assets show their SVG and the rest show a labelled slot', () => {
-	const lighthouse = figureFor(html, 'landmark/lighthouse');
-	assert.match(lighthouse, /data-drawn="yes"/);
-	assert.match(lighthouse, /<svg/);
-	const ageOfSail = figureFor(html, 'tapestry/age-of-sail');
-	assert.match(ageOfSail, /data-drawn="no"/);
-	assert.doesNotMatch(ageOfSail, /<svg/);
-	assert.match(ageOfSail, /class="slot"/);
-	for (const text of ['tapestry/age-of-sail', 'Age of Sail', '#9']) {
-		assert.ok(ageOfSail.includes(text), text);
-	}
-});
-
-test('drawn assets keep their own size', async () => {
-	const { root, drawingsDir } = await scratch({
-		'landmark/tall.js': filledDrawing(32, 48),
-	});
-	try {
-		const assets = [
-			{
-				id: 'landmark/tall',
-				name: 'Tall',
-				kind: 'illustration',
-				group: 'landmark',
-				expansion: 'base',
-				issue: 7,
-			},
-		];
-		const page = await buildGallery({
-			drawingsDir,
-			assets: /** @type {any} */ (assets),
-		});
-		const tall = figureFor(page, 'landmark/tall');
-		assert.match(tall, /width="64" height="96"/);
-		assert.match(tall, /width="128" height="192"/);
-	} finally {
-		await rm(root, { recursive: true, force: true });
-	}
-});
-
-test('landmark pictures sit on their plot grid, 32 pixels per plot', async () => {
-	const { root, drawingsDir } = await scratch({
-		'landmark/forge.js': filledDrawing(64, 64),
-	});
-	try {
-		const assets = [
-			{
-				id: 'landmark/forge',
-				name: 'Forge',
-				kind: 'illustration',
-				group: 'landmark',
-				expansion: 'base',
-				issue: 7,
-			},
-		];
-		const page = await buildGallery({
-			drawingsDir,
-			assets: /** @type {any} */ (assets),
-		});
-		const forge = figureFor(page, 'landmark/forge');
-		assert.match(forge, /class="asset plots"/);
-		// At 2× a plot is 64 pixels on screen, at 4× it is 128.
-		assert.match(forge, /--plot:64px/);
-		assert.match(forge, /--plot:128px/);
-	} finally {
-		await rm(root, { recursive: true, force: true });
-	}
-});
-
-test('the gallery opens from disk', () => {
-	assert.doesNotMatch(html, /\s(src|href)=/);
-	assert.doesNotMatch(html, /<link|<script/);
-	assert.match(html, /^<!doctype html>/);
-});
-
-test('landmarks are listed from the largest footprint to the smallest', () => {
-	const section = html.slice(
-		html.indexOf('<section data-group="landmark">'),
-		html.indexOf(
-			'</section>',
-			html.indexOf('<section data-group="landmark">')
-		)
+test('the scene parts are shown one sample each, on 64×64 canvases', () => {
+	assert.deepEqual(
+		PART_SAMPLES.map((sample) => sample.label),
+		[
+			'sky: night',
+			'sky: day',
+			'sky: dusk',
+			'sea: night',
+			'sea: day',
+			'terrain: forest',
+			'terrain: mountain',
+			'terrain: desert',
+			'terrain: grassland',
+			'building: house',
+			'building: tower',
+			'building: wall',
+			'figure',
+			'smoke: smoke',
+			'smoke: steam',
+			'classical: pediment',
+			'classical: flat',
+			'factory',
+			'skyline: night',
+			'skyline: dusk',
+			'skyline: day',
+			'street',
+		]
 	);
-	const slugs = [...section.matchAll(/data-id="landmark\/([^"]+)"/g)].map(
-		(m) => m[1]
+	for (const sample of PART_SAMPLES) {
+		const canvas = sample.draw();
+		assert.equal(`${canvas.w}×${canvas.h}`, '64×64', sample.label);
+	}
+});
+
+test('every catalog asset is shown exactly once', () => {
+	assert.deepEqual(
+		tiles.map((tile) => tile.asset.id).sort(),
+		ASSETS.map((asset) => asset.id).sort()
 	);
+});
+
+test('the groups come in catalog order with their total and drawn counts', () => {
+	assert.deepEqual(
+		sections.map((section) => section.id),
+		GROUPS.map((group) => group.id)
+	);
+	const landmarks = sections.find((section) => section.id === 'landmark');
+	assert.equal(landmarks?.label, 'Landmarks');
+	assert.equal(landmarks?.total, 33);
+	const territory = sections.find((s) => s.id === 'territory-tile');
+	assert.equal(territory?.total, 48);
+	const [small] = gallerySections(
+		[landmark('drawn'), landmark('waiting')],
+		new Set(['landmark/drawn'])
+	).filter((section) => section.total > 0);
+	assert.equal(small.total, 2);
+	assert.equal(small.drawn, 1);
+});
+
+test('a tile knows whether its asset is drawn and which issue draws it', () => {
+	const lighthouse = tiles.find((t) => t.asset.id === 'landmark/lighthouse');
+	assert.equal(lighthouse?.drawn, true);
+	const ageOfSail = tiles.find((t) => t.asset.id === 'tapestry/age-of-sail');
+	assert.equal(ageOfSail?.drawn, false);
+	assert.equal(ageOfSail?.asset.issue, 9);
+	assert.equal(ageOfSail?.asset.name, 'Age of Sail');
+});
+
+test('landmarks sit on their plot grid, 32 pixels per plot', () => {
+	assert.equal(PLOT_SIZE, 32);
+	for (const tile of tiles) {
+		assert.equal(
+			tile.plots,
+			tile.asset.group === 'landmark' ? PLOT_SIZE : null,
+			tile.asset.id
+		);
+	}
+});
+
+test('other groups are split by expansion, in the catalog order', () => {
+	const tapestry = sections.find((section) => section.id === 'tapestry');
+	const order = EXPANSIONS.map((expansion) => expansion.name);
+	const names = tapestry?.lists.map((list) => list.expansion) ?? [];
+	assert.ok(names.length > 1);
+	assert.deepEqual(
+		names,
+		order.filter((name) => names.includes(name))
+	);
+	for (const list of tapestry?.lists ?? []) {
+		assert.ok(list.tiles.length > 0);
+		assert.ok(list.tiles.every((tile) => !tile.showExpansion));
+	}
+});
+
+test('landmarks are one list from the largest footprint to the smallest', () => {
+	const section = sections.find((s) => s.id === 'landmark');
+	assert.equal(section?.lists.length, 1);
+	assert.equal(section?.lists[0].expansion, null);
+	const slugs =
+		section?.lists[0].tiles.map((tile) => tile.asset.id.split('/')[1]) ??
+		[];
+	assert.equal(slugs.length, 33);
 	const plots = slugs.map(
 		(slug) => FOOTPRINTS[slug].join('').split('X').length - 1
 	);
-	assert.equal(slugs.length, 33);
 	assert.deepEqual(
 		plots,
 		[...plots].sort((a, b) => b - a)
 	);
-	assert.equal(plots[0], 12);
-	assert.equal(plots[32], 4);
+	assert.ok(section?.lists[0].tiles.every((tile) => tile.showExpansion));
 });
 
-test('each landmark tile names its expansion, since the list mixes them', () => {
-	const castle = figureFor(html, 'landmark/castle');
-	assert.ok(castle.includes('Arts &amp; Architecture'));
-	assert.ok(figureFor(html, 'landmark/forge').includes('Base game'));
-});
-
-test('names are escaped', () => {
-	assert.ok(html.includes('Sewage &amp; Plumbing'));
-	assert.doesNotMatch(html, /&(?!amp;|lt;|gt;|quot;|#\d+;)/);
-});
-
-test('the scene parts are still shown', () => {
-	for (const label of PART_LABELS) {
-		assert.ok(html.includes(`<b>${label}</b>`), label);
+test('a drawing must export draw() returning a whole canvas', () => {
+	const canvas = { w: 2, h: 1, p: ['#aa0000', null] };
+	assert.equal(drawingCanvas('landmark/ok', { draw: () => canvas }), canvas);
+	for (const broken of [
+		{},
+		{ draw: () => null },
+		{ draw: () => ({ w: 2, h: 2, p: [null] }) },
+	]) {
+		assert.throws(
+			() => drawingCanvas('landmark/broken', broken),
+			/landmark\/broken: a drawing must export a draw\(\) function that returns a canvas/
+		);
 	}
 });

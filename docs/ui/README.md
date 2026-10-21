@@ -18,6 +18,7 @@ This is a phase-one milestone, not completion of issue #3. The missing screens a
 | [screens/](screens/) | Current screenshots captured from these HTML files at 1920×1080 |
 | [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) | Editable source of the shared pixel texture embedded in the pages |
 | [tokens.css](../../src/styles/tokens.css) and [base.css](../../src/styles/base.css) | The production design tokens, fonts, page and focus styles made from these references |
+| `/components.html` ([src/lib/components/](../../src/lib/components/README.md)) | The component library (#48): every component built from these references, in all its states, and the art; screenshots `screens/component-library.png` and `screens/component-library-art.png` |
 | [preview.mjs](preview.mjs) | Optional local server for these references only |
 | [archivedpngmockups/](archivedpngmockups/README.md) | Superseded PNGs, HTML and generator from the earlier design |
 
@@ -267,7 +268,7 @@ In overview mode the footer is always the base dark gray, even if Ships is await
 - The pixel SVG is included as [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) and embedded in each HTML reference. Keep those embedded copies in sync if editing the texture. The game's tile, `src/styles/pixel-noise.svg`, is its top-left 256×256 with one path per colour; crop it again after editing the source.
 - The Lighthouse SVG is a snapshot of `static/art/landmark/lighthouse.svg`, imported while the mockups were based on upstream commit `a583cf1`. Its 2×2 footprint is from `art/footprints.js` at that point, now `src/lib/art/footprints.js`. It is embedded in `main-screen.html` only for standalone review.
 - The real game must reuse stable asset IDs and the canonical `src/lib/art/footprints.js` data. Do not introduce another production footprint table, duplicate the full artwork tree into `docs/ui`, or copy large inline SVG blobs into Svelte components.
-- Existing generated game artwork and its gallery remain under the art toolkit. Run `npm run art` and open `art/preview/index.html` for the complete catalog. This handoff does not change the approved art style or regenerate game assets.
+- Existing generated game artwork remains under the art toolkit. The complete catalog is in the Art part of the component library (`/components.html`, with `npm run dev`). This handoff does not change the approved art style or regenerate game assets.
 - The game self-hosts Cinzel (one variable file, weights 400–900) and Atkinson Hyperlegible (Regular 400 and Bold 700) in `static/fonts/`, with their SIL Open Font License notices. They come from Google's own font repository, [google/fonts](https://github.com/google/fonts). The reference pages load the same families from Google Fonts. The superseded Alagard and VCR OSD Mono files are kept only in [archivedpngmockups/fonts/](archivedpngmockups/fonts/) for the archived page.
 
 ## Implementation boundaries and phase two

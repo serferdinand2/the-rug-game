@@ -76,3 +76,4 @@ Written 2026-10-21. The owner asked for a component library built from the phase
 3. The remaining components by area, in parallel: ui, board, player, prompts with lobby.
 4. Review every section in the browser at 1920 wide against the mockups, and fix any differences.
 5. Docs: `src/lib/components/README.md` (an index with one row per component), CONVENTIONS.md (new components go on the page), CLAUDE.md, README.md (a screenshot of the library), and #48's checklist.
+6. The art (owner, 2026-10-21: "combine the art into the components library"): the standalone asset gallery becomes the library's Art area. `art/gallery.js` holds the part samples, the review grouping and the drawing check, shared by `npm run art` and the page; the page draws every drawing live from the toolkit.

@@ -1,4 +1,4 @@
-<!-- The component library page (#48): a sidebar by area and every section in src/library/sections/, in order. -->
+<!-- The component library page (#48): a sidebar by area, every section in src/library/sections/ in order, then the art. -->
 <script module>
 	/**
 	 * Properties of the Library component itself.
@@ -43,6 +43,15 @@
 </script>
 
 <script>
+	import ArtTile from './ArtTile.svelte';
+	import Section from './Section.svelte';
+	import { ART_SECTIONS, PARTS, PICTURES, artAnchor } from './art.js';
+	import { EXPANSIONS } from '../lib/art/catalog.js';
+
+	const EXPANSION_NAMES = new Map(
+		EXPANSIONS.map(({ code, name }) => [code, name])
+	);
+
 	/** @type {LibraryProps} */
 	let { title = 'Components', ...attr } = $props();
 
@@ -91,11 +100,68 @@
 				</ul>
 			{/if}
 		{/each}
+		<h2 class="rg-library--area">Art</h2>
+		<ul class="rg-library--links">
+			<li>
+				<a
+					class="rg-library--link"
+					href="#{artAnchor('parts')}">Scene parts</a>
+			</li>
+			{#each ART_SECTIONS as section (section.id)}
+				<li>
+					<a
+						class="rg-library--link"
+						href="#{artAnchor(section.id)}"
+						>{section.label}
+						<span class="rg-library--count"
+							>{section.drawn}/{section.total}</span
+						></a>
+				</li>
+			{/each}
+		</ul>
 	</nav>
 	<main class="rg-library--main">
 		{#each entries as entry (entry.id)}
 			{@const Section = entry.section}
 			<Section />
+		{/each}
+		<Section
+			id={artAnchor('parts')}
+			name="Scene parts"
+			area="art"
+			description="One sample of each scene part in art/parts/, which the drawings combine, at 2× and 4×. The art is drawn live from the art toolkit, so a changed drawing shows here at once in npm run dev; npm run art writes the SVGs the game uses.">
+			{#each PARTS as part (part.label)}
+				<ArtTile
+					name={part.label}
+					picture={part.picture} />
+			{/each}
+		</Section>
+		{#each ART_SECTIONS as section (section.id)}
+			<Section
+				id={artAnchor(section.id)}
+				name={section.label}
+				area="art"
+				description="{section.total} assets, {section.drawn} drawn; art issue #{section.issue} draws them.{section.id ===
+				'landmark'
+					? ' Largest footprint first, each in its footprint’s shape at 32 pixels per plot, under the plot grid.'
+					: ''}">
+				{#each section.lists as list (list.expansion)}
+					{#if list.expansion}
+						<h3 class="rg-library--expansion">{list.expansion}</h3>
+					{/if}
+					{#each list.tiles as tile (tile.asset.id)}
+						<ArtTile
+							name={tile.asset.name}
+							id={tile.asset.id}
+							picture={PICTURES.get(tile.asset.id)}
+							plots={tile.plots}
+							expansion={tile.showExpansion
+								? EXPANSION_NAMES.get(tile.asset.expansion)
+								: undefined}
+							issue={tile.asset.issue} />
+					{/each}
+				{/each}
+			</Section>
 		{/each}
 	</main>
 </div>
@@ -154,6 +220,20 @@
 		color: var(--muted);
 		font-size: var(--font-size-sm);
 		text-decoration: none;
+	}
+
+	.rg-library--count {
+		margin-left: var(--space-2);
+		color: var(--faint);
+		font-size: var(--font-size-3xs);
+	}
+
+	.rg-library--expansion {
+		flex-basis: 100%;
+		margin: var(--space-4) 0 0;
+		color: var(--muted);
+		font-size: var(--font-size-sm);
+		font-weight: var(--weight-regular);
 	}
 
 	.rg-library--link:hover {

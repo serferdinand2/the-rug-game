@@ -7,7 +7,6 @@ docs/ui/main-screen.html
 LICENSE
 .superpowers/
 .playwright-mcp/
-art/preview/index.html
 
 # Preserve reviewed standalone snapshots and historical mockups.
 docs/ui/launch.html

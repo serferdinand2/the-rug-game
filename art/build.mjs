@@ -4,6 +4,7 @@ import { realpathSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { toSvg } from './painter.js';
+import { drawingCanvas } from './gallery.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import { FOOTPRINTS, footprintMismatches } from '../src/lib/art/footprints.js';
 
@@ -120,19 +121,7 @@ async function drawAsset(id, drawingsDir) {
 	const drawing = await import(
 		pathToFileURL(join(drawingsDir, `${id}.js`)).href
 	);
-	const canvas = typeof drawing.draw === 'function' ? drawing.draw() : null;
-	const isCanvas =
-		canvas &&
-		Number.isInteger(canvas.w) &&
-		Number.isInteger(canvas.h) &&
-		Array.isArray(canvas.p) &&
-		canvas.p.length === canvas.w * canvas.h;
-	if (!isCanvas) {
-		throw new Error(
-			`${id}: a drawing must export a draw() function that returns a canvas`
-		);
-	}
-	return canvas;
+	return drawingCanvas(id, drawing);
 }
 
 /**

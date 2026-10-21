@@ -1,9 +1,10 @@
-<!-- One component's section on the library page: its name, area and purpose, then its examples. -->
+<!-- One section on the library page, for a component or an art group: its name, area and purpose, then its examples. -->
 <script module>
 	/**
 	 * Properties of the Section component itself.
 	 * @typedef {Object} SectionOwnProps
-	 * @property {string} name - The component's name, such as 'TrackSpace'
+	 * @property {string} name - The component's name, such as 'TrackSpace', or an art group's heading
+	 * @property {string} [id] - The anchor id; defaults to the name in kebab case
 	 * @property {string} area - Its area folder, such as 'board'
 	 * @property {string} description - One sentence on what it is for
 	 * @property {import('svelte').Snippet} children - The Example blocks
@@ -24,12 +25,12 @@
 	import { anchorId } from './Library.svelte';
 
 	/** @type {SectionProps} */
-	let { name, area, description, children, ...attr } = $props();
+	let { name, area, description, id, children, ...attr } = $props();
 </script>
 
 <section
 	{...attr}
-	id={anchorId(name)}
+	id={id ?? anchorId(name)}
 	class="rg-library-section {attr.class ? attr.class : ''}">
 	<header class="rg-library-section--head">
 		<h2 class="rg-library-section--name">{name}</h2>

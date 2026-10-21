@@ -90,7 +90,8 @@ New for this game:
   - Style C is used for every illustration: civilizations, tapestry cards, tech cards, landmarks, masterpieces, space tiles and landmark cards.
   - Small game pieces use simple pixel icons in the same palette: resources, income buildings, outposts, dice, terrain and track symbols. The comparison page showed that a 64×64 scene can't be read at 24px. **(my call)**
   - Each landmark's picture is drawn in the shape of its footprint (32 pixels per plot), and the same picture is shown on its card and on the capital-city grid. **(owner, 2026-10-21)**
-  - The owner reviews each art batch in the asset gallery before it is merged.
+  - The owner reviews each art batch in the asset gallery before it is merged. Since 2026-10-21 the asset gallery is the Art part of the component library page (`/components.html`, #48), drawn live from the art toolkit. **(owner, 2026-10-21)**
+  - A component library page shows every interface component in all its states, built from the phase-one mockups; components show placeholders until their art lands. **(owner, 2026-10-21)**
 - **Interface (owner).** The approved designs live in `docs/ui/`.
   - Phase-one handoff, 2026-10-21: a compact full-width header and turn footer enclose a 3/4 shared Tracks/World Map region and 1/4 player-tab region. Clicking header players opens the player overview in the same split. Launch and lobby are included. The UI/UX manifest in `docs/ui/README.md` supersedes the earlier five-tab centre design.
   - Tracks is the default shared view. The phase-one mockup shows tier prices above pointed tiles, player progress lanes below, and a footer selection/commit/optional-action example. See the manifest for exact visual and interaction roles.

@@ -43,13 +43,13 @@ src/
     engine/              Rules engine: pure JS, shared by the server and the app (#12)
     art/                 catalog.js (asset ids) and footprints.js (landmark footprints), read by the app, the engine and the art toolkit
     component-event.js   Plain JS modules: component-event.js, api.js, game.svelte.js …
-  library/               The library page: Library, Section, Example and sections/<area>/<Name>.svelte
+  library/               The library page: Library, Section, Example, sections/<area>/<Name>.svelte, and the art (art.js, ArtTile)
   styles/                tokens.css (design tokens), base.css (fonts, page, focus) and pixel-noise.svg (texture)
 static/                  Copied as-is into the build: fonts/, art/ (generated SVGs), favicon.svg
 server.mjs, limits.mjs   Node HTTP server and its pure helpers (no packages)
 art/                     Art toolkit (build time): painter, palette, scene parts, drawings/<id>.js
   build.mjs              Draws art into static/art/ (npm run art)
-  preview/build.mjs      Writes the asset gallery, art/preview/index.html (npm run art)
+  gallery.js             Scene-part samples, review grouping and the drawing check, shared with the library page
 public/                  Vite build output, served by server.mjs (git-ignored)
 scripts/dev.mjs          Runs the Node server and Vite's dev server together (npm run dev)
 tests/                   node:test suites (*.test.mjs)
@@ -57,7 +57,7 @@ docs/                    Research, design, plans, interface designs, art notes
 ```
 
 - `src/lib/**/*.js` and `art/**/*.js` import nothing from the DOM or Svelte, unless the file is a `.svelte.js` rune module. That way they run under `node --test`.
-- `src/lib/` never imports from `art/`; the toolkit imports from `src/lib/art/`, not the other way round.
+- `src/lib/` never imports from `art/`; the toolkit imports from `src/lib/art/`, not the other way round. Only the library page (`src/library/`) imports the toolkit, to show the art; the game never does.
 - The only files under `public/` are build output. Never edit them by hand.
 
 ## Formatting

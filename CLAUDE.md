@@ -26,7 +26,7 @@ npm run serve                 # serves an existing build without rebuilding (for
 npm test                      # builds, then runs every test in tests/
 npm run check                 # svelte-check: JSDoc types in src/ and art/, must report 0 errors and 0 warnings
 npm run format                # Prettier (tabs, single quotes); Markdown is left alone
-npm run art                   # draws every art/drawings/<id>.js into static/art/<id>.svg and writes the asset gallery art/preview/index.html
+npm run art                   # draws every art/drawings/<id>.js into static/art/<id>.svg (the art is reviewed in the component library)
 node --test tests/static.test.mjs                        # one test file (run npm run build first)
 node --test --test-name-pattern="ETag" tests/*.test.mjs  # tests whose name matches
 ```
@@ -63,7 +63,9 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
 - `art/` is the art drawing toolkit (#4), a build-time tool. See `docs/art/README.md`.
   - `painter.js`, `palette.js` and `parts/` draw style C pixel art. `drawings/<id>.js` holds one module per drawn asset.
   - It reads the asset ids and footprints from `src/lib/art/`.
-  - `npm run art` writes the SVGs into `static/art/`, which are committed, and the git-ignored asset gallery `art/preview/index.html`, which shows every asset in the catalog (drawn or not) and opens straight from disk. Tests fail when a committed SVG is out of date.
+  - `gallery.js` holds the scene-part samples, the grouping the owner reviews art in, and the check every drawing must pass. It has no Node APIs, so the library page runs it in the browser.
+  - `npm run art` writes the SVGs into `static/art/`, which are committed. Tests fail when a committed SVG is out of date.
+  - The art is reviewed in the **Art** part of the component library (`/components.html`): every scene part, and every asset in the catalog, drawn or as an empty slot naming its issue, with landmarks under their plot grid. It draws straight from the toolkit, so with `npm run dev` a changed drawing shows at once. It replaced the standalone `art/preview/index.html` gallery (owner, 2026-10-21).
 - `tests/` holds `node:test` suites. Server tests import `server` and listen on port 0, so they never need fixed ports.
 
 ## Where the work stands
@@ -75,6 +77,7 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - The approved design document.
   - The phase-one desktop UI/UX manifest and interactive launch, lobby, play and player-overview mockups (`docs/ui/README.md`, 2026-10-21).
   - The production styles that follow it: `tokens.css` and `base.css`, with self-hosted Cinzel and Atkinson Hyperlegible (2026-10-21).
+  - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. #48 stays open until #3 closes (it is its blocker) and the owner approves the page.
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
 - **#1, #2, #4, #7, #44 and #46 are done.**
@@ -89,6 +92,7 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - A components library page is #48.
   - #47 and #48 waited for #3's new `base.css`, `tokens.css` and `docs/ui/`. All three are in now; their GitHub blockers still decide when they start.
   - The lobby's **Add bot** seat control is shelved (owner).
+  - The asset gallery is part of the component library now, in its Art area (owner).
 - **Next:**
   - #45 Check the 20 "owner-check" rules against the physical box. This is the owner's job.
   - #12 Encode the base game data. This is the first rules-engine issue. The owner wants #45 done first, so #12 is blocked by it.
@@ -128,7 +132,7 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   Give each one a type label (`enhancement`, `bug` or `documentation`), its milestone, and the matching `M… · …` label. If it depends on other issues, add a blocked-by link with `gh api -X POST repos/serferdinand2/the-rug-game/issues/<n>/dependencies/blocked_by -F issue_id=<database id of the blocker>`, plus a "Blocked by" comment. The database id comes from `gh api repos/serferdinand2/the-rug-game/issues/<blocker> --jq .id`. GitHub sometimes answers 5xx on this endpoint; retrying works.
 - **Owner approvals.** The owner approves anything visual before it is built:
   - Show interface ideas as clickable HTML mockups with screenshots, not descriptions.
-  - The owner approves each art batch in the asset gallery (#4).
+  - The owner approves each art batch in the Art part of the component library (`/components.html`).
   - Keep asking for decisions that change what gets built, and record each answer in the design document.
 
 ## The README always shows the current interface
