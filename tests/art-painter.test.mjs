@@ -100,6 +100,21 @@ test('set rejects fractional coordinates', () => {
 	assert.throws(() => set(c, 0, 2.25, RED), /integer/);
 });
 
+test('get, clear and fillEmpty reject fractional coordinates too', () => {
+	const c = createCanvas(4, 4);
+	assert.throws(() => get(c, 1.5, 0), /integer/);
+	assert.throws(() => clear(c, 1.5, 0), /integer/);
+	assert.throws(() => fillEmpty(c, 1.5, 0, RED), /integer/);
+	assert.deepEqual(Object.keys(c.p).length, 16);
+});
+
+test('rect rejects fractional sizes', () => {
+	const c = createCanvas(4, 4);
+	assert.throws(() => rect(c, 0, 0, 2.5, 1, RED), /integer/);
+	assert.throws(() => rect(c, 0, 0, 1, 0.5, RED), /integer/);
+	assert.deepEqual(filled(c), []);
+});
+
 test('get returns undefined outside the canvas and null on an empty pixel', () => {
 	const c = createCanvas(2, 2);
 	set(c, 1, 0, RED);

@@ -91,7 +91,7 @@ test('buildArt writes drawings and removes SVGs whose drawing is gone', async ()
 	try {
 		await mkdir(join(outDir, 'tech'), { recursive: true });
 		await writeFile(join(outDir, 'tech/stale.svg'), '<svg/>');
-		const assets = [{ id: 'landmark/tiny' }];
+		const assets = [{ id: 'landmark/tiny', kind: 'icon' }];
 		const result = await buildArt({
 			drawingsDir,
 			outDir,
@@ -106,6 +106,55 @@ test('buildArt writes drawings and removes SVGs whose drawing is gone', async ()
 			'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2" shape-rendering="crispEdges"><path fill="#aa0000" d="M0 0h1v1h-1z"/><path fill="#0000bb" d="M1 1h1v1h-1z"/></svg>'
 		);
 		assert.equal(existsSync(join(outDir, 'tech/stale.svg')), false);
+	} finally {
+		await rm(root, { recursive: true, force: true });
+	}
+});
+
+test('buildArt refuses an illustration that is not 64×64', async () => {
+	const { root, drawingsDir, outDir } = await scratch({
+		'tapestry/tiny.js': TWO_BY_TWO,
+	});
+	try {
+		const assets = [{ id: 'tapestry/tiny', kind: 'illustration' }];
+		await assert.rejects(
+			buildArt({
+				drawingsDir,
+				outDir,
+				assets: /** @type {any} */ (assets),
+			}),
+			/tapestry\/tiny: an illustration must be 64×64, not 2×2/
+		);
+		assert.equal(existsSync(outDir), false);
+	} finally {
+		await rm(root, { recursive: true, force: true });
+	}
+});
+
+test('a drawing saved with another extension is refused, not skipped', async () => {
+	const { root, drawingsDir } = await scratch({
+		'landmark/tiny.js': TWO_BY_TWO,
+		'tech/bakery.mjs': TWO_BY_TWO,
+		'.DS_Store': '',
+	});
+	try {
+		await assert.rejects(
+			listDrawingIds(drawingsDir),
+			/tech\/bakery\.mjs: drawings must be \.js files/
+		);
+	} finally {
+		await rm(root, { recursive: true, force: true });
+	}
+});
+
+test('listDrawingIds ignores hidden files and folders', async () => {
+	const { root, drawingsDir } = await scratch({
+		'landmark/tiny.js': TWO_BY_TWO,
+		'.DS_Store': '',
+		'landmark/.DS_Store': '',
+	});
+	try {
+		assert.deepEqual(await listDrawingIds(drawingsDir), ['landmark/tiny']);
 	} finally {
 		await rm(root, { recursive: true, force: true });
 	}

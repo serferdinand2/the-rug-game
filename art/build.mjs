@@ -1,12 +1,13 @@
 // The art build: draws every asset that has a drawing into client/static/art/<id>.svg (npm run art).
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { realpathSync } from 'node:fs';
-import { dirname, join, sep } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { toSvg } from './painter.js';
 import { ASSETS } from './catalog.js';
 
 /** @typedef {import('./catalog.js').Asset} Asset */
+/** @typedef {import('./painter.js').Canvas} Canvas */
 
 /** Where drawings live: one module per asset, at `<id>.js`. */
 export const DRAWINGS_DIR = fileURLToPath(
@@ -18,35 +19,50 @@ export const OUT_DIR = fileURLToPath(
 	new URL('../client/static/art/', import.meta.url)
 );
 
+/** An illustration is a 64×64 scene (art style C). */
+const ILLUSTRATION_SIZE = 64;
+
 /**
- * Lists the files under a folder with one extension, as ids relative to it.
+ * Lists the files under a folder, skipping hidden files and folders such as .DS_Store.
  * @param {string} dir
- * @param {string} extension - e.g. '.js'
- * @returns {Promise<string[]>} Sorted ids with '/' separators; empty when the folder is missing.
+ * @returns {Promise<string[]>} Paths relative to the folder with '/' separators; empty when the folder is missing.
  */
-async function listIds(dir, extension) {
-	let files;
+async function listFiles(dir) {
+	let entries;
 	try {
-		files = await readdir(dir, { recursive: true });
+		entries = await readdir(dir, { recursive: true, withFileTypes: true });
 	} catch (error) {
 		if (/** @type {NodeJS.ErrnoException} */ (error).code === 'ENOENT') {
 			return [];
 		}
 		throw error;
 	}
-	return files
-		.filter((file) => file.endsWith(extension))
-		.map((file) => file.slice(0, -extension.length).split(sep).join('/'))
-		.sort();
+	return entries
+		.filter((entry) => entry.isFile())
+		.map((entry) =>
+			relative(dir, join(entry.parentPath, entry.name))
+				.split(sep)
+				.join('/')
+		)
+		.filter(
+			(path) => !path.split('/').some((part) => part.startsWith('.'))
+		);
 }
 
 /**
  * Lists every drawing.
  * @param {string} [drawingsDir]
  * @returns {Promise<string[]>} The ids of every `<group>/<slug>.js` drawing, sorted.
+ * @throws {Error} When a file in the folder isn't a .js drawing, so it can't be skipped unnoticed.
  */
-export function listDrawingIds(drawingsDir = DRAWINGS_DIR) {
-	return listIds(drawingsDir, '.js');
+export async function listDrawingIds(drawingsDir = DRAWINGS_DIR) {
+	const files = await listFiles(drawingsDir);
+	for (const file of files) {
+		if (!file.endsWith('.js')) {
+			throw new Error(`${file}: drawings must be .js files`);
+		}
+	}
+	return files.map((file) => file.slice(0, -'.js'.length)).sort();
 }
 
 /**
@@ -54,8 +70,11 @@ export function listDrawingIds(drawingsDir = DRAWINGS_DIR) {
  * @param {string} [outDir]
  * @returns {Promise<string[]>} The ids of every `.svg` file, sorted.
  */
-export function listSvgIds(outDir = OUT_DIR) {
-	return listIds(outDir, '.svg');
+export async function listSvgIds(outDir = OUT_DIR) {
+	return (await listFiles(outDir))
+		.filter((file) => file.endsWith('.svg'))
+		.map((file) => file.slice(0, -'.svg'.length))
+		.sort();
 }
 
 /**
@@ -66,6 +85,17 @@ export function listSvgIds(outDir = OUT_DIR) {
  * @throws {Error} When the drawing doesn't export a draw() that returns a canvas.
  */
 export async function renderAsset(id, drawingsDir = DRAWINGS_DIR) {
+	return toSvg(await drawAsset(id, drawingsDir));
+}
+
+/**
+ * Runs one asset's drawing.
+ * @param {string} id
+ * @param {string} drawingsDir
+ * @returns {Promise<Canvas>}
+ * @throws {Error} When the drawing doesn't export a draw() that returns a canvas.
+ */
+async function drawAsset(id, drawingsDir) {
 	const drawing = await import(
 		pathToFileURL(join(drawingsDir, `${id}.js`)).href
 	);
@@ -81,15 +111,15 @@ export async function renderAsset(id, drawingsDir = DRAWINGS_DIR) {
 			`${id}: a drawing must export a draw() function that returns a canvas`
 		);
 	}
-	return toSvg(canvas);
+	return canvas;
 }
 
 /**
  * Writes every drawing to `<outDir>/<id>.svg` and removes SVGs whose drawing is gone.
- * Nothing is written when any drawing lacks a catalog entry.
+ * Every drawing is checked and drawn before anything is written, so a failure leaves the folder as it was.
  * @param {{ drawingsDir?: string, outDir?: string, assets?: readonly Asset[] }} [options]
  * @returns {Promise<{ written: string[], removed: string[] }>}
- * @throws {Error} When a drawing has no catalog entry.
+ * @throws {Error} When a drawing has no catalog entry, or an illustration isn't 64×64.
  */
 export async function buildArt({
 	drawingsDir = DRAWINGS_DIR,
@@ -97,15 +127,27 @@ export async function buildArt({
 	assets = ASSETS,
 } = {}) {
 	const ids = await listDrawingIds(drawingsDir);
-	const known = new Set(assets.map((asset) => asset.id));
+	const byId = new Map(assets.map((asset) => [asset.id, asset]));
 	for (const id of ids) {
-		if (!known.has(id)) {
+		if (!byId.has(id)) {
 			throw new Error(`${id}: this drawing has no catalog entry`);
 		}
 	}
-	const written = [];
+	/** @type {[string, string][]} */
+	const drawn = [];
 	for (const id of ids) {
-		const svg = await renderAsset(id, drawingsDir);
+		const canvas = await drawAsset(id, drawingsDir);
+		const wrongSize =
+			canvas.w !== ILLUSTRATION_SIZE || canvas.h !== ILLUSTRATION_SIZE;
+		if (byId.get(id)?.kind === 'illustration' && wrongSize) {
+			throw new Error(
+				`${id}: an illustration must be ${ILLUSTRATION_SIZE}×${ILLUSTRATION_SIZE}, not ${canvas.w}×${canvas.h}`
+			);
+		}
+		drawn.push([id, toSvg(canvas)]);
+	}
+	const written = [];
+	for (const [id, svg] of drawn) {
 		const file = join(outDir, `${id}.svg`);
 		await mkdir(dirname(file), { recursive: true });
 		await writeFile(file, svg);

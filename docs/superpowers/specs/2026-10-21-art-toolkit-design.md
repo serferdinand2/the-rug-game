@@ -163,7 +163,7 @@ Groups and counts after the left-out rules (names in Appendix A):
 | `capital-mat` | board | 6 | – | 6 | 6 | 18 | #6 |
 | `inspiration-tile` | board | – | – | 4 | – | 4 | #11 |
 
-That gives 293 illustrations, 70 icons and 82 boards (392 assets).
+That gives 293 illustrations, 70 icons and 82 boards (445 assets).
 
 Notes on the counts:
 - **Tapestry.** The Trap is one picture for its 7 copies. Infrastructure Boost, the unnamed "Arc…" card (R43, R44) and Cloud Colonies (R77) are left out.

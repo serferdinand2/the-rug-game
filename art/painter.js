@@ -47,13 +47,28 @@ export function inside(canvas, x, y) {
 }
 
 /**
+ * Throws unless both numbers are integers. A fractional coordinate would read or write
+ * a non-index property of the pixel array, so the pixel would silently vanish.
+ * @param {number} x
+ * @param {number} y
+ * @param {string} [what] - What the numbers are, for the message
+ */
+function assertIntegers(x, y, what = 'x and y') {
+	if (!Number.isInteger(x) || !Number.isInteger(y)) {
+		throw new Error(`${what} must be integers, got ${x}, ${y}`);
+	}
+}
+
+/**
  * Reads one pixel.
  * @param {Canvas} canvas
  * @param {number} x
  * @param {number} y
  * @returns {Colour | null | undefined} The colour, `null` when empty, `undefined` outside the canvas.
+ * @throws {Error} When x or y isn't an integer.
  */
 export function get(canvas, x, y) {
+	assertIntegers(x, y);
 	return inside(canvas, x, y) ? canvas.p[y * canvas.w + x] : undefined;
 }
 
@@ -66,9 +81,7 @@ export function get(canvas, x, y) {
  * @throws {Error} When x or y isn't an integer (the pixel would silently vanish) or the colour isn't lowercase #rrggbb.
  */
 export function set(canvas, x, y, colour) {
-	if (!Number.isInteger(x) || !Number.isInteger(y)) {
-		throw new Error(`x and y must be integers, got ${x}, ${y}`);
-	}
+	assertIntegers(x, y);
 	if (!colour) {
 		return;
 	}
@@ -85,8 +98,10 @@ export function set(canvas, x, y, colour) {
  * @param {Canvas} canvas
  * @param {number} x
  * @param {number} y
+ * @throws {Error} When x or y isn't an integer.
  */
 export function clear(canvas, x, y) {
+	assertIntegers(x, y);
 	if (inside(canvas, x, y)) {
 		canvas.p[y * canvas.w + x] = null;
 	}
@@ -100,8 +115,10 @@ export function clear(canvas, x, y) {
  * @param {number} w - Width
  * @param {number} h - Height
  * @param {Colour} colour
+ * @throws {Error} When the position or size isn't made of integers.
  */
 export function rect(canvas, x, y, w, h, colour) {
+	assertIntegers(w, h, 'w and h');
 	for (let j = 0; j < h; j++) {
 		for (let i = 0; i < w; i++) {
 			set(canvas, x + i, y + j, colour);

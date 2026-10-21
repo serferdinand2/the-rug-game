@@ -9,7 +9,7 @@ The owner compared three versions of the same picture and chose style C:
 - shown inside a card frame, like Fablewood Rummy's card illustrations;
 - drawn as vector SVG, with one `crispEdges` path per colour.
 
-`style-c/lighthouse-scene.svg` is the approved reference: the Lighthouse landmark at night. `style-c/lighthouse.mjs` is the one-off script that first drew it. Both stay unchanged, because a test checks the toolkit's Lighthouse against them pixel for pixel.
+`style-c/lighthouse-scene.svg` is the approved reference: the Lighthouse landmark at night. `style-c/lighthouse.mjs` is the one-off script that first drew it. Both stay unchanged: a test checks the toolkit's Lighthouse against the SVG pixel for pixel.
 
 Two other options were rejected as the main style: a 16×16 flat icon and a 32×32 shaded sprite. Small pieces that must stay readable at about 24px still use simple icons in the same palette. These are resources, buildings, outposts, dice, terrain, track symbols and the landmark grid markers.
 
@@ -38,6 +38,8 @@ Every asset has a stable id, `<group>/<slug>`, such as `landmark/lighthouse`, `t
 3. Run `npm run art`. It writes `client/static/art/<id>.svg` and refreshes the preview sheet.
 4. Look at it on the preview sheet. Serve this folder over HTTP, for example with `python3 -m http.server 52990 --bind 127.0.0.1` from `docs/art/`, and open `preview.html`.
 5. Commit the drawing and its SVG together. `npm test` fails when a committed SVG doesn't match its drawing, when a drawing has no catalog entry, and when an SVG has no drawing.
+
+`client/static/art/` is build output only. Never put a hand-made SVG there: `npm run art` deletes every SVG in it that has no drawing. Drawings must be `.js` files; `npm run art` refuses any other file in `art/drawings/`, and an illustration that isn't 64×64.
 
 ### Composing a scene
 
