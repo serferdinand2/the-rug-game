@@ -68,11 +68,11 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - The approved desktop main game screen (`docs/ui/`).
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2, #44 and #46 are done.**
+- **#1, #2, #4, #44 and #46 are done.**
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R104).
-- **#4 is built** (art toolkit and asset catalog). It closes once the owner approves the scene parts on the preview sheet.
+- **#4 (art toolkit and asset catalog)** is done. The owner approved the scene parts on 2026-10-21.
 - **Decided 2026-10-21:**
   - There is no phone layout.
   - The card gallery doubles as the in-game card reference (#47).
@@ -82,7 +82,7 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - #45 Check the 20 "owner-check" rules against the physical box. This is the owner's job.
   - #12 Encode the base game data. This is the first rules-engine issue. The owner wants #45 done first, so #12 is blocked by it.
   - #3 Design the remaining screens (assigned to lazar-milin). A new interface base is in progress.
-  - #5–#11 Draw the art with the toolkit, once #4 closes.
+  - #5–#11 Draw the art with the toolkit. They are unblocked now that #4 is closed.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
 ## Starting on a new computer

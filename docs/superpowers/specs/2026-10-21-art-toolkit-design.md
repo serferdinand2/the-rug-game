@@ -19,6 +19,7 @@ The interface is being redesigned in #3. A new mockup (2026-10-21) has a differe
   - This merges the gallery from #4 with the "card reference" planned for M10.
 - **A components library is needed.** It is a page that shows every interface piece with its states. It is #48.
 - **Art style C stays**, even though the interface around it is changing.
+- **The scene parts are approved.** The owner reviewed them on the preview sheet and approved them as built (2026-10-21).
 - **Order.**
   - **Now:** the toolkit and the catalog (this document).
   - **Waiting for the new interface base:**

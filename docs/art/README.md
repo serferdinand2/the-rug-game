@@ -15,7 +15,7 @@ Two other options were rejected as the main style: a 16×16 flat icon and a 32×
 
 ## The art toolkit (`art/`)
 
-The design is in [2026-10-21-art-toolkit-design.md](../superpowers/specs/2026-10-21-art-toolkit-design.md).
+The design is in [2026-10-21-art-toolkit-design.md](../superpowers/specs/2026-10-21-art-toolkit-design.md). The owner approved the scene parts on the preview sheet on 2026-10-21.
 
 | File | What it holds |
 |---|---|
