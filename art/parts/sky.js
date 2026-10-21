@@ -26,6 +26,24 @@ const NIGHT_RAMP = [
 	PALETTE.nightSky6,
 ];
 
+const DAY_RAMP = [
+	PALETTE.daySky1,
+	PALETTE.daySky2,
+	PALETTE.daySky3,
+	PALETTE.daySky4,
+	PALETTE.daySky5,
+	PALETTE.daySky6,
+];
+
+const DUSK_RAMP = [
+	PALETTE.duskSky1,
+	PALETTE.duskSky2,
+	PALETTE.duskSky3,
+	PALETTE.duskSky4,
+	PALETTE.duskSky5,
+	PALETTE.duskSky6,
+];
+
 /**
  * Draws the sky from row 0 down to the horizon.
  * @param {Canvas} canvas - The background layer
@@ -35,9 +53,86 @@ const NIGHT_RAMP = [
 export function drawSky(canvas, options) {
 	if (options.time === 'night') {
 		drawNightSky(canvas, options);
-		return;
+	} else if (options.time === 'day') {
+		drawDaySky(canvas, options);
+	} else if (options.time === 'dusk') {
+		drawDuskSky(canvas, options);
+	} else {
+		throw new Error(`drawSky: unknown time "${options.time}"`);
 	}
-	throw new Error(`drawSky: unknown time "${options.time}"`);
+}
+
+/**
+ * A blue day sky with a few soft clouds kept clear of the horizon.
+ * @param {Canvas} canvas
+ * @param {SkyOptions} options
+ */
+function drawDaySky(canvas, { horizon, random }) {
+	gradient(canvas, horizon, DAY_RAMP);
+	const clouds = 2 + Math.floor(random() * 2);
+	for (let i = 0; i < clouds; i++) {
+		const cx = Math.floor(random() * canvas.w);
+		const cy = 3 + Math.floor(random() * Math.max(1, horizon - 12));
+		drawCloud(canvas, cx, cy, horizon);
+	}
+}
+
+/**
+ * A three-puff cloud with a shaded underside. Pixels below the horizon are skipped.
+ * @param {Canvas} canvas
+ * @param {number} cx - Centre column
+ * @param {number} cy - Bottom row
+ * @param {number} horizon
+ */
+function drawCloud(canvas, cx, cy, horizon) {
+	for (const [dx, dy, r] of [
+		[-4, 0, 2],
+		[0, -1, 3],
+		[4, 0, 2],
+	]) {
+		for (let y = cy + dy - r; y <= cy; y++) {
+			for (let x = cx + dx - r; x <= cx + dx + r; x++) {
+				const inside =
+					(x - cx - dx) ** 2 + (y - cy - dy) ** 2 <= r * r + 1;
+				if (inside && y <= horizon) {
+					set(
+						canvas,
+						x,
+						y,
+						y === cy ? PALETTE.cloudShade : PALETTE.white
+					);
+				}
+			}
+		}
+	}
+}
+
+/**
+ * A purple-to-orange dusk sky with the first stars and a setting sun on the horizon.
+ * @param {Canvas} canvas
+ * @param {SkyOptions} options
+ */
+function drawDuskSky(canvas, { horizon, random }) {
+	gradient(canvas, horizon, DUSK_RAMP);
+	for (let i = 0; i < 8; i++) {
+		const x = Math.floor(random() * canvas.w);
+		const y = Math.floor(random() * Math.max(1, Math.floor(horizon / 4)));
+		set(canvas, x, y, PALETTE.starDim);
+	}
+	const sx = 8 + Math.floor(random() * Math.max(1, canvas.w - 16));
+	for (let y = horizon - 6; y <= horizon; y++) {
+		for (let x = sx - 6; x <= sx + 6; x++) {
+			const distance = (x - sx) ** 2 + (y - horizon) ** 2;
+			if (distance <= 30) {
+				set(
+					canvas,
+					x,
+					y,
+					distance <= 12 ? PALETTE.lampGlow : PALETTE.gold
+				);
+			}
+		}
+	}
 }
 
 /**

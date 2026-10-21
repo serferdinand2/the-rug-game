@@ -1,10 +1,8 @@
 // The style C palette: every named colour the scene parts and drawings share.
 
-/**
- * Named style C colours, as lowercase `#rrggbb`. Scene parts paint only these;
- * a drawing may also blend them with `mix()` for glows and highlights.
- */
-export const PALETTE = Object.freeze({
+/** @typedef {import('./painter.js').Colour} Colour */
+
+const COLOURS = {
 	// Outlines and darks
 	ink: '#120c1e',
 	night: '#1a1326',
@@ -67,4 +65,65 @@ export const PALETTE = Object.freeze({
 	nightWave: '#5f97d4',
 	nightWaveDeep: '#3a6aa8',
 	foam: '#a9dcec',
-});
+
+	// Day sky, from the top down, and clouds
+	daySky1: '#3b78c4',
+	daySky2: '#4c8bd0',
+	daySky3: '#5f9edb',
+	daySky4: '#78b3e4',
+	daySky5: '#94c7ec',
+	daySky6: '#b6dbf2',
+	cloudShade: '#d6e6f3',
+
+	// Dusk sky, from the top down
+	duskSky1: '#2a1f4f',
+	duskSky2: '#47306b',
+	duskSky3: '#6e3d78',
+	duskSky4: '#a04c7a',
+	duskSky5: '#d06872',
+	duskSky6: '#f0965f',
+
+	// Day sea, from the horizon down
+	daySeaLine: '#a6dcf0',
+	daySea1: '#4a9bd6',
+	daySea2: '#3784c2',
+	daySea3: '#286aa6',
+	dayWave: '#bfe6f6',
+	dayWaveDeep: '#6aaee0',
+
+	// Grassland
+	grassLight: '#9ccf5f',
+	grass: '#6cae48',
+	grassShade: '#4a8a3a',
+
+	// Forest floor and pines
+	forestFloorLight: '#5f9a45',
+	forestFloor: '#3f7536',
+	forestFloorShade: '#2b5530',
+	pineLight: '#4f9a55',
+	pine: '#2f7445',
+	pineShade: '#1f5237',
+
+	// Desert sand
+	sandLight: '#f3dca2',
+	sand: '#e2c07a',
+	sandShade: '#c79d5a',
+
+	// Mountain snow
+	snow: '#f4f7fb',
+	snowShade: '#c9d3e3',
+
+	// People
+	skin: '#e9b48a',
+	skinShade: '#c58c66',
+};
+
+/**
+ * Named style C colours, as lowercase `#rrggbb`. Scene parts paint only these;
+ * a drawing may also blend them with `mix()` for glows and highlights.
+ * Typed as plain colours so variables can hold any of them, while unknown names still fail the type check.
+ */
+export const PALETTE =
+	/** @type {Readonly<Record<keyof typeof COLOURS, Colour>>} */ (
+		Object.freeze(COLOURS)
+	);
