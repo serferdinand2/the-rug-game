@@ -104,6 +104,15 @@ test('serves the favicon and fonts with long caching', async () => {
 	}
 });
 
+test('serves the component library page', async () => {
+	const page = await get('/components.html');
+	assert.equal(page.status, 200);
+	assert.match(page.headers['content-type'], /^text\/html/);
+	assert.equal(page.headers['cache-control'], 'no-cache');
+	assert.match(page.body, /<title>The Rug Game \S+ Components<\/title>/);
+	assert.match(page.body, /<script type="module"[^>]+src="\/assets\//);
+});
+
 test('the built stylesheet uses the pixel texture as a hashed asset', async () => {
 	const home = await get('/');
 	const css = home.body.match(/href="(\/assets\/[^"]+\.css)"/)?.[1];

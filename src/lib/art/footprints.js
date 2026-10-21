@@ -1,6 +1,6 @@
 // Landmark footprints: the capital-city plots each landmark covers, and the check that a landmark's picture covers exactly those.
-// Plain data with no imports, so the client and the rules engine can load it. The rules engine (#12) must reuse this
-// module (or move it into engine/ and have art/ import it from there) so the footprints never exist twice.
+// Plain data with no imports, so the app, the rules engine (#12) and the art toolkit all import this one module, and the
+// footprints never exist twice.
 
 /**
  * A landmark's picture is drawn in its footprint's shape at this many pixels per plot, and the

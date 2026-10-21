@@ -124,6 +124,10 @@ test('every custom property a component uses is declared somewhere', () => {
 		for (const name of declarations(contents).keys()) {
 			declared.add(name);
 		}
+		// Components also set custom properties with Svelte's style:--name directive.
+		for (const [, name] of contents.matchAll(/style:(--[\w-]+)/g)) {
+			declared.add(name);
+		}
 	}
 	for (const [path, contents] of sources) {
 		for (const [, name] of contents.matchAll(/var\(\s*(--[\w-]+)/g)) {

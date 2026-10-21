@@ -19,11 +19,18 @@ export default defineConfig({
 	plugins: [svelte({ configFile: fromHere('./svelte.config.js') })],
 	// The root also holds the docs' standalone HTML mockups; only the app's own pages are entries.
 	optimizeDeps: {
-		entries: ['index.html'],
+		entries: ['index.html', 'components.html'],
 	},
 	build: {
 		outDir: fromHere('./public'),
 		emptyOutDir: true,
+		// Two pages: the game, and the component library (#48).
+		rolldownOptions: {
+			input: {
+				game: fromHere('./index.html'),
+				components: fromHere('./components.html'),
+			},
+		},
 	},
 	server: {
 		// Match the server's default of 127.0.0.1; "localhost" may bind only to IPv6 (::1).

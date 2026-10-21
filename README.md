@@ -32,6 +32,8 @@ Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [La
 |---|---|
 | ![Player overview](docs/ui/screens/players-overview.png) | ![Optional Farm action after Ships](docs/ui/screens/optional-farm.png) |
 
+**Component library (#48).** Every interface component built from these designs is shown in all its states on the component library page, `/components.html`. Run `npm run dev` and open <http://127.0.0.1:5173/components.html>, or `npm start` and open <http://127.0.0.1:3020/components.html>. The components are indexed in [src/lib/components/README.md](src/lib/components/README.md); several show placeholders until their art lands.
+
 The earlier PNG mockups and their HTML/generator are preserved in [docs/ui/archivedpngmockups/](docs/ui/archivedpngmockups/README.md). They are superseded references. Issue #3 remains open for the income sequence, additional decision prompts, results and the other gaps listed in the manifest.
 
 ## Run locally
@@ -41,7 +43,7 @@ You need Node.js 22.12 or newer. The only packages are development tools (Svelte
 ```sh
 npm install
 npm start      # builds the Svelte client, then serves http://127.0.0.1:3020
-npm run dev    # hot-reloading development server on http://127.0.0.1:5173
+npm run dev    # hot-reloading development server on http://127.0.0.1:5173 (the component library is /components.html)
 npm test
 ```
 

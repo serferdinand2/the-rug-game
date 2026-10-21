@@ -76,6 +76,7 @@
 	--font-size-2xs: 11px; /* tier prices, small caps headings */
 	--font-size-xs: 12px; /* hints, compact rows, small buttons */
 	--font-size-sm: 13px; /* tabs, secondary text, options */
+	--font-size-md: 14px; /* field labels, seat civilizations, Take the seat! */
 	--font-size-base: 15px; /* body text and buttons */
 	--font-size-lg: 16px; /* civilization names, panel headings */
 	--font-size-xl: 18px; /* panel titles, the turn label */

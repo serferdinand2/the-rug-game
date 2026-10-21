@@ -20,7 +20,7 @@ The owner wants it to:
 ```sh
 npm install                   # dev tools only (Svelte, Vite, svelte-check, Prettier); there are no runtime packages
 npm start                     # builds the client, then serves http://127.0.0.1:3020; loads .env if present
-npm run dev                   # Vite dev server with hot reload (http://127.0.0.1:5173) plus node --watch server.mjs
+npm run dev                   # Vite dev server with hot reload (http://127.0.0.1:5173, the library at /components.html) plus node --watch server.mjs
 npm run build                 # Vite builds index.html and src/ into public/
 npm run serve                 # serves an existing build without rebuilding (for hosts without dev tools)
 npm test                      # builds, then runs every test in tests/
@@ -43,9 +43,12 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
 - `limits.mjs` holds `rateLimiter()` and `clientAddress()`. With `TRUST_PROXY=true`, the last `X-Forwarded-For` address counts; otherwise the header is ignored.
 - **Client.** The browser interface is **Svelte 5** with runes forced on (5.57.2), built by **Vite** (8.3.4), without SvelteKit. The project root is Vite's root, laid out like the owner's other Svelte projects (owner, 2026-10-21). The full layout is in CONVENTIONS.md.
   - `index.html` is the game page. `src/main.js` mounts `src/App.svelte`, which is the placeholder page until #25.
+  - `components.html` is the component library page (#48). `src/library/main.js` mounts `src/library/Library.svelte`, which collects every `src/library/sections/<area>/<Name>.svelte` and shows each component in all its states. `src/lib/components/README.md` indexes the components.
   - `src/lib/` holds everything the app shares:
     - `components/<area>/` holds the Svelte components, grouped by area;
     - `component-event.js` holds `ComponentEvent`;
+    - `ui.js` holds the shared interface ids (tracks, resources, terrain, seats) and turns them into token references;
+    - `capital.js` holds the capital-grid geometry the interface needs: footprint rotation, legal positions and completed groups;
     - `art/catalog.js` lists all 412 assets with stable `<group>/<slug>` ids. It imports nothing, so the app and the engine can load it;
     - `art/footprints.js` holds the 33 landmark footprints. A landmark's picture is drawn in its footprint's shape at 32 pixels per plot, and the art build refuses one that covers the wrong plots. The rules engine must reuse this module;
     - `engine/` will hold the rules engine (#12 onward), shared by the server and the app.
@@ -229,6 +232,7 @@ The full rules, with examples, are in [CONVENTIONS.md](CONVENTIONS.md).
 - [ ] Game rules live in `src/lib/engine/`, never in the server or a component; engine functions are pure, return new state, emit events and throw `PlayerError` for player mistakes
 - [ ] No `Math.random()` in game logic, because randomness is injected
 - [ ] Svelte components:
+  - a section on the library page (`src/library/sections/<area>/<Name>.svelte`) and a row in `src/lib/components/README.md`;
   - a `<script module>` with `@typedef`, `@property` and `@example`;
   - `$props()` with a `/** @type {Props} */` annotation;
   - `{...attr}` spread on the root element, with `class` merged.

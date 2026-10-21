@@ -31,7 +31,12 @@ test('the build enforces runes mode from svelte.config.js', async () => {
 				configFile,
 				root,
 				logLevel: 'silent',
-				build: { outDir: join(root, 'out'), write: false },
+				build: {
+					outDir: join(root, 'out'),
+					write: false,
+					// The throwaway project has one page, not the app's two.
+					rolldownOptions: { input: join(root, 'index.html') },
+				},
 			}),
 			/runes mode/
 		);
@@ -49,6 +54,22 @@ test('the app builds from the project root, copying static/ as is', async () => 
 	assert.equal(join(config.root, '/'), root);
 	assert.equal(config.publicDir, join(root, 'static'));
 	assert.equal(config.build.outDir, join(root, 'public'));
+});
+
+test('the build has two pages: the game and the component library', async () => {
+	const config = await resolveConfig(
+		{ configFile, logLevel: 'silent' },
+		'build'
+	);
+	const root = fileURLToPath(new URL('..', import.meta.url));
+	assert.deepEqual(config.build.rolldownOptions.input, {
+		game: join(root, 'index.html'),
+		components: join(root, 'components.html'),
+	});
+	assert.deepEqual(config.optimizeDeps.entries, [
+		'index.html',
+		'components.html',
+	]);
 });
 
 test('the dev server answers on 127.0.0.1', async () => {

@@ -34,6 +34,7 @@ This is the layout. It follows the owner's other Svelte projects: everything the
 
 ```
 index.html               The game page (Vite's root is the project root)
+components.html          The component library page (#48)
 src/
   main.js                Mounts App.svelte
   App.svelte
@@ -42,6 +43,7 @@ src/
     engine/              Rules engine: pure JS, shared by the server and the app (#12)
     art/                 catalog.js (asset ids) and footprints.js (landmark footprints), read by the app, the engine and the art toolkit
     component-event.js   Plain JS modules: component-event.js, api.js, game.svelte.js …
+  library/               The library page: Library, Section, Example and sections/<area>/<Name>.svelte
   styles/                tokens.css (design tokens), base.css (fonts, page, focus) and pixel-noise.svg (texture)
 static/                  Copied as-is into the build: fonts/, art/ (generated SVGs), favicon.svg
 server.mjs, limits.mjs   Node HTTP server and its pure helpers (no packages)
@@ -171,6 +173,11 @@ Every component has this structure:
 
 - One component per file. Group files by area under `src/lib/components/<area>/`. Import them with relative paths, such as `../../component-event.js` from a component.
 - Keep game logic out of components. A component renders the state it gets and reports what the player did. Anything worth testing goes in a plain module in `src/lib/`.
+- **Every component is on the component library page** (`/components.html`, #48). In the same change that adds a component:
+  - add `src/library/sections/<area>/<Name>.svelte`, which shows every state the component supports, each in an `<Example label={…}>` that names the props producing it;
+  - add a row to the index in `src/lib/components/README.md`.
+
+  `tests/library.test.mjs` fails on a component without a section, and on one that breaks the structure rules in this chapter.
 
 ### JSDoc type definitions
 
@@ -555,7 +562,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
   - randomized full-game tests check that cards, tiles and tokens are all still accounted for, and that `view()` leaks nothing private;
   - seeds are printed on failure.
 - **Server:** tests import `server` and listen on port 0. Never use fixed ports.
-- **Client:** logic lives in plain modules that `node --test` can import. Components stay thin enough that `npm run check` and a look in the browser cover them.
+- **Client:** logic lives in plain modules that `node --test` can import. Components stay thin enough that `npm run check`, `tests/library.test.mjs` and a look at the library page cover them.
 
 ## Commits, issues and documentation
 
@@ -584,6 +591,7 @@ When writing or changing code, make sure:
 - [ ] Engine changes are pure and return new state; player-facing errors use `PlayerError`; changes emit events
 - [ ] No `Math.random()` in game logic
 - [ ] Components have a separate `<script module>` with `@typedef`, `@property` and `@example`
+- [ ] A new component has a section on the library page and a row in `src/lib/components/README.md`
 - [ ] Props use `$props()` with a `/** @type {Props} */` annotation; the root spreads `{...attr}` and merges `class`
 - [ ] Handlers are named `{action}Handler`; callback props are named `on{ComponentName}{Action}` and receive a `ComponentEvent`
 - [ ] CSS classes follow `rg-{component}--{element|modifier}`; colours come from tokens
