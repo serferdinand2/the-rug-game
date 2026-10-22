@@ -22,6 +22,7 @@ The ids are already in `src/lib/art/catalog.js` (`tapestry/<slug>`), and the com
 - **Start designing without more questions.** As with the landmarks, the look is the builder's call, within art style C. Every subject in §6.2 is a builder's call that the owner reviews through the samples and the batches.
 - **Real religious and political signs are allowed** (owner, 2026-10-22). Crosses, crescents, stars, real flags and political emblems may appear where a card's subject calls for them. The base batch was drawn under the earlier, stricter rule, and its invented flags and devices stay.
 - **The base batch is approved** (owner, 2026-10-22), and work moves on to Plans & Ploys.
+- **Finish without per-batch approval** (owner, 2026-10-22): "continue until all assets are done then push to main and close the ticket". Plans & Ploys, Arts & Architecture and Fantasies & Futures were each reviewed by a fresh reviewer and fixed instead of waiting for the owner, then #9 was closed.
 
 ## 3. Goals
 

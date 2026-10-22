@@ -86,9 +86,10 @@ Updated 2026-10-22. Update this section whenever a milestone moves.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R104).
 - **#4 (art toolkit and asset catalog)** is done. The owner approved the scene parts on 2026-10-21.
 - **#7 (landmarks)** is done. All 33 are drawn, each one picture in its footprint's shape, and the owner approved them in the asset gallery (`art/preview/index.html`) on 2026-10-21.
-- **#9 (tapestry card pictures)** is under way on the branch `issue-9-tapestry-cards`. The design is `docs/superpowers/specs/2026-10-22-tapestry-cards-design.md` and the plan is `docs/superpowers/plans/2026-10-22-tapestry-cards-issue-9.md`.
-  - The owner approved the 44 base pictures on 2026-10-22. Plans & Ploys (13), Arts & Architecture (20) and Fantasies & Futures (38) follow, one approved batch at a time.
-  - New scene parts: `drawShip` (with furled sails), `drawInterior`, `drawBanner` and `drawCrowd`.
+- **#9 (tapestry card pictures)** is done (2026-10-22). All 115 pictures are drawn: 44 base, 13 Plans & Ploys, 20 Arts & Architecture and 38 Fantasies & Futures. The design is `docs/superpowers/specs/2026-10-22-tapestry-cards-design.md` and the plan is `docs/superpowers/plans/2026-10-22-tapestry-cards-issue-9.md`.
+  - The owner approved the base pictures, then asked for the other three sets to be finished without stopping for approval and #9 closed. Each set had a fresh review, and its findings were fixed.
+  - New toolkit pieces: the scene parts `drawShip` (sails set or furled), `drawInterior`, `drawBanner`, `drawCrowd` and `drawWheel`; `paint` and `line` in `art/painter.js`; `glow` in `art/effects.js`; and the arcane, ghost and teal glow colours in the palette.
+  - `tests/art-tapestry.test.mjs` checks that every tapestry picture paints all 4,096 pixels, that no two are identical, and that every card is drawn.
 - **Decided 2026-10-22:** pictures may show real religious and political signs, flags and emblems, but no likeness of a real person and no lettering (owner).
 - **Decided 2026-10-21:**
   - There is no phone layout.
@@ -103,7 +104,6 @@ Updated 2026-10-22. Update this section whenever a milestone moves.
   - #12 Encode the base game data. This is the first rules-engine issue, and it is ready.
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
-  - #9 Plans & Ploys, Arts & Architecture and Fantasies & Futures tapestry pictures.
   - #5, #6, #8, #10 and #11 Draw the rest of the art with the toolkit.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
