@@ -116,9 +116,13 @@ const COLOURS = {
 	snow: '#f4f7fb',
 	snowShade: '#c9d3e3',
 
-	// People
+	// People: three skin tones, from light to deep, each lit and shaded
 	skin: '#e9b48a',
 	skinShade: '#c58c66',
+	skinTan: '#c68a5c',
+	skinTanShade: '#9a6340',
+	skinDeep: '#7d4b31',
+	skinDeepShade: '#56311f',
 
 	// Magic and the future: arcane violet, ghostly green and science-fiction teal, each lit, mid and shaded
 	arcaneLight: '#e2b8ff',
