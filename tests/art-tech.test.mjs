@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 import { DRAWINGS_DIR, listDrawingIds } from '../art/build.mjs';
-import { crop } from '../art/painter.js';
 import { ASSETS, EXPANSIONS } from '../src/lib/art/catalog.js';
 
 /** The sets whose every tech card must be drawn. Each set adds its code once it has been reviewed. */
@@ -69,14 +68,12 @@ test('every tech card of each finished set is drawn', () => {
 	}
 });
 
-test('the landmark cards show their landmark pictures', async () => {
-	const bakery = (await load('landmark/bakery')).draw();
-	assert.deepEqual(canvases.get('tech/bakery')?.p, bakery.p, 'tech/bakery');
-
-	for (const slug of ['barn', 'com-tower']) {
-		const card = await load(`tech/${slug}`);
-		const landmark = (await load(`landmark/${slug}`)).draw();
-		const window = crop(landmark, card.CROP.x, card.CROP.y, 64, 64);
-		assert.deepEqual(canvases.get(`tech/${slug}`)?.p, window.p, slug);
-	}
+test('the first 10 base tech cards are drawn', () => {
+	const missing = ASSETS.filter(
+		(asset) => asset.group === 'tech' && asset.expansion === 'base'
+	)
+		.slice(0, 10)
+		.map((asset) => asset.id)
+		.filter((id) => !drawn.includes(id));
+	assert.deepEqual(missing, [], 'first 10 tech cards not drawn yet');
 });

@@ -16,7 +16,6 @@ import {
 	fromSvg,
 	paint,
 	line,
-	crop,
 } from '../art/painter.js';
 
 const RED = '#aa0000';
@@ -192,25 +191,6 @@ test('underlay fills only empty pixels', () => {
 	rect(layer, 0, 0, 2, 1, BLUE);
 	underlay(top, layer);
 	assert.deepEqual(filled(top), [`0,0=${RED}`, `1,0=${BLUE}`]);
-});
-
-test('crop copies a window of a canvas into a new canvas', () => {
-	const c = createCanvas(4, 3);
-	set(c, 1, 1, RED);
-	set(c, 2, 2, BLUE);
-	const window = crop(c, 1, 1, 2, 2);
-	assert.equal(window.w, 2);
-	assert.equal(window.h, 2);
-	assert.deepEqual(filled(window), ['0,0=#aa0000', '1,1=#0000bb']);
-	assert.deepEqual(filled(c), ['1,1=#aa0000', '2,2=#0000bb']);
-});
-
-test('crop leaves pixels off the source empty and rejects fractional numbers', () => {
-	const c = createCanvas(4, 3);
-	rect(c, 0, 0, 4, 3, RED);
-	assert.deepEqual(crop(c, 3, 2, 2, 2).p, [RED, null, null, null]);
-	assert.throws(() => crop(c, 0.5, 0, 2, 2), /integers/);
-	assert.throws(() => crop(c, 0, 0, 2.5, 2), /integers/);
 });
 
 test('paint draws a sprite from rows, skipping keys it has no colour for', () => {

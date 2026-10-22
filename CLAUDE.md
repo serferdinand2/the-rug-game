@@ -94,6 +94,11 @@ Updated 2026-10-22. Update this section whenever a milestone moves.
   - The owner asked for them to be drawn like the tapestry pictures, straight through without stopping for approval, by subagents in parallel. The Alchemists came first as the reference; each set then had a fresh review, and its findings were fixed.
   - The palette gained two skin pairs: `skinTan`/`skinTanShade` and `skinDeep`/`skinDeepShade`. There are no new scene parts, so each portrait carries its own small drawing helpers.
   - `tests/art-civ.test.mjs` checks that every portrait paints all 4,096 pixels, that no two are identical, and that every civilization is drawn.
+- **#10 (tech card pictures)** is under way (2026-10-22). The first 10 base cards (Air Conditioning to Com Tower) are drawn and wait for the owner's review in the component library; #10 stays open. The design is `docs/superpowers/specs/2026-10-22-tech-cards-design.md` and the plan is `docs/superpowers/plans/2026-10-22-tech-cards-issue-10.md`.
+  - The owner asked for the same rules as the tapestry pictures and the portraits. Each tech picture shows its invention up close, as the hero of the card.
+  - Few buildings (owner): the landmark cards show their invention, not their landmark. Bakery is newly discovered bread, Barn a newborn calf in straw, and Com Tower a dish antenna close up. Library, Stock Market and Treasury will do the same.
+  - Clocks was drawn first as the reference; subagents drew the other nine side by side, and a fresh review followed.
+  - `tests/art-tech.test.mjs` checks full bleed, no twins, and that the first 10 are drawn. The other 46 subjects are written into the design after the owner's review.
 - **Decided 2026-10-22:**
   - Pictures may show real religious and political signs, flags and emblems, but no likeness of a real person and no lettering (owner).
   - Pictures may also show explicit material where the subject calls for it: blood, wounds, drawn weapons, skulls, drink, smoke, gambling, the occult, and bare skin where the subject has it (owner, #8).
@@ -110,7 +115,8 @@ Updated 2026-10-22. Update this section whenever a milestone moves.
   - #12 Encode the base game data. This is the first rules-engine issue, and it is ready.
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
-  - #5, #6, #10 and #11 Draw the rest of the art with the toolkit.
+  - #10 The owner reviews the first 10 tech pictures; then the other 46 are designed and drawn.
+  - #5, #6 and #11 Draw the rest of the art with the toolkit.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
 ## Starting on a new computer

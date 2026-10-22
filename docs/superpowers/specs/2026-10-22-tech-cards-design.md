@@ -20,6 +20,7 @@ The ids are already in `src/lib/art/catalog.js` (`tech/<slug>`), and the compone
 - **The same rules as the tapestry pictures and the portraits** ("follow what we did for the rest of the assets rules wise"): style C, 64×64, full bleed, no lettering, no likeness of a real person, real religious and political signs allowed, explicit material allowed where the subject calls for it, the same checks and the same review place.
 - **The first 10 come first.** They are the first 10 base cards in catalog order: Air Conditioning, Ammonia, Anesthesia, Assembly Line, Bakery, Barn, Calendar, Canned Food, Clocks and Com Tower. The owner reviews them before any other tech card is drawn.
 - **The invention is the hero.** A tech picture shows the invention itself, up close and large, like the issue's example of a brass compass on an unrolled map, lit by a lantern. A tapestry picture shows a wide scene; a tech picture shows a thing.
+- **Few buildings** (owner, 2026-10-22): "try not to use that many buildings. For example, Bakery would be better as newly discovered bread." No tech picture has a building as its subject, and the landmark cards show their invention, not their landmark (§6.2). A wall or a room may still stand behind an invention as its setting.
 
 ## 3. Goals
 
@@ -51,17 +52,14 @@ The ids are already in `src/lib/art/catalog.js` (`tech/<slug>`), and the compone
 - **Size and bleed.** 64×64, every pixel painted.
 - **Tests.** `tests/art-tech.test.mjs`, written before the drawings, as for the portraits: every tech picture paints all 4,096 pixels; no two tech pictures are the same; every card of each finished set is drawn (`FINISHED` grows with each set). While only the first 10 exist, one more test names them, so none can be missing when they go to the owner.
 
-### 6.2 The landmark cards reuse their landmark
+### 6.2 The landmark cards show their invention
 
-Six base tech cards are landmarks: Bakery, Barn, Com Tower, Library, Stock Market and Treasury. Three of them are in the first 10. As the issue allows, each shows **its landmark's picture from #7**, so the card and the building in the capital look the same.
+Six base tech cards are landmarks: Bakery, Barn, Com Tower, Library, Stock Market and Treasury. Three of them are in the first 10. The issue allowed them to reuse their landmark's picture from #7, but the owner asked for the invention instead (§2), so each gets a picture of its own:
+- **Bakery** is the bread itself, newly discovered.
+- **Barn** is what the barn is for: livestock sheltered and bred (its innovation on the income mat is Breeding).
+- **Com Tower** is the transmitting equipment up close, not the tower standing over a city.
 
-- The drawing imports the landmark's `draw()` and returns it, or a 64×64 crop of it when the landmark is larger.
-- **Bakery** (2×2, 64×64): the landmark picture as it is.
-- **Barn** (3×3, 96×96): the crop with its top-left at (8, 22). It holds the whole barn, from the roof to the fence, with a hay bale and the edge of the silo.
-- **Com Tower** (3×2, 96×64): the crop with its top-left at (10, 0). It holds the whole tower, its signal rings, the whole moon and the city lights.
-- The builder may move a crop by a pixel or two to show what it describes.
-- A crop helper, `crop(canvas, x, y, w, h)`, goes into `art/painter.js` with a test, because the later Library card needs it too.
-- If a landmark picture changes, its card changes with it. The no-twins test compares tech pictures only with each other, so a card matching its landmark is fine.
+The first plan reused the landmark pictures through a crop helper. It was removed when the owner changed this, because nothing else needs it.
 
 ### 6.3 The pictures
 
@@ -80,12 +78,12 @@ Six base tech cards are landmarks: Bakery, Barn, Com Tower, Library, Stock Marke
 | Ammonia | A riveted steel pressure reactor with pipes, valves and a gauge, a burlap sack of white fertiliser pellets spilling at its foot, rows of lush green crops beyond | dusk |
 | Anesthesia | An ether inhaler (a glass globe with a brass mouthpiece) and a tray of surgical tools in the foreground, a patient asleep on the table behind under a lamp, the tiered benches of an old operating theatre in shadow | interior, night |
 | Assembly Line | A conveyor belt carrying a row of identical early motorcar bodies across the frame, workers in caps fitting the wheels, a chain hoist overhead and tall factory windows behind | interior, day |
-| Bakery | The Bakery landmark (§6.2) | day |
-| Barn | The Barn landmark, cropped (§6.2) | day |
+| Bakery | A golden domed loaf of risen bread on a wooden peel, fresh from the glowing mouth of a clay oven, steam curling off it, a bowl of dough rising under a cloth and a sheaf of wheat beside it | firelight, night |
+| Barn | A newborn calf in a bed of fresh straw beside its mother, a pitchfork and a milk pail by them, hay drifting down in a shaft of light | interior, day |
 | Calendar | A round stone calendar disc, carved with a sun face at the centre, a ring of moon phases and a ring of tally notches, set in a temple wall and lit by the rising sun | dawn |
 | Canned Food | An open wooden supply crate of tin cans with picture labels (a fish, a pea pod, a tomato) in the snow beside an expedition tent, one can opened with a hammer and chisel and steaming | day, polar |
 | Clocks | An open gold pocket watch close up on dark velvet, its lid raised over the dial and the back opened on its gears and balance wheel, the chain coiled beside it, by lamplight | interior, night |
-| Com Tower | The Com Tower landmark, cropped (§6.2) | night |
+| Com Tower | A dish antenna and a cluster of aerials on a mast top, close up against the night sky, rings of signal pulsing out and a red warning light blinking | night |
 
 ### 6.4 Not a repeat
 
@@ -95,33 +93,36 @@ Several of the first 10 sit close to earlier pictures, or to tech cards still to
 - **Assembly Line** is an indoor line of motorcars, not the cannon works under searchlights (tapestry/wartime-economy) or the brick factories outside (tapestry/industrialism). The robots of Automation (an A&A tech card) stay for that card.
 - **Ammonia** is a reactor by a field, not a mine (tapestry/coal-baron), oil derricks (tapestry/oil-magnate) or a granary (tapestry/socialism).
 - **Calendar** is a carved disc close up, not a temple in rays of light (tapestry/theocracy) or a wonder of the desert (tapestry/age-of-wonders). Telescope and Astrolabe, still to come, keep the stars and instruments.
-- **Canned Food** keeps clear of the food subjects still to come: the Bakery's shop front and the farm of Irrigation.
+- **Canned Food** keeps clear of the Bakery's bread and the farm of Irrigation, still to come.
+- **Bakery** is a loaf and an oven, not the Bakery landmark's shop front (landmark/bakery).
+- **Barn** shows animals in straw, not the red barn and silo (landmark/barn) or ploughing (tapestry/feudalism).
+- **Com Tower** is the antenna close up, not the lattice tower over the city (landmark/com-tower); Radio, still to come, keeps the radio set.
 - **Light Bulb, Radio, Transistors and Time Travel** stay for their own cards, so none of the first 10 shows a bulb, a radio set, a circuit or a time machine as its subject.
 
 ### 6.5 Palette and parts
 
 - **Colours.** New tones are blended with `mix()` inside a drawing, as in #8, so drawings made side by side never edit a shared file.
-- **Parts.** No new scene parts. Each invention is drawn in its own module; existing parts (sky, terrain, buildings, interior, figure, crowd, smoke, factory, street) supply the settings. The only shared addition is `crop` (§6.2).
+- **Parts.** No new scene parts. Each invention is drawn in its own module; existing parts (sky, terrain, buildings, interior, figure, crowd, smoke, factory, street) supply the settings.
 
 ### 6.6 Work and review
 
-1. **The checks and the crop helper first**, test-first, with the three landmark cards.
+1. **The checks first**, test-first.
 2. **A reference picture: Clocks.** It is the purest close-up of an object, and sets the scale and finish the others follow.
-3. **Side-by-side drawing:** subagents draw the other six, two or three each. They write only their own drawing files.
+3. **Side-by-side drawing:** subagents draw the other nine, two or three each. They write only their own drawing files.
 4. **A fresh review:** a reviewer who drew none of them looks at all 10 at 1× and 4× against this design (invention readable, no repeats, no lettering, no likeness, full bleed), and its findings are fixed.
 5. **One commit** for the drawings and their SVGs ("Refs #10: draw the first 10 tech cards"), pushed to main, then the owner reviews the 10 in the component library (`/components.html#art-parts`). #10 stays open.
 
 ## 7. Changes to other documents
 
-- **`docs/art/README.md`:** `crop` in the painter's row, and `tests/art-tech.test.mjs` beside the other full-bleed checks.
+- **`docs/art/README.md`:** `tests/art-tech.test.mjs` beside the other full-bleed checks.
 - **CLAUDE.md:** #10 under "Where the work stands": the first 10 drawn and waiting for the owner.
 
 ## 8. Calls made in this document (not yet confirmed by the owner)
 
 - "First 10" means the first 10 base cards in catalog order.
 - Every subject and light in §6.3.
-- The landmark cards reuse their landmark picture, with the crops in §6.2.
-- No new scene parts; only the `crop` helper.
+- The Bakery, Barn and Com Tower subjects, from the owner's "newly discovered bread" example.
+- No new scene parts.
 - Clocks as the reference picture.
-- The Barn and Com Tower crop points, and dawn on the dusk sky.
+- Dawn on the dusk sky.
 - The other 46 subjects are written after the owner's review, not now.

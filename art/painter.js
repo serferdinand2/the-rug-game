@@ -270,28 +270,6 @@ export function underlay(canvas, layer) {
 }
 
 /**
- * Copies a window of a canvas into a new canvas, such as a 64×64 card picture taken from a larger landmark picture.
- * @param {Canvas} canvas - The source, left unchanged
- * @param {number} x - The window's left column in the source
- * @param {number} y - The window's top row in the source
- * @param {number} w - Width
- * @param {number} h - Height
- * @returns {Canvas} The window; pixels that lie off the source are empty.
- * @throws {Error} When the position or size isn't made of integers.
- */
-export function crop(canvas, x, y, w, h) {
-	assertIntegers(x, y);
-	assertIntegers(w, h, 'w and h');
-	const window = createCanvas(w, h);
-	for (let j = 0; j < h; j++) {
-		for (let i = 0; i < w; i++) {
-			window.p[j * w + i] = get(canvas, x + i, y + j) ?? null;
-		}
-	}
-	return window;
-}
-
-/**
  * Writes a canvas as SVG: one path per colour, in order of each colour's first pixel, with each horizontal run as one rectangle.
  * @param {Canvas} canvas
  * @param {{ opacity?: Record<Colour, number> }} [options] - Opacity per colour
