@@ -24,7 +24,7 @@
   - No `Math.random()`; each drawing uses one `seededRandom(seed)` stream, and every part in it shares that stream.
   - Colours are lowercase `#rrggbb`. Scene parts paint only `PALETTE` colours, new colours go into `PALETTE` (`art/palette.js`), and drawings may blend them with `mix()`.
 - **Ids** come from `src/lib/art/catalog.js` (`tapestry/<slug>`). Never draw "Arc…" or Infrastructure Boost (R43, R44); they have no id.
-- **Every picture** is 64×64, paints all 4,096 pixels, has no lettering, and shows no real flags, emblems, political or religious symbols, or real people.
+- **Every picture** is 64×64, paints all 4,096 pixels, has no lettering, and shows no likeness of a real person. Real religious and political signs, flags and emblems are allowed (owner, 2026-10-22).
 - **Subjects and light** come from the spec's §6.2 tables. Each picture is our own reading of the card's name, never a copy of Stonemaier's card art.
 - **Composition** follows the Lighthouse (`art/drawings/landmark/lighthouse.js`): background parts on a layer, the subject on a foreground canvas, `outline(foreground, PALETTE.ink)`, then `underlay(foreground, layer)`, then details that skip the outline.
 - **Commits** say "Refs #9: …" and end with the `Co-Authored-By` line. Each commit holds drawings together with their SVGs (`npm run art`). #9 closes with "Fix #9: …" only after the owner approves the F&F batch.

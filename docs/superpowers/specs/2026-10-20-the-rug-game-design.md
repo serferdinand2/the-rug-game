@@ -90,6 +90,7 @@ New for this game:
   - Style C is used for every illustration: civilizations, tapestry cards, tech cards, landmarks, masterpieces, space tiles and landmark cards.
   - Small game pieces use simple pixel icons in the same palette: resources, income buildings, outposts, dice, terrain and track symbols. The comparison page showed that a 64×64 scene can't be read at 24px. **(my call)**
   - Each landmark's picture is drawn in the shape of its footprint (32 pixels per plot), and the same picture is shown on its card and on the capital-city grid. **(owner, 2026-10-21)**
+  - Pictures may show real religious and political signs, flags and emblems where the subject calls for them, but no likeness of a real person and no lettering. **(owner, 2026-10-22)**
   - The owner reviews each art batch in the asset gallery before it is merged. Since 2026-10-21 the asset gallery is the Art part of the component library page (`/components.html`, #48), drawn live from the art toolkit. **(owner, 2026-10-21)**
   - A component library page shows every interface component in all its states, built from the phase-one mockups; components show placeholders until their art lands. **(owner, 2026-10-21)**
 - **Interface (owner).** The approved designs live in `docs/ui/`.

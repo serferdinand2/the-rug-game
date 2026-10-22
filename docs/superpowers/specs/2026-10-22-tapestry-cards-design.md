@@ -20,6 +20,8 @@ The ids are already in `src/lib/art/catalog.js` (`tapestry/<slug>`), and the com
 
 - **The picture is what players see of the card on screen.**
 - **Start designing without more questions.** As with the landmarks, the look is the builder's call, within art style C. Every subject in §6.2 is a builder's call that the owner reviews through the samples and the batches.
+- **Real religious and political signs are allowed** (owner, 2026-10-22). Crosses, crescents, stars, real flags and political emblems may appear where a card's subject calls for them. The base batch was drawn under the earlier, stricter rule, and its invented flags and devices stay.
+- **The base batch is approved** (owner, 2026-10-22), and work moves on to Plans & Ploys.
 
 ## 3. Goals
 
@@ -41,7 +43,7 @@ The ids are already in `src/lib/art/catalog.js` (`tapestry/<slug>`), and the com
 These would make the work a failure even if it ran:
 - **Copying Stonemaier's card art.** Each picture is our own reading of the card's name.
 - **Lettering in the picture.** No words, numbers or letters. The frame carries the name.
-- **Real flags, national emblems, political or religious symbols, or real people.** Dictatorship, Theocracy and Colonialism are shown through invented banners, architecture and settings.
+- **Real people.** No picture shows a likeness of a real person. Real religious and political signs, flags and emblems are allowed (§2).
 - **Two pictures that look alike.** Cards sharing a theme (the ships, the crowds, the throne rooms) must still differ in subject, setting or light, and no two pictures may be identical.
 - **A picture whose subject is lost at the size it's shown.** One clear subject, large in the frame; small figures only for scale or as a crowd.
 - **Pictures for left-out cards.** "Arc…" and Infrastructure Boost (R43, R44) get nothing.
@@ -241,7 +243,7 @@ Commits say "Refs #9: …", with one commit per batch (or a few within the large
 
 - Every subject in §6.2, and the mood-based light scheme.
 - Interiors for about a dozen cards.
-- Full bleed, no lettering, and no real flags or symbols.
+- Full bleed, no lettering, and no likeness of a real person.
 - The three samples, and one approval per set.
 - New parts only for shapes two or more cards share.
 

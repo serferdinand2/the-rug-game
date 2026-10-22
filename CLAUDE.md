@@ -70,7 +70,7 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
 
 ## Where the work stands
 
-Updated 2026-10-21. Update this section whenever a milestone moves.
+Updated 2026-10-22. Update this section whenever a milestone moves.
 
 - **Done:**
   - Rules research (`docs/research/`).
@@ -86,6 +86,10 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R104).
 - **#4 (art toolkit and asset catalog)** is done. The owner approved the scene parts on 2026-10-21.
 - **#7 (landmarks)** is done. All 33 are drawn, each one picture in its footprint's shape, and the owner approved them in the asset gallery (`art/preview/index.html`) on 2026-10-21.
+- **#9 (tapestry card pictures)** is under way on the branch `issue-9-tapestry-cards`. The design is `docs/superpowers/specs/2026-10-22-tapestry-cards-design.md` and the plan is `docs/superpowers/plans/2026-10-22-tapestry-cards-issue-9.md`.
+  - The owner approved the 44 base pictures on 2026-10-22. Plans & Ploys (13), Arts & Architecture (20) and Fantasies & Futures (38) follow, one approved batch at a time.
+  - New scene parts: `drawShip` (with furled sails), `drawInterior`, `drawBanner` and `drawCrowd`.
+- **Decided 2026-10-22:** pictures may show real religious and political signs, flags and emblems, but no likeness of a real person and no lettering (owner).
 - **Decided 2026-10-21:**
   - There is no phone layout.
   - The card gallery doubles as the in-game card reference (#47).
@@ -99,7 +103,8 @@ Updated 2026-10-21. Update this section whenever a milestone moves.
   - #12 Encode the base game data. This is the first rules-engine issue, and it is ready.
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
-  - #5, #6 and #8–#11 Draw the rest of the art with the toolkit.
+  - #9 Plans & Ploys, Arts & Architecture and Fantasies & Futures tapestry pictures.
+  - #5, #6, #8, #10 and #11 Draw the rest of the art with the toolkit.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
 ## Starting on a new computer
