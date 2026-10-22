@@ -21,6 +21,7 @@ The ids are already in `src/lib/art/catalog.js` (`civ/<slug>`), and the componen
 - **Draw them like the tapestry pictures.** Same style, same checks, same review.
 - **Go straight through.** No stop for samples or per-set approval: each set gets a fresh review and its findings are fixed, then the work is pushed to main and #8 closes.
 - **Draw in parallel.** Subagents draw the portraits side by side.
+- **Done** (2026-10-22): all four sets were drawn, each had a fresh review and its findings fixed, and #8 closed.
 - **Political and explicit material is allowed.** Real religious and political signs, flags and emblems may appear (as for #9), and so may blood, wounds, weapons drawn, skulls, drink, smoke, gambling and the occult where a civilization calls for it. Bare skin is fine where the subject has it, such as a merman or a werewolf in torn clothes.
 
 ## 3. Goals
