@@ -102,6 +102,33 @@ The first plan reused the landmark pictures through a crop helper. It was remove
 
 These keep clear of Cartography's night map table (Compass), the quarry of Exploitation (Dynamite), the study of Academia (Library), the Inventors' bulb held in a hand (Light Bulb), and Microbial Magic's microscope over glowing microbes (Penicillin).
 
+**The last 13 (base game, 2026-10-22)**
+
+The owner asked for the rest of the base set and for "something a tiny bit simpler": the style stays, the pictures get plainer.
+- **One big subject**, about 60% of the frame or more, with at most two small props.
+- **Plain backgrounds**: a sky gradient or a two-tone wall, with little texture and no crowds, clutter or busy patterns.
+- **Flatter shapes**: each material gets a base tone, one shade and one highlight, rather than many blended tones; glows are used sparingly.
+- **Fewer colours**: roughly 40 to 60 per picture, against 70 to 160 in the first 20.
+- Everything else stays: the ink outline, light from one side, full bleed, palette colours and `mix()`, no lettering, no real people, no building as the subject.
+
+| Card | Subject (builder may refine) | Light |
+|---|---|---|
+| Printing Press | A wooden screw press, its platen raised over a freshly printed sheet (ruled grey lines only), an ink ball beside it | interior, day |
+| Radio | A wooden arched cabinet radio with a glowing dial (ticks only) and a cloth speaker grille, sound waves rippling from it | interior, night |
+| Sewage & Plumbing | A brass tap on a copper pipe pouring clean water into a basin, a valve wheel on the pipe | interior, day |
+| Siegecraft | A wooden trebuchet close up, its arm swinging and a stone flying from the sling | dusk |
+| Stock Market | A ticker-tape machine under a glass dome, a curl of tape (dots and dashes only) spilling out of it | interior, day |
+| Telescope | A brass telescope on a wooden tripod on a hilltop, aimed at a large moon in a starry sky | night |
+| The Nail | A hammer driving an iron nail into a plank, a few nails lying beside it | day |
+| Time Travel | A brass time machine seat with a great spinning ring of dials around it, crackling with violet light | night |
+| Transistors | A green circuit board close up with three-legged transistors standing on it and glowing traces | night |
+| Treasury | An open iron-bound strongbox heaped with gold coins and a gold bar, lit by a lamp | interior, night |
+| Vaccines | A glass syringe and two small vials on a white tray | interior, day |
+| Warships | A steel battleship at sea firing its guns, smoke and splashes around it | day |
+| Zeppelins | A huge silver airship above the clouds, its gondola beneath | day |
+
+Stock Market and Treasury are landmark cards and show their invention, not the building. These keep clear of Astronomy's observatory dome (Telescope), Temporal Nomadism's hourglass portal and Déjà Vu's clocks (Time Travel), the sailing ships of the tapestry cards (Warships), Cloud Colonies' floating islands (Zeppelins), Com Tower's dish (Radio), and Penicillin's dish and Anesthesia's inhaler (Vaccines).
+
 ### 6.4 Not a repeat
 
 Several of the first 10 sit close to earlier pictures, or to tech cards still to come. They keep clear:

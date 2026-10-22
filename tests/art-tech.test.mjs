@@ -7,7 +7,7 @@ import { DRAWINGS_DIR, listDrawingIds } from '../art/build.mjs';
 import { ASSETS, EXPANSIONS } from '../src/lib/art/catalog.js';
 
 /** The sets whose every tech card must be drawn. Each set adds its code once it has been reviewed. */
-const FINISHED = [];
+const FINISHED = ['base'];
 
 const drawn = (await listDrawingIds()).filter((id) => id.startsWith('tech/'));
 
@@ -66,14 +66,4 @@ test('every tech card of each finished set is drawn', () => {
 			.filter((id) => !drawn.includes(id));
 		assert.deepEqual(missing, [], `${code}: tech cards not drawn yet`);
 	}
-});
-
-test('the first 20 base tech cards are drawn', () => {
-	const missing = ASSETS.filter(
-		(asset) => asset.group === 'tech' && asset.expansion === 'base'
-	)
-		.slice(0, 20)
-		.map((asset) => asset.id)
-		.filter((id) => !drawn.includes(id));
-	assert.deepEqual(missing, [], 'first 20 tech cards not drawn yet');
 });
