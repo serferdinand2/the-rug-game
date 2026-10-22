@@ -7,7 +7,7 @@ import { DRAWINGS_DIR, listDrawingIds } from '../art/build.mjs';
 import { ASSETS, EXPANSIONS } from '../src/lib/art/catalog.js';
 
 /** The sets whose every civilization must be drawn. Each set adds its code once it has been reviewed. */
-const FINISHED = [];
+const FINISHED = ['base'];
 
 const drawn = (await listDrawingIds()).filter((id) => id.startsWith('civ/'));
 
@@ -19,10 +19,6 @@ for (const id of drawn) {
 	);
 	canvases.set(id, drawing.draw());
 }
-
-test('the reference portrait is drawn', () => {
-	assert.ok(drawn.includes('civ/alchemists'), 'civ/alchemists is not drawn');
-});
 
 test('every civilization portrait paints all 4,096 pixels', () => {
 	for (const [id, canvas] of canvases) {

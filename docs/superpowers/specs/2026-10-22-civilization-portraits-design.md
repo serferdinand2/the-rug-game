@@ -130,6 +130,7 @@ Several civilizations sit close to a tapestry card. The portraits keep clear of 
 - **Mystics** float in meditation, not the crystal ball (Seer Sight) or the fortune teller's tent (Soothsaying).
 - **Entertainers** are one jester on a curtained stage, not the juggler in a square (Entertain the Masses).
 - **Treasure Hunters** are in a cave with a chest, not the jungle ruin (Lost Artifacts).
+- **Heralds** blow their trumpet the other way, before a gatehouse or a town square, not from a crenellated rampart (Boast of Superiority). The set review found this pair after drawing.
 
 ### 6.4 Palette and parts
 
