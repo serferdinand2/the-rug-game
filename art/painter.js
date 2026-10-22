@@ -140,6 +140,64 @@ export function fillEmpty(canvas, x, y, colour) {
 }
 
 /**
+ * Paints a small sprite from rows of keys, one character per pixel. Keys with no colour (such as '.') are skipped.
+ * @param {Canvas} canvas
+ * @param {number} x - The sprite's left column
+ * @param {number} y - The sprite's top row
+ * @param {readonly string[]} rows - The sprite, top row first
+ * @param {Readonly<Record<string, Colour>>} colours - The colour for each key
+ * @param {{ mirror?: boolean }} [options] - `mirror` flips each row within the sprite's width
+ * @returns {Box} The sprite's box: its widest row by its number of rows.
+ */
+export function paint(canvas, x, y, rows, colours, { mirror = false } = {}) {
+	const w = Math.max(0, ...rows.map((row) => row.length));
+	rows.forEach((row, j) => {
+		[...row].forEach((key, i) => {
+			if (Object.hasOwn(colours, key)) {
+				set(canvas, x + (mirror ? w - 1 - i : i), y + j, colours[key]);
+			}
+		});
+	});
+	return { x, y, w, h: rows.length };
+}
+
+/**
+ * Paints a one-pixel line between two points, both included: one pixel for each step along the longer axis.
+ * It always runs from the lower end of that axis, so swapping the ends draws the same pixels.
+ * @param {Canvas} canvas
+ * @param {number} x0
+ * @param {number} y0
+ * @param {number} x1
+ * @param {number} y1
+ * @param {Colour} colour
+ * @throws {Error} When an end isn't made of integers.
+ */
+export function line(canvas, x0, y0, x1, y1, colour) {
+	assertIntegers(x0, y0, 'x0 and y0');
+	assertIntegers(x1, y1, 'x1 and y1');
+	const steep = Math.abs(y1 - y0) > Math.abs(x1 - x0);
+	const [a, b] = (steep ? y0 > y1 : x0 > x1)
+		? [
+				[x1, y1],
+				[x0, y0],
+			]
+		: [
+				[x0, y0],
+				[x1, y1],
+			];
+	const steps = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
+	for (let i = 0; i <= steps; i++) {
+		const t = steps === 0 ? 0 : i / steps;
+		set(
+			canvas,
+			Math.round(a[0] + (b[0] - a[0]) * t),
+			Math.round(a[1] + (b[1] - a[1]) * t),
+			colour
+		);
+	}
+}
+
+/**
  * Outlines every shape: each empty pixel that touches a pixel of another colour gets the outline colour.
  * Every pixel is decided before any is painted, so the outline is one pixel thick.
  * @param {Canvas} canvas

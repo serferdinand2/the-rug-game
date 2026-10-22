@@ -16,6 +16,7 @@ import { drawShip } from './parts/ship.js';
 import { drawInterior } from './parts/interior.js';
 import { drawBanner } from './parts/banner.js';
 import { drawCrowd } from './parts/crowd.js';
+import { drawWheel } from './parts/wheel.js';
 import { GROUPS, EXPANSIONS } from '../src/lib/art/catalog.js';
 import { PLOT_SIZE, FOOTPRINTS } from '../src/lib/art/footprints.js';
 
@@ -233,6 +234,22 @@ export const PART_SAMPLES = Object.freeze([
 		draw: () => {
 			const c = createCanvas(64, 64);
 			drawCrowd(c, { x: 4, y: 58, count: 13, random: seededRandom(4) });
+			outline(c, PALETTE.ink);
+			return c;
+		},
+	},
+	{
+		label: 'wheel',
+		draw: () => {
+			const c = createCanvas(64, 64);
+			drawWheel(c, { x: 22, y: 30, r: 14 });
+			drawWheel(c, {
+				x: 50,
+				y: 46,
+				r: 9,
+				spokes: 6,
+				spoke: PALETTE.brickRed,
+			});
 			outline(c, PALETTE.ink);
 			return c;
 		},

@@ -14,6 +14,8 @@ import {
 	underlay,
 	toSvg,
 	fromSvg,
+	paint,
+	line,
 } from '../art/painter.js';
 
 const RED = '#aa0000';
@@ -189,4 +191,45 @@ test('underlay fills only empty pixels', () => {
 	rect(layer, 0, 0, 2, 1, BLUE);
 	underlay(top, layer);
 	assert.deepEqual(filled(top), [`0,0=${RED}`, `1,0=${BLUE}`]);
+});
+
+test('paint draws a sprite from rows, skipping keys it has no colour for', () => {
+	const c = createCanvas(4, 3);
+	const box = paint(c, 1, 0, ['ab.', '.a'], { a: RED, b: BLUE });
+	assert.deepEqual(box, { x: 1, y: 0, w: 3, h: 2 });
+	assert.deepEqual(filled(c), ['1,0=#aa0000', '2,0=#0000bb', '2,1=#aa0000']);
+});
+
+test('paint mirrors a sprite within its own width', () => {
+	const c = createCanvas(4, 2);
+	paint(c, 0, 0, ['ab.', 'a'], { a: RED, b: BLUE }, { mirror: true });
+	assert.deepEqual(filled(c), ['1,0=#0000bb', '2,0=#aa0000', '2,1=#aa0000']);
+});
+
+test('line joins its two ends with one pixel per step along the longer axis', () => {
+	const flat = createCanvas(6, 3);
+	line(flat, 1, 1, 4, 1, RED);
+	assert.deepEqual(filled(flat), [
+		'1,1=#aa0000',
+		'2,1=#aa0000',
+		'3,1=#aa0000',
+		'4,1=#aa0000',
+	]);
+
+	const steep = createCanvas(6, 8);
+	line(steep, 1, 0, 3, 7, RED);
+	const rows = filled(steep).map(
+		(pixel) => pixel.split(',')[1].split('=')[0]
+	);
+	assert.deepEqual(rows, ['0', '1', '2', '3', '4', '5', '6', '7']);
+	assert.equal(get(steep, 1, 0), RED);
+	assert.equal(get(steep, 3, 7), RED);
+});
+
+test('line draws the same pixels whichever end it starts from', () => {
+	const forward = createCanvas(10, 10);
+	const backward = createCanvas(10, 10);
+	line(forward, 1, 2, 8, 6, RED);
+	line(backward, 8, 6, 1, 2, RED);
+	assert.deepEqual(filled(backward), filled(forward));
 });

@@ -17,6 +17,7 @@ import { drawShip } from '../art/parts/ship.js';
 import { drawInterior } from '../art/parts/interior.js';
 import { drawBanner } from '../art/parts/banner.js';
 import { drawCrowd } from '../art/parts/crowd.js';
+import { drawWheel } from '../art/parts/wheel.js';
 
 const PALETTE_COLOURS = new Set(Object.values(PALETTE));
 const SMOKE_TONES = ['smoke', 'steam'];
@@ -139,6 +140,11 @@ const SAMPLES = [
 		random: true,
 		draw: (c, random) => drawCrowd(c, { x: 4, y: 50, count: 9, random }),
 	},
+	{
+		label: 'wheel',
+		random: false,
+		draw: (c) => drawWheel(c, { x: 32, y: 32, r: 10 }),
+	},
 	...INTERIOR_WALLS.map((wall) => ({
 		label: `interior: ${wall}`,
 		random: true,
@@ -257,6 +263,10 @@ test('buildings and the figure draw only inside the box they return', () => {
 					count: 6,
 					random: seededRandom(1),
 				}),
+		},
+		{
+			label: 'wheel',
+			draw: (c) => drawWheel(c, { x: 27, y: 43, r: 7 }),
 		},
 	];
 	for (const piece of pieces) {
@@ -472,6 +482,26 @@ test('a crowd widens with each person in it', () => {
 	assert.ok(six.w > three.w, `3: ${three.w} wide, 6: ${six.w}`);
 });
 
+test('a wheel has a rim all round and as many spokes as it is given', () => {
+	const count = (spokes) => {
+		const c = createCanvas(64, 64);
+		drawWheel(c, { x: 32, y: 32, r: 12, spokes, spoke: PALETTE.timber });
+		return c.p.filter((colour) => colour === PALETTE.timber).length;
+	};
+	assert.ok(count(8) > count(4), `8 spokes: ${count(8)}, 4: ${count(4)}`);
+	assert.ok(count(4) > 0, 'no spokes');
+	const c = createCanvas(64, 64);
+	drawWheel(c, { x: 32, y: 32, r: 12 });
+	for (const [x, y] of [
+		[32, 20],
+		[32, 44],
+		[20, 32],
+		[44, 32],
+	]) {
+		assert.ok(c.p[y * 64 + x], `no rim at (${x}, ${y})`);
+	}
+});
+
 test('every part draws the same pixels for the same seed', () => {
 	for (const sample of SAMPLES) {
 		assert.deepEqual(render(sample, 3), render(sample, 3), sample.label);
@@ -540,6 +570,7 @@ test('parts refuse kinds and times they do not know', () => {
 		/up/
 	);
 	assert.throws(() => drawCrowd(c, { x: 0, y: 7, count: 0, random }), /0/);
+	assert.throws(() => drawWheel(c, { x: 4, y: 4, r: 1 }), /radius/);
 	assert.throws(
 		() =>
 			drawInterior(c, {

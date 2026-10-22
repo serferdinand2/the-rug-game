@@ -19,9 +19,10 @@ The design is in [2026-10-21-art-toolkit-design.md](../superpowers/specs/2026-10
 
 | File | What it holds |
 |---|---|
-| `art/painter.js` | The canvas, drawing helpers, `outline`, `mix`, `seededRandom`, `underlay` and `toSvg` |
+| `art/painter.js` | The canvas, drawing helpers (`set`, `rect`, `line`, and `paint` for small sprites drawn from rows of keys), `outline`, `mix`, `seededRandom`, `underlay` and `toSvg` |
+| `art/effects.js` | Light passes that blend colours over a painted canvas: `glow`, a banded glow around a lamp or fire. They live outside `art/parts/`, whose parts paint only palette colours |
 | `art/palette.js` | `PALETTE`: every named style C colour |
-| `art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure`, `drawSmoke` (smoke, steam), `drawClassical` (pediment, flat), `drawFactory`, `drawSkyline` (night, dusk, day), `drawStreet`, `drawShip` (1–3 masts, either way) `drawInterior` (plaster, stone, panel; with a window onto any sky), `drawBanner` (flag, hanging) and `drawCrowd` |
+| `art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure`, `drawSmoke` (smoke, steam), `drawClassical` (pediment, flat), `drawFactory`, `drawSkyline` (night, dusk, day), `drawStreet`, `drawShip` (1–3 masts, either way, sails set or furled), `drawInterior` (plaster, stone, panel; with a window onto any sky), `drawBanner` (flag, hanging), `drawCrowd` and `drawWheel` |
 | `src/lib/art/footprints.js` | `FOOTPRINTS` for the 33 landmarks, `PLOT_SIZE` (32), `footprintMismatches` and `clipToFootprint` |
 | `src/lib/art/catalog.js` | `ASSETS`: every asset the game needs, with its stable id, plus `GROUPS` and `EXPANSIONS` |
 | `art/drawings/` | One module per drawn asset, at `art/drawings/<id>.js` |
