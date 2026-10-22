@@ -7,7 +7,7 @@ import { DRAWINGS_DIR, listDrawingIds } from '../art/build.mjs';
 import { ASSETS, EXPANSIONS } from '../src/lib/art/catalog.js';
 
 /** The sets whose every tech card must be drawn. Each set adds its code once it has been reviewed. */
-const FINISHED = ['base'];
+const FINISHED = ['base', 'aa', 'ff'];
 
 const drawn = (await listDrawingIds()).filter((id) => id.startsWith('tech/'));
 

@@ -129,6 +129,39 @@ The owner asked for the rest of the base set and for "something a tiny bit simpl
 
 Stock Market and Treasury are landmark cards and show their invention, not the building. These keep clear of Astronomy's observatory dome (Telescope), Temporal Nomadism's hourglass portal and Déjà Vu's clocks (Time Travel), the sailing ships of the tapestry cards (Warships), Cloud Colonies' floating islands (Zeppelins), Com Tower's dish (Radio), and Penicillin's dish and Anesthesia's inhaler (Vaccines).
 
+**Arts & Architecture (11) and Fantasies & Futures (12), 2026-10-22**
+
+The owner asked for the rest "according to these rules": the simpler rules of the last 13 apply to all 23. The F&F powers each get their own glow colour, so the magic cards don't all turn violet.
+
+| Card | Subject (builder may refine) | Light |
+|---|---|---|
+| Astrolabe | A brass astrolabe held up against the stars, its pierced rete and pointer catching the light | night |
+| Automation | A jointed steel robot arm lifting a gear off a moving belt | interior, day |
+| Calculus | A brass calculating machine of gears and a crank, a paper strip of plain dashes curling out | interior, day |
+| Duct Tape | A silver roll of tape, a strip wrapped round a cracked pipe to stop a leak | day |
+| Jet Fuel | A jet engine close up, its fan in the cowl, a blue-orange flame and heat shimmer behind | day |
+| Microphone | A chrome studio microphone on a stand under a spotlight | night |
+| Oil Paint | An artist's palette with squeezed blank tubes and a loaded brush | interior, day |
+| Opera | Opera glasses on a red velvet box ledge, the lit stage far below | interior, night |
+| Public Art | A bright abstract sculpture, a looped steel ribbon on a plinth in a sunny park | day |
+| Suburbs | A blank mailbox by a white picket fence and a striped lawn with a sprinkler, small rooftops behind | day |
+| War College | A war-game table: a terrain model with toy soldiers, little blank flags and a pointer | interior, day |
+| Golem Minions | A hulking clay golem striding forward, amber light in its eyes and a plain glowing mark on its chest | dusk |
+| Levitation | A heavy stone block floating above the ground, a rope trailing, small rocks hovering in a violet glow | dusk |
+| Mind Control | A brass helmet with an antenna on a stand, green spiral waves pulsing from it | night |
+| Object Cloning | A machine with two glass chambers, an apple in each, one a glowing pink copy of the other | interior, night |
+| Perfect Memory | A brain in a glass jar glowing gold, tiny pictures orbiting it | night |
+| Pyrokinesis | A fireball blazing above an open hand | night |
+| Remote Viewing | A glowing eye shape floating in the dark, a faraway valley seen in its iris | night |
+| Superhuman Strength | A figure lifting a huge boulder over their head | day |
+| Super Speed | A runner as a blur of speed streaks along a road, dust trailing | day |
+| Teleportation | A crate dissolving into teal sparkles on one pad and reappearing on a second pad | night |
+| Transmogrification | A grey stone in a dish halfway turned to gold, violet sparks swirling | interior, night |
+| Weather Control | A copper coil machine firing a beam into a storm cloud, the sky stormy on one side and sunny on the other | day, storm |
+
+These keep clear of Renaissance's painter at an easel (Oil Paint), Found Art's driftwood (Public Art), the Mystics' third eye (Remote Viewing), Uploaded Consciousness's head of pixels (Perfect Memory), Doppelgangers' mirror (Object Cloning), Superpower Regulators' containment ring (Teleportation), the Entertainers' curtained stage (Opera), Spymaster's wall map (War College) and the Assembly Line's motorcars (Automation).
+
+
 ### 6.4 Not a repeat
 
 Several of the first 10 sit close to earlier pictures, or to tech cards still to come. They keep clear:
