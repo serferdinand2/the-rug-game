@@ -27,6 +27,105 @@ function declarations(css) {
 const rootBlock = tokensCss.match(/:root\s*\{([^}]*)\}/)?.[1] ?? '';
 const tokens = declarations(rootBlock);
 
+/**
+ * A colour as [r, g, b] from 0 to 255: a hex value, a token reference, or an sRGB color-mix of two of them.
+ * @param {string} value
+ * @returns {number[]}
+ */
+function rgb(value) {
+	const hex = value.match(/^#([0-9a-f]{6})$/i)?.[1];
+	if (hex) {
+		return [0, 2, 4].map((at) => parseInt(hex.slice(at, at + 2), 16));
+	}
+	const reference = value.match(/^var\((--[\w-]+)\)$/)?.[1];
+	if (reference) {
+		return rgb(tokens.get(reference) ?? `undeclared ${reference}`);
+	}
+	const mix = value.match(
+		/^color-mix\(\s*in srgb,\s*(.+?)\s+(\d+)%,\s*(.+?)\s*\)$/
+	);
+	if (mix) {
+		const share = Number(mix[2]) / 100;
+		const other = rgb(mix[3]);
+		return rgb(mix[1]).map(
+			(channel, i) => channel * share + other[i] * (1 - share)
+		);
+	}
+	throw new Error(`cannot read the colour ${value}`);
+}
+
+/**
+ * A colour's channels in linear light, from 0 to 1.
+ * @param {number[]} color
+ */
+const linear = (color) =>
+	color.map((channel) => {
+		const value = channel / 255;
+		return value <= 0.04045
+			? value / 12.92
+			: ((value + 0.055) / 1.055) ** 2.4;
+	});
+
+/**
+ * The WCAG contrast ratio of two colours.
+ * @param {number[]} a
+ * @param {number[]} b
+ */
+function contrast(a, b) {
+	const [high, low] = [a, b]
+		.map((color) => {
+			const [r, g, b] = linear(color);
+			return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+		})
+		.sort((x, y) => y - x);
+	return (high + 0.05) / (low + 0.05);
+}
+
+/** How colour-blind players see colours: Machado, Oliveira and Fernandes (2009), at full severity, on linear light. */
+const DICHROMACY = {
+	protanopia: [
+		[0.152286, 1.052583, -0.204868],
+		[0.114503, 0.786281, 0.099216],
+		[-0.003882, -0.048116, 1.051998],
+	],
+	deuteranopia: [
+		[0.367322, 0.860646, -0.227968],
+		[0.280085, 0.672501, 0.047413],
+		[-0.01182, 0.04294, 0.968881],
+	],
+	tritanopia: [
+		[1.255528, -0.076749, -0.178779],
+		[-0.078411, 0.930809, 0.147602],
+		[0.004733, 0.691367, 0.3039],
+	],
+};
+
+/**
+ * How far apart two colours look (CIE76 ΔE in CIELAB), optionally as a colour-blind player sees them.
+ * @param {number[]} a
+ * @param {number[]} b
+ * @param {number[][]} [vision] - A DICHROMACY matrix
+ */
+function difference(a, b, vision) {
+	/** @param {number[]} color */
+	const lab = (color) => {
+		let [r, g, bl] = linear(color);
+		if (vision) {
+			[r, g, bl] = vision.map((row) =>
+				Math.min(1, Math.max(0, row[0] * r + row[1] * g + row[2] * bl))
+			);
+		}
+		const f = (/** @type {number} */ t) =>
+			t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+		const x = f((0.4124 * r + 0.3576 * g + 0.1805 * bl) / 0.95047);
+		const y = f(0.2126 * r + 0.7152 * g + 0.0722 * bl);
+		const z = f((0.0193 * r + 0.1192 * g + 0.9505 * bl) / 1.08883);
+		return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+	};
+	const [p, q] = [lab(a), lab(b)];
+	return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+}
+
 /** Every stylesheet and Svelte component under src, as [path, contents]. */
 const sources = readdirSync(
 	fileURLToPath(new URL('../src/', import.meta.url)),
@@ -104,6 +203,56 @@ test('five player colours exist and none of them is a track colour', () => {
 	);
 	for (const player of players) {
 		assert.ok(!tracks.includes(player), `${player} is also a track colour`);
+	}
+});
+
+test('each track has a text colour that reads at 4.5:1 on every surface up to --surface', () => {
+	for (const track of ['exploration', 'science', 'technology', 'military']) {
+		const text = tokens.get(`--${track}-text`);
+		assert.ok(text, `--${track}-text is not declared`);
+		for (const surface of ['ink', 'chrome', 'control', 'surface']) {
+			const ratio = contrast(rgb(text), rgb(`var(--${surface})`));
+			assert.ok(
+				ratio >= 4.5,
+				`--${track}-text on --${surface} is ${ratio.toFixed(2)}:1`
+			);
+		}
+	}
+});
+
+test('every seat colour reads at 4.5:1 as text on the chrome bars', () => {
+	for (const seat of [1, 2, 3, 4, 5]) {
+		const ratio = contrast(
+			rgb(`var(--player-${seat})`),
+			rgb('var(--chrome)')
+		);
+		assert.ok(ratio >= 4.5, `--player-${seat} is ${ratio.toFixed(2)}:1`);
+	}
+});
+
+test('colour-blind players can still tell the five seats apart', () => {
+	// ΔE 10 is the floor; seats 2 and 3, red and green, are the closest pair at about 11.5 for deuteranopes.
+	const seats = [1, 2, 3, 4, 5].map((seat) => rgb(`var(--player-${seat})`));
+	for (const [vision, matrix] of Object.entries(DICHROMACY)) {
+		for (let a = 0; a < seats.length; a++) {
+			for (let b = a + 1; b < seats.length; b++) {
+				const apart = difference(seats[a], seats[b], matrix);
+				assert.ok(
+					apart >= 10,
+					`with ${vision}, seats ${a + 1} and ${b + 1} are only ΔE ${apart.toFixed(1)} apart`
+				);
+			}
+		}
+	}
+});
+
+test('no font-size token is below 10px', () => {
+	for (const [name, value] of tokens) {
+		if (!name.startsWith('--font-size-') || value.startsWith('clamp(')) {
+			continue;
+		}
+		const size = Number(value.match(/^(\d+)px$/)?.[1]);
+		assert.ok(size >= 10, `${name} is ${value}`);
 	}
 });
 
@@ -188,15 +337,35 @@ test('static/fonts holds only the chosen fonts and their licences', () => {
 	assert.deepEqual(readdirSync(fontsDir).sort(), [
 		'LICENSE-atkinson-hyperlegible.txt',
 		'LICENSE-cinzel.txt',
-		'atkinson-hyperlegible-bold.ttf',
-		'atkinson-hyperlegible-regular.ttf',
-		'cinzel.ttf',
+		'atkinson-hyperlegible-bold.woff2',
+		'atkinson-hyperlegible-regular.woff2',
+		'cinzel.woff2',
 	]);
 	for (const licence of ['cinzel', 'atkinson-hyperlegible']) {
 		assert.match(
 			readFileSync(`${fontsDir}LICENSE-${licence}.txt`, 'utf8'),
 			/SIL Open Font License, Version 1\.1/
 		);
+	}
+});
+
+test('the game page and the library preload the body and title fonts', () => {
+	for (const page of ['index.html', 'components.html']) {
+		const links = [...read(page).matchAll(/<link\b[^>]*>/g)].map(
+			([link]) => link
+		);
+		for (const file of [
+			'atkinson-hyperlegible-regular.woff2',
+			'cinzel.woff2',
+		]) {
+			const link = links.find((tag) => tag.includes(`"/fonts/${file}"`));
+			assert.ok(link, `${page} does not preload ${file}`);
+			assert.match(link, /rel="preload"/, `${page}: ${file}`);
+			assert.match(link, /as="font"/, `${page}: ${file}`);
+			assert.match(link, /type="font\/woff2"/, `${page}: ${file}`);
+			// Fonts are always fetched in CORS mode, so a preload without it is fetched twice.
+			assert.match(link, /\bcrossorigin\b/, `${page}: ${file}`);
+		}
 	}
 });
 

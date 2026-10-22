@@ -224,7 +224,7 @@
 
 	.rg-library--count {
 		margin-left: var(--space-2);
-		color: var(--faint);
+		color: var(--muted);
 		font-size: var(--font-size-3xs);
 	}
 

@@ -392,7 +392,7 @@
 		right: calc(var(--track-tip) - 3px);
 		bottom: 7px;
 		color: var(--gold);
-		font: var(--weight-title) var(--font-size-4xs) / var(--leading-tight)
+		font: var(--weight-title) var(--font-size-3xs) / var(--leading-tight)
 			var(--font-title);
 		text-align: left;
 	}
@@ -405,13 +405,8 @@
 		right: calc(2px - var(--track-tip));
 		width: 12px;
 		transform: translateY(-50%);
-		color: color-mix(
-			in srgb,
-			var(--rg-track-space-color) 38%,
-			var(--raised)
-		);
-		opacity: 0.7;
-		font: var(--weight-bold) var(--font-size-4xs) / var(--leading-none)
+		color: var(--muted);
+		font: var(--weight-bold) var(--font-size-3xs) / var(--leading-none)
 			var(--font-body);
 		text-align: center;
 	}

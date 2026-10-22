@@ -127,7 +127,8 @@
 			var(--rg-segmented-color) 20%,
 			var(--control)
 		);
-		color: color-mix(in srgb, var(--rg-segmented-color) 68%, var(--text));
+		/* Half text, so even the darkest track colour reads at 4.5:1 on its own tint. */
+		color: color-mix(in srgb, var(--rg-segmented-color) 50%, var(--text));
 		box-shadow: inset 0 0 0 1px
 			color-mix(in srgb, var(--rg-segmented-color) 25%, transparent);
 	}
@@ -136,10 +137,15 @@
 		font-size: var(--font-size-xs);
 	}
 
+	/* Lifted with a fifth of text, so the dark label reads at 4.5:1 on the track colours too. */
 	.rg-segmented--filled .rg-segmented--selected,
 	.rg-segmented--filled .rg-segmented--selected:hover {
 		border-color: var(--rg-segmented-color);
-		background: var(--rg-segmented-color);
+		background: color-mix(
+			in srgb,
+			var(--rg-segmented-color) 80%,
+			var(--text)
+		);
 		color: var(--ink);
 	}
 </style>

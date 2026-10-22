@@ -45,6 +45,15 @@ export function trackColor(track) {
 }
 
 /**
+ * The colour of text in a track's colour, such as its name: lighter than the track colour, so it reads on dark surfaces.
+ * @param {TrackId} track
+ * @returns {string} A token reference, such as 'var(--exploration-text)'.
+ */
+export function trackTextColor(track) {
+	return `var(--${track}-text)`;
+}
+
+/**
  * The colour of a seat's player.
  * @param {Seat} seat
  * @returns {string} A token reference, such as 'var(--player-1)'.

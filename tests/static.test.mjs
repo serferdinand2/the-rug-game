@@ -97,9 +97,9 @@ test('serves the favicon and fonts with long caching', async () => {
 		'atkinson-hyperlegible-regular',
 		'atkinson-hyperlegible-bold',
 	]) {
-		const font = await get(`/fonts/${name}.ttf`);
+		const font = await get(`/fonts/${name}.woff2`);
 		assert.equal(font.status, 200, name);
-		assert.equal(font.headers['content-type'], 'font/ttf');
+		assert.equal(font.headers['content-type'], 'font/woff2');
 		assert.equal(font.headers['cache-control'], 'public, max-age=604800');
 	}
 });

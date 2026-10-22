@@ -25,7 +25,7 @@
 
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
-	import { RESOURCES, roman, trackColor } from '../../ui.js';
+	import { RESOURCES, roman, trackColor, trackTextColor } from '../../ui.js';
 
 	/** @type {TierPriceProps} */
 	let { era, symbols, track, highlighted = false, ...attr } = $props();
@@ -83,7 +83,7 @@
 	{...attr}
 	class="rg-tier-price {attr.class ? attr.class : ''}"
 	class:rg-tier-price--highlighted={highlighted}
-	style:--rg-tier-price-color={trackColor(track)}>
+	style:--rg-tier-price-text={trackTextColor(track)}>
 	<b class="rg-tier-price--era">{numeral}</b>
 	<i class="rg-tier-price--separator">·</i>
 	{#each symbols as symbol, index (index)}
@@ -126,7 +126,7 @@
 
 	.rg-tier-price--era {
 		margin-right: var(--space-1);
-		color: color-mix(in srgb, var(--rg-tier-price-color) 60%, var(--text));
+		color: var(--rg-tier-price-text);
 		font: var(--weight-title) var(--font-size-2xs) / var(--leading-none)
 			var(--font-title);
 		letter-spacing: var(--letter-spacing-title);

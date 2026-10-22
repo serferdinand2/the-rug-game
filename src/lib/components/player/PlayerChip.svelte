@@ -62,9 +62,11 @@
 	};
 </script>
 
+<!-- Narrow chips drop the civilization name but keep the VP; the tooltip still names it. -->
 <button
 	type="button"
 	aria-label={label}
+	title={label}
 	aria-expanded={filled}
 	{...attr}
 	class="rg-player-chip {attr.class ? attr.class : ''}"
@@ -77,20 +79,25 @@
 		aria-hidden="true"></i>
 	<b class="rg-player-chip--name">{name}</b>
 	<small class="rg-player-chip--civilization"
-		>{civilization}
-		<span class="rg-player-chip--score">· {vp} VP</span></small>
+		><span class="rg-player-chip--civilization-name">{civilization}</span>
+		<span class="rg-player-chip--score"
+			><span class="rg-player-chip--separator">·</span>
+			{vp} VP</span
+		></small>
 </button>
 
 <style>
+	/* 210px wide, shrinking with its neighbours when the header is narrower than five full chips. */
 	.rg-player-chip {
 		position: relative;
 		display: grid;
 		grid-template-columns: 29px auto auto;
-		flex: 0 0 210px;
+		flex: 0 1 210px;
 		align-items: center;
 		gap: var(--space-4);
 		width: 210px;
-		min-width: 210px;
+		min-width: 120px;
+		container-type: inline-size;
 		padding: var(--space-4) var(--space-5) var(--space-4) 0;
 		overflow: hidden;
 		border: 0;
@@ -173,5 +180,12 @@
 	.rg-player-chip--filled .rg-player-chip--name,
 	.rg-player-chip--filled .rg-player-chip--civilization {
 		visibility: hidden;
+	}
+
+	@container (max-width: 190px) {
+		.rg-player-chip--civilization-name,
+		.rg-player-chip--separator {
+			display: none;
+		}
 	}
 </style>

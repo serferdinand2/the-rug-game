@@ -47,7 +47,7 @@
 <script>
 	import { ComponentEvent } from '../../component-event.js';
 	import { TIER_SPACES, tierOf } from '../../track-shape.js';
-	import { trackColor } from '../../ui.js';
+	import { trackColor, trackTextColor } from '../../ui.js';
 	import ProgressLanes from './ProgressLanes.svelte';
 	import TierPrice from './TierPrice.svelte';
 	import TrackSpace from './TrackSpace.svelte';
@@ -130,6 +130,7 @@
 	{...attr}
 	class="rg-track {attr.class ? attr.class : ''}"
 	style:--rg-track-color={trackColor(id)}
+	style:--rg-track-text={trackTextColor(id)}
 	style:--rg-track-spaces={spaces.length}>
 	<div class="rg-track--heading">
 		<h2 class="rg-track--name">{name}</h2>
@@ -165,7 +166,9 @@
 </div>
 
 <style>
+	/* Isolated, so the spaces' stacking (up to 20 for the selected one) never rises over the header and its menu. */
 	.rg-track {
+		isolation: isolate;
 		display: grid;
 		grid-template-rows: 18px 18px auto auto;
 		gap: var(--space-1);
@@ -175,7 +178,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-5);
-		color: var(--rg-track-color);
+		color: var(--rg-track-text);
 	}
 
 	.rg-track--heading::after {

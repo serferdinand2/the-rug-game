@@ -91,7 +91,7 @@
 	}
 
 	.rg-resource-icon--any.rg-resource-icon--small {
-		font-size: var(--font-size-4xs);
+		font-size: var(--font-size-3xs);
 	}
 
 	.rg-resource-icon--any.rg-resource-icon--medium {

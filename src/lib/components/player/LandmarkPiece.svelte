@@ -414,11 +414,12 @@
 		pointer-events: auto;
 	}
 
+	/* 24px, the smallest target WCAG 2.2 allows without extra spacing. */
 	.rg-landmark-piece--control {
 		display: grid;
 		place-items: center;
-		width: 19px;
-		height: 19px;
+		width: 24px;
+		height: 24px;
 		padding: 0;
 		border: var(--border) solid var(--ok);
 		border-radius: var(--radius);

@@ -5,7 +5,7 @@
 	 * @typedef {Object} TopBarOwnProps
 	 * @property {string} [brand='The Rug Game'] - The game's name at the left
 	 * @property {string} [title] - A centred sentence, such as 'Build a civilization that stands the test of time'
-	 * @property {import('svelte').Snippet} [center] - Centre content that replaces the title, such as the player chips
+	 * @property {import('svelte').Snippet} [center] - Centre content that replaces the title, such as the player chips; render them straight into it, without a wrapper, so they can shrink to fit
 	 * @property {import('svelte').Snippet} [controls] - The controls at the right, such as the sound and menu buttons
 	 * @property {boolean} [divider=true] - The thin rule along the bottom; false over the player overview
 	 */
@@ -80,9 +80,11 @@
 		white-space: nowrap;
 	}
 
+	/* Chips rendered here sit in a row and shrink when the header is narrow; a wrapper of their own would stop that. */
 	.rg-top-bar--center {
 		display: flex;
 		justify-content: center;
+		gap: var(--space-4);
 		min-width: 0;
 	}
 

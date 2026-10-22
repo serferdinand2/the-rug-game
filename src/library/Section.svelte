@@ -66,7 +66,7 @@
 
 	.rg-library-section--area {
 		font-size: var(--font-size-xs);
-		color: var(--faint);
+		color: var(--muted);
 	}
 
 	.rg-library-section--description {

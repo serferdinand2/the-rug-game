@@ -43,7 +43,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `Tabs` | The right panel's tabs, with a count, roving focus and arrow keys. |
 | `TextInput` | Labelled text fields with a hint and a validation message, and the small gold read-only code. |
 | `Toast` | A short status message at the bottom of the screen. |
-| `TopBar` | The 58px header: brand, centre content and controls. |
+| `TopBar` | The 58px header: brand, centre content and controls. Player chips go straight into the centre, so they shrink to fit a narrow header. |
 
 ## board/
 
@@ -66,7 +66,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `LandmarkPiece` | A landmark's picture in its footprint's shape, in the tray or on the grid, with rotate, confirm and return. |
 | `PlacementTray` | The To be placed tray: select, drag or arrow a landmark onto the grid, or drop one back. |
 | `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows. |
-| `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. |
+| `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. 210px wide, shrinking to 120px; below 190px it drops the civilization name. |
 | `ResourceChip` | A resource symbol and its count. |
 
 ## prompts/

@@ -53,7 +53,7 @@
 	import Button from '../ui/Button.svelte';
 	import CostBox from './CostBox.svelte';
 	import { ComponentEvent } from '../../component-event.js';
-	import { trackColor } from '../../ui.js';
+	import { trackColor, trackTextColor } from '../../ui.js';
 
 	/** @type {TurnBarProps} */
 	let {
@@ -95,6 +95,7 @@
 	{...attr}
 	class="rg-turn-bar rg-turn-bar--{tone} {attr.class ? attr.class : ''}"
 	style:--rg-turn-bar-track={track ? trackColor(track) : 'var(--gold)'}
+	style:--rg-turn-bar-proper={track ? trackTextColor(track) : 'var(--gold)'}
 	style:--rg-turn-bar-label={labelColor}>
 	<div class="rg-turn-bar--copy">
 		<div class="rg-turn-bar--income-access">
@@ -270,7 +271,7 @@
 	}
 
 	.rg-turn-bar--proper {
-		color: var(--rg-turn-bar-track);
+		color: var(--rg-turn-bar-proper);
 		font-family: var(--font-title);
 		font-weight: var(--weight-title);
 	}

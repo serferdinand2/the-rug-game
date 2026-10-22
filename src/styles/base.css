@@ -1,21 +1,21 @@
 /* Global base styles: the self-hosted fonts, the page and focus. Component styles live in their components. */
 @font-face {
 	font-family: 'Cinzel';
-	src: url('/fonts/cinzel.ttf') format('truetype');
+	src: url('/fonts/cinzel.woff2') format('woff2');
 	font-weight: 400 900;
 	font-display: swap;
 }
 
 @font-face {
 	font-family: 'Atkinson Hyperlegible';
-	src: url('/fonts/atkinson-hyperlegible-regular.ttf') format('truetype');
+	src: url('/fonts/atkinson-hyperlegible-regular.woff2') format('woff2');
 	font-weight: 400;
 	font-display: swap;
 }
 
 @font-face {
 	font-family: 'Atkinson Hyperlegible';
-	src: url('/fonts/atkinson-hyperlegible-bold.ttf') format('truetype');
+	src: url('/fonts/atkinson-hyperlegible-bold.woff2') format('woff2');
 	font-weight: 700;
 	font-display: swap;
 }

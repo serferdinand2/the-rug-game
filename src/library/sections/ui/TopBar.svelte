@@ -95,16 +95,12 @@
 {/snippet}
 
 {#snippet playerChips(/** @type {boolean} */ filled)}
-	<div
-		style:display="flex"
-		style:gap="var(--space-4)">
-		{#each PLAYERS as player (player.seat)}
-			<PlayerChip
-				{...player}
-				current={player.seat === 1}
-				{filled} />
-		{/each}
-	</div>
+	{#each PLAYERS as player (player.seat)}
+		<PlayerChip
+			{...player}
+			current={player.seat === 1}
+			{filled} />
+	{/each}
 {/snippet}
 
 {#snippet chips()}

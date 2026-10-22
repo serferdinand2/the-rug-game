@@ -8,6 +8,7 @@ import {
 	TERRAINS,
 	SEATS,
 	trackColor,
+	trackTextColor,
 	playerColor,
 	resourceColor,
 	terrainColor,
@@ -49,6 +50,7 @@ test('the resources are listed in the overview order', () => {
 test('every track, resource, terrain and seat colour is a declared token', () => {
 	for (const track of TRACKS) {
 		assertDeclared(trackColor(track.id));
+		assertDeclared(trackTextColor(track.id));
 	}
 	for (const resource of RESOURCES) {
 		assertDeclared(resourceColor(resource.id));
@@ -60,6 +62,7 @@ test('every track, resource, terrain and seat colour is a declared token', () =>
 		assertDeclared(playerColor(seat));
 	}
 	assert.equal(trackColor('science'), 'var(--science)');
+	assert.equal(trackTextColor('military'), 'var(--military-text)');
 	assert.equal(playerColor(5), 'var(--player-5)');
 });
 

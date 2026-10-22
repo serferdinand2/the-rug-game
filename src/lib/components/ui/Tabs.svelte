@@ -151,7 +151,7 @@
 		border: 0;
 		border-radius: var(--radius);
 		background: transparent;
-		color: var(--faint);
+		color: var(--muted);
 		font-size: var(--font-size-sm);
 		font-weight: var(--weight-bold);
 		white-space: nowrap;
@@ -161,7 +161,7 @@
 	}
 
 	.rg-tabs--tab:hover {
-		color: var(--muted);
+		color: var(--text);
 	}
 
 	.rg-tabs--selected,

@@ -55,6 +55,7 @@
 		playerColor,
 		roman,
 		trackColor,
+		trackTextColor,
 	} from '../../ui.js';
 
 	/** @type {PlayerCardProps} */
@@ -147,7 +148,8 @@
 		{#each TRACKS as track (track.id)}
 			<span
 				class="rg-player-card--track"
-				style:--rg-player-card-track={trackColor(track.id)}>
+				style:--rg-player-card-track={trackColor(track.id)}
+				style:--rg-player-card-track-text={trackTextColor(track.id)}>
 				<span class="rg-player-card--track-name">{track.name}</span>
 				<i
 					class="rg-player-card--track-rule"
@@ -328,7 +330,7 @@
 		grid-template-columns: auto minmax(20px, 1fr) auto;
 		align-items: center;
 		gap: var(--space-4);
-		color: var(--rg-player-card-track);
+		color: var(--rg-player-card-track-text);
 	}
 
 	.rg-player-card--track-name {
