@@ -68,12 +68,12 @@ test('every tech card of each finished set is drawn', () => {
 	}
 });
 
-test('the first 10 base tech cards are drawn', () => {
+test('the first 20 base tech cards are drawn', () => {
 	const missing = ASSETS.filter(
 		(asset) => asset.group === 'tech' && asset.expansion === 'base'
 	)
-		.slice(0, 10)
+		.slice(0, 20)
 		.map((asset) => asset.id)
 		.filter((id) => !drawn.includes(id));
-	assert.deepEqual(missing, [], 'first 10 tech cards not drawn yet');
+	assert.deepEqual(missing, [], 'first 20 tech cards not drawn yet');
 });

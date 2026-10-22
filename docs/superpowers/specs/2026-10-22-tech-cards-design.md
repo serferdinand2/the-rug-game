@@ -85,6 +85,23 @@ The first plan reused the landmark pictures through a crop helper. It was remove
 | Clocks | An open gold pocket watch close up on dark velvet, its lid raised over the dial and the back opened on its gears and balance wheel, the chain coiled beside it, by lamplight | interior, night |
 | Com Tower | A dish antenna and a cluster of aerials on a mast top, close up against the night sky, rings of signal pulsing out and a red warning light blinking | night |
 
+**The next 10 (base game, owner asked for them on 2026-10-22: "do another 10", quickly, same rules, parallel agents)**
+
+| Card | Subject (builder may refine) | Light |
+|---|---|---|
+| Compass | A ship's binnacle close up on deck: the compass card under glass in a brass hood with side lamps, the ship's wheel and a blue sea behind | day |
+| Concrete | A trowel smoothing wet grey concrete poured into timber formwork, steel rods sticking up, a turning mixer drum spilling more beside it | day |
+| Dynamite | A bundle of red dynamite sticks tied with twine, its fuse fizzing with sparks, a plunger detonator box beside it on a rocky ledge | dusk |
+| Eyeglasses | A pair of round wire spectacles held up before a blurred market street, the view through each lens sharp | day |
+| Irrigation | A wooden water wheel lifting buckets from a river and tipping them into a channel that runs into green fields | day |
+| Library | A great brass-cornered book chained to a slanted lectern, open on illuminated pages (pictures and ruled lines only), an oil lamp and a basket of scrolls beside it | interior, night |
+| Light Bulb | A glowing filament bulb hanging from its cord in a brass socket, lighting a dark workshop, a snuffed candle stub below it | night |
+| Lithium-Ion Battery | A cylindrical battery cell cut away to show its rolled layers, a bright spark arcing to its terminal, a charging cable coiled beside it | night, teal glow |
+| Paper | A papermaker's wooden mould lifted dripping from a vat of white pulp, fresh sheets drying on lines behind | interior, day |
+| Penicillin | A glass dish close up with a blue-green mould bloom and a clear ring around it, a dropper and test tubes on a sunlit lab bench | interior, day |
+
+These keep clear of Cartography's night map table (Compass), the quarry of Exploitation (Dynamite), the study of Academia (Library), the Inventors' bulb held in a hand (Light Bulb), and Microbial Magic's microscope over glowing microbes (Penicillin).
+
 ### 6.4 Not a repeat
 
 Several of the first 10 sit close to earlier pictures, or to tech cards still to come. They keep clear:
