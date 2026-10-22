@@ -19,7 +19,7 @@ The design is in [2026-10-21-art-toolkit-design.md](../superpowers/specs/2026-10
 
 | File | What it holds |
 |---|---|
-| `art/painter.js` | The canvas, drawing helpers (`set`, `rect`, `line`, and `paint` for small sprites drawn from rows of keys), `outline`, `mix`, `seededRandom`, `underlay` and `toSvg` |
+| `art/painter.js` | The canvas, drawing helpers (`set`, `rect`, `line`, and `paint` for small sprites drawn from rows of keys), `outline`, `mix`, `seededRandom`, `underlay`, `crop` (a window of a larger picture, such as a landmark on its tech card) and `toSvg` |
 | `art/effects.js` | Light passes that blend colours over a painted canvas: `glow`, a banded glow around a lamp or fire. They live outside `art/parts/`, whose parts paint only palette colours |
 | `art/palette.js` | `PALETTE`: every named style C colour |
 | `art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure`, `drawSmoke` (smoke, steam), `drawClassical` (pediment, flat), `drawFactory`, `drawSkyline` (night, dusk, day), `drawStreet`, `drawShip` (1–3 masts, either way, sails set or furled), `drawInterior` (plaster, stone, panel; with a window onto any sky), `drawBanner` (flag, hanging), `drawCrowd` and `drawWheel` |
@@ -68,7 +68,7 @@ The Lighthouse (`art/drawings/landmark/lighthouse.js`) is the worked example:
   - People come in three skin tones, each with a shade: `skin` and `skinShade`, `skinTan` and `skinTanShade`, and `skinDeep` and `skinDeepShade`. Creatures such as aliens, genies and merfolk blend their skin from palette colours with `mix()`.
   - Colours are lowercase `#rrggbb`. `set()` throws on anything else, and on coordinates that aren't whole numbers.
 - **Illustrations other than landmarks.**
-  - They paint every pixel of their 64×64 canvas (full bleed), because the card frame needs a picture with no holes. `tests/art-tapestry.test.mjs` checks the tapestry cards, and `tests/art-civ.test.mjs` the civilization portraits.
+  - They paint every pixel of their 64×64 canvas (full bleed), because the card frame needs a picture with no holes. `tests/art-tapestry.test.mjs` checks the tapestry cards, `tests/art-civ.test.mjs` the civilization portraits, and `tests/art-tech.test.mjs` the tech cards.
   - They carry no lettering: the frame carries the card's name. They show no likeness of a real person. Real religious and political signs, flags and emblems are allowed (owner, 2026-10-22).
   - Explicit material is allowed where the subject calls for it: blood, wounds, drawn weapons, skulls, drink, smoke, gambling and the occult. So is bare skin where the subject has it, such as a merman or a werewolf in torn clothes (owner, 2026-10-22).
 - **Randomness.**

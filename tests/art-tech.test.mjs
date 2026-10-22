@@ -1,0 +1,82 @@
+// Tech cards (#10): one full 64×64 picture per card, no two alike.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+import { join } from 'node:path';
+import { DRAWINGS_DIR, listDrawingIds } from '../art/build.mjs';
+import { crop } from '../art/painter.js';
+import { ASSETS, EXPANSIONS } from '../src/lib/art/catalog.js';
+
+/** The sets whose every tech card must be drawn. Each set adds its code once it has been reviewed. */
+const FINISHED = [];
+
+const drawn = (await listDrawingIds()).filter((id) => id.startsWith('tech/'));
+
+/**
+ * Loads a drawing module by its asset id.
+ * @param {string} id
+ */
+function load(id) {
+	return import(pathToFileURL(join(DRAWINGS_DIR, `${id}.js`)).href);
+}
+
+/** Each drawn tech picture's canvas, by id. */
+const canvases = new Map();
+for (const id of drawn) {
+	canvases.set(id, (await load(id)).draw());
+}
+
+test('every tech picture paints all 4,096 pixels', () => {
+	for (const [id, canvas] of canvases) {
+		assert.equal(`${canvas.w}×${canvas.h}`, '64×64', id);
+		const empty = canvas.p.findIndex((colour) => !colour);
+		assert.equal(
+			empty,
+			-1,
+			`${id}: pixel (${empty % 64}, ${Math.floor(empty / 64)}) is empty`
+		);
+	}
+});
+
+test('no two tech pictures are the same', () => {
+	/** @type {Map<string, string>} */
+	const seen = new Map();
+	for (const [id, canvas] of canvases) {
+		const key = canvas.p.join();
+		assert.ok(
+			!seen.has(key),
+			`${id} is the same picture as ${seen.get(key)}`
+		);
+		seen.set(key, id);
+	}
+});
+
+test('every finished set is a known expansion', () => {
+	const codes = EXPANSIONS.map((expansion) => expansion.code);
+	for (const code of FINISHED) {
+		assert.ok(codes.includes(code), `"${code}" is not an expansion code`);
+	}
+});
+
+test('every tech card of each finished set is drawn', () => {
+	for (const code of FINISHED) {
+		const missing = ASSETS.filter(
+			(asset) => asset.group === 'tech' && asset.expansion === code
+		)
+			.map((asset) => asset.id)
+			.filter((id) => !drawn.includes(id));
+		assert.deepEqual(missing, [], `${code}: tech cards not drawn yet`);
+	}
+});
+
+test('the landmark cards show their landmark pictures', async () => {
+	const bakery = (await load('landmark/bakery')).draw();
+	assert.deepEqual(canvases.get('tech/bakery')?.p, bakery.p, 'tech/bakery');
+
+	for (const slug of ['barn', 'com-tower']) {
+		const card = await load(`tech/${slug}`);
+		const landmark = (await load(`landmark/${slug}`)).draw();
+		const window = crop(landmark, card.CROP.x, card.CROP.y, 64, 64);
+		assert.deepEqual(canvases.get(`tech/${slug}`)?.p, window.p, slug);
+	}
+});
