@@ -120,6 +120,17 @@ const COLOURS = {
 	skin: '#e9b48a',
 	skinShade: '#c58c66',
 
+	// Magic and the future: arcane violet, ghostly green and science-fiction teal, each lit, mid and shaded
+	arcaneLight: '#e2b8ff',
+	arcane: '#a86bf0',
+	arcaneShade: '#5f3a9e',
+	ghostLight: '#e6fff4',
+	ghost: '#9ff0d0',
+	ghostShade: '#4f9e8c',
+	tealLight: '#8ff7ef',
+	teal: '#2fb9b3',
+	tealShade: '#1a6a74',
+
 	// Interiors: warm plaster walls and dark floorboards
 	plasterLight: '#e3cfa8',
 	plaster: '#c9b088',
