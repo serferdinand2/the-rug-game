@@ -87,12 +87,12 @@ The setup decisions are pushed as **one group**: every player's `chooseCapital` 
 **After the group.** When the last pick is made, the engine runs the **after-setup steps**, in order. They are a second list in `setup.js`, so later issues add their own steps there:
 1. Reveal every pick.
 2. Shuffle every civilization nobody kept into the civilization deck, which later mid-game gains draw from (01 §2.2 step 3).
-3. Later issues add steps that touch shared things, in turn order from the first player:
-   - civilization setup that affects other players or shared supplies (#20), such as Tinkerers giving each opponent a tech card;
-   - the P&P landmark-card draft, which starts with the player to the right of the first player (#32).
+3. Later issues add their steps here:
+   - **Civilization setup that touches only the player's own things** (#20): a civilization's own setup choices, or a current-version adjustment that gains or loses a resource of the player's choice. It runs as a **second group**, one lane per player, so nobody waits for anyone else's private choices. It comes after the reveal because its results show on the board: Futurists advancing 4 spaces on every track would give the pick away.
+   - **Setup that touches other players or shared supplies**, in turn order from the first player. Examples are Tinkerers giving each opponent a tech card (#20), and the P&P landmark-card draft, which starts with the player to the right of the first player (#32).
 4. Set the phase to play, make the first player the current player, and ask them for their turn type with `chooseTurn`.
 
-Setup that touches only the player's own things stays inside the group, in that player's lane (§7). This covers a civilization's own setup choices and a current-version adjustment that gains or loses a resource of the player's choice (#20). So nobody waits for anyone else's private choices.
+So the first group holds only the picks.
 
 **Versions.** In #13 both versions set up the same way. In the original rules the capital is chosen before the civilization, and F&F draws both together. That makes no difference, because both are open at once. The version is kept in the state for #15's tiebreak and #20's adjustments.
 
@@ -150,7 +150,7 @@ A seat has a `kind`.
 - **Groups (simultaneous decisions). (my call)** A group is one operation on the stack, holding one **lane** per player. A lane is a small stack of its own.
   - Each player's open decisions are the top of their own lane, so players in a group never wait for each other.
   - When a player's answer pushes a follow-up, it goes on top of that player's lane, so only that player waits for it. Automatic operations in a lane run straight away.
-  - Effects that touch other players or shared supplies are never pushed inside a lane. They go to the after-setup steps (§5), or to after the group in general.
+  - Effects that touch other players or shared supplies are never pushed inside a lane. They run after the group: in setup, as the after-setup steps (§5).
   - When every lane is empty, the group comes off the stack and the run loop carries on with whatever is below it.
   - The setup choices are the first group: each lane starts with that player's `chooseCapital` and `chooseCiv`, pushed together, so either can be answered first.
 - **Answering.** `play(state, seat, action, random)`:
