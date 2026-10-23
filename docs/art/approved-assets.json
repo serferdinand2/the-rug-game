@@ -279,7 +279,8 @@
     "id": "capital-mat/mountain",
     "width": 288,
     "height": 288,
-    "sha256": "6e46a829dd064e6907d867785f8fcf9c68a1545d5e831ccf2f188d2416031e0f"
+    "sha256": "6e46a829dd064e6907d867785f8fcf9c68a1545d5e831ccf2f188d2416031e0f",
+    "example": true
   },
   {
     "id": "capital-terrain/wetland-open-01",
@@ -369,7 +370,8 @@
     "id": "capital-mat/wetland",
     "width": 288,
     "height": 288,
-    "sha256": "570d52cc5b89e266dabf720c8a5efd4916173c78901a2af8ed4d7ce909dae6c6"
+    "sha256": "570d52cc5b89e266dabf720c8a5efd4916173c78901a2af8ed4d7ce909dae6c6",
+    "example": true
   },
   {
     "id": "capital-terrain/tropical-open-01",
@@ -459,7 +461,8 @@
     "id": "capital-mat/tropical",
     "width": 288,
     "height": 288,
-    "sha256": "199cb4a1cb965e84dbd0521005a0bcb1154d392effc7d5153b8848bf685dfbad"
+    "sha256": "199cb4a1cb965e84dbd0521005a0bcb1154d392effc7d5153b8848bf685dfbad",
+    "example": true
   },
   {
     "id": "capital-terrain/desert-open-01",
@@ -549,7 +552,8 @@
     "id": "capital-mat/desert",
     "width": 288,
     "height": 288,
-    "sha256": "69560c87f59e8c486ef91f91724e03975c8d73d24efd9dd7125a52780baa0fa8"
+    "sha256": "69560c87f59e8c486ef91f91724e03975c8d73d24efd9dd7125a52780baa0fa8",
+    "example": true
   },
   {
     "id": "capital-terrain/grassland-open-01",
@@ -639,7 +643,8 @@
     "id": "capital-mat/grassland",
     "width": 288,
     "height": 288,
-    "sha256": "573877f850eb43cc1fddc0c03c4630a57047d732bf805f27ea5a76e6788a473e"
+    "sha256": "573877f850eb43cc1fddc0c03c4630a57047d732bf805f27ea5a76e6788a473e",
+    "example": true
   },
   {
     "id": "capital-terrain/forest-open-01",
@@ -729,6 +734,7 @@
     "id": "capital-mat/forest",
     "width": 288,
     "height": 288,
-    "sha256": "7d806c0bfe17e88049ff39796a0cb72d431909a47d4e353d6dc775193508f3e4"
+    "sha256": "7d806c0bfe17e88049ff39796a0cb72d431909a47d4e353d6dc775193508f3e4",
+    "example": true
   }
 ]

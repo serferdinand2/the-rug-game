@@ -128,7 +128,12 @@ export function drawTile(biome, blocked, variant) {
 	return tile;
 }
 
-/** @param {Biome} biome @returns {Canvas} */
+/**
+ * Draws a fixed example mat composition for reference only. Actual game mats must
+ * be assembled from terrain tiles for each game, using its setup and plot mask.
+ * @param {Biome} biome
+ * @returns {Canvas}
+ */
 export function drawCapitalMat(biome) {
 	const rows = CAPITAL_GRIDS[biome];
 	if (!rows) throw new Error(`Unknown capital mat: ${biome}`);

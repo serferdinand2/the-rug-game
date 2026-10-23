@@ -14,6 +14,8 @@ No official Stonemaier artwork, logos or rulebook text are used.
 
 ## Current interface
 
+The six full capital mat SVGs are examples only. Actual capital mats must be generated from the reusable terrain tiles for each game, following the game setup and the rules-defined plot layout.
+
 The owner-reviewed icons and small pieces from **#5** are available as SVGs in `static/art/`, with matching drawing sources and stable catalog ids. [The release notes](docs/art/issue-5.md) list the approved set and explain the text rendering or later artwork for dice faces, terrain hex markers and game symbols. [The complete review mockup](docs/art/archive/2026-10-23-issue-5/README.md), including its linked capital terrain page, is archived as a frozen reference.
 
 | Approved small-piece review | Reviewed capital terrain |

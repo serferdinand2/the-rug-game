@@ -9,6 +9,7 @@
 	 * @property {number | null} [plots=null] - Pixels per capital plot, to lay the plot grid over a landmark
 	 * @property {string} [expansion] - The expansion's name, for lists that mix them
 	 * @property {number} [issue] - The art issue that draws it, shown on an empty slot
+	 * @property {boolean} [example=false] - This picture demonstrates a composition rather than a fixed game mat
 	 */
 
 	/**
@@ -32,6 +33,7 @@
 		plots = null,
 		expansion,
 		issue,
+		example = false,
 		...attr
 	} = $props();
 </script>
@@ -76,6 +78,10 @@
 			<b>{name}</b>
 			{#if expansion}<span>{expansion}</span>{/if}
 			{#if id}<span>{id}</span>{/if}
+			{#if example}<span
+					>Example composition. Generate actual mats from terrain
+					tiles for each game.</span
+				>{/if}
 		</figcaption>
 	{/if}
 </figure>

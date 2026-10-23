@@ -7,6 +7,22 @@ import { createHash } from 'node:crypto';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import { listDrawingIds, renderAsset } from '../art/build.mjs';
 
+test('the six full base mats are explicitly marked as example compositions', () => {
+	assert.deepEqual(
+		ASSETS.filter((asset) => asset.example)
+			.map((asset) => asset.id)
+			.sort(),
+		[
+			'desert',
+			'forest',
+			'grassland',
+			'mountain',
+			'tropical',
+			'wetland',
+		].map((biome) => `capital-mat/${biome}`)
+	);
+});
+
 test('SVG round trips retain different alpha values for the same color', () => {
 	const svg =
 		'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 1" shape-rendering="crispEdges"><path fill="#000000" d="M0 0h1v1h-1z"/><path fill="#000000" fill-opacity="0.5" d="M1 0h1v1h-1z"/></svg>';

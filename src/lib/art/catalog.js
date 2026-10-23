@@ -14,6 +14,7 @@
  * @property {string} group - The group id, e.g. 'landmark'
  * @property {ExpansionCode} expansion - Where it comes from
  * @property {number} issue - The art issue (#5–#11) that draws it
+ * @property {boolean} [example] - A reference composition; actual game mats are assembled from tiles per game
  */
 
 /**
@@ -697,6 +698,9 @@ export const ASSETS = Object.freeze(
 					group: group.id,
 					expansion: code,
 					issue: group.issue,
+					...(group.id === 'capital-mat' && code === 'base'
+						? { example: true }
+						: {}),
 				})
 			)
 		)
