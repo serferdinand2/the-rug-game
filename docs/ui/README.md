@@ -10,6 +10,8 @@ This is a phase-one milestone, not completion of issue #3. The missing screens a
 
 ## Reference files and preview
 
+The owner-reviewed #5 icon mockup and its linked capital terrain page are preserved in [the art review archive](../art/archive/2026-10-23-issue-5/README.md). The production SVG inventory and deferred text symbols are documented in [the asset handoff](../art/issue-5.md). These assets can be reviewed in the component library's Art sections.
+
 | File | Purpose |
 |---|---|
 | [launch.html](launch.html) | Entry page: name, create/join table and public table list |

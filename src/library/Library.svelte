@@ -153,6 +153,7 @@
 						<ArtTile
 							name={tile.asset.name}
 							id={tile.asset.id}
+							example={tile.asset.example}
 							picture={PICTURES.get(tile.asset.id)}
 							plots={tile.plots}
 							expansion={tile.showExpansion
