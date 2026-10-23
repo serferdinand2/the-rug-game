@@ -99,10 +99,15 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
   - Few buildings (owner): the landmark cards show their invention, not their landmark. Bakery is newly discovered bread, Barn a newborn calf in straw, and Com Tower a dish antenna close up. Library, Stock Market and Treasury will do the same.
   - Clocks was drawn first as the reference; subagents drew the other nine side by side, and a fresh review followed.
   - `tests/art-tech.test.mjs` checks full bleed, no twins, and that every card of every set is drawn.
-- **#11 (masterpieces, landmark cards, space and inspiration tiles)** is under way (2026-10-23). All 20 masterpieces are drawn and wait for the owner's approval in the component library; the landmark cards, space tiles and inspiration tiles remain. The design is `docs/superpowers/specs/2026-10-23-masterpieces-design.md` and the plan is `docs/superpowers/plans/2026-10-23-masterpieces-issue-11.md`.
-  - The owner asked for the same rules as the other pictures, parallel subagents, few buildings and "7/10 on details": one clear hero and about 50 to 90 colours, with the Compass, Calendar and Entertainers pictures as the yardstick.
-  - Each masterpiece shows its art form as the hero: the work itself, the performer, or the maker's hands at it. Seven subagents drew them side by side, and a fresh review followed.
-  - `tests/art-masterpiece.test.mjs` checks full bleed, no twins, and that all 20 are drawn.
+- **#11 (masterpieces, landmark cards, space and inspiration tiles)** is under way (2026-10-23). All 20 masterpieces and all 10 landmark cards are drawn and wait for the owner's approval in the component library; the space tiles and inspiration tiles remain.
+  - **Masterpieces.** The design is `docs/superpowers/specs/2026-10-23-masterpieces-design.md` and the plan is `docs/superpowers/plans/2026-10-23-masterpieces-issue-11.md`.
+    - The owner asked for the same rules as the other pictures, parallel subagents, few buildings and "7/10 on details": one clear hero and about 50 to 90 colours, with the Compass, Calendar and Entertainers pictures as the yardstick.
+    - Each masterpiece shows its art form as the hero: the work itself, the performer, or the maker's hands at it. Seven subagents drew them side by side, and a fresh review followed.
+    - `tests/art-masterpiece.test.mjs` checks full bleed, no twins, and that all 20 are drawn.
+  - **Landmark cards.** The design is `docs/superpowers/specs/2026-10-23-landmark-cards-design.md` and the plan is `docs/superpowers/plans/2026-10-23-landmark-cards-issue-11.md`.
+    - The owner asked for "only artwork again", read as the masterpieces' rules and process.
+    - Each card shows the life of its landmark close up, not the building's outside, which the landmark picture (#7) already shows: the game on the store's table, the camera in the studio, the gears inside the mill. Five subagents drew them side by side, two each, and a fresh review followed.
+    - `tests/art-landmark-card.test.mjs` checks full bleed, no twins, and that all 10 are drawn.
 - **Decided 2026-10-22:**
   - Pictures may show real religious and political signs, flags and emblems, but no likeness of a real person and no lettering (owner).
   - Pictures may also show explicit material where the subject calls for it: blood, wounds, drawn weapons, skulls, drink, smoke, gambling, the occult, and bare skin where the subject has it (owner, #8).
@@ -120,7 +125,7 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
   - #10 The owner reviews all 56 tech pictures, then #10 closes.
-  - #11 The owner reviews the 20 masterpieces; the landmark cards, space tiles and inspiration tiles follow.
+  - #11 The owner reviews the 20 masterpieces and the 10 landmark cards; the space tiles and inspiration tiles follow.
   - #5 and #6 Draw the rest of the art with the toolkit.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 

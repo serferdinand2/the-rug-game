@@ -68,7 +68,7 @@ The Lighthouse (`art/drawings/landmark/lighthouse.js`) is the worked example:
   - People come in three skin tones, each with a shade: `skin` and `skinShade`, `skinTan` and `skinTanShade`, and `skinDeep` and `skinDeepShade`. Creatures such as aliens, genies and merfolk blend their skin from palette colours with `mix()`.
   - Colours are lowercase `#rrggbb`. `set()` throws on anything else, and on coordinates that aren't whole numbers.
 - **Illustrations other than landmarks.**
-  - They paint every pixel of their 64×64 canvas (full bleed), because the card frame needs a picture with no holes. `tests/art-tapestry.test.mjs` checks the tapestry cards, `tests/art-civ.test.mjs` the civilization portraits, `tests/art-tech.test.mjs` the tech cards, and `tests/art-masterpiece.test.mjs` the masterpieces.
+  - They paint every pixel of their 64×64 canvas (full bleed), because the card frame needs a picture with no holes. `tests/art-tapestry.test.mjs` checks the tapestry cards, `tests/art-civ.test.mjs` the civilization portraits, `tests/art-tech.test.mjs` the tech cards, `tests/art-masterpiece.test.mjs` the masterpieces, and `tests/art-landmark-card.test.mjs` the landmark cards.
   - They carry no lettering: the frame carries the card's name. They show no likeness of a real person. Real religious and political signs, flags and emblems are allowed (owner, 2026-10-22).
   - Explicit material is allowed where the subject calls for it: blood, wounds, drawn weapons, skulls, drink, smoke, gambling and the occult. So is bare skin where the subject has it, such as a merman or a werewolf in torn clothes (owner, 2026-10-22).
 - **Randomness.**
