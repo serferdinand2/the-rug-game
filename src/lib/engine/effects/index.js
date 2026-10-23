@@ -1,8 +1,9 @@
 // The effect handlers by kind, and the automatic operation that runs a list of effects.
 import { vp } from './vp.js';
+import { gain } from './gain.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
-export const EFFECTS = { vp };
+export const EFFECTS = { vp, gain };
 
 /**
  * Runs the first effect of an `effects` operation; the rest wait under whatever it pushes.
