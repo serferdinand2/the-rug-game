@@ -125,9 +125,10 @@ The engine is the most important code in the project. It follows the sibling pro
   - `play(state, playerId, action, random)` returns a **new** state built from a `structuredClone`. A rejected action never touches the live state.
 - **Effects as data.** Track spaces, cards and civilizations describe their effects as data, for example `{ gain: { any: 1 } }`, `{ explore: 1 }` or `{ conquer: 1 }`. The engine interprets them, so one effect resolver serves the whole game.
 - **Pending decisions.**
-  - Anything that needs a player's choice pushes a decision, such as `{ player, kind: 'chooseResource', … }`.
-  - An action answers the top decision.
-  - A decision can belong to a player whose turn it isn't, such as a trap response.
+  - Effects push operations onto `state.pending`, and the run loop runs the automatic ones and stops at a decision, such as `{ player, kind: 'chooseResource', … }`.
+  - An action answers the top decision. A decision can belong to a player whose turn it isn't, such as a trap response.
+  - A group holds one lane per player, so players decide at the same time.
+  - Each decision kind is a module in `src/lib/engine/decisions/` with `answers`, `check`, `resolve` and `hidden`, registered in `kinds.js`. Handlers get a `Context` (`ctx.push`, `ctx.pushGroup`) and never import the stack.
 - **Errors meant for players** are `throw new PlayerError('…')`, written as a sentence a player understands. Any other error is a bug.
 - **Events.** Every change appends a typed event with an increasing `seq`. The client animates and writes the log from events, never by diffing state.
 - **Privacy.** `view(state, playerId)` is the only way state leaves the server. It hides hands, deck order and face-down tiles.
