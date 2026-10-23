@@ -118,15 +118,30 @@ test('automatic operations in a lane run straight away, and an empty group comes
 test('locate finds a decision in a lane and says whether it is open', () => {
 	const state = fixture();
 	pushGroup(state, [
-		{ player: 1, ops: [turn(1), turn(1)] },
+		{ player: 1, ops: [turn(1)] },
 		{ player: 2, ops: [turn(2)] },
 	]);
 	const group = state.pending[0];
+	push(state, group.lanes[0].stack, [turn(1)]);
+	push(state, group.lanes[0].stack, [turn(1)]);
 	const [top, below] = group.lanes[0].stack;
 	assert.equal(locate(state, top.id).open, true);
 	assert.equal(locate(state, below.id).open, false);
 	assert.equal(locate(state, top.id).stack, group.lanes[0].stack);
 	assert.equal(locate(state, 999), null);
+});
+
+test('decisions pushed together in a lane are all open', () => {
+	const state = fixture();
+	pushGroup(state, [
+		{ player: 1, ops: [turn(1), turn(1)] },
+		{ player: 2, ops: [turn(2)] },
+	]);
+	run(state, seededRandom(1));
+	assert.equal(openDecisions(state).length, 3);
+	for (const op of state.pending[0].lanes[0].stack) {
+		assert.equal(locate(state, op.id).open, true);
+	}
 });
 
 test('pushGroup inside a lane is an Error, and push targets the lane', () => {

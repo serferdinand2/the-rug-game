@@ -52,29 +52,38 @@ export function isDecision(op) {
 }
 
 /**
- * The decisions on top of the main stack (its top batch), or each lane's top decision when a group is on top.
- * @param {State} state
+ * The top batch of decisions of a stack: consecutive decisions from the top that share the top operation's batch.
+ * @param {(Operation | Group)[]} stack
  * @returns {Operation[]}
  */
-export function openDecisions(state) {
-	const top = state.pending[0];
-	if (!top) {
+function topBatch(stack) {
+	const top = stack[0];
+	if (!top || top.kind === 'group') {
 		return [];
 	}
-	if (top.kind === 'group') {
-		const lanes = /** @type {Group} */ (top).lanes;
-		return lanes.flatMap((lane) =>
-			lane.stack[0] && isDecision(lane.stack[0]) ? [lane.stack[0]] : []
-		);
-	}
 	const open = [];
-	for (const op of /** @type {Operation[]} */ (state.pending)) {
+	for (const op of /** @type {Operation[]} */ (stack)) {
 		if (op.batch !== top.batch || !isDecision(op)) {
 			break;
 		}
 		open.push(op);
 	}
 	return open;
+}
+
+/**
+ * The top batch of decisions on the main stack, or of every lane when a group is on top.
+ * @param {State} state
+ * @returns {Operation[]}
+ */
+export function openDecisions(state) {
+	const top = state.pending[0];
+	if (top && top.kind === 'group') {
+		return /** @type {Group} */ (top).lanes.flatMap((lane) =>
+			topBatch(lane.stack)
+		);
+	}
+	return topBatch(state.pending);
 }
 
 /**
