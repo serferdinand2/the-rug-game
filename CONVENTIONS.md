@@ -30,7 +30,7 @@ These are the coding conventions for The Rug Game. Every contributor and coding 
 
 ## Project layout
 
-This is the layout. It follows the owner's other Svelte projects: everything the app ships is in `src/`, shared code in `src/lib/`, and `static/` at the root. `src/lib/engine/` arrives with the rules engine (#12).
+This is the layout. It follows the owner's other Svelte projects: everything the app ships is in `src/`, shared code in `src/lib/`, and `static/` at the root. `src/lib/engine/` holds the rules engine; its `data/` folder holds the game data (#12).
 
 ```
 index.html               The game page (Vite's root is the project root)
@@ -40,7 +40,8 @@ src/
   App.svelte
   lib/                   Everything the app shares
     components/<area>/   Svelte components grouped by area: ui, board, player, prompts, lobby, gallery
-    engine/              Rules engine: pure JS, shared by the server and the app (#12)
+    engine/              Rules engine: pure JS, shared by the server and the app
+      data/              Game data as frozen modules: tracks, income mat, capitals, maps, tiles, landmarks, dice (#12)
     art/                 catalog.js (asset ids) and footprints.js (landmark footprints), read by the app, the engine and the art toolkit
     component-event.js   Plain JS modules: component-event.js, api.js, game.svelte.js …
   library/               The library page: Library, Section, Example, sections/<area>/<Name>.svelte, and the art (art.js, ArtTile)

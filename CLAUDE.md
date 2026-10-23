@@ -51,7 +51,7 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
     - `capital.js` holds the capital-grid geometry the interface needs: footprint rotation, legal positions and completed groups;
     - `art/catalog.js` lists all 413 assets with stable `<group>/<slug>` ids. It imports nothing, so the app and the engine can load it;
     - `art/footprints.js` holds the 33 landmark footprints. A landmark's picture is drawn in its footprint's shape at 32 pixels per plot, and the art build refuses one that covers the wrong plots. The rules engine must reuse this module;
-    - `engine/` will hold the rules engine (#12 onward), shared by the server and the app.
+    - `engine/` holds the rules engine, shared by the server and the app. It imports only relative paths: no DOM, Svelte or Node. Its `data/` folder holds the base-game data (#12), plain frozen modules: `ids.js` (versions with their tiebreak chains, and the track, resource, building and terrain ids), `effects.js` (the effect vocabulary), `tracks.js`, `income-mat.js`, `capitals.js`, `maps.js`, `territory-tiles.js`, `space-tiles.js`, `landmarks.js`, `achievements.js` and `dice.js`. Every benefit is a list of one-key effects such as `{ gain: { any: 1 } }`, explained in `docs/superpowers/specs/2026-10-24-base-game-data-design.md`.
   - `src/styles/` holds `tokens.css`, `base.css` and `pixel-noise.svg`:
     - `tokens.css` is the single source of truth for colours, the texture, type, spacing, layout sizes, borders, shadows, motion and layers;
     - `base.css` has the `@font-face` rules, the page and the focus outline;
@@ -74,7 +74,7 @@ The six full capital mat SVGs are examples only. Actual capital mats must be gen
 
 **#5 is complete (owner approval, 2026-10-23).** The reviewed resources, four income buildings, five track symbols, neutral player pieces and all five player-color variants are committed as reproducible SVGs. The associated 84 capital terrain tiles and six example mat compositions contribute to #6, which remains open. See `docs/art/issue-5.md` for the inventory and the decision to render dice faces and game symbols through text or draw them later with the map's terrain hex markers. The full former mockup is frozen in `docs/art/archive/2026-10-23-issue-5/`; placeholder dice, terrain hex marker and game-symbol drawings are archived only.
 
-Updated 2026-10-23. Update this section whenever a milestone moves.
+Updated 2026-10-24. Update this section whenever a milestone moves.
 
 - **Done:**
   - Rules research (`docs/research/`).
@@ -84,7 +84,7 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
   - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. The owner closed #48 on 2026-10-21, ahead of its blocker #3.
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2, #4, #7, #8, #9, #44, #46 and #48 are done.**
+- **#1, #2, #4, #7, #8, #9, #12, #44, #46 and #48 are done.**
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R104).
@@ -116,6 +116,13 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
     - The owner asked for them to be finished and pushed to main, one parallel subagent per tile.
     - Each tile is a 192×32 strip: its income row's six innovations, one 32×32 space each (the size of a building), on the arts track's violet. The improved spaces 2, 4 and 6 have a gold frame and a sparkle. The benefits are not drawn; the interface shows them.
     - `art/parts/inspiration-tile.js` draws the shared frame, ground and sparkle. `tests/art-inspiration-tile.test.mjs` checks the size, full bleed, the frames, that each innovation fills its space, no twin spaces, and that all 4 are drawn.
+- **#12 (base game data)** is done (2026-10-24). It is the first rules-engine issue. The design is `docs/superpowers/specs/2026-10-24-base-game-data-design.md`.
+  - `src/lib/engine/data/` holds the 48 track spaces with their tier costs and `advanceCost()`, the income mat's 24 spaces and 4 tapestry slots, the 6 capital mats with their start hexes, both map sides (61 and 34 hexes, 25 and 13 printed territories), the 48 territory tiles, the 15 space tiles, the 18 base landmarks with R12's height ranking of all 33, the 3 achievements and the 3 dice.
+  - Effects are data: a benefit is a list of one-key effects, taken in any order unless `ordered`, and a bonus is `{ pay, gain }`. The design lists the 19 effect kinds and the VP counters; #13–#20 interpret them.
+  - Both versions share the board data (R1, R5); `VERSIONS` holds each version's tiebreak chain (R10, R11), and only the current one uses the height ranking.
+  - Landmark footprints come from `src/lib/art/footprints.js`, and the grid size and plot numbering from `src/lib/capital.js`. The ids match `src/lib/ui.js` and the asset catalog.
+  - The research has no side-to-neighbour mapping for hexes, so `HEX_SIDES` in `maps.js` is read from BGA's explore-scoring code, as are the small-map orientations (all 0 except `0_3`, turned 2). The tiles, printed territories, orientations and mat grids were cross-checked against BGA's `material.inc.php` and 01 §6.2 with no differences.
+  - `tests/engine-data.test.mjs` checks every count, spot values from the research, that every effect has one known kind, that the data is frozen, and that engine modules import only relative paths.
 - **Decided 2026-10-23:**
   - Civilization cards use option B · Civilization mat from `docs/ui/collectors-card-options.html` (owner). It is 456 px wide, so it fits the Civilization tab. One component filled from data will draw all 41 civilizations, under #47; the owner asked for it ahead of #47's blocker #3.
   - The tracks backdrop, the income mat with its F&F overlay and the table background are cosmetic enhancements (owner). They moved from #6 to #51, in the new milestone M12 · Cosmetic enhancements, and are drawn after the core features. `COSMETIC_BOARDS` in `src/lib/art/catalog.js` gives them issue 51, so the library names it on their empty slots.
@@ -132,7 +139,7 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
   - Cloud Colonies is back (owner). R77 lists the territories that show clouds, read from BGA's tile and board images, and #49 adds the card. The territory-tile and map art (#6) must show clouds on exactly those territories.
   - The owner-check rules are settled by Board Game Arena for now, not the physical box (owner). 17 are marked **BGA** in the README's "Rules conventions"; R28 and R40 were corrected to match BGA, and R66 now gives the track order from BGA's board images, so Twin Impact is in. R12 and R39 stay owner-check, because BGA has no data for them.
 - **Next:**
-  - #12 Encode the base game data. This is the first rules-engine issue, and it is ready.
+  - #13 Build the rules engine core with pending decisions. Its only blocker, #12, is done.
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
   - #10 The owner reviews all 56 tech pictures, then #10 closes.
