@@ -151,7 +151,7 @@
 		border: 0;
 		border-radius: var(--radius);
 		background: transparent;
-		color: var(--muted);
+		color: var(--faint);
 		font-size: var(--font-size-sm);
 		font-weight: var(--weight-bold);
 		white-space: nowrap;

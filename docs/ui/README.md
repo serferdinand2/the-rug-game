@@ -73,8 +73,7 @@ The launch headline “Advance through…” and the lobby invitation use Cinzel
 | Primary action and current-player glow / placement, confirmation and readiness | `--action` / `--ok` | `#79b99b` / `#8fd0aa` |
 | Mute slash, impassable plots, remove controls | `--danger` | `#e05f5f` |
 | Exploration / Science / Technology / Military | `--exploration` … `--military` | `#3f83a8` / `#579274` / `#b57a3b` / `#a94f4f` |
-| Track names and other text in a track's colour | `--exploration-text` … `--military-text` | the track colour mixed 60/40 with `--text`, 4.5:1 or better on ink, chrome, control and surface |
-| Players, seats 1–5 | `--player-1` … `--player-5` | `#4ea1d3` / `#e06a55` / `#64ae67` / `#e1b84d` / `#7577e3` |
+| Players, seats 1–5 | `--player-1` … `--player-5` | `#4ea1d3` / `#e06a55` / `#64ae67` / `#e1b84d` / `#b07fd0` |
 | Coin (markets) / worker (houses) / food (farms) / culture (armories) | `--coin` … `--culture` | `#e2b857` / `#aab2b5` / `#b88746` / `#c8644b` |
 | Sea / desert / forest / grassland / mountain / unexplored | `--sea` … `--unexplored` | `#396d98` / `#c9a55d` / `#477a50` / `#91a85a` / `#85878a` / `#30383c` |
 | Expansion badges: Arts & Architecture / Plans & Ploys / Fantasies & Futures | `--arts-architecture` … | `#bd9155` / `#7e9f86` / `#9d83ae` |
@@ -83,11 +82,11 @@ The references used several near-identical values for some roles, for example `#
 
 The pixel texture consists of small, crisp, low-contrast gray squares. Keep it visible behind both middle sections, including behind the right-panel tabs. The source SVG is 1920×1080 with 8px marks and is intended as a repeated texture. The game uses `--texture`: a 256×256 tile cropped from the source, with one path per colour, repeated over `--surface`. The same texture is used by launch and lobby; do not introduce a separate flat-background variant.
 
-Player identity and track identity are separate colour systems. **The game uses the play page's brighter player colours, with periwinkle violet `#7577e3` for seat five** (`--player-1` to `--player-5`). The first seat-five purple, `#b07fd0`, looked almost the same as seat one's blue to deuteranopes; `tests/styles.test.mjs` now checks that colour-blind players can tell all five seats apart. The launch and lobby references still show their earlier swatches, which reuse the track colours (blue `#3f83a8`, red `#a94f4f`, green `#579274`, bronze `#b57a3b`, purple `#a98bba`); build those pages with the player tokens instead. Seat four's yellow is close to the gold selection colour, so a selection must also show its outline, never colour alone.
+Player identity and track identity are separate colour systems. **The game uses the play page's brighter player colours, with purple `#b07fd0` for seat five** (`--player-1` to `--player-5`). The launch and lobby references still show their earlier swatches, which reuse the track colours (blue `#3f83a8`, red `#a94f4f`, green `#579274`, bronze `#b57a3b`, purple `#a98bba`); build those pages with the player tokens instead. Seat four's yellow is close to the gold selection colour, so a selection must also show its outline, never colour alone.
 
 **Corners are square throughout** (`--radius: 0`), including selected tabs, player cards, controls and selection outlines. Lobby mute/menu controls match the game's dark 36×36 control buttons and red diagonal mute slash; the small corner radius visible in the lobby reference is not carried into the game. Ordinary panels should not gain new drop shadows. Header/footer separation uses thin divider rules; in player-overview mode remove the header divider over the overview area and keep the footer divider.
 
-Use gold for selection, the track text colours (`--exploration-text` … `--military-text`) for track names, because the track colours themselves are too dark to read as text, and green for the current player glow, valid placement guidance and confirmation. Keep names, outlines and symbols as additional signals; colour alone must not carry state. The placeholder resource-cost symbols are the existing small square and diamond shapes in the track era prices. Use the same placeholders in overview resources and footer costs until final resource art is wired in.
+Use gold for selection, the track colours for track names, and green for the current player glow, valid placement guidance and confirmation. Keep names, outlines and symbols as additional signals; colour alone must not carry state. The placeholder resource-cost symbols are the existing small square and diamond shapes in the track era prices. Use the same placeholders in overview resources and footer costs until final resource art is wired in.
 
 ## Launch page
 

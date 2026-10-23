@@ -32,18 +32,12 @@
 	--technology: #b57a3b;
 	--military: #a94f4f;
 
-	/* ---------- Colour: track names and other text in a track's colour; 4.5:1 on ink, chrome, control and surface ---------- */
-	--exploration-text: color-mix(in srgb, var(--exploration) 60%, var(--text));
-	--science-text: color-mix(in srgb, var(--science) 60%, var(--text));
-	--technology-text: color-mix(in srgb, var(--technology) 60%, var(--text));
-	--military-text: color-mix(in srgb, var(--military) 60%, var(--text));
-
 	/* ---------- Colour: players, by seat; kept apart from the track colours, and from each other for colour-blind players ---------- */
 	--player-1: #4ea1d3;
 	--player-2: #e06a55;
 	--player-3: #64ae67;
 	--player-4: #e1b84d;
-	--player-5: #7577e3; /* a periwinkle violet: the earlier purple looked like seat one's blue to deuteranopes */
+	--player-5: #b07fd0;
 
 	/* ---------- Colour: resources, and the buildings that produce them (placeholders until the icons land) ---------- */
 	--coin: var(--gold); /* markets */
