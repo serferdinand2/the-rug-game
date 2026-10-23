@@ -131,7 +131,7 @@ The engine is the most important code in the project. It follows the sibling pro
 - **Errors meant for players** are `throw new PlayerError('…')`, written as a sentence a player understands. Any other error is a bug.
 - **Events.** Every change appends a typed event with an increasing `seq`. The client animates and writes the log from events, never by diffing state.
 - **Privacy.** `view(state, playerId)` is the only way state leaves the server. It hides hands, deck order and face-down tiles.
-- **Randomness** comes in as a `random()` function: `crypto.randomInt` on the server, and a seeded generator in tests.
+- **Randomness** comes in as a `random(n)` function returning a whole number from 0 to n − 1: `crypto.randomInt` on the server, `seededRandom(seed)` from `src/lib/engine/random.js` in tests. The state never holds a seed.
 - **Rules decisions** come from `docs/research/` and the README's "Rules conventions". A rule nobody has decided gets an issue, never a guess.
 
 ## Server
