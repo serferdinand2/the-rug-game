@@ -172,6 +172,7 @@ Notes on the counts:
 - **Dice.** The science faces show the four track symbols. Red: 4, 5, 6 and 7 VP and "1 VP per territory". Black: coin, worker, food, culture and "?". A&A adds the arts face for the d20.
 - **Boards follow #6.**
   - The boards are the large map (4–5 players), the small map (1–3 players), the tracks-view backdrop, the income mat, the table background, and the F&F income-mat overlay "[5]" (one design for its 5 copies).
+  - The tracks-view backdrop, the income mat, its overlay and the table background are cosmetic. The owner moved them to #51 on 2026-10-23, to be drawn after the core features; `COSMETIC_BOARDS` in the catalog gives them that issue.
   - The arts track is a fifth row of the tracks view, so it shares the backdrop instead of having its own board.
   - The landmark board and the Automa income mat get no art. The interface shows free landmarks on the track spaces and draws the Automa mat as a component.
 - **Hexes** are the map terrain art #6 asks for: sea, desert, forest, grassland, mountain and unexplored. The map sides are built from them.

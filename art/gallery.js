@@ -44,7 +44,7 @@ import { PLOT_SIZE, FOOTPRINTS } from '../src/lib/art/footprints.js';
  * @typedef {Object} GallerySection
  * @property {string} id - The group id, such as 'landmark'
  * @property {string} label - Its heading, such as 'Landmarks'
- * @property {number} issue - The art issue that draws it
+ * @property {number[]} issues - The art issues that draw its assets, lowest first
  * @property {number} total - How many assets it has
  * @property {number} drawn - How many of them are drawn
  * @property {GalleryList[]} lists
@@ -321,7 +321,13 @@ export function gallerySections(assets, drawn) {
 		return {
 			id: group.id,
 			label: group.label,
-			issue: group.issue,
+			issues: [
+				...new Set(
+					members.length > 0
+						? members.map((asset) => asset.issue)
+						: [group.issue]
+				),
+			].sort((a, b) => a - b),
 			total: members.length,
 			drawn: members.filter((asset) => drawn.has(asset.id)).length,
 			lists,

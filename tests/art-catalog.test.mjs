@@ -2,7 +2,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { ASSETS, GROUPS, EXPANSIONS } from '../src/lib/art/catalog.js';
+import {
+	ASSETS,
+	GROUPS,
+	EXPANSIONS,
+	COSMETIC_BOARDS,
+} from '../src/lib/art/catalog.js';
 
 /** Counts per group and expansion, copied from the design's §7.4 table. */
 const EXPECTED_COUNTS = {
@@ -68,7 +73,9 @@ test('every asset takes its kind and issue from its group, and its id starts wit
 		const group = groups.get(asset.group);
 		assert.ok(group, `${asset.id}: unknown group ${asset.group}`);
 		assert.equal(asset.kind, group.kind, asset.id);
-		assert.equal(asset.issue, group.issue, asset.id);
+		if (!COSMETIC_BOARDS.includes(asset.id)) {
+			assert.equal(asset.issue, group.issue, asset.id);
+		}
 		assert.ok(asset.id.startsWith(`${asset.group}/`), asset.id);
 		assert.ok(
 			EXPANSIONS.some((e) => e.code === asset.expansion),
@@ -149,7 +156,8 @@ test('spot checks match the agreed spellings', () => {
 		['territory-tile/48', 'Territory tile 48', 'base', 6],
 		['capital-mat/city-in-a-bottle', 'City in a Bottle', 'ff', 6],
 		['space-tile/technology-5-vp', 'Technology 5 VP', 'pp', 11],
-		['board/income-overlay', 'Income-mat overlay [5]', 'ff', 6],
+		['board/income-overlay', 'Income-mat overlay [5]', 'ff', 51],
+		['board/map-large', 'Large map (4–5 players)', 'base', 6],
 		['inspiration-tile/armories', 'Armories', 'aa', 11],
 		['landmark/forge', 'Forge', 'base', 7],
 	];
@@ -164,6 +172,22 @@ test('spot checks match the agreed spellings', () => {
 			},
 			{ name, expansion, issue },
 			id
+		);
+	}
+});
+
+test('the cosmetic boards wait for #51, after the core features', () => {
+	assert.deepEqual([...COSMETIC_BOARDS].sort(), [
+		'board/income-mat',
+		'board/income-overlay',
+		'board/table',
+		'board/tracks',
+	]);
+	for (const asset of ASSETS.filter((a) => a.group === 'board')) {
+		assert.equal(
+			asset.issue,
+			COSMETIC_BOARDS.includes(asset.id) ? 51 : 6,
+			asset.id
 		);
 	}
 });

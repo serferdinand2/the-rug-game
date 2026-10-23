@@ -112,6 +112,8 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
     - The owner asked for "only artwork again", read as the masterpieces' rules and process.
     - Each card shows the life of its landmark close up, not the building's outside, which the landmark picture (#7) already shows: the game on the store's table, the camera in the studio, the gears inside the mill. Five subagents drew them side by side, two each, and a fresh review followed.
     - `tests/art-landmark-card.test.mjs` checks full bleed, no twins, and that all 10 are drawn.
+- **Decided 2026-10-23:**
+  - The tracks backdrop, the income mat with its F&F overlay and the table background are cosmetic enhancements (owner). They moved from #6 to #51, in the new milestone M12 · Cosmetic enhancements, and are drawn after the core features. `COSMETIC_BOARDS` in `src/lib/art/catalog.js` gives them issue 51, so the library names it on their empty slots.
 - **Decided 2026-10-22:**
   - Pictures may show real religious and political signs, flags and emblems, but no likeness of a real person and no lettering (owner).
   - Pictures may also show explicit material where the subject calls for it: blood, wounds, drawn weapons, skulls, drink, smoke, gambling, the occult, and bare skin where the subject has it (owner, #8).
@@ -130,7 +132,7 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
   - #10 The owner reviews all 56 tech pictures, then #10 closes.
   - #11 The owner reviews the 20 masterpieces and the 10 landmark cards; the space tiles and inspiration tiles follow.
-  - #6 Finish the remaining map, territory-tile and expansion capital art.
+  - #6 Finish the remaining map, territory-tile and expansion capital art. The cosmetic boards wait in #51 until the core features are done.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
 ## Starting on a new computer
@@ -150,7 +152,7 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
 
 ## Working on issues
 
-- **Order.** Work milestone by milestone, M0 to M11, as shown by the `M… · …` labels and milestones.
+- **Order.** Work milestone by milestone, M0 to M12, as shown by the `M… · …` labels and milestones.
   - Before starting an issue, check its blockers. Never start a blocked issue.
   - On GitHub, the blockers are under **Relationships → Blocked by**, and each blocked issue also has a "Blocked by" comment.
   - From the command line: `gh api repos/serferdinand2/the-rug-game/issues/<n>/dependencies/blocked_by --jq '.[] | "\(.number) \(.state) \(.title)"'`.

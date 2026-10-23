@@ -55,6 +55,19 @@
 	/** @type {LibraryProps} */
 	let { title = 'Components', ...attr } = $props();
 
+	/**
+	 * Names the art issues that draw a section, such as 'art issue #9 draws them'.
+	 * @param {number[]} issues
+	 * @returns {string}
+	 */
+	function issueText(issues) {
+		const names = issues.map((issue) => `#${issue}`);
+		if (names.length === 1) {
+			return `art issue ${names[0]} draws them`;
+		}
+		return `art issues ${names.slice(0, -1).join(', ')} and ${names.at(-1)} draw them`;
+	}
+
 	const modules = /** @type {Record<string, import('svelte').Component>} */ (
 		import.meta.glob('./sections/*/*.svelte', {
 			eager: true,
@@ -141,8 +154,9 @@
 				id={artAnchor(section.id)}
 				name={section.label}
 				area="art"
-				description="{section.total} assets, {section.drawn} drawn; art issue #{section.issue} draws them.{section.id ===
-				'landmark'
+				description="{section.total} assets, {section.drawn} drawn; {issueText(
+					section.issues
+				)}.{section.id === 'landmark'
 					? ' Largest footprint first, each in its footprint’s shape at 32 pixels per plot, under the plot grid.'
 					: ''}">
 				{#each section.lists as list (list.expansion)}

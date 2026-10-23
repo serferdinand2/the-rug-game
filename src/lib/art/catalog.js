@@ -13,7 +13,7 @@
  * @property {AssetKind} kind - Illustration, icon or board
  * @property {string} group - The group id, e.g. 'landmark'
  * @property {ExpansionCode} expansion - Where it comes from
- * @property {number} issue - The art issue (#5–#11) that draws it
+ * @property {number} issue - The art issue (#5–#11, or #51 for the cosmetic boards) that draws it
  * @property {boolean} [example] - A reference composition; actual game mats are assembled from tiles per game
  */
 
@@ -96,6 +96,21 @@ export const GROUPS = Object.freeze(
 		},
 	]).map((group) => Object.freeze(group))
 );
+
+/**
+ * Boards that only dress the screen. The owner moved them out of #6 into #51 on 2026-10-23,
+ * to be drawn after the core features.
+ * @type {readonly string[]}
+ */
+export const COSMETIC_BOARDS = Object.freeze([
+	'board/tracks',
+	'board/income-mat',
+	'board/table',
+	'board/income-overlay',
+]);
+
+/** The issue that draws the cosmetic boards. */
+const COSMETIC_ISSUE = 51;
 
 /** @typedef {[slug: string, name: string][]} Entries */
 
@@ -697,7 +712,9 @@ export const ASSETS = Object.freeze(
 					kind: group.kind,
 					group: group.id,
 					expansion: code,
-					issue: group.issue,
+					issue: COSMETIC_BOARDS.includes(`${group.id}/${slug}`)
+						? COSMETIC_ISSUE
+						: group.issue,
 					...(group.id === 'capital-mat' && code === 'base'
 						? { example: true }
 						: {}),

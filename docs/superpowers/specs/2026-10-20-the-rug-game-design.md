@@ -176,7 +176,8 @@ Every issue is done when:
    - Resources, the four income buildings, outposts, player tokens, dice faces, terrain, and the track symbols (including arts).
    - No separate capital-grid markers for landmarks: the grid shows each landmark's own picture (owner, 2026-10-21).
 6. **Boards.**
-   - Map terrain and both map sides, the track board, all 18 capital mats, the income mat with its overlays, and the table background.
+   - Map terrain and both map sides, the territory tiles and all 18 capital mats.
+   - The tracks backdrop, the income mat with its overlays and the table background moved to issue 51 (owner, 2026-10-23).
 7. **Landmarks:** 33 pictures, each drawn in its footprint's shape so it covers exactly its plots on the board ([2026-10-21-landmarks-design.md](2026-10-21-landmarks-design.md)).
 8. **Civilizations:** 41 portraits.
 9. **Tapestry cards:** 115 illustrations, in batches by set.
@@ -305,6 +306,12 @@ Added on 2026-10-21:
 ### Milestone 11: Discord Activity
 
 43. **Run as a Discord Activity,** as in Bird Table: the bundled SDK, OAuth login on the server, and identity-based seats.
+
+### Milestone 12: Cosmetic enhancements
+
+Added on 2026-10-23. The owner moved the boards that only dress the screen out of issue 6, to be drawn after the core features. **(owner, 2026-10-23)**
+
+51. **Cosmetic boards:** the tracks-view backdrop, the income mat with its Fantasies & Futures overlay, and the table background. Until then the screens work without them.
 
 ## 7. How the issues get filed
 
