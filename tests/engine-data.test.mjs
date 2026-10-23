@@ -1062,7 +1062,16 @@ test('R5: space tile 11 conquers, then scores 1 VP per territory you control', (
 	assert.deepEqual(SPACE_TILES[10], {
 		id: 11,
 		benefit: [{ conquer: {} }, { vp: { per: 'territory' } }],
+		ordered: true,
 	});
+});
+
+test('only space tile 11 says "then", so only its benefit is ordered (R5)', () => {
+	assert.deepEqual(
+		SPACE_TILES.filter((tile) => tile.ordered).map((tile) => tile.id),
+		[11]
+	);
+	assert.ok(SPACE_TILES.every((tile) => typeof tile.ordered === 'boolean'));
 });
 
 test('space tiles 13, 15 and 5 read as the BGG photo shows', () => {

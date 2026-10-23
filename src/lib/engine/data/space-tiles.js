@@ -8,7 +8,11 @@ import { deepFreeze } from './ids.js';
  * @typedef {Object} SpaceTile
  * @property {number} id - 1–15, the catalog's tile number
  * @property {readonly Effect[]} benefit
+ * @property {boolean} ordered - The parts are taken in the order listed, because the tile says "then"
  */
+
+// R5: the erratum reads "conquer, then 1 VP per territory you control".
+const ORDERED = new Set([11]);
 
 /**
  * The 15 tiles in id order. The advances gain the space's benefit and may pay its bonus.
@@ -45,5 +49,9 @@ export const SPACE_TILES = deepFreeze(
 		[{ vp: 13 }],
 		[{ building: 'farm' }, { vp: { per: 'farm' } }],
 		[{ building: 'market' }, { vp: { per: 'market' } }],
-	]).map((benefit, index) => ({ id: index + 1, benefit }))
+	]).map((benefit, index) => ({
+		id: index + 1,
+		benefit,
+		ordered: ORDERED.has(index + 1),
+	}))
 );
