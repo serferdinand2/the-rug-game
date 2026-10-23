@@ -70,6 +70,8 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
 
 ## Where the work stands
 
+**#5 is complete (owner approval, 2026-10-23).** The reviewed resources, four income buildings, five track symbols, neutral player pieces and all five player-color variants are committed as reproducible SVGs. The associated 84 capital terrain tiles and six base mats contribute to #6, which remains open. See `docs/art/issue-5.md` for the inventory and the decision to render dice faces and game symbols through text or draw them later with the map's terrain hex markers. The full former mockup is frozen in `docs/art/archive/2026-10-23-issue-5/`; placeholder dice, terrain hex marker and game-symbol drawings are archived only.
+
 Updated 2026-10-23. Update this section whenever a milestone moves.
 
 - **Done:**
@@ -126,7 +128,7 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
   - #10 The owner reviews all 56 tech pictures, then #10 closes.
   - #11 The owner reviews the 20 masterpieces and the 10 landmark cards; the space tiles and inspiration tiles follow.
-  - #5 and #6 Draw the rest of the art with the toolkit.
+  - #6 Finish the remaining map, territory-tile and expansion capital art.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
 ## Starting on a new computer

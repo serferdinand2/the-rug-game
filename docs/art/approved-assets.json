@@ -1,0 +1,734 @@
+[
+  {
+    "id": "resource/coin",
+    "width": 32,
+    "height": 32,
+    "sha256": "d8d20c292cfb6852c5f746fb712435c0a108125fd91b242d0002b16455db2200"
+  },
+  {
+    "id": "resource/worker",
+    "width": 32,
+    "height": 32,
+    "sha256": "590a00fa325e05efaae1c56a54652d31199eb5fb77585df5408e7757de7b54da"
+  },
+  {
+    "id": "resource/food",
+    "width": 32,
+    "height": 32,
+    "sha256": "606afb372662c9169f36b7c27a3584cee256fa0aa5a343e86db05143e6e10aa8"
+  },
+  {
+    "id": "resource/culture",
+    "width": 32,
+    "height": 32,
+    "sha256": "5713626dd8ce9c8854279c8ecc3863ca562de55fd4787559642bc9d852522e1d"
+  },
+  {
+    "id": "resource/any",
+    "width": 32,
+    "height": 32,
+    "sha256": "c5792e80e17a58aa59de23546d2c92782a2ffeb228fbe05fba46beb40db22a1e"
+  },
+  {
+    "id": "building/market",
+    "width": 32,
+    "height": 32,
+    "sha256": "9da68091f9125802dc55b201de12829bc0608c4651c0928c5082af9685933312"
+  },
+  {
+    "id": "building/house",
+    "width": 32,
+    "height": 32,
+    "sha256": "27ff78797821bd0a6e79581442882dcd46f13fff01927a3d6ba18d5c5919f4aa"
+  },
+  {
+    "id": "building/farm",
+    "width": 32,
+    "height": 32,
+    "sha256": "df0e5eec82d86a4020cb416c307452a4d670cb72acc7dad317a4eae76f0baea7"
+  },
+  {
+    "id": "building/armory",
+    "width": 32,
+    "height": 32,
+    "sha256": "507a4fa67a2ff6b162b4fdd6433658f947cced30133ba72b3502a63daaf74e7d"
+  },
+  {
+    "id": "piece/outpost",
+    "width": 128,
+    "height": 128,
+    "sha256": "17f3b7b9df89bce43231ffbb6548c42bc6674c4f277f04a3363da8ee820bc718"
+  },
+  {
+    "id": "piece/outpost-blue",
+    "width": 128,
+    "height": 128,
+    "sha256": "53388b43397f4ed43356b9dd7eabb45c4233c25ed9f7c0574afc9f13415cb5f4"
+  },
+  {
+    "id": "piece/outpost-red",
+    "width": 128,
+    "height": 128,
+    "sha256": "2fc73481c1dde43ff3ceaac7517e882fdd5f8553660265c0c4eb8acefa6f6ecf"
+  },
+  {
+    "id": "piece/outpost-green",
+    "width": 128,
+    "height": 128,
+    "sha256": "fc531aadad931d50c4bfd5eecd3c3bac2a45a39596fb9bd6d8e6c228986f8038"
+  },
+  {
+    "id": "piece/outpost-yellow",
+    "width": 128,
+    "height": 128,
+    "sha256": "f77d8427f71c5b80683641ab6cbed1af99f6bb015c95d98b4d9795baa91f1871"
+  },
+  {
+    "id": "piece/outpost-purple",
+    "width": 128,
+    "height": 128,
+    "sha256": "ca1fc2a3dad2da8d539f5b2f45aeb516185a346414abdbf52a4f33496c84bb03"
+  },
+  {
+    "id": "piece/outpost-toppled",
+    "width": 128,
+    "height": 128,
+    "sha256": "fa41f3d61133c6decc9a26ef7bf89bc1a66ee9d8e19f42418f82d9b6b7624861"
+  },
+  {
+    "id": "piece/outpost-toppled-blue",
+    "width": 128,
+    "height": 128,
+    "sha256": "b6864602ec353ab1477a9b54c430981cb7bc0cf5f8932719d514163e59f42fe0"
+  },
+  {
+    "id": "piece/outpost-toppled-red",
+    "width": 128,
+    "height": 128,
+    "sha256": "8993be658aa6e2c7ccea7270e4f88224645a93b0a27847f243e34d0a58991a6d"
+  },
+  {
+    "id": "piece/outpost-toppled-green",
+    "width": 128,
+    "height": 128,
+    "sha256": "4cbe7d7ab5789a65c3b7676431483357c2d7e7eabca6f6e665be349db8da9e2c"
+  },
+  {
+    "id": "piece/outpost-toppled-yellow",
+    "width": 128,
+    "height": 128,
+    "sha256": "bb7b15fb79ab035ede3bb617abfba3883495e563c4586c33d3f45d5ec21a1d26"
+  },
+  {
+    "id": "piece/outpost-toppled-purple",
+    "width": 128,
+    "height": 128,
+    "sha256": "0e04861df86cda0a69c6915951ead4dfb5980930542fc7963737752b8945bed7"
+  },
+  {
+    "id": "piece/token",
+    "width": 32,
+    "height": 32,
+    "sha256": "1f10cb19260f8b7c6bede46161bea30c5a8f254e33b5a366e60d0c42ca82c13d"
+  },
+  {
+    "id": "piece/token-blue",
+    "width": 32,
+    "height": 32,
+    "sha256": "3e4aef0c3c7f247744b29e773ba1626a02c3fb57b0cc8bd723b20d446c6674cb"
+  },
+  {
+    "id": "piece/token-red",
+    "width": 32,
+    "height": 32,
+    "sha256": "1b72e4e515a9cb45202186b7c10f4608eb794fd71b994cddba1eb5149dbb2537"
+  },
+  {
+    "id": "piece/token-green",
+    "width": 32,
+    "height": 32,
+    "sha256": "341ecdccd6b4c900652cc277f54977dad74a2bd94594b46792b9be9f7746fa8c"
+  },
+  {
+    "id": "piece/token-yellow",
+    "width": 32,
+    "height": 32,
+    "sha256": "1d8c6509866d280834bfb167177d117b9571e520f3cf0b385de20ab12bd7fab1"
+  },
+  {
+    "id": "piece/token-purple",
+    "width": 32,
+    "height": 32,
+    "sha256": "40fe35ad378f95a632888e9bffde4508573552c1a8b52a8db7b2ae1c83bc8551"
+  },
+  {
+    "id": "track/exploration",
+    "width": 32,
+    "height": 32,
+    "sha256": "137941473bdb7f64444d96f9aaade783c4a53c70b09f4a0cc17b78bcb7b8aea0"
+  },
+  {
+    "id": "track/science",
+    "width": 32,
+    "height": 32,
+    "sha256": "e49485dcc874e31b80fbbee31da34adf9afa0fa62323f483895a71221f67f859"
+  },
+  {
+    "id": "track/technology",
+    "width": 32,
+    "height": 32,
+    "sha256": "116a97fc6a459b5954d17f2e56ba9204cdb580a83fd2594b26931319bf6d3488"
+  },
+  {
+    "id": "track/military",
+    "width": 32,
+    "height": 32,
+    "sha256": "2db59a54027f9bc4d6601184f426539dc6010dd98424ef43076d0019b7fdbd81"
+  },
+  {
+    "id": "track/arts",
+    "width": 32,
+    "height": 32,
+    "sha256": "809434fe2b57533ff9bba25bb43ed4dbc6132f442f069ddc52d6ba6384161719"
+  },
+  {
+    "id": "capital-terrain/mountain-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "d6e2f2f5194486cab23a2aa0d52322610639c7890efc39a7445b957ae48f2a98"
+  },
+  {
+    "id": "capital-terrain/mountain-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "9187f4503befba78554f88b756e63d1d179cce282cb736d02aa01b89ed641d29"
+  },
+  {
+    "id": "capital-terrain/mountain-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "6dde5b0e0ae33f11610f6d8be5c65dda63cdb9f01a320d280a4b4b287e74d773"
+  },
+  {
+    "id": "capital-terrain/mountain-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "fc3ea23fa23d288cef11beac7fddb9d6408689a65cf746a2aafede01465f7c33"
+  },
+  {
+    "id": "capital-terrain/mountain-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "12cd5e3e8da223f8ee026518a6e2efa33811caa90000be66b5be11f68f5c1dc8"
+  },
+  {
+    "id": "capital-terrain/mountain-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "bf4d49a5e2953a04bb4f5c16ed64b3fbab7bd447f9e340a39acd5383bd1d313c"
+  },
+  {
+    "id": "capital-terrain/mountain-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "2ba51edafd03edd233e35beea54376ddee0aaa0dbce7244f9e5c4a88a994fd20"
+  },
+  {
+    "id": "capital-terrain/mountain-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "8a15947e53c43a57b6d45d381fd68bca20b090d3293c47663d792a425660f22b"
+  },
+  {
+    "id": "capital-terrain/mountain-blocked-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "f7e978cc5cead0d6db7353d69800d618a7dfbb2fe760e946c178c31c94340848"
+  },
+  {
+    "id": "capital-terrain/mountain-blocked-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "1d2d6da69866317e2be502257a09e5bcc72edf3bcc581258c11b0df81313178b"
+  },
+  {
+    "id": "capital-terrain/mountain-blocked-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "fd1dfde4676dc4dbf0dfc8cd66e8a2c38b7ff0269d442d82e317d9c89f7a4dae"
+  },
+  {
+    "id": "capital-terrain/mountain-blocked-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "d9bf385c4822d1b0603b9b529f611118d52a21e646c71ec270151e5a26c93a53"
+  },
+  {
+    "id": "capital-terrain/mountain-blocked-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "b93ed8ff18a6f6b0b118de79cf9b5ee0f4608eeb064d0aca42a8df470946f2cf"
+  },
+  {
+    "id": "capital-terrain/mountain-blocked-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "a3f180e6affea586e6efcabf47cdcc8cf7b98aa035f7351d92d771e25e3b8582"
+  },
+  {
+    "id": "capital-mat/mountain",
+    "width": 288,
+    "height": 288,
+    "sha256": "6e46a829dd064e6907d867785f8fcf9c68a1545d5e831ccf2f188d2416031e0f"
+  },
+  {
+    "id": "capital-terrain/wetland-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "c628f50fe9ff1acd18f9d63ffad10c7417855ffd54afb27da70f0769b8830ecc"
+  },
+  {
+    "id": "capital-terrain/wetland-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "777780fabfd705c7948c070ac578e8a1006bea8f3a7db46805e496ee804e4572"
+  },
+  {
+    "id": "capital-terrain/wetland-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "5580b4f7a23236baa4cb9a0d25e53f231d578325839c2f816ed11e14bcae365b"
+  },
+  {
+    "id": "capital-terrain/wetland-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "79cc483cb23c02fba5b4e80afa16e795729112541bfbdf565c5f04338518e2ce"
+  },
+  {
+    "id": "capital-terrain/wetland-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "4e2b974f383796a1c35bd1f3787bd242f7d415ff4fcd3d9feba6219ba150aecd"
+  },
+  {
+    "id": "capital-terrain/wetland-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "6a1acf15fea50e5e9d388dd96b9b953be0c8d4bba90cf391b47d5054963639d7"
+  },
+  {
+    "id": "capital-terrain/wetland-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "2e70c3076b8b5930509a181c63022a6c6ba2efd5a624e4bbb853d9284aca8e20"
+  },
+  {
+    "id": "capital-terrain/wetland-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "2c25e8be017cf296fb9d15e49cc00b97868ec8062cd91df889960ef0f3395253"
+  },
+  {
+    "id": "capital-terrain/wetland-blocked-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "69ed10312a766187930ceccc7d766bec36f23c50471485d8eaeb8515e85e8e27"
+  },
+  {
+    "id": "capital-terrain/wetland-blocked-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "e19be45d6f6c41194e4970dec481893e7ac8970d7c84919ebd6bf448de43c4f2"
+  },
+  {
+    "id": "capital-terrain/wetland-blocked-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "dd1f6dab3fc3982d8578ee88736df01761f1e933b54ae00aa18522e17648f7d2"
+  },
+  {
+    "id": "capital-terrain/wetland-blocked-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "3ca2c8c86192830ae39d6c424ed3ba49b99ce05dd2c861674998974fe80fa139"
+  },
+  {
+    "id": "capital-terrain/wetland-blocked-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "9f6e3af02cf92fb0af50e26626fc8caea08448c8a5c44081586faa3a2e67b9ee"
+  },
+  {
+    "id": "capital-terrain/wetland-blocked-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "786a7ee96135cf56bbc13c2c455316bf3e9e18fb8e0d2f03969e8521c4d4ddd7"
+  },
+  {
+    "id": "capital-mat/wetland",
+    "width": 288,
+    "height": 288,
+    "sha256": "570d52cc5b89e266dabf720c8a5efd4916173c78901a2af8ed4d7ce909dae6c6"
+  },
+  {
+    "id": "capital-terrain/tropical-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "715a3186e277fff334ea35b86079f7d45c9a2d5315098efee32facc208ba2c33"
+  },
+  {
+    "id": "capital-terrain/tropical-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "47a4cae6ae0b1fb65e162435a63e03494046bdbf8260c39b976961bc05bb3171"
+  },
+  {
+    "id": "capital-terrain/tropical-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "7d493ae7145263e09e82aa401bfb743869684ac790187f77f554788e8ba10d3d"
+  },
+  {
+    "id": "capital-terrain/tropical-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "405085f0cb9f5cf0f5a94d47501d15d0ed0c18bf1dbb7b670949657c39f6a6c0"
+  },
+  {
+    "id": "capital-terrain/tropical-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "df97f452478b8d6330a1130ae6d59af2ca6656003d5bfdc53da4545f0f3e864c"
+  },
+  {
+    "id": "capital-terrain/tropical-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "fdfeb96c646a3cdba72be0a4dd73358e306232a2ac1584cb9a405a01892b3b44"
+  },
+  {
+    "id": "capital-terrain/tropical-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "e3c2a565beba1ac896b76f73725fd5d2c9b75b94914cfba5a6dc94bc27d9f2ae"
+  },
+  {
+    "id": "capital-terrain/tropical-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "6da4628bf7d658ff73374b124b86ed1db2065a1973f1cd6e303e0472dda980e3"
+  },
+  {
+    "id": "capital-terrain/tropical-blocked-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "04ef3be183a69e0ee801bdcced9125d30c33acb0fc56ca623efb0b65e4726e07"
+  },
+  {
+    "id": "capital-terrain/tropical-blocked-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "beac25e64db8be23bcafc3cf1d4474ae1b26bfa6edaddcf3b65d074d08e16cec"
+  },
+  {
+    "id": "capital-terrain/tropical-blocked-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "a54d5de07298acdfd0e7b2febf7e9e38f5ff285cb34317375473d0860524c713"
+  },
+  {
+    "id": "capital-terrain/tropical-blocked-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "8b5e19cfd49e9e782e21bed1e55fa34116bf6e4c9d68b69ec570c315dc07a42e"
+  },
+  {
+    "id": "capital-terrain/tropical-blocked-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "a31dbd02ca1cf0453d4d0cd2e9af093ba2d92d3265d18455a29541a1c460a8dc"
+  },
+  {
+    "id": "capital-terrain/tropical-blocked-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "04b3b3829816595eaee1ed3c8567db9f715d18b8decc13a0a7b6cea9012fa94a"
+  },
+  {
+    "id": "capital-mat/tropical",
+    "width": 288,
+    "height": 288,
+    "sha256": "199cb4a1cb965e84dbd0521005a0bcb1154d392effc7d5153b8848bf685dfbad"
+  },
+  {
+    "id": "capital-terrain/desert-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "efb15e3090e91be4512eed8f8fa53a88700e7736ddf1145646f09cfce358ed7d"
+  },
+  {
+    "id": "capital-terrain/desert-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "3319f69353b9251c6a829fdefa1288fa21673e3ba340e733e0b30c1575818e86"
+  },
+  {
+    "id": "capital-terrain/desert-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "409fa0db7081e8617254bf045d1aa7f57da0a3a11484ea44ac138ad31dee0ee9"
+  },
+  {
+    "id": "capital-terrain/desert-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "658b75dcf9e6892207fed75ef6e5177962fa82dcbd6fb58bd180f2cc8c67e655"
+  },
+  {
+    "id": "capital-terrain/desert-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "bc35c3068efe13ea3d76bf5e77aaaf6279f022f95528cea97d27e15815619d58"
+  },
+  {
+    "id": "capital-terrain/desert-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "89c39e29a4536de459e7a54ae3004765d9f6e53bbbe101d3bbcec67fb38cafe0"
+  },
+  {
+    "id": "capital-terrain/desert-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "4dca1139b6d17c9878450c5d69f80f7e59b69cda1cac1f38f771eaa6540df6f7"
+  },
+  {
+    "id": "capital-terrain/desert-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "8c41efebc5d00eddf7afd71892687068478777e5b2a95816d525e03f13377d35"
+  },
+  {
+    "id": "capital-terrain/desert-blocked-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "67e4ef8361ebe3f2c80222bf1d150622a7ad53639018ecc5c879d200f52d67a7"
+  },
+  {
+    "id": "capital-terrain/desert-blocked-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "b23f2198f76566d2b6b88235a6f874ca1f1be004240ecdf1272202fb8862e20f"
+  },
+  {
+    "id": "capital-terrain/desert-blocked-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "d76bf0d36291fbde2b852c17b4ec8a998ea47d1dbf9ec48ef67f305f83f30689"
+  },
+  {
+    "id": "capital-terrain/desert-blocked-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "cc6f09a8d8eb87b739f2221841ceee93fa35e46542afd4581c89671aab9d3c16"
+  },
+  {
+    "id": "capital-terrain/desert-blocked-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "66a225863430f205ad6e14bb42fd938d079842623f9bbb1b5d0711e1d369ead9"
+  },
+  {
+    "id": "capital-terrain/desert-blocked-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "2568ac1c5a47799324a2b62464a27b14af3a69475b2cd515ffaa1f9ab14e54ff"
+  },
+  {
+    "id": "capital-mat/desert",
+    "width": 288,
+    "height": 288,
+    "sha256": "69560c87f59e8c486ef91f91724e03975c8d73d24efd9dd7125a52780baa0fa8"
+  },
+  {
+    "id": "capital-terrain/grassland-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "070f08ebc2c1f88b7a8b3f1a069b19a348782b07a0dc70ba03d0ae540fd90a5c"
+  },
+  {
+    "id": "capital-terrain/grassland-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "63d577c360b4455ae4d8a8fdd5cf42d860bb80b0565a812c4094e4f03a3cd5e4"
+  },
+  {
+    "id": "capital-terrain/grassland-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "e6858d92ff6a37113b661a423b03bd85d844f23e0c71c82770fd737b37e831a2"
+  },
+  {
+    "id": "capital-terrain/grassland-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "66a88308db60d47133756e0cd7c5e9908c08176012b20a53ca4f510341018230"
+  },
+  {
+    "id": "capital-terrain/grassland-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "d8a4fc702c7b65f7105bfd0b0c7055d2b217399a1931ae39ca21efad159395e9"
+  },
+  {
+    "id": "capital-terrain/grassland-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "742e5e31168a96d81303b6c710dcaf6bcbf6e03fc251c7c82d86269ad0d644ba"
+  },
+  {
+    "id": "capital-terrain/grassland-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "21728490e41f2b8fdbd44d01514f45c179fede4fad21c372529562eb4eef4d25"
+  },
+  {
+    "id": "capital-terrain/grassland-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "1015c46dd4003668d0f20176cd51790b3692cb8add46b600355f6abd9c756ea5"
+  },
+  {
+    "id": "capital-terrain/grassland-blocked-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "a1c59d058212109411cec10f338e65c5cc12fd5550fda22dd5e6cf73cfd1e7f2"
+  },
+  {
+    "id": "capital-terrain/grassland-blocked-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "f5d7dd063862928ac3da1c2b212bccc8b63975786c14113ec0cc58632ea222b6"
+  },
+  {
+    "id": "capital-terrain/grassland-blocked-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "9b6728717d5e638da2600fbc209593a5dd281d68618c3707b3409bceed2df4c5"
+  },
+  {
+    "id": "capital-terrain/grassland-blocked-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "6c9bb7a6444ae164c4bb2b7624e1b6cc8c5fbe8222fa0ca041abaa8b192c0a5d"
+  },
+  {
+    "id": "capital-terrain/grassland-blocked-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "a1a097b9e2b403e45d0e2ce02decf4251d95114f896527104bea5318d641b490"
+  },
+  {
+    "id": "capital-terrain/grassland-blocked-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "693b0960c149d197c21bc552e499d1c091ec8d7fde55fb646f1e824b2ffc827d"
+  },
+  {
+    "id": "capital-mat/grassland",
+    "width": 288,
+    "height": 288,
+    "sha256": "573877f850eb43cc1fddc0c03c4630a57047d732bf805f27ea5a76e6788a473e"
+  },
+  {
+    "id": "capital-terrain/forest-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "1ee6965dab3c64605a739b1c46223c98fe22b0d518e6062eef268101ee01d092"
+  },
+  {
+    "id": "capital-terrain/forest-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "a2e17b8e245d5b19bd1ea18d2b78282e63283260c14a943f35e3e1862e1b7f75"
+  },
+  {
+    "id": "capital-terrain/forest-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "66c12418a9fdef01427398ad83fb67f40a08437a52ad92c3ad6347c7960b71c7"
+  },
+  {
+    "id": "capital-terrain/forest-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "7f5758742a477ee8aaff111cf0e4ace68e1a27590a97aa3c690c6ae4a2efa4c7"
+  },
+  {
+    "id": "capital-terrain/forest-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "fa45e3c01c10b718497144842ed3a818995dc03d97ac5804b3e3174520e4e0c2"
+  },
+  {
+    "id": "capital-terrain/forest-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "47f6b56a2ed7a3ced168ae3262542dd7bef0567d60b15d005c959544aebbdf6a"
+  },
+  {
+    "id": "capital-terrain/forest-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "c4b0dd8a3407c6a829635ba1b191a05c0247abd77a43a179e44348fe54e91cc3"
+  },
+  {
+    "id": "capital-terrain/forest-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "626819d8d5c23e7b30d331c5677bfb3dfc415949099abbb8eda73100031eb1d1"
+  },
+  {
+    "id": "capital-terrain/forest-blocked-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "93e514774ccc8aa9eca89f498789e730b9eb9c666262cfa50fa4ee7260f74d80"
+  },
+  {
+    "id": "capital-terrain/forest-blocked-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "40c43516b4ea2f391d42f4f9ed24641d7481c67f7de32c7f7a153f3b437075bb"
+  },
+  {
+    "id": "capital-terrain/forest-blocked-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "e7732954693577a4482cd62a74a48e3a0c65b6076c2e53ac92d8e74e3e7384b9"
+  },
+  {
+    "id": "capital-terrain/forest-blocked-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "78e8bf5e03b9df22815a58be6edd612f5c94fdee416f649bcf27751be3b4db24"
+  },
+  {
+    "id": "capital-terrain/forest-blocked-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "5f0fdc1e144210ce8e7f257cbd7104a4a3ecdbc791cb2cff25acb4e89807abc7"
+  },
+  {
+    "id": "capital-terrain/forest-blocked-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "401823c1911a8c619c55bb52728fd347eac11872f305d06389518575f12bd161"
+  },
+  {
+    "id": "capital-mat/forest",
+    "width": 288,
+    "height": 288,
+    "sha256": "7d806c0bfe17e88049ff39796a0cb72d431909a47d4e353d6dc775193508f3e4"
+  }
+]

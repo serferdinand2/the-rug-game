@@ -7,7 +7,7 @@
 
 /**
  * A pixel grid. `p` is row-major; `null` is an empty pixel.
- * @typedef {{ w: number, h: number, p: (Colour | null)[] }} Canvas
+ * @typedef {{ w: number, h: number, p: (Colour | null)[], alpha?: number[] }} Canvas
  */
 
 /**
@@ -286,24 +286,29 @@ export function toSvg(canvas, { opacity = {} } = {}) {
 				x++;
 				continue;
 			}
+			const alpha =
+				canvas.alpha?.[y * canvas.w + x] ?? opacity[colour] ?? 1;
+			const key = `${colour}|${alpha}`;
 			let n = 1;
 			while (
 				x + n < canvas.w &&
-				canvas.p[y * canvas.w + x + n] === colour
+				canvas.p[y * canvas.w + x + n] === colour &&
+				(canvas.alpha?.[y * canvas.w + x + n] ??
+					opacity[colour] ??
+					1) === alpha
 			) {
 				n++;
 			}
-			const list = runs.get(colour) ?? [];
+			const list = runs.get(key) ?? [];
 			list.push(`M${x} ${y}h${n}v1h-${n}z`);
-			runs.set(colour, list);
+			runs.set(key, list);
 			x += n;
 		}
 	}
 	const paths = [...runs]
-		.map(([colour, d]) => {
-			const alpha = opacity[colour]
-				? ` fill-opacity="${opacity[colour]}"`
-				: '';
+		.map(([key, d]) => {
+			const [colour, value] = key.split('|');
+			const alpha = Number(value) === 1 ? '' : ` fill-opacity="${value}"`;
 			return `<path fill="${colour}"${alpha} d="${d.join('')}"/>`;
 		})
 		.join('');
@@ -311,7 +316,7 @@ export function toSvg(canvas, { opacity = {} } = {}) {
 }
 
 /**
- * Reads back an SVG in the format `toSvg` writes. Opacity is ignored.
+ * Reads back an SVG in the format `toSvg` writes, preserving each pixel's opacity.
  * @param {string} svg
  * @returns {Canvas}
  * @throws {Error} When the SVG has no viewBox.
@@ -323,9 +328,13 @@ export function fromSvg(svg) {
 	}
 	const canvas = createCanvas(Number(box[1]), Number(box[2]));
 	for (const path of svg.matchAll(
-		/<path fill="(#[0-9a-f]{6})"[^>]*? d="([^"]*)"/g
+		/<path fill="(#[0-9a-f]{6})"([^>]*?) d="([^"]*)"/g
 	)) {
-		for (const run of path[2].matchAll(/M(\d+) (\d+)h(\d+)/g)) {
+		const alpha = Number(path[2].match(/fill-opacity="([^"]+)"/)?.[1] ?? 1);
+		if (alpha !== 1 && !canvas.alpha) {
+			canvas.alpha = new Array(canvas.w * canvas.h).fill(1);
+		}
+		for (const run of path[3].matchAll(/M(\d+) (\d+)h(\d+)/g)) {
 			rect(
 				canvas,
 				Number(run[1]),
@@ -334,6 +343,10 @@ export function fromSvg(svg) {
 				1,
 				path[1]
 			);
+			if (canvas.alpha) {
+				const start = Number(run[2]) * canvas.w + Number(run[1]);
+				canvas.alpha.fill(alpha, start, start + Number(run[3]));
+			}
 		}
 	}
 	return canvas;

@@ -1,0 +1,10 @@
+// Owner-reviewed Exploration; exact SVG pixels from the approved mockup.
+import { fromSvg } from '../../painter.js';
+
+const SVG =
+	'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges"><path fill="#120c1e" d="M16 2h1v1h-1zM15 3h1v1h-1zM17 3h1v1h-1zM15 4h1v1h-1zM18 4h1v1h-1zM15 5h1v1h-1zM19 5h1v1h-1zM15 6h1v1h-1zM20 6h1v1h-1zM15 7h1v1h-1zM21 7h1v1h-1zM15 8h1v1h-1zM22 8h1v1h-1zM15 9h1v1h-1zM23 9h1v1h-1zM2 10h13v1h-13zM24 10h1v1h-1zM2 11h1v1h-1zM25 11h1v1h-1zM2 12h1v1h-1zM26 12h1v1h-1zM2 13h1v1h-1zM27 13h1v1h-1zM2 14h1v1h-1zM28 14h1v1h-1zM2 15h1v1h-1zM29 15h1v1h-1zM2 16h1v1h-1zM29 16h1v1h-1zM2 17h1v1h-1zM28 17h1v1h-1zM2 18h1v1h-1zM27 18h1v1h-1zM2 19h1v1h-1zM26 19h1v1h-1zM2 20h1v1h-1zM25 20h1v1h-1zM2 21h13v1h-13zM24 21h1v1h-1zM15 22h1v1h-1zM23 22h1v1h-1zM15 23h1v1h-1zM22 23h1v1h-1zM15 24h1v1h-1zM21 24h1v1h-1zM15 25h1v1h-1zM20 25h1v1h-1zM15 26h1v1h-1zM19 26h1v1h-1zM15 27h1v1h-1zM18 27h1v1h-1zM15 28h1v1h-1zM17 28h1v1h-1zM16 29h1v1h-1z"/><path fill="#005d70" d="M16 3h1v1h-1zM16 4h2v1h-2zM16 5h3v1h-3zM16 6h4v1h-4zM16 7h5v1h-5zM18 8h4v1h-4zM19 9h4v1h-4zM20 10h4v1h-4zM21 11h4v1h-4zM22 12h4v1h-4zM23 13h4v1h-4zM24 14h4v1h-4zM25 15h4v1h-4zM25 16h4v1h-4zM24 17h4v1h-4zM23 18h4v1h-4zM22 19h4v1h-4zM21 20h4v1h-4zM20 21h4v1h-4zM19 22h4v1h-4zM18 23h4v1h-4zM16 24h5v1h-5zM16 25h4v1h-4zM16 26h3v1h-3zM16 27h2v1h-2zM16 28h1v1h-1z"/><path fill="#468b99" d="M16 8h2v1h-2zM16 9h3v1h-3zM15 10h5v1h-5zM3 11h18v1h-18zM3 12h19v1h-19zM3 13h20v1h-20zM20 14h4v1h-4zM22 15h3v1h-3zM22 16h3v1h-3zM20 17h4v1h-4zM3 18h20v1h-20zM3 19h19v1h-19zM3 20h18v1h-18zM15 21h5v1h-5zM16 22h3v1h-3zM16 23h2v1h-2z"/><path fill="#5d91ad" d="M3 14h17v1h-17zM3 15h19v1h-19zM3 16h19v1h-19zM3 17h17v1h-17z"/></svg>';
+
+/** Returns the reviewed vector pixel drawing. @returns {import('../../painter.js').Canvas} */
+export function draw() {
+	return fromSvg(SVG);
+}

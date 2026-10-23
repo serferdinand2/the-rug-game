@@ -11,7 +11,7 @@ The owner compared three versions of the same picture and chose style C:
 
 `style-c/lighthouse-scene.svg` is the approved reference: the Lighthouse landmark at night. `style-c/lighthouse.mjs` is the one-off script that first drew it. Both stay unchanged: a test checks the toolkit's Lighthouse against the SVG pixel for pixel.
 
-Two other options were rejected as the main style: a 16×16 flat icon and a 32×32 shaded sprite. Small pieces that must stay readable at about 24px still use simple icons in the same palette. These are resources, buildings, outposts, dice, terrain and track symbols.
+Two other options were rejected as the main style: a 16×16 flat icon and a 32×32 shaded sprite. The owner-reviewed small-piece set uses 32×32 resources, buildings, tokens and track symbols, and 128×128 outpost flags, scaled to their display size. Dice faces, terrain hex markers and generic game symbols use text or later artwork as explained in [issue-5.md](issue-5.md).
 
 ## The art toolkit (`art/`)
 
@@ -34,6 +34,8 @@ The design is in [2026-10-21-art-toolkit-design.md](../superpowers/specs/2026-10
 Every asset has a stable id, `<group>/<slug>`, such as `landmark/lighthouse`, `tapestry/age-of-sail` or `die/red-4-vp`. The game refers to art only by this id, and the rules engine uses the same ids for the same things. Ids never change once the game uses them, even when a display name is corrected. Content that the README's rules conventions leave out has no id.
 
 ### Adding a drawing
+
+The owner-approved small-piece release is documented in [issue-5.md](issue-5.md). Its reviewed sprites are stored as exact vector pixel runs in the drawing modules, including their per-pixel opacity. Both the browser gallery and `npm run art` use those same sources. The complete former mockup is preserved in [archive/2026-10-23-issue-5/](archive/2026-10-23-issue-5/README.md).
 
 1. Find the asset's id in `src/lib/art/catalog.js`.
 2. Create `art/drawings/<id>.js`, with a one-line comment at the top, exporting `draw()`. It returns a canvas: 64×64 for an illustration.
