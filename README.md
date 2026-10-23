@@ -46,6 +46,12 @@ Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [La
 |---|---|
 | ![The component library, showing the track board](docs/ui/screens/component-library.png) | ![The Art part of the component library, showing landmarks under their plot grid](docs/ui/screens/component-library-art.png) |
 
+**Civilization cards (#47).** The owner chose **Option B · Civilization mat** from [five Collectors card designs](docs/ui/collectors-card-options.html) on 2026-10-23. It is 456 px wide, so it fits the Civilization tab as it is. It shows the portrait beside the rules, the mat's six item spaces, and the score steps; in play, the player's items and score marker take their colour.
+
+| Option B, printed | Option B, in play |
+|---|---|
+| ![The Collectors card in option B, empty](docs/ui/screens/civ-card-b.png) | ![The Collectors card in option B with three items collected](docs/ui/screens/civ-card-b-in-play.png) |
+
 The earlier PNG mockups and their HTML/generator are preserved in [docs/ui/archivedpngmockups/](docs/ui/archivedpngmockups/README.md). They are superseded references. Issue #3 remains open for the income sequence, additional decision prompts, results and the other gaps listed in the manifest.
 
 ## Run locally

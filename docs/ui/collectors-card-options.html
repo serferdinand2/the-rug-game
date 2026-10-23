@@ -1,0 +1,2183 @@
+<!doctype html>
+<!-- Five design options for the Collectors civilization card, side by side; the owner chose option B (2026-10-23). Demo state, not the playable game. -->
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1" />
+		<title>The Rug Game · Collectors card options</title>
+		<link
+			rel="stylesheet"
+			href="../../src/styles/tokens.css" />
+		<style>
+			@font-face {
+				font-family: 'Cinzel';
+				src: url('../../static/fonts/cinzel.woff2') format('woff2');
+				font-weight: 400 900;
+				font-display: swap;
+			}
+			@font-face {
+				font-family: 'Atkinson Hyperlegible';
+				src: url('../../static/fonts/atkinson-hyperlegible-regular.woff2')
+					format('woff2');
+				font-weight: 400;
+				font-display: swap;
+			}
+			@font-face {
+				font-family: 'Atkinson Hyperlegible';
+				src: url('../../static/fonts/atkinson-hyperlegible-bold.woff2')
+					format('woff2');
+				font-weight: 700;
+				font-display: swap;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+			html,
+			body {
+				margin: 0;
+				min-height: 100%;
+			}
+			body {
+				background: var(--surface)
+					url('../../src/styles/pixel-noise.svg') repeat;
+				color: var(--text);
+				font: var(--weight-regular)
+					var(--font-size-base)/var(--leading-snug) var(--font-body);
+			}
+			img {
+				display: block;
+				image-rendering: pixelated;
+			}
+			button {
+				font: inherit;
+				color: inherit;
+				cursor: pointer;
+			}
+			:focus-visible {
+				outline: var(--focus-outline);
+				outline-offset: var(--focus-offset);
+			}
+
+			/* ---------- Page ---------- */
+			.topbar {
+				height: var(--bar-height);
+				display: grid;
+				grid-template-columns: 1fr auto 1fr;
+				align-items: center;
+				gap: var(--space-8);
+				padding: 0 var(--space-10);
+				background: var(--chrome);
+				border-bottom: var(--border) solid var(--line-soft);
+			}
+			.topbar__brand {
+				font: var(--weight-bold) var(--font-size-xl)/1 var(--font-title);
+				color: var(--gold);
+				letter-spacing: var(--letter-spacing-button);
+				text-transform: uppercase;
+			}
+			.topbar__title {
+				margin: 0;
+				font: var(--weight-bold) var(--font-size-lg)/1 var(--font-body);
+				letter-spacing: var(--letter-spacing-button);
+			}
+			.topbar__title b {
+				font-family: var(--font-title);
+				color: var(--gold);
+				font-weight: var(--weight-bold);
+			}
+			.segmented {
+				justify-self: end;
+				display: flex;
+				border: var(--border) solid var(--line);
+				background: var(--ink);
+			}
+			.segmented button {
+				border: 0;
+				background: transparent;
+				padding: var(--space-3) var(--space-7);
+				font-size: var(--font-size-sm);
+				color: var(--muted);
+			}
+			.segmented button[aria-pressed='true'] {
+				background: var(--raised);
+				color: var(--text);
+				font-weight: var(--weight-bold);
+			}
+			.segmented button:hover {
+				color: var(--text);
+			}
+
+			.options {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: var(--space-10) var(--play-gap);
+				padding: var(--space-10);
+				align-items: flex-start;
+			}
+			.option {
+				flex: 0 0 calc((100% - 2 * var(--play-gap)) / 3);
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: var(--space-9);
+				padding: var(--space-8) var(--space-9) var(--space-11);
+			}
+			.option__head {
+				width: 100%;
+				max-width: 520px;
+				padding-bottom: var(--space-6);
+				border-bottom: var(--border) solid var(--line);
+			}
+			.option__eyebrow {
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				letter-spacing: var(--letter-spacing-caps);
+				text-transform: uppercase;
+				color: var(--bronze);
+			}
+			.option__name {
+				margin: var(--space-2) 0 var(--space-3);
+				font: var(--weight-bold) var(--font-size-3xl)/1.1
+					var(--font-title);
+				letter-spacing: var(--letter-spacing-title);
+				color: var(--gold);
+			}
+			.option__desc {
+				margin: 0;
+				color: var(--muted);
+				font-size: var(--font-size-sm);
+				line-height: var(--leading-normal);
+			}
+			.option__desc b {
+				color: var(--text);
+			}
+			.sources {
+				margin: 0 var(--space-10) var(--space-10);
+				padding: var(--space-6) var(--space-8);
+				border-top: var(--border) solid var(--line-soft);
+				color: var(--faint);
+				font-size: var(--font-size-xs);
+				line-height: var(--leading-normal);
+			}
+			.sources b {
+				color: var(--muted);
+			}
+
+			/* ---------- Shared pieces ---------- */
+			/* Stepped "pixel" corners: two steps of --s at every corner. */
+			.notch {
+				clip-path: polygon(
+					0 calc(var(--s) * 2),
+					var(--s) calc(var(--s) * 2),
+					var(--s) var(--s),
+					calc(var(--s) * 2) var(--s),
+					calc(var(--s) * 2) 0,
+					calc(100% - var(--s) * 2) 0,
+					calc(100% - var(--s) * 2) var(--s),
+					calc(100% - var(--s)) var(--s),
+					calc(100% - var(--s)) calc(var(--s) * 2),
+					100% calc(var(--s) * 2),
+					100% calc(100% - var(--s) * 2),
+					calc(100% - var(--s)) calc(100% - var(--s) * 2),
+					calc(100% - var(--s)) calc(100% - var(--s)),
+					calc(100% - var(--s) * 2) calc(100% - var(--s)),
+					calc(100% - var(--s) * 2) 100%,
+					calc(var(--s) * 2) 100%,
+					calc(var(--s) * 2) calc(100% - var(--s)),
+					var(--s) calc(100% - var(--s)),
+					var(--s) calc(100% - var(--s) * 2),
+					0 calc(100% - var(--s) * 2)
+				);
+			}
+			.shadow {
+				filter: drop-shadow(0 14px 20px rgb(0 0 0 / 40%));
+			}
+			.any {
+				display: inline-block;
+				width: 18px;
+				height: 18px;
+				vertical-align: -4px;
+			}
+			.badge-aa {
+				display: inline-flex;
+				align-items: center;
+				gap: var(--space-2);
+				padding: var(--space-1) var(--space-3);
+				border: var(--border) solid
+					color-mix(
+						in srgb,
+						var(--arts-architecture) 65%,
+						transparent
+					);
+				background: color-mix(
+					in srgb,
+					var(--arts-architecture) 16%,
+					transparent
+				);
+				color: color-mix(
+					in srgb,
+					var(--arts-architecture) 75%,
+					var(--text)
+				);
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				letter-spacing: var(--letter-spacing-caps);
+				line-height: var(--leading-snug);
+				white-space: nowrap;
+			}
+			.badge-aa img {
+				width: 14px;
+				height: 14px;
+			}
+			.cx {
+				display: inline-flex;
+				gap: 3px;
+				align-items: center;
+			}
+			.cx i {
+				width: 7px;
+				height: 7px;
+				background: var(--gold);
+				transform: rotate(45deg);
+			}
+			.cx i.off {
+				background: transparent;
+				box-shadow: inset 0 0 0 1px
+					color-mix(in srgb, var(--gold) 55%, transparent);
+			}
+			.fine {
+				margin: 0;
+				color: var(--muted);
+				font-size: var(--font-size-3xs);
+				line-height: var(--leading-normal);
+			}
+			.fine b {
+				color: var(--text);
+			}
+			.setup {
+				color: var(--faint);
+			}
+
+			/* An item on the mat: a piece, a mini card or a hex tile. */
+			.slot__item {
+				position: relative;
+				display: grid;
+				place-items: center;
+				transition:
+					opacity var(--duration-medium) var(--ease),
+					filter var(--duration-medium) var(--ease),
+					transform var(--duration-medium) var(--ease-out);
+			}
+			.slot__item img.piece {
+				width: 44px;
+				height: 44px;
+			}
+			.slot__item img.piece--outpost {
+				width: 48px;
+				height: 48px;
+			}
+			.slot__item .piece--played {
+				display: none;
+			}
+			.mini-card {
+				position: relative;
+				display: block;
+				width: 38px;
+				height: 50px;
+				padding: 3px 3px 0;
+				background: var(--ink);
+				box-shadow: 0 0 0 1px var(--line-strong);
+			}
+			.mini-card img {
+				width: 32px;
+				height: 32px;
+			}
+			.mini-card::before {
+				content: '';
+				position: absolute;
+				left: 3px;
+				right: 3px;
+				bottom: 4px;
+				height: 5px;
+			}
+			.mini-card--tapestry::before {
+				background: var(--gold);
+			}
+			.mini-card--tech::before {
+				background: var(--technology);
+			}
+			.hex {
+				display: block;
+				width: 48px;
+				height: 42px;
+				padding: 2px;
+				background: var(--bronze);
+				clip-path: polygon(
+					25% 0,
+					75% 0,
+					100% 50%,
+					75% 100%,
+					25% 100%,
+					0 50%
+				);
+			}
+			.hex img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				clip-path: inherit;
+			}
+			/* Cards and tiles on the mat lie face down; the owner may look at them (hover or focus). */
+			.face-down::after {
+				content: '';
+				position: absolute;
+				inset: 0;
+				opacity: 0;
+				pointer-events: none;
+				background: repeating-linear-gradient(
+					45deg,
+					color-mix(in srgb, var(--bronze) 42%, var(--ink)) 0 3px,
+					var(--control) 3px 6px
+				);
+				box-shadow: inset 0 0 0 2px
+					color-mix(in srgb, var(--bronze) 70%, var(--ink));
+				transition: opacity var(--duration-fast) var(--ease);
+			}
+			.hex.face-down {
+				position: relative;
+			}
+			.hex.face-down::after {
+				clip-path: inherit;
+			}
+
+			/* Printed state: the item types are shown muted, waiting to be covered. */
+			.slot .slot__item {
+				opacity: 0.72;
+				filter: saturate(0.5);
+			}
+			[data-state='play'] .slot.is-collected .slot__item {
+				opacity: 1;
+				filter: none;
+				transform: translateY(-2px) scale(1.06);
+			}
+			[data-state='play'] .slot.is-collected .piece--printed {
+				display: none;
+			}
+			[data-state='play'] .slot.is-collected .piece--played {
+				display: block;
+			}
+			[data-state='play'] .slot.is-collected .face-down::after {
+				opacity: 1;
+			}
+			[data-state='play']
+				.slot.is-collected
+				.slot__item:is(:hover, :focus-visible)
+				.face-down::after {
+				opacity: 0;
+			}
+
+			.vp__string {
+				display: none;
+			}
+			.vp__token {
+				display: none;
+				position: absolute;
+				width: 26px;
+				height: 26px;
+				pointer-events: none;
+			}
+			[data-state='play'] .vp.is-current .vp__token {
+				display: block;
+			}
+
+			/* ================= Option A · Gilded card ================= */
+			.ca {
+				--s: 4px;
+				width: 344px;
+				padding: 3px;
+				background: var(--bronze);
+			}
+			.ca__in {
+				--s: 3px;
+				position: relative;
+				padding: var(--space-7) var(--space-8) var(--space-8);
+				background: var(--chrome);
+			}
+			.ca__in::before {
+				content: '';
+				position: absolute;
+				inset: 7px;
+				pointer-events: none;
+				box-shadow: inset 0 0 0 1px
+					color-mix(in srgb, var(--gold) 26%, transparent);
+			}
+			.ca__head {
+				display: grid;
+				grid-template-columns: 1fr auto 1fr;
+				align-items: center;
+				gap: var(--space-4);
+				padding: 0 var(--space-2);
+			}
+			.ca__head .cx {
+				justify-self: end;
+			}
+			.ca__name {
+				margin: 0;
+				font: var(--weight-bold) var(--font-size-3xl)/1
+					var(--font-title);
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				color: var(--gold);
+				text-shadow: var(--text-glow-gold);
+			}
+			.ca__portrait {
+				--s: 3px;
+				width: 268px;
+				margin: var(--space-6) auto 0;
+				padding: 3px;
+				background: var(--bronze);
+			}
+			.ca__portrait img {
+				--s: 2px;
+				width: 262px;
+				height: 262px;
+				padding: 3px;
+				background: var(--ink);
+			}
+			.ca__rule {
+				display: flex;
+				align-items: center;
+				gap: var(--space-4);
+				margin: var(--space-6) 0 var(--space-5);
+			}
+			.ca__rule::before,
+			.ca__rule::after {
+				content: '';
+				flex: 1;
+				height: 1px;
+				background: linear-gradient(90deg, transparent, var(--bronze));
+			}
+			.ca__rule::after {
+				transform: scaleX(-1);
+			}
+			.ca__rule i {
+				width: 7px;
+				height: 7px;
+				background: var(--gold);
+				transform: rotate(45deg);
+			}
+			.ca__text {
+				margin: 0 var(--space-2) var(--space-6);
+				font-size: var(--font-size-md);
+				line-height: var(--leading-normal);
+				text-align: center;
+			}
+			.ca__slots {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: var(--space-3);
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+			.ca .slot {
+				position: relative;
+				display: grid;
+				grid-template-rows: 58px auto;
+				justify-items: center;
+				align-items: center;
+				padding: var(--space-4) var(--space-2) var(--space-3);
+				background: var(--control);
+				box-shadow: inset 0 0 0 1px var(--line-soft);
+				transition: box-shadow var(--duration-medium) var(--ease);
+			}
+			.ca .slot__name {
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				letter-spacing: var(--letter-spacing-caps);
+				text-transform: uppercase;
+				color: var(--muted);
+			}
+			.ca .slot__gain {
+				position: absolute;
+				top: 3px;
+				right: 3px;
+				display: flex;
+				align-items: center;
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				color: var(--muted);
+			}
+			.ca .slot__gain .any {
+				width: 16px;
+				height: 16px;
+			}
+			[data-state='play'] .ca .slot.is-collected {
+				box-shadow:
+					inset 0 0 0 1px var(--gold),
+					var(--glow-gold);
+			}
+			[data-state='play'] .ca .slot.is-collected .slot__name {
+				color: var(--gold);
+			}
+			.ca__ladder {
+				margin-top: var(--space-6);
+			}
+			.ladder-label {
+				display: flex;
+				justify-content: space-between;
+				margin-bottom: var(--space-2);
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				letter-spacing: var(--letter-spacing-caps);
+				text-transform: uppercase;
+				color: var(--bronze);
+			}
+			.ca__vps {
+				display: grid;
+				grid-template-columns: repeat(6, 1fr);
+				margin: 0;
+				padding: 0;
+				list-style: none;
+				background: var(--ink);
+				box-shadow: 0 0 0 1px var(--line);
+			}
+			.ca .vp {
+				position: relative;
+				display: grid;
+				justify-items: center;
+				padding: var(--space-2) 0 var(--space-3);
+			}
+			.ca .vp + .vp {
+				box-shadow: -1px 0 0 var(--line-soft);
+			}
+			.ca .vp__n {
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				color: var(--faint);
+			}
+			.ca .vp__pts {
+				font: var(--weight-bold) var(--font-size-xl)/1 var(--font-title);
+				color: var(--gold);
+			}
+			.ca .vp__pts small {
+				font: var(--weight-bold) 8px/1 var(--font-body);
+				letter-spacing: var(--letter-spacing-caps);
+				margin-left: 1px;
+				color: var(--bronze);
+			}
+			.ca .vp__pips {
+				display: none;
+			}
+			.ca .vp__token {
+				top: -16px;
+				right: -10px;
+				z-index: 1;
+			}
+			[data-state='play'] .ca .vp.is-current {
+				background: color-mix(in srgb, var(--gold) 20%, transparent);
+				box-shadow: inset 0 0 0 1px var(--gold);
+			}
+			.ca .fine {
+				margin-top: var(--space-5);
+			}
+
+			/* ================= Option B · Civilization mat ================= */
+			.cb {
+				width: 456px;
+				background: var(--chrome);
+				border: var(--border-thick) solid var(--line-strong);
+				box-shadow:
+					var(--shadow-card),
+					inset 0 0 0 1px var(--ink);
+			}
+			.cb__band {
+				display: flex;
+				align-items: center;
+				gap: var(--space-5);
+				padding: var(--space-4) var(--space-6);
+				background: linear-gradient(
+					90deg,
+					color-mix(
+						in srgb,
+						var(--arts-architecture) 38%,
+						var(--chrome)
+					),
+					var(--chrome) 85%
+				);
+				border-bottom: var(--border) solid
+					color-mix(
+						in srgb,
+						var(--arts-architecture) 55%,
+						transparent
+					);
+			}
+			.cb__name {
+				margin: 0 auto 0 0;
+				font: var(--weight-bold) var(--font-size-2xl)/1
+					var(--font-title);
+				letter-spacing: var(--letter-spacing-title);
+				color: var(--gold);
+			}
+			.cb__body {
+				display: grid;
+				grid-template-columns: 128px 1fr;
+				gap: var(--space-6);
+				padding: var(--space-6);
+			}
+			.cb__portrait {
+				width: 128px;
+				height: 128px;
+				box-shadow:
+					0 0 0 1px var(--bronze),
+					0 0 0 3px var(--ink);
+			}
+			.cb__text {
+				margin: 0 0 var(--space-4);
+				font-size: var(--font-size-sm);
+				line-height: var(--leading-normal);
+			}
+			.cb__slots {
+				display: grid;
+				grid-template-columns: repeat(6, 1fr);
+				gap: var(--space-3);
+				margin: 0;
+				padding: 0 var(--space-6);
+				list-style: none;
+			}
+			.cb .slot {
+				display: grid;
+				justify-items: center;
+				gap: var(--space-2);
+			}
+			.cb .slot__item {
+				width: 100%;
+				height: 64px;
+				border: var(--border) dashed var(--line-strong);
+				background: var(--ink);
+			}
+			.cb .slot__name {
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				letter-spacing: 0.03em;
+				text-transform: uppercase;
+				color: var(--muted);
+				text-align: center;
+				line-height: 1.15;
+				min-height: 2.3em;
+				display: grid;
+				place-items: center;
+			}
+			.cb .slot__gain {
+				display: flex;
+				align-items: center;
+				gap: 1px;
+				padding: 0 var(--space-2) 0 var(--space-3);
+				background: var(--control);
+				box-shadow: inset 0 0 0 1px var(--line-soft);
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				color: var(--muted);
+			}
+			.cb .slot__gain .any {
+				width: 16px;
+				height: 16px;
+			}
+			[data-state='play'] .cb .slot.is-collected .slot__item {
+				border: var(--border) solid var(--player-1);
+				box-shadow: var(--glow-current);
+				background: color-mix(in srgb, var(--player-1) 12%, var(--ink));
+				opacity: 1;
+			}
+			[data-state='play'] .cb .slot.is-collected .slot__item {
+				transform: none;
+			}
+			.cb__score {
+				margin: var(--space-6) var(--space-6) var(--space-6);
+				padding-top: var(--space-5);
+				border-top: var(--border) solid var(--line);
+			}
+			.cb__vps {
+				display: grid;
+				grid-template-columns: repeat(6, 1fr);
+				gap: var(--space-3);
+				align-items: end;
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+			.cb .vp {
+				position: relative;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: flex-start;
+				gap: 0;
+				padding-top: var(--space-2);
+				background: color-mix(in srgb, var(--gold) 13%, var(--control));
+				border-top: var(--border-thick) solid var(--gold);
+			}
+			.cb .vp[data-n='1'] {
+				height: 38px;
+			}
+			.cb .vp[data-n='2'] {
+				height: 46px;
+			}
+			.cb .vp[data-n='3'] {
+				height: 54px;
+			}
+			.cb .vp[data-n='4'] {
+				height: 62px;
+			}
+			.cb .vp[data-n='5'] {
+				height: 70px;
+			}
+			.cb .vp[data-n='6'] {
+				height: 78px;
+			}
+			.cb .vp__pts {
+				font: var(--weight-bold) var(--font-size-lg)/1 var(--font-title);
+				color: var(--gold);
+			}
+			.cb .vp__pts small {
+				display: block;
+				margin-top: 1px;
+				font: var(--weight-bold) 8px/1 var(--font-body);
+				letter-spacing: var(--letter-spacing-caps);
+				color: var(--bronze);
+				text-align: center;
+			}
+			.cb .vp__n {
+				display: none;
+			}
+			.cb .vp__pips {
+				display: none;
+			}
+			.cb .vp__token {
+				top: -28px;
+				left: 50%;
+				transform: translateX(-50%);
+			}
+			[data-state='play'] .cb .vp.is-current {
+				background: color-mix(
+					in srgb,
+					var(--player-1) 26%,
+					var(--control)
+				);
+				border-top-color: var(--player-1);
+			}
+			.cb__counts {
+				display: grid;
+				grid-template-columns: repeat(6, 1fr);
+				gap: var(--space-3);
+				margin-top: var(--space-2);
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				color: var(--faint);
+				text-align: center;
+			}
+			.cb__axis {
+				display: flex;
+				justify-content: space-between;
+				margin-top: var(--space-1);
+				font-size: var(--font-size-3xs);
+				letter-spacing: var(--letter-spacing-caps);
+				text-transform: uppercase;
+				color: var(--bronze);
+				font-weight: var(--weight-bold);
+			}
+
+			/* ================= Option C · Curio cabinet ================= */
+			.cc {
+				--s: 5px;
+				--wood-dark: color-mix(in srgb, var(--bronze) 22%, var(--ink));
+				--wood: color-mix(in srgb, var(--bronze) 40%, var(--ink));
+				--wood-light: color-mix(in srgb, var(--bronze) 62%, var(--ink));
+				--brass: color-mix(in srgb, var(--gold) 82%, var(--bronze));
+				width: 368px;
+				padding: 3px;
+				background: var(--wood-light);
+			}
+			.cc__frame {
+				--s: 4px;
+				position: relative;
+				padding: var(--space-8) var(--space-8) var(--space-9);
+				background: repeating-linear-gradient(
+					90deg,
+					var(--wood-dark) 0 9px,
+					color-mix(in srgb, var(--wood-dark) 85%, var(--ink)) 9px
+						11px,
+					var(--wood-dark) 11px 23px
+				);
+			}
+			.cc__stud {
+				position: absolute;
+				width: 6px;
+				height: 6px;
+				background: var(--brass);
+				box-shadow: inset -1px -1px 0
+					color-mix(in srgb, var(--bronze) 60%, var(--ink));
+			}
+			.cc__stud:nth-child(1) {
+				top: 6px;
+				left: 6px;
+			}
+			.cc__stud:nth-child(2) {
+				top: 6px;
+				right: 6px;
+			}
+			.cc__stud:nth-child(3) {
+				bottom: 6px;
+				left: 6px;
+			}
+			.cc__stud:nth-child(4) {
+				bottom: 6px;
+				right: 6px;
+			}
+			.cc__painting {
+				position: relative;
+				width: 320px;
+				margin: 0 auto;
+				box-shadow:
+					0 0 0 2px var(--ink),
+					0 0 0 5px var(--brass),
+					0 0 0 6px var(--ink);
+			}
+			.cc__painting img {
+				width: 320px;
+				height: 320px;
+			}
+			.cc__plaque {
+				--s: 2px;
+				position: absolute;
+				left: 50%;
+				bottom: -20px;
+				transform: translateX(-50%);
+				display: flex;
+				align-items: center;
+				gap: var(--space-5);
+				padding: var(--space-3) var(--space-9) var(--space-2);
+				background: linear-gradient(var(--gold), var(--brass));
+				color: var(--ink);
+				font: var(--weight-bold) var(--font-size-xl)/1.1
+					var(--font-title);
+				letter-spacing: 0.14em;
+				text-transform: uppercase;
+				white-space: nowrap;
+			}
+			.cc__plaque::before,
+			.cc__plaque::after {
+				content: '';
+				width: 4px;
+				height: 4px;
+				background: color-mix(in srgb, var(--bronze) 50%, var(--ink));
+			}
+			.cc__sub {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: var(--space-4);
+				margin: var(--space-11) 0 var(--space-5);
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				letter-spacing: var(--letter-spacing-caps);
+				text-transform: uppercase;
+				color: color-mix(in srgb, var(--gold) 70%, var(--text));
+			}
+			.cc__text {
+				margin: 0 var(--space-2) var(--space-6);
+				font-size: var(--font-size-md);
+				line-height: var(--leading-normal);
+				text-align: center;
+			}
+			.cc__offer {
+				display: flex;
+				align-items: center;
+				gap: var(--space-4);
+				margin-bottom: var(--space-4);
+				font-size: var(--font-size-xs);
+				font-weight: var(--weight-bold);
+				color: var(--text);
+				white-space: nowrap;
+			}
+			.cc__offer::before,
+			.cc__offer::after {
+				content: '';
+				flex: 1;
+				height: 1px;
+				background: var(--wood-light);
+			}
+			.cc__cabinet {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: var(--space-4);
+				margin: 0;
+				padding: var(--space-4);
+				list-style: none;
+				background: var(--wood);
+				box-shadow:
+					inset 0 0 0 2px var(--wood-light),
+					inset 0 0 0 4px var(--wood-dark);
+			}
+			.cc .slot {
+				display: grid;
+				gap: var(--space-3);
+				justify-items: center;
+				padding: var(--space-1);
+			}
+			.cc .slot__item {
+				width: 100%;
+				height: 76px;
+				align-items: end;
+				padding-bottom: 9px;
+				background: radial-gradient(
+					ellipse at 50% 100%,
+					color-mix(in srgb, var(--gold) 14%, var(--ink)),
+					var(--ink) 70%
+				);
+				box-shadow:
+					inset 0 0 0 1px var(--wood-dark),
+					inset 0 4px 6px rgb(0 0 0 / 50%);
+			}
+			.cc .slot__item::before {
+				content: '';
+				position: absolute;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				height: 7px;
+				background: var(--wood-light);
+				box-shadow: inset 0 1px 0
+					color-mix(in srgb, var(--gold) 45%, var(--wood-light));
+			}
+			.cc .slot__item > * {
+				position: relative;
+				z-index: 1;
+			}
+			.cc .slot__name {
+				--s: 1px;
+				padding: 2px var(--space-4);
+				background: var(--brass);
+				color: var(--ink);
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				letter-spacing: 0.05em;
+				text-transform: uppercase;
+				line-height: 1.2;
+				white-space: nowrap;
+			}
+			.cc .slot__gain {
+				display: none;
+			}
+			[data-state='play'] .cc .slot.is-collected .slot__item {
+				background: radial-gradient(
+					ellipse at 50% 100%,
+					color-mix(in srgb, var(--gold) 42%, var(--ink)),
+					var(--ink) 75%
+				);
+				opacity: 1;
+			}
+			[data-state='play'] .cc .slot.is-collected .slot__item {
+				transform: none;
+			}
+			.cc__score {
+				margin-top: var(--space-7);
+			}
+			.cc__rail {
+				height: 3px;
+				margin: 0 var(--space-2);
+				background: var(--brass);
+				box-shadow: 0 1px 0 var(--ink);
+			}
+			.cc__vps {
+				display: grid;
+				grid-template-columns: repeat(6, 1fr);
+				gap: var(--space-3);
+				margin: 0;
+				padding: 0 var(--space-2);
+				list-style: none;
+			}
+			.cc .vp {
+				position: relative;
+				display: grid;
+				justify-items: center;
+				gap: var(--space-1);
+				margin-top: 12px;
+				padding: 16px 0 var(--space-3);
+				background: var(--text);
+				color: var(--ink);
+				clip-path: polygon(50% 0, 100% 10px, 100% 100%, 0 100%, 0 10px);
+			}
+			.cc .vp::before {
+				content: '';
+				position: absolute;
+				top: 6px;
+				left: 50%;
+				width: 4px;
+				height: 4px;
+				margin-left: -2px;
+				background: var(--wood-dark);
+			}
+			.cc .vp::after {
+				content: '';
+				position: absolute;
+			}
+			.cc .vp__string {
+				display: block;
+				position: absolute;
+				top: -12px;
+				left: 50%;
+				width: 1px;
+				height: 16px;
+				margin-left: -0.5px;
+				background: var(--brass);
+			}
+			.cc__vps li {
+				position: relative;
+			}
+			.cc .vp__pips {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 2px;
+				max-width: 30px;
+				min-height: 10px;
+			}
+			.cc .vp__pips i {
+				width: 4px;
+				height: 4px;
+				background: var(--wood);
+			}
+			.cc .vp__pts {
+				font: var(--weight-bold) var(--font-size-xl)/1 var(--font-title);
+			}
+			.cc .vp__pts small {
+				display: block;
+				font: var(--weight-bold) 8px/1 var(--font-body);
+				letter-spacing: var(--letter-spacing-caps);
+				text-align: center;
+				color: color-mix(in srgb, var(--ink) 70%, var(--bronze));
+			}
+			.cc .vp__n {
+				display: none;
+			}
+			.cc .vp__token {
+				top: -6px;
+				right: -8px;
+				z-index: 2;
+			}
+			[data-state='play'] .cc .vp.is-current {
+				background: var(--gold);
+			}
+			.cc .fine {
+				margin-top: var(--space-6);
+				text-align: center;
+			}
+
+			/* ================= Option D · Full-art card ================= */
+			.cd {
+				position: relative;
+				width: 384px;
+				overflow: hidden;
+				background: var(--ink);
+				box-shadow:
+					0 0 0 1px var(--ink),
+					0 0 0 3px color-mix(in srgb, var(--gold) 80%, var(--bronze)),
+					0 0 0 4px var(--ink),
+					var(--shadow-card);
+			}
+			.cd__art {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 384px;
+				height: 384px;
+			}
+			/* Below the portrait, a blurred mirror of it carries the art to the card's foot. */
+			.cd__ambient {
+				position: absolute;
+				top: 384px;
+				left: -40px;
+				right: -40px;
+				bottom: -40px;
+				background: url('../../static/art/civ/collectors.svg') center
+					bottom/464px auto no-repeat;
+				filter: blur(14px) brightness(0.42) saturate(1.3);
+				transform: scaleY(-1);
+			}
+			.cd__corner {
+				position: absolute;
+				z-index: 2;
+				width: 14px;
+				height: 14px;
+				border: 0 solid var(--gold);
+			}
+			.cd__corner:nth-of-type(1) {
+				top: 7px;
+				left: 7px;
+				border-width: 2px 0 0 2px;
+			}
+			.cd__corner:nth-of-type(2) {
+				top: 7px;
+				right: 7px;
+				border-width: 2px 2px 0 0;
+			}
+			.cd__corner:nth-of-type(3) {
+				bottom: 7px;
+				left: 7px;
+				border-width: 0 0 2px 2px;
+			}
+			.cd__corner:nth-of-type(4) {
+				bottom: 7px;
+				right: 7px;
+				border-width: 0 2px 2px 0;
+			}
+			.cd__head {
+				position: relative;
+				display: flex;
+				align-items: center;
+				gap: var(--space-4);
+				padding: var(--space-7) var(--space-9) var(--space-11);
+				background: linear-gradient(
+					color-mix(in srgb, var(--ink) 88%, transparent),
+					transparent
+				);
+			}
+			.cd__name {
+				margin: 0 auto 0 0;
+				font: var(--weight-bold) 26px/1 var(--font-title);
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+				color: var(--gold);
+				text-shadow:
+					0 2px 0 var(--ink),
+					var(--text-glow-gold);
+			}
+			.cd__window {
+				height: 244px;
+			}
+			.cd__panel {
+				position: relative;
+				margin: 0 var(--space-5) var(--space-5);
+				padding: var(--space-6) var(--space-6) var(--space-7);
+				background: color-mix(in srgb, var(--ink) 80%, transparent);
+				backdrop-filter: blur(4px);
+				box-shadow: inset 0 0 0 1px
+					color-mix(in srgb, var(--gold) 32%, transparent);
+			}
+			.cd__text {
+				margin: 0 0 var(--space-5);
+				font-size: var(--font-size-md);
+				line-height: var(--leading-normal);
+			}
+			.cd__slots {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: var(--space-2);
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+			.cd .slot {
+				display: grid;
+				grid-template-columns: 38px 1fr;
+				grid-template-rows: auto auto;
+				column-gap: var(--space-2);
+				align-items: center;
+				padding: var(--space-2);
+				background: color-mix(in srgb, var(--control) 72%, transparent);
+				box-shadow: inset 0 0 0 1px var(--line-soft);
+				transition: box-shadow var(--duration-medium) var(--ease);
+			}
+			.cd .slot__item {
+				grid-row: 1/3;
+				width: 38px;
+				height: 42px;
+			}
+			.cd .slot__item img.piece {
+				width: 32px;
+				height: 32px;
+			}
+			.cd .slot__item img.piece--outpost {
+				width: 36px;
+				height: 36px;
+			}
+			.cd .slot__item .mini-card {
+				transform: scale(0.74);
+			}
+			.cd .slot__item .hex {
+				transform: scale(0.76);
+			}
+			.cd .slot__name {
+				align-self: end;
+				font-size: var(--font-size-xs);
+				font-weight: var(--weight-bold);
+				color: var(--text);
+				white-space: nowrap;
+			}
+			.cd .slot__gain {
+				align-self: start;
+				display: flex;
+				align-items: center;
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				color: var(--muted);
+			}
+			.cd .slot__gain .any {
+				width: 15px;
+				height: 15px;
+			}
+			[data-state='play'] .cd .slot.is-collected {
+				box-shadow:
+					inset 0 0 0 1px var(--gold),
+					var(--glow-gold);
+			}
+			[data-state='play'] .cd .slot.is-collected .slot__item {
+				transform: none;
+			}
+			.cd__score {
+				margin-top: var(--space-6);
+			}
+			.cd__vps {
+				display: grid;
+				grid-template-columns: repeat(6, 1fr);
+				gap: 3px;
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+			.cd .vp {
+				position: relative;
+				display: grid;
+				justify-items: center;
+				gap: 3px;
+			}
+			.cd .vp::after {
+				content: '';
+				order: 2;
+				width: 100%;
+				height: 8px;
+				background: color-mix(in srgb, var(--text) 14%, transparent);
+			}
+			.cd .vp__pts {
+				order: 1;
+				font: var(--weight-bold) var(--font-size-lg)/1 var(--font-title);
+				color: var(--gold);
+			}
+			.cd .vp__pts small {
+				font: var(--weight-bold) 8px/1 var(--font-body);
+				letter-spacing: var(--letter-spacing-caps);
+				margin-left: 1px;
+				color: var(--bronze);
+			}
+			.cd .vp__n {
+				order: 3;
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				color: var(--faint);
+			}
+			.cd .vp__pips {
+				display: none;
+			}
+			.cd .vp__token {
+				width: 22px;
+				height: 22px;
+				top: 12px;
+				right: -12px;
+				z-index: 1;
+			}
+			[data-state='play'] .cd .vp.is-reached::after {
+				background: var(--player-1);
+				box-shadow: 0 0 6px
+					color-mix(in srgb, var(--player-1) 60%, transparent);
+			}
+			[data-state='play'] .cd .vp.is-current .vp__pts {
+				color: var(--text);
+				text-shadow: var(--text-glow-gold);
+			}
+			.cd .fine {
+				margin-top: var(--space-5);
+			}
+
+			/* ================= Option E · Woven tapestry ================= */
+			.ce-wrap {
+				--fabric: color-mix(in srgb, var(--military) 36%, var(--ink));
+				--fabric-deep: color-mix(
+					in srgb,
+					var(--military) 20%,
+					var(--ink)
+				);
+				--thread: color-mix(in srgb, var(--gold) 85%, var(--bronze));
+				--rod: color-mix(in srgb, var(--bronze) 62%, var(--ink));
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				filter: drop-shadow(0 14px 20px rgb(0 0 0 / 40%));
+			}
+			.ce__rod {
+				position: relative;
+				z-index: 1;
+				width: 376px;
+				height: 10px;
+				background: linear-gradient(
+					var(--rod),
+					color-mix(in srgb, var(--bronze) 32%, var(--ink))
+				);
+				box-shadow: inset 0 1px 0
+					color-mix(in srgb, var(--gold) 40%, transparent);
+			}
+			.ce__rod::before,
+			.ce__rod::after {
+				content: '';
+				position: absolute;
+				top: -4px;
+				width: 12px;
+				height: 18px;
+				background: var(--thread);
+				clip-path: polygon(
+					0 25%,
+					25% 25%,
+					25% 0,
+					75% 0,
+					75% 25%,
+					100% 25%,
+					100% 75%,
+					75% 75%,
+					75% 100%,
+					25% 100%,
+					25% 75%,
+					0 75%
+				);
+			}
+			.ce__rod::before {
+				left: -8px;
+			}
+			.ce__rod::after {
+				right: -8px;
+			}
+			.ce__loops {
+				width: 340px;
+				height: 12px;
+				margin-top: -5px;
+				background: repeating-linear-gradient(
+					90deg,
+					transparent 0 14px,
+					var(--fabric-deep) 14px 30px
+				);
+			}
+			.ce {
+				width: 340px;
+				padding: 6px;
+				background: repeating-conic-gradient(
+						var(--thread) 0 25%,
+						var(--fabric-deep) 0 50%
+					)
+					0 0/6px 6px;
+			}
+			.ce__in {
+				position: relative;
+				padding: var(--space-8) var(--space-9) var(--space-9);
+				background:
+					repeating-linear-gradient(
+						0deg,
+						rgb(0 0 0 / 14%) 0 1px,
+						transparent 1px 3px
+					),
+					repeating-linear-gradient(
+						90deg,
+						rgb(255 255 255 / 3%) 0 1px,
+						transparent 1px 3px
+					),
+					var(--fabric);
+				box-shadow:
+					inset 0 0 0 2px var(--fabric-deep),
+					inset 0 0 0 3px
+						color-mix(in srgb, var(--thread) 55%, transparent);
+			}
+			.ce__name {
+				margin: 0;
+				text-align: center;
+				font: var(--weight-bold) var(--font-size-3xl)/1
+					var(--font-title);
+				letter-spacing: 0.12em;
+				text-transform: uppercase;
+				color: var(--thread);
+			}
+			.ce__stitch {
+				height: 0;
+				margin: var(--space-4) var(--space-10);
+				border-top: 2px dashed
+					color-mix(in srgb, var(--thread) 60%, transparent);
+			}
+			.ce__sub {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: var(--space-4);
+				margin-bottom: var(--space-7);
+			}
+			.ce__portrait {
+				width: 256px;
+				margin: 0 auto;
+				outline: 2px dashed
+					color-mix(in srgb, var(--thread) 70%, transparent);
+				outline-offset: 5px;
+				box-shadow: 0 0 0 2px var(--fabric-deep);
+			}
+			.ce__portrait img {
+				width: 256px;
+				height: 256px;
+			}
+			.ce__text {
+				margin: var(--space-9) 0 var(--space-6);
+				text-align: center;
+				font-size: var(--font-size-md);
+				line-height: var(--leading-normal);
+			}
+			.ce__patches {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: var(--space-4);
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+			.ce .slot {
+				position: relative;
+				display: grid;
+				justify-items: center;
+				gap: var(--space-3);
+				padding: var(--space-6) var(--space-2) var(--space-5);
+				background: var(--fabric-deep);
+				outline: 2px dashed
+					color-mix(in srgb, var(--thread) 50%, transparent);
+				outline-offset: -5px;
+			}
+			.ce .slot__item {
+				height: 52px;
+			}
+			.ce .slot__name {
+				font: var(--weight-bold) var(--font-size-2xs)/1
+					var(--font-title);
+				letter-spacing: 0.05em;
+				text-transform: uppercase;
+				color: var(--thread);
+			}
+			.ce .slot__gain {
+				position: absolute;
+				top: 7px;
+				right: 8px;
+				display: flex;
+				align-items: center;
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				color: var(--muted);
+			}
+			.ce .slot__gain .any {
+				width: 14px;
+				height: 14px;
+			}
+			[data-state='play'] .ce .slot.is-collected {
+				background: color-mix(
+					in srgb,
+					var(--thread) 20%,
+					var(--fabric-deep)
+				);
+				outline-style: solid;
+				outline-color: var(--thread);
+			}
+			[data-state='play'] .ce .slot.is-collected .slot__item {
+				transform: none;
+			}
+			.ce__score {
+				margin-top: var(--space-8);
+			}
+			.ce__score .ladder-label {
+				color: var(--thread);
+			}
+			.ce__vps {
+				position: relative;
+				display: flex;
+				justify-content: space-between;
+				margin: var(--space-3) 0 0;
+				padding: 0 var(--space-1);
+				list-style: none;
+			}
+			.ce__vps::before {
+				content: '';
+				position: absolute;
+				left: -6px;
+				right: -6px;
+				top: 20px;
+				height: 2px;
+				background: var(--thread);
+			}
+			.ce .vp {
+				position: relative;
+				display: grid;
+				justify-items: center;
+				width: 40px;
+			}
+			.ce .vp::before {
+				content: '';
+				position: absolute;
+				top: 3px;
+				left: 50%;
+				width: 34px;
+				height: 34px;
+				margin-left: -17px;
+				background: var(--fabric-deep);
+				box-shadow: inset 0 0 0 2px var(--thread);
+				transform: rotate(45deg) scale(0.82);
+			}
+			.ce .vp__pts {
+				order: 1;
+				position: relative;
+				height: 40px;
+				display: grid;
+				place-content: center;
+				font: var(--weight-bold) var(--font-size-base)/1
+					var(--font-title);
+				color: var(--thread);
+				text-align: center;
+			}
+			.ce .vp__pts small {
+				display: block;
+				font: var(--weight-bold) 8px/1 var(--font-body);
+				letter-spacing: var(--letter-spacing-caps);
+				color: var(--muted);
+			}
+			.ce .vp__n {
+				order: 2;
+				margin-top: var(--space-2);
+				font-size: var(--font-size-3xs);
+				font-weight: var(--weight-bold);
+				color: var(--muted);
+			}
+			.ce .vp__pips {
+				display: none;
+			}
+			.ce .vp__token {
+				width: 22px;
+				height: 22px;
+				top: -10px;
+				right: -8px;
+				z-index: 1;
+			}
+			[data-state='play'] .ce .vp.is-current::before {
+				background: var(--thread);
+			}
+			[data-state='play'] .ce .vp.is-current .vp__pts,
+			[data-state='play'] .ce .vp.is-current .vp__pts small {
+				color: var(--ink);
+			}
+			.ce .fine {
+				margin-top: var(--space-7);
+				text-align: center;
+			}
+			.ce__fringe {
+				width: 328px;
+				height: 18px;
+				background: repeating-linear-gradient(
+					90deg,
+					var(--thread) 0 2px,
+					transparent 2px 4px,
+					color-mix(in srgb, var(--military) 60%, var(--ink)) 4px 6px,
+					transparent 6px 8px
+				);
+				-webkit-mask-image: linear-gradient(#000 55%, transparent);
+				mask-image: linear-gradient(#000 55%, transparent);
+			}
+		</style>
+	</head>
+	<body data-state="empty">
+		<header class="topbar">
+			<span class="topbar__brand">The Rug Game</span>
+			<h1 class="topbar__title"><b>Collectors</b> · five card designs</h1>
+			<div
+				class="segmented"
+				role="group"
+				aria-label="Show the card">
+				<button
+					type="button"
+					data-set-state="empty"
+					aria-pressed="true">
+					Empty mat
+				</button>
+				<button
+					type="button"
+					data-set-state="play"
+					aria-pressed="false">
+					In play · 3 items
+				</button>
+			</div>
+		</header>
+
+		<main class="options">
+			<!-- ============ Option A ============ -->
+			<section
+				class="option"
+				aria-labelledby="option-a">
+				<div class="option__head">
+					<div class="option__eyebrow">Option A</div>
+					<h2
+						class="option__name"
+						id="option-a">
+						Gilded card
+					</h2>
+					<p class="option__desc">
+						A classic tall card. The framed portrait sits on top,
+						then the rules, the six items in a 3 × 2 grid and the
+						score ladder. It reads like the other cards in the
+						<b>card gallery (#47)</b>. <b>344 px wide.</b>
+					</p>
+				</div>
+				<div class="shadow">
+					<article
+						class="ca notch"
+						aria-label="Collectors, option A">
+						<div class="ca__in notch">
+							<header class="ca__head">
+								<span
+									><span
+										class="badge-aa"
+										title="Arts &amp; Architecture"
+										><img
+											src="../../static/art/track/arts.svg"
+											alt="" />A&amp;A</span
+									></span
+								>
+								<h3 class="ca__name">Collectors</h3>
+								<span
+									class="cx"
+									title="Complexity 2 of 3"
+									aria-label="Complexity 2 of 3"
+									><i></i><i></i><i class="off"></i
+								></span>
+							</header>
+							<div class="ca__portrait notch">
+								<img
+									class="notch"
+									src="../../static/art/civ/collectors.svg"
+									alt="A collector studies a gem through a magnifying glass" />
+							</div>
+							<div class="ca__rule"><i></i></div>
+							<p class="ca__text">
+								During an <b>advance</b> turn, when you gain one
+								of these, you may place it here if none of its
+								kind is here yet. Then gain
+								<img
+									class="any"
+									src="../../static/art/resource/any.svg"
+									alt="any 1 resource" />.
+							</p>
+							<ul
+								class="ca__slots"
+								data-slots></ul>
+							<div class="ca__ladder">
+								<div class="ladder-label">
+									<span>End of game</span
+									><span>Different items</span>
+								</div>
+								<ol
+									class="ca__vps"
+									data-ladder></ol>
+							</div>
+							<p class="fine">
+								<b>*</b> Only from a conquer benefit: place it
+								here instead of conquering, and don't roll the
+								dice. Items here count for scoring but can't be
+								used. Cards and tiles lie face down; you may
+								look at them.<br /><span class="setup"
+									>Setup, current rules: gain
+									<img
+										class="any"
+										src="../../static/art/resource/any.svg"
+										alt="any 1 resource"
+										style="
+											width: 14px;
+											height: 14px;
+											vertical-align: -3px;
+										" />.</span
+								>
+							</p>
+						</div>
+					</article>
+				</div>
+			</section>
+
+			<!-- ============ Option B ============ -->
+			<section
+				class="option"
+				aria-labelledby="option-b">
+				<div class="option__head">
+					<div class="option__eyebrow">
+						Option B · chosen (owner, 2026-10-23)
+					</div>
+					<h2
+						class="option__name"
+						id="option-b">
+						Civilization mat
+					</h2>
+					<p class="option__desc">
+						Laid out like the printed mat. The six items run left to
+						right in the printed order, and the score climbs in
+						steps below them. At <b>456 px wide</b> it fits the
+						<b>Civilization tab</b> in the player area as it is.
+					</p>
+				</div>
+				<article
+					class="cb"
+					aria-label="Collectors, option B">
+					<header class="cb__band">
+						<h3 class="cb__name">Collectors</h3>
+						<span
+							class="badge-aa"
+							title="Arts &amp; Architecture"
+							><img
+								src="../../static/art/track/arts.svg"
+								alt="" />Arts &amp; Architecture</span
+						>
+						<span
+							class="cx"
+							title="Complexity 2 of 3"
+							aria-label="Complexity 2 of 3"
+							><i></i><i></i><i class="off"></i
+						></span>
+					</header>
+					<div class="cb__body">
+						<img
+							class="cb__portrait"
+							src="../../static/art/civ/collectors.svg"
+							alt="A collector studies a gem through a magnifying glass" />
+						<div>
+							<p class="cb__text">
+								During an <b>advance</b> turn, when you gain one
+								of these, you may place it on its space if the
+								space is empty. Then gain
+								<img
+									class="any"
+									src="../../static/art/resource/any.svg"
+									alt="any 1 resource" />. One item per turn.
+							</p>
+							<p class="fine">
+								<b>*</b> Only from a conquer benefit, instead of
+								conquering; don't roll the dice.<br />Items here
+								count for scoring but can't be used. Cards and
+								tiles lie face down; you may look at them.<br /><span
+									class="setup"
+									>Setup, current rules: gain
+									<img
+										class="any"
+										src="../../static/art/resource/any.svg"
+										alt="any 1 resource"
+										style="
+											width: 14px;
+											height: 14px;
+											vertical-align: -3px;
+										" />.</span
+								>
+							</p>
+						</div>
+					</div>
+					<ol
+						class="cb__slots"
+						data-slots></ol>
+					<div class="cb__score">
+						<div class="ladder-label">
+							<span>End of game</span><span>VP</span>
+						</div>
+						<ol
+							class="cb__vps"
+							data-ladder></ol>
+						<div class="cb__counts">
+							<span>1</span><span>2</span><span>3</span
+							><span>4</span><span>5</span><span>6</span>
+						</div>
+						<div class="cb__axis">
+							<span>Different items on this mat</span
+							><span>→</span>
+						</div>
+					</div>
+				</article>
+			</section>
+
+			<!-- ============ Option C ============ -->
+			<section
+				class="option"
+				aria-labelledby="option-c">
+				<div class="option__head">
+					<div class="option__eyebrow">Option C</div>
+					<h2
+						class="option__name"
+						id="option-c">
+						Curio cabinet
+					</h2>
+					<p class="option__desc">
+						The portrait hangs like a gallery painting with a brass
+						name plaque. The items sit on the shelves of a curio
+						cabinet, and the score hangs below as a row of price
+						tags. <b>368 px wide</b>; the most decorated of the
+						three.
+					</p>
+				</div>
+				<div class="shadow">
+					<article
+						class="cc notch"
+						aria-label="Collectors, option C">
+						<div class="cc__frame notch">
+							<span class="cc__stud"></span
+							><span class="cc__stud"></span
+							><span class="cc__stud"></span
+							><span class="cc__stud"></span>
+							<div class="cc__painting">
+								<img
+									src="../../static/art/civ/collectors.svg"
+									alt="A collector studies a gem through a magnifying glass" />
+								<h3 class="cc__plaque notch">Collectors</h3>
+							</div>
+							<div class="cc__sub">
+								<span
+									class="badge-aa"
+									title="Arts &amp; Architecture"
+									><img
+										src="../../static/art/track/arts.svg"
+										alt="" />A&amp;A</span
+								><span>Complexity</span
+								><span
+									class="cx"
+									aria-label="2 of 3"
+									><i></i><i></i><i class="off"></i
+								></span>
+							</div>
+							<p class="cc__text">
+								During an <b>advance</b> turn, when you gain one
+								of these, you may put it on its shelf if the
+								shelf is empty.
+							</p>
+							<div class="cc__offer">
+								<span
+									>First of each kind: gain
+									<img
+										class="any"
+										src="../../static/art/resource/any.svg"
+										alt="any 1 resource"
+								/></span>
+							</div>
+							<ul
+								class="cc__cabinet"
+								data-slots></ul>
+							<div class="cc__score">
+								<div class="ladder-label">
+									<span
+										>End of game · the collection's
+										worth</span
+									><span>Items</span>
+								</div>
+								<div class="cc__rail"></div>
+								<ol
+									class="cc__vps"
+									data-ladder></ol>
+							</div>
+							<p class="fine">
+								<b>*</b> Only from a conquer benefit, instead of
+								conquering; don't roll the dice. Items on the
+								shelves count for scoring but can't be used.
+								Cards and tiles lie face down; you may look at
+								them.<br /><span class="setup"
+									>Setup, current rules: gain
+									<img
+										class="any"
+										src="../../static/art/resource/any.svg"
+										alt="any 1 resource"
+										style="
+											width: 14px;
+											height: 14px;
+											vertical-align: -3px;
+										" />.</span
+								>
+							</p>
+						</div>
+					</article>
+				</div>
+			</section>
+
+			<!-- ============ Option D ============ -->
+			<section
+				class="option"
+				aria-labelledby="option-d">
+				<div class="option__head">
+					<div class="option__eyebrow">Option D</div>
+					<h2
+						class="option__name"
+						id="option-d">
+						Full-art card
+					</h2>
+					<p class="option__desc">
+						The portrait fills the card edge to edge, and a blurred
+						reflection carries it down to the foot. The name, rules,
+						items and score sit on a dark glass panel over the art,
+						like a full-art trading card. <b>384 px wide</b>; the
+						picture does the most work.
+					</p>
+				</div>
+				<article
+					class="cd"
+					aria-label="Collectors, option D">
+					<img
+						class="cd__art"
+						src="../../static/art/civ/collectors.svg"
+						alt="A collector studies a gem through a magnifying glass" />
+					<div class="cd__ambient"></div>
+					<span class="cd__corner"></span
+					><span class="cd__corner"></span
+					><span class="cd__corner"></span
+					><span class="cd__corner"></span>
+					<header class="cd__head">
+						<h3 class="cd__name">Collectors</h3>
+						<span
+							class="badge-aa"
+							title="Arts &amp; Architecture"
+							><img
+								src="../../static/art/track/arts.svg"
+								alt="" />A&amp;A</span
+						>
+						<span
+							class="cx"
+							title="Complexity 2 of 3"
+							aria-label="Complexity 2 of 3"
+							><i></i><i></i><i class="off"></i
+						></span>
+					</header>
+					<div class="cd__window"></div>
+					<div class="cd__panel">
+						<p class="cd__text">
+							During an <b>advance</b> turn, when you gain one of
+							these, you may place it here if none of its kind is
+							here yet. Then gain
+							<img
+								class="any"
+								src="../../static/art/resource/any.svg"
+								alt="any 1 resource" />.
+						</p>
+						<ul
+							class="cd__slots"
+							data-slots></ul>
+						<div class="cd__score">
+							<div class="ladder-label">
+								<span>End of game</span
+								><span>Different items</span>
+							</div>
+							<ol
+								class="cd__vps"
+								data-ladder></ol>
+						</div>
+						<p class="fine">
+							<b>*</b> Only from a conquer benefit, instead of
+							conquering; don't roll the dice. Items here count
+							for scoring but can't be used. Cards and tiles lie
+							face down; you may look at them.
+							<span class="setup"
+								>Setup, current rules: gain
+								<img
+									class="any"
+									src="../../static/art/resource/any.svg"
+									alt="any 1 resource"
+									style="
+										width: 14px;
+										height: 14px;
+										vertical-align: -3px;
+									" />.</span
+							>
+						</p>
+					</div>
+				</article>
+			</section>
+
+			<!-- ============ Option E ============ -->
+			<section
+				class="option"
+				aria-labelledby="option-e">
+				<div class="option__head">
+					<div class="option__eyebrow">Option E</div>
+					<h2
+						class="option__name"
+						id="option-e">
+						Woven tapestry
+					</h2>
+					<p class="option__desc">
+						A wall hanging, after the game's name, with a rod on
+						top, a woven border and a fringe below. The items are
+						stitched patches, and the score is a string of beads.
+						<b>340 px wide</b>; it would give every civilization the
+						same textile look.
+					</p>
+				</div>
+				<div class="ce-wrap">
+					<div class="ce__rod"></div>
+					<div class="ce__loops"></div>
+					<article
+						class="ce"
+						aria-label="Collectors, option E">
+						<div class="ce__in">
+							<h3 class="ce__name">Collectors</h3>
+							<div class="ce__stitch"></div>
+							<div class="ce__sub">
+								<span
+									class="badge-aa"
+									title="Arts &amp; Architecture"
+									><img
+										src="../../static/art/track/arts.svg"
+										alt="" />Arts &amp; Architecture</span
+								><span
+									class="cx"
+									title="Complexity 2 of 3"
+									aria-label="Complexity 2 of 3"
+									><i></i><i></i><i class="off"></i
+								></span>
+							</div>
+							<div class="ce__portrait">
+								<img
+									src="../../static/art/civ/collectors.svg"
+									alt="A collector studies a gem through a magnifying glass" />
+							</div>
+							<p class="ce__text">
+								During an <b>advance</b> turn, when you gain one
+								of these, you may stitch it into its patch if
+								the patch is empty. Then gain
+								<img
+									class="any"
+									src="../../static/art/resource/any.svg"
+									alt="any 1 resource" />.
+							</p>
+							<ul
+								class="ce__patches"
+								data-slots></ul>
+							<div class="ce__score">
+								<div class="ladder-label">
+									<span>End of game</span
+									><span>Different items → VP</span>
+								</div>
+								<ol
+									class="ce__vps"
+									data-ladder></ol>
+							</div>
+							<p class="fine">
+								<b>*</b> Only from a conquer benefit, instead of
+								conquering; don't roll the dice. Items here
+								count for scoring but can't be used. Cards and
+								tiles lie face down; you may look at them.<br /><span
+									class="setup"
+									>Setup, current rules: gain
+									<img
+										class="any"
+										src="../../static/art/resource/any.svg"
+										alt="any 1 resource"
+										style="
+											width: 14px;
+											height: 14px;
+											vertical-align: -3px;
+										" />.</span
+								>
+							</p>
+						</div>
+					</article>
+					<div class="ce__fringe"></div>
+				</div>
+			</section>
+		</main>
+
+		<p class="sources">
+			<b>Rules:</b> docs/research/03-expansions.md §2.4 (the original Arts
+			&amp; Architecture print: six item types, any 1 resource each,
+			1/3/6/10/15/21 VP) and the setup adjustment from Fantasies &amp;
+			Futures p.32. <b>Art:</b> civ/collectors, piece/outpost and
+			outpost-blue, building/house, landmark/clock-tower,
+			tapestry/lost-artifacts, tech/eyeglasses, resource/any, track/arts,
+			piece/token-blue. The territory tile is a grassland capital tile
+			clipped to a hex until the territory-tile art (#6) lands.
+			<b>In play</b> shows the blue player with an outpost, a house and a
+			face-down tech card collected: 3 items, 6 VP. Hover the face-down
+			card to look at it.
+		</p>
+
+		<script>
+			const ART = '../../static/art/';
+			// The printed order, left to right (03-expansions.md, "Civilization mats").
+			const ITEMS = [
+				{
+					name: 'Outpost',
+					mark: '*',
+					collected: true,
+					html: `<img class="piece piece--outpost piece--printed" src="${ART}piece/outpost.svg" alt=""><img class="piece piece--outpost piece--played" src="${ART}piece/outpost-blue.svg" alt="">`,
+				},
+				{
+					name: 'House',
+					collected: true,
+					html: `<img class="piece" src="${ART}building/house.svg" alt="">`,
+				},
+				{
+					name: 'Landmark',
+					html: `<img class="piece" src="${ART}landmark/clock-tower.svg" alt="">`,
+				},
+				{
+					name: 'Tapestry',
+					html: `<span class="mini-card mini-card--tapestry face-down"><img src="${ART}tapestry/lost-artifacts.svg" alt=""></span>`,
+				},
+				{
+					name: 'Territory',
+					html: `<span class="hex face-down"><img src="${ART}capital-terrain/grassland-open-01.svg" alt=""></span>`,
+				},
+				{
+					name: 'Tech',
+					collected: true,
+					html: `<span class="mini-card mini-card--tech face-down"><img src="${ART}tech/eyeglasses.svg" alt=""></span>`,
+				},
+			];
+			const VP = [1, 3, 6, 10, 15, 21];
+			const CURRENT = ITEMS.filter((item) => item.collected).length;
+
+			for (const list of document.querySelectorAll('[data-slots]')) {
+				list.innerHTML = ITEMS.map(
+					(item) => `
+			<li class="slot${item.collected ? ' is-collected' : ''}">
+				<span class="slot__item" tabindex="0" title="${item.name}${item.mark ? ' (from a conquer benefit)' : ''}">${item.html}</span>
+				<span class="slot__name">${item.name}${item.mark || ''}</span>
+				<span class="slot__gain">+<img class="any" src="${ART}resource/any.svg" alt="any 1 resource"></span>
+			</li>`
+				).join('');
+			}
+
+			for (const list of document.querySelectorAll('[data-ladder]')) {
+				list.innerHTML = VP.map((points, index) => {
+					const n = index + 1;
+					return `
+			<li class="vp${n === CURRENT ? ' is-current' : ''}${n <= CURRENT ? ' is-reached' : ''}" data-n="${n}" aria-label="${n} different item${n > 1 ? 's' : ''}: ${points} VP">
+				<span class="vp__string"></span>
+				<span class="vp__n">${n}</span>
+				<span class="vp__pips">${'<i></i>'.repeat(n)}</span>
+				<span class="vp__pts">${points}<small>VP</small></span>
+				<img class="vp__token" src="${ART}piece/token-blue.svg" alt="">
+			</li>`;
+				}).join('');
+			}
+
+			const buttons = document.querySelectorAll('[data-set-state]');
+			for (const button of buttons) {
+				button.addEventListener('click', () => {
+					document.body.dataset.state = button.dataset.setState;
+					for (const other of buttons) {
+						other.setAttribute(
+							'aria-pressed',
+							String(other === button)
+						);
+					}
+				});
+			}
+		</script>
+	</body>
+</html>

@@ -103,6 +103,7 @@ New for this game:
   - One set of player colours: the play page's brighter set, with purple for seat five. The lobby's earlier set reused the track colours, and players and tracks must stay separate colour systems. Corners are square everywhere. **(my call, 2026-10-21)**
   - The lobby bot controls describe seat/host interactions only. Which bots are supported remains governed by the existing bot policy; the designer explicitly deferred that implementation decision.
   - The lobby's **Add bot** seat control is shelved: it is not built for now, and an empty slot offers only **Open seat**. **(owner, 2026-10-21)**
+  - Civilization cards use **option B · Civilization mat** from `docs/ui/collectors-card-options.html`, chosen from five Collectors designs. It is 456 px wide so it fits the Civilization tab, and it lays out each mat's own features (item spaces, score steps, tracks) under the portrait and rules. One component, filled from data, will draw all 41 civilizations (#47). **(owner, 2026-10-23)**
 - **Naming** **(my call)**
   - "The Rug Game", with the default port 3020.
   - Civilization and card names stay as in Tapestry, because they are ordinary words. Only the art and wording are our own.

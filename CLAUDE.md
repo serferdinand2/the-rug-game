@@ -113,6 +113,7 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
     - Each card shows the life of its landmark close up, not the building's outside, which the landmark picture (#7) already shows: the game on the store's table, the camera in the studio, the gears inside the mill. Five subagents drew them side by side, two each, and a fresh review followed.
     - `tests/art-landmark-card.test.mjs` checks full bleed, no twins, and that all 10 are drawn.
 - **Decided 2026-10-23:**
+  - Civilization cards use option B · Civilization mat from `docs/ui/collectors-card-options.html` (owner). It is 456 px wide, so it fits the Civilization tab. One component filled from data will draw all 41 civilizations, under #47; the owner asked for it ahead of #47's blocker #3.
   - The tracks backdrop, the income mat with its F&F overlay and the table background are cosmetic enhancements (owner). They moved from #6 to #51, in the new milestone M12 · Cosmetic enhancements, and are drawn after the core features. `COSMETIC_BOARDS` in `src/lib/art/catalog.js` gives them issue 51, so the library names it on their empty slots.
 - **Decided 2026-10-22:**
   - Pictures may show real religious and political signs, flags and emblems, but no likeness of a real person and no lettering (owner).

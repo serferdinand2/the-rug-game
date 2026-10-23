@@ -17,6 +17,7 @@ The owner-reviewed #5 icon mockup and its linked capital terrain page are preser
 | [launch.html](launch.html) | Entry page: name, create/join table and public table list |
 | [lobby.html](lobby.html) | Table setup, seat controls, readiness and civilization chooser |
 | [main-screen.html](main-screen.html) | Play page: tracks/map, private tabs, footer decisions, city placement and player overview |
+| [collectors-card-options.html](collectors-card-options.html) | Five Collectors civilization card designs, printed and in play; the owner chose option B (#47, 2026-10-23). Open it from disk: it loads the art from `static/art/` |
 | [screens/](screens/) | Current screenshots captured from these HTML files at 1920×1080 |
 | [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) | Editable source of the shared pixel texture embedded in the pages |
 | [tokens.css](../../src/styles/tokens.css) and [base.css](../../src/styles/base.css) | The production design tokens, fonts, page and focus styles made from these references |
@@ -204,6 +205,10 @@ Progress lines start below the first tile and stop beneath the middle of the rea
 The right-hand 1/4 has **Capital · Hand (with size) · Income · Civilization · Technology · Terrain** tabs, with the hand count part of the Hand control. Each tab's width follows its text. Reserve the selected/bold width before selection so nothing moves horizontally when a tab changes. Match the shared selector's active surface and text colour. The tab bar itself is transparent over the same textured background as the body.
 
 Capital is the developed example. Hand, Income, Civilization, Technology and Terrain currently show placeholder copy. Their tab labels and navigation pattern are approved references; their detailed contents are not finished designs.
+
+The Civilization tab's card is **option B · Civilization mat** in [collectors-card-options.html](collectors-card-options.html) (owner, 2026-10-23). It is 456 px wide and has three parts: a band with the name, expansion badge and complexity; the 128 px portrait beside the rules and fine print; then the mat's own features, which for Collectors are six item spaces with their rewards and the rising score steps. Cards and tiles placed on the mat lie face down, and hovering or focusing one shows its face. In play, placed items and the score marker take the player's colour.
+
+![Option B with three items collected](screens/civ-card-b-in-play.png)
 
 ### Footer and Ships example
 
