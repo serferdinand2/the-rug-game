@@ -1,0 +1,84 @@
+// The steps that run once every setup pick is made: reveal, civilization deck, and the first turn.
+import { emit } from './events.js';
+import { shuffle } from './random.js';
+import { playerSeat, seatOf } from './state.js';
+import { SMALL_MAP_PAIRS } from './data/capitals.js';
+import { turnOptions } from './decisions/choose-turn.js';
+
+/** The after-setup steps in order; later issues insert theirs. */
+export const AFTER_SETUP = ['reveal', 'civDeck', 'start'];
+
+/** @type {Record<string, (ctx: import('./state.js').Context) => void>} */
+export const AFTER_SETUP_STEPS = {
+	// Every pick becomes public at once; a small-map player's unchosen mat joins the supply now.
+	reveal({ state }) {
+		const picks = [];
+		for (const seat of state.seats) {
+			if (seat.kind !== 'player') {
+				continue;
+			}
+			const player = playerSeat(state, seat.seat);
+			const { capital, civ } = player.picks;
+			if (state.map === 'small' && capital !== undefined) {
+				const pair = SMALL_MAP_PAIRS.find((p) => p.includes(capital));
+				player.capital.mat = capital;
+				for (const mat of pair ?? []) {
+					if (mat !== capital) {
+						state.supply.capitals.push(mat);
+					}
+				}
+			}
+			if (civ !== undefined) {
+				player.civs = [civ];
+			}
+			picks.push({
+				seat: seat.seat,
+				capital: player.capital.mat,
+				civ: civ ?? null,
+			});
+			player.picks = {};
+		}
+		emit(state, { type: 'setupRevealed', picks });
+	},
+	civDeck({ state, random }) {
+		state.supply.civs = shuffle(state.supply.civs, random);
+		emit(state, {
+			type: 'deckShuffled',
+			deck: 'civs',
+			count: state.supply.civs.length,
+		});
+	},
+	start(ctx) {
+		const { state } = ctx;
+		state.phase = 'play';
+		state.current = state.first;
+		emit(state, { type: 'setupDone' });
+		emit(state, { type: 'turnStarted', player: state.first });
+		ctx.push([
+			{
+				player: state.first,
+				kind: 'chooseTurn',
+				options: turnOptions(seatOf(state, state.first)),
+			},
+		]);
+	},
+};
+
+/**
+ * Runs the first step of a `setupSteps` operation; the rest wait under whatever it pushes.
+ * @type {import('./state.js').AutomaticKind}
+ */
+export function runSetupSteps(ctx, op) {
+	const [step, ...rest] = op.steps;
+	if (!step) {
+		return;
+	}
+	if (rest.length) {
+		ctx.push([{ player: null, kind: 'setupSteps', steps: rest }]);
+	}
+	const handler = AFTER_SETUP_STEPS[step];
+	if (!handler) {
+		throw new Error(`There is no setup step ${step}.`);
+	}
+	handler(ctx);
+}
