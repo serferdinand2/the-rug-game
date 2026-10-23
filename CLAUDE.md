@@ -103,7 +103,7 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
   - Few buildings (owner): the landmark cards show their invention, not their landmark. Bakery is newly discovered bread, Barn a newborn calf in straw, and Com Tower a dish antenna close up. Library, Stock Market and Treasury will do the same.
   - Clocks was drawn first as the reference; subagents drew the other nine side by side, and a fresh review followed.
   - `tests/art-tech.test.mjs` checks full bleed, no twins, and that every card of every set is drawn.
-- **#11 (masterpieces, landmark cards, space and inspiration tiles)** is under way (2026-10-23). All 20 masterpieces and all 10 landmark cards are drawn and wait for the owner's approval in the component library; the space tiles and inspiration tiles remain.
+- **#11 (masterpieces, landmark cards, space and inspiration tiles)** is under way (2026-10-23). All 20 masterpieces, all 10 landmark cards and all 4 inspiration tiles are drawn and wait for the owner's approval in the component library; the space tiles remain.
   - **Masterpieces.** The design is `docs/superpowers/specs/2026-10-23-masterpieces-design.md` and the plan is `docs/superpowers/plans/2026-10-23-masterpieces-issue-11.md`.
     - The owner asked for the same rules as the other pictures, parallel subagents, few buildings and "7/10 on details": one clear hero and about 50 to 90 colours, with the Compass, Calendar and Entertainers pictures as the yardstick.
     - Each masterpiece shows its art form as the hero: the work itself, the performer, or the maker's hands at it. Seven subagents drew them side by side, and a fresh review followed.
@@ -112,6 +112,10 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
     - The owner asked for "only artwork again", read as the masterpieces' rules and process.
     - Each card shows the life of its landmark close up, not the building's outside, which the landmark picture (#7) already shows: the game on the store's table, the camera in the studio, the gears inside the mill. Five subagents drew them side by side, two each, and a fresh review followed.
     - `tests/art-landmark-card.test.mjs` checks full bleed, no twins, and that all 10 are drawn.
+  - **Inspiration tiles.** The design is `docs/superpowers/specs/2026-10-23-inspiration-tiles-design.md`.
+    - The owner asked for them to be finished and pushed to main, one parallel subagent per tile.
+    - Each tile is a 192×32 strip: its income row's six innovations, one 32×32 space each (the size of a building), on the arts track's violet. The improved spaces 2, 4 and 6 have a gold frame and a sparkle. The benefits are not drawn; the interface shows them.
+    - `art/parts/inspiration-tile.js` draws the shared frame, ground and sparkle. `tests/art-inspiration-tile.test.mjs` checks the size, full bleed, the frames, that each innovation fills its space, no twin spaces, and that all 4 are drawn.
 - **Decided 2026-10-23:**
   - Civilization cards use option B · Civilization mat from `docs/ui/collectors-card-options.html` (owner). It is 456 px wide, so it fits the Civilization tab. One component filled from data will draw all 41 civilizations, under #47; the owner asked for it ahead of #47's blocker #3.
   - The tracks backdrop, the income mat with its F&F overlay and the table background are cosmetic enhancements (owner). They moved from #6 to #51, in the new milestone M12 · Cosmetic enhancements, and are drawn after the core features. `COSMETIC_BOARDS` in `src/lib/art/catalog.js` gives them issue 51, so the library names it on their empty slots.
@@ -132,7 +136,7 @@ Updated 2026-10-23. Update this section whenever a milestone moves.
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
   - #10 The owner reviews all 56 tech pictures, then #10 closes.
-  - #11 The owner reviews the 20 masterpieces and the 10 landmark cards; the space tiles and inspiration tiles follow.
+  - #11 The owner reviews the 20 masterpieces, the 10 landmark cards and the 4 inspiration tiles; the space tiles follow.
   - #6 Finish the remaining map, territory-tile and expansion capital art. The cosmetic boards wait in #51 until the core features are done.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
