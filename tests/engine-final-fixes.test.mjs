@@ -264,6 +264,12 @@ test('every decision kind has the full shape, and its answers pass its own check
 			gain: [{ gain: { tapestry: 1 } }],
 		},
 		chooseExplore: { player: 1, kind: 'chooseExplore', anywhere: false },
+		chooseInvent: {
+			player: 1,
+			kind: 'chooseInvent',
+			left: 1,
+			refresh: true,
+		},
 		chooseConquer: { player: 1, kind: 'chooseConquer', anywhere: true },
 		chooseDie: {
 			player: 1,

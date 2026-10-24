@@ -76,10 +76,12 @@ test('research rolls the science die and the player may advance on that track (0
 		random
 	);
 	assert.deepEqual(moved.seats[0].tracks.technology, [1]);
+	// Pottery's invent is built: it asks for a face-up card or the deck.
 	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['invent']
+		openDecisions(moved).map((d) => [d.kind, d.player, d.left]),
+		[['chooseInvent', 1, 1]]
 	);
+	assert.deepEqual(handoffs.calls, []);
 });
 
 test('research with the X gives no benefit or bonus, but still the landmark', (t) => {

@@ -88,6 +88,15 @@ const conquering = ({ state }) =>
 const open = ({ state }) => openDecisions(state).map((d) => d.kind);
 
 /**
+ * The open invent decisions, as [player, left, refresh] triples (#18).
+ * @param {{ state: any }} result
+ */
+const inventing = ({ state }) =>
+	openDecisions(state)
+		.filter((d) => d.kind === 'chooseInvent')
+		.map((d) => [d.player, d.left, d.refresh]);
+
+/**
  * The stub calls as [kind, value] pairs.
  * @param {{ calls: any[] }} result
  */
@@ -400,7 +409,7 @@ test('science 12 Alien Biology: 4 rolls with the X, 5 VP for each that would pus
 
 test('technology 1 Pottery: invent', (t) => {
 	const r = onto(t, 'technology', 1);
-	assert.deepEqual(handed(r), [['invent', {}]]);
+	assert.deepEqual(inventing(r), [[r.player, 1, false]]);
 });
 
 test('technology 2 Carpentry: a tapestry card; the bonus pays for a market', (t) => {
@@ -413,14 +422,14 @@ test('technology 2 Carpentry: a tapestry card; the bonus pays for a market', (t)
 test('technology 3 Stone Tools: invent, or a market', (t) => {
 	const r = onto(t, 'technology', 3);
 	reply(r, 'chooseOption', { option: 0 });
-	assert.deepEqual(handed(r), [['invent', {}]]);
+	assert.deepEqual(inventing(r), [[r.player, 1, false]]);
 });
 
 test('technology 4 Metallurgy: the Forge, then invent, refreshing first if you like', (t) => {
 	const r = onto(t, 'technology', 4);
 	assert.deepEqual(landing(r), ['forge']);
 	place(r);
-	assert.deepEqual(handed(r), [['invent', { refresh: true }]]);
+	assert.deepEqual(inventing(r), [[r.player, 1, true]]);
 });
 
 test('technology 5 Glass: a farm, house or armory; the bonus pays to upgrade', (t) => {
@@ -440,14 +449,14 @@ test('technology 6 Steel: 1 VP per armory and a market; the bonus pays to invent
 	place(r);
 	assert.equal(r.seat.vp, 2);
 	reply(r, 'chooseBonus', { pay: { food: 1 } });
-	assert.deepEqual(handed(r), [['invent', {}]]);
+	assert.deepEqual(inventing(r), [[r.player, 1, false]]);
 });
 
 test('technology 7 Rubber: Rubber Works, then invent 2, refreshing first if you like', (t) => {
 	const r = onto(t, 'technology', 7);
 	assert.deepEqual(landing(r), ['rubber-works']);
 	place(r);
-	assert.deepEqual(handed(r), [['invent', { refresh: true, count: 2 }]]);
+	assert.deepEqual(inventing(r), [[r.player, 2, true]]);
 });
 
 test('technology 8 Plastic: a market, then 1 VP per market; the bonus pays to upgrade', (t) => {

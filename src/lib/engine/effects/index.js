@@ -11,6 +11,7 @@ import { restartToken } from './restart-token.js';
 import { scoreCapital } from './score-capital.js';
 import { explore, exploreSpace } from './explore.js';
 import { conquer, tileBenefit } from './conquer.js';
+import { invent } from './tech.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
@@ -28,6 +29,7 @@ export const EFFECTS = {
 	exploreSpace,
 	conquer,
 	tileBenefit,
+	invent,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */
