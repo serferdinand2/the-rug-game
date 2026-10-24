@@ -78,7 +78,7 @@ function newSeat(seat, name) {
 			tapestry: [[], [], [], []],
 			faceDown: [],
 		},
-		capital: { mat: null, landmarks: [] },
+		capital: { mat: null, buildings: [], landmarks: [] },
 		besideMat: [],
 		hand: [],
 		tech: { bottom: [], middle: [], top: [] },

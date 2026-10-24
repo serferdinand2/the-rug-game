@@ -20,12 +20,14 @@ import { HEIGHT_RANKING } from './data/landmarks.js';
  */
 
 /**
- * The landmarks on a seat's capital city grid: each covers at least 1 grid plot (R13). #16 keeps the list.
+ * The landmarks on a seat's capital city grid: each covers at least 1 grid plot (R13).
  * @param {AnySeat} seat
  * @returns {string[]}
  */
 export function landmarksInCity(seat) {
-	return 'capital' in seat ? seat.capital.landmarks : [];
+	return 'capital' in seat
+		? seat.capital.landmarks.map((p) => p.landmark)
+		: [];
 }
 
 /**

@@ -21,7 +21,12 @@ function finalState(version, seats) {
 			food: 0,
 			culture: 0,
 		};
-		seat.capital.landmarks = s.landmarks ?? [];
+		seat.capital.landmarks = (s.landmarks ?? []).map((landmark, i) => ({
+			landmark,
+			row: 0,
+			col: i * 4,
+			rotation: 0,
+		}));
 	});
 	return state;
 }
@@ -236,4 +241,14 @@ test('four players all tied on everything share first place', () => {
 	);
 	assert.equal(result.ties.length, 1);
 	assert.deepEqual(result.ties[0].seats, [1, 2, 3, 4]);
+});
+
+test('R13: landmarksInCity names the landmarks placed on the grid', () => {
+	const state = finalState('current', [
+		{ vp: 1, landmarks: ['forge', 'fusion-reactor'] },
+	]);
+	assert.deepEqual(landmarksInCity(state.seats[0]), [
+		'forge',
+		'fusion-reactor',
+	]);
 });

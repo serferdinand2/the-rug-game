@@ -25,8 +25,8 @@
  * @typedef {Object} PlayerFields
  * @property {Record<ResourceId, number>} resources
  * @property {{ buildings: Record<BuildingId, number>, tapestry: string[][], faceDown: string[] }} incomeMat - Buildings left in each row; 4 era slots, each a stack; the ids of face-down cards, which view() hides
- * @property {{ mat: number | null, landmarks: string[] }} capital - `landmarks`: those covering at least 1 grid plot (R13), kept by #16
- * @property {string[]} besideMat - Landmarks that didn't fit
+ * @property {{ mat: number | null, buildings: import('./city.js').PlacedBuilding[], landmarks: import('./city.js').PlacedLandmark[] }} capital - `landmarks`: those covering at least 1 grid plot (R13)
+ * @property {string[]} besideMat - Landmark and income building ids that didn't fit, in order
  * @property {string[]} hand
  * @property {{ bottom: string[], middle: string[], top: string[] }} tech
  * @property {number[]} territoryTiles
