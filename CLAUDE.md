@@ -88,7 +88,7 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
 - **#1, #2, #4, #7, #8, #9, #12, #13, #44, #46 and #48 are done.**
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
-  - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R104).
+  - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R105).
 - **#4 (art toolkit and asset catalog)** is done. The owner approved the scene parts on 2026-10-21.
 - **#7 (landmarks)** is done. All 33 are drawn, each one picture in its footprint's shape, and the owner approved them in the asset gallery (`art/preview/index.html`) on 2026-10-21.
 - **#9 (tapestry card pictures)** is done (2026-10-22). All 115 pictures are drawn: 44 base, 13 Plans & Ploys, 20 Arts & Architecture and 38 Fantasies & Futures. The design is `docs/superpowers/specs/2026-10-22-tapestry-cards-design.md` and the plan is `docs/superpowers/plans/2026-10-22-tapestry-cards-issue-9.md`.
@@ -144,7 +144,7 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
   - The owner-check rules are settled by Board Game Arena for now, not the physical box (owner). 17 are marked **BGA** in the README's "Rules conventions"; R28 and R40 were corrected to match BGA, and R66 now gives the track order from BGA's board images, so Twin Impact is in. R12 and R39 stay owner-check, because BGA has no data for them.
 - **Next:**
   - Ready now, each blocked only by #13, which is done: #15 Implement income turns, eras and the game end; #16 Implement capital city placement and district rewards; #17 Implement exploring and conquering on the map; #18 Implement tech cards: inventing and upgrading.
-  - #14 Implement advance turns on the four tracks also waits on #52 (what Interstellar Travel's "explore 1 of them" may explore), which is open.
+  - #14 Implement advance turns on the four tracks is ready too: #52 closed with R105 (Interstellar Travel explores one of the 3 space tiles it just gained).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
   - #10 The owner reviews all 56 tech pictures, then #10 closes.
@@ -269,7 +269,7 @@ How to read the research:
   3. the base rulebook;
   4. the printed art;
   5. the Board Game Arena implementation.
-- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R104**.
+- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R105**.
   - Follow those decisions, not the research's working assumptions.
   - Cite the id in code comments and test names, for example `// R16`.
   - Content listed there as "left out" is never invented.

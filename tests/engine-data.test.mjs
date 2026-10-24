@@ -394,6 +394,15 @@ test('Navigation is exploration space 4: a territory tile, then explore, and the
 	});
 });
 
+test('R105: Interstellar Travel gains 3 space tiles, then explores one of those 3', () => {
+	assert.deepEqual(TRACKS.exploration[11].benefit, [
+		{ gain: { space: 3 } },
+		{ exploreSpace: { fromGained: true } },
+	]);
+	assert.equal(TRACKS.exploration[11].ordered, true);
+	assert.deepEqual(TRACKS.exploration[12].benefit, [{ exploreSpace: {} }]);
+});
+
 test('AI Singularity gives one of each resource and moves the token to the start of any track', () => {
 	assert.deepEqual(TRACKS.technology[12].benefit, [
 		{ gain: { coin: 1, worker: 1, food: 1, culture: 1 } },
@@ -428,10 +437,6 @@ test('more spot values from 01 §3', () => {
 	]);
 	assert.deepEqual(spaceNamed('Space Shuttle').benefit, [
 		{ vp: { per: 'trackSpace', track: 'technology' } },
-	]);
-	assert.deepEqual(spaceNamed('Interstellar Travel').benefit, [
-		{ gain: { space: 3 } },
-		{ exploreSpace: {} },
 	]);
 	assert.deepEqual(spaceNamed('Warpgates').bonus, {
 		pay: { any: 1 },

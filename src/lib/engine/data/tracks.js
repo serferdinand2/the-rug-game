@@ -154,10 +154,10 @@ export const TRACKS = deepFreeze({
 				bonus: { pay: { territory: 3 }, gain: [{ vp: 10 }] },
 			}
 		),
-		// Explored space tiles go next to the income mat.
+		// R105: "explore 1 of them" means one of the 3 just gained. Explored space tiles go next to the income mat.
 		space(
 			'Interstellar Travel',
-			[{ gain: { space: 3 } }, { exploreSpace: {} }],
+			[{ gain: { space: 3 } }, { exploreSpace: { fromGained: true } }],
 			{
 				ordered: true,
 			}
