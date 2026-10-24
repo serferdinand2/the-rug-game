@@ -50,35 +50,44 @@ function gainTiles(ctx, player, stack, count) {
 }
 
 /**
- * Draws up to `count` tapestry cards, reshuffling the discards into an empty deck (01 §9.1).
+ * Takes the top tapestry card, first reshuffling the discards into an empty deck (01 §9.1, FAQ #24).
+ * @param {import('../state.js').Context} ctx
+ * @returns {string | undefined} Undefined when no card is left in the deck or the discards
+ */
+export function takeTapestryCard(ctx) {
+	const { state } = ctx;
+	const deck = state.supply.tapestry;
+	if (deck.deck.length === 0 && deck.discard.length > 0) {
+		deck.deck = shuffle(deck.discard, ctx.random);
+		deck.discard = [];
+		emit(state, {
+			type: 'deckShuffled',
+			deck: 'tapestry',
+			count: deck.deck.length,
+		});
+	}
+	return deck.deck.shift();
+}
+
+/**
+ * Draws up to `count` tapestry cards into the hand.
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {number} count
  */
 function drawTapestry(ctx, player, count) {
-	const { state } = ctx;
-	const seat = playerSeat(state, player);
-	const deck = state.supply.tapestry;
+	const seat = playerSeat(ctx.state, player);
 	/** @type {string[]} */
 	const cards = [];
 	while (cards.length < count) {
-		if (deck.deck.length === 0 && deck.discard.length > 0) {
-			deck.deck = shuffle(deck.discard, ctx.random);
-			deck.discard = [];
-			emit(state, {
-				type: 'deckShuffled',
-				deck: 'tapestry',
-				count: deck.deck.length,
-			});
-		}
-		const card = deck.deck.shift();
+		const card = takeTapestryCard(ctx);
 		if (card === undefined) {
 			break;
 		}
 		cards.push(card);
 	}
 	seat.hand.push(...cards);
-	emit(state, {
+	emit(ctx.state, {
 		type: 'cardsDrawn',
 		player,
 		count: cards.length,

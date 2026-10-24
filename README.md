@@ -109,7 +109,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 The research in [docs/research/](docs/research/) left 92 details unconfirmed, marked **[UNVERIFIED]**, plus a list of open questions. Each one has a decision here, so the engine never guesses. These decisions settle [#2](https://github.com/serferdinand2/the-rug-game/issues/2).
 
-- **Rule ids** (R1–R104) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
+- **Rule ids** (R1–R105) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
 - **Versions.** A table plays either the **Original 2019 printing** or the **Current official rules**. A rule applies to both unless it names one.
 - **Sources** are trusted in this order:
   1. the Fantasies & Futures integrated rulebook;
@@ -151,7 +151,7 @@ The research in [docs/research/](docs/research/) left 92 details unconfirmed, ma
 </details>
 
 <details>
-<summary><b>Base game: tracks and dice</b> (4 rules)</summary>
+<summary><b>Base game: tracks and dice</b> (5 rules)</summary>
 
 | Rule | Question | Decision | Basis | Check |
 |---|---|---|---|---|
@@ -159,6 +159,7 @@ The research in [docs/research/](docs/research/) left 92 details unconfirmed, ma
 | R7 | Red conquer die faces? | 4 VP, 5 VP, 6 VP, 7 VP, and "1 VP per territory you control" on 2 faces. | 01 §1.1, 01 OQ2. The 5 face types come from the art; the duplicate comes from BGA. | BGA |
 | R8 | Black conquer die faces? | 1 coin, 1 worker, 1 food, 1 culture, and "?" on 2 faces. "?" gives the benefit printed on the conquered territory tile; a pre-printed hex gives nothing. | 01 §1.1, 01 OQ2 (the duplicate comes from BGA) | BGA |
 | R9 | One move jumps over a tier's first space (e.g. Socialism). Which landmarks are gained? | Every still-available landmark of each tier II/III/IV whose first space (4, 7 or 10) the forward move reaches or passes, lowest tier first. The exceptions are effects that say "no landmarks" (Futurists, Tinkerers option 4). Regressing and placing a token never gain landmarks. | 02 OQ9. The rulebook says "advance into a tier by any means", and Tinkerers' printed "no landmarks for tiers you pass" implies the default. Rejected: landmark only when landing exactly on space 4, 7 or 10. | |
+| R105 | Interstellar Travel (exploration 11): which space tile may "explore 1 of them" use? | One of the 3 space tiles this benefit just gained. Older space tiles in your supply wait for Warpgates or another explore. If the stack holds fewer than 3, you choose from those you gained; if you gained none, nothing is explored. | 01 §3.2 (F&F Track Reference: "Gain 3 space tiles, then explore 1 of them"). Warpgates and Navigation word theirs differently ("from your supply", "then explore"). No official ruling. Rejected: BGA's any unexplored tile in hand. Owner, 2026-10-24 ([#52](https://github.com/serferdinand2/the-rug-game/issues/52)). | |
 
 </details>
 

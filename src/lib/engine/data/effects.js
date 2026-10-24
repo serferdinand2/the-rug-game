@@ -56,7 +56,7 @@ import { deepFreeze } from './ids.js';
  * - `building`: take the leftmost income building of that type from the income mat and place it in the capital city.
  * - `vp`: gain that many VP, or VP per thing counted.
  * - `explore`: explore with a territory tile from the supply; `anywhere` drops the adjacency rule.
- * - `exploreSpace`: explore a space tile from the supply.
+ * - `exploreSpace`: explore a space tile from the supply; `fromGained` limits it to the tiles this benefit just gained (R105).
  * - `conquer`: conquer; `anywhere` drops adjacency; `bothDice` gives both dice always, or only if an opponent controlled the territory (R17).
  * - `research`: roll the science die and you may advance on that track; `noBenefit` is the X.
  * - `advance`: advance 1 space on one of the listed tracks, with its benefit and optional bonus.
@@ -75,7 +75,7 @@ import { deepFreeze } from './ids.js';
  *   | { building: BuildingId }
  *   | { vp: number | VpPer }
  *   | { explore: { anywhere?: boolean } }
- *   | { exploreSpace: {} }
+ *   | { exploreSpace: { fromGained?: boolean } }
  *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent' } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
  *   | { advance: { tracks: TrackId[] } }

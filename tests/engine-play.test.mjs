@@ -111,15 +111,6 @@ test('advancing on a first turn is refused', () => {
 	);
 });
 
-test('a legal turn choice is not built until #15', () => {
-	const { state, random } = startedGame(3);
-	const d = openDecisions(state)[0];
-	assert.throws(
-		() => play(state, d.player, { decision: d.id, turn: 'income' }, random),
-		(error) => error instanceof Error && !(error instanceof PlayerError)
-	);
-});
-
 test("answering another player's choice is refused", () => {
 	const { state, random } = newGame(2);
 	const d = openDecisions(state).find((x) => x.player === 1);

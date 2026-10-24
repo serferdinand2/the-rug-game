@@ -47,6 +47,13 @@ export function view(state, seat) {
 		if (entry.kind !== 'player') {
 			continue;
 		}
+		// A face-down tapestry card is hidden from everyone, its owner included (01 §4.2).
+		const faceDown = entry.incomeMat.faceDown;
+		entry.incomeMat.tapestry = entry.incomeMat.tapestry.map(
+			(/** @type {string[]} */ slot) =>
+				slot.map((card) => (faceDown.includes(card) ? null : card))
+		);
+		delete entry.incomeMat.faceDown;
 		entry.handCount = entry.hand.length;
 		if (entry.seat !== viewer) {
 			delete entry.hand;

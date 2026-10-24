@@ -187,7 +187,10 @@ test('kinds are looked up as own keys, never through the prototype', () => {
 });
 
 test('every decision kind has the full shape, and its answers pass its own check', () => {
-	const { state } = startedGame(2);
+	const { state: started } = startedGame(2);
+	// Enough to pay for something, so every kind has answers to check.
+	const state = structuredClone(started);
+	state.seats[0].resources.coin = 1;
 	const fixtures = {
 		chooseTurn: {
 			player: 1,
@@ -205,6 +208,52 @@ test('every decision kind has the full shape, and its answers pass its own check
 			kind: 'chooseResource',
 			count: 2,
 			from: 'any',
+		},
+		chooseAdvance: { player: 1, kind: 'chooseAdvance' },
+		chooseOrder: {
+			player: 1,
+			kind: 'chooseOrder',
+			effects: [{ upgrade: {} }, { techBenefit: { icon: 'circle' } }],
+			source: { track: 'technology', space: 9 },
+		},
+		chooseMove: {
+			player: 1,
+			kind: 'chooseMove',
+			direction: 'advance',
+			options: [{ track: 'exploration', from: 0 }],
+			benefit: true,
+			optional: true,
+		},
+		chooseRepeat: {
+			player: 1,
+			kind: 'chooseRepeat',
+			options: [{ track: 'exploration', space: 1 }],
+		},
+		chooseRestart: {
+			player: 1,
+			kind: 'chooseRestart',
+			options: ['exploration', 'science', 'technology', 'military'],
+			source: { track: 'technology', space: 12 },
+		},
+		chooseTapestry: {
+			player: 1,
+			kind: 'chooseTapestry',
+			options: ['trap-1', 'age-of-sail'],
+			era: 2,
+		},
+		chooseOption: {
+			player: 1,
+			kind: 'chooseOption',
+			options: [[{ explore: {} }], [{ building: 'farm' }]],
+			source: { track: 'exploration', space: 3 },
+		},
+		chooseBonus: {
+			player: 1,
+			kind: 'chooseBonus',
+			track: 'exploration',
+			space: 2,
+			cost: { any: 1 },
+			gain: [{ gain: { tapestry: 1 } }],
 		},
 	};
 	assert.deepEqual(

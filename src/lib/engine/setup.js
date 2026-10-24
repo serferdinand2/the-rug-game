@@ -64,6 +64,7 @@ function newSeat(seat, name) {
 		tracks: /** @type {any} */ (
 			Object.fromEntries(TRACK_IDS.map((id) => [id, [0]]))
 		),
+		restartedTracks: [],
 		outposts: 8,
 		incomeTurns: 0,
 		finished: false,
@@ -75,8 +76,9 @@ function newSeat(seat, name) {
 				Object.fromEntries(BUILDING_IDS.map((id) => [id, 5]))
 			),
 			tapestry: [[], [], [], []],
+			faceDown: [],
 		},
-		capital: { mat: null },
+		capital: { mat: null, landmarks: [] },
 		besideMat: [],
 		hand: [],
 		tech: { bottom: [], middle: [], top: [] },
@@ -248,6 +250,7 @@ export function createGame({ players, version, expansions = [], random }) {
 				TERRITORY_TILES.map((t) => t.id),
 				random
 			),
+			territoryDiscard: [],
 			space: shuffle(
 				SPACE_TILES.map((t) => t.id),
 				random
@@ -258,6 +261,8 @@ export function createGame({ players, version, expansions = [], random }) {
 		hexes,
 		landmarks: LANDMARKS.map((l) => l.id),
 		achievements: Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, []])),
+		activated: [],
+		result: null,
 		pending: [],
 		nextId: 1,
 		seq: 0,

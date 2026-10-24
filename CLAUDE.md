@@ -52,7 +52,7 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
     - `art/catalog.js` lists all 413 assets with stable `<group>/<slug>` ids. It imports nothing, so the app and the engine can load it;
     - `art/footprints.js` holds the 33 landmark footprints. A landmark's picture is drawn in its footprint's shape at 32 pixels per plot, and the art build refuses one that covers the wrong plots. The rules engine must reuse this module;
     - `engine/` holds the rules engine, shared by the server and the app. It imports only relative paths: no DOM, Svelte or Node. Its `data/` folder holds the base-game data (#12), plain frozen modules: `ids.js` (versions with their tiebreak chains, and the track, resource, building and terrain ids), `effects.js` (the effect vocabulary), `tracks.js`, `income-mat.js`, `capitals.js`, `maps.js`, `territory-tiles.js`, `space-tiles.js`, `landmarks.js`, `achievements.js` and `dice.js`. Every benefit is a list of one-key effects such as `{ gain: { any: 1 } }`, explained in `docs/superpowers/specs/2026-10-24-base-game-data-design.md`.
-    - The engine core (#13) sits beside `data/`. `game.js` is the entry point and exports `createGame`, `play`, `view` and `PlayerError`. The pending decisions live on an operation stack (`stack.js`, run by `loop.js`), where a group gives each player a lane so they decide at the same time. `kinds.js` registers the decision kinds (`decisions/`: `chooseTurn`, `chooseCapital`, `chooseCiv`, `chooseResource`, each with its hidden fields, legal `answers()`, `check()` and `resolve()`) and the automatic kinds. The effect handlers live in `effects/index.js` (`EFFECTS`). The setup steps are `SETUP_STEPS` in `setup.js` and `AFTER_SETUP_STEPS` in `after-setup.js`. `play.js` answers a decision. `state.js` holds the state types and the seat lookups. `events.js` numbers the events. `random.js` holds the injected randomness and the shuffle. `decks.js` lists the base decks. `errors.js` holds `PlayerError`. `view.js` is the only way state leaves the server. The design is `docs/superpowers/specs/2026-10-24-engine-core-design.md`.
+    - The engine core (#13) sits beside `data/`. `game.js` is the entry point and exports `createGame`, `play`, `view` and `PlayerError`. The pending decisions live on an operation stack (`stack.js`, run by `loop.js`), where a group gives each player a lane so they decide at the same time. `kinds.js` registers the decision kinds (`decisions/`, each with its hidden fields, legal `answers()`, `check()` and `resolve()`) and the automatic kinds. The effect handlers live in `effects/index.js` (`EFFECTS`); each gets its operation, with the `source` space, as a fourth argument. Advance turns (#14) add `turn.js` (`startTurn`, `endTurn`), `payment.js` (paying costs and discards), `movement.js` (moving tokens, the landmark race, once-per-turn activations, `spacesAdvanced`) and `control.js` (`controlledTerritories`, for #17 to reuse). The design is `docs/superpowers/specs/2026-10-24-advance-turns-design.md`. Income turns (#15) add `income.js` (`INCOME_STEPS`, exposed spaces, `neighbours`) and `ranking.js` (`rankPlayers`, `landmarksInCity`); their design is `docs/superpowers/specs/2026-10-24-income-turns-design.md`. The setup steps are `SETUP_STEPS` in `setup.js` and `AFTER_SETUP_STEPS` in `after-setup.js`. `play.js` answers a decision. `state.js` holds the state types and the seat lookups. `events.js` numbers the events. `random.js` holds the injected randomness and the shuffle. `decks.js` lists the base decks. `errors.js` holds `PlayerError`. `view.js` is the only way state leaves the server. The design is `docs/superpowers/specs/2026-10-24-engine-core-design.md`.
   - `src/styles/` holds `tokens.css`, `base.css` and `pixel-noise.svg`:
     - `tokens.css` is the single source of truth for colours, the texture, type, spacing, layout sizes, borders, shadows, motion and layers;
     - `base.css` has the `@font-face` rules, the page and the focus outline;
@@ -85,10 +85,10 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
   - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. The owner closed #48 on 2026-10-21, ahead of its blocker #3.
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2, #4, #7, #8, #9, #12, #13, #44, #46 and #48 are done.**
+- **#1, #2, #4, #7, #8, #9, #11, #12, #13, #14, #15, #44, #46, #48 and #52 are done.**
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
-  - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R104).
+  - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R105).
 - **#4 (art toolkit and asset catalog)** is done. The owner approved the scene parts on 2026-10-21.
 - **#7 (landmarks)** is done. All 33 are drawn, each one picture in its footprint's shape, and the owner approved them in the asset gallery (`art/preview/index.html`) on 2026-10-21.
 - **#9 (tapestry card pictures)** is done (2026-10-22). All 115 pictures are drawn: 44 base, 13 Plans & Ploys, 20 Arts & Architecture and 38 Fantasies & Futures. The design is `docs/superpowers/specs/2026-10-22-tapestry-cards-design.md` and the plan is `docs/superpowers/plans/2026-10-22-tapestry-cards-issue-9.md`.
@@ -104,7 +104,7 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
   - Few buildings (owner): the landmark cards show their invention, not their landmark. Bakery is newly discovered bread, Barn a newborn calf in straw, and Com Tower a dish antenna close up. Library, Stock Market and Treasury will do the same.
   - Clocks was drawn first as the reference; subagents drew the other nine side by side, and a fresh review followed.
   - `tests/art-tech.test.mjs` checks full bleed, no twins, and that every card of every set is drawn.
-- **#11 (masterpieces, landmark cards, space and inspiration tiles)** is under way (2026-10-23). All 20 masterpieces, all 10 landmark cards and all 4 inspiration tiles are drawn and wait for the owner's approval in the component library; the space tiles remain.
+- **#11 (masterpieces, landmark cards, space and inspiration tiles)** is done (2026-10-24). All 20 masterpieces, 10 landmark cards, 4 inspiration tiles and 19 space tiles are drawn. The owner asked for #11 to be finished and pushed to main, so it closed without a separate approval, as #9 did; the owner can still ask for changes in the component library.
   - **Masterpieces.** The design is `docs/superpowers/specs/2026-10-23-masterpieces-design.md` and the plan is `docs/superpowers/plans/2026-10-23-masterpieces-issue-11.md`.
     - The owner asked for the same rules as the other pictures, parallel subagents, few buildings and "7/10 on details": one clear hero and about 50 to 90 colours, with the Compass, Calendar and Entertainers pictures as the yardstick.
     - Each masterpiece shows its art form as the hero: the work itself, the performer, or the maker's hands at it. Seven subagents drew them side by side, and a fresh review followed.
@@ -117,6 +117,10 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
     - The owner asked for them to be finished and pushed to main, one parallel subagent per tile.
     - Each tile is a 192×32 strip: its income row's six innovations, one 32×32 space each (the size of a building), on the arts track's violet. The improved spaces 2, 4 and 6 have a gold frame and a sparkle. The benefits are not drawn; the interface shows them.
     - `art/parts/inspiration-tile.js` draws the shared frame, ground and sparkle. `tests/art-inspiration-tile.test.mjs` checks the size, full bleed, the frames, that each innovation fills its space, no twin spaces, and that all 4 are drawn.
+  - **Space tiles.** The design is `docs/superpowers/specs/2026-10-24-space-tiles-design.md`.
+    - The owner asked for #11 to be finished and pushed to main, read as the earlier #11 pictures' rules and process: 64×64 full bleed, 7/10 on detail, parallel subagents and a fresh review.
+    - Each of the 19 is a space scene that hints at its tile's benefit: a space telescope for science, a gold asteroid for coin and worker, a black hole for 13 VP. The benefits are not drawn. The hero stays out of the corners, so a hexagonal frame can trim them.
+    - `tests/art-space-tile.test.mjs` checks full bleed, no twins, and that all 19 are drawn.
 - **#12 (base game data)** is done (2026-10-24). It is the first rules-engine issue. The design is `docs/superpowers/specs/2026-10-24-base-game-data-design.md`.
   - `src/lib/engine/data/` holds the 48 track spaces with their tier costs and `advanceCost()`, the income mat's 24 spaces and 4 tapestry slots, the 6 capital mats with their start hexes, both map sides (61 and 34 hexes, 25 and 13 printed territories), the 48 territory tiles, the 15 space tiles, the 18 base landmarks with R12's height ranking of all 33, the 3 achievements and the 3 dice.
   - Effects are data: a benefit is a list of one-key effects, taken in any order unless `ordered`, and a bonus is `{ pay, gain }`. The design lists the 19 effect kinds and the VP counters; #13–#20 interpret them.
@@ -127,6 +131,24 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
 - **#13 (rules engine core)** is done (2026-10-24). The design is `docs/superpowers/specs/2026-10-24-engine-core-design.md`.
   - `createGame()` sets up 1-5 players in either version, and `play()` answers one decision and returns a new state. Setup picks are simultaneous and secret until the reveal.
   - `view(state, seat)` hides the decks, other seats' hands and picks, hidden decision fields and event secrets, and adds `answers` to the viewer's own open decisions. `tests/engine-view.test.mjs` plays random setups for 1-5 players and checks every seat's view after each step.
+- **#14 (advance turns)** is done (2026-10-24). The design is `docs/superpowers/specs/2026-10-24-advance-turns-design.md` and the plan is `docs/superpowers/plans/2026-10-24-advance-turns-issue-14.md`.
+  - A player who has taken income turn 1 may advance when they can pay for some advance. They pay the tier cost, move one token one space, gain the tier's landmark if first (R9), then take the benefit and may pay the bonus. `chooseAdvance` answers the track, the token and the payment in one go.
+  - Research, Physics, Quantum Physics, Neuroscience, Academic Research, AI Singularity, the "or" choices, the VP counters, bonuses and gaining income buildings are built. A track space is activated at most once per player per turn (R19).
+  - An unordered benefit runs its plain gains first, then any VP counter that no other part could change; when two or more parts whose order can matter remain, `chooseOrder` lets the player pick (Electronics, Nanotechnology, Cavalry, Mechs, Nuclear Bomb, and some space tiles for #17).
+  - The final review found two problems, both fixed with tests: VP counters ran too early, and an after-setup step placed after `'start'` would never run (it now throws). #54 asks the owner whether Alien Biology scores on a track whose token AI Singularity took off; the engine scores it until then.
+  - The rest is handed off by name, and each issue lists it: placing buildings and landmarks and `scoreCapital` (#16); `explore`, `exploreSpace` (R105's `fromGained`), `conquer`, `tileBenefit` (#17); `invent`, `upgrade`, `techBenefit` (#18); `tapestryOnTop` and the track achievement (#19); `gainCiv` (#20). Until then they throw an `Error` naming themselves. Tests stand in for them with `stubHandoffs()` in `tests/helpers/engine.mjs`.
+  - `tests/engine-track-spaces.test.mjs` reaches each of the 48 spaces by a real advance turn.
+- **#15 (income turns, eras and the game end)** is done (2026-10-24). The design is `docs/superpowers/specs/2026-10-24-income-turns-design.md` and the plan is `docs/superpowers/plans/2026-10-24-income-turns-issue-15.md`.
+  - Answering `chooseTurn` with income runs that income turn's steps from `INCOME_STEPS`, a list later issues insert into: civilization abilities (#20), the first-of-neighbours bonus and the era's tapestry card, the optional upgrade (#18), scoring, income, and finishing after income turn 5.
+  - With an empty hand the top card goes on face down: the state keeps its id in `incomeMat.faceDown`, and `view()` hides it from everyone, its owner included.
+  - A finished player is skipped and gains nothing but passive civilization VP: `runEffects` skips their effects unless the operation is `passive` (#20 marks its passive VP).
+  - When every seat has finished, `rankPlayers` ranks them by VP and the version's tiebreak chain, and `state.result` records every tiebreak step used, with each compared player's value (owner). Shared places count 1, 1, 3. The tallest-landmark step reads `seat.capital.landmarks`, which #16 fills.
+  - `tests/engine-scripted-game.test.mjs` plays a 2-player game from setup to the end.
+  - The final review found two problems, both fixed with tests: the `passive` mark was lost through `chooseOption` and `chooseOrder`, and an income step after `'finish'` would silently do nothing (it now throws).
+- **Decided 2026-10-24:**
+  - At the game end, players see each tiebreaker used, step by step (owner, #15).
+  - R105: Interstellar Travel's "explore 1 of them" means one of the 3 space tiles it just gained, as printed; BGA's reading (any tile in hand) is rejected (owner, #52).
+  - The owner asked for the issues to be reorganized before #14: #14–#20 now name the effects each one builds.
 - **Decided 2026-10-23:**
   - Civilization cards use option B · Civilization mat from `docs/ui/collectors-card-options.html` (owner). It is 456 px wide, so it fits the Civilization tab. One component filled from data will draw all 41 civilizations, under #47; the owner asked for it ahead of #47's blocker #3.
   - The tracks backdrop, the income mat with its F&F overlay and the table background are cosmetic enhancements (owner). They moved from #6 to #51, in the new milestone M12 · Cosmetic enhancements, and are drawn after the core features. `COSMETIC_BOARDS` in `src/lib/art/catalog.js` gives them issue 51, so the library names it on their empty slots.
@@ -143,12 +165,11 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
   - Cloud Colonies is back (owner). R77 lists the territories that show clouds, read from BGA's tile and board images, and #49 adds the card. The territory-tile and map art (#6) must show clouds on exactly those territories.
   - The owner-check rules are settled by Board Game Arena for now, not the physical box (owner). 17 are marked **BGA** in the README's "Rules conventions"; R28 and R40 were corrected to match BGA, and R66 now gives the track order from BGA's board images, so Twin Impact is in. R12 and R39 stay owner-check, because BGA has no data for them.
 - **Next:**
-  - Ready now, each blocked only by #13, which is done: #15 Implement income turns, eras and the game end; #16 Implement capital city placement and district rewards; #17 Implement exploring and conquering on the map; #18 Implement tech cards: inventing and upgrading.
-  - #14 Implement advance turns on the four tracks also waits on #52 (what Interstellar Travel's "explore 1 of them" may explore), which is open.
+  - Ready now, each blocked only by #13, which is done: #16 Implement capital city placement and district rewards; #17 Implement exploring and conquering on the map; #18 Implement tech cards: inventing and upgrading.
+  - #54 Decide whether Alien Biology scores on a track AI Singularity emptied. The owner decides; it blocks nothing.
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
   - #10 The owner reviews all 56 tech pictures, then #10 closes.
-  - #11 The owner reviews the 20 masterpieces, the 10 landmark cards and the 4 inspiration tiles; the space tiles follow.
   - #6 Finish the remaining map, territory-tile and expansion capital art. The cosmetic boards wait in #51 until the core features are done.
 - **Everything else is blocked** until earlier issues close (see "Working on issues").
 
@@ -269,7 +290,7 @@ How to read the research:
   3. the base rulebook;
   4. the printed art;
   5. the Board Game Arena implementation.
-- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R104**.
+- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R105**.
   - Follow those decisions, not the research's working assumptions.
   - Cite the id in code comments and test names, for example `// R16`.
   - Content listed there as "left out" is never invented.

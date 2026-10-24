@@ -1,6 +1,6 @@
 # Tapestry (Stonemaier, 2019): Base Game Core Rules Reference
 
-> **Decisions:** every **[UNVERIFIED]** item and open question in this file is decided in the README's [Rules conventions](../../README.md#rules-conventions) (R1–R104). Follow those decisions, not the working assumptions here.
+> **Decisions:** every **[UNVERIFIED]** item and open question in this file is decided in the README's [Rules conventions](../../README.md#rules-conventions) (R1–R105). Follow those decisions, not the working assumptions here.
 
 Implementation-grade reference for a rules engine. It covers the **base game core rules only**: civilization texts, tapestry-card texts and tech-card texts are covered by other researchers (only the mechanics that touch them are described here).
 

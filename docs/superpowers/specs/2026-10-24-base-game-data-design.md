@@ -55,7 +55,7 @@ An **effect** is an object with exactly one key, its kind. A **benefit** is a li
 | `vp` | `{ vp: 5 }` | Gain that many VP |
 | `vp` (per) | `{ vp: { per: 'territory' } }` | Gain 1 VP (or `each`) per thing counted. The counters are listed below |
 | `explore` | `{ explore: { anywhere: true } }` | Explore with a territory tile from the supply; `anywhere` drops the adjacency rule (Airplanes) |
-| `exploreSpace` | `{ exploreSpace: {} }` | Explore a space tile from the supply |
+| `exploreSpace` | `{ exploreSpace: { fromGained: true } }` | Explore a space tile from the supply. `fromGained` limits it to the tiles this benefit just gained (Interstellar Travel, R105) |
 | `conquer` | `{ conquer: { bothDice: 'ifOpponent' } }` | Conquer. `anywhere` drops adjacency (Warplanes). `bothDice` gives both dice `'always'` (Mechs) or `'ifOpponent'` controlled the territory (Tanks, R17) |
 | `research` | `{ research: { noBenefit: true } }` | Roll the science die and you may advance on that track. `noBenefit` is the X: no benefit or bonus. Alien Biology adds `rolls: 4` and `offTrackVp: 5` |
 | `advance` | `{ advance: { tracks: ['science'] } }` | Advance 1 space on one of the listed tracks, with its benefit and optional bonus |
@@ -103,4 +103,3 @@ The two versions are `'original'` (the 2019 printing) and `'current'` (the curre
 
 - How an "any order" benefit asks the player for the order. The data only says which benefits are ordered.
 - The re-activation limit (one activation of a track space per turn), the repeat-icon limit and the track end (R19, 01 §3.1).
-- Which space tiles Interstellar Travel's "explore 1 of them" may use. The data treats it as an ordinary space-tile explore from the supply, which holds the 3 just gained.

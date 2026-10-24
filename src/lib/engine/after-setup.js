@@ -1,11 +1,14 @@
 // The steps that run once every setup pick is made: reveal, civilization deck, and the first turn.
 import { emit } from './events.js';
 import { shuffle } from './random.js';
-import { playerSeat, seatOf } from './state.js';
+import { playerSeat } from './state.js';
 import { SMALL_MAP_PAIRS } from './data/capitals.js';
-import { turnOptions } from './decisions/choose-turn.js';
+import { startTurn } from './turn.js';
 
-/** The after-setup steps in order; later issues insert theirs. */
+/**
+ * The after-setup steps in order. Later issues insert theirs before 'start', which begins play:
+ * turns then follow each other on top of the stack, so a step after it would never run.
+ */
 export const AFTER_SETUP = ['reveal', 'civDeck', 'start'];
 
 /** @type {Record<string, (ctx: import('./state.js').Context) => void>} */
@@ -51,16 +54,8 @@ export const AFTER_SETUP_STEPS = {
 	start(ctx) {
 		const { state } = ctx;
 		state.phase = 'play';
-		state.current = state.first;
 		emit(state, { type: 'setupDone' });
-		emit(state, { type: 'turnStarted', player: state.first });
-		ctx.push([
-			{
-				player: state.first,
-				kind: 'chooseTurn',
-				options: turnOptions(seatOf(state, state.first)),
-			},
-		]);
+		startTurn(ctx, state.first);
 	},
 };
 
@@ -79,6 +74,11 @@ export function runSetupSteps(ctx, op) {
 	const handler = AFTER_SETUP_STEPS[step];
 	if (!handler) {
 		throw new Error(`There is no setup step ${step}.`);
+	}
+	if (step === 'start' && rest.length > 0) {
+		throw new Error(
+			`The after-setup step 'start' must come last, not before ${rest.join(', ')}.`
+		);
 	}
 	handler(ctx);
 }
