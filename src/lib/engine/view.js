@@ -2,26 +2,36 @@
 import { DECISIONS } from './kinds.js';
 import { openDecisions } from './stack.js';
 
+/** @typedef {import('./state.js').Operation & { answers?: import('./state.js').Answer[] }} ViewOperation - A decision may lack its hidden fields */
+/** @typedef {{ id: number, batch: number, player: null, kind: 'group', lanes: { player: number, stack: ViewOperation[] }[] }} ViewGroup */
+/** @typedef {import('./state.js').Seat & Partial<Omit<import('./state.js').PlayerFields, 'hand' | 'picks'>> & { handCount?: number, hand?: string[], picks?: import('./state.js').PlayerFields['picks'] }} ViewSeat - `handCount` on every player seat; `hand` and `picks` only on the viewer's own */
 /**
  * What one seat may see of a game: the state with its hidden parts removed.
  * Decks become counts; other seats keep a `handCount` instead of `hand` and `picks`;
  * decisions lose their kind's hidden fields and events lose `secret` unless they belong to the viewer;
  * the viewer's own open decisions carry `answers`.
- * @typedef {Omit<import('./state.js').State, 'supply'> & { supply: Omit<import('./state.js').Supply, 'tech' | 'tapestry' | 'territory' | 'space' | 'civs'> & { tech: { deck: number, faceUp: string[], discard: string[] }, tapestry: { deck: number, discard: string[] }, territory: number, space: number, civs: number } }} View
+ * @typedef {Omit<import('./state.js').State, 'supply' | 'seats' | 'pending'> & {
+ *   supply: Omit<import('./state.js').Supply, 'tech' | 'tapestry' | 'territory' | 'space' | 'civs'> & { tech: { deck: number, faceUp: string[], discard: string[] }, tapestry: { deck: number, discard: string[] }, territory: number, space: number, civs: number },
+ *   seats: ViewSeat[],
+ *   pending: (ViewOperation | ViewGroup)[]
+ * }} View
  */
 
 /**
  * A copy of the state for one seat. A seat that is not a player of the game gets the public view.
  * @param {import('./state.js').State} state - Left unchanged
- * @param {number | null} seat - 1 to n, or null for the public view
+ * @param {unknown} seat - 1 to n; anything else (null, 0, a string) gives the public view
  * @returns {View}
  */
 export function view(state, seat) {
 	const viewer = viewerOf(state, seat);
+	// Nothing belongs to the public view: a decision or event of no player is private to nobody.
+	const owns = (/** @type {unknown} */ player) =>
+		viewer !== null && player === viewer;
 	// The viewer's open decisions, read from the untouched state so `answers()` sees every field.
 	const answers = new Map(
 		openDecisions(state)
-			.filter((op) => op.player === viewer)
+			.filter((op) => owns(op.player))
 			.map((op) => [op.id, DECISIONS[op.kind].answers(state, op)])
 	);
 	const copy = /** @type {Record<string, any>} */ (structuredClone(state));
@@ -48,7 +58,7 @@ export function view(state, seat) {
 		if (!(op.kind in DECISIONS)) {
 			return;
 		}
-		if (op.player !== viewer) {
+		if (!owns(op.player)) {
 			for (const field of DECISIONS[op.kind].hidden) {
 				delete op[field];
 			}
@@ -67,7 +77,7 @@ export function view(state, seat) {
 	}
 
 	for (const event of copy.events) {
-		if (event.player !== viewer) {
+		if (!owns(event.player)) {
 			delete event.secret;
 		}
 	}

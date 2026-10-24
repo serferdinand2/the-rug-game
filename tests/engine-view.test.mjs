@@ -48,6 +48,11 @@ function checkViews(state, count, initialCapitals) {
 		...state.supply.tapestry.deck,
 		...state.supply.civs,
 	].filter((id) => !publicText.includes(`"${id}"`));
+	/** The public view (null) owns nothing, not even what belongs to no player. */
+	const owns = (
+		/** @type {unknown} */ player,
+		/** @type {number | null} */ viewer
+	) => viewer !== null && player === viewer;
 	const viewers = [null, ...Array.from({ length: count }, (_, i) => i + 1)];
 	for (const viewer of viewers) {
 		const v = view(state, viewer);
@@ -79,7 +84,7 @@ function checkViews(state, count, initialCapitals) {
 					`seat ${seat.seat}'s civ ${civ} shown to ${viewer} (revealed: ${revealed})`
 				);
 			}
-			const shown = /** @type {any} */ (v.seats[seat.seat - 1]);
+			const shown = v.seats[seat.seat - 1];
 			assert.ok(
 				!('hand' in shown) && !('picks' in shown),
 				'another seat has hand or picks'
@@ -95,7 +100,7 @@ function checkViews(state, count, initialCapitals) {
 		assert.equal(typeof v.supply.tech.deck, 'number');
 		assert.equal(typeof v.supply.tapestry.deck, 'number');
 		for (const op of allOps(v)) {
-			if (op.player !== viewer) {
+			if (!owns(op.player, viewer)) {
 				assert.ok(!('answers' in op), 'answers shown to a stranger');
 				for (const field of DECISIONS[op.kind]?.hidden ?? []) {
 					assert.ok(!(field in op), `${field} shown to a stranger`);
@@ -103,7 +108,7 @@ function checkViews(state, count, initialCapitals) {
 			}
 		}
 		for (const event of v.events) {
-			if (event.player !== viewer) {
+			if (!owns(event.player, viewer)) {
 				assert.ok(!('secret' in event), 'secret shown to a stranger');
 			}
 		}
@@ -197,8 +202,13 @@ test('a player sees their own hand, dealt civilizations and the answers to their
 	assert.ok('picks' in v.seats[0]);
 
 	const done = playThrough(5, 2, false);
-	const mine = /** @type {any} */ (view(done, 2).seats);
-	assert.deepEqual(mine[1].hand, /** @type {any} */ (done.seats[1]).hand);
+	const mine = view(done, 2).seats;
+	assert.deepEqual(
+		mine[1].hand,
+		/** @type {import('../src/lib/engine/state.js').PlayerSeat} */ (
+			done.seats[1]
+		).hand
+	);
 	assert.equal(mine[1].handCount, 2);
 	assert.equal(mine[0].handCount, 2);
 	assert.ok(!('hand' in mine[0]));
@@ -208,10 +218,7 @@ test('a player sees their own hand, dealt civilizations and the answers to their
 test('a seat that is not in the game gets the public view', () => {
 	const { state } = startedGame(3);
 	for (const seat of [0, 9, '1', undefined, 1.5, -1]) {
-		assert.deepEqual(
-			view(state, /** @type {any} */ (seat)),
-			view(state, null)
-		);
+		assert.deepEqual(view(state, seat), view(state, null));
 	}
 });
 
@@ -256,4 +263,40 @@ test('view does not change the state', () => {
 		}
 		assert.deepEqual(s, before);
 	}
+});
+
+test('the public view keeps nothing that belongs to no player', () => {
+	const { state } = newGame(2);
+	const bare = /** @type {any} */ (structuredClone(state));
+	bare.pending[0].lanes[0].stack.unshift({
+		id: 9001,
+		batch: 9001,
+		player: null,
+		kind: 'chooseCiv',
+		options: ['ownerless-civ'],
+	});
+	bare.events.push({
+		seq: bare.seq + 1,
+		type: 'orphan',
+		player: null,
+		secret: { card: 'ownerless-secret' },
+	});
+	bare.events.push({
+		seq: bare.seq + 2,
+		type: 'orphan',
+		secret: { card: 'ownerless-secret' },
+	});
+	for (const viewer of [null, 0, 1, 2]) {
+		const text = JSON.stringify(view(bare, viewer));
+		assert.ok(
+			!text.includes('ownerless-civ'),
+			`options shown to ${viewer}`
+		);
+		assert.ok(
+			!text.includes('ownerless-secret'),
+			`secret shown to ${viewer}`
+		);
+	}
+	const ownerless = allOps(view(bare, null)).find((op) => op.id === 9001);
+	assert.ok(ownerless && !('answers' in ownerless));
 });
