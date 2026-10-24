@@ -240,8 +240,8 @@ test('the setup events come in order and number from 1', () => {
 			.forEach((e, i) => {
 				assert.deepEqual(e.secret.civs, civs[i].options);
 			});
-		assert.ok(JSON.stringify(state).length > 0);
-		assert.ok(!JSON.stringify(state).includes('undefined'));
+		// JSON drops undefined values, so a round trip that changes nothing proves there are none.
+		assert.deepEqual(JSON.parse(JSON.stringify(state)), state);
 	}
 });
 

@@ -1,6 +1,7 @@
 // view(): the only way game state leaves the server. A copy with every private part removed.
 import { DECISIONS } from './kinds.js';
 import { openDecisions } from './stack.js';
+import { isPlayerSeat } from './state.js';
 
 /** @typedef {import('./state.js').Operation & { answers?: import('./state.js').Answer[] }} ViewOperation - A decision may lack its hidden fields */
 /** @typedef {{ id: number, batch: number, player: null, kind: 'group', lanes: { player: number, stack: ViewOperation[] }[] }} ViewGroup */
@@ -55,7 +56,7 @@ export function view(state, seat) {
 
 	/** @param {Record<string, any>} op */
 	const clean = (op) => {
-		if (!(op.kind in DECISIONS)) {
+		if (!Object.hasOwn(DECISIONS, op.kind)) {
 			return;
 		}
 		if (!owns(op.player)) {
@@ -91,9 +92,5 @@ export function view(state, seat) {
  * @returns {number | null}
  */
 function viewerOf(state, seat) {
-	if (typeof seat !== 'number' || !Number.isInteger(seat)) {
-		return null;
-	}
-	const found = state.seats.find((s) => s.seat === seat);
-	return found && found.kind === 'player' ? seat : null;
+	return isPlayerSeat(state, seat) ? /** @type {number} */ (seat) : null;
 }

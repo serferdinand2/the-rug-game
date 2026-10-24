@@ -11,7 +11,8 @@ export const EVENT_WINDOW = 500;
  */
 export function emit(state, event) {
 	state.seq += 1;
-	const numbered = { ...event, seq: state.seq };
+	// A copy, so an event never shares an array with the state or a decision.
+	const numbered = { ...structuredClone(event), seq: state.seq };
 	state.events.push(numbered);
 	if (state.events.length > EVENT_WINDOW) {
 		state.events.splice(0, state.events.length - EVENT_WINDOW);

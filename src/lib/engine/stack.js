@@ -48,7 +48,7 @@ export function pushGroup(state, lanes) {
  * @returns {boolean}
  */
 export function isDecision(op) {
-	return op.kind in DECISIONS;
+	return Object.hasOwn(DECISIONS, op.kind);
 }
 
 /**

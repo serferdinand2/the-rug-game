@@ -90,6 +90,14 @@ function checkViews(state, count, initialCapitals) {
 				'another seat has hand or picks'
 			);
 			assert.equal(typeof shown.handCount, 'number');
+			// Mat numbers are digits, so the text search can't see them: check the field itself.
+			if (!revealed && state.map === 'small') {
+				assert.equal(
+					shown.capital.mat,
+					null,
+					`seat ${seat.seat}'s mat shown to ${viewer}`
+				);
+			}
 		}
 		if (!revealed) {
 			assert.deepEqual(v.supply.capitals, initialCapitals);

@@ -34,10 +34,10 @@ export function contextFor(state, random, stack) {
  */
 function runTop(state, random, stack) {
 	const top = /** @type {import('./state.js').Operation} */ (stack.shift());
-	const automatic = AUTOMATIC[top.kind];
-	if (!automatic) {
+	if (!Object.hasOwn(AUTOMATIC, top.kind)) {
 		throw new Error(`There is no operation kind ${top.kind}.`);
 	}
+	const automatic = AUTOMATIC[top.kind];
 	automatic(contextFor(state, random, stack), top);
 }
 

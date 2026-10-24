@@ -103,6 +103,20 @@ export function seatOf(state, seat) {
 }
 
 /**
+ * Whether `seat` names a seat of the game that holds a player's own things.
+ * @param {State} state
+ * @param {unknown} seat
+ * @returns {boolean}
+ */
+export function isPlayerSeat(state, seat) {
+	if (typeof seat !== 'number' || !Number.isInteger(seat)) {
+		return false;
+	}
+	const found = state.seats.find((s) => s.seat === seat);
+	return !!found && found.kind === 'player';
+}
+
+/**
  * Finds a seat that holds a player's own things (not an Automa or Shadow Empire).
  * @param {State} state
  * @param {number} seat - 1 to n

@@ -137,7 +137,7 @@ function incomeNamed(/** @type {string} */ name) {
 
 // Shared
 
-test('engine modules import only relative paths, never the DOM, Svelte or Node', () => {
+test('engine modules import only relative paths, never the DOM, Svelte or Node, and never Math.random', () => {
 	const files = jsFiles(ENGINE_DIR);
 	assert.ok(files.length >= 11, `found ${files.length} engine modules`);
 	for (const file of files) {
@@ -150,6 +150,7 @@ test('engine modules import only relative paths, never the DOM, Svelte or Node',
 			assert.match(specifier, /^\.\.?\//, `${file} imports ${specifier}`);
 		}
 		assert.doesNotMatch(source, /\b(window|document|navigator)\./, file);
+		assert.doesNotMatch(source, /Math\.random/, file);
 	}
 });
 

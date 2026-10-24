@@ -5,11 +5,17 @@
 /**
  * A repeatable generator (mulberry32). The same seed gives the same sequence.
  * @param {number} seed
- * @returns {Random}
+ * @returns {Random} Throws RangeError unless n is a positive whole number
  */
 export function seededRandom(seed) {
 	let a = seed >>> 0;
 	return (n) => {
+		// Like crypto.randomInt, which the server uses: n must be a positive whole number.
+		if (!Number.isInteger(n) || n < 1) {
+			throw new RangeError(
+				`random needs a positive whole number, not ${n}.`
+			);
+		}
 		a = (a + 0x6d2b79f5) >>> 0;
 		let t = a;
 		t = Math.imul(t ^ (t >>> 15), t | 1);

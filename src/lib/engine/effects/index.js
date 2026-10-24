@@ -15,7 +15,9 @@ export function runEffects(ctx, op) {
 		return;
 	}
 	if (rest.length) {
-		ctx.push([{ player: op.player, kind: 'effects', effects: rest }]);
+		// The continuation keeps every other field (a source, `ordered`); `push` gives it a new id and batch.
+		const { id: _id, batch: _batch, ...kept } = op;
+		ctx.push([{ ...kept, effects: rest }]);
 	}
 	const [kind] = Object.keys(effect);
 	const handler = EFFECTS[kind];

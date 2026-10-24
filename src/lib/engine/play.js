@@ -3,6 +3,7 @@ import { PlayerError } from './errors.js';
 import { locate } from './stack.js';
 import { contextFor, run } from './loop.js';
 import { DECISIONS } from './kinds.js';
+import { isPlayerSeat } from './state.js';
 
 /**
  * Answers a decision. Returns a new state; the given one is never changed, even when this throws.
@@ -16,6 +17,9 @@ import { DECISIONS } from './kinds.js';
 export function play(state, seat, action, random) {
 	if (state.phase === 'over') {
 		throw new PlayerError('This game is finished.');
+	}
+	if (!isPlayerSeat(state, seat)) {
+		throw new PlayerError("You aren't a player of this game.");
 	}
 	if (
 		!action ||
