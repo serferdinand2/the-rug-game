@@ -129,7 +129,7 @@ The engine is the most important code in the project. It follows the sibling pro
   - An action names an open decision by its id. A batch of decisions, or a group, can open several at once. A decision can belong to a player whose turn it isn't, such as a trap response.
   - The engine names players by seat number, 1 to n.
   - A group holds one lane per player, so players decide at the same time.
-  - Each decision kind is a module in `src/lib/engine/decisions/` with `answers`, `check`, `resolve` and `hidden`, registered in `kinds.js`. Handlers get a `Context` (`ctx.push`, `ctx.pushGroup`) and never import the stack.
+  - Each decision kind is a module in `src/lib/engine/decisions/` with `answers`, `check`, `resolve` and `hidden`, registered in `kinds.js`. Handlers get a `Context` (`ctx.push`, `ctx.pushGroup`) and never import the stack. An effect handler also gets the `effects` operation it runs in, with its `source` space.
 - **Errors meant for players** are `throw new PlayerError('…')`, written as a sentence a player understands. Any other error is a bug.
 - **Events.** Every change appends a typed event with an increasing `seq`. The client animates and writes the log from events, never by diffing state.
 - **Privacy.** `view(state, seat)` is the only way state leaves the server. It hides hands, deck order and face-down tiles.
