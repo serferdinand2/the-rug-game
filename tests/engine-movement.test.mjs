@@ -51,14 +51,30 @@ test('the first player into tier II gains its landmark, and it is placed before 
 	});
 	assert.deepEqual(state.seats[0].tracks.exploration, [4]);
 	assert.ok(!state.landmarks.includes('lighthouse'));
-	assert.deepEqual(handoffs.calls, [
-		{ kind: 'placeLandmark', player: 1, value: { landmark: 'lighthouse' } },
-		{ kind: 'explore', player: 1, value: {} },
-	]);
+	// The landmark waits for its spot, and the space's benefit waits behind it (FAQ #1).
+	assert.deepEqual(
+		openDecisions(state).map((d) => [d.kind, d.player, d.landmark]),
+		[['choosePlacement', 1, 'lighthouse']]
+	);
+	assert.deepEqual(handoffs.calls, []);
 	assert.deepEqual(typesSince(state, before), [
 		'tokenMoved',
 		'landmarkGained',
 		'spaceActivated',
+	]);
+	const placed = placeAll(state, random);
+	assert.deepEqual(handoffs.calls, [
+		{ kind: 'explore', player: 1, value: {} },
+	]);
+	assert.deepEqual(
+		placed.seats[0].capital.landmarks.map((p) => p.landmark),
+		['lighthouse']
+	);
+	assert.deepEqual(typesSince(placed, before), [
+		'tokenMoved',
+		'landmarkGained',
+		'spaceActivated',
+		'landmarkPlaced',
 		'tilesGained',
 	]);
 	assert.deepEqual(
@@ -86,8 +102,12 @@ test('a landmark someone already gained is not gained again', (t) => {
 	move(state, random, 1, step);
 	move(state, random, 2, step);
 	assert.deepEqual(
-		handoffs.calls.map((c) => [c.kind, c.player]),
-		[['placeLandmark', 1]]
+		openDecisions(state).map((d) => [d.kind, d.player, d.landmark]),
+		[['choosePlacement', 1, 'lighthouse']]
+	);
+	assert.equal(
+		state.events.filter((e) => e.type === 'landmarkGained').length,
+		1
 	);
 });
 
@@ -107,8 +127,29 @@ test('R9: a move past several first spaces gains each landmark still there, lowe
 		benefit: false,
 	});
 	assert.deepEqual(
-		handoffs.calls.map((c) => c.value.landmark),
+		state.events
+			.filter((e) => e.type === 'landmarkGained')
+			.map((e) => e.landmark),
 		['barracks', 'fusion-reactor']
+	);
+	// They are placed in turn, lowest tier first.
+	const first = openDecisions(state);
+	assert.deepEqual(
+		first.map((d) => d.landmark),
+		['barracks']
+	);
+	const next = play(
+		state,
+		1,
+		{
+			decision: first[0].id,
+			...DECISIONS.choosePlacement.answers(state, first[0])[0],
+		},
+		random
+	);
+	assert.deepEqual(
+		openDecisions(next).map((d) => d.landmark),
+		['fusion-reactor']
 	);
 });
 
@@ -126,6 +167,7 @@ test('R9: regressing never gains a landmark', (t) => {
 	});
 	assert.ok(state.landmarks.includes('lighthouse'));
 	assert.deepEqual(handoffs.calls, []);
+	assert.ok(!openDecisions(state).some((d) => d.kind === 'choosePlacement'));
 });
 
 test('a move without the benefit still gains the landmark', (t) => {

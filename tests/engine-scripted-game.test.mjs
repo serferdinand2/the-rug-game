@@ -87,7 +87,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 		[F, 'chooseTurn', INCOME],
 		[F, 'chooseResource', { resources: { coin: 2 } }],
 		[F, 'chooseTapestry', firstCard],
-		// 12. O advances to Standing Army for 1 culture and 1 coin: the Barracks (#16), 1 worker, 1 VP per tile (2).
+		// 12. O advances to Standing Army for 1 culture and 1 coin: the Barracks, placed first (FAQ #1), then 1 worker, 1 VP per tile (2).
 		//     O = (0, 2, 1, 1), 3 VP.
 		[O, 'chooseTurn', ADVANCE],
 		[
@@ -95,6 +95,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 			'chooseAdvance',
 			{ track: 'military', from: 3, pay: { coin: 1, culture: 1 } },
 		],
+		[O, 'choosePlacement', firstPlot],
 		// 13. F, income turn 4: first into era 4 (O is on 2), so 3 coins to 8; a card; income coin is lost at the cap.
 		//     F = (8, 3, 6, 4), 6 tiles, 1 card.
 		[F, 'chooseTurn', INCOME],
@@ -132,6 +133,10 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 	assert.deepEqual(
 		[o.vp, o.resources, o.territoryTiles.length, o.hand.length],
 		[6, { coin: 2, worker: 4, food: 3, culture: 5 }, 4, 2]
+	);
+	assert.deepEqual(
+		o.capital.landmarks.map((p) => p.landmark),
+		['barracks']
 	);
 	assert.deepEqual(
 		[f.incomeMat.buildings.farm, o.incomeMat.buildings.armory],

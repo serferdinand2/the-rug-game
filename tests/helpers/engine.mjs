@@ -68,7 +68,7 @@ const HANDOFF_EFFECTS = [
 ];
 
 /** Operations #14 and #15 push for later issues: placing landmarks (#16), civilization abilities (#20) and tapestry abilities (#19). */
-const HANDOFF_OPERATIONS = ['placeLandmark', 'civAbilities', 'tapestryAbility'];
+const HANDOFF_OPERATIONS = ['civAbilities', 'tapestryAbility'];
 
 /**
  * Stands in for the effects and operations later issues build, recording each one they are given.

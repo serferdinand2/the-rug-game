@@ -76,7 +76,16 @@ const placing = ({ state }) =>
 		.map((d) => d.building);
 
 /**
- * Places every open building on its first plot, so the rest of the benefit can run.
+ * The landmarks the player is being asked to place (#16).
+ * @param {{ state: any }} result
+ */
+const landing = ({ state }) =>
+	openDecisions(state)
+		.filter((d) => d.kind === 'choosePlacement' && d.landmark)
+		.map((d) => d.landmark);
+
+/**
+ * Places every open building or landmark on its first spot, so the rest of the benefit can run.
  * @param {any} result - Changed: its state becomes the new one
  */
 function place(result) {
@@ -142,10 +151,9 @@ test('exploration 3 Wagons: explore or a farm', (t) => {
 
 test('exploration 4 Navigation: the Lighthouse first, then 1 territory tile, then explore', (t) => {
 	const r = onto(t, 'exploration', 4);
-	assert.deepEqual(handed(r), [
-		['placeLandmark', { landmark: 'lighthouse' }],
-		['explore', {}],
-	]);
+	assert.deepEqual(landing(r), ['lighthouse']);
+	place(r);
+	assert.deepEqual(handed(r), [['explore', {}]]);
 	assert.equal(r.seat.territoryTiles.length, 1);
 	assert.ok(passed(r));
 });
@@ -169,10 +177,9 @@ test('exploration 6 Tunnels: 1 territory tile and a farm; the bonus pays to expl
 
 test('exploration 7 Trains: the Train Station, then 2 territory tiles, then explore', (t) => {
 	const r = onto(t, 'exploration', 7);
-	assert.deepEqual(handed(r), [
-		['placeLandmark', { landmark: 'train-station' }],
-		['explore', {}],
-	]);
+	assert.deepEqual(landing(r), ['train-station']);
+	place(r);
+	assert.deepEqual(handed(r), [['explore', {}]]);
 	assert.equal(r.seat.territoryTiles.length, 2);
 });
 
@@ -200,9 +207,8 @@ test('exploration 10 Space Shuttle: the Launch Pad, 1 VP per technology space; t
 		seat.tracks.technology = [5];
 		seat.territoryTiles = [1, 2, 3];
 	});
-	assert.deepEqual(handed(r), [
-		['placeLandmark', { landmark: 'launch-pad' }],
-	]);
+	assert.deepEqual(landing(r), ['launch-pad']);
+	place(r);
 	assert.equal(r.seat.vp, 5);
 	reply(r, 'chooseBonus', { pay: { territory: [1, 2, 3] } });
 	assert.equal(r.seat.vp, 15);
@@ -256,9 +262,8 @@ test('science 4 Medicine: the Apothecary, 1 VP per tech card and a tapestry card
 	const r = onto(t, 'science', 4, (seat) => {
 		seat.tech.bottom = ['pottery', 'clocks'];
 	});
-	assert.deepEqual(handed(r), [
-		['placeLandmark', { landmark: 'apothecary' }],
-	]);
+	assert.deepEqual(landing(r), ['apothecary']);
+	place(r);
 	assert.equal(r.seat.vp, 2);
 	assert.equal(r.seat.hand.length, 1);
 	assert.ok(passed(r));
@@ -289,7 +294,8 @@ test('science 7 Academic Research: the Academy, then repeat another current spac
 	const r = onto(t, 'science', 7, (seat) => {
 		seat.tracks.exploration = [1];
 	});
-	assert.deepEqual(handed(r), [['placeLandmark', { landmark: 'academy' }]]);
+	assert.deepEqual(landing(r), ['academy']);
+	place(r);
 	// Scouting is the only other space to repeat, so it runs without asking.
 	assert.equal(r.seat.territoryTiles.length, 2);
 	assert.ok(passed(r));
@@ -317,9 +323,8 @@ test('science 10 Neuroscience: the Laboratory, then regress on technology or mil
 	const r = onto(t, 'science', 10, (seat) => {
 		seat.tracks.technology = [3];
 	});
-	assert.deepEqual(handed(r), [
-		['placeLandmark', { landmark: 'laboratory' }],
-	]);
+	assert.deepEqual(landing(r), ['laboratory']);
+	place(r);
 	// The only token that can go back lands on Carpentry: a tapestry card.
 	assert.deepEqual(r.seat.tracks.technology, [2]);
 	assert.equal(r.seat.hand.length, 1);
@@ -368,10 +373,9 @@ test('technology 3 Stone Tools: invent, or a market', (t) => {
 
 test('technology 4 Metallurgy: the Forge, then invent, refreshing first if you like', (t) => {
 	const r = onto(t, 'technology', 4);
-	assert.deepEqual(handed(r), [
-		['placeLandmark', { landmark: 'forge' }],
-		['invent', { refresh: true }],
-	]);
+	assert.deepEqual(landing(r), ['forge']);
+	place(r);
+	assert.deepEqual(handed(r), [['invent', { refresh: true }]]);
 });
 
 test('technology 5 Glass: a farm, house or armory; the bonus pays to upgrade', (t) => {
@@ -396,10 +400,9 @@ test('technology 6 Steel: 1 VP per armory and a market; the bonus pays to invent
 
 test('technology 7 Rubber: Rubber Works, then invent 2, refreshing first if you like', (t) => {
 	const r = onto(t, 'technology', 7);
-	assert.deepEqual(handed(r), [
-		['placeLandmark', { landmark: 'rubber-works' }],
-		['invent', { refresh: true, count: 2 }],
-	]);
+	assert.deepEqual(landing(r), ['rubber-works']);
+	place(r);
+	assert.deepEqual(handed(r), [['invent', { refresh: true, count: 2 }]]);
 });
 
 test('technology 8 Plastic: a market, then 1 VP per market; the bonus pays to upgrade', (t) => {
@@ -424,7 +427,8 @@ test('technology 10 Computers: the Tech Hub, 1 VP per military and per science s
 		seat.tracks.military = [4];
 		seat.tracks.science = [3];
 	});
-	assert.deepEqual(handed(r), [['placeLandmark', { landmark: 'tech-hub' }]]);
+	assert.deepEqual(landing(r), ['tech-hub']);
+	place(r);
 	assert.equal(r.seat.vp, 7);
 });
 
@@ -479,7 +483,8 @@ test('military 4 Standing Army: the Barracks, 1 worker and 1 VP per territory ti
 	const r = onto(t, 'military', 4, (seat) => {
 		seat.territoryTiles = [1, 2];
 	});
-	assert.deepEqual(handed(r), [['placeLandmark', { landmark: 'barracks' }]]);
+	assert.deepEqual(landing(r), ['barracks']);
+	place(r);
 	assert.equal(r.seat.resources.worker, 3);
 	assert.equal(r.seat.vp, 2);
 });
@@ -501,10 +506,9 @@ test('military 6 Gunpowder: a tapestry card and conquer; the bonus pays for an a
 
 test('military 7 Tanks: the Tank Factory, then conquer with both dice against an opponent (R17)', (t) => {
 	const r = onto(t, 'military', 7);
-	assert.deepEqual(handed(r), [
-		['placeLandmark', { landmark: 'tank-factory' }],
-		['conquer', { bothDice: 'ifOpponent' }],
-	]);
+	assert.deepEqual(landing(r), ['tank-factory']);
+	place(r);
+	assert.deepEqual(handed(r), [['conquer', { bothDice: 'ifOpponent' }]]);
 });
 
 test('military 8 Warplanes: conquer anywhere; the bonus pays for a tapestry card', (t) => {
@@ -527,15 +531,14 @@ test('military 10 Nuclear Bomb: the Fusion Reactor, then 1 VP per exploration sp
 	const r = onto(t, 'military', 10, (seat) => {
 		seat.tracks.exploration = [6];
 	});
+	assert.deepEqual(landing(r), ['fusion-reactor']);
+	place(r);
 	// The card played on top may move the exploration token, so the order matters.
 	assert.deepEqual(open(r), ['chooseOrder']);
 	assert.equal(r.seat.vp, 0);
 	reply(r, 'chooseOrder', { effect: 1 });
 	assert.equal(r.seat.vp, 6);
-	assert.deepEqual(handed(r), [
-		['placeLandmark', { landmark: 'fusion-reactor' }],
-		['tapestryOnTop', {}],
-	]);
+	assert.deepEqual(handed(r), [['tapestryOnTop', {}]]);
 });
 
 test('military 11 Drone Assassins: score the capital city; the bonus discards 3 tapestry cards for 10 VP', (t) => {
@@ -568,26 +571,31 @@ test('the landmark race: the first player into a tier takes it, the second gets 
 		other.tracks.exploration = [3];
 		other.resources.food = 2;
 	});
+	assert.deepEqual(landing(r), ['lighthouse']);
+	place(r);
 	assert.ok(passed(r));
 	const chosen = answer(r.state, r.random, r.other, 'chooseTurn', {
 		turn: 'advance',
 	});
-	answer(chosen, r.random, r.other, 'chooseAdvance', {
+	const after = answer(chosen, r.random, r.other, 'chooseAdvance', {
 		track: 'exploration',
 		from: 3,
 		pay: { food: 2 },
 	});
 	assert.deepEqual(
-		r.calls
-			.filter((c) => c.kind === 'placeLandmark')
-			.map((c) => [c.player, c.value.landmark]),
+		after.events
+			.filter((e) => e.type === 'landmarkGained')
+			.map((e) => [e.player, e.landmark]),
 		[[r.player, 'lighthouse']]
 	);
+	assert.deepEqual(
+		openDecisions(after).filter((d) => d.kind === 'choosePlacement'),
+		[]
+	);
+	assert.deepEqual(after.seats[r.other - 1].capital.landmarks, []);
 });
 
-test("an advance on another player's turn wins the landmark race (FAQ #2)", (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test("an advance on another player's turn wins the landmark race (FAQ #2)", () => {
 	const { state, random, player } = readyTurn(2, (seat, s) => {
 		seat.tracks.military = [3];
 		seat.resources.culture = 2;
@@ -601,19 +609,32 @@ test("an advance on another player's turn wins the landmark race (FAQ #2)", (t) 
 		random
 	);
 	assert.equal(raced.current, player);
-	const chosen = answer(raced, random, player, 'chooseTurn', {
+	// The player who won the race places the landmark, though it is not their turn (FAQ #2).
+	assert.deepEqual(
+		openDecisions(raced)
+			.filter((d) => d.kind === 'choosePlacement')
+			.map((d) => [d.player, d.landmark]),
+		[[other, 'barracks']]
+	);
+	const placed = placeAll(raced, random);
+	assert.equal(placed.seats[other - 1].capital.landmarks.length, 1);
+	const chosen = answer(placed, random, player, 'chooseTurn', {
 		turn: 'advance',
 	});
-	answer(chosen, random, player, 'chooseAdvance', {
+	const after = answer(chosen, random, player, 'chooseAdvance', {
 		track: 'military',
 		from: 3,
 		pay: { culture: 2 },
 	});
 	assert.deepEqual(
-		handoffs.calls
-			.filter((c) => c.kind === 'placeLandmark')
-			.map((c) => [c.player, c.value.landmark]),
+		after.events
+			.filter((e) => e.type === 'landmarkGained')
+			.map((e) => [e.player, e.landmark]),
 		[[other, 'barracks']]
+	);
+	assert.deepEqual(
+		openDecisions(after).filter((d) => d.kind === 'choosePlacement'),
+		[]
 	);
 });
 

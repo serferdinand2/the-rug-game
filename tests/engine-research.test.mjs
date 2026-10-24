@@ -100,9 +100,11 @@ test('research with the X gives no benefit or bonus, but still the landmark', (t
 		random
 	);
 	assert.deepEqual(next.seats[0].tracks.science, [4]);
-	assert.deepEqual(handoffs.calls, [
-		{ kind: 'placeLandmark', player: 1, value: { landmark: 'apothecary' } },
-	]);
+	assert.deepEqual(handoffs.calls, []);
+	assert.deepEqual(
+		openDecisions(next).map((d) => [d.kind, d.player, d.landmark]),
+		[['choosePlacement', 1, 'apothecary']]
+	);
 	assert.ok(!next.events.some((e) => e.type === 'spaceActivated'));
 });
 

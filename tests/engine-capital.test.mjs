@@ -2,7 +2,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
-import { run, resolveEffects } from '../src/lib/engine/loop.js';
+import { run, resolveEffects, contextFor } from '../src/lib/engine/loop.js';
+import { moveToken } from '../src/lib/engine/movement.js';
+import { rankPlayers, landmarksInCity } from '../src/lib/engine/ranking.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { view } from '../src/lib/engine/view.js';
@@ -12,9 +14,11 @@ import {
 	cityPlots,
 	completeDistricts,
 	completeLines,
+	landmarkCells,
+	landmarkSpots,
 } from '../src/lib/engine/city.js';
 import { plotIndex, groupsOf } from '../src/lib/capital.js';
-import { startedGame, placeAll } from './helpers/engine.mjs';
+import { startedGame, placeAll, stubHandoffs } from './helpers/engine.mjs';
 
 /**
  * A started 2-player game with seat 1 on a capital mat, changed by `fill`.
@@ -306,4 +310,324 @@ test('placeAll answers every open placement with its first answer', () => {
 	const placed = placeAll(next, random);
 	assert.equal(placed.seats[0].capital.buildings.length, 1);
 	assert.deepEqual(openDecisions(placed), []);
+});
+
+// Landmarks (R13-R15, FAQ #1, FAQ #2)
+
+/** Fills every open plot of a seat with a house, except the plots listed as [row, col]. */
+function fillExcept(
+	/** @type {any} */ seat,
+	/** @type {[number, number][]} */ keep
+) {
+	for (const { row, col } of buildingSpots(seat)) {
+		if (!keep.some(([r, c]) => r === row && c === col)) {
+			seat.capital.buildings.push({ building: 'house', row, col });
+		}
+	}
+}
+
+/** Gives a player a landmark to place and runs to the decision. */
+function gainLandmark(
+	/** @type {any} */ state,
+	/** @type {any} */ random,
+	/** @type {string} */ landmark,
+	player = 1
+) {
+	push(state, state.pending, [{ player, kind: 'placeLandmark', landmark }]);
+	run(state, random);
+	return state;
+}
+
+/** The Mountain city with only the four plots at rows 6-7, columns 4-5 open, plus any extras. */
+const roomForOne = (/** @type {[number, number][]} */ extra = []) =>
+	game(1, (seat) =>
+		fillExcept(seat, [[6, 4], [6, 5], [7, 4], [7, 5], ...extra])
+	);
+
+const moved = (/** @type {any} */ state, /** @type {any} */ random, move) => {
+	moveToken(contextFor(state, random, state.pending), move.player ?? 1, {
+		track: move.track,
+		from: move.from,
+		to: move.to,
+		benefit: move.benefit ?? false,
+	});
+	run(state, random);
+	return state;
+};
+
+test('a gained landmark waits for a spot, offered in all four rotations (R15)', () => {
+	const { state, random } = game(1, (seat) => {
+		seat.tracks.exploration = [3];
+	});
+	moved(state, random, { track: 'exploration', from: 3, to: 4 });
+	const [decision] = openDecisions(state);
+	assert.equal(decision.kind, 'choosePlacement');
+	assert.equal(decision.player, 1);
+	assert.equal(decision.landmark, 'lighthouse');
+	const answers = DECISIONS.choosePlacement.answers(state, decision);
+	assert.deepEqual(answers, landmarkSpots(state.seats[0], 'lighthouse'));
+	for (const rotation of [0, 1, 2, 3]) {
+		assert.ok(
+			answers.some((a) => a.rotation === rotation),
+			`${rotation}`
+		);
+	}
+	for (const answer of answers) {
+		assert.doesNotThrow(() =>
+			DECISIONS.choosePlacement.check(state, decision, answer)
+		);
+	}
+});
+
+test("a landmark answer is refused off the city, on a taken plot, or over another landmark's overhang", () => {
+	const { state, random } = game(1, (seat) => {
+		// A Lighthouse hanging over the top edge at columns 3-4.
+		seat.capital.landmarks.push({
+			landmark: 'lighthouse',
+			row: -1,
+			col: 3,
+			rotation: 0,
+		});
+	});
+	const check = DECISIONS.choosePlacement.check;
+	gainLandmark(state, random, 'bridge');
+	const [decision] = openDecisions(state);
+	const refused = (/** @type {any} */ answer, message) =>
+		assert.throws(
+			() => check(state, decision, answer),
+			{ name: 'PlayerError', message },
+			JSON.stringify(answer)
+		);
+	refused(
+		{ row: -5, col: -5, rotation: 0 },
+		'A landmark must cover at least one plot of your city.'
+	);
+	// (1, 0) is impassable.
+	refused({ row: 0, col: 0, rotation: 0 }, "That plot isn't open.");
+	// The Bridge shares only the overhang cell (-1, 3) with the Lighthouse.
+	refused(
+		{ row: -2, col: 0, rotation: 0 },
+		'Another landmark is already there.'
+	);
+	assert.ok(
+		!DECISIONS.choosePlacement
+			.answers(state, decision)
+			.some((a) => a.row === -2 && a.col === 0 && a.rotation === 0)
+	);
+	const shape = 'Choose a row and a column.';
+	const turn = 'Choose a rotation from 0 to 3.';
+	refused({ row: 0, col: 4, rotation: 4 }, turn);
+	refused({ row: 0, col: 4, rotation: -1 }, turn);
+	refused({ row: 0, col: 4, rotation: '1' }, turn);
+	refused({ row: 0, col: 4, rotation: 1.5 }, turn);
+	refused({ row: 0, col: 4 }, turn);
+	refused({ row: 1.5, col: 4, rotation: 0 }, shape);
+	refused({ row: '1', col: 4, rotation: 0 }, shape);
+	refused({ row: 0, col: NaN, rotation: 0 }, shape);
+	refused(
+		{ row: 1e9, col: 0, rotation: 0 },
+		'A landmark must cover at least one plot of your city.'
+	);
+	assert.deepEqual(state.seats[0].capital.landmarks.length, 1);
+});
+
+test('a landmark with one place goes there unturned, without a question (owner)', () => {
+	const { state, random } = roomForOne();
+	gainLandmark(state, random, 'lighthouse');
+	const placed = state.events.find((e) => e.type === 'landmarkPlaced');
+	assert.deepEqual(
+		{ ...placed, seq: 0 },
+		{
+			type: 'landmarkPlaced',
+			seq: 0,
+			player: 1,
+			landmark: 'lighthouse',
+			row: 6,
+			col: 4,
+			rotation: 0,
+			automatic: true,
+		}
+	);
+	assert.equal(state.seats[0].capital.landmarks.length, 1);
+	assert.deepEqual(
+		openDecisions(state).map((d) => d.kind),
+		['chooseResource']
+	);
+});
+
+test('a landmark with two places is asked about', () => {
+	const { state, random } = roomForOne([[0, 0]]);
+	gainLandmark(state, random, 'lighthouse');
+	const [decision] = openDecisions(state);
+	assert.equal(decision.kind, 'choosePlacement');
+	const answers = DECISIONS.choosePlacement.answers(state, decision);
+	assert.ok(answers.some((a) => a.row === -1 && a.col === -1));
+	assert.ok(answers.some((a) => a.row === 6 && a.col === 4));
+	assert.deepEqual(state.seats[0].capital.landmarks, []);
+});
+
+test('a landmark with no place goes beside the mat and does not count for the tiebreak (R13, R14)', () => {
+	const { state, random } = game(1, (seat) => fillExcept(seat, []));
+	gainLandmark(state, random, 'lighthouse');
+	const seat = state.seats[0];
+	assert.deepEqual(seat.besideMat, ['lighthouse']);
+	assert.deepEqual(seat.capital.landmarks, []);
+	assert.deepEqual(landmarksInCity(seat), []);
+	assert.deepEqual(openDecisions(state), []);
+	assert.ok(
+		state.events.some(
+			(e) =>
+				e.type === 'placedBesideMat' &&
+				e.player === 1 &&
+				e.landmark === 'lighthouse'
+		)
+	);
+});
+
+test('a landmark completing two districts gives one choice of 2 resources', () => {
+	const { state, random } = game(1, (seat) => {
+		for (const [row, col] of [
+			[0, 0],
+			[0, 1],
+			[2, 0],
+			[2, 1],
+			[2, 2],
+			[0, 4],
+			[0, 5],
+			[1, 4],
+		]) {
+			seat.capital.buildings.push({ building: 'house', row, col });
+		}
+	});
+	gainLandmark(state, random, 'lighthouse');
+	const [decision] = openDecisions(state);
+	const next = play(
+		state,
+		1,
+		{ decision: decision.id, row: 0, col: 2, rotation: 0 },
+		random
+	);
+	const done = next.events.find((e) => e.type === 'districtsCompleted');
+	assert.deepEqual(done.districts, [0, 1]);
+	const [reward] = openDecisions(next);
+	assert.equal(reward.kind, 'chooseResource');
+	assert.equal(reward.count, 2);
+});
+
+test("FAQ #1: the landmark and its district resource come before the space's benefit", (t) => {
+	const handoffs = stubHandoffs();
+	t.after(handoffs.restore);
+	const { state, random } = game(1, (seat) => {
+		seat.tracks.exploration = [3];
+		for (const [row, col] of [
+			[0, 0],
+			[0, 1],
+			[0, 2],
+			[1, 2],
+			[2, 0],
+		]) {
+			seat.capital.buildings.push({ building: 'house', row, col });
+		}
+	});
+	moved(state, random, {
+		track: 'exploration',
+		from: 3,
+		to: 4,
+		benefit: true,
+	});
+	const [place] = openDecisions(state);
+	assert.equal(place.kind, 'choosePlacement');
+	const placed = play(
+		state,
+		1,
+		{ decision: place.id, row: 2, col: 1, rotation: 0 },
+		random
+	);
+	const [reward] = openDecisions(placed);
+	assert.equal(reward.kind, 'chooseResource');
+	assert.equal(placed.seats[0].territoryTiles.length, 0);
+	const done = play(
+		placed,
+		1,
+		{ decision: reward.id, resources: { coin: 1 } },
+		random
+	);
+	assert.equal(done.seats[0].territoryTiles.length, 1);
+	assert.deepEqual(
+		handoffs.calls.map((c) => c.kind),
+		['explore']
+	);
+});
+
+test('two landmarks gained in one move are placed in turn, and the second is offered only what the first left', () => {
+	const { state, random } = game(1, (seat) => {
+		seat.tracks.exploration = [3];
+	});
+	moved(state, random, { track: 'exploration', from: 3, to: 7 });
+	const first = openDecisions(state);
+	assert.deepEqual(
+		first.map((d) => [d.kind, d.landmark]),
+		[['choosePlacement', 'lighthouse']]
+	);
+	// The Lighthouse hangs over the top edge, taking plots off the grid too.
+	const next = play(
+		state,
+		1,
+		{ decision: first[0].id, row: -1, col: 0, rotation: 0 },
+		random
+	);
+	const [second] = openDecisions(next);
+	assert.equal(second.landmark, 'train-station');
+	const taken = new Set(
+		next.seats[0].capital.landmarks.flatMap((p) =>
+			landmarkCells(p).map((c) => `${c.row},${c.col}`)
+		)
+	);
+	const answers = DECISIONS.choosePlacement.answers(next, second);
+	assert.ok(answers.length > 0);
+	for (const answer of answers) {
+		const cells = landmarkCells({ landmark: 'train-station', ...answer });
+		assert.ok(cells.every((c) => !taken.has(`${c.row},${c.col}`)));
+	}
+	assert.equal(next.seats[0].capital.landmarks.length, 1);
+});
+
+test("a landmark gained on another player's turn is placed by that player (FAQ #2)", () => {
+	const { state, random } = game(1, (seat, s) => {
+		s.seats[1].capital.mat = 2;
+		s.seats[1].tracks.exploration = [3];
+		s.current = 1;
+	});
+	moved(state, random, { player: 2, track: 'exploration', from: 3, to: 4 });
+	const [decision] = openDecisions(state);
+	assert.equal(decision.kind, 'choosePlacement');
+	assert.equal(decision.player, 2);
+	const answer = DECISIONS.choosePlacement.answers(state, decision)[0];
+	assert.throws(
+		() => play(state, 1, { decision: decision.id, ...answer }, random),
+		{ name: 'PlayerError' }
+	);
+	const next = play(state, 2, { decision: decision.id, ...answer }, random);
+	assert.equal(next.seats[1].capital.landmarks.length, 1);
+	assert.equal(next.seats[0].capital.landmarks.length, 0);
+});
+
+test('R13: a landmark placed through the engine breaks a VP tie', () => {
+	const { state, random } = game(1, (seat, s) => {
+		s.seats[1].capital.mat = 2;
+		seat.vp = 5;
+		s.seats[1].vp = 5;
+	});
+	gainLandmark(state, random, 'lighthouse');
+	const [decision] = openDecisions(state);
+	const answer = DECISIONS.choosePlacement.answers(state, decision)[0];
+	const next = play(state, 1, { decision: decision.id, ...answer }, random);
+	assert.equal(next.version, 'current');
+	assert.deepEqual(
+		rankPlayers(next).ranking.map((p) => [p.seat, p.place]),
+		[
+			[1, 1],
+			[2, 2],
+		]
+	);
 });

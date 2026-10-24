@@ -8,6 +8,7 @@ import { isActivated, spacesAdvanced } from '../src/lib/engine/movement.js';
 import {
 	readyTurn,
 	answer,
+	placeAll,
 	startedGame,
 	stubHandoffs,
 } from './helpers/engine.mjs';
@@ -38,11 +39,18 @@ test('R19: Academic Research repeats any current space except itself', (t) => {
 		};
 		seat.resources.worker = 3;
 	});
-	const next = advance(state, random, player, {
+	const advanced = advance(state, random, player, {
 		track: 'science',
 		from: 6,
 		pay: { worker: 3 },
 	});
+	// The Academy is placed before the space's benefit (FAQ #1).
+	const [place] = openDecisions(advanced);
+	assert.deepEqual(
+		[place.kind, place.player, place.landmark],
+		['choosePlacement', player, 'academy']
+	);
+	const next = placeAll(advanced, random);
 	const [repeat] = openDecisions(next);
 	assert.equal(repeat.kind, 'chooseRepeat');
 	assert.deepEqual(DECISIONS.chooseRepeat.answers(next, repeat), [
