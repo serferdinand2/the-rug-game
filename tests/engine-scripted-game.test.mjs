@@ -3,6 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
+import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { startedGame, answer, stubHandoffs } from './helpers/engine.mjs';
 
 /** Plays the first card the tapestry choice offers. */
@@ -16,6 +17,10 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 	let { state, random } = startedGame(2);
 	const F = /** @type {number} */ (state.first);
 	const O = F === 1 ? 2 : 1;
+
+	/** The first plot the placement offers. */
+	const firstPlot = (/** @type {any} */ d) =>
+		DECISIONS.choosePlacement.answers(state, d)[0];
 
 	/** @type {[number, string, Record<string, any> | ((d: any) => Record<string, any>)][]} */
 	const script = [
@@ -50,6 +55,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 			{ track: 'military', from: 1, pay: { worker: 1 } },
 		],
 		[O, 'chooseBonus', { pay: { food: 1 } }],
+		[O, 'choosePlacement', firstPlot],
 		// 7. F advances to Wagons for 1 food and takes a farm. F = (0, 0, 0, 1), 4 farms left.
 		[F, 'chooseTurn', ADVANCE],
 		[
@@ -58,6 +64,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 			{ track: 'exploration', from: 2, pay: { food: 1 } },
 		],
 		[F, 'chooseOption', { option: 1 }],
+		[F, 'choosePlacement', firstPlot],
 		// 8. O advances to Walls for 1 culture and takes an armory. O = (0, 0, 0, 0), 3 armories left.
 		[O, 'chooseTurn', ADVANCE],
 		[
@@ -66,6 +73,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 			{ track: 'military', from: 2, pay: { culture: 1 } },
 		],
 		[O, 'chooseOption', { option: 1 }],
+		[O, 'choosePlacement', firstPlot],
 		// 9. F, income turn 2: first into era 2 (O is on 1), so 1 coin; a card; no VP.
 		//    Income: Barter, Symbology, Hunting and Farming, Ceremony. F = (2, 1, 2, 2), 4 tiles, 1 card.
 		[F, 'chooseTurn', INCOME],

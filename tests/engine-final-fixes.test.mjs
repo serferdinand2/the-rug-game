@@ -247,6 +247,11 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: [[{ explore: {} }], [{ building: 'farm' }]],
 			source: { track: 'exploration', space: 3 },
 		},
+		choosePlacement: {
+			player: 1,
+			kind: 'choosePlacement',
+			building: 'farm',
+		},
 		chooseBonus: {
 			player: 1,
 			kind: 'chooseBonus',

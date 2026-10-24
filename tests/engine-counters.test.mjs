@@ -1,6 +1,7 @@
 // Tests for the VP counters, territory control and gaining income buildings (#14).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { openDecisions } from '../src/lib/engine/stack.js';
 import { resolveEffects } from '../src/lib/engine/loop.js';
 import { controlledTerritories } from '../src/lib/engine/control.js';
 import { spacesAdvanced } from '../src/lib/engine/movement.js';
@@ -124,15 +125,16 @@ test('a new seat has left no track', () => {
 	);
 });
 
-test('gaining a building takes it off the income mat and hands it to placement (#16)', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('gaining a building takes it off the income mat and asks its player where to place it (#16)', () => {
 	const { state, random } = game();
 	const next = resolveEffects(state, 1, [{ building: 'farm' }], random);
 	assert.equal(next.seats[0].incomeMat.buildings.farm, 4);
-	assert.deepEqual(handoffs.calls, [
-		{ kind: 'placeBuilding', player: 1, value: { building: 'farm' } },
-	]);
+	const [placement] = openDecisions(next).filter(
+		(d) => d.kind === 'choosePlacement'
+	);
+	assert.equal(placement.player, 1);
+	assert.equal(placement.building, 'farm');
+	assert.deepEqual(next.seats[0].capital.buildings, []);
 	const { seq: _seq, ...event } = next.events.at(-1);
 	assert.deepEqual(event, {
 		type: 'buildingGained',
@@ -156,12 +158,4 @@ test('a used-up building type gives nothing (FAQ #23)', (t) => {
 		player: 1,
 		building: 'farm',
 	});
-});
-
-test('until #16, a gained building stops at its placement, which names itself', () => {
-	const { state, random } = game();
-	assert.throws(
-		() => resolveEffects(state, 1, [{ building: 'farm' }], random),
-		(e) => e.name !== 'PlayerError' && /placeBuilding/.test(e.message)
-	);
 });

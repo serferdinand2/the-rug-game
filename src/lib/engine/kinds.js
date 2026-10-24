@@ -15,6 +15,8 @@ import { endTurn } from './turn.js';
 import { runIncomeSteps, playFaceDown } from './income.js';
 import { chooseTapestry } from './decisions/choose-tapestry.js';
 import { runEffects } from './effects/index.js';
+import { choosePlacement } from './decisions/choose-placement.js';
+import { placeBuilding } from './placing.js';
 import { runSetupSteps } from './after-setup.js';
 
 /** @type {Record<string, import('./state.js').DecisionKind>} */
@@ -31,6 +33,7 @@ export const DECISIONS = {
 	chooseRepeat,
 	chooseRestart,
 	chooseTapestry,
+	choosePlacement,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */
@@ -42,4 +45,5 @@ export const AUTOMATIC = {
 	research: rollResearch,
 	incomeSteps: runIncomeSteps,
 	faceDownTapestry: playFaceDown,
+	placeBuilding,
 };

@@ -35,10 +35,10 @@ test('independent parts of an unordered benefit run first, without a question', 
 	const types = state.events.map((e) => e.type);
 	assert.ok(types.indexOf('vpGained') < types.indexOf('buildingGained'));
 	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['placeBuilding']
+		openDecisions(state).map((d) => [d.kind, d.building]),
+		[['choosePlacement', 'farm']]
 	);
-	assert.ok(!openDecisions(state).some((d) => d.kind === 'chooseOrder'));
+	assert.deepEqual(handoffs.calls, []);
 });
 
 test('two parts that both ask the player become a choice of order', (t) => {
@@ -94,9 +94,10 @@ test('a choice asks for one option, and every option may be chosen', (t) => {
 	]);
 	const next = play(state, 1, { decision: choice.id, option: 2 }, random);
 	assert.equal(next.seats[0].incomeMat.buildings.armory, 4);
-	assert.deepEqual(handoffs.calls, [
-		{ kind: 'placeBuilding', player: 1, value: { building: 'armory' } },
-	]);
+	assert.deepEqual(
+		openDecisions(next).map((d) => [d.kind, d.building]),
+		[['choosePlacement', 'armory']]
+	);
 });
 
 test('an order or option answer must be one of those offered', (t) => {

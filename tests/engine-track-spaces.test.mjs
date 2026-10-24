@@ -7,7 +7,12 @@ import { resolveEffects } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { view } from '../src/lib/engine/view.js';
-import { readyTurn, answer, stubHandoffs } from './helpers/engine.mjs';
+import {
+	readyTurn,
+	answer,
+	placeAll,
+	stubHandoffs,
+} from './helpers/engine.mjs';
 
 /**
  * Advances the current player of a 2-player game onto a track space, from the space before it,
@@ -62,6 +67,25 @@ const open = ({ state }) => openDecisions(state).map((d) => d.kind);
 const handed = ({ calls }) => calls.map((c) => [c.kind, c.value]);
 
 /**
+ * The buildings the player is being asked to place (#16).
+ * @param {{ state: any }} result
+ */
+const placing = ({ state }) =>
+	openDecisions(state)
+		.filter((d) => d.kind === 'choosePlacement')
+		.map((d) => d.building);
+
+/**
+ * Places every open building on its first plot, so the rest of the benefit can run.
+ * @param {any} result - Changed: its state becomes the new one
+ */
+function place(result) {
+	result.state = placeAll(result.state, result.random);
+	result.seat = result.state.seats[result.player - 1];
+	return result;
+}
+
+/**
  * Answers the open decision of a kind for the player who advanced.
  * @param {any} result - Changed: its state becomes the new one
  * @param {string} kind
@@ -110,8 +134,10 @@ test('exploration 3 Wagons: explore or a farm', (t) => {
 	const r = onto(t, 'exploration', 3);
 	assert.deepEqual(open(r), ['chooseOption']);
 	reply(r, 'chooseOption', { option: 1 });
-	assert.deepEqual(handed(r), [['placeBuilding', { building: 'farm' }]]);
+	assert.deepEqual(placing(r), ['farm']);
 	assert.equal(r.seat.incomeMat.buildings.farm, 4);
+	place(r);
+	assert.equal(r.seat.capital.buildings.length, 1);
 });
 
 test('exploration 4 Navigation: the Lighthouse first, then 1 territory tile, then explore', (t) => {
@@ -128,17 +154,17 @@ test('exploration 5 Ships: 1 VP per territory controlled; the bonus pays for a f
 	const r = onto(t, 'exploration', 5);
 	assert.equal(r.seat.vp, 1, 'the start territory');
 	reply(r, 'chooseBonus', { pay: { coin: 1 } });
-	assert.deepEqual(handed(r), [['placeBuilding', { building: 'farm' }]]);
+	assert.deepEqual(placing(r), ['farm']);
 });
 
 test('exploration 6 Tunnels: 1 territory tile and a farm; the bonus pays to explore', (t) => {
 	const r = onto(t, 'exploration', 6);
 	assert.equal(r.seat.territoryTiles.length, 1);
+	assert.deepEqual(placing(r), ['farm']);
+	assert.deepEqual(handed(r), []);
+	place(r);
 	reply(r, 'chooseBonus', { pay: { coin: 1 } });
-	assert.deepEqual(handed(r), [
-		['placeBuilding', { building: 'farm' }],
-		['explore', {}],
-	]);
+	assert.deepEqual(handed(r), [['explore', {}]]);
 });
 
 test('exploration 7 Trains: the Train Station, then 2 territory tiles, then explore', (t) => {
@@ -154,6 +180,8 @@ test('exploration 8 Cars: a farm, then 1 VP per farm; the bonus discards 2 terri
 	const r = onto(t, 'exploration', 8, (seat) => {
 		seat.territoryTiles = [1, 2];
 	});
+	assert.deepEqual(placing(r), ['farm']);
+	place(r);
 	assert.equal(r.seat.vp, 1);
 	reply(r, 'chooseBonus', { pay: { territory: [1, 2] } });
 	assert.equal(r.seat.vp, 6);
@@ -212,7 +240,7 @@ test('science 2 Mathematics: a tapestry card; the bonus pays for a house', (t) =
 	const r = onto(t, 'science', 2);
 	assert.equal(r.seat.hand.length, 1);
 	reply(r, 'chooseBonus', { pay: { coin: 1 } });
-	assert.deepEqual(handed(r), [['placeBuilding', { building: 'house' }]]);
+	assert.deepEqual(placing(r), ['house']);
 });
 
 test('science 3 Herbalism: research with the X, or a house', (t) => {
@@ -269,7 +297,8 @@ test('science 7 Academic Research: the Academy, then repeat another current spac
 
 test('science 8 Nutrition: a house, then 1 VP per house', (t) => {
 	const r = onto(t, 'science', 8);
-	assert.deepEqual(handed(r), [['placeBuilding', { building: 'house' }]]);
+	assert.deepEqual(placing(r), ['house']);
+	place(r);
 	assert.equal(r.seat.vp, 1);
 });
 
@@ -328,7 +357,7 @@ test('technology 2 Carpentry: a tapestry card; the bonus pays for a market', (t)
 	const r = onto(t, 'technology', 2);
 	assert.equal(r.seat.hand.length, 1);
 	reply(r, 'chooseBonus', { pay: { food: 1 } });
-	assert.deepEqual(handed(r), [['placeBuilding', { building: 'market' }]]);
+	assert.deepEqual(placing(r), ['market']);
 });
 
 test('technology 3 Stone Tools: invent, or a market', (t) => {
@@ -348,23 +377,21 @@ test('technology 4 Metallurgy: the Forge, then invent, refreshing first if you l
 test('technology 5 Glass: a farm, house or armory; the bonus pays to upgrade', (t) => {
 	const r = onto(t, 'technology', 5);
 	reply(r, 'chooseOption', { option: 1 });
+	assert.deepEqual(placing(r), ['house']);
+	place(r);
 	reply(r, 'chooseBonus', { pay: { food: 1 } });
-	assert.deepEqual(handed(r), [
-		['placeBuilding', { building: 'house' }],
-		['upgrade', {}],
-	]);
+	assert.deepEqual(handed(r), [['upgrade', {}]]);
 });
 
 test('technology 6 Steel: 1 VP per armory and a market; the bonus pays to invent', (t) => {
 	const r = onto(t, 'technology', 6, (seat) => {
 		seat.incomeMat.buildings.armory = 3;
 	});
+	assert.deepEqual(placing(r), ['market']);
+	place(r);
 	assert.equal(r.seat.vp, 2);
 	reply(r, 'chooseBonus', { pay: { food: 1 } });
-	assert.deepEqual(handed(r), [
-		['placeBuilding', { building: 'market' }],
-		['invent', {}],
-	]);
+	assert.deepEqual(handed(r), [['invent', {}]]);
 });
 
 test('technology 7 Rubber: Rubber Works, then invent 2, refreshing first if you like', (t) => {
@@ -377,6 +404,8 @@ test('technology 7 Rubber: Rubber Works, then invent 2, refreshing first if you 
 
 test('technology 8 Plastic: a market, then 1 VP per market; the bonus pays to upgrade', (t) => {
 	const r = onto(t, 'technology', 8);
+	assert.deepEqual(placing(r), ['market']);
+	place(r);
 	assert.equal(r.seat.vp, 1);
 	assert.deepEqual(open(r), ['chooseBonus']);
 });
@@ -437,13 +466,13 @@ test('military 2 Bladed Weapons: a tapestry card; the bonus pays for an armory',
 	const r = onto(t, 'military', 2);
 	assert.equal(r.seat.hand.length, 1);
 	reply(r, 'chooseBonus', { pay: { coin: 1 } });
-	assert.deepEqual(handed(r), [['placeBuilding', { building: 'armory' }]]);
+	assert.deepEqual(placing(r), ['armory']);
 });
 
 test('military 3 Walls: conquer, or an armory', (t) => {
 	const r = onto(t, 'military', 3);
 	reply(r, 'chooseOption', { option: 1 });
-	assert.deepEqual(handed(r), [['placeBuilding', { building: 'armory' }]]);
+	assert.deepEqual(placing(r), ['armory']);
 });
 
 test('military 4 Standing Army: the Barracks, 1 worker and 1 VP per territory tile', (t) => {
@@ -458,10 +487,9 @@ test('military 4 Standing Army: the Barracks, 1 worker and 1 VP per territory ti
 test('military 5 Cavalry: conquer and an armory, in the order you choose', (t) => {
 	const r = onto(t, 'military', 5);
 	reply(r, 'chooseOrder', { effect: 1 });
-	assert.deepEqual(handed(r), [
-		['placeBuilding', { building: 'armory' }],
-		['conquer', {}],
-	]);
+	assert.deepEqual(placing(r), ['armory']);
+	place(r);
+	assert.deepEqual(handed(r), [['conquer', {}]]);
 });
 
 test('military 6 Gunpowder: a tapestry card and conquer; the bonus pays for an armory', (t) => {
@@ -490,8 +518,9 @@ test('military 9 Anti-Aircraft Defense: an armory and 1 VP per tapestry card in 
 		seat.hand = ['trap-1'];
 		seat.incomeMat.tapestry = [['trap-2'], [], [], []];
 	});
+	assert.deepEqual(placing(r), ['armory']);
+	place(r);
 	assert.equal(r.seat.vp, 2);
-	assert.deepEqual(handed(r), [['placeBuilding', { building: 'armory' }]]);
 });
 
 test('military 10 Nuclear Bomb: the Fusion Reactor, then 1 VP per exploration space and a tapestry card on top, in the order you choose', (t) => {

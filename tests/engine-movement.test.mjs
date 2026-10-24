@@ -6,7 +6,7 @@ import { moveToken, isActivated } from '../src/lib/engine/movement.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
-import { startedGame, stubHandoffs } from './helpers/engine.mjs';
+import { startedGame, placeAll, stubHandoffs } from './helpers/engine.mjs';
 
 /**
  * A started 2-player game, changed by `fill` (given seat 1 and the state).
@@ -207,10 +207,13 @@ test('paying a bonus discards and gains its effects once', (t) => {
 		to: 8,
 		benefit: true,
 	});
-	const [bonus] = openDecisions(state);
+	// Cars gains a farm first; the bonus follows its placement.
+	assert.equal(openDecisions(state)[0].kind, 'choosePlacement');
+	const placed = placeAll(state, random);
+	const [bonus] = openDecisions(placed);
 	assert.equal(bonus.kind, 'chooseBonus');
 	const next = play(
-		state,
+		placed,
 		1,
 		{ decision: bonus.id, pay: { territory: [1, 3] } },
 		random

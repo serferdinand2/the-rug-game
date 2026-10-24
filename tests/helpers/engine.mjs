@@ -67,13 +67,8 @@ const HANDOFF_EFFECTS = [
 	'gainCiv',
 ];
 
-/** Operations #14 and #15 push for later issues: placing (#16), civilization abilities (#20) and tapestry abilities (#19). */
-const HANDOFF_OPERATIONS = [
-	'placeLandmark',
-	'placeBuilding',
-	'civAbilities',
-	'tapestryAbility',
-];
+/** Operations #14 and #15 push for later issues: placing landmarks (#16), civilization abilities (#20) and tapestry abilities (#19). */
+const HANDOFF_OPERATIONS = ['placeLandmark', 'civAbilities', 'tapestryAbility'];
 
 /**
  * Stands in for the effects and operations later issues build, recording each one they are given.
@@ -157,4 +152,28 @@ export function answer(state, random, player, kind, answer) {
 		throw new Error(`Seat ${player} has no open ${kind}.`);
 	}
 	return play(state, player, { decision: decision.id, ...answer }, random);
+}
+
+/**
+ * Answers every open capital placement with its first answer until none is open (not the district rewards).
+ * @param {import('../../src/lib/engine/state.js').State} state
+ * @param {import('../../src/lib/engine/random.js').Random} random
+ * @returns {import('../../src/lib/engine/state.js').State}
+ */
+export function placeAll(state, random) {
+	for (;;) {
+		const decision = openDecisions(state).find(
+			(d) => d.kind === 'choosePlacement'
+		);
+		if (!decision) {
+			return state;
+		}
+		const answer = DECISIONS.choosePlacement.answers(state, decision)[0];
+		state = play(
+			state,
+			/** @type {number} */ (decision.player),
+			{ decision: decision.id, ...answer },
+			random
+		);
+	}
 }
