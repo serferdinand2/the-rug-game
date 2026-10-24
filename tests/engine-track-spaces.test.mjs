@@ -494,10 +494,14 @@ test('military 9 Anti-Aircraft Defense: an armory and 1 VP per tapestry card in 
 	assert.deepEqual(handed(r), [['placeBuilding', { building: 'armory' }]]);
 });
 
-test('military 10 Nuclear Bomb: the Fusion Reactor, 1 VP per exploration space, and a tapestry card on top', (t) => {
+test('military 10 Nuclear Bomb: the Fusion Reactor, then 1 VP per exploration space and a tapestry card on top, in the order you choose', (t) => {
 	const r = onto(t, 'military', 10, (seat) => {
 		seat.tracks.exploration = [6];
 	});
+	// The card played on top may move the exploration token, so the order matters.
+	assert.deepEqual(open(r), ['chooseOrder']);
+	assert.equal(r.seat.vp, 0);
+	reply(r, 'chooseOrder', { effect: 1 });
 	assert.equal(r.seat.vp, 6);
 	assert.deepEqual(handed(r), [
 		['placeLandmark', { landmark: 'fusion-reactor' }],

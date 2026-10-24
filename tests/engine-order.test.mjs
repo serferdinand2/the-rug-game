@@ -124,3 +124,58 @@ test('an order or option answer must be one of those offered', (t) => {
 		}
 	}
 });
+
+test('a VP counter waits when another part could change what it counts, and the player chooses the order', (t) => {
+	const handoffs = stubHandoffs();
+	t.after(handoffs.restore);
+	// Space tile 1's shape: advance on science, and 1 VP per science space.
+	const { state } = benefit(
+		[
+			{ advance: { tracks: ['science'] } },
+			{ vp: { per: 'trackSpace', track: 'science' } },
+		],
+		false
+	);
+	const [order] = openDecisions(state);
+	assert.equal(order?.kind, 'chooseOrder');
+	assert.equal(state.seats[0].vp, 0);
+});
+
+test('Nuclear Bomb asks whether to score before or after the tapestry card on top', (t) => {
+	const handoffs = stubHandoffs();
+	t.after(handoffs.restore);
+	const { state, random } = benefit(
+		[
+			{ vp: { per: 'trackSpace', track: 'exploration' } },
+			{ tapestryOnTop: {} },
+		],
+		false
+	);
+	const [order] = openDecisions(state);
+	assert.equal(order?.kind, 'chooseOrder');
+	play(state, 1, { decision: order.id, effect: 1 }, random);
+	assert.deepEqual(
+		handoffs.calls.map((c) => c.kind),
+		['tapestryOnTop']
+	);
+});
+
+test('a VP counter that nothing else in the benefit changes runs without a question', (t) => {
+	const handoffs = stubHandoffs();
+	t.after(handoffs.restore);
+	// Steel's shape: 1 VP per armory, and a market.
+	const { state: started, random } = startedGame(2);
+	const state = structuredClone(started);
+	state.seats[0].incomeMat.buildings.armory = 3;
+	push(state, state.pending, [
+		{
+			player: 1,
+			kind: 'effects',
+			effects: [{ vp: { per: 'armory' } }, { building: 'market' }],
+			ordered: false,
+		},
+	]);
+	run(state, random);
+	assert.equal(state.seats[0].vp, 2);
+	assert.ok(!openDecisions(state).some((d) => d.kind === 'chooseOrder'));
+});

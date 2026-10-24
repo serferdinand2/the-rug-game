@@ -21,11 +21,7 @@ export const EFFECTS = {
 	restartToken,
 };
 
-/**
- * Effect kinds that ask nothing depending on a benefit's other parts, and that no other part of the same
- * benefit changes in the base data, so an unordered benefit runs them first without a question.
- */
-const INDEPENDENT_KINDS = ['gain', 'vp'];
+/** @typedef {Record<string, any>} AnyEffect */
 
 /**
  * The kind of an effect: its one key.
@@ -37,17 +33,78 @@ function kindOf(effect) {
 }
 
 /**
- * Which effect of an operation runs now: the first in an ordered list (or a missing `ordered`, as in #13);
- * in an unordered one, the first independent part, or -1 when the player must choose the order.
+ * A plain gain: resources, tiles, cards or a fixed number of VP. It only adds and reads nothing,
+ * so running it before a benefit's other parts never costs the player anything.
+ * @param {AnyEffect} effect
+ * @returns {boolean}
+ */
+function isGain(effect) {
+	return 'gain' in effect || typeof effect.vp === 'number';
+}
+
+/**
+ * A VP counter, such as 1 VP per farm: what it gives depends on when it runs.
+ * @param {AnyEffect} effect
+ * @returns {boolean}
+ */
+function isCounter(effect) {
+	return typeof effect.vp === 'object' && effect.vp !== null;
+}
+
+/**
+ * Whether a part (not a gain) could change what a VP counter counts. A part that resolves further
+ * benefits (an advance, a conquer, a tapestry card on top and the like) could change anything.
+ * @param {AnyEffect} effect
+ * @param {import('../data/effects.js').VpPer} counter
+ * @returns {boolean}
+ */
+function changes(effect, counter) {
+	const kind = kindOf(effect);
+	if (
+		isCounter(effect) ||
+		kind === 'scoreCapital' ||
+		kind === 'restartToken'
+	) {
+		return false;
+	}
+	if (kind === 'building') {
+		return counter.per === effect.building;
+	}
+	if (kind === 'explore') {
+		return counter.per === 'territoryTile';
+	}
+	if (kind === 'invent') {
+		return counter.per === 'techCard';
+	}
+	if (kind === 'choice') {
+		return effect.choice.some((/** @type {AnyEffect[]} */ option) =>
+			option.some((part) => changes(part, counter))
+		);
+	}
+	return true;
+}
+
+/**
+ * Which effect of an operation runs now: the first in an ordered list (or a missing `ordered`, as in #13).
+ * In an unordered one: a plain gain first, then a VP counter that no other part could change.
+ * Otherwise -1: two or more parts remain whose order can matter, so the player chooses.
  * @param {import('../state.js').Operation} op
  * @returns {number}
  */
 function nextIndex(op) {
-	if (op.ordered !== false || op.effects.length < 2) {
+	/** @type {AnyEffect[]} */
+	const effects = op.effects;
+	if (op.ordered !== false || effects.length < 2) {
 		return 0;
 	}
-	return op.effects.findIndex((/** @type {object} */ effect) =>
-		INDEPENDENT_KINDS.includes(kindOf(effect))
+	const gain = effects.findIndex(isGain);
+	if (gain !== -1) {
+		return gain;
+	}
+	return effects.findIndex(
+		(effect, i) =>
+			isCounter(effect) &&
+			effects.every((other, j) => j === i || !changes(other, effect.vp))
 	);
 }
 

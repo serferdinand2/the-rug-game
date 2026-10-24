@@ -61,9 +61,22 @@ A space's benefit runs as #13's `effects` operation, with two new fields: `order
 
 - **Ordered** benefits (the reference prints "then") run in list order, as in #13.
 - **Unordered** benefits with two or more parts. **(my call)**
-  - **Independent parts first.** `gain` and `vp` ask nothing that depends on the other parts, and in the base data no other part of the same benefit changes what they give or count. So they run first, and the player loses nothing by it.
+  - **Plain gains first.** A `gain`, or a `vp` of a fixed number, only adds and reads nothing. So it runs first, and the player loses nothing by it.
+  - **Then a VP counter nothing else changes.** A `vp: { per }` counter runs next if no other part left could change what it counts:
+    - a building changes only its own type's count;
+    - exploring changes only the territory tiles in the supply;
+    - inventing changes only the tech cards;
+    - `scoreCapital` and `restartToken` change no count;
+    - a choice changes what its options change;
+    - any part that resolves further benefits could change anything: advance, regress, research, repeat, conquer, upgrade, a tech card's benefit, a tapestry card on top, a space tile, a civilization.
   - **Choose among the rest.** If two or more parts remain, the player chooses which comes next (`chooseOrder`). When one part is left, it simply runs.
-  - **Where the question appears.** It comes up exactly where the order can matter: Electronics and Nanotechnology (upgrade, then that card's benefit, or the other way round; FAQ #8), Cavalry (conquer and armory) and Mechs (conquer and civilization).
+  - **Where the question appears.** It comes up exactly where the order can matter:
+    - Electronics and Nanotechnology (upgrade, then that card's benefit, or the other way round; FAQ #8);
+    - Cavalry (conquer and armory) and Mechs (conquer and civilization);
+    - Nuclear Bomb, because the card played on top may move the exploration token;
+    - and, for #17, the space tiles whose counter shares a tile with an advance or a building.
+
+    Steel, Medicine, Anti-Aircraft Defense, Standing Army and Computers never ask. (The final review of #14 found that an earlier version ran every counter first, which lost VP on space tiles and Nuclear Bomb's choice.)
   - **Compared with BGA.** BGA instead marks a few spaces by hand as "choose the order": Cavalry, Nuclear Bomb, Mechs and Metallurgy. Every other benefit runs in a fixed order there.
   - **Expansions.** An expansion that adds a part which doesn't fit this rule widens it in its own issue.
 - **`choice`** (Wagons, Herbalism, Biology, Stone Tools, Walls, Glass) asks `chooseOption` for one of the listed options, which then runs. Every option may be chosen, even one that would do nothing, since that is still the player's mandatory benefit.
