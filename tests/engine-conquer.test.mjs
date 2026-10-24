@@ -455,8 +455,13 @@ test("the response is answered before the attacker's dice, during an advance tur
 	const kinds = openDecisions(next).map((d) => `${d.player}:${d.kind}`);
 	assert.deepEqual(kinds, [`${defender}:chooseResponse`]);
 	// Nobody but the defender can answer, and the dice wait.
-	assert.throws(() =>
-		answer(next, random, player, 'chooseResponse', { card: null })
+	const question = openDecisions(next)[0];
+	assert.throws(
+		() => play(next, player, { decision: question.id, card: null }, random),
+		{
+			name: 'PlayerError',
+			message: 'That choice belongs to another player.',
+		}
 	);
 	const done = answer(next, random, defender, 'chooseResponse', {
 		card: null,
@@ -479,4 +484,11 @@ test("a card that isn't a response card is refused", () => {
 			}
 		);
 	}
+});
+
+test('a bot defender is skipped: the conquest goes straight to the dice', () => {
+	const state = trapGame(['trap-1']);
+	state.seats[1].kind = 'automa';
+	conquer(state, face(0));
+	assert.deepEqual(open(state), ['chooseDie']);
 });

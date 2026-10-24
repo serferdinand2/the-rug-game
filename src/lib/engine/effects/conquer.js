@@ -1,6 +1,6 @@
 // The conquer effect, the conquer dice and the black die's "?": take a territory, then roll for its reward (R8, R16, R17, R107).
 import { emit } from '../events.js';
-import { playerSeat } from '../state.js';
+import { playerSeat, isPlayerSeat } from '../state.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { RED_DIE, BLACK_DIE } from '../data/dice.js';
 import { conquerTargets, loneOpponent } from '../map.js';
@@ -54,11 +54,12 @@ export function conquerHex(ctx, player, hex, bothDice) {
  * @returns {boolean}
  */
 function asksResponse(state, defender) {
+	if (!isPlayerSeat(state, defender)) {
+		return false;
+	}
 	const seat = playerSeat(state, defender);
 	return (
-		seat.kind === 'player' &&
-		seat.hand.length > 0 &&
-		(!seat.finished || state.version === 'original')
+		seat.hand.length > 0 && (!seat.finished || state.version === 'original')
 	);
 }
 
