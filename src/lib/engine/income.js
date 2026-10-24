@@ -1,7 +1,8 @@
 // The income turn: its steps by income turn number, and the spaces the income mat shows (01 §4.2, §5).
 import { emit } from './events.js';
-import { playerSeat } from './state.js';
-import { INCOME_MAT } from './data/income-mat.js';
+import { playerSeat, seatOf } from './state.js';
+import { takeTapestryCard } from './effects/gain.js';
+import { INCOME_MAT, TAPESTRY_SLOTS } from './data/income-mat.js';
 import { BUILDING_IDS } from './data/ids.js';
 
 /** @typedef {import('./data/ids.js').BuildingId} BuildingId */
@@ -47,6 +48,81 @@ function pushSpaceEffects(ctx, player, part) {
 	}
 }
 
+/**
+ * A seat's neighbours: the seats directly before and after it in seat order, each once (01 §4.2).
+ * In a 2-player game the one opponent is both; alone, a seat has none until #31 adds the bots.
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @returns {number[]}
+ */
+export function neighbours(state, player) {
+	const { seats } = state;
+	const at = seats.findIndex((s) => s.seat === player);
+	const around = [
+		seats[(at - 1 + seats.length) % seats.length].seat,
+		seats[(at + 1) % seats.length].seat,
+	];
+	return [...new Set(around)].filter((seat) => seat !== player);
+}
+
+/**
+ * Step 2: the first-of-neighbours bonus, then the era's tapestry card from the hand, or face down from the deck.
+ * @type {IncomeStep['run']}
+ */
+function tapestryStep(ctx, player, turn) {
+	const { state } = ctx;
+	const seat = playerSeat(state, player);
+	/** @type {import('./state.js').NewOperation[]} */
+	const ops = [];
+	const bonus = TAPESTRY_SLOTS[turn - 1].firstBonus;
+	const first = neighbours(state, player).every(
+		(n) => seatOf(state, n).incomeTurns < turn
+	);
+	if (bonus && first) {
+		emit(state, { type: 'firstBonus', player, era: turn });
+		ops.push({
+			player,
+			kind: 'effects',
+			effects: [{ gain: structuredClone(bonus) }],
+			ordered: true,
+		});
+	}
+	if (seat.hand.length > 0) {
+		ops.push({
+			player,
+			kind: 'chooseTapestry',
+			options: [...seat.hand],
+			era: turn,
+		});
+	} else {
+		ops.push({ player, kind: 'faceDownTapestry', era: turn });
+	}
+	ctx.push(ops);
+}
+
+/**
+ * With an empty hand, the top card of the deck goes onto the era's slot face down, with no ability (01 §4.2).
+ * Its id stays in the state, listed in `faceDown`, and view() hides it from everyone.
+ * @type {import('./state.js').AutomaticKind}
+ */
+export function playFaceDown(ctx, op) {
+	const player = /** @type {number} */ (op.player);
+	const card = takeTapestryCard(ctx);
+	if (card === undefined) {
+		return;
+	}
+	const seat = playerSeat(ctx.state, player);
+	seat.incomeMat.tapestry[op.era - 1].push(card);
+	seat.incomeMat.faceDown.push(card);
+	emit(ctx.state, {
+		type: 'tapestryPlayed',
+		player,
+		era: op.era,
+		card: null,
+		faceDown: true,
+	});
+}
+
 /** The income steps in order. Later issues insert theirs, such as A&A's masterpieces before civilization abilities. */
 export const INCOME_STEPS = [
 	'civAbilities',
@@ -69,7 +145,7 @@ export const INCOME_STEP_KINDS = {
 	// Step 2: the first-of-neighbours bonus and the era's tapestry card.
 	tapestry: {
 		turns: [2, 3, 4],
-		run() {},
+		run: tapestryStep,
 	},
 	// Step 3: an optional upgrade (#18), then the exposed VP icons.
 	upgrade: {

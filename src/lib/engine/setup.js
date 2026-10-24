@@ -76,6 +76,7 @@ function newSeat(seat, name) {
 				Object.fromEntries(BUILDING_IDS.map((id) => [id, 5]))
 			),
 			tapestry: [[], [], [], []],
+			faceDown: [],
 		},
 		capital: { mat: null, landmarks: [] },
 		besideMat: [],

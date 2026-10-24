@@ -20,6 +20,12 @@ function incomeAfter(t, before, fill = () => {}) {
 	t.after(handoffs.restore);
 	const ready = readyTurn(2, (seat, state) => {
 		seat.incomeTurns = before;
+		// The opponent has started this era already, so no first-of-neighbours bonus asks first.
+		for (const other of state.seats) {
+			if (other !== seat) {
+				other.incomeTurns = Math.min(before + 1, 4);
+			}
+		}
 		fill(seat, state);
 	});
 	const eventsBefore = ready.state.events.length;

@@ -24,7 +24,7 @@
  * Only on kind 'player'.
  * @typedef {Object} PlayerFields
  * @property {Record<ResourceId, number>} resources
- * @property {{ buildings: Record<BuildingId, number>, tapestry: string[][] }} incomeMat - Buildings left in each row; 4 era slots, each a stack
+ * @property {{ buildings: Record<BuildingId, number>, tapestry: string[][], faceDown: string[] }} incomeMat - Buildings left in each row; 4 era slots, each a stack; the ids of face-down cards, which view() hides
  * @property {{ mat: number | null, landmarks: string[] }} capital - `landmarks`: those covering at least 1 grid plot (R13), kept by #16
  * @property {string[]} besideMat - Landmarks that didn't fit
  * @property {string[]} hand

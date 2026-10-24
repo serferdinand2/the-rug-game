@@ -235,6 +235,12 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: ['exploration', 'science', 'technology', 'military'],
 			source: { track: 'technology', space: 12 },
 		},
+		chooseTapestry: {
+			player: 1,
+			kind: 'chooseTapestry',
+			options: ['trap-1', 'age-of-sail'],
+			era: 2,
+		},
 		chooseOption: {
 			player: 1,
 			kind: 'chooseOption',

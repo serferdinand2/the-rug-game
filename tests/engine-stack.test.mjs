@@ -188,4 +188,3 @@ test('chooseTurn offers only income on a first turn (01 §4.1)', () => {
 		}
 	);
 });
-

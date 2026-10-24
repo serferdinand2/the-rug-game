@@ -12,7 +12,8 @@ import { chooseRepeat } from './decisions/choose-repeat.js';
 import { chooseRestart } from './decisions/choose-restart.js';
 import { rollResearch } from './effects/research.js';
 import { endTurn } from './turn.js';
-import { runIncomeSteps } from './income.js';
+import { runIncomeSteps, playFaceDown } from './income.js';
+import { chooseTapestry } from './decisions/choose-tapestry.js';
 import { runEffects } from './effects/index.js';
 import { runSetupSteps } from './after-setup.js';
 
@@ -29,6 +30,7 @@ export const DECISIONS = {
 	chooseMove,
 	chooseRepeat,
 	chooseRestart,
+	chooseTapestry,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */
@@ -39,4 +41,5 @@ export const AUTOMATIC = {
 	endTurn,
 	research: rollResearch,
 	incomeSteps: runIncomeSteps,
+	faceDownTapestry: playFaceDown,
 };

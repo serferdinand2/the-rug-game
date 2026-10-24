@@ -90,6 +90,7 @@ test('every player starts empty, with tokens on every track start (01 §2.2)', (
 			assert.deepEqual(seat.incomeMat, {
 				buildings: { market: 5, house: 5, farm: 5, armory: 5 },
 				tapestry: [[], [], [], []],
+				faceDown: [],
 			});
 			assert.deepEqual(seat.hand, []);
 			assert.deepEqual(seat.tech, { bottom: [], middle: [], top: [] });
