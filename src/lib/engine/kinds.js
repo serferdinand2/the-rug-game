@@ -17,6 +17,7 @@ import { chooseTapestry } from './decisions/choose-tapestry.js';
 import { runEffects } from './effects/index.js';
 import { choosePlacement } from './decisions/choose-placement.js';
 import { chooseExplore } from './decisions/choose-explore.js';
+import { chooseSpaceTile } from './decisions/choose-space-tile.js';
 import { placeBuilding, placeLandmark } from './placing.js';
 import { runSetupSteps } from './after-setup.js';
 
@@ -36,6 +37,7 @@ export const DECISIONS = {
 	chooseTapestry,
 	choosePlacement,
 	chooseExplore,
+	chooseSpaceTile,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */

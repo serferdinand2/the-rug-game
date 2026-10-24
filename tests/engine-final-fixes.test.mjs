@@ -263,6 +263,11 @@ test('every decision kind has the full shape, and its answers pass its own check
 			gain: [{ gain: { tapestry: 1 } }],
 		},
 		chooseExplore: { player: 1, kind: 'chooseExplore', anywhere: false },
+		chooseSpaceTile: {
+			player: 1,
+			kind: 'chooseSpaceTile',
+			options: [5, 13],
+		},
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

@@ -235,17 +235,27 @@ test('exploration 10 Space Shuttle: the Launch Pad, 1 VP per technology space; t
 test('exploration 11 Interstellar Travel: 3 space tiles, then explore one of them (R105)', (t) => {
 	const r = onto(t, 'exploration', 11);
 	assert.equal(r.seat.spaceTiles.length, 3);
-	assert.deepEqual(handed(r), [['exploreSpace', { fromGained: true }]]);
-	assert.ok(passed(r));
+	const [decision] = openDecisions(r.state);
+	assert.equal(decision.kind, 'chooseSpaceTile');
+	assert.deepEqual(decision.options, r.seat.spaceTiles);
+	reply(r, 'chooseSpaceTile', { tile: decision.options[0] });
+	assert.equal(r.seat.exploredSpace.length, 1);
+	assert.equal(r.seat.spaceTiles.length, 2);
 });
 
 test('exploration 12 Warpgates: explore a space tile; the bonus pays to explore another', (t) => {
-	const r = onto(t, 'exploration', 12);
+	const r = onto(t, 'exploration', 12, (seat) => {
+		seat.spaceTiles = [13, 14];
+	});
+	const [decision] = openDecisions(r.state);
+	assert.equal(decision.kind, 'chooseSpaceTile');
+	assert.deepEqual(decision.options, [13, 14]);
+	reply(r, 'chooseSpaceTile', { tile: 13 });
+	assert.deepEqual(r.seat.exploredSpace, [13]);
 	reply(r, 'chooseBonus', { pay: { coin: 1 } });
-	assert.deepEqual(handed(r), [
-		['exploreSpace', {}],
-		['exploreSpace', {}],
-	]);
+	// The second tile is the only one left, so it is explored at once.
+	assert.deepEqual(r.seat.exploredSpace, [13, 14]);
+	assert.deepEqual(r.seat.spaceTiles, []);
 });
 
 // Science (01 §3.3)

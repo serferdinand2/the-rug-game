@@ -2,6 +2,7 @@
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
+import { SPACE_TILES } from '../data/space-tiles.js';
 import { exploreHexes, matchingSides, turned } from '../map.js';
 import { vp } from './vp.js';
 
@@ -90,4 +91,95 @@ export function explore(ctx, player, value) {
 		return;
 	}
 	ctx.push([{ player, kind: 'chooseExplore', anywhere }]);
+}
+
+/**
+ * The space tiles a player may explore: all they hold, or with `fromGained` only those the track space
+ * that is running just gave them (R105), in the order gained.
+ * @param {import('../state.js').State} state
+ * @param {number} player
+ * @param {{ track?: string, space?: number } | null | undefined} source - The track space whose benefit is running
+ * @param {boolean} fromGained
+ * @returns {number[]}
+ * @throws {Error} For `fromGained` outside a track space (a bug, not a player's mistake)
+ */
+export function spaceTileOptions(state, player, source, fromGained) {
+	const held = playerSeat(state, player).spaceTiles;
+	if (!fromGained) {
+		return [...held];
+	}
+	if (!source || source.track === undefined) {
+		throw new Error('exploreSpace with fromGained needs a track space.');
+	}
+	const events = state.events;
+	let start = 0;
+	for (let i = events.length - 1; i >= 0; i--) {
+		const e = /** @type {any} */ (events[i]);
+		if (
+			e.type === 'spaceActivated' &&
+			e.player === player &&
+			e.track === source.track &&
+			e.space === source.space
+		) {
+			start = i + 1;
+			break;
+		}
+	}
+	/** @type {number[]} */
+	const gained = [];
+	for (const e of /** @type {any[]} */ (events.slice(start))) {
+		if (
+			e.type === 'tilesGained' &&
+			e.player === player &&
+			e.stack === 'space'
+		) {
+			gained.push(...e.tiles);
+		}
+	}
+	return gained.filter((tile) => held.includes(tile));
+}
+
+/**
+ * Explores a space tile: it moves beside the income mat and its benefit follows (R5; 01 §7.2).
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {number} tile
+ */
+export function exploreSpaceTile(ctx, player, tile) {
+	const seat = playerSeat(ctx.state, player);
+	seat.spaceTiles.splice(seat.spaceTiles.indexOf(tile), 1);
+	seat.exploredSpace.push(tile);
+	emit(ctx.state, { type: 'spaceExplored', player, tile });
+	const { benefit, ordered } = SPACE_TILES[tile - 1];
+	ctx.push([
+		{
+			player,
+			kind: 'effects',
+			effects: structuredClone(benefit),
+			ordered,
+			source: { spaceTile: tile },
+		},
+	]);
+}
+
+/**
+ * The exploreSpace effect. With no tile to explore it does nothing; with one it explores at once; otherwise its player chooses.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function exploreSpace(ctx, player, value, op) {
+	const options = spaceTileOptions(
+		ctx.state,
+		player,
+		/** @type {any} */ (op.source),
+		value?.fromGained === true
+	);
+	if (options.length === 0) {
+		emit(ctx.state, { type: 'noSpaceTile', player });
+		return;
+	}
+	if (options.length === 1) {
+		exploreSpaceTile(ctx, player, options[0]);
+		return;
+	}
+	ctx.push([{ player, kind: 'chooseSpaceTile', options }]);
 }
