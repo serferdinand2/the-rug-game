@@ -142,6 +142,28 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 		[f.incomeMat.buildings.farm, o.incomeMat.buildings.armory],
 		[4, 3]
 	);
+	// Every placement takes the first legal place, reading each mat from its top left, row by row (#16).
+	// F's mat 3: the farm (step 7) goes to the first open plot, row 0 column 0.
+	assert.deepEqual(f.capital.buildings, [
+		{ building: 'farm', row: 0, col: 0 },
+	]);
+	assert.deepEqual(f.capital.landmarks, []);
+	// O's mat 2: the armories (steps 6 and 8) take (0, 0) and (0, 1). The Barracks (step 12, 2x2, not turned)
+	// first fits with its top left at (0, 2), beside them, so its plots are rows 0-1 and columns 2-3.
+	assert.deepEqual(o.capital.buildings, [
+		{ building: 'armory', row: 0, col: 0 },
+		{ building: 'armory', row: 0, col: 1 },
+	]);
+	assert.deepEqual(o.capital.landmarks, [
+		{ landmark: 'barracks', row: 0, col: 2, rotation: 0 },
+	]);
+	// Nothing was left beside the mat.
+	assert.deepEqual([f.besideMat, o.besideMat], [[], []]);
+	// No row or column was ever complete (one building each, and the Barracks only part of a row), so no capital VP:
+	// each of the 8 scorings (Symbology, income turns 2-5, both players) found 0 rows and 0 columns.
+	const scorings = state.events.filter((e) => e.type === 'capitalScored');
+	assert.equal(scorings.length, 8);
+	assert.ok(scorings.every((e) => e.rows === 0 && e.columns === 0));
 	assert.deepEqual(state.result, {
 		ranking: [
 			{ seat: O, place: 1, vp: 6 },
