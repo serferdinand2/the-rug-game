@@ -54,14 +54,15 @@ import { deepFreeze } from './ids.js';
  * One effect: an object with exactly one key, its kind.
  * - `gain`: gain resources, tiles or cards.
  * - `building`: take the leftmost income building of that type from the income mat and place it in the capital city.
+ * - `landmark`: place that landmark (a tech card's square) in the capital city.
  * - `vp`: gain that many VP, or VP per thing counted.
  * - `explore`: explore with a territory tile from the supply; `anywhere` drops the adjacency rule.
  * - `exploreSpace`: explore a space tile from the supply; `fromGained` limits it to the tiles this benefit just gained (R105).
  * - `conquer`: conquer; `anywhere` drops adjacency; `bothDice` gives both dice always, or only if an opponent controlled the territory (R17).
  * - `research`: roll the science die and you may advance on that track; `noBenefit` is the X.
- * - `advance`: advance 1 space on one of the listed tracks, with its benefit and optional bonus.
- * - `regress`: go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus.
- * - `repeat`: gain the benefit of your current space on any track, and you may pay its bonus.
+ * - `advance`: advance 1 space on one of the listed tracks, with its benefit and optional bonus; `noBenefit` is the X.
+ * - `regress`: go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus; `noBenefit` is the X.
+ * - `repeat`: gain the benefit of your current space on any track, and you may pay its bonus; `oncePerTurn` limits it to once a turn (FAQ #6).
  * - `invent`: gain tech cards one at a time; `refresh` lets you first replace the 3 face-up cards.
  * - `upgrade`: upgrade 1 tech card.
  * - `techBenefit`: gain the circle benefit of a card in your middle row, or the square benefit of one in your top row, without moving it.
@@ -73,14 +74,15 @@ import { deepFreeze } from './ids.js';
  * - `choice`: choose exactly one of the options, each a list of effects.
  * @typedef {{ gain: Gain }
  *   | { building: BuildingId }
+ *   | { landmark: string }
  *   | { vp: number | VpPer }
  *   | { explore: { anywhere?: boolean } }
  *   | { exploreSpace: { fromGained?: boolean } }
  *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent' } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
- *   | { advance: { tracks: TrackId[] } }
- *   | { regress: { tracks: TrackId[] } }
- *   | { repeat: {} }
+ *   | { advance: { tracks: TrackId[], noBenefit?: boolean } }
+ *   | { regress: { tracks: TrackId[], noBenefit?: boolean } }
+ *   | { repeat: { oncePerTurn?: boolean } }
  *   | { invent: { count?: number, refresh?: boolean } }
  *   | { upgrade: {} }
  *   | { techBenefit: { icon: 'circle' | 'square' } }
@@ -106,6 +108,7 @@ import { deepFreeze } from './ids.js';
 export const EFFECT_KINDS = deepFreeze([
 	'gain',
 	'building',
+	'landmark',
 	'vp',
 	'explore',
 	'exploreSpace',

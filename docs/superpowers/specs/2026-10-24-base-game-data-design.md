@@ -52,15 +52,16 @@ An **effect** is an object with exactly one key, its kind. A **benefit** is a li
 |---|---|---|
 | `gain` | `{ gain: { food: 1, any: 2, territory: 1 } }` | Gain resources (`any` is one resource of the player's choice per point), territory tiles, space tiles (`space`) or tapestry cards (`tapestry`) |
 | `building` | `{ building: 'farm' }` | Take the leftmost income building of that type from the income mat and place it in the capital city |
+| `landmark` | `{ landmark: 'bakery' }` | Place that landmark in the capital city (the square of a landmark tech card) |
 | `vp` | `{ vp: 5 }` | Gain that many VP |
 | `vp` (per) | `{ vp: { per: 'territory' } }` | Gain 1 VP (or `each`) per thing counted. The counters are listed below |
 | `explore` | `{ explore: { anywhere: true } }` | Explore with a territory tile from the supply; `anywhere` drops the adjacency rule (Airplanes) |
 | `exploreSpace` | `{ exploreSpace: { fromGained: true } }` | Explore a space tile from the supply. `fromGained` limits it to the tiles this benefit just gained (Interstellar Travel, R105) |
 | `conquer` | `{ conquer: { bothDice: 'ifOpponent' } }` | Conquer. `anywhere` drops adjacency (Warplanes). `bothDice` gives both dice `'always'` (Mechs) or `'ifOpponent'` controlled the territory (Tanks, R17) |
 | `research` | `{ research: { noBenefit: true } }` | Roll the science die and you may advance on that track. `noBenefit` is the X: no benefit or bonus. Alien Biology adds `rolls: 4` and `offTrackVp: 5` |
-| `advance` | `{ advance: { tracks: ['science'] } }` | Advance 1 space on one of the listed tracks, with its benefit and optional bonus |
-| `regress` | `{ regress: { tracks: ['technology', 'military'] } }` | Go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus |
-| `repeat` | `{ repeat: {} }` | Gain the benefit of your current space on any track, and you may pay its bonus (Academic Research) |
+| `advance` | `{ advance: { tracks: ['science'] } }` | Advance 1 space on one of the listed tracks, with its benefit and optional bonus; `noBenefit` is the X (Clocks) |
+| `regress` | `{ regress: { tracks: ['technology', 'military'] } }` | Go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus; `noBenefit` is the X (Time Travel) |
+| `repeat` | `{ repeat: {} }` | Gain the benefit of your current space on any track, and you may pay its bonus (Academic Research); `oncePerTurn` limits it to once a turn (Lithium-Ion Battery, FAQ #6) |
 | `invent` | `{ invent: { count: 2, refresh: true } }` | Gain tech cards, one at a time. `refresh`: you may first replace the 3 face-up cards |
 | `upgrade` | `{ upgrade: {} }` | Upgrade 1 tech card |
 | `techBenefit` | `{ techBenefit: { icon: 'circle' } }` | Gain the circle benefit of a tech card in your middle row, or the square benefit of one in your top row, without moving it |
