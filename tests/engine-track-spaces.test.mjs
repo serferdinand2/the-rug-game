@@ -558,7 +558,8 @@ test('military 11 Drone Assassins: score the capital city; the bonus discards 3 
 	const scored = r.state.events.filter((e) => e.type === 'capitalScored');
 	assert.equal(scored.length, 1);
 	assert.equal(scored[0].player, r.player);
-	console.log('ROWS', scored[0].rows, scored[0].columns);
+	assert.equal(scored[0].rows, 1);
+	assert.equal(scored[0].columns, 0);
 	const lines = scored[0].rows + scored[0].columns;
 	assert.equal(r.seat.vp, lines);
 	reply(r, 'chooseBonus', {

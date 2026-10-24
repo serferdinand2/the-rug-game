@@ -105,7 +105,8 @@ test('income turn 2 scores the exposed VP icons: Barter counts tech cards, Symbo
 	const scored = r.events.filter((e) => e.type === 'capitalScored');
 	assert.equal(scored.length, 1);
 	assert.equal(scored[0].player, r.player);
-	console.log('ROWS', scored[0].rows, scored[0].columns);
+	assert.equal(scored[0].rows, 1);
+	assert.equal(scored[0].columns, 0);
 	// Barter's 3 VP, plus 1 VP for each complete row and column.
 	assert.equal(r.seat.vp, 3 + scored[0].rows + scored[0].columns);
 });
