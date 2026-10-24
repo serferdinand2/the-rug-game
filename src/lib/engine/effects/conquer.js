@@ -6,8 +6,7 @@ import { RED_DIE, BLACK_DIE } from '../data/dice.js';
 import { conquerTargets, loneOpponent } from '../map.js';
 
 /**
- * Conquers a hex: an outpost goes on it, and an opponent's lone outpost topples. The dice follow (the defender's
- * response question will wait between the two).
+ * Conquers a hex: an outpost goes on it, and an opponent's lone outpost topples. The dice follow (a defender who qualifies is asked for a response between the two).
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {string} hex
@@ -34,7 +33,45 @@ export function conquerHex(ctx, player, hex, bothDice) {
 			by: player,
 		});
 	}
-	ctx.push([{ player, kind: 'conquerDice', hex, both }]);
+	const dice = { player, kind: 'conquerDice', hex, both };
+	if (opponent !== null && asksResponse(state, opponent)) {
+		// The question goes on top of the dice, which wait for the answer. It is asked whatever the defender holds, so
+		// the table learns nothing about their hand.
+		ctx.push([
+			{ player: opponent, kind: 'chooseResponse', attacker: player, hex },
+			dice,
+		]);
+		return;
+	}
+	ctx.push([dice]);
+}
+
+/**
+ * Whether the defender is asked for a response: a player seat with at least 1 tapestry card that is still playing, or
+ * under the Original rules, finished (R108). Hand sizes are public, so skipping an empty hand reveals nothing.
+ * @param {import('../state.js').State} state
+ * @param {number} defender
+ * @returns {boolean}
+ */
+function asksResponse(state, defender) {
+	const seat = playerSeat(state, defender);
+	return (
+		seat.kind === 'player' &&
+		seat.hand.length > 0 &&
+		(!seat.finished || state.version === 'original')
+	);
+}
+
+/**
+ * The response cards in a player's hand, in hand order. In the base game these are the traps.
+ * @param {import('../state.js').State} state
+ * @param {number} defender
+ * @returns {string[]}
+ */
+export function responseCards(state, defender) {
+	return playerSeat(state, defender).hand.filter((card) =>
+		card.startsWith('trap-')
+	);
 }
 
 /**

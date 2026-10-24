@@ -193,6 +193,7 @@ test('every decision kind has the full shape, and its answers pass its own check
 	state.seats[0].resources.coin = 1;
 	// Seat 1 holds a territory tile (and controls its start territory), so it has somewhere to explore.
 	state.seats[0].territoryTiles = [2];
+	state.seats[1].hand = ['trap-1'];
 	const fixtures = {
 		chooseTurn: {
 			player: 1,
@@ -270,6 +271,12 @@ test('every decision kind has the full shape, and its answers pass its own check
 			hex: '-2_-1',
 			red: 0,
 			black: 0,
+		},
+		chooseResponse: {
+			player: 2,
+			kind: 'chooseResponse',
+			attacker: 1,
+			hex: '-2_-1',
 		},
 		chooseSpaceTile: {
 			player: 1,

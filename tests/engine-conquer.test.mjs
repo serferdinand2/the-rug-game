@@ -5,7 +5,9 @@ import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';
 import { controlledTerritories } from '../src/lib/engine/control.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
-import { startedGame, answer } from './helpers/engine.mjs';
+import { view } from '../src/lib/engine/view.js';
+import { play } from '../src/lib/engine/play.js';
+import { startedGame, answer, readyTurn } from './helpers/engine.mjs';
 
 /**
  * A small-map game with every outpost cleared, where seat 1 controls '-2_-2'. Only '-2_-2' and the listed hexes
@@ -252,4 +254,229 @@ test('an answer not offered is refused', () => {
 			message: 'Choose one of the two dice.',
 		}
 	);
+});
+
+/**
+ * A game where seat 1 conquers seat 2's lone outpost on '-2_-1', and seat 2 holds `hand`.
+ * @param {string[]} hand
+ * @param {Record<string, any>} [options]
+ */
+function trapGame(hand, options) {
+	const { state: started } = startedGame(2, options);
+	const state = structuredClone(started);
+	for (const [key, hex] of Object.entries(state.hexes)) {
+		hex.outposts = [];
+		if (key !== '-2_-2' && key !== '-2_-1') {
+			/** @type {any} */ (hex).tile = null;
+		}
+	}
+	state.hexes['-2_-2'].outposts = [{ seat: 1, toppled: false }];
+	state.hexes['-2_-1'].outposts = [{ seat: 2, toppled: false }];
+	state.seats[1].hand = [...hand];
+	return state;
+}
+
+test('a defender with a trap may spring it: they keep the territory, topple the attacker and gain 1 resource (R21)', () => {
+	const state = trapGame(['trap-3']);
+	conquer(state, face(0));
+	const [question] = openDecisions(state).filter(
+		(d) => d.kind === 'chooseResponse'
+	);
+	assert.equal(question.player, 2);
+	assert.deepEqual(DECISIONS.chooseResponse.answers(state, question), [
+		{ card: null },
+		{ card: 'trap-3' },
+	]);
+	// The attacker's dice wait for the answer.
+	assert.deepEqual(open(state), ['chooseResponse']);
+	const trapped = answer(state, face(0), 2, 'chooseResponse', {
+		card: 'trap-3',
+	});
+	assert.ok(trapped.supply.tapestry.discard.includes('trap-3'));
+	assert.deepEqual(trapped.seats[1].hand, []);
+	assert.deepEqual(trapped.hexes['-2_-1'].outposts, [
+		{ seat: 2, toppled: false },
+		{ seat: 1, toppled: true, toppledBy: 2 },
+	]);
+	assert.ok(controlledTerritories(trapped, 2).includes('-2_-1'));
+	assert.ok(!controlledTerritories(trapped, 1).includes('-2_-1'));
+	const played = trapped.events.find((e) => e.type === 'responsePlayed');
+	assert.deepEqual(
+		{ ...played, seq: undefined },
+		{
+			type: 'responsePlayed',
+			player: 2,
+			hex: '-2_-1',
+			card: 'trap-3',
+			attacker: 1,
+			seq: undefined,
+		}
+	);
+	// Seat 2 chooses 1 resource, then seat 1's dice roll.
+	assert.deepEqual(open(trapped), ['chooseResource']);
+	assert.equal(
+		openDecisions(trapped).find((d) => d.kind === 'chooseResource').player,
+		2
+	);
+	const done = answer(trapped, face(0), 2, 'chooseResource', {
+		resources: { coin: 1 },
+	});
+	assert.deepEqual(open(done), ['chooseDie']);
+	const conquered = done.events.find((e) => e.type === 'conquered');
+	assert.equal(conquered.trapped, true);
+});
+
+test('declining the response leaves the topple standing', () => {
+	const state = trapGame(['trap-3']);
+	conquer(state, face(0));
+	const done = answer(state, face(0), 2, 'chooseResponse', { card: null });
+	assert.deepEqual(open(done), ['chooseDie']);
+	assert.deepEqual(done.seats[1].hand, ['trap-3']);
+	assert.deepEqual(done.hexes['-2_-1'].outposts, [
+		{ seat: 2, toppled: true, toppledBy: 1 },
+		{ seat: 1, toppled: false },
+	]);
+	const declined = done.events.find((e) => e.type === 'responseDeclined');
+	assert.deepEqual(
+		{ ...declined, seq: undefined },
+		{ type: 'responseDeclined', player: 2, hex: '-2_-1', seq: undefined }
+	);
+});
+
+test('the dice still roll after a trap, and "?" still gives the tile\'s benefit (R107)', () => {
+	const state = trapGame(['trap-1']);
+	state.hexes['-2_-1'].tile = 1;
+	conquer(state, face(4));
+	let next = answer(state, face(4), 2, 'chooseResponse', { card: 'trap-1' });
+	next = answer(next, face(4), 2, 'chooseResource', {
+		resources: { coin: 1 },
+	});
+	assert.deepEqual(open(next), ['chooseDie']);
+	const coin = next.seats[0].resources.coin;
+	const done = answer(next, face(4), 1, 'chooseDie', { die: 'black' });
+	assert.equal(done.seats[0].resources.coin, coin + 1);
+	assert.equal(done.events.find((e) => e.type === 'tileBenefit').tile, 1);
+});
+
+test('R17: Tanks still gives both dice when trapped', () => {
+	const state = trapGame(['trap-1']);
+	const coin = state.seats[0].resources.coin;
+	conquer(state, face(0), { bothDice: 'ifOpponent' });
+	let next = answer(state, face(0), 2, 'chooseResponse', { card: 'trap-1' });
+	next = answer(next, face(0), 2, 'chooseResource', {
+		resources: { coin: 1 },
+	});
+	assert.deepEqual(open(next), []);
+	assert.equal(next.seats[0].vp, 4);
+	assert.equal(next.seats[0].resources.coin, coin + 1);
+});
+
+test('a defender holding cards but no trap is still asked, and may only decline', () => {
+	const state = trapGame(['age-of-sail']);
+	conquer(state, face(0));
+	const question = openDecisions(state).find(
+		(d) => d.kind === 'chooseResponse'
+	);
+	assert.deepEqual(DECISIONS.chooseResponse.answers(state, question), [
+		{ card: null },
+	]);
+});
+
+test('a defender with an empty hand is not asked', () => {
+	const state = trapGame([]);
+	conquer(state, face(0));
+	assert.deepEqual(open(state), ['chooseDie']);
+});
+
+test('R108: under the Current rules a finished defender is not asked', () => {
+	const state = trapGame(['trap-1'], { version: 'current' });
+	state.seats[1].finished = true;
+	conquer(state, face(0));
+	assert.deepEqual(open(state), ['chooseDie']);
+});
+
+test('R108: under the Original rules a finished defender may spring a trap, but gains no resource', () => {
+	const state = trapGame(['trap-1'], { version: 'original' });
+	state.seats[1].finished = true;
+	conquer(state, face(0));
+	assert.deepEqual(open(state), ['chooseResponse']);
+	const resources = { ...state.seats[1].resources };
+	const next = answer(state, face(0), 2, 'chooseResponse', {
+		card: 'trap-1',
+	});
+	assert.deepEqual(open(next), ['chooseDie']);
+	assert.deepEqual(next.seats[1].resources, resources);
+	assert.deepEqual(next.hexes['-2_-1'].outposts[1], {
+		seat: 1,
+		toppled: true,
+		toppledBy: 2,
+	});
+});
+
+test("privacy: the attacker sees the same game whether the defender's card is a trap or not", () => {
+	const a = trapGame(['trap-1']);
+	const b = trapGame(['age-of-sail']);
+	conquer(a, face(0));
+	conquer(b, face(0));
+	assert.equal(JSON.stringify(view(a, 1)), JSON.stringify(view(b, 1)));
+	// Nor does the public view tell them apart.
+	assert.equal(JSON.stringify(view(a, null)), JSON.stringify(view(b, null)));
+});
+
+test("the response is answered before the attacker's dice, during an advance turn", () => {
+	const { state, random, player } = readyTurn(2, (seat, s) => {
+		const other = seat.seat === 1 ? 2 : 1;
+		seat.tracks.military = [0];
+		seat.resources = { coin: 2, worker: 2, food: 2, culture: 2 };
+		for (const [key, hex] of Object.entries(s.hexes)) {
+			hex.outposts = [];
+			if (key !== '-2_-2' && key !== '-2_-1') {
+				/** @type {any} */ (hex).tile = null;
+			}
+		}
+		s.hexes['-2_-2'].outposts = [{ seat: seat.seat, toppled: false }];
+		s.hexes['-2_-1'].outposts = [{ seat: other, toppled: false }];
+		s.seats[other - 1].hand = ['trap-2'];
+	});
+	const defender = player === 1 ? 2 : 1;
+	const chosen = answer(state, random, player, 'chooseTurn', {
+		turn: 'advance',
+	});
+	const [decision] = openDecisions(chosen);
+	const move = DECISIONS.chooseAdvance
+		.answers(chosen, decision)
+		.find((a) => a.track === 'military' && a.from === 0);
+	const next = play(
+		chosen,
+		player,
+		{ decision: decision.id, ...move },
+		random
+	);
+	const kinds = openDecisions(next).map((d) => `${d.player}:${d.kind}`);
+	assert.deepEqual(kinds, [`${defender}:chooseResponse`]);
+	// Nobody but the defender can answer, and the dice wait.
+	assert.throws(() =>
+		answer(next, random, player, 'chooseResponse', { card: null })
+	);
+	const done = answer(next, random, defender, 'chooseResponse', {
+		card: null,
+	});
+	assert.deepEqual(
+		openDecisions(done).map((d) => d.kind),
+		['chooseDie']
+	);
+});
+
+test("a card that isn't a response card is refused", () => {
+	const state = trapGame(['age-of-sail', 'trap-1']);
+	conquer(state, face(0));
+	for (const card of ['age-of-sail', 'trap-9', 'trap-2', undefined]) {
+		assert.throws(
+			() => answer(state, face(0), 2, 'chooseResponse', { card }),
+			{
+				name: 'PlayerError',
+				message: "You can't play that card as a response.",
+			}
+		);
+	}
 });
