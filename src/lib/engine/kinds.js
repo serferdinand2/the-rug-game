@@ -7,6 +7,8 @@ import { chooseBonus, offerBonus } from './decisions/choose-bonus.js';
 import { chooseAdvance } from './decisions/choose-advance.js';
 import { chooseOrder } from './decisions/choose-order.js';
 import { chooseOption } from './decisions/choose-option.js';
+import { chooseMove } from './decisions/choose-move.js';
+import { rollResearch } from './effects/research.js';
 import { endTurn } from './turn.js';
 import { runEffects } from './effects/index.js';
 import { runSetupSteps } from './after-setup.js';
@@ -21,6 +23,7 @@ export const DECISIONS = {
 	chooseAdvance,
 	chooseOrder,
 	chooseOption,
+	chooseMove,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */
@@ -29,4 +32,5 @@ export const AUTOMATIC = {
 	setupSteps: runSetupSteps,
 	bonus: offerBonus,
 	endTurn,
+	research: rollResearch,
 };

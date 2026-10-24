@@ -3,9 +3,19 @@ import { vp } from './vp.js';
 import { gain } from './gain.js';
 import { building } from './building.js';
 import { choice } from './choice.js';
+import { research } from './research.js';
+import { advance, regress } from './move.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
-export const EFFECTS = { vp, gain, building, choice };
+export const EFFECTS = {
+	vp,
+	gain,
+	building,
+	choice,
+	research,
+	advance,
+	regress,
+};
 
 /**
  * Effect kinds that ask nothing depending on a benefit's other parts, and that no other part of the same

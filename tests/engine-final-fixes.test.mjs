@@ -216,6 +216,14 @@ test('every decision kind has the full shape, and its answers pass its own check
 			effects: [{ upgrade: {} }, { techBenefit: { icon: 'circle' } }],
 			source: { track: 'technology', space: 9 },
 		},
+		chooseMove: {
+			player: 1,
+			kind: 'chooseMove',
+			direction: 'advance',
+			options: [{ track: 'exploration', from: 0 }],
+			benefit: true,
+			optional: true,
+		},
 		chooseOption: {
 			player: 1,
 			kind: 'chooseOption',
