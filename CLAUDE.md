@@ -144,6 +144,7 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
   - A finished player is skipped and gains nothing but passive civilization VP: `runEffects` skips their effects unless the operation is `passive` (#20 marks its passive VP).
   - When every seat has finished, `rankPlayers` ranks them by VP and the version's tiebreak chain, and `state.result` records every tiebreak step used, with each compared player's value (owner). Shared places count 1, 1, 3. The tallest-landmark step reads `seat.capital.landmarks`, which #16 fills.
   - `tests/engine-scripted-game.test.mjs` plays a 2-player game from setup to the end.
+  - The final review found two problems, both fixed with tests: the `passive` mark was lost through `chooseOption` and `chooseOrder`, and an income step after `'finish'` would silently do nothing (it now throws).
 - **Decided 2026-10-24:**
   - At the game end, players see each tiebreaker used, step by step (owner, #15).
   - R105: Interstellar Travel's "explore 1 of them" means one of the 3 space tiles it just gained, as printed; BGA's reading (any tile in hand) is rejected (owner, #52).

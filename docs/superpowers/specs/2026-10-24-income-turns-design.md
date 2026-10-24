@@ -39,7 +39,7 @@ Many of these steps are owned by other issues: civilization abilities (#20), tap
 ## 4. The income turn
 
 1. **Answering `income`** emits `turnChosen`. It raises the seat's `incomeTurns` to N, emits `incomeTurnStarted { player, turn: N }`, and pushes an automatic `incomeSteps` operation.
-2. **`INCOME_STEPS`** is an ordered list of steps in `income.js`, each with the income turns it applies to. It works like `AFTER_SETUP`: one step runs at a time, and the rest wait under whatever it pushes. Later issues insert their own steps; A&A's masterpieces, for example, come before step 1. **(my call)**
+2. **`INCOME_STEPS`** is an ordered list of steps in `income.js`, each with the income turns it applies to. It works like `AFTER_SETUP`: one step runs at a time, and the rest wait under whatever it pushes. Later issues insert their own steps; A&A's masterpieces, for example, come before step 1. `'finish'` must stay last, and a step after it throws. **(my call)**
 
 | Step | Turns | What happens |
 |---|---|---|
@@ -77,6 +77,7 @@ Many of these steps are owned by other issues: civilization abilities (#20), tap
 - After income turn 5 the seat is `finished`. `endTurn` skips it, as #14 built.
 - **A finished player gains nothing but passive civilization VP** (01 §4.3). This is one central rule, not a check in every later issue. **(my call)**
   - `runEffects` skips an `effects` operation whose player has finished, unless the operation is marked `passive: true`.
+  - The mark carries through `chooseOption` and `chooseOrder`, so a passive effect may still ask a question. (The final review of #15 found it was lost there at first.)
   - #20 marks its passive civilization VP that way.
   - Nothing is emitted for a skipped operation, because nothing happened.
   - This covers every gain that reaches a finished player through effects, such as Diplomacy's "each player gains 1 any resource" (#19) or an opponent's civilization ability (#20).
