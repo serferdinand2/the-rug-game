@@ -1,7 +1,14 @@
 // The invent effect: take a tech card from the display or the deck into the bottom row (01 §9.1, FAQ #24).
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
-import { canDraw, drawTech, refillDisplay, refreshDisplay } from '../tech.js';
+import {
+	canDraw,
+	drawTech,
+	refillDisplay,
+	refreshDisplay,
+	upgradable,
+} from '../tech.js';
+import { techCard } from '../data/tech-cards.js';
 
 /**
  * What a player may answer when inventing: each face-up card, the top of the deck, and, before the first card, a refresh.
@@ -79,4 +86,48 @@ export function inventCard(ctx, player, answer, left) {
  */
 export function invent(ctx, player, value) {
 	askInvent(ctx, player, value?.count ?? 1, value?.refresh === true);
+}
+
+/**
+ * Upgrades one card: it moves to the end of the next row, and the benefit of the icon it reaches follows.
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {string} card
+ */
+export function upgradeCard(ctx, player, card) {
+	const rows = playerSeat(ctx.state, player).tech;
+	const from = rows.bottom.includes(card) ? 'bottom' : 'middle';
+	const to = from === 'bottom' ? 'middle' : 'top';
+	rows[from].splice(rows[from].indexOf(card), 1);
+	rows[to].push(card);
+	emit(ctx.state, { type: 'techUpgraded', player, card, from, to });
+	const icon = from === 'bottom' ? 'circle' : 'square';
+	ctx.push([
+		{
+			player,
+			kind: 'effects',
+			effects: structuredClone(techCard(card)[icon]),
+			source: { tech: card, icon },
+		},
+	]);
+}
+
+/**
+ * The upgrade effect (§7): mandatory with one card is automatic, with none says so; optional always asks while a card can be upgraded.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function upgrade(ctx, player, value) {
+	const cards = upgradable(ctx.state, player);
+	const optional = value?.optional === true;
+	if (cards.length === 0) {
+		if (!optional) {
+			emit(ctx.state, { type: 'noUpgrade', player });
+		}
+		return;
+	}
+	if (cards.length === 1 && !optional) {
+		upgradeCard(ctx, player, cards[0]);
+		return;
+	}
+	ctx.push([{ player, kind: 'chooseUpgrade', optional }]);
 }

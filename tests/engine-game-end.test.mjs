@@ -143,9 +143,15 @@ test('a passive effect for a finished player keeps its mark through a choice of 
 		},
 	]);
 	run(state, random);
-	answer(state, random, 2, 'chooseOrder', { effect: 1 });
+	const after = answer(state, random, 2, 'chooseOrder', { effect: 1 });
+	// Both ran for a finished player, so both kept the passive mark: the upgrade found nothing to upgrade.
 	assert.deepEqual(
 		handoffs.calls.map((c) => c.kind),
-		['techBenefit', 'upgrade']
+		['techBenefit']
+	);
+	assert.equal(
+		after.events.filter((e) => e.type === 'noUpgrade' && e.player === 2)
+			.length,
+		1
 	);
 });

@@ -433,12 +433,21 @@ test('technology 4 Metallurgy: the Forge, then invent, refreshing first if you l
 });
 
 test('technology 5 Glass: a farm, house or armory; the bonus pays to upgrade', (t) => {
-	const r = onto(t, 'technology', 5);
+	const r = onto(t, 'technology', 5, (seat) => {
+		seat.tech.bottom = ['irrigation'];
+	});
 	reply(r, 'chooseOption', { option: 1 });
 	assert.deepEqual(placing(r), ['house']);
 	place(r);
+	const food = r.seat.resources.food;
 	reply(r, 'chooseBonus', { pay: { food: 1 } });
-	assert.deepEqual(handed(r), [['upgrade', {}]]);
+	// The only card is upgraded at once, and Irrigation's circle gives 1 food back.
+	assert.deepEqual(r.seat.tech.middle, ['irrigation']);
+	assert.equal(r.seat.resources.food, food);
+	assert.equal(
+		r.state.events.filter((e) => e.type === 'techUpgraded').length,
+		1
+	);
 });
 
 test('technology 6 Steel: 1 VP per armory and a market; the bonus pays to invent', (t) => {
@@ -468,12 +477,13 @@ test('technology 8 Plastic: a market, then 1 VP per market; the bonus pays to up
 });
 
 test('technology 9 Electronics: upgrade and a middle-row circle, in the order you choose', (t) => {
-	const r = onto(t, 'technology', 9);
+	const r = onto(t, 'technology', 9, (seat) => {
+		seat.tech.bottom = ['irrigation'];
+	});
 	reply(r, 'chooseOrder', { effect: 1 });
-	assert.deepEqual(handed(r), [
-		['techBenefit', { icon: 'circle' }],
-		['upgrade', {}],
-	]);
+	// The circle benefit is stood in for until task 4; the upgrade is real.
+	assert.deepEqual(handed(r), [['techBenefit', { icon: 'circle' }]]);
+	assert.deepEqual(r.seat.tech.middle, ['irrigation']);
 });
 
 test('technology 10 Computers: the Tech Hub, 1 VP per military and per science space', (t) => {
@@ -488,14 +498,17 @@ test('technology 10 Computers: the Tech Hub, 1 VP per military and per science s
 
 test('technology 11 Nanotechnology: upgrade and a top-row square in either order; the bonus discards 3 tech cards for 10 VP', (t) => {
 	const r = onto(t, 'technology', 11, (seat) => {
-		seat.tech.bottom = ['pottery', 'clocks', 'radio'];
+		seat.tech.bottom = ['irrigation', 'calendar', 'canned-food'];
 	});
 	reply(r, 'chooseOrder', { effect: 0 });
-	assert.deepEqual(handed(r), [
-		['upgrade', {}],
-		['techBenefit', { icon: 'square' }],
-	]);
-	reply(r, 'chooseBonus', { pay: { tech: ['pottery', 'clocks', 'radio'] } });
+	// Three cards can be upgraded, so the player picks; the square benefit follows (stood in for until task 4).
+	assert.deepEqual(handed(r), []);
+	reply(r, 'chooseUpgrade', { card: 'calendar' });
+	assert.deepEqual(r.seat.tech.middle, ['calendar']);
+	assert.deepEqual(handed(r), [['techBenefit', { icon: 'square' }]]);
+	reply(r, 'chooseBonus', {
+		pay: { tech: ['irrigation', 'calendar', 'canned-food'] },
+	});
 	assert.equal(r.seat.vp, 10);
 });
 

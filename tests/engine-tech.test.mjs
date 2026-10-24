@@ -5,6 +5,7 @@ import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run, contextFor } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
+import { upgradable } from '../src/lib/engine/tech.js';
 import { pay } from '../src/lib/engine/payment.js';
 import { TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
 import { startedGame, readyTurn, answer, placeAll } from './helpers/engine.mjs';
@@ -314,4 +315,181 @@ test('an answer not offered is refused', () => {
 			),
 		{ name: 'PlayerError', message: "You can't invent that card." }
 	);
+});
+
+// Upgrading (§7, R18)
+
+/**
+ * A started game of `count` players where seat 1 runs an upgrade effect.
+ * @param {object} value - The upgrade effect's value
+ * @param {(state: any) => void} [fill] - Changes the state first
+ * @param {number} [count]
+ */
+function upgradeGame(value, fill = () => {}, count = 2) {
+	const { state: started, random } = startedGame(count);
+	const state = structuredClone(started);
+	fill(state);
+	push(state, state.pending, [
+		{ player: 1, kind: 'effects', effects: [{ upgrade: value }] },
+	]);
+	run(state, random);
+	return { state, random };
+}
+
+/** @param {any} state */
+const upgrading = (state) =>
+	openDecisions(state).filter((d) => d.kind === 'chooseUpgrade');
+
+test('upgrading a bottom card moves it to the middle and gives its circle', () => {
+	const { state, random } = upgradeGame({}, (s) => {
+		s.seats[0].tech.bottom = ['irrigation', 'pottery'];
+	});
+	const [open] = upgrading(state);
+	assert.deepEqual(DECISIONS.chooseUpgrade.answers(state, open), [
+		{ card: 'irrigation' },
+		{ card: 'pottery' },
+	]);
+	const food = state.seats[0].resources.food;
+	const next = play(
+		state,
+		1,
+		{ decision: open.id, card: 'irrigation' },
+		random
+	);
+	assert.deepEqual(next.seats[0].tech.bottom, ['pottery']);
+	assert.deepEqual(next.seats[0].tech.middle, ['irrigation']);
+	assert.equal(next.seats[0].resources.food, food + 1);
+	assert.deepEqual(events(next, 'techUpgraded').at(-1), {
+		...events(next, 'techUpgraded').at(-1),
+		player: 1,
+		card: 'irrigation',
+		from: 'bottom',
+		to: 'middle',
+	});
+});
+
+test('upgrading a middle card needs its prerequisite and gives its square', () => {
+	const met = upgradeGame({}, (s) => {
+		s.seats[0].tech.middle = ['irrigation'];
+		s.seats[0].tracks.science = [4];
+	});
+	// One legal card and mandatory: automatic, so a farm is placed next.
+	assert.deepEqual(met.state.seats[0].tech.top, ['irrigation']);
+	assert.deepEqual(
+		openDecisions(met.state).map((d) => [d.kind, d.building]),
+		[['choosePlacement', 'farm']]
+	);
+	const unmet = upgradeGame({}, (s) => {
+		s.seats[0].tech.middle = ['irrigation'];
+		s.seats[0].tracks.science = [3];
+	});
+	assert.deepEqual(unmet.state.seats[0].tech.middle, ['irrigation']);
+	assert.equal(events(unmet.state, 'noUpgrade').length, 1);
+	assert.equal(upgrading(unmet.state).length, 0);
+});
+
+test("a neighbour's track meets the prerequisite, and a non-neighbour's doesn't", () => {
+	const setup = (who, finished = false) =>
+		upgradeGame(
+			{},
+			(s) => {
+				s.seats[0].tech.middle = ['irrigation'];
+				s.seats[who - 1].tracks.science = [4];
+				s.seats[who - 1].finished = finished;
+			},
+			4
+		);
+	// Seats 2 and 4 are seat 1's neighbours; seat 3 is not.
+	assert.deepEqual(setup(2).state.seats[0].tech.top, ['irrigation']);
+	assert.deepEqual(setup(4, true).state.seats[0].tech.top, ['irrigation']);
+	assert.deepEqual(setup(3).state.seats[0].tech.middle, ['irrigation']);
+	// In a 2-player game the one opponent counts.
+	const two = upgradeGame({}, (s) => {
+		s.seats[0].tech.middle = ['irrigation'];
+		s.seats[1].tracks.science = [7];
+	});
+	assert.deepEqual(two.state.seats[0].tech.top, ['irrigation']);
+});
+
+test('a restarted track counts as 12 spaces for the prerequisite', () => {
+	const { state } = upgradeGame({}, (s) => {
+		s.seats[0].tech.middle = ['ammonia'];
+		s.seats[0].tracks.military = [];
+		s.seats[0].restartedTracks = ['military'];
+	});
+	assert.deepEqual(state.seats[0].tech.top, ['ammonia']);
+});
+
+test('R18: a landmark card needs its innovation uncovered, by the player or a neighbour', () => {
+	// Offered through upgradable(): upgrading the card would place a landmark (#16).
+	const offered = (mine, theirs) => {
+		const { state } = startedGame(2);
+		state.seats[0].tech.middle = ['bakery'];
+		state.seats[0].incomeMat.buildings.farm = mine;
+		state.seats[1].incomeMat.buildings.farm = theirs;
+		return upgradable(state, 1);
+	};
+	// Farming is space 2 of the farm row: uncovered while at most 4 farms are built.
+	assert.deepEqual(offered(4, 5), ['bakery']);
+	assert.deepEqual(offered(5, 4), ['bakery']);
+	assert.deepEqual(offered(5, 5), []);
+});
+
+test('top-row cards are never offered', () => {
+	const { state } = upgradeGame({ optional: true }, (s) => {
+		s.seats[0].tech.top = ['calendar', 'pottery'];
+		s.seats[0].tech.bottom = ['irrigation'];
+	});
+	const [open] = upgrading(state);
+	assert.deepEqual(DECISIONS.chooseUpgrade.answers(state, open), [
+		{ card: null },
+		{ card: 'irrigation' },
+	]);
+});
+
+test("income step 3's upgrade may be declined", () => {
+	const { state, random } = upgradeGame({ optional: true }, (s) => {
+		s.seats[0].tech.bottom = ['irrigation'];
+	});
+	const [open] = upgrading(state);
+	assert.deepEqual(DECISIONS.chooseUpgrade.answers(state, open)[0], {
+		card: null,
+	});
+	const next = play(state, 1, { decision: open.id, card: null }, random);
+	assert.deepEqual(next.seats[0].tech.bottom, ['irrigation']);
+	assert.equal(events(next, 'techUpgraded').length, 0);
+	assert.equal(upgrading(next).length, 0);
+	// Optional with nothing upgradable does nothing at all.
+	const none = upgradeGame({ optional: true });
+	assert.equal(upgrading(none.state).length, 0);
+	assert.equal(events(none.state, 'noUpgrade').length, 0);
+});
+
+test('a mandatory upgrade with one card is automatic, and with none does nothing', () => {
+	const one = upgradeGame({}, (s) => {
+		s.seats[0].tech.bottom = ['irrigation'];
+	});
+	assert.deepEqual(one.state.seats[0].tech.middle, ['irrigation']);
+	assert.equal(upgrading(one.state).length, 0);
+	const none = upgradeGame({});
+	assert.equal(events(none.state, 'noUpgrade').length, 1);
+	assert.equal(events(none.state, 'noUpgrade')[0].player, 1);
+	assert.equal(upgrading(none.state).length, 0);
+});
+
+test('an answer not offered is refused', () => {
+	const { state, random } = upgradeGame({}, (s) => {
+		s.seats[0].tech.bottom = ['irrigation', 'pottery'];
+		s.seats[0].tech.middle = ['ammonia'];
+		s.seats[0].tech.top = ['calendar'];
+		s.seats[1].tech.bottom = ['clocks'];
+		s.seats[0].tracks.military = [];
+	});
+	const [open] = upgrading(state);
+	for (const card of ['calendar', 'clocks', 'ammonia', null, undefined]) {
+		assert.throws(
+			() => play(state, 1, { decision: open.id, card }, random),
+			{ name: 'PlayerError', message: "You can't upgrade that card." }
+		);
+	}
 });

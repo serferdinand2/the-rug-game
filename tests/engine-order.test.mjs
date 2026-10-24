@@ -54,11 +54,13 @@ test('two parts that both ask the player become a choice of order', (t) => {
 		{ effect: 0 },
 		{ effect: 1 },
 	]);
-	play(state, 1, { decision: order.id, effect: 1 }, random);
+	const after = play(state, 1, { decision: order.id, effect: 1 }, random);
+	// The tech benefit ran first (stood in for, #18 task 4), then the upgrade found no card.
 	assert.deepEqual(
 		handoffs.calls.map((c) => c.kind),
-		['techBenefit', 'upgrade']
+		['techBenefit']
 	);
+	assert.equal(after.events.filter((e) => e.type === 'noUpgrade').length, 1);
 });
 
 test('an explore could change any counter, so it asks for an order beside a VP counter (#17)', () => {
@@ -78,8 +80,9 @@ test('an ordered benefit never asks', (t) => {
 	);
 	assert.deepEqual(
 		handoffs.calls.map((c) => c.kind),
-		['upgrade', 'techBenefit']
+		['techBenefit']
 	);
+	assert.equal(state.events.filter((e) => e.type === 'noUpgrade').length, 1);
 	assert.ok(!openDecisions(state).some((d) => d.kind === 'chooseOrder'));
 });
 

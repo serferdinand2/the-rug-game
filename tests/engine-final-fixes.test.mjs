@@ -194,6 +194,8 @@ test('every decision kind has the full shape, and its answers pass its own check
 	// Seat 1 holds a territory tile (and controls its start territory), so it has somewhere to explore.
 	state.seats[0].territoryTiles = [2];
 	state.seats[1].hand = ['trap-1'];
+	// A card in the bottom row, so chooseUpgrade has something to offer.
+	state.seats[0].tech.bottom = ['irrigation'];
 	const fixtures = {
 		chooseTurn: {
 			player: 1,
@@ -213,6 +215,7 @@ test('every decision kind has the full shape, and its answers pass its own check
 			from: 'any',
 		},
 		chooseAdvance: { player: 1, kind: 'chooseAdvance' },
+		chooseUpgrade: { player: 1, kind: 'chooseUpgrade', optional: true },
 		chooseOrder: {
 			player: 1,
 			kind: 'chooseOrder',
