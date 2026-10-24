@@ -64,6 +64,7 @@ function newSeat(seat, name) {
 		tracks: /** @type {any} */ (
 			Object.fromEntries(TRACK_IDS.map((id) => [id, [0]]))
 		),
+		restartedTracks: [],
 		outposts: 8,
 		incomeTurns: 0,
 		finished: false,

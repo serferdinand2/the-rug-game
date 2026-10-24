@@ -3,7 +3,8 @@ import { createGame } from '../../src/lib/engine/setup.js';
 import { seededRandom } from '../../src/lib/engine/random.js';
 import { play } from '../../src/lib/engine/play.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
-import { DECISIONS } from '../../src/lib/engine/kinds.js';
+import { DECISIONS, AUTOMATIC } from '../../src/lib/engine/kinds.js';
+import { EFFECTS } from '../../src/lib/engine/effects/index.js';
 
 const NAMES = ['Ana', 'Bo', 'Cy', 'Dee', 'Eli'];
 
@@ -48,4 +49,65 @@ export function answerSetup(state, random) {
 export function startedGame(count, options) {
 	const { state, random } = newGame(count, options);
 	return { state: answerSetup(state, random), random };
+}
+
+/** Effects that later issues build (#16–#20). */
+const HANDOFF_EFFECTS = [
+	'explore',
+	'exploreSpace',
+	'conquer',
+	'tileBenefit',
+	'invent',
+	'upgrade',
+	'techBenefit',
+	'tapestryOnTop',
+	'scoreCapital',
+	'gainCiv',
+];
+
+/** Operations #14 pushes for #16 to resolve. */
+const HANDOFF_OPERATIONS = ['placeLandmark', 'placeBuilding'];
+
+/**
+ * Stands in for the effects and operations later issues build, recording each one they are given.
+ * Call `restore()` when the test ends, for example with `t.after(handoffs.restore)`.
+ * @returns {{ calls: { kind: string, player: number | null, value: any }[], restore: () => void }}
+ */
+export function stubHandoffs() {
+	/** @type {{ kind: string, player: number | null, value: any }[]} */
+	const calls = [];
+	for (const kind of HANDOFF_EFFECTS) {
+		if (Object.hasOwn(EFFECTS, kind)) {
+			throw new Error(`${kind} is built now; stop standing in for it.`);
+		}
+		EFFECTS[kind] = (ctx, player, value) => {
+			calls.push({ kind, player, value: structuredClone(value) });
+		};
+	}
+	for (const kind of HANDOFF_OPERATIONS) {
+		if (Object.hasOwn(AUTOMATIC, kind) || Object.hasOwn(DECISIONS, kind)) {
+			throw new Error(`${kind} is built now; stop standing in for it.`);
+		}
+		AUTOMATIC[kind] = (ctx, op) => {
+			const {
+				id: _id,
+				batch: _batch,
+				kind: _kind,
+				player,
+				...value
+			} = op;
+			calls.push({ kind, player, value });
+		};
+	}
+	return {
+		calls,
+		restore() {
+			for (const kind of HANDOFF_EFFECTS) {
+				delete EFFECTS[kind];
+			}
+			for (const kind of HANDOFF_OPERATIONS) {
+				delete AUTOMATIC[kind];
+			}
+		},
+	};
 }

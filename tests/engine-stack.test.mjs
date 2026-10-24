@@ -81,12 +81,6 @@ test('an effect that is not built yet is a bug, not a PlayerError', () => {
 	);
 });
 
-test('VP counters arrive with #14', () => {
-	const state = fixture();
-	push(state, state.pending, [effects(1, [{ vp: { per: 'territory' } }])]);
-	assert.throws(() => run(state, seededRandom(1)), /#14/);
-});
-
 test('a group opens every lane at once', () => {
 	const state = fixture();
 	pushGroup(state, [

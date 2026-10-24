@@ -15,6 +15,7 @@
  * @property {string} name
  * @property {number} vp
  * @property {Record<TrackId, number[]>} tracks - Token spaces per track, [0] at the start
+ * @property {TrackId[]} restartedTracks - Tracks whose token AI Singularity took off space 12; each still counts as complete, 12 spaces advanced (FAQ #9)
  * @property {number} outposts - In supply
  * @property {number} incomeTurns
  * @property {boolean} finished
