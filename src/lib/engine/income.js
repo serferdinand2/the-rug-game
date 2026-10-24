@@ -1,0 +1,145 @@
+// The income turn: its steps by income turn number, and the spaces the income mat shows (01 §4.2, §5).
+import { emit } from './events.js';
+import { playerSeat } from './state.js';
+import { INCOME_MAT } from './data/income-mat.js';
+import { BUILDING_IDS } from './data/ids.js';
+
+/** @typedef {import('./data/ids.js').BuildingId} BuildingId */
+
+/**
+ * One income step: the income turns it applies to, and what it does.
+ * @typedef {{ turns: number[], run: (ctx: import('./state.js').Context, player: number, turn: number) => void }} IncomeStep
+ */
+
+/** The spaces of a building row, so a row with `left` buildings shows spaces 1 to 6 − `left` (01 §5). */
+const ROW_SPACES = 6;
+
+/**
+ * The spaces of a row that no building covers: space 1 always, and one more for each building taken.
+ * @param {import('./state.js').PlayerSeat} seat
+ * @param {BuildingId} row
+ * @returns {readonly import('./data/income-mat.js').IncomeSpace[]}
+ */
+export function exposedSpaces(seat, row) {
+	return INCOME_MAT[row].slice(0, ROW_SPACES - seat.incomeMat.buildings[row]);
+}
+
+/**
+ * Pushes the income or score effects of every exposed space, row by row, as one ordered list.
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {'income' | 'score'} part
+ */
+function pushSpaceEffects(ctx, player, part) {
+	const seat = playerSeat(ctx.state, player);
+	const effects = BUILDING_IDS.flatMap((row) =>
+		exposedSpaces(seat, row).flatMap((space) => space[part])
+	);
+	if (effects.length > 0) {
+		ctx.push([
+			{
+				player,
+				kind: 'effects',
+				effects: structuredClone(effects),
+				ordered: true,
+			},
+		]);
+	}
+}
+
+/** The income steps in order. Later issues insert theirs, such as A&A's masterpieces before civilization abilities. */
+export const INCOME_STEPS = [
+	'civAbilities',
+	'tapestry',
+	'upgrade',
+	'score',
+	'income',
+	'finish',
+];
+
+/** @type {Record<string, IncomeStep>} */
+export const INCOME_STEP_KINDS = {
+	// Step 1: the civilization abilities, which #20 builds.
+	civAbilities: {
+		turns: [2, 3, 4, 5],
+		run(ctx, player, turn) {
+			ctx.push([{ player, kind: 'civAbilities', turn }]);
+		},
+	},
+	// Step 2: the first-of-neighbours bonus and the era's tapestry card.
+	tapestry: {
+		turns: [2, 3, 4],
+		run() {},
+	},
+	// Step 3: an optional upgrade (#18), then the exposed VP icons.
+	upgrade: {
+		turns: [2, 3, 4, 5],
+		run(ctx, player) {
+			ctx.push([
+				{
+					player,
+					kind: 'effects',
+					effects: [{ upgrade: { optional: true } }],
+					ordered: true,
+				},
+			]);
+		},
+	},
+	score: {
+		turns: [2, 3, 4, 5],
+		run(ctx, player) {
+			pushSpaceEffects(ctx, player, 'score');
+		},
+	},
+	// Step 4: the exposed income icons.
+	income: {
+		turns: [1, 2, 3, 4],
+		run(ctx, player) {
+			pushSpaceEffects(ctx, player, 'income');
+		},
+	},
+	// After income turn 5 the player takes no more turns (01 §4.3).
+	finish: {
+		turns: [5],
+		run(ctx, player) {
+			playerSeat(ctx.state, player).finished = true;
+			emit(ctx.state, { type: 'playerFinished', player });
+		},
+	},
+};
+
+/**
+ * Starts a player's next income turn: its number goes up, and the steps for that number follow.
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ */
+export function startIncomeTurn(ctx, player) {
+	const seat = playerSeat(ctx.state, player);
+	seat.incomeTurns += 1;
+	const turn = seat.incomeTurns;
+	emit(ctx.state, { type: 'incomeTurnStarted', player, turn });
+	const steps = INCOME_STEPS.filter((id) =>
+		INCOME_STEP_KINDS[id].turns.includes(turn)
+	);
+	ctx.push([{ player, kind: 'incomeSteps', turn, steps }]);
+}
+
+/**
+ * Runs the first step of an `incomeSteps` operation; the rest wait under whatever it pushes.
+ * @type {import('./state.js').AutomaticKind}
+ */
+export function runIncomeSteps(ctx, op) {
+	const [step, ...rest] = op.steps;
+	if (!step) {
+		return;
+	}
+	if (rest.length) {
+		const { id: _id, batch: _batch, ...kept } = op;
+		ctx.push([{ ...kept, steps: rest }]);
+	}
+	const kind = INCOME_STEP_KINDS[step];
+	if (!kind) {
+		throw new Error(`There is no income step ${step}.`);
+	}
+	kind.run(ctx, /** @type {number} */ (op.player), op.turn);
+}

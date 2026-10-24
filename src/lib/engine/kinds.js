@@ -12,6 +12,7 @@ import { chooseRepeat } from './decisions/choose-repeat.js';
 import { chooseRestart } from './decisions/choose-restart.js';
 import { rollResearch } from './effects/research.js';
 import { endTurn } from './turn.js';
+import { runIncomeSteps } from './income.js';
 import { runEffects } from './effects/index.js';
 import { runSetupSteps } from './after-setup.js';
 
@@ -37,4 +38,5 @@ export const AUTOMATIC = {
 	bonus: offerBonus,
 	endTurn,
 	research: rollResearch,
+	incomeSteps: runIncomeSteps,
 };

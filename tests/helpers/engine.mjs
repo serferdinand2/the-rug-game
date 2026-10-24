@@ -67,8 +67,13 @@ const HANDOFF_EFFECTS = [
 	'gainCiv',
 ];
 
-/** Operations #14 pushes for #16 to resolve. */
-const HANDOFF_OPERATIONS = ['placeLandmark', 'placeBuilding'];
+/** Operations #14 and #15 push for later issues: placing (#16), civilization abilities (#20) and tapestry abilities (#19). */
+const HANDOFF_OPERATIONS = [
+	'placeLandmark',
+	'placeBuilding',
+	'civAbilities',
+	'tapestryAbility',
+];
 
 /**
  * Stands in for the effects and operations later issues build, recording each one they are given.

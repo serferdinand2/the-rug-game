@@ -3,6 +3,7 @@ import { PlayerError } from '../errors.js';
 import { emit } from '../events.js';
 import { seatOf } from '../state.js';
 import { advances } from './choose-advance.js';
+import { startIncomeTurn } from '../income.js';
 
 /**
  * The turns a seat may choose. The first turn must be an income turn, and there is no pass:
@@ -46,14 +47,12 @@ export const chooseTurn = {
 		}
 	},
 	resolve(ctx, decision, answer) {
+		const player = /** @type {number} */ (decision.player);
+		emit(ctx.state, { type: 'turnChosen', player, turn: answer.turn });
 		if (answer.turn === 'income') {
-			throw new Error('Income turns arrive with #15.');
+			startIncomeTurn(ctx, player);
+			return;
 		}
-		emit(ctx.state, {
-			type: 'turnChosen',
-			player: decision.player,
-			turn: answer.turn,
-		});
-		ctx.push([{ player: decision.player, kind: 'chooseAdvance' }]);
+		ctx.push([{ player, kind: 'chooseAdvance' }]);
 	},
 };

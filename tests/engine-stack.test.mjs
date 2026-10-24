@@ -189,12 +189,3 @@ test('chooseTurn offers only income on a first turn (01 §4.1)', () => {
 	);
 });
 
-test('an income turn is not built until #15', () => {
-	const state = fixture();
-	push(state, state.pending, [turn(1)]);
-	const ctx = contextFor(state, seededRandom(1), state.pending);
-	assert.throws(
-		() => chooseTurn.resolve(ctx, state.pending[0], { turn: 'income' }),
-		(e) => e.name !== 'PlayerError' && /#15/.test(e.message)
-	);
-});
