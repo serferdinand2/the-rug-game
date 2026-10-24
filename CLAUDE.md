@@ -134,7 +134,8 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
 - **#14 (advance turns)** is done (2026-10-24). The design is `docs/superpowers/specs/2026-10-24-advance-turns-design.md` and the plan is `docs/superpowers/plans/2026-10-24-advance-turns-issue-14.md`.
   - A player who has taken income turn 1 may advance when they can pay for some advance. They pay the tier cost, move one token one space, gain the tier's landmark if first (R9), then take the benefit and may pay the bonus. `chooseAdvance` answers the track, the token and the payment in one go.
   - Research, Physics, Quantum Physics, Neuroscience, Academic Research, AI Singularity, the "or" choices, the VP counters, bonuses and gaining income buildings are built. A track space is activated at most once per player per turn (R19).
-  - An unordered benefit runs its `gain` and `vp` parts first; when two parts that ask the player remain, `chooseOrder` lets them pick (Electronics, Nanotechnology, Cavalry, Mechs).
+  - An unordered benefit runs its plain gains first, then any VP counter that no other part could change; when two or more parts whose order can matter remain, `chooseOrder` lets the player pick (Electronics, Nanotechnology, Cavalry, Mechs, Nuclear Bomb, and some space tiles for #17).
+  - The final review found two problems, both fixed with tests: VP counters ran too early, and an after-setup step placed after `'start'` would never run (it now throws). #54 asks the owner whether Alien Biology scores on a track whose token AI Singularity took off; the engine scores it until then.
   - The rest is handed off by name, and each issue lists it: placing buildings and landmarks and `scoreCapital` (#16); `explore`, `exploreSpace` (R105's `fromGained`), `conquer`, `tileBenefit` (#17); `invent`, `upgrade`, `techBenefit` (#18); `tapestryOnTop` and the track achievement (#19); `gainCiv` (#20). Until then they throw an `Error` naming themselves. Tests stand in for them with `stubHandoffs()` in `tests/helpers/engine.mjs`.
   - `tests/engine-track-spaces.test.mjs` reaches each of the 48 spaces by a real advance turn.
 - **Decided 2026-10-24:**
@@ -157,6 +158,7 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
   - The owner-check rules are settled by Board Game Arena for now, not the physical box (owner). 17 are marked **BGA** in the README's "Rules conventions"; R28 and R40 were corrected to match BGA, and R66 now gives the track order from BGA's board images, so Twin Impact is in. R12 and R39 stay owner-check, because BGA has no data for them.
 - **Next:**
   - Ready now, each blocked only by #13, which is done: #15 Implement income turns, eras and the game end (next, owner); #16 Implement capital city placement and district rewards; #17 Implement exploring and conquering on the map; #18 Implement tech cards: inventing and upgrading.
+  - #54 Decide whether Alien Biology scores on a track AI Singularity emptied. The owner decides; it blocks nothing.
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
   - #10 The owner reviews all 56 tech pictures, then #10 closes.

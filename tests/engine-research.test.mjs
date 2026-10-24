@@ -273,3 +273,19 @@ test('a move answer must be one of the offered moves', () => {
 		);
 	}
 });
+
+test('until #54 decides, Alien Biology scores 5 VP on a track whose token AI Singularity took off (FAQ #9)', () => {
+	const { state: started } = startedGame(2);
+	const state = structuredClone(started);
+	state.seats[0].tracks.technology = [];
+	state.seats[0].restartedTracks = ['technology'];
+	push(state, state.pending, [
+		{
+			player: 1,
+			kind: 'effects',
+			effects: [{ research: { noBenefit: true, offTrackVp: 5 } }],
+		},
+	]);
+	run(state, rolls(2));
+	assert.equal(state.seats[0].vp, 5);
+});
