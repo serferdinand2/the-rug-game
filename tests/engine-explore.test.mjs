@@ -267,22 +267,28 @@ test('a space tile goes beside the income mat and gives its benefits', () => {
 	assert.ok(openDecisions(state).every((d) => d.kind === 'chooseTurn'));
 });
 
-test('space tile 11 conquers, then scores 1 VP per territory (R5)', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
-	const { state, random } = game([]);
+test('space tile 11 conquers, then scores 1 VP per territory (R5)', () => {
+	const { state } = game([]);
 	state.seats[0].spaceTiles = [11];
+	const random = () => 0;
 	exploreSpace(state, random);
+	// The conquer comes first: nothing is scored while its choices are open.
 	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['conquer']
+		openDecisions(state).map((d) => d.kind),
+		['chooseConquer']
 	);
-	// The conquer ran before the VP counter: the counter then scored the one territory seat 1 controls.
-	assert.equal(state.seats[0].vp, 1);
-	const types = state.events.map((e) => e.type);
-	assert.ok(
-		types.lastIndexOf('spaceExplored') < types.lastIndexOf('vpGained')
+	assert.equal(state.seats[0].vp, 0);
+	const [target] = DECISIONS.chooseConquer.answers(
+		state,
+		openDecisions(state)[0]
 	);
+	const conquered = answer(state, random, 1, 'chooseConquer', target);
+	assert.equal(conquered.seats[0].vp, 0);
+	const done = answer(conquered, random, 1, 'chooseDie', { die: 'red' });
+	// The red die's 4 VP, then the counter scores the 2 territories seat 1 controls now.
+	assert.equal(done.seats[0].vp, 4 + 2);
+	const types = done.events.map((e) => e.type);
+	assert.ok(types.lastIndexOf('conquered') < types.lastIndexOf('vpGained'));
 });
 
 test('with two space tiles held the player chooses which to explore', () => {

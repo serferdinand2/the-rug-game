@@ -18,6 +18,9 @@ import { runEffects } from './effects/index.js';
 import { choosePlacement } from './decisions/choose-placement.js';
 import { chooseExplore } from './decisions/choose-explore.js';
 import { chooseSpaceTile } from './decisions/choose-space-tile.js';
+import { chooseConquer } from './decisions/choose-conquer.js';
+import { chooseDie } from './decisions/choose-die.js';
+import { conquerDice } from './effects/conquer.js';
 import { placeBuilding, placeLandmark } from './placing.js';
 import { runSetupSteps } from './after-setup.js';
 
@@ -38,6 +41,8 @@ export const DECISIONS = {
 	choosePlacement,
 	chooseExplore,
 	chooseSpaceTile,
+	chooseConquer,
+	chooseDie,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */
@@ -51,4 +56,5 @@ export const AUTOMATIC = {
 	faceDownTapestry: playFaceDown,
 	placeBuilding,
 	placeLandmark,
+	conquerDice,
 };

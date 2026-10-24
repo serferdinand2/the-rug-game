@@ -73,6 +73,15 @@ const exploring = ({ state }) =>
 		.map((d) => [d.player, d.anywhere]);
 
 /**
+ * The open conquering decisions, as [player, anywhere, bothDice] triples.
+ * @param {{ state: any }} result
+ */
+const conquering = ({ state }) =>
+	openDecisions(state)
+		.filter((d) => d.kind === 'chooseConquer')
+		.map((d) => [d.player, d.anywhere, d.bothDice ?? null]);
+
+/**
  * The kinds of the open decisions.
  * @param {{ state: any }} result
  */
@@ -364,7 +373,8 @@ test('science 11 Quantum Physics: advance twice', (t) => {
 	reply(r, 'chooseMove', { track: 'exploration', from: 0 });
 	reply(r, 'chooseMove', { track: 'military', from: 0 });
 	assert.deepEqual(r.seat.tracks.exploration, [1]);
-	assert.deepEqual(handed(r), [['conquer', {}]]);
+	// Archery, reached by the second advance, conquers.
+	assert.deepEqual(conquering(r), [[r.player, false, null]]);
 });
 
 test('science 12 Alien Biology: 4 rolls with the X, 5 VP for each that would push past space 12', (t) => {
@@ -491,7 +501,15 @@ test('technology 12 AI Singularity: 1 of each resource, and the token starts aga
 
 test('military 1 Archery: conquer', (t) => {
 	const r = onto(t, 'military', 1);
-	assert.deepEqual(handed(r), [['conquer', {}]]);
+	assert.deepEqual(conquering(r), [[r.player, false, null]]);
+	// Seat 2 starts on 2_0; of its three neighbours it takes 1_-1.
+	reply(r, 'chooseConquer', { hex: '1_-1' });
+	assert.equal(r.seat.outposts, 7);
+	assert.deepEqual(r.state.hexes['1_-1'].outposts, [
+		{ seat: r.player, toppled: false },
+	]);
+	// One die of the two is left to choose.
+	assert.deepEqual(open(r), ['chooseDie']);
 });
 
 test('military 2 Bladed Weapons: a tapestry card; the bonus pays for an armory', (t) => {
@@ -505,6 +523,12 @@ test('military 3 Walls: conquer, or an armory', (t) => {
 	const r = onto(t, 'military', 3);
 	reply(r, 'chooseOption', { option: 1 });
 	assert.deepEqual(placing(r), ['armory']);
+});
+
+test('military 3 Walls: the conquer option', (t) => {
+	const r = onto(t, 'military', 3);
+	reply(r, 'chooseOption', { option: 0 });
+	assert.deepEqual(conquering(r), [[r.player, false, null]]);
 });
 
 test('military 4 Standing Army: the Barracks, 1 worker and 1 VP per territory tile', (t) => {
@@ -522,13 +546,16 @@ test('military 5 Cavalry: conquer and an armory, in the order you choose', (t) =
 	reply(r, 'chooseOrder', { effect: 1 });
 	assert.deepEqual(placing(r), ['armory']);
 	place(r);
-	assert.deepEqual(handed(r), [['conquer', {}]]);
+	assert.deepEqual(conquering(r), [[r.player, false, null]]);
 });
 
 test('military 6 Gunpowder: a tapestry card and conquer; the bonus pays for an armory', (t) => {
 	const r = onto(t, 'military', 6);
 	assert.equal(r.seat.hand.length, 1);
-	assert.deepEqual(handed(r), [['conquer', {}]]);
+	// The conquest comes first; the bonus waits behind it.
+	assert.deepEqual(conquering(r), [[r.player, false, null]]);
+	reply(r, 'chooseConquer', { hex: '1_-1' });
+	reply(r, 'chooseDie', { die: 'red' });
 	assert.deepEqual(open(r), ['chooseBonus']);
 });
 
@@ -536,12 +563,26 @@ test('military 7 Tanks: the Tank Factory, then conquer with both dice against an
 	const r = onto(t, 'military', 7);
 	assert.deepEqual(landing(r), ['tank-factory']);
 	place(r);
-	assert.deepEqual(handed(r), [['conquer', { bothDice: 'ifOpponent' }]]);
+	assert.deepEqual(conquering(r), [[r.player, false, 'ifOpponent']]);
+	// 1_-1 is an empty printed territory, so Tanks gives one die only (R17).
+	reply(r, 'chooseConquer', { hex: '1_-1' });
+	assert.deepEqual(open(r), ['chooseDie']);
 });
 
 test('military 8 Warplanes: conquer anywhere; the bonus pays for a tapestry card', (t) => {
 	const r = onto(t, 'military', 8);
-	assert.deepEqual(handed(r), [['conquer', { anywhere: true }]]);
+	assert.deepEqual(conquering(r), [[r.player, true, null]]);
+	// Anywhere: seat 1's start territory is open to conquer too, though its two outposts make it off limits.
+	const offered = openDecisions(r.state).find(
+		(d) => d.kind === 'chooseConquer'
+	);
+	const hexes = DECISIONS.chooseConquer
+		.answers(r.state, offered)
+		.map((a) => a.hex);
+	assert.ok(hexes.includes('-3_-3'));
+	assert.ok(!hexes.includes('0_2'));
+	reply(r, 'chooseConquer', { hex: '-3_-3' });
+	reply(r, 'chooseDie', { die: 'red' });
 	assert.deepEqual(open(r), ['chooseBonus']);
 });
 
@@ -598,10 +639,14 @@ test('military 11 Drone Assassins: score the capital city; the bonus discards 3 
 test('military 12 Mechs: conquer with both dice and a random civilization, in the order you choose', (t) => {
 	const r = onto(t, 'military', 12);
 	reply(r, 'chooseOrder', { effect: 0 });
-	assert.deepEqual(handed(r), [
-		['conquer', { bothDice: 'always' }],
-		['gainCiv', {}],
-	]);
+	assert.deepEqual(conquering(r), [[r.player, false, 'always']]);
+	// Both dice come at once, so the civilization follows with no die to choose.
+	reply(r, 'chooseConquer', { hex: '1_-1' });
+	assert.equal(
+		r.state.events.filter((e) => e.type === 'conquerDiceRolled').length,
+		1
+	);
+	assert.deepEqual(handed(r), [['gainCiv', {}]]);
 	assert.ok(passed(r));
 });
 

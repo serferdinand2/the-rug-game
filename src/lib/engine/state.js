@@ -5,7 +5,7 @@
 /** @typedef {import('./data/ids.js').ResourceId} ResourceId */
 /** @typedef {import('./data/ids.js').BuildingId} BuildingId */
 /** @typedef {import('./random.js').Random} Random */
-/** @typedef {{ seat: number, toppled: boolean }} Outpost */
+/** @typedef {{ seat: number, toppled: boolean, toppledBy?: number }} Outpost */
 /** @typedef {{ tile: number | null, orient: number, outposts: Outpost[] }} Hex */
 /**
  * Common to every kind of seat.
