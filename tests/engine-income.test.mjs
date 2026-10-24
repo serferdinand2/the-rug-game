@@ -1,4 +1,5 @@
 // Tests for the income turn's steps by income turn number: abilities, upgrade, scoring, income and finishing (#15).
+import { buildingSpots } from '../src/lib/engine/city.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
@@ -87,12 +88,26 @@ test('income turns 2–5 hand civilization abilities to #20, and offer #18 an op
 	]);
 });
 
-test('income turns 2–5 score the exposed VP icons: Barter counts tech cards, Symbology goes to #16', (t) => {
+test('income turn 2 scores the exposed VP icons: Barter counts tech cards, Symbology scores the capital', (t) => {
 	const r = incomeAfter(t, 1, (seat) => {
 		seat.tech.bottom = ['pottery', 'clocks', 'radio'];
+		// Fill the whole first row, so Symbology has a line to score.
+		for (const spot of buildingSpots(seat)) {
+			if (spot.row === 0) {
+				seat.capital.buildings.push({
+					building: 'house',
+					row: 0,
+					col: spot.col,
+				});
+			}
+		}
 	});
-	assert.equal(r.seat.vp, 3);
-	assert.ok(r.calls.some((c) => c.kind === 'scoreCapital'));
+	const scored = r.events.filter((e) => e.type === 'capitalScored');
+	assert.equal(scored.length, 1);
+	assert.equal(scored[0].player, r.player);
+	assert.ok(scored[0].rows >= 1);
+	// Barter's 3 VP, plus 1 VP for each complete row and column.
+	assert.equal(r.seat.vp, 3 + scored[0].rows + scored[0].columns);
 });
 
 test("more buildings off a row show more spaces: two farms taken add Farming's food and Breeding's 4 VP", (t) => {

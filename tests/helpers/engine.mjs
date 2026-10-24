@@ -63,7 +63,6 @@ const HANDOFF_EFFECTS = [
 	'upgrade',
 	'techBenefit',
 	'tapestryOnTop',
-	'scoreCapital',
 	'gainCiv',
 ];
 

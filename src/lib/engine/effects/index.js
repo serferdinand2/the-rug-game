@@ -8,6 +8,7 @@ import { research } from './research.js';
 import { advance, regress } from './move.js';
 import { repeat } from './repeat.js';
 import { restartToken } from './restart-token.js';
+import { scoreCapital } from './score-capital.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
@@ -20,6 +21,7 @@ export const EFFECTS = {
 	regress,
 	repeat,
 	restartToken,
+	scoreCapital,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

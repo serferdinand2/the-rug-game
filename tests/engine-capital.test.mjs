@@ -631,3 +631,58 @@ test('R13: a landmark placed through the engine breaks a VP tie', () => {
 		]
 	);
 });
+
+// Scoring the capital (R13, FAQ #21)
+
+test('scoreCapital scores 1 VP per complete row and column; impassable plots count as filled, plots off the grid do not', () => {
+	const { state, random } = game(5, (seat) => {
+		for (let col = 0; col <= 6; col++) {
+			seat.capital.buildings.push({ building: 'house', row: 0, col });
+		}
+		for (const row of [3, 4, 6, 7, 8]) {
+			seat.capital.buildings.push({
+				building: 'house',
+				row: row,
+				col: 0,
+			});
+		}
+		// Covers (0, 7) and (0, 8); the plot at row -1 is off the grid.
+		seat.capital.landmarks.push({
+			landmark: 'lighthouse',
+			row: -1,
+			col: 7,
+			rotation: 0,
+		});
+	});
+	const seq = state.seq;
+	const next = resolveEffects(state, 1, [{ scoreCapital: {} }], random);
+	const scored = typesSince(next, seq).filter(
+		(e) => e.type === 'capitalScored'
+	);
+	assert.equal(scored.length, 1);
+	assert.equal(scored[0].player, 1);
+	assert.equal(scored[0].rows, 1);
+	assert.equal(scored[0].columns, 1);
+	assert.equal(next.seats[0].vp, state.seats[0].vp + 2);
+});
+
+test('scoreCapital with nothing complete scores 0 VP and still says so', () => {
+	const { state, random } = game();
+	const seq = state.seq;
+	const next = resolveEffects(state, 1, [{ scoreCapital: {} }], random);
+	const scored = typesSince(next, seq).filter(
+		(e) => e.type === 'capitalScored'
+	);
+	assert.equal(scored.length, 1);
+	assert.equal(scored[0].rows, 0);
+	assert.equal(scored[0].columns, 0);
+	assert.equal(next.seats[0].vp, state.seats[0].vp);
+});
+
+test('a full city scores 9 rows and 9 columns, 18 VP, on every basic mat', () => {
+	for (let mat = 1; mat <= 6; mat++) {
+		const { state, random } = game(mat, (seat) => fillExcept(seat, []));
+		const next = resolveEffects(state, 1, [{ scoreCapital: {} }], random);
+		assert.equal(next.seats[0].vp - state.seats[0].vp, 18, `mat ${mat}`);
+	}
+});

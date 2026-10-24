@@ -1,5 +1,6 @@
 // Tests for all 48 track spaces, each reached by an advance turn, and for the landmark race (#14).
 // Effects that later issues build are stood in for by stubHandoffs(), which records what each one is given.
+import { buildingSpots } from '../src/lib/engine/city.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
@@ -544,12 +545,26 @@ test('military 10 Nuclear Bomb: the Fusion Reactor, then 1 VP per exploration sp
 test('military 11 Drone Assassins: score the capital city; the bonus discards 3 tapestry cards for 10 VP', (t) => {
 	const r = onto(t, 'military', 11, (seat) => {
 		seat.hand = ['trap-1', 'trap-2', 'trap-3'];
+		for (const spot of buildingSpots(seat)) {
+			if (spot.row === 0) {
+				seat.capital.buildings.push({
+					building: 'house',
+					row: 0,
+					col: spot.col,
+				});
+			}
+		}
 	});
-	assert.deepEqual(handed(r), [['scoreCapital', {}]]);
+	const scored = r.state.events.filter((e) => e.type === 'capitalScored');
+	assert.equal(scored.length, 1);
+	assert.equal(scored[0].player, r.player);
+	assert.ok(scored[0].rows >= 1);
+	const lines = scored[0].rows + scored[0].columns;
+	assert.equal(r.seat.vp, lines);
 	reply(r, 'chooseBonus', {
 		pay: { tapestry: ['trap-1', 'trap-2', 'trap-3'] },
 	});
-	assert.equal(r.seat.vp, 10);
+	assert.equal(r.seat.vp, lines + 10);
 });
 
 test('military 12 Mechs: conquer with both dice and a random civilization, in the order you choose', (t) => {
