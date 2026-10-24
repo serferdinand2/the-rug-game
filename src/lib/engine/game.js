@@ -2,3 +2,4 @@
 export { createGame } from './setup.js';
 export { play } from './play.js';
 export { PlayerError } from './errors.js';
+export { view } from './view.js';
