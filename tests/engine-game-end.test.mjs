@@ -127,9 +127,7 @@ test('a passive effect for a finished player keeps its mark through a choice', (
 	assert.equal(after.seats[1].vp, 5);
 });
 
-test('a passive effect for a finished player keeps its mark through a choice of order', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a passive effect for a finished player keeps its mark through a choice of order', () => {
 	const { state: started, random } = startedGame(2);
 	const state = structuredClone(started);
 	state.seats[1].finished = true;
@@ -145,9 +143,10 @@ test('a passive effect for a finished player keeps its mark through a choice of 
 	run(state, random);
 	const after = answer(state, random, 2, 'chooseOrder', { effect: 1 });
 	// Both ran for a finished player, so both kept the passive mark: the upgrade found nothing to upgrade.
-	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['techBenefit']
+	assert.equal(
+		after.events.filter((e) => e.type === 'noTechBenefit' && e.player === 2)
+			.length,
+		1
 	);
 	assert.equal(
 		after.events.filter((e) => e.type === 'noUpgrade' && e.player === 2)

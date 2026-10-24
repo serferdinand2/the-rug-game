@@ -262,6 +262,7 @@ export function createGame({ players, version, expansions = [], random }) {
 		landmarks: LANDMARKS.map((l) => l.id),
 		achievements: Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, []])),
 		activated: [],
+		usedThisTurn: [],
 		result: null,
 		pending: [],
 		nextId: 1,

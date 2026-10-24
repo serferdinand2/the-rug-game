@@ -216,6 +216,12 @@ test('every decision kind has the full shape, and its answers pass its own check
 		},
 		chooseAdvance: { player: 1, kind: 'chooseAdvance' },
 		chooseUpgrade: { player: 1, kind: 'chooseUpgrade', optional: true },
+		chooseTechBenefit: {
+			player: 1,
+			kind: 'chooseTechBenefit',
+			icon: 'circle',
+			options: ['irrigation', 'calendar'],
+		},
 		chooseOrder: {
 			player: 1,
 			kind: 'chooseOrder',

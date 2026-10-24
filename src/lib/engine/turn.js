@@ -12,6 +12,7 @@ export function startTurn(ctx, player) {
 	const { state } = ctx;
 	state.current = player;
 	state.activated.length = 0;
+	state.usedThisTurn.length = 0;
 	emit(state, { type: 'turnStarted', player });
 	ctx.push([
 		{ player, kind: 'chooseTurn', options: turnOptions(state, player) },

@@ -131,3 +131,69 @@ export function upgrade(ctx, player, value) {
 	}
 	ctx.push([{ player, kind: 'chooseUpgrade', optional }]);
 }
+
+/**
+ * The cards a tech benefit may use: the middle row for the circle, the top row for the square.
+ * @param {import('../state.js').State} state
+ * @param {number} player
+ * @param {'circle' | 'square'} icon
+ * @returns {string[]}
+ */
+export function techBenefitOptions(state, player, icon) {
+	const rows = playerSeat(state, player).tech;
+	return [...(icon === 'circle' ? rows.middle : rows.top)];
+}
+
+/**
+ * Pushes one card's circle or square benefit without moving the card (§8).
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {string} card
+ * @param {'circle' | 'square'} icon
+ */
+export function useTechBenefit(ctx, player, card, icon) {
+	ctx.push([
+		{
+			player,
+			kind: 'effects',
+			effects: structuredClone(techCard(card)[icon]),
+			source: { tech: card, icon },
+		},
+	]);
+}
+
+/**
+ * The techBenefit effect (§8, FAQ #8): the circle of a middle-row card or the square of a top-row card, without moving it.
+ * One option is taken automatically; with none, nothing happens.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function techBenefit(ctx, player, value) {
+	const { icon } = value;
+	const options = techBenefitOptions(ctx.state, player, icon);
+	if (options.length === 0) {
+		emit(ctx.state, { type: 'noTechBenefit', player });
+		return;
+	}
+	if (options.length === 1) {
+		useTechBenefit(ctx, player, options[0], icon);
+		return;
+	}
+	ctx.push([{ player, kind: 'chooseTechBenefit', icon, options }]);
+}
+
+/**
+ * The landmark effect (§8): a landmark card's square gains its landmark and places it, if nobody owns it yet.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function landmark(ctx, player, value) {
+	const { state } = ctx;
+	const id = /** @type {string} */ (value);
+	const at = state.landmarks.indexOf(id);
+	if (at === -1) {
+		emit(state, { type: 'noLandmarkLeft', player, landmark: id });
+		return;
+	}
+	state.landmarks.splice(at, 1);
+	emit(state, { type: 'landmarkGained', player, landmark: id, tech: true });
+	ctx.push([{ player, kind: 'placeLandmark', landmark: id }]);
+}

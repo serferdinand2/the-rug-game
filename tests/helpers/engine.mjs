@@ -53,8 +53,8 @@ export function startedGame(count, options) {
 	return { state: answerSetup(state, random), random };
 }
 
-/** Effects that later issues build (#18–#20). */
-const HANDOFF_EFFECTS = ['techBenefit', 'tapestryOnTop', 'gainCiv'];
+/** Effects that later issues build (#19–#20). */
+const HANDOFF_EFFECTS = ['tapestryOnTop', 'gainCiv'];
 
 /** Operations #14 and #15 push for later issues: civilization abilities (#20) and tapestry abilities (#19). */
 const HANDOFF_OPERATIONS = ['civAbilities', 'tapestryAbility'];

@@ -481,8 +481,11 @@ test('technology 9 Electronics: upgrade and a middle-row circle, in the order yo
 		seat.tech.bottom = ['irrigation'];
 	});
 	reply(r, 'chooseOrder', { effect: 1 });
-	// The circle benefit is stood in for until task 4; the upgrade is real.
-	assert.deepEqual(handed(r), [['techBenefit', { icon: 'circle' }]]);
+	// The circle benefit ran first and found no middle-row card; then the upgrade moved Irrigation.
+	assert.equal(
+		r.state.events.filter((e) => e.type === 'noTechBenefit').length,
+		1
+	);
 	assert.deepEqual(r.seat.tech.middle, ['irrigation']);
 });
 
@@ -501,11 +504,17 @@ test('technology 11 Nanotechnology: upgrade and a top-row square in either order
 		seat.tech.bottom = ['irrigation', 'calendar', 'canned-food'];
 	});
 	reply(r, 'chooseOrder', { effect: 0 });
-	// Three cards can be upgraded, so the player picks; the square benefit follows (stood in for until task 4).
-	assert.deepEqual(handed(r), []);
+	// Three cards can be upgraded, so the player picks; the square benefit follows and finds no top-row card.
+	assert.equal(
+		r.state.events.filter((e) => e.type === 'noTechBenefit').length,
+		0
+	);
 	reply(r, 'chooseUpgrade', { card: 'calendar' });
 	assert.deepEqual(r.seat.tech.middle, ['calendar']);
-	assert.deepEqual(handed(r), [['techBenefit', { icon: 'square' }]]);
+	assert.equal(
+		r.state.events.filter((e) => e.type === 'noTechBenefit').length,
+		1
+	);
 	reply(r, 'chooseBonus', {
 		pay: { tech: ['irrigation', 'calendar', 'canned-food'] },
 	});

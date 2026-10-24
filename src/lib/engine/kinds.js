@@ -23,6 +23,7 @@ import { chooseDie } from './decisions/choose-die.js';
 import { chooseResponse } from './decisions/choose-response.js';
 import { chooseInvent } from './decisions/choose-invent.js';
 import { chooseUpgrade } from './decisions/choose-upgrade.js';
+import { chooseTechBenefit } from './decisions/choose-tech-benefit.js';
 import { conquerDice } from './effects/conquer.js';
 import { placeBuilding, placeLandmark } from './placing.js';
 import { runSetupSteps } from './after-setup.js';
@@ -49,6 +50,7 @@ export const DECISIONS = {
 	chooseResponse,
 	chooseInvent,
 	chooseUpgrade,
+	chooseTechBenefit,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */

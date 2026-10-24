@@ -1,4 +1,5 @@
 // The repeat effect: gain the benefit of a space where one of your tokens is, and you may pay its bonus (Academic Research).
+import { emit } from '../events.js';
 import { seatOf } from '../state.js';
 import { activationOps, isActivated } from '../movement.js';
 import { TRACK_IDS } from '../data/ids.js';
@@ -27,7 +28,16 @@ export function repeatable(state, player) {
  * Repeats one space. Mandatory: a single possible space is repeated without asking, and with none nothing happens.
  * @type {import('../state.js').EffectHandler}
  */
-export function repeat(ctx, player) {
+export function repeat(ctx, player, value, op) {
+	if (value?.oncePerTurn) {
+		const card = op.source?.tech;
+		const { usedThisTurn } = ctx.state;
+		if (usedThisTurn.some((u) => u.player === player && u.card === card)) {
+			emit(ctx.state, { type: 'oncePerTurnUsed', player, card });
+			return;
+		}
+		usedThisTurn.push({ player, card });
+	}
 	const options = repeatable(ctx.state, player);
 	if (options.length === 0) {
 		return;

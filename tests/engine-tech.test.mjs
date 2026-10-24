@@ -8,6 +8,7 @@ import { play } from '../src/lib/engine/play.js';
 import { upgradable } from '../src/lib/engine/tech.js';
 import { pay } from '../src/lib/engine/payment.js';
 import { TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
+import { startTurn } from '../src/lib/engine/turn.js';
 import { startedGame, readyTurn, answer, placeAll } from './helpers/engine.mjs';
 
 /**
@@ -492,4 +493,186 @@ test('an answer not offered is refused', () => {
 			{ name: 'PlayerError', message: "You can't upgrade that card." }
 		);
 	}
+});
+
+/**
+ * A started 2-player game where seat 1 runs a list of effects.
+ * @param {object[]} effects
+ * @param {(state: any) => void} [fill] - Changes the state first
+ * @param {boolean} [ordered]
+ */
+function effectsGame(effects, fill = () => {}, ordered = true) {
+	const { state: started, random } = startedGame(2);
+	const state = structuredClone(started);
+	fill(state);
+	state.pending.length = 0;
+	push(state, state.pending, [
+		{ player: 1, kind: 'effects', effects, ordered },
+	]);
+	run(state, random);
+	return { state, random };
+}
+
+test('Electronics may take the circle of the card it just upgraded (FAQ #8)', () => {
+	const { state } = effectsGame(
+		[{ upgrade: {} }, { techBenefit: { icon: 'circle' } }],
+		(s) => {
+			s.seats[0].tech.bottom = ['irrigation'];
+		}
+	);
+	// The upgrade gave 1 food, and the card, now in the middle row, gave its circle again.
+	assert.equal(
+		state.seats[0].resources.food,
+		startedGame(2).state.seats[0].resources.food + 2
+	);
+	assert.deepEqual(state.seats[0].tech.middle, ['irrigation']);
+	assert.equal(events(state, 'noTechBenefit').length, 0);
+});
+
+test('Nanotechnology gives the square of a top-row card without moving it', () => {
+	const { state, random } = effectsGame(
+		[{ techBenefit: { icon: 'square' } }],
+		(s) => {
+			s.seats[0].tech.top = ['irrigation', 'nail'];
+		}
+	);
+	const [open] = openDecisions(state);
+	assert.equal(open.kind, 'chooseTechBenefit');
+	assert.equal(open.icon, 'square');
+	assert.deepEqual(open.options, ['irrigation', 'nail']);
+	assert.deepEqual(DECISIONS.chooseTechBenefit.answers(state, open), [
+		{ card: 'irrigation' },
+		{ card: 'nail' },
+	]);
+	const next = play(
+		state,
+		1,
+		{ decision: open.id, card: 'irrigation' },
+		random
+	);
+	assert.deepEqual(next.seats[0].tech.top, ['irrigation', 'nail']);
+	assert.deepEqual(
+		openDecisions(next).map((d) => [d.kind, d.building]),
+		[['choosePlacement', 'farm']]
+	);
+});
+
+test('a tech benefit with no card in that row says so, and a wrong answer is refused', () => {
+	const none = effectsGame([{ techBenefit: { icon: 'circle' } }]);
+	assert.equal(events(none.state, 'noTechBenefit').length, 1);
+	assert.equal(openDecisions(none.state).length, 0);
+	const { state, random } = effectsGame(
+		[{ techBenefit: { icon: 'circle' } }],
+		(s) => {
+			s.seats[0].tech.middle = ['irrigation', 'calendar'];
+			s.seats[0].tech.top = ['nail'];
+		}
+	);
+	const [open] = openDecisions(state);
+	assert.throws(
+		() => play(state, 1, { decision: open.id, card: 'nail' }, random),
+		/Choose one of the cards offered\./
+	);
+	assert.throws(
+		() => play(state, 1, { decision: open.id }, random),
+		/Choose one of the cards offered\./
+	);
+});
+
+test('an Assembly Line chain ends by itself (R19)', () => {
+	const { state } = effectsGame(
+		[{ techBenefit: { icon: 'circle' } }],
+		(s) => {
+			s.seats[0].tech.middle = ['assembly-line'];
+			s.seats[0].tech.top = ['lithium-ion-battery'];
+		}
+	);
+	// Assembly Line's circle took Lithium-Ion Battery's square, a repeat with nothing to repeat.
+	assert.equal(openDecisions(state).length, 0);
+	assert.deepEqual(state.usedThisTurn, [
+		{ player: 1, card: 'lithium-ion-battery' },
+	]);
+});
+
+test("a landmark card's square places its landmark (#16)", () => {
+	const { state } = effectsGame([{ upgrade: {} }], (s) => {
+		s.seats[0].tech.middle = ['bakery'];
+		s.seats[0].incomeMat.buildings.farm = 4;
+	});
+	assert.ok(!state.landmarks.includes('bakery'));
+	const gained = events(state, 'landmarkGained').at(-1);
+	assert.equal(gained.landmark, 'bakery');
+	assert.equal(gained.tech, true);
+	assert.deepEqual(
+		openDecisions(state).map((d) => [d.kind, d.landmark]),
+		[['choosePlacement', 'bakery']]
+	);
+});
+
+test('a landmark already placed gives nothing when its square is reused', () => {
+	const { state } = effectsGame(
+		[{ techBenefit: { icon: 'square' } }],
+		(s) => {
+			s.seats[0].tech.top = ['bakery'];
+			s.landmarks.splice(s.landmarks.indexOf('bakery'), 1);
+		}
+	);
+	assert.equal(events(state, 'noLandmarkLeft').length, 1);
+	assert.equal(events(state, 'noLandmarkLeft')[0].landmark, 'bakery');
+	assert.equal(openDecisions(state).length, 0);
+});
+
+test("Lithium-Ion Battery's square works once per turn (FAQ #6)", () => {
+	const { state, random } = effectsGame(
+		[{ upgrade: {} }, { techBenefit: { icon: 'square' } }],
+		(s) => {
+			s.seats[0].tech.middle = ['lithium-ion-battery'];
+			s.seats[0].tracks.exploration = [10];
+		}
+	);
+	// Its upgrade repeated exploration 10 once; Nanotechnology's square then found it used.
+	assert.equal(events(state, 'spaceActivated').length, 1);
+	assert.equal(events(state, 'oncePerTurnUsed').length, 1);
+	assert.deepEqual(
+		events(state, 'oncePerTurnUsed')[0].card,
+		'lithium-ion-battery'
+	);
+	assert.equal(openDecisions(state).length, 0);
+	// Next turn it works again.
+	startTurn(contextFor(state, random, state.pending), 1);
+	assert.deepEqual(state.usedThisTurn, []);
+});
+
+test("Clocks advances on technology without the space's benefit, but still takes a landmark", () => {
+	const { state } = effectsGame([{ upgrade: {} }], (s) => {
+		s.seats[0].tech.bottom = ['clocks'];
+		s.seats[0].tracks.technology = [3];
+	});
+	assert.deepEqual(state.seats[0].tracks.technology, [4]);
+	assert.equal(events(state, 'spaceActivated').length, 0);
+	assert.ok(
+		events(state, 'landmarkGained').some((e) => e.landmark === 'forge')
+	);
+});
+
+test('Time Travel goes back on exploration or military without a benefit', () => {
+	const { state, random } = effectsGame(
+		[{ techBenefit: { icon: 'square' } }],
+		(s) => {
+			s.seats[0].tech.top = ['time-travel'];
+			s.seats[0].tracks.exploration = [5];
+			s.seats[0].tracks.military = [5];
+		}
+	);
+	const [open] = openDecisions(state);
+	assert.equal(open.kind, 'chooseMove');
+	assert.equal(open.benefit, false);
+	const next = play(
+		state,
+		1,
+		{ decision: open.id, track: 'military', from: 5 },
+		random
+	);
+	assert.deepEqual(next.seats[0].tracks.military, [4]);
+	assert.equal(events(next, 'spaceActivated').length, 0);
 });

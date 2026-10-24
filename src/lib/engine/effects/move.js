@@ -9,8 +9,9 @@ import { movableFroms, moveToken } from '../movement.js';
  * @param {number} player
  * @param {import('../data/ids.js').TrackId[]} tracks
  * @param {'advance' | 'regress'} direction
+ * @param {boolean} benefit - False for the X (noBenefit): landmarks are still gained, but no benefit or bonus
  */
-function moveOnOneOf(ctx, player, tracks, direction) {
+function moveOnOneOf(ctx, player, tracks, direction, benefit) {
 	const seat = seatOf(ctx.state, player);
 	const options = tracks.flatMap((track) =>
 		movableFroms(seat, track, direction).map((from) => ({ track, from }))
@@ -21,7 +22,7 @@ function moveOnOneOf(ctx, player, tracks, direction) {
 	if (options.length === 1) {
 		const [{ track, from }] = options;
 		const to = direction === 'advance' ? from + 1 : from - 1;
-		moveToken(ctx, player, { track, from, to, benefit: true });
+		moveToken(ctx, player, { track, from, to, benefit });
 		return;
 	}
 	ctx.push([
@@ -30,7 +31,7 @@ function moveOnOneOf(ctx, player, tracks, direction) {
 			kind: 'chooseMove',
 			direction,
 			options,
-			benefit: true,
+			benefit,
 			optional: false,
 		},
 	]);
@@ -41,7 +42,7 @@ function moveOnOneOf(ctx, player, tracks, direction) {
  * @type {import('../state.js').EffectHandler}
  */
 export function advance(ctx, player, value) {
-	moveOnOneOf(ctx, player, value.tracks, 'advance');
+	moveOnOneOf(ctx, player, value.tracks, 'advance', !value.noBenefit);
 }
 
 /**
@@ -49,5 +50,5 @@ export function advance(ctx, player, value) {
  * @type {import('../state.js').EffectHandler}
  */
 export function regress(ctx, player, value) {
-	moveOnOneOf(ctx, player, value.tracks, 'regress');
+	moveOnOneOf(ctx, player, value.tracks, 'regress', !value.noBenefit);
 }
