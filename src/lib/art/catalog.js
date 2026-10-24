@@ -66,7 +66,8 @@ export const GROUPS = Object.freeze(
 			kind: 'illustration',
 			issue: 11,
 		},
-		{ id: 'resource', label: 'Resources', kind: 'icon', issue: 5 },
+		{ id: 'resource-24', label: 'Resources · native 24 px', kind: 'icon', issue: 5 },
+		{ id: 'resource-48', label: 'Resources · native 48 px', kind: 'icon', issue: 5 },
 		{ id: 'building', label: 'Income buildings', kind: 'icon', issue: 5 },
 		{ id: 'piece', label: 'Player pieces', kind: 'icon', issue: 5 },
 		{ id: 'die', label: 'Dice faces', kind: 'icon', issue: 5 },
@@ -466,13 +467,22 @@ const LISTS = {
 			['topiary', 'Topiary'],
 		],
 	},
-	resource: {
+	'resource-24': {
 		base: [
-			['coin', 'Coin'],
-			['worker', 'Worker'],
-			['food', 'Food'],
-			['culture', 'Culture'],
-			['any', 'Any resource'],
+			['coin', 'Coin · 24 px'],
+			['worker', 'Worker · 24 px'],
+			['food', 'Food · 24 px'],
+			['culture', 'Culture · 24 px'],
+			['any', 'Any resource · 24 px'],
+		],
+	},
+	'resource-48': {
+		base: [
+			['coin', 'Coin · 48 px'],
+			['worker', 'Worker · 48 px'],
+			['food', 'Food · 48 px'],
+			['culture', 'Culture · 48 px'],
+			['any', 'Any resource · 48 px'],
 		],
 	},
 	building: {

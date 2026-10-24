@@ -47,7 +47,7 @@
 <script>
 	import { ComponentEvent } from '../../component-event.js';
 	import { TIER_SPACES, tierOf } from '../../track-shape.js';
-	import { trackColor } from '../../ui.js';
+	import { trackColor, artUrl } from '../../ui.js';
 	import ProgressLanes from './ProgressLanes.svelte';
 	import TierPrice from './TierPrice.svelte';
 	import TrackSpace from './TrackSpace.svelte';
@@ -132,6 +132,12 @@
 	style:--rg-track-color={trackColor(id)}
 	style:--rg-track-spaces={spaces.length}>
 	<div class="rg-track--heading">
+		<img
+			class="rg-track--symbol"
+			src={artUrl(`track/${id}`)}
+			width="24"
+			height="24"
+			alt="" />
 		<h2 class="rg-track--name">{name}</h2>
 	</div>
 	<div class="rg-track--costs">
@@ -193,6 +199,11 @@
 		font: var(--weight-title) var(--font-size-sm) / var(--leading-none)
 			var(--font-title);
 		letter-spacing: var(--letter-spacing-title);
+	}
+
+	.rg-track--symbol {
+		flex: none;
+		image-rendering: pixelated;
 	}
 
 	.rg-track--costs,

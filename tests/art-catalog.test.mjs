@@ -18,7 +18,8 @@ const EXPECTED_COUNTS = {
 	'landmark-card': { pp: 5, aa: 5 },
 	'space-tile': { base: 15, pp: 4 },
 	masterpiece: { aa: 20 },
-	resource: { base: 5 },
+	'resource-24': { base: 5 },
+	'resource-48': { base: 5 },
 	building: { base: 4 },
 	piece: { base: 18 },
 	die: { base: 14, aa: 1 },
@@ -100,10 +101,10 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 141 icons and 82 boards', () => {
+test('there are 294 illustrations, 146 icons and 82 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
-	assert.equal(count('icon'), 141);
+	assert.equal(count('icon'), 146);
 	assert.equal(count('board'), 82);
 });
 
@@ -152,7 +153,7 @@ test('spot checks match the agreed spellings', () => {
 		['tech/lithium-ion-battery', 'Lithium-Ion Battery', 'base', 10],
 		['civ/the-chosen', 'The Chosen', 'base', 8],
 		['die/black-tile-benefit', 'Black die: tile benefit (?)', 'base', 5],
-		['resource/any', 'Any resource', 'base', 5],
+		['resource-24/any', 'Any resource · 24 px', 'base', 5],
 		['territory-tile/48', 'Territory tile 48', 'base', 6],
 		['capital-mat/city-in-a-bottle', 'City in a Bottle', 'ff', 6],
 		['space-tile/technology-5-vp', 'Technology 5 VP', 'pp', 11],

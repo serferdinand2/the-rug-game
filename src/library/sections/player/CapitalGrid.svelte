@@ -142,7 +142,15 @@
 <Section
 	name="CapitalGrid"
 	area="player"
-	description="A 9×9 capital: plots coloured by building, small red Xs on impassable plots and dashed district lines. Landmarks sit over the plots they cover, with controls until they are locked. Completed rows, columns or districts get one flat green rectangle each, and a green outline asks for a placement.">
+	description="A 9×9 capital assembled from the approved terrain tiles, with the four income-building SVGs, small red Xs on impassable plots and district lines. The supplied visual seed chooses repeatable variants for this game; the plot mask stays unchanged. The six full mat images in Art are reference examples only. Landmarks and placement controls work over the composed tiles.">
+	<Example
+		label={'biome="wetland" terrainSeed={42} · same plot layout, composed from tile SVGs'}
+		width={468}>
+		<CapitalGrid
+			plots={YOURS}
+			biome="wetland"
+			terrainSeed={42} />
+	</Example>
 	<Example
 		label={`Interactive: PlacementTray + CapitalGrid + CompletionCounters
 pieces=${position ? `[Lighthouse at row ${position.row}, col ${position.col}, rotation ${rotation}${locked ? ', locked' : ''}]` : '[]'} awaitingPlacement={${!locked}} highlight=${(hovered ?? toggled) ? `"${hovered ?? toggled}"` : '{null}'}

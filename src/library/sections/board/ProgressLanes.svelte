@@ -27,7 +27,7 @@
 <Section
 	name="ProgressLanes"
 	area="board"
-	description="The players' progress under a track: one lane per player at the table, a line from the start to the middle of the space reached with a square end mark, and a dashed preview to the next space while that space is hovered.">
+	description="The players' progress under a track: one lane per player, ending in the approved player-color token SVG, with a dashed preview to the next space while it is hovered.">
 	<Example
 		label={'players={You 4, Ana 2, Marko 5, Vera 1}'}
 		wide

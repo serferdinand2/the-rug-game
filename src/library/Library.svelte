@@ -45,7 +45,14 @@
 <script>
 	import ArtTile from './ArtTile.svelte';
 	import Section from './Section.svelte';
-	import { ART_SECTIONS, PARTS, PICTURES, artAnchor } from './art.js';
+	import {
+		ART_SECTIONS,
+		PARTS,
+		PICTURES,
+		DEFERRED_ART,
+		artAnchor,
+		artDescription,
+	} from './art.js';
 	import { EXPANSIONS } from '../lib/art/catalog.js';
 
 	const EXPANSION_NAMES = new Map(
@@ -127,7 +134,9 @@
 						href="#{artAnchor(section.id)}"
 						>{section.label}
 						<span class="rg-library--count"
-							>{section.drawn}/{section.total}</span
+							>{DEFERRED_ART[section.id]
+								? 'Text / later'
+								: `${section.drawn}/${section.total}`}</span
 						></a>
 				</li>
 			{/each}
@@ -154,28 +163,28 @@
 				id={artAnchor(section.id)}
 				name={section.label}
 				area="art"
-				description="{section.total} assets, {section.drawn} drawn; {issueText(
-					section.issues
-				)}.{section.id === 'landmark'
-					? ' Largest footprint first, each in its footprint’s shape at 32 pixels per plot, under the plot grid.'
-					: ''}">
-				{#each section.lists as list (list.expansion)}
-					{#if list.expansion}
-						<h3 class="rg-library--expansion">{list.expansion}</h3>
-					{/if}
-					{#each list.tiles as tile (tile.asset.id)}
-						<ArtTile
-							name={tile.asset.name}
-							id={tile.asset.id}
-							example={tile.asset.example}
-							picture={PICTURES.get(tile.asset.id)}
-							plots={tile.plots}
-							expansion={tile.showExpansion
-								? EXPANSION_NAMES.get(tile.asset.expansion)
-								: undefined}
-							issue={tile.asset.issue} />
+				description={artDescription(section)}>
+				{#if !DEFERRED_ART[section.id]}
+					{#each section.lists as list (list.expansion)}
+						{#if list.expansion}
+							<h3 class="rg-library--expansion">
+								{list.expansion}
+							</h3>
+						{/if}
+						{#each list.tiles as tile (tile.asset.id)}
+							<ArtTile
+								name={tile.asset.name}
+								id={tile.asset.id}
+								example={tile.asset.example}
+								picture={PICTURES.get(tile.asset.id)}
+								plots={tile.plots}
+								expansion={tile.showExpansion
+									? EXPANSION_NAMES.get(tile.asset.expansion)
+									: undefined}
+								issue={tile.asset.issue} />
+						{/each}
 					{/each}
-				{/each}
+				{/if}
 			</Section>
 		{/each}
 	</main>

@@ -78,3 +78,5 @@ The Lighthouse (`art/drawings/landmark/lighthouse.js`) is the worked example:
   - Use `seededRandom(seed)`, never `Math.random()`, so a drawing comes out the same every time.
   - Give every part in one scene the same random stream.
 - **Review.** The owner approves art in the Art part of the component library (`/components.html`), until the players' card gallery (#47) exists. It replaced the standalone `art/preview/index.html` gallery on 2026-10-21.
+
+Resource symbols have two active native sizes: 24×24 and 48×48. Their owner-supplied PNGs and exact-color SVG vectors are in `art/exports/resources-24px-png/` and `art/exports/resources-48px-png/`; the rendered SVGs are in `static/art/resource-24/` and `static/art/resource-48/`. Each source pixel is either opaque or fully transparent. The former 32×32 set is deprecated and archived in `docs/art/archive/resource-32-deprecated/`.

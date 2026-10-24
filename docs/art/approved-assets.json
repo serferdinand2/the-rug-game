@@ -1,33 +1,63 @@
 [
   {
-    "id": "resource/coin",
-    "width": 32,
-    "height": 32,
-    "sha256": "d8d20c292cfb6852c5f746fb712435c0a108125fd91b242d0002b16455db2200"
+    "id": "resource-24/coin",
+    "width": 24,
+    "height": 24,
+    "sha256": "e1903fae99894f3b4d0c49b51ae12f8dd4fbea61fba547b2ded84bc465288b3e"
   },
   {
-    "id": "resource/worker",
-    "width": 32,
-    "height": 32,
-    "sha256": "590a00fa325e05efaae1c56a54652d31199eb5fb77585df5408e7757de7b54da"
+    "id": "resource-24/worker",
+    "width": 24,
+    "height": 24,
+    "sha256": "76bce91c4a316c719485800cd2f9e4e59e7e13f02ff6aa4c3c60a3d93299059b"
   },
   {
-    "id": "resource/food",
-    "width": 32,
-    "height": 32,
-    "sha256": "606afb372662c9169f36b7c27a3584cee256fa0aa5a343e86db05143e6e10aa8"
+    "id": "resource-24/food",
+    "width": 24,
+    "height": 24,
+    "sha256": "d9c5f8844abcf3b87a31148b04d14e2b71de095fe40e852445090b5a9ad29d8b"
   },
   {
-    "id": "resource/culture",
-    "width": 32,
-    "height": 32,
-    "sha256": "5713626dd8ce9c8854279c8ecc3863ca562de55fd4787559642bc9d852522e1d"
+    "id": "resource-24/culture",
+    "width": 24,
+    "height": 24,
+    "sha256": "b862651c0058886a1d70b6a78b3957e287f9358301b29bfeba4cdbdfea35eb6e"
   },
   {
-    "id": "resource/any",
-    "width": 32,
-    "height": 32,
-    "sha256": "c5792e80e17a58aa59de23546d2c92782a2ffeb228fbe05fba46beb40db22a1e"
+    "id": "resource-24/any",
+    "width": 24,
+    "height": 24,
+    "sha256": "fa5cbf80fbb0568b43e7ef26cb0c171e2cba52e33324d3d7be873cb9769cea90"
+  },
+  {
+    "id": "resource-48/coin",
+    "width": 48,
+    "height": 48,
+    "sha256": "e28bc4ba5227049a3bbd4bc6d2833195447738a3b319c844aec79b06262b2268"
+  },
+  {
+    "id": "resource-48/worker",
+    "width": 48,
+    "height": 48,
+    "sha256": "9ed19be74ee8c6389edbc4ef116e48fcfa18e079661a1b9d1d56a5f935056da2"
+  },
+  {
+    "id": "resource-48/food",
+    "width": 48,
+    "height": 48,
+    "sha256": "0fbad664aa341bb2ab0c999cb59e2feac1416b8697a549f632c27509aec525a0"
+  },
+  {
+    "id": "resource-48/culture",
+    "width": 48,
+    "height": 48,
+    "sha256": "5d179e3b33cb774b93c7f1e567f198e514e71f2981ba600cbf9780d3d3b1a463"
+  },
+  {
+    "id": "resource-48/any",
+    "width": 48,
+    "height": 48,
+    "sha256": "091ebd016d8a6de7a080386578620baa460dcec1eef0a80ccf1d87b219406641"
   },
   {
     "id": "building/market",

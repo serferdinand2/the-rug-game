@@ -312,3 +312,5 @@ When revising a reference:
 3. Replace the relevant current PNGs in `screens/` and the root README's **Current interface** section in the same commit.
 4. Retain `archivedpngmockups/` as historical material. Its generator creates the earlier design only; it must never overwrite the current `main-screen.html`.
 5. Record newly approved product or rules decisions in the design specification as well, rather than inferring them from a fixture label.
+
+The component library now uses the issue #5 SVG artwork in resource symbols, income-building plots, track headings and player progress tokens. CapitalGrid composes its background from tile SVGs using the supplied biome and visual setup seed. The six full mat SVGs remain examples only; actual game mats are composed from tiles.

@@ -5,6 +5,7 @@
 /** @typedef {ResourceId | 'any'} CostSymbol - A price symbol: one resource, or one resource of any type */
 /** @typedef {'sea' | 'desert' | 'forest' | 'grassland' | 'mountain' | 'unexplored'} Terrain */
 /** @typedef {1 | 2 | 3 | 4 | 5} Seat - A table seat, which sets the player's colour */
+/** @typedef {'mountain' | 'wetland' | 'tropical' | 'desert' | 'grassland' | 'forest'} CapitalBiome */
 
 /** The four tracks, in board order. @type {readonly { id: TrackId, name: string }[]} */
 export const TRACKS = Object.freeze([
@@ -54,7 +55,7 @@ export function playerColor(seat) {
 }
 
 /**
- * The placeholder colour of a resource, until the resource icons land.
+ * The resource's accent colour for controls and labels around the approved artwork.
  * @param {ResourceId} resource
  * @returns {string} A token reference, such as 'var(--coin)'.
  */
@@ -78,6 +79,43 @@ export function terrainColor(terrain) {
  */
 export function artUrl(id) {
 	return `/art/${id}.svg`;
+}
+
+/** Player artwork suffixes in seat order, matching the player design tokens. */
+export const PLAYER_ART_COLORS = Object.freeze([
+	'blue',
+	'red',
+	'green',
+	'yellow',
+	'purple',
+]);
+
+/**
+ * The approved colored SVG for a player piece.
+ * @param {'token' | 'outpost' | 'outpost-toppled'} piece
+ * @param {Seat} seat
+ * @returns {string}
+ */
+export function playerPieceUrl(piece, seat) {
+	return artUrl(`piece/${piece}-${PLAYER_ART_COLORS[seat - 1]}`);
+}
+
+/**
+ * A repeatable terrain variant for one plot in a game's capital composition.
+ * The screen supplies the setup seed and plot mask; this does not change the rules layout.
+ * @param {CapitalBiome} biome
+ * @param {boolean} blocked
+ * @param {number} index - Row-major plot index
+ * @param {number} seed - This game's visual setup seed
+ * @returns {string}
+ */
+export function capitalTileUrl(biome, blocked, index, seed) {
+	const hash =
+		(Math.imul(seed | 0, 1664525) ^ Math.imul(index + 1, 1013904223)) >>> 0;
+	const variant = String((hash % (blocked ? 6 : 8)) + 1).padStart(2, '0');
+	return artUrl(
+		`capital-terrain/${biome}-${blocked ? 'blocked' : 'open'}-${variant}`
+	);
 }
 
 const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];

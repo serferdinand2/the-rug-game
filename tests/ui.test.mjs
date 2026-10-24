@@ -12,6 +12,8 @@ import {
 	resourceColor,
 	terrainColor,
 	artUrl,
+	playerPieceUrl,
+	capitalTileUrl,
 	roman,
 } from '../src/lib/ui.js';
 
@@ -19,6 +21,63 @@ const tokens = readFileSync(
 	new URL('../src/styles/tokens.css', import.meta.url),
 	'utf8'
 );
+
+test('every seat resolves to its released player-piece SVGs', () => {
+	for (const [index, color] of [
+		'blue',
+		'red',
+		'green',
+		'yellow',
+		'purple',
+	].entries()) {
+		for (const piece of ['token', 'outpost', 'outpost-toppled']) {
+			const url = playerPieceUrl(piece, index + 1);
+			assert.equal(url, `/art/piece/${piece}-${color}.svg`);
+			assert.match(
+				readFileSync(
+					new URL(`../static${url}`, import.meta.url),
+					'utf8'
+				),
+				/<svg/
+			);
+		}
+	}
+});
+
+test('capital compositions use released tiles and retain the supplied plot state', () => {
+	for (const biome of [
+		'mountain',
+		'wetland',
+		'tropical',
+		'desert',
+		'grassland',
+		'forest',
+	]) {
+		for (const blocked of [false, true]) {
+			for (let index = 0; index < 81; index++) {
+				const url = capitalTileUrl(biome, blocked, index, 42);
+				assert.match(
+					url,
+					new RegExp(
+						`/${biome}-${blocked ? 'blocked' : 'open'}-0[1-${blocked ? 6 : 8}]\\.svg$`
+					)
+				);
+				assert.match(
+					readFileSync(
+						new URL(`../static${url}`, import.meta.url),
+						'utf8'
+					),
+					/<svg/
+				);
+				assert.equal(url, capitalTileUrl(biome, blocked, index, 42));
+			}
+		}
+	}
+	assert.notEqual(
+		capitalTileUrl('wetland', true, 0, 42),
+		capitalTileUrl('wetland', true, 0, 43)
+	);
+});
 
 /** @param {string} reference - A value such as 'var(--exploration)' */
 function assertDeclared(reference) {

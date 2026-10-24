@@ -33,7 +33,7 @@
 
 <script>
 	import { SPACE_COUNT, progressSpan } from '../../track-shape.js';
-	import { playerColor } from '../../ui.js';
+	import { playerColor, playerPieceUrl } from '../../ui.js';
 
 	/** @type {ProgressLanesProps} */
 	let { players, preview = null, spaces = SPACE_COUNT, ...attr } = $props();
@@ -70,7 +70,12 @@
 			class="rg-progress-lanes--line"
 			style:--rg-progress-lanes-color={playerColor(lane.seat)}
 			style:--rg-progress-lanes-lane={lane.lane}
-			style:width="{lane.span.end * 100}%"></i>
+			style:width="{lane.span.end * 100}%"
+			><img
+				class="rg-progress-lanes--token"
+				src={playerPieceUrl('token', lane.seat)}
+				alt=""
+				draggable="false" /></i>
 		{#if lane.span.next}
 			<i
 				class="rg-progress-lanes--dash"
@@ -86,7 +91,7 @@
 </div>
 
 <style>
-	/* Lanes are --progress-lane apart; the box is exactly tall enough for the square end marks. */
+	/* Lanes are --progress-lane apart; the box is exactly tall enough for the token end marks. */
 	.rg-progress-lanes {
 		position: relative;
 		display: block;
@@ -114,17 +119,16 @@
 			color-mix(in srgb, var(--ink) 40%, transparent);
 	}
 
-	/* The square end mark, centred on the end of the line. */
-	.rg-progress-lanes--line::after {
-		content: '';
+	/* The approved player token stays centred at the same progress position. */
+	.rg-progress-lanes--token {
 		position: absolute;
 		top: calc(-1 * var(--progress-line));
 		right: calc(-1.5 * var(--progress-line));
 		width: calc(3 * var(--progress-line));
 		height: calc(3 * var(--progress-line));
 		border-radius: var(--radius);
-		background: var(--rg-progress-lanes-color);
-		box-shadow: 0 0 0 var(--border) var(--ink);
+		object-fit: contain;
+		image-rendering: pixelated;
 	}
 
 	.rg-progress-lanes--dash {

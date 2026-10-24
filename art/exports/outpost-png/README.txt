@@ -1,0 +1,1 @@
+Your edited 128×128 outpost is imported into the game art source. The upright and toppled PNGs are transparent; the toppled version is the upright flag rotated clockwise. The `players` folder contains upright and toppled PNGs in blue, red, green, yellow, and purple. `outpost.png` is the original white transparent mask you edited; the SVGs are the rebuilt game assets.

@@ -1,0 +1,1 @@
+These five 24 x 24 transparent PNGs are editable copies of the current terrain hex markers used by the card mockup. Matching SVGs are included as references. Edit the PNGs, keep their filenames and canvas size, then tell me to import your changes.

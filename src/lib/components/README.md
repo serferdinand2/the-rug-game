@@ -12,19 +12,19 @@ Add a row here, and a section in `src/library/sections/<area>/<Name>.svelte`, in
 - Geometry worth testing lives in plain modules beside this folder: `../ui.js` (ids and token helpers), `../capital.js` (the capital grid), `../placement.js` (placing landmarks) and `../track-shape.js` (track spaces and progress lanes).
 - Styles live in the component, use only the tokens in `src/styles/tokens.css`, and style only the component's own `rg-{name}` classes.
 
-## Placeholders until the art lands
+## Approved issue #5 artwork
+
+`ResourceIcon` now uses all five resource SVGs, which also updates `ResourceChip`, `CostBox` and `TierPrice`. `CapitalGrid` composes terrain tile SVGs from its supplied biome, visual seed and plot mask, and overlays the four income-building SVGs. `ProgressLanes` uses each seat's token SVG, and track headings use their track symbol. The Art area includes the full approved set, all player colors, 84 terrain variants and six explicitly labeled example mats. Dice faces, terrain hex markers and game symbols show the owner-approved text/later explanation.
+
+## Remaining placeholders
 
 These components are updated as the art issues deliver their assets. Each will show its asset by its stable catalog id (`artUrl(id)` in `../ui.js`), and its library section shows the result.
 
 | Placeholder now | Component(s) | Asset ids | Art issue |
 |---|---|---|---|
-| Coloured squares and the gold diamond | `ResourceIcon`, so also `ResourceChip`, `CostBox`, `TierPrice` | `resource/coin`, `resource/worker`, `resource/food`, `resource/culture`, `resource/any` | #5 |
-| Plot colours for buildings | `CapitalGrid` | `building/market`, `building/house`, `building/farm`, `building/armory` | #5 |
 | Flat terrain colours | `WorldMap`, the World Map icon in `BoardSwitcher` | `hex/*`, `territory-tile/*`, `terrain/*` | #5, #6 |
-| The four bands of the Advancement Tracks icon | `BoardSwitcher` | `track/*` | #5 |
-| Square end marks | `ProgressLanes` | `piece/token` | #5 |
 | Civilization names only | `PlayerChip`, `PlayerCard`, `SeatCard`, `CivChooser` | `civ/*` | #8 |
-| The plain 9×9 grid | `CapitalGrid` | `capital-mat/*` | #6 |
+| Expansion capital terrain | `CapitalGrid` | Future tiles for expansion biomes; full mats are examples only | #6 |
 
 `LandmarkPiece` already shows the drawn landmarks (`landmark/*`, #7).
 
@@ -38,7 +38,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `IconButton` | The 36px header controls (sound, history, menu, close), with the red mute slash. |
 | `Menu` | The header popover: entries as links or buttons, arrow keys and Escape. |
 | `Panel` | A chrome panel with a thin border and an optional heading. |
-| `ResourceIcon` | Placeholder price symbols: a coloured square per resource, a gold diamond for any resource. |
+| `ResourceIcon` | The five resource symbols at 16px, native 24px or native 48px, shared by prices, chips and footer costs. The native assets are 24×24 and 48×48; 16px display scales the 24px SVG. The 32px source is deprecated and archived. |
 | `Segmented` | A row of pressed/unpressed choices, single or multiple, tinted or filled. |
 | `Tabs` | The right panel's tabs, with a count, roving focus and arrow keys. |
 | `TextInput` | Labelled text fields with a hint and a validation message, and the small gold read-only code. |

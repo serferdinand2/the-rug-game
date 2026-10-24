@@ -1,11 +1,11 @@
-<!-- A placeholder price symbol until the resource icons land: a square for a resource, a gold diamond for any resource. -->
+<!-- Native 24px and 48px artwork; smaller display slots scale the 24px source. -->
 <script module>
 	/**
 	 * Properties of the ResourceIcon component itself.
 	 * @typedef {Object} ResourceIconOwnProps
 	 * @property {import('../../ui.js').CostSymbol} symbol - A resource, or 'any' for one resource of any type
-	 * @property {'small' | 'medium'} [size='small'] - small: 9px, in tier prices and chips; medium: 18px, in the footer cost
-	 * @property {string} [color] - Override the square's colour, such as a track's colour in its tier prices; defaults to the resource's colour
+	 * @property {'small' | 'medium' | 'large'} [size='small'] - small: 16px display from 24px art; medium: native 24px; large: native 48px
+	 * @property {string} [color] - Optional outline accent; approved artwork keeps its original colors
 	 * @property {boolean} [decorative=false] - Hide it from assistive technology when nearby text already names it
 	 */
 
@@ -21,7 +21,7 @@
 </script>
 
 <script>
-	import { RESOURCES, resourceColor } from '../../ui.js';
+	import { RESOURCES, artUrl } from '../../ui.js';
 
 	/** @type {ResourceIconProps} */
 	let {
@@ -38,9 +38,6 @@
 			: (RESOURCES.find((resource) => resource.id === symbol)?.name ??
 					symbol)
 	);
-	let fill = $derived(
-		symbol === 'any' ? undefined : (color ?? resourceColor(symbol))
-	);
 </script>
 
 <i
@@ -52,12 +49,19 @@
 	class="rg-resource-icon rg-resource-icon--{size} {attr.class
 		? attr.class
 		: ''}"
-	class:rg-resource-icon--any={symbol === 'any'}
-	style:--rg-resource-icon-color={fill}>{symbol === 'any' ? '◆' : ''}</i>
+	class:rg-resource-icon--accent={Boolean(color)}
+	style:--rg-resource-icon-color={color}>
+	<img
+		src={artUrl(`${size === 'large' ? 'resource-48' : 'resource-24'}/${symbol}`)}
+		width={size === 'large' ? 48 : 24}
+		height={size === 'large' ? 48 : 24}
+		alt=""
+		draggable="false" />
+</i>
 
 <style>
 	.rg-resource-icon {
-		display: inline-grid;
+		display: inline-flex;
 		flex: none;
 		place-items: center;
 		border-radius: var(--radius);
@@ -66,35 +70,29 @@
 	}
 
 	.rg-resource-icon--small {
-		width: 9px;
-		height: 9px;
-		border: var(--border) solid
-			color-mix(in srgb, var(--rg-resource-icon-color) 75%, var(--text));
-		background: var(--rg-resource-icon-color);
+		width: 16px;
+		height: 16px;
 	}
 
 	.rg-resource-icon--medium {
-		width: 18px;
-		height: 18px;
-		border: var(--border-thick) solid
-			color-mix(in srgb, var(--rg-resource-icon-color) 68%, var(--text));
-		background: var(--rg-resource-icon-color);
-		box-shadow: inset 0 0 0 3px
-			color-mix(in srgb, var(--ink) 33%, transparent);
+		width: 24px;
+		height: 24px;
 	}
 
-	.rg-resource-icon--any {
-		border: 0;
-		background: none;
-		box-shadow: none;
-		color: var(--gold);
+	.rg-resource-icon--large {
+		width: 48px;
+		height: 48px;
 	}
 
-	.rg-resource-icon--any.rg-resource-icon--small {
-		font-size: var(--font-size-3xs);
+	.rg-resource-icon--accent {
+		outline: var(--border) solid var(--rg-resource-icon-color);
 	}
 
-	.rg-resource-icon--any.rg-resource-icon--medium {
-		font-size: var(--font-size-xl);
+	.rg-resource-icon img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		image-rendering: pixelated;
 	}
 </style>

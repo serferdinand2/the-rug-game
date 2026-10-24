@@ -18,9 +18,11 @@ The six full capital mat SVGs are examples only. Actual capital mats must be gen
 
 The owner-reviewed icons and small pieces from **#5** are available as SVGs in `static/art/`, with matching drawing sources and stable catalog ids. [The release notes](docs/art/issue-5.md) list the approved set and explain the text rendering or later artwork for dice faces, terrain hex markers and game symbols. [The complete review mockup](docs/art/archive/2026-10-23-issue-5/README.md), including its linked capital terrain page, is archived as a frozen reference.
 
-| Approved small-piece review | Reviewed capital terrain |
+| Resource components using the approved SVGs | Capital composed from terrain tiles |
 |---|---|
-| ![Archived review of resources, income buildings and player pieces](docs/ui/screens/issue-5-icons.png) | ![Archived review of varied capital terrain plots](docs/ui/screens/issue-5-terrain.png) |
+| ![Resource component examples with the approved artwork](docs/ui/screens/issue-5-components-resources.png) | ![Capital component composed from tile SVGs and income-building artwork](docs/ui/screens/issue-5-components-capital.png) |
+
+The component library now uses the approved resources in prices and chips, income-building SVGs on capital plots, track symbols in headings, and player-color token SVGs on progress lanes. Its Art sections show the complete issue #5 set and explain the three deferred groups. Capital examples compose individual terrain tile SVGs using their supplied biome, visual seed and plot mask; the six full mat SVGs remain example compositions only.
 
 The **phase-one UI/UX handoff for #3** is in [docs/ui/README.md](docs/ui/README.md). It is the manifest for building the real game pages: layout, typography, colours, control states, placement and decision examples, and the remaining designs. The HTML pages are interactive mockups with fixture data; the Svelte application is still a placeholder.
 

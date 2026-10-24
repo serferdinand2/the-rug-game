@@ -1,4 +1,4 @@
-<!-- A 9×9 capital city: plots, impassable Xs, district lines, landmarks placed or locked on it, and completed groups shown on request. -->
+<!-- A 9×9 capital composed from terrain and building SVGs, with placement controls and completed-group overlays. -->
 <script module>
 	/** @typedef {import('../../capital.js').PlotKind} PlotKind */
 	/** @typedef {import('../../capital.js').GroupKind} GroupKind */
@@ -21,6 +21,8 @@
 	 * Properties of the CapitalGrid component itself.
 	 * @typedef {Object} CapitalGridOwnProps
 	 * @property {PlotKind[]} plots - All 81 plots, row by row
+	 * @property {import('../../ui.js').CapitalBiome} [biome='mountain'] - Terrain tiles to compose beneath the supplied plots
+	 * @property {number} [terrainSeed=0] - Visual seed supplied by the game's setup; 0 is the library fixture
 	 * @property {CapitalGridPiece[]} [pieces=[]] - Landmarks on the grid, drawn over the plots they cover
 	 * @property {GroupKind | null} [highlight=null] - Cover each completed row, column or district with one flat green rectangle
 	 * @property {boolean} [awaitingPlacement=false] - Something is waiting to be placed: a green outline around the grid
@@ -54,6 +56,7 @@
 <script>
 	import LandmarkPiece from './LandmarkPiece.svelte';
 	import { ComponentEvent } from '../../component-event.js';
+	import { artUrl, capitalTileUrl } from '../../ui.js';
 	import {
 		GRID_SIZE,
 		completedGroups,
@@ -72,6 +75,8 @@
 	/** @type {CapitalGridProps} */
 	let {
 		plots,
+		biome = 'mountain',
+		terrainSeed = 0,
 		pieces = [],
 		highlight = null,
 		awaitingPlacement = false,
@@ -421,7 +426,27 @@
 	{#each plots as kind, index (index)}
 		<i
 			class="rg-capital-grid--plot rg-capital-grid--{kind}"
-			data-plot={index}></i>
+			data-plot={index}>
+			{#if kind !== 'landmark'}
+				<img
+					class="rg-capital-grid--terrain"
+					src={capitalTileUrl(
+						biome,
+						kind === 'blocked',
+						index,
+						terrainSeed
+					)}
+					alt=""
+					draggable="false" />
+			{/if}
+			{#if kind === 'market' || kind === 'house' || kind === 'farm' || kind === 'armory'}
+				<img
+					class="rg-capital-grid--building"
+					src={artUrl(`building/${kind}`)}
+					alt=""
+					draggable="false" />
+			{/if}
+		</i>
 	{/each}
 	{#each pieces as piece (piece.id)}
 		{@const shape = pieceShape(piece)}
@@ -563,19 +588,36 @@
 	}
 
 	.rg-capital-grid--market {
-		background: var(--coin);
+		background: var(--surface);
 	}
 
 	.rg-capital-grid--house {
-		background: var(--worker);
+		background: var(--surface);
 	}
 
 	.rg-capital-grid--farm {
-		background: var(--food);
+		background: var(--surface);
 	}
 
 	.rg-capital-grid--armory {
-		background: var(--culture);
+		background: var(--surface);
+	}
+
+	.rg-capital-grid--building {
+		position: relative;
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		image-rendering: pixelated;
+	}
+
+	.rg-capital-grid--terrain {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		image-rendering: pixelated;
 	}
 
 	.rg-capital-grid--landmark {

@@ -29,14 +29,14 @@ test('SVG round trips retain different alpha values for the same color', () => {
 	assert.equal(toSvg(fromSvg(svg)), svg);
 });
 
-test('all 122 released SVGs match the reviewed artwork and have stable catalog ids', async () => {
+test('all 127 released SVGs match the reviewed artwork and have stable catalog ids', async () => {
 	const manifest = JSON.parse(
 		await readFile(
 			new URL('../docs/art/approved-assets.json', import.meta.url),
 			'utf8'
 		)
 	);
-	assert.equal(manifest.length, 122);
+	assert.equal(manifest.length, 127);
 	for (const { id, width, height, sha256 } of manifest) {
 		assert.ok(
 			ASSETS.some((asset) => asset.id === id),

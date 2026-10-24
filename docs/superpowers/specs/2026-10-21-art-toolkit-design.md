@@ -163,7 +163,7 @@ Groups and counts after the left-out rules (names in Appendix A):
 | `capital-mat` | board | 6 | – | 6 | 6 | 18 | #6 |
 | `inspiration-tile` | board | – | – | 4 | – | 4 | #11 |
 
-That gives 294 illustrations, 37 icons and 82 boards (413 assets). On 2026-10-21 the owner dropped the 33 `landmark-marker` icons: the board shows each landmark's own picture, drawn in its footprint's shape (see [2026-10-21-landmarks-design.md](2026-10-21-landmarks-design.md)).
+That gives 294 illustrations, 42 icons and 82 boards (413 assets). On 2026-10-21 the owner dropped the 33 `landmark-marker` icons: the board shows each landmark's own picture, drawn in its footprint's shape (see [2026-10-21-landmarks-design.md](2026-10-21-landmarks-design.md)).
 
 Notes on the counts:
 - **Tapestry.** The Trap is one picture for its 7 copies. Infrastructure Boost and the unnamed "Arc…" card (R43, R44) are left out. Cloud Colonies was left out too until 2026-10-21, when R77 listed its cloud territories from BGA's images.
