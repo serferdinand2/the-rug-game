@@ -5,6 +5,13 @@
  */
 export function choice(ctx, player, value, op) {
 	ctx.push([
-		{ player, kind: 'chooseOption', options: value, source: op.source },
+		{
+			player,
+			kind: 'chooseOption',
+			options: value,
+			source: op.source,
+			// A finished player's passive VP stays passive through the question (01 §4.3).
+			...(op.passive && { passive: true }),
+		},
 	]);
 }

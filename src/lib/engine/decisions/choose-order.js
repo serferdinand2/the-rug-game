@@ -34,6 +34,7 @@ export const chooseOrder = {
 	},
 	resolve(ctx, decision, answer) {
 		const { player, effects, source } = decision;
+		const passive = decision.passive && { passive: true };
 		ctx.push([
 			{
 				player,
@@ -41,6 +42,7 @@ export const chooseOrder = {
 				effects: [effects[answer.effect]],
 				ordered: true,
 				source,
+				...passive,
 			},
 			{
 				player,
@@ -51,6 +53,7 @@ export const chooseOrder = {
 				),
 				ordered: false,
 				source,
+				...passive,
 			},
 		]);
 	},

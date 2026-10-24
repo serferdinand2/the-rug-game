@@ -25,6 +25,7 @@ export const chooseOption = {
 				effects: decision.options[answer.option],
 				ordered: true,
 				source: decision.source,
+				...(decision.passive && { passive: true }),
 			},
 		]);
 	},

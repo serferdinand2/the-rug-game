@@ -132,6 +132,8 @@ export function runEffects(ctx, op) {
 				kind: 'chooseOrder',
 				effects: op.effects,
 				source: op.source,
+				// A finished player's passive VP stays passive through the question (01 §4.3).
+				...(op.passive && { passive: true }),
 			},
 		]);
 		return;

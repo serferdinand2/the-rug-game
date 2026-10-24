@@ -109,3 +109,43 @@ test('an effect for a finished player does nothing, and one marked passive still
 	run(state, random);
 	assert.equal(state.seats[1].vp, 3);
 });
+
+test('a passive effect for a finished player keeps its mark through a choice', () => {
+	const { state: started, random } = startedGame(2);
+	const state = structuredClone(started);
+	state.seats[1].finished = true;
+	push(state, state.pending, [
+		{
+			player: 2,
+			kind: 'effects',
+			effects: [{ choice: [[{ vp: 2 }], [{ vp: 5 }]] }],
+			passive: true,
+		},
+	]);
+	run(state, random);
+	const after = answer(state, random, 2, 'chooseOption', { option: 1 });
+	assert.equal(after.seats[1].vp, 5);
+});
+
+test('a passive effect for a finished player keeps its mark through a choice of order', (t) => {
+	const handoffs = stubHandoffs();
+	t.after(handoffs.restore);
+	const { state: started, random } = startedGame(2);
+	const state = structuredClone(started);
+	state.seats[1].finished = true;
+	push(state, state.pending, [
+		{
+			player: 2,
+			kind: 'effects',
+			effects: [{ upgrade: {} }, { techBenefit: { icon: 'circle' } }],
+			ordered: false,
+			passive: true,
+		},
+	]);
+	run(state, random);
+	answer(state, random, 2, 'chooseOrder', { effect: 1 });
+	assert.deepEqual(
+		handoffs.calls.map((c) => c.kind),
+		['techBenefit', 'upgrade']
+	);
+});
