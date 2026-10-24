@@ -40,6 +40,7 @@
  * @property {{ deck: string[], faceUp: string[], discard: string[] }} tech
  * @property {{ deck: string[], discard: string[] }} tapestry
  * @property {number[]} territory
+ * @property {number[]} territoryDiscard - Discarded territory tiles, out of the game (FAQ #20)
  * @property {number[]} space
  * @property {string[]} civs
  * @property {number[]} capitals - Mats nobody holds, face up

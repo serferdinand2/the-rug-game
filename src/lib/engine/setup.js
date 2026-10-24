@@ -248,6 +248,7 @@ export function createGame({ players, version, expansions = [], random }) {
 				TERRITORY_TILES.map((t) => t.id),
 				random
 			),
+			territoryDiscard: [],
 			space: shuffle(
 				SPACE_TILES.map((t) => t.id),
 				random
