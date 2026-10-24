@@ -123,7 +123,10 @@ export function playFaceDown(ctx, op) {
 	});
 }
 
-/** The income steps in order. Later issues insert theirs, such as A&A's masterpieces before civilization abilities. */
+/**
+ * The income steps in order. Later issues insert theirs before 'finish', which must stay last,
+ * such as A&A's masterpieces before civilization abilities.
+ */
 export const INCOME_STEPS = [
 	'civAbilities',
 	'tapestry',
@@ -216,6 +219,12 @@ export function runIncomeSteps(ctx, op) {
 	const kind = INCOME_STEP_KINDS[step];
 	if (!kind) {
 		throw new Error(`There is no income step ${step}.`);
+	}
+	// A step after 'finish' would run for a finished player, whose effects are all skipped.
+	if (step === 'finish' && rest.length > 0) {
+		throw new Error(
+			`The income step 'finish' must come last, not before ${rest.join(', ')}.`
+		);
 	}
 	kind.run(ctx, /** @type {number} */ (op.player), op.turn);
 }

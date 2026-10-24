@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
+import { INCOME_STEPS, INCOME_STEP_KINDS } from '../src/lib/engine/income.js';
 import {
 	startedGame,
 	readyTurn,
@@ -126,5 +127,18 @@ test('resources from income stop at 8', (t) => {
 	assert.equal(r.seat.resources.coin, 8);
 	assert.ok(
 		r.events.some((e) => e.type === 'resourcesGained' && e.lost.coin === 1)
+	);
+});
+
+test("an income step added after 'finish' fails loudly instead of doing nothing", (t) => {
+	INCOME_STEPS.push('late');
+	INCOME_STEP_KINDS.late = { turns: [5], run: () => {} };
+	t.after(() => {
+		INCOME_STEPS.pop();
+		delete INCOME_STEP_KINDS.late;
+	});
+	assert.throws(
+		() => incomeAfter(t, 4),
+		(e) => e.name !== 'PlayerError' && /'finish'/.test(e.message)
 	);
 });
