@@ -90,8 +90,8 @@ The `conquer` effect, `{ conquer: { anywhere?, bothDice? } }`:
    6. **Room for the expansions.** The steps run in this order: topple, the defender's response, then the dice. Plans & Ploys (#33) adds the attacker's counter-responses (Double Cross, Stolen Plans) between the response and the dice. Fantasies & Futures (#40) adds responses that act after the dice (Surrender). Each is its own operation pushed between these, so nothing here needs to change. **(my call)**
 5. **`conquerDice`** runs once any trap is settled:
    - it emits `conquered { player, hex, trapped }`. `trapped` means the player's outpost there is toppled. #19's middle-island achievement reads it;
-   - it rolls the red and black dice, each `random(6)`, and emits `conquerDiceRolled { player, red, black }` with the face indices into `RED_DIE` and `BLACK_DIE`;
-   - **with `both`**, it pushes one `effects` operation with both faces' effects, `source: { hex }`;
+   - it rolls the red die and then the black die, each `random(6)`, and emits `conquerDiceRolled { player, red, black }` with the face indices into `RED_DIE` and `BLACK_DIE`;
+   - **with `both`**, it pushes one ordered `effects` operation with both faces' effects, **black then red**, `source: { hex }`. Black's "?" can lead to a conquer that adds a territory, which red's "1 VP per territory" should count. Nothing in black's chain can reduce what red counts, so black first is never worse;
    - **otherwise** it pushes `chooseDie { player, hex, red, black }` (§9). The chosen face's effect runs as an `effects` operation with `source: { hex }`.
 6. **The dice always roll**, even after a trap (01 §7.3). The red die's "1 VP per territory you control" counts when it is gained, after control has changed.
 
@@ -107,7 +107,7 @@ The `conquer` effect, `{ conquer: { anywhere?, bothDice? } }`:
 - **Declining** emits `responseDeclined { player, hex }`.
 - **Springing a trap:**
   - the card leaves the hand for the tapestry discard, and `responsePlayed { player, hex, card, attacker }` is emitted. The card is public from then on;
-  - the defender's outpost stands up again (`toppled: false`, no `toppledBy`), and the attacker's is toppled with `toppledBy: defender`. `outpostToppled { player: attacker, hex, by: defender }` is emitted;
+  - the defender's outpost stands up again (`toppled: false`, no `toppledBy`), and the attacker's is toppled with `toppledBy: defender`. `outpostRaised { player: defender, hex }` is emitted when the defender's stands up, and `outpostToppled { player: attacker, hex, by: defender }` when the attacker's topples;
   - an `effects` operation `[{ gain: { any: 1 } }]` is pushed for the defender (R21).
 - **No response card in hand.** The defender still faces the decision, and its only answer is to decline. The server answers it after a random wait, so a defender without a trap looks the same as one who thought it over (owner). The engine needs nothing for this: the server sees that `answers()` holds only the decline. #24 builds the wait. **(my call:** a wait between 3 and 10 seconds.)
 - **A finished defender** (R108):
@@ -148,6 +148,7 @@ None has hidden fields. `check()` refuses anything not in `answers()`, with a se
 | `noConquer` | `player` |
 | `outpostPlaced` | `player`, `hex` |
 | `outpostToppled` | `player` (the outpost's owner), `hex`, `by` |
+| `outpostRaised` | `player` (the outpost's owner), `hex` |
 | `responseDeclined` | `player`, `hex` |
 | `responsePlayed` | `player`, `hex`, `card`, `attacker` |
 | `conquered` | `player`, `hex`, `trapped` |
@@ -161,7 +162,7 @@ None has hidden fields. `check()` refuses anything not in `answers()`, with a se
 ## 10. Interaction with what exists
 
 - `runEffects` already skips every effect of a finished player, so a finished player never explores or conquers.
-- `changes()` in `effects/index.js` already treats `explore` as changing the territory-tile counter, and `conquer`, `exploreSpace` and `tileBenefit` as possibly changing anything, so unordered benefits still ask for an order where it matters.
+- `changes()` in `effects/index.js` treats `explore`, `conquer`, `exploreSpace` and `tileBenefit` as possibly changing anything (an explore runs its tile's benefit, which can change any counter), so unordered benefits still ask for an order where it matters.
 - `stubHandoffs()` in `tests/helpers/engine.mjs` stops standing in for `explore`, `exploreSpace`, `conquer` and `tileBenefit`. The tests that relied on those stand-ins now see the real thing, as #16's did.
 
 ## 11. What the other issues take over

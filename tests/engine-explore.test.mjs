@@ -6,7 +6,10 @@ import { run } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { MAPS } from '../src/lib/engine/data/maps.js';
 import { exploreHexes } from '../src/lib/engine/map.js';
-import { exploreAnswers } from '../src/lib/engine/effects/explore.js';
+import {
+	exploreAnswers,
+	spaceTileOptions,
+} from '../src/lib/engine/effects/explore.js';
 import { play } from '../src/lib/engine/play.js';
 import {
 	startedGame,
@@ -144,10 +147,11 @@ test('a single option is explored automatically', () => {
 	const { state, random } = game([5]);
 	const legal = exploreHexes(state, 1, false);
 	// Leave one hex open next to the territory: explore all the others.
-	for (const hex of legal.slice(1)) {
-		state.hexes[hex].tile = 49;
+	// Real territory tiles 1-48 (49 and up are printed on their own hexes only).
+	legal.slice(1).forEach((hex, i) => {
+		state.hexes[hex].tile = 10 + i;
 		state.hexes[hex].orient = 0;
-	}
+	});
 	assert.equal(exploreHexes(state, 1, false).length, 1);
 	explore(state, random);
 	assert.deepEqual(
@@ -351,6 +355,21 @@ test('R105: fromGained without a track space is a bug, not a player mistake', ()
 	assert.throws(
 		() => exploreSpace(state, random, { fromGained: true }),
 		(e) => e.name === 'Error'
+	);
+});
+
+test('R105: fromGained with no matching spaceActivated event is a bug, not a start at 0 (#17)', () => {
+	const { state } = game([]);
+	state.seats[0].spaceTiles = [5, 13];
+	assert.throws(
+		() =>
+			spaceTileOptions(
+				state,
+				1,
+				{ track: 'exploration', space: 11 },
+				true
+			),
+		(e) => e.name === 'Error' && e.name !== 'PlayerError'
 	);
 });
 

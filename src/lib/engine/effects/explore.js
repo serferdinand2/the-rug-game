@@ -101,7 +101,7 @@ export function explore(ctx, player, value) {
  * @param {{ track?: string, space?: number } | null | undefined} source - The track space whose benefit is running
  * @param {boolean} fromGained
  * @returns {number[]}
- * @throws {Error} For `fromGained` outside a track space (a bug, not a player's mistake)
+ * @throws {Error} For `fromGained` outside a track space, or with no activation of it on record (bugs, not player mistakes)
  */
 export function spaceTileOptions(state, player, source, fromGained) {
 	const held = playerSeat(state, player).spaceTiles;
@@ -112,7 +112,7 @@ export function spaceTileOptions(state, player, source, fromGained) {
 		throw new Error('exploreSpace with fromGained needs a track space.');
 	}
 	const events = state.events;
-	let start = 0;
+	let start = -1;
 	for (let i = events.length - 1; i >= 0; i--) {
 		const e = /** @type {any} */ (events[i]);
 		if (
@@ -124,6 +124,11 @@ export function spaceTileOptions(state, player, source, fromGained) {
 			start = i + 1;
 			break;
 		}
+	}
+	if (start === -1) {
+		throw new Error(
+			'exploreSpace with fromGained found no spaceActivated event.'
+		);
 	}
 	/** @type {number[]} */
 	const gained = [];

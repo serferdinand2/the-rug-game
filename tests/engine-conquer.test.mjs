@@ -236,6 +236,20 @@ test('Mechs always gives both dice', () => {
 	assert.equal(state.seats[0].resources.coin, coin + 1);
 });
 
+test('both dice resolve black then red, so red counts a territory black conquered (#17)', () => {
+	const { state } = game();
+	conquer(state, face(0), { bothDice: 'always' });
+	const rolled = state.events.findIndex(
+		(e) => e.type === 'conquerDiceRolled'
+	);
+	const gained = state.events
+		.slice(rolled)
+		.filter((e) => e.type === 'vpGained' || e.type === 'resourcesGained')
+		.map((e) => e.type);
+	// Face 0 of black gives 1 coin; face 0 of red gives VP. Black comes first.
+	assert.ok(gained.indexOf('resourcesGained') < gained.indexOf('vpGained'));
+});
+
 test('an answer not offered is refused', () => {
 	const { state } = game(['-2_-1', '-1_-2']);
 	conquer(state, face(0));
@@ -300,6 +314,11 @@ test('a defender with a trap may spring it: they keep the territory, topple the 
 	]);
 	assert.ok(controlledTerritories(trapped, 2).includes('-2_-1'));
 	assert.ok(!controlledTerritories(trapped, 1).includes('-2_-1'));
+	const raised = trapped.events.find((e) => e.type === 'outpostRaised');
+	assert.deepEqual(
+		{ ...raised, seq: undefined },
+		{ type: 'outpostRaised', player: 2, hex: '-2_-1', seq: undefined }
+	);
 	const played = trapped.events.find((e) => e.type === 'responsePlayed');
 	assert.deepEqual(
 		{ ...played, seq: undefined },
@@ -324,6 +343,28 @@ test('a defender with a trap may spring it: they keep the territory, topple the 
 	assert.deepEqual(open(done), ['chooseDie']);
 	const conquered = done.events.find((e) => e.type === 'conquered');
 	assert.equal(conquered.trapped, true);
+});
+
+test('the attacker is trapped only when the outpost just placed is toppled, not an older one (#17)', () => {
+	const state = trapGame([]);
+	// An earlier toppled outpost of seat 1 on the hex must not count as a trap.
+	state.hexes['-2_-1'].outposts = [{ seat: 1, toppled: true, toppledBy: 2 }];
+	conquer(state, face(0));
+	const conquered = state.events.find((e) => e.type === 'conquered');
+	assert.equal(conquered.trapped, false);
+});
+
+test('two traps in hand are offered in hand order', () => {
+	const state = trapGame(['trap-5', 'trap-2']);
+	conquer(state, face(0));
+	const question = openDecisions(state).find(
+		(d) => d.kind === 'chooseResponse'
+	);
+	assert.deepEqual(DECISIONS.chooseResponse.answers(state, question), [
+		{ card: null },
+		{ card: 'trap-5' },
+		{ card: 'trap-2' },
+	]);
 });
 
 test('declining the response leaves the topple standing', () => {

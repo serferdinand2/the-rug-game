@@ -99,29 +99,34 @@ export function conquer(ctx, player, value) {
 }
 
 /**
- * The automatic operation after a conquest: roll both dice, then give both faces or let the player pick one (01 §7.3).
+ * The automatic operation after a conquest: roll both dice, then give both faces (black first) or let the player pick one (01 §7.3).
  * The dice always roll, even after a trap.
  * @type {import('../state.js').AutomaticKind}
  */
 export function conquerDice(ctx, op) {
 	const player = /** @type {number} */ (op.player);
 	const hex = /** @type {string} */ (op.hex);
-	const trapped = ctx.state.hexes[hex].outposts.some(
-		(o) => o.seat === player && o.toppled
+	// The outpost just placed is the player's last one on the hex (outposts are appended), so an older toppled one
+	// of theirs there is not a trap.
+	const placed = ctx.state.hexes[hex].outposts.findLast(
+		(o) => o.seat === player
 	);
+	const trapped = placed !== undefined && placed.toppled;
 	emit(ctx.state, { type: 'conquered', player, hex, trapped });
 	const red = ctx.random(6);
 	const black = ctx.random(6);
 	emit(ctx.state, { type: 'conquerDiceRolled', player, red, black });
 	if (op.both) {
-		// Red then black: neither face can change the other's, so there is nothing to order.
+		// Black then red: black's "?" can lead to a conquer that adds a territory, which red's "1 VP per territory"
+		// should count. Nothing in black's chain can reduce what red counts, so black first is never worse. The list is
+		// ordered, so nothing asks.
 		ctx.push([
 			{
 				player,
 				kind: 'effects',
 				effects: [
-					structuredClone(RED_DIE[red]),
 					structuredClone(BLACK_DIE[black]),
+					structuredClone(RED_DIE[red]),
 				],
 				ordered: true,
 				source: { hex },

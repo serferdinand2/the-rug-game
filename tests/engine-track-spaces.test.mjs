@@ -227,6 +227,13 @@ test('exploration 9 Airplanes: 2 territory tiles, then explore anywhere; the bon
 	assert.deepEqual(exploring(r), [[r.player, true]]);
 	// The bonus waits behind the exploring.
 	assert.deepEqual(open(r), ['chooseExplore']);
+	const [explore] = openDecisions(r.state);
+	reply(
+		r,
+		'chooseExplore',
+		DECISIONS.chooseExplore.answers(r.state, explore)[0]
+	);
+	assert.deepEqual(open(r), ['chooseBonus']);
 });
 
 test('exploration 10 Space Shuttle: the Launch Pad, 1 VP per technology space; the bonus discards 3 territory tiles for 10 VP', (t) => {

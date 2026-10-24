@@ -79,9 +79,6 @@ function changes(effect, counter) {
 	if (kind === 'building') {
 		return counter.per === effect.building;
 	}
-	if (kind === 'explore') {
-		return counter.per === 'territoryTile';
-	}
 	if (kind === 'invent') {
 		return counter.per === 'techCard';
 	}

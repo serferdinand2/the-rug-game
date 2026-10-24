@@ -39,14 +39,6 @@ function put(state, hex, ...outposts) {
 
 test('every pair of neighbouring printed territories matches on the shared side, on both maps (R5)', () => {
 	for (const side of [MAPS.small, MAPS.large]) {
-		const state = /** @type {any} */ ({ map: side.id, hexes: {} });
-		for (const key of side.hexes) {
-			const p = side.printed[key];
-			state.hexes[key] = {
-				tile: p ? p.tile : null,
-				orient: p ? p.orient : 0,
-			};
-		}
 		let pairs = 0;
 		for (const [key, p] of Object.entries(side.printed)) {
 			hexNeighbours(key).forEach((other, e) => {

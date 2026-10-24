@@ -61,6 +61,14 @@ test('two parts that both ask the player become a choice of order', (t) => {
 	);
 });
 
+test('an explore could change any counter, so it asks for an order beside a VP counter (#17)', () => {
+	const effects = [{ explore: {} }, { vp: { per: 'farm' } }];
+	const { state } = benefit(effects, false);
+	const [order] = openDecisions(state);
+	assert.equal(order.kind, 'chooseOrder');
+	assert.deepEqual(order.effects, effects);
+});
+
 test('an ordered benefit never asks', (t) => {
 	const handoffs = stubHandoffs();
 	t.after(handoffs.restore);

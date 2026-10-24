@@ -64,7 +64,7 @@ export function matchingSides(state, hex, tile, orient) {
 }
 
 /**
- * Whether a hex touches a territory in the list.
+ * Whether a hex touches a territory in the set.
  * @param {string} hex
  * @param {Set<string>} owned
  * @returns {boolean}

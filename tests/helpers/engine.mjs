@@ -53,7 +53,7 @@ export function startedGame(count, options) {
 	return { state: answerSetup(state, random), random };
 }
 
-/** Effects that later issues build (#17–#20). */
+/** Effects that later issues build (#18–#20). */
 const HANDOFF_EFFECTS = [
 	'invent',
 	'upgrade',

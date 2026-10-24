@@ -36,8 +36,8 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 			{ track: 'exploration', from: 0, pay: { coin: 1 } },
 		],
 		// 4. O advances to Archery for 1 coin: conquer. O = (0, 1, 1, 1).
-		//    O's start territory (0_2) has three neighbours, all printed, and the default answer takes the first in map
-		//    order: -1_1, empty, so O places an outpost (7 left) and no one is toppled. The dice roll 5 (red) and 3 (black)
+		//    O's start territory (0_2) has six neighbours: three printed (the only conquer targets) and three unexplored. The default
+		//    answer takes the first target in map order: -1_1, empty, so O places an outpost (7 left) and no one is toppled. The dice roll 5 (red) and 3 (black)
 		//    with this seed. Red face 5 is "1 VP per territory you control" and black face 3 is 1 culture; O takes the red
 		//    die. O controls two territories now (0_2 and -1_1), so that is 2 VP: O = (0, 1, 1, 1), 2 VP.
 		[O, 'chooseTurn', ADVANCE],

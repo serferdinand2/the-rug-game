@@ -50,6 +50,7 @@ export const chooseResponse = {
 			if (outpost.seat === player && outpost.toppled) {
 				outpost.toppled = false;
 				delete outpost.toppledBy;
+				emit(state, { type: 'outpostRaised', player, hex });
 			} else if (outpost.seat === attacker && !outpost.toppled) {
 				outpost.toppled = true;
 				outpost.toppledBy = player;
