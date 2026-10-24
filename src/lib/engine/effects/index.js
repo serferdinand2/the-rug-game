@@ -1,4 +1,5 @@
 // The effect handlers by kind, and the automatic operation that runs a list of effects.
+import { seatOf } from '../state.js';
 import { vp } from './vp.js';
 import { gain } from './gain.js';
 import { building } from './building.js';
@@ -118,6 +119,10 @@ export function runEffects(ctx, op) {
 	}
 	if (op.player === null) {
 		throw new Error('Effects need a player to run for.');
+	}
+	// A finished player gains nothing but passive civilization VP (01 §4.3), which #20 marks `passive`.
+	if (seatOf(ctx.state, op.player).finished && !op.passive) {
+		return;
 	}
 	const index = nextIndex(op);
 	if (index === -1) {

@@ -1,6 +1,7 @@
-// Starting and ending a turn: the turn choice, and passing to the next seat.
+// Starting and ending a turn: the turn choice, passing to the next seat, and the end of the game.
 import { emit } from './events.js';
 import { turnOptions } from './decisions/choose-turn.js';
+import { rankPlayers } from './ranking.js';
 
 /**
  * Starts a seat's turn: nothing is activated yet (R19), and the turn choice sits above the turn's end.
@@ -19,7 +20,8 @@ export function startTurn(ctx, player) {
 }
 
 /**
- * Ends a turn once everything it started is done: the next seat in seat order that hasn't finished takes its turn.
+ * Ends a turn once everything it started is done: the next seat in seat order that hasn't finished takes its turn,
+ * and when every seat has finished, the game ends.
  * @type {import('./state.js').AutomaticKind}
  */
 export function endTurn(ctx, op) {
@@ -32,5 +34,17 @@ export function endTurn(ctx, op) {
 			return;
 		}
 	}
-	throw new Error('The game end arrives with #15.');
+	endGame(ctx);
+}
+
+/**
+ * Ends the game once every seat has finished: the players are ranked, and the ranking explains each tie (R10, R11).
+ * @param {import('./state.js').Context} ctx
+ */
+function endGame(ctx) {
+	const { state } = ctx;
+	state.phase = 'over';
+	state.current = null;
+	state.result = rankPlayers(state);
+	emit(state, { type: 'gameEnded', result: state.result });
 }
