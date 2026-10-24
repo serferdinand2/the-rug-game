@@ -2,6 +2,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createGame } from '../src/lib/engine/setup.js';
+import {
+	AFTER_SETUP,
+	AFTER_SETUP_STEPS,
+} from '../src/lib/engine/after-setup.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
@@ -11,7 +15,7 @@ import {
 	CAPITAL_MATS,
 	SMALL_MAP_PAIRS,
 } from '../src/lib/engine/data/capitals.js';
-import { newGame } from './helpers/engine.mjs';
+import { newGame, startedGame } from './helpers/engine.mjs';
 
 const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
 
@@ -300,5 +304,18 @@ test('the setup decisions list answers that pass their own check', () => {
 	assert.throws(
 		() => DECISIONS.chooseCapital.check(state, cap, { capital: outside }),
 		{ name: 'PlayerError', message: /two capital city mats/ }
+	);
+});
+
+test("an after-setup step added after 'start' fails loudly instead of never running", (t) => {
+	AFTER_SETUP.push('late');
+	AFTER_SETUP_STEPS.late = () => {};
+	t.after(() => {
+		AFTER_SETUP.pop();
+		delete AFTER_SETUP_STEPS.late;
+	});
+	assert.throws(
+		() => startedGame(2),
+		(e) => e.name !== 'PlayerError' && /'start'/.test(e.message)
 	);
 });

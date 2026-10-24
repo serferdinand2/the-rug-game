@@ -5,7 +5,10 @@ import { playerSeat } from './state.js';
 import { SMALL_MAP_PAIRS } from './data/capitals.js';
 import { startTurn } from './turn.js';
 
-/** The after-setup steps in order; later issues insert theirs. */
+/**
+ * The after-setup steps in order. Later issues insert theirs before 'start', which begins play:
+ * turns then follow each other on top of the stack, so a step after it would never run.
+ */
 export const AFTER_SETUP = ['reveal', 'civDeck', 'start'];
 
 /** @type {Record<string, (ctx: import('./state.js').Context) => void>} */
@@ -71,6 +74,11 @@ export function runSetupSteps(ctx, op) {
 	const handler = AFTER_SETUP_STEPS[step];
 	if (!handler) {
 		throw new Error(`There is no setup step ${step}.`);
+	}
+	if (step === 'start' && rest.length > 0) {
+		throw new Error(
+			`The after-setup step 'start' must come last, not before ${rest.join(', ')}.`
+		);
 	}
 	handler(ctx);
 }
