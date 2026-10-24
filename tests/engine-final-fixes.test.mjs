@@ -210,6 +210,18 @@ test('every decision kind has the full shape, and its answers pass its own check
 			from: 'any',
 		},
 		chooseAdvance: { player: 1, kind: 'chooseAdvance' },
+		chooseOrder: {
+			player: 1,
+			kind: 'chooseOrder',
+			effects: [{ upgrade: {} }, { techBenefit: { icon: 'circle' } }],
+			source: { track: 'technology', space: 9 },
+		},
+		chooseOption: {
+			player: 1,
+			kind: 'chooseOption',
+			options: [[{ explore: {} }], [{ building: 'farm' }]],
+			source: { track: 'exploration', space: 3 },
+		},
 		chooseBonus: {
 			player: 1,
 			kind: 'chooseBonus',
