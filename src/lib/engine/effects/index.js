@@ -28,5 +28,5 @@ export function runEffects(ctx, op) {
 	if (op.player === null) {
 		throw new Error('Effects need a player to run for.');
 	}
-	handler(ctx, op.player, effect[kind]);
+	handler(ctx, op.player, effect[kind], op);
 }

@@ -206,6 +206,14 @@ test('every decision kind has the full shape, and its answers pass its own check
 			count: 2,
 			from: 'any',
 		},
+		chooseBonus: {
+			player: 1,
+			kind: 'chooseBonus',
+			track: 'exploration',
+			space: 2,
+			cost: { any: 1 },
+			gain: [{ gain: { tapestry: 1 } }],
+		},
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

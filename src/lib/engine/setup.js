@@ -260,6 +260,7 @@ export function createGame({ players, version, expansions = [], random }) {
 		hexes,
 		landmarks: LANDMARKS.map((l) => l.id),
 		achievements: Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, []])),
+		activated: [],
 		pending: [],
 		nextId: 1,
 		seq: 0,

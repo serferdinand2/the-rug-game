@@ -65,6 +65,7 @@
  * @property {Record<string, Hex>} hexes
  * @property {string[]} landmarks - Ids nobody owns yet
  * @property {Record<string, number[]>} achievements - Seats in box order
+ * @property {{ player: number, track: TrackId, space: number }[]} activated - Track spaces activated this turn, cleared when a turn starts (R19)
  * @property {(Operation | Group)[]} pending - Index 0 is the top
  * @property {number} nextId
  * @property {number} seq
@@ -87,7 +88,7 @@
  * @property {(ctx: Context, decision: Operation, answer: Answer) => void} resolve
  */
 /** @typedef {(ctx: Context, op: Operation) => void} AutomaticKind */
-/** @typedef {(ctx: Context, player: number, value: any) => void} EffectHandler */
+/** @typedef {(ctx: Context, player: number, value: any, op: Operation) => void} EffectHandler - `op` is the effects operation it runs in, with its `source` */
 
 /**
  * Finds a seat of any kind.
