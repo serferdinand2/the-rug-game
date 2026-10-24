@@ -2,6 +2,8 @@
 import { createGame } from '../../src/lib/engine/setup.js';
 import { seededRandom } from '../../src/lib/engine/random.js';
 import { play } from '../../src/lib/engine/play.js';
+import { contextFor, run } from '../../src/lib/engine/loop.js';
+import { startTurn } from '../../src/lib/engine/turn.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
 import { DECISIONS, AUTOMATIC } from '../../src/lib/engine/kinds.js';
 import { EFFECTS } from '../../src/lib/engine/effects/index.js';
@@ -110,4 +112,44 @@ export function stubHandoffs() {
 			}
 		},
 	};
+}
+
+/**
+ * A started game in which the current player has taken income turn 1 and starts a new turn.
+ * `fill` changes that player's seat (and the state) before the turn starts, so the turn choice sees the change.
+ * @param {number} [count]
+ * @param {(seat: any, state: import('../../src/lib/engine/state.js').State) => void} [fill]
+ * @param {{ version?: 'original' | 'current', seed?: number }} [options]
+ * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random, player: number }}
+ */
+export function readyTurn(count = 2, fill = () => {}, options) {
+	const { state: started, random } = startedGame(count, options);
+	const state = structuredClone(started);
+	const player = /** @type {number} */ (state.current);
+	const seat = state.seats[player - 1];
+	seat.incomeTurns = 1;
+	fill(seat, state);
+	state.pending.length = 0;
+	startTurn(contextFor(state, random, state.pending), player);
+	run(state, random);
+	return { state, random, player };
+}
+
+/**
+ * Answers the open decision of a kind for a player.
+ * @param {import('../../src/lib/engine/state.js').State} state
+ * @param {import('../../src/lib/engine/random.js').Random} random
+ * @param {number} player
+ * @param {string} kind
+ * @param {Record<string, any>} answer
+ * @returns {import('../../src/lib/engine/state.js').State}
+ */
+export function answer(state, random, player, kind, answer) {
+	const decision = openDecisions(state).find(
+		(d) => d.kind === kind && d.player === player
+	);
+	if (!decision) {
+		throw new Error(`Seat ${player} has no open ${kind}.`);
+	}
+	return play(state, player, { decision: decision.id, ...answer }, random);
 }

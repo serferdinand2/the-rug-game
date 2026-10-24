@@ -187,7 +187,10 @@ test('kinds are looked up as own keys, never through the prototype', () => {
 });
 
 test('every decision kind has the full shape, and its answers pass its own check', () => {
-	const { state } = startedGame(2);
+	const { state: started } = startedGame(2);
+	// Enough to pay for something, so every kind has answers to check.
+	const state = structuredClone(started);
+	state.seats[0].resources.coin = 1;
 	const fixtures = {
 		chooseTurn: {
 			player: 1,
@@ -206,6 +209,7 @@ test('every decision kind has the full shape, and its answers pass its own check
 			count: 2,
 			from: 'any',
 		},
+		chooseAdvance: { player: 1, kind: 'chooseAdvance' },
 		chooseBonus: {
 			player: 1,
 			kind: 'chooseBonus',

@@ -13,6 +13,7 @@ import {
 	chooseTurn,
 	turnOptions,
 } from '../src/lib/engine/decisions/choose-turn.js';
+import { startedGame } from './helpers/engine.mjs';
 
 function fixture() {
 	return {
@@ -157,8 +158,12 @@ test('resolveEffects returns a new state and leaves its input alone', () => {
 });
 
 test('chooseTurn offers only income on a first turn (01 §4.1)', () => {
-	assert.deepEqual(turnOptions({ incomeTurns: 0 }), ['income']);
-	assert.deepEqual(turnOptions({ incomeTurns: 2 }), ['income', 'advance']);
+	const { state: started } = startedGame(2);
+	assert.deepEqual(turnOptions(started, 1), ['income']);
+	const later = structuredClone(started);
+	later.seats[0].incomeTurns = 2;
+	later.seats[0].resources.coin = 1;
+	assert.deepEqual(turnOptions(later, 1), ['income', 'advance']);
 	const decision = {
 		id: 1,
 		batch: 1,
@@ -184,12 +189,12 @@ test('chooseTurn offers only income on a first turn (01 §4.1)', () => {
 	);
 });
 
-test('a legal turn choice is not built until #14 and #15', () => {
+test('an income turn is not built until #15', () => {
 	const state = fixture();
 	push(state, state.pending, [turn(1)]);
 	const ctx = contextFor(state, seededRandom(1), state.pending);
 	assert.throws(
 		() => chooseTurn.resolve(ctx, state.pending[0], { turn: 'income' }),
-		(e) => e.name !== 'PlayerError' && /#14/.test(e.message)
+		(e) => e.name !== 'PlayerError' && /#15/.test(e.message)
 	);
 });
