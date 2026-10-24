@@ -55,7 +55,6 @@ export function startedGame(count, options) {
 
 /** Effects that later issues build (#17–#20). */
 const HANDOFF_EFFECTS = [
-	'explore',
 	'exploreSpace',
 	'conquer',
 	'tileBenefit',

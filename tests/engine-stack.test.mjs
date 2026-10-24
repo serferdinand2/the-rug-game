@@ -72,13 +72,13 @@ test('the run loop runs automatic operations until a decision', () => {
 
 test('an effect that is not built yet is a bug, not a PlayerError', () => {
 	const state = fixture();
-	push(state, state.pending, [effects(1, [{ explore: {} }])]);
+	push(state, state.pending, [effects(1, [{ conquer: {} }])]);
 	assert.throws(
 		() => run(state, seededRandom(1)),
 		(e) =>
 			e instanceof Error &&
 			e.name !== 'PlayerError' &&
-			/explore/.test(e.message)
+			/conquer/.test(e.message)
 	);
 });
 

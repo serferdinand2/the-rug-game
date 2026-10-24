@@ -63,9 +63,11 @@ test('the first player into tier II gains its landmark, and it is placed before 
 		'spaceActivated',
 	]);
 	const placed = placeAll(state, random);
-	assert.deepEqual(handoffs.calls, [
-		{ kind: 'explore', player: 1, value: {} },
-	]);
+	// The explore after the Lighthouse has the tile Navigation just gave, so its player is asked where (#17).
+	assert.deepEqual(
+		openDecisions(placed).map((d) => [d.kind, d.player, d.anywhere]),
+		[['chooseExplore', 1, false]]
+	);
 	assert.deepEqual(
 		placed.seats[0].capital.landmarks.map((p) => p.landmark),
 		['lighthouse']
@@ -229,11 +231,14 @@ test('the bonus is offered after the benefit, declined by default, and only when
 		{ pay: null },
 		{ pay: { coin: 1 } },
 	]);
-	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['explore', 'explore'],
-		'the benefit came first, in both games'
-	);
+	// Rafts explores with no tile in hand (#17), in both games: the benefit came first.
+	for (const { state: played } of [poor, { state }]) {
+		assert.equal(
+			played.events.filter((e) => e.type === 'noExplore').length,
+			1,
+			'the benefit came first'
+		);
+	}
 });
 
 test('paying a bonus discards and gains its effects once', (t) => {

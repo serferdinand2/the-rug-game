@@ -16,6 +16,7 @@ import { runIncomeSteps, playFaceDown } from './income.js';
 import { chooseTapestry } from './decisions/choose-tapestry.js';
 import { runEffects } from './effects/index.js';
 import { choosePlacement } from './decisions/choose-placement.js';
+import { chooseExplore } from './decisions/choose-explore.js';
 import { placeBuilding, placeLandmark } from './placing.js';
 import { runSetupSteps } from './after-setup.js';
 
@@ -34,6 +35,7 @@ export const DECISIONS = {
 	chooseRestart,
 	chooseTapestry,
 	choosePlacement,
+	chooseExplore,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */

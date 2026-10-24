@@ -56,6 +56,23 @@ function onto(t, track, space, fill = () => {}) {
 }
 
 /**
+ * How many times an explore found nothing to do (no tile in hand: FAQ #19).
+ * @param {{ state: any }} result
+ */
+const nothingExplored = ({ state }) =>
+	state.events.filter((/** @type {any} */ e) => e.type === 'noExplore')
+		.length;
+
+/**
+ * The open exploring decisions, as [player, anywhere] pairs.
+ * @param {{ state: any }} result
+ */
+const exploring = ({ state }) =>
+	openDecisions(state)
+		.filter((d) => d.kind === 'chooseExplore')
+		.map((d) => [d.player, d.anywhere]);
+
+/**
  * The kinds of the open decisions.
  * @param {{ state: any }} result
  */
@@ -134,7 +151,7 @@ test('exploration 1 Scouting: 2 territory tiles', (t) => {
 
 test('exploration 2 Rafts: explore, then the bonus pays 1 any for a tapestry card', (t) => {
 	const r = onto(t, 'exploration', 2);
-	assert.deepEqual(handed(r), [['explore', {}]]);
+	assert.equal(nothingExplored(r), 1, 'no tile in hand');
 	reply(r, 'chooseBonus', { pay: { worker: 1 } });
 	assert.equal(r.seat.hand.length, 1);
 	assert.ok(passed(r));
@@ -154,9 +171,8 @@ test('exploration 4 Navigation: the Lighthouse first, then 1 territory tile, the
 	const r = onto(t, 'exploration', 4);
 	assert.deepEqual(landing(r), ['lighthouse']);
 	place(r);
-	assert.deepEqual(handed(r), [['explore', {}]]);
+	assert.deepEqual(exploring(r), [[r.player, false]]);
 	assert.equal(r.seat.territoryTiles.length, 1);
-	assert.ok(passed(r));
 });
 
 test('exploration 5 Ships: 1 VP per territory controlled; the bonus pays for a farm', (t) => {
@@ -170,17 +186,17 @@ test('exploration 6 Tunnels: 1 territory tile and a farm; the bonus pays to expl
 	const r = onto(t, 'exploration', 6);
 	assert.equal(r.seat.territoryTiles.length, 1);
 	assert.deepEqual(placing(r), ['farm']);
-	assert.deepEqual(handed(r), []);
+	assert.deepEqual(exploring(r), []);
 	place(r);
 	reply(r, 'chooseBonus', { pay: { coin: 1 } });
-	assert.deepEqual(handed(r), [['explore', {}]]);
+	assert.deepEqual(exploring(r), [[r.player, false]]);
 });
 
 test('exploration 7 Trains: the Train Station, then 2 territory tiles, then explore', (t) => {
 	const r = onto(t, 'exploration', 7);
 	assert.deepEqual(landing(r), ['train-station']);
 	place(r);
-	assert.deepEqual(handed(r), [['explore', {}]]);
+	assert.deepEqual(exploring(r), [[r.player, false]]);
 	assert.equal(r.seat.territoryTiles.length, 2);
 });
 
@@ -199,8 +215,9 @@ test('exploration 8 Cars: a farm, then 1 VP per farm; the bonus discards 2 terri
 test('exploration 9 Airplanes: 2 territory tiles, then explore anywhere; the bonus pays for a tapestry card', (t) => {
 	const r = onto(t, 'exploration', 9);
 	assert.equal(r.seat.territoryTiles.length, 2);
-	assert.deepEqual(handed(r), [['explore', { anywhere: true }]]);
-	assert.deepEqual(open(r), ['chooseBonus']);
+	assert.deepEqual(exploring(r), [[r.player, true]]);
+	// The bonus waits behind the exploring.
+	assert.deepEqual(open(r), ['chooseExplore']);
 });
 
 test('exploration 10 Space Shuttle: the Launch Pad, 1 VP per technology space; the bonus discards 3 territory tiles for 10 VP', (t) => {
@@ -589,6 +606,12 @@ test('the landmark race: the first player into a tier takes it, the second gets 
 	});
 	assert.deepEqual(landing(r), ['lighthouse']);
 	place(r);
+	// Navigation's tile is explored with the default answer, the best score (#17), before the turn passes.
+	reply(
+		r,
+		'chooseExplore',
+		DECISIONS.chooseExplore.answers(r.state, openDecisions(r.state)[0])[0]
+	);
 	assert.ok(passed(r));
 	const chosen = answer(r.state, r.random, r.other, 'chooseTurn', {
 		turn: 'advance',

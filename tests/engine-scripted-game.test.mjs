@@ -38,12 +38,21 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 		// 4. O advances to Archery for 1 coin: conquer (#17). O = (0, 1, 1, 1).
 		[O, 'chooseTurn', ADVANCE],
 		[O, 'chooseAdvance', { track: 'military', from: 0, pay: { coin: 1 } }],
-		// 5. F advances to Rafts for 1 worker: explore (#17), and declines the bonus. F = (0, 0, 1, 1).
+		// 5. F advances to Rafts for 1 worker: explore, then declines the bonus. F holds tiles 26, 24 and 31 (this seed).
+		//    The default answer scores the most: tile 24 on hex 1_0 turned 3 (its corners read F S S S G G) matches 4 sides,
+		//    against the printed all-sea territory (0_0), the one with forests and mountains (2_1), the grassland
+		//    territory (2_0) and the mountain one (1_-1); the other two neighbours are unexplored. That is 4 VP.
+		//    Tile 24's benefit is 1 food. F = (0, 0, 2, 1), 2 tiles, 4 VP.
 		[F, 'chooseTurn', ADVANCE],
 		[
 			F,
 			'chooseAdvance',
 			{ track: 'exploration', from: 1, pay: { worker: 1 } },
+		],
+		[
+			F,
+			'chooseExplore',
+			(d) => DECISIONS.chooseExplore.answers(state, d)[0],
 		],
 		[F, 'chooseBonus', { pay: null }],
 		// 6. O advances to Bladed Weapons for 1 worker: 1 card; the bonus pays 1 food for an armory.
@@ -56,7 +65,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 		],
 		[O, 'chooseBonus', { pay: { food: 1 } }],
 		[O, 'choosePlacement', firstPlot],
-		// 7. F advances to Wagons for 1 food and takes a farm. F = (0, 0, 0, 1), 4 farms left.
+		// 7. F advances to Wagons for 1 food and takes a farm. F = (0, 0, 1, 1), 4 farms left.
 		[F, 'chooseTurn', ADVANCE],
 		[
 			F,
@@ -75,7 +84,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 		[O, 'chooseOption', { option: 1 }],
 		[O, 'choosePlacement', firstPlot],
 		// 9. F, income turn 2: first into era 2 (O is on 1), so 1 coin; a card; no VP.
-		//    Income: Barter, Symbology, Hunting and Farming, Ceremony. F = (2, 1, 2, 2), 4 tiles, 1 card.
+		//    Income: Barter, Symbology, Hunting and Farming, Ceremony. F = (2, 1, 3, 2), 3 tiles, 1 card.
 		[F, 'chooseTurn', INCOME],
 		[F, 'chooseResource', { resources: { coin: 1 } }],
 		[F, 'chooseTapestry', firstCard],
@@ -83,7 +92,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 		//     Income: Barter, Symbology, Hunting, Ceremony and Racing. O = (1, 1, 1, 2), 2 tiles, 2 cards, 1 VP.
 		[O, 'chooseTurn', INCOME],
 		[O, 'chooseTapestry', firstCard],
-		// 11. F, income turn 3: first into era 3 (O is on 2), so 2 coins; a card. F = (5, 2, 4, 3), 5 tiles, 1 card.
+		// 11. F, income turn 3: first into era 3 (O is on 2), so 2 coins; a card. F = (5, 2, 5, 3), 4 tiles, 1 card.
 		[F, 'chooseTurn', INCOME],
 		[F, 'chooseResource', { resources: { coin: 2 } }],
 		[F, 'chooseTapestry', firstCard],
@@ -97,7 +106,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 		],
 		[O, 'choosePlacement', firstPlot],
 		// 13. F, income turn 4: first into era 4 (O is on 2), so 3 coins to 8; a card; income coin is lost at the cap.
-		//     F = (8, 3, 6, 4), 6 tiles, 1 card.
+		//     F = (8, 3, 7, 4), 5 tiles, 1 card.
 		[F, 'chooseTurn', INCOME],
 		[F, 'chooseResource', { resources: { coin: 3 } }],
 		[F, 'chooseTapestry', firstCard],
@@ -122,13 +131,31 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 		state = answer(state, random, player, kind, fields);
 	}
 
+	// Step 5's explore, as worked out above.
+	assert.deepEqual(state.hexes['1_0'].tile, 24);
+	assert.equal(state.hexes['1_0'].orient, 3);
+	assert.deepEqual(
+		state.events
+			.filter((e) => e.type === 'explored')
+			.map(({ seq: _seq, ...e }) => e),
+		[
+			{
+				type: 'explored',
+				player: F,
+				hex: '1_0',
+				tile: 24,
+				orient: 3,
+				vp: 4,
+			},
+		]
+	);
 	const f = state.seats[F - 1];
 	const o = state.seats[O - 1];
 	assert.equal(state.phase, 'over');
 	assert.deepEqual(openDecisions(state), []);
 	assert.deepEqual(
 		[f.vp, f.resources, f.territoryTiles.length, f.hand.length],
-		[0, { coin: 8, worker: 3, food: 6, culture: 4 }, 6, 1]
+		[4, { coin: 8, worker: 3, food: 7, culture: 4 }, 5, 1]
 	);
 	assert.deepEqual(
 		[o.vp, o.resources, o.territoryTiles.length, o.hand.length],
@@ -167,7 +194,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 	assert.deepEqual(state.result, {
 		ranking: [
 			{ seat: O, place: 1, vp: 6 },
-			{ seat: F, place: 2, vp: 0 },
+			{ seat: F, place: 2, vp: 4 },
 		],
 		ties: [],
 	});

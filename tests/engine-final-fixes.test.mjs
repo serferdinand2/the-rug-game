@@ -191,6 +191,8 @@ test('every decision kind has the full shape, and its answers pass its own check
 	// Enough to pay for something, so every kind has answers to check.
 	const state = structuredClone(started);
 	state.seats[0].resources.coin = 1;
+	// Seat 1 holds a territory tile (and controls its start territory), so it has somewhere to explore.
+	state.seats[0].territoryTiles = [2];
 	const fixtures = {
 		chooseTurn: {
 			player: 1,
@@ -260,6 +262,7 @@ test('every decision kind has the full shape, and its answers pass its own check
 			cost: { any: 1 },
 			gain: [{ gain: { tapestry: 1 } }],
 		},
+		chooseExplore: { player: 1, kind: 'chooseExplore', anywhere: false },
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

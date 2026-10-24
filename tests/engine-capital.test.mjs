@@ -561,9 +561,10 @@ test("FAQ #1: the landmark and its district resource come before the space's ben
 		random
 	);
 	assert.equal(done.seats[0].territoryTiles.length, 1);
+	// The explore that follows has the new tile to place, so its player is asked where (#17).
 	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['explore']
+		openDecisions(done).map((d) => [d.kind, d.player, d.anywhere]),
+		[['chooseExplore', 1, false]]
 	);
 });
 

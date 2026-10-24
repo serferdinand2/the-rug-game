@@ -180,9 +180,10 @@ test('Quantum Physics advances twice, on the same or another track', (t) => {
 		);
 	}
 	assert.deepEqual(state.seats[0].tracks.exploration, [2]);
+	// Scouting gave 2 territory tiles, so the explore at Rafts asks where to put one (#17).
 	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['explore']
+		openDecisions(state).map((d) => [d.kind, d.player]),
+		[['chooseExplore', 1]]
 	);
 });
 
