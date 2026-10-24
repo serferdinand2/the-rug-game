@@ -25,7 +25,7 @@
  * @typedef {Object} PlayerFields
  * @property {Record<ResourceId, number>} resources
  * @property {{ buildings: Record<BuildingId, number>, tapestry: string[][] }} incomeMat - Buildings left in each row; 4 era slots, each a stack
- * @property {{ mat: number | null }} capital
+ * @property {{ mat: number | null, landmarks: string[] }} capital - `landmarks`: those covering at least 1 grid plot (R13), kept by #16
  * @property {string[]} besideMat - Landmarks that didn't fit
  * @property {string[]} hand
  * @property {{ bottom: string[], middle: string[], top: string[] }} tech
@@ -66,6 +66,7 @@
  * @property {string[]} landmarks - Ids nobody owns yet
  * @property {Record<string, number[]>} achievements - Seats in box order
  * @property {{ player: number, track: TrackId, space: number }[]} activated - Track spaces activated this turn, cleared when a turn starts (R19)
+ * @property {import('./ranking.js').Result | null} result - The final ranking, once the game is over
  * @property {(Operation | Group)[]} pending - Index 0 is the top
  * @property {number} nextId
  * @property {number} seq
