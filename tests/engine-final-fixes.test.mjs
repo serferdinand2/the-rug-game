@@ -224,6 +224,17 @@ test('every decision kind has the full shape, and its answers pass its own check
 			benefit: true,
 			optional: true,
 		},
+		chooseRepeat: {
+			player: 1,
+			kind: 'chooseRepeat',
+			options: [{ track: 'exploration', space: 1 }],
+		},
+		chooseRestart: {
+			player: 1,
+			kind: 'chooseRestart',
+			options: ['exploration', 'science', 'technology', 'military'],
+			source: { track: 'technology', space: 12 },
+		},
 		chooseOption: {
 			player: 1,
 			kind: 'chooseOption',

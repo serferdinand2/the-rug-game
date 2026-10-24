@@ -5,6 +5,8 @@ import { building } from './building.js';
 import { choice } from './choice.js';
 import { research } from './research.js';
 import { advance, regress } from './move.js';
+import { repeat } from './repeat.js';
+import { restartToken } from './restart-token.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
@@ -15,6 +17,8 @@ export const EFFECTS = {
 	research,
 	advance,
 	regress,
+	repeat,
+	restartToken,
 };
 
 /**
