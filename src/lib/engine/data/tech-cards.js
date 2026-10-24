@@ -33,7 +33,7 @@ const advanceX = (track) => [{ advance: { tracks: [track], noBenefit: true } }];
 const perSpace = (track) => [{ vp: { per: 'trackSpace', track } }];
 
 /**
- * A landmark card: 4 VP-style circle, and the square places its landmark.
+ * A landmark card: circle of 3 to 5 VP, and the square places its landmark.
  * @param {string} id @param {string} name @param {number} vp @param {string} need
  * @returns {TechCard}
  */

@@ -56,10 +56,7 @@ for (const card of TECH_CARDS) {
 			(e) => e.type === 'techUpgraded' && e.card === card.id
 		);
 		assert.equal(upgraded.length, 2);
-		assert.ok(
-			seat.tech.top.includes(card.id) ||
-				state.seats[0].tech.top.includes(card.id)
-		);
+		assert.ok(state.seats[0].tech.top.includes(card.id));
 		const kinds = handoffs.calls.map((c) => c.kind);
 		if (card.id === 'printing-press') {
 			assert.ok(kinds.includes('tapestryOnTop'));

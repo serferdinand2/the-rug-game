@@ -1,4 +1,4 @@
-// The invent effect: take a tech card from the display or the deck into the bottom row (01 §9.1, FAQ #24).
+// The tech effects: invent, upgrade, techBenefit and landmark, and their helpers (01 §8, FAQ #6, #8 and #24).
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
 import {
@@ -23,8 +23,8 @@ export function inventAnswers(state, decision) {
 	if (canDraw(state)) {
 		answers.push({ card: 'deck' });
 	}
-	// A refresh with no cards anywhere would change nothing.
-	if (decision.refresh && answers.length > 0) {
+	// A refresh with nothing to draw only deals the same cards back.
+	if (decision.refresh && canDraw(state) && answers.length > 0) {
 		answers.push({ refresh: true });
 	}
 	return answers;
@@ -65,15 +65,33 @@ export function inventCard(ctx, player, answer, left) {
 		return;
 	}
 	const from = answer.card === 'deck' ? 'deck' : 'display';
-	const card =
-		answer.card === 'deck'
-			? drawTech(ctx)
-			: tech.faceUp.splice(tech.faceUp.indexOf(answer.card ?? ''), 1)[0];
+	/** @type {number} */
+	let slot = -1;
+	/** @type {string | null | undefined} */
+	let card;
+	if (answer.card === 'deck') {
+		card = drawTech(ctx);
+	} else {
+		slot = tech.faceUp.indexOf(answer.card ?? '');
+		if (slot === -1) {
+			throw new Error(
+				'inventCard found that card is not in the display.'
+			);
+		}
+		card = tech.faceUp.splice(slot, 1)[0];
+	}
 	if (card === null || card === undefined) {
 		throw new Error('inventCard found no card to take.');
 	}
 	playerSeat(ctx.state, player).tech.bottom.push(card);
 	emit(ctx.state, { type: 'techInvented', player, card, from });
+	// The replacement takes the taken card's place (design §5).
+	if (slot !== -1) {
+		const replacement = drawTech(ctx);
+		if (replacement !== null) {
+			tech.faceUp.splice(slot, 0, replacement);
+		}
+	}
 	refillDisplay(ctx);
 	if (left > 1) {
 		askInvent(ctx, player, left - 1, false);
@@ -96,12 +114,18 @@ export function invent(ctx, player, value) {
  */
 export function upgradeCard(ctx, player, card) {
 	const rows = playerSeat(ctx.state, player).tech;
+	if (!rows.bottom.includes(card) && !rows.middle.includes(card)) {
+		throw new Error(
+			'upgradeCard found that card is not in a bottom or middle row.'
+		);
+	}
 	const from = rows.bottom.includes(card) ? 'bottom' : 'middle';
 	const to = from === 'bottom' ? 'middle' : 'top';
 	rows[from].splice(rows[from].indexOf(card), 1);
 	rows[to].push(card);
 	emit(ctx.state, { type: 'techUpgraded', player, card, from, to });
 	const icon = from === 'bottom' ? 'circle' : 'square';
+	// The `passive` mark is deliberately not carried: a card's benefit is never passive civilization VP, and a finished player gains nothing else (01 §4.3).
 	ctx.push([
 		{
 			player,
@@ -152,6 +176,7 @@ export function techBenefitOptions(state, player, icon) {
  * @param {'circle' | 'square'} icon
  */
 export function useTechBenefit(ctx, player, card, icon) {
+	// The `passive` mark is deliberately not carried: a card's benefit is never passive civilization VP, and a finished player gains nothing else (01 §4.3).
 	ctx.push([
 		{
 			player,

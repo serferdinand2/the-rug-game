@@ -82,7 +82,7 @@ test('income turn 1 gains the income of every space 1: coin, worker, food and a 
 
 test('income turns 2–5 hand civilization abilities to #20, then offer an optional upgrade', (t) => {
 	const r = incomeAfter(t, 1, (seat) => {
-		seat.tech.bottom = ['pottery'];
+		seat.tech.bottom = ['calendar'];
 	});
 	assert.deepEqual(r.calls, [
 		{ kind: 'civAbilities', player: r.player, value: { turn: 2 } },
@@ -96,7 +96,7 @@ test('income turns 2–5 hand civilization abilities to #20, then offer an optio
 	const next = answer(r.state, r.random, r.player, 'chooseUpgrade', {
 		card: null,
 	});
-	assert.deepEqual(next.seats[r.player - 1].tech.bottom, ['pottery']);
+	assert.deepEqual(next.seats[r.player - 1].tech.bottom, ['calendar']);
 	assert.ok(next.events.some((e) => e.type === 'capitalScored'));
 });
 
@@ -117,7 +117,7 @@ test('income step 3 upgrades a bottom card for its circle when the player takes 
 
 test('income turn 2 scores the exposed VP icons: Barter counts tech cards, Symbology scores the capital', (t) => {
 	const r = incomeAfter(t, 1, (seat) => {
-		seat.tech.top = ['pottery', 'clocks', 'radio'];
+		seat.tech.top = ['calendar', 'clocks', 'radio'];
 		// Fill the whole first row, so Symbology has a line to score.
 		for (const spot of buildingSpots(seat)) {
 			if (spot.row === 0) {
@@ -149,7 +149,7 @@ test("more buildings off a row show more spaces: two farms taken add Farming's f
 
 test('income turn 5 scores but gains no income, then the player is finished', (t) => {
 	const r = incomeAfter(t, 4, (seat) => {
-		seat.tech.top = ['pottery'];
+		seat.tech.top = ['calendar'];
 	});
 	assert.equal(r.seat.incomeTurns, 5);
 	assert.equal(r.seat.vp, 1);

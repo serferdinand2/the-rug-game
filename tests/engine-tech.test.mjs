@@ -1,4 +1,4 @@
-// Tests for the tech deck, the face-up display and inventing (#18, 01 §9.1, FAQ #11 and #24).
+// Tests for the tech deck and display, inventing, upgrading and card benefits (#18, 01 §8, FAQ #6, #8, #11 and #24).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
@@ -6,6 +6,7 @@ import { run, contextFor } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { upgradable } from '../src/lib/engine/tech.js';
+import { inventCard, upgradeCard } from '../src/lib/engine/effects/tech.js';
 import { pay } from '../src/lib/engine/payment.js';
 import { TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
 import { startTurn } from '../src/lib/engine/turn.js';
@@ -40,21 +41,67 @@ const decision = (state) => openDecisions(state)[0];
  */
 const events = (state, type) => state.events.filter((e) => e.type === type);
 
-test('inventing a face-up card puts it in the bottom row and refills the display', () => {
+test('inventing a face-up card puts it in the bottom row and refills its slot (design §5)', () => {
 	const { state, random } = inventGame({});
 	const open = decision(state);
 	assert.equal(open.kind, 'chooseInvent');
-	const [first, , third] = state.supply.tech.faceUp;
+	const [first, second, third] = state.supply.tech.faceUp;
 	const top = state.supply.tech.deck[0];
-	const next = play(state, 1, { decision: open.id, card: third }, random);
-	assert.deepEqual(next.seats[0].tech.bottom, [third]);
-	assert.deepEqual(next.supply.tech.faceUp.length, 3);
-	assert.ok(next.supply.tech.faceUp.includes(first));
-	assert.equal(next.supply.tech.faceUp[2], top);
+	const next = play(state, 1, { decision: open.id, card: first }, random);
+	assert.deepEqual(next.seats[0].tech.bottom, [first]);
+	assert.deepEqual(next.supply.tech.faceUp, [top, second, third]);
 	assert.equal(inventing(next), 0);
 	const invented = events(next, 'techInvented').at(-1);
 	assert.equal(invented.player, 1);
-	assert.equal(invented.card, third);
+	assert.equal(invented.card, first);
+});
+
+test('with nothing to draw, a taken slot stays empty and the others keep their places', () => {
+	const { state, random } = inventGame({}, (s) => {
+		s.supply.tech.deck = [];
+		s.supply.tech.discard = [];
+	});
+	const [first, second, third] = state.supply.tech.faceUp;
+	const next = play(
+		state,
+		1,
+		{ decision: decision(state).id, card: first },
+		random
+	);
+	assert.deepEqual(next.supply.tech.faceUp, [second, third]);
+});
+
+test('inventCard and upgradeCard refuse a card that is not there with a plain Error', () => {
+	const { state, random } = inventGame({}, (s) => {
+		s.seats[0].tech.top = ['calendar'];
+		s.seats[0].tech.middle = ['paper', 'clocks'];
+	});
+	const other = state.supply.tech.deck[0];
+	const ctx = () => contextFor(structuredClone(state), random, state.pending);
+	assert.throws(
+		() => inventCard(ctx(), 1, { card: other }, 1),
+		(e) => e instanceof Error && e.name !== 'PlayerError'
+	);
+	assert.throws(
+		() => upgradeCard(ctx(), 1, 'calendar'),
+		(e) => e instanceof Error && e.name !== 'PlayerError'
+	);
+	assert.throws(
+		() => upgradeCard(ctx(), 1, 'irrigation'),
+		(e) => e instanceof Error && e.name !== 'PlayerError'
+	);
+});
+
+test('a refresh is not offered when nothing could be dealt but the same cards', () => {
+	const { state } = inventGame({ refresh: true }, (s) => {
+		s.supply.tech.deck = [];
+		s.supply.tech.discard = [];
+	});
+	const open = decision(state);
+	assert.equal(open.kind, 'chooseInvent');
+	assert.ok(
+		!DECISIONS.chooseInvent.answers(state, open).some((a) => a.refresh)
+	);
 });
 
 test('inventing from the deck takes the top card', () => {
@@ -164,14 +211,8 @@ test('Rubber with nothing left for the second card stops quietly', () => {
 		s.supply.tech.deck = [];
 		s.supply.tech.discard = [];
 	});
-	// One card and a refresh: two answers, so it asks.
-	const open = decision(state);
-	const next = play(
-		state,
-		1,
-		{ decision: open.id, card: open.id && state.supply.tech.faceUp[0] },
-		random
-	);
+	// One card and nothing to draw: a refresh isn't offered, so the one card is taken at once.
+	const next = state;
 	assert.equal(next.seats[0].tech.bottom.length, 1);
 	assert.equal(events(next, 'noInvent').length, 1);
 	assert.equal(inventing(next), 0);
@@ -343,12 +384,12 @@ const upgrading = (state) =>
 
 test('upgrading a bottom card moves it to the middle and gives its circle', () => {
 	const { state, random } = upgradeGame({}, (s) => {
-		s.seats[0].tech.bottom = ['irrigation', 'pottery'];
+		s.seats[0].tech.bottom = ['irrigation', 'calendar'];
 	});
 	const [open] = upgrading(state);
 	assert.deepEqual(DECISIONS.chooseUpgrade.answers(state, open), [
 		{ card: 'irrigation' },
-		{ card: 'pottery' },
+		{ card: 'calendar' },
 	]);
 	const food = state.seats[0].resources.food;
 	const next = play(
@@ -357,7 +398,7 @@ test('upgrading a bottom card moves it to the middle and gives its circle', () =
 		{ decision: open.id, card: 'irrigation' },
 		random
 	);
-	assert.deepEqual(next.seats[0].tech.bottom, ['pottery']);
+	assert.deepEqual(next.seats[0].tech.bottom, ['calendar']);
 	assert.deepEqual(next.seats[0].tech.middle, ['irrigation']);
 	assert.equal(next.seats[0].resources.food, food + 1);
 	assert.deepEqual(events(next, 'techUpgraded').at(-1), {
@@ -438,7 +479,7 @@ test('R18: a landmark card needs its innovation uncovered, by the player or a ne
 
 test('top-row cards are never offered', () => {
 	const { state } = upgradeGame({ optional: true }, (s) => {
-		s.seats[0].tech.top = ['calendar', 'pottery'];
+		s.seats[0].tech.top = ['calendar', 'paper'];
 		s.seats[0].tech.bottom = ['irrigation'];
 	});
 	const [open] = upgrading(state);
@@ -480,7 +521,7 @@ test('a mandatory upgrade with one card is automatic, and with none does nothing
 
 test('an answer not offered is refused', () => {
 	const { state, random } = upgradeGame({}, (s) => {
-		s.seats[0].tech.bottom = ['irrigation', 'pottery'];
+		s.seats[0].tech.bottom = ['irrigation', 'paper'];
 		s.seats[0].tech.middle = ['ammonia'];
 		s.seats[0].tech.top = ['calendar'];
 		s.seats[1].tech.bottom = ['clocks'];
@@ -533,16 +574,16 @@ test('Nanotechnology gives the square of a top-row card without moving it', () =
 	const { state, random } = effectsGame(
 		[{ techBenefit: { icon: 'square' } }],
 		(s) => {
-			s.seats[0].tech.top = ['irrigation', 'nail'];
+			s.seats[0].tech.top = ['irrigation', 'the-nail'];
 		}
 	);
 	const [open] = openDecisions(state);
 	assert.equal(open.kind, 'chooseTechBenefit');
 	assert.equal(open.icon, 'square');
-	assert.deepEqual(open.options, ['irrigation', 'nail']);
+	assert.deepEqual(open.options, ['irrigation', 'the-nail']);
 	assert.deepEqual(DECISIONS.chooseTechBenefit.answers(state, open), [
 		{ card: 'irrigation' },
-		{ card: 'nail' },
+		{ card: 'the-nail' },
 	]);
 	const next = play(
 		state,
@@ -550,7 +591,7 @@ test('Nanotechnology gives the square of a top-row card without moving it', () =
 		{ decision: open.id, card: 'irrigation' },
 		random
 	);
-	assert.deepEqual(next.seats[0].tech.top, ['irrigation', 'nail']);
+	assert.deepEqual(next.seats[0].tech.top, ['irrigation', 'the-nail']);
 	assert.deepEqual(
 		openDecisions(next).map((d) => [d.kind, d.building]),
 		[['choosePlacement', 'farm']]
@@ -565,12 +606,12 @@ test('a tech benefit with no card in that row says so, and a wrong answer is ref
 		[{ techBenefit: { icon: 'circle' } }],
 		(s) => {
 			s.seats[0].tech.middle = ['irrigation', 'calendar'];
-			s.seats[0].tech.top = ['nail'];
+			s.seats[0].tech.top = ['the-nail'];
 		}
 	);
 	const [open] = openDecisions(state);
 	assert.throws(
-		() => play(state, 1, { decision: open.id, card: 'nail' }, random),
+		() => play(state, 1, { decision: open.id, card: 'the-nail' }, random),
 		/Choose one of the cards offered\./
 	);
 	assert.throws(
@@ -675,4 +716,11 @@ test('Time Travel goes back on exploration or military without a benefit', () =>
 	);
 	assert.deepEqual(next.seats[0].tracks.military, [4]);
 	assert.equal(events(next, 'spaceActivated').length, 0);
+});
+
+test('a once-per-turn repeat with no tech card as its source is a plain Error (FAQ #6)', () => {
+	assert.throws(
+		() => effectsGame([{ repeat: { oncePerTurn: true } }]),
+		(e) => e instanceof Error && e.name !== 'PlayerError'
+	);
 });

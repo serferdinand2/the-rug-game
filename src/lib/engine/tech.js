@@ -1,4 +1,4 @@
-// The tech deck and its three face-up cards: drawing, refilling and refreshing (01 §9.1, FAQ #24).
+// The tech deck and its three face-up cards: drawing, refilling and refreshing (01 §8, FAQ #24), and what a card's prerequisites ask (R18).
 import { emit } from './events.js';
 import { shuffle } from './random.js';
 import { playerSeat, seatOf } from './state.js';
