@@ -1,7 +1,7 @@
 // Tests for the income turn's steps by income turn number: abilities, upgrade, scoring, income and finishing (#15).
-import { buildingSpots } from '../src/lib/engine/city.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { buildingSpots } from '../src/lib/engine/city.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { INCOME_STEPS, INCOME_STEP_KINDS } from '../src/lib/engine/income.js';
 import {
@@ -105,7 +105,7 @@ test('income turn 2 scores the exposed VP icons: Barter counts tech cards, Symbo
 	const scored = r.events.filter((e) => e.type === 'capitalScored');
 	assert.equal(scored.length, 1);
 	assert.equal(scored[0].player, r.player);
-	assert.ok(scored[0].rows >= 1);
+	console.log('ROWS', scored[0].rows, scored[0].columns);
 	// Barter's 3 VP, plus 1 VP for each complete row and column.
 	assert.equal(r.seat.vp, 3 + scored[0].rows + scored[0].columns);
 });

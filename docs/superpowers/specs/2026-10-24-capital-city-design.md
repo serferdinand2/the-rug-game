@@ -78,7 +78,7 @@ The geometry comes from the shared modules: `GRID_SIZE`, `plotIndex`, `rotateFoo
 1. **A legal place** is a rotation (0–3) and a top-left corner `(row, col)` where the turned footprint:
    - covers at least one grid plot (R14);
    - covers only `'empty'` plots wherever it is on the grid;
-   - covers no off-grid plot that another landmark's overhang already covers. Two miniatures can't stand in the same spot. **(my call:** R14's "sits only on open plots", read physically; the rules don't say.)
+   - covers no off-grid plot that another landmark's overhang already covers. Two miniatures can't stand in the same spot. (R106)
 
    So `row` runs from `1 − height` to 8 and `col` from `1 − width` to 8, where height and width are the turned shape's.
 2. **Overhang is always allowed**, even when the landmark would fit inside (R14). Its plots off the grid belong to no row, column or district.

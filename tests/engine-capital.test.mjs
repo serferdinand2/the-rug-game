@@ -18,6 +18,7 @@ import {
 	landmarkSpots,
 } from '../src/lib/engine/city.js';
 import { plotIndex, groupsOf } from '../src/lib/capital.js';
+import { CAPITAL_MATS } from '../src/lib/engine/data/capitals.js';
 import { startedGame, placeAll, stubHandoffs } from './helpers/engine.mjs';
 
 /**
@@ -137,12 +138,19 @@ test('a building answer must be two whole numbers on the grid, without a rotatio
 
 test('the last open plot is filled automatically (owner)', () => {
 	const { state, random } = game();
-	const plots = cityPlots(state.seats[0]);
 	const open = buildingSpots(state.seats[0]);
+	// The mat's printed grid has 59 open plots ('0'); the city offers exactly those.
+	assert.equal(
+		open.length,
+		CAPITAL_MATS[0].grid.join('').split('0').length - 1
+	);
 	for (const { row, col } of open.slice(0, -1)) {
 		state.seats[0].capital.buildings.push({ building: 'house', row, col });
 	}
-	assert.equal(plots.filter((k) => k === 'empty').length, open.length);
+	assert.equal(
+		cityPlots(state.seats[0]).filter((k) => k === 'empty').length,
+		1
+	);
 	const next = gainFarm(state, random);
 	// Only the last district's reward is left to answer; the placement itself asked nothing.
 	assert.deepEqual(
@@ -612,6 +620,118 @@ test("a landmark gained on another player's turn is placed by that player (FAQ #
 	assert.equal(next.seats[0].capital.landmarks.length, 0);
 });
 
+test('every landmark answer passes check on a started game, for a chiral landmark too', () => {
+	for (const landmark of [
+		'lighthouse',
+		'birdwatching-perch',
+		'rubber-works',
+	]) {
+		const { state, random } = game(1);
+		gainLandmark(state, random, landmark);
+		const [decision] = openDecisions(state);
+		const answers = DECISIONS.choosePlacement.answers(state, decision);
+		assert.ok(answers.length > 0, landmark);
+		for (const answer of answers) {
+			assert.doesNotThrow(
+				() => DECISIONS.choosePlacement.check(state, decision, answer),
+				`${landmark} ${JSON.stringify(answer)}`
+			);
+		}
+	}
+});
+
+test('an overhanging landmark completes a district through its plots on the grid only (design section 12)', () => {
+	// District 1 of the Mountain has 5 open plots: (0, 3), (0, 4), (0, 5), (1, 3), (1, 4).
+	const { state, random } = game(1, (seat) => {
+		for (const [row, col] of [
+			[0, 5],
+			[1, 3],
+			[1, 4],
+		]) {
+			seat.capital.buildings.push({ building: 'house', row, col });
+		}
+		seat.resources = { coin: 0, worker: 0, food: 0, culture: 0 };
+	});
+	gainLandmark(state, random, 'lighthouse');
+	const [decision] = openDecisions(state);
+	// Rows -1 and 0: two plots off the grid, and (0, 3) and (0, 4) on it.
+	const next = play(
+		state,
+		1,
+		{ decision: decision.id, row: -1, col: 3, rotation: 0 },
+		random
+	);
+	assert.deepEqual(completeDistricts(cityPlots(next.seats[0])), [1]);
+	const [reward] = openDecisions(next);
+	assert.equal(reward.kind, 'chooseResource');
+	const done = play(
+		next,
+		1,
+		{ decision: reward.id, resources: { coin: 1 } },
+		random
+	);
+	assert.equal(done.seats[0].resources.coin, 1);
+	assert.deepEqual(openDecisions(done), []);
+	assert.equal(
+		next.events.filter((e) => e.type === 'landmarkPlaced').length,
+		1
+	);
+});
+
+test("FAQ #1: a district the landmark completes can pay the space's bonus", () => {
+	const { state, random } = game(1, (seat) => {
+		seat.tracks.exploration = [3];
+		seat.resources = { coin: 0, worker: 0, food: 0, culture: 0 };
+		for (const [row, col] of [
+			[0, 0],
+			[0, 1],
+			[0, 2],
+			[1, 2],
+			[2, 0],
+		]) {
+			seat.capital.buildings.push({ building: 'house', row, col });
+		}
+	});
+	// Exploration 5 (Ships) comes with the Lighthouse at space 4; its bonus pays 1 coin for a farm.
+	moved(state, random, {
+		track: 'exploration',
+		from: 3,
+		to: 5,
+		benefit: true,
+	});
+	const [placing] = openDecisions(state);
+	assert.equal(placing.landmark, 'lighthouse');
+	// The Lighthouse fills (2, 1) and (2, 2), completing district 0.
+	const afterPlace = play(
+		state,
+		1,
+		{ decision: placing.id, row: 2, col: 1, rotation: 0 },
+		random
+	);
+	const [reward] = openDecisions(afterPlace);
+	assert.equal(reward.kind, 'chooseResource');
+	const afterReward = play(
+		afterPlace,
+		1,
+		{ decision: reward.id, resources: { coin: 1 } },
+		random
+	);
+	const [bonus] = openDecisions(afterReward);
+	assert.equal(bonus.kind, 'chooseBonus');
+	const answers = DECISIONS.chooseBonus.answers(afterReward, bonus);
+	assert.ok(answers.some((a) => a.pay && a.pay.coin === 1));
+	const paid = play(
+		afterReward,
+		1,
+		{ decision: bonus.id, pay: { coin: 1 } },
+		random
+	);
+	assert.deepEqual(
+		openDecisions(paid).map((d) => [d.kind, d.building]),
+		[['choosePlacement', 'farm']]
+	);
+});
+
 test('R13: a landmark placed through the engine breaks a VP tie', () => {
 	const { state, random } = game(1, (seat, s) => {
 		s.seats[1].capital.mat = 2;
@@ -632,7 +752,7 @@ test('R13: a landmark placed through the engine breaks a VP tie', () => {
 	);
 });
 
-// Scoring the capital (R13, FAQ #21)
+// Scoring the capital (FAQ #21, R71)
 
 test('scoreCapital scores 1 VP per complete row and column; impassable plots count as filled, plots off the grid do not', () => {
 	const { state, random } = game(5, (seat) => {

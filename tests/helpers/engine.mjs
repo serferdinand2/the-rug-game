@@ -53,7 +53,7 @@ export function startedGame(count, options) {
 	return { state: answerSetup(state, random), random };
 }
 
-/** Effects that later issues build (#16–#20). */
+/** Effects that later issues build (#17–#20). */
 const HANDOFF_EFFECTS = [
 	'explore',
 	'exploreSpace',
@@ -66,7 +66,7 @@ const HANDOFF_EFFECTS = [
 	'gainCiv',
 ];
 
-/** Operations #14 and #15 push for later issues: placing landmarks (#16), civilization abilities (#20) and tapestry abilities (#19). */
+/** Operations #14 and #15 push for later issues: civilization abilities (#20) and tapestry abilities (#19). */
 const HANDOFF_OPERATIONS = ['civAbilities', 'tapestryAbility'];
 
 /**

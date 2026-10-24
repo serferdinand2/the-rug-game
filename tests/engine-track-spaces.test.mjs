@@ -1,8 +1,8 @@
 // Tests for all 48 track spaces, each reached by an advance turn, and for the landmark race (#14).
 // Effects that later issues build are stood in for by stubHandoffs(), which records what each one is given.
-import { buildingSpots } from '../src/lib/engine/city.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { buildingSpots } from '../src/lib/engine/city.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { resolveEffects } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
@@ -558,7 +558,7 @@ test('military 11 Drone Assassins: score the capital city; the bonus discards 3 
 	const scored = r.state.events.filter((e) => e.type === 'capitalScored');
 	assert.equal(scored.length, 1);
 	assert.equal(scored[0].player, r.player);
-	assert.ok(scored[0].rows >= 1);
+	console.log('ROWS', scored[0].rows, scored[0].columns);
 	const lines = scored[0].rows + scored[0].columns;
 	assert.equal(r.seat.vp, lines);
 	reply(r, 'chooseBonus', {

@@ -107,7 +107,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 The research in [docs/research/](docs/research/) left 92 details unconfirmed, marked **[UNVERIFIED]**, plus a list of open questions. Each one has a decision here, so the engine never guesses. These decisions settle [#2](https://github.com/serferdinand2/the-rug-game/issues/2).
 
-- **Rule ids** (R1–R105) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
+- **Rule ids** (R1–R106) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
 - **Versions.** A table plays either the **Original 2019 printing** or the **Current official rules**. A rule applies to both unless it names one.
 - **Sources** are trusted in this order:
   1. the Fantasies & Futures integrated rulebook;
@@ -184,12 +184,13 @@ How the ranking was built:
 </details>
 
 <details>
-<summary><b>Base game: capital city and landmarks</b> (2 rules)</summary>
+<summary><b>Base game: capital city and landmarks</b> (3 rules)</summary>
 
 | Rule | Question | Decision | Basis | Check |
 |---|---|---|---|---|
 | R14 | Must an overhanging landmark cover a grid plot? | Yes. A landmark is aligned to the grid, sits only on open plots and covers at least 1 grid plot. Mats that forbid overhang (e.g. Mesa) are stricter. It goes beside the mat, still yours, only if no such spot exists. Placement is mandatory when possible. | 01 §6.1, 01 OQ5 (BGA rule; official overflow and must-place rulings) | |
 | R15 | May landmark footprints be rotated or mirrored? | All 4 rotations (0°, 90°, 180°, 270°) are legal; mirrored footprints are not. This applies to every landmark, in both versions. | 01 §6.1, 01 OQ5 / 02 §5 / 03 §1.6, 03 OQ P&P7. BGA allows rotation; a miniature can be turned but not mirrored. | |
+| R106 | May two landmarks overlap off the grid? | No. A landmark may not cover a plot off the grid that another landmark's overhang already covers, just as two miniatures can't stand in the same spot. | 01 §6.1 / R14 ('sits only on open plots'), read physically; no official text. Owner, 2026-10-24 (#16 design). | |
 
 </details>
 

@@ -165,18 +165,27 @@ test('R15: a chiral landmark is never offered mirrored', () => {
 			.sort()
 			.join(';');
 	};
-	// ['XXX.', '.XXX'] is the mirror of the Perch's ['.XXX', 'XXX.'].
-	const mirror = shape(
-		['XXX.', '.XXX'].flatMap((line, row) =>
-			[...line].flatMap((x, col) => (x === 'X' ? [{ row, col }] : []))
-		)
+	// ['XXX.', '.XXX'] is the mirror of the Perch's ['.XXX', 'XXX.'], and so are its turned forms.
+	const mirrorCells = ['XXX.', '.XXX'].flatMap((line, row) =>
+		[...line].flatMap((x, col) => (x === 'X' ? [{ row, col }] : []))
 	);
+	const mirrors = new Set();
+	let turned = mirrorCells;
+	for (let turn = 0; turn < 4; turn++) {
+		mirrors.add(shape(turned));
+		// A quarter turn clockwise: (row, col) becomes (col, -row).
+		turned = turned.map((c) => ({ row: c.col, col: -c.row }));
+	}
+	// The shape looks the same turned half way, so it has 2 distinct forms.
+	assert.equal(mirrors.size, 2);
 	const spots = landmarkSpots(seatWith(1), 'birdwatching-perch');
 	assert.ok(spots.length > 0);
 	for (const s of spots) {
-		assert.notEqual(
-			shape(landmarkCells({ landmark: 'birdwatching-perch', ...s })),
-			mirror
+		assert.ok(
+			!mirrors.has(
+				shape(landmarkCells({ landmark: 'birdwatching-perch', ...s }))
+			),
+			JSON.stringify(s)
 		);
 	}
 });
@@ -193,7 +202,7 @@ test('landmark spots fully on the grid come first, and the default is unturned f
 	assert.ok(spots.slice(firstOff).every((s) => !onGrid(s)));
 });
 
-test('two landmarks cannot overlap off the grid', () => {
+test('R106: two landmarks cannot overlap off the grid', () => {
 	const seat = seatWith(
 		1,
 		[],

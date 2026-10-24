@@ -1,4 +1,4 @@
-// The scoreCapital effect: 1 VP for each complete row and each complete column of the capital city (R13).
+// The scoreCapital effect: 1 VP for each complete row and each complete column of the capital city (01 §6.1; R71: only pieces on the grid count).
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
 import { cityPlots, completeLines } from '../city.js';

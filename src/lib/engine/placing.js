@@ -14,7 +14,7 @@ import {
  * @param {import('./state.js').Context} ctx
  * @param {number} player
  * @param {import('./city.js').PlacedBuilding | import('./city.js').PlacedLandmark} piece
- * @param {boolean} automatic - True when the piece went on the last open plot without a question
+ * @param {boolean} automatic - True when nobody was asked: the piece had only one place
  */
 export function placePiece(ctx, player, piece, automatic) {
 	const seat = playerSeat(ctx.state, player);

@@ -88,6 +88,7 @@ export function landmarkProblem(seat, piece) {
 	if (inside.some((c) => plots[plotIndex(c.row, c.col)] !== 'empty')) {
 		return "That plot isn't open.";
 	}
+	// R106: two landmarks can't share a plot off the grid either.
 	const taken = new Set(
 		seat.capital.landmarks.flatMap((p) =>
 			landmarkCells(p).map((c) => `${c.row},${c.col}`)

@@ -88,7 +88,7 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
 - **#1, #2, #4, #7, #8, #9, #11, #12, #13, #14, #15, #16, #44, #46, #48 and #52 are done.**
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
-  - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R105).
+  - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R106).
 - **#4 (art toolkit and asset catalog)** is done. The owner approved the scene parts on 2026-10-21.
 - **#7 (landmarks)** is done. All 33 are drawn, each one picture in its footprint's shape, and the owner approved them in the asset gallery (`art/preview/index.html`) on 2026-10-21.
 - **#9 (tapestry card pictures)** is done (2026-10-22). All 115 pictures are drawn: 44 base, 13 Plans & Ploys, 20 Arts & Architecture and 38 Fantasies & Futures. The design is `docs/superpowers/specs/2026-10-22-tapestry-cards-design.md` and the plan is `docs/superpowers/plans/2026-10-22-tapestry-cards-issue-9.md`.
@@ -146,8 +146,8 @@ Updated 2026-10-24. Update this section whenever a milestone moves.
   - `tests/engine-scripted-game.test.mjs` plays a 2-player game from setup to the end.
   - The final review found two problems, both fixed with tests: the `passive` mark was lost through `chooseOption` and `chooseOrder`, and an income step after `'finish'` would silently do nothing (it now throws).
 - **#16 (capital city placement and district rewards)** is done (2026-10-24). The design is `docs/superpowers/specs/2026-10-24-capital-city-design.md` and the plan is `docs/superpowers/plans/2026-10-24-capital-city-issue-16.md`.
-  - Placement. A building goes on an open plot. A landmark goes in any of 4 rotations; it may hang over the edge if at least one grid plot is covered, but it may not overlap a piece or an impassable plot on the grid. When nothing fits, the piece goes beside the mat (`besideMat`). When there is only one place, it is placed automatically (owner).
-  - District rewards. Each district a building completes pays 1 resource of the player's choice, before the benefit of the space that gave the building (FAQ #1).
+  - A building goes on an open plot. A landmark goes in any of 4 rotations; it may hang over the edge if at least one grid plot is covered, but it may not overlap a piece or an impassable plot on the grid, and it may not cover another landmark's overhang off the grid (R106). When nothing fits, the piece goes beside the mat (`besideMat`). When there is only one place, it is placed automatically (owner).
+  - Each district a building or landmark completes pays 1 resource of the player's choice, one choice for all of them. It comes before the rest of the benefit and the bonus, so a landmark's district can pay the bonus (FAQ #1).
   - `scoreCapital` scores the complete rows and columns. Symbology now really scores the capital on income turns 2-5.
   - `capital.landmarks` now holds pieces `{ landmark, row, col, rotation }`, and `landmarksInCity` returns ids. `cityPlots(seat)` is derived from the mat and the pieces, and uses the interface's `PlotKind`.
   - `tests/engine-capital.test.mjs` and `tests/engine-city.test.mjs` cover it. The scripted game checks both capitals at the end.
@@ -297,7 +297,7 @@ How to read the research:
   3. the base rulebook;
   4. the printed art;
   5. the Board Game Arena implementation.
-- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R105**.
+- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R106**.
   - Follow those decisions, not the research's working assumptions.
   - Cite the id in code comments and test names, for example `// R16`.
   - Content listed there as "left out" is never invented.
