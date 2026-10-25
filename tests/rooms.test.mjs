@@ -2,19 +2,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+	MAX_ROOMS,
 	MAX_SEATS,
+	MODES,
+	ROOM_IDLE_MS,
+	addRoom,
 	addSeat,
 	cleanName,
 	configure,
 	createRoom,
+	expireRooms,
 	join,
 	leave,
+	newCode,
+	openTables,
 	phase,
 	play,
 	removeSeat,
 	seatsOf,
 	start,
+	unfinishedSeat,
 } from '../rooms.mjs';
+import { checkOptions, PlayerError } from '../src/lib/engine/game.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
@@ -398,4 +407,354 @@ test('names are trimmed, squeezed and cut to 24 characters', () => {
 	refuses(() => cleanName('   '), 'Enter a name.');
 	refuses(() => cleanName(undefined), 'Enter a name.');
 	refuses(() => join(lobby('a'), { id: 'b', name: ' ' }), 'Enter a name.');
+});
+
+/**
+ * A map of rooms by code.
+ * @param {...Room} rooms
+ * @returns {Map<string, Room>}
+ */
+const mapOf = (...rooms) => new Map(rooms.map((r) => [r.code, r]));
+
+test('a table code is 8 hexadecimal digits that no room has yet', () => {
+	const taken = { ...lobby('a'), code: '00000000' };
+	const digits = [...'00000000', ...'3f9a1c07'].map((d) => parseInt(d, 16));
+	const random = (/** @type {number} */ n) => {
+		assert.equal(n, 16);
+		return /** @type {number} */ (digits.shift());
+	};
+	assert.equal(newCode(mapOf(taken), random), '3f9a1c07');
+	assert.match(newCode(new Map(), seededRandom(4)), /^[0-9a-f]{8}$/);
+});
+
+test('the server refuses a new table once 1,000 are open', () => {
+	/** @type {Map<string, Room>} */
+	const rooms = new Map();
+	for (let i = 0; i < MAX_ROOMS - 1; i++) {
+		rooms.set(`r${i}`, { ...lobby('a'), code: `r${i}` });
+	}
+	addRoom(rooms, lobby('b'));
+	assert.equal(rooms.size, MAX_ROOMS);
+	assert.equal(rooms.get('3f9a1c07')?.host, 'b');
+	refuses(
+		() => addRoom(rooms, { ...lobby('c'), code: 'cccccccc' }),
+		'There are too many tables right now. Try again later.'
+	);
+	assert.equal(MAX_ROOMS, 1000);
+});
+
+test('a table nobody used for a day expires', () => {
+	const now = 10 * ROOM_IDLE_MS;
+	const fresh = {
+		...lobby('a'),
+		code: 'aaaaaaaa',
+		touched: now - ROOM_IDLE_MS,
+	};
+	const stale = {
+		...lobby('b'),
+		code: 'bbbbbbbb',
+		touched: now - ROOM_IDLE_MS - 1,
+	};
+	const rooms = mapOf(fresh, stale);
+	assert.deepEqual(expireRooms(rooms, now), ['bbbbbbbb']);
+	assert.deepEqual([...rooms.keys()], ['aaaaaaaa']);
+	assert.equal(ROOM_IDLE_MS, 24 * 60 * 60 * 1000);
+});
+
+test('the open tables are the online lobbies with a free seat, most recently used first', () => {
+	const old = { ...lobby('a', 'b'), code: 'aaaaaaaa', touched: 1 };
+	const recent = {
+		...configure(lobby('c'), 'c', { version: 'original' }),
+		code: 'cccccccc',
+		touched: 5,
+	};
+	const full = {
+		...lobby('d', 'e', 'f', 'g', 'h'),
+		code: 'dddddddd',
+		touched: 9,
+	};
+	const local = { ...hotseat('Bo'), code: 'eeeeeeee', touched: 9 };
+	const running = { ...dealt(lobby('i', 'j')), code: 'ffffffff', touched: 9 };
+	const done = {
+		...finish(dealt(lobby('k', 'l'))),
+		code: '99999999',
+		touched: 9,
+	};
+	assert.deepEqual(
+		openTables(mapOf(old, recent, full, local, running, done)),
+		[
+			{
+				code: 'cccccccc',
+				host: 'C',
+				seats: 1,
+				version: 'original',
+				expansions: [],
+			},
+			{
+				code: 'aaaaaaaa',
+				host: 'A',
+				seats: 2,
+				version: 'current',
+				expansions: [],
+			},
+		]
+	);
+});
+
+test('a person sitting in a running game elsewhere is found, so they can be kept from a new table', () => {
+	const running = { ...dealt(lobby('a', 'b')), code: 'aaaaaaaa' };
+	const away = {
+		.../** @type {Room} */ (leave(running, 'b').room),
+		code: 'aaaaaaaa',
+	};
+	const done = { ...finish(dealt(lobby('c', 'd'))), code: 'cccccccc' };
+	const waiting = { ...lobby('e'), code: 'eeeeeeee' };
+	const rooms = mapOf(away, done, waiting);
+	assert.equal(
+		unfinishedSeat(rooms, 'b', 'zzzzzzzz'),
+		'aaaaaaaa',
+		'an away seat still holds them'
+	);
+	assert.equal(
+		unfinishedSeat(rooms, 'b', 'aaaaaaaa'),
+		null,
+		'returning to that table is fine'
+	);
+	assert.equal(
+		unfinishedSeat(rooms, 'c', 'zzzzzzzz'),
+		null,
+		'a finished game holds nobody'
+	);
+	assert.equal(
+		unfinishedSeat(rooms, 'e', 'zzzzzzzz'),
+		null,
+		'nor does a lobby'
+	);
+});
+
+/** The people of the randomized test. */
+const PEOPLE = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+/** Names for hot-seat players: few, so some clash. */
+const LOCAL_NAMES = ['Bo', 'Cy', 'Dee', 'bo', 'Eli', 'Fay'];
+
+/**
+ * One random step on a room: a transition, or (rarely) the game ending, as the engine would end it.
+ * @param {Room} room
+ * @param {import('../src/lib/engine/random.js').Random} random
+ * @returns {{ step: string, next: Room | null }}
+ */
+function randomStep(room, random) {
+	const someone = PEOPLE[random(PEOPLE.length)];
+	const seated = room.seats[random(room.seats.length)].player;
+	const roll = random(100);
+	if (roll < 20) {
+		return { step: `join ${someone}`, next: join(room, P(someone)) };
+	}
+	if (roll < 30) {
+		return { step: `leave ${seated}`, next: leave(room, seated).room };
+	}
+	if (roll < 35) {
+		return { step: `leave ${someone}`, next: leave(room, someone).room };
+	}
+	if (roll < 45) {
+		const name = LOCAL_NAMES[random(LOCAL_NAMES.length)];
+		const who = random(4) ? room.host : someone;
+		return { step: `${who} adds ${name}`, next: addSeat(room, who, name) };
+	}
+	if (roll < 50) {
+		const seat = 1 + random(room.seats.length + 1);
+		return {
+			step: `remove seat ${seat}`,
+			next: removeSeat(room, room.host, seat),
+		};
+	}
+	if (roll < 57) {
+		const changes = /** @type {any[]} */ ([
+			{ version: 'original' },
+			{ version: 'current' },
+			{ mode: MODES[random(MODES.length)] },
+			{ expansions: ['pp'] },
+			{ level: 3 },
+		])[random(5)];
+		const who = random(4) ? room.host : someone;
+		return {
+			step: `${who} configures ${JSON.stringify(changes)}`,
+			next: configure(room, who, changes),
+		};
+	}
+	if (roll < 67) {
+		const who = random(4) ? room.host : someone;
+		return { step: `${who} starts`, next: start(room, who, random) };
+	}
+	if (roll < 70 && room.game && room.game.phase !== 'over') {
+		return { step: 'the game ends', next: finish(room) };
+	}
+	if (!room.game || room.game.phase === 'over') {
+		return { step: 'nothing', next: room };
+	}
+	const decisions = openDecisions(room.game);
+	const decision = decisions[random(decisions.length)];
+	const seat = /** @type {number} */ (decision.player);
+	const answers = DECISIONS[decision.kind].answers(room.game, decision);
+	const owner = room.seats[seat - 1].player;
+	const who = random(5) ? owner : someone;
+	return {
+		step: `${who} answers seat ${seat}'s ${decision.kind}`,
+		next: play(
+			room,
+			who,
+			seat,
+			{ decision: decision.id, ...answers[random(answers.length)] },
+			random
+		),
+	};
+}
+
+/**
+ * Checks the room rules after a step (#22 design §9).
+ * @param {Room} room
+ * @param {Room} before
+ */
+function checkRoom(room, before) {
+	assert.ok(
+		room.seats.length >= 1 && room.seats.length <= MAX_SEATS,
+		'seat count'
+	);
+	assert.equal(room.code, before.code);
+	const host = room.seats.find((s) => s.player === room.host);
+	assert.ok(host, 'the host holds a seat');
+	if (room.seats.some((s) => !s.away)) {
+		assert.ok(
+			room.seats.some((s) => s.player === room.host && !s.away),
+			'the host is present whenever anyone is'
+		);
+	}
+	if (room.mode === 'online') {
+		const people = room.seats.map((s) => s.player);
+		assert.equal(
+			new Set(people).size,
+			people.length,
+			'nobody holds two online seats'
+		);
+	} else {
+		assert.ok(
+			room.seats.every((s) => s.player === room.host),
+			'the hot-seat host plays every seat'
+		);
+		const names = room.seats.map((s) => s.name.toLowerCase());
+		assert.equal(
+			new Set(names).size,
+			names.length,
+			'the names at one screen differ'
+		);
+	}
+	const now = phase(room);
+	if (now === 'lobby') {
+		assert.ok(
+			room.seats.every((s) => !s.away),
+			'nobody is away in the lobby'
+		);
+	}
+	if (now === 'playing') {
+		const game = /** @type {any} */ (room.game);
+		assert.deepEqual(
+			game.seats.map((/** @type {any} */ s) => s.name),
+			room.seats.map((s) => s.name),
+			'the seats match the game'
+		);
+		if (phase(before) === 'playing') {
+			assert.deepEqual(
+				room.options,
+				before.options,
+				'the options stay during a game'
+			);
+			assert.equal(room.mode, before.mode);
+		}
+	}
+	checkOptions(room.options);
+	assert.ok(MODES.includes(room.mode));
+	const open = openTables(mapOf(room)).length === 1;
+	assert.equal(
+		open,
+		room.mode === 'online' &&
+			now === 'lobby' &&
+			room.seats.length < MAX_SEATS,
+		'listed as open'
+	);
+	for (const person of PEOPLE) {
+		const holds =
+			now === 'playing' && room.seats.some((s) => s.player === person);
+		assert.equal(
+			unfinishedSeat(mapOf(room), person, 'elsewhere') === room.code,
+			holds,
+			`${person} is held by a running game`
+		);
+	}
+}
+
+test('random steps never break the room rules', () => {
+	for (let run = 1; run <= 200; run++) {
+		const random = seededRandom(run);
+		/** @type {Room | null} */
+		let room = null;
+		for (let i = 1; i <= 300; i++) {
+			if (!room) {
+				// A closed table is followed by a new one, so every run takes all its steps.
+				const mode = /** @type {import('../rooms.mjs').Mode} */ (
+					random(3) ? 'online' : 'hotseat'
+				);
+				room = createRoom(
+					'3f9a1c07',
+					P(PEOPLE[random(PEOPLE.length)]),
+					{
+						mode,
+					}
+				);
+				continue;
+			}
+			const before = room;
+			const snapshot = JSON.stringify({ ...room, game: null });
+			let step = '?';
+			try {
+				const result = randomStep(room, random);
+				step = result.step;
+				assert.equal(
+					JSON.stringify({ ...before, game: null }),
+					snapshot,
+					'the step changed the room it was given'
+				);
+				if (result.next === null) {
+					assert.match(step, /^leave /, 'only leaving closes a room');
+					const leaver = step.slice('leave '.length);
+					assert.ok(
+						before.seats.every(
+							(s) => s.player === leaver || s.away
+						),
+						'a room closes only when its last present person leaves'
+					);
+					assert.notEqual(
+						phase(before),
+						'playing',
+						'a running game never closes'
+					);
+					room = null;
+					continue;
+				}
+				checkRoom(result.next, before);
+				room = result.next;
+			} catch (error) {
+				if (error instanceof PlayerError) {
+					assert.equal(
+						JSON.stringify({ ...before, game: null }),
+						snapshot,
+						'a refused step changed the room'
+					);
+					continue;
+				}
+				const failure = /** @type {Error} */ (error);
+				failure.message = `run ${run}, step ${i} (${step}): ${failure.message}`;
+				throw failure;
+			}
+		}
+	}
 });

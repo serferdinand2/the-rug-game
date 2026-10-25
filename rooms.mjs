@@ -422,3 +422,104 @@ export function play(room, personId, seat, action, random) {
 	}
 	return { ...room, game: playGame(room.game, seat, action, random) };
 }
+
+/** Most tables the server keeps at once: a single process keeps them all in memory. */
+export const MAX_ROOMS = 1000;
+
+/** How long a table nobody uses is kept: a day, as in Fablewood and Bird Table. */
+export const ROOM_IDLE_MS = 24 * 60 * 60 * 1000;
+
+/** How many hexadecimal digits a table code has, as in Fablewood (`3f9a1c07`). */
+const CODE_LENGTH = 8;
+
+/**
+ * A new table code: 8 lowercase hexadecimal digits that no room has yet.
+ * @param {Map<string, Room>} rooms - By code
+ * @param {Random} random - The server passes crypto.randomInt
+ * @returns {string}
+ */
+export function newCode(rooms, random) {
+	for (;;) {
+		const code = Array.from({ length: CODE_LENGTH }, () =>
+			random(16).toString(16)
+		).join('');
+		if (!rooms.has(code)) {
+			return code;
+		}
+	}
+}
+
+/**
+ * Keeps a new room in the server's map.
+ * @param {Map<string, Room>} rooms - By code; changed in place
+ * @param {Room} room
+ * @throws {PlayerError} Once MAX_ROOMS tables are open
+ */
+export function addRoom(rooms, room) {
+	if (rooms.size >= MAX_ROOMS) {
+		throw new PlayerError(
+			'There are too many tables right now. Try again later.'
+		);
+	}
+	rooms.set(room.code, room);
+}
+
+/**
+ * Removes every room nobody has used for more than ROOM_IDLE_MS.
+ * @param {Map<string, Room>} rooms - By code; changed in place
+ * @param {number} now - Milliseconds
+ * @returns {string[]} The codes removed, so the server can answer their waiting requests
+ */
+export function expireRooms(rooms, now) {
+	const expired = [...rooms.values()]
+		.filter((room) => now - room.touched > ROOM_IDLE_MS)
+		.map((room) => room.code);
+	for (const code of expired) {
+		rooms.delete(code);
+	}
+	return expired;
+}
+
+/**
+ * The tables the landing page lists: online lobbies with a free seat, most recently used first.
+ * @param {Map<string, Room>} rooms - By code
+ * @returns {{ code: string, host: string, seats: number, version: string, expansions: string[] }[]}
+ */
+export function openTables(rooms) {
+	return [...rooms.values()]
+		.filter(
+			(room) =>
+				room.mode === 'online' &&
+				phase(room) === 'lobby' &&
+				room.seats.length < MAX_SEATS
+		)
+		.sort((a, b) => b.touched - a.touched)
+		.map((room) => ({
+			code: room.code,
+			host: room.seats.find((s) => s.player === room.host)?.name ?? '',
+			seats: room.seats.length,
+			version: room.options.version,
+			expansions: [...room.options.expansions],
+		}));
+}
+
+/**
+ * Another table where a person holds a seat, away or not, in a game still running. The server keeps them from
+ * sitting down elsewhere until it ends, as Bird Table does.
+ * @param {Map<string, Room>} rooms - By code
+ * @param {string} personId
+ * @param {string} exceptCode - The table they are trying to sit at
+ * @returns {string | null} Its code
+ */
+export function unfinishedSeat(rooms, personId, exceptCode) {
+	for (const room of rooms.values()) {
+		if (
+			room.code !== exceptCode &&
+			phase(room) === 'playing' &&
+			room.seats.some((s) => s.player === personId)
+		) {
+			return room.code;
+		}
+	}
+	return null;
+}
