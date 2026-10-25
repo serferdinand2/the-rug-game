@@ -53,7 +53,8 @@ function stringsOf(text) {
 
 /**
  * The card ids that lie in places every player sees: the tech display and rows, the discards, the income mats'
- * face-up cards, the civilizations in play, and the landmarks (a tech card and a landmark can share an id).
+ * face-up cards, the civilizations in play, the Inventors' marks (which stay with a card wherever it goes, #20), and
+ * the landmarks. A tech card and a landmark can share an id, so six tech cards are never checked in the deck.
  * @param {State} state
  * @returns {Set<string>}
  */
@@ -85,6 +86,7 @@ function publicIds(state) {
 			...seat.capital.landmarks.map((piece) => piece.landmark),
 			...seat.besideMat,
 			...(revealed ? seat.civs : []),
+			...(seat.civData.inventors?.cards ?? []),
 		]),
 	]);
 }
@@ -104,8 +106,9 @@ function isRevealed(state) {
  * Checks every viewer's view of `state` (each player seat, and null for the public view) against what the state
  * holds privately, and throws an AssertionError naming the first leak.
  *
- * A secret id may appear only where it is public anyway: in a public place now or before the action (a discard just
- * shuffled into a deck), or in an event older than the action, which was checked when it was new.
+ * A secret id may appear only where it is public anyway: in a public place now, or, in the action's new events, in a
+ * public place before the action (a discard just shuffled into a deck) or in a field the rules reveal (REVEALS).
+ * Older events were checked when they were new, so they are not searched again.
  * @param {State} state
  * @param {SetupFacts} facts - From setupFacts() of the same game
  * @param {{ before?: State | null, viewOf?: ViewOf }} [options] - `before`: the state the action started from
@@ -129,17 +132,17 @@ export function checkViews(
 		}
 	}
 	const known = publicIds(state);
-	if (before) {
-		for (const id of publicIds(before)) {
-			known.add(id);
-		}
-	}
 	const oldSeq = before ? before.seq : 0;
+	/** What the action's new events may name besides what is public now. */
+	const announced = new Set([...known, ...(before ? publicIds(before) : [])]);
 	for (const event of state.events) {
+		if (event.seq <= oldSeq) {
+			continue;
+		}
 		for (const field of REVEALS[event.type] ?? []) {
 			for (const id of [event[field]].flat()) {
 				if (typeof id === 'string') {
-					known.add(id);
+					announced.add(id);
 				}
 			}
 		}
@@ -161,24 +164,20 @@ export function checkViews(
 		const v = viewOf(state, viewer);
 		const { events, ...rest } = v;
 		const fresh = events.filter((/** @type {any} */ e) => e.seq > oldSeq);
-		const seen = stringsOf(JSON.stringify([rest, fresh]));
-		/** @type {Set<string> | undefined} */
-		let history;
+		const inBody = stringsOf(JSON.stringify(rest));
+		const inNews = stringsOf(JSON.stringify(fresh));
 		/**
 		 * Fails when a secret id shows in this view, unless it is public anyway.
 		 * @param {string} id
 		 * @param {string} what
 		 */
 		const hidden = (id, what) => {
-			if (!seen.has(`"${id}"`) || known.has(id)) {
-				return;
-			}
-			history ??= stringsOf(
-				JSON.stringify(
-					events.filter((/** @type {any} */ e) => e.seq <= oldSeq)
-				)
+			const quoted = `"${id}"`;
+			assert.ok(
+				(!inBody.has(quoted) || known.has(id)) &&
+					(!inNews.has(quoted) || announced.has(id)),
+				`${what} shown to ${viewer}`
 			);
-			assert.ok(history.has(`"${id}"`), `${what} shown to ${viewer}`);
 		};
 		for (const id of decks) {
 			hidden(id, `deck card ${id}`);

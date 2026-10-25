@@ -71,13 +71,21 @@ Checked on the full state after `createGame()` and after every action. `tests/he
 
 `engine-view.test.mjs` already checks views, but only through setup. Its `checkViews()` moves to `tests/helpers/views.mjs`, so both tests share it, and it gains the checks that only later parts of the game can fail. For every viewer (each player seat, and `null` for the public view):
 
-- No id from the tech, tapestry or civilization deck appears anywhere in the view, unless that id is public elsewhere (a tech card and a landmark can share an id).
+- No id from the tech, tapestry or civilization deck appears anywhere in the view.
 - No card in another player's hand appears.
 - No face-down tapestry card appears, to anyone, its owner included (01 §4.2).
 - Before the reveal, no other seat's dealt civilizations or picks appear, and on the small map no other seat's capital mat.
 - Decks and tile stacks are counts, not lists. Other seats have a `handCount` and no `hand` or `picks`.
 - Another player's decisions lack their kind's `hidden` fields and `answers`. Another player's events lack `secret`.
 - The viewer's own open decisions carry a non-empty `answers` list.
+
+**Where a secret id may still show.** A secret id is excused only where it is public anyway:
+- anywhere in the view, when it is in a public place now: the tech display and rows, the discards, the face-up income-mat cards, the civilizations in play, the Inventors' marks (which stay with a card wherever it goes, #20) and the landmarks;
+- in the action's own new events, when it was in a public place before the action (a discard shuffled into a deck and drawn in the same action), or when the event names it in a field the rules reveal: `REVEALS` lists them, today only R35's `cardsRevealed`.
+
+Events older than the action are not searched again: they were checked when they were new. **(my call)** The first version also excused any id named in an older event; the review showed that this hid a real leak (a card discarded publicly, then shuffled back and drawn), and no game needed it, so it went.
+
+**Known limit.** Six tech cards share their id with a landmark (Bakery, Barn, Com Tower, Library, Stock Market, Treasury), and a landmark is always public somewhere, so a leak of those six in the deck can't be seen by id.
 
 Searching a 40 KB view for every secret id would be slow, so the check reads every string in the view into a set once, then looks each secret id up in the set. **(my call)**
 
@@ -90,7 +98,11 @@ So the test splits the 200 games across **worker threads**: one per core but one
 - splitting the games across several test files, which works but leaves four near-empty files and no single command;
 - fewer or shorter games, which the issue rules out (200).
 
-**Replaying.** `SIM_SEED=17 node --test tests/simulation.test.mjs` plays only game 17, on the main thread, so a debugger and full stack traces work. `SIM_GAMES=1000` plays more games for a longer soak. A failure message names the seed, the player count, the version, the policy, the action number and the decision being answered, then the replay command.
+**Replaying.** `SIM_SEED=17 node --test tests/simulation.test.mjs` plays only game 17, on the main thread, so a debugger and full stack traces work. `SIM_GAMES=1000` plays more games for a longer soak. Either must be a whole number from 1. A failure message names the seed, the player count, the version, the policy, the action number and the decision being answered, then the replay command.
+
+**Stuck games.** A worker says when it starts each game. One that says nothing for a minute is stuck, probably in an endless loop inside one `play()`: the test stops it, fails that game by name with its replay command, and fails the games it still owed. A worker that crashes fails the game it was playing the same way. The CI job also stops after 15 minutes. **(my call, from the review)**
+
+The workers start with the first game's test, so a run filtered to other tests (`--test-name-pattern`) plays no games.
 
 ## 8. What the files are
 

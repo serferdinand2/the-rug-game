@@ -6,8 +6,15 @@ import { simulate } from './simulation.mjs';
  * What a worker reports for one game.
  * @typedef {{ index: number, ok: true, actions: number } | { index: number, ok: false, message: string, stack: string }} GameResult
  */
+/**
+ * What a worker says when it starts a game, so a game that never ends, or crashes the worker, can be named.
+ * @typedef {{ index: number, started: true }} GameStarted
+ */
 
 for (const index of /** @type {number[]} */ (workerData.indexes)) {
+	parentPort?.postMessage(
+		/** @type {GameStarted} */ ({ index, started: true })
+	);
 	/** @type {GameResult} */
 	let result;
 	try {

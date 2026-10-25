@@ -142,6 +142,60 @@ test("a card the rules reveal is public, but the same card in another event is a
 	);
 });
 
+test('an older event naming a card does not excuse that card leaking later', () => {
+	const { state } = startedGame(2);
+	const facts = setupFacts(newGame(2).state);
+	const later = structuredClone(state);
+	const card = /** @type {string} */ (later.supply.tapestry.deck.shift());
+	playerSeat(later, 2).hand.push(card);
+	// The card was public once (a discard, say), in an event before this action, and is now in a hand.
+	later.seq += 1;
+	later.events.push({ seq: later.seq, type: 'discarded', card });
+	const leaky = (
+		/** @type {State} */ s,
+		/** @type {number | null} */ seat
+	) => ({
+		...view(s, seat),
+		leak: playerSeat(s, 2).hand,
+	});
+	assert.throws(
+		() => checkViews(later, facts, { before: later, viewOf: leaky }),
+		/seat 2's card .* shown to/
+	);
+});
+
+test("a card public before the action may show only in that action's new events", () => {
+	const { state } = startedGame(2);
+	const facts = setupFacts(newGame(2).state);
+	const before = structuredClone(state);
+	const card = /** @type {string} */ (before.supply.tapestry.deck.shift());
+	before.supply.tapestry.discard.push(card);
+	// The discard is shuffled into the deck and the card drawn, all in one action.
+	const after = structuredClone(before);
+	after.supply.tapestry.discard = [];
+	playerSeat(after, 2).hand.push(card);
+	after.seq += 1;
+	after.events.push({ seq: after.seq, type: 'deckShuffled', cards: [card] });
+	checkViews(after, facts, { before });
+	assert.throws(
+		() =>
+			checkViews(after, facts, {
+				before,
+				viewOf: (s, seat) => ({ ...view(s, seat), leak: card }),
+			}),
+		/seat 2's card .* shown to/
+	);
+});
+
+test("an Inventors mark shows its tech card's id, wherever the card is", () => {
+	const { state } = startedGame(2, { civs: ['inventors', 'leaders'] });
+	const facts = setupFacts(newGame(2).state);
+	const marked = structuredClone(state);
+	const card = marked.supply.tech.deck[0];
+	playerSeat(marked, 1).civData.inventors.cards.push(card);
+	checkViews(marked, facts, { before: state });
+});
+
 test('the view checker catches an open decision without answers', () => {
 	const { state } = startedGame(2);
 	const facts = setupFacts(newGame(2).state);

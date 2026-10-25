@@ -5,9 +5,34 @@ import { Worker } from 'node:worker_threads';
 import { GAMES, gameOf, simulate } from './helpers/simulation.mjs';
 
 /** @typedef {import('./helpers/simulation-worker.mjs').GameResult} GameResult */
+/** @typedef {import('./helpers/simulation-worker.mjs').GameStarted} GameStarted */
 
 /** At most this many worker threads, leaving one core for the rest of the suite. */
 const MAX_WORKERS = 8;
+
+/** A worker silent this long is stuck: no game takes a tenth of it, even on a slow runner. */
+const STUCK_MS = 60_000;
+
+/**
+ * A whole number of at least 1 from the environment, or `fallback` when the variable isn't set.
+ * @template T
+ * @param {string} name
+ * @param {T} fallback
+ * @returns {number | T}
+ */
+function setting(name, fallback) {
+	const text = process.env[name];
+	if (text === undefined) {
+		return fallback;
+	}
+	const value = Number(text);
+	if (!Number.isInteger(value) || value < 1) {
+		throw new Error(
+			`${name} must be a whole number from 1, not "${text}".`
+		);
+	}
+	return value;
+}
 
 /**
  * A game's test name.
@@ -19,8 +44,16 @@ function nameOf(index) {
 }
 
 /**
+ * How to replay a game alone.
+ * @param {number} index
+ */
+const replay = (index) =>
+	`Replay: SIM_SEED=${gameOf(index).seed} node --test tests/simulation.test.mjs`;
+
+/**
  * Plays games 0 to `total` - 1 on worker threads, dealt round-robin. Each game's promise settles when its worker
- * reports it; a worker that crashes rejects every game it still owed.
+ * reports it. A worker that crashes, or goes quiet for STUCK_MS, fails the game it was playing by name and every
+ * game it still owed.
  * @param {number} total
  * @returns {Promise<GameResult>[]}
  */
@@ -45,47 +78,89 @@ function playOnWorkers(total) {
 			.map((_, index) => index)
 			.filter((index) => index % workers === w);
 		const owed = new Set(indexes);
+		/** @type {number | null} */
+		let playing = null;
 		const worker = new Worker(
 			new URL('./helpers/simulation-worker.mjs', import.meta.url),
 			{ workerData: { indexes } }
 		);
-		/** @param {Error} error */
-		const fail = (error) => {
+		/**
+		 * Fails the game being played with `why`, then every other game still owed.
+		 * @param {string} why
+		 */
+		const fail = (why) => {
+			if (playing !== null && owed.has(playing)) {
+				settle[playing].reject(
+					new Error(`${nameOf(playing)}: ${why}\n${replay(playing)}`)
+				);
+				owed.delete(playing);
+			}
 			for (const index of owed) {
-				settle[index].reject(error);
+				settle[index].reject(
+					new Error(
+						`A simulation worker stopped before this game: ${why}`
+					)
+				);
 			}
 			owed.clear();
 		};
-		worker.on('message', (/** @type {GameResult} */ result) => {
-			owed.delete(result.index);
-			settle[result.index].resolve(result);
-		});
-		worker.on('error', fail);
+		/** @type {ReturnType<typeof setTimeout> | undefined} */
+		let watchdog;
+		const watch = () => {
+			clearTimeout(watchdog);
+			watchdog = setTimeout(() => {
+				fail(
+					`no word from its worker for ${STUCK_MS / 1000} seconds, so it is stuck, probably in an endless loop.`
+				);
+				worker.terminate();
+			}, STUCK_MS);
+		};
+		watch();
+		worker.on(
+			'message',
+			(/** @type {GameResult | GameStarted} */ message) => {
+				watch();
+				if ('started' in message) {
+					playing = message.index;
+					return;
+				}
+				playing = null;
+				owed.delete(message.index);
+				settle[message.index].resolve(message);
+			}
+		);
+		worker.on('error', (error) =>
+			fail(`its worker failed: ${error.stack}`)
+		);
 		worker.on('exit', (code) => {
-			fail(
-				new Error(`A simulation worker stopped with exit code ${code}.`)
-			);
+			clearTimeout(watchdog);
+			fail(`its worker stopped with exit code ${code}.`);
 		});
 	}
 	return results;
 }
 
-if (process.env.SIM_SEED !== undefined) {
+const only = setting('SIM_SEED', null);
+const total = setting('SIM_GAMES', GAMES);
+
+if (only !== null) {
 	// One game on the main thread, so a debugger and the full stack trace work.
-	const index = Number(process.env.SIM_SEED) - 1;
-	test(nameOf(index), () => {
-		simulate(index);
+	test(nameOf(only - 1), () => {
+		simulate(only - 1);
 	});
 } else {
-	const results = playOnWorkers(Number(process.env.SIM_GAMES ?? GAMES));
-	results.forEach((result, index) => {
+	// The workers start with the first game's test, so a run filtered to other tests plays nothing.
+	/** @type {Promise<GameResult>[] | undefined} */
+	let results;
+	for (let index = 0; index < total; index++) {
 		test(nameOf(index), async () => {
-			const played = await result;
+			results ??= playOnWorkers(total);
+			const played = await results[index];
 			if (!played.ok) {
 				const failure = new Error(played.message);
 				failure.stack = `${played.message}\n${played.stack}`;
 				throw failure;
 			}
 		});
-	});
+	}
 }

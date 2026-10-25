@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkState } from './helpers/invariants.mjs';
+import { allOps } from './helpers/views.mjs';
 import { newGame, startedGame } from './helpers/engine.mjs';
 import { GAMES, gameOf, simulate } from './helpers/simulation.mjs';
 
@@ -82,7 +83,67 @@ const BREAKS = /** @type {[string, (state: any) => void, RegExp][]} */ ([
 		(s) => s.pending.push({ ...s.pending[0] }),
 		/decision ids/,
 	],
+	[
+		'an open decision with no legal answer',
+		(s) =>
+			(s.pending[0] = {
+				...s.pending[0],
+				kind: 'chooseCiv',
+				options: [],
+			}),
+		/no legal answer/,
+	],
+	[
+		'a building on a Craftsmen column out of nowhere',
+		(s) => (s.seats[0].civData.craftsmen = [['farm'], [], []]),
+		/seat 1.*farm/,
+	],
+	[
+		'a Nomads piece out of nowhere',
+		(s) => {
+			const hex = Object.values(s.hexes).find((h) => h.outposts.length);
+			hex.outposts.push({
+				seat: 1,
+				toppled: false,
+				piece: { building: 'farm' },
+			});
+		},
+		/seat 1.*farm/,
+	],
 ]);
+
+test('the state checks count the pieces that pending placements hold', () => {
+	const { state } = startedGame(2);
+	const placing = structuredClone(state);
+	const landmark = /** @type {string} */ (placing.landmarks.pop());
+	placing.seats[0].incomeMat.buildings.farm -= 1;
+	// Under an open decision, as a second landmark of one Socialism jump would wait.
+	placing.pending.push(
+		{ id: 9001, batch: 9001, player: 1, kind: 'placeLandmark', landmark },
+		{
+			id: 9002,
+			batch: 9002,
+			player: 1,
+			kind: 'placeBuilding',
+			building: 'farm',
+		}
+	);
+	checkState(placing);
+});
+
+test('the state checks follow civilizations and mats through setup', () => {
+	for (const count of [2, 4]) {
+		const lostCiv = structuredClone(newGame(count).state);
+		const pick = allOps(lostCiv).find((op) => op.kind === 'chooseCiv');
+		pick.options.pop();
+		assert.throws(() => checkState(lostCiv), /civilizations/);
+	}
+	const lostMat = structuredClone(newGame(2).state);
+	allOps(lostMat)
+		.find((op) => op.kind === 'chooseCapital')
+		.options.pop();
+	assert.throws(() => checkState(lostMat), /capital mats/);
+});
 
 for (const [what, breakIt, message] of BREAKS) {
 	test(`the state checks catch ${what}`, () => {
@@ -153,4 +214,21 @@ test('a failing game names its seed and how to replay it', () => {
 			return true;
 		}
 	);
+});
+
+test("the first check sees createGame()'s events as new, so the setup events are searched for leaks too", () => {
+	/** @type {(State | null)[]} */
+	const befores = [];
+	const check = (
+		/** @type {State} */ _state,
+		/** @type {State | null} */ before
+	) => {
+		befores.push(before);
+		if (befores.length === 2) {
+			throw new Error('enough');
+		}
+	};
+	assert.throws(() => simulate(0, { check }), /enough/);
+	assert.equal(befores[0], null);
+	assert.ok(befores[1]);
 });

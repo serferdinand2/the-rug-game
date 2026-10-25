@@ -17,7 +17,7 @@ import { allOps, checkViews, setupFacts } from './views.mjs';
  * @property {'original' | 'current'} version
  * @property {'random' | 'busy'} policy - `busy` takes an offered advance turn 85% of the time
  */
-/** @typedef {(state: State, before: State, facts: SetupFacts) => void} Check */
+/** @typedef {(state: State, before: State | null, facts: SetupFacts) => void} Check - `before` is null right after createGame() */
 
 /** How many games the simulation plays (the issue's 200). */
 export const GAMES = 200;
@@ -50,7 +50,7 @@ export function gameOf(index) {
  * @type {Check}
  */
 function checkAll(state, before, facts) {
-	checkState(state, before.seq);
+	checkState(state, before?.seq ?? 0);
 	checkViews(state, facts, { before });
 }
 
@@ -93,7 +93,7 @@ export function simulate(index, { check = checkAll } = {}) {
 			random,
 		});
 		const facts = setupFacts(state);
-		check(state, state, facts);
+		check(state, null, facts);
 		for (;;) {
 			const open = openDecisions(state);
 			if (open.length === 0) {

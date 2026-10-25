@@ -5,6 +5,8 @@ permissions:
 jobs:
     test:
         runs-on: ubuntu-latest
+        # The simulation's watchdog fails a stuck game within a minute; this stops anything else that hangs.
+        timeout-minutes: 15
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4

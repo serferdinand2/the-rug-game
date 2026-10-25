@@ -69,6 +69,10 @@ export function checkState(state, previousSeq = 0) {
 	const pieces = outposts.flatMap((o) => (o.piece ? [o.piece] : []));
 	/** @param {string} kind */
 	const opsOf = (kind) => ops.filter((op) => op.kind === kind);
+	// A gained piece waits in its placement, asked or automatic, until it lands.
+	const placing = ops.filter((op) =>
+		['choosePlacement', 'placeLandmark', 'placeBuilding'].includes(op.kind)
+	);
 
 	exactlyOnce(
 		'tech cards',
@@ -165,7 +169,7 @@ export function checkState(state, previousSeq = 0) {
 			...pieces.flatMap((piece) =>
 				'landmark' in piece ? [piece.landmark] : []
 			),
-			...opsOf('choosePlacement').flatMap((op) =>
+			...placing.flatMap((op) =>
 				op.landmark !== undefined ? [op.landmark] : []
 			),
 		],
@@ -190,7 +194,7 @@ export function checkState(state, previousSeq = 0) {
 						'building' in o.piece &&
 						o.piece.building === building
 				).length +
-				opsOf('choosePlacement').filter(
+				placing.filter(
 					(op) => op.player === p.seat && op.building === building
 				).length;
 			assert.equal(
