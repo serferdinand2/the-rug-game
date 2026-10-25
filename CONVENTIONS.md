@@ -141,6 +141,7 @@ The engine is the most important code in the project. It follows the sibling pro
 ## Server
 
 - `server.mjs` is an adapter: it authenticates, calls an engine or room transition, and stores and serves the result. Rules live in the engine, never in the server or the client.
+- The table rules live in `rooms.mjs`, as pure transitions like the engine's: each returns a new room, or `null` when it closes, never changes the room it was given, and throws `PlayerError`. The server stores what they return.
 - Every response that contains game state goes through `view()`.
 - Mutating requests carry the room `version`. A stale one gets **409**.
 - `PlayerError` answers **400** with `{ error }`. Anything else is logged, and the client gets **500** with a generic message.
@@ -564,7 +565,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 - Write tests first: watch a test fail, then make it pass.
 - **Engine:**
   - every rule gets a test;
-  - randomized full-game tests check that cards, tiles and tokens are all still accounted for, and that `view()` leaks nothing private;
+  - randomized full-game tests check that cards, tiles and tokens are all still accounted for, and that `view()` leaks nothing private: `tests/simulation.test.mjs` uses `checkState()` from `tests/helpers/invariants.mjs` and `checkViews()` from `tests/helpers/views.mjs`, and a change that adds a card, tile, piece or deck adds it there too;
   - seeds are printed on failure.
 - **Server:** tests import `server` and listen on port 0. Never use fixed ports.
 - **Client:** logic lives in plain modules that `node --test` can import. Components stay thin enough that `npm run check`, `tests/library.test.mjs` and a look at the library page cover them.

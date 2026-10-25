@@ -29,6 +29,8 @@ npm run format                # Prettier (tabs, single quotes); Markdown is left
 npm run art                   # draws every art/drawings/<id>.js into static/art/<id>.svg (the art is reviewed in the component library)
 node --test tests/static.test.mjs                        # one test file (run npm run build first)
 node --test --test-name-pattern="ETag" tests/*.test.mjs  # tests whose name matches
+node --test tests/simulation.test.mjs                    # 200 random full games on worker threads (#21)
+SIM_SEED=17 node --test tests/simulation.test.mjs        # replay one game on the main thread; SIM_GAMES=1000 plays more
 ```
 
 GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
@@ -41,6 +43,7 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
   - Vite's hashed bundles in `assets/` are cached for a year (`immutable`), and `fonts/` and `art/` for a week. Everything else, including the page, gets `no-cache` with a weak ETag, so a new deploy is picked up at once.
   - `/api/*` requests pass a per-address rate limiter (1,800 a minute). The table API arrives in #22–#23.
 - `limits.mjs` holds `rateLimiter()` and `clientAddress()`. With `TRUST_PROXY=true`, the last `X-Forwarded-For` address counts; otherwise the header is ignored.
+- `rooms.mjs` holds the table rules (#22) as pure transitions in Bird Table's style: `createRoom`, `configure`, `join`, `addSeat`, `removeSeat`, `leave`, `start`, `end` and `play`, plus `phase`, `seatsOf` and `cleanName`. Each returns a new room, or `null` when it closes, and throws the engine's `PlayerError`. The code says room, players see table. For the server's `Map` of rooms it has `newCode`, `addRoom` (`MAX_ROOMS` 1,000), `expireRooms` (`ROOM_IDLE_MS`, a day), `openTables` and `unfinishedSeat`. Room seat `i` is game seat `i + 1`; seats never move or disappear while a game is on the table. It uses the engine only through `src/lib/engine/game.js`, whose `checkOptions()` checks a table's options.
 - **Client.** The browser interface is **Svelte 5** with runes forced on (5.57.2), built by **Vite** (8.3.4), without SvelteKit. The project root is Vite's root, laid out like the owner's other Svelte projects (owner, 2026-10-21). The full layout is in CONVENTIONS.md.
   - `index.html` is the game page. `src/main.js` mounts `src/App.svelte`, which is the placeholder page until #25.
   - `components.html` is the component library page (#48). `src/library/main.js` mounts `src/library/Library.svelte`, which collects every `src/library/sections/<area>/<Name>.svelte` and shows each component in all its states. `src/lib/components/README.md` indexes the components.
@@ -67,7 +70,7 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
   - `gallery.js` holds the scene-part samples, the grouping the owner reviews art in, and the check every drawing must pass. It has no Node APIs, so the library page runs it in the browser.
   - `npm run art` writes the SVGs into `static/art/`, which are committed. Tests fail when a committed SVG is out of date.
   - The art is reviewed in the **Art** part of the component library (`/components.html`): every scene part, and every asset in the catalog, drawn or as an empty slot naming its issue, with landmarks under their plot grid. It draws straight from the toolkit, so with `npm run dev` a changed drawing shows at once. It replaced the standalone `art/preview/index.html` gallery (owner, 2026-10-21).
-- `tests/` holds `node:test` suites. Server tests import `server` and listen on port 0, so they never need fixed ports.
+- `tests/` holds `node:test` suites. Server tests import `server` and listen on port 0, so they never need fixed ports. `tests/helpers/` holds the shared helpers: `engine.mjs` (new and started games), `views.mjs` (`checkViews`), `invariants.mjs` (`checkState`) and `simulation.mjs` (one random game).
 
 ## Where the work stands
 
@@ -85,7 +88,7 @@ Updated 2026-10-25. Update this section whenever a milestone moves.
   - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. The owner closed #48 on 2026-10-21, ahead of its blocker #3.
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2, #4, #7, #8, #9, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #44, #46, #48 and #52 are done.**
+- **#1, #2, #4, #7, #8, #9, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #44, #46, #48 and #52 are done.**
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R108).
@@ -222,6 +225,28 @@ Updated 2026-10-25. Update this section whenever a milestone moves.
     - #27, #28 and #47: the civilization mats with their tokens, the items on the map, and the prompts for the new decisions.
     - #31: bots as opponents for The Chosen, the Historians, the Traders' VP and the Architects' cubes. The Traders' `rivals()` copies `opponents()`, so #31 must update both.
   - `tests/engine-civ-framework.test.mjs`, `engine-civ-hooks`, `engine-civs-setup`, `engine-civs-income`, `engine-civs-placement`, `engine-civs-map` and `engine-civs-cards` cover it. `tests/engine-civs-all.test.mjs` plays every civilization through setup, all five income turns and the game end in both versions. `engine-view` checks that civilization data is public and `chooseCiv` stays hidden.
+- **#21 (randomized full-game simulation test)** is done (2026-10-25). It completes M3. The design is `docs/superpowers/specs/2026-10-25-simulation-test-design.md` and the plan is `docs/superpowers/plans/2026-10-25-simulation-test-issue-21.md`.
+  - As for #19 and #20, the owner asked for the work without a question round, so the design marks every other decision "(my call)".
+  - `tests/simulation.test.mjs` plays 200 random legal games from `createGame()` to the final ranking: 1–5 players, both versions, and two policies, *random* and *busy* (an offered advance turn 85% of the time), 10 games for each of the 20 combinations. Game `i` uses seed `i + 1`.
+  - Each answer comes from the acting player's own `view()`, as a client gets it. After every action, `checkState()` (`tests/helpers/invariants.mjs`) checks that every tech and tapestry card, territory and space tile, civilization, capital mat and landmark is in exactly one place, that each player owns 5 of each income building, 10 outposts and their civilization tokens, the ranges of resources, VP and track spaces, consecutive event numbers, #19's era rules, and that an answerable decision is open until the game ends. `checkViews()` (`tests/helpers/views.mjs`, shared with `engine-view.test.mjs`) checks every seat's view and the public one.
+  - The games run on worker threads (one per core but one, at most 8): about 20 seconds locally, about a minute on GitHub's runners. A failure names its seed, game, action and decision, and how to replay it with `SIM_SEED`. A worker silent for a minute is stopped and its game failed by name, so an endless loop inside one `play()` can't hang CI; the CI job also stops after 15 minutes.
+  - No engine bug turned up: 1,200 probe games, the 200 of the test and a 1,000-game soak all pass. The first run did correct the view checker: R35's draw reveals cards to everyone on purpose. `REVEALS` in `tests/helpers/views.mjs` lists the event fields that reveal cards by rule; a new public reveal must be added there, or the simulation reports it as a leak.
+  - A secret id is excused only where it is public now, or, in the action's new events, where it was public before the action or is revealed by rule. Older events aren't searched again. The fresh review showed that excusing ids named in older events hid a real leak, so that went. Six tech cards share an id with a landmark (Bakery, Barn, Com Tower, Library, Stock Market, Treasury), so their deck order can't be checked by id.
+  - Coverage: in the 200 games `chooseRestart`, `chooseSpaceTile`, `chooseHex` and `chooseSwap` never open, and the tech deck is never rebuilt from its discards. A later policy aimed at the late game could reach them.
+  - Handed off: #31 adds solo games and the bots' pieces to the checks; each expansion issue adds its cards, tiles and pieces to `checkState()` and its decks to `checkViews()`; #24's undo can reuse `checkState()`.
+- **#22 (the table lifecycle)** is done (2026-10-25). It is the first issue of M4. The design is `docs/superpowers/specs/2026-10-25-table-lifecycle-design.md` and the plan is `docs/superpowers/plans/2026-10-25-table-lifecycle-issue-22.md`.
+  - The owner asked for #22 without a question round, although its blocker #53 (the variants) is still open. So the table options carry a `variants` list that the engine checks against `VARIANTS`, which stays empty until #53 is decided; #53 stays open. Every decision the issue, the design document and the lobby mockup don't settle is marked "(my call)" in the design.
+  - A room is `{ code, mode, options: { version, expansions, variants, level }, host, seats: [{ player, name, away? }], game, touched }`. Online, every person has one seat. At a hot-seat table the host plays every seat, and the names differ.
+  - Calls to revisit:
+    - The table starts with the current official rules, online. The host may change the options in the lobby, and at a finished table before dealing again, because the approved lobby mockup has the mode switch and the settings panel there. The mode changes only before the first deal and while the table has one seat.
+    - Solo tables check the Automa's level (1–6, default 2), then are refused with "Solo play isn't available yet." until #31. Online and hot-seat games need 2 players.
+    - Leaving a lobby gives up the seat. Leaving a game in progress or a finished one marks a dealt seat away, so the seat numbers keep matching the game; a newcomer's seat at a finished table goes. A finished table closes once nobody present is left, a running one never.
+    - `end` lets the host abandon a running game, back to the lobby: at a hot-seat table at any time, online once everyone else has left (the review found that otherwise a game everyone left holds its players until it expires).
+    - While no game is running the host may remove a seat (the mockup's X), but not their own online seat. At a finished table that only marks a dealt seat away, so it isn't dealt again.
+    - The host may deal a new game at a finished table, to the present seats only. Newcomers may sit down at a finished table, as in Bird Table; the away seats don't count towards the 5.
+    - At most 1,000 tables; a table nobody uses for a day expires. `unfinishedSeat` lets #23 keep a player in a running online game from sitting elsewhere; a hot-seat game holds nobody.
+  - Handed off, and written on each issue: #23 (endpoints, sessions and person ids, `touched`, the room `version`, long polling, a create rate limit, sweeping before `addRoom`, `unfinishedSeat` at start too, and the room's view with `view(game, seat)` for each seat in `seatsOf`), #24 (timer, kicking, undo), #25 (the lobby's Open seat slots, readiness and the civilization chooser need their own transitions), #29 (telling a new deal from the old game), #30 (which hot-seat seat to show), #31 (solo tables, the 2-player Shadow Empire variant, and bot seats in the room tests), #53 (the variants: a variant with a setting changes the list's shape).
+  - `tests/rooms.test.mjs` covers every rule, and its randomized test runs 200 runs of 300 random steps over online and hot-seat tables. `tests/engine-setup.test.mjs` covers `checkOptions()`.
 - **Decided 2026-10-24:**
   - At the game end, players see each tiebreaker used, step by step (owner, #15).
   - R105: Interstellar Travel's "explore 1 of them" means one of the 3 space tiles it just gained, as printed; BGA's reading (any tile in hand) is rejected (owner, #52).
@@ -244,7 +269,8 @@ Updated 2026-10-25. Update this section whenever a milestone moves.
   - Cloud Colonies is back (owner). R77 lists the territories that show clouds, read from BGA's tile and board images, and #49 adds the card. The territory-tile and map art (#6) must show clouds on exactly those territories.
   - The owner-check rules are settled by Board Game Arena for now, not the physical box (owner). 17 are marked **BGA** in the README's "Rules conventions"; R28 and R40 were corrected to match BGA, and R66 now gives the track order from BGA's board images, so Twin Impact is in. R12 and R39 stay owner-check, because BGA has no data for them.
 - **Next:**
-  - Ready now: #21 Add a randomized full-game simulation test. Its blockers, #19 and #20, are done. #20's entry lists the invariants it should check.
+  - Ready now: #23 Add the server API with long polling and version checks. Its blocker #22 is done; #22's entry lists what it hands off.
+  - #53 Decide which official variants a table can switch on. The owner decides; #22 is built with no variants until then.
   - #54 Decide whether Alien Biology scores on a track AI Singularity emptied. The owner decides; it blocks nothing.
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.

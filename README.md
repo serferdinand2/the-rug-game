@@ -10,7 +10,7 @@ It is built like the author's other table games, [Fablewood Rummy](https://githu
 
 No official Stonemaier artwork, logos or rulebook text are used.
 
-> **Status: design phase.** The rules research, the design plan, the main game screen and the art style are approved. The server, tests and CI are set up; the game itself starts with the rules engine in M3. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order, starting with [#1](https://github.com/serferdinand2/the-rug-game/issues/1), [#2](https://github.com/serferdinand2/the-rug-game/issues/2) and [#3](https://github.com/serferdinand2/the-rug-game/issues/3).
+> **Status: in development.** The rules research, the design plan, the main game screen and the art style are approved. The base-game rules engine (M3) is complete, with a test that plays 200 random games to the end, and the table rules have started M4. The game screens arrive with M5. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order.
 
 ## Current interface
 
