@@ -352,6 +352,15 @@ test('every decision kind has the full shape, and its answers pass its own check
 			],
 		},
 		chooseConversion: { player: 1, kind: 'chooseConversion', max: 2 },
+		chooseCopy: {
+			player: 1,
+			kind: 'chooseCopy',
+			options: [
+				{ player: 2, card: 'democracy' },
+				{ player: 2, card: 'alliance' },
+			],
+			espionage: 'espionage',
+		},
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

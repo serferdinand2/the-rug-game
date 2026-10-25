@@ -2,7 +2,8 @@
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
 import { eraOf, opponents } from '../abilities.js';
-import { currentEra, playTapestry } from '../tapestry.js';
+import { currentEra, playTapestry, visibleCards } from '../tapestry.js';
+import { tapestryCard } from '../data/tapestry-cards.js';
 import { TRACK_IDS } from '../data/ids.js';
 
 /** @typedef {import('../data/ids.js').TrackId} TrackId */
@@ -91,4 +92,42 @@ export function discardTapestry(ctx, player, value) {
 		return;
 	}
 	ctx.push([{ player, kind: 'chooseDiscard', vpEach: value.vpEach }]);
+}
+
+/**
+ * Copies the ability of a visible tapestry card, the Espionage card's own included but never an Espionage (design §7).
+ * One option is taken without asking; with none, nothing happens.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function copyTapestry(ctx, player, value, op) {
+	const options = visibleCards(ctx.state)
+		.filter(({ card }) => card !== 'espionage')
+		.map(({ player: owner, card }) => ({ player: owner, card }));
+	const espionage = op.source.tapestry;
+	if (options.length === 0) {
+		emit(ctx.state, { type: 'noCopy', player });
+	} else if (options.length === 1) {
+		copyAbility(ctx, player, espionage, options[0].card);
+	} else {
+		ctx.push([{ player, kind: 'chooseCopy', options, espionage }]);
+	}
+}
+
+/**
+ * Runs the copied card's ability as the player's own, on the Espionage card on their mat.
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {string} espionage - The Espionage card on the mat, whose covering ends a copied THIS ERA ability
+ * @param {string} copied - The card whose ability is copied
+ */
+export function copyAbility(ctx, player, espionage, copied) {
+	ctx.push([
+		{
+			player,
+			kind: 'tapestryAbility',
+			card: espionage,
+			ability: tapestryCard(copied).id,
+			era: currentEra(ctx.state, player) ?? 4,
+		},
+	]);
 }

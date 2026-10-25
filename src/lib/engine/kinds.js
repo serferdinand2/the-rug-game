@@ -33,6 +33,7 @@ import { chooseRoll } from './decisions/choose-roll.js';
 import { chooseSpace } from './decisions/choose-space.js';
 import { chooseHex } from './decisions/choose-hex.js';
 import { chooseGift } from './decisions/choose-gift.js';
+import { chooseCopy } from './decisions/choose-copy.js';
 import { choosePartner } from './decisions/choose-partner.js';
 import { chooseConversion } from './decisions/choose-conversion.js';
 import { olympicHostEnd, sharedAdvanceOn } from './effects/players.js';
@@ -75,6 +76,7 @@ export const DECISIONS = {
 	chooseHex,
 	chooseGift,
 	choosePartner,
+	chooseCopy,
 	chooseConversion,
 };
 
