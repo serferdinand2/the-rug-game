@@ -267,6 +267,7 @@ export function createGame({
 	const state = {
 		version,
 		expansions: [...expansions],
+		variants: [...variants],
 		map,
 		phase: 'setup',
 		first: 1,
@@ -308,6 +309,7 @@ export function createGame({
 		type: 'gameCreated',
 		version,
 		expansions: state.expansions,
+		variants: state.variants,
 		map,
 		seats: seats.map((s) => ({ seat: s.seat, name: s.name })),
 	});

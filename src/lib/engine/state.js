@@ -78,6 +78,7 @@
  * @typedef {Object} State
  * @property {VersionId} version
  * @property {string[]} expansions
+ * @property {string[]} variants - The official optional variants switched on, from VARIANTS (#53)
  * @property {'small' | 'large'} map
  * @property {'setup' | 'play' | 'over'} phase
  * @property {number} first

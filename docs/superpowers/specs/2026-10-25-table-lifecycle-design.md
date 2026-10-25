@@ -4,7 +4,7 @@ Written 2026-10-25. This is the first issue of M4 · Tables and server. It adds 
 
 The owner asked for #21 and #22 to be built and pushed to main without a question round ("work on 21 and 22 and push to main when you are done"). So every decision here that the issue, the design document or the approved lobby mockup doesn't settle is marked **(my call)**, for the owner to revisit.
 
-**#53 is still open.** #22 is blocked by it because a table's options are fixed when its game starts, so the variants have to be known first. The owner asked for #22 anyway. So the table options include a `variants` list that the engine checks against the variants it has built, which today are none. When #53 is decided, each chosen variant is added to the engine's list and to the new-table screen; nothing in the table code changes. #53 stays open.
+**#53 is still open.** #22 is blocked by it because a table's options are fixed when its game starts, so the variants have to be known first. The owner asked for #22 anyway. So the table options include a `variants` list that the engine checks against the variants it has built, which today are none. When #53 is decided, each chosen variant is added to the engine's list and to the new-table screen. A plain variant is one more id. A variant with a setting, such as removing chosen cards, will change the list into a map from id to setting. #53 stays open.
 
 ## 1. What and why
 
@@ -57,28 +57,29 @@ Every transition is pure. It returns a new room, or the same room when nothing c
 
 `phase(room)` is `'lobby'` before the first deal, `'playing'` while the game runs and `'finished'` once it is over.
 
-- **`createRoom(code, person, options, now)`.** The creator hosts and takes seat 1. `options` may name `mode` and any of the game options; the rest default to online, the current official rules, no expansions, no variants. **(my call: the current rules are the default, as on Board Game Arena.)**
+- **`createRoom(code, person, options, now)`.** The creator hosts and takes seat 1. `options` may name `mode` and any of the game options; the rest default to online, the current official rules, no expansions, no variants. **(my call: the current rules are the default, as on Board Game Arena.)** `now` is required: a forgotten one would expire the table at the next sweep.
 - **`configure(room, personId, changes)`.** The host may change the mode and the options in the lobby, and at a finished table before dealing again. The approved lobby mockup has the mode switch and the settings panel in the lobby, so creating a table only needs a name (`docs/ui/README.md`, "Lobby page"). **(my call)** The options are fixed once a game is dealt, which is what #53 asks for.
-  - The mode can change only while the host is the only person at the table, so nobody is dropped by surprise. Changing it keeps only the host's first seat. **(my call)**
-  - The engine checks the version, the expansions and the variants with the same function `createGame()` uses, so the table can never hold options the engine would refuse.
+  - The mode changes only before the first deal, and only while the table has one seat, so nobody is dropped by surprise: online the others must leave, at a hot-seat table the host removes them first. **(my call)**
+  - The engine checks the version, the expansions and the variants with the same function `createGame()` uses, before anything is copied, so the table can never hold options the engine would refuse, and a malformed request is a player's mistake, never a crash.
 - **`join(room, person)`.**
   - A person who is present already changes nothing.
   - A person with an away seat takes it back.
-  - Anyone else sits down at the end, online only, while no game is running and fewer than 5 seats are taken. A hot-seat or solo table is played on one screen, so nobody else can join it.
-  - A newcomer can sit down at a finished table, to be dealt into the next game, as in Bird Table.
+  - Anyone else sits down at the end, online only, while no game is running and fewer than 5 people are present. A hot-seat or solo table is played on one screen, so nobody else can join it.
+  - A newcomer can sit down at a finished table, to be dealt into the next game, as in Bird Table. There, the seats of players who left don't count, since they won't be dealt again, and a player coming back needs a free place too.
 - **`addSeat(room, personId, name)`.** At a hot-seat table, the host adds a player by name, up to 5, while no game is running. Names at one screen must differ, ignoring case, so the pass screen (#30) can tell them apart. **(my call)**
-- **`removeSeat(room, personId, seat)`.** In the lobby, the host may clear a seat: the X on a player card in the mockup. Online, that is any seat but the host's own; at a hot-seat table, any seat while another remains. **(my call)**
+- **`removeSeat(room, personId, seat)`.** While no game is running, the host may clear a seat: the X on a player card in the mockup. Online, that is any seat but the host's own; at a hot-seat table, any seat while another present one remains. At a finished table a seat dealt in its game is only marked away, so it isn't dealt into the next one. **(my call)**
 - **`leave(room, personId)`** returns `{ room, saved }`.
   - In the lobby, the person's seats go; the last person out closes the room.
   - During a game, their seats are marked away (`saved: true`) and kept for their return.
-  - At a finished table, their seats are marked away too, so the seat numbers still match the finished game. The room closes when nobody present is left. **(my call; Bird Table removes the seat here, but its game names players by id, and ours names them by seat number.)**
+  - At a finished table, a seat dealt in its game is marked away too, so the seat numbers still match the finished game; a newcomer's seat goes. The room closes when nobody present is left. **(my call; Bird Table removes the seat here, but its game names players by id, and ours names them by seat number.)**
 - **`start(room, personId, random)`.** The host deals a game with the room's options: `createGame()` with each seat's name, in seat order. It needs 2 to 5 seats. At a finished table it deals a new game with the present seats only, dropping the away ones.
+- **`end(room, personId)`.** The host abandons a running game, and the table goes back to the lobby with the people present: at a hot-seat table at any time, online once everyone else has left. Without it, a game everyone left would hold its players until the table expires, and a hot-seat host could only escape by playing the game out. Everyone left: the first to come back hosts, and may end it. **(my call, from the review)**
 - **`play(room, personId, seat, action, random)`.** The person answers a decision for a seat they play and are present at: online their own, at a hot-seat table any seat. The engine's `play()` does the rest, so every rule stays in the engine.
 - **`seatsOf(room, personId)`** lists the seat numbers a person plays, for #23's views.
 
 **The host.** The host always holds a seat, and is present whenever anyone is. When the host leaves, or steps away from a game, the role passes to the first present person in seat order. A returning host doesn't take it back (Bird Table).
 
-**Names.** A name is trimmed, inner spaces are squeezed to one, control characters are removed, and it is cut to 24 characters, as in Fablewood and Bird Table. An empty name is refused.
+**Names.** A name is trimmed, inner spaces are squeezed to one, control and invisible formatting characters are removed (bidi overrides among them, but not the joiner inside emoji), and it is cut to 24 characters, as in Fablewood and Bird Table. A name with nothing visible left is refused. Online, two players may share a name, as in Bird Table; at one screen they may not.
 
 ## 6. Solo tables
 
@@ -93,14 +94,14 @@ Online and hot-seat tables need 2 players for the same reason: Tapestry plays on
 The server keeps its rooms in a `Map` from code to room. These helpers work on that map:
 
 - **`newCode(rooms, random)`**: 8 lowercase hexadecimal digits, as in the issue's example and Fablewood, drawn with the injected `random` until no room has it.
-- **`addRoom(rooms, room)`** refuses a new table once **1,000** are open: "There are too many tables right now. Try again later." **(my call: a single process keeps every table in memory, and a few hundred kilobytes each puts 1,000 well within it.)** #23 adds a per-address limit on creating tables, as Fablewood has.
+- **`addRoom(rooms, room)`** refuses a new table once **1,000** are open: "There are too many tables right now. Try again later." **(my call: a single process keeps every table in memory; a finished 5-player game measured about 44 KB, so 1,000 tables fit easily.)** The server sweeps expired tables first. A code that already has a room is a bug, never a player's mistake. #23 adds a per-address limit on creating tables, as Fablewood has.
 - **`expireRooms(rooms, now)`** removes every room nobody has used for **24 hours**, as both sibling games do, and returns their codes so the server can answer their waiting requests.
 - **`openTables(rooms)`** lists the online lobbies with a free seat, most recently used first, with what the landing page shows: the code, the host's name, the seats taken, the version and the expansions (`docs/ui/README.md`, "Open tables").
-- **`unfinishedSeat(rooms, personId, exceptCode)`** is the code of another table where the person holds a seat in a game still running. The server refuses to seat them elsewhere until it ends, as Bird Table does. **(my call: otherwise a player can abandon a game by opening a new table.)**
+- **`unfinishedSeat(rooms, personId, exceptCode)`** is the code of another online table where the person holds a seat in a game still running. The server refuses to seat them elsewhere until it ends, as Bird Table does. **(my call: otherwise a player can abandon the others by opening a new table.)** A hot-seat game holds nobody, since its host is the only one it affects. #23 should also check it when a host starts a game, since someone may sit in two lobbies.
 
 ## 8. The engine change
 
-`createGame()` gains a `variants` option, a list that defaults to empty. Each entry must be in `VARIANTS`, which is empty until #53 is decided, so any variant is refused with "Unknown variant: …". The checks of the version, the expansions and the variants move into `checkOptions()`, which `game.js` exports beside `createGame`, so the room can check options when the host changes them, not only when the game is dealt.
+`createGame()` gains a `variants` option, a list that defaults to empty. Each entry must be in `VARIANTS`, which is empty until #53 is decided, so any variant is refused with "Unknown variant: …". The game keeps its variants in `state.variants` and in its `gameCreated` event, so a later variant is never dropped on the way. The checks of the version, the expansions and the variants move into `checkOptions()`, which `game.js` exports beside `createGame`, so the room can check options when the host changes them, not only when the game is dealt.
 
 ## 9. Tests
 
@@ -118,7 +119,8 @@ The server keeps its rooms in a `Map` from code to room. These helpers work on t
 
 ## 10. Handed off
 
-- #23: the HTTP endpoints, sessions and their person ids, `touched`, the room `version` and long polling, the create rate limit, and the views (`view(room.game, seat)` for each seat in `seatsOf`).
+- #23: the HTTP endpoints, sessions and their person ids, `touched`, the room `version` (bumped only when a transition returns a new room) and long polling, the create rate limit, sweeping expired tables before `addRoom`, checking `unfinishedSeat` when a host starts a game too, and the room's view: its seats, host, phase and options, with `view(room.game, seat)` for each seat in `seatsOf`, never `room.game` itself. `npm run check` doesn't cover the root `.mjs` files; including them needs `@types/node` and typing fixes in `server.mjs`.
+- #29: a new deal at a finished table restarts the game's event numbers, so the client must tell a new deal from the old game, for example by a deal counter on the room.
 - #24: the timer and undo, as room options, and kicking a player who keeps timing out.
 - #25: the new-table and lobby screens. The mockup's **Open seat** slots, readiness and the civilization chooser need their own transitions when #3 finishes their design.
 - #30: the hot-seat pass screen, which picks the seat to show.

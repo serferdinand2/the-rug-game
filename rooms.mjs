@@ -56,18 +56,21 @@ export const DEFAULT_LEVEL = 2;
 const NAME_LENGTH = 24;
 
 /**
- * A player's name as the table shows it: spaces squeezed, control characters removed, at most 24 characters.
+ * A player's name as the table shows it: spaces squeezed, control and invisible formatting characters removed (bidi
+ * overrides among them, but not the joiner inside emoji), at most 24 characters.
  * @param {unknown} name
  * @returns {string}
- * @throws {PlayerError} When nothing is left
+ * @throws {PlayerError} When nothing visible is left
  */
 export function cleanName(name) {
 	const squeezed = String(name ?? '')
+		.replace(/[\p{Cc}\p{Cf}]/gu, (c) =>
+			/\s/.test(c) ? ' ' : c === '‍' ? c : ''
+		)
 		.replace(/\s+/g, ' ')
-		.replace(/\p{Cc}/gu, '')
 		.trim();
 	const clean = Array.from(squeezed).slice(0, NAME_LENGTH).join('').trim();
-	if (!clean) {
+	if (!/[\p{L}\p{N}\p{P}\p{S}]/u.test(clean)) {
 		throw new PlayerError('Enter a name.');
 	}
 	return clean;
@@ -107,6 +110,12 @@ function isPresent(room, personId) {
 }
 
 /**
+ * The seats that aren't away.
+ * @param {Room} room
+ */
+const presentSeats = (room) => room.seats.filter((s) => !s.away);
+
+/**
  * Keeps the host rule: the host holds a seat, and is present whenever anyone is. Otherwise the role passes to the
  * first present person in seat order.
  * @param {Room} room
@@ -124,31 +133,67 @@ function withHost(room) {
 }
 
 /**
- * The mode and options after `changes`, checked as the engine checks them.
+ * Clears seats: one dealt in the game on the table is marked away, so the seat numbers still match it; any other
+ * (every seat in the lobby, a newcomer's at a finished table) goes.
+ * @param {Room} room
+ * @param {(seat: RoomSeat) => boolean} which
+ * @returns {Room} The same room when nothing changes
+ */
+function vacate(room, which) {
+	const dealt = room.game ? room.game.seats.length : 0;
+	let changed = false;
+	const seats = room.seats.flatMap((seat, i) => {
+		if (!which(seat) || seat.away) {
+			return [seat];
+		}
+		changed = true;
+		return i < dealt ? [{ ...seat, away: /** @type {true} */ (true) }] : [];
+	});
+	return changed ? { ...room, seats } : room;
+}
+
+/**
+ * The mode and options after `changes`, checked as the engine checks them before anything is copied.
  * @param {Mode} mode
  * @param {RoomOptions} options
- * @param {RoomChanges} changes
+ * @param {unknown} changes - Straight from a request: anything
  * @returns {{ mode: Mode, options: RoomOptions }}
- * @throws {PlayerError} For an unknown mode, options the engine refuses, a bad level, or solo play (#31)
+ * @throws {PlayerError} For changes that aren't an object, an unknown mode, options the engine refuses, a bad level,
+ *   or solo play (#31)
  */
 function settle(mode, options, changes) {
-	const next = changes.mode ?? mode;
-	if (!MODES.includes(next)) {
+	if (changes === null || changes === undefined) {
+		changes = {};
+	}
+	if (typeof changes !== 'object' || Array.isArray(changes)) {
+		throw new PlayerError('Choose the table options.');
+	}
+	const asked = /** @type {Record<string, unknown>} */ (changes);
+	const next = asked.mode ?? mode;
+	if (!MODES.includes(/** @type {Mode} */ (next))) {
 		throw new PlayerError(`Unknown table mode: ${next}.`);
 	}
-	const merged = {
-		version: changes.version ?? options.version,
-		expansions: [...(changes.expansions ?? options.expansions)],
-		variants: [...(changes.variants ?? options.variants)],
+	const raw = {
+		version: asked.version ?? options.version,
+		expansions: asked.expansions ?? options.expansions,
+		variants: asked.variants ?? options.variants,
 	};
-	checkOptions(merged);
+	checkOptions(raw);
+	const merged = {
+		version: /** @type {RoomOptions['version']} */ (raw.version),
+		expansions: [.../** @type {string[]} */ (raw.expansions)],
+		variants: [.../** @type {string[]} */ (raw.variants)],
+	};
 	if (next !== 'solo') {
-		if (changes.level !== undefined && changes.level !== null) {
+		if (asked.level !== undefined && asked.level !== null) {
 			throw new PlayerError('Only a solo table has an Automa level.');
 		}
-		return { mode: next, options: { ...merged, level: null } };
+		return {
+			mode: /** @type {Mode} */ (next),
+			options: { ...merged, level: null },
+		};
 	}
-	const level = changes.level ?? options.level ?? DEFAULT_LEVEL;
+	const level = asked.level ?? options.level ?? DEFAULT_LEVEL;
 	if (!LEVELS.includes(/** @type {number} */ (level))) {
 		throw new PlayerError('Choose an Automa level from 1 to 6.');
 	}
@@ -160,12 +205,17 @@ function settle(mode, options, changes) {
  * A new table, hosted by its creator in seat 1.
  * @param {string} code
  * @param {Person} person
- * @param {RoomChanges} [options] - Defaults: online, the current official rules, no expansions, no variants
- * @param {number} [now] - Milliseconds, for expiry
+ * @param {RoomChanges | null} options - Unset ones default to online, the current official rules, no expansions and
+ *   no variants
+ * @param {number} now - Milliseconds, for expiry. Required: a forgotten one would expire the table at the next sweep
  * @returns {Room}
  * @throws {PlayerError} For a bad name, mode or option
+ * @throws {TypeError} Without the time
  */
-export function createRoom(code, person, options = {}, now = 0) {
+export function createRoom(code, person, options, now) {
+	if (!Number.isFinite(now)) {
+		throw new TypeError('createRoom needs the time.');
+	}
 	const name = cleanName(person.name);
 	const settled = settle(
 		'online',
@@ -184,10 +234,10 @@ export function createRoom(code, person, options = {}, now = 0) {
 
 /**
  * The host changes the mode or the options, while no game is running. The mode changes only before the first deal
- * and while the host is alone, and then only the host's first seat stays.
+ * and while the table has one seat, so nobody is dropped by surprise.
  * @param {Room} room
  * @param {string} personId
- * @param {RoomChanges} changes
+ * @param {RoomChanges | null} changes
  * @returns {Room} The same room when nothing changes
  * @throws {PlayerError}
  */
@@ -203,9 +253,11 @@ export function configure(room, personId, changes) {
 		if (room.game) {
 			throw new PlayerError('Start a new table to change the mode.');
 		}
-		if (room.seats.some((s) => s.player !== room.host)) {
+		if (room.seats.length > 1) {
 			throw new PlayerError(
-				'The other players must leave before the mode changes.'
+				room.mode === 'hotseat'
+					? 'Remove the other players before the mode changes.'
+					: 'The other players must leave before the mode changes.'
 			);
 		}
 	}
@@ -215,17 +267,12 @@ export function configure(room, personId, changes) {
 	) {
 		return room;
 	}
-	return {
-		...room,
-		mode,
-		options,
-		seats: mode === room.mode ? room.seats : [room.seats[0]],
-	};
+	return { ...room, mode, options };
 }
 
 /**
  * A person sits down: a present person changes nothing, an away one takes their seats back, and anyone else takes
- * the next seat at an online table where no game is running.
+ * the next seat at an online table where no game is running and fewer than 5 people are present.
  * @param {Room} room
  * @param {Person} person
  * @returns {Room}
@@ -237,6 +284,10 @@ export function join(room, person) {
 	if (mine.length > 0) {
 		if (!mine.some((s) => s.away)) {
 			return room;
+		}
+		// Newcomers may have filled a finished table; a running game has a place for everyone dealt.
+		if (presentSeats(room).length >= MAX_SEATS) {
+			throw new PlayerError('This table is full.');
 		}
 		return withHost({
 			...room,
@@ -255,7 +306,8 @@ export function join(room, person) {
 	if (phase(room) === 'playing') {
 		throw new PlayerError('This game has already started.');
 	}
-	if (room.seats.length >= MAX_SEATS) {
+	// At a finished table the away seats aren't dealt again, so they leave room for newcomers.
+	if (presentSeats(room).length >= MAX_SEATS) {
 		throw new PlayerError('This table is full.');
 	}
 	return withHost({
@@ -282,7 +334,7 @@ export function addSeat(room, personId, name) {
 	if (phase(room) === 'playing') {
 		throw new PlayerError('This game has already started.');
 	}
-	if (room.seats.length >= MAX_SEATS) {
+	if (presentSeats(room).length >= MAX_SEATS) {
 		throw new PlayerError('This table is full.');
 	}
 	const clean = cleanName(name);
@@ -299,43 +351,45 @@ export function addSeat(room, personId, name) {
 }
 
 /**
- * In the lobby, the host clears a seat: online any seat but their own, at a hot-seat table any seat but the last.
+ * While no game is running, the host clears a seat (the X on a player card): online any seat but their own, at a
+ * hot-seat table any seat while another present one remains. At a finished table a dealt seat is only marked away,
+ * so it isn't dealt into the next game.
  * @param {Room} room
  * @param {string} personId
  * @param {number} seat - 1 to the number of seats
- * @returns {Room}
+ * @returns {Room} The same room for a seat already away
  * @throws {PlayerError}
  */
 export function removeSeat(room, personId, seat) {
 	if (personId !== room.host) {
 		throw new PlayerError('Only the host can remove a player.');
 	}
-	if (phase(room) !== 'lobby') {
+	if (phase(room) === 'playing') {
 		throw new PlayerError(
-			'Players can only be removed before the game starts.'
+			'Players can only be removed while no game is running.'
 		);
 	}
 	const target = Number.isInteger(seat) ? room.seats[seat - 1] : undefined;
 	if (!target || seat < 1) {
 		throw new PlayerError('There is no such seat.');
 	}
+	if (target.away) {
+		return room;
+	}
 	if (room.mode === 'hotseat') {
-		if (room.seats.length === 1) {
+		if (presentSeats(room).length === 1) {
 			throw new PlayerError('A table needs at least one player.');
 		}
 	} else if (target.player === room.host) {
 		throw new PlayerError("The host can't remove their own seat.");
 	}
-	return withHost({
-		...room,
-		seats: room.seats.filter((s) => s !== target),
-	});
+	return withHost(vacate(room, (s) => s === target));
 }
 
 /**
- * A person leaves. In the lobby their seats go, and the last one out closes the room. During a game, and after it,
- * their seats are marked away, so the seat numbers still match the game; a finished table closes once nobody
- * present is left, a running one never.
+ * A person leaves. In the lobby their seats go, and the last one out closes the room. A seat dealt in the game on
+ * the table is marked away, so the seat numbers still match it; a newcomer's seat at a finished table goes. A
+ * finished table closes once nobody present is left; a running one never does (the host may end it, see end()).
  * @param {Room} room
  * @param {string} personId
  * @returns {{ room: Room | null, saved: boolean }} `saved`: the seats wait for a game in progress
@@ -346,24 +400,14 @@ export function leave(room, personId) {
 		throw new PlayerError("You aren't at this table.");
 	}
 	const now = phase(room);
-	if (now === 'lobby') {
-		const seats = room.seats.filter((s) => s.player !== personId);
-		return {
-			room: seats.length > 0 ? withHost({ ...room, seats }) : null,
-			saved: false,
-		};
-	}
-	const seats = room.seats.map((seat) =>
-		seat.player === personId && !seat.away
-			? { ...seat, away: /** @type {true} */ (true) }
-			: seat
-	);
-	const changed = seats.some((seat, i) => seat !== room.seats[i]);
-	const next = changed ? withHost({ ...room, seats }) : room;
-	if (now === 'finished' && next.seats.every((s) => s.away)) {
-		return { room: null, saved: false };
-	}
-	return { room: next, saved: now === 'playing' };
+	const next = vacate(room, (s) => s.player === personId);
+	const closes =
+		(now === 'lobby' && next.seats.length === 0) ||
+		(now === 'finished' && presentSeats(next).length === 0);
+	return {
+		room: closes ? null : next === room ? room : withHost(next),
+		saved: now === 'playing',
+	};
 }
 
 /**
@@ -383,9 +427,10 @@ export function start(room, personId, random) {
 		throw new PlayerError('The game is already running.');
 	}
 	// Tapestry seats one human alone only against the Automa, which is #31.
-	const seats = room.seats
-		.filter((s) => !s.away)
-		.map(({ player, name }) => ({ player, name }));
+	const seats = presentSeats(room).map(({ player, name }) => ({
+		player,
+		name,
+	}));
 	if (seats.length < 2) {
 		throw new PlayerError('A game needs at least 2 players.');
 	}
@@ -398,6 +443,37 @@ export function start(room, personId, random) {
 		random,
 	});
 	return withHost({ ...room, seats, game });
+}
+
+/**
+ * The host abandons a running game, and the table goes back to the lobby with the people present: at a hot-seat
+ * table at any time, online once everyone else has left. Without it a game everyone left would hold its players
+ * until the table expires.
+ * @param {Room} room
+ * @param {string} personId
+ * @returns {Room}
+ * @throws {PlayerError}
+ */
+export function end(room, personId) {
+	if (phase(room) !== 'playing') {
+		throw new PlayerError('There is no game to end.');
+	}
+	if (personId !== room.host) {
+		throw new PlayerError('Only the host can end the game.');
+	}
+	if (!isPresent(room, personId)) {
+		throw new PlayerError('Come back to the table first.');
+	}
+	if (presentSeats(room).some((s) => s.player !== personId)) {
+		throw new PlayerError(
+			'The game can end only once the other players have left.'
+		);
+	}
+	return {
+		...room,
+		seats: presentSeats(room).map(({ player, name }) => ({ player, name })),
+		game: null,
+	};
 }
 
 /**
@@ -453,9 +529,13 @@ export function newCode(rooms, random) {
  * Keeps a new room in the server's map.
  * @param {Map<string, Room>} rooms - By code; changed in place
  * @param {Room} room
- * @throws {PlayerError} Once MAX_ROOMS tables are open
+ * @throws {PlayerError} Once MAX_ROOMS tables are open; the server sweeps expired ones first (expireRooms)
+ * @throws {Error} For a code that already has a room: newCode() never gives one
  */
 export function addRoom(rooms, room) {
+	if (rooms.has(room.code)) {
+		throw new Error(`The code ${room.code} already has a room.`);
+	}
 	if (rooms.size >= MAX_ROOMS) {
 		throw new PlayerError(
 			'There are too many tables right now. Try again later.'
@@ -504,8 +584,9 @@ export function openTables(rooms) {
 }
 
 /**
- * Another table where a person holds a seat, away or not, in a game still running. The server keeps them from
- * sitting down elsewhere until it ends, as Bird Table does.
+ * Another online table where a person holds a seat, away or not, in a game still running. The server keeps them
+ * from sitting down elsewhere until it ends, as Bird Table does, so nobody abandons the others by opening a new
+ * table. A hot-seat game holds nobody: its host is the only one it affects.
  * @param {Map<string, Room>} rooms - By code
  * @param {string} personId
  * @param {string} exceptCode - The table they are trying to sit at
@@ -515,6 +596,7 @@ export function unfinishedSeat(rooms, personId, exceptCode) {
 	for (const room of rooms.values()) {
 		if (
 			room.code !== exceptCode &&
+			room.mode === 'online' &&
 			phase(room) === 'playing' &&
 			room.seats.some((s) => s.player === personId)
 		) {

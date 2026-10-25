@@ -313,6 +313,16 @@ test('checkOptions refuses what createGame refuses, variants included (#22, #53)
 	}
 });
 
+test('a game keeps its variants, and says so when it is created (#53)', () => {
+	const state = createGame({
+		players: [{ name: 'Ana' }, { name: 'Bo' }],
+		version: 'current',
+		random: seededRandom(1),
+	});
+	assert.deepEqual(state.variants, []);
+	assert.deepEqual(state.events[0].variants, []);
+});
+
 test('createGame refuses an unknown variant', () => {
 	assert.throws(
 		() =>

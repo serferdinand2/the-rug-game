@@ -11,6 +11,7 @@ import {
 	cleanName,
 	configure,
 	createRoom,
+	end,
 	expireRooms,
 	join,
 	leave,
@@ -40,13 +41,13 @@ const lobby = (...people) =>
 		.slice(1)
 		.reduce(
 			(r, id) => join(r, P(id)),
-			createRoom('3f9a1c07', P(people[0]))
+			createRoom('3f9a1c07', P(people[0]), {}, 0)
 		);
 /** A hot-seat lobby whose host is `a`, with these players by name. @param {...string} names */
 const hotseat = (...names) =>
 	names.reduce(
 		(r, name) => addSeat(r, 'a', name),
-		createRoom('3f9a1c07', P('a'), { mode: 'hotseat' })
+		createRoom('3f9a1c07', P('a'), { mode: 'hotseat' }, 0)
 	);
 /** @param {Room} room */
 const dealt = (room) => start(room, room.host, seededRandom(7));
@@ -104,13 +105,14 @@ test('the creator hosts seat 1 of an online table with the current rules', () =>
 
 test("a table's mode and options are checked when it is created", () => {
 	const make = (/** @type {Record<string, unknown>} */ options) => () =>
-		createRoom('3f9a1c07', P('a'), /** @type {any} */ (options));
+		createRoom('3f9a1c07', P('a'), /** @type {any} */ (options), 0);
 	assert.equal(
-		createRoom('3f9a1c07', P('a'), { version: 'original' }).options.version,
+		createRoom('3f9a1c07', P('a'), { version: 'original' }, 0).options
+			.version,
 		'original'
 	);
 	assert.equal(
-		createRoom('3f9a1c07', P('a'), { mode: 'hotseat' }).mode,
+		createRoom('3f9a1c07', P('a'), { mode: 'hotseat' }, 0).mode,
 		'hotseat'
 	);
 	refuses(make({ mode: 'dungeon' }), 'Unknown table mode: dungeon.');
@@ -120,12 +122,45 @@ test("a table's mode and options are checked when it is created", () => {
 	refuses(make({ level: 3 }), 'Only a solo table has an Automa level.');
 });
 
+test('malformed options are refused as a player mistake, never a crash', () => {
+	const base = lobby('a');
+	const any = (/** @type {unknown} */ value) => /** @type {any} */ (value);
+	refuses(
+		() => createRoom('3f9a1c07', P('a'), any({ expansions: 'pp' }), 0),
+		'The expansions must be a list.'
+	);
+	refuses(
+		() => configure(base, 'a', any({ expansions: 5 })),
+		'The expansions must be a list.'
+	);
+	refuses(
+		() => configure(base, 'a', any({ variants: {} })),
+		'The variants must be a list.'
+	);
+	refuses(
+		() => configure(base, 'a', any({ mode: 7 })),
+		'Unknown table mode: 7.'
+	);
+	refuses(
+		() => configure(base, 'a', any('online')),
+		'Choose the table options.'
+	);
+	assert.equal(configure(base, 'a', any(null)), base);
+	assert.deepEqual(createRoom('3f9a1c07', P('a'), any(null), 0), base);
+	assert.throws(
+		() => createRoom('3f9a1c07', P('a'), {}, any(undefined)),
+		TypeError,
+		'the time is required, or a forgotten one would expire the table at once'
+	);
+});
+
 test("solo tables check the Automa's level, then wait for the Automa (#31)", () => {
 	const solo = (/** @type {unknown} */ level) => () =>
 		createRoom(
 			'3f9a1c07',
 			P('a'),
-			/** @type {any} */ ({ mode: 'solo', level })
+			/** @type {any} */ ({ mode: 'solo', level }),
+			0
 		);
 	refuses(solo(7), 'Choose an Automa level from 1 to 6.');
 	refuses(solo(0), 'Choose an Automa level from 1 to 6.');
@@ -164,16 +199,18 @@ test('only the host changes the options, and never during a game', () => {
 	);
 });
 
-test('the mode changes only while the host is alone, keeping their first seat', () => {
+test('the mode changes only while the table has one seat, so nobody is dropped by surprise', () => {
 	refuses(
 		() => configure(lobby('a', 'b'), 'a', { mode: 'hotseat' }),
 		'The other players must leave before the mode changes.'
 	);
 	const local = configure(lobby('a'), 'a', { mode: 'hotseat' });
 	assert.equal(local.mode, 'hotseat');
-	const online = configure(addSeat(local, 'a', 'Bo'), 'a', {
-		mode: 'online',
-	});
+	refuses(
+		() => configure(addSeat(local, 'a', 'Bo'), 'a', { mode: 'online' }),
+		'Remove the other players before the mode changes.'
+	);
+	const online = configure(local, 'a', { mode: 'online' });
 	assert.equal(online.mode, 'online');
 	assert.deepEqual(online.seats, [{ player: 'a', name: 'A' }]);
 });
@@ -213,6 +250,27 @@ test('newcomers join only an online table, before its game and up to 5 seats', (
 		['a', 'b', 'c'],
 		'a finished table seats newcomers'
 	);
+});
+
+test('at a finished table only the people present take seats, and a newcomer who leaves is gone', () => {
+	let done = finish(dealt(lobby('a', 'b', 'c', 'd', 'e')));
+	done = /** @type {Room} */ (leave(done, 'd').room);
+	done = /** @type {Room} */ (leave(done, 'e').room);
+	const joined = join(join(done, P('f')), P('g'));
+	assert.deepEqual(ids(joined), ['a', 'b', 'c', 'd', 'e', 'f', 'g']);
+	refuses(() => join(joined, P('h')), 'This table is full.');
+	const left = /** @type {Room} */ (leave(joined, 'f').room);
+	assert.deepEqual(ids(left), ['a', 'b', 'c', 'd', 'e', 'g']);
+	assert.equal(left.seats[3].away, true, 'a dealt seat stays, away');
+	const back = join(left, P('h'));
+	refuses(() => join(back, P('d')), 'This table is full.');
+	assert.equal(
+		join(left, P('d')).seats[3].away,
+		undefined,
+		'with a place free, a player who left a finished game may come back'
+	);
+	const again = start(left, 'a', seededRandom(3));
+	assert.deepEqual(ids(again), ['a', 'b', 'c', 'g']);
 });
 
 test('a hot-seat host seats players by name, each name different', () => {
@@ -256,7 +314,7 @@ test('in the lobby the host removes a seat, but not their own online seat or the
 	refuses(() => removeSeat(room, 'a', 4), 'There is no such seat.');
 	refuses(
 		() => removeSeat(dealt(room), 'a', 2),
-		'Players can only be removed before the game starts.'
+		'Players can only be removed while no game is running.'
 	);
 	const local = hotseat('Bo');
 	assert.deepEqual(removeSeat(local, 'a', 1).seats, [
@@ -266,6 +324,54 @@ test('in the lobby the host removes a seat, but not their own online seat or the
 		() => removeSeat(hotseat(), 'a', 1),
 		'A table needs at least one player.'
 	);
+});
+
+test('at a finished table the host may drop a player from the next game', () => {
+	const local = finish(dealt(hotseat('Bo', 'Cy')));
+	const dropped = removeSeat(local, 'a', 2);
+	assert.deepEqual(
+		ids(dropped),
+		['a', 'a', 'a'],
+		'the seat numbers still match'
+	);
+	assert.equal(dropped.seats[1].away, true);
+	assert.deepEqual(
+		start(dropped, 'a', seededRandom(5)).seats.map((s) => s.name),
+		['A', 'Cy']
+	);
+	const online = join(finish(dealt(lobby('a', 'b'))), P('c'));
+	assert.deepEqual(
+		ids(removeSeat(online, 'a', 3)),
+		['a', 'b'],
+		'a newcomer goes'
+	);
+	assert.equal(removeSeat(dropped, 'a', 2), dropped, 'already away');
+});
+
+test('the host may end a running game: at one screen at any time, online once the others have left', () => {
+	const local = dealt(hotseat('Bo'));
+	const ended = end(local, 'a');
+	assert.equal(phase(ended), 'lobby');
+	assert.deepEqual(ended.seats, local.seats);
+	const running = dealt(lobby('a', 'b', 'c'));
+	refuses(() => end(running, 'b'), 'Only the host can end the game.');
+	refuses(
+		() => end(running, 'a'),
+		'The game can end only once the other players have left.'
+	);
+	const alone = /** @type {Room} */ (
+		leave(/** @type {Room} */ (leave(running, 'b').room), 'c').room
+	);
+	const back = end(alone, 'a');
+	assert.equal(phase(back), 'lobby');
+	assert.deepEqual(ids(back), ['a'], 'the away seats go with the game');
+	refuses(() => end(lobby('a'), 'a'), 'There is no game to end.');
+	refuses(() => end(finish(running), 'a'), 'There is no game to end.');
+	// Everyone left: the first to come back hosts, and may end it.
+	const empty = /** @type {Room} */ (leave(alone, 'a').room);
+	const returned = join(empty, P('c'));
+	assert.equal(returned.host, 'c');
+	assert.deepEqual(ids(end(returned, 'c')), ['c']);
 });
 
 test('leaving a lobby gives up the seat and hands the host on; the last one out closes it', () => {
@@ -404,6 +510,10 @@ test('names are trimmed, squeezed and cut to 24 characters', () => {
 	assert.equal(cleanName('Ana\u0007Bo'), 'AnaBo');
 	assert.equal(cleanName('x'.repeat(30)), 'x'.repeat(24));
 	assert.equal(cleanName('🦊'.repeat(30)), '🦊'.repeat(24));
+	assert.equal(cleanName('a \u0007 b'), 'a b');
+	assert.equal(cleanName('\u202Eevil'), 'evil', 'no bidi overrides');
+	assert.equal(cleanName('👩‍💻 Ana'), '👩‍💻 Ana', 'emoji keep their joiners');
+	refuses(() => cleanName('\u200B\u200B'), 'Enter a name.');
 	refuses(() => cleanName('   '), 'Enter a name.');
 	refuses(() => cleanName(undefined), 'Enter a name.');
 	refuses(() => join(lobby('a'), { id: 'b', name: ' ' }), 'Enter a name.');
@@ -439,6 +549,12 @@ test('the server refuses a new table once 1,000 are open', () => {
 	refuses(
 		() => addRoom(rooms, { ...lobby('c'), code: 'cccccccc' }),
 		'There are too many tables right now. Try again later.'
+	);
+	rooms.delete('r0');
+	assert.throws(
+		() => addRoom(rooms, lobby('d')),
+		/already has a room/,
+		'a code is never reused while its room is kept'
 	);
 	assert.equal(MAX_ROOMS, 1000);
 });
@@ -530,6 +646,12 @@ test('a person sitting in a running game elsewhere is found, so they can be kept
 		null,
 		'nor does a lobby'
 	);
+	const local = { ...dealt(hotseat('Bo')), code: 'hhhhhhhh' };
+	assert.equal(
+		unfinishedSeat(mapOf(local), 'a', 'zzzzzzzz'),
+		null,
+		'a hot-seat game holds nobody: its host is the only one it affects'
+	);
 });
 
 /** The people of the randomized test. */
@@ -541,34 +663,36 @@ const LOCAL_NAMES = ['Bo', 'Cy', 'Dee', 'bo', 'Eli', 'Fay'];
  * One random step on a room: a transition, or (rarely) the game ending, as the engine would end it.
  * @param {Room} room
  * @param {import('../src/lib/engine/random.js').Random} random
- * @returns {{ step: string, next: Room | null }}
+ * @returns {{ step: string, next: Room | null, saved?: boolean }}
  */
 function randomStep(room, random) {
 	const someone = PEOPLE[random(PEOPLE.length)];
 	const seated = room.seats[random(room.seats.length)].player;
+	const who = random(4) ? room.host : someone;
 	const roll = random(100);
 	if (roll < 20) {
 		return { step: `join ${someone}`, next: join(room, P(someone)) };
 	}
-	if (roll < 30) {
-		return { step: `leave ${seated}`, next: leave(room, seated).room };
-	}
 	if (roll < 35) {
-		return { step: `leave ${someone}`, next: leave(room, someone).room };
+		const leaver = roll < 30 ? seated : someone;
+		const { room: next, saved } = leave(room, leaver);
+		return { step: `leave ${leaver}`, next, saved };
 	}
 	if (roll < 45) {
 		const name = LOCAL_NAMES[random(LOCAL_NAMES.length)];
-		const who = random(4) ? room.host : someone;
 		return { step: `${who} adds ${name}`, next: addSeat(room, who, name) };
 	}
 	if (roll < 50) {
 		const seat = 1 + random(room.seats.length + 1);
 		return {
-			step: `remove seat ${seat}`,
-			next: removeSeat(room, room.host, seat),
+			step: `${who} removes seat ${seat}`,
+			next: removeSeat(room, who, seat),
 		};
 	}
-	if (roll < 57) {
+	if (roll < 54) {
+		return { step: `${who} ends the game`, next: end(room, who) };
+	}
+	if (roll < 61) {
 		const changes = /** @type {any[]} */ ([
 			{ version: 'original' },
 			{ version: 'current' },
@@ -576,17 +700,15 @@ function randomStep(room, random) {
 			{ expansions: ['pp'] },
 			{ level: 3 },
 		])[random(5)];
-		const who = random(4) ? room.host : someone;
 		return {
 			step: `${who} configures ${JSON.stringify(changes)}`,
 			next: configure(room, who, changes),
 		};
 	}
-	if (roll < 67) {
-		const who = random(4) ? room.host : someone;
+	if (roll < 71) {
 		return { step: `${who} starts`, next: start(room, who, random) };
 	}
-	if (roll < 70 && room.game && room.game.phase !== 'over') {
+	if (roll < 74 && room.game && room.game.phase !== 'over') {
 		return { step: 'the game ends', next: finish(room) };
 	}
 	if (!room.game || room.game.phase === 'over') {
@@ -597,12 +719,12 @@ function randomStep(room, random) {
 	const seat = /** @type {number} */ (decision.player);
 	const answers = DECISIONS[decision.kind].answers(room.game, decision);
 	const owner = room.seats[seat - 1].player;
-	const who = random(5) ? owner : someone;
+	const answerer = random(5) ? owner : someone;
 	return {
-		step: `${who} answers seat ${seat}'s ${decision.kind}`,
+		step: `${answerer} answers seat ${seat}'s ${decision.kind}`,
 		next: play(
 			room,
-			who,
+			answerer,
 			seat,
 			{ decision: decision.id, ...answers[random(answers.length)] },
 			random
@@ -614,18 +736,22 @@ function randomStep(room, random) {
  * Checks the room rules after a step (#22 design §9).
  * @param {Room} room
  * @param {Room} before
+ * @param {string} step
  */
-function checkRoom(room, before) {
-	assert.ok(
-		room.seats.length >= 1 && room.seats.length <= MAX_SEATS,
-		'seat count'
-	);
+function checkRoom(room, before, step) {
+	const now = phase(room);
+	const present = room.seats.filter((s) => !s.away);
+	assert.ok(room.seats.length >= 1, 'a room holds a seat');
+	assert.ok(present.length <= MAX_SEATS, 'at most 5 people present');
+	if (now !== 'finished') {
+		assert.ok(room.seats.length <= MAX_SEATS, 'at most 5 seats');
+	}
 	assert.equal(room.code, before.code);
 	const host = room.seats.find((s) => s.player === room.host);
 	assert.ok(host, 'the host holds a seat');
-	if (room.seats.some((s) => !s.away)) {
+	if (present.length > 0) {
 		assert.ok(
-			room.seats.some((s) => s.player === room.host && !s.away),
+			present.some((s) => s.player === room.host),
 			'the host is present whenever anyone is'
 		);
 	}
@@ -648,28 +774,46 @@ function checkRoom(room, before) {
 			'the names at one screen differ'
 		);
 	}
-	const now = phase(room);
 	if (now === 'lobby') {
 		assert.ok(
 			room.seats.every((s) => !s.away),
 			'nobody is away in the lobby'
 		);
 	}
-	if (now === 'playing') {
-		const game = /** @type {any} */ (room.game);
+	if (room.game) {
+		// Room seat i is game seat i + 1, from the deal until the next one, finished or not.
+		const dealt = /** @type {any} */ (room.game).seats;
+		assert.ok(
+			room.seats.length >= dealt.length,
+			'every dealt seat is kept'
+		);
 		assert.deepEqual(
-			game.seats.map((/** @type {any} */ s) => s.name),
-			room.seats.map((s) => s.name),
+			room.seats.slice(0, dealt.length).map((s) => s.name),
+			dealt.map((/** @type {any} */ s) => s.name),
 			'the seats match the game'
 		);
-		if (phase(before) === 'playing') {
-			assert.deepEqual(
-				room.options,
-				before.options,
-				'the options stay during a game'
+		if (now === 'playing') {
+			assert.equal(
+				room.seats.length,
+				dealt.length,
+				'no seat is added mid-game'
 			);
-			assert.equal(room.mode, before.mode);
 		}
+		if (before.game && !step.endsWith(' starts')) {
+			assert.deepEqual(
+				room.seats.slice(0, dealt.length).map((s) => s.player),
+				before.seats.slice(0, dealt.length).map((s) => s.player),
+				'nobody takes over a dealt seat'
+			);
+		}
+	}
+	if (now === 'playing' && phase(before) === 'playing') {
+		assert.deepEqual(
+			room.options,
+			before.options,
+			'the options stay during a game'
+		);
+		assert.equal(room.mode, before.mode);
 	}
 	checkOptions(room.options);
 	assert.ok(MODES.includes(room.mode));
@@ -683,7 +827,9 @@ function checkRoom(room, before) {
 	);
 	for (const person of PEOPLE) {
 		const holds =
-			now === 'playing' && room.seats.some((s) => s.player === person);
+			room.mode === 'online' &&
+			now === 'playing' &&
+			room.seats.some((s) => s.player === person);
 		assert.equal(
 			unfinishedSeat(mapOf(room), person, 'elsewhere') === room.code,
 			holds,
@@ -706,9 +852,8 @@ test('random steps never break the room rules', () => {
 				room = createRoom(
 					'3f9a1c07',
 					P(PEOPLE[random(PEOPLE.length)]),
-					{
-						mode,
-					}
+					{ mode },
+					0
 				);
 				continue;
 			}
@@ -723,6 +868,13 @@ test('random steps never break the room rules', () => {
 					snapshot,
 					'the step changed the room it was given'
 				);
+				if (result.saved !== undefined) {
+					assert.equal(
+						result.saved,
+						phase(before) === 'playing',
+						'saved means a game in progress waits'
+					);
+				}
 				if (result.next === null) {
 					assert.match(step, /^leave /, 'only leaving closes a room');
 					const leaver = step.slice('leave '.length);
@@ -740,7 +892,7 @@ test('random steps never break the room rules', () => {
 					room = null;
 					continue;
 				}
-				checkRoom(result.next, before);
+				checkRoom(result.next, before, step);
 				room = result.next;
 			} catch (error) {
 				if (error instanceof PlayerError) {
@@ -752,8 +904,11 @@ test('random steps never break the room rules', () => {
 					continue;
 				}
 				const failure = /** @type {Error} */ (error);
-				failure.message = `run ${run}, step ${i} (${step}): ${failure.message}`;
-				throw failure;
+				// A new error, because the reporter prints the stack, which holds the old message.
+				throw new Error(
+					`run ${run}, step ${i} (${step}): ${failure.message}`,
+					{ cause: failure }
+				);
 			}
 		}
 	}
