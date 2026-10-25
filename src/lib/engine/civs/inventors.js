@@ -32,7 +32,8 @@ export function inventorsToken(ctx, op) {
 
 /**
  * Takes a marked card that reached an opponent's top row (`from`) into the player's bottom row, token and all. Counts
- * change for both, so the `countsChanged` triggers follow. A card that has left that top row meanwhile stays where it is.
+ * change for both seats, and one round of `countsChanged` triggers follows, as after a conquest: each hook re-counts its
+ * own owner whoever's change it was (Mystics). A card that has left that top row meanwhile stays where it is.
  * @type {import('../state.js').AutomaticKind}
  */
 export function inventorsTake(ctx, op) {

@@ -1,6 +1,7 @@
 // The Heralds (02 §1.2): a token on a visible WHEN PLAYED tapestry card each income turn copies its ability, and whoever starts with them may play a card on Maker of Fire at the end of income turn 1 (R35).
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
+import { triggered } from '../abilities.js';
 import { askSlot } from '../decisions/choose-slot.js';
 import { visibleCards } from '../tapestry.js';
 import { copyAbility } from '../effects/tapestry.js';
@@ -54,8 +55,8 @@ function offerMakerOfFire(ctx, player, options) {
 
 /**
  * R35's draw, which replaces the original Maker of Fire play: tapestry cards are drawn until a WHEN PLAYED one (a trap
- * counts, R22), the others are revealed and discarded, and the card found goes to the hand, hidden like any other.
- * It alone may then go on Maker of Fire, unless it is Renaissance.
+ * counts, R22). Every card drawn is revealed: the others are discarded, and the card found goes to the hand, with the
+ * `tapestryGained` triggers a drawn card has. It alone may then go on Maker of Fire, unless it is Renaissance.
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  */
@@ -68,24 +69,26 @@ function drawForMakerOfFire(ctx, player) {
 		revealed.push(found);
 		found = takeTapestryCard(ctx);
 	}
-	// Discarded only now, so a reshuffle during the draw never deals them again.
-	if (revealed.length > 0) {
-		state.supply.tapestry.discard.push(...revealed);
-		emit(state, { type: 'cardsRevealed', player, cards: revealed });
+	if (revealed.length === 0 && found === undefined) {
+		return;
 	}
+	// Discarded only now, so a reshuffle during the draw never deals them again.
+	state.supply.tapestry.discard.push(...revealed);
+	emit(state, {
+		type: 'cardsRevealed',
+		player,
+		cards: revealed,
+		found: found ?? null,
+	});
 	if (found === undefined) {
 		return;
 	}
 	playerSeat(state, player).hand.push(found);
-	emit(state, {
-		type: 'cardsDrawn',
-		player,
-		count: 1,
-		secret: { cards: [found] },
-	});
+	// The offer goes under the triggers of gaining the card, which resolve first, as for any card drawn.
 	if (found !== 'renaissance') {
 		offerMakerOfFire(ctx, player, [found]);
 	}
+	ctx.push(triggered(state, 'tapestryGained', { player, cards: [found] }));
 }
 
 /** @type {import('./civ.js').Civ} */

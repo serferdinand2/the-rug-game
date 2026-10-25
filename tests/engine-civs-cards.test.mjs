@@ -317,14 +317,19 @@ test('original Heralds may play any card on Maker of Fire at the end of income t
 	assert.equal(decisionOf(gained.state, 'chooseTapestry'), undefined);
 });
 
-test('current Heralds draw until a WHEN PLAYED card and may play one but not Renaissance on Maker of Fire (R35)', () => {
+test('current Heralds draw until a WHEN PLAYED card and may play one but not Renaissance on Maker of Fire (R35)', (t) => {
 	const r = firstIncomeTurn(['academia', 'golden-age', 'trap-1', 'trap-3'], {
 		hand: ['trap-2'],
 	});
-	// After the income's card, the THIS ERA cards drawn are revealed and discarded; the trap counts as WHEN PLAYED
-	// and goes to the hand.
+	// After the income's card, every card drawn is revealed: the THIS ERA ones are discarded, and the trap, which
+	// counts as WHEN PLAYED, goes to the hand.
 	assert.deepEqual(eventsOf(r.state, 'cardsRevealed', r.since), [
-		{ type: 'cardsRevealed', player: 2, cards: ['academia', 'golden-age'] },
+		{
+			type: 'cardsRevealed',
+			player: 2,
+			cards: ['academia', 'golden-age'],
+			found: 'trap-1',
+		},
 	]);
 	assert.deepEqual(r.state.supply.tapestry.discard.slice(-2), [
 		'academia',
@@ -351,21 +356,21 @@ test('current Heralds draw until a WHEN PLAYED card and may play one but not Ren
 		}
 	);
 
-	// Everyone sees the discards; the card kept is hidden like any card in hand until it is played.
+	// Everyone sees what the draw revealed, the card found included; the rest of the hand stays hidden.
 	const theirs = view(r.state, 1);
 	assert.deepEqual(eventsOf(theirs, 'cardsRevealed', r.since), [
-		{ type: 'cardsRevealed', player: 2, cards: ['academia', 'golden-age'] },
+		{
+			type: 'cardsRevealed',
+			player: 2,
+			cards: ['academia', 'golden-age'],
+			found: 'trap-1',
+		},
 	]);
 	assert.deepEqual(eventsOf(theirs, 'cardsDrawn', r.since), [
 		{ type: 'cardsDrawn', player: 2, count: 1 },
-		{ type: 'cardsDrawn', player: 2, count: 1 },
 	]);
-	assert.equal(decisionOf(theirs, 'chooseTapestry').options, undefined);
 	assert.equal(theirs.seats[1].hand, undefined);
-	assert.deepEqual(
-		eventsOf(view(r.state, 2), 'cardsDrawn', r.since).map((e) => e.secret),
-		[{ cards: [INCOME_CARD] }, { cards: ['trap-1'] }]
-	);
+	assert.equal(theirs.seats[1].handCount, 3);
 
 	// Played: its ability resolves, the trap's 10 VP (R22).
 	const played = answer(r.state, r.random, 2, 'chooseTapestry', {
@@ -379,11 +384,42 @@ test('current Heralds draw until a WHEN PLAYED card and may play one but not Ren
 	assert.deepEqual(kept.seats[1].incomeMat.tapestry[0], []);
 	assert.deepEqual(kept.seats[1].hand, ['trap-2', INCOME_CARD, 'trap-1']);
 
-	// Renaissance goes to the hand but can't be played on Maker of Fire.
+	// The card found is gained like any card drawn: the tapestryGained triggers fire for it.
+	/** @type {string[][]} */
+	const gained = [];
+	CIVS.watcher = {
+		id: 'watcher',
+		hooks: {
+			tapestryGained(_state, owner, { player, cards }) {
+				if (player === owner) {
+					gained.push(cards);
+				}
+				return [];
+			},
+		},
+	};
+	t.after(() => {
+		delete CIVS.watcher;
+	});
+	firstIncomeTurn(['academia', 'trap-1'], { civs: ['heralds', 'watcher'] });
+	assert.deepEqual(gained, [[INCOME_CARD], ['trap-1']]);
+
+	// Renaissance goes to the hand, revealed to everyone, but can't be played on Maker of Fire.
 	const renaissance = firstIncomeTurn(['academia', 'renaissance']);
 	assert.deepEqual(
-		eventsOf(renaissance.state, 'cardsRevealed', renaissance.since),
-		[{ type: 'cardsRevealed', player: 2, cards: ['academia'] }]
+		eventsOf(
+			view(renaissance.state, 1),
+			'cardsRevealed',
+			renaissance.since
+		),
+		[
+			{
+				type: 'cardsRevealed',
+				player: 2,
+				cards: ['academia'],
+				found: 'renaissance',
+			},
+		]
 	);
 	assert.deepEqual(renaissance.state.seats[1].hand, [
 		INCOME_CARD,
@@ -391,12 +427,43 @@ test('current Heralds draw until a WHEN PLAYED card and may play one but not Ren
 	]);
 	assert.equal(decisionOf(renaissance.state, 'chooseTapestry'), undefined);
 
-	// A WHEN PLAYED card on top reveals nothing more.
+	// A WHEN PLAYED card on top is the only card revealed.
 	const first = firstIncomeTurn(['trap-1']);
-	assert.deepEqual(eventsOf(first.state, 'cardsRevealed', first.since), []);
+	assert.deepEqual(eventsOf(first.state, 'cardsRevealed', first.since), [
+		{ type: 'cardsRevealed', player: 2, cards: [], found: 'trap-1' },
+	]);
 	assert.deepEqual(decisionOf(first.state, 'chooseTapestry').options, [
 		'trap-1',
 	]);
+
+	// With no WHEN PLAYED card left, every card drawn is revealed and discarded, and nothing is found.
+	const none = incomeTurn(
+		'heralds',
+		0,
+		(_seat, state) => {
+			state.supply.tapestry.deck = [
+				INCOME_CARD,
+				'academia',
+				'golden-age',
+			];
+			state.supply.tapestry.discard = [];
+		},
+		{ version: 'current' }
+	);
+	assert.deepEqual(eventsOf(none.state, 'cardsRevealed', none.since), [
+		{
+			type: 'cardsRevealed',
+			player: 2,
+			cards: ['academia', 'golden-age'],
+			found: null,
+		},
+	]);
+	assert.deepEqual(none.state.supply.tapestry.discard, [
+		'academia',
+		'golden-age',
+	]);
+	assert.deepEqual(none.state.seats[1].hand, [INCOME_CARD]);
+	assert.equal(decisionOf(none.state, 'chooseTapestry'), undefined);
 
 	// The original version draws nothing and offers the hand instead.
 	const original = firstIncomeTurn(['academia', 'trap-1'], {
@@ -414,12 +481,12 @@ test('current Heralds draw until a WHEN PLAYED card and may play one but not Ren
 	]);
 
 	// Heralds gained mid-game draw nothing (R34).
-	const gained = firstIncomeTurn(['academia', 'trap-1'], {
+	const later = firstIncomeTurn(['academia', 'trap-1'], {
 		civs: ['leaders', 'heralds'],
 	});
-	assert.deepEqual(eventsOf(gained.state, 'cardsRevealed', gained.since), []);
-	assert.deepEqual(gained.state.seats[1].hand, [INCOME_CARD]);
-	assert.equal(decisionOf(gained.state, 'chooseTapestry'), undefined);
+	assert.deepEqual(eventsOf(later.state, 'cardsRevealed', later.since), []);
+	assert.deepEqual(later.state.seats[1].hand, [INCOME_CARD]);
+	assert.equal(decisionOf(later.state, 'chooseTapestry'), undefined);
 });
 
 test('Historians give a token for a territory tile and gain every uncovered square when that opponent gains a landmark (R30)', () => {
