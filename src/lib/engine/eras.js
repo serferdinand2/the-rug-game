@@ -1,6 +1,9 @@
 // The THIS ERA cards' triggers: what a card's ability does when something happens to a player (design §6).
+import { emit } from './events.js';
 import { playerSeat } from './state.js';
+import { currentEra } from './tapestry.js';
 import { techCard } from './data/tech-cards.js';
+import { TRACKS } from './data/tracks.js';
 
 /**
  * A trigger handler. It changes nothing itself: whatever it does happens in the operations it returns.
@@ -117,4 +120,82 @@ export const ERA_HOOKS = {
 			];
 		},
 	},
+	'marriage-of-state': {
+		benefitGained(state, owner, { player, track, space }) {
+			const era = playerSeat(state, owner).era;
+			if (
+				owner === player ||
+				!era ||
+				era.opponent !== player ||
+				era.track !== track
+			) {
+				return [];
+			}
+			return [
+				{
+					player: owner,
+					kind: 'copyBenefit',
+					track,
+					space,
+					from: player,
+				},
+			];
+		},
+	},
+	capitalism: {
+		buildingGained: (_state, owner, { player, building }) =>
+			owner === player && building === 'market'
+				? [effects(owner, [{ gain: { coin: 1 } }])]
+				: [],
+	},
+	// placePiece alone fires piecePlaced, so a building beside the mat, outside the city, scores nothing (R13's reading).
+	monarchy: {
+		piecePlaced: (_state, owner, { player, building }) =>
+			owner === player && building !== undefined ? [vp(owner, 3)] : [],
+	},
+	terraforming: {
+		piecePlaced: (_state, owner, { player, impassable }) =>
+			owner === player && impassable > 0 ? [vp(owner, 5)] : [],
+	},
+	tyranny: {
+		// Playing a card covers Tyranny, which ends it, so this happens at most once.
+		tapestryGained(state, owner, { player, cards }) {
+			const era = currentEra(state, owner);
+			if (owner !== player || era === null) {
+				return [];
+			}
+			return [
+				{
+					player: owner,
+					kind: 'chooseTapestry',
+					options: [...cards],
+					era,
+					optional: true,
+					afterPlay: [{ vp: 5 }],
+				},
+			];
+		},
+	},
 };
+
+/**
+ * Marriage of State: the holder gains the benefit of a track space the named opponent just gained, without its bonus.
+ * It goes through no `benefitOps`, so no `benefitGained` fires and no copy sets off another (design §8).
+ * @type {import('./state.js').AutomaticKind}
+ */
+export function copyBenefit(ctx, op) {
+	const player = /** @type {number} */ (op.player);
+	const { track, space, from } = op;
+	const entry =
+		TRACKS[/** @type {import('./data/ids.js').TrackId} */ (track)][space];
+	emit(ctx.state, { type: 'benefitCopied', player, track, space, from });
+	ctx.push([
+		{
+			player,
+			kind: 'effects',
+			effects: structuredClone(entry.benefit),
+			ordered: entry.ordered,
+			source: { track, space },
+		},
+	]);
+}

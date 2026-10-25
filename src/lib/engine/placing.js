@@ -1,7 +1,7 @@
 // Putting a building or landmark in the capital city, and paying a reward for each district it completes (R13, FAQ #1).
 import { emit } from './events.js';
 import { playerSeat } from './state.js';
-import { triggered } from './abilities.js';
+import { hasEra, triggered } from './abilities.js';
 import {
 	buildingSpots,
 	cityPlots,
@@ -107,7 +107,10 @@ export function placeBuilding(ctx, op) {
 		op.building
 	);
 	const seat = playerSeat(ctx.state, player);
-	const spots = buildingSpots(seat);
+	const spots = buildingSpots(
+		seat,
+		hasEra(ctx.state, player, 'terraforming')
+	);
 	if (spots.length === 0) {
 		// A full city keeps the building beside the mat, where it still counts (FAQ #21, R71).
 		seat.besideMat.push(building);
@@ -128,7 +131,11 @@ export function placeLandmark(ctx, op) {
 	const player = /** @type {number} */ (op.player);
 	const landmark = /** @type {string} */ (op.landmark);
 	const seat = playerSeat(ctx.state, player);
-	const spots = landmarkSpots(seat, landmark);
+	const spots = landmarkSpots(
+		seat,
+		landmark,
+		hasEra(ctx.state, player, 'terraforming')
+	);
 	const places = new Set(
 		spots.map((spot) =>
 			landmarkCells({ landmark, ...spot })

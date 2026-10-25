@@ -63,16 +63,27 @@ export function cityPlots(seat) {
 }
 
 /**
+ * Whether a piece may cover a plot: an empty one, or an impassable one under Terraforming.
+ * @param {PlotKind} kind
+ * @param {boolean} terraform
+ * @returns {boolean}
+ */
+function coverable(kind, terraform) {
+	return kind === 'empty' || (terraform && kind === 'blocked');
+}
+
+/**
  * Why a building can't go on a plot, or null when it can.
  * @param {PlayerSeat} seat
  * @param {Cell} at
+ * @param {boolean} [terraform] - Terraforming lets it cover an impassable plot
  * @returns {string | null} A PlayerError sentence.
  */
-export function buildingProblem(seat, { row, col }) {
+export function buildingProblem(seat, { row, col }, terraform = false) {
 	if (!onGrid(row, col)) {
 		return 'A building must go on a plot of your city.';
 	}
-	return cityPlots(seat)[plotIndex(row, col)] === 'empty'
+	return coverable(cityPlots(seat)[plotIndex(row, col)], terraform)
 		? null
 		: "That plot isn't open.";
 }
@@ -81,16 +92,21 @@ export function buildingProblem(seat, { row, col }) {
  * Why a landmark can't go there, or null when it can (R14: it may hang off the edge, R15: any of 4 turns).
  * @param {PlayerSeat} seat
  * @param {PlacedLandmark} piece
+ * @param {boolean} [terraform] - Terraforming lets it cover impassable plots
  * @returns {string | null} A PlayerError sentence.
  */
-export function landmarkProblem(seat, piece) {
+export function landmarkProblem(seat, piece, terraform = false) {
 	const cells = landmarkCells(piece);
 	const inside = cells.filter((c) => onGrid(c.row, c.col));
 	if (inside.length === 0) {
 		return 'A landmark must cover at least one plot of your city.';
 	}
 	const plots = cityPlots(seat);
-	if (inside.some((c) => plots[plotIndex(c.row, c.col)] !== 'empty')) {
+	if (
+		inside.some(
+			(c) => !coverable(plots[plotIndex(c.row, c.col)], terraform)
+		)
+	) {
 		return "That plot isn't open.";
 	}
 	// R106: two landmarks can't share a plot off the grid either.
@@ -108,11 +124,12 @@ export function landmarkProblem(seat, piece) {
 /**
  * The open plots, in reading order.
  * @param {PlayerSeat} seat
+ * @param {boolean} [terraform] - Terraforming opens the impassable plots too
  * @returns {Cell[]}
  */
-export function buildingSpots(seat) {
+export function buildingSpots(seat, terraform = false) {
 	return cityPlots(seat).flatMap((kind, index) =>
-		kind === 'empty'
+		coverable(kind, terraform)
 			? [{ row: Math.floor(index / GRID_SIZE), col: index % GRID_SIZE }]
 			: []
 	);
@@ -122,9 +139,10 @@ export function buildingSpots(seat) {
  * Every legal place for a landmark: fully on the grid first, then by rotation, row and column.
  * @param {PlayerSeat} seat
  * @param {string} landmark
+ * @param {boolean} [terraform] - Terraforming lets it cover impassable plots
  * @returns {{ row: number, col: number, rotation: number }[]}
  */
-export function landmarkSpots(seat, landmark) {
+export function landmarkSpots(seat, landmark, terraform = false) {
 	/** @type {{ row: number, col: number, rotation: number, inside: boolean }[]} */
 	const found = [];
 	for (let rotation = 0; rotation < 4; rotation++) {
@@ -132,7 +150,7 @@ export function landmarkSpots(seat, landmark) {
 		for (let row = 1 - rows.length; row < GRID_SIZE; row++) {
 			for (let col = 1 - rows[0].length; col < GRID_SIZE; col++) {
 				const piece = { landmark, row, col, rotation };
-				if (landmarkProblem(seat, piece) === null) {
+				if (landmarkProblem(seat, piece, terraform) === null) {
 					found.push({
 						row,
 						col,

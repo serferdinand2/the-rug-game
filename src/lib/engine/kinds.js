@@ -34,9 +34,11 @@ import { chooseSpace } from './decisions/choose-space.js';
 import { chooseHex } from './decisions/choose-hex.js';
 import { chooseGift } from './decisions/choose-gift.js';
 import { choosePartner } from './decisions/choose-partner.js';
+import { chooseConversion } from './decisions/choose-conversion.js';
 import { olympicHostEnd, sharedAdvanceOn } from './effects/players.js';
 import { darkAgesOn, dictate, colonize, revolt } from './effects/cards.js';
 import { upgradeTech } from './effects/tech.js';
+import { copyBenefit } from './eras.js';
 import { conquerDice } from './effects/conquer.js';
 import { placeBuilding, placeLandmark } from './placing.js';
 import { runSetupSteps } from './after-setup.js';
@@ -73,6 +75,7 @@ export const DECISIONS = {
 	chooseHex,
 	chooseGift,
 	choosePartner,
+	chooseConversion,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */
@@ -96,4 +99,5 @@ export const AUTOMATIC = {
 	dictate,
 	colonize,
 	revolt,
+	copyBenefit,
 };

@@ -156,13 +156,14 @@ export function explore(ctx, player, value, op) {
 
 /**
  * The space tiles a player may explore: all they hold, or with `fromGained` only those the track space
- * that is running just gave them (R105), in the order gained.
+ * that is running just gave them (R105), in the order gained. The benefit started at the player's latest
+ * activation of that space, or their latest copy of it (Marriage of State).
  * @param {import('../state.js').State} state
  * @param {number} player
  * @param {{ track?: string, space?: number } | null | undefined} source - The track space whose benefit is running
  * @param {boolean} fromGained
  * @returns {number[]}
- * @throws {Error} For `fromGained` outside a track space, or with no activation of it on record (bugs, not player mistakes)
+ * @throws {Error} For `fromGained` outside a track space, or with no activation or copy of it on record (bugs, not player mistakes)
  */
 export function spaceTileOptions(state, player, source, fromGained) {
 	const held = playerSeat(state, player).spaceTiles;
@@ -177,7 +178,7 @@ export function spaceTileOptions(state, player, source, fromGained) {
 	for (let i = events.length - 1; i >= 0; i--) {
 		const e = /** @type {any} */ (events[i]);
 		if (
-			e.type === 'spaceActivated' &&
+			(e.type === 'spaceActivated' || e.type === 'benefitCopied') &&
 			e.player === player &&
 			e.track === source.track &&
 			e.space === source.space
@@ -188,7 +189,7 @@ export function spaceTileOptions(state, player, source, fromGained) {
 	}
 	if (start === -1) {
 		throw new Error(
-			'exploreSpace with fromGained found no spaceActivated event.'
+			'exploreSpace with fromGained found no spaceActivated or benefitCopied event.'
 		);
 	}
 	/** @type {number[]} */

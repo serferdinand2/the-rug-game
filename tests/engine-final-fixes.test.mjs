@@ -191,6 +191,8 @@ test('every decision kind has the full shape, and its answers pass its own check
 	// Enough to pay for something, so every kind has answers to check.
 	const state = structuredClone(started);
 	state.seats[0].resources.coin = 1;
+	// Food to convert, so chooseConversion offers more than converting none.
+	state.seats[0].resources.food = 2;
 	// Seat 1 holds a territory tile (and controls its start territory), so it has somewhere to explore.
 	state.seats[0].territoryTiles = [2];
 	state.seats[1].hand = ['trap-1'];
@@ -349,6 +351,7 @@ test('every decision kind has the full shape, and its answers pass its own check
 				{ player: 2, track: 'military' },
 			],
 		},
+		chooseConversion: { player: 1, kind: 'chooseConversion', max: 2 },
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

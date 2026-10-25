@@ -1,6 +1,7 @@
 // The decision to pick a plot in the capital city for a gained building or landmark.
 import { PlayerError } from '../errors.js';
 import { playerSeat } from '../state.js';
+import { hasEra } from '../abilities.js';
 import {
 	buildingProblem,
 	buildingSpots,
@@ -13,30 +14,39 @@ import { placePiece } from '../placing.js';
 export const choosePlacement = {
 	hidden: [],
 	answers(state, decision) {
-		const seat = playerSeat(state, /** @type {number} */ (decision.player));
+		const player = /** @type {number} */ (decision.player);
+		const seat = playerSeat(state, player);
+		const terraform = hasEra(state, player, 'terraforming');
 		if (decision.landmark !== undefined) {
 			return landmarkSpots(
 				seat,
-				/** @type {string} */ (decision.landmark)
+				/** @type {string} */ (decision.landmark),
+				terraform
 			);
 		}
-		return buildingSpots(seat);
+		return buildingSpots(seat, terraform);
 	},
 	check(state, decision, answer) {
 		if (!Number.isInteger(answer.row) || !Number.isInteger(answer.col)) {
 			throw new PlayerError('Choose a row and a column.');
 		}
-		const seat = playerSeat(state, /** @type {number} */ (decision.player));
+		const player = /** @type {number} */ (decision.player);
+		const seat = playerSeat(state, player);
+		const terraform = hasEra(state, player, 'terraforming');
 		if (decision.landmark !== undefined) {
 			if (![0, 1, 2, 3].includes(answer.rotation)) {
 				throw new PlayerError('Choose a rotation from 0 to 3.');
 			}
-			const problem = landmarkProblem(seat, {
-				landmark: /** @type {string} */ (decision.landmark),
-				row: answer.row,
-				col: answer.col,
-				rotation: answer.rotation,
-			});
+			const problem = landmarkProblem(
+				seat,
+				{
+					landmark: /** @type {string} */ (decision.landmark),
+					row: answer.row,
+					col: answer.col,
+					rotation: answer.rotation,
+				},
+				terraform
+			);
 			if (problem !== null) {
 				throw new PlayerError(problem);
 			}
@@ -45,10 +55,11 @@ export const choosePlacement = {
 		if (answer.rotation !== undefined) {
 			throw new PlayerError('Only a landmark can be turned.');
 		}
-		const problem = buildingProblem(seat, {
-			row: answer.row,
-			col: answer.col,
-		});
+		const problem = buildingProblem(
+			seat,
+			{ row: answer.row, col: answer.col },
+			terraform
+		);
 		if (problem !== null) {
 			throw new PlayerError(problem);
 		}
