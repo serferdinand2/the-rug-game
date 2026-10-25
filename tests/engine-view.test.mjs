@@ -9,120 +9,9 @@ import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { playerSeat } from '../src/lib/engine/state.js';
 import { newGame, startedGame, resolveTapestry } from './helpers/engine.mjs';
+import { allOps, checkViews, setupFacts } from './helpers/views.mjs';
 
 /** @typedef {import('../src/lib/engine/state.js').State} State */
-
-/**
- * Every operation on the main stack and in every lane.
- * @param {{ pending: any[] }} state
- * @returns {any[]}
- */
-function allOps(state) {
-	return state.pending.flatMap((op) =>
-		op.kind === 'group' ? op.lanes.flatMap((lane) => lane.stack) : [op]
-	);
-}
-
-/**
- * Checks every viewer's view of `state` against what the full state holds privately.
- * @param {State} state
- * @param {number} count
- * @param {number[]} initialCapitals
- */
-function checkViews(state, count, initialCapitals) {
-	const revealed = state.events.some((e) => e.type === 'setupRevealed');
-	/** @type {Map<number | undefined, string[]>} */
-	const dealt = new Map();
-	for (const event of state.events) {
-		if (event.type === 'civsDealt') {
-			dealt.set(event.player, event.secret?.civs ?? []);
-		}
-	}
-	// An id that is public somewhere else (a tech card and a landmark can share one) is no leak.
-	const bare = structuredClone(state);
-	bare.supply.tech.deck = [];
-	bare.supply.tapestry.deck = [];
-	bare.supply.civs = [];
-	const publicText = JSON.stringify(bare);
-	const decks = [
-		...state.supply.tech.deck,
-		...state.supply.tapestry.deck,
-		...state.supply.civs,
-	].filter((id) => !publicText.includes(`"${id}"`));
-	/** The public view (null) owns nothing, not even what belongs to no player. */
-	const owns = (
-		/** @type {unknown} */ player,
-		/** @type {number | null} */ viewer
-	) => viewer !== null && player === viewer;
-	const viewers = [null, ...Array.from({ length: count }, (_, i) => i + 1)];
-	for (const viewer of viewers) {
-		const v = view(state, viewer);
-		const text = JSON.stringify(v);
-		for (const id of decks) {
-			assert.ok(
-				!text.includes(`"${id}"`),
-				`deck card ${id} shown to ${viewer}`
-			);
-		}
-		for (const seat of state.seats) {
-			if (seat.seat === viewer) {
-				continue;
-			}
-			const full = /** @type {any} */ (seat);
-			for (const card of full.hand ?? []) {
-				assert.ok(
-					!text.includes(`"${card}"`),
-					`seat ${seat.seat}'s card ${card} shown to ${viewer}`
-				);
-			}
-			const kept = full.civs?.[0];
-			for (const civ of dealt.get(seat.seat) ?? []) {
-				if (revealed && civ === kept) {
-					continue;
-				}
-				assert.ok(
-					!text.includes(`"${civ}"`),
-					`seat ${seat.seat}'s civ ${civ} shown to ${viewer} (revealed: ${revealed})`
-				);
-			}
-			const shown = v.seats[seat.seat - 1];
-			assert.ok(
-				!('hand' in shown) && !('picks' in shown),
-				'another seat has hand or picks'
-			);
-			assert.equal(typeof shown.handCount, 'number');
-			// Mat numbers are digits, so the text search can't see them: check the field itself.
-			if (!revealed && state.map === 'small') {
-				assert.equal(
-					shown.capital.mat,
-					null,
-					`seat ${seat.seat}'s mat shown to ${viewer}`
-				);
-			}
-		}
-		if (!revealed) {
-			assert.deepEqual(v.supply.capitals, initialCapitals);
-		}
-		for (const key of ['territory', 'space', 'civs']) {
-			assert.equal(typeof (/** @type {any} */ (v.supply)[key]), 'number');
-		}
-		assert.equal(typeof v.supply.tech.deck, 'number');
-		assert.equal(typeof v.supply.tapestry.deck, 'number');
-		for (const op of allOps(v)) {
-			if (!owns(op.player, viewer)) {
-				assert.ok(!('answers' in op), 'answers shown to a stranger');
-				for (const field of DECISIONS[op.kind]?.hidden ?? []) {
-					assert.ok(!(field in op), `${field} shown to a stranger`);
-				}
-			}
-		}
-		for (const event of v.events) {
-			if (!owns(event.player, viewer)) {
-				assert.ok(!('secret' in event), 'secret shown to a stranger');
-			}
-		}
-	}
-}
 
 /**
  * Plays setup with random legal answers, then deals every seat two tapestry cards, checking each step.
@@ -134,15 +23,16 @@ function checkViews(state, count, initialCapitals) {
 function playThrough(seed, count, check = true) {
 	const { state: first, random } = newGame(count, { seed });
 	const pick = seededRandom(seed + 1000);
-	const initialCapitals = [...first.supply.capitals];
+	const facts = setupFacts(first);
 	let state = first;
 	if (check) {
-		checkViews(state, count, initialCapitals);
+		checkViews(state, facts);
 	}
 	while (state.phase === 'setup') {
 		const open = openDecisions(state);
 		const decision = open[pick(open.length)];
 		const answers = DECISIONS[decision.kind].answers(state, decision);
+		const before = state;
 		state = play(
 			state,
 			/** @type {number} */ (decision.player),
@@ -150,10 +40,11 @@ function playThrough(seed, count, check = true) {
 			random
 		);
 		if (check) {
-			checkViews(state, count, initialCapitals);
+			checkViews(state, facts, { before });
 		}
 	}
 	for (let seat = 1; seat <= count; seat++) {
+		const before = state;
 		state = resolveEffects(
 			state,
 			seat,
@@ -161,7 +52,7 @@ function playThrough(seed, count, check = true) {
 			random
 		);
 		if (check) {
-			checkViews(state, count, initialCapitals);
+			checkViews(state, facts, { before });
 		}
 	}
 	return state;
@@ -179,6 +70,71 @@ test("view never shows another player their opponents' hands, dealt civilization
 			}
 		}
 	}
+});
+
+test('the view checker catches a hand shown to another player', () => {
+	const { state, random } = startedGame(2);
+	const dealt = resolveEffects(state, 2, [{ gain: { tapestry: 1 } }], random);
+	const facts = setupFacts(newGame(2).state);
+	checkViews(dealt, facts, { before: state });
+	assert.throws(
+		() =>
+			checkViews(dealt, facts, {
+				before: state,
+				viewOf: (s, seat) => ({
+					...view(s, seat),
+					leak: playerSeat(s, 2).hand,
+				}),
+			}),
+		/card .* shown to/
+	);
+});
+
+test('the view checker catches a face-down card shown to its owner', () => {
+	const { state } = startedGame(2);
+	// As on an income turn with an empty hand: the deck's top card goes straight onto the mat (01 §4.2).
+	const dealt = structuredClone(state);
+	const seat = playerSeat(dealt, 1);
+	const card = /** @type {string} */ (dealt.supply.tapestry.deck.shift());
+	seat.incomeMat.tapestry[0].push(card);
+	seat.incomeMat.faceDown.push(card);
+	const facts = setupFacts(newGame(2).state);
+	checkViews(dealt, facts, { before: state });
+	assert.throws(
+		() =>
+			checkViews(dealt, facts, {
+				before: state,
+				viewOf: (s, viewer) => {
+					const v = view(s, viewer);
+					v.seats[0].incomeMat.tapestry = playerSeat(
+						s,
+						1
+					).incomeMat.tapestry;
+					return v;
+				},
+			}),
+		/face-down card/
+	);
+});
+
+test('the view checker catches an open decision without answers', () => {
+	const { state } = startedGame(2);
+	const facts = setupFacts(newGame(2).state);
+	checkViews(state, facts, { before: state });
+	assert.throws(
+		() =>
+			checkViews(state, facts, {
+				before: state,
+				viewOf: (s, viewer) => {
+					const v = view(s, viewer);
+					for (const op of allOps(v)) {
+						delete op.answers;
+					}
+					return v;
+				},
+			}),
+		/has no answers/
+	);
 });
 
 test('the full state does hold the secrets the views must hide', () => {
