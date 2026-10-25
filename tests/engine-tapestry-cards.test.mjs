@@ -328,21 +328,33 @@ test('chooseLandmark and chooseDiscard refuse an answer that was not offered', (
 	);
 });
 
-test('Guilds trades VP for resources or resources for VP, and offers only what the player can pay', () => {
+test('Guilds makes its only affordable trade without asking', () => {
 	const { state, random } = game();
 	const seat = state.seats[0];
 	seat.vp = 7;
 	seat.resources = { coin: 0, worker: 0, food: 0, culture: 0 };
 	let next = resolveTapestry(state, random, 1, 'guilds');
+	assert.equal(open(next, 'chooseTrade'), undefined);
+	assert.equal(eventsOf(next, 'tradeMade')[0].offer, 0);
+	assert.equal(next.seats[0].vp, 2);
+	next = answer(next, random, 1, 'chooseResource', {
+		resources: { food: 1 },
+	});
+	assert.equal(next.seats[0].resources.food, 1);
+});
+
+test('Guilds offers only the trades the player can pay, when there is a choice', () => {
+	const { state, random } = game();
+	state.seats[0].vp = 0;
+	state.seats[0].resources = { coin: 2, worker: 0, food: 0, culture: 0 };
+	let next = resolveTapestry(state, random, 1, 'guilds');
 	const trade = /** @type {any} */ (open(next, 'chooseTrade'));
 	assert.equal(trade.offers.length, 6);
 	assert.equal(trade.optional, false);
-	const answers = DECISIONS.chooseTrade.answers(next, trade);
-	assert.deepEqual(
-		answers.map((a) => a.offer),
-		[0]
-	);
-	assert.ok(answers.every((a) => a.pay.vp === 5));
+	assert.deepEqual(DECISIONS.chooseTrade.answers(next, trade), [
+		{ offer: 3, pay: { coin: 1 } },
+		{ offer: 4, pay: { coin: 2 } },
+	]);
 	assert.throws(
 		() =>
 			answer(next, random, 1, 'chooseTrade', {
@@ -355,35 +367,20 @@ test('Guilds trades VP for resources or resources for VP, and offers only what t
 		() => answer(next, random, 1, 'chooseTrade', { offer: null }),
 		/Choose one of the trades offered\./
 	);
-	next = answer(next, random, 1, 'chooseTrade', {
-		offer: 0,
-		pay: { vp: 5 },
-	});
-	next = answer(next, random, 1, 'chooseResource', {
-		resources: { food: 1 },
-	});
-	assert.equal(next.seats[0].vp, 2);
-	assert.equal(next.seats[0].resources.food, 1);
-	assert.equal(eventsOf(next, 'tradeMade')[0].offer, 0);
-
-	const rich = game();
-	rich.state.seats[0].vp = 0;
-	rich.state.seats[0].resources = { coin: 2, worker: 0, food: 0, culture: 0 };
-	let sold = resolveTapestry(rich.state, rich.random, 1, 'guilds');
 	assert.throws(
 		() =>
-			answer(sold, rich.random, 1, 'chooseTrade', {
+			answer(next, random, 1, 'chooseTrade', {
 				offer: 3,
 				pay: { coin: 2 },
 			}),
 		/Pay exactly the cost\./
 	);
-	sold = answer(sold, rich.random, 1, 'chooseTrade', {
+	next = answer(next, random, 1, 'chooseTrade', {
 		offer: 4,
 		pay: { coin: 2 },
 	});
-	assert.equal(sold.seats[0].vp, 10);
-	assert.equal(sold.seats[0].resources.coin, 0);
+	assert.equal(next.seats[0].vp, 10);
+	assert.equal(next.seats[0].resources.coin, 0);
 });
 
 test('Guilds with nothing affordable does nothing', () => {

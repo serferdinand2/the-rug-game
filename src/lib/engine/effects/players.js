@@ -3,6 +3,7 @@ import { opponents } from '../abilities.js';
 import { neighbours } from '../income.js';
 import { canPay } from '../payment.js';
 import { emit } from '../events.js';
+import { chooseTrade } from '../decisions/choose-trade.js';
 import { playerSeat } from '../state.js';
 import { BUILDING_IDS } from '../data/ids.js';
 
@@ -29,7 +30,7 @@ export function others(ctx, player, value, op) {
 
 /**
  * Offers the player the trades they can pay for, one of which they must take unless `optional` (Guilds, Olympic Host).
- * Nothing affordable says so.
+ * Nothing affordable says so; a mandatory trade with one way to pay is made at once.
  * @type {import('../state.js').EffectHandler}
  */
 export function trade(ctx, player, value, op) {
@@ -40,16 +41,21 @@ export function trade(ctx, player, value, op) {
 		emit(ctx.state, { type: 'noTrade', player });
 		return;
 	}
-	ctx.push([
-		{
-			player,
-			kind: 'chooseTrade',
-			offers: structuredClone(value.offers),
-			optional: value.optional ?? false,
-			...(value.host !== undefined && { host: value.host }),
-			source: op.source,
-		},
-	]);
+	const decision = /** @type {any} */ ({
+		player,
+		kind: 'chooseTrade',
+		offers: structuredClone(value.offers),
+		optional: value.optional ?? false,
+		...(value.host !== undefined && { host: value.host }),
+		source: op.source,
+	});
+	// A mandatory trade with one way to pay is made without asking.
+	const answers = chooseTrade.answers(ctx.state, decision);
+	if (!decision.optional && answers.length === 1) {
+		chooseTrade.resolve(ctx, decision, answers[0]);
+		return;
+	}
+	ctx.push([decision]);
 }
 
 /**
