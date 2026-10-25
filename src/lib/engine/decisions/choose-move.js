@@ -1,8 +1,8 @@
-// The decision of which token to move one space, forward or back: for research, advance and regress effects.
+// The decision of which token to move: one space forward or back (research, advance and regress effects), or a jump to a set space (Socialism).
 import { PlayerError } from '../errors.js';
 import { moveToken } from '../movement.js';
 
-/** @typedef {{ track: import('../data/ids.js').TrackId, from: number }} Move */
+/** @typedef {{ track: import('../data/ids.js').TrackId, from: number, to?: number }} Move - `to` only for a jump */
 
 /** @type {import('../state.js').DecisionKind} */
 export const chooseMove = {
@@ -12,6 +12,7 @@ export const chooseMove = {
 		const answers = decision.options.map((/** @type {Move} */ o) => ({
 			track: o.track,
 			from: o.from,
+			...(o.to !== undefined && { to: o.to }),
 		}));
 		if (decision.optional) {
 			answers.push({ track: null });
@@ -27,7 +28,9 @@ export const chooseMove = {
 		}
 		const offered = decision.options.some(
 			(/** @type {Move} */ o) =>
-				o.track === answer.track && o.from === answer.from
+				o.track === answer.track &&
+				o.from === answer.from &&
+				o.to === answer.to
 		);
 		if (!offered) {
 			throw new PlayerError('Choose one of the moves offered.');
@@ -41,8 +44,9 @@ export const chooseMove = {
 		moveToken(ctx, /** @type {number} */ (decision.player), {
 			track: answer.track,
 			from: answer.from,
-			to: answer.from + step,
+			to: answer.to ?? answer.from + step,
 			benefit: decision.benefit,
+			freeBonus: decision.freeBonus ?? false,
 		});
 	},
 };

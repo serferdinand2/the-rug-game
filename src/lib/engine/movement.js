@@ -55,6 +55,28 @@ export function isActivated(state, player, track, space) {
 }
 
 /**
+ * The operations for gaining a track space's benefit: the benefit, then the triggers of a gained benefit (design §6).
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @param {TrackId} track
+ * @param {number} space
+ * @returns {import('./state.js').NewOperation[]}
+ */
+export function benefitOps(state, player, track, space) {
+	const entry = TRACKS[track][space];
+	return [
+		{
+			player,
+			kind: 'effects',
+			effects: structuredClone(entry.benefit),
+			ordered: entry.ordered,
+			source: { track, space },
+		},
+		...triggered(state, 'benefitGained', { player, track, space }),
+	];
+}
+
+/**
  * Activates a track space for a player: records it and returns the operations for its benefit, the triggers of
  * a gained benefit, and its bonus. Returns none for the start, or for a space the player already activated this turn (R19, FAQ #5).
  * @param {import('./state.js').Context} ctx
@@ -70,19 +92,8 @@ export function activationOps(ctx, player, track, space) {
 	}
 	state.activated.push({ player, track, space });
 	emit(state, { type: 'spaceActivated', player, track, space });
-	const entry = TRACKS[track][space];
-	/** @type {import('./state.js').NewOperation[]} */
-	const ops = [
-		{
-			player,
-			kind: 'effects',
-			effects: structuredClone(entry.benefit),
-			ordered: entry.ordered,
-			source: { track, space },
-		},
-		...triggered(state, 'benefitGained', { player, track, space }),
-	];
-	if (entry.bonus) {
+	const ops = benefitOps(state, player, track, space);
+	if (TRACKS[track][space].bonus) {
 		ops.push({ player, kind: 'bonus', track, space });
 	}
 	return ops;
@@ -93,11 +104,17 @@ export function activationOps(ctx, player, track, space) {
  * Moving forward gains every still-available landmark whose tier starts in (from, to], lowest first (R9);
  * moving back gains none. Without `benefit` (the X), the landmarks are still gained.
  * Each landmark's triggers follow its placement, and a forward move's triggers come before the benefit (design §6).
+ * With `freeBonus` and no benefit (Renaissance), the bonus of the space reached is offered for free, unless the
+ * player already activated that space this turn; offering it activates the space (R19).
  * @param {import('./state.js').Context} ctx
  * @param {number} player
- * @param {{ track: TrackId, from: number, to: number, benefit: boolean }} move
+ * @param {{ track: TrackId, from: number, to: number, benefit: boolean, freeBonus?: boolean }} move
  */
-export function moveToken(ctx, player, { track, from, to, benefit }) {
+export function moveToken(
+	ctx,
+	player,
+	{ track, from, to, benefit, freeBonus = false }
+) {
 	const { state } = ctx;
 	const tokens = seatOf(state, player).tracks[track];
 	const index = tokens.indexOf(from);
@@ -146,6 +163,13 @@ export function moveToken(ctx, player, { track, from, to, benefit }) {
 	}
 	if (benefit) {
 		ops.push(...activationOps(ctx, player, track, to));
+	} else if (
+		freeBonus &&
+		TRACKS[track][to].bonus &&
+		!isActivated(state, player, track, to)
+	) {
+		state.activated.push({ player, track, space: to });
+		ops.push({ player, kind: 'bonus', track, space: to, free: true });
 	}
 	ctx.push(ops);
 }

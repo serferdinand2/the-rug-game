@@ -59,14 +59,9 @@ const HANDOFF_EFFECTS = [
 	'gainCiv',
 	'eraPartner',
 	'copyTapestry',
-	'sharedAdvance',
 	'placeOutpost',
-	'darkAges',
-	'socialism',
-	'dictatorship',
 	'revolution',
 	'colonialism',
-	'tradeEconomy',
 	'coalBaron',
 ];
 

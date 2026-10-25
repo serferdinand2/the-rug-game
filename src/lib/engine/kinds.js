@@ -10,7 +10,7 @@ import { chooseOption } from './decisions/choose-option.js';
 import { chooseMove } from './decisions/choose-move.js';
 import { chooseRepeat } from './decisions/choose-repeat.js';
 import { chooseRestart } from './decisions/choose-restart.js';
-import { rollResearch } from './effects/research.js';
+import { rollResearch, researchRolled } from './effects/research.js';
 import { endTurn } from './turn.js';
 import { runIncomeSteps, playFaceDown } from './income.js';
 import { chooseTapestry } from './decisions/choose-tapestry.js';
@@ -28,7 +28,11 @@ import { chooseTechBenefit } from './decisions/choose-tech-benefit.js';
 import { chooseLandmark } from './decisions/choose-landmark.js';
 import { chooseDiscard } from './decisions/choose-discard.js';
 import { chooseTrade } from './decisions/choose-trade.js';
-import { olympicHostEnd } from './effects/players.js';
+import { chooseTrack } from './decisions/choose-track.js';
+import { chooseRoll } from './decisions/choose-roll.js';
+import { chooseSpace } from './decisions/choose-space.js';
+import { olympicHostEnd, sharedAdvanceOn } from './effects/players.js';
+import { darkAgesOn, dictate } from './effects/cards.js';
 import { upgradeTech } from './effects/tech.js';
 import { conquerDice } from './effects/conquer.js';
 import { placeBuilding, placeLandmark } from './placing.js';
@@ -60,6 +64,9 @@ export const DECISIONS = {
 	chooseLandmark,
 	chooseDiscard,
 	chooseTrade,
+	chooseTrack,
+	chooseRoll,
+	chooseSpace,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */
@@ -69,6 +76,7 @@ export const AUTOMATIC = {
 	bonus: offerBonus,
 	endTurn,
 	research: rollResearch,
+	researchRolled,
 	incomeSteps: runIncomeSteps,
 	faceDownTapestry: playFaceDown,
 	tapestryAbility,
@@ -77,4 +85,7 @@ export const AUTOMATIC = {
 	conquerDice,
 	upgradeTech,
 	olympicHostEnd,
+	sharedAdvanceOn,
+	darkAgesOn,
+	dictate,
 };

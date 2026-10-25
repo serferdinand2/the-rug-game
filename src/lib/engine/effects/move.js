@@ -4,18 +4,21 @@ import { movableFroms, moveToken } from '../movement.js';
 import { advanceBlocked } from '../abilities.js';
 
 /**
- * Moves one of a player's tokens one space on one of `tracks`. Mandatory: a single possible move is made without
- * asking, and with none nothing happens. Landing on the start gains nothing. A blocked track is left out of an
- * advance (design §5); regressing is never blocked.
+ * Moves one of a player's tokens one space on one of `value.tracks`. Mandatory unless `optional`: a single possible
+ * move is made without asking, and with none nothing happens. An optional move always asks while there is one (Oil Magnate).
+ * Landing on the start gains nothing. A blocked track is left out of an advance (design §5); regressing is never blocked.
  * @param {import('../state.js').Context} ctx
  * @param {number} player
- * @param {import('../data/ids.js').TrackId[]} tracks
+ * @param {{ tracks: import('../data/ids.js').TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean }} value - `noBenefit`
+ *   is the X: landmarks are still gained, but no benefit or bonus. `freeBonus` offers the bonus for free instead (Renaissance)
  * @param {'advance' | 'regress'} direction
- * @param {boolean} benefit - False for the X (noBenefit): landmarks are still gained, but no benefit or bonus
  */
-function moveOnOneOf(ctx, player, tracks, direction, benefit) {
+function moveOnOneOf(ctx, player, value, direction) {
 	const seat = seatOf(ctx.state, player);
-	const options = tracks
+	const benefit = !value.noBenefit;
+	const optional = value.optional ?? false;
+	const freeBonus = value.freeBonus ?? false;
+	const options = value.tracks
 		.filter(
 			(track) =>
 				direction === 'regress' ||
@@ -30,10 +33,10 @@ function moveOnOneOf(ctx, player, tracks, direction, benefit) {
 	if (options.length === 0) {
 		return;
 	}
-	if (options.length === 1) {
+	if (options.length === 1 && !optional) {
 		const [{ track, from }] = options;
 		const to = direction === 'advance' ? from + 1 : from - 1;
-		moveToken(ctx, player, { track, from, to, benefit });
+		moveToken(ctx, player, { track, from, to, benefit, freeBonus });
 		return;
 	}
 	ctx.push([
@@ -43,7 +46,8 @@ function moveOnOneOf(ctx, player, tracks, direction, benefit) {
 			direction,
 			options,
 			benefit,
-			optional: false,
+			optional,
+			...(freeBonus && { freeBonus: true }),
 		},
 	]);
 }
@@ -53,7 +57,7 @@ function moveOnOneOf(ctx, player, tracks, direction, benefit) {
  * @type {import('../state.js').EffectHandler}
  */
 export function advance(ctx, player, value) {
-	moveOnOneOf(ctx, player, value.tracks, 'advance', !value.noBenefit);
+	moveOnOneOf(ctx, player, value, 'advance');
 }
 
 /**
@@ -61,5 +65,5 @@ export function advance(ctx, player, value) {
  * @type {import('../state.js').EffectHandler}
  */
 export function regress(ctx, player, value) {
-	moveOnOneOf(ctx, player, value.tracks, 'regress', !value.noBenefit);
+	moveOnOneOf(ctx, player, value, 'regress');
 }

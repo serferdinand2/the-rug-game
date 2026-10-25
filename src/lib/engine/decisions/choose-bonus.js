@@ -2,10 +2,12 @@
 import { PlayerError } from '../errors.js';
 import { emit } from '../events.js';
 import { canPay, checkPayment, pay, payments } from '../payment.js';
+import { seatOf } from '../state.js';
 import { TRACKS } from '../data/tracks.js';
 
 /**
  * Offers a space's bonus, but only when the player can pay for it: a bonus nobody can take asks nothing.
+ * A `free` bonus costs nothing (Renaissance, Trade Economy's owner). A finished player is offered nothing (01 §4.3).
  * @type {import('../state.js').AutomaticKind}
  */
 export function offerBonus(ctx, op) {
@@ -14,7 +16,11 @@ export function offerBonus(ctx, op) {
 		TRACKS[/** @type {import('../data/ids.js').TrackId} */ (op.track)][
 			op.space
 		].bonus;
-	if (!bonus || !canPay(ctx.state, player, bonus.pay)) {
+	if (!bonus || seatOf(ctx.state, player).finished) {
+		return;
+	}
+	const cost = op.free ? {} : bonus.pay;
+	if (!canPay(ctx.state, player, cost)) {
 		return;
 	}
 	ctx.push([
@@ -23,7 +29,7 @@ export function offerBonus(ctx, op) {
 			kind: 'chooseBonus',
 			track: op.track,
 			space: op.space,
-			cost: structuredClone(bonus.pay),
+			cost: structuredClone(cost),
 			gain: structuredClone(bonus.gain),
 		},
 	]);

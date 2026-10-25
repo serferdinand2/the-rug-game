@@ -1,12 +1,24 @@
-// The effects of single tapestry cards: Diplomacy, Dystopia, Age of Wonders, Plea for Aid and Technocracy (design §8).
+// The effects of single tapestry cards: Diplomacy, Dystopia, Age of Wonders, Plea for Aid, Technocracy,
+// and the cards that move tokens, Dark Ages, Socialism, Dictatorship and Trade Economy (design §8).
 import { emit } from '../events.js';
 import { playerSeat, seatOf } from '../state.js';
-import { opponents, triggered } from '../abilities.js';
-import { spacesAdvanced, LAST_SPACE } from '../movement.js';
+import { advanceBlocked, opponents, triggered } from '../abilities.js';
+import {
+	benefitOps,
+	isActivated,
+	movableFroms,
+	moveToken,
+	spacesAdvanced,
+	LAST_SPACE,
+} from '../movement.js';
+import { askTrack } from '../decisions/choose-track.js';
 import { BUILDING_IDS, TRACK_IDS } from '../data/ids.js';
 import { LANDMARKS } from '../data/landmarks.js';
+import { TRACKS } from '../data/tracks.js';
 import { building } from './building.js';
 import { landmarksOwned } from './vp.js';
+
+/** @typedef {import('../data/ids.js').TrackId} TrackId */
 
 /**
  * One income building of the player's choice among the types still on the income mat (Diplomacy).
@@ -163,4 +175,195 @@ export function technocracy(ctx, player) {
 			ordered: true,
 		},
 	]);
+}
+
+/**
+ * Whether a player could advance on a track now: a token there can move forward, and the track isn't blocked (design §5).
+ * @param {import('../state.js').State} state
+ * @param {number} player
+ * @param {TrackId} track
+ * @returns {boolean}
+ */
+function canAdvance(state, player, track) {
+	return (
+		!advanceBlocked(state, player, track) &&
+		movableFroms(seatOf(state, player), track, 'advance').length > 0
+	);
+}
+
+/**
+ * Dark Ages: the player chooses the track to advance on, among those where they could advance,
+ * or else among those where they have a token. One is taken without asking.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function darkAges(ctx, player) {
+	const { state } = ctx;
+	const seat = seatOf(state, player);
+	const advanceable = TRACK_IDS.filter((track) =>
+		canAdvance(state, player, track)
+	);
+	const options =
+		advanceable.length > 0
+			? advanceable
+			: TRACK_IDS.filter((track) => seat.tracks[track].length > 0);
+	askTrack(ctx, player, options, 'darkAges', { kind: 'darkAgesOn' });
+}
+
+/**
+ * Dark Ages on its chosen track: regress once without benefit on each other track, where possible,
+ * then advance 3 times without benefit on the chosen one, gaining landmarks (the F&F FAQ order).
+ * @type {import('../state.js').AutomaticKind}
+ */
+export function darkAgesOn(ctx, op) {
+	/** @type {TrackId} */
+	const track = op.track;
+	ctx.push([
+		{
+			player: op.player,
+			kind: 'effects',
+			effects: [
+				...TRACK_IDS.filter((other) => other !== track).map(
+					(other) => ({
+						regress: { tracks: [other], noBenefit: true },
+					})
+				),
+				...[1, 2, 3].map(() => ({
+					advance: { tracks: [track], noBenefit: true },
+				})),
+			],
+			ordered: true,
+		},
+	]);
+}
+
+/**
+ * Socialism: one of the player's tokens jumps to the nearest opponent token ahead of it or behind it on the same track,
+ * never one on its own space, without benefit or bonus. Ahead is left out on a blocked track (design §5).
+ * A forward jump gains every landmark it passes (R9). A single jump is made without asking.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function socialism(ctx, player) {
+	const { state } = ctx;
+	const seat = seatOf(state, player);
+	const rivals = opponents(state, player).map((other) =>
+		seatOf(state, other)
+	);
+	/** @type {{ track: TrackId, from: number, to: number }[]} */
+	const options = [];
+	for (const track of TRACK_IDS) {
+		const theirs = rivals.flatMap((rival) => rival.tracks[track]);
+		const froms = [...new Set(seat.tracks[track])].sort((a, b) => a - b);
+		for (const from of froms) {
+			const ahead = theirs.filter((space) => space > from);
+			const behind = theirs.filter((space) => space < from);
+			if (ahead.length > 0 && !advanceBlocked(state, player, track)) {
+				options.push({ track, from, to: Math.min(...ahead) });
+			}
+			if (behind.length > 0) {
+				options.push({ track, from, to: Math.max(...behind) });
+			}
+		}
+	}
+	if (options.length === 0) {
+		emit(state, { type: 'noMove', player });
+		return;
+	}
+	if (options.length === 1) {
+		moveToken(ctx, player, { ...options[0], benefit: false });
+		return;
+	}
+	ctx.push([
+		{
+			player,
+			kind: 'chooseMove',
+			direction: 'jump',
+			options,
+			benefit: false,
+			optional: false,
+		},
+	]);
+}
+
+/**
+ * Dictatorship: the player chooses a track they can advance on. With none, nothing happens and nothing is blocked (my call).
+ * @type {import('../state.js').EffectHandler}
+ */
+export function dictatorship(ctx, player) {
+	const options = TRACK_IDS.filter((track) =>
+		canAdvance(ctx.state, player, track)
+	);
+	if (options.length === 0) {
+		emit(ctx.state, { type: 'noMove', player });
+		return;
+	}
+	askTrack(ctx, player, options, 'dictatorship', { kind: 'dictate' });
+}
+
+/**
+ * Dictatorship on its chosen track: the player's opponents are blocked on it until turn order next reaches or skips
+ * the player (R26), then the player advances on it with the benefit and may pay the bonus.
+ * @type {import('../state.js').AutomaticKind}
+ */
+export function dictate(ctx, op) {
+	const { state } = ctx;
+	const player = /** @type {number} */ (op.player);
+	/** @type {TrackId} */
+	const track = op.track;
+	state.blocks.push({ player, track });
+	emit(state, { type: 'trackBlocked', player, track });
+	ctx.push([
+		{
+			player,
+			kind: 'effects',
+			effects: [{ advance: { tracks: [track] } }],
+			ordered: true,
+		},
+	]);
+}
+
+/**
+ * Trade Economy: the player chooses an opponent's token on space 1 to 12 of any track, except a space the player
+ * activated this turn (R19), and gains that space's benefit. One is taken without asking; with none, nothing.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function tradeEconomy(ctx, player) {
+	const { state } = ctx;
+	/** @type {{ player: number, track: TrackId, space: number }[]} */
+	const options = [];
+	for (const owner of opponents(state, player)) {
+		const { tracks } = seatOf(state, owner);
+		for (const track of TRACK_IDS) {
+			const spaces = [...new Set(tracks[track])].sort((a, b) => a - b);
+			for (const space of spaces) {
+				if (space > 0 && !isActivated(state, player, track, space)) {
+					options.push({ player: owner, track, space });
+				}
+			}
+		}
+	}
+	if (options.length === 1) {
+		tradeSpace(ctx, player, options[0]);
+		return;
+	}
+	if (options.length > 1) {
+		ctx.push([{ player, kind: 'chooseSpace', options }]);
+	}
+}
+
+/**
+ * Gains the benefit of an opponent's track space (Trade Economy), which activates the space for the player.
+ * If the space has a bonus, its owner may take it for free.
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {{ player: number, track: TrackId, space: number }} chosen - `player` owns the token there
+ */
+export function tradeSpace(ctx, player, { player: owner, track, space }) {
+	const { state } = ctx;
+	state.activated.push({ player, track, space });
+	emit(state, { type: 'spaceActivated', player, track, space });
+	const ops = benefitOps(state, player, track, space);
+	if (TRACKS[track][space].bonus) {
+		ops.push({ player: owner, kind: 'bonus', track, space, free: true });
+	}
+	ctx.push(ops);
 }

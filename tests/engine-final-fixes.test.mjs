@@ -311,6 +311,27 @@ test('every decision kind has the full shape, and its answers pass its own check
 			offers: [{ pay: {}, gain: [{ vp: 1 }] }],
 			optional: true,
 		},
+		chooseTrack: {
+			player: 1,
+			kind: 'chooseTrack',
+			options: ['exploration', 'technology'],
+			purpose: 'dictatorship',
+			then: { kind: 'dictate' },
+		},
+		chooseRoll: {
+			player: 1,
+			kind: 'chooseRoll',
+			options: ['science', 'military'],
+			then: { kind: 'researchRolled', noBenefit: false, offTrackVp: 0 },
+		},
+		chooseSpace: {
+			player: 1,
+			kind: 'chooseSpace',
+			options: [
+				{ player: 2, track: 'technology', space: 2 },
+				{ player: 2, track: 'military', space: 2 },
+			],
+		},
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),
