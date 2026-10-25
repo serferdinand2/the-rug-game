@@ -25,7 +25,8 @@ export const chooseInvent = {
 			ctx,
 			/** @type {number} */ (decision.player),
 			{ card: answer.card, refresh: answer.refresh },
-			/** @type {number} */ (decision.left)
+			/** @type {number} */ (decision.left),
+			decision.invent ?? {}
 		);
 	},
 };

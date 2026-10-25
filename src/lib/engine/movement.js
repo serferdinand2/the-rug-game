@@ -1,6 +1,7 @@
 // Tokens on the tracks: moving them, the landmark race, activating a space, and how far a seat has advanced.
 import { emit } from './events.js';
 import { seatOf } from './state.js';
+import { triggered } from './abilities.js';
 import { TRACKS } from './data/tracks.js';
 
 /** @typedef {import('./data/ids.js').TrackId} TrackId */
@@ -53,8 +54,8 @@ export function isActivated(state, player, track, space) {
 }
 
 /**
- * Activates a track space for a player: records it and returns the operations for its benefit and bonus.
- * Returns none for the start, or for a space the player already activated this turn (R19, FAQ #5).
+ * Activates a track space for a player: records it and returns the operations for its benefit, the triggers of
+ * a gained benefit, and its bonus. Returns none for the start, or for a space the player already activated this turn (R19, FAQ #5).
  * @param {import('./state.js').Context} ctx
  * @param {number} player
  * @param {TrackId} track
@@ -78,6 +79,7 @@ export function activationOps(ctx, player, track, space) {
 			ordered: entry.ordered,
 			source: { track, space },
 		},
+		...triggered(state, 'benefitGained', { player, track, space }),
 	];
 	if (entry.bonus) {
 		ops.push({ player, kind: 'bonus', track, space });
@@ -89,6 +91,7 @@ export function activationOps(ctx, player, track, space) {
  * Moves one of a seat's tokens and pushes what follows, in the order of FAQ #1: landmarks, then the benefit, then the bonus.
  * Moving forward gains every still-available landmark whose tier starts in (from, to], lowest first (R9);
  * moving back gains none. Without `benefit` (the X), the landmarks are still gained.
+ * Each landmark's triggers follow its placement, and a forward move's triggers come before the benefit (design §6).
  * @param {import('./state.js').Context} ctx
  * @param {number} player
  * @param {{ track: TrackId, from: number, to: number, benefit: boolean }} move
@@ -104,18 +107,38 @@ export function moveToken(ctx, player, { track, from, to, benefit }) {
 	emit(state, { type: 'tokenMoved', player, track, from, to });
 	/** @type {import('./state.js').NewOperation[]} */
 	const ops = [];
+	// Landmark spaces reached or passed whose landmark someone already owned (Revisionism).
+	let claimedPassed = 0;
 	for (const first of TIER_FIRST_SPACES) {
 		const landmark = TRACKS[track][first].landmark;
-		if (
-			from < first &&
-			first <= to &&
-			landmark &&
-			state.landmarks.includes(landmark)
-		) {
-			state.landmarks.splice(state.landmarks.indexOf(landmark), 1);
-			emit(state, { type: 'landmarkGained', player, landmark, track });
-			ops.push({ player, kind: 'placeLandmark', landmark });
+		if (from >= first || first > to || !landmark) {
+			continue;
 		}
+		if (!state.landmarks.includes(landmark)) {
+			claimedPassed += 1;
+			continue;
+		}
+		state.landmarks.splice(state.landmarks.indexOf(landmark), 1);
+		emit(state, { type: 'landmarkGained', player, landmark, track });
+		ops.push(
+			{ player, kind: 'placeLandmark', landmark },
+			...triggered(state, 'landmarkGained', {
+				player,
+				landmark,
+				fromTrack: true,
+			})
+		);
+	}
+	if (to > from) {
+		ops.push(
+			...triggered(state, 'advanced', {
+				player,
+				track,
+				from,
+				to,
+				claimedPassed,
+			})
+		);
 	}
 	if (benefit) {
 		ops.push(...activationOps(ctx, player, track, to));

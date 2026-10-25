@@ -278,6 +278,7 @@ test('every decision kind has the full shape, and its answers pass its own check
 			kind: 'chooseInvent',
 			left: 1,
 			refresh: true,
+			invent: {},
 		},
 		chooseConquer: { player: 1, kind: 'chooseConquer', anywhere: true },
 		chooseDie: {

@@ -2,6 +2,7 @@
 import { emit } from '../events.js';
 import { shuffle } from '../random.js';
 import { playerSeat } from '../state.js';
+import { triggered } from '../abilities.js';
 import { RESOURCE_IDS } from '../data/ids.js';
 
 /** Most of one resource a player may hold (01 §1.2). */
@@ -74,6 +75,7 @@ export function takeTapestryCard(ctx) {
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {number} count
+ * @returns {string[]} The cards drawn
  */
 function drawTapestry(ctx, player, count) {
 	const seat = playerSeat(ctx.state, player);
@@ -93,10 +95,12 @@ function drawTapestry(ctx, player, count) {
 		count: cards.length,
 		secret: { cards },
 	});
+	return cards;
 }
 
 /**
  * Gains what a Gain names, in this order: named resources, territory, space, tapestry, then any.
+ * Drawing at least one tapestry card has triggers, which come before the choice of any.
  * @type {import('../state.js').EffectHandler}
  */
 export function gain(ctx, player, value) {
@@ -122,12 +126,23 @@ export function gain(ctx, player, value) {
 	if (value.space) {
 		gainTiles(ctx, player, 'space', value.space);
 	}
+	/** @type {import('../state.js').NewOperation[]} */
+	const ops = [];
 	if (value.tapestry) {
-		drawTapestry(ctx, player, value.tapestry);
+		const cards = drawTapestry(ctx, player, value.tapestry);
+		if (cards.length > 0) {
+			ops.push(
+				...triggered(ctx.state, 'tapestryGained', { player, cards })
+			);
+		}
 	}
 	if (value.any) {
-		ctx.push([
-			{ player, kind: 'chooseResource', count: value.any, from: 'any' },
-		]);
+		ops.push({
+			player,
+			kind: 'chooseResource',
+			count: value.any,
+			from: 'any',
+		});
 	}
+	ctx.push(ops);
 }

@@ -1,16 +1,37 @@
 // Putting a building or landmark in the capital city, and paying a reward for each district it completes (R13, FAQ #1).
 import { emit } from './events.js';
 import { playerSeat } from './state.js';
+import { triggered } from './abilities.js';
 import {
 	buildingSpots,
 	cityPlots,
 	completeDistricts,
 	landmarkCells,
 	landmarkSpots,
+	onGrid,
 } from './city.js';
+import { plotIndex } from '../capital.js';
+import { CAPITAL_MATS, impassablePlots } from './data/capitals.js';
 
 /**
- * Places a piece on the capital city. Each district it completes pays 1 resource of the player's choice.
+ * How many of the mat's impassable plots a piece covers: none until Terraforming lets pieces go there.
+ * @param {import('./state.js').PlayerSeat} seat
+ * @param {import('./city.js').PlacedBuilding | import('./city.js').PlacedLandmark} piece
+ * @returns {number}
+ */
+function impassableCovered(seat, piece) {
+	const mat = CAPITAL_MATS[/** @type {number} */ (seat.capital.mat) - 1];
+	const impassable = impassablePlots(mat);
+	const cells = 'building' in piece ? [piece] : landmarkCells(piece);
+	return cells.filter(
+		({ row, col }) =>
+			onGrid(row, col) && impassable.includes(plotIndex(row, col))
+	).length;
+}
+
+/**
+ * Places a piece on the capital city. Each district it completes pays 1 resource of the player's choice,
+ * and the piece's triggers follow.
  * @param {import('./state.js').Context} ctx
  * @param {number} player
  * @param {import('./city.js').PlacedBuilding | import('./city.js').PlacedLandmark} piece
@@ -53,16 +74,27 @@ export function placePiece(ctx, player, piece, automatic) {
 	const districts = completeDistricts(cityPlots(seat)).filter(
 		(d) => !before.includes(d)
 	);
+	/** @type {import('./state.js').NewOperation[]} */
+	const ops = [];
 	if (districts.length > 0) {
 		emit(ctx.state, { type: 'districtsCompleted', player, districts });
-		ctx.push([
-			{
-				player,
-				kind: 'effects',
-				effects: [{ gain: { any: districts.length } }],
-			},
-		]);
+		ops.push({
+			player,
+			kind: 'effects',
+			effects: [{ gain: { any: districts.length } }],
+		});
 	}
+	const impassable = impassableCovered(seat, piece);
+	ops.push(
+		...triggered(
+			ctx.state,
+			'piecePlaced',
+			'building' in piece
+				? { player, building: piece.building, impassable }
+				: { player, landmark: piece.landmark, impassable }
+		)
+	);
+	ctx.push(ops);
 }
 
 /**

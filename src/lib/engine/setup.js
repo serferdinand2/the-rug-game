@@ -264,6 +264,7 @@ export function createGame({ players, version, expansions = [], random }) {
 		achievements: Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, []])),
 		activated: [],
 		usedThisTurn: [],
+		blocks: [],
 		result: null,
 		pending: [],
 		nextId: 1,

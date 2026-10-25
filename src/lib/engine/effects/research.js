@@ -2,6 +2,7 @@
 import { emit } from '../events.js';
 import { seatOf } from '../state.js';
 import { movableFroms } from '../movement.js';
+import { advanceBlocked } from '../abilities.js';
 import { SCIENCE_DIE } from '../data/dice.js';
 
 /**
@@ -23,6 +24,7 @@ export function research(ctx, player, value) {
 /**
  * One roll of the science die (R6). The player may then advance 1 space on the rolled track, with its benefit and bonus,
  * or with neither for the X. When no token there can move, the roll gives `offTrackVp` VP (Alien Biology), or nothing.
+ * A track the player is blocked on gives nothing at all (design §5, §10).
  * @type {import('../state.js').AutomaticKind}
  */
 export function rollResearch(ctx, op) {
@@ -32,7 +34,10 @@ export function rollResearch(ctx, op) {
 	emit(state, { type: 'scienceDieRolled', player, track });
 	/** @type {import('../state.js').NewOperation[]} */
 	const ops = [];
-	const froms = movableFroms(seatOf(state, player), track, 'advance');
+	const blocked = advanceBlocked(state, player, track);
+	const froms = blocked
+		? []
+		: movableFroms(seatOf(state, player), track, 'advance');
 	if (froms.length > 0) {
 		ops.push({
 			player,
@@ -42,7 +47,7 @@ export function rollResearch(ctx, op) {
 			benefit: !op.noBenefit,
 			optional: true,
 		});
-	} else if (op.offTrackVp > 0) {
+	} else if (!blocked && op.offTrackVp > 0) {
 		ops.push({ player, kind: 'effects', effects: [{ vp: op.offTrackVp }] });
 	}
 	if (op.rolls > 1) {

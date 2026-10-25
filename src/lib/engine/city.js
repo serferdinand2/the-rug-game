@@ -10,8 +10,13 @@ import { CAPITAL_MATS, impassablePlots } from './data/capitals.js';
 /** @typedef {{ landmark: string, row: number, col: number, rotation: number }} PlacedLandmark */
 /** @typedef {{ row: number, col: number }} Cell - May be off the grid. */
 
-/** @param {number} row @param {number} col */
-function onGrid(row, col) {
+/**
+ * Whether a plot is on the capital grid; a landmark may hang over its edge (R106).
+ * @param {number} row
+ * @param {number} col
+ * @returns {boolean}
+ */
+export function onGrid(row, col) {
 	return row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE;
 }
 

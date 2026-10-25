@@ -76,6 +76,7 @@
  * @property {Record<string, number[]>} achievements - Seats in box order
  * @property {{ player: number, track: TrackId, space: number }[]} activated - Track spaces activated this turn, cleared when a turn starts (R19)
  * @property {{ player: number, card: string }[]} usedThisTurn - Tech cards whose once-per-turn benefit was used this turn, cleared when a turn starts (FAQ #6)
+ * @property {{ player: number, track: TrackId }[]} blocks - Dictatorship blocks: the player's opponents may not advance on the track until turn order next reaches or skips the player (R26)
  * @property {import('./ranking.js').Result | null} result - The final ranking, once the game is over
  * @property {(Operation | Group)[]} pending - Index 0 is the top
  * @property {number} nextId

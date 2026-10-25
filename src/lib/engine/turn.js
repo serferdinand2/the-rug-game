@@ -2,14 +2,16 @@
 import { emit } from './events.js';
 import { turnOptions } from './decisions/choose-turn.js';
 import { rankPlayers } from './ranking.js';
+import { liftBlocks } from './abilities.js';
 
 /**
- * Starts a seat's turn: nothing is activated yet (R19), and the turn choice sits above the turn's end.
+ * Starts a seat's turn: its Dictatorship blocks lift (R26), nothing is activated yet (R19), and the turn choice sits above the turn's end.
  * @param {import('./state.js').Context} ctx
  * @param {number} player
  */
 export function startTurn(ctx, player) {
 	const { state } = ctx;
+	liftBlocks(ctx, player);
 	state.current = player;
 	state.activated.length = 0;
 	state.usedThisTurn.length = 0;
@@ -22,7 +24,7 @@ export function startTurn(ctx, player) {
 
 /**
  * Ends a turn once everything it started is done: the next seat in seat order that hasn't finished takes its turn,
- * and when every seat has finished, the game ends.
+ * and when every seat has finished, the game ends. A finished seat's Dictatorship blocks lift as it is skipped (R26).
  * @type {import('./state.js').AutomaticKind}
  */
 export function endTurn(ctx, op) {
@@ -34,6 +36,7 @@ export function endTurn(ctx, op) {
 			startTurn(ctx, next.seat);
 			return;
 		}
+		liftBlocks(ctx, next.seat);
 	}
 	endGame(ctx);
 }

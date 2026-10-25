@@ -1,10 +1,12 @@
 // The advance and regress effects: one space forward or back on one of the listed tracks, with that space's benefit.
 import { seatOf } from '../state.js';
 import { movableFroms, moveToken } from '../movement.js';
+import { advanceBlocked } from '../abilities.js';
 
 /**
  * Moves one of a player's tokens one space on one of `tracks`. Mandatory: a single possible move is made without
- * asking, and with none nothing happens. Landing on the start gains nothing.
+ * asking, and with none nothing happens. Landing on the start gains nothing. A blocked track is left out of an
+ * advance (design §5); regressing is never blocked.
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {import('../data/ids.js').TrackId[]} tracks
@@ -13,9 +15,18 @@ import { movableFroms, moveToken } from '../movement.js';
  */
 function moveOnOneOf(ctx, player, tracks, direction, benefit) {
 	const seat = seatOf(ctx.state, player);
-	const options = tracks.flatMap((track) =>
-		movableFroms(seat, track, direction).map((from) => ({ track, from }))
-	);
+	const options = tracks
+		.filter(
+			(track) =>
+				direction === 'regress' ||
+				!advanceBlocked(ctx.state, player, track)
+		)
+		.flatMap((track) =>
+			movableFroms(seat, track, direction).map((from) => ({
+				track,
+				from,
+			}))
+		);
 	if (options.length === 0) {
 		return;
 	}

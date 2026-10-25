@@ -1,6 +1,7 @@
 // The tech effects: invent, upgrade, techBenefit and landmark, and their helpers (01 §8, FAQ #6, #8 and #24).
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
+import { triggered } from '../abilities.js';
 import {
 	canDraw,
 	drawTech,
@@ -36,32 +37,37 @@ export function inventAnswers(state, decision) {
  * @param {number} player
  * @param {number} left - Cards still to invent
  * @param {boolean} refresh - Whether a refresh is still allowed
+ * @param {Record<string, any>} options - The invent effect's other options, which carry over to each of its cards
  */
-function askInvent(ctx, player, left, refresh) {
+function askInvent(ctx, player, left, refresh, options) {
 	const answers = inventAnswers(ctx.state, { refresh });
 	if (answers.length === 0) {
 		emit(ctx.state, { type: 'noInvent', player });
 		return;
 	}
 	if (answers.length === 1) {
-		inventCard(ctx, player, answers[0], left);
+		inventCard(ctx, player, answers[0], left, options);
 		return;
 	}
-	ctx.push([{ player, kind: 'chooseInvent', left, refresh }]);
+	ctx.push([
+		{ player, kind: 'chooseInvent', left, refresh, invent: options },
+	]);
 }
 
 /**
- * Resolves one answer: a refresh, or a card into the bottom row. More cards, or the same count after a refresh, are asked for again.
+ * Resolves one answer: a refresh, or a card into the bottom row. After a refresh the same count is asked for again.
+ * After a card, its triggers resolve before the next card is asked for (design §6).
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {{ card?: string, refresh?: true }} answer
  * @param {number} left - Cards still to invent, this one included
+ * @param {Record<string, any>} [options] - The invent effect's other options, which carry over to each of its cards
  */
-export function inventCard(ctx, player, answer, left) {
+export function inventCard(ctx, player, answer, left, options = {}) {
 	const tech = ctx.state.supply.tech;
 	if (answer.refresh) {
 		refreshDisplay(ctx);
-		askInvent(ctx, player, left, false);
+		askInvent(ctx, player, left, false, options);
 		return;
 	}
 	const from = answer.card === 'deck' ? 'deck' : 'display';
@@ -93,9 +99,18 @@ export function inventCard(ctx, player, answer, left) {
 		}
 	}
 	refillDisplay(ctx);
+	/** @type {import('../state.js').NewOperation[]} */
+	const ops = triggered(ctx.state, 'invented', { player, card });
 	if (left > 1) {
-		askInvent(ctx, player, left - 1, false);
+		ops.push({
+			player,
+			kind: 'effects',
+			effects: [
+				{ invent: { ...options, count: left - 1, refresh: false } },
+			],
+		});
 	}
+	ctx.push(ops);
 }
 
 /**
@@ -103,7 +118,8 @@ export function inventCard(ctx, player, answer, left) {
  * @type {import('../state.js').EffectHandler}
  */
 export function invent(ctx, player, value) {
-	askInvent(ctx, player, value?.count ?? 1, value?.refresh === true);
+	const { count = 1, refresh = false, ...options } = value ?? {};
+	askInvent(ctx, player, count, refresh === true, options);
 }
 
 /**
@@ -133,6 +149,8 @@ export function upgradeCard(ctx, player, card) {
 			effects: structuredClone(techCard(card)[icon]),
 			source: { tech: card, icon },
 		},
+		// After the card's benefit, so "after them" holds (Alliance).
+		...triggered(ctx.state, 'upgraded', { player, card, icon }),
 	]);
 }
 
@@ -220,5 +238,12 @@ export function landmark(ctx, player, value) {
 	}
 	state.landmarks.splice(at, 1);
 	emit(state, { type: 'landmarkGained', player, landmark: id, tech: true });
-	ctx.push([{ player, kind: 'placeLandmark', landmark: id }]);
+	ctx.push([
+		{ player, kind: 'placeLandmark', landmark: id },
+		...triggered(state, 'landmarkGained', {
+			player,
+			landmark: id,
+			fromTrack: false,
+		}),
+	]);
 }

@@ -2,6 +2,7 @@
 import { MAPS, hexNeighbours } from './data/maps.js';
 import { TERRITORY_TILES } from './data/territory-tiles.js';
 import { controlledTerritories } from './control.js';
+import { allies } from './abilities.js';
 
 /** @typedef {import('./data/ids.js').TerrainId} TerrainId */
 
@@ -90,7 +91,7 @@ export function exploreHexes(state, player, anywhere) {
 
 /**
  * The hexes a player may conquer, in map order (R16): explored, at most 1 outpost, not already controlled by
- * the player, and next to a territory they control unless `anywhere`.
+ * the player or an ally (Alliance), and next to a territory they control unless `anywhere`.
  * @param {import('./state.js').State} state
  * @param {number} player
  * @param {boolean} anywhere
@@ -98,11 +99,17 @@ export function exploreHexes(state, player, anywhere) {
  */
 export function conquerTargets(state, player, anywhere) {
 	const owned = new Set(controlledTerritories(state, player));
+	const allied = new Set(
+		allies(state, player).flatMap((ally) =>
+			controlledTerritories(state, ally)
+		)
+	);
 	return MAPS[state.map].hexes.filter(
 		(hex) =>
 			state.hexes[hex].tile !== null &&
 			state.hexes[hex].outposts.length <= 1 &&
 			!owned.has(hex) &&
+			!allied.has(hex) &&
 			(anywhere || touches(hex, owned))
 	);
 }
