@@ -127,6 +127,7 @@ export function copyAbility(ctx, player, espionage, copied) {
 			kind: 'tapestryAbility',
 			card: espionage,
 			ability: tapestryCard(copied).id,
+			// Outside the eras a card can be played in, the era only labels the copy; the last slot stands in.
 			era: currentEra(ctx.state, player) ?? 4,
 		},
 	]);

@@ -72,7 +72,7 @@ test('Espionage copies a WHEN PLAYED card on any income mat', () => {
 				player: 2,
 				card: 'democracy',
 			}),
-		/Choose one of the tapestry cards offered\./
+		/Choose one of the tapestry cards you can copy\./
 	);
 	const before = next.seats[0].hand.length;
 	next = answer(next, random, 1, 'chooseCopy', {
@@ -163,14 +163,22 @@ test('Espionage can copy a trap played as a tapestry card (R22)', () => {
 
 test('Espionage cannot copy covered cards, face-down cards or itself, and does nothing without a target', () => {
 	const { state, random } = game(3);
-	// Seat 2: Democracy covered by Alliance's slot sibling; seat 3: a face-down card and another Espionage.
+	// Seat 2 has Democracy covered by Age of Wonders; seat 3 has a face-down Alliance and an Espionage.
 	put(state, 2, 'democracy', 2);
 	put(state, 2, 'age-of-wonders', 2);
 	put(state, 3, 'alliance', 2);
 	state.seats[2].incomeMat.faceDown.push('alliance');
 	put(state, 3, 'espionage', 3);
+	const vp = state.seats[0].vp;
 	const next = espionage(state, random);
-	// Only Age of Wonders is left: democracy is covered, alliance is face down, espionage is excluded.
+	// Only Age of Wonders is left, so it is copied without asking: no landmarks anywhere is a tie, 1 resource and 6 VP.
+	assert.ok(openDecisions(next).some((d) => d.kind === 'chooseResource'));
+	const choice = DECISIONS.chooseResource.answers(
+		next,
+		open(next, 'chooseResource')
+	)[0];
+	const gained = answer(next, random, 1, 'chooseResource', choice);
+	assert.equal(gained.seats[0].vp, vp + 6);
 	assert.equal(
 		openDecisions(next).some((d) => d.kind === 'chooseCopy'),
 		false
