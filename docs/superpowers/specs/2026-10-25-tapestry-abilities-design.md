@@ -131,7 +131,8 @@ Rules that change how a step works are plain checks at that step, not triggers: 
   - era 1 (income turn 1): nothing is played (R25);
   - eras 2–4: that era's slot. During step 1 of an income turn the slot is still empty, and the card goes there; the step-2 card then covers it (R25);
   - income turn 5: current rules play onto the era-4 stack; original rules play nothing (R25).
-- **`tapestryOnTop`** pushes `chooseTapestry { options: hand, era }`. With an empty hand, or no current era, it emits `noTapestryOnTop { player }` (FAQ #10).
+- **`tapestryOnTop`** pushes `chooseTapestry { options: hand, era }`. A lone card in hand is played without asking, as for any pick with one option. **(my call:** income step 2 still asks, as #15 built it.) With an empty hand, or no current era, it emits `noTapestryOnTop { player }` (FAQ #10).
+- **`startEra`** first ends any era still active, so a player never has two.
 - **`chooseTapestry`** gains `optional` (a `{ card: null }` answer, first) and `afterPlay` (effects that run only if a card was played). Its options stay hidden.
 - **Espionage** (`copyTapestry`) offers the visible top card of every slot of every player, its own included. It leaves out face-down cards, covered cards and Espionage itself (02 §3; **BGA**). A trap played as a tapestry can be copied (10 VP). The answer pushes `tapestryAbility { player, card: 'espionage', ability: <copied>, era }`. So a copied THIS ERA card works while Espionage is uncovered, and a copied Alliance or Marriage of State asks for its partner. With no card to copy, it emits `noCopy { player }`.
 - **`eraPartner`** asks `choosePartner`. The options are the other player seats, and for Marriage of State every track too, except a track another active Marriage of State already names (the official anti-loop ruling for a copied Marriage of State, 02 §3). With no option it does nothing. The answer is written into `seat.era`.
