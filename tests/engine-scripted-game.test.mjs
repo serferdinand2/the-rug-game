@@ -98,18 +98,19 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 		[F, 'chooseTurn', INCOME],
 		[F, 'chooseResource', { resources: { coin: 1 } }],
 		[F, 'chooseTapestry', firstCard],
-		// 10. O, income turn 2: F started era 2 first, so no bonus; O plays Age of Wonders (its landmarkRank is stood in for).
+		// 10. O, income turn 2: F started era 2 first, so no bonus; O plays Age of Wonders: nobody has a landmark, so it is a tie, 1 culture and 6 VP.
 		//     Team Sports scores 2 VP (the start territory and the one step 4 conquered). Income: Barter, Symbology, Hunting,
-		//     Ceremony and Racing. O = (1, 1, 1, 2), 2 tiles, 2 cards, 4 VP.
+		//     Ceremony and Racing. O = (1, 1, 1, 3), 2 tiles, 2 cards, 10 VP.
 		[O, 'chooseTurn', INCOME],
 		[O, 'chooseTapestry', firstCard],
+		[O, 'chooseResource', { resources: { culture: 1 } }],
 		// 11. F, income turn 3: Militarism ends first; first into era 3 (O is on 2), so 2 coins; F plays Theocracy,
 		//     a THIS ERA card. F = (5, 2, 5, 3), 4 tiles, 1 card.
 		[F, 'chooseTurn', INCOME],
 		[F, 'chooseResource', { resources: { coin: 2 } }],
 		[F, 'chooseTapestry', firstCard],
 		// 12. O advances to Standing Army for 1 culture and 1 coin: the Barracks, placed first (FAQ #1), then 1 worker, 1 VP per tile (2).
-		//     O = (0, 2, 1, 1), 6 VP.
+		//     O = (0, 2, 1, 2), 12 VP.
 		[O, 'chooseTurn', ADVANCE],
 		[
 			O,
@@ -123,16 +124,16 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 		[F, 'chooseResource', { resources: { coin: 3 } }],
 		[F, 'chooseTapestry', firstCard],
 		// 14. O, income turn 3: no bonus; O plays a trap, 10 VP (R22); Team Sports 2 VP.
-		//     O = (1, 3, 2, 3), 3 tiles, 2 cards, 18 VP.
+		//     O = (1, 3, 2, 4), 3 tiles, 2 cards, 24 VP.
 		[O, 'chooseTurn', INCOME],
 		[O, 'chooseTapestry', firstCard],
 		// 15. F, income turn 5: scores nothing, gains no income, and finishes.
 		[F, 'chooseTurn', INCOME],
 		// 16. O, income turn 4: no bonus; O plays another trap, 10 VP (R22); Team Sports 2 VP.
-		//     O = (2, 4, 3, 5), 4 tiles, 2 cards, 30 VP.
+		//     O = (2, 4, 3, 6), 4 tiles, 2 cards, 36 VP.
 		[O, 'chooseTurn', INCOME],
 		[O, 'chooseTapestry', firstCard],
-		// 17. F is skipped. O, income turn 5: Team Sports 2 VP, and the game ends. O has 32 VP.
+		// 17. F is skipped. O, income turn 5: Team Sports 2 VP, and the game ends. O has 38 VP.
 		[O, 'chooseTurn', INCOME],
 	];
 
@@ -184,7 +185,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 	);
 	assert.deepEqual(
 		[o.vp, o.resources, o.territoryTiles.length, o.hand.length],
-		[32, { coin: 2, worker: 4, food: 3, culture: 5 }, 4, 2]
+		[38, { coin: 2, worker: 4, food: 3, culture: 6 }, 4, 2]
 	);
 	assert.deepEqual(
 		o.capital.landmarks.map((p) => p.landmark),
@@ -218,7 +219,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 	assert.ok(scorings.every((e) => e.rows === 0 && e.columns === 0));
 	assert.deepEqual(state.result, {
 		ranking: [
-			{ seat: O, place: 1, vp: 32 },
+			{ seat: O, place: 1, vp: 38 },
 			{ seat: F, place: 2, vp: 4 },
 		],
 		ties: [],

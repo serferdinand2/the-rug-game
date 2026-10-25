@@ -1,4 +1,4 @@
-// The tapestry effects: tapestryOnTop (design §7, R25, FAQ #10).
+// The tapestry effects: tapestryOnTop (design §7, R25, FAQ #10) and discardTapestry (Democracy).
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
 import { currentEra, playTapestry } from '../tapestry.js';
@@ -20,4 +20,15 @@ export function tapestryOnTop(ctx, player) {
 		return;
 	}
 	ctx.push([{ player, kind: 'chooseTapestry', options: [...hand], era }]);
+}
+
+/**
+ * Asks for a hand card to discard for `vpEach` VP, again after each, until the player stops or the hand is empty (Democracy).
+ * @type {import('../state.js').EffectHandler}
+ */
+export function discardTapestry(ctx, player, value) {
+	if (playerSeat(ctx.state, player).hand.length === 0) {
+		return;
+	}
+	ctx.push([{ player, kind: 'chooseDiscard', vpEach: value.vpEach }]);
 }

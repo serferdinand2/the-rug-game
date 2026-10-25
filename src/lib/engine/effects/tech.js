@@ -13,19 +13,24 @@ import { techCard } from '../data/tech-cards.js';
 
 /**
  * What a player may answer when inventing: each face-up card, the top of the deck, and, before the first card, a refresh.
+ * `faceUpOnly` leaves out the deck and the refresh; `deckOnly` leaves only the deck (Steam Tycoon).
  * @param {import('../state.js').State} state
- * @param {{ refresh?: boolean }} decision
+ * @param {{ refresh?: boolean, invent?: { faceUpOnly?: boolean, deckOnly?: boolean } }} decision
  * @returns {{ card?: string, refresh?: true }[]}
  */
 export function inventAnswers(state, decision) {
 	const { faceUp } = state.supply.tech;
+	const { faceUpOnly = false, deckOnly = false } = decision.invent ?? {};
 	/** @type {{ card?: string, refresh?: true }[]} */
-	const answers = faceUp.map((card) => ({ card }));
+	const answers = deckOnly ? [] : faceUp.map((card) => ({ card }));
+	if (faceUpOnly) {
+		return answers;
+	}
 	if (canDraw(state)) {
 		answers.push({ card: 'deck' });
 	}
 	// A refresh with nothing to draw only deals the same cards back.
-	if (decision.refresh && canDraw(state) && answers.length > 0) {
+	if (decision.refresh && !deckOnly && canDraw(state) && answers.length > 0) {
 		answers.push({ refresh: true });
 	}
 	return answers;
@@ -40,7 +45,7 @@ export function inventAnswers(state, decision) {
  * @param {Record<string, any>} options - The invent effect's other options, which carry over to each of its cards
  */
 function askInvent(ctx, player, left, refresh, options) {
-	const answers = inventAnswers(ctx.state, { refresh });
+	const answers = inventAnswers(ctx.state, { refresh, invent: options });
 	if (answers.length === 0) {
 		emit(ctx.state, { type: 'noInvent', player });
 		return;
@@ -101,6 +106,9 @@ export function inventCard(ctx, player, answer, left, options = {}) {
 	refillDisplay(ctx);
 	/** @type {import('../state.js').NewOperation[]} */
 	const ops = triggered(ctx.state, 'invented', { player, card });
+	if (options.thenUpgrade) {
+		ops.push({ player, kind: 'upgradeTech', card });
+	}
 	if (left > 1) {
 		ops.push({
 			player,
@@ -111,6 +119,17 @@ export function inventCard(ctx, player, answer, left, options = {}) {
 		});
 	}
 	ctx.push(ops);
+}
+
+/**
+ * Upgrades the card Steam Tycoon or Technocracy just invented, if it is still in the bottom row.
+ * @type {import('../state.js').AutomaticKind}
+ */
+export function upgradeTech(ctx, op) {
+	const player = /** @type {number} */ (op.player);
+	if (playerSeat(ctx.state, player).tech.bottom.includes(op.card)) {
+		upgradeCard(ctx, player, op.card);
+	}
 }
 
 /**

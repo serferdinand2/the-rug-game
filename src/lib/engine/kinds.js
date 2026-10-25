@@ -25,6 +25,9 @@ import { chooseResponse } from './decisions/choose-response.js';
 import { chooseInvent } from './decisions/choose-invent.js';
 import { chooseUpgrade } from './decisions/choose-upgrade.js';
 import { chooseTechBenefit } from './decisions/choose-tech-benefit.js';
+import { chooseLandmark } from './decisions/choose-landmark.js';
+import { chooseDiscard } from './decisions/choose-discard.js';
+import { upgradeTech } from './effects/tech.js';
 import { conquerDice } from './effects/conquer.js';
 import { placeBuilding, placeLandmark } from './placing.js';
 import { runSetupSteps } from './after-setup.js';
@@ -52,6 +55,8 @@ export const DECISIONS = {
 	chooseInvent,
 	chooseUpgrade,
 	chooseTechBenefit,
+	chooseLandmark,
+	chooseDiscard,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */
@@ -67,4 +72,5 @@ export const AUTOMATIC = {
 	placeBuilding,
 	placeLandmark,
 	conquerDice,
+	upgradeTech,
 };

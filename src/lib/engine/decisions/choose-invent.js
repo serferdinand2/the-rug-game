@@ -8,6 +8,7 @@ export const chooseInvent = {
 	answers(state, decision) {
 		return inventAnswers(state, {
 			refresh: decision.refresh === true,
+			invent: decision.invent,
 		});
 	},
 	check(state, decision, answer) {
