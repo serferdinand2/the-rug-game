@@ -5,16 +5,18 @@ import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
-import { startedGame, stubHandoffs } from './helpers/engine.mjs';
+import { startedGame } from './helpers/engine.mjs';
 
 /**
  * A started 2-player game with a benefit pushed for seat 1 and run to the next decision.
  * @param {object[]} effects
  * @param {boolean} ordered
+ * @param {(seat: any) => void} [fill] - Changes seat 1 first
  */
-function benefit(effects, ordered) {
+function benefit(effects, ordered, fill = () => {}) {
 	const { state: started, random } = startedGame(2);
 	const state = structuredClone(started);
+	fill(state.seats[0]);
 	push(state, state.pending, [
 		{
 			player: 1,
@@ -28,22 +30,17 @@ function benefit(effects, ordered) {
 	return { state, random };
 }
 
-test('independent parts of an unordered benefit run first, without a question', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('independent parts of an unordered benefit run first, without a question', () => {
 	const { state } = benefit([{ building: 'farm' }, { vp: 2 }], false);
 	const types = state.events.map((e) => e.type);
 	assert.ok(types.indexOf('vpGained') < types.indexOf('buildingGained'));
 	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['placeBuilding']
+		openDecisions(state).map((d) => [d.kind, d.building]),
+		[['choosePlacement', 'farm']]
 	);
-	assert.ok(!openDecisions(state).some((d) => d.kind === 'chooseOrder'));
 });
 
-test('two parts that both ask the player become a choice of order', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('two parts that both ask the player become a choice of order', () => {
 	const effects = [{ upgrade: {} }, { techBenefit: { icon: 'circle' } }];
 	const { state, random } = benefit(effects, false);
 	const [order] = openDecisions(state);
@@ -54,30 +51,37 @@ test('two parts that both ask the player become a choice of order', (t) => {
 		{ effect: 0 },
 		{ effect: 1 },
 	]);
-	play(state, 1, { decision: order.id, effect: 1 }, random);
-	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['techBenefit', 'upgrade']
+	const after = play(state, 1, { decision: order.id, effect: 1 }, random);
+	// The tech benefit ran first and found no card, then the upgrade found none either.
+	assert.equal(
+		after.events.filter((e) => e.type === 'noTechBenefit').length,
+		1
 	);
+	assert.equal(after.events.filter((e) => e.type === 'noUpgrade').length, 1);
 });
 
-test('an ordered benefit never asks', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('an explore could change any counter, so it asks for an order beside a VP counter (#17)', () => {
+	const effects = [{ explore: {} }, { vp: { per: 'farm' } }];
+	const { state } = benefit(effects, false);
+	const [order] = openDecisions(state);
+	assert.equal(order.kind, 'chooseOrder');
+	assert.deepEqual(order.effects, effects);
+});
+
+test('an ordered benefit never asks', () => {
 	const { state } = benefit(
 		[{ upgrade: {} }, { techBenefit: { icon: 'circle' } }],
 		true
 	);
-	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['upgrade', 'techBenefit']
+	assert.equal(
+		state.events.filter((e) => e.type === 'noTechBenefit').length,
+		1
 	);
+	assert.equal(state.events.filter((e) => e.type === 'noUpgrade').length, 1);
 	assert.ok(!openDecisions(state).some((d) => d.kind === 'chooseOrder'));
 });
 
-test('a choice asks for one option, and every option may be chosen', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a choice asks for one option, and every option may be chosen', () => {
 	const options = [
 		[{ building: 'farm' }],
 		[{ building: 'house' }],
@@ -94,14 +98,13 @@ test('a choice asks for one option, and every option may be chosen', (t) => {
 	]);
 	const next = play(state, 1, { decision: choice.id, option: 2 }, random);
 	assert.equal(next.seats[0].incomeMat.buildings.armory, 4);
-	assert.deepEqual(handoffs.calls, [
-		{ kind: 'placeBuilding', player: 1, value: { building: 'armory' } },
-	]);
+	assert.deepEqual(
+		openDecisions(next).map((d) => [d.kind, d.building]),
+		[['choosePlacement', 'armory']]
+	);
 });
 
-test('an order or option answer must be one of those offered', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('an order or option answer must be one of those offered', () => {
 	const order = benefit([{ upgrade: {} }, { invent: {} }], false);
 	const choice = benefit([{ choice: [[{ vp: 1 }], [{ vp: 2 }]] }], true);
 	for (const [game, field] of [
@@ -125,9 +128,7 @@ test('an order or option answer must be one of those offered', (t) => {
 	}
 });
 
-test('a VP counter waits when another part could change what it counts, and the player chooses the order', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a VP counter waits when another part could change what it counts, and the player chooses the order', () => {
 	// Space tile 1's shape: advance on science, and 1 VP per science space.
 	const { state } = benefit(
 		[
@@ -141,28 +142,30 @@ test('a VP counter waits when another part could change what it counts, and the 
 	assert.equal(state.seats[0].vp, 0);
 });
 
-test('Nuclear Bomb asks whether to score before or after the tapestry card on top', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('Nuclear Bomb asks whether to score before or after the tapestry card on top', () => {
 	const { state, random } = benefit(
 		[
 			{ vp: { per: 'trackSpace', track: 'exploration' } },
 			{ tapestryOnTop: {} },
 		],
-		false
+		false,
+		(seat) => {
+			seat.incomeTurns = 2;
+			seat.hand = ['trap-1', 'trap-2'];
+		}
 	);
 	const [order] = openDecisions(state);
 	assert.equal(order?.kind, 'chooseOrder');
-	play(state, 1, { decision: order.id, effect: 1 }, random);
+	const next = play(state, 1, { decision: order.id, effect: 1 }, random);
+	// The card on top comes first, and the VP counter waits under it.
 	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['tapestryOnTop']
+		openDecisions(next).map((d) => [d.kind, d.era]),
+		[['chooseTapestry', 2]]
 	);
+	assert.ok(!next.events.some((e) => e.type === 'vpGained'));
 });
 
-test('a VP counter that nothing else in the benefit changes runs without a question', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a VP counter that nothing else in the benefit changes runs without a question', () => {
 	// Steel's shape: 1 VP per armory, and a market.
 	const { state: started, random } = startedGame(2);
 	const state = structuredClone(started);

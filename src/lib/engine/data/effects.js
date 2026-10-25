@@ -29,6 +29,7 @@ import { deepFreeze } from './ids.js';
  * @property {number} [territory] - Territory tiles discarded from the supply
  * @property {number} [tapestry] - Tapestry cards discarded from the hand
  * @property {number} [tech] - Tech cards discarded
+ * @property {number} [vp] - Victory points paid
  */
 
 /**
@@ -38,8 +39,11 @@ import { deepFreeze } from './ids.js';
  * - `techCard`: your tech cards, in every row;
  * - `tapestryCard`: tapestry cards in your hand and on your income mat, covered ones included;
  * - `trackSpace`: spaces you have advanced on the effect's `track`;
+ * - `trackLead`: tracks where no other seat is further ahead than you, ties included;
+ * - `landmark`: landmarks you own, in the capital, beside the mat or on the map (R71);
+ * - `opponent`: the other seats;
  * - an income building: the buildings of that type you own, beside the mat too (01 §6.1).
- * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | BuildingId} VpCounter
+ * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId} VpCounter
  */
 
 /**
@@ -53,16 +57,18 @@ import { deepFreeze } from './ids.js';
 /**
  * One effect: an object with exactly one key, its kind.
  * - `gain`: gain resources, tiles or cards.
+ * - `lose`: lose up to `culture` culture, as much as is held, then `any` resources of your choice among those you hold.
  * - `building`: take the leftmost income building of that type from the income mat and place it in the capital city.
+ * - `landmark`: place that landmark (a tech card's square) in the capital city.
  * - `vp`: gain that many VP, or VP per thing counted.
- * - `explore`: explore with a territory tile from the supply; `anywhere` drops the adjacency rule.
+ * - `explore`: explore with a territory tile from the supply; `anywhere` drops the adjacency rule; `tile` allows only that tile; `sailed` marks an explore Age of Sail has already drawn for.
  * - `exploreSpace`: explore a space tile from the supply; `fromGained` limits it to the tiles this benefit just gained (R105).
  * - `conquer`: conquer; `anywhere` drops adjacency; `bothDice` gives both dice always, or only if an opponent controlled the territory (R17).
  * - `research`: roll the science die and you may advance on that track; `noBenefit` is the X.
- * - `advance`: advance 1 space on one of the listed tracks, with its benefit and optional bonus.
- * - `regress`: go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus.
- * - `repeat`: gain the benefit of your current space on any track, and you may pay its bonus.
- * - `invent`: gain tech cards one at a time; `refresh` lets you first replace the 3 face-up cards.
+ * - `advance`: advance 1 space on one of the listed tracks, with its benefit and optional bonus; `noBenefit` is the X; `optional` lets the player decline; `freeBonus` lets them take the bonus of the space reached without paying; `noBonus` gives the benefit without the bonus; `offTrackVp` gives that many VP instead when every token on the listed tracks is on space 12.
+ * - `regress`: go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus; `noBenefit` is the X.
+ * - `repeat`: gain the benefit of your current space on any track, and you may pay its bonus; `oncePerTurn` limits it to once a turn (FAQ #6).
+ * - `invent`: gain tech cards one at a time; `refresh` lets you first replace the 3 face-up cards; `faceUpOnly` and `deckOnly` limit where the card comes from; `thenUpgrade` upgrades a card after.
  * - `upgrade`: upgrade 1 tech card.
  * - `techBenefit`: gain the circle benefit of a card in your middle row, or the square benefit of one in your top row, without moving it.
  * - `tapestryOnTop`: play a tapestry card from your hand on top of your current tapestry.
@@ -71,17 +77,31 @@ import { deepFreeze } from './ids.js';
  * - `gainCiv`: gain a random additional civilization.
  * - `restartToken`: take your token off this track and put it on the start of any track; this track still counts as complete.
  * - `choice`: choose exactly one of the options, each a list of effects.
+ * - `eraPartner`: choose the opponent (and track, with `track`) that the active THIS ERA ability names.
+ * - `copyTapestry`: copy the ability of a visible tapestry card.
+ * - `sharedAdvance`: advance with the benefit on a rolled or chosen track, and the others advance on it without the benefit.
+ * - `others`: each listed player runs `effects` as their own operation, neighbours or everyone.
+ * - `trade`: pay one offer's cost for its gain; `host` is the seat hosting it (Olympic Host).
+ * - `discardTapestry`: discard any number of hand cards for `vpEach` VP each.
+ * - `anyBuilding`: gain one income building of your choice.
+ * - `trackLandmark`: gain and place any track landmark nobody owns.
+ * - `landmarkRank`: compare landmarks owned with every opponent and run `fewest`, `most` or `otherwise`.
+ * - `placeOutpost`: put an outpost from the supply on a hex, without a conquest.
+ * - `placeToken`: put one of a civilization's tokens from its mat on a hex, as an item that gives no control (R33).
+ * - `darkAges`, `socialism`, `dictatorship`, `revolution`, `colonialism`, `pleaForAid`, `technocracy`, `tradeEconomy`, `coalBaron`, `olympicHost`: the rules of the card of that name.
  * @typedef {{ gain: Gain }
+ *   | { lose: { culture?: number, any?: number } }
  *   | { building: BuildingId }
+ *   | { landmark: string }
  *   | { vp: number | VpPer }
- *   | { explore: { anywhere?: boolean } }
+ *   | { explore: { anywhere?: boolean, tile?: number, sailed?: boolean } }
  *   | { exploreSpace: { fromGained?: boolean } }
  *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent' } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
- *   | { advance: { tracks: TrackId[] } }
- *   | { regress: { tracks: TrackId[] } }
- *   | { repeat: {} }
- *   | { invent: { count?: number, refresh?: boolean } }
+ *   | { advance: { tracks: TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean, noBonus?: boolean, offTrackVp?: number } }
+ *   | { regress: { tracks: TrackId[], noBenefit?: boolean } }
+ *   | { repeat: { oncePerTurn?: boolean } }
+ *   | { invent: { count?: number, refresh?: boolean, faceUpOnly?: boolean, deckOnly?: boolean, thenUpgrade?: boolean } }
  *   | { upgrade: {} }
  *   | { techBenefit: { icon: 'circle' | 'square' } }
  *   | { tapestryOnTop: {} }
@@ -89,7 +109,28 @@ import { deepFreeze } from './ids.js';
  *   | { tileBenefit: {} }
  *   | { gainCiv: {} }
  *   | { restartToken: {} }
- *   | { choice: Effect[][] }} Effect
+ *   | { choice: Effect[][] }
+ *   | { eraPartner: { track?: boolean } }
+ *   | { copyTapestry: {} }
+ *   | { sharedAdvance: { track: 'roll' | 'choose', others: 'opponents' | 'neighbours', optional?: boolean } }
+ *   | { others: { who: 'neighbours' | 'all', effects: Effect[] } }
+ *   | { trade: { offers: { pay: Cost, gain: Effect[] }[], optional?: boolean, host?: number } }
+ *   | { discardTapestry: { vpEach: number } }
+ *   | { anyBuilding: {} }
+ *   | { trackLandmark: {} }
+ *   | { landmarkRank: { fewest: Effect[], most: Effect[], otherwise: Effect[] } }
+ *   | { placeOutpost: { hex: string } }
+ *   | { placeToken: { hex: string, civ: string } }
+ *   | { darkAges: {} }
+ *   | { socialism: {} }
+ *   | { dictatorship: {} }
+ *   | { revolution: {} }
+ *   | { colonialism: {} }
+ *   | { pleaForAid: {} }
+ *   | { technocracy: {} }
+ *   | { tradeEconomy: {} }
+ *   | { coalBaron: {} }
+ *   | { olympicHost: {} }} Effect
  */
 
 /**
@@ -105,7 +146,9 @@ import { deepFreeze } from './ids.js';
  */
 export const EFFECT_KINDS = deepFreeze([
 	'gain',
+	'lose',
 	'building',
+	'landmark',
 	'vp',
 	'explore',
 	'exploreSpace',
@@ -123,6 +166,27 @@ export const EFFECT_KINDS = deepFreeze([
 	'gainCiv',
 	'restartToken',
 	'choice',
+	'eraPartner',
+	'copyTapestry',
+	'sharedAdvance',
+	'others',
+	'trade',
+	'discardTapestry',
+	'anyBuilding',
+	'trackLandmark',
+	'landmarkRank',
+	'placeOutpost',
+	'placeToken',
+	'darkAges',
+	'socialism',
+	'dictatorship',
+	'revolution',
+	'colonialism',
+	'pleaForAid',
+	'technocracy',
+	'tradeEconomy',
+	'coalBaron',
+	'olympicHost',
 ]);
 
 /**
@@ -135,6 +199,9 @@ export const VP_COUNTERS = deepFreeze([
 	'techCard',
 	'tapestryCard',
 	'trackSpace',
+	'trackLead',
+	'landmark',
+	'opponent',
 	'market',
 	'house',
 	'farm',

@@ -6,7 +6,7 @@ import { moveToken, isActivated } from '../src/lib/engine/movement.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
-import { startedGame, stubHandoffs } from './helpers/engine.mjs';
+import { startedGame, placeAll } from './helpers/engine.mjs';
 
 /**
  * A started 2-player game, changed by `fill` (given seat 1 and the state).
@@ -36,9 +36,7 @@ function move(state, random, player, move) {
 const typesSince = (/** @type {any} */ state, /** @type {number} */ from) =>
 	state.events.slice(from).map((/** @type {any} */ e) => e.type);
 
-test('the first player into tier II gains its landmark, and it is placed before the benefit (FAQ #1)', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('the first player into tier II gains its landmark, and it is placed before the benefit (FAQ #1)', () => {
 	const { state, random } = game((seat) => {
 		seat.tracks.exploration = [3];
 	});
@@ -51,14 +49,31 @@ test('the first player into tier II gains its landmark, and it is placed before 
 	});
 	assert.deepEqual(state.seats[0].tracks.exploration, [4]);
 	assert.ok(!state.landmarks.includes('lighthouse'));
-	assert.deepEqual(handoffs.calls, [
-		{ kind: 'placeLandmark', player: 1, value: { landmark: 'lighthouse' } },
-		{ kind: 'explore', player: 1, value: {} },
-	]);
+	// The landmark waits for its spot, and the space's benefit waits behind it (FAQ #1).
+	assert.deepEqual(
+		openDecisions(state).map((d) => [d.kind, d.player, d.landmark]),
+		[['choosePlacement', 1, 'lighthouse']]
+	);
 	assert.deepEqual(typesSince(state, before), [
 		'tokenMoved',
 		'landmarkGained',
 		'spaceActivated',
+	]);
+	const placed = placeAll(state, random);
+	// The explore after the Lighthouse has the tile Navigation just gave, so its player is asked where (#17).
+	assert.deepEqual(
+		openDecisions(placed).map((d) => [d.kind, d.player, d.anywhere]),
+		[['chooseExplore', 1, false]]
+	);
+	assert.deepEqual(
+		placed.seats[0].capital.landmarks.map((p) => p.landmark),
+		['lighthouse']
+	);
+	assert.deepEqual(typesSince(placed, before), [
+		'tokenMoved',
+		'landmarkGained',
+		'spaceActivated',
+		'landmarkPlaced',
 		'tilesGained',
 	]);
 	assert.deepEqual(
@@ -75,9 +90,7 @@ test('the first player into tier II gains its landmark, and it is placed before 
 	);
 });
 
-test('a landmark someone already gained is not gained again', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a landmark someone already gained is not gained again', () => {
 	const { state, random } = game((seat, s) => {
 		seat.tracks.exploration = [3];
 		s.seats[1].tracks.exploration = [3];
@@ -86,14 +99,16 @@ test('a landmark someone already gained is not gained again', (t) => {
 	move(state, random, 1, step);
 	move(state, random, 2, step);
 	assert.deepEqual(
-		handoffs.calls.map((c) => [c.kind, c.player]),
-		[['placeLandmark', 1]]
+		openDecisions(state).map((d) => [d.kind, d.player, d.landmark]),
+		[['choosePlacement', 1, 'lighthouse']]
+	);
+	assert.equal(
+		state.events.filter((e) => e.type === 'landmarkGained').length,
+		1
 	);
 });
 
-test('R9: a move past several first spaces gains each landmark still there, lowest tier first', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('R9: a move past several first spaces gains each landmark still there, lowest tier first', () => {
 	const { state, random } = game((seat, s) => {
 		seat.tracks.military = [3];
 		s.landmarks = s.landmarks.filter(
@@ -107,14 +122,33 @@ test('R9: a move past several first spaces gains each landmark still there, lowe
 		benefit: false,
 	});
 	assert.deepEqual(
-		handoffs.calls.map((c) => c.value.landmark),
+		state.events
+			.filter((e) => e.type === 'landmarkGained')
+			.map((e) => e.landmark),
 		['barracks', 'fusion-reactor']
+	);
+	// They are placed in turn, lowest tier first.
+	const first = openDecisions(state);
+	assert.deepEqual(
+		first.map((d) => d.landmark),
+		['barracks']
+	);
+	const next = play(
+		state,
+		1,
+		{
+			decision: first[0].id,
+			...DECISIONS.choosePlacement.answers(state, first[0])[0],
+		},
+		random
+	);
+	assert.deepEqual(
+		openDecisions(next).map((d) => d.landmark),
+		['fusion-reactor']
 	);
 });
 
-test('R9: regressing never gains a landmark', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('R9: regressing never gains a landmark', () => {
 	const { state, random } = game((seat) => {
 		seat.tracks.exploration = [5];
 	});
@@ -125,12 +159,10 @@ test('R9: regressing never gains a landmark', (t) => {
 		benefit: false,
 	});
 	assert.ok(state.landmarks.includes('lighthouse'));
-	assert.deepEqual(handoffs.calls, []);
+	assert.ok(!openDecisions(state).some((d) => d.kind === 'choosePlacement'));
 });
 
-test('a move without the benefit still gains the landmark', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a move without the benefit still gains the landmark', () => {
 	const { state, random } = game((seat) => {
 		seat.tracks.science = [3];
 	});
@@ -162,9 +194,7 @@ test('R19: a space activated this turn gives nothing the second time, but the to
 	assert.deepEqual(typesSince(state, before), ['tokenMoved']);
 });
 
-test('the bonus is offered after the benefit, declined by default, and only when payable', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('the bonus is offered after the benefit, declined by default, and only when payable', () => {
 	const rafts = { track: 'exploration', from: 1, to: 2, benefit: true };
 	const poor = game((seat) => {
 		seat.tracks.exploration = [1];
@@ -187,16 +217,17 @@ test('the bonus is offered after the benefit, declined by default, and only when
 		{ pay: null },
 		{ pay: { coin: 1 } },
 	]);
-	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['explore', 'explore'],
-		'the benefit came first, in both games'
-	);
+	// Rafts explores with no tile in hand (#17), in both games: the benefit came first.
+	for (const { state: played } of [poor, { state }]) {
+		assert.equal(
+			played.events.filter((e) => e.type === 'noExplore').length,
+			1,
+			'the benefit came first'
+		);
+	}
 });
 
-test('paying a bonus discards and gains its effects once', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('paying a bonus discards and gains its effects once', () => {
 	const { state, random } = game((seat) => {
 		seat.tracks.exploration = [7];
 		seat.territoryTiles = [1, 2, 3];
@@ -207,10 +238,13 @@ test('paying a bonus discards and gains its effects once', (t) => {
 		to: 8,
 		benefit: true,
 	});
-	const [bonus] = openDecisions(state);
+	// Cars gains a farm first; the bonus follows its placement.
+	assert.equal(openDecisions(state)[0].kind, 'choosePlacement');
+	const placed = placeAll(state, random);
+	const [bonus] = openDecisions(placed);
 	assert.equal(bonus.kind, 'chooseBonus');
 	const next = play(
-		state,
+		placed,
 		1,
 		{ decision: bonus.id, pay: { territory: [1, 3] } },
 		random
@@ -228,9 +262,7 @@ test('paying a bonus discards and gains its effects once', (t) => {
 	);
 });
 
-test('declining the bonus gains nothing, and a bonus answer must pay or decline', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('declining the bonus gains nothing, and a bonus answer must pay or decline', () => {
 	const { state, random } = game((seat) => {
 		seat.tracks.exploration = [1];
 		seat.resources.coin = 1;

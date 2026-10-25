@@ -168,3 +168,38 @@ test('a new game has an empty territory discard', () => {
 	const { state } = startedGame(2);
 	assert.deepEqual(state.supply.territoryDiscard, []);
 });
+
+test('a VP cost can be paid only with that many VP', () => {
+	const poor = holding((seat) => {
+		seat.vp = 4;
+	});
+	assert.equal(canPay(poor.state, 1, { vp: 5 }), false);
+	assert.deepEqual(payments(poor.state, 1, { vp: 5 }), []);
+	const { state, random } = holding((seat) => {
+		seat.vp = 6;
+	});
+	assert.equal(canPay(state, 1, { vp: 5 }), true);
+	assert.deepEqual(payments(state, 1, { vp: 5 }), [{ vp: 5 }]);
+	checkPayment(state, 1, { vp: 5 }, { vp: 5 });
+	const ctx = contextFor(state, random);
+	pay(ctx, 1, { vp: 5 });
+	assert.equal(state.seats[0].vp, 1);
+	const { seq: _seq, ...event } = /** @type {any} */ (
+		state.events.find((e) => e.type === 'vpPaid')
+	);
+	assert.deepEqual(event, { type: 'vpPaid', player: 1, vp: 5, total: 1 });
+});
+
+test('checkPayment refuses VP the player lacks', () => {
+	const { state } = holding((seat) => {
+		seat.vp = 4;
+	});
+	assert.throws(
+		() => checkPayment(state, 1, { vp: 5 }, { vp: 5 }),
+		/You don't have enough VP\./
+	);
+	assert.throws(() =>
+		checkPayment(state, 1, { coin: 1 }, { coin: 1, vp: 2 })
+	);
+	assert.throws(() => checkPayment(state, 1, { vp: 5 }, { vp: 3 }));
+});

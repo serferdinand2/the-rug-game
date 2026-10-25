@@ -3,10 +3,36 @@ import { emit } from '../events.js';
 import { playerSeat, seatOf } from '../state.js';
 import { controlledTerritories } from '../control.js';
 import { spacesAdvanced } from '../movement.js';
-import { BUILDING_IDS } from '../data/ids.js';
+import { BUILDING_IDS, TRACK_IDS } from '../data/ids.js';
+import { LANDMARKS } from '../data/landmarks.js';
+import { MAPS } from '../data/maps.js';
 
 /** How many income buildings of each type a player starts with on the income mat. */
 const BUILDINGS_PER_ROW = 5;
+
+/**
+ * The landmarks a player owns: those in the capital, then those beside the mat, then those on the map as Nomads
+ * pieces, toppled or not, in map order (R71).
+ * @param {import('../state.js').State} state
+ * @param {number} player
+ * @returns {string[]}
+ */
+export function landmarksOwned(state, player) {
+	const seat = playerSeat(state, player);
+	const ids = new Set(LANDMARKS.map((landmark) => landmark.id));
+	const onMap = MAPS[state.map].hexes.flatMap((hex) =>
+		state.hexes[hex].outposts.flatMap(({ seat: owner, piece }) =>
+			owner === player && piece && 'landmark' in piece
+				? [piece.landmark]
+				: []
+		)
+	);
+	return [
+		...seat.capital.landmarks.map((piece) => piece.landmark),
+		...seat.besideMat.filter((id) => ids.has(id)),
+		...onMap,
+	];
+}
 
 /**
  * How many things a VP counter counts for a player (data/effects.js, VpCounter).
@@ -26,7 +52,21 @@ export function countVp(state, player, per, track) {
 		}
 		return spacesAdvanced(seatOf(state, player), track);
 	}
+	if (per === 'trackLead') {
+		const me = seatOf(state, player);
+		return TRACK_IDS.filter((id) =>
+			state.seats.every(
+				(other) => spacesAdvanced(other, id) <= spacesAdvanced(me, id)
+			)
+		).length;
+	}
+	if (per === 'opponent') {
+		return state.seats.length - 1;
+	}
 	const seat = playerSeat(state, player);
+	if (per === 'landmark') {
+		return landmarksOwned(state, player).length;
+	}
 	if (per === 'territoryTile') {
 		return seat.territoryTiles.length;
 	}

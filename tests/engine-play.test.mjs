@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { play, PlayerError } from '../src/lib/engine/game.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
-import { newGame, startedGame } from './helpers/engine.mjs';
+import { newGame, startedGame, answerSetup } from './helpers/engine.mjs';
 
 const answerOf = (state, decision) => ({
 	decision: decision.id,
@@ -22,7 +22,8 @@ test('players may answer their setup picks in any order', () => {
 			state = play(state, seat, answerOf(state, decision), random);
 		}
 	}
-	assert.equal(state.phase, 'play');
+	// A civilization's setup may still ask for a resource; the reveal has happened.
+	assert.equal(answerSetup(state, random).phase, 'play');
 });
 
 test('every pick stays hidden until the last one, then setupRevealed shows them all', () => {
@@ -75,7 +76,9 @@ test('the other mat of each pair goes face up only at the reveal', () => {
 
 test('after setup the unkept civilizations form the civilization deck (01 §2.2 step 3)', () => {
 	for (const n of [1, 2, 4]) {
-		const { state } = startedGame(n);
+		// Real deals: startedGame() puts its inert civilizations back into the deck.
+		const { state: dealt, random } = newGame(n);
+		const state = answerSetup(dealt, random);
 		assert.equal(state.supply.civs.length, 16 - n);
 		for (const seat of state.seats.filter((s) => s.kind === 'player')) {
 			assert.ok(!state.supply.civs.includes(seat.civs[0]));

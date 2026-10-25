@@ -1,15 +1,16 @@
-// The steps that run once every setup pick is made: reveal, civilization deck, and the first turn.
+// The steps that run once every setup pick is made: reveal, civilization deck, civilization setup, and the first turn.
 import { emit } from './events.js';
 import { shuffle } from './random.js';
 import { playerSeat } from './state.js';
 import { SMALL_MAP_PAIRS } from './data/capitals.js';
 import { startTurn } from './turn.js';
+import { setupCivs } from './civ-turns.js';
 
 /**
  * The after-setup steps in order. Later issues insert theirs before 'start', which begins play:
  * turns then follow each other on top of the stack, so a step after it would never run.
  */
-export const AFTER_SETUP = ['reveal', 'civDeck', 'start'];
+export const AFTER_SETUP = ['reveal', 'civDeck', 'civSetup', 'start'];
 
 /** @type {Record<string, (ctx: import('./state.js').Context) => void>} */
 export const AFTER_SETUP_STEPS = {
@@ -51,6 +52,8 @@ export const AFTER_SETUP_STEPS = {
 			count: state.supply.civs.length,
 		});
 	},
+	// Each player's civilizations set up at the same time, after the reveal (#20 design §5).
+	civSetup: setupCivs,
 	start(ctx) {
 		const { state } = ctx;
 		state.phase = 'play';

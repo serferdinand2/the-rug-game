@@ -109,7 +109,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 The research in [docs/research/](docs/research/) left 92 details unconfirmed, marked **[UNVERIFIED]**, plus a list of open questions. Each one has a decision here, so the engine never guesses. These decisions settle [#2](https://github.com/serferdinand2/the-rug-game/issues/2).
 
-- **Rule ids** (R1–R105) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
+- **Rule ids** (R1–R108) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
 - **Versions.** A table plays either the **Original 2019 printing** or the **Current official rules**. A rule applies to both unless it names one.
 - **Sources** are trusted in this order:
   1. the Fantasies & Futures integrated rulebook;
@@ -186,22 +186,25 @@ How the ranking was built:
 </details>
 
 <details>
-<summary><b>Base game: capital city and landmarks</b> (2 rules)</summary>
+<summary><b>Base game: capital city and landmarks</b> (3 rules)</summary>
 
 | Rule | Question | Decision | Basis | Check |
 |---|---|---|---|---|
 | R14 | Must an overhanging landmark cover a grid plot? | Yes. A landmark is aligned to the grid, sits only on open plots and covers at least 1 grid plot. Mats that forbid overhang (e.g. Mesa) are stricter. It goes beside the mat, still yours, only if no such spot exists. Placement is mandatory when possible. | 01 §6.1, 01 OQ5 (BGA rule; official overflow and must-place rulings) | |
 | R15 | May landmark footprints be rotated or mirrored? | All 4 rotations (0°, 90°, 180°, 270°) are legal; mirrored footprints are not. This applies to every landmark, in both versions. | 01 §6.1, 01 OQ5 / 02 §5 / 03 §1.6, 03 OQ P&P7. BGA allows rotation; a miniature can be turned but not mirrored. | |
+| R106 | May two landmarks overlap off the grid? | No. A landmark may not cover a plot off the grid that another landmark's overhang already covers, just as two miniatures can't stand in the same spot. | 01 §6.1 / R14 ('sits only on open plots'), read physically; no official text. Owner, 2026-10-24 (#16 design). | |
 
 </details>
 
 <details>
-<summary><b>Base game: map, exploring and conquering</b> (2 rules)</summary>
+<summary><b>Base game: map, exploring and conquering</b> (4 rules)</summary>
 
 | Rule | Question | Decision | Basis | Check |
 |---|---|---|---|---|
 | R16 | Can you conquer an unexplored hex? | No. "Territory" always means an explored hex (a tile or pre-printed terrain). A conquer target must be explored, on top of the usual conditions. Only effects that explicitly explore first (e.g. Automa Conquer Neutral) put outposts on unexplored hexes. | 01 §7.3, 01 OQ4. BGA allows only explored hexes. | |
 | R17 | Tanks: do you get both dice if your conquest is trapped? | Yes. "Was controlled by an opponent" is judged when you declare the conquer, and the dice are rolled even when trapped. | 01 OQ10; F&F FAQ (you always roll when trapped). Rejected: one die after a trap. | |
+| R107 | Black die '?' after a trapped conquest? | It still gives the benefit printed on that territory tile; a printed territory gives nothing, as R8. | 01 §7.3 / R8; the rules don't say. BGA gives the tile's benefit after a trap. | BGA |
+| R108 | May a finished player still respond to a conquer? | Current rules: no (the A&A amendment, FAQ #18). Original 2019 rules: yes, since the amendment came later; a sprung trap still keeps control and topples the attacker, but its resource isn't gained, because a finished player gains nothing (01 §4.3). | 01 §4.3, §9.3; owner, 2026-10-24 (#17 design). | |
 
 </details>
 

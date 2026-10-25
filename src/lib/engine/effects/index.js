@@ -2,17 +2,47 @@
 import { seatOf } from '../state.js';
 import { vp } from './vp.js';
 import { gain } from './gain.js';
+import { lose } from './lose.js';
 import { building } from './building.js';
 import { choice } from './choice.js';
 import { research } from './research.js';
 import { advance, regress } from './move.js';
 import { repeat } from './repeat.js';
 import { restartToken } from './restart-token.js';
+import { scoreCapital } from './score-capital.js';
+import { explore, exploreSpace } from './explore.js';
+import { conquer, tileBenefit } from './conquer.js';
+import { invent, upgrade, techBenefit, landmark } from './tech.js';
+import {
+	tapestryOnTop,
+	eraPartner,
+	discardTapestry,
+	copyTapestry,
+} from './tapestry.js';
+import { others, sharedAdvance, trade, olympicHost } from './players.js';
+import {
+	anyBuilding,
+	trackLandmark,
+	landmarkRank,
+	pleaForAid,
+	technocracy,
+	darkAges,
+	socialism,
+	dictatorship,
+	tradeEconomy,
+	coalBaron,
+	colonialism,
+	revolution,
+	placeOutpost,
+} from './cards.js';
+import { gainCiv } from '../civ-turns.js';
+import { placeToken } from '../civs/civ.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
 	vp,
 	gain,
+	lose,
 	building,
 	choice,
 	research,
@@ -20,6 +50,38 @@ export const EFFECTS = {
 	regress,
 	repeat,
 	restartToken,
+	scoreCapital,
+	explore,
+	exploreSpace,
+	conquer,
+	tileBenefit,
+	gainCiv,
+	invent,
+	upgrade,
+	techBenefit,
+	landmark,
+	tapestryOnTop,
+	eraPartner,
+	copyTapestry,
+	discardTapestry,
+	others,
+	sharedAdvance,
+	trade,
+	olympicHost,
+	anyBuilding,
+	trackLandmark,
+	landmarkRank,
+	pleaForAid,
+	technocracy,
+	darkAges,
+	socialism,
+	dictatorship,
+	tradeEconomy,
+	coalBaron,
+	colonialism,
+	revolution,
+	placeOutpost,
+	placeToken,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */
@@ -71,9 +133,6 @@ function changes(effect, counter) {
 	if (kind === 'building') {
 		return counter.per === effect.building;
 	}
-	if (kind === 'explore') {
-		return counter.per === 'territoryTile';
-	}
 	if (kind === 'invent') {
 		return counter.per === 'techCard';
 	}
@@ -120,17 +179,25 @@ export function runEffects(ctx, op) {
 	if (op.player === null) {
 		throw new Error('Effects need a player to run for.');
 	}
-	// A finished player gains nothing but passive civilization VP (01 §4.3), which #20 marks `passive`.
-	if (seatOf(ctx.state, op.player).finished && !op.passive) {
+	// A finished player gains nothing but the VP of passive civilization operations (01 §4.3, #20 design §4).
+	const finished = seatOf(ctx.state, op.player).finished;
+	if (finished && !op.passive) {
 		return;
 	}
-	const index = nextIndex(op);
+	/** @type {AnyEffect[]} */
+	const effects = finished
+		? op.effects.filter((/** @type {object} */ e) => kindOf(e) === 'vp')
+		: op.effects;
+	if (effects.length === 0) {
+		return;
+	}
+	const index = nextIndex({ ...op, effects });
 	if (index === -1) {
 		ctx.push([
 			{
 				player: op.player,
 				kind: 'chooseOrder',
-				effects: op.effects,
+				effects,
 				source: op.source,
 				// A finished player's passive VP stays passive through the question (01 §4.3).
 				...(op.passive && { passive: true }),
@@ -138,10 +205,8 @@ export function runEffects(ctx, op) {
 		]);
 		return;
 	}
-	const effect = op.effects[index];
-	const rest = op.effects.filter(
-		(/** @type {object} */ _, /** @type {number} */ i) => i !== index
-	);
+	const effect = effects[index];
+	const rest = effects.filter((_, i) => i !== index);
 	if (rest.length) {
 		// The continuation keeps every other field (a source, `ordered`); `push` gives it a new id and batch.
 		const { id: _id, batch: _batch, ...kept } = op;

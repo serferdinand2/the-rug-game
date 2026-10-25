@@ -191,6 +191,15 @@ test('every decision kind has the full shape, and its answers pass its own check
 	// Enough to pay for something, so every kind has answers to check.
 	const state = structuredClone(started);
 	state.seats[0].resources.coin = 1;
+	// Food to convert, so chooseConversion offers more than converting none.
+	state.seats[0].resources.food = 2;
+	// Seat 1 holds a territory tile (and controls its start territory), so it has somewhere to explore.
+	state.seats[0].territoryTiles = [2];
+	state.seats[1].hand = ['trap-1'];
+	// chooseTapestry offers only cards still in the hand.
+	state.seats[0].hand = ['trap-1', 'age-of-sail'];
+	// A card in the bottom row, so chooseUpgrade has something to offer.
+	state.seats[0].tech.bottom = ['irrigation'];
 	const fixtures = {
 		chooseTurn: {
 			player: 1,
@@ -210,6 +219,13 @@ test('every decision kind has the full shape, and its answers pass its own check
 			from: 'any',
 		},
 		chooseAdvance: { player: 1, kind: 'chooseAdvance' },
+		chooseUpgrade: { player: 1, kind: 'chooseUpgrade', optional: true },
+		chooseTechBenefit: {
+			player: 1,
+			kind: 'chooseTechBenefit',
+			icon: 'circle',
+			options: ['irrigation', 'calendar'],
+		},
 		chooseOrder: {
 			player: 1,
 			kind: 'chooseOrder',
@@ -247,6 +263,11 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: [[{ explore: {} }], [{ building: 'farm' }]],
 			source: { track: 'exploration', space: 3 },
 		},
+		choosePlacement: {
+			player: 1,
+			kind: 'choosePlacement',
+			building: 'farm',
+		},
 		chooseBonus: {
 			player: 1,
 			kind: 'chooseBonus',
@@ -255,6 +276,120 @@ test('every decision kind has the full shape, and its answers pass its own check
 			cost: { any: 1 },
 			gain: [{ gain: { tapestry: 1 } }],
 		},
+		chooseExplore: { player: 1, kind: 'chooseExplore', anywhere: false },
+		chooseInvent: {
+			player: 1,
+			kind: 'chooseInvent',
+			left: 1,
+			refresh: true,
+			invent: {},
+		},
+		chooseConquer: { player: 1, kind: 'chooseConquer', anywhere: true },
+		chooseDie: {
+			player: 1,
+			kind: 'chooseDie',
+			hex: '-2_-1',
+			red: 0,
+			black: 0,
+		},
+		chooseResponse: {
+			player: 2,
+			kind: 'chooseResponse',
+			attacker: 1,
+			hex: '-2_-1',
+		},
+		chooseSpaceTile: {
+			player: 1,
+			kind: 'chooseSpaceTile',
+			options: [5, 13],
+		},
+		chooseLandmark: {
+			player: 1,
+			kind: 'chooseLandmark',
+			options: ['lighthouse', 'academy'],
+		},
+		chooseDiscard: { player: 1, kind: 'chooseDiscard', vpEach: 2 },
+		chooseTrade: {
+			player: 1,
+			kind: 'chooseTrade',
+			offers: [{ pay: {}, gain: [{ vp: 1 }] }],
+			optional: true,
+		},
+		chooseTrack: {
+			player: 1,
+			kind: 'chooseTrack',
+			options: ['exploration', 'technology'],
+			purpose: 'dictatorship',
+			then: { kind: 'dictate' },
+		},
+		chooseRoll: {
+			player: 1,
+			kind: 'chooseRoll',
+			options: ['science', 'military'],
+			then: { kind: 'researchRolled', noBenefit: false, offTrackVp: 0 },
+		},
+		chooseSpace: {
+			player: 1,
+			kind: 'chooseSpace',
+			options: [
+				{ player: 2, track: 'technology', space: 2 },
+				{ player: 2, track: 'military', space: 2 },
+			],
+		},
+		chooseHex: {
+			player: 1,
+			kind: 'chooseHex',
+			options: ['-2_-2', '-2_-1'],
+			optional: true,
+			purpose: 'revolution',
+			then: { kind: 'revolt', left: 1 },
+		},
+		chooseGift: { player: 1, kind: 'chooseGift' },
+		choosePartner: {
+			player: 1,
+			kind: 'choosePartner',
+			options: [
+				{ player: 2, track: 'exploration' },
+				{ player: 2, track: 'military' },
+			],
+		},
+		chooseConversion: { player: 1, kind: 'chooseConversion', max: 2 },
+		chooseCopy: {
+			player: 1,
+			kind: 'chooseCopy',
+			options: [
+				{ player: 2, card: 'democracy' },
+				{ player: 2, card: 'alliance' },
+			],
+			espionage: 'espionage',
+		},
+		chooseCivAbility: {
+			player: 1,
+			kind: 'chooseCivAbility',
+			options: ['alchemists', 'leaders'],
+			turn: 2,
+			done: [],
+		},
+		chooseSlot: {
+			player: 1,
+			kind: 'chooseSlot',
+			options: ['coin', 'food'],
+			optional: true,
+			purpose: 'loseResource',
+			then: { kind: 'loseResource', left: 0 },
+		},
+		chooseAlchemists: {
+			player: 1,
+			kind: 'chooseAlchemists',
+			marked: ['science'],
+		},
+		chooseProphecy: {
+			player: 1,
+			kind: 'chooseProphecy',
+			category: 'tracks',
+			options: [1, 2, 3, 4],
+		},
+		chooseSwap: { player: 1, kind: 'chooseSwap', left: 3 },
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

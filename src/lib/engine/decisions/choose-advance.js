@@ -3,20 +3,24 @@ import { PlayerError } from '../errors.js';
 import { playerSeat } from '../state.js';
 import { canPay, checkPayment, pay, payments } from '../payment.js';
 import { moveToken, movableFroms, LAST_SPACE } from '../movement.js';
+import { advanceBlocked } from '../abilities.js';
 import { advanceCost } from '../data/tracks.js';
 import { TRACK_IDS } from '../data/ids.js';
 
 /** @typedef {import('../data/ids.js').TrackId} TrackId */
 
 /**
- * Every advance a player could pay for now: each track, each token that isn't at the end, and its tier's price.
+ * Every advance a player could pay for now: each track they aren't blocked on (design §5), each token that isn't
+ * at the end, and its tier's price.
  * @param {import('../state.js').State} state
  * @param {number} player
  * @returns {{ track: TrackId, from: number, cost: import('../data/effects.js').Cost }[]}
  */
 export function advances(state, player) {
 	const seat = playerSeat(state, player);
-	return TRACK_IDS.flatMap((track) =>
+	return TRACK_IDS.filter(
+		(track) => !advanceBlocked(state, player, track)
+	).flatMap((track) =>
 		movableFroms(seat, track, 'advance')
 			.map((from) => ({
 				track,
@@ -77,6 +81,9 @@ export const chooseAdvance = {
 	check(state, decision, answer) {
 		const player = /** @type {number} */ (decision.player);
 		const { track, from } = chosenToken(state, player, answer);
+		if (advanceBlocked(state, player, track)) {
+			throw new PlayerError("You can't advance on that track now.");
+		}
 		checkPayment(state, player, advanceCost(track, from + 1), answer.pay);
 	},
 	resolve(ctx, decision, answer) {

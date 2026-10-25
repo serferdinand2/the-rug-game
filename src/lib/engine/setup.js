@@ -78,7 +78,7 @@ function newSeat(seat, name) {
 			tapestry: [[], [], [], []],
 			faceDown: [],
 		},
-		capital: { mat: null, landmarks: [] },
+		capital: { mat: null, buildings: [], landmarks: [], cubes: [] },
 		besideMat: [],
 		hand: [],
 		tech: { bottom: [], middle: [], top: [] },
@@ -86,6 +86,8 @@ function newSeat(seat, name) {
 		spaceTiles: [],
 		exploredSpace: [],
 		civs: [],
+		civData: {},
+		era: null,
 		picks: {},
 	};
 }
@@ -223,6 +225,7 @@ export function createGame({ players, version, expansions = [], random }) {
 					tile: printed ? printed.tile : null,
 					orient: printed ? printed.orient : 0,
 					outposts: [],
+					tokens: [],
 				},
 			];
 		})
@@ -256,12 +259,15 @@ export function createGame({ players, version, expansions = [], random }) {
 				random
 			),
 			civs: [],
+			civDiscard: [],
 			capitals: [],
 		},
 		hexes,
 		landmarks: LANDMARKS.map((l) => l.id),
 		achievements: Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, []])),
 		activated: [],
+		usedThisTurn: [],
+		blocks: [],
 		result: null,
 		pending: [],
 		nextId: 1,

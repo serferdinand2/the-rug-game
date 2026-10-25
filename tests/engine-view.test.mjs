@@ -7,7 +7,8 @@ import { resolveEffects } from '../src/lib/engine/loop.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { seededRandom } from '../src/lib/engine/random.js';
-import { newGame, startedGame } from './helpers/engine.mjs';
+import { playerSeat } from '../src/lib/engine/state.js';
+import { newGame, startedGame, resolveTapestry } from './helpers/engine.mjs';
 
 /** @typedef {import('../src/lib/engine/state.js').State} State */
 
@@ -221,6 +222,102 @@ test('a player sees their own hand, dealt civilizations and the answers to their
 	assert.equal(mine[0].handCount, 2);
 	assert.ok(!('hand' in mine[0]));
 	assert.equal(view(done, 2).supply.tech.faceUp.length, 3);
+});
+
+test('other seats never see a hand in chooseTapestry, Tyranny or Democracy', () => {
+	const { state: started, random } = startedGame(3);
+	const state = /** @type {any} */ (structuredClone(started));
+	const hand = ['capitalism', 'trap-1'];
+	state.seats[0].incomeTurns = 2;
+	state.seats[0].hand = [...hand];
+	state.supply.tapestry.deck = state.supply.tapestry.deck.filter(
+		(/** @type {string} */ c) => !hand.includes(c)
+	);
+	const cases = [
+		// A card on top of the current era: the hand is the options.
+		{
+			kind: 'chooseTapestry',
+			state: resolveEffects(state, 1, [{ tapestryOnTop: {} }], random),
+		},
+		// Tyranny: the options are the cards just gained.
+		{
+			kind: 'chooseTapestry',
+			state: resolveEffects(
+				resolveTapestry(state, random, 1, 'tyranny'),
+				1,
+				[{ gain: { tapestry: 2 } }],
+				random
+			),
+		},
+		// Democracy: the answers are the hand.
+		{
+			kind: 'chooseDiscard',
+			state: resolveTapestry(state, random, 1, 'democracy'),
+		},
+	];
+	for (const { kind, state: asking } of cases) {
+		const decision = openDecisions(asking).find(
+			(d) => d.player === 1 && d.kind === kind
+		);
+		assert.ok(decision, `seat 1 has an open ${kind}`);
+		const own = allOps(view(asking, 1)).find((d) => d.id === decision.id);
+		assert.ok(own.answers.length > 1, `seat 1 sees its ${kind} answers`);
+		const seen = view(asking, 2);
+		const other = allOps(seen).find((d) => d.id === decision.id);
+		assert.ok(other, `seat 2 sees that seat 1 has a ${kind}`);
+		assert.ok(!('options' in other), `${kind} options shown to seat 2`);
+		assert.ok(!('answers' in other), `${kind} answers shown to seat 2`);
+		const text = JSON.stringify(seen);
+		for (const card of playerSeat(asking, 1).hand) {
+			assert.ok(!text.includes(`"${card}"`), `${card} shown to seat 2`);
+		}
+	}
+});
+
+test('civilization data is public and chooseCiv stays hidden', () => {
+	// Setup: the two civilizations a seat is dealt are its own to see.
+	const { state: dealt } = newGame(3);
+	const picks = openDecisions(dealt).filter((d) => d.kind === 'chooseCiv');
+	assert.equal(picks.length, 3);
+	for (const pick of picks) {
+		for (const viewer of [null, 1, 2, 3]) {
+			const seen = allOps(view(dealt, viewer)).find(
+				(op) => op.id === pick.id
+			);
+			const own = viewer === pick.player;
+			assert.equal(
+				'options' in seen,
+				own,
+				`seat ${pick.player}'s civilization options shown to ${viewer}: ${!own}`
+			);
+			assert.equal('answers' in seen, own);
+		}
+	}
+	// In play: everything on a civilization mat is public (#20 design §4), so every view shows every seat's.
+	const { state } = startedGame(3, {
+		civs: ['mystics', 'heralds', 'militants'],
+	});
+	const seats = /** @type {any[]} */ (state.seats);
+	for (const seat of seats) {
+		assert.notDeepEqual(seat.civData, {});
+	}
+	for (const viewer of [null, 1, 2, 3]) {
+		const v = view(state, viewer);
+		seats.forEach((seat, i) => {
+			assert.deepEqual(v.seats[i].civs, seat.civs);
+			assert.deepEqual(v.seats[i].civData, seat.civData);
+		});
+	}
+	// So the civilizations' own decisions hide nothing (design §10).
+	for (const kind of [
+		'chooseCivAbility',
+		'chooseAlchemists',
+		'chooseSwap',
+		'chooseSlot',
+		'chooseProphecy',
+	]) {
+		assert.deepEqual(DECISIONS[kind].hidden, [], kind);
+	}
 });
 
 test('a seat that is not in the game gets the public view', () => {

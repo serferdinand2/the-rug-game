@@ -1,6 +1,8 @@
 // Tokens on the tracks: moving them, the landmark race, activating a space, and how far a seat has advanced.
 import { emit } from './events.js';
 import { seatOf } from './state.js';
+import { triggered } from './abilities.js';
+import { claimAchievement } from './achievements.js';
 import { TRACKS } from './data/tracks.js';
 
 /** @typedef {import('./data/ids.js').TrackId} TrackId */
@@ -53,24 +55,16 @@ export function isActivated(state, player, track, space) {
 }
 
 /**
- * Activates a track space for a player: records it and returns the operations for its benefit and bonus.
- * Returns none for the start, or for a space the player already activated this turn (R19, FAQ #5).
- * @param {import('./state.js').Context} ctx
+ * The operations for gaining a track space's benefit: the benefit, then the triggers of a gained benefit (design §6).
+ * @param {import('./state.js').State} state
  * @param {number} player
  * @param {TrackId} track
  * @param {number} space
  * @returns {import('./state.js').NewOperation[]}
  */
-export function activationOps(ctx, player, track, space) {
-	const { state } = ctx;
-	if (space === 0 || isActivated(state, player, track, space)) {
-		return [];
-	}
-	state.activated.push({ player, track, space });
-	emit(state, { type: 'spaceActivated', player, track, space });
+export function benefitOps(state, player, track, space) {
 	const entry = TRACKS[track][space];
-	/** @type {import('./state.js').NewOperation[]} */
-	const ops = [
+	return [
 		{
 			player,
 			kind: 'effects',
@@ -78,8 +72,29 @@ export function activationOps(ctx, player, track, space) {
 			ordered: entry.ordered,
 			source: { track, space },
 		},
+		...triggered(state, 'benefitGained', { player, track, space }),
 	];
-	if (entry.bonus) {
+}
+
+/**
+ * Activates a track space for a player: records it and returns the operations for its benefit, the triggers of
+ * a gained benefit, and its bonus. Returns none for the start, or for a space the player already activated this turn (R19, FAQ #5).
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {TrackId} track
+ * @param {number} space
+ * @param {boolean} [bonus] - False leaves out the bonus (Leaders)
+ * @returns {import('./state.js').NewOperation[]}
+ */
+export function activationOps(ctx, player, track, space, bonus = true) {
+	const { state } = ctx;
+	if (space === 0 || isActivated(state, player, track, space)) {
+		return [];
+	}
+	state.activated.push({ player, track, space });
+	emit(state, { type: 'spaceActivated', player, track, space });
+	const ops = benefitOps(state, player, track, space);
+	if (bonus && TRACKS[track][space].bonus) {
 		ops.push({ player, kind: 'bonus', track, space });
 	}
 	return ops;
@@ -89,11 +104,29 @@ export function activationOps(ctx, player, track, space) {
  * Moves one of a seat's tokens and pushes what follows, in the order of FAQ #1: landmarks, then the benefit, then the bonus.
  * Moving forward gains every still-available landmark whose tier starts in (from, to], lowest first (R9);
  * moving back gains none. Without `benefit` (the X), the landmarks are still gained.
+ * Each landmark's triggers follow its placement, and a forward move's triggers come before the benefit (design §6).
+ * With `freeBonus` and no benefit (Renaissance), the bonus of the space reached is offered for free, unless the
+ * player already activated that space this turn; offering it activates the space (R19). With `noBonus` (Leaders),
+ * the benefit comes without the bonus.
+ * A `jump` (Futurists) gains no landmark (R9's exception), no benefit and no bonus, and fires no `advanced` trigger (#20 design §7).
+ * Reaching space 12 claims "complete any track" all the same, and pushes the `countsChanged` triggers last.
  * @param {import('./state.js').Context} ctx
  * @param {number} player
- * @param {{ track: TrackId, from: number, to: number, benefit: boolean }} move
+ * @param {{ track: TrackId, from: number, to: number, benefit: boolean, freeBonus?: boolean, noBonus?: boolean, jump?: boolean }} move
  */
-export function moveToken(ctx, player, { track, from, to, benefit }) {
+export function moveToken(
+	ctx,
+	player,
+	{
+		track,
+		from,
+		to,
+		benefit,
+		freeBonus = false,
+		noBonus = false,
+		jump = false,
+	}
+) {
 	const { state } = ctx;
 	const tokens = seatOf(state, player).tracks[track];
 	const index = tokens.indexOf(from);
@@ -102,23 +135,84 @@ export function moveToken(ctx, player, { track, from, to, benefit }) {
 	}
 	tokens[index] = to;
 	emit(state, { type: 'tokenMoved', player, track, from, to });
-	/** @type {import('./state.js').NewOperation[]} */
-	const ops = [];
-	for (const first of TIER_FIRST_SPACES) {
-		const landmark = TRACKS[track][first].landmark;
-		if (
-			from < first &&
-			first <= to &&
-			landmark &&
-			state.landmarks.includes(landmark)
-		) {
-			state.landmarks.splice(state.landmarks.indexOf(landmark), 1);
-			emit(state, { type: 'landmarkGained', player, landmark, track });
-			ops.push({ player, kind: 'placeLandmark', landmark });
-		}
+	if (to === LAST_SPACE) {
+		claimAchievement(ctx, player, 'complete-track');
 	}
-	if (benefit) {
-		ops.push(...activationOps(ctx, player, track, to));
+	/** @type {import('./state.js').NewOperation[]} */
+	const ops = jump
+		? []
+		: arrivalOps(ctx, player, {
+				track,
+				from,
+				to,
+				benefit,
+				freeBonus,
+				noBonus,
+			});
+	if (to === LAST_SPACE) {
+		ops.push(...triggered(state, 'countsChanged', { player }));
 	}
 	ctx.push(ops);
+}
+
+/**
+ * What a move that isn't a jump gives, in order: the landmarks reached or passed with their triggers, the
+ * `advanced` triggers, then the benefit and bonus.
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {{ track: TrackId, from: number, to: number, benefit: boolean, freeBonus: boolean, noBonus: boolean }} move
+ * @returns {import('./state.js').NewOperation[]}
+ */
+function arrivalOps(
+	ctx,
+	player,
+	{ track, from, to, benefit, freeBonus, noBonus }
+) {
+	const { state } = ctx;
+	/** @type {import('./state.js').NewOperation[]} */
+	const ops = [];
+	// Landmark spaces reached or passed whose landmark someone already owned (Revisionism).
+	let claimedPassed = 0;
+	for (const first of TIER_FIRST_SPACES) {
+		const landmark = TRACKS[track][first].landmark;
+		if (from >= first || first > to || !landmark) {
+			continue;
+		}
+		if (!state.landmarks.includes(landmark)) {
+			claimedPassed += 1;
+			continue;
+		}
+		state.landmarks.splice(state.landmarks.indexOf(landmark), 1);
+		emit(state, { type: 'landmarkGained', player, landmark, track });
+		ops.push(
+			{ player, kind: 'placeLandmark', landmark },
+			...triggered(state, 'landmarkGained', {
+				player,
+				landmark,
+				fromTrack: true,
+			})
+		);
+	}
+	if (to > from) {
+		ops.push(
+			...triggered(state, 'advanced', {
+				player,
+				track,
+				from,
+				to,
+				claimedPassed,
+			})
+		);
+	}
+	if (benefit) {
+		ops.push(...activationOps(ctx, player, track, to, !noBonus));
+	} else if (
+		freeBonus &&
+		TRACKS[track][to].bonus &&
+		!isActivated(state, player, track, to)
+	) {
+		state.activated.push({ player, track, space: to });
+		ops.push({ player, kind: 'bonus', track, space: to, free: true });
+	}
+	return ops;
 }

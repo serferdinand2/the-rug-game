@@ -1,7 +1,10 @@
 // The income turn: its steps by income turn number, and the spaces the income mat shows (01 §4.2, §5).
 import { emit } from './events.js';
 import { playerSeat, seatOf } from './state.js';
+import { hasEra } from './abilities.js';
 import { takeTapestryCard } from './effects/gain.js';
+import { endEra, playTapestry } from './tapestry.js';
+import { endFirstIncomeTurn } from './civ-turns.js';
 import { INCOME_MAT, TAPESTRY_SLOTS } from './data/income-mat.js';
 import { BUILDING_IDS } from './data/ids.js';
 
@@ -26,26 +29,63 @@ export function exposedSpaces(seat, row) {
 }
 
 /**
- * Pushes the income or score effects of every exposed space, row by row, as one ordered list.
- * @param {import('./state.js').Context} ctx
+ * The income or score effects of every exposed space, row by row.
+ * @param {import('./state.js').State} state
  * @param {number} player
  * @param {'income' | 'score'} part
+ * @returns {import('./data/effects.js').Effect[]}
  */
-function pushSpaceEffects(ctx, player, part) {
-	const seat = playerSeat(ctx.state, player);
-	const effects = BUILDING_IDS.flatMap((row) =>
+function exposedEffects(state, player, part) {
+	const seat = playerSeat(state, player);
+	return BUILDING_IDS.flatMap((row) =>
 		exposedSpaces(seat, row).flatMap((space) => space[part])
 	);
-	if (effects.length > 0) {
-		ctx.push([
-			{
-				player,
-				kind: 'effects',
-				effects: structuredClone(effects),
-				ordered: true,
-			},
-		]);
+}
+
+/**
+ * The operation that runs exposed effects as one ordered list, or none for an empty list.
+ * @param {number} player
+ * @param {import('./data/effects.js').Effect[]} effects
+ * @returns {import('./state.js').NewOperation[]}
+ */
+function orderedOps(player, effects) {
+	if (effects.length === 0) {
+		return [];
 	}
+	return [
+		{
+			player,
+			kind: 'effects',
+			effects: structuredClone(effects),
+			ordered: true,
+		},
+	];
+}
+
+/**
+ * Step 4: the exposed income icons, then what the active THIS ERA ability makes of them (design §8):
+ * Capitalism's 2 VP per coin icon, or Mercantilism's choice to convert up to 1 food per food icon.
+ * @type {IncomeStep['run']}
+ */
+function incomeStep(ctx, player) {
+	const { state } = ctx;
+	const effects = exposedEffects(state, player, 'income');
+	const ops = orderedOps(player, effects);
+	const icons = (/** @type {'coin' | 'food'} */ id) =>
+		effects.reduce(
+			(sum, effect) =>
+				sum + ('gain' in effect ? (effect.gain[id] ?? 0) : 0),
+			0
+		);
+	const coins = icons('coin');
+	if (hasEra(state, player, 'capitalism') && coins > 0) {
+		ops.push({ player, kind: 'effects', effects: [{ vp: 2 * coins }] });
+	}
+	const food = icons('food');
+	if (hasEra(state, player, 'mercantilism') && food > 0) {
+		ops.push({ player, kind: 'chooseConversion', max: food });
+	}
+	ctx.push(ops);
 }
 
 /**
@@ -111,16 +151,7 @@ export function playFaceDown(ctx, op) {
 	if (card === undefined) {
 		return;
 	}
-	const seat = playerSeat(ctx.state, player);
-	seat.incomeMat.tapestry[op.era - 1].push(card);
-	seat.incomeMat.faceDown.push(card);
-	emit(ctx.state, {
-		type: 'tapestryPlayed',
-		player,
-		era: op.era,
-		card: null,
-		faceDown: true,
-	});
+	playTapestry(ctx, player, card, op.era, true);
 }
 
 /**
@@ -128,17 +159,26 @@ export function playFaceDown(ctx, op) {
  * such as A&A's masterpieces before civilization abilities.
  */
 export const INCOME_STEPS = [
+	'eraEnd',
 	'civAbilities',
 	'tapestry',
 	'upgrade',
 	'score',
 	'income',
+	'civFirstTurnEnd',
 	'finish',
 ];
 
 /** @type {Record<string, IncomeStep>} */
 export const INCOME_STEP_KINDS = {
-	// Step 1: the civilization abilities, which #20 builds.
+	// Before step 1: the THIS ERA ability of the last era ends (01 §9.2).
+	eraEnd: {
+		turns: [2, 3, 4, 5],
+		run(ctx, player) {
+			endEra(ctx, player);
+		},
+	},
+	// Step 1: the civilization abilities (civ-turns.js).
 	civAbilities: {
 		turns: [2, 3, 4, 5],
 		run(ctx, player, turn) {
@@ -167,20 +207,27 @@ export const INCOME_STEP_KINDS = {
 	score: {
 		turns: [2, 3, 4, 5],
 		run(ctx, player) {
-			pushSpaceEffects(ctx, player, 'score');
+			ctx.push(
+				orderedOps(player, exposedEffects(ctx.state, player, 'score'))
+			);
 		},
 	},
-	// Step 4: the exposed income icons.
+	// Step 4: the exposed income icons, then Capitalism and Mercantilism.
 	income: {
 		turns: [1, 2, 3, 4],
-		run(ctx, player) {
-			pushSpaceEffects(ctx, player, 'income');
-		},
+		run: incomeStep,
 	},
-	// After income turn 5 the player takes no more turns (01 §4.3).
+	// After the income of income turn 1: civilizations' end-of-turn rules and the current version's losses (#20 design §5).
+	civFirstTurnEnd: {
+		turns: [1],
+		run: endFirstIncomeTurn,
+	},
+	// After income turn 5 the player takes no more turns (01 §4.3). A THIS ERA ability played during it ends here,
+	// so it never outlives its player.
 	finish: {
 		turns: [5],
 		run(ctx, player) {
+			endEra(ctx, player);
 			playerSeat(ctx.state, player).finished = true;
 			emit(ctx.state, { type: 'playerFinished', player });
 		},
