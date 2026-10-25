@@ -54,7 +54,32 @@ export function startedGame(count, options) {
 }
 
 /** Effects that later issues build (#19–#20). */
-const HANDOFF_EFFECTS = ['tapestryOnTop', 'gainCiv'];
+const HANDOFF_EFFECTS = [
+	'tapestryOnTop',
+	'gainCiv',
+	...[
+		'eraPartner',
+		'copyTapestry',
+		'sharedAdvance',
+		'others',
+		'trade',
+		'discardTapestry',
+		'anyBuilding',
+		'trackLandmark',
+		'landmarkRank',
+		'placeOutpost',
+		'darkAges',
+		'socialism',
+		'dictatorship',
+		'revolution',
+		'colonialism',
+		'pleaForAid',
+		'technocracy',
+		'tradeEconomy',
+		'coalBaron',
+		'olympicHost',
+	],
+];
 
 /** Operations #14 and #15 push for later issues: civilization abilities (#20) and tapestry abilities (#19). */
 const HANDOFF_OPERATIONS = ['civAbilities', 'tapestryAbility'];

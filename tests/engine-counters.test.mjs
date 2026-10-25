@@ -5,6 +5,7 @@ import { openDecisions } from '../src/lib/engine/stack.js';
 import { resolveEffects } from '../src/lib/engine/loop.js';
 import { controlledTerritories } from '../src/lib/engine/control.js';
 import { spacesAdvanced } from '../src/lib/engine/movement.js';
+import { landmarksOwned } from '../src/lib/engine/effects/vp.js';
 import { startedGame, stubHandoffs } from './helpers/engine.mjs';
 
 /**
@@ -158,4 +159,56 @@ test('a used-up building type gives nothing (FAQ #23)', (t) => {
 		player: 1,
 		building: 'farm',
 	});
+});
+
+test('trackLead counts tracks where nobody is ahead, ties included', () => {
+	const { state, random } = game((seat, s) => {
+		seat.tracks.exploration = [3];
+		seat.tracks.science = [5];
+		seat.tracks.technology = [1];
+		seat.tracks.military = [0];
+		s.seats[1].tracks.exploration = [3];
+		s.seats[1].tracks.science = [2];
+		s.seats[1].tracks.technology = [4];
+		s.seats[1].tracks.military = [0];
+	});
+	assert.equal(vpFor(state, random, { per: 'trackLead' }), 3);
+	assert.equal(vpFor(state, random, { per: 'trackLead', each: 4 }), 12);
+});
+
+test('trackLead counts a track AI Singularity restarted as 12 for everyone', () => {
+	const { state, random } = game((seat, s) => {
+		for (const id of Object.keys(seat.tracks)) {
+			seat.tracks[id] = [0];
+			s.seats[1].tracks[id] = [0];
+		}
+		s.seats[1].tracks.science = [8];
+		seat.tracks.science = [];
+		seat.restartedTracks = ['science'];
+		s.seats[1].tracks.military = [];
+		s.seats[1].restartedTracks = ['military'];
+	});
+	// Science: 12 against 8, a lead. Military: 0 against 12, behind. The other two tie at 0.
+	assert.equal(vpFor(state, random, { per: 'trackLead' }), 3);
+});
+
+test('landmark counts landmarks in the capital and beside the mat, not buildings (R71)', () => {
+	const { state, random } = game((seat) => {
+		seat.capital.landmarks = [
+			{ landmark: 'lighthouse', row: 0, col: 0, rotation: 0 },
+		];
+		seat.besideMat = ['farm', 'apothecary', 'train-station'];
+	});
+	assert.equal(vpFor(state, random, { per: 'landmark' }), 3);
+	assert.equal(vpFor(state, random, { per: 'landmark', each: 3 }), 9);
+	assert.deepEqual(landmarksOwned(/** @type {any} */ (state.seats[0])), [
+		'lighthouse',
+		'apothecary',
+		'train-station',
+	]);
+});
+
+test('opponent counts the other seats', () => {
+	const { state, random } = startedGame(3);
+	assert.equal(vpFor(state, random, { per: 'opponent' }), 2);
 });

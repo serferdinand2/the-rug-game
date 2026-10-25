@@ -18,6 +18,7 @@ import { RESOURCE_IDS } from './data/ids.js';
  * @property {number[]} [territory] - Territory tiles from the supply
  * @property {string[]} [tapestry] - Tapestry cards from the hand
  * @property {string[]} [tech] - Tech cards from any row
+ * @property {number} [vp] - Victory points
  */
 
 /** The kinds of things a cost may ask a player to discard. */
@@ -124,8 +125,14 @@ function resourcePayments(seat, cost) {
  */
 export function payments(state, player, cost) {
 	const seat = playerSeat(state, player);
+	if (seat.vp < (cost.vp ?? 0)) {
+		return [];
+	}
 	/** @type {Payment[]} */
 	let found = resourcePayments(seat, cost);
+	if (cost.vp) {
+		found = found.map((payment) => ({ ...payment, vp: cost.vp }));
+	}
 	for (const kind of DISCARDS) {
 		const count = cost[kind];
 		if (!count) {
@@ -148,6 +155,9 @@ export function payments(state, player, cost) {
  */
 export function canPay(state, player, cost) {
 	const seat = playerSeat(state, player);
+	if (seat.vp < (cost.vp ?? 0)) {
+		return false;
+	}
 	let spare = 0;
 	for (const id of RESOURCE_IDS) {
 		const after = seat.resources[id] - (cost[id] ?? 0);
@@ -181,11 +191,18 @@ export function checkPayment(state, player, cost, payment) {
 	const record = /** @type {Record<string, unknown>} */ (payment);
 	for (const key of Object.keys(record)) {
 		if (
+			key !== 'vp' &&
 			!RESOURCE_IDS.includes(/** @type {any} */ (key)) &&
 			!DISCARDS.includes(/** @type {any} */ (key))
 		) {
 			throw new PlayerError(`You can't pay with ${key}.`);
 		}
+	}
+	if ((record.vp ?? 0) !== (cost.vp ?? 0)) {
+		throw exactly;
+	}
+	if ((cost.vp ?? 0) > seat.vp) {
+		throw new PlayerError("You don't have enough VP.");
 	}
 	let total = 0;
 	for (const id of RESOURCE_IDS) {
@@ -257,6 +274,10 @@ export function pay(ctx, player, payment) {
 	}
 	if (Object.keys(paid).length > 0) {
 		emit(state, { type: 'resourcesPaid', player, paid });
+	}
+	if (payment.vp) {
+		seat.vp -= payment.vp;
+		emit(state, { type: 'vpPaid', player, vp: payment.vp, total: seat.vp });
 	}
 	const tiles = payment.territory ?? [];
 	if (tiles.length > 0) {
