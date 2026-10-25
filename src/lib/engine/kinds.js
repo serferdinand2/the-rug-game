@@ -27,6 +27,8 @@ import { chooseUpgrade } from './decisions/choose-upgrade.js';
 import { chooseTechBenefit } from './decisions/choose-tech-benefit.js';
 import { chooseLandmark } from './decisions/choose-landmark.js';
 import { chooseDiscard } from './decisions/choose-discard.js';
+import { chooseTrade } from './decisions/choose-trade.js';
+import { olympicHostEnd } from './effects/players.js';
 import { upgradeTech } from './effects/tech.js';
 import { conquerDice } from './effects/conquer.js';
 import { placeBuilding, placeLandmark } from './placing.js';
@@ -57,6 +59,7 @@ export const DECISIONS = {
 	chooseTechBenefit,
 	chooseLandmark,
 	chooseDiscard,
+	chooseTrade,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */
@@ -73,4 +76,5 @@ export const AUTOMATIC = {
 	placeLandmark,
 	conquerDice,
 	upgradeTech,
+	olympicHostEnd,
 };

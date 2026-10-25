@@ -327,3 +327,170 @@ test('chooseLandmark and chooseDiscard refuse an answer that was not offered', (
 		/Discard a tapestry card from your hand, or stop\./
 	);
 });
+
+test('Guilds trades VP for resources or resources for VP, and offers only what the player can pay', () => {
+	const { state, random } = game();
+	const seat = state.seats[0];
+	seat.vp = 7;
+	seat.resources = { coin: 0, worker: 0, food: 0, culture: 0 };
+	let next = resolveTapestry(state, random, 1, 'guilds');
+	const trade = /** @type {any} */ (open(next, 'chooseTrade'));
+	assert.equal(trade.offers.length, 6);
+	assert.equal(trade.optional, false);
+	const answers = DECISIONS.chooseTrade.answers(next, trade);
+	assert.deepEqual(
+		answers.map((a) => a.offer),
+		[0]
+	);
+	assert.ok(answers.every((a) => a.pay.vp === 5));
+	assert.throws(
+		() =>
+			answer(next, random, 1, 'chooseTrade', {
+				offer: 1,
+				pay: { vp: 10 },
+			}),
+		/Choose one of the trades offered\./
+	);
+	assert.throws(
+		() => answer(next, random, 1, 'chooseTrade', { offer: null }),
+		/Choose one of the trades offered\./
+	);
+	next = answer(next, random, 1, 'chooseTrade', {
+		offer: 0,
+		pay: { vp: 5 },
+	});
+	next = answer(next, random, 1, 'chooseResource', {
+		resources: { food: 1 },
+	});
+	assert.equal(next.seats[0].vp, 2);
+	assert.equal(next.seats[0].resources.food, 1);
+	assert.equal(eventsOf(next, 'tradeMade')[0].offer, 0);
+
+	const rich = game();
+	rich.state.seats[0].vp = 0;
+	rich.state.seats[0].resources = { coin: 2, worker: 0, food: 0, culture: 0 };
+	let sold = resolveTapestry(rich.state, rich.random, 1, 'guilds');
+	assert.throws(
+		() =>
+			answer(sold, rich.random, 1, 'chooseTrade', {
+				offer: 3,
+				pay: { coin: 2 },
+			}),
+		/Pay exactly the cost\./
+	);
+	sold = answer(sold, rich.random, 1, 'chooseTrade', {
+		offer: 4,
+		pay: { coin: 2 },
+	});
+	assert.equal(sold.seats[0].vp, 10);
+	assert.equal(sold.seats[0].resources.coin, 0);
+});
+
+test('Guilds with nothing affordable does nothing', () => {
+	const { state, random } = game();
+	state.seats[0].vp = 0;
+	state.seats[0].resources = { coin: 0, worker: 0, food: 0, culture: 0 };
+	const next = resolveTapestry(state, random, 1, 'guilds');
+	assert.equal(questions(next).length, 0);
+	assert.equal(eventsOf(next, 'noTrade')[0].player, 1);
+	assert.equal(eventsOf(next, 'tradeMade').length, 0);
+});
+
+/** @param {any} state @param {number[]} workers - Workers each seat holds */
+function withWorkers(state, workers) {
+	workers.forEach((n, i) => {
+		state.seats[i].resources = { coin: 0, worker: n, food: 0, culture: 0 };
+	});
+}
+
+test('Olympic Host asks each player with a worker in turn, the host first', () => {
+	const { state, random } = game(3);
+	withWorkers(state, [1, 0, 1]);
+	let next = resolveTapestry(state, random, 1, 'olympic-host');
+	let trade = /** @type {any} */ (open(next, 'chooseTrade'));
+	assert.equal(trade.player, 1);
+	assert.equal(trade.host, 1);
+	assert.equal(trade.optional, true);
+	assert.deepEqual(trade.offers, [
+		{ pay: { worker: 1 }, gain: [{ vp: 10 }] },
+	]);
+	next = answer(next, random, 1, 'chooseTrade', {
+		offer: 0,
+		pay: { worker: 1 },
+	});
+	assert.equal(next.seats[0].vp, 10);
+	// Seat 2 has no worker, so only seat 3 is asked.
+	trade = /** @type {any} */ (open(next, 'chooseTrade'));
+	assert.equal(trade.player, 3);
+	assert.equal(eventsOf(next, 'noTrade')[0].player, 2);
+});
+
+test('Olympic Host gives a building when an opponent paid, and a coin when none did', () => {
+	const paid = game();
+	withWorkers(paid.state, [0, 1]);
+	paid.state.seats[0].incomeMat.buildings = {
+		market: 0,
+		house: 0,
+		farm: 1,
+		armory: 0,
+	};
+	let next = resolveTapestry(paid.state, paid.random, 1, 'olympic-host');
+	next = answer(next, paid.random, 2, 'chooseTrade', {
+		offer: 0,
+		pay: { worker: 1 },
+	});
+	assert.equal(next.seats[1].vp, 10);
+	assert.equal(next.seats[0].vp, 0);
+	assert.equal(eventsOf(next, 'buildingGained')[0].building, 'farm');
+	assert.equal(next.seats[0].resources.coin, 0);
+
+	const declined = game();
+	withWorkers(declined.state, [1, 1]);
+	next = resolveTapestry(declined.state, declined.random, 1, 'olympic-host');
+	next = answer(next, declined.random, 1, 'chooseTrade', { offer: null });
+	next = answer(next, declined.random, 2, 'chooseTrade', { offer: null });
+	assert.equal(eventsOf(next, 'buildingGained').length, 0);
+	assert.equal(next.seats[0].resources.coin, 1);
+
+	// Only the host paying does not count as an opponent paying.
+	const hostOnly = game();
+	withWorkers(hostOnly.state, [1, 0]);
+	next = resolveTapestry(hostOnly.state, hostOnly.random, 1, 'olympic-host');
+	next = answer(next, hostOnly.random, 1, 'chooseTrade', {
+		offer: 0,
+		pay: { worker: 1 },
+	});
+	assert.equal(next.seats[0].resources.coin, 1);
+	assert.equal(eventsOf(next, 'buildingGained').length, 0);
+});
+
+test('Olympic Host gives a coin when an opponent paid but no building is left', () => {
+	const { state, random } = game();
+	withWorkers(state, [0, 1]);
+	state.seats[0].incomeMat.buildings = {
+		market: 0,
+		house: 0,
+		farm: 0,
+		armory: 0,
+	};
+	let next = resolveTapestry(state, random, 1, 'olympic-host');
+	next = answer(next, random, 2, 'chooseTrade', {
+		offer: 0,
+		pay: { worker: 1 },
+	});
+	assert.equal(next.seats[0].resources.coin, 1);
+	assert.equal(eventsOf(next, 'noBuildingLeft').length, 0);
+});
+
+test('Olympic Host skips finished players', () => {
+	const { state, random } = game(3);
+	withWorkers(state, [1, 1, 1]);
+	state.seats[1].finished = true;
+	let next = resolveTapestry(state, random, 1, 'olympic-host');
+	next = answer(next, random, 1, 'chooseTrade', { offer: null });
+	const trade = /** @type {any} */ (open(next, 'chooseTrade'));
+	assert.equal(trade.player, 3);
+	next = answer(next, random, 3, 'chooseTrade', { offer: null });
+	assert.equal(questions(next).length, 0);
+	assert.equal(next.seats[1].resources.worker, 1);
+});

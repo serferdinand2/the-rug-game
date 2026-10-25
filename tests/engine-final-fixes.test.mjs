@@ -305,6 +305,12 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: ['lighthouse', 'academy'],
 		},
 		chooseDiscard: { player: 1, kind: 'chooseDiscard', vpEach: 2 },
+		chooseTrade: {
+			player: 1,
+			kind: 'chooseTrade',
+			offers: [{ pay: {}, gain: [{ vp: 1 }] }],
+			optional: true,
+		},
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

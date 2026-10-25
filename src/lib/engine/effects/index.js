@@ -13,7 +13,7 @@ import { explore, exploreSpace } from './explore.js';
 import { conquer, tileBenefit } from './conquer.js';
 import { invent, upgrade, techBenefit, landmark } from './tech.js';
 import { tapestryOnTop, discardTapestry } from './tapestry.js';
-import { others } from './players.js';
+import { others, trade, olympicHost } from './players.js';
 import {
 	anyBuilding,
 	trackLandmark,
@@ -45,6 +45,8 @@ export const EFFECTS = {
 	tapestryOnTop,
 	discardTapestry,
 	others,
+	trade,
+	olympicHost,
 	anyBuilding,
 	trackLandmark,
 	landmarkRank,

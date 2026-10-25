@@ -60,7 +60,6 @@ const HANDOFF_EFFECTS = [
 	'eraPartner',
 	'copyTapestry',
 	'sharedAdvance',
-	'trade',
 	'placeOutpost',
 	'darkAges',
 	'socialism',
@@ -69,7 +68,6 @@ const HANDOFF_EFFECTS = [
 	'colonialism',
 	'tradeEconomy',
 	'coalBaron',
-	'olympicHost',
 ];
 
 /** Operations #15 pushes for a later issue: civilization abilities (#20). */

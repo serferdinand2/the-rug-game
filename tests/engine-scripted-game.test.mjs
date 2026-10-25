@@ -118,11 +118,12 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 			{ track: 'military', from: 3, pay: { coin: 1, culture: 1 } },
 		],
 		[O, 'choosePlacement', firstPlot],
-		// 13. F, income turn 4: Theocracy ends first; first into era 4 (O is on 2), so 3 coins to 8; F plays Guilds (its trade is
-		//     stood in for); income coin is lost at the cap. F = (8, 3, 7, 4), 5 tiles, 1 card.
+		// 13. F, income turn 4: Theocracy ends first; first into era 4 (O is on 2), so 3 coins to 8; F plays Guilds and buys 5 VP for 1 coin
+		//     (7 coin left); the income's coin refills it to the cap. F = (8, 3, 7, 4), 5 tiles, 1 card, 9 VP.
 		[F, 'chooseTurn', INCOME],
 		[F, 'chooseResource', { resources: { coin: 3 } }],
 		[F, 'chooseTapestry', firstCard],
+		[F, 'chooseTrade', { offer: 3, pay: { coin: 1 } }],
 		// 14. O, income turn 3: no bonus; O plays a trap, 10 VP (R22); Team Sports 2 VP.
 		//     O = (1, 3, 2, 4), 3 tiles, 2 cards, 24 VP.
 		[O, 'chooseTurn', INCOME],
@@ -181,7 +182,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 	assert.deepEqual(openDecisions(state), []);
 	assert.deepEqual(
 		[f.vp, f.resources, f.territoryTiles.length, f.hand.length],
-		[4, { coin: 8, worker: 3, food: 7, culture: 4 }, 5, 1]
+		[9, { coin: 8, worker: 3, food: 7, culture: 4 }, 5, 1]
 	);
 	assert.deepEqual(
 		[o.vp, o.resources, o.territoryTiles.length, o.hand.length],
@@ -220,7 +221,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 	assert.deepEqual(state.result, {
 		ranking: [
 			{ seat: O, place: 1, vp: 38 },
-			{ seat: F, place: 2, vp: 4 },
+			{ seat: F, place: 2, vp: 9 },
 		],
 		ties: [],
 	});
