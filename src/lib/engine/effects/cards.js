@@ -14,6 +14,7 @@ import {
 } from '../movement.js';
 import { askTrack } from '../decisions/choose-track.js';
 import { askHex } from '../decisions/choose-hex.js';
+import { takeOutpost } from '../outposts.js';
 import { BUILDING_IDS, TRACK_IDS } from '../data/ids.js';
 import { LANDMARKS } from '../data/landmarks.js';
 import { MAPS } from '../data/maps.js';
@@ -121,9 +122,9 @@ export function trackLandmark(ctx, player) {
  * @type {import('../state.js').EffectHandler}
  */
 export function landmarkRank(ctx, player, value) {
-	const mine = landmarksOwned(playerSeat(ctx.state, player)).length;
+	const mine = landmarksOwned(ctx.state, player).length;
 	const theirs = opponents(ctx.state, player).map(
-		(other) => landmarksOwned(playerSeat(ctx.state, other)).length
+		(other) => landmarksOwned(ctx.state, other).length
 	);
 	let list = value.otherwise;
 	if (theirs.length > 0 && theirs.every((count) => mine < count)) {
@@ -454,14 +455,16 @@ export function colonize(ctx, op) {
 }
 
 /**
- * The hexes holding a player's toppled outposts, in map order.
+ * The hexes holding a player's toppled outposts, in map order. A toppled Nomads piece is no outpost (#20 design §8).
  * @param {import('../state.js').State} state
  * @param {number} player
  * @returns {string[]}
  */
 function toppledHexes(state, player) {
 	return MAPS[state.map].hexes.filter((hex) =>
-		state.hexes[hex].outposts.some((o) => o.seat === player && o.toppled)
+		state.hexes[hex].outposts.some(
+			(o) => o.seat === player && o.toppled && !o.piece
+		)
 	);
 }
 
@@ -479,8 +482,9 @@ export function revolution(ctx, player) {
 
 /**
  * Revolution on one territory: the player's outposts there stand up and every upright opponent outpost topples,
- * toppled by the player. Not a conquest, so no dice and no middle island; "topple two" is checked (design §9).
- * Then, while `left` allows, the player may pick another.
+ * toppled by the player. Nomads pieces are no outposts, so none stands up or topples (#20 design §8).
+ * Not a conquest, so no dice and no middle island; "topple two" is checked (design §9).
+ * The `countsChanged` triggers follow, then, while `left` allows, the player may pick another.
  * @type {import('../state.js').AutomaticKind}
  */
 export function revolt(ctx, op) {
@@ -488,6 +492,9 @@ export function revolt(ctx, op) {
 	const player = /** @type {number} */ (op.player);
 	const hex = /** @type {string} */ (op.hex);
 	for (const outpost of state.hexes[hex].outposts) {
+		if (outpost.piece) {
+			continue;
+		}
 		if (outpost.seat === player && outpost.toppled) {
 			outpost.toppled = false;
 			delete outpost.toppledBy;
@@ -510,20 +517,22 @@ export function revolt(ctx, op) {
 			left: op.left - 1,
 		});
 	}
+	// On top of the next pick, so each territory is a check point of its own (#20 design §7, Mystics).
+	ctx.push(triggered(state, 'countsChanged', { player }));
 }
 
 /**
  * Puts an outpost from the supply on a hex, upright (Militarism). Not a conquest: no dice, no response, no achievement.
+ * The `countsChanged` triggers follow (#20 design §7, Mystics).
  * @type {import('../state.js').EffectHandler}
  */
 export function placeOutpost(ctx, player, value) {
 	const { state } = ctx;
-	const seat = playerSeat(state, player);
-	if (seat.outposts === 0) {
+	if (playerSeat(state, player).outposts === 0) {
 		emit(state, { type: 'noOutpost', player });
 		return;
 	}
-	seat.outposts -= 1;
+	takeOutpost(ctx, player);
 	state.hexes[value.hex].outposts.push({ seat: player, toppled: false });
 	emit(state, {
 		type: 'outpostPlaced',
@@ -531,4 +540,5 @@ export function placeOutpost(ctx, player, value) {
 		hex: value.hex,
 		militarism: true,
 	});
+	ctx.push(triggered(state, 'countsChanged', { player }));
 }

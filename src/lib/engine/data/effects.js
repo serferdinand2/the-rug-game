@@ -40,7 +40,7 @@ import { deepFreeze } from './ids.js';
  * - `tapestryCard`: tapestry cards in your hand and on your income mat, covered ones included;
  * - `trackSpace`: spaces you have advanced on the effect's `track`;
  * - `trackLead`: tracks where no other seat is further ahead than you, ties included;
- * - `landmark`: landmarks you own, in the capital or beside the mat (R71);
+ * - `landmark`: landmarks you own, in the capital, beside the mat or on the map (R71);
  * - `opponent`: the other seats;
  * - an income building: the buildings of that type you own, beside the mat too (01 §6.1).
  * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId} VpCounter
@@ -57,7 +57,7 @@ import { deepFreeze } from './ids.js';
 /**
  * One effect: an object with exactly one key, its kind.
  * - `gain`: gain resources, tiles or cards.
- * - `lose`: lose culture, as much as you have, then `any` resources of your choice among those you hold.
+ * - `lose`: lose up to `culture` culture, as much as is held, then `any` resources of your choice among those you hold.
  * - `building`: take the leftmost income building of that type from the income mat and place it in the capital city.
  * - `landmark`: place that landmark (a tech card's square) in the capital city.
  * - `vp`: gain that many VP, or VP per thing counted.
@@ -65,7 +65,7 @@ import { deepFreeze } from './ids.js';
  * - `exploreSpace`: explore a space tile from the supply; `fromGained` limits it to the tiles this benefit just gained (R105).
  * - `conquer`: conquer; `anywhere` drops adjacency; `bothDice` gives both dice always, or only if an opponent controlled the territory (R17).
  * - `research`: roll the science die and you may advance on that track; `noBenefit` is the X.
- * - `advance`: advance 1 space on one of the listed tracks, with its benefit and optional bonus; `noBenefit` is the X; `optional` lets the player decline; `freeBonus` lets them take the bonus of the space reached without paying.
+ * - `advance`: advance 1 space on one of the listed tracks, with its benefit and optional bonus; `noBenefit` is the X; `optional` lets the player decline; `freeBonus` lets them take the bonus of the space reached without paying; `noBonus` gives the benefit without the bonus; `offTrackVp` gives that many VP instead when every token on the listed tracks is on space 12.
  * - `regress`: go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus; `noBenefit` is the X.
  * - `repeat`: gain the benefit of your current space on any track, and you may pay its bonus; `oncePerTurn` limits it to once a turn (FAQ #6).
  * - `invent`: gain tech cards one at a time; `refresh` lets you first replace the 3 face-up cards; `faceUpOnly` and `deckOnly` limit where the card comes from; `thenUpgrade` upgrades a card after.
@@ -97,7 +97,7 @@ import { deepFreeze } from './ids.js';
  *   | { exploreSpace: { fromGained?: boolean } }
  *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent' } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
- *   | { advance: { tracks: TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean } }
+ *   | { advance: { tracks: TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean, noBonus?: boolean, offTrackVp?: number } }
  *   | { regress: { tracks: TrackId[], noBenefit?: boolean } }
  *   | { repeat: { oncePerTurn?: boolean } }
  *   | { invent: { count?: number, refresh?: boolean, faceUpOnly?: boolean, deckOnly?: boolean, thenUpgrade?: boolean } }

@@ -83,9 +83,10 @@ export function benefitOps(state, player, track, space) {
  * @param {number} player
  * @param {TrackId} track
  * @param {number} space
+ * @param {boolean} [bonus] - False leaves out the bonus (Leaders)
  * @returns {import('./state.js').NewOperation[]}
  */
-export function activationOps(ctx, player, track, space) {
+export function activationOps(ctx, player, track, space, bonus = true) {
 	const { state } = ctx;
 	if (space === 0 || isActivated(state, player, track, space)) {
 		return [];
@@ -93,7 +94,7 @@ export function activationOps(ctx, player, track, space) {
 	state.activated.push({ player, track, space });
 	emit(state, { type: 'spaceActivated', player, track, space });
 	const ops = benefitOps(state, player, track, space);
-	if (TRACKS[track][space].bonus) {
+	if (bonus && TRACKS[track][space].bonus) {
 		ops.push({ player, kind: 'bonus', track, space });
 	}
 	return ops;
@@ -105,15 +106,26 @@ export function activationOps(ctx, player, track, space) {
  * moving back gains none. Without `benefit` (the X), the landmarks are still gained.
  * Each landmark's triggers follow its placement, and a forward move's triggers come before the benefit (design §6).
  * With `freeBonus` and no benefit (Renaissance), the bonus of the space reached is offered for free, unless the
- * player already activated that space this turn; offering it activates the space (R19).
+ * player already activated that space this turn; offering it activates the space (R19). With `noBonus` (Leaders),
+ * the benefit comes without the bonus.
+ * A `jump` (Futurists) gains no landmark (R9's exception), no benefit and no bonus, and fires no `advanced` trigger (#20 design §7).
+ * Reaching space 12 claims "complete any track" all the same, and pushes the `countsChanged` triggers last.
  * @param {import('./state.js').Context} ctx
  * @param {number} player
- * @param {{ track: TrackId, from: number, to: number, benefit: boolean, freeBonus?: boolean }} move
+ * @param {{ track: TrackId, from: number, to: number, benefit: boolean, freeBonus?: boolean, noBonus?: boolean, jump?: boolean }} move
  */
 export function moveToken(
 	ctx,
 	player,
-	{ track, from, to, benefit, freeBonus = false }
+	{
+		track,
+		from,
+		to,
+		benefit,
+		freeBonus = false,
+		noBonus = false,
+		jump = false,
+	}
 ) {
 	const { state } = ctx;
 	const tokens = seatOf(state, player).tracks[track];
@@ -126,6 +138,37 @@ export function moveToken(
 	if (to === LAST_SPACE) {
 		claimAchievement(ctx, player, 'complete-track');
 	}
+	/** @type {import('./state.js').NewOperation[]} */
+	const ops = jump
+		? []
+		: arrivalOps(ctx, player, {
+				track,
+				from,
+				to,
+				benefit,
+				freeBonus,
+				noBonus,
+			});
+	if (to === LAST_SPACE) {
+		ops.push(...triggered(state, 'countsChanged', { player }));
+	}
+	ctx.push(ops);
+}
+
+/**
+ * What a move that isn't a jump gives, in order: the landmarks reached or passed with their triggers, the
+ * `advanced` triggers, then the benefit and bonus.
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {{ track: TrackId, from: number, to: number, benefit: boolean, freeBonus: boolean, noBonus: boolean }} move
+ * @returns {import('./state.js').NewOperation[]}
+ */
+function arrivalOps(
+	ctx,
+	player,
+	{ track, from, to, benefit, freeBonus, noBonus }
+) {
+	const { state } = ctx;
 	/** @type {import('./state.js').NewOperation[]} */
 	const ops = [];
 	// Landmark spaces reached or passed whose landmark someone already owned (Revisionism).
@@ -162,7 +205,7 @@ export function moveToken(
 		);
 	}
 	if (benefit) {
-		ops.push(...activationOps(ctx, player, track, to));
+		ops.push(...activationOps(ctx, player, track, to, !noBonus));
 	} else if (
 		freeBonus &&
 		TRACKS[track][to].bonus &&
@@ -171,5 +214,5 @@ export function moveToken(
 		state.activated.push({ player, track, space: to });
 		ops.push({ player, kind: 'bonus', track, space: to, free: true });
 	}
-	ctx.push(ops);
+	return ops;
 }

@@ -4,13 +4,15 @@ import { playerSeat, isPlayerSeat } from '../state.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { RED_DIE, BLACK_DIE } from '../data/dice.js';
 import { claimAchievement, checkToppleTwo } from '../achievements.js';
-import { hasEra } from '../abilities.js';
+import { hasEra, triggered } from '../abilities.js';
 import { MAPS } from '../data/maps.js';
 import { conquerTargets, loneOpponent } from '../map.js';
+import { takeOutpost } from '../outposts.js';
 
 /**
- * Conquers a hex: an outpost goes on it, and an opponent's lone outpost topples. The dice follow (a defender who qualifies is asked for a response between the two).
+ * Conquers a hex: an outpost goes on it, and an opponent's lone outpost or Nomads piece topples. The dice follow (a defender who qualifies is asked for a response between the two).
  * Against an opponent, Pillage and Plunder asks no response and gives both dice (design §8).
+ * The `outpostTaken` triggers wait below the conquest, so they come after it.
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {string} hex
@@ -26,7 +28,7 @@ export function conquerHex(ctx, player, hex, bothDice) {
 		plunder ||
 		bothDice === 'always' ||
 		(bothDice === 'ifOpponent' && opponent !== null);
-	playerSeat(state, player).outposts -= 1;
+	takeOutpost(ctx, player);
 	state.hexes[hex].outposts.push({ seat: player, toppled: false });
 	emit(state, { type: 'outpostPlaced', player, hex });
 	if (opponent !== null) {
@@ -108,6 +110,7 @@ export function conquer(ctx, player, value) {
 /**
  * The automatic operation after a conquest: roll both dice, then give both faces (black first) or let the player pick one (01 §7.3).
  * The dice always roll, even after a trap. Pirate Rule then gives the tile's benefit, also after a trap (design §8).
+ * The conquest is over, so the `countsChanged` triggers follow, once (#20 design §7, Mystics).
  * @type {import('../state.js').AutomaticKind}
  */
 export function conquerDice(ctx, op) {
@@ -134,6 +137,8 @@ export function conquerDice(ctx, op) {
 	for (const seat of [player, ...others]) {
 		checkToppleTwo(ctx, seat);
 	}
+	// Pushed below the dice and Pirate Rule, which are the conquest's own reward.
+	const counts = triggered(ctx.state, 'countsChanged', { player });
 	const red = ctx.random(6);
 	const black = ctx.random(6);
 	emit(ctx.state, { type: 'conquerDiceRolled', player, red, black });
@@ -164,10 +169,15 @@ export function conquerDice(ctx, op) {
 				source: { hex },
 			},
 			...pirate,
+			...counts,
 		]);
 		return;
 	}
-	ctx.push([{ player, kind: 'chooseDie', hex, red, black }, ...pirate]);
+	ctx.push([
+		{ player, kind: 'chooseDie', hex, red, black },
+		...pirate,
+		...counts,
+	]);
 }
 
 /**

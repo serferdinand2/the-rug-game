@@ -90,8 +90,9 @@ export function exploreHexes(state, player, anywhere) {
 }
 
 /**
- * The hexes a player may conquer, in map order (R16): explored, at most 1 outpost, not already controlled by
- * the player or an ally (Alliance), and next to a territory they control unless `anywhere`.
+ * The hexes a player may conquer, in map order (R16): explored, at most 1 item (an outpost, a Nomads piece or a
+ * civilization token; #20 design §8), not already controlled by the player or an ally (Alliance), and next to a
+ * territory they control unless `anywhere`.
  * @param {import('./state.js').State} state
  * @param {number} player
  * @param {boolean} anywhere
@@ -107,7 +108,7 @@ export function conquerTargets(state, player, anywhere) {
 	return MAPS[state.map].hexes.filter(
 		(hex) =>
 			state.hexes[hex].tile !== null &&
-			state.hexes[hex].outposts.length <= 1 &&
+			itemCount(state, hex) <= 1 &&
 			!owned.has(hex) &&
 			!allied.has(hex) &&
 			(anywhere || touches(hex, owned))
@@ -115,15 +116,27 @@ export function conquerTargets(state, player, anywhere) {
 }
 
 /**
- * The seat of a lone upright outpost of another seat, when it is the only outpost on the hex.
+ * How many items a hex holds: its outposts, Nomads pieces included, and its civilization tokens (#20 design §8).
+ * @param {import('./state.js').State} state
+ * @param {string} hex
+ * @returns {number}
+ */
+export function itemCount(state, hex) {
+	const { outposts, tokens } = state.hexes[hex];
+	return outposts.length + tokens.length;
+}
+
+/**
+ * The seat of another seat's upright outpost or Nomads piece, when it is the only item on the hex. A token gives no
+ * control, so a hex holding only a token has no opponent to topple (R33).
  * @param {import('./state.js').State} state
  * @param {string} hex
  * @param {number} player
  * @returns {number | null}
  */
 export function loneOpponent(state, hex, player) {
-	const outposts = state.hexes[hex].outposts;
-	if (outposts.length !== 1) {
+	const { outposts, tokens } = state.hexes[hex];
+	if (outposts.length !== 1 || tokens.length > 0) {
 		return null;
 	}
 	const [only] = outposts;

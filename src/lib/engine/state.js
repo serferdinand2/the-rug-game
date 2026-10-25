@@ -5,8 +5,19 @@
 /** @typedef {import('./data/ids.js').ResourceId} ResourceId */
 /** @typedef {import('./data/ids.js').BuildingId} BuildingId */
 /** @typedef {import('./random.js').Random} Random */
-/** @typedef {{ seat: number, toppled: boolean, toppledBy?: number }} Outpost */
-/** @typedef {{ tile: number | null, orient: number, outposts: Outpost[] }} Hex */
+/**
+ * An outpost on a hex, or a Nomads piece: a building or landmark that gives control and topples like an outpost, but is
+ * never counted as one (#20 design §8).
+ * @typedef {{ seat: number, toppled: boolean, toppledBy?: number, piece?: { building: BuildingId } | { landmark: string } }} Outpost
+ */
+/**
+ * A civilization's token on a hex (Traders, Isolationists). It is an item, but gives no control (R33).
+ * @typedef {{ seat: number, civ: string }} MapToken
+ */
+/**
+ * A map hex. Its items are its outposts (pieces included) and its tokens; with more than one, nobody can conquer it.
+ * @typedef {{ tile: number | null, orient: number, outposts: Outpost[], tokens: MapToken[] }} Hex
+ */
 /**
  * A player's active THIS ERA ability (design §5).
  * @typedef {Object} Era

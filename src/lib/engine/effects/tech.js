@@ -61,7 +61,7 @@ function askInvent(ctx, player, left, refresh, options) {
 
 /**
  * Resolves one answer: a refresh, or a card into the bottom row. After a refresh the same count is asked for again.
- * After a card, its triggers resolve before the next card is asked for (design §6).
+ * After a card, its triggers, then its `countsChanged` triggers (#20 design §7), resolve before the next card is asked for (design §6).
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {{ card?: string, refresh?: true }} answer
@@ -109,6 +109,7 @@ export function inventCard(ctx, player, answer, left, options = {}) {
 	if (options.thenUpgrade) {
 		ops.push({ player, kind: 'upgradeTech', card });
 	}
+	ops.push(...triggered(ctx.state, 'countsChanged', { player }));
 	if (left > 1) {
 		ops.push({
 			player,
@@ -143,11 +144,13 @@ export function invent(ctx, player, value) {
 
 /**
  * Upgrades one card: it moves to the end of the next row, and the benefit of the icon it reaches follows.
+ * Then come the `upgraded` triggers, and last the `countsChanged` triggers (#20 design §7).
  * @param {import('../state.js').Context} ctx
- * @param {number} player
+ * @param {number} player - The card's owner
  * @param {string} card
+ * @param {number} [inventors] - The Inventors seat whose token upgrades the card, named in the `upgraded` payload (#20 design §7)
  */
-export function upgradeCard(ctx, player, card) {
+export function upgradeCard(ctx, player, card, inventors) {
 	const rows = playerSeat(ctx.state, player).tech;
 	if (!rows.bottom.includes(card) && !rows.middle.includes(card)) {
 		throw new Error(
@@ -169,7 +172,13 @@ export function upgradeCard(ctx, player, card) {
 			source: { tech: card, icon },
 		},
 		// After the card's benefit, so "after them" holds (Alliance).
-		...triggered(ctx.state, 'upgraded', { player, card, icon }),
+		...triggered(ctx.state, 'upgraded', {
+			player,
+			card,
+			icon,
+			...(inventors !== undefined && { inventors }),
+		}),
+		...triggered(ctx.state, 'countsChanged', { player }),
 	]);
 }
 

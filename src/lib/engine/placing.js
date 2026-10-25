@@ -30,8 +30,9 @@ function impassableCovered(seat, piece) {
 }
 
 /**
- * Places a piece on the capital city. Each district it completes pays 1 resource of the player's choice,
- * and the piece's triggers follow.
+ * Places a piece on the capital city. Each district it completes pays 1 resource of the player's choice, and the
+ * `districtsCompleted` triggers follow that reward. Then come the piece's triggers, and last the `countsChanged`
+ * triggers (#20 design §7, §9).
  * @param {import('./state.js').Context} ctx
  * @param {number} player
  * @param {import('./city.js').PlacedBuilding | import('./city.js').PlacedLandmark} piece
@@ -78,11 +79,17 @@ export function placePiece(ctx, player, piece, automatic) {
 	const ops = [];
 	if (districts.length > 0) {
 		emit(ctx.state, { type: 'districtsCompleted', player, districts });
-		ops.push({
-			player,
-			kind: 'effects',
-			effects: [{ gain: { any: districts.length } }],
-		});
+		ops.push(
+			{
+				player,
+				kind: 'effects',
+				effects: [{ gain: { any: districts.length } }],
+			},
+			...triggered(ctx.state, 'districtsCompleted', {
+				player,
+				districts,
+			})
+		);
 	}
 	const impassable = impassableCovered(seat, piece);
 	ops.push(
@@ -92,7 +99,8 @@ export function placePiece(ctx, player, piece, automatic) {
 			'building' in piece
 				? { player, building: piece.building, impassable }
 				: { player, landmark: piece.landmark, impassable }
-		)
+		),
+		...triggered(ctx.state, 'countsChanged', { player })
 	);
 	ctx.push(ops);
 }

@@ -92,6 +92,9 @@ export function startedGame(count, { civs, ...options } = {}) {
 	const state = answerSetup(dealt, random);
 	if (!civs) {
 		for (const seat of state.seats) {
+			if (seat.kind !== 'player') {
+				continue;
+			}
 			const player = /** @type {any} */ (seat);
 			state.supply.civs.push(...player.civs);
 			player.civs = [];

@@ -2,6 +2,7 @@
 import { PlayerError } from '../errors.js';
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
+import { triggered } from '../abilities.js';
 import { responseCards } from '../effects/conquer.js';
 
 /** @type {import('../state.js').DecisionKind} */
@@ -62,9 +63,11 @@ export const chooseResponse = {
 				});
 			}
 		}
-		// R21: the trapper gains 1 resource of their choice.
+		// R21: the trapper gains 1 resource of their choice. The trap changed who controls the territory, so the
+		// trapper's `countsChanged` triggers follow (#20 design §7, Mystics).
 		ctx.push([
 			{ player, kind: 'effects', effects: [{ gain: { any: 1 } }] },
+			...triggered(state, 'countsChanged', { player }),
 		]);
 	},
 };

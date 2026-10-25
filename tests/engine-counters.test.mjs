@@ -198,7 +198,7 @@ test('landmark counts landmarks in the capital and beside the mat, not buildings
 	});
 	assert.equal(vpFor(state, random, { per: 'landmark' }), 3);
 	assert.equal(vpFor(state, random, { per: 'landmark', each: 3 }), 9);
-	assert.deepEqual(landmarksOwned(/** @type {any} */ (state.seats[0])), [
+	assert.deepEqual(landmarksOwned(state, 1), [
 		'lighthouse',
 		'apothecary',
 		'train-station',

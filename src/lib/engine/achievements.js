@@ -36,7 +36,7 @@ export function claimAchievement(ctx, player, id) {
 }
 
 /**
- * How many outposts a player has toppled that are still toppled.
+ * How many outposts a player has toppled that are still toppled. A toppled Nomads piece is no outpost (#20 design §8).
  * @param {import('./state.js').State} state
  * @param {number} player
  * @returns {number}
@@ -45,7 +45,11 @@ export function toppledBy(state, player) {
 	let count = 0;
 	for (const hex of Object.values(state.hexes)) {
 		for (const outpost of hex.outposts) {
-			if (outpost.toppled && outpost.toppledBy === player) {
+			if (
+				outpost.toppled &&
+				outpost.toppledBy === player &&
+				!outpost.piece
+			) {
 				count += 1;
 			}
 		}

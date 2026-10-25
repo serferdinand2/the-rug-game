@@ -47,6 +47,7 @@ export const chooseMove = {
 			to: answer.to ?? answer.from + step,
 			benefit: decision.benefit,
 			freeBonus: decision.freeBonus ?? false,
+			noBonus: decision.noBonus ?? false,
 		});
 	},
 };

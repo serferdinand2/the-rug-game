@@ -225,6 +225,7 @@ export function createGame({ players, version, expansions = [], random }) {
 					tile: printed ? printed.tile : null,
 					orient: printed ? printed.orient : 0,
 					outposts: [],
+					tokens: [],
 				},
 			];
 		})

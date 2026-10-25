@@ -62,6 +62,7 @@ function busyGame(card) {
 		tile: state.supply.territory.shift(),
 		orient: 0,
 		outposts: [{ seat: 1, toppled: false }],
+		tokens: [],
 	};
 	me.outposts -= 1;
 	me.incomeTurns = 2;

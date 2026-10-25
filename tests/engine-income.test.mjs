@@ -71,7 +71,7 @@ test('income turn 1 gains the income of every space 1: coin, worker, food and a 
 	);
 });
 
-test('income turns 2–5 run the civilization abilities, then offer an optional upgrade', () => {
+test('on income turns 2–5 step 1 has nothing to run without a civilization, then an optional upgrade is offered', () => {
 	const r = incomeAfter(1, (seat) => {
 		seat.tech.bottom = ['calendar'];
 	});

@@ -58,8 +58,9 @@ export const ERA_HOOKS = {
 		},
 	},
 	'golden-age': {
-		upgraded: (_state, owner, { player }) =>
-			owner === player ? [vp(owner, 3)] : [],
+		// An Inventors token's upgrade isn't the holder's own (BGA, #20 design §7).
+		upgraded: (_state, owner, { player, inventors }) =>
+			owner === player && inventors === undefined ? [vp(owner, 3)] : [],
 	},
 	'broker-of-peace': {
 		advanced: (_state, owner, { player, track }) =>

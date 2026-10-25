@@ -36,7 +36,7 @@ function loseAny(ctx, player, left) {
 }
 
 /**
- * Loses culture, as much of it as the player has (with none, none is lost: my call), then `any` resources one at a time.
+ * Loses up to `culture` culture, as much as is held (with none, none is lost: my call), then `any` resources one at a time.
  * @type {import('../state.js').EffectHandler}
  */
 export function lose(ctx, player, value) {
