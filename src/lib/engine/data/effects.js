@@ -80,7 +80,7 @@ import { deepFreeze } from './ids.js';
  * - `copyTapestry`: copy the ability of a visible tapestry card.
  * - `sharedAdvance`: advance with the benefit on a rolled or chosen track, and the others advance on it without the benefit.
  * - `others`: each listed player runs `effects` as their own operation, neighbours or everyone.
- * - `trade`: pay one offer's cost for its gain.
+ * - `trade`: pay one offer's cost for its gain; `host` is the seat hosting it (Olympic Host).
  * - `discardTapestry`: discard any number of hand cards for `vpEach` VP each.
  * - `anyBuilding`: gain one income building of your choice.
  * - `trackLandmark`: gain and place any track landmark nobody owns.
@@ -111,7 +111,7 @@ import { deepFreeze } from './ids.js';
  *   | { copyTapestry: {} }
  *   | { sharedAdvance: { track: 'roll' | 'choose', others: 'opponents' | 'neighbours', optional?: boolean } }
  *   | { others: { who: 'neighbours' | 'all', effects: Effect[] } }
- *   | { trade: { offers: { pay: Cost, gain: Effect[] }[], optional?: boolean, host?: boolean } }
+ *   | { trade: { offers: { pay: Cost, gain: Effect[] }[], optional?: boolean, host?: number } }
  *   | { discardTapestry: { vpEach: number } }
  *   | { anyBuilding: {} }
  *   | { trackLandmark: {} }

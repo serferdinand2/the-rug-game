@@ -12,7 +12,9 @@ export const chooseCopy = {
 	},
 	check(state, decision, answer) {
 		if (!offered(decision, answer)) {
-			throw new PlayerError('Choose one of the tapestry cards you can copy.');
+			throw new PlayerError(
+				'Choose one of the tapestry cards you can copy.'
+			);
 		}
 	},
 	resolve(ctx, decision, answer) {

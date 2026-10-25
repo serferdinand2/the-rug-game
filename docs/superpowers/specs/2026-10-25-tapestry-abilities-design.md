@@ -205,11 +205,12 @@ WHEN PLAYED cards first, then THIS ERA. Each line is the whole rule; "BGA" marks
 - `research`: `rollScience(ctx, player, next)` rolls once, or twice with Empiricism (asking with `chooseRoll` when the faces differ), then pushes `next` with the track. Research and Age of Discovery use it. A roll whose track is blocked gives nothing, not Alien Biology's VP. **(my call)**
 - `moveToken`: claims "complete any track", fires `advanced` and `landmarkGained`, and with `freeBonus` offers the bonus free.
 - `activationOps`: fires `benefitGained` after the benefit, before the bonus.
-- `offerBonus`: `free` (Renaissance, Trade Economy's owner, Wartime Economy) offers the bonus with an empty cost.
-- `chooseMove`: an option may carry `to` (Socialism's jump).
+- `bonus` operations gain `free`: `offerBonus` then offers the bonus with an empty cost (Renaissance, Trade Economy's owner), as it does under Wartime Economy. `offerBonus` offers nothing to a finished player, since Trade Economy's owner bonus is a bare `bonus` operation that `runEffects` can't skip (01 §4.3).
+- `chooseMove`: `direction: 'jump'`, whose options carry `to` (Socialism), and `freeBonus` (Renaissance).
+- `advances` leaves out blocked tracks, and `chooseAdvance.check` refuses one with "You can't advance on that track now."
 - `explore`: Age of Sail, Exploitation, Militarism and `tile`. `spaceTileOptions` also accepts `benefitCopied` as the start of a benefit (Marriage of State copying Interstellar Travel).
 - `conquerHex` and `conquerDice`: Pillage and Plunder, Pirate Rule, the achievements. `conquerTargets`: allies.
-- `inventCard`: `faceUpOnly`, `deckOnly`, `thenUpgrade` (an automatic `upgradeCard { player, card }`), and `invented`. The next card of a multi-card invent waits under the triggers, as an `invent` effect.
+- `inventCard`: `faceUpOnly`, `deckOnly`, `thenUpgrade` (an automatic `upgradeCard { player, card }`), and `invented`. The next card of a multi-card invent waits under the triggers, as an `invent` effect that keeps every option but `count` and `refresh`. `chooseInvent` carries those options as `invent`, so they reach every card of the effect.
 - `upgradable`: Golden Age.
 - `city.js`: `buildingSpots`, `landmarkSpots` and the problem checks take a `terraform` flag; `placeBuilding` and `choosePlacement` pass it.
 - Income: the `income` step adds Capitalism's VP and Mercantilism's conversions after the income; `finish` ends the era.
@@ -231,6 +232,10 @@ WHEN PLAYED cards first, then THIS ERA. Each line is the whole rule; "BGA" marks
 | `chooseSpace` | `options` (`{ player, track, space }`) | the same | first | |
 | `chooseGift` | none | `{ tile, player }` or `{ tile: null }` | `null` | |
 | `chooseConversion` | `max` | `{ resources }` (coin, worker, culture; total ≤ `max` and ≤ food held) | none converted | |
+| `chooseInvent` (changed) | `left`, `refresh`, `invent` | as before | as before | |
+| `chooseMove` (changed) | `direction` (`'jump'` too), `options` (`{ track, from, to? }`), `freeBonus?` | `{ track, from, to? }` | as before | |
+| `chooseOption` (changed) | `options`, `purpose?` (`'militarism'`, `'exploitation'`) | as before | as before | |
+| `chooseExplore` (changed) | `anywhere?`, `tile?` (the only tile offered: Coal Baron) | as before | as before | |
 
 `chooseTrack` and `chooseHex` push `then` with the answer added, so one decision serves several cards; `purpose` tells the interface what is being asked. `chooseDiscard`'s answers come from the hand, and only its player sees answers, so nothing else needs hiding.
 
