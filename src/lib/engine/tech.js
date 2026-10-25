@@ -104,18 +104,34 @@ export function meetsRequirement(state, player, card) {
 }
 
 /**
- * The cards a player may upgrade: the bottom row, then the middle-row cards whose prerequisite is met, each in row order.
+ * The tech cards carrying an Inventors token, on any player's mat. Each ignores its prerequisite for the rest of the
+ * game, for whoever holds it (02 §1.2, #20 design §7).
+ * @param {import('./state.js').State} state
+ * @returns {string[]}
+ */
+function inventorsMarks(state) {
+	return state.seats
+		.filter((s) => s.kind === 'player')
+		.flatMap(
+			({ seat }) => playerSeat(state, seat).civData.inventors?.cards ?? []
+		);
+}
+
+/**
+ * The cards a player may upgrade: the bottom row, then the middle-row cards whose prerequisite is met or waived, each in row order.
  * @param {import('./state.js').State} state
  * @param {number} player
  * @returns {string[]}
  */
 export function upgradable(state, player) {
 	const { bottom, middle } = playerSeat(state, player).tech;
+	const marked = inventorsMarks(state);
 	return [
 		...bottom,
-		// Golden Age ignores prerequisites.
+		// Golden Age ignores prerequisites, and an Inventors token waives its card's.
 		...middle.filter(
 			(id) =>
+				marked.includes(id) ||
 				hasEra(state, player, 'golden-age') ||
 				meetsRequirement(state, player, techCard(id))
 		),

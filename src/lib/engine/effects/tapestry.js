@@ -114,10 +114,10 @@ export function copyTapestry(ctx, player, value, op) {
 }
 
 /**
- * Runs the copied card's ability as the player's own, on the Espionage card on their mat.
+ * Runs the copied card's ability as the player's own, on the Espionage card on their mat, or on no card (Heralds).
  * @param {import('../state.js').Context} ctx
  * @param {number} player
- * @param {string} espionage - The Espionage card on the mat, whose covering ends a copied THIS ERA ability
+ * @param {string | null} espionage - The Espionage card on the mat, whose covering ends a copied THIS ERA ability; null for a copy with no card behind it
  * @param {string} copied - The card whose ability is copied
  */
 export function copyAbility(ctx, player, espionage, copied) {

@@ -63,6 +63,9 @@ import { alchemistsRoll } from './civs/alchemists.js';
 import { mysticsCheck } from './civs/mystics.js';
 import { architectsCube } from './civs/architects.js';
 import { tradersToken } from './civs/traders.js';
+import { heraldsToken } from './civs/heralds.js';
+import { historiansToken, historiansDiscard } from './civs/historians.js';
+import { inventorsToken, inventorsTake } from './civs/inventors.js';
 import {
 	militantsTake,
 	militantsUncover,
@@ -148,4 +151,9 @@ export const AUTOMATIC = {
 	militantsTake,
 	militantsUncover,
 	militantsCover,
+	heraldsToken,
+	historiansToken,
+	historiansDiscard,
+	inventorsToken,
+	inventorsTake,
 };
