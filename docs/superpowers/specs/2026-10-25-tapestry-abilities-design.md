@@ -126,7 +126,7 @@ Rules that change how a step works are plain checks at that step, not triggers: 
 `src/lib/engine/tapestry.js`.
 
 - **`playTapestry(ctx, player, card, era, faceDown)`** puts the card on top of that era's slot. If the card it covers is `seat.era.card`, the THIS ERA ability ends. It emits `tapestryPlayed`, and unless the card is face down it pushes `tapestryAbility { player, card, era }`. `chooseTapestry` and `faceDownTapestry` use it.
-- **`tapestryAbility`** (automatic) looks the card up with `tapestryCard`. A THIS ERA card sets `seat.era` and emits `eraStarted { player, card, ability }`. Then `played` runs as an `effects` operation with `source: { tapestry: card }`. The operation may carry `ability` when it differs from `card` (Espionage).
+- **`tapestryAbility`** (automatic) looks the card up with `tapestryCard`. A THIS ERA card sets `seat.era` and emits `eraStarted { player, card, ability }`. Then `played` runs as an `effects` operation with `source: { tapestry: ability, card }`: the card whose rules run, and the card on the mat, null for a copy with no card behind it (#20's Heralds). `copyTapestry` rests its copy on that `card`. The operation may carry `ability` when it differs from `card` (Espionage).
 - **The current era** for a play "on top of your current tapestry" is the player's `incomeTurns`:
   - era 1 (income turn 1): nothing is played (R25);
   - eras 2–4: that era's slot. During step 1 of an income turn the slot is still empty, and the card goes there; the step-2 card then covers it (R25);

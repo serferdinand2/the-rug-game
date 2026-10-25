@@ -144,11 +144,13 @@ R28–R33 are cited where they apply. A pick with exactly one legal answer is ma
   - **The ability.** 4 tokens. Income turns 2–5: you may put a token on any tech card not in its owner's top row, yours or an opponent's (`chooseSlot`, answers `{ player, card }`).
     - The card is upgraded at once for its owner. It ignores its prerequisite now, and for the rest of the game for whoever holds it (`upgradable` checks the marks).
     - A mark stays with the card id, even through a discard and a later invent, and a second token may go on a card already marked. **(my call)**
-    - The upgrade fires `upgraded` with `player` = the card's owner and `inventors` = your seat. Golden Age gives no VP for it. **BGA**
+    - The upgrade fires `upgraded` with `player` = the card's owner and `inventors` = your seat. Golden Age gives no VP for it. **BGA** An Alliance naming the card's owner gives its holder nothing either, since the owner didn't upgrade (03 §1.8's Recyclers ruling reads the same way).
   - **The trigger** (hook `upgraded`), for an opponent's card carrying your token:
-    - **It reaches their top row**, by anyone, your own token included: you may gain its square once (`chooseOption`, decline first), and then you take the card into your bottom row. Your token stays on it.
+    - **It reaches their top row**, by anyone: you take the card into your bottom row, and your token stays on it. Whether you may first gain its square once (`chooseOption`, decline first) depends on who moved it:
+      - **Your own token**, in both versions: yes, as the mat says ("you may then gain it too"). A card your token sends straight to the top row is offered once (02 §1.2: "your opponent gets the square benefit, then you do").
+      - **Anyone else's upgrade, current version:** no. The F&F integrated rulebook r10-1 corrects the first printing's Inventors FAQ: "the opponent gets the square benefit; the Inventors take the card **without** the benefit" (03 FF.8.2).
+      - **Anyone else's upgrade, original version:** yes, as the 2019 printed text says.
     - **It reaches their middle row through your ability:** you may gain its circle after them.
-    - A card your token sends straight to the top row is offered once, by the first rule (02 §1.2: "your opponent gets the square benefit, then you do").
 - **Isolationists.**
   - **The token.** 4 tokens. Whenever you conquer a territory that held no item before, you may also place a token there (`chooseOption`), and gain 1 any resource. With two items, nobody can conquer it.
   - **Final scoring.** Your final income turn (step 1 of income turn 5): VP for your largest group of controlled territories of one land terrain (R32): 1 → 5, 2 → 10, 3 → 16, 4 → 23, 5 → 31, 6 or more → 40 (R31). With none, 0. **(my call:** BGA scores 5 for none, and scores when the player finishes rather than in step 1.)
@@ -204,7 +206,7 @@ R28–R33 are cited where they apply. A pick with exactly one legal answer is ma
 - **`cityPlots`** shows Architects' cubes as impassable.
 - **`conquerHex`** gets `takeOutpost`, items, and Isolationists' token offer. **`conquerDice`** fires `countsChanged`.
 - **`chooseDie`** fires `dieKept`.
-- **Tech cards.** `upgradable` honours Inventors' marks. `upgradeCard` takes an optional `inventors` seat for the `upgraded` payload, and Golden Age ignores such upgrades.
+- **Tech cards.** `upgradable` honours Inventors' marks. `upgradeCard` takes an optional `inventors` seat for the `upgraded` payload, and Golden Age and Alliance ignore such upgrades.
 - **`moveToken`** gains `jump` (Futurists) and `noBonus` (Leaders). The `advance` effect gains `noBonus` and `offTrackVp`.
 - **`runEffects`:** a finished player's passive operation runs only its VP.
 - **Supply:** `supply.civDiscard`.

@@ -98,7 +98,10 @@ test('a WHEN PLAYED card runs its effects once, with the card as their source', 
 	const [invent] = openDecisions(state);
 	assert.deepEqual([invent.kind, invent.player], ['chooseInvent', 1]);
 	const rest = state.pending.find((op) => op.kind === 'effects');
-	assert.deepEqual(rest?.source, { tapestry: 'meritocracy' });
+	assert.deepEqual(rest?.source, {
+		tapestry: 'meritocracy',
+		card: 'meritocracy',
+	});
 	assert.deepEqual(rest?.effects, [{ vp: { per: 'techCard', each: 2 } }]);
 	const next = answer(state, random, 1, 'chooseInvent', {
 		card: state.supply.tech.faceUp[0],

@@ -143,7 +143,7 @@ for (const version of VERSIONS) {
 	for (const [i, id] of BASE_CIVS.entries()) {
 		// The other seat plays the next civilization in the list, so each one is also played as an opponent.
 		const civs = [id, BASE_CIVS[(i + 1) % BASE_CIVS.length]];
-		test(`every civilization plays its setup and four income turns to the end in both versions: ${nameOf(id)} (${version})`, () => {
+		test(`every civilization plays its setup and every income turn to the end in both versions: ${nameOf(id)} (${version})`, () => {
 			const plays = /** @type {[string, Choose][]} */ ([
 				['default answers', defaults],
 				['a busy game', eager()],

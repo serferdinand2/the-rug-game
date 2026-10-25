@@ -1,4 +1,4 @@
-// The Inventors (02 §1.2): a token on any tech card not in a top row upgrades it at once and waives its prerequisite for good; when an opponent's card carrying one reaches the top row, the Inventors may gain its square and take the card.
+// The Inventors (02 §1.2): a token on any tech card not in a top row upgrades it at once and waives its prerequisite for good; when an opponent's card carrying one reaches the top row, the Inventors take the card.
 import { emit } from '../events.js';
 import { playerSeat, seatOf } from '../state.js';
 import { triggered } from '../abilities.js';
@@ -87,8 +87,10 @@ export const inventors = {
 	},
 	hooks: {
 		// An opponent's card carrying the owner's token was upgraded, after its owner's benefit. Reaching the top row, by
-		// anyone: the owner may gain its square once, then takes the card. Reaching the middle row through the owner's
-		// token: the owner may gain its circle. A finished owner gets only the VP and takes no card (01 §4.3).
+		// anyone: the owner takes the card, and may first gain its square once when the owner's token moved it. Under the
+		// original rules the owner may gain it whoever moved it, as the 2019 text says; the current rules follow the F&F
+		// rulebook r10-1, which gives it only to the card's owner (03 FF.8.2). Reaching the middle row through the
+		// owner's token: the owner may gain its circle. A finished owner gets only the VP and takes no card (01 §4.3).
 		upgraded(state, owner, { player, card, icon, inventors }) {
 			/** @type {InventorsData | undefined} */
 			const data = playerSeat(state, owner).civData.inventors;
@@ -97,22 +99,23 @@ export const inventors = {
 			}
 			const source = { tech: card, icon };
 			if (icon === 'square') {
-				const gain = {
-					...offer(state, owner, techCard(card).square),
-					source,
-				};
-				if (seatOf(state, owner).finished) {
-					return [gain];
+				/** @type {import('../state.js').NewOperation[]} */
+				const ops = [];
+				if (inventors === owner || state.version === 'original') {
+					ops.push({
+						...offer(state, owner, techCard(card).square),
+						source,
+					});
 				}
-				return [
-					gain,
-					{
+				if (!seatOf(state, owner).finished) {
+					ops.push({
 						player: owner,
 						kind: 'inventorsTake',
 						from: player,
 						card,
-					},
-				];
+					});
+				}
+				return ops;
 			}
 			if (inventors !== owner) {
 				return [];

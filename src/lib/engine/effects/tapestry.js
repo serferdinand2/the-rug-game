@@ -96,14 +96,16 @@ export function discardTapestry(ctx, player, value) {
 
 /**
  * Copies the ability of a visible tapestry card, the Espionage card's own included but never an Espionage (design §7).
- * One option is taken without asking; with none, nothing happens.
+ * One option is taken without asking; with none, nothing happens. The copy rests on the Espionage card on the mat,
+ * or on none when the Heralds copy Espionage.
  * @type {import('../state.js').EffectHandler}
  */
 export function copyTapestry(ctx, player, value, op) {
 	const options = visibleCards(ctx.state)
 		.filter(({ card }) => card !== 'espionage')
 		.map(({ player: owner, card }) => ({ player: owner, card }));
-	const espionage = op.source.tapestry;
+	/** @type {string | null} */
+	const espionage = op.source.card;
 	if (options.length === 0) {
 		emit(ctx.state, { type: 'noCopy', player });
 	} else if (options.length === 1) {

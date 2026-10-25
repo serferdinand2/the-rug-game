@@ -110,6 +110,8 @@ export function endEra(ctx, player) {
 /**
  * A card's ability, once it is played face up (design §7): a THIS ERA card becomes the active ability,
  * then the card's `played` effects run. `ability` names the card whose rules apply when it isn't `card` (Espionage).
+ * Their source names both: `tapestry` the card whose rules run, and `card` the card on the mat, which is null for a
+ * copy with no card behind it (Heralds), so a copied Espionage never takes another player's card for its own.
  * @type {import('./state.js').AutomaticKind}
  */
 export function tapestryAbility(ctx, op) {
@@ -128,7 +130,7 @@ export function tapestryAbility(ctx, op) {
 				kind: 'effects',
 				effects: structuredClone(data.played),
 				ordered: data.ordered,
-				source: { tapestry: card ?? ability },
+				source: { tapestry: ability, card },
 			},
 		]);
 	}

@@ -249,6 +249,30 @@ test('Heralds cannot copy a THIS ERA or covered card', () => {
 	);
 });
 
+test('Heralds copying Espionage start its copied THIS ERA ability with no card of theirs behind it', () => {
+	const { state, random } = game(['heralds']);
+	// Seat 2 shows Espionage, and a THIS ERA card only Espionage can copy.
+	state.seats[1].incomeMat.tapestry[0] = ['espionage'];
+	state.seats[1].incomeMat.tapestry[1] = ['golden-age'];
+	const asked = ability(state, random, 'heralds');
+	assert.deepEqual(decisionOf(asked, 'chooseSlot').options, [
+		{ player: 2, card: 'espionage' },
+	]);
+	const mark = asked.seq;
+	const copied = answer(asked, random, 1, 'chooseSlot', {
+		slot: { player: 2, card: 'espionage' },
+	});
+	// The Espionage card is seat 2's, so the copy has no card on seat 1's mat.
+	assert.deepEqual(copied.seats[0].era, {
+		card: null,
+		ability: 'golden-age',
+	});
+	assert.deepEqual(eventsOf(copied, 'eraStarted', mark), [
+		{ type: 'eraStarted', player: 1, card: null, ability: 'golden-age' },
+	]);
+	assert.deepEqual(openDecisions(copied), []);
+});
+
 test('original Heralds may play any card on Maker of Fire at the end of income turn 1', () => {
 	const r = firstIncomeTurn([], {
 		hand: ['academia', 'trap-1'],
@@ -794,64 +818,98 @@ test('Inventors upgrade any card instantly, ignoring its prerequisite for good',
 	}
 });
 
-test("Inventors may copy an opponent's upgrade and take the card when it reaches the top row", (t) => {
-	const { state, random } = game(['inventors']);
+/**
+ * Seat 1 of a 2-player game holds the Inventors, and seat 2 holds Calendar (bottom row) and Canned Food (middle row).
+ * Seat 1's token is put on one of seat 2's cards: `marked` is the state after it, with its offer still open.
+ * @param {'original' | 'current'} version
+ * @param {string} card
+ */
+function inventorsOn(version, card) {
+	const { state, random } = game(['inventors'], { version });
 	state.seats[0].tech = { bottom: [], middle: [], top: [] };
 	state.seats[1].tech = {
 		bottom: ['calendar'],
 		middle: ['canned-food'],
 		top: [],
 	};
-	const asked = ability(state, random, 'inventors');
-
-	// Their bottom-row card: they gain its circle (1 culture), then seat 1 may too.
-	const circle = answer(asked, random, 1, 'chooseSlot', {
-		slot: { player: 2, card: 'calendar' },
-	});
-	assert.equal(
-		circle.seats[1].resources.culture,
-		state.seats[1].resources.culture + 1
+	const marked = answer(
+		ability(state, random, 'inventors'),
+		random,
+		1,
+		'chooseSlot',
+		{
+			slot: { player: 2, card },
+		}
 	);
-	const offer = decisionOf(circle, 'chooseOption');
-	assert.deepEqual(
-		[offer.player, offer.purpose, offer.options],
-		[1, 'civOffer', [[], [{ gain: { culture: 1 } }]]]
-	);
-	const copied = answer(circle, random, 1, 'chooseOption', { option: 1 });
-	assert.equal(
-		copied.seats[0].resources.culture,
-		state.seats[0].resources.culture + 1
-	);
-	assert.deepEqual(copied.seats[1].tech.middle, ['canned-food', 'calendar']);
-	assert.deepEqual(openDecisions(copied), []);
+	return { state, random, marked };
+}
 
-	// They upgrade it to the top row: their square (7 VP), then seat 1 may gain it, then takes the card.
-	const mark = copied.seq;
-	const squared = resolveEffects(copied, 2, [{ upgrade: {} }], random);
-	assert.equal(squared.seats[1].vp, copied.seats[1].vp + 7);
-	assert.deepEqual(decisionOf(squared, 'chooseOption').options, [
-		[],
-		[{ vp: 7 }],
-	]);
-	const taken = answer(squared, random, 1, 'chooseOption', { option: 1 });
-	assert.equal(taken.seats[0].vp, copied.seats[0].vp + 7);
-	assert.deepEqual(taken.seats[1].tech, {
-		bottom: [],
-		middle: ['canned-food'],
-		top: [],
-	});
-	assert.deepEqual(taken.seats[0].tech.bottom, ['calendar']);
-	assert.deepEqual(eventsOf(taken, 'inventorsTook', mark), [
-		{ type: 'inventorsTook', player: 1, from: 2, card: 'calendar' },
-	]);
-	// The token stays on it, so its prerequisite stays waived.
-	assert.deepEqual(taken.seats[0].civData.inventors.cards, ['calendar']);
-	assert.deepEqual(openDecisions(taken), []);
-	// Declining the square still takes the card.
-	const declined = answer(squared, random, 1, 'chooseOption', { option: 0 });
-	assert.equal(declined.seats[0].vp, copied.seats[0].vp);
-	assert.deepEqual(declined.seats[0].tech.bottom, ['calendar']);
+test("Inventors may gain the benefit their own token gives an opponent's card, and take it from the top row, in both versions", () => {
+	for (const version of VERSIONS) {
+		// Their bottom-row card: they gain its circle (1 culture), then seat 1 may too.
+		const {
+			state,
+			random,
+			marked: circle,
+		} = inventorsOn(version, 'calendar');
+		assert.equal(
+			circle.seats[1].resources.culture,
+			state.seats[1].resources.culture + 1,
+			version
+		);
+		const offer = decisionOf(circle, 'chooseOption');
+		assert.deepEqual(
+			[offer.player, offer.purpose, offer.options],
+			[1, 'civOffer', [[], [{ gain: { culture: 1 } }]]],
+			version
+		);
+		const copied = answer(circle, random, 1, 'chooseOption', { option: 1 });
+		assert.equal(
+			copied.seats[0].resources.culture,
+			state.seats[0].resources.culture + 1,
+			version
+		);
+		assert.deepEqual(copied.seats[1].tech.middle, [
+			'canned-food',
+			'calendar',
+		]);
+		assert.deepEqual(openDecisions(copied), [], version);
 
+		// Their middle-row card goes straight to the top row: they gain its square (7 VP), then the square is offered
+		// once (the mat's "you may then gain it too"), then the card taken.
+		const { marked: straight } = inventorsOn(version, 'canned-food');
+		assert.equal(straight.seats[1].vp, state.seats[1].vp + 7, version);
+		assert.deepEqual(decisionOf(straight, 'chooseOption').options, [
+			[],
+			[{ vp: 7 }],
+		]);
+		const mark = straight.seq;
+		const once = answer(straight, random, 1, 'chooseOption', { option: 1 });
+		assert.deepEqual(openDecisions(once), [], version);
+		assert.equal(once.seats[0].vp, state.seats[0].vp + 7, version);
+		assert.deepEqual(once.seats[0].tech.bottom, ['canned-food'], version);
+		assert.deepEqual(once.seats[1].tech.top, [], version);
+		assert.deepEqual(eventsOf(once, 'inventorsTook', mark), [
+			{ type: 'inventorsTook', player: 1, from: 2, card: 'canned-food' },
+		]);
+		// Declining the square still takes the card.
+		const declined = answer(straight, random, 1, 'chooseOption', {
+			option: 0,
+		});
+		assert.equal(declined.seats[0].vp, state.seats[0].vp, version);
+		assert.deepEqual(declined.seats[0].tech.bottom, ['canned-food']);
+
+		// Their upgrade of a card without the token offers nothing.
+		const plain = resolveEffects(state, 2, [{ upgrade: {} }], random);
+		assert.deepEqual(plain.seats[1].tech.middle, [
+			'canned-food',
+			'calendar',
+		]);
+		assert.deepEqual(openDecisions(plain), [], version);
+	}
+});
+
+test("Inventors take an opponent's marked card when the opponent upgrades it to the top row, gaining its square only under the original rules (FF.8.2, r10-1)", (t) => {
 	// Taking the card changes counts (Mystics), after the upgrade's own check.
 	/** @type {number[]} */
 	const counted = [];
@@ -867,45 +925,71 @@ test("Inventors may copy an opponent's upgrade and take the card when it reaches
 	t.after(() => {
 		delete CIVS.watcher;
 	});
-	const watched = structuredClone(copied);
-	watched.seats[0].civs = ['inventors', 'watcher'];
-	answer(
-		resolveEffects(watched, 2, [{ upgrade: {} }], random),
-		random,
-		1,
-		'chooseOption',
-		{ option: 0 }
-	);
-	assert.deepEqual(counted, [2, 1]);
 
-	// A token sending their middle-row card straight to the top row: the square is offered once, then the card taken.
-	const straight = answer(asked, random, 1, 'chooseSlot', {
-		slot: { player: 2, card: 'canned-food' },
-	});
-	assert.equal(straight.seats[1].vp, state.seats[1].vp + 7);
-	assert.deepEqual(decisionOf(straight, 'chooseOption').options, [
-		[],
-		[{ vp: 7 }],
-	]);
-	const once = answer(straight, random, 1, 'chooseOption', { option: 1 });
-	assert.deepEqual(openDecisions(once), []);
-	assert.equal(once.seats[0].vp, state.seats[0].vp + 7);
-	assert.deepEqual(once.seats[0].tech.bottom, ['canned-food']);
-	assert.deepEqual(once.seats[1].tech.top, []);
+	for (const version of VERSIONS) {
+		// Seat 1's token sent Calendar to seat 2's middle row, and seat 1 declined its circle.
+		const { random, marked } = inventorsOn(version, 'calendar');
+		const copied = answer(marked, random, 1, 'chooseOption', { option: 0 });
 
-	// A finished Inventors player gains only the square's VP and takes no card.
-	const finished = structuredClone(copied);
-	finished.seats[0].finished = true;
-	const done = resolveEffects(finished, 2, [{ upgrade: {} }], random);
-	assert.equal(decisionOf(done, 'chooseOption'), undefined);
-	assert.equal(done.seats[0].vp, copied.seats[0].vp + 7);
-	assert.deepEqual(done.seats[1].tech.top, ['calendar']);
-	assert.deepEqual(done.seats[0].tech.bottom, []);
+		// Seat 2 upgrades it to the top row: their square, 7 VP.
+		const mark = copied.seq;
+		const squared = resolveEffects(copied, 2, [{ upgrade: {} }], random);
+		assert.equal(squared.seats[1].vp, copied.seats[1].vp + 7, version);
+		let taken = squared;
+		if (version === 'current') {
+			// r10-1 corrects the first printing's FAQ: the Inventors take the card without the square.
+			assert.equal(decisionOf(squared, 'chooseOption'), undefined);
+			assert.equal(squared.seats[0].vp, copied.seats[0].vp);
+		} else {
+			// The 2019 printing: seat 1 may gain the square too, then takes the card.
+			assert.deepEqual(decisionOf(squared, 'chooseOption').options, [
+				[],
+				[{ vp: 7 }],
+			]);
+			taken = answer(squared, random, 1, 'chooseOption', { option: 1 });
+			assert.equal(taken.seats[0].vp, copied.seats[0].vp + 7);
+			// Declining the square still takes the card.
+			const declined = answer(squared, random, 1, 'chooseOption', {
+				option: 0,
+			});
+			assert.equal(declined.seats[0].vp, copied.seats[0].vp);
+			assert.deepEqual(declined.seats[0].tech.bottom, ['calendar']);
+		}
+		assert.deepEqual(
+			taken.seats[1].tech,
+			{ bottom: [], middle: ['canned-food'], top: [] },
+			version
+		);
+		assert.deepEqual(taken.seats[0].tech.bottom, ['calendar'], version);
+		assert.deepEqual(eventsOf(taken, 'inventorsTook', mark), [
+			{ type: 'inventorsTook', player: 1, from: 2, card: 'calendar' },
+		]);
+		// The token stays on it, so its prerequisite stays waived.
+		assert.deepEqual(taken.seats[0].civData.inventors.cards, ['calendar']);
+		assert.deepEqual(openDecisions(taken), [], version);
 
-	// Their upgrade of a card without the token offers nothing.
-	const plain = resolveEffects(state, 2, [{ upgrade: {} }], random);
-	assert.deepEqual(plain.seats[1].tech.middle, ['canned-food', 'calendar']);
-	assert.deepEqual(openDecisions(plain), []);
+		counted.length = 0;
+		const watched = structuredClone(copied);
+		watched.seats[0].civs = ['inventors', 'watcher'];
+		const upgraded = resolveEffects(watched, 2, [{ upgrade: {} }], random);
+		if (version === 'original') {
+			answer(upgraded, random, 1, 'chooseOption', { option: 0 });
+		}
+		assert.deepEqual(counted, [2, 1], version);
+
+		// A finished Inventors player takes no card, and gains the square's VP only under the original rules.
+		const finished = structuredClone(copied);
+		finished.seats[0].finished = true;
+		const done = resolveEffects(finished, 2, [{ upgrade: {} }], random);
+		assert.equal(decisionOf(done, 'chooseOption'), undefined);
+		assert.equal(
+			done.seats[0].vp,
+			copied.seats[0].vp + (version === 'original' ? 7 : 0),
+			version
+		);
+		assert.deepEqual(done.seats[1].tech.top, ['calendar'], version);
+		assert.deepEqual(done.seats[0].tech.bottom, [], version);
+	}
 });
 
 test('Golden Age gives no VP for an Inventors upgrade', () => {
@@ -937,6 +1021,39 @@ test('Golden Age gives no VP for an Inventors upgrade', () => {
 	// The holder's own upgrade still scores 3 VP.
 	const plain = resolveEffects(state, 1, [{ upgrade: {} }], random);
 	assert.equal(plain.seats[0].vp, state.seats[0].vp + 3);
+});
+
+test("Alliance gives its holder nothing for an Inventors upgrade of the ally's card", () => {
+	const { state, random } = game(['inventors'], { count: 3 });
+	state.seats[0].tech = { bottom: [], middle: [], top: [] };
+	state.seats[1].tech = { bottom: ['calendar'], middle: [], top: [] };
+	state.seats[2].tech = { bottom: [], middle: [], top: [] };
+	// Seat 3's Alliance names seat 2.
+	state.seats[2].era = { card: 'alliance', ability: 'alliance', opponent: 2 };
+	const asked = ability(state, random, 'inventors');
+	// Seat 1's token upgrades seat 2's Calendar, which isn't seat 2 upgrading: seat 2 gains its circle (1 culture), seat 1
+	// is offered it, and seat 3 gains nothing.
+	const marked = answer(asked, random, 1, 'chooseSlot', {
+		slot: { player: 2, card: 'calendar' },
+	});
+	assert.equal(
+		marked.seats[1].resources.culture,
+		state.seats[1].resources.culture + 1
+	);
+	assert.equal(
+		marked.seats[2].resources.culture,
+		state.seats[2].resources.culture
+	);
+	assert.deepEqual(
+		openDecisions(marked).map((d) => [d.player, d.kind]),
+		[[1, 'chooseOption']]
+	);
+	// Seat 2's own upgrade still gives seat 3 the circle after them.
+	const own = resolveEffects(state, 2, [{ upgrade: {} }], random);
+	assert.equal(
+		own.seats[2].resources.culture,
+		state.seats[2].resources.culture + 1
+	);
 });
 
 test('Heralds, Historians and Inventors behave the same in both versions apart from R35', () => {

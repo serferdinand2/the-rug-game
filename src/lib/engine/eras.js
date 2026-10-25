@@ -101,10 +101,12 @@ export const ERA_HOOKS = {
 	},
 	alliance: {
 		// The holder gains the benefit of the named opponent's upgrade after them. It isn't an upgrade of the holder's,
-		// so nothing that answers upgrades (Golden Age) runs for it.
-		upgraded(state, owner, { player, card, icon }) {
+		// so nothing that answers upgrades (Golden Age) runs for it. An Inventors token's upgrade isn't the opponent's
+		// own, as for Golden Age (03 §1.8's Recyclers ruling reads the same way).
+		upgraded(state, owner, { player, card, icon, inventors }) {
 			if (
 				owner === player ||
+				inventors !== undefined ||
 				playerSeat(state, owner).era?.opponent !== player
 			) {
 				return [];
