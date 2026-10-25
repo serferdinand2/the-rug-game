@@ -477,6 +477,19 @@ test('Isolationists may place a token on an empty territory they conquer for 1 r
 		}),
 		false
 	);
+	// Placing a token with none left is a bug: every caller checks first.
+	const spent = structuredClone(state);
+	spent.seats[0].civData.isolationists.tokens = 0;
+	assert.throws(
+		() =>
+			resolveEffects(
+				spent,
+				1,
+				[{ placeToken: { hex: '-2_-1', civ: 'isolationists' } }],
+				face(0)
+			),
+		{ name: 'Error', message: 'Seat 1 has no isolationists token left.' }
+	);
 });
 
 test('Isolationists score their largest single-terrain land mass on income turn 5 (R31, R32)', () => {
@@ -535,10 +548,22 @@ test('Isolationists score their largest single-terrain land mass on income turn 
 	const b = ['1_2', 8, 0];
 	assert.equal(scored([a]), 5);
 	assert.equal(scored([a, b]), 10);
-	// C links A for mountain, but neither A nor C links B for it: no terrain reaches 3.
+	// C links A for mountain. C comes first in map order, so the link is found from C's side, through the corner pair
+	// (C[e], A[(w + 1) % 6]); from A's side the other pair finds it.
 	/** @type {[string, number, number]} */
 	const c = ['0_1', 37, 3];
+	assert.equal(scored([a, c]), 10);
+	// Neither A nor C links B for mountain: no terrain reaches 3.
 	assert.equal(scored([a, b, c]), 10);
+	// Tile 25 turned 5 shows desert, desert, desert, grassland, grassland, sea. Two in a line meet at desert on the first
+	// one's corner 2 only: the corners beside it differ, so only the right pair of corners links them.
+	assert.equal(
+		scored([
+			['1_-2', 25, 5],
+			['1_-1', 25, 5],
+		]),
+		10
+	);
 	// E links B for desert at their one desert corner: A, B and E.
 	/** @type {[string, number, number]} */
 	const e = ['2_3', 1, 5];

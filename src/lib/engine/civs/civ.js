@@ -48,10 +48,15 @@ export function offer(state, owner, effects) {
  * @param {Context} ctx
  * @param {number} player
  * @param {{ hex: string, civ: string }} value
+ * @throws {Error} With no token left: every caller checks first, so that is a bug, not a player's mistake
  */
 export function placeToken(ctx, player, { hex, civ }) {
 	const { state } = ctx;
-	playerSeat(state, player).civData[civ].tokens -= 1;
+	const data = playerSeat(state, player).civData[civ];
+	if (!(data?.tokens > 0)) {
+		throw new Error(`Seat ${player} has no ${civ} token left.`);
+	}
+	data.tokens -= 1;
 	state.hexes[hex].tokens.push({ seat: player, civ });
 	emit(state, { type: 'tokenPlaced', player, civ, hex });
 }
