@@ -5,13 +5,7 @@ import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { isActivated, spacesAdvanced } from '../src/lib/engine/movement.js';
-import {
-	readyTurn,
-	answer,
-	placeAll,
-	startedGame,
-	stubHandoffs,
-} from './helpers/engine.mjs';
+import { readyTurn, answer, placeAll, startedGame } from './helpers/engine.mjs';
 
 /**
  * Chooses an advance turn, then answers chooseAdvance.
@@ -27,9 +21,7 @@ function advance(state, random, player, move) {
 	return answer(next, random, player, 'chooseAdvance', move);
 }
 
-test('R19: Academic Research repeats any current space except itself', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('R19: Academic Research repeats any current space except itself', () => {
 	const { state, random, player } = readyTurn(2, (seat) => {
 		seat.tracks = {
 			exploration: [1],

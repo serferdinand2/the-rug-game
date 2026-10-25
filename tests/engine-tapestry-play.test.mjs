@@ -7,13 +7,25 @@ import { DECISIONS, AUTOMATIC } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { view } from '../src/lib/engine/view.js';
 import { playTapestry } from '../src/lib/engine/tapestry.js';
+import { CIVS } from '../src/lib/engine/civs/index.js';
 import {
 	startedGame,
 	readyTurn,
 	answer,
-	stubHandoffs,
 	resolveTapestry,
 } from './helpers/engine.mjs';
+
+/**
+ * Registers a test civilization whose step-1 ability is `income`, until the test ends.
+ * @param {import('node:test').TestContext} t
+ * @param {(ctx: any, player: number) => void} income
+ */
+function testCiv(t, income) {
+	CIVS.test = { id: 'test', incomeTurns: [2, 3, 4, 5], income };
+	t.after(() => {
+		delete CIVS.test;
+	});
+}
 
 /**
  * A started 2-player game in which seat 1 has taken `turns` income turns and holds `hand`.
@@ -114,16 +126,13 @@ test('a THIS ERA card becomes the active ability when played', () => {
 });
 
 test('a THIS ERA card ends at the start of the next income turn', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
 	/** @type {any} */
 	let eraAtCivStep = 'not run';
-	const civStandIn = AUTOMATIC.civAbilities;
-	AUTOMATIC.civAbilities = (ctx, op) => {
-		eraAtCivStep = ctx.state.seats[op.player - 1].era;
-		civStandIn(ctx, op);
-	};
+	testCiv(t, (ctx, player) => {
+		eraAtCivStep = ctx.state.seats[player - 1].era;
+	});
 	const ready = readyTurn(2, (seat, state) => {
+		seat.civs = ['test'];
 		seat.incomeTurns = 2;
 		seat.hand = ['trap-1'];
 		for (const other of state.seats) {
@@ -141,7 +150,7 @@ test('a THIS ERA card ends at the start of the next income turn', (t) => {
 	const types = next.events.slice(before).map((e) => e.type);
 	assert.ok(types.includes('eraEnded'));
 	assert.ok(types.indexOf('incomeTurnStarted') < types.indexOf('eraEnded'));
-	// The civilization step (#20) finds the era already over.
+	// The civilization step finds the era already over.
 	assert.equal(eraAtCivStep, null);
 	assert.equal(next.seats[player - 1].era, null);
 	assert.deepEqual(eventsOf(next, 'eraEnded', before), [
@@ -175,9 +184,7 @@ test('a THIS ERA card ends when a card covers it', () => {
 	assert.equal(eventsOf(down, 'eraEnded').length, 1);
 });
 
-test('a THIS ERA card ends when its player finishes', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a THIS ERA card ends when its player finishes', () => {
 	// Under current rules, a card played during income turn 5 goes onto the era-4 stack (R25) and works until the finish.
 	const ready = readyTurn(2, (seat, state) => {
 		seat.incomeTurns = 4;
@@ -212,8 +219,6 @@ test('a THIS ERA card ends when its player finishes', (t) => {
 });
 
 test('a face-down card has no ability', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
 	const ran = watchAbilities(t);
 	const ready = readyTurn(2, (seat, state) => {
 		seat.hand = [];
@@ -277,19 +282,14 @@ test('tapestryOnTop plays the only card in hand without asking', () => {
 });
 
 test('a card played in step 1 goes into the empty new slot and the era card covers it (R25)', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
-	// Stands in for a civilization ability (#20) that plays a card on top in step 1.
-	AUTOMATIC.civAbilities = (ctx, op) => {
+	// A civilization ability that plays a card on top in step 1.
+	testCiv(t, (ctx, player) => {
 		ctx.push([
-			{
-				player: op.player,
-				kind: 'effects',
-				effects: [{ tapestryOnTop: {} }],
-			},
+			{ player, kind: 'effects', effects: [{ tapestryOnTop: {} }] },
 		]);
-	};
+	});
 	const ready = readyTurn(2, (seat, state) => {
+		seat.civs = ['test'];
 		seat.incomeTurns = 2;
 		seat.hand = ['monarchy', 'trap-1'];
 		for (const other of state.seats) {

@@ -1,19 +1,17 @@
 // A scripted 2-player game from setup to the end, with income and advance turns (#15) and real tapestry cards (#19).
-// The steps later issues build are stood in for by stubHandoffs(). Every expected value was worked out by hand first.
+// Every expected value was worked out by hand first.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
-import { startedGame, answer, stubHandoffs } from './helpers/engine.mjs';
+import { startedGame, answer } from './helpers/engine.mjs';
 
 /** Plays the first card the tapestry choice offers. */
 const firstCard = (/** @type {any} */ d) => ({ card: d.options[0] });
 const INCOME = { turn: 'income' };
 const ADVANCE = { turn: 'advance' };
 
-test('a scripted 2-player game reaches the end with the expected scores', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a scripted 2-player game reaches the end with the expected scores', () => {
 	let { state, random } = startedGame(2);
 	const F = /** @type {number} */ (state.first);
 	const O = F === 1 ? 2 : 1;
@@ -254,12 +252,6 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 			[F, 'theocracy'],
 		]
 	);
-	// Civilization abilities on income turns 2–5.
-	const count = (/** @type {string} */ kind, /** @type {number} */ seat) =>
-		handoffs.calls.filter((c) => c.kind === kind && c.player === seat)
-			.length;
-	assert.deepEqual(
-		[count('civAbilities', F), count('civAbilities', O)],
-		[4, 4]
-	);
+	// startedGame() cleared the civilizations, so no civilization ability ran.
+	assert.ok(!state.events.some((e) => e.type === 'civAbilityUsed'));
 });

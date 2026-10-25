@@ -5,7 +5,7 @@ import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
-import { startedGame, stubHandoffs } from './helpers/engine.mjs';
+import { startedGame } from './helpers/engine.mjs';
 
 const ALL_BUT_SCIENCE = ['exploration', 'technology', 'military'];
 
@@ -47,9 +47,7 @@ function benefit(tracks, effects, random) {
 const moveChoice = (state) =>
 	openDecisions(state).find((d) => d.kind === 'chooseMove');
 
-test('research rolls the science die and the player may advance on that track (01 §3.3)', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('research rolls the science die and the player may advance on that track (01 §3.3)', () => {
 	const random = rolls(2);
 	const state = benefit({}, [{ research: {} }], random);
 	const { seq: _seq, ...rolled } = state.events.at(-1);
@@ -81,12 +79,9 @@ test('research rolls the science die and the player may advance on that track (0
 		openDecisions(moved).map((d) => [d.kind, d.player, d.left]),
 		[['chooseInvent', 1, 1]]
 	);
-	assert.deepEqual(handoffs.calls, []);
 });
 
-test('research with the X gives no benefit or bonus, but still the landmark', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('research with the X gives no benefit or bonus, but still the landmark', () => {
 	const random = rolls(1);
 	const state = benefit(
 		{ science: [3] },
@@ -102,7 +97,6 @@ test('research with the X gives no benefit or bonus, but still the landmark', (t
 		random
 	);
 	assert.deepEqual(next.seats[0].tracks.science, [4]);
-	assert.deepEqual(handoffs.calls, []);
 	assert.deepEqual(
 		openDecisions(next).map((d) => [d.kind, d.player, d.landmark]),
 		[['choosePlacement', 1, 'apothecary']]
@@ -161,9 +155,7 @@ test('Physics advances on exploration, technology or military, with benefit', ()
 	assert.equal(next.seats[0].territoryTiles.length, 2);
 });
 
-test('Quantum Physics advances twice, on the same or another track', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('Quantum Physics advances twice, on the same or another track', () => {
 	const random = rolls();
 	let state = benefit(
 		{},

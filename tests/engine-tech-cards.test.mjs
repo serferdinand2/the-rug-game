@@ -4,16 +4,10 @@ import assert from 'node:assert/strict';
 import { run, contextFor } from '../src/lib/engine/loop.js';
 import { upgradeCard } from '../src/lib/engine/effects/tech.js';
 import { TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
-import {
-	startedGame,
-	stubHandoffs,
-	answerDefaults,
-} from './helpers/engine.mjs';
+import { startedGame, answerDefaults } from './helpers/engine.mjs';
 
 for (const card of TECH_CARDS) {
-	test(`every base tech card's circle and square run to the end: ${card.name}`, (t) => {
-		const handoffs = stubHandoffs();
-		t.after(handoffs.restore);
+	test(`every base tech card's circle and square run to the end: ${card.name}`, () => {
 		const { state: started, random } = startedGame(2);
 		let state = structuredClone(started);
 		state.pending.length = 0;
@@ -39,7 +33,6 @@ for (const card of TECH_CARDS) {
 		);
 		assert.equal(upgraded.length, 2);
 		assert.ok(state.seats[0].tech.top.includes(card.id));
-		const kinds = handoffs.calls.map((c) => c.kind);
 		if (card.id === 'printing-press') {
 			// The circle drew a card, and the square played it on top of era 2.
 			const [drawn] = state.events.filter(
@@ -55,7 +48,12 @@ for (const card of TECH_CARDS) {
 			]);
 		}
 		if (card.id === 'radio') {
-			assert.ok(kinds.includes('gainCiv'));
+			assert.deepEqual(
+				state.events
+					.filter((e) => e.type === 'civGained')
+					.map((e) => e.player),
+				[1]
+			);
 		}
 	});
 }

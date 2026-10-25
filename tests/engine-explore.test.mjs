@@ -11,12 +11,7 @@ import {
 	spaceTileOptions,
 } from '../src/lib/engine/effects/explore.js';
 import { play } from '../src/lib/engine/play.js';
-import {
-	startedGame,
-	readyTurn,
-	answer,
-	stubHandoffs,
-} from './helpers/engine.mjs';
+import { startedGame, readyTurn, answer } from './helpers/engine.mjs';
 
 /**
  * A small-map game with every outpost cleared, where seat 1 controls '-2_-2' and holds the tiles.
@@ -212,15 +207,12 @@ function exploreSpace(state, random, value = {}) {
 
 /**
  * Advances the current player onto Interstellar Travel (exploration 11) or Warpgates (12), holding `held` space tiles
- * with `supply` left in the stack. The operations that later issues build are stood in for.
- * @param {import('node:test').TestContext} t
+ * with `supply` left in the stack.
  * @param {number} space
  * @param {number[]} held
  * @param {number[]} supply
  */
-function onto(t, space, held, supply) {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+function onto(space, held, supply) {
 	const ready = readyTurn(2, (seat, state) => {
 		seat.tracks.exploration = [space - 1];
 		seat.resources = { coin: 2, worker: 2, food: 2, culture: 2 };
@@ -245,8 +237,6 @@ function onto(t, space, held, supply) {
 		state,
 		random,
 		player,
-		calls: handoffs.calls,
-		restore: handoffs.restore,
 	};
 }
 
@@ -308,8 +298,8 @@ test('with two space tiles held the player chooses which to explore', () => {
 	assert.equal(next.seats[0].spaceTiles.length, 1);
 });
 
-test('R105: Interstellar Travel explores only a tile it just gained', (t) => {
-	const r = onto(t, 11, [9], [3, 7, 12]);
+test('R105: Interstellar Travel explores only a tile it just gained', () => {
+	const r = onto(11, [9], [3, 7, 12]);
 	assert.deepEqual(r.state.seats[r.player - 1].spaceTiles, [9, 3, 7, 12]);
 	const [decision] = openDecisions(r.state);
 	assert.equal(decision.kind, 'chooseSpaceTile');
@@ -329,15 +319,14 @@ test('R105: Interstellar Travel explores only a tile it just gained', (t) => {
 	);
 });
 
-test('R105: with fewer than 3 left it offers those gained, and with none nothing happens', (t) => {
-	const one = onto(t, 11, [9], [4]);
+test('R105: with fewer than 3 left it offers those gained, and with none nothing happens', () => {
+	const one = onto(11, [9], [4]);
 	assert.ok(
 		openDecisions(one.state).every((d) => d.kind !== 'chooseSpaceTile')
 	);
 	assert.deepEqual(one.state.seats[one.player - 1].exploredSpace, [4]);
 	assert.deepEqual(one.state.seats[one.player - 1].spaceTiles, [9]);
-	one.restore();
-	const none = onto(t, 11, [9], []);
+	const none = onto(11, [9], []);
 	assert.equal(
 		none.state.events.filter((e) => e.type === 'noSpaceTile').length,
 		1
@@ -373,8 +362,8 @@ test('R105: fromGained with no matching spaceActivated event is a bug, not a sta
 	);
 });
 
-test('Warpgates offers every space tile the player holds', (t) => {
-	const r = onto(t, 12, [5, 13], [3]);
+test('Warpgates offers every space tile the player holds', () => {
+	const r = onto(12, [5, 13], [3]);
 	const [decision] = openDecisions(r.state);
 	assert.equal(decision.kind, 'chooseSpaceTile');
 	assert.deepEqual(decision.options, [5, 13]);

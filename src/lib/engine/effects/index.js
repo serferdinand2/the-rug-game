@@ -2,6 +2,7 @@
 import { seatOf } from '../state.js';
 import { vp } from './vp.js';
 import { gain } from './gain.js';
+import { lose } from './lose.js';
 import { building } from './building.js';
 import { choice } from './choice.js';
 import { research } from './research.js';
@@ -34,11 +35,13 @@ import {
 	revolution,
 	placeOutpost,
 } from './cards.js';
+import { gainCiv } from '../civ-turns.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
 	vp,
 	gain,
+	lose,
 	building,
 	choice,
 	research,
@@ -51,6 +54,7 @@ export const EFFECTS = {
 	exploreSpace,
 	conquer,
 	tileBenefit,
+	gainCiv,
 	invent,
 	upgrade,
 	techBenefit,
@@ -173,17 +177,25 @@ export function runEffects(ctx, op) {
 	if (op.player === null) {
 		throw new Error('Effects need a player to run for.');
 	}
-	// A finished player gains nothing but passive civilization VP (01 §4.3), which #20 marks `passive`.
-	if (seatOf(ctx.state, op.player).finished && !op.passive) {
+	// A finished player gains nothing but the VP of passive civilization operations (01 §4.3, #20 design §4).
+	const finished = seatOf(ctx.state, op.player).finished;
+	if (finished && !op.passive) {
 		return;
 	}
-	const index = nextIndex(op);
+	/** @type {AnyEffect[]} */
+	const effects = finished
+		? op.effects.filter((/** @type {object} */ e) => kindOf(e) === 'vp')
+		: op.effects;
+	if (effects.length === 0) {
+		return;
+	}
+	const index = nextIndex({ ...op, effects });
 	if (index === -1) {
 		ctx.push([
 			{
 				player: op.player,
 				kind: 'chooseOrder',
-				effects: op.effects,
+				effects,
 				source: op.source,
 				// A finished player's passive VP stays passive through the question (01 §4.3).
 				...(op.passive && { passive: true }),
@@ -191,10 +203,8 @@ export function runEffects(ctx, op) {
 		]);
 		return;
 	}
-	const effect = op.effects[index];
-	const rest = op.effects.filter(
-		(/** @type {object} */ _, /** @type {number} */ i) => i !== index
-	);
+	const effect = effects[index];
+	const rest = effects.filter((_, i) => i !== index);
 	if (rest.length) {
 		// The continuation keeps every other field (a source, `ordered`); `push` gives it a new id and batch.
 		const { id: _id, batch: _batch, ...kept } = op;

@@ -4,22 +4,14 @@ import assert from 'node:assert/strict';
 import { buildingSpots } from '../src/lib/engine/city.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { INCOME_STEPS, INCOME_STEP_KINDS } from '../src/lib/engine/income.js';
-import {
-	startedGame,
-	readyTurn,
-	answer,
-	stubHandoffs,
-} from './helpers/engine.mjs';
+import { startedGame, readyTurn, answer } from './helpers/engine.mjs';
 
 /**
  * The current player of a 2-player game takes an income turn, after income turn `before`.
- * @param {import('node:test').TestContext} t
  * @param {number} before - Income turns already taken
  * @param {(seat: any, state: any) => void} [fill]
  */
-function incomeAfter(t, before, fill = () => {}) {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+function incomeAfter(before, fill = () => {}) {
 	const ready = readyTurn(2, (seat, state) => {
 		seat.incomeTurns = before;
 		// The opponent has started this era already, so no first-of-neighbours bonus asks first.
@@ -44,7 +36,6 @@ function incomeAfter(t, before, fill = () => {}) {
 		state,
 		player: ready.player,
 		seat: state.seats[ready.player - 1],
-		calls: handoffs.calls,
 		events: state.events.slice(eventsBefore),
 	};
 }
@@ -80,13 +71,12 @@ test('income turn 1 gains the income of every space 1: coin, worker, food and a 
 	);
 });
 
-test('income turns 2–5 hand civilization abilities to #20, then offer an optional upgrade', (t) => {
-	const r = incomeAfter(t, 1, (seat) => {
+test('income turns 2–5 run the civilization abilities, then offer an optional upgrade', () => {
+	const r = incomeAfter(1, (seat) => {
 		seat.tech.bottom = ['calendar'];
 	});
-	assert.deepEqual(r.calls, [
-		{ kind: 'civAbilities', player: r.player, value: { turn: 2 } },
-	]);
+	// startedGame() cleared the civilizations, so step 1 has nothing to run.
+	assert.ok(!r.events.some((e) => e.type === 'civAbilityUsed'));
 	const [open] = openDecisions(r.state);
 	assert.equal(open.kind, 'chooseUpgrade');
 	assert.equal(open.player, r.player);
@@ -100,8 +90,8 @@ test('income turns 2–5 hand civilization abilities to #20, then offer an optio
 	assert.ok(next.events.some((e) => e.type === 'capitalScored'));
 });
 
-test('income step 3 upgrades a bottom card for its circle when the player takes it', (t) => {
-	const r = incomeAfter(t, 1, (seat) => {
+test('income step 3 upgrades a bottom card for its circle when the player takes it', () => {
+	const r = incomeAfter(1, (seat) => {
 		seat.tech.bottom = ['irrigation'];
 	});
 	const food = r.seat.resources.food;
@@ -115,8 +105,8 @@ test('income step 3 upgrades a bottom card for its circle when the player takes 
 	assert.ok(seat.resources.food >= food + 1);
 });
 
-test('income turn 2 scores the exposed VP icons: Barter counts tech cards, Symbology scores the capital', (t) => {
-	const r = incomeAfter(t, 1, (seat) => {
+test('income turn 2 scores the exposed VP icons: Barter counts tech cards, Symbology scores the capital', () => {
+	const r = incomeAfter(1, (seat) => {
 		seat.tech.top = ['calendar', 'clocks', 'radio'];
 		// Fill the whole first row, so Symbology has a line to score.
 		for (const spot of buildingSpots(seat)) {
@@ -138,8 +128,8 @@ test('income turn 2 scores the exposed VP icons: Barter counts tech cards, Symbo
 	assert.equal(r.seat.vp, 3 + scored[0].rows + scored[0].columns);
 });
 
-test("more buildings off a row show more spaces: two farms taken add Farming's food and Breeding's 4 VP", (t) => {
-	const r = incomeAfter(t, 1, (seat) => {
+test("more buildings off a row show more spaces: two farms taken add Farming's food and Breeding's 4 VP", () => {
+	const r = incomeAfter(1, (seat) => {
 		seat.incomeMat.buildings.farm = 3;
 	});
 	assert.equal(r.seat.vp, 4);
@@ -147,8 +137,8 @@ test("more buildings off a row show more spaces: two farms taken add Farming's f
 	assert.equal(r.seat.territoryTiles.length, 1);
 });
 
-test('income turn 5 scores but gains no income, then the player is finished', (t) => {
-	const r = incomeAfter(t, 4, (seat) => {
+test('income turn 5 scores but gains no income, then the player is finished', () => {
+	const r = incomeAfter(4, (seat) => {
 		seat.tech.top = ['calendar'];
 	});
 	assert.equal(r.seat.incomeTurns, 5);
@@ -163,8 +153,8 @@ test('income turn 5 scores but gains no income, then the player is finished', (t
 	assert.notEqual(r.state.current, r.player);
 });
 
-test('resources from income stop at 8', (t) => {
-	const r = incomeAfter(t, 1, (seat) => {
+test('resources from income stop at 8', () => {
+	const r = incomeAfter(1, (seat) => {
 		seat.resources.coin = 8;
 	});
 	assert.equal(r.seat.resources.coin, 8);
@@ -181,7 +171,7 @@ test("an income step added after 'finish' fails loudly instead of doing nothing"
 		delete INCOME_STEP_KINDS.late;
 	});
 	assert.throws(
-		() => incomeAfter(t, 4),
+		() => incomeAfter(4),
 		(e) => e.name !== 'PlayerError' && /'finish'/.test(e.message)
 	);
 });

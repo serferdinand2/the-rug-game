@@ -6,18 +6,15 @@ import { resolveEffects } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { view } from '../src/lib/engine/view.js';
 import { neighbours } from '../src/lib/engine/income.js';
-import { readyTurn, answer, stubHandoffs } from './helpers/engine.mjs';
+import { readyTurn, answer } from './helpers/engine.mjs';
 
 /**
  * The current player takes an income turn after income turn `before`.
- * @param {import('node:test').TestContext} t
  * @param {number} before
  * @param {(seat: any, state: any) => void} [fill]
  * @param {number} [count] - Players
  */
-function incomeAfter(t, before, fill = () => {}, count = 2) {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+function incomeAfter(before, fill = () => {}, count = 2) {
 	const ready = readyTurn(count, (seat, state) => {
 		seat.incomeTurns = before;
 		fill(seat, state);
@@ -50,8 +47,8 @@ for (const [before, count] of [
 	[2, 2],
 	[3, 3],
 ]) {
-	test(`the first of their neighbours to start era ${before + 1} gains ${count} any`, (t) => {
-		const r = incomeAfter(t, before, (seat) => {
+	test(`the first of their neighbours to start era ${before + 1} gains ${count} any`, () => {
+		const r = incomeAfter(before, (seat) => {
 			seat.hand = ['trap-1'];
 		});
 		const [bonus] = openDecisions(r.state);
@@ -67,8 +64,8 @@ for (const [before, count] of [
 	});
 }
 
-test('no bonus once a neighbour has started the era; in 2 players the one opponent counts', (t) => {
-	const r = incomeAfter(t, 1, (seat, state) => {
+test('no bonus once a neighbour has started the era; in 2 players the one opponent counts', () => {
+	const r = incomeAfter(1, (seat, state) => {
 		seat.hand = ['trap-1'];
 		others(seat, state)[0].incomeTurns = 2;
 	});
@@ -76,9 +73,8 @@ test('no bonus once a neighbour has started the era; in 2 players the one oppone
 	assert.ok(!r.events.some((e) => e.type === 'firstBonus'));
 });
 
-test('in 4 players the seat across does not count as a neighbour', (t) => {
+test('in 4 players the seat across does not count as a neighbour', () => {
 	const r = incomeAfter(
-		t,
 		1,
 		(seat, state) => {
 			seat.hand = ['trap-1'];
@@ -95,9 +91,8 @@ test('in 4 players the seat across does not count as a neighbour', (t) => {
 	);
 });
 
-test('in 4 players the seat before counts as a neighbour too', (t) => {
+test('in 4 players the seat before counts as a neighbour too', () => {
 	const r = incomeAfter(
-		t,
 		1,
 		(seat, state) => {
 			seat.hand = ['trap-1'];
@@ -109,8 +104,8 @@ test('in 4 players the seat before counts as a neighbour too', (t) => {
 	assert.ok(!r.events.some((e) => e.type === 'firstBonus'));
 });
 
-test('a tapestry card must be played from the hand, and its ability runs: a trap gains 10 VP (R22)', (t) => {
-	const r = incomeAfter(t, 1, (seat, state) => {
+test('a tapestry card must be played from the hand, and its ability runs: a trap gains 10 VP (R22)', () => {
+	const r = incomeAfter(1, (seat, state) => {
 		seat.hand = ['trap-1', 'trap-2'];
 		others(seat, state)[0].incomeTurns = 2;
 	});
@@ -138,8 +133,8 @@ test('a tapestry card must be played from the hand, and its ability runs: a trap
 	);
 });
 
-test('a chooseTapestry answer must be a card in the hand', (t) => {
-	const r = incomeAfter(t, 1, (seat, state) => {
+test('a chooseTapestry answer must be a card in the hand', () => {
+	const r = incomeAfter(1, (seat, state) => {
 		seat.hand = ['trap-1'];
 		others(seat, state)[0].incomeTurns = 2;
 	});
@@ -152,10 +147,10 @@ test('a chooseTapestry answer must be a card in the hand', (t) => {
 	}
 });
 
-test("with an empty hand the top card goes on face down, hidden from every view, its owner's too", (t) => {
+test("with an empty hand the top card goes on face down, hidden from every view, its owner's too", () => {
 	// Monarchy on top of the deck: face up, it would become the active THIS ERA ability.
 	const card = 'monarchy';
-	const r = incomeAfter(t, 1, (seat, state) => {
+	const r = incomeAfter(1, (seat, state) => {
 		seat.hand = [];
 		others(seat, state)[0].incomeTurns = 2;
 		const { deck } = state.supply.tapestry;
@@ -183,8 +178,8 @@ test("with an empty hand the top card goes on face down, hidden from every view,
 	}
 });
 
-test('a face-down card still counts as a tapestry card on the mat', (t) => {
-	const r = incomeAfter(t, 1, (seat, state) => {
+test('a face-down card still counts as a tapestry card on the mat', () => {
+	const r = incomeAfter(1, (seat, state) => {
 		seat.hand = [];
 		others(seat, state)[0].incomeTurns = 2;
 	});
@@ -198,8 +193,8 @@ test('a face-down card still counts as a tapestry card on the mat', (t) => {
 	assert.equal(scored.seats[r.player - 1].vp - r.seat.vp, 2);
 });
 
-test('with no tapestry cards anywhere, nothing is played', (t) => {
-	const r = incomeAfter(t, 1, (seat, state) => {
+test('with no tapestry cards anywhere, nothing is played', () => {
+	const r = incomeAfter(1, (seat, state) => {
 		seat.hand = [];
 		others(seat, state)[0].incomeTurns = 2;
 		state.supply.tapestry.deck = [];
@@ -210,8 +205,8 @@ test('with no tapestry cards anywhere, nothing is played', (t) => {
 	assert.notEqual(r.state.current, r.player);
 });
 
-test("another seat never sees a player's chooseTapestry options", (t) => {
-	const r = incomeAfter(t, 1, (seat, state) => {
+test("another seat never sees a player's chooseTapestry options", () => {
+	const r = incomeAfter(1, (seat, state) => {
 		seat.hand = ['trap-1'];
 		others(seat, state)[0].incomeTurns = 2;
 	});

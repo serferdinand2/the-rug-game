@@ -6,8 +6,7 @@ import { contextFor, run } from '../../src/lib/engine/loop.js';
 import { startTurn } from '../../src/lib/engine/turn.js';
 import { playTapestry } from '../../src/lib/engine/tapestry.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
-import { DECISIONS, AUTOMATIC } from '../../src/lib/engine/kinds.js';
-import { EFFECTS } from '../../src/lib/engine/effects/index.js';
+import { DECISIONS } from '../../src/lib/engine/kinds.js';
 
 const NAMES = ['Ana', 'Bo', 'Cy', 'Dee', 'Eli'];
 
@@ -44,64 +43,62 @@ export function answerSetup(state, random) {
 }
 
 /**
- * A game whose setup is done: the first player is choosing a turn.
- * @param {number} count
- * @param {{ version?: 'original' | 'current', seed?: number }} [options]
- * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random }}
+ * The civilizations startedGame() deals by default, in seat order: none has a setup effect or an adjustment.
+ * They are cleared once play starts, so no civilization changes a test that doesn't ask for one (#20 design §11).
  */
-export function startedGame(count, options) {
-	const { state, random } = newGame(count, options);
-	return { state: answerSetup(state, random), random };
-}
-
-/** Effects that later issues build (#19–#20). */
-const HANDOFF_EFFECTS = ['gainCiv'];
-
-/** Operations #15 pushes for a later issue: civilization abilities (#20). */
-const HANDOFF_OPERATIONS = ['civAbilities'];
+const INERT_CIVS = [
+	'leaders',
+	'nomads',
+	'inventors',
+	'historians',
+	'craftsmen',
+];
 
 /**
- * Stands in for the effects and operations later issues build, recording each one they are given.
- * Call `restore()` when the test ends, for example with `t.after(handoffs.restore)`.
- * @returns {{ calls: { kind: string, player: number | null, value: any }[], restore: () => void }}
+ * Makes each seat's setup pick keep a wanted civilization: it is swapped into the first place of the seat's dealt
+ * options, from the other option, the deck or another seat's options, so every civilization stays in one place.
+ * @param {import('../../src/lib/engine/state.js').State} state - A new game; changed in place
+ * @param {string[]} wanted - In seat order
  */
-export function stubHandoffs() {
-	/** @type {{ kind: string, player: number | null, value: any }[]} */
-	const calls = [];
-	for (const kind of HANDOFF_EFFECTS) {
-		if (Object.hasOwn(EFFECTS, kind)) {
-			throw new Error(`${kind} is built now; stop standing in for it.`);
+function dealCivs(state, wanted) {
+	const picks = openDecisions(state).filter((d) => d.kind === 'chooseCiv');
+	for (const pick of picks) {
+		const civ = wanted[/** @type {number} */ (pick.player) - 1];
+		const holder = [
+			pick.options,
+			state.supply.civs,
+			...picks.map((p) => p.options),
+		].find((list) => list.includes(civ));
+		if (!holder) {
+			throw new Error(`${civ} isn't a civilization of this game.`);
 		}
-		EFFECTS[kind] = (ctx, player, value) => {
-			calls.push({ kind, player, value: structuredClone(value) });
-		};
+		holder[holder.indexOf(civ)] = pick.options[0];
+		pick.options[0] = civ;
 	}
-	for (const kind of HANDOFF_OPERATIONS) {
-		if (Object.hasOwn(AUTOMATIC, kind) || Object.hasOwn(DECISIONS, kind)) {
-			throw new Error(`${kind} is built now; stop standing in for it.`);
+}
+
+/**
+ * A game whose setup is done: the first player is choosing a turn.
+ * Without `civs`, every seat is dealt an inert civilization, which is cleared once play starts (back into the deck).
+ * With `civs`, each seat keeps the one named for it, after its setup and, in the current version, its adjustment,
+ * every setup question answered with its default.
+ * @param {number} count
+ * @param {{ version?: 'original' | 'current', seed?: number, civs?: string[] }} [options]
+ * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random }}
+ */
+export function startedGame(count, { civs, ...options } = {}) {
+	const { state: dealt, random } = newGame(count, options);
+	dealCivs(dealt, civs ?? INERT_CIVS);
+	const state = answerSetup(dealt, random);
+	if (!civs) {
+		for (const seat of state.seats) {
+			const player = /** @type {any} */ (seat);
+			state.supply.civs.push(...player.civs);
+			player.civs = [];
+			player.civData = {};
 		}
-		AUTOMATIC[kind] = (ctx, op) => {
-			const {
-				id: _id,
-				batch: _batch,
-				kind: _kind,
-				player,
-				...value
-			} = op;
-			calls.push({ kind, player, value });
-		};
 	}
-	return {
-		calls,
-		restore() {
-			for (const kind of HANDOFF_EFFECTS) {
-				delete EFFECTS[kind];
-			}
-			for (const kind of HANDOFF_OPERATIONS) {
-				delete AUTOMATIC[kind];
-			}
-		},
-	};
+	return { state, random };
 }
 
 /**
@@ -109,7 +106,7 @@ export function stubHandoffs() {
  * `fill` changes that player's seat (and the state) before the turn starts, so the turn choice sees the change.
  * @param {number} [count]
  * @param {(seat: any, state: import('../../src/lib/engine/state.js').State) => void} [fill]
- * @param {{ version?: 'original' | 'current', seed?: number }} [options]
+ * @param {{ version?: 'original' | 'current', seed?: number, civs?: string[] }} [options] - As startedGame()'s
  * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random, player: number }}
  */
 export function readyTurn(count = 2, fill = () => {}, options) {

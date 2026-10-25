@@ -204,6 +204,7 @@ test('the setup picks are one group with a lane per player, above the after-setu
 		assert.deepEqual(state.pending[1].steps, [
 			'reveal',
 			'civDeck',
+			'civSetup',
 			'start',
 		]);
 		assert.equal(state.phase, 'setup');

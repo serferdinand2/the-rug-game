@@ -57,6 +57,7 @@ import { deepFreeze } from './ids.js';
 /**
  * One effect: an object with exactly one key, its kind.
  * - `gain`: gain resources, tiles or cards.
+ * - `lose`: lose culture, as much as you have, then `any` resources of your choice among those you hold.
  * - `building`: take the leftmost income building of that type from the income mat and place it in the capital city.
  * - `landmark`: place that landmark (a tech card's square) in the capital city.
  * - `vp`: gain that many VP, or VP per thing counted.
@@ -88,6 +89,7 @@ import { deepFreeze } from './ids.js';
  * - `placeOutpost`: put an outpost from the supply on a hex, without a conquest.
  * - `darkAges`, `socialism`, `dictatorship`, `revolution`, `colonialism`, `pleaForAid`, `technocracy`, `tradeEconomy`, `coalBaron`, `olympicHost`: the rules of the card of that name.
  * @typedef {{ gain: Gain }
+ *   | { lose: { culture?: number, any?: number } }
  *   | { building: BuildingId }
  *   | { landmark: string }
  *   | { vp: number | VpPer }
@@ -142,6 +144,7 @@ import { deepFreeze } from './ids.js';
  */
 export const EFFECT_KINDS = deepFreeze([
 	'gain',
+	'lose',
 	'building',
 	'landmark',
 	'vp',

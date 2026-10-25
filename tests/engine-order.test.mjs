@@ -5,7 +5,7 @@ import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
-import { startedGame, stubHandoffs } from './helpers/engine.mjs';
+import { startedGame } from './helpers/engine.mjs';
 
 /**
  * A started 2-player game with a benefit pushed for seat 1 and run to the next decision.
@@ -30,9 +30,7 @@ function benefit(effects, ordered, fill = () => {}) {
 	return { state, random };
 }
 
-test('independent parts of an unordered benefit run first, without a question', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('independent parts of an unordered benefit run first, without a question', () => {
 	const { state } = benefit([{ building: 'farm' }, { vp: 2 }], false);
 	const types = state.events.map((e) => e.type);
 	assert.ok(types.indexOf('vpGained') < types.indexOf('buildingGained'));
@@ -40,7 +38,6 @@ test('independent parts of an unordered benefit run first, without a question', 
 		openDecisions(state).map((d) => [d.kind, d.building]),
 		[['choosePlacement', 'farm']]
 	);
-	assert.deepEqual(handoffs.calls, []);
 });
 
 test('two parts that both ask the player become a choice of order', () => {
@@ -84,9 +81,7 @@ test('an ordered benefit never asks', () => {
 	assert.ok(!openDecisions(state).some((d) => d.kind === 'chooseOrder'));
 });
 
-test('a choice asks for one option, and every option may be chosen', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a choice asks for one option, and every option may be chosen', () => {
 	const options = [
 		[{ building: 'farm' }],
 		[{ building: 'house' }],
@@ -109,9 +104,7 @@ test('a choice asks for one option, and every option may be chosen', (t) => {
 	);
 });
 
-test('an order or option answer must be one of those offered', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('an order or option answer must be one of those offered', () => {
 	const order = benefit([{ upgrade: {} }, { invent: {} }], false);
 	const choice = benefit([{ choice: [[{ vp: 1 }], [{ vp: 2 }]] }], true);
 	for (const [game, field] of [
@@ -135,9 +128,7 @@ test('an order or option answer must be one of those offered', (t) => {
 	}
 });
 
-test('a VP counter waits when another part could change what it counts, and the player chooses the order', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a VP counter waits when another part could change what it counts, and the player chooses the order', () => {
 	// Space tile 1's shape: advance on science, and 1 VP per science space.
 	const { state } = benefit(
 		[
@@ -174,9 +165,7 @@ test('Nuclear Bomb asks whether to score before or after the tapestry card on to
 	assert.ok(!next.events.some((e) => e.type === 'vpGained'));
 });
 
-test('a VP counter that nothing else in the benefit changes runs without a question', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a VP counter that nothing else in the benefit changes runs without a question', () => {
 	// Steel's shape: 1 VP per armory, and a market.
 	const { state: started, random } = startedGame(2);
 	const state = structuredClone(started);

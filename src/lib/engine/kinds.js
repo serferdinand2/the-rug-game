@@ -36,6 +36,8 @@ import { chooseGift } from './decisions/choose-gift.js';
 import { chooseCopy } from './decisions/choose-copy.js';
 import { choosePartner } from './decisions/choose-partner.js';
 import { chooseConversion } from './decisions/choose-conversion.js';
+import { chooseCivAbility } from './decisions/choose-civ-ability.js';
+import { chooseSlot } from './decisions/choose-slot.js';
 import { olympicHostEnd, sharedAdvanceOn } from './effects/players.js';
 import { darkAgesOn, dictate, colonize, revolt } from './effects/cards.js';
 import { upgradeTech } from './effects/tech.js';
@@ -43,6 +45,14 @@ import { copyBenefit } from './eras.js';
 import { conquerDice } from './effects/conquer.js';
 import { placeBuilding, placeLandmark } from './placing.js';
 import { runSetupSteps } from './after-setup.js';
+import {
+	civAbilities,
+	civIncome,
+	civSetup,
+	civAdjust,
+	civFirstTurnEnd,
+} from './civ-turns.js';
+import { loseResource } from './effects/lose.js';
 
 /** @type {Record<string, import('./state.js').DecisionKind>} */
 export const DECISIONS = {
@@ -78,6 +88,8 @@ export const DECISIONS = {
 	choosePartner,
 	chooseCopy,
 	chooseConversion,
+	chooseCivAbility,
+	chooseSlot,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */
@@ -102,4 +114,10 @@ export const AUTOMATIC = {
 	colonize,
 	revolt,
 	copyBenefit,
+	civAbilities,
+	civIncome,
+	civSetup,
+	civAdjust,
+	civFirstTurnEnd,
+	loseResource,
 };

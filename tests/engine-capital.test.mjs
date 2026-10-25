@@ -19,7 +19,7 @@ import {
 } from '../src/lib/engine/city.js';
 import { plotIndex, groupsOf } from '../src/lib/capital.js';
 import { CAPITAL_MATS } from '../src/lib/engine/data/capitals.js';
-import { startedGame, placeAll, stubHandoffs } from './helpers/engine.mjs';
+import { startedGame, placeAll } from './helpers/engine.mjs';
 
 /**
  * A started 2-player game with seat 1 on a capital mat, changed by `fill`.
@@ -522,9 +522,7 @@ test('a landmark completing two districts gives one choice of 2 resources', () =
 	assert.equal(reward.count, 2);
 });
 
-test("FAQ #1: the landmark and its district resource come before the space's benefit", (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test("FAQ #1: the landmark and its district resource come before the space's benefit", () => {
 	const { state, random } = game(1, (seat) => {
 		seat.tracks.exploration = [3];
 		for (const [row, col] of [

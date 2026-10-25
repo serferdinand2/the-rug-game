@@ -363,6 +363,21 @@ test('every decision kind has the full shape, and its answers pass its own check
 			],
 			espionage: 'espionage',
 		},
+		chooseCivAbility: {
+			player: 1,
+			kind: 'chooseCivAbility',
+			options: ['alchemists', 'leaders'],
+			turn: 2,
+			done: [],
+		},
+		chooseSlot: {
+			player: 1,
+			kind: 'chooseSlot',
+			options: ['coin', 'food'],
+			optional: true,
+			purpose: 'loseResource',
+			then: { kind: 'loseResource', left: 0 },
+		},
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

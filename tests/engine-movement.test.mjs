@@ -6,7 +6,7 @@ import { moveToken, isActivated } from '../src/lib/engine/movement.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
-import { startedGame, placeAll, stubHandoffs } from './helpers/engine.mjs';
+import { startedGame, placeAll } from './helpers/engine.mjs';
 
 /**
  * A started 2-player game, changed by `fill` (given seat 1 and the state).
@@ -36,9 +36,7 @@ function move(state, random, player, move) {
 const typesSince = (/** @type {any} */ state, /** @type {number} */ from) =>
 	state.events.slice(from).map((/** @type {any} */ e) => e.type);
 
-test('the first player into tier II gains its landmark, and it is placed before the benefit (FAQ #1)', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('the first player into tier II gains its landmark, and it is placed before the benefit (FAQ #1)', () => {
 	const { state, random } = game((seat) => {
 		seat.tracks.exploration = [3];
 	});
@@ -56,7 +54,6 @@ test('the first player into tier II gains its landmark, and it is placed before 
 		openDecisions(state).map((d) => [d.kind, d.player, d.landmark]),
 		[['choosePlacement', 1, 'lighthouse']]
 	);
-	assert.deepEqual(handoffs.calls, []);
 	assert.deepEqual(typesSince(state, before), [
 		'tokenMoved',
 		'landmarkGained',
@@ -93,9 +90,7 @@ test('the first player into tier II gains its landmark, and it is placed before 
 	);
 });
 
-test('a landmark someone already gained is not gained again', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a landmark someone already gained is not gained again', () => {
 	const { state, random } = game((seat, s) => {
 		seat.tracks.exploration = [3];
 		s.seats[1].tracks.exploration = [3];
@@ -113,9 +108,7 @@ test('a landmark someone already gained is not gained again', (t) => {
 	);
 });
 
-test('R9: a move past several first spaces gains each landmark still there, lowest tier first', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('R9: a move past several first spaces gains each landmark still there, lowest tier first', () => {
 	const { state, random } = game((seat, s) => {
 		seat.tracks.military = [3];
 		s.landmarks = s.landmarks.filter(
@@ -155,9 +148,7 @@ test('R9: a move past several first spaces gains each landmark still there, lowe
 	);
 });
 
-test('R9: regressing never gains a landmark', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('R9: regressing never gains a landmark', () => {
 	const { state, random } = game((seat) => {
 		seat.tracks.exploration = [5];
 	});
@@ -168,13 +159,10 @@ test('R9: regressing never gains a landmark', (t) => {
 		benefit: false,
 	});
 	assert.ok(state.landmarks.includes('lighthouse'));
-	assert.deepEqual(handoffs.calls, []);
 	assert.ok(!openDecisions(state).some((d) => d.kind === 'choosePlacement'));
 });
 
-test('a move without the benefit still gains the landmark', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a move without the benefit still gains the landmark', () => {
 	const { state, random } = game((seat) => {
 		seat.tracks.science = [3];
 	});
@@ -206,9 +194,7 @@ test('R19: a space activated this turn gives nothing the second time, but the to
 	assert.deepEqual(typesSince(state, before), ['tokenMoved']);
 });
 
-test('the bonus is offered after the benefit, declined by default, and only when payable', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('the bonus is offered after the benefit, declined by default, and only when payable', () => {
 	const rafts = { track: 'exploration', from: 1, to: 2, benefit: true };
 	const poor = game((seat) => {
 		seat.tracks.exploration = [1];
@@ -241,9 +227,7 @@ test('the bonus is offered after the benefit, declined by default, and only when
 	}
 });
 
-test('paying a bonus discards and gains its effects once', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('paying a bonus discards and gains its effects once', () => {
 	const { state, random } = game((seat) => {
 		seat.tracks.exploration = [7];
 		seat.territoryTiles = [1, 2, 3];
@@ -278,9 +262,7 @@ test('paying a bonus discards and gains its effects once', (t) => {
 	);
 });
 
-test('declining the bonus gains nothing, and a bonus answer must pay or decline', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('declining the bonus gains nothing, and a bonus answer must pay or decline', () => {
 	const { state, random } = game((seat) => {
 		seat.tracks.exploration = [1];
 		seat.resources.coin = 1;

@@ -1,5 +1,4 @@
 // Tests for all 48 track spaces, each reached by an advance turn, and for the landmark race (#14).
-// Effects that later issues build are stood in for by stubHandoffs(), which records what each one is given.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildingSpots } from '../src/lib/engine/city.js';
@@ -8,24 +7,16 @@ import { resolveEffects } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { view } from '../src/lib/engine/view.js';
-import {
-	readyTurn,
-	answer,
-	placeAll,
-	stubHandoffs,
-} from './helpers/engine.mjs';
+import { readyTurn, answer, placeAll } from './helpers/engine.mjs';
 
 /**
  * Advances the current player of a 2-player game onto a track space, from the space before it,
  * holding 2 of each resource; `fill` changes their seat (and the state) first.
- * @param {import('node:test').TestContext} t
  * @param {'exploration' | 'science' | 'technology' | 'military'} track
  * @param {number} space
  * @param {(seat: any, state: any) => void} [fill]
  */
-function onto(t, track, space, fill = () => {}) {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+function onto(track, space, fill = () => {}) {
 	const ready = readyTurn(2, (seat, state) => {
 		seat.tracks[track] = [space - 1];
 		seat.resources = { coin: 2, worker: 2, food: 2, culture: 2 };
@@ -50,7 +41,6 @@ function onto(t, track, space, fill = () => {}) {
 		random,
 		player,
 		other: player === 1 ? 2 : 1,
-		calls: handoffs.calls,
 		seat: state.seats[player - 1],
 	};
 }
@@ -95,12 +85,6 @@ const inventing = ({ state }) =>
 	openDecisions(state)
 		.filter((d) => d.kind === 'chooseInvent')
 		.map((d) => [d.player, d.left, d.refresh]);
-
-/**
- * The stub calls as [kind, value] pairs.
- * @param {{ calls: any[] }} result
- */
-const handed = ({ calls }) => calls.map((c) => [c.kind, c.value]);
 
 /**
  * The buildings the player is being asked to place (#16).
@@ -161,22 +145,22 @@ function passed(result) {
 
 // Exploration (01 §3.2)
 
-test('exploration 1 Scouting: 2 territory tiles', (t) => {
-	const r = onto(t, 'exploration', 1);
+test('exploration 1 Scouting: 2 territory tiles', () => {
+	const r = onto('exploration', 1);
 	assert.equal(r.seat.territoryTiles.length, 2);
 	assert.ok(passed(r));
 });
 
-test('exploration 2 Rafts: explore, then the bonus pays 1 any for a tapestry card', (t) => {
-	const r = onto(t, 'exploration', 2);
+test('exploration 2 Rafts: explore, then the bonus pays 1 any for a tapestry card', () => {
+	const r = onto('exploration', 2);
 	assert.equal(nothingExplored(r), 1, 'no tile in hand');
 	reply(r, 'chooseBonus', { pay: { worker: 1 } });
 	assert.equal(r.seat.hand.length, 1);
 	assert.ok(passed(r));
 });
 
-test('exploration 3 Wagons: explore or a farm', (t) => {
-	const r = onto(t, 'exploration', 3);
+test('exploration 3 Wagons: explore or a farm', () => {
+	const r = onto('exploration', 3);
 	assert.deepEqual(open(r), ['chooseOption']);
 	reply(r, 'chooseOption', { option: 1 });
 	assert.deepEqual(placing(r), ['farm']);
@@ -185,23 +169,23 @@ test('exploration 3 Wagons: explore or a farm', (t) => {
 	assert.equal(r.seat.capital.buildings.length, 1);
 });
 
-test('exploration 4 Navigation: the Lighthouse first, then 1 territory tile, then explore', (t) => {
-	const r = onto(t, 'exploration', 4);
+test('exploration 4 Navigation: the Lighthouse first, then 1 territory tile, then explore', () => {
+	const r = onto('exploration', 4);
 	assert.deepEqual(landing(r), ['lighthouse']);
 	place(r);
 	assert.deepEqual(exploring(r), [[r.player, false]]);
 	assert.equal(r.seat.territoryTiles.length, 1);
 });
 
-test('exploration 5 Ships: 1 VP per territory controlled; the bonus pays for a farm', (t) => {
-	const r = onto(t, 'exploration', 5);
+test('exploration 5 Ships: 1 VP per territory controlled; the bonus pays for a farm', () => {
+	const r = onto('exploration', 5);
 	assert.equal(r.seat.vp, 1, 'the start territory');
 	reply(r, 'chooseBonus', { pay: { coin: 1 } });
 	assert.deepEqual(placing(r), ['farm']);
 });
 
-test('exploration 6 Tunnels: 1 territory tile and a farm; the bonus pays to explore', (t) => {
-	const r = onto(t, 'exploration', 6);
+test('exploration 6 Tunnels: 1 territory tile and a farm; the bonus pays to explore', () => {
+	const r = onto('exploration', 6);
 	assert.equal(r.seat.territoryTiles.length, 1);
 	assert.deepEqual(placing(r), ['farm']);
 	assert.deepEqual(exploring(r), []);
@@ -210,16 +194,16 @@ test('exploration 6 Tunnels: 1 territory tile and a farm; the bonus pays to expl
 	assert.deepEqual(exploring(r), [[r.player, false]]);
 });
 
-test('exploration 7 Trains: the Train Station, then 2 territory tiles, then explore', (t) => {
-	const r = onto(t, 'exploration', 7);
+test('exploration 7 Trains: the Train Station, then 2 territory tiles, then explore', () => {
+	const r = onto('exploration', 7);
 	assert.deepEqual(landing(r), ['train-station']);
 	place(r);
 	assert.deepEqual(exploring(r), [[r.player, false]]);
 	assert.equal(r.seat.territoryTiles.length, 2);
 });
 
-test('exploration 8 Cars: a farm, then 1 VP per farm; the bonus discards 2 territory tiles for 5 VP', (t) => {
-	const r = onto(t, 'exploration', 8, (seat) => {
+test('exploration 8 Cars: a farm, then 1 VP per farm; the bonus discards 2 territory tiles for 5 VP', () => {
+	const r = onto('exploration', 8, (seat) => {
 		seat.territoryTiles = [1, 2];
 	});
 	assert.deepEqual(placing(r), ['farm']);
@@ -230,8 +214,8 @@ test('exploration 8 Cars: a farm, then 1 VP per farm; the bonus discards 2 terri
 	assert.deepEqual(r.seat.territoryTiles, []);
 });
 
-test('exploration 9 Airplanes: 2 territory tiles, then explore anywhere; the bonus pays for a tapestry card', (t) => {
-	const r = onto(t, 'exploration', 9);
+test('exploration 9 Airplanes: 2 territory tiles, then explore anywhere; the bonus pays for a tapestry card', () => {
+	const r = onto('exploration', 9);
 	assert.equal(r.seat.territoryTiles.length, 2);
 	assert.deepEqual(exploring(r), [[r.player, true]]);
 	// The bonus waits behind the exploring.
@@ -245,8 +229,8 @@ test('exploration 9 Airplanes: 2 territory tiles, then explore anywhere; the bon
 	assert.deepEqual(open(r), ['chooseBonus']);
 });
 
-test('exploration 10 Space Shuttle: the Launch Pad, 1 VP per technology space; the bonus discards 3 territory tiles for 10 VP', (t) => {
-	const r = onto(t, 'exploration', 10, (seat) => {
+test('exploration 10 Space Shuttle: the Launch Pad, 1 VP per technology space; the bonus discards 3 territory tiles for 10 VP', () => {
+	const r = onto('exploration', 10, (seat) => {
 		seat.tracks.technology = [5];
 		seat.territoryTiles = [1, 2, 3];
 	});
@@ -257,8 +241,8 @@ test('exploration 10 Space Shuttle: the Launch Pad, 1 VP per technology space; t
 	assert.equal(r.seat.vp, 15);
 });
 
-test('exploration 11 Interstellar Travel: 3 space tiles, then explore one of them (R105)', (t) => {
-	const r = onto(t, 'exploration', 11);
+test('exploration 11 Interstellar Travel: 3 space tiles, then explore one of them (R105)', () => {
+	const r = onto('exploration', 11);
 	assert.equal(r.seat.spaceTiles.length, 3);
 	const [decision] = openDecisions(r.state);
 	assert.equal(decision.kind, 'chooseSpaceTile');
@@ -268,8 +252,8 @@ test('exploration 11 Interstellar Travel: 3 space tiles, then explore one of the
 	assert.equal(r.seat.spaceTiles.length, 2);
 });
 
-test('exploration 12 Warpgates: explore a space tile; the bonus pays to explore another', (t) => {
-	const r = onto(t, 'exploration', 12, (seat) => {
+test('exploration 12 Warpgates: explore a space tile; the bonus pays to explore another', () => {
+	const r = onto('exploration', 12, (seat) => {
 		seat.spaceTiles = [13, 14];
 	});
 	const [decision] = openDecisions(r.state);
@@ -285,8 +269,8 @@ test('exploration 12 Warpgates: explore a space tile; the bonus pays to explore 
 
 // Science (01 §3.3)
 
-test('science 1 Astronomy: research with the X', (t) => {
-	const r = onto(t, 'science', 1);
+test('science 1 Astronomy: research with the X', () => {
+	const r = onto('science', 1);
 	const [move] = openDecisions(r.state);
 	assert.deepEqual(
 		[move.kind, move.benefit, move.optional],
@@ -295,15 +279,15 @@ test('science 1 Astronomy: research with the X', (t) => {
 	assert.ok(r.state.events.some((e) => e.type === 'scienceDieRolled'));
 });
 
-test('science 2 Mathematics: a tapestry card; the bonus pays for a house', (t) => {
-	const r = onto(t, 'science', 2);
+test('science 2 Mathematics: a tapestry card; the bonus pays for a house', () => {
+	const r = onto('science', 2);
 	assert.equal(r.seat.hand.length, 1);
 	reply(r, 'chooseBonus', { pay: { coin: 1 } });
 	assert.deepEqual(placing(r), ['house']);
 });
 
-test('science 3 Herbalism: research with the X, or a house', (t) => {
-	const r = onto(t, 'science', 3);
+test('science 3 Herbalism: research with the X, or a house', () => {
+	const r = onto('science', 3);
 	const [choice] = openDecisions(r.state);
 	assert.deepEqual(choice.options, [
 		[{ research: { noBenefit: true } }],
@@ -311,8 +295,8 @@ test('science 3 Herbalism: research with the X, or a house', (t) => {
 	]);
 });
 
-test('science 4 Medicine: the Apothecary, 1 VP per tech card and a tapestry card', (t) => {
-	const r = onto(t, 'science', 4, (seat) => {
+test('science 4 Medicine: the Apothecary, 1 VP per tech card and a tapestry card', () => {
+	const r = onto('science', 4, (seat) => {
 		seat.tech.bottom = ['pottery', 'clocks'];
 	});
 	assert.deepEqual(landing(r), ['apothecary']);
@@ -322,8 +306,8 @@ test('science 4 Medicine: the Apothecary, 1 VP per tech card and a tapestry card
 	assert.ok(passed(r));
 });
 
-test('science 5 Chemistry: research with benefit; the bonus discards 2 tapestry cards for 5 VP', (t) => {
-	const r = onto(t, 'science', 5, (seat) => {
+test('science 5 Chemistry: research with benefit; the bonus discards 2 tapestry cards for 5 VP', () => {
+	const r = onto('science', 5, (seat) => {
 		seat.hand = ['trap-1', 'trap-2'];
 	});
 	const [move] = openDecisions(r.state);
@@ -334,8 +318,8 @@ test('science 5 Chemistry: research with benefit; the bonus discards 2 tapestry 
 	assert.deepEqual(r.seat.hand, []);
 });
 
-test('science 6 Biology: research with benefit, or a house', (t) => {
-	const r = onto(t, 'science', 6);
+test('science 6 Biology: research with benefit, or a house', () => {
+	const r = onto('science', 6);
 	const [choice] = openDecisions(r.state);
 	assert.deepEqual(choice.options, [
 		[{ research: {} }],
@@ -343,8 +327,8 @@ test('science 6 Biology: research with benefit, or a house', (t) => {
 	]);
 });
 
-test('science 7 Academic Research: the Academy, then repeat another current space', (t) => {
-	const r = onto(t, 'science', 7, (seat) => {
+test('science 7 Academic Research: the Academy, then repeat another current space', () => {
+	const r = onto('science', 7, (seat) => {
 		seat.tracks.exploration = [1];
 	});
 	assert.deepEqual(landing(r), ['academy']);
@@ -354,15 +338,15 @@ test('science 7 Academic Research: the Academy, then repeat another current spac
 	assert.ok(passed(r));
 });
 
-test('science 8 Nutrition: a house, then 1 VP per house', (t) => {
-	const r = onto(t, 'science', 8);
+test('science 8 Nutrition: a house, then 1 VP per house', () => {
+	const r = onto('science', 8);
 	assert.deepEqual(placing(r), ['house']);
 	place(r);
 	assert.equal(r.seat.vp, 1);
 });
 
-test('science 9 Physics: advance on exploration, technology or military', (t) => {
-	const r = onto(t, 'science', 9);
+test('science 9 Physics: advance on exploration, technology or military', () => {
+	const r = onto('science', 9);
 	const [move] = openDecisions(r.state);
 	assert.deepEqual(
 		move.options.map((o) => o.track),
@@ -372,8 +356,8 @@ test('science 9 Physics: advance on exploration, technology or military', (t) =>
 	assert.equal(r.seat.territoryTiles.length, 2);
 });
 
-test('science 10 Neuroscience: the Laboratory, then regress on technology or military and gain that space', (t) => {
-	const r = onto(t, 'science', 10, (seat) => {
+test('science 10 Neuroscience: the Laboratory, then regress on technology or military and gain that space', () => {
+	const r = onto('science', 10, (seat) => {
 		seat.tracks.technology = [3];
 	});
 	assert.deepEqual(landing(r), ['laboratory']);
@@ -384,8 +368,8 @@ test('science 10 Neuroscience: the Laboratory, then regress on technology or mil
 	assert.deepEqual(open(r), ['chooseBonus']);
 });
 
-test('science 11 Quantum Physics: advance twice', (t) => {
-	const r = onto(t, 'science', 11);
+test('science 11 Quantum Physics: advance twice', () => {
+	const r = onto('science', 11);
 	reply(r, 'chooseMove', { track: 'exploration', from: 0 });
 	reply(r, 'chooseMove', { track: 'military', from: 0 });
 	assert.deepEqual(r.seat.tracks.exploration, [1]);
@@ -393,8 +377,8 @@ test('science 11 Quantum Physics: advance twice', (t) => {
 	assert.deepEqual(conquering(r), [[r.player, false, null]]);
 });
 
-test('science 12 Alien Biology: 4 rolls with the X, 5 VP for each that would push past space 12', (t) => {
-	const r = onto(t, 'science', 12, (seat) => {
+test('science 12 Alien Biology: 4 rolls with the X, 5 VP for each that would push past space 12', () => {
+	const r = onto('science', 12, (seat) => {
 		Object.assign(seat.tracks, {
 			exploration: [12],
 			technology: [12],
@@ -408,33 +392,33 @@ test('science 12 Alien Biology: 4 rolls with the X, 5 VP for each that would pus
 
 // Technology (01 §3.4)
 
-test('technology 1 Pottery: invent', (t) => {
-	const r = onto(t, 'technology', 1);
+test('technology 1 Pottery: invent', () => {
+	const r = onto('technology', 1);
 	assert.deepEqual(inventing(r), [[r.player, 1, false]]);
 });
 
-test('technology 2 Carpentry: a tapestry card; the bonus pays for a market', (t) => {
-	const r = onto(t, 'technology', 2);
+test('technology 2 Carpentry: a tapestry card; the bonus pays for a market', () => {
+	const r = onto('technology', 2);
 	assert.equal(r.seat.hand.length, 1);
 	reply(r, 'chooseBonus', { pay: { food: 1 } });
 	assert.deepEqual(placing(r), ['market']);
 });
 
-test('technology 3 Stone Tools: invent, or a market', (t) => {
-	const r = onto(t, 'technology', 3);
+test('technology 3 Stone Tools: invent, or a market', () => {
+	const r = onto('technology', 3);
 	reply(r, 'chooseOption', { option: 0 });
 	assert.deepEqual(inventing(r), [[r.player, 1, false]]);
 });
 
-test('technology 4 Metallurgy: the Forge, then invent, refreshing first if you like', (t) => {
-	const r = onto(t, 'technology', 4);
+test('technology 4 Metallurgy: the Forge, then invent, refreshing first if you like', () => {
+	const r = onto('technology', 4);
 	assert.deepEqual(landing(r), ['forge']);
 	place(r);
 	assert.deepEqual(inventing(r), [[r.player, 1, true]]);
 });
 
-test('technology 5 Glass: a farm, house or armory; the bonus pays to upgrade', (t) => {
-	const r = onto(t, 'technology', 5, (seat) => {
+test('technology 5 Glass: a farm, house or armory; the bonus pays to upgrade', () => {
+	const r = onto('technology', 5, (seat) => {
 		seat.tech.bottom = ['irrigation'];
 	});
 	reply(r, 'chooseOption', { option: 1 });
@@ -451,8 +435,8 @@ test('technology 5 Glass: a farm, house or armory; the bonus pays to upgrade', (
 	);
 });
 
-test('technology 6 Steel: 1 VP per armory and a market; the bonus pays to invent', (t) => {
-	const r = onto(t, 'technology', 6, (seat) => {
+test('technology 6 Steel: 1 VP per armory and a market; the bonus pays to invent', () => {
+	const r = onto('technology', 6, (seat) => {
 		seat.incomeMat.buildings.armory = 3;
 	});
 	assert.deepEqual(placing(r), ['market']);
@@ -462,23 +446,23 @@ test('technology 6 Steel: 1 VP per armory and a market; the bonus pays to invent
 	assert.deepEqual(inventing(r), [[r.player, 1, false]]);
 });
 
-test('technology 7 Rubber: Rubber Works, then invent 2, refreshing first if you like', (t) => {
-	const r = onto(t, 'technology', 7);
+test('technology 7 Rubber: Rubber Works, then invent 2, refreshing first if you like', () => {
+	const r = onto('technology', 7);
 	assert.deepEqual(landing(r), ['rubber-works']);
 	place(r);
 	assert.deepEqual(inventing(r), [[r.player, 2, true]]);
 });
 
-test('technology 8 Plastic: a market, then 1 VP per market; the bonus pays to upgrade', (t) => {
-	const r = onto(t, 'technology', 8);
+test('technology 8 Plastic: a market, then 1 VP per market; the bonus pays to upgrade', () => {
+	const r = onto('technology', 8);
 	assert.deepEqual(placing(r), ['market']);
 	place(r);
 	assert.equal(r.seat.vp, 1);
 	assert.deepEqual(open(r), ['chooseBonus']);
 });
 
-test('technology 9 Electronics: upgrade and a middle-row circle, in the order you choose', (t) => {
-	const r = onto(t, 'technology', 9, (seat) => {
+test('technology 9 Electronics: upgrade and a middle-row circle, in the order you choose', () => {
+	const r = onto('technology', 9, (seat) => {
 		seat.tech.bottom = ['irrigation'];
 	});
 	reply(r, 'chooseOrder', { effect: 1 });
@@ -490,8 +474,8 @@ test('technology 9 Electronics: upgrade and a middle-row circle, in the order yo
 	assert.deepEqual(r.seat.tech.middle, ['irrigation']);
 });
 
-test('technology 10 Computers: the Tech Hub, 1 VP per military and per science space', (t) => {
-	const r = onto(t, 'technology', 10, (seat) => {
+test('technology 10 Computers: the Tech Hub, 1 VP per military and per science space', () => {
+	const r = onto('technology', 10, (seat) => {
 		seat.tracks.military = [4];
 		seat.tracks.science = [3];
 	});
@@ -500,8 +484,8 @@ test('technology 10 Computers: the Tech Hub, 1 VP per military and per science s
 	assert.equal(r.seat.vp, 7);
 });
 
-test('technology 11 Nanotechnology: upgrade and a top-row square in either order; the bonus discards 3 tech cards for 10 VP', (t) => {
-	const r = onto(t, 'technology', 11, (seat) => {
+test('technology 11 Nanotechnology: upgrade and a top-row square in either order; the bonus discards 3 tech cards for 10 VP', () => {
+	const r = onto('technology', 11, (seat) => {
 		seat.tech.bottom = ['irrigation', 'calendar', 'canned-food'];
 	});
 	reply(r, 'chooseOrder', { effect: 0 });
@@ -522,8 +506,8 @@ test('technology 11 Nanotechnology: upgrade and a top-row square in either order
 	assert.equal(r.seat.vp, 10);
 });
 
-test('technology 12 AI Singularity: 1 of each resource, and the token starts again on any track', (t) => {
-	const r = onto(t, 'technology', 12);
+test('technology 12 AI Singularity: 1 of each resource, and the token starts again on any track', () => {
+	const r = onto('technology', 12);
 	assert.deepEqual(r.seat.resources, {
 		coin: 1,
 		worker: 3,
@@ -538,8 +522,8 @@ test('technology 12 AI Singularity: 1 of each resource, and the token starts aga
 
 // Military (01 §3.5)
 
-test('military 1 Archery: conquer', (t) => {
-	const r = onto(t, 'military', 1);
+test('military 1 Archery: conquer', () => {
+	const r = onto('military', 1);
 	assert.deepEqual(conquering(r), [[r.player, false, null]]);
 	// Seat 2 starts on 2_0; of its three neighbours it takes 1_-1.
 	reply(r, 'chooseConquer', { hex: '1_-1' });
@@ -551,27 +535,27 @@ test('military 1 Archery: conquer', (t) => {
 	assert.deepEqual(open(r), ['chooseDie']);
 });
 
-test('military 2 Bladed Weapons: a tapestry card; the bonus pays for an armory', (t) => {
-	const r = onto(t, 'military', 2);
+test('military 2 Bladed Weapons: a tapestry card; the bonus pays for an armory', () => {
+	const r = onto('military', 2);
 	assert.equal(r.seat.hand.length, 1);
 	reply(r, 'chooseBonus', { pay: { coin: 1 } });
 	assert.deepEqual(placing(r), ['armory']);
 });
 
-test('military 3 Walls: conquer, or an armory', (t) => {
-	const r = onto(t, 'military', 3);
+test('military 3 Walls: conquer, or an armory', () => {
+	const r = onto('military', 3);
 	reply(r, 'chooseOption', { option: 1 });
 	assert.deepEqual(placing(r), ['armory']);
 });
 
-test('military 3 Walls: the conquer option', (t) => {
-	const r = onto(t, 'military', 3);
+test('military 3 Walls: the conquer option', () => {
+	const r = onto('military', 3);
 	reply(r, 'chooseOption', { option: 0 });
 	assert.deepEqual(conquering(r), [[r.player, false, null]]);
 });
 
-test('military 4 Standing Army: the Barracks, 1 worker and 1 VP per territory tile', (t) => {
-	const r = onto(t, 'military', 4, (seat) => {
+test('military 4 Standing Army: the Barracks, 1 worker and 1 VP per territory tile', () => {
+	const r = onto('military', 4, (seat) => {
 		seat.territoryTiles = [1, 2];
 	});
 	assert.deepEqual(landing(r), ['barracks']);
@@ -580,16 +564,16 @@ test('military 4 Standing Army: the Barracks, 1 worker and 1 VP per territory ti
 	assert.equal(r.seat.vp, 2);
 });
 
-test('military 5 Cavalry: conquer and an armory, in the order you choose', (t) => {
-	const r = onto(t, 'military', 5);
+test('military 5 Cavalry: conquer and an armory, in the order you choose', () => {
+	const r = onto('military', 5);
 	reply(r, 'chooseOrder', { effect: 1 });
 	assert.deepEqual(placing(r), ['armory']);
 	place(r);
 	assert.deepEqual(conquering(r), [[r.player, false, null]]);
 });
 
-test('military 6 Gunpowder: a tapestry card and conquer; the bonus pays for an armory', (t) => {
-	const r = onto(t, 'military', 6);
+test('military 6 Gunpowder: a tapestry card and conquer; the bonus pays for an armory', () => {
+	const r = onto('military', 6);
 	assert.equal(r.seat.hand.length, 1);
 	// The conquest comes first; the bonus waits behind it.
 	assert.deepEqual(conquering(r), [[r.player, false, null]]);
@@ -598,8 +582,8 @@ test('military 6 Gunpowder: a tapestry card and conquer; the bonus pays for an a
 	assert.deepEqual(open(r), ['chooseBonus']);
 });
 
-test('military 7 Tanks: the Tank Factory, then conquer with both dice against an opponent (R17)', (t) => {
-	const r = onto(t, 'military', 7);
+test('military 7 Tanks: the Tank Factory, then conquer with both dice against an opponent (R17)', () => {
+	const r = onto('military', 7);
 	assert.deepEqual(landing(r), ['tank-factory']);
 	place(r);
 	assert.deepEqual(conquering(r), [[r.player, false, 'ifOpponent']]);
@@ -608,8 +592,8 @@ test('military 7 Tanks: the Tank Factory, then conquer with both dice against an
 	assert.deepEqual(open(r), ['chooseDie']);
 });
 
-test('military 8 Warplanes: conquer anywhere; the bonus pays for a tapestry card', (t) => {
-	const r = onto(t, 'military', 8);
+test('military 8 Warplanes: conquer anywhere; the bonus pays for a tapestry card', () => {
+	const r = onto('military', 8);
 	assert.deepEqual(conquering(r), [[r.player, true, null]]);
 	// Anywhere: seat 1's start territory is open to conquer too, though its two outposts make it off limits.
 	const offered = openDecisions(r.state).find(
@@ -625,8 +609,8 @@ test('military 8 Warplanes: conquer anywhere; the bonus pays for a tapestry card
 	assert.deepEqual(open(r), ['chooseBonus']);
 });
 
-test('military 9 Anti-Aircraft Defense: an armory and 1 VP per tapestry card in hand and on the income mat', (t) => {
-	const r = onto(t, 'military', 9, (seat) => {
+test('military 9 Anti-Aircraft Defense: an armory and 1 VP per tapestry card in hand and on the income mat', () => {
+	const r = onto('military', 9, (seat) => {
 		seat.hand = ['trap-1'];
 		seat.incomeMat.tapestry = [['trap-2'], [], [], []];
 	});
@@ -635,8 +619,8 @@ test('military 9 Anti-Aircraft Defense: an armory and 1 VP per tapestry card in 
 	assert.equal(r.seat.vp, 2);
 });
 
-test('military 10 Nuclear Bomb: the Fusion Reactor, then 1 VP per exploration space and a tapestry card on top, in the order you choose', (t) => {
-	const r = onto(t, 'military', 10, (seat) => {
+test('military 10 Nuclear Bomb: the Fusion Reactor, then 1 VP per exploration space and a tapestry card on top, in the order you choose', () => {
+	const r = onto('military', 10, (seat) => {
 		seat.tracks.exploration = [6];
 		seat.incomeTurns = 2;
 		seat.hand = ['trap-1', 'trap-2'];
@@ -658,11 +642,10 @@ test('military 10 Nuclear Bomb: the Fusion Reactor, then 1 VP per exploration sp
 	assert.deepEqual(r.seat.incomeMat.tapestry[1], ['trap-1']);
 	// The trap's 10 VP (R22), then 1 VP per exploration space.
 	assert.equal(r.seat.vp, 16);
-	assert.deepEqual(handed(r), []);
 });
 
-test('military 11 Drone Assassins: score the capital city; the bonus discards 3 tapestry cards for 10 VP', (t) => {
-	const r = onto(t, 'military', 11, (seat) => {
+test('military 11 Drone Assassins: score the capital city; the bonus discards 3 tapestry cards for 10 VP', () => {
+	const r = onto('military', 11, (seat) => {
 		seat.hand = ['trap-1', 'trap-2', 'trap-3'];
 		for (const spot of buildingSpots(seat)) {
 			if (spot.row === 0) {
@@ -687,8 +670,8 @@ test('military 11 Drone Assassins: score the capital city; the bonus discards 3 
 	assert.equal(r.seat.vp, lines + 10);
 });
 
-test('military 12 Mechs: conquer with both dice and a random civilization, in the order you choose', (t) => {
-	const r = onto(t, 'military', 12);
+test('military 12 Mechs: conquer with both dice and a random civilization, in the order you choose', () => {
+	const r = onto('military', 12);
 	reply(r, 'chooseOrder', { effect: 0 });
 	assert.deepEqual(conquering(r), [[r.player, false, 'always']]);
 	// Both dice come at once, so the civilization follows with no die to choose.
@@ -697,14 +680,20 @@ test('military 12 Mechs: conquer with both dice and a random civilization, in th
 		r.state.events.filter((e) => e.type === 'conquerDiceRolled').length,
 		1
 	);
-	assert.deepEqual(handed(r), [['gainCiv', {}]]);
+	assert.deepEqual(
+		r.state.events
+			.filter((e) => e.type === 'civGained')
+			.map((e) => e.player),
+		[r.player]
+	);
+	assert.equal(r.seat.civs.length, 1);
 	assert.ok(passed(r));
 });
 
 // The landmark race (01 §3.1, FAQ #2)
 
-test('the landmark race: the first player into a tier takes it, the second gets nothing', (t) => {
-	const r = onto(t, 'exploration', 4, (seat, state) => {
+test('the landmark race: the first player into a tier takes it, the second gets nothing', () => {
+	const r = onto('exploration', 4, (seat, state) => {
 		const other = state.seats.find((s) => s.seat !== seat.seat);
 		other.incomeTurns = 1;
 		other.tracks.exploration = [3];
@@ -783,8 +772,8 @@ test("an advance on another player's turn wins the landmark race (FAQ #2)", () =
 	);
 });
 
-test("a bonus that discards tapestry cards lists them only in its own player's view", (t) => {
-	const r = onto(t, 'science', 5, (seat) => {
+test("a bonus that discards tapestry cards lists them only in its own player's view", () => {
+	const r = onto('science', 5, (seat) => {
 		seat.hand = ['trap-6', 'trap-7'];
 	});
 	reply(r, 'chooseMove', { track: null });

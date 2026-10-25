@@ -86,6 +86,7 @@ function newSeat(seat, name) {
 		spaceTiles: [],
 		exploredSpace: [],
 		civs: [],
+		civData: {},
 		era: null,
 		picks: {},
 	};
@@ -257,6 +258,7 @@ export function createGame({ players, version, expansions = [], random }) {
 				random
 			),
 			civs: [],
+			civDiscard: [],
 			capitals: [],
 		},
 		hexes,

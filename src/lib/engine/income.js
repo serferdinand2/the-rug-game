@@ -4,6 +4,7 @@ import { playerSeat, seatOf } from './state.js';
 import { hasEra } from './abilities.js';
 import { takeTapestryCard } from './effects/gain.js';
 import { endEra, playTapestry } from './tapestry.js';
+import { endFirstIncomeTurn } from './civ-turns.js';
 import { INCOME_MAT, TAPESTRY_SLOTS } from './data/income-mat.js';
 import { BUILDING_IDS } from './data/ids.js';
 
@@ -164,6 +165,7 @@ export const INCOME_STEPS = [
 	'upgrade',
 	'score',
 	'income',
+	'civFirstTurnEnd',
 	'finish',
 ];
 
@@ -176,7 +178,7 @@ export const INCOME_STEP_KINDS = {
 			endEra(ctx, player);
 		},
 	},
-	// Step 1: the civilization abilities, which #20 builds.
+	// Step 1: the civilization abilities (civ-turns.js).
 	civAbilities: {
 		turns: [2, 3, 4, 5],
 		run(ctx, player, turn) {
@@ -214,6 +216,11 @@ export const INCOME_STEP_KINDS = {
 	income: {
 		turns: [1, 2, 3, 4],
 		run: incomeStep,
+	},
+	// After the income of income turn 1: civilizations' end-of-turn rules and the current version's losses (#20 design §5).
+	civFirstTurnEnd: {
+		turns: [1],
+		run: endFirstIncomeTurn,
 	},
 	// After income turn 5 the player takes no more turns (01 §4.3). A THIS ERA ability played during it ends here,
 	// so it never outlives its player.

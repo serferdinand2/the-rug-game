@@ -6,7 +6,7 @@ import { resolveEffects } from '../src/lib/engine/loop.js';
 import { controlledTerritories } from '../src/lib/engine/control.js';
 import { spacesAdvanced } from '../src/lib/engine/movement.js';
 import { landmarksOwned } from '../src/lib/engine/effects/vp.js';
-import { startedGame, stubHandoffs } from './helpers/engine.mjs';
+import { startedGame } from './helpers/engine.mjs';
 
 /**
  * A started 2-player game, changed by `fill` (given seat 1 and the state).
@@ -144,15 +144,12 @@ test('gaining a building takes it off the income mat and asks its player where t
 	});
 });
 
-test('a used-up building type gives nothing (FAQ #23)', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('a used-up building type gives nothing (FAQ #23)', () => {
 	const { state, random } = game((seat) => {
 		seat.incomeMat.buildings.farm = 0;
 	});
 	const next = resolveEffects(state, 1, [{ building: 'farm' }], random);
 	assert.equal(next.seats[0].incomeMat.buildings.farm, 0);
-	assert.deepEqual(handoffs.calls, []);
 	const { seq: _seq, ...event } = next.events.at(-1);
 	assert.deepEqual(event, {
 		type: 'noBuildingLeft',

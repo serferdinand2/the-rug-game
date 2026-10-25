@@ -5,23 +5,15 @@ import { openDecisions, push } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';
 import { play } from '../src/lib/engine/play.js';
 import { rankPlayers } from '../src/lib/engine/ranking.js';
-import {
-	startedGame,
-	readyTurn,
-	answer,
-	stubHandoffs,
-} from './helpers/engine.mjs';
+import { startedGame, readyTurn, answer } from './helpers/engine.mjs';
 
 /**
  * A 2-player game where the current player has taken `mine` income turns and the other `theirs`.
- * @param {import('node:test').TestContext} t
  * @param {number} mine
  * @param {number} theirs
  * @param {(seat: any, other: any) => void} [fill]
  */
-function lateGame(t, mine, theirs, fill = () => {}) {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+function lateGame(mine, theirs, fill = () => {}) {
 	const ready = readyTurn(2, (seat, state) => {
 		const other = state.seats.find((s) => s !== seat);
 		seat.incomeTurns = mine;
@@ -31,8 +23,8 @@ function lateGame(t, mine, theirs, fill = () => {}) {
 	return { ...ready, other: ready.player === 1 ? 2 : 1 };
 }
 
-test('a finished player is skipped while the others play on', (t) => {
-	const g = lateGame(t, 4, 2);
+test('a finished player is skipped while the others play on', () => {
+	const g = lateGame(4, 2);
 	let state = answer(g.state, g.random, g.player, 'chooseTurn', {
 		turn: 'income',
 	});
@@ -47,8 +39,8 @@ test('a finished player is skipped while the others play on', (t) => {
 	assert.equal(state.phase, 'play');
 });
 
-test('the game ends when the last player finishes, with the ranking stored and announced', (t) => {
-	const g = lateGame(t, 4, 4, (seat, other) => {
+test('the game ends when the last player finishes, with the ranking stored and announced', () => {
+	const g = lateGame(4, 4, (seat, other) => {
 		seat.vp = 10;
 		other.vp = 5;
 	});
@@ -73,8 +65,8 @@ test('the game ends when the last player finishes, with the ranking stored and a
 	assert.deepEqual(ended.result, state.result);
 });
 
-test('once the game is over, no action is accepted', (t) => {
-	const g = lateGame(t, 4, 5, (seat, other) => {
+test('once the game is over, no action is accepted', () => {
+	const g = lateGame(4, 5, (seat, other) => {
 		other.finished = true;
 	});
 	const over = answer(g.state, g.random, g.player, 'chooseTurn', {
@@ -110,10 +102,12 @@ test('an effect for a finished player does nothing, and one marked passive still
 	assert.equal(state.seats[1].vp, 3);
 });
 
-test('a passive effect for a finished player keeps its mark through a choice', () => {
+test('a passive effect for a finished player keeps its mark through a choice, and only its VP runs (#20 design §4)', () => {
 	const { state: started, random } = startedGame(2);
 	const state = structuredClone(started);
 	state.seats[1].finished = true;
+	// A choice in a finished player's passive effect is skipped like every other part but VP.
+	const before = state.events.length;
 	push(state, state.pending, [
 		{
 			player: 2,
@@ -123,14 +117,27 @@ test('a passive effect for a finished player keeps its mark through a choice', (
 		},
 	]);
 	run(state, random);
+	assert.equal(state.events.length, before);
+	assert.ok(!openDecisions(state).some((d) => d.kind === 'chooseOption'));
+	// A choice already asked keeps the mark, so its VP still reaches the finished player.
+	push(state, state.pending, [
+		{
+			player: 2,
+			kind: 'chooseOption',
+			options: [[{ vp: 2 }], [{ vp: 5 }, { gain: { coin: 1 } }]],
+			passive: true,
+		},
+	]);
 	const after = answer(state, random, 2, 'chooseOption', { option: 1 });
 	assert.equal(after.seats[1].vp, 5);
+	assert.equal(after.seats[1].resources.coin, 0);
 });
 
-test('a passive effect for a finished player keeps its mark through a choice of order', () => {
+test('a passive effect for a finished player keeps its mark through a choice of order, and only its VP runs (#20 design §4)', () => {
 	const { state: started, random } = startedGame(2);
 	const state = structuredClone(started);
 	state.seats[1].finished = true;
+	// With only VP left, nothing is asked.
 	push(state, state.pending, [
 		{
 			player: 2,
@@ -141,16 +148,23 @@ test('a passive effect for a finished player keeps its mark through a choice of 
 		},
 	]);
 	run(state, random);
-	const after = answer(state, random, 2, 'chooseOrder', { effect: 1 });
-	// Both ran for a finished player, so both kept the passive mark: the upgrade found nothing to upgrade.
-	assert.equal(
-		after.events.filter((e) => e.type === 'noTechBenefit' && e.player === 2)
-			.length,
-		1
-	);
-	assert.equal(
-		after.events.filter((e) => e.type === 'noUpgrade' && e.player === 2)
-			.length,
-		1
+	assert.ok(!openDecisions(state).some((d) => d.kind === 'chooseOrder'));
+	push(state, state.pending, [
+		{
+			player: 2,
+			kind: 'chooseOrder',
+			effects: [{ upgrade: {} }, { vp: 3 }],
+			passive: true,
+		},
+	]);
+	const after = answer(state, random, 2, 'chooseOrder', { effect: 0 });
+	// Both parts kept the mark: the upgrade was skipped, and the VP ran.
+	assert.equal(after.seats[1].vp, 3);
+	assert.ok(
+		!after.events.some(
+			(e) =>
+				(e.type === 'noUpgrade' || e.type === 'techUpgraded') &&
+				e.player === 2
+		)
 	);
 });

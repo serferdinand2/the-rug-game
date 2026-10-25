@@ -1,7 +1,8 @@
-// What lasts for a player: the active THIS ERA ability, which #20's civilizations join, the triggers it answers, advance blocks and allies (design §5, §6).
+// What lasts for a player: the active THIS ERA ability and the civilizations, the triggers they answer, advance blocks and allies (design §5, §6).
 import { emit } from './events.js';
 import { isPlayerSeat, playerSeat, seatOf } from './state.js';
 import { ERA_HOOKS } from './eras.js';
+import { civsOf } from './civs/index.js';
 
 /** @typedef {import('./data/ids.js').TrackId} TrackId */
 
@@ -71,16 +72,24 @@ export function opponents(state, player) {
 }
 
 /**
- * The trigger handlers of each ability active for a seat: its THIS ERA card's. #20 adds its civilizations' here.
+ * The trigger handlers of each ability active for a seat: its THIS ERA card's, then each civilization's in the order held.
+ * A civilization's operations are `passive`, so a finished player still gets their VP (01 §4.3, #20 design §4).
  * @param {import('./state.js').State} state
  * @param {number} seat
- * @returns {Record<string, import('./eras.js').Hook>[]}
+ * @returns {{ hooks: Record<string, import('./eras.js').Hook>, passive: boolean }[]}
  */
 function activeHooks(state, seat) {
 	const ability = eraAbility(state, seat);
-	return ability !== null && Object.hasOwn(ERA_HOOKS, ability)
-		? [ERA_HOOKS[ability]]
-		: [];
+	const active =
+		ability !== null && Object.hasOwn(ERA_HOOKS, ability)
+			? [{ hooks: ERA_HOOKS[ability], passive: false }]
+			: [];
+	for (const civ of civsOf(state, seat)) {
+		if (civ.hooks) {
+			active.push({ hooks: civ.hooks, passive: true });
+		}
+	}
+	return active;
 }
 
 /**
@@ -93,9 +102,13 @@ function activeHooks(state, seat) {
  */
 export function triggered(state, hook, payload) {
 	return playersFrom(state, payload.player).flatMap((owner) =>
-		activeHooks(state, owner).flatMap((hooks) =>
-			Object.hasOwn(hooks, hook) ? hooks[hook](state, owner, payload) : []
-		)
+		activeHooks(state, owner).flatMap(({ hooks, passive }) => {
+			if (!Object.hasOwn(hooks, hook)) {
+				return [];
+			}
+			const ops = hooks[hook](state, owner, payload);
+			return passive ? ops.map((op) => ({ ...op, passive: true })) : ops;
+		})
 	);
 }
 

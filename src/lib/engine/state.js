@@ -40,7 +40,8 @@
  * @property {number[]} territoryTiles
  * @property {number[]} spaceTiles
  * @property {number[]} exploredSpace
- * @property {string[]} civs
+ * @property {string[]} civs - The civilization chosen at setup first, then those gained later (#20 design §5)
+ * @property {Record<string, any>} civData - Each civilization's own state, by civilization id; public, like everything on a civilization mat
  * @property {Era | null} era - The active THIS ERA ability, if any
  * @property {{ capital?: number, civ?: string }} picks - Setup picks until the reveal
  */
@@ -53,6 +54,7 @@
  * @property {number[]} territoryDiscard - Discarded territory tiles, out of the game (FAQ #20)
  * @property {number[]} space
  * @property {string[]} civs
+ * @property {string[]} civDiscard - Civilizations discarded mid-game (Mystics), face up; the newest last
  * @property {number[]} capitals - Mats nobody holds, face up
  */
 /** @typedef {{ id: number, batch: number, player: number | null, kind: string } & Record<string, any>} Operation */
