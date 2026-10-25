@@ -401,7 +401,8 @@ test('science 12 Alien Biology: 4 rolls with the X, 5 VP for each that would pus
 			military: [12],
 		});
 	});
-	assert.equal(r.seat.vp, 20);
+	// 4 rolls x 5 VP = 20, plus 10 VP for the first "complete any track" box on the small map (reaching science 12; R23).
+	assert.equal(r.seat.vp, 30);
 	assert.ok(passed(r));
 });
 

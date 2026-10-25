@@ -2,6 +2,7 @@
 import { emit } from './events.js';
 import { seatOf } from './state.js';
 import { triggered } from './abilities.js';
+import { claimAchievement } from './achievements.js';
 import { TRACKS } from './data/tracks.js';
 
 /** @typedef {import('./data/ids.js').TrackId} TrackId */
@@ -105,6 +106,9 @@ export function moveToken(ctx, player, { track, from, to, benefit }) {
 	}
 	tokens[index] = to;
 	emit(state, { type: 'tokenMoved', player, track, from, to });
+	if (to === LAST_SPACE) {
+		claimAchievement(ctx, player, 'complete-track');
+	}
 	/** @type {import('./state.js').NewOperation[]} */
 	const ops = [];
 	// Landmark spaces reached or passed whose landmark someone already owned (Revisionism).

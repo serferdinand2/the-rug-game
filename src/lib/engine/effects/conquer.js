@@ -3,6 +3,8 @@ import { emit } from '../events.js';
 import { playerSeat, isPlayerSeat } from '../state.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { RED_DIE, BLACK_DIE } from '../data/dice.js';
+import { claimAchievement, checkToppleTwo } from '../achievements.js';
+import { MAPS } from '../data/maps.js';
 import { conquerTargets, loneOpponent } from '../map.js';
 
 /**
@@ -113,6 +115,20 @@ export function conquerDice(ctx, op) {
 	);
 	const trapped = placed !== undefined && placed.toppled;
 	emit(ctx.state, { type: 'conquered', player, hex, trapped });
+	// The conquest is over, so a topple a trap undid no longer counts (design §9).
+	if (hex === MAPS[ctx.state.map].middle && !trapped) {
+		claimAchievement(ctx, player, 'middle-island');
+	}
+	// The attacker first, then the others with an outpost here in seat order.
+	const others = new Set(
+		ctx.state.hexes[hex].outposts
+			.map((o) => o.seat)
+			.filter((seat) => seat !== player)
+			.sort((a, b) => a - b)
+	);
+	for (const seat of [player, ...others]) {
+		checkToppleTwo(ctx, seat);
+	}
 	const red = ctx.random(6);
 	const black = ctx.random(6);
 	emit(ctx.state, { type: 'conquerDiceRolled', player, red, black });
