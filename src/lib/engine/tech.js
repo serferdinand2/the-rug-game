@@ -4,6 +4,7 @@ import { shuffle } from './random.js';
 import { playerSeat, seatOf } from './state.js';
 import { neighbours, exposedSpaces } from './income.js';
 import { spacesAdvanced } from './movement.js';
+import { hasEra } from './abilities.js';
 import { techCard } from './data/tech-cards.js';
 import { BUILDING_IDS } from './data/ids.js';
 
@@ -112,6 +113,11 @@ export function upgradable(state, player) {
 	const { bottom, middle } = playerSeat(state, player).tech;
 	return [
 		...bottom,
-		...middle.filter((id) => meetsRequirement(state, player, techCard(id))),
+		// Golden Age ignores prerequisites.
+		...middle.filter(
+			(id) =>
+				hasEra(state, player, 'golden-age') ||
+				meetsRequirement(state, player, techCard(id))
+		),
 	];
 }
