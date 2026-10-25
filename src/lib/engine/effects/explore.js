@@ -1,10 +1,15 @@
 // The explore effect: put a territory tile from the hand on an unexplored hex, score its matching sides and take its benefit (R5, FAQ #19).
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
+import { hasEra, opponents } from '../abilities.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { SPACE_TILES } from '../data/space-tiles.js';
 import { exploreHexes, matchingSides, turned } from '../map.js';
+import { gainTiles } from './gain.js';
 import { vp } from './vp.js';
+
+/** How many territory tiles Age of Sail draws before each explore (02 §3). */
+const SAIL_DRAW = 3;
 
 /**
  * Every way a player can explore: each tile in their hand on each legal hex, in each of 6 turns.
@@ -12,12 +17,13 @@ import { vp } from './vp.js';
  * @param {import('../state.js').State} state
  * @param {number} player
  * @param {boolean} anywhere
+ * @param {number} [only] - The only tile that may be explored (Coal Baron), if the player still holds it
  * @returns {{ tile: number, hex: string, orient: number }[]}
  */
-export function exploreAnswers(state, player, anywhere) {
-	const tiles = [...playerSeat(state, player).territoryTiles].sort(
-		(a, b) => a - b
-	);
+export function exploreAnswers(state, player, anywhere, only) {
+	const tiles = playerSeat(state, player)
+		.territoryTiles.filter((tile) => only === undefined || tile === only)
+		.sort((a, b) => a - b);
 	const hexes = exploreHexes(state, player, anywhere);
 	const scored = [];
 	for (const tile of tiles) {
@@ -37,17 +43,19 @@ export function exploreAnswers(state, player, anywhere) {
 
 /**
  * Explores a tile: it leaves the hand for the hex, scores its matching sides, and its benefit follows. No outpost is placed (01 §7.2).
+ * Militarism first offers an outpost on the hex; Exploitation offers the benefit twice instead of the VP (design §8).
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {{ tile: number, hex: string, orient: number }} choice
  */
 export function exploreTile(ctx, player, { tile, hex, orient }) {
-	const seat = playerSeat(ctx.state, player);
-	const score = matchingSides(ctx.state, hex, tile, orient);
+	const { state } = ctx;
+	const seat = playerSeat(state, player);
+	const score = matchingSides(state, hex, tile, orient);
 	seat.territoryTiles.splice(seat.territoryTiles.indexOf(tile), 1);
-	ctx.state.hexes[hex].tile = tile;
-	ctx.state.hexes[hex].orient = orient;
-	emit(ctx.state, {
+	state.hexes[hex].tile = tile;
+	state.hexes[hex].orient = orient;
+	emit(state, {
 		type: 'explored',
 		player,
 		hex,
@@ -55,26 +63,72 @@ export function exploreTile(ctx, player, { tile, hex, orient }) {
 		orient,
 		vp: score,
 	});
-	vp(ctx, player, score, /** @type {any} */ ({}));
-	ctx.push([
-		{
+	/** @type {import('../state.js').NewOperation[]} */
+	const ops = [];
+	if (hasEra(state, player, 'militarism') && seat.outposts > 0) {
+		ops.push({
+			player,
+			kind: 'chooseOption',
+			options: [[], [{ placeOutpost: { hex } }]],
+			purpose: 'militarism',
+		});
+	}
+	const benefit = () => structuredClone(TERRITORY_TILES[tile - 1].benefit);
+	if (hasEra(state, player, 'exploitation')) {
+		ops.push({
+			player,
+			kind: 'chooseOption',
+			options: [
+				[{ vp: score }, ...benefit()],
+				[...benefit(), ...benefit()],
+			],
+			purpose: 'exploitation',
+			source: { hex },
+		});
+	} else {
+		vp(ctx, player, score, /** @type {any} */ ({}));
+		ops.push({
 			player,
 			kind: 'effects',
-			effects: structuredClone(TERRITORY_TILES[tile - 1].benefit),
+			effects: benefit(),
 			source: { hex },
-		},
-	]);
+		});
+	}
+	ctx.push(ops);
 }
 
 /**
  * The explore effect. With nothing to explore it does nothing; with one possible result it explores at once; otherwise its player chooses.
+ * `tile` limits it to that tile (Coal Baron). Under Age of Sail it first draws 3 territory tiles, even when no hex can then be
+ * explored, and the player may give a tile to an opponent; `sailed` marks the explore that follows (design §8).
  * @type {import('../state.js').EffectHandler}
  */
-export function explore(ctx, player, value) {
+export function explore(ctx, player, value, op) {
+	const { state } = ctx;
+	if (hasEra(state, player, 'age-of-sail') && value?.sailed !== true) {
+		gainTiles(ctx, player, 'territory', SAIL_DRAW);
+		if (
+			playerSeat(state, player).territoryTiles.length > 0 &&
+			opponents(state, player).length > 0
+		) {
+			ctx.push([
+				{ player, kind: 'chooseGift' },
+				{
+					player,
+					kind: 'effects',
+					effects: [{ explore: { ...value, sailed: true } }],
+					source: op.source,
+				},
+			]);
+			return;
+		}
+	}
 	const anywhere = value?.anywhere === true;
-	const answers = exploreAnswers(ctx.state, player, anywhere);
+	/** @type {number | undefined} */
+	const tile = value?.tile;
+	const answers = exploreAnswers(state, player, anywhere, tile);
 	if (answers.length === 0) {
-		emit(ctx.state, { type: 'noExplore', player });
+		emit(state, { type: 'noExplore', player });
 		return;
 	}
 	const key = (
@@ -90,7 +144,14 @@ export function explore(ctx, player, value) {
 		exploreTile(ctx, player, answers[0]);
 		return;
 	}
-	ctx.push([{ player, kind: 'chooseExplore', anywhere }]);
+	ctx.push([
+		{
+			player,
+			kind: 'chooseExplore',
+			anywhere,
+			...(tile !== undefined && { tile }),
+		},
+	]);
 }
 
 /**

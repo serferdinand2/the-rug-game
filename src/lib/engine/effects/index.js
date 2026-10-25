@@ -12,7 +12,7 @@ import { scoreCapital } from './score-capital.js';
 import { explore, exploreSpace } from './explore.js';
 import { conquer, tileBenefit } from './conquer.js';
 import { invent, upgrade, techBenefit, landmark } from './tech.js';
-import { tapestryOnTop, discardTapestry } from './tapestry.js';
+import { tapestryOnTop, eraPartner, discardTapestry } from './tapestry.js';
 import { others, sharedAdvance, trade, olympicHost } from './players.js';
 import {
 	anyBuilding,
@@ -24,6 +24,10 @@ import {
 	socialism,
 	dictatorship,
 	tradeEconomy,
+	coalBaron,
+	colonialism,
+	revolution,
+	placeOutpost,
 } from './cards.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
@@ -47,6 +51,7 @@ export const EFFECTS = {
 	techBenefit,
 	landmark,
 	tapestryOnTop,
+	eraPartner,
 	discardTapestry,
 	others,
 	sharedAdvance,
@@ -61,6 +66,10 @@ export const EFFECTS = {
 	socialism,
 	dictatorship,
 	tradeEconomy,
+	coalBaron,
+	colonialism,
+	revolution,
+	placeOutpost,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

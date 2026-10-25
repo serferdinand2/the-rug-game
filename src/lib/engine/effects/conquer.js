@@ -4,11 +4,13 @@ import { playerSeat, isPlayerSeat } from '../state.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { RED_DIE, BLACK_DIE } from '../data/dice.js';
 import { claimAchievement, checkToppleTwo } from '../achievements.js';
+import { hasEra } from '../abilities.js';
 import { MAPS } from '../data/maps.js';
 import { conquerTargets, loneOpponent } from '../map.js';
 
 /**
  * Conquers a hex: an outpost goes on it, and an opponent's lone outpost topples. The dice follow (a defender who qualifies is asked for a response between the two).
+ * Against an opponent, Pillage and Plunder asks no response and gives both dice (design §8).
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {string} hex
@@ -18,7 +20,10 @@ export function conquerHex(ctx, player, hex, bothDice) {
 	const state = ctx.state;
 	// R17: "if an opponent controlled it" is judged now, before any trap.
 	const opponent = loneOpponent(state, hex, player);
+	const plunder =
+		opponent !== null && hasEra(state, player, 'pillage-and-plunder');
 	const both =
+		plunder ||
 		bothDice === 'always' ||
 		(bothDice === 'ifOpponent' && opponent !== null);
 	playerSeat(state, player).outposts -= 1;
@@ -36,7 +41,7 @@ export function conquerHex(ctx, player, hex, bothDice) {
 		});
 	}
 	const dice = { player, kind: 'conquerDice', hex, both };
-	if (opponent !== null && asksResponse(state, opponent)) {
+	if (opponent !== null && !plunder && asksResponse(state, opponent)) {
 		// The question goes on top of the dice, which wait for the answer. It is asked whatever the defender holds, so
 		// the table learns nothing about their hand.
 		ctx.push([
@@ -102,7 +107,7 @@ export function conquer(ctx, player, value) {
 
 /**
  * The automatic operation after a conquest: roll both dice, then give both faces (black first) or let the player pick one (01 §7.3).
- * The dice always roll, even after a trap.
+ * The dice always roll, even after a trap. Pirate Rule then gives the tile's benefit, also after a trap (design §8).
  * @type {import('../state.js').AutomaticKind}
  */
 export function conquerDice(ctx, op) {
@@ -132,6 +137,17 @@ export function conquerDice(ctx, op) {
 	const red = ctx.random(6);
 	const black = ctx.random(6);
 	emit(ctx.state, { type: 'conquerDiceRolled', player, red, black });
+	/** @type {import('../state.js').NewOperation[]} */
+	const pirate = hasEra(ctx.state, player, 'pirate-rule')
+		? [
+				{
+					player,
+					kind: 'effects',
+					effects: [{ tileBenefit: {} }],
+					source: { hex },
+				},
+			]
+		: [];
 	if (op.both) {
 		// Black then red: black's "?" can lead to a conquer that adds a territory, which red's "1 VP per territory"
 		// should count. Nothing in black's chain can reduce what red counts, so black first is never worse. The list is
@@ -147,10 +163,11 @@ export function conquerDice(ctx, op) {
 				ordered: true,
 				source: { hex },
 			},
+			...pirate,
 		]);
 		return;
 	}
-	ctx.push([{ player, kind: 'chooseDie', hex, red, black }]);
+	ctx.push([{ player, kind: 'chooseDie', hex, red, black }, ...pirate]);
 }
 
 /**

@@ -332,6 +332,23 @@ test('every decision kind has the full shape, and its answers pass its own check
 				{ player: 2, track: 'military', space: 2 },
 			],
 		},
+		chooseHex: {
+			player: 1,
+			kind: 'chooseHex',
+			options: ['-2_-2', '-2_-1'],
+			optional: true,
+			purpose: 'revolution',
+			then: { kind: 'revolt', left: 1 },
+		},
+		chooseGift: { player: 1, kind: 'chooseGift' },
+		choosePartner: {
+			player: 1,
+			kind: 'choosePartner',
+			options: [
+				{ player: 2, track: 'exploration' },
+				{ player: 2, track: 'military' },
+			],
+		},
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

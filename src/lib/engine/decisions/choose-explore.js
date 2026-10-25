@@ -1,4 +1,4 @@
-// The decision to pick a territory tile, a hex and a turn to explore.
+// The decision to pick a territory tile, a hex and a turn to explore; `tile`, when set, is the only tile offered (Coal Baron).
 import { PlayerError } from '../errors.js';
 import { exploreAnswers, exploreTile } from '../effects/explore.js';
 
@@ -9,7 +9,8 @@ export const chooseExplore = {
 		return exploreAnswers(
 			state,
 			/** @type {number} */ (decision.player),
-			decision.anywhere === true
+			decision.anywhere === true,
+			decision.tile
 		);
 	},
 	check(state, decision, answer) {

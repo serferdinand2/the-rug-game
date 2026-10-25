@@ -1,7 +1,12 @@
-// The tapestry effects: tapestryOnTop (design §7, R25, FAQ #10) and discardTapestry (Democracy).
+// The tapestry effects: tapestryOnTop (design §7, R25, FAQ #10), eraPartner (Alliance, Marriage of State) and discardTapestry (Democracy).
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
+import { eraOf, opponents } from '../abilities.js';
 import { currentEra, playTapestry } from '../tapestry.js';
+import { TRACK_IDS } from '../data/ids.js';
+
+/** @typedef {import('../data/ids.js').TrackId} TrackId */
+/** @typedef {{ player: number, track?: TrackId }} Partner - The opponent, and for Marriage of State the track */
 
 /**
  * Plays a card from the hand on top of the current era's slot (Nuclear Bomb, Printing Press). Nothing is played
@@ -20,6 +25,61 @@ export function tapestryOnTop(ctx, player) {
 		return;
 	}
 	ctx.push([{ player, kind: 'chooseTapestry', options: [...hand], era }]);
+}
+
+/**
+ * Chooses the opponent, and with `track` the track, that the player's active THIS ERA ability names (design §7).
+ * A track another active Marriage of State already names is left out (02 §3's ruling on a copied Marriage of State).
+ * One option is taken without asking; with none, nothing happens.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function eraPartner(ctx, player, value) {
+	const { state } = ctx;
+	const named = new Set(
+		state.seats
+			.filter((seat) => seat.seat !== player)
+			.map((seat) => eraOf(state, seat.seat))
+			.filter((era) => era?.ability === 'marriage-of-state')
+			.map((era) => era?.track)
+	);
+	/** @type {Partner[]} */
+	const options = opponents(state, player).flatMap((opponent) =>
+		value?.track === true
+			? TRACK_IDS.filter((track) => !named.has(track)).map((track) => ({
+					player: opponent,
+					track,
+				}))
+			: [{ player: opponent }]
+	);
+	if (options.length === 1) {
+		setPartner(ctx, player, options[0]);
+		return;
+	}
+	if (options.length > 1) {
+		ctx.push([{ player, kind: 'choosePartner', options }]);
+	}
+}
+
+/**
+ * Writes the chosen partner into the player's active THIS ERA ability.
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {Partner} partner
+ */
+export function setPartner(ctx, player, { player: opponent, track }) {
+	const era = /** @type {import('../state.js').Era} */ (
+		playerSeat(ctx.state, player).era
+	);
+	era.opponent = opponent;
+	if (track !== undefined) {
+		era.track = track;
+	}
+	emit(ctx.state, {
+		type: 'partnerChosen',
+		player,
+		opponent,
+		...(track !== undefined && { track }),
+	});
 }
 
 /**

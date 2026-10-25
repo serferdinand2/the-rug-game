@@ -1,8 +1,9 @@
-// The effects of single tapestry cards: Diplomacy, Dystopia, Age of Wonders, Plea for Aid, Technocracy,
-// and the cards that move tokens, Dark Ages, Socialism, Dictatorship and Trade Economy (design §8).
+// The effects that carry single tapestry cards' own rules, such as Dystopia, Dark Ages, Colonialism and Revolution (design §8).
 import { emit } from '../events.js';
 import { playerSeat, seatOf } from '../state.js';
 import { advanceBlocked, opponents, triggered } from '../abilities.js';
+import { checkToppleTwo } from '../achievements.js';
+import { controlledTerritories } from '../control.js';
 import {
 	benefitOps,
 	isActivated,
@@ -12,13 +13,32 @@ import {
 	LAST_SPACE,
 } from '../movement.js';
 import { askTrack } from '../decisions/choose-track.js';
+import { askHex } from '../decisions/choose-hex.js';
 import { BUILDING_IDS, TRACK_IDS } from '../data/ids.js';
 import { LANDMARKS } from '../data/landmarks.js';
+import { MAPS } from '../data/maps.js';
+import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { TRACKS } from '../data/tracks.js';
 import { building } from './building.js';
+import { gainResources, gainTiles } from './gain.js';
 import { landmarksOwned } from './vp.js';
 
 /** @typedef {import('../data/ids.js').TrackId} TrackId */
+/** @typedef {import('../data/ids.js').ResourceId} ResourceId */
+
+/**
+ * The resource each land terrain gives for Colonialism (02 §3).
+ * @type {Readonly<Record<string, ResourceId>>}
+ */
+const LAND_RESOURCES = Object.freeze({
+	mountain: 'worker',
+	grassland: 'culture',
+	forest: 'food',
+	desert: 'coin',
+});
+
+/** How many more territories Revolution may take after the first (02 §3: 1 to 3 in all). */
+const REVOLUTION_MORE = 2;
 
 /**
  * One income building of the player's choice among the types still on the income mat (Diplomacy).
@@ -366,4 +386,142 @@ export function tradeSpace(ctx, player, { player: owner, track, space }) {
 		ops.push({ player: owner, kind: 'bonus', track, space, free: true });
 	}
 	ctx.push(ops);
+}
+
+/**
+ * Coal Baron: gains the top territory tile and explores with that tile only, then each neighbour gains 1 tile,
+ * right then left (02 §3's order). With no tile left, nothing is explored; the neighbours still draw.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function coalBaron(ctx, player, value, op) {
+	const [tile] = gainTiles(ctx, player, 'territory', 1);
+	ctx.push([
+		{
+			player,
+			kind: 'effects',
+			effects: [
+				...(tile === undefined ? [] : [{ explore: { tile } }]),
+				{
+					others: {
+						who: 'neighbours',
+						effects: [{ gain: { territory: 1 } }],
+					},
+				},
+			],
+			ordered: true,
+			source: op.source,
+		},
+	]);
+}
+
+/**
+ * Colonialism: the player chooses a territory tile they control; a printed territory doesn't count (R27).
+ * One is taken without asking; with none, nothing.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function colonialism(ctx, player) {
+	const { state } = ctx;
+	const options = controlledTerritories(state, player).filter((hex) => {
+		const tile = state.hexes[hex].tile;
+		return tile !== null && tile <= TERRITORY_TILES.length;
+	});
+	if (options.length === 0) {
+		emit(state, { type: 'noColonialism', player });
+		return;
+	}
+	askHex(ctx, player, options, false, 'colonialism', { kind: 'colonize' });
+}
+
+/**
+ * Colonialism on its chosen tile: 1 resource for each different land terrain on it, corners and island.
+ * @type {import('../state.js').AutomaticKind}
+ */
+export function colonize(ctx, op) {
+	const { corners, island } =
+		TERRITORY_TILES[
+			/** @type {number} */ (ctx.state.hexes[op.hex].tile) - 1
+		];
+	/** @type {Partial<Record<ResourceId, number>>} */
+	const resources = {};
+	for (const terrain of new Set([...corners, ...island])) {
+		if (Object.hasOwn(LAND_RESOURCES, terrain)) {
+			resources[LAND_RESOURCES[terrain]] = 1;
+		}
+	}
+	gainResources(ctx, /** @type {number} */ (op.player), resources);
+}
+
+/**
+ * The hexes holding a player's toppled outposts, in map order.
+ * @param {import('../state.js').State} state
+ * @param {number} player
+ * @returns {string[]}
+ */
+function toppledHexes(state, player) {
+	return MAPS[state.map].hexes.filter((hex) =>
+		state.hexes[hex].outposts.some((o) => o.seat === player && o.toppled)
+	);
+}
+
+/**
+ * Revolution: the player picks a territory holding their toppled outpost, then up to 2 more, one at a time.
+ * The first is required (taken without asking when it is the only one); with none, nothing.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function revolution(ctx, player) {
+	askHex(ctx, player, toppledHexes(ctx.state, player), false, 'revolution', {
+		kind: 'revolt',
+		left: REVOLUTION_MORE,
+	});
+}
+
+/**
+ * Revolution on one territory: the player's outposts there stand up and every upright opponent outpost topples,
+ * toppled by the player. Not a conquest, so no dice and no middle island; "topple two" is checked (design §9).
+ * Then, while `left` allows, the player may pick another.
+ * @type {import('../state.js').AutomaticKind}
+ */
+export function revolt(ctx, op) {
+	const { state } = ctx;
+	const player = /** @type {number} */ (op.player);
+	const hex = /** @type {string} */ (op.hex);
+	for (const outpost of state.hexes[hex].outposts) {
+		if (outpost.seat === player && outpost.toppled) {
+			outpost.toppled = false;
+			delete outpost.toppledBy;
+			emit(state, { type: 'outpostRaised', player, hex });
+		} else if (outpost.seat !== player && !outpost.toppled) {
+			outpost.toppled = true;
+			outpost.toppledBy = player;
+			emit(state, {
+				type: 'outpostToppled',
+				player: outpost.seat,
+				hex,
+				by: player,
+			});
+		}
+	}
+	checkToppleTwo(ctx, player);
+	if (op.left > 0) {
+		askHex(ctx, player, toppledHexes(state, player), true, 'revolution', {
+			kind: 'revolt',
+			left: op.left - 1,
+		});
+	}
+}
+
+/**
+ * Puts an outpost from the supply on a hex, upright (Militarism). Not a conquest: no dice, no response, no achievement.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function placeOutpost(ctx, player, value) {
+	const { state } = ctx;
+	playerSeat(state, player).outposts -= 1;
+	state.hexes[value.hex].outposts.push({ seat: player, toppled: false });
+	emit(state, {
+		type: 'outpostPlaced',
+		player,
+		hex: value.hex,
+		militarism: true,
+	});
 }

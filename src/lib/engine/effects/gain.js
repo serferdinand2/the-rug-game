@@ -40,14 +40,16 @@ export function gainResources(ctx, player, resources) {
  * @param {number} player
  * @param {'territory' | 'space'} stack
  * @param {number} count
+ * @returns {number[]} The tiles gained, fewer than `count` when the stack runs out
  */
-function gainTiles(ctx, player, stack, count) {
+export function gainTiles(ctx, player, stack, count) {
 	const seat = playerSeat(ctx.state, player);
 	const tiles = ctx.state.supply[stack].splice(0, count);
 	seat[stack === 'territory' ? 'territoryTiles' : 'spaceTiles'].push(
 		...tiles
 	);
 	emit(ctx.state, { type: 'tilesGained', player, stack, tiles });
+	return tiles;
 }
 
 /**

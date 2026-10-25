@@ -55,15 +55,7 @@ export function startedGame(count, options) {
 }
 
 /** Effects that later issues build (#19–#20). */
-const HANDOFF_EFFECTS = [
-	'gainCiv',
-	'eraPartner',
-	'copyTapestry',
-	'placeOutpost',
-	'revolution',
-	'colonialism',
-	'coalBaron',
-];
+const HANDOFF_EFFECTS = ['gainCiv', 'copyTapestry'];
 
 /** Operations #15 pushes for a later issue: civilization abilities (#20). */
 const HANDOFF_OPERATIONS = ['civAbilities'];

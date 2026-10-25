@@ -1,5 +1,4 @@
-// The effects that reach other players: others (Coal Baron, Diplomacy, Steam Tycoon), sharedAdvance (Age of Discovery,
-// Oil Magnate) and the trading cards, Guilds and Olympic Host (design §4, §8).
+// The effects that reach other players: others, sharedAdvance, and the trading cards Guilds and Olympic Host (design §4, §8).
 import { opponents } from '../abilities.js';
 import { neighbours } from '../income.js';
 import { canPay } from '../payment.js';
