@@ -383,6 +383,13 @@ test('every decision kind has the full shape, and its answers pass its own check
 			kind: 'chooseAlchemists',
 			marked: ['science'],
 		},
+		chooseProphecy: {
+			player: 1,
+			kind: 'chooseProphecy',
+			category: 'tracks',
+			options: [1, 2, 3, 4],
+		},
+		chooseSwap: { player: 1, kind: 'chooseSwap', left: 3 },
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

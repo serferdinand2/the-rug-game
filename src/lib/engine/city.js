@@ -35,7 +35,8 @@ export function landmarkCells(piece) {
 }
 
 /**
- * What each of the 81 plots shows, row by row: blocked, a building, a landmark or empty.
+ * What each of the 81 plots shows, row by row: blocked, a building, a landmark or empty. The Architects' cubes are
+ * impassable plots like the mat's, so Terraforming may build over them (#20 design §5).
  * @param {PlayerSeat} seat
  * @returns {PlotKind[]}
  */
@@ -46,7 +47,10 @@ export function cityPlots(seat) {
 	}
 	/** @type {PlotKind[]} */
 	const plots = Array(GRID_SIZE * GRID_SIZE).fill('empty');
-	for (const index of impassablePlots(CAPITAL_MATS[number - 1])) {
+	for (const index of [
+		...impassablePlots(CAPITAL_MATS[number - 1]),
+		...seat.capital.cubes,
+	]) {
 		plots[index] = 'blocked';
 	}
 	for (const b of seat.capital.buildings) {
@@ -189,4 +193,34 @@ export function completeLines(plots) {
 		groupsOf(kind).filter((g) => g.every((i) => plots[i] !== 'empty'))
 			.length;
 	return { rows: full('rows'), columns: full('columns') };
+}
+
+/**
+ * Whether a group of plots holds income buildings of one type only, at least one (Architects). Landmarks, impassable
+ * plots and cubes don't count (02 §1.2).
+ * @param {PlayerSeat} seat
+ * @param {readonly number[]} group - Plot indexes, such as a district's
+ * @returns {boolean}
+ */
+export function uniformGroup(seat, group) {
+	const types = new Set(
+		seat.capital.buildings
+			.filter((b) => group.includes(plotIndex(b.row, b.col)))
+			.map((b) => b.building)
+	);
+	return types.size === 1;
+}
+
+/**
+ * How many complete rows and columns hold income buildings of one type only (Architects).
+ * @param {PlayerSeat} seat
+ * @returns {number}
+ */
+export function uniformLines(seat) {
+	const plots = cityPlots(seat);
+	return [...groupsOf('rows'), ...groupsOf('columns')].filter(
+		(group) =>
+			group.every((i) => plots[i] !== 'empty') &&
+			uniformGroup(seat, group)
+	).length;
 }

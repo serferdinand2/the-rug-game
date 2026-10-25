@@ -54,10 +54,14 @@ import {
 } from './civ-turns.js';
 import { loseResource } from './effects/lose.js';
 import { chooseAlchemists } from './decisions/choose-alchemists.js';
+import { chooseProphecy } from './decisions/choose-prophecy.js';
+import { chooseSwap } from './decisions/choose-swap.js';
 import { leadersAdvance } from './civs/leaders.js';
 import { merrymakersMove } from './civs/merrymakers.js';
 import { entertainersMove } from './civs/entertainers.js';
 import { alchemistsRoll } from './civs/alchemists.js';
+import { mysticsCheck } from './civs/mystics.js';
+import { architectsCube } from './civs/architects.js';
 
 /** @type {Record<string, import('./state.js').DecisionKind>} */
 export const DECISIONS = {
@@ -96,6 +100,8 @@ export const DECISIONS = {
 	chooseCivAbility,
 	chooseSlot,
 	chooseAlchemists,
+	chooseProphecy,
+	chooseSwap,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */
@@ -130,4 +136,6 @@ export const AUTOMATIC = {
 	merrymakersMove,
 	entertainersMove,
 	alchemistsRoll,
+	mysticsCheck,
+	architectsCube,
 };

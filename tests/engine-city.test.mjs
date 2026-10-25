@@ -28,7 +28,7 @@ import { startedGame } from './helpers/engine.mjs';
  */
 function seatWith(mat, buildings = [], landmarks = []) {
 	const seat = structuredClone(startedGame(2).state.seats[0]);
-	seat.capital = { mat, buildings, landmarks };
+	seat.capital = { mat, buildings, landmarks, cubes: [] };
 	return seat;
 }
 

@@ -14,14 +14,14 @@ import { plotIndex } from '../capital.js';
 import { CAPITAL_MATS, impassablePlots } from './data/capitals.js';
 
 /**
- * How many of the mat's impassable plots a piece covers: none until Terraforming lets pieces go there.
+ * How many impassable plots a piece covers, the mat's and the Architects' cubes: none until Terraforming lets pieces go there.
  * @param {import('./state.js').PlayerSeat} seat
  * @param {import('./city.js').PlacedBuilding | import('./city.js').PlacedLandmark} piece
  * @returns {number}
  */
 function impassableCovered(seat, piece) {
 	const mat = CAPITAL_MATS[/** @type {number} */ (seat.capital.mat) - 1];
-	const impassable = impassablePlots(mat);
+	const impassable = [...impassablePlots(mat), ...seat.capital.cubes];
 	const cells = 'building' in piece ? [piece] : landmarkCells(piece);
 	return cells.filter(
 		({ row, col }) =>

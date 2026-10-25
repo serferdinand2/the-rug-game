@@ -494,7 +494,12 @@ test('a copied Interstellar Travel explores one of the space tiles it gave (R105
 
 test('Capitalism scores 2 VP per coin icon earned and gains a coin per market', () => {
 	const { state, random } = game();
-	state.seats[0].capital = { mat: 1, buildings: [], landmarks: [] };
+	state.seats[0].capital = {
+		mat: 1,
+		buildings: [],
+		landmarks: [],
+		cubes: [],
+	};
 	// Barter and Currency show a coin each; Banking shows none.
 	state.seats[0].incomeMat.buildings.market = 3;
 	const vp = state.seats[0].vp;
@@ -593,7 +598,12 @@ test('Mercantilism converts food earned into other resources for 2 VP each, or n
 test('Monarchy scores 3 VP per income building placed in the capital, and nothing beside the mat', () => {
 	const { state, random } = game();
 	withEra(state, 1, 'monarchy');
-	state.seats[0].capital = { mat: 1, buildings: [], landmarks: [] };
+	state.seats[0].capital = {
+		mat: 1,
+		buildings: [],
+		landmarks: [],
+		cubes: [],
+	};
 	const vp = state.seats[0].vp;
 	const placed = placeAll(
 		resolveEffects(state, 1, [{ building: 'farm' }], random),
@@ -628,7 +638,12 @@ test('Monarchy scores 3 VP per income building placed in the capital, and nothin
 
 test('Terraforming lets buildings and landmarks cover impassable plots, 5 VP per piece', () => {
 	const { state, random } = game();
-	state.seats[0].capital = { mat: 1, buildings: [], landmarks: [] };
+	state.seats[0].capital = {
+		mat: 1,
+		buildings: [],
+		landmarks: [],
+		cubes: [],
+	};
 	const seat = state.seats[0];
 	// On mat 1, plots (1, 0) and (1, 1) are impassable.
 	assert.equal(
