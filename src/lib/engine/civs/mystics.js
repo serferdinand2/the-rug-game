@@ -47,14 +47,18 @@ function prophecyCounts(state, player) {
 
 /**
  * The operation that pays for each predicted category whose count equals its prediction now and hasn't before, or
- * none. It only reads, so a hook can call it at the moment of the check (#20 design §7).
+ * none. It only reads, so a hook can call it at the moment of the check (#20 design §7). Before the Mystics are set
+ * up there is nothing to check: the setup lanes run side by side, so another lane can change a count first.
  * @param {import('../state.js').State} state
  * @param {number} player
  * @returns {import('../state.js').NewOperation[]}
  */
 function checkOps(state, player) {
-	/** @type {MysticsData} */
+	/** @type {MysticsData | undefined} */
 	const data = playerSeat(state, player).civData.mystics;
+	if (!data) {
+		return [];
+	}
 	const counts = prophecyCounts(state, player);
 	const categories = PROPHECIES.map(({ category }) => category).filter(
 		(category) =>
@@ -156,10 +160,13 @@ export const mystics = {
 		});
 		nextProphecy(ctx, player);
 	},
-	// The final income turn: 10 VP for each category whose count equals its prediction.
+	// The final income turn: 10 VP for each category whose count equals its prediction; none before they are set up.
 	income(ctx, player) {
-		/** @type {MysticsData} */
+		/** @type {MysticsData | undefined} */
 		const data = playerSeat(ctx.state, player).civData.mystics;
+		if (!data) {
+			return;
+		}
 		const counts = prophecyCounts(ctx.state, player);
 		const exact = PROPHECIES.filter(
 			({ category }) => data.predictions[category] === counts[category]

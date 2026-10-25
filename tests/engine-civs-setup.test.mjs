@@ -13,6 +13,7 @@ import {
 	startedGame,
 	answer,
 	answerDefaults,
+	placeAll,
 } from './helpers/engine.mjs';
 
 const VERSIONS = /** @type {const} */ (['original', 'current']);
@@ -401,6 +402,25 @@ test("Mystics check their own counts whenever any player's change can move them:
 	assert.ok(done.hexes['-2_-1'].outposts[0].toppled);
 	assert.deepEqual(eventsOf(done, 'prophecyReached'), []);
 	assert.deepEqual(done.seats[0].civData.mystics.reached, []);
+});
+
+test('Mystics check nothing and score nothing before their predictions are set up', () => {
+	// The setup lanes run side by side, so an opponent's lane can change a count before the Mystics' lane sets them up.
+	const { state, random } = game();
+	state.seats[0].civs = ['mystics'];
+	assert.equal(state.seats[0].civData.mystics, undefined);
+	const placed = placeAll(
+		resolveEffects(state, 2, [{ building: 'farm' }], random),
+		random
+	);
+	assert.equal(placed.seats[1].capital.buildings.length, 1);
+	assert.deepEqual(eventsOf(placed, 'prophecyReached'), []);
+	const scored = structuredClone(state);
+	push(scored, scored.pending, [
+		{ player: 1, kind: 'civAbilities', turn: 5 },
+	]);
+	run(scored, random);
+	assert.deepEqual(eventsOf(scored, 'vpGained', state.seq), []);
 });
 
 test('Mystics gained mid-game are discarded and another civilization is gained', () => {
