@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createGame } from '../src/lib/engine/setup.js';
+import { checkOptions, VARIANTS } from '../src/lib/engine/game.js';
 import {
 	AFTER_SETUP,
 	AFTER_SETUP_STEPS,
@@ -280,6 +281,49 @@ test('createGame refuses a bad player count, an unknown version and any expansio
 		message: /Unknown expansion/,
 	});
 	assert.throws(() => createGame({ ...base, random: undefined }), TypeError);
+});
+
+test('checkOptions accepts both versions with no expansions or variants', () => {
+	for (const version of ['original', 'current']) {
+		checkOptions({ version });
+		checkOptions({ version, expansions: [], variants: [] });
+	}
+	assert.deepEqual(VARIANTS, []);
+	assert.ok(Object.isFrozen(VARIANTS));
+});
+
+test('checkOptions refuses what createGame refuses, variants included (#22, #53)', () => {
+	const refusals = /** @type {[Record<string, unknown>, RegExp][]} */ ([
+		[{ version: '2024' }, /Unknown rules version: 2024/],
+		[{ version: 'current', expansions: 'pp' }, /expansions must be a list/],
+		[
+			{ version: 'current', expansions: ['pp'] },
+			/Plans & Ploys isn't available yet/,
+		],
+		[{ version: 'current', expansions: ['xx'] }, /Unknown expansion: xx/],
+		[{ version: 'current', variants: 'draft' }, /variants must be a list/],
+		[{ version: 'current', variants: ['draft'] }, /Unknown variant: draft/],
+	]);
+	for (const [options, message] of refusals) {
+		assert.throws(
+			() => checkOptions(/** @type {any} */ (options)),
+			{ name: 'PlayerError', message },
+			JSON.stringify(options)
+		);
+	}
+});
+
+test('createGame refuses an unknown variant', () => {
+	assert.throws(
+		() =>
+			createGame({
+				players: [{ name: 'Ana' }, { name: 'Bo' }],
+				version: 'current',
+				variants: ['draft'],
+				random: seededRandom(1),
+			}),
+		{ name: 'PlayerError', message: /Unknown variant: draft/ }
+	);
 });
 
 test('the setup decisions list answers that pass their own check', () => {

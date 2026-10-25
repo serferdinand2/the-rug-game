@@ -16,10 +16,16 @@ import { SPACE_TILES } from './data/space-tiles.js';
 import { VERSIONS, TRACK_IDS, RESOURCE_IDS, BUILDING_IDS } from './data/ids.js';
 
 /**
- * Checks the options, throwing PlayerError for each problem in the spec's order.
- * @param {{ players: unknown, version: string, expansions: unknown }} options
+ * The official optional variants a table may switch on. #53 decides which; until then there are none.
+ * @type {readonly string[]}
  */
-function validate({ players, version, expansions }) {
+export const VARIANTS = Object.freeze([]);
+
+/**
+ * Checks the players, throwing PlayerError for each problem in the spec's order.
+ * @param {unknown} players
+ */
+function checkPlayers(players) {
 	if (!Array.isArray(players) || players.length < 1 || players.length > 5) {
 		throw new PlayerError('A game needs 1 to 5 players.');
 	}
@@ -31,6 +37,14 @@ function validate({ players, version, expansions }) {
 			throw new PlayerError('Every player needs a name.');
 		}
 	}
+}
+
+/**
+ * Checks a game's options, as a table does whenever its host changes them, throwing PlayerError for the first problem.
+ * @param {{ version: unknown, expansions?: unknown, variants?: unknown }} options
+ * @throws {PlayerError} For an unknown version, an unknown or unbuilt expansion, or an unknown variant
+ */
+export function checkOptions({ version, expansions = [], variants = [] }) {
 	if (!VERSIONS.some((v) => v.id === version)) {
 		throw new PlayerError(`Unknown rules version: ${version}.`);
 	}
@@ -46,6 +60,14 @@ function validate({ players, version, expansions }) {
 			throw new PlayerError(`Unknown expansion: ${code}.`);
 		}
 		throw new PlayerError(`${known.name} isn't available yet.`);
+	}
+	if (!Array.isArray(variants)) {
+		throw new PlayerError('The variants must be a list.');
+	}
+	for (const variant of variants) {
+		if (!VARIANTS.includes(variant)) {
+			throw new PlayerError(`Unknown variant: ${variant}.`);
+		}
 	}
 }
 
@@ -201,13 +223,21 @@ export const SETUP_STEPS = [
  * @param {{ name: string }[]} options.players - In seat order, which is clockwise and turn order
  * @param {import('./data/ids.js').VersionId} options.version
  * @param {string[]} [options.expansions] - None are built yet
+ * @param {string[]} [options.variants] - From VARIANTS, which is empty until #53
  * @param {import('./random.js').Random} options.random
  * @returns {import('./state.js').State}
- * @throws {PlayerError} For a bad player count or name, version or expansion
+ * @throws {PlayerError} For a bad player count or name, version, expansion or variant
  * @throws {TypeError} When `random` is not a function
  */
-export function createGame({ players, version, expansions = [], random }) {
-	validate({ players, version, expansions });
+export function createGame({
+	players,
+	version,
+	expansions = [],
+	variants = [],
+	random,
+}) {
+	checkPlayers(players);
+	checkOptions({ version, expansions, variants });
 	if (typeof random !== 'function') {
 		throw new TypeError('createGame needs a random function.');
 	}
