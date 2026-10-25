@@ -1,0 +1,5 @@
+// Owner-reviewed native 24px mountain hex marker.
+import { fromSvg } from '../../painter.js';
+const SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" shape-rendering=\"crispEdges\"><path fill=\"#b3afc2\" d=\"M12 0h3v1h-3zM12 1h3v1h-3zM12 2h3v1h-3zM9 3h9v1h-9zM9 4h9v1h-9zM9 5h9v1h-9zM6 6h6v1h-6zM15 6h6v1h-6zM6 7h6v1h-6zM15 7h6v1h-6zM6 8h6v1h-6zM15 8h6v1h-6zM3 9h6v1h-6zM18 9h6v1h-6zM3 10h6v1h-6zM18 10h6v1h-6zM3 11h6v1h-6zM18 11h6v1h-6zM0 12h6v1h-6zM21 12h3v1h-3zM0 13h6v1h-6zM21 13h3v1h-3zM0 14h6v1h-6zM21 14h3v1h-3zM0 15h3v1h-3zM21 15h3v1h-3zM0 16h3v1h-3zM21 16h3v1h-3zM0 17h3v1h-3zM21 17h3v1h-3z\"/><path fill=\"#8a8797\" d=\"M12 6h3v1h-3zM12 7h3v1h-3zM12 8h3v1h-3zM9 9h9v1h-9zM9 10h9v1h-9zM9 11h9v1h-9zM6 12h15v1h-15zM6 13h15v1h-15zM6 14h15v1h-15zM3 15h18v1h-18zM3 16h18v1h-18zM3 17h18v1h-18zM3 18h18v1h-18zM3 19h18v1h-18zM3 20h18v1h-18z\"/><path fill=\"#5c596c\" d=\"M0 18h3v1h-3zM21 18h3v1h-3zM0 19h3v1h-3zM21 19h3v1h-3zM0 20h3v1h-3zM21 20h3v1h-3zM0 21h24v1h-24zM0 22h24v1h-24zM0 23h24v1h-24z\"/></svg>";
+/** Returns the reviewed marker. @returns {import('../../painter.js').Canvas} */
+export function draw() { return fromSvg(SVG); }

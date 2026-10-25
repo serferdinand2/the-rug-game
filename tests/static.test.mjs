@@ -52,7 +52,7 @@ test('importing the server does not listen', () => {
 test('starts when run through a symlinked path', async () => {
 	const dir = await mkdtemp(join(tmpdir(), 'rug-'));
 	const link = join(dir, 'app');
-	await symlink(fileURLToPath(new URL('..', import.meta.url)), link);
+	await symlink(fileURLToPath(new URL('..', import.meta.url)), link, process.platform === 'win32' ? 'junction' : 'dir');
 	const child = spawn(process.execPath, [join(link, 'server.mjs')], {
 		env: { ...process.env, PORT: '0' },
 		stdio: ['ignore', 'pipe', 'pipe'],
@@ -200,7 +200,7 @@ test('unknown API paths answer JSON', async () => {
 
 test(
 	'a file that cannot be read answers 500, not an empty 200',
-	{ skip: process.getuid?.() === 0 && 'root can read any file' },
+	{ skip: process.platform === 'win32' ? 'Windows chmod does not remove read permission' : process.getuid?.() === 0 && 'root can read any file' },
 	async () => {
 		const file = fileURLToPath(
 			new URL('../public/unreadable.txt', import.meta.url)

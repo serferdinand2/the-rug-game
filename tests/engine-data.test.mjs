@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
 	VERSIONS,
 	TRACK_IDS,
@@ -42,7 +43,9 @@ import { ASSETS } from '../src/lib/art/catalog.js';
 import { GRID_SIZE, plotIndex } from '../src/lib/capital.js';
 import * as ui from '../src/lib/ui.js';
 
-const ENGINE_DIR = new URL('../src/lib/engine/', import.meta.url).pathname;
+const ENGINE_DIR = fileURLToPath(
+	new URL('../src/lib/engine/', import.meta.url)
+);
 
 /** Every .js file under a folder. */
 function jsFiles(/** @type {string} */ dir) {

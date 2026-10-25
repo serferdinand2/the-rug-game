@@ -605,3 +605,7 @@ When writing or changing code, make sure:
 - [ ] Desktop width checked; reduced motion and the keyboard work
 - [ ] Tests were written first and `npm test` passes
 - [ ] The commit references its issue, and the README shows the current interface
+
+### Card authoring
+
+For cards, `docs/ui/card-design-rules.md` is normative. Reuse the extracted card primitives and add a library example; keep rules edition and authoritative state separate from review fixtures. Do not copy the old standalone mockup or restore superseded resource circles, 456 px widths or oversized placement squares. Native artwork conversions preserve colours and alpha exactly.

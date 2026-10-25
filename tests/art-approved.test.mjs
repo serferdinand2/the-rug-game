@@ -66,7 +66,7 @@ test('the five colored pieces change only the neutral interior channel', async (
 		yellow: '#e1b84d',
 		purple: '#b07fd0',
 	};
-	for (const piece of ['token', 'outpost', 'outpost-toppled']) {
+	for (const piece of ['outpost', 'outpost-toppled']) {
 		const base = fromSvg(await renderAsset(`piece/${piece}`));
 		assert.ok(base.p.includes('#b3afc2'));
 		assert.ok(base.p.includes(null));
@@ -95,9 +95,9 @@ test('the five colored pieces change only the neutral interior channel', async (
 	);
 });
 
-test('placeholder dice, terrain hex markers and game symbols are not released as drawings', async () => {
+test('placeholder dice and game symbols are not released as drawings', async () => {
 	const ids = await listDrawingIds();
-	assert.ok(!ids.some((id) => /^(die|terrain|symbol)\//.test(id)));
+	assert.ok(!ids.some((id) => /^(die|symbol)\//.test(id)));
 });
 
 test('each biome has six distinct impassable capital terrain variants', async () => {

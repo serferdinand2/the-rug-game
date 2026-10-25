@@ -165,31 +165,31 @@
     "id": "piece/token-blue",
     "width": 32,
     "height": 32,
-    "sha256": "3e4aef0c3c7f247744b29e773ba1626a02c3fb57b0cc8bd723b20d446c6674cb"
+    "sha256": "95f27ae1bcb7e0c1e6feb3c5654a74c1035d973a7aa25b7e7fdce272d9109a98"
   },
   {
     "id": "piece/token-red",
     "width": 32,
     "height": 32,
-    "sha256": "1b72e4e515a9cb45202186b7c10f4608eb794fd71b994cddba1eb5149dbb2537"
+    "sha256": "3430ccc88d52cf8ef60339a1bd1a63e699c3e0842b08041f5fe300b3853ad907"
   },
   {
     "id": "piece/token-green",
     "width": 32,
     "height": 32,
-    "sha256": "341ecdccd6b4c900652cc277f54977dad74a2bd94594b46792b9be9f7746fa8c"
+    "sha256": "ade0e8f343837e94eb64b71ea73bee56aeaca771870e1e4ba1a49f9b2a696ec6"
   },
   {
     "id": "piece/token-yellow",
     "width": 32,
     "height": 32,
-    "sha256": "1d8c6509866d280834bfb167177d117b9571e520f3cf0b385de20ab12bd7fab1"
+    "sha256": "795e6fe1cac6321bcfb8704ed5f994b3552483c0860a4eae79c7f1e0fd89820e"
   },
   {
     "id": "piece/token-purple",
     "width": 32,
     "height": 32,
-    "sha256": "40fe35ad378f95a632888e9bffde4508573552c1a8b52a8db7b2ae1c83bc8551"
+    "sha256": "bfbf3f4b47ef1be618ee963ae238c54716bfb62676511be73dc1a3586ca6280c"
   },
   {
     "id": "track/exploration",

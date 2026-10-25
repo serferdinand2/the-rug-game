@@ -5,8 +5,6 @@ import { ASSETS } from '../lib/art/catalog.js';
 /** Groups resolved through text or later artwork. @type {Readonly<Record<string, string>>} */
 export const DEFERRED_ART = Object.freeze({
 	die: 'Dice results use text, numerals, approved track symbols and resource/VP labels. Decorative dice artwork can be drawn later with the final controls. Resolved in issue #5.',
-	terrain:
-		'Terrain hex markers use terrain names or the map and territory artwork from issue #6. Dedicated markers can be drawn later. Capital terrain tiles are listed separately below. Resolved in issue #5.',
 	symbol: 'VP, territory tiles, tapestry cards, tech cards and space tiles use text labels and counts, then their actual pictures. Additional pictograms can be drawn later. Resolved in issue #5.',
 });
 import { toSvg } from '../../art/painter.js';
@@ -27,6 +25,9 @@ import {
 export function artDescription(section) {
 	if (DEFERRED_ART[section.id]) {
 		return DEFERRED_ART[section.id];
+	}
+	if (section.id === 'terrain') {
+		return 'Five owner-reviewed terrain hex markers at native 24×24. These are card/map terrain symbols, separate from the capital biome tile solutions.';
 	}
 	if (section.id === 'capital-mat') {
 		return 'Six full mats are example compositions only. Actual mats are generated from reusable terrain tiles for each game, following its setup and plot layout. Expansion artwork remains part of issue #6.';

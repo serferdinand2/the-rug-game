@@ -52,11 +52,11 @@ test('the app builds from the project root, copying static/ as is', async () => 
 	);
 	const root = fileURLToPath(new URL('..', import.meta.url));
 	assert.equal(join(config.root, '/'), root);
-	assert.equal(config.publicDir, join(root, 'static'));
-	assert.equal(config.build.outDir, join(root, 'public'));
+	assert.equal(join(config.publicDir), join(root, 'static'));
+	assert.equal(join(config.build.outDir), join(root, 'public'));
 });
 
-test('the build has two pages: the game and the component library', async () => {
+test('the build includes the game, component library and card review', async () => {
 	const config = await resolveConfig(
 		{ configFile, logLevel: 'silent' },
 		'build'
@@ -65,6 +65,7 @@ test('the build has two pages: the game and the component library', async () => 
 	assert.deepEqual(config.build.rolldownOptions.input, {
 		game: join(root, 'index.html'),
 		components: join(root, 'components.html'),
+		cards: join(root, 'docs/ui/collectors-review.html'),
 	});
 	assert.deepEqual(config.optimizeDeps.entries, [
 		'index.html',

@@ -314,3 +314,13 @@ When revising a reference:
 5. Record newly approved product or rules decisions in the design specification as well, rather than inferring them from a fixture label.
 
 The component library now uses the issue #5 SVG artwork in resource symbols, income-building plots, track headings and player progress tokens. CapitalGrid composes its background from tile SVGs using the supplied biome and visual setup seed. The six full mat SVGs remain examples only; actual game mats are composed from tiles.
+
+## Civilization cards: owner decisions and components (2026-10-24)
+
+[Card design rules](card-design-rules.md) is the extensive generation specification: latest accepted sizes, palette, typography, artwork, square placements, inline resources, covered rewards, legal connectors, prediction/scoring boxes and fourteen pattern recipes. It supersedes the older 456 px width and the discarded resource-circle experiments.
+
+[The card review](collectors-review.html) now renders the same Svelte components as `/components.html#civilization-card`, including empty/in-play examples. It is a production build entry as well as a development URL. The previous static implementation is archived in `archive/2026-10-24-civilization-review.html`.
+
+![Shared civilization card components](screens/civilization-card-components.png)
+
+Issue #47's civilization-frame and reusable-pattern portions are covered. Non-civilization frames, all-card rules/reference data and in-game reference access remain. Issue #3 gains the civilization detail-layout foundation, not completed income/decision/result flows. The examples identify original mats where applicable; sample highlights are not engine state.

@@ -56,3 +56,7 @@ These are recorded in the existing UI manifest and are broader than the three un
 For each group, provide an interactive local scenario, screenshots at the approved 1920x1080 desktop size and behavior notes in docs/ui/README.md. Include normal, unavailable, empty and interrupted states. Obtain owner approval before marking a design complete in issue #3. Engine/server implementation belongs to the dependent build issues; fixture interactions must not invent game rules.
 
 Sources: GitHub issue #3 and its desktop-only comment; docs/ui/README.md; src/lib/components/README.md; TurnBar, WorldMap, CapitalGrid and PlayerCard; docs/research/01-base-core-rules.md sections 3-5 and 11; root README rules conventions, especially R10-R15 and R25.
+
+## Delivered since this proposal: card detail foundation (2026-10-24)
+
+The reviewed civilization-card frame and fourteen layout examples are now shared components with a detailed generation guide (`card-design-rules.md`). This resolves the civilization detail-layout foundation. It does not resolve the full card chooser, cost/resource decisions, private responses, income sequencing or results screens listed above. Issue #47 tracks the remaining card families and in-game reference access.

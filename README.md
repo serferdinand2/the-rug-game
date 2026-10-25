@@ -365,3 +365,11 @@ How the ranking was built:
 ## Licence
 
 [GPL-3.0-only](LICENSE), like the sibling projects. The fonts keep their authors' terms, the SIL Open Font License 1.1: Cinzel by The Cinzel Project Authors and Atkinson Hyperlegible by the Braille Institute of America. Their notices are in [static/fonts/](static/fonts/). The archived mockup's Alagard by Hewett Tsoi (Pix3M) and VCR OSD Mono by Riciery Leal (MrManet) keep their notices in [docs/ui/archivedpngmockups/fonts/](docs/ui/archivedpngmockups/fonts/).
+
+### Reviewed civilization card components
+
+The [single-page card review](docs/ui/collectors-review.html) now uses fifteen shared Svelte components, also shown in the component library. Fourteen civilization recipes preserve the owner's Style B layout: 425 px width, large portraits, compact square placements, triggered/scoring boxes and native resource/terrain artwork. [The full card-design rules](docs/ui/card-design-rules.md) record the latest decisions for generating further cards.
+
+![Civilization card components](docs/ui/screens/civilization-card-components.png)
+
+Player tokens use the owner's shaded 32×32 five-colour PNGs, reproduced exactly as SVGs. The prior flat versions are archived; stable production URLs now serve the replacements. Resources have two native sets, 24 and 48 px; the old 32 px resource originals are deprecated.

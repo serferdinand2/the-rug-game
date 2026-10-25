@@ -229,7 +229,7 @@ Updated 2026-10-25. Update this section whenever a milestone moves.
   - R108: the table's version decides whether a finished player may still respond to a conquer. Current rules: no. Original 2019 rules: yes, but a sprung trap gains no resource (owner, #17).
   - The owner asked for the issues to be reorganized before #14: #14–#20 now name the effects each one builds.
 - **Decided 2026-10-23:**
-  - Civilization cards use option B · Civilization mat from `docs/ui/collectors-card-options.html` (owner). It is 456 px wide, so it fits the Civilization tab. One component filled from data will draw all 41 civilizations, under #47; the owner asked for it ahead of #47's blocker #3.
+  - Civilization cards use option B · Civilization mat from `docs/ui/collectors-card-options.html` (owner). It is 425 px wide (owner revision, 2026-10-24), so it fits the Civilization tab. One component filled from data will draw all 41 civilizations, under #47; the owner asked for it ahead of #47's blocker #3.
   - The tracks backdrop, the income mat with its F&F overlay and the table background are cosmetic enhancements (owner). They moved from #6 to #51, in the new milestone M12 · Cosmetic enhancements, and are drawn after the core features. `COSMETIC_BOARDS` in `src/lib/art/catalog.js` gives them issue 51, so the library names it on their empty slots.
 - **Decided 2026-10-22:**
   - Pictures may show real religious and political signs, flags and emblems, but no likeness of a real person and no lettering (owner).
@@ -397,3 +397,9 @@ The full rules, with examples, are in [CONVENTIONS.md](CONVENTIONS.md).
 - [ ] State uses `$state()`, `$derived()` (preferred) and `$effect()`; bindable props use `$bindable()`
 - [ ] Desktop width is checked (there is no phone layout); reduced motion and the keyboard work
 - [ ] Tests were written first and `npm test` passes; the commit references its issue; the README shows the current interface
+
+## Card-design handoff, 2026-10-24 (Refs #3 #47)
+
+Before generating or modifying cards, read `docs/ui/card-design-rules.md` and the scoped `DESIGN.md`. The Style B frame is now **425 px**, with natural height, 160 px full portraits, square placement targets capped at 75 px, and native 24/48 resource assets with no circles. All fourteen reviewed civilization recipes use the shared Svelte card components. The review route is built and deployable; the component library exposes each primitive. Shaded player tokens replace the flat colour variants, and the five approved terrain hex markers now ship as reproducible assets.
+
+This completes the civilization-frame/pattern portion of #47, not every card family, all 41 rules read-models or in-game reference access. It contributes civilization-detail UI to #3; broader decisions, income flow and results remain open. Original-mat fixtures are explicitly labelled. Do not mistake these layout fixtures for current-edition engine data.

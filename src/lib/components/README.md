@@ -86,3 +86,25 @@ These components are updated as the art issues deliver their assets. Each will s
 | `SeatCard` | A lobby seat: empty (Open seat), open (Take the seat!) or a joined player. Add bot is shelved. |
 | `SettingRow` | A setting's title, a thin rule and its choices on one line. |
 | `TableCode` | The read-only table code with COPY. |
+
+## Reviewed card system (Refs #47)
+
+The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-rules.md). All components below have library sections under **Player**. The single-page review uses these same components.
+
+| Component | Responsibility |
+|---|---|
+| `player/CardFrame` | 425 px frame, title, full portrait, main effect and footer metadata |
+| `player/CivilizationCard` | Fourteen reviewed recipes with empty/in-play example states |
+| `player/CardResource` | Native 24 px inline icon without changing row spacing |
+| `player/PlayerToken` | Five supplied shaded 32 px colour variants |
+| `player/CardSlot` | Compact, large or prediction square, never larger than 75 px |
+| `player/CardEffectBox` | Beige trigger/scoring row |
+| `player/CardClarity` | Supporting rules beneath the relevant layout |
+| `player/CardPlacementRows` | Collection, covered rewards, track and history rows |
+| `player/CardRewardColumns` | Bottom-aligned square/benefit pairs or upward tracks |
+| `player/CardPathGrid` | Connected reward-path composition |
+| `player/CardPredictionTracks` | Number-target categories and separators |
+| `player/CardTerrainRewards` | Actual terrain marker, label and benefit rows |
+| `player/CardTokenReserve` | Compact starting-token squares with used counts |
+| `player/CardScoreLadder` | Horizontal Atkinson `X VP` rewards and collection counts |
+| `player/CardTechnologyTransfer` | Explicit owner/row transition schematic |

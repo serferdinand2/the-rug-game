@@ -29,6 +29,7 @@ export default defineConfig({
 			input: {
 				game: fromHere('./index.html'),
 				components: fromHere('./components.html'),
+				cards: fromHere('./docs/ui/collectors-review.html'),
 			},
 		},
 	},

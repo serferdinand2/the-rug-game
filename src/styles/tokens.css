@@ -176,3 +176,33 @@
 		--duration-slow: 0ms;
 	}
 }
+
+/* Owner-reviewed Style B card palette. */
+:root {
+	--card-selection-edge: #174b69;
+	--card-text: #3c3021;
+	--card-strong-text: #4c3c2a;
+	--card-die-number: #5a5149;
+	--card-band-start: #5c3e1f;
+	--card-expansion: #715398;
+	--card-line-strong: #735934;
+	--card-path: #755c3d;
+	--card-muted: #756447;
+	--card-slot-border: #797875;
+	--card-faint: #8b7756;
+	--card-line: #94764c;
+	--card-band-middle: #987a51;
+	--card-score-line: #a38d6b;
+	--card-loss: #a55a50;
+	--card-slot: #aaa8a1;
+	--card-line-soft: #b59a70;
+	--card-filled-slot: #c7b48f;
+	--card-band-end: #cbb58c;
+	--card-ink: #d4ba87;
+	--card-control: #dfc899;
+	--card-title: #e2b857;
+	--card-paper: #e8d6ad;
+	--card-raised: #f0e2bf;
+	--card-shadow-soft: rgb(0 0 0 / 22%);
+	--card-shadow-strong: rgb(0 0 0 / 40%);
+}

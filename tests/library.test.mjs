@@ -92,7 +92,7 @@ test('every component file follows the structure in CONVENTIONS.md', () => {
 	for (const { name, source } of components) {
 		assert.match(
 			source,
-			/^<!-- .+ -->\n/,
+			/^<!-- .+ -->\r?\n/,
 			`${name} must start with a one-line comment`
 		);
 		const moduleScript = source.match(

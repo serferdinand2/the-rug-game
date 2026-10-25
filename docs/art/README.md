@@ -80,3 +80,9 @@ The Lighthouse (`art/drawings/landmark/lighthouse.js`) is the worked example:
 - **Review.** The owner approves art in the Art part of the component library (`/components.html`), until the players' card gallery (#47) exists. It replaced the standalone `art/preview/index.html` gallery on 2026-10-21.
 
 Resource symbols have two active native sizes: 24×24 and 48×48. Their owner-supplied PNGs and exact-color SVG vectors are in `art/exports/resources-24px-png/` and `art/exports/resources-48px-png/`; the rendered SVGs are in `static/art/resource-24/` and `static/art/resource-48/`. Each source pixel is either opaque or fully transparent. The former 32×32 set is deprecated and archived in `docs/art/archive/resource-32-deprecated/`.
+
+## 2026-10-24 owner asset revisions
+
+The shaded 32×32 player tokens replace the old flat five-colour variants at the existing `piece/token-{colour}` URLs. Their original PNGs are retained in `art/imported-pngs/player-tokens/`, and the flat predecessors are deprecated under `docs/art/archive/player-tokens-v1/`. Tests compare every visible pixel and alpha against the PNGs. No partial transparency or colour substitution is introduced.
+
+The owner's five native 24 px terrain hex markers are now active `terrain/{sea,desert,forest,grassland,mountain}` drawings and production SVGs; earlier deferral text applies only to the old placeholder drawings. These markers are distinct from capital biome terrain tiles. Civilization cards consume their production URLs.
