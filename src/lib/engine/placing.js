@@ -10,7 +10,7 @@ import {
 	landmarkSpots,
 	onGrid,
 } from './city.js';
-import { itemCount } from './map.js';
+import { itemCount } from './control.js';
 import { CRAFTSMEN_COLUMNS, craftsmenColumns } from './civs/craftsmen.js';
 import { nomadsHexes } from './civs/nomads.js';
 import { plotIndex } from '../capital.js';

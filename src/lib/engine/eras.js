@@ -149,7 +149,7 @@ export const ERA_HOOKS = {
 				? [effects(owner, [{ gain: { coin: 1 } }])]
 				: [],
 	},
-	// placePiece alone fires piecePlaced, so a building beside the mat, outside the city, scores nothing (R13's reading).
+	// placePiece and placeInColumn alone fire piecePlaced, so a building beside the mat or on the map scores nothing (R13's reading).
 	monarchy: {
 		piecePlaced: (_state, owner, { player, building }) =>
 			owner === player && building !== undefined ? [vp(owner, 3)] : [],

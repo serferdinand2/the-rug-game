@@ -87,6 +87,7 @@ import { deepFreeze } from './ids.js';
  * - `trackLandmark`: gain and place any track landmark nobody owns.
  * - `landmarkRank`: compare landmarks owned with every opponent and run `fewest`, `most` or `otherwise`.
  * - `placeOutpost`: put an outpost from the supply on a hex, without a conquest.
+ * - `placeToken`: put one of a civilization's tokens from its mat on a hex, as an item that gives no control (R33).
  * - `darkAges`, `socialism`, `dictatorship`, `revolution`, `colonialism`, `pleaForAid`, `technocracy`, `tradeEconomy`, `coalBaron`, `olympicHost`: the rules of the card of that name.
  * @typedef {{ gain: Gain }
  *   | { lose: { culture?: number, any?: number } }
@@ -119,6 +120,7 @@ import { deepFreeze } from './ids.js';
  *   | { trackLandmark: {} }
  *   | { landmarkRank: { fewest: Effect[], most: Effect[], otherwise: Effect[] } }
  *   | { placeOutpost: { hex: string } }
+ *   | { placeToken: { hex: string, civ: string } }
  *   | { darkAges: {} }
  *   | { socialism: {} }
  *   | { dictatorship: {} }
@@ -174,6 +176,7 @@ export const EFFECT_KINDS = deepFreeze([
 	'trackLandmark',
 	'landmarkRank',
 	'placeOutpost',
+	'placeToken',
 	'darkAges',
 	'socialism',
 	'dictatorship',

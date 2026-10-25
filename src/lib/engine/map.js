@@ -1,38 +1,9 @@
 // The map's rules: matching sides, and the hexes a player may explore or conquer (R5, R16).
 import { MAPS, hexNeighbours } from './data/maps.js';
 import { TERRITORY_TILES } from './data/territory-tiles.js';
-import { controlledTerritories } from './control.js';
+import { controlledTerritories, itemCount } from './control.js';
+import { cornersOf, turned } from './terrain.js';
 import { allies } from './abilities.js';
-
-/** @typedef {import('./data/ids.js').TerrainId} TerrainId */
-
-/**
- * The 6 printed corners of the territory on a hex, or null while it is unexplored.
- * @param {import('./state.js').State} state
- * @param {string} hex
- * @returns {readonly TerrainId[] | null}
- */
-export function cornersOf(state, hex) {
-	const tile = state.hexes[hex]?.tile ?? null;
-	if (tile === null) {
-		return null;
-	}
-	if (tile <= 48) {
-		return TERRITORY_TILES[tile - 1].corners;
-	}
-	return MAPS[state.map].printed[hex].corners;
-}
-
-/**
- * Corners in position order: position k shows the printed corner (k - orient) mod 6.
- * @template T
- * @param {readonly T[]} corners
- * @param {number} orient
- * @returns {T[]}
- */
-export function turned(corners, orient) {
-	return corners.map((_, k) => corners[(((k - orient) % 6) + 6) % 6]);
-}
 
 /**
  * How many sides of a territory tile placed on a hex match the territories next to it (R5; BGA's
@@ -113,17 +84,6 @@ export function conquerTargets(state, player, anywhere) {
 			!allied.has(hex) &&
 			(anywhere || touches(hex, owned))
 	);
-}
-
-/**
- * How many items a hex holds: its outposts, Nomads pieces included, and its civilization tokens (#20 design §8).
- * @param {import('./state.js').State} state
- * @param {string} hex
- * @returns {number}
- */
-export function itemCount(state, hex) {
-	const { outposts, tokens } = state.hexes[hex];
-	return outposts.length + tokens.length;
 }
 
 /**

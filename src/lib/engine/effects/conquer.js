@@ -8,10 +8,12 @@ import { hasEra, triggered } from '../abilities.js';
 import { MAPS } from '../data/maps.js';
 import { conquerTargets, loneOpponent } from '../map.js';
 import { takeOutpost } from '../outposts.js';
+import { isolationistsOffer } from '../civs/isolationists.js';
 
 /**
  * Conquers a hex: an outpost goes on it, and an opponent's lone outpost or Nomads piece topples. The dice follow (a defender who qualifies is asked for a response between the two).
  * Against an opponent, Pillage and Plunder asks no response and gives both dice (design §8).
+ * On a territory that held no item, the Isolationists may put a token beside the outpost before the dice (#20 design §7).
  * The `outpostTaken` triggers wait below the conquest, so they come after it.
  * @param {import('../state.js').Context} ctx
  * @param {number} player
@@ -22,6 +24,7 @@ export function conquerHex(ctx, player, hex, bothDice) {
 	const state = ctx.state;
 	// R17: "if an opponent controlled it" is judged now, before any trap.
 	const opponent = loneOpponent(state, hex, player);
+	const token = isolationistsOffer(state, player, hex);
 	const plunder =
 		opponent !== null && hasEra(state, player, 'pillage-and-plunder');
 	const both =
@@ -52,7 +55,8 @@ export function conquerHex(ctx, player, hex, bothDice) {
 		]);
 		return;
 	}
-	ctx.push([dice]);
+	// A territory with no item has no defender, so the Isolationists' offer only ever comes here.
+	ctx.push([...token, dice]);
 }
 
 /**

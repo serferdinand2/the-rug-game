@@ -4,13 +4,12 @@ import assert from 'node:assert/strict';
 import { MAPS, hexNeighbours } from '../src/lib/engine/data/maps.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';
 import {
-	cornersOf,
-	turned,
 	matchingSides,
 	exploreHexes,
 	conquerTargets,
 	loneOpponent,
 } from '../src/lib/engine/map.js';
+import { cornersOf, turned } from '../src/lib/engine/terrain.js';
 import { startedGame } from './helpers/engine.mjs';
 
 /**

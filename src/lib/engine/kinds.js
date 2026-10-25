@@ -62,6 +62,12 @@ import { entertainersMove } from './civs/entertainers.js';
 import { alchemistsRoll } from './civs/alchemists.js';
 import { mysticsCheck } from './civs/mystics.js';
 import { architectsCube } from './civs/architects.js';
+import { tradersToken } from './civs/traders.js';
+import {
+	militantsTake,
+	militantsUncover,
+	militantsCover,
+} from './civs/militants.js';
 
 /** @type {Record<string, import('./state.js').DecisionKind>} */
 export const DECISIONS = {
@@ -138,4 +144,8 @@ export const AUTOMATIC = {
 	alchemistsRoll,
 	mysticsCheck,
 	architectsCube,
+	tradersToken,
+	militantsTake,
+	militantsUncover,
+	militantsCover,
 };

@@ -1,6 +1,6 @@
 // The Nomads (02 §1.2): a building or landmark may go on the map instead of the capital, as a piece that gives control.
 import { playerSeat } from '../state.js';
-import { controlledTerritories } from '../control.js';
+import { controlledTerritories, itemCount } from '../control.js';
 import { MAPS, hexNeighbours } from '../data/maps.js';
 
 /**
@@ -17,9 +17,8 @@ export function nomadsHexes(state, player) {
 	}
 	const owned = new Set(controlledTerritories(state, player));
 	return MAPS[state.map].hexes.filter((hex) => {
-		const { tile, outposts, tokens } = state.hexes[hex];
-		// map.js's itemCount, counted here: placing.js imports this module, and map.js would bring in the civilization cycle.
-		const items = outposts.length + tokens.length;
+		const { tile } = state.hexes[hex];
+		const items = itemCount(state, hex);
 		if (owned.has(hex)) {
 			return items === 1;
 		}

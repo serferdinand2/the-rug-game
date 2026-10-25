@@ -1,5 +1,6 @@
-// What every civilization module shares: the Civ shape and the offer of an optional gain (design §4). It imports no civilization, so they can import it.
-import { seatOf } from '../state.js';
+// What every civilization module shares: the Civ shape, the offer of an optional gain (design §4) and tokens on the map (§8). It imports no civilization, so they can import it.
+import { emit } from '../events.js';
+import { playerSeat, seatOf } from '../state.js';
 
 /** @typedef {import('../state.js').Context} Context */
 
@@ -38,4 +39,19 @@ export function offer(state, owner, effects) {
 		options: [[], structuredClone(effects)],
 		purpose: 'civOffer',
 	};
+}
+
+/**
+ * The placeToken effect, which the Traders' placement shares: one of a civilization's tokens leaves its mat
+ * (`civData[civ].tokens`) for a hex. It is an item there, so a second item stops conquests, but it gives no control
+ * (R33, #20 design §8).
+ * @param {Context} ctx
+ * @param {number} player
+ * @param {{ hex: string, civ: string }} value
+ */
+export function placeToken(ctx, player, { hex, civ }) {
+	const { state } = ctx;
+	playerSeat(state, player).civData[civ].tokens -= 1;
+	state.hexes[hex].tokens.push({ seat: player, civ });
+	emit(state, { type: 'tokenPlaced', player, civ, hex });
 }

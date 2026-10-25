@@ -4,7 +4,8 @@ import { playerSeat } from '../state.js';
 import { hasEra, opponents } from '../abilities.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { SPACE_TILES } from '../data/space-tiles.js';
-import { exploreHexes, matchingSides, turned } from '../map.js';
+import { exploreHexes, matchingSides } from '../map.js';
+import { turned } from '../terrain.js';
 import { gainTiles } from './gain.js';
 import { vp } from './vp.js';
 

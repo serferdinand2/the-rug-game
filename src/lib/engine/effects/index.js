@@ -36,6 +36,7 @@ import {
 	placeOutpost,
 } from './cards.js';
 import { gainCiv } from '../civ-turns.js';
+import { placeToken } from '../civs/civ.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
@@ -80,6 +81,7 @@ export const EFFECTS = {
 	colonialism,
 	revolution,
 	placeOutpost,
+	placeToken,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */
