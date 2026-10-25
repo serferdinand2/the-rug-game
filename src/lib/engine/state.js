@@ -8,6 +8,14 @@
 /** @typedef {{ seat: number, toppled: boolean, toppledBy?: number }} Outpost */
 /** @typedef {{ tile: number | null, orient: number, outposts: Outpost[] }} Hex */
 /**
+ * A player's active THIS ERA ability (design §5).
+ * @typedef {Object} Era
+ * @property {string | null} card - The card on the income mat whose covering ends it
+ * @property {string} ability - The card whose rules apply; it differs from `card` only for a copied ability (Espionage)
+ * @property {number} [opponent] - Named by Alliance and Marriage of State
+ * @property {TrackId} [track] - Named by Marriage of State
+ */
+/**
  * Common to every kind of seat.
  * @typedef {Object} Seat
  * @property {number} seat
@@ -33,6 +41,7 @@
  * @property {number[]} spaceTiles
  * @property {number[]} exploredSpace
  * @property {string[]} civs
+ * @property {Era | null} era - The active THIS ERA ability, if any
  * @property {{ capital?: number, civ?: string }} picks - Setup picks until the reveal
  */
 /** @typedef {Seat & PlayerFields} PlayerSeat */

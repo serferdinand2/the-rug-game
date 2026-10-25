@@ -11,10 +11,12 @@ import { startedGame, stubHandoffs } from './helpers/engine.mjs';
  * A started 2-player game with a benefit pushed for seat 1 and run to the next decision.
  * @param {object[]} effects
  * @param {boolean} ordered
+ * @param {(seat: any) => void} [fill] - Changes seat 1 first
  */
-function benefit(effects, ordered) {
+function benefit(effects, ordered, fill = () => {}) {
 	const { state: started, random } = startedGame(2);
 	const state = structuredClone(started);
+	fill(state.seats[0]);
 	push(state, state.pending, [
 		{
 			player: 1,
@@ -149,23 +151,27 @@ test('a VP counter waits when another part could change what it counts, and the 
 	assert.equal(state.seats[0].vp, 0);
 });
 
-test('Nuclear Bomb asks whether to score before or after the tapestry card on top', (t) => {
-	const handoffs = stubHandoffs();
-	t.after(handoffs.restore);
+test('Nuclear Bomb asks whether to score before or after the tapestry card on top', () => {
 	const { state, random } = benefit(
 		[
 			{ vp: { per: 'trackSpace', track: 'exploration' } },
 			{ tapestryOnTop: {} },
 		],
-		false
+		false,
+		(seat) => {
+			seat.incomeTurns = 2;
+			seat.hand = ['trap-1', 'trap-2'];
+		}
 	);
 	const [order] = openDecisions(state);
 	assert.equal(order?.kind, 'chooseOrder');
-	play(state, 1, { decision: order.id, effect: 1 }, random);
+	const next = play(state, 1, { decision: order.id, effect: 1 }, random);
+	// The card on top comes first, and the VP counter waits under it.
 	assert.deepEqual(
-		handoffs.calls.map((c) => c.kind),
-		['tapestryOnTop']
+		openDecisions(next).map((d) => [d.kind, d.era]),
+		[['chooseTapestry', 2]]
 	);
+	assert.ok(!next.events.some((e) => e.type === 'vpGained'));
 });
 
 test('a VP counter that nothing else in the benefit changes runs without a question', (t) => {

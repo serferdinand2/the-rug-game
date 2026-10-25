@@ -14,6 +14,7 @@ import { rollResearch } from './effects/research.js';
 import { endTurn } from './turn.js';
 import { runIncomeSteps, playFaceDown } from './income.js';
 import { chooseTapestry } from './decisions/choose-tapestry.js';
+import { tapestryAbility } from './tapestry.js';
 import { runEffects } from './effects/index.js';
 import { choosePlacement } from './decisions/choose-placement.js';
 import { chooseExplore } from './decisions/choose-explore.js';
@@ -62,6 +63,7 @@ export const AUTOMATIC = {
 	research: rollResearch,
 	incomeSteps: runIncomeSteps,
 	faceDownTapestry: playFaceDown,
+	tapestryAbility,
 	placeBuilding,
 	placeLandmark,
 	conquerDice,

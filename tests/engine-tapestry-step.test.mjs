@@ -37,7 +37,6 @@ function incomeAfter(t, before, fill = () => {}, count = 2) {
 		random: ready.random,
 		player: ready.player,
 		seat: state.seats[ready.player - 1],
-		calls: handoffs.calls,
 		events: state.events.slice(eventsBefore),
 	};
 }
@@ -110,7 +109,7 @@ test('in 4 players the seat before counts as a neighbour too', (t) => {
 	assert.ok(!r.events.some((e) => e.type === 'firstBonus'));
 });
 
-test('a tapestry card must be played from the hand, and its ability goes to #19', (t) => {
+test('a tapestry card must be played from the hand, and its ability runs: a trap gains 10 VP (R22)', (t) => {
 	const r = incomeAfter(t, 1, (seat, state) => {
 		seat.hand = ['trap-1', 'trap-2'];
 		others(seat, state)[0].incomeTurns = 2;
@@ -127,14 +126,7 @@ test('a tapestry card must be played from the hand, and its ability goes to #19'
 	const seat = next.seats[r.player - 1];
 	assert.ok(!seat.hand.includes('trap-2'));
 	assert.deepEqual(seat.incomeMat.tapestry[1], ['trap-2']);
-	assert.deepEqual(
-		r.calls.find((c) => c.kind === 'tapestryAbility'),
-		{
-			kind: 'tapestryAbility',
-			player: r.player,
-			value: { card: 'trap-2', era: 2 },
-		}
-	);
+	assert.equal(seat.vp - r.seat.vp, 10);
 	assert.ok(
 		next.events.some(
 			(e) =>
@@ -161,17 +153,19 @@ test('a chooseTapestry answer must be a card in the hand', (t) => {
 });
 
 test("with an empty hand the top card goes on face down, hidden from every view, its owner's too", (t) => {
-	/** @type {string | undefined} */
-	let top;
+	// Monarchy on top of the deck: face up, it would become the active THIS ERA ability.
+	const card = 'monarchy';
 	const r = incomeAfter(t, 1, (seat, state) => {
 		seat.hand = [];
 		others(seat, state)[0].incomeTurns = 2;
-		top = state.supply.tapestry.deck[0];
+		const { deck } = state.supply.tapestry;
+		deck.splice(deck.indexOf(card), 1);
+		deck.unshift(card);
 	});
-	const card = /** @type {string} */ (top);
 	assert.deepEqual(r.seat.incomeMat.tapestry[1], [card]);
 	assert.deepEqual(r.seat.incomeMat.faceDown, [card]);
-	assert.ok(!r.calls.some((c) => c.kind === 'tapestryAbility'));
+	assert.equal(r.seat.era, null);
+	assert.ok(!r.events.some((e) => e.type === 'eraStarted'));
 	assert.ok(
 		r.events.some(
 			(e) =>

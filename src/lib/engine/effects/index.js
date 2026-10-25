@@ -12,6 +12,7 @@ import { scoreCapital } from './score-capital.js';
 import { explore, exploreSpace } from './explore.js';
 import { conquer, tileBenefit } from './conquer.js';
 import { invent, upgrade, techBenefit, landmark } from './tech.js';
+import { tapestryOnTop } from './tapestry.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
@@ -33,6 +34,7 @@ export const EFFECTS = {
 	upgrade,
 	techBenefit,
 	landmark,
+	tapestryOnTop,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

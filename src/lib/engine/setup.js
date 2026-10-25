@@ -86,6 +86,7 @@ function newSeat(seat, name) {
 		spaceTiles: [],
 		exploredSpace: [],
 		civs: [],
+		era: null,
 		picks: {},
 	};
 }

@@ -1,4 +1,4 @@
-// A scripted 2-player game from setup to the end, with income and advance turns (#15).
+// A scripted 2-player game from setup to the end, with income and advance turns (#15) and real tapestry cards (#19).
 // The steps later issues build are stood in for by stubHandoffs(). Every expected value was worked out by hand first.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -93,17 +93,18 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 		],
 		[O, 'chooseOption', { option: 1 }],
 		[O, 'choosePlacement', firstPlot],
-		// 9. F, income turn 2: first into era 2 (O is on 1), so 1 coin; a card; no VP.
+		// 9. F, income turn 2: first into era 2 (O is on 1), so 1 coin; F plays Militarism, a THIS ERA card; no VP.
 		//    Income: Barter, Symbology, Hunting and Farming, Ceremony. F = (2, 1, 3, 2), 3 tiles, 1 card.
 		[F, 'chooseTurn', INCOME],
 		[F, 'chooseResource', { resources: { coin: 1 } }],
 		[F, 'chooseTapestry', firstCard],
-		// 10. O, income turn 2: F started era 2 first, so no bonus; a card. Team Sports scores 2 VP (the start territory and
-		//     the one step 4 conquered). Income: Barter, Symbology, Hunting, Ceremony and Racing.
-		//     O = (1, 1, 1, 2), 2 tiles, 2 cards, 4 VP.
+		// 10. O, income turn 2: F started era 2 first, so no bonus; O plays Age of Wonders (its landmarkRank is stood in for).
+		//     Team Sports scores 2 VP (the start territory and the one step 4 conquered). Income: Barter, Symbology, Hunting,
+		//     Ceremony and Racing. O = (1, 1, 1, 2), 2 tiles, 2 cards, 4 VP.
 		[O, 'chooseTurn', INCOME],
 		[O, 'chooseTapestry', firstCard],
-		// 11. F, income turn 3: first into era 3 (O is on 2), so 2 coins; a card. F = (5, 2, 5, 3), 4 tiles, 1 card.
+		// 11. F, income turn 3: Militarism ends first; first into era 3 (O is on 2), so 2 coins; F plays Theocracy,
+		//     a THIS ERA card. F = (5, 2, 5, 3), 4 tiles, 1 card.
 		[F, 'chooseTurn', INCOME],
 		[F, 'chooseResource', { resources: { coin: 2 } }],
 		[F, 'chooseTapestry', firstCard],
@@ -116,20 +117,22 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 			{ track: 'military', from: 3, pay: { coin: 1, culture: 1 } },
 		],
 		[O, 'choosePlacement', firstPlot],
-		// 13. F, income turn 4: first into era 4 (O is on 2), so 3 coins to 8; a card; income coin is lost at the cap.
-		//     F = (8, 3, 7, 4), 5 tiles, 1 card.
+		// 13. F, income turn 4: Theocracy ends first; first into era 4 (O is on 2), so 3 coins to 8; F plays Guilds (its trade is
+		//     stood in for); income coin is lost at the cap. F = (8, 3, 7, 4), 5 tiles, 1 card.
 		[F, 'chooseTurn', INCOME],
 		[F, 'chooseResource', { resources: { coin: 3 } }],
 		[F, 'chooseTapestry', firstCard],
-		// 14. O, income turn 3: no bonus; a card; Team Sports 2 VP. O = (1, 3, 2, 3), 3 tiles, 2 cards, 8 VP.
+		// 14. O, income turn 3: no bonus; O plays a trap, 10 VP (R22); Team Sports 2 VP.
+		//     O = (1, 3, 2, 3), 3 tiles, 2 cards, 18 VP.
 		[O, 'chooseTurn', INCOME],
 		[O, 'chooseTapestry', firstCard],
 		// 15. F, income turn 5: scores nothing, gains no income, and finishes.
 		[F, 'chooseTurn', INCOME],
-		// 16. O, income turn 4: no bonus; a card; Team Sports 2 VP. O = (2, 4, 3, 5), 4 tiles, 2 cards, 10 VP.
+		// 16. O, income turn 4: no bonus; O plays another trap, 10 VP (R22); Team Sports 2 VP.
+		//     O = (2, 4, 3, 5), 4 tiles, 2 cards, 30 VP.
 		[O, 'chooseTurn', INCOME],
 		[O, 'chooseTapestry', firstCard],
-		// 17. F is skipped. O, income turn 5: Team Sports 2 VP, and the game ends. O has 12 VP.
+		// 17. F is skipped. O, income turn 5: Team Sports 2 VP, and the game ends. O has 32 VP.
 		[O, 'chooseTurn', INCOME],
 	];
 
@@ -181,7 +184,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 	);
 	assert.deepEqual(
 		[o.vp, o.resources, o.territoryTiles.length, o.hand.length],
-		[12, { coin: 2, worker: 4, food: 3, culture: 5 }, 4, 2]
+		[32, { coin: 2, worker: 4, food: 3, culture: 5 }, 4, 2]
 	);
 	assert.deepEqual(
 		o.capital.landmarks.map((p) => p.landmark),
@@ -215,7 +218,7 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 	assert.ok(scorings.every((e) => e.rows === 0 && e.columns === 0));
 	assert.deepEqual(state.result, {
 		ranking: [
-			{ seat: O, place: 1, vp: 12 },
+			{ seat: O, place: 1, vp: 32 },
 			{ seat: F, place: 2, vp: 4 },
 		],
 		ties: [],
@@ -227,14 +230,32 @@ test('a scripted 2-player game reaches the end with the expected scores', (t) =>
 			['gameEnded', undefined],
 		]
 	);
-	// Three cards each, on income turns 2–4; civilization abilities on income turns 2–5.
+	// Three cards each, face up, on income turns 2–4.
+	const played = (/** @type {number} */ seat) =>
+		state.events
+			.filter(
+				(e) =>
+					e.type === 'tapestryPlayed' &&
+					e.player === seat &&
+					!e.faceDown
+			)
+			.map((e) => e.card);
+	assert.deepEqual(played(F), ['militarism', 'theocracy', 'guilds']);
+	assert.deepEqual(played(O), ['age-of-wonders', 'trap-5', 'trap-6']);
+	// F's two THIS ERA cards each lasted until F's next income turn.
+	assert.deepEqual(
+		state.events
+			.filter((e) => e.type === 'eraEnded')
+			.map((e) => [e.player, e.card]),
+		[
+			[F, 'militarism'],
+			[F, 'theocracy'],
+		]
+	);
+	// Civilization abilities on income turns 2–5.
 	const count = (/** @type {string} */ kind, /** @type {number} */ seat) =>
 		handoffs.calls.filter((c) => c.kind === kind && c.player === seat)
 			.length;
-	assert.deepEqual(
-		[count('tapestryAbility', F), count('tapestryAbility', O)],
-		[3, 3]
-	);
 	assert.deepEqual(
 		[count('civAbilities', F), count('civAbilities', O)],
 		[4, 4]

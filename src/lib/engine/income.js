@@ -2,6 +2,7 @@
 import { emit } from './events.js';
 import { playerSeat, seatOf } from './state.js';
 import { takeTapestryCard } from './effects/gain.js';
+import { endEra, playTapestry } from './tapestry.js';
 import { INCOME_MAT, TAPESTRY_SLOTS } from './data/income-mat.js';
 import { BUILDING_IDS } from './data/ids.js';
 
@@ -111,16 +112,7 @@ export function playFaceDown(ctx, op) {
 	if (card === undefined) {
 		return;
 	}
-	const seat = playerSeat(ctx.state, player);
-	seat.incomeMat.tapestry[op.era - 1].push(card);
-	seat.incomeMat.faceDown.push(card);
-	emit(ctx.state, {
-		type: 'tapestryPlayed',
-		player,
-		era: op.era,
-		card: null,
-		faceDown: true,
-	});
+	playTapestry(ctx, player, card, op.era, true);
 }
 
 /**
@@ -128,6 +120,7 @@ export function playFaceDown(ctx, op) {
  * such as A&A's masterpieces before civilization abilities.
  */
 export const INCOME_STEPS = [
+	'eraEnd',
 	'civAbilities',
 	'tapestry',
 	'upgrade',
@@ -138,6 +131,13 @@ export const INCOME_STEPS = [
 
 /** @type {Record<string, IncomeStep>} */
 export const INCOME_STEP_KINDS = {
+	// Before step 1: the THIS ERA ability of the last era ends (01 §9.2).
+	eraEnd: {
+		turns: [2, 3, 4, 5],
+		run(ctx, player) {
+			endEra(ctx, player);
+		},
+	},
 	// Step 1: the civilization abilities, which #20 builds.
 	civAbilities: {
 		turns: [2, 3, 4, 5],
@@ -177,10 +177,12 @@ export const INCOME_STEP_KINDS = {
 			pushSpaceEffects(ctx, player, 'income');
 		},
 	},
-	// After income turn 5 the player takes no more turns (01 §4.3).
+	// After income turn 5 the player takes no more turns (01 §4.3). A THIS ERA ability played during it ends here,
+	// so it never outlives its player.
 	finish: {
 		turns: [5],
 		run(ctx, player) {
+			endEra(ctx, player);
 			playerSeat(ctx.state, player).finished = true;
 			emit(ctx.state, { type: 'playerFinished', player });
 		},

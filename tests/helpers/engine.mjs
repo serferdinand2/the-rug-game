@@ -4,6 +4,7 @@ import { seededRandom } from '../../src/lib/engine/random.js';
 import { play } from '../../src/lib/engine/play.js';
 import { contextFor, run } from '../../src/lib/engine/loop.js';
 import { startTurn } from '../../src/lib/engine/turn.js';
+import { playTapestry } from '../../src/lib/engine/tapestry.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
 import { DECISIONS, AUTOMATIC } from '../../src/lib/engine/kinds.js';
 import { EFFECTS } from '../../src/lib/engine/effects/index.js';
@@ -55,34 +56,31 @@ export function startedGame(count, options) {
 
 /** Effects that later issues build (#19–#20). */
 const HANDOFF_EFFECTS = [
-	'tapestryOnTop',
 	'gainCiv',
-	...[
-		'eraPartner',
-		'copyTapestry',
-		'sharedAdvance',
-		'others',
-		'trade',
-		'discardTapestry',
-		'anyBuilding',
-		'trackLandmark',
-		'landmarkRank',
-		'placeOutpost',
-		'darkAges',
-		'socialism',
-		'dictatorship',
-		'revolution',
-		'colonialism',
-		'pleaForAid',
-		'technocracy',
-		'tradeEconomy',
-		'coalBaron',
-		'olympicHost',
-	],
+	'eraPartner',
+	'copyTapestry',
+	'sharedAdvance',
+	'others',
+	'trade',
+	'discardTapestry',
+	'anyBuilding',
+	'trackLandmark',
+	'landmarkRank',
+	'placeOutpost',
+	'darkAges',
+	'socialism',
+	'dictatorship',
+	'revolution',
+	'colonialism',
+	'pleaForAid',
+	'technocracy',
+	'tradeEconomy',
+	'coalBaron',
+	'olympicHost',
 ];
 
-/** Operations #14 and #15 push for later issues: civilization abilities (#20) and tapestry abilities (#19). */
-const HANDOFF_OPERATIONS = ['civAbilities', 'tapestryAbility'];
+/** Operations #15 pushes for a later issue: civilization abilities (#20). */
+const HANDOFF_OPERATIONS = ['civAbilities'];
 
 /**
  * Stands in for the effects and operations later issues build, recording each one they are given.
@@ -190,4 +188,45 @@ export function placeAll(state, random) {
 			random
 		);
 	}
+}
+
+/**
+ * Plays a tapestry card on top of one of a player's era slots, as a copy of the state, and runs its ability
+ * until the next decision.
+ * @param {import('../../src/lib/engine/state.js').State} state - Left unchanged
+ * @param {import('../../src/lib/engine/random.js').Random} random
+ * @param {number} player
+ * @param {string} card
+ * @param {number} [era]
+ * @returns {import('../../src/lib/engine/state.js').State}
+ */
+export function resolveTapestry(state, random, player, card, era = 2) {
+	const next = structuredClone(state);
+	playTapestry(contextFor(next, random, next.pending), player, card, era);
+	run(next, random);
+	return next;
+}
+
+/**
+ * Answers every open decision with its first answer until none is open.
+ * @param {import('../../src/lib/engine/state.js').State} state
+ * @param {import('../../src/lib/engine/random.js').Random} random
+ * @param {number} [limit] - Most decisions to answer before giving up
+ * @returns {import('../../src/lib/engine/state.js').State}
+ */
+export function answerDefaults(state, random, limit = 200) {
+	for (let step = 0; step < limit; step++) {
+		const [open] = openDecisions(state);
+		if (!open) {
+			return state;
+		}
+		const first = DECISIONS[open.kind].answers(state, open)[0];
+		state = play(
+			state,
+			/** @type {number} */ (open.player),
+			{ decision: open.id, ...first },
+			random
+		);
+	}
+	throw new Error('A decision never ended.');
 }

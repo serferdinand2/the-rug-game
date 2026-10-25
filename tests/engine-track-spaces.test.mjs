@@ -637,6 +637,8 @@ test('military 9 Anti-Aircraft Defense: an armory and 1 VP per tapestry card in 
 test('military 10 Nuclear Bomb: the Fusion Reactor, then 1 VP per exploration space and a tapestry card on top, in the order you choose', (t) => {
 	const r = onto(t, 'military', 10, (seat) => {
 		seat.tracks.exploration = [6];
+		seat.incomeTurns = 2;
+		seat.hand = ['trap-1', 'trap-2'];
 	});
 	assert.deepEqual(landing(r), ['fusion-reactor']);
 	place(r);
@@ -644,8 +646,18 @@ test('military 10 Nuclear Bomb: the Fusion Reactor, then 1 VP per exploration sp
 	assert.deepEqual(open(r), ['chooseOrder']);
 	assert.equal(r.seat.vp, 0);
 	reply(r, 'chooseOrder', { effect: 1 });
-	assert.equal(r.seat.vp, 6);
-	assert.deepEqual(handed(r), [['tapestryOnTop', {}]]);
+	// The card goes on top of the current era's slot first; the VP wait under it.
+	const [onTop] = openDecisions(r.state);
+	assert.deepEqual(
+		[onTop.kind, onTop.era, onTop.options],
+		['chooseTapestry', 2, ['trap-1', 'trap-2']]
+	);
+	assert.equal(r.seat.vp, 0);
+	reply(r, 'chooseTapestry', { card: 'trap-1' });
+	assert.deepEqual(r.seat.incomeMat.tapestry[1], ['trap-1']);
+	// The trap's 10 VP (R22), then 1 VP per exploration space.
+	assert.equal(r.seat.vp, 16);
+	assert.deepEqual(handed(r), []);
 });
 
 test('military 11 Drone Assassins: score the capital city; the bonus discards 3 tapestry cards for 10 VP', (t) => {
