@@ -22,7 +22,8 @@ test('players may answer their setup picks in any order', () => {
 			state = play(state, seat, answerOf(state, decision), random);
 		}
 	}
-	assert.equal(state.phase, 'play');
+	// A civilization's setup may still ask for a resource; the reveal has happened.
+	assert.equal(answerSetup(state, random).phase, 'play');
 });
 
 test('every pick stays hidden until the last one, then setupRevealed shows them all', () => {

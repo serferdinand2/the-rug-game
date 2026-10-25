@@ -378,6 +378,11 @@ test('every decision kind has the full shape, and its answers pass its own check
 			purpose: 'loseResource',
 			then: { kind: 'loseResource', left: 0 },
 		},
+		chooseAlchemists: {
+			player: 1,
+			kind: 'chooseAlchemists',
+			marked: ['science'],
+		},
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

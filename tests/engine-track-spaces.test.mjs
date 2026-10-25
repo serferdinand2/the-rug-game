@@ -671,7 +671,11 @@ test('military 11 Drone Assassins: score the capital city; the bonus discards 3 
 });
 
 test('military 12 Mechs: conquer with both dice and a random civilization, in the order you choose', () => {
-	const r = onto('military', 12);
+	// The civilization drawn is an inert one, so its setup asks nothing.
+	const r = onto('military', 12, (seat, state) => {
+		state.supply.civs.splice(state.supply.civs.indexOf('leaders'), 1);
+		state.supply.civs.unshift('leaders');
+	});
 	reply(r, 'chooseOrder', { effect: 0 });
 	assert.deepEqual(conquering(r), [[r.player, false, 'always']]);
 	// Both dice come at once, so the civilization follows with no die to choose.
