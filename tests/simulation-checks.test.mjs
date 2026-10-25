@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkState } from './helpers/invariants.mjs';
 import { newGame, startedGame } from './helpers/engine.mjs';
+import { GAMES, gameOf, simulate } from './helpers/simulation.mjs';
 
 /** @typedef {import('../src/lib/engine/state.js').State} State */
 
@@ -102,4 +103,54 @@ test("the state checks count the Traders' and Isolationists' tokens", () => {
 		lost.seats[0].civData[civ].tokens -= 1;
 		assert.throws(() => checkState(lost), new RegExp(`${civ} tokens`));
 	}
+});
+
+test('the 200 games cover every player count, version and policy 10 times', () => {
+	/** @type {Map<string, number>} */
+	const combos = new Map();
+	for (let index = 0; index < GAMES; index++) {
+		const { seed, players, version, policy } = gameOf(index);
+		assert.equal(seed, index + 1);
+		const key = `${players} ${version} ${policy}`;
+		combos.set(key, (combos.get(key) ?? 0) + 1);
+	}
+	assert.equal(GAMES, 200);
+	assert.equal(combos.size, 5 * 2 * 2);
+	assert.ok([...combos.values()].every((n) => n === 10));
+});
+
+test('a simulated game ends with every player finished and ranked', () => {
+	// Every player answers at least one turn choice for each of their 5 income turns.
+	for (const index of [0, 15, 24]) {
+		const { actions } = simulate(index);
+		const { players } = gameOf(index);
+		assert.ok(
+			actions >= 5 * players,
+			`game ${index + 1} took ${actions} actions`
+		);
+	}
+});
+
+test('a failing game names its seed and how to replay it', () => {
+	let calls = 0;
+	const check = () => {
+		calls += 1;
+		if (calls === 4) {
+			throw new Error('planted');
+		}
+	};
+	assert.throws(
+		() => simulate(0, { check }),
+		(/** @type {Error} */ error) => {
+			assert.match(
+				error.message,
+				/^seed 1, 1 players, original, random play, action 3 \(\w+\): planted\n/
+			);
+			assert.match(
+				error.message,
+				/Replay: SIM_SEED=1 node --test tests\/simulation.test.mjs$/
+			);
+			return true;
+		}
+	);
 });

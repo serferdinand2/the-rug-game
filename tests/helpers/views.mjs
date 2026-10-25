@@ -33,6 +33,16 @@ export function setupFacts(state) {
 }
 
 /**
+ * The event fields that show cards to everyone because the rules reveal them, by event type. Any other event field
+ * holding a secret card is a leak.
+ * @type {Record<string, string[]>}
+ */
+const REVEALS = {
+	// R35: the Heralds' draw reveals every card, and the card found goes to the hand (#20 design §6).
+	cardsRevealed: ['cards', 'found'],
+};
+
+/**
  * Every quoted string in a JSON text, keys included, so an id can be looked up once instead of searched for.
  * @param {string} text
  * @returns {Set<string>}
@@ -125,6 +135,15 @@ export function checkViews(
 		}
 	}
 	const oldSeq = before ? before.seq : 0;
+	for (const event of state.events) {
+		for (const field of REVEALS[event.type] ?? []) {
+			for (const id of [event[field]].flat()) {
+				if (typeof id === 'string') {
+					known.add(id);
+				}
+			}
+		}
+	}
 	const decks = [
 		...state.supply.tech.deck,
 		...state.supply.tapestry.deck,
