@@ -421,3 +421,22 @@ test('chooseTapestry keeps its options hidden from other seats', () => {
 		assert.ok(!JSON.stringify(seen).includes('"monarchy"'), String(seat));
 	}
 });
+
+test('chooseTapestry refuses a card that has left the hand and leaves the hand alone', () => {
+	const { state, random } = holding(3, ['trap-1', 'monarchy']);
+	const next = resolveEffects(state, 1, [{ tapestryOnTop: {} }], random);
+	const edited = structuredClone(next);
+	edited.seats[0].hand = ['monarchy'];
+	const [open] = openDecisions(edited);
+	assert.deepEqual(DECISIONS.chooseTapestry.answers(edited, open), [
+		{ card: 'monarchy' },
+	]);
+	assert.throws(
+		() => answer(edited, random, 1, 'chooseTapestry', { card: 'trap-1' }),
+		{
+			name: 'PlayerError',
+			message: 'Play one of the tapestry cards in your hand.',
+		}
+	);
+	assert.deepEqual(edited.seats[0].hand, ['monarchy']);
+});

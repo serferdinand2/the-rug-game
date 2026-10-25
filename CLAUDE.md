@@ -191,7 +191,7 @@ Updated 2026-10-25. Update this section whenever a milestone moves.
   - Handed off:
     - #20: civilizations join `triggered()` through `activeHooks()`, and the advance checks. The Heralds reuse `copyAbility` and `chooseTapestry` on era 1. The Inventors fire `upgraded` with the card's owner. Civilization triggers must let Tyranny's `chooseTapestry` open before anything takes a gained card from the hand.
     - #27 and #28: the tapestry strip, the active era card, blocks, achievements and the prompts for the new decisions.
-    - #31: bots as opponents and neighbours. Some cards already reach them through `neighbours()`, so #31 must check Oil Magnate, Coal Baron and Steam Tycoon.
+    - #31: bots as opponents and neighbours. Some cards already reach them through `neighbours()`, so #31 must check Oil Magnate, Coal Baron and Steam Tycoon. Other effects look at every seat instead of `opponents()`: Plea for Aid, Technocracy and the `trackLead` and `opponent` VP counters. #31 decides whether bots count there.
     - #36: `impassableCovered` in `placing.js` assumes the basic mats.
   - `tests/engine-tapestry-data.test.mjs`, `engine-tapestry-play`, `engine-tapestry-cards`, `engine-tapestry-tracks`, `engine-tapestry-map`, `engine-tapestry-era`, `engine-tapestry-copy`, `engine-abilities`, `engine-achievements`, `engine-counters` and `engine-payment` cover it. `tests/engine-tapestry-all.test.mjs` runs every card to the end from a busy mid-game seat.
 - **Decided 2026-10-24:**

@@ -361,13 +361,15 @@ export function tradeEconomy(ctx, player) {
 			}
 		}
 	}
+	if (options.length === 0) {
+		emit(state, { type: 'noMove', player });
+		return;
+	}
 	if (options.length === 1) {
 		tradeSpace(ctx, player, options[0]);
 		return;
 	}
-	if (options.length > 1) {
-		ctx.push([{ player, kind: 'chooseSpace', options }]);
-	}
+	ctx.push([{ player, kind: 'chooseSpace', options }]);
 }
 
 /**
@@ -516,7 +518,12 @@ export function revolt(ctx, op) {
  */
 export function placeOutpost(ctx, player, value) {
 	const { state } = ctx;
-	playerSeat(state, player).outposts -= 1;
+	const seat = playerSeat(state, player);
+	if (seat.outposts === 0) {
+		emit(state, { type: 'noOutpost', player });
+		return;
+	}
+	seat.outposts -= 1;
 	state.hexes[value.hex].outposts.push({ seat: player, toppled: false });
 	emit(state, {
 		type: 'outpostPlaced',

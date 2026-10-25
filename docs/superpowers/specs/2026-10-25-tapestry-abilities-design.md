@@ -222,10 +222,10 @@ WHEN PLAYED cards first, then THIS ERA. Each line is the whole rule; "BGA" marks
 |---|---|---|---|---|
 | `chooseTapestry` (changed) | `options`, `era`, `optional?`, `afterPlay?` | `{ card }` or `{ card: null }` | first card; `null` when optional | `options` |
 | `choosePartner` | `options` | `{ player, track? }` | first | |
-| `chooseCopy` | `options` (`{ player, card }`) | `{ player, card }` | first | |
+| `chooseCopy` | `options` (`{ player, card }`), `espionage` (the Espionage card on the mat) | `{ player, card }` | first | |
 | `chooseTrack` | `options`, `purpose`, `then` | `{ track }` | first | |
 | `chooseRoll` | `options` (2 tracks), `then` | `{ track }` | first | |
-| `chooseTrade` | `offers`, `optional`, `host?` | `{ offer, pay }` or `{ offer: null }` | first; `null` when optional | |
+| `chooseTrade` | `offers`, `optional`, `host?`, `source?` (the space or card the gain came from) | `{ offer, pay }` or `{ offer: null }` | first; `null` when optional | |
 | `chooseDiscard` | `vpEach` | `{ card }` or `{ card: null }` | `null` | |
 | `chooseHex` | `options`, `optional`, `purpose`, `then` | `{ hex }` or `{ hex: null }` | first; `null` when optional | |
 | `chooseLandmark` | `options` | `{ landmark }` | first | |
@@ -251,9 +251,11 @@ WHEN PLAYED cards first, then THIS ERA. Each line is the whole rule; "BGA" marks
 | `outpostRaised` (existing), `outpostToppled` (existing) | Revolution reuses them |
 | `outpostPlaced` (existing) | Militarism adds `militarism: true` |
 | `tradeMade` | `player`, `offer`, `host?` |
-| `vpPaid` | `player`, `vp` |
+| `vpPaid` | `player`, `vp`, `total` (the player's VP after paying) |
 | `resourcesConverted` | `player`, `resources`, `vp` |
-| `noTrade`, `noMove` | `player` |
+| `noTrade`, `noMove`, `noColonialism`, `noOutpost` | `player` |
+| `noBuildingLeft` | `player`, `building` (`null` for any building) |
+| `noLandmarkLeft` | `player`, `landmark` (`null` for Dystopia) |
 
 ## 12. What the other issues take over
 

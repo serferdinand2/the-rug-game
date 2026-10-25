@@ -196,6 +196,8 @@ test('every decision kind has the full shape, and its answers pass its own check
 	// Seat 1 holds a territory tile (and controls its start territory), so it has somewhere to explore.
 	state.seats[0].territoryTiles = [2];
 	state.seats[1].hand = ['trap-1'];
+	// chooseTapestry offers only cards still in the hand.
+	state.seats[0].hand = ['trap-1', 'age-of-sail'];
 	// A card in the bottom row, so chooseUpgrade has something to offer.
 	state.seats[0].tech.bottom = ['irrigation'];
 	const fixtures = {

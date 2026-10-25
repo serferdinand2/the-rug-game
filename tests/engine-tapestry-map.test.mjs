@@ -667,3 +667,21 @@ test("allies cannot conquer each other's territories", () => {
 		assert.deepEqual(next.hexes[hex], allied.hexes[hex]);
 	}
 });
+
+test('placeOutpost with an empty supply places nothing and says so', () => {
+	const { state, random } = game();
+	state.seats[0].outposts = 0;
+	const before = state.events.length;
+	const next = resolveEffects(
+		state,
+		1,
+		[{ placeOutpost: { hex: '-3_-2' } }],
+		random
+	);
+	assert.equal(next.seats[0].outposts, 0);
+	assert.deepEqual(next.hexes['-3_-2'].outposts, []);
+	assert.deepEqual(eventsOf(next, 'noOutpost', before), [
+		{ type: 'noOutpost', player: 1 },
+	]);
+	assert.deepEqual(eventsOf(next, 'outpostPlaced', before), []);
+});

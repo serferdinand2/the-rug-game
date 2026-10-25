@@ -8,16 +8,27 @@ export const chooseTapestry = {
 	// The options are cards from the hand, which only its player may see.
 	hidden: ['options'],
 	answers(state, decision) {
+		const { hand } = playerSeat(
+			state,
+			/** @type {number} */ (decision.player)
+		);
 		return [
 			...(decision.optional ? [{ card: null }] : []),
-			...decision.options.map((/** @type {string} */ card) => ({ card })),
+			...decision.options
+				.filter((/** @type {string} */ card) => hand.includes(card))
+				.map((/** @type {string} */ card) => ({ card })),
 		];
 	},
 	check(state, decision, answer) {
+		const { hand } = playerSeat(
+			state,
+			/** @type {number} */ (decision.player)
+		);
 		const offered =
 			answer.card === null
 				? decision.optional === true
-				: decision.options.includes(answer.card);
+				: decision.options.includes(answer.card) &&
+					hand.includes(answer.card);
 		if (!offered) {
 			throw new PlayerError(
 				'Play one of the tapestry cards in your hand.'

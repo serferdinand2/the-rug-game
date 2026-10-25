@@ -611,3 +611,10 @@ test('Empiricism rolls the science die twice and the player chooses one result',
 		{ track: 'science', from: 0 },
 	]);
 });
+
+test('Trade Economy with no space to take does nothing and says so', () => {
+	const { state, random } = game(3);
+	const next = resolveTapestry(state, random, 1, 'trade-economy');
+	assert.equal(open(next, 'chooseSpace'), undefined);
+	assert.deepEqual(eventsOf(next, 'noMove'), [{ type: 'noMove', player: 1 }]);
+});
