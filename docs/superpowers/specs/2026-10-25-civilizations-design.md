@@ -43,14 +43,15 @@ Each player plays one civilization from the start and may gain more (Mechs, Radi
  */
 ```
 
-- **`src/lib/engine/civs/index.js`** exports `CIVS` (id → `Civ`, all 16) and `civsOf(state, player)`.
+- **`src/lib/engine/civs/index.js`** exports `CIVS` (id → `Civ`, all 16), `findCiv(id)` and `civsOf(state, player)`.
+- **`src/lib/engine/civs/civ.js`** holds the `Civ` typedef, `offer()` (below) and the `placeToken` effect. It imports no civilization, so civilization modules can import it without a cycle. One cycle remains: `abilities.js` imports `index.js`, and several civilization modules import `abilities.js`. So a civilization module can't be the first engine module loaded; callers import the engine through `game.js`, `kinds.js` or `play.js`.
 - **`seat.civData`** holds each civilization's own state, keyed by civilization id: tokens left, positions, predictions. Each module documents its shape as a JSDoc typedef. It is public: everything on a civilization mat is visible.
 - **Triggers.** `activeHooks()` in `abilities.js` adds the hooks of each civilization in `seat.civs` after the era ability's.
   - Every operation a civilization hook returns is marked `passive: true`.
   - `runEffects` lets a finished player's `passive` operation run only its `vp` effects. It skips the rest, through `chooseOption` and `chooseOrder` too.
   - So a hook returns its whole benefit, and a finished owner gets only the VP of it: Historians' 3 VP squares, a Traders red die. **BGA**
   - **A finished owner's hook** returns only `effects` operations. It takes no card (Inventors), places nothing, and asks nothing. An optional gain ("you may") becomes a plain `effects` operation, because only its VP can run and VP never hurt. A helper `offer(state, owner, effects)` returns `chooseOption { options: [[], effects] }` for a player still playing, and a plain passive `effects` operation for a finished one.
-- **One outpost helper.** `takeOutpost(ctx, player)` handles every outpost leaving the supply, for `conquerHex` and `placeOutpost`. It is where Militants choose a row.
+- **One outpost helper.** `takeOutpost(ctx, player)` in `outposts.js` handles every outpost leaving the supply, for `conquerHex` and `placeOutpost`. It fires a new trigger, `outpostTaken { player }`, where the Militants choose a row.
 
 ## 5. Setup, adjustments and gaining
 
@@ -74,13 +75,13 @@ Most adjustments push one `effects` operation, written here as its effects:
 | Traders | `[{ gain: { any: 2 } }, { vp: 10 }]` | |
 
   The other six have none.
-  - **Architects' cubes.** One per opponent, each on an open plot in a district that holds no cube yet (`chooseSlot`, purpose `architectsCube`). They live in `seat.capital.cubes` (plot indexes), and `cityPlots` shows them as `'blocked'`.
+  - **Architects' cubes.** One per opponent, each on an open plot in a district that holds no cube yet (`chooseSlot`, purpose `architectsCube`). They live in `seat.capital.cubes` (plot indexes), and `cityPlots` shows them as `'blocked'`. Terraforming may build over a cube and earns its 5 VP there, as over any impassable plot. **(my call)**
   - **Losses** use a new effect, `lose: { culture?, any? }`.
     - Culture is taken first, as much as the player has. With no culture, no culture is lost. **(my call)**
     - Each `any` point asks with `chooseSlot` (purpose `loseResource`) among the resources held, or takes the only one, or takes nothing.
 - **Income step `civFirstTurnEnd`**, after `income` on income turn 1: each held civilization's `firstTurnEnd`, then, in the current version, the setup civilization's `adjustment.firstTurnEnd`. The Heralds' Maker of Fire play (§7) is a `firstTurnEnd`.
 - **`gainCiv`**:
-  - It takes the top of `supply.civs`. An empty deck is first rebuilt from the new `supply.civDiscard`, shuffled. With neither, nothing is gained (`noCivLeft { player }`).
+  - It takes the top of `supply.civs`. An empty deck is first rebuilt from the new `supply.civDiscard`, shuffled, except the civilization discarded last, so the Mystics never draw themselves again at once. With nothing left to draw, nothing is gained (`noCivLeft { player }`), so a lone Mystics discard gives nothing. **(my call)**
   - The civilization is appended to `seat.civs` (the mat to the left, 02 §1). `civGained { player, civ }` is emitted, and its `setup(ctx, player, true)` runs. **(my call)** on the deck and discards, as BGA does.
   - **Mystics** alone discards itself, to `civDiscard`, and the player gains another (`civDiscarded`).
   - **Futurists** gained mid-game work as at setup. 02 §1 says "when gained (at setup or mid-game)". **(my call:** BGA discards and redraws them instead.)
@@ -132,16 +133,17 @@ R28–R33 are cited where they apply. A pick with exactly one legal answer is ma
   - **What you gain.** The card's ability. #19's `copyAbility(ctx, player, null, card)` pushes `tapestryAbility` with no physical card. So a THIS ERA ability reached through a copied Espionage lasts until the next income turn. **BGA**
   - **Maker of Fire.** At the end of income turn 1 (`firstTurnEnd`), for the player who started with the Heralds:
     - **Original:** you may play any card from your hand on Maker of Fire (`chooseTapestry`, era 1, optional), and its ability resolves. A THIS ERA card lasts until income turn 2.
-    - **Current (R35):** this replaces the original play. Draw tapestry cards until you reveal a WHEN PLAYED card. The others are revealed and discarded, and the found card goes to your hand. You may then play that card, and only that card, on Maker of Fire, and gain its effect, unless it is Renaissance. A trap counts as a WHEN PLAYED card (10 VP as a tapestry, R22). **BGA**
+    - **Current (R35):** this replaces the original play. Draw tapestry cards until you reveal a WHEN PLAYED card. The others are revealed and discarded, and the found card goes to your hand. The found card is public too, as it is revealed: `cardsRevealed { player, cards, found }`, with `found` null when the deck ran out first. You may then play that card, and only that card, on Maker of Fire, and gain its effect, unless it is Renaissance. A trap counts as a WHEN PLAYED card (10 VP as a tapestry, R22). **BGA**
     - So the Heralds' `firstTurnEnd` does the original play only under the original rules, and their `adjustment.firstTurnEnd` does R35's draw and play.
 - **Historians.**
   - **Tokens.** 4 tokens cover four squares: 3 VP and 1 food on top, 1 worker and 3 VP below.
-  - **The ability.** Income turns 2–5: you may discard 1 territory tile to give a token to any opponent, who may already hold one. You choose which square it uncovers (`chooseSlot`; R30).
+  - **The ability.** Income turns 2–5: you may discard 1 territory tile to give a token to any opponent, who may already hold one. You choose which square it uncovers (`chooseSlot`, purpose `historians`; R30). With several territory tiles, a required `chooseSlot` (purpose `historiansTile`) asks which to discard. **(my call)**
   - **The trigger.** Whenever an opponent holding at least one of your tokens gains any landmark (hook `landmarkGained`), you gain every uncovered square, once per landmark. **BGA**
   - **Gained mid-game:** you give all 4 tokens at once, choosing an opponent for each. **(my call:** BGA deals them round the table.)
 - **Inventors.**
   - **The ability.** 4 tokens. Income turns 2–5: you may put a token on any tech card not in its owner's top row, yours or an opponent's (`chooseSlot`, answers `{ player, card }`).
     - The card is upgraded at once for its owner. It ignores its prerequisite now, and for the rest of the game for whoever holds it (`upgradable` checks the marks).
+    - A mark stays with the card id, even through a discard and a later invent, and a second token may go on a card already marked. **(my call)**
     - The upgrade fires `upgraded` with `player` = the card's owner and `inventors` = your seat. Golden Age gives no VP for it. **BGA**
   - **The trigger** (hook `upgraded`), for an opponent's card carrying your token:
     - **It reaches their top row**, by anyone, your own token included: you may gain its square once (`chooseOption`, decline first), and then you take the card into your bottom row. Your token stays on it.
@@ -170,7 +172,7 @@ R28–R33 are cited where they apply. A pick with exactly one legal answer is ma
     - complete districts: 1–9;
     - controlled territories: 1–9;
     - completed tracks: 1–4.
-  - **Reaching one.** The first time each count equals its prediction, gain 1 any resource. A new trigger, `countsChanged { player }`, is fired after an invent, an upgrade, Inventors taking a card, a piece placed, the end of any conquest, a trap, a Revolution hex, an outpost placed, and a token reaching space 12. These are BGA's check points.
+  - **Reaching one.** The first time each count equals its prediction, gain 1 any resource. The counts are first checked once the four predictions are made, so a prediction already met pays at once. **BGA** A new trigger, `countsChanged { player }`, is fired after an invent, an upgrade, Inventors taking a card, a piece placed, the end of any conquest, a trap, a Revolution hex, an outpost placed, and a token reaching space 12. These are BGA's check points.
   - **Final scoring.** Step 1 of income turn 5: 10 VP for each prediction the count equals exactly.
   - **Gained mid-game:** discarded, and you gain another civilization.
 - **Nomads.**
@@ -183,7 +185,7 @@ R28–R33 are cited where they apply. A pick with exactly one legal answer is ma
   - **Achievements:** for each achievement you hold, gain 1 any resource. On income turn 5, gain 5 VP each instead.
 - **Traders.** Income turns 2–5: you may place a token on any explored territory, anywhere (`chooseSlot`, purpose `traders`).
   - **A territory with no item:** gain 1 VP for each neighbouring territory an opponent controls. When an opponent later conquers it and keeps one die, you may gain the other die's face as if you had rolled it. This uses a new trigger, `dieKept { player, hex, other }`, fired by `chooseDie`.
-  - **A territory with exactly one item, an opponent's upright outpost:** gain that territory tile's benefit (`tileBenefit`); a printed territory gives none. With two items, nobody can conquer it.
+  - **A territory with exactly one item, an opponent's upright outpost:** gain that territory tile's benefit (`tileBenefit`); a printed territory gives none. With two items, nobody can conquer it. A lone Nomads piece is not an outpost, so a token isn't offered there. **(my call)**
   - **Control.** The token never gives control (R33).
 
 ## 8. Items on the map
@@ -192,6 +194,7 @@ R28–R33 are cited where they apply. A pick with exactly one legal answer is ma
 - **Nomads' pieces** are entries in `Hex.outposts` with `piece: { building } | { landmark }`. They give control and topple like outposts. They are never counted as outposts: not for the supply, `toppledBy`, Revolution or "topple two". **BGA**
 - **Conquering** needs at most one item (`outposts.length + tokens.length <= 1`). `loneOpponent` needs that one item to be an upright outpost or piece of another seat.
 - **`landmarksOwned`** also counts landmarks on the map (R71).
+- **`itemCount(state, hex)`** in `control.js` counts a hex's items. `cornersOf` and `turned` moved from `map.js` to a new `terrain.js`, beside the new `terrainsOf` (each terrain a territory shows, for the Isolationists). It imports only data, so civilization modules (the Isolationists) can read terrains without the import cycle `map.js` is part of.
 
 ## 9. Other changes to existing code
 
@@ -211,14 +214,26 @@ R28–R33 are cited where they apply. A pick with exactly one legal answer is ma
 
 | Decision | Fields | Answer | Default |
 |---|---|---|---|
-| `chooseCivAbility` | `options` | `{ civ }` | first |
+| `chooseCivAbility` | `options`, `turn`, `done` | `{ civ }` | first |
 | `chooseAlchemists` | `marked` | `{ roll: true }` or `{ roll: false }` | roll |
 | `chooseSwap` | `left` | `{ a, b }` (two plot indexes) or `{ a: null }` | `null` |
 | `chooseSlot` | `options`, `optional`, `purpose`, `then` | `{ slot }` or `{ slot: null }` | first, or `null` when optional |
 | `chooseProphecy` | `category`, `options` | `{ value }` | first |
-| `choosePlacement` (changed) | as before | adds `{ craftsmen }`, `{ hex }`, `{ besideMat: true }` | first capital plot |
+| `choosePlacement` (changed) | as before | adds `{ craftsmen }`, `{ hex }`, `{ besideMat: true }` | first capital plot, or beside the mat when there is none |
 
-`chooseSlot` pushes `then` with `slot` added, so one decision serves Architects' cubes, Entertainers, Merrymakers, Leaders, Historians' targets and squares, Militants' rows, Heralds' cards, Inventors' cards and Traders' hexes. Each `purpose` tells the interface what is being asked. Its options compare by deep equality. None has hidden fields: civilization mats are public.
+`chooseSlot` pushes `then` with `slot` added, so one decision serves every civilization pick. Each `purpose` tells the interface what is being asked:
+- `architectsCube`: a plot for an impassable cube;
+- `loseResource`: the resource to lose (the `lose` effect);
+- `entertainers`: the space the token moves to;
+- `merrymakers`: the column whose token moves up;
+- `leaders`: the track whose leader square to cover (optional);
+- `historians`: the opponent and the square, `{ to, square }`; `historiansTile`: the territory tile to discard;
+- `militantsRow`: the row an outpost leaves; `militantsPlace`: the row an outpost goes on, when gained mid-game;
+- `heralds`: the card to put a token on, `{ player, card }`;
+- `inventors`: the tech card to put a token on, `{ player, card }`;
+- `traders`: the hex for a token.
+
+Its options compare by deep equality. An optional gain asks with `chooseOption`, purpose `civOffer`, the decline first. None of them has hidden fields: civilization mats are public, and `seat.civData` shows in every view.
 
 | Event | Fields |
 |---|---|
@@ -231,7 +246,23 @@ R28–R33 are cited where they apply. A pick with exactly one legal answer is ma
 | `prophecyMade` | `player`, `category`, `value` |
 | `prophecyReached` | `player`, `category` |
 | `resourcesLost` | `player`, `lost` |
-| `cardsRevealed` | `player`, `cards` (R35's draw) |
+| `cardsRevealed` | `player`, `cards`, `found` (R35's draw; `found` is null when nothing was found) |
+| `entertainersMoved` | `player`, `space` (`'c<column>r<row>'`) |
+| `merrymakersMoved` | `player`, `column`, `level` |
+| `cubePlaced` | `player`, `plot` |
+| `buildingsSwapped` | `player`, `a`, `b` (plot indexes) |
+| `piecePlacedOnMap` | `player`, `hex`, `piece` |
+| `militantsUncovered`, `militantsCovered` | `player`, `row`, `space` |
+| `heraldsCopied` | `player`, `owner`, `card` |
+| `historiansGave` | `player`, `to`, `square` |
+| `inventorsMarked` | `player`, `owner`, `card` |
+| `inventorsTook` | `player`, `from`, `card` |
+
+Existing events change too:
+- `capitalScored` gains `uniform`, the Architects' extra VP for lines of one building type.
+- `buildingPlaced` has `craftsmen` (the column) instead of `row` and `col` for a building on a Craftsmen column.
+- `placedBesideMat` can now follow a choice, `{ besideMat: true }`, as well as a full capital.
+- `deckShuffled` has `deck: 'civs'` when `gainCiv` rebuilds the deck from the discards.
 
 ## 11. Tests
 
@@ -252,14 +283,18 @@ Each civilization gets at least one test of its ability in each version: the adj
 - Inventors taking a card;
 - the Heralds' Maker of Fire play in both versions (R35).
 
-An end-to-end test plays every civilization's setup and four income turns with default answers, in both versions.
+An end-to-end test (`tests/engine-civs-all.test.mjs`) plays every civilization's setup, all five income turns and the game end, in both versions, against the next civilization in the list. Each game is played twice: once with every default answer (income turns only, every optional choice declined), and once with up to two advance turns between income turns, every optional choice taken, and pieces placed on the Craftsmen's columns or the Nomads' map when offered. Each civilization's ability must fire on exactly its income turns. `tests/engine-view.test.mjs` checks that `seat.civData` shows in every view and `chooseCiv`'s options only in their owner's.
 
 ## 12. Files
 
 ```
-src/lib/engine/civs/index.js        CIVS, civsOf
+src/lib/engine/civs/index.js        CIVS, findCiv, civsOf
+src/lib/engine/civs/civ.js          the Civ typedef, offer, the placeToken effect
 src/lib/engine/civs/<id>.js         the 16 civilizations
-src/lib/engine/civ-turns.js         civAbilities, civSetup, civFirstTurnEnd, gainCiv
+src/lib/engine/civ-turns.js         civAbilities, civSetup, civAdjust, civFirstTurnEnd, gainCiv
+src/lib/engine/outposts.js          takeOutpost
+src/lib/engine/terrain.js           terrainsOf, cornersOf, turned
+src/lib/engine/effects/lose.js      the lose effect
 src/lib/engine/decisions/           choose-civ-ability, choose-alchemists, choose-swap, choose-slot, choose-prophecy
 ```
 
@@ -267,8 +302,9 @@ src/lib/engine/decisions/           choose-civ-ability, choose-alchemists, choos
 
 | Issue | Takes over |
 |---|---|
+| #21 | The simulation test: civilization conservation across `supply.civs`, `supply.civDiscard` and every `seat.civs`, beside #19's invariants. |
 | #27, #28, #47 | The civilization mats with their tokens, the items on the map, and the prompts for the new decisions. |
-| #31 | Bots as opponents (The Chosen, Historians, Traders' VP) and their civilization cards. |
+| #31 | Bots as opponents (The Chosen, Historians, Traders' VP, Architects' cubes) and their civilization cards. The Traders' `rivals()` copies `opponents()` to stay out of the import cycle, so #31 must update both. |
 
 ## 14. Documentation
 

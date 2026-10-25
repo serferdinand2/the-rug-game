@@ -274,6 +274,52 @@ test('other seats never see a hand in chooseTapestry, Tyranny or Democracy', () 
 	}
 });
 
+test('civilization data is public and chooseCiv stays hidden', () => {
+	// Setup: the two civilizations a seat is dealt are its own to see.
+	const { state: dealt } = newGame(3);
+	const picks = openDecisions(dealt).filter((d) => d.kind === 'chooseCiv');
+	assert.equal(picks.length, 3);
+	for (const pick of picks) {
+		for (const viewer of [null, 1, 2, 3]) {
+			const seen = allOps(view(dealt, viewer)).find(
+				(op) => op.id === pick.id
+			);
+			const own = viewer === pick.player;
+			assert.equal(
+				'options' in seen,
+				own,
+				`seat ${pick.player}'s civilization options shown to ${viewer}: ${!own}`
+			);
+			assert.equal('answers' in seen, own);
+		}
+	}
+	// In play: everything on a civilization mat is public (#20 design §4), so every view shows every seat's.
+	const { state } = startedGame(3, {
+		civs: ['mystics', 'heralds', 'militants'],
+	});
+	const seats = /** @type {any[]} */ (state.seats);
+	for (const seat of seats) {
+		assert.notDeepEqual(seat.civData, {});
+	}
+	for (const viewer of [null, 1, 2, 3]) {
+		const v = view(state, viewer);
+		seats.forEach((seat, i) => {
+			assert.deepEqual(v.seats[i].civs, seat.civs);
+			assert.deepEqual(v.seats[i].civData, seat.civData);
+		});
+	}
+	// So the civilizations' own decisions hide nothing (design §10).
+	for (const kind of [
+		'chooseCivAbility',
+		'chooseAlchemists',
+		'chooseSwap',
+		'chooseSlot',
+		'chooseProphecy',
+	]) {
+		assert.deepEqual(DECISIONS[kind].hidden, [], kind);
+	}
+});
+
 test('a seat that is not in the game gets the public view', () => {
 	const { state } = startedGame(3);
 	for (const seat of [0, 9, '1', undefined, 1.5, -1]) {

@@ -51,6 +51,7 @@ An **effect** is an object with exactly one key, its kind. A **benefit** is a li
 | Kind | Example | Meaning |
 |---|---|---|
 | `gain` | `{ gain: { food: 1, any: 2, territory: 1 } }` | Gain resources (`any` is one resource of the player's choice per point), territory tiles, space tiles (`space`) or tapestry cards (`tapestry`) |
+| `lose` | `{ lose: { culture: 1, any: 1 } }` | Lose up to `culture` culture, as much as is held, then `any` resources of the player's choice, one at a time, among those held; nothing more when nothing is held (the Futurists' adjustment, #20 design §5) |
 | `building` | `{ building: 'farm' }` | Take the leftmost income building of that type from the income mat and place it in the capital city |
 | `landmark` | `{ landmark: 'bakery' }` | Place that landmark in the capital city (the square of a landmark tech card) |
 | `vp` | `{ vp: 5 }` | Gain that many VP |
@@ -59,7 +60,7 @@ An **effect** is an object with exactly one key, its kind. A **benefit** is a li
 | `exploreSpace` | `{ exploreSpace: { fromGained: true } }` | Explore a space tile from the supply. `fromGained` limits it to the tiles this benefit just gained (Interstellar Travel, R105) |
 | `conquer` | `{ conquer: { bothDice: 'ifOpponent' } }` | Conquer. `anywhere` drops adjacency (Warplanes). `bothDice` gives both dice `'always'` (Mechs) or `'ifOpponent'` controlled the territory (Tanks, R17) |
 | `research` | `{ research: { noBenefit: true } }` | Roll the science die and you may advance on that track. `noBenefit` is the X: no benefit or bonus. Alien Biology adds `rolls: 4` and `offTrackVp: 5` |
-| `advance` | `{ advance: { tracks: ['science'] } }` | Advance 1 space on one of the listed tracks, with its benefit and optional bonus; `noBenefit` is the X (Clocks). `optional` lets the player decline (Oil Magnate). `freeBonus` offers the bonus of the space reached without paying, unless that space was already activated this turn (Renaissance, R19) |
+| `advance` | `{ advance: { tracks: ['science'] } }` | Advance 1 space on one of the listed tracks, with its benefit and optional bonus; `noBenefit` is the X (Clocks). `optional` lets the player decline (Oil Magnate). `freeBonus` offers the bonus of the space reached without paying, unless that space was already activated this turn (Renaissance, R19). `noBonus` gives the benefit without the bonus (Leaders). `offTrackVp` gives that many VP instead when every token on the listed tracks is on space 12 (Alchemists) |
 | `regress` | `{ regress: { tracks: ['technology', 'military'] } }` | Go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus; `noBenefit` is the X (Time Travel) |
 | `repeat` | `{ repeat: {} }` | Gain the benefit of your current space on any track, and you may pay its bonus (Academic Research); `oncePerTurn` limits it to once a turn (Lithium-Ion Battery, FAQ #6) |
 | `invent` | `{ invent: { count: 2, refresh: true } }` | Gain tech cards, one at a time. `refresh`: you may first replace the 3 face-up cards. `faceUpOnly` and `deckOnly` limit where the card comes from (Steam Tycoon and its neighbours). `thenUpgrade` upgrades the card just invented (Steam Tycoon, Technocracy) |
@@ -68,7 +69,7 @@ An **effect** is an object with exactly one key, its kind. A **benefit** is a li
 | `tapestryOnTop` | `{ tapestryOnTop: {} }` | Play a tapestry card from your hand on top of your current tapestry; only the new card is active. With an empty hand or no current era, nothing is played (FAQ #10, R25) |
 | `scoreCapital` | `{ scoreCapital: {} }` | Score the capital city: 1 VP per complete row and per complete column on a basic mat. It is its own kind because the expansion mats score differently (R51) |
 | `tileBenefit` | `{ tileBenefit: {} }` | Gain the benefit printed on the territory tile just conquered; a printed territory gives nothing (R8) |
-| `gainCiv` | `{ gainCiv: {} }` | Gain a random additional civilization |
+| `gainCiv` | `{ gainCiv: {} }` | Gain a random additional civilization: the top of the deck, which is rebuilt from the discards when empty, except the civilization discarded last. It joins the player's others and its mid-game setup runs. With nothing to draw, nothing is gained (Mechs, Radio; #20 design §5) |
 | `restartToken` | `{ restartToken: {} }` | Take your token off this track and put it on the start of any track; this track still counts as complete (AI Singularity) |
 | `choice` | `{ choice: [[{ explore: {} }], [{ building: 'farm' }]] }` | Choose exactly one of the options. Each option is a list of effects |
 | `eraPartner` | `{ eraPartner: { track: true } }` | Choose the opponent the active THIS ERA ability names, and with `track` a track too (Alliance, Marriage of State) |
@@ -81,6 +82,7 @@ An **effect** is an object with exactly one key, its kind. A **benefit** is a li
 | `trackLandmark` | `{ trackLandmark: {} }` | Gain any track landmark nobody owns, and place it (Dystopia) |
 | `landmarkRank` | `{ landmarkRank: { fewest, most, otherwise } }` | Compare the landmarks you own with every opponent's: fewer than all runs `fewest`, more than all runs `most`, anything else runs `otherwise` (Age of Wonders) |
 | `placeOutpost` | `{ placeOutpost: { hex: '0_1' } }` | Put an outpost from your supply on that hex, upright. Not a conquest (Militarism) |
+| `placeToken` | `{ placeToken: { hex: '0_1', civ: 'isolationists' } }` | Put one of that civilization's tokens from its mat on that hex. It is an item, so a second item stops conquests, but it gives no control (R33; Isolationists, Traders) |
 | `darkAges`, `socialism`, `dictatorship`, `revolution`, `colonialism`, `pleaForAid`, `technocracy`, `tradeEconomy`, `coalBaron`, `olympicHost` | `{ socialism: {} }` | The rules of the tapestry card of that name, which are too particular to share (design 2026-10-25, §8) |
 
 **VP counters** (`vp: { per }`):
@@ -93,7 +95,7 @@ An **effect** is an object with exactly one key, its kind. A **benefit** is a li
 | `tapestryCard` | Tapestry cards in your hand and on your income mat, covered ones included (BGA counts both, for Anti-Aircraft Defense and space tile 4) |
 | `trackSpace` | Spaces you have advanced on `track` |
 | `trackLead` | Tracks where no other seat's token is further ahead than your best one, ties included (Boast of Superiority) |
-| `landmark` | Landmarks you own, in the capital city or beside the mat (R71: Feudalism) |
+| `landmark` | Landmarks you own, in the capital city, beside the mat or on the map (R71: Feudalism, the Nomads) |
 | `opponent` | The other seats (Technocracy) |
 | `market`, `house`, `farm`, `armory` | Income buildings of that type you own, beside the mat too (01 §6.1) |
 
