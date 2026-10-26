@@ -7,6 +7,26 @@ import { hasEra } from '../abilities.js';
 import { TRACKS } from '../data/tracks.js';
 
 /**
+ * A track space's bonus in this game. The neoprene-nanotechnology variant makes Nanotechnology's cost 2 tech cards
+ * instead of 3 (#53 design §4.3).
+ * @param {import('../state.js').State} state
+ * @param {import('../data/ids.js').TrackId} track
+ * @param {number} space
+ * @returns {import('../data/effects.js').Bonus | null}
+ */
+function bonusOf(state, track, space) {
+	const { id, bonus } = TRACKS[track][space];
+	if (
+		bonus &&
+		id === 'nanotechnology' &&
+		state.variants.includes('neoprene-nanotechnology')
+	) {
+		return { ...bonus, pay: { tech: 2 } };
+	}
+	return bonus;
+}
+
+/**
  * Offers a space's bonus, but only when the player can pay for it: a bonus nobody can take asks nothing.
  * A `free` bonus costs nothing (Renaissance, Trade Economy's owner), and so does one whose cost is only
  * "any resource" under Wartime Economy; either stays optional (FAQ #4). A finished player is offered nothing (01 §4.3).
@@ -14,10 +34,11 @@ import { TRACKS } from '../data/tracks.js';
  */
 export function offerBonus(ctx, op) {
 	const player = /** @type {number} */ (op.player);
-	const bonus =
-		TRACKS[/** @type {import('../data/ids.js').TrackId} */ (op.track)][
-			op.space
-		].bonus;
+	const bonus = bonusOf(
+		ctx.state,
+		/** @type {import('../data/ids.js').TrackId} */ (op.track),
+		op.space
+	);
 	if (!bonus || seatOf(ctx.state, player).finished) {
 		return;
 	}

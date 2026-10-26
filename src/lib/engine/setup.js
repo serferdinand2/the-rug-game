@@ -5,7 +5,7 @@ import { shuffle } from './random.js';
 import { push, pushGroup } from './stack.js';
 import { run } from './loop.js';
 import { AFTER_SETUP } from './after-setup.js';
-import { BASE_CIVS, BASE_TAPESTRY, BASE_TECH } from './decks.js';
+import { BASE_CIVS, BASE_TAPESTRY, techDeck } from './decks.js';
 import { EXPANSIONS } from '../art/catalog.js';
 import { MAPS } from './data/maps.js';
 import { CAPITAL_MATS, SMALL_MAP_PAIRS } from './data/capitals.js';
@@ -293,7 +293,7 @@ export function createGame({
 			];
 		})
 	);
-	const tech = shuffle(BASE_TECH, random);
+	const tech = shuffle(techDeck(variants), random);
 	const seats = players.map((p, i) => newSeat(i + 1, p.name));
 
 	/** @type {import('./state.js').State} */

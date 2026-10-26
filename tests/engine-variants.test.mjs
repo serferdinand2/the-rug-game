@@ -6,7 +6,10 @@ import { openDecisions, push } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { run } from '../src/lib/engine/loop.js';
-import { answer, readyTurn, startedGame } from './helpers/engine.mjs';
+import { BASE_TECH, techDeck } from '../src/lib/engine/decks.js';
+import { TRACKS } from '../src/lib/engine/data/tracks.js';
+import { answer, newGame, readyTurn, startedGame } from './helpers/engine.mjs';
+import { checkState } from './helpers/invariants.mjs';
 
 /** @typedef {import('../src/lib/engine/state.js').State} State */
 /** @typedef {import('../src/lib/engine/random.js').Random} Random */
@@ -250,4 +253,44 @@ test('civ-draft: keeping the Mystics discards them for another civilization, dra
 	const again = openOf(after, 'chooseCiv');
 	assert.equal(again?.midGame, true);
 	assert.deepEqual(again?.options, ['craftsmen', 'nomads']);
+});
+
+test('neoprene-nanotechnology: the bonus of Nanotechnology costs 2 tech cards instead of 3, for 10 VP', () => {
+	assert.equal(TRACKS.technology[11].id, 'nanotechnology');
+	/** @param {string[]} variants */
+	const offered = (variants) => {
+		const { state: started, random } = startedGame(2, { variants });
+		const state = structuredClone(started);
+		state.seats[0].tech.bottom = state.supply.tech.deck.splice(0, 3);
+		push(state, state.pending, [
+			{ player: 1, kind: 'bonus', track: 'technology', space: 11 },
+		]);
+		run(state, random);
+		return { state, random, offer: openOf(state, 'chooseBonus') };
+	};
+	assert.deepEqual(offered([]).offer?.cost, { tech: 3 });
+
+	const { state, random, offer } = offered(['neoprene-nanotechnology']);
+	assert.deepEqual(offer?.cost, { tech: 2 });
+	assert.deepEqual(offer?.gain, [{ vp: 10 }]);
+	const [, first] = DECISIONS.chooseBonus.answers(state, offer);
+	const after = answer(state, random, 1, 'chooseBonus', first);
+	assert.equal(after.seats[0].vp, 10);
+	assert.equal(after.seats[0].tech.bottom.length, 1);
+});
+
+test('no-radio-battery: Radio and Lithium-Ion Battery are left out of the tech deck', () => {
+	assert.deepEqual(techDeck([]), [...BASE_TECH]);
+	assert.deepEqual(
+		techDeck(['no-radio-battery']),
+		BASE_TECH.filter(
+			(card) => card !== 'radio' && card !== 'lithium-ion-battery'
+		)
+	);
+	const { state } = newGame(2, { variants: ['no-radio-battery'] });
+	const cards = [...state.supply.tech.deck, ...state.supply.tech.faceUp];
+	assert.equal(cards.length, 31);
+	assert.ok(!cards.includes('radio'));
+	assert.ok(!cards.includes('lithium-ion-battery'));
+	checkState(state);
 });
