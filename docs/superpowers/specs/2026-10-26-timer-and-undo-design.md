@@ -41,6 +41,7 @@ The rules engine is pure and knows nothing of time. The timer and the undo histo
   - It works in the lobby, during a game and at a finished table **(owner, agreed)**: with no kick, turning the timer on mid-game is how a host keeps a table moving.
   - Anyone but the host gets "Only the host can change the table.". A timer outside `TIMERS` gets "Choose a timer of off, 1, 2 or 5 minutes.", and an `undo` that isn't a boolean gets "Choose whether undo is on.".
   - Changing the timer during a game restarts every clock at once at the new length **(owner, agreed)**. Off clears every clock.
+  - Changing the timer also clears the undo history **(my call, from the review)**. An undo puts back the clocks of its step (§8), so it would otherwise bring back a clock of the old length, or a fresh full one from a step taken with the timer off. A player could then dodge a shorter timer, or gain time after the timer is switched on.
   - Switching undo off clears the undo history.
   - A table is created with the defaults; the lobby changes them through `settings`. **(my call)**
 - **What screens see.** `tableChoices()` gains `timers: [0, 1, 2, 5]`, and the room view gains `timer` and `undo`.
@@ -102,6 +103,7 @@ The defender in a conquest is asked whenever they hold any card, so nobody learn
   - an answer the timer made (a turn the timer finished can't be undone; **owner, agreed**);
   - the end of the game, so the final ranking can't be taken back **(my call)**;
   - the host switching undo off;
+  - the host changing the timer, so an undo can't bring back a clock of another length (§4) **(my call, from the review)**;
   - dealing a new game, or ending one.
 - **Which choices are kept.** Only choices the turn's player makes in their own turn go into the history, and only while the game is in play, not setup.
 - **The history** (`room.history`) holds, newest last, the game as it was before each choice, with the seat, the turn number and the clocks.
@@ -142,7 +144,7 @@ The defender in a conquest is asked whenever they hold any card, so nobody learn
 - **`rooms.mjs`:**
   - `TIMERS` and `HISTORY_LIMIT` (20);
   - `settings`, `undo` and `timeout`;
-  - `tick(room, now, timing, random)`, which brings `clocks` and `declines` up to date after any change, and `nextDeadline(room)`. `timing` holds `minuteMs` and the decline range from `config`. Transitions carry `clocks` over as they are; `settings` empties them when the timer changes, so `tick` starts fresh ones.
+  - `tick(room, now, timing, random)`, which brings `clocks` and `declines` up to date after any change, and `nextDeadline(room)`. `timing` holds `minuteMs` and the decline range from `config`. Transitions carry `clocks` over as they are; `settings` empties them, and the undo history, when the timer changes, so `tick` starts fresh ones.
   - `play()` keeps the history. It counts the random numbers the engine draws through a wrapped `random`, and asks `revealed()`.
   - `start` and `end` clear the history and the clocks.
   - `roomView` adds `timer`, `undo`, `clocks`, `now` and `canUndo`.
@@ -163,7 +165,7 @@ The defender in a conquest is asked whenever they hold any card, so nobody learn
   - an expired, paused clock resumes and auto-play goes on;
   - a late move gets 409.
 - **The history:**
-  - cleared by another player's choice, a new turn, a draw, a roll, a card played from the hand, a timer answer, the game end, and undo switched off;
+  - cleared by another player's choice, a new turn, a draw, a roll, a card played from the hand, a timer answer, the game end, undo switched off, and a timer change;
   - cleared by a conquest that asks the defender for a response, so the attacker can't take it back while the defender decides;
   - taking back the last choice of a turn before the next player's first choice, and not after;
   - the 20-step cap.

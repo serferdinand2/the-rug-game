@@ -612,6 +612,52 @@ test('undo puts back the clocks of that step, and an expired one is due at once'
 	assert.deepEqual(done.history, []);
 });
 
+test('raising the timer mid-turn empties the history, so the new clock stands', () => {
+	let room = tick(wagons({ timer: 1 }).room, 0, timing, () => 0);
+	room = tick(
+		answer(room, 2, 'chooseTurn', { turn: 'advance' }),
+		200,
+		timing,
+		() => 0
+	);
+	assert.equal(room.history.length, 1);
+	room = tick(settings(room, 'a', { timer: 5 }), 900, timing, () => 0);
+	assert.deepEqual(room.clocks, { 2: { scope: 'turn:2', ends: 5900 } });
+	assert.deepEqual(room.history, []);
+	assert.equal(roomView(room, 'b').canUndo, false);
+	// Without the history, the 1-minute clock (ends 1000) can't come back and run out at once.
+	refuses(() => takeBack(room, 2), 'There is nothing to undo.');
+	assert.equal(nextDeadline(tick(room, 1500, timing, () => 0)), 5900);
+	assert.equal(
+		timeout(room, 1500, () => 0),
+		room,
+		'nothing is due'
+	);
+});
+
+test('turning the timer on, or shortening it, empties the history too', () => {
+	// A step taken with the timer off holds no clock: undoing it would hand out a fresh, full one.
+	const off = answer(wagons().room, 2, 'chooseTurn', { turn: 'advance' });
+	assert.deepEqual(off.history[0].clocks, {});
+	const on = tick(settings(off, 'a', { timer: 1 }), 300, timing, () => 0);
+	assert.deepEqual(on.history, []);
+	refuses(() => takeBack(on, 2), 'There is nothing to undo.');
+	assert.deepEqual(on.clocks, { 2: { scope: 'turn:2', ends: 1300 } });
+	// A shorter timer can't be dodged by undoing back to the longer deadline.
+	let long = tick(wagons({ timer: 5 }).room, 0, timing, () => 0);
+	long = answer(long, 2, 'chooseTurn', { turn: 'advance' });
+	assert.deepEqual(long.history[0].clocks, {
+		2: { scope: 'turn:2', ends: 5000 },
+	});
+	const short = tick(settings(long, 'a', { timer: 1 }), 300, timing, () => 0);
+	assert.deepEqual(short.history, []);
+	refuses(() => takeBack(short, 2), 'There is nothing to undo.');
+	assert.equal(nextDeadline(short), 1300);
+	// Switching the timer off ends the clocks and the history alike; undo alone keeps the history.
+	assert.deepEqual(settings(long, 'a', { timer: 0 }).history, []);
+	assert.equal(settings(long, 'a', { undo: true }).history, long.history);
+});
+
 test('the history keeps the newest 20 steps', () => {
 	assert.equal(HISTORY_LIMIT, 20);
 	// Seat 2 gains 1 resource of their choice 25 times in a turn.

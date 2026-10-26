@@ -349,7 +349,9 @@ export function configure(room, personId, changes) {
 /**
  * The host sets the timer and switches undo, in the lobby, during a game or at a finished table: with no kick, the
  * timer is how a host keeps a table moving (#24 design §4). A new timer restarts every clock (tick() starts them
- * again), and off clears them; switching undo off clears its history.
+ * again), and off clears them. A new timer also empties the undo history, since an undo puts back the clocks of its
+ * step: it would bring back a clock of the old length, or a fresh one from a step taken with the timer off. Switching
+ * undo off empties the history too.
  * @param {Room} room
  * @param {string} personId
  * @param {{ timer?: unknown, undo?: unknown } | null} changes - Straight from a request; unset ones stay
@@ -377,7 +379,7 @@ export function settings(room, personId, changes) {
 		timer: /** @type {number} */ (timer),
 		undo,
 		clocks: timer === room.timer ? room.clocks : {},
-		history: undo ? room.history : [],
+		history: undo && timer === room.timer ? room.history : [],
 	};
 }
 

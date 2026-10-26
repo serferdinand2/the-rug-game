@@ -964,6 +964,9 @@ function checkRoom(room, before, step) {
 	assert.ok(TIMERS.includes(room.timer), 'the timer is one of the choices');
 	assert.equal(typeof room.undo, 'boolean');
 	checkHistory(room, now);
+	if (room.timer !== before.timer) {
+		assert.deepEqual(room.history, [], 'a new timer empties the history');
+	}
 	if (now !== 'playing') {
 		assert.deepEqual(room.declines, [], 'no declines unless a game runs');
 	}

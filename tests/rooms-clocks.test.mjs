@@ -193,12 +193,13 @@ test('only the host changes the timer and undo, to allowed values, in the lobby,
 		assert.equal(settings(changed, 'a', { timer: 2 }).undo, false);
 		assert.equal(settings(changed, 'a', { undo: true }).timer, 5);
 	}
-	// Switching undo off empties the history; switching it on, or changing the timer, keeps it.
+	// Switching undo off or changing the timer empties the history; a change to neither keeps it.
 	const game = /** @type {State} */ (playing.game);
 	const history = [{ game, seat: 1, turn: 1, clocks: {} }];
 	const kept = { ...playing, history };
-	assert.deepEqual(settings(kept, 'a', { timer: 1 }).history, history);
+	assert.deepEqual(settings(kept, 'a', { timer: 1 }).history, []);
 	assert.deepEqual(settings(kept, 'a', { undo: false }).history, []);
+	assert.equal(settings(kept, 'a', { timer: 0, undo: true }), kept);
 	assert.deepEqual(kept.history, history, 'the old room is unchanged');
 });
 
