@@ -21,8 +21,10 @@ import { rateLimiter } from './limits.mjs';
  * The settings the API reads on every use, so tests can change them (`config` in server.mjs).
  * @typedef {Object} ApiConfig
  * @property {number} longPollMs - How long a state request waits for a change
- * @property {number} sessionMs - How long a session lasts unused
- * @property {number} maxSessions
+ * @property {number} sessionMs - How long a session at a table lasts unused
+ * @property {number} idleSessionMs - How long a session at no table lasts unused
+ * @property {number} maxSessions - At the cap, a login replaces the longest unused session at no table
+ * @property {number} tablesPerAddress - Tables one address may keep open at once
  * @property {number} createLimit - Tables one address may create a minute
  * @property {number} loginLimit - Logins one address may make a minute
  */
@@ -129,6 +131,8 @@ export function createApi(config) {
 	const sessions = new Map();
 	/** @type {Map<string, Set<Waiter>>} By table code */
 	const waiters = new Map();
+	/** @type {Map<string, string>} The address that created each open table, by code, for the per-address cap */
+	const creators = new Map();
 	const creates = rateLimiter(() => config.createLimit, MINUTE);
 	const logins = rateLimiter(() => config.loginLimit, MINUTE);
 	/** @type {import('./src/lib/engine/random.js').Random} */
@@ -144,12 +148,65 @@ export function createApi(config) {
 	function sessionOf(req, now) {
 		const token = req.headers.authorization?.replace(/^Bearer /, '') ?? '';
 		const session = sessions.get(token);
-		if (!session || now - session.used > config.sessionMs) {
+		if (!session || expired(session, now)) {
 			sessions.delete(token);
 			throw new HttpError(401, 'Sign in again.');
 		}
 		session.used = now;
 		return session;
+	}
+
+	/**
+	 * Whether a session has gone unused too long: a day at a table, an hour at none.
+	 * @param {Session} session
+	 * @param {number} now
+	 */
+	function expired(session, now) {
+		const lasts = seated(session) ? config.sessionMs : config.idleSessionMs;
+		return now - session.used > lasts;
+	}
+
+	/**
+	 * Makes room for a new session at the cap: the longest unused session at no table goes. Sessions at tables stay,
+	 * so filling the server takes a table each, and tables are capped per address.
+	 * @param {number} now
+	 * @throws {HttpError} 503 when every session sits at a table
+	 */
+	function makeRoomForSession(now) {
+		sweep(now);
+		if (sessions.size < config.maxSessions) {
+			return;
+		}
+		/** @type {[string, Session] | undefined} */
+		let oldest;
+		for (const entry of sessions) {
+			if (
+				!seated(entry[1]) &&
+				(!oldest || entry[1].used < oldest[1].used)
+			) {
+				oldest = entry;
+			}
+		}
+		if (!oldest) {
+			throw new HttpError(503, 'The server is full. Try again later.');
+		}
+		sessions.delete(oldest[0]);
+	}
+
+	/**
+	 * How many tables an address created that are still open, forgetting those that closed.
+	 * @param {string | undefined} address
+	 */
+	function openFrom(address) {
+		let count = 0;
+		for (const [code, creator] of creators) {
+			if (!rooms.has(code)) {
+				creators.delete(code);
+			} else if (creator === String(address)) {
+				count += 1;
+			}
+		}
+		return count;
 	}
 
 	/**
@@ -349,13 +406,7 @@ export function createApi(config) {
 			}
 			const clean = Rooms.cleanName(body.name);
 			if (sessions.size >= config.maxSessions) {
-				sweep(now);
-			}
-			if (sessions.size >= config.maxSessions) {
-				throw new HttpError(
-					503,
-					'The server is full. Try again later.'
-				);
+				makeRoomForSession(now);
 			}
 			const token = randomBytes(24).toString('hex');
 			sessions.set(token, {
@@ -388,6 +439,12 @@ export function createApi(config) {
 				for (const code of Rooms.expireRooms(rooms, now)) {
 					wake(code);
 				}
+				if (openFrom(address) >= config.tablesPerAddress) {
+					throw new HttpError(
+						429,
+						'Too many tables are open from your address. Close one first.'
+					);
+				}
 				if (rooms.size >= Rooms.MAX_ROOMS) {
 					throw new HttpError(
 						503,
@@ -402,6 +459,7 @@ export function createApi(config) {
 					now
 				);
 				Rooms.addRoom(rooms, { ...room, version: 1 });
+				creators.set(code, String(address));
 				session.code = code;
 				return viewFor(
 					/** @type {StoredRoom} */ (rooms.get(code)),
@@ -535,8 +593,8 @@ export function createApi(config) {
 	}
 
 	/**
-	 * Housekeeping, once a minute: tables idle for a day close (their waiting requests are answered), unused sessions
-	 * end, and quiet addresses are forgotten.
+	 * Housekeeping, once a minute: idle tables close (their waiting requests are answered), unused sessions end, and
+	 * quiet addresses are forgotten.
 	 * @param {number} [now]
 	 */
 	function sweep(now = Date.now()) {
@@ -544,10 +602,11 @@ export function createApi(config) {
 			wake(code);
 		}
 		for (const [token, session] of sessions) {
-			if (now - session.used > config.sessionMs) {
+			if (expired(session, now)) {
 				sessions.delete(token);
 			}
 		}
+		openFrom(undefined);
 		creates.sweep(now);
 		logins.sweep(now);
 	}

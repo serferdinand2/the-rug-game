@@ -20,6 +20,7 @@ before(async () => {
 	config.createLimit = 10_000;
 	config.loginLimit = 10_000;
 	config.apiLimit = 100_000;
+	config.tablesPerAddress = 10_000;
 });
 after(() => {
 	server.closeAllConnections();
@@ -675,25 +676,71 @@ test('creating tables and signing in are limited per address', async () => {
 	}
 });
 
-test('a session ends when it goes unused, and the server caps them', async () => {
-	config.sessionMs = 50;
+test('a session at no table ends after an hour unused, one at a table after a day', async () => {
+	config.idleSessionMs = 50;
+	config.sessionMs = 400;
 	try {
-		const { token } = await login('Ana');
-		assert.equal((await call('me', { token })).status, 200);
+		const idle = await login('Ana');
+		const seated = await login('Bo');
+		await call('create', { body: {}, token: seated.token });
 		await new Promise((resolve) => setTimeout(resolve, 100));
-		refused(await call('me', { token }), 401, 'Sign in again.');
+		refused(await call('me', { token: idle.token }), 401, 'Sign in again.');
+		assert.equal((await call('me', { token: seated.token })).status, 200);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		refused(
+			await call('me', { token: seated.token }),
+			401,
+			'Sign in again.'
+		);
 	} finally {
+		config.idleSessionMs = defaults.idleSessionMs;
 		config.sessionMs = defaults.sessionMs;
 	}
-	await login('Bo');
-	config.maxSessions = 1;
+	assert.equal(defaults.idleSessionMs, 60 * 60 * 1000);
+});
+
+test('at the session cap a login replaces the longest unused session at no table', async () => {
+	// Every earlier session ends, so the cap counts only this test's.
+	api.sweep(Date.now() + 3 * 24 * 60 * 60 * 1000);
+	config.maxSessions = 2;
 	try {
+		const seated = await login('Ana');
+		await call('create', { body: {}, token: seated.token });
+		const idle = await login('Bo');
+		const newcomer = await login('Cy');
+		refused(await call('me', { token: idle.token }), 401, 'Sign in again.');
+		assert.equal((await call('me', { token: seated.token })).status, 200);
+		await call('create', { body: {}, token: newcomer.token });
 		refused(
-			await call('login', { body: { name: 'Cy' } }),
+			await call('login', { body: { name: 'Dee' } }),
 			503,
 			'The server is full. Try again later.'
 		);
 	} finally {
 		config.maxSessions = defaults.maxSessions;
 	}
+});
+
+test('one address keeps at most 10 tables open', async () => {
+	// Every earlier table closes, so the cap counts only this test's.
+	api.sweep(Date.now() + 3 * 24 * 60 * 60 * 1000);
+	config.tablesPerAddress = 2;
+	try {
+		for (const name of ['Ana', 'Bo']) {
+			const { token } = await login(name);
+			assert.equal(
+				(await call('create', { body: {}, token })).status,
+				200
+			);
+		}
+		const third = await login('Cy');
+		refused(
+			await call('create', { body: {}, token: third.token }),
+			429,
+			'Too many tables are open from your address. Close one first.'
+		);
+	} finally {
+		config.tablesPerAddress = 10_000;
+	}
+	assert.equal(defaults.tablesPerAddress, 10);
 });

@@ -522,6 +522,12 @@ export const MAX_ROOMS = 1000;
 /** How long a table nobody uses is kept: a day, as in Fablewood and Bird Table. */
 export const ROOM_IDLE_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * How long a lobby nobody uses is kept: an hour. A lobby's clients ask after it every few seconds, so only an
+ * abandoned one goes quiet, and abandoned ones mustn't fill the server (#23 design §9).
+ */
+export const LOBBY_IDLE_MS = 60 * 60 * 1000;
+
 /** How many hexadecimal digits a table code has, as in Fablewood (`3f9a1c07`). */
 const CODE_LENGTH = 8;
 
@@ -562,14 +568,19 @@ export function addRoom(rooms, room) {
 }
 
 /**
- * Removes every room nobody has used for more than ROOM_IDLE_MS.
+ * Removes every room nobody has used for more than ROOM_IDLE_MS, and every lobby nobody has used for more than
+ * LOBBY_IDLE_MS.
  * @param {Map<string, Room>} rooms - By code; changed in place
  * @param {number} now - Milliseconds
  * @returns {string[]} The codes removed, so the server can answer their waiting requests
  */
 export function expireRooms(rooms, now) {
 	const expired = [...rooms.values()]
-		.filter((room) => now - room.touched > ROOM_IDLE_MS)
+		.filter(
+			(room) =>
+				now - room.touched >
+				(phase(room) === 'lobby' ? LOBBY_IDLE_MS : ROOM_IDLE_MS)
+		)
 		.map((room) => room.code);
 	for (const code of expired) {
 		rooms.delete(code);

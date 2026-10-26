@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
 	MAX_ROOMS,
+	LOBBY_IDLE_MS,
 	MAX_SEATS,
 	MODES,
 	ROOM_IDLE_MS,
@@ -638,22 +639,19 @@ test('the server refuses a new table once 1,000 are open', () => {
 	assert.equal(MAX_ROOMS, 1000);
 });
 
-test('a table nobody used for a day expires', () => {
+test('a game nobody used for a day expires, and a lobby nobody used for an hour', () => {
 	const now = 10 * ROOM_IDLE_MS;
-	const fresh = {
-		...lobby('a'),
-		code: 'aaaaaaaa',
-		touched: now - ROOM_IDLE_MS,
-	};
-	const stale = {
-		...lobby('b'),
-		code: 'bbbbbbbb',
-		touched: now - ROOM_IDLE_MS - 1,
-	};
-	const rooms = mapOf(fresh, stale);
-	assert.deepEqual(expireRooms(rooms, now), ['bbbbbbbb']);
-	assert.deepEqual([...rooms.keys()], ['aaaaaaaa']);
+	const game = dealt(lobby('a', 'b'));
+	const rooms = mapOf(
+		{ ...game, code: 'aaaaaaaa', touched: now - ROOM_IDLE_MS },
+		{ ...game, code: 'bbbbbbbb', touched: now - ROOM_IDLE_MS - 1 },
+		{ ...lobby('c'), code: 'cccccccc', touched: now - LOBBY_IDLE_MS },
+		{ ...lobby('d'), code: 'dddddddd', touched: now - LOBBY_IDLE_MS - 1 }
+	);
+	assert.deepEqual(expireRooms(rooms, now), ['bbbbbbbb', 'dddddddd']);
+	assert.deepEqual([...rooms.keys()], ['aaaaaaaa', 'cccccccc']);
 	assert.equal(ROOM_IDLE_MS, 24 * 60 * 60 * 1000);
+	assert.equal(LOBBY_IDLE_MS, 60 * 60 * 1000);
 });
 
 test('the open tables are the online lobbies with a free seat, most recently used first', () => {

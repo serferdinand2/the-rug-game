@@ -51,7 +51,8 @@ The browser screens (#25–#30) are built on this API, so it has to say everythi
   - The client makes up a name when the player gives none: the launch mockup has a name generator.
   - Every login is a new person with a new id. The id never leaves the server. **(my call:** other players only need names and seat numbers, and an id that never leaves can't be spoofed.)
 - **Requests** carry `Authorization: Bearer <token>`. Without a valid session, the answer is **401** "Sign in again.". **(my call:** Bird Table answers 400, but a separate status tells the client to sign in again.)
-- **Expiry.** A session expires 24 hours after its last use. Sessions are capped at **10,000**; past that, a login gets 503 "The server is full. Try again later." **(my call)**
+- **Expiry.** A session at a table expires 24 hours after its last use, and a session at no table after 1 hour. **(my call)**
+- **The cap.** Sessions are capped at **10,000**. At the cap, a new login replaces the longest-unused session that sits at no table. Only when every session sits at a table does a login get 503 "The server is full. Try again later." **(my call, from the security review:** a hard cap let one address fill the server and lock everyone out for a day.)
 - **One table at a time.** A session sits at one table at a time (`session.code`), as in Bird Table. To create or join another, the person leaves first. While their seat holds up a running online game, `unfinishedSeat` refuses them a new table: "You still have a seat in a game at table 3f9a1c07. Return to it with that code first." Because a person sits at one table at a time, they can't be in two lobbies, so `start` needs no `unfinishedSeat` check. That answers #22's handoff note.
 
 ## 6. Endpoints
@@ -77,7 +78,7 @@ All bodies and answers are JSON. Request bodies are at most 16 KB.
 
 How each endpoint behaves:
 - **Body fields.** `options` holds the table settings, as `createRoom` and `configure` take them (`mode`, `version`, `expansions`, `variants`, `level`). The top-level `version` is always the table's version. **(my call:** this keeps the rules version and the table version apart.)
-- **`create`** draws the code with `newCode()` and `crypto.randomInt`, sweeps expired tables, then `addRoom()`. It has a per-address limit of 20 a minute, as in Fablewood.
+- **`create`** draws the code with `newCode()` and `crypto.randomInt`, sweeps expired tables, then `addRoom()`. It has a per-address limit of 20 a minute, as in Fablewood. One address may also keep at most **10** tables open at once (429 "Too many tables are open from your address. Close one first."). With that, filling the 1,000-table cap takes 100 addresses. **(my call, from the security review)**
 - **`join`** takes the code case-insensitively, trimmed. An unknown code answers 404 "There is no table with that code."
 - **`move`.** `seat` may be left out when the person plays one seat (online). At a hot-seat table it is required, because the host plays every seat.
 - **`leave`** carries no version. **(my call:** leaving should always work, and it only touches the leaver's own seats.) It clears the session's table even when the room closes.
@@ -132,8 +133,8 @@ Who may see what:
 - a waiting request whose person lost their seat (the host removed it, or the table closed or expired) is answered with 400 and the reason, so the client goes back to the landing page.
 
 **Housekeeping.** Once a minute the server:
-- expires tables idle for a day (`expireRooms`), answering their waiting requests;
-- expires sessions unused for a day;
+- expires games idle for a day, and lobbies idle for an hour, answering their waiting requests. A lobby's clients ask after it every 25 seconds, so only an abandoned one goes quiet. `LOBBY_IDLE_MS` in `rooms.mjs` sets the hour; **(my call, from the security review)**;
+- expires sessions as §5 says;
 - forgets quiet addresses in the rate limiters.
 
 Each request a person makes about their table updates its `touched`.

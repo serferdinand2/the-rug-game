@@ -16,9 +16,12 @@ export const config = {
 	trustProxy: process.env.TRUST_PROXY === 'true',
 	// How long a state request waits for its table to change.
 	longPollMs: 25_000,
-	// How long a session lasts unused, and how many the server keeps.
+	// How long a session lasts unused, at a table and at none, and how many the server keeps.
 	sessionMs: 24 * 60 * 60 * 1000,
+	idleSessionMs: 60 * 60 * 1000,
 	maxSessions: 10_000,
+	// The tables one address may keep open at once.
+	tablesPerAddress: 10,
 	// Requests per address a minute: every /api/ request, new tables and logins (#23 design §9).
 	apiLimit: 1800,
 	createLimit: 20,
