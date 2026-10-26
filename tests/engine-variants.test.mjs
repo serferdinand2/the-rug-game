@@ -10,6 +10,7 @@ import { BASE_TECH, techDeck } from '../src/lib/engine/decks.js';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
 import { answer, newGame, readyTurn, startedGame } from './helpers/engine.mjs';
 import { checkState } from './helpers/invariants.mjs';
+import { ISLANDS } from '../src/lib/engine/setup.js';
 
 /** @typedef {import('../src/lib/engine/state.js').State} State */
 /** @typedef {import('../src/lib/engine/random.js').Random} Random */
@@ -293,4 +294,85 @@ test('no-radio-battery: Radio and Lithium-Ion Battery are left out of the tech d
 	assert.ok(!cards.includes('radio'));
 	assert.ok(!cards.includes('lithium-ion-battery'));
 	checkState(state);
+});
+
+/**
+ * Where a seat's starting outposts stand.
+ * @param {State} state
+ * @param {number} seat
+ * @returns {string | undefined}
+ */
+const startOf = (state, seat) =>
+	Object.entries(state.hexes).find(([, hex]) =>
+		hex.outposts.some((o) => o.seat === seat)
+	)?.[0];
+
+test('R110: the islands are the start regions round the map, in capital-number order', () => {
+	assert.deepEqual(ISLANDS.large, [
+		'-3_-3',
+		'-3_0',
+		'0_3',
+		'3_3',
+		'3_0',
+		'0_-3',
+	]);
+	assert.deepEqual(ISLANDS.small, ['-2_-2', '0_2', '2_0']);
+});
+
+test('R110: with closest-island, players start round the map in seat order, spaced evenly', () => {
+	for (const count of [2, 3, 4, 5]) {
+		const turns = new Set();
+		for (let seed = 1; seed <= 12; seed++) {
+			const { state } = newGame(count, {
+				seed,
+				variants: ['closest-island'],
+			});
+			const islands = ISLANDS[state.map];
+			const k = islands.length;
+			const turn = islands.indexOf(
+				/** @type {string} */ (startOf(state, 1))
+			);
+			assert.ok(turn >= 0, `${count} players, seed ${seed}`);
+			turns.add(turn);
+			for (let i = 0; i < count; i++) {
+				assert.equal(
+					startOf(state, i + 1),
+					islands[(turn + Math.floor((i * k) / count)) % k],
+					`${count} players, seed ${seed}, seat ${i + 1}`
+				);
+			}
+		}
+		assert.ok(turns.size > 1, `${count} players: the first island varies`);
+	}
+});
+
+test('R110: four players on the large map leave gaps of 1, 2, 1 and 2 islands', () => {
+	const { state } = newGame(4, { variants: ['closest-island'] });
+	const islands = ISLANDS.large;
+	const at = [1, 2, 3, 4].map((seat) =>
+		islands.indexOf(/** @type {string} */ (startOf(state, seat)))
+	);
+	const gaps = at.map((island, i) => (at[(i + 1) % 4] - island + 6) % 6);
+	assert.deepEqual(gaps, [1, 2, 1, 2]);
+});
+
+test('R110: the capital mats are dealt as without the variant', () => {
+	for (const count of [2, 3, 4, 5]) {
+		const { state: plain } = newGame(count, { seed: 3 });
+		const { state: island } = newGame(count, {
+			seed: 3,
+			variants: ['closest-island'],
+		});
+		/** @param {State} state */
+		const dealt = (state) =>
+			state.events
+				.filter((e) => e.type === 'capitalDealt')
+				.map((e) => [e.player, e.capital ?? e.options]);
+		assert.deepEqual(dealt(island), dealt(plain), `${count} players`);
+	}
+});
+
+test('R110: a solo player still starts on 2/4 (R40)', () => {
+	const { state } = newGame(1, { variants: ['closest-island'] });
+	assert.equal(startOf(state, 1), '0_2');
 });

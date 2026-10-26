@@ -158,6 +158,37 @@ function newSeat(seat, name) {
  */
 
 /**
+ * The start regions round each map side, in capital-number order: on the large map the start hexes of capitals 1–6,
+ * on the small map the shared spots 1/6, 2/4 and 3/5. Each island's start hex is its centre (R110).
+ */
+export const ISLANDS = Object.freeze({
+	large: Object.freeze(CAPITAL_MATS.map((mat) => mat.start.large)),
+	small: Object.freeze(
+		SMALL_MAP_PAIRS.map(([mat]) => CAPITAL_MATS[mat - 1].start.small)
+	),
+});
+
+/**
+ * The closest-island variant: players start round the map in seat order, spaced as evenly as the islands allow, from
+ * a random island (R110). Alone, a player keeps R40's start.
+ * @param {SetupContext} setup
+ */
+function startOnIslands({ state, seats, random, starts }) {
+	if (seats.length === 1 || !state.variants.includes('closest-island')) {
+		return;
+	}
+	const islands = ISLANDS[state.map];
+	const first = random(islands.length);
+	starts.forEach((start, i) => {
+		start.hex =
+			islands[
+				(first + Math.floor((i * islands.length) / seats.length)) %
+					islands.length
+			];
+	});
+}
+
+/**
  * Capital mats, and where each player's two outposts start.
  * @param {SetupContext} setup
  */
@@ -245,6 +276,7 @@ function chooseFirstPlayer({ state, seats, random }) {
  */
 export const SETUP_STEPS = [
 	dealCapitals,
+	startOnIslands,
 	placeOutposts,
 	dealCivs,
 	chooseFirstPlayer,
