@@ -95,7 +95,7 @@ Updated 2026-10-26. Update this section whenever a milestone moves.
   - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. The owner closed #48 on 2026-10-21, ahead of its blocker #3.
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2, #4, #7, #8, #9, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #44, #46, #48, #52, #53 and #54 are done.**
+- **#1, #2, #4, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #44, #46, #48, #52, #53 and #54 are done.**
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
@@ -109,7 +109,7 @@ Updated 2026-10-26. Update this section whenever a milestone moves.
   - The owner asked for them to be drawn like the tapestry pictures, straight through without stopping for approval, by subagents in parallel. The Alchemists came first as the reference; each set then had a fresh review, and its findings were fixed.
   - The palette gained two skin pairs: `skinTan`/`skinTanShade` and `skinDeep`/`skinDeepShade`. There are no new scene parts, so each portrait carries its own small drawing helpers.
   - `tests/art-civ.test.mjs` checks that every portrait paints all 4,096 pixels, that no two are identical, and that every civilization is drawn.
-- **#10 (tech card pictures)** is under way (2026-10-22). All 56 cards are drawn: 33 base, 11 Arts & Architecture and 12 Fantasies & Futures. #10 waits for the owner's approval in the component library. The owner asked for the second 10 quickly, by parallel subagents, without a separate fresh review, and for the last 13 "a tiny bit simpler" (one big subject, plain backgrounds, about 40 to 60 colours); the 23 expansion cards follow the simpler rules too. The design is `docs/superpowers/specs/2026-10-22-tech-cards-design.md` and the plan is `docs/superpowers/plans/2026-10-22-tech-cards-issue-10.md`.
+- **#10 (tech card pictures)** is done (closed 2026-10-24). All 56 cards are drawn: 33 base, 11 Arts & Architecture and 12 Fantasies & Futures. The owner asked for the second 10 quickly, by parallel subagents, without a separate fresh review, and for the last 13 "a tiny bit simpler" (one big subject, plain backgrounds, about 40 to 60 colours); the 23 expansion cards follow the simpler rules too. The design is `docs/superpowers/specs/2026-10-22-tech-cards-design.md` and the plan is `docs/superpowers/plans/2026-10-22-tech-cards-issue-10.md`.
   - The owner asked for the same rules as the tapestry pictures and the portraits. Each tech picture shows its invention up close, as the hero of the card.
   - Few buildings (owner): the landmark cards show their invention, not their landmark. Bakery is newly discovered bread, Barn a newborn calf in straw, and Com Tower a dish antenna close up. Library, Stock Market and Treasury will do the same.
   - Clocks was drawn first as the reference; subagents drew the other nine side by side, and a fresh review followed.
@@ -310,13 +310,13 @@ Updated 2026-10-26. Update this section whenever a milestone moves.
   - The owner chose 7 of the 8 official variants; "remove any cards the players choose" is out. Five are built and listed in `VARIANTS`:
     - `tapestry-draft`: income turn 1 draws 2 tapestry cards and keeps 1. `gain` takes a `keep` count, and the new `chooseKeep` decision asks which; the others are discarded, and only the kept card triggers.
     - `civ-draft`: `gainCiv` draws 2 civilizations and keeps 1, through `chooseCiv` with `midGame: true`; the other is discarded face up.
-    - `neoprene-nanotechnology`: Nanotechnology's bonus costs 2 tech cards (`bonusOf` in `choose-bonus.js`).
+    - `neoprene-nanotechnology`: Nanotechnology's bonus costs 2 tech cards (`bonusOf` in `choose-bonus.js`, exported from `game.js` for the Tracks view).
     - `no-radio-battery`: Radio and Lithium-Ion Battery are left out of the tech deck (`techDeck`).
     - `closest-island`: R110. Players start round the map in seat order, spaced evenly, from a random island (`ISLANDS` and the `startOnIslands` setup step).
   - Recorded for later: civilizations from one expansion (#33, ids `civs-from-pp`, `civs-from-aa`, `civs-from-ff`) and either science die (#35, `either-science-die`). With the drafts, F&F's Psionics draw 3 and keep 1 (#40).
-  - Calls to revisit: any mix of variants in both versions; the drafts' discards are public; `tapestry-draft` changes only income turn 1's Ceremony card; R110's reading.
-  - Handed off: #3 and #25 (the variant checkboxes, from `config`'s `variants`), #28 (prompts for `chooseKeep` and the mid-game `chooseCiv`), #29 (the log names a game's variants), #31 (whether the variants touch the Automa's draws), #33, #35 and #40.
-  - `tests/engine-variants.test.mjs` covers each variant. The simulation plays every other 20 games with all five on. In those games every income turn 1 drafts, but no game gains a civilization or reaches Nanotechnology, so the unit tests carry those two.
+  - Calls to revisit: any mix of variants in both versions, each at most once; the drafts' discards are public; `tapestry-draft` changes only income turn 1's Ceremony card; the civilization pick can be undone but the tapestry keep can't; R110's reading.
+  - Handed off: #3 and #25 (the variant checkboxes, from `config`'s `variants`), #26 (show bonuses through `bonusOf`), #28 (prompts for `chooseKeep` and the mid-game `chooseCiv`), #29 (the log names a game's variants), #31 (whether the variants touch the Automa's draws), #33, #35 and #40.
+  - `tests/engine-variants.test.mjs` covers each variant, and `checkViews()` now also watches the civilizations of an open mid-game draft. A fresh review found no bug; its smaller findings (repeated ids, missing tests, this file) are fixed. The simulation plays every other 20 games with all five on. In those games every income turn 1 drafts, but no game gains a civilization or reaches Nanotechnology, so the unit tests carry those two.
 - **Decided 2026-10-26:**
   - R109: Alien Biology scores 5 VP on a track whose token AI Singularity took off, as FAQ #9 treats the token as still on space 12 (owner, #54).
   - A table may switch on 7 of the 8 official optional variants: the tapestry and civilization drafts, the neoprene Nanotechnology bonus, leaving out Radio and Lithium-Ion Battery, closest-island starts, civilizations from one expansion and either science die. Not the players removing cards of their choice (owner, #53).

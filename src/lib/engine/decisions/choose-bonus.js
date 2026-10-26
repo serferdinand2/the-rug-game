@@ -7,14 +7,14 @@ import { hasEra } from '../abilities.js';
 import { TRACKS } from '../data/tracks.js';
 
 /**
- * A track space's bonus in this game. The neoprene-nanotechnology variant makes Nanotechnology's cost 2 tech cards
- * instead of 3 (#53 design §4.3).
+ * A track space's bonus in this game, which the Tracks view shows too. The neoprene-nanotechnology variant makes
+ * Nanotechnology's cost 2 tech cards instead of 3 (#53 design §4.3).
  * @param {import('../state.js').State} state
  * @param {import('../data/ids.js').TrackId} track
  * @param {number} space
  * @returns {import('../data/effects.js').Bonus | null}
  */
-function bonusOf(state, track, space) {
+export function bonusOf(state, track, space) {
 	const { id, bonus } = TRACKS[track][space];
 	if (
 		bonus &&

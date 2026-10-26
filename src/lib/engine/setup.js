@@ -73,7 +73,7 @@ function checkPlayers(players) {
 /**
  * Checks a game's options, as a table does whenever its host changes them, throwing PlayerError for the first problem.
  * @param {{ version: unknown, expansions?: unknown, variants?: unknown }} options
- * @throws {PlayerError} For an unknown version, an unknown or unbuilt expansion, or an unknown variant
+ * @throws {PlayerError} For an unknown version, an unknown or unbuilt expansion, or an unknown or repeated variant
  */
 export function checkOptions({ version, expansions = [], variants = [] }) {
 	if (!VERSIONS.some((v) => v.id === version)) {
@@ -101,6 +101,9 @@ export function checkOptions({ version, expansions = [], variants = [] }) {
 		if (!VARIANTS.some((v) => v.id === variant)) {
 			throw new PlayerError(`Unknown variant: ${variant}.`);
 		}
+	}
+	if (new Set(variants).size < variants.length) {
+		throw new PlayerError('Each variant may be switched on only once.');
 	}
 }
 

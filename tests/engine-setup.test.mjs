@@ -328,6 +328,10 @@ test('checkOptions refuses what createGame refuses, variants included (#22, #53)
 		[{ version: 'current', expansions: ['xx'] }, /Unknown expansion: xx/],
 		[{ version: 'current', variants: 'draft' }, /variants must be a list/],
 		[{ version: 'current', variants: ['draft'] }, /Unknown variant: draft/],
+		[
+			{ version: 'current', variants: ['civ-draft', 'civ-draft'] },
+			/only once/,
+		],
 	]);
 	for (const [options, message] of refusals) {
 		assert.throws(

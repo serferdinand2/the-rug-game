@@ -138,11 +138,11 @@ export function gain(ctx, player, value) {
 	}
 	/** @type {import('../state.js').NewOperation[]} */
 	const ops = [];
+	if (value.keep !== undefined && value.keep !== 1) {
+		throw new Error('Only keeping 1 drawn tapestry card is built.');
+	}
 	if (value.tapestry) {
 		const cards = drawTapestry(ctx, player, value.tapestry);
-		if (value.keep !== undefined && value.keep !== 1) {
-			throw new Error('Only keeping 1 drawn tapestry card is built.');
-		}
 		if (value.keep !== undefined && cards.length > value.keep) {
 			ops.push({
 				player,

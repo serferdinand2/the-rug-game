@@ -10,6 +10,9 @@ import { BASE_TECH, techDeck } from '../src/lib/engine/decks.js';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
 import { answer, newGame, readyTurn, startedGame } from './helpers/engine.mjs';
 import { checkState } from './helpers/invariants.mjs';
+import { checkViews, setupFacts } from './helpers/views.mjs';
+import { defaultAction } from '../src/lib/engine/game.js';
+import { CAPITAL_MATS } from '../src/lib/engine/data/capitals.js';
 import { ISLANDS } from '../src/lib/engine/setup.js';
 
 /** @typedef {import('../src/lib/engine/state.js').State} State */
@@ -185,18 +188,22 @@ function gainCivGame(variants, deck, discard = []) {
 test('civ-draft: gaining a civilization draws 2 and asks which to keep; the other is discarded face up', () => {
 	const { state, random } = gainCivGame(
 		['civ-draft'],
-		['leaders', 'craftsmen', 'nomads']
+		['historians', 'craftsmen', 'nomads']
 	);
 	const pick = openOf(state, 'chooseCiv');
 	assert.ok(pick);
 	assert.equal(pick.player, 1);
 	assert.equal(pick.midGame, true);
-	assert.deepEqual(pick.options, ['leaders', 'craftsmen']);
+	assert.deepEqual(pick.options, ['historians', 'craftsmen']);
 	assert.deepEqual(state.supply.civs, ['nomads']);
 	assert.deepEqual(DECISIONS.chooseCiv.answers(state, pick), [
-		{ civ: 'leaders' },
+		{ civ: 'historians' },
 		{ civ: 'craftsmen' },
 	]);
+	// Neither was dealt at setup, so nothing public names them yet.
+	for (const civ of pick.options) {
+		assert.ok(!shows(view(state, null), civ), civ);
+	}
 	const seen = view(state, 2);
 	assert.equal(opIn(seen.pending, pick.id)?.options, undefined);
 	const drawn = seen.events.find((e) => e.type === 'civsDrawn');
@@ -209,7 +216,7 @@ test('civ-draft: gaining a civilization draws 2 and asks which to keep; the othe
 
 	const after = answer(state, random, 1, 'chooseCiv', { civ: 'craftsmen' });
 	assert.deepEqual(after.seats[0].civs, ['craftsmen']);
-	assert.deepEqual(after.supply.civDiscard, ['leaders']);
+	assert.deepEqual(after.supply.civDiscard, ['historians']);
 	const since = state.seq;
 	assert.deepEqual(
 		after.events
@@ -217,7 +224,7 @@ test('civ-draft: gaining a civilization draws 2 and asks which to keep; the othe
 			.filter((e) => ['civDiscarded', 'civGained'].includes(e.type))
 			.map((e) => [e.type, e.player, e.civ]),
 		[
-			['civDiscarded', 1, 'leaders'],
+			['civDiscarded', 1, 'historians'],
 			['civGained', 1, 'craftsmen'],
 		]
 	);
@@ -375,4 +382,83 @@ test('R110: the capital mats are dealt as without the variant', () => {
 test('R110: a solo player still starts on 2/4 (R40)', () => {
 	const { state } = newGame(1, { variants: ['closest-island'] });
 	assert.equal(startOf(state, 1), '0_2');
+});
+
+test('a timeout answers the drafts with their first option', () => {
+	const { state: started, random } = startedGame(2, {
+		variants: ['tapestry-draft'],
+	});
+	const { state, player } = takeIncome(started, random);
+	const keep = openOf(state, 'chooseKeep');
+	assert.deepEqual(defaultAction(state, player), {
+		decision: keep?.id,
+		card: keep?.options[0],
+	});
+
+	const { state: drawing } = gainCivGame(
+		['civ-draft'],
+		['historians', 'craftsmen']
+	);
+	const pick = openOf(drawing, 'chooseCiv');
+	assert.deepEqual(defaultAction(drawing, 1), {
+		decision: pick?.id,
+		civ: 'historians',
+	});
+});
+
+test('tapestry-draft: a deck of 1 card is refilled from the discards for the second card', () => {
+	const { state: started, random } = startedGame(2, {
+		variants: ['tapestry-draft'],
+	});
+	const [top, ...rest] = started.supply.tapestry.deck;
+	started.supply.tapestry.deck = [top];
+	started.supply.tapestry.discard = rest;
+	const { state, player } = takeIncome(started, random);
+	const keep = openOf(state, 'chooseKeep');
+	assert.equal(keep?.options[0], top);
+	assert.ok(rest.includes(keep?.options[1]));
+	const after = answer(state, random, player, 'chooseKeep', {
+		card: keep?.options[1],
+	});
+	checkState(after);
+});
+
+test('civ-draft: a deck of 1 is rebuilt from the discards for the second, without the one discarded last', () => {
+	const { state } = gainCivGame(
+		['civ-draft'],
+		['craftsmen'],
+		['historians', 'alchemists', 'leaders']
+	);
+	const pick = openOf(state, 'chooseCiv');
+	assert.equal(pick?.options[0], 'craftsmen');
+	assert.ok(['historians', 'alchemists'].includes(pick?.options[1]));
+	assert.ok(state.supply.civDiscard.includes('leaders'));
+});
+
+test('without closest-island, outposts start where the capital mats say', () => {
+	for (const count of [2, 3, 4, 5]) {
+		const { state } = newGame(count, { seed: 5 });
+		for (const event of state.events.filter(
+			(e) => e.type === 'capitalDealt'
+		)) {
+			const mat = CAPITAL_MATS[(event.capital ?? event.options[0]) - 1];
+			assert.equal(
+				startOf(state, event.player),
+				mat.start[state.map],
+				`${count} players, seat ${event.player}`
+			);
+		}
+	}
+});
+
+test('the view checker reports a drawn civilization shown to another seat', () => {
+	const { state } = gainCivGame(['civ-draft'], ['historians', 'craftsmen']);
+	const facts = setupFacts(state);
+	checkViews(state, facts);
+	const leaky = structuredClone(state);
+	leaky.events.push({ seq: leaky.seq + 1, type: 'leak', civ: 'historians' });
+	assert.throws(
+		() => checkViews(leaky, facts, { before: state }),
+		/drawn civilization historians/
+	);
 });

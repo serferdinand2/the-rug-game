@@ -86,19 +86,24 @@ The physical rule is "Instead of using capital numbers, place your starting outp
 
 ## 6. Hidden information, undo and the timer
 
-- Both drafts take cards from hidden decks, so `revealed()` (#24) already makes them impossible to undo. Nothing new is needed.
+- Both drafts take cards from hidden decks, so `revealed()` (#24) already makes the draw impossible to undo. Nothing new is needed.
+- The two choices that follow differ, on purpose **(my call)**:
+  - The mid-game civilization pick may be undone, and the other one picked. The player has already seen both, and both end up public either way (one in their civilizations, one on the discards), so nothing new is learnt.
+  - The tapestry keep can't be undone, because it changes the hand, which `view()` hides. That is `revealed()`'s usual caution, and the discarded card is public at once.
 - On a timeout the server answers `chooseKeep` and the mid-game `chooseCiv` with their first option, like any decision.
 - `view()` hides `chooseKeep`'s and `chooseCiv`'s options from everyone else. The kept tapestry card stays in the hand, and the discards are public.
 
 ## 7. Tests
 
 - `tests/engine-variants.test.mjs` covers each variant: on and off, the decision's answers and its hidden fields, the discards, the triggers, R110's assignments for every player count, and solo.
-- `checkOptions()`, `createGame()` and `tableChoices()` accept the five ids and refuse unknown ones.
+- `checkOptions()`, `createGame()` and `tableChoices()` accept the five ids, and refuse unknown or repeated ones **(my call)**.
+- The simulation's view checker (`checkViews`) also looks for the civilizations of an open mid-game `chooseCiv` in every other seat's view.
 - The simulation plays half its games with all five variants on, so each of the 20 combinations gets 5 games each way. Its invariants use `techDeck()`. In those 100 games every income turn 1 drafts, but no game gains a civilization or reaches Nanotechnology (only 1 of the 200 gains a civilization at all), so the unit tests carry `civ-draft` and `neoprene-nanotechnology`.
 
 ## 8. Handed off
 
 - **#3 and #25:** the new-table screen shows the five variants as checkboxes, from `GET /api/config`'s `variants`.
+- **#26:** the Tracks view shows a space's bonus through `bonusOf(state, track, space)` (exported from `game.js`), not straight from `TRACKS`, so Nanotechnology shows 2 tech cards under `neoprene-nanotechnology`.
 - **#28:** prompts for `chooseKeep`, and for `chooseCiv` with `midGame: true`.
 - **#29:** the log names the variants of a game from its `gameCreated` event.
 - **#31:** decide whether the variants apply to the Automa's draws.
