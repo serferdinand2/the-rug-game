@@ -2,7 +2,8 @@
 
 /**
  * Counts each address's requests in fixed windows; an address quiet for two windows is forgotten.
- * @param {number} limit - Requests allowed per address in one window
+ * @param {number | (() => number)} limit - Requests allowed per address in one window, or a function read on every
+ *   request, so a limit can change while the server runs
  * @param {number} windowMs - Window length in milliseconds
  * @returns {{ allow: (ip: string, now?: number) => boolean, sweep: (now?: number) => void, readonly size: number }}
  */
@@ -16,7 +17,7 @@ export function rateLimiter(limit, windowMs) {
 				counts.set(ip, entry);
 			}
 			entry.n++;
-			return entry.n <= limit;
+			return entry.n <= (typeof limit === 'function' ? limit() : limit);
 		},
 		sweep(now = Date.now()) {
 			for (const [ip, entry] of counts) {

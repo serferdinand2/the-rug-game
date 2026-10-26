@@ -20,8 +20,10 @@ import {
 	phase,
 	play,
 	removeSeat,
+	roomView,
 	seatsOf,
 	start,
+	tableChoices,
 	unfinishedSeat,
 } from '../rooms.mjs';
 import { checkOptions, PlayerError } from '../src/lib/engine/game.js';
@@ -517,6 +519,83 @@ test('names are trimmed, squeezed and cut to 24 characters', () => {
 	refuses(() => cleanName('   '), 'Enter a name.');
 	refuses(() => cleanName(undefined), 'Enter a name.');
 	refuses(() => join(lobby('a'), { id: 'b', name: ' ' }), 'Enter a name.');
+});
+
+test('the room view shows seats by number and name, never the people behind them (#23)', () => {
+	const room = lobby('a', 'b');
+	assert.deepEqual(roomView(room, 'b'), {
+		code: '3f9a1c07',
+		mode: 'online',
+		options: {
+			version: 'current',
+			expansions: [],
+			variants: [],
+			level: null,
+		},
+		phase: 'lobby',
+		host: 1,
+		seats: [
+			{ seat: 1, name: 'A', away: false },
+			{ seat: 2, name: 'B', away: false },
+		],
+		you: [2],
+		viewing: 2,
+		game: null,
+	});
+	const secret = join(
+		createRoom('3f9a1c07', { id: 'secret-id-1', name: 'Ana' }, {}, 0),
+		{ id: 'secret-id-2', name: 'Bo' }
+	);
+	const text = JSON.stringify(roomView(dealt(secret), 'secret-id-1'));
+	assert.ok(!text.includes('secret-id'), 'no person ids');
+	assert.ok(!text.includes('touched'));
+	refuses(() => roomView(room, 'z'), "You aren't at this table.");
+	refuses(() => roomView(room, 'a', 2), "That seat isn't yours.");
+});
+
+test("online, the room view holds the game as the person's own seat sees it", () => {
+	const room = dealt(lobby('a', 'b'));
+	const mine = roomView(room, 'b');
+	assert.equal(mine.viewing, 2);
+	const game = /** @type {any} */ (mine.game);
+	assert.ok('picks' in game.seats[1], 'their own picks');
+	assert.ok(!('picks' in game.seats[0]), "not the other seat's");
+	assert.equal(roomView(room, 'b', 2).viewing, 2);
+});
+
+test('at a hot-seat table the view is public until a seat is asked for', () => {
+	const room = dealt(hotseat('Bo'));
+	const shared = roomView(room, 'a');
+	assert.deepEqual(shared.you, [1, 2]);
+	assert.equal(shared.viewing, null);
+	const game = /** @type {any} */ (shared.game);
+	assert.ok(game.seats.every((/** @type {any} */ s) => !('picks' in s)));
+	const second = /** @type {any} */ (roomView(room, 'a', 2).game);
+	assert.ok('picks' in second.seats[1]);
+	assert.ok(!('picks' in second.seats[0]));
+});
+
+test('a newcomer at a finished table sees the finished game publicly', () => {
+	const room = join(finish(dealt(lobby('a', 'b'))), P('c'));
+	const view = roomView(room, 'c');
+	assert.equal(view.viewing, 3);
+	const game = /** @type {any} */ (view.game);
+	assert.ok(game.seats.every((/** @type {any} */ s) => !('picks' in s)));
+	assert.equal(view.seats[2].name, 'C');
+});
+
+test('the table choices are what a new table may pick today', () => {
+	assert.deepEqual(tableChoices(), {
+		modes: ['online', 'hotseat'],
+		versions: [
+			{ id: 'original', name: 'Original 2019 printing' },
+			{ id: 'current', name: 'Current official rules' },
+		],
+		expansions: [],
+		variants: [],
+		levels: [1, 2, 3, 4, 5, 6],
+		maxSeats: 5,
+	});
 });
 
 /**

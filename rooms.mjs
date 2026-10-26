@@ -2,8 +2,12 @@
 import {
 	checkOptions,
 	createGame,
+	EXPANSIONS_BUILT,
 	play as playGame,
 	PlayerError,
+	VARIANTS,
+	VERSIONS,
+	view,
 } from './src/lib/engine/game.js';
 
 /** @typedef {import('./src/lib/engine/state.js').State} State */
@@ -36,6 +40,19 @@ import {
  * @property {number} touched - When anyone last used the table, in milliseconds; the server keeps it up to date (#23)
  */
 /** @typedef {{ id: string, name: string }} Person */
+/**
+ * What one person sees of a table (#23 design §7): seats by number and name, never the people behind them.
+ * @typedef {Object} RoomView
+ * @property {string} code
+ * @property {Mode} mode
+ * @property {RoomOptions} options
+ * @property {'lobby' | 'playing' | 'finished'} phase
+ * @property {number} host - The seat number of the host's first seat
+ * @property {{ seat: number, name: string, away: boolean }[]} seats
+ * @property {number[]} you - The seats this person plays
+ * @property {number | null} viewing - The seat whose view `game` is; null for the public view
+ * @property {import('./src/lib/engine/view.js').View | null} game
+ */
 /** @typedef {Partial<RoomOptions> & { mode?: Mode }} RoomChanges */
 
 /** Most seats at a table (01 §1). */
@@ -604,4 +621,56 @@ export function unfinishedSeat(rooms, personId, exceptCode) {
 		}
 	}
 	return null;
+}
+
+/**
+ * What one person sees of a table: the only way a room leaves the server (#23 design §7). Online they see the game
+ * as their own seat; at a hot-seat table, as the seat they ask for, or the public view until they ask, so nothing
+ * private shows before the pass screen (#30) picks a seat.
+ * @param {Room} room
+ * @param {string} personId
+ * @param {number} [seat] - One of the person's seats
+ * @returns {RoomView}
+ * @throws {PlayerError} For a person with no seat here, or a seat they don't play
+ */
+export function roomView(room, personId, seat) {
+	const you = seatsOf(room, personId);
+	if (you.length === 0) {
+		throw new PlayerError("You aren't at this table.");
+	}
+	if (seat !== undefined && !you.includes(seat)) {
+		throw new PlayerError("That seat isn't yours.");
+	}
+	const viewing = seat ?? (room.mode === 'hotseat' ? null : you[0]);
+	return {
+		code: room.code,
+		mode: room.mode,
+		options: structuredClone(room.options),
+		phase: phase(room),
+		host: seatsOf(room, room.host)[0],
+		seats: room.seats.map((s, i) => ({
+			seat: i + 1,
+			name: s.name,
+			away: s.away === true,
+		})),
+		you,
+		viewing,
+		game: room.game ? view(room.game, viewing) : null,
+	};
+}
+
+/**
+ * What a new table may choose today, for the new-table screen (#25), so it never offers what the engine refuses.
+ * Solo joins the modes with the Automa (#31).
+ * @returns {{ modes: Mode[], versions: { id: string, name: string }[], expansions: string[], variants: string[], levels: number[], maxSeats: number }}
+ */
+export function tableChoices() {
+	return {
+		modes: ['online', 'hotseat'],
+		versions: VERSIONS.map(({ id, name }) => ({ id, name })),
+		expansions: [...EXPANSIONS_BUILT],
+		variants: [...VARIANTS],
+		levels: [...LEVELS],
+		maxSeats: MAX_SEATS,
+	};
 }

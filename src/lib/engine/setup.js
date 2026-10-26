@@ -16,6 +16,12 @@ import { SPACE_TILES } from './data/space-tiles.js';
 import { VERSIONS, TRACK_IDS, RESOURCE_IDS, BUILDING_IDS } from './data/ids.js';
 
 /**
+ * The expansions whose setup is built, so a table may choose them. Each expansion issue adds its code (#32, #35, #39).
+ * @type {readonly string[]}
+ */
+export const EXPANSIONS_BUILT = Object.freeze([]);
+
+/**
  * The official optional variants a table may switch on. #53 decides which; until then there are none.
  * @type {readonly string[]}
  */
@@ -59,7 +65,9 @@ export function checkOptions({ version, expansions = [], variants = [] }) {
 		if (!known) {
 			throw new PlayerError(`Unknown expansion: ${code}.`);
 		}
-		throw new PlayerError(`${known.name} isn't available yet.`);
+		if (!EXPANSIONS_BUILT.includes(code)) {
+			throw new PlayerError(`${known.name} isn't available yet.`);
+		}
 	}
 	if (!Array.isArray(variants)) {
 		throw new PlayerError('The variants must be a list.');

@@ -55,3 +55,12 @@ test('forwarded addresses count only behind a trusted proxy', () => {
 		'no header falls back to the socket'
 	);
 });
+
+test('a limit can be read each time, so it can change while the server runs', () => {
+	let limit = 1;
+	const limiter = rateLimiter(() => limit, 1000);
+	assert.equal(limiter.allow('a', 0), true);
+	assert.equal(limiter.allow('a', 0), false);
+	limit = 3;
+	assert.equal(limiter.allow('a', 0), true, 'the new limit counts at once');
+});

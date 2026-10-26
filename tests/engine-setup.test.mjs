@@ -2,7 +2,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createGame } from '../src/lib/engine/setup.js';
-import { checkOptions, VARIANTS } from '../src/lib/engine/game.js';
+import {
+	checkOptions,
+	EXPANSIONS_BUILT,
+	VARIANTS,
+	VERSIONS,
+} from '../src/lib/engine/game.js';
 import {
 	AFTER_SETUP,
 	AFTER_SETUP_STEPS,
@@ -321,6 +326,15 @@ test('a game keeps its variants, and says so when it is created (#53)', () => {
 	});
 	assert.deepEqual(state.variants, []);
 	assert.deepEqual(state.events[0].variants, []);
+});
+
+test('an expansion is refused until its setup is built, and the versions are public', () => {
+	assert.deepEqual(EXPANSIONS_BUILT, []);
+	assert.ok(Object.isFrozen(EXPANSIONS_BUILT));
+	assert.deepEqual(
+		VERSIONS.map((v) => v.id),
+		['original', 'current']
+	);
 });
 
 test('createGame refuses an unknown variant', () => {
