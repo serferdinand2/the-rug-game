@@ -22,10 +22,35 @@ import { VERSIONS, TRACK_IDS, RESOURCE_IDS, BUILDING_IDS } from './data/ids.js';
 export const EXPANSIONS_BUILT = Object.freeze([]);
 
 /**
- * The official optional variants a table may switch on. #53 decides which; until then there are none.
- * @type {readonly string[]}
+ * One official optional variant a table may switch on (03 FF.2.6, 01 §2.2).
+ * @typedef {Object} Variant
+ * @property {string} id
+ * @property {string} name - For the new-table screen
  */
-export const VARIANTS = Object.freeze([]);
+
+/**
+ * The optional variants a table may switch on, chosen by the owner (#53 design §2). Those that need an expansion
+ * join with it: civilizations from one expansion (#33) and either science die (#35).
+ * @type {readonly Readonly<Variant>[]}
+ */
+export const VARIANTS = Object.freeze(
+	[
+		{
+			id: 'tapestry-draft',
+			name: 'Income turn 1: draw 2 tapestry cards, keep 1',
+		},
+		{ id: 'civ-draft', name: 'Gaining a civilization: draw 2, keep 1' },
+		{
+			id: 'neoprene-nanotechnology',
+			name: "Nanotechnology's bonus discards 2 tech cards",
+		},
+		{
+			id: 'no-radio-battery',
+			name: 'Leave out Radio and Lithium-Ion Battery',
+		},
+		{ id: 'closest-island', name: 'Start on the island closest to you' },
+	].map((variant) => Object.freeze(variant))
+);
 
 /**
  * Checks the players, throwing PlayerError for each problem in the spec's order.
@@ -73,7 +98,7 @@ export function checkOptions({ version, expansions = [], variants = [] }) {
 		throw new PlayerError('The variants must be a list.');
 	}
 	for (const variant of variants) {
-		if (!VARIANTS.includes(variant)) {
+		if (!VARIANTS.some((v) => v.id === variant)) {
 			throw new PlayerError(`Unknown variant: ${variant}.`);
 		}
 	}
@@ -231,7 +256,7 @@ export const SETUP_STEPS = [
  * @param {{ name: string }[]} options.players - In seat order, which is clockwise and turn order
  * @param {import('./data/ids.js').VersionId} options.version
  * @param {string[]} [options.expansions] - None are built yet
- * @param {string[]} [options.variants] - From VARIANTS, which is empty until #53
+ * @param {string[]} [options.variants] - Ids from VARIANTS
  * @param {import('./random.js').Random} options.random
  * @returns {import('./state.js').State}
  * @throws {PlayerError} For a bad player count or name, version, expansion or variant

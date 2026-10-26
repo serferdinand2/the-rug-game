@@ -1098,14 +1098,14 @@ export function roomView(room, personId, seat) {
 /**
  * What a new table may choose today, for the new-table screen (#25), so it never offers what the engine refuses.
  * Solo joins the modes with the Automa (#31).
- * @returns {{ modes: Mode[], versions: { id: string, name: string }[], expansions: string[], variants: string[], levels: number[], maxSeats: number, timers: number[] }}
+ * @returns {{ modes: Mode[], versions: { id: string, name: string }[], expansions: string[], variants: { id: string, name: string }[], levels: number[], maxSeats: number, timers: number[] }}
  */
 export function tableChoices() {
 	return {
 		modes: ['online', 'hotseat'],
 		versions: VERSIONS.map(({ id, name }) => ({ id, name })),
 		expansions: [...EXPANSIONS_BUILT],
-		variants: [...VARIANTS],
+		variants: VARIANTS.map(({ id, name }) => ({ id, name })),
 		levels: [...LEVELS],
 		maxSeats: MAX_SEATS,
 		timers: [...TIMERS],
