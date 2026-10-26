@@ -309,6 +309,12 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: ['lighthouse', 'academy'],
 		},
 		chooseDiscard: { player: 1, kind: 'chooseDiscard', vpEach: 2 },
+		chooseKeep: {
+			player: 1,
+			kind: 'chooseKeep',
+			options: ['trap-1', 'age-of-sail'],
+			keep: 1,
+		},
 		chooseTrade: {
 			player: 1,
 			kind: 'chooseTrade',

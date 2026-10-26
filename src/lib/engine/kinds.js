@@ -27,6 +27,7 @@ import { chooseUpgrade } from './decisions/choose-upgrade.js';
 import { chooseTechBenefit } from './decisions/choose-tech-benefit.js';
 import { chooseLandmark } from './decisions/choose-landmark.js';
 import { chooseDiscard } from './decisions/choose-discard.js';
+import { chooseKeep } from './decisions/choose-keep.js';
 import { chooseTrade } from './decisions/choose-trade.js';
 import { chooseTrack } from './decisions/choose-track.js';
 import { chooseRoll } from './decisions/choose-roll.js';
@@ -97,6 +98,7 @@ export const DECISIONS = {
 	chooseTechBenefit,
 	chooseLandmark,
 	chooseDiscard,
+	chooseKeep,
 	chooseTrade,
 	chooseTrack,
 	chooseRoll,

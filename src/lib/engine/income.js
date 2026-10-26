@@ -63,13 +63,30 @@ function orderedOps(player, effects) {
 }
 
 /**
+ * The tapestry-draft variant on income turn 1: a gain of n tapestry cards draws n + 1 and keeps n (#53 design §4.1).
+ * @param {import('./data/effects.js').Effect} effect
+ * @returns {import('./data/effects.js').Effect}
+ */
+function draftTapestry(effect) {
+	if (!('gain' in effect) || !effect.gain.tapestry) {
+		return effect;
+	}
+	const { tapestry } = effect.gain;
+	return { gain: { ...effect.gain, tapestry: tapestry + 1, keep: tapestry } };
+}
+
+/**
  * Step 4: the exposed income icons, then what the active THIS ERA ability makes of them (design §8):
  * Capitalism's 2 VP per coin icon, or Mercantilism's choice to convert up to 1 food per food icon.
  * @type {IncomeStep['run']}
  */
-function incomeStep(ctx, player) {
+function incomeStep(ctx, player, turn) {
 	const { state } = ctx;
-	const effects = exposedEffects(state, player, 'income');
+	const exposed = exposedEffects(state, player, 'income');
+	const effects =
+		turn === 1 && state.variants.includes('tapestry-draft')
+			? exposed.map(draftTapestry)
+			: exposed;
 	const ops = orderedOps(player, effects);
 	const icons = (/** @type {'coin' | 'food'} */ id) =>
 		effects.reduce(

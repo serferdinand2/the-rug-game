@@ -13,13 +13,19 @@ const NAMES = ['Ana', 'Bo', 'Cy', 'Dee', 'Eli'];
 /**
  * A new base game for `count` players.
  * @param {number} count
- * @param {{ version?: 'original' | 'current', seed?: number }} [options]
+ * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[] }} [options]
  * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random }}
  */
-export function newGame(count, { version = 'current', seed = 1 } = {}) {
+export function newGame(
+	count,
+	{ version = 'current', seed = 1, variants = [] } = {}
+) {
 	const random = seededRandom(seed);
 	const players = NAMES.slice(0, count).map((name) => ({ name }));
-	return { state: createGame({ players, version, random }), random };
+	return {
+		state: createGame({ players, version, variants, random }),
+		random,
+	};
 }
 
 /**
@@ -83,7 +89,7 @@ function dealCivs(state, wanted) {
  * With `civs`, each seat keeps the one named for it, after its setup and, in the current version, its adjustment,
  * every setup question answered with its default.
  * @param {number} count
- * @param {{ version?: 'original' | 'current', seed?: number, civs?: string[] }} [options]
+ * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], civs?: string[] }} [options]
  * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random }}
  */
 export function startedGame(count, { civs, ...options } = {}) {
@@ -109,7 +115,7 @@ export function startedGame(count, { civs, ...options } = {}) {
  * `fill` changes that player's seat (and the state) before the turn starts, so the turn choice sees the change.
  * @param {number} [count]
  * @param {(seat: any, state: import('../../src/lib/engine/state.js').State) => void} [fill]
- * @param {{ version?: 'original' | 'current', seed?: number, civs?: string[] }} [options] - As startedGame()'s
+ * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], civs?: string[] }} [options] - As startedGame()'s
  * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random, player: number }}
  */
 export function readyTurn(count = 2, fill = () => {}, options) {
