@@ -10,7 +10,7 @@ It is built like the author's other table games, [Fablewood Rummy](https://githu
 
 No official Stonemaier artwork, logos or rulebook text are used.
 
-> **Status: in development.** The rules research, the design plan, the main game screen and the art style are approved. The base-game rules engine (M3) is complete, with a test that plays 200 random games to the end. In M4 the table rules and the server API are in: two clients can already play a whole game over HTTP. The turn timer and undo are in too: the host sets a turn timer, the server plays out a timed-out turn, and a player can take back their own choices within their turn. The game screens arrive with M5. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order.
+> **Status: in development.** The rules research, the design plan, the main game screen and the art style are approved. The base-game rules engine (M3) is complete, with a test that plays 200 random games to the end. In M4 the table rules and the server API are in: two clients can already play a whole game over HTTP. The turn timer and undo are in too: the host sets a turn timer, the server plays out a timed-out turn, and a player can take back their own choices within their turn. A table can also switch on five of the official optional variants. The game screens arrive with M5. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order.
 
 ## Current interface
 
@@ -109,7 +109,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 The research in [docs/research/](docs/research/) left 92 details unconfirmed, marked **[UNVERIFIED]**, plus a list of open questions. Each one has a decision here, so the engine never guesses. These decisions settle [#2](https://github.com/serferdinand2/the-rug-game/issues/2).
 
-- **Rule ids** (R1–R109) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
+- **Rule ids** (R1–R110) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
 - **Versions.** A table plays either the **Original 2019 printing** or the **Current official rules**. A rule applies to both unless it names one.
 - **Sources** are trusted in this order:
   1. the Fantasies & Futures integrated rulebook;
@@ -138,7 +138,7 @@ The research in [docs/research/](docs/research/) left 92 details unconfirmed, ma
 ### Decisions by area
 
 <details>
-<summary><b>Base game: setup and components</b> (5 rules)</summary>
+<summary><b>Base game: setup and components</b> (6 rules)</summary>
 
 | Rule | Question | Decision | Basis | Check |
 |---|---|---|---|---|
@@ -147,6 +147,7 @@ The research in [docs/research/](docs/research/) left 92 details unconfirmed, ma
 | R3 | Small map (1–3 players): layout? | A radius-3 hexagon minus `0_-3`, `-3_0` and `3_3`, giving 34 hexes: 13 pre-printed, 21 unexplored. Data as in 01 App. A. The BGA axial coordinates are the engine's map model. | 01 §2.3, 01 OQ9 / 02 §7.3. BGA and the myautoma app each give 34 hexes with 13 pre-printed. | BGA |
 | R4 | The 48 territory tiles? | Use 01 App. B (ids 1–48, 6 corner terrains each). Benefits: 8 each of coin, worker, food and culture; 4 tapestry card; 3 invent; 2 research with X; 2 "gain 2 tiles"; 1 each of farm, house, market, armory and upgrade. | 01 §7.1, App. B (BGA; benefit counts spot-checked against the tile art) / 02 §7.1, 02 OQ2 | BGA |
 | R5 | The 15 space tiles? | Use the 01 §7.2 list. Tile 11 is "conquer, then 1 VP per territory you control" (official erratum) in both versions. The 3 tiles readable in the BGG photo are tiles 13, 15 and 5. | 01 §7.2 (art matches BGA) / 02 §7.2 (2 flags), 02 OQ2 | BGA |
+| R110 | Variant "start in the centre of the island closest to you": which island is closest online? | Players sit round the map in seat order, as round a table. The islands are the start regions: on the large map the start hexes of capitals 1–6, on the small map the shared spots 1/6, 2/4 and 3/5, each taken in capital-number order. Seat i (from 0) of n starts on island (r + ⌊i·k/n⌋) mod k of the k islands, from a random island r, so 4 players on the large map leave gaps of 1, 2, 1 and 2. The capital mats are dealt as usual; only the start hex changes. Solo keeps R40. | 01 §2.2 and 03 FF.2.6 ("With 4 players, space the start positions evenly"); no official text for online play. Owner chose the variant, 2026-10-26 ([#53](https://github.com/serferdinand2/the-rug-game/issues/53)); the reading is mine (#53 design §4.5). | |
 
 </details>
 

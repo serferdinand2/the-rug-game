@@ -94,7 +94,7 @@ The physical rule is "Instead of using capital numbers, place your starting outp
 
 - `tests/engine-variants.test.mjs` covers each variant: on and off, the decision's answers and its hidden fields, the discards, the triggers, R110's assignments for every player count, and solo.
 - `checkOptions()`, `createGame()` and `tableChoices()` accept the five ids and refuse unknown ones.
-- The simulation plays half its games with all five variants on, so each of the 20 combinations gets 5 games each way. Its invariants use `techDeck()`.
+- The simulation plays half its games with all five variants on, so each of the 20 combinations gets 5 games each way. Its invariants use `techDeck()`. In those 100 games every income turn 1 drafts, but no game gains a civilization or reaches Nanotechnology (only 1 of the 200 gains a civilization at all), so the unit tests carry `civ-draft` and `neoprene-nanotechnology`.
 
 ## 8. Handed off
 

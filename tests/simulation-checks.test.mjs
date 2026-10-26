@@ -5,6 +5,7 @@ import { checkState } from './helpers/invariants.mjs';
 import { allOps } from './helpers/views.mjs';
 import { newGame, startedGame } from './helpers/engine.mjs';
 import { GAMES, gameOf, simulate } from './helpers/simulation.mjs';
+import { VARIANTS } from '../src/lib/engine/game.js';
 
 /** @typedef {import('../src/lib/engine/state.js').State} State */
 
@@ -166,18 +167,19 @@ test("the state checks count the Traders' and Isolationists' tokens", () => {
 	}
 });
 
-test('the 200 games cover every player count, version and policy 10 times', () => {
+test('the 200 games cover every player count, version and policy 10 times, 5 of them with every variant', () => {
 	/** @type {Map<string, number>} */
 	const combos = new Map();
 	for (let index = 0; index < GAMES; index++) {
-		const { seed, players, version, policy } = gameOf(index);
+		const { seed, players, version, policy, variants } = gameOf(index);
 		assert.equal(seed, index + 1);
-		const key = `${players} ${version} ${policy}`;
+		assert.ok(variants.length === 0 || variants.length === VARIANTS.length);
+		const key = `${players} ${version} ${policy} ${variants.length}`;
 		combos.set(key, (combos.get(key) ?? 0) + 1);
 	}
 	assert.equal(GAMES, 200);
-	assert.equal(combos.size, 5 * 2 * 2);
-	assert.ok([...combos.values()].every((n) => n === 10));
+	assert.equal(combos.size, 5 * 2 * 2 * 2);
+	assert.ok([...combos.values()].every((n) => n === 5));
 });
 
 test('a simulated game ends with every player finished and ranked', () => {
@@ -205,7 +207,7 @@ test('a failing game names its seed and how to replay it', () => {
 		(/** @type {Error} */ error) => {
 			assert.match(
 				error.message,
-				/^seed 1, 1 players, original, random play, action 3 \(\w+\): planted\n/
+				/^seed 1, 1 players, original, random play, no variants, action 3 \(\w+\): planted\n/
 			);
 			assert.match(
 				error.message,

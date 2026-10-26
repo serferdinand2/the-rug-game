@@ -82,6 +82,7 @@ New for this game:
   - Solo means one human against the Automa and the Shadow Empire, on the map side the rules require.
   - In a two-human game the table may add the Shadow Empire, as the official 2-player variant allows.
   - The state model allows for the Automa from the start, because it has no capital city, income buildings or resources.
+- **Optional variants (owner, 2026-10-26).** A table's creator may switch on 7 of the 8 official variants (#53): draw 2 tapestry cards and keep 1 on income turn 1, draw 2 civilizations and keep 1 whenever one is drawn, the neoprene Nanotechnology bonus, leaving out Radio and Lithium-Ion Battery, starting on the closest island (R110), civilizations from one expansion (with #33) and either science die (with #35). Removing any cards the players choose is not offered. The design is `docs/superpowers/specs/2026-10-26-variants-design.md`.
 - **Timeouts.** When a player's timer runs out, the server makes the default legal choice: take an income turn when choosing a turn type, otherwise the first legal option. **(my call)**
 - **What the owner can check.** The owner has the original Tapestry, but no expansions.
   - Base-game [UNVERIFIED] items get checked against the owner's copy.
