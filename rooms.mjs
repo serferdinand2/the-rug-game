@@ -1,4 +1,4 @@
-// Room rules: a table's seats, host, options and settings, its lobby → playing → finished cycle and its clocks, as pure transitions (#22, #24).
+// Room rules: a table's seats, host, options and settings, its lobby → playing → finished cycle, its clocks and its undo history, as pure transitions (#22, #24).
 import {
 	askedSeats,
 	checkOptions,
@@ -8,6 +8,8 @@ import {
 	EXPANSIONS_BUILT,
 	play as playGame,
 	PlayerError,
+	restore,
+	revealed,
 	timedOut,
 	VARIANTS,
 	VERSIONS,
@@ -94,6 +96,7 @@ import {
  * @property {number | null} viewing - The seat whose view `game` is; null for the public view
  * @property {import('./src/lib/engine/view.js').View | null} game
  * @property {{ seat: number, ends?: number, left?: number, expired: boolean }[]} clocks - In seat order
+ * @property {boolean} canUndo - Whether the seat shown can take back its last choice
  */
 /** @typedef {Partial<RoomOptions> & { mode?: Mode }} RoomChanges */
 
@@ -595,16 +598,14 @@ export function end(room, personId) {
 }
 
 /**
- * A person answers a decision of the game for a seat they play and are present at. The engine does the rest.
+ * The game, once it is checked that the person plays the seat and is present at it.
  * @param {Room} room
  * @param {string} personId
  * @param {number} seat
- * @param {{ decision: number } & Record<string, any>} action
- * @param {Random} random
- * @returns {Room}
+ * @returns {State}
  * @throws {PlayerError}
  */
-export function play(room, personId, seat, action, random) {
+function playable(room, personId, seat) {
 	if (!room.game) {
 		throw new PlayerError('Start the game first.');
 	}
@@ -614,7 +615,103 @@ export function play(room, personId, seat, action, random) {
 	if (room.seats[seat - 1].away) {
 		throw new PlayerError('Come back to the table first.');
 	}
-	return { ...room, game: playGame(room.game, seat, action, random) };
+	return room.game;
+}
+
+/**
+ * A person answers a decision of the game for a seat they play and are present at. The engine does the rest, and the
+ * undo history keeps the choice when it can be taken back (see remember()).
+ * @param {Room} room
+ * @param {string} personId
+ * @param {number} seat
+ * @param {{ decision: number } & Record<string, any>} action
+ * @param {Random} random
+ * @returns {Room}
+ * @throws {PlayerError}
+ */
+export function play(room, personId, seat, action, random) {
+	const before = playable(room, personId, seat);
+	let drawn = false;
+	const after = playGame(before, seat, action, (n) => {
+		drawn = true;
+		return random(n);
+	});
+	return {
+		...room,
+		game: after,
+		history: remember(room, before, after, seat, drawn),
+	};
+}
+
+/**
+ * The undo history after a seat's choice (#24 design §8). The choice is kept only when the turn's player made it in
+ * their own turn of a game in play, and taking it back can't show anything or dodge anything:
+ * - nothing random was drawn (a die roll, a shuffle) and nothing hidden changed (`revealed()`);
+ * - the game goes on, so the final ranking can't be taken back;
+ * - nobody else is asked while the turn is still theirs, such as a defender (a response still open after 10 seconds
+ *   would tell them the defender holds a trap). Once the turn has passed, the next player is asked because of that,
+ *   and the last choice of the turn can still be taken back until the next player's first choice.
+ * Any other choice empties the history. A kept choice starts the history afresh when the last step was another seat's
+ * or another turn's, so the history only ever holds one seat's choices in one turn.
+ * @param {Room} room - Before the choice
+ * @param {State} before
+ * @param {State} after
+ * @param {number} seat
+ * @param {boolean} drawn - Whether the engine drew a random number
+ * @returns {Step[]}
+ */
+function remember(room, before, after, seat, drawn) {
+	const kept =
+		room.undo &&
+		before.phase === 'play' &&
+		seat === before.current &&
+		!drawn &&
+		after.phase !== 'over' &&
+		!revealed(before, after) &&
+		(after.turn !== before.turn ||
+			askedSeats(after).every((asked) => asked === seat));
+	if (!kept) {
+		return [];
+	}
+	const last = room.history.at(-1);
+	const earlier =
+		last && last.seat === seat && last.turn === before.turn
+			? room.history
+			: [];
+	return [
+		...earlier,
+		{ game: before, seat, turn: before.turn, clocks: room.clocks },
+	].slice(-HISTORY_LIMIT);
+}
+
+/**
+ * A person takes back the last choice of a seat they play and are present at (#24 design §8): the game goes back to
+ * how it was before that choice, with its log carried on and an `undone` event, and the clocks go back to that step's.
+ * The end times are absolute, so the time spent still counts; a clock that has run out meanwhile is due at once.
+ * @param {Room} room
+ * @param {string} personId
+ * @param {number} seat
+ * @returns {Room}
+ * @throws {PlayerError}
+ */
+export function undo(room, personId, seat) {
+	const game = playable(room, personId, seat);
+	if (!room.undo) {
+		throw new PlayerError('Undo is off at this table.');
+	}
+	const step = room.history.at(-1);
+	if (!step) {
+		throw new PlayerError('There is nothing to undo.');
+	}
+	if (step.seat !== seat) {
+		throw new PlayerError('You can only take back your own choices.');
+	}
+	return {
+		...room,
+		game: restore(step.game, game, seat),
+		clocks: step.clocks,
+		history: room.history.slice(0, -1),
+	};
 }
 
 /**
@@ -962,6 +1059,7 @@ export function roomView(room, personId, seat) {
 		throw new PlayerError("That seat isn't yours.");
 	}
 	const viewing = seat ?? (room.mode === 'hotseat' ? null : you[0]);
+	const last = room.history.at(-1);
 	return {
 		code: room.code,
 		mode: room.mode,
@@ -986,6 +1084,12 @@ export function roomView(room, personId, seat) {
 				: { ends: clock.ends }),
 			expired: clock.expired === true,
 		})),
+		// Whether undo() would take a choice back for the seat shown; never in the public view.
+		canUndo:
+			room.undo &&
+			viewing !== null &&
+			last !== undefined &&
+			last.seat === viewing,
 	};
 }
 
