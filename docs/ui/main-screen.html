@@ -357,12 +357,12 @@
 		.era-slot { display: grid; grid-template-columns: 55px 1fr; align-items: center; gap: 8px; width: 100%; min-height: 50px; padding: 7px 10px; border: 1px solid transparent; background: var(--raised); text-align: left; cursor: pointer; }
 		.era-slot b { color: #d7c8ab; font: 700 12px/1.2 "Atkinson Hyperlegible", sans-serif; }
 		.era-slot span { color: var(--gold); font: 700 13px/1.2 "Atkinson Hyperlegible", sans-serif; }
+		.era-slot[data-card] span { font-family: Cinzel, serif; }
 		.era-slot[data-active='true'] { border-color: #a8874b; }
 		.era-slot[aria-pressed='true'] { background: color-mix(in srgb, var(--gold) 16%, var(--raised)); }
-		.era-slot:hover:not(:disabled), .era-slot:focus-visible { outline: 1px solid var(--gold); outline-offset: -1px; }
+		button.era-slot:hover:not(:disabled), button.era-slot:focus-visible { outline: 1px solid var(--gold); outline-offset: -1px; }
 		.era-slot:disabled { cursor: default; opacity: .68; }
 		.era-slot--printed { cursor: default; }
-		.era-slot--printed:hover { outline: 0; }
 		.era-card:hover, .era-card:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; box-shadow: 0 12px 22px #090b0c77, 0 0 16px #e2b857aa; }
 		.era-slot.is-pending { border-color: var(--gold); background: linear-gradient(180deg, #a6792e, #513b1d); opacity: 1; }
 		.era-slot.is-pending b { color: #eadbbc; }
@@ -700,16 +700,19 @@
 		.decision-panel[data-income] .decision-panel__bottom p { color: var(--muted); }
 		.decision-card-shelf { display: flex; justify-content: center; gap: 0; width: 100%; max-height: calc(100% - 250px); min-height: 0; margin-bottom: 18px; }
 		.decision-card-shelf[hidden] { display: none; }
+		.decision-card-shelf[data-card-type='civ'] { align-items: flex-start; gap: 18px; padding: 5px 5px 12px; overflow: auto; scrollbar-width: none; }
+		.decision-card-shelf[data-card-type='civ'][data-overflowing='true'] { justify-content: flex-start; }
+		.decision-card-shelf[data-card-type='civ']::-webkit-scrollbar { display: none; }
 		.floating-card { position: relative; display: grid; grid-template-rows: auto 1fr auto; width: 168px; height: 230px; flex: none; padding: 0; border: 2px solid #a8874b; background: #e8d6ad; color: #3c3021; text-align: left; box-shadow: 0 18px 28px #080907bb; cursor: pointer; }
 		.floating-card:not(.floating-card--civ) + .floating-card:not(.floating-card--civ) { margin-left: -54px; }
-		.floating-card--civ + .floating-card--civ { margin-left: 16px; }
+		.floating-card--civ + .floating-card--civ { margin-left: 0; }
 		.floating-card:hover, .floating-card:focus-visible { z-index: 10; border-color: var(--gold); box-shadow: 0 18px 28px #080907bb, 0 0 16px #e2b857aa; }
 		.floating-card[aria-pressed='true'] { z-index: 11; outline: 3px solid var(--gold); outline-offset: 3px; box-shadow: 0 18px 28px #080907bb, 0 0 16px #e2b857aa; }
 		.floating-card__title { display: block; padding: 8px 9px; background: linear-gradient(90deg, #5c3e1f, #987a51 65%, #cbb58c); color: #f9dc82; font: 700 13px/1.1 Cinzel, serif; }
 		.floating-card__art { display: block; width: 100%; min-height: 0; padding: 6px; object-fit: contain; image-rendering: pixelated; }
 		.floating-card__rule { display: block; min-height: 48px; padding: 7px 9px; border-top: 1px solid #a28c61; font: 400 11px/1.28 "Atkinson Hyperlegible", sans-serif; }
-		.floating-card--civ { height: 250px; }
-		.floating-card--civ .floating-card__art { padding: 9px 16px; }
+		.floating-card--civ { display: block; width: 425px; height: 720px; border: 0; background: transparent; overflow: hidden; }
+		.floating-card__civ-frame { display: block; width: 425px; height: 720px; border: 0; pointer-events: none; }
 		.decision-panel__top, .decision-panel__bottom { display: flex; align-items: center; gap: 16px; padding: 16px 24px; }
 		.decision-panel__top { border-bottom: 1px solid var(--line); }
 		.decision-panel__top h2 { flex: 1; color: var(--gold); font: 700 22px/1.2 "Atkinson Hyperlegible", sans-serif; }
@@ -858,7 +861,7 @@
 					</section>
 					<section id="hand" class="placeholder hand-preview"><h2>Hand</h2><p>Four tapestry cards in hand. Hover or focus a card to inspect it over the play area.</p><div class="hand-preview__cards" aria-label="Tapestry cards in hand" id="hand-card-list"></div></section>
 					<section id="income" class="placeholder income-preview"><h2>Income mat · <span class="income-preview__era">Era III</span></h2><p>Each building removed from the mat exposes the next printed space. Open spaces score before they pay income.</p><div class="income-preview__rows" id="income-mat-rows"></div><div class="income-preview__note">This layout shows two markets, houses and farms, and one armory removed. The 8 VP result in this mockup is illustrative; the game calculates all printed scoring effects.</div></section>
-					<section id="eras" class="placeholder era-preview"><h2>Your eras</h2><p>The active tapestry is shown in full. Select an earlier tapestry card to inspect it.</p><div class="era-preview__scroll"><div class="era-card" tabindex="0" aria-label="Inspected tapestry card"><span class="era-card__state" id="era-card-state">Era III · Active</span><div id="era-card-host"></div></div><div class="era-slots" aria-label="Your eras"><div class="era-slot era-slot--printed" data-era="1"><b>Era I</b><span>Maker of Fire</span></div><button type="button" class="era-slot" data-era="2" data-card="age-of-discovery" aria-pressed="false"><b>Era II</b><span>Age of Discovery</span></button><button type="button" class="era-slot" data-era="3" data-card="capitalism" data-active="true" aria-pressed="true"><b>Era III</b><span>Capitalism</span></button><button type="button" class="era-slot" data-era="4" aria-pressed="false" disabled><b>Era IV</b><span>Choose a tapestry card</span></button></div></div></section>
+					<section id="eras" class="placeholder era-preview"><h2>Your eras</h2><p>The active tapestry is shown in full. Select an earlier tapestry card to inspect it.</p><div class="era-preview__scroll"><div class="era-card" tabindex="0" aria-label="Inspected tapestry card"><span class="era-card__state" id="era-card-state">Era III · Active</span><div id="era-card-host"></div></div><div class="era-slots" aria-label="Your eras"><div class="era-slot era-slot--printed" data-era="1"><b>Era I</b><span>Maker of Fire</span></div><button type="button" class="era-slot" data-era="2" data-card="age-of-discovery" aria-pressed="false"><b>Era II</b><span>Age of Discovery</span></button><button type="button" class="era-slot" data-era="3" data-card="capitalism" data-active="true" aria-pressed="true"><b>Era III</b><span>Capitalism</span></button><button type="button" class="era-slot" data-era="4" aria-pressed="false" disabled><b>Era IV</b><span>Not yet chosen</span></button></div></div></section>
 					<section id="civ" class="placeholder civ-preview"><iframe class="civ-preview__card" src="collectors-review.html?embed=alchemists" title="Alchemists civilization card" loading="eager"></iframe></section>
 					<section id="tech" class="placeholder tech-preview"><h2>Your technology</h2><p>Hover or focus a card to inspect it. Choose one here during the income upgrade step; each upgrade moves it up one row.</p><div class="tech-preview__rows"><div class="tech-preview__row"><div class="tech-preview__row-head"><strong><svg viewBox="0 0 20 20" role="img" aria-label="Square benefit"><rect x="3" y="3" width="14" height="14"/></svg>Top</strong><span>Square benefit resolved</span></div><div class="tech-preview__cards" data-tech-row="top"><span class="tech-preview__empty">No cards</span></div></div><div class="tech-preview__row"><div class="tech-preview__row-head"><strong><svg viewBox="0 0 20 20" role="img" aria-label="Circle benefit"><circle cx="10" cy="10" r="7"/></svg>Middle</strong><span>Circle benefit on arrival</span></div><div class="tech-preview__cards" data-tech-row="middle"><span class="tech-preview__empty">No cards</span><button type="button" class="tech-preview__card" data-tech-card="bakery" aria-pressed="false"></button></div></div><div class="tech-preview__row"><div class="tech-preview__row-head"><strong>Bottom</strong><span>Upgrade to middle</span></div><div class="tech-preview__cards" data-tech-row="bottom"><span class="tech-preview__empty">No cards</span><button type="button" class="tech-preview__card" data-tech-card="paper" aria-pressed="false"></button><button type="button" class="tech-preview__card" data-tech-card="calendar" aria-pressed="false"></button></div></div></div></section>
 					<section id="terrain" class="placeholder terrain-preview"><h2>Terrain</h2><p>Your controlled terrain tiles and their public effects would appear here.</p></section>

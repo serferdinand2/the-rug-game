@@ -235,20 +235,45 @@ function focusPrivateTab(tab) {
 }
 function floatingCard([id, label], type) {
 	if (type !== 'civ') return `<button type="button" class="floating-card" data-card-choice="${id}" aria-pressed="false" aria-label="Select ${label}">${scaleCard(tapestryCardMarkup(id), 319, 560, .7)}</button>`;
-	const rule = type === 'civ'
-		? id === 'alchemists' ? 'Roll the science die at the start of income turns 2–5.' : 'Gain rewards for completed capital districts.'
-		: 'Tapestry card · This era';
-	return `<button type="button" class="floating-card ${type === 'civ' ? 'floating-card--civ' : ''}" data-card-choice="${id}" aria-pressed="false" aria-label="Select ${label}"><span class="floating-card__title">${label}</span><img class="floating-card__art" src="${art(type === 'civ' ? 'civ' : 'tapestry', id)}" alt=""><span class="floating-card__rule">${rule}</span></button>`;
+	return `<div class="floating-card floating-card--civ" role="button" tabindex="0" data-card-choice="${id}" aria-pressed="false" aria-label="Select ${label}"><iframe class="floating-card__civ-frame" src="collectors-review.html?embed=${id}" title="${label} civilization card" tabindex="-1" aria-hidden="true" loading="eager"></iframe></div>`;
+}
+function alignCivShelf() {
+	if (shelf.dataset.cardType !== 'civ') return;
+	const bounds = sharedArea.getBoundingClientRect();
+	const left = Math.max(0, bounds.left);
+	const right = Math.min(window.innerWidth, bounds.right);
+	const width = Math.max(0, right - left - 20);
+	if (!width) return;
+	shelf.style.width = `${width}px`;
+	shelf.style.transform = `translateX(${(left + right) / 2 - bounds.left - bounds.width / 2}px)`;
+	shelf.dataset.overflowing = String(width < 2 * 425 + 18 + 10);
 }
 function showShelf(type) {
 	shelf.hidden = false;
+	shelf.dataset.cardType = type;
 	shelf.innerHTML = (type === 'civ' ? CIV_CHOICES : TAPESTRY_CHOICES).map(choice => floatingCard(choice, type)).join('');
+	alignCivShelf();
 }
 function hideShelf() {
 	clearCardPreview();
 	shelf.hidden = true;
+	delete shelf.dataset.cardType;
+	delete shelf.dataset.overflowing;
+	shelf.style.width = '';
+	shelf.style.transform = '';
 	shelf.innerHTML = '';
 }
+window.addEventListener('resize', alignCivShelf);
+window.addEventListener('scroll', alignCivShelf, true);
+shelf.addEventListener('load', event => {
+	const frame = event.target;
+	if (!(frame instanceof HTMLIFrameElement) || !frame.classList.contains('floating-card__civ-frame')) return;
+	const card = frame.contentDocument?.querySelector('.rg-civilization-card');
+	if (!card) return;
+	const height = Math.ceil(card.getBoundingClientRect().height);
+	frame.style.height = `${height}px`;
+	frame.closest('.floating-card').style.height = `${height}px`;
+}, true);
 function setTechAvailable(available) {
 	techCards.forEach(card => {
 		card.dataset.upgradeAvailable = String(available);
@@ -402,7 +427,9 @@ function renderIncome() {
 		status.textContent = incomeRolls === 1 ? 'Science die: Exploration.' : 'Science die: Science. Two distinct tracks marked.';
 	} else if (incomeStep === 'tapestry') {
 		focusPrivateTab(erasTab);
-		eraSlots.find(item => item.dataset.era === '4').classList.add('is-pending');
+		const nextEra = eraSlots.find(item => item.dataset.era === '4');
+		nextEra.classList.add('is-pending');
+		nextEra.querySelector('span').textContent = 'Choose a tapestry card';
 		showShelf('tapestry');
 		title.textContent = 'Play a tapestry card';
 		content.innerHTML = `${incomeProgress('tapestry')}<p>Select one tapestry card above this prompt for the era IV slot shown in Eras. Then play it here.</p>`;
@@ -456,15 +483,19 @@ function startIncome() {
 	incomeUpgrade = null;
 	incomeBonus = { coin: 0, food: 0, worker: 0, culture: 0 };
 	resetTechPreview();
+	resetFutureEra();
+	overlay.hidden = false;
+	toggle.setAttribute('aria-expanded', 'true');
+	renderIncome();
+}
+
+function resetFutureEra() {
 	const nextEra = eraSlots.find(item => item.dataset.era === '4');
-	nextEra.querySelector('span').textContent = 'Choose a tapestry card';
+	nextEra.querySelector('span').textContent = 'Not yet chosen';
 	nextEra.disabled = true;
 	delete nextEra.dataset.card;
 	setActiveEra(3);
 	inspectEra(3);
-	overlay.hidden = false;
-	toggle.setAttribute('aria-expanded', 'true');
-	renderIncome();
 }
 
 function show(kind) {
@@ -489,7 +520,10 @@ function show(kind) {
 	if (kind === 'cards' || kind === 'setup-civ') showShelf(kind === 'setup-civ' ? 'civ' : 'tapestry');
 }
 function close() {
-	if (current === 'income') restoreFooter();
+	if (current === 'income') {
+		restoreFooter();
+		resetFutureEra();
+	}
 	clearCapitalFocus();
 	hideShelf();
 	setTechAvailable(false);
@@ -508,7 +542,14 @@ shelf.addEventListener('click', event => {
 	chosen = card.dataset.cardChoice;
 	shelf.querySelectorAll('[data-card-choice]').forEach(item => item.setAttribute('aria-pressed', String(item === card)));
 	confirm.disabled = false;
-	status.textContent = `${TAPESTRY_CARDS[chosen]?.title ?? card.querySelector('.floating-card__title')?.textContent ?? chosen} selected. Confirm below.`;
+	status.textContent = `${TAPESTRY_CARDS[chosen]?.title ?? CIV_CHOICES.find(([id]) => id === chosen)?.[1] ?? chosen} selected. Confirm below.`;
+});
+shelf.addEventListener('keydown', event => {
+	if (event.key !== 'Enter' && event.key !== ' ') return;
+	const card = event.target.closest('.floating-card--civ');
+	if (!card) return;
+	event.preventDefault();
+	card.click();
 });
 techCards.forEach(card => card.addEventListener('click', () => {
 	if (card.dataset.upgradeAvailable !== 'true') return;
