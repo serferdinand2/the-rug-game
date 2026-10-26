@@ -145,6 +145,7 @@ The engine is the most important code in the project. It follows the sibling pro
 - Every response that contains game state goes through `view()`.
 - Mutating requests carry the room `version`. A stale one gets **409**.
 - `PlayerError` answers **400** with `{ error }`. Anything else is logged, and the client gets **500** with a generic message.
+- The table API lives in `api.mjs`. Every table change goes through its `commit()`, rooms leave it only through `roomView()`, and nothing that runs from a timer or another person's change may throw. Its limits sit in `config`, which tests change instead of waiting.
 - `server.mjs` exports `server` and `config` and only calls `listen()` when run directly.
 
 ## Svelte components

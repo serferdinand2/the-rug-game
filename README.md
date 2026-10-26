@@ -10,7 +10,7 @@ It is built like the author's other table games, [Fablewood Rummy](https://githu
 
 No official Stonemaier artwork, logos or rulebook text are used.
 
-> **Status: in development.** The rules research, the design plan, the main game screen and the art style are approved. The base-game rules engine (M3) is complete, with a test that plays 200 random games to the end, and the table rules have started M4. The game screens arrive with M5. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order.
+> **Status: in development.** The rules research, the design plan, the main game screen and the art style are approved. The base-game rules engine (M3) is complete, with a test that plays 200 random games to the end. In M4 the table rules and the server API are in: two clients can already play a whole game over HTTP. The turn timer and undo come next, and the game screens arrive with M5. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order.
 
 ## Current interface
 
@@ -71,7 +71,7 @@ Copy [.env.example](.env.example) to `.env` to change the host or port, or to tr
 
 ## Deploying
 
-Run a single server process: tables live in its memory. The build needs the development tools, but running the built app doesn't.
+Run a single server process: tables live in its memory. The build needs the development tools, but running the built app doesn't. Behind a reverse proxy, set `TRUST_PROXY=true` in `.env`, or every player shares the proxy's address and its rate limits.
 
 ```sh
 npm ci                     # install, including the build tools

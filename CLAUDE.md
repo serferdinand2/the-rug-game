@@ -41,7 +41,13 @@ GitHub Actions runs `npm ci`, `npm run check` and `npm test` on every push.
   - It exports `server` and `config` and only calls `listen()` when run directly, so tests start it in-process on port 0.
   - It serves files only from `public/`, resolving decoded paths and refusing anything outside the folder.
   - Vite's hashed bundles in `assets/` are cached for a year (`immutable`), and `fonts/` and `art/` for a week. Everything else, including the page, gets `no-cache` with a weak ETag, so a new deploy is picked up at once.
-  - `/api/*` requests pass a per-address rate limiter (1,800 a minute). The table API arrives in #22–#23.
+  - `/api/*` requests pass a per-address rate limiter (1,800 a minute) and go to the table API in `api.mjs` (#23).
+- `api.mjs` is the table API (#23): `createApi(config)` keeps every table, guest session and long-poll request in memory, and serves `rooms.mjs`.
+  - **Endpoints:** `config`, `tables`, `login`, `me`, `create`, `join`, `state` (`?since=<version>&seat=<n>`), `configure`, `add-seat`, `remove-seat`, `start`, `end`, `move` and `leave`.
+  - **Changes:** every change goes through `commit()`, which bumps the table's `version` and answers the requests waiting on it; a change carrying a stale `version` gets 409.
+  - **What leaves the server:** rooms leave only through `roomView()`, so no person id, token or raw game ever does.
+  - **Sessions:** bearer tokens; a session sits at one table at a time.
+  - **Limits:** they sit in `config` (exported from `server.mjs`), which the API reads on every use, so tests shorten waits and raise limits there. The design is `docs/superpowers/specs/2026-10-26-server-api-design.md`.
 - `limits.mjs` holds `rateLimiter()` and `clientAddress()`. With `TRUST_PROXY=true`, the last `X-Forwarded-For` address counts; otherwise the header is ignored.
 - `rooms.mjs` holds the table rules (#22) as pure transitions in Bird Table's style: `createRoom`, `configure`, `join`, `addSeat`, `removeSeat`, `leave`, `start`, `end` and `play`, plus `phase`, `seatsOf` and `cleanName`. Each returns a new room, or `null` when it closes, and throws the engine's `PlayerError`. The code says room, players see table. For the server's `Map` of rooms it has `newCode`, `addRoom` (`MAX_ROOMS` 1,000), `expireRooms` (`ROOM_IDLE_MS`, a day), `openTables` and `unfinishedSeat`. Room seat `i` is game seat `i + 1`; seats never move or disappear while a game is on the table. It uses the engine only through `src/lib/engine/game.js`, whose `checkOptions()` checks a table's options.
 - **Client.** The browser interface is **Svelte 5** with runes forced on (5.57.2), built by **Vite** (8.3.4), without SvelteKit. The project root is Vite's root, laid out like the owner's other Svelte projects (owner, 2026-10-21). The full layout is in CONVENTIONS.md.
@@ -88,7 +94,7 @@ Updated 2026-10-25. Update this section whenever a milestone moves.
   - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. The owner closed #48 on 2026-10-21, ahead of its blocker #3.
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2, #4, #7, #8, #9, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #44, #46, #48 and #52 are done.**
+- **#1, #2, #4, #7, #8, #9, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #44, #46, #48 and #52 are done.**
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R108).
@@ -247,6 +253,27 @@ Updated 2026-10-25. Update this section whenever a milestone moves.
     - At most 1,000 tables; a table nobody uses for a day expires. `unfinishedSeat` lets #23 keep a player in a running online game from sitting elsewhere; a hot-seat game holds nobody.
   - Handed off, and written on each issue: #23 (endpoints, sessions and person ids, `touched`, the room `version`, long polling, a create rate limit, sweeping before `addRoom`, `unfinishedSeat` at start too, and the room's view with `view(game, seat)` for each seat in `seatsOf`), #24 (timer, kicking, undo), #25 (the lobby's Open seat slots, readiness and the civilization chooser need their own transitions), #29 (telling a new deal from the old game), #30 (which hot-seat seat to show), #31 (solo tables, the 2-player Shadow Empire variant, and bot seats in the room tests), #53 (the variants: a variant with a setting changes the list's shape).
   - `tests/rooms.test.mjs` covers every rule, and its randomized test runs 200 runs of 300 random steps over online and hot-seat tables. `tests/engine-setup.test.mjs` covers `checkOptions()`.
+- **#23 (the server API)** is done (2026-10-26). The design is `docs/superpowers/specs/2026-10-26-server-api-design.md` and the plan is `docs/superpowers/plans/2026-10-26-server-api-issue-23.md`.
+  - The owner asked for #23 without a question round, so the design marks every other decision "(my call)".
+  - `api.mjs` serves #22's transitions to guests:
+    - **Sign-in:** `POST /api/login { name }` gives a bearer token, and every other request carries it.
+    - **Endpoints:** `config`, `tables`, `me` (`{ name, code, saved }`), `create { options }`, `join { code }`, `state?since=&seat=`, then `configure`, `add-seat`, `remove-seat`, `start`, `end` and `move { version, seat?, action }`, and `leave`.
+    - **Versions:** every table change carries the table's `version`; a stale one gets 409, a missing one 400.
+    - **Statuses:** 400 for a `PlayerError`; 401 sign in again; 404, 405, 413, 429 and 503; 500 for a bug.
+  - `GET /api/state?since=<version>` answers at once when the table is newer, otherwise waits up to 25 s.
+    - `seat` picks which of your seats to see. At a hot-seat table the default is the public view, so #30 asks for each seat.
+    - Answering a waiting request never throws: an unexpected error is logged and answered with 500, because it runs from timers and from other people's changes.
+  - Calls to revisit:
+    - Person ids never leave the server; views name seats by number.
+    - `leave`, `create` and `join` carry no version.
+    - A session sits at one table at a time. A session whose person holds a seat lasts a day unused, and any other an hour. A seat counts if it is present, or in a running game away or not.
+    - A session that ends leaves its tables.
+    - At the 10,000-session cap a login replaces the longest-unused session holding no seat.
+    - Per address (an IPv6 address counts by its /64 block): 1,800 requests, 20 tables and 30 logins a minute; at most 10 open tables, 50 long polls, and 4 long polls per session.
+    - A lobby nobody polls closes after an hour.
+  - Two automated security reviews and a fresh code review shaped these limits; the design's §9 says what they don't stop (about 100 IPv4 addresses could still fill the tables). Behind a reverse proxy, `TRUST_PROXY=true` is required; the server warns once when it sees `X-Forwarded-For` without it.
+  - Handed off: #24 (the timer and undo endpoints, through `change()`/`commit()`; clear turn timers on expiry and server close, as Bird Table does), #25 (the client side: `src/lib/api.js` and `src/lib/game.svelte.js`, reading `config`, `tables`, `me.saved` and the room view), #30 (`state?seat=`), #43 (Discord login beside the guest one), #29 (a deal counter if the log needs one).
+  - `tests/api.test.mjs` starts the server on port 0. Its main test has two clients play a whole game over HTTP at the same time, retrying on 409, without seeing each other's hand or picks. The others cover every endpoint and status, long polling, hot-seat, the limits and session expiry.
 - **Decided 2026-10-24:**
   - At the game end, players see each tiebreaker used, step by step (owner, #15).
   - R105: Interstellar Travel's "explore 1 of them" means one of the 3 space tiles it just gained, as printed; BGA's reading (any tile in hand) is rejected (owner, #52).
@@ -269,7 +296,7 @@ Updated 2026-10-25. Update this section whenever a milestone moves.
   - Cloud Colonies is back (owner). R77 lists the territories that show clouds, read from BGA's tile and board images, and #49 adds the card. The territory-tile and map art (#6) must show clouds on exactly those territories.
   - The owner-check rules are settled by Board Game Arena for now, not the physical box (owner). 17 are marked **BGA** in the README's "Rules conventions"; R28 and R40 were corrected to match BGA, and R66 now gives the track order from BGA's board images, so Twin Impact is in. R12 and R39 stay owner-check, because BGA has no data for them.
 - **Next:**
-  - Ready now: #23 Add the server API with long polling and version checks. Its blocker #22 is done; #22's entry lists what it hands off.
+  - Ready now: #24 Add the turn timer and in-turn undo. Its blocker #23 is done; #23's entry lists what it hands off.
   - #53 Decide which official variants a table can switch on. The owner decides; #22 is built with no variants until then.
   - #54 Decide whether Alien Biology scores on a track AI Singularity emptied. The owner decides; it blocks nothing.
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
