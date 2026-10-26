@@ -744,3 +744,35 @@ test('one address keeps at most 10 tables open', async () => {
 	}
 	assert.equal(defaults.tablesPerAddress, 10);
 });
+
+test('a session that holds an away seat stays, so its person can come back', async () => {
+	// Every earlier session and table ends, so the cap counts only this test's.
+	api.sweep(Date.now() + 3 * 24 * 60 * 60 * 1000);
+	config.idleSessionMs = 50;
+	config.maxSessions = 2;
+	try {
+		const { people, room: lobby } = await table('Ana', 'Bo');
+		const [ana, bo] = people;
+		await call('start', {
+			body: { version: lobby.version },
+			token: ana.token,
+		});
+		await call('leave', { body: {}, token: bo.token });
+		await new Promise((resolve) => setTimeout(resolve, 100));
+		refused(
+			await call('login', { body: { name: 'Cy' } }),
+			503,
+			'The server is full. Try again later.'
+		);
+		assert.equal((await call('me', { token: bo.token })).status, 200);
+		const back = await call('join', {
+			body: { code: lobby.code },
+			token: bo.token,
+		});
+		assert.equal(back.status, 200);
+		assert.equal(back.data.seats[1].away, false);
+	} finally {
+		config.idleSessionMs = defaults.idleSessionMs;
+		config.maxSessions = defaults.maxSessions;
+	}
+});

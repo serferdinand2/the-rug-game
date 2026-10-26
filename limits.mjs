@@ -47,3 +47,39 @@ export function clientAddress(req, trustProxy) {
 	}
 	return req.socket.remoteAddress;
 }
+
+/**
+ * The key an address's requests count under. An IPv6 address counts by its /64 block, because one household or host
+ * gets a whole block and could otherwise step past every limit; an IPv4 address (mapped into IPv6 or not) counts by
+ * itself.
+ * @param {string | undefined} address - As clientAddress() gives it
+ * @returns {string}
+ */
+export function addressKey(address) {
+	if (!address) {
+		return 'unknown';
+	}
+	const plain = address.replace(/%.*$/, '').toLowerCase();
+	const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(plain);
+	if (mapped) {
+		return mapped[1];
+	}
+	if (!plain.includes(':')) {
+		return plain;
+	}
+	// Expand "::" to the missing zero groups, then keep the first four.
+	const [head, tail = ''] = plain.split('::');
+	const left = head ? head.split(':') : [];
+	const right = tail ? tail.split(':') : [];
+	const groups = plain.includes('::')
+		? [
+				...left,
+				...Array(8 - left.length - right.length).fill('0'),
+				...right,
+			]
+		: left;
+	return `${groups
+		.slice(0, 4)
+		.map((g) => g.replace(/^0+(?=.)/, ''))
+		.join(':')}::/64`;
+}

@@ -1,7 +1,7 @@
 // Rate limits and client addresses, tested without a running server.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { rateLimiter, clientAddress } from '../limits.mjs';
+import { rateLimiter, clientAddress, addressKey } from '../limits.mjs';
 
 test('each address may send a fixed number of requests per window', () => {
 	const limiter = rateLimiter(3, 1000);
@@ -63,4 +63,15 @@ test('a limit can be read each time, so it can change while the server runs', ()
 	assert.equal(limiter.allow('a', 0), false);
 	limit = 3;
 	assert.equal(limiter.allow('a', 0), true, 'the new limit counts at once');
+});
+
+test('limits count an IPv6 address by its /64 block, which one household or host holds', () => {
+	assert.equal(addressKey('203.0.113.5'), '203.0.113.5');
+	assert.equal(addressKey('::ffff:203.0.113.5'), '203.0.113.5');
+	assert.equal(addressKey('2001:db8:1:2:3:4:5:6'), '2001:db8:1:2::/64');
+	assert.equal(addressKey('2001:DB8:1:2:ffff::9'), '2001:db8:1:2::/64');
+	assert.equal(addressKey('2001:db8::1'), '2001:db8:0:0::/64');
+	assert.equal(addressKey('::1'), '0:0:0:0::/64');
+	assert.equal(addressKey('fe80::1%en0'), 'fe80:0:0:0::/64');
+	assert.equal(addressKey(undefined), 'unknown');
 });

@@ -157,31 +157,51 @@ export function createApi(config) {
 	}
 
 	/**
-	 * Whether a session has gone unused too long: a day at a table, an hour at none.
+	 * The people who hold a seat at any table, away seats included: a person who left a running game must keep their
+	 * session to come back to it.
+	 * @returns {Set<string>}
+	 */
+	function seatHolders() {
+		const holders = new Set();
+		for (const room of rooms.values()) {
+			for (const seat of room.seats) {
+				holders.add(seat.player);
+			}
+		}
+		return holders;
+	}
+
+	/**
+	 * Whether a session has gone unused too long: a day while its person holds a seat anywhere, an hour otherwise.
 	 * @param {Session} session
 	 * @param {number} now
+	 * @param {Set<string>} [holders] - From seatHolders(), when checking many sessions at once
 	 */
-	function expired(session, now) {
-		const lasts = seated(session) ? config.sessionMs : config.idleSessionMs;
+	function expired(session, now, holders) {
+		const held = holders
+			? holders.has(session.id)
+			: seated(session) || seatHolders().has(session.id);
+		const lasts = held ? config.sessionMs : config.idleSessionMs;
 		return now - session.used > lasts;
 	}
 
 	/**
-	 * Makes room for a new session at the cap: the longest unused session at no table goes. Sessions at tables stay,
-	 * so filling the server takes a table each, and tables are capped per address.
+	 * Makes room for a new session at the cap: the longest-unused session whose person holds no seat anywhere goes, so
+	 * nobody loses a seat to it. Filling the server then takes a seat per session, and tables are capped per address.
 	 * @param {number} now
-	 * @throws {HttpError} 503 when every session sits at a table
+	 * @throws {HttpError} 503 when every session holds a seat
 	 */
 	function makeRoomForSession(now) {
 		sweep(now);
 		if (sessions.size < config.maxSessions) {
 			return;
 		}
+		const holders = seatHolders();
 		/** @type {[string, Session] | undefined} */
 		let oldest;
 		for (const entry of sessions) {
 			if (
-				!seated(entry[1]) &&
+				!holders.has(entry[1].id) &&
 				(!oldest || entry[1].used < oldest[1].used)
 			) {
 				oldest = entry;
@@ -558,7 +578,7 @@ export function createApi(config) {
 	 * Answers one /api/ request.
 	 * @param {import('node:http').IncomingMessage} req
 	 * @param {import('node:http').ServerResponse} res
-	 * @param {string | undefined} address - The client's address, for the per-address limits
+	 * @param {string | undefined} address - The client's address key (addressKey), for the per-address limits
 	 */
 	async function handle(req, res, address) {
 		const url = new URL(req.url ?? '/', 'http://localhost');
@@ -601,8 +621,9 @@ export function createApi(config) {
 		for (const code of Rooms.expireRooms(rooms, now)) {
 			wake(code);
 		}
+		const holders = seatHolders();
 		for (const [token, session] of sessions) {
-			if (expired(session, now)) {
+			if (expired(session, now, holders)) {
 				sessions.delete(token);
 			}
 		}

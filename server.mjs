@@ -6,7 +6,7 @@ import { resolve, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { gzip } from 'node:zlib';
-import { rateLimiter, clientAddress } from './limits.mjs';
+import { rateLimiter, clientAddress, addressKey } from './limits.mjs';
 import { createApi, sendJson } from './api.mjs';
 
 /** The server's settings. The API reads the waits and limits on every use, so tests can shorten or raise them. */
@@ -50,8 +50,8 @@ const types = {
 const compressible = new Set(['.html', '.js', '.css', '.json', '.svg']);
 
 async function handleApi(req, res) {
-	const address = clientAddress(req, config.trustProxy);
-	if (!apiLimiter.allow(String(address))) {
+	const address = addressKey(clientAddress(req, config.trustProxy));
+	if (!apiLimiter.allow(address)) {
 		return sendJson(res, 429, {
 			error: 'Too many requests. Try again shortly.',
 		});

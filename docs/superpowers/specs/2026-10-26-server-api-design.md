@@ -51,8 +51,8 @@ The browser screens (#25–#30) are built on this API, so it has to say everythi
   - The client makes up a name when the player gives none: the launch mockup has a name generator.
   - Every login is a new person with a new id. The id never leaves the server. **(my call:** other players only need names and seat numbers, and an id that never leaves can't be spoofed.)
 - **Requests** carry `Authorization: Bearer <token>`. Without a valid session, the answer is **401** "Sign in again.". **(my call:** Bird Table answers 400, but a separate status tells the client to sign in again.)
-- **Expiry.** A session at a table expires 24 hours after its last use, and a session at no table after 1 hour. **(my call)**
-- **The cap.** Sessions are capped at **10,000**. At the cap, a new login replaces the longest-unused session that sits at no table. Only when every session sits at a table does a login get 503 "The server is full. Try again later." **(my call, from the security review:** a hard cap let one address fill the server and lock everyone out for a day.)
+- **Expiry.** A session whose person holds a seat anywhere, away seats included, expires 24 hours after its last use; any other after 1 hour. A player who leaves a running game must keep their session to come back. **(my call)**
+- **The cap.** Sessions are capped at **10,000**. At the cap, a new login replaces the longest-unused session whose person holds no seat anywhere, so nobody loses a seat to it. Only when every session holds a seat does a login get 503 "The server is full. Try again later." **(my call, from the security review:** a hard cap let one address fill the server and lock everyone out for a day.)
 - **One table at a time.** A session sits at one table at a time (`session.code`), as in Bird Table. To create or join another, the person leaves first. While their seat holds up a running online game, `unfinishedSeat` refuses them a new table: "You still have a seat in a game at table 3f9a1c07. Return to it with that code first." Because a person sits at one table at a time, they can't be in two lobbies, so `start` needs no `unfinishedSeat` check. That answers #22's handoff note.
 
 ## 6. Endpoints
@@ -143,7 +143,7 @@ Each request a person makes about their table updates its `touched`.
 
 ## 9. Rate limits
 
-Every request counts against one address, as `clientAddress()` gives it, honouring `TRUST_PROXY`:
+Every request counts against one address, as `clientAddress()` gives it, honouring `TRUST_PROXY`. An IPv6 address counts by its /64 block (`addressKey()` in `limits.mjs`), since one household or host holds a whole block **(my call, from the security review)**:
 - `/api/` in all: 1,800 a minute (today's limit);
 - `create`: 20 a minute **(my call, from Fablewood)**;
 - `login`: 30 a minute **(my call:** each login keeps a session in memory).
