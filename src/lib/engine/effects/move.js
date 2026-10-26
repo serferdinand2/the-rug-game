@@ -78,7 +78,7 @@ function moveOnOneOf(ctx, player, value, direction) {
 
 /**
  * Whether a player's every token on every one of the tracks is on space 12, and none of the tracks is blocked for them.
- * A track whose token AI Singularity took off has no token left, so it counts as finished (as for Alien Biology, #54).
+ * A track whose token AI Singularity took off has no token left, so it counts as finished (R109).
  * @param {import('../state.js').State} state
  * @param {number} player
  * @param {import('../data/ids.js').TrackId[]} tracks

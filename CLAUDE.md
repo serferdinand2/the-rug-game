@@ -98,7 +98,7 @@ Updated 2026-10-26. Update this section whenever a milestone moves.
 - **#1, #2, #4, #7, #8, #9, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #44, #46, #48 and #52 are done.**
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The page is a placeholder until #25.
-  - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R108).
+  - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R109).
 - **#4 (art toolkit and asset catalog)** is done. The owner approved the scene parts on 2026-10-21.
 - **#7 (landmarks)** is done. All 33 are drawn, each one picture in its footprint's shape, and the owner approved them in the asset gallery (`art/preview/index.html`) on 2026-10-21.
 - **#9 (tapestry card pictures)** is done (2026-10-22). All 115 pictures are drawn: 44 base, 13 Plans & Ploys, 20 Arts & Architecture and 38 Fantasies & Futures. The design is `docs/superpowers/specs/2026-10-22-tapestry-cards-design.md` and the plan is `docs/superpowers/plans/2026-10-22-tapestry-cards-issue-9.md`.
@@ -145,7 +145,7 @@ Updated 2026-10-26. Update this section whenever a milestone moves.
   - A player who has taken income turn 1 may advance when they can pay for some advance. They pay the tier cost, move one token one space, gain the tier's landmark if first (R9), then take the benefit and may pay the bonus. `chooseAdvance` answers the track, the token and the payment in one go.
   - Research, Physics, Quantum Physics, Neuroscience, Academic Research, AI Singularity, the "or" choices, the VP counters, bonuses and gaining income buildings are built. A track space is activated at most once per player per turn (R19).
   - An unordered benefit runs its plain gains first, then any VP counter that no other part could change; when two or more parts whose order can matter remain, `chooseOrder` lets the player pick (Electronics, Nanotechnology, Cavalry, Mechs, Nuclear Bomb, and some space tiles for #17).
-  - The final review found two problems, both fixed with tests: VP counters ran too early, and an after-setup step placed after `'start'` would never run (it now throws). #54 asks the owner whether Alien Biology scores on a track whose token AI Singularity took off; the engine scores it until then.
+  - The final review found two problems, both fixed with tests: VP counters ran too early, and an after-setup step placed after `'start'` would never run (it now throws). #54 asked the owner whether Alien Biology scores on a track whose token AI Singularity took off; it does (R109, owner, 2026-10-26).
   - The rest is handed off by name, and each issue lists it: `tapestryOnTop` and the track achievement (#19); `gainCiv` (#20). Until then they throw an `Error` naming themselves. Tests stand in for them with `stubHandoffs()` in `tests/helpers/engine.mjs`.
   - `tests/engine-track-spaces.test.mjs` reaches each of the 48 spaces by a real advance turn.
 - **#15 (income turns, eras and the game end)** is done (2026-10-24). The design is `docs/superpowers/specs/2026-10-24-income-turns-design.md` and the plan is `docs/superpowers/plans/2026-10-24-income-turns-issue-15.md`.
@@ -306,6 +306,8 @@ Updated 2026-10-26. Update this section whenever a milestone moves.
     - #31: whether the Automa's and Shadow Empire's turns have a clock;
     - every expansion issue: a new hidden deck joins `HIDDEN_DECKS`; a new hidden hand-like field is added to `revealed()` and `view()` together; a choice that shows a player something hidden without changing any of them must add an event with a `secret`, or undo would let them peek; an expansion with simultaneous decisions mid-turn checks that a seat asked again gets a fresh clock.
   - `tests/engine-table.test.mjs`, `tests/rooms-clocks.test.mjs`, `tests/rooms-undo.test.mjs` and `tests/api-timer.test.mjs` cover it, and the randomized room test gained `settings`, `undo` and `timeout` steps. `tests/helpers/engine.mjs` gained `conquestGame`.
+- **Decided 2026-10-26:**
+  - R109: Alien Biology scores 5 VP on a track whose token AI Singularity took off, as FAQ #9 treats the token as still on space 12 (owner, #54).
 - **Decided 2026-10-24:**
   - At the game end, players see each tiebreaker used, step by step (owner, #15).
   - R105: Interstellar Travel's "explore 1 of them" means one of the 3 space tiles it just gained, as printed; BGA's reading (any tile in hand) is rejected (owner, #52).
@@ -330,7 +332,6 @@ Updated 2026-10-26. Update this section whenever a milestone moves.
 - **Next:**
   - #25 (the client side) is still blocked by #3, so no game screen can start yet. #24 is done; its entry lists what it hands off.
   - #53 Decide which official variants a table can switch on. The owner decides; #22 is built with no variants until then.
-  - #54 Decide whether Alien Biology scores on a track AI Singularity emptied. The owner decides; it blocks nothing.
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - #3 Design the remaining screens (assigned to lazar-milin). Phase one is handed off in `docs/ui/README.md`; income, further decisions, results and the listed setup/details gaps remain. The production `tokens.css` and `base.css` now follow it, but #3 stays open.
   - #10 The owner reviews all 56 tech pictures, then #10 closes.
@@ -454,7 +455,7 @@ How to read the research:
   3. the base rulebook;
   4. the printed art;
   5. the Board Game Arena implementation.
-- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R108**.
+- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R109**.
   - Follow those decisions, not the research's working assumptions.
   - Cite the id in code comments and test names, for example `// R16`.
   - Content listed there as "left out" is never invented.

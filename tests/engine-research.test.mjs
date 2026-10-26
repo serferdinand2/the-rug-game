@@ -271,7 +271,7 @@ test('a move answer must be one of the offered moves', () => {
 	}
 });
 
-test('until #54 decides, Alien Biology scores 5 VP on a track whose token AI Singularity took off (FAQ #9)', () => {
+test('R109: Alien Biology scores 5 VP on a track whose token AI Singularity took off (FAQ #9)', () => {
 	const { state: started } = startedGame(2);
 	const state = structuredClone(started);
 	state.seats[0].tracks.technology = [];

@@ -72,6 +72,7 @@ export function rollResearch(ctx, op) {
 /**
  * What a research roll gives. The player may advance 1 space on the rolled track, with its benefit and bonus,
  * or with neither for the X. When no token there can move, the roll gives `offTrackVp` VP (Alien Biology), or nothing.
+ * That includes a track whose token AI Singularity took off (R109).
  * A track the player is blocked on gives nothing at all (design §5, §10).
  * @type {import('../state.js').AutomaticKind}
  */
