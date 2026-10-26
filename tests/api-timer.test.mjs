@@ -1,7 +1,9 @@
 // The turn timer and undo over HTTP (#24): the settings and undo endpoints, the table timers and late requests, on a server at port 0.
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import http from 'node:http';
 import { server, config, api } from '../server.mjs';
+import { createApi } from '../api.mjs';
 import { TIMERS } from '../rooms.mjs';
 
 /** @typedef {{ status: number, data: any }} Answer */
@@ -147,6 +149,37 @@ const timedOut = (room) =>
 
 /** Closes every table and ends every session, so a test starts with none of the earlier ones. */
 const closeAll = () => api.sweep(Date.now() + 3 * DAY);
+
+/** @param {number} ms */
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Serves another table API on a port of its own, and sends every request there while `run` runs.
+ * @param {ReturnType<typeof createApi>} other
+ * @param {() => Promise<void>} run
+ */
+async function serving(other, run) {
+	const own = http.createServer((req, res) => {
+		other.handle(req, res, 'test').catch(() => {
+			res.writeHead(500);
+			res.end();
+		});
+	});
+	await new Promise((resolve) => own.listen(0, '127.0.0.1', resolve));
+	const kept = base;
+	const address = /** @type {import('node:net').AddressInfo} */ (
+		own.address()
+	);
+	base = `http://127.0.0.1:${address.port}/api/`;
+	try {
+		await run();
+	} finally {
+		base = kept;
+		own.closeAllConnections();
+		own.close();
+		other.close();
+	}
+}
 
 test('the room view has the timer, undo, clocks, now and canUndo, and the config the timers', async () => {
 	const choices = await call('config');
@@ -493,6 +526,100 @@ test('a move that arrives after the clock ran out gets 409', async (t) => {
 	const later = (await call('state', { token: ana.token })).data;
 	assert.equal(later.version, played.version + 1);
 	assert.equal(timedOut(later).length, 3);
+});
+
+test('a timeout that answers nothing is never committed, so late requests go on as usual', async (t) => {
+	const errors = t.mock.method(console, 'error', () => {});
+	t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
+	let timeouts = 0;
+	// Only a bug does this: something has run out, and the timeout answers nothing, in a new room all the same.
+	const other = createApi(
+		{ ...config },
+		{
+			timeout: (room) => {
+				timeouts += 1;
+				return { ...room };
+			},
+		}
+	);
+	await serving(other, async () => {
+		const { people, room } = await timedGame(['Ana', 'Bo']);
+		const [ana] = people;
+		assert.equal(other.timers(), 1);
+		t.mock.timers.tick(61_000);
+		for (let attempt = 1; attempt <= 2; attempt++) {
+			refused(
+				await call('undo', {
+					body: { version: room.version },
+					token: ana.token,
+				}),
+				400,
+				'There is nothing to undo.'
+			);
+			assert.equal(timeouts, attempt);
+			assert.equal(errors.mock.callCount(), attempt, 'logged once each');
+			assert.equal(other.timers(), 0, 'no timer until the table changes');
+		}
+		assert.match(
+			String(errors.mock.calls[0].arguments[0]),
+			/could answer nothing/
+		);
+		const open = openFor(room);
+		const moved = await call('move', {
+			body: {
+				version: room.version,
+				action: { decision: open.id, ...open.answers[0] },
+			},
+			token: ana.token,
+		});
+		assert.equal(moved.status, 200, JSON.stringify(moved.data));
+		assert.equal(
+			moved.data.version,
+			room.version + 1,
+			"the move's own version, and none from the timeout"
+		);
+		// The move changed the table, so its timer tries once more, then waits for the next change.
+		await pause(50);
+		assert.equal(timeouts, 4);
+		assert.equal(errors.mock.callCount(), 4);
+		assert.equal(other.timers(), 0);
+		const seen = (await call('state', { token: ana.token })).data;
+		assert.equal(seen.version, room.version + 1, 'nothing spins');
+	});
+});
+
+test('a timeout that fails is logged, and a late move goes on as usual', async (t) => {
+	const errors = t.mock.method(console, 'error', () => {});
+	t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
+	const other = createApi(
+		{ ...config },
+		{
+			timeout: () => {
+				throw new Error('The timer could not finish the turn.');
+			},
+		}
+	);
+	await serving(other, async () => {
+		const { people, room } = await timedGame(['Ana', 'Bo']);
+		t.mock.timers.tick(61_000);
+		const open = openFor(room);
+		const moved = await call('move', {
+			body: {
+				version: room.version,
+				action: { decision: open.id, ...open.answers[0] },
+			},
+			token: people[0].token,
+		});
+		assert.equal(moved.status, 200, JSON.stringify(moved.data));
+		assert.equal(moved.data.version, room.version + 1);
+		await pause(50);
+		assert.equal(errors.mock.callCount(), 2, 'before the move, and after');
+		assert.match(
+			String(errors.mock.calls[1].arguments[0]),
+			/could not finish the turn/
+		);
+		assert.equal(other.timers(), 0);
+	});
 });
 
 test('the table timers are cleared when a table closes, when it expires and when the server closes', async (t) => {

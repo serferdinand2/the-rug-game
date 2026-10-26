@@ -184,10 +184,12 @@ function bump(counts, key, by) {
  * The table API: one instance keeps every table and session in memory (#23 design §4–§9), with one timer per table
  * for its next clock or automatic decline (#24 design §9).
  * @param {ApiConfig} config - Read on every use
+ * @param {{ timeout?: typeof Rooms.timeout }} [rules] - A stand-in for Rooms.timeout, for the tests of what only a
+ *   bug can do; the server passes none
  * @returns {{ handle: (req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, address: string) => Promise<void>, sweep: (now?: number) => void, waiting: () => number, timers: () => number, close: () => void }}
  *   `timers()` counts the table timers held; `close()` clears them all, for when the server closes
  */
-export function createApi(config) {
+export function createApi(config, { timeout = Rooms.timeout } = {}) {
 	/** @type {Map<string, StoredRoom>} */
 	const rooms = new Map();
 	/** @type {Map<string, Session>} By token */
@@ -460,60 +462,48 @@ export function createApi(config) {
 	}
 
 	/**
-	 * A table's timer is due: the server plays what has run out (Rooms.timeout) and commits it. It never throws, since
-	 * it runs from a timer. A table that is gone, or not due yet, is left to its timer. After an error, or a timeout
-	 * that answered nothing although something is due, which can only be a bug, the table keeps no timer until its
-	 * next change, so a bug can't spin in a loop (#24 design §9).
+	 * Plays what has run out at a table (Rooms.timeout) and commits it. It runs from the table's timer, and before a
+	 * late move or undo, so that the request meets the new version and gets 409 rather than racing the timer (#24
+	 * design §6). It never throws.
+	 *
+	 * A timeout that answered nothing, which only a bug makes, is never committed, and neither is one that failed: the
+	 * error is logged, and the table keeps no timer until its next change. So a bug can't spin in a loop, or bump the
+	 * version for a client that retries on 409 (#24 design §9). After an answer the table may be due again at once,
+	 * when an expired clock that waited for a defender resumes with nothing left; its timer then fires at once.
 	 * @param {string} code
+	 * @param {number} now
+	 * @returns {boolean} False when nothing has run out
 	 */
-	function fire(code) {
-		tableTimers.delete(code);
+	function playDue(code, now) {
+		const room = rooms.get(code);
+		const deadline = room ? Rooms.nextDeadline(room) : null;
+		if (!room || deadline === null || deadline > now) {
+			return false;
+		}
 		try {
-			const room = rooms.get(code);
-			const now = Date.now();
-			const deadline = room ? Rooms.nextDeadline(room) : null;
-			if (!room || deadline === null) {
-				return;
-			}
-			if (deadline > now) {
-				schedule(code);
-				return;
-			}
-			const next = Rooms.timeout(room, now, random);
-			const stored = commit(code, next, now);
-			const again = stored ? Rooms.nextDeadline(stored) : null;
-			// Due again after an answer is fine: an expired clock that waited for a defender resumes with nothing left.
-			if (again !== null && again <= now && next.game === room.game) {
-				stop(code);
-				console.error(
-					new Error(
-						`The timer at table ${code} could answer nothing, so it waits for the table to change.`
-					)
+			const next = timeout(room, now, random);
+			if (next.game === room.game) {
+				throw new Error(
+					`The timer at table ${code} could answer nothing, so it waits for the table to change.`
 				);
 			}
+			commit(code, next, now);
 		} catch (error) {
 			stop(code);
 			console.error(error);
 		}
+		return true;
 	}
 
 	/**
-	 * Lets what has run out at a table happen before a late move or undo, so the request meets the new version and
-	 * gets 409 rather than racing the table's timer (#24 design §6). An error is logged, as from the timer, and the
-	 * request goes on.
+	 * A table's timer is due: what has run out is played. A timer that fired early waits again, and a table that is
+	 * gone, or has nothing left to run out, keeps none.
 	 * @param {string} code
-	 * @param {number} now
 	 */
-	function catchUp(code, now) {
-		const room = rooms.get(code);
-		const deadline = room ? Rooms.nextDeadline(room) : null;
-		if (!room || deadline === null || deadline > now) {
-			return;
-		}
-		try {
-			commit(code, Rooms.timeout(room, now, random), now);
-		} catch (error) {
-			console.error(error);
+	function fire(code) {
+		tableTimers.delete(code);
+		if (!playDue(code, Date.now())) {
+			schedule(code);
 		}
 	}
 
@@ -842,7 +832,7 @@ export function createApi(config) {
 				);
 			case 'move': {
 				const { code, seat, shown } = playing(session, body, now);
-				catchUp(code, now);
+				playDue(code, now);
 				return change(
 					session,
 					body,
@@ -860,7 +850,7 @@ export function createApi(config) {
 			}
 			case 'undo': {
 				const { code, seat, shown } = playing(session, body, now);
-				catchUp(code, now);
+				playDue(code, now);
 				return change(
 					session,
 					body,
