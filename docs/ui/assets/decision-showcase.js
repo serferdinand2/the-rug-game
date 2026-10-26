@@ -45,8 +45,49 @@ const samples = {
 };
 
 const scaleCard = (markup, width, height, scale) => `<span class="rg-card-scale" style="--card-width:${width}px;--card-height:${height}px;--card-scale:${scale}">${markup}</span>`;
-document.querySelector('#hand-card-list').innerHTML = ['age-of-sail', 'alliance', 'cartography', 'dystopia'].map(id => `<button type="button" class="hand-card" aria-label="${TAPESTRY_CARDS[id].title} tapestry card">${scaleCard(tapestryCardMarkup(id), 319, 560, .48)}</button>`).join('');
+document.querySelector('#hand-card-list').innerHTML = ['age-of-sail', 'alliance', 'cartography', 'dystopia'].map(id => `<button type="button" class="hand-card" data-tapestry-card="${id}" aria-label="${TAPESTRY_CARDS[id].title} tapestry card">${scaleCard(tapestryCardMarkup(id), 319, 560, .48)}</button>`).join('');
 document.querySelectorAll('[data-tech-card]').forEach(card => { card.innerHTML = scaleCard(technologyCardMarkup(card.dataset.techCard), 425, 286, .65); });
+const sharedArea = document.querySelector('.shared');
+const cardOverview = document.querySelector('#card-overview');
+const cardOverviewFrame = document.querySelector('#card-overview-frame');
+let previewedCard = null;
+function previewCard(card) {
+	if (card?.classList.contains('floating-card--civ')) return;
+	const techId = card?.dataset.techCard;
+	const tapestryId = card?.dataset.tapestryCard || (card?.classList.contains('floating-card') ? card.dataset.cardChoice : null);
+	if (!techId && !tapestryId) return;
+	previewedCard = card;
+	const width = techId ? 425 : 319;
+	const height = techId ? 286 : 560;
+	const bounds = sharedArea.getBoundingClientRect();
+	const visibleLeft = Math.max(0, bounds.left);
+	const visibleRight = Math.min(window.innerWidth, bounds.right);
+	const visibleWidth = Math.max(0, visibleRight - visibleLeft);
+	const visibleCenter = (visibleLeft + visibleRight) / 2;
+	const fit = Math.min(1, (visibleWidth - 36) / width, (sharedArea.clientHeight - 36) / height);
+	cardOverviewFrame.innerHTML = scaleCard(techId ? technologyCardMarkup(techId) : tapestryCardMarkup(tapestryId), width, height, fit);
+	cardOverviewFrame.style.transform = `translateX(${visibleCenter - bounds.left - bounds.width / 2}px)`;
+	cardOverview.hidden = false;
+}
+function clearCardPreview(card = null) {
+	if (card && card !== previewedCard) return;
+	previewedCard = null;
+	cardOverview.hidden = true;
+	cardOverviewFrame.innerHTML = '';
+}
+const previewTarget = target => target instanceof Element ? target.closest('.hand-card, .tech-preview__card, .era-card, .floating-card') : null;
+document.addEventListener('pointerover', event => {
+	const card = previewTarget(event.target);
+	if (card && card !== previewTarget(event.relatedTarget)) previewCard(card);
+});
+document.addEventListener('pointerout', event => {
+	const card = previewTarget(event.target);
+	if (card && card !== previewTarget(event.relatedTarget)) clearCardPreview(card);
+});
+document.addEventListener('focusin', event => previewCard(previewTarget(event.target)));
+document.addEventListener('focusout', event => clearCardPreview(previewTarget(event.target)));
+document.addEventListener('keydown', event => { if (event.key === 'Escape') clearCardPreview(); });
+window.addEventListener('resize', () => { if (previewedCard) previewCard(previewedCard); });
 const overlay = document.querySelector('#decision-overlay');
 const panel = overlay.querySelector('.decision-panel');
 const toggle = document.querySelector('#decision-preview-toggle');
@@ -96,7 +137,6 @@ let previousFooter = null;
 let setupCivDone = false;
 let activeEra = 3;
 const ERA_DETAILS = {
-	'maker-of-fire': { title: 'Maker of Fire', copy: 'Your printed starting era. It has no tapestry-card ability.' },
 	'age-of-discovery': { title: 'Age of Discovery', copy: 'When played: Roll the science die. All players advance on that track; only you gain its benefit. You may pay its bonus.' },
 	capitalism: { title: 'Capitalism', copy: 'This era: When you gain income, gain 2 VP per coin earned. Whenever you gain a market, also gain 1 coin.' },
 	'age-of-sail': { title: 'Age of Sail', copy: 'This era: Whenever you explore, draw a total of 3 territory tiles. Before placing, you may give 1 to an opponent to gain 3 VP.' },
@@ -108,12 +148,13 @@ const plotName = index => `${'ABCDEFGHI'[index % 9]}${Math.floor(index / 9) + 1}
 
 function inspectEra(era) {
 	const slot = eraSlots.find(item => Number(item.dataset.era) === era);
-	if (!slot || slot.disabled) return;
+	if (!slot || slot.tagName !== 'BUTTON' || slot.disabled) return;
 	const id = slot.dataset.card;
 	const detail = ERA_DETAILS[id];
 	if (!detail) return;
-	eraSlots.forEach(item => item.setAttribute('aria-pressed', String(item === slot)));
-	eraCardHost.innerHTML = id === 'maker-of-fire' ? '<div class="era-card__printed">Printed on the income mat</div>' : scaleCard(tapestryCardMarkup(id), 319, 560, 1);
+	eraSlots.filter(item => item.tagName === 'BUTTON').forEach(item => item.setAttribute('aria-pressed', String(item === slot)));
+	eraCardHost.innerHTML = scaleCard(tapestryCardMarkup(id), 319, 560, 1);
+	eraCardHost.closest('.era-card').dataset.tapestryCard = id;
 	eraCardState.textContent = `Era ${['', 'I', 'II', 'III', 'IV'][era]} · ${era === activeEra ? 'Active' : 'Earlier'}`;
 }
 function setActiveEra(era, cardId = null) {
@@ -204,12 +245,13 @@ function showShelf(type) {
 	shelf.innerHTML = (type === 'civ' ? CIV_CHOICES : TAPESTRY_CHOICES).map(choice => floatingCard(choice, type)).join('');
 }
 function hideShelf() {
+	clearCardPreview();
 	shelf.hidden = true;
 	shelf.innerHTML = '';
 }
 function setTechAvailable(available) {
 	techCards.forEach(card => {
-		card.disabled = !available;
+		card.dataset.upgradeAvailable = String(available);
 		if (!available) card.setAttribute('aria-pressed', 'false');
 	});
 }
@@ -466,10 +508,10 @@ shelf.addEventListener('click', event => {
 	chosen = card.dataset.cardChoice;
 	shelf.querySelectorAll('[data-card-choice]').forEach(item => item.setAttribute('aria-pressed', String(item === card)));
 	confirm.disabled = false;
-	status.textContent = `${card.querySelector('.floating-card__title').textContent} selected. Confirm below.`;
+	status.textContent = `${TAPESTRY_CARDS[chosen]?.title ?? card.querySelector('.floating-card__title')?.textContent ?? chosen} selected. Confirm below.`;
 });
 techCards.forEach(card => card.addEventListener('click', () => {
-	if (current !== 'income' || incomeStep !== 'upgrade') return;
+	if (card.dataset.upgradeAvailable !== 'true') return;
 	chosen = card.dataset.techCard;
 	techCards.forEach(item => item.setAttribute('aria-pressed', String(item === card)));
 	confirm.textContent = 'Upgrade & score';
@@ -573,7 +615,7 @@ confirm.addEventListener('click', () => {
 		return;
 	}
 	if (!chosen) return;
-	status.textContent = `${shelf.querySelector('[aria-pressed="true"]')?.querySelector('.floating-card__title')?.textContent ?? content.querySelector('[aria-pressed="true"]')?.textContent.trim()} confirmed for this preview.`;
+	status.textContent = `${TAPESTRY_CARDS[chosen]?.title ?? content.querySelector('[aria-pressed="true"]')?.textContent.trim() ?? chosen} confirmed for this preview.`;
 });
 window.addEventListener('open-farm-chain', event => startChain(event.detail?.trackColor));
 document.querySelector('.income-action').addEventListener('click', startIncome);

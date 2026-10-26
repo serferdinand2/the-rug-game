@@ -336,7 +336,7 @@
 		.hand-preview__cards { display: flex; align-items: flex-start; min-height: 244px; padding: 4px 0 18px; }
 		.hand-card { position: relative; display: grid; grid-template-rows: auto 1fr auto; width: 154px; height: 222px; flex: none; border: 2px solid #a8874b; background: #e8d6ad; color: #332a20; box-shadow: 0 12px 20px #090b0c88; }
 		.hand-card + .hand-card { margin-left: -64px; }
-		.hand-card:hover, .hand-card:focus-visible { z-index: 10; transform: translateY(-5px); outline: 2px solid var(--gold); outline-offset: 2px; }
+		.hand-card:hover, .hand-card:focus-visible { z-index: 10; outline: 2px solid var(--gold); outline-offset: 2px; box-shadow: 0 12px 20px #090b0c88, 0 0 16px #e2b857aa; }
 		.hand-card__title { padding: 7px 8px; background: linear-gradient(90deg, #5c3e1f, #987a51 65%, #cbb58c); color: #f9dc82; font: 700 11px/1.15 Cinzel, serif; }
 		.hand-card img { width: 100%; min-height: 0; padding: 5px; object-fit: contain; image-rendering: pixelated; }
 		.hand-card__type { padding: 5px 8px; border-top: 1px solid #a28c61; font: 400 10px/1.2 "Atkinson Hyperlegible", sans-serif; }
@@ -361,6 +361,9 @@
 		.era-slot[aria-pressed='true'] { background: color-mix(in srgb, var(--gold) 16%, var(--raised)); }
 		.era-slot:hover:not(:disabled), .era-slot:focus-visible { outline: 1px solid var(--gold); outline-offset: -1px; }
 		.era-slot:disabled { cursor: default; opacity: .68; }
+		.era-slot--printed { cursor: default; }
+		.era-slot--printed:hover { outline: 0; }
+		.era-card:hover, .era-card:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; box-shadow: 0 12px 22px #090b0c77, 0 0 16px #e2b857aa; }
 		.era-slot.is-pending { border-color: var(--gold); background: linear-gradient(180deg, #a6792e, #513b1d); opacity: 1; }
 		.era-slot.is-pending b { color: #eadbbc; }
 		.era-slot.is-pending span { color: #ffdb78; }
@@ -376,12 +379,11 @@
 		.tech-preview__row:has(.tech-preview__card) .tech-preview__empty { display: none; }
 		.tech-preview__card { position: relative; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 3px; width: 136px; min-height: 129px; flex: none; padding: 7px; border: 1px solid var(--line); background: var(--raised); color: var(--text); cursor: pointer; }
 		.tech-preview__card + .tech-preview__card { margin-left: -43px; }
-		.tech-preview__card:hover, .tech-preview__card:focus-visible, .tech-preview__card[aria-pressed='true'] { z-index: 10; transform: translateY(-4px); }
+		.tech-preview__card:hover, .tech-preview__card:focus-visible, .tech-preview__card[aria-pressed='true'] { z-index: 10; box-shadow: 0 8px 15px #0008, 0 0 16px #e2b857aa; }
 		.tech-preview__card img { width: 70px; height: 70px; object-fit: contain; image-rendering: pixelated; }
 		.tech-preview__card span { font: 700 13px/1.2 "Atkinson Hyperlegible", sans-serif; }
 		.tech-preview__card small { color: var(--muted); font: 400 10px/1.2 "Atkinson Hyperlegible", sans-serif; }
-		.tech-preview__card:disabled { cursor: default; }
-		.tech-preview__card:not(:disabled):hover, .tech-preview__card:not(:disabled):focus-visible, .tech-preview__card[aria-pressed='true'] { border-color: var(--gold); outline: 1px solid var(--gold); }
+		.tech-preview__card:hover, .tech-preview__card:focus-visible, .tech-preview__card[aria-pressed='true'] { border-color: var(--gold); outline: 1px solid var(--gold); }
 
 		.private-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 		.private-title h2 { font-size: 18px; }
@@ -682,6 +684,9 @@
 		.decision-preview-toggle { margin-left: auto; padding: 7px 10px; border: 1px solid var(--line); background: var(--chrome); color: var(--gold); cursor: pointer; }
 		.decision-overlay { position: absolute; z-index: 30; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 26px 34px 14px; background: color-mix(in srgb, var(--ink) 52%, transparent); }
 		.decision-overlay[hidden] { display: none; }
+		.card-overview { position: absolute; z-index: 40; inset: 0; display: grid; place-items: center; padding: 18px; overflow: hidden; background: color-mix(in srgb, var(--ink) 52%, transparent); pointer-events: none; }
+		.card-overview[hidden] { display: none; }
+		.card-overview__frame { filter: drop-shadow(0 18px 25px #050607bb) drop-shadow(0 0 9px #e2b85766); }
 		.decision-panel { flex: 0 1 auto; width: max-content; min-width: min(480px, 100%); max-width: min(900px, 100%); max-height: 100%; overflow: auto; border: 1px solid var(--line); background-color: #1b2023; background-image: linear-gradient(#10141699, #10141699), url('assets/middle-pixel-noise.svg'); background-size: auto, 1920px 1080px; background-position: center, left top; color: var(--text); box-shadow: 0 18px 40px #090b0ca8; }
 		.decision-panel[data-income] { border-color: #b99048; background-color: #211d17; background-image: linear-gradient(#211d17cc, #211d17cc), url('assets/middle-pixel-noise.svg'); }
 		.decision-panel[data-income] .decision-panel__top { border-bottom-color: #bd9450; background: linear-gradient(180deg, #a6792e, #765725); }
@@ -698,8 +703,8 @@
 		.floating-card { position: relative; display: grid; grid-template-rows: auto 1fr auto; width: 168px; height: 230px; flex: none; padding: 0; border: 2px solid #a8874b; background: #e8d6ad; color: #3c3021; text-align: left; box-shadow: 0 18px 28px #080907bb; cursor: pointer; }
 		.floating-card:not(.floating-card--civ) + .floating-card:not(.floating-card--civ) { margin-left: -54px; }
 		.floating-card--civ + .floating-card--civ { margin-left: 16px; }
-		.floating-card:hover, .floating-card:focus-visible { z-index: 10; transform: translateY(-4px); border-color: var(--gold); }
-		.floating-card[aria-pressed='true'] { z-index: 11; outline: 3px solid var(--gold); outline-offset: 3px; transform: translateY(-6px); }
+		.floating-card:hover, .floating-card:focus-visible { z-index: 10; border-color: var(--gold); box-shadow: 0 18px 28px #080907bb, 0 0 16px #e2b857aa; }
+		.floating-card[aria-pressed='true'] { z-index: 11; outline: 3px solid var(--gold); outline-offset: 3px; box-shadow: 0 18px 28px #080907bb, 0 0 16px #e2b857aa; }
 		.floating-card__title { display: block; padding: 8px 9px; background: linear-gradient(90deg, #5c3e1f, #987a51 65%, #cbb58c); color: #f9dc82; font: 700 13px/1.1 Cinzel, serif; }
 		.floating-card__art { display: block; width: 100%; min-height: 0; padding: 6px; object-fit: contain; image-rendering: pixelated; }
 		.floating-card__rule { display: block; min-height: 48px; padding: 7px 9px; border-top: 1px solid #a28c61; font: 400 11px/1.28 "Atkinson Hyperlegible", sans-serif; }
@@ -770,7 +775,7 @@
         .tech-preview__empty{width:277px;min-height:186px}
         .tech-preview__card{display:block;width:277px;height:186px;min-height:186px;padding:0;border:0;background:transparent;box-shadow:0 8px 15px #0008}
         .tech-preview__card+.tech-preview__card{margin-left:-115px}
-        .tech-preview__card:not(:disabled):hover,.tech-preview__card:not(:disabled):focus-visible,.tech-preview__card[aria-pressed='true']{outline:2px solid var(--gold);outline-offset:2px}
+		.tech-preview__card:hover,.tech-preview__card:focus-visible,.tech-preview__card[aria-pressed='true']{outline:2px solid var(--gold);outline-offset:2px}
         .floating-card:not(.floating-card--civ){display:block;width:223px;height:392px;border:0;background:transparent}
         .floating-card:not(.floating-card--civ)+.floating-card:not(.floating-card--civ){margin-left:-72px}
         .floating-card:not(.floating-card--civ):hover,.floating-card:not(.floating-card--civ):focus-visible{border:0;outline:2px solid var(--gold);outline-offset:2px}
@@ -831,6 +836,7 @@
 						<div class="decision-panel__bottom"><p id="decision-status" role="status">Choose an option to continue.</p><button type="button" id="decision-cancel">Cancel</button><button type="button" id="decision-confirm" disabled>Confirm choice</button></div>
 					</section>
 				</div>
+				<div class="card-overview" id="card-overview" aria-hidden="true" hidden><div class="card-overview__frame" id="card-overview-frame"></div></div>
 			</section>
 
 			<aside class="private" aria-label="Your player area">
@@ -850,11 +856,11 @@
 						<div class="city-stats"><div class="stat" data-completion="rows" title="Completed rows"><i class="completion-mark row"></i><b>0</b></div><div class="stat" data-completion="columns" title="Completed columns"><i class="completion-mark column"></i><b>0</b></div><div class="stat" data-completion="districts" title="Completed districts"><i class="completion-mark district"></i><b>0</b></div></div>
 						<section class="placement-section" id="placement-section"><h3>To be placed</h3><div class="landmark-piece selected" id="lighthouse-piece" draggable="false" role="button" tabindex="0" aria-label="Lighthouse, four plots, selected"><button class="rotate-landmark" type="button" aria-label="Rotate Lighthouse">↻</button><button class="confirm-landmark" type="button" aria-label="Lock Lighthouse in place">✓</button><button class="return-landmark" type="button" aria-label="Return Lighthouse to be placed">↓</button></div></section>
 					</section>
-					<section id="hand" class="placeholder hand-preview"><h2>Hand</h2><p>Four tapestry cards in hand. Hover or focus a card to bring it to the front.</p><div class="hand-preview__cards" aria-label="Tapestry cards in hand" id="hand-card-list"></div></section>
+					<section id="hand" class="placeholder hand-preview"><h2>Hand</h2><p>Four tapestry cards in hand. Hover or focus a card to inspect it over the play area.</p><div class="hand-preview__cards" aria-label="Tapestry cards in hand" id="hand-card-list"></div></section>
 					<section id="income" class="placeholder income-preview"><h2>Income mat · <span class="income-preview__era">Era III</span></h2><p>Each building removed from the mat exposes the next printed space. Open spaces score before they pay income.</p><div class="income-preview__rows" id="income-mat-rows"></div><div class="income-preview__note">This layout shows two markets, houses and farms, and one armory removed. The 8 VP result in this mockup is illustrative; the game calculates all printed scoring effects.</div></section>
-					<section id="eras" class="placeholder era-preview"><h2>Your eras</h2><p>The active tapestry is shown in full. Select an earlier era to inspect its card.</p><div class="era-preview__scroll"><div class="era-card" aria-label="Inspected tapestry card"><span class="era-card__state" id="era-card-state">Era III · Active</span><div id="era-card-host"></div></div><div class="era-slots" aria-label="Your eras"><button type="button" class="era-slot" data-era="1" data-card="maker-of-fire" aria-pressed="false"><b>Era I</b><span>Maker of Fire</span></button><button type="button" class="era-slot" data-era="2" data-card="age-of-discovery" aria-pressed="false"><b>Era II</b><span>Age of Discovery</span></button><button type="button" class="era-slot" data-era="3" data-card="capitalism" data-active="true" aria-pressed="true"><b>Era III</b><span>Capitalism</span></button><button type="button" class="era-slot" data-era="4" aria-pressed="false" disabled><b>Era IV</b><span>Choose a tapestry card</span></button></div></div></section>
+					<section id="eras" class="placeholder era-preview"><h2>Your eras</h2><p>The active tapestry is shown in full. Select an earlier tapestry card to inspect it.</p><div class="era-preview__scroll"><div class="era-card" tabindex="0" aria-label="Inspected tapestry card"><span class="era-card__state" id="era-card-state">Era III · Active</span><div id="era-card-host"></div></div><div class="era-slots" aria-label="Your eras"><div class="era-slot era-slot--printed" data-era="1"><b>Era I</b><span>Maker of Fire</span></div><button type="button" class="era-slot" data-era="2" data-card="age-of-discovery" aria-pressed="false"><b>Era II</b><span>Age of Discovery</span></button><button type="button" class="era-slot" data-era="3" data-card="capitalism" data-active="true" aria-pressed="true"><b>Era III</b><span>Capitalism</span></button><button type="button" class="era-slot" data-era="4" aria-pressed="false" disabled><b>Era IV</b><span>Choose a tapestry card</span></button></div></div></section>
 					<section id="civ" class="placeholder civ-preview"><iframe class="civ-preview__card" src="collectors-review.html?embed=alchemists" title="Alchemists civilization card" loading="eager"></iframe></section>
-					<section id="tech" class="placeholder tech-preview"><h2>Your technology</h2><p>Choose a card here during the income upgrade step. Each upgrade moves it up one row.</p><div class="tech-preview__rows"><div class="tech-preview__row"><div class="tech-preview__row-head"><strong><svg viewBox="0 0 20 20" role="img" aria-label="Square benefit"><rect x="3" y="3" width="14" height="14"/></svg>Top</strong><span>Square benefit resolved</span></div><div class="tech-preview__cards" data-tech-row="top"><span class="tech-preview__empty">No cards</span></div></div><div class="tech-preview__row"><div class="tech-preview__row-head"><strong><svg viewBox="0 0 20 20" role="img" aria-label="Circle benefit"><circle cx="10" cy="10" r="7"/></svg>Middle</strong><span>Circle benefit on arrival</span></div><div class="tech-preview__cards" data-tech-row="middle"><span class="tech-preview__empty">No cards</span><button type="button" class="tech-preview__card" data-tech-card="bakery" aria-pressed="false" disabled></button></div></div><div class="tech-preview__row"><div class="tech-preview__row-head"><strong>Bottom</strong><span>Upgrade to middle</span></div><div class="tech-preview__cards" data-tech-row="bottom"><span class="tech-preview__empty">No cards</span><button type="button" class="tech-preview__card" data-tech-card="paper" aria-pressed="false" disabled></button><button type="button" class="tech-preview__card" data-tech-card="calendar" aria-pressed="false" disabled></button></div></div></div></section>
+					<section id="tech" class="placeholder tech-preview"><h2>Your technology</h2><p>Hover or focus a card to inspect it. Choose one here during the income upgrade step; each upgrade moves it up one row.</p><div class="tech-preview__rows"><div class="tech-preview__row"><div class="tech-preview__row-head"><strong><svg viewBox="0 0 20 20" role="img" aria-label="Square benefit"><rect x="3" y="3" width="14" height="14"/></svg>Top</strong><span>Square benefit resolved</span></div><div class="tech-preview__cards" data-tech-row="top"><span class="tech-preview__empty">No cards</span></div></div><div class="tech-preview__row"><div class="tech-preview__row-head"><strong><svg viewBox="0 0 20 20" role="img" aria-label="Circle benefit"><circle cx="10" cy="10" r="7"/></svg>Middle</strong><span>Circle benefit on arrival</span></div><div class="tech-preview__cards" data-tech-row="middle"><span class="tech-preview__empty">No cards</span><button type="button" class="tech-preview__card" data-tech-card="bakery" aria-pressed="false"></button></div></div><div class="tech-preview__row"><div class="tech-preview__row-head"><strong>Bottom</strong><span>Upgrade to middle</span></div><div class="tech-preview__cards" data-tech-row="bottom"><span class="tech-preview__empty">No cards</span><button type="button" class="tech-preview__card" data-tech-card="paper" aria-pressed="false"></button><button type="button" class="tech-preview__card" data-tech-card="calendar" aria-pressed="false"></button></div></div></div></section>
 					<section id="terrain" class="placeholder terrain-preview"><h2>Terrain</h2><p>Your controlled terrain tiles and their public effects would appear here.</p></section>
 				</div>
 				<section class="self-summary" aria-label="Your resources and game summary">
