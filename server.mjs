@@ -1,4 +1,4 @@
-// The Rug Game's HTTP server: serves public/ and answers /api/ requests. All table state will live in memory.
+// The Rug Game's HTTP server: serves public/ and hands /api/ requests to the table API (api.mjs), which keeps every table in memory.
 import http from 'node:http';
 import { realpathSync } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
@@ -7,15 +7,29 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { gzip } from 'node:zlib';
 import { rateLimiter, clientAddress } from './limits.mjs';
+import { createApi, sendJson } from './api.mjs';
 
+/** The server's settings. The API reads the waits and limits on every use, so tests can shorten or raise them. */
 export const config = {
 	host: process.env.HOST || '127.0.0.1',
 	port: Number(process.env.PORT || 3020),
 	trustProxy: process.env.TRUST_PROXY === 'true',
+	// How long a state request waits for its table to change.
+	longPollMs: 25_000,
+	// How long a session lasts unused, and how many the server keeps.
+	sessionMs: 24 * 60 * 60 * 1000,
+	maxSessions: 10_000,
+	// Requests per address a minute: every /api/ request, new tables and logins (#23 design §9).
+	apiLimit: 1800,
+	createLimit: 20,
+	loginLimit: 30,
 };
 
+/** The table API: every table and session in memory. */
+export const api = createApi(config);
+
 const publicDir = fileURLToPath(new URL('./public/', import.meta.url));
-const apiLimiter = rateLimiter(1800, 60_000);
+const apiLimiter = rateLimiter(() => config.apiLimit, 60_000);
 const gzipAsync = promisify(gzip);
 const zipped = new Map();
 const types = {
@@ -32,21 +46,14 @@ const types = {
 };
 const compressible = new Set(['.html', '.js', '.css', '.json', '.svg']);
 
-function sendJson(res, status, value) {
-	res.writeHead(status, {
-		'Content-Type': 'application/json; charset=utf-8',
-		'Cache-Control': 'no-store',
-	});
-	res.end(JSON.stringify(value));
-}
-
 async function handleApi(req, res) {
-	if (!apiLimiter.allow(clientAddress(req, config.trustProxy))) {
+	const address = clientAddress(req, config.trustProxy);
+	if (!apiLimiter.allow(String(address))) {
 		return sendJson(res, 429, {
 			error: 'Too many requests. Try again shortly.',
 		});
 	}
-	return sendJson(res, 404, { error: 'Unknown request.' });
+	return api.handle(req, res, address);
 }
 
 /**
@@ -144,8 +151,11 @@ export const server = http.createServer(async (req, res) => {
 	}
 });
 
-// Request counts for quiet addresses are forgotten every minute.
-setInterval(() => apiLimiter.sweep(), 60_000).unref();
+// Every minute: request counts for quiet addresses are forgotten, and idle tables and sessions expire.
+setInterval(() => {
+	apiLimiter.sweep();
+	api.sweep();
+}, 60_000).unref();
 
 // Listen only when run directly, so tests can import the server and choose their own port. The started path is
 // resolved through symlinks because import.meta.url always holds the real path (as in /srv/app/current/server.mjs).
