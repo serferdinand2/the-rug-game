@@ -3,8 +3,13 @@
 	import CivilizationCard from '../lib/components/player/CivilizationCard.svelte';
 	import { REVIEWED_CIVILIZATIONS } from '../lib/cards/reviewed-civilizations.js';
 	let state = $state(/** @type {'empty'|'play'} */ ('empty'));
+	const embeddedCard = new URLSearchParams(window.location.search).get('embed');
+	const cards = embeddedCard
+		? REVIEWED_CIVILIZATIONS.filter((card) => card.id === embeddedCard)
+		: REVIEWED_CIVILIZATIONS;
 </script>
 
+{#if !embeddedCard}
 <header class="rg-card-review--header">
 	<h1>Civilization cards</h1>
 	<nav aria-label="Example state">
@@ -17,15 +22,19 @@
 		><a href="/components.html#civilization-card">Components</a>
 	</nav>
 </header>
-<main class="rg-card-review">
-	{#each REVIEWED_CIVILIZATIONS as card}<section
-			aria-labelledby={`${card.id}-heading`}>
+{/if}
+<main class={`rg-card-review ${embeddedCard ? 'rg-card-review--embed' : ''}`}>
+	{#each cards as card}<section
+			aria-labelledby={embeddedCard ? undefined : `${card.id}-heading`}
+			aria-label={embeddedCard ? `${card.title} civilization card` : undefined}>
+			{#if !embeddedCard}
 			<h2 id={`${card.id}-heading`}>{card.title}</h2>
 			<p>
 				{card.edition === 'original'
 					? 'Original mat · layout example'
 					: 'Reviewed card layout'}
 			</p>
+			{/if}
 			<CivilizationCard
 				id={card.id}
 				{state} />
@@ -42,6 +51,14 @@
 	}
 	.rg-card-review section {
 		width: 425px;
+	}
+	.rg-card-review--embed {
+		gap: 0;
+		padding: 0;
+	}
+	:global(body:has(.rg-card-review--embed)) {
+		margin: 0;
+		background: transparent;
 	}
 	.rg-card-review h2 {
 		color: var(--gold);

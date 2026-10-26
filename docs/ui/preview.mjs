@@ -5,6 +5,7 @@ import { extname, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const UI_ROOT = import.meta.dirname;
+const ART_ROOT = resolve(UI_ROOT, '../../static/art');
 const CONTENT_TYPES = {
 	'.html': 'text/html; charset=utf-8',
 	'.css': 'text/css; charset=utf-8',
@@ -25,11 +26,11 @@ export const server = createServer((request, response) => {
 		response.writeHead(400).end('Bad request');
 		return;
 	}
-	const file = resolve(
-		UI_ROOT,
-		pathname === '/' ? 'launch.html' : `.${pathname}`
-	);
-	if (!file.startsWith(`${UI_ROOT}${sep}`)) {
+	const asset = pathname.startsWith('/static/art/');
+	const root = asset ? ART_ROOT : UI_ROOT;
+	const relativePath = asset ? pathname.slice('/static/art/'.length) : pathname === '/' ? 'launch.html' : `.${pathname}`;
+	const file = resolve(root, relativePath);
+	if (!file.startsWith(`${root}${sep}`)) {
 		response.writeHead(403).end('Forbidden');
 		return;
 	}

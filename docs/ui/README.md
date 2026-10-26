@@ -17,6 +17,7 @@ The owner-reviewed #5 icon mockup and its linked capital terrain page are preser
 | [launch.html](launch.html) | Entry page: name, create/join table and public table list |
 | [lobby.html](lobby.html) | Table setup, seat controls, readiness and civilization chooser |
 | [main-screen.html](main-screen.html) | Play page: tracks/map, private tabs, footer decisions, city placement and player overview |
+| [card-design-rules.md](card-design-rules.md) | Owner-approved Civilization, Technology and Tapestry card layouts, including sizes, effects, timing and placement rules |
 | [collectors-card-options.html](collectors-card-options.html) | Five Collectors civilization card designs, printed and in play; the owner chose option B (#47, 2026-10-23). Open it from disk: it loads the art from `static/art/` |
 | [screens/](screens/) | Current screenshots captured from these HTML files at 1920×1080 |
 | [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) | Editable source of the shared pixel texture embedded in the pages |
@@ -39,7 +40,7 @@ Then use:
 
 Set `UI_PORT` to choose another port. This preview is separate from the actual application on port 3020. The navigation menus and Start game button link between the reference pages; they do not create or start a real table.
 
-The main-screen page has an inline snapshot of the Lighthouse footprint so its interactions work when opened from disk. The pixel background and Lighthouse picture are embedded SVG snapshots, so no absolute `/art/…` request is needed. The reference pages still load their fonts from Google Fonts, so their exact appearance needs those requests to succeed. The game itself self-hosts the same fonts from `static/fonts/`.
+The main-screen page keeps an inline snapshot of the Lighthouse footprint for standalone interaction. Its pixel texture and game art load from the repository's `docs/ui/assets/` and `static/art/` files; the preview server serves both paths, and direct file opening also works. The reference pages still load their fonts from Google Fonts, so their exact appearance needs those requests to succeed. The game itself self-hosts the same fonts from `static/fonts/`.
 
 The reference review size is **1920×1080 CSS pixels**, at 100% zoom. Play and lobby have fixed-size canvases; launch is evaluated at the same size. There is no approved phone layout. Narrow-screen media rules left in a prototype are not a separate approved design. The play page keeps content scrollable while hiding scrollbars. Do not reflow the capital grid or enlarge its cells to fit a building.
 
@@ -56,7 +57,7 @@ The reference review size is **1920×1080 CSS pixels**, at 100% zoom. Play and l
 | Action descriptions | Atkinson; Cinzel is reserved for proper names such as Ships or Farm |
 | Civilization and era | Civilization in Cinzel/gold; era after a middle dot in the legible font |
 
-Player names must never use Cinzel. Capital headings use Atkinson except for the capital type, such as **Mountain**, in Cinzel. Right-panel tabs use the full words **Civilization** and **Technology**; overview summary rows use the compact label **Tech**.
+Player names must never use Cinzel. Capital headings use Atkinson except for the capital type, such as **Mountain**, in Cinzel. Right-panel tabs use the compact labels **Civ** and **Tech**; overview summary rows also use **Tech**.
 
 The launch headline “Advance through…” and the lobby invitation use Cinzel. The launch header sentence “Build a civilization that stands the test of time”, form labels and buttons use Atkinson. These roles replace the old Alagard/VCR guidance. In code, Cinzel is `--font-title` and Atkinson Hyperlegible is `--font-body`; the size scale (`--font-size-3xs`, 10px and the smallest, to `--font-size-display`), weights, line heights and letter spacing are in `tokens.css`.
 
@@ -89,7 +90,7 @@ Player identity and track identity are separate colour systems. **The game uses 
 
 **Corners are square throughout** (`--radius: 0`), including selected tabs, player cards, controls and selection outlines. Lobby mute/menu controls match the game's dark 36×36 control buttons and red diagonal mute slash; the small corner radius visible in the lobby reference is not carried into the game. Ordinary panels should not gain new drop shadows. Header/footer separation uses thin divider rules; in player-overview mode remove the header divider over the overview area and keep the footer divider.
 
-Use gold for selection, the track colours for track names, and green for the current player glow, valid placement guidance and confirmation. Keep names, outlines and symbols as additional signals; colour alone must not carry state. The placeholder resource-cost symbols are the existing small square and diamond shapes in the track era prices. Use the same placeholders in overview resources and footer costs until final resource art is wired in.
+Use gold for selection, the track colours for track names, and green for the current player glow, valid placement guidance and confirmation. Keep names, outlines and symbols as additional signals; colour alone must not carry state. Use the native 24 px SVG resource icons for compact track prices, overview counts, footer costs and inline choice costs. Use the native 48 px icons for large resource choices in decision prompts. Do not scale the deprecated 32 px resource artwork.
 
 ## Launch page
 
@@ -196,17 +197,27 @@ Each of the four track sections has this order:
 
 The stable tile body is approximately square. A right-facing arrow tip extends beyond the body and overlaps the next tile without moving the next tile's start. Subsequent tiles have a matching left inlet, about **16px at the reference size**. The first left edge is flat; the final tile is square with a diagonally dashed finish-line right edge. Do not draw a coloured/thick left inlet border on tiles after the first. Keep the other polygon borders angular. The subdued small number belongs in the tip area in Atkinson, not as a prominent top-of-tile label.
 
-Landmark/building names sit at the bottom left, using the same left inset as the tile name. The bottom third has a darker **track-coloured gradient**, not a separate label rectangle or a lighter highlight. Names and borders follow the pointed tile silhouette. A selected tile gets a gold polygon outline without growing or shifting the tile.
+Landmark milestones show the matching landmark illustration with a small Cinzel name in a **gold-tinted highlight** at the bottom of the tile, above the track-space name. Keep both labels within the pointed tile silhouette. A selected tile gets a gold polygon outline without growing or shifting the tile.
 
 Progress lines start below the first tile and stop beneath the middle of the reached tile. Leave at least one line-thickness, preferably 1.5, between lanes. Use a small terminal mark; the all-square final mockup makes it square. Hovering a next tile extends the relevant player's line to that tile's middle with a dashed line of the same thickness. Do not reintroduce one simple token per tile as the primary progression display. The old achievements/“3 points” strip beneath the tracks has been removed from this layout.
 
+### Decision prompt previews
+
+The **Decision examples** control opens interactive layout fixtures for payment, resource, territory, capital-plot, card, civilization setup, die and trap decisions. These examples test presentation and selection only; the engine supplies legal options, costs and outcomes in production. A prompt covers only the shared left three-quarter field, leaving the private right-hand area visible. A translucent dark scrim reveals the board beneath it. The panel sits a small distance above the footer, centered horizontally. Its width and height follow the decision content up to the available shared-field size; long decisions scroll inside the panel. Ordinary panels use a darker layer of the same pixel-noise texture as both middle regions, with a thin border on all four sides matching the main header and footer separators. Choice artwork uses the native art files, including 48 px resource icons where a resource is the primary choice. Card selection presents actual artwork cards with drop shadows **above** the panel; the panel holds the instruction and confirmation action. The civilization setup example models two dealt cards when Random civilizations is on.
+
+The chained **Ships → Farm** preview opens only after the player presses **Pay & build** in the optional Ships footer. It starts with a benefit prompt offering **Pay & build** or **Cancel**; Skip remains in the footer. Paying selects and highlights the Capital tab. The player chooses any empty, passable square directly on that mat; no separate tile list or persistent plot highlight is shown. Choosing the square places the visual Farm fixture and opens the **Complete** stage with its actual square and one **Continue** action. The stage labels describe progress; they are not menu choices. The prompt title uses gold Atkinson, and its bottom section takes the source advancement track colour, matching the optional footer effect. Cancel returns to the optional footer without placing anything. No resource balance or saved game state is changed.
+
+The footer's **Take income** button opens an interactive income-turn-4 layout fixture. The footer says **Your income turn** and has a vertical gold gradient for the whole flow. The decision prompt's gold gradient covers only its title and step strip; the instruction body and action footer retain dark backgrounds. The sequence follows the engine's order for Alchemists in era III: stop or take one more science-die roll while the **Civ** tab is focused and highlighted; choose a tapestry card for the era-IV slot with the **Eras** tab focused and highlighted; choose three resources for being first of both neighbours to begin that era; optionally choose a technology in the focused **Tech** tab to upgrade; review exposed VP scoring and income in the **Income** tab; then see a completion summary. Tapestry cards appear above the prompt with drop shadows, and **Play card** in the prompt confirms the selection. The upgrade prompt has no technology-choice buttons: choosing Paper in the Tech bottom row moves it to the middle, or choosing Bakery in the middle moves it to the top. Continuing without a selection skips this optional upgrade. The deterministic die and card choices are examples only. The Income tab uses the game's four six-space building rows: the first space is always exposed, and each removed building exposes the next space. This fixture removes two markets, houses and farms, and one armory. It shows the printed rewards from `src/lib/engine/data/income-mat.js`. At the owner's request, the 8 VP completion result remains an illustrative UI figure rather than a calculation of every printed effect, including capital scoring on exposed House spaces. The bonus and actual rewards depend on game state in production. **Complete** is a visible end state with Continue; it does not change saved resources, VP or era in this standalone mockup.
+
 ### Right-hand tabs
 
-The right-hand 1/4 has **Capital · Hand (with size) · Income · Civilization · Technology · Terrain** tabs, with the hand count part of the Hand control. Each tab's width follows its text. Reserve the selected/bold width before selection so nothing moves horizontally when a tab changes. Match the shared selector's active surface and text colour. The tab bar itself is transparent over the same textured background as the body.
+The right-hand 1/4 has **Capital · Hand (with size) · Income · Eras · Civ · Tech · Terrain** tabs, with the hand count part of the Hand control. Each tab's width follows its text. Reserve the selected/bold width before selection so nothing moves horizontally when a tab changes. Match the shared selector's active surface and text colour. The tab bar itself is transparent over the same textured background as the body. Hand, Eras, Tech and Terrain headings use beige Atkinson. Hand shows four overlapping tapestry cards, with the hovered or focused card brought to the front. Tapestry choices above decision prompts use the same overlap behavior. Eras shows the currently active tapestry as a full card, with prior eras selectable beneath it; the panel can scroll without a visible scrollbar. Maker of Fire is a printed starting era without its own card artwork. Era labels are beige Atkinson, while tapestry titles are gold. The open era-IV slot highlights during tapestry choice, and the played card becomes the active full card. Civ embeds the actual shared 425 px Alchemists card component through the card-review page's `?embed=alchemists` view. Tech has top, middle and bottom rows; middle marks the circle benefit and top marks the square benefit. Its three example cards include two overlapping in the bottom row. They become selectable only during the income upgrade step; hovering or focusing an overlapped card brings it to the front.
 
-Capital is the developed example. Hand, Income, Civilization, Technology and Terrain currently show placeholder copy. Their tab labels and navigation pattern are approved references; their detailed contents are not finished designs.
+A compact **Your overview** section is fixed at the bottom of the right-hand quarter, outside the tabs. It shows player identity, era, VP, hand, technology, territory and capital counts, plus the four native 24 px resource icons in rectangular `--raised` boxes. The civilization name is omitted here; the Civilization tab and player overview carry it. Its top rule matches the divider between the shared and private areas. It stays visible as the player changes tabs and disappears with the whole middle region when the players overview opens. The values here remain fixture data.
 
-The Civilization tab's card is **option B · Civilization mat** in [collectors-card-options.html](collectors-card-options.html) (owner, 2026-10-23). It is 456 px wide and has three parts: a band with the name, expansion badge and complexity; the 128 px portrait beside the rules and fine print; then the mat's own features, which for Collectors are six item spaces with their rewards and the rising score steps. Cards and tiles placed on the mat lie face down, and hovering or focusing one shows its face. In play, placed items and the score marker take the player's colour.
+Capital is the developed example. Income shows the printed building spaces and the buildings covering the later spaces. Hovering or focusing an income building on either the Income mat or the Capital mat adds a transparent overlay in its associated resource track colour: market/coin uses Technology, house/worker Science, farm/food Exploration, and armory/culture Military. The overlay adds no border. The Income mat heading is beige except for its gold era. Eras, Civ and Tech have focused income-step examples, and Hand shows a four-card stack; their full game contents remain to be designed. Terrain still shows placeholder copy. Their tab labels and navigation pattern are approved references; their detailed contents are not finished designs.
+
+Civilization cards use the shared 425 px frame documented in [card-design-rules.md](card-design-rules.md). The Civ tab's embedded Alchemists card comes from that same component, so its text and layout remain in sync with the card review.
 
 ![Option B with three items collected](screens/civ-card-b-in-play.png)
 
@@ -220,21 +231,21 @@ The footer always describes the current decision or what another player is doing
 | Tile selected | Gold outline on the tile; footer changes to Advance to [name], its benefit, price and commit action. Income moves into a hover/focus reveal accessed through Your turn. |
 | Ships selected by blue | “Gain 1 VP per territory you control. You control 4 territories.” Price icons and **Advance · +4 VP** are shown. |
 | Ships committed | Footer changes to the exploration-coloured optional **Build a Farm [farm icon]?** prompt with price, **Pay & build** and **Skip**. Income reveal is disabled in this state. |
-| Optional choice finished | Either Pay & build or Skip resets the Ships demonstration to its initial unbought, neutral state, intentionally allowing repeated review. |
+| Optional choice finished | Skip resets the Ships demonstration. Pay & build opens the chained benefit prompt. Paying then choosing a square places the visual Farm, shows the result and resets the footer so the example can be repeated. |
 
-The income description and button are separated from Your turn by a thin vertical rule after the button. The revealed version starts at the left edge where Your turn sat and has the same spacing discipline. Do not bring back the enclosing income box. The income button is an access pattern demonstration; the actual income sequence is a phase-two design.
+The income description and button are separated from Your turn by a thin vertical rule after the button. The revealed version starts at the left edge where Your turn sat and has the same spacing discipline. Do not bring back the enclosing income box. The income button now starts the layout fixture described above. Actual decisions, reward amounts and state transitions belong to the engine-backed game screen.
 
 ![Ships selected](screens/ships-selected.png)
 
 ![Optional Farm action](screens/optional-farm.png)
 
-No costs are really paid, no VP totals are persisted, and no Farm is placed by the optional-action example. All other track selections use generic fixture descriptions. Read actual legal moves, benefits, costs and optional decisions from the engine when implementing this page.
+No costs are really paid and no VP totals are persisted. The chained example places a visual Farm fixture on the mat, which clears when the footer sequence is started again. All other track selections use generic fixture descriptions. Read actual legal moves, benefits, costs and optional decisions from the engine when implementing this page.
 
 ### Capital city and landmark placement
 
 The capital is always **9×9**. Its title is Atkinson with only the mat type, such as Mountain, in Cinzel. There is no separate legend or second city grid. Three equal-width completion counters sit beneath the grid with a gap equal to their mutual gaps; together they span the grid width. Use horizontal-line, vertical-line and square symbols for rows, columns and districts. Do not add the heading “Completed”.
 
-- Impassable plots have a small, thick red X. District boundaries are thin dashed overlays between 3×3 districts; they do not recolour the ordinary plot borders.
+- The Mountain example uses the canonical 9×9 passable/impassable mask from `src/lib/engine/data/capitals.js`. Each plot uses a deterministic mix of the native Mountain open or blocked terrain tiles. Impassable plots retain a small, thick red X. District boundaries are thin dashed overlays between 3×3 districts; they do not recolour the ordinary plot borders.
 - Completion counts derive from filled rows, columns and nine-plot districts. Hovering a counter adds one flat transparent green rectangle across each whole completed group. It has no border, no glow, and covers all buildings, including a newly locked landmark. Do not highlight each plot as a separate green box.
 - A **To be placed** section appears only when an item is pending. It is full width, outlined to attract attention, and holds the item's Cinzel name. Selecting the item gives it an outline. The name stays in the tray and is not shown over the grid while dragging.
 - The Lighthouse example uses the actual landmark illustration and **four plots, a 2×2 footprint**. The whole piece is draggable. On release, it snaps to a legal position; it cannot enlarge or wrap the grid. It can be moved again before confirmation.
@@ -244,7 +255,7 @@ The capital is always **9×9**. Its title is Atkinson with only the mat type, su
 
 ![Lighthouse placed in the capital](screens/lighthouse-placement.png)
 
-The plot arrangements, buildings and mat data are review fixtures. They are not the researched Mountain mat or a valid saved game. Production must use the canonical capital data, occupancy model and landmark footprints; the screenshot is a layout and interaction reference.
+The Mountain passability pattern matches canonical capital data, while its tile variants, placed buildings and occupancy remain review fixtures rather than a valid saved game. Production must use the canonical capital data, occupancy model and landmark footprints; the screenshot is a layout and interaction reference.
 
 ### Player overview and inspecting another player
 
@@ -272,7 +283,7 @@ In overview mode the footer is always the base dark gray, even if Ships is await
 
 ## Assets and provenance
 
-- The pixel SVG is included as [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) and embedded in each HTML reference. Keep those embedded copies in sync if editing the texture. The game's tile, `src/styles/pixel-noise.svg`, is its top-left 256×256 with one path per colour; crop it again after editing the source.
+- The pixel SVG is included as [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg). The main-screen mockup loads it by reference for both the board and its darker decision prompts; other HTML references may embed copies. Keep those copies in sync if editing the texture. The game's tile, `src/styles/pixel-noise.svg`, is its top-left 256×256 with one path per colour; crop it again after editing the source.
 - The Lighthouse SVG is a snapshot of `static/art/landmark/lighthouse.svg`, imported while the mockups were based on upstream commit `a583cf1`. Its 2×2 footprint is from `art/footprints.js` at that point, now `src/lib/art/footprints.js`. It is embedded in `main-screen.html` only for standalone review.
 - The real game must reuse stable asset IDs and the canonical `src/lib/art/footprints.js` data. Do not introduce another production footprint table, duplicate the full artwork tree into `docs/ui`, or copy large inline SVG blobs into Svelte components.
 - Existing generated game artwork remains under the art toolkit. The complete catalog is in the Art part of the component library (`/components.html`, with `npm run dev`). This handoff does not change the approved art style or regenerate game assets.
@@ -290,7 +301,7 @@ The following are **not complete** in phase one:
 - Full setup for solo play, official bot controls, Automa difficulty, timers and every supported setting combination.
 - End-of-game results, reconnect/away states, table errors, loading, empty states and complete production menu/help.
 - Keyboard alternatives for every pointer/hover interaction, visible focus, proper tab semantics and reduced-motion handling. These remain required by [CONVENTIONS.md](../../CONVENTIONS.md); prototype hover-only controls are not permission to omit them.
-- Final resource icons. (The unified production fonts and palette are done: `tokens.css` and `base.css`, 2026-10-21.)
+- Production wiring for the existing native 24 px and 48 px resource icons. (The unified production fonts and palette are done: `tokens.css` and `base.css`, 2026-10-21.)
 
 The phase-one HTML is the visual and interaction baseline for #25–#30. Complete the missing designs under #3 before treating their layouts or rule settings as approved. Keep #3 open until its remaining checklist is finished; this commit is a **Refs #3** milestone, not a closing fix.
 

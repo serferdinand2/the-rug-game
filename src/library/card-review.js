@@ -3,5 +3,6 @@ import { mount } from 'svelte';
 import CardReview from './CardReview.svelte';
 import '../styles/tokens.css';
 import '../styles/base.css';
+import '../styles/card-layouts.css';
 const target = /** @type {HTMLElement} */ (document.getElementById('app'));
 mount(CardReview, { target });
