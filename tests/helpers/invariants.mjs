@@ -248,9 +248,12 @@ export function checkState(state, previousSeq = 0) {
 
 	state.events.forEach((event, i) => {
 		if (i > 0) {
+			// Undo takes the log back, so the numbers jump only just before an 'undone' event.
 			assert.equal(
 				event.seq,
-				state.events[i - 1].seq + 1,
+				event.type === 'undone'
+					? event.seq
+					: state.events[i - 1].seq + 1,
 				`event seq ${event.seq} follows ${state.events[i - 1].seq}`
 			);
 		}

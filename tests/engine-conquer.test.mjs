@@ -7,7 +7,12 @@ import { controlledTerritories } from '../src/lib/engine/control.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { view } from '../src/lib/engine/view.js';
 import { play } from '../src/lib/engine/play.js';
-import { startedGame, answer, readyTurn } from './helpers/engine.mjs';
+import {
+	startedGame,
+	answer,
+	readyTurn,
+	conquestGame,
+} from './helpers/engine.mjs';
 
 /**
  * A small-map game with every outpost cleared, where seat 1 controls '-2_-2'. Only '-2_-2' and the listed hexes
@@ -270,28 +275,8 @@ test('an answer not offered is refused', () => {
 	);
 });
 
-/**
- * A game where seat 1 conquers seat 2's lone outpost on '-2_-1', and seat 2 holds `hand`.
- * @param {string[]} hand
- * @param {Record<string, any>} [options]
- */
-function trapGame(hand, options) {
-	const { state: started } = startedGame(2, options);
-	const state = structuredClone(started);
-	for (const [key, hex] of Object.entries(state.hexes)) {
-		hex.outposts = [];
-		if (key !== '-2_-2' && key !== '-2_-1') {
-			/** @type {any} */ (hex).tile = null;
-		}
-	}
-	state.hexes['-2_-2'].outposts = [{ seat: 1, toppled: false }];
-	state.hexes['-2_-1'].outposts = [{ seat: 2, toppled: false }];
-	state.seats[1].hand = [...hand];
-	return state;
-}
-
 test('a defender with a trap may spring it: they keep the territory, topple the attacker and gain 1 resource (R21)', () => {
-	const state = trapGame(['trap-3']);
+	const state = conquestGame(['trap-3']);
 	conquer(state, face(0));
 	const [question] = openDecisions(state).filter(
 		(d) => d.kind === 'chooseResponse'
@@ -346,7 +331,7 @@ test('a defender with a trap may spring it: they keep the territory, topple the 
 });
 
 test('the attacker is trapped only when the outpost just placed is toppled, not an older one (#17)', () => {
-	const state = trapGame([]);
+	const state = conquestGame([]);
 	// An earlier toppled outpost of seat 1 on the hex must not count as a trap.
 	state.hexes['-2_-1'].outposts = [{ seat: 1, toppled: true, toppledBy: 2 }];
 	conquer(state, face(0));
@@ -355,7 +340,7 @@ test('the attacker is trapped only when the outpost just placed is toppled, not 
 });
 
 test('two traps in hand are offered in hand order', () => {
-	const state = trapGame(['trap-5', 'trap-2']);
+	const state = conquestGame(['trap-5', 'trap-2']);
 	conquer(state, face(0));
 	const question = openDecisions(state).find(
 		(d) => d.kind === 'chooseResponse'
@@ -368,7 +353,7 @@ test('two traps in hand are offered in hand order', () => {
 });
 
 test('declining the response leaves the topple standing', () => {
-	const state = trapGame(['trap-3']);
+	const state = conquestGame(['trap-3']);
 	conquer(state, face(0));
 	const done = answer(state, face(0), 2, 'chooseResponse', { card: null });
 	assert.deepEqual(open(done), ['chooseDie']);
@@ -385,7 +370,7 @@ test('declining the response leaves the topple standing', () => {
 });
 
 test('the dice still roll after a trap, and "?" still gives the tile\'s benefit (R107)', () => {
-	const state = trapGame(['trap-1']);
+	const state = conquestGame(['trap-1']);
 	state.hexes['-2_-1'].tile = 1;
 	conquer(state, face(4));
 	let next = answer(state, face(4), 2, 'chooseResponse', { card: 'trap-1' });
@@ -400,7 +385,7 @@ test('the dice still roll after a trap, and "?" still gives the tile\'s benefit 
 });
 
 test('R17: Tanks still gives both dice when trapped', () => {
-	const state = trapGame(['trap-1']);
+	const state = conquestGame(['trap-1']);
 	const coin = state.seats[0].resources.coin;
 	conquer(state, face(0), { bothDice: 'ifOpponent' });
 	let next = answer(state, face(0), 2, 'chooseResponse', { card: 'trap-1' });
@@ -413,7 +398,7 @@ test('R17: Tanks still gives both dice when trapped', () => {
 });
 
 test('a defender holding cards but no trap is still asked, and may only decline', () => {
-	const state = trapGame(['age-of-sail']);
+	const state = conquestGame(['age-of-sail']);
 	conquer(state, face(0));
 	const question = openDecisions(state).find(
 		(d) => d.kind === 'chooseResponse'
@@ -424,20 +409,20 @@ test('a defender holding cards but no trap is still asked, and may only decline'
 });
 
 test('a defender with an empty hand is not asked', () => {
-	const state = trapGame([]);
+	const state = conquestGame([]);
 	conquer(state, face(0));
 	assert.deepEqual(open(state), ['chooseDie']);
 });
 
 test('R108: under the Current rules a finished defender is not asked', () => {
-	const state = trapGame(['trap-1'], { version: 'current' });
+	const state = conquestGame(['trap-1'], { version: 'current' });
 	state.seats[1].finished = true;
 	conquer(state, face(0));
 	assert.deepEqual(open(state), ['chooseDie']);
 });
 
 test('R108: under the Original rules a finished defender may spring a trap, but gains no resource', () => {
-	const state = trapGame(['trap-1'], { version: 'original' });
+	const state = conquestGame(['trap-1'], { version: 'original' });
 	state.seats[1].finished = true;
 	conquer(state, face(0));
 	assert.deepEqual(open(state), ['chooseResponse']);
@@ -455,8 +440,8 @@ test('R108: under the Original rules a finished defender may spring a trap, but 
 });
 
 test("privacy: the attacker sees the same game whether the defender's card is a trap or not", () => {
-	const a = trapGame(['trap-1']);
-	const b = trapGame(['age-of-sail']);
+	const a = conquestGame(['trap-1']);
+	const b = conquestGame(['age-of-sail']);
 	conquer(a, face(0));
 	conquer(b, face(0));
 	assert.equal(JSON.stringify(view(a, 1)), JSON.stringify(view(b, 1)));
@@ -514,7 +499,7 @@ test("the response is answered before the attacker's dice, during an advance tur
 });
 
 test("a card that isn't a response card is refused", () => {
-	const state = trapGame(['age-of-sail', 'trap-1']);
+	const state = conquestGame(['age-of-sail', 'trap-1']);
 	conquer(state, face(0));
 	for (const card of ['age-of-sail', 'trap-9', 'trap-2', undefined]) {
 		assert.throws(
@@ -528,7 +513,7 @@ test("a card that isn't a response card is refused", () => {
 });
 
 test('a bot defender is skipped: the conquest goes straight to the dice', () => {
-	const state = trapGame(['trap-1']);
+	const state = conquestGame(['trap-1']);
 	state.seats[1].kind = 'automa';
 	conquer(state, face(0));
 	assert.deepEqual(open(state), ['chooseDie']);

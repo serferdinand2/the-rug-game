@@ -9,3 +9,11 @@ export { VERSIONS } from './data/ids.js';
 export { play } from './play.js';
 export { PlayerError } from './errors.js';
 export { view } from './view.js';
+export {
+	askedSeats,
+	defaultAction,
+	declineOnly,
+	revealed,
+	timedOut,
+	restore,
+} from './table.js';

@@ -13,6 +13,7 @@ export function startTurn(ctx, player) {
 	const { state } = ctx;
 	liftBlocks(ctx, player);
 	state.current = player;
+	state.turn += 1;
 	state.activated.length = 0;
 	state.usedThisTurn.length = 0;
 	emit(state, { type: 'turnStarted', player });
