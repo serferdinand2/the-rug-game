@@ -17,6 +17,7 @@ The owner-reviewed #5 icon mockup and its linked capital terrain page are preser
 | [launch.html](launch.html) | Entry page: name, create/join table and public table list |
 | [lobby.html](lobby.html) | Table setup, seat controls, readiness and civilization chooser |
 | [main-screen.html](main-screen.html) | Play page: tracks/map, private tabs, footer decisions, city placement and player overview |
+| [end-screen.html](end-screen.html) | Proposed final standings page: player results and the selected rules version's tie-break explanation; pending owner review |
 | [card-design-rules.md](card-design-rules.md) | Owner-approved Civilization, Technology and Tapestry card layouts, including sizes, effects, timing and placement rules |
 | [collectors-card-options.html](collectors-card-options.html) | Five Collectors civilization card designs, printed and in play; the owner chose option B (#47, 2026-10-23). Open it from disk: it loads the art from `static/art/` |
 | [screens/](screens/) | Current screenshots captured from these HTML files at 1920×1080 |
@@ -37,6 +38,7 @@ Then use:
 - Launch: <http://127.0.0.1:52990/launch.html>
 - Lobby: <http://127.0.0.1:52990/lobby.html?mode=create&name=Cedarwyn>
 - Game: <http://127.0.0.1:52990/main-screen.html>
+- End-screen proposal: <http://127.0.0.1:52990/end-screen.html>
 
 Set `UI_PORT` to choose another port. This preview is separate from the actual application on port 3020. The navigation menus and Start game button link between the reference pages; they do not create or start a real table.
 
@@ -340,4 +342,10 @@ Issue #47's civilization-frame and reusable-pattern portions are covered. Other 
 
 Technology and Tapestry cards now use the reviewed frames from the Second Tapestry UI card study. The shared `TechnologyCard` and `TapestryCard` components appear in the component library, and their layout fixtures are used in the main-screen Hand, Eras, Tech and Tapestry-choice shelf. Technology cards are 425 px horizontal cards with full art, square/top and circle/middle effects, and right-aligned grey prerequisite boxes. Tapestry cards are 319 px wide with the timing tag beside the 160 px portrait; Trap uses a red title band. The exact authoring rules and fixture limits are in [card-design-rules.md](card-design-rules.md). The game-backed card chooser and complete card reference remain part of #27 and #47.
 
-Hovering or focusing a Technology or Tapestry card brings it above overlapping neighbours without shifting it and shows its complete frame centered over the shared play area. A translucent dark scrim leaves the board visible, while the card in the private tab glows gold. Era I is a static **Maker of Fire** label without hover treatment; named tapestry cards in the Eras rows use Cinzel while era numbers and unchosen slots use Atkinson. Before the income tapestry step, the next slot reads **Not yet chosen**. Earlier tapestry cards can still be selected for inspection. Civilization choices use the full 425 px reviewed mats above their decision prompt, with a scrollbar-free scroll area when needed.
+Hovering or focusing a Technology or Tapestry card brings it above overlapping neighbours without shifting it and shows its complete frame centered over the shared play area. A translucent dark scrim leaves the board visible, while the card in the private tab glows gold. Era I is a static red **Maker of Fire** label in Cinzel without hover treatment; named tapestry cards in the Eras rows use Cinzel while era numbers and unchosen slots use Atkinson. Before the income tapestry step, the next slot reads **Not yet chosen**. Earlier tapestry cards can still be selected for inspection. Civilization choices use the full 425 px reviewed mats above their decision prompt, with a scrollbar-free scroll area when needed.
+
+## End-screen proposal (2026-10-27)
+
+[The end-screen reference](end-screen.html) uses the same header, 3/4–1/4 split, pixel texture and footer as the game screen. The shared area ranks every player with their colour, civilization and final VP; the private area gives the current player’s result and explains ties step by step. The example switches between current rules, original rules and a shared victory. All three placements and tie details come from `rankPlayers`, including skipped places after a shared victory. There is no second scoring pass. The footer offers board review and a return to tables.
+
+This page is a **proposal pending owner review**. The example names and scores are fixtures. Production should show the selected table rules and results from completed game state, and should expose the already recorded VP history for score inspection rather than recalculate VP. Solo outcomes, rematch setup and the waiting view for players who finish before the table also need design review. These outstanding parts keep issue #3 open.

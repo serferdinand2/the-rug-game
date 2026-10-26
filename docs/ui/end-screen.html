@@ -1,0 +1,145 @@
+<!doctype html>
+<!-- Issue #3 end-screen proposal. Results are illustrative; the engine owns ranking. -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>The Rug Game · End screen proposal</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+	<style>
+		:root { color-scheme: dark; --ink:#121517; --chrome:#171a1d; --surface:#242a2e; --raised:#30383c; --line:#465257; --text:#e8ddc4; --muted:#b9af9b; --gold:#e2b857; --blue:#3f83a8; }
+		* { box-sizing: border-box; }
+		html, body { min-height: 100%; margin: 0; background: var(--ink); color: var(--text); font: 15px/1.4 "Atkinson Hyperlegible", sans-serif; }
+		button, a { font: inherit; }
+		button { cursor: pointer; }
+		button:focus-visible, a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+		.page { display: grid; grid-template-rows: 58px minmax(0, 1fr) 58px; min-height: 100vh; }
+		.topbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 18px; padding: 0 24px; border-bottom: 1px solid var(--line); background: var(--chrome); }
+		.brand { color: var(--gold); font: 700 21px/1 Cinzel, serif; letter-spacing: .035em; text-decoration: none; white-space: nowrap; }
+		.topbar__state { font-weight: 700; letter-spacing: .025em; }
+		.topbar__table { justify-self: end; color: var(--muted); font-size: 13px; }
+		.results { display: grid; grid-template-columns: minmax(0, 3fr) minmax(310px, 1fr); gap: 2px; min-height: 0; background: var(--ink); }
+		.standings, .details { min-width: 0; background: var(--surface) url('assets/middle-pixel-noise.svg') left top / 1920px 1080px no-repeat; }
+		.standings { padding: clamp(28px, 4vw, 64px) clamp(24px, 5vw, 88px) 42px; }
+		.details { display: flex; flex-direction: column; gap: 26px; padding: clamp(28px, 4vw, 64px) 30px 40px; background-position: right top; }
+		h1, h2, h3, p { margin: 0; }
+		h1, h2, h3 { font-family: "Atkinson Hyperlegible", sans-serif; }
+		.standings__head { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 29px; }
+		.standings__head h1 { color: var(--gold); font-size: clamp(32px, 3vw, 48px); line-height: 1.1; }
+		.standings__head p { margin-top: 9px; color: var(--muted); font-size: 15px; }
+		.example-label { flex: none; padding: 6px 9px; border: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+		.scenarios { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 21px; }
+		.scenarios button { min-height: 38px; padding: 7px 13px; border: 1px solid transparent; background: var(--raised); color: var(--muted); }
+		.scenarios button[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
+		.scenarios button:hover { color: var(--text); }
+		.standings__columns { display: grid; grid-template-columns: 63px minmax(0, 1fr) auto; gap: 18px; padding: 0 18px 9px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .055em; }
+		.standings__columns span:last-child { text-align: right; }
+		.leaderboard { display: grid; gap: 8px; }
+		.rank-row { display: grid; grid-template-columns: 63px minmax(0, 1fr) auto; align-items: center; gap: 18px; min-height: 86px; padding: 12px 18px; border: 1px solid var(--line); background: color-mix(in srgb, var(--raised) 82%, transparent); }
+		.rank-row--winner { border-color: #a8874b; background: color-mix(in srgb, var(--gold) 12%, var(--raised)); }
+		.rank-row--you { box-shadow: inset 4px 0 var(--blue); }
+		.rank-row__place { color: var(--muted); font-size: 28px; font-weight: 700; line-height: 1; white-space: nowrap; }
+		.rank-row--winner .rank-row__place { color: var(--gold); }
+		.rank-row__person { display: flex; align-items: center; gap: 14px; min-width: 0; }
+		.rank-row__person img { width: 36px; height: 36px; flex: none; image-rendering: pixelated; }
+		.rank-row__name { display: block; font-size: 18px; font-weight: 700; line-height: 1.18; }
+		.rank-row__civ { display: block; margin-top: 5px; color: var(--muted); font-size: 13px; }
+		.rank-row__score { color: var(--text); font-size: 25px; font-weight: 700; white-space: nowrap; }
+		.rank-row--winner .rank-row__score { color: var(--gold); }
+		.rule-note { margin-top: 22px; padding-top: 15px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+		.details h2 { color: #d7c8ab; font-size: 20px; }
+		.your-place { padding: 19px 18px 21px; background: color-mix(in srgb, var(--blue) 16%, var(--raised)); box-shadow: inset 4px 0 var(--blue); }
+		.your-place strong { display: block; margin-top: 10px; color: var(--gold); font-size: 42px; line-height: 1; }
+		.your-place span { display: block; margin-top: 8px; font-size: 18px; font-weight: 700; }
+		.your-place p { margin-top: 9px; color: var(--muted); font-size: 13px; }
+		.tie-panel { min-width: 0; }
+		.tie-panel h2 { margin-bottom: 9px; }
+		.tie-panel > p { margin-bottom: 13px; color: var(--muted); font-size: 13px; }
+		.tie-steps { display: grid; gap: 8px; }
+		.tie-step { padding: 12px 13px; border-top: 1px solid var(--line); background: color-mix(in srgb, var(--raised) 75%, transparent); }
+		.tie-step__title { display: flex; align-items: baseline; gap: 7px; color: var(--gold); font-size: 13px; font-weight: 700; }
+		.tie-step__title span { color: var(--muted); font-size: 12px; }
+		.tie-step__values { display: grid; gap: 4px; margin-top: 8px; font-size: 13px; }
+		.tie-step__values div { display: flex; justify-content: space-between; gap: 12px; }
+		.tie-step__values b { text-align: right; }
+		.tie-step__result { margin-top: 9px; color: var(--muted); font-size: 12px; }
+		.table-facts { margin-top: auto; padding-top: 17px; border-top: 1px solid var(--line); }
+		.table-facts h2 { margin-bottom: 10px; }
+		.table-facts dl { display: grid; grid-template-columns: 1fr auto; gap: 7px 12px; margin: 0; font-size: 13px; }
+		.table-facts dt { color: var(--muted); }
+		.table-facts dd { margin: 0; text-align: right; }
+		.footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 24px; border-top: 1px solid var(--line); background: var(--chrome); }
+		.footer__state { color: var(--gold); font-weight: 700; text-transform: uppercase; letter-spacing: .025em; }
+		.footer__actions { display: flex; gap: 9px; }
+		.footer__actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 7px 13px; border: 1px solid var(--line); background: var(--raised); color: var(--text); text-decoration: none; }
+		.footer__actions a:last-child { border-color: var(--gold); background: var(--gold); color: var(--ink); font-weight: 700; }
+		.footer__actions a:hover { filter: brightness(1.08); }
+		@media (max-width: 1120px) { .standings { padding: 28px 24px; } .details { padding: 28px 19px; } .results { grid-template-columns: minmax(0, 1fr) 320px; } }
+		@media (max-height: 850px) and (min-width: 951px) { .standings { padding-top: 30px; padding-bottom: 24px; } .details { padding-top: 30px; padding-bottom: 24px; gap: 18px; } .standings__head { margin-bottom: 18px; } .scenarios { margin-bottom: 13px; } .rank-row { min-height: 74px; } .rule-note { margin-top: 14px; } }
+		@media (max-width: 950px) { .results { grid-template-columns: 1fr; } .details { gap: 18px; } .table-facts { margin-top: 0; } .standings__head { align-items: start; } }
+	</style>
+</head>
+<body>
+	<div class="page">
+		<header class="topbar"><a class="brand" href="main-screen.html">The Rug Game</a><strong class="topbar__state">Game complete</strong><span class="topbar__table">Table 4C9F · 4 players</span></header>
+		<div class="results">
+			<main class="standings">
+				<div class="standings__head"><div><h1>Final standings</h1><p id="standings-description">The last income turn is complete. The table has its final result.</p></div><span class="example-label">End-screen example</span></div>
+				<nav class="scenarios" aria-label="Preview result cases"><button type="button" data-scenario="current" aria-pressed="true">Current rules</button><button type="button" data-scenario="original" aria-pressed="false">Original 2019</button><button type="button" data-scenario="shared" aria-pressed="false">Shared victory</button></nav>
+				<div class="standings__columns" aria-hidden="true"><span>Place</span><span>Player</span><span>Final score</span></div>
+				<div class="leaderboard" id="leaderboard" aria-label="Final standings"></div>
+				<p class="rule-note" id="rule-note"></p>
+			</main>
+			<aside class="details" aria-label="Result details">
+				<div class="your-place"><h2>Your result</h2><strong id="your-place"></strong><span id="your-score"></span><p id="your-outcome"></p></div>
+				<section class="tie-panel" aria-labelledby="tie-heading"><h2 id="tie-heading">How the tie was decided</h2><p id="tie-intro"></p><div class="tie-steps" id="tie-steps"></div></section>
+				<section class="table-facts" aria-labelledby="table-facts-heading"><h2 id="table-facts-heading">This table</h2><dl><dt>Rules</dt><dd id="rules-version"></dd><dt>Mode</dt><dd>Online · 4 players</dd><dt>Expansions</dt><dd>Base game</dd></dl></section>
+			</aside>
+		</div>
+		<footer class="footer"><span class="footer__state">Game complete</span><div class="footer__actions"><a href="main-screen.html">Review game board</a><a href="launch.html">Return to tables</a></div></footer>
+	</div>
+	<script type="module">
+		import { rankPlayers } from '../../src/lib/engine/ranking.js';
+		const people = [
+			{ seat:1, name:'You', civilization:'Alchemists', token:'blue', vp:87, resources:{ coin:1, worker:1, food:0, culture:0 }, capital:{ landmarks:[{ landmark:'fusion-reactor' }] } },
+			{ seat:2, name:'Ana', civilization:'Militants', token:'red', vp:87, resources:{ coin:1, worker:1, food:1, culture:1 }, capital:{ landmarks:[{ landmark:'lighthouse' }] } },
+			{ seat:3, name:'Marko', civilization:'Nomads', token:'green', vp:71, resources:{ coin:0, worker:2, food:1, culture:0 }, capital:{ landmarks:[] } },
+			{ seat:4, name:'Vera', civilization:'Futurists', token:'yellow', vp:64, resources:{ coin:0, worker:1, food:1, culture:1 }, capital:{ landmarks:[] } },
+		];
+		const labels = { tallestLandmark:'Tallest landmark in the capital', resources:'Resources left' };
+		const ordinal = place => ({ 1:'1st', 2:'2nd', 3:'3rd', 4:'4th' })[place] ?? `${place}th`;
+		const landmarkName = id => id ? id.split('-').map(part => part[0].toUpperCase() + part.slice(1)).join(' ') : 'No landmark';
+		function render(scenario) {
+			const seats = structuredClone(people);
+			if (scenario === 'shared') {
+				seats[1].resources = { ...seats[0].resources };
+				seats[1].capital.landmarks = [{ landmark:'fusion-reactor' }];
+			}
+			const version = scenario === 'original' ? 'original' : 'current';
+			const result = rankPlayers({ version, seats });
+			const leaders = result.ranking.filter(item => item.place === 1);
+			const own = result.ranking.find(item => item.seat === 1);
+			document.querySelectorAll('[data-scenario]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.scenario === scenario)));
+			document.querySelector('#leaderboard').innerHTML = result.ranking.map(place => {
+				const person = seats.find(item => item.seat === place.seat);
+				return `<article class="rank-row ${place.place === 1 ? 'rank-row--winner' : ''} ${place.seat === 1 ? 'rank-row--you' : ''}" aria-label="${ordinal(place.place)}, ${person.name}, ${place.vp} VP"><span class="rank-row__place">${place.place}</span><div class="rank-row__person"><img src="../../static/art/piece/token-${person.token}.svg" alt=""><div><span class="rank-row__name">${person.name}</span><span class="rank-row__civ">${person.civilization}</span></div></div><strong class="rank-row__score">${place.vp} VP</strong></article>`;
+			}).join('');
+			document.querySelector('#your-place').textContent = leaders.length > 1 && own.place === 1 ? 'Shared 1st' : ordinal(own.place);
+			document.querySelector('#your-score').textContent = `${own.vp} VP`;
+			document.querySelector('#your-outcome').textContent = own.place === 1 ? leaders.length > 1 ? 'You and Ana share the victory.' : 'You won this table.' : 'Ana won this table.';
+			document.querySelector('#rules-version').textContent = version === 'current' ? 'Current official' : 'Original 2019';
+			document.querySelector('#rule-note').textContent = leaders.length > 1 ? 'A tie remaining after every applicable step is a shared victory. The next place skips: 1st, 1st, 3rd.' : 'Places follow final VP. A tied score is resolved by the selected rules version’s tie-break chain.';
+			const tie = result.ties.find(group => group.vp === 87);
+			document.querySelector('#tie-intro').textContent = 'You and Ana both finished on 87 VP. The selected rules version decides their order.';
+			document.querySelector('#tie-steps').innerHTML = tie.steps.map((step, index) => `<div class="tie-step"><div class="tie-step__title"><span>${index + 1}.</span>${labels[step.by]}</div><div class="tie-step__values">${step.values.map(item => `<div><span>${seats.find(seat => seat.seat === item.seat).name}</span><b>${step.by === 'resources' ? `${item.value} resources` : landmarkName(item.value)}</b></div>`).join('')}</div><p class="tie-step__result">${new Set(step.values.map(item => item.value)).size !== 1 ? 'This step separates the tied players.' : index === tie.steps.length - 1 ? 'Still tied after every step — shared victory.' : 'Still tied — compare the next step.'}</p></div>`).join('');
+		}
+		document.querySelector('.scenarios').addEventListener('click', event => {
+			const button = event.target.closest('[data-scenario]');
+			if (button) render(button.dataset.scenario);
+		});
+		render('current');
+	</script>
+</body>
+</html>
