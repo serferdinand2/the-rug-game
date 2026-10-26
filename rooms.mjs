@@ -4,9 +4,11 @@ import {
 	checkOptions,
 	createGame,
 	declineOnly,
+	defaultAction,
 	EXPANSIONS_BUILT,
 	play as playGame,
 	PlayerError,
+	timedOut,
 	VARIANTS,
 	VERSIONS,
 	view,
@@ -717,6 +719,95 @@ function schedule(room, game, now, timing, random) {
 					random(timing.declineMaxMs - timing.declineMinMs + 1),
 			}
 	);
+}
+
+/**
+ * Plays what the clocks and declines have made due (#24 design §6, §7), with the default answers.
+ * - A due decline is answered with no card, unless its decision is no longer open (the defender answered first).
+ * - A running clock that has run out logs `timedOut` once, then its seat is answered with the default answer for as
+ *   long as it is asked within the clock's scope; it waits when someone else is asked.
+ * Any answer empties the undo history (a turn the timer finished can't be undone). The caller ticks afterwards.
+ * @param {Room} room
+ * @param {number} now - Milliseconds
+ * @param {Random} random
+ * @param {number} [limit] - Most automatic answers
+ * @returns {Room} The same room when nothing is due
+ * @throws {Error} When the limit is passed, which can only be a bug
+ */
+export function timeout(room, now, random, limit = AUTO_LIMIT) {
+	let game = room.game;
+	if (!game || game.phase === 'over') {
+		return room;
+	}
+	const dueDeclines = room.declines.filter((decline) => decline.at <= now);
+	const dueSeats = Object.keys(room.clocks)
+		.map(Number)
+		.filter((seat) => {
+			const ends = room.clocks[seat].ends;
+			return ends !== undefined && ends <= now;
+		})
+		.sort((a, b) => a - b);
+	if (dueDeclines.length === 0 && dueSeats.length === 0) {
+		return room;
+	}
+	let answers = 0;
+	/**
+	 * @param {State} state
+	 * @param {number} seat
+	 * @param {Record<string, any>} action
+	 * @returns {State}
+	 */
+	const answer = (state, seat, action) => {
+		answers++;
+		if (answers > limit) {
+			throw new Error('The timer could not finish the turn.');
+		}
+		return playGame(state, seat, /** @type {any} */ (action), random);
+	};
+	for (const decline of dueDeclines) {
+		const open = declineOnly(game).some(
+			(d) =>
+				d.decision === decline.decision && d.player === decline.player
+		);
+		if (open) {
+			game = answer(game, decline.player, {
+				decision: decline.decision,
+				card: null,
+			});
+		}
+	}
+	/** @type {Record<number, Clock>} */
+	const clocks = { ...room.clocks };
+	for (const seat of dueSeats) {
+		const clock = room.clocks[seat];
+		if (!clock.expired) {
+			game = timedOut(game, seat);
+			clocks[seat] = { scope: clock.scope, ends: now, expired: true };
+		}
+	}
+	// Setup seats wait for each other, so go round again while anyone could still be answered.
+	for (let progressed = true; progressed;) {
+		progressed = false;
+		for (const seat of dueSeats) {
+			const action =
+				game.phase === 'over' ||
+				scopeOf(game, seat) !== room.clocks[seat].scope
+					? null
+					: defaultAction(game, seat);
+			if (action) {
+				game = answer(game, seat, action);
+				progressed = true;
+			}
+		}
+	}
+	const declines = room.declines.filter((decline) => decline.at > now);
+	return {
+		...room,
+		game,
+		declines,
+		clocks,
+		history: game === room.game ? room.history : [],
+	};
 }
 
 /**

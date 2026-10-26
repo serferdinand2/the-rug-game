@@ -17,6 +17,7 @@ import {
 	start,
 	tableChoices,
 	tick,
+	timeout,
 } from '../rooms.mjs';
 import { defaultAction } from '../src/lib/engine/game.js';
 import { seededRandom } from '../src/lib/engine/random.js';
@@ -491,4 +492,183 @@ test('start and end clear the clocks, the declines and the history', () => {
 	assert.deepEqual(ended.declines, []);
 	assert.deepEqual(ended.history, []);
 	assert.equal(ended.undo, true);
+});
+
+/**
+ * The number of `timedOut` events in a room's game.
+ * @param {Room} room
+ * @returns {number}
+ */
+const timedOutEvents = (room) =>
+	/** @type {State} */ (room.game).events.filter((e) => e.type === 'timedOut')
+		.length;
+
+/**
+ * A conquest in which seat 1 has chosen the empty territory and the dice wait, 300 ms into a 1,000 ms clock.
+ * @returns {Room}
+ */
+function chosen() {
+	return tick(
+		answer(tick(conquest([]), 0, timing, unused), 1, 'chooseConquer', {
+			hex: '-1_-2',
+		}),
+		300,
+		timing,
+		unused
+	);
+}
+
+test('nothing due, nothing happens', () => {
+	const room = chosen();
+	assert.equal(timeout(room, 999, unused), room);
+	const lobbyRoom = lobby('a', 'b');
+	assert.equal(timeout(lobbyRoom, 5000, unused), lobbyRoom);
+	const off = tick(table(startedGame(2).state, 0), 0, timing, unused);
+	assert.equal(timeout(off, 1e9, unused), off);
+});
+
+test('when the clock runs out the server finishes the turn from where it is, and logs it once', () => {
+	const room = chosen();
+	const before = /** @type {State} */ (room.game);
+	assert.equal(before.turn, 1);
+	assert.deepEqual(
+		openDecisions(before).map((d) => d.kind),
+		['chooseDie']
+	);
+	const done = timeout(room, 1000, () => 0);
+	const game = /** @type {State} */ (done.game);
+	assert.equal(game.turn, 2, 'the turn passed');
+	assert.equal(timedOutEvents(done), 1);
+	assert.deepEqual(
+		game.events.filter((e) => e.type === 'timedOut'),
+		[{ ...game.events.find((e) => e.type === 'timedOut') }]
+	);
+	assert.equal(done.clocks[1].expired, true);
+	assert.deepEqual(done.history, []);
+	assert.equal(room.game, before, 'the old room is unchanged');
+	// A second timeout at the same time adds nothing.
+	assert.equal(timedOutEvents(timeout(done, 1000, () => 0)), 1);
+});
+
+test("the next player's fresh clock is not played", () => {
+	const done = tick(
+		timeout(chosen(), 1000, () => 0),
+		1000,
+		timing,
+		unused
+	);
+	const game = /** @type {State} */ (done.game);
+	assert.equal(game.current, 2);
+	assert.deepEqual(done.clocks, { 2: { scope: 'turn:2', ends: 2000 } });
+	assert.equal(timeout(done, 1500, unused), done);
+	assert.deepEqual(
+		openDecisions(game).map((d) => [d.kind, d.player]),
+		[['chooseTurn', 2]]
+	);
+});
+
+test('auto-play waits for a defender, then goes on as soon as the turn comes back', () => {
+	let room = tick(conquest(['trap-3']), 0, timing, unused);
+	room = tick(
+		answer(room, 1, 'chooseConquer', { hex: '-2_-1' }),
+		300,
+		timing,
+		unused
+	);
+	// Seat 1's clock is paused with 700 left; run it out by hand.
+	room = {
+		...room,
+		clocks: { ...room.clocks, 1: { scope: 'turn:1', ends: 500 } },
+	};
+	room = tick(timeout(room, 600, unused), 600, timing, unused);
+	assert.equal(timedOutEvents(room), 1);
+	assert.equal(room.clocks[1].expired, true);
+	assert.deepEqual(
+		openDecisions(/** @type {State} */ (room.game)).map((d) => [
+			d.kind,
+			d.player,
+		]),
+		[['chooseResponse', 2]],
+		'it waits for the defender'
+	);
+	room = tick(
+		answer(room, 2, 'chooseResponse', { card: null }),
+		700,
+		timing,
+		unused
+	);
+	assert.deepEqual(room.clocks[1], {
+		scope: 'turn:1',
+		ends: 700,
+		expired: true,
+	});
+	room = timeout(room, 700, () => 0);
+	assert.equal(timedOutEvents(room), 1, 'no second timedOut');
+	assert.equal(/** @type {State} */ (room.game).turn, 2);
+});
+
+test('both setup clocks run out together and the whole setup is answered', () => {
+	let room = tick(table(newGame(2).state), 0, timing, unused);
+	room = timeout(room, 1000, () => 0);
+	const game = /** @type {State} */ (room.game);
+	assert.equal(game.phase, 'play');
+	assert.deepEqual(
+		game.events.filter((e) => e.type === 'timedOut').map((e) => e.player),
+		[1, 2]
+	);
+});
+
+test('a due decline is answered, and one the defender answered first is dropped', () => {
+	const asked = tick(
+		answer(
+			tick(conquest(['age-of-sail'], 0), 0, timing, unused),
+			1,
+			'chooseConquer',
+			{ hex: '-2_-1' }
+		),
+		1000,
+		timing,
+		() => 0
+	);
+	assert.equal(asked.declines[0].at, 4000);
+	assert.equal(timeout(asked, 3999, unused), asked);
+	const done = timeout(asked, 4000, () => 0);
+	assert.ok(
+		!openDecisions(/** @type {State} */ (done.game)).some(
+			(d) => d.kind === 'chooseResponse'
+		)
+	);
+	assert.deepEqual(done.history, []);
+	// The defender declined first: the stale decline is dropped, nothing else happens.
+	const first = answer(asked, 2, 'chooseResponse', { card: null });
+	const late = timeout(first, 5000, unused);
+	assert.equal(late.game, first.game);
+	assert.deepEqual(late.declines, []);
+});
+
+test('an away seat and a hot-seat seat are played the same way', () => {
+	const plain = timeout(chosen(), 1000, () => 0);
+	const away = chosen();
+	const awayDone = timeout(
+		{
+			...away,
+			seats: away.seats.map((s, i) =>
+				i === 0 ? { ...s, away: true } : s
+			),
+		},
+		1000,
+		() => 0
+	);
+	assert.deepEqual(awayDone.game, plain.game);
+	const hot = timeout({ ...chosen(), mode: 'hotseat' }, 1000, () => 0);
+	assert.deepEqual(hot.game, plain.game);
+});
+
+test('a timeout that cannot finish within its limit throws (1,000 by default)', () => {
+	assert.equal(AUTO_LIMIT, 1000);
+	const room = tick(table(newGame(2).state), 0, timing, unused);
+	assert.throws(() => timeout(room, 1000, () => 0, 1), {
+		message: 'The timer could not finish the turn.',
+	});
+	assert.ok(timeout(room, 1000, () => 0, 10).game);
 });
