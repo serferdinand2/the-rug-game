@@ -2,11 +2,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+	HISTORY_LIMIT,
 	MAX_ROOMS,
 	LOBBY_IDLE_MS,
 	MAX_SEATS,
 	MODES,
 	ROOM_IDLE_MS,
+	TIMERS,
 	addRoom,
 	addSeat,
 	cleanName,
@@ -96,9 +98,14 @@ test('the creator hosts seat 1 of an online table with the current rules', () =>
 			variants: [],
 			level: null,
 		},
+		timer: 0,
+		undo: true,
 		host: 'a',
 		seats: [{ player: 'a', name: 'Ana' }],
 		game: null,
+		clocks: {},
+		declines: [],
+		history: [],
 		touched: 5,
 	});
 	assert.equal(phase(room), 'lobby');
@@ -533,6 +540,8 @@ test('the room view shows seats by number and name, never the people behind them
 			variants: [],
 			level: null,
 		},
+		timer: 0,
+		undo: true,
 		phase: 'lobby',
 		host: 1,
 		seats: [
@@ -542,6 +551,7 @@ test('the room view shows seats by number and name, never the people behind them
 		you: [2],
 		viewing: 2,
 		game: null,
+		clocks: [],
 	});
 	const secret = join(
 		createRoom('3f9a1c07', { id: 'secret-id-1', name: 'Ana' }, {}, 0),
@@ -596,6 +606,7 @@ test('the table choices are what a new table may pick today', () => {
 		variants: [],
 		levels: [1, 2, 3, 4, 5, 6],
 		maxSeats: 5,
+		timers: [0, 1, 2, 5],
 	});
 });
 
@@ -894,6 +905,17 @@ function checkRoom(room, before, step) {
 	}
 	checkOptions(room.options);
 	assert.ok(MODES.includes(room.mode));
+	assert.ok(TIMERS.includes(room.timer), 'the timer is one of the choices');
+	assert.equal(typeof room.undo, 'boolean');
+	assert.ok(room.history.length <= HISTORY_LIMIT, 'the history is capped');
+	if (!room.undo) {
+		assert.deepEqual(room.history, [], 'no history with undo off');
+	}
+	if (now === 'lobby' || step.endsWith(' starts')) {
+		assert.deepEqual(room.clocks, {}, 'no clocks before a game runs');
+		assert.deepEqual(room.declines, [], 'no declines before a game runs');
+		assert.deepEqual(room.history, [], 'no history before a game runs');
+	}
 	const open = openTables(mapOf(room)).length === 1;
 	assert.equal(
 		open,

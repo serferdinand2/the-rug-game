@@ -1,7 +1,9 @@
-// Room rules: a table's seats, host and options, and its lobby → playing → finished cycle, as pure transitions (#22).
+// Room rules: a table's seats, host, options and settings, its lobby → playing → finished cycle and its clocks, as pure transitions (#22, #24).
 import {
+	askedSeats,
 	checkOptions,
 	createGame,
+	declineOnly,
 	EXPANSIONS_BUILT,
 	play as playGame,
 	PlayerError,
@@ -29,14 +31,49 @@ import {
  * @property {true} [away] - The person left a game in progress, or a finished one
  */
 /**
+ * A seat's clock, in the server's milliseconds (#24 design §5). A running clock has `ends`, a paused one `left`.
+ * @typedef {Object} Clock
+ * @property {string} scope - What it covers, from scopeOf(): it carries over only while that stays the same
+ * @property {number} [ends] - When it runs out
+ * @property {number} [left] - What it has left while paused
+ * @property {true} [expired] - It has run out, and the server plays for the seat
+ */
+/**
+ * One choice the undo history can take back (#24 design §8): the game as it was before the choice.
+ * @typedef {Object} Step
+ * @property {State} game
+ * @property {number} seat - Who chose
+ * @property {number} turn - The game's turn number before the choice
+ * @property {Record<number, Clock>} clocks - The clocks before the choice, by seat
+ */
+/**
+ * A response to a conquest that only the decline answers, which the server answers at `at` (#24 design §7).
+ * @typedef {Object} Decline
+ * @property {number} decision - The open chooseResponse's id
+ * @property {number} player - The defender's seat
+ * @property {number} at - When, in milliseconds
+ */
+/**
+ * The times the clocks and declines use; the server reads them from its config, and tests shorten them.
+ * @typedef {Object} Timing
+ * @property {number} minuteMs - A minute of the timer
+ * @property {number} declineMinMs - The soonest a decline-only response is answered
+ * @property {number} declineMaxMs - The latest
+ */
+/**
  * One table.
  * @typedef {Object} Room
  * @property {string} code
  * @property {Mode} mode
  * @property {RoomOptions} options
+ * @property {number} timer - Minutes on each clock, one of TIMERS; 0 is off
+ * @property {boolean} undo - Whether players may take back their own choices
  * @property {string} host - The id of the person who hosts; they always hold a seat
  * @property {RoomSeat[]} seats
  * @property {State | null} game
+ * @property {Record<number, Clock>} clocks - By game seat; empty unless a game is running with the timer on
+ * @property {Decline[]} declines - Never shown: a screen that saw one would know the defender holds no trap
+ * @property {Step[]} history - The undo history, newest last; never shown
  * @property {number} touched - When anyone last used the table, in milliseconds; the server keeps it up to date (#23)
  */
 /** @typedef {{ id: string, name: string }} Person */
@@ -46,12 +83,15 @@ import {
  * @property {string} code
  * @property {Mode} mode
  * @property {RoomOptions} options
+ * @property {number} timer
+ * @property {boolean} undo
  * @property {'lobby' | 'playing' | 'finished'} phase
  * @property {number} host - The seat number of the host's first seat
  * @property {{ seat: number, name: string, away: boolean }[]} seats
  * @property {number[]} you - The seats this person plays
  * @property {number | null} viewing - The seat whose view `game` is; null for the public view
  * @property {import('./src/lib/engine/view.js').View | null} game
+ * @property {{ seat: number, ends?: number, left?: number, expired: boolean }[]} clocks - In seat order
  */
 /** @typedef {Partial<RoomOptions> & { mode?: Mode }} RoomChanges */
 
@@ -68,6 +108,15 @@ export const LEVELS = Object.freeze([1, 2, 3, 4, 5, 6]);
 
 /** The Automa's default level, Automa the Average (02 §9.7). */
 export const DEFAULT_LEVEL = 2;
+
+/** The timer's lengths in minutes; 0 is off (#24). */
+export const TIMERS = Object.freeze([0, 1, 2, 5]);
+
+/** Most choices the undo history keeps: the oldest goes first (#24 design §8). */
+export const HISTORY_LIMIT = 20;
+
+/** Most automatic answers one timeout gives before it stops as a bug (#24 design §6). */
+export const AUTO_LIMIT = 1_000;
 
 /** Longest name, in characters, as in Fablewood and Bird Table. */
 const NAME_LENGTH = 24;
@@ -242,9 +291,14 @@ export function createRoom(code, person, options, now) {
 	return {
 		code,
 		...settled,
+		timer: 0,
+		undo: true,
 		host: person.id,
 		seats: [{ player: person.id, name }],
 		game: null,
+		clocks: {},
+		declines: [],
+		history: [],
 		touched: now,
 	};
 }
@@ -285,6 +339,41 @@ export function configure(room, personId, changes) {
 		return room;
 	}
 	return { ...room, mode, options };
+}
+
+/**
+ * The host sets the timer and switches undo, in the lobby, during a game or at a finished table: with no kick, the
+ * timer is how a host keeps a table moving (#24 design §4). A new timer restarts every clock (tick() starts them
+ * again), and off clears them; switching undo off clears its history.
+ * @param {Room} room
+ * @param {string} personId
+ * @param {{ timer?: unknown, undo?: unknown } | null} changes - Straight from a request; unset ones stay
+ * @returns {Room} The same room when nothing changes
+ * @throws {PlayerError}
+ */
+export function settings(room, personId, changes) {
+	if (personId !== room.host) {
+		throw new PlayerError('Only the host can change the table.');
+	}
+	const asked = changes ?? {};
+	const timer = asked.timer === undefined ? room.timer : asked.timer;
+	const undo = asked.undo === undefined ? room.undo : asked.undo;
+	if (!TIMERS.includes(/** @type {number} */ (timer))) {
+		throw new PlayerError('Choose a timer of off, 1, 2 or 5 minutes.');
+	}
+	if (typeof undo !== 'boolean') {
+		throw new PlayerError('Choose whether undo is on.');
+	}
+	if (timer === room.timer && undo === room.undo) {
+		return room;
+	}
+	return {
+		...room,
+		timer: /** @type {number} */ (timer),
+		undo,
+		clocks: timer === room.timer ? room.clocks : {},
+		history: undo ? room.history : [],
+	};
 }
 
 /**
@@ -459,7 +548,14 @@ export function start(room, personId, random) {
 		variants,
 		random,
 	});
-	return withHost({ ...room, seats, game });
+	return withHost({
+		...room,
+		seats,
+		game,
+		clocks: {},
+		declines: [],
+		history: [],
+	});
 }
 
 /**
@@ -490,6 +586,9 @@ export function end(room, personId) {
 		...room,
 		seats: presentSeats(room).map(({ player, name }) => ({ player, name })),
 		game: null,
+		clocks: {},
+		declines: [],
+		history: [],
 	};
 }
 
@@ -514,6 +613,125 @@ export function play(room, personId, seat, action, random) {
 		throw new PlayerError('Come back to the table first.');
 	}
 	return { ...room, game: playGame(room.game, seat, action, random) };
+}
+
+/**
+ * What a seat's clock covers (#24 design §5): all of setup; for the turn's player, the whole turn, so a new turn, even
+ * the same player's next one, starts a fresh clock; for anyone else, being asked during this turn.
+ * @param {State} game
+ * @param {number} seat
+ * @returns {string}
+ */
+export function scopeOf(game, seat) {
+	if (game.phase === 'setup') {
+		return 'setup';
+	}
+	return seat === game.current ? `turn:${game.turn}` : `asked:${game.turn}`;
+}
+
+/**
+ * Brings the clocks and the declines up to date after any change (#24 design §5, §7).
+ * - A clock carries over only while its scope stays the same. A setup or turn clock pauses while its seat isn't
+ *   asked and resumes with what it had left; any other clock goes. A seat asked without a clock gets a fresh one.
+ *   With the timer off, or no game running, there are none.
+ * - A response only the decline answers is scheduled 3 to 10 seconds out (`timing`'s range) while a game runs, with
+ *   the timer on or off, and keeps its time until it is answered.
+ * @param {Room} room
+ * @param {number} now - Milliseconds
+ * @param {Timing} timing
+ * @param {Random} random - Draws each new decline's wait
+ * @returns {Room} The same room when nothing changes
+ */
+export function tick(room, now, timing, random) {
+	const game = room.game;
+	const running = game !== null && game.phase !== 'over';
+	const declines = running ? schedule(room, game, now, timing, random) : [];
+	const clocks =
+		running && room.timer > 0 ? runClocks(room, game, now, timing) : {};
+	if (
+		JSON.stringify(clocks) === JSON.stringify(room.clocks) &&
+		JSON.stringify(declines) === JSON.stringify(room.declines)
+	) {
+		return room;
+	}
+	return { ...room, clocks, declines };
+}
+
+/**
+ * The clocks of a running game with the timer on, as tick() keeps them.
+ * @param {Room} room
+ * @param {State} game
+ * @param {number} now
+ * @param {Timing} timing
+ * @returns {Record<number, Clock>}
+ */
+function runClocks(room, game, now, timing) {
+	const asked = new Set(askedSeats(game));
+	const seats = new Set([...asked, ...Object.keys(room.clocks).map(Number)]);
+	/** @type {Record<number, Clock>} */
+	const clocks = {};
+	for (const seat of [...seats].sort((a, b) => a - b)) {
+		const scope = scopeOf(game, seat);
+		const held = room.clocks[seat];
+		const kept = held && held.scope === scope ? held : null;
+		const expired = kept?.expired ? { expired: kept.expired } : {};
+		if (asked.has(seat)) {
+			if (!kept) {
+				clocks[seat] = {
+					scope,
+					ends: now + room.timer * timing.minuteMs,
+				};
+			} else if (kept.left !== undefined) {
+				clocks[seat] = { scope, ends: now + kept.left, ...expired };
+			} else {
+				clocks[seat] = kept;
+			}
+		} else if (kept && !scope.startsWith('asked:')) {
+			clocks[seat] =
+				kept.ends !== undefined
+					? { scope, left: Math.max(0, kept.ends - now), ...expired }
+					: kept;
+		}
+	}
+	return clocks;
+}
+
+/**
+ * The declines of a running game: each open decline-only response keeps its time, and a new one draws its own.
+ * @param {Room} room
+ * @param {State} game
+ * @param {number} now
+ * @param {Timing} timing
+ * @param {Random} random
+ * @returns {Decline[]}
+ */
+function schedule(room, game, now, timing, random) {
+	return declineOnly(game).map(
+		({ decision, player }) =>
+			room.declines.find((d) => d.decision === decision) ?? {
+				decision,
+				player,
+				at:
+					now +
+					timing.declineMinMs +
+					random(timing.declineMaxMs - timing.declineMinMs + 1),
+			}
+	);
+}
+
+/**
+ * When the table next needs the server: the earliest running clock or decline. A paused clock waits for its seat.
+ * @param {Room} room
+ * @returns {number | null} Milliseconds; null when nothing is due
+ */
+export function nextDeadline(room) {
+	const times = [
+		...Object.values(room.clocks).flatMap((clock) =>
+			clock.ends === undefined ? [] : [clock.ends]
+		),
+		...room.declines.map((decline) => decline.at),
+	];
+	return times.length > 0 ? Math.min(...times) : null;
 }
 
 /** Most tables the server keeps at once: a single process keeps them all in memory. */
@@ -657,6 +875,8 @@ export function roomView(room, personId, seat) {
 		code: room.code,
 		mode: room.mode,
 		options: structuredClone(room.options),
+		timer: room.timer,
+		undo: room.undo,
 		phase: phase(room),
 		host: seatsOf(room, room.host)[0],
 		seats: room.seats.map((s, i) => ({
@@ -667,13 +887,21 @@ export function roomView(room, personId, seat) {
 		you,
 		viewing,
 		game: room.game ? view(room.game, viewing) : null,
+		// A clock's scope is the server's own bookkeeping: screens need only when it ends and whether it ran out.
+		clocks: Object.entries(room.clocks).map(([seat, clock]) => ({
+			seat: Number(seat),
+			...(clock.ends === undefined
+				? { left: clock.left }
+				: { ends: clock.ends }),
+			expired: clock.expired === true,
+		})),
 	};
 }
 
 /**
  * What a new table may choose today, for the new-table screen (#25), so it never offers what the engine refuses.
  * Solo joins the modes with the Automa (#31).
- * @returns {{ modes: Mode[], versions: { id: string, name: string }[], expansions: string[], variants: string[], levels: number[], maxSeats: number }}
+ * @returns {{ modes: Mode[], versions: { id: string, name: string }[], expansions: string[], variants: string[], levels: number[], maxSeats: number, timers: number[] }}
  */
 export function tableChoices() {
 	return {
@@ -683,5 +911,6 @@ export function tableChoices() {
 		variants: [...VARIANTS],
 		levels: [...LEVELS],
 		maxSeats: MAX_SEATS,
+		timers: [...TIMERS],
 	};
 }
