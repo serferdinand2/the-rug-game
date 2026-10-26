@@ -250,6 +250,7 @@ Added on 2026-10-21, when issue 4 was split:
     - A host-set turn timer with off, 1, 2 or 5 minutes, because Tapestry turns are long. Timeouts make the default legal choice. **(my call)**
     - Undo inside your own turn, but never past a die roll or a card draw.
     - Done when: tests cover a timeout and an undo blocked after a roll.
+    - Design: `docs/superpowers/specs/2026-10-26-timer-and-undo-design.md`.
 
 ### Milestone 5: Playable base game
 
