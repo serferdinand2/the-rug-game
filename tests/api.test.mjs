@@ -506,3 +506,194 @@ test('the last person out of a lobby closes it', async () => {
 		"You aren't at this table."
 	);
 });
+
+/**
+ * The first open decision a room view lets its viewer answer, or undefined.
+ * @param {any} room
+ */
+function openFor(room) {
+	return room.game.pending
+		.flatMap((/** @type {any} */ op) =>
+			op.kind === 'group'
+				? op.lanes.flatMap((/** @type {any} */ lane) => lane.stack)
+				: [op]
+		)
+		.find((/** @type {any} */ op) => op.answers?.length > 0);
+}
+
+test('two clients play a whole game over HTTP, each answering only its own decisions', async () => {
+	const { people, room: lobby } = await table('Ana', 'Bo');
+	await call('start', {
+		body: { version: lobby.version },
+		token: people[0].token,
+	});
+	let moves = 0;
+	let stale = 0;
+	/**
+	 * One client: long-polls its own view and answers its own open decisions with their first answer, at the same
+	 * time as the other client, until the game is over.
+	 * @param {{ token: string }} person
+	 * @param {number} other - The other client's seat
+	 */
+	async function client(person, other) {
+		let since = -1;
+		for (let step = 0; step < 3000; step++) {
+			const polled = await call(`state?since=${since}`, {
+				token: person.token,
+			});
+			assert.equal(polled.status, 200, JSON.stringify(polled.data));
+			const room = polled.data;
+			const theirs = room.game.seats[other - 1];
+			assert.ok(
+				!('hand' in theirs),
+				"the other seat's hand stays hidden"
+			);
+			assert.ok(
+				!('picks' in theirs),
+				"the other seat's picks stay hidden"
+			);
+			if (room.game.phase === 'over') {
+				return room;
+			}
+			const open = openFor(room);
+			since = room.version;
+			if (!open) {
+				continue;
+			}
+			const moved = await call('move', {
+				body: {
+					version: room.version,
+					action: { decision: open.id, ...open.answers[0] },
+				},
+				token: person.token,
+			});
+			if (moved.status === 409) {
+				stale += 1;
+			} else {
+				assert.equal(moved.status, 200, JSON.stringify(moved.data));
+				moves += 1;
+			}
+			// Look again at once: the table has changed, by this move or the other client's.
+			since = room.version - 1;
+		}
+		throw new Error('The game never ended.');
+	}
+	const [first, second] = await Promise.all([
+		client(people[0], 2),
+		client(people[1], 1),
+	]);
+	assert.equal(first.phase, 'finished');
+	assert.deepEqual(first.game.result, second.game.result);
+	assert.ok(moves > 10, `${moves} moves (${stale} stale)`);
+});
+
+test('a hot-seat host plays every seat through one session', async () => {
+	const host = await login('Ana');
+	const { token } = host;
+	let room = (
+		await call('create', { body: { options: { mode: 'hotseat' } }, token })
+	).data;
+	room = (
+		await call('add-seat', {
+			body: { version: room.version, name: 'Bo' },
+			token,
+		})
+	).data;
+	assert.deepEqual(room.you, [1, 2]);
+	refused(
+		await call('join', {
+			body: { code: room.code },
+			token: (await login('Cy')).token,
+		}),
+		400,
+		'This table is played on one screen.'
+	);
+	room = (await call('start', { body: { version: room.version }, token }))
+		.data;
+	assert.equal(
+		room.viewing,
+		null,
+		'the public view until a seat is asked for'
+	);
+	assert.ok(room.game.seats.every((/** @type {any} */ s) => !('picks' in s)));
+	const second = (await call('state?seat=2', { token })).data;
+	assert.equal(second.viewing, 2);
+	assert.ok('picks' in second.game.seats[1]);
+	assert.ok(!('picks' in second.game.seats[0]));
+	refused(
+		await call('state?seat=3', { token }),
+		400,
+		"That seat isn't yours."
+	);
+	const open = openFor(second);
+	const action = { decision: open.id, ...open.answers[0] };
+	refused(
+		await call('move', {
+			body: { version: second.version, action },
+			token,
+		}),
+		400,
+		'Choose the seat you are playing.'
+	);
+	const moved = await call('move', {
+		body: { version: second.version, seat: 2, action },
+		token,
+	});
+	assert.equal(moved.status, 200, JSON.stringify(moved.data));
+	assert.equal(moved.data.viewing, 2);
+});
+
+test('creating tables and signing in are limited per address', async () => {
+	// Forget this address's counts from the earlier tests.
+	api.sweep(Date.now() + 3 * 60_000);
+	config.createLimit = 2;
+	config.loginLimit = 3;
+	try {
+		const { token } = await login('Ana');
+		for (let i = 0; i < 2; i++) {
+			assert.equal(
+				(await call('create', { body: {}, token })).status,
+				200
+			);
+			await call('leave', { body: {}, token });
+		}
+		refused(
+			await call('create', { body: {}, token }),
+			429,
+			'Too many requests. Try again shortly.'
+		);
+		await login('Bo');
+		await login('Cy');
+		refused(
+			await call('login', { body: { name: 'Dee' } }),
+			429,
+			'Too many requests. Try again shortly.'
+		);
+	} finally {
+		config.createLimit = 10_000;
+		config.loginLimit = 10_000;
+	}
+});
+
+test('a session ends when it goes unused, and the server caps them', async () => {
+	config.sessionMs = 50;
+	try {
+		const { token } = await login('Ana');
+		assert.equal((await call('me', { token })).status, 200);
+		await new Promise((resolve) => setTimeout(resolve, 100));
+		refused(await call('me', { token }), 401, 'Sign in again.');
+	} finally {
+		config.sessionMs = defaults.sessionMs;
+	}
+	await login('Bo');
+	config.maxSessions = 1;
+	try {
+		refused(
+			await call('login', { body: { name: 'Cy' } }),
+			503,
+			'The server is full. Try again later.'
+		);
+	} finally {
+		config.maxSessions = defaults.maxSessions;
+	}
+});
