@@ -1,6 +1,6 @@
 // One random legal game from setup to the end, checked after every action: the simulation's game (#21 design §4).
 import assert from 'node:assert/strict';
-import { createGame, play, view } from '../../src/lib/engine/game.js';
+import { createGame, play, VARIANTS, view } from '../../src/lib/engine/game.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
 import { seededRandom } from '../../src/lib/engine/random.js';
 import { checkState } from './invariants.mjs';
@@ -16,6 +16,7 @@ import { allOps, checkViews, setupFacts } from './views.mjs';
  * @property {number} players - 1 to 5
  * @property {'original' | 'current'} version
  * @property {'random' | 'busy'} policy - `busy` takes an offered advance turn 85% of the time
+ * @property {string[]} variants - Every variant, or none (#53)
  */
 /** @typedef {(state: State, before: State | null, facts: SetupFacts) => void} Check - `before` is null right after createGame() */
 
@@ -31,8 +32,9 @@ const ADVANCE_PERCENT = 85;
 const NAMES = ['Ana', 'Bo', 'Cy', 'Dee', 'Eli'];
 
 /**
- * Game `index`'s seed, players, version and policy: every 10 games in a row share a policy, every 5 a version, so
- * each of the 20 combinations gets 10 of the 200 games.
+ * Game `index`'s seed, players, version, policy and variants: every 10 games in a row share a policy, every 5 a
+ * version, so each of the 20 combinations gets 10 of the 200 games. Every other 20 games play with every variant on,
+ * so each combination gets 5 games with them and 5 without (#53).
  * @param {number} index - From 0
  * @returns {Game}
  */
@@ -42,6 +44,8 @@ export function gameOf(index) {
 		players: 1 + (index % 5),
 		version: Math.floor(index / 5) % 2 === 0 ? 'original' : 'current',
 		policy: Math.floor(index / 10) % 2 === 0 ? 'random' : 'busy',
+		variants:
+			Math.floor(index / 20) % 2 === 1 ? VARIANTS.map((v) => v.id) : [],
 	};
 }
 
@@ -90,6 +94,7 @@ export function simulate(index, { check = checkAll } = {}) {
 		let state = createGame({
 			players: NAMES.slice(0, game.players).map((name) => ({ name })),
 			version: game.version,
+			variants: game.variants,
 			random,
 		});
 		const facts = setupFacts(state);
@@ -136,6 +141,7 @@ export function simulate(index, { check = checkAll } = {}) {
 		const failure = /** @type {Error} */ (error);
 		throw new Error(
 			`seed ${game.seed}, ${game.players} players, ${game.version}, ${game.policy} play, ` +
+				`${game.variants.length > 0 ? 'all' : 'no'} variants, ` +
 				`action ${actions} (${kind}): ${failure.message}\n` +
 				`Replay: SIM_SEED=${game.seed} node --test tests/simulation.test.mjs`,
 			{ cause: failure }

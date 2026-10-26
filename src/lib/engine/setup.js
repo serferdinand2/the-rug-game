@@ -5,7 +5,7 @@ import { shuffle } from './random.js';
 import { push, pushGroup } from './stack.js';
 import { run } from './loop.js';
 import { AFTER_SETUP } from './after-setup.js';
-import { BASE_CIVS, BASE_TAPESTRY, BASE_TECH } from './decks.js';
+import { BASE_CIVS, BASE_TAPESTRY, techDeck } from './decks.js';
 import { EXPANSIONS } from '../art/catalog.js';
 import { MAPS } from './data/maps.js';
 import { CAPITAL_MATS, SMALL_MAP_PAIRS } from './data/capitals.js';
@@ -22,10 +22,35 @@ import { VERSIONS, TRACK_IDS, RESOURCE_IDS, BUILDING_IDS } from './data/ids.js';
 export const EXPANSIONS_BUILT = Object.freeze([]);
 
 /**
- * The official optional variants a table may switch on. #53 decides which; until then there are none.
- * @type {readonly string[]}
+ * One official optional variant a table may switch on (03 FF.2.6, 01 §2.2).
+ * @typedef {Object} Variant
+ * @property {string} id
+ * @property {string} name - For the new-table screen
  */
-export const VARIANTS = Object.freeze([]);
+
+/**
+ * The optional variants a table may switch on, chosen by the owner (#53 design §2). Those that need an expansion
+ * join with it: civilizations from one expansion (#33) and either science die (#35).
+ * @type {readonly Readonly<Variant>[]}
+ */
+export const VARIANTS = Object.freeze(
+	[
+		{
+			id: 'tapestry-draft',
+			name: 'Income turn 1: draw 2 tapestry cards, keep 1',
+		},
+		{ id: 'civ-draft', name: 'Gaining a civilization: draw 2, keep 1' },
+		{
+			id: 'neoprene-nanotechnology',
+			name: "Nanotechnology's bonus discards 2 tech cards",
+		},
+		{
+			id: 'no-radio-battery',
+			name: 'Leave out Radio and Lithium-Ion Battery',
+		},
+		{ id: 'closest-island', name: 'Start on the island closest to you' },
+	].map((variant) => Object.freeze(variant))
+);
 
 /**
  * Checks the players, throwing PlayerError for each problem in the spec's order.
@@ -48,7 +73,7 @@ function checkPlayers(players) {
 /**
  * Checks a game's options, as a table does whenever its host changes them, throwing PlayerError for the first problem.
  * @param {{ version: unknown, expansions?: unknown, variants?: unknown }} options
- * @throws {PlayerError} For an unknown version, an unknown or unbuilt expansion, or an unknown variant
+ * @throws {PlayerError} For an unknown version, an unknown or unbuilt expansion, or an unknown or repeated variant
  */
 export function checkOptions({ version, expansions = [], variants = [] }) {
 	if (!VERSIONS.some((v) => v.id === version)) {
@@ -73,9 +98,12 @@ export function checkOptions({ version, expansions = [], variants = [] }) {
 		throw new PlayerError('The variants must be a list.');
 	}
 	for (const variant of variants) {
-		if (!VARIANTS.includes(variant)) {
+		if (!VARIANTS.some((v) => v.id === variant)) {
 			throw new PlayerError(`Unknown variant: ${variant}.`);
 		}
+	}
+	if (new Set(variants).size < variants.length) {
+		throw new PlayerError('Each variant may be switched on only once.');
 	}
 }
 
@@ -131,6 +159,37 @@ function newSeat(seat, name) {
  * @property {import('./state.js').NewLane[]} lanes - One per seat: the decisions that seat opens with
  * @property {{ player: number, hex: string }[]} starts - Where each seat's two outposts begin
  */
+
+/**
+ * The start regions round each map side, in capital-number order: on the large map the start hexes of capitals 1–6,
+ * on the small map the shared spots 1/6, 2/4 and 3/5. Each island's start hex is its centre (R110).
+ */
+export const ISLANDS = Object.freeze({
+	large: Object.freeze(CAPITAL_MATS.map((mat) => mat.start.large)),
+	small: Object.freeze(
+		SMALL_MAP_PAIRS.map(([mat]) => CAPITAL_MATS[mat - 1].start.small)
+	),
+});
+
+/**
+ * The closest-island variant: players start round the map in seat order, spaced as evenly as the islands allow, from
+ * a random island (R110). Alone, a player keeps R40's start.
+ * @param {SetupContext} setup
+ */
+function startOnIslands({ state, seats, random, starts }) {
+	if (seats.length === 1 || !state.variants.includes('closest-island')) {
+		return;
+	}
+	const islands = ISLANDS[state.map];
+	const first = random(islands.length);
+	starts.forEach((start, i) => {
+		start.hex =
+			islands[
+				(first + Math.floor((i * islands.length) / seats.length)) %
+					islands.length
+			];
+	});
+}
 
 /**
  * Capital mats, and where each player's two outposts start.
@@ -220,6 +279,7 @@ function chooseFirstPlayer({ state, seats, random }) {
  */
 export const SETUP_STEPS = [
 	dealCapitals,
+	startOnIslands,
 	placeOutposts,
 	dealCivs,
 	chooseFirstPlayer,
@@ -231,7 +291,7 @@ export const SETUP_STEPS = [
  * @param {{ name: string }[]} options.players - In seat order, which is clockwise and turn order
  * @param {import('./data/ids.js').VersionId} options.version
  * @param {string[]} [options.expansions] - None are built yet
- * @param {string[]} [options.variants] - From VARIANTS, which is empty until #53
+ * @param {string[]} [options.variants] - Ids from VARIANTS
  * @param {import('./random.js').Random} options.random
  * @returns {import('./state.js').State}
  * @throws {PlayerError} For a bad player count or name, version, expansion or variant
@@ -268,7 +328,7 @@ export function createGame({
 			];
 		})
 	);
-	const tech = shuffle(BASE_TECH, random);
+	const tech = shuffle(techDeck(variants), random);
 	const seats = players.map((p, i) => newSeat(i + 1, p.name));
 
 	/** @type {import('./state.js').State} */

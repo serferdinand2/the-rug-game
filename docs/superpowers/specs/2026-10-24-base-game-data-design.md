@@ -50,7 +50,7 @@ An **effect** is an object with exactly one key, its kind. A **benefit** is a li
 
 | Kind | Example | Meaning |
 |---|---|---|
-| `gain` | `{ gain: { food: 1, any: 2, territory: 1 } }` | Gain resources (`any` is one resource of the player's choice per point), territory tiles, space tiles (`space`) or tapestry cards (`tapestry`) |
+| `gain` | `{ gain: { food: 1, any: 2, territory: 1 } }` | Gain resources (`any` is one resource of the player's choice per point), territory tiles, space tiles (`space`) or tapestry cards (`tapestry`). With `keep`, the player keeps that many of the tapestry cards drawn and discards the rest (`chooseKeep`, the tapestry-draft variant, #53) |
 | `lose` | `{ lose: { culture: 1, any: 1 } }` | Lose up to `culture` culture, as much as is held, then `any` resources of the player's choice, one at a time, among those held; nothing more when nothing is held (the Futurists' adjustment, #20 design §5) |
 | `building` | `{ building: 'farm' }` | Take the leftmost income building of that type from the income mat and place it in the capital city |
 | `landmark` | `{ landmark: 'bakery' }` | Place that landmark in the capital city (the square of a landmark tech card) |

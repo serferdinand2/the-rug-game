@@ -153,6 +153,12 @@ export function checkViews(
 		...state.supply.civs,
 	];
 	const faceDown = players.flatMap((seat) => seat.incomeMat.faceDown);
+	/** The civilizations each seat drew and is choosing between mid-game (the civ-draft variant, #53). */
+	const drafted = new Map(
+		openDecisions(state)
+			.filter((op) => op.kind === 'chooseCiv' && op.midGame)
+			.map((op) => [op.player, op.options])
+	);
 	/** The public view (null) owns nothing, not even what belongs to no player. */
 	const owns = (
 		/** @type {unknown} */ player,
@@ -194,6 +200,9 @@ export function checkViews(
 			}
 			for (const civ of dealt.get(seat.seat) ?? []) {
 				hidden(civ, `seat ${seat.seat}'s dealt civilization ${civ}`);
+			}
+			for (const civ of drafted.get(seat.seat) ?? []) {
+				hidden(civ, `seat ${seat.seat}'s drawn civilization ${civ}`);
 			}
 			const shown = v.seats[seat.seat - 1];
 			assert.ok(

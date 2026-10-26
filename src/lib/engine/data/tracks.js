@@ -263,7 +263,7 @@ export const TRACKS = deepFreeze({
 			],
 			{ landmark: 'tech-hub' }
 		),
-		// The neoprene board's bonus discards 2 tech cards. That is an optional variant, not modelled here (01 §12 #11).
+		// The neoprene board's bonus discards 2 tech cards: the neoprene-nanotechnology variant, applied in offerBonus (#53).
 		space(
 			'Nanotechnology',
 			[{ upgrade: {} }, { techBenefit: { icon: 'square' } }],

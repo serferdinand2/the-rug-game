@@ -33,7 +33,7 @@ import {
 	undo,
 	unfinishedSeat,
 } from '../rooms.mjs';
-import { checkOptions, PlayerError } from '../src/lib/engine/game.js';
+import { checkOptions, PlayerError, VARIANTS } from '../src/lib/engine/game.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
@@ -609,7 +609,7 @@ test('the table choices are what a new table may pick today', () => {
 			{ id: 'current', name: 'Current official rules' },
 		],
 		expansions: [],
-		variants: [],
+		variants: VARIANTS.map(({ id, name }) => ({ id, name })),
 		levels: [1, 2, 3, 4, 5, 6],
 		maxSeats: 5,
 		timers: [0, 1, 2, 5],

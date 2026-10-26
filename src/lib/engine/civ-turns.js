@@ -158,16 +158,47 @@ function drawCiv(ctx) {
 /**
  * The gainCiv effect: a random civilization from the deck joins the player's, to the left of the others (02 §1),
  * and its mid-game setup runs. With nothing left to draw, nothing is gained.
+ * With the civ-draft variant the player draws 2 and keeps 1 (`chooseCiv` with `midGame`); with only 1 to draw, it is
+ * gained without a question (#53 design §4.2).
  * @type {import('./state.js').EffectHandler}
  */
 export function gainCiv(ctx, player) {
 	const { state } = ctx;
-	const civ = drawCiv(ctx);
-	if (civ === undefined) {
+	const count = state.variants.includes('civ-draft') ? 2 : 1;
+	/** @type {string[]} */
+	const drawn = [];
+	while (drawn.length < count) {
+		const civ = drawCiv(ctx);
+		if (civ === undefined) {
+			break;
+		}
+		drawn.push(civ);
+	}
+	if (drawn.length === 0) {
 		emit(state, { type: 'noCivLeft', player });
 		return;
 	}
-	playerSeat(state, player).civs.push(civ);
-	emit(state, { type: 'civGained', player, civ });
+	if (drawn.length === 1) {
+		gainDrawnCiv(ctx, player, drawn[0]);
+		return;
+	}
+	emit(state, {
+		type: 'civsDrawn',
+		player,
+		count: drawn.length,
+		secret: { civs: drawn },
+	});
+	ctx.push([{ player, kind: 'chooseCiv', options: drawn, midGame: true }]);
+}
+
+/**
+ * A drawn civilization joins the player's, and its mid-game setup runs.
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {string} civ
+ */
+export function gainDrawnCiv(ctx, player, civ) {
+	playerSeat(ctx.state, player).civs.push(civ);
+	emit(ctx.state, { type: 'civGained', player, civ });
 	ctx.push([{ player, kind: 'civSetup', civ, midGame: true }]);
 }

@@ -16,6 +16,7 @@ import { deepFreeze } from './ids.js';
  * @property {number} [territory] - Territory tiles into the supply
  * @property {number} [space] - Space tiles into the supply
  * @property {number} [tapestry] - Tapestry cards into the hand
+ * @property {number} [keep] - Of the tapestry cards drawn, how many the player keeps; the rest are discarded (#53)
  */
 
 /**

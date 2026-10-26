@@ -293,8 +293,28 @@ test('checkOptions accepts both versions with no expansions or variants', () => 
 		checkOptions({ version });
 		checkOptions({ version, expansions: [], variants: [] });
 	}
-	assert.deepEqual(VARIANTS, []);
 	assert.ok(Object.isFrozen(VARIANTS));
+});
+
+test('the five variants the owner chose can be switched on, each with a name (#53)', () => {
+	assert.deepEqual(
+		VARIANTS.map((v) => v.id),
+		[
+			'tapestry-draft',
+			'civ-draft',
+			'neoprene-nanotechnology',
+			'no-radio-battery',
+			'closest-island',
+		]
+	);
+	for (const variant of VARIANTS) {
+		assert.ok(Object.isFrozen(variant));
+		assert.equal(typeof variant.name, 'string');
+		assert.ok(variant.name.length > 0);
+	}
+	for (const version of ['original', 'current']) {
+		checkOptions({ version, variants: VARIANTS.map((v) => v.id) });
+	}
 });
 
 test('checkOptions refuses what createGame refuses, variants included (#22, #53)', () => {
@@ -308,6 +328,10 @@ test('checkOptions refuses what createGame refuses, variants included (#22, #53)
 		[{ version: 'current', expansions: ['xx'] }, /Unknown expansion: xx/],
 		[{ version: 'current', variants: 'draft' }, /variants must be a list/],
 		[{ version: 'current', variants: ['draft'] }, /Unknown variant: draft/],
+		[
+			{ version: 'current', variants: ['civ-draft', 'civ-draft'] },
+			/only once/,
+		],
 	]);
 	for (const [options, message] of refusals) {
 		assert.throws(

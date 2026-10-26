@@ -5,7 +5,7 @@ import { openDecisions } from '../../src/lib/engine/stack.js';
 import {
 	BASE_CIVS,
 	BASE_TAPESTRY,
-	BASE_TECH,
+	techDeck,
 } from '../../src/lib/engine/decks.js';
 import { LANDMARKS } from '../../src/lib/engine/data/landmarks.js';
 import { TERRITORY_TILES } from '../../src/lib/engine/data/territory-tiles.js';
@@ -86,7 +86,7 @@ export function checkState(state, previousSeq = 0) {
 				...p.tech.top,
 			]),
 		],
-		BASE_TECH
+		techDeck(state.variants)
 	);
 	exactlyOnce(
 		'tapestry cards',

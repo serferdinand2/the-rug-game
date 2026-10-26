@@ -102,11 +102,19 @@ function drawTapestry(ctx, player, count) {
 
 /**
  * Gains what a Gain names, in this order: named resources, territory, space, tapestry, then any.
- * Drawing at least one tapestry card has triggers, which come before the choice of any.
+ * Drawing at least one tapestry card has triggers, which come before the choice of any. With `keep`, the player
+ * first chooses which drawn card to keep (`chooseKeep`), and only it triggers (#53 design §4.1).
  * @type {import('../state.js').EffectHandler}
  */
 export function gain(ctx, player, value) {
-	const known = [...RESOURCE_IDS, 'any', 'territory', 'space', 'tapestry'];
+	const known = [
+		...RESOURCE_IDS,
+		'any',
+		'territory',
+		'space',
+		'tapestry',
+		'keep',
+	];
 	for (const key of Object.keys(value)) {
 		if (!known.includes(key)) {
 			throw new Error(`Unknown gain "${key}".`);
@@ -130,9 +138,19 @@ export function gain(ctx, player, value) {
 	}
 	/** @type {import('../state.js').NewOperation[]} */
 	const ops = [];
+	if (value.keep !== undefined && value.keep !== 1) {
+		throw new Error('Only keeping 1 drawn tapestry card is built.');
+	}
 	if (value.tapestry) {
 		const cards = drawTapestry(ctx, player, value.tapestry);
-		if (cards.length > 0) {
+		if (value.keep !== undefined && cards.length > value.keep) {
+			ops.push({
+				player,
+				kind: 'chooseKeep',
+				options: cards,
+				keep: value.keep,
+			});
+		} else if (cards.length > 0) {
 			ops.push(
 				...triggered(ctx.state, 'tapestryGained', { player, cards })
 			);

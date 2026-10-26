@@ -1,6 +1,6 @@
 # Tapestry — Expansions & Promos Catalogue (rules-engine reference)
 
-> **Decisions:** every **[UNVERIFIED]** item and open question in this file is decided in the README's [Rules conventions](../../README.md#rules-conventions) (R1–R108). Follow those decisions, not the working assumptions here.
+> **Decisions:** every **[UNVERIFIED]** item and open question in this file is decided in the README's [Rules conventions](../../README.md#rules-conventions) (R1–R110). Follow those decisions, not the working assumptions here.
 
 Scope: every official expansion, accessory and promo for Stonemaier Games' *Tapestry* (2019) except the base game itself (covered by other research files). Compiled 2026-10-20 from the official rulebooks (incl. the 32-page comprehensive F&F rulebook and the 20-page comprehensive Automa rulebook), Stonemaier product/FAQ pages, Jamey Stegmaier's BGG design diaries, official rulings on BGG (Jamey Stegmaier, Stonemaier's Joe Aubrey, co-designer Mike Young), photos of the components, and the community BGG wiki (cross-checked).
 
