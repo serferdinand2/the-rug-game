@@ -1,7 +1,8 @@
-// The setup decision: which of the two dealt civilizations to keep.
+// Which of two civilizations to keep: the two dealt at setup, or the two drawn mid-game with civ-draft (#53).
 import { PlayerError } from '../errors.js';
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
+import { gainDrawnCiv } from '../civ-turns.js';
 
 /** @type {import('../state.js').DecisionKind} */
 export const chooseCiv = {
@@ -12,11 +13,25 @@ export const chooseCiv = {
 	check(state, decision, answer) {
 		if (!decision.options.includes(answer.civ)) {
 			throw new PlayerError(
-				'Choose one of the two civilizations you were dealt.'
+				decision.midGame
+					? 'Choose one of the two civilizations you drew.'
+					: 'Choose one of the two civilizations you were dealt.'
 			);
 		}
 	},
 	resolve(ctx, decision, answer) {
+		// Mid-game, the other goes face up onto the discards (#53 design §4.2).
+		if (decision.midGame) {
+			const player = /** @type {number} */ (decision.player);
+			for (const civ of decision.options) {
+				if (civ !== answer.civ) {
+					ctx.state.supply.civDiscard.push(civ);
+					emit(ctx.state, { type: 'civDiscarded', player, civ });
+				}
+			}
+			gainDrawnCiv(ctx, player, answer.civ);
+			return;
+		}
 		playerSeat(
 			ctx.state,
 			/** @type {number} */ (decision.player)
