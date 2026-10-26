@@ -60,3 +60,9 @@ Sources: GitHub issue #3 and its desktop-only comment; docs/ui/README.md; src/li
 ## Delivered since this proposal: card detail foundation (2026-10-24)
 
 The reviewed civilization-card frame and fourteen layout examples are now shared components with a detailed generation guide (`card-design-rules.md`). This resolves the civilization detail-layout foundation. It does not resolve the full card chooser, cost/resource decisions, private responses, income sequencing or results screens listed above. Issue #47 tracks the remaining card families and in-game reference access.
+
+## Delivered since this proposal: decision and income layout fixtures (2026-10-27)
+
+`main-screen.html` now has interactive examples of payment, resource, territory, plot, card, die and trap decisions, a chained optional Farm choice, and an income-turn-4 walkthrough with Civilization, Eras, Tech and Income focus. The owner reviewed the prompt placement, background, track-coloured actions, card-choice shelf, compact resource overview, income mat, and tab focus during that walkthrough. These are presentation fixtures: they do not yet show every legal or unavailable state listed above, and the engine does not drive them. Keep the broad decision and income acceptance rows open until the remaining edge cases are reviewed.
+
+The reviewed Technology and Tapestry frames now have shared components, library examples and card-generation rules. The same card layout appears in the main mockup's Hand, Eras, Tech and card-choice shelf. This closes the frame-layout portion of the card-picker design. It does not finish the game-backed picker, the broader card gallery in #47, or the end-of-game results screen.

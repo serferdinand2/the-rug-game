@@ -334,4 +334,8 @@ The component library now uses the issue #5 SVG artwork in resource symbols, inc
 
 ![Shared civilization card components](screens/civilization-card-components.png)
 
-Issue #47's civilization-frame and reusable-pattern portions are covered. Non-civilization frames, all-card rules/reference data and in-game reference access remain. Issue #3 gains the civilization detail-layout foundation, not completed income/decision/result flows. The examples identify original mats where applicable; sample highlights are not engine state.
+Issue #47's civilization-frame and reusable-pattern portions are covered. Other card families, all-card rules/reference data and in-game reference access remain. Issue #3 gains the civilization detail-layout foundation; the complete income, decision and result flows still need review. The examples identify original mats where applicable; sample highlights are not engine state.
+
+## Technology and Tapestry cards (2026-10-27)
+
+Technology and Tapestry cards now use the reviewed frames from the Second Tapestry UI card study. The shared `TechnologyCard` and `TapestryCard` components appear in the component library, and their layout fixtures are used in the main-screen Hand, Eras, Tech and Tapestry-choice shelf. Technology cards are 425 px horizontal cards with full art, square/top and circle/middle effects, and right-aligned grey prerequisite boxes. Tapestry cards are 319 px wide with the timing tag beside the 160 px portrait; Trap uses a red title band. The exact authoring rules and fixture limits are in [card-design-rules.md](card-design-rules.md). The game-backed card chooser and complete card reference remain part of #27 and #47.
