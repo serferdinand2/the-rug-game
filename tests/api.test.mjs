@@ -1,6 +1,7 @@
 // The table API over HTTP (#23): sessions, the endpoints, version checks and long polling, on a server at port 0.
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import http from 'node:http';
 import { server, config, api } from '../server.mjs';
 import { tableChoices } from '../rooms.mjs';
 
@@ -103,7 +104,10 @@ test('a guest signs in with a name and gets a token', async () => {
 	assert.equal(guest.name, 'Ana');
 	assert.match(guest.token, /^[0-9a-f]{48}$/);
 	const me = await call('me', { token: guest.token });
-	assert.deepEqual(me, { status: 200, data: { name: 'Ana', code: null } });
+	assert.deepEqual(me, {
+		status: 200,
+		data: { name: 'Ana', code: null, saved: null },
+	});
 	refused(
 		await call('login', { body: { name: '   ' } }),
 		400,
@@ -522,17 +526,17 @@ function openFor(room) {
 		.find((/** @type {any} */ op) => op.answers?.length > 0);
 }
 
-test('two clients play a whole game over HTTP, each answering only its own decisions', async () => {
-	const { people, room: lobby } = await table('Ana', 'Bo');
-	await call('start', {
-		body: { version: lobby.version },
-		token: people[0].token,
-	});
+/**
+ * Two clients play a started 2-player game to the end over HTTP. Each long-polls its own view and answers its own open
+ * decisions with their first answer, at the same time as the other, retrying when the other moved first; each checks
+ * that it never sees the other seat's hand or picks.
+ * @param {{ token: string }[]} people - Seats 1 and 2
+ * @returns {Promise<{ ends: any[], moves: number, stale: number }>}
+ */
+async function playOut(people) {
 	let moves = 0;
 	let stale = 0;
 	/**
-	 * One client: long-polls its own view and answers its own open decisions with their first answer, at the same
-	 * time as the other client, until the game is over.
 	 * @param {{ token: string }} person
 	 * @param {number} other - The other client's seat
 	 */
@@ -579,12 +583,22 @@ test('two clients play a whole game over HTTP, each answering only its own decis
 		}
 		throw new Error('The game never ended.');
 	}
-	const [first, second] = await Promise.all([
+	const ends = await Promise.all([
 		client(people[0], 2),
 		client(people[1], 1),
 	]);
-	assert.equal(first.phase, 'finished');
-	assert.deepEqual(first.game.result, second.game.result);
+	return { ends, moves, stale };
+}
+
+test('two clients play a whole game over HTTP, each answering only its own decisions', async () => {
+	const { people, room: lobby } = await table('Ana', 'Bo');
+	await call('start', {
+		body: { version: lobby.version },
+		token: people[0].token,
+	});
+	const { ends, moves, stale } = await playOut(people);
+	assert.equal(ends[0].phase, 'finished');
+	assert.deepEqual(ends[0].game.result, ends[1].game.result);
 	assert.ok(moves > 10, `${moves} moves (${stale} stale)`);
 });
 
@@ -775,4 +789,273 @@ test('a session that holds an away seat stays, so its person can come back', asy
 		config.idleSessionMs = defaults.idleSessionMs;
 		config.maxSessions = defaults.maxSessions;
 	}
+});
+
+/** @param {number} ms */
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Opens a long-poll request that waits on the table, and a way to drop it.
+ * @param {string} token
+ * @param {number} since
+ */
+function hold(token, since) {
+	const aborts = new AbortController();
+	const answer = fetch(`${base}state?since=${since}`, {
+		headers: { Authorization: `Bearer ${token}` },
+		signal: aborts.signal,
+	})
+		.then(async (res) => ({ status: res.status, data: await res.json() }))
+		.catch(() => null);
+	return { answer, drop: () => aborts.abort() };
+}
+
+test('one session and one address may hold only a few long polls at once', async () => {
+	config.waitsPerSession = 2;
+	config.waitsPerAddress = 3;
+	const held = [];
+	try {
+		const { people, room } = await table('Ana', 'Bo');
+		const [ana, bo] = people;
+		held.push(hold(ana.token, room.version), hold(ana.token, room.version));
+		await pause(50);
+		refused(
+			await call(`state?since=${room.version}`, { token: ana.token }),
+			429,
+			'Too many requests are waiting. Try again shortly.'
+		);
+		held.push(hold(bo.token, room.version));
+		await pause(50);
+		refused(
+			await call(`state?since=${room.version}`, { token: bo.token }),
+			429,
+			'Too many requests are waiting. Try again shortly.'
+		);
+		assert.equal(
+			(await call('state', { token: bo.token })).status,
+			200,
+			'an answer that needs no wait is fine'
+		);
+	} finally {
+		for (const { drop } of held) {
+			drop();
+		}
+		config.waitsPerSession = defaults.waitsPerSession;
+		config.waitsPerAddress = defaults.waitsPerAddress;
+	}
+	await pause(50);
+	assert.equal(api.waiting(), 0);
+	assert.equal(defaults.waitsPerSession, 4);
+	assert.equal(defaults.waitsPerAddress, 50);
+});
+
+test('a waiting request is answered even when the table changed just before it waited', async () => {
+	const { people, room } = await table('Ana');
+	const answer = await call(`state?since=${room.version - 1}`, {
+		token: people[0].token,
+	});
+	assert.equal(answer.status, 200);
+	assert.equal(api.waiting(), 0);
+});
+
+test('a missing table version is a bad request, not a stale one', async () => {
+	const { people } = await table('Ana', 'Bo');
+	refused(
+		await call('start', { body: {}, token: people[0].token }),
+		400,
+		'Send the table version.'
+	);
+	refused(
+		await call('start', { body: { version: '2' }, token: people[0].token }),
+		400,
+		'Send the table version.'
+	);
+});
+
+test('a change that changes nothing keeps the version and wakes nobody', async () => {
+	config.longPollMs = 300;
+	try {
+		const { people, room } = await table('Ana', 'Bo');
+		const [ana, bo] = people;
+		const waiting = hold(bo.token, room.version);
+		await pause(50);
+		const same = await call('configure', {
+			body: { version: room.version, options: { version: 'current' } },
+			token: ana.token,
+		});
+		assert.equal(same.status, 200);
+		assert.equal(same.data.version, room.version);
+		const started = Date.now();
+		const answer = await waiting.answer;
+		assert.ok(
+			Date.now() - started >= 150,
+			'answered by the wait, not the change'
+		);
+		assert.equal(answer?.data.version, room.version);
+	} finally {
+		config.longPollMs = defaults.longPollMs;
+	}
+});
+
+test("a hot-seat request waiting for seat 2 is woken with seat 2's view", async () => {
+	const { token } = await login('Ana');
+	let room = (
+		await call('create', { body: { options: { mode: 'hotseat' } }, token })
+	).data;
+	room = (
+		await call('add-seat', {
+			body: { version: room.version, name: 'Bo' },
+			token,
+		})
+	).data;
+	room = (await call('start', { body: { version: room.version }, token }))
+		.data;
+	const waiting = fetch(`${base}state?seat=2&since=${room.version}`, {
+		headers: { Authorization: `Bearer ${token}` },
+	}).then((res) => res.json());
+	await pause(50);
+	const first = (await call('state?seat=1', { token })).data;
+	const open = openFor(first);
+	await call('move', {
+		body: {
+			version: first.version,
+			seat: 1,
+			action: { decision: open.id, ...open.answers[0] },
+		},
+		token,
+	});
+	const woken = await waiting;
+	assert.equal(woken.viewing, 2);
+	assert.ok('picks' in woken.game.seats[1]);
+	assert.ok(!('picks' in woken.game.seats[0]));
+});
+
+test('closing a table frees its place in the per-address cap', async () => {
+	api.sweep(Date.now() + 3 * 24 * 60 * 60 * 1000);
+	config.tablesPerAddress = 1;
+	try {
+		const { token } = await login('Ana');
+		assert.equal((await call('create', { body: {}, token })).status, 200);
+		await call('leave', { body: {}, token });
+		assert.equal((await call('create', { body: {}, token })).status, 200);
+	} finally {
+		config.tablesPerAddress = 10_000;
+	}
+});
+
+test('me names the running game a person left, so they can return to it', async () => {
+	const { people, room: lobby } = await table('Ana', 'Bo');
+	await call('start', {
+		body: { version: lobby.version },
+		token: people[0].token,
+	});
+	await call('leave', { body: {}, token: people[1].token });
+	assert.deepEqual((await call('me', { token: people[1].token })).data, {
+		name: 'Bo',
+		code: null,
+		saved: lobby.code,
+	});
+	assert.equal(
+		(await call('me', { token: people[0].token })).data.saved,
+		lobby.code
+	);
+});
+
+test('a session that ends leaves its seats, so the others can end the game', async () => {
+	const { people, room: lobby } = await table('Ana', 'Bo');
+	const [ana, bo] = people;
+	const started = (
+		await call('start', {
+			body: { version: lobby.version },
+			token: ana.token,
+		})
+	).data;
+	refused(
+		await call('end', {
+			body: { version: started.version },
+			token: ana.token,
+		}),
+		400,
+		'The game can end only once the other players have left.'
+	);
+	config.sessionMs = 150;
+	try {
+		// Ana keeps using hers; Bo's goes quiet.
+		for (let i = 0; i < 4; i++) {
+			await pause(60);
+			await call('me', { token: ana.token });
+		}
+		api.sweep();
+	} finally {
+		config.sessionMs = defaults.sessionMs;
+	}
+	refused(await call('me', { token: bo.token }), 401, 'Sign in again.');
+	const now = (await call('state', { token: ana.token })).data;
+	assert.equal(now.seats[1].away, true);
+	const ended = await call('end', {
+		body: { version: now.version },
+		token: ana.token,
+	});
+	assert.equal(ended.status, 200, JSON.stringify(ended.data));
+	assert.equal(ended.data.phase, 'lobby');
+});
+
+test('a seat at a finished table no longer keeps its session alive', async () => {
+	const { people, room: lobby } = await table('Ana', 'Bo');
+	await call('start', {
+		body: { version: lobby.version },
+		token: people[0].token,
+	});
+	await playOut(people);
+	await call('leave', { body: {}, token: people[1].token });
+	config.idleSessionMs = 50;
+	try {
+		await pause(100);
+		refused(
+			await call('me', { token: people[1].token }),
+			401,
+			'Sign in again.'
+		);
+	} finally {
+		config.idleSessionMs = defaults.idleSessionMs;
+	}
+});
+
+test('a client that drops its request mid-upload is no server fault', async (t) => {
+	const errors = t.mock.method(console, 'error', () => {});
+	const { token } = await login('Ana');
+	const address = /** @type {import('node:net').AddressInfo} */ (
+		server.address()
+	);
+	await new Promise((resolve) => {
+		const req = http.request({
+			host: '127.0.0.1',
+			port: address.port,
+			path: '/api/create',
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Length': '1000',
+			},
+		});
+		req.on('error', () => resolve(undefined));
+		req.write('{"options":');
+		setTimeout(() => {
+			req.destroy();
+			resolve(undefined);
+		}, 50);
+	});
+	await pause(100);
+	assert.equal(errors.mock.callCount(), 0);
+});
+
+test('an X-Forwarded-For header without TRUST_PROXY warns once', async (t) => {
+	const warnings = t.mock.method(console, 'warn', () => {});
+	for (let i = 0; i < 2; i++) {
+		await fetch(`${base}config`, {
+			headers: { 'X-Forwarded-For': '203.0.113.9' },
+		});
+	}
+	assert.equal(warnings.mock.callCount(), 1);
+	assert.match(String(warnings.mock.calls[0].arguments[0]), /TRUST_PROXY/);
 });

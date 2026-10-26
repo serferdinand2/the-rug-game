@@ -15,16 +15,27 @@ import { rateLimiter } from './limits.mjs';
  */
 /**
  * A long-poll request waiting for its table to change.
- * @typedef {{ res: import('node:http').ServerResponse, session: Session, code: string, seat: number | undefined, timer?: ReturnType<typeof setTimeout> }} Waiter
+ * @typedef {Object} Waiter
+ * @property {import('node:http').ServerResponse} res
+ * @property {Session} session
+ * @property {string} address - The client's address key, for the per-address cap
+ * @property {string} code
+ * @property {number | undefined} seat
+ * @property {number} since - The version the client has
+ * @property {ReturnType<typeof setTimeout>} [timer]
+ * @property {boolean} [counted] - Counted against its session's and address's caps
+ * @property {boolean} [released] - No longer waiting
  */
 /**
  * The settings the API reads on every use, so tests can change them (`config` in server.mjs).
  * @typedef {Object} ApiConfig
  * @property {number} longPollMs - How long a state request waits for a change
- * @property {number} sessionMs - How long a session at a table lasts unused
- * @property {number} idleSessionMs - How long a session at no table lasts unused
- * @property {number} maxSessions - At the cap, a login replaces the longest unused session at no table
+ * @property {number} sessionMs - How long a session lasts unused while its person holds a seat
+ * @property {number} idleSessionMs - How long any other session lasts unused
+ * @property {number} maxSessions - At the cap, a login replaces the longest-unused session that holds no seat
  * @property {number} tablesPerAddress - Tables one address may keep open at once
+ * @property {number} waitsPerSession - Long polls one session may hold at once
+ * @property {number} waitsPerAddress - Long polls one address may hold at once
  * @property {number} createLimit - Tables one address may create a minute
  * @property {number} loginLimit - Logins one address may make a minute
  */
@@ -38,7 +49,7 @@ const MINUTE = 60_000;
 /** Marks a state answer that waits for a change instead of answering now. */
 const WAITING = Symbol('waiting');
 
-/** An answer with its own status, for what isn't a player's mistake about the game: 401, 404, 405, 409, 413, 429, 503. */
+/** An answer with its own status, for what isn't a player's mistake about the game: 400, 401, 404, 405, 409, 413, 429, 503. */
 class HttpError extends Error {
 	/**
 	 * @param {number} status
@@ -50,52 +61,79 @@ class HttpError extends Error {
 	}
 }
 
+/** The client went away mid-request: nobody to answer, and no fault of the server's. */
+class ClientGone extends Error {}
+
 /**
  * Sends a JSON answer that browsers never cache, unless the request was already answered or abandoned.
  * @param {import('node:http').ServerResponse} res
  * @param {number} status
  * @param {unknown} value
+ * @param {Record<string, string>} [headers]
  */
-export function sendJson(res, status, value) {
+export function sendJson(res, status, value, headers = {}) {
 	if (res.writableEnded || res.destroyed) {
 		return;
 	}
 	res.writeHead(status, {
 		'Content-Type': 'application/json; charset=utf-8',
 		'Cache-Control': 'no-store',
+		...headers,
 	});
 	res.end(JSON.stringify(value));
 }
 
 /**
- * Reads a request's JSON body, which must be an object of at most 16 KB.
+ * Reads a request's JSON body, which must be an object of at most 16 KB. Reading stops at the limit, so a larger body
+ * costs no more than that.
  * @param {import('node:http').IncomingMessage} req
  * @returns {Promise<Record<string, any>>}
  * @throws {HttpError} 413 for a larger body, 400 for anything but a JSON object
+ * @throws {ClientGone} When the client goes away first
  */
-async function readJson(req) {
-	const chunks = [];
-	let size = 0;
-	for await (const chunk of req) {
-		size += chunk.length;
-		if (size <= BODY_LIMIT) {
+function readJson(req) {
+	if (Number(req.headers['content-length']) > BODY_LIMIT) {
+		return Promise.reject(new HttpError(413, 'That request is too large.'));
+	}
+	return new Promise((resolve, reject) => {
+		/** @type {Buffer[]} */
+		const chunks = [];
+		let size = 0;
+		/** @param {Buffer} chunk */
+		const take = (chunk) => {
+			size += chunk.length;
+			if (size > BODY_LIMIT) {
+				req.off('data', take);
+				req.pause();
+				reject(new HttpError(413, 'That request is too large.'));
+				return;
+			}
 			chunks.push(chunk);
-		}
-	}
-	if (size > BODY_LIMIT) {
-		throw new HttpError(413, 'That request is too large.');
-	}
-	const text = Buffer.concat(chunks).toString('utf8');
-	let body;
-	try {
-		body = text ? JSON.parse(text) : {};
-	} catch {
-		body = null;
-	}
-	if (!body || typeof body !== 'object' || Array.isArray(body)) {
-		throw new HttpError(400, 'Send the request as a JSON object.');
-	}
-	return body;
+		};
+		req.on('data', take);
+		req.on('error', () => reject(new ClientGone()));
+		req.on('close', () => {
+			if (!req.complete) {
+				reject(new ClientGone());
+			}
+		});
+		req.on('end', () => {
+			const text = Buffer.concat(chunks).toString('utf8');
+			let body;
+			try {
+				body = text ? JSON.parse(text) : {};
+			} catch {
+				body = null;
+			}
+			if (!body || typeof body !== 'object' || Array.isArray(body)) {
+				reject(
+					new HttpError(400, 'Send the request as a JSON object.')
+				);
+				return;
+			}
+			resolve(body);
+		});
+	});
 }
 
 /**
@@ -120,9 +158,24 @@ const METHODS = {
 };
 
 /**
+ * Adds to a count in a map, removing the key at zero.
+ * @param {Map<string, number>} counts
+ * @param {string} key
+ * @param {number} by
+ */
+function bump(counts, key, by) {
+	const next = (counts.get(key) ?? 0) + by;
+	if (next > 0) {
+		counts.set(key, next);
+	} else {
+		counts.delete(key);
+	}
+}
+
+/**
  * The table API: one instance keeps every table and session in memory (#23 design §4–§9).
  * @param {ApiConfig} config - Read on every use
- * @returns {{ handle: (req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, address: string | undefined) => Promise<void>, sweep: (now?: number) => void, waiting: () => number }}
+ * @returns {{ handle: (req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, address: string) => Promise<void>, sweep: (now?: number) => void, waiting: () => number }}
  */
 export function createApi(config) {
 	/** @type {Map<string, StoredRoom>} */
@@ -131,6 +184,10 @@ export function createApi(config) {
 	const sessions = new Map();
 	/** @type {Map<string, Set<Waiter>>} By table code */
 	const waiters = new Map();
+	/** @type {Map<string, number>} Long polls held, by person id */
+	const waitsBySession = new Map();
+	/** @type {Map<string, number>} Long polls held, by address key */
+	const waitsByAddress = new Map();
 	/** @type {Map<string, string>} The address that created each open table, by code, for the per-address cap */
 	const creators = new Map();
 	const creates = rateLimiter(() => config.createLimit, MINUTE);
@@ -148,8 +205,10 @@ export function createApi(config) {
 	function sessionOf(req, now) {
 		const token = req.headers.authorization?.replace(/^Bearer /, '') ?? '';
 		const session = sessions.get(token);
-		if (!session || expired(session, now)) {
-			sessions.delete(token);
+		if (!session || expired(session, now, seatHolders())) {
+			if (session) {
+				forget(token, session, now);
+			}
 			throw new HttpError(401, 'Sign in again.');
 		}
 		session.used = now;
@@ -157,37 +216,55 @@ export function createApi(config) {
 	}
 
 	/**
-	 * The people who hold a seat at any table, away seats included: a person who left a running game must keep their
-	 * session to come back to it.
+	 * The people whose sessions must stay: everyone present at a table, and everyone with a seat, away or not, in a
+	 * running game, who must be able to come back to it. A seat left at a finished table holds nothing.
 	 * @returns {Set<string>}
 	 */
 	function seatHolders() {
 		const holders = new Set();
 		for (const room of rooms.values()) {
+			const running = Rooms.phase(room) === 'playing';
 			for (const seat of room.seats) {
-				holders.add(seat.player);
+				if (running || !seat.away) {
+					holders.add(seat.player);
+				}
 			}
 		}
 		return holders;
 	}
 
 	/**
-	 * Whether a session has gone unused too long: a day while its person holds a seat anywhere, an hour otherwise.
+	 * Whether a session has gone unused too long: a day while its person holds a seat, an hour otherwise.
 	 * @param {Session} session
 	 * @param {number} now
-	 * @param {Set<string>} [holders] - From seatHolders(), when checking many sessions at once
+	 * @param {Set<string>} holders - From seatHolders()
 	 */
 	function expired(session, now, holders) {
-		const held = holders
-			? holders.has(session.id)
-			: seated(session) || seatHolders().has(session.id);
-		const lasts = held ? config.sessionMs : config.idleSessionMs;
+		const lasts = holders.has(session.id)
+			? config.sessionMs
+			: config.idleSessionMs;
 		return now - session.used > lasts;
 	}
 
 	/**
-	 * Makes room for a new session at the cap: the longest-unused session whose person holds no seat anywhere goes, so
-	 * nobody loses a seat to it. Filling the server then takes a seat per session, and tables are capped per address.
+	 * Ends a session. Its person leaves every table they sit at, so a seat nobody can play any more doesn't stop the
+	 * others from ending the game, or hold them from other tables.
+	 * @param {string} token
+	 * @param {Session} session
+	 * @param {number} now
+	 */
+	function forget(token, session, now) {
+		sessions.delete(token);
+		for (const room of [...rooms.values()]) {
+			if (Rooms.seatsOf(room, session.id).length > 0) {
+				commit(room.code, Rooms.leave(room, session.id).room, now);
+			}
+		}
+	}
+
+	/**
+	 * Makes room for a new session at the cap: the longest-unused session whose person holds no seat goes, so nobody
+	 * loses a seat to it. Filling the server then takes a seat per session, and tables are capped per address.
 	 * @param {number} now
 	 * @throws {HttpError} 503 when every session holds a seat
 	 */
@@ -210,40 +287,31 @@ export function createApi(config) {
 		if (!oldest) {
 			throw new HttpError(503, 'The server is full. Try again later.');
 		}
-		sessions.delete(oldest[0]);
+		forget(oldest[0], oldest[1], now);
+	}
+
+	/** Forgets the creators of tables that have closed. */
+	function pruneCreators() {
+		for (const code of creators.keys()) {
+			if (!rooms.has(code)) {
+				creators.delete(code);
+			}
+		}
 	}
 
 	/**
-	 * How many tables an address created that are still open, forgetting those that closed.
-	 * @param {string | undefined} address
+	 * How many tables an address created that are still open.
+	 * @param {string} address
 	 */
 	function openFrom(address) {
+		pruneCreators();
 		let count = 0;
-		for (const [code, creator] of creators) {
-			if (!rooms.has(code)) {
-				creators.delete(code);
-			} else if (creator === String(address)) {
+		for (const creator of creators.values()) {
+			if (creator === address) {
 				count += 1;
 			}
 		}
 		return count;
-	}
-
-	/**
-	 * The table a person sits at. A table that closed, or a seat the host removed, is forgotten.
-	 * @param {Session} session
-	 * @param {number} now
-	 * @returns {StoredRoom}
-	 * @throws {PlayerError} When they sit at no table
-	 */
-	function tableOf(session, now) {
-		const room = session.code ? rooms.get(session.code) : undefined;
-		if (!room || Rooms.seatsOf(room, session.id).length === 0) {
-			session.code = null;
-			throw new PlayerError("You aren't at this table.");
-		}
-		room.touched = now;
-		return room;
 	}
 
 	/**
@@ -257,6 +325,41 @@ export function createApi(config) {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * The table a person sits at. A table that closed, or a seat the host removed, is forgotten.
+	 * @param {Session} session
+	 * @param {number} now
+	 * @returns {StoredRoom}
+	 * @throws {PlayerError} When they sit at no table
+	 */
+	function tableOf(session, now) {
+		if (!seated(session)) {
+			throw new PlayerError("You aren't at this table.");
+		}
+		const room = /** @type {StoredRoom} */ (
+			rooms.get(/** @type {string} */ (session.code))
+		);
+		room.touched = now;
+		return room;
+	}
+
+	/**
+	 * The code of a running game where the person holds a seat, away or not, for "Return to your game".
+	 * @param {Session} session
+	 * @returns {string | null}
+	 */
+	function runningSeat(session) {
+		for (const room of rooms.values()) {
+			if (
+				Rooms.phase(room) === 'playing' &&
+				Rooms.seatsOf(room, session.id).length > 0
+			) {
+				return room.code;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -299,13 +402,35 @@ export function createApi(config) {
 	}
 
 	/**
-	 * Answers a waiting request with its table as it is now, or tells the client it has lost its seat.
+	 * Stops counting a waiting request and cancels its wait. Safe to call more than once.
+	 * @param {Waiter} waiter
+	 */
+	function release(waiter) {
+		if (waiter.released) {
+			return;
+		}
+		waiter.released = true;
+		clearTimeout(waiter.timer);
+		const list = waiters.get(waiter.code);
+		list?.delete(waiter);
+		if (list?.size === 0) {
+			waiters.delete(waiter.code);
+		}
+		if (waiter.counted) {
+			bump(waitsBySession, waiter.session.id, -1);
+			bump(waitsByAddress, waiter.address, -1);
+		}
+	}
+
+	/**
+	 * Answers a waiting request with its table as it is now, or tells the client it has lost its seat. It never
+	 * throws: it runs from timers and from other people's changes, where an error would stop the whole server.
 	 * @param {Waiter} waiter
 	 */
 	function answer(waiter) {
-		clearTimeout(waiter.timer);
-		const room = rooms.get(waiter.code);
+		release(waiter);
 		try {
+			const room = rooms.get(waiter.code);
 			if (!room) {
 				throw new PlayerError("You aren't at this table.");
 			}
@@ -315,16 +440,15 @@ export function createApi(config) {
 				viewFor(room, waiter.session, waiter.seat)
 			);
 		} catch (error) {
-			if (!(error instanceof PlayerError)) {
-				throw error;
+			if (error instanceof PlayerError) {
+				seated(waiter.session);
+				sendJson(waiter.res, 400, { error: error.message });
+				return;
 			}
-			if (
-				waiter.session.code === waiter.code &&
-				!seated(waiter.session)
-			) {
-				waiter.session.code = null;
-			}
-			sendJson(waiter.res, 400, { error: error.message });
+			console.error(error);
+			sendJson(waiter.res, 500, {
+				error: 'Something went wrong. Try again.',
+			});
 		}
 	}
 
@@ -333,38 +457,46 @@ export function createApi(config) {
 	 * @param {string} code
 	 */
 	function wake(code) {
-		const list = waiters.get(code);
-		if (!list) {
-			return;
-		}
-		waiters.delete(code);
-		for (const waiter of list) {
+		for (const waiter of [...(waiters.get(code) ?? [])]) {
 			answer(waiter);
 		}
 	}
 
 	/**
-	 * Holds a state request until its table changes or config.longPollMs passes.
+	 * Holds a state request until its table passes the client's version, or config.longPollMs passes. A table that
+	 * changed since the request was checked is answered at once, so no change is missed.
 	 * @param {Waiter} waiter
 	 */
 	function wait(waiter) {
+		if (waiter.res.destroyed) {
+			return;
+		}
+		const room = rooms.get(waiter.code);
+		if (!room || room.version > waiter.since) {
+			answer(waiter);
+			return;
+		}
+		if (
+			(waitsBySession.get(waiter.session.id) ?? 0) >=
+				config.waitsPerSession ||
+			(waitsByAddress.get(waiter.address) ?? 0) >= config.waitsPerAddress
+		) {
+			waiter.released = true;
+			sendJson(waiter.res, 429, {
+				error: 'Too many requests are waiting. Try again shortly.',
+			});
+			return;
+		}
 		const list = waiters.get(waiter.code) ?? new Set();
 		waiters.set(waiter.code, list);
 		list.add(waiter);
-		const drop = () => {
-			clearTimeout(waiter.timer);
-			list.delete(waiter);
-			if (list.size === 0 && waiters.get(waiter.code) === list) {
-				waiters.delete(waiter.code);
-			}
-		};
-		waiter.timer = setTimeout(() => {
-			drop();
-			answer(waiter);
-		}, config.longPollMs);
+		waiter.counted = true;
+		bump(waitsBySession, waiter.session.id, 1);
+		bump(waitsByAddress, waiter.address, 1);
+		waiter.timer = setTimeout(() => answer(waiter), config.longPollMs);
 		waiter.timer.unref();
 		// The client gave up, for example by closing the tab.
-		waiter.res.on('close', drop);
+		waiter.res.on('close', () => release(waiter));
 	}
 
 	/**
@@ -391,6 +523,9 @@ export function createApi(config) {
 	 */
 	function change(session, body, now, transition, seat) {
 		const room = tableOf(session, now);
+		if (!Number.isInteger(body.version)) {
+			throw new HttpError(400, 'Send the table version.');
+		}
 		if (body.version !== room.version) {
 			throw new HttpError(409, 'The table changed. Try again.');
 		}
@@ -401,24 +536,24 @@ export function createApi(config) {
 	}
 
 	/**
-	 * One endpoint's answer.
+	 * One endpoint's answer. The time is taken once the body has arrived, so a slow upload doesn't date it.
 	 * @param {string} name
 	 * @param {import('node:http').IncomingMessage} req
 	 * @param {URL} url
-	 * @param {string | undefined} address
-	 * @param {number} now
-	 * @returns {Promise<unknown | typeof WAITING>}
+	 * @param {string} address
+	 * @returns {Promise<unknown>}
 	 */
-	async function route(name, req, url, address, now) {
+	async function route(name, req, url, address) {
+		const body = METHODS[name] === 'POST' ? await readJson(req) : {};
+		const now = Date.now();
 		if (name === 'config') {
 			return { ...Rooms.tableChoices(), longPollMs: config.longPollMs };
 		}
 		if (name === 'tables') {
 			return { tables: Rooms.openTables(rooms) };
 		}
-		const body = METHODS[name] === 'POST' ? await readJson(req) : {};
 		if (name === 'login') {
-			if (!logins.allow(String(address), now)) {
+			if (!logins.allow(address, now)) {
 				throw new HttpError(
 					429,
 					'Too many requests. Try again shortly.'
@@ -444,13 +579,14 @@ export function createApi(config) {
 				return {
 					name: session.name,
 					code: seated(session) ? session.code : null,
+					saved: runningSeat(session),
 				};
 			case 'create': {
 				if (seated(session)) {
 					throw new PlayerError('Leave your table first.');
 				}
 				assertFree(session, null);
-				if (!creates.allow(String(address), now)) {
+				if (!creates.allow(address, now)) {
 					throw new HttpError(
 						429,
 						'Too many requests. Try again shortly.'
@@ -479,7 +615,7 @@ export function createApi(config) {
 					now
 				);
 				Rooms.addRoom(rooms, { ...room, version: 1 });
-				creators.set(code, String(address));
+				creators.set(code, address);
 				session.code = code;
 				return viewFor(
 					/** @type {StoredRoom} */ (rooms.get(code)),
@@ -502,23 +638,32 @@ export function createApi(config) {
 				}
 				assertFree(session, code);
 				room.touched = now;
-				const stored = /** @type {StoredRoom} */ (
-					commit(code, Rooms.join(room, person), now)
-				);
+				const next = Rooms.join(room, person);
+				// Before the commit, which answers the waiting requests: the session already sits here then.
 				session.code = code;
+				const stored = /** @type {StoredRoom} */ (
+					commit(code, next, now)
+				);
 				return viewFor(stored, session);
 			}
 			case 'state': {
 				const room = tableOf(session, now);
 				const asked = url.searchParams.get('seat');
 				const seat = asked === null ? undefined : Number(asked);
-				const since = Number(url.searchParams.get('since') ?? NaN);
 				// Checked now, so a seat that isn't theirs is refused at once rather than after the wait.
-				const view = viewFor(room, session, seat);
-				if (Number.isFinite(since) && room.version <= since) {
-					return { [WAITING]: { session, code: room.code, seat } };
+				if (
+					seat !== undefined &&
+					!Rooms.seatsOf(room, session.id).includes(seat)
+				) {
+					throw new PlayerError("That seat isn't yours.");
 				}
-				return view;
+				const since = Number(url.searchParams.get('since') ?? NaN);
+				if (Number.isFinite(since) && room.version <= since) {
+					return {
+						[WAITING]: { session, code: room.code, seat, since },
+					};
+				}
+				return viewFor(room, session, seat);
 			}
 			case 'configure':
 				return change(session, body, now, (room) =>
@@ -566,8 +711,8 @@ export function createApi(config) {
 			case 'leave': {
 				const room = tableOf(session, now);
 				const { room: next, saved } = Rooms.leave(room, session.id);
-				commit(room.code, next, now);
 				session.code = null;
+				commit(room.code, next, now);
 				return { saved, code: room.code };
 			}
 		}
@@ -578,7 +723,7 @@ export function createApi(config) {
 	 * Answers one /api/ request.
 	 * @param {import('node:http').IncomingMessage} req
 	 * @param {import('node:http').ServerResponse} res
-	 * @param {string | undefined} address - The client's address key (addressKey), for the per-address limits
+	 * @param {string} address - The client's address key (addressKey), for the per-address limits
 	 */
 	async function handle(req, res, address) {
 		const url = new URL(req.url ?? '/', 'http://localhost');
@@ -595,15 +740,26 @@ export function createApi(config) {
 			if (req.method !== method) {
 				throw new HttpError(405, `Use ${method} for this request.`);
 			}
-			const result = await route(name, req, url, address, Date.now());
+			const result = await route(name, req, url, address);
 			if (result && typeof result === 'object' && WAITING in result) {
-				wait({ res, .../** @type {any} */ (result)[WAITING] });
+				wait({ res, address, .../** @type {any} */ (result)[WAITING] });
 				return;
 			}
 			sendJson(res, 200, result);
 		} catch (error) {
+			if (error instanceof ClientGone) {
+				return;
+			}
 			if (error instanceof HttpError) {
-				return sendJson(res, error.status, { error: error.message });
+				// An oversized body is left unread, so the connection can't carry another request.
+				const headers =
+					error.status === 413 ? { Connection: 'close' } : undefined;
+				return sendJson(
+					res,
+					error.status,
+					{ error: error.message },
+					headers
+				);
 			}
 			if (error instanceof PlayerError) {
 				return sendJson(res, 400, { error: error.message });
@@ -613,8 +769,8 @@ export function createApi(config) {
 	}
 
 	/**
-	 * Housekeeping, once a minute: idle tables close (their waiting requests are answered), unused sessions end, and
-	 * quiet addresses are forgotten.
+	 * Housekeeping, once a minute: idle tables close (their waiting requests are answered), unused sessions end and
+	 * leave their seats, and quiet addresses are forgotten.
 	 * @param {number} [now]
 	 */
 	function sweep(now = Date.now()) {
@@ -622,12 +778,12 @@ export function createApi(config) {
 			wake(code);
 		}
 		const holders = seatHolders();
-		for (const [token, session] of sessions) {
+		for (const [token, session] of [...sessions]) {
 			if (expired(session, now, holders)) {
-				sessions.delete(token);
+				forget(token, session, now);
 			}
 		}
-		openFrom(undefined);
+		pruneCreators();
 		creates.sweep(now);
 		logins.sweep(now);
 	}

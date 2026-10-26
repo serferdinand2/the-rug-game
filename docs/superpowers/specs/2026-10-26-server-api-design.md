@@ -51,8 +51,11 @@ The browser screens (#25–#30) are built on this API, so it has to say everythi
   - The client makes up a name when the player gives none: the launch mockup has a name generator.
   - Every login is a new person with a new id. The id never leaves the server. **(my call:** other players only need names and seat numbers, and an id that never leaves can't be spoofed.)
 - **Requests** carry `Authorization: Bearer <token>`. Without a valid session, the answer is **401** "Sign in again.". **(my call:** Bird Table answers 400, but a separate status tells the client to sign in again.)
-- **Expiry.** A session whose person holds a seat anywhere, away seats included, expires 24 hours after its last use; any other after 1 hour. A player who leaves a running game must keep their session to come back. **(my call)**
-- **The cap.** Sessions are capped at **10,000**. At the cap, a new login replaces the longest-unused session whose person holds no seat anywhere, so nobody loses a seat to it. Only when every session holds a seat does a login get 503 "The server is full. Try again later." **(my call, from the security review:** a hard cap let one address fill the server and lock everyone out for a day.)
+- **Expiry.** A session whose person holds a seat expires 24 hours after its last use; any other after 1 hour. **(my call)**
+  - A seat counts if it is present at any table, or in a running game, away or not, since a player who leaves a running game must keep their session to come back.
+  - A seat left at a finished table holds nothing. This keeps the held sessions under 5 per table, so at most 5,000 under the session cap.
+  - A session that ends leaves every table it sits at, as `leave` would. Otherwise a seat nobody can play any more would stop the others from ending the game, and hold them from other tables. **(my call, from the review)**
+- **The cap.** Sessions are capped at **10,000**. At the cap, a new login replaces the longest-unused session whose person holds no seat, so nobody loses a seat to it. Only when every session holds a seat does a login get 503 "The server is full. Try again later." **(my call, from the security review:** a hard cap let one address fill the server and lock everyone out for a day.)
 - **One table at a time.** A session sits at one table at a time (`session.code`), as in Bird Table. To create or join another, the person leaves first. While their seat holds up a running online game, `unfinishedSeat` refuses them a new table: "You still have a seat in a game at table 3f9a1c07. Return to it with that code first." Because a person sits at one table at a time, they can't be in two lobbies, so `start` needs no `unfinishedSeat` check. That answers #22's handoff note.
 
 ## 6. Endpoints
@@ -64,7 +67,7 @@ All bodies and answers are JSON. Request bodies are at most 16 KB.
 | `GET /api/config` | | – | – | `tableChoices()` and the long-poll wait |
 | `GET /api/tables` | | – | – | `{ tables: openTables(rooms) }` |
 | `POST /api/login` | `{ name }` | – | – | `{ token, name }` |
-| `GET /api/me` | | yes | – | `{ name, code }`, `code` null when at no table |
+| `GET /api/me` | | yes | – | `{ name, code, saved }`: `code` is the table they sit at, `saved` a running game where they hold a seat, for "Return to your game"; each null when there is none |
 | `POST /api/create` | `{ options }` | yes | – | the room view |
 | `POST /api/join` | `{ code }` | yes | – | the room view |
 | `GET /api/state` | `?since=<version>&seat=<n>` | yes | – | the room view, long-polled |
@@ -81,7 +84,8 @@ How each endpoint behaves:
 - **`create`** draws the code with `newCode()` and `crypto.randomInt`, sweeps expired tables, then `addRoom()`. It has a per-address limit of 20 a minute, as in Fablewood. One address may also keep at most **10** tables open at once (429 "Too many tables are open from your address. Close one first."). With that, filling the 1,000-table cap takes 100 addresses. **(my call, from the security review)**
 - **`join`** takes the code case-insensitively, trimmed. An unknown code answers 404 "There is no table with that code."
 - **`move`.** `seat` may be left out when the person plays one seat (online). At a hot-seat table it is required, because the host plays every seat.
-- **`leave`** carries no version. **(my call:** leaving should always work, and it only touches the leaver's own seats.) It clears the session's table even when the room closes.
+- **`leave`** carries no version. **(my call:** leaving should always work, and it only touches the leaver's own seats.) It clears the session's table even when the room closes. `create` and `join` carry none either: a joiner can't know the version yet. **(my call)**
+- **Missing version.** A table change whose `version` isn't a whole number gets 400 "Send the table version.", not 409. **(my call, from the review)**
 - **`state`, `seat`.** `seat` picks which of the person's seats to see. Online it defaults to their seat. At a hot-seat table it defaults to the public view, so nothing private shows until the pass screen (#30) asks for a seat. **(my call)**
 
 **Statuses:**
@@ -127,7 +131,8 @@ Who may see what:
 - Otherwise the room is stored with `version + 1` and `touched = now`, or deleted when `next` is null, and every request waiting on the table is answered.
 
 **Waiting.** `GET /api/state?since=v`:
-- answers at once when the table's version is above `v`;
+- answers at once when the table's version is above `v`, checked again when the request starts to wait, so a change in between is never missed;
+- holds at most **4** waiting requests per session and **50** per address; past that the answer is 429 "Too many requests are waiting. Try again shortly.". The server accepts at most 10,000 connections. **(my call, from the review)**;
 - otherwise it waits up to `config.longPollMs` (25 seconds), then answers with the table unchanged;
 - a waiting request whose client went away is dropped;
 - a waiting request whose person lost their seat (the host removed it, or the table closed or expired) is answered with 400 and the reason, so the client goes back to the landing page.
@@ -139,6 +144,8 @@ Who may see what:
 
 Each request a person makes about their table updates its `touched`.
 
+**Robustness.** Answering a waiting request never throws: it runs from timers and from other people's changes, so an unexpected error there is logged and answered with 500 instead of stopping the server. A client that goes away mid-upload is dropped without logging a fault. A body over 16 KB is refused without reading it to the end, and the connection is closed.
+
 **Randomness.** The engine's `random` is `crypto.randomInt`, as CONVENTIONS.md says.
 
 ## 9. Rate limits
@@ -149,6 +156,11 @@ Every request counts against one address, as `clientAddress()` gives it, honouri
 - `login`: 30 a minute **(my call:** each login keeps a session in memory).
 
 Past a limit the answer is 429 "Too many requests. Try again shortly.". The limits sit in `config`, so tests can change them.
+
+What the limits do and don't do:
+- **Behind a reverse proxy,** `TRUST_PROXY=true` must be set, or every player shares the proxy's address and its limits. The server warns once when a request arrives through a proxy it doesn't trust.
+- **Sharing an address.** Players behind one carrier-grade NAT share an address too.
+- **The table cap.** The per-address caps are the defence against filling the server. About 100 IPv4 addresses that keep polling could still fill the 1,000 tables and hold them. A started game lives for a day, and `LOBBY_IDLE_MS` only clears lobbies nobody polls. That is the limit of an in-memory server without accounts. **(review)**
 
 ## 10. Tests
 

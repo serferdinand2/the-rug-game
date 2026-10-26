@@ -16,10 +16,14 @@ export const config = {
 	trustProxy: process.env.TRUST_PROXY === 'true',
 	// How long a state request waits for its table to change.
 	longPollMs: 25_000,
-	// How long a session lasts unused, at a table and at none, and how many the server keeps.
+	// How long a session lasts unused, while its person holds a seat and otherwise, and how many the server keeps.
 	sessionMs: 24 * 60 * 60 * 1000,
 	idleSessionMs: 60 * 60 * 1000,
 	maxSessions: 10_000,
+	// Long polls one session and one address may hold at once, and the connections the server accepts.
+	waitsPerSession: 4,
+	waitsPerAddress: 50,
+	maxConnections: 10_000,
 	// The tables one address may keep open at once.
 	tablesPerAddress: 10,
 	// Requests per address a minute: every /api/ request, new tables and logins (#23 design §9).
@@ -49,7 +53,16 @@ const types = {
 };
 const compressible = new Set(['.html', '.js', '.css', '.json', '.svg']);
 
+/** Whether the server has warned about a proxy it doesn't trust. */
+let warnedProxy = false;
+
 async function handleApi(req, res) {
+	if (!config.trustProxy && req.headers['x-forwarded-for'] && !warnedProxy) {
+		warnedProxy = true;
+		console.warn(
+			'A request came through a proxy (X-Forwarded-For), but TRUST_PROXY is off, so every player behind it shares one address for the limits. Set TRUST_PROXY=true when exactly one reverse proxy forwards every request.'
+		);
+	}
 	const address = addressKey(clientAddress(req, config.trustProxy));
 	if (!apiLimiter.allow(address)) {
 		return sendJson(res, 429, {
@@ -153,6 +166,9 @@ export const server = http.createServer(async (req, res) => {
 		sendJson(res, 500, { error: 'Something went wrong. Try again.' });
 	}
 });
+
+// Long polls hold connections open, so the server caps how many it accepts.
+server.maxConnections = config.maxConnections;
 
 // Every minute: request counts for quiet addresses are forgotten, and idle tables and sessions expire.
 setInterval(() => {
