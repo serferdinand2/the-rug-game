@@ -1,4 +1,4 @@
-// Tests for a table's timer and undo settings, its clocks and the server's scheduled declines (#24).
+// Tests for a table's timer and undo settings, its clocks, timeouts and the server's scheduled declines (#24).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -540,10 +540,22 @@ test('when the clock runs out the server finishes the turn from where it is, and
 	const game = /** @type {State} */ (done.game);
 	assert.equal(game.turn, 2, 'the turn passed');
 	assert.equal(timedOutEvents(done), 1);
+	const after = game.events.filter((e) => e.seq > before.seq);
 	assert.deepEqual(
-		game.events.filter((e) => e.type === 'timedOut'),
-		[{ ...game.events.find((e) => e.type === 'timedOut') }]
+		after
+			.filter((e) => e.type === 'timedOut')
+			.map(({ type, player }) => ({ type, player })),
+		[{ type: 'timedOut', player: 1 }]
 	);
+	// What the player had started is finished first (the conquest scores), then the turn left open gets
+	// the default income turn; it is not switched for another one.
+	const types = after.map((e) => e.type);
+	assert.ok(types.includes('vpGained'), 'the conquest was finished');
+	assert.ok(
+		types.indexOf('vpGained') < types.indexOf('turnChosen'),
+		'the conquest finished before the turn was completed'
+	);
+	assert.equal(types.filter((t) => t === 'turnChosen').length, 1);
 	assert.equal(done.clocks[1].expired, true);
 	assert.deepEqual(done.history, []);
 	assert.equal(room.game, before, 'the old room is unchanged');
@@ -613,6 +625,11 @@ test('both setup clocks run out together and the whole setup is answered', () =>
 	room = timeout(room, 1000, () => 0);
 	const game = /** @type {State} */ (room.game);
 	assert.equal(game.phase, 'play');
+	assert.equal(game.turn, 1, 'the fresh turn-1 clock was not played');
+	assert.deepEqual(
+		openDecisions(game).map((d) => [d.kind, d.player]),
+		[['chooseTurn', game.current]]
+	);
 	assert.deepEqual(
 		game.events.filter((e) => e.type === 'timedOut').map((e) => e.player),
 		[1, 2]

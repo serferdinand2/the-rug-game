@@ -6,6 +6,7 @@ import {
 	defaultAction,
 	declineOnly,
 	revealed,
+	view,
 	timedOut,
 	restore,
 	play,
@@ -93,15 +94,42 @@ test('revealed: answering a placement reveals nothing', () => {
 	assert.equal(revealed(asked, placed), false);
 });
 
+/**
+ * Every path in the supply where view() turns an array into a count, found by comparing view() with the state.
+ * @param {any} state
+ * @returns {string[][]}
+ */
+function hiddenSupplyPaths(state) {
+	/** @type {string[][]} */
+	const found = [];
+	const walk = (
+		/** @type {any} */ real,
+		/** @type {any} */ seen,
+		/** @type {string[]} */ path
+	) => {
+		if (Array.isArray(real) && typeof seen === 'number') {
+			found.push(path);
+		} else if (real && typeof real === 'object' && !Array.isArray(real)) {
+			for (const key of Object.keys(real)) {
+				walk(real[key], seen[key], [...path, key]);
+			}
+		}
+	};
+	walk(state.supply, view(state, 1).supply, []);
+	return found;
+}
+
 test('revealed: every part view() hides counts', () => {
 	const { state: before } = startedGame(2);
 	/** @type {[string, (s: any) => void][]} */
 	const changes = [
-		['the tech deck', (s) => s.supply.tech.deck.reverse()],
-		['the tapestry deck', (s) => s.supply.tapestry.deck.pop()],
-		['the territory deck', (s) => s.supply.territory.pop()],
-		['the space tiles', (s) => s.supply.space.pop()],
-		['the civilizations', (s) => s.supply.civs.push('x')],
+		...hiddenSupplyPaths(before).map(
+			(path) =>
+				/** @type {[string, (s: any) => void]} */ ([
+					`supply.${path.join('.')}`,
+					(s) => path.reduce((o, key) => o[key], s.supply).push('x'),
+				])
+		),
 		['a hand', (s) => s.seats[0].hand.push('x')],
 		['a pick', (s) => (s.seats[1].picks = { capital: 3 })],
 		['the face-down cards', (s) => s.seats[0].incomeMat.faceDown.push('x')],
@@ -110,6 +138,7 @@ test('revealed: every part view() hides counts', () => {
 			(s) => emit(s, { type: 'drew', player: 1, secret: { card: 'x' } }),
 		],
 	];
+	assert.ok(hiddenSupplyPaths(before).length >= 5);
 	assert.equal(revealed(before, structuredClone(before)), false);
 	for (const [name, change] of changes) {
 		const after = structuredClone(before);
@@ -193,4 +222,7 @@ test('checkState rejects an undone event whose numbers go backwards', () => {
 	const ahead = structuredClone(restored);
 	/** @type {any} */ (ahead.events.at(-1)).from = before.seq + 5;
 	assert.throws(() => checkState(ahead, 0));
+	const below = structuredClone(restored);
+	/** @type {any} */ (below.events.at(-1)).from = before.seq;
+	assert.throws(() => checkState(below, 0));
 });

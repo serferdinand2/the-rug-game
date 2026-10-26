@@ -107,7 +107,7 @@ The defender in a conquest is asked whenever they hold any card, so nobody learn
   - dealing a new game, or ending one.
 - **Which choices are kept.** Only choices the turn's player makes in their own turn go into the history, and only while the game is in play, not setup.
 - **The history** (`room.history`) holds, newest last, the game as it was before each choice, with the seat, the turn number and the clocks.
-  - It is capped at 20 steps; the oldest goes first. A 5-player game state is about 45 KB, and a turn of random play takes up to 10 choices. 20 steps keep a table under about 1 MB. **(my call)**
+  - It is capped at 20 steps; the oldest goes first. A 5-player game state is about 45 KB as JSON and about 85 to 110 KB on the heap, and a turn of random play takes up to 10 choices. So 20 steps are about 2 MB per table at worst, about 2 GB at the 1,000-table cap; random play peaked at 8 steps (about 0.9 MB). **(my call)**
   - It never appears in the room view.
 - **Taking a choice back.** `undo(room, personId, seat)` is served as `POST /api/undo { version, seat? }`; `seat` defaults as it does for `move`.
   - It needs undo on, a step in the history, a last step that belongs to `seat`, and a person who plays that seat and is present.
@@ -137,7 +137,7 @@ The defender in a conquest is asked whenever they hold any card, so nobody learn
   - `askedSeats(state)`: the seats with an open decision.
   - `defaultAction(state, seat)`: the seat's first open decision with its first answer, as `{ decision, ...answer }`, or null.
   - `declineOnly(state)`: the ids of open `chooseResponse` decisions whose only answer is to decline, so `rooms.mjs` needs no decision kinds.
-  - `revealed(before, after)`: whether any hidden part changed or a new event carries a `secret`. It sits in `src/lib/engine/table.js` with the other table helpers **(my call, from the build)**. A test (`tests/engine-table.test.mjs`, "every part view() hides counts") checks that every field `view()` hides is one `revealed()` compares, so the two stay in step.
+  - `revealed(before, after)`: whether any hidden part changed or a new event carries a `secret`. It sits in `src/lib/engine/table.js` with the other table helpers **(my call, from the build)**. `view()` and `revealed()` both read the one list `HIDDEN_DECKS` in `view.js`. A test (`tests/engine-table.test.mjs`, "every part view() hides counts") finds every supply array that `view()` turns into a count and checks that changing it makes `revealed()` answer true, so the two stay in step.
   - `timedOut(state, seat)`: a copy with the `timedOut` event added.
   - `restore(before, current, player)`: `before`, with its event numbers and decision ids carried on from `current`, and an `undone` event `{ type: 'undone', player, from }`, where `from` is the first event number taken back. Event numbers and decision ids keep rising, so a screen never mistakes new events for old ones, and a stale decision id never answers a new decision. **(my call)** The invariants' check of consecutive event numbers allows a gap just before an `undone` event.
   - All are in `table.js` and exported from `game.js`.
@@ -185,4 +185,8 @@ The defender in a conquest is asked whenever they hold any card, so nobody learn
 - **#29:** the log drops the events from an `undone` event's `from` onwards and shows `timedOut`.
 - **#30:** at a hot-seat table, undo and the clock follow the seat whose turn it is.
 - **#31:** whether the Automa's and Shadow Empire's turns have a clock.
-- **Every expansion issue:** a choice that shows a player something hidden without changing a deck or a hand must add an event with a `secret`, or undo would let them peek and take it back.
+- **Every expansion issue:**
+  - A new hidden deck joins `HIDDEN_DECKS` in `view.js`, which both `view()` and `revealed()` use.
+  - A new hidden hand-like field must be added to `revealed()` and to `view()` together.
+  - A choice that shows a player something hidden without changing any of them must add an event with a `secret`, or undo would let them peek and take it back.
+  - `timeout()` keeps answering an `asked:` seat while its scope matches within one call. The base game can't ask a seat again mid-call (only setup uses groups), but an expansion that adds simultaneous decisions mid-turn must check that a seat asked again gets a fresh clock.

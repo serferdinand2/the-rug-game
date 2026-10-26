@@ -7,6 +7,19 @@ import { isPlayerSeat } from './state.js';
 /** @typedef {{ id: number, batch: number, player: null, kind: 'group', lanes: { player: number, stack: ViewOperation[] }[] }} ViewGroup */
 /** @typedef {import('./state.js').Seat & Partial<Omit<import('./state.js').PlayerFields, 'hand' | 'picks'>> & { handCount?: number, hand?: string[], picks?: import('./state.js').PlayerFields['picks'] }} ViewSeat - `handCount` on every player seat; `hand` and `picks` only on the viewer's own */
 /**
+ * The supply decks view() turns into counts, as paths inside `state.supply`.
+ * revealed() (table.js) compares exactly these, so a new hidden deck is added here and nowhere else.
+ * @type {readonly (readonly string[])[]}
+ */
+export const HIDDEN_DECKS = [
+	['tech', 'deck'],
+	['tapestry', 'deck'],
+	['territory'],
+	['space'],
+	['civs'],
+];
+
+/**
  * What one seat may see of a game: the state with its hidden parts removed.
  * Decks become counts; other seats keep a `handCount` instead of `hand` and `picks`;
  * decisions lose their kind's hidden fields and events lose `secret` unless they belong to the viewer;
@@ -36,12 +49,13 @@ export function view(state, seat) {
 			.map((op) => [op.id, DECISIONS[op.kind].answers(state, op)])
 	);
 	const copy = /** @type {Record<string, any>} */ (structuredClone(state));
-	const { supply } = copy;
-	supply.tech.deck = supply.tech.deck.length;
-	supply.tapestry.deck = supply.tapestry.deck.length;
-	supply.territory = supply.territory.length;
-	supply.space = supply.space.length;
-	supply.civs = supply.civs.length;
+	for (const path of HIDDEN_DECKS) {
+		const last = path[path.length - 1];
+		const holder = path
+			.slice(0, -1)
+			.reduce((o, key) => o[key], copy.supply);
+		holder[last] = holder[last].length;
+	}
 
 	for (const entry of copy.seats) {
 		if (entry.kind !== 'player') {

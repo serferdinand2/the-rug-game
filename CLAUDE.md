@@ -292,11 +292,11 @@ Updated 2026-10-26. Update this section whenever a milestone moves.
     - No undo in setup or in someone else's turn.
     - A choice that leaves another player asked during your turn (a conquest's response, a neighbour's pick) ends undo, because their open choice can tell you something.
     - The last choice of the game can't be undone.
-    - Undo keeps 20 steps.
+    - Undo keeps 20 steps: about 2 MB per table at worst, about 2 GB at the 1,000-table cap (random play peaked at 8 steps, about 0.9 MB).
     - A move that arrives after a clock ran out lets the timeout happen first, then gets 409.
     - A timer change empties the undo history.
     - The engine counts turns (`state.turn`).
-    - `revealed()` sits in `table.js`, and a test checks that it compares every field `view()` hides.
+    - `revealed()` sits in `table.js`, and both it and `view()` read `HIDDEN_DECKS` in `view.js`, and a test derives the hidden decks from `view()`'s own output.
     - The decline wait is never in the view.
     - Settings change only through their own endpoint.
   - Handed off, and written on each issue:
@@ -304,7 +304,7 @@ Updated 2026-10-26. Update this section whenever a milestone moves.
     - #29: the log drops the events from an `undone` event's `from` onwards;
     - #30: undo and the clock follow the hot-seat seat whose turn it is;
     - #31: whether the Automa's and Shadow Empire's turns have a clock;
-    - every expansion issue: a choice that shows a player something hidden without changing a deck or a hand must add an event with a `secret`, or undo would let them peek.
+    - every expansion issue: a new hidden deck joins `HIDDEN_DECKS`; a new hidden hand-like field is added to `revealed()` and `view()` together; a choice that shows a player something hidden without changing any of them must add an event with a `secret`, or undo would let them peek; an expansion with simultaneous decisions mid-turn checks that a seat asked again gets a fresh clock.
   - `tests/engine-table.test.mjs`, `tests/rooms-clocks.test.mjs`, `tests/rooms-undo.test.mjs` and `tests/api-timer.test.mjs` cover it, and the randomized room test gained `settings`, `undo` and `timeout` steps. `tests/helpers/engine.mjs` gained `conquestGame`.
 - **Decided 2026-10-24:**
   - At the game end, players see each tiebreaker used, step by step (owner, #15).

@@ -2,6 +2,7 @@
 import { DECISIONS } from './kinds.js';
 import { openDecisions } from './stack.js';
 import { emit } from './events.js';
+import { HIDDEN_DECKS } from './view.js';
 
 /** @typedef {import('./state.js').State} State */
 /** @typedef {import('./state.js').Answer} Answer */
@@ -68,15 +69,11 @@ export function declineOnly(state) {
 export function revealed(before, after) {
 	const same = (/** @type {unknown} */ a, /** @type {unknown} */ b) =>
 		JSON.stringify(a) === JSON.stringify(b);
-	const then = before.supply;
-	const now = after.supply;
-	if (
-		!same(then.tech.deck, now.tech.deck) ||
-		!same(then.tapestry.deck, now.tapestry.deck) ||
-		!same(then.territory, now.territory) ||
-		!same(then.space, now.space) ||
-		!same(then.civs, now.civs)
-	) {
+	const at = (
+		/** @type {State} */ state,
+		/** @type {readonly string[]} */ path
+	) => path.reduce((o, key) => o[key], /** @type {any} */ (state.supply));
+	if (HIDDEN_DECKS.some((path) => !same(at(before, path), at(after, path)))) {
 		return true;
 	}
 	for (const seat of before.seats) {

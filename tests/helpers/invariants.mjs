@@ -255,9 +255,10 @@ export function checkState(state, previousSeq = 0) {
 					event.seq > previous,
 					`undone seq ${event.seq} follows ${previous}`
 				);
-				assert.ok(
-					event.from <= previous + 1,
-					`undone from ${event.from} is after ${previous}`
+				assert.equal(
+					event.from,
+					previous + 1,
+					`undone from ${event.from} is not ${previous + 1}`
 				);
 			} else {
 				assert.equal(
