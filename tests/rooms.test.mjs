@@ -1,12 +1,14 @@
-// Tests for the room transitions (#22): creating, configuring, joining, leaving, starting and playing at a table.
+// Tests for the room transitions (#22): creating, configuring, joining, leaving, starting and playing at a table, with the timer and undo in the random steps (#24).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+	HISTORY_LIMIT,
 	MAX_ROOMS,
 	LOBBY_IDLE_MS,
 	MAX_SEATS,
 	MODES,
 	ROOM_IDLE_MS,
+	TIMERS,
 	addRoom,
 	addSeat,
 	cleanName,
@@ -23,14 +25,19 @@ import {
 	removeSeat,
 	roomView,
 	seatsOf,
+	settings,
 	start,
 	tableChoices,
+	tick,
+	timeout,
+	undo,
 	unfinishedSeat,
 } from '../rooms.mjs';
 import { checkOptions, PlayerError } from '../src/lib/engine/game.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
+import { checkState } from './helpers/invariants.mjs';
 
 /** @typedef {import('../rooms.mjs').Room} Room */
 
@@ -96,9 +103,14 @@ test('the creator hosts seat 1 of an online table with the current rules', () =>
 			variants: [],
 			level: null,
 		},
+		timer: 0,
+		undo: true,
 		host: 'a',
 		seats: [{ player: 'a', name: 'Ana' }],
 		game: null,
+		clocks: {},
+		declines: [],
+		history: [],
 		touched: 5,
 	});
 	assert.equal(phase(room), 'lobby');
@@ -533,6 +545,8 @@ test('the room view shows seats by number and name, never the people behind them
 			variants: [],
 			level: null,
 		},
+		timer: 0,
+		undo: true,
 		phase: 'lobby',
 		host: 1,
 		seats: [
@@ -542,6 +556,8 @@ test('the room view shows seats by number and name, never the people behind them
 		you: [2],
 		viewing: 2,
 		game: null,
+		clocks: [],
+		canUndo: false,
 	});
 	const secret = join(
 		createRoom('3f9a1c07', { id: 'secret-id-1', name: 'Ana' }, {}, 0),
@@ -596,6 +612,7 @@ test('the table choices are what a new table may pick today', () => {
 		variants: [],
 		levels: [1, 2, 3, 4, 5, 6],
 		maxSeats: 5,
+		timers: [0, 1, 2, 5],
 	});
 });
 
@@ -736,40 +753,86 @@ const PEOPLE = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
 /** Names for hot-seat players: few, so some clash. */
 const LOCAL_NAMES = ['Bo', 'Cy', 'Dee', 'bo', 'Eli', 'Fay'];
 
+/** The random steps' times: a minute of 1 second, and declines 3 to 10 seconds out. */
+const TIMING = { minuteMs: 1000, declineMinMs: 3000, declineMaxMs: 10000 };
+
 /**
- * One random step on a room: a transition, or (rarely) the game ending, as the engine would end it.
+ * A random undo: mostly for the seat whose choice is last, by the person who plays it.
  * @param {Room} room
  * @param {import('../src/lib/engine/random.js').Random} random
- * @returns {{ step: string, next: Room | null, saved?: boolean }}
+ * @param {string} someone - Anyone, seated or not
+ * @returns {{ step: string, next: Room, undone?: import('../rooms.mjs').Step }} `undone`: the step taken back
  */
-function randomStep(room, random) {
+function randomUndo(room, random, someone) {
+	const last = room.history.at(-1);
+	const seat = last && random(4) ? last.seat : 1 + random(room.seats.length);
+	const person = random(6) ? room.seats[seat - 1].player : someone;
+	return {
+		step: `${person} undoes seat ${seat}`,
+		next: undo(room, person, seat),
+		undone: last,
+	};
+}
+
+/**
+ * One random step on a room: a transition, a timeout, or (rarely) the game ending, as the engine would end it.
+ * @param {Room} room
+ * @param {import('../src/lib/engine/random.js').Random} random
+ * @param {number} now - Milliseconds
+ * @returns {{ step: string, next: Room | null, saved?: boolean, undone?: import('../rooms.mjs').Step }} `undone`: the
+ *   step an undo takes back
+ */
+function randomStep(room, random, now) {
 	const someone = PEOPLE[random(PEOPLE.length)];
 	const seated = room.seats[random(room.seats.length)].player;
 	const who = random(4) ? room.host : someone;
+	// An undo is tried more often while there is a choice to take back.
+	if (room.history.length > 0 && random(4) === 0) {
+		return randomUndo(room, random, someone);
+	}
 	const roll = random(100);
-	if (roll < 20) {
+	if (roll < 15) {
 		return { step: `join ${someone}`, next: join(room, P(someone)) };
 	}
-	if (roll < 35) {
-		const leaver = roll < 30 ? seated : someone;
+	if (roll < 27) {
+		const leaver = roll < 24 ? seated : someone;
 		const { room: next, saved } = leave(room, leaver);
 		return { step: `leave ${leaver}`, next, saved };
 	}
-	if (roll < 45) {
+	if (roll < 35) {
 		const name = LOCAL_NAMES[random(LOCAL_NAMES.length)];
 		return { step: `${who} adds ${name}`, next: addSeat(room, who, name) };
 	}
-	if (roll < 50) {
+	if (roll < 39) {
 		const seat = 1 + random(room.seats.length + 1);
 		return {
 			step: `${who} removes seat ${seat}`,
 			next: removeSeat(room, who, seat),
 		};
 	}
-	if (roll < 54) {
+	if (roll < 42) {
 		return { step: `${who} ends the game`, next: end(room, who) };
 	}
-	if (roll < 61) {
+	if (roll < 46) {
+		const changes = /** @type {any[]} */ ([
+			{ timer: TIMERS[random(TIMERS.length)] },
+			{ undo: random(2) === 0 },
+			{ timer: TIMERS[random(TIMERS.length)], undo: true },
+			{ timer: 3 },
+			{ undo: 'yes' },
+		])[random(5)];
+		return {
+			step: `${who} sets ${JSON.stringify(changes)}`,
+			next: settings(room, who, changes),
+		};
+	}
+	if (roll < 54) {
+		return randomUndo(room, random, someone);
+	}
+	if (roll < 58) {
+		return { step: 'the clocks run out', next: timeout(room, now, random) };
+	}
+	if (roll < 63) {
 		const changes = /** @type {any[]} */ ([
 			{ version: 'original' },
 			{ version: 'current' },
@@ -785,8 +848,12 @@ function randomStep(room, random) {
 	if (roll < 71) {
 		return { step: `${who} starts`, next: start(room, who, random) };
 	}
-	if (roll < 74 && room.game && room.game.phase !== 'over') {
-		return { step: 'the game ends', next: finish(room) };
+	if (roll < 73 && room.game && room.game.phase !== 'over') {
+		// The engine's last answer would empty the undo history too.
+		return {
+			step: 'the game ends',
+			next: { ...finish(room), history: [] },
+		};
 	}
 	if (!room.game || room.game.phase === 'over') {
 		return { step: 'nothing', next: room };
@@ -894,6 +961,25 @@ function checkRoom(room, before, step) {
 	}
 	checkOptions(room.options);
 	assert.ok(MODES.includes(room.mode));
+	assert.ok(TIMERS.includes(room.timer), 'the timer is one of the choices');
+	assert.equal(typeof room.undo, 'boolean');
+	checkHistory(room, now);
+	if (room.timer !== before.timer) {
+		assert.deepEqual(room.history, [], 'a new timer empties the history');
+	}
+	if (now !== 'playing') {
+		assert.deepEqual(room.declines, [], 'no declines unless a game runs');
+	}
+	if (now !== 'playing' || room.timer === 0) {
+		assert.deepEqual(room.clocks, {}, 'clocks run only with the timer on');
+	}
+	if (step.endsWith(' starts')) {
+		assert.deepEqual(room.history, [], 'a new deal has no history');
+		assert.deepEqual(room.declines, [], 'a new deal has no declines');
+		for (const clock of Object.values(room.clocks)) {
+			assert.equal(clock.scope, 'setup', 'a new deal has setup clocks');
+		}
+	}
 	const open = openTables(mapOf(room)).length === 1;
 	assert.equal(
 		open,
@@ -915,12 +1001,65 @@ function checkRoom(room, before, step) {
 	}
 }
 
+/**
+ * Checks the undo history (#24 design §8): only choices the turn's player made in one turn of a game in play, at most
+ * 20 of them, and none while undo is off.
+ * @param {Room} room
+ * @param {'lobby' | 'playing' | 'finished'} stage - The room's phase
+ */
+function checkHistory(room, stage) {
+	const { history } = room;
+	assert.ok(history.length <= HISTORY_LIMIT, 'the history is capped');
+	if (!room.undo) {
+		assert.deepEqual(history, [], 'no history with undo off');
+	}
+	if (stage !== 'playing') {
+		assert.deepEqual(history, [], 'no history unless a game runs');
+	}
+	assert.ok(new Set(history.map((s) => s.seat)).size <= 1, 'one seat');
+	assert.ok(new Set(history.map((s) => s.turn)).size <= 1, 'one turn');
+	for (const step of history) {
+		assert.equal(step.game.phase, 'play', 'no setup choice is kept');
+		assert.equal(step.game.current, step.seat, "the turn's player's");
+		assert.equal(step.game.turn, step.turn);
+	}
+}
+
+/**
+ * Checks a successful undo: the game is the one before the step's choice, its log carried on with an `undone` event
+ * last, and the step is gone from the history.
+ * @param {Room} room
+ * @param {Room} before
+ * @param {import('../rooms.mjs').Step} step
+ */
+function checkUndone(room, before, step) {
+	const { seq, events, nextId, ...game } = /** @type {any} */ (room.game);
+	const { seq: was, events: log, nextId: _nextId, ...kept } = step.game;
+	assert.deepEqual(game, kept, 'undo restores the game before the choice');
+	assert.deepEqual(events.slice(0, -1), log);
+	assert.deepEqual(events.at(-1), {
+		type: 'undone',
+		player: step.seat,
+		from: was + 1,
+		seq,
+	});
+	assert.equal(seq, /** @type {any} */ (before.game).seq + 1);
+	assert.ok(nextId >= /** @type {any} */ (before.game).nextId);
+	assert.equal(room.history.length, before.history.length - 1);
+	assert.ok(room.history.every((s, i) => s === before.history[i]));
+	checkState(/** @type {any} */ (room.game));
+}
+
 test('random steps never break the room rules', () => {
+	let undone = 0;
 	for (let run = 1; run <= 200; run++) {
 		const random = seededRandom(run);
 		/** @type {Room | null} */
 		let room = null;
+		let now = 0;
 		for (let i = 1; i <= 300; i++) {
+			// Mostly a moment later; now and then long enough for clocks and declines to come due.
+			now += random(10) ? random(300) : 3000 + random(8000);
 			if (!room) {
 				// A closed table is followed by a new one, so every run takes all its steps.
 				const mode = /** @type {import('../rooms.mjs').Mode} */ (
@@ -935,14 +1074,24 @@ test('random steps never break the room rules', () => {
 				continue;
 			}
 			const before = room;
-			const snapshot = JSON.stringify({ ...room, game: null });
+			// The history's games are as big as the game, so its steps are compared by identity.
+			const snapshot = JSON.stringify({
+				...room,
+				game: null,
+				history: null,
+			});
+			const steps = [...room.history];
+			const unchanged = () =>
+				JSON.stringify({ ...before, game: null, history: null }) ===
+					snapshot &&
+				before.history.length === steps.length &&
+				before.history.every((s, k) => s === steps[k]);
 			let step = '?';
 			try {
-				const result = randomStep(room, random);
+				const result = randomStep(room, random, now);
 				step = result.step;
-				assert.equal(
-					JSON.stringify({ ...before, game: null }),
-					snapshot,
+				assert.ok(
+					unchanged(),
 					'the step changed the room it was given'
 				);
 				if (result.saved !== undefined) {
@@ -969,15 +1118,17 @@ test('random steps never break the room rules', () => {
 					room = null;
 					continue;
 				}
-				checkRoom(result.next, before, step);
-				room = result.next;
+				// The server brings the clocks and declines up to date with every change it keeps (#24).
+				const next = tick(result.next, now, TIMING, random);
+				checkRoom(next, before, step);
+				if (result.undone) {
+					checkUndone(next, before, result.undone);
+					undone++;
+				}
+				room = next;
 			} catch (error) {
 				if (error instanceof PlayerError) {
-					assert.equal(
-						JSON.stringify({ ...before, game: null }),
-						snapshot,
-						'a refused step changed the room'
-					);
+					assert.ok(unchanged(), 'a refused step changed the room');
 					continue;
 				}
 				const failure = /** @type {Error} */ (error);
@@ -989,4 +1140,6 @@ test('random steps never break the room rules', () => {
 			}
 		}
 	}
+	// The default seeds take back 166 choices; fewer than 100 would mean the steps no longer reach undo.
+	assert.ok(undone >= 100, `only ${undone} choices were taken back`);
 });

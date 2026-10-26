@@ -83,6 +83,7 @@
  * @property {'setup' | 'play' | 'over'} phase
  * @property {number} first
  * @property {number | null} current
+ * @property {number} turn - Turns started so far: 0 during setup, 1 for the first turn
  * @property {(Seat | PlayerSeat)[]} seats - Index = seat - 1
  * @property {Supply} supply
  * @property {Record<string, Hex>} hexes

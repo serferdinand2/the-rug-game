@@ -208,3 +208,23 @@ export function answerDefaults(state, random, limit = 200) {
 	}
 	throw new Error('A decision never ended.');
 }
+
+/**
+ * A game where seat 1 conquers seat 2's lone outpost on '-2_-1', and seat 2 holds `hand`.
+ * @param {string[]} hand
+ * @param {Record<string, any>} [options]
+ */
+export function conquestGame(hand, options) {
+	const { state: started } = startedGame(2, options);
+	const state = structuredClone(started);
+	for (const [key, hex] of Object.entries(state.hexes)) {
+		hex.outposts = [];
+		if (key !== '-2_-2' && key !== '-2_-1') {
+			/** @type {any} */ (hex).tile = null;
+		}
+	}
+	state.hexes['-2_-2'].outposts = [{ seat: 1, toppled: false }];
+	state.hexes['-2_-1'].outposts = [{ seat: 2, toppled: false }];
+	state.seats[1].hand = [...hand];
+	return state;
+}

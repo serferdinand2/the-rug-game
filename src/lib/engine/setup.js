@@ -280,6 +280,7 @@ export function createGame({
 		phase: 'setup',
 		first: 1,
 		current: null,
+		turn: 0,
 		seats,
 		supply: {
 			tech: {

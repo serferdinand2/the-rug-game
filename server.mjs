@@ -30,6 +30,10 @@ export const config = {
 	apiLimit: 1800,
 	createLimit: 20,
 	loginLimit: 30,
+	// A minute of the turn timer, and the wait before the server answers a response only the decline answers (#24).
+	minuteMs: 60_000,
+	declineMinMs: 3_000,
+	declineMaxMs: 10_000,
 };
 
 /** The table API: every table and session in memory. */
@@ -169,6 +173,9 @@ export const server = http.createServer(async (req, res) => {
 
 // Long polls hold connections open, so the server caps how many it accepts.
 server.maxConnections = config.maxConnections;
+
+// The table timers go with the server, so none fires for a server that has stopped.
+server.on('close', () => api.close());
 
 // Every minute: request counts for quiet addresses are forgotten, and idle tables and sessions expire.
 setInterval(() => {

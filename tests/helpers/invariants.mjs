@@ -248,11 +248,25 @@ export function checkState(state, previousSeq = 0) {
 
 	state.events.forEach((event, i) => {
 		if (i > 0) {
-			assert.equal(
-				event.seq,
-				state.events[i - 1].seq + 1,
-				`event seq ${event.seq} follows ${state.events[i - 1].seq}`
-			);
+			// Undo takes the log back, so the numbers jump only just before an 'undone' event.
+			const previous = state.events[i - 1].seq;
+			if (event.type === 'undone') {
+				assert.ok(
+					event.seq > previous,
+					`undone seq ${event.seq} follows ${previous}`
+				);
+				assert.equal(
+					event.from,
+					previous + 1,
+					`undone from ${event.from} is not ${previous + 1}`
+				);
+			} else {
+				assert.equal(
+					event.seq,
+					previous + 1,
+					`event seq ${event.seq} follows ${previous}`
+				);
+			}
 		}
 	});
 	if (state.events.length > 0) {

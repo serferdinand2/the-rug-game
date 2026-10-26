@@ -1,4 +1,4 @@
-// The table API (#23): guest sessions, every table in memory, long polling, and the endpoints over rooms.mjs.
+// The table API (#23, #24): guest sessions, every table in memory, long polling, the table timers, and the endpoints over rooms.mjs.
 import { randomBytes, randomInt } from 'node:crypto';
 import { PlayerError } from './src/lib/engine/game.js';
 import * as Rooms from './rooms.mjs';
@@ -38,6 +38,9 @@ import { rateLimiter } from './limits.mjs';
  * @property {number} waitsPerAddress - Long polls one address may hold at once
  * @property {number} createLimit - Tables one address may create a minute
  * @property {number} loginLimit - Logins one address may make a minute
+ * @property {number} minuteMs - A minute of the turn timer
+ * @property {number} declineMinMs - The soonest the server answers a response only the decline answers
+ * @property {number} declineMaxMs - The latest
  */
 
 /** The largest request body, in bytes. */
@@ -45,6 +48,9 @@ const BODY_LIMIT = 16 * 1024;
 
 /** A minute, the window of the per-address limits. */
 const MINUTE = 60_000;
+
+/** The longest wait setTimeout keeps: a longer one fires at once. A table timer that fires early just waits again. */
+const LONGEST_WAIT = 2 ** 31 - 1;
 
 /** Marks a state answer that waits for a change instead of answering now. */
 const WAITING = Symbol('waiting');
@@ -153,7 +159,9 @@ const METHODS = {
 	'remove-seat': 'POST',
 	start: 'POST',
 	end: 'POST',
+	settings: 'POST',
 	move: 'POST',
+	undo: 'POST',
 	leave: 'POST',
 };
 
@@ -173,11 +181,15 @@ function bump(counts, key, by) {
 }
 
 /**
- * The table API: one instance keeps every table and session in memory (#23 design §4–§9).
+ * The table API: one instance keeps every table and session in memory (#23 design §4–§9), with one timer per table
+ * for its next clock or automatic decline (#24 design §9).
  * @param {ApiConfig} config - Read on every use
- * @returns {{ handle: (req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, address: string) => Promise<void>, sweep: (now?: number) => void, waiting: () => number }}
+ * @param {{ timeout?: typeof Rooms.timeout }} [rules] - A stand-in for Rooms.timeout, for the tests of what only a
+ *   bug can do; the server passes none
+ * @returns {{ handle: (req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse, address: string) => Promise<void>, sweep: (now?: number) => void, waiting: () => number, timers: () => number, close: () => void }}
+ *   `timers()` counts the table timers held; `close()` clears them all, for when the server closes
  */
-export function createApi(config) {
+export function createApi(config, { timeout = Rooms.timeout } = {}) {
 	/** @type {Map<string, StoredRoom>} */
 	const rooms = new Map();
 	/** @type {Map<string, Session>} By token */
@@ -190,6 +202,8 @@ export function createApi(config) {
 	const waitsByAddress = new Map();
 	/** @type {Map<string, string>} The address that created each open table, by code, for the per-address cap */
 	const creators = new Map();
+	/** @type {Map<string, ReturnType<typeof setTimeout>>} Each table's timer for its next deadline, by code */
+	const tableTimers = new Map();
 	const creates = rateLimiter(() => config.createLimit, MINUTE);
 	const logins = rateLimiter(() => config.loginLimit, MINUTE);
 	/** @type {import('./src/lib/engine/random.js').Random} */
@@ -372,12 +386,30 @@ export function createApi(config) {
 		return {
 			...Rooms.roomView(room, session.id, seat),
 			version: room.version,
+			// The server's time, so a screen can count the clocks down on its own clock.
+			now: Date.now(),
+		};
+	}
+
+	/**
+	 * The timer's lengths, from config as it is now.
+	 * @returns {import('./rooms.mjs').Timing}
+	 */
+	function timing() {
+		return {
+			minuteMs: config.minuteMs,
+			declineMinMs: config.declineMinMs,
+			declineMaxMs: config.declineMaxMs,
 		};
 	}
 
 	/**
 	 * Stores a room's next state and answers everyone waiting on it. The same room means nothing changed: no new
 	 * version, nobody woken. Null closes the room.
+	 *
+	 * The clocks and declines are brought up to date (Rooms.tick) in the same version as the change, never in one of
+	 * their own: that version would tell everyone watching that the server had scheduled a decline, so the defender
+	 * holds no trap (#24 design §7). The table's timer then follows its next deadline.
 	 * @param {string} code
 	 * @param {import('./rooms.mjs').Room | null} next
 	 * @param {number} now
@@ -390,15 +422,100 @@ export function createApi(config) {
 		}
 		if (next) {
 			rooms.set(code, {
-				...next,
+				...Rooms.tick(next, now, timing(), random),
 				version: (before?.version ?? 0) + 1,
 				touched: now,
 			});
 		} else {
 			rooms.delete(code);
 		}
+		schedule(code);
 		wake(code);
 		return rooms.get(code) ?? null;
+	}
+
+	/**
+	 * Stops a table's timer, if it has one.
+	 * @param {string} code
+	 */
+	function stop(code) {
+		clearTimeout(tableTimers.get(code));
+		tableTimers.delete(code);
+	}
+
+	/**
+	 * Sets a table's timer for its next deadline, in place of the one it had. A table with no deadline, or gone, keeps
+	 * none.
+	 * @param {string} code
+	 */
+	function schedule(code) {
+		stop(code);
+		const room = rooms.get(code);
+		const deadline = room ? Rooms.nextDeadline(room) : null;
+		if (deadline === null) {
+			return;
+		}
+		const wait = Math.min(Math.max(0, deadline - Date.now()), LONGEST_WAIT);
+		const timer = setTimeout(() => fire(code), wait);
+		timer.unref();
+		tableTimers.set(code, timer);
+	}
+
+	/**
+	 * Plays what has run out at a table (Rooms.timeout) and commits it. It runs from the table's timer, and before a
+	 * late move or undo, so that the request meets the new version and gets 409 rather than racing the timer (#24
+	 * design §6). It never throws.
+	 *
+	 * A timeout that answered nothing, which only a bug makes, is never committed, and neither is one that failed: the
+	 * error is logged, and the table keeps no timer until its next change. So a bug can't spin in a loop, or bump the
+	 * version for a client that retries on 409 (#24 design §9). After an answer the table may be due again at once,
+	 * when an expired clock that waited for a defender resumes with nothing left; its timer then fires at once.
+	 * @param {string} code
+	 * @param {number} now
+	 * @returns {boolean} False when nothing has run out
+	 */
+	function playDue(code, now) {
+		const room = rooms.get(code);
+		const deadline = room ? Rooms.nextDeadline(room) : null;
+		if (!room || deadline === null || deadline > now) {
+			return false;
+		}
+		try {
+			const next = timeout(room, now, random);
+			if (next.game === room.game) {
+				throw new Error(
+					`The timer at table ${code} could answer nothing, so it waits for the table to change.`
+				);
+			}
+			commit(code, next, now);
+		} catch (error) {
+			stop(code);
+			console.error(error);
+		}
+		return true;
+	}
+
+	/**
+	 * A table's timer is due: what has run out is played. A timer that fired early waits again, and a table that is
+	 * gone, or has nothing left to run out, keeps none.
+	 * @param {string} code
+	 */
+	function fire(code) {
+		tableTimers.delete(code);
+		if (!playDue(code, Date.now())) {
+			schedule(code);
+		}
+	}
+
+	/**
+	 * Closes the tables nobody has used for too long, with their timers, and answers their waiting requests.
+	 * @param {number} now
+	 */
+	function expire(now) {
+		for (const code of Rooms.expireRooms(rooms, now)) {
+			stop(code);
+			wake(code);
+		}
 	}
 
 	/**
@@ -536,6 +653,29 @@ export function createApi(config) {
 	}
 
 	/**
+	 * The seat a move or an undo is for: the one named, or the person's only seat.
+	 * @param {Session} session
+	 * @param {Record<string, any>} body
+	 * @param {number} now
+	 * @returns {{ code: string, seat: any, shown: number | undefined }} `shown`: the seat to view afterwards, when it is
+	 *   theirs
+	 * @throws {PlayerError} When they sit at no table, or play several seats and named none
+	 */
+	function playing(session, body, now) {
+		const room = tableOf(session, now);
+		const mine = Rooms.seatsOf(room, session.id);
+		const seat = body.seat ?? (mine.length === 1 ? mine[0] : undefined);
+		if (seat === undefined) {
+			throw new PlayerError('Choose the seat you are playing.');
+		}
+		return {
+			code: room.code,
+			seat,
+			shown: mine.includes(seat) ? seat : undefined,
+		};
+	}
+
+	/**
 	 * One endpoint's answer. The time is taken once the body has arrived, so a slow upload doesn't date it.
 	 * @param {string} name
 	 * @param {import('node:http').IncomingMessage} req
@@ -592,9 +732,7 @@ export function createApi(config) {
 						'Too many requests. Try again shortly.'
 					);
 				}
-				for (const code of Rooms.expireRooms(rooms, now)) {
-					wake(code);
-				}
+				expire(now);
 				if (openFrom(address) >= config.tablesPerAddress) {
 					throw new HttpError(
 						429,
@@ -685,14 +823,16 @@ export function createApi(config) {
 				return change(session, body, now, (room) =>
 					Rooms.end(room, session.id)
 				);
+			case 'settings':
+				return change(session, body, now, (room) =>
+					Rooms.settings(room, session.id, {
+						timer: body.timer,
+						undo: body.undo,
+					})
+				);
 			case 'move': {
-				const room = tableOf(session, now);
-				const mine = Rooms.seatsOf(room, session.id);
-				const seat =
-					body.seat ?? (mine.length === 1 ? mine[0] : undefined);
-				if (seat === undefined) {
-					throw new PlayerError('Choose the seat you are playing.');
-				}
+				const { code, seat, shown } = playing(session, body, now);
+				playDue(code, now);
 				return change(
 					session,
 					body,
@@ -705,7 +845,18 @@ export function createApi(config) {
 							body.action,
 							random
 						),
-					mine.includes(seat) ? seat : undefined
+					shown
+				);
+			}
+			case 'undo': {
+				const { code, seat, shown } = playing(session, body, now);
+				playDue(code, now);
+				return change(
+					session,
+					body,
+					now,
+					(current) => Rooms.undo(current, session.id, seat),
+					shown
 				);
 			}
 			case 'leave': {
@@ -774,9 +925,7 @@ export function createApi(config) {
 	 * @param {number} [now]
 	 */
 	function sweep(now = Date.now()) {
-		for (const code of Rooms.expireRooms(rooms, now)) {
-			wake(code);
-		}
+		expire(now);
 		const holders = seatHolders();
 		for (const [token, session] of [...sessions]) {
 			if (expired(session, now, holders)) {
@@ -788,10 +937,19 @@ export function createApi(config) {
 		logins.sweep(now);
 	}
 
+	/** Clears every table timer, for when the server closes. */
+	function close() {
+		for (const code of [...tableTimers.keys()]) {
+			stop(code);
+		}
+	}
+
 	return {
 		handle,
 		sweep,
 		waiting: () =>
 			[...waiters.values()].reduce((sum, list) => sum + list.size, 0),
+		timers: () => tableTimers.size,
+		close,
 	};
 }
