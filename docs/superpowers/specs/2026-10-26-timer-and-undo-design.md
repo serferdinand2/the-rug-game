@@ -137,18 +137,21 @@ The defender in a conquest is asked whenever they hold any card, so nobody learn
   - `askedSeats(state)`: the seats with an open decision.
   - `defaultAction(state, seat)`: the seat's first open decision with its first answer, as `{ decision, ...answer }`, or null.
   - `declineOnly(state)`: the ids of open `chooseResponse` decisions whose only answer is to decline, so `rooms.mjs` needs no decision kinds.
-  - `revealed(before, after)`: whether any hidden part changed or a new event carries a `secret`. It sits in `view.js`, beside what `view()` hides, so the two stay in step. A test checks that every field `view()` hides is one `revealed()` compares.
+  - `revealed(before, after)`: whether any hidden part changed or a new event carries a `secret`. It sits in `src/lib/engine/table.js` with the other table helpers **(my call, from the build)**. A test (`tests/engine-table.test.mjs`, "every part view() hides counts") checks that every field `view()` hides is one `revealed()` compares, so the two stay in step.
   - `timedOut(state, seat)`: a copy with the `timedOut` event added.
   - `restore(before, current, player)`: `before`, with its event numbers and decision ids carried on from `current`, and an `undone` event `{ type: 'undone', player, from }`, where `from` is the first event number taken back. Event numbers and decision ids keep rising, so a screen never mistakes new events for old ones, and a stale decision id never answers a new decision. **(my call)** The invariants' check of consecutive event numbers allows a gap just before an `undone` event.
-  - All are exported from `game.js`.
+  - All are in `table.js` and exported from `game.js`.
 - **`rooms.mjs`:**
   - `TIMERS` and `HISTORY_LIMIT` (20);
-  - `settings`, `undo` and `timeout`;
+  - `settings`, `undo` and `timeout(room, now, random, limit = AUTO_LIMIT)`, which plays what has run out and throws past `AUTO_LIMIT` (1,000), which can only be a bug;
+  - `scopeOf(game, seat)`: what a seat's clock covers, `setup`, `turn:<n>` for the turn's player or `asked:<n>` for anyone else, so `tick` knows when a clock carries over;
   - `tick(room, now, timing, random)`, which brings `clocks` and `declines` up to date after any change, and `nextDeadline(room)`. `timing` holds `minuteMs` and the decline range from `config`. Transitions carry `clocks` over as they are; `settings` empties them, and the undo history, when the timer changes, so `tick` starts fresh ones.
   - `play()` keeps the history. It counts the random numbers the engine draws through a wrapped `random`, and asks `revealed()`.
   - `start` and `end` clear the history and the clocks.
   - `roomView` adds `timer`, `undo`, `clocks`, `now` and `canUndo`.
 - **`api.mjs`:** the two endpoints, the table timers and `close()`.
+  - `playDue(code, now)` runs `timeout` when the table's deadline has passed and commits the result. If the answer changed nothing, it logs the error and the table keeps no timer until its next change.
+  - `createApi(config, { timeout })` takes the timeout function as a test seam, which defaults to `Rooms.timeout`.
 
 ## 11. Tests
 
