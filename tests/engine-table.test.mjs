@@ -17,7 +17,6 @@ import {
 	newGame,
 	startedGame,
 	readyTurn,
-	answer,
 	conquestGame,
 } from './helpers/engine.mjs';
 import { checkState } from './helpers/invariants.mjs';
@@ -180,4 +179,18 @@ test('timedOut adds one event and changes nothing else', () => {
 	assert.equal(events.length, state.events.length + 1);
 	assert.equal(state.events.at(-1)?.seq, state.seq);
 	checkState(next, state.seq);
+});
+
+test('checkState rejects an undone event whose numbers go backwards', () => {
+	const { state: before, random } = readyTurn(2);
+	const player = /** @type {number} */ (before.current);
+	const current = playDefault(before, random, player);
+	const restored = restore(before, current, player);
+	checkState(restored, current.seq);
+	const backwards = structuredClone(restored);
+	/** @type {any} */ (backwards.events.at(-1)).seq = before.seq;
+	assert.throws(() => checkState(backwards, 0));
+	const ahead = structuredClone(restored);
+	/** @type {any} */ (ahead.events.at(-1)).from = before.seq + 5;
+	assert.throws(() => checkState(ahead, 0));
 });

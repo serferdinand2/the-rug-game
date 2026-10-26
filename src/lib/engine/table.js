@@ -32,6 +32,9 @@ export function defaultAction(state, seat) {
 		return null;
 	}
 	const [first] = DECISIONS[decision.kind].answers(state, decision);
+	if (first === undefined) {
+		return null;
+	}
 	return { decision: decision.id, ...first };
 }
 
