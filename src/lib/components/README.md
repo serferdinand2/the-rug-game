@@ -102,6 +102,8 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | `player/CivilizationCard` | Fourteen reviewed recipes with empty/in-play example states |
 | `player/TechnologyCard` | Horizontal 425 px technology frame with full artwork, square/circle effects, conditions and edition badge |
 | `player/TapestryCard` | 319 px tapestry frame with timing beside the portrait, including the red Trap variant |
+| `player/TerritoryTile` | One small flat-topped territory tile in hand, drawn like the World Map's, with its number |
+| `player/CardFan` | Overlapping cards; hover or focus raises one and reports it for a full view |
 | `player/CardResource` | Native 24 px inline icon without changing row spacing |
 | `player/PlayerToken` | Five supplied shaded 32 px colour variants |
 | `player/CardSlot` | Compact, large or prediction square, never larger than 75 px |
