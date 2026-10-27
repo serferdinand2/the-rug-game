@@ -70,7 +70,11 @@
 			class="rg-progress-lanes--line"
 			style:--rg-progress-lanes-color={playerColor(lane.seat)}
 			style:--rg-progress-lanes-lane={lane.lane}
-			style:width="{lane.span.end * 100}%"
+			style:--rg-progress-lanes-end={lane.span.end}></i>
+		<i
+			class="rg-progress-lanes--marker"
+			style:--rg-progress-lanes-lane={lane.lane}
+			style:--rg-progress-lanes-end={lane.span.end}
 			><img
 				class="rg-progress-lanes--token"
 				src={playerPieceUrl('token', lane.seat)}
@@ -103,6 +107,7 @@
 	}
 
 	.rg-progress-lanes--line,
+	.rg-progress-lanes--marker,
 	.rg-progress-lanes--dash {
 		position: absolute;
 		top: calc(
@@ -112,20 +117,34 @@
 		height: var(--progress-line);
 	}
 
-	/* A line grows to its new space (#29); the reduced-motion tokens make it instant. */
+	/*
+	 * A line grows to its new space (#29). It is drawn full width and scaled, and its token
+	 * slides on a full-width marker, because a transform animates without laying out the
+	 * page again (#72). The reduced-motion tokens make both instant.
+	 */
 	.rg-progress-lanes--line {
 		left: 0;
+		width: 100%;
 		background: var(--rg-progress-lanes-color);
-		transition: width var(--duration-slow) var(--ease-out);
+		transform: scaleX(var(--rg-progress-lanes-end));
+		transform-origin: left;
+		transition: transform var(--duration-slow) var(--ease-out);
 		box-shadow: 0 0 0 var(--border)
 			color-mix(in srgb, var(--ink) 40%, transparent);
+	}
+
+	.rg-progress-lanes--marker {
+		left: 0;
+		width: 100%;
+		transform: translateX(calc(var(--rg-progress-lanes-end) * 100%));
+		transition: transform var(--duration-slow) var(--ease-out);
 	}
 
 	/* The approved player token stays centred at the same progress position. */
 	.rg-progress-lanes--token {
 		position: absolute;
 		top: calc(-1 * var(--progress-line));
-		right: calc(-1.5 * var(--progress-line));
+		left: calc(-1.5 * var(--progress-line));
 		width: calc(3 * var(--progress-line));
 		height: calc(3 * var(--progress-line));
 		border-radius: var(--radius);

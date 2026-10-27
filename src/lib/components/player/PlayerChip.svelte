@@ -137,19 +137,24 @@
 		background: transparent;
 	}
 
+	/*
+	 * A full-width strip, slid left until only the 29px square shows. Filling slides it across
+	 * the chip: a transform animates without laying out the page again (#72).
+	 */
 	.rg-player-chip--color {
 		position: absolute;
 		z-index: 0;
 		top: 0;
 		bottom: 0;
 		left: 0;
-		width: 29px;
+		width: 100%;
 		background: var(--rg-player-chip-color);
-		transition: width var(--duration-slow) var(--ease-out);
+		transform: translateX(calc(29px - 100%));
+		transition: transform var(--duration-slow) var(--ease-out);
 	}
 
 	.rg-player-chip--filled .rg-player-chip--color {
-		width: 100%;
+		transform: none;
 	}
 
 	.rg-player-chip--name {

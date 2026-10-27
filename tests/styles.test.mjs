@@ -229,6 +229,25 @@ test('reduced motion turns every motion duration off', () => {
 	}
 });
 
+test('the progress lines and the chip fill animate a transform, not the layout (#72)', () => {
+	for (const path of [
+		'lib/components/board/ProgressLanes.svelte',
+		'lib/components/player/PlayerChip.svelte',
+	]) {
+		const css = cssOf(path, read(`src/${path}`));
+		for (const [, value] of css.matchAll(
+			/transition(?:-property)?\s*:([^;]+);/g
+		)) {
+			assert.doesNotMatch(
+				value,
+				/(^|[\s,])(width|height|left|top)\b/,
+				path
+			);
+		}
+		assert.match(css, /transition:[^;]*\btransform\b/, path);
+	}
+});
+
 test('the font tokens name Cinzel for titles and Atkinson Hyperlegible for the rest', () => {
 	assert.match(tokens.get('--font-title') ?? '', /^'Cinzel', serif$/);
 	assert.match(
