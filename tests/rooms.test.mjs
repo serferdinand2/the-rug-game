@@ -1,5 +1,5 @@
 // Tests for the room transitions (#22): creating, configuring, joining, leaving, starting and playing at a table, with the timer and undo in the random steps (#24).
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	HISTORY_LIMIT,

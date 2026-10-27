@@ -1,5 +1,5 @@
 // The modular capital terrain set has complete, repeatable 32px tile variants and six base mats.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	CAPITAL_GRIDS,

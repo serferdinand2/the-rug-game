@@ -1,5 +1,5 @@
 // The global styles: tokens.css is the single source of the phase-one look, and the fonts are self-hosted.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

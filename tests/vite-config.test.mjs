@@ -1,5 +1,5 @@
 // The Vite setup: Svelte settings reach the build, and the dev server and proxy match the documented address and port.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';

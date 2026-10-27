@@ -1,5 +1,5 @@
 // Capital-grid geometry for the interface: footprints, legal positions and completed rows, columns and districts.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	GRID_SIZE,

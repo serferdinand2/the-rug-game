@@ -1,5 +1,5 @@
 // Tests for the THIS ERA tapestry cards (#19, design §8).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { contextFor, run, resolveEffects } from '../src/lib/engine/loop.js';
 import { openDecisions } from '../src/lib/engine/stack.js';

@@ -1,5 +1,5 @@
 // Track-space geometry for the interface: the pointed tile silhouette, its selected outline and the progress lines.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

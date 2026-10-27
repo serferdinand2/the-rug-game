@@ -53,11 +53,11 @@ art/                     Art toolkit (build time): painter, palette, scene parts
   gallery.js             Scene-part samples, review grouping and the drawing check, shared with the library page
 public/                  Vite build output, served by server.mjs (git-ignored)
 scripts/dev.mjs          Runs the Node server and Vite's dev server together (npm run dev)
-tests/                   node:test suites (*.test.mjs)
+tests/                   Vitest suites (*.test.mjs); tests/browser/ holds the Playwright tests
 docs/                    Research, design, plans, interface designs, art notes
 ```
 
-- `src/lib/**/*.js` and `art/**/*.js` import nothing from the DOM or Svelte, unless the file is a `.svelte.js` rune module. That way they run under `node --test`.
+- `src/lib/**/*.js` and `art/**/*.js` import nothing from the DOM or Svelte, unless the file is a `.svelte.js` rune module. That way they run under Vitest in Node.
 - `src/lib/` never imports from `art/`; the toolkit imports from `src/lib/art/`, not the other way round. Only the library page (`src/library/`) imports the toolkit, to show the art; the game never does.
 - The only files under `public/` are build output. Never edit them by hand.
 
@@ -561,7 +561,8 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 
 ## Tests
 
-- Use `node:test` with `node:assert/strict`. Test files are `tests/<area>.test.mjs`.
+- Use Vitest (`import { test } from 'vitest'`) with `node:assert/strict`; new tests may use `expect`. Test files are `tests/<area>.test.mjs`; `vite.config.js`'s `test` block runs them in Node, after a global setup that builds `public/` (#55).
+- Browser tests use Playwright in Chromium only: `tests/browser/<page>.test.mjs`, run by `npm run test:e2e` against `npm run dev`. Find elements by role and accessible name, or by `data-id`.
 - Test names are plain sentences describing the behaviour, such as `'the first player into tier II takes the landmark'`.
 - Write tests first: watch a test fail, then make it pass.
 - **Engine:**
@@ -569,7 +570,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
   - randomized full-game tests check that cards, tiles and tokens are all still accounted for, and that `view()` leaks nothing private: `tests/simulation.test.mjs` uses `checkState()` from `tests/helpers/invariants.mjs` and `checkViews()` from `tests/helpers/views.mjs`, and a change that adds a card, tile, piece or deck adds it there too;
   - seeds are printed on failure.
 - **Server:** tests import `server` and listen on port 0. Never use fixed ports.
-- **Client:** logic lives in plain modules that `node --test` can import. Components stay thin enough that `npm run check`, `tests/library.test.mjs` and a look at the library page cover them.
+- **Client:** logic lives in plain modules that Vitest can import. Components stay thin enough that `npm run check`, `tests/library.test.mjs` and the browser tests cover them; each new screen gets a browser test in `tests/browser/`.
 
 ## Commits, issues and documentation
 

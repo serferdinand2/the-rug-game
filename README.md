@@ -84,7 +84,8 @@ You need Node.js 22.12 or newer. The only packages are development tools (Svelte
 npm install
 npm start      # builds the Svelte client, then serves http://127.0.0.1:3020
 npm run dev    # hot-reloading development server on http://127.0.0.1:5173 (the component library is /components.html)
-npm test
+npx playwright install chromium   # once, for the browser tests
+npm test       # Vitest, then Playwright in Chromium
 ```
 
 Copy [.env.example](.env.example) to `.env` to change the host or port, or to trust a reverse proxy. The app opens on the landing page, where you create or join a table and play it.

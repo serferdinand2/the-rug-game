@@ -1,5 +1,5 @@
 // Tapestry cards (#9): one full 64×64 scene per card, no two alike.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';

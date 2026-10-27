@@ -1,5 +1,5 @@
 // Your overview (#26): the viewer's name, era, VP, resources and counts, from their own view.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { view } from '../src/lib/engine/game.js';
 import { selfSummary } from '../src/lib/overview.js';

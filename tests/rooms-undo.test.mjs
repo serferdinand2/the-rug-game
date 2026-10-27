@@ -1,5 +1,5 @@
 // Tests for taking back choices at a table (#24): the undo history, what closes it, and undo's refusals.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	HISTORY_LIMIT,

@@ -1,5 +1,5 @@
 // Space tiles (#11): one full 64×64 picture per space tile, no two alike.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';

@@ -1,5 +1,5 @@
 // Tests for the civilizations that act when they come into play: Futurists, Mystics and Architects (#20, design §5, §7).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run, resolveEffects } from '../src/lib/engine/loop.js';

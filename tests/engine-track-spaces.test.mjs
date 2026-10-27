@@ -1,5 +1,5 @@
 // Tests for all 48 track spaces, each reached by an advance turn, and for the landmark race (#14).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { buildingSpots } from '../src/lib/engine/city.js';
 import { openDecisions } from '../src/lib/engine/stack.js';

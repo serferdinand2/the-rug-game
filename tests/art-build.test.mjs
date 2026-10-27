@@ -1,5 +1,5 @@
 // The art build: drawings become committed SVGs in static/art, kept in step with the catalog and the code.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';

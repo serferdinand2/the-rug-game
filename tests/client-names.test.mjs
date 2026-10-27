@@ -1,5 +1,5 @@
 // The names a blank name field gets (#25): one of Lazar's first parts and one of his endings.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { FIRST_PARTS, ENDINGS, generateName } from '../src/lib/names.js';
 

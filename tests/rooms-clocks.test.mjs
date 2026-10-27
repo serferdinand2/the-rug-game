@@ -1,5 +1,5 @@
 // Tests for a table's timer and undo settings, its clocks, timeouts and the server's scheduled declines (#24).
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	AUTO_LIMIT,

@@ -1,5 +1,5 @@
 // Tests for income step 2: the first-of-neighbours bonus and playing the era's tapestry card (#15).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { resolveEffects } from '../src/lib/engine/loop.js';

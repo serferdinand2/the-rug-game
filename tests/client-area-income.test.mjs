@@ -1,5 +1,5 @@
 // The player area's income mat and era slots (#27): rows and slots from a seat in the game view.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { view } from '../src/lib/engine/game.js';
 import { eraSlots, incomeRows } from '../src/lib/area/income.js';

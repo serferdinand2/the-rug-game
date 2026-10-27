@@ -1,5 +1,5 @@
 // Tests for what the table needs from the engine: the turn number, who is asked, default answers, decline-only responses, revealed(), timedOut() and restore() (#24).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	askedSeats,

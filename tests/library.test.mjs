@@ -1,5 +1,5 @@
 // The component library: every component follows CONVENTIONS.md and appears on the library page with its states.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

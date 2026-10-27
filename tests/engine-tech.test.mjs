@@ -1,5 +1,5 @@
 // Tests for the tech deck and display, inventing, upgrading and card benefits (#18, 01 §8, FAQ #6, #8, #11 and #24).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run, contextFor } from '../src/lib/engine/loop.js';

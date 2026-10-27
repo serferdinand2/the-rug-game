@@ -1,5 +1,5 @@
 // The browser's API client (#25): sign-in, errors, the 409 retry and where a returning person lands, on a server at port 0.
-import test, { before, after } from 'node:test';
+import { afterAll, beforeAll, test } from 'vitest';
 import assert from 'node:assert/strict';
 import { server, config } from '../server.mjs';
 import { ApiError, createApi, withSession } from '../src/lib/api.js';
@@ -10,7 +10,7 @@ import { myDecision } from '../src/lib/turn.js';
 
 let base = '';
 
-before(async () => {
+beforeAll(async () => {
 	await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 	const address = /** @type {import('node:net').AddressInfo} */ (
 		server.address()
@@ -21,7 +21,7 @@ before(async () => {
 	config.apiLimit = 100_000;
 	config.tablesPerAddress = 10_000;
 });
-after(() => {
+afterAll(() => {
 	server.closeAllConnections();
 	server.close();
 });

@@ -11,3 +11,5 @@ Thumbs.db
 .superpowers/
 /public/
 
+test-results/
+playwright-report/

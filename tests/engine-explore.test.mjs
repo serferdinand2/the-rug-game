@@ -1,5 +1,5 @@
 // Tests for exploring: the explore effect, the chooseExplore decision and the tile's score and benefit (#17; R5, FAQ #19).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';

@@ -1,5 +1,5 @@
 // Which player tab a decision opens (#27 design §5).
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { TABS, tabFor } from '../src/lib/area/tabs.js';
 

@@ -1,5 +1,5 @@
 // Landmark footprints: the plots each landmark covers, and the check that a landmark's picture covers exactly those.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import {

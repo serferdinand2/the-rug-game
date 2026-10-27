@@ -1,5 +1,5 @@
 // Tests for the explore choices of the map prompt (#28): each tile in each turn on a hex, with the VP it scores.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { matchingSides, openDecisions, view } from '../src/lib/engine/game.js';
 import { push } from '../src/lib/engine/stack.js';

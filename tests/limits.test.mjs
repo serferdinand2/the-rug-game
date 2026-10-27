@@ -1,5 +1,5 @@
 // Rate limits and client addresses, tested without a running server.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { rateLimiter, clientAddress, addressKey } from '../limits.mjs';
 

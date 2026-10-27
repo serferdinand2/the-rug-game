@@ -64,7 +64,7 @@ From the sibling projects (owner: "same setup and approach"):
   - `PlayerError` carries the messages meant for players.
   - Clients long-poll `GET /api/state?since=<version>`, and stale moves are rejected with 409.
 - **Tests and config:**
-  - Tests run with `node --test`, and GitHub Actions runs them too.
+  - Tests run with Vitest in Node and Playwright in Chromium, as SurveyPlanet's `svelte_components` runs its own (#55, which replaced the first choice of `node --test`), and GitHub Actions runs them too.
   - The rate limits and `.env` settings work like Fablewood's.
 - **Art and licence:**
   - Phase-one UI fonts (2026-10-21): Cinzel for named game elements and Atkinson Hyperlegible for players, instructions, controls and data. Both are self-hosted in `static/fonts/` with their SIL Open Font License notices. Alagard and VCR OSD Mono are kept only for the archived mockup.

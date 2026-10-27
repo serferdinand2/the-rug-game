@@ -1,5 +1,5 @@
 // Tests for the simpler WHEN PLAYED tapestry cards (#19, design §8).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { play } from '../src/lib/engine/play.js';
 import { openDecisions } from '../src/lib/engine/stack.js';

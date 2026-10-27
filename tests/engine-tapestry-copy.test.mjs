@@ -1,5 +1,5 @@
 // Tests for Espionage, which copies the ability of a visible tapestry card (#19, design §7).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';

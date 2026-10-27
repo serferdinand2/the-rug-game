@@ -1,5 +1,5 @@
 // Tests for the order of a benefit's parts, and for choosing between options (#14).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';

@@ -1,5 +1,5 @@
 // Tests for the client's turn-clock helpers (#26): time left, corrected to the server's time.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { formatClock, timeLeft } from '../src/lib/clock.js';
 

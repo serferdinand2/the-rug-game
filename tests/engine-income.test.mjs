@@ -1,5 +1,5 @@
 // Tests for the income turn's steps by income turn number: abilities, upgrade, scoring, income and finishing (#15).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { buildingSpots } from '../src/lib/engine/city.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
@@ -166,7 +166,7 @@ test('resources from income stop at 8', () => {
 test("an income step added after 'finish' fails loudly instead of doing nothing", (t) => {
 	INCOME_STEPS.push('late');
 	INCOME_STEP_KINDS.late = { turns: [5], run: () => {} };
-	t.after(() => {
+	t.onTestFinished(() => {
 		INCOME_STEPS.pop();
 		delete INCOME_STEP_KINDS.late;
 	});

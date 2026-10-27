@@ -1,6 +1,6 @@
-// Vite builds the Svelte app (index.html and src/) into public/, which server.mjs serves.
+// Vite builds the Svelte app (index.html and src/) into public/, which server.mjs serves; Vitest runs tests/ (#55).
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 
 // npm run dev starts the server with .env; load it here too, so the dev proxy targets the same port.
@@ -39,5 +39,17 @@ export default defineConfig({
 		proxy: {
 			'/api': `http://127.0.0.1:${process.env.PORT || 3020}`,
 		},
+	},
+	// The Node suites (#55). The browser tests in tests/browser/ are Playwright's.
+	test: {
+		include: ['tests/*.test.mjs'],
+		environment: 'node',
+		// Builds public/ once, for the suites that read the build.
+		globalSetup: ['tests/helpers/build.mjs'],
+		// Random full games and the simulation run for seconds, not milliseconds; a hang still stops at CI's limit.
+		testTimeout: 5 * 60_000,
+		hookTimeout: 2 * 60_000,
+		// node:test put back every mocked method after its test; Vitest does so with this.
+		restoreMocks: true,
 	},
 });

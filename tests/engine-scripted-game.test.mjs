@@ -1,6 +1,6 @@
 // A scripted 2-player game from setup to the end, with income and advance turns (#15) and real tapestry cards (#19).
 // Every expected value was worked out by hand first.
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';

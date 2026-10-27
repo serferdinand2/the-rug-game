@@ -1,5 +1,5 @@
 // The table API over HTTP (#23): sessions, the endpoints, version checks and long polling, on a server at port 0.
-import test, { before, after } from 'node:test';
+import { afterAll, beforeAll, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { server, config, api } from '../server.mjs';
@@ -11,7 +11,7 @@ let base = '';
 /** The limits as the server starts with them, restored after each test that changes one. */
 const defaults = { ...config };
 
-before(async () => {
+beforeAll(async () => {
 	await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 	const address = /** @type {import('node:net').AddressInfo} */ (
 		server.address()
@@ -23,7 +23,7 @@ before(async () => {
 	config.apiLimit = 100_000;
 	config.tablesPerAddress = 10_000;
 });
-after(() => {
+afterAll(() => {
 	server.closeAllConnections();
 	server.close();
 });
@@ -1055,7 +1055,7 @@ test('a seat at a finished table no longer keeps its session alive', async () =>
 });
 
 test('a client that drops its request mid-upload is no server fault', async (t) => {
-	const errors = t.mock.method(console, 'error', () => {});
+	const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
 	const { token } = await login('Ana');
 	const address = /** @type {import('node:net').AddressInfo} */ (
 		server.address()
@@ -1079,16 +1079,16 @@ test('a client that drops its request mid-upload is no server fault', async (t) 
 		}, 50);
 	});
 	await pause(100);
-	assert.equal(errors.mock.callCount(), 0);
+	assert.equal(errors.mock.calls.length, 0);
 });
 
 test('an X-Forwarded-For header without TRUST_PROXY warns once', async (t) => {
-	const warnings = t.mock.method(console, 'warn', () => {});
+	const warnings = vi.spyOn(console, 'warn').mockImplementation(() => {});
 	for (let i = 0; i < 2; i++) {
 		await fetch(`${base}config`, {
 			headers: { 'X-Forwarded-For': '203.0.113.9' },
 		});
 	}
-	assert.equal(warnings.mock.callCount(), 1);
-	assert.match(String(warnings.mock.calls[0].arguments[0]), /TRUST_PROXY/);
+	assert.equal(warnings.mock.calls.length, 1);
+	assert.match(String(warnings.mock.calls[0][0]), /TRUST_PROXY/);
 });

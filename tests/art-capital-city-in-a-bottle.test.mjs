@@ -1,5 +1,5 @@
 // The City in a Bottle capital terrain (#6): 14 distinct full-bleed tiles and an example mat that follows the printed layout.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import * as pinned from '../art/parts/capital-biomes/city-in-a-bottle.js';
 import {

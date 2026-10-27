@@ -1,5 +1,5 @@
 // Tests for moving a token: landmarks, activating a space, and the optional bonus (#14).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { contextFor, run } from '../src/lib/engine/loop.js';
 import { moveToken, isActivated } from '../src/lib/engine/movement.js';

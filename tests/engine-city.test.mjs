@@ -1,5 +1,5 @@
 // Tests for the capital city's plots and legal places (#16; R13–R15).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	CAPITAL_MATS,

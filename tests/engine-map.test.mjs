@@ -1,5 +1,5 @@
 // Tests for the map rules: matching sides, legal explore and conquer hexes (#17; R5, R16).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { MAPS, hexNeighbours } from '../src/lib/engine/data/maps.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';

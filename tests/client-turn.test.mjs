@@ -1,6 +1,6 @@
 // The viewer's part in the turn (#26): the client's preview of legal advances and payments, run by the engine on the
 // viewer's own view, and which open decision is the viewer's.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	DECISIONS,

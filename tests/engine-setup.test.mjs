@@ -1,5 +1,5 @@
 // Tests for createGame and the setup decisions (#13, task 3).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { createGame } from '../src/lib/engine/setup.js';
 import {
@@ -404,7 +404,7 @@ test('the setup decisions list answers that pass their own check', () => {
 test("an after-setup step added after 'start' fails loudly instead of never running", (t) => {
 	AFTER_SETUP.push('late');
 	AFTER_SETUP_STEPS.late = () => {};
-	t.after(() => {
+	t.onTestFinished(() => {
 		AFTER_SETUP.pop();
 		delete AFTER_SETUP_STEPS.late;
 	});

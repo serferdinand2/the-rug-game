@@ -1,5 +1,5 @@
 // Tests for the simulation's own checks: they pass on real games and catch every planted break (#21 design §5).
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { checkState } from './helpers/invariants.mjs';
 import { allOps } from './helpers/views.mjs';
@@ -211,7 +211,7 @@ test('a failing game names its seed and how to replay it', () => {
 			);
 			assert.match(
 				error.message,
-				/Replay: SIM_SEED=1 node --test tests\/simulation.test.mjs$/
+				/Replay: SIM_SEED=1 npx vitest run tests\/simulation.test.mjs$/
 			);
 			return true;
 		}

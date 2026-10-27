@@ -1,5 +1,5 @@
 // Every base tech card's circle and square run to the end (#18, 02 §4).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { run, contextFor } from '../src/lib/engine/loop.js';
 import { upgradeCard } from '../src/lib/engine/effects/tech.js';

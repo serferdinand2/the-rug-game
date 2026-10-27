@@ -1,5 +1,5 @@
 // The World Map's geometry (#26): hex positions and corners, terrain wedges, the island, the pieces and the fit.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	HEX_SIZE,

@@ -1,5 +1,5 @@
 // Tests for placing income buildings in the capital city and paying district rewards (#16).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run, resolveEffects, contextFor } from '../src/lib/engine/loop.js';

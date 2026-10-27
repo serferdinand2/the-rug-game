@@ -1,5 +1,5 @@
 // Landmarks (#7): each one is a single picture drawn in its footprint's shape, used on its card and on the board.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';

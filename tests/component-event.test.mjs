@@ -1,5 +1,5 @@
 // ComponentEvent: the value every Svelte callback prop receives.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { ComponentEvent } from '../src/lib/component-event.js';
 

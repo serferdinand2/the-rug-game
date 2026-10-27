@@ -1,5 +1,5 @@
 // Landmark placement on the capital grid: pieces as occupied plots, snapping, keyboard moves, turning and the drawn outline.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	pieceShape,

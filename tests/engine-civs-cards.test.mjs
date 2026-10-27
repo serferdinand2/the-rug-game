@@ -1,5 +1,5 @@
 // Tests for the civilizations that work with cards and landmarks: Heralds, Historians and Inventors (#20, design §7).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run, resolveEffects } from '../src/lib/engine/loop.js';
@@ -422,7 +422,7 @@ test('current Heralds draw until a WHEN PLAYED card and may play one but not Ren
 			},
 		},
 	};
-	t.after(() => {
+	t.onTestFinished(() => {
 		delete CIVS.watcher;
 	});
 	firstIncomeTurn(['academia', 'trap-1'], { civs: ['heralds', 'watcher'] });
@@ -922,7 +922,7 @@ test("Inventors take an opponent's marked card when the opponent upgrades it to 
 			},
 		},
 	};
-	t.after(() => {
+	t.onTestFinished(() => {
 		delete CIVS.watcher;
 	});
 

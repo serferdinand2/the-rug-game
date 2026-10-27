@@ -1,5 +1,5 @@
 // Tests for conquering: the conquer effect, chooseConquer, the dice and the black die's "?" (#17; R8, R16, R17, R107).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';

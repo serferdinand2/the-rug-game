@@ -1,5 +1,5 @@
 // The prompt model (#28): what the decision panel draws for each open decision, from the viewer's own view.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	DECISIONS,

@@ -1,5 +1,5 @@
 // The lobby's rules for the screen (#25): five seat slots, who may change what, and the labels of the choices.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	VARIANT_LABELS,

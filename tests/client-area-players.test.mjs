@@ -1,5 +1,5 @@
 // The players overview's cards (#27 design §4): public facts only, the viewer and host marked.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { view } from '../src/lib/engine/game.js';
 import { playerCards } from '../src/lib/area/players.js';
