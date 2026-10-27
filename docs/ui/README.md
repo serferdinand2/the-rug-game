@@ -389,7 +389,7 @@ The component library now uses the issue #5 SVG artwork in resource symbols, inc
 
 ## Civilization cards: owner decisions and components (2026-10-24)
 
-[Card design rules](card-design-rules.md) is the extensive generation specification: latest accepted sizes, palette, typography, artwork, square placements, inline resources, covered rewards, legal connectors, prediction/scoring boxes and fourteen pattern recipes. It supersedes the older 456 px width and the discarded resource-circle experiments.
+[Card design rules](card-design-rules.md) is the extensive generation specification: latest accepted sizes, palette, typography, artwork, square placements, inline resources, covered rewards, legal connectors, prediction/scoring boxes and the civilization pattern recipes. It supersedes the older 456 px width and the discarded resource-circle experiments.
 
 [The card review](collectors-review.html) now renders the same Svelte components as `/components.html#civilization-card`, including empty/in-play examples. It is a production build entry as well as a development URL. The previous static implementation is archived in `archive/2026-10-24-civilization-review.html`.
 

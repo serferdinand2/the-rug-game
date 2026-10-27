@@ -28,6 +28,26 @@
 	import CardTokenReserve from './CardTokenReserve.svelte';
 	import PlayerToken from './PlayerToken.svelte';
 	import { civilizationName } from '../../describe.js';
+	import '../../engine/game.js';
+	import { entertainersMoves } from '../../engine/civs/entertainers.js';
+
+	/** The Entertainers' links, drawn from the engine's own moves (R28), so the card never shows a link it refuses. */
+	const ENTERTAINER_ROW_Y = [37.5, 119.5, 201.5, 283.5];
+	const ENTERTAINER_GAPS = [
+		[75, 108.67],
+		[183.67, 217.33],
+		[292.33, 326],
+	];
+	const ENTERTAINER_LINKS = ENTERTAINER_GAPS.map(([from, to], index) =>
+		[1, 2, 3, 4]
+			.flatMap((row) =>
+				entertainersMoves(`c${index + 1}r${row}`).map(
+					(id) =>
+						`M${from} ${ENTERTAINER_ROW_Y[row - 1]}L${to} ${ENTERTAINER_ROW_Y[Number(id.split('r')[1]) - 1]}`
+				)
+			)
+			.join(' ')
+	);
 	/** @type {CivilizationCardProps} */
 	let { id = 'collectors', state = 'empty', ...attr } = $props();
 </script>
@@ -200,8 +220,11 @@
 			<CardClarity
 				><p class="rg-card-fine">
 					Each qualifying district, row or column needs at least one
-					income building. Setup: place one impassable plot per
-					opponent, each in a different district.
+					income building. If gained mid-game, you may swap the places
+					of 2 income buildings in your capital, up to 3 times.<br /><span
+						class="rg-card-setup"
+						>Setup, current rules: place one impassable plot per
+						opponent, each in a different district.</span>
 				</p></CardClarity>
 		</CardFrame>
 	{:else if id === 'leaders'}
@@ -209,13 +232,13 @@
 			title="Leaders"
 			portrait="/art/civ/leaders.svg"
 			portraitAlt="Leaders civilization portrait"
-			badges={['Base game', 'Arts & Architecture']}
+			badges={['Base game']}
 			complexity={1}
 			{state}
 			class="rg-card-frame--leaders">
-			{#snippet effect()}At the start of income turns 2–5, cover one
-				unused track space. Advance on that track for free and gain its
-				benefit.{/snippet}
+			{#snippet effect()}At the start of income turns 2–5, you may cover
+				one unused track space. Advance on that track for free and gain
+				its benefit.{/snippet}
 
 			<CardPlacementRows
 				kind="leaders"
@@ -256,21 +279,11 @@
 							alt="" /></CardSlot
 					><span>Military</span>
 				</li>
-				<li class="rg-card-leader-track">
-					<CardSlot
-						size={75}
-						label="arts placement"
-						><img
-							src="/art/track/arts.svg"
-							alt="" /></CardSlot
-					><span>Arts</span>
-				</li>
 			</CardPlacementRows>
 			<CardClarity
 				><p class="rg-card-fine">
 					Each track space can be used once. This advance gains the
-					benefit, but cannot gain its bonus. The Arts space is
-					available with the expansion.
+					benefit, but cannot gain its bonus.
 				</p></CardClarity>
 		</CardFrame>
 	{:else if id === 'treasure-hunters'}
@@ -528,15 +541,9 @@
 						viewBox="0 0 401 321"
 						preserveAspectRatio="none"
 						aria-hidden="true">
-						<path
-							d="M75 37.5L108.67 37.5 M75 119.5L108.67 119.5 M75 201.5L108.67 201.5 M75 283.5L108.67 283.5 M75 37.5L108.67 119.5 M75 119.5L108.67 37.5 M75 119.5L108.67 201.5 M75 201.5L108.67 119.5 M75 201.5L108.67 283.5 M75 283.5L108.67 201.5"
-						></path>
-						<path
-							d="M183.67 37.5L217.33 37.5 M183.67 119.5L217.33 119.5 M183.67 201.5L217.33 201.5 M183.67 283.5L217.33 283.5 M183.67 37.5L217.33 119.5 M183.67 119.5L217.33 37.5 M183.67 201.5L217.33 283.5 M183.67 283.5L217.33 201.5"
-						></path>
-						<path
-							d="M292.33 37.5L326 37.5 M292.33 119.5L326 119.5 M292.33 201.5L326 201.5 M292.33 283.5L326 283.5 M292.33 37.5L326 119.5 M292.33 119.5L326 37.5 M292.33 119.5L326 201.5 M292.33 201.5L326 119.5 M292.33 201.5L326 283.5 M292.33 283.5L326 201.5"
-						></path>
+						{#each ENTERTAINER_LINKS as d, index (index)}
+							<path {d}></path>
+						{/each}
 					</svg>
 					<CardSlot
 						size={75}
@@ -626,7 +633,11 @@
 			<CardClarity
 				><p class="rg-card-fine">
 					If gained mid-game, place the token on any reward space and
-					gain it immediately.
+					gain it immediately.<br /><span class="rg-card-setup"
+						>Setup, current rules: gain
+						<CardResource
+							symbol="any"
+							class="rg-card-resource-icon--fine" /> and 10 VP.</span>
 				</p></CardClarity>
 		</CardFrame>
 	{:else if id === 'militants'}
@@ -745,9 +756,10 @@
 			</div>
 			<CardClarity
 				><p class="rg-card-fine">
-					Start with 8 outposts here and 2 on your capital. If you
-					gain this civilization mid-game, refill spaces from right to
-					left, choosing either row for each remaining outpost.
+					Start with 8 outposts here and 2 on your starting territory.
+					If you gain this civilization mid-game, refill spaces from
+					right to left, choosing either row for each remaining
+					outpost.
 				</p></CardClarity>
 		</CardFrame>
 	{:else if id === 'mystics'}
@@ -908,7 +920,12 @@
 				><p class="rg-card-fine">
 					If gained mid-game, discard this civilization and gain
 					another. This is the original prediction mat; the revised
-					Mystics ability uses a different system.
+					Mystics ability uses a different system.<br /><span
+						class="rg-card-setup"
+						>Setup, current rules: gain
+						<CardResource
+							symbol="any"
+							class="rg-card-resource-icon--fine" />.</span>
 				</p></CardClarity>
 		</CardFrame>
 	{:else if id === 'alchemists'}
@@ -996,7 +1013,11 @@
 			<CardClarity
 				><p class="rg-card-fine">
 					Tokens mark only rolls from this activation; remove them
-					after stopping or busting.
+					after stopping or busting.<br /><span class="rg-card-setup"
+						>Setup, current rules: gain
+						<CardResource
+							symbol="any"
+							class="rg-card-resource-icon--fine" /> and 10 VP.</span>
 				</p></CardClarity>
 		</CardFrame>
 	{:else if id === 'isolationists'}
@@ -1025,22 +1046,22 @@
 			</div>
 			<div class="rg-card-isolation-score">
 				<div class="rg-card-isolation-score--title">
-					Final income turn · largest connected landmass of one
-					terrain
+					Final income turn · territories in your largest connected
+					landmass of one terrain
 				</div>
 				<div class="rg-card-isolation-score--ladder">
 					<span class="rg-card-isolation-score--step"
-						><small>1 tile</small>5 VP</span
+						><small>1</small>5 VP</span
 					><span class="rg-card-isolation-score--step"
-						><small>2 tiles</small>10 VP</span
+						><small>2</small>10 VP</span
 					><span class="rg-card-isolation-score--step"
-						><small>3 tiles</small>16 VP</span
+						><small>3</small>16 VP</span
 					><span class="rg-card-isolation-score--step"
-						><small>4 tiles</small>23 VP</span
+						><small>4</small>23 VP</span
 					><span class="rg-card-isolation-score--step"
-						><small>5 tiles</small>31 VP</span
+						><small>5</small>31 VP</span
 					><span class="rg-card-isolation-score--step"
-						><small>6 tiles</small>40 VP</span>
+						><small>6+</small>40 VP</span>
 				</div>
 				<div class="rg-card-isolation-score--example">
 					<img
@@ -1049,14 +1070,16 @@
 						src="/art/terrain/grassland.svg"
 						alt="" /><img
 						src="/art/terrain/grassland.svg"
-						alt="" /><span>3 connected grassland</span><b
-						>= 16 VP</b>
+						alt="" /><span>3 connected grassland territories</span
+					><b>= 16 VP</b>
 				</div>
 			</div>
 			<CardClarity
 				><p class="rg-card-fine">
 					Only land territories you control count; water does not form
-					a landmass. The middle island is not a wildcard.
+					a landmass. The middle island is not a wildcard.<br /><span
+						class="rg-card-setup"
+						>Setup, current rules: gain 2 territory tiles.</span>
 				</p></CardClarity>
 		</CardFrame>
 	{:else if id === 'traders'}
@@ -1079,8 +1102,8 @@
 					{#snippet symbol()}<span class="rg-card-trader-hex"></span
 						>{/snippet}<b>Empty territory</b><span
 						>Gain 1 VP per adjacent opponent-controlled territory.
-						If an opponent later conquers it, gain an unselected
-						conquer-die benefit.</span
+						If an opponent later conquers it, you may gain the
+						benefit of an unselected conquer die.</span
 					></CardEffectBox>
 				<CardEffectBox>
 					{#snippet symbol()}<span class="rg-card-trader-hex"
@@ -1088,14 +1111,18 @@
 								src="/art/piece/outpost-red.svg"
 								alt="" /></span
 						>{/snippet}<b>One opponent outpost</b><span
-						>Gain the territory&#x27;s printed benefit, if it has
-						one.</span
+						>Gain the benefit printed on its territory tile, if it
+						has one.</span
 					></CardEffectBox>
 			</div>
 			<CardClarity
 				><p class="rg-card-fine">
 					A territory with two tokens of any kind cannot be conquered.
-					The token placement is not a conquer action.
+					The token placement is not a conquer action.<br /><span
+						class="rg-card-setup"
+						>Setup, current rules: gain 2 <CardResource
+							symbol="any"
+							class="rg-card-resource-icon--fine" /> and 10 VP.</span>
 				</p></CardClarity>
 		</CardFrame>
 	{:else if id === 'merrymakers'}
@@ -1193,7 +1220,12 @@
 				><p class="rg-card-fine">
 					Each column starts with one token below its lowest square.
 					Double rewards grant both items; Explore and Research
-					include their benefits. This shows the original mat.
+					include their benefits. This shows the original mat.<br /><span
+						class="rg-card-setup"
+						>Setup, current rules: gain
+						<CardResource
+							symbol="any"
+							class="rg-card-resource-icon--fine" />.</span>
 				</p></CardClarity>
 		</CardFrame>
 	{:else if id === 'historians'}
@@ -1282,15 +1314,198 @@
 					{#snippet symbol()}Top row{/snippet}<b
 						>When their marked card reaches the top</b
 					><span
-						>They gain the benefit first; you may gain it too. Then
-						take the card into your bottom row, keeping your token
-						on it.</span
+						>They gain the benefit first; under the original rules
+						you may gain it too, under the current rules only if
+						your own token moved it there. Then take the card into
+						your bottom row, keeping your token on it.</span
 					></CardEffectBox>
 			</div>
 			<CardClarity
 				><p class="rg-card-fine">
 					On your own card, gain the upgrade benefit normally. A
 					landmark already claimed by the opponent gives you nothing.
+				</p></CardClarity>
+		</CardFrame>
+	{:else if id === 'futurists'}
+		<!-- 02-base-content §1.2; current rules' adjustment D (§2.2), at the end of income turn 1 (#20 design). -->
+		<CardFrame
+			title="Futurists"
+			portrait="/art/civ/futurists.svg"
+			portraitAlt="Futurists civilization portrait"
+			badges={['Base game']}
+			complexity={3}
+			{state}
+			class="rg-card-frame--futurists">
+			{#snippet effect()}When you gain this civilization, at setup or
+				during the game, jump ahead on every advancement track at once.{/snippet}
+
+			<div class="rg-card-ability-list">
+				<CardEffectBox>
+					{#snippet symbol()}<span class="rg-card-track-quad"
+							><img
+								src="/art/track/exploration.svg"
+								alt="" /><img
+								src="/art/track/science.svg"
+								alt="" /><img
+								src="/art/track/technology.svg"
+								alt="" /><img
+								src="/art/track/military.svg"
+								alt="" /></span
+						>{/snippet}<b>Head start</b><span
+						>Advance exactly <strong>4 spaces</strong> on each of the
+						four tracks, without their benefits, bonuses or landmarks.
+						The end of a track is the limit.</span
+					></CardEffectBox>
+				<CardEffectBox>
+					{#snippet symbol()}<span class="rg-card-resource-quad"
+							><CardResource symbol="coin" /><CardResource
+								symbol="worker" /><CardResource
+								symbol="food" /><CardResource
+								symbol="culture" /></span
+						>{/snippet}<b>Supplies</b><span
+						>Gain 1 of each resource.</span
+					></CardEffectBox>
+			</div>
+			<CardClarity
+				><p class="rg-card-fine">
+					A landmark you jump past stays on its track; you gain it
+					only by later advancing onto its space.<br /><span
+						class="rg-card-setup"
+						>Current rules: at the end of your first income turn,
+						lose 1 culture and 1 other resource of your choice.</span>
+				</p></CardClarity>
+		</CardFrame>
+	{:else if id === 'heralds'}
+		<!-- 02-base-content §1.2; current rules' adjustment D (§2.2), at the end of income turn 1 (#20 design). -->
+		<CardFrame
+			title="Heralds"
+			portrait="/art/civ/heralds.svg"
+			portraitAlt="Heralds civilization portrait"
+			badges={['Base game']}
+			complexity={1}
+			{state}
+			class="rg-card-frame--heralds">
+			{#snippet effect()}At the start of income turns 2–5, you may move
+				one of these tokens onto a When Played tapestry card, yours or
+				an opponent&#x27;s, and gain its benefit.{/snippet}
+
+			<CardTokenReserve
+				count={4}
+				used={state === 'play' ? 1 : 0} />
+			<div class="rg-card-ability-list">
+				<CardEffectBox>
+					{#snippet symbol()}<span
+							class="rg-card-mini-card rg-card-mini-card--tapestry"
+							><img
+								src="/art/tapestry/renaissance.svg"
+								alt="" /></span
+						>{/snippet}<b>Copy a card</b><span
+						>Only the top card of a slot can be chosen, and each
+						card holds at most one token.</span
+					></CardEffectBox>
+				<CardEffectBox>
+					{#snippet symbol()}<span
+							class="rg-card-mini-card rg-card-mini-card--tapestry rg-card-era-numeral"
+							title="Maker of Fire, era I"><b>I</b></span
+						>{/snippet}<b>Started with the Heralds</b><span
+						>At the end of your first income turn, you may play a
+						tapestry card on top of Maker of Fire.</span
+					></CardEffectBox>
+			</div>
+			<CardClarity
+				><p class="rg-card-fine">
+					<span class="rg-card-setup"
+						>Current rules: instead, at the end of your first income
+						turn draw tapestry cards until you find a When Played
+						card, and discard the others. You may play that card on
+						Maker of Fire, unless it is Renaissance.</span>
+				</p></CardClarity>
+		</CardFrame>
+	{:else if id === 'nomads'}
+		<!-- 02-base-content §1.2; no adjustment in either version (§2.2). -->
+		<CardFrame
+			title="Nomads"
+			portrait="/art/civ/nomads.svg"
+			portraitAlt="Nomads civilization portrait"
+			badges={['Base game']}
+			complexity={3}
+			{state}
+			class="rg-card-frame--nomads">
+			{#snippet effect()}Whenever you gain a building or a landmark, you
+				may place it on the map instead of in your capital, in one of
+				two ways.{/snippet}
+
+			<div class="rg-card-ability-list rg-card-trader-options">
+				<CardEffectBox>
+					{#snippet symbol()}<span class="rg-card-trader-hex"
+							><img
+								src="/art/piece/outpost-blue.svg"
+								alt="" /></span
+						>{/snippet}<b>Your territory with one item</b><span
+						>Place it beside the one outpost or building there and
+						gain <strong
+							>+ <CardResource
+								symbol="any"
+								class="rg-card-resource-icon--fine" /></strong
+						>. Opponents can no longer conquer that territory.</span
+					></CardEffectBox>
+				<CardEffectBox>
+					{#snippet symbol()}<span class="rg-card-trader-hex"></span
+						>{/snippet}<b>Empty territory next to yours</b><span
+						>Place it there to take control. This is not a conquest;
+						if an opponent conquers the territory, the piece counts
+						as an outpost.</span
+					></CardEffectBox>
+			</div>
+			<CardClarity
+				><p class="rg-card-fine">
+					Buildings on the map still count for VP per building.
+				</p></CardClarity>
+		</CardFrame>
+	{:else if id === 'the-chosen'}
+		<!-- 02-base-content §1.2; current rules' adjustment (§2.2): +15 VP per opponent. -->
+		<CardFrame
+			title="The Chosen"
+			portrait="/art/civ/the-chosen.svg"
+			portraitAlt="The Chosen civilization portrait"
+			badges={['Base game']}
+			complexity={2}
+			{state}
+			class="rg-card-frame--the-chosen">
+			{#snippet effect()}At the start of income turns 2–5, gain VP for the
+				tracks you lead and resources for your achievements.{/snippet}
+
+			<div class="rg-card-ability-list">
+				<CardEffectBox>
+					{#snippet symbol()}<span class="rg-card-track-quad"
+							><img
+								src="/art/track/exploration.svg"
+								alt="" /><img
+								src="/art/track/science.svg"
+								alt="" /><img
+								src="/art/track/technology.svg"
+								alt="" /><img
+								src="/art/track/military.svg"
+								alt="" /></span
+						>{/snippet}<b>Each track you lead</b><span
+						>Gain <strong>1 VP per opponent</strong> for each track you
+						have completed, or on which no token is further advanced than
+						yours.</span
+					></CardEffectBox>
+				<CardEffectBox>
+					{#snippet symbol()}+ <CardResource
+							symbol="any"
+							class="" />{/snippet}<b>Each achievement</b><span
+						>Gain any resource for each achievement you have earned.
+						On your final income turn, gain <strong>5 VP</strong> per
+						achievement instead.</span
+					></CardEffectBox>
+			</div>
+			<CardClarity
+				><p class="rg-card-fine">
+					A track where another token is level with yours still
+					counts.<br /><span class="rg-card-setup"
+						>Setup, current rules: start with 15 VP per opponent.</span>
 				</p></CardClarity>
 		</CardFrame>
 	{:else}

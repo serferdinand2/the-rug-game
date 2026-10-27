@@ -216,6 +216,29 @@ test('Age of Wonders: fewest landmarks gain 2 resources, most gain 12 VP, ties g
 	assert.equal(c.seats[0].vp, 6);
 });
 
+test('Age of Wonders with three players: a tie for fewest is "otherwise", and a landmark beside the mat counts (R71)', () => {
+	// Seat 1 and seat 2 have 1 landmark each, seat 3 has 2: seat 1 is not alone with the fewest.
+	const tied = game(3);
+	piece(tied.state, 1);
+	piece(tied.state, 2, 'apothecary');
+	piece(tied.state, 3, 'forge');
+	piece(tied.state, 3, 'academy');
+	let a = resolveTapestry(tied.state, tied.random, 1, 'age-of-wonders');
+	assert.equal(/** @type {any} */ (open(a, 'chooseResource')).count, 1);
+	a = settle(a, tied.random);
+	assert.equal(a.seats[0].vp, 6);
+
+	// A landmark that didn't fit beside the mat still counts: 2 against 1 and 1 is the most.
+	const beside = game(3);
+	piece(beside.state, 1);
+	beside.state.seats[0].besideMat.push('forge');
+	piece(beside.state, 2, 'apothecary');
+	piece(beside.state, 3, 'academy');
+	const b = resolveTapestry(beside.state, beside.random, 1, 'age-of-wonders');
+	assert.equal(b.seats[0].vp, 12);
+	assert.equal(questions(b).length, 0);
+});
+
 test('Diplomacy gives its player a building of their choice and every player a resource, skipping finished players', () => {
 	const { state, random } = game(3);
 	state.seats[2].finished = true;
