@@ -77,3 +77,14 @@ test('a face-down card reads face down, and the active era is marked', () => {
 	assert.equal(slots[3].card, null);
 	assert.equal(slots[3].faceDown, true);
 });
+
+test('a card the Heralds play on Maker of Fire shows on era 1, and may be the active one (R35)', () => {
+	const { state } = startedGame(2);
+	const seat = /** @type {any} */ (state.seats[0]);
+	seat.incomeMat.tapestry[0] = ['capitalism'];
+	seat.era = { card: 'capitalism', ability: {} };
+	const slots = eraSlots(mine(state));
+	assert.equal(slots[0].card, 'Capitalism');
+	assert.equal(slots[0].id, 'capitalism');
+	assert.equal(slots[0].active, true);
+});

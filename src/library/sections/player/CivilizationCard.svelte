@@ -17,4 +17,10 @@
 			><CivilizationCard
 				id={card.id}
 				state="play" /></Example
-		>{/each}</Section>
+		>{/each}<Example
+		label="The Futurists · no reviewed layout yet: frame, portrait and name only"
+		width={425}
+		><CivilizationCard
+			id="futurists"
+			state="empty" /></Example
+	></Section>

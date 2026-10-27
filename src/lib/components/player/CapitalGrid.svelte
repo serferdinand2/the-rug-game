@@ -26,6 +26,7 @@
 	 * @property {CapitalGridPiece[]} [pieces=[]] - Landmarks on the grid, drawn over the plots they cover; a locked one may hang over the edge, and only its plots on the grid count
 	 * @property {GroupKind | null} [highlight=null] - Cover each completed row, column or district with one flat green rectangle
 	 * @property {boolean} [awaitingPlacement=false] - Something is waiting to be placed: a green outline around the grid
+	 * @property {boolean} [room=false] - Keep room around the grid for the pieces that hang over its edges (R106), so nothing next to it is covered
 	 * @property {string} [label='Capital city, 9 by 9 plots'] - Names the grid for assistive technology
 	 * @property {Function} [onCapitalGridPlotClick] - Callback fired with { row, col } when a plot is clicked, for click-to-place from the tray
 	 * @property {Function} [onCapitalGridDrop] - Callback fired with { id, row, col } when a piece from the tray is dropped; row and col are where its top-left corner landed, not yet snapped
@@ -81,6 +82,7 @@
 		pieces = [],
 		highlight = null,
 		awaitingPlacement = false,
+		room = false,
 		label = 'Capital city, 9 by 9 plots',
 		onCapitalGridPlotClick,
 		onCapitalGridDrop,
@@ -110,6 +112,34 @@
 			plots,
 			pieces.filter((piece) => piece.locked)
 		)
+	);
+	/** How many plots the pieces hang over each edge, at most, when room is kept for them. */
+	let reach = $derived(
+		pieces.reduce(
+			(most, piece) => {
+				const area = pieceArea(pieceShape(piece), piece.row, piece.col);
+				return {
+					top: Math.max(most.top, area.top),
+					right: Math.max(most.right, area.right),
+					bottom: Math.max(most.bottom, area.bottom),
+					left: Math.max(most.left, area.left),
+				};
+			},
+			{ top: 0, right: 0, bottom: 0, left: 0 }
+		)
+	);
+	/** A ninth of the space the grid sits in for each plot of overhang. */
+	let margin = $derived(
+		room
+			? [reach.top, reach.right, reach.bottom, reach.left]
+					.map((plots) => `calc(${plots} * 100% / 9)`)
+					.join(' ')
+			: undefined
+	);
+	let width = $derived(
+		room
+			? `calc(100% - ${reach.left + reach.right} * 100% / 9)`
+			: undefined
 	);
 	let overlays = $derived(
 		highlight ? completedGroups(locked, highlight).map(groupBounds) : []
@@ -433,6 +463,8 @@
 	class:rg-capital-grid--awaiting={awaitingPlacement}
 	class:rg-capital-grid--drag-target={dragTarget}
 	class:rg-capital-grid--legal-drop={legalDrop}
+	style:margin
+	style:width
 	onclick={clickHandler}
 	ondragover={dragoverHandler}
 	ondragleave={dragleaveHandler}

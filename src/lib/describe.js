@@ -555,7 +555,9 @@ const PHRASES = {
 				: 'roll the science die to advance on the track rolled';
 		if (value?.noBenefit) {
 			words +=
-				rolls > 1 ? ' without the benefits' : ' without its benefit';
+				rolls > 1
+					? ' without the benefits or bonuses'
+					: ' without its benefit or bonus';
 		}
 		if (isCount(value?.offTrackVp)) {
 			words += ` (${value.offTrackVp} VP instead for a track you have completed)`;
@@ -565,7 +567,7 @@ const PHRASES = {
 	advance(value) {
 		let words = `${value?.optional ? 'you may advance' : 'advance'} on ${tracksPhrase(value?.tracks)}`;
 		if (value?.noBenefit) {
-			words += ' without its benefit';
+			words += ' without its benefit or bonus';
 		}
 		if (value?.noBonus) {
 			words += ' without its bonus';
@@ -660,7 +662,7 @@ const PHRASES = {
 			value?.others === 'neighbours'
 				? 'your neighbours'
 				: 'your opponents';
-		const words = `${where}, then ${who} advance there without its benefit`;
+		const words = `${where}, then ${who} advance there without its benefit or bonus`;
 		return value?.optional ? `${words}; anyone may decline` : words;
 	},
 	others(value, table) {
@@ -953,7 +955,7 @@ const TAPESTRY_RULES = Object.freeze({
 	'coal-baron':
 		'Gain 1 territory tile and explore with it, then each of your neighbours gains 1 territory tile',
 	colonialism:
-		'Choose a territory tile you control. Gain 1 resource for each land terrain on it: a worker for mountain, culture for grassland, food for forest and a coin for desert',
+		'Choose a territory tile you control. Gain 1 resource for each different land terrain on it: a worker for mountain, culture for grassland, food for forest and a coin for desert',
 	'dark-ages':
 		'Go back 1 space on 3 different tracks if you can, then advance 3 times on the remaining track, without benefits or bonuses',
 	dictatorship:
