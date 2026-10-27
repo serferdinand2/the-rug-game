@@ -1,5 +1,5 @@
 // The client's long poll (#25): one request at a time, backing off on failures, and ending when the seat is gone.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { backoff, pollTable } from '../src/lib/poll.js';
 import { ApiError } from '../src/lib/api.js';

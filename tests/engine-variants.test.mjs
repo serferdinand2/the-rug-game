@@ -1,5 +1,5 @@
 // Tests for the optional variants a table may switch on (#53).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { view } from '../src/lib/engine/view.js';
 import { openDecisions, push } from '../src/lib/engine/stack.js';

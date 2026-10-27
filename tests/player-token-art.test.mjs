@@ -1,5 +1,5 @@
 // Every shaded token preserves all visible RGB values and the original alpha channel.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { decodePng } from './helpers/png.mjs';

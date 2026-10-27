@@ -1,5 +1,5 @@
 // The canyon capital terrain (#6): 14 distinct full-bleed tiles and an example mat on the printed layout.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	LAYOUT,

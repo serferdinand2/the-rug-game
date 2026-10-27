@@ -1,5 +1,5 @@
 // Tests for the final ranking and its tiebreaks, recorded step by step (#15; R10–R13).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { rankPlayers, landmarksInCity } from '../src/lib/engine/ranking.js';
 import { startedGame } from './helpers/engine.mjs';

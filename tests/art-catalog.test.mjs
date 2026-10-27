@@ -1,5 +1,5 @@
 // The asset catalog: every asset the game needs, with stable ids, counted per group and expansion.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {

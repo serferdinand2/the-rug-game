@@ -1,5 +1,5 @@
 // Tests for the civilizations that change where pieces go: Craftsmen and Nomads (#20, design §7, §8, §9).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run, resolveEffects } from '../src/lib/engine/loop.js';
@@ -132,7 +132,7 @@ const face = (/** @type {number} */ n) => () => n;
 
 /**
  * Gives seat 2 a test civilization, registered until the test ends, that records the seat of every countsChanged.
- * @param {import('node:test').TestContext} t
+ * @param {import('vitest').TestContext} t
  * @param {any} state
  * @returns {number[]}
  */
@@ -148,7 +148,7 @@ function watchCounts(t, state) {
 			},
 		},
 	};
-	t.after(() => {
+	t.onTestFinished(() => {
 		delete CIVS.watcher;
 	});
 	state.seats[1].civs = ['watcher'];

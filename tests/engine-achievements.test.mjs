@@ -1,5 +1,5 @@
 // Tests for the three achievements: complete any track, topple two outposts and conquer the middle island (#19; R23, R24).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push } from '../src/lib/engine/stack.js';
 import { run, contextFor } from '../src/lib/engine/loop.js';

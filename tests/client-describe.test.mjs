@@ -1,5 +1,5 @@
 // Words for the engine's effects, costs, decisions and answers (#26): short English the play screen shows.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	civilizationName,

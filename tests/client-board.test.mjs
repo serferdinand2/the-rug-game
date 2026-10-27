@@ -1,5 +1,5 @@
 // Tests for the tracks and achievements the board components take from a game view.
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { view } from '../src/lib/engine/game.js';
 import { newGame } from './helpers/engine.mjs';

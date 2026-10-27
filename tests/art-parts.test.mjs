@@ -1,5 +1,5 @@
 // Scene parts: each fills the area it promises, repeats for the same seed and paints only palette colours.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { createCanvas, seededRandom } from '../art/painter.js';
 import { PALETTE } from '../art/palette.js';

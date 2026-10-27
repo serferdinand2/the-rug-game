@@ -1,5 +1,5 @@
 // Every advanced biome lists its FEATURES for the game's mat composer (#6, #36), with valid variant indexes.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { BIOMES } from '../art/parts/capital-biomes/index.js';
 

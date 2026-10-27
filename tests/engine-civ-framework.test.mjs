@@ -1,5 +1,5 @@
 // Tests for the civilization framework: the registry, setup and adjustments, step 1, gaining, passive hooks and losses (#20, design §4–§6, §11).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run, contextFor, resolveEffects } from '../src/lib/engine/loop.js';
@@ -19,14 +19,14 @@ const EVERY_TURN = [2, 3, 4, 5];
 
 /**
  * Registers a test civilization until the test ends.
- * @param {import('node:test').TestContext} t
+ * @param {import('vitest').TestContext} t
  * @param {string} id
  * @param {Record<string, any>} [rules]
  */
 function testCiv(t, id, rules = {}) {
 	const saved = CIVS[id];
 	CIVS[id] = { id, ...rules };
-	t.after(() => {
+	t.onTestFinished(() => {
 		if (saved) {
 			CIVS[id] = saved;
 		} else {

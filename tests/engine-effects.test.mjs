@@ -1,5 +1,5 @@
 // Tests for the gain effect and the chooseResource decision (#13, task 5).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { play } from '../src/lib/engine/play.js';
 import { openDecisions, pushGroup } from '../src/lib/engine/stack.js';

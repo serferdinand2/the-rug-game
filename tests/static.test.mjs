@@ -1,5 +1,5 @@
 // The HTTP server: serving public/ safely, caching headers and the API fallback.
-import test, { before, after } from 'node:test';
+import { afterAll, beforeAll, test } from 'vitest';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { existsSync } from 'node:fs';
@@ -15,7 +15,7 @@ await new Promise((resolve) => setTimeout(resolve, 50));
 const addressAfterImport = server.address();
 let port;
 
-before(async () => {
+beforeAll(async () => {
 	if (
 		!existsSync(
 			fileURLToPath(new URL('../public/index.html', import.meta.url))
@@ -28,7 +28,7 @@ before(async () => {
 	await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 	port = server.address().port;
 });
-after(() => server.close());
+afterAll(() => server.close());
 
 // Raw request paths: fetch() would normalise the encodings these attacks rely on.
 const get = (path, headers = {}) =>
@@ -52,7 +52,11 @@ test('importing the server does not listen', () => {
 test('starts when run through a symlinked path', async () => {
 	const dir = await mkdtemp(join(tmpdir(), 'rug-'));
 	const link = join(dir, 'app');
-	await symlink(fileURLToPath(new URL('..', import.meta.url)), link, process.platform === 'win32' ? 'junction' : 'dir');
+	await symlink(
+		fileURLToPath(new URL('..', import.meta.url)),
+		link,
+		process.platform === 'win32' ? 'junction' : 'dir'
+	);
 	const child = spawn(process.execPath, [join(link, 'server.mjs')], {
 		env: { ...process.env, PORT: '0' },
 		stdio: ['ignore', 'pipe', 'pipe'],
@@ -200,7 +204,12 @@ test('unknown API paths answer JSON', async () => {
 
 test(
 	'a file that cannot be read answers 500, not an empty 200',
-	{ skip: process.platform === 'win32' ? 'Windows chmod does not remove read permission' : process.getuid?.() === 0 && 'root can read any file' },
+	{
+		skip:
+			process.platform === 'win32'
+				? 'Windows chmod does not remove read permission'
+				: process.getuid?.() === 0 && 'root can read any file',
+	},
 	async () => {
 		const file = fileURLToPath(
 			new URL('../public/unreadable.txt', import.meta.url)

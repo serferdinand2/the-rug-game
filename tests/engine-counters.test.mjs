@@ -1,5 +1,5 @@
 // Tests for the VP counters, territory control and gaining income buildings (#14).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { resolveEffects } from '../src/lib/engine/loop.js';

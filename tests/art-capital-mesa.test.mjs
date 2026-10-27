@@ -1,5 +1,5 @@
 // The Mesa capital terrain (#6): 14 distinct full-bleed 32×32 tiles and an example mat on the printed layout.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import * as pinned from '../art/parts/capital-biomes/mesa.js';
 import {

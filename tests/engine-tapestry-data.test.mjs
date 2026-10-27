@@ -1,5 +1,5 @@
 // The 43 base tapestry cards as data (#19): order, timing, effect kinds and spot values from the design.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { BASE_TAPESTRY } from '../src/lib/engine/decks.js';
 import { EFFECT_KINDS } from '../src/lib/engine/data/effects.js';

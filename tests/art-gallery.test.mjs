@@ -1,5 +1,5 @@
 // The art on the library page: every scene part and every catalog asset, drawn or not, grouped as the owner reviews them.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { ASSETS, GROUPS, EXPANSIONS } from '../src/lib/art/catalog.js';
 import { FOOTPRINTS, PLOT_SIZE } from '../src/lib/art/footprints.js';

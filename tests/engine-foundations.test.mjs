@@ -1,5 +1,5 @@
 // Tests for the engine's errors, randomness, events and state helpers (#13, task 1).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { PlayerError } from '../src/lib/engine/errors.js';
 import { shuffle, seededRandom } from '../src/lib/engine/random.js';

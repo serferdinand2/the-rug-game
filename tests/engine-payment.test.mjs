@@ -1,5 +1,5 @@
 // Tests for paying costs: resources, and discarded tiles and cards (#14).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	canPay,

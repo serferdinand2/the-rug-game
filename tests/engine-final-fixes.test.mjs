@@ -1,5 +1,5 @@
 // Tests for the final-review fixes of #13: setup steps, event copies, input checks and registries.
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { createGame, SETUP_STEPS } from '../src/lib/engine/setup.js';
 import { seededRandom } from '../src/lib/engine/random.js';

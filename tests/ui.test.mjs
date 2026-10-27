@@ -1,5 +1,5 @@
 // The interface helpers: ids of tracks, resources, terrain and players become references to existing design tokens.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {

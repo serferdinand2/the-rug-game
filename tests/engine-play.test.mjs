@@ -1,5 +1,5 @@
 // Tests for play(), the setup reveal and the first turn (#13, task 4).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { play, PlayerError } from '../src/lib/engine/game.js';
 import { openDecisions } from '../src/lib/engine/stack.js';

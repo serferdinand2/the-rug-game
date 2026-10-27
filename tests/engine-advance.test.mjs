@@ -1,5 +1,5 @@
 // Tests for the advance turn: when it is offered, what it costs, and how the turn ends (#14).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';

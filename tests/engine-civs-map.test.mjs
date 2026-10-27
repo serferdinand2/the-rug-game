@@ -1,5 +1,5 @@
 // Tests for the civilizations that act on the map and on outposts: Traders, Isolationists and Militants (#20, design §7, §8).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run, resolveEffects } from '../src/lib/engine/loop.js';

@@ -1,5 +1,5 @@
 // Tests for view(): what each seat may see, checked on random games for every player count.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { view } from '../src/lib/engine/game.js';
 import { play } from '../src/lib/engine/play.js';

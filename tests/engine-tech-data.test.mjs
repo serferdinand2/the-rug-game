@@ -1,5 +1,5 @@
 // The 33 base tech cards as data (#18): order, effect kinds, prerequisites (R18) and spot values from 02 §4.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { BASE_TECH } from '../src/lib/engine/decks.js';
 import { EFFECT_KINDS } from '../src/lib/engine/data/effects.js';

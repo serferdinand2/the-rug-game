@@ -1,5 +1,5 @@
 // Masterpieces (#11): one full 64×64 picture per masterpiece card, no two alike.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';

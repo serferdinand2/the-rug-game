@@ -1,5 +1,5 @@
 // Tests for abilities that last: triggers, advance blocks and allies (#19, design §5, §6).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run, contextFor, resolveEffects } from '../src/lib/engine/loop.js';
@@ -21,7 +21,7 @@ import { startedGame, readyTurn, answer, placeAll } from './helpers/engine.mjs';
 
 /**
  * Registers a test ability until the test ends. Each of its handlers records its call and gives its owner 1 VP.
- * @param {import('node:test').TestContext} t
+ * @param {import('vitest').TestContext} t
  * @param {string[]} hooks - The hooks the ability has
  * @returns {{ hook: string, owner: number, payload: any }[]} The calls, in order
  */
@@ -43,7 +43,7 @@ function testAbility(t, hooks) {
 			},
 		])
 	);
-	t.after(() => {
+	t.onTestFinished(() => {
 		delete ERA_HOOKS.test;
 	});
 	return calls;

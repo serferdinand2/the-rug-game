@@ -1,5 +1,5 @@
 // Tests for the civilizations that act in step 1 of income turns: Leaders, Merrymakers, Entertainers, The Chosen and Alchemists (#20, design §7).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { resolveEffects } from '../src/lib/engine/loop.js';

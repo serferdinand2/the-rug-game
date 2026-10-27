@@ -1,5 +1,5 @@
 // Tests for the tapestry cards that move tokens, and the science roll Empiricism doubles (#19, design §8, §10).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { play } from '../src/lib/engine/play.js';
 import { push, openDecisions } from '../src/lib/engine/stack.js';

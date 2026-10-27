@@ -3,16 +3,64 @@ on: [push, pull_request]
 permissions:
     contents: read
 jobs:
+    quality:
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: npm
+            - run: npm ci
+            - run: npm run check
+
     test:
         runs-on: ubuntu-latest
         # The simulation's watchdog fails a stuck game within a minute; this stops anything else that hangs.
         timeout-minutes: 15
         steps:
-            - uses: actions/checkout@v4
-            - uses: actions/setup-node@v4
+            - uses: actions/checkout@v6
+            - uses: actions/setup-node@v6
               with:
-                  node-version: 22
+                  node-version: 24
                   cache: npm
             - run: npm ci
-            - run: npm run check
-            - run: npm test
+
+            - name: Run unit tests
+              run: npm run test:unit
+
+            - name: Get Playwright version
+              id: playwright-version
+              run: echo "version=$(npx playwright --version | awk '{print $2}')" >> $GITHUB_OUTPUT
+
+            # Only Chromium runs here (#55), so only Chromium is installed and cached.
+            - name: Cache Playwright browsers
+              id: playwright-cache
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/ms-playwright
+                  key: playwright-${{ steps.playwright-version.outputs.version }}-chromium
+
+            - name: Install Playwright (for tests)
+              if: steps.playwright-cache.outputs.cache-hit != 'true'
+              run: npx playwright install --with-deps chromium
+
+            - name: Install Playwright OS deps only
+              if: steps.playwright-cache.outputs.cache-hit == 'true'
+              run: npx playwright install-deps chromium
+
+            - name: Run Playwright tests
+              run: npm run test:e2e
+              env:
+                  PLAYWRIGHT_WORKERS: 2 # the ubuntu-latest runner has 2 vCPUs
+
+            # `trace: 'on-first-retry'` records a trace whenever a test is retried; keep them for the trace viewer.
+            - name: Upload Playwright traces
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: playwright-traces
+                  path: test-results/
+                  retention-days: 7
+                  if-no-files-found: ignore

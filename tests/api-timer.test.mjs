@@ -1,5 +1,5 @@
 // The turn timer and undo over HTTP (#24): the settings and undo endpoints, the table timers and late requests, on a server at port 0.
-import test, { before, after } from 'node:test';
+import { afterAll, afterEach, beforeAll, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { server, config, api } from '../server.mjs';
@@ -24,7 +24,7 @@ async function listen() {
 	base = `http://127.0.0.1:${address.port}/api/`;
 }
 
-before(async () => {
+beforeAll(async () => {
 	await listen();
 	// Every test here comes from one address, so the per-address limits are raised.
 	config.createLimit = 10_000;
@@ -32,9 +32,14 @@ before(async () => {
 	config.apiLimit = 100_000;
 	config.tablesPerAddress = 10_000;
 });
-after(() => {
+afterAll(() => {
 	server.closeAllConnections();
 	server.close();
+});
+
+// node:test reset its mocked clock after each test; Vitest's fake timers stay until they are put back.
+afterEach(() => {
+	vi.useRealTimers();
 });
 
 /**
@@ -437,7 +442,7 @@ test(
 		timeout: 70_000,
 	},
 	async (t) => {
-		const errors = t.mock.method(console, 'error', () => {});
+		const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
 		config.minuteMs = 5;
 		config.declineMinMs = 1;
 		config.declineMaxMs = 2;
@@ -469,12 +474,10 @@ test(
 			assert.ok(timedOut(ends[0]).includes(1));
 			assert.ok(timedOut(ends[0]).includes(2));
 			assert.equal(
-				errors.mock.callCount(),
+				errors.mock.calls.length,
 				0,
 				errors.mock.calls
-					.map((call) =>
-						String(call.arguments[0]?.stack ?? call.arguments[0])
-					)
+					.map((call) => String(call[0]?.stack ?? call[0]))
 					.join('\n')
 			);
 		} finally {
@@ -493,11 +496,11 @@ test(
 test('a move that arrives after the clock ran out gets 409', async (t) => {
 	// The server's clock is frozen and moved on by hand, so the table's own timer, a real one, hasn't fired yet when
 	// the late requests arrive: the requests themselves must let the timeout happen first.
-	t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
+	vi.useFakeTimers({ toFake: ['Date'], now: Date.now() });
 	const { people, room } = await timedGame(['Ana', 'Bo']);
 	const [ana] = people;
 	const open = openFor(room);
-	t.mock.timers.tick(61_000);
+	vi.advanceTimersByTime(61_000);
 	refused(
 		await call('move', {
 			body: {
@@ -514,7 +517,7 @@ test('a move that arrives after the clock ran out gets 409', async (t) => {
 	assert.notEqual(played.game.phase, 'setup');
 	assert.deepEqual(timedOut(played), [1, 2]);
 	assert.ok(played.clocks.some((/** @type {any} */ c) => !c.expired));
-	t.mock.timers.tick(61_000);
+	vi.advanceTimersByTime(61_000);
 	refused(
 		await call('undo', {
 			body: { version: played.version },
@@ -529,8 +532,8 @@ test('a move that arrives after the clock ran out gets 409', async (t) => {
 });
 
 test('a timeout that answers nothing is never committed, so late requests go on as usual', async (t) => {
-	const errors = t.mock.method(console, 'error', () => {});
-	t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
+	const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+	vi.useFakeTimers({ toFake: ['Date'], now: Date.now() });
 	let timeouts = 0;
 	// Only a bug does this: something has run out, and the timeout answers nothing, in a new room all the same.
 	const other = createApi(
@@ -546,7 +549,7 @@ test('a timeout that answers nothing is never committed, so late requests go on 
 		const { people, room } = await timedGame(['Ana', 'Bo']);
 		const [ana] = people;
 		assert.equal(other.timers(), 1);
-		t.mock.timers.tick(61_000);
+		vi.advanceTimersByTime(61_000);
 		for (let attempt = 1; attempt <= 2; attempt++) {
 			refused(
 				await call('undo', {
@@ -557,13 +560,10 @@ test('a timeout that answers nothing is never committed, so late requests go on 
 				'There is nothing to undo.'
 			);
 			assert.equal(timeouts, attempt);
-			assert.equal(errors.mock.callCount(), attempt, 'logged once each');
+			assert.equal(errors.mock.calls.length, attempt, 'logged once each');
 			assert.equal(other.timers(), 0, 'no timer until the table changes');
 		}
-		assert.match(
-			String(errors.mock.calls[0].arguments[0]),
-			/could answer nothing/
-		);
+		assert.match(String(errors.mock.calls[0][0]), /could answer nothing/);
 		const open = openFor(room);
 		const moved = await call('move', {
 			body: {
@@ -581,7 +581,7 @@ test('a timeout that answers nothing is never committed, so late requests go on 
 		// The move changed the table, so its timer tries once more, then waits for the next change.
 		await pause(50);
 		assert.equal(timeouts, 4);
-		assert.equal(errors.mock.callCount(), 4);
+		assert.equal(errors.mock.calls.length, 4);
 		assert.equal(other.timers(), 0);
 		const seen = (await call('state', { token: ana.token })).data;
 		assert.equal(seen.version, room.version + 1, 'nothing spins');
@@ -589,8 +589,8 @@ test('a timeout that answers nothing is never committed, so late requests go on 
 });
 
 test('a timeout that fails is logged, and a late move goes on as usual', async (t) => {
-	const errors = t.mock.method(console, 'error', () => {});
-	t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
+	const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+	vi.useFakeTimers({ toFake: ['Date'], now: Date.now() });
 	const other = createApi(
 		{ ...config },
 		{
@@ -601,7 +601,7 @@ test('a timeout that fails is logged, and a late move goes on as usual', async (
 	);
 	await serving(other, async () => {
 		const { people, room } = await timedGame(['Ana', 'Bo']);
-		t.mock.timers.tick(61_000);
+		vi.advanceTimersByTime(61_000);
 		const open = openFor(room);
 		const moved = await call('move', {
 			body: {
@@ -613,9 +613,9 @@ test('a timeout that fails is logged, and a late move goes on as usual', async (
 		assert.equal(moved.status, 200, JSON.stringify(moved.data));
 		assert.equal(moved.data.version, room.version + 1);
 		await pause(50);
-		assert.equal(errors.mock.callCount(), 2, 'before the move, and after');
+		assert.equal(errors.mock.calls.length, 2, 'before the move, and after');
 		assert.match(
-			String(errors.mock.calls[1].arguments[0]),
+			String(errors.mock.calls[1][0]),
 			/could not finish the turn/
 		);
 		assert.equal(other.timers(), 0);
@@ -653,15 +653,15 @@ test('the table timers are cleared when a table closes, when it expires and when
 	assert.equal(api.timers(), 0);
 
 	// Or when someone creates a table a day later.
-	t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
+	vi.useFakeTimers({ toFake: ['Date'], now: Date.now() });
 	await timedGame(['Eve', 'Fay']);
 	assert.equal(api.timers(), 1);
-	t.mock.timers.tick(2 * DAY);
+	vi.advanceTimersByTime(2 * DAY);
 	const late = await login('Gus');
 	const created = await call('create', { body: {}, token: late.token });
 	assert.equal(created.status, 200, JSON.stringify(created.data));
 	assert.equal(api.timers(), 0);
-	t.mock.timers.reset();
+	vi.useRealTimers();
 
 	// The server closes.
 	await timedGame(['Hal', 'Ivy']);

@@ -1,5 +1,5 @@
 // The player area's terrain (#27): a seat's territory tiles and space tiles, held and explored.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { terrainView } from '../src/lib/area/terrain.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';

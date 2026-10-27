@@ -1,5 +1,5 @@
 // Placing on the capital (#28): the lit plots of a building and the legal places a landmark snaps to.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { DECISIONS, cityPlots, view } from '../src/lib/engine/game.js';
 import { FOOTPRINTS } from '../src/lib/art/footprints.js';

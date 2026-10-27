@@ -1,5 +1,5 @@
 // The tech and tapestry cards as their faces show them, built from the engine's data (#27 design §3).
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

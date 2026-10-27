@@ -143,7 +143,7 @@ export function simulate(index, { check = checkAll } = {}) {
 			`seed ${game.seed}, ${game.players} players, ${game.version}, ${game.policy} play, ` +
 				`${game.variants.length > 0 ? 'all' : 'no'} variants, ` +
 				`action ${actions} (${kind}): ${failure.message}\n` +
-				`Replay: SIM_SEED=${game.seed} node --test tests/simulation.test.mjs`,
+				`Replay: SIM_SEED=${game.seed} npx vitest run tests/simulation.test.mjs`,
 			{ cause: failure }
 		);
 	}

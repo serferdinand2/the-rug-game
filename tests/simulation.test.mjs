@@ -1,5 +1,5 @@
 // Plays 200 random legal games to the end and checks every action (#21). SIM_SEED=n replays game n; SIM_GAMES=n plays n.
-import test from 'node:test';
+import { test } from 'vitest';
 import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
 import { GAMES, gameOf, simulate } from './helpers/simulation.mjs';
@@ -48,7 +48,7 @@ function nameOf(index) {
  * @param {number} index
  */
 const replay = (index) =>
-	`Replay: SIM_SEED=${gameOf(index).seed} node --test tests/simulation.test.mjs`;
+	`Replay: SIM_SEED=${gameOf(index).seed} npx vitest run tests/simulation.test.mjs`;
 
 /**
  * Plays games 0 to `total` - 1 on worker threads, dealt round-robin. Each game's promise settles when its worker

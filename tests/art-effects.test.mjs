@@ -1,5 +1,5 @@
 // Effects: light passes over an already painted canvas, such as the glow around a lamp or a fire.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { createCanvas, rect, get } from '../art/painter.js';
 import { glow } from '../art/effects.js';

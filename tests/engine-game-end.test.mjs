@@ -1,5 +1,5 @@
 // Tests for players finishing at different times and the end of the game (#15; 01 §4.3).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { openDecisions, push } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';

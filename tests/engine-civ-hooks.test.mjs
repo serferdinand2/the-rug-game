@@ -1,5 +1,5 @@
 // Tests for the map items and the engine hooks civilizations need: tokens and Nomads pieces on hexes, takeOutpost, jumps, noBonus, offTrackVp and Inventors upgrades (#20, design §8, §9).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run, contextFor, resolveEffects } from '../src/lib/engine/loop.js';
@@ -39,7 +39,7 @@ function game(count = 2, explored = ['-2_-1']) {
 
 /**
  * Gives seats a test civilization, registered until the test ends, whose hooks record each payload they get.
- * @param {import('node:test').TestContext} t
+ * @param {import('vitest').TestContext} t
  * @param {any} state
  * @param {number[]} seats - The seats that hold it
  * @param {string[]} hooks
@@ -70,7 +70,7 @@ function watch(t, state, seats, hooks, reply = () => []) {
 			])
 		),
 	};
-	t.after(() => {
+	t.onTestFinished(() => {
 		if (saved) {
 			CIVS.watcher = saved;
 		} else {

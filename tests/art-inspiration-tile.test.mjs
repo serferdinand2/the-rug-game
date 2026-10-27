@@ -1,5 +1,5 @@
 // Inspiration tiles (#11): one 192×32 strip per income row, six framed spaces, the improved ones in gold.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';

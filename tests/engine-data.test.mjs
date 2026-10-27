@@ -1,5 +1,5 @@
 // The base game data (#12): counts, spot values from the research, the effect vocabulary and the shared ids.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';

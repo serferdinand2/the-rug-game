@@ -1,5 +1,5 @@
 // The Capital tab (#27 design §2.1): a seat's capital from the game view, with its landmarks, counts and pieces beside the mat.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	view,

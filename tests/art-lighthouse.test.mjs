@@ -1,5 +1,5 @@
 // The Lighthouse rebuilt with the toolkit matches the approved style C prototype exactly.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { fromSvg, toSvg } from '../art/painter.js';

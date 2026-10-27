@@ -1,5 +1,5 @@
 // The reviewed artwork must keep its pixel colors, transparency and player masks.
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { fromSvg, toSvg } from '../art/painter.js';
 import { readFile } from 'node:fs/promises';

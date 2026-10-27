@@ -1,5 +1,5 @@
 // Tests for the operation stack and the run loop (#13, task 2).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { seededRandom } from '../src/lib/engine/random.js';
 import {

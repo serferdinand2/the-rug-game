@@ -1,5 +1,5 @@
 // Every base civilization plays its setup, its income turns and the game end, in both versions (#20, design §11).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { play } from '../src/lib/engine/play.js';
 import { openDecisions } from '../src/lib/engine/stack.js';

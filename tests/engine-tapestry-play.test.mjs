@@ -1,5 +1,5 @@
 // Tests for playing tapestry cards: their abilities, THIS ERA cards that last, and tapestryOnTop (#19, design §5, §7).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { push, openDecisions } from '../src/lib/engine/stack.js';
 import { run, contextFor, resolveEffects } from '../src/lib/engine/loop.js';
@@ -17,12 +17,12 @@ import {
 
 /**
  * Registers a test civilization whose step-1 ability is `income`, until the test ends.
- * @param {import('node:test').TestContext} t
+ * @param {import('vitest').TestContext} t
  * @param {(ctx: any, player: number) => void} income
  */
 function testCiv(t, income) {
 	CIVS.test = { id: 'test', incomeTurns: [2, 3, 4, 5], income };
-	t.after(() => {
+	t.onTestFinished(() => {
 		delete CIVS.test;
 	});
 }
@@ -55,7 +55,7 @@ const eventsOf = (state, type, from = 0) =>
 
 /**
  * Records every tapestryAbility operation that runs, until the test ends.
- * @param {import('node:test').TestContext} t
+ * @param {import('vitest').TestContext} t
  * @returns {any[]}
  */
 function watchAbilities(t) {
@@ -66,7 +66,7 @@ function watchAbilities(t) {
 		ran.push(op);
 		real(ctx, op);
 	};
-	t.after(() => {
+	t.onTestFinished(() => {
 		AUTOMATIC.tapestryAbility = real;
 	});
 	return ran;

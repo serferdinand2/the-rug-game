@@ -1,5 +1,5 @@
 // Every base tapestry card's ability runs to the end from a busy mid-game seat (#19, design §8).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { TAPESTRY_CARDS } from '../src/lib/engine/data/tapestry-cards.js';
