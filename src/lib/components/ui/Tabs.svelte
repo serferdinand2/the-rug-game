@@ -22,7 +22,9 @@
 	 *
 	 * Each tab controls the element with the id `${id}-panel` and is labelled `${id}-tab`. The parent renders the
 	 * panels: `<div role="tabpanel" tabindex="0" id="capital-panel" aria-labelledby="capital-tab">`. The padding around the
-	 * row belongs to the parent too.
+	 * row belongs to the parent too. A parent short of room tightens the row with `--rg-tabs-padding` (a tab's side
+	 * padding, `var(--space-4)`) and `--rg-tabs-gap` (`var(--space-2)`). A row still wider than its place scrolls,
+	 * fades out at an edge with tabs past it, and keeps the selected tab in view (#64).
 	 * @typedef {TabsOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} TabsProps
 	 *
 	 * @example
@@ -47,6 +49,10 @@
 
 	/** @type {HTMLButtonElement[]} */
 	let buttons = $state([]);
+	/** @type {HTMLDivElement | undefined} */
+	let list = $state();
+	let moreBefore = $state(false);
+	let moreAfter = $state(false);
 
 	// With nothing selected, the first tab still takes the keyboard focus.
 	let focusIndex = $derived(
@@ -55,6 +61,20 @@
 			tabs.findIndex((tab) => tab.id === value)
 		)
 	);
+
+	// However a tab is chosen, by a click, a key or the parent, it scrolls into view.
+	$effect(() => {
+		reveal(focusIndex);
+	});
+
+	$effect(() => {
+		if (!list) {
+			return;
+		}
+		const observer = new ResizeObserver(() => reveal(focusIndex));
+		observer.observe(list);
+		return () => observer.disconnect();
+	});
 
 	/**
 	 * @param {MouseEvent} event
@@ -104,6 +124,37 @@
 	};
 
 	/**
+	 * Notes whether tabs lie past either end of a row that scrolls, for the fades.
+	 */
+	const measure = () => {
+		if (!list) {
+			return;
+		}
+		moreBefore = list.scrollLeft > 1;
+		moreAfter = list.scrollLeft + list.clientWidth < list.scrollWidth - 1;
+	};
+
+	/**
+	 * Scrolls the row just far enough to show a tab whole, clear of the fades (the row's scroll padding).
+	 * @param {number} index
+	 */
+	const reveal = (index) => {
+		const button = buttons[index];
+		if (!list || !button) {
+			return;
+		}
+		const room = parseFloat(getComputedStyle(list).scrollPaddingLeft) || 0;
+		const start = button.offsetLeft - room;
+		const end = button.offsetLeft + button.offsetWidth + room;
+		if (start < list.scrollLeft) {
+			list.scrollLeft = start;
+		} else if (end > list.scrollLeft + list.clientWidth) {
+			list.scrollLeft = end - list.clientWidth;
+		}
+		measure();
+	};
+
+	/**
 	 * A tab's visible text, with its count after a middle dot.
 	 * @param {TabsItem} tab
 	 * @returns {string}
@@ -117,7 +168,11 @@
 	aria-label={label}
 	aria-orientation="horizontal"
 	{...attr}
-	class="rg-tabs {attr.class ? attr.class : ''}">
+	bind:this={list}
+	class="rg-tabs {attr.class ? attr.class : ''}"
+	class:rg-tabs--more-before={moreBefore}
+	class:rg-tabs--more-after={moreAfter}
+	onscroll={measure}>
 	{#each tabs as tab, index (tab.id)}
 		<button
 			bind:this={buttons[index]}
@@ -136,18 +191,53 @@
 </div>
 
 <style>
+	/* Positioned, so each tab's offsetLeft is its place in the row; the scroll padding keeps a revealed tab clear of the
+	   fades. The end padding is room past the last tab, so a scroll length rounded down can't leave it a fraction cut
+	   off. */
 	.rg-tabs {
+		position: relative;
 		display: flex;
 		align-items: center;
-		gap: var(--space-2);
+		gap: var(--rg-tabs-gap, var(--space-2));
+		padding-inline-end: var(--space-1);
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-padding-inline: var(--space-10);
 		background: transparent;
+	}
+
+	/* An edge with tabs past it fades out, so the row reads as cut, not finished. */
+	.rg-tabs--more-before {
+		mask-image: linear-gradient(
+			to right,
+			transparent,
+			var(--ink) var(--space-10)
+		);
+	}
+
+	.rg-tabs--more-after {
+		mask-image: linear-gradient(
+			to left,
+			transparent,
+			var(--ink) var(--space-10)
+		);
+	}
+
+	.rg-tabs--more-before.rg-tabs--more-after {
+		mask-image: linear-gradient(
+			to right,
+			transparent,
+			var(--ink) var(--space-10),
+			var(--ink) calc(100% - var(--space-10)),
+			transparent
+		);
 	}
 
 	/* Bold in both states, so a tab keeps its width when it is selected. */
 	.rg-tabs--tab {
 		flex: 0 0 auto;
 		margin: 0;
-		padding: var(--space-5) var(--space-4);
+		padding: var(--space-5) var(--rg-tabs-padding, var(--space-4));
 		border: 0;
 		border-radius: var(--radius);
 		background: transparent;
@@ -162,6 +252,11 @@
 
 	.rg-tabs--tab:hover {
 		color: var(--text);
+	}
+
+	/* Inside the tab, where the scrolling row can't cut it off. */
+	.rg-tabs--tab:focus-visible {
+		outline-offset: calc(-1 * var(--border-thick));
 	}
 
 	.rg-tabs--selected,

@@ -86,3 +86,31 @@ test("a decision panel confirms in solid gold, or in its track's colour, as the 
 	);
 	await expect(tracked).toHaveCSS('color', ink);
 });
+
+test('a tab row too wide for its place scrolls, fades at the cut edge and keeps the selected tab in view (#64)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const section = page.locator('#tabs');
+	const row = section.getByRole('tablist', { name: 'A narrow tab row' });
+	const last = row.getByRole('tab', { name: 'Terrain' });
+
+	expect(await row.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(
+		true
+	);
+	// More tabs to the right: the row fades out at its right edge.
+	expect(
+		await row.evaluate((el) => getComputedStyle(el).maskImage)
+	).toContain('gradient');
+
+	// Selected from outside the row, as a decision switches the player's tab, the last tab scrolls into view.
+	await section.getByRole('button', { name: 'Select Terrain' }).click();
+	await expect(last).toHaveAttribute('aria-selected', 'true');
+	const box = await row.boundingBox();
+	const tab = await last.boundingBox();
+	if (!box || !tab) {
+		throw new Error('The narrow tab row is not drawn.');
+	}
+	expect(tab.x).toBeGreaterThanOrEqual(box.x - 0.5);
+	expect(tab.x + tab.width).toBeLessThanOrEqual(box.x + box.width + 0.5);
+});

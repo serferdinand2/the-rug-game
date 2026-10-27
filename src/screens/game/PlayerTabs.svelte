@@ -359,6 +359,7 @@
 	{...attr}
 	class="rg-player-tabs {attr.class ? attr.class : ''}">
 	<Tabs
+		class="rg-player-tabs--tabs"
 		{tabs}
 		bind:value={tab}
 		label="Your city and cards" />
@@ -604,10 +605,22 @@
 </div>
 
 <style>
+	/* A named container, so the tab row can tighten when the player area is narrow. */
 	.rg-player-tabs {
+		container: rg-player-tabs / inline-size;
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: auto minmax(0, 1fr);
 		min-height: 0;
+	}
+
+	/* Under 420px (windows under 1680px wide) the tabs tighten, so all seven still show at 1366×768 (#64); narrower
+	   still, the row scrolls. Tabs' root, reached through its class prop. */
+	@container rg-player-tabs (max-width: 419px) {
+		.rg-player-tabs :global(.rg-player-tabs--tabs) {
+			--rg-tabs-padding: var(--space-2);
+			--rg-tabs-gap: var(--space-1);
+		}
 	}
 
 	.rg-player-tabs--body {

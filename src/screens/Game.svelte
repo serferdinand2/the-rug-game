@@ -922,8 +922,10 @@
 		min-height: 0;
 	}
 
+	/* The column, not its widest content, sets the width, so the tabs, capital and counters fit inside it (#64). */
 	.rg-game--private {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: minmax(0, 1fr) auto;
 		overflow: hidden;
 	}
