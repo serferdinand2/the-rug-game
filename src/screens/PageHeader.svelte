@@ -1,13 +1,15 @@
-<!-- The header of the pages before the game (#25): the brand, an optional sentence, and the sound and menu controls. -->
+<!-- The header of every page (#25, #26): the brand, a sentence or the player chips, extra controls such as the clock and Undo, then sound and the menu. -->
 <script module>
 	/**
 	 * Properties of the PageHeader screen part itself.
 	 * @typedef {Object} PageHeaderOwnProps
 	 * @property {string} [title] - The centred sentence, as on the landing page
+	 * @property {import('svelte').Snippet} [center] - Centre content instead of the title, such as the player chips
+	 * @property {import('svelte').Snippet} [before] - Controls before sound, such as the turn clock and Undo
 	 * @property {boolean} sound - Whether sound is on
+	 * @property {import('../lib/components/ui/Menu.svelte').MenuItem[]} [items] - The menu's entries; How to play and About this project when left out
 	 * @property {Function} [onPageHeaderSound] - Callback fired with the new sound choice
-	 * @property {Function} [onPageHeaderHelp] - Callback fired when How to play is chosen
-	 * @property {Function} [onPageHeaderAbout] - Callback fired when About this project is chosen
+	 * @property {Function} [onPageHeaderMenu] - Callback fired with the chosen entry's id
 	 */
 
 	/**
@@ -15,7 +17,7 @@
 	 * @typedef {PageHeaderOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} PageHeaderProps
 	 *
 	 * @example
-	 * <PageHeader sound={store.sound} onPageHeaderSound={(event) => store.setSound(event.value)} />
+	 * <PageHeader sound={store.sound} onPageHeaderSound={(event) => store.setSound(event.value)} onPageHeaderMenu={(event) => choose(event.value)} />
 	 */
 </script>
 
@@ -30,10 +32,15 @@
 	/** @type {PageHeaderProps} */
 	let {
 		title,
+		center,
+		before,
 		sound,
+		items = [
+			{ id: 'help', label: 'How to play' },
+			{ id: 'about', label: 'About this project' },
+		],
 		onPageHeaderSound,
-		onPageHeaderHelp,
-		onPageHeaderAbout,
+		onPageHeaderMenu,
 		...attr
 	} = $props();
 
@@ -66,10 +73,8 @@
 	 * @param {Event} event
 	 */
 	const menuSelectHandler = (event) => {
-		const handler =
-			event.value === 'help' ? onPageHeaderHelp : onPageHeaderAbout;
-		if (typeof handler === 'function') {
-			handler(event);
+		if (typeof onPageHeaderMenu === 'function') {
+			onPageHeaderMenu(event);
 		}
 	};
 
@@ -102,9 +107,11 @@
 
 <TopBar
 	{title}
+	{center}
 	{...attr}
 	class="rg-page-header {attr.class ? attr.class : ''}">
 	{#snippet controls()}
+		{@render before?.()}
 		<IconButton
 			icon="sound"
 			label="Mute"
@@ -121,10 +128,7 @@
 			<div class="rg-page-header--popover">
 				<Menu
 					label="Menu"
-					items={[
-						{ id: 'help', label: 'How to play' },
-						{ id: 'about', label: 'About this project' },
-					]}
+					{items}
 					bind:open={menuOpen}
 					onMenuSelect={menuSelectHandler}
 					onMenuClose={menuCloseHandler} />

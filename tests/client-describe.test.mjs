@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+	civilizationName,
 	decisionTitle,
 	describeAnswer,
 	describeBonus,
@@ -537,4 +538,9 @@ test('over 20 random games, every open decision and answer describes to a senten
 		assert.equal(state.phase, 'over', `game ${seed} ended`);
 	}
 	assert.ok(kinds.size >= 15, `only ${kinds.size} decision kinds opened`);
+});
+
+test('a civilization reads by its name, for the header chips', () => {
+	assert.equal(civilizationName('the-chosen'), 'The Chosen');
+	assert.equal(civilizationName('alchemists'), 'Alchemists');
 });

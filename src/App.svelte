@@ -1,4 +1,4 @@
-<!-- The app root (#25): one screen at a time, landing, lobby or the game in progress, from the client's store. -->
+<!-- The app root (#25, #26): one screen at a time, landing, lobby or the game, from the client's store. -->
 <script module>
 	/**
 	 * Properties for the App component, including any attributes for its root element.
@@ -15,7 +15,7 @@
 	import { createApi } from './lib/api.js';
 	import { createStore } from './lib/game.svelte.js';
 	import HelpPanel from './screens/HelpPanel.svelte';
-	import Holding from './screens/Holding.svelte';
+	import Game from './screens/Game.svelte';
 	import Landing from './screens/Landing.svelte';
 	import Lobby from './screens/Lobby.svelte';
 	import PageHeader from './screens/PageHeader.svelte';
@@ -69,6 +69,20 @@
 
 	let helpOpen = $state(false);
 
+	/**
+	 * The menu before the game: How to play, or About this project.
+	 * @param {import('./lib/component-event.js').ComponentEvent} event
+	 */
+	const menuHandler = (event) => {
+		if (event.value === 'help') {
+			helpOpen = true;
+		} else {
+			store.notify(
+				'A browser game of civilizations rising through the eras, inspired by Tapestry.'
+			);
+		}
+	};
+
 	onMount(() => {
 		store.start();
 	});
@@ -77,26 +91,26 @@
 <div
 	{...attr}
 	class="rg-app {attr.class ? attr.class : ''}">
-	<PageHeader
-		title={store.screen === 'landing'
-			? 'Build a civilization that stands the test of time'
-			: undefined}
-		sound={store.sound}
-		onPageHeaderSound={(/** @type {any} */ event) =>
-			store.setSound(event.value)}
-		onPageHeaderHelp={() => (helpOpen = true)}
-		onPageHeaderAbout={() =>
-			store.notify(
-				'A browser game of civilizations rising through the eras, inspired by Tapestry.'
-			)} />
-	{#if store.screen === 'loading'}
-		<main class="rg-app--loading"></main>
-	{:else if store.screen === 'landing'}
-		<Landing {store} />
-	{:else if store.room?.phase === 'lobby'}
-		<Lobby {store} />
-	{:else if store.room}
-		<Holding {store} />
+	{#if store.room && store.room.phase !== 'lobby'}
+		<Game
+			{store}
+			onGameHelp={() => (helpOpen = true)} />
+	{:else}
+		<PageHeader
+			title={store.screen === 'landing'
+				? 'Build a civilization that stands the test of time'
+				: undefined}
+			sound={store.sound}
+			onPageHeaderSound={(/** @type {any} */ event) =>
+				store.setSound(event.value)}
+			onPageHeaderMenu={menuHandler} />
+		{#if store.screen === 'loading'}
+			<main class="rg-app--loading"></main>
+		{:else if store.screen === 'landing'}
+			<Landing {store} />
+		{:else if store.room?.phase === 'lobby'}
+			<Lobby {store} />
+		{/if}
 	{/if}
 	<Toast
 		message={store.toast}

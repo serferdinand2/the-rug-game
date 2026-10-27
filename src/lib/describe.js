@@ -316,7 +316,7 @@ function techName(id) {
  * @param {unknown} id
  * @returns {string}
  */
-function civName(id) {
+export function civilizationName(id) {
 	if (typeof id !== 'string') {
 		return 'a civilization';
 	}
@@ -712,7 +712,7 @@ const PHRASES = {
 		return `place an outpost on ${hexName(value?.hex)}`;
 	},
 	placeToken(value) {
-		const civ = civName(value?.civ);
+		const civ = civilizationName(value?.civ);
 		return `place ${article(civ)} ${civ} token on ${hexName(value?.hex)}`;
 	},
 	...Object.fromEntries(
@@ -1160,9 +1160,10 @@ const ANSWERS = {
 			: undefined;
 		return mat ? `${mat.name} capital (mat ${mat.number})` : null;
 	},
-	chooseCiv: (a) => (typeof a.civ === 'string' ? civName(a.civ) : null),
+	chooseCiv: (a) =>
+		typeof a.civ === 'string' ? civilizationName(a.civ) : null,
 	chooseCivAbility: (a) =>
-		typeof a.civ === 'string' ? civName(a.civ) : null,
+		typeof a.civ === 'string' ? civilizationName(a.civ) : null,
 	chooseResource: (a) => {
 		const items = isRecord(a.resources) ? amounts(a.resources) : [];
 		return items.length > 0 ? `Gain ${joinList(items)}` : null;
