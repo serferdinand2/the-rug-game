@@ -790,7 +790,9 @@ export function scopeOf(game, seat) {
  *   asked and resumes with what it had left; any other clock goes. A seat asked without a clock gets a fresh one.
  *   With the timer off, or no game running, there are none.
  * - A response only the decline answers is scheduled 3 to 10 seconds out (`timing`'s range) while a game runs, with
- *   the timer on or off, and keeps its time until it is answered.
+ *   the timer on or off, and keeps its time until it is answered. Not at a hot-seat table: there the defender answers
+ *   through the pass screen like any other question, so a decline that came by itself would give the no-trap defender
+ *   away (#30 design §4).
  * @param {Room} room
  * @param {number} now - Milliseconds
  * @param {Timing} timing
@@ -800,7 +802,10 @@ export function scopeOf(game, seat) {
 export function tick(room, now, timing, random) {
 	const game = room.game;
 	const running = game !== null && game.phase !== 'over';
-	const declines = running ? schedule(room, game, now, timing, random) : [];
+	const declines =
+		running && room.mode !== 'hotseat'
+			? schedule(room, game, now, timing, random)
+			: [];
 	const clocks =
 		running && room.timer > 0 ? runClocks(room, game, now, timing) : {};
 	if (

@@ -3,10 +3,11 @@ import { withSession } from './api.js';
 import { boot } from './boot.js';
 import { change } from './changes.js';
 import { validCode } from './lobby.js';
-import { seatToFetch, sendMove } from './moves.js';
+import { sendMove } from './moves.js';
 import { generateName } from './names.js';
 import { backoff, pollTable } from './poll.js';
 import { freshEvents } from './event-feed.js';
+import { handOver } from './pass.js';
 
 /** How often the landing page asks for the open tables again. */
 const TABLES_EVERY_MS = 10_000;
@@ -54,6 +55,8 @@ class Store {
 	fresh = $state.raw([]);
 	/** Counts the batches of fresh events, so a screen reacts to each once. */
 	freshCount = $state(0);
+	/** @type {number | null} At a hot-seat table, the player the pass screen names until they take the screen (#30) */
+	passing = $state(null);
 
 	#api;
 	#random;
@@ -62,8 +65,8 @@ class Store {
 	#wait;
 	/** Bumped whenever the tab leaves a screen, so the loops of the old one stop. */
 	#generation = 0;
-	/** @type {number | null} The seat on show at a hot-seat table, which the poll asks for (#26). */
-	#shownSeat = null;
+	/** @type {number | null} The seat on show, or being taken, at a hot-seat table, which the poll asks for; null for the public view (#26, #30). */
+	#shownSeat = $state(null);
 	/** @type {ReturnType<typeof setTimeout> | undefined} */
 	#toastTimer;
 
@@ -323,36 +326,34 @@ class Store {
 		) {
 			return;
 		}
-		// At a hot-seat table a room for another seat is swapped for the one asked, not shown (#26 review).
-		const swap = seatToFetch(room, this.#shownSeat);
-		if (swap !== null) {
-			this.#shownSeat = swap;
-			const code = room.code;
-			this.#api
-				.request(`state?seat=${swap}`)
-				.then((next) => {
-					if (!this.room || this.room.code === code) {
-						this.#accept(next);
-					}
-				})
-				.catch(() => {
-					// The next poll asks for the seat again.
-				});
-			if (this.room) {
-				return;
+		// At a hot-seat table the screen passes between players, and only the view the hand-over allows is taken: a
+		// room for another seat is swapped for the right one rather than shown (#26 review, #30).
+		const wasPassing = this.passing !== null;
+		const holder = this.#shownSeat;
+		const step = handOver(room, holder, this.passing);
+		this.#shownSeat = step.shown;
+		this.passing = step.passing;
+		if (step.fetch !== undefined) {
+			this.#fetchView(room.code, step.fetch);
+		}
+		// The view of the player holding the screen is theirs to see: the move that brings a pass screen, or ends the
+		// game, shows at once (the pass screen or the results cover it) until the public view replaces it, and still
+		// sounds. Events that arrive while a pass screen is up stay silent (#30 design §4).
+		const own =
+			!wasPassing && room.viewing !== null && room.viewing === holder;
+		const take = step.fetch === undefined || !this.room || own;
+		const fresh = take && !wasPassing ? freshEvents(this.room, room) : [];
+		if (take) {
+			this.room = room;
+			this.receivedAt = Date.now();
+			if (this.me) {
+				this.me = { ...this.me, code: room.code };
 			}
 		}
-		const fresh = freshEvents(this.room, room);
-		this.room = room;
-		this.#shownSeat = room.viewing;
-		this.receivedAt = Date.now();
 		if (fresh.length > 0) {
 			this.fresh = fresh;
 			this.freshCount += 1;
 			this.#notices(fresh, room);
-		}
-		if (this.me) {
-			this.me = { ...this.me, code: room.code };
 		}
 	}
 
@@ -370,6 +371,65 @@ class Store {
 				`${name} ran out of time. The rest of the turn was played for them.`
 			);
 		}
+	}
+
+	/**
+	 * Asks for a view instead of taking the one that arrived (#26 review, #30).
+	 * @param {string} code - The table the view is for
+	 * @param {number | null} seat - A seat, or null for the public view
+	 */
+	#fetchView(code, seat) {
+		const generation = this.#generation;
+		this.#api
+			.request(seat === null ? 'state' : `state?seat=${seat}`)
+			.then((next) => {
+				// An answer for a table the tab has left is dropped.
+				if (
+					generation === this.#generation &&
+					(!this.room || this.room.code === code)
+				) {
+					this.#accept(next);
+				}
+			})
+			.catch(() => {
+				// The next poll asks again.
+			});
+	}
+
+	/**
+	 * The player the pass screen names takes the screen: only now is their own view asked for, and the pass screen
+	 * stays until it arrives (#30).
+	 */
+	takeSeat() {
+		const seat = this.passing;
+		if (seat === null || !this.room || this.#shownSeat === seat) {
+			return;
+		}
+		this.#shownSeat = seat;
+		const code = this.room.code;
+		const generation = this.#generation;
+		this.#api
+			.request(`state?seat=${seat}`)
+			.then((next) => {
+				if (
+					generation === this.#generation &&
+					this.room?.code === code
+				) {
+					this.#accept(next);
+				}
+			})
+			.catch(() => {
+				// The pass screen stays, and the player may try again.
+				if (this.passing === seat) {
+					this.#shownSeat = null;
+				}
+				this.notify("Can't reach the server. Try again.");
+			});
+	}
+
+	/** Whether the player the pass screen names has taken it, and their view is on its way (#30). */
+	get taking() {
+		return this.passing !== null && this.#shownSeat === this.passing;
 	}
 
 	/** The seat whose view is on show: the person's own online, the asked one at a hot-seat table. */
@@ -427,6 +487,7 @@ class Store {
 		const generation = ++this.#generation;
 		this.room = null;
 		this.#shownSeat = null;
+		this.passing = null;
 		this.#accept(room);
 		this.screen = 'table';
 		this.connection = '';
@@ -460,6 +521,7 @@ class Store {
 	#showLanding() {
 		const generation = ++this.#generation;
 		this.room = null;
+		this.passing = null;
 		this.screen = 'landing';
 		this.tablesState = 'loading';
 		(async () => {

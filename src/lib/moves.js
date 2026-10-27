@@ -32,7 +32,8 @@ export async function sendMove(request, room, seat, action) {
 }
 
 /**
- * The seat a hot-seat table shows: the lowest one being asked, until the pass screen (#30) asks before showing it.
+ * The seat a hot-seat table shows: the lowest one being asked. The pass screen (#30, `handOver` in pass.js) hands
+ * the screen to it first.
  * Online, the server shows the person's own seat, so there is nothing to choose.
  * @param {{ mode: string, game: any, you: number[] }} room - A room view
  * @returns {number | null}
@@ -44,21 +45,4 @@ export function seatToShow(room) {
 	return (
 		askedSeats(room.game).find((seat) => room.you.includes(seat)) ?? null
 	);
-}
-
-/**
- * At a hot-seat table, the seat to fetch instead of taking a room as it is, or null to take it. The seat wanted is
- * the lowest one being asked, or, while nobody is, the one already on show. A room for another seat (boot's public
- * view, or a poll that still asked for the previous seat) is swapped rather than shown, so the screen never flips
- * to another seat's view and back (#26 review).
- * @param {{ mode: string, game: any, you: number[], viewing: number | null }} room - A room view
- * @param {number | null} shown - The seat on show now
- * @returns {number | null}
- */
-export function seatToFetch(room, shown) {
-	if (room.mode !== 'hotseat') {
-		return null;
-	}
-	const wanted = seatToShow(room) ?? shown;
-	return wanted !== null && wanted !== room.viewing ? wanted : null;
 }

@@ -63,6 +63,19 @@ test('the tracks show every benefit, and setup shows capital mats as grids and c
 		await page.goto('/');
 		const heading = page.locator('.rg-decision-panel--panel h2');
 		const confirm = page.locator('.rg-decision-panel--confirm');
+		/**
+		 * Takes the hot-seat screen for a player at the pass screen (#30).
+		 * @param {string} name
+		 */
+		const takeScreen = async (name) => {
+			await expect(
+				page.getByRole('heading', {
+					name: `Pass the screen to ${name}`,
+				})
+			).toBeVisible();
+			await page.getByRole('button', { name: `I'm ${name}` }).click();
+		};
+		await takeScreen('Ana');
 
 		// The tracks, drawn under every prompt: every space shows its benefit, and the 18 with a bonus show it, with
 		// nothing cut off (#59). Some civilizations ask more once setup is over, so they are checked first.
@@ -103,8 +116,11 @@ test('the tracks show every benefit, and setup shows capital mats as grids and c
 			page.getByRole('button', { name: /^Ships, exploration space 5/ })
 		).toHaveAttribute('title', /Bonus: /);
 
-		// Each seat chooses a capital, then a civilization.
+		// Each seat chooses a capital, then a civilization; the screen passes to Ben in between.
 		for (let seat = 0; seat < 2; seat++) {
+			if (seat === 1) {
+				await takeScreen('Ben');
+			}
 			await expect(heading).toHaveText('Choose your capital city');
 			const mats = page.locator(
 				'.rg-card-shelf--mat .rg-card-shelf--card'
