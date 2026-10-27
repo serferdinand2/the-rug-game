@@ -2,7 +2,7 @@
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { server, config } from '../server.mjs';
-import { ApiError, createApi } from '../src/lib/api.js';
+import { ApiError, createApi, withSession } from '../src/lib/api.js';
 import { change, sameSeats } from '../src/lib/changes.js';
 import { boot } from '../src/lib/boot.js';
 
@@ -125,6 +125,46 @@ test('a change refuses to guess when the seats changed, and carries the newer ta
 	);
 	const now = await ana.request('state');
 	assert.equal(now.seats.length, 2, 'nobody was removed');
+});
+
+test('a change built from the table is rebuilt from the newer one on a retry, so quick choices add up', async () => {
+	const ana = await tab('Ana');
+	const created = await ana.request('create', { options: {} });
+	/** @param {string} id */
+	const turnOn = (id) => (/** @type {any} */ room) => ({
+		options: { variants: [...room.options.variants, id] },
+	});
+	// Both clicks start from the table as it was: the second meets a newer version.
+	await change(ana.request, 'configure', turnOn('tapestry-draft'), created);
+	const room = await change(
+		ana.request,
+		'configure',
+		turnOn('civ-draft'),
+		created
+	);
+	assert.deepEqual(room.options.variants, ['tapestry-draft', 'civ-draft']);
+});
+
+test('a session the server forgot is signed in again under the same name, and the action runs once more', async () => {
+	const storage = memory();
+	const api = createApi({ base, fetch, storage });
+	await api.signIn('Ana');
+	storage.setItem('rg-token', 'f'.repeat(48));
+	const room = await withSession(api, '', () =>
+		api.request('create', { options: {} })
+	);
+	assert.equal(room.seats[0].name, 'Ana');
+	assert.notEqual(api.token(), 'f'.repeat(48));
+});
+
+test('a new name signs in as a new guest before the action', async () => {
+	const api = await tab('Ana');
+	const first = api.token();
+	const room = await withSession(api, 'Bo', () =>
+		api.request('create', { options: {} })
+	);
+	assert.equal(room.seats[0].name, 'Bo');
+	assert.notEqual(api.token(), first);
 });
 
 test('two tables have the same seats only with the same names in the same order', () => {

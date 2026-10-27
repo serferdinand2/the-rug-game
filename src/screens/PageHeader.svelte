@@ -107,7 +107,7 @@
 	{#snippet controls()}
 		<IconButton
 			icon="sound"
-			label="Sound"
+			label="Mute"
 			muted={!sound}
 			onIconButtonClick={soundClickHandler} />
 		<div

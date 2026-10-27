@@ -1,4 +1,5 @@
 // What the client knows (#25 design §7.2): the table choices, who the tab is, the open tables and the table it sits at, kept up to date by the long poll.
+import { withSession } from './api.js';
 import { boot } from './boot.js';
 import { change } from './changes.js';
 import { validCode } from './lobby.js';
@@ -98,8 +99,11 @@ class Store {
 	/** @param {string} name */
 	async createTable(name) {
 		await this.#busy(async () => {
-			await this.#signedIn(name);
-			this.#openTable(await this.#api.request('create', { options: {} }));
+			this.#openTable(
+				await this.#withSession(name, () =>
+					this.#api.request('create', { options: {} })
+				)
+			);
 		});
 	}
 
@@ -113,9 +117,10 @@ class Store {
 			return;
 		}
 		await this.#busy(async () => {
-			await this.#signedIn(name);
 			this.#openTable(
-				await this.#api.request('join', { code: code.trim() })
+				await this.#withSession(name, () =>
+					this.#api.request('join', { code: code.trim() })
+				)
 			);
 		});
 	}
@@ -127,11 +132,17 @@ class Store {
 			return;
 		}
 		await this.#busy(async () => {
-			this.#openTable(await this.#api.request('join', { code }));
+			this.#openTable(
+				await this.#withSession('', () =>
+					this.#api.request('join', { code })
+				)
+			);
 		});
 	}
 
 	async leaveTable() {
+		// Stops the poll first: the server answers it with "not at this table" as the player leaves.
+		this.#generation += 1;
 		try {
 			await this.#api.request('leave', {});
 		} catch {
@@ -147,9 +158,14 @@ class Store {
 		this.#showLanding();
 	}
 
-	/** @param {Record<string, unknown>} options - Mode, version, expansions or variants */
+	/**
+	 * @param {Record<string, unknown> | ((room: any) => Record<string, unknown>)} options - Mode, version, expansions
+	 *   or variants; or built from the table, for a list such as the variants, so a retry builds it again
+	 */
 	configure(options) {
-		return this.#change('configure', { options });
+		return this.#change('configure', (/** @type {any} */ room) => ({
+			options: typeof options === 'function' ? options(room) : options,
+		}));
 	}
 
 	/** @param {{ timer?: number, undo?: boolean }} changes */
@@ -217,19 +233,22 @@ class Store {
 	}
 
 	/**
-	 * Signs in unless the tab already has a session under this name; a blank field keeps the session, or gets a
-	 * generated name.
-	 * @param {string} name
+	 * Runs a landing-page action with a session (withSession), then keeps the name signed in with.
+	 * @template T
+	 * @param {string} name - The name field
+	 * @param {() => Promise<T>} action
+	 * @returns {Promise<T>}
 	 */
-	async #signedIn(name) {
-		const typed = name.trim();
-		if (this.#api.token() && (!typed || typed === this.#api.name())) {
-			return;
-		}
-		const signed = await this.#api.signIn(
-			typed || generateName(this.#random)
+	async #withSession(name, action) {
+		const result = await withSession(this.#api, name, action, () =>
+			generateName(this.#random)
 		);
-		this.me = { name: signed, code: null, saved: null };
+		this.me = {
+			name: this.#api.name() ?? '',
+			code: null,
+			saved: this.me?.saved ?? null,
+		};
+		return result;
 	}
 
 	/**
@@ -254,7 +273,7 @@ class Store {
 	/**
 	 * A lobby change through change(), which survives a stale version while the seats stay put.
 	 * @param {string} endpoint
-	 * @param {Record<string, unknown>} body
+	 * @param {Record<string, unknown> | ((room: any) => Record<string, unknown>)} body
 	 * @returns {Promise<boolean>} Whether it went through
 	 */
 	async #change(endpoint, body) {

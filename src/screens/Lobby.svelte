@@ -46,8 +46,11 @@
 	let lockedTitle = $derived(
 		hosting ? undefined : 'Only the host changes the table.'
 	);
-	/** Redraws the choices whenever the server answers, so a refused one snaps back. */
-	let settingsKey = $derived(`${room.version}:${store.refusals}`);
+	/**
+	 * Redraws the choices after a refused change, so the choice snaps back. Only then: a redraw on every answer would
+	 * take the keyboard focus away.
+	 */
+	let settingsKey = $derived(store.refusals);
 
 	/** The empty seat whose name field is open, at a hot-seat table. @type {number | null} */
 	let addingSeat = $state(null);
@@ -121,11 +124,13 @@
 	 * @param {ComponentEvent} event
 	 */
 	const variantChangeHandler = (id, event) => {
-		const others = room.options.variants.filter(
-			(/** @type {string} */ v) => v !== id
-		);
-		store.configure({
-			variants: event.value === 'yes' ? [...others, id] : others,
+		const on = event.value === 'yes';
+		// Built from the table the server has, so two quick choices both count.
+		store.configure((/** @type {any} */ table) => {
+			const others = table.options.variants.filter(
+				(/** @type {string} */ v) => v !== id
+			);
+			return { variants: on ? [...others, id] : others };
 		});
 	};
 

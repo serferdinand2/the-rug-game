@@ -110,3 +110,30 @@ export function createApi({ base, fetch, storage }) {
 }
 
 /** @typedef {ReturnType<typeof createApi>} Api */
+
+/**
+ * Runs an action with a session. It signs in first when the tab has none or the player typed a new name, and signs in
+ * again once, under the same name, when the server has forgotten the session (a restart, or an hour unused).
+ * @template T
+ * @param {Api} api
+ * @param {string} typed - The name field; blank keeps the session's name
+ * @param {() => Promise<T>} action
+ * @param {() => string} [generate] - A name for a blank field and no name kept
+ * @returns {Promise<T>}
+ */
+export async function withSession(api, typed, action, generate = () => '') {
+	const wanted = typed.trim();
+	const name = () => wanted || api.name() || generate();
+	if (!api.token() || (wanted && wanted !== api.name())) {
+		await api.signIn(name());
+	}
+	try {
+		return await action();
+	} catch (error) {
+		if (!(error instanceof ApiError) || error.status !== 401) {
+			throw error;
+		}
+		await api.signIn(name());
+		return await action();
+	}
+}
