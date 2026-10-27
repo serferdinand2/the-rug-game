@@ -98,6 +98,8 @@ Use gold for selection, the track colours for track names, and green for the cur
 
 ![Launch page](screens/launch.png)
 
+**Built in #25 (2026-10-27).** The screenshot is the running game, not the mockup. It follows `launch.html`, with what the server needs added in the same look: a **Return to your game** button when the player left a running game, and loading, empty and failed states for Open tables. The rows show the code, the seats and the rules; an expansion badge appears once expansions exist. The design is `docs/superpowers/specs/2026-10-27-landing-and-lobby-design.md`.
+
 The page flows vertically beneath the header and has no footer. The brand sits at the left, the Atkinson header sentence is centered, and sound/menu controls sit at the right. A large centered Cinzel headline names Exploration, Science, Technology and Military in their track colours.
 
 The central panel stack is about 530px wide at the review size. Both panels have the dark header background and align to the same width:
@@ -113,6 +115,14 @@ The three advertised tables are fixtures. Production must obtain open tables fro
 ## Lobby page
 
 ![Lobby page](screens/lobby.png)
+
+**Built in #25 (2026-10-27).** The screenshot is the running game. Where the mockup and the game's rules or server differ, the owner's rule applied (2026-10-27): the mockup decides the look, the game decides what works.
+
+- **Readiness** is a server toggle and shows on every online seat; the host may start without it. A host change to the rules, variants, timer or undo clears it.
+- **No civilization in the lobby.** Each player is dealt two civilizations once the game starts and keeps one (#28); the seats show no civilization line, and there is no chooser.
+- **Open seat**, online, copies the table code: a friend fills a seat by joining with it. **Take the seat!** is left out, because the server seats joiners in order. At a hot-seat table, Open seat opens a name field (SeatCard's `add` state).
+- **Settings:** Rules, Expansions ("Base game only for now" until there are any) and **Turn timer** on the left; **Undo rules** and the five optional variants as Yes/No rows on the right. The mockup's Map row and its three sample rule rows aren't game rules, so they are left out. Only the host changes them; the others see them disabled.
+- The mode switch changes only while the host is alone at the table.
 
 The lobby uses a fixed 1920×1080 canvas. The main stack is **1000px wide**, centered horizontally, with the invitation above it. Its intentional two-line break is:
 
@@ -152,6 +162,8 @@ The X appears at the top right on hover/focus where applicable. It must never hi
 **Add bot is shelved (owner, 2026-10-21).** Don't build the **+ Add bot** choice, the bot seat row above, or the host's bot civilization control below. Until it returns, an unconfigured slot shows only **+ Open seat**, filling the same 112px slot, and the host's X returns a slot to that single choice. Solo play with the official Automa and Shadow Empire still needs its own setup design under #3.
 
 ### Civilization chooser
+
+Mockup only: the built lobby has no chooser, because the rules deal civilizations once the game starts (see the #25 note above). The choice of two dealt civilizations is a decision prompt (#28).
 
 - Clicking your chosen civilization reopens the chooser, so it can be changed.
 - The host can also open the chooser from a bot's civilization control and change that bot's selection. (Shelved with Add bot.)

@@ -22,6 +22,7 @@ import {
 	openTables,
 	phase,
 	play,
+	ready,
 	removeSeat,
 	roomView,
 	seatsOf,
@@ -550,8 +551,8 @@ test('the room view shows seats by number and name, never the people behind them
 		phase: 'lobby',
 		host: 1,
 		seats: [
-			{ seat: 1, name: 'A', away: false },
-			{ seat: 2, name: 'B', away: false },
+			{ seat: 1, name: 'A', away: false, ready: false },
+			{ seat: 2, name: 'B', away: false, ready: false },
 		],
 		you: [2],
 		viewing: 2,
@@ -790,6 +791,13 @@ function randomStep(room, random, now) {
 	if (room.history.length > 0 && random(4) === 0) {
 		return randomUndo(room, random, someone);
 	}
+	if (random(12) === 0) {
+		const isReady = /** @type {any[]} */ ([true, false, 'yes'])[random(3)];
+		return {
+			step: `${someone} is ready: ${JSON.stringify(isReady)}`,
+			next: ready(room, someone, isReady),
+		};
+	}
 	const roll = random(100);
 	if (roll < 15) {
 		return { step: `join ${someone}`, next: join(room, P(someone)) };
@@ -885,6 +893,16 @@ function randomStep(room, random, now) {
 function checkRoom(room, before, step) {
 	const now = phase(room);
 	const present = room.seats.filter((s) => !s.away);
+	if (room.seats.some((s) => s.ready)) {
+		assert.equal(room.mode, 'online', 'readiness only at an online table');
+		assert.equal(room.game, null, 'readiness only before a deal');
+	}
+	if (/ (configures|sets) /.test(step) && room !== before) {
+		assert.ok(
+			room.seats.every((s) => !s.ready),
+			'a host change clears readiness'
+		);
+	}
 	assert.ok(room.seats.length >= 1, 'a room holds a seat');
 	assert.ok(present.length <= MAX_SEATS, 'at most 5 people present');
 	if (now !== 'finished') {
@@ -1049,6 +1067,71 @@ function checkUndone(room, before, step) {
 	assert.ok(room.history.every((s, i) => s === before.history[i]));
 	checkState(/** @type {any} */ (room.game));
 }
+
+test('a player marks their own seat ready and unready, and the view shows it', () => {
+	const room = ready(lobby('a', 'b'), 'b', true);
+	assert.equal(room.seats[1].ready, true);
+	assert.deepEqual(
+		roomView(room, 'a').seats.map((s) => s.ready),
+		[false, true]
+	);
+	const back = ready(room, 'b', false);
+	assert.equal(back.seats[1].ready, undefined);
+	assert.deepEqual(
+		roomView(back, 'b').seats.map((s) => s.ready),
+		[false, false]
+	);
+});
+
+test('readiness that does not change returns the same room', () => {
+	const room = ready(lobby('a', 'b'), 'a', true);
+	assert.equal(ready(room, 'a', true), room);
+	const fresh = lobby('a', 'b');
+	assert.equal(ready(fresh, 'b', false), fresh);
+});
+
+test('readiness is refused at a hot-seat table, once a game is dealt, and when it is not yes or no', () => {
+	refuses(
+		() => ready(hotseat('Ana', 'Bo'), 'a', true),
+		'Everyone here shares one screen.'
+	);
+	refuses(
+		() => ready(dealt(lobby('a', 'b')), 'b', true),
+		'The game has already started.'
+	);
+	refuses(
+		() => ready(lobby('a', 'b'), 'b', /** @type {any} */ ('yes')),
+		'Choose whether you are ready.'
+	);
+	refuses(
+		() => ready(lobby('a', 'b'), 'z', true),
+		"You aren't at this table."
+	);
+});
+
+test('a joiner starts not ready and leaves the others ready', () => {
+	const room = join(ready(lobby('a', 'b'), 'b', true), P('c'));
+	assert.deepEqual(
+		room.seats.map((s) => s.ready),
+		[undefined, true, undefined]
+	);
+});
+
+test('a host change to the options or the settings clears every seat in the lobby', () => {
+	const both = ready(ready(lobby('a', 'b'), 'a', true), 'b', true);
+	const options = configure(both, 'a', { version: 'original' });
+	assert.ok(options.seats.every((s) => s.ready === undefined));
+	const timer = settings(both, 'a', { timer: 2 });
+	assert.ok(timer.seats.every((s) => s.ready === undefined));
+	// Nothing changed, so nobody's readiness goes.
+	assert.equal(configure(both, 'a', { version: 'current' }), both);
+	assert.equal(settings(both, 'a', { undo: true }), both);
+});
+
+test('a game is dealt without readiness', () => {
+	const room = dealt(ready(ready(lobby('a', 'b'), 'a', true), 'b', true));
+	assert.ok(room.seats.every((s) => !('ready' in s)));
+});
 
 test('random steps never break the room rules', () => {
 	let undone = 0;

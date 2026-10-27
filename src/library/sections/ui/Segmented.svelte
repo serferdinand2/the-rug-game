@@ -1,4 +1,4 @@
-<!-- Library section: Segmented as the lobby's tinted settings and filled mode switch, single and multiple. -->
+<!-- Library section: Segmented as the lobby's tinted settings and filled mode switch, single and multiple, and disabled. -->
 <script>
 	import Segmented from '../../../lib/components/ui/Segmented.svelte';
 	import Example from '../../Example.svelte';
@@ -13,7 +13,7 @@
 <Section
 	name="Segmented"
 	area="ui"
-	description="A row of choices shown as pressed buttons: the lobby's mode switch (filled) and its settings (tinted), one choice or several.">
+	description="A row of choices shown as pressed buttons: the lobby's mode switch (filled) and its settings (tinted), one choice or several. Disabled, it is shown but not choosable, as the settings are for a player who doesn't host.">
 	<Example
 		label={`variant="filled" value="${mode}"`}
 		surface="chrome">
@@ -88,5 +88,27 @@
 				{ value: 'no', label: 'No', color: 'var(--military)' },
 			]}
 			bind:value={draft} />
+	</Example>
+	<Example
+		label={'disabled value="online"  (a guest, or the host once a friend has joined)'}
+		surface="chrome">
+		<Segmented
+			label="Mode"
+			variant="filled"
+			disabled
+			title="Only the host changes the mode, while alone at the table."
+			options={[
+				{
+					value: 'online',
+					label: 'Online mode',
+					color: 'var(--exploration)',
+				},
+				{
+					value: 'local',
+					label: 'Local mode',
+					color: 'var(--exploration)',
+				},
+			]}
+			value="online" />
 	</Example>
 </Section>

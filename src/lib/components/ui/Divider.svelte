@@ -57,10 +57,11 @@
 		background: var(--line);
 	}
 
+	/* Cinzel italic, as the launch mockup draws "or join friends". */
 	.rg-divider--label {
 		color: var(--muted);
-		font-size: var(--font-size-sm);
-		font-style: italic;
+		font: italic var(--weight-title) var(--font-size-sm) /
+			var(--leading-tight) var(--font-title);
 		white-space: nowrap;
 	}
 </style>

@@ -1,4 +1,4 @@
-// The table API (#23, #24): guest sessions, every table in memory, long polling, the table timers, and the endpoints over rooms.mjs.
+// The table API (#23, #24, #25): guest sessions, every table in memory, long polling, the table timers, and the endpoints over rooms.mjs.
 import { randomBytes, randomInt } from 'node:crypto';
 import { PlayerError } from './src/lib/engine/game.js';
 import * as Rooms from './rooms.mjs';
@@ -157,6 +157,7 @@ const METHODS = {
 	configure: 'POST',
 	'add-seat': 'POST',
 	'remove-seat': 'POST',
+	ready: 'POST',
 	start: 'POST',
 	end: 'POST',
 	settings: 'POST',
@@ -815,6 +816,18 @@ export function createApi(config, { timeout = Rooms.timeout } = {}) {
 				return change(session, body, now, (room) =>
 					Rooms.removeSeat(room, session.id, body.seat)
 				);
+			case 'ready': {
+				// No version: it touches only the person's own seat and decides nothing (#25 design §6.4).
+				const room = tableOf(session, now);
+				const stored = /** @type {StoredRoom} */ (
+					commit(
+						room.code,
+						Rooms.ready(room, session.id, body.ready),
+						now
+					)
+				);
+				return viewFor(stored, session);
+			}
 			case 'start':
 				return change(session, body, now, (room) =>
 					Rooms.start(room, session.id, random)
