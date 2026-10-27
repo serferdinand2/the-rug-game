@@ -26,7 +26,7 @@ The component library now uses the approved resources in prices and chips, incom
 
 The **UI/UX handoff for #3** is in [docs/ui/README.md](docs/ui/README.md). It is the manifest for building the real game pages: layout, typography, colours, control states, placement and decision examples. The HTML pages are interactive mockups with fixture data.
 
-**The landing page, the lobby (#25) and the play screen (#26) are built** and run on the real table API. Sign in by name, create or join a table, set it up and start; then play: the Advancement Tracks with the spaces you can pay for, the World Map as the real board's hex grid, composed from the terrain art (#6), the footer turn (income, or advance with its payment), and a designed prompt for every other decision (#28): resources and payments with their art, cards on a shelf above the panel, the map's territories with each explore's tile, turn and VP, buildings and landmarks placed on the Capital tab, dice and tracks, and the gold income turn with its steps. The player area (#27) has the Capital, Hand, Income, Eras, Civ, Tech and Terrain tabs, with real tech and tapestry cards, and the header chips open the players overview. A whole base game can be played with the mouse. Run `npm start` and open <http://127.0.0.1:3020/>.
+**The landing page, the lobby (#25) and the play screen (#26) are built** and run on the real table API. Sign in by name, create or join a table, set it up and start; then play: the Advancement Tracks with the spaces you can pay for, the World Map as the real board's hex grid, composed from the terrain art (#6), the footer turn (income, or advance with its payment), and a designed prompt for every other decision (#28): resources and payments with their art, cards on a shelf above the panel, the map's territories with each explore's tile, turn and VP, buildings and landmarks placed on the Capital tab, dice and tracks, and the gold income turn with its steps. Each track space shows its benefit and its bonus, as on the printed board (#59); at setup each capital mat on offer is its real 9×9 grid (#56) and the civilization cards are whole at full size (#57, #58). The player area (#27) has the Capital, Hand, Income, Eras, Civ, Tech and Terrain tabs, with real tech and tapestry cards, and the header chips open the players overview. A whole base game can be played with the mouse. Run `npm start` and open <http://127.0.0.1:3020/>.
 
 **The boards (#6)** are drawn: the map's six terrain hex pictures, the 48 territory tiles (clouds exactly where R77 says), both map sides as examples, and the 12 advanced capital biomes with their example mats. The game composes its map from the terrain pictures, as it composes the capital from its plot tiles. They wait for the owner's approval in the component library's Art part.
 
@@ -38,11 +38,15 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Play: the tracks, with an advance chosen | Play: the World Map |
 |---|---|
-| ![The play screen: the tracks with the payable spaces outlined in green, Rafts selected and the footer offering the advance](docs/ui/screens/game-tracks.png) | ![The play screen: the World Map composed from the terrain art: territories in their turns with coasts, clouds and the start outposts](docs/ui/screens/game-map.png) |
+| ![The play screen: every track space with its benefit and bonus, the payable spaces outlined in green, Rafts selected and the footer offering the advance](docs/ui/screens/game-tracks.png) | ![The play screen: the World Map composed from the terrain art: territories in their turns with coasts, clouds and the start outposts](docs/ui/screens/game-map.png) |
 
 | Play: the player area (Capital) | Play: the players overview |
 |---|---|
 | ![The play screen with the Capital tab: the real Mountain mat's plots and the completion counters](docs/ui/screens/game-player-area.png) | ![The players overview: a card per player and Ana's Wetland capital opened on the right](docs/ui/screens/game-overview.png) |
+
+| Prompt: choosing a capital | Prompt: choosing a civilization |
+|---|---|
+| ![The capital choice: both mats as their 9×9 grids of terrain tiles, with the impassable plots and districts, the chosen one outlined](docs/ui/screens/game-prompt-capital-mat.png) | ![The civilization choice: both cards whole at full size, the chosen one outlined in gold](docs/ui/screens/game-prompt-civ.png) |
 
 | Prompt: cards on the shelf (the tapestry draft) | Prompt: exploring a territory |
 |---|---|

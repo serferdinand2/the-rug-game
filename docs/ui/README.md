@@ -190,6 +190,7 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 ![The play screen: the World Map](screens/game-map.png)
 
 - **The World Map** is the real board's hex grid (owner, 2026-10-27): 34 hexes for 1–3 players, 61 for 4–5, flat-topped as on the printed board with start 1 at the top. Each corner of a territory is a wedge of its terrain, an island sits in the middle, and unexplored hexes are dark and dashed. Outposts are squares in the player's colour (toppled ones lie down), tokens are circles. Since #6 every wedge and island shows its terrain's picture (`hex/*`), clipped to its shape, with a coast where land meets sea and the cloud or volcano where R77 puts them, so a tile in any turn stays crisp and shows the terrains the engine scores.
+- **Each space shows its benefit, and its bonus in a small box** (#59, 2026-10-27), as the printed board does: resources, buildings and track symbols are their art; the game symbols without art yet are short words (Tile, Tapestry, Explore, Conquer, Invent, Science die, VP), as #5 decided; a benefit without its own benefit carries a red X; "or" joins a choice. The bonus box shows its price, an arrow and what it gives. The full words are the space's tooltip and label. A board with height to spare makes the spaces up to 1.25 times as tall as wide; on a short screen (1366×768) the symbols shrink and a few bonuses are cut off, with the words still in the tooltip.
 - **The spaces a player can pay for** have a green outline; the selected one keeps the gold outline. The footer then shows the space's benefit and bonus in words, its price and **Advance**, and asks for the payment in the decision panel when there is a choice.
 - **The achievements** sit in the head of the shared area, with the claimants' colours and the next VP.
 - **The decision panel** is the mockup's prompt, designed per decision in #28 (below). A map decision lights up its hexes and leaves the map clickable.
@@ -209,6 +210,10 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 
 **Built in #28 (2026-10-27): the decision prompts.**
 
+![Choosing a capital: each mat as its 9×9 grid](screens/game-prompt-capital-mat.png)
+
+![Choosing a civilization: the cards whole](screens/game-prompt-civ.png)
+
 ![Cards on the shelf](screens/game-prompt-cards.png)
 
 ![Exploring a territory](screens/game-prompt-explore.png)
@@ -220,6 +225,7 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **One model for every decision:** `src/lib/prompts.js` turns the open decision into a title, an instruction, a layout and one option per answer, each chosen in the panel, on the card shelf, on the map or on the capital. Nothing is sent until Confirm, even with one answer.
 - **Art, as in the mockup:** resources at 48 px with their counts, track symbols, buildings, landmarks, civilization portraits, space and territory tiles; dice faces and VP are words (#5). A bonus shows its cost and takes its track's colour.
 - **Cards** sit on a shelf above the panel, as full cards: tapestry cards (play, keep, discard, copy, respond), tech cards with the deck as a card back, both civilizations at setup and the two capital mats. Hovering a tapestry or tech card shows it in full.
+- **Civilizations and capital mats** (2026-10-27, #56–#58): the civilization cards are whole, 425 px wide at their own height, as the decision mockup shows them, and the gold outline wraps each card exactly. A row too tall for the shelf is scaled down just enough, never below 0.75; past that the shelf scrolls (the Mystics at 1440×900). Each capital mat is its real 9×9 grid, 380 px, composed from the terrain tiles with the table's seed, so it looks as it will in the Capital tab; the example mat art is no longer used. A panel with no options of its own has no content area: its status line gives the instruction, leaving the shelf more height.
 - **The map:** choosing a territory lists its answers. An explore starts on the best-scoring tile and turn, previewed on the hex, and lists every tile in every turn with the VP it scores.
 - **The capital:** a building's open plots are lit on the Capital tab and a click previews it there; a landmark comes from the tray, snaps only to the engine's legal places, turns with R, and the piece's own lock sends it. Beside the mat and the Craftsmen's columns stay panel choices.
 - **The income turn** is gold, as in the mockup: the panel's title and step strip (Ability, Tapestry, Upgrade, Score, Income, only the steps that turn runs) and the footer's "Your income turn · Income turn n · step".

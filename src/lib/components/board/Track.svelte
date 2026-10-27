@@ -5,6 +5,9 @@
 	 * @typedef {Object} TrackSpaceEntry
 	 * @property {string} name - The space's name, such as 'Ships'
 	 * @property {string} [landmark] - The landmark the first player here takes, such as 'Lighthouse'
+	 * @property {import('../../glyphs.js').Glyph[]} [benefit] - The benefit's symbols (#59)
+	 * @property {import('../../glyphs.js').BonusGlyphs | null} [bonus] - The bonus's price and gain
+	 * @property {string} [words] - The benefit and bonus in words
 	 */
 
 	/**
@@ -159,6 +162,9 @@
 				space={index + 1}
 				name={entry.name}
 				landmark={entry.landmark}
+				benefit={entry.benefit}
+				bonus={entry.bonus}
+				words={entry.words}
 				selected={selectedSpace === index + 1}
 				available={available.includes(index + 1)}
 				onTrackSpaceClick={spaceClickHandler}

@@ -5,7 +5,7 @@
 	 * @typedef {Object} TrackBoardTrack
 	 * @property {import('../../ui.js').TrackId} id - The track, such as 'exploration'
 	 * @property {string} name - The track's name, such as 'Exploration'
-	 * @property {{ name: string, landmark?: string }[]} spaces - The twelve spaces, in order
+	 * @property {import('./Track.svelte').TrackSpaceEntry[]} spaces - The twelve spaces, in order, with their benefits and bonuses
 	 * @property {import('../../ui.js').CostSymbol[][]} tiers - The four tier prices, I–IV
 	 * @property {{ seat: import('../../ui.js').Seat, name: string, position: number }[]} players - The players' positions on this track
 	 */
@@ -71,7 +71,8 @@
 
 <div
 	{...attr}
-	class="rg-track-board {attr.class ? attr.class : ''}">
+	class="rg-track-board {attr.class ? attr.class : ''}"
+	style:--rg-track-board-lanes={Math.max(1, tracks[0]?.players.length ?? 1)}>
 	{#each tracks as track (track.id)}
 		<Track
 			{...track}
@@ -84,7 +85,20 @@
 </div>
 
 <style>
+	/* A size container, so a space can take the height the board has to spare (#59): a quarter of the board less a
+	   track's heading, prices, gaps and progress lanes (53px and 8px a lane), between 48px and 1.25 times a space's
+	   width, a twelfth of the board. */
 	.rg-track-board {
+		--rg-track-space-aspect: auto;
+		--rg-track-space-height: clamp(
+			48px,
+			calc(
+				(100cqh - 3 * var(--space-4)) / 4 - 53px -
+					(var(--rg-track-board-lanes) - 1) * var(--progress-lane)
+			),
+			calc(100cqw / 12 * 1.25)
+		);
+		container-type: size;
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;

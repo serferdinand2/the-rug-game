@@ -20,7 +20,7 @@
 <Section
 	name="CardShelf"
 	area="prompts"
-	description="The cards a decision offers, in a row above the panel. Each card is a button; the chosen one is outlined in gold and lifted. Hovering or focusing a card reports it so the screen can show it in full.">
+	description="The cards a decision offers, in a row above the panel. Each card is a button; the chosen one is outlined in gold, and a tapestry or tech card is also lifted. Civilization cards are whole, 425 px wide at their own height, shrinking only as far as the shelf's height needs (never below 0.75), and capital mats are their 9×9 grid of terrain tiles; each sizes its own button, so the outline fits it. Hovering or focusing a card reports it so the screen can show it in full.">
 	<Example
 		label={`kind="tapestry"  (selected ${tapestry})${inspected ? `  · inspecting ${inspected}` : ''}`}
 		surface="ink"
@@ -86,7 +86,7 @@
 				(civ = event.value)} />
 	</Example>
 	<Example
-		label={`kind="mat"  (selected ${mat})`}
+		label={`kind="mat"  (each mat's own grid, 380px · selected ${mat})`}
 		surface="ink"
 		wide>
 		<CardShelf

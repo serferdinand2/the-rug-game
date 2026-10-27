@@ -52,6 +52,7 @@
 	import { mapHexes } from '../lib/hexmap.js';
 	import { promptFor } from '../lib/prompts.js';
 	import { exploreChoices } from '../lib/area/explore.js';
+	import { terrainSeed } from '../lib/area/capital.js';
 	import { tapestryCardData, techCardData } from '../lib/cards/game-cards.js';
 	import { selfSummary } from '../lib/overview.js';
 	import { advanceOptions, myDecision } from '../lib/turn.js';
@@ -473,12 +474,36 @@
 	{/if}
 {/snippet}
 
+<!-- The prompt's cost and its own options; a prompt without them (cards on the shelf, plots, hexes) has no content
+     area, and its status line gives the instruction, so the shelf has more room (#57). -->
+{#snippet promptContent()}
+	{#if prompt?.cost}
+		<CostBox
+			class="rg-game--cost"
+			symbols={prompt.cost}
+			track={prompt.track ?? undefined} />
+	{/if}
+	{#if panelOptions.length}
+		<div class="rg-game--options">
+			{#each panelOptions as option (option.index)}
+				<DecisionOption
+					label={option.label}
+					art={option.art}
+					vp={option.vp}
+					pressed={picked === option.index}
+					onDecisionOptionClick={() => (picked = option.index)} />
+			{/each}
+		</div>
+	{/if}
+{/snippet}
+
 {#snippet cardShelf()}
 	{#if prompt?.shelf}
 		<CardShelf
 			kind={prompt.shelf}
 			cards={shelfCards}
 			selected={picked}
+			terrainSeed={terrainSeed(room.code)}
 			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 				(picked = event.value)}
 			onCardShelfInspect={shelfInspectHandler} />
@@ -597,9 +622,10 @@
 					shelf={shelfCards.length ? cardShelf : undefined}
 					status={picked !== null
 						? (prompt.options[picked]?.label ?? '')
-						: panelOptions.length
-							? prompt.instruction
-							: ''}
+						: prompt.instruction}
+					children={prompt.cost || panelOptions.length
+						? promptContent
+						: undefined}
 					confirmLabel={prompt.confirmLabel}
 					confirmDisabled={picked === null || sending}
 					cancelLabel={docked && mapPick
@@ -609,29 +635,7 @@
 					onDecisionPanelCancel={() => {
 						mapPick = null;
 						picked = null;
-					}}>
-					{#if prompt.cost}
-						<CostBox
-							class="rg-game--cost"
-							symbols={prompt.cost}
-							track={prompt.track ?? undefined} />
-					{/if}
-					{#if panelOptions.length}
-						<div class="rg-game--options">
-							{#each panelOptions as option (option.index)}
-								<DecisionOption
-									label={option.label}
-									art={option.art}
-									vp={option.vp}
-									pressed={picked === option.index}
-									onDecisionOptionClick={() =>
-										(picked = option.index)} />
-							{/each}
-						</div>
-					{:else}
-						<p class="rg-game--hint">{prompt.instruction}</p>
-					{/if}
-				</DecisionPanel>
+					}} />
 			{/if}
 			{#if inspected}
 				<div
@@ -846,11 +850,6 @@
 
 	.rg-game--shared :global(.rg-game--cost) {
 		margin-bottom: var(--space-6);
-	}
-
-	.rg-game--hint {
-		margin: 0;
-		color: var(--muted);
 	}
 
 	/* A shelf card shown in full beside the shelf, at the left, so the shelf and its focus stay in sight (#28 review). */
