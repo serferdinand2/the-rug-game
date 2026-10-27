@@ -1,47 +1,152 @@
-<!-- Library section: WorldMap with the play-page mockup's five rows, and a small map with every terrain. -->
+<!-- Library section: WorldMap on both sides of the board from dealt games, a mid-game board with every kind of piece, and target hexes to choose. -->
 <script>
 	import WorldMap from '../../../lib/components/board/WorldMap.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
+	import {
+		askedSeats,
+		createGame,
+		defaultAction,
+		play,
+		view,
+	} from '../../../lib/engine/game.js';
+	import { seededRandom } from '../../../lib/engine/random.js';
+	import { hexNeighbours } from '../../../lib/engine/data/maps.js';
+	import { mapHexes } from '../../../lib/hexmap.js';
 
-	const S = 'sea';
-	const F = 'forest';
-	const G = 'grassland';
-	const D = 'desert';
-	const M = 'mountain';
-	const U = 'unexplored';
+	const NAMES = ['Ana', 'Bo', 'Cy', 'Dee', 'Eli'];
 
-	/** The mockup's map, a review fixture rather than the real board. @type {import('../../../lib/ui.js').Terrain[][]} */
-	const MOCKUP = [
-		[S, S, S, S, S, S, S, S, S, S],
-		[S, F, U, D, U, M, U, G, S, S],
-		[S, G, M, U, F, U, D, F, M, S],
-		[S, D, U, G, U, M, F, U, S, S],
-		[S, S, S, S, S, S, S, S, S, S],
-	];
+	/**
+	 * A game dealt with a fixed seed and its setup answered with the default picks, so the start outposts stand,
+	 * as seat 1 sees it.
+	 * @param {number} players
+	 * @param {number} seed
+	 */
+	function dealt(players, seed) {
+		const random = seededRandom(seed);
+		let state = createGame({
+			players: NAMES.slice(0, players).map((name) => ({ name })),
+			version: 'current',
+			random,
+		});
+		while (state.phase === 'setup') {
+			const seat = askedSeats(state)[0];
+			const action = /** @type {{ decision: number }} */ (
+				defaultAction(state, seat)
+			);
+			state = play(state, seat, action, random);
+		}
+		return view(state, 1);
+	}
 
-	/** @type {import('../../../lib/ui.js').Terrain[][]} */
-	const SMALL = [
-		[S, F, G],
-		[D, M, U],
-	];
+	/**
+	 * The hex a seat's outposts started on.
+	 * @param {import('../../../lib/engine/view.js').View} game
+	 * @param {number} seat
+	 */
+	function startOf(game, seat) {
+		return /** @type {string} */ (
+			Object.keys(game.hexes).find((key) =>
+				game.hexes[key].outposts.some((o) => o.seat === seat)
+			)
+		);
+	}
+
+	/**
+	 * The first unexplored hex next to another, on the board.
+	 * @param {import('../../../lib/engine/view.js').View} game
+	 * @param {string} key
+	 */
+	function unexploredNextTo(game, key) {
+		return /** @type {string} */ (
+			hexNeighbours(key).find((next) => game.hexes[next]?.tile === null)
+		);
+	}
+
+	/**
+	 * A review fixture, not a played game: a dealt large map where each player explored a territory next to their start
+	 * and moved an outpost onto it, Bo conquered the middle island from Ana, Cy is the Traders and Dee the Nomads.
+	 */
+	function midGame() {
+		const game = dealt(4, 7);
+		// Tiles 17 and 41 have an island in the middle.
+		const tiles = [17, 3, 41, 30];
+		for (const seat of game.seats) {
+			const start = startOf(game, seat.seat);
+			const hex = unexploredNextTo(game, start);
+			game.hexes[hex].tile = tiles[seat.seat - 1];
+			game.hexes[hex].orient = seat.seat;
+			game.hexes[start].outposts.pop();
+			game.hexes[hex].outposts.push({ seat: seat.seat, toppled: false });
+		}
+		game.hexes['0_0'].outposts.push(
+			{ seat: 1, toppled: true, toppledBy: 2 },
+			{ seat: 2, toppled: false }
+		);
+		game.hexes[startOf(game, 3)].tokens.push({ seat: 3, civ: 'traders' });
+		const nomads = startOf(game, 4);
+		game.hexes[nomads].outposts.push(
+			{ seat: 4, toppled: false, piece: { building: 'farm' } },
+			{ seat: 4, toppled: true, piece: { landmark: 'lighthouse' } }
+		);
+		return game;
+	}
+
+	const small = mapHexes(dealt(3, 3));
+	const large = mapHexes(dealt(4, 3));
+	const busy = mapHexes(midGame());
+
+	const exploring = dealt(2, 5);
+	const exploringHexes = mapHexes(exploring);
+	// Where Ana could explore: the unexplored hexes next to her start.
+	const targets = hexNeighbours(startOf(exploring, 1)).filter(
+		(key) => exploring.hexes[key]?.tile === null
+	);
+	/** @type {string | null} */
+	let chosen = $state(null);
+
+	/**
+	 * @param {import('../../../lib/component-event.js').ComponentEvent} event
+	 */
+	const selectHandler = (event) => {
+		chosen = event.value.hex;
+	};
 </script>
 
 <Section
 	name="WorldMap"
 	area="board"
-	description="The schematic world map: point-up hexagons coloured by terrain, odd rows half a hex to the right, unexplored hexes dashed. Exploration and conquest targeting are not designed yet, so the map is static.">
+	description="The real board until #6's map art: the hexes of the game's map side, flat-topped, with start 1 at the top. Each territory shows its corner terrains as wedges, turned as it lies, and its island as a small hexagon; unexplored hexes are dashed. Outposts are squares in their player's colour, lying down and outlined once toppled; a Nomads building or landmark carries a small mark, and a civilization token is a circle. With targets set, only the target hexes are buttons (green), the rest dim, and the chosen one is outlined in gold. The map scales to fit its box.">
 	<Example
-		label={'rows={the mockup\'s five rows} label="World map preview"'}
+		label={"hexes={mapHexes(view)}  (large map, 4 players dealt, in the shared area's box)"}
 		wide
 		width={1428}>
 		<WorldMap
-			rows={MOCKUP}
-			label="World map preview" />
+			hexes={large}
+			style="height: 860px" />
 	</Example>
 	<Example
-		label={'rows={[[sea, forest, grassland], [desert, mountain, unexplored]]}'}
-		width={360}>
-		<WorldMap rows={SMALL} />
+		label={'hexes={mapHexes(view)}  (small map, 3 players dealt)'}
+		width={640}>
+		<WorldMap
+			hexes={small}
+			label="Small map" />
+	</Example>
+	<Example
+		label={'hexes={mapHexes(view)}  (mid-game fixture: explored tiles, two with islands, a conquered middle, a Traders token, Nomads pieces)'}
+		width={640}>
+		<WorldMap
+			hexes={busy}
+			label="Mid-game map" />
+	</Example>
+	<Example
+		label={`targets={[${targets.map((key) => `'${key}'`).join(', ')}]} selected=${chosen === null ? 'null' : `'${chosen}'`}  (click or press Enter on a green hex)`}
+		width={640}>
+		<WorldMap
+			hexes={exploringHexes}
+			{targets}
+			selected={chosen}
+			label="Choose a hex to explore"
+			onWorldMapSelect={selectHandler} />
 	</Example>
 </Section>
