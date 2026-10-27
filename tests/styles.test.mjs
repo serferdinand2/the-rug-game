@@ -181,6 +181,23 @@ test('no font-size token is below 10px', () => {
 	}
 });
 
+test('screens and components take every font size from tokens.css (#67)', () => {
+	for (const [path, contents] of sources) {
+		if (!/^(screens|lib[/\\]components)[/\\]/.test(path)) {
+			continue;
+		}
+		for (const [declaration] of cssOf(path, contents).matchAll(
+			/(?<![\w-])font(?:-size)?\s*:[^;]+;/g
+		)) {
+			assert.doesNotMatch(
+				declaration,
+				/\d(px|r?em|vw|vh)\b|clamp\(/,
+				`${path}: ${declaration}`
+			);
+		}
+	}
+});
+
 test('no stylesheet or component outside tokens.css hard-codes a colour', () => {
 	for (const [path, contents] of sources) {
 		if (path.endsWith('tokens.css')) {

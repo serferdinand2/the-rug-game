@@ -135,7 +135,7 @@
 
 	.rg-standing-row--place {
 		color: var(--muted);
-		font-size: 28px;
+		font-size: var(--font-size-5xl);
 		font-weight: var(--weight-bold);
 		line-height: var(--leading-none);
 	}
@@ -198,7 +198,7 @@
 
 	.rg-standing-row--score {
 		color: var(--text);
-		font-size: 25px;
+		font-size: var(--font-size-4xl);
 		font-weight: var(--weight-bold);
 		white-space: nowrap;
 	}

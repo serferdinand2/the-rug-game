@@ -61,7 +61,20 @@ The reference review size is **1920×1080 CSS pixels**, at 100% zoom. Play and l
 
 Player names must never use Cinzel. Capital headings use Atkinson except for the capital type, such as **Mountain**, in Cinzel. Right-panel tabs use the compact labels **Civ** and **Tech**; overview summary rows also use **Tech**.
 
-The launch headline “Advance through…” and the lobby invitation use Cinzel. The launch header sentence “Build a civilization that stands the test of time”, form labels and buttons use Atkinson. These roles replace the old Alagard/VCR guidance. In code, Cinzel is `--font-title` and Atkinson Hyperlegible is `--font-body`; the size scale (`--font-size-3xs`, 10px and the smallest, to `--font-size-display`), weights, line heights and letter spacing are in `tokens.css`.
+The launch headline “Advance through…” and the lobby invitation use Cinzel. The launch header sentence “Build a civilization that stands the test of time”, form labels and buttons use Atkinson. These roles replace the old Alagard/VCR guidance. In code, Cinzel is `--font-title` and Atkinson Hyperlegible is `--font-body`; the size scale (`--font-size-3xs`, 10px and the smallest, to `--font-size-display-lg`), weights, line heights and letter spacing are in `tokens.css`.
+
+Above `--font-size-3xl` (22px, page headings), each size has one role, taken from the approved mockups (#67):
+
+| Token | Size | Role |
+|---|---|---|
+| `--font-size-4xl` | 25px | A player's score in the final standings |
+| `--font-size-5xl` | 28px | A player's place in the final standings |
+| `--font-size-6xl` | 42px | A hero name: the pass screen's player, your place on the results |
+| `--font-size-display-sm` | 20–26px (2vw) | The lobby invitation |
+| `--font-size-display` | 24–38px (3vw) | The launch headline |
+| `--font-size-display-lg` | 32–48px (3vw) | The results title, **Final standings** |
+
+A new screen takes its headline from these rather than typing a size again; `tests/styles.test.mjs` fails on a pixel or `clamp()` font size in a screen or component.
 
 ### Surfaces, colours and selection
 

@@ -176,7 +176,7 @@
 		width: min(820px, 100%);
 		margin: 0;
 		color: var(--text);
-		font: var(--weight-title) clamp(24px, 3vw, 38px) / 1.35
+		font: var(--weight-title) var(--font-size-display) / 1.35
 			var(--font-title);
 		text-align: center;
 		text-wrap: balance;

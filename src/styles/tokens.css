@@ -82,11 +82,16 @@
 	--font-size-xl: 18px; /* panel titles, the turn label */
 	--font-size-2xl: 20px; /* the brand, player names in the overview */
 	--font-size-3xl: 22px; /* page headings, the table code */
-	--font-size-display: clamp(
-		24px,
+	--font-size-4xl: 25px; /* a player's score in the final standings */
+	--font-size-5xl: 28px; /* a player's place in the final standings */
+	--font-size-6xl: 42px; /* a hero name: the pass screen's player, your place on the results */
+	--font-size-display-sm: clamp(20px, 2vw, 26px); /* the lobby invitation */
+	--font-size-display: clamp(24px, 3vw, 38px); /* the launch headline */
+	--font-size-display-lg: clamp(
+		32px,
 		3vw,
-		38px
-	); /* the launch and lobby headlines */
+		48px
+	); /* the results title, Final standings */
 
 	/* ---------- Type: line height and letter spacing ---------- */
 	--leading-none: 1;
