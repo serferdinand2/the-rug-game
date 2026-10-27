@@ -64,3 +64,22 @@ Card texts for expansion cards come with their expansions.
   - each family's layout is checked.
 - The components' library sections show each layout.
 - A browser walkthrough plays a game to the end with the mouse, through every family that comes up.
+
+## 7. Calls made in the build
+
+All **(my call)**, for the owner to revisit after playing:
+
+- **Explore:** choosing a hex selects its best-scoring tile and turn and previews it on the map. Confirm still sends it, and every other tile and turn is listed by VP. The list names the tile and turn only ("Tile 19, turned 3 times"), since the hex is already chosen.
+- **Placing on the capital:**
+  - A building: a click on a lit plot previews it there; the panel's Place sends it.
+  - A landmark: it starts in the tray. Choosing it puts it at the legal place nearest the middle. Moves, drops and turns snap only to the engine's places. The piece's own lock sends it, as does Place.
+  - Returning it to the tray clears the choice. A plot click also moves a placed landmark.
+- **Nothing is sent before Confirm**, even when there is a single answer.
+- **The shelf:**
+  - Cards are full size (tapestry 0.7, tech 0.65, civilizations 0.5), and the row scrolls when too wide.
+  - Tapestry cards overlap, as in the mockup's fan, only past four.
+  - Hovering a tapestry or tech card shows it in full beside the shelf; a civilization or a capital mat is already whole.
+  - The capital mats show the example mat art.
+- **Several places at once:** a Nomads placement offers capital plots and territories. The capital leads; the map's hexes stay lit, and the panel docks whenever the map is on show (final review).
+- **The income strip** shows the turn's own steps; the first-of-neighbours bonus counts as the Tapestry step.
+- **Known gap:** `CapitalGrid`'s own fit check doesn't know R106's overhangs or Terraforming. So R and the arrow keys stop short of those places; a plot click or a drop reaches them.
