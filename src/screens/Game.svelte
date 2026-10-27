@@ -329,7 +329,7 @@
 					name={player.name}
 					civilization={player.civs.length
 						? civilizationName(player.civs[0])
-						: 'Choosing a civilization'}
+						: 'Setting up'}
 					vp={player.vp}
 					seat={player.seat}
 					current={game.current === player.seat} />

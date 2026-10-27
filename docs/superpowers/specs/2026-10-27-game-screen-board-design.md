@@ -31,7 +31,7 @@ Not in #26: the player tabs and the players overview (#27); the designed prompts
 As in `main-screen.html`, at the 1920×1080 reference size:
 - **Header (58 px):**
   - The brand at the left.
-  - One `PlayerChip` per seat in the middle: the player's name, their civilization (in setup, "Choosing a civilization"), and their VP. The player whose turn it is has the green glow.
+  - One `PlayerChip` per seat in the middle: the player's name, their civilization (in setup, "Setting up"), and their VP. The player whose turn it is has the green glow.
   - At the right:
     - the turn clock, when the timer is on;
     - **Undo** (the ↶ control), enabled when `canUndo`;

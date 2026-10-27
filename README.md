@@ -10,7 +10,7 @@ It is built like the author's other table games, [Fablewood Rummy](https://githu
 
 No official Stonemaier artwork, logos or rulebook text are used.
 
-> **Status: in development.** The rules research, the design plan, the main game screen and the art style are approved. The base-game rules engine (M3) is complete, with a test that plays 200 random games to the end. In M4 the table rules and the server API are in: two clients can already play a whole game over HTTP. The turn timer and undo are in too: the host sets a turn timer, the server plays out a timed-out turn, and a player can take back their own choices within their turn. A table can also switch on five of the official optional variants. In M5 the landing page and the lobby are built; the game screen comes next. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order.
+> **Status: in development.** The rules research, the design plan, the main game screen and the art style are approved. The base-game rules engine (M3) is complete, with a test that plays 200 random games to the end. In M4 the table rules and the server API are in: two clients can already play a whole game over HTTP. The turn timer and undo are in too: the host sets a turn timer, the server plays out a timed-out turn, and a player can take back their own choices within their turn. A table can also switch on five of the official optional variants. In M5 the landing page, the lobby and the play screen are built, so a whole game can be played in the browser; the player area and the designed prompts come next. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order.
 
 ## Current interface
 
@@ -26,7 +26,7 @@ The component library now uses the approved resources in prices and chips, incom
 
 The **UI/UX handoff for #3** is in [docs/ui/README.md](docs/ui/README.md). It is the manifest for building the real game pages: layout, typography, colours, control states, placement and decision examples. The HTML pages are interactive mockups with fixture data.
 
-**The landing page and the lobby are built (#25)** and run on the real table API: sign in by name, create or join a table, pick an open one, set the table up and start. Run `npm start` and open <http://127.0.0.1:3020/>. The game screen comes with #26–#28; until then, a started game shows a holding page.
+**The landing page, the lobby (#25) and the play screen (#26) are built** and run on the real table API. Sign in by name, create or join a table, set it up and start; then play: the Advancement Tracks with the spaces you can pay for, the World Map drawn as the real board's hex grid, the footer turn (income, or advance with its payment), and a plain prompt for every other decision. Run `npm start` and open <http://127.0.0.1:3020/>. The player area's tabs come with #27 and the designed prompts with #28.
 
 The colours, texture, type, spacing, shadows and motion of these designs are in [src/styles/tokens.css](src/styles/tokens.css), the single source of truth for the look.
 
@@ -34,7 +34,11 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 |---|---|
 | ![The landing page, with two open tables](docs/ui/screens/launch.png) | ![The lobby with three players, one ready, the turn timer at 2 minutes and the tapestry draft on](docs/ui/screens/lobby.png) |
 
-The game screen is still a mockup. Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html), [End screen](docs/ui/end-screen.html).
+| Play: the tracks, with an advance chosen | Play: the World Map |
+|---|---|
+| ![The play screen: the tracks with the payable spaces outlined in green, Rafts selected and the footer offering the advance](docs/ui/screens/game-tracks.png) | ![The play screen: the World Map as the small board's hex grid, with the start outposts and an explored territory](docs/ui/screens/game-map.png) |
+
+The rest of the play screen is still a mockup. Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html), [End screen](docs/ui/end-screen.html).
 
 **Game mockup: tracks and capital, at the 1920×1080 desktop reference size.**
 
@@ -69,7 +73,7 @@ npm run dev    # hot-reloading development server on http://127.0.0.1:5173 (the 
 npm test
 ```
 
-Copy [.env.example](.env.example) to `.env` to change the host or port, or to trust a reverse proxy. The app opens on the landing page, where you create or join a table; the game screen arrives with the rest of milestone M5.
+Copy [.env.example](.env.example) to `.env` to change the host or port, or to trust a reverse proxy. The app opens on the landing page, where you create or join a table and play it.
 
 ## Deploying
 
