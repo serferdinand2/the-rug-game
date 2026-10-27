@@ -13,6 +13,11 @@ import { push } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
 import { effectArt, incomeView, promptFor } from '../src/lib/prompts.js';
+import {
+	exploreIndex,
+	exploreTiles,
+	hexScores,
+} from '../src/lib/area/explore.js';
 import { myDecision } from '../src/lib/turn.js';
 import { readyTurn, startedGame, newGame } from './helpers/engine.mjs';
 
@@ -91,6 +96,7 @@ function answerUntil(state, random, player, kind) {
 test("every open decision of the viewer's own view gets a prompt with one option per answer, over random games", () => {
 	let prompts = 0;
 	let incomes = 0;
+	let explores = 0;
 	/** @type {Set<string>} */
 	const kinds = new Set();
 	for (let seed = 1; seed <= 30; seed++) {
@@ -166,6 +172,24 @@ test("every open decision of the viewer's own view gets a prompt with one option
 					],
 					where
 				);
+				if (decision.kind === 'chooseExplore') {
+					explores++;
+					const tiles = exploreTiles(mine);
+					const hexes = Object.keys(hexScores(game, mine, tiles[0]));
+					const hits = tiles.flatMap((tile) =>
+						hexes.flatMap((hex) =>
+							[0, 1, 2, 3, 4, 5].map((orient) =>
+								exploreIndex(mine, { tile, hex, orient })
+							)
+						)
+					);
+					assert.ok(!hits.includes(-1), where);
+					assert.deepEqual(
+						[...hits].sort((a, b) => a - b),
+						mine.answers.map((_, i) => i),
+						where
+					);
+				}
 				if (prompt.income) {
 					incomes++;
 					assert.ok(inIncomeTurn(state, seat), where);
@@ -195,6 +219,7 @@ test("every open decision of the viewer's own view gets a prompt with one option
 		}
 	}
 	assert.ok(prompts > 1000, `only ${prompts} prompts`);
+	assert.ok(explores > 0, 'no explore checked');
 	assert.ok(incomes > 100, `only ${incomes} prompts in an income turn`);
 	for (const kind of [
 		'chooseCapital',
