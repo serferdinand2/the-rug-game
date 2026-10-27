@@ -31,3 +31,10 @@ test('no summary for the public view or a seat that is not a player', () => {
 	const { state } = startedGame(2);
 	assert.equal(selfSummary(view(state, null), null), null);
 });
+
+test('during setup, before a capital mat is dealt, the summary counts no lines', async () => {
+	const { newGame } = await import('./helpers/engine.mjs');
+	const { state } = newGame(2);
+	const summary = selfSummary(view(state, 1), 1);
+	assert.equal(summary?.lines, 0);
+});

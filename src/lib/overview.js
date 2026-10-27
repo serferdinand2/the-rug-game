@@ -30,7 +30,11 @@ export function selfSummary(view, seat) {
 	if (!player || player.kind !== 'player') {
 		return null;
 	}
-	const lines = completeLines(cityPlots(player));
+	// In setup, before the mats are dealt, there is no capital to count.
+	const lines =
+		player.capital.mat === null
+			? { rows: 0, columns: 0 }
+			: completeLines(cityPlots(player));
 	return {
 		seat: /** @type {import('./ui.js').Seat} */ (seat),
 		name: player.name,
