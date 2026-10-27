@@ -17,6 +17,7 @@ export function backoff(failures) {
  * @param {Object} options
  * @param {(endpoint: string) => Promise<any>} options.request - An Api's request
  * @param {() => number} options.version - The version on screen
+ * @param {() => number | null} [options.seat] - The seat on show at a hot-seat table (#26); null or absent online
  * @param {(room: any) => void} options.accept - Takes each answer
  * @param {(error: ApiError) => void} options.lost - The person lost their seat (400) or their session (401); the
  *   poll has ended
@@ -28,6 +29,7 @@ export function backoff(failures) {
 export async function pollTable({
 	request,
 	version,
+	seat = () => null,
 	accept,
 	lost,
 	trouble,
@@ -37,7 +39,10 @@ export async function pollTable({
 	let failures = 0;
 	while (!stopped()) {
 		try {
-			const room = await request(`state?since=${version()}`);
+			const shown = seat();
+			const room = await request(
+				`state?since=${version()}${shown === null ? '' : `&seat=${shown}`}`
+			);
 			if (stopped()) {
 				return;
 			}

@@ -138,3 +138,23 @@ test('a stopped poll sends nothing more, and drops an answer that arrives after 
 	assert.equal(accepted, 0);
 	assert.equal(asked.length, 1);
 });
+
+test('at a hot-seat table each request asks for the seat on show (#26)', async () => {
+	let seat = 2;
+	let answers = 0;
+	const { request, asked } = scripted([{ version: 2 }, { version: 3 }]);
+	await pollTable({
+		request,
+		version: () => 1 + answers,
+		seat: () => seat,
+		accept: () => {
+			answers += 1;
+			seat = 3;
+		},
+		lost: () => assert.fail('not lost'),
+		trouble: () => assert.fail('no trouble'),
+		stopped: () => answers === 2,
+		wait: async () => {},
+	});
+	assert.deepEqual(asked, ['state?since=1&seat=2', 'state?since=2&seat=3']);
+});
