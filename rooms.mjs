@@ -1,4 +1,4 @@
-// Room rules: a table's seats, host, options and settings, its lobby → playing → finished cycle, its clocks and its undo history, as pure transitions (#22, #24).
+// Room rules: a table's seats, host, options and settings, its lobby → playing → finished cycle, readiness, its clocks and its undo history, as pure transitions (#22, #24, #25).
 import {
 	askedSeats,
 	checkOptions,
@@ -33,6 +33,7 @@ import {
  * @property {string} player - The id of the person who plays it; at a hot-seat table, the host for every seat
  * @property {string} name
  * @property {true} [away] - The person left a game in progress, or a finished one
+ * @property {true} [ready] - The person said they are ready, in an online lobby (#25); it decides nothing
  */
 /**
  * A seat's clock, in the server's milliseconds (#24 design §5). A running clock has `ends`, a paused one `left`.
@@ -91,7 +92,7 @@ import {
  * @property {boolean} undo
  * @property {'lobby' | 'playing' | 'finished'} phase
  * @property {number} host - The seat number of the host's first seat
- * @property {{ seat: number, name: string, away: boolean }[]} seats
+ * @property {{ seat: number, name: string, away: boolean, ready: boolean }[]} seats
  * @property {number[]} you - The seats this person plays
  * @property {number | null} viewing - The seat whose view `game` is; null for the public view
  * @property {import('./src/lib/engine/view.js').View | null} game
@@ -343,7 +344,7 @@ export function configure(room, personId, changes) {
 	) {
 		return room;
 	}
-	return { ...room, mode, options };
+	return unready({ ...room, mode, options });
 }
 
 /**
@@ -374,13 +375,62 @@ export function settings(room, personId, changes) {
 	if (timer === room.timer && undo === room.undo) {
 		return room;
 	}
-	return {
+	return unready({
 		...room,
 		timer: /** @type {number} */ (timer),
 		undo,
 		clocks: timer === room.timer ? room.clocks : {},
 		history: undo && timer === room.timer ? room.history : [],
+	});
+}
+
+/**
+ * The room with nobody ready: a host change means READY no longer says yes to the table as it is (#25 design §6.4).
+ * @param {Room} room
+ * @returns {Room}
+ */
+function unready(room) {
+	if (!room.seats.some((s) => s.ready)) {
+		return room;
+	}
+	return {
+		...room,
+		seats: room.seats.map(({ ready: _ready, ...seat }) => seat),
 	};
+}
+
+/**
+ * A player at an online lobby says whether they are ready (#25 design §6.4). It is only a sign to the others: the
+ * host may start without it.
+ * @param {Room} room
+ * @param {string} personId
+ * @param {unknown} isReady - Straight from a request
+ * @returns {Room} The same room when nothing changes
+ * @throws {PlayerError}
+ */
+export function ready(room, personId, isReady) {
+	const index = room.seats.findIndex((s) => s.player === personId);
+	if (index < 0) {
+		throw new PlayerError("You aren't at this table.");
+	}
+	if (room.mode === 'hotseat') {
+		throw new PlayerError('Everyone here shares one screen.');
+	}
+	if (room.game) {
+		throw new PlayerError('The game has already started.');
+	}
+	if (typeof isReady !== 'boolean') {
+		throw new PlayerError('Choose whether you are ready.');
+	}
+	if ((room.seats[index].ready === true) === isReady) {
+		return room;
+	}
+	const { ready: _ready, ...seat } = room.seats[index];
+	const seats = room.seats.with(
+		index,
+		isReady ? { ...seat, ready: /** @type {true} */ (true) } : seat
+	);
+	return { ...room, seats };
 }
 
 /**
@@ -1074,6 +1124,7 @@ export function roomView(room, personId, seat) {
 			seat: i + 1,
 			name: s.name,
 			away: s.away === true,
+			ready: s.ready === true,
 		})),
 		you,
 		viewing,

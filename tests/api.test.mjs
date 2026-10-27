@@ -131,8 +131,8 @@ test('creating and joining a table answer the room view, with the table version'
 	assert.equal(room.version, 2);
 	assert.match(room.code, /^[0-9a-f]{8}$/);
 	assert.deepEqual(room.seats, [
-		{ seat: 1, name: 'Ana', away: false },
-		{ seat: 2, name: 'Bo', away: false },
+		{ seat: 1, name: 'Ana', away: false, ready: false },
+		{ seat: 2, name: 'Bo', away: false, ready: false },
 	]);
 	assert.deepEqual(room.you, [2]);
 	assert.equal(room.host, 1);
@@ -809,6 +809,39 @@ function hold(token, since) {
 		.catch(() => null);
 	return { answer, drop: () => aborts.abort() };
 }
+
+test('a player says they are ready without the table version, and a waiting request wakes (#25)', async () => {
+	const { people, room } = await table('Ana', 'Bo');
+	const waiting = call(`state?since=${room.version}`, {
+		token: people[0].token,
+	});
+	await pause(50);
+	const answer = await call('ready', {
+		body: { ready: true },
+		token: people[1].token,
+	});
+	assert.equal(answer.status, 200, JSON.stringify(answer.data));
+	assert.deepEqual(
+		answer.data.seats.map((/** @type {any} */ s) => s.ready),
+		[false, true]
+	);
+	assert.equal(answer.data.version, room.version + 1);
+	const woken = await waiting;
+	assert.equal(woken.data.seats[1].ready, true);
+});
+
+test('readiness at a hot-seat table is refused (#25)', async () => {
+	const host = await login('Ana');
+	await call('create', {
+		body: { options: { mode: 'hotseat' } },
+		token: host.token,
+	});
+	refused(
+		await call('ready', { body: { ready: true }, token: host.token }),
+		400,
+		'Everyone here shares one screen.'
+	);
+});
 
 test('one session and one address may hold only a few long polls at once', async () => {
 	config.waitsPerSession = 2;
