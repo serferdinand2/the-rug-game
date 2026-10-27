@@ -3,6 +3,7 @@ import { withSession } from './api.js';
 import { boot } from './boot.js';
 import { change } from './changes.js';
 import { validCode } from './lobby.js';
+import { seatToFetch, sendMove } from './moves.js';
 import { generateName } from './names.js';
 import { backoff, pollTable } from './poll.js';
 
@@ -44,6 +45,8 @@ class Store {
 	toastVisible = $state(false);
 	/** Counts refused changes, so the settings redraw what the server kept. */
 	refusals = $state(0);
+	/** The browser's time when the room on show arrived, for the turn clock (#26). */
+	receivedAt = $state(0);
 	sound = $state(false);
 	busy = $state(false);
 
@@ -54,6 +57,8 @@ class Store {
 	#wait;
 	/** Bumped whenever the tab leaves a screen, so the loops of the old one stop. */
 	#generation = 0;
+	/** @type {number | null} The seat on show at a hot-seat table, which the poll asks for (#26). */
+	#shownSeat = null;
 	/** @type {ReturnType<typeof setTimeout> | undefined} */
 	#toastTimer;
 
@@ -307,14 +312,86 @@ class Store {
 	 */
 	#accept(room) {
 		if (
-			!this.room ||
-			room.code !== this.room.code ||
-			room.version >= this.room.version
+			this.room &&
+			room.code === this.room.code &&
+			room.version < this.room.version
 		) {
-			this.room = room;
-			if (this.me) {
-				this.me = { ...this.me, code: room.code };
+			return;
+		}
+		// At a hot-seat table a room for another seat is swapped for the one asked, not shown (#26 review).
+		const swap = seatToFetch(room, this.#shownSeat);
+		if (swap !== null) {
+			this.#shownSeat = swap;
+			const code = room.code;
+			this.#api
+				.request(`state?seat=${swap}`)
+				.then((next) => {
+					if (!this.room || this.room.code === code) {
+						this.#accept(next);
+					}
+				})
+				.catch(() => {
+					// The next poll asks for the seat again.
+				});
+			if (this.room) {
+				return;
 			}
+		}
+		this.room = room;
+		this.#shownSeat = room.viewing;
+		this.receivedAt = Date.now();
+		if (this.me) {
+			this.me = { ...this.me, code: room.code };
+		}
+	}
+
+	/** The seat whose view is on show: the person's own online, the asked one at a hot-seat table. */
+	get seat() {
+		return this.room?.viewing ?? null;
+	}
+
+	/**
+	 * Answers one of the viewer's open decisions (#26). A stale version is not sent again: the newer table is shown
+	 * and the player decides again.
+	 * @param {{ decision: number } & Record<string, unknown>} action
+	 * @returns {Promise<boolean>} Whether it went through
+	 */
+	async move(action) {
+		if (!this.room) {
+			return false;
+		}
+		try {
+			this.#accept(
+				await sendMove(
+					this.#api.request,
+					this.room,
+					this.room.mode === 'hotseat' ? this.seat : null,
+					action
+				)
+			);
+			return true;
+		} catch (error) {
+			this.#refused(error);
+			return false;
+		}
+	}
+
+	/** Takes back the viewer's last choice, when the table allows it (#24). */
+	async undo() {
+		if (!this.room) {
+			return;
+		}
+		try {
+			this.#accept(
+				await this.#api.request('undo', {
+					version: this.room.version,
+					...(this.room.mode === 'hotseat'
+						? { seat: this.seat }
+						: {}),
+				})
+			);
+		} catch (error) {
+			this.#refused(error);
 		}
 	}
 
@@ -322,12 +399,15 @@ class Store {
 	#openTable(room) {
 		const generation = ++this.#generation;
 		this.room = null;
+		this.#shownSeat = null;
 		this.#accept(room);
 		this.screen = 'table';
 		this.connection = '';
 		pollTable({
 			request: this.#api.request,
 			version: () => this.room?.version ?? 0,
+			seat: () =>
+				this.room?.mode === 'hotseat' ? this.#shownSeat : null,
 			accept: (next) => {
 				this.connection = '';
 				this.#accept(next);

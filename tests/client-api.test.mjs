@@ -5,6 +5,8 @@ import { server, config } from '../server.mjs';
 import { ApiError, createApi, withSession } from '../src/lib/api.js';
 import { change, sameSeats } from '../src/lib/changes.js';
 import { boot } from '../src/lib/boot.js';
+import { seatToFetch, seatToShow, sendMove } from '../src/lib/moves.js';
+import { myDecision } from '../src/lib/turn.js';
 
 let base = '';
 
@@ -208,4 +210,143 @@ test('boot with an expired token forgets it and starts as a guest', async () => 
 	assert.equal(booted.me, null);
 	assert.equal(api.token(), null);
 	assert.equal(api.name(), 'Ana', 'the name stays to fill the field');
+});
+
+test('two guests answer setup and their first turns with moves built from their own decisions (#26)', async () => {
+	const ana = await tab('Ana');
+	const bo = await tab('Bo');
+	const created = await ana.request('create', { options: {} });
+	await bo.request('join', { code: created.code });
+	let room = await change(
+		ana.request,
+		'start',
+		{},
+		await ana.request('state')
+	);
+	const people = [ana, bo];
+	let incomeTurns = 0;
+	for (let step = 0; step < 200 && incomeTurns < 2; step++) {
+		let moved = false;
+		for (const [i, person] of people.entries()) {
+			room = await person.request('state');
+			const mine = myDecision(room.game, i + 1);
+			if (!mine) {
+				continue;
+			}
+			if (mine.kind === 'chooseTurn') {
+				incomeTurns += 1;
+			}
+			room = await sendMove(person.request, room, null, {
+				decision: mine.id,
+				...mine.answers[0],
+			});
+			moved = true;
+		}
+		assert.ok(moved, 'somebody always has a decision');
+	}
+	assert.equal(incomeTurns, 2);
+	assert.equal(room.game.phase, 'play');
+});
+
+test('a move with a stale version is refused with the newer table, and not sent again (#26)', async () => {
+	const ana = await tab('Ana');
+	const bo = await tab('Bo');
+	const created = await ana.request('create', { options: {} });
+	await bo.request('join', { code: created.code });
+	const started = await change(
+		ana.request,
+		'start',
+		{},
+		await ana.request('state')
+	);
+	const mine = myDecision((await ana.request('state')).game, 1);
+	// Bo moves first, so Ana's table is out of date.
+	const theirs = myDecision((await bo.request('state')).game, 2);
+	await sendMove(bo.request, await bo.request('state'), null, {
+		decision: theirs.id,
+		...theirs.answers[0],
+	});
+	await assert.rejects(
+		sendMove(ana.request, started, null, {
+			decision: mine.id,
+			...mine.answers[0],
+		}),
+		(/** @type {any} */ error) => {
+			assert.equal(error.status, 409);
+			assert.equal(error.message, 'The table changed. Try again.');
+			assert.ok(error.room.version > started.version);
+			return true;
+		}
+	);
+});
+
+test('a hot-seat table shows the lowest seat being asked (#26)', () => {
+	const game = {
+		pending: [
+			{
+				id: 1,
+				batch: 1,
+				player: null,
+				kind: 'group',
+				lanes: [
+					{
+						player: 2,
+						stack: [
+							{ id: 2, batch: 2, player: 2, kind: 'chooseCiv' },
+						],
+					},
+					{
+						player: 3,
+						stack: [
+							{ id: 3, batch: 3, player: 3, kind: 'chooseCiv' },
+						],
+					},
+				],
+			},
+		],
+	};
+	assert.equal(seatToShow({ mode: 'hotseat', game, you: [1, 2, 3] }), 2);
+	assert.equal(seatToShow({ mode: 'online', game, you: [1] }), null);
+	assert.equal(
+		seatToShow({ mode: 'hotseat', game: null, you: [1, 2] }),
+		null
+	);
+});
+
+test('a hot-seat room for the wrong seat is swapped for the asked one, and the right one is taken as it is (#26)', () => {
+	/** @param {number[]} asked */
+	const gameAsking = (...asked) => ({
+		pending: asked.map((player, i) => ({
+			id: i + 1,
+			batch: i + 1,
+			player,
+			kind: 'chooseTurn',
+		})),
+	});
+	const room = (
+		/** @type {number | null} */ viewing,
+		/** @type {any} */ game
+	) => ({
+		mode: 'hotseat',
+		you: [1, 2],
+		viewing,
+		game,
+	});
+	// Boot's public view: show the asked seat instead.
+	assert.equal(seatToFetch(room(null, gameAsking(1)), null), 1);
+	// The asked seat's own view: take it.
+	assert.equal(seatToFetch(room(1, gameAsking(1)), 1), null);
+	// A poll that still asked for the previous seat after the turn passed: fetch the new one.
+	assert.equal(seatToFetch(room(1, gameAsking(2)), 1), 2);
+	// Nobody is asked (the server is about to answer for someone): keep the seat on show.
+	assert.equal(seatToFetch(room(2, gameAsking()), 2), null);
+	assert.equal(seatToFetch(room(null, gameAsking()), 2), 2);
+	// Online there is nothing to choose.
+	assert.equal(
+		seatToFetch(
+			{ mode: 'online', you: [1], viewing: 1, game: gameAsking(2) },
+			null
+		),
+		null
+	);
 });

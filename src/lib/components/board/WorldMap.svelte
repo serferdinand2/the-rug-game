@@ -1,10 +1,13 @@
-<!-- The schematic world map: rows of point-up hexagons coloured by terrain, with unexplored ones dashed. -->
+<!-- The World Map: the real board's flat-topped hex grid, each territory drawn from its corner terrains and island, with the outposts and tokens on it and the hexes a decision can target. -->
 <script module>
 	/**
 	 * Properties of the WorldMap component itself.
 	 * @typedef {Object} WorldMapOwnProps
-	 * @property {import('../../ui.js').Terrain[][]} rows - The hexes row by row, top first; odd rows sit half a hex to the right
+	 * @property {import('../../hexmap.js').MapHex[]} hexes - Every hex of the board, from mapHexes(view) at HEX_SIZE
+	 * @property {string[]} [targets=[]] - Hex keys a decision can choose; each becomes a button and the other hexes dim
+	 * @property {string | null} [selected=null] - The chosen hex, outlined in gold
 	 * @property {string} [label='World map'] - Names the map for assistive technology
+	 * @property {Function} [onWorldMapSelect] - Callback fired with { hex } when the player chooses a target hex
 	 */
 
 	/**
@@ -13,71 +16,262 @@
 	 *
 	 * @example
 	 * <WorldMap
-	 *   label="World map"
-	 *   rows={[
-	 *     ['sea', 'sea', 'sea'],
-	 *     ['forest', 'unexplored', 'desert'],
-	 *     ['sea', 'grassland', 'mountain'],
-	 *   ]}
+	 *   hexes={mapHexes(room.game)}
+	 *   targets={['1_2', '2_2']}
+	 *   selected={hex}
+	 *   onWorldMapSelect={(event) => (hex = event.value.hex)}
 	 * />
 	 */
 </script>
 
 <script>
-	import { terrainColor } from '../../ui.js';
+	import { ComponentEvent } from '../../component-event.js';
+	import {
+		HEX_SIZE,
+		cornerWedge,
+		fitBox,
+		hexCorner,
+		islandParts,
+		pieceSpots,
+		svgPoints,
+	} from '../../hexmap.js';
+	import { playerColor, terrainColor } from '../../ui.js';
 
 	/** @type {WorldMapProps} */
-	let { rows, label = 'World map', ...attr } = $props();
+	let {
+		hexes,
+		targets = [],
+		selected = null,
+		label = 'World map',
+		onWorldMapSelect,
+		...attr
+	} = $props();
 
-	// A point-up hexagon 72 wide and 84 tall, centred on the origin.
-	const HEX = '0,-42 36,-21 36,21 0,42 -36,21 -36,-21';
-	const HALF_WIDTH = 36;
-	const HALF_HEIGHT = 42;
-	const COLUMN_PITCH = 72;
-	const ROW_PITCH = 63;
-	// Room for the 2px stroke around the outer hexes.
-	const MARGIN = 2;
+	const CORNERS = [0, 1, 2, 3, 4, 5];
+	// A Nomads piece's mark, for a piece of side 1: a house for a building, a narrow tower for a landmark.
+	const MARKS = {
+		building: '-0.26,0.26 -0.26,-0.04 0,-0.28 0.26,-0.04 0.26,0.26',
+		landmark: '-0.12,0.3 -0.12,-0.1 0,-0.32 0.12,-0.1 0.12,0.3',
+	};
 
-	let hexes = $derived(
-		rows.flatMap((row, rowIndex) =>
-			row.map((terrain, column) => ({
-				key: `${rowIndex}-${column}`,
-				terrain,
-				x: column * COLUMN_PITCH + (rowIndex % 2) * HALF_WIDTH,
-				y: rowIndex * ROW_PITCH,
-			}))
-		)
-	);
-	let width = $derived(
-		Math.max(
-			0,
-			...rows.map(
-				(row, rowIndex) =>
-					row.length * COLUMN_PITCH + (rowIndex % 2) * HALF_WIDTH
-			)
-		)
-	);
-	let height = $derived(
-		rows.length ? (rows.length - 1) * ROW_PITCH + 2 * HALF_HEIGHT : 0
-	);
+	// The hex keyboard focus is on, outlined above its neighbours.
+	/** @type {string | null} */
+	let focused = $state(null);
+
+	let box = $derived(fitBox(hexes, HEX_SIZE));
 	let viewBox = $derived(
-		`${-HALF_WIDTH - MARGIN} ${-HALF_HEIGHT - MARGIN} ${width + 2 * MARGIN} ${height + 2 * MARGIN}`
+		box.width ? `${box.x} ${box.y} ${box.width} ${box.height}` : undefined
 	);
+	let targetSet = $derived(new Set(targets));
+	let targeting = $derived(targetSet.size > 0);
+	let drawn = $derived(
+		hexes.map((hex) => ({
+			...hex,
+			target: targetSet.has(hex.key),
+			outline: svgPoints(
+				CORNERS.map((k) => hexCorner(hex.center, k, HEX_SIZE))
+			),
+			wedges: hex.corners
+				? hex.corners.map((terrain, k) => ({
+						terrain,
+						points: svgPoints(cornerWedge(hex.center, k, HEX_SIZE)),
+					}))
+				: [],
+			islands: islandParts(hex.center, hex.island, HEX_SIZE).map(
+				(part) => ({ ...part, points: svgPoints(part.points) })
+			),
+			pieces: pieces(hex),
+		}))
+	);
+	let overlays = $derived(
+		drawn.filter(
+			(hex) => hex.target || hex.key === selected || hex.key === focused
+		)
+	);
+
+	/**
+	 * @param {MouseEvent} event
+	 * @param {string} hex
+	 */
+	const hexClickHandler = (event, hex) => {
+		choose(event, hex);
+	};
+
+	/**
+	 * Enter and Space choose a target hex, as they would press a button.
+	 * @param {KeyboardEvent} event
+	 * @param {string} hex
+	 */
+	const hexKeydownHandler = (event, hex) => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			choose(event, hex);
+		}
+	};
+
+	/**
+	 * @param {FocusEvent} event
+	 * @param {string} hex
+	 */
+	const hexFocusHandler = (event, hex) => {
+		const target = /** @type {SVGGElement} */ (event.currentTarget);
+		if (target.matches(':focus-visible')) {
+			focused = hex;
+		}
+	};
+
+	const hexBlurHandler = () => {
+		focused = null;
+	};
+
+	/**
+	 * @param {Event} event
+	 * @param {string} hex
+	 */
+	function choose(event, hex) {
+		if (!targetSet.has(hex) || typeof onWorldMapSelect !== 'function') {
+			return;
+		}
+		const target = /** @type {HTMLElement} */ (
+			/** @type {unknown} */ (event.currentTarget)
+		);
+		onWorldMapSelect(new ComponentEvent({ hex }, target, event));
+	}
+
+	/**
+	 * The pieces on a hex, outposts first, each in its spot.
+	 * @param {import('../../hexmap.js').MapHex} hex
+	 */
+	function pieces(hex) {
+		const spots = pieceSpots(
+			hex.center,
+			hex.outposts.length + hex.tokens.length,
+			hex.island.length > 0,
+			HEX_SIZE
+		);
+		return [
+			...hex.outposts.map((outpost, i) => ({
+				kind: /** @type {'outpost' | 'token'} */ ('outpost'),
+				seat: outpost.seat,
+				toppled: outpost.toppled,
+				mark: outpost.piece ? MARKS[outpost.piece.kind] : null,
+				...spots[i],
+			})),
+			...hex.tokens.map((token, i) => ({
+				kind: /** @type {'outpost' | 'token'} */ ('token'),
+				seat: token.seat,
+				toppled: false,
+				mark: null,
+				...spots[hex.outposts.length + i],
+			})),
+		];
+	}
 </script>
 
 <svg
-	role="img"
+	role="group"
 	aria-label={label}
 	{viewBox}
 	{...attr}
 	class="rg-world-map {attr.class ? attr.class : ''}">
-	{#each hexes as hex (hex.key)}
+	{#snippet tile(/** @type {(typeof drawn)[number]} */ hex)}
+		{#if hex.corners}
+			{#each hex.wedges as wedge, k (k)}
+				<polygon
+					class="rg-world-map--wedge"
+					points={wedge.points}
+					style:fill={terrainColor(wedge.terrain)}
+					style:stroke={terrainColor(wedge.terrain)} />
+			{/each}
+			{#each hex.islands as part, i (i)}
+				<polygon
+					class="rg-world-map--island"
+					points={part.points}
+					style:fill={terrainColor(part.terrain)} />
+			{/each}
+			<polygon
+				class="rg-world-map--edge"
+				points={hex.outline} />
+		{:else}
+			<polygon
+				class="rg-world-map--edge rg-world-map--fog"
+				points={hex.outline} />
+		{/if}
+		{#each hex.pieces as piece, i (i)}
+			{#if piece.kind === 'token'}
+				<circle
+					class="rg-world-map--token"
+					cx={piece.x}
+					cy={piece.y}
+					r={piece.size * 0.42}
+					style:fill={playerColor(piece.seat)} />
+			{:else if piece.toppled}
+				<!-- Lying on its side: half as tall, outlined in the player's colour. -->
+				<rect
+					class="rg-world-map--toppled"
+					x={piece.x - piece.size / 2}
+					y={piece.y}
+					width={piece.size}
+					height={piece.size / 2}
+					style:stroke={playerColor(piece.seat)} />
+				{#if piece.mark}
+					<polygon
+						class="rg-world-map--mark"
+						points={piece.mark}
+						transform="translate({piece.x} {piece.y +
+							piece.size / 4}) rotate(90) scale({piece.size *
+							0.6})"
+						style:fill={playerColor(piece.seat)} />
+				{/if}
+			{:else}
+				<rect
+					class="rg-world-map--outpost"
+					x={piece.x - piece.size / 2}
+					y={piece.y - piece.size / 2}
+					width={piece.size}
+					height={piece.size}
+					style:fill={playerColor(piece.seat)} />
+				{#if piece.mark}
+					<polygon
+						class="rg-world-map--mark"
+						points={piece.mark}
+						transform="translate({piece.x} {piece.y}) scale({piece.size})" />
+				{/if}
+			{/if}
+		{/each}
+	{/snippet}
+	{#each drawn as hex (hex.key)}
+		{#if hex.target}
+			<g
+				class="rg-world-map--hex rg-world-map--target"
+				role="button"
+				tabindex="0"
+				aria-label={hex.label}
+				aria-pressed={selected === hex.key}
+				onclick={(event) => hexClickHandler(event, hex.key)}
+				onkeydown={(event) => hexKeydownHandler(event, hex.key)}
+				onfocus={(event) => hexFocusHandler(event, hex.key)}
+				onblur={hexBlurHandler}>
+				{@render tile(hex)}
+			</g>
+		{:else}
+			<g
+				class="rg-world-map--hex"
+				class:rg-world-map--dim={targeting}
+				role="img"
+				aria-label={hex.label}>
+				{@render tile(hex)}
+			</g>
+		{/if}
+	{/each}
+	<!-- Outlines above every hex, so a neighbour never covers them. -->
+	{#each overlays as hex (hex.key)}
 		<polygon
-			class="rg-world-map--hex"
-			class:rg-world-map--fog={hex.terrain === 'unexplored'}
-			points={HEX}
-			transform="translate({hex.x} {hex.y})"
-			style:fill={terrainColor(hex.terrain)} />
+			class="rg-world-map--outline"
+			class:rg-world-map--outline-target={hex.target}
+			class:rg-world-map--outline-focus={hex.key === focused}
+			class:rg-world-map--outline-selected={hex.key === selected}
+			points={hex.outline} />
 	{/each}
 </svg>
 
@@ -89,12 +283,88 @@
 	}
 
 	.rg-world-map--hex {
+		transition: opacity var(--duration-fast) var(--ease);
+	}
+
+	.rg-world-map--target {
+		cursor: pointer;
+	}
+
+	/* The outline overlay shows focus, so the usual focus ring would only box the hex. */
+	.rg-world-map--target:focus-visible {
+		outline: none;
+	}
+
+	.rg-world-map--target:hover,
+	.rg-world-map--target:focus-visible {
+		filter: brightness(1.15);
+	}
+
+	.rg-world-map--dim {
+		opacity: 0.35;
+	}
+
+	/* The same colour as the fill, so no seam shows between two wedges. */
+	.rg-world-map--wedge {
+		stroke-width: 0.6;
+		stroke-linejoin: round;
+	}
+
+	.rg-world-map--island {
+		stroke: var(--chrome);
+		stroke-width: 0.8;
+	}
+
+	.rg-world-map--edge {
+		fill: none;
 		stroke: var(--chrome);
 		stroke-width: 2;
 	}
 
 	/* Unexplored hexes are dashed, like fog over the map. */
 	.rg-world-map--fog {
+		fill: var(--unexplored);
+		stroke: var(--line-strong);
+		stroke-width: 1.5;
 		stroke-dasharray: 5 4;
+	}
+
+	.rg-world-map--outpost,
+	.rg-world-map--token {
+		stroke: var(--ink);
+		stroke-width: 1.2;
+	}
+
+	.rg-world-map--toppled {
+		fill: var(--ink);
+		stroke-width: 1.5;
+	}
+
+	.rg-world-map--mark {
+		fill: var(--ink);
+	}
+
+	.rg-world-map--outline {
+		fill: none;
+		pointer-events: none;
+		stroke-linejoin: round;
+	}
+
+	/* A target is green, the colour the design uses for valid choices. */
+	.rg-world-map--outline-target {
+		stroke: var(--ok);
+		stroke-width: 2.5;
+	}
+
+	.rg-world-map--outline-focus {
+		stroke: var(--gold);
+		stroke-width: 3;
+		stroke-dasharray: 5 3;
+	}
+
+	.rg-world-map--outline-selected {
+		stroke: var(--gold);
+		stroke-width: 3.5;
+		stroke-dasharray: none;
 	}
 </style>

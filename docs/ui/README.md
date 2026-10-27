@@ -183,6 +183,19 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 
 ![Tracks and capital](screens/tracks-capital.png)
 
+**Built in #26 (2026-10-27): the frame, the shared board and the turn.** The screenshots below are the running game; the one above is still the mockup, for the player area (#27).
+
+![The play screen: the tracks](screens/game-tracks.png)
+
+![The play screen: the World Map](screens/game-map.png)
+
+- **The World Map** is the real board's hex grid (owner, 2026-10-27): 34 hexes for 1–3 players, 61 for 4–5, flat-topped as on the printed board with start 1 at the top. Each corner of a territory is a wedge of its terrain, an island sits in the middle, and unexplored hexes are dark and dashed. Outposts are squares in the player's colour (toppled ones lie down), tokens are circles. #6's art replaces the drawn terrains later.
+- **The spaces a player can pay for** have a green outline; the selected one keeps the gold outline. The footer then shows the space's benefit and bonus in words, its price and **Advance**, and asks for the payment in the decision panel when there is a choice.
+- **The achievements** sit in the head of the shared area, with the claimants' colours and the next VP.
+- **The decision panel** is the mockup's prompt. Until #28 designs each one, every decision gets a plain prompt: its question and its answers in words. A map decision lights up its hexes and leaves the map clickable.
+- **The header** has the turn clock when the timer is on (red, with the seconds in words, in the viewer's last 5 seconds) and **Undo**.
+- **Your overview** at the foot of the player area is the mockup's compact block; its last count is complete capital lines.
+
 ### Three horizontal bands
 
 Use a compact, full-width **header**, **middle play area**, and **turn footer**. Header and footer have the same short height, approximately 58px in the reference, and the same dark gray background. There are no outer side borders. The middle uses mid-gray pixel-textured surfaces, divided **3/4 shared area to 1/4 player area**.

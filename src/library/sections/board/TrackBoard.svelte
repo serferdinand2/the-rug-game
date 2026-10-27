@@ -166,6 +166,11 @@
 		<div style="height: 892px">
 			<TrackBoard
 				tracks={BOARD_TRACKS}
+				available={[
+					{ track: 'exploration', space: 5 },
+					{ track: 'science', space: 4 },
+					{ track: 'technology', space: 6 },
+				]}
 				bind:selected />
 		</div>
 	</Example>

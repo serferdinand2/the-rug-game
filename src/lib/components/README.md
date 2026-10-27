@@ -9,7 +9,7 @@ Add a row here, and a section in `src/library/sections/<area>/<Name>.svelte`, in
 ## Boundaries
 
 - Components are presentational. They render the props they get and report what the player did through `on{Component}{Action}` callbacks, which receive a `ComponentEvent`. They never hold game state, call the server, decide a rule or roll anything random. The screen that owns the game state does that.
-- Geometry worth testing lives in plain modules beside this folder: `../ui.js` (ids and token helpers), `../capital.js` (the capital grid), `../placement.js` (placing landmarks) and `../track-shape.js` (track spaces and progress lanes).
+- Geometry worth testing lives in plain modules beside this folder: `../ui.js` (ids and token helpers), `../capital.js` (the capital grid), `../placement.js` (placing landmarks), `../track-shape.js` (track spaces and progress lanes) and `../hexmap.js` (the World Map's hexes, terrain wedges, pieces and fit).
 - Styles live in the component, use only the tokens in `src/styles/tokens.css`, and style only the component's own `rg-{name}` classes.
 
 ## Approved issue #5 artwork
@@ -44,18 +44,20 @@ These components are updated as the art issues deliver their assets. Each will s
 | `TextInput` | Labelled text fields with a hint and a validation message, and the small gold read-only code. |
 | `Toast` | A short status message at the bottom of the screen. |
 | `TopBar` | The 58px header: brand, centre content and controls. Player chips go straight into the centre, so they shrink to fit a narrow header. |
+| `TurnClock` | The header's turn clock: a player colour mark and the time left, paused muted, red with the seconds in words when low. |
 
 ## board/
 
 | Component | Purpose |
 |---|---|
+| `AchievementStrip` | The three achievements on one line: claimants' colour squares in order and the next VP. |
 | `BoardSwitcher` | Advancement Tracks / World Map selector with its icons. |
 | `ProgressLanes` | One progress line per player under a track, with the dashed preview to the next space. |
 | `TierPrice` | A tier's numeral and price over its three spaces; gold while one of them is hovered. |
 | `Track` | One track: name, four tier prices, twelve spaces and the lanes. |
 | `TrackBoard` | The four tracks stacked, with one selected space across them. |
 | `TrackSpace` | One pointed space: name, landmark, number, first/last shapes, selected and focus outlines. |
-| `WorldMap` | The schematic hex map coloured by terrain. Static until targeting is designed. |
+| `WorldMap` | The real board's hex grid from `mapHexes(view)`: corner terrains as wedges, islands, unexplored hexes dashed, outposts (toppled ones lying), Nomads pieces and tokens; `targets` become buttons and the rest dim, `selected` is outlined in gold. |
 
 ## player/
 
@@ -68,12 +70,15 @@ These components are updated as the art issues deliver their assets. Each will s
 | `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows. |
 | `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. 210px wide, shrinking to 120px; below 190px it drops the civilization name. |
 | `ResourceChip` | A resource symbol and its count. |
+| `SelfSummary` | Your overview at the foot of the player area: name, era, VP, hand, tech, territory and capital-line counts, and the four resources (#26). |
 
 ## prompts/
 
 | Component | Purpose |
 |---|---|
 | `CostBox` | The footer's price: a Cost label and the symbols joined by plus signs, read out in words. |
+| `DecisionOption` | One choice in a decision prompt: words, optional resource symbols, gold while chosen (#26). |
+| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf, question, content, status and Confirm (#26). |
 | `OverviewCloseBar` | The footer while the players overview is open. |
 | `TurnBar` | The footer: neutral, selected, optional-action and waiting states, with the income reveal. |
 
