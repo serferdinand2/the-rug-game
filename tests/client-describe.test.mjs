@@ -126,7 +126,7 @@ test('plain gains side by side read as one, and a repeated effect as "twice"', (
 	);
 	assert.equal(
 		describeEffects(TRACKS.science[1].benefit),
-		'Roll the science die to advance on the track rolled without its benefit'
+		'Roll the science die to advance on the track rolled without its benefit or bonus'
 	);
 });
 

@@ -1,4 +1,4 @@
-<!-- The four era slots of the tapestry strip: Maker of Fire is printed; later slots show their top card, and a card can be chosen to look at. -->
+<!-- The four era slots of the tapestry strip: Maker of Fire is printed until a card covers it; other slots show their top card, and a card can be chosen to look at. -->
 <script module>
 	/**
 	 * Properties of the EraSlots component itself.
@@ -52,7 +52,7 @@
 	{#each slots as slot (slot.era)}
 		{@const text =
 			slot.card ?? (slot.faceDown ? 'Face-down card' : 'Not yet chosen')}
-		{#if slot.era === 1}
+		{#if slot.era === 1 && slot.id === null}
 			<div class="rg-era-slots--slot rg-era-slots--printed">
 				<b>Era {roman(slot.era)}</b>
 				<span>{text}</span>

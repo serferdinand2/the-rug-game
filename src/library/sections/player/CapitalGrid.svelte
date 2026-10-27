@@ -1,4 +1,4 @@
-<!-- Library section: CapitalGrid with the mockups' capitals, completed groups, placed, locked and overhanging landmarks, and the interactive Lighthouse placement. -->
+<!-- Library section: CapitalGrid with the mockups' capitals, completed groups, placed, locked and overhanging landmarks with room kept for them, and the interactive Lighthouse placement. -->
 <script>
 	import CapitalGrid from '../../../lib/components/player/CapitalGrid.svelte';
 	import CompletionCounters from '../../../lib/components/player/CompletionCounters.svelte';
@@ -270,18 +270,25 @@ Keyboard: an arrow key on the Lighthouse puts it on the grid and moves it, R rot
 	<Example
 		label={'pieces={[Lighthouse, locked, row 8, col 4]} highlight="rows"  (only its plots on the grid count: it completes row 8)'}
 		width={468}>
-		<!-- Room below the grid for the plot that hangs over its edge. -->
-		<div style:padding-bottom="calc(var(--space-11) * 1.5)">
-			<CapitalGrid
-				plots={capital(BLOCKED, {
-					...BUILDINGS,
-					74: 'farm',
-					75: 'house',
-					78: 'market',
-				})}
-				pieces={[{ ...LIGHTHOUSE, row: 8, col: 4, locked: true }]}
-				highlight="rows" />
-		</div>
+		<!-- room keeps space below the grid for the plot that hangs over its edge. -->
+		<CapitalGrid
+			plots={capital(BLOCKED, {
+				...BUILDINGS,
+				74: 'farm',
+				75: 'house',
+				78: 'market',
+			})}
+			pieces={[{ ...LIGHTHOUSE, row: 8, col: 4, locked: true }]}
+			highlight="rows"
+			room />
+	</Example>
+	<Example
+		label={'pieces={[Lighthouse, locked, row 6, col -1]} room  (space kept on the left, so nothing beside it is covered)'}
+		width={468}>
+		<CapitalGrid
+			plots={YOURS}
+			pieces={[{ ...LIGHTHOUSE, row: 6, col: -1, locked: true }]}
+			room />
 	</Example>
 	<Example
 		label={'pieces={[Rubber Works, rotation 3, placed]} awaitingPlacement'}

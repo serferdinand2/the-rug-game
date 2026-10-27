@@ -179,6 +179,14 @@
 		}
 	});
 
+	// A card shown in full goes when what it was shown from may have gone: another tab, seat or decision (#27 review).
+	$effect(() => {
+		tab;
+		seat;
+		decisionKey;
+		inspected = null;
+	});
+
 	// A decision about a tab's things opens that tab (#27 design §5).
 	$effect(() => {
 		decisionKey;
@@ -355,6 +363,16 @@
 		}
 	};
 
+	/**
+	 * Escape closes the players overview (#27 review).
+	 * @param {KeyboardEvent} event
+	 */
+	const keyHandler = (event) => {
+		if (event.key === 'Escape' && overviewOpen) {
+			overviewOpen = false;
+		}
+	};
+
 	/** @param {number} seatNumber */
 	function nameOf(seatNumber) {
 		return game.seats[seatNumber - 1]?.name ?? `Seat ${seatNumber}`;
@@ -362,6 +380,8 @@
 
 	let asked = $derived(askedSeats(game));
 </script>
+
+<svelte:window onkeydown={keyHandler} />
 
 <div
 	{...attr}
@@ -411,7 +431,8 @@
 	<div class="rg-game--middle">
 		<section
 			class="rg-game--shared"
-			aria-label="Shared board">
+			aria-label="Shared board"
+			inert={overviewOpen}>
 			<div class="rg-game--head">
 				<BoardSwitcher bind:value={board} />
 				<AchievementStrip achievements={achievements(game)} />
@@ -521,7 +542,8 @@
 
 		<aside
 			class="rg-game--private"
-			aria-label="Your player area">
+			aria-label="Your player area"
+			inert={overviewOpen}>
 			{#if seat !== null && summary}
 				<PlayerTabs
 					{game}

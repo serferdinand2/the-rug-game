@@ -46,3 +46,13 @@ test("an opponent's card holds no hand, only its size", () => {
 	assert.equal(card.handSize, 2);
 	assert.ok(!JSON.stringify(card).includes('monarchy'));
 });
+
+test("a card names the land terrains of the player's territories, and its capital points are what the capital scores", () => {
+	const { state } = startedGame(2);
+	const [card] = playerCards(view(state, 2), 2, 1);
+	// Every start territory is printed with land terrain; the sea never counts.
+	assert.ok(card.terrain.length > 0);
+	assert.ok(!card.terrain.includes('Sea'));
+	assert.deepEqual(card.terrain, [...new Set(card.terrain)]);
+	assert.equal(card.capitalPoints, 0);
+});

@@ -33,15 +33,12 @@
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { TABS } from '../../lib/area/tabs.js';
 	import { capitalView } from '../../lib/area/capital.js';
-	import { pieceArea, pieceShape } from '../../lib/placement.js';
 	import { eraSlots, incomeRows } from '../../lib/area/income.js';
 	import { terrainView } from '../../lib/area/terrain.js';
 	import {
 		tapestryCardData,
 		techCardData,
 	} from '../../lib/cards/game-cards.js';
-	import { REVIEWED_CIVILIZATIONS } from '../../lib/cards/reviewed-civilizations.js';
-	import { civilizationName } from '../../lib/describe.js';
 	import { artUrl } from '../../lib/ui.js';
 
 	/** @type {PlayerTabsProps} */
@@ -54,9 +51,6 @@
 		...attr
 	} = $props();
 
-	const REVIEWED = new Set(
-		REVIEWED_CIVILIZATIONS.map((/** @type {{ id: string }} */ c) => c.id)
-	);
 	/** The tech rows, top first, as the mockup draws them. */
 	const TECH_ROWS = /** @type {const} */ ([
 		{ id: 'top', label: 'Top row', shape: 'square' },
@@ -69,28 +63,22 @@
 	let capital = $derived(capitalView(player, code));
 	/** @type {'rows' | 'columns' | 'districts' | null} */
 	let highlight = $state(null);
-	/** How many plots the capital's landmarks hang over each edge, at most. */
-	let overhang = $derived(
-		(capital?.pieces ?? []).reduce(
-			(most, piece) => {
-				const area = pieceArea(pieceShape(piece), piece.row, piece.col);
-				return {
-					top: Math.max(most.top, area.top),
-					right: Math.max(most.right, area.right),
-					bottom: Math.max(most.bottom, area.bottom),
-					left: Math.max(most.left, area.left),
-				};
-			},
-			{ top: 0, right: 0, bottom: 0, left: 0 }
-		)
-	);
 	let income = $derived(incomeRows(player));
 	let eras = $derived(eraSlots(player));
 	/** @type {number | null} */
 	let eraShown = $state(null);
+	/** The era whose card shows by default: the active one, otherwise the latest slot with a card. */
 	let activeEra = $derived(
-		eras.find((/** @type {any} */ s) => s.active)?.era ?? null
+		eras.find((/** @type {any} */ s) => s.active)?.era ??
+			eras.findLast((/** @type {any} */ s) => s.id !== null)?.era ??
+			null
 	);
+	// A new era card, or another seat, goes back to the default (#27 review).
+	$effect(() => {
+		activeEra;
+		seat;
+		eraShown = null;
+	});
 	let eraCard = $derived(
 		eras.find((/** @type {any} */ s) => s.era === (eraShown ?? activeEra))
 			?.id ?? null
@@ -145,6 +133,7 @@
 		class="rg-player-tabs--body"
 		id="{tab}-panel"
 		role="tabpanel"
+		tabindex="0"
 		aria-labelledby="{tab}-tab">
 		{#if tab === 'capital'}
 			{#if capital}
@@ -152,20 +141,13 @@
 					Capital City · <span class="rg-player-tabs--name"
 						>{capital.name}</span>
 				</h2>
-				<!-- Room for landmarks that hang over the edge (R106), a ninth of the grid per plot. -->
-				<div
-					class="rg-player-tabs--capital"
-					style:--rg-player-tabs-top={overhang.top}
-					style:--rg-player-tabs-right={overhang.right}
-					style:--rg-player-tabs-bottom={overhang.bottom}
-					style:--rg-player-tabs-left={overhang.left}>
-					<CapitalGrid
-						plots={capital.plots}
-						biome={capital.biome}
-						terrainSeed={capital.terrainSeed}
-						pieces={capital.pieces}
-						{highlight} />
-				</div>
+				<CapitalGrid
+					plots={capital.plots}
+					biome={capital.biome}
+					terrainSeed={capital.terrainSeed}
+					pieces={capital.pieces}
+					{highlight}
+					room />
 				<CompletionCounters
 					counts={capital.counts}
 					active={highlight}
@@ -244,31 +226,15 @@
 				</p>
 			{/if}
 			{#each player.civs as civ (civ)}
-				{#if REVIEWED.has(civ)}
-					<div
-						class="rg-player-tabs--scale"
-						style:--rg-player-tabs-scale="1"
-						style:--rg-player-tabs-width="425px"
-						style:--rg-player-tabs-height="auto">
-						<CivilizationCard
-							id={civ}
-							state="empty" />
-					</div>
-				{:else}
-					<article class="rg-player-tabs--civ">
-						<img
-							src={artUrl(`civ/${civ}`)}
-							alt=""
-							width="128"
-							height="128" />
-						<h2 class="rg-player-tabs--name">
-							{civilizationName(civ)}
-						</h2>
-						<p class="rg-player-tabs--note">
-							Card text comes with #47.
-						</p>
-					</article>
-				{/if}
+				<div
+					class="rg-player-tabs--scale"
+					style:--rg-player-tabs-scale="1"
+					style:--rg-player-tabs-width="425px"
+					style:--rg-player-tabs-height="auto">
+					<CivilizationCard
+						id={civ}
+						state="empty" />
+				</div>
 			{/each}
 		{:else if tab === 'tech'}
 			<h2 class="rg-player-tabs--title">Your technology</h2>
@@ -414,13 +380,6 @@
 		color: var(--muted);
 	}
 
-	.rg-player-tabs--capital {
-		padding: calc(var(--rg-player-tabs-top) * 100% / 9)
-			calc(var(--rg-player-tabs-right) * 100% / 9)
-			calc(var(--rg-player-tabs-bottom) * 100% / 9)
-			calc(var(--rg-player-tabs-left) * 100% / 9);
-	}
-
 	.rg-player-tabs--scale {
 		position: relative;
 		flex: none;
@@ -439,19 +398,6 @@
 
 	.rg-player-tabs--era-card {
 		margin-bottom: var(--space-8);
-	}
-
-	.rg-player-tabs--civ {
-		display: grid;
-		justify-items: center;
-		gap: var(--space-4);
-		padding: var(--space-8);
-		border: var(--border) solid var(--line);
-		background: var(--control);
-	}
-
-	.rg-player-tabs--civ img {
-		image-rendering: pixelated;
 	}
 
 	.rg-player-tabs--row {

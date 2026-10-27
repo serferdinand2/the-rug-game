@@ -26,10 +26,10 @@ import { TAPESTRY_CARDS } from '../engine/data/tapestry-cards.js';
  * One era slot of the tapestry strip.
  * @typedef {Object} EraSlotView
  * @property {number} era - 1 to 4
- * @property {string | null} card - The slot's top card name, 'Maker of Fire' for era 1, or null when none
+ * @property {string | null} card - The slot's top card name, 'Maker of Fire' for an uncovered era 1, or null when none
  * @property {boolean} faceDown - A card sits on the slot but is hidden
  * @property {boolean} active - The seat's THIS ERA ability rests on this slot's top card
- * @property {string | null} id - The top card's id, null for era 1, an empty slot or a face-down card
+ * @property {string | null} id - The top card's id, null for Maker of Fire, an empty slot or a face-down card
  */
 
 /**
@@ -69,7 +69,9 @@ export function incomeRows(seat) {
 export function eraSlots(seat) {
 	const active = seat.era?.card ?? null;
 	return [1, 2, 3, 4].map((era) => {
-		if (era === 1) {
+		const stack = seat.incomeMat.tapestry[era - 1] ?? [];
+		// Era 1 shows the printed Maker of Fire until a card covers it, as the Heralds' may (R35).
+		if (era === 1 && stack.length === 0) {
 			return {
 				era,
 				card: 'Maker of Fire',
@@ -78,7 +80,6 @@ export function eraSlots(seat) {
 				id: null,
 			};
 		}
-		const stack = seat.incomeMat.tapestry[era - 1] ?? [];
 		if (stack.length === 0) {
 			return {
 				era,

@@ -27,18 +27,11 @@
 	import { capitalView } from '../../lib/area/capital.js';
 	import { playerCards } from '../../lib/area/players.js';
 	import { techCardData } from '../../lib/cards/game-cards.js';
-	import { REVIEWED_CIVILIZATIONS } from '../../lib/cards/reviewed-civilizations.js';
-	import { civilizationName } from '../../lib/describe.js';
-	import { artUrl } from '../../lib/ui.js';
 
 	/** @typedef {import('../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
 	/** @type {PlayersOverviewProps} */
 	let { game, seat, host, code, ...attr } = $props();
-
-	const REVIEWED = new Set(
-		REVIEWED_CIVILIZATIONS.map((/** @type {{ id: string }} */ c) => c.id)
-	);
 
 	let cards = $derived(playerCards(game, seat, host));
 	let open = $state(
@@ -52,9 +45,17 @@
 	);
 	/** @type {'rows' | 'columns' | 'districts' | null} */
 	let highlight = $state(null);
+
+	/** @type {HTMLDivElement | undefined} */
+	let element = $state();
+	// Opening the overview takes the focus to its first card (#27 review).
+	$effect(() => {
+		element?.querySelector('button')?.focus();
+	});
 </script>
 
 <div
+	bind:this={element}
 	{...attr}
 	class="rg-players-overview {attr.class ? attr.class : ''}">
 	<div class="rg-players-overview--cards">
@@ -89,6 +90,7 @@
 					terrainSeed={capital.terrainSeed}
 					pieces={capital.pieces}
 					{highlight}
+					room
 					label="{openSeat.name}'s capital city" />
 				<CompletionCounters
 					counts={capital.counts}
@@ -106,23 +108,9 @@
 			{/if}
 		{:else if open.row === 'civilization'}
 			{#each openSeat.civs as civ (civ)}
-				{#if REVIEWED.has(civ)}
-					<CivilizationCard
-						id={civ}
-						state="empty" />
-				{:else}
-					<article class="rg-players-overview--civ">
-						<img
-							src={artUrl(`civ/${civ}`)}
-							alt=""
-							width="128"
-							height="128" />
-						<h2 class="rg-players-overview--name">
-							{civilizationName(civ)}
-						</h2>
-						<p>Card text comes with #47.</p>
-					</article>
-				{/if}
+				<CivilizationCard
+					id={civ}
+					state="empty" />
 			{:else}
 				<p class="rg-players-overview--waiting">No civilization yet</p>
 			{/each}
@@ -205,17 +193,6 @@
 		color: var(--gold);
 		font-family: var(--font-title);
 		font-weight: var(--weight-title);
-	}
-
-	.rg-players-overview--civ {
-		display: grid;
-		justify-items: center;
-		gap: var(--space-4);
-		color: var(--muted);
-	}
-
-	.rg-players-overview--civ img {
-		image-rendering: pixelated;
 	}
 
 	.rg-players-overview--row {
