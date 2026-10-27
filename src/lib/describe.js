@@ -399,17 +399,6 @@ export function describeTurn(turns) {
 }
 
 /**
- * A territory tile in a turn, for a choice on a hex already chosen: "Tile 19, turned 3 times".
- * @param {number} tile - 1-48
- * @param {number} orient - 0-5
- * @returns {string}
- */
-export function describeTile(tile, orient) {
-	const turn = describeTurn(orient);
-	return turn ? `Tile ${tile}, ${turn}` : `Tile ${tile}`;
-}
-
-/**
  * What a VP counter counts, after "for each".
  * @param {unknown} per
  * @param {unknown} track - For 'trackSpace'

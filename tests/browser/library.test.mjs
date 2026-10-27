@@ -66,9 +66,10 @@ test("a decision panel confirms in solid gold, or in its track's colour, as the 
 		['Choose a tapestry card', 'Confirm choice'],
 		['Choose where to explore', 'Explore'],
 	]) {
+		// The section's explores include one with nothing chosen yet; its Explore is disabled.
 		const confirm = section
 			.getByRole('dialog', { name: title })
-			.getByRole('button', { name: label });
+			.getByRole('button', { name: label, disabled: false });
 		await expect(confirm, title).toHaveCSS('background-color', gold);
 		await expect(confirm, title).toHaveCSS('color', ink);
 	}

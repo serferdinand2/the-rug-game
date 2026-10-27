@@ -9,7 +9,7 @@
 	 * @property {boolean} [confirmDisabled=false] - Nothing valid is chosen yet
 	 * @property {import('../../ui.js').TrackId | null} [track=null] - The track that tints the bottom bar and border, as the mockup's --track
 	 * @property {'default' | 'income'} [tone='default'] - income: the title, border and step strip in gold, for the viewer's income turn
-	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right, for a choice on the map
+	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right, for a choice on the map; its content scrolls, so the title and Confirm stay in sight
 	 * @property {import('svelte').Snippet} [steps] - The income steps, between the title and the content
 	 * @property {string} [cancelLabel] - Shows a cancel button with this text, such as 'Cancel'; left out, there is none
 	 * @property {import('svelte').Snippet} [children] - The content: the instruction and the choices; left out, the panel has no content area and its status line carries the instruction, leaving more room for a shelf
@@ -300,10 +300,24 @@
 		pointer-events: auto;
 	}
 
+	/* Docked, the content scrolls between the title and the actions, so Confirm stays in sight however many choices
+	   there are, such as an explore's eleven tiles (#74). */
 	.rg-decision-panel--docked .rg-decision-panel--panel {
+		display: flex;
+		flex-direction: column;
 		width: 340px;
 		min-width: 0;
 		max-height: calc(100% - var(--space-9));
+	}
+
+	.rg-decision-panel--docked .rg-decision-panel--panel > * {
+		flex: none;
+	}
+
+	.rg-decision-panel--docked .rg-decision-panel--content {
+		flex: 0 1 auto;
+		min-height: 0;
+		overflow: auto;
 	}
 
 	.rg-decision-panel--docked .rg-decision-panel--bottom {

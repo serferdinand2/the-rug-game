@@ -30,7 +30,9 @@
 	import CardShelf from '../lib/components/prompts/CardShelf.svelte';
 	import CostBox from '../lib/components/prompts/CostBox.svelte';
 	import IncomeSteps from '../lib/components/prompts/IncomeSteps.svelte';
+	import TilePicker from '../lib/components/prompts/TilePicker.svelte';
 	import TurnBar from '../lib/components/prompts/TurnBar.svelte';
+	import TurnControl from '../lib/components/prompts/TurnControl.svelte';
 	import Button from '../lib/components/ui/Button.svelte';
 	import IconButton from '../lib/components/ui/IconButton.svelte';
 	import TurnClock from '../lib/components/ui/TurnClock.svelte';
@@ -56,7 +58,15 @@
 	} from '../lib/describe.js';
 	import { mapHexes } from '../lib/hexmap.js';
 	import { promptFor } from '../lib/prompts.js';
-	import { exploreChoices } from '../lib/area/explore.js';
+	import {
+		exploreIndex,
+		exploreLine,
+		exploreTiles,
+		hexScores,
+		tilePreview,
+		tileScores,
+		tileWords,
+	} from '../lib/area/explore.js';
 	import { terrainSeed } from '../lib/area/capital.js';
 	import { tapestryCardData, techCardData } from '../lib/cards/game-cards.js';
 	import { selfSummary } from '../lib/overview.js';
@@ -65,7 +75,7 @@
 		decisionTurnHeading,
 		myDecision,
 	} from '../lib/turn.js';
-	import { askedSeats, bonusOf } from '../lib/engine/game.js';
+	import { askedSeats, bonusOf, matchingSides } from '../lib/engine/game.js';
 	import { TRACKS } from '../lib/engine/data/tracks.js';
 	import { playerColor } from '../lib/ui.js';
 
@@ -99,6 +109,10 @@
 	let picked = $state(null);
 	/** @type {string | null} The hex chosen for a map decision */
 	let mapPick = $state(null);
+	/** @type {number | null} The tile chosen for an explore (#74) */
+	let exploreTile = $state(null);
+	/** The explore's turn on the chosen hex, 0-5 (#74). */
+	let exploreOrient = $state(0);
 	let sending = $state(false);
 	/** The player tab on show (#27). */
 	let tab = $state('capital');
@@ -179,29 +193,71 @@
 	let mapTargets = $derived(prompt?.mapHexes ?? []);
 	/** The panel docks beside the map while the map shows hexes to choose, so they stay clickable. */
 	let docked = $derived(mapTargets.length > 0 && board === 'map');
-	/** An explore's choices on the chosen hex: each tile in each turn, best first, with the VP it scores. */
-	let explore = $derived(
-		prompt?.kind === 'chooseExplore' && mapPick && promptDecision
-			? exploreChoices(game, promptDecision, mapPick)
-			: []
+	/** The viewer's explore (#74): they choose a tile, a lit hex and a turn, and Confirm sends that one answer. */
+	let exploring = $derived(
+		prompt?.kind === 'chooseExplore' ? promptDecision : null
 	);
-	/** What the panel lists: its own options, and on the map those of the chosen hex. */
+	/** The tiles the explore offers, lowest first: under Coal Baron only its tile, not the whole hand. */
+	let offeredTiles = $derived(exploring ? exploreTiles(exploring) : []);
+	/** Each offered tile's best VP and turn on the chosen hex. */
+	let tileBest = $derived(
+		exploring && mapPick ? tileScores(game, exploring, mapPick) : {}
+	);
+	/** The chosen tile's best VP and turn on every lit hex. */
+	let hexBest = $derived(
+		exploring && exploreTile !== null
+			? hexScores(game, exploring, exploreTile)
+			: {}
+	);
+	/** The panel's tile row, each tile with its best VP on the chosen hex once there is one. */
+	let exploreRow = $derived(
+		offeredTiles.map((id) => {
+			const best = tileBest[id];
+			return {
+				id,
+				label: tileWords(id),
+				...tilePreview(id, 0),
+				vp: best && best.vp >= 0 ? best.vp : null,
+			};
+		})
+	);
+	/** What the chosen tile scores on the chosen hex in the chosen turn. */
+	let exploreCurrent = $derived(
+		exploring && exploreTile !== null && mapPick
+			? matchingSides(game, mapPick, exploreTile, exploreOrient)
+			: null
+	);
+	/** The VP tags on the lit hexes: the chosen tile's best on each, and the current turn's on the chosen hex. */
+	let mapScores = $derived.by(() => {
+		/** @type {Record<string, number>} */
+		const scores = {};
+		for (const [hex, best] of Object.entries(hexBest)) {
+			scores[hex] = best.vp;
+		}
+		if (mapPick && exploreCurrent !== null) {
+			scores[mapPick] = exploreCurrent;
+		}
+		return scores;
+	});
+	/** What is chosen so far, in the panel and on its status line. */
+	let exploreChosen = $derived(
+		mapPick && exploreTile !== null
+			? exploreLine(mapPick, exploreOrient)
+			: exploreTile !== null
+				? 'Now pick a lit hex: each shows the best this tile scores there.'
+				: 'Pick a tile, or a lit hex on the map.'
+	);
+	/** What the panel lists: its own options, and on the map those of the chosen hex. An explore lists none. */
 	let panelOptions = $derived(
-		!prompt
+		!prompt || exploring
 			? []
-			: prompt.kind === 'chooseExplore' && mapPick
-				? explore.map((c) => ({
-						...prompt.options[c.index],
-						label: c.label,
-						vp: c.vp,
-					}))
-				: prompt.options
-						.filter(
-							(o) =>
-								o.place === 'panel' ||
-								(o.place === 'map' && o.hex === mapPick)
-						)
-						.map((o) => ({ ...o, vp: null }))
+			: prompt.options
+					.filter(
+						(o) =>
+							o.place === 'panel' ||
+							(o.place === 'map' && o.hex === mapPick)
+					)
+					.map((o) => ({ ...o, vp: null }))
 	);
 	/** The cards on the shelf above the panel, for a card decision. */
 	let shelfCards = $derived(
@@ -222,19 +278,12 @@
 					})
 			: []
 	);
-	/** The tile the chosen explore would lay, drawn on its hex. */
-	let preview = $derived.by(() => {
-		const choice = explore.find((c) => c.index === picked);
-		return choice && mapPick
-			? {
-					hex: mapPick,
-					corners: choice.corners,
-					island: choice.island,
-					clouds: choice.clouds,
-					volcano: choice.volcano,
-				}
-			: null;
-	});
+	/** The chosen tile in the chosen turn, drawn on the chosen hex. */
+	let preview = $derived(
+		exploring && exploreTile !== null && mapPick
+			? { hex: mapPick, ...tilePreview(exploreTile, exploreOrient) }
+			: null
+	);
 	/** A building or landmark to place on the capital, from the Capital tab. */
 	let placement = $derived(
 		prompt &&
@@ -293,12 +342,16 @@
 		}
 	});
 
-	// A new decision starts with nothing chosen, and a map decision opens the map.
+	// A new decision starts with nothing chosen, and a map decision opens the map. An explore offering one tile
+	// (Coal Baron's, or the last in hand) starts with it picked, so the player sees what they place (#74).
 	let decisionKey = $derived(mine ? `${mine.id}` : '');
 	$effect(() => {
 		decisionKey;
 		picked = null;
 		mapPick = null;
+		exploreOrient = 0;
+		const tiles = untrack(() => offeredTiles);
+		exploreTile = tiles.length === 1 ? tiles[0] : null;
 		if (isMapDecision) {
 			board = 'map';
 		}
@@ -440,7 +493,21 @@
 		sending = false;
 	};
 
+	/** Points the pick at the explore's tile, hex and turn, so Confirm sends that answer. */
+	function pickExplore() {
+		const index =
+			exploring && exploreTile !== null && mapPick
+				? exploreIndex(exploring, {
+						tile: exploreTile,
+						hex: mapPick,
+						orient: exploreOrient,
+					})
+				: -1;
+		picked = index === -1 ? null : index;
+	}
+
 	/**
+	 * A lit hex chosen. An explore keeps its tile, or takes the first one offered, at its best turn there (#74).
 	 * @param {ComponentEvent} event
 	 */
 	const mapSelectHandler = (event) => {
@@ -448,14 +515,52 @@
 			return;
 		}
 		mapPick = event.value.hex;
+		if (exploring) {
+			if (exploreTile === null) {
+				exploreTile = offeredTiles[0] ?? null;
+			}
+			exploreOrient =
+				exploreTile === null ? 0 : (tileBest[exploreTile]?.orient ?? 0);
+			pickExplore();
+			return;
+		}
 		const here = (prompt?.options ?? []).filter((o) => o.hex === mapPick);
-		// An explore starts on its best-scoring tile and turn, previewed on the hex; Confirm still sends it.
-		picked =
-			prompt?.kind === 'chooseExplore'
-				? (explore[0]?.index ?? null)
-				: here.length === 1
-					? here[0].index
-					: null;
+		picked = here.length === 1 ? here[0].index : null;
+	};
+
+	/**
+	 * A tile chosen for the explore: on a chosen hex it goes to its best turn there. The picked tile again does nothing.
+	 * @param {ComponentEvent} event
+	 */
+	const tilePickHandler = (event) => {
+		const tile = event.value.tile;
+		if (tile === exploreTile || !offeredTiles.includes(tile)) {
+			return;
+		}
+		exploreTile = tile;
+		if (mapPick) {
+			exploreOrient = tileBest[tile]?.orient ?? 0;
+		}
+		pickExplore();
+	};
+
+	/**
+	 * Turns the explore's tile one step: 1 forward, -1 back, through all 6 turns.
+	 * @param {number} step
+	 */
+	function turnTile(step) {
+		if (!exploring || exploreTile === null || !mapPick) {
+			return;
+		}
+		exploreOrient = (exploreOrient + step + 6) % 6;
+		pickExplore();
+	}
+
+	/**
+	 * @param {ComponentEvent} event
+	 */
+	const turnHandler = (event) => {
+		turnTile(event.value.step);
 	};
 
 	/**
@@ -516,13 +621,35 @@
 	};
 
 	/**
-	 * Escape closes the players overview (#27 review).
+	 * Escape closes the players overview (#27 review). R turns the explore's tile, Shift+R back (#74), unless the
+	 * player is typing, holds a browser shortcut's key, or has something else open over the board.
 	 * @param {KeyboardEvent} event
 	 */
 	const keyHandler = (event) => {
 		if (event.key === 'Escape' && overviewOpen) {
 			overviewOpen = false;
+			return;
 		}
+		const target = /** @type {HTMLElement | null} */ (event.target);
+		if (
+			(event.key !== 'r' && event.key !== 'R') ||
+			event.ctrlKey ||
+			event.altKey ||
+			event.metaKey ||
+			target?.matches?.('input, textarea, select') ||
+			target?.isContentEditable ||
+			overviewOpen ||
+			settingsOpen ||
+			// How to play, opened over the whole screen by App.
+			document.querySelector('[aria-modal="true"]') ||
+			!exploring ||
+			exploreTile === null ||
+			!mapPick
+		) {
+			return;
+		}
+		event.preventDefault();
+		turnTile(event.shiftKey ? -1 : 1);
 	};
 
 	/** @param {number} seatNumber */
@@ -546,6 +673,23 @@
 <!-- The prompt's cost and its own options; a prompt without them (cards on the shelf, plots, hexes) has no content
      area, and its status line gives the instruction, so the shelf has more room (#57). -->
 {#snippet promptContent()}
+	{#if exploring}
+		<div class="rg-game--explore">
+			<p class="rg-game--lead">
+				Pick one of your tiles and a lit hex, then turn the tile until
+				you like it.
+			</p>
+			<p class="rg-game--label">Your tiles · {offeredTiles.length}</p>
+			<TilePicker
+				tiles={exploreRow}
+				selected={exploreTile}
+				onTilePickerSelect={tilePickHandler} />
+			<p class="rg-game--chosen">{exploreChosen}</p>
+			<TurnControl
+				vp={exploreCurrent}
+				onTurnControlTurn={turnHandler} />
+		</div>
+	{/if}
 	{#if prompt?.cost}
 		<CostBox
 			class="rg-game--cost"
@@ -661,6 +805,7 @@
 						hexes={mapHexes(game)}
 						targets={mapTargets}
 						selected={mapPick}
+						scores={mapScores}
 						{preview}
 						fresh={moved.hexes}
 						onWorldMapSelect={mapSelectHandler} />
@@ -706,15 +851,17 @@
 					tone={prompt.income ? 'income' : 'default'}
 					steps={prompt.income ? incomeSteps : undefined}
 					shelf={shelfCards.length ? cardShelf : undefined}
-					status={picked !== null
-						? (prompt.options[picked]?.label ?? '')
-						: prompt.instruction}
-					children={prompt.cost || panelOptions.length
+					status={exploring
+						? exploreChosen
+						: picked !== null
+							? (prompt.options[picked]?.label ?? '')
+							: prompt.instruction}
+					children={exploring || prompt.cost || panelOptions.length
 						? promptContent
 						: undefined}
 					confirmLabel={prompt.confirmLabel}
 					confirmDisabled={picked === null || sending}
-					cancelLabel={docked && mapPick
+					cancelLabel={docked && mapPick && !exploring
 						? 'Choose another territory'
 						: undefined}
 					onDecisionPanelConfirm={promptConfirmHandler}
@@ -972,6 +1119,36 @@
 		gap: var(--space-5);
 		max-height: 340px;
 		overflow: auto;
+	}
+
+	/* The explore's content (#74): the lead, the tile row, what is chosen and the turn control, one under another. */
+	.rg-game--explore {
+		display: grid;
+		gap: var(--space-6);
+	}
+
+	.rg-game--lead,
+	.rg-game--label,
+	.rg-game--chosen {
+		margin: 0;
+	}
+
+	.rg-game--lead {
+		color: var(--muted);
+		font-size: var(--font-size-md);
+	}
+
+	.rg-game--label {
+		color: var(--muted);
+		font-size: var(--font-size-xs);
+		font-weight: var(--weight-bold);
+		letter-spacing: var(--letter-spacing-caps);
+		text-transform: uppercase;
+	}
+
+	.rg-game--chosen {
+		color: var(--text);
+		font-size: var(--font-size-md);
 	}
 
 	.rg-game--shared :global(.rg-game--cost) {

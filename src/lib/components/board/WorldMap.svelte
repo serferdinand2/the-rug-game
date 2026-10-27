@@ -5,7 +5,7 @@
 	 * @typedef {Object} WorldMapOwnProps
 	 * @property {import('../../hexmap.js').MapHex[]} hexes - Every hex of the board, from mapHexes(view) at HEX_SIZE
 	 * @property {string[]} [targets=[]] - Hex keys a decision can choose; each becomes a button and the other hexes dim
-	 * @property {Record<string, number>} [scores={}] - The best VP a picked tile scores on each target hex (hex key to VP): a "+N VP" tag sits near the top of that hex, and its label ends ", up to N VP"
+	 * @property {Record<string, number>} [scores={}] - The best VP a picked tile scores on each target hex (hex key to VP): a "+N VP" tag sits near the top of that hex, and its label ends "Up to N VP."
 	 * @property {string | null} [selected=null] - The chosen hex, outlined in gold
 	 * @property {{ hex: string, corners: import('../../ui.js').Terrain[], island: import('../../ui.js').Terrain[], clouds?: boolean, volcano?: boolean } | null} [preview=null] - A tile to show on a hex before it is explored: drawn like an explored hex, with its clouds or volcano, at 85% opacity with a gold outline
 	 * @property {string[]} [fresh=[]] - Hexes that just changed (#29): a gold outline pulses on each twice, unless the system asks for reduced motion
@@ -110,7 +110,7 @@
 						island: preview.island,
 						clouds: preview.clouds ?? false,
 						volcano: preview.volcano ?? false,
-						label: `${raw.label}, showing the chosen tile`,
+						label: addWords(raw.label, 'showing the chosen tile'),
 					}
 				: raw;
 			return {
@@ -204,6 +204,18 @@
 			/** @type {unknown} */ (event.currentTarget)
 		);
 		onWorldMapSelect(new ComponentEvent({ hex }, target, event));
+	}
+
+	/**
+	 * Words added to a hex's label: a sentence of their own after a full stop, otherwise after a comma.
+	 * @param {string} text - The label, such as 'Hex −1,−1: unexplored.'
+	 * @param {string} words - In lower case, such as 'up to 3 VP'
+	 * @returns {string} Such as 'Hex −1,−1: unexplored. Up to 3 VP.'
+	 */
+	function addWords(text, words) {
+		return text.endsWith('.')
+			? `${text} ${words[0].toUpperCase()}${words.slice(1)}.`
+			: `${text}, ${words}`;
 	}
 
 	/**
@@ -366,7 +378,7 @@
 				class:rg-world-map--preview={hex.previewed}
 				aria-label={hex.score === null
 					? hex.label
-					: `${hex.label}, up to ${hex.score} VP`}
+					: addWords(hex.label, `up to ${hex.score} VP`)}
 				aria-pressed={selected === hex.key}
 				onclick={(event) => hexClickHandler(event, hex.key)}
 				onkeydown={(event) => hexKeydownHandler(event, hex.key)}
