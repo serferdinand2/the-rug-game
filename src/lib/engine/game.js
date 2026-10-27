@@ -24,3 +24,5 @@ export {
 	timedOut,
 	restore,
 } from './table.js';
+export { matchingSides } from './map.js';
+export { turned } from './terrain.js';
