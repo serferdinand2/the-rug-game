@@ -31,6 +31,12 @@
 	import IconButton from '../lib/components/ui/IconButton.svelte';
 	import TurnClock from '../lib/components/ui/TurnClock.svelte';
 	import PageHeader from './PageHeader.svelte';
+	import PlayerTabs from './game/PlayerTabs.svelte';
+	import PlayersOverview from './game/PlayersOverview.svelte';
+	import OverviewCloseBar from '../lib/components/prompts/OverviewCloseBar.svelte';
+	import TapestryCard from '../lib/components/player/TapestryCard.svelte';
+	import TechnologyCard from '../lib/components/player/TechnologyCard.svelte';
+	import { tabFor } from '../lib/area/tabs.js';
 	import { achievements, trackBoard } from '../lib/board.js';
 	import { formatClock, timeLeft } from '../lib/clock.js';
 	import {
@@ -83,6 +89,12 @@
 	/** @type {string | null} The hex chosen for a map decision */
 	let mapPick = $state(null);
 	let sending = $state(false);
+	/** The player tab on show (#27). */
+	let tab = $state('capital');
+	/** @type {{ kind: 'tech' | 'tapestry', data: any } | null} A card shown in full over the shared area */
+	let inspected = $state(null);
+	/** Whether the players overview is open (#27). */
+	let overviewOpen = $state(false);
 
 	/** The selected space's advance, if the viewer can take it now. */
 	let chosenAdvance = $derived(
@@ -164,6 +176,15 @@
 			selected = null;
 			paying = false;
 			payIndex = null;
+		}
+	});
+
+	// A decision about a tab's things opens that tab (#27 design §5).
+	$effect(() => {
+		decisionKey;
+		const wanted = untrack(() => tabFor(mine));
+		if (wanted) {
+			tab = wanted;
 		}
 	});
 
@@ -363,7 +384,9 @@
 						: 'Setting up'}
 					vp={player.vp}
 					seat={player.seat}
-					current={game.current === player.seat} />
+					current={game.current === player.seat}
+					filled={overviewOpen}
+					onPlayerChipClick={() => (overviewOpen = !overviewOpen)} />
 			{/each}
 		{/snippet}
 		{#snippet before()}
@@ -483,22 +506,53 @@
 					{/if}
 				</DecisionPanel>
 			{/if}
+			{#if inspected}
+				<div
+					class="rg-game--inspect"
+					aria-hidden="true">
+					{#if inspected.kind === 'tech'}
+						<TechnologyCard data={inspected.data} />
+					{:else}
+						<TapestryCard data={inspected.data} />
+					{/if}
+				</div>
+			{/if}
 		</section>
 
 		<aside
 			class="rg-game--private"
 			aria-label="Your player area">
-			<p class="rg-game--soon">
-				Your capital, hand, income mat, eras, civilization and tech come
-				with #27.
-			</p>
+			{#if seat !== null && summary}
+				<PlayerTabs
+					{game}
+					{seat}
+					code={room.code}
+					bind:tab
+					onPlayerTabsInspect={(
+						/** @type {ComponentEvent} */ event
+					) => (inspected = event.value)} />
+			{:else}
+				<p class="rg-game--soon">
+					Choose a seat to see its capital, hand and cards.
+				</p>
+			{/if}
 			{#if summary}
 				<SelfSummary {...summary} />
 			{/if}
 		</aside>
+		{#if overviewOpen}
+			<PlayersOverview
+				{game}
+				{seat}
+				host={room.host}
+				code={room.code} />
+		{/if}
 	</div>
 
-	{#if game.phase === 'over'}
+	{#if overviewOpen}
+		<OverviewCloseBar
+			onOverviewCloseBarClick={() => (overviewOpen = false)} />
+	{:else if game.phase === 'over'}
 		<TurnBar
 			tone="waiting"
 			label="Game over"
@@ -584,6 +638,7 @@
 	}
 
 	.rg-game--middle {
+		position: relative;
 		display: grid;
 		grid-template-columns: var(--play-columns);
 		gap: var(--play-gap);
@@ -623,6 +678,17 @@
 		display: grid;
 		grid-template-rows: minmax(0, 1fr) auto;
 		overflow: hidden;
+	}
+
+	/* A card shown in full over the shared area, as the mockup's card overview: a scrim, the card, no pointer. */
+	.rg-game--inspect {
+		position: absolute;
+		z-index: var(--layer-popover);
+		inset: 0;
+		display: grid;
+		place-items: center;
+		background: color-mix(in srgb, var(--ink) 52%, transparent);
+		pointer-events: none;
 	}
 
 	.rg-game--soon {
