@@ -3,6 +3,15 @@ import { createCanvas, outline, paint, set, seededRandom } from '../painter.js';
 import { PALETTE as C } from '../palette.js';
 import { MAPS } from '../../src/lib/engine/data/maps.js';
 import { turned } from '../../src/lib/engine/terrain.js';
+import {
+	CLOUD_SIZE,
+	CLOUD_SPOT,
+	VOLCANO_SIZE,
+	volcanoCorner,
+} from '../../src/lib/art/hex-overlays.js';
+
+// The overlays' places are shared with the game, which lays them over the hexes it composes.
+export { CLOUD_SPOT, VOLCANO_SIZE, volcanoCorner };
 
 /** @typedef {import('../painter.js').Canvas} Canvas */
 /** @typedef {import('../painter.js').Colour} Colour */
@@ -73,11 +82,6 @@ export const CLOUD_COLOURS = Object.freeze([
 	C.mapCloudShade,
 	C.mapCloudEdge,
 ]);
-
-/** The cloud overlay's top-left pixel in a territory picture: over the top of the hex, clear of the island and the corners. */
-export const CLOUD_SPOT = /** @type {readonly [number, number]} */ (
-	Object.freeze([21, 2])
-);
 
 /**
  * Tells whether a pixel's centre lies inside the hex. Neighbouring hexes, 48 pixels across and 28 down, or 56 down,
@@ -692,7 +696,7 @@ function paintUnexplored(canvas, cellAt, random) {
  * @returns {Canvas} 22×12, transparent round the cloud
  */
 export function drawCloud() {
-	const canvas = createCanvas(22, 12);
+	const canvas = createCanvas(CLOUD_SIZE[0], CLOUD_SIZE[1]);
 	const puffs = [
 		[6, 7, 4],
 		[11, 5, 5],
@@ -721,9 +725,6 @@ export function drawCloud() {
 	outline(canvas, C.mapCloudEdge);
 	return canvas;
 }
-
-/** The volcano overlay's width and height. */
-export const VOLCANO_SIZE = 17;
 
 /** The volcano's crater in its overlay: the pixel set on its corner's line from the hex's centre. */
 export const VOLCANO_CRATER = /** @type {readonly [number, number]} */ (
@@ -788,39 +789,6 @@ export function drawVolcano() {
 	set(canvas, 12, 2, C.amber);
 	set(canvas, 7, 3, C.brickRed);
 	return canvas;
-}
-
-/**
- * The corner the volcano stands on: the middle of the longest run of mountain corners, the earlier of two middles.
- * @param {readonly TerrainId[]} corners - Turned, as shown
- * @returns {number} 0–5
- * @throws {Error} When no corner is a mountain.
- */
-export function volcanoCorner(corners) {
-	const mountain = (/** @type {number} */ k) =>
-		corners[((k % 6) + 6) % 6] === 'mountain';
-	let best = { start: -1, length: 0 };
-	for (let start = 0; start < 6; start++) {
-		// A run starts after a corner that isn't a mountain, or at corner 0 when all six are.
-		const starts =
-			mountain(start) &&
-			(!mountain(start - 1) ||
-				(start === 0 && corners.every((_, k) => mountain(k))));
-		if (!starts) {
-			continue;
-		}
-		let length = 0;
-		while (length < 6 && mountain(start + length)) {
-			length++;
-		}
-		if (length > best.length) {
-			best = { start, length };
-		}
-	}
-	if (best.start < 0) {
-		throw new Error('volcanoCorner: no corner is a mountain');
-	}
-	return (best.start + Math.floor((best.length - 1) / 2)) % 6;
 }
 
 /**

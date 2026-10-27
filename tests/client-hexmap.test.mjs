@@ -12,6 +12,7 @@ import {
 	hexPicture,
 	islandParts,
 	mapHexes,
+	overlayBox,
 	pieceSpots,
 	svgPoints,
 } from '../src/lib/hexmap.js';
@@ -398,4 +399,22 @@ test('a hex picture covers the hex, centred on it', () => {
 	assert.ok(Math.abs(box.height - Math.sqrt(3) * S) < 1e-9);
 	assert.ok(Math.abs(box.x + box.width / 2 - 5) < 1e-9);
 	assert.ok(Math.abs(box.y + box.height / 2 - 7) < 1e-9);
+});
+
+test("an overlay's box on a hex: its spot in the 64×56 picture, scaled to the hex", () => {
+	/** @param {number} a @param {number} b */
+	const near = (a, b) => Math.abs(a - b) < 1e-9;
+	// The picture's 56 rows span the hex's √3·size height, as hexPicture lays it.
+	for (const size of [32, 40]) {
+		const across = (2 * size) / 64;
+		const down = (Math.sqrt(3) * size) / 56;
+		const box = overlayBox([21, 2], [22, 12], size);
+		assert.ok(near(box.x, -size + 21 * across), `x at ${size}`);
+		assert.ok(
+			near(box.y, (-Math.sqrt(3) / 2) * size + 2 * down),
+			`y at ${size}`
+		);
+		assert.ok(near(box.width, 22 * across), `width at ${size}`);
+		assert.ok(near(box.height, 12 * down), `height at ${size}`);
+	}
 });

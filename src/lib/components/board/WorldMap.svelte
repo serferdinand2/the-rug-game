@@ -35,9 +35,17 @@
 		hexCorner,
 		hexPicture,
 		islandParts,
+		overlayBox,
 		pieceSpots,
 		svgPoints,
 	} from '../../hexmap.js';
+	import {
+		CLOUD_SIZE,
+		CLOUD_SPOT,
+		VOLCANO_SIZE,
+		VOLCANO_SPOTS,
+		volcanoCorner,
+	} from '../../art/hex-overlays.js';
 	import { artUrl, playerColor } from '../../ui.js';
 
 	/** @type {WorldMapProps} */
@@ -67,6 +75,11 @@
 		)
 	);
 	const PICTURE = hexPicture(ORIGIN, HEX_SIZE);
+	// The cloud sits at one spot in every hex; the volcano on its mountains' corner (#6).
+	const CLOUD = overlayBox(CLOUD_SPOT, CLOUD_SIZE, HEX_SIZE);
+	const VOLCANOES = VOLCANO_SPOTS.map((spot) =>
+		overlayBox(spot, [VOLCANO_SIZE, VOLCANO_SIZE], HEX_SIZE)
+	);
 	// A Nomads piece's mark, for a piece of side 1: a house for a building, a narrow tower for a landmark.
 	const MARKS = {
 		building: '-0.26,0.26 -0.26,-0.04 0,-0.28 0.26,-0.04 0.26,0.26',
@@ -252,14 +265,14 @@
 					<image
 						class="rg-world-map--art"
 						href={artUrl('hex/cloud')}
-						{...PICTURE}
+						{...CLOUD}
 						preserveAspectRatio="none" />
 				{/if}
 				{#if hex.volcano}
 					<image
 						class="rg-world-map--art"
 						href={artUrl('hex/volcano')}
-						{...PICTURE}
+						{...VOLCANOES[volcanoCorner(hex.corners ?? [])]}
 						preserveAspectRatio="none" />
 				{/if}
 			</g>

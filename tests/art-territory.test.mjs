@@ -28,6 +28,7 @@ import { cornerWedge, islandParts } from '../src/lib/hexmap.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';
 import { MAPS } from '../src/lib/engine/data/maps.js';
 import { turned } from '../src/lib/engine/terrain.js';
+import { CLOUD_SIZE, VOLCANO_SPOTS } from '../src/lib/art/hex-overlays.js';
 
 /** @typedef {import('../art/painter.js').Canvas} Canvas */
 
@@ -697,3 +698,11 @@ for (const side of /** @type {const} */ (['large', 'small'])) {
 		}
 	});
 }
+
+test("the overlays' shared places agree with the art: the cloud's size and each corner's volcano spot", () => {
+	const cloud = drawCloud();
+	assert.deepEqual([cloud.w, cloud.h], [...CLOUD_SIZE]);
+	for (let k = 0; k < 6; k++) {
+		assert.deepEqual(volcanoSpot(k), [...VOLCANO_SPOTS[k]], `corner ${k}`);
+	}
+});

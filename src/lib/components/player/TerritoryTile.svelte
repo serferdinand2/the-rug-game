@@ -27,8 +27,16 @@
 		hexCorner,
 		hexPicture,
 		islandParts,
+		overlayBox,
 		svgPoints,
 	} from '../../hexmap.js';
+	import {
+		CLOUD_SIZE,
+		CLOUD_SPOT,
+		VOLCANO_SIZE,
+		VOLCANO_SPOTS,
+		volcanoCorner,
+	} from '../../art/hex-overlays.js';
 	import { artUrl } from '../../ui.js';
 
 	/** @type {TerritoryTileProps} */
@@ -53,6 +61,17 @@
 		svgPoints(CORNERS.map((k) => hexCorner(CENTER, k, size)))
 	);
 	let picture = $derived(hexPicture(CENTER, size));
+	// The cloud sits at one spot in every turn; the volcano on its mountains' corner (#6).
+	let cloud = $derived(overlayBox(CLOUD_SPOT, CLOUD_SIZE, size));
+	let volcanoBox = $derived(
+		volcano
+			? overlayBox(
+					VOLCANO_SPOTS[volcanoCorner(corners)],
+					[VOLCANO_SIZE, VOLCANO_SIZE],
+					size
+				)
+			: null
+	);
 	let wedges = $derived(
 		corners.map((terrain, k) => ({
 			terrain,
@@ -122,14 +141,14 @@
 		<image
 			class="rg-territory-tile--art"
 			href={artUrl('hex/cloud')}
-			{...picture}
+			{...cloud}
 			preserveAspectRatio="none" />
 	{/if}
-	{#if volcano}
+	{#if volcanoBox}
 		<image
 			class="rg-territory-tile--art"
 			href={artUrl('hex/volcano')}
-			{...picture}
+			{...volcanoBox}
 			preserveAspectRatio="none" />
 	{/if}
 	<polygon

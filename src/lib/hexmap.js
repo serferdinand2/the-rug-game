@@ -1,4 +1,5 @@
 // The World Map's geometry (#26 design §5.2): flat-topped hexes laid out from the engine's axial keys, terrain wedges, the island, the pieces and the fit.
+import { PICTURE_SIZE } from './art/hex-overlays.js';
 import { MAPS } from './engine/data/maps.js';
 import { LANDMARKS } from './engine/data/landmarks.js';
 import { terrainsOf, turned } from './engine/terrain.js';
@@ -167,6 +168,26 @@ export function hexPicture(center, size) {
 		y: center[1] - height / 2,
 		width: 2 * size,
 		height,
+	};
+}
+
+/**
+ * Where an overlay from a territory picture goes on a hex, around the hex's centre: its spot and size in the 64×56
+ * picture, scaled as hexPicture scales the whole picture.
+ * @param {readonly [number, number]} spot - Its top-left pixel in the picture (src/lib/art/hex-overlays.js)
+ * @param {readonly [number, number]} sizeInPicture - Its width and height in pixels
+ * @param {number} size - The hex's size
+ * @returns {{ x: number, y: number, width: number, height: number }} Relative to the hex's centre
+ */
+export function overlayBox(spot, sizeInPicture, size) {
+	const [width, height] = PICTURE_SIZE;
+	const across = (2 * size) / width;
+	const down = (2 * HALF_ROOT_3 * size) / height;
+	return {
+		x: -size + spot[0] * across,
+		y: -HALF_ROOT_3 * size + spot[1] * down,
+		width: sizeInPicture[0] * across,
+		height: sizeInPicture[1] * down,
 	};
 }
 
