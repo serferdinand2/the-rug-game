@@ -1,6 +1,6 @@
 # The Rug Game conventions
 
-These are the coding conventions for The Rug Game. Every contributor and coding agent follows them. [CLAUDE.md](CLAUDE.md) says where the work stands. This file says how code is written.
+These are the coding conventions for The Rug Game. Every contributor and coding agent follows them. [CLAUDE.md](CLAUDE.md) says how to work on the project and [docs/status.md](docs/status.md) where the work stands. This file says how code is written.
 
 **The project uses JavaScript with JSDoc for type annotations, not TypeScript.** The browser interface is **Svelte 5** (runes) built with **Vite**, without SvelteKit. The server and the rules engine are plain Node.js ES modules with no runtime packages.
 

@@ -394,7 +394,10 @@ How the ranking was built:
 | [docs/superpowers/specs/](docs/superpowers/specs/) | The design document: decisions, scope and the build plan |
 | [docs/ui/](docs/ui/) | Phase-one UI/UX manifest, interactive mockups, current screenshots and the archived earlier design |
 | [docs/art/](docs/art/) | Art production notes and the approved style reference |
-| [CLAUDE.md](CLAUDE.md) | Guidance for contributors and coding agents, including where the work stands |
+| [docs/status.md](docs/status.md) | Where the work stands: every issue, what it built and its calls to revisit after playing |
+| [docs/architecture.md](docs/architecture.md) | The modules in detail, with the issue that added each |
+| [CLAUDE.md](CLAUDE.md) | Guidance for Claude: the commands, a map of the project, the working rules and the decisions already made |
+| [AGENTS.md](AGENTS.md) | Guidance for Codex and other agents: read CLAUDE.md, never edit it, and change documentation only when asked |
 | [CONVENTIONS.md](CONVENTIONS.md) | Coding conventions: JavaScript with JSDoc, Svelte 5 components, BEM classes, the engine, tests and commits |
 
 ## Licence
