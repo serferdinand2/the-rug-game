@@ -32,7 +32,7 @@ export function claimAchievement(ctx, player, id) {
 		achievement: id,
 		vp: amount,
 	});
-	vp(ctx, player, amount, /** @type {any} */ ({}));
+	vp(ctx, player, amount, /** @type {any} */ ({ origin: 'achievements' }));
 }
 
 /**

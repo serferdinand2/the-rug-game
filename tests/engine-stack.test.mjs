@@ -18,8 +18,8 @@ import { startedGame } from './helpers/engine.mjs';
 function fixture() {
 	return {
 		seats: [
-			{ seat: 1, kind: 'player', vp: 0, incomeTurns: 0 },
-			{ seat: 2, kind: 'player', vp: 0, incomeTurns: 0 },
+			{ seat: 1, kind: 'player', vp: 0, vpSources: {}, incomeTurns: 0 },
+			{ seat: 2, kind: 'player', vp: 0, vpSources: {}, incomeTurns: 0 },
 		],
 		pending: [],
 		nextId: 1,

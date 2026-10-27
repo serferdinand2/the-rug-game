@@ -1,4 +1,4 @@
-<!-- The app root (#25, #26): one screen at a time, landing, lobby or the game, from the client's store. -->
+<!-- The app root (#25, #26, #29): one screen at a time, landing, lobby, the game or its results, from the client's store; and the sound cues. -->
 <script module>
 	/**
 	 * Properties for the App component, including any attributes for its root element.
@@ -10,7 +10,7 @@
 </script>
 
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import Toast from './lib/components/ui/Toast.svelte';
 	import { createApi } from './lib/api.js';
 	import { createStore } from './lib/game.svelte.js';
@@ -18,6 +18,8 @@
 	import Game from './screens/Game.svelte';
 	import Landing from './screens/Landing.svelte';
 	import Lobby from './screens/Lobby.svelte';
+	import Results from './screens/Results.svelte';
+	import { createSoundPlayer, cueFor } from './lib/sound.js';
 	import PageHeader from './screens/PageHeader.svelte';
 
 	/** @type {AppProps} */
@@ -68,6 +70,38 @@
 	});
 
 	let helpOpen = $state(false);
+	/** Whether a finished game's board is on show instead of its results (#29 design §6). */
+	let reviewing = $state(false);
+
+	/** The table and deal on show: a key that changes only with a new deal or another table, not with every room view. */
+	let dealKey = $derived(
+		`${store.room?.code ?? ''}:${store.room?.deal ?? 0}`
+	);
+
+	// A new deal, or another table, shows its game rather than the review of the last one.
+	$effect(() => {
+		dealKey;
+		reviewing = false;
+	});
+
+	const sound = createSoundPlayer();
+
+	// One cue for each batch of fresh events, while sound is on (#29 design §7). A refresh brings no fresh events.
+	$effect(() => {
+		store.freshCount;
+		untrack(() => {
+			if (!store.sound || store.fresh.length === 0) {
+				return;
+			}
+			const cue = cueFor(
+				store.fresh,
+				store.room?.mode === 'hotseat' ? null : store.seat
+			);
+			if (cue) {
+				sound.play(cue);
+			}
+		});
+	});
 
 	/**
 	 * The menu before the game: How to play, or About this project.
@@ -85,16 +119,29 @@
 
 	onMount(() => {
 		store.start();
+		// Browsers let audio start only after a gesture, so the first click or key unlocks it.
+		document.addEventListener('click', sound.unlock, true);
+		document.addEventListener('keydown', sound.unlock, true);
+		return () => {
+			document.removeEventListener('click', sound.unlock, true);
+			document.removeEventListener('keydown', sound.unlock, true);
+		};
 	});
 </script>
 
 <div
 	{...attr}
 	class="rg-app {attr.class ? attr.class : ''}">
-	{#if store.room && store.room.phase !== 'lobby'}
+	{#if store.room?.phase === 'finished' && store.room.game && !reviewing}
+		<Results
+			{store}
+			onResultsReview={() => (reviewing = true)}
+			onResultsHelp={() => (helpOpen = true)} />
+	{:else if store.room && store.room.phase !== 'lobby'}
 		<Game
 			{store}
-			onGameHelp={() => (helpOpen = true)} />
+			onGameHelp={() => (helpOpen = true)}
+			onGameResults={() => (reviewing = false)} />
 	{:else}
 		<PageHeader
 			title={store.screen === 'landing'

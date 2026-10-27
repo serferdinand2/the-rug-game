@@ -6,18 +6,83 @@ import { DECISIONS } from './kinds.js';
 /** @typedef {import('./state.js').Group} Group */
 
 /**
- * Pushes operations onto a stack. They share one batch id (the first new id); ops[0] ends up on top.
+ * Where VP from an operation counts (#29 design §2): the scoreboard's sources.
+ * @typedef {'tracks' | 'tapestry' | 'tech' | 'map' | 'civ' | 'income' | 'capital' | 'achievements' | 'paid' | 'other'} VpSource
+ */
+
+/**
+ * The VP source an operation's `source` names: a track space, a tapestry ability, a tech card, or a hex or space
+ * tile on the map; null for none.
+ * @param {unknown} source
+ * @returns {VpSource | null}
+ */
+export function sourceOrigin(source) {
+	if (typeof source !== 'object' || source === null) {
+		return null;
+	}
+	const s = /** @type {Record<string, any>} */ (source);
+	if (typeof s.track === 'string' && Number.isInteger(s.space)) {
+		return 'tracks';
+	}
+	if (typeof s.tapestry === 'string') {
+		return 'tapestry';
+	}
+	if (typeof s.tech === 'string') {
+		return 'tech';
+	}
+	if (typeof s.hex === 'string' || s.spaceTile !== undefined) {
+		return 'map';
+	}
+	return null;
+}
+
+/**
+ * An operation's VP source: its own `origin`; else what its `source` names, unless it only copies the source of the
+ * operation that pushed it; else that operation's origin; else civ for a passive (civilization) operation.
+ * @param {import('./state.js').NewOperation} op
+ * @param {Operation | null} from - The operation being run or answered when it was pushed
+ * @returns {VpSource | null}
+ */
+function originFor(op, from) {
+	if (typeof op.origin === 'string') {
+		return /** @type {VpSource} */ (op.origin);
+	}
+	const own = sourceOrigin(op.source);
+	const copied =
+		from !== null &&
+		JSON.stringify(op.source) === JSON.stringify(from.source);
+	if (own !== null && !copied) {
+		return own;
+	}
+	if (typeof from?.origin === 'string') {
+		return /** @type {VpSource} */ (from.origin);
+	}
+	return own ?? (op.passive ? 'civ' : null);
+}
+
+/**
+ * Pushes operations onto a stack. They share one batch id (the first new id); ops[0] ends up on top. Each takes its
+ * VP source from `from` unless it has its own (originFor).
  * @param {State} state
  * @param {(Operation | Group)[]} stack
  * @param {import('./state.js').NewOperation[]} ops
+ * @param {Operation | null} [from=null] - The operation being run or answered, whose VP source the new ones inherit
  * @returns {Operation[]}
  */
-export function push(state, stack, ops) {
+export function push(state, stack, ops, from = null) {
 	if (!ops.length) {
 		return [];
 	}
 	const batch = state.nextId;
-	const made = ops.map((op) => ({ ...op, id: state.nextId++, batch }));
+	const made = ops.map((op) => {
+		const origin = originFor(op, from);
+		return {
+			...op,
+			...(origin !== null && { origin }),
+			id: state.nextId++,
+			batch,
+		};
+	});
 	stack.unshift(...made);
 	return made;
 }
@@ -26,16 +91,17 @@ export function push(state, stack, ops) {
  * Pushes a group onto the main stack: one lane per player, so they decide at the same time.
  * @param {State} state
  * @param {import('./state.js').NewLane[]} lanes
+ * @param {Operation | null} [from=null] - The operation being run, whose VP source the lanes' operations inherit
  * @returns {Group}
  */
-export function pushGroup(state, lanes) {
+export function pushGroup(state, lanes, from = null) {
 	const id = state.nextId++;
 	/** @type {Group} */
 	const group = { id, batch: id, player: null, kind: 'group', lanes: [] };
 	for (const lane of lanes) {
 		/** @type {Operation[]} */
 		const stack = [];
-		push(state, stack, lane.ops);
+		push(state, stack, lane.ops, from);
 		group.lanes.push({ player: lane.player, stack });
 	}
 	state.pending.unshift(group);

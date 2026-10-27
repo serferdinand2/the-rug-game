@@ -68,7 +68,7 @@ const CARD_RULES = [
 ];
 
 /** The Mystics' prophecy categories (02 §1.2): the question, and what one and many of the things counted are called. */
-const PROPHECIES =
+export const PROPHECIES =
 	/** @type {Readonly<Record<string, [string, string, string]>>} */ ({
 		techCards: [
 			'Predict how many tech cards you will have',
@@ -125,7 +125,7 @@ function capitalize(text) {
  * @param {string} [word] - The last joining word, 'and' or 'or'
  * @returns {string}
  */
-function joinList(items, word = 'and') {
+export function joinList(items, word = 'and') {
 	if (items.length <= 1) {
 		return items[0] ?? '';
 	}
@@ -173,7 +173,7 @@ function titleOf(id) {
  * @param {string} name
  * @returns {string}
  */
-function article(name) {
+export function article(name) {
 	return /^[aeiou]/i.test(name) ? 'an' : 'a';
 }
 
@@ -212,7 +212,7 @@ function amounts(counts, only = () => true) {
  * @param {unknown} track
  * @returns {string}
  */
-function trackName(track) {
+export function trackName(track) {
 	if (typeof track !== 'string') {
 		return 'a track';
 	}
@@ -234,7 +234,7 @@ function isTrack(track) {
  * @param {unknown} space
  * @returns {string}
  */
-function spaceName(track, space) {
+export function spaceName(track, space) {
 	if (!isTrack(track) || !isCount(space) || space > 12) {
 		return isCount(space) ? `space ${space}` : 'a space';
 	}
@@ -261,7 +261,7 @@ function tracksPhrase(tracks) {
  * @param {unknown} building
  * @returns {string}
  */
-function buildingName(building) {
+export function buildingName(building) {
 	return typeof building === 'string' ? titleOf(building) : 'Building';
 }
 
@@ -270,7 +270,7 @@ function buildingName(building) {
  * @param {unknown} id
  * @returns {string}
  */
-function landmarkName(id) {
+export function landmarkName(id) {
 	if (typeof id !== 'string') {
 		return 'Landmark';
 	}
@@ -282,7 +282,7 @@ function landmarkName(id) {
  * @param {unknown} id
  * @returns {string}
  */
-function tapestryName(id) {
+export function tapestryName(id) {
 	if (typeof id !== 'string') {
 		return 'a face-down card';
 	}
@@ -304,7 +304,7 @@ function techCardOf(id) {
  * @param {unknown} id
  * @returns {string}
  */
-function techName(id) {
+export function techName(id) {
 	if (typeof id !== 'string') {
 		return 'a tech card';
 	}
@@ -329,7 +329,7 @@ export function civilizationName(id) {
  * @param {unknown} seat
  * @returns {string}
  */
-function seatName(table, seat) {
+export function seatName(table, seat) {
 	if (!isCount(seat) || seat === 0) {
 		return 'another player';
 	}
@@ -352,7 +352,7 @@ function whose(table, seat, decision) {
  * @param {unknown} key
  * @returns {string}
  */
-function hexName(key) {
+export function hexName(key) {
 	const match = typeof key === 'string' && /^(-?\d+)_(-?\d+)$/.exec(key);
 	if (!match) {
 		return 'a territory';

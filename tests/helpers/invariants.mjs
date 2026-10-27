@@ -227,6 +227,13 @@ export function checkState(state, previousSeq = 0) {
 			);
 		}
 		assert.ok(Number.isInteger(p.vp), `seat ${p.seat} has ${p.vp} VP`);
+		// #29: every VP gained or paid is credited to a source, so the sources add up to the VP.
+		const credited = Object.values(p.vpSources).reduce((a, b) => a + b, 0);
+		assert.equal(
+			credited,
+			p.vp,
+			`seat ${p.seat}'s VP sources add up to ${credited}, not ${p.vp}`
+		);
 		for (const track of TRACK_IDS) {
 			for (const space of p.tracks[track]) {
 				assert.ok(

@@ -1,11 +1,11 @@
-<!-- A square 36px header control with a glyph: sound, history, menu or close, with the red slash when muted. -->
+<!-- A square 36px header control with a glyph: sound, history, log, menu or close, with the red slash when muted. -->
 <script module>
-	/** @typedef {'sound' | 'history' | 'menu' | 'close'} IconButtonIcon */
+	/** @typedef {'sound' | 'history' | 'log' | 'menu' | 'close'} IconButtonIcon */
 
 	/**
 	 * Properties of the IconButton component itself.
 	 * @typedef {Object} IconButtonOwnProps
-	 * @property {IconButtonIcon} icon - The glyph: sound ♪, history ↶, menu ☰ or close ✕
+	 * @property {IconButtonIcon} icon - The glyph: sound ♪, history ↶, log ▤, menu ☰ or close ✕
 	 * @property {string} label - The accessible name, such as 'Mute' or 'Menu'; also the tooltip. Keep it fixed and let muted and expanded carry the state
 	 * @property {boolean} [muted] - Draws the red diagonal slash over the glyph and sets aria-pressed; leave it out for controls that do not toggle
 	 * @property {boolean} [expanded] - Sets aria-expanded, for a control that opens a menu or panel
@@ -37,6 +37,7 @@
 	const GLYPHS = Object.freeze({
 		sound: '♪',
 		history: '↶',
+		log: '▤',
 		menu: '☰',
 		close: '✕',
 	});

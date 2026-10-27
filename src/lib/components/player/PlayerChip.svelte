@@ -9,6 +9,7 @@
 	 * @property {import('../../ui.js').Seat} seat - Their seat, which sets the colour
 	 * @property {boolean} [current=false] - It is this player's turn: the green glow and an outline in their colour
 	 * @property {boolean} [filled=false] - The players overview is open: the colour slides across the chip and its text hides, at the same size
+	 * @property {boolean} [bump=false] - Their VP just rose (#29): the score pops once in gold, unless the system asks for reduced motion
 	 * @property {Function} [onPlayerChipClick] - Callback fired when the chip is pressed, to open or close the players overview
 	 */
 
@@ -41,6 +42,7 @@
 		seat,
 		current = false,
 		filled = false,
+		bump = false,
 		onPlayerChipClick,
 		...attr
 	} = $props();
@@ -80,7 +82,9 @@
 	<b class="rg-player-chip--name">{name}</b>
 	<small class="rg-player-chip--civilization"
 		><span class="rg-player-chip--civilization-name">{civilization}</span>
-		<span class="rg-player-chip--score"
+		<span
+			class="rg-player-chip--score"
+			class:rg-player-chip--bump={bump}
 			><span class="rg-player-chip--separator">·</span>
 			{vp} VP</span
 		></small>
@@ -172,9 +176,28 @@
 	}
 
 	.rg-player-chip--score {
+		display: inline-block;
 		color: var(--muted);
 		font: var(--weight-regular) var(--font-size-2xs) / var(--leading-none)
 			var(--font-body);
+	}
+
+	/* VP that just rose pops once in gold (#29). */
+	.rg-player-chip--bump {
+		animation: rg-player-chip-bump 0.7s var(--ease-out);
+	}
+
+	@keyframes rg-player-chip-bump {
+		35% {
+			color: var(--gold);
+			transform: scale(1.3);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-player-chip--bump {
+			animation: none;
+		}
 	}
 
 	.rg-player-chip--filled .rg-player-chip--name,

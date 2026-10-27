@@ -10,7 +10,7 @@ const componentsDir = fileURLToPath(
 const sectionsDir = fileURLToPath(
 	new URL('../src/library/sections/', import.meta.url)
 );
-const AREAS = ['ui', 'board', 'player', 'prompts', 'lobby'];
+const AREAS = ['ui', 'board', 'player', 'prompts', 'lobby', 'log', 'results'];
 
 /**
  * The .svelte files directly inside each area folder, as { area, name, source }.

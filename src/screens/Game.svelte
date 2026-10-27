@@ -5,6 +5,7 @@
 	 * @typedef {Object} GameOwnProps
 	 * @property {import('../lib/game.svelte.js').GameStore} store - Its room holds the game on show
 	 * @property {Function} [onGameHelp] - Callback fired when How to play is chosen
+	 * @property {Function} [onGameResults] - Callback fired when Results is chosen, once the game is over (#29)
 	 */
 
 	/**
@@ -36,6 +37,11 @@
 	import PageHeader from './PageHeader.svelte';
 	import PlayerTabs from './game/PlayerTabs.svelte';
 	import PlayersOverview from './game/PlayersOverview.svelte';
+	import LogPanel from './game/LogPanel.svelte';
+	import TableSettings from './game/TableSettings.svelte';
+	import { eventText } from '../lib/log.js';
+	import { highlights } from '../lib/motion.js';
+	import { isHost } from '../lib/lobby.js';
 	import OverviewCloseBar from '../lib/components/prompts/OverviewCloseBar.svelte';
 	import TapestryCard from '../lib/components/player/TapestryCard.svelte';
 	import TechnologyCard from '../lib/components/player/TechnologyCard.svelte';
@@ -64,7 +70,7 @@
 	/** @typedef {import('../lib/ui.js').TrackId} TrackId */
 
 	/** @type {GameProps} */
-	let { store, onGameHelp, ...attr } = $props();
+	let { store, onGameHelp, onGameResults, ...attr } = $props();
 
 	let room = $derived(store.room);
 	let game = $derived(room.game);
@@ -97,6 +103,56 @@
 	let inspected = $state(null);
 	/** Whether the players overview is open (#27). */
 	let overviewOpen = $state(false);
+	/** The log and scores panel (#29): open, its tab, and a dot for entries it hasn't shown yet. */
+	let logOpen = $state(false);
+	let logTab = $state(/** @type {'log' | 'scores'} */ ('log'));
+	let logUnread = $state(false);
+	/** The host's table settings during a game (#29 design §9). */
+	let settingsOpen = $state(false);
+
+	/** @type {import('../lib/motion.js').Highlights} */
+	const STILL = { hexes: [], plots: [], landmarks: [], vp: [] };
+	/** What moves for the latest fresh events (#29 design §8), for a moment. */
+	let moved = $state(STILL);
+	/** @type {ReturnType<typeof setTimeout> | undefined} */
+	let movedTimer;
+	let movedFrame = 0;
+	/** The batch of fresh events handled last: one that arrived before this screen opened is not played again. */
+	let handled = untrack(() => store.freshCount);
+
+	$effect(() => {
+		const count = store.freshCount;
+		if (count === handled) {
+			return;
+		}
+		handled = count;
+		untrack(() => {
+			const events = store.fresh;
+			if (!logOpen && events.some((e) => eventText(e, game) !== null)) {
+				logUnread = true;
+			}
+			if (
+				window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+			) {
+				return;
+			}
+			const next = highlights(events, seat);
+			// The last highlights go first, for a frame, so a hex or chip that changes again moves again.
+			moved = STILL;
+			clearTimeout(movedTimer);
+			cancelAnimationFrame(movedFrame);
+			movedFrame = requestAnimationFrame(() => {
+				movedFrame = requestAnimationFrame(() => {
+					moved = next;
+					movedTimer = setTimeout(() => (moved = STILL), 2000);
+				});
+			});
+		});
+	});
+	$effect(() => () => {
+		clearTimeout(movedTimer);
+		cancelAnimationFrame(movedFrame);
+	});
 
 	/** The selected space's advance, if the viewer can take it now. */
 	let chosenAdvance = $derived(
@@ -441,9 +497,19 @@
 	const menuHandler = (event) => {
 		if (event.value === 'leave') {
 			store.leaveTable();
+		} else if (event.value === 'settings') {
+			// One Escape closes one thing, so the settings open alone.
+			logOpen = false;
+			overviewOpen = false;
+			settingsOpen = true;
 		} else if (typeof onGameHelp === 'function') {
 			onGameHelp(event);
 		}
+	};
+
+	const logToggleHandler = () => {
+		logOpen = !logOpen;
+		logUnread = false;
 	};
 
 	/**
@@ -517,6 +583,9 @@
 		sound={store.sound}
 		items={[
 			{ id: 'help', label: 'How to play' },
+			...(isHost(room)
+				? [{ id: 'settings', label: 'Table settings' }]
+				: []),
 			{ id: 'leave', label: 'Leave table' },
 		]}
 		onPageHeaderSound={(/** @type {any} */ event) =>
@@ -533,6 +602,7 @@
 					seat={player.seat}
 					current={game.current === player.seat}
 					filled={overviewOpen}
+					bump={moved.vp.includes(player.seat)}
 					onPlayerChipClick={() => (overviewOpen = !overviewOpen)} />
 			{/each}
 		{/snippet}
@@ -552,6 +622,18 @@
 				label="Undo"
 				disabled={!room.canUndo}
 				onIconButtonClick={() => store.undo()} />
+			<span class="rg-game--log-button">
+				<IconButton
+					icon="log"
+					label="Log and scores"
+					expanded={logOpen}
+					onIconButtonClick={logToggleHandler} />
+				{#if logUnread}
+					<i
+						class="rg-game--unread"
+						title="New entries"></i>
+				{/if}
+			</span>
 		{/snippet}
 	</PageHeader>
 
@@ -577,6 +659,7 @@
 						targets={mapTargets}
 						selected={mapPick}
 						{preview}
+						fresh={moved.hexes}
 						onWorldMapSelect={mapSelectHandler} />
 				{/if}
 			</div>
@@ -662,6 +745,7 @@
 					code={room.code}
 					bind:tab
 					{placement}
+					fresh={{ plots: moved.plots, landmarks: moved.landmarks }}
 					onPlayerTabsPlace={placeHandler}
 					onPlayerTabsInspect={(
 						/** @type {ComponentEvent} */ event
@@ -682,6 +766,18 @@
 				host={room.host}
 				code={room.code} />
 		{/if}
+		{#if logOpen && !overviewOpen}
+			<LogPanel
+				{game}
+				{seat}
+				bind:tab={logTab}
+				onLogPanelClose={() => (logOpen = false)} />
+		{/if}
+		{#if settingsOpen}
+			<TableSettings
+				{store}
+				onTableSettingsClose={() => (settingsOpen = false)} />
+		{/if}
 	</div>
 
 	{#if overviewOpen}
@@ -689,9 +785,17 @@
 			onOverviewCloseBarClick={() => (overviewOpen = false)} />
 	{:else if game.phase === 'over'}
 		<TurnBar
-			tone="waiting"
+			tone="neutral"
 			label="Game over"
-			heading="The game is over." />
+			heading="The game is over."
+			detail="The board as the game ended.">
+			{#snippet actions()}
+				<Button
+					mode="gold"
+					onButtonClick={(/** @type {ComponentEvent} */ event) =>
+						onGameResults?.(event)}>Results</Button>
+			{/snippet}
+		</TurnBar>
 	{:else if turnDecision && selected}
 		<TurnBar
 			tone="selected"
@@ -831,6 +935,24 @@
 		display: grid;
 		place-items: center;
 		background: color-mix(in srgb, var(--ink) 52%, transparent);
+		pointer-events: none;
+	}
+
+	/* The log button carries a gold dot while the log has entries the viewer hasn't seen. */
+	.rg-game--log-button {
+		position: relative;
+		display: inline-flex;
+	}
+
+	.rg-game--unread {
+		position: absolute;
+		top: 5px;
+		right: 5px;
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--gold);
+		box-shadow: 0 0 0 var(--border) var(--chrome);
 		pointer-events: none;
 	}
 

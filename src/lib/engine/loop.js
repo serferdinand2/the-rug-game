@@ -10,18 +10,20 @@ import { AUTOMATIC } from './kinds.js';
  * @param {State} state
  * @param {import('./random.js').Random} random
  * @param {Stack} stack - The main stack or a lane's
+ * @param {import('./state.js').Operation | null} [from=null] - The operation being run or answered: what it pushes
+ *   inherits its VP source (#29)
  * @returns {import('./state.js').Context}
  */
-export function contextFor(state, random, stack) {
+export function contextFor(state, random, stack, from = null) {
 	return {
 		state,
 		random,
-		push: (ops) => push(state, stack, ops),
+		push: (ops) => push(state, stack, ops, from),
 		pushGroup: (lanes) => {
 			if (stack !== state.pending) {
 				throw new Error('A group cannot be pushed from inside a lane.');
 			}
-			return pushGroup(state, lanes);
+			return pushGroup(state, lanes, from);
 		},
 	};
 }
@@ -38,7 +40,7 @@ function runTop(state, random, stack) {
 		throw new Error(`There is no operation kind ${top.kind}.`);
 	}
 	const automatic = AUTOMATIC[top.kind];
-	automatic(contextFor(state, random, stack), top);
+	automatic(contextFor(state, random, stack, top), top);
 }
 
 /**

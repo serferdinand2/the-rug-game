@@ -119,6 +119,7 @@ function newSeat(seat, name) {
 		kind: 'player',
 		name,
 		vp: 0,
+		vpSources: {},
 		tracks: /** @type {any} */ (
 			Object.fromEntries(TRACK_IDS.map((id) => [id, [0]]))
 		),

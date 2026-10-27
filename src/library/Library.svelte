@@ -30,6 +30,8 @@
 		{ id: 'player', name: 'Player' },
 		{ id: 'prompts', name: 'Prompts' },
 		{ id: 'lobby', name: 'Lobby' },
+		{ id: 'log', name: 'Log' },
+		{ id: 'results', name: 'Results' },
 	]);
 
 	/**

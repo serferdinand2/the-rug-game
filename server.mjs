@@ -54,6 +54,7 @@ const types = {
 	'.ico': 'image/x-icon',
 	'.ttf': 'font/ttf',
 	'.woff2': 'font/woff2',
+	'.ogg': 'audio/ogg',
 };
 const compressible = new Set(['.html', '.js', '.css', '.json', '.svg']);
 
@@ -85,7 +86,7 @@ function cacheControl(path) {
 	if (path.startsWith('assets/')) {
 		return 'public, max-age=31536000, immutable';
 	}
-	if (/^(art|fonts)\//.test(path)) {
+	if (/^(art|audio|fonts)\//.test(path)) {
 		return 'public, max-age=604800';
 	}
 	return 'no-cache';

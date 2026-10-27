@@ -23,8 +23,14 @@ export function setupCivs(ctx) {
 						kind: 'civSetup',
 						civ,
 						midGame: false,
+						origin: 'civ',
 					})),
-					{ player, kind: 'civAdjust', phase: 'setup' },
+					{
+						player,
+						kind: 'civAdjust',
+						phase: 'setup',
+						origin: 'civ',
+					},
 				],
 			}))
 	);
@@ -65,8 +71,13 @@ export function endFirstIncomeTurn(ctx, player) {
 	ctx.push([
 		...civsOf(ctx.state, player)
 			.filter((civ) => civ.firstTurnEnd)
-			.map((civ) => ({ player, kind: 'civFirstTurnEnd', civ: civ.id })),
-		{ player, kind: 'civAdjust', phase: 'firstTurnEnd' },
+			.map((civ) => ({
+				player,
+				kind: 'civFirstTurnEnd',
+				civ: civ.id,
+				origin: 'civ',
+			})),
+		{ player, kind: 'civAdjust', phase: 'firstTurnEnd', origin: 'civ' },
 	]);
 }
 
@@ -119,8 +130,14 @@ export function civAbilities(ctx, op) {
  */
 export function useCivAbility(ctx, player, civ, turn, done) {
 	ctx.push([
-		{ player, kind: 'civIncome', civ, turn },
-		{ player, kind: 'civAbilities', turn, done: [...done, civ] },
+		{ player, kind: 'civIncome', civ, turn, origin: 'civ' },
+		{
+			player,
+			kind: 'civAbilities',
+			turn,
+			done: [...done, civ],
+			origin: 'civ',
+		},
 	]);
 }
 
@@ -200,5 +217,5 @@ export function gainCiv(ctx, player) {
 export function gainDrawnCiv(ctx, player, civ) {
 	playerSeat(ctx.state, player).civs.push(civ);
 	emit(ctx.state, { type: 'civGained', player, civ });
-	ctx.push([{ player, kind: 'civSetup', civ, midGame: true }]);
+	ctx.push([{ player, kind: 'civSetup', civ, midGame: true, origin: 'civ' }]);
 }

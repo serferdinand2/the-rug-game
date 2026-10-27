@@ -19,6 +19,7 @@
 	 * @property {string} [tab='capital'] - The tab on show; bindable
 	 * @property {Function} [onPlayerTabsInspect] - Callback fired with { kind: 'tech' | 'tapestry', data } when a card is hovered or focused, and with null on leave, so the shared area shows it in full
 	 * @property {PlayerTabsPlacement | null} [placement=null] - A building or landmark to place: the Capital tab lights a building's plots, or offers the landmark in the tray, and snaps it only to the options' places
+	 * @property {{ plots: { row: number, col: number }[], landmarks: string[] }} [fresh] - What the viewer just built (#29): the plots glow and the landmarks shine on the Capital tab
 	 * @property {Function} [onPlayerTabsPlace] - Callback fired with { index, confirm }: index is the option a building or landmark landed on, or null when the landmark went back to the tray; confirm is true when the landmark's own confirm control was pressed
 	 */
 
@@ -78,6 +79,7 @@
 		tab = $bindable('capital'),
 		onPlayerTabsInspect,
 		placement = null,
+		fresh = { plots: [], landmarks: [] },
 		onPlayerTabsPlace,
 		...attr
 	} = $props();
@@ -129,9 +131,14 @@
 			: null
 	);
 	let pieces = $derived(
-		capital && placed
+		(capital && placed
 			? [...capital.pieces, placed]
 			: (capital?.pieces ?? [])
+		).map((piece) =>
+			fresh.landmarks.includes(piece.id)
+				? { ...piece, fresh: true }
+				: piece
+		)
 	);
 	/** The tray holds the landmark until it is on the capital; it always starts unturned. */
 	let tray = $derived(
@@ -375,6 +382,7 @@
 					{highlight}
 					{targets}
 					{preview}
+					fresh={fresh.plots}
 					awaitingPlacement={placement !== null}
 					room
 					onCapitalGridPlotClick={plotClickHandler}
