@@ -1,4 +1,4 @@
-<!-- Library section: CapitalGrid with the mockups' capitals, completed groups, placed and locked landmarks, and the interactive Lighthouse placement. -->
+<!-- Library section: CapitalGrid with the mockups' capitals, completed groups, placed, locked and overhanging landmarks, and the interactive Lighthouse placement. -->
 <script>
 	import CapitalGrid from '../../../lib/components/player/CapitalGrid.svelte';
 	import CompletionCounters from '../../../lib/components/player/CompletionCounters.svelte';
@@ -142,7 +142,7 @@
 <Section
 	name="CapitalGrid"
 	area="player"
-	description="A 9×9 capital assembled from the approved terrain tiles, with the four income-building SVGs, small red Xs on impassable plots and district lines. The supplied visual seed chooses repeatable variants for this game; the plot mask stays unchanged. The six full mat images in Art are reference examples only. Landmarks and placement controls work over the composed tiles.">
+	description="A 9×9 capital assembled from the approved terrain tiles, with the four income-building SVGs, small red Xs on impassable plots and district lines. The supplied visual seed chooses repeatable variants for this game; the plot mask stays unchanged. The six full mat images in Art are reference examples only. Landmarks and placement controls work over the composed tiles. A locked landmark may hang over the edge (R106): it is drawn past the grid, and only its plots on the grid count.">
 	<Example
 		label={'biome="wetland" terrainSeed={42} · same plot layout, composed from tile SVGs'}
 		width={468}>
@@ -259,6 +259,29 @@ Keyboard: an arrow key on the Lighthouse puts it on the grid and moves it, R rot
 			pieces={[
 				{ ...LIGHTHOUSE, row: 6, col: 1, locked: true, fresh: true },
 			]} />
+	</Example>
+	<Example
+		label={'pieces={[Lighthouse, locked, row 6, col -1]}  (over the left edge, R106: drawn past the grid, not clipped or moved)'}
+		width={468}>
+		<CapitalGrid
+			plots={YOURS}
+			pieces={[{ ...LIGHTHOUSE, row: 6, col: -1, locked: true }]} />
+	</Example>
+	<Example
+		label={'pieces={[Lighthouse, locked, row 8, col 4]} highlight="rows"  (only its plots on the grid count: it completes row 8)'}
+		width={468}>
+		<!-- Room below the grid for the plot that hangs over its edge. -->
+		<div style:padding-bottom="calc(var(--space-11) * 1.5)">
+			<CapitalGrid
+				plots={capital(BLOCKED, {
+					...BUILDINGS,
+					74: 'farm',
+					75: 'house',
+					78: 'market',
+				})}
+				pieces={[{ ...LIGHTHOUSE, row: 8, col: 4, locked: true }]}
+				highlight="rows" />
+		</div>
 	</Example>
 	<Example
 		label={'pieces={[Rubber Works, rotation 3, placed]} awaitingPlacement'}

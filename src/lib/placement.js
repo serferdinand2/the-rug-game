@@ -152,6 +152,34 @@ export function rotatePiece(plots, pieces, piece) {
 }
 
 /**
+ * Where a piece is drawn: its shape's rectangle clipped to the grid, and how many plots it hangs over each edge (R106).
+ * @param {readonly string[]} shape - The turned footprint
+ * @param {number} row - The top row of the shape; negative when it hangs over the top
+ * @param {number} col - The left column of the shape; negative when it hangs over the left
+ * @returns {{ row: number, col: number, rows: number, cols: number, top: number, right: number, bottom: number, left: number }}
+ */
+export function pieceArea(shape, row, col) {
+	/** @param {number} start @param {number} length */
+	const clip = (start, length) => {
+		const from = Math.min(GRID_SIZE - 1, Math.max(0, start));
+		const to = Math.max(from + 1, Math.min(GRID_SIZE, start + length));
+		return { from, span: to - from, before: from - start };
+	};
+	const down = clip(row, shape.length);
+	const across = clip(col, shape[0].length);
+	return {
+		row: down.from,
+		col: across.from,
+		rows: down.span,
+		cols: across.span,
+		top: down.before,
+		right: shape[0].length - across.before - across.span,
+		bottom: shape.length - down.before - down.span,
+		left: across.before,
+	};
+}
+
+/**
  * The covered plots of a shape as an SVG path, one unit square per plot.
  * @param {readonly string[]} shape - Rows, top first, with X for a covered plot
  * @returns {string}
