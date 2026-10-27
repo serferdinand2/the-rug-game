@@ -115,3 +115,45 @@ test('a tab row too wide for its place scrolls, fades at the cut edge and keeps 
 	expect(tab.x).toBeGreaterThanOrEqual(box.x - 0.5);
 	expect(tab.x + tab.width).toBeLessThanOrEqual(box.x + box.width + 0.5);
 });
+
+test("a progress line's token sits on the line's end, and its marker keeps within the lanes (#72)", async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const lanes = page.locator('.rg-progress-lanes');
+	await expect(lanes.first()).toBeVisible();
+	const measured = await lanes.evaluateAll((all) =>
+		all.map((el) => {
+			const box = el.getBoundingClientRect();
+			return {
+				// A marker moved past the lanes' right edge would widen what the page scrolls.
+				overflow: el.scrollWidth - el.clientWidth,
+				offsets: [
+					...el.querySelectorAll('.rg-progress-lanes--marker'),
+				].map((marker) => {
+					const end = Number(
+						getComputedStyle(marker).getPropertyValue(
+							'--rg-progress-lanes-end'
+						)
+					);
+					const token = /** @type {HTMLElement} */ (
+						marker.querySelector('.rg-progress-lanes--token')
+					).getBoundingClientRect();
+					return (
+						(token.left + token.right) / 2 -
+						box.left -
+						end * box.width
+					);
+				}),
+			};
+		})
+	);
+	expect(measured.length).toBeGreaterThan(0);
+	for (const { overflow, offsets } of measured) {
+		expect(overflow).toBeLessThanOrEqual(0);
+		expect(offsets.length).toBeGreaterThan(0);
+		for (const offset of offsets) {
+			expect(Math.abs(offset)).toBeLessThan(0.5);
+		}
+	}
+});

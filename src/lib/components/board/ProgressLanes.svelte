@@ -95,10 +95,12 @@
 </div>
 
 <style>
-	/* Lanes are --progress-lane apart; the box is exactly tall enough for the token end marks. */
+	/* Lanes are --progress-lane apart; the box is exactly tall enough for the token end marks. It is a container,
+	   so a token's marker can move by a share of its width (#72). */
 	.rg-progress-lanes {
 		position: relative;
 		display: block;
+		container-type: inline-size;
 		height: calc(
 			(var(--rg-progress-lanes-count) - 1) * var(--progress-lane) + 3 *
 				var(--progress-line)
@@ -119,8 +121,10 @@
 
 	/*
 	 * A line grows to its new space (#29). It is drawn full width and scaled, and its token
-	 * slides on a full-width marker, because a transform animates without laying out the
-	 * page again (#72). The reduced-motion tokens make both instant.
+	 * slides on a marker of no width moved by a share of the lanes' width, because a transform
+	 * animates without laying out the page again (#72). A full-width marker moved that far
+	 * would reach past the lanes and widen what the page scrolls. The reduced-motion tokens
+	 * make both instant.
 	 */
 	.rg-progress-lanes--line {
 		left: 0;
@@ -135,8 +139,8 @@
 
 	.rg-progress-lanes--marker {
 		left: 0;
-		width: 100%;
-		transform: translateX(calc(var(--rg-progress-lanes-end) * 100%));
+		width: 0;
+		transform: translateX(calc(var(--rg-progress-lanes-end) * 100cqw));
 		transition: transform var(--duration-slow) var(--ease-out);
 	}
 
