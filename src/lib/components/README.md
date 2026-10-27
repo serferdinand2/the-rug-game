@@ -100,8 +100,8 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 |---|---|
 | `player/CardFrame` | 425 px frame, title, full portrait, main effect and footer metadata |
 | `player/CivilizationCard` | Fourteen reviewed recipes with empty/in-play example states |
-| `player/TechnologyCard` | Horizontal 425 px technology frame with full artwork, square/circle effects, conditions and edition badge |
-| `player/TapestryCard` | 319 px tapestry frame with timing beside the portrait, including the red Trap variant |
+| `player/TechnologyCard` | Horizontal 425 px technology frame with full artwork, square/circle effects, conditions and edition badge; a reviewed fixture by `id`, or a real card by `data` from `techCardData()` (`src/lib/cards/game-cards.js`) |
+| `player/TapestryCard` | 319 px tapestry frame with timing beside the portrait, including the red Trap variant; a reviewed fixture by `id`, or a real card by `data` from `tapestryCardData()` |
 | `player/CardResource` | Native 24 px inline icon without changing row spacing |
 | `player/PlayerToken` | Five supplied shaded 32 px colour variants |
 | `player/CardSlot` | Compact, large or prediction square, never larger than 75 px |
