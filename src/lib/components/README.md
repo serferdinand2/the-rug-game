@@ -37,6 +37,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `Divider` | A thin rule, optionally paused by a short italic label such as "or join friends". |
 | `IconButton` | The 36px header controls (sound, history, menu, close), with the red mute slash. |
 | `Menu` | The header popover: entries as links or buttons, arrow keys and Escape. |
+| `TurnClock` | The header's turn clock: a player colour mark and the time left, paused muted, red with the seconds in words when low. |
 | `Panel` | A chrome panel with a thin border and an optional heading. |
 | `ResourceIcon` | The five resource symbols at 16px, native 24px or native 48px, shared by prices, chips and footer costs. The native assets are 24×24 and 48×48; 16px display scales the 24px SVG. The 32px source is deprecated and archived. |
 | `Segmented` | A row of pressed/unpressed choices, single or multiple, tinted or filled, and disabled for a player who can't change them. |
