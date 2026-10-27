@@ -8,8 +8,6 @@
 	 * @property {import('../../ui.js').CostSymbol[]} [symbols] - Resource symbols drawn before the words, native 24px
 	 * @property {import('./PromptArt.svelte').PromptArtItem[]} [art] - Pictures drawn above the words at 48px
 	 * @property {number | null} [vp=null] - A small gold '+n VP' badge in the corner
-	 * @property {import('./PromptArt.svelte').PromptArtItem[]} [art] - Pictures drawn above the words at 48px
-	 * @property {number | null} [vp=null] - A small gold '+n VP' badge in the corner
 	 * @property {Function} [onDecisionOptionClick] - Callback fired when the choice is pressed
 	 */
 
