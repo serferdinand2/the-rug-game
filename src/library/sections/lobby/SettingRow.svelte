@@ -105,7 +105,7 @@
 				label="Landmarks draft"
 				options={[
 					{ value: 'yes', label: 'Yes', color: 'var(--technology)' },
-					{ value: 'no', label: 'No', color: 'var(--line-strong)' },
+					{ value: 'no', label: 'No', color: 'var(--text)' },
 				]}
 				bind:value={draft} />
 		</SettingRow>

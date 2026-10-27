@@ -140,6 +140,12 @@ test('a finished game shows the results; the board, log and scores can be review
 		// The board as it ended, with the log and the scores.
 		await page.getByRole('button', { name: 'Review game board' }).click();
 		await expect(page.locator('.rg-game')).toBeVisible();
+		await expect(page.locator('.rg-turn-bar')).toContainText(
+			'Game complete'
+		);
+		await expect(page.locator('.rg-turn-bar')).toContainText(
+			'The game is complete.'
+		);
 		// A change at the table (here the undo setting) brings a new room view, but the same deal: the board stays.
 		const finished = await api(request, 'state', undefined, token);
 		await api(
@@ -162,6 +168,9 @@ test('a finished game shows the results; the board, log and scores can be review
 		await page.getByRole('button', { name: 'Log and scores' }).click();
 		const log = page.getByRole('log', { name: 'Table log' });
 		await expect(log).toBeVisible();
+		if (process.env.CAPTURE_GAME_LOG === '1') {
+			await page.screenshot({ path: 'docs/ui/screens/game-log.png' });
+		}
 		expect(await log.locator('li').count()).toBeGreaterThan(20);
 		await expect(log).toContainText('The game is over');
 		await page.getByRole('tab', { name: 'Scores' }).click();

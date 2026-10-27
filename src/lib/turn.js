@@ -1,6 +1,9 @@
 // The viewer's part in the turn (#26 design §5.1, §6): which open decision is theirs, and the advances they can pay
 // for, from the engine run on their own view.
 import { DECISIONS, openDecisions } from './engine/game.js';
+import { TRACKS } from './engine/data/tracks.js';
+
+/** @typedef {import('./engine/data/ids.js').TrackId} TrackId */
 
 /**
  * One token the viewer can advance, with every legal way to pay for it.
@@ -67,4 +70,43 @@ export function advanceOptions(view, seat) {
 		/** @type {AdvanceOption} */ (byToken.get(key)).payments.push(pay);
 	}
 	return [...byToken.values()];
+}
+
+/**
+ * Gives the footer the turn's context while the decision panel asks the actual question. Until effects carry exact
+ * causes (#60), the latest advance in this turn is the most specific context the public view can name.
+ * @param {any} view - The viewer's game view
+ * @param {number | null} seat - The viewer's seat
+ * @returns {string}
+ */
+export function decisionTurnHeading(view, seat) {
+	if (view.phase === 'setup') {
+		return 'Your setup choice';
+	}
+	const current = view.current;
+	if (!Number.isInteger(current)) {
+		return 'Your turn is in progress';
+	}
+	const actor = view.seats?.find(
+		(/** @type {any} */ s) => s.seat === current
+	);
+	const prefix =
+		current === seat
+			? 'Your turn'
+			: `${actor?.name ?? 'Another player'}’s turn`;
+	const events = Array.isArray(view.events) ? view.events : [];
+	const started = events.findLast(
+		(/** @type {any} */ event) => event.type === 'turnStarted'
+	);
+	const moved = events.findLast(
+		(/** @type {any} */ event) =>
+			event.type === 'tokenMoved' &&
+			event.player === current &&
+			event.seq > (started?.seq ?? -1) &&
+			event.to > event.from &&
+			TRACKS[/** @type {TrackId} */ (event.track)]?.[event.to]
+	);
+	return moved
+		? `${prefix} · Advance to ${TRACKS[/** @type {TrackId} */ (moved.track)][moved.to].name}`
+		: `${prefix} is in progress`;
 }
