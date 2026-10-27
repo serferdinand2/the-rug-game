@@ -57,13 +57,13 @@ export const DISTRICTS = [
 
 /** Colours for this biome only. */
 const K = {
-	dust: '#a79e88',
-	dustLight: '#bdb49c',
-	dustShade: '#8f866f',
-	gold: '#c9b45c',
-	goldLight: '#dccb7a',
-	goldShade: '#a8963f',
-	dryBlade: '#e6d38a',
+	dust: C.savannaDust,
+	dustLight: C.savannaDustLight,
+	dustShade: C.savannaDustShade,
+	gold: C.savannaGold,
+	goldLight: C.savannaGoldLight,
+	goldShade: C.savannaGoldShade,
+	dryBlade: C.savannaDryBlade,
 };
 
 /**

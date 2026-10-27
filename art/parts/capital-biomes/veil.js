@@ -48,12 +48,12 @@ export const VEIL_PATH = [
 
 /** Colours for this biome only. */
 const K = {
-	meadow: '#74b04e',
-	meadowLight: '#8cc65a',
-	meadowShade: '#58943f',
-	night: '#43356b',
-	nightLight: '#55458a',
-	nightShade: '#30254f',
+	meadow: C.veilMeadow,
+	meadowLight: C.veilMeadowLight,
+	meadowShade: C.veilMeadowShade,
+	night: C.veilNight,
+	nightLight: C.veilNightLight,
+	nightShade: C.veilNightShade,
 };
 
 /**
