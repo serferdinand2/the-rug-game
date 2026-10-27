@@ -3,7 +3,7 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
-import { DRAWINGS_DIR, listDrawingIds } from '../art/build.mjs';
+import { DRAWINGS_DIR, listDrawingIds } from '../tools/art/build.mjs';
 import { ASSETS, EXPANSIONS } from '../src/lib/art/catalog.js';
 
 /** The sets whose every masterpiece must be drawn. */

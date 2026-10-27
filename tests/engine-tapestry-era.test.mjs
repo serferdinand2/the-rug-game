@@ -696,6 +696,42 @@ test('Terraforming lets buildings and landmarks cover impassable plots, 5 VP per
 	assert.equal(landed.seats[0].vp, vp + 5);
 });
 
+test('Tyranny copied with no card behind it (the Heralds on Espionage) still pays its 5 VP only once', () => {
+	const { state, random } = game();
+	const seat = state.seats[0];
+	seat.incomeTurns = 2;
+	seat.hand = [];
+	// A copied ability rests on no card of the player's, so no play can cover it (#20 design).
+	seat.era = { card: null, ability: 'tyranny' };
+	const gaining = ['trap-1', 'trap-2'];
+	state.supply.tapestry.deck = [
+		...gaining,
+		...state.supply.tapestry.deck.filter(
+			(/** @type {string} */ c) => !gaining.includes(c)
+		),
+	];
+	const gained = resolveEffects(
+		state,
+		1,
+		[{ gain: { tapestry: 1 } }],
+		random
+	);
+	const vp = gained.seats[0].vp;
+	const played = answer(gained, random, 1, 'chooseTapestry', {
+		card: 'trap-1',
+	});
+	// 5 VP for Tyranny and 10 for the trap played as a card (R22); Tyranny is over.
+	assert.equal(played.seats[0].vp, vp + 15);
+	assert.equal(played.seats[0].era, null);
+	const again = resolveEffects(
+		played,
+		1,
+		[{ gain: { tapestry: 1 } }],
+		random
+	);
+	assert.equal(open(again, 'chooseTapestry'), undefined);
+});
+
 test('Tyranny may play a card just gained on top of itself for 5 VP, once', () => {
 	const { state, random } = game();
 	const seat = state.seats[0];

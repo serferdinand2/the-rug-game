@@ -47,19 +47,20 @@ src/
   library/               The library page: Library, Section, Example, sections/<area>/<Name>.svelte, and the art (art.js, ArtTile)
   styles/                tokens.css (design tokens), base.css (fonts, page, focus) and pixel-noise.svg (texture)
 static/                  Copied as-is into the build: fonts/, art/ (generated SVGs), favicon.svg
-server.mjs, limits.mjs   Node HTTP server and its pure helpers (no packages)
-art/                     Art toolkit (build time): painter, palette, scene parts, drawings/<id>.js
+server/                  Node HTTP server (server.mjs) and its per-address limits (limits.mjs), no packages
+api/                     The table API (api.mjs) and the table rules it serves (rooms.mjs), no packages
+tools/art/               Art toolkit (build time): painter, palette, scene parts, drawings/<id>.js
   build.mjs              Draws art into static/art/ (npm run art)
   gallery.js             Scene-part samples, review grouping and the drawing check, shared with the library page
-public/                  Vite build output, served by server.mjs (git-ignored)
-scripts/dev.mjs          Runs the Node server and Vite's dev server together (npm run dev)
+build/                   Vite build output, served by server/server.mjs (git-ignored)
+tools/dev.mjs            Runs the Node server and Vite's dev server together (npm run dev)
 tests/                   Vitest suites (*.test.mjs); tests/browser/ holds the Playwright tests
 docs/                    Research, design, plans, interface designs, art notes
 ```
 
-- `src/lib/**/*.js` and `art/**/*.js` import nothing from the DOM or Svelte, unless the file is a `.svelte.js` rune module. That way they run under Vitest in Node.
-- `src/lib/` never imports from `art/`; the toolkit imports from `src/lib/art/`, not the other way round. Only the library page (`src/library/`) imports the toolkit, to show the art; the game never does.
-- The only files under `public/` are build output. Never edit them by hand.
+- `src/lib/**/*.js` and `tools/art/**/*.js` import nothing from the DOM or Svelte, unless the file is a `.svelte.js` rune module. That way they run under Vitest in Node.
+- `src/lib/` never imports from `tools/art/`; the toolkit imports from `src/lib/art/`, not the other way round. Only the library page (`src/library/`) imports the toolkit, to show the art; the game never does.
+- The only files under `build/` are build output. Never edit them by hand.
 
 ## Formatting
 
@@ -140,13 +141,13 @@ The engine is the most important code in the project. It follows the sibling pro
 
 ## Server
 
-- `server.mjs` is an adapter: it authenticates, calls an engine or room transition, and stores and serves the result. Rules live in the engine, never in the server or the client.
-- The table rules live in `rooms.mjs`, as pure transitions like the engine's: each returns a new room, or `null` when it closes, never changes the room it was given, and throws `PlayerError`. The server stores what they return.
+- `server/server.mjs` is an adapter: it authenticates, calls an engine or room transition, and stores and serves the result. Rules live in the engine, never in the server or the client.
+- The table rules live in `api/rooms.mjs`, as pure transitions like the engine's: each returns a new room, or `null` when it closes, never changes the room it was given, and throws `PlayerError`. The server stores what they return.
 - Every response that contains game state goes through `view()`.
 - Mutating requests carry the room `version`. A stale one gets **409**.
 - `PlayerError` answers **400** with `{ error }`. Anything else is logged, and the client gets **500** with a generic message.
-- The table API lives in `api.mjs`. Every table change goes through its `commit()`, rooms leave it only through `roomView()`, and nothing that runs from a timer or another person's change may throw. Its limits sit in `config`, which tests change instead of waiting.
-- `server.mjs` exports `server` and `config` and only calls `listen()` when run directly.
+- The table API lives in `api/api.mjs`. Every table change goes through its `commit()`, rooms leave it only through `roomView()`, and nothing that runs from a timer or another person's change may throw. Its limits sit in `config`, which tests change instead of waiting.
+- `server/server.mjs` exports `server` and `config` and only calls `listen()` when run directly.
 
 ## Svelte components
 
@@ -561,7 +562,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 
 ## Tests
 
-- Use Vitest (`import { test } from 'vitest'`) with `node:assert/strict`; new tests may use `expect`. Test files are `tests/<area>.test.mjs`; `vite.config.js`'s `test` block runs them in Node, after a global setup that builds `public/` (#55).
+- Use Vitest (`import { test } from 'vitest'`) with `node:assert/strict`; new tests may use `expect`. Test files are `tests/<area>.test.mjs`; `vite.config.js`'s `test` block runs them in Node, after a global setup that builds `build/` (#55).
 - Browser tests use Playwright in Chromium only: `tests/browser/<page>.test.mjs`, run by `npm run test:e2e` against `npm run dev`. Find elements by role and accessible name, or by `data-id`.
 - Test names are plain sentences describing the behaviour, such as `'the first player into tier II takes the landmark'`.
 - Write tests first: watch a test fail, then make it pass.
@@ -587,7 +588,7 @@ Order the CSS as: block, size modifiers, state modifiers, then elements.
 
   Give each a type label, its milestone, the matching `M… · …` label, and blocked-by links (see CLAUDE.md).
 - **The README always shows the current interface.** Any interface change updates `docs/ui/screens/`, the README's "Current interface" section and `docs/ui/README.md` in the same commit.
-- **Documentation** uses plain words and short sentences. It lives in `docs/`, never in `public/` or `static/`.
+- **Documentation** uses plain words and short sentences. It lives in `docs/`, never in `build/` or `static/`.
 
 ## Quick reference checklist
 

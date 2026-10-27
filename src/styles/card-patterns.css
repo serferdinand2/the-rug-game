@@ -699,7 +699,7 @@
 }
 .rg-card-leader-tracks {
 	display: grid;
-	grid-template-columns: repeat(5, 1fr);
+	grid-template-columns: repeat(4, 1fr);
 	gap: 6px;
 	margin: 0;
 	padding: 0 12px;
@@ -1344,6 +1344,31 @@
 	.rg-card-trader-reserve--slot.rg-card-is-used
 	img {
 	display: none;
+}
+/* Maker of Fire, printed on the income mat with no picture of its own: era I in a mini tapestry card (#47). */
+.rg-card-era-numeral {
+	display: grid;
+	place-items: center;
+	padding-bottom: 8px;
+}
+.rg-card-era-numeral b {
+	color: var(--gold);
+	font: var(--weight-title) var(--font-size-xl) / var(--leading-none)
+		var(--font-title);
+}
+
+/* Four track symbols or four resources in a 2×2 block, in an effect box's symbol (#47). */
+.rg-card-track-quad,
+.rg-card-resource-quad {
+	display: grid;
+	grid-template-columns: repeat(2, 24px);
+	gap: 4px;
+	place-items: center;
+}
+.rg-card-track-quad img {
+	width: 24px;
+	height: 24px;
+	image-rendering: pixelated;
 }
 .rg-card-trader-options .rg-card-ability-symbol {
 	position: relative;

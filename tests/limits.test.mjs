@@ -1,7 +1,7 @@
 // Rate limits and client addresses, tested without a running server.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { rateLimiter, clientAddress, addressKey } from '../limits.mjs';
+import { rateLimiter, clientAddress, addressKey } from '../server/limits.mjs';
 
 test('each address may send a fixed number of requests per window', () => {
 	const limiter = rateLimiter(3, 1000);

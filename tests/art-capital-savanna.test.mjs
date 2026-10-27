@@ -1,14 +1,14 @@
 // The Savanna capital terrain (#6): 14 distinct full-bleed plots and an example mat on the printed layout.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import * as pinned from '../art/parts/capital-biomes/savanna.js';
+import * as pinned from '../tools/art/parts/capital-biomes/savanna.js';
 import {
 	LAYOUT,
 	UNICORNS,
 	drawBiomeTile,
 	drawBiomeMat,
 	matPlacement,
-} from '../art/parts/capital-biomes/savanna.js';
+} from '../tools/art/parts/capital-biomes/savanna.js';
 
 const tiles = [
 	...Array.from({ length: 8 }, (_, v) => ({ blocked: false, variant: v })),

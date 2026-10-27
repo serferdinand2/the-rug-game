@@ -1,7 +1,7 @@
 // The deal counter (#29 design §3): a room counts its deals, so the client tells a new deal from the old game.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { createRoom, join, roomView, start } from '../rooms.mjs';
+import { createRoom, join, roomView, start } from '../api/rooms.mjs';
 import { seededRandom } from '../src/lib/engine/random.js';
 
 const NOW = 1_000_000;

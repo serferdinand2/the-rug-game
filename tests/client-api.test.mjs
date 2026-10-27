@@ -1,7 +1,7 @@
 // The browser's API client (#25): sign-in, errors, the 409 retry and where a returning person lands, on a server at port 0.
 import { afterAll, beforeAll, test } from 'vitest';
 import assert from 'node:assert/strict';
-import { server, config } from '../server.mjs';
+import { server, config } from '../server/server.mjs';
 import { ApiError, createApi, withSession } from '../src/lib/api.js';
 import { change, sameSeats } from '../src/lib/changes.js';
 import { boot } from '../src/lib/boot.js';

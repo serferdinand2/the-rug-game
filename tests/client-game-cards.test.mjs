@@ -168,3 +168,30 @@ test('an unknown card id is refused', () => {
 	assert.throws(() => techCardData('no-such-card'), /no-such-card/);
 	assert.throws(() => tapestryCardData('no-such-card'), /no-such-card/);
 });
+
+test('the card faces the audit checked say exactly what the engine does', () => {
+	const tapestry = (/** @type {string} */ id) => tapestryCardData(id).copy;
+	// Ties are "otherwise" (02 §3 #4).
+	assert.match(tapestry('age-of-wonders'), /otherwise, ties included, gain/);
+	// R26: the block lifts when turn order reaches the dictator again.
+	assert.match(tapestry('dictatorship'), /until your next turn starts/);
+	// One sentence, in any order, with the free bonus optional (02 §3 #33, FAQ #4).
+	assert.equal(
+		tapestry('renaissance'),
+		'Advance once on each track, in any order, without their benefits. You may take each bonus you reach for free.'
+	);
+	// Only the food earned can be converted (the design's BGA reading).
+	assert.match(tapestry('mercantilism'), /convert food you earned/);
+	assert.equal(
+		tapestry('steam-tycoon'),
+		'Invent a face-up tech card and upgrade it. Then each of your neighbours invents the top card of the tech deck.'
+	);
+	const tech = (/** @type {string} */ id) => techCardData(id);
+	// The X: Time Travel's regress gives nothing (02 §4 #28).
+	assert.match(tech('time-travel').square, /without its benefit or bonus/);
+	// Lithium-Ion Battery may pay the bonus (02 §4 #18), once a turn (FAQ #6).
+	assert.match(tech('lithium-ion-battery').square, /you may pay its bonus/);
+	assert.match(tech('lithium-ion-battery').square, /once a turn/i);
+	// Radio draws from the civilization deck (02 §4 #22).
+	assert.match(tech('radio').square, /draw another civilization/i);
+});

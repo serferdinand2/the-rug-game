@@ -53,7 +53,7 @@ test('the app builds from the project root, copying static/ as is', async () => 
 	const root = fileURLToPath(new URL('..', import.meta.url));
 	assert.equal(join(config.root, '/'), root);
 	assert.equal(join(config.publicDir), join(root, 'static'));
-	assert.equal(join(config.build.outDir), join(root, 'public'));
+	assert.equal(join(config.build.outDir), join(root, 'build'));
 });
 
 test('the build includes the game, component library and card review', async () => {

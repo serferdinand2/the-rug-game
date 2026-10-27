@@ -1,23 +1,23 @@
 // Scene parts: each fills the area it promises, repeats for the same seed and paints only palette colours.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { createCanvas, seededRandom } from '../art/painter.js';
-import { PALETTE } from '../art/palette.js';
-import { drawSky } from '../art/parts/sky.js';
-import { drawSea } from '../art/parts/sea.js';
-import { drawTerrain } from '../art/parts/terrain.js';
-import { drawBuilding } from '../art/parts/buildings.js';
-import { drawFigure } from '../art/parts/figures.js';
-import { drawSmoke } from '../art/parts/smoke.js';
-import { drawClassical } from '../art/parts/classical.js';
-import { drawFactory } from '../art/parts/factory.js';
-import { drawSkyline } from '../art/parts/skyline.js';
-import { drawStreet } from '../art/parts/street.js';
-import { drawShip } from '../art/parts/ship.js';
-import { drawInterior } from '../art/parts/interior.js';
-import { drawBanner } from '../art/parts/banner.js';
-import { drawCrowd } from '../art/parts/crowd.js';
-import { drawWheel } from '../art/parts/wheel.js';
+import { createCanvas, seededRandom } from '../tools/art/painter.js';
+import { PALETTE } from '../tools/art/palette.js';
+import { drawSky } from '../tools/art/parts/sky.js';
+import { drawSea } from '../tools/art/parts/sea.js';
+import { drawTerrain } from '../tools/art/parts/terrain.js';
+import { drawBuilding } from '../tools/art/parts/buildings.js';
+import { drawFigure } from '../tools/art/parts/figures.js';
+import { drawSmoke } from '../tools/art/parts/smoke.js';
+import { drawClassical } from '../tools/art/parts/classical.js';
+import { drawFactory } from '../tools/art/parts/factory.js';
+import { drawSkyline } from '../tools/art/parts/skyline.js';
+import { drawStreet } from '../tools/art/parts/street.js';
+import { drawShip } from '../tools/art/parts/ship.js';
+import { drawInterior } from '../tools/art/parts/interior.js';
+import { drawBanner } from '../tools/art/parts/banner.js';
+import { drawCrowd } from '../tools/art/parts/crowd.js';
+import { drawWheel } from '../tools/art/parts/wheel.js';
 
 const PALETTE_COLOURS = new Set(Object.values(PALETTE));
 const SMOKE_TONES = ['smoke', 'steam'];
@@ -33,7 +33,7 @@ const BANNER_KINDS = ['flag', 'hanging'];
 
 /**
  * Lists the rows that are completely filled and the rows that are completely empty.
- * @param {import('../art/painter.js').Canvas} canvas
+ * @param {import('../tools/art/painter.js').Canvas} canvas
  */
 function rowStates(canvas) {
 	const full = [];

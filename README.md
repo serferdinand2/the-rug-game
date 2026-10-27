@@ -104,7 +104,7 @@ Run a single server process: tables live in its memory. The build needs the deve
 
 ```sh
 npm ci                     # install, including the build tools
-npm run build              # Vite builds the client into public/
+npm run build              # Vite builds the client into build/
 npm prune --omit=dev       # optional: drop the build tools on the host
 npm run serve              # serve the existing build (npm start would try to rebuild)
 ```
@@ -399,7 +399,7 @@ How the ranking was built:
 
 ### Reviewed civilization card components
 
-The [single-page card review](docs/ui/collectors-review.html) now uses fifteen shared Svelte components, also shown in the component library. Fourteen civilization recipes preserve the owner's Style B layout: 425 px width, large portraits, compact square placements, triggered/scoring boxes and native resource/terrain artwork. [The full card-design rules](docs/ui/card-design-rules.md) record the latest decisions for generating further cards.
+The [single-page card review](docs/ui/collectors-review.html) now uses fifteen shared Svelte components, also shown in the component library. Eighteen civilization recipes, every base civilization among them, preserve the owner's Style B layout; the Futurists, Heralds, Nomads and The Chosen await review. They share its 425 px width, large portraits, compact square placements, triggered/scoring boxes and native resource/terrain artwork. [The full card-design rules](docs/ui/card-design-rules.md) record the latest decisions for generating further cards.
 
 ![Civilization card components](docs/ui/screens/civilization-card-components.png)
 

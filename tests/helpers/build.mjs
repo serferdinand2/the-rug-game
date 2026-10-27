@@ -1,4 +1,4 @@
-// Vitest's global setup (#55): builds the client into public/ once, before the suites that read the build run.
+// Vitest's global setup (#55): builds the client into build/ once, before the suites that read the build run.
 import { build } from 'vite';
 
 /** Builds the app with the project's own vite.config.js, quietly. */

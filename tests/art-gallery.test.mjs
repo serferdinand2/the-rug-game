@@ -3,12 +3,12 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { ASSETS, GROUPS, EXPANSIONS } from '../src/lib/art/catalog.js';
 import { FOOTPRINTS, PLOT_SIZE } from '../src/lib/art/footprints.js';
-import { listDrawingIds } from '../art/build.mjs';
+import { listDrawingIds } from '../tools/art/build.mjs';
 import {
 	PART_SAMPLES,
 	drawingCanvas,
 	gallerySections,
-} from '../art/gallery.js';
+} from '../tools/art/gallery.js';
 
 const drawn = new Set(await listDrawingIds());
 const sections = gallerySections(ASSETS, drawn);

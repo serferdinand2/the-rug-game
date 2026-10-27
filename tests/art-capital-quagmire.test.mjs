@@ -1,7 +1,7 @@
 // The Quagmire capital terrain (#6): 14 distinct full-bleed tiles and an example mat that follows the printed layout.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import * as pinned from '../art/parts/capital-biomes/quagmire.js';
+import * as pinned from '../tools/art/parts/capital-biomes/quagmire.js';
 import {
 	LAYOUT,
 	WISPS,
@@ -9,9 +9,9 @@ import {
 	PLACEMENT,
 	drawBiomeTile,
 	drawBiomeMat,
-} from '../art/parts/capital-biomes/quagmire.js';
+} from '../tools/art/parts/capital-biomes/quagmire.js';
 
-/** @returns {import('../art/painter.js').Canvas[]} */
+/** @returns {import('../tools/art/painter.js').Canvas[]} */
 function allTiles() {
 	const tiles = [];
 	for (let v = 0; v < 8; v++) tiles.push(drawBiomeTile(false, v));

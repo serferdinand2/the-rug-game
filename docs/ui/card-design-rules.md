@@ -102,7 +102,7 @@ Use `/art/terrain/{sea,desert,forest,grassland,mountain}.svg` in cards that refe
 
 ### Player tokens
 
-The current player tokens are the owner's shaded 32×32 images in blue, green, purple, red and yellow, supplied on 2026-10-24. Production URLs retain `piece/token-{colour}`. `PlayerToken` uses those assets. Originals are preserved in `art/imported-pngs/player-tokens/`.
+The current player tokens are the owner's shaded 32×32 images in blue, green, purple, red and yellow, supplied on 2026-10-24. Production URLs retain `piece/token-{colour}`. `PlayerToken` uses those assets. Originals are preserved in `tools/art/imported-pngs/player-tokens/`.
 
 The old flat player-colour drawings are deprecated under `docs/art/archive/player-tokens-v1/`; they are not active choices in the gallery. The neutral `piece/token` remains a separately labelled unassigned-piece legacy icon, not a sixth player colour.
 
@@ -138,9 +138,9 @@ All clarification text is beneath the spaces. The end-game score has one horizon
 
 Main instruction beside large art. Distinct triggered/scoring effects use beige `CardEffectBox` rows. Their condition is readable separately from their benefit. Clarifications follow these effect rows.
 
-### Leaders: five once-only choices
+### Leaders: four once-only choices
 
-Five square track targets in one row, at most 75 px. Use the existing track symbols and short labels. An unused choice is greyed; a used/selected choice is highlighted. Expansion names appear as text boxes in the footer, not as icons attached to each label.
+Four square track targets in one row, at most 75 px: Exploration, Science, Technology and Military. Use the existing track symbols and short labels. An unused choice is greyed; a used/selected choice is highlighted. Expansion names appear as text boxes in the footer, not as icons attached to each label. Arts & Architecture changes nothing for the Leaders (03 §7); only the Revised Civilization Pack, which is out of scope, adds an Arts choice, so the card shows no Arts space (2026-10-27).
 
 ### Treasure Hunters: terrain rewards
 
@@ -154,7 +154,7 @@ Draw a thin vertical separator **between columns**, never between a square and i
 
 ### Entertainers: branching legal paths
 
-Square rewards form a four-by-four arrangement. Draw visible connectors between legally connected next spaces, including the appropriate diagonal branches. Connections are semantic: derive them from the selected card edition's legal transitions, not from a decorative grid. State highlights the current reward; it must not obscure the printed reward. A nearby instruction explains movement direction.
+Square rewards form a four-by-four arrangement. Draw visible connectors between legally connected next spaces, including the appropriate diagonal branches. Connections are semantic: derive them from the selected card edition's legal transitions, not from a decorative grid. The card draws them from the engine's `entertainersMoves`, so it never shows a link the game refuses. State highlights the current reward; it must not obscure the printed reward. A nearby instruction explains movement direction.
 
 ### Militants: outposts covering income rewards
 
@@ -197,7 +197,7 @@ All public card primitives live under `src/lib/components/player/` and appear on
 | Component | Contract |
 |---|---|
 | `CardFrame` | `title`, full `portrait`, `portraitAlt`, footer `badges`, `complexity`, `state`, main `effect` snippet and layout `children` |
-| `CivilizationCard` | A reviewed recipe by `id`, with `state="empty"` or `"play"`; fourteen fixture recipes |
+| `CivilizationCard` | A recipe by `id`, with `state="empty"` or `"play"`; eighteen fixture recipes: the fourteen reviewed ones and the Futurists, Heralds, Nomads and The Chosen, awaiting review |
 | `CardResource` | Native 24 px `symbol`, inline baseline treatment; delegates artwork to `ResourceIcon` |
 | `PlayerToken` | The supplied five `color` variants, native 32 px by default; optional display `size` and `decorative` |
 | `CardSlot` | Only approved `size` values 39, 62 or 75; `label`, `filled`, content snippet; never runs game logic |
@@ -252,4 +252,4 @@ Unresolved: final frames for every non-civilization card family; all 41 civiliza
 
 ## Integration verification — 2026-10-25
 
-The review now renders the same shared Svelte components as the library. The latest main was merged without conflicts. The combined production build and 972 tests passed (one Unix permission test is skipped on Windows); Svelte reported zero errors and warnings. Source PNG versus SVG checks compare every token pixel, including transparency. Browser review covers unmarked and in-play cards. The design detector reported only the intentionally dense 10/11/12 px supporting text sizes; these approved sizes are now explicit in DESIGN.md.
+The review now renders the same shared Svelte components as the library. The latest main was merged without conflicts. The combined production build and 972 tests passed (one Unix permission test is skipped on Windows); Svelte reported zero errors and warnings. Source PNG versus SVG checks compare every token pixel, including transparency. Browser review covers unmarked and in-play cards. The design detector reported only the intentionally dense 10/11/12 px supporting text sizes; these approved sizes are recorded under "Typography and copy" above.

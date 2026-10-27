@@ -18,9 +18,9 @@
 				id={card.id}
 				state="play" /></Example
 		>{/each}<Example
-		label="The Futurists · no reviewed layout yet: frame, portrait and name only"
+		label="The Infiltrators (Plans &amp; Ploys) · no layout until its expansion: frame, portrait and name only"
 		width={425}
 		><CivilizationCard
-			id="futurists"
+			id="infiltrators"
 			state="empty" /></Example
 	></Section>

@@ -118,7 +118,7 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | Component | Responsibility |
 |---|---|
 | `player/CardFrame` | 425 px frame, title, full portrait, main effect and footer metadata |
-| `player/CivilizationCard` | Fourteen reviewed recipes with empty/in-play example states; any other civilization shows its frame, portrait and name only |
+| `player/CivilizationCard` | Eighteen recipes, every base civilization among them (the Futurists, Heralds, Nomads and The Chosen await review), with empty/in-play example states; any other civilization shows its frame, portrait and name only |
 | `player/TechnologyCard` | Horizontal 425 px technology frame with full artwork, square/circle effects, conditions and edition badge; a reviewed fixture by `id`, or a real card by `data` from `techCardData()` (`src/lib/cards/game-cards.js`) |
 | `player/TapestryCard` | 319 px tapestry frame with timing beside the portrait, including the red Trap variant; a reviewed fixture by `id`, or a real card by `data` from `tapestryCardData()` |
 | `player/TerritoryTile` | One small flat-topped territory tile in hand, drawn like the World Map's, with its number |

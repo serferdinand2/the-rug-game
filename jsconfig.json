@@ -11,5 +11,5 @@
 		"skipLibCheck": true,
 		"types": ["vite/client"]
 	},
-	"include": ["src/**/*.js", "src/**/*.svelte", "art/**/*.js"]
+	"include": ["src/**/*.js", "src/**/*.svelte", "tools/art/**/*.js"]
 }

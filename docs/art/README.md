@@ -13,22 +13,22 @@ The owner compared three versions of the same picture and chose style C:
 
 Two other options were rejected as the main style: a 16×16 flat icon and a 32×32 shaded sprite. The owner-reviewed small-piece set uses 32×32 resources, buildings, tokens and track symbols, and 128×128 outpost flags, scaled to their display size. Dice faces, terrain hex markers and generic game symbols use text or later artwork as explained in [issue-5.md](issue-5.md).
 
-## The art toolkit (`art/`)
+## The art toolkit (`tools/art/`)
 
 The design is in [2026-10-21-art-toolkit-design.md](../superpowers/specs/2026-10-21-art-toolkit-design.md). The owner approved the scene parts on 2026-10-21.
 
 | File | What it holds |
 |---|---|
-| `art/painter.js` | The canvas, drawing helpers (`set`, `rect`, `line`, and `paint` for small sprites drawn from rows of keys), `outline`, `mix`, `seededRandom`, `underlay` and `toSvg` |
-| `art/effects.js` | Light passes that blend colours over a painted canvas: `glow`, a banded glow around a lamp or fire. They live outside `art/parts/`, whose parts paint only palette colours |
-| `art/palette.js` | `PALETTE`: every named style C colour |
-| `art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure`, `drawSmoke` (smoke, steam), `drawClassical` (pediment, flat), `drawFactory`, `drawSkyline` (night, dusk, day), `drawStreet`, `drawShip` (1–3 masts, either way, sails set or furled), `drawInterior` (plaster, stone, panel; with a window onto any sky), `drawBanner` (flag, hanging), `drawCrowd` and `drawWheel`. Board parts: `capital-terrain.js` (the capital plots and example mats), `capital-biomes/` (one module per advanced biome, #6: its 32×32 plots, its printed `LAYOUT` and its example mat), `territory.js` (#6: the terrain hex pictures, the cloud and volcano overlays, `drawTerritory` and the example boards) and `inspiration-tile.js` (`drawInspirationTile`, the strip of six framed spaces that each inspiration tile's innovations are drawn on) |
+| `tools/art/painter.js` | The canvas, drawing helpers (`set`, `rect`, `line`, and `paint` for small sprites drawn from rows of keys), `outline`, `mix`, `seededRandom`, `underlay` and `toSvg` |
+| `tools/art/effects.js` | Light passes that blend colours over a painted canvas: `glow`, a banded glow around a lamp or fire. They live outside `tools/art/parts/`, whose parts paint only palette colours |
+| `tools/art/palette.js` | `PALETTE`: every named style C colour |
+| `tools/art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure`, `drawSmoke` (smoke, steam), `drawClassical` (pediment, flat), `drawFactory`, `drawSkyline` (night, dusk, day), `drawStreet`, `drawShip` (1–3 masts, either way, sails set or furled), `drawInterior` (plaster, stone, panel; with a window onto any sky), `drawBanner` (flag, hanging), `drawCrowd` and `drawWheel`. Board parts: `capital-terrain.js` (the capital plots and example mats), `capital-biomes/` (one module per advanced biome, #6: its 32×32 plots, its printed `LAYOUT` and its example mat), `territory.js` (#6: the terrain hex pictures, the cloud and volcano overlays, `drawTerritory` and the example boards) and `inspiration-tile.js` (`drawInspirationTile`, the strip of six framed spaces that each inspiration tile's innovations are drawn on) |
 | `src/lib/art/footprints.js` | `FOOTPRINTS` for the 33 landmarks, `PLOT_SIZE` (32), `footprintMismatches` and `clipToFootprint` |
 | `src/lib/art/catalog.js` | `ASSETS`: every asset the game needs, with its stable id, plus `GROUPS` and `EXPANSIONS` |
 | `src/lib/art/hex-overlays.js` | Where the cloud and the volcano sit in a territory's 64×56 picture, shared by the art and the game's map (#6) |
-| `art/drawings/` | One module per drawn asset, at `art/drawings/<id>.js` |
-| `art/build.mjs` | Writes each drawing to `static/art/<id>.svg` |
-| `art/gallery.js` | `PART_SAMPLES`, `gallerySections` (the grouping the art is reviewed in) and `drawingCanvas` (the check every drawing passes). No Node APIs, so the component library runs it in the browser |
+| `tools/art/drawings/` | One module per drawn asset, at `tools/art/drawings/<id>.js` |
+| `tools/art/build.mjs` | Writes each drawing to `static/art/<id>.svg` |
+| `tools/art/gallery.js` | `PART_SAMPLES`, `gallerySections` (the grouping the art is reviewed in) and `drawingCanvas` (the check every drawing passes). No Node APIs, so the component library runs it in the browser |
 
 ### Asset ids
 
@@ -39,12 +39,12 @@ Every asset has a stable id, `<group>/<slug>`, such as `landmark/lighthouse`, `t
 The owner-approved small-piece release is documented in [issue-5.md](issue-5.md). Its reviewed sprites are stored as exact vector pixel runs in the drawing modules, including their per-pixel opacity. Both the browser gallery and `npm run art` use those same sources. The complete former mockup is preserved in [archive/2026-10-23-issue-5/](archive/2026-10-23-issue-5/README.md).
 
 1. Find the asset's id in `src/lib/art/catalog.js`.
-2. Create `art/drawings/<id>.js`, with a one-line comment at the top, exporting `draw()`. It returns a canvas: 64×64 for an illustration.
+2. Create `tools/art/drawings/<id>.js`, with a one-line comment at the top, exporting `draw()`. It returns a canvas: 64×64 for an illustration.
 3. Look at it in the **Art** part of the component library: run `npm run dev` and open <http://127.0.0.1:5173/components.html#art-parts>. Every scene part and every asset in the catalog is there, drawn or as an empty slot naming its issue, and landmarks sit under their plot grid. The page draws straight from the toolkit, so a saved change shows at once.
 4. Run `npm run art`. It writes `static/art/<id>.svg`, the file the game uses.
 5. Commit the drawing and its SVG together. `npm test` fails when a committed SVG doesn't match its drawing, when a drawing has no catalog entry, and when an SVG has no drawing.
 
-`static/art/` is build output only. Never put a hand-made SVG there: `npm run art` deletes every SVG in it that has no drawing. Drawings must be `.js` files; `npm run art` refuses any other file in `art/drawings/`, an illustration that isn't 64×64, and a landmark picture that doesn't match its footprint.
+`static/art/` is build output only. Never put a hand-made SVG there: `npm run art` deletes every SVG in it that has no drawing. Drawings must be `.js` files; `npm run art` refuses any other file in `tools/art/drawings/`, an illustration that isn't 64×64, and a landmark picture that doesn't match its footprint.
 
 ### Landmark pictures
 
@@ -56,7 +56,7 @@ Each landmark is one picture, drawn in the shape of its footprint, and the game 
 
 ### Composing a scene
 
-The Lighthouse (`art/drawings/landmark/lighthouse.js`) is the worked example:
+The Lighthouse (`tools/art/drawings/landmark/lighthouse.js`) is the worked example:
 - **Background layer.** Draw the sky, sea and terrain parts on a background canvas.
 - **Foreground.** Draw the subject, buildings and figures on a second canvas.
 - **Outline.** Run `outline(foreground, PALETTE.ink)` so the foreground gets its dark edge.
@@ -80,11 +80,11 @@ The Lighthouse (`art/drawings/landmark/lighthouse.js`) is the worked example:
   - Give every part in one scene the same random stream.
 - **Review.** The owner approves art in the Art part of the component library (`/components.html`), until the players' card gallery (#47) exists. It replaced the standalone `art/preview/index.html` gallery on 2026-10-21.
 
-Resource symbols have two active native sizes: 24×24 and 48×48. Their owner-supplied PNGs and exact-color SVG vectors are in `art/exports/resources-24px-png/` and `art/exports/resources-48px-png/`; the rendered SVGs are in `static/art/resource-24/` and `static/art/resource-48/`. Each source pixel is either opaque or fully transparent. The former 32×32 set is deprecated and archived in `docs/art/archive/resource-32-deprecated/`.
+Resource symbols have two active native sizes: 24×24 and 48×48. Their owner-supplied PNGs and exact-color SVG vectors are in `tools/art/exports/resources-24px-png/` and `tools/art/exports/resources-48px-png/`; the rendered SVGs are in `static/art/resource-24/` and `static/art/resource-48/`. Each source pixel is either opaque or fully transparent. The former 32×32 set is deprecated and archived in `docs/art/archive/resource-32-deprecated/`.
 
 ## 2026-10-24 owner asset revisions
 
-The shaded 32×32 player tokens replace the old flat five-colour variants at the existing `piece/token-{colour}` URLs. Their original PNGs are retained in `art/imported-pngs/player-tokens/`, and the flat predecessors are deprecated under `docs/art/archive/player-tokens-v1/`. Tests compare every visible pixel and alpha against the PNGs. No partial transparency or colour substitution is introduced.
+The shaded 32×32 player tokens replace the old flat five-colour variants at the existing `piece/token-{colour}` URLs. Their original PNGs are retained in `tools/art/imported-pngs/player-tokens/`, and the flat predecessors are deprecated under `docs/art/archive/player-tokens-v1/`. Tests compare every visible pixel and alpha against the PNGs. No partial transparency or colour substitution is introduced.
 
 The owner's five native 24 px terrain hex markers are now active `terrain/{sea,desert,forest,grassland,mountain}` drawings and production SVGs; earlier deferral text applies only to the old placeholder drawings. These markers are distinct from capital biome terrain tiles. Civilization cards consume their production URLs.
 

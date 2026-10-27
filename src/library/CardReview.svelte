@@ -32,7 +32,9 @@
 			<p>
 				{card.edition === 'original'
 					? 'Original mat · layout example'
-					: 'Reviewed card layout'}
+					: card.edition === 'awaiting review'
+						? 'New card · awaiting review'
+						: 'Reviewed card layout'}
 			</p>
 			{/if}
 			<CivilizationCard

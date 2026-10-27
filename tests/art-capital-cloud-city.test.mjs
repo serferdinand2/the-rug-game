@@ -1,13 +1,13 @@
 // The Cloud City capital terrain (#6): 14 distinct full-bleed plots and an example mat on the printed layout.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import * as pinned from '../art/parts/capital-biomes/cloud-city.js';
-import * as biome from '../art/parts/capital-biomes/cloud-city.js';
+import * as pinned from '../tools/art/parts/capital-biomes/cloud-city.js';
+import * as biome from '../tools/art/parts/capital-biomes/cloud-city.js';
 
 const OPEN = 8;
 const BLOCKED = 6;
 
-/** @returns {{ blocked: boolean, variant: number, canvas: import('../art/painter.js').Canvas }[]} */
+/** @returns {{ blocked: boolean, variant: number, canvas: import('../tools/art/painter.js').Canvas }[]} */
 function tiles() {
 	const all = [];
 	for (let variant = 0; variant < OPEN; variant++) {

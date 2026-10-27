@@ -161,7 +161,8 @@ export const ERA_HOOKS = {
 			owner === player && impassable > 0 ? [vp(owner, 5)] : [],
 	},
 	tyranny: {
-		// Playing a card covers Tyranny, which ends it, so this happens at most once.
+		// Playing a card covers Tyranny, which ends it; a copy with no card behind it (the Heralds on Espionage) ends
+		// when the offer is taken (endsEra), so this happens at most once either way.
 		tapestryGained(state, owner, { player, cards }) {
 			const era = currentEra(state, owner);
 			if (owner !== player || era === null) {
@@ -175,6 +176,7 @@ export const ERA_HOOKS = {
 					era,
 					optional: true,
 					afterPlay: [{ vp: 5 }],
+					endsEra: true,
 				},
 			];
 		},

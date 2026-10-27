@@ -593,11 +593,16 @@ const PHRASES = {
 	},
 	regress(value) {
 		const words = `go back 1 space on ${tracksPhrase(value?.tracks)}`;
-		return value?.noBenefit ? words : `${words} and gain its benefit`;
+		// The X: no benefit and no bonus, as an advance with the X says (02 §4, Time Travel).
+		return value?.noBenefit
+			? `${words} without its benefit or bonus`
+			: `${words} and gain its benefit`;
 	},
 	repeat(value) {
-		const words = 'repeat the benefit of a track space you are on';
-		return value?.oncePerTurn ? `${words}, once a turn` : words;
+		// The bonus may be paid too (02 §4 Lithium-Ion Battery, 01 §3.3 Academic Research).
+		const words =
+			'repeat the benefit of a track space you are on, and you may pay its bonus';
+		return value?.oncePerTurn ? `once a turn, ${words}` : words;
 	},
 	invent(value) {
 		const n = isCount(value?.count) && value.count > 0 ? value.count : 1;
@@ -632,7 +637,7 @@ const PHRASES = {
 		return 'gain the benefit of the territory tile you conquered';
 	},
 	gainCiv() {
-		return 'gain another civilization';
+		return 'draw another civilization from the deck';
 	},
 	restartToken() {
 		return 'move this token to the start of any track';
@@ -718,7 +723,7 @@ const PHRASES = {
 		return (
 			`if you have the fewest landmarks, ${effectsPhrase(value.fewest, table, true)}; ` +
 			`if the most, ${effectsPhrase(value.most, table, true)}; ` +
-			`otherwise ${effectsPhrase(value.otherwise, table, true)}`
+			`otherwise, ties included, ${effectsPhrase(value.otherwise, table, true)}`
 		);
 	},
 	placeOutpost(value) {
@@ -970,7 +975,7 @@ const TAPESTRY_RULES = Object.freeze({
 	'dark-ages':
 		'Go back 1 space on 3 different tracks if you can, then advance 3 times on the remaining track, without benefits or bonuses',
 	dictatorship:
-		'Advance on any track with its benefit; you may pay its bonus. Your opponents may not advance on that track until after your next turn',
+		'Advance on any track with its benefit; you may pay its bonus. Your opponents may not advance on that track until your next turn starts',
 	empiricism:
 		'Whenever you advance on Science, gain 2 VP. Whenever you roll the science die, roll it twice and choose 1 result',
 	exploitation:
@@ -982,7 +987,7 @@ const TAPESTRY_RULES = Object.freeze({
 	'marriage-of-state':
 		'Choose a track and an opponent. After they gain a benefit on that track, you gain it too, without its bonus',
 	mercantilism:
-		'When you gain income, you may convert food into any other resources, gaining 2 VP for each food converted',
+		'When you gain income, you may convert food you earned into other resources, gaining 2 VP for each food converted',
 	militarism:
 		'Whenever you explore a territory, you may also place an outpost on it. This is not a conquer',
 	monarchy:
@@ -991,6 +996,9 @@ const TAPESTRY_RULES = Object.freeze({
 		'Starting with you, each player may pay 1 worker to gain 10 VP. If at least 1 opponent pays, gain an income building from your income mat; if none does, gain 1 coin',
 	'pillage-and-plunder':
 		"Whenever you conquer an opponent's territory, gain the results of both conquer dice. Traps may not be played against you",
+	// Its four advances are unordered, and each free bonus stays optional (FAQ #4).
+	renaissance:
+		'Advance once on each track, in any order, without their benefits. You may take each bonus you reach for free',
 	'pirate-rule':
 		'Whenever you conquer a territory tile, also gain the benefit on that tile',
 	'plea-for-aid':
@@ -999,6 +1007,8 @@ const TAPESTRY_RULES = Object.freeze({
 		'Whenever you gain a landmark on a track, also gain 1 resource of your choice. Whenever you reach a track landmark space already claimed, gain an Armory',
 	revolution:
 		"Choose one: gain 1 resource of your choice, or choose up to 3 territories with your toppled outposts, stand them up and topple those opponents' outposts",
+	'steam-tycoon':
+		'Invent a face-up tech card and upgrade it. Then each of your neighbours invents the top card of the tech deck',
 	socialism:
 		'Choose a track and advance or go back on it to match the closest opponent, without its benefit or bonus',
 	technocracy:

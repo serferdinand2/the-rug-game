@@ -1,7 +1,7 @@
 // The decision of which tapestry card from the hand goes onto an era's slot: income step 2 (01 §4.2), or a card on top (design §7).
 import { PlayerError } from '../errors.js';
 import { playerSeat } from '../state.js';
-import { playTapestry } from '../tapestry.js';
+import { endEra, playTapestry } from '../tapestry.js';
 
 /** @type {import('../state.js').DecisionKind} */
 export const chooseTapestry = {
@@ -54,5 +54,9 @@ export const chooseTapestry = {
 			]);
 		}
 		playTapestry(ctx, player, answer.card, decision.era);
+		// Tyranny's offer is taken once: a played card covers it, but a copy with no card behind it must end here.
+		if (decision.endsEra && seat.era?.ability === 'tyranny') {
+			endEra(ctx, player);
+		}
 	},
 };

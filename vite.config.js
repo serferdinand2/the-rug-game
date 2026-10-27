@@ -1,4 +1,4 @@
-// Vite builds the Svelte app (index.html and src/) into public/, which server.mjs serves; Vitest runs tests/ (#55).
+// Vite builds the Svelte app (index.html and src/) into build/, which server.mjs serves; Vitest runs tests/ (#55).
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
@@ -22,7 +22,7 @@ export default defineConfig({
 		entries: ['index.html', 'components.html'],
 	},
 	build: {
-		outDir: fromHere('./public'),
+		outDir: fromHere('./build'),
 		emptyOutDir: true,
 		// Two pages: the game, and the component library (#48).
 		rolldownOptions: {
@@ -44,7 +44,7 @@ export default defineConfig({
 	test: {
 		include: ['tests/*.test.mjs'],
 		environment: 'node',
-		// Builds public/ once, for the suites that read the build.
+		// Builds build/ once, for the suites that read the build.
 		globalSetup: ['tests/helpers/build.mjs'],
 		// Random full games and the simulation run for seconds, not milliseconds; a hang still stops at CI's limit.
 		testTimeout: 5 * 60_000,
