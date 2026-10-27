@@ -157,3 +157,25 @@ test("a progress line's token sits on the line's end, and its marker keeps withi
 		}
 	}
 });
+
+test('a hot-seat seat to name draws one gold frame, not one inside another', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const seat = page
+		.getByRole('group', { name: 'Seat 3: add a player' })
+		.first();
+	await expect(seat).toBeVisible();
+	// The frame is a border with the gold glow around it; the name field and Add have borders but no glow.
+	const frames = await seat.evaluate(
+		(root) =>
+			[root, ...root.querySelectorAll('*')].filter((el) => {
+				const style = getComputedStyle(el);
+				return (
+					style.boxShadow !== 'none' &&
+					parseFloat(style.borderTopWidth) > 0
+				);
+			}).length
+	);
+	expect(frames).toBe(1);
+});

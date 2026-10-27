@@ -214,7 +214,7 @@
 		{/if}
 	{:else if kind === 'add'}
 		<form
-			class="rg-seat-card--add"
+			class="rg-seat-card--add-form"
 			onsubmit={addSubmitHandler}>
 			<input
 				bind:this={nameInput}
@@ -351,7 +351,7 @@
 		background: color-mix(in srgb, var(--gold) 30%, var(--ink));
 	}
 
-	.rg-seat-card--add {
+	.rg-seat-card--add-form {
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
