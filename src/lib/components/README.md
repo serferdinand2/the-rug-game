@@ -75,6 +75,8 @@ These components are updated as the art issues deliver their assets. Each will s
 | Component | Purpose |
 |---|---|
 | `CostBox` | The footer's price: a Cost label and the symbols joined by plus signs, read out in words. |
+| `DecisionOption` | One choice in a decision prompt: words, optional resource symbols, gold while chosen (#26). |
+| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf, question, content, status and Confirm (#26). |
 | `OverviewCloseBar` | The footer while the players overview is open. |
 | `TurnBar` | The footer: neutral, selected, optional-action and waiting states, with the income reveal. |
 
