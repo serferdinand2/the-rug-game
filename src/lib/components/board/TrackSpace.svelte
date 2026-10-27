@@ -8,6 +8,7 @@
 	 * @property {string} name - The space's name, such as 'Ships'
 	 * @property {string} [landmark] - The landmark the first player here takes, such as 'Lighthouse'
 	 * @property {boolean} [selected=false] - Draw the gold outline; sets aria-pressed
+	 * @property {boolean} [available=false] - The viewer can advance to this space: a green outline, named in the label; selected wins visually
 	 * @property {Function} [onTrackSpaceClick] - Callback fired with { track, space } when the space is chosen
 	 * @property {Function} [onTrackSpaceHover] - Callback fired with { track, space, hovering } when the pointer or keyboard focus arrives or leaves
 	 */
@@ -40,6 +41,7 @@
 		name,
 		landmark,
 		selected = false,
+		available = false,
 		onTrackSpaceClick,
 		onTrackSpaceHover,
 		...attr
@@ -55,7 +57,7 @@
 	let last = $derived(space === SPACE_COUNT);
 	let path = $derived(outlinePath(width, height, { first, last }));
 	let label = $derived(
-		`${name}, ${track} space ${space}${landmark ? `, landmark ${landmark}` : ''}`
+		`${name}, ${track} space ${space}${landmark ? `, landmark ${landmark}` : ''}${available ? ', available' : ''}`
 	);
 
 	/**
@@ -134,6 +136,7 @@
 	class:rg-track-space--last={last}
 	class:rg-track-space--has-landmark={Boolean(landmark)}
 	class:rg-track-space--selected={selected}
+	class:rg-track-space--available={available}
 	style:--rg-track-space-color={trackColor(track)}
 	style:--rg-track-space-step={space}
 	bind:clientWidth={width}
@@ -285,6 +288,10 @@
 			0 100%,
 			var(--track-tip) 50%
 		);
+	}
+
+	.rg-track-space--available .rg-track-space--shell {
+		background: var(--ok);
 	}
 
 	.rg-track-space--selected .rg-track-space--shell {
