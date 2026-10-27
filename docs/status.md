@@ -14,11 +14,10 @@ Updated 2026-10-27. The issues are listed in the order they were finished.
   - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. The owner closed #48 on 2026-10-21, ahead of its blocker #3.
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #44, #46, #48, #52, #53, #54, #55, #56, #57, #58, #59, #66, #67, #70, #72 and #74 are done.** Lazar closed #3 on 2026-10-27, and the owner closed #6 the same day. The owner approved #74 in the component library on 2026-10-28.
+- **#1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #44, #46, #48, #52, #53, #54, #55, #56, #57, #58, #59, #66, #67, #69, #70, #72 and #74 are done.** Lazar closed #3 on 2026-10-27, and the owner closed #6 the same day. The owner approved #69 and #74 in the component library on 2026-10-28.
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
-- **Waiting for the owner's look in the component library:** #69 (the TrackSpace section's large spaces).
 - **Next:**
   - The owner's M12 issues: #75 (picking several cards, tiles or resources one by one), then #61 (the dice tray).
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
@@ -422,10 +421,10 @@ It is done (2026-10-27). The design is `docs/superpowers/specs/2026-10-27-decisi
 
 ### #72, #67, #69 and #74 (the owner's M12 issues)
 
-They were built on 2026-10-27 without a question round. #72 and #67 are done, and #74 is done since the owner approved it on 2026-10-28; #69 stays open until the owner has looked at it in the component library.
+They were built on 2026-10-27 without a question round. #72 and #67 are done, and #69 and #74 are done since the owner approved them on 2026-10-28.
 - **#72:** the progress lines and the chips' fill animate with transforms, not widths.
 - **#67:** the screen headline sizes are tokens in `tokens.css` (`--font-size-4xl`, `-5xl`, `-6xl` and `--font-size-display-sm`, `-display`, `-display-lg`).
-- **#69:** track-space text grows to 11px from about 2240×1260 and to 12px from 2560×1440; `tests/browser/track-text.test.mjs` checks nothing is cut off. It awaits the owner's look in the library's TrackSpace section.
+- **#69:** track-space text grows to 11px from about 2240×1260 and to 12px from 2560×1440; `tests/browser/track-text.test.mjs` checks nothing is cut off. The owner approved it in the library's TrackSpace section (owner, 2026-10-28).
 - **#74 (the explore prompt):** the design is `docs/superpowers/specs/2026-10-27-explore-prompt-design.md` and the plan is `docs/superpowers/plans/2026-10-27-explore-prompt-issue-74.md`.
   - Built: the docked panel shows the player's tiles as pictures ("Your tiles · n", `TilePicker`), a chosen line ("Hex −1,−1, turned once") and `TurnControl` (↺, "+3 VP", ↻, "R turns it"), pinned above Explore while the tiles scroll (`DecisionPanel`'s `pinned` snippet). The tile or the hex can be picked first; a hex first picks the lowest-numbered tile at its best turn. With a tile picked, each lit hex shows its best VP as a "+N VP" tag (`WorldMap`'s `scores`). R and Shift+R turn the tile. The Terrain tab's offered tiles are buttons too (`PlayerTabs`' `tilePick`). `describeTurn` replaced `describeTile`.
   - Calls to revisit: a hex picked first takes the lowest-numbered tile; the best turn is the highest VP, then the lowest turn; picking another tile or hex keeps the other and moves to its best turn; clicking the picked tile again does nothing; an explore has no separate status line, as the chosen line names the hex and turn once; no cancel button (another hex is one click away); one tile is picked from the start; the 6 turns of an island tile still step through all 6; the row wraps and Explore stays visible; the tile numbers print on the pictures; a tile's accessible name gives its terrains and best VP; the chosen hex's name gives its VP in the turn chosen, the other lit hexes' "up to"; R is ignored while the overview, Table settings or How to play is open, and repeats when held; nothing changes while the explore is being sent; while a panel is docked, the board leaves its width free (`--docked-panel-width`, `--docked-panel-inset`), so no hex lies under it.
