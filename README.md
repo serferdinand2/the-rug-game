@@ -10,7 +10,7 @@ It is built like the author's other table games, [Fablewood Rummy](https://githu
 
 No official Stonemaier artwork, logos or rulebook text are used.
 
-> **Status: in development.** The rules research, the design plan, the main game screen and the art style are approved. The base-game rules engine (M3) is complete, with a test that plays 200 random games to the end. In M4 the table rules and the server API are in: two clients can already play a whole game over HTTP. The turn timer and undo are in too: the host sets a turn timer, the server plays out a timed-out turn, and a player can take back their own choices within their turn. A table can also switch on five of the official optional variants. The game screens arrive with M5. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order.
+> **Status: in development.** The rules research, the design plan, the main game screen and the art style are approved. The base-game rules engine (M3) is complete, with a test that plays 200 random games to the end. In M4 the table rules and the server API are in: two clients can already play a whole game over HTTP. The turn timer and undo are in too: the host sets a turn timer, the server plays out a timed-out turn, and a player can take back their own choices within their turn. A table can also switch on five of the official optional variants. In M5 the landing page and the lobby are built; the game screen comes next. Work follows the [issues](https://github.com/serferdinand2/the-rug-game/issues) in milestone order.
 
 ## Current interface
 
@@ -24,17 +24,19 @@ The owner-reviewed icons and small pieces from **#5** are available as SVGs in `
 
 The component library now uses the approved resources in prices and chips, income-building SVGs on capital plots, track symbols in headings, and player-color token SVGs on progress lanes. Its Art sections show the complete issue #5 set and explain the three deferred groups. Capital examples compose individual terrain tile SVGs using their supplied biome, visual seed and plot mask; the six full mat SVGs remain example compositions only.
 
-The **phase-one UI/UX handoff for #3** is in [docs/ui/README.md](docs/ui/README.md). It is the manifest for building the real game pages: layout, typography, colours, control states, placement and decision examples, and the remaining designs. The HTML pages are interactive mockups with fixture data; the Svelte application is still a placeholder.
+The **UI/UX handoff for #3** is in [docs/ui/README.md](docs/ui/README.md). It is the manifest for building the real game pages: layout, typography, colours, control states, placement and decision examples. The HTML pages are interactive mockups with fixture data.
+
+**The landing page and the lobby are built (#25)** and run on the real table API: sign in by name, create or join a table, pick an open one, set the table up and start. Run `npm start` and open <http://127.0.0.1:3020/>. The game screen comes with #26–#28; until then, a started game shows a holding page.
 
 The colours, texture, type, spacing, shadows and motion of these designs are in [src/styles/tokens.css](src/styles/tokens.css), the single source of truth for the look.
 
-Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html).
-
-| Launch | Lobby |
+| Landing page | Lobby |
 |---|---|
-| ![Phase-one launch page](docs/ui/screens/launch.png) | ![Phase-one lobby page](docs/ui/screens/lobby.png) |
+| ![The landing page, with two open tables](docs/ui/screens/launch.png) | ![The lobby with three players, one ready, the turn timer at 2 minutes and the tapestry draft on](docs/ui/screens/lobby.png) |
 
-**Game: tracks and capital, at the 1920×1080 desktop reference size.**
+The game screen is still a mockup. Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html), [End screen](docs/ui/end-screen.html).
+
+**Game mockup: tracks and capital, at the 1920×1080 desktop reference size.**
 
 ![Phase-one play page](docs/ui/screens/tracks-capital.png)
 
@@ -54,7 +56,7 @@ Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [La
 |---|---|
 | ![The Collectors card in option B, empty](docs/ui/screens/civ-card-b.png) | ![The Collectors card in option B with three items collected](docs/ui/screens/civ-card-b-in-play.png) |
 
-The earlier PNG mockups and their HTML/generator are preserved in [docs/ui/archivedpngmockups/](docs/ui/archivedpngmockups/README.md). They are superseded references. Issue #3 remains open for the income sequence, additional decision prompts, results and the other gaps listed in the manifest.
+The earlier PNG mockups and their HTML/generator are preserved in [docs/ui/archivedpngmockups/](docs/ui/archivedpngmockups/README.md). They are superseded references. Lazar closed #3 on 2026-10-27; the end screen is still a proposal.
 
 ## Run locally
 
@@ -67,7 +69,7 @@ npm run dev    # hot-reloading development server on http://127.0.0.1:5173 (the 
 npm test
 ```
 
-Copy [.env.example](.env.example) to `.env` to change the host or port, or to trust a reverse proxy. For now the app shows a placeholder page; the game screens arrive with milestone M5.
+Copy [.env.example](.env.example) to `.env` to change the host or port, or to trust a reverse proxy. The app opens on the landing page, where you create or join a table; the game screen arrives with the rest of milestone M5.
 
 ## Deploying
 
