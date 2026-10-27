@@ -80,11 +80,29 @@ export function capitalView(seat, code) {
 }
 
 /**
- * A positive whole number from the table code (FNV-1a), small enough for capitalTileUrl's 32-bit arithmetic.
+ * The plots of a mat on offer, before anything is built: its impassable plots blocked, the rest empty (#56).
+ * @param {number} number - The mat's number, 1–6
+ * @returns {import('../capital.js').PlotKind[]} All 81 plots, row by row
+ * @throws {RangeError} For a number with no mat
+ */
+export function matPlots(number) {
+	const mat = CAPITAL_MATS.find((m) => m.number === number);
+	if (!mat) {
+		throw new RangeError(`There is no capital mat ${number}.`);
+	}
+	return mat.grid
+		.join('')
+		.split('')
+		.map((plot) => (plot === '1' ? 'blocked' : 'empty'));
+}
+
+/**
+ * A positive whole number from the table code (FNV-1a), small enough for capitalTileUrl's 32-bit arithmetic. The
+ * Capital tab and the mats on offer use it, so a mat looks the same before and after it is chosen.
  * @param {string} code
  * @returns {number}
  */
-function terrainSeed(code) {
+export function terrainSeed(code) {
 	let hash = 0x811c9dc5;
 	for (const char of String(code ?? '')) {
 		hash = Math.imul(

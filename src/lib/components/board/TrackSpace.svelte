@@ -1,4 +1,4 @@
-<!-- One pointed space on an advancement track: its name, landmark and number, with hover and the gold selected outline. -->
+<!-- One pointed space on an advancement track: its name, benefit, bonus, landmark and number, with hover and the gold selected outline. -->
 <script module>
 	/**
 	 * Properties of the TrackSpace component itself.
@@ -7,6 +7,9 @@
 	 * @property {number} space - The space number, 1–12; space 1 has a flat left edge, space 12 a square finish line
 	 * @property {string} name - The space's name, such as 'Ships'
 	 * @property {string} [landmark] - The landmark the first player here takes, such as 'Lighthouse'
+	 * @property {import('../../glyphs.js').Glyph[]} [benefit=[]] - The benefit's symbols, drawn under the name (#59)
+	 * @property {import('../../glyphs.js').BonusGlyphs | null} [bonus=null] - The bonus's price and gain, drawn in a small box under the benefit
+	 * @property {string} [words=''] - The benefit and bonus in words, for the label and the tooltip
 	 * @property {boolean} [selected=false] - Draw the gold outline; sets aria-pressed
 	 * @property {boolean} [available=false] - The viewer can advance to this space: a green outline, named in the label; selected wins visually
 	 * @property {Function} [onTrackSpaceClick] - Callback fired with { track, space } when the space is chosen
@@ -23,6 +26,8 @@
 	 *   space={4}
 	 *   name="Navigation"
 	 *   landmark="Lighthouse"
+	 *   benefit={[{ kind: 'word', text: 'Tile', count: 1 }, { kind: 'word', text: 'Explore', count: 1 }]}
+	 *   words="Gain 1 territory tile, then explore."
 	 *   selected
 	 *   onTrackSpaceClick={(event) => select(event.value)}
 	 * />
@@ -32,7 +37,7 @@
 <script>
 	import { ComponentEvent } from '../../component-event.js';
 	import { SPACE_COUNT, outlinePath } from '../../track-shape.js';
-	import { trackColor } from '../../ui.js';
+	import { artUrl, trackColor } from '../../ui.js';
 
 	/** @type {TrackSpaceProps} */
 	let {
@@ -40,6 +45,9 @@
 		space,
 		name,
 		landmark,
+		benefit = [],
+		bonus = null,
+		words = '',
 		selected = false,
 		available = false,
 		onTrackSpaceClick,
@@ -57,7 +65,7 @@
 	let last = $derived(space === SPACE_COUNT);
 	let path = $derived(outlinePath(width, height, { first, last }));
 	let label = $derived(
-		`${name}, ${track} space ${space}${landmark ? `, landmark ${landmark}` : ''}${available ? ', available' : ''}`
+		`${name}, ${track} space ${space}${landmark ? `, landmark ${landmark}` : ''}${available ? ', available' : ''}${words ? `. ${words}` : ''}`
 	);
 
 	/**
@@ -126,10 +134,48 @@
 	}
 </script>
 
+{#snippet symbol(/** @type {import('../../glyphs.js').Glyph} */ glyph)}
+	{#if glyph.kind === 'resource' || glyph.kind === 'building'}
+		<span class="rg-track-space--art rg-track-space--{glyph.kind}">
+			<img
+				src={artUrl(
+					glyph.kind === 'resource'
+						? `resource-24/${glyph.id}`
+						: `building/${glyph.id}`
+				)}
+				alt=""
+				draggable="false" />
+			{#if glyph.count > 1}
+				<b class="rg-track-space--count">×{glyph.count}</b>
+			{/if}
+		</span>
+	{:else if glyph.kind === 'track'}
+		<img
+			class="rg-track-space--track"
+			src={artUrl(`track/${glyph.id}`)}
+			alt=""
+			draggable="false" />
+	{:else if glyph.kind === 'word'}
+		<span
+			class="rg-track-space--word"
+			class:rg-track-space--crossed={glyph.cross}
+			>{glyph.text}{glyph.count > 1 ? ` ×${glyph.count}` : ''}</span>
+	{:else if glyph.kind === 'vp'}
+		<span class="rg-track-space--vp"
+			>{glyph.count === null ? 'VP' : `${glyph.count} VP`}</span>
+	{:else}
+		<span
+			class="rg-track-space--joint"
+			class:rg-track-space--or={glyph.kind === 'or'}
+			>{glyph.kind === 'or' ? 'or' : '/'}</span>
+	{/if}
+{/snippet}
+
 <button
 	type="button"
 	aria-pressed={selected}
 	aria-label={label}
+	title={words || undefined}
 	{...attr}
 	class="rg-track-space {attr.class ? attr.class : ''}"
 	class:rg-track-space--first={first}
@@ -151,10 +197,34 @@
 	<svg
 		class="rg-track-space--outline"
 		aria-hidden="true"><path d={path} /></svg>
-	<span class="rg-track-space--name">{name}</span>
-	{#if landmark}
-		<span class="rg-track-space--landmark">{landmark}</span>
-	{/if}
+	<span class="rg-track-space--body">
+		<span class="rg-track-space--name">{name}</span>
+		{#if benefit.length}
+			<span
+				class="rg-track-space--benefit"
+				aria-hidden="true">
+				{#each benefit as glyph, index (index)}
+					{@render symbol(glyph)}
+				{/each}
+			</span>
+		{/if}
+		{#if bonus}
+			<span
+				class="rg-track-space--bonus"
+				aria-hidden="true">
+				{#each bonus.pay as glyph, index (index)}
+					{@render symbol(glyph)}
+				{/each}
+				<span class="rg-track-space--then">→</span>
+				{#each bonus.gain as glyph, index (index)}
+					{@render symbol(glyph)}
+				{/each}
+			</span>
+		{/if}
+		{#if landmark}
+			<span class="rg-track-space--landmark">{landmark}</span>
+		{/if}
+	</span>
 	<span
 		class="rg-track-space--number"
 		aria-hidden="true">{space}</span>
@@ -177,8 +247,12 @@
 		z-index: var(--rg-track-space-step);
 		display: block;
 		width: calc(100% + 1px);
+		height: var(--rg-track-space-height, auto);
 		margin-left: -1px;
-		aspect-ratio: 1 / 1;
+		/* About square; a board with height to spare makes it taller through these two (TrackBoard, #59). */
+		aspect-ratio: var(--rg-track-space-aspect, 1 / 1);
+		/* Its contents shrink when it is short (below). */
+		container-type: size;
 		padding: 3px;
 		border: 0;
 		border-radius: var(--radius);
@@ -380,28 +454,208 @@
 		stroke-dasharray: 5 3;
 	}
 
-	.rg-track-space--name {
+	/* The name at the top, the benefit under it, the bonus box, then the landmark at the bottom (#59). The space's
+	   clip-path keeps everything inside its arrow; a benefit too big for the space is cut off at its own edge. */
+	.rg-track-space--body {
 		position: absolute;
 		z-index: 1;
-		top: 7px;
-		left: var(--track-tip);
-		right: calc(var(--track-tip) - 3px);
+		inset: 7px calc(var(--track-tip) - 3px) 7px var(--track-tip);
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		pointer-events: none;
+	}
+
+	/* The last space's number sits inside it, not in a tip. */
+	.rg-track-space--last .rg-track-space--body {
+		right: 20px;
+	}
+
+	.rg-track-space--last .rg-track-space--name {
+		margin-right: -14px;
+	}
+
+	/* A long name, such as Nanotechnology, may run on to the space's right edge. */
+	.rg-track-space--name {
+		flex: none;
 		display: block;
+		margin-right: calc(3px - var(--track-tip));
 		font: var(--weight-title) var(--font-size-3xs) / var(--leading-tight)
 			var(--font-title);
 		text-align: left;
 	}
 
+	.rg-track-space--benefit,
+	.rg-track-space--bonus {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-1) 3px;
+		min-width: 0;
+	}
+
+	.rg-track-space--benefit {
+		flex: 1 1 auto;
+		align-content: safe center;
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	/* The bonus sits in a small box, as on the printed board: its price, an arrow, then what it gives. */
+	.rg-track-space--bonus {
+		flex: none;
+		align-self: flex-start;
+		max-width: 100%;
+		padding: 1px 3px;
+		border: var(--border) solid
+			color-mix(in srgb, var(--rg-track-space-color) 55%, var(--line));
+		background: color-mix(in srgb, var(--ink) 45%, transparent);
+	}
+
 	.rg-track-space--landmark {
-		position: absolute;
-		z-index: 1;
-		left: var(--track-tip);
-		right: calc(var(--track-tip) - 3px);
-		bottom: 7px;
+		flex: none;
+		margin-top: auto;
 		color: var(--gold);
 		font: var(--weight-title) var(--font-size-3xs) / var(--leading-tight)
 			var(--font-title);
 		text-align: left;
+	}
+
+	.rg-track-space--art {
+		display: inline-flex;
+		flex: none;
+		align-items: flex-end;
+	}
+
+	.rg-track-space--art img,
+	.rg-track-space--track {
+		display: block;
+		flex: none;
+		object-fit: contain;
+		image-rendering: pixelated;
+	}
+
+	.rg-track-space--resource img {
+		width: 16px;
+		height: 16px;
+	}
+
+	.rg-track-space--building img {
+		width: 18px;
+		height: 18px;
+	}
+
+	.rg-track-space--track {
+		width: 14px;
+		height: 14px;
+	}
+
+	.rg-track-space--count {
+		margin-left: 1px;
+		font: var(--weight-bold) var(--font-size-3xs) / var(--leading-none)
+			var(--font-body);
+	}
+
+	/* The game symbols without art yet are short words (#5). */
+	.rg-track-space--word,
+	.rg-track-space--vp {
+		padding: 1px 3px;
+		border-radius: var(--radius);
+		font: var(--weight-bold) var(--font-size-3xs) / var(--leading-tight)
+			var(--font-body);
+	}
+
+	.rg-track-space--word {
+		background: color-mix(in srgb, var(--ink) 50%, transparent);
+		color: var(--text);
+	}
+
+	.rg-track-space--vp {
+		border: var(--border) solid
+			color-mix(in srgb, var(--gold) 60%, transparent);
+		color: var(--gold);
+		white-space: nowrap;
+	}
+
+	/* A benefit taken without its own benefit carries the board's red X. */
+	.rg-track-space--crossed {
+		position: relative;
+		padding-right: 13px;
+	}
+
+	.rg-track-space--crossed::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		right: 3px;
+		width: 8px;
+		height: 8px;
+		transform: translateY(-50%);
+		background:
+			linear-gradient(
+				45deg,
+				transparent 40%,
+				var(--danger) 40% 60%,
+				transparent 60%
+			),
+			linear-gradient(
+				-45deg,
+				transparent 40%,
+				var(--danger) 40% 60%,
+				transparent 60%
+			);
+	}
+
+	.rg-track-space--joint,
+	.rg-track-space--then {
+		color: var(--muted);
+		font: var(--weight-bold) var(--font-size-3xs) / var(--leading-none)
+			var(--font-body);
+	}
+
+	.rg-track-space--or {
+		font-style: italic;
+		font-weight: var(--weight-regular);
+	}
+
+	/* A short space, on a short screen, draws its symbols smaller and its words tighter; its tooltip and label keep
+	   the full words. */
+	@container (max-height: 112px) {
+		.rg-track-space--body {
+			inset-block: 5px;
+			gap: var(--space-1);
+		}
+
+		.rg-track-space--resource img,
+		.rg-track-space--track {
+			width: 12px;
+			height: 12px;
+		}
+
+		.rg-track-space--building img {
+			width: 14px;
+			height: 14px;
+		}
+
+		.rg-track-space--word,
+		.rg-track-space--vp {
+			padding: 0 2px;
+			line-height: var(--leading-none);
+		}
+
+		.rg-track-space--crossed {
+			padding-right: 11px;
+		}
+
+		.rg-track-space--crossed::after {
+			right: 2px;
+			width: 7px;
+			height: 7px;
+		}
+
+		.rg-track-space--bonus {
+			padding: 0 2px;
+		}
 	}
 
 	/* The small number sits in the arrow tip. */

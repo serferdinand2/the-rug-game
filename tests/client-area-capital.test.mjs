@@ -9,7 +9,7 @@ import {
 } from '../src/lib/engine/game.js';
 import { CAPITAL_MATS } from '../src/lib/engine/data/capitals.js';
 import { FOOTPRINTS } from '../src/lib/art/footprints.js';
-import { capitalView } from '../src/lib/area/capital.js';
+import { capitalView, matPlots, terrainSeed } from '../src/lib/area/capital.js';
 import { newGame, startedGame } from './helpers/engine.mjs';
 
 test("on a dealt game the plots are the engine's, on the seat's mat", () => {
@@ -113,4 +113,26 @@ test('pieces beside the mat are listed by name, buildings and landmarks alike', 
 test('there is no capital before setup deals a mat', () => {
 	const { state } = newGame(2);
 	assert.equal(capitalView(view(state, 1).seats[0], 'ABCD'), null);
+});
+
+test('a mat on offer has its own plots: the impassable ones blocked, the rest empty (#56)', () => {
+	for (const mat of CAPITAL_MATS) {
+		const plots = matPlots(mat.number);
+		assert.equal(plots.length, 81);
+		assert.deepEqual(
+			plots,
+			mat.grid
+				.join('')
+				.split('')
+				.map((c) => (c === '1' ? 'blocked' : 'empty'))
+		);
+		assert.equal(plots.filter((p) => p === 'blocked').length, 22);
+	}
+	assert.throws(() => matPlots(7), RangeError);
+});
+
+test('the mats on offer use the seed the capital will have once chosen (#56)', () => {
+	const { state } = startedGame(2);
+	const seat = view(state, 1).seats[0];
+	assert.equal(capitalView(seat, 'ABCD')?.terrainSeed, terrainSeed('ABCD'));
 });

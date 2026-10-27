@@ -2,6 +2,9 @@
 import { TRACKS, TIER_COSTS, TRACK_RESOURCE } from './engine/data/tracks.js';
 import { LANDMARKS } from './engine/data/landmarks.js';
 import { ACHIEVEMENTS } from './engine/data/achievements.js';
+import { bonusOf } from './engine/game.js';
+import { describeBonus, describeEffects } from './describe.js';
+import { bonusGlyphs, spaceGlyphs } from './glyphs.js';
 
 /** @typedef {import('./components/board/TrackBoard.svelte').TrackBoardTrack} TrackBoardTrack */
 /** @typedef {import('./ui.js').Seat} Seat */
@@ -15,6 +18,7 @@ import { ACHIEVEMENTS } from './engine/data/achievements.js';
  * @property {string[]} landmarks - The unowned landmark ids
  * @property {Record<string, number[]>} achievements - The seats that claimed each achievement, in order
  * @property {'small' | 'large'} map
+ * @property {string[]} variants - The table's variants, which can change a bonus's price (#53)
  */
 
 /**
@@ -56,8 +60,22 @@ export function trackBoard(view) {
 			id: track,
 			name: TRACK_NAMES[track],
 			spaces: TRACKS[track].slice(1).map((space) => {
-				/** @type {{ name: string, landmark?: string }} */
-				const entry = { name: space.name };
+				// The bonus and the words read only the view's seats and variants, which a view shares with the state.
+				const state = /** @type {any} */ (view);
+				const bonus = bonusOf(state, track, space.space);
+				const benefit = describeEffects(space.benefit, {
+					state,
+					ordered: space.ordered,
+				});
+				/** @type {TrackBoardTrack['spaces'][number]} */
+				const entry = {
+					name: space.name,
+					benefit: spaceGlyphs(space.benefit),
+					bonus: bonusGlyphs(bonus),
+					words: bonus
+						? `${benefit}. Bonus: ${describeBonus(bonus, { state })}.`
+						: `${benefit}.`,
+				};
 				if (space.landmark && unowned.has(space.landmark)) {
 					entry.landmark =
 						LANDMARK_NAMES.get(space.landmark) ?? space.landmark;

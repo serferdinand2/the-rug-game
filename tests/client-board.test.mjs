@@ -90,3 +90,29 @@ test('achievements list claimants in order and the next VP by map size', () => {
 	);
 	assert.equal(done[2].vp, null);
 });
+
+test('each space carries its benefit, its bonus and both in words (#59)', () => {
+	const [exploration, , technology] = trackBoard(viewOf(2));
+	const ships = exploration.spaces[4];
+	assert.ok(ships.benefit && ships.benefit.length > 0);
+	assert.deepEqual(ships.bonus?.gain, [
+		{ kind: 'building', id: 'farm', count: 1 },
+	]);
+	assert.match(ships.words ?? '', /VP/);
+	assert.match(ships.words ?? '', /Bonus: /);
+	// Scouting has no bonus.
+	assert.equal(exploration.spaces[0].bonus, null);
+	assert.doesNotMatch(exploration.spaces[0].words ?? '', /Bonus/);
+	// Nanotechnology's bonus costs 3 tech cards, or 2 with the neoprene variant (#53).
+	assert.deepEqual(technology.spaces[10].bonus?.pay, [
+		{ kind: 'word', text: 'Tech', count: 3 },
+	]);
+	const [, , neoprene] = trackBoard(
+		viewOf(2, (state) => {
+			state.variants = ['neoprene-nanotechnology'];
+		})
+	);
+	assert.deepEqual(neoprene.spaces[10].bonus?.pay, [
+		{ kind: 'word', text: 'Tech', count: 2 },
+	]);
+});

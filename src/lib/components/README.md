@@ -54,9 +54,9 @@ These components are updated as the art issues deliver their assets. Each will s
 | `BoardSwitcher` | Advancement Tracks / World Map selector with its icons. |
 | `ProgressLanes` | One progress line per player under a track, with the dashed preview to the next space. |
 | `TierPrice` | A tier's numeral and price over its three spaces; gold while one of them is hovered. |
-| `Track` | One track: name, four tier prices, twelve spaces and the lanes. |
-| `TrackBoard` | The four tracks stacked, with one selected space across them. |
-| `TrackSpace` | One pointed space: name, landmark, number, first/last shapes, selected and focus outlines. |
+| `Track` | One track: name, four tier prices, twelve spaces (each with its benefit and bonus) and the lanes. |
+| `TrackBoard` | The four tracks stacked, with one selected space across them; a size container, so the spaces grow up to 1.25 times as tall as wide when the board has the height (#59). |
+| `TrackSpace` | One pointed space: name, its `benefit` and `bonus` as symbols from `src/lib/glyphs.js` (resources, buildings and tracks as art, the other game symbols as short words, the X as a red cross), its `words` as tooltip and label, landmark, number, first/last shapes, selected and focus outlines; a short space draws its symbols smaller (#59). |
 | `WorldMap` | The real board's hex grid from `mapHexes(view)`: corner terrains as wedges, islands, unexplored hexes dashed, outposts (toppled ones lying), Nomads pieces and tokens; `targets` become buttons and the rest dim, `selected` is outlined in gold. |
 
 ## player/
@@ -79,9 +79,9 @@ These components are updated as the art issues deliver their assets. Each will s
 | Component | Purpose |
 |---|---|
 | `CostBox` | The footer's price: a Cost label and the symbols joined by plus signs, read out in words. |
-| `CardShelf` | The cards a decision offers (tapestry, tech with the deck, civilizations, capital mats) as pressable buttons in a row that scrolls when too wide; more than four tapestry cards fan out; the chosen one is lifted in gold, hover and focus report it for a full view (#28). |
+| `CardShelf` | The cards a decision offers (tapestry, tech with the deck, civilizations, capital mats) as pressable buttons in a row that scrolls when too wide; more than four tapestry cards fan out; the chosen one is outlined in gold (tapestry and tech cards also lift), hover and focus report it for a full view (#28). Civilization cards are whole, 425 px wide at their own height, scaled down only as far as the shelf's height needs and never below 0.75; capital mats are their 9×9 `CapitalGrid`, 380 px, with the table's `terrainSeed`; each sizes its own button, so the outline fits it (#56–#58). |
 | `DecisionOption` | One choice in a decision prompt: words, optional resource symbols, `art` pictures above the words, a gold `+n VP` badge, gold while chosen (#26, #28). |
-| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf, question, content, status and Confirm; a `track` tint, the gold `income` tone with a `steps` snippet, and `docked` beside the map with no scrim (#26, #28). |
+| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf filling the height above the panel, question, content, status and Confirm; without content the status line carries the instruction; a `track` tint, the gold `income` tone with a `steps` snippet, and `docked` beside the map with no scrim (#26, #28, #57). |
 | `IncomeSteps` | The strip of an income turn's steps, the running one marked `aria-current="step"` (#28). |
 | `PromptArt` | One picture a prompt shows: a resource with its count, track, building, landmark, terrain, civilization, space tile, turned territory, capital mat, card art, VP badge or the tech deck (#28). |
 | `OverviewCloseBar` | The footer while the players overview is open. |

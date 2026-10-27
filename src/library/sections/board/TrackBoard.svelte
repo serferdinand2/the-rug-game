@@ -1,5 +1,9 @@
-<!-- Library section: TrackBoard with the play-page mockup's four tracks, at its real width and height. -->
+<!-- Library section: TrackBoard with the play-page mockup's four tracks and the real spaces' benefits, at its real width and height. -->
 <script module>
+	import { TRACKS } from '../../../lib/engine/data/tracks.js';
+	import { describeBonus, describeEffects } from '../../../lib/describe.js';
+	import { bonusGlyphs, spaceGlyphs } from '../../../lib/glyphs.js';
+
 	/** @typedef {import('../../../lib/ui.js').TrackId} TrackId */
 	/** @typedef {import('../../../lib/ui.js').ResourceId} ResourceId */
 	/** @typedef {import('../../../lib/ui.js').CostSymbol} CostSymbol */
@@ -10,7 +14,7 @@
 	 * @typedef {Object} FixtureTrack
 	 * @property {TrackId} id
 	 * @property {string} name
-	 * @property {{ name: string, landmark?: string }[]} spaces
+	 * @property {import('../../../lib/components/board/Track.svelte').TrackSpaceEntry[]} spaces
 	 * @property {CostSymbol[][]} tiers
 	 * @property {{ seat: Seat, name: string, position: number }[]} players
 	 */
@@ -27,7 +31,8 @@
 	const LANDMARK_SPACES = [4, 7, 10];
 
 	/**
-	 * Builds one track of the mockup's fixture: landmarks sit on spaces 4, 7 and 10, and the tier prices follow the mockup.
+	 * Builds one track of the mockup's fixture: landmarks sit on spaces 4, 7 and 10, the tier prices follow the mockup,
+	 * and each space shows the real space's benefit and bonus (#59).
 	 * @param {TrackId} id
 	 * @param {string} name
 	 * @param {ResourceId} resource - The resource the mockup's prices show for this track
@@ -40,10 +45,18 @@
 		return {
 			id,
 			name,
-			spaces: names.map((space, index) => ({
-				name: space,
-				landmark: landmarks[LANDMARK_SPACES.indexOf(index + 1)],
-			})),
+			spaces: names.map((space, index) => {
+				const { benefit, bonus } = TRACKS[id][index + 1];
+				return {
+					name: space,
+					landmark: landmarks[LANDMARK_SPACES.indexOf(index + 1)],
+					benefit: spaceGlyphs(benefit),
+					bonus: bonusGlyphs(bonus),
+					words: bonus
+						? `${describeEffects(benefit)}. Bonus: ${describeBonus(bonus)}.`
+						: `${describeEffects(benefit)}.`,
+				};
+			}),
 			tiers: [
 				['any'],
 				[resource, 'any'],

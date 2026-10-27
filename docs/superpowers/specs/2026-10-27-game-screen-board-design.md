@@ -167,3 +167,7 @@ At a hot-seat table the client shows the seat being asked: it requests `state?se
 - **#29:** the log and motion from events, the results, a timed-out notice, the host's settings during a game.
 - **#30:** the pass screen in front of a hot-seat seat.
 - **#6:** the map art replaces the drawn terrain wedges.
+
+## 14. Later: the spaces' benefits (#59)
+
+Added 2026-10-27. The owner asked for the spaces to show what they do. Each space now shows its benefit and its bonus, and a board with height to spare makes the spaces taller. The decision-prompts design, §8, records how.

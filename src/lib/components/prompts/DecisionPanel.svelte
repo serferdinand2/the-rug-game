@@ -12,7 +12,7 @@
 	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right, for a choice on the map
 	 * @property {import('svelte').Snippet} [steps] - The income steps, between the title and the content
 	 * @property {string} [cancelLabel] - Shows a cancel button with this text, such as 'Cancel'; left out, there is none
-	 * @property {import('svelte').Snippet} [children] - The content: the instruction and the choices
+	 * @property {import('svelte').Snippet} [children] - The content: the instruction and the choices; left out, the panel has no content area and its status line carries the instruction, leaving more room for a shelf
 	 * @property {import('svelte').Snippet} [shelf] - Cards shown above the panel, as the card choices are
 	 * @property {Function} [onDecisionPanelConfirm] - Callback fired when Confirm is pressed
 	 * @property {Function} [onDecisionPanelCancel] - Callback fired when the cancel button is pressed
@@ -105,9 +105,11 @@
 		{#if steps}
 			<div class="rg-decision-panel--steps">{@render steps()}</div>
 		{/if}
-		<div class="rg-decision-panel--content">
-			{@render children?.()}
-		</div>
+		{#if children}
+			<div class="rg-decision-panel--content">
+				{@render children()}
+			</div>
+		{/if}
 		<div class="rg-decision-panel--bottom">
 			<p
 				class="rg-decision-panel--status"
@@ -142,12 +144,13 @@
 		background: color-mix(in srgb, var(--ink) 52%, transparent);
 	}
 
+	/* The shelf takes the height above the panel, so the cards on it can size themselves to it (#57). */
 	.rg-decision-panel--shelf {
 		display: flex;
+		flex: 1 1 0;
 		justify-content: center;
 		width: 100%;
 		min-height: 0;
-		max-height: calc(100% - 250px);
 		margin-bottom: 18px;
 	}
 
