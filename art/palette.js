@@ -142,6 +142,23 @@ const COLOURS = {
 	floorLight: '#7d5a44',
 	floor: '#5e4232',
 	floorShade: '#3f2b22',
+
+	// The map (#6): the fog over unexplored hexes, the map's clouds and the volcano's rock and ash.
+	// Only the cloud overlay paints the map clouds' colours, so the clouds Cloud Colonies scores can be found (R77).
+	fogShade: '#272e32',
+	fog: '#30383c',
+	fogLight: '#3b4549',
+	fogLine: '#596166',
+	mapCloudLight: '#fdfeff',
+	mapCloud: '#e8eef6',
+	mapCloudShade: '#c3cedd',
+	mapCloudEdge: '#8e9db5',
+	basaltLight: '#6e5c5e',
+	basalt: '#4b3d42',
+	basaltShade: '#31272d',
+	ashLight: '#6a6268',
+	ash: '#4f484f',
+	ashShade: '#383238',
 };
 
 /**
