@@ -911,6 +911,10 @@
 					{placement}
 					fresh={{ plots: moved.plots, landmarks: moved.landmarks }}
 					onPlayerTabsPlace={placeHandler}
+					tilePick={exploring
+						? { tiles: offeredTiles, selected: exploreTile }
+						: null}
+					onPlayerTabsTile={tilePickHandler}
 					onPlayerTabsInspect={(
 						/** @type {ComponentEvent} */ event
 					) => (inspected = event.value)} />
