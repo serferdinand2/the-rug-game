@@ -71,8 +71,8 @@
 	 */
 	function midGame() {
 		const game = dealt(4, 7);
-		// Tiles 17 and 41 have an island in the middle.
-		const tiles = [17, 3, 41, 30];
+		// Tiles 17 and 41 have an island in the middle, 30 has clouds and 47 the volcano.
+		const tiles = [17, 47, 41, 30];
 		for (const seat of game.seats) {
 			const start = startOf(game, seat.seat);
 			const hex = unexploredNextTo(game, start);
@@ -131,7 +131,7 @@
 <Section
 	name="WorldMap"
 	area="board"
-	description="The real board until #6's map art: the hexes of the game's map side, flat-topped, with start 1 at the top. Each territory shows its corner terrains as wedges, turned as it lies, and its island as a small hexagon; unexplored hexes are dashed. Outposts are squares in their player's colour, lying down and outlined once toppled; a Nomads building or landmark carries a small mark, and a civilization token is a circle. With preview set, a tile not yet explored is drawn on its hex like an explored one, at 85% opacity with a gold outline. With targets set, only the target hexes are buttons (green), the rest dim, and the chosen one is outlined in gold. The map scales to fit its box.">
+	description="The board: the hexes of the game's map side, flat-topped, with start 1 at the top. Each territory is composed from the terrain pictures (hex/<terrain>), one wedge per corner turned as it lies, with a shore line where land meets sea, its island as a small hexagon, and the cloud or volcano picture over a territory that shows them; unexplored hexes use the unexplored picture. Outposts are squares in their player's colour, lying down and outlined once toppled; a Nomads building or landmark carries a small mark, and a civilization token is a circle. With preview set, a tile not yet explored is drawn on its hex like an explored one, at 85% opacity with a gold outline. With targets set, only the target hexes are buttons (green), the rest dim, and the chosen one is outlined in gold. The map scales to fit its box.">
 	<Example
 		label={"hexes={mapHexes(view)}  (large map, 4 players dealt, in the shared area's box)"}
 		wide
@@ -148,7 +148,7 @@
 			label="Small map" />
 	</Example>
 	<Example
-		label={'hexes={mapHexes(view)}  (mid-game fixture: explored tiles, two with islands, a conquered middle, a Traders token, Nomads pieces)'}
+		label={'hexes={mapHexes(view)}  (mid-game fixture: explored tiles, two with islands, a cloud tile, the volcano, a conquered middle, a Traders token, Nomads pieces)'}
 		width={640}>
 		<WorldMap
 			hexes={busy}

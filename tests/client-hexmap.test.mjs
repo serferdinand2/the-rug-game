@@ -3,11 +3,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
 	HEX_SIZE,
+	coastLines,
 	cornerWedge,
 	fitBox,
 	hexCenter,
 	hexCorner,
 	hexName,
+	hexPicture,
 	islandParts,
 	mapHexes,
 	pieceSpots,
@@ -332,4 +334,68 @@ test('fitBox holds every hex with a small margin', () => {
 	assert.ok(box.y + box.height >= Math.max(...ys));
 	assert.ok(box.y + box.height <= Math.max(...ys) + margin);
 	assert.deepEqual(fitBox([], HEX_SIZE), { x: 0, y: 0, width: 0, height: 0 });
+});
+
+test('hexes know their clouds and volcano from the tile or printed territory (R77)', () => {
+	const game = dealtView(2);
+	const hexes = mapHexes(game);
+	const byKey = Object.fromEntries(hexes.map((hex) => [hex.key, hex]));
+	// A printed R77 hex on the small map.
+	assert.equal(byKey['-3_-3'].clouds, true);
+	assert.equal(byKey['-3_-3'].volcano, false);
+	// An unexplored hex has neither.
+	const fog = hexes.find((hex) => hex.corners === null);
+	assert.ok(fog);
+	assert.equal(fog.clouds, false);
+	assert.equal(fog.volcano, false);
+	// A placed tile 47 has the volcano; tile 1 has clouds.
+	game.hexes[fog.key].tile = 47;
+	game.hexes[fog.key].orient = 0;
+	const placed = mapHexes(game).find((hex) => hex.key === fog.key);
+	assert.equal(placed?.volcano, true);
+	assert.equal(placed?.clouds, false);
+	game.hexes[fog.key].tile = 1;
+	assert.equal(
+		mapHexes(game).find((hex) => hex.key === fog.key)?.clouds,
+		true
+	);
+});
+
+test('the coast runs along the radius between a sea wedge and a land wedge', () => {
+	const c = /** @type {[number, number]} */ ([10, 20]);
+	// Sea in corners 2 and 3 only: coasts after corner 1 (side 1) and after corner 3 (side 3).
+	const lines = coastLines(
+		c,
+		['desert', 'desert', 'sea', 'sea', 'forest', 'forest'],
+		S
+	);
+	assert.equal(lines.length, 2);
+	assert.ok(near(lines[0].from, c));
+	const side1 = [hexCorner(c, 1, S), hexCorner(c, 2, S)];
+	assert.ok(
+		near(lines[0].to, [
+			(side1[0][0] + side1[1][0]) / 2,
+			(side1[0][1] + side1[1][1]) / 2,
+		])
+	);
+	assert.equal(
+		coastLines(c, ['sea', 'sea', 'sea', 'sea', 'sea', 'sea'], S).length,
+		0
+	);
+	assert.equal(
+		coastLines(
+			c,
+			['sea', 'forest', 'forest', 'forest', 'forest', 'forest'],
+			S
+		).length,
+		2
+	);
+});
+
+test('a hex picture covers the hex, centred on it', () => {
+	const box = hexPicture([5, 7], S);
+	assert.equal(box.width, 2 * S);
+	assert.ok(Math.abs(box.height - Math.sqrt(3) * S) < 1e-9);
+	assert.ok(Math.abs(box.x + box.width / 2 - 5) < 1e-9);
+	assert.ok(Math.abs(box.y + box.height / 2 - 7) < 1e-9);
 });

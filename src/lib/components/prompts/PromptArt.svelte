@@ -92,6 +92,8 @@
 			id={item.id}
 			corners={turned(tile.corners, item.orient)}
 			island={[...tile.island]}
+			clouds={tile.clouds}
+			volcano={tile.volcano}
 			size={pixels * 0.75} />
 	{:else if item.kind === 'vp'}
 		<b class="rg-prompt-art--badge">{item.count} VP</b>

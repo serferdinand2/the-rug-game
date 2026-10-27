@@ -6,6 +6,8 @@
 	 * @property {number} id - The tile's number, 1-48
 	 * @property {import('../../ui.js').Terrain[]} corners - Six corner terrains, clockwise from the top-left
 	 * @property {import('../../ui.js').Terrain[]} [island=[]] - The terrains of the island in the middle
+	 * @property {boolean} [clouds=false] - The tile's picture shows clouds (R77)
+	 * @property {boolean} [volcano=false] - The tile's picture shows a volcano (R77)
 	 * @property {number} [size=36] - The hex radius in pixels, from its centre to a corner
 	 */
 
@@ -14,21 +16,34 @@
 	 * @typedef {TerritoryTileOwnProps & Omit<import('svelte/elements').SVGAttributes<SVGSVGElement>, 'id'>} TerritoryTileProps
 	 *
 	 * @example
-	 * <TerritoryTile id={17} corners={tile.corners} island={tile.island} />
+	 * <TerritoryTile id={17} corners={turned(tile.corners, orient)} island={tile.island} clouds={tile.clouds} />
 	 */
 </script>
 
 <script>
 	import {
+		coastLines,
 		cornerWedge,
 		hexCorner,
+		hexPicture,
 		islandParts,
 		svgPoints,
 	} from '../../hexmap.js';
-	import { terrainColor } from '../../ui.js';
+	import { artUrl } from '../../ui.js';
 
 	/** @type {TerritoryTileProps} */
-	let { id, corners, island = [], size = 36, ...attr } = $props();
+	let {
+		id,
+		corners,
+		island = [],
+		clouds = false,
+		volcano = false,
+		size = 36,
+		...attr
+	} = $props();
+
+	// Clip ids must differ between the tiles on one page.
+	const uid = $props.id();
 
 	const CORNERS = [0, 1, 2, 3, 4, 5];
 	const CENTER = /** @type {[number, number]} */ ([0, 0]);
@@ -37,18 +52,22 @@
 	let outline = $derived(
 		svgPoints(CORNERS.map((k) => hexCorner(CENTER, k, size)))
 	);
+	let picture = $derived(hexPicture(CENTER, size));
 	let wedges = $derived(
 		corners.map((terrain, k) => ({
 			terrain,
+			k,
 			points: svgPoints(cornerWedge(CENTER, k, size)),
 		}))
 	);
 	let parts = $derived(
-		islandParts(CENTER, island, size).map((part) => ({
+		islandParts(CENTER, island, size).map((part, i) => ({
 			...part,
+			i,
 			points: svgPoints(part.points),
 		}))
 	);
+	let coasts = $derived(coastLines(CENTER, corners, size));
 	let name = $derived(
 		`Territory tile ${id}: ${[...new Set(corners)].join(', ')}${island.length ? `, island of ${island.join(' and ')}` : ''}`
 	);
@@ -62,19 +81,57 @@
 	height={Math.round(height)}
 	{...attr}
 	class="rg-territory-tile {attr.class ?? ''}">
-	{#each wedges as wedge, k (k)}
-		<polygon
-			class="rg-territory-tile--wedge"
-			points={wedge.points}
-			style:fill={terrainColor(wedge.terrain)}
-			style:stroke={terrainColor(wedge.terrain)} />
+	<defs>
+		{#each wedges as wedge (wedge.k)}
+			<clipPath id="{uid}-w{wedge.k}"
+				><polygon points={wedge.points} /></clipPath>
+		{/each}
+		{#each parts as part (part.i)}
+			<clipPath id="{uid}-i{part.i}"
+				><polygon points={part.points} /></clipPath>
+		{/each}
+	</defs>
+	{#each wedges as wedge (wedge.k)}
+		<image
+			class="rg-territory-tile--art"
+			href={artUrl(`hex/${wedge.terrain}`)}
+			{...picture}
+			preserveAspectRatio="none"
+			clip-path="url(#{uid}-w{wedge.k})" />
 	{/each}
-	{#each parts as part, i (i)}
+	{#each coasts as coast, i (i)}
+		<line
+			class="rg-territory-tile--coast"
+			x1={coast.from[0]}
+			y1={coast.from[1]}
+			x2={coast.to[0]}
+			y2={coast.to[1]} />
+	{/each}
+	{#each parts as part (part.i)}
+		<image
+			class="rg-territory-tile--art"
+			href={artUrl(`hex/${part.terrain}`)}
+			{...picture}
+			preserveAspectRatio="none"
+			clip-path="url(#{uid}-i{part.i})" />
 		<polygon
 			class="rg-territory-tile--island"
-			points={part.points}
-			style:fill={terrainColor(part.terrain)} />
+			points={part.points} />
 	{/each}
+	{#if clouds}
+		<image
+			class="rg-territory-tile--art"
+			href={artUrl('hex/cloud')}
+			{...picture}
+			preserveAspectRatio="none" />
+	{/if}
+	{#if volcano}
+		<image
+			class="rg-territory-tile--art"
+			href={artUrl('hex/volcano')}
+			{...picture}
+			preserveAspectRatio="none" />
+	{/if}
 	<polygon
 		class="rg-territory-tile--edge"
 		points={outline} />
@@ -91,13 +148,19 @@
 		overflow: visible;
 	}
 
-	/* The same colour as the fill, so no seam shows between two wedges. */
-	.rg-territory-tile--wedge {
-		stroke-width: 0.6;
-		stroke-linejoin: round;
+	/* The terrain pictures are pixel art: keep their edges hard when they are scaled. */
+	.rg-territory-tile--art {
+		image-rendering: pixelated;
+	}
+
+	.rg-territory-tile--coast {
+		stroke: var(--coast);
+		stroke-width: 1.2;
+		stroke-linecap: round;
 	}
 
 	.rg-territory-tile--island {
+		fill: none;
 		stroke: var(--chrome);
 		stroke-width: 0.8;
 	}

@@ -29,14 +29,16 @@
 	import { ComponentEvent } from '../../component-event.js';
 	import {
 		HEX_SIZE,
+		coastLines,
 		cornerWedge,
 		fitBox,
 		hexCorner,
+		hexPicture,
 		islandParts,
 		pieceSpots,
 		svgPoints,
 	} from '../../hexmap.js';
-	import { playerColor, terrainColor } from '../../ui.js';
+	import { artUrl, playerColor } from '../../ui.js';
 
 	/** @type {WorldMapProps} */
 	let {
@@ -49,7 +51,22 @@
 		...attr
 	} = $props();
 
+	// Clip ids must differ between the maps on one page.
+	const uid = $props.id();
+
 	const CORNERS = [0, 1, 2, 3, 4, 5];
+	const ORIGIN = /** @type {[number, number]} */ ([0, 0]);
+	// The clips are drawn once round the origin; each hex's art is moved there with a translate.
+	const WEDGE_CLIPS = CORNERS.map((k) =>
+		svgPoints(cornerWedge(ORIGIN, k, HEX_SIZE))
+	);
+	// Island clips by the number of parts (an island has at most 6), then the part.
+	const ISLAND_CLIPS = [1, 2, 3, 4, 5, 6].map((n) =>
+		islandParts(ORIGIN, Array(n).fill('sea'), HEX_SIZE).map((part) =>
+			svgPoints(part.points)
+		)
+	);
+	const PICTURE = hexPicture(ORIGIN, HEX_SIZE);
 	// A Nomads piece's mark, for a piece of side 1: a house for a building, a narrow tower for a landmark.
 	const MARKS = {
 		building: '-0.26,0.26 -0.26,-0.04 0,-0.28 0.26,-0.04 0.26,0.26',
@@ -85,16 +102,23 @@
 					CORNERS.map((k) => hexCorner(hex.center, k, HEX_SIZE))
 				),
 				wedges: hex.corners
-					? hex.corners.map((terrain, k) => ({
-							terrain,
-							points: svgPoints(
-								cornerWedge(hex.center, k, HEX_SIZE)
-							),
+					? hex.corners.map((terrain, k) => ({ terrain, k }))
+					: [],
+				islands: islandParts(ORIGIN, hex.island, HEX_SIZE).map(
+					(part, i) => ({
+						terrain: part.terrain,
+						i,
+						n: hex.island.length,
+						points: svgPoints(part.points),
+					})
+				),
+				coasts: hex.corners
+					? coastLines(ORIGIN, hex.corners, HEX_SIZE).map((line) => ({
+							x: line.to[0],
+							y: line.to[1],
 						}))
 					: [],
-				islands: islandParts(hex.center, hex.island, HEX_SIZE).map(
-					(part) => ({ ...part, points: svgPoints(part.points) })
-				),
+				unexploredPicture: hexPicture(hex.center, HEX_SIZE),
 				pieces: pieces(hex),
 			};
 		})
@@ -196,23 +220,61 @@
 	class="rg-world-map {attr.class ? attr.class : ''}">
 	{#snippet tile(/** @type {(typeof drawn)[number]} */ hex)}
 		{#if hex.corners}
-			{#each hex.wedges as wedge, k (k)}
-				<polygon
-					class="rg-world-map--wedge"
-					points={wedge.points}
-					style:fill={terrainColor(wedge.terrain)}
-					style:stroke={terrainColor(wedge.terrain)} />
-			{/each}
-			{#each hex.islands as part, i (i)}
-				<polygon
-					class="rg-world-map--island"
-					points={part.points}
-					style:fill={terrainColor(part.terrain)} />
-			{/each}
+			<g transform="translate({hex.center[0]} {hex.center[1]})">
+				{#each hex.wedges as wedge (wedge.k)}
+					<image
+						class="rg-world-map--art"
+						href={artUrl(`hex/${wedge.terrain}`)}
+						{...PICTURE}
+						preserveAspectRatio="none"
+						clip-path="url(#{uid}-w{wedge.k})" />
+				{/each}
+				{#each hex.coasts as coast, i (i)}
+					<line
+						class="rg-world-map--coast"
+						x1="0"
+						y1="0"
+						x2={coast.x}
+						y2={coast.y} />
+				{/each}
+				{#each hex.islands as part (part.i)}
+					<image
+						class="rg-world-map--art"
+						href={artUrl(`hex/${part.terrain}`)}
+						{...PICTURE}
+						preserveAspectRatio="none"
+						clip-path="url(#{uid}-i{part.n}-{part.i})" />
+					<polygon
+						class="rg-world-map--island"
+						points={part.points} />
+				{/each}
+				{#if hex.clouds}
+					<image
+						class="rg-world-map--art"
+						href={artUrl('hex/cloud')}
+						{...PICTURE}
+						preserveAspectRatio="none" />
+				{/if}
+				{#if hex.volcano}
+					<image
+						class="rg-world-map--art"
+						href={artUrl('hex/volcano')}
+						{...PICTURE}
+						preserveAspectRatio="none" />
+				{/if}
+			</g>
 			<polygon
 				class="rg-world-map--edge"
 				points={hex.outline} />
 		{:else}
+			<polygon
+				class="rg-world-map--fog-fill"
+				points={hex.outline} />
+			<image
+				class="rg-world-map--art"
+				href={artUrl('hex/unexplored')}
+				{...hex.unexploredPicture}
+				preserveAspectRatio="none" />
 			<polygon
 				class="rg-world-map--edge rg-world-map--fog"
 				points={hex.outline} />
@@ -260,6 +322,17 @@
 			{/if}
 		{/each}
 	{/snippet}
+	<defs>
+		{#each WEDGE_CLIPS as points, k (k)}
+			<clipPath id="{uid}-w{k}"><polygon {points} /></clipPath>
+		{/each}
+		{#each ISLAND_CLIPS as parts, n (n)}
+			{#each parts as points, i (i)}
+				<clipPath id="{uid}-i{n + 1}-{i}"
+					><polygon {points} /></clipPath>
+			{/each}
+		{/each}
+	</defs>
 	{#each drawn as hex (hex.key)}
 		{#if hex.target}
 			<g
@@ -327,13 +400,20 @@
 		opacity: 0.35;
 	}
 
-	/* The same colour as the fill, so no seam shows between two wedges. */
-	.rg-world-map--wedge {
-		stroke-width: 0.6;
-		stroke-linejoin: round;
+	/* The terrain pictures are pixel art: keep their edges hard when they are scaled. */
+	.rg-world-map--art {
+		image-rendering: pixelated;
+	}
+
+	/* The shore, where land meets sea inside a territory. */
+	.rg-world-map--coast {
+		stroke: var(--coast);
+		stroke-width: 1.2;
+		stroke-linecap: round;
 	}
 
 	.rg-world-map--island {
+		fill: none;
 		stroke: var(--chrome);
 		stroke-width: 0.8;
 	}
@@ -345,8 +425,12 @@
 	}
 
 	/* Unexplored hexes are dashed, like fog over the map. */
-	.rg-world-map--fog {
+	.rg-world-map--fog-fill {
 		fill: var(--unexplored);
+	}
+
+	.rg-world-map--fog {
+		fill: none;
 		stroke: var(--line-strong);
 		stroke-width: 1.5;
 		stroke-dasharray: 5 4;
