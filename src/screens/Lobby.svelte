@@ -62,7 +62,7 @@
 	];
 	const YES_NO = [
 		{ value: 'yes', label: 'Yes', color: 'var(--science)' },
-		{ value: 'no', label: 'No', color: 'var(--line-strong)' },
+		{ value: 'no', label: 'No', color: 'var(--text)' },
 	];
 	const UNDO = [
 		{ value: 'on', label: 'Allow undo', color: 'var(--exploration)' },

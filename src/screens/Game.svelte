@@ -50,7 +50,6 @@
 	import { formatClock, timeLeft } from '../lib/clock.js';
 	import {
 		civilizationName,
-		decisionTitle,
 		describeBonus,
 		describeEffects,
 		describePayment,
@@ -61,7 +60,11 @@
 	import { terrainSeed } from '../lib/area/capital.js';
 	import { tapestryCardData, techCardData } from '../lib/cards/game-cards.js';
 	import { selfSummary } from '../lib/overview.js';
-	import { advanceOptions, myDecision } from '../lib/turn.js';
+	import {
+		advanceOptions,
+		decisionTurnHeading,
+		myDecision,
+	} from '../lib/turn.js';
 	import { askedSeats, bonusOf } from '../lib/engine/game.js';
 	import { TRACKS } from '../lib/engine/data/tracks.js';
 	import { playerColor } from '../lib/ui.js';
@@ -846,14 +849,12 @@
 			label="Your income turn"
 			heading="Income turn {prompt.income.turn}{incomeStepLabel
 				? ` · ${incomeStepLabel}`
-				: ''}"
-			detail={prompt.title} />
+				: ''}" />
 	{:else if promptDecision}
 		<TurnBar
 			tone="neutral"
 			label="Your decision"
-			heading={decisionTitle(promptDecision, game)}
-			detail="Answer in the panel above." />
+			heading={decisionTurnHeading(game, seat)} />
 	{:else if game.phase === 'setup'}
 		<TurnBar
 			tone="waiting"

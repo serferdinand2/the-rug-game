@@ -34,7 +34,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Landing page | Lobby |
 |---|---|
-| ![The landing page, with two open tables](docs/ui/screens/launch.png) | ![The lobby with three players, one ready, the turn timer at 2 minutes and the tapestry draft on](docs/ui/screens/lobby.png) |
+| ![The landing page, with two open tables](docs/ui/screens/launch.png) | ![The local lobby with selected No options clearly outlined](docs/ui/screens/lobby.png) |
 
 | Play: the tracks, with an advance chosen | Play: the World Map |
 |---|---|
@@ -62,7 +62,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Prompt: placing a landmark | Prompt: the income turn |
 |---|---|
-| ![The Lighthouse placed and turned on the Capital tab, with the panel naming its plot](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold, with its steps and the chosen card lifted](docs/ui/screens/game-prompt-income.png) |
+| ![The Lighthouse placed and turned on the Capital tab, with the panel naming its plot](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold, with the panel's question shown only once](docs/ui/screens/game-prompt-income.png) |
 
 Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html), [End screen](docs/ui/end-screen.html).
 
