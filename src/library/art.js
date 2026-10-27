@@ -7,15 +7,15 @@ export const DEFERRED_ART = Object.freeze({
 	die: 'Dice results use text, numerals, approved track symbols and resource/VP labels. Decorative dice artwork can be drawn later with the final controls. Resolved in issue #5.',
 	symbol: 'VP, territory tiles, tapestry cards, tech cards and space tiles use text labels and counts, then their actual pictures. Additional pictograms can be drawn later. Resolved in issue #5.',
 });
-import { toSvg } from '../../art/painter.js';
+import { toSvg } from '../../tools/art/painter.js';
 import {
 	PART_SAMPLES,
 	drawingCanvas,
 	gallerySections,
-} from '../../art/gallery.js';
+} from '../../tools/art/gallery.js';
 
-/** @typedef {import('../../art/painter.js').Canvas} Canvas */
-/** @typedef {import('../../art/gallery.js').GallerySection} GallerySection */
+/** @typedef {import('../../tools/art/painter.js').Canvas} Canvas */
+/** @typedef {import('../../tools/art/gallery.js').GallerySection} GallerySection */
 
 /**
  * Explains each group's current artwork and the owner-approved deferrals.
@@ -67,7 +67,7 @@ function safely(draw) {
 	}
 }
 
-const modules = import.meta.glob('../../art/drawings/**/*.js', {
+const modules = import.meta.glob('../../tools/art/drawings/**/*.js', {
 	eager: true,
 });
 

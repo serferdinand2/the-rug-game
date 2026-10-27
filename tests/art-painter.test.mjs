@@ -16,7 +16,7 @@ import {
 	fromSvg,
 	paint,
 	line,
-} from '../art/painter.js';
+} from '../tools/art/painter.js';
 
 const RED = '#aa0000';
 const BLUE = '#0000bb';

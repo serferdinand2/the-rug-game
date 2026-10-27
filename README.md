@@ -104,7 +104,7 @@ Run a single server process: tables live in its memory. The build needs the deve
 
 ```sh
 npm ci                     # install, including the build tools
-npm run build              # Vite builds the client into public/
+npm run build              # Vite builds the client into build/
 npm prune --omit=dev       # optional: drop the build tools on the host
 npm run serve              # serve the existing build (npm start would try to rebuild)
 ```

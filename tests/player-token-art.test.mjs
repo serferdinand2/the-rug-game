@@ -3,14 +3,14 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { decodePng } from './helpers/png.mjs';
-import { fromSvg } from '../art/painter.js';
-import { renderAsset } from '../art/build.mjs';
+import { fromSvg } from '../tools/art/painter.js';
+import { renderAsset } from '../tools/art/build.mjs';
 for (const color of ['blue', 'red', 'green', 'yellow', 'purple']) {
 	test(`shaded ${color} token exactly matches its supplied PNG`, async () => {
 		const { width, height, pixels } = decodePng(
 			await readFile(
 				new URL(
-					`../art/imported-pngs/player-tokens/token-${color}.png`,
+					`../tools/art/imported-pngs/player-tokens/token-${color}.png`,
 					import.meta.url
 				)
 			)

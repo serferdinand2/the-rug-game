@@ -8,7 +8,7 @@ import {
 	footprintMismatches,
 	clipToFootprint,
 } from '../src/lib/art/footprints.js';
-import { draw as drawLighthouse } from '../art/drawings/landmark/lighthouse.js';
+import { draw as drawLighthouse } from '../tools/art/drawings/landmark/lighthouse.js';
 
 /** Plot counts from the landmarks design §6.1 (02 §5, 03 §1.6, 03 §2.10, R63, R65). */
 const EXPECTED_PLOTS = {

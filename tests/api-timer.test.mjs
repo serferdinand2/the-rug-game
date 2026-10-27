@@ -2,9 +2,9 @@
 import { afterAll, afterEach, beforeAll, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { server, config, api } from '../server.mjs';
-import { createApi } from '../api.mjs';
-import { TIMERS } from '../rooms.mjs';
+import { server, config, api } from '../server/server.mjs';
+import { createApi } from '../api/api.mjs';
+import { TIMERS } from '../api/rooms.mjs';
 
 /** @typedef {{ status: number, data: any }} Answer */
 

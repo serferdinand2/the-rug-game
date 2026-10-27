@@ -3,8 +3,8 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
-import { DRAWINGS_DIR, listDrawingIds } from '../art/build.mjs';
-import { get } from '../art/painter.js';
+import { DRAWINGS_DIR, listDrawingIds } from '../tools/art/build.mjs';
+import { get } from '../tools/art/painter.js';
 import {
 	FRAME,
 	GROUND,
@@ -13,7 +13,7 @@ import {
 	SPACE,
 	SPACES,
 	drawInspirationTile,
-} from '../art/parts/inspiration-tile.js';
+} from '../tools/art/parts/inspiration-tile.js';
 import { ASSETS, EXPANSIONS } from '../src/lib/art/catalog.js';
 
 /** The sets whose every inspiration tile must be drawn. */
@@ -42,7 +42,7 @@ for (const id of drawn) {
 
 /**
  * The pixels of one space, frame included, row by row.
- * @param {import('../art/painter.js').Canvas} canvas
+ * @param {import('../tools/art/painter.js').Canvas} canvas
  * @param {number} space - Numbered from 1
  * @returns {(string | null | undefined)[]}
  */

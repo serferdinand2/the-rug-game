@@ -7,7 +7,7 @@ import {
 	BLOCKED_VARIANTS,
 	drawTile,
 	drawCapitalMat,
-} from '../art/parts/capital-terrain.js';
+} from '../tools/art/parts/capital-terrain.js';
 
 const BIOMES = Object.keys(CAPITAL_GRIDS);
 

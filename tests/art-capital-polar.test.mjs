@@ -1,15 +1,15 @@
 // The Polar capital terrain (#6): 14 distinct full-bleed tiles and an example mat on the printed layout.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import * as pinned from '../art/parts/capital-biomes/polar.js';
+import * as pinned from '../tools/art/parts/capital-biomes/polar.js';
 import {
 	LAYOUT,
 	PLACEMENT,
 	drawBiomeTile,
 	drawBiomeMat,
-} from '../art/parts/capital-biomes/polar.js';
+} from '../tools/art/parts/capital-biomes/polar.js';
 
-/** @returns {import('../art/painter.js').Canvas[]} */
+/** @returns {import('../tools/art/painter.js').Canvas[]} */
 function allTiles() {
 	const tiles = [];
 	for (let v = 0; v < 8; v++) tiles.push(drawBiomeTile(false, v));

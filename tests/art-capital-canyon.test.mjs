@@ -6,7 +6,7 @@ import {
 	drawBiomeTile,
 	drawBiomeMat,
 	placement,
-} from '../art/parts/capital-biomes/canyon.js';
+} from '../tools/art/parts/capital-biomes/canyon.js';
 
 const tiles = [
 	...Array.from({ length: 8 }, (_, v) => [false, v]),

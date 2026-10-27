@@ -1,11 +1,11 @@
 // The reviewed artwork must keep its pixel colors, transparency and player masks.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { fromSvg, toSvg } from '../art/painter.js';
+import { fromSvg, toSvg } from '../tools/art/painter.js';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { ASSETS } from '../src/lib/art/catalog.js';
-import { listDrawingIds, renderAsset } from '../art/build.mjs';
+import { listDrawingIds, renderAsset } from '../tools/art/build.mjs';
 
 test('the 18 capital mats and the two map boards are explicitly marked as example compositions', () => {
 	assert.deepEqual(

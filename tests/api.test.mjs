@@ -2,8 +2,8 @@
 import { afterAll, beforeAll, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { server, config, api } from '../server.mjs';
-import { tableChoices } from '../rooms.mjs';
+import { server, config, api } from '../server/server.mjs';
+import { tableChoices } from '../api/rooms.mjs';
 
 /** @typedef {{ status: number, data: any }} Answer */
 

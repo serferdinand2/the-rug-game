@@ -2,8 +2,8 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { fromSvg, toSvg } from '../art/painter.js';
-import { draw } from '../art/drawings/landmark/lighthouse.js';
+import { fromSvg, toSvg } from '../tools/art/painter.js';
+import { draw } from '../tools/art/drawings/landmark/lighthouse.js';
 
 const prototype = await readFile(
 	new URL('../docs/art/style-c/lighthouse-scene.svg', import.meta.url),

@@ -16,7 +16,7 @@ import {
 	tick,
 	timeout,
 	undo,
-} from '../rooms.mjs';
+} from '../api/rooms.mjs';
 import { defaultAction } from '../src/lib/engine/game.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { openDecisions, push } from '../src/lib/engine/stack.js';
@@ -27,7 +27,7 @@ import { groupsOf } from '../src/lib/capital.js';
 import { checkState } from './helpers/invariants.mjs';
 import { readyTurn, startedGame } from './helpers/engine.mjs';
 
-/** @typedef {import('../rooms.mjs').Room} Room */
+/** @typedef {import('../api/rooms.mjs').Room} Room */
 /** @typedef {import('../src/lib/engine/state.js').State} State */
 
 /** A minute of 1 second and declines 3 to 10 seconds out, so the times in the tests are easy to follow. */

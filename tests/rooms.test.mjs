@@ -33,14 +33,14 @@ import {
 	timeout,
 	undo,
 	unfinishedSeat,
-} from '../rooms.mjs';
+} from '../api/rooms.mjs';
 import { checkOptions, PlayerError, VARIANTS } from '../src/lib/engine/game.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { checkState } from './helpers/invariants.mjs';
 
-/** @typedef {import('../rooms.mjs').Room} Room */
+/** @typedef {import('../api/rooms.mjs').Room} Room */
 
 /** A person, named after their id. @param {string} id */
 const P = (id) => ({ id, name: id.toUpperCase() });
@@ -764,7 +764,7 @@ const TIMING = { minuteMs: 1000, declineMinMs: 3000, declineMaxMs: 10000 };
  * @param {Room} room
  * @param {import('../src/lib/engine/random.js').Random} random
  * @param {string} someone - Anyone, seated or not
- * @returns {{ step: string, next: Room, undone?: import('../rooms.mjs').Step }} `undone`: the step taken back
+ * @returns {{ step: string, next: Room, undone?: import('../api/rooms.mjs').Step }} `undone`: the step taken back
  */
 function randomUndo(room, random, someone) {
 	const last = room.history.at(-1);
@@ -782,7 +782,7 @@ function randomUndo(room, random, someone) {
  * @param {Room} room
  * @param {import('../src/lib/engine/random.js').Random} random
  * @param {number} now - Milliseconds
- * @returns {{ step: string, next: Room | null, saved?: boolean, undone?: import('../rooms.mjs').Step }} `undone`: the
+ * @returns {{ step: string, next: Room | null, saved?: boolean, undone?: import('../api/rooms.mjs').Step }} `undone`: the
  *   step an undo takes back
  */
 function randomStep(room, random, now) {
@@ -1050,7 +1050,7 @@ function checkHistory(room, stage) {
  * last, and the step is gone from the history.
  * @param {Room} room
  * @param {Room} before
- * @param {import('../rooms.mjs').Step} step
+ * @param {import('../api/rooms.mjs').Step} step
  */
 function checkUndone(room, before, step) {
 	const { seq, events, nextId, ...game } = /** @type {any} */ (room.game);
@@ -1147,7 +1147,7 @@ test('random steps never break the room rules', () => {
 			now += random(10) ? random(300) : 3000 + random(8000);
 			if (!room) {
 				// A closed table is followed by a new one, so every run takes all its steps.
-				const mode = /** @type {import('../rooms.mjs').Mode} */ (
+				const mode = /** @type {import('../api/rooms.mjs').Mode} */ (
 					random(3) ? 'online' : 'hotseat'
 				);
 				room = createRoom(

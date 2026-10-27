@@ -1,4 +1,4 @@
-// The HTTP server: serving public/ safely, caching headers and the API fallback.
+// The HTTP server: serving build/ safely, caching headers and the API fallback.
 import { afterAll, beforeAll, test } from 'vitest';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -8,7 +8,7 @@ import { symlink, mkdtemp, rm, writeFile, chmod } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { server } from '../server.mjs';
+import { server } from '../server/server.mjs';
 
 // listen() binds a tick after it is called, so wait before checking that the import didn't call it.
 await new Promise((resolve) => setTimeout(resolve, 50));
@@ -18,11 +18,11 @@ let port;
 beforeAll(async () => {
 	if (
 		!existsSync(
-			fileURLToPath(new URL('../public/index.html', import.meta.url))
+			fileURLToPath(new URL('../build/index.html', import.meta.url))
 		)
 	) {
 		throw new Error(
-			'public/index.html is missing: run npm run build first (npm test does this for you).'
+			'build/index.html is missing: run npm run build first (npm test does this for you).'
 		);
 	}
 	await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -57,10 +57,14 @@ test('starts when run through a symlinked path', async () => {
 		link,
 		process.platform === 'win32' ? 'junction' : 'dir'
 	);
-	const child = spawn(process.execPath, [join(link, 'server.mjs')], {
-		env: { ...process.env, PORT: '0' },
-		stdio: ['ignore', 'pipe', 'pipe'],
-	});
+	const child = spawn(
+		process.execPath,
+		[join(link, 'server', 'server.mjs')],
+		{
+			env: { ...process.env, PORT: '0' },
+			stdio: ['ignore', 'pipe', 'pipe'],
+		}
+	);
 	try {
 		const output = await new Promise((resolve, reject) => {
 			const timer = setTimeout(
@@ -159,7 +163,7 @@ test('revalidates with weak ETags', async () => {
 	assert.equal(second.status, 304);
 });
 
-test('never serves files outside public/', async () => {
+test('never serves files outside build/', async () => {
 	const attacks = [
 		'/file:/etc/hosts',
 		'/file:///etc/hosts',
@@ -228,7 +232,7 @@ test(
 	},
 	async () => {
 		const file = fileURLToPath(
-			new URL('../public/unreadable.txt', import.meta.url)
+			new URL('../build/unreadable.txt', import.meta.url)
 		);
 		await writeFile(file, 'secret');
 		await chmod(file, 0o000);

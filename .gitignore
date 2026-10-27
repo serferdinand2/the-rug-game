@@ -9,7 +9,7 @@ Thumbs.db
 .claude/
 .playwright-mcp/
 .superpowers/
-/public/
+/build/
 
 test-results/
 playwright-report/

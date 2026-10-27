@@ -102,7 +102,7 @@ Use `/art/terrain/{sea,desert,forest,grassland,mountain}.svg` in cards that refe
 
 ### Player tokens
 
-The current player tokens are the owner's shaded 32×32 images in blue, green, purple, red and yellow, supplied on 2026-10-24. Production URLs retain `piece/token-{colour}`. `PlayerToken` uses those assets. Originals are preserved in `art/imported-pngs/player-tokens/`.
+The current player tokens are the owner's shaded 32×32 images in blue, green, purple, red and yellow, supplied on 2026-10-24. Production URLs retain `piece/token-{colour}`. `PlayerToken` uses those assets. Originals are preserved in `tools/art/imported-pngs/player-tokens/`.
 
 The old flat player-colour drawings are deprecated under `docs/art/archive/player-tokens-v1/`; they are not active choices in the gallery. The neutral `piece/token` remains a separately labelled unassigned-piece legacy icon, not a sixth player colour.
 

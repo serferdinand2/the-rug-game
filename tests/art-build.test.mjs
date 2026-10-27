@@ -12,7 +12,7 @@ import {
 	listSvgIds,
 	renderAsset,
 	buildArt,
-} from '../art/build.mjs';
+} from '../tools/art/build.mjs';
 
 const TWO_BY_TWO = `export function draw() {
 	return { w: 2, h: 2, p: ['#aa0000', null, null, '#0000bb'] };
@@ -40,7 +40,10 @@ async function scratch(files) {
 test('every drawing has a catalog entry', async () => {
 	const known = new Set(ASSETS.map((asset) => asset.id));
 	for (const id of await listDrawingIds()) {
-		assert.ok(known.has(id), `art/drawings/${id}.js has no catalog entry`);
+		assert.ok(
+			known.has(id),
+			`tools/art/drawings/${id}.js has no catalog entry`
+		);
 	}
 });
 
@@ -307,9 +310,9 @@ test('renderAsset explains a drawing without draw()', async () => {
 	}
 });
 
-test('the build copies the Lighthouse into public/art', async () => {
+test('the build copies the Lighthouse into build/art', async () => {
 	const built = new URL(
-		'../public/art/landmark/lighthouse.svg',
+		'../build/art/landmark/lighthouse.svg',
 		import.meta.url
 	);
 	assert.equal(

@@ -21,16 +21,16 @@ import {
 	boardOrigin,
 	volcanoCorner,
 	volcanoSpot,
-} from '../art/parts/territory.js';
-import { DRAWINGS_DIR } from '../art/build.mjs';
-import { PALETTE } from '../art/palette.js';
+} from '../tools/art/parts/territory.js';
+import { DRAWINGS_DIR } from '../tools/art/build.mjs';
+import { PALETTE } from '../tools/art/palette.js';
 import { cornerWedge, islandParts } from '../src/lib/hexmap.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';
 import { MAPS } from '../src/lib/engine/data/maps.js';
 import { turned } from '../src/lib/engine/terrain.js';
 import { CLOUD_SIZE, VOLCANO_SPOTS } from '../src/lib/art/hex-overlays.js';
 
-/** @typedef {import('../art/painter.js').Canvas} Canvas */
+/** @typedef {import('../tools/art/painter.js').Canvas} Canvas */
 
 const TERRAINS = /** @type {const} */ ([
 	'sea',
