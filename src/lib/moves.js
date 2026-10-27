@@ -45,3 +45,20 @@ export function seatToShow(room) {
 		askedSeats(room.game).find((seat) => room.you.includes(seat)) ?? null
 	);
 }
+
+/**
+ * At a hot-seat table, the seat to fetch instead of taking a room as it is, or null to take it. The seat wanted is
+ * the lowest one being asked, or, while nobody is, the one already on show. A room for another seat (boot's public
+ * view, or a poll that still asked for the previous seat) is swapped rather than shown, so the screen never flips
+ * to another seat's view and back (#26 review).
+ * @param {{ mode: string, game: any, you: number[], viewing: number | null }} room - A room view
+ * @param {number | null} shown - The seat on show now
+ * @returns {number | null}
+ */
+export function seatToFetch(room, shown) {
+	if (room.mode !== 'hotseat') {
+		return null;
+	}
+	const wanted = seatToShow(room) ?? shown;
+	return wanted !== null && wanted !== room.viewing ? wanted : null;
+}

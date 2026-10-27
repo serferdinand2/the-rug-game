@@ -3,7 +3,7 @@ import { withSession } from './api.js';
 import { boot } from './boot.js';
 import { change } from './changes.js';
 import { validCode } from './lobby.js';
-import { seatToShow, sendMove } from './moves.js';
+import { seatToFetch, sendMove } from './moves.js';
 import { generateName } from './names.js';
 import { backoff, pollTable } from './poll.js';
 
@@ -57,6 +57,8 @@ class Store {
 	#wait;
 	/** Bumped whenever the tab leaves a screen, so the loops of the old one stop. */
 	#generation = 0;
+	/** @type {number | null} The seat on show at a hot-seat table, which the poll asks for (#26). */
+	#shownSeat = null;
 	/** @type {ReturnType<typeof setTimeout> | undefined} */
 	#toastTimer;
 
@@ -310,39 +312,37 @@ class Store {
 	 */
 	#accept(room) {
 		if (
-			!this.room ||
-			room.code !== this.room.code ||
-			room.version >= this.room.version
+			this.room &&
+			room.code === this.room.code &&
+			room.version < this.room.version
 		) {
-			this.room = room;
-			this.receivedAt = Date.now();
-			if (this.me) {
-				this.me = { ...this.me, code: room.code };
-			}
-			this.#followAskedSeat();
-		}
-	}
-
-	/**
-	 * At a hot-seat table, shows the seat being asked as soon as it changes, rather than at the next change (#26
-	 * design §10). The pass screen (#30) will ask before it shows a seat.
-	 */
-	#followAskedSeat() {
-		const wanted = this.room && seatToShow(this.room);
-		if (!wanted || wanted === this.room.viewing) {
 			return;
 		}
-		const code = this.room.code;
-		this.#api
-			.request(`state?seat=${wanted}`)
-			.then((room) => {
-				if (this.room?.code === code) {
-					this.#accept(room);
-				}
-			})
-			.catch(() => {
-				// The next poll tries again.
-			});
+		// At a hot-seat table a room for another seat is swapped for the one asked, not shown (#26 review).
+		const swap = seatToFetch(room, this.#shownSeat);
+		if (swap !== null) {
+			this.#shownSeat = swap;
+			const code = room.code;
+			this.#api
+				.request(`state?seat=${swap}`)
+				.then((next) => {
+					if (!this.room || this.room.code === code) {
+						this.#accept(next);
+					}
+				})
+				.catch(() => {
+					// The next poll asks for the seat again.
+				});
+			if (this.room) {
+				return;
+			}
+		}
+		this.room = room;
+		this.#shownSeat = room.viewing;
+		this.receivedAt = Date.now();
+		if (this.me) {
+			this.me = { ...this.me, code: room.code };
+		}
 	}
 
 	/** The seat whose view is on show: the person's own online, the asked one at a hot-seat table. */
@@ -399,6 +399,7 @@ class Store {
 	#openTable(room) {
 		const generation = ++this.#generation;
 		this.room = null;
+		this.#shownSeat = null;
 		this.#accept(room);
 		this.screen = 'table';
 		this.connection = '';
@@ -406,9 +407,7 @@ class Store {
 			request: this.#api.request,
 			version: () => this.room?.version ?? 0,
 			seat: () =>
-				this.room?.mode === 'hotseat'
-					? (this.room.viewing ?? null)
-					: null,
+				this.room?.mode === 'hotseat' ? this.#shownSeat : null,
 			accept: (next) => {
 				this.connection = '';
 				this.#accept(next);

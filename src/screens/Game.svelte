@@ -17,6 +17,7 @@
 </script>
 
 <script>
+	import { untrack } from 'svelte';
 	import BoardSwitcher from '../lib/components/board/BoardSwitcher.svelte';
 	import AchievementStrip from '../lib/components/board/AchievementStrip.svelte';
 	import TrackBoard from '../lib/components/board/TrackBoard.svelte';
@@ -133,12 +134,38 @@
 					)
 					.filter(
 						(/** @type {{ answer: any }} */ { answer }) =>
-							!isMapDecision ||
 							typeof answer.hex !== 'string' ||
 							answer.hex === mapPick
 					)
+					.sort(
+						(
+							/** @type {{ answer: any }} */ a,
+							/** @type {{ answer: any }} */ b
+						) =>
+							(a.answer.tile ?? 0) - (b.answer.tile ?? 0) ||
+							(a.answer.orient ?? 0) - (b.answer.orient ?? 0)
+					)
 			: []
 	);
+	/** The chosen payment, while it is still one of the selected advance's. */
+	let validPay = $derived(
+		chosenAdvance &&
+			payIndex !== null &&
+			payIndex < chosenAdvance.payments.length
+			? payIndex
+			: null
+	);
+
+	// The turn's own choices end with it, however it ends: a timeout, an undo, a refused move (#26 review).
+	let turnKey = $derived(turnDecision ? turnDecision.id : null);
+	$effect(() => {
+		turnKey;
+		if (!untrack(() => sending)) {
+			selected = null;
+			paying = false;
+			payIndex = null;
+		}
+	});
 
 	// A new decision starts with nothing chosen, and a map decision opens the map.
 	let decisionKey = $derived(mine ? `${mine.id}` : '');
@@ -151,7 +178,7 @@
 		}
 	});
 
-	// The turn clock: the viewer's own when they are asked, otherwise the one running.
+	// The turn clock: the running one, the viewer's own first; a paused one only when none runs (spec §4).
 	let now = $state(Date.now());
 	$effect(() => {
 		const timer = setInterval(() => {
@@ -160,8 +187,12 @@
 		return () => clearInterval(timer);
 	});
 	let clock = $derived(
-		room.clocks.find((/** @type {any} */ c) => c.seat === seat) ??
+		room.clocks.find(
+			(/** @type {any} */ c) => c.seat === seat && c.ends !== undefined
+		) ??
 			room.clocks.find((/** @type {any} */ c) => c.ends !== undefined) ??
+			room.clocks.find((/** @type {any} */ c) => c.seat === seat) ??
+			room.clocks[0] ??
 			null
 	);
 	let clockMs = $derived(
@@ -239,11 +270,11 @@
 		if (!option || !turnDecision || sending) {
 			return;
 		}
-		if (option.payments.length > 1 && payIndex === null) {
+		if (option.payments.length > 1 && validPay === null) {
 			paying = true;
 			return;
 		}
-		const pay = option.payments[payIndex ?? 0];
+		const pay = option.payments[validPay ?? 0];
 		sending = true;
 		if (turnDecision.kind === 'chooseTurn') {
 			const ok = await store.move({
@@ -382,11 +413,11 @@
 					title="How do you pay for {TRACKS[selected.track][
 						selected.space
 					].name}?"
-					status={payIndex === null
+					status={validPay === null
 						? 'Choose a payment to continue.'
-						: describePayment(chosenAdvance.payments[payIndex])}
+						: describePayment(chosenAdvance.payments[validPay])}
 					confirmLabel="Advance"
-					confirmDisabled={payIndex === null || sending}
+					confirmDisabled={validPay === null || sending}
 					cancelLabel="Cancel"
 					onDecisionPanelConfirm={advanceHandler}
 					onDecisionPanelCancel={() => {
@@ -398,7 +429,7 @@
 							<DecisionOption
 								label={describePayment(pay)}
 								symbols={paySymbols(pay)}
-								pressed={payIndex === index}
+								pressed={validPay === index}
 								onDecisionOptionClick={() =>
 									(payIndex = index)} />
 						{/each}
@@ -407,10 +438,12 @@
 			{:else if promptDecision}
 				<DecisionPanel
 					class={isMapDecision ? 'rg-game--map-prompt' : ''}
-					title={decisionTitle(promptDecision)}
+					title={decisionTitle(promptDecision, game)}
 					status={picked === null
 						? isMapDecision && !mapPick
-							? 'Choose a territory on the map.'
+							? promptAnswers.length
+								? 'Choose a territory on the map, or an answer here.'
+								: 'Choose a territory on the map.'
 							: 'Choose an answer to continue.'
 						: describeAnswer(
 								promptDecision,
@@ -418,8 +451,15 @@
 								game
 							)}
 					confirmDisabled={picked === null || sending}
-					onDecisionPanelConfirm={promptConfirmHandler}>
-					{#if !isMapDecision || mapPick}
+					cancelLabel={isMapDecision && mapPick
+						? 'Choose another territory'
+						: undefined}
+					onDecisionPanelConfirm={promptConfirmHandler}
+					onDecisionPanelCancel={() => {
+						mapPick = null;
+						picked = null;
+					}}>
+					{#if promptAnswers.length}
 						<div class="rg-game--options">
 							{#each promptAnswers as { answer, index } (index)}
 								<DecisionOption
@@ -510,7 +550,7 @@
 		<TurnBar
 			tone="neutral"
 			label="Your decision"
-			heading={decisionTitle(promptDecision)}
+			heading={decisionTitle(promptDecision, game)}
 			detail="Answer in the panel above." />
 	{:else if game.phase === 'setup'}
 		<TurnBar
@@ -604,10 +644,20 @@
 		color: var(--muted);
 	}
 
-	/* A map decision leaves the map clickable: no scrim, only the panel takes the pointer. */
+	/* A map decision leaves the map clickable: no scrim, only the panel takes the pointer, docked at the right
+	   beside the map rather than over its hexes (#26 review). */
 	.rg-game--shared :global(.rg-game--map-prompt) {
+		align-items: flex-end;
+		justify-content: flex-start;
+		padding-top: 70px;
 		background: transparent;
 		pointer-events: none;
+	}
+
+	.rg-game--shared :global(.rg-game--map-prompt .rg-decision-panel--panel) {
+		width: 340px;
+		min-width: 0;
+		max-height: calc(100% - var(--space-9));
 	}
 
 	.rg-game--shared :global(.rg-game--map-prompt > *) {
