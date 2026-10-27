@@ -151,46 +151,45 @@
 		<div class="rg-library-decision-stage rg-library-decision-stage--tall">
 			<DecisionPanel
 				title="Choose where to explore"
-				status="Hex 1,0, turned 3 times"
 				confirmLabel="Explore"
 				docked>
-				{@render explore(
-					tilesOf([6, 19, 33], [3, 4, 2]),
-					19,
-					'Hex 1,0, turned 3 times',
-					3
-				)}
+				{@render exploreTiles(tilesOf([6, 19, 33], [3, 4, 2]), 19)}
+				{#snippet pinned()}
+					{@render exploreChosen('Hex 1,0, turned 3 times', 3)}
+				{/snippet}
 			</DecisionPanel>
 		</div>
 	</Example>
 	<Example
-		label={'docked  (an explore with 11 tiles in a box 700px tall: Explore stays visible, the content scrolls)'}
+		label={'docked  (an explore with 11 tiles in a box 700px tall: the tiles scroll; what is chosen, the turn and Explore stay in sight)'}
 		wide
 		width={1100}>
 		<div class="rg-library-decision-stage rg-library-decision-stage--700">
 			<DecisionPanel
 				title="Choose where to explore"
-				status="Pick a tile, or a lit hex on the map."
 				confirmLabel="Explore"
 				confirmDisabled
 				docked>
-				{@render explore(
+				{@render exploreTiles(
 					tilesOf([1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41]),
-					null,
-					'Pick a tile, or a lit hex on the map.',
 					null
 				)}
+				{#snippet pinned()}
+					{@render exploreChosen(
+						'Pick a tile, or a lit hex on the map.',
+						null
+					)}
+				{/snippet}
 			</DecisionPanel>
 		</div>
 	</Example>
 </Section>
 
-<!-- The explore's content as the game screen draws it: the lead, the tile row, what is chosen and the turn control. -->
-{#snippet explore(
+<!-- The explore as the game screen draws it: the lead and the tile row scroll in the content, while what is chosen
+     and the turn control are pinned above the actions, with no status line. -->
+{#snippet exploreTiles(
 	/** @type {ReturnType<typeof tilesOf>} */ tiles,
-	/** @type {number | null} */ selected,
-	/** @type {string} */ chosen,
-	/** @type {number | null} */ vp
+	/** @type {number | null} */ selected
 )}
 	<div class="rg-library-explore">
 		<p class="rg-library-explore--lead">
@@ -201,7 +200,21 @@
 		<TilePicker
 			{tiles}
 			{selected} />
-		<p class="rg-library-explore--chosen">{chosen}</p>
+	</div>
+{/snippet}
+
+{#snippet exploreChosen(
+	/** @type {string} */ chosen,
+	/** @type {number | null} */ vp
+)}
+	<div class="rg-library-explore">
+		<p
+			class="rg-library-explore--chosen"
+			role="status">
+			{chosen}{#if vp !== null}<span class="rg-library-explore--spoken"
+					>, {vp} VP</span
+				>{/if}
+		</p>
 		<TurnControl {vp} />
 	</div>
 {/snippet}
@@ -253,6 +266,14 @@
 	.rg-library-explore--chosen {
 		color: var(--text);
 		font-size: var(--font-size-md);
+	}
+
+	.rg-library-explore--spoken {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
 	}
 
 	.rg-library-decision-options {

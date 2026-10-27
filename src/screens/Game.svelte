@@ -239,7 +239,7 @@
 		}
 		return scores;
 	});
-	/** What is chosen so far, in the panel and on its status line. */
+	/** What is chosen so far: the panel's one line naming the hex and turn (the status line stays empty). */
 	let exploreChosen = $derived(
 		mapPick && exploreTile !== null
 			? exploreLine(mapPick, exploreOrient)
@@ -684,10 +684,6 @@
 				tiles={exploreRow}
 				selected={exploreTile}
 				onTilePickerSelect={tilePickHandler} />
-			<p class="rg-game--chosen">{exploreChosen}</p>
-			<TurnControl
-				vp={exploreCurrent}
-				onTurnControlTurn={turnHandler} />
 		</div>
 	{/if}
 	{#if prompt?.cost}
@@ -708,6 +704,23 @@
 			{/each}
 		</div>
 	{/if}
+{/snippet}
+
+<!-- An explore's chosen hex and turn, and the control that turns the tile, kept in sight while the tiles scroll
+     (#74). The line is the one place that names them; it is announced with the VP the turn scores. -->
+{#snippet explorePinned()}
+	<div class="rg-game--explore">
+		<p
+			class="rg-game--chosen"
+			role="status">
+			{exploreChosen}{#if exploreCurrent !== null}<span
+					class="rg-game--spoken">, {exploreCurrent} VP</span
+				>{/if}
+		</p>
+		<TurnControl
+			vp={exploreCurrent}
+			onTurnControlTurn={turnHandler} />
+	</div>
 {/snippet}
 
 {#snippet cardShelf()}
@@ -852,13 +865,14 @@
 					steps={prompt.income ? incomeSteps : undefined}
 					shelf={shelfCards.length ? cardShelf : undefined}
 					status={exploring
-						? exploreChosen
+						? ''
 						: picked !== null
 							? (prompt.options[picked]?.label ?? '')
 							: prompt.instruction}
 					children={exploring || prompt.cost || panelOptions.length
 						? promptContent
 						: undefined}
+					pinned={exploring ? explorePinned : undefined}
 					confirmLabel={prompt.confirmLabel}
 					confirmDisabled={picked === null || sending}
 					cancelLabel={docked && mapPick && !exploring
@@ -1121,7 +1135,7 @@
 		overflow: auto;
 	}
 
-	/* The explore's content (#74): the lead, the tile row, what is chosen and the turn control, one under another. */
+	/* The explore's content (#74): the lead and the tile row, then (pinned) what is chosen and the turn control. */
 	.rg-game--explore {
 		display: grid;
 		gap: var(--space-6);
@@ -1149,6 +1163,15 @@
 	.rg-game--chosen {
 		color: var(--text);
 		font-size: var(--font-size-md);
+	}
+
+	/* Words for screen readers only. */
+	.rg-game--spoken {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
 	}
 
 	.rg-game--shared :global(.rg-game--cost) {
