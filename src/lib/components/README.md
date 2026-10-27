@@ -39,7 +39,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `Menu` | The header popover: entries as links or buttons, arrow keys and Escape. |
 | `Panel` | A chrome panel with a thin border and an optional heading. |
 | `ResourceIcon` | The five resource symbols at 16px, native 24px or native 48px, shared by prices, chips and footer costs. The native assets are 24×24 and 48×48; 16px display scales the 24px SVG. The 32px source is deprecated and archived. |
-| `Segmented` | A row of pressed/unpressed choices, single or multiple, tinted or filled. |
+| `Segmented` | A row of pressed/unpressed choices, single or multiple, tinted or filled, and disabled for a player who can't change them. |
 | `Tabs` | The right panel's tabs, with a count, roving focus and arrow keys. |
 | `TextInput` | Labelled text fields with a hint and a validation message, and the small gold read-only code. |
 | `Toast` | A short status message at the bottom of the screen. |
@@ -83,7 +83,7 @@ These components are updated as the art issues deliver their assets. Each will s
 |---|---|
 | `CivChooser` | Civilization tiles and Random, bordered in the edited player's colour. |
 | `OpenTableRow` | One open table on the launch page: Join, code, seat boxes, rules and expansion. |
-| `SeatCard` | A lobby seat: empty (Open seat), open (Take the seat!) or a joined player. Add bot is shelved. |
+| `SeatCard` | A lobby seat: empty (Open seat), open (Take the seat!), add (a name field for a hot-seat player) or a joined player, with or without the civilization line. Add bot is shelved. |
 | `SettingRow` | A setting's title, a thin rule and its choices on one line. |
 | `TableCode` | The read-only table code with COPY. |
 

@@ -1,4 +1,4 @@
-<!-- Library section: SeatCard as a joined player, an empty slot and an open seat, and a working row of five seats. -->
+<!-- Library section: SeatCard as a joined player, an empty slot, an open seat and a seat to name, and a working row of five seats. -->
 <script>
 	import SeatCard from '../../../lib/components/lobby/SeatCard.svelte';
 	import CivChooser from '../../../lib/components/lobby/CivChooser.svelte';
@@ -30,6 +30,9 @@
 	const SEAT_WIDTH = 222;
 
 	let ready = $state(false);
+	let added = $state('Bryndoria');
+	/** @type {string | null} */
+	let lastAdded = $state(null);
 
 	/** @type {DemoSeat[]} */
 	let seats = $state([
@@ -100,6 +103,13 @@
 	/**
 	 * @param {ComponentEvent} event
 	 */
+	const addHandler = (event) => {
+		lastAdded = event.value.name;
+	};
+
+	/**
+	 * @param {ComponentEvent} event
+	 */
 	const pickHandler = (event) => {
 		choose(event.value.civilization);
 	};
@@ -114,7 +124,7 @@
 <Section
 	name="SeatCard"
 	area="lobby"
-	description="One of the five lobby seats. Every state is exactly one seat tall and as wide as its column: an empty slot offers Open seat, an open seat asks to be taken, and a joined player shows the badges, name and civilization. The host's × appears on hover or keyboard focus.">
+	description="One of the five lobby seats. Every state is exactly one seat tall and as wide as its column: an empty slot offers Open seat, an open seat asks to be taken, a seat at a hot-seat table asks for a name, and a joined player shows the badges, name and civilization. The host's × appears on hover or keyboard focus.">
 	<Example
 		label={'state="player" seat={1} you host ready={false} canChooseCivilization'}
 		surface="chrome"
@@ -161,6 +171,30 @@
 			state="player"
 			seat={4}
 			name="Vera" />
+	</Example>
+	<Example
+		label={'state="player" seat={2} ready showCivilization={false}  (the lobby: civilizations are dealt at the start)'}
+		surface="chrome"
+		width={SEAT_WIDTH}>
+		<SeatCard
+			state="player"
+			seat={2}
+			name="Ana"
+			ready
+			showCivilization={false} />
+	</Example>
+	<Example
+		label={'state="add" seat={3}  (a hot-seat table: type a name, Add or Enter)'}
+		surface="chrome"
+		width={SEAT_WIDTH}>
+		<SeatCard
+			state="add"
+			seat={3}
+			bind:name={added}
+			onSeatCardAdd={addHandler} />
+		<p class="rg-library-seats--controls">
+			Added: {lastAdded === null ? 'nothing yet' : `"${lastAdded}"`}
+		</p>
 	</Example>
 	<Example
 		label={'state="empty" seat={3}'}

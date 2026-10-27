@@ -16,6 +16,7 @@
 	 * @property {boolean} [multiple=false] - Each choice toggles on its own, such as expansions
 	 * @property {'tinted' | 'filled'} [variant='tinted'] - tinted: lobby settings; filled: the mode switch, filled with colour and dark text
 	 * @property {string} label - Names the group for assistive technology, such as 'Rules'
+	 * @property {boolean} [disabled=false] - Shown but not choosable, such as a lobby setting only the host changes; give the group a title saying why
 	 * @property {Function} [onSegmentedChange] - Callback fired with the new value after a choice
 	 */
 
@@ -45,6 +46,7 @@
 		multiple = false,
 		variant = 'tinted',
 		label,
+		disabled = false,
 		onSegmentedChange,
 		...attr
 	} = $props();
@@ -89,6 +91,7 @@
 			class="rg-segmented--option"
 			class:rg-segmented--selected={isSelected(option.value)}
 			aria-pressed={isSelected(option.value)}
+			{disabled}
 			style:--rg-segmented-color={option.color ?? 'var(--gold)'}
 			onclick={(event) => optionClickHandler(event, option.value)}
 			>{option.label}</button>
@@ -115,7 +118,13 @@
 			color var(--duration-fast) var(--ease);
 	}
 
-	.rg-segmented--option:hover {
+	/* As Button's disabled look. */
+	.rg-segmented--option:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.rg-segmented--option:hover:not(:disabled) {
 		border-color: var(--rg-segmented-color);
 		color: var(--text);
 	}
