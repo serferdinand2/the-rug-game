@@ -167,6 +167,22 @@ const COLOURS = {
 	lilyPad: '#62b44f',
 	lilyPadShade: '#3f8a3e',
 	lilyFlower: '#f6a9c8',
+
+	// Polar ice: snow-lit, mid, shaded and deep glacier blues
+	iceLight: '#eef6fc',
+	ice: '#cfe1ef',
+	iceMid: '#a9c6de',
+	iceShade: '#7fa3c4',
+	iceDeep: '#4f7499',
+
+	// Netherworld: scorched rock, lava and embers
+	hellRockLight: '#6a3b4a',
+	hellRock: '#4a2636',
+	hellRockShade: '#321a28',
+	hellRockDeep: '#1d0f18',
+	lavaDeep: '#9c2230',
+	lava: '#e8452c',
+	ember: '#ff8a2e',
 };
 
 /**
