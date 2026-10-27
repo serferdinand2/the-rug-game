@@ -15,6 +15,7 @@ export { advances } from './decisions/choose-advance.js';
 export { DECISIONS } from './kinds.js';
 export { openDecisions } from './stack.js';
 export { controlledTerritories } from './control.js';
+export { turned } from './terrain.js';
 export { cityPlots, completeLines, completeDistricts } from './city.js';
 export {
 	askedSeats,

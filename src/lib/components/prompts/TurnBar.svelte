@@ -1,6 +1,6 @@
 <!-- The footer: the current decision or what another player is doing, its cost and actions, and the income reveal. -->
 <script module>
-	/** @typedef {'neutral' | 'selected' | 'optional' | 'waiting'} TurnBarTone */
+	/** @typedef {'neutral' | 'selected' | 'optional' | 'waiting' | 'income'} TurnBarTone */
 
 	/**
 	 * The income choice offered beside the turn label.
@@ -12,7 +12,7 @@
 	/**
 	 * Properties of the TurnBar component itself.
 	 * @typedef {Object} TurnBarOwnProps
-	 * @property {TurnBarTone} [tone='neutral'] - neutral: your turn, nothing chosen, income shown; selected: a space is chosen, income folds behind the turn label and opens on hover or focus; optional: an optional benefit tinted with the track, income unavailable; waiting: another player's turn, label and text only
+	 * @property {TurnBarTone} [tone='neutral'] - neutral: your turn, nothing chosen, income shown; selected: a space is chosen, income folds behind the turn label and opens on hover or focus; optional: an optional benefit tinted with the track, income unavailable; waiting: another player's turn, label and text only; income: the viewer's own income turn, a gold footer with no income button
 	 * @property {string} [label='Your turn'] - The turn label, such as 'Optional action' or 'Ana’s turn'
 	 * @property {string} [labelColor] - The label's colour as a token reference, such as 'var(--player-2)' for another player's turn; defaults to gold
 	 * @property {string} heading - The decision, such as 'Advance to'
@@ -75,9 +75,11 @@
 	} = $props();
 
 	let waiting = $derived(tone === 'waiting');
-	let showIncome = $derived(Boolean(income) && !waiting);
+	let showIncome = $derived(Boolean(income) && !waiting && tone !== 'income');
 	let showCost = $derived(!waiting && Boolean(cost?.length));
-	let showActions = $derived(!waiting && (showCost || Boolean(actions)));
+	let showActions = $derived(
+		!waiting && tone !== 'income' && (showCost || Boolean(actions))
+	);
 
 	/**
 	 * @param {import('../../component-event.js').ComponentEvent} event
@@ -179,6 +181,27 @@
 			var(--chrome)
 		);
 		box-shadow: inset 0 -3px 0 var(--rg-turn-bar-track);
+	}
+
+	/* The income turn is gold from edge to edge, as the mockup's .turnbar.income-turn. */
+	.rg-turn-bar--income {
+		border-top-color: var(--gold);
+		background: linear-gradient(
+			180deg,
+			var(--income-top) 0%,
+			var(--income-mid) 52%,
+			var(--income-bottom) 100%
+		);
+		box-shadow: inset 0 -3px var(--gold);
+	}
+
+	.rg-turn-bar--income .rg-turn-bar--label,
+	.rg-turn-bar--income .rg-turn-bar--heading {
+		color: var(--income-title);
+	}
+
+	.rg-turn-bar--income .rg-turn-bar--detail {
+		color: var(--income-soft);
 	}
 
 	.rg-turn-bar--copy {
