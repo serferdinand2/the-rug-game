@@ -144,36 +144,80 @@ test('an explore offers every tile, and places the one the player picks in the t
 		});
 		await expect(explore).toBeDisabled();
 
-		// A lit hex picks the lowest-numbered tile at its best turn.
-		const lit = page.locator('.rg-world-map--target').first();
-		const label = (await lit.getAttribute('aria-label')) ?? '';
-		const match = /^Hex (−?\d+,−?\d+):/.exec(label);
-		if (!match) {
-			throw new Error(`Unexpected hex label: ${label}`);
+		// Choose the hex and the tile from the view: the first lit hex where a tile other than the first scores below
+		// the best any tile reaches there; otherwise the first lit hex and the highest-numbered tile.
+		const targets = page.locator('.rg-world-map--target');
+		const names = (
+			await targets.evaluateAll((all) =>
+				all.map((hex) => hex.getAttribute('aria-label') ?? '')
+			)
+		).map((text) => {
+			const found = /^Hex (−?\d+,−?\d+):/.exec(text);
+			if (!found) {
+				throw new Error(`Unexpected hex label: ${text}`);
+			}
+			return found[1];
+		});
+		/** @type {number} */
+		let hexIndex = 0;
+		let chosen = Math.max(...tiles);
+		let better = false;
+		for (const [index, hexName] of names.entries()) {
+			const here = tileScores(game, op, hexKey(hexName));
+			const best = Math.max(...tiles.map((tile) => here[tile].vp));
+			const lower = tiles
+				.filter((tile) => tile !== tiles[0] && here[tile].vp < best)
+				.sort((x, y) => here[x].vp - here[y].vp || y - x);
+			if (lower.length > 0) {
+				hexIndex = index;
+				chosen = lower[0];
+				better = true;
+				break;
+			}
 		}
-		const hex = hexKey(match[1]);
-		await lit.click();
+		test.info().annotations.push({
+			type: 'choice',
+			description: better
+				? `hex ${names[hexIndex]}: tile ${chosen} scores below the best`
+				: `no hex has a lower-scoring tile; first hex, tile ${chosen}`,
+		});
+		const hex = hexKey(names[hexIndex]);
+		const scores = tileScores(game, op, hex);
+		expect(chosen).not.toBe(tiles[0]);
+		if (better) {
+			expect(scores[chosen].vp).toBeLessThan(
+				Math.max(...tiles.map((tile) => scores[tile].vp))
+			);
+		}
+
+		// A lit hex picks the lowest-numbered tile at its best turn.
+		await targets.nth(hexIndex).click();
 		await expect(page.getByTestId(`tile-${tiles[0]}`)).toHaveAttribute(
 			'aria-pressed',
 			'true'
 		);
 		await expect(explore).toBeEnabled();
-		// With a tile picked, the lit hex's label also says what the tile scores there.
-		await expect(lit).toHaveAttribute(
-			'aria-label',
-			/^Hex −?\d+,−?\d+: .*\. Up to \d+ VP\.$/
-		);
+		// With a tile picked, another lit hex's label says what that tile best scores there.
+		/** @param {number} tile */
+		const checkOtherLabel = async (tile) => {
+			const other = names.findIndex((_, index) => index !== hexIndex);
+			if (other < 0) {
+				return;
+			}
+			const vp = tileScores(game, op, hexKey(names[other]))[tile].vp;
+			await expect(targets.nth(other)).toHaveAttribute(
+				'aria-label',
+				`Hex ${names[other]}: unexplored. Up to ${vp} VP.`
+			);
+		};
+		await checkOtherLabel(tiles[0]);
 
-		// Pick the tile that scores least on this hex (ties: the highest number), and turn it one step.
-		const scores = tileScores(game, op, hex);
-		const chosen = [...tiles].sort(
-			(a, b) => scores[a].vp - scores[b].vp || b - a
-		)[0];
 		await page.getByTestId(`tile-${chosen}`).click();
 		await expect(page.getByTestId(`tile-${chosen}`)).toHaveAttribute(
 			'aria-pressed',
 			'true'
 		);
+		await checkOtherLabel(chosen);
 		await page.keyboard.press('r');
 		await explore.click();
 
