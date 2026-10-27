@@ -9,7 +9,7 @@
 	 * @property {boolean} [confirmDisabled=false] - Nothing valid is chosen yet
 	 * @property {import('../../ui.js').TrackId | null} [track=null] - The track that tints the bottom bar and border, as the mockup's --track
 	 * @property {'default' | 'income'} [tone='default'] - income: the title, border and step strip in gold, for the viewer's income turn
-	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right, for a choice on the map; its content scrolls, so the title and Confirm stay in sight
+	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right, for a choice on the map; its content scrolls, so the title and Confirm stay in sight. It is --docked-panel-width wide and --docked-panel-inset in from the right, for the board beside it to keep free
 	 * @property {import('svelte').Snippet} [steps] - The income steps, between the title and the content
 	 * @property {string} [cancelLabel] - Shows a cancel button with this text, such as 'Cancel'; left out, there is none
 	 * @property {import('svelte').Snippet} [children] - The content: the instruction and the choices; left out, the panel has no content area and its status line carries the instruction, leaving more room for a shelf
@@ -305,11 +305,14 @@
 	}
 
 	/* A choice on the map leaves the board clickable: no scrim, only the panel takes the pointer, docked at the
-	   right beside the map rather than over its hexes (#26 review). What is chosen gets its own line. */
+	   right beside the map rather than over its hexes (#26 review). What is chosen gets its own line. The panel is
+	   --docked-panel-width wide and --docked-panel-inset in from the right, so a board can keep both free and lay the
+	   map out beside it (#74). */
 	.rg-decision-panel--docked {
 		align-items: flex-end;
 		justify-content: flex-start;
 		padding-top: 70px;
+		padding-right: var(--docked-panel-inset);
 		background: transparent;
 		pointer-events: none;
 	}
@@ -323,7 +326,7 @@
 	.rg-decision-panel--docked .rg-decision-panel--panel {
 		display: flex;
 		flex-direction: column;
-		width: 340px;
+		width: var(--docked-panel-width);
 		min-width: 0;
 		max-height: calc(100% - var(--space-9));
 	}

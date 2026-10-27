@@ -125,6 +125,13 @@
 		outline: var(--border-thick) solid var(--gold);
 	}
 
+	/* Focus on the picked tile: its solid ring hugging the border turns dashed and stands off, so focus reads apart
+	   from the pick. */
+	.rg-tile-picker--tile[aria-pressed='true']:focus-visible {
+		outline-style: dashed;
+		outline-offset: var(--focus-offset);
+	}
+
 	.rg-tile-picker--vp {
 		position: absolute;
 		top: calc(var(--border) * -1);

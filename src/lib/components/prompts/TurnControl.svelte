@@ -80,7 +80,7 @@
 		background: color-mix(in srgb, var(--raised) 70%, transparent);
 		color: var(--text);
 		font-size: var(--font-size-xl);
-		line-height: 1;
+		line-height: var(--leading-none);
 	}
 
 	.rg-turn-control--button:hover:not(:disabled),
@@ -102,7 +102,7 @@
 
 	.rg-turn-control--tag-muted {
 		color: var(--muted);
-		font-weight: normal;
+		font-weight: var(--weight-regular);
 	}
 
 	.rg-turn-control--hint {

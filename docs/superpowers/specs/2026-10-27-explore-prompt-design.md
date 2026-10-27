@@ -20,7 +20,7 @@ The owner's own game, in their words: "I clicked where I wanted to place a tile 
 
 The owner compared two clickable mockups of a real game and chose **A, tiles in the panel** (owner): everything to decide sits in the docked panel beside the map. B (tiles in a tray under the map, turn arrows on the hex) was rejected; its tray would cover lit hexes at the bottom of the map.
 
-The docked panel (`DecisionPanel docked`, 340px, as today) holds, top to bottom:
+The docked panel (`DecisionPanel docked`, 340px as today, now the token `--docked-panel-width`) holds, top to bottom:
 
 1. The title, "Choose where to explore", as today.
 2. A lead line: "Pick one of your tiles and a lit hex, then turn the tile until you like it."
@@ -34,20 +34,22 @@ The mockup is kept at `.superpowers/brainstorm/` (ignored); the screenshots the 
 ## 4. Behaviour
 
 - **Start.** Nothing is picked: no tile, no hex, no preview. The lit hexes are the decision's hexes, as today.
-- **Tile first.** Picking a tile puts that tile's best VP on each lit hex, as a "+N VP" tag at the hex's top.
+- **Tile first.** Picking a tile puts that tile's best VP on each lit hex, as a "+N VP" tag at the hex's top. The tag's text is 11 map units, so it stays 10px or more down to 1366×768 on the 61-hex map, in a 36×14 box inside the hex's top edge **(my call)**.
 - **Hex first.** Picking a hex with no tile picked picks the first tile the decision offers (lowest tile number, the engine's hand order) at its best turn there, so the map shows a preview at once **(owner, from the issue)**. Each tile picture then carries its own best VP on that hex as a small tag in its corner.
 - **The best turn.** The turn with the highest VP for that tile on that hex; on a tie, the lowest turn **(my call)**.
 - **Switching.** Picking another tile keeps the hex and moves to the new tile's best turn there. Picking another hex keeps the tile and moves to its best turn there **(my call)**. Clicking the picked tile again does nothing; there is no way back to "no tile" except the turn being sent or the decision closing **(my call)**.
-- **Turning.** ↻ and R go to the next turn, ↺ and Shift+R to the one before, wrapping through all 6. The preview on the hex, the chosen line, the VP tag in the panel and the chosen hex's tag follow the current turn; the other hexes keep the tile's best. R and Shift+R work from anywhere on the page while a tile and hex are chosen, except while typing in a text field.
+- **Turning.** ↻ and R go to the next turn, ↺ and Shift+R to the one before, wrapping through all 6. The preview on the hex, the chosen line, the VP tag in the panel and the chosen hex's tag follow the current turn; the other hexes keep the tile's best. R and Shift+R work from anywhere on the page while a tile and hex are chosen, except while typing in a text field, with Ctrl, Alt or Cmd held, or while the players overview, Table settings or How to play is open over the board. Holding R down turns the tile on with the key's repeat **(my call)**.
 - **The preview.** The picked tile on the picked hex, through `WorldMap`'s existing `preview` (85% opacity, gold outline).
-- **Confirm** sends the matching answer. The chosen tile, hex and turn always match exactly one answer, because the engine offers all 6 turns of every held tile on every lit hex.
+- **Confirm** sends the matching answer. The chosen tile, hex and turn always match exactly one answer, because the engine offers all 6 turns of every held tile on every lit hex. While it is being sent, the tiles, the lit hexes and R change nothing, so the preview never shows a choice that wasn't sent **(my call)**.
+- **Beside the map.** While the panel is docked, the board leaves the panel's width and its inset from the right free (`--docked-panel-width`, `--docked-panel-inset`), so the map lays itself out beside the panel and no hex, lit or not, lies under it. Before this, the final review measured up to 7 hex centres under the panel on the 61-hex map at 1440×900; the owner had rejected layout B because it covered lit hexes. A docked conquer and a Nomads placement keep beside the map the same way **(my call)**.
 - **No cancel button.** Today's "Choose another territory" goes: another hex is one click away **(my call)**.
 - **One tile, or Coal Baron.** When the decision offers a single tile, it is picked from the start and the row shows it alone, so the player sees what they are placing **(my call; the issue says the step is skipped)**.
 - **The Terrain tab.** While the viewer's explore is open, the territory tiles in hand that the decision offers become toggle buttons there too, pressed when picked; picking one is the same as picking it in the panel **(owner, from the issue)**. Space tiles there stay plain.
 - **Island tiles.** Tiles 5, 7, 16, 17, 26, 28, 40 and 41 are sea on every side with a one-terrain island, so their 6 turns look and score the same. ↻ still steps through all 6, because each is a legal answer and every answer stays reachable **(my call)**.
 - **Many tiles.** Random games offered up to 11 tiles in one explore (4 to 6 is usual). The row wraps, and Explore stays visible however many rows there are **(my call)**.
 - **Tile numbers.** The pictures are `TerritoryTile`'s, which print the tile's small number, as the Terrain tab does **(my call)**; the owner sees them in the library before #74 closes.
-- **Words.** A tile's accessible name gives its terrains, not its number, and its best VP on the chosen hex when there is one, such as "Territory tile: sea, mountain and desert, up to 3 VP on this hex". The status line beside the actions reads like the chosen line.
+- **Words.** A tile's accessible name gives its terrains, not its number, and its best VP on the chosen hex when there is one, such as "Territory tile: sea, mountain and desert, up to 3 VP on this hex". A lit hex's accessible name adds the picked tile's best VP there, such as "Hex −1,−1: unexplored. Up to 3 VP."; the chosen hex, where the tile lies in the turn chosen, gives that turn's VP without "up to", such as "Hex −1,−1: unexplored. Showing the chosen tile. 2 VP." **(my call)**.
+- **No status line.** An explore leaves the panel's status line out. The chosen line is the one place that names what is chosen: a live region that reads the hex, the turn and the VP once, such as "Hex −1,−1, turned once, 3 VP", pinned with the turn control above Explore while the lead and the tiles scroll above them. The owner's layout A had no repeated line, and #71 shows that repeated text irritates **(my call)**.
 
 ## 5. The pieces
 

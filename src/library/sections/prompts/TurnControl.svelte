@@ -6,7 +6,11 @@
 
 	/** @typedef {import('../../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
-	let turns = $state(0);
+	/** What the example tile scores in each of its 6 turns. */
+	const VP = [2, 0, 1, 3, 1, 0];
+
+	/** The example tile's turn, 0-5, wrapping as the game's does. */
+	let turn = $state(0);
 </script>
 
 <Section
@@ -14,26 +18,26 @@
 	area="prompts"
 	description="Turns the picked tile back (↺) or forward (↻) on the chosen hex, with a gold VP tag between the arrows and the hint that R turns it. Both buttons are disabled, and the tag reads 'No hex yet', until a hex is chosen.">
 	<Example
-		label="vp={null}  (disabled)"
+		label={'vp={null}  (disabled)'}
 		surface="chrome">
 		<TurnControl vp={null} />
 	</Example>
 	<Example
-		label="vp={3}"
+		label={'vp={3}'}
 		surface="chrome">
 		<TurnControl vp={3} />
 	</Example>
 	<Example
-		label="vp={0}"
+		label={'vp={0}'}
 		surface="chrome">
 		<TurnControl vp={0} />
 	</Example>
 	<Example
-		label={`turns = ${turns}  (press the arrows)`}
+		label={`turn = ${turn}, vp={${VP[turn]}}  (press the arrows: 6 turns, each with its own VP)`}
 		surface="chrome">
 		<TurnControl
-			vp={turns}
+			vp={VP[turn]}
 			onTurnControlTurn={(/** @type {ComponentEvent} */ event) =>
-				(turns += event.value.step)} />
+				(turn = (turn + event.value.step + 6) % 6)} />
 	</Example>
 </Section>

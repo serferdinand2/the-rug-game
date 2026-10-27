@@ -131,6 +131,9 @@
 	--track-tip: 16px; /* the arrow tip of a track space and the inlet of the next one */
 	--progress-line: 3px; /* player progress lines and tier price lines */
 	--progress-lane: 8px; /* distance between two progress lines */
+	--docked-panel-width: 340px; /* a decision panel docked beside the World Map (#74) */
+	/* A docked panel's distance from the shared area's right edge: the area's right padding, so the panel ends where the map would. */
+	--docked-panel-inset: var(--space-9);
 
 	/* ---------- Borders and corners ---------- */
 	--border: 1px;

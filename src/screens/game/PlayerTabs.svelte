@@ -22,7 +22,7 @@
 	 * @property {{ plots: { row: number, col: number }[], landmarks: string[] }} [fresh] - What the viewer just built (#29): the plots glow and the landmarks shine on the Capital tab
 	 * @property {Function} [onPlayerTabsPlace] - Callback fired with { index, confirm }: index is the option a building or landmark landed on, or null when the landmark went back to the tray; confirm is true when the landmark's own confirm control was pressed
 	 * @property {{ tiles: number[], selected: number | null } | null} [tilePick=null] - While the viewer explores (#74): the territory tiles on offer, and the one picked, so In hand tiles can be picked here too
-	 * @property {Function} [onPlayerTabsTile] - Callback fired with { tile } when an offered territory tile is pressed
+	 * @property {Function} [onPlayerTabsPick] - Callback fired with { tile } when an offered territory tile is pressed
 	 */
 
 	/**
@@ -85,7 +85,7 @@
 		fresh = { plots: [], landmarks: [] },
 		onPlayerTabsPlace,
 		tilePick = null,
-		onPlayerTabsTile,
+		onPlayerTabsPick,
 		...attr
 	} = $props();
 
@@ -102,8 +102,8 @@
 	 * @param {MouseEvent} event
 	 */
 	const tileHandler = (tile, event) => {
-		if (typeof onPlayerTabsTile === 'function') {
-			onPlayerTabsTile(
+		if (typeof onPlayerTabsPick === 'function') {
+			onPlayerTabsPick(
 				new ComponentEvent(
 					{ tile },
 					/** @type {HTMLElement} */ (event.currentTarget),
@@ -773,6 +773,12 @@
 		border-color: var(--gold);
 		background: color-mix(in srgb, var(--gold) 17%, var(--surface));
 		outline: var(--border-thick) solid var(--gold);
+	}
+
+	/* Focus on the picked tile: its solid ring turns dashed and stands off, so focus reads apart from the pick. */
+	.rg-player-tabs--pick[aria-pressed='true']:focus-visible {
+		outline-style: dashed;
+		outline-offset: var(--focus-offset);
 	}
 
 	.rg-player-tabs--space {

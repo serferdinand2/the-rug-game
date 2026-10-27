@@ -508,10 +508,11 @@
 
 	/**
 	 * A lit hex chosen. An explore keeps its tile, or takes the first one offered, at its best turn there (#74).
+	 * Nothing changes while a move is being sent.
 	 * @param {ComponentEvent} event
 	 */
 	const mapSelectHandler = (event) => {
-		if (event.value.hex === mapPick) {
+		if (sending || event.value.hex === mapPick) {
 			return;
 		}
 		mapPick = event.value.hex;
@@ -529,12 +530,13 @@
 	};
 
 	/**
-	 * A tile chosen for the explore: on a chosen hex it goes to its best turn there. The picked tile again does nothing.
+	 * A tile chosen for the explore: on a chosen hex it goes to its best turn there. The picked tile again does nothing,
+	 * and nothing changes while the explore is being sent.
 	 * @param {ComponentEvent} event
 	 */
 	const tilePickHandler = (event) => {
 		const tile = event.value.tile;
-		if (tile === exploreTile || !offeredTiles.includes(tile)) {
+		if (sending || tile === exploreTile || !offeredTiles.includes(tile)) {
 			return;
 		}
 		exploreTile = tile;
@@ -545,11 +547,11 @@
 	};
 
 	/**
-	 * Turns the explore's tile one step: 1 forward, -1 back, through all 6 turns.
+	 * Turns the explore's tile one step: 1 forward, -1 back, through all 6 turns; not while the explore is being sent.
 	 * @param {number} step
 	 */
 	function turnTile(step) {
-		if (!exploring || exploreTile === null || !mapPick) {
+		if (sending || !exploring || exploreTile === null || !mapPick) {
 			return;
 		}
 		exploreOrient = (exploreOrient + step + 6) % 6;
@@ -806,7 +808,9 @@
 				<BoardSwitcher bind:value={board} />
 				<AchievementStrip achievements={achievements(game)} />
 			</div>
-			<div class="rg-game--board">
+			<div
+				class="rg-game--board"
+				class:rg-game--board-docked={docked}>
 				{#if board === 'tracks'}
 					<TrackBoard
 						tracks={trackBoard(game)}
@@ -914,7 +918,7 @@
 					tilePick={exploring
 						? { tiles: offeredTiles, selected: exploreTile }
 						: null}
-					onPlayerTabsTile={tilePickHandler}
+					onPlayerTabsPick={tilePickHandler}
 					onPlayerTabsInspect={(
 						/** @type {ComponentEvent} */ event
 					) => (inspected = event.value)} />
@@ -1086,6 +1090,14 @@
 	.rg-game--board {
 		flex: 1;
 		min-height: 0;
+	}
+
+	/* While a panel is docked at the right, the board leaves the panel's width and inset free, so the map lays itself
+	   out beside the panel, this area's right padding apart, and no hex lies under it (#74). */
+	.rg-game--board-docked {
+		margin-right: calc(
+			var(--docked-panel-width) + var(--docked-panel-inset)
+		);
 	}
 
 	/* The column, not its widest content, sets the width, so the tabs, capital and counters fit inside it (#64). */
