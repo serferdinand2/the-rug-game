@@ -87,7 +87,7 @@ export function exploreTile(ctx, player, { tile, hex, orient }) {
 			source: { hex },
 		});
 	} else {
-		vp(ctx, player, score, /** @type {any} */ ({}));
+		vp(ctx, player, score, /** @type {any} */ ({ source: { hex } }));
 		ops.push({
 			player,
 			kind: 'effects',
@@ -113,7 +113,8 @@ export function explore(ctx, player, value, op) {
 			opponents(state, player).length > 0
 		) {
 			ctx.push([
-				{ player, kind: 'chooseGift' },
+				// The gift's VP is Age of Sail's (#29).
+				{ player, kind: 'chooseGift', origin: 'tapestry' },
 				{
 					player,
 					kind: 'effects',

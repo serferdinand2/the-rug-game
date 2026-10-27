@@ -6,6 +6,7 @@ import { validCode } from './lobby.js';
 import { seatToFetch, sendMove } from './moves.js';
 import { generateName } from './names.js';
 import { backoff, pollTable } from './poll.js';
+import { freshEvents } from './event-feed.js';
 
 /** How often the landing page asks for the open tables again. */
 const TABLES_EVERY_MS = 10_000;
@@ -49,6 +50,10 @@ class Store {
 	receivedAt = $state(0);
 	sound = $state(false);
 	busy = $state(false);
+	/** @type {any[]} The events that arrived with the latest room view, for sound, motion and the log's dot; none after a refresh (#29) */
+	fresh = $state.raw([]);
+	/** Counts the batches of fresh events, so a screen reacts to each once. */
+	freshCount = $state(0);
 
 	#api;
 	#random;
@@ -337,11 +342,33 @@ class Store {
 				return;
 			}
 		}
+		const fresh = freshEvents(this.room, room);
 		this.room = room;
 		this.#shownSeat = room.viewing;
 		this.receivedAt = Date.now();
+		if (fresh.length > 0) {
+			this.fresh = fresh;
+			this.freshCount += 1;
+			this.#notices(fresh, room);
+		}
 		if (this.me) {
 			this.me = { ...this.me, code: room.code };
+		}
+	}
+
+	/**
+	 * Toasts for fresh events a player should not miss: a turn the server played on (#24).
+	 * @param {any[]} events
+	 * @param {any} room
+	 */
+	#notices(events, room) {
+		const timedOut = events.findLast((event) => event.type === 'timedOut');
+		if (timedOut) {
+			const name =
+				room.game?.seats?.[timedOut.player - 1]?.name ?? 'A player';
+			this.notify(
+				`${name} ran out of time. The rest of the turn was played for them.`
+			);
 		}
 	}
 

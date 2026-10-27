@@ -7,6 +7,7 @@
 	 * @property {string[]} [targets=[]] - Hex keys a decision can choose; each becomes a button and the other hexes dim
 	 * @property {string | null} [selected=null] - The chosen hex, outlined in gold
 	 * @property {{ hex: string, corners: import('../../ui.js').Terrain[], island: import('../../ui.js').Terrain[], clouds?: boolean, volcano?: boolean } | null} [preview=null] - A tile to show on a hex before it is explored: drawn like an explored hex, with its clouds or volcano, at 85% opacity with a gold outline
+	 * @property {string[]} [fresh=[]] - Hexes that just changed (#29): a gold outline pulses on each twice, unless the system asks for reduced motion
 	 * @property {string} [label='World map'] - Names the map for assistive technology
 	 * @property {Function} [onWorldMapSelect] - Callback fired with { hex } when the player chooses a target hex
 	 */
@@ -54,6 +55,7 @@
 		targets = [],
 		selected = null,
 		preview = null,
+		fresh = [],
 		label = 'World map',
 		onWorldMapSelect,
 		...attr
@@ -144,7 +146,8 @@
 				hex.target ||
 				hex.previewed ||
 				hex.key === selected ||
-				hex.key === focused
+				hex.key === focused ||
+				fresh.includes(hex.key)
 		)
 	);
 
@@ -382,6 +385,9 @@
 			class:rg-world-map--outline-preview={hex.previewed}
 			class:rg-world-map--outline-focus={hex.key === focused}
 			class:rg-world-map--outline-selected={hex.key === selected}
+			class:rg-world-map--outline-fresh={fresh.includes(hex.key) &&
+				!hex.target &&
+				hex.key !== selected}
 			points={hex.outline} />
 	{/each}
 </svg>
@@ -498,5 +504,29 @@
 		stroke: var(--gold);
 		stroke-width: 3.5;
 		stroke-dasharray: none;
+	}
+
+	/* A hex that just changed pulses gold twice, then fades (#29). */
+	.rg-world-map--outline-fresh {
+		stroke: var(--gold);
+		stroke-width: 3.5;
+		stroke-opacity: 0;
+		animation: rg-world-map-fresh 0.9s var(--ease-out) 2;
+	}
+
+	@keyframes rg-world-map-fresh {
+		30% {
+			stroke-opacity: 1;
+		}
+
+		100% {
+			stroke-opacity: 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-world-map--outline-fresh {
+			animation: none;
+		}
 	}
 </style>

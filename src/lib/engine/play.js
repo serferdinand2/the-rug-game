@@ -47,7 +47,11 @@ export function play(state, seat, action, random) {
 	const kind = DECISIONS[here.op.kind];
 	kind.check(clone, here.op, answer);
 	here.stack.splice(here.stack.indexOf(here.op), 1);
-	kind.resolve(contextFor(clone, random, here.stack), here.op, answer);
+	kind.resolve(
+		contextFor(clone, random, here.stack, here.op),
+		here.op,
+		answer
+	);
 	run(clone, random);
 	return clone;
 }

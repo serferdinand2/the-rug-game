@@ -1,6 +1,7 @@
 // The vp effect: victory points gained now, either a number or so many per thing counted.
 import { emit } from '../events.js';
 import { playerSeat, seatOf } from '../state.js';
+import { sourceOrigin } from '../stack.js';
 import { controlledTerritories } from '../control.js';
 import { spacesAdvanced } from '../movement.js';
 import { BUILDING_IDS, TRACK_IDS } from '../data/ids.js';
@@ -89,16 +90,30 @@ export function countVp(state, player, per, track) {
 }
 
 /**
- * Adds victory points to a seat (any kind, since bots gain them too).
+ * Adds victory points to a seat (any kind, since bots gain them too), credited in `vpSources` to the operation's
+ * VP source (#29 design §2): its `origin`, else what its `source` names, else other.
  * @type {import('../state.js').EffectHandler}
  */
-export function vp(ctx, player, value) {
+export function vp(ctx, player, value, op) {
 	const amount =
 		typeof value === 'number'
 			? value
 			: countVp(ctx.state, player, value.per, value.track) *
 				(value.each ?? 1);
 	const seat = seatOf(ctx.state, player);
+	/** @type {import('../stack.js').VpSource} */
+	const source = op?.origin ?? sourceOrigin(op?.source) ?? 'other';
 	seat.vp += amount;
-	emit(ctx.state, { type: 'vpGained', player, vp: amount, total: seat.vp });
+	if (amount !== 0) {
+		// A seat made without sources (a bot's, #31) starts them here.
+		seat.vpSources ??= {};
+		seat.vpSources[source] = (seat.vpSources[source] ?? 0) + amount;
+	}
+	emit(ctx.state, {
+		type: 'vpGained',
+		player,
+		vp: amount,
+		total: seat.vp,
+		source,
+	});
 }

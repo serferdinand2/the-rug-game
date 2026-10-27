@@ -95,6 +95,6 @@ export const chooseConversion = {
 			resources,
 			vp: VP_EACH * total,
 		});
-		vp(ctx, player, VP_EACH * total, /** @type {any} */ ({}));
+		vp(ctx, player, VP_EACH * total, decision);
 	},
 };

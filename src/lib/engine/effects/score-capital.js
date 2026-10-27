@@ -15,5 +15,5 @@ export function scoreCapital(ctx, player, value, op) {
 	const { rows, columns } = completeLines(cityPlots(seat));
 	const uniform = seat.civs.includes('architects') ? uniformLines(seat) : 0;
 	emit(ctx.state, { type: 'capitalScored', player, rows, columns, uniform });
-	vp(ctx, player, rows + columns + uniform, op);
+	vp(ctx, player, rows + columns + uniform, { ...op, origin: 'capital' });
 }

@@ -277,6 +277,8 @@ export function pay(ctx, player, payment) {
 	}
 	if (payment.vp) {
 		seat.vp -= payment.vp;
+		seat.vpSources ??= {};
+		seat.vpSources.paid = (seat.vpSources.paid ?? 0) - payment.vp;
 		emit(state, { type: 'vpPaid', player, vp: payment.vp, total: seat.vp });
 	}
 	const tiles = payment.territory ?? [];

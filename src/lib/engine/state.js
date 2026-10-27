@@ -33,6 +33,7 @@
  * @property {'player' | 'automa' | 'shadow'} kind
  * @property {string} name
  * @property {number} vp
+ * @property {Partial<Record<import('./stack.js').VpSource, number>>} vpSources - VP by where it came from; adds up to vp (#29)
  * @property {Record<TrackId, number[]>} tracks - Token spaces per track, [0] at the start
  * @property {TrackId[]} restartedTracks - Tracks whose token AI Singularity took off space 12; each still counts as complete, 12 spaces advanced (FAQ #9)
  * @property {number} outposts - In supply
@@ -68,7 +69,7 @@
  * @property {string[]} civDiscard - Civilizations discarded mid-game (Mystics), face up; the newest last
  * @property {number[]} capitals - Mats nobody holds, face up
  */
-/** @typedef {{ id: number, batch: number, player: number | null, kind: string } & Record<string, any>} Operation */
+/** @typedef {{ id: number, batch: number, player: number | null, kind: string } & Record<string, any>} Operation - `origin`, when set, is where its VP counts (#29) */
 /** @typedef {{ player: number | null, kind: string } & Record<string, any>} NewOperation */
 /** @typedef {{ player: number, stack: Operation[] }} Lane */
 /** @typedef {{ player: number, ops: NewOperation[] }} NewLane */

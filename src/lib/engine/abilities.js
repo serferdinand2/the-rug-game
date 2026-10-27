@@ -106,7 +106,11 @@ export function triggered(state, hook, payload) {
 			if (!Object.hasOwn(hooks, hook)) {
 				return [];
 			}
-			const ops = hooks[hook](state, owner, payload);
+			// A civilization's VP counts as the civilization's, a THIS ERA ability's as the tapestry's (#29).
+			const ops = hooks[hook](state, owner, payload).map((op) => ({
+				...op,
+				origin: op.origin ?? (passive ? 'civ' : 'tapestry'),
+			}));
 			return passive ? ops.map((op) => ({ ...op, passive: true })) : ops;
 		})
 	);

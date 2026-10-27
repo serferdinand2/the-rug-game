@@ -96,11 +96,22 @@ function incomeStep(ctx, player, turn) {
 		);
 	const coins = icons('coin');
 	if (hasEra(state, player, 'capitalism') && coins > 0) {
-		ops.push({ player, kind: 'effects', effects: [{ vp: 2 * coins }] });
+		// Capitalism's VP is the tapestry card's, though it comes with the income (#29).
+		ops.push({
+			player,
+			kind: 'effects',
+			effects: [{ vp: 2 * coins }],
+			origin: 'tapestry',
+		});
 	}
 	const food = icons('food');
 	if (hasEra(state, player, 'mercantilism') && food > 0) {
-		ops.push({ player, kind: 'chooseConversion', max: food });
+		ops.push({
+			player,
+			kind: 'chooseConversion',
+			max: food,
+			origin: 'tapestry',
+		});
 	}
 	ctx.push(ops);
 }
@@ -199,7 +210,7 @@ export const INCOME_STEP_KINDS = {
 	civAbilities: {
 		turns: [2, 3, 4, 5],
 		run(ctx, player, turn) {
-			ctx.push([{ player, kind: 'civAbilities', turn }]);
+			ctx.push([{ player, kind: 'civAbilities', turn, origin: 'civ' }]);
 		},
 	},
 	// Step 2: the first-of-neighbours bonus and the era's tapestry card.
@@ -264,7 +275,8 @@ export function startIncomeTurn(ctx, player) {
 	const steps = INCOME_STEPS.filter((id) =>
 		INCOME_STEP_KINDS[id].turns.includes(turn)
 	);
-	ctx.push([{ player, kind: 'incomeSteps', turn, steps }]);
+	// Whatever an income turn scores counts as the income turn's, unless it names its own source (#29).
+	ctx.push([{ player, kind: 'incomeSteps', turn, steps, origin: 'income' }]);
 }
 
 /**

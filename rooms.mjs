@@ -76,6 +76,7 @@ import {
  * @property {string} host - The id of the person who hosts; they always hold a seat
  * @property {RoomSeat[]} seats
  * @property {State | null} game
+ * @property {number} deal - Deals so far: 0 before the first, then 1 more at each start (#29)
  * @property {Record<number, Clock>} clocks - By game seat; empty unless a game is running with the timer on
  * @property {Decline[]} declines - Never shown: a screen that saw one would know the defender holds no trap
  * @property {Step[]} history - The undo history, newest last; never shown
@@ -302,6 +303,7 @@ export function createRoom(code, person, options, now) {
 		host: person.id,
 		seats: [{ player: person.id, name }],
 		game: null,
+		deal: 0,
 		clocks: {},
 		declines: [],
 		history: [],
@@ -609,6 +611,8 @@ export function start(room, personId, random) {
 		...room,
 		seats,
 		game,
+		// Each deal numbers its events from 1 again, so the client tells deals apart by this (#29 design §3).
+		deal: (room.deal ?? 0) + 1,
 		clocks: {},
 		declines: [],
 		history: [],
@@ -1128,6 +1132,7 @@ export function roomView(room, personId, seat) {
 		})),
 		you,
 		viewing,
+		deal: room.deal ?? 0,
 		game: room.game ? view(room.game, viewing) : null,
 		// A clock's scope is the server's own bookkeeping: screens need only when it ends and whether it ran out.
 		clocks: Object.entries(room.clocks).map(([seat, clock]) => ({

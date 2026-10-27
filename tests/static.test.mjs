@@ -108,6 +108,22 @@ test('serves the favicon and fonts with long caching', async () => {
 	}
 });
 
+test('serves the sound cues as Ogg audio, kept for a week (#29)', async () => {
+	for (const name of [
+		'select_001',
+		'click_001',
+		'drop_001',
+		'confirmation_001',
+		'confirmation_004',
+	]) {
+		const cue = await get(`/audio/${name}.ogg`);
+		assert.equal(cue.status, 200, name);
+		assert.equal(cue.headers['content-type'], 'audio/ogg');
+		assert.equal(cue.headers['cache-control'], 'public, max-age=604800');
+		assert.ok(cue.body.length > 1000, name);
+	}
+});
+
 test('serves the component library page', async () => {
 	const page = await get('/components.html');
 	assert.equal(page.status, 200);

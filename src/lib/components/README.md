@@ -35,7 +35,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `Badge` | Expansion tags tinted with their colour, and the YOU, HOST and READY capitals. |
 | `Button` | Every button: `primary`, `secondary`, `gold`, `success` or `danger`, in three sizes, with a `selected` toggle state. |
 | `Divider` | A thin rule, optionally paused by a short italic label such as "or join friends". |
-| `IconButton` | The 36px header controls (sound, history, menu, close), with the red mute slash. |
+| `IconButton` | The 36px header controls (sound, history, log, menu, close), with the red mute slash. |
 | `Menu` | The header popover: entries as links or buttons, arrow keys and Escape. |
 | `Panel` | A chrome panel with a thin border and an optional heading. |
 | `ResourceIcon` | The five resource symbols at 16px, native 24px or native 48px, shared by prices, chips and footer costs. The native assets are 24×24 and 48×48; 16px display scales the 24px SVG. The 32px source is deprecated and archived. |
@@ -52,25 +52,25 @@ These components are updated as the art issues deliver their assets. Each will s
 |---|---|
 | `AchievementStrip` | The three achievements on one line: claimants' colour squares in order and the next VP. |
 | `BoardSwitcher` | Advancement Tracks / World Map selector with its icons. |
-| `ProgressLanes` | One progress line per player under a track, with the dashed preview to the next space. |
+| `ProgressLanes` | One progress line per player under a track, with the dashed preview to the next space; a line grows to its new space (#29). |
 | `TierPrice` | A tier's numeral and price over its three spaces; gold while one of them is hovered. |
 | `Track` | One track: name, four tier prices, twelve spaces (each with its benefit and bonus) and the lanes. |
 | `TrackBoard` | The four tracks stacked, with one selected space across them; a size container, so the spaces grow up to 1.25 times as tall as wide when the board has the height (#59). |
 | `TrackSpace` | One pointed space: name, its `benefit` and `bonus` as symbols from `src/lib/glyphs.js` (resources, buildings and tracks as art, the other game symbols as short words, the X as a red cross), its `words` as tooltip and label, landmark, number, first/last shapes, selected and focus outlines; a short space draws its symbols smaller (#59). |
-| `WorldMap` | The real board's hex grid from `mapHexes(view)`: corner terrains as wedges, islands, unexplored hexes dashed, outposts (toppled ones lying), Nomads pieces and tokens; `targets` become buttons and the rest dim, `selected` is outlined in gold. |
+| `WorldMap` | The real board's hex grid from `mapHexes(view)`: corner terrains as wedges, islands, unexplored hexes dashed, outposts (toppled ones lying), Nomads pieces and tokens; `targets` become buttons and the rest dim, `selected` is outlined in gold; a `fresh` hex pulses gold twice (#29). |
 
 ## player/
 
 | Component | Purpose |
 |---|---|
-| `CapitalGrid` | The 9×9 capital: plots, impassable Xs, districts, completion overlays, placed landmarks (a locked one may hang over the edge, R106, and `room` keeps space for it) and their drag, keyboard and drop handling, and a decision's lit `targets` (green-outlined plot buttons) with a faint `preview` of the chosen building. |
+| `CapitalGrid` | The 9×9 capital: plots, impassable Xs, districts, completion overlays, placed landmarks (a locked one may hang over the edge, R106, and `room` keeps space for it) and their drag, keyboard and drop handling, and a decision's lit `targets` (green-outlined plot buttons) with a faint `preview` of the chosen building; a `fresh` plot glows once (#29). |
 | `CompletionCounters` | Completed rows, columns and districts; hover or focus previews, a press keeps them shown. |
 | `LandmarkPiece` | A landmark's picture in its footprint's shape, in the tray or on the grid, with rotate, confirm and return. |
 | `PlacementTray` | The To be placed tray: select, drag or arrow a landmark onto the grid, or drop one back. |
 | `EraSlots` | The four era slots: printed Maker of Fire, then each top tapestry card, "Face-down card" or "Not yet chosen"; the active era is outlined and a card can be chosen (#27). |
 | `IncomeMat` | The income mat: four building rows of six spaces, covered ones showing the building, exposed ones their name and reward in words (#27). |
 | `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows. |
-| `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. 210px wide, shrinking to 120px; below 190px it drops the civilization name. |
+| `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. 210px wide, shrinking to 120px; below 190px it drops the civilization name. `bump` pops the VP once when it rises (#29). |
 | `ResourceChip` | A resource symbol and its count. |
 | `SelfSummary` | Your overview at the foot of the player area: name, era, VP, hand, tech, territory and capital-line counts, and the four resources (#26). |
 
@@ -96,6 +96,20 @@ These components are updated as the art issues deliver their assets. Each will s
 | `SeatCard` | A lobby seat: empty (Open seat), open (Take the seat!), add (a name field for a hot-seat player) or a joined player, with or without the civilization line. Add bot is shelved. |
 | `SettingRow` | A setting's title, a thin rule and its choices on one line. |
 | `TableCode` | The read-only table code with COPY. |
+
+## log/
+
+| Component | Purpose |
+|---|---|
+| `TableLog` | The table's log (#29): oldest first with the newest kept in view, a rule in the player's colour between turns, each entry marked with its player's colour; income turns gold, notices italic. |
+| `ScoreBoard` | The scores during play (#29): the players by VP, the viewer marked, each with VP by source and the tiebreak values of the table's rules. |
+
+## results/
+
+| Component | Purpose |
+|---|---|
+| `StandingRow` | One player in the final standings, as Lazar's end screen (#29): place, token, name, civilization and VP; winners gold, the viewer's bar in their colour; the name opens where the VP came from. |
+| `TieSteps` | How a tie was decided (#29, owner #15): who tied, each step of the rules' chain with every value (landmarks in gold), whether it separated them, and the outcome. |
 
 ## Reviewed card system (Refs #47)
 

@@ -49,6 +49,6 @@ export const chooseGift = {
 			to: answer.player,
 			tile: answer.tile,
 		});
-		vp(ctx, player, GIFT_VP, /** @type {any} */ ({}));
+		vp(ctx, player, GIFT_VP, decision);
 	},
 };

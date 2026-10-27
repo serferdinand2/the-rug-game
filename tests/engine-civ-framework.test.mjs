@@ -332,15 +332,22 @@ test("a civilization's hook operations are passive, and a finished player keeps 
 	});
 	const { state, random } = game(2);
 	state.seats[1].civs = ['test'];
-	// The era ability's operations stay as they are; the civilization's are marked passive.
+	// The era ability's operations count as the tapestry's; the civilization's are marked passive and count as the
+	// civilization's (#29).
 	state.seats[0].era = { card: null, ability: 'academia' };
 	assert.deepEqual(triggered(state, 'invented', { player: 1, card: 'x' }), [
-		{ player: 1, kind: 'effects', effects: [{ vp: 3 }] },
+		{
+			player: 1,
+			kind: 'effects',
+			effects: [{ vp: 3 }],
+			origin: 'tapestry',
+		},
 		{
 			player: 2,
 			kind: 'chooseOption',
 			options: [[], benefit],
 			purpose: 'civOffer',
+			origin: 'civ',
 			passive: true,
 		},
 	]);
@@ -362,13 +369,20 @@ test("a civilization's hook operations are passive, and a finished player keeps 
 	// Finished: a plain passive operation, which runs only its VP.
 	state.seats[1].finished = true;
 	assert.deepEqual(triggered(state, 'invented', { player: 1, card: 'x' }), [
-		{ player: 2, kind: 'effects', effects: benefit, passive: true },
+		{
+			player: 2,
+			kind: 'effects',
+			effects: benefit,
+			origin: 'civ',
+			passive: true,
+		},
 	]);
 	const late = resolveEffects(state, 1, [{ invent: {} }], random);
 	const done = answer(late, random, 1, 'chooseInvent', {
 		card: late.supply.tech.faceUp[0],
 	});
 	assert.equal(done.seats[1].vp, 2);
+	assert.deepEqual(done.seats[1].vpSources, { civ: 2 });
 	assert.equal(done.seats[1].resources.coin, 0);
 	assert.ok(!openDecisions(done).some((d) => d.kind === 'chooseOption'));
 

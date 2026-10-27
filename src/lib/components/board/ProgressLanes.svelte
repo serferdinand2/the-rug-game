@@ -112,9 +112,11 @@
 		height: var(--progress-line);
 	}
 
+	/* A line grows to its new space (#29); the reduced-motion tokens make it instant. */
 	.rg-progress-lanes--line {
 		left: 0;
 		background: var(--rg-progress-lanes-color);
+		transition: width var(--duration-slow) var(--ease-out);
 		box-shadow: 0 0 0 var(--border)
 			color-mix(in srgb, var(--ink) 40%, transparent);
 	}

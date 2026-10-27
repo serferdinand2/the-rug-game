@@ -44,6 +44,7 @@
 	 * @property {boolean} [room=false] - Keep room around the grid for the pieces that hang over its edges (R106), so nothing next to it is covered
 	 * @property {CapitalGridTarget[]} [targets=[]] - Plots a decision can choose: each gets a green outline and becomes a button that fires onCapitalGridPlotClick
 	 * @property {CapitalGridPreview | null} [preview=null] - The chosen building, drawn faintly on its plot until it is placed
+	 * @property {CapitalGridTarget[]} [fresh=[]] - Plots just built on (#29): each glows green once, unless the system asks for reduced motion
 	 * @property {string} [label='Capital city, 9 by 9 plots'] - Names the grid for assistive technology
 	 * @property {Function} [onCapitalGridPlotClick] - Callback fired with { row, col } when a plot is clicked, for click-to-place from the tray
 	 * @property {Function} [onCapitalGridDrop] - Callback fired with { id, row, col } when a piece from the tray is dropped; row and col are where its top-left corner landed, not yet snapped
@@ -111,6 +112,7 @@
 		room = false,
 		targets = [],
 		preview = null,
+		fresh = [],
 		label = 'Capital city, 9 by 9 plots',
 		onCapitalGridPlotClick,
 		onCapitalGridDrop,
@@ -175,6 +177,9 @@
 	);
 	let previewed = $derived(
 		preview ? plotIndex(preview.row, preview.col) : null
+	);
+	let freshPlots = $derived(
+		new Set(fresh.map((plot) => plotIndex(plot.row, plot.col)))
 	);
 
 	$effect(() => {
@@ -544,6 +549,7 @@
 			<button
 				type="button"
 				class="rg-capital-grid--plot rg-capital-grid--{kind} rg-capital-grid--target"
+				class:rg-capital-grid--fresh={freshPlots.has(index)}
 				data-plot={index}
 				aria-label={targetLabel(index)}
 				aria-pressed={index === previewed}>
@@ -552,6 +558,7 @@
 		{:else}
 			<i
 				class="rg-capital-grid--plot rg-capital-grid--{kind}"
+				class:rg-capital-grid--fresh={freshPlots.has(index)}
 				data-plot={index}>
 				{@render plot(kind, index)}
 			</i>
@@ -677,6 +684,26 @@
 
 	.rg-capital-grid--blocked {
 		background: var(--chrome);
+	}
+
+	/* A plot just built on glows green once (#29). */
+	.rg-capital-grid--fresh {
+		z-index: 2;
+		animation: rg-capital-grid-fresh 1.4s var(--ease-out);
+	}
+
+	@keyframes rg-capital-grid-fresh {
+		25% {
+			box-shadow:
+				0 0 0 var(--border-thick) var(--ok),
+				var(--glow-ok);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-capital-grid--fresh {
+			animation: none;
+		}
 	}
 
 	/* The small, thick red X of an impassable plot. */

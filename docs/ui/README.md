@@ -17,7 +17,7 @@ The owner-reviewed #5 icon mockup and its linked capital terrain page are preser
 | [launch.html](launch.html) | Entry page: name, create/join table and public table list |
 | [lobby.html](lobby.html) | Table setup, seat controls, readiness and civilization chooser |
 | [main-screen.html](main-screen.html) | Play page: tracks/map, private tabs, footer decisions, city placement and player overview |
-| [end-screen.html](end-screen.html) | Proposed final standings page: player results and the selected rules version's tie-break explanation; pending owner review |
+| [end-screen.html](end-screen.html) | The final standings page: player results and the selected rules version's tie-break explanation; built in #29 |
 | [card-design-rules.md](card-design-rules.md) | Owner-approved Civilization, Technology and Tapestry card layouts, including sizes, effects, timing and placement rules |
 | [collectors-card-options.html](collectors-card-options.html) | Five Collectors civilization card designs, printed and in play; the owner chose option B (#47, 2026-10-23). Open it from disk: it loads the art from `static/art/` |
 | [screens/](screens/) | Current screenshots captured from these HTML files at 1920×1080 |
@@ -408,3 +408,14 @@ Hovering or focusing a Technology or Tapestry card brings it above overlapping n
 [The end-screen reference](end-screen.html) uses the same header, 3/4–1/4 split, pixel texture and footer as the game screen. **Game complete** uses Cinzel in both header and footer. The shared area ranks every player with their colour, gold Cinzel civilization name and final VP. Selecting a player's name expands that row to show the sources of points already awarded during play; multiple rows can stay open for comparison. The private area gives the current player’s result and explains ties step by step. The placement (including shared first) and landmark names use gold Cinzel; resource counts and explanatory text stay Atkinson. Expansions use the coloured boxed badges from the table UI. The example switches between current rules, original rules and a shared victory. All three placements and tie details come from `rankPlayers`, including skipped places after a shared victory. There is no second scoring pass. The footer offers board review and a return to tables.
 
 This page is a **proposal pending owner review**. The example names, score-source totals and expansion badges are fixtures. Production should show the selected table rules and results from completed game state, and should group recorded VP awards by their source for the expanded rows rather than recalculate VP. Current `vpGained` events record the amount and total but not the source, so the scoring event data needs provenance before this breakdown can be game-backed. Solo outcomes, rematch setup and the waiting view for players who finish before the table also need design review. These outstanding parts keep issue #3 open.
+
+**Built in #29 (2026-10-27): the results, the log and the scores.** The screenshots are the running game.
+
+![The results screen](screens/game-results.png)
+
+![The log and scores panel](screens/game-log.png)
+
+- **The results** follow this proposal with the finished game's own data: the engine's ranking (shared places repeat and the next skips), each player's VP by source as awarded during play (the engine now records where every VP came from, so nothing is scored again), the tie steps from `rankPlayers`, and the table's rules, mode, expansions and variants. At a hot-seat table the result box shows the winners, since the screen belongs to everyone. The footer adds **Deal again** for the host; **Review game board** shows the board as it ended, with a **Results** button back.
+- **The log and scores** open from the header's ▤ button, over the player area: the log names every player's moves in plain words, with a rule between turns, gold income turns and italic notices (a timeout, an undo, the end); the scores list the players by VP with their sources and tiebreak values. A gold dot marks entries not yet seen.
+- **Sound and motion:** sound cues (muted until switched on) mark your turn, an advance, a placement, a reward and the end; a changed territory pulses, a new building glows, a chip's VP pops and the progress lines grow. Nothing replays after a refresh, and nothing moves under reduced motion.
+- **Table settings** in the header menu let the host change the turn timer and undo during a game.
