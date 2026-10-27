@@ -35,7 +35,17 @@ export function rotateFootprint(rows, turns) {
 }
 
 /**
- * The plots a footprint covers when its top-left corner is at (row, col).
+ * Whether a plot is on the grid; a landmark may hang over the edge (R106).
+ * @param {number} row
+ * @param {number} col
+ * @returns {boolean}
+ */
+function onGrid(row, col) {
+	return row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE;
+}
+
+/**
+ * The plots a footprint covers when its top-left corner is at (row, col). The parts over the edge cover none (R106).
  * @param {readonly string[]} rows
  * @param {number} row
  * @param {number} col
@@ -44,7 +54,9 @@ export function rotateFootprint(rows, turns) {
 export function footprintCells(rows, row, col) {
 	return rows.flatMap((line, dy) =>
 		[...line].flatMap((cell, dx) =>
-			cell === 'X' ? [plotIndex(row + dy, col + dx)] : []
+			cell === 'X' && onGrid(row + dy, col + dx)
+				? [plotIndex(row + dy, col + dx)]
+				: []
 		)
 	);
 }

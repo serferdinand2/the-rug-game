@@ -11,6 +11,7 @@ import {
 	fillPath,
 	outlinePath,
 	controlsAnchor,
+	pieceArea,
 } from '../src/lib/placement.js';
 
 /** An empty capital with the given plots set. */
@@ -46,6 +47,51 @@ test('pieces fill the plots they cover as landmarks, without changing the plots 
 	assert.equal(filled[0], 'blocked');
 	assert.equal(filled[12], 'empty');
 	assert.equal(plots[10], 'empty');
+});
+
+test('a piece over the edge fills only its plots on the grid (R106)', () => {
+	const filled = withPieces(capital(), [
+		{ ...lighthouse, row: 6, col: -1 },
+		{ ...lighthouse, id: 'forge', row: 8, col: 4 },
+	]);
+	assert.equal(filled.length, 81);
+	assert.deepEqual(
+		filled.flatMap((kind, index) => (kind === 'landmark' ? [index] : [])),
+		[54, 63, 76, 77]
+	);
+});
+
+test("a piece's area is its shape's rectangle on the grid, with how far it hangs over each edge", () => {
+	assert.deepEqual(pieceArea(['XX', 'XX'], 3, 4), {
+		row: 3,
+		col: 4,
+		rows: 2,
+		cols: 2,
+		top: 0,
+		right: 0,
+		bottom: 0,
+		left: 0,
+	});
+	assert.deepEqual(pieceArea(['XXX', 'XXX', 'XXX'], 7, -2), {
+		row: 7,
+		col: 0,
+		rows: 2,
+		cols: 1,
+		top: 0,
+		right: 0,
+		bottom: 1,
+		left: 2,
+	});
+	assert.deepEqual(pieceArea(['XX', 'XX'], -1, 8), {
+		row: 0,
+		col: 8,
+		rows: 1,
+		cols: 1,
+		top: 1,
+		right: 1,
+		bottom: 0,
+		left: 0,
+	});
 });
 
 test('only locked pieces count towards completed rows, columns and districts', () => {
