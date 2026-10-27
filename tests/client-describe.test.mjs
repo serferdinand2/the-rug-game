@@ -9,6 +9,7 @@ import {
 	describeCost,
 	describeEffects,
 	describePayment,
+	describeTapestryCard,
 } from '../src/lib/describe.js';
 import { createGame, play, VARIANTS, view } from '../src/lib/engine/game.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
@@ -125,7 +126,7 @@ test('plain gains side by side read as one, and a repeated effect as "twice"', (
 	);
 	assert.equal(
 		describeEffects(TRACKS.science[1].benefit),
-		'Roll the science die to advance on the track rolled without its benefit'
+		'Roll the science die to advance on the track rolled without its benefit or bonus'
 	);
 });
 
@@ -207,6 +208,48 @@ test('every card, tile and die face describes to a sentence', () => {
 	for (const face of [...RED_DIE, ...BLACK_DIE]) {
 		assertReadable(describeEffects([face]), 'a conquer die face');
 	}
+});
+
+test('every tapestry card face has words, also for the rules the engine keeps in code', () => {
+	for (const card of TAPESTRY_CARDS) {
+		const { ability, note } = describeTapestryCard(card.id);
+		assertReadable(ability, `tapestry card ${card.id}'s ability`);
+		assert.notEqual(ability, 'Nothing', `${card.id} has no words`);
+		assert.doesNotMatch(
+			ability,
+			/\bresolve\b/i,
+			`${card.id}: "${ability}"`
+		);
+		if (note !== undefined) {
+			assertReadable(note, `tapestry card ${card.id}'s note`);
+		}
+	}
+	// A card whose rules are all effects reads as them.
+	const democracy = /** @type {any} */ (
+		TAPESTRY_CARDS.find((c) => c.id === 'democracy')
+	);
+	assert.equal(
+		describeTapestryCard('democracy').ability,
+		describeEffects(democracy.played, { ordered: democracy.ordered })
+	);
+	assert.equal(describeTapestryCard('democracy').note, undefined);
+	assert.equal(
+		describeTapestryCard('academia').ability,
+		'Whenever you invent a tech card or gain a tapestry card, gain 3 VP'
+	);
+	// R22: the trap is a response card, and gains 10 VP played as a card.
+	assert.deepEqual(
+		describeTapestryCard('trap-5'),
+		describeTapestryCard('trap')
+	);
+	assert.equal(
+		describeTapestryCard('trap').note,
+		'Played as a tapestry card on an income turn: gain 10 VP'
+	);
+	assert.equal(
+		describeTapestryCard('no-such-card').ability,
+		describeEffects([{ notAnEffect: {} }])
+	);
 });
 
 test('every effect kind and VP counter has its own words', () => {

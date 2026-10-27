@@ -45,6 +45,13 @@ test('a footprint covers only its X plots', () => {
 	assert.deepEqual(footprintCells(['.X', 'XX'], 2, 3), [22, 30, 31]);
 });
 
+test('a footprint over the edge covers only the plots on the grid (R106)', () => {
+	assert.deepEqual(footprintCells(['XX', 'XX'], 6, -1), [54, 63]);
+	assert.deepEqual(footprintCells(['XX', 'XX'], 2, 8), [26, 35]);
+	assert.deepEqual(footprintCells(['XXX', 'XXX'], -1, 0), [0, 1, 2]);
+	assert.deepEqual(footprintCells(['XX', 'XX'], 8, 8), [80]);
+});
+
 test('a landmark fits only on open plots inside the grid', () => {
 	const plots = capital({ 10: 'blocked', 40: 'market' });
 	assert.equal(fits(plots, ['XX', 'XX'], 0, 2), true);

@@ -2,7 +2,7 @@
 <script module>
 	/**
 	 * @typedef {Object} CivilizationCardOwnProps
-	 * @property {string} [id] - Reviewed civilization slug
+	 * @property {string} [id] - Civilization slug; one without a reviewed layout shows its frame, portrait and name only
 	 * @property {'empty' | 'play'} [state] - Starting state or labelled illustration
 	 */
 	/**
@@ -27,6 +27,7 @@
 	import CardTerrainRewards from './CardTerrainRewards.svelte';
 	import CardTokenReserve from './CardTokenReserve.svelte';
 	import PlayerToken from './PlayerToken.svelte';
+	import { civilizationName } from '../../describe.js';
 	/** @type {CivilizationCardProps} */
 	let { id = 'collectors', state = 'empty', ...attr } = $props();
 </script>
@@ -1292,7 +1293,18 @@
 					landmark already claimed by the opponent gives you nothing.
 				</p></CardClarity>
 		</CardFrame>
-	{:else}<p class="rg-civilization-card--missing">
-			No reviewed layout for {id}.
-		</p>{/if}
+	{:else}
+		<!-- A civilization without a reviewed layout yet: its frame, portrait and name, and no invented rules text. -->
+		<CardFrame
+			title={civilizationName(id)}
+			portrait="/art/civ/{id}.svg"
+			portraitAlt=""
+			{state}
+			class="">
+			{#snippet effect()}
+				<span class="rg-civilization-card--missing"
+					>The full card is on its way.</span>
+			{/snippet}
+		</CardFrame>
+	{/if}
 </div>

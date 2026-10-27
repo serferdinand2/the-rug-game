@@ -228,6 +228,10 @@ test('two guests answer setup and their first turns with moves built from their 
 	for (let step = 0; step < 200 && incomeTurns < 2; step++) {
 		let moved = false;
 		for (const [i, person] of people.entries()) {
+			// Stop at the second turn choice, whoever's it is: the first player is random.
+			if (incomeTurns === 2) {
+				break;
+			}
 			room = await person.request('state');
 			const mine = myDecision(room.game, i + 1);
 			if (!mine) {

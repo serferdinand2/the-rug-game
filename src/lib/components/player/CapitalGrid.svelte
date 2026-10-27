@@ -9,8 +9,8 @@
 	 * @property {string} id - The landmark's slug, such as 'lighthouse'
 	 * @property {string} name - Its name, such as 'Lighthouse'
 	 * @property {readonly string[]} footprint - Its footprint as printed
-	 * @property {number} row - The top row of its turned shape, 0–8
-	 * @property {number} col - The left column of its turned shape, 0–8
+	 * @property {number} row - The top row of its turned shape, 0–8; negative, or running past row 8, when it hangs over the edge (R106)
+	 * @property {number} col - The left column of its turned shape, 0–8; negative, or running past column 8, when it hangs over the edge (R106)
 	 * @property {number} [rotation=0] - Quarter turns clockwise, 0–3
 	 * @property {boolean} [locked=false] - Confirmed: no controls, cannot move, and counts towards completed groups
 	 * @property {boolean} [fresh=false] - Just locked: a green glow
@@ -23,9 +23,10 @@
 	 * @property {PlotKind[]} plots - All 81 plots, row by row
 	 * @property {import('../../ui.js').CapitalBiome} [biome='mountain'] - Terrain tiles to compose beneath the supplied plots
 	 * @property {number} [terrainSeed=0] - Visual seed supplied by the game's setup; 0 is the library fixture
-	 * @property {CapitalGridPiece[]} [pieces=[]] - Landmarks on the grid, drawn over the plots they cover
+	 * @property {CapitalGridPiece[]} [pieces=[]] - Landmarks on the grid, drawn over the plots they cover; a locked one may hang over the edge, and only its plots on the grid count
 	 * @property {GroupKind | null} [highlight=null] - Cover each completed row, column or district with one flat green rectangle
 	 * @property {boolean} [awaitingPlacement=false] - Something is waiting to be placed: a green outline around the grid
+	 * @property {boolean} [room=false] - Keep room around the grid for the pieces that hang over its edges (R106), so nothing next to it is covered
 	 * @property {string} [label='Capital city, 9 by 9 plots'] - Names the grid for assistive technology
 	 * @property {Function} [onCapitalGridPlotClick] - Callback fired with { row, col } when a plot is clicked, for click-to-place from the tray
 	 * @property {Function} [onCapitalGridDrop] - Callback fired with { id, row, col } when a piece from the tray is dropped; row and col are where its top-left corner landed, not yet snapped
@@ -65,6 +66,7 @@
 	} from '../../capital.js';
 	import {
 		GRAB_TYPE,
+		pieceArea,
 		pieceShape,
 		rotatePiece,
 		snapPiece,
@@ -80,6 +82,7 @@
 		pieces = [],
 		highlight = null,
 		awaitingPlacement = false,
+		room = false,
 		label = 'Capital city, 9 by 9 plots',
 		onCapitalGridPlotClick,
 		onCapitalGridDrop,
@@ -109,6 +112,34 @@
 			plots,
 			pieces.filter((piece) => piece.locked)
 		)
+	);
+	/** How many plots the pieces hang over each edge, at most, when room is kept for them. */
+	let reach = $derived(
+		pieces.reduce(
+			(most, piece) => {
+				const area = pieceArea(pieceShape(piece), piece.row, piece.col);
+				return {
+					top: Math.max(most.top, area.top),
+					right: Math.max(most.right, area.right),
+					bottom: Math.max(most.bottom, area.bottom),
+					left: Math.max(most.left, area.left),
+				};
+			},
+			{ top: 0, right: 0, bottom: 0, left: 0 }
+		)
+	);
+	/** A ninth of the space the grid sits in for each plot of overhang. */
+	let margin = $derived(
+		room
+			? [reach.top, reach.right, reach.bottom, reach.left]
+					.map((plots) => `calc(${plots} * 100% / 9)`)
+					.join(' ')
+			: undefined
+	);
+	let width = $derived(
+		room
+			? `calc(100% - ${reach.left + reach.right} * 100% / 9)`
+			: undefined
 	);
 	let overlays = $derived(
 		highlight ? completedGroups(locked, highlight).map(groupBounds) : []
@@ -373,6 +404,19 @@
 	};
 
 	/**
+	 * How far a piece reaches past its area on the grid on one side, as a CSS length. The area is `span` plots long, so
+	 * one plot and one gap are (100% + gap) / span of it.
+	 * @param {number} plots - Plots over the edge on that side
+	 * @param {number} span - Plots the area covers along that side's axis
+	 * @returns {string | undefined} Undefined when the piece doesn't hang over that edge.
+	 */
+	function overhang(plots, span) {
+		return plots
+			? `calc(-${plots} * (100% + var(--rg-capital-grid-gap)) / ${span})`
+			: undefined;
+	}
+
+	/**
 	 * The plot under the pointer, in fractions of a plot.
 	 * @param {MouseEvent} event
 	 * @returns {{ row: number, col: number }}
@@ -419,6 +463,8 @@
 	class:rg-capital-grid--awaiting={awaitingPlacement}
 	class:rg-capital-grid--drag-target={dragTarget}
 	class:rg-capital-grid--legal-drop={legalDrop}
+	style:margin
+	style:width
 	onclick={clickHandler}
 	ondragover={dragoverHandler}
 	ondragleave={dragleaveHandler}
@@ -449,12 +495,17 @@
 		</i>
 	{/each}
 	{#each pieces as piece (piece.id)}
-		{@const shape = pieceShape(piece)}
+		{@const area = pieceArea(pieceShape(piece), piece.row, piece.col)}
+		<!-- A piece over the edge (R106) sits on its plots on the grid and reaches past them. -->
 		<div
 			class="rg-capital-grid--piece"
 			data-piece={piece.id}
-			style:grid-row="{piece.row + 1} / span {shape.length}"
-			style:grid-column="{piece.col + 1} / span {shape[0].length}">
+			style:grid-row="{area.row + 1} / span {area.rows}"
+			style:grid-column="{area.col + 1} / span {area.cols}"
+			style:top={overhang(area.top, area.rows)}
+			style:right={overhang(area.right, area.cols)}
+			style:bottom={overhang(area.bottom, area.rows)}
+			style:left={overhang(area.left, area.cols)}>
 			<LandmarkPiece
 				id={piece.id}
 				name={piece.name}
@@ -490,17 +541,19 @@
 
 <style>
 	.rg-capital-grid {
+		--rg-capital-grid-gap: var(--space-1);
 		position: relative;
 		isolation: isolate;
 		display: grid;
 		grid-template-columns: repeat(9, minmax(0, 1fr));
 		grid-template-rows: repeat(9, minmax(0, 1fr));
-		gap: var(--space-1);
+		gap: var(--rg-capital-grid-gap);
 		width: 100%;
 		min-width: 0;
 		aspect-ratio: 1;
 		padding: var(--space-3);
-		overflow: hidden;
+		/* Nothing is clipped: a landmark may hang over the edge (R106). */
+		overflow: visible;
 		border-radius: var(--radius);
 		background: var(--ink);
 		transition:

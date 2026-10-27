@@ -63,10 +63,12 @@ These components are updated as the art issues deliver their assets. Each will s
 
 | Component | Purpose |
 |---|---|
-| `CapitalGrid` | The 9×9 capital: plots, impassable Xs, districts, completion overlays, placed landmarks and their drag, keyboard and drop handling. |
+| `CapitalGrid` | The 9×9 capital: plots, impassable Xs, districts, completion overlays, placed landmarks (a locked one may hang over the edge, R106, and `room` keeps space for it) and their drag, keyboard and drop handling. |
 | `CompletionCounters` | Completed rows, columns and districts; hover or focus previews, a press keeps them shown. |
 | `LandmarkPiece` | A landmark's picture in its footprint's shape, in the tray or on the grid, with rotate, confirm and return. |
 | `PlacementTray` | The To be placed tray: select, drag or arrow a landmark onto the grid, or drop one back. |
+| `EraSlots` | The four era slots: printed Maker of Fire, then each top tapestry card, "Face-down card" or "Not yet chosen"; the active era is outlined and a card can be chosen (#27). |
+| `IncomeMat` | The income mat: four building rows of six spaces, covered ones showing the building, exposed ones their name and reward in words (#27). |
 | `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows. |
 | `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. 210px wide, shrinking to 120px; below 190px it drops the civilization name. |
 | `ResourceChip` | A resource symbol and its count. |
@@ -99,9 +101,11 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | Component | Responsibility |
 |---|---|
 | `player/CardFrame` | 425 px frame, title, full portrait, main effect and footer metadata |
-| `player/CivilizationCard` | Fourteen reviewed recipes with empty/in-play example states |
-| `player/TechnologyCard` | Horizontal 425 px technology frame with full artwork, square/circle effects, conditions and edition badge |
-| `player/TapestryCard` | 319 px tapestry frame with timing beside the portrait, including the red Trap variant |
+| `player/CivilizationCard` | Fourteen reviewed recipes with empty/in-play example states; any other civilization shows its frame, portrait and name only |
+| `player/TechnologyCard` | Horizontal 425 px technology frame with full artwork, square/circle effects, conditions and edition badge; a reviewed fixture by `id`, or a real card by `data` from `techCardData()` (`src/lib/cards/game-cards.js`) |
+| `player/TapestryCard` | 319 px tapestry frame with timing beside the portrait, including the red Trap variant; a reviewed fixture by `id`, or a real card by `data` from `tapestryCardData()` |
+| `player/TerritoryTile` | One small flat-topped territory tile in hand, drawn like the World Map's, with its number |
+| `player/CardFan` | Overlapping cards; hover or focus raises one and reports it for a full view |
 | `player/CardResource` | Native 24 px inline icon without changing row spacing |
 | `player/PlayerToken` | Five supplied shaded 32 px colour variants |
 | `player/CardSlot` | Compact, large or prediction square, never larger than 75 px |

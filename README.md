@@ -26,7 +26,7 @@ The component library now uses the approved resources in prices and chips, incom
 
 The **UI/UX handoff for #3** is in [docs/ui/README.md](docs/ui/README.md). It is the manifest for building the real game pages: layout, typography, colours, control states, placement and decision examples. The HTML pages are interactive mockups with fixture data.
 
-**The landing page, the lobby (#25) and the play screen (#26) are built** and run on the real table API. Sign in by name, create or join a table, set it up and start; then play: the Advancement Tracks with the spaces you can pay for, the World Map drawn as the real board's hex grid, the footer turn (income, or advance with its payment), and a plain prompt for every other decision. Run `npm start` and open <http://127.0.0.1:3020/>. The player area's tabs come with #27 and the designed prompts with #28.
+**The landing page, the lobby (#25) and the play screen (#26) are built** and run on the real table API. Sign in by name, create or join a table, set it up and start; then play: the Advancement Tracks with the spaces you can pay for, the World Map drawn as the real board's hex grid, the footer turn (income, or advance with its payment), and a plain prompt for every other decision. The player area (#27) has the Capital, Hand, Income, Eras, Civ, Tech and Terrain tabs, with real tech and tapestry cards, and the header chips open the players overview. Run `npm start` and open <http://127.0.0.1:3020/>. The designed prompts come with #28.
 
 The colours, texture, type, spacing, shadows and motion of these designs are in [src/styles/tokens.css](src/styles/tokens.css), the single source of truth for the look.
 
@@ -38,7 +38,11 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 |---|---|
 | ![The play screen: the tracks with the payable spaces outlined in green, Rafts selected and the footer offering the advance](docs/ui/screens/game-tracks.png) | ![The play screen: the World Map as the small board's hex grid, with the start outposts and an explored territory](docs/ui/screens/game-map.png) |
 
-The rest of the play screen is still a mockup. Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html), [End screen](docs/ui/end-screen.html).
+| Play: the player area (Capital) | Play: the players overview |
+|---|---|
+| ![The play screen with the Capital tab: the real Mountain mat's plots and the completion counters](docs/ui/screens/game-player-area.png) | ![The players overview: a card per player and Ana's Wetland capital opened on the right](docs/ui/screens/game-overview.png) |
+
+The decision prompts are still the plain ones until #28. Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html), [End screen](docs/ui/end-screen.html).
 
 **Game mockup: tracks and capital, at the 1920×1080 desktop reference size.**
 
