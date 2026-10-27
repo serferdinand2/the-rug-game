@@ -34,7 +34,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Landing page | Lobby |
 |---|---|
-| ![The landing page, with two open tables](docs/ui/screens/launch.png) | ![The local lobby with selected No options clearly outlined](docs/ui/screens/lobby.png) |
+| ![The landing page with the pixel texture and an empty open-tables state](docs/ui/screens/launch.png) | ![The local lobby with the pixel texture and selected No options clearly outlined](docs/ui/screens/lobby.png) |
 
 | Play: the tracks, with an advance chosen | Play: the World Map |
 |---|---|

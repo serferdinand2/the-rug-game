@@ -82,6 +82,13 @@ test('the tracks show every benefit, and setup shows capital mats as grids and c
 		const spaces = page.locator('.rg-track-space');
 		await expect(spaces).toHaveCount(48);
 		await expect(page.locator('.rg-track-space--benefit')).toHaveCount(48);
+		const tierCostOutline = await page
+			.locator('.rg-tier-price .rg-resource-icon')
+			.first()
+			.evaluate((icon) => getComputedStyle(icon).outlineStyle);
+		expect(tierCostOutline, 'tier cost resources have no box outline').toBe(
+			'none'
+		);
 		const bonuses = Object.values(TRACKS)
 			.flatMap((track) => track.slice(1))
 			.filter((space) => space.bonus).length;
