@@ -787,8 +787,8 @@
 	{:else if game.phase === 'over'}
 		<TurnBar
 			tone="neutral"
-			label="Game over"
-			heading="The game is over."
+			label="Game complete"
+			heading="The game is complete."
 			detail="The board as the game ended.">
 			{#snippet actions()}
 				<Button

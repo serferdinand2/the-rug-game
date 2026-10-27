@@ -54,7 +54,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Results: the final standings | The log and the scores |
 |---|---|
-| ![The results: the final standings with a player's VP by source opened, their result, the tie panel and the table's facts](docs/ui/screens/game-results.png) | ![The board as the game ended, with the log panel open over the player area](docs/ui/screens/game-log.png) |
+| ![The results: the final standings with a player's VP by source opened, their result, the tie panel and the table's facts](docs/ui/screens/game-results.png) | ![The board as the game ended, with the log panel open and a Game complete footer](docs/ui/screens/game-log.png) |
 
 | Hot-seat: passing the screen | Hot-seat: the pass screen at setup, with the turn timer |
 |---|---|
