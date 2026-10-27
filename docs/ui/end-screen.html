@@ -63,7 +63,7 @@
 		.rule-note { margin-top: 22px; padding-top: 15px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 		.details h2 { color: #d7c8ab; font-size: 20px; }
 		.your-place { padding: 19px 18px 21px; background: color-mix(in srgb, var(--blue) 16%, var(--raised)); box-shadow: inset 4px 0 var(--blue); }
-		.your-place strong { display: block; margin-top: 10px; color: var(--gold); font-size: 42px; line-height: 1; }
+		.your-place strong { display: block; margin-top: 10px; color: var(--gold); font: 600 42px/1 Cinzel, serif; }
 		.your-place span { display: block; margin-top: 8px; font-size: 18px; font-weight: 700; }
 		.your-place p { margin-top: 9px; color: var(--muted); font-size: 13px; }
 		.tie-panel { min-width: 0; }
@@ -76,6 +76,7 @@
 		.tie-step__values { display: grid; gap: 4px; margin-top: 8px; font-size: 13px; }
 		.tie-step__values div { display: flex; justify-content: space-between; gap: 12px; }
 		.tie-step__values b { text-align: right; }
+		.tie-step__landmark { color: var(--gold); font: 600 13px/1.3 Cinzel, serif; }
 		.tie-step__result { margin-top: 9px; color: var(--muted); font-size: 12px; }
 		.table-facts { margin-top: auto; padding-top: 17px; border-top: 1px solid var(--line); }
 		.table-facts h2 { margin-bottom: 10px; }
@@ -164,7 +165,7 @@
 			document.querySelector('#rule-note').textContent = leaders.length > 1 ? 'A tie remaining after every applicable step is a shared victory. The next place skips: 1st, 1st, 3rd.' : 'Places follow final VP. A tied score is resolved by the selected rules version’s tie-break chain.';
 			const tie = result.ties.find(group => group.vp === 87);
 			document.querySelector('#tie-intro').textContent = 'You and Ana both finished on 87 VP. The selected rules version decides their order.';
-			document.querySelector('#tie-steps').innerHTML = tie.steps.map((step, index) => `<div class="tie-step"><div class="tie-step__title"><span>${index + 1}.</span>${labels[step.by]}</div><div class="tie-step__values">${step.values.map(item => `<div><span>${seats.find(seat => seat.seat === item.seat).name}</span><b>${step.by === 'resources' ? `${item.value} resources` : landmarkName(item.value)}</b></div>`).join('')}</div><p class="tie-step__result">${new Set(step.values.map(item => item.value)).size !== 1 ? 'This step separates the tied players.' : index === tie.steps.length - 1 ? 'Still tied after every step — shared victory.' : 'Still tied — compare the next step.'}</p></div>`).join('');
+			document.querySelector('#tie-steps').innerHTML = tie.steps.map((step, index) => `<div class="tie-step"><div class="tie-step__title"><span>${index + 1}.</span>${labels[step.by]}</div><div class="tie-step__values">${step.values.map(item => `<div><span>${seats.find(seat => seat.seat === item.seat).name}</span><b class="${step.by === 'tallestLandmark' ? 'tie-step__landmark' : ''}">${step.by === 'resources' ? `${item.value} resources` : landmarkName(item.value)}</b></div>`).join('')}</div><p class="tie-step__result">${new Set(step.values.map(item => item.value)).size !== 1 ? 'This step separates the tied players.' : index === tie.steps.length - 1 ? 'Still tied after every step — shared victory.' : 'Still tied — compare the next step.'}</p></div>`).join('');
 		}
 		document.querySelector('.scenarios').addEventListener('click', event => {
 			const button = event.target.closest('[data-scenario]');
