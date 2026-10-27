@@ -1,4 +1,4 @@
-<!-- Library section: CapitalGrid with the mockups' capitals, completed groups, placed, locked and overhanging landmarks with room kept for them, and the interactive Lighthouse placement. -->
+<!-- Library section: CapitalGrid with the mockups' capitals, lit target plots with a previewed farm, completed groups, placed, locked and overhanging landmarks with room kept for them, and the interactive Lighthouse placement. -->
 <script>
 	import CapitalGrid from '../../../lib/components/player/CapitalGrid.svelte';
 	import CompletionCounters from '../../../lib/components/player/CompletionCounters.svelte';
@@ -41,6 +41,10 @@
 		67: 'farm',
 	};
 	const YOURS = capital(BLOCKED, BUILDINGS);
+	/** Every open plot of your capital, as a gained building's targets. */
+	const OPEN = YOURS.flatMap((kind, index) =>
+		kind === 'empty' ? [{ row: Math.floor(index / 9), col: index % 9 }] : []
+	);
 	/** Your capital with rows 0 and 1 and the top middle district built up, so locking the Lighthouse at row 0, column 4 completes them. */
 	const NEARLY = capital(BLOCKED, {
 		...BUILDINGS,
@@ -96,6 +100,8 @@
 	let selected = $state(true);
 	let dragging = $state(false);
 	let hovered = $state(/** @type {GroupKind | null} */ (null));
+	/* The targets example: where the farm is previewed. */
+	let farm = $state({ row: 4, col: 5 });
 	let toggled = $state(/** @type {GroupKind | null} */ (null));
 
 	let pieces = $derived(
@@ -220,6 +226,28 @@ Keyboard: an arrow key on the Lighthouse puts it on the grid and moves it, R rot
 					onButtonClick={startAgain}>Start again</Button>
 			{/if}
 		</div>
+	</Example>
+	<Example
+		label={`targets={openPlots} preview={{ row: ${farm.row}, col: ${farm.col}, building: 'farm' }} awaitingPlacement
+Click a lit plot, or press Enter or Space on it, to preview the farm there.`}
+		width={468}>
+		<CapitalGrid
+			plots={YOURS}
+			targets={OPEN}
+			preview={{ ...farm, building: 'farm' }}
+			awaitingPlacement
+			label="Your capital city, 9 by 9 plots"
+			onCapitalGridPlotClick={(/** @type {ComponentEvent} */ event) => {
+				if (
+					OPEN.some(
+						(plot) =>
+							plot.row === event.value.row &&
+							plot.col === event.value.col
+					)
+				) {
+					farm = { row: event.value.row, col: event.value.col };
+				}
+			}} />
 	</Example>
 	<Example
 		label={'plots={yourCapital} awaitingPlacement'}
