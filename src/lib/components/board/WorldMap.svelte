@@ -6,7 +6,7 @@
 	 * @property {import('../../hexmap.js').MapHex[]} hexes - Every hex of the board, from mapHexes(view) at HEX_SIZE
 	 * @property {string[]} [targets=[]] - Hex keys a decision can choose; each becomes a button and the other hexes dim
 	 * @property {string | null} [selected=null] - The chosen hex, outlined in gold
-	 * @property {{ hex: string, corners: import('../../ui.js').Terrain[], island: import('../../ui.js').Terrain[] } | null} [preview=null] - A tile to show on a hex before it is explored: drawn like an explored hex, at 85% opacity with a gold outline
+	 * @property {{ hex: string, corners: import('../../ui.js').Terrain[], island: import('../../ui.js').Terrain[], clouds?: boolean, volcano?: boolean } | null} [preview=null] - A tile to show on a hex before it is explored: drawn like an explored hex, with its clouds or volcano, at 85% opacity with a gold outline
 	 * @property {string} [label='World map'] - Names the map for assistive technology
 	 * @property {Function} [onWorldMapSelect] - Callback fired with { hex } when the player chooses a target hex
 	 */
@@ -104,6 +104,8 @@
 						...raw,
 						corners: preview.corners,
 						island: preview.island,
+						clouds: preview.clouds ?? false,
+						volcano: preview.volcano ?? false,
 						label: `${raw.label}, showing the chosen tile`,
 					}
 				: raw;

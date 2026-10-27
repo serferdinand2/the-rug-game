@@ -229,7 +229,7 @@ test('a printed territory is turned by its orient, and the middle island keeps i
 	]);
 	assert.match(
 		middle.label,
-		/^Hex 0,0: sea, with an island of desert, forest, grassland and mountain\.$/
+		/^Hex 0,0: sea, with an island of desert, forest, grassland and mountain, with clouds\.$/
 	);
 });
 
@@ -263,7 +263,7 @@ test('a toppled outpost keeps toppled, and pieces and tokens are named', () => {
 	assert.deepEqual(middle.tokens, [{ seat: 1, civ: 'traders' }]);
 	assert.equal(
 		middle.label,
-		'Hex 0,0: sea, with an island of desert, forest, grassland and mountain. ' +
+		'Hex 0,0: sea, with an island of desert, forest, grassland and mountain, with clouds. ' +
 			'Ana: 1 toppled outpost, a Traders token. ' +
 			'Bo: a Farm, a toppled Lighthouse.'
 	);
@@ -417,4 +417,17 @@ test("an overlay's box on a hex: its spot in the 64×56 picture, scaled to the h
 		assert.ok(near(box.width, 22 * across), `width at ${size}`);
 		assert.ok(near(box.height, 12 * down), `height at ${size}`);
 	}
+});
+
+test('a hex with clouds or the volcano says so to a screen reader (R77)', () => {
+	const hexes = mapHexes(dealtView(3));
+	const cloudy = hexes.find((h) => h.key === '-3_-3');
+	assert.match(cloudy?.label ?? '', /with clouds/);
+	const plain = hexes.find((h) => h.key === '1_-1');
+	assert.doesNotMatch(plain?.label ?? '', /clouds|volcano/);
+	const large = mapHexes(dealtView(4));
+	assert.match(
+		large.find((h) => h.key === '-1_3')?.label ?? '',
+		/with a volcano/
+	);
 });

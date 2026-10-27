@@ -308,7 +308,10 @@ export function mapHexes(view, size = HEX_SIZE) {
 			volcano: terrains?.volcano ?? false,
 			outposts,
 			tokens,
-			label: hexLabel(key, corners, island, outposts, tokens, nameOf),
+			label: hexLabel(key, corners, island, outposts, tokens, nameOf, {
+				clouds: terrains?.clouds ?? false,
+				volcano: terrains?.volcano ?? false,
+			}),
 		};
 	});
 }
@@ -335,12 +338,20 @@ function pieceOf(piece) {
  * @param {MapOutpost[]} outposts
  * @param {MapToken[]} tokens
  * @param {(seat: number) => string} nameOf
+ * @param {{ clouds: boolean, volcano: boolean }} pictures - What the territory's picture shows (R77)
  * @returns {string}
  */
-function hexLabel(key, corners, island, outposts, tokens, nameOf) {
+function hexLabel(key, corners, island, outposts, tokens, nameOf, pictures) {
 	let land = corners ? words([...new Set(corners)]) : 'unexplored';
 	if (island.length > 0) {
 		land += `, with an island of ${words(island)}`;
+	}
+	// Clouds are scoring data (R77, #49), so a screen reader hears them too.
+	if (pictures.clouds) {
+		land += ', with clouds';
+	}
+	if (pictures.volcano) {
+		land += ', with a volcano';
 	}
 	const seats = [
 		...new Set([...outposts, ...tokens].map((item) => item.seat)),

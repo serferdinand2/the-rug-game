@@ -22,9 +22,10 @@ The design is in [2026-10-21-art-toolkit-design.md](../superpowers/specs/2026-10
 | `art/painter.js` | The canvas, drawing helpers (`set`, `rect`, `line`, and `paint` for small sprites drawn from rows of keys), `outline`, `mix`, `seededRandom`, `underlay` and `toSvg` |
 | `art/effects.js` | Light passes that blend colours over a painted canvas: `glow`, a banded glow around a lamp or fire. They live outside `art/parts/`, whose parts paint only palette colours |
 | `art/palette.js` | `PALETTE`: every named style C colour |
-| `art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure`, `drawSmoke` (smoke, steam), `drawClassical` (pediment, flat), `drawFactory`, `drawSkyline` (night, dusk, day), `drawStreet`, `drawShip` (1–3 masts, either way, sails set or furled), `drawInterior` (plaster, stone, panel; with a window onto any sky), `drawBanner` (flag, hanging), `drawCrowd` and `drawWheel`. Board parts: `capital-terrain.js` (the capital plots and example mats) and `inspiration-tile.js` (`drawInspirationTile`, the strip of six framed spaces that each inspiration tile's innovations are drawn on) |
+| `art/parts/` | Scene parts: `drawSky` (night, day, dusk), `drawSea` (night, day), `drawTerrain` (forest, mountain, desert, grassland), `drawBuilding` (house, tower, wall), `drawFigure`, `drawSmoke` (smoke, steam), `drawClassical` (pediment, flat), `drawFactory`, `drawSkyline` (night, dusk, day), `drawStreet`, `drawShip` (1–3 masts, either way, sails set or furled), `drawInterior` (plaster, stone, panel; with a window onto any sky), `drawBanner` (flag, hanging), `drawCrowd` and `drawWheel`. Board parts: `capital-terrain.js` (the capital plots and example mats), `capital-biomes/` (one module per advanced biome, #6: its 32×32 plots, its printed `LAYOUT` and its example mat), `territory.js` (#6: the terrain hex pictures, the cloud and volcano overlays, `drawTerritory` and the example boards) and `inspiration-tile.js` (`drawInspirationTile`, the strip of six framed spaces that each inspiration tile's innovations are drawn on) |
 | `src/lib/art/footprints.js` | `FOOTPRINTS` for the 33 landmarks, `PLOT_SIZE` (32), `footprintMismatches` and `clipToFootprint` |
 | `src/lib/art/catalog.js` | `ASSETS`: every asset the game needs, with its stable id, plus `GROUPS` and `EXPANSIONS` |
+| `src/lib/art/hex-overlays.js` | Where the cloud and the volcano sit in a territory's 64×56 picture, shared by the art and the game's map (#6) |
 | `art/drawings/` | One module per drawn asset, at `art/drawings/<id>.js` |
 | `art/build.mjs` | Writes each drawing to `static/art/<id>.svg` |
 | `art/gallery.js` | `PART_SAMPLES`, `gallerySections` (the grouping the art is reviewed in) and `drawingCanvas` (the check every drawing passes). No Node APIs, so the component library runs it in the browser |
@@ -86,3 +87,13 @@ Resource symbols have two active native sizes: 24×24 and 48×48. Their owner-su
 The shaded 32×32 player tokens replace the old flat five-colour variants at the existing `piece/token-{colour}` URLs. Their original PNGs are retained in `art/imported-pngs/player-tokens/`, and the flat predecessors are deprecated under `docs/art/archive/player-tokens-v1/`. Tests compare every visible pixel and alpha against the PNGs. No partial transparency or colour substitution is introduced.
 
 The owner's five native 24 px terrain hex markers are now active `terrain/{sea,desert,forest,grassland,mountain}` drawings and production SVGs; earlier deferral text applies only to the old placeholder drawings. These markers are distinct from capital biome terrain tiles. Civilization cards consume their production URLs.
+
+## The map and the advanced capitals (#6, 2026-10-27)
+
+The map is composed, as the capital is (#5): the game never shows a painted board.
+- **Terrain hexes.** Each terrain has one 64×56 hex picture, `hex/<terrain>`: a flat-topped hex of radius 32, transparent outside it. The game fills each corner's wedge, and each island part, with its terrain's picture, clipped to the wedge. It strokes a coast where land meets sea, and lays the cloud and the volcano at their spots from `src/lib/art/hex-overlays.js`. A turned tile therefore stays crisp in all six turns, and always shows the terrains the engine scores.
+- **Territory tiles.** `territory-tile/1–48` are the same composition in pixels. The game uses them nowhere that it composes: they are for the gallery's review.
+- **Example boards.** `board/map-small` and `board/map-large` are examples too, like the base capital mats.
+- **Clouds are game data (R77).** The engine's `TERRITORY_TILES` and printed hexes carry `clouds` and `volcano`. The art draws a cloud only where they say, in colours nothing else on the map uses, and `tests/art-territory.test.mjs` checks every tile and board against R77.
+- **Advanced capitals.** Each of the 12 advanced biomes has 8 buildable and 6 impassable 32×32 plots, and an example mat on its printed layout from 03-expansions. What the research doesn't show (rule text, icons, frames) is left out; each module says what.
+

@@ -46,7 +46,7 @@ The pictures are style C pixel art, top-down, in the palette:
 - Cloud City's cloud-shaped districts;
 - Canyon's cacti;
 - Swamp's lily pads;
-- Netherworld's paths.
+- Netherworld's imps and city centre (its paths are the player's own, so nothing is printed).
 
 **Gaps.** Where the research doesn't show a layout or feature, it is left out and listed, never invented **(CLAUDE.md)**.
 
@@ -68,3 +68,15 @@ The pictures are style C pixel art, top-down, in the palette:
 - **The client:** WorldMap composes a hex from the right pictures (`client-hexmap`).
 - **Capital terrain:** each biome's tiles are distinct; the example mats match their layouts' impassable plots.
 - **The usual art checks:** each SVG matches its drawing, and every catalog entry is drawn.
+
+## 8. After the review
+
+**Rulings.** The fresh review's findings were ruled on and fixed **(my call)**:
+- **Features for #36.** The printed features of the advanced mats were not cut into separate assets. Each biome module exports `FEATURES` instead: its ordinary tile pools, its special variants and its mat-only features, as the contract for #36, which composes advanced mats in the game. #36 cuts the overlays it needs from the drawing code. `capitalTileUrl` stays for the base biomes only, so no special tile can land on a random plot.
+- **Art.** Cloud City's sixth impassable tile is redrawn as an anvil cloud, and several obstacles that read as something else are redrawn. Each layout is pinned in its test against the research grid.
+- **The map.** The explore preview carries its tile's clouds and volcano, screen readers hear them, and the tile number moves clear of the volcano.
+
+**Accepted.**
+- The gallery's territory tiles vary their details per tile (seed = id), while the game composes from `hex/*` at one seed. The terrains and the clouds are the same.
+- The cloud sits at one spot on every hex.
+

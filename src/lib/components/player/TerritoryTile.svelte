@@ -88,7 +88,13 @@
 	);
 	let coasts = $derived(coastLines(CENTER, corners, size));
 	let name = $derived(
-		`Territory tile ${id}: ${[...new Set(corners)].join(', ')}${island.length ? `, island of ${island.join(' and ')}` : ''}`
+		`Territory tile ${id}: ${[...new Set(corners)].join(', ')}${island.length ? `, island of ${island.join(' and ')}` : ''}${clouds ? ', with clouds' : ''}${volcano ? ', with a volcano' : ''}`
+	);
+	// The number sits at the foot of the hex, or at its top when the volcano stands at the foot (#6 review).
+	let numberY = $derived(
+		volcano && [3, 4].includes(volcanoCorner(corners))
+			? -height / 2 + 11
+			: height / 2 - 4
 	);
 </script>
 
@@ -157,7 +163,7 @@
 	<text
 		class="rg-territory-tile--number"
 		x="0"
-		y={height / 2 - 4}
+		y={numberY}
 		text-anchor="middle">{id}</text>
 </svg>
 
