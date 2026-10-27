@@ -63,7 +63,7 @@ These components are updated as the art issues deliver their assets. Each will s
 
 | Component | Purpose |
 |---|---|
-| `CapitalGrid` | The 9×9 capital: plots, impassable Xs, districts, completion overlays, placed landmarks (a locked one may hang over the edge, R106, and `room` keeps space for it) and their drag, keyboard and drop handling. |
+| `CapitalGrid` | The 9×9 capital: plots, impassable Xs, districts, completion overlays, placed landmarks (a locked one may hang over the edge, R106, and `room` keeps space for it) and their drag, keyboard and drop handling, and a decision's lit `targets` (green-outlined plot buttons) with a faint `preview` of the chosen building. |
 | `CompletionCounters` | Completed rows, columns and districts; hover or focus previews, a press keeps them shown. |
 | `LandmarkPiece` | A landmark's picture in its footprint's shape, in the tray or on the grid, with rotate, confirm and return. |
 | `PlacementTray` | The To be placed tray: select, drag or arrow a landmark onto the grid, or drop one back. |

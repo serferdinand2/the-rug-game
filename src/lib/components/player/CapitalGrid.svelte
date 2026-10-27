@@ -1,4 +1,4 @@
-<!-- A 9×9 capital composed from terrain and building SVGs, with placement controls and completed-group overlays. -->
+<!-- A 9×9 capital composed from terrain and building SVGs, with placement controls, lit target plots and completed-group overlays. -->
 <script module>
 	/** @typedef {import('../../capital.js').PlotKind} PlotKind */
 	/** @typedef {import('../../capital.js').GroupKind} GroupKind */
@@ -18,6 +18,21 @@
 	 */
 
 	/**
+	 * A plot a decision can choose, such as an open plot for a gained building.
+	 * @typedef {Object} CapitalGridTarget
+	 * @property {number} row - 0–8
+	 * @property {number} col - 0–8
+	 */
+
+	/**
+	 * A building shown faintly on a plot before it is placed there.
+	 * @typedef {Object} CapitalGridPreview
+	 * @property {number} row - 0–8
+	 * @property {number} col - 0–8
+	 * @property {string} building - The income building's id: 'market', 'house', 'farm' or 'armory'
+	 */
+
+	/**
 	 * Properties of the CapitalGrid component itself.
 	 * @typedef {Object} CapitalGridOwnProps
 	 * @property {PlotKind[]} plots - All 81 plots, row by row
@@ -27,6 +42,8 @@
 	 * @property {GroupKind | null} [highlight=null] - Cover each completed row, column or district with one flat green rectangle
 	 * @property {boolean} [awaitingPlacement=false] - Something is waiting to be placed: a green outline around the grid
 	 * @property {boolean} [room=false] - Keep room around the grid for the pieces that hang over its edges (R106), so nothing next to it is covered
+	 * @property {CapitalGridTarget[]} [targets=[]] - Plots a decision can choose: each gets a green outline and becomes a button that fires onCapitalGridPlotClick
+	 * @property {CapitalGridPreview | null} [preview=null] - The chosen building, drawn faintly on its plot until it is placed
 	 * @property {string} [label='Capital city, 9 by 9 plots'] - Names the grid for assistive technology
 	 * @property {Function} [onCapitalGridPlotClick] - Callback fired with { row, col } when a plot is clicked, for click-to-place from the tray
 	 * @property {Function} [onCapitalGridDrop] - Callback fired with { id, row, col } when a piece from the tray is dropped; row and col are where its top-left corner landed, not yet snapped
@@ -41,6 +58,14 @@
 	/**
 	 * Properties for the CapitalGrid component, including any attributes for its root element.
 	 * @typedef {CapitalGridOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} CapitalGridProps
+	 *
+	 * @example
+	 * <CapitalGrid
+	 *   {plots}
+	 *   targets={[{ row: 0, col: 3 }, { row: 4, col: 5 }]}
+	 *   preview={{ row: 4, col: 5, building: 'farm' }}
+	 *   onCapitalGridPlotClick={(event) => pick(event.value)}
+	 * />
 	 *
 	 * @example
 	 * <CapitalGrid
@@ -63,6 +88,7 @@
 		completedGroups,
 		fits,
 		groupBounds,
+		plotIndex,
 	} from '../../capital.js';
 	import {
 		GRAB_TYPE,
@@ -83,6 +109,8 @@
 		highlight = null,
 		awaitingPlacement = false,
 		room = false,
+		targets = [],
+		preview = null,
 		label = 'Capital city, 9 by 9 plots',
 		onCapitalGridPlotClick,
 		onCapitalGridDrop,
@@ -137,12 +165,16 @@
 			: undefined
 	);
 	let width = $derived(
-		room
-			? `calc(100% - ${reach.left + reach.right} * 100% / 9)`
-			: undefined
+		room ? `calc(100% - ${reach.left + reach.right} * 100% / 9)` : undefined
 	);
 	let overlays = $derived(
 		highlight ? completedGroups(locked, highlight).map(groupBounds) : []
+	);
+	let targeted = $derived(
+		new Set(targets.map((target) => plotIndex(target.row, target.col)))
+	);
+	let previewed = $derived(
+		preview ? plotIndex(preview.row, preview.col) : null
 	);
 
 	$effect(() => {
@@ -417,6 +449,15 @@
 	}
 
 	/**
+	 * A target plot's name, counted from 1 as players read it.
+	 * @param {number} index - The plot, row by row
+	 * @returns {string}
+	 */
+	function targetLabel(index) {
+		return `Place at row ${Math.floor(index / GRID_SIZE) + 1}, column ${(index % GRID_SIZE) + 1}`;
+	}
+
+	/**
 	 * The plot under the pointer, in fractions of a plot.
 	 * @param {MouseEvent} event
 	 * @returns {{ row: number, col: number }}
@@ -469,30 +510,52 @@
 	ondragover={dragoverHandler}
 	ondragleave={dragleaveHandler}
 	ondrop={dropHandler}>
+	{#snippet plot(/** @type {PlotKind} */ kind, /** @type {number} */ index)}
+		{#if kind !== 'landmark'}
+			<img
+				class="rg-capital-grid--terrain"
+				src={capitalTileUrl(
+					biome,
+					kind === 'blocked',
+					index,
+					terrainSeed
+				)}
+				alt=""
+				draggable="false" />
+		{/if}
+		{#if kind === 'market' || kind === 'house' || kind === 'farm' || kind === 'armory'}
+			<img
+				class="rg-capital-grid--building"
+				src={artUrl(`building/${kind}`)}
+				alt=""
+				draggable="false" />
+		{/if}
+		{#if preview && index === previewed}
+			<img
+				class="rg-capital-grid--building rg-capital-grid--preview"
+				src={artUrl(`building/${preview.building}`)}
+				alt=""
+				draggable="false" />
+		{/if}
+	{/snippet}
 	{#each plots as kind, index (index)}
-		<i
-			class="rg-capital-grid--plot rg-capital-grid--{kind}"
-			data-plot={index}>
-			{#if kind !== 'landmark'}
-				<img
-					class="rg-capital-grid--terrain"
-					src={capitalTileUrl(
-						biome,
-						kind === 'blocked',
-						index,
-						terrainSeed
-					)}
-					alt=""
-					draggable="false" />
-			{/if}
-			{#if kind === 'market' || kind === 'house' || kind === 'farm' || kind === 'armory'}
-				<img
-					class="rg-capital-grid--building"
-					src={artUrl(`building/${kind}`)}
-					alt=""
-					draggable="false" />
-			{/if}
-		</i>
+		{#if targeted.has(index)}
+			<!-- The root's click handler reports the plot, so a target needs no handler of its own. -->
+			<button
+				type="button"
+				class="rg-capital-grid--plot rg-capital-grid--{kind} rg-capital-grid--target"
+				data-plot={index}
+				aria-label={targetLabel(index)}
+				aria-pressed={index === previewed}>
+				{@render plot(kind, index)}
+			</button>
+		{:else}
+			<i
+				class="rg-capital-grid--plot rg-capital-grid--{kind}"
+				data-plot={index}>
+				{@render plot(kind, index)}
+			</i>
+		{/if}
 	{/each}
 	{#each pieces as piece (piece.id)}
 		{@const area = pieceArea(pieceShape(piece), piece.row, piece.col)}
@@ -656,6 +719,35 @@
 		background: var(--surface);
 	}
 
+	/* A plot a decision can choose: a green outline drawn over its tiles. */
+	.rg-capital-grid--target {
+		padding: 0;
+		border: 0;
+		color: inherit;
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.rg-capital-grid--target::before {
+		content: '';
+		position: absolute;
+		z-index: 1;
+		inset: 0;
+		border: var(--border-thick) solid var(--ok);
+		border-radius: var(--radius);
+		pointer-events: none;
+	}
+
+	.rg-capital-grid--target:hover,
+	.rg-capital-grid--target:focus-visible {
+		filter: brightness(1.15);
+	}
+
+	.rg-capital-grid--target:hover::before,
+	.rg-capital-grid--target[aria-pressed='true']::before {
+		box-shadow: var(--glow-ok);
+	}
+
 	.rg-capital-grid--building {
 		position: relative;
 		display: block;
@@ -663,6 +755,13 @@
 		height: 100%;
 		object-fit: contain;
 		image-rendering: pixelated;
+	}
+
+	/* The chosen building, faint until it is placed. */
+	.rg-capital-grid--preview {
+		position: absolute;
+		inset: 0;
+		opacity: 0.6;
 	}
 
 	.rg-capital-grid--terrain {
