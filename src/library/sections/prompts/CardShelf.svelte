@@ -30,7 +30,7 @@
 			cards={[
 				{ index: 0, id: 'academia', label: 'Academia' },
 				{ index: 1, id: 'age-of-discovery', label: 'Age of Discovery' },
-				{ index: 2, id: 'ammonia', label: 'Ammonia' },
+				{ index: 2, id: 'capitalism', label: 'Capitalism' },
 			]}
 			selected={tapestry}
 			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>

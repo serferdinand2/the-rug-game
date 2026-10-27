@@ -32,9 +32,7 @@
 	import CivilizationCard from '../player/CivilizationCard.svelte';
 	import TapestryCard from '../player/TapestryCard.svelte';
 	import TechnologyCard from '../player/TechnologyCard.svelte';
-	import { REVIEWED_CIVILIZATIONS } from '../../cards/reviewed-civilizations.js';
 	import { tapestryCardData, techCardData } from '../../cards/game-cards.js';
-	import { civilizationName } from '../../describe.js';
 	import { CAPITAL_MATS } from '../../engine/data/capitals.js';
 	import { ComponentEvent } from '../../component-event.js';
 	import { artUrl } from '../../ui.js';
@@ -46,10 +44,6 @@
 		civ: { width: 425, height: 720, scale: 0.5 },
 		mat: { width: 200, height: 220, scale: 1 },
 	};
-
-	const REVIEWED = new Set(
-		REVIEWED_CIVILIZATIONS.map((/** @type {{ id: string }} */ c) => c.id)
-	);
 
 	/** @type {CardShelfProps} */
 	let {
@@ -135,20 +129,9 @@
 						<TechnologyCard data={techCardData(card.id)} />
 					{/if}
 				{:else if kind === 'civ'}
-					{#if REVIEWED.has(card.id)}
-						<CivilizationCard
-							id={card.id}
-							state="empty" />
-					{:else}
-						<span class="rg-card-shelf--plain">
-							<img
-								src={artUrl(`civ/${card.id}`)}
-								alt=""
-								width="128"
-								height="128" />
-							<b>{civilizationName(card.id)}</b>
-						</span>
-					{/if}
+					<CivilizationCard
+						id={card.id}
+						state="empty" />
 				{:else}
 					<span class="rg-card-shelf--mat">
 						<img
@@ -222,7 +205,6 @@
 	}
 
 	.rg-card-shelf--back,
-	.rg-card-shelf--plain,
 	.rg-card-shelf--mat {
 		display: flex;
 		flex-direction: column;
@@ -244,22 +226,7 @@
 		font-size: var(--font-size-3xl);
 	}
 
-	.rg-card-shelf--plain,
 	.rg-card-shelf--mat {
 		font-size: var(--font-size-xl);
-	}
-
-	.rg-card-shelf--plain img,
-	.rg-card-shelf--mat img {
-		image-rendering: pixelated;
-	}
-
-	.rg-card-shelf--plain {
-		font-size: var(--font-size-3xl);
-	}
-
-	.rg-card-shelf--plain img {
-		width: 256px;
-		height: 256px;
 	}
 </style>
