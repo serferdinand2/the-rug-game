@@ -66,8 +66,18 @@ export const GROUPS = Object.freeze(
 			kind: 'illustration',
 			issue: 11,
 		},
-		{ id: 'resource-24', label: 'Resources · native 24 px', kind: 'icon', issue: 5 },
-		{ id: 'resource-48', label: 'Resources · native 48 px', kind: 'icon', issue: 5 },
+		{
+			id: 'resource-24',
+			label: 'Resources · native 24 px',
+			kind: 'icon',
+			issue: 5,
+		},
+		{
+			id: 'resource-48',
+			label: 'Resources · native 48 px',
+			kind: 'icon',
+			issue: 5,
+		},
 		{ id: 'building', label: 'Income buildings', kind: 'icon', issue: 5 },
 		{ id: 'piece', label: 'Player pieces', kind: 'icon', issue: 5 },
 		{ id: 'die', label: 'Dice faces', kind: 'icon', issue: 5 },
@@ -127,6 +137,60 @@ function numbered(count, label) {
 		`${label} ${i + 1}`,
 	]);
 }
+
+/**
+ * A capital biome's 14 terrain tiles: 8 buildable and 6 impassable variants, as the base biomes have (#5, #6).
+ * @param {string} slug - Such as 'cloud-city'
+ * @param {string} name - Such as 'Cloud City'
+ * @returns {Entries}
+ */
+function biomeTiles(slug, name) {
+	const two = (/** @type {number} */ n) => String(n).padStart(2, '0');
+	return [
+		...Array.from(
+			{ length: 8 },
+			(_, i) =>
+				/** @type {[string, string]} */ ([
+					`${slug}-open-${two(i + 1)}`,
+					`${name} buildable ${i + 1}`,
+				])
+		),
+		...Array.from(
+			{ length: 6 },
+			(_, i) =>
+				/** @type {[string, string]} */ ([
+					`${slug}-blocked-${two(i + 1)}`,
+					`${name} impassable ${i + 1}`,
+				])
+		),
+	];
+}
+
+/**
+ * The advanced capital mats, as [slug, name], by expansion.
+ * @type {{ aa: Entries, ff: Entries }}
+ */
+const ADVANCED_MATS = {
+	aa: [
+		['archipelago', 'Archipelago'],
+		['canyon', 'Canyon'],
+		['cavern', 'Cavern'],
+		['cloud-city', 'Cloud City'],
+		['mesa', 'Mesa'],
+		['swamp', 'Swamp'],
+	],
+	ff: [
+		['quagmire', 'Quagmire'],
+		['city-in-a-bottle', 'City in a Bottle'],
+		['veil', 'Veil'],
+		['savanna', 'Savanna'],
+		['polar', 'Polar'],
+		['netherworld', 'Netherworld'],
+	],
+};
+
+/** Compositions shown as examples only: the game assembles its own from the tiles (#5, #6). */
+const EXAMPLES = ['capital-mat', 'board/map-small', 'board/map-large'];
 
 /** @type {Partial<Record<ExpansionCode, Entries>>} */
 const LANDMARKS = {
@@ -580,6 +644,8 @@ const LISTS = {
 			['grassland', 'Grassland hex'],
 			['mountain', 'Mountain hex'],
 			['unexplored', 'Unexplored hex'],
+			['cloud', 'Cloud over a hex'],
+			['volcano', 'Volcano on a hex'],
 		],
 	},
 	// Numbered as in 01 Appendix B (R4).
@@ -593,22 +659,8 @@ const LISTS = {
 			['grassland', 'Grassland'],
 			['forest', 'Forest'],
 		],
-		aa: [
-			['archipelago', 'Archipelago'],
-			['canyon', 'Canyon'],
-			['cavern', 'Cavern'],
-			['cloud-city', 'Cloud City'],
-			['mesa', 'Mesa'],
-			['swamp', 'Swamp'],
-		],
-		ff: [
-			['quagmire', 'Quagmire'],
-			['city-in-a-bottle', 'City in a Bottle'],
-			['veil', 'Veil'],
-			['savanna', 'Savanna'],
-			['polar', 'Polar'],
-			['netherworld', 'Netherworld'],
-		],
+		aa: ADVANCED_MATS.aa,
+		ff: ADVANCED_MATS.ff,
 	},
 	'capital-terrain': {
 		base: [
@@ -697,6 +749,8 @@ const LISTS = {
 			['forest-blocked-05', 'Forest impassable 5'],
 			['forest-blocked-06', 'Forest impassable 6'],
 		],
+		aa: ADVANCED_MATS.aa.flatMap(([slug, name]) => biomeTiles(slug, name)),
+		ff: ADVANCED_MATS.ff.flatMap(([slug, name]) => biomeTiles(slug, name)),
 	},
 	'inspiration-tile': {
 		aa: [
@@ -725,7 +779,8 @@ export const ASSETS = Object.freeze(
 					issue: COSMETIC_BOARDS.includes(`${group.id}/${slug}`)
 						? COSMETIC_ISSUE
 						: group.issue,
-					...(group.id === 'capital-mat' && code === 'base'
+					...(EXAMPLES.includes(group.id) ||
+					EXAMPLES.includes(`${group.id}/${slug}`)
 						? { example: true }
 						: {}),
 				})

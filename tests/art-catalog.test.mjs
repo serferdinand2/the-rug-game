@@ -27,10 +27,10 @@ const EXPECTED_COUNTS = {
 	track: { base: 4, aa: 1 },
 	symbol: { base: 5 },
 	board: { base: 5, ff: 1 },
-	hex: { base: 6 },
+	hex: { base: 8 },
 	'territory-tile': { base: 48 },
 	'capital-mat': { base: 6, aa: 6, ff: 6 },
-	'capital-terrain': { base: 84 },
+	'capital-terrain': { base: 84, aa: 84, ff: 84 },
 	'inspiration-tile': { aa: 4 },
 };
 
@@ -101,11 +101,11 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 146 icons and 82 boards', () => {
+test('there are 294 illustrations, 314 icons and 84 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
-	assert.equal(count('icon'), 146);
-	assert.equal(count('board'), 82);
+	assert.equal(count('icon'), 314);
+	assert.equal(count('board'), 84);
 });
 
 test('the slug rules turn awkward names into the agreed slugs', () => {
