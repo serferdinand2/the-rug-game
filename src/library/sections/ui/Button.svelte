@@ -10,7 +10,7 @@
 <Section
 	name="Button"
 	area="ui"
-	description="Every button in the game. The mode names the job: primary commits a move, gold creates, joins and confirms, success starts the game and danger leaves.">
+	description="Every button in the game. The mode names the job: primary commits a move, gold creates, joins and marks ready, confirm answers a decision, success starts the game and danger leaves.">
 	<Example
 		label={'mode="primary"'}
 		surface="chrome">
@@ -38,6 +38,11 @@
 			selected={ready}
 			onButtonClick={() => (ready = !ready)}
 			>I’m ready {ready ? '✓' : ''}</Button>
+	</Example>
+	<Example
+		label={'mode="confirm"  (a decision panel’s Confirm)'}
+		surface="chrome">
+		<Button mode="confirm">Keep civilization</Button>
 	</Example>
 	<Example
 		label={'mode="success"'}

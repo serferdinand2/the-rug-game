@@ -1,11 +1,11 @@
-<!-- A button in one of the game's five looks: primary, secondary, gold, success or danger. -->
+<!-- A button in one of the game's six looks: primary, secondary, gold, confirm, success or danger. -->
 <script module>
-	/** @typedef {'primary' | 'secondary' | 'gold' | 'success' | 'danger'} ButtonMode */
+	/** @typedef {'primary' | 'secondary' | 'gold' | 'confirm' | 'success' | 'danger'} ButtonMode */
 
 	/**
 	 * Properties of the Button component itself.
 	 * @typedef {Object} ButtonOwnProps
-	 * @property {ButtonMode} [mode='secondary'] - primary: the green commit action; secondary: raised; gold: create, join, ready, take the seat, take income; success: start game; danger: leave table
+	 * @property {ButtonMode} [mode='secondary'] - primary: the green commit action; secondary: raised, as Take income; gold: create, join, ready, take the seat; confirm: solid gold, a decision panel's Confirm (the play mockup's #decision-confirm); success: start game; danger: leave table
 	 * @property {'small' | 'medium' | 'large'} [size='medium'] - 30, 36 or 44 pixels tall
 	 * @property {boolean} [block=false] - Fill the container's width
 	 * @property {boolean} [selected] - A toggle's pressed state, such as I'm ready; sets aria-pressed
@@ -136,6 +136,16 @@
 
 	.rg-button--gold.rg-button--selected {
 		box-shadow: var(--glow-gold-strong);
+	}
+
+	.rg-button--confirm {
+		border-color: var(--gold);
+		background: var(--gold);
+		color: var(--ink);
+	}
+
+	.rg-button--confirm:hover {
+		background: color-mix(in srgb, var(--gold) 88%, var(--text));
 	}
 
 	.rg-button--success {

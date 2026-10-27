@@ -33,7 +33,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | Component | Purpose |
 |---|---|
 | `Badge` | Expansion tags tinted with their colour, and the YOU, HOST and READY capitals. |
-| `Button` | Every button: `primary`, `secondary`, `gold`, `success` or `danger`, in three sizes, with a `selected` toggle state. |
+| `Button` | Every button: `primary`, `secondary`, `gold`, `confirm` (a decision panel's solid gold Confirm, #65), `success` or `danger`, in three sizes, with a `selected` toggle state. |
 | `Divider` | A thin rule, optionally paused by a short italic label such as "or join friends". |
 | `IconButton` | The 36px header controls (sound, history, log, menu, close), with the red mute slash. |
 | `Menu` | The header popover: entries as links or buttons, arrow keys and Escape. |
@@ -82,7 +82,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `CostBox` | The footer's price: a Cost label and the symbols joined by plus signs, read out in words. |
 | `CardShelf` | The cards a decision offers (tapestry, tech with the deck, civilizations, capital mats) as pressable buttons in a row that scrolls when too wide; more than four tapestry cards fan out; the chosen one is outlined in gold (tapestry and tech cards also lift), hover and focus report it for a full view (#28). Civilization cards are whole, 425 px wide at their own height, scaled down only as far as the shelf's height needs and never below 0.75; capital mats are their 9×9 `CapitalGrid`, 380 px, with the table's `terrainSeed`; each sizes its own button, so the outline fits it (#56–#58). |
 | `DecisionOption` | One choice in a decision prompt: words, optional resource symbols, `art` pictures above the words, a gold `+n VP` badge, gold while chosen (#26, #28). |
-| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf filling the height above the panel, question, content, status and Confirm; without content the status line carries the instruction; a `track` tint, the gold `income` tone with a `steps` snippet, and `docked` beside the map with no scrim (#26, #28, #57). |
+| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf filling the height above the panel, question, content, status and Confirm (a `Button`, solid gold as the play mockup draws it, #65); without content the status line carries the instruction; a `track` tint, the gold `income` tone with a `steps` snippet, and `docked` beside the map with no scrim (#26, #28, #57). |
 | `IncomeSteps` | The strip of an income turn's steps, the running one marked `aria-current="step"` (#28). |
 | `PromptArt` | One picture a prompt shows: a resource with its count, track, building, landmark, terrain, civilization, space tile, turned territory, capital mat, card art, VP badge or the tech deck (#28). |
 | `OverviewCloseBar` | The footer while the players overview is open. |

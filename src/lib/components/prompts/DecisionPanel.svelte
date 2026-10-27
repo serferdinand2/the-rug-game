@@ -32,6 +32,7 @@
 <script>
 	import { ComponentEvent } from '../../component-event.js';
 	import { trackColor } from '../../ui.js';
+	import Button from '../ui/Button.svelte';
 
 	/** @type {DecisionPanelProps} */
 	let {
@@ -54,31 +55,23 @@
 	const uid = $props.id();
 
 	/**
-	 * @param {MouseEvent} event
+	 * @param {ComponentEvent} event
 	 */
 	const confirmClickHandler = (event) => {
 		if (typeof onDecisionPanelConfirm === 'function') {
 			onDecisionPanelConfirm(
-				new ComponentEvent(
-					null,
-					/** @type {HTMLElement} */ (event.currentTarget),
-					event
-				)
+				new ComponentEvent(null, event.target, event.originalEvent)
 			);
 		}
 	};
 
 	/**
-	 * @param {MouseEvent} event
+	 * @param {ComponentEvent} event
 	 */
 	const cancelClickHandler = (event) => {
 		if (typeof onDecisionPanelCancel === 'function') {
 			onDecisionPanelCancel(
-				new ComponentEvent(
-					null,
-					/** @type {HTMLElement} */ (event.currentTarget),
-					event
-				)
+				new ComponentEvent(null, event.target, event.originalEvent)
 			);
 		}
 	};
@@ -117,16 +110,14 @@
 				{status}
 			</p>
 			{#if cancelLabel}
-				<button
-					type="button"
-					class="rg-decision-panel--button"
-					onclick={cancelClickHandler}>{cancelLabel}</button>
+				<Button onButtonClick={cancelClickHandler}
+					>{cancelLabel}</Button>
 			{/if}
-			<button
-				type="button"
-				class="rg-decision-panel--button rg-decision-panel--confirm"
+			<Button
+				mode="confirm"
+				class="rg-decision-panel--confirm"
 				disabled={confirmDisabled}
-				onclick={confirmClickHandler}>{confirmLabel}</button>
+				onButtonClick={confirmClickHandler}>{confirmLabel}</Button>
 		</div>
 	</div>
 </div>
@@ -226,7 +217,10 @@
 		);
 	}
 
-	.rg-decision-panel--tracked .rg-decision-panel--confirm:not(:disabled) {
+	/* Confirm takes the track's colour too, as the mockup's [data-track] #decision-confirm; the Button is reached
+	   through its class prop. */
+	.rg-decision-panel--tracked
+		:global(.rg-decision-panel--confirm:not(:disabled)) {
 		border-color: var(--rg-decision-panel-track);
 		background: color-mix(
 			in srgb,
@@ -234,6 +228,15 @@
 			var(--text)
 		);
 		color: var(--ink);
+	}
+
+	.rg-decision-panel--tracked
+		:global(.rg-decision-panel--confirm:not(:disabled):hover) {
+		background: color-mix(
+			in srgb,
+			var(--rg-decision-panel-track) 55%,
+			var(--text)
+		);
 	}
 
 	/* The viewer's income turn is gold: the border, the title bar and the step strip. */
@@ -281,32 +284,6 @@
 	.rg-decision-panel--income .rg-decision-panel--bottom {
 		background: var(--surface);
 		box-shadow: none;
-	}
-
-	.rg-decision-panel--button {
-		padding: var(--space-4) var(--space-6);
-		border: var(--border) solid var(--line);
-		border-radius: var(--radius);
-		background: var(--raised);
-		color: var(--text);
-		font-weight: var(--weight-bold);
-	}
-
-	.rg-decision-panel--button:hover:not(:disabled),
-	.rg-decision-panel--button:focus-visible {
-		border-color: var(--gold);
-		color: var(--gold);
-	}
-
-	.rg-decision-panel--confirm {
-		border-color: var(--action);
-		background: color-mix(in srgb, var(--action) 22%, var(--control));
-		color: color-mix(in srgb, var(--action) 45%, var(--text));
-	}
-
-	.rg-decision-panel--button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
 	}
 
 	/* A choice on the map leaves the board clickable: no scrim, only the panel takes the pointer, docked at the
