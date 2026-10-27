@@ -1,6 +1,7 @@
 // The Veil capital terrain (#6): 14 distinct full-bleed plots and an example mat on the printed layout.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as pinned from '../art/parts/capital-biomes/veil.js';
 import {
 	LAYOUT,
 	drawBiomeTile,
@@ -51,4 +52,26 @@ test('the Veil mat is 9×9 plots with 22 impassable ones, placed where the layou
 			assert.ok(same >= 700, `plot ${y},${x} is its tile`);
 		}
 	}
+});
+
+/**
+ * The printed grid copied from docs/research/03-expansions.md, Veil (#15), so the layout can't drift with its own code.
+ * @type {readonly string[]}
+ */
+const PRINTED = [
+	'......XX.',
+	'.....X...',
+	'......X..',
+	'......XXX',
+	'.....X...',
+	'....XX...',
+	'...XXX...',
+	'..XX..X.X',
+	'XXX....XX',
+];
+
+test('the layout equals the research grid', () => {
+	const impassable = (/** @type {string} */ row) =>
+		[...row].map((ch) => ('X'.includes(ch) ? 'X' : '.')).join('');
+	assert.deepEqual(pinned.LAYOUT.map(impassable), PRINTED.map(impassable));
 });

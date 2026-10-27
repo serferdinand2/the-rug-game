@@ -1,6 +1,7 @@
 // The Cavern capital terrain (#6): 14 distinct full-bleed plots and an example mat on the printed layout.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as pinned from '../art/parts/capital-biomes/cavern.js';
 import * as biome from '../art/parts/capital-biomes/cavern.js';
 
 const OPEN = 8;
@@ -73,4 +74,26 @@ test("the Cavern mat is its grid × 32 and its impassable plots are exactly the 
 			}
 		}
 	}
+});
+
+/**
+ * The printed grid copied from docs/research/03-expansions.md, Cavern (#9), so the layout can't drift with its own code.
+ * @type {readonly string[]}
+ */
+const PRINTED = [
+	'XX...XXX.',
+	'...X..X..',
+	'...X..X..',
+	'...X.....',
+	'..XX.....',
+	'..XXX....',
+	'.........',
+	'....X....',
+	'...XXXX..',
+];
+
+test('the layout equals the research grid', () => {
+	const impassable = (/** @type {string} */ row) =>
+		[...row].map((ch) => ('X'.includes(ch) ? 'X' : '.')).join('');
+	assert.deepEqual(pinned.LAYOUT.map(impassable), PRINTED.map(impassable));
 });

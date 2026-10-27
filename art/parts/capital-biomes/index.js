@@ -13,11 +13,35 @@ import * as polar from './polar.js';
 import * as netherworld from './netherworld.js';
 
 /**
+ * A tile variant that carries printed meaning, so it may not be picked at random.
+ * @typedef {Object} BiomeSpecialVariants
+ * @property {boolean} blocked - Whether these are impassable variants (otherwise open ones)
+ * @property {readonly number[]} variants - 0-based variant indexes, as `drawBiomeTile` takes them
+ * @property {string} meaning - What they mean and where they belong
+ */
+
+/**
+ * A feature only the example mat draws, not a plot's tile.
+ * @typedef {Object} BiomeMatFeature
+ * @property {string} name - What it is
+ * @property {string} where - Where it sits and what it is drawn from
+ */
+
+/**
+ * What a biome offers to compose advanced mats in the game (#36).
+ * @typedef {Object} BiomeFeatures
+ * @property {{ open: readonly number[], blocked: readonly number[] }} pools - The ordinary variants, safe to pick at random on any plot
+ * @property {readonly BiomeSpecialVariants[]} special - The variants that carry printed meaning
+ * @property {readonly BiomeMatFeature[]} matOnly - What only the example mat draws
+ */
+
+/**
  * One advanced biome's drawing module.
  * @typedef {Object} BiomeModule
  * @property {readonly string[]} LAYOUT - The printed layout, one string per row: '.' open, 'X' impassable
  * @property {(blocked: boolean, variant: number) => import('../../painter.js').Canvas} drawBiomeTile - One 32×32 plot
  * @property {() => import('../../painter.js').Canvas} drawBiomeMat - The example mat
+ * @property {BiomeFeatures} FEATURES - Which variants are ordinary, which are special, and what only the mat draws
  */
 
 /**

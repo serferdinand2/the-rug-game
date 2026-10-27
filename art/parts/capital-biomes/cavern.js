@@ -300,62 +300,98 @@ function obstacle(c, v, r) {
 			cone(c, 15, 29, 12, 24, K.rockLight, K.rockMid, K.rockShade);
 			break;
 		case 1:
-			shade(c, 16, 27, 12);
+			// An irregular boulder with flat facets and chips off it.
+			shade(c, 16, 28, 13);
 			polygon(
 				c,
 				[
-					[4, 27],
-					[3, 17],
-					[8, 9],
-					[17, 6],
-					[25, 9],
-					[29, 17],
-					[28, 27],
-					[16, 29],
+					[3, 27],
+					[2, 20],
+					[6, 14],
+					[5, 10],
+					[11, 6],
+					[16, 8],
+					[22, 4],
+					[27, 10],
+					[26, 15],
+					[30, 21],
+					[28, 28],
+					[17, 30],
 				],
 				K.outline
 			);
 			polygon(
 				c,
 				[
-					[5, 27],
-					[4, 17],
-					[9, 10],
-					[17, 7],
-					[24, 10],
-					[28, 17],
+					[4, 27],
+					[3, 20],
+					[7, 14],
+					[6, 10],
+					[11, 7],
+					[16, 9],
+					[22, 5],
+					[26, 10],
+					[25, 15],
+					[29, 21],
 					[27, 27],
-					[16, 28],
+					[17, 29],
 				],
 				K.rock
 			);
 			polygon(
 				c,
 				[
-					[5, 27],
-					[4, 17],
-					[9, 10],
-					[17, 7],
-					[14, 14],
-					[11, 22],
-					[13, 27],
+					[3, 20],
+					[7, 14],
+					[6, 10],
+					[11, 7],
+					[16, 9],
+					[13, 15],
+					[9, 19],
+					[8, 26],
+					[4, 27],
 				],
 				K.rockLight
 			);
 			polygon(
 				c,
 				[
+					[16, 9],
+					[22, 5],
+					[26, 10],
+					[20, 13],
+					[13, 15],
+				],
+				K.rockMid
+			);
+			polygon(
+				c,
+				[
+					[25, 15],
+					[29, 21],
 					[27, 27],
-					[28, 17],
-					[24, 10],
-					[21, 15],
-					[20, 22],
-					[17, 27],
+					[19, 29],
+					[18, 22],
+					[22, 18],
 				],
 				K.rockShade
 			);
-			rect(c, 12, 16, 4, 1, K.rockShade);
-			rect(c, 14, 17, 1, 4, K.rockShade);
+			polygon(
+				c,
+				[
+					[8, 26],
+					[9, 19],
+					[13, 15],
+					[18, 22],
+					[19, 29],
+					[17, 29],
+				],
+				K.rockMid
+			);
+			rect(c, 1, 29, 3, 2, K.outline);
+			rect(c, 1, 29, 2, 1, K.rockLight);
+			rect(c, 28, 29, 2, 2, K.outline);
+			set(c, 28, 29, K.rock);
 			break;
 		case 2:
 			shade(c, 16, 28, 12);
@@ -473,3 +509,17 @@ export function drawBiomeMat() {
 	}
 	return mat;
 }
+
+/**
+ * What #36 needs to compose this mat: which variants are ordinary, which carry a printed meaning, and what only the example mat draws.
+ * `pools` holds the variants that are safe to pick at random on any plot (0-based, as `drawBiomeTile` takes them).
+ * @type {import('./index.js').BiomeFeatures}
+ */
+export const FEATURES = Object.freeze({
+	pools: Object.freeze({
+		open: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7]),
+		blocked: Object.freeze([0, 1, 2, 3, 4, 5]),
+	}),
+	special: Object.freeze([]),
+	matOnly: Object.freeze([]),
+});

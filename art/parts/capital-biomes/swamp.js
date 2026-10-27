@@ -223,27 +223,77 @@ function blockedDetail(c, v, r) {
 		set(c, 15, 13, C.swampMoss);
 		rect(c, 10, 21, 4, 2, C.swampMoss);
 	} else if (v === 2) {
-		// Mangrove roots arching out of dark water
-		ellipse(c, 16, 25, 14, 5, C.ink);
-		ellipse(c, 16, 25, 13, 4, C.swampWaterDeep);
-		rect(c, 6, 25, 5, 1, C.swampWaterLight);
-		for (const x of [5, 12, 20, 27]) {
-			for (const dx of [-1, 0, 1]) {
-				line(
-					c,
-					16 + dx,
-					6,
-					x + dx,
-					26,
-					dx === 0 ? C.timberLight : C.ink
-				);
+		// A small mangrove tree: a leafy canopy on a short trunk, held up by roots arching down into dark water
+		ellipse(c, 16, 27, 14, 4, C.ink);
+		ellipse(c, 16, 27, 13, 3, C.swampWaterDeep);
+		rect(c, 5, 27, 4, 1, C.swampWaterLight);
+		rect(c, 22, 28, 4, 1, C.swampWaterLight);
+		/** One root: an arch from the trunk out to the water, drawn with its dark edge first. */
+		const root = (/** @type {number} */ x1, /** @type {number} */ top) => {
+			const pts = [];
+			for (let t = 0; t <= 1.001; t += 0.05) {
+				const x = 16 + (x1 - 16) * t;
+				const y =
+					top +
+					(27 - top) * t * t * (3 - 2 * t) -
+					4 * Math.sin(t * Math.PI) * (x1 < 16 ? 1 : 1) * 0.6;
+				pts.push([Math.round(x), Math.round(y)]);
 			}
-			line(c, 16, 7, x, 25, C.timber);
+			for (const [x, y] of pts) {
+				rect(c, x - 1, y, 3, 1, C.ink);
+				rect(c, x, y - 1, 1, 3, C.ink);
+			}
+			for (const [x, y] of pts) {
+				set(c, x, y, C.timber);
+				set(c, x - 1 + (x1 < 16 ? 0 : 1), y, C.timberLight);
+			}
+		};
+		for (const [x1, top] of [
+			[3, 14],
+			[9, 15],
+			[23, 15],
+			[29, 14],
+		]) {
+			root(x1, top);
 		}
-		ellipse(c, 16, 7, 8, 4, C.ink);
-		ellipse(c, 16, 7, 7, 3, C.pineShade);
-		ellipse(c, 15, 6, 4, 2, C.pine);
-		rect(c, 12, 5, 3, 1, C.pineLight);
+		// The trunk, with bark
+		rect(c, 12, 12, 9, 15, C.ink);
+		rect(c, 13, 12, 7, 15, C.timberShade);
+		rect(c, 13, 12, 3, 15, C.timber);
+		rect(c, 18, 12, 2, 15, C.wood);
+		rect(c, 14, 17, 1, 4, C.timberLight);
+		rect(c, 17, 21, 1, 3, C.ink);
+		// Root flare where the trunk meets the water
+		ellipse(c, 16, 26, 6, 2, C.timberShade);
+		// The canopy: overlapping lobes with a lit top and a shaded underside
+		for (const [x, y, rx, ry] of [
+			[8, 10, 7, 5],
+			[24, 10, 7, 5],
+			[16, 6, 9, 5],
+			[12, 12, 6, 4],
+			[21, 12, 6, 4],
+		]) {
+			ellipse(c, x, y, rx + 1, ry + 1, C.ink);
+		}
+		for (const [x, y, rx, ry] of [
+			[8, 10, 7, 5],
+			[24, 10, 7, 5],
+			[16, 6, 9, 5],
+			[12, 12, 6, 4],
+			[21, 12, 6, 4],
+		]) {
+			ellipse(c, x, y, rx, ry, C.pineShade);
+			ellipse(c, x - 1, y - 1, rx - 1, ry - 1.5, C.pine);
+		}
+		for (const [x, y, rx, ry] of [
+			[7, 8, 3, 2],
+			[15, 4, 4, 2],
+			[23, 8, 3, 2],
+		]) {
+			ellipse(c, x, y, rx, ry, C.pineLight);
+		}
+		set(c, 12, 10, C.swampMoss);
+		set(c, 20, 11, C.swampMoss);
 	} else if (v === 3) {
 		// A thick bed of tall reeds
 		ellipse(c, 16, 26, 14, 4, C.swampMudShade);
@@ -418,3 +468,22 @@ export function drawBiomeMat() {
 	);
 	return mat;
 }
+
+/**
+ * What #36 needs to compose this mat: which variants are ordinary, which carry a printed meaning, and what only the example mat draws.
+ * `pools` holds the variants that are safe to pick at random on any plot (0-based, as `drawBiomeTile` takes them).
+ * @type {import('./index.js').BiomeFeatures}
+ */
+export const FEATURES = Object.freeze({
+	pools: Object.freeze({
+		open: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7]),
+		blocked: Object.freeze([0, 1, 2, 3, 4, 5]),
+	}),
+	special: Object.freeze([]),
+	matOnly: Object.freeze([
+		Object.freeze({
+			name: 'lily pads',
+			where: "A pond with lily pads drawn over each 'L' plot of LAYOUT (an open plot): (0,2), (1,4), (2,8), (6,1), (6,5) and (7,7), as [row, column]",
+		}),
+	]),
+});

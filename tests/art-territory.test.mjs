@@ -552,6 +552,7 @@ test('the territory art paints only palette colours', () => {
 		drawVolcano(),
 		...TILES,
 		drawBoard('small'),
+		drawBoard('large'),
 	];
 	for (const canvas of canvases) {
 		for (const colour of new Set(canvas.p)) {

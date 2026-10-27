@@ -529,3 +529,29 @@ export function drawBiomeMat() {
 	);
 	return mat;
 }
+
+/**
+ * What #36 needs to compose this mat: which variants are ordinary, which carry a printed meaning, and what only the example mat draws.
+ * `pools` holds the variants that are safe to pick at random on any plot (0-based, as `drawBiomeTile` takes them).
+ * @type {import('./index.js').BiomeFeatures}
+ */
+export const FEATURES = Object.freeze({
+	pools: Object.freeze({
+		open: Object.freeze([0, 1, 2, 3, 4, 5]),
+		blocked: Object.freeze([0, 1, 2, 3, 4]),
+	}),
+	special: Object.freeze([
+		Object.freeze({
+			blocked: false,
+			variants: Object.freeze([6, 7]),
+			meaning:
+				'Reeds: the open plots next to a wisp (REEDS); use only there',
+		}),
+		Object.freeze({
+			blocked: true,
+			variants: Object.freeze([5]),
+			meaning: "A will-o'-the-wisp: use only on the four WISPS plots",
+		}),
+	]),
+	matOnly: Object.freeze([]),
+});

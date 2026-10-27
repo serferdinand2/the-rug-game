@@ -1,6 +1,7 @@
 // The Quagmire capital terrain (#6): 14 distinct full-bleed tiles and an example mat that follows the printed layout.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as pinned from '../art/parts/capital-biomes/quagmire.js';
 import {
 	LAYOUT,
 	WISPS,
@@ -65,4 +66,49 @@ test('wisps use the wisp tile and reeds the reed tiles', () => {
 		assert.deepEqual(PLACEMENT[r][c], { blocked: true, variant: 5 });
 	for (const [r, c] of REEDS)
 		assert.ok(PLACEMENT[r][c].variant >= 6 && !PLACEMENT[r][c].blocked);
+});
+
+/**
+ * The printed grid copied from docs/research/03-expansions.md, Quagmire (#13), so the layout can't drift with its own code.
+ * @type {readonly string[]}
+ */
+const PRINTED = [
+	'.....XWr.',
+	'.....Xr..',
+	'....X....',
+	'...XWr...',
+	'...Xr....',
+	'...X.....',
+	'..XX...rX',
+	'.rWX..rWX',
+	'.XXXX.XXX',
+];
+
+test('the layout equals the research grid', () => {
+	const impassable = (/** @type {string} */ row) =>
+		[...row].map((ch) => ('XW'.includes(ch) ? 'X' : '.')).join('');
+	assert.deepEqual(pinned.LAYOUT.map(impassable), PRINTED.map(impassable));
+
+	/** @type {number[][]} */
+	const wisps = [];
+	/** @type {number[][]} */
+	const reeds = [];
+	PRINTED.forEach((row, r) =>
+		[...row].forEach((ch, c) => {
+			if (ch === 'W') {
+				wisps.push([r, c]);
+			}
+			if (ch === 'r') {
+				reeds.push([r, c]);
+			}
+		})
+	);
+	assert.deepEqual(
+		pinned.WISPS.map((p) => [...p]),
+		wisps
+	);
+	assert.deepEqual(
+		pinned.REEDS.map((p) => [...p]),
+		reeds
+	);
 });

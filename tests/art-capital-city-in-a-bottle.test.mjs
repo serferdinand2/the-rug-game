@@ -1,6 +1,7 @@
 // The City in a Bottle capital terrain (#6): 14 distinct full-bleed tiles and an example mat that follows the printed layout.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as pinned from '../art/parts/capital-biomes/city-in-a-bottle.js';
 import {
 	LAYOUT,
 	PLACEMENT,
@@ -54,4 +55,16 @@ test('the example mat is 192×192 and its impassable plots are exactly the layou
 			}
 		})
 	);
+});
+
+/**
+ * The printed grid copied from docs/research/03-expansions.md, City in a Bottle (#14), so the layout can't drift with its own code.
+ * @type {readonly string[]}
+ */
+const PRINTED = ['.XX..X', '.X.X.X', '...XX.', '.XX.X.', 'XX...X', '..XXX.'];
+
+test('the layout equals the research grid', () => {
+	const impassable = (/** @type {string} */ row) =>
+		[...row].map((ch) => ('X'.includes(ch) ? 'X' : '.')).join('');
+	assert.deepEqual(pinned.LAYOUT.map(impassable), PRINTED.map(impassable));
 });

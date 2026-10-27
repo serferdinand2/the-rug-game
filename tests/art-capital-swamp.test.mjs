@@ -1,6 +1,7 @@
 // The Swamp capital terrain (#6): 14 distinct full-bleed 32×32 tiles and an example mat with lily pads on the printed layout.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as pinned from '../art/parts/capital-biomes/swamp.js';
 import {
 	LAYOUT,
 	drawBiomeTile,
@@ -61,4 +62,25 @@ test("swamp: the mat is its layout × 32 and its impassable plots are the layout
 			else assert.equal(same, 1024, r + ',' + c);
 		})
 	);
+});
+
+/**
+ * The printed grid copied from docs/research/03-expansions.md, Swamp (#12), so the layout can't drift with its own code.
+ * @type {readonly string[]}
+ */
+const PRINTED = [
+	'XXL......',
+	'X...LXX..',
+	'.......XL',
+	'..X....XX',
+	'...XX....',
+	'...XX....',
+	'.LXXXL...',
+	'.....X.L.',
+	'.....X...',
+];
+
+test('the layout equals the research grid', () => {
+	// A lily pad is an open plot that counts as completed, so it stays open here; the printed L is kept in LAYOUT too.
+	assert.deepEqual([...pinned.LAYOUT], PRINTED);
 });

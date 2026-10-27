@@ -1,6 +1,7 @@
 // The Polar capital terrain (#6): 14 distinct full-bleed tiles and an example mat on the printed layout.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as pinned from '../art/parts/capital-biomes/polar.js';
 import {
 	LAYOUT,
 	PLACEMENT,
@@ -61,4 +62,24 @@ test("the example mat is its grid × 32 and its impassable plots are the layout'
 			);
 		});
 	});
+});
+
+/**
+ * The printed grid copied from docs/research/03-expansions.md, Polar (#17), so the layout can't drift with its own code.
+ * @type {readonly string[]}
+ */
+const PRINTED = [
+	'.A.XB.X..',
+	'..A.XX.CC',
+	'D..X.BXXX',
+	'.D.XA.BBX',
+	'..X.XXXX.',
+	'XX.DXXAAA',
+	'.EEE.X...',
+	'F...X.DD.',
+	'.F.X.E..D',
+];
+
+test('the layout equals the research grid', () => {
+	assert.deepEqual([...pinned.LAYOUT], PRINTED);
 });

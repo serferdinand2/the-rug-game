@@ -1,6 +1,7 @@
 // The Mesa capital terrain (#6): 14 distinct full-bleed 32×32 tiles and an example mat on the printed layout.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as pinned from '../art/parts/capital-biomes/mesa.js';
 import {
 	LAYOUT,
 	drawBiomeTile,
@@ -55,4 +56,26 @@ test("mesa: the mat is its layout × 32 and its impassable plots are the layout'
 			}
 		})
 	);
+});
+
+/**
+ * The printed grid copied from docs/research/03-expansions.md, Mesa (#11), so the layout can't drift with its own code.
+ * @type {readonly string[]}
+ */
+const PRINTED = [
+	'.XXXXXXXX',
+	'.......XX',
+	'........X',
+	'.........',
+	'.........',
+	'.........',
+	'.........',
+	'XXX......',
+	'XXXXXXXX.',
+];
+
+test('the layout equals the research grid', () => {
+	const impassable = (/** @type {string} */ row) =>
+		[...row].map((ch) => ('X'.includes(ch) ? 'X' : '.')).join('');
+	assert.deepEqual(pinned.LAYOUT.map(impassable), PRINTED.map(impassable));
 });

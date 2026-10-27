@@ -1,6 +1,7 @@
 // The Savanna capital terrain (#6): 14 distinct full-bleed plots and an example mat on the printed layout.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import * as pinned from '../art/parts/capital-biomes/savanna.js';
 import {
 	LAYOUT,
 	UNICORNS,
@@ -62,4 +63,40 @@ test('the Savanna mat is 9×9 plots with 22 impassable ones, the six unicorn her
 			assert.ok(same >= 900, `plot ${y},${x} is its tile`);
 		}
 	}
+});
+
+/**
+ * The printed grid copied from docs/research/03-expansions.md, Savanna (#16), so the layout can't drift with its own code.
+ * @type {readonly string[]}
+ */
+const PRINTED = [
+	'....XXXUX',
+	'...XU....',
+	'.........',
+	'...X.....',
+	'UXXU..XX.',
+	'XX...XU..',
+	'.....XX..',
+	'.........',
+	'XU.......',
+];
+
+test('the layout equals the research grid', () => {
+	const impassable = (/** @type {string} */ row) =>
+		[...row].map((ch) => ('XU'.includes(ch) ? 'X' : '.')).join('');
+	assert.deepEqual(pinned.LAYOUT.map(impassable), PRINTED.map(impassable));
+
+	/** @type {number[][]} */
+	const herds = [];
+	PRINTED.forEach((row, r) =>
+		[...row].forEach((ch, c) => {
+			if (ch === 'U') {
+				herds.push([r, c]);
+			}
+		})
+	);
+	assert.deepEqual(
+		pinned.UNICORNS.map((p) => [...p]),
+		herds
+	);
 });
