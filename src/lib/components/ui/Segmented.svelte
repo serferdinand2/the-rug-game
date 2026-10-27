@@ -142,7 +142,9 @@
 			color-mix(in srgb, var(--rg-segmented-color) 25%, transparent);
 	}
 
+	/* The mode switch's names are in Cinzel, as in the lobby mockup. */
 	.rg-segmented--filled .rg-segmented--option {
+		font-family: var(--font-title);
 		font-size: var(--font-size-xs);
 	}
 

@@ -3,7 +3,7 @@
 /**
  * One of the lobby's five places, as a SeatCard shows it.
  * @typedef {Object} Slot
- * @property {number} seat - 1 to 5
+ * @property {import('./ui.js').Seat} seat - 1 to 5
  * @property {'player' | 'empty'} state
  * @property {string} name - Empty for an empty slot
  * @property {boolean} you - The viewer's own seat, online only: at a hot-seat table every seat is the host's
@@ -60,7 +60,7 @@ export function seatSlots(room, maxSeats) {
 	const online = room.mode === 'online';
 	const hosting = isHost(room);
 	return Array.from({ length: maxSeats }, (_, i) => {
-		const seat = i + 1;
+		const seat = /** @type {import('./ui.js').Seat} */ (i + 1);
 		const filled = room.seats[i];
 		if (!filled) {
 			return {
