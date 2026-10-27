@@ -26,6 +26,9 @@
 	import SelfSummary from '../lib/components/player/SelfSummary.svelte';
 	import DecisionOption from '../lib/components/prompts/DecisionOption.svelte';
 	import DecisionPanel from '../lib/components/prompts/DecisionPanel.svelte';
+	import CardShelf from '../lib/components/prompts/CardShelf.svelte';
+	import CostBox from '../lib/components/prompts/CostBox.svelte';
+	import IncomeSteps from '../lib/components/prompts/IncomeSteps.svelte';
 	import TurnBar from '../lib/components/prompts/TurnBar.svelte';
 	import Button from '../lib/components/ui/Button.svelte';
 	import IconButton from '../lib/components/ui/IconButton.svelte';
@@ -42,12 +45,14 @@
 	import {
 		civilizationName,
 		decisionTitle,
-		describeAnswer,
 		describeBonus,
 		describeEffects,
 		describePayment,
 	} from '../lib/describe.js';
 	import { mapHexes } from '../lib/hexmap.js';
+	import { promptFor } from '../lib/prompts.js';
+	import { exploreChoices } from '../lib/area/explore.js';
+	import { tapestryCardData, techCardData } from '../lib/cards/game-cards.js';
 	import { selfSummary } from '../lib/overview.js';
 	import { advanceOptions, myDecision } from '../lib/turn.js';
 	import { askedSeats, bonusOf } from '../lib/engine/game.js';
@@ -59,9 +64,6 @@
 
 	/** @type {GameProps} */
 	let { store, onGameHelp, ...attr } = $props();
-
-	/** Decisions answered with a hex: the map opens for them and lights up their hexes. */
-	const MAP_KINDS = ['chooseExplore', 'chooseConquer', 'chooseHex'];
 
 	let room = $derived(store.room);
 	let game = $derived(room.game);
@@ -76,8 +78,7 @@
 		game.seats.filter((/** @type {any} */ s) => s.kind === 'player')
 	);
 
-	/** @type {'tracks' | 'map'} */
-	let board = $state('tracks');
+	let board = $state(/** @type {'tracks' | 'map'} */ ('tracks'));
 	/** @type {{ track: TrackId, space: number } | null} */
 	let selected = $state(null);
 	/** Whether the payment choice for the selected advance is open. */
@@ -91,7 +92,7 @@
 	let sending = $state(false);
 	/** The player tab on show (#27). */
 	let tab = $state('capital');
-	/** @type {{ kind: 'tech' | 'tapestry', data: any } | null} A card shown in full over the shared area */
+	/** @type {{ kind: 'tech' | 'tapestry', data: any, side?: boolean } | null} A card shown in full over the shared area; beside the shelf, without a scrim, for a shelf card */
 	let inspected = $state(null);
 	/** Whether the players overview is open (#27). */
 	let overviewOpen = $state(false);
@@ -111,53 +112,83 @@
 			: null
 	);
 	let promptDecision = $derived(mine && !turnDecision ? mine : null);
-	let isMapDecision = $derived(
-		!!promptDecision &&
-			(MAP_KINDS.includes(promptDecision.kind) ||
-				promptDecision.answers.some(
-					(/** @type {any} */ a) => typeof a.hex === 'string'
-				))
+	/** The designed prompt for the decision (#28): its words, art, layout and one option per answer. */
+	let prompt = $derived(promptFor(promptDecision, game, seat));
+	let isMapDecision = $derived(prompt?.layout === 'map');
+	/** The hexes lit on the map, whatever leads: a Nomads placement lights hexes beside the capital (#28 review). */
+	let mapTargets = $derived(prompt?.mapHexes ?? []);
+	/** The panel docks beside the map while the map shows hexes to choose, so they stay clickable. */
+	let docked = $derived(mapTargets.length > 0 && board === 'map');
+	/** An explore's choices on the chosen hex: each tile in each turn, best first, with the VP it scores. */
+	let explore = $derived(
+		prompt?.kind === 'chooseExplore' && mapPick && promptDecision
+			? exploreChoices(game, promptDecision, mapPick)
+			: []
 	);
-	let mapTargets = $derived(
-		isMapDecision
-			? [
-					...new Set(
-						promptDecision.answers
-							.map((/** @type {any} */ a) => a.hex)
-							.filter(
-								(/** @type {any} */ h) => typeof h === 'string'
-							)
+	/** What the panel lists: its own options, and on the map those of the chosen hex. */
+	let panelOptions = $derived(
+		!prompt
+			? []
+			: prompt.kind === 'chooseExplore' && mapPick
+				? explore.map((c) => ({
+						...prompt.options[c.index],
+						label: c.label,
+						vp: c.vp,
+					}))
+				: prompt.options
+						.filter(
+							(o) =>
+								o.place === 'panel' ||
+								(o.place === 'map' && o.hex === mapPick)
+						)
+						.map((o) => ({ ...o, vp: null }))
+	);
+	/** The cards on the shelf above the panel, for a card decision. */
+	let shelfCards = $derived(
+		prompt?.shelf && promptDecision
+			? prompt.options
+					.filter((o) => o.place === 'shelf')
+					.map((o) => {
+						const answer = promptDecision.answers[o.index];
+						const art = o.art[0];
+						return {
+							index: o.index,
+							id: String(
+								answer.card ?? answer.civ ?? answer.capital
+							),
+							label: o.label,
+							deck: art?.kind === 'deck' ? art.count : undefined,
+						};
+					})
+			: []
+	);
+	/** The tile the chosen explore would lay, drawn on its hex. */
+	let preview = $derived.by(() => {
+		const choice = explore.find((c) => c.index === picked);
+		return choice && mapPick
+			? { hex: mapPick, corners: choice.corners, island: choice.island }
+			: null;
+	});
+	/** A building or landmark to place on the capital, from the Capital tab. */
+	let placement = $derived(
+		prompt &&
+			promptDecision &&
+			prompt.options.some((o) => o.place === 'capital')
+			? {
+					piece: promptDecision.landmark
+						? { landmark: promptDecision.landmark }
+						: { building: promptDecision.building },
+					options: prompt.options.filter(
+						(o) => o.place === 'capital'
 					),
-				]
-			: []
+					picked,
+				}
+			: null
 	);
-	/** The prompt's answers, narrowed to the chosen hex for a map decision. */
-	let promptAnswers = $derived(
-		promptDecision
-			? promptDecision.answers
-					.map(
-						(
-							/** @type {any} */ answer,
-							/** @type {number} */ index
-						) => ({
-							answer,
-							index,
-						})
-					)
-					.filter(
-						(/** @type {{ answer: any }} */ { answer }) =>
-							typeof answer.hex !== 'string' ||
-							answer.hex === mapPick
-					)
-					.sort(
-						(
-							/** @type {{ answer: any }} */ a,
-							/** @type {{ answer: any }} */ b
-						) =>
-							(a.answer.tile ?? 0) - (b.answer.tile ?? 0) ||
-							(a.answer.orient ?? 0) - (b.answer.orient ?? 0)
-					)
-			: []
+	let incomeStepLabel = $derived(
+		prompt?.income?.steps.find(
+			(step) => step.id === prompt?.income?.current
+		)?.label ?? null
 	);
 	/** The chosen payment, while it is still one of the selected advance's. */
 	let validPay = $derived(
@@ -330,7 +361,7 @@
 		sending = false;
 	};
 
-	/** Sends the plain prompt's chosen answer. */
+	/** Sends the prompt's chosen answer. */
 	const promptConfirmHandler = async () => {
 		if (!promptDecision || picked === null || sending) {
 			return;
@@ -347,9 +378,54 @@
 	 * @param {ComponentEvent} event
 	 */
 	const mapSelectHandler = (event) => {
+		if (event.value.hex === mapPick) {
+			return;
+		}
 		mapPick = event.value.hex;
-		const left = promptAnswers;
-		picked = left.length === 1 ? left[0].index : null;
+		const here = (prompt?.options ?? []).filter((o) => o.hex === mapPick);
+		// An explore starts on its best-scoring tile and turn, previewed on the hex; Confirm still sends it.
+		picked =
+			prompt?.kind === 'chooseExplore'
+				? (explore[0]?.index ?? null)
+				: here.length === 1
+					? here[0].index
+					: null;
+	};
+
+	/**
+	 * A shelf card hovered or focused shows in full over the shared area; a civilization or a mat is already whole.
+	 * @param {ComponentEvent} event
+	 */
+	const shelfInspectHandler = (event) => {
+		const card = shelfCards.find((c) => c.index === event.value);
+		if (!card || card.id === 'deck') {
+			inspected = null;
+		} else if (prompt?.shelf === 'tapestry') {
+			inspected = {
+				kind: 'tapestry',
+				data: tapestryCardData(card.id),
+				side: true,
+			};
+		} else if (prompt?.shelf === 'tech') {
+			inspected = {
+				kind: 'tech',
+				data: techCardData(card.id),
+				side: true,
+			};
+		} else {
+			inspected = null;
+		}
+	};
+
+	/**
+	 * A place chosen on the Capital tab, or none when a landmark goes back to the tray; the piece's own confirm sends it.
+	 * @param {ComponentEvent} event
+	 */
+	const placeHandler = (event) => {
+		picked = event.value.index;
+		if (event.value.confirm && picked !== null) {
+			promptConfirmHandler();
+		}
 	};
 
 	/**
@@ -382,6 +458,26 @@
 </script>
 
 <svelte:window onkeydown={keyHandler} />
+
+{#snippet incomeSteps()}
+	{#if prompt?.income}
+		<IncomeSteps
+			steps={prompt.income.steps}
+			current={prompt.income.current} />
+	{/if}
+{/snippet}
+
+{#snippet cardShelf()}
+	{#if prompt?.shelf}
+		<CardShelf
+			kind={prompt.shelf}
+			cards={shelfCards}
+			selected={picked}
+			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
+				(picked = event.value)}
+			onCardShelfInspect={shelfInspectHandler} />
+	{/if}
+{/snippet}
 
 <div
 	{...attr}
@@ -449,6 +545,7 @@
 						hexes={mapHexes(game)}
 						targets={mapTargets}
 						selected={mapPick}
+						{preview}
 						onWorldMapSelect={mapSelectHandler} />
 				{/if}
 			</div>
@@ -460,6 +557,7 @@
 					status={validPay === null
 						? 'Choose a payment to continue.'
 						: describePayment(chosenAdvance.payments[validPay])}
+					track={selected.track}
 					confirmLabel="Advance"
 					confirmDisabled={validPay === null || sending}
 					cancelLabel="Cancel"
@@ -468,6 +566,10 @@
 						paying = false;
 						payIndex = null;
 					}}>
+					<CostBox
+						class="rg-game--cost"
+						symbols={priceSymbols(selected.track, selected.space)}
+						track={selected.track} />
 					<div class="rg-game--options">
 						{#each chosenAdvance.payments as pay, index (index)}
 							<DecisionOption
@@ -479,23 +581,22 @@
 						{/each}
 					</div>
 				</DecisionPanel>
-			{:else if promptDecision}
+			{:else if prompt}
 				<DecisionPanel
-					class={isMapDecision ? 'rg-game--map-prompt' : ''}
-					title={decisionTitle(promptDecision, game)}
-					status={picked === null
-						? isMapDecision && !mapPick
-							? promptAnswers.length
-								? 'Choose a territory on the map, or an answer here.'
-								: 'Choose a territory on the map.'
-							: 'Choose an answer to continue.'
-						: describeAnswer(
-								promptDecision,
-								promptDecision.answers[picked],
-								game
-							)}
+					{docked}
+					title={prompt.title}
+					track={prompt.track}
+					tone={prompt.income ? 'income' : 'default'}
+					steps={prompt.income ? incomeSteps : undefined}
+					shelf={shelfCards.length ? cardShelf : undefined}
+					status={picked !== null
+						? (prompt.options[picked]?.label ?? '')
+						: panelOptions.length
+							? prompt.instruction
+							: ''}
+					confirmLabel={prompt.confirmLabel}
 					confirmDisabled={picked === null || sending}
-					cancelLabel={isMapDecision && mapPick
+					cancelLabel={docked && mapPick
 						? 'Choose another territory'
 						: undefined}
 					onDecisionPanelConfirm={promptConfirmHandler}
@@ -503,33 +604,33 @@
 						mapPick = null;
 						picked = null;
 					}}>
-					{#if promptAnswers.length}
+					{#if prompt.cost}
+						<CostBox
+							class="rg-game--cost"
+							symbols={prompt.cost}
+							track={prompt.track ?? undefined} />
+					{/if}
+					{#if panelOptions.length}
 						<div class="rg-game--options">
-							{#each promptAnswers as { answer, index } (index)}
+							{#each panelOptions as option (option.index)}
 								<DecisionOption
-									label={describeAnswer(
-										promptDecision,
-										answer,
-										game
-									)}
-									symbols={answer.pay
-										? paySymbols(answer.pay)
-										: []}
-									pressed={picked === index}
+									label={option.label}
+									art={option.art}
+									vp={option.vp}
+									pressed={picked === option.index}
 									onDecisionOptionClick={() =>
-										(picked = index)} />
+										(picked = option.index)} />
 							{/each}
 						</div>
 					{:else}
-						<p class="rg-game--hint">
-							The territories you can choose are lit on the map.
-						</p>
+						<p class="rg-game--hint">{prompt.instruction}</p>
 					{/if}
 				</DecisionPanel>
 			{/if}
 			{#if inspected}
 				<div
 					class="rg-game--inspect"
+					class:rg-game--inspect-side={inspected.side}
 					aria-hidden="true">
 					{#if inspected.kind === 'tech'}
 						<TechnologyCard data={inspected.data} />
@@ -550,6 +651,8 @@
 					{seat}
 					code={room.code}
 					bind:tab
+					{placement}
+					onPlayerTabsPlace={placeHandler}
 					onPlayerTabsInspect={(
 						/** @type {ComponentEvent} */ event
 					) => (inspected = event.value)} />
@@ -622,6 +725,14 @@
 					}
 				: null}
 			onTurnBarIncome={incomeHandler} />
+	{:else if prompt?.income}
+		<TurnBar
+			tone="income"
+			label="Your income turn"
+			heading="Income turn {prompt.income.turn}{incomeStepLabel
+				? ` · ${incomeStepLabel}`
+				: ''}"
+			detail={prompt.title} />
 	{:else if promptDecision}
 		<TurnBar
 			tone="neutral"
@@ -727,28 +838,19 @@
 		overflow: auto;
 	}
 
+	.rg-game--shared :global(.rg-game--cost) {
+		margin-bottom: var(--space-6);
+	}
+
 	.rg-game--hint {
 		margin: 0;
 		color: var(--muted);
 	}
 
-	/* A map decision leaves the map clickable: no scrim, only the panel takes the pointer, docked at the right
-	   beside the map rather than over its hexes (#26 review). */
-	.rg-game--shared :global(.rg-game--map-prompt) {
-		align-items: flex-end;
-		justify-content: flex-start;
-		padding-top: 70px;
+	/* A shelf card shown in full beside the shelf, at the left, so the shelf and its focus stay in sight (#28 review). */
+	.rg-game--inspect-side {
+		justify-items: start;
+		padding-left: var(--space-10);
 		background: transparent;
-		pointer-events: none;
-	}
-
-	.rg-game--shared :global(.rg-game--map-prompt .rg-decision-panel--panel) {
-		width: 340px;
-		min-width: 0;
-		max-height: calc(100% - var(--space-9));
-	}
-
-	.rg-game--shared :global(.rg-game--map-prompt > *) {
-		pointer-events: auto;
 	}
 </style>

@@ -218,4 +218,18 @@
 	--card-trap-line: #8f4144;
 	--card-shadow-soft: rgb(0 0 0 / 22%);
 	--card-shadow-strong: rgb(0 0 0 / 40%);
+	/* The income turn's gold prompt and footer (docs/ui/main-screen.html). */
+	--income-top: #a6792e;
+	--income-mid: #63491f;
+	--income-bottom: #211d17;
+	--income-edge: #bd9450;
+	--income-line: #b99048;
+	--income-deep: #765725;
+	--income-deeper: #493a21;
+	--income-title: #fff2d1;
+	--income-soft: #f0e1bd;
+	--income-body: #e8ddc4;
+	--income-mute: #e4d3b1;
+	--income-active: #fff0c5;
+	--income-bright: #ffd478;
 }

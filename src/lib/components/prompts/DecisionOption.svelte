@@ -6,6 +6,8 @@
 	 * @property {string} label - The choice in words, such as 'Pay 1 food and 1 worker'
 	 * @property {boolean} [pressed=false] - It is the chosen one
 	 * @property {import('../../ui.js').CostSymbol[]} [symbols] - Resource symbols drawn before the words, native 24px
+	 * @property {import('./PromptArt.svelte').PromptArtItem[]} [art] - Pictures drawn above the words at 48px
+	 * @property {number | null} [vp=null] - A small gold '+n VP' badge in the corner
 	 * @property {Function} [onDecisionOptionClick] - Callback fired when the choice is pressed
 	 */
 
@@ -20,6 +22,7 @@
 
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
+	import PromptArt from './PromptArt.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 
 	/** @type {DecisionOptionProps} */
@@ -27,6 +30,8 @@
 		label,
 		pressed = false,
 		symbols = [],
+		art = [],
+		vp = null,
 		onDecisionOptionClick,
 		...attr
 	} = $props();
@@ -52,7 +57,20 @@
 	aria-pressed={pressed}
 	{...attr}
 	class="rg-decision-option {attr.class ? attr.class : ''}"
+	class:rg-decision-option--has-art={art.length > 0}
 	onclick={clickHandler}>
+	{#if vp !== null}
+		<span class="rg-decision-option--vp">+{vp} VP</span>
+	{/if}
+	{#if art.length}
+		<span
+			class="rg-decision-option--art"
+			aria-hidden="true">
+			{#each art as item, index (index)}
+				<PromptArt {item} />
+			{/each}
+		</span>
+	{/if}
 	{#if symbols.length}
 		<span
 			class="rg-decision-option--symbols"
@@ -65,11 +83,12 @@
 			{/each}
 		</span>
 	{/if}
-	<span>{label}</span>
+	<span class="rg-decision-option--label">{label}</span>
 </button>
 
 <style>
 	.rg-decision-option {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -98,5 +117,28 @@
 	.rg-decision-option--symbols {
 		display: inline-flex;
 		gap: var(--space-1);
+	}
+
+	.rg-decision-option--has-art {
+		flex-direction: column;
+	}
+
+	.rg-decision-option--art {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-4);
+	}
+
+	.rg-decision-option--vp {
+		position: absolute;
+		top: calc(var(--border) * -1);
+		right: calc(var(--border) * -1);
+		padding: 0 var(--space-3);
+		background: var(--gold);
+		color: var(--ink);
+		font-size: var(--font-size-xs);
+		font-weight: var(--weight-bold);
+		line-height: var(--leading-snug);
 	}
 </style>

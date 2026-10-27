@@ -1,5 +1,15 @@
 <!-- The player area's tabs (#27 design §2): Capital, Hand, Income, Eras, Civ, Tech and Terrain, for the viewer's own seat. -->
 <script module>
+	/** @typedef {import('../../lib/area/placement-targets.js').PlacementOption} PlacementOption */
+
+	/**
+	 * A gained building or landmark waiting for a place, chosen on the Capital tab (#28).
+	 * @typedef {Object} PlayerTabsPlacement
+	 * @property {{ building?: string, landmark?: string }} piece - What is being placed
+	 * @property {PlacementOption[]} options - The prompt's options; only those with a plot are on the capital
+	 * @property {number | null} picked - The index of the option chosen so far, if any
+	 */
+
 	/**
 	 * Properties of the PlayerTabs screen part itself.
 	 * @typedef {Object} PlayerTabsOwnProps
@@ -8,6 +18,8 @@
 	 * @property {string} code - The table code, which seeds the capital's terrain tiles
 	 * @property {string} [tab='capital'] - The tab on show; bindable
 	 * @property {Function} [onPlayerTabsInspect] - Callback fired with { kind: 'tech' | 'tapestry', data } when a card is hovered or focused, and with null on leave, so the shared area shows it in full
+	 * @property {PlayerTabsPlacement | null} [placement=null] - A building or landmark to place: the Capital tab lights a building's plots, or offers the landmark in the tray, and snaps it only to the options' places
+	 * @property {Function} [onPlayerTabsPlace] - Callback fired with { index, confirm }: index is the option a building or landmark landed on, or null when the landmark went back to the tray; confirm is true when the landmark's own confirm control was pressed
 	 */
 
 	/**
@@ -15,7 +27,15 @@
 	 * @typedef {PlayerTabsOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} PlayerTabsProps
 	 *
 	 * @example
-	 * <PlayerTabs {game} {seat} code={room.code} bind:tab onPlayerTabsInspect={show} />
+	 * <PlayerTabs
+	 *   {game}
+	 *   {seat}
+	 *   code={room.code}
+	 *   bind:tab
+	 *   placement={{ piece: { landmark: 'lighthouse' }, options: prompt.options, picked }}
+	 *   onPlayerTabsInspect={show}
+	 *   onPlayerTabsPlace={(event) => (event.value.confirm ? send(event.value.index) : (picked = event.value.index))}
+	 * />
 	 */
 </script>
 
@@ -23,6 +43,7 @@
 	import Tabs from '../../lib/components/ui/Tabs.svelte';
 	import CapitalGrid from '../../lib/components/player/CapitalGrid.svelte';
 	import CompletionCounters from '../../lib/components/player/CompletionCounters.svelte';
+	import PlacementTray from '../../lib/components/player/PlacementTray.svelte';
 	import CardFan from '../../lib/components/player/CardFan.svelte';
 	import CivilizationCard from '../../lib/components/player/CivilizationCard.svelte';
 	import EraSlots from '../../lib/components/player/EraSlots.svelte';
@@ -33,6 +54,14 @@
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { TABS } from '../../lib/area/tabs.js';
 	import { capitalView } from '../../lib/area/capital.js';
+	import { rotateFootprint } from '../../lib/capital.js';
+	import {
+		legalNear,
+		nextRotation,
+		placeNear,
+		placingPiece,
+		plotTargets,
+	} from '../../lib/area/placement-targets.js';
 	import { eraSlots, incomeRows } from '../../lib/area/income.js';
 	import { terrainView } from '../../lib/area/terrain.js';
 	import {
@@ -48,6 +77,8 @@
 		code,
 		tab = $bindable('capital'),
 		onPlayerTabsInspect,
+		placement = null,
+		onPlayerTabsPlace,
 		...attr
 	} = $props();
 
@@ -63,6 +94,49 @@
 	let capital = $derived(capitalView(player, code));
 	/** @type {'rows' | 'columns' | 'districts' | null} */
 	let highlight = $state(null);
+	/** A placed landmark is being dragged, so the tray offers itself to take it back. */
+	let dragging = $state(false);
+	let building = $derived(placement?.piece.building ?? null);
+	/** The landmark being placed, when it has a place on the capital; with none, nothing is offered there. */
+	let landmark = $derived(
+		placement?.piece.landmark &&
+			placement.options.some((option) => option.plot)
+			? placingPiece(placement.piece.landmark)
+			: null
+	);
+	let picked = $derived(
+		placement?.options.find(
+			(option) => option.plot && option.index === placement?.picked
+		)?.plot ?? null
+	);
+	let targets = $derived(
+		building && placement ? plotTargets(placement.options) : []
+	);
+	let preview = $derived(
+		building && picked
+			? { row: picked.row, col: picked.col, building }
+			: null
+	);
+	/** The landmark on the capital, unconfirmed, at the chosen place. */
+	let placed = $derived(
+		landmark && picked && picked.rotation !== null
+			? {
+					...landmark,
+					row: picked.row,
+					col: picked.col,
+					rotation: picked.rotation,
+				}
+			: null
+	);
+	let pieces = $derived(
+		capital && placed
+			? [...capital.pieces, placed]
+			: (capital?.pieces ?? [])
+	);
+	/** The tray holds the landmark until it is on the capital; it always starts unturned. */
+	let tray = $derived(
+		landmark && !placed ? [{ ...landmark, rotation: 0 }] : []
+	);
 	let income = $derived(incomeRows(player));
 	let eras = $derived(eraSlots(player));
 	/** @type {number | null} */
@@ -91,6 +165,158 @@
 			t.id === 'hand' ? { ...t, count: hand.length } : { ...t }
 		)
 	);
+
+	/**
+	 * A lit plot was chosen for a building, or a plot for the landmark: it moves there, as near as it may go.
+	 * @param {ComponentEvent} event - From CapitalGrid: { row, col }
+	 */
+	const plotClickHandler = (event) => {
+		const { row, col } = event.value;
+		if (building) {
+			const target = targets.find(
+				(plot) => plot.row === row && plot.col === col
+			);
+			if (target) {
+				place(target.index, false, event);
+			}
+		} else if (landmark) {
+			const rotation = placed ? placed.rotation : 0;
+			const at = centred(row, col, rotation);
+			land(
+				placed
+					? legalNear(
+							placement?.options ?? [],
+							at.row,
+							at.col,
+							rotation
+						)
+					: placeNear(placement?.options ?? [], at.row, at.col, 0),
+				event
+			);
+		}
+	};
+
+	/**
+	 * The top-left corner that puts the landmark's middle, in a turn, on a plot (#28 review): a 3×3 landmark asked for
+	 * at the middle starts a plot up and to the left of it.
+	 * @param {number} row
+	 * @param {number} col
+	 * @param {number} rotation
+	 * @returns {{ row: number, col: number }}
+	 */
+	function centred(row, col, rotation) {
+		const shape = landmark
+			? rotateFootprint(landmark.footprint, rotation)
+			: ['X'];
+		return {
+			row: row - Math.floor((shape.length - 1) / 2),
+			col: col - Math.floor((shape[0].length - 1) / 2),
+		};
+	}
+
+	/**
+	 * The landmark was chosen in the tray, by pointer or key: it goes near the middle of the capital.
+	 * @param {ComponentEvent} event
+	 */
+	const trayChooseHandler = (event) => {
+		const at = centred(4, 4, 0);
+		land(placeNear(placement?.options ?? [], at.row, at.col, 0), event);
+	};
+
+	/**
+	 * The landmark was dropped from the tray; row and col are where its top-left corner landed.
+	 * @param {ComponentEvent} event - From CapitalGrid: { id, row, col }
+	 */
+	const dropHandler = (event) => {
+		land(
+			placeNear(
+				placement?.options ?? [],
+				event.value.row,
+				event.value.col,
+				0
+			),
+			event
+		);
+	};
+
+	/**
+	 * The placed landmark was dragged or moved with the arrow keys.
+	 * @param {ComponentEvent} event - From CapitalGrid: { id, row, col }
+	 */
+	const moveHandler = (event) => {
+		if (placed) {
+			land(
+				legalNear(
+					placement?.options ?? [],
+					event.value.row,
+					event.value.col,
+					placed.rotation
+				),
+				event
+			);
+		}
+	};
+
+	/**
+	 * The placed landmark was turned, by its control or the R key: the engine's next legal turn, not the grid's.
+	 * @param {ComponentEvent} event
+	 */
+	const rotateHandler = (event) => {
+		if (placement?.picked !== null && placement?.picked !== undefined) {
+			land(nextRotation(placement.options, placement.picked), event);
+		}
+	};
+
+	/**
+	 * @param {ComponentEvent} event
+	 */
+	const confirmHandler = (event) => {
+		if (
+			placed &&
+			placement?.picked !== null &&
+			placement?.picked !== undefined
+		) {
+			place(placement.picked, true, event);
+		}
+	};
+
+	/**
+	 * The placed landmark went back to the tray, by its control, a key or a drop on the tray.
+	 * @param {ComponentEvent} event
+	 */
+	const returnHandler = (event) => {
+		dragging = false;
+		place(null, false, event);
+	};
+
+	/**
+	 * Moves the landmark to a legal place, unless it is already there.
+	 * @param {number | null} index - The option it lands on; null when there is none
+	 * @param {ComponentEvent} event
+	 */
+	function land(index, event) {
+		if (index !== null && index !== placement?.picked) {
+			place(index, false, event);
+		}
+	}
+
+	/**
+	 * Tells the screen which place is chosen.
+	 * @param {number | null} index - The option's index; null when the landmark went back to the tray
+	 * @param {boolean} confirm - The landmark's confirm control was pressed
+	 * @param {ComponentEvent} event - The event that caused it
+	 */
+	function place(index, confirm, event) {
+		if (typeof onPlayerTabsPlace === 'function') {
+			onPlayerTabsPlace(
+				new ComponentEvent(
+					{ index, confirm },
+					event.target,
+					event.originalEvent
+				)
+			);
+		}
+	}
 
 	/**
 	 * Tells the shared area which card to show in full, or none.
@@ -145,9 +371,20 @@
 					plots={capital.plots}
 					biome={capital.biome}
 					terrainSeed={capital.terrainSeed}
-					pieces={capital.pieces}
+					{pieces}
 					{highlight}
-					room />
+					{targets}
+					{preview}
+					awaitingPlacement={placement !== null}
+					room
+					onCapitalGridPlotClick={plotClickHandler}
+					onCapitalGridDrop={dropHandler}
+					onCapitalGridMove={moveHandler}
+					onCapitalGridRotate={rotateHandler}
+					onCapitalGridConfirm={confirmHandler}
+					onCapitalGridReturn={returnHandler}
+					onCapitalGridDragStart={() => (dragging = true)}
+					onCapitalGridDragEnd={() => (dragging = false)} />
 				<CompletionCounters
 					counts={capital.counts}
 					active={highlight}
@@ -159,6 +396,13 @@
 					) =>
 						(highlight =
 							highlight === event.value ? null : event.value)} />
+				<PlacementTray
+					class="rg-player-tabs--tray"
+					items={tray}
+					returnTarget={dragging && placed !== null}
+					onPlacementTraySelect={trayChooseHandler}
+					onPlacementTrayPlace={trayChooseHandler}
+					onPlacementTrayReturn={returnHandler} />
 				{#if capital.besideMat.length}
 					<p class="rg-player-tabs--note">
 						Beside the mat: {capital.besideMat.join(', ')}
@@ -378,6 +622,11 @@
 	.rg-player-tabs--note {
 		margin: var(--space-6) 0;
 		color: var(--muted);
+	}
+
+	/* PlacementTray's root, reached through its class prop. */
+	.rg-player-tabs--body :global(.rg-player-tabs--tray) {
+		margin-top: var(--space-6);
 	}
 
 	.rg-player-tabs--scale {

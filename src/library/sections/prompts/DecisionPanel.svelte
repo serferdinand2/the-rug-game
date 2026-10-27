@@ -2,6 +2,7 @@
 <script>
 	import DecisionOption from '../../../lib/components/prompts/DecisionOption.svelte';
 	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
+	import IncomeSteps from '../../../lib/components/prompts/IncomeSteps.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
 
@@ -10,6 +11,14 @@
 		{ label: 'Pay 1 food and 1 coin', symbols: ['food', 'coin'] },
 		{ label: 'Pay 1 food and 1 worker', symbols: ['food', 'worker'] },
 		{ label: 'Pay 2 food', symbols: ['food', 'food'] },
+	];
+
+	const STEPS = [
+		{ id: 'civilization', label: 'Civilization' },
+		{ id: 'tapestry', label: 'Tapestry card' },
+		{ id: 'upgrade', label: 'Upgrade' },
+		{ id: 'score', label: 'Score' },
+		{ id: 'income', label: 'Income' },
 	];
 
 	/** @type {number | null} */
@@ -53,6 +62,78 @@
 			</DecisionPanel>
 		</div>
 	</Example>
+	<Example
+		label={'track="exploration"  (the bottom bar takes the track tint)'}
+		wide
+		width={1100}>
+		<div class="rg-library-decision-stage rg-library-decision-stage--short">
+			<DecisionPanel
+				title="Choose a track"
+				status="Exploration"
+				track="exploration">
+				<div class="rg-library-decision-options">
+					<DecisionOption
+						label="Exploration"
+						art={[{ kind: 'track', id: 'exploration' }]}
+						pressed />
+					<DecisionOption
+						label="Science"
+						art={[{ kind: 'track', id: 'science' }]} />
+				</div>
+			</DecisionPanel>
+		</div>
+	</Example>
+	<Example
+		label={'tone="income" steps={IncomeSteps}'}
+		wide
+		width={1100}>
+		<div class="rg-library-decision-stage rg-library-decision-stage--short">
+			<DecisionPanel
+				title="Choose a tapestry card"
+				tone="income"
+				status="Choose a card to continue.">
+				{#snippet steps()}
+					<IncomeSteps
+						steps={STEPS}
+						current="tapestry" />
+				{/snippet}
+				<div class="rg-library-decision-options">
+					<DecisionOption
+						label="Take 1 coin"
+						art={[{ kind: 'resource', id: 'coin', count: 1 }]} />
+					<DecisionOption
+						label="Take 2 food"
+						art={[{ kind: 'resource', id: 'food', count: 2 }]}
+						pressed />
+				</div>
+			</DecisionPanel>
+		</div>
+	</Example>
+	<Example
+		label={'docked  (a choice on the map: no scrim, the panel at the right, what is chosen on its own line)'}
+		wide
+		width={1100}>
+		<div class="rg-library-decision-stage">
+			<DecisionPanel
+				title="Choose where to explore"
+				status="Hex 1,0 with tile 19, turned 3 times"
+				confirmLabel="Explore"
+				cancelLabel="Choose another territory"
+				docked>
+				<div class="rg-library-decision-options">
+					<DecisionOption
+						label="Tile 19, turned 3 times"
+						art={[{ kind: 'territory', id: 19, orient: 3 }]}
+						vp={4}
+						pressed />
+					<DecisionOption
+						label="Tile 6"
+						art={[{ kind: 'territory', id: 6, orient: 0 }]}
+						vp={3} />
+				</div>
+			</DecisionPanel>
+		</div>
+	</Example>
 </Section>
 
 <style>
@@ -60,6 +141,10 @@
 		position: relative;
 		height: 420px;
 		background: var(--texture) var(--surface);
+	}
+
+	.rg-library-decision-stage--short {
+		height: 340px;
 	}
 
 	.rg-library-decision-options {

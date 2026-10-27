@@ -96,6 +96,16 @@
 		</TurnBar>
 	</Example>
 	<Example
+		label={'tone="income" label="Income turn"  (gold, no income button)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			tone="income"
+			label="Income turn"
+			heading="Income turn 2 of 5"
+			detail="Choose a tapestry card to play." />
+	</Example>
+	<Example
 		label={'tone="waiting" label="Ana’s turn" labelColor="var(--player-2)"'}
 		surface="ink"
 		wide>

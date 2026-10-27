@@ -192,7 +192,7 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **The World Map** is the real board's hex grid (owner, 2026-10-27): 34 hexes for 1–3 players, 61 for 4–5, flat-topped as on the printed board with start 1 at the top. Each corner of a territory is a wedge of its terrain, an island sits in the middle, and unexplored hexes are dark and dashed. Outposts are squares in the player's colour (toppled ones lie down), tokens are circles. #6's art replaces the drawn terrains later.
 - **The spaces a player can pay for** have a green outline; the selected one keeps the gold outline. The footer then shows the space's benefit and bonus in words, its price and **Advance**, and asks for the payment in the decision panel when there is a choice.
 - **The achievements** sit in the head of the shared area, with the claimants' colours and the next VP.
-- **The decision panel** is the mockup's prompt. Until #28 designs each one, every decision gets a plain prompt: its question and its answers in words. A map decision lights up its hexes and leaves the map clickable.
+- **The decision panel** is the mockup's prompt, designed per decision in #28 (below). A map decision lights up its hexes and leaves the map clickable.
 - **The header** has the turn clock when the timer is on (red, with the seconds in words, in the viewer's last 5 seconds) and **Undo**.
 - **Your overview** at the foot of the player area is the mockup's compact block; its last count is complete capital lines.
 
@@ -206,6 +206,23 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **Real cards:** the tech and tapestry cards are built from the engine's data through `describe.js`; no text is invented. Lazar's fixtures stay for the library and the card review.
 - **Tab switching:** a decision about a tab's things opens that tab by itself.
 - **The players overview** opens from the chips, as in the mockup: one card per player, and Capital, Civilization or Tech of any player on the right. Opponents' hands appear only as counts.
+
+**Built in #28 (2026-10-27): the decision prompts.**
+
+![Cards on the shelf](screens/game-prompt-cards.png)
+
+![Exploring a territory](screens/game-prompt-explore.png)
+
+![Placing a landmark](screens/game-prompt-capital.png)
+
+![The income turn](screens/game-prompt-income.png)
+
+- **One model for every decision:** `src/lib/prompts.js` turns the open decision into a title, an instruction, a layout and one option per answer, each chosen in the panel, on the card shelf, on the map or on the capital. Nothing is sent until Confirm, even with one answer.
+- **Art, as in the mockup:** resources at 48 px with their counts, track symbols, buildings, landmarks, civilization portraits, space and territory tiles; dice faces and VP are words (#5). A bonus shows its cost and takes its track's colour.
+- **Cards** sit on a shelf above the panel, as full cards: tapestry cards (play, keep, discard, copy, respond), tech cards with the deck as a card back, both civilizations at setup and the two capital mats. Hovering a tapestry or tech card shows it in full.
+- **The map:** choosing a territory lists its answers. An explore starts on the best-scoring tile and turn, previewed on the hex, and lists every tile in every turn with the VP it scores.
+- **The capital:** a building's open plots are lit on the Capital tab and a click previews it there; a landmark comes from the tray, snaps only to the engine's legal places, turns with R, and the piece's own lock sends it. Beside the mat and the Craftsmen's columns stay panel choices.
+- **The income turn** is gold, as in the mockup: the panel's title and step strip (Ability, Tapestry, Upgrade, Score, Income, only the steps that turn runs) and the footer's "Your income turn · Income turn n · step".
 
 ### Three horizontal bands
 

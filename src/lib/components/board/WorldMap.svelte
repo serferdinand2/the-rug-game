@@ -6,6 +6,7 @@
 	 * @property {import('../../hexmap.js').MapHex[]} hexes - Every hex of the board, from mapHexes(view) at HEX_SIZE
 	 * @property {string[]} [targets=[]] - Hex keys a decision can choose; each becomes a button and the other hexes dim
 	 * @property {string | null} [selected=null] - The chosen hex, outlined in gold
+	 * @property {{ hex: string, corners: import('../../ui.js').Terrain[], island: import('../../ui.js').Terrain[] } | null} [preview=null] - A tile to show on a hex before it is explored: drawn like an explored hex, at 85% opacity with a gold outline
 	 * @property {string} [label='World map'] - Names the map for assistive technology
 	 * @property {Function} [onWorldMapSelect] - Callback fired with { hex } when the player chooses a target hex
 	 */
@@ -42,6 +43,7 @@
 		hexes,
 		targets = [],
 		selected = null,
+		preview = null,
 		label = 'World map',
 		onWorldMapSelect,
 		...attr
@@ -65,27 +67,45 @@
 	let targetSet = $derived(new Set(targets));
 	let targeting = $derived(targetSet.size > 0);
 	let drawn = $derived(
-		hexes.map((hex) => ({
-			...hex,
-			target: targetSet.has(hex.key),
-			outline: svgPoints(
-				CORNERS.map((k) => hexCorner(hex.center, k, HEX_SIZE))
-			),
-			wedges: hex.corners
-				? hex.corners.map((terrain, k) => ({
-						terrain,
-						points: svgPoints(cornerWedge(hex.center, k, HEX_SIZE)),
-					}))
-				: [],
-			islands: islandParts(hex.center, hex.island, HEX_SIZE).map(
-				(part) => ({ ...part, points: svgPoints(part.points) })
-			),
-			pieces: pieces(hex),
-		}))
+		hexes.map((raw) => {
+			const previewed = preview !== null && preview.hex === raw.key;
+			const hex = previewed
+				? {
+						...raw,
+						corners: preview.corners,
+						island: preview.island,
+						label: `${raw.label}, showing the chosen tile`,
+					}
+				: raw;
+			return {
+				...hex,
+				previewed,
+				target: targetSet.has(hex.key),
+				outline: svgPoints(
+					CORNERS.map((k) => hexCorner(hex.center, k, HEX_SIZE))
+				),
+				wedges: hex.corners
+					? hex.corners.map((terrain, k) => ({
+							terrain,
+							points: svgPoints(
+								cornerWedge(hex.center, k, HEX_SIZE)
+							),
+						}))
+					: [],
+				islands: islandParts(hex.center, hex.island, HEX_SIZE).map(
+					(part) => ({ ...part, points: svgPoints(part.points) })
+				),
+				pieces: pieces(hex),
+			};
+		})
 	);
 	let overlays = $derived(
 		drawn.filter(
-			(hex) => hex.target || hex.key === selected || hex.key === focused
+			(hex) =>
+				hex.target ||
+				hex.previewed ||
+				hex.key === selected ||
+				hex.key === focused
 		)
 	);
 
@@ -246,6 +266,7 @@
 				class="rg-world-map--hex rg-world-map--target"
 				role="button"
 				tabindex="0"
+				class:rg-world-map--preview={hex.previewed}
 				aria-label={hex.label}
 				aria-pressed={selected === hex.key}
 				onclick={(event) => hexClickHandler(event, hex.key)}
@@ -258,6 +279,7 @@
 			<g
 				class="rg-world-map--hex"
 				class:rg-world-map--dim={targeting}
+				class:rg-world-map--preview={hex.previewed}
 				role="img"
 				aria-label={hex.label}>
 				{@render tile(hex)}
@@ -269,6 +291,7 @@
 		<polygon
 			class="rg-world-map--outline"
 			class:rg-world-map--outline-target={hex.target}
+			class:rg-world-map--outline-preview={hex.previewed}
 			class:rg-world-map--outline-focus={hex.key === focused}
 			class:rg-world-map--outline-selected={hex.key === selected}
 			points={hex.outline} />
@@ -354,6 +377,16 @@
 	.rg-world-map--outline-target {
 		stroke: var(--ok);
 		stroke-width: 2.5;
+	}
+
+	/* A previewed tile: gold like the chosen hex, solid, under the selection's own outline. */
+	.rg-world-map--outline-preview {
+		stroke: var(--gold);
+		stroke-width: 3;
+	}
+
+	.rg-world-map--preview {
+		opacity: 0.85;
 	}
 
 	.rg-world-map--outline-focus {

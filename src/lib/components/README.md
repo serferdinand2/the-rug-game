@@ -63,7 +63,7 @@ These components are updated as the art issues deliver their assets. Each will s
 
 | Component | Purpose |
 |---|---|
-| `CapitalGrid` | The 9×9 capital: plots, impassable Xs, districts, completion overlays, placed landmarks (a locked one may hang over the edge, R106, and `room` keeps space for it) and their drag, keyboard and drop handling. |
+| `CapitalGrid` | The 9×9 capital: plots, impassable Xs, districts, completion overlays, placed landmarks (a locked one may hang over the edge, R106, and `room` keeps space for it) and their drag, keyboard and drop handling, and a decision's lit `targets` (green-outlined plot buttons) with a faint `preview` of the chosen building. |
 | `CompletionCounters` | Completed rows, columns and districts; hover or focus previews, a press keeps them shown. |
 | `LandmarkPiece` | A landmark's picture in its footprint's shape, in the tray or on the grid, with rotate, confirm and return. |
 | `PlacementTray` | The To be placed tray: select, drag or arrow a landmark onto the grid, or drop one back. |
@@ -79,10 +79,13 @@ These components are updated as the art issues deliver their assets. Each will s
 | Component | Purpose |
 |---|---|
 | `CostBox` | The footer's price: a Cost label and the symbols joined by plus signs, read out in words. |
-| `DecisionOption` | One choice in a decision prompt: words, optional resource symbols, gold while chosen (#26). |
-| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf, question, content, status and Confirm (#26). |
+| `CardShelf` | The cards a decision offers (tapestry, tech with the deck, civilizations, capital mats) as pressable buttons in a row that scrolls when too wide; more than four tapestry cards fan out; the chosen one is lifted in gold, hover and focus report it for a full view (#28). |
+| `DecisionOption` | One choice in a decision prompt: words, optional resource symbols, `art` pictures above the words, a gold `+n VP` badge, gold while chosen (#26, #28). |
+| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf, question, content, status and Confirm; a `track` tint, the gold `income` tone with a `steps` snippet, and `docked` beside the map with no scrim (#26, #28). |
+| `IncomeSteps` | The strip of an income turn's steps, the running one marked `aria-current="step"` (#28). |
+| `PromptArt` | One picture a prompt shows: a resource with its count, track, building, landmark, terrain, civilization, space tile, turned territory, capital mat, card art, VP badge or the tech deck (#28). |
 | `OverviewCloseBar` | The footer while the players overview is open. |
-| `TurnBar` | The footer: neutral, selected, optional-action and waiting states, with the income reveal. |
+| `TurnBar` | The footer: neutral, selected, optional-action, waiting and gold income states, with the income reveal. |
 
 ## lobby/
 

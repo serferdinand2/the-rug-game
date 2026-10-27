@@ -26,7 +26,7 @@ The component library now uses the approved resources in prices and chips, incom
 
 The **UI/UX handoff for #3** is in [docs/ui/README.md](docs/ui/README.md). It is the manifest for building the real game pages: layout, typography, colours, control states, placement and decision examples. The HTML pages are interactive mockups with fixture data.
 
-**The landing page, the lobby (#25) and the play screen (#26) are built** and run on the real table API. Sign in by name, create or join a table, set it up and start; then play: the Advancement Tracks with the spaces you can pay for, the World Map drawn as the real board's hex grid, the footer turn (income, or advance with its payment), and a plain prompt for every other decision. The player area (#27) has the Capital, Hand, Income, Eras, Civ, Tech and Terrain tabs, with real tech and tapestry cards, and the header chips open the players overview. Run `npm start` and open <http://127.0.0.1:3020/>. The designed prompts come with #28.
+**The landing page, the lobby (#25) and the play screen (#26) are built** and run on the real table API. Sign in by name, create or join a table, set it up and start; then play: the Advancement Tracks with the spaces you can pay for, the World Map drawn as the real board's hex grid, the footer turn (income, or advance with its payment), and a designed prompt for every other decision (#28): resources and payments with their art, cards on a shelf above the panel, the map's territories with each explore's tile, turn and VP, buildings and landmarks placed on the Capital tab, dice and tracks, and the gold income turn with its steps. The player area (#27) has the Capital, Hand, Income, Eras, Civ, Tech and Terrain tabs, with real tech and tapestry cards, and the header chips open the players overview. A whole base game can be played with the mouse. Run `npm start` and open <http://127.0.0.1:3020/>.
 
 The colours, texture, type, spacing, shadows and motion of these designs are in [src/styles/tokens.css](src/styles/tokens.css), the single source of truth for the look.
 
@@ -42,7 +42,15 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 |---|---|
 | ![The play screen with the Capital tab: the real Mountain mat's plots and the completion counters](docs/ui/screens/game-player-area.png) | ![The players overview: a card per player and Ana's Wetland capital opened on the right](docs/ui/screens/game-overview.png) |
 
-The decision prompts are still the plain ones until #28. Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html), [End screen](docs/ui/end-screen.html).
+| Prompt: cards on the shelf (the tapestry draft) | Prompt: exploring a territory |
+|---|---|
+| ![The tapestry draft's keep prompt: two cards on the shelf above the gold income panel](docs/ui/screens/game-prompt-cards.png) | ![An explore: the chosen hex previews the best tile, and the panel lists each tile and turn with its VP](docs/ui/screens/game-prompt-explore.png) |
+
+| Prompt: placing a landmark | Prompt: the income turn |
+|---|---|
+| ![The Lighthouse placed and turned on the Capital tab, with the panel naming its plot](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold, with its steps and the chosen card lifted](docs/ui/screens/game-prompt-income.png) |
+
+Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html), [End screen](docs/ui/end-screen.html).
 
 **Game mockup: tracks and capital, at the 1920×1080 desktop reference size.**
 
