@@ -14,6 +14,8 @@ export { bonusOf } from './decisions/choose-bonus.js';
 export { advances } from './decisions/choose-advance.js';
 export { DECISIONS } from './kinds.js';
 export { openDecisions } from './stack.js';
+export { controlledTerritories } from './control.js';
+export { cityPlots, completeLines } from './city.js';
 export {
 	askedSeats,
 	defaultAction,

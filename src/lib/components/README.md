@@ -68,6 +68,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows. |
 | `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. 210px wide, shrinking to 120px; below 190px it drops the civilization name. |
 | `ResourceChip` | A resource symbol and its count. |
+| `SelfSummary` | Your overview at the foot of the player area: name, era, VP, hand, tech, territory and capital-line counts, and the four resources (#26). |
 
 ## prompts/
 
