@@ -11,7 +11,18 @@ import { deepFreeze, terrainsFrom } from './ids.js';
  * @property {readonly TerrainId[]} corners - The 6 corner terrains, clockwise from the top-left corner, before turning
  * @property {readonly TerrainId[]} island - The terrain of an island in the middle, empty when there is none
  * @property {readonly Effect[]} benefit - Gained when the tile is explored, and through the black die's "?" (R8)
+ * @property {boolean} clouds - Its picture shows clouds, which Cloud Colonies scores (R77)
+ * @property {boolean} volcano - Its picture shows a volcano, whose smoke is not a cloud (R77)
  */
+
+/** The tiles whose pictures show clouds (R77, read from BGA's tile images). */
+const CLOUDS = [
+	1, 7, 8, 9, 10, 13, 15, 16, 18, 19, 21, 22, 24, 25, 27, 30, 33, 35, 36, 39,
+	40, 42, 43, 44, 45, 48,
+];
+
+/** The tile whose picture shows a volcano (R77). */
+const VOLCANO = 47;
 
 /** @type {Record<string, Effect[]>} */
 const BENEFITS = {
@@ -47,6 +58,8 @@ function tile(id, terrains, benefit) {
 		corners: terrainsFrom(island ? 'S,S,S,S,S,S' : terrains),
 		island: island ? terrainsFrom(terrains.slice(4)) : [],
 		benefit: BENEFITS[benefit],
+		clouds: CLOUDS.includes(id),
+		volcano: id === VOLCANO,
 	};
 }
 

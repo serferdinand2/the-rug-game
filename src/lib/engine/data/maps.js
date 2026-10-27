@@ -18,6 +18,8 @@ import { deepFreeze, terrainsFrom } from './ids.js';
  * @property {number} orient - How far it is turned clockwise, in 60° steps
  * @property {readonly TerrainId[]} corners - As in Terrains
  * @property {readonly TerrainId[]} island - As in Terrains
+ * @property {boolean} clouds - Its picture shows clouds, which Cloud Colonies scores (R77)
+ * @property {boolean} volcano - Its picture shows a volcano, whose smoke is not a cloud (R77)
  */
 
 /**
@@ -79,15 +81,23 @@ const PRINTED_TILES = deepFreeze(
 );
 
 /**
- * The printed territories of one side, with their terrains filled in from the tile id.
+ * The printed territories of one side, with their terrains filled in from the tile id. Clouds and the volcano belong
+ * to the hex's picture, not the tile id: a cloud across a hex line counts only where most of it lies (R77).
  * @param {Record<string, [tile: number, orient: number]>} hexes
+ * @param {{ clouds: string[], volcano?: string }} pictures - The hexes whose pictures show clouds, and the volcano's
  * @returns {Record<string, PrintedTerritory>}
  */
-function printed(hexes) {
+function printed(hexes, { clouds, volcano }) {
 	return Object.fromEntries(
 		Object.entries(hexes).map(([key, [tile, orient]]) => [
 			key,
-			{ tile, orient, ...PRINTED_TILES[tile] },
+			{
+				tile,
+				orient,
+				...PRINTED_TILES[tile],
+				clouds: clouds.includes(key),
+				volcano: key === volcano,
+			},
 		])
 	);
 }
@@ -123,39 +133,60 @@ export const MAPS = deepFreeze({
 		name: 'Large map',
 		players: [4, 5],
 		hexes: hexagon(4),
-		printed: printed({
-			'0_0': [49, 0],
-			// Top left, start 6
-			'-1_-4': [50, 0],
-			'0_-3': [51, 0],
-			'1_-3': [61, 0],
-			'0_-2': [62, 0],
-			// Bottom left, start 5
-			'3_-1': [63, 0],
-			'3_0': [55, 5],
-			'2_0': [57, 5],
-			'4_1': [56, 5],
-			// Bottom, start 4
-			'2_2': [64, 0],
-			'3_3': [65, 0],
-			'4_3': [66, 0],
-			'3_4': [67, 0],
-			// Bottom right, start 3
-			'0_2': [68, 0],
-			'0_3': [76, 5],
-			'1_4': [69, 0],
-			'-1_3': [70, 0],
-			// Top right, start 2
-			'-4_-1': [77, 0],
-			'-3_0': [59, 4],
-			'-2_0': [58, 4],
-			'-3_1': [71, 0],
-			// Top, start 1
-			'-2_-2': [72, 0],
-			'-3_-3': [73, 0],
-			'-4_-3': [75, 0],
-			'-3_-4': [74, 0],
-		}),
+		printed: printed(
+			{
+				'0_0': [49, 0],
+				// Top left, start 6
+				'-1_-4': [50, 0],
+				'0_-3': [51, 0],
+				'1_-3': [61, 0],
+				'0_-2': [62, 0],
+				// Bottom left, start 5
+				'3_-1': [63, 0],
+				'3_0': [55, 5],
+				'2_0': [57, 5],
+				'4_1': [56, 5],
+				// Bottom, start 4
+				'2_2': [64, 0],
+				'3_3': [65, 0],
+				'4_3': [66, 0],
+				'3_4': [67, 0],
+				// Bottom right, start 3
+				'0_2': [68, 0],
+				'0_3': [76, 5],
+				'1_4': [69, 0],
+				'-1_3': [70, 0],
+				// Top right, start 2
+				'-4_-1': [77, 0],
+				'-3_0': [59, 4],
+				'-2_0': [58, 4],
+				'-3_1': [71, 0],
+				// Top, start 1
+				'-2_-2': [72, 0],
+				'-3_-3': [73, 0],
+				'-4_-3': [75, 0],
+				'-3_-4': [74, 0],
+			},
+			{
+				// R77: large-map 0_2 and 1_-3 hold the edges of clouds whose most lies in a neighbour, so they don't count.
+				clouds: [
+					'0_0',
+					'-1_-4',
+					'0_-3',
+					'2_0',
+					'4_1',
+					'3_3',
+					'3_4',
+					'0_3',
+					'1_4',
+					'-4_-1',
+					'-3_0',
+					'-3_1',
+					'-2_-2',
+				],
+				volcano: '-1_3',
+			}
+		),
 		middle: '0_0',
 	},
 	// R3: a radius-3 hexagon without three corners, 34 hexes, 13 printed and 21 unexplored.
@@ -164,24 +195,30 @@ export const MAPS = deepFreeze({
 		name: 'Small map',
 		players: [1, 2, 3],
 		hexes: hexagon(3, ['0_-3', '-3_0', '3_3']),
-		printed: printed({
-			'0_0': [49, 0],
-			// Top, start 1/6
-			'-3_-3': [50, 0],
-			'-2_-2': [51, 0],
-			'-1_-2': [52, 0],
-			'-2_-1': [53, 0],
-			// Bottom left, start 3/5
-			'1_-1': [54, 0],
-			'2_0': [55, 0],
-			'3_0': [56, 0],
-			'2_1': [76, 0],
-			// Bottom right, start 2/4
-			'-1_1': [58, 0],
-			'0_2': [59, 0],
-			'1_2': [60, 0],
-			'0_3': [77, 2],
-		}),
+		printed: printed(
+			{
+				'0_0': [49, 0],
+				// Top, start 1/6
+				'-3_-3': [50, 0],
+				'-2_-2': [51, 0],
+				'-1_-2': [52, 0],
+				'-2_-1': [53, 0],
+				// Bottom left, start 3/5
+				'1_-1': [54, 0],
+				'2_0': [55, 0],
+				'3_0': [56, 0],
+				'2_1': [76, 0],
+				// Bottom right, start 2/4
+				'-1_1': [58, 0],
+				'0_2': [59, 0],
+				'1_2': [60, 0],
+				'0_3': [77, 2],
+			},
+			{
+				// R77: small-map -1_-2 holds the edge of a cloud whose most lies in a neighbour, so it doesn't count.
+				clouds: ['0_0', '-3_-3', '-2_-2', '3_0', '2_1', '0_2', '0_3'],
+			}
+		),
 		middle: '0_0',
 	},
 });
