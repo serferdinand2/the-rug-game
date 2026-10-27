@@ -467,14 +467,54 @@ function obstacle(c, v, r, tint) {
 			ellipse(c, 16, 16, 2, 2, STORM.deep);
 			break;
 		default:
-			shade(c, 29, 11, tint);
-			puff(c, 16, 25, 6, STORM);
-			puff(c, 16, 17, 7, STORM);
-			puff(c, 16, 9, 6, STORM);
-			puff(c, 8, 26, 4, STORM);
-			puff(c, 24, 26, 4, STORM);
-			rect(c, 11, 8, 3, 1, STORM.light);
-			rect(c, 10, 16, 4, 1, STORM.light);
+			// An anvil cumulonimbus: a broad base, a body wider than it is tall, and a flat spread-out top.
+			shade(c, 29, 13, tint);
+			puff(c, 6, 25, 4, STORM);
+			puff(c, 26, 25, 4, STORM);
+			puff(c, 11, 25, 5, STORM);
+			puff(c, 21, 25, 5, STORM);
+			puff(c, 9, 19, 5, STORM);
+			puff(c, 23, 19, 5, STORM);
+			puff(c, 16, 21, 7, STORM);
+			puff(c, 12, 14, 5, STORM);
+			puff(c, 20, 14, 5, STORM);
+			puff(c, 16, 12, 5, STORM);
+			// The anvil: a flat-topped, flat-bottomed cap spreading wider than the body.
+			polygon(
+				c,
+				[
+					[0, 11],
+					[3, 5],
+					[29, 5],
+					[32, 11],
+					[27, 12],
+					[5, 12],
+				],
+				STORM.outline
+			);
+			polygon(
+				c,
+				[
+					[1, 11],
+					[4, 6],
+					[28, 6],
+					[31, 11],
+					[27, 11],
+					[5, 11],
+				],
+				STORM.mid
+			);
+			rect(c, 6, 6, 18, 1, STORM.light);
+			rect(c, 5, 7, 12, 1, STORM.light);
+			rect(c, 5, 11, 22, 1, STORM.dark);
+			rect(c, 22, 8, 6, 1, STORM.dark);
+			rect(c, 8, 17, 4, 1, STORM.light);
+			rect(c, 14, 20, 5, 1, STORM.light);
+			for (const x of [8, 15, 23]) {
+				for (let k = 0; k < 3; k++) {
+					set(c, x - k, 30 + (k % 2) - 1, C.nightWaveDeep);
+				}
+			}
 			break;
 	}
 	void r;
@@ -574,3 +614,26 @@ export function drawBiomeMat() {
 	}
 	return mat;
 }
+
+/**
+ * What #36 needs to compose this mat: which variants are ordinary, which carry a printed meaning, and what only the example mat draws.
+ * `pools` holds the variants that are safe to pick at random on any plot (0-based, as `drawBiomeTile` takes them).
+ * @type {import('./index.js').BiomeFeatures}
+ */
+export const FEATURES = Object.freeze({
+	pools: Object.freeze({
+		open: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7]),
+		blocked: Object.freeze([0, 1, 2, 3, 4, 5]),
+	}),
+	special: Object.freeze([]),
+	matOnly: Object.freeze([
+		Object.freeze({
+			name: 'cloud tints',
+			where: 'The tint argument of drawBiomeTile: CLOUD_TINTS[CLOUDS[row][col]] gives each plot its cloud colour (white, grey, tan or cream)',
+		}),
+		Object.freeze({
+			name: 'cloud rims',
+			where: 'A scalloped rim drawn along every edge between two different clouds in CLOUDS',
+		}),
+	]),
+});

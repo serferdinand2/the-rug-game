@@ -250,13 +250,24 @@ function drawScattered(canvas, r, v) {
 			set(canvas, x + 5, y + 1, C.brass);
 		}
 	} else {
-		// A ring of scorched rock.
-		for (let a = 0; a < 40; a++) {
-			const x = Math.round(16 + 9 * Math.cos((a / 40) * Math.PI * 2));
-			const y = Math.round(16 + 7 * Math.sin((a / 40) * Math.PI * 2));
-			set(canvas, x, y, C.hellRockDeep);
-			if (a % 6 === 0) {
-				set(canvas, x, y - 1, C.hellRockShade);
+		// Scattered cinders: uneven flakes of burnt rock, a few still glowing, thrown in no pattern.
+		for (const { x, y, w, glow } of [
+			{ x: 4, y: 7, w: 3, glow: false },
+			{ x: 11, y: 22, w: 2, glow: true },
+			{ x: 15, y: 4, w: 1, glow: false },
+			{ x: 19, y: 13, w: 3, glow: false },
+			{ x: 25, y: 25, w: 2, glow: false },
+			{ x: 27, y: 6, w: 2, glow: true },
+			{ x: 7, y: 14, w: 1, glow: false },
+			{ x: 22, y: 20, w: 1, glow: true },
+		]) {
+			rect(canvas, x, y, w, 1, C.hellRockDeep);
+			if (w > 1) {
+				set(canvas, x + 1, y - 1, C.hellRockDeep);
+				set(canvas, x, y + 1, C.hellRockShade);
+			}
+			if (glow) {
+				set(canvas, x, y, C.ember);
 			}
 		}
 	}
@@ -738,3 +749,26 @@ export function drawBiomeMat() {
 	});
 	return mat;
 }
+
+/**
+ * What #36 needs to compose this mat: which variants are ordinary, which carry a printed meaning, and what only the example mat draws.
+ * `pools` holds the variants that are safe to pick at random on any plot (0-based, as `drawBiomeTile` takes them).
+ * @type {import('./index.js').BiomeFeatures}
+ */
+export const FEATURES = Object.freeze({
+	pools: Object.freeze({
+		open: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7]),
+		blocked: Object.freeze([0, 1, 2, 3, 4, 5]),
+	}),
+	special: Object.freeze([]),
+	matOnly: Object.freeze([
+		Object.freeze({
+			name: 'imps',
+			where: "An imp standing on each 'I' plot of LAYOUT (an open plot): (1,1), (1,7), (7,1) and (7,7), as [row, column]",
+		}),
+		Object.freeze({
+			name: 'city centre',
+			where: "A gold ring round a small tower on the 'C' plot of LAYOUT (an open plot): (4,4), as [row, column]",
+		}),
+	]),
+});

@@ -364,40 +364,61 @@ function blockedFeature(c, v, r) {
 			break;
 		}
 		default: {
-			// a big spiral conch
-			for (let y = 5; y <= 28; y++) {
-				for (let x = 3; x <= 29; x++) {
-					const d = Math.hypot((x - 16) / 13, (y - 17) / 11);
-					if (d <= 1) {
-						set(c, x, y, d > 0.8 ? P.creamShade : P.cream);
-					} else if (d <= 1.14) {
-						set(c, x, y, K.outline);
+			// a big spiral seashell: a coiled whorl whose bands wind in to the apex, with the flared pink mouth at the lower right
+			const cx = 15;
+			const cy = 16;
+			const mouth = Math.PI * 0.25;
+			/** Distance from the apex to the shell's edge at an angle: it grows each turn, as a coil does. */
+			const edge = (/** @type {number} */ a) => {
+				const turn =
+					(((a - mouth) % (Math.PI * 2)) + Math.PI * 2) %
+					(Math.PI * 2);
+				return 9.5 + 5.5 * (turn / (Math.PI * 2));
+			};
+			for (let y = 0; y < SIZE; y++) {
+				for (let x = 0; x < SIZE; x++) {
+					const dx = x + 0.5 - cx;
+					const dy = y + 0.5 - cy;
+					const d = Math.hypot(dx, dy);
+					const a = Math.atan2(dy, dx);
+					const e = edge(a);
+					if (d > e + 1.2) {
+						continue;
 					}
+					if (d > e) {
+						set(c, x, y, K.outline);
+						continue;
+					}
+					// Bands wind outwards: the phase falls with the angle and rises with the radius.
+					const phase = (d / e) * 2.2 - a / (Math.PI * 2);
+					const f = phase - Math.floor(phase);
+					let col =
+						f < 0.2
+							? P.sandShade
+							: f < 0.6
+								? P.cream
+								: P.creamLight;
+					if (d > e - 1.5) {
+						col = P.creamShade;
+					}
+					if (dx + dy > 6) {
+						col = col === P.creamLight ? P.cream : P.creamShade;
+					}
+					set(c, x, y, col);
 				}
 			}
-			// spiral whorls and the pink lip
-			for (let i = 0; i < 3; i++) {
-				line(
-					c,
-					8 + i * 3,
-					12 + i * 2,
-					20 - i * 2,
-					12 + i * 2,
-					P.creamShade
-				);
-				line(
-					c,
-					20 - i * 2,
-					12 + i * 2,
-					20 - i * 2,
-					22 - i * 2,
-					P.creamShade
-				);
-			}
-			rect(c, 20, 19, 7, 5, P.brickRedLight);
-			rect(c, 22, 20, 4, 3, P.brickRed);
-			rect(c, 8, 8, 6, 1, P.creamLight);
-			set(c, 11, 9, P.white);
+			// the apex and its dark seam
+			rect(c, cx - 1, cy - 1, 2, 2, P.brickRedLight);
+			set(c, cx - 1, cy - 1, P.white);
+			// the pink mouth where the coil opens
+			rect(c, 20, 22, 9, 6, K.outline);
+			rect(c, 19, 23, 11, 4, K.outline);
+			rect(c, 21, 23, 7, 4, P.brickRedLight);
+			rect(c, 22, 22, 5, 1, P.brickRedLight);
+			rect(c, 23, 25, 5, 2, P.brickRed);
+			rect(c, 22, 27, 5, 1, P.brickRedLight);
+			set(c, 12, 7, P.white);
+			set(c, 13, 7, P.creamLight);
 			void r;
 			break;
 		}
@@ -494,3 +515,22 @@ export function drawBiomeMat() {
 	}
 	return mat;
 }
+
+/**
+ * What #36 needs to compose this mat: which variants are ordinary, which carry a printed meaning, and what only the example mat draws.
+ * `pools` holds the variants that are safe to pick at random on any plot (0-based, as `drawBiomeTile` takes them).
+ * @type {import('./index.js').BiomeFeatures}
+ */
+export const FEATURES = Object.freeze({
+	pools: Object.freeze({
+		open: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7]),
+		blocked: Object.freeze([0, 1, 2, 3, 4, 5]),
+	}),
+	special: Object.freeze([]),
+	matOnly: Object.freeze([
+		Object.freeze({
+			name: 'bottle glass',
+			where: 'A teal rim in the outer 4 pixels of the mat, with a long reflection down the left and glints at the bottom right',
+		}),
+	]),
+});

@@ -668,3 +668,49 @@ export function drawBiomeMat() {
 	drawIcon(mat, 'building', 5 * SIZE + 16, 8 * SIZE + 16);
 	return mat;
 }
+
+/**
+ * What #36 needs to compose this mat: which variants are ordinary, which carry a printed meaning, and what only the example mat draws.
+ * `pools` holds the variants that are safe to pick at random on any plot (0-based, as `drawBiomeTile` takes them).
+ * @type {import('./index.js').BiomeFeatures}
+ */
+export const FEATURES = Object.freeze({
+	pools: Object.freeze({
+		open: Object.freeze([]),
+		blocked: Object.freeze([]),
+	}),
+	special: Object.freeze([
+		Object.freeze({
+			blocked: false,
+			variants: Object.freeze([0, 1, 2, 3]),
+			meaning:
+				'Worldly meadow: open plots on the worldly (left) side, where isCharmed(row, col) is false',
+		}),
+		Object.freeze({
+			blocked: false,
+			variants: Object.freeze([4, 5, 6, 7]),
+			meaning:
+				'Charmed twilight: open plots on the charmed (right) side, where isCharmed(row, col) is true',
+		}),
+		Object.freeze({
+			blocked: true,
+			variants: Object.freeze([0, 1, 2]),
+			meaning: 'Worldly meadow: impassable plots on the worldly side',
+		}),
+		Object.freeze({
+			blocked: true,
+			variants: Object.freeze([3, 4, 5]),
+			meaning: 'Charmed twilight: impassable plots on the charmed side',
+		}),
+	]),
+	matOnly: Object.freeze([
+		Object.freeze({
+			name: 'the veil',
+			where: 'A shimmering line along VEIL_PATH, with four sparkles on it, dividing the worldly side from the charmed side',
+		}),
+		Object.freeze({
+			name: 'pocket icons',
+			where: 'A tech card icon at row 1, column 8; a science die icon on the edge between rows 4 and 5 at column 8; an income building icon at row 8, column 5',
+		}),
+	]),
+});

@@ -662,3 +662,39 @@ export function drawBiomeMat() {
 	}
 	return mat;
 }
+
+/**
+ * What #36 needs to compose this mat: which variants are ordinary, which carry a printed meaning, and what only the example mat draws.
+ * `pools` holds the variants that are safe to pick at random on any plot (0-based, as `drawBiomeTile` takes them).
+ * @type {import('./index.js').BiomeFeatures}
+ */
+export const FEATURES = Object.freeze({
+	pools: Object.freeze({
+		open: Object.freeze([]),
+		blocked: Object.freeze([0, 1, 2, 3, 4, 5]),
+	}),
+	special: Object.freeze([
+		Object.freeze({
+			blocked: false,
+			variants: Object.freeze([0, 1, 2, 3]),
+			meaning:
+				"Grey ground: open plots outside every district (DISTRICTS is '.')",
+		}),
+		Object.freeze({
+			blocked: false,
+			variants: Object.freeze([4, 5, 6, 7]),
+			meaning:
+				'District ground: open plots inside a district (DISTRICTS is 1-6)',
+		}),
+	]),
+	matOnly: Object.freeze([
+		Object.freeze({
+			name: 'unicorns',
+			where: 'A unicorn herd drawn over district ground on each UNICORNS plot (an impassable plot, so its blocked tile is replaced by the herd)',
+		}),
+		Object.freeze({
+			name: 'district borders',
+			where: 'A one-pixel brass line round each district of DISTRICTS, on the outer edge of its plots',
+		}),
+	]),
+});

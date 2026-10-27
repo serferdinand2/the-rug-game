@@ -562,7 +562,8 @@ export function drawBiomeMat() {
 	}
 	for (let row = 0; row < rows; row++) {
 		for (let col = 0; col < cols; col++) {
-			if (LAYOUT[row][col] === 'X') {
+			// A volcano is land too: its sides on the water get a beach like any island plot.
+			if (isWater(row, col)) {
 				continue;
 			}
 			addBeach(
@@ -587,3 +588,29 @@ export function drawBiomeMat() {
 	}
 	return mat;
 }
+
+/**
+ * What #36 needs to compose this mat: which variants are ordinary, which carry a printed meaning, and what only the example mat draws.
+ * `pools` holds the variants that are safe to pick at random on any plot (0-based, as `drawBiomeTile` takes them).
+ * @type {import('./index.js').BiomeFeatures}
+ */
+export const FEATURES = Object.freeze({
+	pools: Object.freeze({
+		open: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7]),
+		blocked: Object.freeze([0, 1, 2, 3, 4]),
+	}),
+	special: Object.freeze([
+		Object.freeze({
+			blocked: true,
+			variants: Object.freeze([5]),
+			meaning:
+				'A volcano on island land: impassable, but land, so it needs a beach where it meets water (VOLCANO_VARIANT)',
+		}),
+	]),
+	matOnly: Object.freeze([
+		Object.freeze({
+			name: 'beaches',
+			where: 'Sand edges drawn on island plots, volcano plots included, on every side that faces water; the mat applies them from LAYOUT, so a composed mat must too',
+		}),
+	]),
+});

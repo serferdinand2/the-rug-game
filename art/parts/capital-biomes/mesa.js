@@ -75,7 +75,47 @@ function ground(c, r) {
 }
 
 /**
- * A rounded block of banded rock seen from above and slightly in front: a lit top and strata down the face.
+ * The silhouette of an eroded butte as one [left, right] pair per row, from the top: a ragged flat top, sides that step out
+ * in ledges and notches towards a wider foot. The shape depends only on its size and place, so the outline, the shadow and
+ * the rock itself agree.
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {number} ry - Half the height of the top face
+ * @returns {([number, number] | null)[]}
+ */
+function butteShape(x, y, w, h, ry) {
+	const n = seededRandom(x * 131 + y * 17 + w * 7 + h * 3);
+	const rx = w / 2;
+	const cx = x + rx;
+	/** @type {([number, number] | null)[]} */
+	const rows = [];
+	let ledgeL = 0;
+	let ledgeR = 0;
+	for (let row = 0; row < h; row++) {
+		const t = row / Math.max(1, h - 1);
+		if (row % 4 === 0) {
+			ledgeL = Math.round((n() - 0.5) * 3.4);
+			ledgeR = Math.round((n() - 0.5) * 3.4);
+		}
+		let half;
+		if (row < ry * 2) {
+			const dy = (row + 0.5 - ry) / ry;
+			half = rx * Math.sqrt(Math.max(0, 1 - dy * dy)) * 0.93 + 1;
+			half += (n() - 0.5) * 1.6;
+		} else {
+			half = rx * (0.84 + 0.14 * t);
+		}
+		const l = Math.round(cx - half + (row < ry * 2 ? 0 : ledgeL));
+		const r = Math.round(cx + half + (row < ry * 2 ? 0 : ledgeR));
+		rows.push(r > l ? [l, r] : null);
+	}
+	return rows;
+}
+
+/**
+ * Eroded rock seen from above and slightly in front: a lit ragged top, uneven strata down the face, notches and talus.
  * @param {Canvas} c
  * @param {number} x
  * @param {number} y
@@ -83,62 +123,79 @@ function ground(c, r) {
  * @param {number} h
  * @param {number} ry - Half the height of the top face
  * @param {() => number} r
- * @param {Colour} [flat] - Paints the whole shape in one colour (outline and shadow)
+ * @param {Colour} [flat] - Paints the whole shape in one colour (shadow)
+ * @param {number} [grow] - Widens the silhouette by this many pixels all round (the outline)
  */
-function block(c, x, y, w, h, ry, r, flat) {
-	const rx = w / 2;
-	const cx = x + rx;
-	const top = y + ry;
-	const bottom = y + h - ry;
-	for (let py = y; py < y + h; py++) {
-		for (let px = x; px < x + w; px++) {
-			const dx = (px + 0.5 - cx) / rx;
-			const inTop = dx * dx + ((py + 0.5 - top) / ry) ** 2 <= 1;
-			const inBottom =
-				py + 0.5 >= bottom &&
-				dx * dx + ((py + 0.5 - bottom) / ry) ** 2 <= 1;
-			const inMiddle =
-				py + 0.5 >= top && py + 0.5 <= bottom && Math.abs(dx) <= 1;
-			if (!(inTop || inBottom || inMiddle)) {
-				continue;
-			}
+function block(c, x, y, w, h, ry, r, flat, grow = 0) {
+	const shape = butteShape(x, y, w, h, ry);
+	const cx = x + w / 2;
+	// A ragged offset per column, so the strata wander instead of running level.
+	const wob = seededRandom(x * 29 + h * 5 + w);
+	const wander = [];
+	let wv = 0;
+	for (let px = 0; px < SIZE; px++) {
+		wv = Math.max(-1, Math.min(1, wv + Math.round((wob() - 0.5) * 1.8)));
+		wander.push(wv);
+	}
+	const topEnd = ry * 1.3;
+	for (let row = -grow; row < h + grow; row++) {
+		const span = shape[Math.min(h - 1, Math.max(0, row))];
+		if (!span) {
+			continue;
+		}
+		const [l, rt] = span;
+		for (let px = l - grow; px < rt + grow; px++) {
 			if (flat) {
-				set(c, px, py, flat);
+				set(c, px, y + row, flat);
 				continue;
 			}
-			if (inTop) {
-				const rim = dx * dx + ((py + 0.5 - top) / ry) ** 2;
-				set(c, px, py, rim > 0.62 ? C.mesaStrata : C.mesaRockLight);
+			const dx = (px + 0.5 - cx) / (w / 2);
+			if (row < topEnd) {
+				const rim = row < 1 || px <= l || px >= rt - 1;
+				set(
+					c,
+					px,
+					y + row,
+					rim || (row > topEnd - 2 && wander[px & 31] > 0)
+						? C.mesaStrata
+						: C.mesaRockLight
+				);
 				continue;
 			}
-			const band = Math.floor((py - top) / 3) % 4;
+			const band = Math.floor(
+				(row + wander[Math.max(0, Math.min(31, px))]) / 3
+			);
 			let colour = [
 				C.mesaRock,
 				C.mesaRockShade,
 				C.mesaRock,
 				C.mesaRockLight,
-			][band];
-			if (dx > 0.55) {
+			][((band % 4) + 4) % 4];
+			if (dx > 0.45) {
 				colour =
 					colour === C.mesaRockShade
 						? C.mesaRockDark
 						: C.mesaRockShade;
-			} else if (dx < -0.7) {
+			} else if (dx < -0.6) {
 				colour =
 					colour === C.mesaRockLight ? C.mesaStrata : C.mesaRockLight;
 			}
-			if (r() < 0.05) {
+			// Dark pits and light flakes where the rock has weathered.
+			const q = r();
+			if (q < 0.04) {
 				colour = C.mesaRockDark;
+			} else if (q > 0.985) {
+				colour = C.mesaStrata;
 			}
-			set(c, px, py, colour);
+			set(c, px, y + row, colour);
 		}
 	}
 }
 
-/** A block with its ink outline and a cast shadow. @param {Canvas} c @param {number} x @param {number} y @param {number} w @param {number} h @param {number} ry @param {() => number} r */
+/** A rock with its ink outline and a cast shadow. @param {Canvas} c @param {number} x @param {number} y @param {number} w @param {number} h @param {number} ry @param {() => number} r */
 function butte(c, x, y, w, h, ry, r) {
 	block(c, x + 2, y + 2, w, h, ry, r, C.mesaSoilDark);
-	block(c, x - 1, y - 1, w + 2, h + 2, ry + 1, r, C.ink);
+	block(c, x, y, w, h, ry, r, C.ink, 1);
 	block(c, x, y, w, h, ry, r);
 }
 
@@ -359,3 +416,17 @@ export function drawBiomeMat() {
 	);
 	return mat;
 }
+
+/**
+ * What #36 needs to compose this mat: which variants are ordinary, which carry a printed meaning, and what only the example mat draws.
+ * `pools` holds the variants that are safe to pick at random on any plot (0-based, as `drawBiomeTile` takes them).
+ * @type {import('./index.js').BiomeFeatures}
+ */
+export const FEATURES = Object.freeze({
+	pools: Object.freeze({
+		open: Object.freeze([0, 1, 2, 3, 4, 5, 6, 7]),
+		blocked: Object.freeze([0, 1, 2, 3, 4, 5]),
+	}),
+	special: Object.freeze([]),
+	matOnly: Object.freeze([]),
+});

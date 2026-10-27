@@ -47,7 +47,18 @@ test('the mat is the grid times 32 and its impassable plots are exactly the layo
 				}
 			}
 			assert.equal(plan[row][col].blocked, ch === 'X');
-			if (ch === 'X') {
+			if (
+				ch === 'X' &&
+				VOLCANOES.some(([r, c]) => r === row && c === col)
+			) {
+				// A volcano is land: the mat adds a beach along its water sides, so only its inner plot is the tile's.
+				const tile = drawBiomeTile(true, plan[row][col].variant);
+				for (let y = 6; y < 26; y++) {
+					for (let x = 6; x < 26; x++) {
+						assert.equal(plot[y * 32 + x], tile.p[y * 32 + x]);
+					}
+				}
+			} else if (ch === 'X') {
 				assert.equal(
 					plot.join(),
 					drawBiomeTile(true, plan[row][col].variant).p.join()
