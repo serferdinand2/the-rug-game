@@ -142,6 +142,31 @@ const COLOURS = {
 	floorLight: '#7d5a44',
 	floor: '#5e4232',
 	floorShade: '#3f2b22',
+
+	// Mesa capital terrain (#6): red desert soil and banded rock
+	mesaSoilLight: '#e8bd84',
+	mesaSoil: '#d9a066',
+	mesaSoilShade: '#bd7c4c',
+	mesaSoilDark: '#9c5f3c',
+	mesaRockLight: '#e0814f',
+	mesaRock: '#b9552f',
+	mesaRockShade: '#8c3d27',
+	mesaRockDark: '#5c2a22',
+	mesaStrata: '#ee9f66',
+	mesaSage: '#8e9c63',
+
+	// Swamp capital terrain (#6): murky mud, black water and lily pads
+	swampMudLight: '#707046',
+	swampMud: '#5a5a3a',
+	swampMudShade: '#434330',
+	swampMoss: '#86a03f',
+	swampWaterLight: '#4f8068',
+	swampWater: '#2f5a4e',
+	swampWaterDeep: '#1d3b38',
+	swampReed: '#b8ad55',
+	lilyPad: '#62b44f',
+	lilyPadShade: '#3f8a3e',
+	lilyFlower: '#f6a9c8',
 };
 
 /**
