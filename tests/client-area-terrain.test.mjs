@@ -17,6 +17,8 @@ test('territory tiles carry their corners and island from the data', () => {
 		id: 1,
 		corners: [...TERRITORY_TILES[0].corners],
 		island: [...TERRITORY_TILES[0].island],
+		clouds: TERRITORY_TILES[0].clouds,
+		volcano: TERRITORY_TILES[0].volcano,
 	});
 	assert.deepEqual(view.territories[1].island, [...island.island]);
 });

@@ -3,13 +3,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
 	HEX_SIZE,
+	coastLines,
 	cornerWedge,
 	fitBox,
 	hexCenter,
 	hexCorner,
 	hexName,
+	hexPicture,
 	islandParts,
 	mapHexes,
+	overlayBox,
 	pieceSpots,
 	svgPoints,
 } from '../src/lib/hexmap.js';
@@ -226,7 +229,7 @@ test('a printed territory is turned by its orient, and the middle island keeps i
 	]);
 	assert.match(
 		middle.label,
-		/^Hex 0,0: sea, with an island of desert, forest, grassland and mountain\.$/
+		/^Hex 0,0: sea, with an island of desert, forest, grassland and mountain, with clouds\.$/
 	);
 });
 
@@ -260,7 +263,7 @@ test('a toppled outpost keeps toppled, and pieces and tokens are named', () => {
 	assert.deepEqual(middle.tokens, [{ seat: 1, civ: 'traders' }]);
 	assert.equal(
 		middle.label,
-		'Hex 0,0: sea, with an island of desert, forest, grassland and mountain. ' +
+		'Hex 0,0: sea, with an island of desert, forest, grassland and mountain, with clouds. ' +
 			'Ana: 1 toppled outpost, a Traders token. ' +
 			'Bo: a Farm, a toppled Lighthouse.'
 	);
@@ -332,4 +335,99 @@ test('fitBox holds every hex with a small margin', () => {
 	assert.ok(box.y + box.height >= Math.max(...ys));
 	assert.ok(box.y + box.height <= Math.max(...ys) + margin);
 	assert.deepEqual(fitBox([], HEX_SIZE), { x: 0, y: 0, width: 0, height: 0 });
+});
+
+test('hexes know their clouds and volcano from the tile or printed territory (R77)', () => {
+	const game = dealtView(2);
+	const hexes = mapHexes(game);
+	const byKey = Object.fromEntries(hexes.map((hex) => [hex.key, hex]));
+	// A printed R77 hex on the small map.
+	assert.equal(byKey['-3_-3'].clouds, true);
+	assert.equal(byKey['-3_-3'].volcano, false);
+	// An unexplored hex has neither.
+	const fog = hexes.find((hex) => hex.corners === null);
+	assert.ok(fog);
+	assert.equal(fog.clouds, false);
+	assert.equal(fog.volcano, false);
+	// A placed tile 47 has the volcano; tile 1 has clouds.
+	game.hexes[fog.key].tile = 47;
+	game.hexes[fog.key].orient = 0;
+	const placed = mapHexes(game).find((hex) => hex.key === fog.key);
+	assert.equal(placed?.volcano, true);
+	assert.equal(placed?.clouds, false);
+	game.hexes[fog.key].tile = 1;
+	assert.equal(
+		mapHexes(game).find((hex) => hex.key === fog.key)?.clouds,
+		true
+	);
+});
+
+test('the coast runs along the radius between a sea wedge and a land wedge', () => {
+	const c = /** @type {[number, number]} */ ([10, 20]);
+	// Sea in corners 2 and 3 only: coasts after corner 1 (side 1) and after corner 3 (side 3).
+	const lines = coastLines(
+		c,
+		['desert', 'desert', 'sea', 'sea', 'forest', 'forest'],
+		S
+	);
+	assert.equal(lines.length, 2);
+	assert.ok(near(lines[0].from, c));
+	const side1 = [hexCorner(c, 1, S), hexCorner(c, 2, S)];
+	assert.ok(
+		near(lines[0].to, [
+			(side1[0][0] + side1[1][0]) / 2,
+			(side1[0][1] + side1[1][1]) / 2,
+		])
+	);
+	assert.equal(
+		coastLines(c, ['sea', 'sea', 'sea', 'sea', 'sea', 'sea'], S).length,
+		0
+	);
+	assert.equal(
+		coastLines(
+			c,
+			['sea', 'forest', 'forest', 'forest', 'forest', 'forest'],
+			S
+		).length,
+		2
+	);
+});
+
+test('a hex picture covers the hex, centred on it', () => {
+	const box = hexPicture([5, 7], S);
+	assert.equal(box.width, 2 * S);
+	assert.ok(Math.abs(box.height - Math.sqrt(3) * S) < 1e-9);
+	assert.ok(Math.abs(box.x + box.width / 2 - 5) < 1e-9);
+	assert.ok(Math.abs(box.y + box.height / 2 - 7) < 1e-9);
+});
+
+test("an overlay's box on a hex: its spot in the 64×56 picture, scaled to the hex", () => {
+	/** @param {number} a @param {number} b */
+	const near = (a, b) => Math.abs(a - b) < 1e-9;
+	// The picture's 56 rows span the hex's √3·size height, as hexPicture lays it.
+	for (const size of [32, 40]) {
+		const across = (2 * size) / 64;
+		const down = (Math.sqrt(3) * size) / 56;
+		const box = overlayBox([21, 2], [22, 12], size);
+		assert.ok(near(box.x, -size + 21 * across), `x at ${size}`);
+		assert.ok(
+			near(box.y, (-Math.sqrt(3) / 2) * size + 2 * down),
+			`y at ${size}`
+		);
+		assert.ok(near(box.width, 22 * across), `width at ${size}`);
+		assert.ok(near(box.height, 12 * down), `height at ${size}`);
+	}
+});
+
+test('a hex with clouds or the volcano says so to a screen reader (R77)', () => {
+	const hexes = mapHexes(dealtView(3));
+	const cloudy = hexes.find((h) => h.key === '-3_-3');
+	assert.match(cloudy?.label ?? '', /with clouds/);
+	const plain = hexes.find((h) => h.key === '1_-1');
+	assert.doesNotMatch(plain?.label ?? '', /clouds|volcano/);
+	const large = mapHexes(dealtView(4));
+	assert.match(
+		large.find((h) => h.key === '-1_3')?.label ?? '',
+		/with a volcano/
+	);
 });

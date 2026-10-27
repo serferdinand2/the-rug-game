@@ -24,6 +24,24 @@ export const OUT_DIR = fileURLToPath(
 /** An illustration is a 64×64 scene (art style C). */
 const ILLUSTRATION_SIZE = 64;
 
+/** A territory picture is a flat-topped hex, 64×56; the cloud and volcano overlays and the boards keep their own sizes (#6). */
+const TERRITORY_SIZE = { w: 64, h: 56 };
+
+/** The hex pictures that overlay a territory rather than fill it. */
+const HEX_OVERLAYS = ['hex/cloud', 'hex/volcano'];
+
+/**
+ * Tells whether an asset is a territory picture: a territory tile, or a terrain hex the map's wedges are cut from.
+ * @param {Asset | undefined} asset
+ * @returns {boolean}
+ */
+function isTerritoryPicture(asset) {
+	return (
+		asset?.group === 'territory-tile' ||
+		(asset?.group === 'hex' && !HEX_OVERLAYS.includes(asset.id))
+	);
+}
+
 /**
  * Throws unless a landmark's picture covers exactly its footprint. The same picture is
  * shown on the landmark's card and on the capital grid, so its shape is its footprint.
@@ -130,7 +148,7 @@ async function drawAsset(id, drawingsDir) {
  * @param {{ drawingsDir?: string, outDir?: string, assets?: readonly Asset[] }} [options]
  * @returns {Promise<{ written: string[], removed: string[] }>}
  * @throws {Error} When a drawing has no catalog entry, an illustration other than a landmark isn't 64×64,
- * or a landmark's picture has no footprint or doesn't cover exactly its footprint.
+ * a landmark's picture has no footprint or doesn't cover exactly its footprint, or a territory picture isn't 64×56.
  */
 export async function buildArt({
 	drawingsDir = DRAWINGS_DIR,
@@ -156,6 +174,13 @@ export async function buildArt({
 		} else if (asset?.kind === 'illustration' && wrongSize) {
 			throw new Error(
 				`${id}: an illustration must be ${ILLUSTRATION_SIZE}×${ILLUSTRATION_SIZE}, not ${canvas.w}×${canvas.h}`
+			);
+		} else if (
+			isTerritoryPicture(asset) &&
+			(canvas.w !== TERRITORY_SIZE.w || canvas.h !== TERRITORY_SIZE.h)
+		) {
+			throw new Error(
+				`${id}: a territory picture must be ${TERRITORY_SIZE.w}×${TERRITORY_SIZE.h}, not ${canvas.w}×${canvas.h}`
 			);
 		}
 		drawn.push([id, toSvg(canvas)]);

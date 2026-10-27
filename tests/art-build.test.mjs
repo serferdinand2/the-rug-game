@@ -130,6 +130,58 @@ test('buildArt refuses an illustration that is not 64×64', async () => {
 	}
 });
 
+test('buildArt refuses a territory picture that is not a 64×56 hex', async () => {
+	for (const id of ['territory-tile/9', 'hex/forest']) {
+		const { root, drawingsDir, outDir } = await scratch({
+			[`${id}.js`]: filledDrawing(64, 64),
+		});
+		try {
+			const [group] = id.split('/');
+			const assets = [{ id, kind: 'board', group }];
+			await assert.rejects(
+				buildArt({
+					drawingsDir,
+					outDir,
+					assets: /** @type {any} */ (assets),
+				}),
+				new RegExp(
+					`${id}: a territory picture must be 64×56, not 64×64`
+				)
+			);
+			assert.equal(existsSync(outDir), false);
+		} finally {
+			await rm(root, { recursive: true, force: true });
+		}
+	}
+});
+
+test('buildArt takes the hex overlays and the boards at their own sizes', async () => {
+	const { root, drawingsDir, outDir } = await scratch({
+		'hex/cloud.js': filledDrawing(22, 12),
+		'board/map-small.js': filledDrawing(352, 392),
+		'hex/sea.js': filledDrawing(64, 56),
+	});
+	try {
+		const assets = [
+			{ id: 'hex/cloud', kind: 'board', group: 'hex' },
+			{ id: 'board/map-small', kind: 'board', group: 'board' },
+			{ id: 'hex/sea', kind: 'board', group: 'hex' },
+		];
+		const { written } = await buildArt({
+			drawingsDir,
+			outDir,
+			assets: /** @type {any} */ (assets),
+		});
+		assert.deepEqual(written.sort(), [
+			'board/map-small',
+			'hex/cloud',
+			'hex/sea',
+		]);
+	} finally {
+		await rm(root, { recursive: true, force: true });
+	}
+});
+
 /**
  * Returns a drawing module whose draw() fills a w×h canvas, leaving the listed pixel indexes empty.
  * @param {number} w

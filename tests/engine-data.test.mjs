@@ -891,6 +891,8 @@ test('every printed hex is on its map, and the middle island is 0_0 on both', ()
 			orient: 0,
 			corners: corners('S,S,S,S,S,S'),
 			island: ['desert', 'forest', 'grassland', 'mountain'],
+			clouds: true,
+			volcano: false,
 		});
 	}
 });
@@ -924,12 +926,16 @@ test('printed territories match 01 Appendix A and the BGA orientations', () => {
 		orient: 5,
 		corners: corners('G,G,S,S,S,G'),
 		island: [],
+		clouds: false,
+		volcano: false,
 	});
 	assert.deepEqual(MAPS.large.printed['-3_0'], {
 		tile: 59,
 		orient: 4,
 		corners: corners('S,S,S,G,G,D'),
 		island: [],
+		clouds: true,
+		volcano: false,
 	});
 	assert.deepEqual(
 		MAPS.large.printed['-3_-3'].corners,
@@ -940,6 +946,8 @@ test('printed territories match 01 Appendix A and the BGA orientations', () => {
 		orient: 2,
 		corners: corners('S,S,S,G,S,S'),
 		island: [],
+		clouds: true,
+		volcano: false,
 	});
 	assert.deepEqual(MAPS.small.printed['1_2'].corners, corners('S,D,G,F,D,D'));
 	const turned = Object.entries(MAPS.small.printed).filter(
@@ -1014,6 +1022,8 @@ test('tile 47 has its corners and gives 2 territory tiles (01 Appendix B)', () =
 		corners: corners('S,F,F,M,M,S'),
 		island: [],
 		benefit: [{ gain: { territory: 2 } }],
+		clouds: false,
+		volcano: true,
 	});
 	assert.deepEqual(TERRITORY_TILES[0].corners, corners('S,D,S,S,S,S'));
 	assert.deepEqual(TERRITORY_TILES[24].benefit, [{ building: 'house' }]);
@@ -1233,4 +1243,49 @@ test('R8: the black die is coin, worker, food, culture, and the tile benefit twi
 		{ tileBenefit: {} },
 		{ tileBenefit: {} },
 	]);
+});
+
+test('clouds mark exactly the territories R77 lists, and only tile 47 and large-map -1_3 have the volcano', () => {
+	const tiles = [
+		1, 7, 8, 9, 10, 13, 15, 16, 18, 19, 21, 22, 24, 25, 27, 30, 33, 35, 36,
+		39, 40, 42, 43, 44, 45, 48,
+	];
+	assert.deepEqual(
+		TERRITORY_TILES.filter((t) => t.clouds).map((t) => t.id),
+		tiles
+	);
+	assert.deepEqual(
+		TERRITORY_TILES.filter((t) => t.volcano).map((t) => t.id),
+		[47]
+	);
+	/** @param {'large' | 'small'} side @param {'clouds' | 'volcano'} mark */
+	const marked = (side, mark) =>
+		Object.entries(MAPS[side].printed)
+			.filter(([, hex]) => hex[mark])
+			.map(([key]) => key)
+			.sort();
+	assert.deepEqual(
+		marked('large', 'clouds'),
+		[
+			'0_0',
+			'-1_-4',
+			'0_-3',
+			'2_0',
+			'4_1',
+			'3_3',
+			'3_4',
+			'0_3',
+			'1_4',
+			'-4_-1',
+			'-3_0',
+			'-3_1',
+			'-2_-2',
+		].sort()
+	);
+	assert.deepEqual(
+		marked('small', 'clouds'),
+		['0_0', '-3_-3', '-2_-2', '3_0', '2_1', '0_2', '0_3'].sort()
+	);
+	assert.deepEqual(marked('large', 'volcano'), ['-1_3']);
+	assert.deepEqual(marked('small', 'volcano'), []);
 });

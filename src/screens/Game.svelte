@@ -166,7 +166,13 @@
 	let preview = $derived.by(() => {
 		const choice = explore.find((c) => c.index === picked);
 		return choice && mapPick
-			? { hex: mapPick, corners: choice.corners, island: choice.island }
+			? {
+					hex: mapPick,
+					corners: choice.corners,
+					island: choice.island,
+					clouds: choice.clouds,
+					volcano: choice.volcano,
+				}
 			: null;
 	});
 	/** A building or landmark to place on the capital, from the Capital tab. */

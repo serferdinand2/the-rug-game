@@ -22,11 +22,11 @@ These components are updated as the art issues deliver their assets. Each will s
 
 | Placeholder now | Component(s) | Asset ids | Art issue |
 |---|---|---|---|
-| Flat terrain colours | `WorldMap`, the World Map icon in `BoardSwitcher` | `hex/*`, `territory-tile/*`, `terrain/*` | #5, #6 |
+| Flat terrain colours | The World Map icon in `BoardSwitcher` | `terrain/*` | #5 |
 | Civilization names only | `PlayerChip`, `PlayerCard`, `SeatCard`, `CivChooser` | `civ/*` | #8 |
-| Expansion capital terrain | `CapitalGrid` | Future tiles for expansion biomes; full mats are examples only | #6 |
+| Expansion capital terrain | `CapitalGrid` | `capital-terrain/<advanced biome>-*` are drawn (#6); `CapitalGrid` draws the base biomes only until #36 adds the advanced mats | #36 |
 
-`LandmarkPiece` already shows the drawn landmarks (`landmark/*`, #7).
+`LandmarkPiece` already shows the drawn landmarks (`landmark/*`, #7). `WorldMap` and `TerritoryTile` compose their hexes from the terrain pictures (`hex/*`, #6).
 
 ## ui/
 

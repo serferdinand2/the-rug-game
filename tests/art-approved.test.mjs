@@ -7,19 +7,22 @@ import { createHash } from 'node:crypto';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import { listDrawingIds, renderAsset } from '../art/build.mjs';
 
-test('the six full base mats are explicitly marked as example compositions', () => {
+test('the 18 capital mats and the two map boards are explicitly marked as example compositions', () => {
 	assert.deepEqual(
 		ASSETS.filter((asset) => asset.example)
 			.map((asset) => asset.id)
 			.sort(),
 		[
-			'desert',
-			'forest',
-			'grassland',
-			'mountain',
-			'tropical',
-			'wetland',
-		].map((biome) => `capital-mat/${biome}`)
+			...ASSETS.filter((asset) => asset.group === 'capital-mat').map(
+				(asset) => asset.id
+			),
+			'board/map-large',
+			'board/map-small',
+		].sort()
+	);
+	assert.equal(
+		ASSETS.filter((asset) => asset.group === 'capital-mat').length,
+		18
 	);
 });
 

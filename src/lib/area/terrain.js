@@ -9,6 +9,8 @@ import { TERRITORY_TILES } from '../engine/data/territory-tiles.js';
  * @property {number} id - The tile's number, 1–48
  * @property {Terrain[]} corners - Six corner terrains, clockwise from the top-left
  * @property {Terrain[]} island - The island's terrains; empty when there is none
+ * @property {boolean} clouds - Its picture shows clouds (R77)
+ * @property {boolean} volcano - Its picture shows a volcano (R77)
  */
 
 /**
@@ -31,6 +33,8 @@ export function terrainView(seat) {
 				id,
 				corners: /** @type {Terrain[]} */ ([...tile.corners]),
 				island: /** @type {Terrain[]} */ ([...tile.island]),
+				clouds: tile.clouds,
+				volcano: tile.volcano,
 			};
 		}),
 		space: [

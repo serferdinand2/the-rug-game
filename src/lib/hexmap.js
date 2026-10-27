@@ -1,4 +1,5 @@
 // The World Map's geometry (#26 design §5.2): flat-topped hexes laid out from the engine's axial keys, terrain wedges, the island, the pieces and the fit.
+import { PICTURE_SIZE } from './art/hex-overlays.js';
 import { MAPS } from './engine/data/maps.js';
 import { LANDMARKS } from './engine/data/landmarks.js';
 import { terrainsOf, turned } from './engine/terrain.js';
@@ -30,6 +31,8 @@ import { terrainsOf, turned } from './engine/terrain.js';
  * @property {Terrain[] | null} corners - The terrain at each of the 6 corners, clockwise from the top-left, already
  *   turned; null while the hex is unexplored
  * @property {Terrain[]} island - The terrains of an island in the middle, empty when there is none
+ * @property {boolean} clouds - The territory's picture shows clouds (R77); false while unexplored
+ * @property {boolean} volcano - The territory's picture shows a volcano (R77); false while unexplored
  * @property {MapOutpost[]} outposts
  * @property {MapToken[]} tokens
  * @property {string} label - The hex for assistive technology: where it is, its terrains and whose pieces stand on it
@@ -123,6 +126,69 @@ export function islandParts(center, island, size) {
 			],
 		};
 	});
+}
+
+/**
+ * The coast: where one terrain is sea and the next is land, the radius they share, from the centre to the middle of
+ * the side between their two corners. Wedge k and wedge k + 1 meet along the middle of side k.
+ * @param {Point} center
+ * @param {readonly Terrain[]} corners - Six terrains, clockwise from the top-left, already turned
+ * @param {number} size
+ * @returns {{ from: Point, to: Point }[]}
+ */
+export function coastLines(center, corners, size) {
+	/** @type {{ from: Point, to: Point }[]} */
+	const lines = [];
+	corners.forEach((terrain, k) => {
+		const next = corners[(k + 1) % 6];
+		if ((terrain === 'sea') !== (next === 'sea')) {
+			lines.push({
+				from: center,
+				to: middle(
+					hexCorner(center, k, size),
+					hexCorner(center, k + 1, size)
+				),
+			});
+		}
+	});
+	return lines;
+}
+
+/**
+ * Where a terrain hex picture (64 by 56, a hex of radius 32 touching its edges) goes for a hex of this size: its
+ * bounding box, centred on the hex.
+ * @param {Point} center
+ * @param {number} size
+ * @returns {{ x: number, y: number, width: number, height: number }}
+ */
+export function hexPicture(center, size) {
+	const height = 2 * HALF_ROOT_3 * size;
+	return {
+		x: center[0] - size,
+		y: center[1] - height / 2,
+		width: 2 * size,
+		height,
+	};
+}
+
+/**
+ * Where an overlay from a territory picture goes on a hex, around the hex's centre: its spot and size in the 64×56
+ * picture, scaled as hexPicture scales the whole picture.
+ * @param {readonly [number, number]} spot - Its top-left pixel in the picture (src/lib/art/hex-overlays.js)
+ * @param {readonly [number, number]} sizeInPicture - Its width and height in pixels
+ * @param {number} size - The hex's size
+ * @returns {{ x: number, y: number, width: number, height: number }} Relative to the hex's centre
+ */
+export function overlayBox(spot, sizeInPicture, size) {
+	const [width, height] = PICTURE_SIZE;
+	const across = (2 * size) / width;
+	const down = (2 * HALF_ROOT_3 * size) / height;
+	return {
+		x: -size + spot[0] * across,
+		y: -HALF_ROOT_3 * size + spot[1] * down,
+		width: sizeInPicture[0] * across,
+		height: sizeInPicture[1] * down,
+	};
 }
 
 /**
@@ -238,9 +304,14 @@ export function mapHexes(view, size = HEX_SIZE) {
 			center: hexCenter(key, size),
 			corners,
 			island,
+			clouds: terrains?.clouds ?? false,
+			volcano: terrains?.volcano ?? false,
 			outposts,
 			tokens,
-			label: hexLabel(key, corners, island, outposts, tokens, nameOf),
+			label: hexLabel(key, corners, island, outposts, tokens, nameOf, {
+				clouds: terrains?.clouds ?? false,
+				volcano: terrains?.volcano ?? false,
+			}),
 		};
 	});
 }
@@ -267,12 +338,20 @@ function pieceOf(piece) {
  * @param {MapOutpost[]} outposts
  * @param {MapToken[]} tokens
  * @param {(seat: number) => string} nameOf
+ * @param {{ clouds: boolean, volcano: boolean }} pictures - What the territory's picture shows (R77)
  * @returns {string}
  */
-function hexLabel(key, corners, island, outposts, tokens, nameOf) {
+function hexLabel(key, corners, island, outposts, tokens, nameOf, pictures) {
 	let land = corners ? words([...new Set(corners)]) : 'unexplored';
 	if (island.length > 0) {
 		land += `, with an island of ${words(island)}`;
+	}
+	// Clouds are scoring data (R77, #49), so a screen reader hears them too.
+	if (pictures.clouds) {
+		land += ', with clouds';
+	}
+	if (pictures.volcano) {
+		land += ', with a volcano';
 	}
 	const seats = [
 		...new Set([...outposts, ...tokens].map((item) => item.seat)),

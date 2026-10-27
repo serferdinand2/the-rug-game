@@ -1,0 +1,7 @@
+// Reviewed 32×32 mesa capital plot, buildable variant 8.
+import { drawBiomeTile } from '../../parts/capital-biomes/mesa.js';
+
+/** Draws this fixed plot variant. @returns {import('../../painter.js').Canvas} */
+export function draw() {
+	return drawBiomeTile(false, 7);
+}

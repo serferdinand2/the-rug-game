@@ -15,6 +15,8 @@ import { TERRITORY_TILES } from '../engine/data/territory-tiles.js';
  * @property {Terrain[]} island - The terrains of the tile's island, empty when it has none
  * @property {number} vp - The sides that match the neighbours, 1 VP each
  * @property {string} label - The tile and its turn in words, such as 'Tile 19, turned 3 times'
+ * @property {boolean} clouds - The tile's picture shows clouds (R77)
+ * @property {boolean} volcano - The tile's picture shows a volcano (R77)
  */
 
 /**
@@ -45,6 +47,8 @@ export function exploreChoices(game, decision, hex) {
 			),
 			vp: matchingSides(game, hex, answer.tile, answer.orient),
 			label: describeTile(answer.tile, answer.orient),
+			clouds: data.clouds,
+			volcano: data.volcano,
 		});
 	});
 	return choices.sort(

@@ -1,0 +1,10 @@
+// Territory tile 22: sea, grassland, grassland, grassland, forest, forest from the top-left corner, with a cloud over it (R77); it gives an upgrade.
+import { drawTerritory } from '../../parts/territory.js';
+import { TERRITORY_TILES } from '../../../src/lib/engine/data/territory-tiles.js';
+
+const ID = 22;
+
+/** Draws the tile unturned, composed from the terrain hexes, 64×56. @returns {import('../../painter.js').Canvas} */
+export function draw() {
+	return drawTerritory({ ...TERRITORY_TILES[ID - 1], seed: ID });
+}

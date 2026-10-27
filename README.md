@@ -26,7 +26,9 @@ The component library now uses the approved resources in prices and chips, incom
 
 The **UI/UX handoff for #3** is in [docs/ui/README.md](docs/ui/README.md). It is the manifest for building the real game pages: layout, typography, colours, control states, placement and decision examples. The HTML pages are interactive mockups with fixture data.
 
-**The landing page, the lobby (#25) and the play screen (#26) are built** and run on the real table API. Sign in by name, create or join a table, set it up and start; then play: the Advancement Tracks with the spaces you can pay for, the World Map drawn as the real board's hex grid, the footer turn (income, or advance with its payment), and a designed prompt for every other decision (#28): resources and payments with their art, cards on a shelf above the panel, the map's territories with each explore's tile, turn and VP, buildings and landmarks placed on the Capital tab, dice and tracks, and the gold income turn with its steps. The player area (#27) has the Capital, Hand, Income, Eras, Civ, Tech and Terrain tabs, with real tech and tapestry cards, and the header chips open the players overview. A whole base game can be played with the mouse. Run `npm start` and open <http://127.0.0.1:3020/>.
+**The landing page, the lobby (#25) and the play screen (#26) are built** and run on the real table API. Sign in by name, create or join a table, set it up and start; then play: the Advancement Tracks with the spaces you can pay for, the World Map as the real board's hex grid, composed from the terrain art (#6), the footer turn (income, or advance with its payment), and a designed prompt for every other decision (#28): resources and payments with their art, cards on a shelf above the panel, the map's territories with each explore's tile, turn and VP, buildings and landmarks placed on the Capital tab, dice and tracks, and the gold income turn with its steps. The player area (#27) has the Capital, Hand, Income, Eras, Civ, Tech and Terrain tabs, with real tech and tapestry cards, and the header chips open the players overview. A whole base game can be played with the mouse. Run `npm start` and open <http://127.0.0.1:3020/>.
+
+**The boards (#6)** are drawn: the map's six terrain hex pictures, the 48 territory tiles (clouds exactly where R77 says), both map sides as examples, and the 12 advanced capital biomes with their example mats. The game composes its map from the terrain pictures, as it composes the capital from its plot tiles. They wait for the owner's approval in the component library's Art part.
 
 The colours, texture, type, spacing, shadows and motion of these designs are in [src/styles/tokens.css](src/styles/tokens.css), the single source of truth for the look.
 
@@ -36,7 +38,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Play: the tracks, with an advance chosen | Play: the World Map |
 |---|---|
-| ![The play screen: the tracks with the payable spaces outlined in green, Rafts selected and the footer offering the advance](docs/ui/screens/game-tracks.png) | ![The play screen: the World Map as the small board's hex grid, with the start outposts and an explored territory](docs/ui/screens/game-map.png) |
+| ![The play screen: the tracks with the payable spaces outlined in green, Rafts selected and the footer offering the advance](docs/ui/screens/game-tracks.png) | ![The play screen: the World Map composed from the terrain art: territories in their turns with coasts, clouds and the start outposts](docs/ui/screens/game-map.png) |
 
 | Play: the player area (Capital) | Play: the players overview |
 |---|---|
