@@ -230,7 +230,7 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 
 ![Cards on the shelf](screens/game-prompt-cards.png)
 
-![Exploring a territory](screens/game-prompt-explore.png)
+![Exploring a territory: the player's tiles in the panel, each lit hex with the picked tile's best VP, and the chosen hex previewing it turned once](screens/game-prompt-explore.png)
 
 ![Placing a landmark](screens/game-prompt-capital.png)
 
@@ -241,7 +241,7 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **Art, as in the mockup:** resources at 48 px with their counts, track symbols, buildings, landmarks, civilization portraits, space and territory tiles; dice faces and VP are words (#5). A bonus shows its cost and takes its track's colour.
 - **Cards** sit on a shelf above the panel, as full cards: tapestry cards (play, keep, discard, copy, respond), tech cards with the deck as a card back, both civilizations at setup and the two capital mats. Hovering a tapestry or tech card shows it in full.
 - **Civilizations and capital mats** (2026-10-27, #56–#58): the civilization cards are whole, 425 px wide at their own height, as the decision mockup shows them, and the gold outline wraps each card exactly. A row too tall for the shelf is scaled down just enough, never below 0.75; past that the shelf scrolls (the Mystics at 1440×900). Each capital mat is its real 9×9 grid, 380 px, composed from the terrain tiles with the table's seed, so it looks as it will in the Capital tab; the example mat art is no longer used. A panel with no options of its own has no content area: its status line gives the instruction, leaving the shelf more height.
-- **The map:** choosing a territory lists its answers. An explore starts on the best-scoring tile and turn, previewed on the hex, and lists every tile in every turn with the VP it scores.
+- **The map:** choosing a territory lists its answers. An explore (#74) shows the tiles the player holds as pictures in the panel. Pick a tile and every lit hex shows the most that tile scores there. Pick a hex and the tile goes on it at its best turn, previewed on the map. Turn it with the arrows or the R key until it suits; the chosen line and the VP beside the arrows follow. Explore stays in view however many tiles there are. The Terrain tab's tiles can be picked too.
 - **The capital:** a building's open plots are lit on the Capital tab and a click previews it there; a landmark comes from the tray, snaps only to the engine's legal places, turns with R, and the piece's own lock sends it. Beside the mat and the Craftsmen's columns stay panel choices.
 - **The income turn** is gold, as in the mockup: the panel's title and step strip (Ability, Tapestry, Upgrade, Score, Income, only the steps that turn runs) and the footer's "Your income turn · Income turn n · step".
 

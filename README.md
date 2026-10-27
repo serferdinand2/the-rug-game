@@ -50,7 +50,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Prompt: cards on the shelf (the tapestry draft) | Prompt: exploring a territory |
 |---|---|
-| ![The tapestry draft's keep prompt: two cards on the shelf above the gold income panel](docs/ui/screens/game-prompt-cards.png) | ![An explore: the chosen hex previews the best tile, and the panel lists each tile and turn with its VP](docs/ui/screens/game-prompt-explore.png) |
+| ![The tapestry draft's keep prompt: two cards on the shelf above the gold income panel](docs/ui/screens/game-prompt-cards.png) | ![An explore: the player's tiles in the panel, each lit hex with the picked tile's best VP, and the chosen hex previewing it turned once](docs/ui/screens/game-prompt-explore.png) |
 
 | Results: the final standings | The log and the scores |
 |---|---|
