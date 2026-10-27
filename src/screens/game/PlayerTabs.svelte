@@ -564,7 +564,9 @@
 						<TerritoryTile
 							id={tile.id}
 							corners={tile.corners}
-							island={tile.island} />
+							island={tile.island}
+							clouds={tile.clouds}
+							volcano={tile.volcano} />
 					{/each}
 				</div>
 			{:else}

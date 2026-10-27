@@ -9,6 +9,8 @@ import { deepFreeze, terrainsFrom } from './ids.js';
  * @typedef {Object} Terrains
  * @property {readonly TerrainId[]} corners - The 6 corner terrains, clockwise from the top-left corner, before turning
  * @property {readonly TerrainId[]} island - The terrains of an island in the middle, empty when there is none
+ * @property {boolean} [clouds] - Its picture shows clouds (R77); every territory tile and printed territory has it
+ * @property {boolean} [volcano] - Its picture shows a volcano (R77); every territory tile and printed territory has it
  */
 
 /**

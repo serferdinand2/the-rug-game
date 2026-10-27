@@ -52,6 +52,7 @@
 	--grassland: #91a85a;
 	--mountain: #85878a;
 	--unexplored: var(--raised);
+	--coast: #e6d9a8; /* the shore line where land meets sea in a territory */
 
 	/* ---------- Colour: expansion badges ---------- */
 	--arts-architecture: #bd9155;

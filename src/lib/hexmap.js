@@ -30,6 +30,8 @@ import { terrainsOf, turned } from './engine/terrain.js';
  * @property {Terrain[] | null} corners - The terrain at each of the 6 corners, clockwise from the top-left, already
  *   turned; null while the hex is unexplored
  * @property {Terrain[]} island - The terrains of an island in the middle, empty when there is none
+ * @property {boolean} clouds - The territory's picture shows clouds (R77); false while unexplored
+ * @property {boolean} volcano - The territory's picture shows a volcano (R77); false while unexplored
  * @property {MapOutpost[]} outposts
  * @property {MapToken[]} tokens
  * @property {string} label - The hex for assistive technology: where it is, its terrains and whose pieces stand on it
@@ -123,6 +125,49 @@ export function islandParts(center, island, size) {
 			],
 		};
 	});
+}
+
+/**
+ * The coast: where one terrain is sea and the next is land, the radius they share, from the centre to the middle of
+ * the side between their two corners. Wedge k and wedge k + 1 meet along the middle of side k.
+ * @param {Point} center
+ * @param {readonly Terrain[]} corners - Six terrains, clockwise from the top-left, already turned
+ * @param {number} size
+ * @returns {{ from: Point, to: Point }[]}
+ */
+export function coastLines(center, corners, size) {
+	/** @type {{ from: Point, to: Point }[]} */
+	const lines = [];
+	corners.forEach((terrain, k) => {
+		const next = corners[(k + 1) % 6];
+		if ((terrain === 'sea') !== (next === 'sea')) {
+			lines.push({
+				from: center,
+				to: middle(
+					hexCorner(center, k, size),
+					hexCorner(center, k + 1, size)
+				),
+			});
+		}
+	});
+	return lines;
+}
+
+/**
+ * Where a terrain hex picture (64 by 56, a hex of radius 32 touching its edges) goes for a hex of this size: its
+ * bounding box, centred on the hex.
+ * @param {Point} center
+ * @param {number} size
+ * @returns {{ x: number, y: number, width: number, height: number }}
+ */
+export function hexPicture(center, size) {
+	const height = 2 * HALF_ROOT_3 * size;
+	return {
+		x: center[0] - size,
+		y: center[1] - height / 2,
+		width: 2 * size,
+		height,
+	};
 }
 
 /**
@@ -238,6 +283,8 @@ export function mapHexes(view, size = HEX_SIZE) {
 			center: hexCenter(key, size),
 			corners,
 			island,
+			clouds: terrains?.clouds ?? false,
+			volcano: terrains?.volcano ?? false,
 			outposts,
 			tokens,
 			label: hexLabel(key, corners, island, outposts, tokens, nameOf),
