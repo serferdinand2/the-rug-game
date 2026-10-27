@@ -79,9 +79,9 @@ These components are updated as the art issues deliver their assets. Each will s
 | Component | Purpose |
 |---|---|
 | `CostBox` | The footer's price: a Cost label and the symbols joined by plus signs, read out in words. |
-| `CardShelf` | The cards a decision offers (tapestry, tech with the deck, civilizations, capital mats) as pressable buttons; the chosen one is lifted in gold, hover and focus report it for a full view (#28). |
+| `CardShelf` | The cards a decision offers (tapestry, tech with the deck, civilizations, capital mats) as pressable buttons in a row that scrolls when too wide; more than four tapestry cards fan out; the chosen one is lifted in gold, hover and focus report it for a full view (#28). |
 | `DecisionOption` | One choice in a decision prompt: words, optional resource symbols, `art` pictures above the words, a gold `+n VP` badge, gold while chosen (#26, #28). |
-| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf, question, content, status and Confirm; a `track` tint and the gold `income` tone with a `steps` snippet (#26, #28). |
+| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf, question, content, status and Confirm; a `track` tint, the gold `income` tone with a `steps` snippet, and `docked` beside the map with no scrim (#26, #28). |
 | `IncomeSteps` | The strip of an income turn's steps, the running one marked `aria-current="step"` (#28). |
 | `PromptArt` | One picture a prompt shows: a resource with its count, track, building, landmark, terrain, civilization, space tile, turned territory, capital mat, card art, VP badge or the tech deck (#28). |
 | `OverviewCloseBar` | The footer while the players overview is open. |

@@ -109,6 +109,31 @@
 			</DecisionPanel>
 		</div>
 	</Example>
+	<Example
+		label={'docked  (a choice on the map: no scrim, the panel at the right, what is chosen on its own line)'}
+		wide
+		width={1100}>
+		<div class="rg-library-decision-stage">
+			<DecisionPanel
+				title="Choose where to explore"
+				status="Hex 1,0 with tile 19, turned 3 times"
+				confirmLabel="Explore"
+				cancelLabel="Choose another territory"
+				docked>
+				<div class="rg-library-decision-options">
+					<DecisionOption
+						label="Tile 19, turned 3 times"
+						art={[{ kind: 'territory', id: 19, orient: 3 }]}
+						vp={4}
+						pressed />
+					<DecisionOption
+						label="Tile 6"
+						art={[{ kind: 'territory', id: 6, orient: 0 }]}
+						vp={3} />
+				</div>
+			</DecisionPanel>
+		</div>
+	</Example>
 </Section>
 
 <style>

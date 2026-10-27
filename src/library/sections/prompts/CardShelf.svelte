@@ -40,6 +40,22 @@
 					event.value === null ? '' : String(event.value))} />
 	</Example>
 	<Example
+		label={'kind="tapestry" with six cards  (more than four fan out; a row too wide for the shelf scrolls)'}
+		surface="ink"
+		wide>
+		<CardShelf
+			kind="tapestry"
+			cards={[
+				'academia',
+				'age-of-discovery',
+				'capitalism',
+				'monarchy',
+				'colonialism',
+				'trap-1',
+			].map((id, index) => ({ index, id, label: id }))}
+			selected={null} />
+	</Example>
+	<Example
 		label={`kind="tech" with the deck  (selected ${tech})`}
 		surface="ink"
 		wide>

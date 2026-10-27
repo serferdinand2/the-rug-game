@@ -9,6 +9,7 @@
 	 * @property {boolean} [confirmDisabled=false] - Nothing valid is chosen yet
 	 * @property {import('../../ui.js').TrackId | null} [track=null] - The track that tints the bottom bar and border, as the mockup's --track
 	 * @property {'default' | 'income'} [tone='default'] - income: the title, border and step strip in gold, for the viewer's income turn
+	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right, for a choice on the map
 	 * @property {import('svelte').Snippet} [steps] - The income steps, between the title and the content
 	 * @property {string} [cancelLabel] - Shows a cancel button with this text, such as 'Cancel'; left out, there is none
 	 * @property {import('svelte').Snippet} [children] - The content: the instruction and the choices
@@ -40,6 +41,7 @@
 		confirmDisabled = false,
 		track = null,
 		tone = 'default',
+		docked = false,
 		steps,
 		cancelLabel,
 		children,
@@ -85,6 +87,7 @@
 <div
 	{...attr}
 	class="rg-decision-panel {attr.class ? attr.class : ''}"
+	class:rg-decision-panel--docked={docked}
 	style:--rg-decision-panel-track={track ? trackColor(track) : undefined}>
 	{#if shelf}
 		<div class="rg-decision-panel--shelf">{@render shelf()}</div>
@@ -301,5 +304,33 @@
 	.rg-decision-panel--button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	/* A choice on the map leaves the board clickable: no scrim, only the panel takes the pointer, docked at the
+	   right beside the map rather than over its hexes (#26 review). What is chosen gets its own line. */
+	.rg-decision-panel--docked {
+		align-items: flex-end;
+		justify-content: flex-start;
+		padding-top: 70px;
+		background: transparent;
+		pointer-events: none;
+	}
+
+	.rg-decision-panel--docked > * {
+		pointer-events: auto;
+	}
+
+	.rg-decision-panel--docked .rg-decision-panel--panel {
+		width: 340px;
+		min-width: 0;
+		max-height: calc(100% - var(--space-9));
+	}
+
+	.rg-decision-panel--docked .rg-decision-panel--bottom {
+		flex-wrap: wrap;
+	}
+
+	.rg-decision-panel--docked .rg-decision-panel--status {
+		flex-basis: 100%;
 	}
 </style>

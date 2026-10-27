@@ -70,7 +70,12 @@
 		hexes.map((raw) => {
 			const previewed = preview !== null && preview.hex === raw.key;
 			const hex = previewed
-				? { ...raw, corners: preview.corners, island: preview.island }
+				? {
+						...raw,
+						corners: preview.corners,
+						island: preview.island,
+						label: `${raw.label}, showing the chosen tile`,
+					}
 				: raw;
 			return {
 				...hex,

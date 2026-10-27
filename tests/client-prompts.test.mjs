@@ -25,11 +25,11 @@ const BAD_WORDS = ['undefined', '[object', 'Choose this option'];
  */
 function layoutOf(options) {
 	const places = new Set(options.map((o) => o.place));
-	if (places.has('map')) {
-		return 'map';
-	}
 	if (places.has('capital')) {
 		return 'capital';
+	}
+	if (places.has('map')) {
+		return 'map';
 	}
 	return places.has('shelf') ? 'cards' : 'options';
 }
@@ -151,9 +151,21 @@ test("every open decision of the viewer's own view gets a prompt with one option
 					}
 				});
 				assert.equal(prompt.layout, layoutOf(prompt.options), where);
-				if (prompt.layout !== 'cards') {
-					assert.equal(prompt.shelf, null, where);
-				}
+				// Every option can be reached, whatever the layout: a shelf option on a shelf of its kind, a map
+				// option on a lit hex, a capital option with its plot.
+				const places = new Set(prompt.options.map((o) => o.place));
+				assert.equal(prompt.shelf !== null, places.has('shelf'), where);
+				assert.deepEqual(
+					prompt.mapHexes,
+					[
+						...new Set(
+							prompt.options.flatMap((o) =>
+								o.hex ? [o.hex] : []
+							)
+						),
+					],
+					where
+				);
 				if (prompt.income) {
 					incomes++;
 					assert.ok(inIncomeTurn(state, seat), where);
@@ -393,4 +405,26 @@ test('placing a landmark asks for it on the capital, with the landmark sentence'
 			]);
 		}
 	}
+});
+
+test('the Nomads place a gained building in their capital or on a lit territory: the capital leads, the map stays lit', () => {
+	const { state: started, random } = startedGame(2);
+	const state = structuredClone(started);
+	state.pending.length = 0;
+	/** @type {any} */ (state.seats[0]).civs = ['nomads'];
+	push(state, state.pending, [
+		{ player: 1, kind: 'effects', effects: [{ building: 'farm' }] },
+	]);
+	run(state, random);
+	const game = view(state, 1);
+	const prompt = promptFor(myDecision(game, 1), game, 1);
+	assert.ok(prompt);
+	assert.equal(prompt.kind, 'choosePlacement');
+	assert.equal(prompt.layout, 'capital');
+	assert.ok(prompt.options.some((o) => o.place === 'capital'));
+	assert.ok(prompt.mapHexes.length > 0);
+	assert.equal(
+		prompt.instruction,
+		'Choose a lit plot in your capital, or a lit territory on the map.'
+	);
 });

@@ -78,8 +78,7 @@
 		game.seats.filter((/** @type {any} */ s) => s.kind === 'player')
 	);
 
-	/** @type {'tracks' | 'map'} */
-	let board = $state('tracks');
+	let board = $state(/** @type {'tracks' | 'map'} */ ('tracks'));
 	/** @type {{ track: TrackId, space: number } | null} */
 	let selected = $state(null);
 	/** Whether the payment choice for the selected advance is open. */
@@ -93,7 +92,7 @@
 	let sending = $state(false);
 	/** The player tab on show (#27). */
 	let tab = $state('capital');
-	/** @type {{ kind: 'tech' | 'tapestry', data: any } | null} A card shown in full over the shared area */
+	/** @type {{ kind: 'tech' | 'tapestry', data: any, side?: boolean } | null} A card shown in full over the shared area; beside the shelf, without a scrim, for a shelf card */
 	let inspected = $state(null);
 	/** Whether the players overview is open (#27). */
 	let overviewOpen = $state(false);
@@ -116,15 +115,10 @@
 	/** The designed prompt for the decision (#28): its words, art, layout and one option per answer. */
 	let prompt = $derived(promptFor(promptDecision, game, seat));
 	let isMapDecision = $derived(prompt?.layout === 'map');
-	let mapTargets = $derived(
-		isMapDecision && prompt
-			? [
-					...new Set(
-						prompt.options.flatMap((o) => (o.hex ? [o.hex] : []))
-					),
-				]
-			: []
-	);
+	/** The hexes lit on the map, whatever leads: a Nomads placement lights hexes beside the capital (#28 review). */
+	let mapTargets = $derived(prompt?.mapHexes ?? []);
+	/** The panel docks beside the map while the map shows hexes to choose, so they stay clickable. */
+	let docked = $derived(mapTargets.length > 0 && board === 'map');
 	/** An explore's choices on the chosen hex: each tile in each turn, best first, with the VP it scores. */
 	let explore = $derived(
 		prompt?.kind === 'chooseExplore' && mapPick && promptDecision
@@ -151,7 +145,7 @@
 	);
 	/** The cards on the shelf above the panel, for a card decision. */
 	let shelfCards = $derived(
-		prompt?.layout === 'cards' && promptDecision
+		prompt?.shelf && promptDecision
 			? prompt.options
 					.filter((o) => o.place === 'shelf')
 					.map((o) => {
@@ -177,7 +171,9 @@
 	});
 	/** A building or landmark to place on the capital, from the Capital tab. */
 	let placement = $derived(
-		prompt?.layout === 'capital' && promptDecision
+		prompt &&
+			promptDecision &&
+			prompt.options.some((o) => o.place === 'capital')
 			? {
 					piece: promptDecision.landmark
 						? { landmark: promptDecision.landmark }
@@ -382,6 +378,9 @@
 	 * @param {ComponentEvent} event
 	 */
 	const mapSelectHandler = (event) => {
+		if (event.value.hex === mapPick) {
+			return;
+		}
 		mapPick = event.value.hex;
 		const here = (prompt?.options ?? []).filter((o) => o.hex === mapPick);
 		// An explore starts on its best-scoring tile and turn, previewed on the hex; Confirm still sends it.
@@ -402,9 +401,17 @@
 		if (!card || card.id === 'deck') {
 			inspected = null;
 		} else if (prompt?.shelf === 'tapestry') {
-			inspected = { kind: 'tapestry', data: tapestryCardData(card.id) };
+			inspected = {
+				kind: 'tapestry',
+				data: tapestryCardData(card.id),
+				side: true,
+			};
 		} else if (prompt?.shelf === 'tech') {
-			inspected = { kind: 'tech', data: techCardData(card.id) };
+			inspected = {
+				kind: 'tech',
+				data: techCardData(card.id),
+				side: true,
+			};
 		} else {
 			inspected = null;
 		}
@@ -550,6 +557,7 @@
 					status={validPay === null
 						? 'Choose a payment to continue.'
 						: describePayment(chosenAdvance.payments[validPay])}
+					track={selected.track}
 					confirmLabel="Advance"
 					confirmDisabled={validPay === null || sending}
 					cancelLabel="Cancel"
@@ -558,6 +566,10 @@
 						paying = false;
 						payIndex = null;
 					}}>
+					<CostBox
+						class="rg-game--cost"
+						symbols={priceSymbols(selected.track, selected.space)}
+						track={selected.track} />
 					<div class="rg-game--options">
 						{#each chosenAdvance.payments as pay, index (index)}
 							<DecisionOption
@@ -571,7 +583,7 @@
 				</DecisionPanel>
 			{:else if prompt}
 				<DecisionPanel
-					class={isMapDecision ? 'rg-game--map-prompt' : ''}
+					{docked}
 					title={prompt.title}
 					track={prompt.track}
 					tone={prompt.income ? 'income' : 'default'}
@@ -584,7 +596,7 @@
 							: ''}
 					confirmLabel={prompt.confirmLabel}
 					confirmDisabled={picked === null || sending}
-					cancelLabel={isMapDecision && mapPick
+					cancelLabel={docked && mapPick
 						? 'Choose another territory'
 						: undefined}
 					onDecisionPanelConfirm={promptConfirmHandler}
@@ -618,6 +630,7 @@
 			{#if inspected}
 				<div
 					class="rg-game--inspect"
+					class:rg-game--inspect-side={inspected.side}
 					aria-hidden="true">
 					{#if inspected.kind === 'tech'}
 						<TechnologyCard data={inspected.data} />
@@ -834,32 +847,10 @@
 		color: var(--muted);
 	}
 
-	/* A map decision leaves the map clickable: no scrim, only the panel takes the pointer, docked at the right
-	   beside the map rather than over its hexes (#26 review). */
-	.rg-game--shared :global(.rg-game--map-prompt) {
-		align-items: flex-end;
-		justify-content: flex-start;
-		padding-top: 70px;
+	/* A shelf card shown in full beside the shelf, at the left, so the shelf and its focus stay in sight (#28 review). */
+	.rg-game--inspect-side {
+		justify-items: start;
+		padding-left: var(--space-10);
 		background: transparent;
-		pointer-events: none;
-	}
-
-	.rg-game--shared :global(.rg-game--map-prompt .rg-decision-panel--panel) {
-		width: 340px;
-		min-width: 0;
-		max-height: calc(100% - var(--space-9));
-	}
-
-	/* The docked panel is narrow: what is chosen gets its own line above the buttons. */
-	.rg-game--shared :global(.rg-game--map-prompt .rg-decision-panel--bottom) {
-		flex-wrap: wrap;
-	}
-
-	.rg-game--shared :global(.rg-game--map-prompt .rg-decision-panel--status) {
-		flex-basis: 100%;
-	}
-
-	.rg-game--shared :global(.rg-game--map-prompt > *) {
-		pointer-events: auto;
 	}
 </style>

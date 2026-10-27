@@ -14,6 +14,7 @@
 	 * @typedef {Object} CardShelfOwnProps
 	 * @property {'tapestry' | 'tech' | 'civ' | 'mat'} kind - What the cards are
 	 * @property {ShelfCard[]} cards - The cards in order
+	 * @property {string} [label] - Names the row for assistive technology; defaults to the kind, such as 'Tapestry cards to choose from'
 	 * @property {number | null} [selected=null] - The chosen card's index
 	 * @property {Function} [onCardShelfSelect] - Callback fired when a card is pressed; its value is the card's index
 	 * @property {Function} [onCardShelfInspect] - Callback fired when a card is hovered or focused, and with null when that ends; its value is the card's index
@@ -50,12 +51,24 @@
 		kind,
 		cards,
 		selected = null,
+		label,
 		onCardShelfSelect,
 		onCardShelfInspect,
 		...attr
 	} = $props();
 
 	let size = $derived(SIZES[kind]);
+
+	/** The row's default name, by kind. */
+	const LABELS = {
+		tapestry: 'Tapestry cards to choose from',
+		tech: 'Tech cards to choose from',
+		civ: 'Civilizations to choose from',
+		mat: 'Capital mats to choose from',
+	};
+
+	/** Tapestry cards fan out only when there are too many to sit side by side (#28 review). */
+	let fanned = $derived(kind === 'tapestry' && cards.length > 4);
 
 	/**
 	 * @param {string} id
@@ -97,8 +110,10 @@
 
 <div
 	role="group"
+	aria-label={label ?? LABELS[kind]}
 	{...attr}
-	class="rg-card-shelf rg-card-shelf--{kind} {attr.class ? attr.class : ''}">
+	class="rg-card-shelf rg-card-shelf--{kind} {attr.class ? attr.class : ''}"
+	class:rg-card-shelf--fanned={fanned}>
 	{#each cards as card (card.index)}
 		<button
 			type="button"
@@ -150,12 +165,16 @@
 </div>
 
 <style>
+	/* Cards that don't fit scroll sideways rather than spill off both edges out of reach (#28 review). */
 	.rg-card-shelf {
+		isolation: isolate;
 		display: flex;
 		align-items: flex-end;
-		justify-content: center;
+		justify-content: safe center;
+		gap: var(--space-5);
 		max-width: 100%;
-		padding-top: var(--space-8);
+		overflow-x: auto;
+		padding: var(--space-8) var(--space-4) var(--space-4);
 	}
 
 	.rg-card-shelf--card {
@@ -169,26 +188,24 @@
 		transition: transform var(--duration-fast) var(--ease);
 	}
 
-	/* Tapestry cards overlap, as the mockup fans them; the hovered one comes forward. */
-	.rg-card-shelf--tapestry .rg-card-shelf--card + .rg-card-shelf--card {
-		margin-left: -72px;
+	/* Many tapestry cards overlap, as the mockup fans them; the hovered one comes forward. */
+	.rg-card-shelf--fanned {
+		gap: 0;
 	}
 
-	.rg-card-shelf--tech,
-	.rg-card-shelf--civ,
-	.rg-card-shelf--mat {
-		gap: var(--space-5);
+	.rg-card-shelf--fanned .rg-card-shelf--card + .rg-card-shelf--card {
+		margin-left: -72px;
 	}
 
 	.rg-card-shelf--card:hover,
 	.rg-card-shelf--card:focus-visible {
-		z-index: 10;
+		z-index: 1;
 		outline: var(--border-thick) solid var(--gold);
 		outline-offset: 2px;
 	}
 
 	.rg-card-shelf--card[aria-pressed='true'] {
-		z-index: 11;
+		z-index: 2;
 		outline: var(--border-thick) solid var(--gold);
 		outline-offset: 3px;
 		box-shadow: var(--shadow-float), var(--glow-gold);

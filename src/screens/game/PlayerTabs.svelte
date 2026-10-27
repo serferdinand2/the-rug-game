@@ -54,6 +54,7 @@
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { TABS } from '../../lib/area/tabs.js';
 	import { capitalView } from '../../lib/area/capital.js';
+	import { rotateFootprint } from '../../lib/capital.js';
 	import {
 		legalNear,
 		nextRotation,
@@ -179,26 +180,47 @@
 				place(target.index, false, event);
 			}
 		} else if (landmark) {
+			const rotation = placed ? placed.rotation : 0;
+			const at = centred(row, col, rotation);
 			land(
 				placed
 					? legalNear(
 							placement?.options ?? [],
-							row,
-							col,
-							placed.rotation
+							at.row,
+							at.col,
+							rotation
 						)
-					: placeNear(placement?.options ?? [], row, col, 0),
+					: placeNear(placement?.options ?? [], at.row, at.col, 0),
 				event
 			);
 		}
 	};
 
 	/**
+	 * The top-left corner that puts the landmark's middle, in a turn, on a plot (#28 review): a 3×3 landmark asked for
+	 * at the middle starts a plot up and to the left of it.
+	 * @param {number} row
+	 * @param {number} col
+	 * @param {number} rotation
+	 * @returns {{ row: number, col: number }}
+	 */
+	function centred(row, col, rotation) {
+		const shape = landmark
+			? rotateFootprint(landmark.footprint, rotation)
+			: ['X'];
+		return {
+			row: row - Math.floor((shape.length - 1) / 2),
+			col: col - Math.floor((shape[0].length - 1) / 2),
+		};
+	}
+
+	/**
 	 * The landmark was chosen in the tray, by pointer or key: it goes near the middle of the capital.
 	 * @param {ComponentEvent} event
 	 */
 	const trayChooseHandler = (event) => {
-		land(placeNear(placement?.options ?? [], 4, 4, 0), event);
+		const at = centred(4, 4, 0);
+		land(placeNear(placement?.options ?? [], at.row, at.col, 0), event);
 	};
 
 	/**

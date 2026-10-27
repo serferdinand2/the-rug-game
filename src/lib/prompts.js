@@ -50,8 +50,9 @@ import { decisionTitle, describeAnswer } from './describe.js';
  * @property {string} kind - The decision kind
  * @property {string} title - decisionTitle(decision, game)
  * @property {string} instruction - One sentence on how to answer
- * @property {'options' | 'cards' | 'map' | 'capital'} layout
- * @property {'tapestry' | 'tech' | 'civ' | 'mat' | null} shelf - What the shelf holds, for layout 'cards'
+ * @property {'options' | 'cards' | 'map' | 'capital'} layout - Where the decision is mainly made; the capital leads, then the map
+ * @property {'tapestry' | 'tech' | 'civ' | 'mat' | null} shelf - What the shelf holds, whenever an option is on it
+ * @property {string[]} mapHexes - The hexes lit on the map, whenever an option is on it, in answer order
  * @property {TrackId | null} track - The track that tints the panel
  * @property {CostSymbol[] | null} cost - A price shown above the options
  * @property {IncomeView | null} income - Set during the viewer's own income turn
@@ -449,17 +450,18 @@ function optionOf(decision, answer, index, game) {
 }
 
 /**
- * The layout the options' places call for: the map wins, then the capital, then the shelf.
+ * The layout the options' places call for: the capital wins, then the map, then the shelf. A Nomads player places a
+ * piece in the capital or on a territory (#28 review), so the capital leads and the map's hexes stay lit beside it.
  * @param {PromptOption[]} options
  * @returns {Prompt['layout']}
  */
 function layoutOf(options) {
 	const places = new Set(options.map((o) => o.place));
-	if (places.has('map')) {
-		return 'map';
-	}
 	if (places.has('capital')) {
 		return 'capital';
+	}
+	if (places.has('map')) {
+		return 'map';
 	}
 	return places.has('shelf') ? 'cards' : 'options';
 }
@@ -519,15 +521,21 @@ function costOf(decision) {
  * How to answer, in one sentence, for the layout.
  * @param {Decision} decision
  * @param {Prompt['layout']} layout
+ * @param {boolean} onMap - Some options are on the map too
  * @returns {string}
  */
-function instructionOf(decision, layout) {
+function instructionOf(decision, layout, onMap) {
 	switch (layout) {
 		case 'map':
 			return 'Choose a lit territory on the map.';
 		case 'capital':
-			return typeof decision.landmark === 'string'
-				? 'Place the landmark in your capital: drag it, turn it with R, then confirm.'
+			if (typeof decision.landmark === 'string') {
+				return onMap
+					? 'Place the landmark in your capital (drag it, turn it with R, then confirm), or choose a lit territory on the map.'
+					: 'Place the landmark in your capital: drag it, turn it with R, then confirm.';
+			}
+			return onMap
+				? 'Choose a lit plot in your capital, or a lit territory on the map.'
 				: 'Choose a lit plot in your capital.';
 		case 'cards':
 			return 'Choose a card above, then confirm it here.';
@@ -618,12 +626,18 @@ export function promptFor(decision, game, seat) {
 			optionOf(decision, answer, i, game)
 	);
 	const layout = layoutOf(options);
+	const mapHexes = [
+		...new Set(options.flatMap((o) => (o.hex ? [o.hex] : []))),
+	];
 	return {
 		kind: decision.kind,
 		title: decisionTitle(decision, game),
-		instruction: instructionOf(decision, layout),
+		instruction: instructionOf(decision, layout, mapHexes.length > 0),
 		layout,
-		shelf: layout === 'cards' ? (SHELVES[decision.kind] ?? null) : null,
+		shelf: options.some((o) => o.place === 'shelf')
+			? (SHELVES[decision.kind] ?? null)
+			: null,
+		mapHexes,
 		track: trackOf(decision),
 		cost: costOf(decision),
 		income:
