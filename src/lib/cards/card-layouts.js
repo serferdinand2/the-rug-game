@@ -1,4 +1,4 @@
-// Reviewed visual fixtures. Rules text here is display copy, not engine authority.
+// Reviewed visual fixtures and the card markup. Fixture rules text is display copy, not engine authority; game-cards.js builds real cards.
 /** @typedef {{title:string,art:string,circle:string,square:string,track?:string,level?:number,innovation?:string}} TechnologyCardData */
 /** @typedef {{title:string,art:string,timing:string,copy:string,note?:string,trap?:boolean}} TapestryCardData */
 /** @type {Readonly<Record<string, TechnologyCardData>>} */
@@ -120,27 +120,53 @@ const escape = (value) =>
 			})[character] ?? character
 	);
 
-/** @param {string} id */
-export function technologyCardMarkup(id) {
+/**
+ * A reviewed technology fixture by id.
+ * @param {string} id
+ * @returns {TechnologyCardData}
+ */
+export function technologyFixture(id) {
 	const card = TECHNOLOGY_CARDS[id];
 	if (!card) throw new Error(`Unknown technology card: ${id}`);
+	return card;
+}
+
+/**
+ * A reviewed tapestry fixture by id.
+ * @param {string} id
+ * @returns {TapestryCardData}
+ */
+export function tapestryFixture(id) {
+	const card = TAPESTRY_CARDS[id];
+	if (!card) throw new Error(`Unknown tapestry card: ${id}`);
+	return card;
+}
+
+/**
+ * A technology card's markup, from a fixture or from the engine's data (game-cards.js).
+ * @param {TechnologyCardData} card
+ * @returns {string}
+ */
+export function technologyCardMarkup(card) {
 	const track = card.track
 		? card.track[0].toUpperCase() + card.track.slice(1)
 		: '';
 	const requirement = card.innovation
 		? `<b>${escape(card.innovation)} uncovered</b>`
 		: `<img src="/art/track/${card.track}.svg" alt=""><b class="rg-tech-layout__track rg-tech-layout__track--${card.track}">${track}</b><b>${card.level}</b>`;
-	return `<div class="rg-tech-layout" aria-label="${escape(card.title)} technology card"><header class="rg-tech-layout__band"><strong>${escape(card.title)}</strong></header><div class="rg-tech-layout__body"><img class="rg-tech-layout__art" src="/art/tech/${card.art}.svg" alt=""><div class="rg-tech-layout__effects"><div class="rg-tech-layout__effect"><span class="rg-tech-layout__shape rg-tech-layout__shape--square" aria-label="Square benefit"></span><div><small>Square · top row</small><p>${escape(card.square)}</p></div></div><div class="rg-tech-layout__effect"><span class="rg-tech-layout__shape rg-tech-layout__shape--circle" aria-label="Circle benefit"></span><div><small>Circle · middle row</small><p>${escape(card.circle)}</p></div></div></div></div><div class="rg-tech-layout__conditions"><span class="rg-tech-layout__condition">${requirement}</span><span class="rg-tech-layout__condition"><i class="rg-tech-layout__shape rg-tech-layout__shape--square" aria-hidden="true"></i><b>Top row</b></span></div><footer class="rg-tech-layout__footer"><span class="rg-card-edition rg-card-edition--base">Base game</span></footer></div>`;
+	return `<div class="rg-tech-layout" aria-label="${escape(card.title)} technology card"><header class="rg-tech-layout__band"><strong>${escape(card.title)}</strong></header><div class="rg-tech-layout__body"><img class="rg-tech-layout__art" src="/art/tech/${escape(card.art)}.svg" alt=""><div class="rg-tech-layout__effects"><div class="rg-tech-layout__effect"><span class="rg-tech-layout__shape rg-tech-layout__shape--square" aria-label="Square benefit"></span><div><small>Square · top row</small><p>${escape(card.square)}</p></div></div><div class="rg-tech-layout__effect"><span class="rg-tech-layout__shape rg-tech-layout__shape--circle" aria-label="Circle benefit"></span><div><small>Circle · middle row</small><p>${escape(card.circle)}</p></div></div></div></div><div class="rg-tech-layout__conditions"><span class="rg-tech-layout__condition">${requirement}</span><span class="rg-tech-layout__condition"><i class="rg-tech-layout__shape rg-tech-layout__shape--square" aria-hidden="true"></i><b>Top row</b></span></div><footer class="rg-tech-layout__footer"><span class="rg-card-edition rg-card-edition--base">Base game</span></footer></div>`;
 }
 
-/** @param {string} id */
-export function tapestryCardMarkup(id) {
-	const card = TAPESTRY_CARDS[id];
-	if (!card) throw new Error(`Unknown tapestry card: ${id}`);
+/**
+ * A tapestry card's markup, from a fixture or from the engine's data (game-cards.js).
+ * @param {TapestryCardData} card
+ * @returns {string}
+ */
+export function tapestryCardMarkup(card) {
 	const timingClass = card.trap
 		? 'trap'
 		: card.timing === 'When Played'
 			? 'when-played'
 			: 'this-era';
-	return `<div class="rg-tapestry-layout${card.trap ? ' rg-tapestry-layout--trap' : ''}" aria-label="${escape(card.title)} tapestry card"><header class="rg-tapestry-layout__band"><strong>${escape(card.title)}</strong></header><div class="rg-tapestry-layout__portrait"><img src="/art/tapestry/${card.art}.svg" alt=""><span class="rg-tapestry-layout__timing rg-tapestry-layout__timing--${timingClass}">${escape(card.timing)}</span></div><p class="rg-tapestry-layout__copy">${escape(card.copy)}${card.note ? `<span class="rg-tapestry-layout__note">${escape(card.note)}</span>` : ''}</p><footer class="rg-tapestry-layout__footer"><span class="rg-card-edition rg-card-edition--base">Base game</span></footer></div>`;
+	return `<div class="rg-tapestry-layout${card.trap ? ' rg-tapestry-layout--trap' : ''}" aria-label="${escape(card.title)} tapestry card"><header class="rg-tapestry-layout__band"><strong>${escape(card.title)}</strong></header><div class="rg-tapestry-layout__portrait"><img src="/art/tapestry/${escape(card.art)}.svg" alt=""><span class="rg-tapestry-layout__timing rg-tapestry-layout__timing--${timingClass}">${escape(card.timing)}</span></div><p class="rg-tapestry-layout__copy">${escape(card.copy)}${card.note ? `<span class="rg-tapestry-layout__note">${escape(card.note)}</span>` : ''}</p><footer class="rg-tapestry-layout__footer"><span class="rg-card-edition rg-card-edition--base">Base game</span></footer></div>`;
 }
