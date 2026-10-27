@@ -9,7 +9,7 @@ Add a row here, and a section in `src/library/sections/<area>/<Name>.svelte`, in
 ## Boundaries
 
 - Components are presentational. They render the props they get and report what the player did through `on{Component}{Action}` callbacks, which receive a `ComponentEvent`. They never hold game state, call the server, decide a rule or roll anything random. The screen that owns the game state does that.
-- Geometry worth testing lives in plain modules beside this folder: `../ui.js` (ids and token helpers), `../capital.js` (the capital grid), `../placement.js` (placing landmarks) and `../track-shape.js` (track spaces and progress lanes).
+- Geometry worth testing lives in plain modules beside this folder: `../ui.js` (ids and token helpers), `../capital.js` (the capital grid), `../placement.js` (placing landmarks), `../track-shape.js` (track spaces and progress lanes) and `../hexmap.js` (the World Map's hexes, terrain wedges, pieces and fit).
 - Styles live in the component, use only the tokens in `src/styles/tokens.css`, and style only the component's own `rg-{name}` classes.
 
 ## Approved issue #5 artwork
@@ -57,7 +57,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `Track` | One track: name, four tier prices, twelve spaces and the lanes. |
 | `TrackBoard` | The four tracks stacked, with one selected space across them. |
 | `TrackSpace` | One pointed space: name, landmark, number, first/last shapes, selected and focus outlines. |
-| `WorldMap` | The schematic hex map coloured by terrain. Static until targeting is designed. |
+| `WorldMap` | The real board's hex grid from `mapHexes(view)`: corner terrains as wedges, islands, unexplored hexes dashed, outposts (toppled ones lying), Nomads pieces and tokens; `targets` become buttons and the rest dim, `selected` is outlined in gold. |
 
 ## player/
 
