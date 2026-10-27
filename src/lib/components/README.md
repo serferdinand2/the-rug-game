@@ -49,6 +49,7 @@ These components are updated as the art issues deliver their assets. Each will s
 
 | Component | Purpose |
 |---|---|
+| `AchievementStrip` | The three achievements on one line: claimants' colour squares in order and the next VP. |
 | `BoardSwitcher` | Advancement Tracks / World Map selector with its icons. |
 | `ProgressLanes` | One progress line per player under a track, with the dashed preview to the next space. |
 | `TierPrice` | A tier's numeral and price over its three spaces; gold while one of them is hovered. |

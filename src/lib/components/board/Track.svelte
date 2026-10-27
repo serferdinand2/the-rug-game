@@ -23,6 +23,7 @@
 	 * @property {TrackSpaceEntry[]} spaces - The twelve spaces, in order
 	 * @property {import('../../ui.js').CostSymbol[][]} tiers - The four tier prices, I–IV, each over three spaces
 	 * @property {TrackPlayer[]} players - The players at the table, one progress lane each
+	 * @property {number[]} [available=[]] - Space numbers the viewer can advance to, outlined in green
 	 * @property {number | null} [selectedSpace=null] - The selected space's number, outlined in gold; bindable
 	 * @property {Function} [onTrackSelect] - Callback fired with { track, space } when a space is chosen
 	 */
@@ -59,6 +60,7 @@
 		spaces,
 		tiers,
 		players,
+		available = [],
 		selectedSpace = $bindable(null),
 		onTrackSelect,
 		...attr
@@ -158,6 +160,7 @@
 				name={entry.name}
 				landmark={entry.landmark}
 				selected={selectedSpace === index + 1}
+				available={available.includes(index + 1)}
 				onTrackSpaceClick={spaceClickHandler}
 				onTrackSpaceHover={spaceHoverHandler} />
 		{/each}

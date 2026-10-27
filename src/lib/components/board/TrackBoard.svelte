@@ -21,6 +21,7 @@
 	 * Properties of the TrackBoard component itself.
 	 * @typedef {Object} TrackBoardOwnProps
 	 * @property {TrackBoardTrack[]} tracks - The four tracks, top to bottom
+	 * @property {TrackBoardSelection[]} [available=[]] - Spaces the viewer can advance to, outlined in green
 	 * @property {TrackBoardSelection | null} [selected=null] - The selected space, outlined in gold; bindable
 	 * @property {Function} [onTrackBoardSelect] - Callback fired with { track, space } when a space is chosen
 	 */
@@ -45,6 +46,7 @@
 	/** @type {TrackBoardProps} */
 	let {
 		tracks,
+		available = [],
 		selected = $bindable(null),
 		onTrackBoardSelect,
 		...attr
@@ -73,6 +75,9 @@
 	{#each tracks as track (track.id)}
 		<Track
 			{...track}
+			available={available
+				.filter((entry) => entry.track === track.id)
+				.map((entry) => entry.space)}
 			selectedSpace={selected?.track === track.id ? selected.space : null}
 			onTrackSelect={trackSelectHandler} />
 	{/each}
