@@ -196,6 +196,17 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **The header** has the turn clock when the timer is on (red, with the seconds in words, in the viewer's last 5 seconds) and **Undo**.
 - **Your overview** at the foot of the player area is the mockup's compact block; its last count is complete capital lines.
 
+**Built in #27 (2026-10-27): the player area and the players overview.**
+
+![The player area with the Capital tab](screens/game-player-area.png)
+
+![The players overview](screens/game-overview.png)
+
+- **The tabs** are the mockup's: Capital (the seat's real mat and plots, landmarks over the edge allowed, the counters, and what lies beside the mat), Hand (the tapestry cards overlapping; hovering shows one in full over the shared area), Income (the four rows, covered spaces with their building, exposed ones with their reward in words), Eras (the four slots, a face-down card shown as such, the active card in full), Civ (the reviewed card for the twelve base civilizations with a recipe, a plain portrait card for the other four until #47), Tech (the three rows and the display with the deck count) and Terrain (territory tiles drawn like the map's, and space tiles).
+- **Real cards:** the tech and tapestry cards are built from the engine's data through `describe.js`; no text is invented. Lazar's fixtures stay for the library and the card review.
+- **Tab switching:** a decision about a tab's things opens that tab by itself.
+- **The players overview** opens from the chips, as in the mockup: one card per player, and Capital, Civilization or Tech of any player on the right. Opponents' hands appear only as counts.
+
 ### Three horizontal bands
 
 Use a compact, full-width **header**, **middle play area**, and **turn footer**. Header and footer have the same short height, approximately 58px in the reference, and the same dark gray background. There are no outer side borders. The middle uses mid-gray pixel-textured surfaces, divided **3/4 shared area to 1/4 player area**.
