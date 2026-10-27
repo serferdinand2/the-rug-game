@@ -21,7 +21,7 @@ function viewOf(count, change) {
 }
 
 test('trackBoard gives the four tracks of twelve spaces', () => {
-	const tracks = trackBoard(viewOf(2), []);
+	const tracks = trackBoard(viewOf(2));
 	assert.deepEqual(
 		tracks.map((track) => track.id),
 		['exploration', 'science', 'technology', 'military']
@@ -34,7 +34,7 @@ test('trackBoard gives the four tracks of twelve spaces', () => {
 });
 
 test('tier prices use the track resource, one symbol per unit', () => {
-	const tracks = trackBoard(viewOf(2), []);
+	const tracks = trackBoard(viewOf(2));
 	assert.deepEqual(tracks[0].tiers, [
 		['any'],
 		['food', 'any'],
@@ -45,7 +45,7 @@ test('tier prices use the track resource, one symbol per unit', () => {
 });
 
 test('a landmark shows on its space only while unowned', () => {
-	const open = trackBoard(viewOf(2), []);
+	const open = trackBoard(viewOf(2));
 	assert.ok(open[0].spaces[3].landmark);
 	const taken = trackBoard(
 		viewOf(2, (state) => {
@@ -53,8 +53,7 @@ test('a landmark shows on its space only while unowned', () => {
 				(/** @type {string} */ id) =>
 					id !== TRACKS.exploration[4].landmark
 			);
-		}),
-		[]
+		})
 	);
 	assert.equal(taken[0].spaces[3].landmark, undefined);
 	assert.ok(taken[0].spaces[6].landmark);
@@ -64,8 +63,7 @@ test("a player's lane is their furthest token", () => {
 	const tracks = trackBoard(
 		viewOf(2, (state) => {
 			state.seats[0].tracks.science = [2, 5];
-		}),
-		[]
+		})
 	);
 	const lane = tracks[1].players.find((p) => p.seat === 1);
 	assert.equal(lane?.position, 5);

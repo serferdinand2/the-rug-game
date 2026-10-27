@@ -44,13 +44,11 @@ const SHORT_NAMES = {
 const LANDMARK_NAMES = new Map(LANDMARKS.map((l) => [l.id, l.name]));
 
 /**
- * The four tracks for TrackBoard. Which spaces are available is drawn by TrackBoard's own prop.
+ * The four tracks for TrackBoard. Which spaces are available is TrackBoard's own `available` prop.
  * @param {BoardView} view
- * @param {{ track: TrackId, space: number }[]} [available]
  * @returns {TrackBoardTrack[]}
  */
-// eslint-disable-next-line no-unused-vars
-export function trackBoard(view, available = []) {
+export function trackBoard(view) {
 	const unowned = new Set(view.landmarks);
 	return /** @type {TrackId[]} */ (Object.keys(TRACKS)).map((track) => {
 		const resource = TRACK_RESOURCE[track];
