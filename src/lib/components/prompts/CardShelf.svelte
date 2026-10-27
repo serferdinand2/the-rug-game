@@ -133,7 +133,7 @@
 						id={card.id}
 						state="empty" />
 				{:else}
-					<span class="rg-card-shelf--mat">
+					<span class="rg-card-shelf--mat-face">
 						<img
 							src={artUrl(
 								`capital-mat/${matOf(card.id).id.toLowerCase()}`
@@ -205,7 +205,7 @@
 	}
 
 	.rg-card-shelf--back,
-	.rg-card-shelf--mat {
+	.rg-card-shelf--mat-face {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -226,7 +226,7 @@
 		font-size: var(--font-size-3xl);
 	}
 
-	.rg-card-shelf--mat {
+	.rg-card-shelf--mat-face {
 		font-size: var(--font-size-xl);
 	}
 </style>

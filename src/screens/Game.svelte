@@ -136,7 +136,11 @@
 		!prompt
 			? []
 			: prompt.kind === 'chooseExplore' && mapPick
-				? explore.map((c) => ({ ...prompt.options[c.index], vp: c.vp }))
+				? explore.map((c) => ({
+						...prompt.options[c.index],
+						label: c.label,
+						vp: c.vp,
+					}))
 				: prompt.options
 						.filter(
 							(o) =>
@@ -844,6 +848,15 @@
 		width: 340px;
 		min-width: 0;
 		max-height: calc(100% - var(--space-9));
+	}
+
+	/* The docked panel is narrow: what is chosen gets its own line above the buttons. */
+	.rg-game--shared :global(.rg-game--map-prompt .rg-decision-panel--bottom) {
+		flex-wrap: wrap;
+	}
+
+	.rg-game--shared :global(.rg-game--map-prompt .rg-decision-panel--status) {
+		flex-basis: 100%;
 	}
 
 	.rg-game--shared :global(.rg-game--map-prompt > *) {

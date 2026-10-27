@@ -1,5 +1,6 @@
 // The explore choices of the map prompt (#28): each tile the viewer holds, in each turn, on one chosen hex.
 import { matchingSides, turned } from '../engine/game.js';
+import { describeTile } from '../describe.js';
 import { TERRITORY_TILES } from '../engine/data/territory-tiles.js';
 
 /** @typedef {import('../ui.js').Terrain} Terrain */
@@ -13,6 +14,7 @@ import { TERRITORY_TILES } from '../engine/data/territory-tiles.js';
  * @property {Terrain[]} corners - The tile's corner terrains as it would lie, clockwise from the top-left
  * @property {Terrain[]} island - The terrains of the tile's island, empty when it has none
  * @property {number} vp - The sides that match the neighbours, 1 VP each
+ * @property {string} label - The tile and its turn in words, such as 'Tile 19, turned 3 times'
  */
 
 /**
@@ -42,6 +44,7 @@ export function exploreChoices(game, decision, hex) {
 				/** @type {unknown} */ ([...data.island])
 			),
 			vp: matchingSides(game, hex, answer.tile, answer.orient),
+			label: describeTile(answer.tile, answer.orient),
 		});
 	});
 	return choices.sort(

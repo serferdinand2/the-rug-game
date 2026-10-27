@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { matchingSides, openDecisions, view } from '../src/lib/engine/game.js';
 import { push } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';
+import { describeTile } from '../src/lib/describe.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';
 import { exploreChoices } from '../src/lib/area/explore.js';
 import { startedGame } from './helpers/engine.mjs';
@@ -81,4 +82,10 @@ test("the corners are the printed corners turned, and the island is the tile's",
 test('a hex with no answers has no choices', () => {
 	const { game, decision } = exploring();
 	assert.deepEqual(exploreChoices(game, decision, 'nowhere'), []);
+});
+
+test('each choice names its tile and turn, without the hex already chosen', () => {
+	assert.equal(describeTile(19, 3), 'Tile 19, turned 3 times');
+	assert.equal(describeTile(6, 0), 'Tile 6');
+	assert.equal(describeTile(6, 1), 'Tile 6, turned once');
 });
