@@ -8,10 +8,12 @@
 		createGame,
 		defaultAction,
 		play,
+		turned,
 		view,
 	} from '../../../lib/engine/game.js';
 	import { seededRandom } from '../../../lib/engine/random.js';
 	import { hexNeighbours } from '../../../lib/engine/data/maps.js';
+	import { TERRITORY_TILES } from '../../../lib/engine/data/territory-tiles.js';
 	import { mapHexes } from '../../../lib/hexmap.js';
 
 	const NAMES = ['Ana', 'Bo', 'Cy', 'Dee', 'Eli'];
@@ -96,6 +98,19 @@
 	const large = mapHexes(dealt(4, 3));
 	const busy = mapHexes(midGame());
 
+	// A tile previewed on one unexplored hex: tile 17 (with an island), turned once.
+	const previewGame = dealt(2, 5);
+	const previewHex = hexNeighbours(startOf(previewGame, 1)).find(
+		(key) => previewGame.hexes[key]?.tile === null
+	);
+	const previewTile = TERRITORY_TILES[16];
+	const previewing = {
+		hex: /** @type {string} */ (previewHex),
+		corners: /** @type {any} */ (turned(previewTile.corners, 1)),
+		island: /** @type {any} */ ([...previewTile.island]),
+	};
+	const previewHexes = mapHexes(previewGame);
+
 	const exploring = dealt(2, 5);
 	const exploringHexes = mapHexes(exploring);
 	// Where Ana could explore: the unexplored hexes next to her start.
@@ -116,7 +131,7 @@
 <Section
 	name="WorldMap"
 	area="board"
-	description="The real board until #6's map art: the hexes of the game's map side, flat-topped, with start 1 at the top. Each territory shows its corner terrains as wedges, turned as it lies, and its island as a small hexagon; unexplored hexes are dashed. Outposts are squares in their player's colour, lying down and outlined once toppled; a Nomads building or landmark carries a small mark, and a civilization token is a circle. With targets set, only the target hexes are buttons (green), the rest dim, and the chosen one is outlined in gold. The map scales to fit its box.">
+	description="The real board until #6's map art: the hexes of the game's map side, flat-topped, with start 1 at the top. Each territory shows its corner terrains as wedges, turned as it lies, and its island as a small hexagon; unexplored hexes are dashed. Outposts are squares in their player's colour, lying down and outlined once toppled; a Nomads building or landmark carries a small mark, and a civilization token is a circle. With preview set, a tile not yet explored is drawn on its hex like an explored one, at 85% opacity with a gold outline. With targets set, only the target hexes are buttons (green), the rest dim, and the chosen one is outlined in gold. The map scales to fit its box.">
 	<Example
 		label={"hexes={mapHexes(view)}  (large map, 4 players dealt, in the shared area's box)"}
 		wide
@@ -148,5 +163,13 @@
 			selected={chosen}
 			label="Choose a hex to explore"
 			onWorldMapSelect={selectHandler} />
+	</Example>
+	<Example
+		label={`preview={{ hex: '${previewing.hex}', corners, island }}  (tile 17 turned once, shown before it is explored)`}
+		width={640}>
+		<WorldMap
+			hexes={previewHexes}
+			preview={previewing}
+			label="Tile preview" />
 	</Example>
 </Section>
