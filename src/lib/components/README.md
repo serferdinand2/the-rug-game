@@ -85,6 +85,8 @@ These components are updated as the art issues deliver their assets. Each will s
 | `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf filling the height above the panel, question, content, status and Confirm (a `Button`, solid gold as the play mockup draws it, #65); without content the status line carries the instruction; a `track` tint, the gold `income` tone with a `steps` snippet, and `docked` beside the map with no scrim (#26, #28, #57). |
 | `IncomeSteps` | The strip of an income turn's steps, the running one marked `aria-current="step"` (#28). |
 | `PromptArt` | One picture a prompt shows: a resource with its count, track, building, landmark, terrain, civilization, space tile, turned territory, capital mat, card art, VP badge or the tech deck (#28). |
+| `TilePicker` | The territory tiles in hand as a wrapping row of pressable hexes (about 88×80 px); the picked one is outlined in gold, and a corner tag shows the VP each scores on the chosen hex (#74). |
+| `TurnControl` | The ↺ and ↻ buttons that turn the picked tile, with a gold `+n VP` tag between them (`No hex yet` and disabled until a hex is chosen) and the hint that R turns it (#74). |
 | `OverviewCloseBar` | The footer while the players overview is open. |
 | `TurnBar` | The footer: neutral, selected, optional-action, waiting and gold income states, with the income reveal. |
 
