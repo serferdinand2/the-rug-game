@@ -182,7 +182,8 @@
 
 	.rg-pass-screen--name {
 		color: var(--gold);
-		font: var(--weight-title) 42px / var(--leading-none) var(--font-title);
+		font: var(--weight-title) var(--font-size-6xl) / var(--leading-none)
+			var(--font-title);
 		letter-spacing: var(--letter-spacing-title);
 		text-shadow: var(--text-glow-gold);
 		overflow-wrap: anywhere;

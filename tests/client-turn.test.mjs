@@ -12,7 +12,11 @@ import {
 import { seededRandom } from '../src/lib/engine/random.js';
 import { push } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';
-import { advanceOptions, myDecision } from '../src/lib/turn.js';
+import {
+	advanceOptions,
+	decisionTurnHeading,
+	myDecision,
+} from '../src/lib/turn.js';
 import { conquestGame, newGame } from './helpers/engine.mjs';
 
 /**
@@ -116,4 +120,46 @@ test('in setup each seat finds its own pick in its lane', () => {
 		assert.ok(Array.isArray(mine?.answers) && mine.answers.length > 0);
 	}
 	assert.equal(myDecision(view(state, null), 1), null);
+});
+
+test('the footer names the turn and latest advance without copying the prompt', () => {
+	const game = {
+		phase: 'playing',
+		current: 1,
+		seats: [
+			{ seat: 1, name: 'Ana' },
+			{ seat: 2, name: 'Bo' },
+		],
+		events: [
+			{
+				seq: 1,
+				type: 'tokenMoved',
+				player: 1,
+				track: 'science',
+				from: 1,
+				to: 2,
+			},
+			{ seq: 2, type: 'turnStarted', player: 1 },
+			{
+				seq: 3,
+				type: 'tokenMoved',
+				player: 1,
+				track: 'exploration',
+				from: 3,
+				to: 4,
+			},
+		],
+	};
+	assert.equal(
+		decisionTurnHeading(game, 1),
+		'Your turn · Advance to Navigation'
+	);
+	assert.equal(
+		decisionTurnHeading(game, 2),
+		'Ana’s turn · Advance to Navigation'
+	);
+	game.events.pop();
+	assert.equal(decisionTurnHeading(game, 1), 'Your turn is in progress');
+	game.phase = 'setup';
+	assert.equal(decisionTurnHeading(game, 1), 'Your setup choice');
 });

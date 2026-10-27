@@ -1,4 +1,4 @@
-<!-- Library section: TrackSpace as the first, a landmark, the last and a selected space, with benefits and bonuses, and reporting hover. -->
+<!-- Library section: TrackSpace as the first, a landmark, the last and a selected space, with benefits and bonuses, reporting hover, and short and large spaces. -->
 <script>
 	import TrackSpace from '../../../lib/components/board/TrackSpace.svelte';
 	import { TRACKS } from '../../../lib/engine/data/tracks.js';
@@ -40,7 +40,7 @@
 <Section
 	name="TrackSpace"
 	area="board"
-	description="One pointed space on a track: its name at the top left, its benefit under it and any bonus in a small box (its price, an arrow, what it gives), any landmark at the bottom over a darker track-coloured band, and its number in the arrow tip. Resources, buildings and tracks use their art; the other game symbols are short words, and a benefit without its own benefit carries a red X. The full words are its tooltip and label. The first space has a flat left edge and the last a dashed finish line; selection draws a gold outline, and keyboard focus a dashed one. In a short space the symbols shrink.">
+	description="One pointed space on a track: its name at the top left, its benefit under it and any bonus in a small box (its price, an arrow, what it gives), any landmark at the bottom over a darker track-coloured band, and its number in the arrow tip. Resources, buildings and tracks use their art; the other game symbols are short words, and a benefit without its own benefit carries a red X. The full words are its tooltip and label. The first space has a flat left edge and the last a dashed finish line; selection draws a gold outline, and keyboard focus a dashed one. In a short space the symbols shrink; in a large one, on a large screen, the words and symbols grow.">
 	<Example label={'track="exploration" space={1} name="Scouting"'}>
 		<div style={TILE}>
 			<TrackSpace
@@ -111,6 +111,38 @@
 				space={8}
 				name="Cars"
 				{...effects('exploration', 8)} />
+		</div>
+	</Example>
+	<Example
+		label={'track="exploration" space={10} name="Space Shuttle" landmark="Launch Pad"  (a large space, 136px and 1.25 times as tall, as on a 2240×1260 screen: 11px words, larger symbols)'}>
+		<div style="width: 136px; --rg-track-space-aspect: 4 / 5">
+			<TrackSpace
+				track="exploration"
+				space={10}
+				name="Space Shuttle"
+				landmark="Launch Pad"
+				{...effects('exploration', 10)} />
+		</div>
+	</Example>
+	<Example
+		label={'track="technology" space={11} name="Nanotechnology"  (a large space, 156px and 1.25 times as tall, as on a 2560×1440 screen: 12px words, larger symbols)'}>
+		<div style="width: 156px; --rg-track-space-aspect: 4 / 5">
+			<TrackSpace
+				track="technology"
+				space={11}
+				name="Nanotechnology"
+				{...effects('technology', 11)} />
+		</div>
+	</Example>
+	<Example
+		label={'track="military" space={7} name="Tanks" landmark="Tank Factory"  (a large space, 156px, as on a 2560×1440 screen)'}>
+		<div style="width: 156px; --rg-track-space-aspect: 4 / 5">
+			<TrackSpace
+				track="military"
+				space={7}
+				name="Tanks"
+				landmark="Tank Factory"
+				{...effects('military', 7)} />
 		</div>
 	</Example>
 	<Example

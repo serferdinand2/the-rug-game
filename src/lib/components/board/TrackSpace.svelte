@@ -480,8 +480,9 @@
 		flex: none;
 		display: block;
 		margin-right: calc(3px - var(--track-tip));
-		font: var(--weight-title) var(--font-size-3xs) / var(--leading-tight)
-			var(--font-title);
+		font: var(--weight-title)
+			var(--rg-track-space-text, var(--font-size-3xs)) /
+			var(--leading-tight) var(--font-title);
 		text-align: left;
 	}
 
@@ -516,8 +517,9 @@
 		flex: none;
 		margin-top: auto;
 		color: var(--gold);
-		font: var(--weight-title) var(--font-size-3xs) / var(--leading-tight)
-			var(--font-title);
+		font: var(--weight-title)
+			var(--rg-track-space-text, var(--font-size-3xs)) /
+			var(--leading-tight) var(--font-title);
 		text-align: left;
 	}
 
@@ -552,8 +554,9 @@
 
 	.rg-track-space--count {
 		margin-left: 1px;
-		font: var(--weight-bold) var(--font-size-3xs) / var(--leading-none)
-			var(--font-body);
+		font: var(--weight-bold)
+			var(--rg-track-space-text, var(--font-size-3xs)) /
+			var(--leading-none) var(--font-body);
 	}
 
 	/* The game symbols without art yet are short words (#5). */
@@ -561,8 +564,9 @@
 	.rg-track-space--vp {
 		padding: 1px 3px;
 		border-radius: var(--radius);
-		font: var(--weight-bold) var(--font-size-3xs) / var(--leading-tight)
-			var(--font-body);
+		font: var(--weight-bold)
+			var(--rg-track-space-text, var(--font-size-3xs)) /
+			var(--leading-tight) var(--font-body);
 	}
 
 	.rg-track-space--word {
@@ -609,8 +613,9 @@
 	.rg-track-space--joint,
 	.rg-track-space--then {
 		color: var(--muted);
-		font: var(--weight-bold) var(--font-size-3xs) / var(--leading-none)
-			var(--font-body);
+		font: var(--weight-bold)
+			var(--rg-track-space-text, var(--font-size-3xs)) /
+			var(--leading-none) var(--font-body);
 	}
 
 	.rg-track-space--or {
@@ -658,6 +663,61 @@
 		}
 	}
 
+	/* A large space, on a large screen, grows its words and symbols with it (#69). At the 1920×1080 reference a
+	   space is about 110px wide, so it keeps the smallest text; at 2560×1440 it is about 150px. */
+	@container (min-width: 125px) and (min-height: 135px) {
+		.rg-track-space--body,
+		.rg-track-space--number {
+			--rg-track-space-text: var(--font-size-2xs);
+		}
+
+		.rg-track-space--resource img {
+			width: 18px;
+			height: 18px;
+		}
+
+		.rg-track-space--building img {
+			width: 20px;
+			height: 20px;
+		}
+
+		.rg-track-space--track {
+			width: 16px;
+			height: 16px;
+		}
+	}
+
+	/* The number stays at the step below, so it still fits the arrow tip. */
+	@container (min-width: 145px) and (min-height: 160px) {
+		.rg-track-space--body {
+			--rg-track-space-text: var(--font-size-xs);
+		}
+
+		.rg-track-space--resource img {
+			width: 20px;
+			height: 20px;
+		}
+
+		.rg-track-space--building img {
+			width: 22px;
+			height: 22px;
+		}
+
+		.rg-track-space--track {
+			width: 18px;
+			height: 18px;
+		}
+
+		.rg-track-space--crossed {
+			padding-right: 15px;
+		}
+
+		.rg-track-space--crossed::after {
+			width: 10px;
+			height: 10px;
+		}
+	}
+
 	/* The small number sits in the arrow tip. */
 	.rg-track-space--number {
 		position: absolute;
@@ -667,8 +727,9 @@
 		width: 12px;
 		transform: translateY(-50%);
 		color: var(--muted);
-		font: var(--weight-bold) var(--font-size-3xs) / var(--leading-none)
-			var(--font-body);
+		font: var(--weight-bold)
+			var(--rg-track-space-text, var(--font-size-3xs)) /
+			var(--leading-none) var(--font-body);
 		text-align: center;
 	}
 

@@ -62,7 +62,7 @@
 	];
 	const YES_NO = [
 		{ value: 'yes', label: 'Yes', color: 'var(--science)' },
-		{ value: 'no', label: 'No', color: 'var(--line-strong)' },
+		{ value: 'no', label: 'No', color: 'var(--text)' },
 	];
 	const UNDO = [
 		{ value: 'on', label: 'Allow undo', color: 'var(--exploration)' },
@@ -406,7 +406,8 @@
 		width: min(var(--lobby-width), 100%);
 		margin: 0;
 		color: var(--text);
-		font: var(--weight-title) clamp(20px, 2vw, 26px) / 1.4 var(--font-title);
+		font: var(--weight-title) var(--font-size-display-sm) / 1.4
+			var(--font-title);
 		text-align: center;
 	}
 

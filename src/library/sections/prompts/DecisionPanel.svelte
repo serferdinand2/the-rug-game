@@ -3,6 +3,9 @@
 	import DecisionOption from '../../../lib/components/prompts/DecisionOption.svelte';
 	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
 	import IncomeSteps from '../../../lib/components/prompts/IncomeSteps.svelte';
+	import TilePicker from '../../../lib/components/prompts/TilePicker.svelte';
+	import TurnControl from '../../../lib/components/prompts/TurnControl.svelte';
+	import { tilePreview, tileWords } from '../../../lib/area/explore.js';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
 
@@ -20,6 +23,19 @@
 		{ id: 'score', label: 'Score' },
 		{ id: 'income', label: 'Income' },
 	];
+
+	/**
+	 * Tiles for the explore's row, as the game screen builds them.
+	 * @param {number[]} ids
+	 * @param {(number | null)[]} [vps]
+	 */
+	const tilesOf = (ids, vps = []) =>
+		ids.map((id, index) => ({
+			id,
+			label: tileWords(id),
+			...tilePreview(id, 0),
+			vp: vps[index] ?? null,
+		}));
 
 	/** @type {number | null} */
 	let picked = $state(null);
@@ -115,26 +131,93 @@
 		width={1100}>
 		<div class="rg-library-decision-stage">
 			<DecisionPanel
-				title="Choose where to explore"
-				status="Hex 1,0 with tile 19, turned 3 times"
-				confirmLabel="Explore"
+				title="Choose a territory to conquer"
+				status="Hex 1,0, held by Ben"
+				confirmLabel="Conquer"
 				cancelLabel="Choose another territory"
 				docked>
 				<div class="rg-library-decision-options">
 					<DecisionOption
-						label="Tile 19, turned 3 times"
-						art={[{ kind: 'territory', id: 19, orient: 3 }]}
-						vp={4}
+						label="Hex 1,0, held by Ben"
 						pressed />
-					<DecisionOption
-						label="Tile 6"
-						art={[{ kind: 'territory', id: 6, orient: 0 }]}
-						vp={3} />
 				</div>
 			</DecisionPanel>
 		</div>
 	</Example>
+	<Example
+		label={"docked  (an explore: the player's tiles, the chosen hex and the turn)"}
+		wide
+		width={1100}>
+		<div class="rg-library-decision-stage rg-library-decision-stage--tall">
+			<DecisionPanel
+				title="Choose where to explore"
+				confirmLabel="Explore"
+				docked>
+				{@render exploreTiles(tilesOf([6, 19, 33], [3, 4, 2]), 19)}
+				{#snippet pinned()}
+					{@render exploreChosen('Hex 1,0, turned 3 times', 3)}
+				{/snippet}
+			</DecisionPanel>
+		</div>
+	</Example>
+	<Example
+		label={'docked  (an explore with 11 tiles in a box 700px tall: the tiles scroll; what is chosen, the turn and Explore stay in sight)'}
+		wide
+		width={1100}>
+		<div class="rg-library-decision-stage rg-library-decision-stage--700">
+			<DecisionPanel
+				title="Choose where to explore"
+				confirmLabel="Explore"
+				confirmDisabled
+				docked>
+				{@render exploreTiles(
+					tilesOf([1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41]),
+					null
+				)}
+				{#snippet pinned()}
+					{@render exploreChosen(
+						'Pick a tile, or a lit hex on the map.',
+						null
+					)}
+				{/snippet}
+			</DecisionPanel>
+		</div>
+	</Example>
 </Section>
+
+<!-- The explore as the game screen draws it: the lead and the tile row scroll in the content, while what is chosen
+     and the turn control are pinned above the actions, with no status line. -->
+{#snippet exploreTiles(
+	/** @type {ReturnType<typeof tilesOf>} */ tiles,
+	/** @type {number | null} */ selected
+)}
+	<div class="rg-library-explore">
+		<p class="rg-library-explore--lead">
+			Pick one of your tiles and a lit hex, then turn the tile until you
+			like it.
+		</p>
+		<p class="rg-library-explore--label">Your tiles · {tiles.length}</p>
+		<TilePicker
+			{tiles}
+			{selected} />
+	</div>
+{/snippet}
+
+{#snippet exploreChosen(
+	/** @type {string} */ chosen,
+	/** @type {number | null} */ vp
+)}
+	<div class="rg-library-explore">
+		<p
+			class="rg-library-explore--chosen"
+			role="status">
+			{chosen}{#if vp !== null}<span class="rg-library-explore--spoken"
+					>, {vp} VP</span
+				>{/if}
+		</p>
+		<TurnControl {vp} />
+	</div>
+{/snippet}
 
 <style>
 	.rg-library-decision-stage {
@@ -145,6 +228,52 @@
 
 	.rg-library-decision-stage--short {
 		height: 340px;
+	}
+
+	.rg-library-decision-stage--tall {
+		height: 620px;
+	}
+
+	.rg-library-decision-stage--700 {
+		height: 700px;
+	}
+
+	/* The explore's content, styled as the game screen styles it (src/screens/Game.svelte). */
+	.rg-library-explore {
+		display: grid;
+		gap: var(--space-6);
+	}
+
+	.rg-library-explore--lead,
+	.rg-library-explore--label,
+	.rg-library-explore--chosen {
+		margin: 0;
+	}
+
+	.rg-library-explore--lead {
+		color: var(--muted);
+		font-size: var(--font-size-md);
+	}
+
+	.rg-library-explore--label {
+		color: var(--muted);
+		font-size: var(--font-size-xs);
+		font-weight: var(--weight-bold);
+		letter-spacing: var(--letter-spacing-caps);
+		text-transform: uppercase;
+	}
+
+	.rg-library-explore--chosen {
+		color: var(--text);
+		font-size: var(--font-size-md);
+	}
+
+	.rg-library-explore--spoken {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
 	}
 
 	.rg-library-decision-options {

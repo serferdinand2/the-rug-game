@@ -47,7 +47,7 @@
 <Section
 	name="TurnBar"
 	area="prompts"
-	description="The footer. It always says what the current decision is, or what another player is doing. Its cost and actions sit at the right. While a space is chosen, the income choice folds behind Your turn and opens on hover or keyboard focus.">
+	description="The footer gives the turn's context while the decision panel asks the question. Its cost and actions sit at the right. While a space is chosen, the income choice folds behind Your turn and opens on hover or keyboard focus.">
 	<Example
 		label={'tone="neutral" income={…}'}
 		surface="ink"
@@ -96,14 +96,21 @@
 		</TurnBar>
 	</Example>
 	<Example
+		label={'label="Your decision"  (question stays in the panel)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			label="Your decision"
+			heading="Your turn · Advance to Navigation" />
+	</Example>
+	<Example
 		label={'tone="income" label="Income turn"  (gold, no income button)'}
 		surface="ink"
 		wide>
 		<TurnBar
 			tone="income"
 			label="Income turn"
-			heading="Income turn 2 of 5"
-			detail="Choose a tapestry card to play." />
+			heading="Income turn 2 · Tapestry" />
 	</Example>
 	<Example
 		label={'tone="waiting" label="Ana’s turn" labelColor="var(--player-2)"'}

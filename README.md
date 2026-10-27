@@ -34,7 +34,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Landing page | Lobby |
 |---|---|
-| ![The landing page, with two open tables](docs/ui/screens/launch.png) | ![The lobby with three players, one ready, the turn timer at 2 minutes and the tapestry draft on](docs/ui/screens/lobby.png) |
+| ![The landing page, with two open tables](docs/ui/screens/launch.png) | ![The local lobby with selected No options clearly outlined](docs/ui/screens/lobby.png) |
 
 | Play: the tracks, with an advance chosen | Play: the World Map |
 |---|---|
@@ -50,11 +50,11 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Prompt: cards on the shelf (the tapestry draft) | Prompt: exploring a territory |
 |---|---|
-| ![The tapestry draft's keep prompt: two cards on the shelf above the gold income panel](docs/ui/screens/game-prompt-cards.png) | ![An explore: the chosen hex previews the best tile, and the panel lists each tile and turn with its VP](docs/ui/screens/game-prompt-explore.png) |
+| ![The tapestry draft's keep prompt: two cards on the shelf above the gold income panel](docs/ui/screens/game-prompt-cards.png) | ![An explore: the player's tiles in the panel, each lit hex with the picked tile's best VP, and the chosen hex previewing it turned once](docs/ui/screens/game-prompt-explore.png) |
 
 | Results: the final standings | The log and the scores |
 |---|---|
-| ![The results: the final standings with a player's VP by source opened, their result, the tie panel and the table's facts](docs/ui/screens/game-results.png) | ![The board as the game ended, with the log panel open over the player area](docs/ui/screens/game-log.png) |
+| ![The results: the final standings with a player's VP by source opened, their result, the tie panel and the table's facts](docs/ui/screens/game-results.png) | ![The board as the game ended, with the log panel open and a Game complete footer](docs/ui/screens/game-log.png) |
 
 | Hot-seat: passing the screen | Hot-seat: the pass screen at setup, with the turn timer |
 |---|---|
@@ -62,7 +62,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Prompt: placing a landmark | Prompt: the income turn |
 |---|---|
-| ![The Lighthouse placed and turned on the Capital tab, with the panel naming its plot](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold, with its steps and the chosen card lifted](docs/ui/screens/game-prompt-income.png) |
+| ![The Lighthouse placed and turned on the Capital tab, with the panel naming its plot](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold, with the panel's question shown only once](docs/ui/screens/game-prompt-income.png) |
 
 Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [Launch](docs/ui/launch.html), [Lobby](docs/ui/lobby.html), [Game](docs/ui/main-screen.html), [End screen](docs/ui/end-screen.html).
 

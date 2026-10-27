@@ -255,8 +255,8 @@
 	.rg-results--head h1 {
 		margin: 0;
 		color: var(--gold);
-		font: var(--weight-bold) clamp(32px, 3vw, 48px) / var(--leading-tight)
-			var(--font-body);
+		font: var(--weight-bold) var(--font-size-display-lg) /
+			var(--leading-tight) var(--font-body);
 	}
 
 	.rg-results--head p {
@@ -316,7 +316,8 @@
 		display: block;
 		margin-top: 10px;
 		color: var(--gold);
-		font: var(--weight-title) 42px / var(--leading-none) var(--font-title);
+		font: var(--weight-title) var(--font-size-6xl) / var(--leading-none)
+			var(--font-title);
 	}
 
 	.rg-results--yours span {
