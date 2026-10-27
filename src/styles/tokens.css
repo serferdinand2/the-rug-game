@@ -203,6 +203,19 @@
 	--card-title: #e2b857;
 	--card-paper: #e8d6ad;
 	--card-raised: #f0e2bf;
+	/* Technology and Tapestry frames (Second Tapestry UI card study, 2026-10-26). */
+	--card-exploration-text: #315f78;
+	--card-science-text: #315f48;
+	--card-technology-text: #70491f;
+	--card-military-text: #823d3d;
+	--card-condition: #c7c9c8;
+	--card-condition-line: #979b9c;
+	--card-condition-text: #33383a;
+	--card-note: #665238;
+	--card-trap-band-start: #762e36;
+	--card-trap-band-middle: #a84b50;
+	--card-trap-band-end: #d18b7e;
+	--card-trap-line: #8f4144;
 	--card-shadow-soft: rgb(0 0 0 / 22%);
 	--card-shadow-strong: rgb(0 0 0 / 40%);
 }
