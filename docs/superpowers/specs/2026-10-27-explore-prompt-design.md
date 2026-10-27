@@ -92,4 +92,4 @@ The README's "Current interface" and `docs/ui/screens/` show the new explore pan
 
 ## 8. Owner approval
 
-The issue asks for the owner to approve the new prompt in the library's DecisionPanel and WorldMap sections before the game uses it. The owner approved layout A in the mockup and asked for it to be built (owner, 2026-10-27), so it is built into the game in the same change; #74 closes once the owner has looked at the library sections, as #69 does.
+The issue asks for the owner to approve the new prompt in the library's DecisionPanel and WorldMap sections before the game uses it. The owner approved layout A in the mockup and asked for it to be built (owner, 2026-10-27), so it is built into the game in the same change; #74 closes once the owner has looked at the library sections, as #69 does. The owner approved the library sections, and #74 closed (owner, 2026-10-28).

@@ -62,10 +62,10 @@ The modules in detail, with the issue that added each, are in [docs/architecture
 
 The full record is [docs/status.md](docs/status.md): what every issue built, its calls to revisit after playing, and what it handed on. Update it whenever an issue lands or a milestone moves, and keep this summary to a few lines.
 
-Updated 2026-10-27.
+Updated 2026-10-28.
 
 - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. Three of their issues are still open: #45 (the owner checks R12 and R39 against the box), #47 (the card gallery) and #73 (a README screenshot).
-- M12 · Cosmetic enhancements: #66, #67, #70 and #72 are done. #69 and #74 are built and wait for the owner's look in the component library. The owner's next issues are #75, then #61.
+- M12 · Cosmetic enhancements: #66, #67, #70, #72 and #74 are done. #69 is built and waits for the owner's look in the component library. The owner's next issues are #75, then #61.
 - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](#working-on-issues) for the order and the blockers.
 
 ## Working on issues
