@@ -5,7 +5,7 @@ import { server, config } from '../server/server.mjs';
 import { ApiError, createApi, withSession } from '../src/lib/api.js';
 import { change, sameSeats } from '../src/lib/changes.js';
 import { boot } from '../src/lib/boot.js';
-import { seatToFetch, seatToShow, sendMove } from '../src/lib/moves.js';
+import { seatToShow, sendMove } from '../src/lib/moves.js';
 import { myDecision } from '../src/lib/turn.js';
 
 let base = '';
@@ -313,44 +313,6 @@ test('a hot-seat table shows the lowest seat being asked (#26)', () => {
 	assert.equal(seatToShow({ mode: 'online', game, you: [1] }), null);
 	assert.equal(
 		seatToShow({ mode: 'hotseat', game: null, you: [1, 2] }),
-		null
-	);
-});
-
-test('a hot-seat room for the wrong seat is swapped for the asked one, and the right one is taken as it is (#26)', () => {
-	/** @param {number[]} asked */
-	const gameAsking = (...asked) => ({
-		pending: asked.map((player, i) => ({
-			id: i + 1,
-			batch: i + 1,
-			player,
-			kind: 'chooseTurn',
-		})),
-	});
-	const room = (
-		/** @type {number | null} */ viewing,
-		/** @type {any} */ game
-	) => ({
-		mode: 'hotseat',
-		you: [1, 2],
-		viewing,
-		game,
-	});
-	// Boot's public view: show the asked seat instead.
-	assert.equal(seatToFetch(room(null, gameAsking(1)), null), 1);
-	// The asked seat's own view: take it.
-	assert.equal(seatToFetch(room(1, gameAsking(1)), 1), null);
-	// A poll that still asked for the previous seat after the turn passed: fetch the new one.
-	assert.equal(seatToFetch(room(1, gameAsking(2)), 1), 2);
-	// Nobody is asked (the server is about to answer for someone): keep the seat on show.
-	assert.equal(seatToFetch(room(2, gameAsking()), 2), null);
-	assert.equal(seatToFetch(room(null, gameAsking()), 2), 2);
-	// Online there is nothing to choose.
-	assert.equal(
-		seatToFetch(
-			{ mode: 'online', you: [1], viewing: 1, game: gameAsking(2) },
-			null
-		),
 		null
 	);
 });

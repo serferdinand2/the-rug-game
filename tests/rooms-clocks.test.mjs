@@ -439,6 +439,27 @@ test('a decline-only response is scheduled 3 to 10 seconds out, and a trap holde
 	assert.deepEqual(tick(trap, 1000, timing, unused).declines, []);
 });
 
+test('a hot-seat table schedules no decline: the defender answers through the pass screen, trap or not (#30)', () => {
+	for (const timer of [0, 1]) {
+		const asked = answer(
+			tick(
+				{ ...conquest(['age-of-sail'], timer), mode: 'hotseat' },
+				0,
+				timing,
+				unused
+			),
+			1,
+			'chooseConquer',
+			{ hex: '-2_-1' }
+		);
+		const [question] = openDecisions(/** @type {State} */ (asked.game));
+		assert.equal(question.kind, 'chooseResponse');
+		const later = tick(asked, 1000, timing, unused);
+		assert.deepEqual(later.declines, []);
+		assert.equal(nextDeadline({ ...later, clocks: {} }), null);
+	}
+});
+
 test('nextDeadline is the earliest running clock or decline, and paused clocks do not count', () => {
 	assert.equal(nextDeadline(lobby('a', 'b')), null);
 	let room = tick(conquest(['age-of-sail']), 0, timing, unused);

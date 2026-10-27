@@ -1,4 +1,4 @@
-<!-- The app root (#25, #26, #29): one screen at a time, landing, lobby, the game or its results, from the client's store; and the sound cues. -->
+<!-- The app root (#25, #26, #29, #30): one screen at a time, landing, lobby, the game, the hot-seat hand-over or the results, from the client's store; and the sound cues. -->
 <script module>
 	/**
 	 * Properties for the App component, including any attributes for its root element.
@@ -16,6 +16,7 @@
 	import { createStore } from './lib/game.svelte.js';
 	import HelpPanel from './screens/HelpPanel.svelte';
 	import Game from './screens/Game.svelte';
+	import HandOver from './screens/HandOver.svelte';
 	import Landing from './screens/Landing.svelte';
 	import Lobby from './screens/Lobby.svelte';
 	import Results from './screens/Results.svelte';
@@ -104,12 +105,14 @@
 	});
 
 	/**
-	 * The menu before the game: How to play, or About this project.
+	 * The menu outside the game screen: How to play, About this project, or, on the pass screen, Leave table.
 	 * @param {import('./lib/component-event.js').ComponentEvent} event
 	 */
 	const menuHandler = (event) => {
 		if (event.value === 'help') {
 			helpOpen = true;
+		} else if (event.value === 'leave') {
+			store.leaveTable();
 		} else {
 			store.notify(
 				'A browser game of civilizations rising through the eras, inspired by Tapestry.'
@@ -137,6 +140,17 @@
 			{store}
 			onResultsReview={() => (reviewing = true)}
 			onResultsHelp={() => (helpOpen = true)} />
+	{:else if store.passing !== null && store.room?.game}
+		<PageHeader
+			sound={store.sound}
+			items={[
+				{ id: 'help', label: 'How to play' },
+				{ id: 'leave', label: 'Leave table' },
+			]}
+			onPageHeaderSound={(/** @type {any} */ event) =>
+				store.setSound(event.value)}
+			onPageHeaderMenu={menuHandler} />
+		<HandOver {store} />
 	{:else if store.room && store.room.phase !== 'lobby'}
 		<Game
 			{store}

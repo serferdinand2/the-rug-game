@@ -752,7 +752,8 @@
 					) => (inspected = event.value)} />
 			{:else}
 				<p class="rg-game--soon">
-					Choose a seat to see its capital, hand and cards.
+					Hands stay hidden at a shared screen. Open a player's chip
+					to see their capital, civilization and tech.
 				</p>
 			{/if}
 			{#if summary}

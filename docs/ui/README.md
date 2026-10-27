@@ -419,3 +419,13 @@ This page is a **proposal pending owner review**. The example names, score-sourc
 - **The log and scores** open from the header's ▤ button, over the player area: the log names every player's moves in plain words, with a rule between turns, gold income turns and italic notices (a timeout, an undo, the end); the scores list the players by VP with their sources and tiebreak values. A gold dot marks entries not yet seen.
 - **Sound and motion:** sound cues (muted until switched on) mark your turn, an advance, a placement, a reward and the end; a changed territory pulses, a new building glows, a chip's VP pops and the progress lines grow. Nothing replays after a refresh, and nothing moves under reduced motion.
 - **Table settings** in the header menu let the host change the turn timer and undo during a game.
+
+**Built in #30 (2026-10-27): the hot-seat pass screen.** No mockup draws it, so it takes the launch and lobby pages' look: the page header, a chrome panel with the next player's colour along its top, their token and their name in gold Cinzel, a reason line ("It's Vera's turn.", "Vera's setup choices." or "Vera has a choice to make."), their clock when the table has a turn timer, and the gold **I'm Vera** button. The screenshots are the running game.
+
+![The pass screen for a player's turn](screens/game-pass-screen.png)
+
+![The pass screen at setup, with the turn timer running](screens/game-pass-screen-timer.png)
+
+- It shows whenever the screen passes to another player, and after a refresh. The named player's view is asked for only when they take the screen; until then the page shows only public things.
+- Every asked defender takes the screen and answers the conquest themselves, trap or not: at a hot-seat table the server declines for nobody, so the pass screen, its clock and its wait look the same either way. Events that arrive while it waits make no sound.
+- The button answers only after 0.6 seconds and is never focused for the player, so a click or key meant for the last player's Confirm can't open the next player's view.

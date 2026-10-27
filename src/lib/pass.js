@@ -1,0 +1,71 @@
+// The hot-seat hand-over (#30 design §2–§6): which view the client takes or asks for, and whom the pass screen names.
+import { seatToShow } from './moves.js';
+
+/**
+ * Where a hot-seat screen stands after a room view arrives.
+ * @typedef {Object} HandOver
+ * @property {number | null} shown - The seat whose view may be on show; null for the public view
+ * @property {number | null} passing - The player the pass screen names, or null when there is no pass screen
+ * @property {number | null | undefined} fetch - The view to ask for instead of taking the room: a seat, or null for
+ *   the public view; undefined takes the room as it is
+ */
+
+/**
+ * The hand-over for a room view that arrived. At a hot-seat table the screen passes whenever another player is to be
+ * shown: the pass screen names them, and only the public view is held until they take the screen. It then holds that
+ * player, even when the game moves on, so every asked defender gets the same pass screen and wait (#17). A player
+ * takes the screen by making `shown` equal to `passing`; the pass screen goes once their view arrives. A finished game
+ * shows the public view. Online, nothing is handed over.
+ * @param {{ mode: string, game: any, you: number[], viewing: number | null }} room - The room view that arrived
+ * @param {number | null} shown - The seat on show, or taken, now
+ * @param {number | null} passing - The player the pass screen names now
+ * @returns {HandOver}
+ */
+export function handOver(room, shown, passing) {
+	if (room.mode !== 'hotseat' || !room.game) {
+		return { shown: null, passing: null, fetch: undefined };
+	}
+	/** The public view while the pass screen names `player` (or, with null, at the game's end). */
+	const publicView = (/** @type {number | null} */ player) => ({
+		shown: null,
+		passing: player,
+		fetch: room.viewing === null ? undefined : null,
+	});
+	if (room.game.phase === 'over') {
+		return publicView(null);
+	}
+	if (passing !== null && shown !== passing) {
+		return publicView(passing);
+	}
+	if (passing !== null && room.viewing !== passing) {
+		// Taken: the pass screen stays until the player's own view arrives.
+		return { shown: passing, passing, fetch: passing };
+	}
+	const wanted = seatToShow(room);
+	if (wanted !== null && wanted !== shown) {
+		return publicView(wanted);
+	}
+	return {
+		shown,
+		passing: null,
+		fetch: room.viewing === shown ? undefined : shown,
+	};
+}
+
+/**
+ * The pass screen's reason line, from the public view: the player's turn, their setup, or any other question. A
+ * conquest's response question reads like any other, so it gives no trap away (#17).
+ * @param {{ phase: string, current: number | null, seats: { name: string }[] }} game - A game view
+ * @param {number} seat - The player the pass screen names
+ * @returns {string}
+ */
+export function passReason(game, seat) {
+	const name = game.seats[seat - 1]?.name ?? `Player ${seat}`;
+	if (game.phase === 'setup') {
+		return `${name}'s setup choices.`;
+	}
+	if (game.current === seat) {
+		return `It's ${name}'s turn.`;
+	}
+	return `${name} has a choice to make.`;
+}
