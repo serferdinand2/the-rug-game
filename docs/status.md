@@ -8,7 +8,7 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
 
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
-  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #84, #87, #91, #93, #98, #113 and #130 are done. #103, #124 and #128 are partly built; what is left of each waits for #85 or #86.
+  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #84, #87, #91, #93, #98, #113 and #130 are done. #103, #124 and #128 are partly built; what is left of each waits for #85 or #86. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -31,6 +31,7 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
   - A first batch of #80's findings landed together on 2026-10-28: #84, #87, #91, #93, #98, #103, #113, #124, #128 and #130 (see [its entry](#80s-findings-first-batch)). #104 waits for #103's last piece and #125 for #124's.
   - The owner ruled out screen-reader work (CLAUDE.md, 2026-10-28), so #121, which is only labels, is closed as not planned.
   - #80 is done: its findings are #84 and #86–#131.
+  - #82 (the joined terrain of the base mats) is done: the owner approved all six base mats in the component library on 2026-10-28, and it merged into main on 2026-10-29. The expansion mats follow in #132 (M8) and #133 (M9), and the World Map's terrain in #134 (M12).
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - The cosmetic boards wait in #51 until the core features are done.
@@ -61,6 +62,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#42 (How to play in the game)](#42-how-to-play-in-the-game)
 - [#83 (the game's hotkeys)](#83-the-games-hotkeys)
 - [#80's findings, first batch](#80s-findings-first-batch)
+- [#82 (the joined terrain of the base mats)](#82-the-joined-terrain-of-the-base-mats)
 
 ## Issues
 
@@ -534,6 +536,21 @@ Built on 2026-10-28 as ten of #80's smallest findings, in four parallel streams 
   - Calls to revisit: Table settings closes on a click on the scrim; the launch page's How to play opens with the focus on its box, not Close.
 - **Tests:** every issue built test-first. Together on main: `npm run check` clean, 1801 unit tests (the simulation included) and all 31 browser tests pass.
 - **Handed off:** #85 finishes #103, #124 and #128's track parts; #86 takes `priceSymbols`; #88 routes Escape and decides whether Table settings is modal; #95 builds on #91 and #93; #101 and #102 on #98.
+
+### #82 (the joined terrain of the base mats)
+
+Built on 2026-10-28. The owner set the look over five rounds of throwaway sketches ("More realistic and less symbolic", "Make it visually appear 2.5D"), then approved all six base mats in the component library on 2026-10-28 ("ok push to main"). Mountain and Forest were drawn first, from the approved sketch; Wetland, Tropical, Desert and Grassland followed without one. The owner scoped the issue to the base game ("just the base game for now"). The design is `docs/superpowers/specs/2026-10-28-joined-terrain-design.md` and the plan `docs/superpowers/plans/2026-10-28-joined-terrain-issue-82.md`.
+- Built: `tools/art/parts/capital-relief/` draws a mat's impassable plots as one 2.5D picture, its relief (`capital-relief/<mat>`, 296×296, transparent), from the mat's printed layout. Plots joined by a side or a corner make one group. Its footprint is inset from the open sides with rounded corners, and a corner-only join gets a small patch that may reach into the buildable plots' corners (owner). Each biome has a painter: snow-capped peaks, broadleaf trees and pines, reed beds round dark pools, jungle with palms, sandstone buttes among dunes, and grassy hills with stone tors. `ground.js` draws each biome's natural ground.
+  - The base `capital-terrain/<biome>-open-01` to `-08` are now that natural ground, and the example mats `capital-mat/<biome>` are the ground with the relief over it.
+  - `CapitalGrid` lays the relief over its ground tiles, under the buildings. The red X and the flat background on impassable plots are gone (owner), and the gap is 1/296 of the width, so the plots line up with the relief's pixels.
+  - `src/lib/capital-terrain.js` (`plotTerrain`, `reliefUrl`) decides what each plot shows. A building on a printed impassable plot (Terraforming) clears the relief there. An Architects' cube is now a piece of its own, `piece/architects-cube`, on its plot's ground.
+  - The library's Art area has a Capital relief group: each mat's relief on its ground, and a specimen sheet per biome with every kind of join.
+  - The library draws its art only when a tile comes into view, a slice at a time, and loads each drawing module only then (owner, 2026-10-28). The page opens in about 1.1 s instead of 8.4 s. Each drawing's size is known up front (`src/library/`), so the `#art-…` links land and stay put; a new asset of an odd size needs its size added there, and `tests/library-art.test.mjs` says so.
+- Released: the 36 base impassable tiles are retired, with their drawings, SVGs and catalog entries. `docs/art/approved-assets.json` pins the redrawn ground tiles and example mats, the six reliefs and the cube: 101 entries. From now on the manifest is updated with the art on the issue branch, which merges only after the owner approves the batch (`docs/art/README.md`).
+- The README's capital screenshots are retaken from the running game: the Capital tab, the players overview, the mats on offer at setup and the library's CapitalGrid.
+- Calls to revisit after playing: Tropical's palms barely read as palms at the Capital tab's size; the Desert's butte outlines are strong; the Grassland's golden ground may read as sand. Each mat's relief is the same in every game, like the printed mat, and only the ground varies with the table's seed (my call).
+- Tests: `tests/art-capital-relief.test.mjs` (the groups, joins, footprints and corner patches on every base mat and the specimen layouts; each relief the same in every build, palette colours only, nothing on a buildable plot outside a corner patch; each biome's ground and corner piece), `art-capital-terrain` (the natural ground and the 296×296 example mats), `client-capital-terrain` (what each plot shows), `art-approved` (the 101 pinned assets), and the library's browser tests (the relief's place in the stack, the cube, a cleared plot, the gap, a landmark over the edge, a mat on offer, and targets under a corner patch).
+- Handed off: #132 (the Arts & Architecture mats' reliefs, M8) and #133 (the Fantasies & Futures mats', M9), each done the same way, with the advanced mats' printed features kept; #134 (the World Map's terrain hexes and territory tiles in the 2.5D style, M12).
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

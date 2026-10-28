@@ -5,11 +5,14 @@ import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { toSvg } from './painter.js';
 import { drawingCanvas } from './gallery.js';
+import { CAPITAL_GRIDS } from './parts/capital-terrain.js';
+import { BIOMES } from './parts/capital-biomes/index.js';
 import { ASSETS } from '../../src/lib/art/catalog.js';
 import {
 	FOOTPRINTS,
 	footprintMismatches,
 } from '../../src/lib/art/footprints.js';
+import { reliefSize } from '../../src/lib/art/relief.js';
 
 /** @typedef {import('../../src/lib/art/catalog.js').Asset} Asset */
 /** @typedef {import('./painter.js').Canvas} Canvas */
@@ -61,6 +64,31 @@ function checkLandmarkPicture(id, canvas) {
 	if (problem) {
 		throw new Error(
 			`${id}: the picture doesn't match its footprint: ${problem}`
+		);
+	}
+}
+
+/**
+ * Throws unless a capital relief is the size of its mat: 32-pixel plots with 1-pixel gaps on the mat's
+ * printed layout, so the game can lay it over the mat's plots (#82).
+ * @param {string} id - e.g. 'capital-relief/mountain'
+ * @param {Canvas} canvas
+ * @throws {Error} When no base or advanced mat has the relief's slug, or the relief isn't its mat's size.
+ */
+function checkCapitalRelief(id, canvas) {
+	const slug = id.split('/')[1];
+	const layout = Object.hasOwn(CAPITAL_GRIDS, slug)
+		? CAPITAL_GRIDS[slug]
+		: Object.hasOwn(BIOMES, slug)
+			? BIOMES[slug].LAYOUT
+			: null;
+	if (!layout) {
+		throw new Error(`${id}: no capital mat for this relief`);
+	}
+	const { w, h } = reliefSize(layout.length, layout[0].length);
+	if (canvas.w !== w || canvas.h !== h) {
+		throw new Error(
+			`${id}: a capital relief must be ${w}×${h}, not ${canvas.w}×${canvas.h}`
 		);
 	}
 }
@@ -151,7 +179,8 @@ async function drawAsset(id, drawingsDir) {
  * @param {{ drawingsDir?: string, outDir?: string, assets?: readonly Asset[] }} [options]
  * @returns {Promise<{ written: string[], removed: string[] }>}
  * @throws {Error} When a drawing has no catalog entry, an illustration other than a landmark isn't 64×64,
- * a landmark's picture has no footprint or doesn't cover exactly its footprint, or a territory picture isn't 64×56.
+ * a landmark's picture has no footprint or doesn't cover exactly its footprint, a territory picture isn't 64×56,
+ * or a capital relief has no mat or isn't its mat's size.
  */
 export async function buildArt({
 	drawingsDir = DRAWINGS_DIR,
@@ -174,6 +203,8 @@ export async function buildArt({
 			canvas.w !== ILLUSTRATION_SIZE || canvas.h !== ILLUSTRATION_SIZE;
 		if (asset?.group === 'landmark') {
 			checkLandmarkPicture(id, canvas);
+		} else if (asset?.group === 'capital-relief') {
+			checkCapitalRelief(id, canvas);
 		} else if (asset?.kind === 'illustration' && wrongSize) {
 			throw new Error(
 				`${id}: an illustration must be ${ILLUSTRATION_SIZE}×${ILLUSTRATION_SIZE}, not ${canvas.w}×${canvas.h}`

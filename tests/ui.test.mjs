@@ -1,7 +1,7 @@
 // The interface helpers: ids of tracks, resources, terrain and players become references to existing design tokens.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import {
 	TRACKS,
 	RESOURCES,
@@ -44,7 +44,7 @@ test('every seat resolves to its released player-piece SVGs', () => {
 	}
 });
 
-test('capital compositions use released tiles and retain the supplied plot state', () => {
+test('capital compositions use released open tiles; the base biomes have no impassable tiles, as their reliefs draw those plots (#82)', () => {
 	for (const biome of [
 		'mountain',
 		'wetland',
@@ -53,29 +53,30 @@ test('capital compositions use released tiles and retain the supplied plot state
 		'grassland',
 		'forest',
 	]) {
-		for (const blocked of [false, true]) {
-			for (let index = 0; index < 81; index++) {
-				const url = capitalTileUrl(biome, blocked, index, 42);
-				assert.match(
-					url,
-					new RegExp(
-						`/${biome}-${blocked ? 'blocked' : 'open'}-0[1-${blocked ? 6 : 8}]\\.svg$`
-					)
-				);
-				assert.match(
-					readFileSync(
-						new URL(`../static${url}`, import.meta.url),
-						'utf8'
-					),
-					/<svg/
-				);
-				assert.equal(url, capitalTileUrl(biome, blocked, index, 42));
-			}
+		for (let index = 0; index < 81; index++) {
+			const url = capitalTileUrl(biome, false, index, 42);
+			assert.match(url, new RegExp(`/${biome}-open-0[1-8]\\.svg$`));
+			assert.match(
+				readFileSync(
+					new URL(`../static${url}`, import.meta.url),
+					'utf8'
+				),
+				/<svg/
+			);
+			assert.equal(url, capitalTileUrl(biome, false, index, 42));
+		}
+		for (let variant = 1; variant <= 6; variant++) {
+			const file = `../static/art/capital-terrain/${biome}-blocked-0${variant}.svg`;
+			assert.equal(
+				existsSync(new URL(file, import.meta.url)),
+				false,
+				file
+			);
 		}
 	}
 	assert.notEqual(
-		capitalTileUrl('wetland', true, 0, 42),
-		capitalTileUrl('wetland', true, 0, 43)
+		capitalTileUrl('wetland', false, 0, 42),
+		capitalTileUrl('wetland', false, 0, 43)
 	);
 });
 

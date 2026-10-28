@@ -216,9 +216,9 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 
 **Built in #27 (2026-10-27): the player area and the players overview.**
 
-![The player area with the Capital tab](screens/game-player-area.png)
+![The player area with the Capital tab: Teodor's Wetland mat with its relief (#82) and an Architects' cube on the top-left plot](screens/game-player-area.png)
 
-![The players overview](screens/game-overview.png)
+![The players overview, with Mira's Desert capital opened on the right](screens/game-overview.png)
 
 - **The tabs** are the mockup's: Capital (the seat's real mat and plots, landmarks over the edge allowed, the counters, and what lies beside the mat), Hand (the tapestry cards overlapping; hovering shows one in full over the shared area), Income (the four rows, covered spaces with their building, exposed ones with their reward in words), Eras (the four slots, a face-down card shown as such, the active card in full), Civ (the reviewed card for the twelve base civilizations with a recipe, a plain portrait card for the other four until #47), Tech (the three rows and the display with the deck count) and Terrain (territory tiles drawn like the map's, and space tiles).
 - **Real cards:** the tech and tapestry cards are built from the engine's data through `describe.js`; no text is invented. Lazar's fixtures stay for the library and the card review.
@@ -227,7 +227,7 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 
 **Built in #28 (2026-10-27): the decision prompts.**
 
-![Choosing a capital: each mat as its 9×9 grid](screens/game-prompt-capital-mat.png)
+![Choosing a capital: the Mountain and Forest mats as their 9×9 grids, each with its relief, the Mountain chosen](screens/game-prompt-capital-mat.png)
 
 ![Choosing a civilization: the cards whole](screens/game-prompt-civ.png)
 
@@ -298,6 +298,15 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **The board and the players:** **M** goes to the World Map and back; **1–5** open the players overview on that player's capital, the same key closes it; holding **Tab** shows the log and scores until it is let go (a tap still moves the focus); **L** opens or closes them.
 - **Your player area:** **Q W E R T Y U** are Capital, Hand, Income, Eras, Civ, Tech and Terrain. **,** and **.** turn an explore's tile or a landmark being placed, since R is now the Eras tab. **H** and **K** open How to play and its Keyboard shortcuts tab.
 - No key acts while typing in a field, with Ctrl, Alt or Cmd held, in a menu or over How to play; an action key does nothing unless its action is available (`src/lib/hotkeys.js`).
+
+**Built in #82 (2026-10-28): the joined terrain of the base mats.** The owner set the look over five rounds of sketches and approved all six base mats in the component library on 2026-10-28. The design is `docs/superpowers/specs/2026-10-28-joined-terrain-design.md`. The Capital tab, the players overview and the mats on offer at setup all show it: see the screenshots under #27 and #28 above.
+
+- **One relief per mat.** A mat's impassable plots are one 2.5D picture, `capital-relief/<mat>`, drawn once from its printed layout and laid over the grid: mountains, woods, reed beds round dark pools, jungle, desert buttes or rocky hills. Plots that touch by a side or a corner are one mass, with no line inside it.
+- **Natural ground.** Every plot has a ground tile, picked by the table's seed as before, and the relief lies over the impassable ones.
+- **No red X** and no flat `--chrome` background on impassable plots (owner, 2026-10-28): the art shows which plots they are.
+- **Changes in play.** A building on an impassable plot (Terraforming) clears the relief on that plot. An Architects' cube is a small piece, `piece/architects-cube`, on its plot's ground.
+- **The grid's gap** is 1/296 of its width, so the plots line up with the relief's pixels.
+- The expansion mats keep their impassable tiles until #132 and #133 draw their reliefs.
 
 ### Three horizontal bands
 
@@ -375,7 +384,7 @@ No costs are really paid and no VP totals are persisted. The chained example pla
 
 The capital is always **9×9**. Its title is Atkinson with only the mat type, such as Mountain, in Cinzel. There is no separate legend or second city grid. Three equal-width completion counters sit beneath the grid with a gap equal to their mutual gaps; together they span the grid width. Use horizontal-line, vertical-line and square symbols for rows, columns and districts. Do not add the heading “Completed”.
 
-- The Mountain example uses the canonical 9×9 passable/impassable mask from `src/lib/engine/data/capitals.js`. Each plot uses a deterministic mix of the native Mountain open or blocked terrain tiles. Impassable plots retain a small, thick red X. District boundaries are thin dashed overlays between 3×3 districts; they do not recolour the ordinary plot borders.
+- The Mountain example uses the canonical 9×9 passable/impassable mask from `src/lib/engine/data/capitals.js`. Each plot uses a deterministic mix of the Mountain's ground tiles, and the mat's relief lies over its impassable plots: one 2.5D picture whose peaks join across the grid lines where the plots touch. Impassable plots have no red X (owner, 2026-10-28, #82); the mockup and its screenshots predate this and still show per-plot tiles with red Xs. District boundaries are thin dashed overlays between 3×3 districts; they do not recolour the ordinary plot borders.
 - Completion counts derive from filled rows, columns and nine-plot districts. Hovering a counter adds one flat transparent green rectangle across each whole completed group. It has no border, no glow, and covers all buildings, including a newly locked landmark. Do not highlight each plot as a separate green box.
 - A **To be placed** section appears only when an item is pending. It is full width, outlined to attract attention, and holds the item's Cinzel name. Selecting the item gives it an outline. The name stays in the tray and is not shown over the grid while dragging.
 - The Lighthouse example uses the actual landmark illustration and **four plots, a 2×2 footprint**. The whole piece is draggable. On release, it snaps to a legal position; it cannot enlarge or wrap the grid. It can be moved again before confirmation.
@@ -405,7 +414,7 @@ Each card contains, in order:
 
 Civilization/era, Capital and Tech summary rows are clickable examples. Hand size, resource amounts and track summaries are not clickable. A selected row gets a whole-row gray background without moving its text, expanding the card or keeping an internal border around letters. Hide the usual row-bottom separator while that row is selected.
 
-The right region initially says **Waiting for overview** at its centre. Ana's Capital row is the developed drill-down: it shows a second 9×9 capital with the same sizing, red Xs and completion-counter layout as the ordinary right-panel Capital tab. Its example filled rows, columns and districts can be inspected by hover or toggled by click. Other clickable rows only demonstrate selection and retain the waiting panel; do not treat them as completed views. Opponents' hands remain private and show counts only.
+The right region initially says **Waiting for overview** at its centre. Ana's Capital row is the developed drill-down: it shows a second 9×9 capital with the same sizing, relief and completion-counter layout as the ordinary right-panel Capital tab. The mockup's screenshot below predates the relief (#82) and still shows red Xs. Its example filled rows, columns and districts can be inspected by hover or toggled by click. Other clickable rows only demonstrate selection and retain the waiting panel; do not treat them as completed views. Opponents' hands remain private and show counts only.
 
 ![Inspecting Ana's capital](screens/opponent-capital.png)
 

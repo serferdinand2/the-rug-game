@@ -2,7 +2,7 @@
 
 The interface components, built from the phase-one mockups in `docs/ui/`. Every one of them is shown in all its states on the component library page, `/components.html` (#48). Run `npm run dev` and open <http://127.0.0.1:5173/components.html>.
 
-The same page has an **Art** area: every scene part and every asset in the catalog, drawn or still to draw, drawn live from the art toolkit.
+The same page has an **Art** area: every scene part and every asset in the catalog, drawn or still to draw, drawn live from the art toolkit as each tile comes into view.
 
 Add a row here, and a section in `src/library/sections/<area>/<Name>.svelte`, in the same change that adds a component. `tests/library.test.mjs` checks the section and the structure rules in [docs/conventions.md](../../../docs/conventions.md).
 
@@ -69,7 +69,7 @@ These components are updated as the art issues deliver their assets. Each will s
 
 | Component | Purpose |
 |---|---|
-| `CapitalGrid` | The 9×9 capital: plots, impassable Xs, districts, completion overlays, placed landmarks (a locked one may hang over the edge, R106, and `room` keeps space for it) and their drag, keyboard and drop handling, and a decision's lit `targets` (green-outlined plot buttons) with a faint `preview` of the chosen building; a `fresh` plot glows once (#29). |
+| `CapitalGrid` | The 9×9 capital: each plot's ground tile, the mat's relief drawn over its impassable plots where the biome has one, with a building on a printed impassable plot clearing it, and Architects' cubes (#82); districts, completion overlays, placed landmarks (a locked one may hang over the edge, R106, and `room` keeps space for it) and their drag, keyboard and drop handling, and a decision's lit `targets` (green-outlined plot buttons) with a faint `preview` of the chosen building; a `fresh` plot glows once (#29). |
 | `CompletionCounters` | Completed rows, columns and districts; hover or focus previews, a press keeps them shown. |
 | `LandmarkPiece` | A landmark's picture in its footprint's shape, in the tray or on the grid, with rotate, confirm and return. |
 | `PlacementTray` | The To be placed tray: select, drag or arrow a landmark onto the grid, or drop one back. |

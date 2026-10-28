@@ -136,10 +136,11 @@ The design document has the details. In short:
 
 Rulings the owner made along the way. Each issue's design document records its own; these apply across issues.
 
-- The six full capital mat SVGs are examples only. Actual capital mats must be generated from the reusable terrain tiles for each game, following the game setup and the rules-defined plot layout.
+- The full capital mat SVGs are examples only. A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82).
 - **Decided 2026-10-28:**
   - Every decision prompt opens at the centre of the tracks (the shared area), not of the screen, with any shelf of cards above it as one stack. Only a choice on the map, while the Map view shows, docks at the right (owner, #79).
   - The app is for private use: build no screen-reader support (aria-label wording, live regions, visually hidden text) and ask nothing about it. Skip those parts of issues and leave the labels already built as they are (owner). This overrides the conventions' aria-label rules.
+  - Impassable plots that touch, by a side or a corner, are drawn as one 2.5D mass that shows its biome, such as one mountain range or one forest, and grows out of the ground. A corner-only join may reach into the corners of the two buildable plots beside it. The red X on impassable plots goes (owner, #82).
 - **Decided 2026-10-27:**
   - Lazar's mockups decide the look and the owner's design decides what works, where they collide; the client is designed for our own API (owner, #25).
   - Readiness is informational: the host may start without it (owner, #25).

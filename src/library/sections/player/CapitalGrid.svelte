@@ -1,4 +1,4 @@
-<!-- Library section: CapitalGrid with the mockups' capitals, lit target plots with a previewed farm, completed groups, placed, locked and overhanging landmarks with room kept for them, and the interactive Lighthouse placement. -->
+<!-- Library section: CapitalGrid on the real Mountain and Forest mats, with their reliefs, lit target plots with a previewed farm, an Architects' cube and a terraformed plot, completed groups, placed, locked and overhanging landmarks with room kept for them, and the interactive Lighthouse placement. -->
 <script>
 	import CapitalGrid from '../../../lib/components/player/CapitalGrid.svelte';
 	import CompletionCounters from '../../../lib/components/player/CompletionCounters.svelte';
@@ -7,6 +7,7 @@
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
 	import { FOOTPRINTS } from '../../../lib/art/footprints.js';
+	import { matPlots } from '../../../lib/area/capital.js';
 	import { completionCounts, snapPiece } from '../../../lib/placement.js';
 
 	/** @typedef {import('../../../lib/capital.js').PlotKind} PlotKind */
@@ -14,66 +15,73 @@
 	/** @typedef {import('../../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
 	/**
-	 * A capital from impassable plots and buildings.
-	 * @param {number[]} blocked
+	 * A capital mat with buildings on it.
+	 * @param {number} mat - The mat's number: 1 is Mountain, 6 is Forest
 	 * @param {Record<number, PlotKind>} buildings
 	 * @returns {PlotKind[]}
 	 */
-	const capital = (blocked, buildings) =>
-		Array.from({ length: 81 }, (_, index) =>
-			blocked.includes(index) ? 'blocked' : (buildings[index] ?? 'empty')
+	const capital = (mat, buildings) =>
+		matPlots(mat).map((kind, index) => buildings[index] ?? kind);
+
+	/**
+	 * Every open plot of a capital, as a gained building's targets.
+	 * @param {PlotKind[]} plots
+	 */
+	const openPlots = (plots) =>
+		plots.flatMap((kind, index) =>
+			kind === 'empty'
+				? [{ row: Math.floor(index / 9), col: index % 9 }]
+				: []
 		);
 
-	/** Your capital in the main-screen mockup (a review fixture, not the researched Mountain mat). */
-	const BLOCKED = [
-		0, 1, 2, 8, 9, 17, 27, 35, 36, 44, 45, 53, 71, 72, 73, 79, 80,
-	];
-	/** @type {Record<number, PlotKind>} */
+	/**
+	 * Your capital's buildings, on the Mountain mat's open plots.
+	 * @type {Record<number, PlotKind>}
+	 */
 	const BUILDINGS = {
-		12: 'market',
+		11: 'market',
 		18: 'house',
+		24: 'landmark',
+		25: 'landmark',
 		29: 'armory',
-		32: 'landmark',
-		33: 'landmark',
 		38: 'farm',
-		48: 'market',
-		58: 'house',
-		67: 'farm',
+		45: 'market',
+		57: 'house',
+		64: 'farm',
 	};
-	const YOURS = capital(BLOCKED, BUILDINGS);
-	/** Every open plot of your capital, as a gained building's targets. */
-	const OPEN = YOURS.flatMap((kind, index) =>
-		kind === 'empty' ? [{ row: Math.floor(index / 9), col: index % 9 }] : []
-	);
-	/** Your capital with rows 0 and 1 and the top middle district built up, so locking the Lighthouse at row 0, column 4 completes them. */
-	const NEARLY = capital(BLOCKED, {
+	const YOURS = capital(1, BUILDINGS);
+	const OPEN = openPlots(YOURS);
+	/** Your capital with rows 0 and 1 and the top middle district built up, so locking the Lighthouse at row 0, column 3 completes them. */
+	const NEARLY = capital(1, {
 		...BUILDINGS,
-		3: 'house',
+		0: 'farm',
+		1: 'house',
+		2: 'armory',
+		5: 'market',
 		6: 'farm',
-		7: 'market',
-		10: 'farm',
-		11: 'house',
-		15: 'armory',
-		16: 'market',
-		21: 'farm',
-		22: 'house',
-		23: 'market',
+		7: 'house',
+		8: 'market',
+		17: 'armory',
 	});
 
-	/** Ana's capital in the players overview mockup. */
+	/** Ana's capital on the Mountain mat: row 0, columns 0, 5 and 7, and the top left and centre districts are complete. */
 	const ANA_FILLED = [
-		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 18, 19, 20, 27, 28, 29, 36, 45,
-		54, 63, 72, 14, 23, 32, 41, 50, 59, 68, 77, 16, 25, 34, 43, 52, 61, 70,
-		79, 5, 22, 39, 56, 73,
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 18, 19, 20, 27, 36, 45, 54, 63, 72, 50,
+		59, 68, 77, 25, 43, 52, 61, 79, 39, 40, 49, 73,
 	];
 	/** @type {PlotKind[]} */
 	const KINDS = ['house', 'farm', 'market', 'landmark'];
 	const ANA = capital(
-		[4, 22, 40, 58, 76],
+		1,
 		Object.fromEntries(
 			ANA_FILLED.map((index) => [index, KINDS[(index * 7 + 3) % 4]])
 		)
 	);
+
+	/** The Forest mat with a farm on plot 26 (row 2, column 8), beside the corner join at row 2, column 7. */
+	const FOREST = capital(6, { 26: 'farm' });
+	const FOREST_MAT = matPlots(6);
+	const FOREST_OPEN = openPlots(FOREST_MAT);
 
 	const LIGHTHOUSE = {
 		id: 'lighthouse',
@@ -100,8 +108,9 @@
 	let selected = $state(true);
 	let dragging = $state(false);
 	let hovered = $state(/** @type {GroupKind | null} */ (null));
-	/* The targets example: where the farm is previewed. */
-	let farm = $state({ row: 4, col: 5 });
+	/* The targets examples: where each farm is previewed. */
+	let farm = $state({ row: 4, col: 4 });
+	let forestFarm = $state({ row: 4, col: 4 });
 	let toggled = $state(/** @type {GroupKind | null} */ (null));
 
 	let pieces = $derived(
@@ -148,14 +157,40 @@
 <Section
 	name="CapitalGrid"
 	area="player"
-	description="A 9×9 capital assembled from the approved terrain tiles, with the four income-building SVGs, small red Xs on impassable plots and district lines. The supplied visual seed chooses repeatable variants for this game; the plot mask stays unchanged. The six full mat images in Art are reference examples only. Landmarks and placement controls work over the composed tiles. A locked landmark may hang over the edge (R106): it is drawn past the grid, and only its plots on the grid count.">
+	description="A 9×9 capital: each plot's ground tile from the supplied biome and visual seed, the mat's relief drawn over its impassable plots (every base mat has one; the expansion mats' come with #132 and #133), the four income-building SVGs, the Architects' cubes and the district lines. A building on a printed impassable plot clears the relief there. The six full mat images in Art are reference examples only. Landmarks and placement controls work over the relief. A locked landmark may hang over the edge (R106): it is drawn past the grid, and only its plots on the grid count.">
 	<Example
-		label={'biome="wetland" terrainSeed={42} · same plot layout, composed from tile SVGs'}
+		label={"plots={mountainMat + cube on plot 0, farm on plot 9}  (an Architects' cube on an open plot; the farm on printed impassable plot 9 clears the relief there)"}
+		width={468}>
+		<CapitalGrid plots={capital(1, { 0: 'blocked', 9: 'farm' })} />
+	</Example>
+	<Example
+		label={'biome="forest" plots={forestMat + farm on plot 26}  (beside the corner join at row 2, column 7: the farm draws over the relief)'}
 		width={468}>
 		<CapitalGrid
-			plots={YOURS}
-			biome="wetland"
-			terrainSeed={42} />
+			plots={FOREST}
+			biome="forest" />
+	</Example>
+	<Example
+		label={`biome="forest" targets={forestOpen} preview={{ row: ${forestFarm.row}, col: ${forestFarm.col}, building: 'farm' }}
+Plot 26, beside the corner join at row 2, column 7, still takes the click.`}
+		width={468}>
+		<CapitalGrid
+			plots={FOREST_MAT}
+			biome="forest"
+			targets={FOREST_OPEN}
+			preview={{ ...forestFarm, building: 'farm' }}
+			label="Your capital city, 9 by 9 plots"
+			onCapitalGridPlotClick={(/** @type {ComponentEvent} */ event) => {
+				if (
+					FOREST_OPEN.some(
+						(plot) =>
+							plot.row === event.value.row &&
+							plot.col === event.value.col
+					)
+				) {
+					forestFarm = { row: event.value.row, col: event.value.col };
+				}
+			}} />
 	</Example>
 	<Example
 		label={`Interactive: PlacementTray + CapitalGrid + CompletionCounters
@@ -276,7 +311,7 @@ Click a lit plot, or press Enter or Space on it, to preview the farm there.`}
 		width={468}>
 		<CapitalGrid
 			plots={YOURS}
-			pieces={[{ ...LIGHTHOUSE, row: 4, col: 4 }]}
+			pieces={[{ ...LIGHTHOUSE, row: 6, col: 5 }]}
 			awaitingPlacement />
 	</Example>
 	<Example
@@ -285,7 +320,7 @@ Click a lit plot, or press Enter or Space on it, to preview the farm there.`}
 		<CapitalGrid
 			plots={YOURS}
 			pieces={[
-				{ ...LIGHTHOUSE, row: 6, col: 1, locked: true, fresh: true },
+				{ ...LIGHTHOUSE, row: 3, col: 0, locked: true, fresh: true },
 			]} />
 	</Example>
 	<Example
@@ -300,11 +335,14 @@ Click a lit plot, or press Enter or Space on it, to preview the farm there.`}
 		width={468}>
 		<!-- room keeps space below the grid for the plot that hangs over its edge. -->
 		<CapitalGrid
-			plots={capital(BLOCKED, {
+			plots={capital(1, {
 				...BUILDINGS,
-				74: 'farm',
-				75: 'house',
-				78: 'market',
+				72: 'farm',
+				73: 'house',
+				75: 'market',
+				78: 'armory',
+				79: 'house',
+				80: 'farm',
 			})}
 			pieces={[{ ...LIGHTHOUSE, row: 8, col: 4, locked: true }]}
 			highlight="rows"
@@ -319,26 +357,28 @@ Click a lit plot, or press Enter or Space on it, to preview the farm there.`}
 			room />
 	</Example>
 	<Example
-		label={'pieces={[Rubber Works, rotation 3, placed]} awaitingPlacement'}
+		label={'pieces={[Rubber Works, rotation 2, placed]} awaitingPlacement'}
 		width={468}>
 		<CapitalGrid
 			plots={YOURS}
-			pieces={[{ ...RUBBER_WORKS, row: 4, col: 4, rotation: 3 }]}
+			pieces={[{ ...RUBBER_WORKS, row: 5, col: 4, rotation: 2 }]}
 			awaitingPlacement />
 	</Example>
 	<Example
 		label={'pieces={[Rubber Works, locked]} highlight="rows"  (locked pieces count towards completed groups)'}
 		width={468}>
 		<CapitalGrid
-			plots={capital(BLOCKED, {
-				28: 'house',
-				29: 'armory',
-				34: 'farm',
-				37: 'farm',
-				38: 'market',
-				43: 'house',
+			plots={capital(1, {
+				63: 'house',
+				64: 'armory',
+				65: 'farm',
+				71: 'farm',
+				72: 'market',
+				73: 'house',
+				79: 'house',
+				80: 'armory',
 			})}
-			pieces={[{ ...RUBBER_WORKS, row: 1, col: 3, locked: true }]}
+			pieces={[{ ...RUBBER_WORKS, row: 5, col: 3, locked: true }]}
 			highlight="rows" />
 	</Example>
 </Section>
