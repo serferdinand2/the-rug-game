@@ -20,76 +20,13 @@
 
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
-	import { RESOURCES, trackColor } from '../../ui.js';
-
-	/** @typedef {import('../../ui.js').CostSymbol} CostSymbol */
+	import { priceWords } from '../../describe.js';
+	import { trackColor } from '../../ui.js';
 
 	/** @type {CostBoxProps} */
 	let { symbols, track, label = 'Cost', ...attr } = $props();
 
-	const NUMBERS = [
-		'zero',
-		'one',
-		'two',
-		'three',
-		'four',
-		'five',
-		'six',
-		'seven',
-		'eight',
-		'nine',
-		'ten',
-	];
-
-	let description = $derived(`${label}: ${describe(symbols)}`);
-
-	/**
-	 * The price in words, such as 'one food and one resource of any type'.
-	 * @param {CostSymbol[]} price
-	 * @returns {string}
-	 */
-	function describe(price) {
-		/** @type {{ symbol: CostSymbol, count: number }[]} */
-		const groups = [];
-		for (const symbol of price) {
-			const group = groups.find((item) => item.symbol === symbol);
-			if (group) {
-				group.count += 1;
-			} else {
-				groups.push({ symbol, count: 1 });
-			}
-		}
-		const parts = groups.map(({ symbol, count }) => amount(symbol, count));
-		if (parts.length === 0) {
-			return 'free';
-		}
-		if (parts.length === 1) {
-			return parts[0];
-		}
-		return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
-	}
-
-	/**
-	 * One kind of resource in words, such as 'two coins'.
-	 * @param {CostSymbol} symbol
-	 * @param {number} count
-	 * @returns {string}
-	 */
-	function amount(symbol, count) {
-		const number = NUMBERS[count] ?? String(count);
-		if (symbol === 'any') {
-			return `${number} ${count === 1 ? 'resource' : 'resources'} of any type`;
-		}
-		const name = (
-			RESOURCES.find((resource) => resource.id === symbol)?.name ?? symbol
-		).toLowerCase();
-		// Food and culture are uncountable; coins and workers take a plural.
-		const plural =
-			count !== 1 && (symbol === 'coin' || symbol === 'worker')
-				? 's'
-				: '';
-		return `${number} ${name}${plural}`;
-	}
+	let description = $derived(`${label}: ${priceWords(symbols)}`);
 </script>
 
 <span
