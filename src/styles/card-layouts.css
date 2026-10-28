@@ -20,10 +20,10 @@
 }
 .rg-tech-layout {
 	width: 425px;
-	min-height: 286px;
+	min-height: 298px;
 	padding: 0 10px;
 	display: grid;
-	grid-template-rows: 40px 174px 38px 30px;
+	grid-template-rows: 40px 174px 50px 30px;
 }
 .rg-tech-layout__band,
 .rg-tapestry-layout__band {
@@ -119,6 +119,7 @@
 	align-items: center;
 	justify-content: flex-end;
 	gap: 6px;
+	padding-bottom: 12px;
 }
 .rg-tech-layout__condition {
 	min-height: 32px;
@@ -297,7 +298,7 @@
 .rg-card-scale {
 	/* The page sets the frame's size and scale; these are a Technology card at full size. */
 	--card-width: 425px;
-	--card-height: 286px;
+	--card-height: 298px;
 	--card-scale: 1;
 	position: relative;
 	display: block;

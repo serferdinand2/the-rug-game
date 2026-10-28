@@ -47,7 +47,7 @@
 	 * as their 9×9 grid (#56); each sizes its own button, so the gold outline fits it.
 	 */
 	const SCALED = {
-		tech: { width: 425, height: 286, scale: 0.65 },
+		tech: { width: 425, height: 298, scale: 0.65 },
 	};
 
 	/** A civilization card's width; its height is its own. */

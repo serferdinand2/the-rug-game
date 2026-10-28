@@ -65,6 +65,15 @@
 		<TechnologyCard data={techCardData(slug)} />
 	{:else if asset.group === 'tapestry' && tapestryIds.has(slug)}
 		<TapestryCard data={tapestryCardData(slug)} />
+	{:else if asset.group === 'tapestry'}
+		<TapestryCard
+			data={{
+				title: asset.name,
+				art: slug,
+				timing: '',
+				copy: 'Rules text pending',
+				edition,
+			}} />
 	{:else if asset.group === 'masterpiece'}
 		<MasterpieceCard
 			title={asset.name}
