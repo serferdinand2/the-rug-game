@@ -4,6 +4,9 @@ import assert from 'node:assert/strict';
 import { CAPITAL_MATS } from '../src/lib/engine/data/capitals.js';
 import { CAPITAL_GRIDS } from '../tools/art/parts/capital-terrain.js';
 import { reliefSize } from '../src/lib/art/relief.js';
+import { createCanvas, toSvg } from '../tools/art/painter.js';
+import { PALETTE } from '../tools/art/palette.js';
+import { drawNaturalGround } from '../tools/art/parts/capital-relief/ground.js';
 import {
 	footprint,
 	impassableGroups,
@@ -102,4 +105,54 @@ test('the toolkit reads the base layouts from the engine', () => {
 	}
 	assert.deepEqual(reliefSize(9, 9), { w: 296, h: 296 });
 	assert.deepEqual(reliefSize(11, 9), { w: 296, h: 362 });
+});
+
+/**
+ * Draws one natural-ground plot on its own canvas.
+ * @param {'mountain' | 'forest'} biome
+ * @param {number} variant
+ */
+function plot(biome, variant) {
+	const canvas = createCanvas(32, 32);
+	drawNaturalGround(canvas, { biome, variant });
+	return canvas;
+}
+
+test('the natural ground fills its plot deterministically in palette colours', () => {
+	const colours = new Set(Object.values(PALETTE));
+	for (const biome of ['mountain', 'forest']) {
+		for (let variant = 0; variant < 8; variant++) {
+			const a = plot(biome, variant);
+			assert.ok(
+				a.p.every((c) => c !== null),
+				`${biome} ${variant}`
+			);
+			assert.ok(
+				a.p.every((c) => colours.has(c)),
+				`${biome} ${variant}`
+			);
+			assert.deepEqual(a, plot(biome, variant));
+		}
+	}
+});
+
+test('the natural ground paints at an offset and stays inside its plot', () => {
+	const canvas = createCanvas(40, 40);
+	drawNaturalGround(canvas, { biome: 'forest', variant: 3, x: 4, y: 5 });
+	for (let y = 0; y < 40; y++) {
+		for (let x = 0; x < 40; x++) {
+			const inPlot = x >= 4 && x < 36 && y >= 5 && y < 37;
+			assert.equal(canvas.p[y * 40 + x] !== null, inPlot, `${x},${y}`);
+		}
+	}
+});
+
+test('its eight variants differ', () => {
+	for (const biome of ['mountain', 'forest']) {
+		const svgs = new Set();
+		for (let variant = 0; variant < 8; variant++) {
+			svgs.add(toSvg(plot(biome, variant)));
+		}
+		assert.equal(svgs.size, 8, biome);
+	}
 });
