@@ -3,7 +3,7 @@ import { INCOME_STEPS, INCOME_STEP_KINDS } from './engine/game.js';
 import { TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
 import { decisionTitle, describeAnswer } from './describe.js';
-import { pickModel, tradeOffers } from './picks.js';
+import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 /** @typedef {import('./ui.js').CostSymbol} CostSymbol */
@@ -651,5 +651,131 @@ export function promptFor(decision, game, seat) {
 		options,
 		picks: pickModel(decision, game, seat),
 		trade: tradeOffers(decision, game, seat),
+	};
+}
+
+/**
+ * What the viewer has chosen so far in the open decision's panel (#79), as the prompt state derives it.
+ * @typedef {Object} PanelChoice
+ * @property {number | null} picked - The answer chosen in the panel, on the shelf, on the map or on the capital
+ * @property {import('./picks.js').PickModel | null} pick - The pick on show (#75): the prompt's own, or a chosen trade offer's
+ * @property {{ text: string, warn: boolean } | null} pickStatus - What the picks so far say (picks.js pickStatus)
+ * @property {number} pickIndex - The answer the picks so far match, or -1
+ * @property {boolean} offering - A trade's offers are on show, none chosen yet: its first step
+ * @property {boolean} offered - A trade's offer is chosen: its second step
+ * @property {number} tradeAnswer - A chosen offer with nothing to pick: its one answer, or -1
+ * @property {number} decline - The answer that declines the pick or the trade, or -1
+ * @property {boolean} exploring - The decision is an explore (#74), whose chosen line is pinned instead
+ * @property {boolean} docked - The panel is docked beside the map
+ * @property {string | null} hex - The hex chosen on the map
+ * @property {boolean} options - The panel lists options of its own
+ * @property {boolean} sending - A move is being sent
+ */
+
+/**
+ * The decision panel's words and buttons.
+ * @typedef {Object} PanelControls
+ * @property {string} status - The line beside the buttons: what is chosen, or what is missing
+ * @property {boolean} warn - The status line is a warning, such as resources lost to the cap
+ * @property {string} confirmLabel
+ * @property {boolean} confirmDisabled
+ * @property {string | undefined} cancelLabel - Left out, there is no cancel button
+ * @property {'back' | 'decline' | 'clear' | null} cancel - What cancel does: a trade's offers again, decline, or another territory
+ * @property {'pick' | 'answer'} confirm - What Confirm sends: the answer the picks match, or the picked answer
+ * @property {boolean} content - The panel has a content area; without one its status line carries the instruction (#57)
+ */
+
+/**
+ * The open decision's panel (#79): its status line, its buttons and what they do, for what the viewer has chosen.
+ * @param {Pick<Prompt, 'instruction' | 'confirmLabel' | 'options' | 'cost'>} prompt
+ * @param {PanelChoice} choice
+ * @returns {PanelControls}
+ */
+export function panelControls(prompt, choice) {
+	const { pick, picked, tradeAnswer, sending } = choice;
+	const label = (/** @type {number} */ index) =>
+		prompt.options[index]?.label ?? '';
+	/** @type {string} */
+	let status = prompt.instruction;
+	if (choice.pickStatus) {
+		status = choice.pickStatus.text;
+	} else if (choice.offering) {
+		status = 'Choose a trade.';
+	} else if (tradeAnswer !== -1) {
+		status = label(tradeAnswer);
+	} else if (choice.exploring) {
+		status = '';
+	} else if (picked !== null) {
+		status = label(picked);
+	}
+	/** @type {string} */
+	let confirmLabel = prompt.confirmLabel;
+	if (pick?.items) {
+		const { count, kind } = pick.items;
+		const noun = kind === 'territory' ? 'tile' : 'card';
+		confirmLabel = `Pay ${count} ${noun}${count > 1 ? 's' : ''}`;
+	} else if (pick || tradeAnswer !== -1) {
+		confirmLabel = 'Confirm';
+	}
+	/** @type {boolean} */
+	let confirmDisabled = picked === null || sending;
+	if (pick) {
+		confirmDisabled = choice.pickIndex === -1 || sending;
+	} else if (choice.offering) {
+		confirmDisabled = true;
+	} else if (tradeAnswer !== -1) {
+		confirmDisabled = sending;
+	}
+	/** @type {PanelControls['cancel']} */
+	let cancel = null;
+	if (choice.offered) {
+		cancel = 'back';
+	} else if ((pick || choice.offering) && choice.decline >= 0) {
+		cancel = 'decline';
+	} else if (choice.docked && choice.hex && !choice.exploring) {
+		cancel = 'clear';
+	}
+	return {
+		status,
+		warn: choice.pickStatus?.warn ?? false,
+		confirmLabel,
+		confirmDisabled,
+		cancelLabel: cancel ? CANCEL_LABELS[cancel] : undefined,
+		cancel,
+		confirm: pick || tradeAnswer !== -1 ? 'pick' : 'answer',
+		content:
+			choice.exploring ||
+			Boolean(pick) ||
+			choice.offering ||
+			tradeAnswer !== -1 ||
+			Boolean(prompt.cost) ||
+			choice.options,
+	};
+}
+
+/** The cancel button's words for what it does. */
+const CANCEL_LABELS = Object.freeze({
+	back: 'Back',
+	decline: 'Decline',
+	clear: 'Choose another territory',
+});
+
+/**
+ * The panel for an advance's payment when it has a choice (#75): what is still missing, and Advance once the
+ * resources picked match one of the payments.
+ * @param {import('./picks.js').PickModel} model - advanceModel() of the selected advance
+ * @param {import('./picks.js').Selection} selection
+ * @param {Partial<Record<import('./picks.js').ResourceId, number>>} held
+ * @param {boolean} sending
+ * @returns {Omit<PanelControls, 'cancel' | 'confirm' | 'content'>}
+ */
+export function paymentControls(model, selection, held, sending) {
+	const { text, warn } = pickStatus(model, selection, held);
+	return {
+		status: text,
+		warn,
+		confirmLabel: 'Advance',
+		confirmDisabled: matchIndex(model, selection) === -1 || sending,
+		cancelLabel: 'Cancel',
 	};
 }
