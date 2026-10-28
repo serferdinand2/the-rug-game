@@ -1,8 +1,9 @@
-<!-- Library section: PlayerChip for each seat, as the current player, and filled while the players overview is open. -->
+<!-- Library section: PlayerChip for each seat, as the current player, filled while the players overview is open, and with its civilization's ability on hover (#42). -->
 <script>
 	import PlayerChip from '../../../lib/components/player/PlayerChip.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
+	import { civAbilityText } from '../../../lib/civ-rules.js';
 
 	/** @type {{ name: string, civilization: string, vp: number, seat: import('../../../lib/ui.js').Seat }[]} */
 	const PLAYERS = [
@@ -44,6 +45,13 @@
 				current={player.seat === 1} />
 		</Example>
 	{/each}
+	<Example
+		label={"ability={civAbilityText('militants', 'current')}  (hover: the tooltip reads the civilization's full ability; #42)"}
+		surface="chrome">
+		<PlayerChip
+			{...PLAYERS[1]}
+			ability={civAbilityText('militants', 'current') ?? undefined} />
+	</Example>
 	<Example
 		label={'seat={1} current filled'}
 		surface="chrome">

@@ -4,7 +4,6 @@
 	 * Properties of the Game screen itself.
 	 * @typedef {Object} GameOwnProps
 	 * @property {import('../lib/game.svelte.js').GameStore} store - Its room holds the game on show
-	 * @property {Function} [onGameHelp] - Callback fired when How to play is chosen
 	 * @property {Function} [onGameResults] - Callback fired when Results is chosen, once the game is over (#29)
 	 */
 
@@ -13,7 +12,7 @@
 	 * @typedef {GameOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} GameProps
 	 *
 	 * @example
-	 * <Game {store} onGameHelp={() => (helpOpen = true)} />
+	 * <Game {store} onGameResults={() => (reviewing = false)} />
 	 */
 </script>
 
@@ -43,6 +42,9 @@
 	import PlayersOverview from './game/PlayersOverview.svelte';
 	import LogPanel from './game/LogPanel.svelte';
 	import TableSettings from './game/TableSettings.svelte';
+	import RulesPanel from './game/RulesPanel.svelte';
+	import { civAbilityText } from '../lib/civ-rules.js';
+	import { RULES_HELP } from '../lib/rules-help.js';
 	import { eventText } from '../lib/log.js';
 	import { highlights } from '../lib/motion.js';
 	import { isHost } from '../lib/lobby.js';
@@ -105,7 +107,7 @@
 	/** @typedef {import('../lib/ui.js').TrackId} TrackId */
 
 	/** @type {GameProps} */
-	let { store, onGameHelp, onGameResults, ...attr } = $props();
+	let { store, onGameResults, ...attr } = $props();
 
 	let room = $derived(store.room);
 	let game = $derived(room.game);
@@ -152,6 +154,9 @@
 	let logUnread = $state(false);
 	/** The host's table settings during a game (#29 design §9). */
 	let settingsOpen = $state(false);
+	/** How to play (#42): open, and the tab on show, a rules section or the keyboard shortcuts. */
+	let rulesOpen = $state(false);
+	let rulesTab = $state(RULES_HELP[0].id);
 
 	/** @type {import('../lib/motion.js').Highlights} */
 	const STILL = { hexes: [], plots: [], landmarks: [], vp: [] };
@@ -911,8 +916,13 @@
 			logOpen = false;
 			overviewOpen = false;
 			settingsOpen = true;
-		} else if (typeof onGameHelp === 'function') {
-			onGameHelp(event);
+		} else if (event.value === 'help' || event.value === 'keys') {
+			// How to play opens alone too, on the rules or on the keyboard shortcuts (#42).
+			logOpen = false;
+			overviewOpen = false;
+			settingsOpen = false;
+			rulesTab = event.value === 'keys' ? 'keys' : RULES_HELP[0].id;
+			rulesOpen = true;
 		}
 	};
 
@@ -1129,6 +1139,7 @@
 		sound={store.sound}
 		items={[
 			{ id: 'help', label: 'How to play' },
+			{ id: 'keys', label: 'Keyboard shortcuts' },
 			...(isHost(room)
 				? [{ id: 'settings', label: 'Table settings' }]
 				: []),
@@ -1149,6 +1160,10 @@
 					current={game.current === player.seat}
 					filled={overviewOpen}
 					bump={moved.vp.includes(player.seat)}
+					ability={player.civs.length
+						? (civAbilityText(player.civs[0], game.version) ??
+							undefined)
+						: undefined}
 					onPlayerChipClick={() => (overviewOpen = !overviewOpen)} />
 			{/each}
 		{/snippet}
@@ -1384,6 +1399,11 @@
 			<TableSettings
 				{store}
 				onTableSettingsClose={() => (settingsOpen = false)} />
+		{/if}
+		{#if rulesOpen}
+			<RulesPanel
+				bind:tab={rulesTab}
+				onRulesPanelClose={() => (rulesOpen = false)} />
 		{/if}
 	</div>
 

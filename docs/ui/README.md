@@ -267,6 +267,16 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **A turn with only income to take** says "You can't pay for any advance, so take an income turn." with what this income turn does, and a gold **Take income** where **Advance** sits; the left-side income reveal is gone, and selecting a track space keeps this footer.
 - **The income words** name the eras: "End era I, gain income and begin era II." up to era IV, and "End era IV, score it and finish playing." before income turn 5.
 
+**Built in #42 (2026-10-28): How to play in the game, and the keyboard shortcuts.** The owner asked for the shortcuts in the menu, then for #42 with them. The design is `docs/superpowers/specs/2026-10-28-how-to-play-design.md`.
+
+![How to play: the rules, one tab per part of the game](screens/game-how-to-play.png)
+
+![How to play: the keyboard shortcuts](screens/game-keyboard-shortcuts.png)
+
+- **How to play** in the game's header menu opens `RulesPanel`, a modal like the lobby's How to play (Close, Escape or the backdrop close it): a tab row of the rules (`src/lib/rules-help.js`: Your turn, Advancing on a track, Income turns, Your capital city, The map, Achievements and the end), written from `docs/research/` in our own words with every number exact, and a last **Keyboard shortcuts** tab. Before a game, How to play is still the table steps.
+- **Keyboard shortcuts** is its own menu entry and opens the panel on that tab: every key the game answers to, each drawn as a key (`src/lib/shortcuts.js`).
+- **A player's chip** carries their civilization's full ability in its tooltip, in the table's version, with the current rules' adjustment where it applies (`src/lib/civ-rules.js`, the 16 base civilizations; an expansion adds its own).
+
 ### Three horizontal bands
 
 Use a compact, full-width **header**, **middle play area**, and **turn footer**. Header and footer have the same short height, approximately 58px in the reference, and the same dark gray background. There are no outer side borders. The middle uses mid-gray pixel-textured surfaces, divided **3/4 shared area to 1/4 player area**.

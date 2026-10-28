@@ -10,6 +10,7 @@
 	 * @property {boolean} [current=false] - It is this player's turn: the green glow and an outline in their colour
 	 * @property {boolean} [filled=false] - The players overview is open: the colour slides across the chip and its text hides, at the same size
 	 * @property {boolean} [bump=false] - Their VP just rose (#29): the score pops once in gold, unless the system asks for reduced motion
+	 * @property {string} [ability] - The civilization's full ability, which hovering the chip shows after its name (#42)
 	 * @property {Function} [onPlayerChipClick] - Callback fired when the chip is pressed, to open or close the players overview
 	 */
 
@@ -43,6 +44,7 @@
 		current = false,
 		filled = false,
 		bump = false,
+		ability,
 		onPlayerChipClick,
 		...attr
 	} = $props();
@@ -50,6 +52,7 @@
 	let label = $derived(
 		`${name}, ${civilization}, ${vp} VP${current ? ', current player' : ''}`
 	);
+	let tooltip = $derived(ability ? `${label}\n\n${ability}` : label);
 
 	/**
 	 * @param {MouseEvent} event
@@ -68,7 +71,7 @@
 <button
 	type="button"
 	aria-label={label}
-	title={label}
+	title={tooltip}
 	aria-expanded={filled}
 	{...attr}
 	class="rg-player-chip {attr.class ? attr.class : ''}"

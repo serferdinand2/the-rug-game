@@ -156,7 +156,6 @@
 	{:else if store.room && store.room.phase !== 'lobby'}
 		<Game
 			{store}
-			onGameHelp={() => (helpOpen = true)}
 			onGameResults={() => (reviewing = false)} />
 	{:else}
 		<PageHeader
