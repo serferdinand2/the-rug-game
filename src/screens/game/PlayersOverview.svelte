@@ -52,23 +52,17 @@
 	);
 	/** @type {'rows' | 'columns' | 'districts' | null} */
 	let highlight = $state(null);
-
-	/** @type {HTMLDivElement | undefined} */
-	let element = $state();
-	// Opening the overview takes the focus to its first card (#27 review).
-	$effect(() => {
-		element?.querySelector('button')?.focus();
-	});
 </script>
 
 <div
-	bind:this={element}
 	{...attr}
 	class="rg-players-overview {attr.class ? attr.class : ''}">
 	<div class="rg-players-overview--cards">
-		{#each cards as card (card.seat)}
+		{#each cards as card, index (card.seat)}
+			<!-- Opening the overview takes the focus to its first card (#27 review). -->
 			<PlayerCard
 				{...card}
+				autofocus={index === 0}
 				selected={open?.seat === card.seat ? open.row : null}
 				onPlayerCardSelect={(/** @type {ComponentEvent} */ event) => {
 					open =

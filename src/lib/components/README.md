@@ -72,7 +72,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `PlacementTray` | The To be placed tray: select, drag or arrow a landmark onto the grid, or drop one back. |
 | `EraSlots` | The four era slots: printed Maker of Fire, then each top tapestry card, "Face-down card" or "Not yet chosen"; the active era is outlined and a card can be chosen (#27). |
 | `IncomeMat` | The income mat: four building rows of six spaces, covered ones showing the building, exposed ones their name and reward in words (#27). |
-| `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows. |
+| `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows; with `autofocus`, its first row takes the focus as it is drawn (#91). |
 | `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. 210px wide, shrinking to 120px; below 190px it drops the civilization name. `bump` pops the VP once when it rises (#29). |
 | `ResourceChip` | A resource symbol and its count. |
 | `SelfSummary` | Your overview at the foot of the player area: name, era, VP, hand, tech, territory and capital-line counts, and the four resources (#26). `changed` draws gold the counts a prompt's choices so far change (#75). |

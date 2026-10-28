@@ -19,6 +19,7 @@
 	 * @property {number} tech - How many tech cards they have
 	 * @property {string[]} [terrain=[]] - Terrain names, such as ['Mountain', 'Forest']
 	 * @property {PlayerCardRow | null} [selected=null] - The summary row whose detail is open
+	 * @property {boolean} [autofocus=false] - The civilization row, the card's first control, takes the focus once, as the card is drawn
 	 * @property {Function} [onPlayerCardSelect] - Callback fired with the row id when a summary row is pressed
 	 */
 
@@ -73,9 +74,23 @@
 		tech,
 		terrain = [],
 		selected = null,
+		autofocus = false,
 		onPlayerCardSelect,
 		...attr
 	} = $props();
+
+	/** @type {HTMLButtonElement | undefined} */
+	let civilizationButton = $state();
+	/** Whether the autofocus has been given, so it is given only once. */
+	let focused = false;
+
+	// An autofocus card gives its first row the focus once it is drawn, as the players overview opens (#27 review).
+	$effect(() => {
+		if (autofocus && civilizationButton && !focused) {
+			focused = true;
+			civilizationButton.focus();
+		}
+	});
 
 	/**
 	 * @param {MouseEvent} event
@@ -122,6 +137,7 @@
 	</div>
 
 	<button
+		bind:this={civilizationButton}
 		type="button"
 		class="rg-player-card--civilization rg-player-card--selectable"
 		class:rg-player-card--selected={selected === 'civilization'}
