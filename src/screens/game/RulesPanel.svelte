@@ -8,7 +8,7 @@
 	 */
 
 	/**
-	 * Properties for RulesPanel, including any attributes for its root element.
+	 * Properties for RulesPanel, including any attributes for its root element, Dialog's scrim.
 	 * @typedef {RulesPanelOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} RulesPanelProps
 	 *
 	 * @example
@@ -17,7 +17,7 @@
 </script>
 
 <script>
-	import Button from '../../lib/components/ui/Button.svelte';
+	import Dialog from '../../lib/components/ui/Dialog.svelte';
 	import Tabs from '../../lib/components/ui/Tabs.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { RULES_HELP } from '../../lib/rules-help.js';
@@ -43,145 +43,78 @@
 
 	let section = $derived(RULES_HELP.find((s) => s.id === tab) ?? null);
 
-	/** @type {HTMLElement | undefined} */
-	let dialog = $state();
-
 	/**
-	 * @param {Event} event
+	 * Close, Escape or the backdrop closed the dialog.
+	 * @param {ComponentEvent} event
 	 */
-	function close(event) {
+	const dialogCloseHandler = (event) => {
 		if (typeof onRulesPanelClose === 'function') {
 			onRulesPanelClose(
-				new ComponentEvent(
-					null,
-					/** @type {HTMLElement} */ (dialog),
-					event
-				)
+				new ComponentEvent(null, event.target, event.originalEvent)
 			);
-		}
-	}
-
-	/**
-	 * @param {KeyboardEvent} event
-	 */
-	const windowKeydownHandler = (event) => {
-		if (event.key === 'Escape') {
-			close(event);
-		}
-	};
-
-	/**
-	 * @param {MouseEvent} event
-	 */
-	const backdropClickHandler = (event) => {
-		if (event.target === event.currentTarget) {
-			close(event);
 		}
 	};
 </script>
 
-<svelte:window onkeydown={windowKeydownHandler} />
-
-<!-- The backdrop only closes on a pointer click; Escape and Close serve the keyboard. -->
-<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-<div
+<Dialog
 	{...attr}
 	class="rg-rules-panel {attr.class ? attr.class : ''}"
-	onclick={backdropClickHandler}>
-	<div
-		bind:this={dialog}
-		class="rg-rules-panel--dialog"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="rg-rules-panel-title">
-		<h2
-			id="rg-rules-panel-title"
-			class="rg-rules-panel--title">
-			How to play
-		</h2>
-		<!-- The tab on show takes the focus, so the arrow keys move between the tabs at once. -->
-		<Tabs
-			class="rg-rules-panel--tabs"
-			panelClass="rg-rules-panel--body"
-			{tabs}
-			bind:value={tab}
-			label="How to play"
-			autofocus>
-			{#if section}
-				{#each section.blocks as block, index (index)}
-					{#if 'list' in block}
-						<ul class="rg-rules-panel--list">
-							{#each block.list as item, at (at)}
-								<li>{item}</li>
-							{/each}
-						</ul>
-					{:else}
-						<p class="rg-rules-panel--text">{block.text}</p>
-					{/if}
-				{/each}
-			{:else}
-				{#each SHORTCUTS as group (group.title)}
-					<h3 class="rg-rules-panel--group">{group.title}</h3>
-					<dl class="rg-rules-panel--keys">
-						{#each group.shortcuts as shortcut (shortcut.action)}
-							<dt>
-								{#each shortcut.keys as combo, at (at)}
-									{#if at > 0}<span class="rg-rules-panel--or"
-											>or</span
-										>{/if}
-									{#each combo as key, k (k)}
-										{#if k > 0}<span
-												class="rg-rules-panel--plus"
-												>+</span
-											>{/if}<kbd>{key}</kbd>
-									{/each}
-								{/each}
-							</dt>
-							<dd>{shortcut.action}</dd>
+	title="How to play"
+	size="wide"
+	onDialogClose={dialogCloseHandler}>
+	<!-- The tab on show takes the focus, so the arrow keys move between the tabs at once. -->
+	<Tabs
+		class="rg-rules-panel--tabs"
+		panelClass="rg-rules-panel--body"
+		{tabs}
+		bind:value={tab}
+		label="How to play"
+		autofocus>
+		{#if section}
+			{#each section.blocks as block, index (index)}
+				{#if 'list' in block}
+					<ul class="rg-rules-panel--list">
+						{#each block.list as item, at (at)}
+							<li>{item}</li>
 						{/each}
-					</dl>
-				{/each}
-			{/if}
-		</Tabs>
-		<div class="rg-rules-panel--actions">
-			<Button
-				mode="gold"
-				onButtonClick={(/** @type {any} */ event) =>
-					close(event.originalEvent)}>Close</Button>
-		</div>
-	</div>
-</div>
+					</ul>
+				{:else}
+					<p class="rg-rules-panel--text">{block.text}</p>
+				{/if}
+			{/each}
+		{:else}
+			{#each SHORTCUTS as group (group.title)}
+				<h3 class="rg-rules-panel--group">{group.title}</h3>
+				<dl class="rg-rules-panel--keys">
+					{#each group.shortcuts as shortcut (shortcut.action)}
+						<dt>
+							{#each shortcut.keys as combo, at (at)}
+								{#if at > 0}<span class="rg-rules-panel--or"
+										>or</span
+									>{/if}
+								{#each combo as key, k (k)}
+									{#if k > 0}<span
+											class="rg-rules-panel--plus">+</span
+										>{/if}<kbd>{key}</kbd>
+								{/each}
+							{/each}
+						</dt>
+						<dd>{shortcut.action}</dd>
+					{/each}
+				</dl>
+			{/each}
+		{/if}
+	</Tabs>
+</Dialog>
 
 <style>
-	.rg-rules-panel {
-		position: fixed;
-		inset: 0;
-		z-index: var(--layer-popover);
-		display: grid;
-		place-items: center;
-		background: color-mix(in srgb, var(--ink) 70%, transparent);
+	/* Tabs' row and panel, inside Dialog, reached through their class props: the row keeps its height, and the panel
+	   scrolls when the screen is short. */
+	:global(.rg-rules-panel .rg-rules-panel--tabs) {
+		flex: none;
 	}
 
-	.rg-rules-panel--dialog {
-		display: grid;
-		grid-template-rows: auto auto minmax(0, 1fr) auto;
-		width: min(1000px, calc(100vw - 2 * var(--space-10)));
-		max-height: calc(100vh - 2 * var(--space-10));
-		padding: var(--space-10);
-		border: var(--border) solid var(--line-soft);
-		border-radius: var(--radius);
-		background: var(--chrome);
-		box-shadow: var(--shadow-float);
-	}
-
-	.rg-rules-panel--title {
-		margin: 0 0 var(--space-6);
-		font: var(--weight-bold) var(--font-size-xl) / var(--leading-tight)
-			var(--font-body);
-	}
-
-	/* Tabs' panel, reached through its panelClass prop. */
-	.rg-rules-panel :global(.rg-rules-panel--body) {
+	:global(.rg-rules-panel .rg-rules-panel--body) {
 		min-height: 320px;
 		margin-top: var(--space-6);
 		padding-right: var(--space-4);
@@ -249,11 +182,5 @@
 	.rg-rules-panel--plus {
 		color: var(--muted);
 		font-size: var(--font-size-xs);
-	}
-
-	.rg-rules-panel--actions {
-		display: flex;
-		justify-content: flex-end;
-		margin-top: var(--space-9);
 	}
 </style>
