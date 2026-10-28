@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landmark cards · layout review</title>
+<style>
+@font-face{font-family:Atkinson;src:url('../../static/fonts/atkinson-hyperlegible-regular.woff2')}@font-face{font-family:Atkinson;src:url('../../static/fonts/atkinson-hyperlegible-bold.woff2');font-weight:700}@font-face{font-family:Cinzel;src:url('../../static/fonts/cinzel.woff2')}
+:root{font-family:Atkinson,sans-serif;color:#e8ddc4;background:#171a1d}*{box-sizing:border-box}body{margin:0}header.page{padding:24px clamp(20px,4vw,56px);border-bottom:1px solid #596166;background:#202529}header.page h1{font:700 clamp(25px,3vw,36px)/1.2 Cinzel,serif;color:#e2b857;margin:0 0 8px}header.page p{margin:0;color:#b9af9b;font-size:15px;line-height:1.4}main{max-width:1750px;margin:auto;padding:16px clamp(20px,4vw,56px) 56px}h2{font:700 24px/1.25 Cinzel,serif;color:#e8ddc4;margin:30px 0 18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(319px,1fr));align-items:start;gap:24px 20px}.card{width:319px;min-height:463px;color:#3c3021;background:#e8d6ad url('assets/card-paper-noise.svg') repeat;border:2px solid #735934;box-shadow:0 10px 26px rgb(0 0 0 / 40%),inset 0 0 0 1px #f0e2bf;display:flex;flex-direction:column}.band{min-height:54px;display:flex;align-items:center;padding:7px 12px;background-image:url('assets/card-paper-noise.svg'),linear-gradient(90deg,#5c3e1f,#987a51 57%,#cbb58c);border-bottom:1px solid #735934}.band h3{font:700 21px/1.05 Cinzel,serif;letter-spacing:.015em;color:#e2b857;text-shadow:0 1px #3c3021;margin:0}.art{display:block;width:184px;height:184px;object-fit:contain;image-rendering:pixelated;margin:17px auto 15px;box-shadow:0 0 0 1px #94764c,0 0 0 3px #3c3021}.condition{margin:0 12px 10px;padding:11px 12px;min-height:100px;background:#f0e2bf;border:1px solid #b59a70}.condition small{display:block;text-transform:uppercase;letter-spacing:.05em;color:#756447;font:700 11px/1.1 Atkinson,sans-serif;margin-bottom:7px}.condition p{font:700 16px/1.27 Atkinson,sans-serif;margin:0}.foot{margin-top:auto;padding:8px 12px;display:flex;justify-content:space-between;align-items:end;gap:12px;border-top:1px solid #94764c}.edition{display:inline-block;border:1px solid;padding:3px 6px;white-space:nowrap;font:700 10px/1.1 Atkinson,sans-serif;letter-spacing:.025em}.pp{color:#315f48;border-color:#7e9f86;background:#dbe3ce}.aa{color:#70491f;border-color:#bd9155;background:#e9d7b5}.footprint{display:grid;gap:2px;grid-template-columns:repeat(var(--cols),13px);grid-template-rows:repeat(var(--rows),13px)}.plot{width:13px;height:13px;background:#a38d6b;border:1px solid #735934}.plot.empty{background:transparent;border-color:transparent}.shape{display:grid;gap:3px;text-align:right}.shape-label{font:700 10px/1 Atkinson,sans-serif;text-transform:uppercase;letter-spacing:.04em;color:#756447}.note{max-width:65ch;font-size:13px;line-height:1.4;color:#b9af9b;margin:26px 0 0}@media(max-width:740px){.grid{justify-items:center}.card{max-width:100%}}
+</style>
+<style>
+.visual{display:grid;grid-template-columns:184px minmax(0,1fr);align-items:center;gap:13px;margin:17px 12px 15px;min-height:184px}
+.visual .art{margin:0}
+.visual .shape{justify-items:center;text-align:center;align-self:center;gap:9px}
+.visual .shape-label{max-width:78px;line-height:1.2}
+.foot{min-height:38px;align-items:center}
+.visual{grid-template-columns:184px minmax(0,1fr);gap:12px;margin-left:12px;margin-right:12px}
+.visual .shape{width:100%;place-items:center}
+.footprint{gap:2px;grid-template-columns:repeat(var(--cols),20px);grid-template-rows:repeat(var(--rows),20px)}
+.plot{width:20px;height:20px;border-width:2px}
+.condition{padding-left:8px;padding-right:8px}
+.condition small{text-transform:uppercase;letter-spacing:0;white-space:nowrap;font-size:10px}
+.condition p{font-weight:400}
+.condition p{font-size:15px;line-height:1.42}
+.band{min-height:49px}
+.comparison{margin-top:36px;border-top:1px solid #596166;padding-top:4px}
+.comparison-frame{display:block;width:425px;max-width:100%;height:860px;border:0;background:transparent}
+.comparison p{font-size:13px;color:#b9af9b;margin:0 0 16px}
+</style>
+</head>
+<body>
+<header class="page"><h1>Landmark cards</h1><p>Ten personal achievements · proposed card layout using our established card materials and artwork</p></header>
+<main>
+  <section><h2>Plans &amp; Ploys</h2><div class="grid" id="pp"></div></section>
+  <section><h2>Arts &amp; Architecture</h2><div class="grid" id="aa"></div></section>
+  <section class="comparison"><h2>Civilization card for comparison</h2><p>Collectors · the established 425px civilization layout</p><iframe class="comparison-frame" title="Collectors civilization card" src="http://127.0.0.1:5173/docs/ui/collectors-review.html?embed=collectors"></iframe></section>
+  <p class="note">Layout review: the square diagram shows the landmark’s capital footprint. The condition is checked at the end of your turn.</p>
+</main>
+<script>
+const cards=[
+  {id:'digital-studio',name:'Digital Studio',set:'pp',condition:'Have at least 2 complete districts in your capital city.',shape:['XXX','XXX']},
+  {id:'game-store',name:'Game Store',set:'pp',condition:'Have at least 1 tech card in your top row.',shape:['XXX','XXX']},
+  {id:'skyscraper',name:'Skyscraper',set:'pp',condition:'Have at least 1 complete row or column in your capital city.',shape:['XXX','XXX','XXX']},
+  {id:'tv-station',name:'TV Station',set:'pp',condition:'Have at least 3 income buildings of the same type in your capital city.',shape:['.XX','XXX','XXX']},
+  {id:'urban-farm',name:'Urban Farm',set:'pp',condition:'Have at least 6 territory tiles in your supply.',shape:['.XX','XXX','XXX']},
+  {id:'birdwatching-perch',name:'Birdwatching Perch',set:'aa',condition:'Have invented at least 3 tech cards.',shape:['.XXX','XXX.']},
+  {id:'bridge',name:'Bridge',set:'aa',condition:'Control 3 territories adjacent to your starting territory.',shape:['.XX.','XXXX','.XX.']},
+  {id:'castle',name:'Castle',set:'aa',condition:'Move into a tier whose corresponding landmark has already been taken.',shape:['.XXX','XXXX','.XXX','.XX.']},
+  {id:'villa',name:'Villa',set:'aa',condition:'Have at least 3 different types of income buildings in your capital city.',shape:['X..','XXX','XXX']},
+  {id:'windmill',name:'Windmill',set:'aa',condition:'Reach tier II or higher on at least 2 advancement tracks.',shape:['XXXX','.XX.']}
+];
+for(const card of cards){
+  const article=document.createElement('article');article.className='card';article.setAttribute('aria-label',card.name+' landmark card');
+  const shape=card.shape.flatMap(row=>[...row].map(cell=>`<span class="plot${cell==='.'?' empty':''}"></span>`)).join('');
+  article.innerHTML=`<div class="band"><h3>${card.name}</h3></div><div class="visual"><img class="art" src="../../static/art/landmark-card/${card.id}.svg" alt="${card.name} artwork"><div class="shape"><div class="footprint" style="--cols:${card.shape[0].length};--rows:${card.shape.length}" aria-label="Capital footprint: ${card.shape.join(' / ')}">${shape}</div></div></div><div class="condition"><small>End of your turn · gain this landmark when you</small><p>${card.condition}</p></div><div class="foot"><span class="edition ${card.set}">${card.set==='pp'?'Plans &amp; Ploys':'Arts &amp; Architecture'}</span></div>`;
+  document.getElementById(card.set).append(article);
+}
+</script>
+</body>
+</html>
