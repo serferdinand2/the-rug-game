@@ -25,6 +25,7 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
 - **Next:**
   - #77 (the first turn takes income by itself) is built; it closes once the owner has looked at its IncomeNotice and TurnBar sections in the component library.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
+  - #83 (the game's hotkeys) is built; it closes once the owner has looked at the new TurnBar states in the component library.
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - The cosmetic boards wait in #51 until the core features are done.
@@ -53,6 +54,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#61 (the dice tray)](#61-the-dice-tray)
 - [#77 (the first turn takes income by itself)](#77-the-first-turn-takes-income-by-itself)
 - [#42 (How to play in the game)](#42-how-to-play-in-the-game)
+- [#83 (the game's hotkeys)](#83-the-games-hotkeys)
 
 ## Issues
 
@@ -486,6 +488,14 @@ Built on 2026-10-28, ahead of M10, because the owner asked while #77 was finishi
   - Calls to revisit: the chip's ability is the native tooltip, as the track spaces' words are; a section stays near 200 words, so the finer FAQ points (R108's finished defender, an explore with no tile, the landmark heights in the tiebreak) are left out rather than said loosely; the civilizations' text follows the engine where the research reads differently (the Heralds' draw stops at a When Played card, the Militants pay on income turns 2–5, the Mystics pay when a count equals the prediction).
   - Tests: `tests/client-rules-help.test.mjs` and `tests/client-civ-rules.test.mjs` check every section and civilization and spot-check their numbers against the engine's data; `tests/client-shortcuts.test.mjs` checks every key the game answers to is listed; `tests/browser/rules-panel.test.mjs` opens both entries from the menu and reads a chip.
   - Handed off: each expansion issue (#32–#41) adds its civilizations to `civ-rules.js` and its rules to `rules-help.js`; the card gallery (#47) already shows the tapestry, tech and space-tile text.
+
+### #83 (the game's hotkeys)
+
+Built on 2026-10-28, filed and specified by the owner in a few messages after #42 ("I tohught somethign more like I for income, 1,2,3 to see different players Q,W,e to toggle between capital hand etc"). The design is `docs/superpowers/specs/2026-10-28-hotkeys-design.md`.
+- Built: `src/lib/hotkeys.js` (`hotkeyAction`, `TRACK_KEYS`: a key and the screen's context to an action), `SHORTCUTS` rewritten as the keymap, and `Game.svelte`'s one key handler with three new states: `incomeAsk` (the footer's "Take an income turn?", which the **Take income** button now opens too), `trackAsk` ("Advance on which track?") and `logPeek` (the log while Tab is held). `PlayersOverview` gains `player`; `LandmarkPiece` and `TurnControl` turn on **.** and **,** instead of R.
+  - Calls to revisit: **M** on the map goes back to the tracks; the track question's numbered buttons work with the mouse too; a track with several tokens advances the most advanced; Enter acts only when no control has the focus (a focused button presses itself); a decision panel's controls don't block the hotkeys, a menu, a modal or a field does; the Tab peek waits 200 ms.
+  - Tests: `tests/client-hotkeys.test.mjs` (every key in each context), `tests/client-shortcuts.test.mjs` (every hotkey is listed), `tests/browser/hotkeys.test.mjs` (a hot-seat game played with the keys: Enter, W, Q, M, 2, a held Tab, A then 1, and I asked, cancelled and taken). `explore-prompt` presses **.** where it pressed R.
+  - Handed off: #35 gives the arts track key **5** in `TRACK_KEYS`.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

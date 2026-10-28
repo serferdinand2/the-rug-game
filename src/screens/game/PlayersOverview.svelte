@@ -7,6 +7,7 @@
 	 * @property {number | null} seat - The viewer's seat
 	 * @property {number | null} host - The host's seat
 	 * @property {string} code - The table code, which seeds the capital's terrain tiles
+	 * @property {number | null} [player=null] - A seat whose capital opens on the right, as the 1 to 5 keys choose it (#83)
 	 */
 
 	/**
@@ -31,7 +32,7 @@
 	/** @typedef {import('../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
 	/** @type {PlayersOverviewProps} */
-	let { game, seat, host, code, ...attr } = $props();
+	let { game, seat, host, code, player = null, ...attr } = $props();
 
 	let cards = $derived(playerCards(game, seat, host));
 	let open = $state(
@@ -39,6 +40,12 @@
 			null
 		)
 	);
+	// A player chosen by the keys opens on their capital, and again whenever another is chosen (#83).
+	$effect(() => {
+		if (player !== null) {
+			open = { seat: player, row: 'capital' };
+		}
+	});
 	let openSeat = $derived(open ? game.seats[open.seat - 1] : null);
 	let capital = $derived(
 		open?.row === 'capital' && openSeat ? capitalView(openSeat, code) : null

@@ -45,6 +45,8 @@
 	import RulesPanel from './game/RulesPanel.svelte';
 	import { civAbilityText } from '../lib/civ-rules.js';
 	import { RULES_HELP } from '../lib/rules-help.js';
+	import { TRACK_KEYS, hotkeyAction } from '../lib/hotkeys.js';
+	import { trackName } from '../lib/describe.js';
 	import { eventText } from '../lib/log.js';
 	import { highlights } from '../lib/motion.js';
 	import { isHost } from '../lib/lobby.js';
@@ -157,6 +159,16 @@
 	/** How to play (#42): open, and the tab on show, a rules section or the keyboard shortcuts. */
 	let rulesOpen = $state(false);
 	let rulesTab = $state(RULES_HELP[0].id);
+	/** The footer asks "Take an income turn?" before taking it, from the button or I (#83, owner). */
+	let incomeAsk = $state(false);
+	/** The footer asks "Advance on which track?" after A, answered by 1 to 4 (#83, owner). */
+	let trackAsk = $state(false);
+	/** The log and scores, shown while Tab is held (#83, owner). */
+	let logPeek = $state(false);
+	/** @type {ReturnType<typeof setTimeout> | undefined} */
+	let peekTimer;
+	/** The player whose capital the overview opens on, from 1 to 5 (#83); null from a chip. */
+	let overviewPlayer = $state(/** @type {number | null} */ (null));
 
 	/** @type {import('../lib/motion.js').Highlights} */
 	const STILL = { hexes: [], plots: [], landmarks: [], vp: [] };
@@ -600,6 +612,8 @@
 	 * @param {ComponentEvent} event
 	 */
 	const trackSelectHandler = (event) => {
+		incomeAsk = false;
+		trackAsk = false;
 		selected = event.value;
 		advanceChoice = { rows: [], items: [] };
 		const option = options.find(
@@ -624,11 +638,48 @@
 		);
 	};
 
-	/** Takes an income turn. */
+	/** Asks "Take an income turn?" in the footer first: income is never taken on one press (#83, owner). */
+	const incomeAskHandler = () => {
+		if (!turnDecision || turnDecision.kind !== 'chooseTurn' || sending) {
+			return;
+		}
+		trackAsk = false;
+		incomeAsk = true;
+	};
+
+	/** The tracks with a space the viewer can pay for, which the track question offers (#83). */
+	let askTracks = $derived([...new Set(options.map((o) => o.track))]);
+
+	/**
+	 * Answers the track question (#83): the token's next space, as a click picks it, then the advance at once unless
+	 * the payment has a choice, which opens its panel. The most advanced token goes when a track has several.
+	 * @param {TrackId} track
+	 */
+	const trackPickHandler = (track) => {
+		const option = options
+			.filter((o) => o.track === track)
+			.sort((a, b) => b.from - a.from)[0];
+		if (!option || sending) {
+			return;
+		}
+		trackSelectHandler(
+			/** @type {ComponentEvent} */ (
+				/** @type {unknown} */ ({
+					value: { track, space: option.to },
+				})
+			)
+		);
+		if (!paying) {
+			advanceHandler();
+		}
+	};
+
+	/** Takes an income turn, once asked. */
 	const incomeHandler = async () => {
 		if (!turnDecision || turnDecision.kind !== 'chooseTurn' || sending) {
 			return;
 		}
+		incomeAsk = false;
 		sending = true;
 		await store.move({ decision: turnDecision.id, turn: 'income' });
 		selected = null;
@@ -931,14 +982,70 @@
 		logUnread = false;
 	};
 
+	/** A question in the footer belongs to the turn choice it was asked on. */
+	$effect(() => {
+		void turnDecision?.id;
+		untrack(() => {
+			incomeAsk = false;
+			trackAsk = false;
+		});
+	});
+
 	/**
-	 * Escape closes the players overview (#27 review). R turns the explore's tile, Shift+R back (#74), unless the
-	 * player is typing, holds a browser shortcut's key, or has something else open over the board.
+	 * Tab held shows the log and scores (#83, owner): the first press moves the focus as usual and starts a short
+	 * wait, the key's repeats don't move it on, and the log shows once the wait is over, until Tab is let go.
+	 * @param {KeyboardEvent} event
+	 */
+	function tabDown(event) {
+		if (
+			event.ctrlKey ||
+			event.altKey ||
+			event.metaKey ||
+			document.querySelector('[aria-modal="true"]')
+		) {
+			return;
+		}
+		if (event.repeat) {
+			event.preventDefault();
+			return;
+		}
+		clearTimeout(peekTimer);
+		if (!logOpen) {
+			peekTimer = setTimeout(() => (logPeek = true), 200);
+		}
+	}
+
+	/** Letting Tab go hides the log it showed. */
+	const keyUpHandler = (/** @type {KeyboardEvent} */ event) => {
+		if (event.key === 'Tab') {
+			clearTimeout(peekTimer);
+			logPeek = false;
+		}
+	};
+
+	const blurHandler = () => {
+		clearTimeout(peekTimer);
+		logPeek = false;
+	};
+	$effect(() => () => clearTimeout(peekTimer));
+
+	/**
+	 * Escape closes the players overview (#27 review), then the notice; every other key is a hotkey (#83) unless the
+	 * player is typing, holds a browser shortcut's key, has a menu, dialog or settings open, or a component took it.
 	 * @param {KeyboardEvent} event
 	 */
 	const keyHandler = (event) => {
+		if (event.key === 'Tab') {
+			tabDown(event);
+			return;
+		}
 		if (event.key === 'Escape' && overviewOpen) {
 			overviewOpen = false;
+			return;
+		}
+		if (event.key === 'Escape' && (incomeAsk || trackAsk)) {
+			incomeAsk = false;
+			trackAsk = false;
 			return;
 		}
 		const target = /** @type {HTMLElement | null} */ (event.target);
@@ -958,25 +1065,117 @@
 			return;
 		}
 		if (
-			(event.key !== 'r' && event.key !== 'R') ||
+			event.defaultPrevented ||
 			event.ctrlKey ||
 			event.altKey ||
 			event.metaKey ||
-			target?.matches?.('input, textarea, select') ||
 			target?.isContentEditable ||
-			overviewOpen ||
+			// A menu, a modal or a field keeps its keys; a decision panel's controls don't, so . still turns a tile.
+			target?.closest?.(
+				'[role="menu"], [aria-modal="true"], input, textarea, select'
+			) ||
 			settingsOpen ||
-			// How to play, opened over the whole screen by App.
+			// How to play, over the whole screen.
 			document.querySelector('[aria-modal="true"]') ||
-			!exploring ||
-			exploreTile === null ||
-			!mapPick
+			// Enter on a control presses that control.
+			(event.key === 'Enter' && target !== document.body)
 		) {
 			return;
 		}
+		const action = hotkeyAction(event.key, {
+			canIncome:
+				turnDecision?.kind === 'chooseTurn' && !noticeOpen && !sending,
+			canAdvance:
+				Boolean(turnDecision) &&
+				askTracks.length > 0 &&
+				!noticeOpen &&
+				!sending,
+			canUndo: Boolean(room.canUndo),
+			confirming: incomeAsk,
+			asking: trackAsk,
+			tracks: askTracks,
+			players: players.length,
+			board,
+			exploring: exploring && exploreTile !== null && Boolean(mapPick),
+		});
+		if (!action) {
+			return;
+		}
 		event.preventDefault();
-		turnTile(event.shiftKey ? -1 : 1);
+		hotkeyHandler(action);
 	};
+
+	/**
+	 * Does what a hotkey asks for (#83).
+	 * @param {import('../lib/hotkeys.js').HotkeyAction} action
+	 */
+	function hotkeyHandler(action) {
+		switch (action.type) {
+			case 'income':
+				incomeAskHandler();
+				break;
+			case 'incomeConfirm':
+				incomeHandler();
+				break;
+			case 'advance':
+				incomeAsk = false;
+				selected = null;
+				paying = false;
+				trackAsk = true;
+				break;
+			case 'track':
+				trackPickHandler(action.track);
+				break;
+			case 'cancel':
+				incomeAsk = false;
+				trackAsk = false;
+				break;
+			case 'confirm': {
+				// The open panel's Confirm (the notice's Got it too), or the footer's Advance for a selected space.
+				const confirm = /** @type {HTMLButtonElement | null} */ (
+					document.querySelector('.rg-decision-panel--confirm')
+				);
+				if (confirm && !confirm.disabled) {
+					confirm.click();
+				} else if (selected && chosenAdvance && !paying) {
+					advanceHandler();
+				}
+				break;
+			}
+			case 'undo':
+				store.undo();
+				break;
+			case 'board':
+				board = action.board;
+				break;
+			case 'tab':
+				tab = action.tab;
+				break;
+			case 'player':
+				if (overviewOpen && overviewPlayer === action.seat) {
+					overviewOpen = false;
+				} else {
+					logOpen = false;
+					settingsOpen = false;
+					overviewPlayer = action.seat;
+					overviewOpen = true;
+				}
+				break;
+			case 'log':
+				logToggleHandler();
+				break;
+			case 'help':
+			case 'keys':
+				logOpen = false;
+				overviewOpen = false;
+				rulesTab = action.type === 'keys' ? 'keys' : RULES_HELP[0].id;
+				rulesOpen = true;
+				break;
+			case 'turn':
+				turnTile(action.step);
+				break;
+		}
+	}
 
 	/** @param {number} seatNumber */
 	function nameOf(seatNumber) {
@@ -986,13 +1185,36 @@
 	let asked = $derived(askedSeats(game));
 </script>
 
-<svelte:window onkeydown={keyHandler} />
+<svelte:window
+	onkeydown={keyHandler}
+	onkeyup={keyUpHandler}
+	onblur={blurHandler} />
 
 {#snippet forcedIncomeAction()}
 	<Button
 		mode="gold"
 		disabled={sending}
+		onButtonClick={incomeAskHandler}>Take income</Button>
+{/snippet}
+
+{#snippet incomeAskActions()}
+	<Button
+		disabled={sending}
+		onButtonClick={() => (incomeAsk = false)}>Cancel</Button>
+	<Button
+		mode="gold"
+		disabled={sending}
 		onButtonClick={incomeHandler}>Take income</Button>
+{/snippet}
+
+{#snippet trackAskActions()}
+	{#each TRACK_KEYS as track, at (track)}
+		<Button
+			disabled={sending || !askTracks.includes(track)}
+			onButtonClick={() => trackPickHandler(track)}
+			>{at + 1} · {trackName(track)}</Button>
+	{/each}
+	<Button onButtonClick={() => (trackAsk = false)}>Cancel</Button>
 {/snippet}
 
 {#snippet incomeSteps()}
@@ -1164,7 +1386,10 @@
 						? (civAbilityText(player.civs[0], game.version) ??
 							undefined)
 						: undefined}
-					onPlayerChipClick={() => (overviewOpen = !overviewOpen)} />
+					onPlayerChipClick={() => {
+						overviewPlayer = null;
+						overviewOpen = !overviewOpen;
+					}} />
 			{/each}
 		{/snippet}
 		{#snippet before()}
@@ -1386,14 +1611,18 @@
 				{game}
 				{seat}
 				host={room.host}
-				code={room.code} />
+				code={room.code}
+				player={overviewPlayer} />
 		{/if}
-		{#if logOpen && !overviewOpen}
+		{#if (logOpen || logPeek) && !overviewOpen}
 			<LogPanel
 				{game}
 				{seat}
 				bind:tab={logTab}
-				onLogPanelClose={() => (logOpen = false)} />
+				onLogPanelClose={() => {
+					logOpen = false;
+					logPeek = false;
+				}} />
 		{/if}
 		{#if settingsOpen}
 			<TableSettings
@@ -1423,6 +1652,18 @@
 						onGameResults?.(event)}>Results</Button>
 			{/snippet}
 		</TurnBar>
+	{:else if turnDecision?.kind === 'chooseTurn' && incomeAsk}
+		<TurnBar
+			tone="neutral"
+			heading="Take an income turn?"
+			detail={incomeDescription}
+			actions={incomeAskActions} />
+	{:else if turnDecision && trackAsk}
+		<TurnBar
+			tone="neutral"
+			heading="Advance on which track?"
+			detail="Press its number, or Esc to go back."
+			actions={trackAskActions} />
 	{:else if turnDecision && onlyIncome}
 		<TurnBar
 			tone="neutral"
@@ -1440,7 +1681,7 @@
 			income={turnDecision.kind === 'chooseTurn' && !noticeOpen
 				? { description: incomeDescription, label: 'Take income' }
 				: null}
-			onTurnBarIncome={incomeHandler}>
+			onTurnBarIncome={incomeAskHandler}>
 			{#snippet actions()}
 				<Button
 					mode="primary"
@@ -1465,7 +1706,7 @@
 			income={turnDecision.kind === 'chooseTurn' && !noticeOpen
 				? { description: incomeDescription, label: 'Take income' }
 				: null}
-			onTurnBarIncome={incomeHandler} />
+			onTurnBarIncome={incomeAskHandler} />
 	{:else if prompt?.income}
 		<TurnBar
 			tone="income"

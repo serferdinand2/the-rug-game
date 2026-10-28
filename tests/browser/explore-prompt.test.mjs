@@ -268,7 +268,7 @@ test('an explore offers every tile, and places the one the player picks in the t
 			'true'
 		);
 		await checkOtherLabel(chosen);
-		await page.keyboard.press('r');
+		await page.keyboard.press('.');
 		const turn = (scores[chosen].orient + 1) % 6;
 		await checkChosenLabel(chosen, turn);
 
@@ -279,7 +279,8 @@ test('an explore offers every tile, and places the one the player picks in the t
 		expect(await hexesUnderPanel(page)).toEqual({ lit: 0, all: 0 });
 		await page.setViewportSize({ width: 1920, height: 1080 });
 
-		// While the explore is being sent, R and the tiles change nothing: the move is held until that is checked.
+		// While the explore is being sent, the full stop and the tiles change nothing: the move is held until that is
+		// checked.
 		/** @type {() => void} */
 		let release = () => {};
 		/** @type {Promise<void>} */
@@ -294,7 +295,7 @@ test('an explore offers every tile, and places the one the player picks in the t
 		const line = (await chosenLine.textContent()) ?? '';
 		await explore.click();
 		await expect(explore).toBeDisabled();
-		await page.keyboard.press('r');
+		await page.keyboard.press('.');
 		await page.getByTestId(`tile-${tiles[0]}`).click();
 		await expect(page.getByTestId(`tile-${chosen}`)).toHaveAttribute(
 			'aria-pressed',
