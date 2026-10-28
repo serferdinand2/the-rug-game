@@ -23,6 +23,7 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
 - **Next:**
+  - #77 (the first turn takes income by itself) is built; it closes once the owner has looked at its IncomeNotice and TurnBar sections in the component library.
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - The cosmetic boards wait in #51 until the core features are done.
@@ -49,6 +50,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#72, #67, #69 and #74 (the owner's M12 issues)](#72-67-69-and-74-the-owners-m12-issues)
 - [#75 (picking several things one by one)](#75-picking-several-things-one-by-one)
 - [#61 (the dice tray)](#61-the-dice-tray)
+- [#77 (the first turn takes income by itself)](#77-the-first-turn-takes-income-by-itself)
 
 ## Issues
 
@@ -466,6 +468,14 @@ Closed on 2026-10-28, when Lazar's branch merged (owner: "close issues that they
 - The merge added what the unit tests ask of every component, which the branch lacked: library sections for `LandmarkCard` and `ScaledTapestryCard`, an `@example` in all three, their rows in `src/lib/components/README.md`, tokens for three hard-coded colours, and the gallery page in `tests/vite-config.test.mjs`.
   - Calls to revisit: landmark cards read "Rules text pending" until the expansions' rules supply their conditions; `LandmarkCard` draws its edition chip in the Arts & Architecture colours, also for the five Plans & Ploys cards; 24 catalog items have no art yet (15 dice faces, 5 game symbols, 4 boards).
   - `tests/browser/card-layouts.test.mjs` checks that card art and edition rules align and that tapestry cards grow with their text.
+
+### #77 (the first turn takes income by itself)
+
+Built on 2026-10-28. The owner changed the issue's brief when asked: "Just make the first income automatic. make sure player knows what's going on. also make sure player knows when there are no more legal moves except to income." The design is `docs/superpowers/specs/2026-10-28-first-income-turn-design.md` and the plan `docs/superpowers/plans/2026-10-28-first-income-turn-issue-77.md`.
+- Built: `startTurn()` (`src/lib/engine/turn.js`) takes income turn 1 itself for a player seat with no income turns: `turnStarted`, `turnChosen` (`income`) and the income steps under the turn's end, with nobody asked. So the move that ends setup runs every seat's income turn 1 in turn order, stopping only where it asks something (the tapestry draft's keep, a civilization's end-of-first-turn rule); `state.turn` counts those turns too. `turnOptions()` and `chooseTurn.check()` lost their first-turn branch. In `src/lib/turn.js`: `incomeWords()`, `forcedIncome()`, `takingTurnWords()` and `firstIncomeNotice()`. The new `IncomeNotice` opens once per seat after its income turn 1; a turn with only income to take has its own footer with a gold **Take income** in the actions; `cueFor()` plays the turn cue only for the batch's last `turnStarted`.
+  - Calls to revisit: the notice is a centred panel over the board with **Got it**, titled "Era I begins", remembered in `sessionStorage`; its holdings follow `describeCost()`'s order (coin, food, worker, culture); a later forced income turn stays a click, since it ends an era; its **Take income** is the outlined `gold` button, as the footer's **Results** is; the waiting footer names any income turn ("Ana is taking income turn 3."); "End era IV, score it and finish playing." before income turn 5.
+  - Tests: `startedGame()` (`tests/helpers/engine.mjs`) answers setup with every seat's `incomeTurns` already 1 unless `keepIncome` is passed, so tests start from what setup gave, as before; `firstIncomeTurn()` runs a seat's income turn 1 again after a `fill`. `tests/browser/first-income.test.mjs` plays a hot-seat setup and sees each player's notice once. `pick-prompts` closes the notice as it takes the screen, and its several-resources test now reads the answer's own `resourcesGained`, since an income step's gains could follow in the same move.
+  - Handed off: #31 (whether the Automa and the Shadow Empire take an automatic income turn 1; `startTurn()` only does it for player seats), #62 (the first turn has no **End turn** moment), #71 (the footer's heading and detail wording agree with these states).
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

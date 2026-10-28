@@ -256,6 +256,17 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **The capital:** a building's open plots are lit on the Capital tab and a click previews it there; a landmark comes from the tray, snaps only to the engine's legal places, turns with R, and the piece's own lock sends it. Beside the mat and the Craftsmen's columns stay panel choices.
 - **The income turn** is gold, as in the mockup: the panel's title and step strip (Ability, Tapestry, Upgrade, Score, Income, only the steps that turn runs) and the footer's "Your income turn · Income turn n · step".
 
+**Built in #77 (2026-10-28): the first turn takes income by itself.** The owner changed the issue's brief: "Just make the first income automatic. make sure player knows what's going on. also make sure player knows when there are no more legal moves except to income." The design is `docs/superpowers/specs/2026-10-28-first-income-turn-design.md`.
+
+![Era I begins: the notice after income turn 1](screens/game-first-income.png)
+
+![A turn with only income to take: the footer from the component library](screens/game-forced-income.png)
+
+- **Income turn 1 is never asked.** A first turn must be an income turn (01 §4.1), so the engine takes it for every seat in turn order as setup ends. It still stops for whatever that turn asks, such as the tapestry draft's keep, and the gold footer then adds "Every player's first turn is an income turn." While another player's first income asks them something, the waiting footer says "Ana is taking their first income turn." (later: "Ana is taking income turn 3.").
+- **The notice** (`IncomeNotice`) opens once per player, in the gold income panel at the screen's centre, after their income turn 1: **Era I begins**, why nobody asked, "You start with" their resources as chips and their holdings in words, and "From now on, each turn you either advance on a track or take income." **Got it** or Escape closes it. It never opens over a question, and a refresh or the other seat at a hot-seat screen doesn't bring it back (`sessionStorage`, per table and seat).
+- **A turn with only income to take** says "You can't pay for any advance, so take an income turn." with what this income turn does, and a gold **Take income** where **Advance** sits; the left-side income reveal is gone, and selecting a track space keeps this footer.
+- **The income words** name the eras: "End era I, gain income and begin era II." up to era IV, and "End era IV, score it and finish playing." before income turn 5.
+
 ### Three horizontal bands
 
 Use a compact, full-width **header**, **middle play area**, and **turn footer**. Header and footer have the same short height, approximately 58px in the reference, and the same dark gray background. There are no outer side borders. The middle uses mid-gray pixel-textured surfaces, divided **3/4 shared area to 1/4 player area**.

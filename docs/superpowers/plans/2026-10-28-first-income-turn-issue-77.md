@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Follow CONVENTIONS.md: JSDoc, no TypeScript; a one-line comment at the top of each file; braces on every `if`; Prettier (tabs, single quotes); `npm run check` reports 0 errors and 0 warnings.
+- Follow docs/conventions.md, which no agent edits: JSDoc, no TypeScript; a one-line comment at the top of each file; braces on every `if`; Prettier (tabs, single quotes); `npm run check` reports 0 errors and 0 warnings.
 - Game rules stay in `src/lib/engine/`. No `Math.random()`.
 - Components:
   - a `<script module>` with `@typedef`, `@property` and `@example`;
@@ -220,8 +220,8 @@
   - `README.md` ("Current interface");
   - `docs/ui/README.md` and `docs/ui/screens/` (new screenshots from the running game, at 1920×1080: the notice, and the forced footer if reachable, otherwise the library example);
   - `docs/status.md` (#77's entry and its hand-offs to #31, #62 and #71);
-  - `docs/architecture.md` (`startTurn` takes income turn 1);
-  - CLAUDE.md's "Where the work stands", only if the M12 line changes.
+  - `docs/architecture.md` (`startTurn` takes income turn 1).
+- Never CLAUDE.md, which holds no progress (owner, 2026-10-28).
 - GitHub: #77's body.
 
 - [ ] **Step 1: Rewrite #77's body** to the owner's brief, with the github-issue-creator skill's layout. Keep the checklist matching what was built, and tick what's done.
