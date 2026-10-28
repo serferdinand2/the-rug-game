@@ -3,6 +3,8 @@
 	/** How long the dice tumble, and how long they hold their faces, in milliseconds. */
 	export const TUMBLE_MS = 1000;
 	export const HOLD_MS = 1500;
+	/** How long the tray takes to fade out: the --duration-medium token. */
+	export const FADE_MS = 220;
 
 	/**
 	 * Properties of the DiceTray component itself.
@@ -34,6 +36,8 @@
 	/** @type {number | null} The roll on show, by index */
 	let current = $state(null);
 	let rolling = $state(false);
+	/** The tray is fading out after its batch. */
+	let leaving = $state(false);
 	/** Whether a decision panel is open beside the tray, which then rolls at the top of the board, clear of it. */
 	let aside = $state(false);
 	let spoken = $state('');
@@ -50,15 +54,24 @@
 			window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 		);
 
-	/** Ends the batch: the tray goes, and the callback fires. */
+	/** Ends the batch: the tray fades out, then goes, and the callback fires. */
 	function finish() {
 		clearTimeout(timer);
-		const was = current !== null;
-		current = null;
-		rolling = false;
-		if (was && region && typeof onDiceTrayDone === 'function') {
-			onDiceTrayDone(new ComponentEvent(null, region));
+		if (current === null || leaving) {
+			return;
 		}
+		rolling = false;
+		leaving = true;
+		timer = setTimeout(
+			() => {
+				current = null;
+				leaving = false;
+				if (region && typeof onDiceTrayDone === 'function') {
+					onDiceTrayDone(new ComponentEvent(null, region));
+				}
+			},
+			still() ? 0 : FADE_MS
+		);
 	}
 
 	/** Looks for a decision panel among the tray's neighbours (the screen on show, or a library stage). */
@@ -100,6 +113,7 @@
 			return;
 		}
 		clearTimeout(timer);
+		leaving = false;
 		playing = batchRolls;
 		play(0);
 	});
@@ -133,6 +147,7 @@
 		class="rg-dice-tray {attr.class ? attr.class : ''}"
 		class:rg-dice-tray--bust={roll.bust}
 		class:rg-dice-tray--aside={aside}
+		class:rg-dice-tray--leaving={leaving}
 		data-roll={roll.id}
 		onclick={finish}>
 		<div class="rg-dice-tray--dice">
@@ -205,6 +220,17 @@
 		margin: 0;
 		overflow: hidden;
 		clip-path: inset(50%);
+	}
+
+	.rg-dice-tray--leaving {
+		opacity: 0;
+		animation: rg-dice-tray-out var(--duration-medium) var(--ease);
+	}
+
+	@keyframes rg-dice-tray-out {
+		from {
+			opacity: 1;
+		}
 	}
 
 	@keyframes rg-dice-tray-in {
