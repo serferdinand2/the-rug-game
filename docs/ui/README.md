@@ -384,7 +384,7 @@ The following are **not complete** in phase one:
 - Production map exploration/conquest interaction, five-track Arts & Architecture layout, the full right-tab contents and all opponent drill-downs.
 - Full setup for solo play, official bot controls, Automa difficulty, timers and every supported setting combination.
 - End-of-game results, reconnect/away states, table errors, loading, empty states and complete production menu/help.
-- Keyboard alternatives for every pointer/hover interaction, visible focus, proper tab semantics and reduced-motion handling. These remain required by [CONVENTIONS.md](../../CONVENTIONS.md); prototype hover-only controls are not permission to omit them.
+- Keyboard alternatives for every pointer/hover interaction, visible focus, proper tab semantics and reduced-motion handling. These remain required by [docs/conventions.md](../conventions.md); prototype hover-only controls are not permission to omit them.
 - Production wiring for the existing native 24 px and 48 px resource icons. (The unified production fonts and palette are done: `tokens.css` and `base.css`, 2026-10-21.)
 
 The phase-one HTML is the visual and interaction baseline for #25–#30. Complete the missing designs under #3 before treating their layouts or rule settings as approved. Keep #3 open until its remaining checklist is finished; this commit is a **Refs #3** milestone, not a closing fix.

@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Who edits this file
 
-Only Claude edits CLAUDE.md (owner, 2026-10-27). Lazar works with Codex, which follows [AGENTS.md](AGENTS.md): it reads this file but never changes it, and it changes documentation only when asked to.
+Only Claude edits CLAUDE.md (owner, 2026-10-27). Lazar works with Codex, which follows [AGENTS.md](AGENTS.md): it reads this file but never changes it, changes documentation only when asked to, and records every issue it lands in [docs/status.md](docs/status.md).
 
-Keep this file short, because every Claude session and subagent loads all of it. History goes in [docs/status.md](docs/status.md), module detail in [docs/architecture.md](docs/architecture.md), and each issue's decisions in its design document under `docs/superpowers/specs/`. This file keeps what every task needs: what the project is, the commands, a map, the working rules and the decisions already made.
+Keep this file short, because every Claude session and subagent loads all of it. Progress and history go in [docs/status.md](docs/status.md), module detail in [docs/architecture.md](docs/architecture.md), and each issue's decisions in its design document under `docs/superpowers/specs/`. This file keeps what every task needs: what the project is, the commands, a map, the working rules and the decisions already made.
 
 ## What this is
 
@@ -17,7 +17,9 @@ The owner wants it to:
 - look like those games;
 - meet the same goals: online tables, hot-seat play and solo play.
 
-**Before writing any code, read [CONVENTIONS.md](CONVENTIONS.md).** It has the coding conventions: JavaScript with JSDoc (no TypeScript), Svelte 5 component structure, BEM classes with the `rg-` prefix, handler and callback naming, `ComponentEvent`, engine rules, tests and commits. The quick checklist is repeated at the end of this file.
+**Before writing any code, read [docs/conventions.md](docs/conventions.md).** It has the coding conventions: JavaScript with JSDoc (no TypeScript), Svelte 5 component structure, BEM classes with the `rg-` prefix, handler and callback naming, `ComponentEvent`, engine rules, tests and commits. The quick checklist is repeated at the end of this file.
+
+**Never edit docs/conventions.md** (owner, 2026-10-28). No agent changes the conventions, Claude and Codex included, not even when an issue, a plan or another file says to; AGENTS.md tells Codex the same. If a convention looks wrong or missing, tell the owner instead.
 
 `README.md` is the public overview. [docs/superpowers/specs/2026-10-20-the-rug-game-design.md](docs/superpowers/specs/2026-10-20-the-rug-game-design.md) is the full design document: decisions, scope and the 43-issue build plan.
 
@@ -56,17 +58,14 @@ The modules in detail, with the issue that added each, are in [docs/architecture
 - **Look**: `src/styles/tokens.css` is the single source of truth; `base.css` holds the fonts and the page. `static/` is copied into the build as is. `build/` is build output: never edit it.
 - **Art**: `tools/art/` draws the pixel art into `static/art/` (`npm run art`; see `docs/art/README.md`). `src/lib/art/` holds the asset catalog and the landmark footprints, which the engine must reuse.
 - **Tests**: `tests/*.test.mjs` run under Vitest with `node:assert/strict`, helped by `tests/helpers/` (`engine.mjs`, `views.mjs` with `checkViews`, `invariants.mjs` with `checkState`, `simulation.mjs`). `tests/browser/` holds the Playwright tests. A browser test that creates a table must end and leave it, because the server allows 10 open tables per address and a running game stays open for a day.
-- **Docs**: `docs/research/` (the rules sources), `docs/superpowers/specs/` and `plans/` (one design and plan per issue), `docs/ui/` (the interface manifest, mockups and screenshots), `docs/art/` (art notes), `docs/status.md` and `docs/architecture.md`.
+- **Docs**: `docs/research/` (the rules sources), `docs/superpowers/specs/` and `plans/` (one design and plan per issue), `docs/ui/` (the interface manifest, mockups and screenshots), `docs/art/` (art notes), `docs/status.md`, `docs/architecture.md` and `docs/conventions.md`.
 
 ## Where the work stands
 
-The full record is [docs/status.md](docs/status.md): what every issue built, its calls to revisit after playing, and what it handed on. Update it whenever an issue lands or a milestone moves, and keep this summary to a few lines.
+[docs/status.md](docs/status.md) is the only record of progress. Its summary says what is done and what comes next; its entries say what every issue built, its calls to revisit after playing, and what it handed on. GitHub's issues and milestones are the live state.
 
-Updated 2026-10-28.
-
-- M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. Three of their issues are still open: #45 (the owner checks R12 and R39 against the box), #47 (the card gallery) and #73 (a README screenshot).
-- M12 · Cosmetic enhancements: #61, #66, #67, #69, #70, #72, #74 and #75 are done.
-- Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](#working-on-issues) for the order and the blockers.
+- **Never record progress in CLAUDE.md** (owner, 2026-10-28): no issue lists, milestone states or "Updated" dates, from Claude or anyone else.
+- Whenever an issue lands or a milestone moves, update docs/status.md: its summary and the issue's entry. Codex does the same under [AGENTS.md](AGENTS.md) without being asked, so check what it has already recorded.
 
 ## Working on issues
 
@@ -213,7 +212,7 @@ How to read the research:
 
 ## Conventions quick checklist
 
-The full rules, with examples, are in [CONVENTIONS.md](CONVENTIONS.md).
+The full rules, with examples, are in [docs/conventions.md](docs/conventions.md).
 
 - [ ] Prettier formatting (tabs, single quotes), braces on every `if`/`else`, and `npm run check` is clean
 - [ ] The file starts with a one-line comment; exported functions and types have JSDoc; no TypeScript
