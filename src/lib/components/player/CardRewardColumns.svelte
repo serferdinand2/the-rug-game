@@ -19,8 +19,8 @@
 
 <div
 	{...attr}
-	class={kind === 'beside'
+	class="{kind === 'beside'
 		? 'rg-card-craftsmen-columns'
-		: 'rg-card-merry-grid' + ' ' + (attr.class ?? '')}>
+		: 'rg-card-merry-grid'} {attr.class ? attr.class : ''}">
 	{@render children?.()}
 </div>
