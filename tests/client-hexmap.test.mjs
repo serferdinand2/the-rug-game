@@ -255,7 +255,8 @@ test('a toppled outpost keeps toppled, and pieces and tokens are named', () => {
 	hex.outposts.push(
 		{ seat: 1, toppled: true, toppledBy: 2 },
 		{ seat: 2, toppled: false, piece: { building: 'farm' } },
-		{ seat: 2, toppled: true, piece: { landmark: 'lighthouse' } }
+		{ seat: 2, toppled: true, piece: { landmark: 'lighthouse' } },
+		{ seat: 2, toppled: false, piece: { landmark: 'tv-station' } }
 	);
 	hex.tokens.push({ seat: 1, civ: 'traders' });
 	const middle = /** @type {any} */ (
@@ -269,13 +270,18 @@ test('a toppled outpost keeps toppled, and pieces and tokens are named', () => {
 			toppled: true,
 			piece: { kind: 'landmark', id: 'lighthouse' },
 		},
+		{
+			seat: 2,
+			toppled: false,
+			piece: { kind: 'landmark', id: 'tv-station' },
+		},
 	]);
 	assert.deepEqual(middle.tokens, [{ seat: 1, civ: 'traders' }]);
 	assert.equal(
 		middle.label,
 		'Hex 0,0: sea, with an island of desert, forest, grassland and mountain, with clouds. ' +
 			'Ana: 1 toppled outpost, a Traders token. ' +
-			'Bo: a Farm, a toppled Lighthouse.'
+			'Bo: a Farm, a toppled Lighthouse, a TV Station.'
 	);
 });
 

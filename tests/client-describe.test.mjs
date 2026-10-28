@@ -11,6 +11,7 @@ import {
 	describeEffects,
 	describePayment,
 	describeTapestryCard,
+	landmarkName,
 	priceWords,
 	resourceName,
 } from '../src/lib/describe.js';
@@ -26,6 +27,7 @@ import { TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
 import { SPACE_TILES } from '../src/lib/engine/data/space-tiles.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';
 import { RED_DIE, BLACK_DIE } from '../src/lib/engine/data/dice.js';
+import { HEIGHT_RANKING } from '../src/lib/engine/data/landmarks.js';
 import { allOps } from './helpers/views.mjs';
 
 /**
@@ -106,6 +108,15 @@ test('a price reads as its amounts, in the order its symbols first appear (#124)
 		'1 resource of your choice, 2 coins and 1 worker'
 	);
 	assert.equal(priceWords([]), 'nothing');
+});
+
+test('a landmark takes its name from the art catalog, so TV Station keeps its capitals (#84)', () => {
+	assert.equal(landmarkName('tv-station'), 'TV Station');
+	assert.equal(landmarkName('train-station'), 'Train Station');
+	assert.equal(landmarkName('com-tower'), 'Com Tower');
+	for (const id of HEIGHT_RANKING) {
+		assert.match(landmarkName(id), /^[A-Z]/, id);
+	}
 });
 
 test('a benefit reads as a short sentence', () => {

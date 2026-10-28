@@ -8,8 +8,8 @@ import {
 	volcanoCorner,
 } from './art/hex-overlays.js';
 import { MAPS } from './engine/data/maps.js';
-import { LANDMARKS } from './engine/data/landmarks.js';
 import { terrainsOf, turned } from './engine/terrain.js';
+import { landmarkName } from './describe.js';
 
 /** @typedef {[number, number]} Point - x and y, with y pointing down */
 /** @typedef {{ x: number, y: number, width: number, height: number }} Box */
@@ -473,10 +473,7 @@ function hexLabel(key, corners, island, outposts, tokens, nameOf, pictures) {
 /** @param {NonNullable<MapOutpost['piece']>} piece */
 function pieceName(piece) {
 	if (piece.kind === 'landmark') {
-		return (
-			LANDMARKS.find((landmark) => landmark.id === piece.id)?.name ??
-			titleCase(piece.id)
-		);
+		return landmarkName(piece.id);
 	}
 	return titleCase(piece.id);
 }
