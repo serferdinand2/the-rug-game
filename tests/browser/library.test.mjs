@@ -211,3 +211,21 @@ test('two chosen resources are gained, and a resource can be picked with the key
 	await page.keyboard.press('Tab');
 	await expect(pay.getByTestId('row-1-culture')).toBeFocused();
 });
+
+test('the decision panel section shows the four pick prompts the owner approved, and not the list they replace (#75)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const section = page.locator('#decision-panel');
+	for (const name of [
+		'Choose 3 resources',
+		'Advance to Tanks',
+		'Take the bonus: gain 10 VP?',
+		'Choose a trade',
+	]) {
+		await expect(section.getByRole('dialog', { name })).toBeVisible();
+	}
+	await expect(
+		section.getByRole('dialog', { name: 'How do you pay for Ships?' })
+	).toHaveCount(0);
+});

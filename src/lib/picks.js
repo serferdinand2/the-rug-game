@@ -291,6 +291,43 @@ function sideWords(side) {
 }
 
 /**
+ * One side of a trade, short, for its button: "10 VP", "2 resources", "1 worker".
+ * @param {Record<string, any>} side
+ * @returns {string}
+ */
+function shortWords(side) {
+	const parts = amount(side, 'vp') ? [`${amount(side, 'vp')} VP`] : [];
+	const named = namedOf(side, undefined);
+	for (const id of RESOURCE_IDS) {
+		if (named[id]) {
+			parts.push(`${named[id]} ${id}`);
+		}
+	}
+	const any = amount(side, 'any');
+	if (any) {
+		parts.push(`${any} resource${any > 1 ? 's' : ''}`);
+	}
+	return listWords(parts);
+}
+
+/**
+ * A trade offer's pictures, as its button draws them: what it pays, then what it gains.
+ * @param {{ pay: Record<string, number>, gain: { vp?: number, any?: number } }} offer
+ * @returns {import('./prompts.js').Art[]}
+ */
+export function offerArt(offer) {
+	/** @param {Record<string, number | undefined>} side */
+	const art = (side) =>
+		/** @type {import('./prompts.js').Art[]} */ ([
+			...(side.vp ? [{ kind: 'vp', count: side.vp }] : []),
+			...[...RESOURCE_IDS, 'any'].flatMap((id) =>
+				side[id] ? [{ kind: 'resource', id, count: side[id] }] : []
+			),
+		]);
+	return [...art(offer.pay), ...art(offer.gain)];
+}
+
+/**
  * Every mix of `count` resources, as counts.
  * @param {number} count
  * @returns {Partial<Record<ResourceId, number>>[]}
@@ -482,7 +519,7 @@ export function tradeOffers(decision, _game, _seat) {
 				pay,
 				gain,
 				enabled: paying.some((a) => a.offer === i),
-				label: `Pay ${sideWords(pay)} for ${sideWords(gain)}`,
+				label: `${shortWords(pay)} → ${shortWords(gain)}`,
 			};
 		}
 	);

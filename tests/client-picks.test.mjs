@@ -10,6 +10,7 @@ import {
 	canPickItem,
 	emptySelection,
 	matchIndex,
+	offerArt,
 	offerModel,
 	pendingCounts,
 	pickModel,
@@ -531,15 +532,23 @@ test('Guilds offers six trades, the unaffordable ones disabled', () => {
 	assert.deepEqual(
 		offers.map((o) => o.label),
 		[
-			'Pay 5 VP for 1 resource of your choice',
-			'Pay 10 VP for 2 resources of your choice',
-			'Pay 15 VP for 3 resources of your choice',
-			'Pay 1 resource of your choice for 5 VP',
-			'Pay 2 resources of your choice for 10 VP',
-			'Pay 3 resources of your choice for 15 VP',
+			'5 VP → 1 resource',
+			'10 VP → 2 resources',
+			'15 VP → 3 resources',
+			'1 resource → 5 VP',
+			'2 resources → 10 VP',
+			'3 resources → 15 VP',
 		]
 	);
 	assert.deepEqual(offers[1].gain, { any: 2 });
+	assert.deepEqual(offerArt(offers[1]), [
+		{ kind: 'vp', count: 10 },
+		{ kind: 'resource', id: 'any', count: 2 },
+	]);
+	assert.deepEqual(offerArt(offers[3]), [
+		{ kind: 'resource', id: 'any', count: 1 },
+		{ kind: 'vp', count: 5 },
+	]);
 	assert.deepEqual(offers[4].pay, { any: 2 });
 });
 

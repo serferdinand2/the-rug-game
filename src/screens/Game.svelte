@@ -65,6 +65,7 @@
 		canPickItem,
 		emptySelection,
 		matchIndex,
+		offerArt,
 		offerModel,
 		pendingCounts,
 		pickModel,
@@ -746,23 +747,6 @@
 						};
 	};
 
-	/**
-	 * A trade offer's pictures: what it pays, then what it gains.
-	 * @param {{ pay: Record<string, number>, gain: { vp?: number, any?: number } }} offer
-	 * @returns {import('../lib/prompts.js').Art[]}
-	 */
-	function tradeArt(offer) {
-		/** @param {Record<string, number | undefined>} side */
-		const art = (side) =>
-			/** @type {import('../lib/prompts.js').Art[]} */ ([
-				...(side.vp ? [{ kind: 'vp', count: side.vp }] : []),
-				...['coin', 'food', 'worker', 'culture', 'any'].flatMap((id) =>
-					side[id] ? [{ kind: 'resource', id, count: side[id] }] : []
-				),
-			]);
-		return [...art(offer.pay), ...art(offer.gain)];
-	}
-
 	/** Points the pick at the explore's tile, hex and turn, so Confirm sends that answer. */
 	function pickExplore() {
 		const index =
@@ -954,7 +938,7 @@
 			{#each tradeStep as offer (offer.offer)}
 				<DecisionOption
 					label={offer.label}
-					art={tradeArt(offer)}
+					art={offerArt(offer)}
 					disabled={!offer.enabled || sending}
 					onDecisionOptionClick={() => chooseOffer(offer.offer)} />
 			{/each}
