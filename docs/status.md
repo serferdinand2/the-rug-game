@@ -8,7 +8,8 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
 
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
-  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74 and #75 are done.
+  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79 and #80 are done.
+  - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
   - Rules research (`docs/research/`).
@@ -26,6 +27,8 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
   - #77 (the first turn takes income by itself) is built; it closes once the owner has looked at its IncomeNotice and TurnBar sections in the component library.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
   - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
+  - #79 (every decision prompt at the tracks' centre, the prompt out of `Game.svelte`) is done; it merged and closed on 2026-10-28, after the owner's ruling on the library.
+  - #80 is done: its findings are #84 and #86–#131.
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - The cosmetic boards wait in #51 until the core features are done.
@@ -496,6 +499,21 @@ Built on 2026-10-28, filed and specified by the owner in a few messages after #4
   - Calls to revisit: **M** on the map goes back to the tracks; the track question's numbered buttons work with the mouse too; a track with several tokens advances the most advanced; Enter acts only when no control has the focus (a focused button presses itself); a decision panel's controls don't block the hotkeys, a menu, a modal or a field does; the Tab peek waits 200 ms.
   - Tests: `tests/client-hotkeys.test.mjs` (every key in each context), `tests/client-shortcuts.test.mjs` (every hotkey is listed), `tests/browser/hotkeys.test.mjs` (a hot-seat game played with the keys: Enter, W, Q, M, 2, a held Tab, A then 1, and I asked, cancelled and taken). `explore-prompt` presses **.** where it pressed R.
   - Handed off: #35 gives the arts track key **5** in `TRACK_KEYS`.
+
+### #80 (scan the client for code that should be its own component)
+
+Done on 2026-10-28, with no code change. Five read-only passes covered `src/App.svelte`, `src/screens/`, every component in `src/lib/components/`, every client module in `src/lib/` and the library sections. The findings were merged where they touch the same code and filed as #84 (nine small bugs) and #86–#131, each in the repository's layout, with the M12 milestone and blocked-by links where they must land in order. The ranked list is the summary comment on #80. Line numbers in those issues are as of commit 047209f.
+- Highest cost to open work: #86 (the turn footer, for #62 and #71), #95 (split `PlayerTabs`, for #78 and #82), #106 and #107 (the civilization card from data; #47 closed without it), #123 (one names module) and #127 (the client's track lists from the engine, for #35).
+- Handed off: #79 was the first finding; the issues blocked by it are listed on #80.
+
+### #79 (the decision prompt in one place, at the tracks' centre)
+
+Built on 2026-10-28. The design is `docs/superpowers/specs/2026-10-28-decision-prompt-design.md`. The owner ruled that every prompt opens at the centre, then, reviewing the library, that it is the centre of the tracks, not of the screen.
+- Built: `src/lib/prompt-state.svelte.js` (`PromptState`: the prompt's selection keyed to the decision, what the board, the player area, the footer and the dice tray read, and the actions), `panelControls` and `paymentControls` in `src/lib/prompts.js`, and the screen part `src/screens/game/DecisionPrompt.svelte`. `Game.svelte` went from 1,926 to about 1,100 lines and keeps only the turn's state. `DecisionPanel` centres by default, with the shelf and the panel as one stack; `centred` became `narrow` (440 px, `--narrow-panel-width`) and `docked` stays for the Map view. `CardShelf` takes the `room` the panel leaves it. `DiceTray` takes `panel` from the game (bound from `Game` through `App`) instead of finding the panel by its class, and Enter confirms through the prompt state instead of clicking the panel's button. The library's DecisionPanel and DiceTray sections show the stacks in a scaled 1920×1080 screen (`src/library/Screen.svelte`).
+  - Also: the footer words a space as its track does, so an ordered space says "then" (`spaceWords` in `board.js`, Refs #84), and the landmark prompt names the **.** and **,** keys instead of R.
+  - Calls to revisit: the stack is centred in the shared area, so on the vertical its middle is the screen's, a little above the tracks' own middle (the board's head row sits above them); a dice roll over a stack of cards rolls over the player area; the options panel's 480 to 900 px width and the shelf's 18 px gap are #28's.
+  - Tests: `tests/client-prompts.test.mjs` (`panelControls`, `paymentControls`), `tests/client-prompt-state.test.mjs` (resets, explore, picks, trades, shelf, placement, payment, sending), `tests/client-board.test.mjs` (`spaceWords`), `tests/browser/decision-prompt.test.mjs` (a card choice and an options prompt open at the tracks' centre); the pick tests measure against the tracks' centre.
+  - Handed off: #86, #88, #92, #96, #97, #99, #105, #116, #117, #118, #119, #126, #129 and #131 waited for this.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

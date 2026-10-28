@@ -68,7 +68,7 @@ test("a decision panel confirms in solid gold, or in its track's colour, as the 
 	]) {
 		// The section's explores include one with nothing chosen yet; its Explore is disabled.
 		const confirm = section
-			.getByRole('dialog', { name: title })
+			.getByRole('dialog', { name: title, exact: true })
 			.getByRole('button', { name: label, disabled: false });
 		await expect(confirm, title).toHaveCSS('background-color', gold);
 		await expect(confirm, title).toHaveCSS('color', ink);
@@ -76,7 +76,7 @@ test("a decision panel confirms in solid gold, or in its track's colour, as the 
 
 	// A decision about a track keeps the mockup's track tint (main-screen.html, [data-track] #decision-confirm).
 	const tracked = section
-		.getByRole('dialog', { name: 'Choose a track' })
+		.getByRole('dialog', { name: 'Choose a track', exact: true })
 		.getByRole('button', { name: 'Confirm choice' });
 	await expect(tracked).toHaveCSS(
 		'background-color',

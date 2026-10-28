@@ -14,15 +14,23 @@
 		<Example
 			label={`symbol="${resource.id}" · native 24px / native 48px`}
 			surface="chrome">
-			<ResourceIcon symbol={resource.id} size="medium" />
-			<ResourceIcon symbol={resource.id} size="large" />
+			<ResourceIcon
+				symbol={resource.id}
+				size="medium" />
+			<ResourceIcon
+				symbol={resource.id}
+				size="large" />
 		</Example>
 	{/each}
 	<Example
 		label={'symbol="any" · native 24px / native 48px'}
 		surface="chrome">
-		<ResourceIcon symbol="any" size="medium" />
-		<ResourceIcon symbol="any" size="large" />
+		<ResourceIcon
+			symbol="any"
+			size="medium" />
+		<ResourceIcon
+			symbol="any"
+			size="large" />
 	</Example>
 	<Example
 		label={'symbol="food" color="var(--exploration)"'}

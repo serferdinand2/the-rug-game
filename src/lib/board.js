@@ -48,6 +48,26 @@ const SHORT_NAMES = {
 const LANDMARK_NAMES = new Map(LANDMARKS.map((l) => [l.id, l.name]));
 
 /**
+ * A space's benefit and its bonus in words, as the track's hover and the footer say them; an ordered space's effects
+ * are joined by "then" (#59, #84).
+ * @param {any} view - The game as view() gives it; the words read only its seats and variants, which it shares with the state
+ * @param {TrackId} track
+ * @param {number} space - 1–12
+ * @returns {string}
+ */
+export function spaceWords(view, track, space) {
+	const data = TRACKS[track][space];
+	const benefit = describeEffects(data.benefit, {
+		state: view,
+		ordered: data.ordered,
+	});
+	const bonus = bonusOf(view, track, space);
+	return bonus
+		? `${benefit}. Bonus: ${describeBonus(bonus, { state: view })}.`
+		: `${benefit}.`;
+}
+
+/**
  * The four tracks for TrackBoard. Which spaces are available is TrackBoard's own `available` prop.
  * @param {BoardView} view
  * @returns {TrackBoardTrack[]}
@@ -60,21 +80,17 @@ export function trackBoard(view) {
 			id: track,
 			name: TRACK_NAMES[track],
 			spaces: TRACKS[track].slice(1).map((space) => {
-				// The bonus and the words read only the view's seats and variants, which a view shares with the state.
-				const state = /** @type {any} */ (view);
-				const bonus = bonusOf(state, track, space.space);
-				const benefit = describeEffects(space.benefit, {
-					state,
-					ordered: space.ordered,
-				});
+				const bonus = bonusOf(
+					/** @type {any} */ (view),
+					track,
+					space.space
+				);
 				/** @type {TrackBoardTrack['spaces'][number]} */
 				const entry = {
 					name: space.name,
 					benefit: spaceGlyphs(space.benefit),
 					bonus: bonusGlyphs(bonus),
-					words: bonus
-						? `${benefit}. Bonus: ${describeBonus(bonus, { state })}.`
-						: `${benefit}.`,
+					words: spaceWords(view, track, space.space),
 				};
 				if (space.landmark && unowned.has(space.landmark)) {
 					entry.landmark =

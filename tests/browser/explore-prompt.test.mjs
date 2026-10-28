@@ -291,7 +291,7 @@ test('an explore offers every tile, and places the one the player picks in the t
 			await held;
 			await route.continue();
 		});
-		const chosenLine = page.locator('.rg-game--chosen');
+		const chosenLine = page.locator('.rg-decision-prompt--chosen');
 		const line = (await chosenLine.textContent()) ?? '';
 		await explore.click();
 		await expect(explore).toBeDisabled();

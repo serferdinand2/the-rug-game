@@ -1,7 +1,8 @@
-<!-- Library section: DecisionPanel, the decision prompt over the shared area, with its scrim, content and Confirm; the pick prompts of #75 centred. -->
+<!-- Library section: DecisionPanel, the decision prompt over the shared area, with its scrim, content and Confirm, at the tracks' centre with any shelf of cards above it (#79), or docked beside the map. -->
 <script>
 	import DecisionOption from '../../../lib/components/prompts/DecisionOption.svelte';
 	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
+	import CardShelf from '../../../lib/components/prompts/CardShelf.svelte';
 	import IncomeSteps from '../../../lib/components/prompts/IncomeSteps.svelte';
 	import ResourceRows from '../../../lib/components/prompts/ResourceRows.svelte';
 	import TilePicker from '../../../lib/components/prompts/TilePicker.svelte';
@@ -21,6 +22,7 @@
 		tradeOffers,
 	} from '../../../lib/picks.js';
 	import Example from '../../Example.svelte';
+	import Screen from '../../Screen.svelte';
 	import Section from '../../Section.svelte';
 
 	/** @typedef {import('../../../lib/picks.js').PickModel} PickModel */
@@ -185,20 +187,69 @@
 			vp: vps[index] ?? null,
 		}));
 
+	/** The cards on the screen examples' shelves (#79). */
+	const TAPESTRY = [
+		{ index: 0, id: 'academia', label: 'Academia' },
+		{ index: 1, id: 'age-of-discovery', label: 'Age of Discovery' },
+		{ index: 2, id: 'capitalism', label: 'Capitalism' },
+	];
+	const TECH = [
+		{ index: 0, id: 'clocks', label: 'Clocks' },
+		{ index: 1, id: 'bakery', label: 'Bakery' },
+		{ index: 2, id: 'compass', label: 'Compass' },
+		{ index: 3, id: 'deck', label: 'Top of the deck', deck: 21 },
+	];
+	const CIVS = [
+		{ index: 0, id: 'historians', label: 'Historians' },
+		{ index: 1, id: 'leaders', label: 'Leaders' },
+	];
+
+	/** @type {number | null} */
+	let played = $state(null);
+	/** @type {number | null} */
+	let invented = $state(null);
+	/** @type {number | null} */
+	let kept = $state(null);
+	/** @type {string | null} */
+	let track = $state(null);
 </script>
 
 <Section
 	name="DecisionPanel"
 	area="prompts"
-	description="The decision prompt: a dark scrim over the shared area only, and the panel a little above the footer with the question, the choices and Confirm. It grows with its content up to the shared area and scrolls inside.">
+	description="The decision prompt: a dark scrim over the shared area only, and at the centre of the tracks, not of the screen (owner), the panel with the question, the choices and Confirm; a shelf of cards sits above it, and the two are centred as one stack (#79). The shelf's cards fit the room above the panel (#57). A choice on the map docks the panel at the right instead. The screen examples are the game's screen at 1920×1080, scaled to fit: the board on the left three quarters, the player area on the right.">
 	<Example
-		label={'centred track="military"  (an advance with a choice of payment: the tier\'s own resource fixed, two rows to fill; press them; #75)'}
+		label={'shelf tone="income" steps  (an income turn\'s tapestry card to play: the cards above the panel, both at the tracks\' centre; press one; #79)'}
+		wide
+		width={1100}>
+		<Screen board={playBoard} />
+	</Example>
+	<Example
+		label={'shelf  (a tech card to invent: the three face-up cards and the deck, centred on the tracks; press one; #79)'}
+		wide
+		width={1100}>
+		<Screen board={inventBoard} />
+	</Example>
+	<Example
+		label={'shelf  (the civilizations dealt at setup: whole cards, as tall as the room above the panel allows; press one; #57, #79)'}
+		wide
+		width={1100}>
+		<Screen board={civBoard} />
+	</Example>
+	<Example
+		label={'track="exploration"  (an options prompt at the tracks\' centre: the bottom bar takes the track tint; press one; #79)'}
+		wide
+		width={1100}>
+		<Screen board={trackBoard} />
+	</Example>
+	<Example
+		label={'narrow track="military"  (an advance with a choice of payment: the tier\'s own resource fixed, two rows to fill; press them; #75)'}
 		wide
 		width={1100}>
 		<div
 			class="rg-library-decision-stage rg-library-decision-stage--contained">
 			<DecisionPanel
-				centred
+				narrow
 				track="military"
 				title="Advance to Tanks"
 				status={pickStatus(TANKS, tanks, TANKS_HELD).text}
@@ -222,13 +273,13 @@
 		</div>
 	</Example>
 	<Example
-		label={'centred track="exploration"  (a bonus paid in tiles: several chosen, the rest waiting once 3 are; press them; #75)'}
+		label={'narrow track="exploration"  (a bonus paid in tiles: several chosen, the rest waiting once 3 are; press them; #75)'}
 		wide
 		width={1100}>
 		<div
 			class="rg-library-decision-stage rg-library-decision-stage--contained">
 			<DecisionPanel
-				centred
+				narrow
 				track="exploration"
 				title="Take the bonus: gain 10 VP?"
 				status={pickStatus(SHUTTLE, shuttle, {}).text}
@@ -260,13 +311,13 @@
 		</div>
 	</Example>
 	<Example
-		label={'centred  (a trade: its offers in two columns, then the rows of the one picked; Back returns; press them; #75)'}
+		label={'narrow  (a trade: its offers in two columns, then the rows of the one picked; Back returns; press them; #75)'}
 		wide
 		width={1100}>
 		<div
 			class="rg-library-decision-stage rg-library-decision-stage--contained">
 			<DecisionPanel
-				centred
+				narrow
 				title="Choose a trade"
 				status={tradeModel && tradeSelection
 					? pickStatus(tradeModel, tradeSelection, TRADE_HELD).text
@@ -316,7 +367,7 @@
 		</div>
 	</Example>
 	<Example
-		label={'track="exploration"  (the bottom bar takes the track tint)'}
+		label={'track="exploration"  (the bottom bar takes the track tint; the stage stands in for the shared area)'}
 		wide
 		width={1100}>
 		<div class="rg-library-decision-stage rg-library-decision-stage--short">
@@ -421,13 +472,13 @@
 		</div>
 	</Example>
 	<Example
-		label={"centred statusWarn  (a pick prompt: its centre at the screen's, here the stage's; the cap warning; #75)"}
+		label={"narrow statusWarn  (a pick prompt: its centre at the tracks', here the stage's; the cap warning; #75)"}
 		wide
 		width={1100}>
 		<div
 			class="rg-library-decision-stage rg-library-decision-stage--contained">
 			<DecisionPanel
-				centred
+				narrow
 				title="Choose 3 resources"
 				status="You gain 1 coin and 2 food. You can hold 8 of each: 1 food would be lost."
 				statusWarn
@@ -451,6 +502,95 @@
 		</div>
 	</Example>
 </Section>
+
+{#snippet playBoard()}
+	<DecisionPanel
+		title="Choose a tapestry card to play"
+		tone="income"
+		status={played === null
+			? 'Choose a card above, then confirm it here.'
+			: TAPESTRY[played].label}
+		confirmLabel="Play card"
+		confirmDisabled={played === null}>
+		{#snippet steps()}
+			<IncomeSteps
+				steps={STEPS}
+				current="tapestry" />
+		{/snippet}
+		{#snippet shelf(/** @type {number | undefined} */ room)}
+			<CardShelf
+				kind="tapestry"
+				cards={TAPESTRY}
+				selected={played}
+				{room}
+				onCardShelfSelect={(/** @type {any} */ event) =>
+					(played = event.value)} />
+		{/snippet}
+	</DecisionPanel>
+{/snippet}
+
+{#snippet inventBoard()}
+	<DecisionPanel
+		title="Choose a tech card to invent"
+		status={invented === null
+			? 'Choose a card above, then confirm it here.'
+			: TECH[invented].label}
+		confirmLabel="Invent"
+		confirmDisabled={invented === null}>
+		{#snippet shelf(/** @type {number | undefined} */ room)}
+			<CardShelf
+				kind="tech"
+				cards={TECH}
+				selected={invented}
+				{room}
+				onCardShelfSelect={(/** @type {any} */ event) =>
+					(invented = event.value)} />
+		{/snippet}
+	</DecisionPanel>
+{/snippet}
+
+{#snippet civBoard()}
+	<DecisionPanel
+		title="Choose your civilization"
+		status={kept === null
+			? 'Choose a card above, then confirm it here.'
+			: CIVS[kept].label}
+		confirmLabel="Keep civilization"
+		confirmDisabled={kept === null}>
+		{#snippet shelf(/** @type {number | undefined} */ room)}
+			<CardShelf
+				kind="civ"
+				cards={CIVS}
+				selected={kept}
+				{room}
+				onCardShelfSelect={(/** @type {any} */ event) =>
+					(kept = event.value)} />
+		{/snippet}
+	</DecisionPanel>
+{/snippet}
+
+{#snippet trackBoard()}
+	<DecisionPanel
+		title="Choose a track for Dark Ages"
+		status={track ?? 'Choose one.'}
+		track="exploration"
+		confirmDisabled={track === null}>
+		<div class="rg-library-decision-options">
+			{#each ['Exploration', 'Science', 'Technology', 'Military'] as name (name)}
+				<DecisionOption
+					label={name}
+					art={[
+						{
+							kind: 'track',
+							id: /** @type {any} */ (name.toLowerCase()),
+						},
+					]}
+					pressed={track === name}
+					onDecisionOptionClick={() => (track = name)} />
+			{/each}
+		</div>
+	</DecisionPanel>
+{/snippet}
 
 <!-- The explore as the game screen draws it: the lead and the tile row scroll in the content, while what is chosen
      and the turn control are pinned above the actions, with no status line. -->
@@ -487,6 +627,7 @@
 {/snippet}
 
 <style>
+	/* A stage stands in for the shared area, which a panel is centred on. */
 	.rg-library-decision-stage {
 		position: relative;
 		height: 420px;
@@ -514,10 +655,8 @@
 		opacity: 0.35;
 	}
 
-	/* A centred panel is fixed to the screen's centre; contained, the stage stands in for the screen. */
 	.rg-library-decision-stage--contained {
 		height: 520px;
-		contain: layout;
 	}
 
 	.rg-library-decision-stage--short {
@@ -532,7 +671,7 @@
 		height: 700px;
 	}
 
-	/* The explore's content, styled as the game screen styles it (src/screens/Game.svelte). */
+	/* The explore's content, styled as the game screen styles it (src/screens/game/DecisionPrompt.svelte). */
 	.rg-library-explore {
 		display: grid;
 		gap: var(--space-6);

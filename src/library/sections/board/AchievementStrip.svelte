@@ -8,13 +8,28 @@
 	const none = [
 		{ id: 'complete-track', name: 'Complete a track', vp: 15, claimed: [] },
 		{ id: 'topple-two', name: 'Topple two outposts', vp: 15, claimed: [] },
-		{ id: 'middle-island', name: 'Conquer the middle', vp: 10, claimed: [] },
+		{
+			id: 'middle-island',
+			name: 'Conquer the middle',
+			vp: 10,
+			claimed: [],
+		},
 	];
 	/** @type {import('../../../lib/components/board/AchievementStrip.svelte').AchievementStripEntry[]} */
 	const partial = [
-		{ id: 'complete-track', name: 'Complete a track', vp: 5, claimed: [3, 1] },
+		{
+			id: 'complete-track',
+			name: 'Complete a track',
+			vp: 5,
+			claimed: [3, 1],
+		},
 		{ id: 'topple-two', name: 'Topple two outposts', vp: 10, claimed: [2] },
-		{ id: 'middle-island', name: 'Conquer the middle', vp: 10, claimed: [] },
+		{
+			id: 'middle-island',
+			name: 'Conquer the middle',
+			vp: 10,
+			claimed: [],
+		},
 	];
 	/** @type {import('../../../lib/components/board/AchievementStrip.svelte').AchievementStripEntry[]} */
 	const full = [
