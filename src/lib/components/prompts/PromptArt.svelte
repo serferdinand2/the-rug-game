@@ -37,9 +37,8 @@
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
 	import TerritoryTile from '../player/TerritoryTile.svelte';
+	import { tilePreview } from '../../area/explore.js';
 	import { CAPITAL_MATS } from '../../engine/data/capitals.js';
-	import { TERRITORY_TILES } from '../../engine/data/territory-tiles.js';
-	import { turned } from '../../engine/game.js';
 	import { artUrl } from '../../ui.js';
 
 	/** @type {PromptArtProps} */
@@ -69,7 +68,7 @@
 	});
 
 	let tile = $derived(
-		item.kind === 'territory' ? TERRITORY_TILES[item.id - 1] : null
+		item.kind === 'territory' ? tilePreview(item.id, item.orient) : null
 	);
 </script>
 
@@ -90,10 +89,7 @@
 	{:else if item.kind === 'territory' && tile}
 		<TerritoryTile
 			id={item.id}
-			corners={turned(tile.corners, item.orient)}
-			island={[...tile.island]}
-			clouds={tile.clouds}
-			volcano={tile.volcano}
+			{...tile}
 			size={pixels * 0.75} />
 	{:else if item.kind === 'vp'}
 		<b class="rg-prompt-art--badge">{item.count} VP</b>

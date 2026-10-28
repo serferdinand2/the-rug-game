@@ -1,7 +1,7 @@
 // The explore prompt (#28, #74): the tiles an explore offers, what each scores on the lit hexes, and the answer for a tile, hex and turn.
 import { matchingSides, turned } from '../engine/game.js';
 import { describeTurn } from '../describe.js';
-import { hexName } from '../hexmap.js';
+import { hexName, territoryWords } from '../hexmap.js';
 import { TERRITORY_TILES } from '../engine/data/territory-tiles.js';
 
 /** @typedef {import('../ui.js').Terrain} Terrain */
@@ -116,28 +116,13 @@ export function tilePreview(tile, orient) {
 }
 
 /**
- * A tile in words, without its number: "Territory tile: forest, mountain and sea, island of desert, with clouds".
+ * A tile in words, without its number, as the map words it (#113): "Territory tile: forest and sea, with an island
+ * of desert, with clouds".
  * @param {number} tile - 1-48
  * @returns {string}
  */
 export function tileWords(tile) {
-	const data = TERRITORY_TILES[tile - 1];
-	const terrains = [...new Set(data.corners)];
-	const list =
-		terrains.length > 1
-			? `${terrains.slice(0, -1).join(', ')} and ${terrains[terrains.length - 1]}`
-			: terrains.join('');
-	let words = `Territory tile: ${list}`;
-	if (data.island.length > 0) {
-		words += `, island of ${[...new Set(data.island)].join(' and ')}`;
-	}
-	if (data.clouds) {
-		words += ', with clouds';
-	}
-	if (data.volcano) {
-		words += ', with a volcano';
-	}
-	return words;
+	return `Territory tile: ${territoryWords(TERRITORY_TILES[tile - 1])}`;
 }
 
 /**
