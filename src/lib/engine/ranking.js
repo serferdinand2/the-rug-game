@@ -31,6 +31,42 @@ export function landmarksInCity(seat) {
 }
 
 /**
+ * The tallest landmark in a seat's capital city (R11, R12: the first in HEIGHT_RANKING), or null with none.
+ * @param {AnySeat} seat
+ * @returns {string | null}
+ */
+function tallestLandmark(seat) {
+	const ranks = landmarksInCity(seat)
+		.map((id) => HEIGHT_RANKING.indexOf(id))
+		.filter((rank) => rank !== -1);
+	return ranks.length > 0 ? HEIGHT_RANKING[Math.min(...ranks)] : null;
+}
+
+/**
+ * The resources a seat holds, all four together.
+ * @param {AnySeat} seat
+ * @returns {number}
+ */
+function resourcesHeld(seat) {
+	return 'resources' in seat
+		? RESOURCE_IDS.reduce((sum, id) => sum + seat.resources[id], 0)
+		: 0;
+}
+
+/**
+ * A seat's value for each tiebreak step, as the ranking compares them, for the scoreboard during play (#128). It
+ * reads only public fields, so it takes a seat of a view too.
+ * @param {AnySeat} seat
+ * @returns {{ tallestLandmark: string | null, resources: number }}
+ */
+export function tiebreakValues(seat) {
+	return {
+		tallestLandmark: tallestLandmark(seat),
+		resources: resourcesHeld(seat),
+	};
+}
+
+/**
  * A seat's value for a tiebreak step, and how good it is (higher is better).
  * @param {'tallestLandmark' | 'resources'} by
  * @param {AnySeat} seat
@@ -39,19 +75,12 @@ export function landmarksInCity(seat) {
 function tiebreakValue(by, seat) {
 	if (by === 'tallestLandmark') {
 		// R11, R12: the tallest is first in the ranking; any landmark beats none.
-		const ranks = landmarksInCity(seat)
-			.map((id) => HEIGHT_RANKING.indexOf(id))
-			.filter((rank) => rank !== -1);
-		if (ranks.length === 0) {
-			return { value: null, score: -Infinity };
-		}
-		const tallest = Math.min(...ranks);
-		return { value: HEIGHT_RANKING[tallest], score: -tallest };
+		const tallest = tallestLandmark(seat);
+		return tallest === null
+			? { value: null, score: -Infinity }
+			: { value: tallest, score: -HEIGHT_RANKING.indexOf(tallest) };
 	}
-	const total =
-		'resources' in seat
-			? RESOURCE_IDS.reduce((sum, id) => sum + seat.resources[id], 0)
-			: 0;
+	const total = resourcesHeld(seat);
 	return { value: total, score: total };
 }
 

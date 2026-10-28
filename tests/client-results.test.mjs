@@ -1,7 +1,7 @@
 // The results screen and the scoreboard (#29 design §5–§6): standings, shared places, ties step by step, VP by source and the table's facts.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { view } from '../src/lib/engine/game.js';
+import { tiebreakValues, view } from '../src/lib/engine/game.js';
 import { simulate } from './helpers/simulation.mjs';
 import {
 	VP_SOURCES,
@@ -239,4 +239,21 @@ test('the scoreboard during play: players by VP, with their sources and the tieb
 	assert.ok(rows.every((row) => 'landmark' in row));
 	game.version = 'original';
 	assert.ok(scoreboard(game).every((row) => !('landmark' in row)));
+});
+
+test("the scoreboard's tiebreak values are the engine's, the landmark by name (#128)", () => {
+	const game = sharedWin();
+	game.phase = 'play';
+	game.result = null;
+	game.seats[0].resources = { coin: 2, worker: 1, food: 0, culture: 4 };
+	game.seats[0].capital.landmarks = [
+		{ landmark: 'lighthouse', row: 0, col: 0, rotation: 0 },
+		{ landmark: 'skyscraper', row: 4, col: 0, rotation: 0 },
+	];
+	const row = /** @type {any} */ (scoreboard(game).find((r) => r.seat === 1));
+	const values = tiebreakValues(game.seats[0]);
+	assert.equal(values.tallestLandmark, 'skyscraper');
+	assert.equal(row.landmark, 'Skyscraper');
+	assert.equal(row.resources, values.resources);
+	assert.equal(row.resources, 7);
 });

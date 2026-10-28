@@ -137,7 +137,7 @@ The three advertised tables are fixtures. Production must obtain open tables fro
 - **Readiness** is a server toggle and shows on every online seat; the host may start without it. A host change to the rules, variants, timer or undo clears it.
 - **No civilization in the lobby.** Each player is dealt two civilizations once the game starts and keeps one (#28); the seats show no civilization line, and there is no chooser.
 - **Open seat**, online, copies the table code: a friend fills a seat by joining with it. **Take the seat!** is left out, because the server seats joiners in order. At a hot-seat table, Open seat opens a name field (SeatCard's `add` state).
-- **Settings:** Rules, Expansions ("Base game only for now" until there are any) and **Turn timer** on the left; **Undo rules** and the five optional variants as Yes/No rows on the right. The mockup's Map row and its three sample rule rows aren't game rules, so they are left out. Only the host changes them; the others see them disabled.
+- **Settings:** Rules, Expansions ("Base game only for now" until there are any), **Turn timer** and **Undo rules** on the left, the last two drawn by one `PlaySettings` that Table settings shares (#98, owner, 2026-10-28); the five optional variants as Yes/No rows on the right. The mockup's Map row and its three sample rule rows aren't game rules, so they are left out. Only the host changes them; the others see them disabled.
 - A selected neutral **No** uses the light text colour for its border, label and tinted fill. It reads as selected beside an unselected **Yes**; the Segmented and SettingRow library examples show the same state.
 - The mode switch changes only while the host is alone at the table.
 

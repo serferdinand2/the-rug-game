@@ -2,6 +2,7 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
+	amountWords,
 	civilizationName,
 	decisionTitle,
 	describeAnswer,
@@ -10,6 +11,9 @@ import {
 	describeEffects,
 	describePayment,
 	describeTapestryCard,
+	landmarkName,
+	priceWords,
+	resourceName,
 } from '../src/lib/describe.js';
 import { createGame, play, VARIANTS, view } from '../src/lib/engine/game.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
@@ -23,6 +27,7 @@ import { TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
 import { SPACE_TILES } from '../src/lib/engine/data/space-tiles.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';
 import { RED_DIE, BLACK_DIE } from '../src/lib/engine/data/dice.js';
+import { HEIGHT_RANKING } from '../src/lib/engine/data/landmarks.js';
 import { allOps } from './helpers/views.mjs';
 
 /**
@@ -62,6 +67,56 @@ test('a cost names each resource, and "any" as resources of your choice', () => 
 	assert.equal(describeCost({ tech: 3 }), '3 tech cards');
 	assert.equal(describeCost({ vp: 5 }), '5 VP');
 	assert.equal(describeCost({}), 'Nothing');
+});
+
+test('an amount takes its plural, and "any" reads as resources of your choice (#124)', () => {
+	assert.equal(amountWords('coin', 1), '1 coin');
+	assert.equal(amountWords('coin', 2), '2 coins');
+	assert.equal(amountWords('worker', 3), '3 workers');
+	assert.equal(amountWords('food', 2), '2 food');
+	assert.equal(amountWords('culture', 2), '2 culture');
+	assert.equal(amountWords('any', 1), '1 resource of your choice');
+	assert.equal(amountWords('any', 2), '2 resources of your choice');
+	assert.equal(amountWords('vp', 5), '5 VP');
+	assert.equal(amountWords('territory', 2), '2 territory tiles');
+	assert.equal(amountWords('tech', 1), '1 tech card');
+});
+
+test('a resource has one name, and "any" is a resource of your choice (#124)', () => {
+	assert.equal(resourceName('coin'), 'Coin');
+	assert.equal(resourceName('food'), 'Food');
+	assert.equal(resourceName('worker'), 'Worker');
+	assert.equal(resourceName('culture'), 'Culture');
+	assert.equal(resourceName('any'), 'Resource of your choice');
+	assert.equal(resourceName('vp'), 'vp');
+});
+
+test('a price reads as its amounts, in the order its symbols first appear (#124)', () => {
+	assert.equal(priceWords(['any']), '1 resource of your choice');
+	assert.equal(
+		priceWords(['food', 'any']),
+		'1 food and 1 resource of your choice'
+	);
+	assert.equal(
+		priceWords(['worker', 'any', 'any']),
+		'1 worker and 2 resources of your choice'
+	);
+	assert.equal(priceWords(['coin', 'coin']), '2 coins');
+	assert.equal(priceWords(['culture', 'culture']), '2 culture');
+	assert.equal(
+		priceWords(['any', 'coin', 'worker', 'coin']),
+		'1 resource of your choice, 2 coins and 1 worker'
+	);
+	assert.equal(priceWords([]), 'nothing');
+});
+
+test('a landmark takes its name from the art catalog, so TV Station keeps its capitals (#84)', () => {
+	assert.equal(landmarkName('tv-station'), 'TV Station');
+	assert.equal(landmarkName('train-station'), 'Train Station');
+	assert.equal(landmarkName('com-tower'), 'Com Tower');
+	for (const id of HEIGHT_RANKING) {
+		assert.match(landmarkName(id), /^[A-Z]/, id);
+	}
 });
 
 test('a benefit reads as a short sentence', () => {

@@ -19,16 +19,21 @@
 	import Button from '../lib/components/ui/Button.svelte';
 	import Panel from '../lib/components/ui/Panel.svelte';
 	import Segmented from '../lib/components/ui/Segmented.svelte';
+	import PlaySettings from '../lib/components/lobby/PlaySettings.svelte';
 	import SeatCard from '../lib/components/lobby/SeatCard.svelte';
 	import SettingRow from '../lib/components/lobby/SettingRow.svelte';
 	import TableCode from '../lib/components/lobby/TableCode.svelte';
 	import {
-		VARIANT_LABELS,
-		canChangeMode,
+		YES_NO_CHOICES,
+		expansionChoices,
 		isHost,
-		rulesLabel,
+		modeChoices,
+		modeLock,
+		rulesChoices,
 		seatSlots,
-		timerChoices,
+		settingsLock,
+		toggleVariant,
+		variantRows,
 	} from '../lib/lobby.js';
 
 	/** @typedef {import('../lib/component-event.js').ComponentEvent} ComponentEvent */
@@ -43,9 +48,9 @@
 	let slots = $derived(seatSlots(room, config?.maxSeats ?? 5));
 	let you = $derived(room.seats[room.you[0] - 1]);
 	let ready = $derived(online && you?.ready === true);
-	let lockedTitle = $derived(
-		hosting ? undefined : 'Only the host changes the table.'
-	);
+	let modeLocked = $derived(modeLock(room));
+	let lockedTitle = $derived(settingsLock(room) ?? undefined);
+	let variants = $derived(variantRows(config, room));
 	/**
 	 * Redraws the choices after a refused change, so the choice snaps back. Only then: a redraw on every answer would
 	 * take the keyboard focus away.
@@ -55,41 +60,6 @@
 	/** The empty seat whose name field is open, at a hot-seat table. @type {number | null} */
 	let addingSeat = $state(null);
 	let newName = $state('');
-
-	const MODES = [
-		{ value: 'online', label: 'Online mode', color: 'var(--exploration)' },
-		{ value: 'hotseat', label: 'Local mode', color: 'var(--exploration)' },
-	];
-	const YES_NO = [
-		{ value: 'yes', label: 'Yes', color: 'var(--science)' },
-		{ value: 'no', label: 'No', color: 'var(--text)' },
-	];
-	const UNDO = [
-		{ value: 'on', label: 'Allow undo', color: 'var(--exploration)' },
-		{ value: 'off', label: 'No undo', color: 'var(--military)' },
-	];
-	const RULES_COLORS = /** @type {Record<string, string>} */ ({
-		current: 'var(--science)',
-		original: 'var(--technology)',
-	});
-
-	/** The mockup's order: the current rules first. */
-	const RULES_ORDER = ['current', 'original'];
-
-	let rulesChoices = $derived(
-		[...(config?.versions ?? [])]
-			.sort(
-				(
-					/** @type {{ id: string }} */ a,
-					/** @type {{ id: string }} */ b
-				) => RULES_ORDER.indexOf(a.id) - RULES_ORDER.indexOf(b.id)
-			)
-			.map((/** @type {{ id: string }} */ v) => ({
-				value: v.id,
-				label: rulesLabel(v.id, { short: true }),
-				color: RULES_COLORS[v.id] ?? 'var(--gold)',
-			}))
-	);
 
 	/**
 	 * @param {ComponentEvent} event
@@ -108,15 +78,15 @@
 	/**
 	 * @param {ComponentEvent} event
 	 */
-	const timerChangeHandler = (event) => {
-		store.settings({ timer: Number(event.value) });
+	const expansionsChangeHandler = (event) => {
+		store.configure({ expansions: event.value });
 	};
 
 	/**
-	 * @param {ComponentEvent} event
+	 * @param {ComponentEvent} event - Its value is { timer } or { undo }
 	 */
-	const undoChangeHandler = (event) => {
-		store.settings({ undo: event.value === 'on' });
+	const playSettingsChangeHandler = (event) => {
+		store.settings(event.value);
 	};
 
 	/**
@@ -126,12 +96,9 @@
 	const variantChangeHandler = (id, event) => {
 		const on = event.value === 'yes';
 		// Built from the table the server has, so two quick choices both count.
-		store.configure((/** @type {any} */ table) => {
-			const others = table.options.variants.filter(
-				(/** @type {string} */ v) => v !== id
-			);
-			return { variants: on ? [...others, id] : others };
-		});
+		store.configure((/** @type {any} */ table) => ({
+			variants: toggleVariant(table.options.variants, id, on),
+		}));
 	};
 
 	/**
@@ -192,14 +159,10 @@
 							label="Mode"
 							class="rg-lobby--modes"
 							variant="filled"
-							options={MODES}
+							options={modeChoices(config?.modes ?? [room.mode])}
 							value={room.mode}
-							disabled={!canChangeMode(room)}
-							title={canChangeMode(room)
-								? undefined
-								: hosting
-									? 'The mode changes only while you are alone at the table.'
-									: 'Only the host changes the mode.'}
+							disabled={modeLocked !== null}
+							title={modeLocked ?? undefined}
 							onSegmentedChange={modeChangeHandler} />
 					{/key}
 				</div>
@@ -282,12 +245,11 @@
 							bind:name={newName}
 							onSeatCardAdd={seatAddHandler}
 							onSeatCardCancel={() => (addingSeat = null)} />
-					{:else if online || hosting}
+					{:else}
 						<SeatCard
+							state={slot.state}
 							seat={slot.seat}
 							onSeatCardOpen={seatOpenHandler} />
-					{:else}
-						<div class="rg-lobby--empty-seat"></div>
 					{/if}
 				{/each}
 			</div>
@@ -304,7 +266,7 @@
 							title={lockedTitle}>
 							<Segmented
 								label="Rules"
-								options={rulesChoices}
+								options={rulesChoices(config?.versions)}
 								value={room.options.version}
 								disabled={!hosting}
 								onSegmentedChange={rulesChangeHandler} />
@@ -317,62 +279,32 @@
 								<Segmented
 									label="Expansions"
 									multiple
-									options={config.expansions.map(
-										(/** @type {string} */ id) => ({
-											value: id,
-											label: id,
-										})
+									options={expansionChoices(
+										config.expansions
 									)}
 									value={room.options.expansions}
 									disabled={!hosting}
-									onSegmentedChange={(
-										/** @type {ComponentEvent} */ event
-									) =>
-										store.configure({
-											expansions: event.value,
-										})} />
+									onSegmentedChange={expansionsChangeHandler} />
 							{/if}
 						</SettingRow>
-						<SettingRow
-							label="Turn timer"
-							title={lockedTitle}>
-							<Segmented
-								label="Turn timer"
-								options={timerChoices(
-									config?.timers ?? [0]
-								).map((choice) => ({
-									...choice,
-									color: 'var(--exploration)',
-								}))}
-								value={String(room.timer)}
-								disabled={!hosting}
-								onSegmentedChange={timerChangeHandler} />
-						</SettingRow>
+						<PlaySettings
+							timers={config?.timers ?? [0]}
+							timer={room.timer}
+							undo={room.undo}
+							disabled={!hosting}
+							title={lockedTitle}
+							onPlaySettingsChange={playSettingsChangeHandler} />
 					</div>
-					<div class="rg-lobby--column rg-lobby--variants">
-						<SettingRow
-							label="Undo rules"
-							title={lockedTitle}>
-							<Segmented
-								label="Undo rules"
-								options={UNDO}
-								value={room.undo ? 'on' : 'off'}
-								disabled={!hosting}
-								onSegmentedChange={undoChangeHandler} />
-						</SettingRow>
-						{#each config?.variants ?? [] as variant (variant.id)}
+					<div class="rg-lobby--column">
+						{#each variants as variant, index (variant.id)}
 							<SettingRow
-								label={VARIANT_LABELS[variant.id] ??
-									variant.name}
-								title={variant.name}>
+								label={variant.label}
+								title={variant.name}
+								divided={index < variants.length - 1}>
 								<Segmented
 									label={variant.name}
-									options={YES_NO}
-									value={room.options.variants.includes(
-										variant.id
-									)
-										? 'yes'
-										: 'no'}
+									options={[...YES_NO_CHOICES]}
+									value={variant.value}
 									disabled={!hosting}
 									onSegmentedChange={(
 										/** @type {ComponentEvent} */ event
@@ -525,11 +457,6 @@
 		gap: var(--space-4);
 	}
 
-	.rg-lobby--empty-seat {
-		height: var(--seat-height);
-		background: var(--surface);
-	}
-
 	.rg-lobby--settings {
 		display: grid;
 		grid-template-columns: 1.4fr 1fr;
@@ -541,16 +468,6 @@
 		display: grid;
 		align-content: start;
 		gap: var(--space-5);
-	}
-
-	.rg-lobby--variants :global(> *) {
-		padding-bottom: var(--space-3);
-		border-bottom: var(--border) solid var(--line-soft);
-	}
-
-	.rg-lobby--variants :global(> *:last-child) {
-		padding-bottom: 0;
-		border-bottom: 0;
 	}
 
 	.rg-lobby--muted {

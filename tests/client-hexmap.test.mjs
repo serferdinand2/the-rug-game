@@ -15,7 +15,17 @@ import {
 	overlayBox,
 	pieceSpots,
 	svgPoints,
+	territoryClips,
+	territoryShapes,
+	territoryWords,
 } from '../src/lib/hexmap.js';
+import {
+	CLOUD_SIZE,
+	CLOUD_SPOT,
+	VOLCANO_SIZE,
+	VOLCANO_SPOTS,
+	volcanoCorner,
+} from '../src/lib/art/hex-overlays.js';
 import {
 	askedSeats,
 	createGame,
@@ -245,7 +255,8 @@ test('a toppled outpost keeps toppled, and pieces and tokens are named', () => {
 	hex.outposts.push(
 		{ seat: 1, toppled: true, toppledBy: 2 },
 		{ seat: 2, toppled: false, piece: { building: 'farm' } },
-		{ seat: 2, toppled: true, piece: { landmark: 'lighthouse' } }
+		{ seat: 2, toppled: true, piece: { landmark: 'lighthouse' } },
+		{ seat: 2, toppled: false, piece: { landmark: 'tv-station' } }
 	);
 	hex.tokens.push({ seat: 1, civ: 'traders' });
 	const middle = /** @type {any} */ (
@@ -259,13 +270,18 @@ test('a toppled outpost keeps toppled, and pieces and tokens are named', () => {
 			toppled: true,
 			piece: { kind: 'landmark', id: 'lighthouse' },
 		},
+		{
+			seat: 2,
+			toppled: false,
+			piece: { kind: 'landmark', id: 'tv-station' },
+		},
 	]);
 	assert.deepEqual(middle.tokens, [{ seat: 1, civ: 'traders' }]);
 	assert.equal(
 		middle.label,
 		'Hex 0,0: sea, with an island of desert, forest, grassland and mountain, with clouds. ' +
 			'Ana: 1 toppled outpost, a Traders token. ' +
-			'Bo: a Farm, a toppled Lighthouse.'
+			'Bo: a Farm, a toppled Lighthouse, a TV Station.'
 	);
 });
 
@@ -429,5 +445,131 @@ test('a hex with clouds or the volcano says so to a screen reader (R77)', () => 
 	assert.match(
 		large.find((h) => h.key === '-1_3')?.label ?? '',
 		/with a volcano/
+	);
+});
+
+/** @typedef {import('../src/lib/ui.js').Terrain} Terrain */
+
+/** A coast: three sea corners, then three land corners. @type {Terrain[]} */
+const COAST = ['sea', 'sea', 'sea', 'forest', 'mountain', 'mountain'];
+const ORIGIN = /** @type {[number, number]} */ ([0, 0]);
+
+test("a territory's face is its wedges, coasts and island round the origin, with its pictures", () => {
+	/** @type {Terrain[]} */
+	const island = ['desert', 'grassland'];
+	const face = territoryShapes(
+		COAST,
+		island,
+		{ clouds: true, volcano: true },
+		36
+	);
+	assert.deepEqual(face.picture, hexPicture(ORIGIN, 36));
+	assert.deepEqual(
+		face.wedges,
+		COAST.map((terrain, k) => ({ terrain, k }))
+	);
+	assert.deepEqual(
+		face.coasts,
+		coastLines(ORIGIN, COAST, 36).map((line) => line.to)
+	);
+	assert.equal(face.coasts.length, 2);
+	assert.deepEqual(
+		face.islands,
+		islandParts(ORIGIN, island, 36).map((part, i) => ({
+			terrain: part.terrain,
+			n: 2,
+			i,
+			points: svgPoints(part.points),
+		}))
+	);
+	assert.deepEqual(face.cloud, overlayBox(CLOUD_SPOT, CLOUD_SIZE, 36));
+	// The volcano stands on the middle of the mountains (#6).
+	assert.deepEqual(
+		face.volcano,
+		overlayBox(
+			VOLCANO_SPOTS[volcanoCorner(COAST)],
+			[VOLCANO_SIZE, VOLCANO_SIZE],
+			36
+		)
+	);
+});
+
+test('a plain territory has no island, cloud or volcano, and all land has no coast', () => {
+	/** @type {Terrain[]} */
+	const land = ['forest', 'forest', 'desert', 'desert', 'forest', 'forest'];
+	const face = territoryShapes(
+		land,
+		[],
+		{ clouds: false, volcano: false },
+		S
+	);
+	assert.deepEqual(face.coasts, []);
+	assert.deepEqual(face.islands, []);
+	assert.equal(face.cloud, null);
+	assert.equal(face.volcano, null);
+	assert.equal(face.wedges.length, 6);
+});
+
+test("the clips cut each wedge and island part exactly along the face's own outlines", () => {
+	for (const size of [18, 36, S]) {
+		const clips = territoryClips(size);
+		assert.deepEqual(
+			clips.wedges,
+			[0, 1, 2, 3, 4, 5].map((k) =>
+				svgPoints(cornerWedge(ORIGIN, k, size))
+			)
+		);
+		assert.equal(clips.islands.length, 6);
+		for (const n of [1, 2, 3, 4, 5, 6]) {
+			/** @type {Terrain[]} */
+			const island = Array(n).fill('desert');
+			const face = territoryShapes(
+				COAST,
+				island,
+				{ clouds: false, volcano: false },
+				size
+			);
+			assert.deepEqual(
+				clips.islands[n - 1],
+				face.islands.map((part) => part.points),
+				`${n} parts at size ${size}`
+			);
+		}
+	}
+});
+
+test('a territory is worded once: its terrains, an island, clouds and a volcano', () => {
+	const plain = { island: [], clouds: false, volcano: false };
+	/** @type {Terrain[]} */
+	const sea = ['sea', 'sea', 'sea', 'sea', 'sea', 'sea'];
+	assert.equal(territoryWords({ ...plain, corners: sea }), 'sea');
+	assert.equal(
+		territoryWords({
+			...plain,
+			corners: ['sea', 'sea', 'sea', 'forest', 'forest', 'sea'],
+		}),
+		'sea and forest'
+	);
+	assert.equal(
+		territoryWords({ ...plain, corners: COAST }),
+		'sea, forest and mountain'
+	);
+	assert.equal(
+		territoryWords({
+			corners: sea,
+			island: ['desert', 'desert', 'forest'],
+			clouds: true,
+			volcano: false,
+		}),
+		'sea, with an island of desert and forest, with clouds'
+	);
+	assert.equal(
+		territoryWords({
+			corners: COAST,
+			island: [],
+			clouds: true,
+			volcano: true,
+		}),
+		'sea, forest and mountain, with clouds, with a volcano'
 	);
 });

@@ -19,6 +19,7 @@ import {
 	tileScores,
 	tileWords,
 } from '../src/lib/area/explore.js';
+import { territoryWords } from '../src/lib/hexmap.js';
 import { startedGame } from './helpers/engine.mjs';
 
 /** A 2-player game with seat 1 holding tiles 2, 5 and 17 and an explore open. */
@@ -107,6 +108,15 @@ test('tilePreview turns the printed corners and keeps the island, clouds and vol
 	assert.deepEqual(preview.island, [...data.island]);
 	assert.equal(preview.clouds, data.clouds);
 	assert.equal(preview.volcano, data.volcano);
+});
+
+test('tileWords words the printed tile as the map does, without its number (#113)', () => {
+	for (const data of TERRITORY_TILES) {
+		assert.equal(
+			tileWords(data.id),
+			`Territory tile: ${territoryWords(data)}`
+		);
+	}
 });
 
 test('tileWords names the terrains, not the number', () => {

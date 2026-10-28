@@ -1,5 +1,6 @@
 // The player area's income mat and era slots (#27 design §2.3-2.4), from a seat in the game view.
 import { describeEffects } from '../describe.js';
+import { exposedSpaces } from '../engine/game.js';
 import { INCOME_MAT } from '../engine/data/income-mat.js';
 import { BUILDING_IDS } from '../engine/data/ids.js';
 import { TAPESTRY_CARDS } from '../engine/data/tapestry-cards.js';
@@ -33,13 +34,14 @@ import { TAPESTRY_CARDS } from '../engine/data/tapestry-cards.js';
  */
 
 /**
- * The seat's four income rows. With n buildings left in a row, its first 6 - n spaces are exposed.
+ * The seat's four income rows. A space is covered unless the engine counts it exposed (#128).
  * @param {any} seat - A seat of the game view
  * @returns {IncomeRowView[]}
  */
 export function incomeRows(seat) {
 	return BUILDING_IDS.map((building) => {
 		const left = seat.incomeMat.buildings[building];
+		const exposed = exposedSpaces(seat, building).length;
 		return {
 			building,
 			left,
@@ -55,7 +57,7 @@ export function incomeRows(seat) {
 							`${label}: ${describeEffects(effects)}`
 					)
 					.join('. '),
-				covered: index >= 6 - left,
+				covered: index >= exposed,
 			})),
 		};
 	});

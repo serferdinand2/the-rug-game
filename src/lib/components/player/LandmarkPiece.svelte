@@ -278,7 +278,7 @@
 				type="button"
 				class="rg-landmark-piece--control"
 				aria-label="Rotate {name}"
-				title="Rotate (R)"
+				title="Rotate (. or ,)"
 				onclick={rotateClickHandler}>↻</button>
 			<button
 				type="button"

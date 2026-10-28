@@ -8,7 +8,7 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
 
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
-  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79 and #80 are done. #82 (the joined terrain of the base mats) is built and its art approved; it closes when its branch merges into main.
+  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #84, #87, #91, #93, #98, #113 and #130 are done. #103, #124 and #128 are partly built; what is left of each waits for #85 or #86. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-28.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -28,6 +28,8 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
   - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
   - #79 (every decision prompt at the tracks' centre, the prompt out of `Game.svelte`) is done; it merged and closed on 2026-10-28, after the owner's ruling on the library.
+  - A first batch of #80's findings landed together on 2026-10-28: #84, #87, #91, #93, #98, #103, #113, #124, #128 and #130 (see [its entry](#80s-findings-first-batch)). #104 waits for #103's last piece and #125 for #124's.
+  - The owner ruled out screen-reader work (CLAUDE.md, 2026-10-28), so #121, which is only labels, is closed as not planned.
   - #80 is done: its findings are #84 and #86–#131.
   - #82 (the joined terrain of the base mats) is built, and the owner approved all six base mats in the component library on 2026-10-28. It closes when its branch merges into main. The expansion mats follow in #132 (M8) and #133 (M9), and the World Map's terrain in #134 (M12).
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
@@ -59,6 +61,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#77 (the first turn takes income by itself)](#77-the-first-turn-takes-income-by-itself)
 - [#42 (How to play in the game)](#42-how-to-play-in-the-game)
 - [#83 (the game's hotkeys)](#83-the-games-hotkeys)
+- [#80's findings, first batch](#80s-findings-first-batch)
 - [#82 (the joined terrain of the base mats)](#82-the-joined-terrain-of-the-base-mats)
 
 ## Issues
@@ -516,6 +519,23 @@ Built on 2026-10-28. The design is `docs/superpowers/specs/2026-10-28-decision-p
   - Calls to revisit: the stack is centred in the shared area, so on the vertical its middle is the screen's, a little above the tracks' own middle (the board's head row sits above them); a dice roll over a stack of cards rolls over the player area; the options panel's 480 to 900 px width and the shelf's 18 px gap are #28's.
   - Tests: `tests/client-prompts.test.mjs` (`panelControls`, `paymentControls`), `tests/client-prompt-state.test.mjs` (resets, explore, picks, trades, shelf, placement, payment, sending), `tests/client-board.test.mjs` (`spaceWords`), `tests/browser/decision-prompt.test.mjs` (a card choice and an options prompt open at the tracks' centre); the pick tests measure against the tracks' centre.
   - Handed off: #86, #88, #92, #96, #97, #99, #105, #116, #117, #118, #119, #126, #129 and #131 waited for this.
+
+### #80's findings, first batch
+
+Built on 2026-10-28 as ten of #80's smallest findings, in four parallel streams that kept clear of #79, #82 and #85 (Lazar's track-space rework), then merged onto main with #79 in it. Each issue has its design and plan under `docs/superpowers/` (2026-10-28). The owner ruled out screen-reader work the same day, so the labels these issues changed stay as built and nothing more is done for them.
+- **#130:** the store's take-or-fetch rule is `acceptStep()` in `src/lib/pass.js`, tested case by case; `game.svelte.js` only applies it, and `#fetchView` and `takeSeat` share one `#askView`. The timeout toast reads as the log does, "Vera's clock ran out; the rest of the turn was played for them." (owner, 2026-10-28).
+- **#103 (partly):** `PlayerToken` takes a `seat`, and the pass screen, the standings and the scoreboard draw their tokens with it. Left: `ProgressLanes`' token, after #85; `tests/library.test.mjs` names it in `TOKENS_LEFT` until then. #104 waits for it.
+- **#113:** `territoryShapes()`, `territoryClips()` and `territoryWords()` in `hexmap.js`, drawn by the new `TerritoryClips` and `TerritoryArt`, which `WorldMap` and `TerritoryTile` both use; `PromptArt` takes `tilePreview`. Pixel-identical. #114 builds on it.
+- **#124 (partly):** `describe.js` exports `amountWords`, `resourceName` and `priceWords`; `CostBox`, `ResourceIcon`, `ResourceChip`, `ResourceRows` and `picks.js` use them, so every amount has its plural. The owner approved "resource of your choice" for "any" everywhere and digits in prices. Left: `TierPrice` switches to `priceWords` after #85. Found, not fixed: `engine/payment.js` 217 still says "Pay 2 coin".
+- **#84:** landmark names come from the art catalog ("TV Station"), the income mat says "an armory", the placed landmark's rotate title is "Rotate (. or ,)" (owner), `CardRewardColumns` keeps its class, the Tech tab's display row is 298 px, and #124 (plurals), #91 (duplicate ids) and #79 (the footer's "then") did the rest. The achievement label was dropped with the screen-reader ruling.
+- **#128 (partly):** the engine exports `capitalScore`, `tiebreakValues` and `exposedSpaces` through `game.js`; the player cards, the overview, the scoreboard and the income mat read them, and `PlayerTabs` takes the era from `selfSummary`. Left: the tier part (`tierOf` as the one helper, `tierSymbols` in `board.js`, `picks.js`' tier lines, `Game.svelte`'s `priceSymbols`), after #85 and #86.
+- **#98:** the lobby's lists and lock rules are in `lobby.js` (`modeChoices`, `modeLock`, `settingsLock`, `rulesChoices`, `expansionChoices`, `variantRows`, `toggleVariant`, `UNDO_CHOICES`, `YES_NO_CHOICES`); the new `PlaySettings` draws the timer and undo rows in the lobby and in Table settings; `SeatCard` gains `closed` and `SettingRow` `divided`. Undo rules moved to the left column under Turn timer (owner, 2026-10-28; `docs/ui/screens/lobby.png`). New browser test `tests/browser/lobby.test.mjs`.
+- **#91:** `Tabs` prefixes its ids, draws its panel and takes the focus (`idPrefix`, `panelClass`, `autofocus`); `PlayerCard` takes `autofocus`, so nothing queries another component's markup.
+- **#93:** `TilePicker` gains `pickable`, `size` and `dataIdPrefix` and draws the Terrain tab's tiles; a picked tile keeps its fill on hover.
+- **#87:** `src/lib/components/ui/Dialog.svelte` is the one shell for How to play, the launch help and Table settings: it takes the focus and gives it back, handles Escape on its own box and keeps Tab inside when modal. Table settings stays not modal and takes the shared look (owner, 2026-10-28). Open: should Results and the pass screen show the game's rules under How to play?
+  - Calls to revisit: Table settings closes on a click on the scrim; the launch page's How to play opens with the focus on its box, not Close.
+- **Tests:** every issue built test-first. Together on main: `npm run check` clean, 1801 unit tests (the simulation included) and all 31 browser tests pass.
+- **Handed off:** #85 finishes #103, #124 and #128's track parts; #86 takes `priceSymbols`; #88 routes Escape and decides whether Table settings is modal; #95 builds on #91 and #93; #101 and #102 on #98.
 
 ### #82 (the joined terrain of the base mats)
 

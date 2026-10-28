@@ -3,7 +3,7 @@ import { civilizationName } from '../describe.js';
 import { selfSummary } from '../overview.js';
 import { mapHexes } from '../hexmap.js';
 import { TERRAINS } from '../ui.js';
-import { controlledTerritories, uniformLines } from '../engine/game.js';
+import { capitalScore, controlledTerritories } from '../engine/game.js';
 
 const TRACK_IDS = /** @type {const} */ ([
 	'exploration',
@@ -66,9 +66,7 @@ export function playerCards(view, viewer, host) {
 					)
 				),
 				handSize: summary.hand,
-				capitalPoints:
-					summary.lines +
-					(seat.civs.includes('architects') ? uniformLines(seat) : 0),
+				capitalPoints: capitalScore(seat).vp,
 				tech: summary.tech,
 				terrain: landTerrains(view, seat.seat, hexes),
 			};

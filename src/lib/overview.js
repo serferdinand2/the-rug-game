@@ -1,9 +1,5 @@
 // Your overview (#26 design §9): the viewer's name, era, VP, resources and counts, from their own view.
-import {
-	cityPlots,
-	completeLines,
-	controlledTerritories,
-} from './engine/game.js';
+import { capitalScore, controlledTerritories } from './engine/game.js';
 
 /**
  * What the compact overview at the foot of the player area shows.
@@ -30,11 +26,8 @@ export function selfSummary(view, seat) {
 	if (!player || player.kind !== 'player') {
 		return null;
 	}
-	// In setup, before the mats are dealt, there is no capital to count.
-	const lines =
-		player.capital.mat === null
-			? { rows: 0, columns: 0 }
-			: completeLines(cityPlots(player));
+	// In setup, before the mats are dealt, the capital scores nothing.
+	const lines = capitalScore(player);
 	return {
 		seat: /** @type {import('./ui.js').Seat} */ (seat),
 		name: player.name,

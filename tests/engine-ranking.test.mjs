@@ -2,6 +2,7 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { rankPlayers, landmarksInCity } from '../src/lib/engine/ranking.js';
+import { tiebreakValues, view } from '../src/lib/engine/game.js';
 import { startedGame } from './helpers/engine.mjs';
 
 /**
@@ -251,4 +252,28 @@ test('R13: landmarksInCity names the landmarks placed on the grid', () => {
 		'forge',
 		'fusion-reactor',
 	]);
+});
+
+test('tiebreakValues gives every seat the values the ranking compares, from a view too (#128)', () => {
+	const state = finalState('current', [
+		{ vp: 30, resources: 3, landmarks: ['lighthouse', 'tech-hub'] },
+		{ vp: 30, resources: 5 },
+	]);
+	assert.deepEqual(tiebreakValues(state.seats[0]), {
+		tallestLandmark: 'tech-hub',
+		resources: 3,
+	});
+	assert.deepEqual(tiebreakValues(state.seats[1]), {
+		tallestLandmark: null,
+		resources: 5,
+	});
+	const [tie] = rankPlayers(state).ties;
+	for (const step of tie.steps) {
+		for (const { seat, value } of step.values) {
+			assert.equal(
+				tiebreakValues(view(state, 2).seats[seat - 1])[step.by],
+				value
+			);
+		}
+	}
 });

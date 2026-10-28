@@ -1,7 +1,7 @@
 // The player area's income mat and era slots (#27): rows and slots from a seat in the game view.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { view } from '../src/lib/engine/game.js';
+import { exposedSpaces, view } from '../src/lib/engine/game.js';
 import { eraSlots, incomeRows } from '../src/lib/area/income.js';
 import { startedGame } from './helpers/engine.mjs';
 
@@ -39,6 +39,27 @@ test('removing two markets exposes three spaces, and the others stay', () => {
 	);
 	assert.equal(rows[0].left, 3);
 	assert.equal(rows[1].spaces.filter((s) => !s.covered).length, 1);
+});
+
+test("the uncovered spaces are the engine's exposed spaces, for every count left (#128)", () => {
+	const { state } = startedGame(2);
+	for (let left = 0; left <= 5; left++) {
+		const seat = /** @type {any} */ (state.seats[0]);
+		seat.incomeMat.buildings = {
+			market: left,
+			house: left,
+			farm: left,
+			armory: left,
+		};
+		const shown = mine(state);
+		for (const row of incomeRows(shown)) {
+			assert.deepEqual(
+				row.spaces.filter((s) => !s.covered).map((s) => s.name),
+				exposedSpaces(shown, row.building).map((s) => s.name),
+				`${row.building} with ${left} left`
+			);
+		}
+	}
 });
 
 test('a space with no income or score has an empty reward part, not "Nothing"', () => {

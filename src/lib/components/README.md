@@ -34,6 +34,7 @@ These components are updated as the art issues deliver their assets. Each will s
 |---|---|
 | `Badge` | Expansion tags tinted with their colour, and the YOU, HOST and READY capitals. |
 | `Button` | Every button: `primary`, `secondary`, `gold`, `confirm` (a decision panel's solid gold Confirm, #65), `success` or `danger`, in three sizes, with a `selected` toggle state. |
+| `Dialog` | A dialog over a scrim, `narrow` or `wide`: a title, the content and Close or its own `actions`. Escape, Close and the backdrop close it; it takes the focus and gives it back. Modal, it covers the screen and keeps Tab inside; with `modal={false}`, it covers its positioned parent only, as Table settings over the board (#87). |
 | `Divider` | A thin rule, optionally paused by a short italic label such as "or join friends". |
 | `IconButton` | The 36px header controls (sound, history, log, menu, close), with the red mute slash. |
 | `Menu` | The header popover: entries as links or buttons, arrow keys and Escape. |
@@ -41,7 +42,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `PassScreen` | The hot-seat pass screen (#30): the next player's token, name and reason, their clock when the table has a timer, and I'm …, which answers after a short wait. |
 | `ResourceIcon` | The five resource symbols at 16px, native 24px or native 48px, shared by prices, chips and footer costs. The native assets are 24×24 and 48×48; 16px display scales the 24px SVG. The 32px source is deprecated and archived. |
 | `Segmented` | A row of pressed/unpressed choices, single or multiple, tinted or filled, and disabled for a player who can't change them. |
-| `Tabs` | The right panel's tabs, with a count, roving focus and arrow keys; `--rg-tabs-padding` and `--rg-tabs-gap` tighten the row, and a row wider than its place scrolls, fades at a cut edge and keeps the selected tab in view (#64). |
+| `Tabs` | The right panel's tabs, with a count, roving focus and arrow keys; `--rg-tabs-padding` and `--rg-tabs-gap` tighten the row, and a row wider than its place scrolls, fades at a cut edge and keeps the selected tab in view (#64). It draws the selected tab's panel from its children, laid out through `panelClass`, starts every id with its own prefix (`idPrefix`, by default `$props.id()`), and with `autofocus` gives the selected tab the focus as it is drawn (#91). |
 | `TextInput` | Labelled text fields with a hint and a validation message, and the small gold read-only code. |
 | `Toast` | A short status message at the bottom of the screen. |
 | `TopBar` | The 58px header: brand, centre content and controls. Player chips go straight into the centre, so they shrink to fit a narrow header. |
@@ -58,6 +59,8 @@ These components are updated as the art issues deliver their assets. Each will s
 | `Track` | One track: name, four tier prices, twelve spaces (each with its benefit and bonus) and the lanes. |
 | `TrackBoard` | The four tracks stacked, with one selected space across them; a size container, so the spaces grow up to 1.25 times as tall as wide when the board has the height (#59). |
 | `TrackSpace` | One pointed space: name, its `benefit` and `bonus` as symbols from `src/lib/glyphs.js` (resources, buildings and tracks as art, the other game symbols as short words, the X as a red cross), its `words` as tooltip and label, landmark, number, first/last shapes, selected and focus outlines; a short space draws its symbols smaller (#59). |
+| `TerritoryArt` | A territory's face round the origin (#113): a terrain picture per corner wedge, the coasts, the island's parts outlined, and the cloud and volcano (R77), from `territoryShapes()`; `WorldMap` and `TerritoryTile` draw every territory with it. |
+| `TerritoryClips` | The clip outlines `TerritoryArt` is cut with (#113), from `territoryClips()`: one set per svg and size, ids starting with its `prefix`. |
 | `WorldMap` | The real board's hex grid from `mapHexes(view)`: corner terrains as wedges, islands, unexplored hexes dashed, outposts (toppled ones lying), Nomads pieces and tokens; `targets` become buttons and the rest dim, `selected` is outlined in gold; a `fresh` hex pulses gold twice (#29); `scores` puts a gold "+N VP" tag on target hexes (#74). |
 | `Die` | One die as the dice tray rolls it (#61): its style C body (a cream d12, a red or a black d6) with the rolled face on top: the track's symbol, VP in words, a resource icon or ? for the tile's benefit; it tumbles while `rolling`, not with reduced motion. |
 | `DiceTray` | A roll over the middle of the screen for the whole table (#61): a new `batch` plays its rolls one after another (a tumble of about a second, the faces held, then a fade) under each roll's caption; a click or Escape ends it, it takes no focus, and a live region reads each result once. Its `panel` says what the game has open (#79): over a decision panel it rolls at the top of the board, over a stack of cards over the player area. |
@@ -72,7 +75,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `PlacementTray` | The To be placed tray: select, drag or arrow a landmark onto the grid, or drop one back. |
 | `EraSlots` | The four era slots: printed Maker of Fire, then each top tapestry card, "Face-down card" or "Not yet chosen"; the active era is outlined and a card can be chosen (#27). |
 | `IncomeMat` | The income mat: four building rows of six spaces, covered ones showing the building, exposed ones their name and reward in words (#27). |
-| `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows. |
+| `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows; with `autofocus`, its first row takes the focus as it is drawn (#91). |
 | `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. 210px wide, shrinking to 120px; below 190px it drops the civilization name. `bump` pops the VP once when it rises (#29). |
 | `ResourceChip` | A resource symbol and its count. |
 | `SelfSummary` | Your overview at the foot of the player area: name, era, VP, hand, tech, territory and capital-line counts, and the four resources (#26). `changed` draws gold the counts a prompt's choices so far change (#75). |
@@ -88,7 +91,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `IncomeNotice` | The one-time notice after income turn 1: the gold, narrow income panel at the tracks' centre, saying the game took the turn, what the player starts with (resource chips and words) and what every later turn offers; Got it or Escape closes it (#77). |
 | `IncomeSteps` | The strip of an income turn's steps, the running one marked `aria-current="step"` (#28). |
 | `PromptArt` | One picture a prompt shows: a resource with its count, track, building, landmark, terrain, civilization, space tile, turned territory, capital mat, card art, VP badge or the tech deck (#28). |
-| `TilePicker` | The territory tiles in hand as a wrapping row of pressable hexes (about 88×80 px); the picked one is outlined in gold, and a corner tag shows the VP each scores on the chosen hex (#74). Several can be picked at once, with `disabled` tiles waiting, for a payment of tiles (#75). |
+| `TilePicker` | The territory tiles in hand as a wrapping row of pressable hexes (about 88×80 px); the picked one is outlined in gold, and a corner tag shows the VP each scores on the chosen hex (#74). Several can be picked at once, with `disabled` tiles waiting, for a payment of tiles (#75). `size="large"` draws the Terrain tab's tiles at their own size, only the `pickable` ones pressable, and `dataIdPrefix` keeps their hooks apart (#93). |
 | `ResourceRows` | One row per resource to choose, as Board Game Arena's boxes, stacked (#75): the row's number, the four resources at 48 px with the count the player would hold, and the name picked; a cost's own resource is a fixed row; a resource no legal answer allows is off, with the reason as its title. |
 | `TurnControl` | The ↺ and ↻ buttons that turn the picked tile, with a gold `+n VP` tag between them (`No hex yet` and disabled until a hex is chosen) and the hint that . and , turn it (#74, #83). |
 | `OverviewCloseBar` | The footer while the players overview is open. |
@@ -100,8 +103,9 @@ These components are updated as the art issues deliver their assets. Each will s
 |---|---|
 | `CivChooser` | Civilization tiles and Random, bordered in the edited player's colour. |
 | `OpenTableRow` | One open table on the launch page: Join, code, seat boxes, rules and expansion. |
-| `SeatCard` | A lobby seat: empty (Open seat), open (Take the seat!), add (a name field for a hot-seat player) or a joined player, with or without the civilization line. Add bot is shelved. |
-| `SettingRow` | A setting's title, a thin rule and its choices on one line. |
+| `PlaySettings` | The turn timer and undo rows, the same in the lobby and in Table settings; its rows join the parent's layout, and a guest sees them disabled (#98). |
+| `SeatCard` | A lobby seat: empty (Open seat), closed (an empty seat the viewer can't open, #98), open (Take the seat!), add (a name field for a hot-seat player) or a joined player, with or without the civilization line. Add bot is shelved. |
+| `SettingRow` | A setting's title, a thin rule and its choices on one line; `divided` draws a soft rule under it (#98). |
 | `TableCode` | The read-only table code with COPY. |
 
 ## log/
@@ -134,7 +138,7 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | `player/TerritoryTile` | One small flat-topped territory tile in hand, drawn like the World Map's, with its number |
 | `player/CardFan` | Overlapping cards; hover or focus raises one and reports it for a full view |
 | `player/CardResource` | Native 24 px inline icon without changing row spacing |
-| `player/PlayerToken` | Five supplied shaded 32 px colour variants |
+| `player/PlayerToken` | A player's token, from its seat (#103) or one of the five supplied shaded 32 px colour variants |
 | `player/CardSlot` | Compact, large or prediction square, never larger than 75 px |
 | `player/CardEffectBox` | Beige trigger/scoring row |
 | `player/CardClarity` | Supporting rules beneath the relevant layout |

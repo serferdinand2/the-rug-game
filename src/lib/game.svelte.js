@@ -6,8 +6,8 @@ import { validCode } from './lobby.js';
 import { sendMove } from './moves.js';
 import { generateName } from './names.js';
 import { backoff, pollTable } from './poll.js';
-import { freshEvents } from './event-feed.js';
-import { handOver } from './pass.js';
+import { eventText } from './log.js';
+import { acceptStep } from './pass.js';
 
 /** How often the landing page asks for the open tables again. */
 const TABLES_EVERY_MS = 10_000;
@@ -315,45 +315,28 @@ class Store {
 	}
 
 	/**
-	 * Takes a room view unless an older answer arrives after a newer one.
+	 * Applies acceptStep to a room view that arrived: sets the hand-over, asks for another view, takes the room, and
+	 * announces its fresh events (#130).
 	 * @param {any} room
 	 */
 	#accept(room) {
-		if (
-			this.room &&
-			room.code === this.room.code &&
-			room.version < this.room.version
-		) {
-			return;
-		}
-		// At a hot-seat table the screen passes between players, and only the view the hand-over allows is taken: a
-		// room for another seat is swapped for the right one rather than shown (#26 review, #30).
-		const wasPassing = this.passing !== null;
-		const holder = this.#shownSeat;
-		const step = handOver(room, holder, this.passing);
+		const step = acceptStep(this.room, room, this.#shownSeat, this.passing);
 		this.#shownSeat = step.shown;
 		this.passing = step.passing;
 		if (step.fetch !== undefined) {
 			this.#fetchView(room.code, step.fetch);
 		}
-		// The view of the player holding the screen is theirs to see: the move that brings a pass screen, or ends the
-		// game, shows at once (the pass screen or the results cover it) until the public view replaces it, and still
-		// sounds. Events that arrive while a pass screen is up stay silent (#30 design §4).
-		const own =
-			!wasPassing && room.viewing !== null && room.viewing === holder;
-		const take = step.fetch === undefined || !this.room || own;
-		const fresh = take && !wasPassing ? freshEvents(this.room, room) : [];
-		if (take) {
+		if (step.take) {
 			this.room = room;
 			this.receivedAt = Date.now();
 			if (this.me) {
 				this.me = { ...this.me, code: room.code };
 			}
 		}
-		if (fresh.length > 0) {
-			this.fresh = fresh;
+		if (step.fresh.length > 0) {
+			this.fresh = step.fresh;
 			this.freshCount += 1;
-			this.#notices(fresh, room);
+			this.#notices(step.fresh, room);
 		}
 	}
 
@@ -364,12 +347,9 @@ class Store {
 	 */
 	#notices(events, room) {
 		const timedOut = events.findLast((event) => event.type === 'timedOut');
-		if (timedOut) {
-			const name =
-				room.game?.seats?.[timedOut.player - 1]?.name ?? 'A player';
-			this.notify(
-				`${name} ran out of time. The rest of the turn was played for them.`
-			);
+		const text = timedOut ? eventText(timedOut, room.game) : null;
+		if (text) {
+			this.notify(text);
 		}
 	}
 
@@ -379,21 +359,9 @@ class Store {
 	 * @param {number | null} seat - A seat, or null for the public view
 	 */
 	#fetchView(code, seat) {
-		const generation = this.#generation;
-		this.#api
-			.request(seat === null ? 'state' : `state?seat=${seat}`)
-			.then((next) => {
-				// An answer for a table the tab has left is dropped.
-				if (
-					generation === this.#generation &&
-					(!this.room || this.room.code === code)
-				) {
-					this.#accept(next);
-				}
-			})
-			.catch(() => {
-				// The next poll asks again.
-			});
+		this.#askView(code, seat).catch(() => {
+			// The next poll asks again.
+		});
 	}
 
 	/**
@@ -406,25 +374,34 @@ class Store {
 			return;
 		}
 		this.#shownSeat = seat;
-		const code = this.room.code;
+		this.#askView(this.room.code, seat).catch(() => {
+			// The pass screen stays, and the player may try again.
+			if (this.passing === seat) {
+				this.#shownSeat = null;
+			}
+			this.notify("Can't reach the server. Try again.");
+		});
+	}
+
+	/**
+	 * Asks for a view of a table and accepts it, unless the tab has left that table by the time it arrives.
+	 * @param {string} code - The table the view is for
+	 * @param {number | null} seat - A seat, or null for the public view
+	 * @returns {Promise<void>} Rejects when the server can't be reached
+	 */
+	async #askView(code, seat) {
 		const generation = this.#generation;
-		this.#api
-			.request(`state?seat=${seat}`)
-			.then((next) => {
-				if (
-					generation === this.#generation &&
-					this.room?.code === code
-				) {
-					this.#accept(next);
-				}
-			})
-			.catch(() => {
-				// The pass screen stays, and the player may try again.
-				if (this.passing === seat) {
-					this.#shownSeat = null;
-				}
-				this.notify("Can't reach the server. Try again.");
-			});
+		const next = await this.#api.request(
+			seat === null ? 'state' : `state?seat=${seat}`
+		);
+		// An answer for a table the tab has left is dropped. Within one generation the table on show is null only
+		// before the first view is taken.
+		if (
+			generation === this.#generation &&
+			(!this.room || this.room.code === code)
+		) {
+			this.#accept(next);
+		}
 	}
 
 	/** Whether the player the pass screen names has taken it, and their view is on its way (#30). */

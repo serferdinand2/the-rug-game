@@ -1,12 +1,11 @@
 // Words for the engine's effects, costs, decisions and answers (#26 design §8): the short English the play screen shows.
 import { TRACKS } from './engine/data/tracks.js';
-import { LANDMARKS } from './engine/data/landmarks.js';
 import { TAPESTRY_CARDS } from './engine/data/tapestry-cards.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
 import { SPACE_TILES } from './engine/data/space-tiles.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
-import { TRACKS as TRACK_NAMES } from './ui.js';
+import { RESOURCES as RESOURCE_NAMES, TRACKS as TRACK_NAMES } from './ui.js';
 import { ASSETS } from './art/catalog.js';
 import { GRID_SIZE } from './capital.js';
 
@@ -178,14 +177,45 @@ export function article(name) {
 }
 
 /**
- * An amount of one counted thing: "1 coin", "2 resources of your choice".
+ * An amount of one counted thing, with its plural: "1 coin", "2 coins", "2 food", "2 resources of your choice".
+ * @param {string} id - A NOUNS key (a resource, 'any', 'vp', a tile or card kind), or any other id
  * @param {number} n
- * @param {string} key - A NOUNS key, or any other id
  * @returns {string}
  */
-function amount(n, key) {
-	const [one, many] = NOUNS[key] ?? [wordsOf(key), wordsOf(key)];
+export function amountWords(id, n) {
+	const [one, many] = NOUNS[id] ?? [wordsOf(id), wordsOf(id)];
 	return `${n} ${n === 1 ? one : many}`;
+}
+
+/**
+ * A resource's name as a title or a tooltip shows it: "Coin", and "Resource of your choice" for `any`. Any other id
+ * comes back as it is.
+ * @param {string} id - A resource, or 'any'
+ * @returns {string}
+ */
+export function resourceName(id) {
+	if (id === 'any') {
+		return capitalize(NOUNS.any[0]);
+	}
+	return RESOURCE_NAMES.find((r) => r.id === id)?.name ?? id;
+}
+
+/**
+ * A price in words, its symbols counted in the order they first appear: "1 food and 1 resource of your choice",
+ * "2 coins", and "nothing" for an empty price.
+ * @param {readonly import('./ui.js').CostSymbol[]} symbols - One symbol per resource paid
+ * @returns {string}
+ */
+export function priceWords(symbols) {
+	/** @type {Map<string, number>} */
+	const counts = new Map();
+	for (const symbol of symbols) {
+		counts.set(symbol, (counts.get(symbol) ?? 0) + 1);
+	}
+	if (counts.size === 0) {
+		return 'nothing';
+	}
+	return joinList([...counts].map(([id, n]) => amountWords(id, n)));
 }
 
 /**
@@ -203,7 +233,7 @@ function amounts(counts, only = () => true) {
 		.filter((key) => only(key))
 		.flatMap((key) => {
 			const n = counts[key];
-			return isCount(n) && n > 0 ? [amount(n, key)] : [];
+			return isCount(n) && n > 0 ? [amountWords(key, n)] : [];
 		});
 }
 
@@ -266,7 +296,8 @@ export function buildingName(building) {
 }
 
 /**
- * A landmark's name, such as "Train Station".
+ * A landmark's name, such as "Train Station" or "TV Station", from the art catalog, which names every landmark of
+ * the game and its expansions.
  * @param {unknown} id
  * @returns {string}
  */
@@ -274,7 +305,7 @@ export function landmarkName(id) {
 	if (typeof id !== 'string') {
 		return 'Landmark';
 	}
-	return LANDMARKS.find((l) => l.id === id)?.name ?? titleOf(id);
+	return ASSETS.find((a) => a.id === `landmark/${id}`)?.name ?? titleOf(id);
 }
 
 /**
@@ -450,7 +481,7 @@ function paymentVerbs(payment) {
 	for (const key of DISCARDS) {
 		const given = payment[key];
 		if (isCount(given) && given > 0) {
-			discarded.push(amount(given, key));
+			discarded.push(amountWords(key, given));
 		} else if (Array.isArray(given) && given.length > 0) {
 			if (key === 'territory' || key === 'space') {
 				const [one, many] = NOUNS[key];
@@ -486,7 +517,7 @@ const PHRASES = {
 		const { keep, ...rest } = value;
 		if (isCount(keep) && isCount(rest.tapestry) && rest.tapestry > keep) {
 			const { tapestry, ...others } = rest;
-			const draw = `draw ${amount(tapestry, 'tapestry')} and keep ${keep}`;
+			const draw = `draw ${amountWords('tapestry', tapestry)} and keep ${keep}`;
 			const items = amounts(others);
 			return items.length > 0
 				? `gain ${joinList(items)} and ${draw}`
@@ -1206,7 +1237,7 @@ export function decisionTitle(decision, table) {
  */
 const SLOT_ANSWERS = {
 	loseResource: (slot) =>
-		RESOURCES.includes(slot) ? `Lose ${amount(1, slot)}` : null,
+		RESOURCES.includes(slot) ? `Lose ${amountWords(slot, 1)}` : null,
 	architectsCube: (slot) => (isCount(slot) ? capitalize(plotAt(slot)) : null),
 	merrymakers: (slot) => (isCount(slot) ? `Column ${slot + 1}` : null),
 	entertainers: (slot) => {
@@ -1243,7 +1274,7 @@ function anySlot(slot) {
 		return trackName(slot);
 	}
 	if (typeof slot === 'string' && RESOURCES.includes(slot)) {
-		return capitalize(amount(1, slot));
+		return capitalize(amountWords(slot, 1));
 	}
 	if (typeof slot === 'string' && hexName(slot) !== 'a territory') {
 		return capitalize(hexName(slot));

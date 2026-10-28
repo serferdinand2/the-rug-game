@@ -17,6 +17,7 @@
 </script>
 
 <script>
+	import { article } from '../../describe.js';
 	import { artUrl, roman } from '../../ui.js';
 
 	/** @type {IncomeMatProps} */
@@ -56,7 +57,7 @@
 								? 'rg-income-mat--space-covered'
 								: ''}"
 							aria-label={space.covered
-								? `${space.name}, covered by a ${row.building}`
+								? `${space.name}, covered by ${article(row.building)} ${row.building}`
 								: `${space.name}. ${space.reward}`}>
 							{#if space.covered}
 								<img

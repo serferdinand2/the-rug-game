@@ -53,7 +53,7 @@
 	import IncomeMat from '../../lib/components/player/IncomeMat.svelte';
 	import ScaledTapestryCard from '../../lib/components/player/ScaledTapestryCard.svelte';
 	import TechnologyCard from '../../lib/components/player/TechnologyCard.svelte';
-	import TerritoryTile from '../../lib/components/player/TerritoryTile.svelte';
+	import TilePicker from '../../lib/components/prompts/TilePicker.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { TABS } from '../../lib/area/tabs.js';
 	import { capitalView } from '../../lib/area/capital.js';
@@ -66,6 +66,7 @@
 		plotTargets,
 	} from '../../lib/area/placement-targets.js';
 	import { eraSlots, incomeRows } from '../../lib/area/income.js';
+	import { selfSummary } from '../../lib/overview.js';
 	import { terrainView } from '../../lib/area/terrain.js';
 	import {
 		tapestryCardData,
@@ -98,16 +99,15 @@
 
 	/**
 	 * Reports a pressed territory tile, so the explore's tile picker follows.
-	 * @param {number} tile
-	 * @param {MouseEvent} event
+	 * @param {ComponentEvent} event - From TilePicker: { tile }
 	 */
-	const tileHandler = (tile, event) => {
+	const tilePickerSelectHandler = (event) => {
 		if (typeof onPlayerTabsPick === 'function') {
 			onPlayerTabsPick(
 				new ComponentEvent(
-					{ tile },
-					/** @type {HTMLElement} */ (event.currentTarget),
-					event
+					{ tile: event.value.tile },
+					event.target,
+					event.originalEvent
 				)
 			);
 		}
@@ -187,7 +187,14 @@
 			?.id ?? null
 	);
 	let terrain = $derived(terrainView(player));
-	let era = $derived(Math.min(Math.max(player.incomeTurns, 1), 4));
+	/** The territory tiles in hand, with their words for the ones on offer. */
+	let territories = $derived(
+		terrain.territories.map((tile) => ({
+			...tile,
+			label: tileWords(tile.id),
+		}))
+	);
+	let era = $derived(selfSummary(game, seat)?.era ?? 1);
 
 	let tabs = $derived(
 		TABS.map((t) =>
@@ -382,15 +389,10 @@
 	class="rg-player-tabs {attr.class ? attr.class : ''}">
 	<Tabs
 		class="rg-player-tabs--tabs"
+		panelClass="rg-player-tabs--body"
 		{tabs}
 		bind:value={tab}
-		label="Your city and cards" />
-	<div
-		class="rg-player-tabs--body"
-		id="{tab}-panel"
-		role="tabpanel"
-		tabindex="0"
-		aria-labelledby="{tab}-tab">
+		label="Your city and cards">
 		{#if tab === 'capital'}
 			{#if capital}
 				<h2 class="rg-player-tabs--title">
@@ -569,7 +571,7 @@
 							class="rg-player-tabs--scale"
 							style:--rg-player-tabs-scale="0.42"
 							style:--rg-player-tabs-width="425px"
-							style:--rg-player-tabs-height="286px">
+							style:--rg-player-tabs-height="298px">
 							<div class="rg-player-tabs--scaled">
 								<TechnologyCard data={techCardData(id)} />
 							</div>
@@ -579,38 +581,18 @@
 			</section>
 		{:else if tab === 'terrain'}
 			<h2 class="rg-player-tabs--title">Territory tiles</h2>
-			{#if terrain.territories.length}
-				<div class="rg-player-tabs--tiles">
-					{#each terrain.territories as tile (tile.id)}
-						{#snippet territory()}
-							<TerritoryTile
-								id={tile.id}
-								corners={tile.corners}
-								island={tile.island}
-								clouds={tile.clouds}
-								volcano={tile.volcano} />
-						{/snippet}
-						{#if tilePick?.tiles.includes(tile.id)}
-							<button
-								type="button"
-								class="rg-player-tabs--pick"
-								aria-pressed={Array.isArray(tilePick.selected)
-									? tilePick.selected.includes(tile.id)
-									: tilePick.selected === tile.id}
-								disabled={tilePick.disabled?.includes(
-									tile.id
-								) ?? false}
-								aria-label={tileWords(tile.id)}
-								data-id="terrain-tile-{tile.id}"
-								onclick={(event) =>
-									tileHandler(tile.id, event)}>
-								{@render territory()}
-							</button>
-						{:else}
-							{@render territory()}
-						{/if}
-					{/each}
-				</div>
+			{#if territories.length}
+				<!-- While exploring (#74) or paying tiles (#75), the tiles on offer can be pressed. -->
+				<TilePicker
+					class="rg-player-tabs--tiles"
+					aria-label="Territory tiles in hand"
+					size="large"
+					tiles={territories}
+					pickable={tilePick?.tiles ?? []}
+					selected={tilePick?.selected ?? null}
+					disabled={tilePick?.disabled ?? []}
+					dataIdPrefix="terrain-tile"
+					onTilePickerSelect={tilePickerSelectHandler} />
 			{:else}
 				<p class="rg-player-tabs--note">No territory tiles in hand.</p>
 			{/if}
@@ -634,7 +616,7 @@
 				<p class="rg-player-tabs--note">No space tiles.</p>
 			{/if}
 		{/if}
-	</div>
+	</Tabs>
 </div>
 
 <style>
@@ -656,7 +638,8 @@
 		}
 	}
 
-	.rg-player-tabs--body {
+	/* Tabs' panel, reached through its panelClass prop. */
+	.rg-player-tabs :global(.rg-player-tabs--body) {
 		min-height: 0;
 		overflow: auto;
 		padding: var(--space-9) 22px;
@@ -681,7 +664,7 @@
 	}
 
 	/* PlacementTray's root, reached through its class prop. */
-	.rg-player-tabs--body :global(.rg-player-tabs--tray) {
+	.rg-player-tabs :global(.rg-player-tabs--tray) {
 		margin-top: var(--space-6);
 	}
 
@@ -742,43 +725,12 @@
 		font-size: var(--font-size-sm);
 	}
 
-	.rg-player-tabs--tiles {
+	/* Also TilePicker's root, reached through its class prop. */
+	.rg-player-tabs :global(.rg-player-tabs--tiles) {
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--space-5);
 		margin-bottom: var(--space-9);
-	}
-
-	/* An offered tile while exploring (#74): a plain button round the tile, outlined in gold when picked. */
-	.rg-player-tabs--pick {
-		padding: var(--space-2);
-		border: var(--border) solid var(--line);
-		border-radius: var(--radius);
-		background: transparent;
-		cursor: pointer;
-	}
-
-	.rg-player-tabs--pick:disabled {
-		opacity: 0.35;
-		cursor: default;
-	}
-
-	.rg-player-tabs--pick:not(:disabled):hover,
-	.rg-player-tabs--pick:focus-visible {
-		border-color: var(--gold);
-		background: color-mix(in srgb, var(--gold) 10%, transparent);
-	}
-
-	.rg-player-tabs--pick[aria-pressed='true'] {
-		border-color: var(--gold);
-		background: color-mix(in srgb, var(--gold) 17%, var(--surface));
-		outline: var(--border-thick) solid var(--gold);
-	}
-
-	/* Focus on the picked tile: its solid ring turns dashed and stands off, so focus reads apart from the pick. */
-	.rg-player-tabs--pick[aria-pressed='true']:focus-visible {
-		outline-style: dashed;
-		outline-offset: var(--focus-offset);
 	}
 
 	.rg-player-tabs--space {
