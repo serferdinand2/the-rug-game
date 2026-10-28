@@ -17,7 +17,8 @@
 </script>
 
 <script>
-	import { playerColor, playerPieceUrl } from '../../ui.js';
+	import { playerColor } from '../../ui.js';
+	import PlayerToken from '../player/PlayerToken.svelte';
 
 	/** @type {ScoreBoardProps} */
 	let { rows, you = null, ...attr } = $props();
@@ -31,16 +32,13 @@
 		<li
 			class="rg-score-board--row"
 			class:rg-score-board--you={row.seat === you}
-			style:--rg-score-board-color={playerColor(
-				/** @type {any} */ (row.seat)
-			)}>
+			style:--rg-score-board-color={playerColor(row.seat)}>
 			<div class="rg-score-board--head">
 				<span class="rg-score-board--place">{row.place}</span>
-				<img
-					src={playerPieceUrl('token', /** @type {any} */ (row.seat))}
-					alt=""
-					width="24"
-					height="24" />
+				<PlayerToken
+					seat={row.seat}
+					size={24}
+					decorative />
 				<span class="rg-score-board--who">
 					<b>{row.name}</b>
 					{#if row.civ}
@@ -102,10 +100,6 @@
 		grid-template-columns: 18px 24px minmax(0, 1fr) auto;
 		align-items: center;
 		gap: var(--space-4);
-	}
-
-	.rg-score-board--head img {
-		image-rendering: pixelated;
 	}
 
 	.rg-score-board--place {
