@@ -1,7 +1,5 @@
 // The results screen and the scoreboard (#29 design §5–§6): the standings, shared places, each tie step by step, VP by source and the table's facts, from a game view.
-import { VARIANTS, VERSIONS } from './engine/game.js';
-import { HEIGHT_RANKING } from './engine/data/landmarks.js';
-import { RESOURCE_IDS } from './engine/data/ids.js';
+import { VARIANTS, VERSIONS, tiebreakValues } from './engine/game.js';
 import { ASSETS, EXPANSIONS } from './art/catalog.js';
 import { civilizationName } from './describe.js';
 import { VARIANT_LABELS } from './lobby.js';
@@ -309,6 +307,8 @@ export function scoreboard(game) {
 		VERSIONS.find((v) => v.id === game.version)?.tiebreak ?? []
 	).includes('tallestLandmark');
 	return players.map((/** @type {any} */ seat) => {
+		// The engine's own values, so the scoreboard and the final ranking compare the same things (#128).
+		const values = tiebreakValues(seat);
 		/** @type {ScoreRow} */
 		const row = {
 			seat: seat.seat,
@@ -319,21 +319,13 @@ export function scoreboard(game) {
 				players.filter((/** @type {any} */ o) => o.vp > seat.vp).length,
 			vp: seat.vp,
 			sources: vpBreakdown(seat),
-			resources: RESOURCE_IDS.reduce(
-				(sum, id) => sum + (seat.resources?.[id] ?? 0),
-				0
-			),
+			resources: values.resources,
 		};
 		if (usesLandmark) {
-			const ranks = (seat.capital?.landmarks ?? [])
-				.map((/** @type {any} */ p) =>
-					HEIGHT_RANKING.indexOf(p.landmark)
-				)
-				.filter((/** @type {number} */ rank) => rank !== -1);
-			row.landmark = ranks.length
-				? (LANDMARK_NAMES.get(HEIGHT_RANKING[Math.min(...ranks)]) ??
-					null)
-				: null;
+			row.landmark =
+				values.tallestLandmark === null
+					? null
+					: (LANDMARK_NAMES.get(values.tallestLandmark) ?? null);
 		}
 		return row;
 	});

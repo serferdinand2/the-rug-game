@@ -25,8 +25,8 @@ Callers:
 
 ## 3. Decisions
 
-- **One wording for "any": "resource of your choice"** (my call). It is what `describe.js`, the rules help and the civilization text already say, and the pick prompts' lead lines say it too.
-- **Digits, not number words** (my call). The labels said "one food" while the pick prompt for the same advance says "Tier III costs 1 culture and …". Digits make one wording everywhere; a screen reader reads both the same.
+- **One wording for "any": "resource of your choice"** (owner, 2026-10-28), the `any` icon's tooltip included, which used to say "Any resource". It is what `describe.js`, the rules help and the civilization text already say, and the pick prompts' lead lines say it too.
+- **Digits, not number words** (owner, 2026-10-28). The labels said "one food" while the pick prompt for the same advance says "Tier III costs 1 culture and …". Digits make one wording everywhere; a screen reader reads both the same.
 - **An empty price is "nothing"** (my call): "Cost: nothing", and after #85 "Tier I costs nothing". No tier is free, and the footer shows no cost box for a free move, so neither label changes in play.
 - `shortWords` keeps its short "2 resources" on the trade buttons; it already has its plural.
 

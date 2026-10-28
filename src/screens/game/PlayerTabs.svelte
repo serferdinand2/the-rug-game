@@ -66,6 +66,7 @@
 		plotTargets,
 	} from '../../lib/area/placement-targets.js';
 	import { eraSlots, incomeRows } from '../../lib/area/income.js';
+	import { selfSummary } from '../../lib/overview.js';
 	import { terrainView } from '../../lib/area/terrain.js';
 	import {
 		tapestryCardData,
@@ -187,7 +188,7 @@
 			?.id ?? null
 	);
 	let terrain = $derived(terrainView(player));
-	let era = $derived(Math.min(Math.max(player.incomeTurns, 1), 4));
+	let era = $derived(selfSummary(game, seat)?.era ?? 1);
 
 	let tabs = $derived(
 		TABS.map((t) =>
