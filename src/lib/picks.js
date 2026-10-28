@@ -785,3 +785,43 @@ export function pickStatus(model, selection, held) {
 			}
 		: { text, warn: false };
 }
+
+/**
+ * The rows as ResourceRows draws them: each resource with the count the viewer would hold after the choices so far
+ * (never above the cap), and whether it can be pressed now, with the reason when it can't. The chosen one stays
+ * pressable, to clear its row.
+ * @param {PickModel} model
+ * @param {Selection} selection
+ * @param {Partial<Record<ResourceId, number>>} held
+ * @returns {{ fixed: ResourceId | null, picked: ResourceId | null, choices: { id: ResourceId, count: number, disabled: boolean, reason?: string }[] }[]}
+ */
+export function rowView(model, selection, held) {
+	const after = pendingCounts(model, selection, held);
+	return model.rows.map((row, i) => {
+		const picked = selection.rows[i] ?? null;
+		const ids = row.fixed ? [row.fixed] : row.offers;
+		return {
+			fixed: row.fixed,
+			picked,
+			choices: ids.map((id) => {
+				const count = Math.max(0, Math.min(after[id], RESOURCE_CAP));
+				const disabled =
+					row.fixed === null &&
+					picked !== id &&
+					!canPick(model, selection, i, id);
+				if (!disabled) {
+					return { id, count, disabled };
+				}
+				return {
+					id,
+					count,
+					disabled,
+					reason:
+						after[id] <= 0
+							? `You have no ${id} left`
+							: 'Not with your other choices',
+				};
+			}),
+		};
+	});
+}

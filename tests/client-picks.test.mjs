@@ -14,6 +14,7 @@ import {
 	pendingCounts,
 	pickModel,
 	pickStatus,
+	rowView,
 	toggleItem,
 	togglePick,
 	tradeOffers,
@@ -596,4 +597,51 @@ test('a trade paying VP picks what it gains, then answers the chooseResource it 
 		coin: 1,
 		worker: 1,
 	});
+});
+
+test('the rows as drawn: counts after the choices so far, and why a resource is off', () => {
+	const { option, game, held } = advanceOf('military', 6, {
+		coin: 2,
+		food: 1,
+		worker: 0,
+		culture: 3,
+	});
+	const model = /** @type {any} */ (advanceModel(option, game));
+	let selection = emptySelection(model);
+	let rows = rowView(model, selection, held);
+	assert.deepEqual(rows[0], {
+		fixed: 'culture',
+		picked: 'culture',
+		choices: [{ id: 'culture', count: 2, disabled: false }],
+	});
+	assert.deepEqual(
+		rows[1].choices.map((c) => [c.id, c.count, c.disabled]),
+		[
+			['coin', 2, false],
+			['food', 1, false],
+			['worker', 0, true],
+			['culture', 2, false],
+		]
+	);
+	assert.equal(rows[1].choices[2].reason, 'You have no worker left');
+	selection = togglePick(model, selection, 1, 'food');
+	rows = rowView(model, selection, held);
+	assert.equal(rows[1].picked, 'food');
+	assert.equal(
+		rows[1].choices[1].disabled,
+		false,
+		'the chosen one can be cleared'
+	);
+	assert.equal(rows[2].choices[1].count, 0);
+	assert.equal(rows[2].choices[1].disabled, true);
+
+	const gain = decisionOf(
+		{ kind: 'chooseResource', count: 2, from: 'any' },
+		{ food: 8 }
+	);
+	const gainModel = /** @type {any} */ (
+		pickModel(gain.decision, gain.game, 1)
+	);
+	const shown = rowView(gainModel, picked(gainModel, ['food']), gain.held);
+	assert.equal(shown[1].choices[1].count, 8, 'never above the cap');
 });
