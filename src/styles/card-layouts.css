@@ -23,8 +23,7 @@
 	min-height: 286px;
 	padding: 0 10px;
 	display: grid;
-	grid-template-rows: 40px 155px 42px 30px;
-	gap: 5px;
+	grid-template-rows: 40px 174px 38px 30px;
 }
 .rg-tech-layout__band,
 .rg-tapestry-layout__band {
@@ -58,8 +57,8 @@
 	display: grid;
 	grid-template-columns: 150px 1fr;
 	gap: 12px;
-	align-items: center;
-	padding: 5px 2px 0;
+	align-items: start;
+	padding: 12px 2px;
 }
 .rg-tech-layout__art {
 	display: block;
@@ -174,6 +173,14 @@
 	align-items: center;
 	border-top: 1px solid var(--card-line);
 }
+.rg-tech-layout__footer {
+	margin: 0 -10px;
+	padding: 0 10px;
+}
+.rg-tapestry-layout__footer {
+	margin: 0 -12px;
+	padding: 0 12px;
+}
 .rg-card-edition {
 	display: inline-flex;
 	align-items: center;
@@ -200,10 +207,10 @@
 }
 .rg-tapestry-layout {
 	width: 319px;
-	height: 560px;
+	min-height: 560px;
 	padding: 0 12px;
 	display: grid;
-	grid-template-rows: 49px 190px 1fr 30px;
+	grid-template-rows: 49px 184px minmax(max-content, 1fr) 30px;
 }
 .rg-tapestry-layout__band {
 	margin: 0 -12px;
@@ -227,7 +234,8 @@
 	display: grid;
 	grid-template-columns: 160px minmax(0, 1fr);
 	gap: 10px;
-	align-items: center;
+	align-items: start;
+	padding-top: 12px;
 }
 .rg-tapestry-layout__portrait img {
 	display: block;
@@ -271,7 +279,7 @@
 .rg-tapestry-layout__copy {
 	align-self: stretch;
 	margin: 0;
-	padding: 18px 10px 12px;
+	padding: 18px 10px 24px;
 	border-top: 1px solid var(--card-line);
 	font-size: 15px;
 	line-height: 1.42;

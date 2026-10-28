@@ -33,7 +33,7 @@
 <script>
 	import CapitalGrid from '../player/CapitalGrid.svelte';
 	import CivilizationCard from '../player/CivilizationCard.svelte';
-	import TapestryCard from '../player/TapestryCard.svelte';
+	import ScaledTapestryCard from '../player/ScaledTapestryCard.svelte';
 	import TechnologyCard from '../player/TechnologyCard.svelte';
 	import { tapestryCardData, techCardData } from '../../cards/game-cards.js';
 	import { matPlots } from '../../area/capital.js';
@@ -41,12 +41,12 @@
 	import { ComponentEvent } from '../../component-event.js';
 
 	/**
-	 * The tapestry and tech cards' size before scaling, and the scale the shelf draws them at. Civilization cards are
+	 * The tech card's size before scaling, and the scale the shelf draws it at. Tapestry cards measure their own height.
+	 * Civilization cards are
 	 * drawn whole, 425 px wide at their own height, as the decision mockup shows them (#57, #58), and capital mats
 	 * as their 9×9 grid (#56); each sizes its own button, so the gold outline fits it.
 	 */
 	const SCALED = {
-		tapestry: { width: 319, height: 560, scale: 0.7 },
 		tech: { width: 425, height: 286, scale: 0.65 },
 	};
 
@@ -69,9 +69,7 @@
 		...attr
 	} = $props();
 
-	let size = $derived(
-		kind === 'tapestry' || kind === 'tech' ? SCALED[kind] : null
-	);
+	let size = $derived(kind === 'tech' ? SCALED.tech : null);
 
 	/** The shelf's height, and each civilization card's own height, unscaled, by answer index. */
 	let shelfHeight = $state(0);
@@ -165,16 +163,19 @@
 			onmouseleave={(event) => inspectHandler(null, event)}
 			onfocus={(event) => inspectHandler(card.index, event)}
 			onblur={(event) => inspectHandler(null, event)}>
-			{#if size}
+			{#if kind === 'tapestry'}
+				<ScaledTapestryCard
+					data={tapestryCardData(card.id)}
+					scale={0.7}
+					aria-hidden="true" />
+			{:else if size}
 				<span
 					class="rg-card-shelf--scaled"
 					style:width="{size.width}px"
 					style:height="{size.height}px"
 					style:transform="scale({size.scale})"
 					aria-hidden="true">
-					{#if kind === 'tapestry'}
-						<TapestryCard data={tapestryCardData(card.id)} />
-					{:else if card.id === 'deck'}
+					{#if card.id === 'deck'}
 						<span class="rg-card-shelf--back">
 							<b>Deck · {card.deck ?? 0}</b>
 						</span>
