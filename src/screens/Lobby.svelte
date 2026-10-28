@@ -406,7 +406,8 @@
 		width: min(var(--lobby-width), 100%);
 		margin: 0;
 		color: var(--text);
-		font: var(--weight-title) clamp(20px, 2vw, 26px) / 1.4 var(--font-title);
+		font: var(--weight-title) var(--font-size-display-sm) / 1.4
+			var(--font-title);
 		text-align: center;
 	}
 

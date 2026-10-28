@@ -70,7 +70,11 @@
 			class="rg-progress-lanes--line"
 			style:--rg-progress-lanes-color={playerColor(lane.seat)}
 			style:--rg-progress-lanes-lane={lane.lane}
-			style:width="{lane.span.end * 100}%"
+			style:--rg-progress-lanes-end={lane.span.end}></i>
+		<i
+			class="rg-progress-lanes--marker"
+			style:--rg-progress-lanes-lane={lane.lane}
+			style:--rg-progress-lanes-end={lane.span.end}
 			><img
 				class="rg-progress-lanes--token"
 				src={playerPieceUrl('token', lane.seat)}
@@ -91,10 +95,12 @@
 </div>
 
 <style>
-	/* Lanes are --progress-lane apart; the box is exactly tall enough for the token end marks. */
+	/* Lanes are --progress-lane apart; the box is exactly tall enough for the token end marks. It is a container,
+	   so a token's marker can move by a share of its width (#72). */
 	.rg-progress-lanes {
 		position: relative;
 		display: block;
+		container-type: inline-size;
 		height: calc(
 			(var(--rg-progress-lanes-count) - 1) * var(--progress-lane) + 3 *
 				var(--progress-line)
@@ -103,6 +109,7 @@
 	}
 
 	.rg-progress-lanes--line,
+	.rg-progress-lanes--marker,
 	.rg-progress-lanes--dash {
 		position: absolute;
 		top: calc(
@@ -112,20 +119,36 @@
 		height: var(--progress-line);
 	}
 
-	/* A line grows to its new space (#29); the reduced-motion tokens make it instant. */
+	/*
+	 * A line grows to its new space (#29). It is drawn full width and scaled, and its token
+	 * slides on a marker of no width moved by a share of the lanes' width, because a transform
+	 * animates without laying out the page again (#72). A full-width marker moved that far
+	 * would reach past the lanes and widen what the page scrolls. The reduced-motion tokens
+	 * make both instant.
+	 */
 	.rg-progress-lanes--line {
 		left: 0;
+		width: 100%;
 		background: var(--rg-progress-lanes-color);
-		transition: width var(--duration-slow) var(--ease-out);
+		transform: scaleX(var(--rg-progress-lanes-end));
+		transform-origin: left;
+		transition: transform var(--duration-slow) var(--ease-out);
 		box-shadow: 0 0 0 var(--border)
 			color-mix(in srgb, var(--ink) 40%, transparent);
+	}
+
+	.rg-progress-lanes--marker {
+		left: 0;
+		width: 0;
+		transform: translateX(calc(var(--rg-progress-lanes-end) * 100cqw));
+		transition: transform var(--duration-slow) var(--ease-out);
 	}
 
 	/* The approved player token stays centred at the same progress position. */
 	.rg-progress-lanes--token {
 		position: absolute;
 		top: calc(-1 * var(--progress-line));
-		right: calc(-1.5 * var(--progress-line));
+		left: calc(-1.5 * var(--progress-line));
 		width: calc(3 * var(--progress-line));
 		height: calc(3 * var(--progress-line));
 		border-radius: var(--radius);

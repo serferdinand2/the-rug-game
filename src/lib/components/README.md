@@ -58,7 +58,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `Track` | One track: name, four tier prices, twelve spaces (each with its benefit and bonus) and the lanes. |
 | `TrackBoard` | The four tracks stacked, with one selected space across them; a size container, so the spaces grow up to 1.25 times as tall as wide when the board has the height (#59). |
 | `TrackSpace` | One pointed space: name, its `benefit` and `bonus` as symbols from `src/lib/glyphs.js` (resources, buildings and tracks as art, the other game symbols as short words, the X as a red cross), its `words` as tooltip and label, landmark, number, first/last shapes, selected and focus outlines; a short space draws its symbols smaller (#59). |
-| `WorldMap` | The real board's hex grid from `mapHexes(view)`: corner terrains as wedges, islands, unexplored hexes dashed, outposts (toppled ones lying), Nomads pieces and tokens; `targets` become buttons and the rest dim, `selected` is outlined in gold; a `fresh` hex pulses gold twice (#29). |
+| `WorldMap` | The real board's hex grid from `mapHexes(view)`: corner terrains as wedges, islands, unexplored hexes dashed, outposts (toppled ones lying), Nomads pieces and tokens; `targets` become buttons and the rest dim, `selected` is outlined in gold; a `fresh` hex pulses gold twice (#29); `scores` puts a gold "+N VP" tag on target hexes (#74). |
 
 ## player/
 
@@ -82,9 +82,11 @@ These components are updated as the art issues deliver their assets. Each will s
 | `CostBox` | The footer's price: a Cost label and the symbols joined by plus signs, read out in words. |
 | `CardShelf` | The cards a decision offers (tapestry, tech with the deck, civilizations, capital mats) as pressable buttons in a row that scrolls when too wide; more than four tapestry cards fan out; the chosen one is outlined in gold (tapestry and tech cards also lift), hover and focus report it for a full view (#28). Civilization cards are whole, 425 px wide at their own height, scaled down only as far as the shelf's height needs and never below 0.75; capital mats are their 9×9 `CapitalGrid`, 380 px, with the table's `terrainSeed`; each sizes its own button, so the outline fits it (#56–#58). |
 | `DecisionOption` | One choice in a decision prompt: words, optional resource symbols, `art` pictures above the words, a gold `+n VP` badge, gold while chosen (#26, #28). |
-| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf filling the height above the panel, question, content, status and Confirm (a `Button`, solid gold as the play mockup draws it, #65); without content the status line carries the instruction; a `track` tint, the gold `income` tone with a `steps` snippet, and `docked` beside the map with no scrim (#26, #28, #57). |
+| `DecisionPanel` | The decision prompt over the shared area: scrim, optional card shelf filling the height above the panel, question, content, status and Confirm (a `Button`, solid gold as the play mockup draws it, #65); without content the status line carries the instruction; a `track` tint, the gold `income` tone with a `steps` snippet, and `docked` beside the map with no scrim, its content scrolling so Confirm stays in sight; a `pinned` snippet stays in sight between the content and the actions, and a docked panel leaves out an empty status line (#26, #28, #57, #74). |
 | `IncomeSteps` | The strip of an income turn's steps, the running one marked `aria-current="step"` (#28). |
 | `PromptArt` | One picture a prompt shows: a resource with its count, track, building, landmark, terrain, civilization, space tile, turned territory, capital mat, card art, VP badge or the tech deck (#28). |
+| `TilePicker` | The territory tiles in hand as a wrapping row of pressable hexes (about 88×80 px); the picked one is outlined in gold, and a corner tag shows the VP each scores on the chosen hex (#74). |
+| `TurnControl` | The ↺ and ↻ buttons that turn the picked tile, with a gold `+n VP` tag between them (`No hex yet` and disabled until a hex is chosen) and the hint that R turns it (#74). |
 | `OverviewCloseBar` | The footer while the players overview is open. |
 | `TurnBar` | The footer: neutral, selected, optional-action, waiting and gold income states, with the income reveal. |
 

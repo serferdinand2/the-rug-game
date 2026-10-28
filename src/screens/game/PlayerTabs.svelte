@@ -21,6 +21,8 @@
 	 * @property {PlayerTabsPlacement | null} [placement=null] - A building or landmark to place: the Capital tab lights a building's plots, or offers the landmark in the tray, and snaps it only to the options' places
 	 * @property {{ plots: { row: number, col: number }[], landmarks: string[] }} [fresh] - What the viewer just built (#29): the plots glow and the landmarks shine on the Capital tab
 	 * @property {Function} [onPlayerTabsPlace] - Callback fired with { index, confirm }: index is the option a building or landmark landed on, or null when the landmark went back to the tray; confirm is true when the landmark's own confirm control was pressed
+	 * @property {{ tiles: number[], selected: number | null } | null} [tilePick=null] - While the viewer explores (#74): the territory tiles on offer, and the one picked, so In hand tiles can be picked here too
+	 * @property {Function} [onPlayerTabsPick] - Callback fired with { tile } when an offered territory tile is pressed
 	 */
 
 	/**
@@ -70,6 +72,7 @@
 		techCardData,
 	} from '../../lib/cards/game-cards.js';
 	import { artUrl } from '../../lib/ui.js';
+	import { tileWords } from '../../lib/area/explore.js';
 
 	/** @type {PlayerTabsProps} */
 	let {
@@ -81,6 +84,8 @@
 		placement = null,
 		fresh = { plots: [], landmarks: [] },
 		onPlayerTabsPlace,
+		tilePick = null,
+		onPlayerTabsPick,
 		...attr
 	} = $props();
 
@@ -90,6 +95,23 @@
 		{ id: 'middle', label: 'Middle row', shape: 'circle' },
 		{ id: 'bottom', label: 'Bottom row', shape: 'none' },
 	]);
+
+	/**
+	 * Reports a pressed territory tile, so the explore's tile picker follows.
+	 * @param {number} tile
+	 * @param {MouseEvent} event
+	 */
+	const tileHandler = (tile, event) => {
+		if (typeof onPlayerTabsPick === 'function') {
+			onPlayerTabsPick(
+				new ComponentEvent(
+					{ tile },
+					/** @type {HTMLElement} */ (event.currentTarget),
+					event
+				)
+			);
+		}
+	};
 
 	let player = $derived(game.seats[seat - 1]);
 	let hand = $derived(/** @type {string[]} */ (player.hand ?? []));
@@ -570,12 +592,28 @@
 			{#if terrain.territories.length}
 				<div class="rg-player-tabs--tiles">
 					{#each terrain.territories as tile (tile.id)}
-						<TerritoryTile
-							id={tile.id}
-							corners={tile.corners}
-							island={tile.island}
-							clouds={tile.clouds}
-							volcano={tile.volcano} />
+						{#snippet territory()}
+							<TerritoryTile
+								id={tile.id}
+								corners={tile.corners}
+								island={tile.island}
+								clouds={tile.clouds}
+								volcano={tile.volcano} />
+						{/snippet}
+						{#if tilePick?.tiles.includes(tile.id)}
+							<button
+								type="button"
+								class="rg-player-tabs--pick"
+								aria-pressed={tilePick.selected === tile.id}
+								aria-label={tileWords(tile.id)}
+								data-id="terrain-tile-{tile.id}"
+								onclick={(event) =>
+									tileHandler(tile.id, event)}>
+								{@render territory()}
+							</button>
+						{:else}
+							{@render territory()}
+						{/if}
 					{/each}
 				</div>
 			{:else}
@@ -714,6 +752,33 @@
 		flex-wrap: wrap;
 		gap: var(--space-5);
 		margin-bottom: var(--space-9);
+	}
+
+	/* An offered tile while exploring (#74): a plain button round the tile, outlined in gold when picked. */
+	.rg-player-tabs--pick {
+		padding: var(--space-2);
+		border: var(--border) solid var(--line);
+		border-radius: var(--radius);
+		background: transparent;
+		cursor: pointer;
+	}
+
+	.rg-player-tabs--pick:hover,
+	.rg-player-tabs--pick:focus-visible {
+		border-color: var(--gold);
+		background: color-mix(in srgb, var(--gold) 10%, transparent);
+	}
+
+	.rg-player-tabs--pick[aria-pressed='true'] {
+		border-color: var(--gold);
+		background: color-mix(in srgb, var(--gold) 17%, var(--surface));
+		outline: var(--border-thick) solid var(--gold);
+	}
+
+	/* Focus on the picked tile: its solid ring turns dashed and stands off, so focus reads apart from the pick. */
+	.rg-player-tabs--pick[aria-pressed='true']:focus-visible {
+		outline-style: dashed;
+		outline-offset: var(--focus-offset);
 	}
 
 	.rg-player-tabs--space {

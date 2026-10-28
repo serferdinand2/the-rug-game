@@ -388,7 +388,7 @@ function plotAt(index) {
  * @param {unknown} turns
  * @returns {string}
  */
-function turned(turns) {
+export function describeTurn(turns) {
 	if (!isCount(turns) || turns === 0) {
 		return '';
 	}
@@ -396,17 +396,6 @@ function turned(turns) {
 		return 'turned once';
 	}
 	return turns === 2 ? 'turned twice' : `turned ${turns} times`;
-}
-
-/**
- * A territory tile in a turn, for a choice on a hex already chosen: "Tile 19, turned 3 times".
- * @param {number} tile - 1-48
- * @param {number} orient - 0-5
- * @returns {string}
- */
-export function describeTile(tile, orient) {
-	const turn = turned(orient);
-	return turn ? `Tile ${tile}, ${turn}` : `Tile ${tile}`;
 }
 
 /**
@@ -1367,7 +1356,7 @@ const ANSWERS = {
 		if (!Number.isInteger(a.row) || !Number.isInteger(a.col)) {
 			return null;
 		}
-		const turn = turned(a.rotation);
+		const turn = describeTurn(a.rotation);
 		const plot = capitalize(plotName(a.row, a.col));
 		return turn ? `${plot}, ${turn}` : plot;
 	},
@@ -1379,7 +1368,7 @@ const ANSWERS = {
 		if (!isCount(a.tile)) {
 			return hex;
 		}
-		const turn = turned(a.orient);
+		const turn = describeTurn(a.orient);
 		return `${hex} with tile ${a.tile}${turn ? `, ${turn}` : ''}`;
 	},
 	chooseSpaceTile: (a, d, table) => {

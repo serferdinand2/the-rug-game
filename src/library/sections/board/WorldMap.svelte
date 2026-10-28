@@ -117,6 +117,10 @@
 	const targets = hexNeighbours(startOf(exploring, 1)).filter(
 		(key) => exploring.hexes[key]?.tile === null
 	);
+	// What the best tile would score on three of the lit hexes.
+	const scores = Object.fromEntries(
+		targets.slice(0, 3).map((key, i) => [key, [3, 2, 0][i]])
+	);
 	/** @type {string | null} */
 	let chosen = $state(null);
 
@@ -163,6 +167,15 @@
 			selected={chosen}
 			label="Choose a hex to explore"
 			onWorldMapSelect={selectHandler} />
+	</Example>
+	<Example
+		label={`scores={${JSON.stringify(scores).replaceAll('"', "'")}}  (each lit hex shows the best VP the picked tile scores there)`}
+		width={640}>
+		<WorldMap
+			hexes={exploringHexes}
+			{targets}
+			{scores}
+			label="Scores on the lit hexes" />
 	</Example>
 	<Example
 		label={`preview={{ hex: '${previewing.hex}', corners, island }}  (tile 17 turned once, shown before it is explored)`}

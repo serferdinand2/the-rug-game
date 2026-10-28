@@ -4,15 +4,16 @@
 	 * Properties of the DecisionPanel component itself.
 	 * @typedef {Object} DecisionPanelOwnProps
 	 * @property {string} title - The question, such as 'Choose a resource'
-	 * @property {string} [status=''] - A line beside the actions: what is chosen, or what is missing
+	 * @property {string} [status=''] - A line beside the actions: what is chosen, or what is missing; empty, a docked panel leaves it out
 	 * @property {string} [confirmLabel='Confirm choice'] - The confirming button's text
 	 * @property {boolean} [confirmDisabled=false] - Nothing valid is chosen yet
 	 * @property {import('../../ui.js').TrackId | null} [track=null] - The track that tints the bottom bar and border, as the mockup's --track
 	 * @property {'default' | 'income'} [tone='default'] - income: the title, border and step strip in gold, for the viewer's income turn
-	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right, for a choice on the map
+	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right, for a choice on the map; its content scrolls, so the title and Confirm stay in sight. It is --docked-panel-width wide and --docked-panel-inset in from the right, for the board beside it to keep free
 	 * @property {import('svelte').Snippet} [steps] - The income steps, between the title and the content
 	 * @property {string} [cancelLabel] - Shows a cancel button with this text, such as 'Cancel'; left out, there is none
 	 * @property {import('svelte').Snippet} [children] - The content: the instruction and the choices; left out, the panel has no content area and its status line carries the instruction, leaving more room for a shelf
+	 * @property {import('svelte').Snippet} [pinned] - Kept in sight between the content and the actions while a docked panel's content scrolls, such as what is chosen
 	 * @property {import('svelte').Snippet} [shelf] - Cards shown above the panel, as the card choices are
 	 * @property {Function} [onDecisionPanelConfirm] - Callback fired when Confirm is pressed
 	 * @property {Function} [onDecisionPanelCancel] - Callback fired when the cancel button is pressed
@@ -46,6 +47,7 @@
 		steps,
 		cancelLabel,
 		children,
+		pinned,
 		shelf,
 		onDecisionPanelConfirm,
 		onDecisionPanelCancel,
@@ -99,13 +101,19 @@
 			<div class="rg-decision-panel--steps">{@render steps()}</div>
 		{/if}
 		{#if children}
-			<div class="rg-decision-panel--content">
+			<div
+				class="rg-decision-panel--content"
+				class:rg-decision-panel--content-pinned={pinned}>
 				{@render children()}
 			</div>
+		{/if}
+		{#if pinned}
+			<div class="rg-decision-panel--pinned">{@render pinned()}</div>
 		{/if}
 		<div class="rg-decision-panel--bottom">
 			<p
 				class="rg-decision-panel--status"
+				class:rg-decision-panel--status-empty={!status}
 				role="status">
 				{status}
 			</p>
@@ -186,6 +194,15 @@
 
 	.rg-decision-panel--content {
 		padding: var(--space-9) var(--space-10) var(--space-10);
+	}
+
+	/* What is pinned reads as the end of the content: the content gives up its bottom padding to it. */
+	.rg-decision-panel--content-pinned {
+		padding-bottom: 0;
+	}
+
+	.rg-decision-panel--pinned {
+		padding: var(--space-6) var(--space-10) var(--space-10);
 	}
 
 	.rg-decision-panel--bottom {
@@ -277,7 +294,8 @@
 		);
 	}
 
-	.rg-decision-panel--income .rg-decision-panel--content {
+	.rg-decision-panel--income .rg-decision-panel--content,
+	.rg-decision-panel--income .rg-decision-panel--pinned {
 		color: var(--income-body);
 	}
 
@@ -287,11 +305,14 @@
 	}
 
 	/* A choice on the map leaves the board clickable: no scrim, only the panel takes the pointer, docked at the
-	   right beside the map rather than over its hexes (#26 review). What is chosen gets its own line. */
+	   right beside the map rather than over its hexes (#26 review). What is chosen gets its own line. The panel is
+	   --docked-panel-width wide and --docked-panel-inset in from the right, so a board can keep both free and lay the
+	   map out beside it (#74). */
 	.rg-decision-panel--docked {
 		align-items: flex-end;
 		justify-content: flex-start;
 		padding-top: 70px;
+		padding-right: var(--docked-panel-inset);
 		background: transparent;
 		pointer-events: none;
 	}
@@ -300,10 +321,24 @@
 		pointer-events: auto;
 	}
 
+	/* Docked, the content scrolls between the title and the actions, so Confirm stays in sight however many choices
+	   there are, such as an explore's eleven tiles (#74). */
 	.rg-decision-panel--docked .rg-decision-panel--panel {
-		width: 340px;
+		display: flex;
+		flex-direction: column;
+		width: var(--docked-panel-width);
 		min-width: 0;
 		max-height: calc(100% - var(--space-9));
+	}
+
+	.rg-decision-panel--docked .rg-decision-panel--panel > * {
+		flex: none;
+	}
+
+	.rg-decision-panel--docked .rg-decision-panel--content {
+		flex: 0 1 auto;
+		min-height: 0;
+		overflow: auto;
 	}
 
 	.rg-decision-panel--docked .rg-decision-panel--bottom {
@@ -312,5 +347,10 @@
 
 	.rg-decision-panel--docked .rg-decision-panel--status {
 		flex-basis: 100%;
+	}
+
+	/* Docked, an empty status line would still take a row and its gap above the actions. */
+	.rg-decision-panel--docked .rg-decision-panel--status-empty {
+		display: none;
 	}
 </style>

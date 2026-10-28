@@ -181,6 +181,23 @@ test('no font-size token is below 10px', () => {
 	}
 });
 
+test('screens and components take every font size from tokens.css (#67)', () => {
+	for (const [path, contents] of sources) {
+		if (!/^(screens|lib[/\\]components)[/\\]/.test(path)) {
+			continue;
+		}
+		for (const [declaration] of cssOf(path, contents).matchAll(
+			/(?<![\w-])font(?:-size)?\s*:[^;]+;/g
+		)) {
+			assert.doesNotMatch(
+				declaration,
+				/\d(px|r?em|vw|vh)\b|clamp\(/,
+				`${path}: ${declaration}`
+			);
+		}
+	}
+});
+
 test('no stylesheet or component outside tokens.css hard-codes a colour', () => {
 	for (const [path, contents] of sources) {
 		if (path.endsWith('tokens.css')) {
@@ -226,6 +243,25 @@ test('reduced motion turns every motion duration off', () => {
 	const off = declarations(reduced);
 	for (const name of durations) {
 		assert.equal(off.get(name), '0ms', name);
+	}
+});
+
+test('the progress lines and the chip fill animate a transform, not the layout (#72)', () => {
+	for (const path of [
+		'lib/components/board/ProgressLanes.svelte',
+		'lib/components/player/PlayerChip.svelte',
+	]) {
+		const css = cssOf(path, read(`src/${path}`));
+		for (const [, value] of css.matchAll(
+			/transition(?:-property)?\s*:([^;]+);/g
+		)) {
+			assert.doesNotMatch(
+				value,
+				/(^|[\s,])(width|height|left|top)\b/,
+				path
+			);
+		}
+		assert.match(css, /transition:[^;]*\btransform\b/, path);
 	}
 });
 

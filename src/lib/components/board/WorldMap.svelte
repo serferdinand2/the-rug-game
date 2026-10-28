@@ -5,6 +5,7 @@
 	 * @typedef {Object} WorldMapOwnProps
 	 * @property {import('../../hexmap.js').MapHex[]} hexes - Every hex of the board, from mapHexes(view) at HEX_SIZE
 	 * @property {string[]} [targets=[]] - Hex keys a decision can choose; each becomes a button and the other hexes dim
+	 * @property {Record<string, number>} [scores={}] - The VP a picked tile scores on each target hex (hex key to VP): a "+N VP" tag sits near the top of that hex, and its label ends "Up to N VP.", the best of its turns there, or "N VP." on the selected hex, where the tile lies in the turn chosen
 	 * @property {string | null} [selected=null] - The chosen hex, outlined in gold
 	 * @property {{ hex: string, corners: import('../../ui.js').Terrain[], island: import('../../ui.js').Terrain[], clouds?: boolean, volcano?: boolean } | null} [preview=null] - A tile to show on a hex before it is explored: drawn like an explored hex, with its clouds or volcano, at 85% opacity with a gold outline
 	 * @property {string[]} [fresh=[]] - Hexes that just changed (#29): a gold outline pulses on each twice, unless the system asks for reduced motion
@@ -53,6 +54,7 @@
 	let {
 		hexes,
 		targets = [],
+		scores = {},
 		selected = null,
 		preview = null,
 		fresh = [],
@@ -82,6 +84,9 @@
 	const VOLCANOES = VOLCANO_SPOTS.map((spot) =>
 		overlayBox(spot, [VOLCANO_SIZE, VOLCANO_SIZE], HEX_SIZE)
 	);
+	// A VP tag near a hex's top, in map units: the text is 11, so it stays 10px or more down to 1366×768 on the
+	// 61-hex map, and the box keeps clear of the outline along the top edge (y = -34.6 for HEX_SIZE 40).
+	const TAG = { width: 36, height: 14, top: -32, font: 11 };
 	// A Nomads piece's mark, for a piece of side 1: a house for a building, a narrow tower for a landmark.
 	const MARKS = {
 		building: '-0.26,0.26 -0.26,-0.04 0,-0.28 0.26,-0.04 0.26,0.26',
@@ -108,13 +113,18 @@
 						island: preview.island,
 						clouds: preview.clouds ?? false,
 						volcano: preview.volcano ?? false,
-						label: `${raw.label}, showing the chosen tile`,
+						label: addWords(raw.label, 'showing the chosen tile'),
 					}
 				: raw;
 			return {
 				...hex,
 				previewed,
 				target: targetSet.has(hex.key),
+				score:
+					targetSet.has(hex.key) &&
+					typeof scores[hex.key] === 'number'
+						? scores[hex.key]
+						: null,
 				outline: svgPoints(
 					CORNERS.map((k) => hexCorner(hex.center, k, HEX_SIZE))
 				),
@@ -198,6 +208,18 @@
 			/** @type {unknown} */ (event.currentTarget)
 		);
 		onWorldMapSelect(new ComponentEvent({ hex }, target, event));
+	}
+
+	/**
+	 * Words added to a hex's label: a sentence of their own after a full stop, otherwise after a comma.
+	 * @param {string} text - The label, such as 'Hex −1,−1: unexplored.'
+	 * @param {string} words - In lower case, such as 'up to 3 VP'
+	 * @returns {string} Such as 'Hex −1,−1: unexplored. Up to 3 VP.'
+	 */
+	function addWords(text, words) {
+		return text.endsWith('.')
+			? `${text} ${words[0].toUpperCase()}${words.slice(1)}.`
+			: `${text}, ${words}`;
 	}
 
 	/**
@@ -358,7 +380,14 @@
 				role="button"
 				tabindex="0"
 				class:rg-world-map--preview={hex.previewed}
-				aria-label={hex.label}
+				aria-label={hex.score === null
+					? hex.label
+					: addWords(
+							hex.label,
+							hex.key === selected
+								? `${hex.score} VP`
+								: `up to ${hex.score} VP`
+						)}
 				aria-pressed={selected === hex.key}
 				onclick={(event) => hexClickHandler(event, hex.key)}
 				onkeydown={(event) => hexKeydownHandler(event, hex.key)}
@@ -389,6 +418,29 @@
 				!hex.target &&
 				hex.key !== selected}
 			points={hex.outline} />
+	{/each}
+	<!-- The VP the picked tile scores on a lit hex, above the outlines, inside the hex's top edge (y = -34.6). -->
+	{#each drawn as hex (hex.key)}
+		{#if hex.score !== null}
+			<g
+				class="rg-world-map--score"
+				aria-hidden="true">
+				<rect
+					class="rg-world-map--score-box"
+					x={hex.center[0] - TAG.width / 2}
+					y={hex.center[1] + TAG.top}
+					width={TAG.width}
+					height={TAG.height}
+					rx="2" />
+				<text
+					class="rg-world-map--score-text"
+					x={hex.center[0]}
+					y={hex.center[1] + TAG.top + TAG.height / 2}
+					text-anchor="middle"
+					dominant-baseline="central"
+					font-size={TAG.font}>+{hex.score} VP</text>
+			</g>
+		{/if}
 	{/each}
 </svg>
 
@@ -482,6 +534,22 @@
 	.rg-world-map--outline-target {
 		stroke: var(--ok);
 		stroke-width: 2.5;
+	}
+
+	/* A score tag: a gold box with bold ink text, about 15px at 1920×1080. */
+	.rg-world-map--score {
+		pointer-events: none;
+	}
+
+	.rg-world-map--score-box {
+		fill: var(--gold);
+		stroke: var(--ink);
+		stroke-width: 0.6;
+	}
+
+	.rg-world-map--score-text {
+		fill: var(--ink);
+		font-weight: var(--weight-bold);
 	}
 
 	/* A previewed tile: gold like the chosen hex, solid, under the selection's own outline. */
