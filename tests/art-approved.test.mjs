@@ -98,9 +98,15 @@ test('the five colored pieces change only the neutral interior channel', async (
 	);
 });
 
-test('placeholder dice and game symbols are not released as drawings', async () => {
+test('placeholder dice faces and game symbols are not released as drawings; the tray’s die bodies are (#61)', async () => {
 	const ids = await listDrawingIds();
-	assert.ok(!ids.some((id) => /^(die|symbol)\//.test(id)));
+	const bodies = ['die/science-body', 'die/red-body', 'die/black-body'];
+	assert.ok(
+		!ids.some((id) => /^(die|symbol)\//.test(id) && !bodies.includes(id))
+	);
+	for (const body of bodies) {
+		assert.ok(ids.includes(body), body);
+	}
 });
 
 test('each biome has six distinct impassable capital terrain variants', async () => {

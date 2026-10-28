@@ -596,6 +596,10 @@ const LISTS = {
 			['black-culture', 'Black die: culture'],
 			// The "?" face gives the conquered territory tile's benefit (R8).
 			['black-tile-benefit', 'Black die: tile benefit (?)'],
+			// The die bodies the dice tray rolls; it draws each face on them (#61).
+			['science-body', 'Science die'],
+			['red-body', 'Red die'],
+			['black-body', 'Black die'],
 		],
 		aa: [['science-arts', 'Science die: arts']],
 	},
