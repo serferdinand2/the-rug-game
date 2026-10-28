@@ -176,6 +176,7 @@
 	/* ---------- Layers ---------- */
 	--layer-bar: 4;
 	--layer-popover: 20;
+	--layer-tray: 30; /* the dice tray, above a decision panel (#61) */
 	--layer-drag: 100;
 }
 

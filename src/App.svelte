@@ -12,6 +12,8 @@
 <script>
 	import { onMount, untrack } from 'svelte';
 	import Toast from './lib/components/ui/Toast.svelte';
+	import DiceTray from './lib/components/board/DiceTray.svelte';
+	import { rollsOf } from './lib/dice.js';
 	import { createApi } from './lib/api.js';
 	import { createStore } from './lib/game.svelte.js';
 	import HelpPanel from './screens/HelpPanel.svelte';
@@ -172,6 +174,17 @@
 		{:else if store.room?.phase === 'lobby'}
 			<Lobby {store} />
 		{/if}
+	{/if}
+	<!-- A roll shows over whichever screen is on show, the pass screen too, for everyone at the table (#61). At a
+	     hot-seat table the whole table shares the screen, so the caption names the roller rather than "You". -->
+	{#if store.room?.game}
+		<DiceTray
+			rolls={rollsOf(
+				store.fresh,
+				store.room.game,
+				store.room.mode === 'hotseat' ? null : store.seat
+			)}
+			batch={store.freshCount} />
 	{/if}
 	<Toast
 		message={store.toast}

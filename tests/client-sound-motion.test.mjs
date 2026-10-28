@@ -80,3 +80,18 @@ test('nothing moves for nothing', () => {
 		vp: [],
 	});
 });
+
+test('a roll earns the dice cue, after a reward and before a turn (#61)', () => {
+	assert.equal(cueFor([ev('conquerDiceRolled')], 1), 'dice');
+	assert.equal(cueFor([ev('scienceDieRolled'), ev('tokenMoved')], 2), 'dice');
+	assert.equal(cueFor([ev('alchemistsBust')], 1), 'dice');
+	assert.equal(
+		cueFor([ev('conquerDiceRolled'), ev('turnStarted', { player: 1 })], 1),
+		'dice'
+	);
+	assert.equal(
+		cueFor([ev('conquerDiceRolled'), ev('achievementClaimed')], 1),
+		'reward'
+	);
+	assert.equal(CUES.dice, 'drop_001');
+});

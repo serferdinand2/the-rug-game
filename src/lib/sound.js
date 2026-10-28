@@ -1,6 +1,6 @@
 // Sound cues (#29 design §7): the one cue a batch of fresh events earns, and a small Web Audio player for the five CC0 interface sounds Bird Table uses.
 
-/** @typedef {'turn' | 'move' | 'place' | 'reward' | 'over'} Cue */
+/** @typedef {'turn' | 'move' | 'place' | 'reward' | 'over' | 'dice'} Cue */
 
 /**
  * The file each cue plays, in static/audio/ as .ogg (Kenney's Interface Sounds 1.0, CC0).
@@ -12,17 +12,27 @@ export const CUES = Object.freeze({
 	place: 'drop_001',
 	reward: 'confirmation_001',
 	over: 'confirmation_004',
+	// A roll (#61) reuses the drop: no outside download for one cue.
+	dice: 'drop_001',
 });
 
 /** The events that earn each cue; the first cue in this list that a batch earns plays. */
 const ORDER = /** @type {readonly Cue[]} */ ([
 	'over',
 	'reward',
+	'dice',
 	'turn',
 	'place',
 	'move',
 ]);
 
+/** The events that roll dice (#61). */
+const ROLLS = new Set([
+	'scienceDieRolled',
+	'conquerDiceRolled',
+	'alchemistsRolled',
+	'alchemistsBust',
+]);
 const PLACE = new Set([
 	'buildingPlaced',
 	'landmarkPlaced',
@@ -57,6 +67,8 @@ function earns(cue, event, seat) {
 			);
 		case 'place':
 			return PLACE.has(event.type);
+		case 'dice':
+			return ROLLS.has(event.type);
 		default:
 			return event.type === 'tokenMoved';
 	}

@@ -229,3 +229,41 @@ test('the decision panel section shows the four pick prompts the owner approved,
 		section.getByRole('dialog', { name: 'How do you pay for Ships?' })
 	).toHaveCount(0);
 });
+
+test('with a decision panel open, the dice tray rolls clear of it (#61)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	await page.getByRole('button', { name: 'Roll beside the panel' }).click();
+	const stage = page.locator('.rg-library-tray-stage--screen');
+	const tray = stage.locator('.rg-dice-tray');
+	await expect(tray).toBeVisible();
+	const a = await tray.boundingBox();
+	const b = await stage.locator('.rg-decision-panel--panel').boundingBox();
+	if (!a || !b) {
+		throw new Error('No tray or panel.');
+	}
+	const overlap =
+		a.x < b.x + b.width &&
+		b.x < a.x + a.width &&
+		a.y < b.y + b.height &&
+		b.y < a.y + a.height;
+	expect(overlap).toBe(false);
+});
+
+test('the dice tray fades out rather than vanishing (#61)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	await page.getByRole('button', { name: 'Roll the conquer dice' }).click();
+	const tray = page.locator('.rg-dice-tray').first();
+	await expect(tray).toBeVisible();
+	await tray.click();
+	// Dismissed, it stays a moment while its fade runs.
+	const fading = await page.evaluate(() => {
+		const el = document.querySelector('.rg-dice-tray');
+		return el ? el.getAnimations().length > 0 : false;
+	});
+	expect(fading).toBe(true);
+	await expect(tray).toHaveCount(0);
+});

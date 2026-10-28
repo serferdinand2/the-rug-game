@@ -18,9 +18,8 @@ Updated 2026-10-27. The issues are listed in the order they were finished.
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
-- **Waiting for the owner's look in the component library:** #75 (the ResourceRows, TilePicker, CardShelf, SelfSummary and DecisionPanel sections).
+- **Waiting for the owner's look in the component library:** #75 (the ResourceRows, TilePicker, CardShelf, SelfSummary and DecisionPanel sections) and #61 (the Die and DiceTray sections, and the three die bodies in the Art area).
 - **Next:**
-  - The owner's M12 issue #61 (the dice tray).
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - The cosmetic boards wait in #51 until the core features are done.
@@ -46,6 +45,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#28 (the decision prompts)](#28-the-decision-prompts)
 - [#72, #67, #69 and #74 (the owner's M12 issues)](#72-67-69-and-74-the-owners-m12-issues)
 - [#75 (picking several things one by one)](#75-picking-several-things-one-by-one)
+- [#61 (the dice tray)](#61-the-dice-tray)
 
 ## Issues
 
@@ -440,6 +440,14 @@ Built on 2026-10-28 after a mockup round: the owner asked for Board Game Arena's
   - Calls to revisit: the chosen resource again clears its row (BGA keeps it); a single resource is one row too; card payments keep the shelf above a bottom panel (the shelf's 392px cards can't fit above a centred one); the Hand tab's fan doesn't pick; a decision with one way to pay keeps its one option (Olympic Host); Cancel on the advance panel clears the space, and the footer's Advance waits while the panel is open; the cap warning is `--danger` red; the resources are drawn at their native 48px; a trade offer with one way to pay shows it with Back and Confirm; tiles wrap three to a row.
   - It awaits the owner's look in the library's ResourceRows, TilePicker, CardShelf, SelfSummary and DecisionPanel sections.
   - `tests/client-picks.test.mjs` covers the model; `tests/client-prompts.test.mjs` builds every answer of every pick model over 60 random games; `tests/browser/pick-prompts.test.mjs` plays hot-seat tables to a tile bonus and to an advance, and closes them.
+
+### #61 (the dice tray)
+
+Built on 2026-10-28 without a question round ("finish up 61"), from the issue. The design is `docs/superpowers/specs/2026-10-28-dice-tray-design.md` and the plan `docs/superpowers/plans/2026-10-28-dice-tray-issue-61.md`.
+- Built: `src/lib/dice.js` turns `scienceDieRolled`, `conquerDiceRolled`, `alchemistsRolled` and `alchemistsBust` (which now names its `track`) into rolls; `Die` draws a style C body (`die/science-body`, `die/red-body`, `die/black-body`, new in the catalog's `die` group) with the face composed on it, as #5 decided; `DiceTray` plays a batch in order (1 s tumble, 1.5 s hold, a fade), above the panels (`--layer-tray`); `App.svelte` draws it over every screen from the store's fresh events; `cueFor()` gains `dice` (`drop_001`).
+  - Calls to revisit: the tray fades rather than parking beside the panel; captions name no cause until #60; a hot-seat caption names the roller, never "You"; the dice cue reuses `drop_001`; the science face shown is the first of the track's three; the bust's caption is red; no d20 or arts face until #35 and Arts & Architecture.
+  - It awaits the owner's look in the library's Die and DiceTray sections and the three die bodies in the Art area (not yet in `docs/art/approved-assets.json`).
+  - `tests/client-dice.test.mjs` covers the rolls and every face; `tests/browser/dice-tray.test.mjs` plays an online table to a conquest and sees it on both screens.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 
