@@ -1,14 +1,17 @@
-<!-- Library section: TurnBar in its neutral, selected, optional and waiting tones, and the Ships walk-through from the mockup. -->
+<!-- Library section: TurnBar in its neutral, selected, optional and waiting tones, the forced and first income turns (#77), and the Ships walk-through from the mockup. -->
 <script>
 	import TurnBar from '../../../lib/components/prompts/TurnBar.svelte';
 	import Button from '../../../lib/components/ui/Button.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
+	import { incomeWords } from '../../../lib/turn.js';
 
 	const INCOME = {
-		description: 'End this era, gain income and begin your next era.',
+		description: incomeWords(2),
 		label: 'Take income',
 	};
+
+	const FORCED = "You can't pay for any advance, so take an income turn.";
 
 	/** @type {'neutral' | 'selected' | 'optional'} */
 	let step = $state('neutral');
@@ -102,6 +105,50 @@
 		<TurnBar
 			label="Your decision"
 			heading="Your turn · Advance to Navigation" />
+	</Example>
+	<Example
+		label={'heading="You can\'t pay for any advance…"  (income is the only move: a gold Take income where Advance sits, no reveal; #77)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			heading={FORCED}
+			detail={incomeWords(3)}>
+			{#snippet actions()}
+				<Button mode="gold">Take income</Button>
+			{/snippet}
+		</TurnBar>
+	</Example>
+	<Example
+		label={'the same before income turn 5, and with a track space selected  (the footer keeps it: no Advance; #77)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			heading={FORCED}
+			detail={incomeWords(5)}>
+			{#snippet actions()}
+				<Button mode="gold">Take income</Button>
+			{/snippet}
+		</TurnBar>
+	</Example>
+	<Example
+		label={'tone="income" detail="Every player\'s first turn…"  (income turn 1 asking something, such as the tapestry draft; #77)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			tone="income"
+			label="Your income turn"
+			heading="Income turn 1 · Income"
+			detail="Every player’s first turn is an income turn." />
+	</Example>
+	<Example
+		label={'tone="waiting"  (another player\'s income turn 1 asking them something; #77)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			tone="waiting"
+			label="Ana’s turn"
+			labelColor="var(--player-2)"
+			heading="Ana is taking their first income turn." />
 	</Example>
 	<Example
 		label={'tone="income" label="Income turn"  (gold, no income button)'}
