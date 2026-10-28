@@ -1,5 +1,13 @@
 // The hot-seat hand-over (#30 design §2–§6): which view the client takes or asks for, and whom the pass screen names.
+import { freshEvents } from './event-feed.js';
 import { seatToShow } from './moves.js';
+
+/** @typedef {import('./event-feed.js').GameEvent} GameEvent */
+
+/**
+ * The parts of a room view the hand-over reads.
+ * @typedef {{ code: string, version: number, deal?: number, mode: string, game: any, you: number[], viewing: number | null }} PassRoom
+ */
 
 /**
  * Where a hot-seat screen stands after a room view arrives.
@@ -49,6 +57,50 @@ export function handOver(room, shown, passing) {
 		shown,
 		passing: null,
 		fetch: room.viewing === shown ? undefined : shown,
+	};
+}
+
+/**
+ * What the store does with a room view that arrived (#130).
+ * @typedef {Object} AcceptStep
+ * @property {boolean} take - Whether the room view is shown
+ * @property {number | null | undefined} fetch - The view to ask for, as HandOver's
+ * @property {number | null} shown - The seat whose view may be on show, as HandOver's
+ * @property {number | null} passing - The player the pass screen names, as HandOver's
+ * @property {GameEvent[]} fresh - The events to sound, animate and announce
+ */
+
+/**
+ * What the store does with a room view that arrives: an older answer after a newer one is dropped; at a hot-seat
+ * table only the view the hand-over allows is shown, and a room for another seat is swapped for the right one
+ * (#26 review, #30). The view of the player holding the screen is theirs to see: the move that brings a pass screen,
+ * or ends the game, shows at once (the pass screen or the results cover it) until the public view replaces it, and
+ * still sounds. Events that arrive while a pass screen is up stay silent (#30 design §4).
+ * @param {PassRoom | null} current - The room view on show, or null
+ * @param {PassRoom} incoming - The room view that arrived
+ * @param {number | null} shown - The seat on show, or taken, now
+ * @param {number | null} passing - The player the pass screen names now
+ * @returns {AcceptStep}
+ */
+export function acceptStep(current, incoming, shown, passing) {
+	if (
+		current &&
+		incoming.code === current.code &&
+		incoming.version < current.version
+	) {
+		return { take: false, fetch: undefined, shown, passing, fresh: [] };
+	}
+	const step = handOver(incoming, shown, passing);
+	const wasPassing = passing !== null;
+	const own =
+		!wasPassing && incoming.viewing !== null && incoming.viewing === shown;
+	const take = step.fetch === undefined || !current || own;
+	return {
+		take,
+		fetch: step.fetch,
+		shown: step.shown,
+		passing: step.passing,
+		fresh: take && !wasPassing ? freshEvents(current, incoming) : [],
 	};
 }
 
