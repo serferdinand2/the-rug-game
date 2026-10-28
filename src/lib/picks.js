@@ -186,6 +186,137 @@ function heldOf(game, seat) {
 	);
 }
 
+/** The cards and tiles a payment may discard. */
+const ITEM_KINDS = /** @type {const} */ (['territory', 'tapestry', 'tech']);
+
+/** Each kind's name, and where its pictures are picked. */
+const ITEM_WORDS = {
+	territory: {
+		noun: 'tile',
+		name: 'territory tile',
+		where: 'here or on your Terrain tab',
+	},
+	tapestry: { noun: 'card', name: 'tapestry card', where: 'above' },
+	tech: { noun: 'card', name: 'tech card', where: 'above' },
+};
+
+/**
+ * The cards or tiles a payment discards.
+ * @param {unknown} pay
+ * @returns {(number | string)[]}
+ */
+function itemsOf(pay) {
+	const kind = ITEM_KINDS.find((k) => isRecord(pay) && Array.isArray(pay[k]));
+	return kind && isRecord(pay) ? [...pay[kind]] : [];
+}
+
+/**
+ * The cards or tiles a cost asks for, with every one some answer pays, in the order the answers first name them.
+ * @param {Record<string, any>} cost
+ * @param {Record<string, any>[]} answers
+ * @returns {PickItems | null}
+ */
+function itemsOfCost(cost, answers) {
+	const kind = ITEM_KINDS.find((k) => amount(cost, k));
+	if (!kind) {
+		return null;
+	}
+	/** @type {(number | string)[]} */
+	const ids = [];
+	for (const answer of answers) {
+		for (const id of isRecord(answer.pay) && Array.isArray(answer.pay[kind])
+			? answer.pay[kind]
+			: []) {
+			if (!ids.includes(id)) {
+				ids.push(id);
+			}
+		}
+	}
+	return { kind, ids, count: amount(cost, kind) };
+}
+
+/**
+ * The lead line for a payment of resources, cards or tiles.
+ * @param {Record<string, any>} cost
+ * @param {string | undefined} track
+ * @param {PickItems | null} items
+ * @returns {string}
+ */
+function payLead(cost, track, items) {
+	const words = costWords(cost, track);
+	const parts = words ? [words] : [];
+	/** @type {string[]} */
+	const how = [];
+	if (rowsOfCost(cost, track).some((row) => row.fixed === null)) {
+		how.push('Pick one in each empty row.');
+	}
+	if (items) {
+		const { name, noun, where } = ITEM_WORDS[items.kind];
+		parts.push(`${items.count} ${name}${items.count > 1 ? 's' : ''}`);
+		how.push(
+			how.length ? `Pick the ${noun}s ${where}.` : `Pick them ${where}.`
+		);
+	}
+	return `Pay ${listWords(parts)}. ${how.join(' ')}`.trim();
+}
+
+/**
+ * What a trade's offer gains: VP and resources of the player's choice.
+ * @param {Record<string, any>} offer
+ * @returns {{ vp?: number, any?: number }}
+ */
+function gainOf(offer) {
+	/** @type {{ vp?: number, any?: number }} */
+	const gain = {};
+	for (const effect of Array.isArray(offer.gain) ? offer.gain : []) {
+		if (amount(effect, 'vp')) {
+			gain.vp = (gain.vp ?? 0) + amount(effect, 'vp');
+		}
+		if (amount(effect?.gain, 'any')) {
+			gain.any = (gain.any ?? 0) + amount(effect.gain, 'any');
+		}
+	}
+	return gain;
+}
+
+/**
+ * One side of a trade in words: VP, then resources, such as "10 VP" or "2 resources of your choice".
+ * @param {Record<string, any>} side
+ * @returns {string}
+ */
+function sideWords(side) {
+	const parts = amount(side, 'vp') ? [`${amount(side, 'vp')} VP`] : [];
+	const words = costWords(side);
+	return listWords(words ? [...parts, words] : parts);
+}
+
+/**
+ * Every mix of `count` resources, as counts.
+ * @param {number} count
+ * @returns {Partial<Record<ResourceId, number>>[]}
+ */
+function mixes(count) {
+	/** @type {Partial<Record<ResourceId, number>>[]} */
+	const found = [];
+	/**
+	 * @param {number} from
+	 * @param {number} left
+	 * @param {Partial<Record<ResourceId, number>>} chosen
+	 */
+	const build = (from, left, chosen) => {
+		if (left === 0) {
+			found.push(chosen);
+			return;
+		}
+		for (let i = from; i < RESOURCE_IDS.length; i++) {
+			const id = RESOURCE_IDS[i];
+			build(i, left - 1, { ...chosen, [id]: (chosen[id] ?? 0) + 1 });
+		}
+	};
+	build(0, count, {});
+	return found;
+}
+
 /**
  * Keeps a model only when it has something to choose between: at most one answer that picks anything keeps today's
  * prompt (the issue's "a single legal answer stays as it is today").
@@ -219,7 +350,7 @@ export function pickModel(decision, game, seat) {
 	const candidate = (answer, index, resources) => ({
 		index,
 		resources: resourcesOf(resources),
-		items: [],
+		items: itemsOf(resources),
 		label: describeAnswer(decision, answer, game),
 	});
 	switch (decision.kind) {
@@ -275,15 +406,16 @@ export function pickModel(decision, game, seat) {
 				return null;
 			}
 			const decline = answers.findIndex((a) => a.pay === null);
+			const items = itemsOfCost(decision.cost, answers);
 			return worthPicking({
 				mode: 'pay',
 				rows: rowsOfCost(decision.cost, decision.track),
-				items: null,
+				items,
 				candidates: answers.flatMap((a, i) =>
 					isRecord(a.pay) ? [candidate(a, i, a.pay)] : []
 				),
 				decline: decline === -1 ? null : decline,
-				lead: `Pay ${costWords(decision.cost, decision.track)}. Pick one in each empty row.`,
+				lead: payLead(decision.cost, decision.track, items),
 				then: null,
 			});
 		}
@@ -318,6 +450,147 @@ export function advanceModel(option, _game) {
 		lead: `Tier ${ROMAN[tier - 1]} costs ${costWords(cost)}. Pick one in each empty row.`,
 		then: null,
 	});
+}
+
+/**
+ * The offers of a trade, for its first step, or null when it has at most one answer that pays anything.
+ * @param {Decision | null | undefined} decision
+ * @param {any} _game
+ * @param {number | null} _seat
+ * @returns {{ offer: number, pay: Record<string, number>, gain: { vp?: number, any?: number }, enabled: boolean, label: string }[] | null}
+ */
+export function tradeOffers(decision, _game, _seat) {
+	if (
+		!isRecord(decision) ||
+		decision.kind !== 'chooseTrade' ||
+		!Array.isArray(decision.answers) ||
+		!Array.isArray(decision.offers)
+	) {
+		return null;
+	}
+	/** @type {Record<string, any>[]} */
+	const paying = decision.answers.filter((a) => Number.isInteger(a.offer));
+	if (paying.length <= 1) {
+		return null;
+	}
+	return decision.offers.map(
+		(/** @type {any} */ offer, /** @type {number} */ i) => {
+			const pay = isRecord(offer.pay) ? { ...offer.pay } : {};
+			const gain = gainOf(offer);
+			return {
+				offer: i,
+				pay,
+				gain,
+				enabled: paying.some((a) => a.offer === i),
+				label: `Pay ${sideWords(pay)} for ${sideWords(gain)}`,
+			};
+		}
+	);
+}
+
+/**
+ * The second step of a trade: the rows of the resources an offer pays, or of those a VP offer gains (answered after
+ * the trade by the chooseResource it opens). Null when the offer has nothing to pick.
+ * @param {Decision} decision
+ * @param {number} offer
+ * @param {any} game
+ * @param {number | null} _seat
+ * @returns {PickModel | null}
+ */
+export function offerModel(decision, offer, game, _seat) {
+	const chosen = Array.isArray(decision?.offers)
+		? decision.offers[offer]
+		: undefined;
+	/** @type {Record<string, any>[]} */
+	const answers = Array.isArray(decision?.answers) ? decision.answers : [];
+	const indexes = answers.flatMap((a, i) => (a.offer === offer ? [i] : []));
+	if (!isRecord(chosen) || indexes.length === 0) {
+		return null;
+	}
+	const pay = isRecord(chosen.pay) ? chosen.pay : {};
+	const gain = gainOf(chosen);
+	const rows = rowsOfCost(pay);
+	if (rows.length === 0) {
+		const count = gain.any ?? 0;
+		return worthPicking({
+			mode: 'gain',
+			rows: Array.from({ length: count }, () => ({
+				fixed: null,
+				offers: [...RESOURCE_IDS],
+			})),
+			items: null,
+			candidates: mixes(count).map((resources) => ({
+				index: indexes[0],
+				resources,
+				items: [],
+				label: '',
+			})),
+			decline: null,
+			lead: `Pay ${sideWords(pay)}. Pick the ${count} resource${count > 1 ? 's' : ''} you gain, one in each row.`,
+			then: 'chooseResource',
+		});
+	}
+	const free = rows.filter((row) => row.fixed === null).length;
+	return worthPicking({
+		mode: 'pay',
+		rows,
+		items: null,
+		candidates: indexes.map((index) => ({
+			index,
+			resources: resourcesOf(answers[index].pay),
+			items: [],
+			label: describeAnswer(decision, answers[index], game),
+		})),
+		decline: null,
+		lead: `${gain.vp ? `Gain ${gain.vp} VP. ` : ''}Pick the ${free} resource${free > 1 ? 's' : ''} you pay, one in each row.`,
+		then: null,
+	});
+}
+
+/**
+ * Chooses or unchooses a card or tile; once enough are chosen, another is refused until one is unchosen.
+ * @param {PickModel} model
+ * @param {Selection} selection
+ * @param {number | string} id
+ * @returns {Selection}
+ */
+export function toggleItem(model, selection, id) {
+	if (!model.items || !model.items.ids.includes(id)) {
+		return selection;
+	}
+	if (selection.items.includes(id)) {
+		return {
+			...selection,
+			items: selection.items.filter((item) => item !== id),
+		};
+	}
+	if (selection.items.length >= model.items.count) {
+		return selection;
+	}
+	return { ...selection, items: [...selection.items, id] };
+}
+
+/**
+ * Whether a card or tile can be pressed now: a chosen one can always be unchosen; another needs room and an answer
+ * that holds it with everything chosen so far.
+ * @param {PickModel} model
+ * @param {Selection} selection
+ * @param {number | string} id
+ * @returns {boolean}
+ */
+export function canPickItem(model, selection, id) {
+	if (!model.items || !model.items.ids.includes(id)) {
+		return false;
+	}
+	if (selection.items.includes(id)) {
+		return true;
+	}
+	if (selection.items.length >= model.items.count) {
+		return false;
+	}
+	const counts = countsOf(model, selection.rows);
+	const items = [...selection.items, id];
+	return model.candidates.some((c) => covers(c, counts, items));
 }
 
 /**
@@ -478,6 +751,14 @@ export function pickStatus(model, selection, held) {
 	}
 	if (empty > 0) {
 		return { text: `Choose ${empty} more.`, warn: false };
+	}
+	const left = model.items ? model.items.count - selection.items.length : 0;
+	if (model.items && left > 0) {
+		const { noun } = ITEM_WORDS[model.items.kind];
+		return {
+			text: `Choose ${left} more ${noun}${left > 1 ? 's' : ''}.`,
+			warn: false,
+		};
 	}
 	const index = matchIndex(model, selection);
 	if (index === -1) {

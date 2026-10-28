@@ -1,18 +1,24 @@
 // The pick model (#75): rows of resources, cards and tiles chosen one by one, matched to the decision's own answers.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { DECISIONS, view } from '../src/lib/engine/game.js';
+import { DECISIONS, play, view } from '../src/lib/engine/game.js';
+import { push } from '../src/lib/engine/stack.js';
+import { seededRandom } from '../src/lib/engine/random.js';
 import {
 	advanceModel,
 	canPick,
+	canPickItem,
 	emptySelection,
 	matchIndex,
+	offerModel,
 	pendingCounts,
 	pickModel,
 	pickStatus,
+	toggleItem,
 	togglePick,
+	tradeOffers,
 } from '../src/lib/picks.js';
-import { advanceOptions } from '../src/lib/turn.js';
+import { advanceOptions, myDecision } from '../src/lib/turn.js';
 import { readyTurn, startedGame } from './helpers/engine.mjs';
 
 const ALL = ['coin', 'food', 'worker', 'culture'];
@@ -363,4 +369,231 @@ test('a selection shaped for another model never matches', () => {
 		matchIndex(threeModel, picked(twoModel, ['coin', 'food'])),
 		-1
 	);
+});
+
+/** Guilds' six trades, as the card offers them. */
+const GUILDS = [
+	{ pay: { vp: 5 }, gain: [{ gain: { any: 1 } }] },
+	{ pay: { vp: 10 }, gain: [{ gain: { any: 2 } }] },
+	{ pay: { vp: 15 }, gain: [{ gain: { any: 3 } }] },
+	{ pay: { any: 1 }, gain: [{ vp: 5 }] },
+	{ pay: { any: 2 }, gain: [{ vp: 10 }] },
+	{ pay: { any: 3 }, gain: [{ vp: 15 }] },
+];
+
+/**
+ * A trade opened on seat 1's stack, as the viewer's view shows it, with seat 1 holding `vp` and `resources`.
+ * @param {Record<string, any>} fields - The chooseTrade's offers and whether it is optional
+ * @param {number} vp
+ * @param {Record<string, number>} resources
+ */
+function tradeOf(fields, vp, resources) {
+	const { state } = startedGame(2);
+	const random = seededRandom(5);
+	const seat = state.seats[0];
+	seat.vp = vp;
+	seat.resources = { coin: 0, worker: 0, food: 0, culture: 0, ...resources };
+	state.pending.length = 0;
+	push(state, state.pending, [{ player: 1, kind: 'chooseTrade', ...fields }]);
+	const game = view(state, 1);
+	const decision = /** @type {Record<string, any>} */ (myDecision(game, 1));
+	assert.equal(decision?.kind, 'chooseTrade');
+	return { state, random, game, decision };
+}
+
+/**
+ * Seat 1's tiles or cards set, and a bonus paying some of them.
+ * @param {Record<string, number>} cost
+ */
+function bonusOf(cost) {
+	const { state } = startedGame(2);
+	const seat = state.seats[0];
+	seat.territoryTiles = [4, 16, 17, 24, 35, 44];
+	seat.hand = ['trade-economy', 'technocracy', 'boast-of-superiority'];
+	const decision = /** @type {Record<string, any>} */ ({
+		id: 99,
+		player: 1,
+		kind: 'chooseBonus',
+		track: 'exploration',
+		space: 10,
+		cost,
+		gain: [{ vp: 10 }],
+	});
+	decision.answers = DECISIONS.chooseBonus.answers(state, decision);
+	return { decision, game: state };
+}
+
+test('a bonus paying 3 territory tiles picks 3 of the tiles held', () => {
+	const { decision, game } = bonusOf({ territory: 3 });
+	const model = pickModel(decision, game, 1);
+	assert.ok(model);
+	assert.deepEqual(model.rows, []);
+	assert.deepEqual(model.items, {
+		kind: 'territory',
+		ids: [4, 16, 17, 24, 35, 44],
+		count: 3,
+	});
+	assert.equal(
+		model.lead,
+		'Pay 3 territory tiles. Pick them here or on your Terrain tab.'
+	);
+	assert.equal(model.decline, 0);
+});
+
+test('once 3 tiles are chosen the others wait', () => {
+	const { decision, game } = bonusOf({ territory: 3 });
+	const model = /** @type {any} */ (pickModel(decision, game, 1));
+	let selection = emptySelection(model);
+	assert.deepEqual(pickStatus(model, selection, {}), {
+		text: 'Choose 3 more tiles.',
+		warn: false,
+	});
+	selection = toggleItem(model, selection, 35);
+	selection = toggleItem(model, selection, 16);
+	assert.deepEqual(pickStatus(model, selection, {}), {
+		text: 'Choose 1 more tile.',
+		warn: false,
+	});
+	selection = toggleItem(model, selection, 24);
+	for (const id of [4, 17, 44]) {
+		assert.equal(canPickItem(model, selection, id), false, `tile ${id}`);
+	}
+	assert.equal(canPickItem(model, selection, 16), true);
+	assert.equal(
+		toggleItem(model, selection, 4),
+		selection,
+		'a fourth tile is refused'
+	);
+	const wanted = decision.answers.findIndex(
+		(/** @type {any} */ a) =>
+			a.pay && [16, 24, 35].every((id) => a.pay.territory.includes(id))
+	);
+	assert.equal(matchIndex(model, selection), wanted);
+	assert.equal(
+		pickStatus(model, selection, {}).text,
+		model.candidates.find((/** @type {any} */ c) => c.index === wanted)
+			.label
+	);
+	selection = toggleItem(model, selection, 16);
+	assert.deepEqual(selection.items, [35, 24]);
+	assert.equal(matchIndex(model, selection), -1);
+});
+
+test('tapestry cards to pay are picked the same way', () => {
+	const { decision, game } = bonusOf({ tapestry: 2 });
+	const model = /** @type {any} */ (pickModel(decision, game, 1));
+	assert.equal(model.items.kind, 'tapestry');
+	assert.equal(model.lead, 'Pay 2 tapestry cards. Pick them above.');
+	assert.deepEqual(pickStatus(model, emptySelection(model), {}), {
+		text: 'Choose 2 more cards.',
+		warn: false,
+	});
+});
+
+test('a free bonus keeps today’s prompt', () => {
+	const { decision, game } = decisionOf({
+		kind: 'chooseBonus',
+		track: 'science',
+		space: 2,
+		cost: {},
+		gain: [{ vp: 3 }],
+	});
+	assert.equal(pickModel(decision, game, 1), null);
+});
+
+test('a trade with one legal payment keeps today’s prompt', () => {
+	const { decision, game } = tradeOf(
+		{
+			offers: [{ pay: { worker: 1 }, gain: [{ vp: 10 }] }],
+			optional: true,
+		},
+		0,
+		{ worker: 2 }
+	);
+	assert.equal(pickModel(decision, game, 1), null);
+	assert.equal(tradeOffers(decision, game, 1), null);
+});
+
+test('Guilds offers six trades, the unaffordable ones disabled', () => {
+	const { decision, game } = tradeOf(
+		{ offers: GUILDS, optional: false },
+		12,
+		{ food: 2, culture: 1 }
+	);
+	const offers = tradeOffers(decision, game, 1);
+	assert.ok(offers);
+	assert.equal(offers.length, 6);
+	assert.deepEqual(
+		offers.map((o) => o.enabled),
+		[true, true, false, true, true, true]
+	);
+	assert.deepEqual(
+		offers.map((o) => o.label),
+		[
+			'Pay 5 VP for 1 resource of your choice',
+			'Pay 10 VP for 2 resources of your choice',
+			'Pay 15 VP for 3 resources of your choice',
+			'Pay 1 resource of your choice for 5 VP',
+			'Pay 2 resources of your choice for 10 VP',
+			'Pay 3 resources of your choice for 15 VP',
+		]
+	);
+	assert.deepEqual(offers[1].gain, { any: 2 });
+	assert.deepEqual(offers[4].pay, { any: 2 });
+});
+
+test('a trade paying resources picks them in rows', () => {
+	const { decision, game } = tradeOf(
+		{ offers: GUILDS, optional: false },
+		12,
+		{ food: 2, culture: 1 }
+	);
+	const model = /** @type {any} */ (offerModel(decision, 4, game, 1));
+	assert.equal(model.mode, 'pay');
+	assert.deepEqual(model.rows, [FREE, FREE]);
+	assert.equal(
+		model.lead,
+		'Gain 10 VP. Pick the 2 resources you pay, one in each row.'
+	);
+	const selection = picked(model, ['food', 'culture']);
+	const answer = decision.answers[matchIndex(model, selection)];
+	assert.deepEqual(answer, { offer: 4, pay: { food: 1, culture: 1 } });
+	assert.equal(canPick(model, emptySelection(model), 0, 'coin'), false);
+});
+
+test('a trade paying VP picks what it gains, then answers the chooseResource it opens', () => {
+	const { state, random, decision, game } = tradeOf(
+		{ offers: GUILDS, optional: false },
+		12,
+		{ food: 2, culture: 1 }
+	);
+	const model = /** @type {any} */ (offerModel(decision, 1, game, 1));
+	assert.equal(model.mode, 'gain');
+	assert.deepEqual(model.rows, [FREE, FREE]);
+	assert.equal(model.then, 'chooseResource');
+	assert.equal(
+		model.lead,
+		'Pay 10 VP. Pick the 2 resources you gain, one in each row.'
+	);
+	const trade = decision.answers.findIndex(
+		(/** @type {any} */ a) => a.offer === 1
+	);
+	const selection = picked(model, ['worker', 'coin']);
+	assert.equal(matchIndex(model, selection), trade);
+	assert.equal(matchIndex(model, picked(model, ['food', 'food'])), trade);
+
+	const after = play(
+		state,
+		1,
+		{ decision: decision.id, ...decision.answers[trade] },
+		random
+	);
+	const next = view(after, 1);
+	const gain = /** @type {Record<string, any>} */ (myDecision(next, 1));
+	assert.equal(gain?.kind, 'chooseResource');
+	const gainModel = /** @type {any} */ (pickModel(gain, next, 1));
+	assert.deepEqual(gain.answers[matchIndex(gainModel, selection)].resources, {
+		coin: 1,
+		worker: 1,
+	});
 });
