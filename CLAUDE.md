@@ -65,7 +65,7 @@ The full record is [docs/status.md](docs/status.md): what every issue built, its
 Updated 2026-10-28.
 
 - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. Three of their issues are still open: #45 (the owner checks R12 and R39 against the box), #47 (the card gallery) and #73 (a README screenshot).
-- M12 · Cosmetic enhancements: #66, #67, #69, #70, #72 and #74 are done. #75 and #61 are built and wait for the owner's look in the component library.
+- M12 · Cosmetic enhancements: #61, #66, #67, #69, #70, #72, #74 and #75 are done.
 - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](#working-on-issues) for the order and the blockers.
 
 ## Working on issues

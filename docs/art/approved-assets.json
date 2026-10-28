@@ -766,5 +766,23 @@
     "height": 288,
     "sha256": "7d806c0bfe17e88049ff39796a0cb72d431909a47d4e353d6dc775193508f3e4",
     "example": true
+  },
+  {
+    "id": "die/science-body",
+    "width": 32,
+    "height": 32,
+    "sha256": "18dd58b528a0ad4cebcf616637cccff91c5dc249bedd8eb3345be0ff1310f7d9"
+  },
+  {
+    "id": "die/red-body",
+    "width": 32,
+    "height": 32,
+    "sha256": "f57da925e5e1cb5e884a4714dfc751e807072c90104100c1c970a7dcde868c9f"
+  },
+  {
+    "id": "die/black-body",
+    "width": 32,
+    "height": 32,
+    "sha256": "9095bf525883d58a46c79fac3a78e32afb30e7be71c92c3afdd440ae16924de9"
   }
 ]

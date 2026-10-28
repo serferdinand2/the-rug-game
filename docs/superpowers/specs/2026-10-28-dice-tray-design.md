@@ -48,4 +48,4 @@ When anyone rolls a die, every screen at the table shows the roll in the middle 
 
 ## 7. Documentation and approval
 
-The README's screenshots show the tray (from the running game); `docs/ui/README.md`, the components README, `docs/architecture.md`, `docs/status.md` and CLAUDE.md record it. The issue asks the owner to approve the tray and the die art in the component library before the game uses them; as with #74, it is built into the game in the same change and #61 closes once the owner has looked.
+The README's screenshots show the tray (from the running game); `docs/ui/README.md`, the components README, `docs/architecture.md`, `docs/status.md` and CLAUDE.md record it. The issue asks the owner to approve the tray and the die art in the component library before the game uses them; as with #74, it is built into the game in the same change and #61 closes once the owner has looked. The owner closed it on 2026-10-28, and the three die bodies joined `docs/art/approved-assets.json`.

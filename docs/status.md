@@ -2,7 +2,7 @@
 
 The project's progress, issue by issue: what each issue built, the calls to revisit after playing, and what it handed on to later issues. CLAUDE.md keeps only a short summary and links here. Claude updates this file whenever an issue lands or a milestone moves; other agents edit it only when asked to (see AGENTS.md).
 
-Updated 2026-10-27. The issues are listed in the order they were finished.
+Updated 2026-10-28. The issues are listed in the order they were finished.
 
 ## Summary
 
@@ -14,11 +14,10 @@ Updated 2026-10-27. The issues are listed in the order they were finished.
   - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. The owner closed #48 on 2026-10-21, ahead of its blocker #3.
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #44, #46, #48, #52, #53, #54, #55, #56, #57, #58, #59, #66, #67, #69, #70, #72 and #74 are done.** Lazar closed #3 on 2026-10-27, and the owner closed #6 the same day. The owner approved #69 and #74 in the component library on 2026-10-28.
+- **#1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #44, #46, #48, #52, #53, #54, #55, #56, #57, #58, #59, #61, #66, #67, #69, #70, #72, #74 and #75 are done.** Lazar closed #3 on 2026-10-27, and the owner closed #6 the same day. The owner approved #69 and #74 in the component library on 2026-10-28, and closed #75 and #61 the same day.
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
-- **Waiting for the owner's look in the component library:** #75 (the ResourceRows, TilePicker, CardShelf, SelfSummary and DecisionPanel sections) and #61 (the Die and DiceTray sections, and the three die bodies in the Art area).
 - **Next:**
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
@@ -438,7 +437,7 @@ They were built on 2026-10-27 without a question round. #72 and #67 are done, an
 Built on 2026-10-28 after a mockup round: the owner asked for Board Game Arena's method ("use bga method"), then for height over width, every panel at the screen's centre and the advance's cost there too. The design is `docs/superpowers/specs/2026-10-28-multi-select-prompt-design.md` and the plan `docs/superpowers/plans/2026-10-28-multi-select-prompt-issue-75.md`.
 - Built: `src/lib/picks.js` turns `chooseResource`, `chooseConversion`, `chooseBonus` (resources, tiles or cards), `chooseTrade` (offers, then rows) and an advance's payments into rows and pickers, and matches a selection to one answer; a resource or card is enabled only if some answer holds everything chosen with it. `ResourceRows` draws the rows; `TilePicker`, `CardShelf` and the Terrain tab pick several at once; `SelfSummary` shows the counts after the choices so far; `DecisionPanel` gains `centred` and `statusWarn`. Picking a space with a choice of payment opens the centred panel at once, replacing the "How do you pay for …?" list. A VP trade sends the trade, then the `chooseResource` it opens, with one Confirm.
   - Calls to revisit: the chosen resource again clears its row (BGA keeps it); a single resource is one row too; card payments keep the shelf above a bottom panel (the shelf's 392px cards can't fit above a centred one); the Hand tab's fan doesn't pick; a decision with one way to pay keeps its one option (Olympic Host); Cancel on the advance panel clears the space, and the footer's Advance waits while the panel is open; the cap warning is `--danger` red; the resources are drawn at their native 48px; a trade offer with one way to pay shows it with Back and Confirm; tiles wrap three to a row.
-  - It awaits the owner's look in the library's ResourceRows, TilePicker, CardShelf, SelfSummary and DecisionPanel sections.
+  - It is done: the owner closed it on 2026-10-28 ("close tickets we resolved"), which approves its ResourceRows, TilePicker, CardShelf, SelfSummary and DecisionPanel sections.
   - `tests/client-picks.test.mjs` covers the model; `tests/client-prompts.test.mjs` builds every answer of every pick model over 60 random games; `tests/browser/pick-prompts.test.mjs` plays hot-seat tables to a tile bonus and to an advance, and closes them.
 
 ### #61 (the dice tray)
@@ -446,7 +445,7 @@ Built on 2026-10-28 after a mockup round: the owner asked for Board Game Arena's
 Built on 2026-10-28 without a question round ("finish up 61"), from the issue. The design is `docs/superpowers/specs/2026-10-28-dice-tray-design.md` and the plan `docs/superpowers/plans/2026-10-28-dice-tray-issue-61.md`.
 - Built: `src/lib/dice.js` turns `scienceDieRolled`, `conquerDiceRolled`, `alchemistsRolled` and `alchemistsBust` (which now names its `track`) into rolls; `Die` draws a style C body (`die/science-body`, `die/red-body`, `die/black-body`, new in the catalog's `die` group) with the face composed on it, as #5 decided; `DiceTray` plays a batch in order (1 s tumble, 1.5 s hold, a fade), above the panels (`--layer-tray`); `App.svelte` draws it over every screen from the store's fresh events; `cueFor()` gains `dice` (`drop_001`).
   - Calls to revisit: the tray fades rather than parking beside the panel; captions name no cause until #60; a hot-seat caption names the roller, never "You"; the dice cue reuses `drop_001`; the science face shown is the first of the track's three; the bust's caption is red; no d20 or arts face until #35 and Arts & Architecture.
-  - It awaits the owner's look in the library's Die and DiceTray sections and the three die bodies in the Art area (not yet in `docs/art/approved-assets.json`).
+  - It is done: the owner closed it on 2026-10-28 ("close tickets we resolved"), which approves its Die and DiceTray sections and the three die bodies, now in `docs/art/approved-assets.json`.
   - `tests/client-dice.test.mjs` covers the rolls and every face; `tests/browser/dice-tray.test.mjs` plays an online table to a conquest and sees it on both screens.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)

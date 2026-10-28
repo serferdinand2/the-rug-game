@@ -122,7 +122,7 @@ The README's "Current interface" and `docs/ui/screens/` show the new prompt (own
 
 ## 8. Owner approval
 
-The issue asks the owner to approve the prompt in the component library before the game uses it. The owner approved the mockup (owner, 2026-10-28), so, as #74 did, it is built into the game in the same change, and #75 closes once the owner has looked at the library sections.
+The issue asks the owner to approve the prompt in the component library before the game uses it. The owner approved the mockup (owner, 2026-10-28), so, as #74 did, it is built into the game in the same change, and #75 closes once the owner has looked at the library sections. The owner closed it on 2026-10-28.
 
 ## 9. Left to the builder
 
