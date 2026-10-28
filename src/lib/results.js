@@ -7,6 +7,7 @@ import { civilizationName } from './describe.js';
 import { VARIANT_LABELS } from './lobby.js';
 
 /** @typedef {import('./engine/stack.js').VpSource} VpSource */
+/** @typedef {import('./ui.js').Seat} Seat */
 
 /**
  * Where VP came from, in the order the breakdown lists them, with the end-screen mockup's words where it has them.
@@ -47,7 +48,7 @@ const LANDMARK_NAMES = new Map(
 /**
  * One player's line in the final standings.
  * @typedef {Object} StandingRow
- * @property {number} seat
+ * @property {Seat} seat
  * @property {string} name
  * @property {string} civ - Their first civilization's name, or '' without one
  * @property {number} place - 1 for the winners; a shared place repeats and the next one skips
@@ -143,7 +144,7 @@ export function standings(game) {
 	return result.ranking.map(({ seat, place, vp }) => {
 		const player = game.seats[seat - 1];
 		return {
-			seat,
+			seat: /** @type {Seat} */ (seat),
 			name: nameOf(game, seat),
 			civ: player?.civs?.length ? civilizationName(player.civs[0]) : '',
 			place,
@@ -284,7 +285,7 @@ export function tableFacts(room) {
 /**
  * One player's line on the scoreboard during play.
  * @typedef {Object} ScoreRow
- * @property {number} seat
+ * @property {Seat} seat
  * @property {string} name
  * @property {string} civ
  * @property {number} place - By VP alone; equal VP share a place
