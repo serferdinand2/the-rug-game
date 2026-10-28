@@ -1,11 +1,11 @@
-<!-- One lobby seat, always the same size: an empty slot to open, an open seat to take, a hot-seat player to name, or a joined player. -->
+<!-- One lobby seat, always the same size: an empty slot to open, a closed one, an open seat to take, a hot-seat player to name, or a joined player. -->
 <script module>
-	/** @typedef {'empty' | 'open' | 'add' | 'player'} SeatCardState */
+	/** @typedef {'empty' | 'closed' | 'open' | 'add' | 'player'} SeatCardState */
 
 	/**
 	 * Properties of the SeatCard component itself.
 	 * @typedef {Object} SeatCardOwnProps
-	 * @property {SeatCardState} [state='empty'] - empty: one "Open seat" choice; open: the gold "Take the seat!" prompt; add: the same gold frame holding a name field and Add, for a hot-seat table; player: a joined player
+	 * @property {SeatCardState} [state='empty'] - empty: one "Open seat" choice; closed: the same empty slot without the choice, for a viewer who can't open it (#98); open: the gold "Take the seat!" prompt; add: the same gold frame holding a name field and Add, for a hot-seat table; player: a joined player
 	 * @property {import('../../ui.js').Seat} seat - The seat number, which sets the player's colour
 	 * @property {string} [name] - The player's name, in the player state; in the add state, the typed name, bindable so a refused name stays
 	 * @property {string | null} [civilization=null] - The chosen civilization, or null before one is chosen
@@ -189,7 +189,9 @@
 	{...attr}
 	class="rg-seat-card rg-seat-card--{kind} {attr.class ? attr.class : ''}"
 	style:--rg-seat-card-color={playerColor(seat)}>
-	{#if kind === 'empty'}
+	{#if kind === 'closed'}
+		<!-- Nothing to choose: only the slot's surface. -->
+	{:else if kind === 'empty'}
 		<button
 			type="button"
 			class="rg-seat-card--choice"
@@ -293,6 +295,10 @@
 		height: var(--seat-height);
 		border-radius: var(--radius);
 		text-align: center;
+	}
+
+	.rg-seat-card--closed {
+		background: var(--surface);
 	}
 
 	.rg-seat-card--player {

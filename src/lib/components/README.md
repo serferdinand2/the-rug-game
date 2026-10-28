@@ -102,8 +102,9 @@ These components are updated as the art issues deliver their assets. Each will s
 |---|---|
 | `CivChooser` | Civilization tiles and Random, bordered in the edited player's colour. |
 | `OpenTableRow` | One open table on the launch page: Join, code, seat boxes, rules and expansion. |
-| `SeatCard` | A lobby seat: empty (Open seat), open (Take the seat!), add (a name field for a hot-seat player) or a joined player, with or without the civilization line. Add bot is shelved. |
-| `SettingRow` | A setting's title, a thin rule and its choices on one line. |
+| `PlaySettings` | The turn timer and undo rows, the same in the lobby and in Table settings; its rows join the parent's layout, and a guest sees them disabled (#98). |
+| `SeatCard` | A lobby seat: empty (Open seat), closed (an empty seat the viewer can't open, #98), open (Take the seat!), add (a name field for a hot-seat player) or a joined player, with or without the civilization line. Add bot is shelved. |
+| `SettingRow` | A setting's title, a thin rule and its choices on one line; `divided` draws a soft rule under it (#98). |
 | `TableCode` | The read-only table code with COPY. |
 
 ## log/

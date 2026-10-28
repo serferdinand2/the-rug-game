@@ -18,18 +18,11 @@
 
 <script>
 	import Button from '../../lib/components/ui/Button.svelte';
-	import Segmented from '../../lib/components/ui/Segmented.svelte';
-	import SettingRow from '../../lib/components/lobby/SettingRow.svelte';
+	import PlaySettings from '../../lib/components/lobby/PlaySettings.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
-	import { timerChoices } from '../../lib/lobby.js';
 
 	/** @type {TableSettingsProps} */
 	let { store, onTableSettingsClose, ...attr } = $props();
-
-	const UNDO = [
-		{ value: 'on', label: 'Allow undo', color: 'var(--exploration)' },
-		{ value: 'off', label: 'No undo', color: 'var(--military)' },
-	];
 
 	const uid = $props.id();
 
@@ -84,24 +77,12 @@
 		tabindex="-1">
 		<h2 id="{uid}-title">Table settings</h2>
 		<p>Changes apply at once. A timer change restarts every clock.</p>
-		<SettingRow label="Turn timer">
-			<Segmented
-				label="Turn timer"
-				options={timerChoices(store.config?.timers ?? [0]).map(
-					(choice) => ({ ...choice, color: 'var(--exploration)' })
-				)}
-				value={String(store.room.timer)}
-				onSegmentedChange={(/** @type {ComponentEvent} */ event) =>
-					store.settings({ timer: Number(event.value) })} />
-		</SettingRow>
-		<SettingRow label="Undo rules">
-			<Segmented
-				label="Undo rules"
-				options={UNDO}
-				value={store.room.undo ? 'on' : 'off'}
-				onSegmentedChange={(/** @type {ComponentEvent} */ event) =>
-					store.settings({ undo: event.value === 'on' })} />
-		</SettingRow>
+		<PlaySettings
+			timers={store.config?.timers ?? [0]}
+			timer={store.room.timer}
+			undo={store.room.undo}
+			onPlaySettingsChange={(/** @type {ComponentEvent} */ event) =>
+				store.settings(event.value)} />
 		<div class="rg-table-settings--actions">
 			<Button
 				mode="primary"

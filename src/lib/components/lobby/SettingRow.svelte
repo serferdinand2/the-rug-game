@@ -4,6 +4,7 @@
 	 * Properties of the SettingRow component itself.
 	 * @typedef {Object} SettingRowOwnProps
 	 * @property {string} label - The setting's title, such as 'Rules'
+	 * @property {boolean} [divided=false] - A soft rule under the row, as between the lobby's variants (#98)
 	 * @property {import('svelte').Snippet} [children] - The choices, usually a Segmented
 	 */
 
@@ -20,12 +21,13 @@
 
 <script>
 	/** @type {SettingRowProps} */
-	let { label, children, ...attr } = $props();
+	let { label, divided = false, children, ...attr } = $props();
 </script>
 
 <div
 	{...attr}
-	class="rg-setting-row {attr.class ? attr.class : ''}">
+	class="rg-setting-row {attr.class ? attr.class : ''}"
+	class:rg-setting-row--divided={divided}>
 	<span class="rg-setting-row--label">{label}</span>
 	<span
 		class="rg-setting-row--rule"
@@ -41,6 +43,11 @@
 		grid-template-columns: auto minmax(18px, 1fr) auto;
 		align-items: center;
 		gap: var(--space-4);
+	}
+
+	.rg-setting-row--divided {
+		padding-bottom: var(--space-3);
+		border-bottom: var(--border) solid var(--line-soft);
 	}
 
 	.rg-setting-row--label {
