@@ -28,23 +28,24 @@ test("an Architects' cube is a cube on open ground", () => {
 });
 
 test('a mat without a relief keeps its impassable tiles, and its cubes are cubes', () => {
-	const plots = matPlots(4);
-	const printed = plotTerrain(plots, 'desert', 7);
+	const plots = matPlots(5);
+	const printed = plotTerrain(plots, 'grassland', 7);
 	for (const [i, kind] of plots.entries()) {
 		if (kind === 'blocked') {
-			assert.match(printed[i].ground, /desert-blocked-0[1-6]\.svg$/);
+			assert.match(printed[i].ground, /grassland-blocked-0[1-6]\.svg$/);
 		}
 	}
 	const free = plots.indexOf('empty');
 	plots[free] = 'blocked';
-	const cube = plotTerrain(plots, 'desert', 7)[free];
+	const cube = plotTerrain(plots, 'grassland', 7)[free];
 	assert.equal(cube.cube, true);
-	assert.match(cube.ground, /desert-open-0[1-8]\.svg$/);
-	assert.equal(reliefUrl('desert'), null);
+	assert.match(cube.ground, /grassland-open-0[1-8]\.svg$/);
+	assert.equal(reliefUrl('grassland'), null);
 });
 
 test('reliefUrl names the relief', () => {
 	assert.equal(reliefUrl('forest'), '/art/capital-relief/forest.svg');
 	assert.equal(reliefUrl('wetland'), '/art/capital-relief/wetland.svg');
 	assert.equal(reliefUrl('tropical'), '/art/capital-relief/tropical.svg');
+	assert.equal(reliefUrl('desert'), '/art/capital-relief/desert.svg');
 });

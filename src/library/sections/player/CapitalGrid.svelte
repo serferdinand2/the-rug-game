@@ -193,11 +193,11 @@ Plot 26, beside the corner join at row 2, column 7, still takes the click.`}
 			}} />
 	</Example>
 	<Example
-		label={'plots={desertMat} biome="desert" terrainSeed={42}  (no relief yet: its impassable plots use the tile SVGs)'}
+		label={'plots={grasslandMat} biome="grassland" terrainSeed={42}  (no relief yet: its impassable plots use the tile SVGs)'}
 		width={468}>
 		<CapitalGrid
-			plots={matPlots(4)}
-			biome="desert"
+			plots={matPlots(5)}
+			biome="grassland"
 			terrainSeed={42} />
 	</Example>
 	<Example

@@ -116,6 +116,34 @@ function scatterJungle(put, px, py, roll, rand) {
 	}
 }
 
+/** Ripples, pebbles and the odd dry tuft on the desert's sand. @type {Scatter} */
+function scatterDesert(put, px, py, roll, rand) {
+	if (roll < 0.6) {
+		// A ripple: a shaded trough under a lit crest, gently waving.
+		const long = 5 + Math.floor(rand() * 5);
+		const phase = rand() * 6;
+		for (let i = 0; i < long; i++) {
+			const y = py + Math.round(Math.sin(i * 0.55 + phase) * 0.7);
+			put(px + i, y, C.sandShade);
+			if (i > 0 && i < long - 1) {
+				put(px + i, y - 1, C.sandLight);
+			}
+		}
+	} else if (roll < 0.78) {
+		// A pebble, lit from the upper left.
+		put(px, py, C.sandLight);
+		put(px + 1, py, C.sandShade);
+		put(px, py + 1, C.sandShade);
+		put(px + 1, py + 1, C.timberLight);
+	} else if (roll < 0.86) {
+		// A dry tuft.
+		put(px, py, C.savannaGoldShade);
+		put(px - 1, py - 1, C.savannaGold);
+		put(px + 1, py - 1, C.savannaGoldShade);
+		put(px, py - 2, rand() < 0.5 ? C.savannaGoldLight : C.savannaGold);
+	}
+}
+
 /**
  * Each biome's natural ground: its seed, its three tones and the small things lying on it.
  * @type {Record<string, { seed: number, base: string, light: string, dark: string, scatter: Scatter }>}
@@ -150,6 +178,14 @@ const GROUNDS = {
 		light: C.grass,
 		dark: C.pine,
 		scatter: scatterJungle,
+	},
+	// Pale sand with ripples: warm, not the Mesa's red soil.
+	desert: {
+		seed: 5309,
+		base: C.sand,
+		light: C.sandLight,
+		dark: C.sandShade,
+		scatter: scatterDesert,
 	},
 };
 

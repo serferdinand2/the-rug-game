@@ -8,6 +8,7 @@ import { paintMountains } from './mountain.js';
 import { paintForest } from './forest.js';
 import { paintWetland } from './wetland.js';
 import { paintTropical } from './tropical.js';
+import { paintDesert } from './desert.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 /** @typedef {import('./footprint.js').Footprint} Footprint */
@@ -32,6 +33,7 @@ export const RELIEF_PAINTERS = Object.freeze({
 	forest: paintForest,
 	wetland: paintWetland,
 	tropical: paintTropical,
+	desert: paintDesert,
 });
 
 /**

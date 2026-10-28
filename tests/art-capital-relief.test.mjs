@@ -415,6 +415,78 @@ test('a corner-only join carries a palm and a broadleaf crown over the corner', 
 	}
 });
 
+test('a corner-only join stands a sandstone outcrop over the corner', () => {
+	// Only a corner piece may paint outside the impassable plots, and only the rock is outlined in ink.
+	for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+		const { fp, canvas } = relief('desert', which);
+		assert.ok(fp.corners.length > 0, which);
+		for (const { gx, gy } of fp.corners) {
+			let outline = 0;
+			for (let dy = -16; dy <= 16; dy++) {
+				for (let dx = -16; dx <= 16; dx++) {
+					const i = (gy + dy) * fp.w + gx + dx;
+					if (
+						!fp.plots[i] &&
+						opaque(canvas, i) &&
+						canvas.p[i] === PALETTE.ink
+					) {
+						outline++;
+					}
+				}
+			}
+			const at = `${which} corner ${gx},${gy}`;
+			assert.ok(opaque(canvas, gy * fp.w + gx), at);
+			assert.ok(outline > 0, `${at}: no outcrop`);
+		}
+	}
+});
+
+/** Desert's pale sand tones, and the Mesa's red rock that the Desert keeps clear of (#132). */
+const SAND = new Set([PALETTE.sandLight, PALETTE.sand, PALETTE.sandShade]);
+const RED_ROCK = new Set([
+	PALETTE.mesaRockLight,
+	PALETTE.mesaRock,
+	PALETTE.mesaStrata,
+]);
+
+test('the Desert relief is warm sandstone and sand, apart from the red rock of the Mesa', () => {
+	for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+		const { canvas } = relief('desert', which);
+		let painted = 0;
+		let sandy = 0;
+		for (let i = 0; i < canvas.p.length; i++) {
+			if (!opaque(canvas, i)) {
+				continue;
+			}
+			painted++;
+			if (SAND.has(canvas.p[i])) {
+				sandy++;
+			}
+			assert.ok(!RED_ROCK.has(canvas.p[i]), `${which}: red rock at ${i}`);
+		}
+		assert.ok(sandy >= 0.6 * painted, `${which}: ${sandy}/${painted}`);
+	}
+});
+
+test('the Desert ground is pale sand, not the red soil of the Mesa', () => {
+	const mesa = new Set(
+		Object.entries(PALETTE)
+			.filter(([name]) => name.startsWith('mesa'))
+			.map(([, colour]) => colour)
+	);
+	for (let variant = 0; variant < 8; variant++) {
+		const { p } = plot('desert', variant);
+		assert.ok(
+			p.filter((c) => SAND.has(c)).length >= 0.85 * p.length,
+			`variant ${variant}`
+		);
+		assert.ok(
+			p.every((c) => !mesa.has(c)),
+			`variant ${variant}`
+		);
+	}
+});
+
 test('every relief biome has a painter', () => {
 	assert.deepEqual(Object.keys(RELIEF_PAINTERS), [...RELIEF_BIOMES]);
 	assert.ok(Object.isFrozen(RELIEF_PAINTERS));
