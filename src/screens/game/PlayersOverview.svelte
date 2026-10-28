@@ -211,7 +211,7 @@
 	.rg-players-overview--scale {
 		position: relative;
 		width: calc(425px * 0.4);
-		height: calc(286px * 0.4);
+		height: calc(298px * 0.4);
 	}
 
 	.rg-players-overview--scaled {

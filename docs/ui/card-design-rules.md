@@ -14,12 +14,13 @@ The card study at `C:/Users/lazar/.codex/visualizations/2026/10/23/01a16638-a2cd
 
 ### Technology
 
-- **425 px wide**, horizontal, approximately 286 px tall. Do not turn a Tech card into a tall portrait card or shrink its source artwork to a token icon.
+- **425 px wide**, horizontal, approximately 298 px tall. Do not turn a Tech card into a tall portrait card or shrink its source artwork to a token icon.
 - Use the same warm beige pixel-noise paper, brown gradient band, solid gold title letters, and border treatment as the approved Civilization cards. The title band reaches the card sides.
 - Put the **full 150×150 artwork on the left**, with the same inset and fine double-border treatment as the Civilization portrait. The two effect boxes sit to its right.
 - The **square / top-row benefit is above the circle / middle-row benefit**. Draw the shapes as thick empty outlines, with no inset fill. The Tech tab's row headings use the same shapes.
 - Keep effect wording in Atkinson. The shape and its benefit share one light beige box. Separate the two benefits so their distinct upgrade timing is immediately visible.
 - Put the conditions in a dedicated row **below the artwork and effects**. Align the light-grey condition boxes right. For a track requirement, show its icon, its name in Cinzel and its track colour, then the **Arabic numeral** (for example `Technology 2`). A row condition uses the same empty square followed by `Top row`.
+- Leave equal visual breathing room above and below the condition row: the gap from the artwork to the conditions matches the gap from the conditions to the edition separator.
 - Put the edition chip at the bottom in the same position, vertical alignment and colours as the other cards. Base game is brown; Arts & Architecture is purple. Do not add an extra separator around the chip.
 - In the Tech tab, card wrappers may overlap horizontally. Hover and keyboard focus raise one card above its neighbours. Empty row placeholders use a **solid border**, never a dashed one.
 
@@ -29,7 +30,7 @@ The card study at `C:/Users/lazar/.codex/visualizations/2026/10/23/01a16638-a2cd
 - Use the Civilization paper, border, title gradient and gold letters. **Trap** is the exception: its title gradient is red.
 - The full **160×160 portrait is on the left** with the Civilization portrait border. Put the timing label **to the right of the artwork**, not in the title band or below the artwork.
 - Timing labels distinguish `This Era`, `When Played`, and `Trap · Response`. Trap retains its separate income-turn note in the rules area.
-- Put the effect in a readable Atkinson area under the portrait, with a fine top rule. Put edition metadata at the foot, using the same edition chip as Tech and Civilization.
+- Put the effect in a readable Atkinson area under the portrait, with a fine top rule. Pending rules text uses this same area and separator; do not enclose it in a beige effect box. Put edition metadata at the foot, using the same edition chip as Tech and Civilization.
 - The active era tab displays the complete current card. Earlier eras remain selectable for inspection. The Hand and decision choice shelf use the same complete card layout, scaled to their available space; hovering or focusing overlapping cards raises the chosen one.
 - Tapestry choice remains in the card shelf above the decision box. The box carries the confirmation action, not a second list of card buttons.
 
@@ -191,6 +192,10 @@ Four squares show rewards covered by tokens. Removing tokens exposes rewards, an
 Compact reserve; a schematic of an opponent's top-row technology becoming the player's bottom-row technology; separate beige upgrade and top-row trigger explanations. A transfer arrow has explicit origin and destination. It illustrates an actual rule rather than a footer decoration. The token stays on the transferred card. This is an illustrative diagram, not an additional reserve or a second physical token.
 
 ## Components and generation
+
+### Masterpiece cards
+
+The approved Arts & Architecture masterpiece frame is 319 px wide and follows its content rather than holding a forced square height. Use the card-paper noise, a 49 px gold title band with Cinzel title text, and a full-width separator above the edition row. Set a 12 px inset around the body and a 12 px gap between the centered beige effect box on the left and the 144 px artwork on the right. The artwork's bottom edge is 12 px above the edition separator. Center effect content both vertically and horizontally. Show a single resource as `+` followed by its native 24 px icon; keep `X VP` on one line. The footer contains the Arts & Architecture label in its usual expansion box. `MasterpieceCard` owns this frame; callers provide the title, artwork and effect snippet. The Painting example in the component library is the approved layout fixture, not a separate frame for each card.
 
 All public card primitives live under `src/lib/components/player/` and appear on `/components.html`:
 

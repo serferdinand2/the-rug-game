@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Who edits this file
 
-Only Claude edits CLAUDE.md (owner, 2026-10-27). Lazar works with Codex, which follows [AGENTS.md](AGENTS.md): it reads this file but never changes it, changes documentation only when asked to, and records every issue it lands in [docs/status.md](docs/status.md).
+Only Claude edits CLAUDE.md (owner, 2026-10-27). Lazar works with Codex, which follows [AGENTS.md](AGENTS.md): it reads this file but never changes it, and never changes docs/conventions.md. Every other document is open to Codex without asking (owner, 2026-10-28), `docs/superpowers/` included: it writes each issue's design and plan there as Claude does, and records every issue it lands in [docs/status.md](docs/status.md).
 
 Keep this file short, because every Claude session and subagent loads all of it. Progress and history go in [docs/status.md](docs/status.md), module detail in [docs/architecture.md](docs/architecture.md), and each issue's decisions in its design document under `docs/superpowers/specs/`. This file keeps what every task needs: what the project is, the commands, a map, the working rules and the decisions already made.
 

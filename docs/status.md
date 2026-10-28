@@ -7,7 +7,7 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
 ## Summary
 
 - **At a glance:**
-  - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. Two of their issues are still open: #45 (the owner checks R12 and R39 against the box) and #47 (the card gallery).
+  - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74 and #75 are done.
   - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -18,7 +18,7 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
   - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. The owner closed #48 on 2026-10-21, ahead of its blocker #3.
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #44, #46, #48, #52, #53, #54, #55, #56, #57, #58, #59, #61, #66, #67, #68, #69, #70, #72, #73, #74 and #75 are done.** Lazar closed #3 and #73 on 2026-10-27, and the owner closed #6 the same day. The owner approved #69 and #74 in the component library on 2026-10-28, and closed #75 and #61 the same day. Lazar closed #68 on 2026-10-28.
+- **#1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #44, #46, #47, #48, #52, #53, #54, #55, #56, #57, #58, #59, #61, #66, #67, #68, #69, #70, #72, #73, #74 and #75 are done.** Lazar closed #3 and #73 on 2026-10-27, and the owner closed #6 the same day. The owner approved #69 and #74 in the component library on 2026-10-28, and closed #75 and #61 the same day. Lazar closed #68 on 2026-10-28, and #47 closed the same day when his card gallery merged.
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
@@ -451,6 +451,21 @@ Built on 2026-10-28 without a question round ("finish up 61"), from the issue. T
   - Calls to revisit: the tray fades rather than parking beside the panel; captions name no cause until #60; a hot-seat caption names the roller, never "You"; the dice cue reuses `drop_001`; the science face shown is the first of the track's three; the bust's caption is red; no d20 or arts face until #35 and Arts & Architecture.
   - It is done: the owner closed it on 2026-10-28 ("close tickets we resolved"), which approves its Die and DiceTray sections and the three die bodies, now in `docs/art/approved-assets.json`.
   - `tests/client-dice.test.mjs` covers the rolls and every face; `tests/browser/dice-tray.test.mjs` plays an online table to a conquest and sees it on both screens.
+
+### #73 and #68 (Lazar's screenshots and VP labels)
+
+Recorded on 2026-10-28, when Lazar's branch `lazar-milin-cleanup-after-milestone-5` merged into main. Lazar closed #73 on 2026-10-27 and #68 on 2026-10-28.
+- #73: the README's civilization-choice screenshot showed an old placeholder. Lazar retook it (`game-prompt-civ.png`) and the other decision screenshots: the capital mats, landmark placement, cards on the shelf and the income turn.
+- #68: the card score ladder's VP labels use `--font-size-3xs` from the type scale instead of a fixed 8 px (`src/styles/card-patterns.css`).
+- Without an issue, the same branch restored the pixel texture on its own pages and took the track-coloured outlines off the resource icons in track prices and cost boxes (`launch.png` and `lobby.png` retaken; `docs/ui/README.md` records both).
+
+### #47 (the card frames and the card gallery)
+
+Closed on 2026-10-28, when Lazar's branch merged (owner: "close issues that they resolve"). The frames follow `docs/ui/card-design-rules.md`, which the owner approved; Lazar built the gallery and the last frames on 2026-10-27 and 2026-10-28.
+- Built: the card gallery, `cards.html` → `src/gallery/`, lists every catalog asset by type and expansion, with a count per type, a search, an edition filter and **Show more**. Civilization, tapestry, tech, landmark-card, masterpiece and space-tile entries use their game frames with the engine's text where it exists; undrawn art is a slot naming the item. Every screen's header menu opens it in a new tab (`PageHeader.svelte`). New components: `LandmarkCard` and `MasterpieceCard` (319 px), and `ScaledTapestryCard`, which shows a whole tapestry card smaller on the shelf (0.7) and in the Eras (0.6) and Hand (0.42) tabs without the layout jumping. Review pages: `docs/ui/landmark-cards-review.html` and `docs/ui/masterpiece-card-review.html`.
+- The merge added what the unit tests ask of every component, which the branch lacked: library sections for `LandmarkCard` and `ScaledTapestryCard`, an `@example` in all three, their rows in `src/lib/components/README.md`, tokens for three hard-coded colours, and the gallery page in `tests/vite-config.test.mjs`.
+  - Calls to revisit: landmark cards read "Rules text pending" until the expansions' rules supply their conditions; `LandmarkCard` draws its edition chip in the Arts & Architecture colours, also for the five Plans & Ploys cards; 24 catalog items have no art yet (15 dice faces, 5 game symbols, 4 boards).
+  - `tests/browser/card-layouts.test.mjs` checks that card art and edition rules align and that tapestry cards grow with their text.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

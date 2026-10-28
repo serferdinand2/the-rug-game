@@ -89,7 +89,6 @@
 	{#each symbols as symbol, index (index)}
 		<ResourceIcon
 			{symbol}
-			color={trackColor(track)}
 			decorative />
 	{/each}
 </div>

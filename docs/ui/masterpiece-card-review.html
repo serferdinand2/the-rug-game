@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Masterpiece card · layout review</title>
+<style>
+@font-face{font-family:Atkinson;src:url('../../static/fonts/atkinson-hyperlegible-regular.woff2')}@font-face{font-family:Atkinson;src:url('../../static/fonts/atkinson-hyperlegible-bold.woff2');font-weight:700}@font-face{font-family:Cinzel;src:url('../../static/fonts/cinzel.woff2')}
+:root{font-family:Atkinson,sans-serif;color:#e8ddc4;background:#171a1d}*{box-sizing:border-box}body{margin:0}header.page{padding:24px clamp(20px,4vw,56px);border-bottom:1px solid #596166;background:#202529}header.page h1{font:700 clamp(25px,3vw,36px)/1.2 Cinzel,serif;color:#e2b857;margin:0 0 8px}header.page p{margin:0;color:#b9af9b;font-size:15px;line-height:1.4}main{padding:38px clamp(20px,4vw,56px) 64px;display:flex;justify-content:center}.card{width:319px;color:#3c3021;background:#e8d6ad url('assets/card-paper-noise.svg') repeat;border:2px solid #735934;box-shadow:0 10px 26px rgb(0 0 0 / 40%),inset 0 0 0 1px #f0e2bf;display:flex;flex-direction:column}.band{min-height:49px;display:flex;align-items:center;padding:0 12px;background-image:url('assets/card-paper-noise.svg'),linear-gradient(90deg,#5c3e1f,#987a51 57%,#cbb58c);border-bottom:1px solid #735934}.band h2{font:700 22px/1 Cinzel,serif;letter-spacing:.025em;color:#e2b857;text-shadow:0 1px #3c3021;margin:0}.body{display:grid;grid-template-columns:minmax(0,1fr) 144px;align-items:center;gap:12px;padding:12px}.effects{min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:12px 8px;text-align:center;background:#f0e2bf;border:1px solid #b59a70;font:400 18px/1.3 Atkinson,sans-serif}.effect{margin:0}.effect strong{font-weight:700}.resource{display:inline-flex;align-items:center;gap:2px;white-space:nowrap;vertical-align:middle;font-weight:700}.resource img{width:24px;height:24px;display:block;image-rendering:pixelated}.art{width:144px;height:144px;display:block;image-rendering:pixelated;object-fit:contain;box-shadow:0 0 0 1px #94764c,0 0 0 3px #3c3021}.foot{min-height:38px;margin:0;padding:7px 12px;display:flex;align-items:center;border-top:1px solid #94764c}.edition{display:inline-flex;align-items:center;min-height:18px;padding:2px 6px;border:1px solid #bd9155;background:#e9d7b5;color:#70491f;white-space:nowrap;font:700 10px/1 Atkinson,sans-serif;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<header class="page"><h1>Masterpiece card</h1><p>Painting · one proposed Arts &amp; Architecture card in the established card style</p></header>
+<main>
+<article class="card" aria-label="Painting masterpiece card">
+  <div class="band"><h2>Painting</h2></div>
+  <div class="body">
+    <div class="effects" aria-label="At the start of your income turn, gain 4 VP and any 1 resource">
+      <p class="effect">Gain <strong>4 VP</strong>.</p>
+      <p class="effect"><span class="resource">+<img src="../../static/art/resource-24/any.svg" alt="any resource"></span></p>
+    </div>
+    <img class="art" src="../../static/art/masterpiece/painting.svg" alt="Painting artwork">
+  </div>
+  <div class="foot"><span class="edition">Arts &amp; Architecture</span></div>
+</article>
+</main>
+</body>
+</html>

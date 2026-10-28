@@ -1,6 +1,6 @@
 // Reviewed visual fixtures and the card markup. Fixture rules text is display copy, not engine authority; game-cards.js builds real cards.
 /** @typedef {{title:string,art:string,circle:string,square:string,track?:string,level?:number,innovation?:string}} TechnologyCardData */
-/** @typedef {{title:string,art:string,timing:string,copy:string,note?:string,trap?:boolean}} TapestryCardData */
+/** @typedef {{title:string,art:string,timing:string,copy:string,note?:string,trap?:boolean,edition?:string}} TapestryCardData */
 /** @type {Readonly<Record<string, TechnologyCardData>>} */
 export const TECHNOLOGY_CARDS = Object.freeze({
 	clocks: {
@@ -168,5 +168,5 @@ export function tapestryCardMarkup(card) {
 		: card.timing === 'When Played'
 			? 'when-played'
 			: 'this-era';
-	return `<div class="rg-tapestry-layout${card.trap ? ' rg-tapestry-layout--trap' : ''}" aria-label="${escape(card.title)} tapestry card"><header class="rg-tapestry-layout__band"><strong>${escape(card.title)}</strong></header><div class="rg-tapestry-layout__portrait"><img src="/art/tapestry/${escape(card.art)}.svg" alt=""><span class="rg-tapestry-layout__timing rg-tapestry-layout__timing--${timingClass}">${escape(card.timing)}</span></div><p class="rg-tapestry-layout__copy">${escape(card.copy)}${card.note ? `<span class="rg-tapestry-layout__note">${escape(card.note)}</span>` : ''}</p><footer class="rg-tapestry-layout__footer"><span class="rg-card-edition rg-card-edition--base">Base game</span></footer></div>`;
+	return `<div class="rg-tapestry-layout${card.trap ? ' rg-tapestry-layout--trap' : ''}" aria-label="${escape(card.title)} tapestry card"><header class="rg-tapestry-layout__band"><strong>${escape(card.title)}</strong></header><div class="rg-tapestry-layout__portrait"><img src="/art/tapestry/${escape(card.art)}.svg" alt="">${card.timing ? `<span class="rg-tapestry-layout__timing rg-tapestry-layout__timing--${timingClass}">${escape(card.timing)}</span>` : ''}</div><p class="rg-tapestry-layout__copy">${escape(card.copy)}${card.note ? `<span class="rg-tapestry-layout__note">${escape(card.note)}</span>` : ''}</p><footer class="rg-tapestry-layout__footer"><span class="rg-card-edition ${card.edition && card.edition !== 'Base game' ? 'rg-card-edition--arts' : 'rg-card-edition--base'}">${escape(card.edition ?? 'Base game')}</span></footer></div>`;
 }

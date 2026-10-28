@@ -6,6 +6,7 @@
 	 * @property {string} id - Reported when chosen
 	 * @property {string} label - The visible text, such as 'How to play'
 	 * @property {string} [href] - Makes the entry a link to this address
+	 * @property {'_blank'} [target] - Opens the link in a new tab
 	 */
 
 	/**
@@ -160,6 +161,10 @@
 					role="menuitem"
 					class="rg-menu--item"
 					href={item.href}
+					target={item.target}
+					rel={item.target === '_blank'
+						? 'noopener noreferrer'
+						: undefined}
 					tabindex={index === focusIndex ? 0 : -1}
 					onclick={(event) => itemClickHandler(event, item)}
 					onfocus={() => itemFocusHandler(index)}>{item.label}</a>

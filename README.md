@@ -34,7 +34,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Landing page | Lobby |
 |---|---|
-| ![The landing page, with two open tables](docs/ui/screens/launch.png) | ![The local lobby with selected No options clearly outlined](docs/ui/screens/lobby.png) |
+| ![The landing page with the pixel texture and an empty open-tables state](docs/ui/screens/launch.png) | ![The local lobby with the pixel texture and selected No options clearly outlined](docs/ui/screens/lobby.png) |
 
 | Play: the tracks, with an advance chosen | Play: the World Map |
 |---|---|
@@ -62,7 +62,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Prompt: placing a landmark | Prompt: the income turn |
 |---|---|
-| ![The Lighthouse placed and turned on the Capital tab, with the panel naming its plot](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold, with the panel's question shown only once](docs/ui/screens/game-prompt-income.png) |
+| ![The Lighthouse waiting for placement on the Capital tab, with the decision panel below](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold, with the panel's question shown only once](docs/ui/screens/game-prompt-income.png) |
 
 | Prompt: paying for an advance, one row per resource | Prompt: paying a bonus with the tiles picked |
 |---|---|
@@ -87,6 +87,12 @@ Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [La
 | Components | Art |
 |---|---|
 | ![The component library, showing the track board](docs/ui/screens/component-library.png) | ![The Art part of the component library, showing landmarks under their plot grid](docs/ui/screens/component-library-art.png) |
+
+**Card gallery (#47).** Every card and asset in the catalog, by type and expansion, with a count per type, a search and an edition filter. Each card is shown in its game frame with the engine's text where it exists; art not drawn yet is a slot that names it. Players open it during a game from the header menu, in a new tab, or at `/cards.html`.
+
+| The card gallery |
+|---|
+| ![The card gallery: the 41 civilizations in their frames, under the type buttons with a count on each](docs/ui/screens/card-gallery.png) |
 
 **Civilization cards (#47).** The owner chose **Option B · Civilization mat** from [five Collectors card designs](docs/ui/collectors-card-options.html) on 2026-10-23. It is 456 px wide, so it fits the Civilization tab as it is. It shows the portrait beside the rules, the mat's six item spaces, and the score steps; in play, the player's items and score marker take their colour.
 
@@ -405,7 +411,7 @@ How the ranking was built:
 | [docs/status.md](docs/status.md) | Where the work stands: every issue, what it built and its calls to revisit after playing |
 | [docs/architecture.md](docs/architecture.md) | The modules in detail, with the issue that added each |
 | [CLAUDE.md](CLAUDE.md) | Guidance for Claude: the commands, a map of the project, the working rules and the decisions already made |
-| [AGENTS.md](AGENTS.md) | Guidance for Codex and other agents: read CLAUDE.md, never edit it, and change documentation only when asked |
+| [AGENTS.md](AGENTS.md) | Guidance for Codex and other agents: read CLAUDE.md, and change any document except CLAUDE.md and the conventions |
 | [docs/conventions.md](docs/conventions.md) | Coding conventions: JavaScript with JSDoc, Svelte 5 components, BEM classes, the engine, tests and commits |
 
 ## Licence

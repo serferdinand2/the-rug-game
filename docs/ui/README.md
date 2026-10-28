@@ -24,6 +24,7 @@ The owner-reviewed #5 icon mockup and its linked capital terrain page are preser
 | [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) | Editable source of the shared pixel texture embedded in the pages |
 | [tokens.css](../../src/styles/tokens.css) and [base.css](../../src/styles/base.css) | The production design tokens, fonts, page and focus styles made from these references |
 | `/components.html` ([src/lib/components/](../../src/lib/components/README.md)) | The component library (#48): every component built from these references, in all its states, and the art; screenshots `screens/component-library.png` and `screens/component-library-art.png` |
+| `/cards.html` ([src/gallery/](../../src/gallery/)) | The card gallery (#47): every catalog asset by type and expansion, with counts, each card in its game frame and undrawn art as a named slot; the in-game card reference, opened from the header menu; screenshot `screens/card-gallery.png` |
 | [preview.mjs](preview.mjs) | Optional local server for these references only |
 | [archivedpngmockups/](archivedpngmockups/README.md) | Superseded PNGs, HTML and generator from the earlier design |
 
@@ -106,6 +107,8 @@ Player identity and track identity are separate colour systems. **The game uses 
 **Corners are square throughout** (`--radius: 0`), including selected tabs, player cards, controls and selection outlines. Lobby mute/menu controls match the game's dark 36×36 control buttons and red diagonal mute slash; the small corner radius visible in the lobby reference is not carried into the game. Ordinary panels should not gain new drop shadows. Header/footer separation uses thin divider rules; in player-overview mode remove the header divider over the overview area and keep the footer divider.
 
 Use gold for selection, the track colours for track names, and green for the current player glow, valid placement guidance and confirmation. Keep names, outlines and symbols as additional signals; colour alone must not carry state. Use the native 24 px SVG resource icons for compact track prices, overview counts, footer costs and inline choice costs. Use the native 48 px icons for large resource choices in decision prompts. Do not scale the deprecated 32 px resource artwork.
+
+The pixel noise from `src/styles/pixel-noise.svg` covers the launch page, lobby, and both the shared and player areas of the game over `--surface`. Keep the resource art in advancement tier costs and decision cost boxes free of per-icon outlines; the surrounding rules and cost box supply the structure.
 
 ## Launch page
 
@@ -425,6 +428,12 @@ Issue #47's civilization-frame and reusable-pattern portions are covered. Other 
 Technology and Tapestry cards now use the reviewed frames from the Second Tapestry UI card study. The shared `TechnologyCard` and `TapestryCard` components appear in the component library, and their layout fixtures are used in the main-screen Hand, Eras, Tech and Tapestry-choice shelf. Technology cards are 425 px horizontal cards with full art, square/top and circle/middle effects, and right-aligned grey prerequisite boxes. Tapestry cards are 319 px wide with the timing tag beside the 160 px portrait; Trap uses a red title band. The exact authoring rules and fixture limits are in [card-design-rules.md](card-design-rules.md). The game-backed card chooser and complete card reference remain part of #27 and #47.
 
 Hovering or focusing a Technology or Tapestry card brings it above overlapping neighbours without shifting it and shows its complete frame centered over the shared play area. A translucent dark scrim leaves the board visible, while the card in the private tab glows gold. Era I is a static red **Maker of Fire** label in Cinzel without hover treatment; named tapestry cards in the Eras rows use Cinzel while era numbers and unchosen slots use Atkinson. Before the income tapestry step, the next slot reads **Not yet chosen**. Earlier tapestry cards can still be selected for inspection. Civilization choices use the full 425 px reviewed mats above their decision prompt, with a scrollbar-free scroll area when needed.
+
+## Card gallery (#47, 2026-10-28)
+
+![The card gallery](screens/card-gallery.png)
+
+`/cards.html` is the card reference. It reads the asset catalog and lists every item by type and expansion, with a count on each type button, a search and an edition filter; 48 items show at first, and **Show more** adds 48 at a time. Civilization, tapestry, tech, landmark-card, masterpiece and space-tile entries use their game frames (`LandmarkCard` and `MasterpieceCard` are 319 px; see [card-design-rules.md](card-design-rules.md)). Art that isn't drawn yet is a slot naming the item and saying "Artwork not drawn yet". Every screen's header menu has **Card gallery** after How to play, and opens it in a new tab.
 
 ## End-screen proposal (2026-10-27)
 

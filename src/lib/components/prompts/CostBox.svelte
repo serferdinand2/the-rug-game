@@ -106,7 +106,6 @@
 		<ResourceIcon
 			{symbol}
 			size="medium"
-			color={track && symbol !== 'any' ? trackColor(track) : undefined}
 			decorative />
 	{/each}
 </span>
