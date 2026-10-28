@@ -405,7 +405,7 @@ How the ranking was built:
 | [docs/status.md](docs/status.md) | Where the work stands: every issue, what it built and its calls to revisit after playing |
 | [docs/architecture.md](docs/architecture.md) | The modules in detail, with the issue that added each |
 | [CLAUDE.md](CLAUDE.md) | Guidance for Claude: the commands, a map of the project, the working rules and the decisions already made |
-| [AGENTS.md](AGENTS.md) | Guidance for Codex and other agents: read CLAUDE.md, never edit it, and change documentation only when asked |
+| [AGENTS.md](AGENTS.md) | Guidance for Codex and other agents: read CLAUDE.md, and change any document except CLAUDE.md and the conventions |
 | [docs/conventions.md](docs/conventions.md) | Coding conventions: JavaScript with JSDoc, Svelte 5 components, BEM classes, the engine, tests and commits |
 
 ## Licence

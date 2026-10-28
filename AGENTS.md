@@ -7,7 +7,7 @@ Instructions for Codex and every other coding agent except Claude, which follows
 1. [CLAUDE.md](CLAUDE.md): what the project is, the commands, a map of the folders, how to pick up the next issue (respecting **Blocked by**), the decisions already made, and the rule that README.md always shows the current interface.
 2. [docs/conventions.md](docs/conventions.md): how code is written: JavaScript with JSDoc (no TypeScript), Svelte 5 component structure, BEM classes with the `rg-` prefix, `{action}Handler` and `on{ComponentName}{Action}` naming, `ComponentEvent`, the rules-engine rules, tests and commits.
 3. [docs/status.md](docs/status.md): where the work stands, issue by issue. You keep it up to date (see below).
-4. When a task needs it: [docs/architecture.md](docs/architecture.md) (the modules in detail).
+4. When a task needs them: [docs/architecture.md](docs/architecture.md) (the modules in detail) and [docs/superpowers/](docs/superpowers/) (each issue's design and plan).
 
 ## Never edit CLAUDE.md
 
@@ -28,13 +28,10 @@ If a convention looks wrong, missing or out of date, tell the person you are wor
 - **Summary**: add the issue to the done list with who closed it and when, and correct the "At a glance" lines.
 - **Issues**: add an entry for the issue at the end, as the existing entries do: what it built, its calls to revisit after playing, and what it hands on to later issues.
 
-This is the one exception to the next section.
+## Change any other documentation freely
 
-## Change documentation only when asked
+Every other document is yours to change without asking (owner, 2026-10-28): README.md, this file, everything under `docs/` (architecture, designs, plans, interface notes and screenshots) and `src/lib/components/README.md`. Only CLAUDE.md and docs/conventions.md are closed to you, as above.
 
-Documentation is every Markdown file and documentation asset: README.md, this file, everything under `docs/` (architecture, designs, plans, interface notes and screenshots) and `src/lib/components/README.md`. Two files under `docs/` follow their own rules above instead: you keep `docs/status.md` up to date, and you never edit `docs/conventions.md`.
-
-- Change documentation only when the person you are working with has explicitly asked you to update documentation.
-- Otherwise, ask them explicitly before changing any of it: name the file and what you would change, and wait for a clear yes. This holds even where CLAUDE.md, docs/conventions.md, an issue or a plan says a change must update the documentation, such as the README screenshots or the component index.
-- If they say no, leave the documentation as it is, and say in your final message what is now out of date.
+- **Use Superpowers in `docs/superpowers/`**, as Claude does. Before coding an issue, write its design in `docs/superpowers/specs/<date>-<topic>-design.md` and its plan in `docs/superpowers/plans/<date>-<topic>-issue-<n>.md`, following the existing ones. Read the designs and plans of earlier issues when your work touches theirs.
+- **Keep the documentation current** in the same piece of work, wherever CLAUDE.md, docs/conventions.md, an issue or a plan says a change must update it, such as the README screenshots, docs/architecture.md or the component index.
 - Code, tests and commits follow docs/conventions.md as usual.

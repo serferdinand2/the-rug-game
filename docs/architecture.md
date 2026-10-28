@@ -1,6 +1,6 @@
 # Architecture
 
-The project's modules in detail, with the issue that added each. CLAUDE.md keeps a short map of the folders and links here. Claude updates this file when a module is added, renamed or removed; other agents edit it only when asked to (see AGENTS.md).
+The project's modules in detail, with the issue that added each. CLAUDE.md keeps a short map of the folders and links here. Claude and Codex update this file when a module is added, renamed or removed (see AGENTS.md).
 
 ## Modules
 
