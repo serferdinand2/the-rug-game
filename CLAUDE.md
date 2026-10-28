@@ -139,6 +139,7 @@ Rulings the owner made along the way. Each issue's design document records its o
 - The six full capital mat SVGs are examples only. Actual capital mats must be generated from the reusable terrain tiles for each game, following the game setup and the rules-defined plot layout.
 - **Decided 2026-10-28:**
   - Every decision prompt opens at the centre of the tracks (the shared area), not of the screen, with any shelf of cards above it as one stack. Only a choice on the map, while the Map view shows, docks at the right (owner, #79).
+  - The app is for private use: build no screen-reader support (aria-label wording, live regions, visually hidden text) and ask nothing about it. Skip those parts of issues and leave the labels already built as they are (owner). This overrides the conventions' aria-label rules.
 - **Decided 2026-10-27:**
   - Lazar's mockups decide the look and the owner's design decides what works, where they collide; the client is designed for our own API (owner, #25).
   - Readiness is informational: the host may start without it (owner, #25).
