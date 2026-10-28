@@ -2,6 +2,7 @@
 // Pixel art uses the project's existing palette and painter, without SVG hand edits.
 import { createCanvas, rect, set, seededRandom } from '../painter.js';
 import { PALETTE as C } from '../palette.js';
+import { CAPITAL_MATS } from '../../../src/lib/engine/data/capitals.js';
 /** @typedef {'mountain' | 'wetland' | 'tropical' | 'desert' | 'grassland' | 'forest'} Biome */
 /** @typedef {import('../painter.js').Canvas} Canvas */
 /** @typedef {import('../painter.js').Colour} Colour */
@@ -15,75 +16,13 @@ export const OPEN_VARIANTS = 8;
 export const BLOCKED_VARIANTS = 6;
 
 /** @type {Readonly<Record<Biome, readonly string[]>>} */
-// Canonical base-mat masks: rows top-to-bottom, 1 = impassable, 0 = buildable.
-export const CAPITAL_GRIDS = Object.freeze({
-	mountain: [
-		'000000000',
-		'110001110',
-		'000111000',
-		'000111110',
-		'000001100',
-		'011100001',
-		'001000000',
-		'000000010',
-		'001000000',
-	],
-	wetland: [
-		'000000001',
-		'110000111',
-		'000000000',
-		'011100110',
-		'001100000',
-		'111000010',
-		'000001100',
-		'011000000',
-		'000001000',
-	],
-	tropical: [
-		'000010011',
-		'000100011',
-		'001000001',
-		'000000000',
-		'010001000',
-		'000000000',
-		'101101010',
-		'011110000',
-		'001110000',
-	],
-	desert: [
-		'000110000',
-		'101000000',
-		'100000110',
-		'000000000',
-		'010010011',
-		'011000001',
-		'011111000',
-		'001100000',
-		'000001000',
-	],
-	grassland: [
-		'000000000',
-		'111000010',
-		'111100000',
-		'000111100',
-		'000000111',
-		'111000001',
-		'001000000',
-		'000000100',
-		'000001000',
-	],
-	forest: [
-		'000000000',
-		'001100100',
-		'000100010',
-		'011000001',
-		'000100000',
-		'001111100',
-		'010000100',
-		'001000111',
-		'000000011',
-	],
-});
+// Canonical base-mat masks, read from the engine: rows top-to-bottom, 1 = impassable, 0 = buildable.
+export const CAPITAL_GRIDS =
+	/** @type {Readonly<Record<Biome, readonly string[]>>} */ (
+		Object.freeze(
+			Object.fromEntries(CAPITAL_MATS.map((mat) => [mat.id, mat.grid]))
+		)
+	);
 
 // Public API for a library tile and for an entire canonical 288×288 capital board.
 /**
