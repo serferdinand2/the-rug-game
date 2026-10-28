@@ -236,12 +236,15 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 
 ![Paying a bonus with tiles: the tiles three to a row, 1 of 2 chosen](screens/game-prompt-tiles.png)
 
+![The dice tray: a conquest's dice landed in the middle of the screen](screens/game-dice-tray.png)
+
 ![Placing a landmark](screens/game-prompt-capital.png)
 
 ![The income turn](screens/game-prompt-income.png)
 
 - **One model for every decision:** `src/lib/prompts.js` turns the open decision into a title, an instruction, a layout and one option per answer, each chosen in the panel, on the card shelf, on the map or on the capital. Nothing is sent until Confirm, even with one answer.
 - **Several resources, cards or tiles (#75):** as on Board Game Arena, each resource to choose is a row of the four resources with the counts the player would hold, and each card or tile a picture to press; a count says how many are chosen, and Confirm sends only one of the decision's own answers (`src/lib/picks.js`). Rows stack and the panel sits at the screen's centre (owner); a payment in tapestry or tech cards keeps the shelf above a panel at the bottom. A resource no legal answer allows is off, with the reason as its title; the overview's counters show the choices so far; a gain past 8 says, in red, what would be lost. A trade picks its offer first, then its rows. A decision with only one way to pay keeps its one option. The design is `docs/superpowers/specs/2026-10-28-multi-select-prompt-design.md`.
+- **The dice tray (#61):** every science-die, conquer-dice and Alchemists roll tumbles in a tray over the middle of every screen at the table, the pass screen too, for about a second, lands on the rolled faces (style C die bodies with the track symbol, VP words, a resource icon or ? drawn on), holds under a caption ("Vera rolls the conquer dice", "You roll…" online), and fades; several rolls in one batch play in order. Only fresh events roll, so a refresh plays nothing. A click or Escape ends it; it takes no focus, and a live region reads each result once in the log's words. With reduced motion the dice land at once. A dice cue joins the sounds. The design is `docs/superpowers/specs/2026-10-28-dice-tray-design.md`.
 - **Footer while a decision is open:** the panel asks the question; the footer gives its turn context. During setup it says **Your setup choice**. During a played turn it names the active turn and its latest advance where one is known. During income it keeps the turn number and step, without repeating the panel title. The TurnBar library section shows both decision states. A future exact cause line belongs to #60.
 - **Art, as in the mockup:** resources at 48 px with their counts, track symbols, buildings, landmarks, civilization portraits, space and territory tiles; dice faces and VP are words (#5). A bonus shows its cost and takes its track's colour.
 - **Cards** sit on a shelf above the panel, as full cards: tapestry cards (play, keep, discard, copy, respond), tech cards with the deck as a card back, both civilizations at setup and the two capital mats. Hovering a tapestry or tech card shows it in full.
