@@ -7,7 +7,13 @@
 	 * @property {string} [artworkAlt] - Artwork description
 	 * @property {import('svelte').Snippet} effects - Effect content beside the art
 	 */
-	/** @typedef {MasterpieceCardOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} MasterpieceCardProps */
+	/**
+	 * @typedef {MasterpieceCardOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} MasterpieceCardProps
+	 * @example
+	 * <MasterpieceCard title="Painting" artwork="/art/masterpiece/painting.svg" artworkAlt="Painting artwork">
+	 * 	{#snippet effects()}<p>Gain <strong>4 VP</strong>.</p>{/snippet}
+	 * </MasterpieceCard>
+	 */
 </script>
 
 <script>

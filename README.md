@@ -88,6 +88,12 @@ Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [La
 |---|---|
 | ![The component library, showing the track board](docs/ui/screens/component-library.png) | ![The Art part of the component library, showing landmarks under their plot grid](docs/ui/screens/component-library-art.png) |
 
+**Card gallery (#47).** Every card and asset in the catalog, by type and expansion, with a count per type, a search and an edition filter. Each card is shown in its game frame with the engine's text where it exists; art not drawn yet is a slot that names it. Players open it during a game from the header menu, in a new tab, or at `/cards.html`.
+
+| The card gallery |
+|---|
+| ![The card gallery: the 41 civilizations in their frames, under the type buttons with a count on each](docs/ui/screens/card-gallery.png) |
+
 **Civilization cards (#47).** The owner chose **Option B · Civilization mat** from [five Collectors card designs](docs/ui/collectors-card-options.html) on 2026-10-23. It is 456 px wide, so it fits the Civilization tab as it is. It shows the portrait beside the rules, the mat's six item spaces, and the score steps; in play, the player's items and score marker take their colour.
 
 | Option B, printed | Option B, in play |

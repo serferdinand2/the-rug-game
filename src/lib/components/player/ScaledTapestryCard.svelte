@@ -6,7 +6,11 @@
 	 * @property {TapestryCardData} data - The card face
 	 * @property {number} scale - Display scale, such as 0.7 on a choice shelf
 	 */
-	/** @typedef {ScaledTapestryCardOwnProps & import('svelte/elements').HTMLAttributes<HTMLSpanElement>} ScaledTapestryCardProps */
+	/**
+	 * @typedef {ScaledTapestryCardOwnProps & import('svelte/elements').HTMLAttributes<HTMLSpanElement>} ScaledTapestryCardProps
+	 * @example
+	 * <ScaledTapestryCard data={tapestryCardData('academia')} scale={0.7} />
+	 */
 </script>
 
 <script>

@@ -56,7 +56,7 @@ test('the app builds from the project root, copying static/ as is', async () => 
 	assert.equal(join(config.build.outDir), join(root, 'build'));
 });
 
-test('the build includes the game, component library and card review', async () => {
+test('the build includes the game, component library, card gallery and card review', async () => {
 	const config = await resolveConfig(
 		{ configFile, logLevel: 'silent' },
 		'build'
@@ -65,11 +65,13 @@ test('the build includes the game, component library and card review', async () 
 	assert.deepEqual(config.build.rolldownOptions.input, {
 		game: join(root, 'index.html'),
 		components: join(root, 'components.html'),
+		gallery: join(root, 'cards.html'),
 		cards: join(root, 'docs/ui/collectors-review.html'),
 	});
 	assert.deepEqual(config.optimizeDeps.entries, [
 		'index.html',
 		'components.html',
+		'cards.html',
 	]);
 });
 

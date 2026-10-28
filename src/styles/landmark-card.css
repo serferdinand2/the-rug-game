@@ -63,7 +63,7 @@
 .rg-landmark-card__footprint span {
 	width: 20px;
 	height: 20px;
-	background: #a38d6b;
+	background: var(--card-score-line);
 	border: 2px solid var(--card-line-strong);
 }
 .rg-landmark-card__footprint span.empty {
@@ -78,7 +78,7 @@
 .rg-landmark-card__condition small {
 	display: block;
 	margin-bottom: 7px;
-	color: #756447;
+	color: var(--card-muted);
 	white-space: nowrap;
 	font: 700 10px/1.1 var(--font-body);
 }
@@ -99,7 +99,7 @@
 	min-height: 18px;
 	padding: 2px 6px;
 	border: 1px solid var(--arts-architecture);
-	color: #70491f;
+	color: var(--card-technology-text);
 	background: color-mix(in srgb, var(--arts-architecture) 16%, transparent);
 	white-space: nowrap;
 	font: 700 10px/1 var(--font-body);

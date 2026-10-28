@@ -100,7 +100,7 @@
 	padding: 2px 6px;
 	border: 1px solid var(--arts-architecture);
 	background: color-mix(in srgb, var(--arts-architecture) 16%, transparent);
-	color: #70491f;
+	color: var(--card-technology-text);
 	white-space: nowrap;
 	font:
 		700 10px/1 'Atkinson Hyperlegible',

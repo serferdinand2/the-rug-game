@@ -127,6 +127,9 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | `player/CivilizationCard` | Eighteen recipes, every base civilization among them (the Futurists, Heralds, Nomads and The Chosen await review), with empty/in-play example states; any other civilization shows its frame, portrait and name only |
 | `player/TechnologyCard` | Horizontal 425 px technology frame with full artwork, square/circle effects, conditions and edition badge; a reviewed fixture by `id`, or a real card by `data` from `techCardData()` (`src/lib/cards/game-cards.js`) |
 | `player/TapestryCard` | 319 px tapestry frame with timing beside the portrait, including the red Trap variant; a reviewed fixture by `id`, or a real card by `data` from `tapestryCardData()` |
+| `player/ScaledTapestryCard` | A whole `TapestryCard` shown smaller, keeping its measured height: 0.7 on the choice shelf, 0.6 for the current era, 0.42 in the hand |
+| `player/LandmarkCard` | 319 px landmark frame with the capital footprint beside the art, the end-of-turn condition (Rules text pending until game data supplies it) and the edition footer |
+| `player/MasterpieceCard` | 319 px Arts & Architecture masterpiece frame: a centered beige effect box (the caller's `effects` snippet) beside the 144 px artwork |
 | `player/TerritoryTile` | One small flat-topped territory tile in hand, drawn like the World Map's, with its number |
 | `player/CardFan` | Overlapping cards; hover or focus raises one and reports it for a full view |
 | `player/CardResource` | Native 24 px inline icon without changing row spacing |

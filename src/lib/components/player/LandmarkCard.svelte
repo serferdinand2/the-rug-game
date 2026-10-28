@@ -8,7 +8,11 @@
 	 * @property {string} edition - Expansion name
 	 * @property {string} [condition='Rules text pending'] - End-of-turn condition
 	 */
-	/** @typedef {LandmarkCardOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} LandmarkCardProps */
+	/**
+	 * @typedef {LandmarkCardOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} LandmarkCardProps
+	 * @example
+	 * <LandmarkCard title="Castle" artwork="/art/landmark-card/castle.svg" footprint={FOOTPRINTS.castle} edition="Arts & Architecture" />
+	 */
 </script>
 
 <script>
@@ -35,7 +39,7 @@
 			alt={`${title} artwork`} />
 		<div
 			class="rg-landmark-card__footprint"
-			style={`--cols:${footprint[0]?.length ?? 0}`}
+			style:--cols={footprint[0]?.length ?? 0}
 			aria-label={`Capital footprint: ${footprint.join(' / ')}`}>
 			{#each footprint as row, rowIndex (rowIndex)}
 				{#each [...row] as plot, columnIndex (`${rowIndex}-${columnIndex}`)}

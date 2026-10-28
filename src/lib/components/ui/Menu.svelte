@@ -162,7 +162,9 @@
 					class="rg-menu--item"
 					href={item.href}
 					target={item.target}
-					rel={item.target === '_blank' ? 'noopener noreferrer' : undefined}
+					rel={item.target === '_blank'
+						? 'noopener noreferrer'
+						: undefined}
 					tabindex={index === focusIndex ? 0 : -1}
 					onclick={(event) => itemClickHandler(event, item)}
 					onfocus={() => itemFocusHandler(index)}>{item.label}</a>
