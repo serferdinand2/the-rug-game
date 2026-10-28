@@ -46,15 +46,6 @@
 	/** @type {HTMLElement | undefined} */
 	let dialog = $state();
 
-	// The tab on show takes the focus, so the arrow keys move between the tabs at once.
-	$effect(() => {
-		dialog
-			?.querySelector(
-				/** @type {'button'} */ ('[role="tab"][aria-selected="true"]')
-			)
-			?.focus();
-	});
-
 	/**
 	 * @param {Event} event
 	 */
@@ -108,17 +99,14 @@
 			class="rg-rules-panel--title">
 			How to play
 		</h2>
+		<!-- The tab on show takes the focus, so the arrow keys move between the tabs at once. -->
 		<Tabs
 			class="rg-rules-panel--tabs"
+			panelClass="rg-rules-panel--body"
 			{tabs}
 			bind:value={tab}
-			label="How to play" />
-		<div
-			class="rg-rules-panel--body"
-			id="{tab}-panel"
-			role="tabpanel"
-			tabindex="0"
-			aria-labelledby="{tab}-tab">
+			label="How to play"
+			autofocus>
 			{#if section}
 				{#each section.blocks as block, index (index)}
 					{#if 'list' in block}
@@ -154,7 +142,7 @@
 					</dl>
 				{/each}
 			{/if}
-		</div>
+		</Tabs>
 		<div class="rg-rules-panel--actions">
 			<Button
 				mode="gold"
@@ -192,7 +180,8 @@
 			var(--font-body);
 	}
 
-	.rg-rules-panel--body {
+	/* Tabs' panel, reached through its panelClass prop. */
+	.rg-rules-panel :global(.rg-rules-panel--body) {
 		min-height: 320px;
 		margin-top: var(--space-6);
 		padding-right: var(--space-4);

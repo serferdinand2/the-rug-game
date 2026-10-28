@@ -41,7 +41,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `PassScreen` | The hot-seat pass screen (#30): the next player's token, name and reason, their clock when the table has a timer, and I'm …, which answers after a short wait. |
 | `ResourceIcon` | The five resource symbols at 16px, native 24px or native 48px, shared by prices, chips and footer costs. The native assets are 24×24 and 48×48; 16px display scales the 24px SVG. The 32px source is deprecated and archived. |
 | `Segmented` | A row of pressed/unpressed choices, single or multiple, tinted or filled, and disabled for a player who can't change them. |
-| `Tabs` | The right panel's tabs, with a count, roving focus and arrow keys; `--rg-tabs-padding` and `--rg-tabs-gap` tighten the row, and a row wider than its place scrolls, fades at a cut edge and keeps the selected tab in view (#64). |
+| `Tabs` | The right panel's tabs, with a count, roving focus and arrow keys; `--rg-tabs-padding` and `--rg-tabs-gap` tighten the row, and a row wider than its place scrolls, fades at a cut edge and keeps the selected tab in view (#64). It draws the selected tab's panel from its children, laid out through `panelClass`, starts every id with its own prefix (`idPrefix`, by default `$props.id()`), and with `autofocus` gives the selected tab the focus as it is drawn (#91). |
 | `TextInput` | Labelled text fields with a hint and a validation message, and the small gold read-only code. |
 | `Toast` | A short status message at the bottom of the screen. |
 | `TopBar` | The 58px header: brand, centre content and controls. Player chips go straight into the centre, so they shrink to fit a narrow header. |
@@ -74,7 +74,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `PlacementTray` | The To be placed tray: select, drag or arrow a landmark onto the grid, or drop one back. |
 | `EraSlots` | The four era slots: printed Maker of Fire, then each top tapestry card, "Face-down card" or "Not yet chosen"; the active era is outlined and a card can be chosen (#27). |
 | `IncomeMat` | The income mat: four building rows of six spaces, covered ones showing the building, exposed ones their name and reward in words (#27). |
-| `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows. |
+| `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows; with `autofocus`, its first row takes the focus as it is drawn (#91). |
 | `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. 210px wide, shrinking to 120px; below 190px it drops the civilization name. `bump` pops the VP once when it rises (#29). |
 | `ResourceChip` | A resource symbol and its count. |
 | `SelfSummary` | Your overview at the foot of the player area: name, era, VP, hand, tech, territory and capital-line counts, and the four resources (#26). `changed` draws gold the counts a prompt's choices so far change (#75). |
