@@ -105,7 +105,8 @@ async function playUntil(request, token, room, wanted, limit) {
 }
 
 /**
- * Opens the table on a seat's screen, past the pass screen.
+ * Opens the table on a seat's screen, past the pass screen, and past the notice that the game took income turn 1
+ * (#77), which an era I turn opens over the board.
  * @param {import('@playwright/test').Page} page
  * @param {string} token
  * @param {number} seat
@@ -118,6 +119,13 @@ async function takeScreen(page, token, seat) {
 	await page.goto('/');
 	const name = seat === 1 ? 'Ana' : 'Ben';
 	await page.getByRole('button', { name: `I'm ${name}` }).click();
+	// The notice comes with the board, in the same render.
+	await expect(page.locator('.rg-game--board')).toBeVisible();
+	const notice = page.locator('.rg-income-notice');
+	if ((await notice.count()) > 0) {
+		await notice.getByRole('button', { name: 'Got it' }).click();
+		await expect(notice).toHaveCount(0);
+	}
 }
 
 /**

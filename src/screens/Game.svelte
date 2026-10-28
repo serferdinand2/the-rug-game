@@ -29,6 +29,7 @@
 	import DecisionPanel from '../lib/components/prompts/DecisionPanel.svelte';
 	import CardShelf from '../lib/components/prompts/CardShelf.svelte';
 	import CostBox from '../lib/components/prompts/CostBox.svelte';
+	import IncomeNotice from '../lib/components/prompts/IncomeNotice.svelte';
 	import IncomeSteps from '../lib/components/prompts/IncomeSteps.svelte';
 	import ResourceRows from '../lib/components/prompts/ResourceRows.svelte';
 	import TilePicker from '../lib/components/prompts/TilePicker.svelte';
@@ -90,7 +91,11 @@
 	import {
 		advanceOptions,
 		decisionTurnHeading,
+		firstIncomeNotice,
+		forcedIncome,
+		incomeWords,
 		myDecision,
+		takingTurnWords,
 	} from '../lib/turn.js';
 	import { askedSeats, bonusOf, matchingSides } from '../lib/engine/game.js';
 	import { TRACKS } from '../lib/engine/data/tracks.js';
@@ -207,6 +212,38 @@
 			: null
 	);
 	let promptDecision = $derived(mine && !turnDecision ? mine : null);
+	/** Income is the only move this turn: no advance can be paid for (#77). */
+	let onlyIncome = $derived(forcedIncome(game, seat));
+	/** What taking income now does, for the footer: it would be the viewer's next income turn (#77). */
+	let incomeDescription = $derived(
+		turnDecision?.kind === 'chooseTurn'
+			? incomeWords(game.seats[turnDecision.player - 1].incomeTurns + 1)
+			: ''
+	);
+	/** The one-time notice after income turn 1 (#77), and whether this seat closed it, kept per table and seat. */
+	let notice = $derived(firstIncomeNotice(game, seat));
+	let noticeKey = $derived(`rg-first-income:${room.code}:${seat}`);
+	let noticeClosed = $state(false);
+	$effect(() => {
+		const key = noticeKey;
+		untrack(() => {
+			try {
+				noticeClosed = sessionStorage.getItem(key) === '1';
+			} catch {
+				noticeClosed = false;
+			}
+		});
+	});
+
+	/** Closes the income notice for good at this table and seat. */
+	const noticeCloseHandler = () => {
+		noticeClosed = true;
+		try {
+			sessionStorage.setItem(noticeKey, '1');
+		} catch {
+			// Without storage it opens again after a refresh, which is harmless.
+		}
+	};
 	/** The designed prompt for the decision (#28): its words, art, layout and one option per answer. */
 	let prompt = $derived(promptFor(promptDecision, game, seat));
 	let isMapDecision = $derived(prompt?.layout === 'map');
@@ -1244,6 +1281,11 @@
 							picked = null;
 						}
 					}} />
+			{:else if notice && !noticeClosed}
+				<IncomeNotice
+					resources={notice.resources}
+					holdings={notice.holdings}
+					onIncomeNoticeClose={noticeCloseHandler} />
 			{/if}
 			{#if inspected}
 				<div
@@ -1335,6 +1377,18 @@
 						onGameResults?.(event)}>Results</Button>
 			{/snippet}
 		</TurnBar>
+	{:else if turnDecision && onlyIncome}
+		<TurnBar
+			tone="neutral"
+			heading="You can't pay for any advance, so take an income turn."
+			detail={incomeDescription}>
+			{#snippet actions()}
+				<Button
+					mode="gold"
+					disabled={sending}
+					onButtonClick={incomeHandler}>Take income</Button>
+			{/snippet}
+		</TurnBar>
 	{:else if turnDecision && selected}
 		<TurnBar
 			tone="selected"
@@ -1344,11 +1398,7 @@
 			detail={spaceWords(selected.track, selected.space)}
 			cost={priceSymbols(selected.track, selected.space)}
 			income={turnDecision.kind === 'chooseTurn'
-				? {
-						description:
-							'End this era, gain income and begin your next era.',
-						label: 'Take income',
-					}
+				? { description: incomeDescription, label: 'Take income' }
 				: null}
 			onTurnBarIncome={incomeHandler}>
 			{#snippet actions()}
@@ -1373,11 +1423,7 @@
 				? 'The spaces you can pay for are outlined in green.'
 				: undefined}
 			income={turnDecision.kind === 'chooseTurn'
-				? {
-						description:
-							'End this era, gain income and begin your next era.',
-						label: 'Take income',
-					}
+				? { description: incomeDescription, label: 'Take income' }
 				: null}
 			onTurnBarIncome={incomeHandler} />
 	{:else if prompt?.income}
@@ -1386,7 +1432,10 @@
 			label="Your income turn"
 			heading="Income turn {prompt.income.turn}{incomeStepLabel
 				? ` · ${incomeStepLabel}`
-				: ''}" />
+				: ''}"
+			detail={prompt.income.turn === 1
+				? 'Every player’s first turn is an income turn.'
+				: undefined} />
 	{:else if promptDecision}
 		<TurnBar
 			tone="neutral"
@@ -1410,7 +1459,7 @@
 			)}
 			heading={asked.length && !asked.includes(currentSeat.seat)
 				? `${nameOf(asked[0])} is deciding.`
-				: `${currentSeat.name} is taking their turn.`} />
+				: takingTurnWords(game, currentSeat.seat, currentSeat.name)} />
 	{/if}
 </div>
 
