@@ -358,6 +358,7 @@ test('a gain of several resources is made of the ones the player picks, row by r
 			3000
 		);
 		const before = game.seats[seat - 1].resources;
+		const since = Math.max(0, ...game.events.map((e) => e.seq));
 		const picks = ['coin', 'food', 'worker', 'culture'].slice(0, op.count);
 		await takeScreen(page, token, seat);
 
@@ -378,6 +379,8 @@ test('a gain of several resources is made of the ones the player picks, row by r
 		await expect(confirm).toBeEnabled();
 		await confirm.click();
 
+		// The answer's own gain, the first after it: the same move may go on to gain more, such as an income step
+		// after era III's first-of-neighbours bonus.
 		await expect
 			.poll(async () => {
 				const state = await api(
@@ -386,8 +389,13 @@ test('a gain of several resources is made of the ones the player picks, row by r
 					undefined,
 					token
 				);
-				const after = state.game.seats[seat - 1].resources;
-				return picks.map((id) => after[id] - before[id]);
+				const gain = state.game.events.find(
+					(/** @type {any} */ e) =>
+						e.seq > since &&
+						e.type === 'resourcesGained' &&
+						e.player === seat
+				);
+				return gain && picks.map((id) => gain.gained[id] ?? 0);
 			})
 			.toEqual(picks.map((id) => (before[id] < 8 ? 1 : 0)));
 		expect(errors).toEqual([]);
