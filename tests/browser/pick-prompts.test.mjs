@@ -45,8 +45,18 @@ function pick(op) {
  */
 async function startTable(request) {
 	const { token } = await api(request, 'login', { name: 'Ana' });
-	let room = await api(request, 'create', { options: { mode: 'hotseat' } }, token);
-	room = await api(request, 'add-seat', { version: room.version, name: 'Ben' }, token);
+	let room = await api(
+		request,
+		'create',
+		{ options: { mode: 'hotseat' } },
+		token
+	);
+	room = await api(
+		request,
+		'add-seat',
+		{ version: room.version, name: 'Ben' },
+		token
+	);
 	room = await api(request, 'start', { version: room.version }, token);
 	return { token, room };
 }
@@ -77,7 +87,11 @@ async function playUntil(request, token, room, wanted, limit) {
 			room = await api(
 				request,
 				'move',
-				{ version: room.version, seat, action: { decision: op.id, ...pick(op) } },
+				{
+					version: room.version,
+					seat,
+					action: { decision: op.id, ...pick(op) },
+				},
 				token
 			);
 			acted = true;
@@ -97,7 +111,10 @@ async function playUntil(request, token, room, wanted, limit) {
  * @param {number} seat
  */
 async function takeScreen(page, token, seat) {
-	await page.addInitScript((saved) => sessionStorage.setItem('rg-token', saved), token);
+	await page.addInitScript(
+		(saved) => sessionStorage.setItem('rg-token', saved),
+		token
+	);
 	await page.goto('/');
 	const name = seat === 1 ? 'Ana' : 'Ben';
 	await page.getByRole('button', { name: `I'm ${name}` }).click();
@@ -126,11 +143,17 @@ async function panelCentre(page) {
 	return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
 
-test('a bonus is paid with the 2 tiles the player picks', async ({ page, request }) => {
+test('a bonus is paid with the 2 tiles the player picks', async ({
+	page,
+	request,
+}) => {
 	test.setTimeout(300000);
 	/** @type {string[]} */
 	const errors = [];
-	page.on('console', (message) => message.type() === 'error' && errors.push(message.text()));
+	page.on(
+		'console',
+		(message) => message.type() === 'error' && errors.push(message.text())
+	);
 	page.on('pageerror', (error) => errors.push(error.message));
 	const { token, room } = await startTable(request);
 	try {
@@ -141,37 +164,148 @@ test('a bonus is paid with the 2 tiles the player picks', async ({ page, request
 			(open) =>
 				open.kind === 'chooseBonus' &&
 				open.cost?.territory === 2 &&
-				open.answers.filter((/** @type {any} */ a) => a.pay !== null).length > 1,
+				open.answers.filter((/** @type {any} */ a) => a.pay !== null)
+					.length > 1,
 			2500
 		);
 		const before = game.seats[seat - 1];
-		const tiles = [...new Set(op.answers.flatMap((/** @type {any} */ a) => a.pay?.territory ?? []))];
+		const tiles = [
+			...new Set(
+				op.answers.flatMap(
+					(/** @type {any} */ a) => a.pay?.territory ?? []
+				)
+			),
+		];
 		await takeScreen(page, token, seat);
 
-		await expect(page.getByRole('heading', { name: 'Take the bonus: gain 5 VP?' })).toBeVisible();
+		await expect(
+			page.getByRole('heading', { name: 'Take the bonus: gain 5 VP?' })
+		).toBeVisible();
 		const centre = await panelCentre(page);
 		expect(Math.abs(centre.x - 960)).toBeLessThanOrEqual(2);
 		expect(Math.abs(centre.y - 540)).toBeLessThanOrEqual(2);
-		await expect(page.getByText('Your tiles · 0 of 2 chosen')).toBeVisible();
-		const pay = page.getByRole('button', { name: 'Pay 2 tiles', exact: true });
+		await expect(
+			page.getByText('Your tiles · 0 of 2 chosen')
+		).toBeVisible();
+		const pay = page.getByRole('button', {
+			name: 'Pay 2 tiles',
+			exact: true,
+		});
 		await expect(pay).toBeDisabled();
 
 		await page.getByTestId(`tile-${tiles[0]}`).click();
 		await page.getByRole('tab', { name: /^Terrain/ }).click();
 		await page.getByTestId(`terrain-tile-${tiles[1]}`).click();
-		await expect(page.getByText('Your tiles · 2 of 2 chosen')).toBeVisible();
-		await expect(page.getByTestId(`tile-${tiles[1]}`)).toHaveAttribute('aria-pressed', 'true');
+		await expect(
+			page.getByText('Your tiles · 2 of 2 chosen')
+		).toBeVisible();
+		await expect(page.getByTestId(`tile-${tiles[1]}`)).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
 		await expect(page.getByTestId(`tile-${tiles[2]}`)).toBeDisabled();
 		await expect(pay).toBeEnabled();
 		await pay.click();
 
 		await expect
 			.poll(async () => {
-				const state = await api(request, `state?seat=${seat}`, undefined, token);
+				const state = await api(
+					request,
+					`state?seat=${seat}`,
+					undefined,
+					token
+				);
 				const after = state.game.seats[seat - 1];
 				return [after.territoryTiles.length, after.vp - before.vp];
 			})
 			.toEqual([before.territoryTiles.length - 2, 5]);
+		expect(errors).toEqual([]);
+	} finally {
+		await closeTable(request, token);
+	}
+});
+
+test('picking a space with a choice of payment opens the centred panel, and Advance pays what was picked', async ({
+	page,
+	request,
+}) => {
+	test.setTimeout(180000);
+	/** @type {string[]} */
+	const errors = [];
+	page.on(
+		'console',
+		(message) => message.type() === 'error' && errors.push(message.text())
+	);
+	page.on('pageerror', (error) => errors.push(error.message));
+	const { token, room } = await startTable(request);
+	try {
+		const { seat, game } = await playUntil(
+			request,
+			token,
+			room,
+			(open, seat, game) =>
+				open.kind === 'chooseTurn' &&
+				open.options.includes('advance') &&
+				game.seats[seat - 1].tracks.exploration[0] === 0 &&
+				Object.values(game.seats[seat - 1].resources).filter(
+					(n) => Number(n) > 0
+				).length > 1,
+			200
+		);
+		const before = game.seats[seat - 1].resources;
+		const resource = ['coin', 'food', 'worker', 'culture'].find(
+			(id) => before[id] > 0
+		);
+		await takeScreen(page, token, seat);
+
+		const scouting = page.getByRole('button', {
+			name: /^Scouting, exploration space 1/,
+		});
+		await scouting.click();
+		const heading = page.getByRole('dialog', {
+			name: 'Advance to Scouting',
+		});
+		await expect(heading).toBeVisible();
+		const centre = await panelCentre(page);
+		expect(Math.abs(centre.x - 960)).toBeLessThanOrEqual(2);
+		expect(Math.abs(centre.y - 540)).toBeLessThanOrEqual(2);
+		await expect(
+			page.getByRole('group', { name: 'Resource 1 of 1' })
+		).toBeVisible();
+		await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+		await expect(heading).toBeHidden();
+
+		await scouting.click();
+		await expect(heading).toBeVisible();
+		const advance = heading.getByRole('button', {
+			name: 'Advance',
+			exact: true,
+		});
+		await expect(advance).toBeDisabled();
+		await page.getByTestId(`row-0-${resource}`).focus();
+		await page.keyboard.press('Space');
+		await expect(page.getByTestId(`row-0-${resource}`)).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+		await expect(advance).toBeEnabled();
+		await advance.dblclick();
+
+		await expect
+			.poll(async () => {
+				const state = await api(
+					request,
+					`state?seat=${seat}`,
+					undefined,
+					token
+				);
+				const after = state.game.seats[seat - 1];
+				return [
+					after.tracks.exploration[0],
+					before[resource] - after.resources[resource],
+				];
+			})
+			.toEqual([1, 1]);
 		expect(errors).toEqual([]);
 	} finally {
 		await closeTable(request, token);

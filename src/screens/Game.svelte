@@ -55,13 +55,13 @@
 		civilizationName,
 		describeBonus,
 		describeEffects,
-		describePayment,
 		tapestryName,
 		techName,
 	} from '../lib/describe.js';
 	import { mapHexes } from '../lib/hexmap.js';
 	import { promptFor } from '../lib/prompts.js';
 	import {
+		advanceModel,
 		canPickItem,
 		emptySelection,
 		matchIndex,
@@ -119,8 +119,8 @@
 	let selected = $state(null);
 	/** Whether the payment choice for the selected advance is open. */
 	let paying = $state(false);
-	/** @type {number | null} */
-	let payIndex = $state(null);
+	/** @type {import('../lib/picks.js').Selection} The advance's payment picked so far (#75) */
+	let advanceChoice = $state({ rows: [], items: [] });
 	/** @type {number | null} The plain prompt's chosen answer, by index */
 	let picked = $state(null);
 	/** @type {string | null} The hex chosen for a map decision */
@@ -290,10 +290,13 @@
 	);
 	/** The counts the overview shows while a resource prompt is open: after the choices so far, within the cap. */
 	let shownResources = $derived.by(() => {
-		if (!pickView || !picks) {
+		const advancing = paying && advancePick && advanceSelection;
+		const model = advancing ? advancePick : pickView;
+		const chosen = advancing ? advanceSelection : picks;
+		if (!model || !chosen) {
 			return held;
 		}
-		const after = pendingCounts(pickView, picks, held);
+		const after = pendingCounts(model, chosen, held);
 		return {
 			coin: Math.max(0, Math.min(after.coin, RESOURCE_CAP)),
 			food: Math.max(0, Math.min(after.food, RESOURCE_CAP)),
@@ -431,13 +434,19 @@
 			(step) => step.id === prompt?.income?.current
 		)?.label ?? null
 	);
-	/** The chosen payment, while it is still one of the selected advance's. */
-	let validPay = $derived(
-		chosenAdvance &&
-			payIndex !== null &&
-			payIndex < chosenAdvance.payments.length
-			? payIndex
+	/** The selected advance's payment as rows, when it has a choice (#75). */
+	let advancePick = $derived(advanceModel(chosenAdvance, game));
+	let advanceSelection = $derived(
+		advancePick
+			? advanceChoice.rows.length === advancePick.rows.length
+				? advanceChoice
+				: emptySelection(advancePick)
 			: null
+	);
+	let advanceIndex = $derived(
+		advancePick && advanceSelection
+			? matchIndex(advancePick, advanceSelection)
+			: -1
 	);
 
 	// The turn's own choices end with it, however it ends: a timeout, an undo, a refused move (#26 review).
@@ -447,7 +456,7 @@
 		if (!untrack(() => sending)) {
 			selected = null;
 			paying = false;
-			payIndex = null;
+			advanceChoice = { rows: [], items: [] };
 		}
 	});
 
@@ -539,25 +548,33 @@
 	}
 
 	/**
-	 * A payment's resources as symbols, one per unit.
-	 * @param {Record<string, any>} pay
-	 * @returns {import('../lib/ui.js').CostSymbol[]}
-	 */
-	function paySymbols(pay) {
-		return /** @type {import('../lib/ui.js').CostSymbol[]} */ (
-			['coin', 'worker', 'food', 'culture'].flatMap((r) =>
-				Array(typeof pay[r] === 'number' ? pay[r] : 0).fill(r)
-			)
-		);
-	}
-
-	/**
+	 * A space picked on the tracks: with a choice of payment, its panel opens at once, as BGA opens its payment on the
+	 * click (#75).
 	 * @param {ComponentEvent} event
 	 */
 	const trackSelectHandler = (event) => {
 		selected = event.value;
-		paying = false;
-		payIndex = null;
+		advanceChoice = { rows: [], items: [] };
+		const option = options.find(
+			(o) => o.track === event.value.track && o.to === event.value.space
+		);
+		paying = advanceModel(option, game) !== null;
+	};
+
+	/**
+	 * A resource pressed in the advance's payment (#75).
+	 * @param {ComponentEvent} event
+	 */
+	const advancePickHandler = (event) => {
+		if (sending || !advancePick || !advanceSelection) {
+			return;
+		}
+		advanceChoice = togglePick(
+			advancePick,
+			advanceSelection,
+			event.value.row,
+			event.value.resource
+		);
 	};
 
 	/** Takes an income turn. */
@@ -577,11 +594,11 @@
 		if (!option || !turnDecision || sending) {
 			return;
 		}
-		if (option.payments.length > 1 && validPay === null) {
+		if (advancePick && advanceIndex === -1) {
 			paying = true;
 			return;
 		}
-		const pay = option.payments[validPay ?? 0];
+		const pay = option.payments[advanceIndex === -1 ? 0 : advanceIndex];
 		sending = true;
 		if (turnDecision.kind === 'chooseTurn') {
 			const ok = await store.move({
@@ -604,7 +621,7 @@
 		}
 		selected = null;
 		paying = false;
-		payIndex = null;
+		advanceChoice = { rows: [], items: [] };
 		sending = false;
 	};
 
@@ -1148,36 +1165,29 @@
 						onWorldMapSelect={mapSelectHandler} />
 				{/if}
 			</div>
-			{#if paying && chosenAdvance && selected}
+			{#if paying && chosenAdvance && selected && advancePick && advanceSelection}
 				<DecisionPanel
-					title="How do you pay for {TRACKS[selected.track][
-						selected.space
-					].name}?"
-					status={validPay === null
-						? 'Choose a payment to continue.'
-						: describePayment(chosenAdvance.payments[validPay])}
+					centred
+					title="Advance to {TRACKS[selected.track][selected.space]
+						.name}"
+					status={pickStatus(advancePick, advanceSelection, held)
+						.text}
 					track={selected.track}
 					confirmLabel="Advance"
-					confirmDisabled={validPay === null || sending}
+					confirmDisabled={advanceIndex === -1 || sending}
 					cancelLabel="Cancel"
 					onDecisionPanelConfirm={advanceHandler}
 					onDecisionPanelCancel={() => {
 						paying = false;
-						payIndex = null;
+						selected = null;
+						advanceChoice = { rows: [], items: [] };
 					}}>
-					<CostBox
-						class="rg-game--cost"
-						symbols={priceSymbols(selected.track, selected.space)}
-						track={selected.track} />
-					<div class="rg-game--options">
-						{#each chosenAdvance.payments as pay, index (index)}
-							<DecisionOption
-								label={describePayment(pay)}
-								symbols={paySymbols(pay)}
-								pressed={validPay === index}
-								onDecisionOptionClick={() =>
-									(payIndex = index)} />
-						{/each}
+					<div class="rg-game--picks">
+						<p class="rg-game--lead">{advancePick.lead}</p>
+						<ResourceRows
+							rows={rowView(advancePick, advanceSelection, held)}
+							disabled={sending}
+							onResourceRowsPick={advancePickHandler} />
 					</div>
 				</DecisionPanel>
 			{:else if prompt}
@@ -1360,10 +1370,12 @@
 			{#snippet actions()}
 				<Button
 					mode="primary"
-					disabled={!chosenAdvance || sending}
-					title={chosenAdvance
-						? undefined
-						: "You can't advance there now."}
+					disabled={!chosenAdvance || sending || paying}
+					title={!chosenAdvance
+						? "You can't advance there now."
+						: paying
+							? 'Pick the payment in the panel.'
+							: undefined}
 					onButtonClick={advanceHandler}>Advance</Button>
 			{/snippet}
 		</TurnBar>
