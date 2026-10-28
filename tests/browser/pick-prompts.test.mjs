@@ -197,7 +197,7 @@ test('a bonus is paid with the 2 tiles the player picks', async ({
 		).toBeVisible();
 		// The tiles wrap three to a row, favouring height (owner).
 		const tops = await page
-			.locator('.rg-game--pick-tiles button')
+			.locator('.rg-decision-prompt--pick-tiles button')
 			.evaluateAll((buttons) =>
 				buttons.map((b) => Math.round(b.getBoundingClientRect().top))
 			);

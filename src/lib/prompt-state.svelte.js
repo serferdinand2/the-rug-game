@@ -114,7 +114,8 @@ export class PromptState {
 		return this.#source.board;
 	}
 
-	get #advance() {
+	/** The selected space's advance, which the payment's panel is for. */
+	get advance() {
 		return this.#source.advance ?? null;
 	}
 
@@ -435,7 +436,7 @@ export class PromptState {
 	);
 
 	/** The selected advance's payment as rows, when it has a choice (#75). */
-	payModel = $derived(advanceModel(this.#advance ?? null, this.#game));
+	payModel = $derived(advanceModel(this.advance ?? null, this.#game));
 	/** The payment's panel is open: the selected space can be paid more than one way. */
 	paying = $derived(this.payModel !== null);
 	/** The payment picked so far, fitted to its rows. */
