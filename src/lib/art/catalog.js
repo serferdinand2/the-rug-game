@@ -13,7 +13,7 @@
  * @property {AssetKind} kind - Illustration, icon or board
  * @property {string} group - The group id, e.g. 'landmark'
  * @property {ExpansionCode} expansion - Where it comes from
- * @property {number} issue - The art issue (#5–#11, #51 for the cosmetic boards, or #82 for the capital reliefs) that draws it
+ * @property {number} issue - The art issue that draws it: its group's, or the one COSMETIC_BOARDS or EXPANSION_ISSUES gives
  * @property {boolean} [example] - A reference composition; actual game mats are assembled from tiles per game
  */
 
@@ -128,6 +128,16 @@ export const COSMETIC_BOARDS = Object.freeze([
 
 /** The issue that draws the cosmetic boards. */
 const COSMETIC_ISSUE = 51;
+
+/**
+ * The issue that draws one expansion's assets in a group, where it isn't the group's own issue.
+ * The owner moved the expansion mats' reliefs out of #82 on 2026-10-28: Arts & Architecture's
+ * into #132, Fantasies & Futures' into #133.
+ * @type {Readonly<Record<string, Readonly<Partial<Record<ExpansionCode, number>>>>>}
+ */
+export const EXPANSION_ISSUES = Object.freeze({
+	'capital-relief': Object.freeze({ aa: 132, ff: 133 }),
+});
 
 /** @typedef {[slug: string, name: string][]} Entries */
 
@@ -762,7 +772,7 @@ const LISTS = {
 		aa: ADVANCED_MATS.aa.flatMap(([slug, name]) => biomeTiles(slug, name)),
 		ff: ADVANCED_MATS.ff.flatMap(([slug, name]) => biomeTiles(slug, name)),
 	},
-	// One relief per mat: its impassable plots drawn as one picture (#82).
+	// One relief per mat: its impassable plots drawn as one picture (#82; the expansion mats' in #132 and #133).
 	'capital-relief': {
 		base: [
 			['mountain', 'Mountain relief'],
@@ -807,7 +817,7 @@ export const ASSETS = Object.freeze(
 					expansion: code,
 					issue: COSMETIC_BOARDS.includes(`${group.id}/${slug}`)
 						? COSMETIC_ISSUE
-						: group.issue,
+						: (EXPANSION_ISSUES[group.id]?.[code] ?? group.issue),
 					...(EXAMPLES.includes(group.id) ||
 					EXAMPLES.includes(`${group.id}/${slug}`)
 						? { example: true }

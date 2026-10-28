@@ -117,6 +117,7 @@ test('a section names every issue that draws its assets', () => {
 	);
 	assert.deepEqual(issues.get('tapestry'), [9]);
 	assert.deepEqual(issues.get('board'), [6, 51]);
+	assert.deepEqual(issues.get('capital-relief'), [82, 132, 133]);
 });
 
 test('landmarks sit on their plot grid, 32 pixels per plot', () => {

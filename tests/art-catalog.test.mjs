@@ -7,6 +7,7 @@ import {
 	GROUPS,
 	EXPANSIONS,
 	COSMETIC_BOARDS,
+	EXPANSION_ISSUES,
 } from '../src/lib/art/catalog.js';
 
 /** Counts per group and expansion, copied from the design's §7.4 table. */
@@ -69,14 +70,18 @@ test('ids are unique', () => {
 	assert.equal(byId.size, ASSETS.length);
 });
 
-test('every asset takes its kind and issue from its group, and its id starts with its group', () => {
+test("every asset takes its kind and issue from its group, or its expansion's issue, and its id starts with its group", () => {
 	const groups = new Map(GROUPS.map((group) => [group.id, group]));
 	for (const asset of ASSETS) {
 		const group = groups.get(asset.group);
 		assert.ok(group, `${asset.id}: unknown group ${asset.group}`);
 		assert.equal(asset.kind, group.kind, asset.id);
 		if (!COSMETIC_BOARDS.includes(asset.id)) {
-			assert.equal(asset.issue, group.issue, asset.id);
+			assert.equal(
+				asset.issue,
+				EXPANSION_ISSUES[asset.group]?.[asset.expansion] ?? group.issue,
+				asset.id
+			);
 		}
 		assert.ok(asset.id.startsWith(`${asset.group}/`), asset.id);
 		assert.ok(
@@ -167,7 +172,7 @@ test('spot checks match the agreed spellings', () => {
 			'capital-relief/city-in-a-bottle',
 			'City in a Bottle relief',
 			'ff',
-			82,
+			133,
 		],
 	];
 	for (const [id, name, expansion, issue] of expected) {
@@ -183,6 +188,21 @@ test('spot checks match the agreed spellings', () => {
 			id
 		);
 	}
+});
+
+test('the expansion reliefs belong to #132 and #133, the base reliefs to #82', () => {
+	const issue = (/** @type {string} */ id) =>
+		ASSETS.find((a) => a.id === id)?.issue;
+	assert.equal(issue('capital-relief/mesa'), 132);
+	assert.equal(issue('capital-relief/polar'), 133);
+	assert.equal(issue('capital-relief/mountain'), 82);
+	const expected = { base: 82, aa: 132, ff: 133 };
+	for (const asset of ASSETS.filter((a) => a.group === 'capital-relief')) {
+		assert.equal(asset.issue, expected[asset.expansion], asset.id);
+	}
+	assert.deepEqual(EXPANSION_ISSUES, {
+		'capital-relief': { aa: 132, ff: 133 },
+	});
 });
 
 test('the cosmetic boards wait for #51, after the core features', () => {
