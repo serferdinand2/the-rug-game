@@ -8,7 +8,13 @@ import { play } from '../src/lib/engine/play.js';
 import { run } from '../src/lib/engine/loop.js';
 import { BASE_TECH, techDeck } from '../src/lib/engine/decks.js';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
-import { answer, newGame, readyTurn, startedGame } from './helpers/engine.mjs';
+import {
+	answer,
+	firstIncomeTurn,
+	newGame,
+	readyTurn,
+	startedGame,
+} from './helpers/engine.mjs';
 import { checkState } from './helpers/invariants.mjs';
 import { checkViews, setupFacts } from './helpers/views.mjs';
 import { defaultAction } from '../src/lib/engine/game.js';
@@ -87,11 +93,13 @@ function opIn(pending, id) {
 const shows = (seen, id) => JSON.stringify(seen).includes(`"${id}"`);
 
 test('tapestry-draft: income turn 1 draws 2 tapestry cards and asks which to keep', () => {
-	const { state: started, random } = startedGame(2, {
+	const { state, random } = startedGame(2, {
 		variants: ['tapestry-draft'],
+		keepIncome: true,
 	});
-	const top = started.supply.tapestry.deck.slice(0, 2);
-	const { state, player } = takeIncome(started, random);
+	// The first seat's income turn 1 runs by itself when setup ends, and stops at its keep (#77).
+	const player = /** @type {number} */ (state.first);
+	const top = state.events.find((e) => e.type === 'cardsDrawn')?.secret.cards;
 	const keep = openOf(state, 'chooseKeep');
 	assert.ok(keep);
 	assert.equal(keep.player, player);
@@ -120,15 +128,41 @@ test('tapestry-draft: income turn 1 draws 2 tapestry cards and asks which to kee
 	assert.equal(discarded?.player, player);
 	assert.equal(discarded?.deck, 'tapestry');
 	assert.deepEqual(discarded?.cards, [top[0]]);
-	assert.equal(openOf(after, 'chooseKeep'), undefined);
+	assert.equal(
+		openDecisions(after).find(
+			(d) => d.kind === 'chooseKeep' && d.player === player
+		),
+		undefined
+	);
 });
 
 test('tapestry-draft: without the variant, income turn 1 draws 1 card and asks nothing', () => {
-	const { state: started, random } = startedGame(2);
-	const [first] = started.supply.tapestry.deck;
-	const { state, player } = takeIncome(started, random);
+	const { state: before } = startedGame(2);
+	const [first] = before.supply.tapestry.deck;
+	const { state, player } = firstIncomeTurn(2);
 	assert.equal(openOf(state, 'chooseKeep'), undefined);
 	assert.deepEqual(state.seats[player - 1].hand, [first]);
+});
+
+test("tapestry-draft: the automatic income turn 1 stops at each seat's keep in turn order (#77)", () => {
+	const { state, random } = startedGame(2, {
+		variants: ['tapestry-draft'],
+		keepIncome: true,
+	});
+	const first = /** @type {number} */ (state.first);
+	const second = first === 1 ? 2 : 1;
+	assert.deepEqual(
+		openDecisions(state).map((d) => [d.kind, d.player]),
+		[['chooseKeep', first]]
+	);
+	assert.equal(state.seats[second - 1].incomeTurns, 0);
+	const [card] = openOf(state, 'chooseKeep')?.options ?? [];
+	const after = answer(state, random, first, 'chooseKeep', { card });
+	assert.deepEqual(
+		openDecisions(after).map((d) => [d.kind, d.player]),
+		[['chooseKeep', second]]
+	);
+	assert.equal(after.seats[second - 1].incomeTurns, 1);
 });
 
 test('tapestry-draft: income turn 2 draws its 1 card as usual', () => {
@@ -143,23 +177,29 @@ test('tapestry-draft: income turn 2 draws its 1 card as usual', () => {
 });
 
 test('tapestry-draft: with 1 card left in the deck and none in the discards, it is gained without a question', () => {
-	const { state: started, random } = startedGame(2, {
-		variants: ['tapestry-draft'],
-	});
-	const [last] = started.supply.tapestry.deck;
-	started.supply.tapestry.deck = [last];
-	const { state, player } = takeIncome(started, random);
+	/** @type {string | undefined} */
+	let last;
+	const { state, player } = firstIncomeTurn(
+		2,
+		(seat, game) => {
+			[last] = game.supply.tapestry.deck;
+			game.supply.tapestry.deck = [/** @type {string} */ (last)];
+			game.supply.tapestry.discard = [];
+		},
+		{ variants: ['tapestry-draft'] }
+	);
 	assert.equal(openOf(state, 'chooseKeep'), undefined);
 	assert.deepEqual(state.seats[player - 1].hand, [last]);
 });
 
 test('tapestry-draft: gaining a tapestry card triggers for the kept card only (Academia)', () => {
-	const { state: started, random } = startedGame(2, {
-		variants: ['tapestry-draft'],
-	});
-	const player = /** @type {number} */ (started.current);
-	started.seats[player - 1].era = { card: null, ability: 'academia' };
-	const { state } = takeIncome(started, random);
+	const { state, random, player } = firstIncomeTurn(
+		2,
+		(seat) => {
+			seat.era = { card: null, ability: 'academia' };
+		},
+		{ variants: ['tapestry-draft'] }
+	);
 	assert.equal(state.seats[player - 1].vp, 0);
 	const [card] = openOf(state, 'chooseKeep')?.options ?? [];
 	const after = answer(state, random, player, 'chooseKeep', { card });
@@ -385,10 +425,9 @@ test('R110: a solo player still starts on 2/4 (R40)', () => {
 });
 
 test('a timeout answers the drafts with their first option', () => {
-	const { state: started, random } = startedGame(2, {
+	const { state, player } = firstIncomeTurn(2, () => {}, {
 		variants: ['tapestry-draft'],
 	});
-	const { state, player } = takeIncome(started, random);
 	const keep = openOf(state, 'chooseKeep');
 	assert.deepEqual(defaultAction(state, player), {
 		decision: keep?.id,
@@ -407,13 +446,22 @@ test('a timeout answers the drafts with their first option', () => {
 });
 
 test('tapestry-draft: a deck of 1 card is refilled from the discards for the second card', () => {
-	const { state: started, random } = startedGame(2, {
-		variants: ['tapestry-draft'],
-	});
-	const [top, ...rest] = started.supply.tapestry.deck;
-	started.supply.tapestry.deck = [top];
-	started.supply.tapestry.discard = rest;
-	const { state, player } = takeIncome(started, random);
+	/** @type {string} */
+	let top = '';
+	/** @type {string[]} */
+	let rest = [];
+	const { state, random, player } = firstIncomeTurn(
+		2,
+		(seat, game) => {
+			[top, ...rest] = game.supply.tapestry.deck;
+			game.supply.tapestry.deck = [top];
+			game.supply.tapestry.discard = [
+				...game.supply.tapestry.discard,
+				...rest,
+			];
+		},
+		{ variants: ['tapestry-draft'] }
+	);
 	const keep = openOf(state, 'chooseKeep');
 	assert.equal(keep?.options[0], top);
 	assert.ok(rest.includes(keep?.options[1]));

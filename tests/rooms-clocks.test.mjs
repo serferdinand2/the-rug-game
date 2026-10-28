@@ -332,17 +332,22 @@ test('setup gives every player one clock for all of setup', () => {
 		1: { scope: 'setup', ends: 1200 },
 		2: { scope: 'setup', left: 500 },
 	});
-	// The setup ends, and the first turn's player gets a fresh clock.
+	// The setup ends, every seat takes income turn 1 by itself (#77), and the first player's next turn gets a fresh
+	// clock.
 	room = tick(answerDefault(room, 1), 600, timing, unused);
 	assert.equal(game().phase, 'play');
 	assert.equal(game().current, 2);
-	assert.deepEqual(room.clocks, { 2: { scope: 'turn:1', ends: 1600 } });
+	assert.equal(game().turn, 3);
+	assert.deepEqual(room.clocks, { 2: { scope: 'turn:3', ends: 1600 } });
 });
 
 test('a new turn gets a fresh clock, even for the same player twice in a row', () => {
-	let room = tick(table(startedGame(2).state), 0, timing, unused);
+	// Seat 1 has begun era II, so seat 2's income turn 2 has no first-of-neighbours bonus to ask about.
+	const started = structuredClone(startedGame(2).state);
+	started.seats[0].incomeTurns = 2;
+	let room = tick(table(started), 0, timing, unused);
 	assert.deepEqual(room.clocks, { 2: { scope: 'turn:1', ends: 1000 } });
-	// Seat 2's income turn ends the turn.
+	// Seat 2's income turn asks nothing and ends the turn.
 	room = tick(answerDefault(room, 2), 300, timing, unused);
 	const game = /** @type {State} */ (room.game);
 	assert.equal(game.turn, 2);
@@ -352,6 +357,7 @@ test('a new turn gets a fresh clock, even for the same player twice in a row', (
 	// Once seat 1 has finished, seat 2 takes every turn.
 	const alone = structuredClone(startedGame(2).state);
 	alone.seats[0].finished = true;
+	alone.seats[0].incomeTurns = 2;
 	let solo = tick(table(alone), 0, timing, unused);
 	solo = tick(answerDefault(solo, 2), 300, timing, unused);
 	assert.equal(/** @type {State} */ (solo.game).current, 2);
@@ -646,7 +652,8 @@ test('both setup clocks run out together and the whole setup is answered', () =>
 	room = timeout(room, 1000, () => 0);
 	const game = /** @type {State} */ (room.game);
 	assert.equal(game.phase, 'play');
-	assert.equal(game.turn, 1, 'the fresh turn-1 clock was not played');
+	// Each seat's income turn 1 was a turn of its own (#77).
+	assert.equal(game.turn, 3, 'the fresh turn-3 clock was not played');
 	assert.deepEqual(
 		openDecisions(game).map((d) => [d.kind, d.player]),
 		[['chooseTurn', game.current]]

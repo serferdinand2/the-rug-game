@@ -157,11 +157,10 @@ test('resolveEffects returns a new state and leaves its input alone', () => {
 	assert.equal(next.seats[0].vp, 3);
 });
 
-test('chooseTurn offers only income on a first turn (01 §4.1)', () => {
+test('chooseTurn offers advance only when one can be paid for (01 §4.1)', () => {
 	const { state: started } = startedGame(2);
 	assert.deepEqual(turnOptions(started, 1), ['income']);
 	const later = structuredClone(started);
-	later.seats[0].incomeTurns = 2;
 	later.seats[0].resources.coin = 1;
 	assert.deepEqual(turnOptions(later, 1), ['income', 'advance']);
 	const decision = {
@@ -178,7 +177,7 @@ test('chooseTurn offers only income on a first turn (01 §4.1)', () => {
 		() => chooseTurn.check(fixture(), decision, { turn: 'advance' }),
 		{
 			name: 'PlayerError',
-			message: /first turn must be an income turn/,
+			message: /can't pay for any advance/,
 		}
 	);
 	assert.throws(

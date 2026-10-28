@@ -67,6 +67,7 @@ const ability = (
  * @param {{ version?: 'original' | 'current' }} [options]
  */
 function incomeTurn(civ, before, fill = () => {}, { version } = {}) {
+	let filled = 0;
 	const ready = readyTurn(
 		2,
 		(seat, state) => {
@@ -77,10 +78,15 @@ function incomeTurn(civ, before, fill = () => {}, { version } = {}) {
 				}
 			}
 			fill(seat, state);
+			filled = state.seq;
 		},
 		{ civs: ['nomads', civ], version }
 	);
 	assert.equal(ready.player, 2, 'the second seat takes the turn');
+	if (before === 0) {
+		// The engine takes income turn 1 itself as the turn starts (#77).
+		return { state: ready.state, random: ready.random, since: filled };
+	}
 	const since = ready.state.seq;
 	const state = answer(ready.state, ready.random, 2, 'chooseTurn', {
 		turn: 'income',

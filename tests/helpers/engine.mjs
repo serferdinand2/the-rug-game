@@ -85,16 +85,28 @@ function dealCivs(state, wanted) {
 
 /**
  * A game whose setup is done: the first player is choosing a turn.
+ * Without `keepIncome`, every seat counts income turn 1 as taken without its gains: setup is answered with their
+ * `incomeTurns` already 1, so the engine doesn't take it when setup ends (#77), and a test starts from what setup gave
+ * and the holdings it sets, as before #77. With `keepIncome`, the state is the engine's own: every seat has taken
+ * income turn 1, or the one it asks something is still deciding.
  * Without `civs`, every seat is dealt an inert civilization, which is cleared once play starts (back into the deck).
  * With `civs`, each seat keeps the one named for it, after its setup and, in the current version, its adjustment,
  * every setup question answered with its default.
  * @param {number} count
- * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], civs?: string[] }} [options]
+ * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], civs?: string[], keepIncome?: boolean }} [options]
  * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random }}
  */
-export function startedGame(count, { civs, ...options } = {}) {
+export function startedGame(
+	count,
+	{ civs, keepIncome = false, ...options } = {}
+) {
 	const { state: dealt, random } = newGame(count, options);
 	dealCivs(dealt, civs ?? INERT_CIVS);
+	if (!keepIncome) {
+		for (const seat of dealt.seats) {
+			seat.incomeTurns = 1;
+		}
+	}
 	const state = answerSetup(dealt, random);
 	if (!civs) {
 		for (const seat of state.seats) {
@@ -111,8 +123,9 @@ export function startedGame(count, { civs, ...options } = {}) {
 }
 
 /**
- * A started game in which the current player has taken income turn 1 and starts a new turn.
- * `fill` changes that player's seat (and the state) before the turn starts, so the turn choice sees the change.
+ * A started game in which every seat has taken income turn 1, holding only what `fill` gives, and the current player
+ * starts a new turn. `fill` changes that player's seat (and the state) before the turn starts, so the turn choice sees
+ * the change.
  * @param {number} [count]
  * @param {(seat: any, state: import('../../src/lib/engine/state.js').State) => void} [fill]
  * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], civs?: string[] }} [options] - As startedGame()'s
@@ -123,12 +136,31 @@ export function readyTurn(count = 2, fill = () => {}, options) {
 	const state = structuredClone(started);
 	const player = /** @type {number} */ (state.current);
 	const seat = state.seats[player - 1];
-	seat.incomeTurns = 1;
 	fill(seat, state);
 	state.pending.length = 0;
 	startTurn(contextFor(state, random, state.pending), player);
 	run(state, random);
 	return { state, random, player };
+}
+
+/**
+ * A started game in which the current player takes income turn 1 again, after `fill` changes their seat (and the
+ * state): their turn starts with no income turns, so the engine takes the income itself and stops at whatever it asks
+ * (#77). For a test that must set something up before income turn 1, which setup's end no longer leaves time for.
+ * @param {number} [count]
+ * @param {(seat: any, state: import('../../src/lib/engine/state.js').State) => void} [fill]
+ * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], civs?: string[] }} [options] - As startedGame()'s
+ * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random, player: number }}
+ */
+export function firstIncomeTurn(count = 2, fill = () => {}, options) {
+	return readyTurn(
+		count,
+		(seat, state) => {
+			seat.incomeTurns = 0;
+			fill(seat, state);
+		},
+		options
+	);
 }
 
 /**

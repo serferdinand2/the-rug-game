@@ -3,9 +3,12 @@ import { emit } from './events.js';
 import { turnOptions } from './decisions/choose-turn.js';
 import { rankPlayers } from './ranking.js';
 import { liftBlocks } from './abilities.js';
+import { startIncomeTurn } from './income.js';
+import { seatOf } from './state.js';
 
 /**
  * Starts a seat's turn: its Dictatorship blocks lift (R26), nothing is activated yet (R19), and the turn choice sits above the turn's end.
+ * A player's first turn must be income turn 1 (01 §4.1), so it starts at once, with nobody asked (#77).
  * @param {import('./state.js').Context} ctx
  * @param {number} player
  */
@@ -17,6 +20,14 @@ export function startTurn(ctx, player) {
 	state.activated.length = 0;
 	state.usedThisTurn.length = 0;
 	emit(state, { type: 'turnStarted', player });
+	const seat = seatOf(state, player);
+	if (seat.kind === 'player' && seat.incomeTurns === 0) {
+		emit(state, { type: 'turnChosen', player, turn: 'income' });
+		// The income turn goes on top of the turn's end.
+		ctx.push([{ player, kind: 'endTurn' }]);
+		startIncomeTurn(ctx, player);
+		return;
+	}
 	ctx.push([
 		{ player, kind: 'chooseTurn', options: turnOptions(state, player) },
 		{ player, kind: 'endTurn' },

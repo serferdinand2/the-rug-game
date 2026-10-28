@@ -91,27 +91,44 @@ test('after setup the unkept civilizations form the civilization deck (01 §2.2 
 	}
 });
 
-test('the first player starts by choosing a turn, and only income is legal (01 §4.1)', () => {
-	const { state } = startedGame(4);
-	assert.equal(state.current, state.first);
+test('when setup ends, every seat takes income turn 1 in turn order, and nobody is asked (01 §4.1, #77)', () => {
+	const { state } = startedGame(3, { keepIncome: true });
+	const first = /** @type {number} */ (state.first);
+	const order = [0, 1, 2].map((i) => ((first - 1 + i) % 3) + 1);
+	assert.deepEqual(
+		state.events
+			.filter((e) =>
+				['turnStarted', 'turnChosen', 'incomeTurnStarted'].includes(
+					e.type
+				)
+			)
+			.map((e) => [e.type, e.player]),
+		[
+			...order.flatMap((p) => [
+				['turnStarted', p],
+				['turnChosen', p],
+				['incomeTurnStarted', p],
+			]),
+			['turnStarted', first],
+		]
+	);
+	for (const seat of state.seats) {
+		assert.equal(seat.incomeTurns, 1);
+	}
+	assert.equal(state.current, first);
 	assert.deepEqual(
 		openDecisions(state).map((d) => [d.kind, d.player, d.options]),
-		[['chooseTurn', state.first, ['income']]]
-	);
-	assert.deepEqual(
-		state.events.slice(-2).map((e) => e.type),
-		['setupDone', 'turnStarted']
+		[['chooseTurn', first, ['income', 'advance']]]
 	);
 });
 
-test('advancing on a first turn is refused', () => {
-	const { state, random } = startedGame(3);
-	const d = openDecisions(state)[0];
-	assert.throws(
-		() =>
-			play(state, d.player, { decision: d.id, turn: 'advance' }, random),
-		/first turn must be an income turn/
-	);
+test('the automatic income turn 1 emits turnChosen with turn income, so the log still reads as before (#77)', () => {
+	const { state } = startedGame(2, { keepIncome: true });
+	const chosen = state.events.filter((e) => e.type === 'turnChosen');
+	assert.equal(chosen.length, 2);
+	for (const event of chosen) {
+		assert.equal(event.turn, 'income');
+	}
 });
 
 test("answering another player's choice is refused", () => {
