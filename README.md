@@ -406,7 +406,7 @@ How the ranking was built:
 | [docs/architecture.md](docs/architecture.md) | The modules in detail, with the issue that added each |
 | [CLAUDE.md](CLAUDE.md) | Guidance for Claude: the commands, a map of the project, the working rules and the decisions already made |
 | [AGENTS.md](AGENTS.md) | Guidance for Codex and other agents: read CLAUDE.md, never edit it, and change documentation only when asked |
-| [CONVENTIONS.md](CONVENTIONS.md) | Coding conventions: JavaScript with JSDoc, Svelte 5 components, BEM classes, the engine, tests and commits |
+| [docs/conventions.md](docs/conventions.md) | Coding conventions: JavaScript with JSDoc, Svelte 5 components, BEM classes, the engine, tests and commits |
 
 ## Licence
 

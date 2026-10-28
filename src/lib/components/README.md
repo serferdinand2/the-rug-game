@@ -4,7 +4,7 @@ The interface components, built from the phase-one mockups in `docs/ui/`. Every 
 
 The same page has an **Art** area: every scene part and every asset in the catalog, drawn or still to draw, drawn live from the art toolkit.
 
-Add a row here, and a section in `src/library/sections/<area>/<Name>.svelte`, in the same change that adds a component. `tests/library.test.mjs` checks the section and the structure rules in [CONVENTIONS.md](../../../CONVENTIONS.md).
+Add a row here, and a section in `src/library/sections/<area>/<Name>.svelte`, in the same change that adds a component. `tests/library.test.mjs` checks the section and the structure rules in [docs/conventions.md](../../../docs/conventions.md).
 
 ## Boundaries
 

@@ -1,4 +1,4 @@
-// The component library: every component follows CONVENTIONS.md and appears on the library page with its states.
+// The component library: every component follows docs/conventions.md and appears on the library page with its states.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
@@ -88,7 +88,7 @@ test('every section belongs to a component', () => {
 	}
 });
 
-test('every component file follows the structure in CONVENTIONS.md', () => {
+test('every component file follows the structure in docs/conventions.md', () => {
 	for (const { name, source } of components) {
 		assert.match(
 			source,
