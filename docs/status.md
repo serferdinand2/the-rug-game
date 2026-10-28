@@ -24,6 +24,7 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
 - **Next:**
   - #77 (the first turn takes income by itself) is built; it closes once the owner has looked at its IncomeNotice and TurnBar sections in the component library.
+  - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - The cosmetic boards wait in #51 until the core features are done.
@@ -51,6 +52,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#75 (picking several things one by one)](#75-picking-several-things-one-by-one)
 - [#61 (the dice tray)](#61-the-dice-tray)
 - [#77 (the first turn takes income by itself)](#77-the-first-turn-takes-income-by-itself)
+- [#42 (How to play in the game)](#42-how-to-play-in-the-game)
 
 ## Issues
 
@@ -476,6 +478,14 @@ Built on 2026-10-28. The owner changed the issue's brief when asked: "Just make 
   - Calls to revisit: the notice is a centred panel over the board with **Got it**, titled "Era I begins", remembered in `sessionStorage`; its holdings follow `describeCost()`'s order (coin, food, worker, culture); a later forced income turn stays a click, since it ends an era; its **Take income** is the outlined `gold` button, as the footer's **Results** is; the waiting footer names any income turn ("Ana is taking income turn 3."); "End era IV, score it and finish playing." before income turn 5.
   - Tests: `startedGame()` (`tests/helpers/engine.mjs`) answers setup with every seat's `incomeTurns` already 1 unless `keepIncome` is passed, so tests start from what setup gave, as before; `firstIncomeTurn()` runs a seat's income turn 1 again after a `fill`. `tests/browser/first-income.test.mjs` plays a hot-seat setup and sees each player's notice once. `pick-prompts` closes the notice as it takes the screen, and its several-resources test now reads the answer's own `resourcesGained`, since an income step's gains could follow in the same move.
   - Handed off: #31 (whether the Automa and the Shadow Empire take an automatic income turn 1; `startTurn()` only does it for player seats), #62 (the first turn has no **End turn** moment), #71 (the footer's heading and detail wording agree with these states).
+
+### #42 (How to play in the game)
+
+Built on 2026-10-28, ahead of M10, because the owner asked while #77 was finishing: first "add keyboard actions in the hamburger menu so that players know how to use keyboard shortcuts", then "just resolve 42 as well then". The design is `docs/superpowers/specs/2026-10-28-how-to-play-design.md`.
+- Built: `src/lib/rules-help.js` (`RULES_HELP`, six sections of the base rules, paraphrased from `docs/research/` with every number exact; decided rules carry their R id in a comment), `src/lib/civ-rules.js` (`civRules`, `civAbilityText`: the 16 base civilizations' full abilities in either version, with a "Current rules:" paragraph for the eleven whose current text differs: ten R34 adjustments and the Inventors' top-row rule), `src/lib/shortcuts.js` (`SHORTCUTS`), and `src/screens/game/RulesPanel.svelte`, How to play in the game with a Keyboard shortcuts tab. The game's menu gains **Keyboard shortcuts**, How to play in a game is now the game's own (App's table steps stay before a game), and `PlayerChip` gains `ability` for its tooltip.
+  - Calls to revisit: the chip's ability is the native tooltip, as the track spaces' words are; a section stays near 200 words, so the finer FAQ points (R108's finished defender, an explore with no tile, the landmark heights in the tiebreak) are left out rather than said loosely; the civilizations' text follows the engine where the research reads differently (the Heralds' draw stops at a When Played card, the Militants pay on income turns 2–5, the Mystics pay when a count equals the prediction).
+  - Tests: `tests/client-rules-help.test.mjs` and `tests/client-civ-rules.test.mjs` check every section and civilization and spot-check their numbers against the engine's data; `tests/client-shortcuts.test.mjs` checks every key the game answers to is listed; `tests/browser/rules-panel.test.mjs` opens both entries from the menu and reads a chip.
+  - Handed off: each expansion issue (#32–#41) adds its civilizations to `civ-rules.js` and its rules to `rules-help.js`; the card gallery (#47) already shows the tapestry, tech and space-tile text.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 
