@@ -19,7 +19,7 @@ export default defineConfig({
 	plugins: [svelte({ configFile: fromHere('./svelte.config.js') })],
 	// The root also holds the docs' standalone HTML mockups; only the app's own pages are entries.
 	optimizeDeps: {
-		entries: ['index.html', 'components.html'],
+		entries: ['index.html', 'components.html', 'cards.html'],
 	},
 	build: {
 		outDir: fromHere('./build'),
@@ -29,6 +29,7 @@ export default defineConfig({
 			input: {
 				game: fromHere('./index.html'),
 				components: fromHere('./components.html'),
+				gallery: fromHere('./cards.html'),
 				cards: fromHere('./docs/ui/collectors-review.html'),
 			},
 		},

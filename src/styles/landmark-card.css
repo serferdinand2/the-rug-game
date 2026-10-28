@@ -1,0 +1,106 @@
+/* The approved 319 px landmark card frame, with a four-plot-wide footprint beside its art. */
+.rg-landmark-card {
+	box-sizing: border-box;
+	width: 319px;
+	display: flex;
+	flex-direction: column;
+	color: var(--card-text);
+	background: var(--card-paper) url('./card-paper-noise.svg') repeat;
+	border: 2px solid var(--card-line-strong);
+	box-shadow:
+		0 10px 26px var(--card-shadow-strong),
+		inset 0 0 0 1px var(--card-raised);
+	font: 400 15px/1.42 var(--font-body);
+}
+.rg-landmark-card * {
+	box-sizing: border-box;
+}
+.rg-landmark-card__band {
+	min-height: 49px;
+	display: flex;
+	align-items: center;
+	padding: 7px 12px;
+	background-image:
+		url('./card-paper-noise.svg'),
+		linear-gradient(
+			90deg,
+			var(--card-band-start),
+			var(--card-band-middle) 57%,
+			var(--card-band-end)
+		);
+	border-bottom: 1px solid var(--card-line-strong);
+}
+.rg-landmark-card__band h3 {
+	margin: 0;
+	color: var(--card-title);
+	font: 700 21px/1.05 var(--font-title);
+	text-shadow: 0 1px var(--card-text);
+}
+.rg-landmark-card__visual {
+	display: grid;
+	grid-template-columns: 184px minmax(0, 1fr);
+	align-items: center;
+	gap: 12px;
+	margin: 12px;
+	min-height: 184px;
+}
+.rg-landmark-card__visual img {
+	width: 184px;
+	height: 184px;
+	display: block;
+	object-fit: contain;
+	image-rendering: pixelated;
+	box-shadow:
+		0 0 0 1px var(--card-line),
+		0 0 0 3px var(--card-text);
+}
+.rg-landmark-card__footprint {
+	display: grid;
+	justify-content: center;
+	grid-template-columns: repeat(var(--cols), 20px);
+	gap: 2px;
+}
+.rg-landmark-card__footprint span {
+	width: 20px;
+	height: 20px;
+	background: #a38d6b;
+	border: 2px solid var(--card-line-strong);
+}
+.rg-landmark-card__footprint span.empty {
+	visibility: hidden;
+}
+.rg-landmark-card__condition {
+	margin: 0 12px 6px;
+	padding: 11px 8px;
+	background: var(--card-raised);
+	border: 1px solid var(--card-line-soft);
+}
+.rg-landmark-card__condition small {
+	display: block;
+	margin-bottom: 7px;
+	color: #756447;
+	white-space: nowrap;
+	font: 700 10px/1.1 var(--font-body);
+}
+.rg-landmark-card__condition p {
+	margin: 0;
+	font: 400 15px/1.42 var(--font-body);
+}
+.rg-landmark-card__footer {
+	min-height: 38px;
+	display: flex;
+	align-items: center;
+	padding: 7px 12px;
+	border-top: 1px solid var(--card-line);
+}
+.rg-landmark-card__edition {
+	display: inline-flex;
+	align-items: center;
+	min-height: 18px;
+	padding: 2px 6px;
+	border: 1px solid var(--arts-architecture);
+	color: #70491f;
+	background: color-mix(in srgb, var(--arts-architecture) 16%, transparent);
+	white-space: nowrap;
+	font: 700 10px/1 var(--font-body);
+}

@@ -37,6 +37,7 @@
 		sound,
 		items = [
 			{ id: 'help', label: 'How to play' },
+			{ id: 'gallery', label: 'Card gallery', href: '/cards.html' },
 			{ id: 'about', label: 'About this project' },
 		],
 		onPageHeaderSound,
