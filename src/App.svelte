@@ -75,6 +75,8 @@
 	let helpOpen = $state(false);
 	/** Whether a finished game's board is on show instead of its results (#29 design §6). */
 	let reviewing = $state(false);
+	/** What the game screen has open over its board, which the dice tray rolls clear of (#61, #79). */
+	let gamePanel = $state(/** @type {'none' | 'panel' | 'shelf'} */ ('none'));
 
 	/** The table and deal on show: a key that changes only with a new deal or another table, not with every room view. */
 	let dealKey = $derived(
@@ -156,6 +158,7 @@
 	{:else if store.room && store.room.phase !== 'lobby'}
 		<Game
 			{store}
+			bind:panel={gamePanel}
 			onGameResults={() => (reviewing = false)} />
 	{:else}
 		<PageHeader
@@ -183,7 +186,8 @@
 				store.room.game,
 				store.room.mode === 'hotseat' ? null : store.seat
 			)}
-			batch={store.freshCount} />
+			batch={store.freshCount}
+			panel={gamePanel} />
 	{/if}
 	<Toast
 		message={store.toast}

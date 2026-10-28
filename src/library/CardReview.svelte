@@ -3,39 +3,43 @@
 	import CivilizationCard from '../lib/components/player/CivilizationCard.svelte';
 	import { REVIEWED_CIVILIZATIONS } from '../lib/cards/reviewed-civilizations.js';
 	let state = $state(/** @type {'empty'|'play'} */ ('empty'));
-	const embeddedCard = new URLSearchParams(window.location.search).get('embed');
+	const embeddedCard = new URLSearchParams(window.location.search).get(
+		'embed'
+	);
 	const cards = embeddedCard
 		? REVIEWED_CIVILIZATIONS.filter((card) => card.id === embeddedCard)
 		: REVIEWED_CIVILIZATIONS;
 </script>
 
 {#if !embeddedCard}
-<header class="rg-card-review--header">
-	<h1>Civilization cards</h1>
-	<nav aria-label="Example state">
-		<button
-			aria-pressed={state === 'empty'}
-			onclick={() => (state = 'empty')}>Unmarked</button
-		><button
-			aria-pressed={state === 'play'}
-			onclick={() => (state = 'play')}>In play example</button
-		><a href="/components.html#civilization-card">Components</a>
-	</nav>
-</header>
+	<header class="rg-card-review--header">
+		<h1>Civilization cards</h1>
+		<nav aria-label="Example state">
+			<button
+				aria-pressed={state === 'empty'}
+				onclick={() => (state = 'empty')}>Unmarked</button
+			><button
+				aria-pressed={state === 'play'}
+				onclick={() => (state = 'play')}>In play example</button
+			><a href="/components.html#civilization-card">Components</a>
+		</nav>
+	</header>
 {/if}
 <main class={`rg-card-review ${embeddedCard ? 'rg-card-review--embed' : ''}`}>
 	{#each cards as card}<section
 			aria-labelledby={embeddedCard ? undefined : `${card.id}-heading`}
-			aria-label={embeddedCard ? `${card.title} civilization card` : undefined}>
+			aria-label={embeddedCard
+				? `${card.title} civilization card`
+				: undefined}>
 			{#if !embeddedCard}
-			<h2 id={`${card.id}-heading`}>{card.title}</h2>
-			<p>
-				{card.edition === 'original'
-					? 'Original mat · layout example'
-					: card.edition === 'awaiting review'
-						? 'New card · awaiting review'
-						: 'Reviewed card layout'}
-			</p>
+				<h2 id={`${card.id}-heading`}>{card.title}</h2>
+				<p>
+					{card.edition === 'original'
+						? 'Original mat · layout example'
+						: card.edition === 'awaiting review'
+							? 'New card · awaiting review'
+							: 'Reviewed card layout'}
+				</p>
 			{/if}
 			<CivilizationCard
 				id={card.id}

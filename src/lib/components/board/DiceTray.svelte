@@ -11,6 +11,7 @@
 	 * @typedef {Object} DiceTrayOwnProps
 	 * @property {import('../../dice.js').Roll[]} rolls - The batch's rolls, in order (dice.js rollsOf)
 	 * @property {number} batch - A new value plays `rolls` from the start; a refresh keeps it, so nothing replays
+	 * @property {'none' | 'panel' | 'shelf'} [panel='none'] - What the game has open over the board (#79): with a decision panel the tray rolls at the top of the board, clear of it; with a stack of cards, which can fill the board's height, over the player area
 	 * @property {Function} [onDiceTrayDone] - Callback fired when a batch has played or been dismissed
 	 */
 
@@ -19,7 +20,7 @@
 	 * @typedef {DiceTrayOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} DiceTrayProps
 	 *
 	 * @example
-	 * <DiceTray rolls={rollsOf(store.fresh, game, seat)} batch={store.freshCount} />
+	 * <DiceTray rolls={rollsOf(store.fresh, game, seat)} batch={store.freshCount} panel={gamePanel} />
 	 */
 </script>
 
@@ -29,7 +30,7 @@
 	import { ComponentEvent } from '../../component-event.js';
 
 	/** @type {DiceTrayProps} */
-	let { rolls, batch, onDiceTrayDone, ...attr } = $props();
+	let { rolls, batch, panel = 'none', onDiceTrayDone, ...attr } = $props();
 
 	/** @type {import('../../dice.js').Roll[]} The batch on show, kept while later props change */
 	let playing = $state([]);
@@ -38,8 +39,6 @@
 	let rolling = $state(false);
 	/** The tray is fading out after its batch. */
 	let leaving = $state(false);
-	/** Whether a decision panel is open beside the tray, which then rolls at the top of the board, clear of it. */
-	let aside = $state(false);
 	let spoken = $state('');
 	/** @type {ReturnType<typeof setTimeout> | undefined} */
 	let timer;
@@ -74,13 +73,6 @@
 		);
 	}
 
-	/** Looks for a decision panel among the tray's neighbours (the screen on show, or a library stage). */
-	function look() {
-		aside = Boolean(
-			region?.parentElement?.querySelector('.rg-decision-panel--panel')
-		);
-	}
-
 	/**
 	 * Plays one roll: it tumbles, lands and holds, then the next plays.
 	 * @param {number} index
@@ -91,12 +83,10 @@
 			return;
 		}
 		current = index;
-		look();
 		const tumble = still() ? 0 : TUMBLE_MS;
 		rolling = tumble > 0;
 		timer = setTimeout(() => {
 			rolling = false;
-			look();
 			spoken = playing[index].spoken;
 			timer = setTimeout(() => play(index + 1), HOLD_MS);
 		}, tumble);
@@ -146,7 +136,8 @@
 		{...attr}
 		class="rg-dice-tray {attr.class ? attr.class : ''}"
 		class:rg-dice-tray--bust={roll.bust}
-		class:rg-dice-tray--aside={aside}
+		class:rg-dice-tray--aside={panel === 'panel'}
+		class:rg-dice-tray--player={panel === 'shelf'}
 		class:rg-dice-tray--leaving={leaving}
 		data-roll={roll.id}
 		onclick={finish}>
@@ -189,11 +180,17 @@
 	}
 
 	/* With a decision panel open, the tray rolls at the top of the board (the left three quarters), clear of a panel at
-	   the bottom, at the centre or docked at the right (#61 review). */
+	   the centre or docked at the right (#61 review). */
 	.rg-dice-tray--aside {
 		top: calc(var(--bar-height) + var(--space-8));
 		left: 37.5%;
 		transform: translate(-50%, 0);
+	}
+
+	/* A stack of cards can fill the board's height, so the tray rolls over the middle of the player area, the right
+	   quarter (#79). */
+	.rg-dice-tray--player {
+		left: 87.5%;
 	}
 
 	.rg-dice-tray--dice {

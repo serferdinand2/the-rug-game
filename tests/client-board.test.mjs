@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { view } from '../src/lib/engine/game.js';
 import { newGame } from './helpers/engine.mjs';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
-import { trackBoard, achievements } from '../src/lib/board.js';
+import { trackBoard, achievements, spaceWords } from '../src/lib/board.js';
 
 /**
  * A view of a fresh game, after changes to a copy of its state.
@@ -115,4 +115,21 @@ test('each space carries its benefit, its bonus and both in words (#59)', () => 
 	assert.deepEqual(neoprene.spaces[10].bonus?.pay, [
 		{ kind: 'word', text: 'Tech', count: 2 },
 	]);
+});
+
+test("the footer words a space as its track does, Navigation's effects joined by then (#84)", () => {
+	const game = viewOf(2);
+	for (const track of trackBoard(game)) {
+		for (const [at, entry] of track.spaces.entries()) {
+			assert.equal(
+				spaceWords(game, track.id, at + 1),
+				entry.words,
+				`${track.id} ${at + 1}`
+			);
+		}
+	}
+	const navigation = TRACKS.exploration.findIndex(
+		(space) => space.name === 'Navigation'
+	);
+	assert.match(spaceWords(game, 'exploration', navigation), /, then /);
 });

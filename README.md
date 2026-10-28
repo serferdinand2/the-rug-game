@@ -46,11 +46,15 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Prompt: choosing a capital | Prompt: choosing a civilization |
 |---|---|
-| ![The capital choice: both mats as their 9×9 grids of terrain tiles, with the impassable plots and districts, the chosen one outlined](docs/ui/screens/game-prompt-capital-mat.png) | ![The civilization choice: both cards whole at full size, the chosen one outlined in gold](docs/ui/screens/game-prompt-civ.png) |
+| ![The capital choice at the tracks' centre (#79): both mats as their 9×9 grids of terrain tiles above the panel, the chosen one outlined](docs/ui/screens/game-prompt-capital-mat.png) | ![The civilization choice at the tracks' centre (#79): both cards whole, sized to the room above the panel, the chosen one outlined in gold](docs/ui/screens/game-prompt-civ.png) |
 
-| Prompt: cards on the shelf (the tapestry draft) | Prompt: exploring a territory |
+| Prompt: cards on the shelf (the tapestry draft) | Prompt: tech cards to invent |
 |---|---|
-| ![The tapestry draft's keep prompt: two cards on the shelf above the gold income panel](docs/ui/screens/game-prompt-cards.png) | ![An explore: the player's tiles in the panel, each lit hex with the picked tile's best VP, and the chosen hex previewing it turned once](docs/ui/screens/game-prompt-explore.png) |
+| ![The tapestry draft's keep prompt (#79): two cards on the shelf and the gold income panel, one stack at the tracks' centre](docs/ui/screens/game-prompt-cards.png) | ![Inventing (#79): the three face-up tech cards and the deck above the panel, centred on the tracks, the chosen card outlined](docs/ui/screens/game-prompt-invent.png) |
+
+| Prompt: exploring a territory |
+|---|
+| ![An explore: the player's tiles in the panel docked beside the map, each lit hex with the picked tile's best VP, and the chosen hex previewing it turned once](docs/ui/screens/game-prompt-explore.png) |
 
 | Results: the final standings | The log and the scores |
 |---|---|
@@ -62,11 +66,11 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Prompt: placing a landmark | Prompt: the income turn |
 |---|---|
-| ![The Lighthouse waiting for placement on the Capital tab, with the decision panel below](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold, with the panel's question shown only once](docs/ui/screens/game-prompt-income.png) |
+| ![The Lighthouse waiting for placement on the Capital tab, with the decision panel at the tracks' centre (#79)](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold: the card on the shelf above the panel, at the tracks' centre (#79)](docs/ui/screens/game-prompt-income.png) |
 
 | Prompt: paying for an advance, one row per resource | Prompt: paying a bonus with the tiles picked |
 |---|---|
-| ![Advance to Scouting: the centred panel's one row of the four resources, coin picked, and Pay 1 coin beside Cancel and Advance](docs/ui/screens/game-prompt-advance.png) | ![Cars' bonus: the centred panel with six territory tiles three to a row, one chosen, 1 of 2 chosen, and Decline beside Pay 2 tiles](docs/ui/screens/game-prompt-tiles.png) |
+| ![Advance to Scouting: the panel at the tracks' centre with one row of the four resources, coin picked, and Pay 1 coin beside Cancel and Advance](docs/ui/screens/game-prompt-advance.png) | ![A bonus paid in tiles: the panel at the tracks' centre with the territory tiles three to a row, one chosen, 1 of 2 chosen, and Decline beside Pay 2 tiles](docs/ui/screens/game-prompt-tiles.png) |
 
 | The dice tray: a conquest's roll on the other player's screen |
 |---|
@@ -74,7 +78,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | The first turn: the game took income turn 1 (#77) |
 |---|
-| ![Era I begins: the gold notice over the tracks says every player's first turn is an income turn, so the game took yours; you start with 1 coin, 1 food, 1 worker, 1 culture, 1 territory tile and 1 tapestry card; Got it](docs/ui/screens/game-first-income.png) |
+| ![Era I begins: the gold notice at the tracks' centre says every player's first turn is an income turn, so the game took yours; you start with 1 coin, 1 food, 1 worker, 1 culture, 1 territory tile and 1 tapestry card; Got it](docs/ui/screens/game-first-income.png) |
 
 | A turn with only income to take (#77, the component library's TurnBar) |
 |---|
