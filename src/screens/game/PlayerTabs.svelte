@@ -382,15 +382,10 @@
 	class="rg-player-tabs {attr.class ? attr.class : ''}">
 	<Tabs
 		class="rg-player-tabs--tabs"
+		panelClass="rg-player-tabs--body"
 		{tabs}
 		bind:value={tab}
-		label="Your city and cards" />
-	<div
-		class="rg-player-tabs--body"
-		id="{tab}-panel"
-		role="tabpanel"
-		tabindex="0"
-		aria-labelledby="{tab}-tab">
+		label="Your city and cards">
 		{#if tab === 'capital'}
 			{#if capital}
 				<h2 class="rg-player-tabs--title">
@@ -634,7 +629,7 @@
 				<p class="rg-player-tabs--note">No space tiles.</p>
 			{/if}
 		{/if}
-	</div>
+	</Tabs>
 </div>
 
 <style>
@@ -656,7 +651,8 @@
 		}
 	}
 
-	.rg-player-tabs--body {
+	/* Tabs' panel, reached through its panelClass prop. */
+	.rg-player-tabs :global(.rg-player-tabs--body) {
 		min-height: 0;
 		overflow: auto;
 		padding: var(--space-9) 22px;
@@ -681,7 +677,7 @@
 	}
 
 	/* PlacementTray's root, reached through its class prop. */
-	.rg-player-tabs--body :global(.rg-player-tabs--tray) {
+	.rg-player-tabs :global(.rg-player-tabs--tray) {
 		margin-top: var(--space-6);
 	}
 

@@ -119,6 +119,30 @@ test('the menu opens How to play on the rules and on the keyboard shortcuts, and
 			/** @type {any} */ (RULES_HELP[0].blocks[0]).text ??
 				/** @type {any} */ (RULES_HELP[0].blocks[0]).list[0]
 		);
+		// The selected tab takes the focus, so the arrow keys work at once (#91).
+		await expect(
+			panel.getByRole('tab', { name: RULES_HELP[0].title })
+		).toBeFocused();
+		// Its Capital and Income tabs and the player area's share no id, and each panel names a tab of its own row (#91).
+		const capital = String(
+			RULES_HELP.find((s) => s.id === 'capital')?.title
+		);
+		await panel.getByRole('tab', { name: capital }).click();
+		const repeated = await page.evaluate(() => {
+			const all = [...document.querySelectorAll('[id]')].map(
+				(element) => element.id
+			);
+			return all.filter((id, at) => all.indexOf(id) !== at);
+		});
+		expect(repeated).toEqual([]);
+		await expect(panel.getByRole('tabpanel')).toHaveAccessibleName(capital);
+		const area = page.locator('.rg-game--private');
+		const areaTab = await area
+			.getByRole('tab', { selected: true })
+			.textContent();
+		await expect(area.getByRole('tabpanel')).toHaveAccessibleName(
+			String(areaTab).trim()
+		);
 		await page.keyboard.press('Escape');
 		await expect(panel).toHaveCount(0);
 
