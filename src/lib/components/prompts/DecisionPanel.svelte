@@ -10,6 +10,7 @@
 	 * @property {import('../../ui.js').TrackId | null} [track=null] - The track that tints the bottom bar and border, as the mockup's --track
 	 * @property {'default' | 'income'} [tone='default'] - income: the title, border and step strip in gold, for the viewer's income turn
 	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right, for a choice on the map; its content scrolls, so the title and Confirm stay in sight. It is --docked-panel-width wide and --docked-panel-inset in from the right, for the board beside it to keep free
+	 * @property {boolean} [centred=false] - The panel's centre at the screen's centre, for a choice of several resources, cards or tiles (#75); never with docked or a shelf
 	 * @property {import('svelte').Snippet} [steps] - The income steps, between the title and the content
 	 * @property {string} [cancelLabel] - Shows a cancel button with this text, such as 'Cancel'; left out, there is none
 	 * @property {import('svelte').Snippet} [children] - The content: the instruction and the choices; left out, the panel has no content area and its status line carries the instruction, leaving more room for a shelf
@@ -44,6 +45,7 @@
 		track = null,
 		tone = 'default',
 		docked = false,
+		centred = false,
 		steps,
 		cancelLabel,
 		children,
@@ -83,6 +85,7 @@
 	{...attr}
 	class="rg-decision-panel {attr.class ? attr.class : ''}"
 	class:rg-decision-panel--docked={docked}
+	class:rg-decision-panel--centred={centred}
 	style:--rg-decision-panel-track={track ? trackColor(track) : undefined}>
 	{#if shelf}
 		<div class="rg-decision-panel--shelf">{@render shelf()}</div>
@@ -308,6 +311,17 @@
 	   right beside the map rather than over its hexes (#26 review). What is chosen gets its own line. The panel is
 	   --docked-panel-width wide and --docked-panel-inset in from the right, so a board can keep both free and lay the
 	   map out beside it (#74). */
+	/* Fixed to the screen's centre, between the header and the footer (#75). */
+	.rg-decision-panel--centred .rg-decision-panel--panel {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		width: var(--centred-panel-width);
+		min-width: 0;
+		max-height: calc(100vh - 2 * var(--bar-height) - var(--space-10));
+		transform: translate(-50%, -50%);
+	}
+
 	.rg-decision-panel--docked {
 		align-items: flex-end;
 		justify-content: flex-start;

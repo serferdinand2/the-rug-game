@@ -3,6 +3,7 @@
 	import DecisionOption from '../../../lib/components/prompts/DecisionOption.svelte';
 	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
 	import IncomeSteps from '../../../lib/components/prompts/IncomeSteps.svelte';
+	import ResourceRows from '../../../lib/components/prompts/ResourceRows.svelte';
 	import TilePicker from '../../../lib/components/prompts/TilePicker.svelte';
 	import TurnControl from '../../../lib/components/prompts/TurnControl.svelte';
 	import { tilePreview, tileWords } from '../../../lib/area/explore.js';
@@ -183,6 +184,35 @@
 			</DecisionPanel>
 		</div>
 	</Example>
+	<Example
+		label={"centred  (a pick prompt: its centre at the screen's, here the stage's; #75)"}
+		wide
+		width={1100}>
+		<div
+			class="rg-library-decision-stage rg-library-decision-stage--contained">
+			<DecisionPanel
+				centred
+				title="Choose 3 resources"
+				status="Choose 2 more."
+				confirmDisabled>
+				<p class="rg-library-explore--lead">
+					Pick one resource in each row.
+				</p>
+				<ResourceRows
+					rows={[0, 1, 2].map((row) => ({
+						fixed: null,
+						picked: row === 0 ? 'food' : null,
+						choices: ['coin', 'food', 'worker', 'culture'].map(
+							(id) => ({
+								id: /** @type {any} */ (id),
+								count: id === 'food' ? 8 : 2,
+								disabled: false,
+							})
+						),
+					}))} />
+			</DecisionPanel>
+		</div>
+	</Example>
 </Section>
 
 <!-- The explore as the game screen draws it: the lead and the tile row scroll in the content, while what is chosen
@@ -224,6 +254,12 @@
 		position: relative;
 		height: 420px;
 		background: var(--texture) var(--surface);
+	}
+
+	/* A centred panel is fixed to the screen's centre; contained, the stage stands in for the screen. */
+	.rg-library-decision-stage--contained {
+		height: 520px;
+		contain: layout;
 	}
 
 	.rg-library-decision-stage--short {

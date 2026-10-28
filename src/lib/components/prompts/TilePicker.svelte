@@ -16,7 +16,8 @@
 	 * Properties of the TilePicker component itself.
 	 * @typedef {Object} TilePickerOwnProps
 	 * @property {PickerTile[]} tiles - The tiles to pick from
-	 * @property {number | null} [selected=null] - The id of the picked tile
+	 * @property {number | number[] | null} [selected=null] - The id of the picked tile, or the ids of several picked at once (#75)
+	 * @property {number[]} [disabled=[]] - Tiles that can't be pressed now, as when enough are picked (#75)
 	 * @property {Function} [onTilePickerSelect] - Callback fired with `{ tile }` when a tile is pressed
 	 */
 
@@ -26,6 +27,7 @@
 	 *
 	 * @example
 	 * <TilePicker tiles={tiles} selected={17} onTilePickerSelect={pick} />
+	 * <TilePicker tiles={tiles} selected={[13, 21]} disabled={[]} onTilePickerSelect={toggle} />
 	 */
 </script>
 
@@ -34,7 +36,20 @@
 	import { ComponentEvent } from '../../component-event.js';
 
 	/** @type {TilePickerProps} */
-	let { tiles, selected = null, onTilePickerSelect, ...attr } = $props();
+	let {
+		tiles,
+		selected = null,
+		disabled = [],
+		onTilePickerSelect,
+		...attr
+	} = $props();
+
+	/**
+	 * @param {number} tile
+	 * @returns {boolean}
+	 */
+	const isPicked = (tile) =>
+		Array.isArray(selected) ? selected.includes(tile) : selected === tile;
 
 	/**
 	 * @param {number} tile
@@ -71,7 +86,8 @@
 		<button
 			type="button"
 			class="rg-tile-picker--tile"
-			aria-pressed={selected === tile.id}
+			aria-pressed={isPicked(tile.id)}
+			disabled={disabled.includes(tile.id)}
 			aria-label={labelOf(tile)}
 			data-id="tile-{tile.id}"
 			onclick={(event) => selectHandler(tile.id, event)}>
@@ -114,7 +130,11 @@
 		background: color-mix(in srgb, var(--raised) 70%, transparent);
 	}
 
-	.rg-tile-picker--tile:hover,
+	.rg-tile-picker--tile:disabled {
+		opacity: 0.35;
+	}
+
+	.rg-tile-picker--tile:not(:disabled):hover,
 	.rg-tile-picker--tile:focus-visible {
 		border-color: var(--gold);
 	}
