@@ -1,6 +1,7 @@
 <!-- Library section: DiceTray, the roll in the middle of the screen for the whole table (#61): a conquest's dice, and two science rolls in one batch. -->
 <script>
 	import DiceTray from '../../../lib/components/board/DiceTray.svelte';
+	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
 	import Button from '../../../lib/components/ui/Button.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
@@ -45,6 +46,9 @@
 	let rolls = $state([]);
 	let batch = $state(0);
 	let done = $state(0);
+	/** @type {Roll[]} */
+	let besideRolls = $state([]);
+	let besideBatch = $state(0);
 
 	/** @param {Roll[]} next */
 	const roll = (next) => {
@@ -74,6 +78,32 @@
 				onDiceTrayDone={() => (done += 1)} />
 		</div>
 	</Example>
+	<Example
+		label="beside an open decision  (with a panel open, the tray rolls at the top of the board, clear of it; press the button)"
+		wide
+		width={1100}>
+		<div class="rg-library-tray-controls">
+			<Button
+				onButtonClick={() => {
+					besideRolls = CONQUEST;
+					besideBatch += 1;
+				}}>Roll beside the panel</Button>
+		</div>
+		<div class="rg-library-tray-stage rg-library-tray-stage--screen">
+			<DecisionPanel
+				centred
+				title="Choose a resource"
+				status="Pick a resource."
+				confirmDisabled>
+				<p class="rg-library-tray-lead">
+					An Alchemists bust gains 1 resource of your choice.
+				</p>
+			</DecisionPanel>
+			<DiceTray
+				rolls={besideRolls}
+				batch={besideBatch} />
+		</div>
+	</Example>
 </Section>
 
 <style>
@@ -83,6 +113,16 @@
 		height: 420px;
 		contain: layout;
 		background: var(--texture) var(--surface);
+	}
+
+	/* As tall as the play area at 1920×1080, so the tray's place beside a centred panel matches the game's. */
+	.rg-library-tray-stage--screen {
+		height: 964px;
+	}
+
+	.rg-library-tray-lead {
+		margin: 0;
+		color: var(--muted);
 	}
 
 	.rg-library-tray-controls {

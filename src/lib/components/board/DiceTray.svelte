@@ -34,6 +34,8 @@
 	/** @type {number | null} The roll on show, by index */
 	let current = $state(null);
 	let rolling = $state(false);
+	/** Whether a decision panel is open beside the tray, which then rolls at the top of the board, clear of it. */
+	let aside = $state(false);
 	let spoken = $state('');
 	/** @type {ReturnType<typeof setTimeout> | undefined} */
 	let timer;
@@ -59,6 +61,13 @@
 		}
 	}
 
+	/** Looks for a decision panel among the tray's neighbours (the screen on show, or a library stage). */
+	function look() {
+		aside = Boolean(
+			region?.parentElement?.querySelector('.rg-decision-panel--panel')
+		);
+	}
+
 	/**
 	 * Plays one roll: it tumbles, lands and holds, then the next plays.
 	 * @param {number} index
@@ -69,10 +78,12 @@
 			return;
 		}
 		current = index;
+		look();
 		const tumble = still() ? 0 : TUMBLE_MS;
 		rolling = tumble > 0;
 		timer = setTimeout(() => {
 			rolling = false;
+			look();
 			spoken = playing[index].spoken;
 			timer = setTimeout(() => play(index + 1), HOLD_MS);
 		}, tumble);
@@ -121,6 +132,7 @@
 		{...attr}
 		class="rg-dice-tray {attr.class ? attr.class : ''}"
 		class:rg-dice-tray--bust={roll.bust}
+		class:rg-dice-tray--aside={aside}
 		data-roll={roll.id}
 		onclick={finish}>
 		<div class="rg-dice-tray--dice">
@@ -159,6 +171,14 @@
 		transform: translate(-50%, -50%);
 		cursor: pointer;
 		animation: rg-dice-tray-in var(--duration-fast) var(--ease);
+	}
+
+	/* With a decision panel open, the tray rolls at the top of the board (the left three quarters), clear of a panel at
+	   the bottom, at the centre or docked at the right (#61 review). */
+	.rg-dice-tray--aside {
+		top: calc(var(--bar-height) + var(--space-8));
+		left: 37.5%;
+		transform: translate(-50%, 0);
 	}
 
 	.rg-dice-tray--dice {
