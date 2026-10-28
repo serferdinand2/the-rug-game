@@ -4,28 +4,28 @@ Written 2026-10-28. What the owner said is marked **(owner)**, every other decis
 
 ## 1. The ruling
 
-- **Every decision prompt opens at the screen's centre (owner, 2026-10-28).** This replaces #75's "a payment in tapestry or tech cards keeps the shelf above a panel at the bottom".
+- **Every decision prompt opens at the centre (owner, 2026-10-28).** This replaces #75's "a payment in tapestry or tech cards keeps the shelf above a panel at the bottom".
+- **The centre of the tracks, not of the screen (owner, 2026-10-28, reviewing the library).** The first build centred the stack on the screen (x = 960 at 1920 px), as #75's pick panels were; the owner asked for the middle of the tracks instead, about 240 px further left. #75's pick panels and #77's notice move with it.
 - **The one exception:** while the Map view shows a choice on the map, the panel stays docked at the right, so the hexes under it stay clickable (#26, #74).
 
 ## 2. Where things open
 
 | Prompt | Before | Now |
 |---|---|---|
-| Paying for an advance, a pick of several resources, cards or tiles, a trade (#75) | Centre | Centre |
+| Paying for an advance, a pick of several resources, cards or tiles, a trade (#75) | Screen's centre | Tracks' centre |
 | An `options` prompt: a track, a token, a yes or no, a civilization ability | Bottom | Centre |
 | Cards on the shelf: tapestry and tech cards, civilizations and capital mats | Bottom, shelf above | Centre: shelf and panel as one stack |
 | A payment in tapestry or tech cards | Bottom, shelf above | Centre: shelf and panel as one stack |
 | Placing a building or landmark on the Capital tab | Bottom | Centre |
 | A choice on the map, Tracks view showing | Bottom | Centre |
 | A choice on the map, Map view showing | Docked right | Docked right |
-| The first-income notice (#77) | Centre | Centre |
+| The first-income notice (#77) | Screen's centre | Tracks' centre |
 
 ## 3. The centred stack
 
 - **One stack (my call):** the shelf, when there is one, sits above the panel, 18 px apart, and the two are centred together on the screen. Without a shelf the panel alone is centred, where #75 put it.
-- **The screen's centre (owner):** the stack's centre is the screen's. The shared area runs from the screen's left edge, so the screen's centre lies 240 px right of the board's at 1920 px.
-- **Too wide for that (my call):** a shelf wider than the room right of the screen's centre would cross into the player area. The stack then slides left, as a whole, and stays on the board; past the board's width the shelf scrolls sideways, as before. Four tech cards to invent (about 1,130 px) slide left; two civilizations (868 px) and three tapestry cards stay at the centre.
-  - CSS does this without measuring: an empty spacer before the stack, `100cqw − 100% − 2 × padding` wide, shrinks first. `100cqw` is the screen's width (the viewport, or a library stage that is a size container), and the panel's area starts at the screen's left edge.
+- **The tracks' centre (owner):** the stack is centred in the shared area the scrim covers, vertically too; the shared area's middle is also the screen's vertical middle, as the header and footer are the same height. A shelf wider than the shared area scrolls sideways, as before.
+  - The first build put the stack at the screen's centre with a spacer sized from `100cqw`, sliding a stack too wide for the room right of the centre back onto the board. The owner's ruling made that unnecessary, and it went.
 - **The cards' height (#57):** `DecisionPanel` measures the room the shelf may take, the stack's height less the panel's and the gap, and hands it to the shelf snippet. `CardShelf` takes it as `room`: civilization cards fit it (never below 0.75, as before), and other cards scroll inside it. Measuring the shelf's own height, as before, would feed back now that the shelf is only as tall as its cards.
 - **Width (my call):** every centred panel is as wide as its content, at least `--centred-panel-width` (440 px, #75's) and at most 900 px. The old bottom panel's 480 px minimum goes.
 - **The `centred` prop goes:** centred is the default. `docked` stays.
@@ -48,5 +48,5 @@ The tray learns what is open from the game, not from `DecisionPanel`'s class (my
 ## 6. Tests
 
 - Vitest: `panelControls` for every status, label, Confirm and cancel case; `PromptState` for a new decision starting empty, an explore with one tile starting with it chosen, a hex choosing the tile's best turn, a trade's offer and Back, a pick's rows, and the advance's payment.
-- Playwright: a card choice (tapestry cards on the shelf) and an `options` prompt open at the screen's centre; the existing prompt, explore, pick and hotkey tests keep passing.
+- Playwright: a card choice (the civilizations on the shelf) and an `options` prompt open at the tracks' centre; the pick tests measure against it too; the existing prompt, explore and hotkey tests keep passing.
 - The library's DecisionPanel section shows the centred panel with a shelf (tapestry, tech, civilizations), and the owner approves it there before the game uses it.
