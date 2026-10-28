@@ -7,6 +7,7 @@ import { reliefSize } from '../src/lib/art/relief.js';
 import { createCanvas, toSvg } from '../tools/art/painter.js';
 import { PALETTE } from '../tools/art/palette.js';
 import { drawNaturalGround } from '../tools/art/parts/capital-relief/ground.js';
+import { paintMountains } from '../tools/art/parts/capital-relief/mountain.js';
 import {
 	footprint,
 	impassableGroups,
@@ -154,5 +155,81 @@ test('its eight variants differ', () => {
 			svgs.add(toSvg(plot(biome, variant)));
 		}
 		assert.equal(svgs.size, 8, biome);
+	}
+});
+
+/**
+ * Paints the mountains of a layout.
+ * @param {readonly string[]} layout
+ * @returns {{ fp: ReturnType<typeof footprint>, canvas: ReturnType<typeof createCanvas>  }}
+ */
+function mountains(layout) {
+	const fp = footprint(layout);
+	const canvas = createCanvas(fp.w, fp.h);
+	paintMountains(canvas, fp, 5);
+	return { fp, canvas };
+}
+
+const MOUNTAIN_LAYOUT = CAPITAL_GRIDS.mountain;
+
+test('mountains are deterministic and stay within the reach', () => {
+	const a = mountains(MOUNTAIN_LAYOUT);
+	const b = mountains(MOUNTAIN_LAYOUT);
+	assert.deepEqual(a.canvas.p, b.canvas.p);
+	for (let i = 0; i < a.canvas.p.length; i++) {
+		if (!a.fp.reach[i]) {
+			assert.equal(a.canvas.p[i], null, `pixel ${i}`);
+		}
+	}
+});
+
+test("every impassable plot's middle is mountain", () => {
+	for (const layout of [MOUNTAIN_LAYOUT, SPECIMEN]) {
+		const { fp, canvas } = mountains(layout);
+		for (let r = 0; r < layout.length; r++) {
+			for (let c = 0; c < layout[0].length; c++) {
+				if (!isImpassable(layout, r, c)) {
+					continue;
+				}
+				let set = 0;
+				for (let y = 8; y < 24; y++) {
+					for (let x = 8; x < 24; x++) {
+						const i = (r * 33 + y) * fp.w + c * 33 + x;
+						if (
+							canvas.p[i] !== null &&
+							(canvas.alpha?.[i] ?? 1) === 1
+						) {
+							set++;
+						}
+					}
+				}
+				assert.ok(set >= 0.6 * 256, `plot ${r},${c}: ${set}/256`);
+			}
+		}
+	}
+});
+
+test('mountains use palette colours, and ink only for shadows below full opacity', () => {
+	const colours = new Set(Object.values(PALETTE));
+	const { canvas } = mountains(MOUNTAIN_LAYOUT);
+	for (let i = 0; i < canvas.p.length; i++) {
+		const colour = canvas.p[i];
+		if (colour === null) {
+			continue;
+		}
+		assert.ok(colours.has(colour), `${colour} at ${i}`);
+		if ((canvas.alpha?.[i] ?? 1) < 1) {
+			assert.equal(colour, PALETTE.ink, `shadow at ${i}`);
+		}
+	}
+});
+
+test('a corner-only join stands a peak over the corner', () => {
+	const { fp, canvas } = mountains(SPECIMEN);
+	assert.ok(fp.corners.length > 0);
+	for (const { gx, gy } of fp.corners) {
+		const i = (gy - 4) * fp.w + gx;
+		assert.notEqual(canvas.p[i], null, `corner ${gx},${gy}`);
+		assert.equal(canvas.alpha?.[i] ?? 1, 1, `corner ${gx},${gy} opaque`);
 	}
 });

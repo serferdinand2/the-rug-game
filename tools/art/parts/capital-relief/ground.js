@@ -24,7 +24,7 @@ const GROUNDS = {
  * @param {...number} n
  * @returns {number}
  */
-function hash(...n) {
+export function hash(...n) {
 	return n.reduce(
 		(h, k) => Math.imul(h ^ (k + 0x9e37), 0x01000193) >>> 0,
 		0x811c9dc5
@@ -37,7 +37,7 @@ function hash(...n) {
  * @param {number} scale
  * @returns {(x: number, y: number) => number}
  */
-function noise(seed, scale) {
+export function noise(seed, scale) {
 	const cell = (/** @type {number} */ i, /** @type {number} */ j) =>
 		(hash(i, j, seed) % 1000) / 1000;
 	return (x, y) => {
