@@ -164,6 +164,9 @@ const COLOURS = {
 	alpineMeadowDark: '#434330',
 	alpineMoss: '#86a03f',
 
+	// Tropical (#82): the sunlit top of the joined-terrain jungle's broadleaf crowns, brighter than grassLight
+	jungleLeafLight: '#c4e36a',
+
 	// Swamp capital terrain (#6): murky mud, black water and lily pads
 	swampMudLight: '#707046',
 	swampMud: '#5a5a3a',

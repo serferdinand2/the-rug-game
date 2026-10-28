@@ -3,7 +3,7 @@ import { seededRandom } from '../../painter.js';
 import { PALETTE as C } from '../../palette.js';
 import { cast, put } from './canvas.js';
 import { distanceInside, withCornerPatches } from './footprint.js';
-import { hash, noise } from './ground.js';
+import { BAYER, hash, noise } from './ground.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 /** @typedef {import('./footprint.js').Footprint} Footprint */
@@ -21,10 +21,6 @@ import { hash, noise } from './ground.js';
  * @property {boolean} corner - It stands over a corner join, so it may use the reach
  * @property {boolean} islet - It stands in a pool, on a mud islet of its own
  */
-
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(
-	(v) => v / 16 - 0.5
-);
 
 /** How far into the footprint a pool starts, in pixels: the width of the reed beds round it. */
 const POOL = 5;

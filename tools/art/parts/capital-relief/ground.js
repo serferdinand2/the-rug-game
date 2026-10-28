@@ -5,8 +5,11 @@ import { PLOT } from '../../../../src/lib/art/relief.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(
-	(v) => v / 16 - 0.5
+/** A 4×4 ordered-dither table, row by row, centred on 0: from -0.5 to 0.4375. */
+export const BAYER = Object.freeze(
+	[0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(
+		(v) => v / 16 - 0.5
+	)
 );
 
 /**
@@ -83,6 +86,36 @@ function scatterMarsh(put, px, py, roll, rand) {
 	}
 }
 
+/** Ferns, broad leaves and the odd red flower on the jungle's lush green. @type {Scatter} */
+function scatterJungle(put, px, py, roll, rand) {
+	if (roll < 0.45) {
+		// A fern: three arching fronds from a shaded heart, lit on the left.
+		put(px, py, C.pineShade);
+		put(px - 1, py - 1, C.grassLight);
+		put(px - 2, py - 1, C.grass);
+		put(px - 3, py, C.grass);
+		put(px, py - 1, C.grass);
+		put(px, py - 2, C.grassLight);
+		put(px + 1, py - 1, C.grass);
+		put(px + 2, py - 1, C.pine);
+		put(px + 3, py, C.pine);
+		put(px + 1, py, C.pineShade);
+	} else if (roll < 0.6) {
+		// A broad leaf lying flat.
+		put(px, py, C.grassLight);
+		put(px + 1, py, C.grass);
+		put(px, py + 1, C.grass);
+		put(px + 1, py + 1, C.pine);
+	} else if (roll < 0.65) {
+		put(px, py, rand() < 0.7 ? C.brickRedLight : C.gold);
+		put(px + 1, py, C.brickRed);
+		put(px, py + 1, C.pine);
+	} else if (roll < 0.8) {
+		put(px, py, C.pine);
+		put(px + 1, py, C.pine);
+	}
+}
+
 /**
  * Each biome's natural ground: its seed, its three tones and the small things lying on it.
  * @type {Record<string, { seed: number, base: string, light: string, dark: string, scatter: Scatter }>}
@@ -109,6 +142,14 @@ const GROUNDS = {
 		light: C.forestFloorLight,
 		dark: C.forestFloorShade,
 		scatter: scatterMarsh,
+	},
+	// Lush green between the Forest's light meadow and the Wetland's dark one, with ferns.
+	tropical: {
+		seed: 4523,
+		base: C.pineLight,
+		light: C.grass,
+		dark: C.pine,
+		scatter: scatterJungle,
 	},
 };
 

@@ -3,15 +3,11 @@ import { seededRandom } from '../../painter.js';
 import { PALETTE as C } from '../../palette.js';
 import { PITCH } from '../../../../src/lib/art/relief.js';
 import { cast, put } from './canvas.js';
-import { hash, noise } from './ground.js';
+import { BAYER, hash, noise } from './ground.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 /** @typedef {import('./footprint.js').Footprint} Footprint */
 /** @typedef {{ bx: number, by: number, hw: number, ph: number }} PeakSpec */
-
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(
-	(v) => v / 16 - 0.5
-);
 
 /** The next tone down, for a shadow that falls on painted ground. */
 const DARKER = /** @type {Record<string, string>} */ ({

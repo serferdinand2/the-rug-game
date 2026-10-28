@@ -380,6 +380,41 @@ test('a corner-only join carries a clump of trees over the corner', () => {
 	}
 });
 
+test('a corner-only join carries a palm and a broadleaf crown over the corner', () => {
+	// Only a corner piece may paint outside the impassable plots, so look there: within the corner patch.
+	const trunk = new Set([PALETTE.sandShade, PALETTE.timberLight]);
+	const crown = new Set([
+		PALETTE.grassShade,
+		PALETTE.grass,
+		PALETTE.jungleLeafLight,
+	]);
+	for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+		const { fp, canvas } = relief('tropical', which);
+		assert.ok(fp.corners.length > 0, which);
+		for (const { gx, gy } of fp.corners) {
+			const near = new Set();
+			for (let dy = -16; dy <= 16; dy++) {
+				for (let dx = -16; dx <= 16; dx++) {
+					const i = (gy + dy) * fp.w + gx + dx;
+					if (!fp.plots[i] && opaque(canvas, i)) {
+						near.add(canvas.p[i]);
+					}
+				}
+			}
+			const at = `${which} corner ${gx},${gy}`;
+			assert.ok(opaque(canvas, gy * fp.w + gx), at);
+			assert.ok(
+				[...trunk].some((c) => near.has(c)),
+				`${at}: no palm`
+			);
+			assert.ok(
+				[...crown].some((c) => near.has(c)),
+				`${at}: no crown`
+			);
+		}
+	}
+});
+
 test('every relief biome has a painter', () => {
 	assert.deepEqual(Object.keys(RELIEF_PAINTERS), [...RELIEF_BIOMES]);
 	assert.ok(Object.isFrozen(RELIEF_PAINTERS));
