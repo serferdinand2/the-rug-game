@@ -406,3 +406,40 @@ One task per biome, in this order: Task 9 Wetland, Task 10 Tropical, Task 11 Des
 - [ ] **Step 3: Run everything.** Run `npm test` and `npm run check`. Expected: all pass.
 - [ ] **Step 4: Retake the screenshots and update the docs.**
 - [ ] **Step 5: Commit** with `Fix #82: release the joined 2.5D terrain of the six base mats`, then ask the owner before merging into `main`.
+
+### Task 14: The library draws its art only when it is needed
+
+The owner asked on 2026-10-28: "let's optimize the library not to load everything up at once".
+
+**What's wrong now**
+- `src/library/art.js` imports every drawing module eagerly (`import.meta.glob('../../tools/art/drawings/**/*.js', { eager: true })`).
+- It builds `PICTURES` by drawing every asset as the module loads: about 700, including every card, landmark and board. It also builds every scene-part sample (`PARTS`) and every relief preview and specimen (`RELIEF_SPECIMENS`).
+- Together that is several seconds of synchronous work before the page can show anything. The Mountain relief alone takes about 0.6 s per draw. Under load, `page.goto` in the library's browser tests passes the 10 s limit.
+
+**What to build**
+- **Lazy modules:** `import.meta.glob(…)` without `eager`, so a drawing module is fetched only when its picture is wanted. The set of drawn ids comes from the glob's keys. `ART_SECTIONS` still knows which assets are drawn without loading any module.
+- **Lazy pictures, drawn once:** export `loadPicture(id: string) → Promise<Picture>` from art.js. It loads the module and draws it, or for a `capital-relief/<slug>` id draws `drawReliefPreview(CAPITAL_GRIDS[slug], slug)`, as `PICTURES` does now. Memoize per id, so a second call returns the same promise. A failing drawing resolves to `{ error }`, as `safely` does now, and never rejects.
+- **Parts and specimens:** `PARTS` and `RELIEF_SPECIMENS` become lists of `{ label, load: () => Promise<Picture> }`, each `load` memoized the same way.
+- **Pictures in slices:** the drawing work runs through a small queue that draws one picture per slice and yields to the browser between slices (`requestIdleCallback` when it exists, else `setTimeout(…, 0)`). Scrolling into many tiles at once never freezes the page.
+- **ArtTile:**
+  - takes `load` (a `() => Promise<Picture>`) instead of `picture`, plus an optional `picture` for tests and callers that already have one;
+  - starts loading only when it comes near the viewport (`IntersectionObserver` with a `rootMargin` of about one screen);
+  - until the picture arrives, shows a placeholder of the right size where the size is known, and a plain placeholder otherwise. The slot doesn't jump when the picture lands, as far as possible.
+  - An undrawn asset (no drawing) still shows its empty slot naming the issue, as now, with nothing loaded.
+  - `data-drawn` means the asset has a drawing, which is known up front from the glob keys. Add `data-loaded="yes"` once the picture is in, so tests can wait for it.
+- **Library.svelte** passes `load={() => loadPicture(tile.asset.id)}` and the parts' and specimens' `load`.
+- **Everything else stays as it is:** the sections, their order, the anchors (`#art-…` links still jump to their section), the descriptions and the component examples. `npm run art` and the Node toolkit are untouched; this is the library page only.
+
+**Tests (write them first)**
+- **Vitest,** a new `tests/library-art.test.mjs`. Vitest runs Vite's `import.meta.glob`; if `art.js` can't be imported under Vitest, put the logic in a plain helper module in `src/library/` and test that instead.
+  - `loadPicture('landmark/lighthouse')` resolves to a `{ url, w: 64, h: 64 }` picture.
+  - Two calls for one id return the same promise.
+  - `loadPicture('capital-relief/mountain')` resolves to a 296×296 preview.
+  - A drawing that throws resolves to `{ error }`, and an unknown id resolves to `{ error }`.
+  - Importing art.js draws nothing: count calls with a spy, or check that the module import finishes fast, under 300 ms, while drawing the Mountain alone takes about 600 ms.
+- **Browser,** in `tests/browser/library.test.mjs`. Run it only with `PLAYWRIGHT_WORKERS=1 npx playwright test --config /private/tmp/claude-501/pw-82/playwright.config.mjs tests/browser/library.test.mjs`. It starts this worktree's own server on 5182; never use 5173.
+  - `the library opens without drawing the art below the fold (#82)`: right after `page.goto`, the `capital-relief/mountain` tile has no `<img>`. After `scrollIntoViewIfNeeded()` it gets one, with `data-loaded="yes"`.
+  - The existing "every section, with no console errors" test still passes.
+  - Measure `page.goto` to the `load` event before and after the change, and report both times in the report. They are not an assertion.
+
+**Commit** with `Refs #82: the library draws its art only when a tile comes into view`, ending with the line `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
