@@ -324,3 +324,66 @@ test('picking a space with a choice of payment opens the centred panel, and Adva
 		await closeTable(request, token);
 	}
 });
+
+test('a gain of several resources is made of the ones the player picks, row by row', async ({
+	page,
+	request,
+}) => {
+	test.setTimeout(300000);
+	/** @type {string[]} */
+	const errors = [];
+	page.on(
+		'console',
+		(message) => message.type() === 'error' && errors.push(message.text())
+	);
+	page.on('pageerror', (error) => errors.push(error.message));
+	const { token, room } = await startTable(request);
+	try {
+		const { seat, op, game } = await playUntil(
+			request,
+			token,
+			room,
+			(open) =>
+				open.kind === 'chooseResource' &&
+				open.count >= 2 &&
+				open.from === 'any',
+			3000
+		);
+		const before = game.seats[seat - 1].resources;
+		const picks = ['coin', 'food', 'worker', 'culture'].slice(0, op.count);
+		await takeScreen(page, token, seat);
+
+		const panel = page.getByRole('dialog', {
+			name: `Choose ${op.count} resources`,
+		});
+		await expect(panel).toBeVisible();
+		const centre = await panelCentre(page);
+		expect(Math.abs(centre.x - 960)).toBeLessThanOrEqual(2);
+		const confirm = panel.getByRole('button', {
+			name: 'Confirm',
+			exact: true,
+		});
+		for (const [row, resource] of picks.entries()) {
+			await expect(confirm).toBeDisabled();
+			await panel.getByTestId(`row-${row}-${resource}`).click();
+		}
+		await expect(confirm).toBeEnabled();
+		await confirm.click();
+
+		await expect
+			.poll(async () => {
+				const state = await api(
+					request,
+					`state?seat=${seat}`,
+					undefined,
+					token
+				);
+				const after = state.game.seats[seat - 1].resources;
+				return picks.map((id) => after[id] - before[id]);
+			})
+			.toEqual(picks.map((id) => (before[id] < 8 ? 1 : 0)));
+		expect(errors).toEqual([]);
+	} finally {
+		await closeTable(request, token);
+	}
+});
