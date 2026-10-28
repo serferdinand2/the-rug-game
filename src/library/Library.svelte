@@ -51,6 +51,7 @@
 		ART_SECTIONS,
 		PARTS,
 		PICTURES,
+		RELIEF_SPECIMENS,
 		DEFERRED_ART,
 		artAnchor,
 		artDescription,
@@ -186,6 +187,14 @@
 								issue={tile.asset.issue} />
 						{/each}
 					{/each}
+					{#if section.id === 'capital-relief'}
+						<h3 class="rg-library--expansion">Specimens</h3>
+						{#each RELIEF_SPECIMENS as specimen (specimen.label)}
+							<ArtTile
+								name={specimen.label}
+								picture={specimen.picture} />
+						{/each}
+					{/if}
 				{/if}
 			</Section>
 		{/each}

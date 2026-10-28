@@ -270,6 +270,40 @@ export function underlay(canvas, layer) {
 }
 
 /**
+ * Paints one canvas over another. An opaque pixel replaces the one below it. A translucent pixel, such
+ * as a shadow, is blended into the colour below it, or copied with its opacity onto an empty pixel.
+ * @param {Canvas} base - The canvas below, changed in place
+ * @param {Canvas} top - The canvas above, the same size
+ * @throws {Error} When the canvases aren't the same size.
+ */
+export function overlay(base, top) {
+	if (base.w !== top.w || base.h !== top.h) {
+		throw new Error(
+			`overlay needs canvases of the same size, not ${base.w}×${base.h} and ${top.w}×${top.h}`
+		);
+	}
+	for (let i = 0; i < top.p.length; i++) {
+		const colour = top.p[i];
+		if (!colour) {
+			continue;
+		}
+		const alpha = top.alpha?.[i] ?? 1;
+		const below = base.p[i];
+		if (alpha < 1 && below) {
+			base.p[i] = mix(below, colour, alpha);
+			continue;
+		}
+		base.p[i] = colour;
+		if (alpha < 1 && !base.alpha) {
+			base.alpha = new Array(base.w * base.h).fill(1);
+		}
+		if (base.alpha) {
+			base.alpha[i] = alpha;
+		}
+	}
+}
+
+/**
  * Writes a canvas as SVG: one path per colour, in order of each colour's first pixel, with each horizontal run as one rectangle.
  * @param {Canvas} canvas
  * @param {{ opacity?: Record<Colour, number> }} [options] - Opacity per colour

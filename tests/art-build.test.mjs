@@ -200,6 +200,75 @@ function filledDrawing(w, h, holes = []) {
 `;
 }
 
+/** A capital relief asset for a synthetic catalog. */
+const relief = (/** @type {string} */ slug) => ({
+	id: `capital-relief/${slug}`,
+	kind: 'board',
+	group: 'capital-relief',
+});
+
+test('buildArt refuses a capital relief that is not the size of its mat', async () => {
+	// A base mat is 9×9 plots of 32 pixels with 1-pixel gaps; Archipelago's printed layout is 11 rows by 9.
+	for (const [slug, size, expected] of [
+		['mountain', [288, 288], '296×296, not 288×288'],
+		['archipelago', [296, 296], '296×362, not 296×296'],
+	]) {
+		const { root, drawingsDir, outDir } = await scratch({
+			[`capital-relief/${slug}.js`]: filledDrawing(size[0], size[1]),
+		});
+		try {
+			await assert.rejects(
+				buildArt({
+					drawingsDir,
+					outDir,
+					assets: /** @type {any} */ ([relief(slug)]),
+				}),
+				new RegExp(
+					`capital-relief/${slug}: a capital relief must be ${expected}`
+				)
+			);
+			assert.equal(existsSync(outDir), false);
+		} finally {
+			await rm(root, { recursive: true, force: true });
+		}
+	}
+});
+
+test('buildArt takes a capital relief the size of its mat, and refuses one with no mat', async () => {
+	const { root, drawingsDir, outDir } = await scratch({
+		'capital-relief/forest.js': filledDrawing(296, 296),
+		'capital-relief/city-in-a-bottle.js': filledDrawing(197, 197),
+		'capital-relief/nowhere.js': filledDrawing(296, 296),
+	});
+	try {
+		const assets = [
+			relief('forest'),
+			relief('city-in-a-bottle'),
+			relief('nowhere'),
+		];
+		await assert.rejects(
+			buildArt({
+				drawingsDir,
+				outDir,
+				assets: /** @type {any} */ (assets),
+			}),
+			/capital-relief\/nowhere: no capital mat for this relief/
+		);
+		await rm(join(drawingsDir, 'capital-relief/nowhere.js'));
+		const { written } = await buildArt({
+			drawingsDir,
+			outDir,
+			assets: /** @type {any} */ (assets),
+		});
+		assert.deepEqual(written, [
+			'capital-relief/city-in-a-bottle',
+			'capital-relief/forest',
+		]);
+	} finally {
+		await rm(root, { recursive: true, force: true });
+	}
+});
+
 /** A landmark asset for a synthetic catalog. */
 const landmark = (/** @type {string} */ slug) => ({
 	id: `landmark/${slug}`,

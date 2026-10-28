@@ -1,10 +1,10 @@
-// Tests for the joined footprint of a capital layout's impassable plots (#82).
+// Tests for the joined relief of a capital layout's impassable plots (#82): its footprint, ground, parts and previews.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { CAPITAL_MATS } from '../src/lib/engine/data/capitals.js';
 import { CAPITAL_GRIDS } from '../tools/art/parts/capital-terrain.js';
-import { reliefSize } from '../src/lib/art/relief.js';
-import { createCanvas, toSvg } from '../tools/art/painter.js';
+import { RELIEF_BIOMES, reliefSize } from '../src/lib/art/relief.js';
+import { createCanvas, mix, overlay, toSvg } from '../tools/art/painter.js';
 import { PALETTE } from '../tools/art/palette.js';
 import { drawNaturalGround } from '../tools/art/parts/capital-relief/ground.js';
 import { paintMountains } from '../tools/art/parts/capital-relief/mountain.js';
@@ -14,6 +14,12 @@ import {
 	impassableGroups,
 	isImpassable,
 } from '../tools/art/parts/capital-relief/footprint.js';
+import {
+	RELIEF_PAINTERS,
+	SPECIMEN_LAYOUT,
+	drawRelief,
+	drawReliefPreview,
+} from '../tools/art/parts/capital-relief/index.js';
 
 const SPECIMEN = [
 	'000000000',
@@ -309,4 +315,112 @@ test('a corner-only join carries a clump of trees over the corner', () => {
 		assert.notEqual(canvas.p[i], null, `corner ${gx},${gy}`);
 		assert.equal(canvas.alpha?.[i] ?? 1, 1, `corner ${gx},${gy} opaque`);
 	}
+});
+
+test('every relief biome has a painter', () => {
+	assert.deepEqual(Object.keys(RELIEF_PAINTERS), [...RELIEF_BIOMES]);
+	assert.ok(Object.isFrozen(RELIEF_PAINTERS));
+});
+
+test('the relief of a mat is its size and stays within its reach', () => {
+	for (const id of ['mountain', 'forest']) {
+		const grid = CAPITAL_GRIDS[id];
+		const relief = drawRelief(grid, id);
+		assert.deepEqual([relief.w, relief.h], [296, 296], id);
+		const { reach } = footprint(grid);
+		for (let i = 0; i < relief.p.length; i++) {
+			if (relief.p[i] !== null) {
+				assert.equal(reach[i], 1, `${id}: pixel ${i}`);
+			}
+		}
+	}
+});
+
+test('a biome without a painter has no relief', () => {
+	assert.throws(
+		() => drawRelief(CAPITAL_GRIDS.wetland, 'wetland'),
+		/No relief for wetland/
+	);
+});
+
+test('a preview is opaque everywhere, with ink in the gaps between buildable plots', () => {
+	assert.deepEqual(SPECIMEN_LAYOUT, SPECIMEN);
+	assert.ok(Object.isFrozen(SPECIMEN_LAYOUT));
+	const preview = drawReliefPreview(SPECIMEN_LAYOUT, 'forest');
+	assert.deepEqual([preview.w, preview.h], [296, 296]);
+	for (let i = 0; i < preview.p.length; i++) {
+		assert.notEqual(preview.p[i], null, `pixel ${i}`);
+		assert.equal(preview.alpha?.[i] ?? 1, 1, `pixel ${i} opaque`);
+	}
+	// The gap between the top-left plot and the one to its right, both buildable.
+	assert.equal(preview.p[16 * preview.w + 32], PALETTE.ink);
+});
+
+/**
+ * Whether a gap pixel lies between two impassable plots joined by a side: inside a group, where the ground runs on.
+ * @param {readonly string[]} layout
+ * @param {number} x
+ * @param {number} y
+ * @returns {boolean}
+ */
+function inSideGap(layout, x, y) {
+	const r = Math.floor(y / 33);
+	const c = Math.floor(x / 33);
+	const across = x % 33 === 32;
+	const down = y % 33 === 32;
+	if (across === down) {
+		return false;
+	}
+	return (
+		isImpassable(layout, r, c) &&
+		isImpassable(layout, across ? r : r + 1, across ? c + 1 : c)
+	);
+}
+
+test("a preview runs its ground across a group's gaps where the relief leaves them bare", () => {
+	for (const biome of ['mountain', 'forest']) {
+		const relief = drawRelief(SPECIMEN_LAYOUT, biome);
+		const preview = drawReliefPreview(SPECIMEN_LAYOUT, biome);
+		let bare = 0;
+		for (let y = 0; y < preview.h; y++) {
+			for (let x = 0; x < preview.w; x++) {
+				const i = y * preview.w + x;
+				if (relief.p[i] === null && inSideGap(SPECIMEN_LAYOUT, x, y)) {
+					bare++;
+					assert.notEqual(
+						preview.p[i],
+						PALETTE.ink,
+						`${biome} ${x},${y}`
+					);
+				}
+			}
+		}
+		assert.ok(bare > 0, `${biome}: the relief covers every gap`);
+	}
+});
+
+test('overlay blends a shadow and replaces an opaque pixel', () => {
+	const base = createCanvas(2, 1);
+	base.p.fill(PALETTE.grass);
+	const top = createCanvas(2, 1);
+	top.p = [PALETTE.ink, PALETTE.snow];
+	top.alpha = [0.5, 1];
+	overlay(base, top);
+	assert.deepEqual(base.p, [
+		mix(PALETTE.grass, PALETTE.ink, 0.5),
+		PALETTE.snow,
+	]);
+	assert.equal(base.alpha, undefined);
+});
+
+test('overlay leaves a pixel under an empty one, keeps a shadow over nothing, and refuses another size', () => {
+	const base = createCanvas(2, 1);
+	base.p[0] = PALETTE.grass;
+	const top = createCanvas(2, 1);
+	top.p[1] = PALETTE.ink;
+	top.alpha = [1, 0.25];
+	overlay(base, top);
+	assert.deepEqual(base.p, [PALETTE.grass, PALETTE.ink]);
+	assert.deepEqual(base.alpha, [1, 0.25]);
+	assert.throws(() => overlay(base, createCanvas(1, 2)), /same size/);
 });

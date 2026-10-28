@@ -1,6 +1,7 @@
 // The art on the library page: every scene part and every drawing, drawn in the browser from the art toolkit.
 // In npm run dev a changed drawing shows at once; npm run art still writes the SVGs the game uses.
 import { ASSETS } from '../lib/art/catalog.js';
+import { RELIEF_BIOMES } from '../lib/art/relief.js';
 
 /** Groups resolved through text or later artwork. @type {Readonly<Record<string, string>>} */
 export const DEFERRED_ART = Object.freeze({
@@ -13,6 +14,11 @@ import {
 	drawingCanvas,
 	gallerySections,
 } from '../../tools/art/gallery.js';
+import { CAPITAL_GRIDS } from '../../tools/art/parts/capital-terrain.js';
+import {
+	SPECIMEN_LAYOUT,
+	drawReliefPreview,
+} from '../../tools/art/parts/capital-relief/index.js';
 
 /** @typedef {import('../../tools/art/painter.js').Canvas} Canvas */
 /** @typedef {import('../../tools/art/gallery.js').GallerySection} GallerySection */
@@ -30,7 +36,10 @@ export function artDescription(section) {
 		return 'Five owner-reviewed terrain hex markers at native 24×24. These are card/map terrain symbols, separate from the capital biome tile solutions.';
 	}
 	if (section.id === 'capital-mat') {
-		return 'Six full mats are example compositions only. Actual mats are generated from reusable terrain tiles for each game, following its setup and plot layout. Expansion artwork remains part of issue #6.';
+		return 'The full mats are example compositions only. Each one lays ground tiles on its printed layout, with its relief over them once that relief is released. The game composes each mat the same way.';
+	}
+	if (section.id === 'capital-relief') {
+		return `${section.total} reliefs, ${section.drawn} drawn. Each mat's impassable plots are one relief, drawn from its printed layout over the mat's per-plot ground. Each preview shows the relief on that ground, and the specimens show every kind of join. The owner approves each batch here. Source issue #${section.issues.join(', #')}.`;
 	}
 	return `${section.total} assets, ${section.drawn} drawn. Source issue #${section.issues.join(', #')}.${section.id === 'landmark' ? ' Largest footprint first, drawn in its footprint shape under the plot grid.' : ''}`;
 }
@@ -71,18 +80,50 @@ const modules = import.meta.glob('../../tools/art/drawings/**/*.js', {
 	eager: true,
 });
 
-/** Every drawing's picture, by asset id. @type {ReadonlyMap<string, Picture>} */
+/**
+ * Every drawing's picture, by asset id. A capital relief is shown as its preview on the mat's ground,
+ * because alone it is mostly transparent; the preview draws the same relief.
+ * @type {ReadonlyMap<string, Picture>}
+ */
 export const PICTURES = new Map(
 	Object.entries(modules).map(([path, module]) => {
 		const id = path.replace(/^.*\/drawings\//, '').replace(/\.js$/, '');
+		const [group, slug] = id.split('/');
 		return [
 			id,
 			safely(() =>
-				drawingCanvas(id, /** @type {{ draw?: unknown }} */ (module))
+				group === 'capital-relief'
+					? drawReliefPreview(
+							CAPITAL_GRIDS[
+								/** @type {keyof typeof CAPITAL_GRIDS} */ (slug)
+							],
+							slug
+						)
+					: drawingCanvas(
+							id,
+							/** @type {{ draw?: unknown }} */ (module)
+						)
 			),
 		];
 	})
 );
+
+/** The capital mat names by slug, such as 'Mountain'. */
+const MAT_NAMES = new Map(
+	ASSETS.filter((asset) => asset.group === 'capital-mat').map((asset) => [
+		asset.id.split('/')[1],
+		asset.name,
+	])
+);
+
+/**
+ * Each relief biome's preview on a layout with every kind of join.
+ * @type {readonly { label: string, picture: Picture }[]}
+ */
+export const RELIEF_SPECIMENS = RELIEF_BIOMES.map((biome) => ({
+	label: `${MAT_NAMES.get(biome) ?? biome}: a lone plot, side and corner joins, an L, a 2×2`,
+	picture: safely(() => drawReliefPreview(SPECIMEN_LAYOUT, biome)),
+}));
 
 /** One picture per scene part. @type {readonly { label: string, picture: Picture }[]} */
 export const PARTS = PART_SAMPLES.map((sample) => ({

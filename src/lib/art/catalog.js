@@ -13,7 +13,7 @@
  * @property {AssetKind} kind - Illustration, icon or board
  * @property {string} group - The group id, e.g. 'landmark'
  * @property {ExpansionCode} expansion - Where it comes from
- * @property {number} issue - The art issue (#5–#11, or #51 for the cosmetic boards) that draws it
+ * @property {number} issue - The art issue (#5–#11, #51 for the cosmetic boards, or #82 for the capital reliefs) that draws it
  * @property {boolean} [example] - A reference composition; actual game mats are assembled from tiles per game
  */
 
@@ -98,6 +98,12 @@ export const GROUPS = Object.freeze(
 			label: 'Capital terrain tiles',
 			kind: 'icon',
 			issue: 6,
+		},
+		{
+			id: 'capital-relief',
+			label: 'Capital relief',
+			kind: 'board',
+			issue: 82,
 		},
 		{
 			id: 'inspiration-tile',
@@ -755,6 +761,25 @@ const LISTS = {
 		],
 		aa: ADVANCED_MATS.aa.flatMap(([slug, name]) => biomeTiles(slug, name)),
 		ff: ADVANCED_MATS.ff.flatMap(([slug, name]) => biomeTiles(slug, name)),
+	},
+	// One relief per mat: its impassable plots drawn as one picture (#82).
+	'capital-relief': {
+		base: [
+			['mountain', 'Mountain relief'],
+			['wetland', 'Wetland relief'],
+			['tropical', 'Tropical relief'],
+			['desert', 'Desert relief'],
+			['grassland', 'Grassland relief'],
+			['forest', 'Forest relief'],
+		],
+		aa: ADVANCED_MATS.aa.map(
+			([slug, name]) =>
+				/** @type {[string, string]} */ ([slug, `${name} relief`])
+		),
+		ff: ADVANCED_MATS.ff.map(
+			([slug, name]) =>
+				/** @type {[string, string]} */ ([slug, `${name} relief`])
+		),
 	},
 	'inspiration-tile': {
 		aa: [

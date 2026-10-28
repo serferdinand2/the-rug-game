@@ -31,6 +31,7 @@ const EXPECTED_COUNTS = {
 	'territory-tile': { base: 48 },
 	'capital-mat': { base: 6, aa: 6, ff: 6 },
 	'capital-terrain': { base: 84, aa: 84, ff: 84 },
+	'capital-relief': { base: 6, aa: 6, ff: 6 },
 	'inspiration-tile': { aa: 4 },
 };
 
@@ -101,11 +102,11 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 317 icons and 84 boards', () => {
+test('there are 294 illustrations, 317 icons and 102 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
 	assert.equal(count('icon'), 317);
-	assert.equal(count('board'), 84);
+	assert.equal(count('board'), 102);
 });
 
 test('the slug rules turn awkward names into the agreed slugs', () => {
@@ -161,6 +162,13 @@ test('spot checks match the agreed spellings', () => {
 		['board/map-large', 'Large map (4–5 players)', 'base', 6],
 		['inspiration-tile/armories', 'Armories', 'aa', 11],
 		['landmark/forge', 'Forge', 'base', 7],
+		['capital-relief/mountain', 'Mountain relief', 'base', 82],
+		[
+			'capital-relief/city-in-a-bottle',
+			'City in a Bottle relief',
+			'ff',
+			82,
+		],
 	];
 	for (const [id, name, expansion, issue] of expected) {
 		const asset = byId.get(id);
