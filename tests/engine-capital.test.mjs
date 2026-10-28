@@ -9,6 +9,7 @@ import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { view } from '../src/lib/engine/view.js';
 import { countVp } from '../src/lib/engine/effects/vp.js';
+import { capitalScore } from '../src/lib/engine/game.js';
 import {
 	buildingSpots,
 	cityPlots,
@@ -783,6 +784,18 @@ test('scoreCapital scores 1 VP per complete row and column; impassable plots cou
 	assert.equal(scored[0].rows, 1);
 	assert.equal(scored[0].columns, 1);
 	assert.equal(next.seats[0].vp, state.seats[0].vp + 2);
+});
+
+test('a capital not dealt yet scores nothing (#128)', () => {
+	const { state } = startedGame(2);
+	const seat = structuredClone(state.seats[0]);
+	seat.capital.mat = null;
+	assert.deepEqual(capitalScore(seat), {
+		rows: 0,
+		columns: 0,
+		uniform: 0,
+		vp: 0,
+	});
 });
 
 test('scoreCapital with nothing complete scores 0 VP and still says so', () => {

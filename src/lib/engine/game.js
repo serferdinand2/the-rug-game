@@ -16,11 +16,14 @@ export { DECISIONS } from './kinds.js';
 export { openDecisions } from './stack.js';
 export { controlledTerritories } from './control.js';
 export {
+	capitalScore,
 	cityPlots,
 	completeLines,
 	completeDistricts,
 	uniformLines,
 } from './city.js';
+// What the player cards and the scoreboard show (#128): the tiebreak values, and the income spaces left uncovered.
+export { tiebreakValues } from './ranking.js';
 export {
 	askedSeats,
 	defaultAction,
@@ -32,4 +35,4 @@ export {
 // What the prompts read (#28): an explore's matching sides, a tile's turned corners and the income turn's steps.
 export { matchingSides } from './map.js';
 export { turned } from './terrain.js';
-export { INCOME_STEPS, INCOME_STEP_KINDS } from './income.js';
+export { INCOME_STEPS, INCOME_STEP_KINDS, exposedSpaces } from './income.js';
