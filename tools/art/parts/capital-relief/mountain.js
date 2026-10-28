@@ -2,7 +2,7 @@
 import { seededRandom } from '../../painter.js';
 import { PALETTE as C } from '../../palette.js';
 import { PITCH } from '../../../../src/lib/art/relief.js';
-import { put, shadow } from './canvas.js';
+import { cast, put } from './canvas.js';
 import { hash, noise } from './ground.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
@@ -185,17 +185,8 @@ function footShadow(canvas, fp, own, [x0, x1, y0, y1]) {
 			if (!fp.reach[i] || own.has(i)) {
 				continue;
 			}
-			if (BAYER[(y % 4) * 4 + (x % 4)] >= 0.15) {
-				continue;
-			}
-			const under = canvas.p[i];
-			if (under === null) {
-				shadow(canvas, x, y, 0.3);
-			} else if (!canvas.alpha || canvas.alpha[i] === 1) {
-				const darker = DARKER[under];
-				if (darker) {
-					canvas.p[i] = darker;
-				}
+			if (BAYER[(y % 4) * 4 + (x % 4)] < 0.15) {
+				cast(canvas, x, y, 0.3, DARKER);
 			}
 		}
 	}

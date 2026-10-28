@@ -281,3 +281,83 @@ export function footprint(layout) {
 	}
 	return { rows, cols, w, h, mask, plots, reach, corners };
 }
+
+/**
+ * The footprint's floor, widened by a round patch of the given radius around each corner join's gap
+ * pixel, for a relief whose corner pieces stand on a floor of their own.
+ * @param {Footprint} fp
+ * @param {number} radius - Up to the corner patch's 16
+ * @returns {Uint8Array} A new mask
+ */
+export function withCornerPatches(fp, radius) {
+	const { w, h } = fp;
+	const area = fp.mask.slice();
+	for (const { gx, gy } of fp.corners) {
+		for (let dy = -radius; dy <= radius; dy++) {
+			for (let dx = -radius; dx <= radius; dx++) {
+				const x = gx + dx;
+				const y = gy + dy;
+				if (
+					dx * dx + dy * dy <= radius * radius &&
+					x >= 0 &&
+					y >= 0 &&
+					x < w &&
+					y < h
+				) {
+					area[y * w + x] = 1;
+				}
+			}
+		}
+	}
+	return area;
+}
+
+/** A diagonal step of the distance transform: close to √2, and exact in thirds. */
+const DIAGONAL = 4 / 3;
+
+/**
+ * How far each pixel of a mask lies inside it: the steps to the nearest pixel outside, counting a
+ * diagonal step as 4/3 and the canvas's edge as outside. Two passes, so it is quick on a whole mat.
+ * @param {Uint8Array} mask - One byte per pixel
+ * @param {number} w
+ * @param {number} h
+ * @returns {Float32Array} 0 outside the mask, 1 on its edge, more further in
+ */
+export function distanceInside(mask, w, h) {
+	const depth = new Float32Array(w * h);
+	for (let i = 0; i < depth.length; i++) {
+		depth[i] = mask[i] ? Infinity : 0;
+	}
+	/** @type {(x: number, y: number) => number} */
+	const at = (x, y) =>
+		x < 0 || y < 0 || x >= w || y >= h ? 0 : depth[y * w + x];
+	for (let y = 0; y < h; y++) {
+		for (let x = 0; x < w; x++) {
+			const i = y * w + x;
+			if (depth[i] > 0) {
+				depth[i] = Math.min(
+					depth[i],
+					at(x - 1, y) + 1,
+					at(x, y - 1) + 1,
+					at(x - 1, y - 1) + DIAGONAL,
+					at(x + 1, y - 1) + DIAGONAL
+				);
+			}
+		}
+	}
+	for (let y = h - 1; y >= 0; y--) {
+		for (let x = w - 1; x >= 0; x--) {
+			const i = y * w + x;
+			if (depth[i] > 0) {
+				depth[i] = Math.min(
+					depth[i],
+					at(x + 1, y) + 1,
+					at(x, y + 1) + 1,
+					at(x + 1, y + 1) + DIAGONAL,
+					at(x - 1, y + 1) + DIAGONAL
+				);
+			}
+		}
+	}
+	return depth;
+}

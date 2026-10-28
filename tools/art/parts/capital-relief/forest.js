@@ -1,7 +1,8 @@
 // Broadleaf trees and pines packed into a mat's impassable footprint, ported from the approved #82 spike.
 import { seededRandom } from '../../painter.js';
 import { PALETTE as C } from '../../palette.js';
-import { put, shadow } from './canvas.js';
+import { cast, put } from './canvas.js';
+import { withCornerPatches } from './footprint.js';
 import { hash, noise } from './ground.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
@@ -163,24 +164,7 @@ function pine(canvas, ok, bx, by, hgt) {
 export function paintForest(canvas, fp, seed) {
 	const { w: W, h: H, plots, reach, corners } = fp;
 	// Corner joins carry trees too, so their floor reaches into a round patch.
-	const mask = fp.mask.slice();
-	for (const { gx, gy } of corners) {
-		for (let dy = -7; dy <= 7; dy++) {
-			for (let dx = -7; dx <= 7; dx++) {
-				const x = gx + dx;
-				const y = gy + dy;
-				if (
-					dx * dx + dy * dy <= 49 &&
-					x >= 0 &&
-					y >= 0 &&
-					x < W &&
-					y < H
-				) {
-					mask[y * W + x] = 1;
-				}
-			}
-		}
-	}
+	const mask = withCornerPatches(fp, 7);
 	drawFloor(canvas, fp, mask, seed);
 	const rand = seededRandom(hash(seed, 3));
 	/** @type {Tree[]} */
@@ -251,21 +235,8 @@ export function paintForest(canvas, fp, seed) {
 			for (let dx = 0; dx <= t.r + 2; dx++) {
 				const x = t.bx + dx;
 				const y = t.by + dy;
-				if (x < 0 || y < 0 || x >= W || y >= H) {
-					continue;
-				}
-				const i = y * W + x;
-				if (!reach[i]) {
-					continue;
-				}
-				const under = canvas.p[i];
-				if (under === null) {
-					shadow(canvas, x, y, 0.25);
-				} else if (!canvas.alpha || canvas.alpha[i] === 1) {
-					const darker = DARKER[under];
-					if (darker) {
-						canvas.p[i] = darker;
-					}
+				if (x >= 0 && y >= 0 && x < W && y < H && reach[y * W + x]) {
+					cast(canvas, x, y, 0.25, DARKER);
 				}
 			}
 		}

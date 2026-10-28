@@ -7,13 +7,14 @@ import { RELIEF_BIOMES, reliefSize } from '../src/lib/art/relief.js';
 import { createCanvas, mix, overlay, toSvg } from '../tools/art/painter.js';
 import { PALETTE } from '../tools/art/palette.js';
 import { drawNaturalGround } from '../tools/art/parts/capital-relief/ground.js';
-import { paintMountains } from '../tools/art/parts/capital-relief/mountain.js';
-import { paintForest } from '../tools/art/parts/capital-relief/forest.js';
 import {
+	distanceInside,
 	footprint,
 	impassableGroups,
 	isImpassable,
+	withCornerPatches,
 } from '../tools/art/parts/capital-relief/footprint.js';
+import { cast } from '../tools/art/parts/capital-relief/canvas.js';
 import {
 	RELIEF_PAINTERS,
 	SPECIMEN_LAYOUT,
@@ -107,6 +108,53 @@ test('nothing reaches a buildable plot except within a corner patch', () => {
 	}
 });
 
+test('distanceInside counts the steps from each pixel to the nearest one outside its mask', () => {
+	const w = 9;
+	const h = 7;
+	const mask = new Uint8Array(w * h);
+	for (let y = 1; y < 6; y++) {
+		for (let x = 1; x < 8; x++) {
+			mask[y * w + x] = 1;
+		}
+	}
+	const depth = distanceInside(mask, w, h);
+	assert.equal(depth[0], 0); // outside
+	assert.equal(depth[1 * w + 1], 1); // the block's corner
+	assert.equal(depth[3 * w + 1], 1); // its left side
+	assert.equal(depth[2 * w + 4], 2);
+	assert.equal(depth[3 * w + 4], 3); // its middle
+	// The canvas's edge counts as outside.
+	assert.deepEqual(
+		[...distanceInside(new Uint8Array(3).fill(1), 3, 1)],
+		[1, 1, 1]
+	);
+});
+
+test('a corner patch widens the floor round each corner join', () => {
+	const fp = footprint(SPECIMEN);
+	const area = withCornerPatches(fp, 7);
+	for (const { gx, gy } of fp.corners) {
+		assert.equal(fp.mask[(gy - 7) * fp.w + gx], 0, `${gx},${gy}`);
+		assert.equal(area[(gy - 7) * fp.w + gx], 1, `${gx},${gy}`);
+		assert.equal(area[(gy - 8) * fp.w + gx], 0, `${gx},${gy}`);
+	}
+	assert.ok(fp.mask.every((v, i) => !v || area[i]));
+	assert.notEqual(area, fp.mask);
+});
+
+test('a cast shadow is translucent ink on an empty pixel and one tone darker on a painted one', () => {
+	const canvas = createCanvas(3, 1);
+	canvas.p[1] = PALETTE.grass;
+	canvas.p[2] = PALETTE.snow;
+	const darker = { [PALETTE.grass]: PALETTE.grassShade };
+	for (let x = -1; x <= 3; x++) {
+		cast(canvas, x, 0, 0.25, darker);
+	}
+	cast(canvas, 0, 0, 0.5, darker); // a shadow already cast stays as it is
+	assert.deepEqual(canvas.p, [PALETTE.ink, PALETTE.grassShade, PALETTE.snow]);
+	assert.deepEqual(canvas.alpha, [0.25, 1, 1]);
+});
+
 test('the toolkit reads the base layouts from the engine', () => {
 	for (const mat of CAPITAL_MATS) {
 		assert.deepEqual(CAPITAL_GRIDS[mat.id], mat.grid);
@@ -117,7 +165,7 @@ test('the toolkit reads the base layouts from the engine', () => {
 
 /**
  * Draws one natural-ground plot on its own canvas.
- * @param {'mountain' | 'forest'} biome
+ * @param {string} biome
  * @param {number} variant
  */
 function plot(biome, variant) {
@@ -126,9 +174,9 @@ function plot(biome, variant) {
 	return canvas;
 }
 
-test('the natural ground fills its plot deterministically in palette colours', () => {
-	const colours = new Set(Object.values(PALETTE));
-	for (const biome of ['mountain', 'forest']) {
+for (const biome of RELIEF_BIOMES) {
+	test(`${biome}: the natural ground fills its plot deterministically in palette colours`, () => {
+		const colours = new Set(Object.values(PALETTE));
 		for (let variant = 0; variant < 8; variant++) {
 			const a = plot(biome, variant);
 			assert.ok(
@@ -141,7 +189,26 @@ test('the natural ground fills its plot deterministically in palette colours', (
 			);
 			assert.deepEqual(a, plot(biome, variant));
 		}
-	}
+	});
+
+	test(`${biome}: its eight ground variants differ`, () => {
+		const svgs = new Set();
+		for (let variant = 0; variant < 8; variant++) {
+			svgs.add(toSvg(plot(biome, variant)));
+		}
+		assert.equal(svgs.size, 8, biome);
+	});
+}
+
+test('a biome without a natural ground has none', () => {
+	assert.throws(
+		() =>
+			drawNaturalGround(createCanvas(32, 32), {
+				biome: 'tundra',
+				variant: 0,
+			}),
+		/No natural ground for tundra/
+	);
 });
 
 test('the natural ground paints at an offset and stays inside its plot', () => {
@@ -155,85 +222,148 @@ test('the natural ground paints at an offset and stays inside its plot', () => {
 	}
 });
 
-test('its eight variants differ', () => {
-	for (const biome of ['mountain', 'forest']) {
-		const svgs = new Set();
-		for (let variant = 0; variant < 8; variant++) {
-			svgs.add(toSvg(plot(biome, variant)));
-		}
-		assert.equal(svgs.size, 8, biome);
-	}
-});
-
 /**
- * Paints the mountains of a layout.
+ * Paints a biome's relief into a layout's footprint with its painter.
  * @param {readonly string[]} layout
- * @returns {{ fp: ReturnType<typeof footprint>, canvas: ReturnType<typeof createCanvas>  }}
+ * @param {string} biome
+ * @returns {{ fp: ReturnType<typeof footprint>, canvas: ReturnType<typeof createCanvas> }}
  */
-function mountains(layout) {
+function paint(layout, biome) {
 	const fp = footprint(layout);
 	const canvas = createCanvas(fp.w, fp.h);
-	paintMountains(canvas, fp, 5);
+	RELIEF_PAINTERS[biome](canvas, fp, 5);
 	return { fp, canvas };
 }
 
-const MOUNTAIN_LAYOUT = CAPITAL_GRIDS.mountain;
+/**
+ * The layout a relief is painted from: its own mat's, or the specimen.
+ * @param {string} biome
+ * @param {'mat' | 'specimen'} which
+ * @returns {readonly string[]}
+ */
+function layoutOf(biome, which) {
+	return which === 'mat' ? CAPITAL_GRIDS[biome] : SPECIMEN;
+}
 
-test('mountains are deterministic and stay within the reach', () => {
-	const a = mountains(MOUNTAIN_LAYOUT);
-	const b = mountains(MOUNTAIN_LAYOUT);
-	assert.deepEqual(a.canvas.p, b.canvas.p);
-	for (let i = 0; i < a.canvas.p.length; i++) {
-		if (!a.fp.reach[i]) {
-			assert.equal(a.canvas.p[i], null, `pixel ${i}`);
-		}
+/** Paintings already made, so each relief is painted once per layout: a Mountain takes over half a second. */
+const painted = new Map();
+
+/**
+ * The relief of a biome on its own mat's layout or on the specimen, painted once.
+ * @param {string} biome
+ * @param {'mat' | 'specimen'} which
+ */
+function relief(biome, which) {
+	const key = `${biome} ${which}`;
+	if (!painted.has(key)) {
+		painted.set(key, paint(layoutOf(biome, which), biome));
 	}
-});
+	return painted.get(key);
+}
 
-test("every impassable plot's middle is mountain", () => {
-	for (const layout of [MOUNTAIN_LAYOUT, SPECIMEN]) {
-		const { fp, canvas } = mountains(layout);
-		for (let r = 0; r < layout.length; r++) {
-			for (let c = 0; c < layout[0].length; c++) {
-				if (!isImpassable(layout, r, c)) {
-					continue;
+/**
+ * Whether a relief pixel is painted at full opacity.
+ * @param {ReturnType<typeof createCanvas>} canvas
+ * @param {number} i
+ */
+function opaque(canvas, i) {
+	return canvas.p[i] !== null && (canvas.alpha?.[i] ?? 1) === 1;
+}
+
+for (const biome of RELIEF_BIOMES) {
+	test(`${biome}: the relief is deterministic and stays within the reach`, () => {
+		for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+			const a = relief(biome, which);
+			const b = paint(layoutOf(biome, which), biome);
+			assert.deepEqual(a.canvas.p, b.canvas.p, which);
+			assert.deepEqual(a.canvas.alpha, b.canvas.alpha, which);
+			for (let i = 0; i < a.canvas.p.length; i++) {
+				if (!a.fp.reach[i]) {
+					assert.equal(a.canvas.p[i], null, `${which}: pixel ${i}`);
 				}
-				let set = 0;
-				for (let y = 8; y < 24; y++) {
-					for (let x = 8; x < 24; x++) {
-						const i = (r * 33 + y) * fp.w + c * 33 + x;
-						if (
-							canvas.p[i] !== null &&
-							(canvas.alpha?.[i] ?? 1) === 1
-						) {
-							set++;
-						}
-					}
-				}
-				assert.ok(set >= 0.6 * 256, `plot ${r},${c}: ${set}/256`);
 			}
 		}
-	}
-});
+	});
 
-test('mountains use palette colours, and ink only for shadows below full opacity', () => {
-	const colours = new Set(Object.values(PALETTE));
-	const { canvas } = mountains(MOUNTAIN_LAYOUT);
-	for (let i = 0; i < canvas.p.length; i++) {
-		const colour = canvas.p[i];
-		if (colour === null) {
-			continue;
+	test(`${biome}: every impassable plot's middle is covered`, () => {
+		for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+			const layout = layoutOf(biome, which);
+			const { fp, canvas } = relief(biome, which);
+			for (let r = 0; r < layout.length; r++) {
+				for (let c = 0; c < layout[0].length; c++) {
+					if (!isImpassable(layout, r, c)) {
+						continue;
+					}
+					let set = 0;
+					for (let y = 8; y < 24; y++) {
+						for (let x = 8; x < 24; x++) {
+							if (
+								opaque(canvas, (r * 33 + y) * fp.w + c * 33 + x)
+							) {
+								set++;
+							}
+						}
+					}
+					assert.ok(
+						set >= 0.6 * 256,
+						`${which} plot ${r},${c}: ${set}/256`
+					);
+				}
+			}
 		}
-		assert.ok(colours.has(colour), `${colour} at ${i}`);
-		if ((canvas.alpha?.[i] ?? 1) < 1) {
-			assert.equal(colour, PALETTE.ink, `shadow at ${i}`);
+	});
+
+	test(`${biome}: the relief uses palette colours, and ink only for shadows below full opacity`, () => {
+		const colours = new Set(Object.values(PALETTE));
+		for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+			const { canvas } = relief(biome, which);
+			for (let i = 0; i < canvas.p.length; i++) {
+				const colour = canvas.p[i];
+				if (colour === null) {
+					continue;
+				}
+				assert.ok(colours.has(colour), `${which}: ${colour} at ${i}`);
+				if ((canvas.alpha?.[i] ?? 1) < 1) {
+					assert.equal(
+						colour,
+						PALETTE.ink,
+						`${which}: shadow at ${i}`
+					);
+				}
+			}
 		}
-	}
-});
+	});
+
+	test(`${biome}: a piece stands over every corner-only join`, () => {
+		const { fp, canvas } = relief(biome, 'specimen');
+		assert.ok(fp.corners.length > 0);
+		for (const { gx, gy } of fp.corners) {
+			let near = false;
+			for (let dy = -4; dy <= 4 && !near; dy++) {
+				for (let dx = -4; dx <= 4 && !near; dx++) {
+					near = opaque(canvas, (gy + dy) * fp.w + gx + dx);
+				}
+			}
+			assert.ok(near, `corner ${gx},${gy}`);
+		}
+	});
+
+	test(`${biome}: the relief of its mat is the mat's size and stays within its reach`, () => {
+		const grid = CAPITAL_GRIDS[biome];
+		const drawn = drawRelief(grid, biome);
+		assert.deepEqual([drawn.w, drawn.h], [296, 296]);
+		assert.deepEqual(drawn.p, relief(biome, 'mat').canvas.p);
+		const { reach } = footprint(grid);
+		for (let i = 0; i < drawn.p.length; i++) {
+			if (drawn.p[i] !== null) {
+				assert.equal(reach[i], 1, `pixel ${i}`);
+			}
+		}
+	});
+}
 
 test('a corner-only join stands a peak over the corner', () => {
-	const { fp, canvas } = mountains(SPECIMEN);
-	assert.ok(fp.corners.length > 0);
+	const { fp, canvas } = relief('mountain', 'specimen');
 	for (const { gx, gy } of fp.corners) {
 		const i = (gy - 4) * fp.w + gx;
 		assert.notEqual(canvas.p[i], null, `corner ${gx},${gy}`);
@@ -241,75 +371,8 @@ test('a corner-only join stands a peak over the corner', () => {
 	}
 });
 
-/**
- * Paints the forest of a layout.
- * @param {readonly string[]} layout
- * @returns {{ fp: ReturnType<typeof footprint>, canvas: ReturnType<typeof createCanvas> }}
- */
-function forest(layout) {
-	const fp = footprint(layout);
-	const canvas = createCanvas(fp.w, fp.h);
-	paintForest(canvas, fp, 5);
-	return { fp, canvas };
-}
-
-const FOREST_LAYOUT = CAPITAL_GRIDS.forest;
-
-test('forests are deterministic and stay within the reach', () => {
-	const a = forest(FOREST_LAYOUT);
-	const b = forest(FOREST_LAYOUT);
-	assert.deepEqual(a.canvas.p, b.canvas.p);
-	for (let i = 0; i < a.canvas.p.length; i++) {
-		if (!a.fp.reach[i]) {
-			assert.equal(a.canvas.p[i], null, `pixel ${i}`);
-		}
-	}
-});
-
-test("every impassable plot's middle is forest", () => {
-	for (const layout of [FOREST_LAYOUT, SPECIMEN]) {
-		const { fp, canvas } = forest(layout);
-		for (let r = 0; r < layout.length; r++) {
-			for (let c = 0; c < layout[0].length; c++) {
-				if (!isImpassable(layout, r, c)) {
-					continue;
-				}
-				let set = 0;
-				for (let y = 8; y < 24; y++) {
-					for (let x = 8; x < 24; x++) {
-						const i = (r * 33 + y) * fp.w + c * 33 + x;
-						if (
-							canvas.p[i] !== null &&
-							(canvas.alpha?.[i] ?? 1) === 1
-						) {
-							set++;
-						}
-					}
-				}
-				assert.ok(set >= 0.6 * 256, `plot ${r},${c}: ${set}/256`);
-			}
-		}
-	}
-});
-
-test('forests use palette colours, and ink only for shadows below full opacity', () => {
-	const colours = new Set(Object.values(PALETTE));
-	const { canvas } = forest(FOREST_LAYOUT);
-	for (let i = 0; i < canvas.p.length; i++) {
-		const colour = canvas.p[i];
-		if (colour === null) {
-			continue;
-		}
-		assert.ok(colours.has(colour), `${colour} at ${i}`);
-		if ((canvas.alpha?.[i] ?? 1) < 1) {
-			assert.equal(colour, PALETTE.ink, `shadow at ${i}`);
-		}
-	}
-});
-
 test('a corner-only join carries a clump of trees over the corner', () => {
-	const { fp, canvas } = forest(SPECIMEN);
-	assert.ok(fp.corners.length > 0);
+	const { fp, canvas } = relief('forest', 'specimen');
 	for (const { gx, gy } of fp.corners) {
 		const i = gy * fp.w + gx;
 		assert.notEqual(canvas.p[i], null, `corner ${gx},${gy}`);
@@ -322,24 +385,10 @@ test('every relief biome has a painter', () => {
 	assert.ok(Object.isFrozen(RELIEF_PAINTERS));
 });
 
-test('the relief of a mat is its size and stays within its reach', () => {
-	for (const id of ['mountain', 'forest']) {
-		const grid = CAPITAL_GRIDS[id];
-		const relief = drawRelief(grid, id);
-		assert.deepEqual([relief.w, relief.h], [296, 296], id);
-		const { reach } = footprint(grid);
-		for (let i = 0; i < relief.p.length; i++) {
-			if (relief.p[i] !== null) {
-				assert.equal(reach[i], 1, `${id}: pixel ${i}`);
-			}
-		}
-	}
-});
-
 test('a biome without a painter has no relief', () => {
 	assert.throws(
-		() => drawRelief(CAPITAL_GRIDS.wetland, 'wetland'),
-		/No relief for wetland/
+		() => drawRelief(CAPITAL_GRIDS.mountain, 'tundra'),
+		/No relief for tundra/
 	);
 });
 
@@ -377,15 +426,15 @@ function inSideGap(layout, x, y) {
 	);
 }
 
-test("a preview runs its ground across a group's gaps where the relief leaves them bare", () => {
-	for (const biome of ['mountain', 'forest']) {
-		const relief = drawRelief(SPECIMEN_LAYOUT, biome);
+for (const biome of RELIEF_BIOMES) {
+	test(`${biome}: a preview runs its ground across a group's gaps where the relief leaves them bare`, () => {
+		const { canvas } = relief(biome, 'specimen');
 		const preview = drawReliefPreview(SPECIMEN_LAYOUT, biome);
 		let bare = 0;
 		for (let y = 0; y < preview.h; y++) {
 			for (let x = 0; x < preview.w; x++) {
 				const i = y * preview.w + x;
-				if (relief.p[i] === null && inSideGap(SPECIMEN_LAYOUT, x, y)) {
+				if (canvas.p[i] === null && inSideGap(SPECIMEN_LAYOUT, x, y)) {
 					bare++;
 					assert.notEqual(
 						preview.p[i],
@@ -396,8 +445,8 @@ test("a preview runs its ground across a group's gaps where the relief leaves th
 			}
 		}
 		assert.ok(bare > 0, `${biome}: the relief covers every gap`);
-	}
-});
+	});
+}
 
 test('overlay blends a shadow and replaces an opaque pixel', () => {
 	const base = createCanvas(2, 1);

@@ -6,6 +6,7 @@ import { footprint, isImpassable } from './footprint.js';
 import { drawNaturalGround, hash } from './ground.js';
 import { paintMountains } from './mountain.js';
 import { paintForest } from './forest.js';
+import { paintWetland } from './wetland.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 /** @typedef {import('./footprint.js').Footprint} Footprint */
@@ -28,6 +29,7 @@ const GROUND_VARIANTS = 8;
 export const RELIEF_PAINTERS = Object.freeze({
 	mountain: paintMountains,
 	forest: paintForest,
+	wetland: paintWetland,
 });
 
 /**
@@ -75,7 +77,6 @@ export function drawRelief(layout, biome) {
  */
 export function drawReliefPreview(layout, biome, seed = 0) {
 	const relief = drawRelief(layout, biome);
-	const ground = /** @type {'mountain' | 'forest'} */ (biome);
 	const canvas = createCanvas(relief.w, relief.h);
 	canvas.p.fill(PALETTE.ink);
 	const rows = layout.length;
@@ -83,7 +84,7 @@ export function drawReliefPreview(layout, biome, seed = 0) {
 	for (let row = 0; row < rows; row++) {
 		for (let col = 0; col < cols; col++) {
 			drawNaturalGround(canvas, {
-				biome: ground,
+				biome,
 				variant: hash(row, col, seed) % GROUND_VARIANTS,
 				x: col * PITCH,
 				y: row * PITCH,

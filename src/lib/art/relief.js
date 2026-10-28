@@ -1,7 +1,7 @@
 // The geometry shared by the joined relief of a capital mat's impassable plots and its callers.
 
 /** The terrains that have relief art. Later batches add to it. */
-export const RELIEF_BIOMES = Object.freeze(['mountain', 'forest']);
+export const RELIEF_BIOMES = Object.freeze(['mountain', 'forest', 'wetland']);
 
 /** A plot's side in pixels. */
 export const PLOT = 32;

@@ -8,15 +8,108 @@ import { PLOT } from '../../../../src/lib/art/relief.js';
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(
 	(v) => v / 16 - 0.5
 );
-const BIOME_SEEDS = { mountain: 1301, forest: 2707 };
 
+/**
+ * Paints one pixel of the plot being drawn; off the plot it does nothing.
+ * @typedef {(px: number, py: number, colour: string) => void} PlotPainter
+ */
+
+/**
+ * Lays one small thing on the ground at (px, py).
+ * @typedef {(put: PlotPainter, px: number, py: number, roll: number, rand: () => number) => void} Scatter
+ */
+
+/** Pebbles, moss and the odd flower on the alpine meadow. @type {Scatter} */
+function scatterAlpine(put, px, py, roll, rand) {
+	if (roll < 0.55) {
+		// A pebble, lit from the upper left.
+		put(px, py, C.stoneLight);
+		put(px + 1, py, C.stone);
+		put(px, py + 1, C.stone);
+		put(px + 1, py + 1, C.stoneShade);
+		put(px + 2, py + 1, C.alpineMeadowShade);
+	} else if (roll < 0.8) {
+		put(px, py, C.alpineMeadowDeep);
+		put(px + 1, py - 1, C.alpineMoss);
+		put(px + 2, py, C.alpineMeadowDeep);
+	} else {
+		put(px, py, rand() < 0.5 ? C.cream : C.alpineMeadowDark);
+	}
+}
+
+/** Grass tufts and flowers on the forest's meadow. @type {Scatter} */
+function scatterMeadow(put, px, py, roll, rand) {
+	if (roll < 0.5) {
+		// A grass tuft.
+		put(px, py, C.grassShade);
+		put(px - 1, py - 1, C.grassShade);
+		put(px + 1, py - 1, C.forestFloorLight);
+		put(px, py - 2, C.grassLight);
+	} else if (roll < 0.72) {
+		put(px, py, rand() < 0.5 ? C.cream : C.gold);
+		put(px, py + 1, C.grassShade);
+	} else if (roll < 0.8) {
+		put(px, py, C.forestFloor);
+		put(px + 1, py, C.forestFloor);
+	}
+}
+
+/** Puddles, sedge, flowers and mud on the wet meadow. @type {Scatter} */
+function scatterMarsh(put, px, py, roll, rand) {
+	if (roll < 0.1) {
+		// A small puddle, kept whole inside the plot: dark under its far edge, a glint, a muddy lip.
+		const w = 4 + Math.floor(rand() * 3);
+		const x = Math.min(Math.max(px, 1), PLOT - 1 - w);
+		const y = Math.min(Math.max(py, 1), PLOT - 4);
+		for (let i = 1; i < w - 1; i++) {
+			put(x + i, y, C.swampWaterDeep);
+			put(x + i, y + 2, C.swampMudLight);
+		}
+		for (let i = 0; i < w; i++) {
+			put(x + i, y + 1, i === 1 ? C.swampWaterLight : C.swampWater);
+		}
+	} else if (roll < 0.5) {
+		// A sedge tuft.
+		put(px, py, C.forestFloorShade);
+		put(px - 1, py - 1, C.forestFloorLight);
+		put(px + 1, py - 1, C.pineShade);
+		put(px, py - 2, rand() < 0.3 ? C.swampReed : C.forestFloorLight);
+	} else if (roll < 0.62) {
+		put(px, py, rand() < 0.5 ? C.cream : C.lilyFlower);
+		put(px, py + 1, C.forestFloorShade);
+	} else if (roll < 0.75) {
+		put(px, py, C.swampMudShade);
+		put(px + 1, py, C.forestFloorShade);
+	}
+}
+
+/**
+ * Each biome's natural ground: its seed, its three tones and the small things lying on it.
+ * @type {Record<string, { seed: number, base: string, light: string, dark: string, scatter: Scatter }>}
+ */
 const GROUNDS = {
 	mountain: {
+		seed: 1301,
 		base: C.alpineMeadow,
 		light: C.alpineMeadowLight,
 		dark: C.alpineMeadowShade,
+		scatter: scatterAlpine,
 	},
-	forest: { base: C.grass, light: C.grassLight, dark: C.grassShade },
+	forest: {
+		seed: 2707,
+		base: C.grass,
+		light: C.grassLight,
+		dark: C.grassShade,
+		scatter: scatterMeadow,
+	},
+	// A wet meadow in dark greens, with a few small puddles.
+	wetland: {
+		seed: 3917,
+		base: C.forestFloor,
+		light: C.forestFloorLight,
+		dark: C.forestFloorShade,
+		scatter: scatterMarsh,
+	},
 };
 
 /**
@@ -60,18 +153,22 @@ export function noise(seed, scale) {
  * of a lighter and a darker tone, and a few small things lying on it.
  * @param {Canvas} canvas
  * @param {Object} options
- * @param {'mountain' | 'forest'} options.biome
+ * @param {string} options.biome - A biome with a relief, such as 'mountain'
  * @param {number} options.variant - 0 to 7; each is a different plot
  * @param {number} [options.x] - The plot's left edge
  * @param {number} [options.y] - The plot's top edge
+ * @throws {Error} When the biome has no natural ground.
  */
 export function drawNaturalGround(canvas, { biome, variant, x = 0, y = 0 }) {
+	if (!Object.hasOwn(GROUNDS, biome)) {
+		throw new Error(`No natural ground for ${biome}`);
+	}
 	const g = GROUNDS[biome];
-	const seed = hash(BIOME_SEEDS[biome], variant);
+	const seed = hash(g.seed, variant);
 	const broad = noise(seed + 7, 6);
 	const fine = noise(seed + 8, 3);
 	const rand = seededRandom(hash(seed, 41));
-	/** @type {(px: number, py: number, col: string) => void} */
+	/** @type {PlotPainter} */
 	const put = (px, py, col) => {
 		if (px >= 0 && py >= 0 && px < PLOT && py < PLOT) {
 			canvas.p[(y + py) * canvas.w + x + px] = col;
@@ -89,34 +186,6 @@ export function drawNaturalGround(canvas, { biome, variant, x = 0, y = 0 }) {
 	for (let i = 0; i < 14; i++) {
 		const px = Math.floor(rand() * PLOT);
 		const py = Math.floor(rand() * PLOT);
-		const roll = rand();
-		if (biome === 'mountain') {
-			if (roll < 0.55) {
-				// A pebble, lit from the upper left.
-				put(px, py, C.stoneLight);
-				put(px + 1, py, C.stone);
-				put(px, py + 1, C.stone);
-				put(px + 1, py + 1, C.stoneShade);
-				put(px + 2, py + 1, C.alpineMeadowShade);
-			} else if (roll < 0.8) {
-				put(px, py, C.alpineMeadowDeep);
-				put(px + 1, py - 1, C.alpineMoss);
-				put(px + 2, py, C.alpineMeadowDeep);
-			} else {
-				put(px, py, rand() < 0.5 ? C.cream : C.alpineMeadowDark);
-			}
-		} else if (roll < 0.5) {
-			// A grass tuft.
-			put(px, py, C.grassShade);
-			put(px - 1, py - 1, C.grassShade);
-			put(px + 1, py - 1, C.forestFloorLight);
-			put(px, py - 2, C.grassLight);
-		} else if (roll < 0.72) {
-			put(px, py, rand() < 0.5 ? C.cream : C.gold);
-			put(px, py + 1, C.grassShade);
-		} else if (roll < 0.8) {
-			put(px, py, C.forestFloor);
-			put(px + 1, py, C.forestFloor);
-		}
+		g.scatter(put, px, py, rand(), rand);
 	}
 }
