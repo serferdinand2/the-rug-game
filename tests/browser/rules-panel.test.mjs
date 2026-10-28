@@ -145,6 +145,8 @@ test('the menu opens How to play on the rules and on the keyboard shortcuts, and
 		);
 		await page.keyboard.press('Escape');
 		await expect(panel).toHaveCount(0);
+		// The focus goes back to the menu that opened it (#87).
+		await expect(page.getByRole('button', { name: 'Menu' })).toBeFocused();
 
 		// Keyboard shortcuts opens on its own tab.
 		await page.getByRole('button', { name: 'Menu' }).click();
@@ -157,6 +159,15 @@ test('the menu opens How to play on the rules and on the keyboard shortcuts, and
 		await expect(
 			panel.getByText('Advance: the footer asks which track.')
 		).toBeVisible();
+		// Tab wraps inside the dialog, so Escape still reaches it (#87).
+		for (let press = 0; press < 4; press++) {
+			await page.keyboard.press('Tab');
+		}
+		expect(
+			await page.evaluate(() =>
+				Boolean(document.activeElement?.closest('[role="dialog"]'))
+			)
+		).toBe(true);
 		await page.keyboard.press('Escape');
 		await expect(panel).toHaveCount(0);
 
