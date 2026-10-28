@@ -534,8 +534,8 @@ function instructionOf(decision, layout, onMap) {
 		case 'capital':
 			if (typeof decision.landmark === 'string') {
 				return onMap
-					? 'Place the landmark in your capital (drag it, turn it with R, then confirm), or choose a lit territory on the map.'
-					: 'Place the landmark in your capital: drag it, turn it with R, then confirm.';
+					? 'Place the landmark in your capital (drag it, turn it with the . and , keys, then confirm), or choose a lit territory on the map.'
+					: 'Place the landmark in your capital: drag it, turn it with the . and , keys, then confirm.';
 			}
 			return onMap
 				? 'Choose a lit plot in your capital, or a lit territory on the map.'

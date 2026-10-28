@@ -88,6 +88,18 @@
 				(civ = event.value)} />
 	</Example>
 	<Example
+		label={'kind="civ" room={460}  (the height a decision panel leaves the shelf: the row shrinks to fit it, never below 0.75; #57, #79)'}
+		surface="ink"
+		wide>
+		<CardShelf
+			kind="civ"
+			cards={[
+				{ index: 0, id: 'collectors', label: 'Collectors' },
+				{ index: 1, id: 'nomads', label: 'Nomads' },
+			]}
+			room={460} />
+	</Example>
+	<Example
 		label={`kind="mat"  (each mat's own grid, 380px · selected ${mat})`}
 		surface="ink"
 		wide>

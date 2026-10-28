@@ -435,7 +435,7 @@ test('placing a landmark asks for it on the capital, with the landmark sentence'
 	assert.equal(prompt.confirmLabel, 'Place');
 	assert.equal(
 		prompt.instruction,
-		'Place the landmark in your capital: drag it, turn it with R, then confirm.'
+		'Place the landmark in your capital: drag it, turn it with the . and , keys, then confirm.'
 	);
 	for (const option of prompt.options) {
 		if (option.place === 'capital') {

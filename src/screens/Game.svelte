@@ -5,6 +5,7 @@
 	 * @typedef {Object} GameOwnProps
 	 * @property {import('../lib/game.svelte.js').GameStore} store - Its room holds the game on show
 	 * @property {Function} [onGameResults] - Callback fired when Results is chosen, once the game is over (#29)
+	 * @property {'none' | 'panel' | 'shelf'} [panel='none'] - What is open over the board, so the dice tray outside the screen rolls clear of it (#61, #79); bindable
 	 */
 
 	/**
@@ -12,7 +13,7 @@
 	 * @typedef {GameOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} GameProps
 	 *
 	 * @example
-	 * <Game {store} onGameResults={() => (reviewing = false)} />
+	 * <Game {store} bind:panel onGameResults={() => (reviewing = false)} />
 	 */
 </script>
 
@@ -47,13 +48,9 @@
 	import TapestryCard from '../lib/components/player/TapestryCard.svelte';
 	import TechnologyCard from '../lib/components/player/TechnologyCard.svelte';
 	import { tabFor } from '../lib/area/tabs.js';
-	import { achievements, trackBoard } from '../lib/board.js';
+	import { achievements, spaceWords, trackBoard } from '../lib/board.js';
 	import { formatClock, timeLeft } from '../lib/clock.js';
-	import {
-		civilizationName,
-		describeBonus,
-		describeEffects,
-	} from '../lib/describe.js';
+	import { civilizationName } from '../lib/describe.js';
 	import { mapHexes } from '../lib/hexmap.js';
 	import { PromptState } from '../lib/prompt-state.svelte.js';
 	import { selfSummary } from '../lib/overview.js';
@@ -66,7 +63,7 @@
 		myDecision,
 		takingTurnWords,
 	} from '../lib/turn.js';
-	import { askedSeats, bonusOf } from '../lib/engine/game.js';
+	import { askedSeats } from '../lib/engine/game.js';
 	import { TRACKS } from '../lib/engine/data/tracks.js';
 	import { playerColor } from '../lib/ui.js';
 
@@ -74,7 +71,7 @@
 	/** @typedef {import('../lib/ui.js').TrackId} TrackId */
 
 	/** @type {GameProps} */
-	let { store, onGameResults, ...attr } = $props();
+	let { store, onGameResults, panel = $bindable('none'), ...attr } = $props();
 
 	let room = $derived(store.room);
 	let game = $derived(room.game);
@@ -272,6 +269,20 @@
 		}
 	});
 
+	// The dice tray rolls clear of what is open over the board: a panel, a stack of cards, or the income notice. It is
+	// outside this screen, so it learns of it from here, and of nothing once the screen goes (#61, #79).
+	$effect(() => {
+		panel =
+			promptState.panel !== 'none'
+				? promptState.panel
+				: noticeOpen
+					? 'panel'
+					: 'none';
+		return () => {
+			panel = 'none';
+		};
+	});
+
 	// A map decision opens the map; the prompt state starts each decision with nothing chosen (#79).
 	let decisionKey = $derived(mine ? `${mine.id}` : '');
 	$effect(() => {
@@ -305,21 +316,6 @@
 	let currentSeat = $derived(
 		game.current === null ? null : game.seats[game.current - 1]
 	);
-
-	/**
-	 * The words for the selected space: its benefit, and its bonus when it has one.
-	 * @param {TrackId} track
-	 * @param {number} space
-	 */
-	function spaceWords(track, space) {
-		const benefit = describeEffects(TRACKS[track][space].benefit, {
-			state: game,
-		});
-		const bonus = bonusOf(game, track, space);
-		return bonus
-			? `${benefit}. Bonus: ${describeBonus(bonus, { state: game })}.`
-			: `${benefit}.`;
-	}
 
 	/**
 	 * The tier price as symbols, for the footer.
@@ -937,7 +933,7 @@
 			heading="Advance to"
 			properName={TRACKS[selected.track][selected.space].name}
 			track={selected.track}
-			detail={spaceWords(selected.track, selected.space)}
+			detail={spaceWords(game, selected.track, selected.space)}
 			cost={priceSymbols(selected.track, selected.space)}
 			income={turnDecision.kind === 'chooseTurn' && !noticeOpen
 				? { description: incomeDescription, label: 'Take income' }

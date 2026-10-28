@@ -1,4 +1,4 @@
-<!-- The decision prompt over the shared area: a dark scrim, an optional shelf of cards above, and the panel with its title, content and Confirm. -->
+<!-- The decision prompt over the shared area: a dark scrim, and at the screen's centre the panel with its title, content and Confirm, under an optional shelf of cards. -->
 <script module>
 	/**
 	 * Properties of the DecisionPanel component itself.
@@ -10,13 +10,13 @@
 	 * @property {boolean} [confirmDisabled=false] - Nothing valid is chosen yet
 	 * @property {import('../../ui.js').TrackId | null} [track=null] - The track that tints the bottom bar and border, as the mockup's --track
 	 * @property {'default' | 'income'} [tone='default'] - income: the title, border and step strip in gold, for the viewer's income turn
-	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right, for a choice on the map; its content scrolls, so the title and Confirm stay in sight. It is --docked-panel-width wide and --docked-panel-inset in from the right, for the board beside it to keep free
-	 * @property {boolean} [centred=false] - The panel's centre at the screen's centre, for a choice of several resources, cards or tiles (#75); never with docked or a shelf
+	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right instead of at the screen's centre, for a choice on the map; its content scrolls, so the title and Confirm stay in sight. It is --docked-panel-width wide and --docked-panel-inset in from the right, for the board beside it to keep free
+	 * @property {boolean} [narrow=false] - The panel is --narrow-panel-width wide, as a pick of several resources, cards or tiles is (#75); otherwise as wide as its content, 480 to 900 px
 	 * @property {import('svelte').Snippet} [steps] - The income steps, between the title and the content
 	 * @property {string} [cancelLabel] - Shows a cancel button with this text, such as 'Cancel'; left out, there is none
 	 * @property {import('svelte').Snippet} [children] - The content: the instruction and the choices; left out, the panel has no content area and its status line carries the instruction, leaving more room for a shelf
 	 * @property {import('svelte').Snippet} [pinned] - Kept in sight between the content and the actions while a docked panel's content scrolls, such as what is chosen
-	 * @property {import('svelte').Snippet} [shelf] - Cards shown above the panel, as the card choices are
+	 * @property {import('svelte').Snippet<[number | undefined]>} [shelf] - Cards shown above the panel, as the card choices are; it gets the height it may take, once measured, so its cards can fit it (#57)
 	 * @property {Function} [onDecisionPanelConfirm] - Callback fired when Confirm is pressed
 	 * @property {Function} [onDecisionPanelCancel] - Callback fired when the cancel button is pressed
 	 */
@@ -28,6 +28,11 @@
 	 * @example
 	 * <DecisionPanel title="Choose a resource" confirmDisabled={!picked} onDecisionPanelConfirm={send}>
 	 *   <DecisionOption …/>
+	 * </DecisionPanel>
+	 *
+	 * @example
+	 * <DecisionPanel title="Choose a tapestry card to keep" confirmLabel="Keep card">
+	 *   {#snippet shelf(room)}<CardShelf kind="tapestry" {cards} {room} />{/snippet}
 	 * </DecisionPanel>
 	 */
 </script>
@@ -46,7 +51,7 @@
 		track = null,
 		tone = 'default',
 		docked = false,
-		centred = false,
+		narrow = false,
 		statusWarn = false,
 		steps,
 		cancelLabel,
@@ -59,6 +64,19 @@
 	} = $props();
 
 	const uid = $props.id();
+
+	/** The gap between the shelf and the panel. */
+	const SHELF_GAP = 18;
+
+	/** The stack's height, the most it may take, and the panel's. */
+	let stackHeight = $state(0);
+	let panelHeight = $state(0);
+	/** The height the shelf may take above the panel (#57), once both are measured. */
+	let room = $derived(
+		stackHeight > 0
+			? Math.max(0, stackHeight - panelHeight - SHELF_GAP)
+			: undefined
+	);
 
 	/**
 	 * @param {ComponentEvent} event
@@ -87,83 +105,119 @@
 	{...attr}
 	class="rg-decision-panel {attr.class ? attr.class : ''}"
 	class:rg-decision-panel--docked={docked}
-	class:rg-decision-panel--centred={centred}
-	style:--rg-decision-panel-track={track ? trackColor(track) : undefined}>
-	{#if shelf}
-		<div class="rg-decision-panel--shelf">{@render shelf()}</div>
-	{/if}
+	class:rg-decision-panel--narrow={narrow}
+	style:--rg-decision-panel-track={track ? trackColor(track) : undefined}
+	style:--rg-decision-panel-gap="{SHELF_GAP}px">
+	<span class="rg-decision-panel--spacer"></span>
 	<div
-		class="rg-decision-panel--panel"
-		class:rg-decision-panel--income={tone === 'income'}
-		class:rg-decision-panel--tracked={track !== null}
-		role="dialog"
-		aria-modal="false"
-		aria-labelledby="{uid}-title">
-		<div class="rg-decision-panel--top">
-			<h2 id="{uid}-title">{title}</h2>
-		</div>
-		{#if steps}
-			<div class="rg-decision-panel--steps">{@render steps()}</div>
+		class="rg-decision-panel--stack"
+		bind:clientHeight={stackHeight}>
+		{#if shelf}
+			<div class="rg-decision-panel--shelf">{@render shelf(room)}</div>
 		{/if}
-		{#if children}
-			<div
-				class="rg-decision-panel--content"
-				class:rg-decision-panel--content-pinned={pinned}>
-				{@render children()}
+		<div
+			class="rg-decision-panel--panel"
+			class:rg-decision-panel--income={tone === 'income'}
+			class:rg-decision-panel--tracked={track !== null}
+			role="dialog"
+			aria-modal="false"
+			aria-labelledby="{uid}-title"
+			bind:offsetHeight={panelHeight}>
+			<div class="rg-decision-panel--top">
+				<h2 id="{uid}-title">{title}</h2>
 			</div>
-		{/if}
-		{#if pinned}
-			<div class="rg-decision-panel--pinned">{@render pinned()}</div>
-		{/if}
-		<div class="rg-decision-panel--bottom">
-			<p
-				class="rg-decision-panel--status"
-				class:rg-decision-panel--status-empty={!status}
-				class:rg-decision-panel--status-warn={statusWarn}
-				role="status">
-				{status}
-			</p>
-			{#if cancelLabel}
-				<Button onButtonClick={cancelClickHandler}
-					>{cancelLabel}</Button>
+			{#if steps}
+				<div class="rg-decision-panel--steps">{@render steps()}</div>
 			{/if}
-			<Button
-				mode="confirm"
-				class="rg-decision-panel--confirm"
-				disabled={confirmDisabled}
-				onButtonClick={confirmClickHandler}>{confirmLabel}</Button>
+			{#if children}
+				<div
+					class="rg-decision-panel--content"
+					class:rg-decision-panel--content-pinned={pinned}>
+					{@render children()}
+				</div>
+			{/if}
+			{#if pinned}
+				<div class="rg-decision-panel--pinned">{@render pinned()}</div>
+			{/if}
+			<div class="rg-decision-panel--bottom">
+				<p
+					class="rg-decision-panel--status"
+					class:rg-decision-panel--status-empty={!status}
+					class:rg-decision-panel--status-warn={statusWarn}
+					role="status">
+					{status}
+				</p>
+				{#if cancelLabel}
+					<Button onButtonClick={cancelClickHandler}
+						>{cancelLabel}</Button>
+				{/if}
+				<Button
+					mode="confirm"
+					class="rg-decision-panel--confirm"
+					disabled={confirmDisabled}
+					onButtonClick={confirmClickHandler}>{confirmLabel}</Button>
+			</div>
 		</div>
 	</div>
 </div>
 
 <style>
+	/* Every prompt opens at the screen's centre (owner, #79): the scrim covers the shared area, and the shelf and the
+	   panel stand in one column in the middle of it. */
 	.rg-decision-panel {
+		--rg-decision-panel-inline: 34px;
 		position: absolute;
 		z-index: var(--layer-popover);
 		inset: 0;
 		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: flex-end;
-		padding: 26px 34px 14px;
+		justify-content: center;
+		padding: var(--space-9) var(--rg-decision-panel-inline);
 		background: color-mix(in srgb, var(--ink) 52%, transparent);
 	}
 
-	/* The shelf takes the height above the panel, so the cards on it can size themselves to it (#57). */
-	.rg-decision-panel--shelf {
-		display: flex;
-		flex: 1 1 0;
-		justify-content: center;
-		width: 100%;
-		min-height: 0;
-		margin-bottom: 18px;
+	.rg-decision-panel--narrow .rg-decision-panel--panel {
+		width: var(--narrow-panel-width);
+		min-width: 0;
 	}
 
-	.rg-decision-panel--panel {
+	/* The stack's centre is the screen's: the screen is the nearest size container, or else the viewport, and this
+	   area starts at its left edge, as the shared area does. The spacer takes twice the distance between the two
+	   centres, and gives way first, so a stack wider than the room right of the screen's centre slides left and stays
+	   on the board; wider than the board, the shelf scrolls (#79). */
+	.rg-decision-panel--spacer {
+		flex: 0 1000
+			max(0px, calc(100cqw - 100% - 2 * var(--rg-decision-panel-inline)));
+	}
+
+	/* The shelf and the panel in one column, centred together; its height is the most the two may take. */
+	.rg-decision-panel--stack {
+		display: flex;
 		flex: 0 1 auto;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-width: 0;
+		max-width: 100%;
+	}
+
+	/* The shelf is as tall as its cards, at most the room above the panel, which its cards size themselves to (#57). */
+	.rg-decision-panel--shelf {
+		display: flex;
+		flex: 0 1 auto;
+		justify-content: center;
+		max-width: 100%;
+		min-height: 0;
+		margin-bottom: var(--rg-decision-panel-gap);
+	}
+
+	/* The panel is as wide as its content, up to 900 px. The limit is a length, not a percentage of the stack, so it
+	   holds while the stack measures its own width: a row of many options would otherwise make the stack as wide as
+	   the board and leave the spacer nothing (#79). */
+	.rg-decision-panel--panel {
+		flex: none;
 		width: max-content;
 		min-width: min(480px, 100%);
-		max-width: min(900px, 100%);
+		max-width: 900px;
 		max-height: 100%;
 		overflow: auto;
 		border: var(--border) solid var(--line);
@@ -314,31 +368,27 @@
 		box-shadow: none;
 	}
 
-	/* Fixed to the screen's centre, between the header and the footer (#75). */
-	.rg-decision-panel--centred .rg-decision-panel--panel {
-		position: fixed;
-		top: 50%;
-		left: 50%;
-		width: var(--centred-panel-width);
-		min-width: 0;
-		max-height: calc(100vh - 2 * var(--bar-height) - var(--space-10));
-		transform: translate(-50%, -50%);
-	}
-
 	/* A choice on the map leaves the board clickable: no scrim, only the panel takes the pointer, docked at the
 	   right beside the map rather than over its hexes (#26 review). What is chosen gets its own line. The panel is
 	   --docked-panel-width wide and --docked-panel-inset in from the right, so a board can keep both free and lay the
 	   map out beside it (#74). */
 	.rg-decision-panel--docked {
-		align-items: flex-end;
-		justify-content: flex-start;
-		padding-top: 70px;
-		padding-right: var(--docked-panel-inset);
+		justify-content: flex-end;
+		padding: 70px var(--docked-panel-inset) 14px
+			var(--rg-decision-panel-inline);
 		background: transparent;
 		pointer-events: none;
 	}
 
-	.rg-decision-panel--docked > * {
+	.rg-decision-panel--docked .rg-decision-panel--spacer {
+		display: none;
+	}
+
+	.rg-decision-panel--docked .rg-decision-panel--stack {
+		justify-content: flex-start;
+	}
+
+	.rg-decision-panel--docked .rg-decision-panel--panel {
 		pointer-events: auto;
 	}
 

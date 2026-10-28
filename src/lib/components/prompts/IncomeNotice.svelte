@@ -63,7 +63,7 @@
 <DecisionPanel
 	{...attr}
 	class="rg-income-notice {attr.class ? attr.class : ''}"
-	centred
+	narrow
 	tone="income"
 	{title}
 	{confirmLabel}

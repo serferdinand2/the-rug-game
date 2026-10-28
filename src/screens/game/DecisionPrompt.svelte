@@ -55,8 +55,8 @@
 	let picks = $derived(state.picks);
 	let cardPick = $derived(state.cardPick);
 	let advance = $derived(state.advance);
-	/** A pick of several things, or a trade, opens at the screen's centre (#75). */
-	let centred = $derived(
+	/** A pick of several things, or a trade, is narrow, as #75 drew it. */
+	let narrow = $derived(
 		(!!pick && !cardPick) || !!state.offering || state.tradeAnswer !== -1
 	);
 	let pickNoun = $derived(
@@ -242,7 +242,7 @@
 {/snippet}
 
 <!-- Cards to pay (#75), several chosen at once on the shelf above the panel. -->
-{#snippet pickShelf()}
+{#snippet pickShelf(/** @type {number | undefined} */ room)}
 	{#if cardPick && picks}
 		<CardShelf
 			kind={cardPick.kind === 'tech' ? 'tech' : 'tapestry'}
@@ -261,19 +261,21 @@
 				state.pickBlocked.includes(id) ? [index] : []
 			)}
 			terrainSeed={seed}
+			{room}
 			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 				state.pickCard(event.value)}
 			onCardShelfInspect={pickInspectHandler} />
 	{/if}
 {/snippet}
 
-{#snippet cardShelf()}
+{#snippet cardShelf(/** @type {number | undefined} */ room)}
 	{#if prompt?.shelf}
 		<CardShelf
 			kind={prompt.shelf}
 			cards={state.shelfCards}
 			selected={state.picked}
 			terrainSeed={seed}
+			{room}
 			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 				state.choose(event.value)}
 			onCardShelfInspect={shelfInspectHandler} />
@@ -283,7 +285,7 @@
 {#if state.paying && advance && state.payModel && state.payControls}
 	<DecisionPanel
 		{...attr}
-		centred
+		narrow
 		title="Advance to {TRACKS[advance.track][advance.to].name}"
 		status={state.payControls.status}
 		statusWarn={state.payControls.warn}
@@ -305,8 +307,8 @@
 {:else if prompt && controls}
 	<DecisionPanel
 		{...attr}
-		docked={state.docked && !centred}
-		{centred}
+		docked={state.docked}
+		{narrow}
 		title={prompt.title}
 		track={prompt.track}
 		tone={prompt.income ? 'income' : 'default'}
