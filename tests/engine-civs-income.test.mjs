@@ -506,6 +506,12 @@ test('Alchemists bust on a repeated track and gain 1 resource', () => {
 		roll: true,
 	});
 	assert.equal(eventsOf(state, 'alchemistsBust', r.since).length, 1);
+	// The bust names the track it rolled, so the dice tray can show its face (#61).
+	assert.equal(
+		/** @type {any} */ (eventsOf(state, 'alchemistsBust', r.since)[0])
+			.track,
+		'technology'
+	);
 	kinds.push(...openKinds(state, r.player));
 	assert.ok(kinds.includes('chooseResource'), 'gain 1 resource of choice');
 	assert.deepEqual(state.seats[r.player - 1].civData.alchemists.marked, []);

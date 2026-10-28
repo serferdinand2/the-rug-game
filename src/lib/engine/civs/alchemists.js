@@ -50,7 +50,7 @@ export function alchemistsRoll(ctx, op) {
 	const track = SCIENCE_DIE[ctx.random(SCIENCE_DIE.length)];
 	if (data.marked.includes(track)) {
 		data.marked = [];
-		emit(ctx.state, { type: 'alchemistsBust', player });
+		emit(ctx.state, { type: 'alchemistsBust', player, track });
 		ctx.push([
 			{ player, kind: 'effects', effects: [{ gain: { any: 1 } }] },
 		]);
