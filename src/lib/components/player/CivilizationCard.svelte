@@ -28,6 +28,7 @@
 	import CardTokenReserve from './CardTokenReserve.svelte';
 	import PlayerToken from './PlayerToken.svelte';
 	import { civilizationName } from '../../describe.js';
+	import { ASSETS, EXPANSIONS } from '../../art/catalog.js';
 	import '../../engine/game.js';
 	import { entertainersMoves } from '../../engine/civs/entertainers.js';
 
@@ -50,6 +51,13 @@
 	);
 	/** @type {CivilizationCardProps} */
 	let { id = 'collectors', state = 'empty', ...attr } = $props();
+	const edition = $derived(
+		EXPANSIONS.find(
+			(entry) =>
+				entry.code ===
+				ASSETS.find((asset) => asset.id === `civ/${id}`)?.expansion
+		)?.name ?? 'Base game'
+	);
 </script>
 
 <div
@@ -1514,6 +1522,7 @@
 			title={civilizationName(id)}
 			portrait="/art/civ/{id}.svg"
 			portraitAlt=""
+			badges={[edition]}
 			{state}
 			class="">
 			{#snippet effect()}

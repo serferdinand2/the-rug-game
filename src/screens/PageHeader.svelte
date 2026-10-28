@@ -7,7 +7,7 @@
 	 * @property {import('svelte').Snippet} [center] - Centre content instead of the title, such as the player chips
 	 * @property {import('svelte').Snippet} [before] - Controls before sound, such as the turn clock and Undo
 	 * @property {boolean} sound - Whether sound is on
-	 * @property {import('../lib/components/ui/Menu.svelte').MenuItem[]} [items] - The menu's entries; How to play and About this project when left out
+	 * @property {import('../lib/components/ui/Menu.svelte').MenuItem[]} [items] - The menu's other entries; Card gallery is always included and opens in a new tab
 	 * @property {Function} [onPageHeaderSound] - Callback fired with the new sound choice
 	 * @property {Function} [onPageHeaderMenu] - Callback fired with the chosen entry's id
 	 */
@@ -44,6 +44,18 @@
 		...attr
 	} = $props();
 
+	const menuItems = $derived.by(() => {
+		const result = items.filter((item) => item.id !== 'gallery');
+		const afterHelp = result.findIndex((item) => item.id === 'help') + 1;
+		result.splice(afterHelp, 0, {
+			id: 'gallery',
+			label: 'Card gallery',
+			href: '/cards.html',
+			target: '_blank',
+		});
+		return result;
+	});
+
 	let menuOpen = $state(false);
 	/** @type {HTMLElement | undefined} */
 	let menuToggle = $state();
@@ -73,6 +85,7 @@
 	 * @param {Event} event
 	 */
 	const menuSelectHandler = (event) => {
+		if (event.value === 'gallery') return;
 		if (typeof onPageHeaderMenu === 'function') {
 			onPageHeaderMenu(event);
 		}
@@ -128,7 +141,7 @@
 			<div class="rg-page-header--popover">
 				<Menu
 					label="Menu"
-					{items}
+					items={menuItems}
 					bind:open={menuOpen}
 					onMenuSelect={menuSelectHandler}
 					onMenuClose={menuCloseHandler} />

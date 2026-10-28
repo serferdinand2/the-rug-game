@@ -51,7 +51,7 @@
 	import CivilizationCard from '../../lib/components/player/CivilizationCard.svelte';
 	import EraSlots from '../../lib/components/player/EraSlots.svelte';
 	import IncomeMat from '../../lib/components/player/IncomeMat.svelte';
-	import TapestryCard from '../../lib/components/player/TapestryCard.svelte';
+	import ScaledTapestryCard from '../../lib/components/player/ScaledTapestryCard.svelte';
 	import TechnologyCard from '../../lib/components/player/TechnologyCard.svelte';
 	import TerritoryTile from '../../lib/components/player/TerritoryTile.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
@@ -460,15 +460,9 @@
 							event.originalEvent
 						)}>
 					{#snippet card(/** @type {string} */ id)}
-						<div
-							class="rg-player-tabs--scale"
-							style:--rg-player-tabs-scale="0.42"
-							style:--rg-player-tabs-width="319px"
-							style:--rg-player-tabs-height="560px">
-							<div class="rg-player-tabs--scaled">
-								<TapestryCard data={tapestryCardData(id)} />
-							</div>
-						</div>
+						<ScaledTapestryCard
+							data={tapestryCardData(id)}
+							scale={0.42} />
 					{/snippet}
 				</CardFan>
 			{:else}
@@ -481,14 +475,10 @@
 		{:else if tab === 'eras'}
 			<h2 class="rg-player-tabs--title">Your eras</h2>
 			{#if eraCard}
-				<div
-					class="rg-player-tabs--scale rg-player-tabs--era-card"
-					style:--rg-player-tabs-scale="0.6"
-					style:--rg-player-tabs-width="319px"
-					style:--rg-player-tabs-height="560px">
-					<div class="rg-player-tabs--scaled">
-						<TapestryCard data={tapestryCardData(eraCard)} />
-					</div>
+				<div class="rg-player-tabs--era-card">
+					<ScaledTapestryCard
+						data={tapestryCardData(eraCard)}
+						scale={0.6} />
 				</div>
 			{/if}
 			<EraSlots
@@ -543,7 +533,7 @@
 									class="rg-player-tabs--scale"
 									style:--rg-player-tabs-scale="0.42"
 									style:--rg-player-tabs-width="425px"
-									style:--rg-player-tabs-height="286px">
+									style:--rg-player-tabs-height="298px">
 									<div class="rg-player-tabs--scaled">
 										<TechnologyCard
 											data={techCardData(id)} />

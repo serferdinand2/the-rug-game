@@ -34,7 +34,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Landing page | Lobby |
 |---|---|
-| ![The landing page, with two open tables](docs/ui/screens/launch.png) | ![The local lobby with selected No options clearly outlined](docs/ui/screens/lobby.png) |
+| ![The landing page with the pixel texture and an empty open-tables state](docs/ui/screens/launch.png) | ![The local lobby with the pixel texture and selected No options clearly outlined](docs/ui/screens/lobby.png) |
 
 | Play: the tracks, with an advance chosen | Play: the World Map |
 |---|---|
@@ -62,7 +62,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Prompt: placing a landmark | Prompt: the income turn |
 |---|---|
-| ![The Lighthouse placed and turned on the Capital tab, with the panel naming its plot](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold, with the panel's question shown only once](docs/ui/screens/game-prompt-income.png) |
+| ![The Lighthouse waiting for placement on the Capital tab, with the decision panel below](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold, with the panel's question shown only once](docs/ui/screens/game-prompt-income.png) |
 
 | Prompt: paying for an advance, one row per resource | Prompt: paying a bonus with the tiles picked |
 |---|---|
