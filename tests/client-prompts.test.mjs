@@ -18,7 +18,17 @@ import {
 	exploreTiles,
 	hexScores,
 } from '../src/lib/area/explore.js';
-import { myDecision } from '../src/lib/turn.js';
+import { advanceOptions, myDecision } from '../src/lib/turn.js';
+import {
+	advanceModel,
+	canPick,
+	canPickItem,
+	emptySelection,
+	matchIndex,
+	offerModel,
+	toggleItem,
+	togglePick,
+} from '../src/lib/picks.js';
 import { readyTurn, startedGame, newGame } from './helpers/engine.mjs';
 
 /** The words a label must never show. */
@@ -452,4 +462,178 @@ test('the Nomads place a gained building in their capital or on a lit territory:
 		prompt.instruction,
 		'Choose a lit plot in your capital, or a lit territory on the map.'
 	);
+});
+
+/** The resources in the order rows list them. */
+const ROW_ORDER = ['coin', 'food', 'worker', 'culture'];
+
+/**
+ * Checks a pick model: every candidate can be built by allowed picks and matches back to itself, and random walks
+ * of allowed picks always end on an answer (#75).
+ * @param {import('../src/lib/picks.js').PickModel} model
+ * @param {(n: number) => number} random
+ * @param {string} where
+ */
+function checkPicks(model, random, where) {
+	const free = model.rows.flatMap((row, i) =>
+		row.fixed === null ? [i] : []
+	);
+	for (const candidate of model.candidates) {
+		/** @type {Record<string, number>} */
+		const left = { ...candidate.resources };
+		if (model.mode === 'pay') {
+			for (const row of model.rows) {
+				if (row.fixed) {
+					left[row.fixed] = (left[row.fixed] ?? 0) - 1;
+				}
+			}
+		}
+		const queue = ROW_ORDER.flatMap((id) =>
+			Array(Math.max(0, left[id] ?? 0)).fill(id)
+		);
+		while (model.mode === 'convert' && queue.length < free.length) {
+			queue.push('food');
+		}
+		assert.equal(
+			queue.length,
+			free.length,
+			`${where}: candidate ${candidate.index} fits the rows`
+		);
+		let selection = emptySelection(model);
+		free.forEach((row, i) => {
+			assert.ok(
+				canPick(model, selection, row, queue[i]),
+				`${where}: ${queue[i]} in row ${row}`
+			);
+			selection = togglePick(model, selection, row, queue[i]);
+		});
+		for (const id of candidate.items) {
+			assert.ok(
+				canPickItem(model, selection, id),
+				`${where}: item ${id}`
+			);
+			selection = toggleItem(model, selection, id);
+		}
+		assert.equal(
+			matchIndex(model, selection),
+			candidate.index,
+			`${where}: candidate ${candidate.index}`
+		);
+	}
+	for (let walk = 0; walk < 5; walk++) {
+		let selection = emptySelection(model);
+		for (;;) {
+			/** @type {(() => typeof selection)[]} */
+			const moves = [];
+			for (const row of free) {
+				if (selection.rows[row] === null) {
+					for (const id of model.rows[row].offers) {
+						if (canPick(model, selection, row, id)) {
+							moves.push(() =>
+								togglePick(model, selection, row, id)
+							);
+						}
+					}
+				}
+			}
+			for (const id of model.items?.ids ?? []) {
+				if (
+					!selection.items.includes(id) &&
+					canPickItem(model, selection, id)
+				) {
+					moves.push(() => toggleItem(model, selection, id));
+				}
+			}
+			if (moves.length === 0) {
+				break;
+			}
+			selection = moves[random(moves.length)]();
+		}
+		assert.notEqual(
+			matchIndex(model, selection),
+			-1,
+			`${where}: walk ${walk} ended on an answer`
+		);
+	}
+}
+
+test('every answer of a pick prompt can be built by allowed picks and matches back to itself, over random games', () => {
+	/** @type {Record<string, number>} */
+	const checked = {};
+	for (let seed = 1; seed <= 60; seed++) {
+		const random = seededRandom(seed);
+		const walks = seededRandom(seed * 31);
+		const players = 1 + (seed % 5);
+		let state = createGame({
+			players: Array.from({ length: players }, (_, i) => ({
+				name: `P${i}`,
+			})),
+			version: seed % 2 ? 'current' : 'original',
+			random,
+		});
+		for (let step = 0; step < 3000 && state.phase !== 'over'; step++) {
+			const open = openDecisions(state);
+			for (const decision of open) {
+				const seat = /** @type {number} */ (decision.player);
+				const game = view(state, seat);
+				const mine = openDecisions(game).find(
+					(d) => d.id === decision.id
+				);
+				if (!Array.isArray(mine?.answers)) {
+					continue;
+				}
+				const where = `seed ${seed}, step ${step}, ${decision.kind}`;
+				const prompt = promptFor(mine, game, seat);
+				assert.ok(prompt, where);
+				/** @type {[string, import('../src/lib/picks.js').PickModel | null][]} */
+				const models = [[decision.kind, prompt.picks]];
+				for (const offer of prompt.trade ?? []) {
+					if (offer.enabled) {
+						models.push([
+							`chooseTrade offer ${offer.offer}`,
+							offerModel(mine, offer.offer, game, seat),
+						]);
+					}
+				}
+				if (
+					decision.kind === 'chooseTurn' ||
+					decision.kind === 'chooseAdvance'
+				) {
+					for (const option of advanceOptions(game, seat)) {
+						models.push(['advance', advanceModel(option, game)]);
+					}
+				}
+				for (const [name, model] of models) {
+					if (model) {
+						checked[name.split(' ')[0]] =
+							(checked[name.split(' ')[0]] ?? 0) + 1;
+						checkPicks(model, walks, `${where} (${name})`);
+					}
+				}
+			}
+			const decision = open[random(open.length)];
+			const seat = /** @type {number} */ (decision.player);
+			const answers = DECISIONS[decision.kind].answers(state, decision);
+			const pick =
+				decision.kind === 'chooseTurn' &&
+				answers.length > 1 &&
+				random(10) < 8
+					? answers[1]
+					: answers[random(answers.length)];
+			state = play(
+				state,
+				seat,
+				{ decision: decision.id, ...pick },
+				random
+			);
+		}
+	}
+	for (const kind of ['chooseResource', 'chooseBonus', 'advance']) {
+		assert.ok(
+			(checked[kind] ?? 0) > 0,
+			`no ${kind} pick model checked: ${JSON.stringify(checked)}`
+		);
+	}
+	const total = Object.values(checked).reduce((a, b) => a + b, 0);
+	assert.ok(total > 100, `only ${total} pick models checked`);
 });

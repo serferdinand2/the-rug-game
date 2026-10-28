@@ -3,6 +3,7 @@ import { INCOME_STEPS, INCOME_STEP_KINDS } from './engine/game.js';
 import { TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
 import { decisionTitle, describeAnswer } from './describe.js';
+import { pickModel, tradeOffers } from './picks.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 /** @typedef {import('./ui.js').CostSymbol} CostSymbol */
@@ -58,6 +59,8 @@ import { decisionTitle, describeAnswer } from './describe.js';
  * @property {IncomeView | null} income - Set during the viewer's own income turn
  * @property {string} confirmLabel
  * @property {PromptOption[]} options - One per answer, in answer order
+ * @property {import('./picks.js').PickModel | null} picks - Several resources, cards or tiles chosen one by one (#75)
+ * @property {ReturnType<typeof tradeOffers>} trade - A trade's offers, its first step (#75)
  */
 
 /** @typedef {Record<string, any>} Decision - An open decision as the viewer's view shows it, with its `answers` */
@@ -646,5 +649,7 @@ export function promptFor(decision, game, seat) {
 				: null,
 		confirmLabel: CONFIRM_LABELS[decision.kind] ?? 'Confirm choice',
 		options,
+		picks: pickModel(decision, game, seat),
+		trade: tradeOffers(decision, game, seat),
 	};
 }
