@@ -5,6 +5,7 @@
 	 * @typedef {Object} DecisionPanelOwnProps
 	 * @property {string} title - The question, such as 'Choose a resource'
 	 * @property {string} [status=''] - A line beside the actions: what is chosen, or what is missing; empty, a docked panel leaves it out
+	 * @property {boolean} [statusWarn=false] - The status line is a warning, such as resources lost to the cap (#75)
 	 * @property {string} [confirmLabel='Confirm choice'] - The confirming button's text
 	 * @property {boolean} [confirmDisabled=false] - Nothing valid is chosen yet
 	 * @property {import('../../ui.js').TrackId | null} [track=null] - The track that tints the bottom bar and border, as the mockup's --track
@@ -46,6 +47,7 @@
 		tone = 'default',
 		docked = false,
 		centred = false,
+		statusWarn = false,
 		steps,
 		cancelLabel,
 		children,
@@ -117,6 +119,7 @@
 			<p
 				class="rg-decision-panel--status"
 				class:rg-decision-panel--status-empty={!status}
+				class:rg-decision-panel--status-warn={statusWarn}
 				role="status">
 				{status}
 			</p>
@@ -217,6 +220,10 @@
 		margin: 0;
 		color: var(--muted);
 		font-size: var(--font-size-sm);
+	}
+
+	.rg-decision-panel--status-warn {
+		color: var(--danger);
 	}
 
 	/* A decision about a track takes a tint of it along the bottom, as the mockup's --track does. */

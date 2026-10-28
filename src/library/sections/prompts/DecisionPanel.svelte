@@ -185,7 +185,7 @@
 		</div>
 	</Example>
 	<Example
-		label={"centred  (a pick prompt: its centre at the screen's, here the stage's; #75)"}
+		label={"centred statusWarn  (a pick prompt: its centre at the screen's, here the stage's; the cap warning; #75)"}
 		wide
 		width={1100}>
 		<div
@@ -193,7 +193,8 @@
 			<DecisionPanel
 				centred
 				title="Choose 3 resources"
-				status="Choose 2 more."
+				status="You gain 1 coin and 2 food. You can hold 8 of each: 1 food would be lost."
+				statusWarn
 				confirmDisabled>
 				<p class="rg-library-explore--lead">
 					Pick one resource in each row.
