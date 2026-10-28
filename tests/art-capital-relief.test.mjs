@@ -8,6 +8,7 @@ import { createCanvas, toSvg } from '../tools/art/painter.js';
 import { PALETTE } from '../tools/art/palette.js';
 import { drawNaturalGround } from '../tools/art/parts/capital-relief/ground.js';
 import { paintMountains } from '../tools/art/parts/capital-relief/mountain.js';
+import { paintForest } from '../tools/art/parts/capital-relief/forest.js';
 import {
 	footprint,
 	impassableGroups,
@@ -229,6 +230,82 @@ test('a corner-only join stands a peak over the corner', () => {
 	assert.ok(fp.corners.length > 0);
 	for (const { gx, gy } of fp.corners) {
 		const i = (gy - 4) * fp.w + gx;
+		assert.notEqual(canvas.p[i], null, `corner ${gx},${gy}`);
+		assert.equal(canvas.alpha?.[i] ?? 1, 1, `corner ${gx},${gy} opaque`);
+	}
+});
+
+/**
+ * Paints the forest of a layout.
+ * @param {readonly string[]} layout
+ * @returns {{ fp: ReturnType<typeof footprint>, canvas: ReturnType<typeof createCanvas> }}
+ */
+function forest(layout) {
+	const fp = footprint(layout);
+	const canvas = createCanvas(fp.w, fp.h);
+	paintForest(canvas, fp, 5);
+	return { fp, canvas };
+}
+
+const FOREST_LAYOUT = CAPITAL_GRIDS.forest;
+
+test('forests are deterministic and stay within the reach', () => {
+	const a = forest(FOREST_LAYOUT);
+	const b = forest(FOREST_LAYOUT);
+	assert.deepEqual(a.canvas.p, b.canvas.p);
+	for (let i = 0; i < a.canvas.p.length; i++) {
+		if (!a.fp.reach[i]) {
+			assert.equal(a.canvas.p[i], null, `pixel ${i}`);
+		}
+	}
+});
+
+test("every impassable plot's middle is forest", () => {
+	for (const layout of [FOREST_LAYOUT, SPECIMEN]) {
+		const { fp, canvas } = forest(layout);
+		for (let r = 0; r < layout.length; r++) {
+			for (let c = 0; c < layout[0].length; c++) {
+				if (!isImpassable(layout, r, c)) {
+					continue;
+				}
+				let set = 0;
+				for (let y = 8; y < 24; y++) {
+					for (let x = 8; x < 24; x++) {
+						const i = (r * 33 + y) * fp.w + c * 33 + x;
+						if (
+							canvas.p[i] !== null &&
+							(canvas.alpha?.[i] ?? 1) === 1
+						) {
+							set++;
+						}
+					}
+				}
+				assert.ok(set >= 0.6 * 256, `plot ${r},${c}: ${set}/256`);
+			}
+		}
+	}
+});
+
+test('forests use palette colours, and ink only for shadows below full opacity', () => {
+	const colours = new Set(Object.values(PALETTE));
+	const { canvas } = forest(FOREST_LAYOUT);
+	for (let i = 0; i < canvas.p.length; i++) {
+		const colour = canvas.p[i];
+		if (colour === null) {
+			continue;
+		}
+		assert.ok(colours.has(colour), `${colour} at ${i}`);
+		if ((canvas.alpha?.[i] ?? 1) < 1) {
+			assert.equal(colour, PALETTE.ink, `shadow at ${i}`);
+		}
+	}
+});
+
+test('a corner-only join carries a clump of trees over the corner', () => {
+	const { fp, canvas } = forest(SPECIMEN);
+	assert.ok(fp.corners.length > 0);
+	for (const { gx, gy } of fp.corners) {
+		const i = gy * fp.w + gx;
 		assert.notEqual(canvas.p[i], null, `corner ${gx},${gy}`);
 		assert.equal(canvas.alpha?.[i] ?? 1, 1, `corner ${gx},${gy} opaque`);
 	}
