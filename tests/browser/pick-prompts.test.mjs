@@ -204,7 +204,11 @@ test('a bonus is paid with the 2 tiles the player picks', async ({
 
 		await page.getByTestId(`tile-${tiles[0]}`).click();
 		await page.getByRole('tab', { name: /^Terrain/ }).click();
-		await page.getByTestId(`terrain-tile-${tiles[1]}`).click();
+		// Hovering an offered tile on the Terrain tab draws it gold, not faded (review).
+		const terrainTile = page.getByTestId(`terrain-tile-${tiles[1]}`);
+		await terrainTile.hover();
+		await expect(terrainTile).toHaveCSS('opacity', '1');
+		await terrainTile.click();
 		await expect(
 			page.getByText('Your tiles · 2 of 2 chosen')
 		).toBeVisible();

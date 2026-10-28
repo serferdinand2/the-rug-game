@@ -768,12 +768,12 @@
 		cursor: pointer;
 	}
 
-	.rg-player-tabs--pick:hover,
 	.rg-player-tabs--pick:disabled {
 		opacity: 0.35;
 		cursor: default;
 	}
 
+	.rg-player-tabs--pick:not(:disabled):hover,
 	.rg-player-tabs--pick:focus-visible {
 		border-color: var(--gold);
 		background: color-mix(in srgb, var(--gold) 10%, transparent);
