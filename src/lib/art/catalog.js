@@ -593,6 +593,7 @@ const LISTS = {
 			['token-green', 'Player token (green) · shaded 32 px'],
 			['token-yellow', 'Player token (yellow) · shaded 32 px'],
 			['token-purple', 'Player token (purple) · shaded 32 px'],
+			['architects-cube', "Architects' cube"],
 		],
 	},
 	die: {

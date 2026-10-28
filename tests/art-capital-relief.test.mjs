@@ -424,3 +424,23 @@ test('overlay leaves a pixel under an empty one, keeps a shadow over nothing, an
 	assert.deepEqual(base.alpha, [1, 0.25]);
 	assert.throws(() => overlay(base, createCanvas(1, 2)), /same size/);
 });
+
+test("the Architects' cube is a 32×32 piece in palette colours with a transparent edge", async () => {
+	const { draw } =
+		await import('../tools/art/drawings/piece/architects-cube.js');
+	const canvas = draw();
+	assert.equal(canvas.w, 32);
+	assert.equal(canvas.h, 32);
+	const colours = new Set(Object.values(PALETTE));
+	for (let y = 0; y < 32; y++) {
+		for (let x = 0; x < 32; x++) {
+			const colour = canvas.p[y * 32 + x];
+			if (x === 0 || y === 0 || x === 31 || y === 31) {
+				assert.equal(colour, null, `border ${x},${y}`);
+			} else if (colour !== null) {
+				assert.ok(colours.has(colour), `${x},${y} ${colour}`);
+			}
+		}
+	}
+	assert.notEqual(canvas.p[16 * 32 + 16], null);
+});
