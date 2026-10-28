@@ -290,3 +290,215 @@ test('the library shows the first-income notice and the forced-income footer (#7
 	).toBeVisible();
 	await expect(forced.locator('.rg-turn-bar--income-reveal')).toHaveCount(0);
 });
+
+/**
+ * A CapitalGrid library example, found by text in its label.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} text - Part of the example's label
+ * @returns {import('@playwright/test').Locator}
+ */
+function capitalExample(page, text) {
+	return page
+		.locator('#capital-grid figure')
+		.filter({ has: page.locator('figcaption', { hasText: text }) });
+}
+
+test('a capital draws its relief over the ground, under the buildings and the district dashes (#82)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const mountain = capitalExample(page, 'cube on plot 0');
+	const relief = mountain.locator(
+		'img[src$="/art/capital-relief/mountain.svg"]'
+	);
+	await expect(relief).toBeVisible();
+	await expect(relief).toHaveCSS('pointer-events', 'none');
+	await expect(relief).toHaveCSS('z-index', '1');
+
+	// The farm on plot 26 sits beside the Forest's corner join at row 2, column 7: it must draw over the relief.
+	const forest = capitalExample(page, 'farm on plot 26');
+	const farm = forest.locator(
+		'[data-plot="26"] img[src$="/art/building/farm.svg"]'
+	);
+	await expect(farm).toHaveCSS('z-index', '1');
+	expect(
+		await forest.evaluate((root) => {
+			const art = root.querySelector(
+				'img[src$="/art/capital-relief/forest.svg"]'
+			);
+			const building = root.querySelector(
+				'[data-plot="26"] img[src$="/art/building/farm.svg"]'
+			);
+			return Boolean(
+				art &&
+				building &&
+				art.compareDocumentPosition(building) &
+					Node.DOCUMENT_POSITION_FOLLOWING
+			);
+		}),
+		'the farm comes after the relief'
+	).toBe(true);
+
+	// The district dashes stay on top of the relief.
+	expect(
+		await mountain
+			.locator('.rg-capital-grid')
+			.evaluate((grid) => getComputedStyle(grid, '::before').zIndex)
+	).toBe('2');
+
+	// The relief replaces the red X of an impassable plot.
+	const blocked = page.locator('#capital-grid .rg-capital-grid--blocked');
+	expect(await blocked.count()).toBeGreaterThan(0);
+	expect(
+		await blocked.evaluateAll(
+			(all) =>
+				all.filter(
+					(plot) =>
+						getComputedStyle(plot, '::after').content !== 'none'
+				).length
+		)
+	).toBe(0);
+});
+
+test("an Architects' cube stands on its plot, and a terraformed plot's ground covers the relief (#82)", async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const mountain = capitalExample(page, 'cube on plot 0');
+	await expect(
+		mountain.locator(
+			'[data-plot="0"] img[src$="/art/piece/architects-cube.svg"]'
+		)
+	).toBeVisible();
+	// Plot 9 is printed impassable; the farm built on it clears the relief there, and plot 10 keeps it.
+	await expect(
+		mountain.locator('[data-plot="9"] img[src$="/art/building/farm.svg"]')
+	).toBeVisible();
+	await expect(
+		mountain.locator(
+			'[data-plot="9"] img[src*="/art/capital-terrain/mountain-open-"]'
+		)
+	).toHaveCSS('z-index', '1');
+	await expect(
+		mountain.locator(
+			'[data-plot="10"] img[src*="/art/capital-terrain/mountain-open-"]'
+		)
+	).toHaveCSS('z-index', 'auto');
+});
+
+test('the plots line up with the relief: a proportional gap (#82)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const grid = capitalExample(page, 'cube on plot 0').locator(
+		'.rg-capital-grid'
+	);
+	await expect(grid).toBeVisible();
+	const measured = await grid.evaluate((root) => {
+		const style = getComputedStyle(root);
+		const outer = root.getBoundingClientRect();
+		/** @param {string} selector */
+		const box = (selector) =>
+			/** @type {Element} */ (
+				root.querySelector(selector)
+			).getBoundingClientRect();
+		const first = box('[data-plot="0"]');
+		const relief = box('img[src$="/art/capital-relief/mountain.svg"]');
+		return {
+			unit:
+				(outer.width -
+					parseFloat(style.paddingLeft) -
+					parseFloat(style.paddingRight)) /
+				296,
+			across: box('[data-plot="1"]').left - first.right,
+			down: box('[data-plot="9"]').top - first.bottom,
+			// The relief covers exactly what the plots span.
+			edges: [
+				relief.left - first.left,
+				relief.top - first.top,
+				relief.right - box('[data-plot="8"]').right,
+				relief.bottom - box('[data-plot="80"]').bottom,
+			],
+		};
+	});
+	expect(Math.abs(measured.across - measured.unit)).toBeLessThan(0.5);
+	expect(Math.abs(measured.down - measured.unit)).toBeLessThan(0.5);
+	for (const edge of measured.edges) {
+		expect(Math.abs(edge)).toBeLessThan(0.5);
+	}
+});
+
+test('a landmark over the edge still lines up with the plots (#82)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const grid = capitalExample(page, 'col -1]}  (over the left edge').locator(
+		'.rg-capital-grid'
+	);
+	await expect(grid).toBeVisible();
+	const measured = await grid.evaluate((root) => {
+		/** @param {string} selector */
+		const box = (selector) =>
+			/** @type {Element} */ (
+				root.querySelector(selector)
+			).getBoundingClientRect();
+		const ninth = box('[data-plot="9"]');
+		const tenth = box('[data-plot="10"]');
+		const piece = box('[data-piece="lighthouse"]');
+		return {
+			left: piece.left - (ninth.left - (tenth.left - ninth.left)),
+			right: piece.right - ninth.right,
+			top: piece.top - box('[data-plot="54"]').top,
+			bottom: piece.bottom - box('[data-plot="63"]').bottom,
+		};
+	});
+	for (const [edge, offset] of Object.entries(measured)) {
+		expect(Math.abs(offset), edge).toBeLessThan(1);
+	}
+});
+
+test('a mat on offer shows its relief (#82)', async ({ page }) => {
+	await page.goto('/components.html');
+	const example = page
+		.locator('#card-shelf figure')
+		.filter({ has: page.locator('figcaption', { hasText: 'kind="mat"' }) });
+	await expect(
+		example.locator('img[src$="/art/capital-relief/mountain.svg"]')
+	).toBeVisible();
+});
+
+test('a target under a corner patch still takes the click (#82)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const example = capitalExample(page, 'targets={forestOpen}');
+	const target = example.locator('button[data-plot="26"]');
+	await target.scrollIntoViewIfNeeded();
+	expect(
+		await target.evaluate((button) => {
+			const box = button.getBoundingClientRect();
+			const top = document.elementFromPoint(
+				box.left + box.width / 2,
+				box.top + box.height / 2
+			);
+			return top !== null && button.contains(top);
+		})
+	).toBe(true);
+	// Playwright's click fails when another element would take it.
+	await target.click();
+	await expect(target).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('a hovered target stays over the relief (#82)', async ({ page }) => {
+	await page.goto('/components.html');
+	const target = capitalExample(page, 'targets={forestOpen}').locator(
+		'button[data-plot="26"]'
+	);
+	await target.hover();
+	// A filtered button would be a stacking context of its own, drawn under the relief; its pictures brighten instead.
+	await expect(target).toHaveCSS('filter', 'none');
+	await expect(target.locator('img').first()).toHaveCSS(
+		'filter',
+		'brightness(1.15)'
+	);
+});

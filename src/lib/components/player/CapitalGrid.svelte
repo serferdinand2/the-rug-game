@@ -1,4 +1,4 @@
-<!-- A 9×9 capital composed from terrain and building SVGs, with placement controls, lit target plots and completed-group overlays. -->
+<!-- A 9×9 capital: ground tiles under the mat's relief, building and cube SVGs, placement controls, lit target plots and completed-group overlays. -->
 <script module>
 	/** @typedef {import('../../capital.js').PlotKind} PlotKind */
 	/** @typedef {import('../../capital.js').GroupKind} GroupKind */
@@ -36,7 +36,7 @@
 	 * Properties of the CapitalGrid component itself.
 	 * @typedef {Object} CapitalGridOwnProps
 	 * @property {PlotKind[]} plots - All 81 plots, row by row
-	 * @property {import('../../ui.js').CapitalBiome} [biome='mountain'] - Terrain tiles to compose beneath the supplied plots
+	 * @property {import('../../ui.js').CapitalBiome} [biome='mountain'] - The mat's terrain: its ground tiles, and its relief over the printed impassable plots where the biome has one (#82)
 	 * @property {number} [terrainSeed=0] - Visual seed supplied by the game's setup; 0 is the library fixture
 	 * @property {CapitalGridPiece[]} [pieces=[]] - Landmarks on the grid, drawn over the plots they cover; a locked one may hang over the edge, and only its plots on the grid count
 	 * @property {GroupKind | null} [highlight=null] - Cover each completed row, column or district with one flat green rectangle
@@ -83,7 +83,8 @@
 <script>
 	import LandmarkPiece from './LandmarkPiece.svelte';
 	import { ComponentEvent } from '../../component-event.js';
-	import { artUrl, capitalTileUrl } from '../../ui.js';
+	import { artUrl } from '../../ui.js';
+	import { plotTerrain, reliefUrl } from '../../capital-terrain.js';
 	import {
 		GRID_SIZE,
 		completedGroups,
@@ -181,6 +182,8 @@
 	let freshPlots = $derived(
 		new Set(fresh.map((plot) => plotIndex(plot.row, plot.col)))
 	);
+	let terrain = $derived(plotTerrain(plots, biome, terrainSeed));
+	let relief = $derived(reliefUrl(biome));
 
 	$effect(() => {
 		const ids = pieces.map((piece) => piece.id);
@@ -441,15 +444,16 @@
 	};
 
 	/**
-	 * How far a piece reaches past its area on the grid on one side, as a CSS length. The area is `span` plots long, so
-	 * one plot and one gap are (100% + gap) / span of it.
+	 * How far a piece reaches past its area on the grid on one side, as a CSS length. As in the relief, a plot is 32
+	 * units and a gap 1, so one plot and its gap are a pitch of 33 units, and an area `span` plots long is
+	 * 33 × span − 1 units: one pitch is 3300 / (33 × span − 1) percent of it.
 	 * @param {number} plots - Plots over the edge on that side
 	 * @param {number} span - Plots the area covers along that side's axis
 	 * @returns {string | undefined} Undefined when the piece doesn't hang over that edge.
 	 */
 	function overhang(plots, span) {
 		return plots
-			? `calc(-${plots} * (100% + var(--rg-capital-grid-gap)) / ${span})`
+			? `calc(-${plots} * ${3300 / (33 * span - 1)}%)`
 			: undefined;
 	}
 
@@ -519,12 +523,8 @@
 		{#if kind !== 'landmark'}
 			<img
 				class="rg-capital-grid--terrain"
-				src={capitalTileUrl(
-					biome,
-					kind === 'blocked',
-					index,
-					terrainSeed
-				)}
+				class:rg-capital-grid--cleared={terrain[index].cleared}
+				src={terrain[index].ground}
 				alt=""
 				draggable="false" />
 		{/if}
@@ -532,6 +532,13 @@
 			<img
 				class="rg-capital-grid--building"
 				src={artUrl(`building/${kind}`)}
+				alt=""
+				draggable="false" />
+		{/if}
+		{#if terrain[index].cube}
+			<img
+				class="rg-capital-grid--building"
+				src={artUrl('piece/architects-cube')}
 				alt=""
 				draggable="false" />
 		{/if}
@@ -543,6 +550,15 @@
 				draggable="false" />
 		{/if}
 	{/snippet}
+	<!-- The mat's impassable plots as one picture over the ground; the plots after it draw their buildings above it. -->
+	{#if relief}
+		<img
+			class="rg-capital-grid--relief"
+			src={relief}
+			alt=""
+			aria-hidden="true"
+			draggable="false" />
+	{/if}
 	{#each plots as kind, index (index)}
 		{#if targeted.has(index)}
 			<!-- The root's click handler reports the plot, so a target needs no handler of its own. -->
@@ -611,13 +627,13 @@
 
 <style>
 	.rg-capital-grid {
-		--rg-capital-grid-gap: var(--space-1);
 		position: relative;
 		isolation: isolate;
 		display: grid;
 		grid-template-columns: repeat(9, minmax(0, 1fr));
 		grid-template-rows: repeat(9, minmax(0, 1fr));
-		gap: var(--rg-capital-grid-gap);
+		/* The relief is 296 pixels across: nine plots of 32 and eight gaps of 1. A gap of 1/296 lines the plots up with it (#82). */
+		gap: calc(100% / 296);
 		width: 100%;
 		min-width: 0;
 		aspect-ratio: 1;
@@ -631,11 +647,11 @@
 			box-shadow var(--duration-fast) var(--ease);
 	}
 
-	/* The dashed boundaries between the 3×3 districts. */
+	/* The dashed boundaries between the 3×3 districts, over the relief and the buildings. */
 	.rg-capital-grid::before {
 		content: '';
 		position: absolute;
-		z-index: 1;
+		z-index: 2;
 		inset: var(--space-3);
 		background:
 			repeating-linear-gradient(
@@ -682,13 +698,9 @@
 		background: var(--line);
 	}
 
-	.rg-capital-grid--blocked {
-		background: var(--chrome);
-	}
-
 	/* A plot just built on glows green once (#29). */
 	.rg-capital-grid--fresh {
-		z-index: 2;
+		z-index: 3;
 		animation: rg-capital-grid-fresh 1.4s var(--ease-out);
 	}
 
@@ -704,30 +716,6 @@
 		.rg-capital-grid--fresh {
 			animation: none;
 		}
-	}
-
-	/* The small, thick red X of an impassable plot. */
-	.rg-capital-grid--blocked::after {
-		content: '';
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 7px;
-		height: 7px;
-		transform: translate(-50%, -50%);
-		background:
-			linear-gradient(
-				45deg,
-				transparent 35%,
-				var(--danger) 35% 65%,
-				transparent 65%
-			),
-			linear-gradient(
-				-45deg,
-				transparent 35%,
-				var(--danger) 35% 65%,
-				transparent 65%
-			);
 	}
 
 	.rg-capital-grid--market {
@@ -765,8 +753,9 @@
 		pointer-events: none;
 	}
 
-	.rg-capital-grid--target:hover,
-	.rg-capital-grid--target:focus-visible {
+	/* The pictures brighten, not the button: a filtered button would draw as a layer of its own, under the relief. */
+	.rg-capital-grid--target:hover > img,
+	.rg-capital-grid--target:focus-visible > img {
 		filter: brightness(1.15);
 	}
 
@@ -777,6 +766,7 @@
 
 	.rg-capital-grid--building {
 		position: relative;
+		z-index: 1;
 		display: block;
 		width: 100%;
 		height: 100%;
@@ -787,6 +777,7 @@
 	/* The chosen building, faint until it is placed. */
 	.rg-capital-grid--preview {
 		position: absolute;
+		z-index: 1;
 		inset: 0;
 		opacity: 0.6;
 	}
@@ -799,19 +790,36 @@
 		image-rendering: pixelated;
 	}
 
+	/* A building on a printed impassable plot cleared it: its ground draws over the relief. */
+	.rg-capital-grid--cleared {
+		z-index: 1;
+	}
+
+	/* Exactly the content box, which the plots span, so its 296 pixels meet theirs. */
+	.rg-capital-grid--relief {
+		position: absolute;
+		z-index: 1;
+		top: var(--space-3);
+		left: var(--space-3);
+		width: calc(100% - 2 * var(--space-3));
+		height: calc(100% - 2 * var(--space-3));
+		pointer-events: none;
+		image-rendering: pixelated;
+	}
+
 	.rg-capital-grid--landmark {
 		background: var(--exploration);
 	}
 
 	.rg-capital-grid--piece {
 		position: absolute;
-		z-index: 2;
+		z-index: 3;
 		inset: 0;
 	}
 
 	.rg-capital-grid--overlay {
 		position: absolute;
-		z-index: 3;
+		z-index: 4;
 		inset: 0;
 		background: var(--overlay-ok);
 		pointer-events: none;
