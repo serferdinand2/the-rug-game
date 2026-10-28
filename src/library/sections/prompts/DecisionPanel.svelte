@@ -1,4 +1,4 @@
-<!-- Library section: DecisionPanel, the decision prompt over the shared area, with its scrim, content and Confirm, at the screen's centre with any shelf of cards above it (#79), or docked beside the map. -->
+<!-- Library section: DecisionPanel, the decision prompt over the shared area, with its scrim, content and Confirm, at the tracks' centre with any shelf of cards above it (#79), or docked beside the map. -->
 <script>
 	import DecisionOption from '../../../lib/components/prompts/DecisionOption.svelte';
 	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
@@ -217,15 +217,15 @@
 <Section
 	name="DecisionPanel"
 	area="prompts"
-	description="The decision prompt: a dark scrim over the shared area only, and at the screen's centre the panel with the question, the choices and Confirm; a shelf of cards sits above it, and the two are centred as one stack (#79). A stack too wide for the room right of the screen's centre slides left and stays on the board. The shelf's cards fit the room above the panel (#57). A choice on the map docks the panel at the right instead. The screen examples are the game's screen at 1920×1080, scaled to fit: the board on the left three quarters, the player area on the right.">
+	description="The decision prompt: a dark scrim over the shared area only, and at the centre of the tracks, not of the screen (owner), the panel with the question, the choices and Confirm; a shelf of cards sits above it, and the two are centred as one stack (#79). The shelf's cards fit the room above the panel (#57). A choice on the map docks the panel at the right instead. The screen examples are the game's screen at 1920×1080, scaled to fit: the board on the left three quarters, the player area on the right.">
 	<Example
-		label={'shelf tone="income" steps  (an income turn\'s tapestry card to play: the cards above the panel, both at the screen\'s centre; press one; #79)'}
+		label={'shelf tone="income" steps  (an income turn\'s tapestry card to play: the cards above the panel, both at the tracks\' centre; press one; #79)'}
 		wide
 		width={1100}>
 		<Screen board={playBoard} />
 	</Example>
 	<Example
-		label={"shelf  (a tech card to invent: four cards are wider than the room right of the screen's centre, so the stack slides left and stays on the board; press one; #79)"}
+		label={'shelf  (a tech card to invent: the three face-up cards and the deck, centred on the tracks; press one; #79)'}
 		wide
 		width={1100}>
 		<Screen board={inventBoard} />
@@ -237,7 +237,7 @@
 		<Screen board={civBoard} />
 	</Example>
 	<Example
-		label={'track="exploration"  (an options prompt at the screen\'s centre: the bottom bar takes the track tint; press one; #79)'}
+		label={'track="exploration"  (an options prompt at the tracks\' centre: the bottom bar takes the track tint; press one; #79)'}
 		wide
 		width={1100}>
 		<Screen board={trackBoard} />
@@ -367,7 +367,7 @@
 		</div>
 	</Example>
 	<Example
-		label={'track="exploration"  (the bottom bar takes the track tint; the stage stands in for the screen)'}
+		label={'track="exploration"  (the bottom bar takes the track tint; the stage stands in for the shared area)'}
 		wide
 		width={1100}>
 		<div class="rg-library-decision-stage rg-library-decision-stage--short">
@@ -472,7 +472,7 @@
 		</div>
 	</Example>
 	<Example
-		label={"narrow statusWarn  (a pick prompt: its centre at the screen's, here the stage's; the cap warning; #75)"}
+		label={"narrow statusWarn  (a pick prompt: its centre at the tracks', here the stage's; the cap warning; #75)"}
 		wide
 		width={1100}>
 		<div
@@ -627,11 +627,10 @@
 {/snippet}
 
 <style>
-	/* A stage stands in for the screen: a size container, which a centred panel finds its centre in. */
+	/* A stage stands in for the shared area, which a panel is centred on. */
 	.rg-library-decision-stage {
 		position: relative;
 		height: 420px;
-		container-type: inline-size;
 		background: var(--texture) var(--surface);
 	}
 

@@ -149,12 +149,11 @@
 {/snippet}
 
 <style>
-	/* The tray is fixed to the screen's centre; the stage stands in for the screen, as a size container that a centred
-	   panel finds its centre in and a containing block for the tray. */
+	/* The tray is fixed to the screen's centre; contained, the stage stands in for the screen. */
 	.rg-library-tray-stage {
 		position: relative;
 		height: 420px;
-		container-type: inline-size;
+		contain: layout;
 		background: var(--texture) var(--surface);
 	}
 

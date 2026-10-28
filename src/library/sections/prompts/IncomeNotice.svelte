@@ -38,7 +38,7 @@
 	.rg-library-income-notice-stage {
 		position: relative;
 		height: 420px;
-		container-type: inline-size;
+		contain: layout;
 		background: var(--texture) var(--surface);
 	}
 </style>

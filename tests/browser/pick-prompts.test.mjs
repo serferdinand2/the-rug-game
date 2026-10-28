@@ -1,5 +1,5 @@
 // The pick prompts in Chromium (#75): a choice of several resources, cards or tiles is made one by one in a panel at the
-// screen's centre. Each test plays a two-seat hot-seat table through the API to the moment it needs, then answers with
+// tracks' centre (#79). Each test plays a two-seat hot-seat table through the API to the moment it needs, then answers with
 // the mouse and the keyboard, and ends and leaves the table.
 import { expect, test } from '@playwright/test';
 import { openDecisions } from '../../src/lib/engine/game.js';
@@ -140,15 +140,19 @@ async function closeTable(request, token) {
 }
 
 /**
- * The centre of the decision panel's box.
+ * How far the decision panel's centre is from the tracks' centre, the middle of the scrim over the shared area (#79).
  * @param {import('@playwright/test').Page} page
  */
-async function panelCentre(page) {
+async function panelOffset(page) {
 	const box = await page.locator('.rg-decision-panel--panel').boundingBox();
-	if (!box) {
+	const scrim = await page.locator('.rg-decision-panel').boundingBox();
+	if (!box || !scrim) {
 		throw new Error('No decision panel.');
 	}
-	return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+	return {
+		x: box.x + box.width / 2 - (scrim.x + scrim.width / 2),
+		y: box.y + box.height / 2 - (scrim.y + scrim.height / 2),
+	};
 }
 
 test('a bonus is paid with the 2 tiles the player picks', async ({
@@ -189,9 +193,9 @@ test('a bonus is paid with the 2 tiles the player picks', async ({
 		await expect(
 			page.getByRole('heading', { name: 'Take the bonus: gain 5 VP?' })
 		).toBeVisible();
-		const centre = await panelCentre(page);
-		expect(Math.abs(centre.x - 960)).toBeLessThanOrEqual(2);
-		expect(Math.abs(centre.y - 540)).toBeLessThanOrEqual(2);
+		const offset = await panelOffset(page);
+		expect(Math.abs(offset.x)).toBeLessThanOrEqual(2);
+		expect(Math.abs(offset.y)).toBeLessThanOrEqual(2);
 		await expect(
 			page.getByText('Your tiles · 0 of 2 chosen')
 		).toBeVisible();
@@ -287,9 +291,9 @@ test('picking a space with a choice of payment opens the centred panel, and Adva
 			name: 'Advance to Scouting',
 		});
 		await expect(heading).toBeVisible();
-		const centre = await panelCentre(page);
-		expect(Math.abs(centre.x - 960)).toBeLessThanOrEqual(2);
-		expect(Math.abs(centre.y - 540)).toBeLessThanOrEqual(2);
+		const offset = await panelOffset(page);
+		expect(Math.abs(offset.x)).toBeLessThanOrEqual(2);
+		expect(Math.abs(offset.y)).toBeLessThanOrEqual(2);
 		await expect(
 			page.getByRole('group', { name: 'Resource 1 of 1' })
 		).toBeVisible();
@@ -366,8 +370,8 @@ test('a gain of several resources is made of the ones the player picks, row by r
 			name: `Choose ${op.count} resources`,
 		});
 		await expect(panel).toBeVisible();
-		const centre = await panelCentre(page);
-		expect(Math.abs(centre.x - 960)).toBeLessThanOrEqual(2);
+		const offset = await panelOffset(page);
+		expect(Math.abs(offset.x)).toBeLessThanOrEqual(2);
 		const confirm = panel.getByRole('button', {
 			name: 'Confirm',
 			exact: true,

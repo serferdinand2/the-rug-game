@@ -22,8 +22,8 @@
 	let { board, children, width = 1100, ...attr } = $props();
 </script>
 
-<!-- The screen is a size container as wide as the game's, and a containing block for fixed elements, so a centred
-     panel finds the screen's centre and the dice tray its place as they do in the game. -->
+<!-- The screen is laid out at the game's size and scaled as a whole; its transform makes it the containing block for
+     fixed elements, so a panel and the dice tray find their places as they do in the game. -->
 <div
 	{...attr}
 	class="rg-library-screen {attr.class ? attr.class : ''}"
@@ -43,7 +43,6 @@
 	}
 
 	.rg-library-screen--screen {
-		container-type: inline-size;
 		display: grid;
 		grid-template-columns: var(--play-columns);
 		gap: var(--play-gap);

@@ -1,5 +1,5 @@
-// Where the decision prompt opens, in Chromium at the 1920×1080 reference (#79): at the screen's centre, cards on the
-// shelf and the panel as one stack. Each test plays a two-seat hot-seat table through the API to the moment it needs,
+// Where the decision prompt opens, in Chromium at the 1920×1080 reference (#79): at the centre of the tracks, cards on
+// the shelf and the panel as one stack. Each test plays a two-seat hot-seat table through the API to the moment it needs,
 // then ends and leaves the table.
 import { expect, test } from '@playwright/test';
 import { openDecisions } from '../../src/lib/engine/game.js';
@@ -147,7 +147,7 @@ async function boxOf(locator) {
 	return box;
 }
 
-test("cards on the shelf and the panel open as one stack at the screen's centre (#79)", async ({
+test("cards on the shelf and the panel open as one stack at the tracks' centre (#79)", async ({
 	page,
 	request,
 }) => {
@@ -165,18 +165,24 @@ test("cards on the shelf and the panel open as one stack at the screen's centre 
 		await expect(
 			page.getByRole('heading', { name: 'Choose your civilization' })
 		).toBeVisible();
+		const scrim = await boxOf(page.locator('.rg-decision-panel'));
 		const shelf = await boxOf(page.locator('.rg-decision-panel--shelf'));
 		const panel = await boxOf(page.locator('.rg-decision-panel--panel'));
-		// The shelf and the panel share the screen's centre line, and the stack's middle is the screen's.
-		expect(Math.abs(shelf.x + shelf.width / 2 - 960)).toBeLessThanOrEqual(
-			2
-		);
-		expect(Math.abs(panel.x + panel.width / 2 - 960)).toBeLessThanOrEqual(
-			2
-		);
+		// The shelf and the panel share the tracks' centre line, and the stack's middle is the shared area's, not the
+		// screen's (owner).
+		const centre = scrim.x + scrim.width / 2;
+		expect(centre).toBeLessThan(800);
+		expect(
+			Math.abs(shelf.x + shelf.width / 2 - centre)
+		).toBeLessThanOrEqual(2);
+		expect(
+			Math.abs(panel.x + panel.width / 2 - centre)
+		).toBeLessThanOrEqual(2);
 		expect(panel.y).toBeGreaterThan(shelf.y + shelf.height);
 		const middle = (shelf.y + panel.y + panel.height) / 2;
-		expect(Math.abs(middle - 540)).toBeLessThanOrEqual(2);
+		expect(
+			Math.abs(middle - (scrim.y + scrim.height / 2))
+		).toBeLessThanOrEqual(2);
 		// Every card is on the screen, above the panel, and the cards are pressable.
 		const cards = page.locator('.rg-card-shelf--card');
 		await expect(cards).toHaveCount(op.answers.length);
@@ -194,7 +200,7 @@ test("cards on the shelf and the panel open as one stack at the screen's centre 
 	}
 });
 
-test("an options prompt opens at the screen's centre, no longer at the bottom of the board (#79)", async ({
+test("an options prompt opens at the tracks' centre, no longer at the bottom of the board (#79)", async ({
 	page,
 	request,
 }) => {
@@ -230,19 +236,13 @@ test("an options prompt opens at the screen's centre, no longer at the bottom of
 			page.getByRole('heading', { name: prompt.title })
 		).toBeVisible();
 		const panel = await boxOf(page.locator('.rg-decision-panel--panel'));
-		// At the screen's centre, or as near it as the board allows: a panel too wide for the room right of the centre
-		// ends at the board's right edge, inside the scrim's 34 px padding.
 		const scrim = await boxOf(page.locator('.rg-decision-panel'));
-		const centre = Math.min(
-			960,
-			scrim.x + scrim.width - 34 - panel.width / 2
-		);
 		expect(
-			Math.abs(panel.x + panel.width / 2 - centre)
+			Math.abs(panel.x + panel.width / 2 - (scrim.x + scrim.width / 2))
 		).toBeLessThanOrEqual(2);
-		expect(Math.abs(panel.y + panel.height / 2 - 540)).toBeLessThanOrEqual(
-			2
-		);
+		expect(
+			Math.abs(panel.y + panel.height / 2 - (scrim.y + scrim.height / 2))
+		).toBeLessThanOrEqual(2);
 	} finally {
 		await closeTable(request, token);
 	}

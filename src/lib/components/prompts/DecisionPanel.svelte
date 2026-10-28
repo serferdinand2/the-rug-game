@@ -1,4 +1,4 @@
-<!-- The decision prompt over the shared area: a dark scrim, and at the screen's centre the panel with its title, content and Confirm, under an optional shelf of cards. -->
+<!-- The decision prompt over the shared area: a dark scrim, and at the tracks' centre the panel with its title, content and Confirm, under an optional shelf of cards. -->
 <script module>
 	/**
 	 * Properties of the DecisionPanel component itself.
@@ -10,7 +10,7 @@
 	 * @property {boolean} [confirmDisabled=false] - Nothing valid is chosen yet
 	 * @property {import('../../ui.js').TrackId | null} [track=null] - The track that tints the bottom bar and border, as the mockup's --track
 	 * @property {'default' | 'income'} [tone='default'] - income: the title, border and step strip in gold, for the viewer's income turn
-	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right instead of at the screen's centre, for a choice on the map; its content scrolls, so the title and Confirm stay in sight. It is --docked-panel-width wide and --docked-panel-inset in from the right, for the board beside it to keep free
+	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right instead of at the tracks' centre, for a choice on the map; its content scrolls, so the title and Confirm stay in sight. It is --docked-panel-width wide and --docked-panel-inset in from the right, for the board beside it to keep free
 	 * @property {boolean} [narrow=false] - The panel is --narrow-panel-width wide, as a pick of several resources, cards or tiles is (#75); otherwise as wide as its content, 480 to 900 px
 	 * @property {import('svelte').Snippet} [steps] - The income steps, between the title and the content
 	 * @property {string} [cancelLabel] - Shows a cancel button with this text, such as 'Cancel'; left out, there is none
@@ -108,7 +108,6 @@
 	class:rg-decision-panel--narrow={narrow}
 	style:--rg-decision-panel-track={track ? trackColor(track) : undefined}
 	style:--rg-decision-panel-gap="{SHELF_GAP}px">
-	<span class="rg-decision-panel--spacer"></span>
 	<div
 		class="rg-decision-panel--stack"
 		bind:clientHeight={stackHeight}>
@@ -162,8 +161,8 @@
 </div>
 
 <style>
-	/* Every prompt opens at the screen's centre (owner, #79): the scrim covers the shared area, and the shelf and the
-	   panel stand in one column in the middle of it. */
+	/* Every prompt opens at the centre of the tracks, not of the screen (owner, #79): the scrim covers the shared area,
+	   and the shelf and the panel stand in one column in the middle of it. */
 	.rg-decision-panel {
 		--rg-decision-panel-inline: 34px;
 		position: absolute;
@@ -180,16 +179,8 @@
 		min-width: 0;
 	}
 
-	/* The stack's centre is the screen's: the screen is the nearest size container, or else the viewport, and this
-	   area starts at its left edge, as the shared area does. The spacer takes twice the distance between the two
-	   centres, and gives way first, so a stack wider than the room right of the screen's centre slides left and stays
-	   on the board; wider than the board, the shelf scrolls (#79). */
-	.rg-decision-panel--spacer {
-		flex: 0 1000
-			max(0px, calc(100cqw - 100% - 2 * var(--rg-decision-panel-inline)));
-	}
-
-	/* The shelf and the panel in one column, centred together; its height is the most the two may take. */
+	/* The shelf and the panel in one column, centred together; its height is the most the two may take. A shelf wider
+	   than the shared area scrolls. */
 	.rg-decision-panel--stack {
 		display: flex;
 		flex: 0 1 auto;
@@ -210,14 +201,11 @@
 		margin-bottom: var(--rg-decision-panel-gap);
 	}
 
-	/* The panel is as wide as its content, up to 900 px. The limit is a length, not a percentage of the stack, so it
-	   holds while the stack measures its own width: a row of many options would otherwise make the stack as wide as
-	   the board and leave the spacer nothing (#79). */
 	.rg-decision-panel--panel {
 		flex: none;
 		width: max-content;
 		min-width: min(480px, 100%);
-		max-width: 900px;
+		max-width: min(900px, 100%);
 		max-height: 100%;
 		overflow: auto;
 		border: var(--border) solid var(--line);
@@ -378,10 +366,6 @@
 			var(--rg-decision-panel-inline);
 		background: transparent;
 		pointer-events: none;
-	}
-
-	.rg-decision-panel--docked .rg-decision-panel--spacer {
-		display: none;
 	}
 
 	.rg-decision-panel--docked .rg-decision-panel--stack {
