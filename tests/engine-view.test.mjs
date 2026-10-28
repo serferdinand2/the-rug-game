@@ -253,8 +253,12 @@ test('a player sees their own hand, dealt civilizations and the answers to their
 			done.seats[1]
 		).hand
 	);
-	assert.equal(mine[1].handCount, 2);
-	assert.equal(mine[0].handCount, 2);
+	// The 2 gained, after whatever income turn 1 left in each hand as setup ended (#77).
+	for (const seat of [0, 1]) {
+		const held = /** @type {any} */ (done.seats[seat]).hand.length;
+		assert.ok(held >= 2);
+		assert.equal(mine[seat].handCount, held);
+	}
 	assert.ok(!('hand' in mine[0]));
 	assert.equal(view(done, 2).supply.tech.faceUp.length, 3);
 });

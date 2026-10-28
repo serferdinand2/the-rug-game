@@ -267,3 +267,26 @@ test('the dice tray fades out rather than vanishing (#61)', async ({
 	expect(fading).toBe(true);
 	await expect(tray).toHaveCount(0);
 });
+
+test('the library shows the first-income notice and the forced-income footer (#77)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const notice = page.locator('.rg-income-notice').first();
+	await expect(
+		notice.getByRole('heading', { name: 'Era I begins' })
+	).toBeVisible();
+	await expect(notice.getByRole('button', { name: 'Got it' })).toBeVisible();
+	const forced = page
+		.locator('.rg-turn-bar')
+		.filter({
+			hasText: "You can't pay for any advance, so take an income turn.",
+		})
+		.first();
+	await expect(
+		forced
+			.locator('.rg-turn-bar--actions')
+			.getByRole('button', { name: 'Take income' })
+	).toBeVisible();
+	await expect(forced.locator('.rg-turn-bar--income-reveal')).toHaveCount(0);
+});

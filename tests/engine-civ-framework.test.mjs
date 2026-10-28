@@ -63,6 +63,7 @@ const eventsOf = (state, type, since = 0) =>
  * @param {{ version?: 'original' | 'current' }} [options]
  */
 function incomeTurn(before, fill, options) {
+	let filled = 0;
 	const ready = readyTurn(
 		2,
 		(seat, state) => {
@@ -73,9 +74,19 @@ function incomeTurn(before, fill, options) {
 				}
 			}
 			fill(seat, state);
+			filled = state.seq;
 		},
 		options
 	);
+	if (before === 0) {
+		// The engine takes income turn 1 itself as the turn starts (#77).
+		return {
+			state: ready.state,
+			random: ready.random,
+			player: ready.player,
+			since: filled,
+		};
+	}
 	const since = ready.state.seq;
 	const state = answer(
 		ready.state,
@@ -515,16 +526,12 @@ test('the original version applies no adjustment (R34)', (t) => {
 			firstTurnEnd: () => calls.push(['adjust firstTurnEnd']),
 		},
 	});
-	let { state, random } = startedGame(2, {
+	const { state } = startedGame(2, {
 		version: 'original',
 		civs: ['leaders', 'nomads'],
+		keepIncome: true,
 	});
-	assert.deepEqual(calls, [['setup', 1, false]]);
-	// Both players take income turn 1.
-	for (const _ of [1, 2]) {
-		const player = /** @type {number} */ (state.current);
-		state = answer(state, random, player, 'chooseTurn', { turn: 'income' });
-	}
+	// Both players have taken income turn 1 as setup ended (#77).
 	assert.deepEqual(
 		state.seats.map((s) => s.incomeTurns),
 		[1, 1]

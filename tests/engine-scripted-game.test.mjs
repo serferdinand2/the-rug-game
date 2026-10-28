@@ -12,9 +12,24 @@ const INCOME = { turn: 'income' };
 const ADVANCE = { turn: 'advance' };
 
 test('a scripted 2-player game reaches the end with the expected scores', () => {
-	let { state, random } = startedGame(2);
+	let { state, random } = startedGame(2, { keepIncome: true });
 	const F = /** @type {number} */ (state.first);
 	const O = F === 1 ? 2 : 1;
+
+	// 1. F, income turn 1, and 2. O, income turn 1, are taken as setup ends (#77): every space 1 pays.
+	//    F and O (coin, worker, food, culture) = (1, 1, 1, 1), 1 tile, 1 card each.
+	for (const seat of [F, O]) {
+		const held = /** @type {any} */ (state.seats[seat - 1]);
+		assert.equal(held.incomeTurns, 1);
+		assert.deepEqual(held.resources, {
+			coin: 1,
+			worker: 1,
+			food: 1,
+			culture: 1,
+		});
+		assert.equal(held.territoryTiles.length, 1);
+		assert.equal(held.hand.length, 1);
+	}
 
 	/** The first plot the placement offers. */
 	const firstPlot = (/** @type {any} */ d) =>
@@ -22,10 +37,6 @@ test('a scripted 2-player game reaches the end with the expected scores', () => 
 
 	/** @type {[number, string, Record<string, any> | ((d: any) => Record<string, any>)][]} */
 	const script = [
-		// 1. F, income turn 1: every space 1 pays. F (coin, worker, food, culture) = (1, 1, 1, 1), 1 tile, 1 card.
-		[F, 'chooseTurn', INCOME],
-		// 2. O, income turn 1: the same. O = (1, 1, 1, 1), 1 tile, 1 card.
-		[O, 'chooseTurn', INCOME],
 		// 3. F advances to Scouting for 1 coin: 2 territory tiles. F = (0, 1, 1, 1), 3 tiles.
 		[F, 'chooseTurn', ADVANCE],
 		[

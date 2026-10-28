@@ -431,12 +431,16 @@ test("the last choice of a turn can be taken back until the next player's first 
 	const again = pick(back, 2, 'choosePlacement');
 	assert.equal(again.history.length, 4);
 	assert.equal(roomView(again, 'b').canUndo, true);
-	// Seat 1's first choice, its first income turn (which isn't kept either), puts seat 2's steps out of reach.
+	// Seat 1's first choice, an income turn, puts seat 2's steps out of reach. It stops at the first-of-neighbours
+	// bonus before anything hidden is drawn, so it is seat 1's own step to take back.
 	const action = /** @type {any} */ (defaultAction(gameOf(again), 1));
 	const next = play(again, 'a', 1, action, () => 0);
-	assert.deepEqual(next.history, []);
+	assert.ok(next.history.every((step) => step.seat === 1));
 	assert.equal(roomView(next, 'b').canUndo, false);
-	refuses(() => takeBack(next, 2), 'There is nothing to undo.');
+	refuses(
+		() => takeBack(next, 2),
+		'You can only take back your own choices.'
+	);
 });
 
 test('two turns in a row: the first choice of the new turn closes the old one', () => {
@@ -569,7 +573,10 @@ test("another seat's choice clears the history, and refusals use the exact messa
 		() => 0
 	);
 	assert.ok(!next.history.some((step) => step.seat === 2));
-	refuses(() => takeBack(next, 2), 'There is nothing to undo.');
+	refuses(
+		() => takeBack(next, 2),
+		'You can only take back your own choices.'
+	);
 });
 
 test('undo puts back the clocks of that step, and an expired one is due at once', () => {

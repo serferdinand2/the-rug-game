@@ -1,21 +1,17 @@
 // The decision a player faces at the start of their turn: an income turn or an advance turn.
 import { PlayerError } from '../errors.js';
 import { emit } from '../events.js';
-import { seatOf } from '../state.js';
 import { advances } from './choose-advance.js';
 import { startIncomeTurn } from '../income.js';
 
 /**
- * The turns a seat may choose. The first turn must be an income turn, and there is no pass:
- * advancing is offered only when some advance can be paid for (01 §4.1).
+ * The turns a seat may choose. There is no pass: advancing is offered only when some advance can be paid for
+ * (01 §4.1). The first turn is never a choice, since startTurn() takes income turn 1 itself (#77).
  * @param {import('../state.js').State} state
  * @param {number} player
  * @returns {('income' | 'advance')[]}
  */
 export function turnOptions(state, player) {
-	if (seatOf(state, player).incomeTurns === 0) {
-		return ['income'];
-	}
 	return advances(state, player).length > 0
 		? ['income', 'advance']
 		: ['income'];
@@ -32,12 +28,6 @@ export const chooseTurn = {
 			answer.turn === 'advance' &&
 			!decision.options.includes('advance')
 		) {
-			const player = /** @type {number} */ (decision.player);
-			if (seatOf(state, player).incomeTurns === 0) {
-				throw new PlayerError(
-					'Your first turn must be an income turn.'
-				);
-			}
 			throw new PlayerError(
 				"You can't pay for any advance, so take an income turn."
 			);

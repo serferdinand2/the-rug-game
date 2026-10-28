@@ -37,19 +37,20 @@ function playDefault(state, random, seat) {
 	);
 }
 
-test('the turn number is 0 in setup and rises by 1 with each turn', () => {
+test('the turn number is 0 in setup and rises by 1 with each turn, the automatic first ones too (#77)', () => {
 	const { state: fresh } = newGame(2);
 	assert.equal(fresh.turn, 0);
-	const { state: started, random } = startedGame(2);
-	assert.equal(started.turn, 1);
-	// Income turn 1 ends the turn, and the next seat starts turn 2.
-	const next = playDefault(
-		started,
-		random,
-		/** @type {number} */ (started.current)
+	const { state } = startedGame(2, { keepIncome: true });
+	const first = /** @type {number} */ (state.first);
+	const second = first === 1 ? 2 : 1;
+	// Each seat's income turn 1 is a turn of its own, so the first player's next turn is turn 3.
+	assert.deepEqual(
+		state.events
+			.filter((e) => e.type === 'turnStarted')
+			.map((e) => e.player),
+		[first, second, first]
 	);
-	assert.equal(next.turn, 2);
-	assert.notEqual(next.current, started.current);
+	assert.equal(state.turn, 3);
 });
 
 test('the default action takes an income turn, and a seat with nothing open has none', () => {

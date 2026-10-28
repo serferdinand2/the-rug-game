@@ -41,33 +41,30 @@ function incomeAfter(before, fill = () => {}) {
 }
 
 test('income turn 1 gains the income of every space 1: coin, worker, food and a territory tile, culture and a tapestry card', () => {
-	const { state: started, random } = startedGame(2);
-	const player = /** @type {number} */ (started.current);
-	const state = answer(started, random, player, 'chooseTurn', {
-		turn: 'income',
-	});
-	const seat = state.seats[player - 1];
-	assert.equal(seat.incomeTurns, 1);
-	assert.deepEqual(seat.resources, {
-		coin: 1,
-		worker: 1,
-		food: 1,
-		culture: 1,
-	});
-	assert.equal(seat.territoryTiles.length, 1);
-	assert.equal(seat.hand.length, 1);
-	assert.ok(
-		state.events.some(
-			(e) =>
-				e.type === 'incomeTurnStarted' &&
-				e.player === player &&
-				e.turn === 1
-		)
-	);
-	const other = player === 1 ? 2 : 1;
+	// Every seat takes income turn 1 by itself when setup ends (#77).
+	const { state } = startedGame(2, { keepIncome: true });
+	for (const seat of /** @type {any[]} */ (state.seats)) {
+		assert.equal(seat.incomeTurns, 1);
+		assert.deepEqual(seat.resources, {
+			coin: 1,
+			worker: 1,
+			food: 1,
+			culture: 1,
+		});
+		assert.equal(seat.territoryTiles.length, 1);
+		assert.equal(seat.hand.length, 1);
+		assert.ok(
+			state.events.some(
+				(e) =>
+					e.type === 'incomeTurnStarted' &&
+					e.player === seat.seat &&
+					e.turn === 1
+			)
+		);
+	}
 	assert.deepEqual(
 		openDecisions(state).map((d) => [d.kind, d.player, d.options]),
-		[['chooseTurn', other, ['income']]]
+		[['chooseTurn', state.first, ['income', 'advance']]]
 	);
 });
 

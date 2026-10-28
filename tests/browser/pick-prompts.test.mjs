@@ -105,7 +105,8 @@ async function playUntil(request, token, room, wanted, limit) {
 }
 
 /**
- * Opens the table on a seat's screen, past the pass screen.
+ * Opens the table on a seat's screen, past the pass screen, and past the notice that the game took income turn 1
+ * (#77), which an era I turn opens over the board.
  * @param {import('@playwright/test').Page} page
  * @param {string} token
  * @param {number} seat
@@ -118,6 +119,13 @@ async function takeScreen(page, token, seat) {
 	await page.goto('/');
 	const name = seat === 1 ? 'Ana' : 'Ben';
 	await page.getByRole('button', { name: `I'm ${name}` }).click();
+	// The notice comes with the board, in the same render.
+	await expect(page.locator('.rg-game--board')).toBeVisible();
+	const notice = page.locator('.rg-income-notice');
+	if ((await notice.count()) > 0) {
+		await notice.getByRole('button', { name: 'Got it' }).click();
+		await expect(notice).toHaveCount(0);
+	}
 }
 
 /**
@@ -350,6 +358,7 @@ test('a gain of several resources is made of the ones the player picks, row by r
 			3000
 		);
 		const before = game.seats[seat - 1].resources;
+		const since = Math.max(0, ...game.events.map((e) => e.seq));
 		const picks = ['coin', 'food', 'worker', 'culture'].slice(0, op.count);
 		await takeScreen(page, token, seat);
 
@@ -370,6 +379,8 @@ test('a gain of several resources is made of the ones the player picks, row by r
 		await expect(confirm).toBeEnabled();
 		await confirm.click();
 
+		// The answer's own gain, the first after it: the same move may go on to gain more, such as an income step
+		// after era III's first-of-neighbours bonus.
 		await expect
 			.poll(async () => {
 				const state = await api(
@@ -378,8 +389,13 @@ test('a gain of several resources is made of the ones the player picks, row by r
 					undefined,
 					token
 				);
-				const after = state.game.seats[seat - 1].resources;
-				return picks.map((id) => after[id] - before[id]);
+				const gain = state.game.events.find(
+					(/** @type {any} */ e) =>
+						e.seq > since &&
+						e.type === 'resourcesGained' &&
+						e.player === seat
+				);
+				return gain && picks.map((id) => gain.gained[id] ?? 0);
 			})
 			.toEqual(picks.map((id) => (before[id] < 8 ? 1 : 0)));
 		expect(errors).toEqual([]);
