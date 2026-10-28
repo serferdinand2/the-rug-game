@@ -29,7 +29,7 @@ It remembers the element that had the focus as it opens, takes the focus into it
 
 - **How to play (both):** none. The box measures the same.
 - **HelpPanel:** the focus opens on the dialog itself, not on Close, as the other two do; Enter no longer closes it at once.
-- **Table settings** takes the shared shell: the box is 530px wide (was 560px), with the dialogs' soft border, plain chrome without the texture, 24px padding all round (was 20px top and bottom), the title in the dialogs' 18px body text (was 22px gold), and Done 20px below the rows (was 12px). Its scrim, 52% over the board only, is unchanged. A click on the scrim now closes it, as it does the others.
+- **Table settings** takes the shared shell: the box is 530px wide (was 560px), with the dialogs' soft border, plain chrome without the texture, 24px padding all round (was 20px top and bottom), the title in the dialogs' 18px body text (was 22px gold), and Done 20px below the rows (was 12px). Its scrim, 52% over the board only, is unchanged. A click on the scrim now closes it, as it does the others. The owner approved this look on 2026-10-28. Whether Results and the pass screen should show the game's rules under How to play stays open.
 
 ## 5. Open question for the owner
 

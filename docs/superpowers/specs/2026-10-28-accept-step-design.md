@@ -22,7 +22,7 @@ The store keeps the side effects: it sets `shown` and `passing`, asks for `fetch
 ## 3. The store's other changes
 
 - **One guard for asked views (my call).** `#fetchView` and `takeSeat` each asked for a view and dropped the answer when the tab had left the table. Both now go through one `#askView(code, seat)`, which drops an answer from an older generation or another table; each caller keeps its own failure handling (the poll asks again; the pass screen stays and a toast says the server can't be reached). Inside one generation the table on show never goes back to null, so the two old guards were the same.
-- **The timeout toast.** It reads `log.js`' `eventText` for the `timedOut` event, so the toast and the log say the same: "Vera's clock ran out; the rest of the turn was played for them." (was "Vera ran out of time. The rest of the turn was played for them."). This is the one visible change, and the issue asks for it.
+- **The timeout toast.** It reads `log.js`' `eventText` for the `timedOut` event, so the toast and the log say the same: "Vera's clock ran out; the rest of the turn was played for them." (was "Vera ran out of time. The rest of the turn was played for them."). This is the one visible change, and the issue asks for it; the owner approved the wording on 2026-10-28.
 
 ## 4. Tests
 

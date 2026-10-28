@@ -28,7 +28,7 @@ Written 2026-10-28. #98 is one of the refactors the client scan (#80) filed. The
 
 ## 4. What changes on screen
 
-The timer and undo rows now sit together: **Undo rules moves from the top of the right column to the left column, under Turn timer**, and the right column holds only the variants, so the settings panel is 43px shorter at 1920×1080 (226px instead of 269px). One component can't put its two rows in two columns. Screenshots before and after show the Table settings dialog, the seats and every other part of the lobby pixel for pixel the same. This needs the owner's approval.
+The timer and undo rows now sit together: **Undo rules moves from the top of the right column to the left column, under Turn timer**, and the right column holds only the variants, so the settings panel is 43px shorter at 1920×1080 (226px instead of 269px). One component can't put its two rows in two columns. Screenshots before and after show the Table settings dialog, the seats and every other part of the lobby pixel for pixel the same. The owner approved it on 2026-10-28, and `docs/ui/screens/lobby.png` shows it.
 
 ## 5. Tests
 
