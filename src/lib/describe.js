@@ -1,6 +1,5 @@
 // Words for the engine's effects, costs, decisions and answers (#26 design §8): the short English the play screen shows.
 import { TRACKS } from './engine/data/tracks.js';
-import { LANDMARKS } from './engine/data/landmarks.js';
 import { TAPESTRY_CARDS } from './engine/data/tapestry-cards.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
 import { SPACE_TILES } from './engine/data/space-tiles.js';
@@ -297,7 +296,8 @@ export function buildingName(building) {
 }
 
 /**
- * A landmark's name, such as "Train Station".
+ * A landmark's name, such as "Train Station" or "TV Station", from the art catalog, which names every landmark of
+ * the game and its expansions.
  * @param {unknown} id
  * @returns {string}
  */
@@ -305,7 +305,7 @@ export function landmarkName(id) {
 	if (typeof id !== 'string') {
 		return 'Landmark';
 	}
-	return LANDMARKS.find((l) => l.id === id)?.name ?? titleOf(id);
+	return ASSETS.find((a) => a.id === `landmark/${id}`)?.name ?? titleOf(id);
 }
 
 /**

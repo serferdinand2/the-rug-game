@@ -1,8 +1,8 @@
 // The World Map's geometry (#26 design §5.2): flat-topped hexes laid out from the engine's axial keys, terrain wedges, the island, the pieces and the fit.
 import { PICTURE_SIZE } from './art/hex-overlays.js';
 import { MAPS } from './engine/data/maps.js';
-import { LANDMARKS } from './engine/data/landmarks.js';
 import { terrainsOf, turned } from './engine/terrain.js';
+import { landmarkName } from './describe.js';
 
 /** @typedef {[number, number]} Point - x and y, with y pointing down */
 /** @typedef {import('./ui.js').Terrain} Terrain */
@@ -386,10 +386,7 @@ function hexLabel(key, corners, island, outposts, tokens, nameOf, pictures) {
 /** @param {NonNullable<MapOutpost['piece']>} piece */
 function pieceName(piece) {
 	if (piece.kind === 'landmark') {
-		return (
-			LANDMARKS.find((landmark) => landmark.id === piece.id)?.name ??
-			titleCase(piece.id)
-		);
+		return landmarkName(piece.id);
 	}
 	return titleCase(piece.id);
 }
