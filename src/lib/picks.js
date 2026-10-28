@@ -2,7 +2,7 @@
 import { advanceCost, TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
 import { RESOURCES } from './ui.js';
-import { describeAnswer, describePayment } from './describe.js';
+import { amountWords, describeAnswer, describePayment } from './describe.js';
 
 /** @typedef {'coin' | 'food' | 'worker' | 'culture'} ResourceId */
 
@@ -103,14 +103,14 @@ function listWords(parts) {
 }
 
 /**
- * Resource counts in words, such as "1 coin and 2 food".
+ * Resource counts in words, such as "2 coins and 1 food".
  * @param {Partial<Record<ResourceId, number>>} counts
  * @returns {string}
  */
 function resourceWords(counts) {
 	return listWords(
-		RESOURCE_IDS.filter((id) => amount(counts, id)).map(
-			(id) => `${counts[id]} ${id}`
+		RESOURCE_IDS.filter((id) => amount(counts, id)).map((id) =>
+			amountWords(id, amount(counts, id))
 		)
 	);
 }
@@ -161,12 +161,12 @@ function rowsOfCost(cost, track) {
  */
 function costWords(cost, track) {
 	const named = namedOf(cost, track);
-	const parts = RESOURCE_IDS.filter((id) => named[id]).map(
-		(id) => `${named[id]} ${id}`
+	const parts = RESOURCE_IDS.filter((id) => named[id]).map((id) =>
+		amountWords(id, named[id])
 	);
 	const any = amount(cost, 'any');
 	if (any) {
-		parts.push(`${any} resource${any > 1 ? 's' : ''} of your choice`);
+		parts.push(amountWords('any', any));
 	}
 	return listWords(parts);
 }
@@ -300,7 +300,7 @@ function shortWords(side) {
 	const named = namedOf(side, undefined);
 	for (const id of RESOURCE_IDS) {
 		if (named[id]) {
-			parts.push(`${named[id]} ${id}`);
+			parts.push(amountWords(id, named[id]));
 		}
 	}
 	const any = amount(side, 'any');
@@ -813,7 +813,7 @@ export function pickStatus(model, selection, held) {
 	}
 	const after = pendingCounts(model, selection, held);
 	const lost = RESOURCE_IDS.filter((id) => after[id] > RESOURCE_CAP).map(
-		(id) => `${after[id] - RESOURCE_CAP} ${id}`
+		(id) => amountWords(id, after[id] - RESOURCE_CAP)
 	);
 	return lost.length
 		? {
