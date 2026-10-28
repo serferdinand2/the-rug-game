@@ -16,7 +16,7 @@
 <Section
 	name="TurnControl"
 	area="prompts"
-	description="Turns the picked tile back (↺) or forward (↻) on the chosen hex, with a gold VP tag between the arrows and the hint that R turns it. Both buttons are disabled, and the tag reads 'No hex yet', until a hex is chosen.">
+	description="Turns the picked tile back (↺) or forward (↻) on the chosen hex, with a gold VP tag between the arrows and the hint that the full stop and comma keys turn it (#83). Both buttons are disabled, and the tag reads 'No hex yet', until a hex is chosen.">
 	<Example
 		label={'vp={null}  (disabled)'}
 		surface="chrome">

@@ -287,7 +287,7 @@
 	};
 
 	/**
-	 * The placed landmark was turned, by its control or the R key: the engine's next legal turn, not the grid's.
+	 * The placed landmark was turned, by its control or the . and , keys: the engine's next legal turn, not the grid's.
 	 * @param {ComponentEvent} event
 	 */
 	const rotateHandler = (event) => {

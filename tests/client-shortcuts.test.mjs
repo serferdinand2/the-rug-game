@@ -1,5 +1,4 @@
-// The keyboard shortcuts How to play lists (#42): every group and shortcut has words, and the keys the game handles
-// are all there.
+// The keyboard shortcuts How to play lists (#42, #83): every group and shortcut has words, and every hotkey is there.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { SHORTCUTS } from '../src/lib/shortcuts.js';
@@ -20,7 +19,7 @@ test('every group has a title and shortcuts, and every shortcut has keys and an 
 	}
 });
 
-test('the list names every key the game answers to (#42)', () => {
+test('the list names every hotkey the game answers to (#83)', () => {
 	const keys = new Set(
 		SHORTCUTS.flatMap((group) =>
 			group.shortcuts.flatMap((shortcut) =>
@@ -29,21 +28,33 @@ test('the list names every key the game answers to (#42)', () => {
 		)
 	);
 	for (const key of [
-		'Tab',
-		'Shift+Tab',
+		'I',
+		'A',
+		'1–4',
 		'Enter',
-		'Space',
+		'Z',
 		'Esc',
-		'←',
-		'→',
-		'↑',
-		'↓',
-		'Home',
-		'End',
+		'M',
+		'1–5',
+		'Tab',
+		'L',
+		'Q',
+		'W',
+		'E',
 		'R',
-		'Shift+R',
+		'T',
+		'Y',
+		'U',
+		',',
+		'.',
+		'←',
+		'↑',
+		'→',
+		'↓',
 		'Backspace',
 		'Delete',
+		'H',
+		'K',
 	]) {
 		assert.ok(keys.has(key), key);
 	}

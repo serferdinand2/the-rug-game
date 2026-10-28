@@ -19,7 +19,7 @@
 	 * @property {string} [color='var(--gold)'] - The outline colour on the capital, as a token reference; the Lighthouse uses 'var(--exploration)'
 	 * @property {Function} [onLandmarkPieceSelect] - Callback fired with { id } when the piece is pressed, or Space (or Enter in the tray) is pressed on it
 	 * @property {Function} [onLandmarkPieceMove] - Callback fired with { id, row, col } when an arrow key is pressed on it; row and col are -1, 0 or 1
-	 * @property {Function} [onLandmarkPieceRotate] - Callback fired with { id } by the rotate control or the R key
+	 * @property {Function} [onLandmarkPieceRotate] - Callback fired with { id } by the rotate control or the . and , keys (#83: R is the Eras tab)
 	 * @property {Function} [onLandmarkPieceConfirm] - Callback fired with { id } by the confirm control or the Enter key
 	 * @property {Function} [onLandmarkPieceReturn] - Callback fired with { id } by the return control or the Backspace and Delete keys
 	 */
@@ -94,7 +94,7 @@
 		state === 'tray'
 			? `${name}, ${plots} plots, to be placed`
 			: state === 'placed'
-				? `${name}, ${plots} plots, not confirmed. Arrow keys move it, R rotates it, Enter confirms it, Delete returns it`
+				? `${name}, ${plots} plots, not confirmed. Arrow keys move it, full stop or comma rotates it, Enter confirms it, Delete returns it`
 				: `${name}, locked in place`
 	);
 
@@ -147,7 +147,7 @@
 			}
 		} else if (
 			state === 'placed' &&
-			(event.key === 'r' || event.key === 'R')
+			(event.key === '.' || event.key === ',')
 		) {
 			event.preventDefault();
 			if (typeof onLandmarkPieceRotate === 'function') {

@@ -131,7 +131,7 @@ test('the menu opens How to play on the rules and on the keyboard shortcuts, and
 			panel.getByRole('tab', { name: 'Keyboard shortcuts' })
 		).toHaveAttribute('aria-selected', 'true');
 		await expect(
-			panel.getByText('Turn the territory tile on the chosen hex.')
+			panel.getByText('Advance: the footer asks which track.')
 		).toBeVisible();
 		await page.keyboard.press('Escape');
 		await expect(panel).toHaveCount(0);

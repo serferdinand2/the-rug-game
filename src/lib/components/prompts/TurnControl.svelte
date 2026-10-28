@@ -46,7 +46,7 @@
 		type="button"
 		class="rg-turn-control--button"
 		aria-label="Turn the tile back"
-		title="Turn back (Shift+R)"
+		title="Turn back (,)"
 		disabled={vp === null}
 		onclick={(event) => turnHandler(-1, event)}>↺</button>
 	{#if vp === null}
@@ -59,10 +59,10 @@
 		type="button"
 		class="rg-turn-control--button"
 		aria-label="Turn the tile"
-		title="Turn (R)"
+		title="Turn (.)"
 		disabled={vp === null}
 		onclick={(event) => turnHandler(1, event)}>↻</button>
-	<span class="rg-turn-control--hint">R turns it</span>
+	<span class="rg-turn-control--hint">. and , turn it</span>
 </div>
 
 <style>

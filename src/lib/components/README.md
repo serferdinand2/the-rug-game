@@ -90,7 +90,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `PromptArt` | One picture a prompt shows: a resource with its count, track, building, landmark, terrain, civilization, space tile, turned territory, capital mat, card art, VP badge or the tech deck (#28). |
 | `TilePicker` | The territory tiles in hand as a wrapping row of pressable hexes (about 88×80 px); the picked one is outlined in gold, and a corner tag shows the VP each scores on the chosen hex (#74). Several can be picked at once, with `disabled` tiles waiting, for a payment of tiles (#75). |
 | `ResourceRows` | One row per resource to choose, as Board Game Arena's boxes, stacked (#75): the row's number, the four resources at 48 px with the count the player would hold, and the name picked; a cost's own resource is a fixed row; a resource no legal answer allows is off, with the reason as its title. |
-| `TurnControl` | The ↺ and ↻ buttons that turn the picked tile, with a gold `+n VP` tag between them (`No hex yet` and disabled until a hex is chosen) and the hint that R turns it (#74). |
+| `TurnControl` | The ↺ and ↻ buttons that turn the picked tile, with a gold `+n VP` tag between them (`No hex yet` and disabled until a hex is chosen) and the hint that . and , turn it (#74, #83). |
 | `OverviewCloseBar` | The footer while the players overview is open. |
 | `TurnBar` | The footer: neutral, selected, optional-action, waiting and gold income states, with the income reveal; a turn with only income to take puts a gold Take income in its actions (#77). |
 

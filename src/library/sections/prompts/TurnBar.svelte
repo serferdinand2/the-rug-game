@@ -151,6 +151,35 @@
 			heading="Ana is taking their first income turn." />
 	</Example>
 	<Example
+		label={'heading="Take an income turn?"  (Take income or I asks first; I or Enter takes it, Esc goes back; #83)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			heading="Take an income turn?"
+			detail={incomeWords(2)}>
+			{#snippet actions()}
+				<Button>Cancel</Button>
+				<Button mode="gold">Take income</Button>
+			{/snippet}
+		</TurnBar>
+	</Example>
+	<Example
+		label={'heading="Advance on which track?"  (after A: 1 to 4 answer, a track with nothing to pay for is off; #83)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			heading="Advance on which track?"
+			detail="Press its number, or Esc to go back.">
+			{#snippet actions()}
+				<Button>1 · Exploration</Button>
+				<Button>2 · Science</Button>
+				<Button disabled>3 · Technology</Button>
+				<Button>4 · Military</Button>
+				<Button>Cancel</Button>
+			{/snippet}
+		</TurnBar>
+	</Example>
+	<Example
 		label={'tone="income" label="Income turn"  (gold, no income button)'}
 		surface="ink"
 		wide>
