@@ -9,7 +9,7 @@
 	 * @property {string} holdings - The words after "You start with", such as '1 coin, 1 food and 1 tapestry card'
 	 * @property {string} [next='From now on, each turn you either advance on a track or take income.'] - What every later turn offers
 	 * @property {string} [confirmLabel='Got it'] - The closing button's text
-	 * @property {Function} [onIncomeNoticeClose] - Callback fired when the button or Escape closes the notice
+	 * @property {Function} [onIncomeNoticeClose] - Callback fired when Got it is pressed; the screen it sits on closes it on Escape too, when nothing else is open, since only the screen knows what else is
 	 */
 
 	/**
@@ -58,28 +58,7 @@
 			);
 		}
 	};
-
-	/**
-	 * Escape closes the notice too.
-	 * @param {KeyboardEvent} event
-	 */
-	const keydownHandler = (event) => {
-		if (
-			event.key === 'Escape' &&
-			typeof onIncomeNoticeClose === 'function'
-		) {
-			onIncomeNoticeClose(
-				new ComponentEvent(
-					null,
-					/** @type {HTMLElement} */ (event.target),
-					event
-				)
-			);
-		}
-	};
 </script>
-
-<svelte:window onkeydown={keydownHandler} />
 
 <DecisionPanel
 	{...attr}

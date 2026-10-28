@@ -224,6 +224,10 @@
 	let notice = $derived(firstIncomeNotice(game, seat));
 	let noticeKey = $derived(`rg-first-income:${room.code}:${seat}`);
 	let noticeClosed = $state(false);
+	/** The notice shows unless closed, and never under the players overview or the table settings. */
+	let noticeOpen = $derived(
+		Boolean(notice) && !noticeClosed && !overviewOpen && !settingsOpen
+	);
 	$effect(() => {
 		const key = noticeKey;
 		untrack(() => {
@@ -928,6 +932,21 @@
 			return;
 		}
 		const target = /** @type {HTMLElement | null} */ (event.target);
+		// One Escape closes one thing: the notice only when nothing else is open and the key isn't meant for another
+		// layer, such as the header menu, a dialog or a field (#77).
+		const elsewhere = target?.closest?.(
+			'[role="menu"], [role="dialog"], input, textarea, select'
+		);
+		if (
+			event.key === 'Escape' &&
+			noticeOpen &&
+			!logOpen &&
+			!document.querySelector('[aria-modal="true"]') &&
+			(!elsewhere || Boolean(elsewhere.closest('.rg-income-notice')))
+		) {
+			noticeCloseHandler();
+			return;
+		}
 		if (
 			(event.key !== 'r' && event.key !== 'R') ||
 			event.ctrlKey ||
@@ -958,6 +977,13 @@
 </script>
 
 <svelte:window onkeydown={keyHandler} />
+
+{#snippet forcedIncomeAction()}
+	<Button
+		mode="gold"
+		disabled={sending}
+		onButtonClick={incomeHandler}>Take income</Button>
+{/snippet}
 
 {#snippet incomeSteps()}
 	{#if prompt?.income}
@@ -1281,7 +1307,7 @@
 							picked = null;
 						}
 					}} />
-			{:else if notice && !noticeClosed}
+			{:else if noticeOpen && notice}
 				<IncomeNotice
 					resources={notice.resources}
 					holdings={notice.holdings}
@@ -1381,14 +1407,8 @@
 		<TurnBar
 			tone="neutral"
 			heading="You can't pay for any advance, so take an income turn."
-			detail={incomeDescription}>
-			{#snippet actions()}
-				<Button
-					mode="gold"
-					disabled={sending}
-					onButtonClick={incomeHandler}>Take income</Button>
-			{/snippet}
-		</TurnBar>
+			detail={incomeDescription}
+			actions={noticeOpen ? undefined : forcedIncomeAction} />
 	{:else if turnDecision && selected}
 		<TurnBar
 			tone="selected"
@@ -1397,7 +1417,7 @@
 			track={selected.track}
 			detail={spaceWords(selected.track, selected.space)}
 			cost={priceSymbols(selected.track, selected.space)}
-			income={turnDecision.kind === 'chooseTurn'
+			income={turnDecision.kind === 'chooseTurn' && !noticeOpen
 				? { description: incomeDescription, label: 'Take income' }
 				: null}
 			onTurnBarIncome={incomeHandler}>
@@ -1422,7 +1442,7 @@
 			detail={available.length
 				? 'The spaces you can pay for are outlined in green.'
 				: undefined}
-			income={turnDecision.kind === 'chooseTurn'
+			income={turnDecision.kind === 'chooseTurn' && !noticeOpen
 				? { description: incomeDescription, label: 'Take income' }
 				: null}
 			onTurnBarIncome={incomeHandler} />

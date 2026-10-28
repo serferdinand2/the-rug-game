@@ -128,10 +128,34 @@ test('the first turn is taken for every player, and the notice says so once per 
 			notice.getByRole('heading', { name: 'Era I begins' })
 		).toBeVisible();
 		await expect(notice.getByText('You start with')).toBeVisible();
-		await notice.getByRole('button', { name: 'Got it' }).click();
+		// While it is open, the footer offers no income, so era I can't end by accident.
+		await expect(
+			page.getByRole('button', { name: 'Take income' })
+		).toHaveCount(0);
+		// One Escape closes one thing: the log opened over it closes first, and the notice stays.
+		await page.getByRole('button', { name: 'Log and scores' }).click();
+		await expect(page.locator('.rg-log-panel')).toBeVisible();
+		await page.keyboard.press('Escape');
+		await expect(page.locator('.rg-log-panel')).toHaveCount(0);
+		await expect(
+			notice.getByRole('heading', { name: 'Era I begins' })
+		).toBeVisible();
+		// So does the header menu's.
+		await page.getByRole('button', { name: 'Menu' }).click();
+		await expect(page.getByRole('menu')).toBeVisible();
+		await page.keyboard.press('Escape');
+		await expect(page.getByRole('menu')).toHaveCount(0);
+		await expect(
+			notice.getByRole('heading', { name: 'Era I begins' })
+		).toBeVisible();
+		// With nothing else open, Escape closes it.
+		await page.keyboard.press('Escape');
 		await expect(notice).toHaveCount(0);
 		await expect(
 			page.getByText('Choose a space to advance to, or take income.')
+		).toBeVisible();
+		await expect(
+			page.getByRole('button', { name: 'Take income' })
 		).toBeVisible();
 
 		// A refresh doesn't bring it back.
@@ -159,6 +183,8 @@ test('the first turn is taken for every player, and the notice says so once per 
 		await expect(
 			notice.getByRole('heading', { name: 'Era I begins' })
 		).toBeVisible();
+		await notice.getByRole('button', { name: 'Got it' }).click();
+		await expect(notice).toHaveCount(0);
 	} finally {
 		// A running hot-seat game is ended, then left, so the table closes and the address's table limit is free.
 		const latest = await api(request, 'state', undefined, token);

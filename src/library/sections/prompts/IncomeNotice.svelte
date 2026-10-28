@@ -10,7 +10,7 @@
 <Section
 	name="IncomeNotice"
 	area="prompts"
-	description="When setup ends, the game takes every player's income turn 1, since a first turn is never a choice. Each player then sees this notice once, in the gold income panel: why nobody asked, what they start with, and what every later turn offers. Got it or Escape closes it.">
+	description="When setup ends, the game takes every player's income turn 1, since a first turn is never a choice. Each player then sees this notice once, in the gold income panel: why nobody asked, what they start with, and what every later turn offers. Got it closes it; in the game, so does Escape when nothing else is open, and the footer offers no income while it shows.">
 	<Example
 		label={`resources={{ coin: 1, worker: 1, food: 1, culture: 1 }}  (every player's start; closed ${closed} times)`}
 		wide
