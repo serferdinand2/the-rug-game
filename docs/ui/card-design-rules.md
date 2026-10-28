@@ -192,6 +192,10 @@ Compact reserve; a schematic of an opponent's top-row technology becoming the pl
 
 ## Components and generation
 
+### Masterpiece cards
+
+The approved Arts & Architecture masterpiece frame is 319 px wide and follows its content rather than holding a forced square height. Use the card-paper noise, a 49 px gold title band with Cinzel title text, and a full-width separator above the edition row. Set a 12 px inset around the body and a 12 px gap between the centered beige effect box on the left and the 144 px artwork on the right. The artwork's bottom edge is 12 px above the edition separator. Center effect content both vertically and horizontally. Show a single resource as `+` followed by its native 24 px icon; keep `X VP` on one line. The footer contains the Arts & Architecture label in its usual expansion box. `MasterpieceCard` owns this frame; callers provide the title, artwork and effect snippet. The Painting example in the component library is the approved layout fixture, not a separate frame for each card.
+
 All public card primitives live under `src/lib/components/player/` and appear on `/components.html`:
 
 | Component | Contract |
