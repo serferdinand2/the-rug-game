@@ -157,7 +157,7 @@
 <Section
 	name="CapitalGrid"
 	area="player"
-	description="A 9×9 capital: each plot's ground tile from the supplied biome and visual seed, the mat's relief drawn over its impassable plots where the biome has one (Mountain and Forest so far), the four income-building SVGs, the Architects' cubes and the district lines. A building on a printed impassable plot clears the relief there. The six full mat images in Art are reference examples only. Landmarks and placement controls work over the relief. A locked landmark may hang over the edge (R106): it is drawn past the grid, and only its plots on the grid count.">
+	description="A 9×9 capital: each plot's ground tile from the supplied biome and visual seed, the mat's relief drawn over its impassable plots (every base mat has one; the expansion mats' come with #132 and #133), the four income-building SVGs, the Architects' cubes and the district lines. A building on a printed impassable plot clears the relief there. The six full mat images in Art are reference examples only. Landmarks and placement controls work over the relief. A locked landmark may hang over the edge (R106): it is drawn past the grid, and only its plots on the grid count.">
 	<Example
 		label={"plots={mountainMat + cube on plot 0, farm on plot 9}  (an Architects' cube on an open plot; the farm on printed impassable plot 9 clears the relief there)"}
 		width={468}>
@@ -191,14 +191,6 @@ Plot 26, beside the corner join at row 2, column 7, still takes the click.`}
 					forestFarm = { row: event.value.row, col: event.value.col };
 				}
 			}} />
-	</Example>
-	<Example
-		label={'plots={grasslandMat} biome="grassland" terrainSeed={42}  (no relief yet: its impassable plots use the tile SVGs)'}
-		width={468}>
-		<CapitalGrid
-			plots={matPlots(5)}
-			biome="grassland"
-			terrainSeed={42} />
 	</Example>
 	<Example
 		label={`Interactive: PlacementTray + CapitalGrid + CompletionCounters

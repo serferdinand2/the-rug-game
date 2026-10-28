@@ -487,6 +487,116 @@ test('the Desert ground is pale sand, not the red soil of the Mesa', () => {
 	}
 });
 
+/** Grey stone, for the Grassland's tors, and the greens of its hills. */
+const STONE = new Set([
+	PALETTE.stoneLight,
+	PALETTE.stone,
+	PALETTE.stoneMid,
+	PALETTE.stoneShade,
+]);
+const GREEN = new Set([
+	PALETTE.grassLight,
+	PALETTE.grass,
+	PALETTE.grassShade,
+	PALETTE.forestFloorLight,
+	PALETTE.forestFloor,
+	PALETTE.forestFloorShade,
+]);
+
+test('a corner-only join stands a tor on a hill over the corner', () => {
+	// Only a corner piece may paint outside the impassable plots, so look there: within the corner patch.
+	for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+		const { fp, canvas } = relief('grassland', which);
+		assert.ok(fp.corners.length > 0, which);
+		for (const { gx, gy } of fp.corners) {
+			const near = new Set();
+			for (let dy = -16; dy <= 16; dy++) {
+				for (let dx = -16; dx <= 16; dx++) {
+					const i = (gy + dy) * fp.w + gx + dx;
+					if (!fp.plots[i] && opaque(canvas, i)) {
+						near.add(canvas.p[i]);
+					}
+				}
+			}
+			const at = `${which} corner ${gx},${gy}`;
+			assert.ok(opaque(canvas, gy * fp.w + gx), at);
+			assert.ok(
+				[...STONE].some((c) => near.has(c)),
+				`${at}: no tor`
+			);
+			assert.ok(
+				[...GREEN].some((c) => near.has(c)),
+				`${at}: no hill`
+			);
+		}
+	}
+});
+
+test('the Grassland relief is green hills topped with grey stone tors', () => {
+	for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+		const { canvas } = relief('grassland', which);
+		let painted = 0;
+		let green = 0;
+		let stone = 0;
+		for (let i = 0; i < canvas.p.length; i++) {
+			if (!opaque(canvas, i)) {
+				continue;
+			}
+			painted++;
+			green += GREEN.has(canvas.p[i]) ? 1 : 0;
+			stone += STONE.has(canvas.p[i]) ? 1 : 0;
+		}
+		assert.ok(
+			green >= 0.5 * painted,
+			`${which}: ${green}/${painted} green`
+		);
+		assert.ok(
+			stone >= 0.04 * painted,
+			`${which}: ${stone}/${painted} stone`
+		);
+	}
+});
+
+/**
+ * The mean red channel of a picture's pixels: higher is warmer, for greens.
+ * @param {(string | null)[]} p
+ */
+function meanRed(p) {
+	return (
+		p.reduce((sum, c) => sum + parseInt(String(c).slice(1, 3), 16), 0) /
+		p.length
+	);
+}
+
+test('the Grassland ground is a warm golden meadow, warmer than the Forest meadow and without its white flowers', () => {
+	const golden = new Set([
+		PALETTE.gold,
+		PALETTE.sand,
+		PALETTE.sandLight,
+		PALETTE.savannaGold,
+		PALETTE.savannaGoldLight,
+		PALETTE.savannaGoldShade,
+		PALETTE.savannaDryBlade,
+	]);
+	const white = new Set([PALETTE.white, PALETTE.creamLight, PALETTE.cream]);
+	let forest = 0;
+	for (let variant = 0; variant < 8; variant++) {
+		forest = Math.max(forest, meanRed(plot('forest', variant).p));
+	}
+	for (let variant = 0; variant < 8; variant++) {
+		const { p } = plot('grassland', variant);
+		assert.ok(
+			p.filter((c) => golden.has(c)).length >= 8,
+			`variant ${variant}: golden grass`
+		);
+		assert.ok(
+			p.every((c) => !white.has(c)),
+			`variant ${variant}: a white flower`
+		);
+		assert.ok(meanRed(p) > forest, `variant ${variant}: not warmer`);
+	}
+});
+
 test('every relief biome has a painter', () => {
 	assert.deepEqual(Object.keys(RELIEF_PAINTERS), [...RELIEF_BIOMES]);
 	assert.ok(Object.isFrozen(RELIEF_PAINTERS));

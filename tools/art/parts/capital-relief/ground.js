@@ -144,6 +144,31 @@ function scatterDesert(put, px, py, roll, rand) {
 	}
 }
 
+/** Golden grass, green tufts and the odd buttercup on the grassland's warm meadow. @type {Scatter} */
+function scatterGrassland(put, px, py, roll, rand) {
+	if (roll < 0.55) {
+		// A golden tuft: blades fanning up from a shaded root, lit on the left.
+		put(px, py, C.savannaGoldShade);
+		put(px - 1, py - 1, C.savannaGoldLight);
+		put(px, py - 1, C.savannaGold);
+		put(px + 1, py - 1, C.savannaGoldShade);
+		put(px - 1, py - 2, C.savannaDryBlade);
+		put(px + 1, py - 2, C.savannaGold);
+		if (rand() < 0.5) {
+			put(px, py - 3, C.savannaGoldLight);
+		}
+	} else if (roll < 0.8) {
+		// A green tuft.
+		put(px, py, C.grassShade);
+		put(px - 1, py - 1, C.grass);
+		put(px + 1, py - 1, C.grassShade);
+		put(px, py - 2, C.grass);
+	} else if (roll < 0.88) {
+		put(px, py, C.gold);
+		put(px, py + 1, C.grass);
+	}
+}
+
 /**
  * Each biome's natural ground: its seed, its three tones and the small things lying on it.
  * @type {Record<string, { seed: number, base: string, light: string, dark: string, scatter: Scatter }>}
@@ -186,6 +211,14 @@ const GROUNDS = {
 		light: C.sandLight,
 		dark: C.sandShade,
 		scatter: scatterDesert,
+	},
+	// A warm, golden meadow: lighter and yellower than the Forest's, with golden grass and no white flowers.
+	grassland: {
+		seed: 6151,
+		base: C.grassLight,
+		light: C.savannaGoldLight,
+		dark: C.grass,
+		scatter: scatterGrassland,
 	},
 };
 

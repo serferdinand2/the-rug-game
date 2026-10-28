@@ -7,6 +7,7 @@ export const RELIEF_BIOMES = Object.freeze([
 	'wetland',
 	'tropical',
 	'desert',
+	'grassland',
 ]);
 
 /** A plot's side in pixels. */
