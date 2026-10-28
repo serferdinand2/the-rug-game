@@ -104,7 +104,8 @@ export function playerPieceUrl(piece, seat) {
  * A repeatable terrain variant for one plot in a game's capital composition.
  * The screen supplies the setup seed and plot mask; this does not change the rules layout.
  * @param {CapitalBiome} biome
- * @param {boolean} blocked
+ * @param {boolean} blocked - An impassable plot's own tile: only a mat without a relief has them, since each base
+ *   mat's relief draws its impassable plots (#82)
  * @param {number} index - Row-major plot index
  * @param {number} seed - This game's visual setup seed
  * @returns {string}

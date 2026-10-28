@@ -155,7 +155,8 @@ function numbered(count, label) {
 }
 
 /**
- * A capital biome's 14 terrain tiles: 8 buildable and 6 impassable variants, as the base biomes have (#5, #6).
+ * An advanced capital biome's 14 terrain tiles: 8 buildable and 6 impassable variants (#6). The base biomes keep
+ * only their 8 buildable tiles, as each base mat's relief draws its impassable plots (#82).
  * @param {string} slug - Such as 'cloud-city'
  * @param {string} name - Such as 'Cloud City'
  * @returns {Entries}
@@ -683,6 +684,7 @@ const LISTS = {
 		aa: ADVANCED_MATS.aa,
 		ff: ADVANCED_MATS.ff,
 	},
+	// The base biomes' buildable ground; their impassable plots are each mat's relief (#82).
 	'capital-terrain': {
 		base: [
 			['mountain-open-01', 'Mountain buildable 1'],
@@ -693,12 +695,6 @@ const LISTS = {
 			['mountain-open-06', 'Mountain buildable 6'],
 			['mountain-open-07', 'Mountain buildable 7'],
 			['mountain-open-08', 'Mountain buildable 8'],
-			['mountain-blocked-01', 'Mountain impassable 1'],
-			['mountain-blocked-02', 'Mountain impassable 2'],
-			['mountain-blocked-03', 'Mountain impassable 3'],
-			['mountain-blocked-04', 'Mountain impassable 4'],
-			['mountain-blocked-05', 'Mountain impassable 5'],
-			['mountain-blocked-06', 'Mountain impassable 6'],
 			['wetland-open-01', 'Wetland buildable 1'],
 			['wetland-open-02', 'Wetland buildable 2'],
 			['wetland-open-03', 'Wetland buildable 3'],
@@ -707,12 +703,6 @@ const LISTS = {
 			['wetland-open-06', 'Wetland buildable 6'],
 			['wetland-open-07', 'Wetland buildable 7'],
 			['wetland-open-08', 'Wetland buildable 8'],
-			['wetland-blocked-01', 'Wetland impassable 1'],
-			['wetland-blocked-02', 'Wetland impassable 2'],
-			['wetland-blocked-03', 'Wetland impassable 3'],
-			['wetland-blocked-04', 'Wetland impassable 4'],
-			['wetland-blocked-05', 'Wetland impassable 5'],
-			['wetland-blocked-06', 'Wetland impassable 6'],
 			['tropical-open-01', 'Tropical buildable 1'],
 			['tropical-open-02', 'Tropical buildable 2'],
 			['tropical-open-03', 'Tropical buildable 3'],
@@ -721,12 +711,6 @@ const LISTS = {
 			['tropical-open-06', 'Tropical buildable 6'],
 			['tropical-open-07', 'Tropical buildable 7'],
 			['tropical-open-08', 'Tropical buildable 8'],
-			['tropical-blocked-01', 'Tropical impassable 1'],
-			['tropical-blocked-02', 'Tropical impassable 2'],
-			['tropical-blocked-03', 'Tropical impassable 3'],
-			['tropical-blocked-04', 'Tropical impassable 4'],
-			['tropical-blocked-05', 'Tropical impassable 5'],
-			['tropical-blocked-06', 'Tropical impassable 6'],
 			['desert-open-01', 'Desert buildable 1'],
 			['desert-open-02', 'Desert buildable 2'],
 			['desert-open-03', 'Desert buildable 3'],
@@ -735,12 +719,6 @@ const LISTS = {
 			['desert-open-06', 'Desert buildable 6'],
 			['desert-open-07', 'Desert buildable 7'],
 			['desert-open-08', 'Desert buildable 8'],
-			['desert-blocked-01', 'Desert impassable 1'],
-			['desert-blocked-02', 'Desert impassable 2'],
-			['desert-blocked-03', 'Desert impassable 3'],
-			['desert-blocked-04', 'Desert impassable 4'],
-			['desert-blocked-05', 'Desert impassable 5'],
-			['desert-blocked-06', 'Desert impassable 6'],
 			['grassland-open-01', 'Grassland buildable 1'],
 			['grassland-open-02', 'Grassland buildable 2'],
 			['grassland-open-03', 'Grassland buildable 3'],
@@ -749,12 +727,6 @@ const LISTS = {
 			['grassland-open-06', 'Grassland buildable 6'],
 			['grassland-open-07', 'Grassland buildable 7'],
 			['grassland-open-08', 'Grassland buildable 8'],
-			['grassland-blocked-01', 'Grassland impassable 1'],
-			['grassland-blocked-02', 'Grassland impassable 2'],
-			['grassland-blocked-03', 'Grassland impassable 3'],
-			['grassland-blocked-04', 'Grassland impassable 4'],
-			['grassland-blocked-05', 'Grassland impassable 5'],
-			['grassland-blocked-06', 'Grassland impassable 6'],
 			['forest-open-01', 'Forest buildable 1'],
 			['forest-open-02', 'Forest buildable 2'],
 			['forest-open-03', 'Forest buildable 3'],
@@ -763,12 +735,6 @@ const LISTS = {
 			['forest-open-06', 'Forest buildable 6'],
 			['forest-open-07', 'Forest buildable 7'],
 			['forest-open-08', 'Forest buildable 8'],
-			['forest-blocked-01', 'Forest impassable 1'],
-			['forest-blocked-02', 'Forest impassable 2'],
-			['forest-blocked-03', 'Forest impassable 3'],
-			['forest-blocked-04', 'Forest impassable 4'],
-			['forest-blocked-05', 'Forest impassable 5'],
-			['forest-blocked-06', 'Forest impassable 6'],
 		],
 		aa: ADVANCED_MATS.aa.flatMap(([slug, name]) => biomeTiles(slug, name)),
 		ff: ADVANCED_MATS.ff.flatMap(([slug, name]) => biomeTiles(slug, name)),

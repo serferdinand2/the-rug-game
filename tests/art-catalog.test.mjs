@@ -31,7 +31,7 @@ const EXPECTED_COUNTS = {
 	hex: { base: 8 },
 	'territory-tile': { base: 48 },
 	'capital-mat': { base: 6, aa: 6, ff: 6 },
-	'capital-terrain': { base: 84, aa: 84, ff: 84 },
+	'capital-terrain': { base: 48, aa: 84, ff: 84 }, // the base biomes' impassable plots are their reliefs (#82)
 	'capital-relief': { base: 6, aa: 6, ff: 6 },
 	'inspiration-tile': { aa: 4 },
 };
@@ -107,10 +107,10 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 318 icons and 102 boards', () => {
+test('there are 294 illustrations, 282 icons and 102 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
-	assert.equal(count('icon'), 318);
+	assert.equal(count('icon'), 282);
 	assert.equal(count('board'), 102);
 });
 

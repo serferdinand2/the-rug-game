@@ -36,7 +36,7 @@ export function artDescription(section) {
 		return 'Five owner-reviewed terrain hex markers at native 24×24. These are card/map terrain symbols, separate from the capital biome tile solutions.';
 	}
 	if (section.id === 'capital-mat') {
-		return 'The full mats are example compositions only. Each one lays ground tiles on its printed layout, with its relief over them once that relief is released. The game composes each mat the same way.';
+		return "The full mats are example compositions only. Each one lays ground tiles on its printed layout. The six base mats' reliefs lie over their ground; the expansion mats keep their impassable tiles until #132 and #133 draw theirs. The game composes each mat the same way.";
 	}
 	if (section.id === 'capital-relief') {
 		return `${section.total} reliefs, ${section.drawn} drawn. Each mat's impassable plots are one relief, drawn from its printed layout over the mat's per-plot ground. Each preview shows the relief on that ground, and the specimens show every kind of join. The owner approves each batch here. Source issue #${section.issues.join(', #')}.`;

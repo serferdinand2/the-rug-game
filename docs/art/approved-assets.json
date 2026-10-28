@@ -192,6 +192,12 @@
     "sha256": "bfbf3f4b47ef1be618ee963ae238c54716bfb62676511be73dc1a3586ca6280c"
   },
   {
+    "id": "piece/architects-cube",
+    "width": 32,
+    "height": 32,
+    "sha256": "e79047a378444747e89cba1c35ff3768ed79b4ddf50083aa9a5b1c4af23f78a1"
+  },
+  {
     "id": "track/exploration",
     "width": 32,
     "height": 32,
@@ -225,547 +231,361 @@
     "id": "capital-terrain/mountain-open-01",
     "width": 32,
     "height": 32,
-    "sha256": "d6e2f2f5194486cab23a2aa0d52322610639c7890efc39a7445b957ae48f2a98"
+    "sha256": "a487111447e89437a3749bb7dad6d56fef9af03560da4cdd1d3e96c3451850a1"
   },
   {
     "id": "capital-terrain/mountain-open-02",
     "width": 32,
     "height": 32,
-    "sha256": "9187f4503befba78554f88b756e63d1d179cce282cb736d02aa01b89ed641d29"
+    "sha256": "c8e271819d71e193f2350f3d44be4e2a1f65902decf9d909a799a55990759f75"
   },
   {
     "id": "capital-terrain/mountain-open-03",
     "width": 32,
     "height": 32,
-    "sha256": "6dde5b0e0ae33f11610f6d8be5c65dda63cdb9f01a320d280a4b4b287e74d773"
+    "sha256": "4132b94b4ad18a047383a06d010bcd0753788ca0c2d7949b549d8759b8e39f06"
   },
   {
     "id": "capital-terrain/mountain-open-04",
     "width": 32,
     "height": 32,
-    "sha256": "fc3ea23fa23d288cef11beac7fddb9d6408689a65cf746a2aafede01465f7c33"
+    "sha256": "9e3e1fddb10449461f370df0a82a737d43f3b42c2ad21e8156817ecde3e5bc9d"
   },
   {
     "id": "capital-terrain/mountain-open-05",
     "width": 32,
     "height": 32,
-    "sha256": "12cd5e3e8da223f8ee026518a6e2efa33811caa90000be66b5be11f68f5c1dc8"
+    "sha256": "4eb1f773954f1dd0098e5a4ce0a41788d0fc109ece19a022915f3d3abe51bc32"
   },
   {
     "id": "capital-terrain/mountain-open-06",
     "width": 32,
     "height": 32,
-    "sha256": "bf4d49a5e2953a04bb4f5c16ed64b3fbab7bd447f9e340a39acd5383bd1d313c"
+    "sha256": "f787b19cd3e94538cc636e908ebc28feac1775f4591609d22e8e95ffe198cd90"
   },
   {
     "id": "capital-terrain/mountain-open-07",
     "width": 32,
     "height": 32,
-    "sha256": "2ba51edafd03edd233e35beea54376ddee0aaa0dbce7244f9e5c4a88a994fd20"
+    "sha256": "12169c956ff04c1dda2b9c52cac6d177d4e00058ce8a52b7a9d85688e3d076a6"
   },
   {
     "id": "capital-terrain/mountain-open-08",
     "width": 32,
     "height": 32,
-    "sha256": "8a15947e53c43a57b6d45d381fd68bca20b090d3293c47663d792a425660f22b"
-  },
-  {
-    "id": "capital-terrain/mountain-blocked-01",
-    "width": 32,
-    "height": 32,
-    "sha256": "f7e978cc5cead0d6db7353d69800d618a7dfbb2fe760e946c178c31c94340848"
-  },
-  {
-    "id": "capital-terrain/mountain-blocked-02",
-    "width": 32,
-    "height": 32,
-    "sha256": "1d2d6da69866317e2be502257a09e5bcc72edf3bcc581258c11b0df81313178b"
-  },
-  {
-    "id": "capital-terrain/mountain-blocked-03",
-    "width": 32,
-    "height": 32,
-    "sha256": "fd1dfde4676dc4dbf0dfc8cd66e8a2c38b7ff0269d442d82e317d9c89f7a4dae"
-  },
-  {
-    "id": "capital-terrain/mountain-blocked-04",
-    "width": 32,
-    "height": 32,
-    "sha256": "d9bf385c4822d1b0603b9b529f611118d52a21e646c71ec270151e5a26c93a53"
-  },
-  {
-    "id": "capital-terrain/mountain-blocked-05",
-    "width": 32,
-    "height": 32,
-    "sha256": "b93ed8ff18a6f6b0b118de79cf9b5ee0f4608eeb064d0aca42a8df470946f2cf"
-  },
-  {
-    "id": "capital-terrain/mountain-blocked-06",
-    "width": 32,
-    "height": 32,
-    "sha256": "a3f180e6affea586e6efcabf47cdcc8cf7b98aa035f7351d92d771e25e3b8582"
+    "sha256": "e426e80d353987b40cf97eef9a660127097cc9f2a5f1934d6809f13d3f1d0f8d"
   },
   {
     "id": "capital-mat/mountain",
-    "width": 288,
-    "height": 288,
-    "sha256": "6e46a829dd064e6907d867785f8fcf9c68a1545d5e831ccf2f188d2416031e0f",
-    "example": true
+    "width": 296,
+    "height": 296,
+    "sha256": "c28bc2e1929563f20360608e5f20e8778b34fe509f4361ea6599d2da889e7a9a"
+  },
+  {
+    "id": "capital-relief/mountain",
+    "width": 296,
+    "height": 296,
+    "sha256": "789e5e7f8a41a9a123c66908716b0a6688d7557580441c0b5f8ba8b20e57bd2f"
   },
   {
     "id": "capital-terrain/wetland-open-01",
     "width": 32,
     "height": 32,
-    "sha256": "c628f50fe9ff1acd18f9d63ffad10c7417855ffd54afb27da70f0769b8830ecc"
+    "sha256": "df54c8437dcd859e92d7e3b43ab4b17540b33de4bc834bce1d1bc1b8e8fcaa24"
   },
   {
     "id": "capital-terrain/wetland-open-02",
     "width": 32,
     "height": 32,
-    "sha256": "777780fabfd705c7948c070ac578e8a1006bea8f3a7db46805e496ee804e4572"
+    "sha256": "50d70a19a1b8c501ebba2dbc0f9ff7aa6e00b01f755af87796c7403b9a8d6f7c"
   },
   {
     "id": "capital-terrain/wetland-open-03",
     "width": 32,
     "height": 32,
-    "sha256": "5580b4f7a23236baa4cb9a0d25e53f231d578325839c2f816ed11e14bcae365b"
+    "sha256": "8f7644de6c4da9cbfd07f54f569abcb11b47571c777fac85d0b7a473165c07c1"
   },
   {
     "id": "capital-terrain/wetland-open-04",
     "width": 32,
     "height": 32,
-    "sha256": "79cc483cb23c02fba5b4e80afa16e795729112541bfbdf565c5f04338518e2ce"
+    "sha256": "c84485ea3915ab145a8f5283b392a7b37adb18260245fd873a8e4519bd3f7a60"
   },
   {
     "id": "capital-terrain/wetland-open-05",
     "width": 32,
     "height": 32,
-    "sha256": "4e2b974f383796a1c35bd1f3787bd242f7d415ff4fcd3d9feba6219ba150aecd"
+    "sha256": "276b269904381f02217a6117962abf9fbea18f5a0651d0a12d552ac297ff40a2"
   },
   {
     "id": "capital-terrain/wetland-open-06",
     "width": 32,
     "height": 32,
-    "sha256": "6a1acf15fea50e5e9d388dd96b9b953be0c8d4bba90cf391b47d5054963639d7"
+    "sha256": "0d74ad2d2c3d8a396cb8a2cf8ac4ae280f55a1a35d91dca0cbb58940c75b4891"
   },
   {
     "id": "capital-terrain/wetland-open-07",
     "width": 32,
     "height": 32,
-    "sha256": "2e70c3076b8b5930509a181c63022a6c6ba2efd5a624e4bbb853d9284aca8e20"
+    "sha256": "595f5f9cdc2bc8cbc58397f783efa8d602adecc194c41c59350b40967907ba6d"
   },
   {
     "id": "capital-terrain/wetland-open-08",
     "width": 32,
     "height": 32,
-    "sha256": "2c25e8be017cf296fb9d15e49cc00b97868ec8062cd91df889960ef0f3395253"
-  },
-  {
-    "id": "capital-terrain/wetland-blocked-01",
-    "width": 32,
-    "height": 32,
-    "sha256": "69ed10312a766187930ceccc7d766bec36f23c50471485d8eaeb8515e85e8e27"
-  },
-  {
-    "id": "capital-terrain/wetland-blocked-02",
-    "width": 32,
-    "height": 32,
-    "sha256": "e19be45d6f6c41194e4970dec481893e7ac8970d7c84919ebd6bf448de43c4f2"
-  },
-  {
-    "id": "capital-terrain/wetland-blocked-03",
-    "width": 32,
-    "height": 32,
-    "sha256": "dd1f6dab3fc3982d8578ee88736df01761f1e933b54ae00aa18522e17648f7d2"
-  },
-  {
-    "id": "capital-terrain/wetland-blocked-04",
-    "width": 32,
-    "height": 32,
-    "sha256": "3ca2c8c86192830ae39d6c424ed3ba49b99ce05dd2c861674998974fe80fa139"
-  },
-  {
-    "id": "capital-terrain/wetland-blocked-05",
-    "width": 32,
-    "height": 32,
-    "sha256": "9f6e3af02cf92fb0af50e26626fc8caea08448c8a5c44081586faa3a2e67b9ee"
-  },
-  {
-    "id": "capital-terrain/wetland-blocked-06",
-    "width": 32,
-    "height": 32,
-    "sha256": "786a7ee96135cf56bbc13c2c455316bf3e9e18fb8e0d2f03969e8521c4d4ddd7"
+    "sha256": "2ef9401b24cec23a1210c02c9e1dce51dd5a578f1ce788ebfaf42174b8fc7adf"
   },
   {
     "id": "capital-mat/wetland",
-    "width": 288,
-    "height": 288,
-    "sha256": "570d52cc5b89e266dabf720c8a5efd4916173c78901a2af8ed4d7ce909dae6c6",
-    "example": true
+    "width": 296,
+    "height": 296,
+    "sha256": "c371786643131b25ec2533a6800fc1dd61bdcc3b08fc1d625b136a95cd1b18f9"
+  },
+  {
+    "id": "capital-relief/wetland",
+    "width": 296,
+    "height": 296,
+    "sha256": "142ab60ca5e436c68bce5302a28f0166a5969d9df3c1139e6f9829cd86675aa9"
   },
   {
     "id": "capital-terrain/tropical-open-01",
     "width": 32,
     "height": 32,
-    "sha256": "715a3186e277fff334ea35b86079f7d45c9a2d5315098efee32facc208ba2c33"
+    "sha256": "62bd5f98f6fe7084aa81a42441408cc32cbad04b601c574cecba714252db9a2d"
   },
   {
     "id": "capital-terrain/tropical-open-02",
     "width": 32,
     "height": 32,
-    "sha256": "47a4cae6ae0b1fb65e162435a63e03494046bdbf8260c39b976961bc05bb3171"
+    "sha256": "dff77fb5787036f536b0487b08596302d8d6a49070c519dd34592995eb1ab19d"
   },
   {
     "id": "capital-terrain/tropical-open-03",
     "width": 32,
     "height": 32,
-    "sha256": "7d493ae7145263e09e82aa401bfb743869684ac790187f77f554788e8ba10d3d"
+    "sha256": "bc964ce3d38d665e9e8afd99dfacfbbb7a7d76f489f15f0056832db89cd1015b"
   },
   {
     "id": "capital-terrain/tropical-open-04",
     "width": 32,
     "height": 32,
-    "sha256": "405085f0cb9f5cf0f5a94d47501d15d0ed0c18bf1dbb7b670949657c39f6a6c0"
+    "sha256": "91ccfb29b2800301f22bb9c9749f23d2319749261981db4b168eda5ddc93eea9"
   },
   {
     "id": "capital-terrain/tropical-open-05",
     "width": 32,
     "height": 32,
-    "sha256": "df97f452478b8d6330a1130ae6d59af2ca6656003d5bfdc53da4545f0f3e864c"
+    "sha256": "0ea0ac824713303082fce2ec28bade54a7ceac2c15b0d04dc0e99b9964d638f6"
   },
   {
     "id": "capital-terrain/tropical-open-06",
     "width": 32,
     "height": 32,
-    "sha256": "fdfeb96c646a3cdba72be0a4dd73358e306232a2ac1584cb9a405a01892b3b44"
+    "sha256": "5e3ae7c4c4bbccd104c85aedf9b40b0e2d3695237395abca1a2fb52a8f6bf2b1"
   },
   {
     "id": "capital-terrain/tropical-open-07",
     "width": 32,
     "height": 32,
-    "sha256": "e3c2a565beba1ac896b76f73725fd5d2c9b75b94914cfba5a6dc94bc27d9f2ae"
+    "sha256": "648aba9fc5704dc5a1182d870f355998e0df1ff52a1e91ee49bbb00d7ba00912"
   },
   {
     "id": "capital-terrain/tropical-open-08",
     "width": 32,
     "height": 32,
-    "sha256": "6da4628bf7d658ff73374b124b86ed1db2065a1973f1cd6e303e0472dda980e3"
-  },
-  {
-    "id": "capital-terrain/tropical-blocked-01",
-    "width": 32,
-    "height": 32,
-    "sha256": "04ef3be183a69e0ee801bdcced9125d30c33acb0fc56ca623efb0b65e4726e07"
-  },
-  {
-    "id": "capital-terrain/tropical-blocked-02",
-    "width": 32,
-    "height": 32,
-    "sha256": "beac25e64db8be23bcafc3cf1d4474ae1b26bfa6edaddcf3b65d074d08e16cec"
-  },
-  {
-    "id": "capital-terrain/tropical-blocked-03",
-    "width": 32,
-    "height": 32,
-    "sha256": "a54d5de07298acdfd0e7b2febf7e9e38f5ff285cb34317375473d0860524c713"
-  },
-  {
-    "id": "capital-terrain/tropical-blocked-04",
-    "width": 32,
-    "height": 32,
-    "sha256": "8b5e19cfd49e9e782e21bed1e55fa34116bf6e4c9d68b69ec570c315dc07a42e"
-  },
-  {
-    "id": "capital-terrain/tropical-blocked-05",
-    "width": 32,
-    "height": 32,
-    "sha256": "a31dbd02ca1cf0453d4d0cd2e9af093ba2d92d3265d18455a29541a1c460a8dc"
-  },
-  {
-    "id": "capital-terrain/tropical-blocked-06",
-    "width": 32,
-    "height": 32,
-    "sha256": "04b3b3829816595eaee1ed3c8567db9f715d18b8decc13a0a7b6cea9012fa94a"
+    "sha256": "7ff020d1e2d1eb39238fe6df8e1b1134f230523b128428e73f618c9f30f9eb4c"
   },
   {
     "id": "capital-mat/tropical",
-    "width": 288,
-    "height": 288,
-    "sha256": "199cb4a1cb965e84dbd0521005a0bcb1154d392effc7d5153b8848bf685dfbad",
-    "example": true
+    "width": 296,
+    "height": 296,
+    "sha256": "9e086ecdbcde39254df301f5f51e49c1d24a98e33594018d9249d79f334c03b6"
+  },
+  {
+    "id": "capital-relief/tropical",
+    "width": 296,
+    "height": 296,
+    "sha256": "0d5b409cdce2b45138185b564226b4103b43615db2a667c814dffb9a9b9b8271"
   },
   {
     "id": "capital-terrain/desert-open-01",
     "width": 32,
     "height": 32,
-    "sha256": "efb15e3090e91be4512eed8f8fa53a88700e7736ddf1145646f09cfce358ed7d"
+    "sha256": "20d12fec673bf38fa72201ecfccc418d92257d670481d79ba2897fe490a4483b"
   },
   {
     "id": "capital-terrain/desert-open-02",
     "width": 32,
     "height": 32,
-    "sha256": "3319f69353b9251c6a829fdefa1288fa21673e3ba340e733e0b30c1575818e86"
+    "sha256": "7655cd52fba293414aea86acbe6106642a3a43f96f8aed683d560d391daea821"
   },
   {
     "id": "capital-terrain/desert-open-03",
     "width": 32,
     "height": 32,
-    "sha256": "409fa0db7081e8617254bf045d1aa7f57da0a3a11484ea44ac138ad31dee0ee9"
+    "sha256": "54e311c92fa0df99af4963e18db3b867f52a1b6224845879924f97f34e9b2cea"
   },
   {
     "id": "capital-terrain/desert-open-04",
     "width": 32,
     "height": 32,
-    "sha256": "658b75dcf9e6892207fed75ef6e5177962fa82dcbd6fb58bd180f2cc8c67e655"
+    "sha256": "ed567e05460848e90cc82eaa173ff0c28e96959adc1e46e39176003aa8e0b750"
   },
   {
     "id": "capital-terrain/desert-open-05",
     "width": 32,
     "height": 32,
-    "sha256": "bc35c3068efe13ea3d76bf5e77aaaf6279f022f95528cea97d27e15815619d58"
+    "sha256": "e2e0352e84ad989c90444fd26ad42397cc3eda885bf22bdffdf1e03fa388b507"
   },
   {
     "id": "capital-terrain/desert-open-06",
     "width": 32,
     "height": 32,
-    "sha256": "89c39e29a4536de459e7a54ae3004765d9f6e53bbbe101d3bbcec67fb38cafe0"
+    "sha256": "6fcdafac7abc5f9e0bf0f0d3d58382f97440b66e8eae110bbb3fc0e9d5f19fe6"
   },
   {
     "id": "capital-terrain/desert-open-07",
     "width": 32,
     "height": 32,
-    "sha256": "4dca1139b6d17c9878450c5d69f80f7e59b69cda1cac1f38f771eaa6540df6f7"
+    "sha256": "e5f41c2a957b1e03c329a63459579f8a8f1d4d4f537b8716523532eff568a218"
   },
   {
     "id": "capital-terrain/desert-open-08",
     "width": 32,
     "height": 32,
-    "sha256": "8c41efebc5d00eddf7afd71892687068478777e5b2a95816d525e03f13377d35"
-  },
-  {
-    "id": "capital-terrain/desert-blocked-01",
-    "width": 32,
-    "height": 32,
-    "sha256": "67e4ef8361ebe3f2c80222bf1d150622a7ad53639018ecc5c879d200f52d67a7"
-  },
-  {
-    "id": "capital-terrain/desert-blocked-02",
-    "width": 32,
-    "height": 32,
-    "sha256": "b23f2198f76566d2b6b88235a6f874ca1f1be004240ecdf1272202fb8862e20f"
-  },
-  {
-    "id": "capital-terrain/desert-blocked-03",
-    "width": 32,
-    "height": 32,
-    "sha256": "d76bf0d36291fbde2b852c17b4ec8a998ea47d1dbf9ec48ef67f305f83f30689"
-  },
-  {
-    "id": "capital-terrain/desert-blocked-04",
-    "width": 32,
-    "height": 32,
-    "sha256": "cc6f09a8d8eb87b739f2221841ceee93fa35e46542afd4581c89671aab9d3c16"
-  },
-  {
-    "id": "capital-terrain/desert-blocked-05",
-    "width": 32,
-    "height": 32,
-    "sha256": "66a225863430f205ad6e14bb42fd938d079842623f9bbb1b5d0711e1d369ead9"
-  },
-  {
-    "id": "capital-terrain/desert-blocked-06",
-    "width": 32,
-    "height": 32,
-    "sha256": "2568ac1c5a47799324a2b62464a27b14af3a69475b2cd515ffaa1f9ab14e54ff"
+    "sha256": "958568bdae47d266d63ebac84ec9c6c2dab76f700789b3ac301158e1485e25df"
   },
   {
     "id": "capital-mat/desert",
-    "width": 288,
-    "height": 288,
-    "sha256": "69560c87f59e8c486ef91f91724e03975c8d73d24efd9dd7125a52780baa0fa8",
-    "example": true
+    "width": 296,
+    "height": 296,
+    "sha256": "57e07d291e342e1e74c5d7daa4d47d4db2864e873d80cc9d7445efc8ae2c8101"
+  },
+  {
+    "id": "capital-relief/desert",
+    "width": 296,
+    "height": 296,
+    "sha256": "1960e534385ddb2142f34f28cec909a5b6e0981f10ebb888f56894f0f90b79d0"
   },
   {
     "id": "capital-terrain/grassland-open-01",
     "width": 32,
     "height": 32,
-    "sha256": "070f08ebc2c1f88b7a8b3f1a069b19a348782b07a0dc70ba03d0ae540fd90a5c"
+    "sha256": "df0dc53ae82d8102f992d6f6504b724deb112293ebcb4a75e0f5a5926b1f7b56"
   },
   {
     "id": "capital-terrain/grassland-open-02",
     "width": 32,
     "height": 32,
-    "sha256": "63d577c360b4455ae4d8a8fdd5cf42d860bb80b0565a812c4094e4f03a3cd5e4"
+    "sha256": "682ec49a77158fa52cf1df83e8fec173cde8a3508d5a39030a9b58827b24718f"
   },
   {
     "id": "capital-terrain/grassland-open-03",
     "width": 32,
     "height": 32,
-    "sha256": "e6858d92ff6a37113b661a423b03bd85d844f23e0c71c82770fd737b37e831a2"
+    "sha256": "eb1a54f0048ad22f551b6d2796f7b772b7369653785adb603f4a49e0a63ead7c"
   },
   {
     "id": "capital-terrain/grassland-open-04",
     "width": 32,
     "height": 32,
-    "sha256": "66a88308db60d47133756e0cd7c5e9908c08176012b20a53ca4f510341018230"
+    "sha256": "9318d596fc8b58f6102196540843af193e7e2d1891c2a7c57e0a3be3cce18246"
   },
   {
     "id": "capital-terrain/grassland-open-05",
     "width": 32,
     "height": 32,
-    "sha256": "d8a4fc702c7b65f7105bfd0b0c7055d2b217399a1931ae39ca21efad159395e9"
+    "sha256": "5f97c2bfc9e59789a518f1a7349e7302afe5a644a5d312ef2e513aa2e9ddc37f"
   },
   {
     "id": "capital-terrain/grassland-open-06",
     "width": 32,
     "height": 32,
-    "sha256": "742e5e31168a96d81303b6c710dcaf6bcbf6e03fc251c7c82d86269ad0d644ba"
+    "sha256": "59fab2bca57c5b46773a09996b49182e420bb27ed42996cb132179f907ef2b8b"
   },
   {
     "id": "capital-terrain/grassland-open-07",
     "width": 32,
     "height": 32,
-    "sha256": "21728490e41f2b8fdbd44d01514f45c179fede4fad21c372529562eb4eef4d25"
+    "sha256": "97e0c62c33e47650fc4932460efa7d84424a8c10b94fc7f94a49527d6268fc7e"
   },
   {
     "id": "capital-terrain/grassland-open-08",
     "width": 32,
     "height": 32,
-    "sha256": "1015c46dd4003668d0f20176cd51790b3692cb8add46b600355f6abd9c756ea5"
-  },
-  {
-    "id": "capital-terrain/grassland-blocked-01",
-    "width": 32,
-    "height": 32,
-    "sha256": "a1c59d058212109411cec10f338e65c5cc12fd5550fda22dd5e6cf73cfd1e7f2"
-  },
-  {
-    "id": "capital-terrain/grassland-blocked-02",
-    "width": 32,
-    "height": 32,
-    "sha256": "f5d7dd063862928ac3da1c2b212bccc8b63975786c14113ec0cc58632ea222b6"
-  },
-  {
-    "id": "capital-terrain/grassland-blocked-03",
-    "width": 32,
-    "height": 32,
-    "sha256": "9b6728717d5e638da2600fbc209593a5dd281d68618c3707b3409bceed2df4c5"
-  },
-  {
-    "id": "capital-terrain/grassland-blocked-04",
-    "width": 32,
-    "height": 32,
-    "sha256": "6c9bb7a6444ae164c4bb2b7624e1b6cc8c5fbe8222fa0ca041abaa8b192c0a5d"
-  },
-  {
-    "id": "capital-terrain/grassland-blocked-05",
-    "width": 32,
-    "height": 32,
-    "sha256": "a1a097b9e2b403e45d0e2ce02decf4251d95114f896527104bea5318d641b490"
-  },
-  {
-    "id": "capital-terrain/grassland-blocked-06",
-    "width": 32,
-    "height": 32,
-    "sha256": "693b0960c149d197c21bc552e499d1c091ec8d7fde55fb646f1e824b2ffc827d"
+    "sha256": "bda751d5c6c137391563c23f1060e2656b560cd67b54977647e19a43f1b567a9"
   },
   {
     "id": "capital-mat/grassland",
-    "width": 288,
-    "height": 288,
-    "sha256": "573877f850eb43cc1fddc0c03c4630a57047d732bf805f27ea5a76e6788a473e",
-    "example": true
+    "width": 296,
+    "height": 296,
+    "sha256": "18744f00bae96c29c2366e27548a4450e0c5753e33d0505c95700636daa21818"
+  },
+  {
+    "id": "capital-relief/grassland",
+    "width": 296,
+    "height": 296,
+    "sha256": "13aa70709b54942ab49d38baa36927497999f2803f697053287f17a70da808f3"
   },
   {
     "id": "capital-terrain/forest-open-01",
     "width": 32,
     "height": 32,
-    "sha256": "1ee6965dab3c64605a739b1c46223c98fe22b0d518e6062eef268101ee01d092"
+    "sha256": "b3e811e6c5ca74edc1cabcbb442c1bd24ac60f5260bcabc3c01163af8cfbb6f4"
   },
   {
     "id": "capital-terrain/forest-open-02",
     "width": 32,
     "height": 32,
-    "sha256": "a2e17b8e245d5b19bd1ea18d2b78282e63283260c14a943f35e3e1862e1b7f75"
+    "sha256": "165ccf3d9df09f932513b3bd08963689b9b4bad19fa434489f7dfa3b76f9f35c"
   },
   {
     "id": "capital-terrain/forest-open-03",
     "width": 32,
     "height": 32,
-    "sha256": "66c12418a9fdef01427398ad83fb67f40a08437a52ad92c3ad6347c7960b71c7"
+    "sha256": "cb1e480e3ae3e28a43554806c2b8f663b2f168f61b0a15722c6a380f86c5cb30"
   },
   {
     "id": "capital-terrain/forest-open-04",
     "width": 32,
     "height": 32,
-    "sha256": "7f5758742a477ee8aaff111cf0e4ace68e1a27590a97aa3c690c6ae4a2efa4c7"
+    "sha256": "f42cc481755680812c5e60870a795d78c20a8d330908cc4080da8ccb817207c1"
   },
   {
     "id": "capital-terrain/forest-open-05",
     "width": 32,
     "height": 32,
-    "sha256": "fa45e3c01c10b718497144842ed3a818995dc03d97ac5804b3e3174520e4e0c2"
+    "sha256": "9b367eee303072e0cf143881bd5805126d0a541368bb2973c313169f61f05406"
   },
   {
     "id": "capital-terrain/forest-open-06",
     "width": 32,
     "height": 32,
-    "sha256": "47f6b56a2ed7a3ced168ae3262542dd7bef0567d60b15d005c959544aebbdf6a"
+    "sha256": "949d0166f11c5018a4b8772b50dafa063e1a07b9de597f385152ce65a0d85f10"
   },
   {
     "id": "capital-terrain/forest-open-07",
     "width": 32,
     "height": 32,
-    "sha256": "c4b0dd8a3407c6a829635ba1b191a05c0247abd77a43a179e44348fe54e91cc3"
+    "sha256": "f796a3ed85380aa3813bfc691d12aeedcd880b0006ab51dae7f9a1c3d1c0e30e"
   },
   {
     "id": "capital-terrain/forest-open-08",
     "width": 32,
     "height": 32,
-    "sha256": "626819d8d5c23e7b30d331c5677bfb3dfc415949099abbb8eda73100031eb1d1"
-  },
-  {
-    "id": "capital-terrain/forest-blocked-01",
-    "width": 32,
-    "height": 32,
-    "sha256": "93e514774ccc8aa9eca89f498789e730b9eb9c666262cfa50fa4ee7260f74d80"
-  },
-  {
-    "id": "capital-terrain/forest-blocked-02",
-    "width": 32,
-    "height": 32,
-    "sha256": "40c43516b4ea2f391d42f4f9ed24641d7481c67f7de32c7f7a153f3b437075bb"
-  },
-  {
-    "id": "capital-terrain/forest-blocked-03",
-    "width": 32,
-    "height": 32,
-    "sha256": "e7732954693577a4482cd62a74a48e3a0c65b6076c2e53ac92d8e74e3e7384b9"
-  },
-  {
-    "id": "capital-terrain/forest-blocked-04",
-    "width": 32,
-    "height": 32,
-    "sha256": "78e8bf5e03b9df22815a58be6edd612f5c94fdee416f649bcf27751be3b4db24"
-  },
-  {
-    "id": "capital-terrain/forest-blocked-05",
-    "width": 32,
-    "height": 32,
-    "sha256": "5f0fdc1e144210ce8e7f257cbd7104a4a3ecdbc791cb2cff25acb4e89807abc7"
-  },
-  {
-    "id": "capital-terrain/forest-blocked-06",
-    "width": 32,
-    "height": 32,
-    "sha256": "401823c1911a8c619c55bb52728fd347eac11872f305d06389518575f12bd161"
+    "sha256": "f1fe75db012036599cbe7ca64296de22b21d978f5b59f4360ea0794319edfd2f"
   },
   {
     "id": "capital-mat/forest",
-    "width": 288,
-    "height": 288,
-    "sha256": "7d806c0bfe17e88049ff39796a0cb72d431909a47d4e353d6dc775193508f3e4",
-    "example": true
+    "width": 296,
+    "height": 296,
+    "sha256": "2ac4edc8e5148bb35df4a954e50ca62c717c1bea90307ea41a57d21836f8a23a"
+  },
+  {
+    "id": "capital-relief/forest",
+    "width": 296,
+    "height": 296,
+    "sha256": "5a588f7cf83c7f62d5b47678579c9ce404947155cafc1551719bf6dd2e7dcab3"
   },
   {
     "id": "die/science-body",
