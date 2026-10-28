@@ -1,7 +1,7 @@
 // The players overview's cards (#27 design §4): public facts only, the viewer and host marked.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { view } from '../src/lib/engine/game.js';
+import { capitalScore, view } from '../src/lib/engine/game.js';
 import { playerCards } from '../src/lib/area/players.js';
 import { startedGame } from './helpers/engine.mjs';
 
@@ -55,4 +55,18 @@ test("a card names the land terrains of the player's territories, and its capita
 	assert.ok(!card.terrain.includes('Sea'));
 	assert.deepEqual(card.terrain, [...new Set(card.terrain)]);
 	assert.equal(card.capitalPoints, 0);
+});
+
+test("an Architects card's capital points are the engine's capital score, uniform lines included (#128)", () => {
+	const { state } = startedGame(2);
+	const seat = /** @type {any} */ (state.seats[0]);
+	seat.civs = ['architects'];
+	// Row 0 filled with houses where it is open: complete, and uniform unless the mat blocks a plot with something else.
+	for (let col = 0; col < 9; col++) {
+		seat.capital.buildings.push({ building: 'house', row: 0, col });
+	}
+	const score = capitalScore(seat);
+	assert.ok(score.uniform > 0, 'the row of houses is uniform');
+	const [card] = playerCards(view(state, 2), 2, 1);
+	assert.equal(card.capitalPoints, score.vp);
 });
