@@ -25,7 +25,7 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
 - **Next:**
   - #77 (the first turn takes income by itself) is built; it closes once the owner has looked at its IncomeNotice and TurnBar sections in the component library.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
-  - #83 (the game's hotkeys) is built; it closes once the owner has looked at the new TurnBar states in the component library.
+  - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - The cosmetic boards wait in #51 until the core features are done.
