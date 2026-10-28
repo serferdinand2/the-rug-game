@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Who edits this file
 
-Only Claude edits CLAUDE.md (owner, 2026-10-27). Lazar works with Codex, which follows [AGENTS.md](AGENTS.md): it reads this file but never changes it, and it changes documentation only when asked to.
+Only Claude edits CLAUDE.md (owner, 2026-10-27). Lazar works with Codex, which follows [AGENTS.md](AGENTS.md): it reads this file but never changes it, changes documentation only when asked to, and records every issue it lands in [docs/status.md](docs/status.md).
 
-Keep this file short, because every Claude session and subagent loads all of it. History goes in [docs/status.md](docs/status.md), module detail in [docs/architecture.md](docs/architecture.md), and each issue's decisions in its design document under `docs/superpowers/specs/`. This file keeps what every task needs: what the project is, the commands, a map, the working rules and the decisions already made.
+Keep this file short, because every Claude session and subagent loads all of it. Progress and history go in [docs/status.md](docs/status.md), module detail in [docs/architecture.md](docs/architecture.md), and each issue's decisions in its design document under `docs/superpowers/specs/`. This file keeps what every task needs: what the project is, the commands, a map, the working rules and the decisions already made.
 
 ## What this is
 
@@ -60,13 +60,10 @@ The modules in detail, with the issue that added each, are in [docs/architecture
 
 ## Where the work stands
 
-The full record is [docs/status.md](docs/status.md): what every issue built, its calls to revisit after playing, and what it handed on. Update it whenever an issue lands or a milestone moves, and keep this summary to a few lines.
+[docs/status.md](docs/status.md) is the only record of progress. Its summary says what is done and what comes next; its entries say what every issue built, its calls to revisit after playing, and what it handed on. GitHub's issues and milestones are the live state.
 
-Updated 2026-10-28.
-
-- M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. Three of their issues are still open: #45 (the owner checks R12 and R39 against the box), #47 (the card gallery) and #73 (a README screenshot).
-- M12 · Cosmetic enhancements: #61, #66, #67, #69, #70, #72, #74 and #75 are done.
-- Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](#working-on-issues) for the order and the blockers.
+- **Never record progress in CLAUDE.md** (owner, 2026-10-28): no issue lists, milestone states or "Updated" dates, from Claude or anyone else.
+- Whenever an issue lands or a milestone moves, update docs/status.md: its summary and the issue's entry. Codex does the same under [AGENTS.md](AGENTS.md) without being asked, so check what it has already recorded.
 
 ## Working on issues
 
