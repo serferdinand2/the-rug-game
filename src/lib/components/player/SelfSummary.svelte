@@ -8,6 +8,7 @@
 	 * @property {number} era - 1 to 4, shown as I–IV
 	 * @property {number} vp
 	 * @property {{ coin: number, worker: number, food: number, culture: number }} resources
+	 * @property {string[]} [changed=[]] - Resources whose count shows a prompt's choices so far, drawn gold (#75)
 	 * @property {number} hand - Tapestry cards in hand
 	 * @property {number} tech - Tech cards in all rows
 	 * @property {number} territories - Territories controlled
@@ -34,6 +35,7 @@
 		era,
 		vp,
 		resources,
+		changed = [],
 		hand,
 		tech,
 		territories,
@@ -76,6 +78,7 @@
 		{#each RESOURCE_ROWS as row (row.id)}
 			<span
 				class="rg-self-summary--resource"
+				class:rg-self-summary--changed={changed.includes(row.id)}
 				aria-label="{resources[row.id]} {resources[row.id] === 1
 					? row.one
 					: row.many}">
@@ -166,5 +169,9 @@
 		background: var(--raised);
 		color: var(--text);
 		font: var(--weight-bold) var(--font-size-base) / 1 var(--font-body);
+	}
+
+	.rg-self-summary--changed b {
+		color: var(--gold);
 	}
 </style>

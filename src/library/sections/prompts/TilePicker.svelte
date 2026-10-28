@@ -20,6 +20,8 @@
 		}));
 
 	let picked = $state(5);
+	/** @type {number[]} */
+	let chosen = $state([13, 21, 25]);
 	let reported = $state('');
 </script>
 
@@ -71,5 +73,20 @@
 				picked = event.value.tile;
 				reported = `onTilePickerSelect → { tile: ${event.value.tile} }`;
 			}} />
+	</Example>
+	<Example
+		label={`selected={[${chosen.join(', ')}]} disabled  (paying 3 tiles: several chosen; once 3 are, the rest wait)`}
+		surface="ink"
+		width={392}>
+		<TilePicker
+			tiles={tilesOf([6, 13, 19, 21, 25, 29])}
+			selected={chosen}
+			disabled={chosen.length >= 3
+				? [6, 13, 19, 21, 25, 29].filter((id) => !chosen.includes(id))
+				: []}
+			onTilePickerSelect={(/** @type {ComponentEvent} */ event) =>
+				(chosen = chosen.includes(event.value.tile)
+					? chosen.filter((id) => id !== event.value.tile)
+					: [...chosen, event.value.tile])} />
 	</Example>
 </Section>

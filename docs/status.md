@@ -18,8 +18,9 @@ Updated 2026-10-27. The issues are listed in the order they were finished.
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
+- **Waiting for the owner's look in the component library:** #75 (the ResourceRows, TilePicker, CardShelf, SelfSummary and DecisionPanel sections).
 - **Next:**
-  - The owner's M12 issues: #75 (picking several cards, tiles or resources one by one), then #61 (the dice tray).
+  - The owner's M12 issue #61 (the dice tray).
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - The cosmetic boards wait in #51 until the core features are done.
@@ -44,6 +45,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#30 (the hot-seat pass screen)](#30-the-hot-seat-pass-screen)
 - [#28 (the decision prompts)](#28-the-decision-prompts)
 - [#72, #67, #69 and #74 (the owner's M12 issues)](#72-67-69-and-74-the-owners-m12-issues)
+- [#75 (picking several things one by one)](#75-picking-several-things-one-by-one)
 
 ## Issues
 
@@ -430,6 +432,14 @@ They were built on 2026-10-27 without a question round. #72 and #67 are done, an
   - Calls to revisit: a hex picked first takes the lowest-numbered tile; the best turn is the highest VP, then the lowest turn; picking another tile or hex keeps the other and moves to its best turn; clicking the picked tile again does nothing; an explore has no separate status line, as the chosen line names the hex and turn once; no cancel button (another hex is one click away); one tile is picked from the start; the 6 turns of an island tile still step through all 6; the row wraps and Explore stays visible; the tile numbers print on the pictures; a tile's accessible name gives its terrains and best VP; the chosen hex's name gives its VP in the turn chosen, the other lit hexes' "up to"; R is ignored while the overview, Table settings or How to play is open, and repeats when held; nothing changes while the explore is being sent; while a panel is docked, the board leaves its width free (`--docked-panel-width`, `--docked-panel-inset`), so no hex lies under it.
   - The owner approved it in the library's TilePicker, TurnControl, DecisionPanel and WorldMap sections (owner, 2026-10-28).
   - `tests/browser/explore-prompt.test.mjs` plays a hot-seat table to an explore and closes it.
+
+### #75 (picking several things one by one)
+
+Built on 2026-10-28 after a mockup round: the owner asked for Board Game Arena's method ("use bga method"), then for height over width, every panel at the screen's centre and the advance's cost there too. The design is `docs/superpowers/specs/2026-10-28-multi-select-prompt-design.md` and the plan `docs/superpowers/plans/2026-10-28-multi-select-prompt-issue-75.md`.
+- Built: `src/lib/picks.js` turns `chooseResource`, `chooseConversion`, `chooseBonus` (resources, tiles or cards), `chooseTrade` (offers, then rows) and an advance's payments into rows and pickers, and matches a selection to one answer; a resource or card is enabled only if some answer holds everything chosen with it. `ResourceRows` draws the rows; `TilePicker`, `CardShelf` and the Terrain tab pick several at once; `SelfSummary` shows the counts after the choices so far; `DecisionPanel` gains `centred` and `statusWarn`. Picking a space with a choice of payment opens the centred panel at once, replacing the "How do you pay for …?" list. A VP trade sends the trade, then the `chooseResource` it opens, with one Confirm.
+  - Calls to revisit: the chosen resource again clears its row (BGA keeps it); a single resource is one row too; card payments keep the shelf above a bottom panel (the shelf's 392px cards can't fit above a centred one); the Hand tab's fan doesn't pick; a decision with one way to pay keeps its one option (Olympic Host); Cancel on the advance panel clears the space, and the footer's Advance waits while the panel is open; the cap warning is `--danger` red; the resources are drawn at their native 48px; a trade offer with one way to pay shows it with Back and Confirm; tiles wrap three to a row.
+  - It awaits the owner's look in the library's ResourceRows, TilePicker, CardShelf, SelfSummary and DecisionPanel sections.
+  - `tests/client-picks.test.mjs` covers the model; `tests/client-prompts.test.mjs` builds every answer of every pick model over 60 random games; `tests/browser/pick-prompts.test.mjs` plays hot-seat tables to a tile bonus and to an advance, and closes them.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

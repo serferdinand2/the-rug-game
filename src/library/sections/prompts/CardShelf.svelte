@@ -14,6 +14,8 @@
 	let civ = $state(null);
 	/** @type {number | null} */
 	let mat = $state(0);
+	/** @type {number[]} */
+	let paid = $state([0, 2]);
 	let inspected = $state('');
 </script>
 
@@ -98,5 +100,25 @@
 			selected={mat}
 			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 				(mat = event.value)} />
+	</Example>
+	<Example
+		label={`kind="tapestry" selected={[${paid.join(', ')}]}  (paying 2 cards: several chosen)`}
+		surface="ink"
+		wide>
+		<CardShelf
+			kind="tapestry"
+			cards={[
+				{ index: 0, id: 'academia', label: 'Academia' },
+				{ index: 1, id: 'age-of-discovery', label: 'Age of Discovery' },
+				{ index: 2, id: 'capitalism', label: 'Capitalism' },
+			]}
+			selected={paid}
+			disabled={paid.length >= 2
+				? [0, 1, 2].filter((i) => !paid.includes(i))
+				: []}
+			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
+				(paid = paid.includes(event.value)
+					? paid.filter((i) => i !== event.value)
+					: [...paid, event.value])} />
 	</Example>
 </Section>

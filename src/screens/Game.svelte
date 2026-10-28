@@ -30,6 +30,7 @@
 	import CardShelf from '../lib/components/prompts/CardShelf.svelte';
 	import CostBox from '../lib/components/prompts/CostBox.svelte';
 	import IncomeSteps from '../lib/components/prompts/IncomeSteps.svelte';
+	import ResourceRows from '../lib/components/prompts/ResourceRows.svelte';
 	import TilePicker from '../lib/components/prompts/TilePicker.svelte';
 	import TurnBar from '../lib/components/prompts/TurnBar.svelte';
 	import TurnControl from '../lib/components/prompts/TurnControl.svelte';
@@ -54,10 +55,26 @@
 		civilizationName,
 		describeBonus,
 		describeEffects,
-		describePayment,
+		tapestryName,
+		techName,
 	} from '../lib/describe.js';
 	import { mapHexes } from '../lib/hexmap.js';
 	import { promptFor } from '../lib/prompts.js';
+	import {
+		advanceModel,
+		canPickItem,
+		emptySelection,
+		matchIndex,
+		offerArt,
+		offerModel,
+		pendingCounts,
+		pickModel,
+		pickStatus,
+		rowView,
+		toggleItem,
+		togglePick,
+	} from '../lib/picks.js';
+	import { RESOURCE_CAP } from '../lib/engine/effects/gain.js';
 	import {
 		exploreIndex,
 		exploreLine,
@@ -103,8 +120,8 @@
 	let selected = $state(null);
 	/** Whether the payment choice for the selected advance is open. */
 	let paying = $state(false);
-	/** @type {number | null} */
-	let payIndex = $state(null);
+	/** @type {import('../lib/picks.js').Selection} The advance's payment picked so far (#75) */
+	let advanceChoice = $state({ rows: [], items: [] });
 	/** @type {number | null} The plain prompt's chosen answer, by index */
 	let picked = $state(null);
 	/** @type {string | null} The hex chosen for a map decision */
@@ -113,6 +130,10 @@
 	let exploreTile = $state(null);
 	/** The explore's turn on the chosen hex, 0-5 (#74). */
 	let exploreOrient = $state(0);
+	/** @type {import('../lib/picks.js').Selection} A pick prompt's choices so far (#75) */
+	let selection = $state({ rows: [], items: [] });
+	/** @type {number | null} A trade's chosen offer, its second step (#75) */
+	let tradeOffer = $state(null);
 	let sending = $state(false);
 	/** The player tab on show (#27). */
 	let tab = $state('capital');
@@ -193,6 +214,115 @@
 	let mapTargets = $derived(prompt?.mapHexes ?? []);
 	/** The panel docks beside the map while the map shows hexes to choose, so they stay clickable. */
 	let docked = $derived(mapTargets.length > 0 && board === 'map');
+	/** A trade's offers while none is chosen, its first step (#75). */
+	let tradeStep = $derived(
+		prompt?.trade && tradeOffer === null ? prompt.trade : null
+	);
+	/** The pick prompt on show (#75): a trade's chosen offer, or the prompt's own resources, cards or tiles. */
+	let pickView = $derived(
+		!prompt || !promptDecision
+			? null
+			: prompt.trade
+				? tradeOffer === null
+					? null
+					: offerModel(promptDecision, tradeOffer, game, seat)
+				: prompt.picks
+	);
+	/** A chosen trade offer with nothing to pick: its one answer, or -1 (#75). */
+	let tradeAnswer = $derived(
+		promptDecision && prompt?.trade && tradeOffer !== null && !pickView
+			? promptDecision.answers.findIndex(
+					(/** @type {any} */ a) => a.offer === tradeOffer
+				)
+			: -1
+	);
+	/** The choices so far, fitted to the model on show. */
+	let picks = $derived(
+		pickView
+			? selection.rows.length === pickView.rows.length
+				? selection
+				: emptySelection(pickView)
+			: null
+	);
+	let held = $derived(
+		summary?.resources ?? { coin: 0, food: 0, worker: 0, culture: 0 }
+	);
+	let pickIndex = $derived(
+		pickView && picks ? matchIndex(pickView, picks) : -1
+	);
+	let pickState = $derived(
+		pickView && picks ? pickStatus(pickView, picks, held) : null
+	);
+	let pickRows = $derived(
+		pickView && picks ? rowView(pickView, picks, held) : []
+	);
+	/** Cards to pay sit on the shelf above a panel at the bottom; every other pick prompt is centred (#75). */
+	let cardPick = $derived(
+		pickView?.items && pickView.items.kind !== 'territory'
+			? pickView.items
+			: null
+	);
+	let centred = $derived(
+		(!!pickView && !cardPick) || !!tradeStep || tradeAnswer !== -1
+	);
+	/** The cards or tiles that can't be pressed now: none while the move is sent. */
+	let pickBlocked = $derived(
+		pickView?.items && picks
+			? pickView.items.ids.filter(
+					(id) =>
+						sending ||
+						!canPickItem(
+							/** @type {any} */ (pickView),
+							/** @type {any} */ (picks),
+							id
+						)
+				)
+			: []
+	);
+	/** The tiles of a tile payment, as TilePicker draws them. */
+	let pickTiles = $derived(
+		pickView?.items?.kind === 'territory'
+			? pickView.items.ids.map((id) => ({
+					id: Number(id),
+					label: tileWords(Number(id)),
+					...tilePreview(Number(id), 0),
+				}))
+			: []
+	);
+	/** The counts the overview shows while a resource prompt is open: after the choices so far, within the cap. */
+	let shownResources = $derived.by(() => {
+		const advancing = paying && advancePick && advanceSelection;
+		const model = advancing ? advancePick : pickView;
+		const chosen = advancing ? advanceSelection : picks;
+		if (!model || !chosen) {
+			return held;
+		}
+		const after = pendingCounts(model, chosen, held);
+		return {
+			coin: Math.max(0, Math.min(after.coin, RESOURCE_CAP)),
+			food: Math.max(0, Math.min(after.food, RESOURCE_CAP)),
+			worker: Math.max(0, Math.min(after.worker, RESOURCE_CAP)),
+			culture: Math.max(0, Math.min(after.culture, RESOURCE_CAP)),
+		};
+	});
+	let changedResources = $derived(
+		/** @type {const} */ (['coin', 'food', 'worker', 'culture']).filter(
+			(id) => shownResources[id] !== held[id]
+		)
+	);
+	/** The answer that declines the pick or the trade, or -1. */
+	let declineIndex = $derived(
+		pickView && pickView.decline !== null
+			? pickView.decline
+			: tradeStep && promptDecision
+				? promptDecision.answers.findIndex(
+						(/** @type {any} */ a) => a.offer === null
+					)
+				: -1
+	);
+	let pickNoun = $derived(
+		pickView?.items?.kind === 'territory' ? 'tile' : 'card'
+	);
 	/** The viewer's explore (#74): they choose a tile, a lit hex and a turn, and Confirm sends that one answer. */
 	let exploring = $derived(
 		prompt?.kind === 'chooseExplore' ? promptDecision : null
@@ -249,7 +379,7 @@
 	);
 	/** What the panel lists: its own options, and on the map those of the chosen hex. An explore lists none. */
 	let panelOptions = $derived(
-		!prompt || exploring
+		!prompt || exploring || pickView || tradeStep || tradeAnswer !== -1
 			? []
 			: prompt.options
 					.filter(
@@ -305,13 +435,19 @@
 			(step) => step.id === prompt?.income?.current
 		)?.label ?? null
 	);
-	/** The chosen payment, while it is still one of the selected advance's. */
-	let validPay = $derived(
-		chosenAdvance &&
-			payIndex !== null &&
-			payIndex < chosenAdvance.payments.length
-			? payIndex
+	/** The selected advance's payment as rows, when it has a choice (#75). */
+	let advancePick = $derived(advanceModel(chosenAdvance, game));
+	let advanceSelection = $derived(
+		advancePick
+			? advanceChoice.rows.length === advancePick.rows.length
+				? advanceChoice
+				: emptySelection(advancePick)
 			: null
+	);
+	let advanceIndex = $derived(
+		advancePick && advanceSelection
+			? matchIndex(advancePick, advanceSelection)
+			: -1
 	);
 
 	// The turn's own choices end with it, however it ends: a timeout, an undo, a refused move (#26 review).
@@ -321,7 +457,7 @@
 		if (!untrack(() => sending)) {
 			selected = null;
 			paying = false;
-			payIndex = null;
+			advanceChoice = { rows: [], items: [] };
 		}
 	});
 
@@ -350,6 +486,8 @@
 		picked = null;
 		mapPick = null;
 		exploreOrient = 0;
+		selection = { rows: [], items: [] };
+		tradeOffer = null;
 		const tiles = untrack(() => offeredTiles);
 		exploreTile = tiles.length === 1 ? tiles[0] : null;
 		if (isMapDecision) {
@@ -411,25 +549,33 @@
 	}
 
 	/**
-	 * A payment's resources as symbols, one per unit.
-	 * @param {Record<string, any>} pay
-	 * @returns {import('../lib/ui.js').CostSymbol[]}
-	 */
-	function paySymbols(pay) {
-		return /** @type {import('../lib/ui.js').CostSymbol[]} */ (
-			['coin', 'worker', 'food', 'culture'].flatMap((r) =>
-				Array(typeof pay[r] === 'number' ? pay[r] : 0).fill(r)
-			)
-		);
-	}
-
-	/**
+	 * A space picked on the tracks: with a choice of payment, its panel opens at once, as BGA opens its payment on the
+	 * click (#75).
 	 * @param {ComponentEvent} event
 	 */
 	const trackSelectHandler = (event) => {
 		selected = event.value;
-		paying = false;
-		payIndex = null;
+		advanceChoice = { rows: [], items: [] };
+		const option = options.find(
+			(o) => o.track === event.value.track && o.to === event.value.space
+		);
+		paying = advanceModel(option, game) !== null;
+	};
+
+	/**
+	 * A resource pressed in the advance's payment (#75).
+	 * @param {ComponentEvent} event
+	 */
+	const advancePickHandler = (event) => {
+		if (sending || !advancePick || !advanceSelection) {
+			return;
+		}
+		advanceChoice = togglePick(
+			advancePick,
+			advanceSelection,
+			event.value.row,
+			event.value.resource
+		);
 	};
 
 	/** Takes an income turn. */
@@ -449,11 +595,11 @@
 		if (!option || !turnDecision || sending) {
 			return;
 		}
-		if (option.payments.length > 1 && validPay === null) {
+		if (advancePick && advanceIndex === -1) {
 			paying = true;
 			return;
 		}
-		const pay = option.payments[validPay ?? 0];
+		const pay = option.payments[advanceIndex === -1 ? 0 : advanceIndex];
 		sending = true;
 		if (turnDecision.kind === 'chooseTurn') {
 			const ok = await store.move({
@@ -476,7 +622,7 @@
 		}
 		selected = null;
 		paying = false;
-		payIndex = null;
+		advanceChoice = { rows: [], items: [] };
 		sending = false;
 	};
 
@@ -491,6 +637,114 @@
 			...promptDecision.answers[picked],
 		});
 		sending = false;
+	};
+
+	/**
+	 * A resource pressed in a row (#75); nothing changes while the move is sent.
+	 * @param {ComponentEvent} event
+	 */
+	const rowPickHandler = (event) => {
+		if (sending || !pickView || !picks) {
+			return;
+		}
+		selection = togglePick(
+			pickView,
+			picks,
+			event.value.row,
+			event.value.resource
+		);
+	};
+
+	/**
+	 * A card or tile pressed for a payment (#75), in the panel, on the shelf or on the Terrain tab.
+	 * @param {number | string} id
+	 */
+	function pickItem(id) {
+		if (sending || !pickView || !picks) {
+			return;
+		}
+		selection = toggleItem(pickView, picks, id);
+	}
+
+	/**
+	 * A trade's offer chosen, its second step (#75).
+	 * @param {number} offer
+	 */
+	function chooseOffer(offer) {
+		if (sending) {
+			return;
+		}
+		tradeOffer = offer;
+		selection = { rows: [], items: [] };
+	}
+
+	/** Sends the pick prompt's matched answer (#75); a VP trade then answers the chooseResource it opens with the same rows. */
+	const pickConfirmHandler = async () => {
+		if (!promptDecision || sending) {
+			return;
+		}
+		const index = pickView ? pickIndex : tradeAnswer;
+		if (index === -1) {
+			return;
+		}
+		const rows = picks;
+		const then = pickView?.then ?? null;
+		sending = true;
+		const ok = await store.move({
+			decision: promptDecision.id,
+			...promptDecision.answers[index],
+		});
+		if (ok && then === 'chooseResource' && rows) {
+			const next = myDecision(store.room.game, store.seat);
+			const model =
+				next?.kind === 'chooseResource'
+					? pickModel(next, store.room.game, store.seat)
+					: null;
+			const answer = model ? matchIndex(model, rows) : -1;
+			if (next && answer !== -1) {
+				await store.move({
+					decision: next.id,
+					...next.answers[answer],
+				});
+			}
+		}
+		sending = false;
+	};
+
+	/** Declines the pick or the trade (#75). */
+	const declineHandler = async () => {
+		if (!promptDecision || declineIndex < 0 || sending) {
+			return;
+		}
+		sending = true;
+		await store.move({
+			decision: promptDecision.id,
+			...promptDecision.answers[declineIndex],
+		});
+		sending = false;
+	};
+
+	/**
+	 * A payment's card hovered or focused on the shelf shows in full (#75).
+	 * @param {ComponentEvent} event
+	 */
+	const pickInspectHandler = (event) => {
+		const id =
+			event.value === null ? undefined : cardPick?.ids[event.value];
+		inspected =
+			id === undefined
+				? null
+				: cardPick?.kind === 'tech'
+					? {
+							kind: 'tech',
+							data: techCardData(String(id)),
+							side: true,
+						}
+					: {
+							kind: 'tapestry',
+							data: tapestryCardData(String(id)),
+							side: true,
+						};
 	};
 
 	/** Points the pick at the explore's tile, hex and turn, so Confirm sends that answer. */
@@ -536,6 +790,10 @@
 	 */
 	const tilePickHandler = (event) => {
 		const tile = event.value.tile;
+		if (pickView?.items?.kind === 'territory') {
+			pickItem(tile);
+			return;
+		}
 		if (sending || tile === exploreTile || !offeredTiles.includes(tile)) {
 			return;
 		}
@@ -675,6 +933,43 @@
 <!-- The prompt's cost and its own options; a prompt without them (cards on the shelf, plots, hexes) has no content
      area, and its status line gives the instruction, so the shelf has more room (#57). -->
 {#snippet promptContent()}
+	{#if tradeStep}
+		<div class="rg-game--trades">
+			{#each tradeStep as offer (offer.offer)}
+				<DecisionOption
+					label={offer.label}
+					art={offerArt(offer)}
+					disabled={!offer.enabled || sending}
+					onDecisionOptionClick={() => chooseOffer(offer.offer)} />
+			{/each}
+		</div>
+	{:else if pickView && picks}
+		<div class="rg-game--picks">
+			<p class="rg-game--lead">{pickView.lead}</p>
+			{#if pickView.rows.length}
+				<ResourceRows
+					rows={pickRows}
+					disabled={sending}
+					onResourceRowsPick={rowPickHandler} />
+			{/if}
+			{#if pickView.items}
+				<p class="rg-game--label">
+					Your {pickNoun}s · {picks.items.length} of {pickView.items
+						.count} chosen
+				</p>
+				{#if pickView.items.kind === 'territory'}
+					<TilePicker
+						class="rg-game--pick-tiles"
+						tiles={pickTiles}
+						selected={picks.items.map(Number)}
+						disabled={pickBlocked.map(Number)}
+						onTilePickerSelect={tilePickHandler} />
+				{/if}
+			{/if}
+		</div>
+	{:else if tradeAnswer !== -1 && prompt}
+		<p class="rg-game--lead">{prompt.options[tradeAnswer]?.label}</p>
+	{/if}
 	{#if exploring}
 		<div class="rg-game--explore">
 			<p class="rg-game--lead">
@@ -688,7 +983,7 @@
 				onTilePickerSelect={tilePickHandler} />
 		</div>
 	{/if}
-	{#if prompt?.cost}
+	{#if prompt?.cost && !pickView}
 		<CostBox
 			class="rg-game--cost"
 			symbols={prompt.cost}
@@ -723,6 +1018,32 @@
 			vp={exploreCurrent}
 			onTurnControlTurn={turnHandler} />
 	</div>
+{/snippet}
+
+<!-- Cards to pay (#75), several chosen at once on the shelf above the panel. -->
+{#snippet pickShelf()}
+	{#if cardPick && picks}
+		<CardShelf
+			kind={cardPick.kind === 'tech' ? 'tech' : 'tapestry'}
+			cards={cardPick.ids.map((id, index) => ({
+				index,
+				id: String(id),
+				label:
+					cardPick?.kind === 'tech'
+						? techName(String(id))
+						: tapestryName(String(id)),
+			}))}
+			selected={cardPick.ids.flatMap((id, index) =>
+				picks?.items.includes(id) ? [index] : []
+			)}
+			disabled={cardPick.ids.flatMap((id, index) =>
+				pickBlocked.includes(id) ? [index] : []
+			)}
+			terrainSeed={terrainSeed(room.code)}
+			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
+				cardPick && pickItem(cardPick.ids[event.value])}
+			onCardShelfInspect={pickInspectHandler} />
+	{/if}
 {/snippet}
 
 {#snippet cardShelf()}
@@ -828,64 +1149,100 @@
 						onWorldMapSelect={mapSelectHandler} />
 				{/if}
 			</div>
-			{#if paying && chosenAdvance && selected}
+			{#if paying && chosenAdvance && selected && advancePick && advanceSelection}
 				<DecisionPanel
-					title="How do you pay for {TRACKS[selected.track][
-						selected.space
-					].name}?"
-					status={validPay === null
-						? 'Choose a payment to continue.'
-						: describePayment(chosenAdvance.payments[validPay])}
+					centred
+					title="Advance to {TRACKS[selected.track][selected.space]
+						.name}"
+					status={pickStatus(advancePick, advanceSelection, held)
+						.text}
 					track={selected.track}
 					confirmLabel="Advance"
-					confirmDisabled={validPay === null || sending}
+					confirmDisabled={advanceIndex === -1 || sending}
 					cancelLabel="Cancel"
 					onDecisionPanelConfirm={advanceHandler}
 					onDecisionPanelCancel={() => {
 						paying = false;
-						payIndex = null;
+						selected = null;
+						advanceChoice = { rows: [], items: [] };
 					}}>
-					<CostBox
-						class="rg-game--cost"
-						symbols={priceSymbols(selected.track, selected.space)}
-						track={selected.track} />
-					<div class="rg-game--options">
-						{#each chosenAdvance.payments as pay, index (index)}
-							<DecisionOption
-								label={describePayment(pay)}
-								symbols={paySymbols(pay)}
-								pressed={validPay === index}
-								onDecisionOptionClick={() =>
-									(payIndex = index)} />
-						{/each}
+					<div class="rg-game--picks">
+						<p class="rg-game--lead">{advancePick.lead}</p>
+						<ResourceRows
+							rows={rowView(advancePick, advanceSelection, held)}
+							disabled={sending}
+							onResourceRowsPick={advancePickHandler} />
 					</div>
 				</DecisionPanel>
 			{:else if prompt}
 				<DecisionPanel
-					{docked}
+					docked={docked && !centred}
+					{centred}
 					title={prompt.title}
 					track={prompt.track}
 					tone={prompt.income ? 'income' : 'default'}
 					steps={prompt.income ? incomeSteps : undefined}
-					shelf={shelfCards.length ? cardShelf : undefined}
-					status={exploring
-						? ''
-						: picked !== null
-							? (prompt.options[picked]?.label ?? '')
-							: prompt.instruction}
-					children={exploring || prompt.cost || panelOptions.length
+					shelf={cardPick
+						? pickShelf
+						: shelfCards.length
+							? cardShelf
+							: undefined}
+					status={pickState
+						? pickState.text
+						: tradeStep
+							? 'Choose a trade.'
+							: tradeAnswer !== -1
+								? (prompt.options[tradeAnswer]?.label ?? '')
+								: exploring
+									? ''
+									: picked !== null
+										? (prompt.options[picked]?.label ?? '')
+										: prompt.instruction}
+					statusWarn={pickState?.warn ?? false}
+					children={exploring ||
+					pickView ||
+					tradeStep ||
+					tradeAnswer !== -1 ||
+					prompt.cost ||
+					panelOptions.length
 						? promptContent
 						: undefined}
 					pinned={exploring ? explorePinned : undefined}
-					confirmLabel={prompt.confirmLabel}
-					confirmDisabled={picked === null || sending}
-					cancelLabel={docked && mapPick && !exploring
-						? 'Choose another territory'
-						: undefined}
-					onDecisionPanelConfirm={promptConfirmHandler}
+					confirmLabel={pickView?.items
+						? `Pay ${pickView.items.count} ${pickNoun}${pickView.items.count > 1 ? 's' : ''}`
+						: pickView || tradeAnswer !== -1
+							? 'Confirm'
+							: prompt.confirmLabel}
+					confirmDisabled={pickView
+						? pickIndex === -1 || sending
+						: tradeStep
+							? true
+							: tradeAnswer !== -1
+								? sending
+								: picked === null || sending}
+					cancelLabel={prompt.trade && tradeOffer !== null
+						? 'Back'
+						: (pickView || tradeStep) && declineIndex >= 0
+							? 'Decline'
+							: docked && mapPick && !exploring
+								? 'Choose another territory'
+								: undefined}
+					onDecisionPanelConfirm={pickView || tradeAnswer !== -1
+						? pickConfirmHandler
+						: promptConfirmHandler}
 					onDecisionPanelCancel={() => {
-						mapPick = null;
-						picked = null;
+						if (prompt?.trade && tradeOffer !== null) {
+							tradeOffer = null;
+							selection = { rows: [], items: [] };
+						} else if (
+							(pickView || tradeStep) &&
+							declineIndex >= 0
+						) {
+							declineHandler();
+						} else {
+							mapPick = null;
+							picked = null;
+						}
 					}} />
 			{/if}
 			{#if inspected}
@@ -917,7 +1274,13 @@
 					onPlayerTabsPlace={placeHandler}
 					tilePick={exploring
 						? { tiles: offeredTiles, selected: exploreTile }
-						: null}
+						: pickView?.items?.kind === 'territory' && picks
+							? {
+									tiles: pickView.items.ids.map(Number),
+									selected: picks.items.map(Number),
+									disabled: pickBlocked.map(Number),
+								}
+							: null}
 					onPlayerTabsPick={tilePickHandler}
 					onPlayerTabsInspect={(
 						/** @type {ComponentEvent} */ event
@@ -929,7 +1292,10 @@
 				</p>
 			{/if}
 			{#if summary}
-				<SelfSummary {...summary} />
+				<SelfSummary
+					{...summary}
+					resources={shownResources}
+					changed={changedResources} />
 			{/if}
 		</aside>
 		{#if overviewOpen}
@@ -988,10 +1354,12 @@
 			{#snippet actions()}
 				<Button
 					mode="primary"
-					disabled={!chosenAdvance || sending}
-					title={chosenAdvance
-						? undefined
-						: "You can't advance there now."}
+					disabled={!chosenAdvance || sending || paying}
+					title={!chosenAdvance
+						? "You can't advance there now."
+						: paying
+							? 'Pick the payment in the panel.'
+							: undefined}
 					onButtonClick={advanceHandler}>Advance</Button>
 			{/snippet}
 		</TurnBar>
@@ -1149,6 +1517,31 @@
 		gap: var(--space-5);
 		max-height: 340px;
 		overflow: auto;
+	}
+
+	/* A pick prompt's content (#75): the lead, the resource rows, then the cards' or tiles' count and the tiles. */
+	.rg-game--picks {
+		display: grid;
+		gap: var(--space-6);
+	}
+
+	/* A payment's tiles wrap three to a row, favouring height (owner, #75). */
+	.rg-game--picks :global(.rg-game--pick-tiles) {
+		max-width: calc(3 * 88px + 2 * var(--space-3));
+	}
+
+	/* A trade's offers (#75), two columns of three. */
+	.rg-game--trades {
+		display: grid;
+		grid-template-rows: repeat(3, auto);
+		grid-template-columns: repeat(2, 1fr);
+		grid-auto-flow: column;
+		gap: var(--space-4);
+	}
+
+	.rg-game--trades :global(.rg-decision-option:disabled) {
+		opacity: 0.35;
+		cursor: default;
 	}
 
 	/* The explore's content (#74): the lead and the tile row, then (pinned) what is chosen and the turn control. */

@@ -37,4 +37,19 @@
 			territories={1}
 			lines={0} />
 	</Example>
+	<Example
+		label={"changed={['food']}  (while a prompt is open: the counts after the choices so far)"}
+		width={430}>
+		<SelfSummary
+			seat={1}
+			name="Cedarwyn"
+			era={2}
+			vp={21}
+			resources={{ coin: 2, worker: 0, food: 8, culture: 1 }}
+			changed={['food']}
+			hand={2}
+			tech={1}
+			territories={3}
+			lines={0} />
+	</Example>
 </Section>

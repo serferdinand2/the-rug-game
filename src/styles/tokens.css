@@ -132,6 +132,7 @@
 	--progress-line: 3px; /* player progress lines and tier price lines */
 	--progress-lane: 8px; /* distance between two progress lines */
 	--docked-panel-width: 340px; /* a decision panel docked beside the World Map (#74) */
+	--centred-panel-width: 440px; /* a decision panel at the screen's centre, for a pick of several things (#75) */
 	/* A docked panel's distance from the shared area's right edge: the area's right padding, so the panel ends where the map would. */
 	--docked-panel-inset: var(--space-9);
 

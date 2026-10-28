@@ -179,3 +179,53 @@ test('a hot-seat seat to name draws one gold frame, not one inside another', asy
 	);
 	expect(frames).toBe(1);
 });
+
+test('two chosen resources are gained, and a resource can be picked with the keyboard (#75)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const rows = page.locator('#resource-rows .rg-resource-rows');
+	const gain = rows.nth(0);
+	await gain.getByTestId('row-0-coin').focus();
+	await page.keyboard.press('Tab');
+	await expect(gain.getByTestId('row-0-food')).toBeFocused();
+	await page.keyboard.press('Space');
+	await expect(gain.getByTestId('row-0-food')).toHaveAttribute(
+		'aria-pressed',
+		'true'
+	);
+	// The row's other resources fade but stay in the tab order, so a pick can change.
+	for (let i = 0; i < 3; i++) {
+		await page.keyboard.press('Tab');
+	}
+	await expect(gain.getByTestId('row-1-coin')).toBeFocused();
+	await page.keyboard.press('Space');
+	await expect(page.getByTestId('resource-rows-report')).toHaveText(
+		'Last pick: row 2: coin'
+	);
+
+	// A resource no answer allows is skipped.
+	const pay = rows.nth(3);
+	await expect(pay.getByTestId('row-1-worker')).toBeDisabled();
+	await pay.getByTestId('row-1-food').focus();
+	await page.keyboard.press('Tab');
+	await expect(pay.getByTestId('row-1-culture')).toBeFocused();
+});
+
+test('the decision panel section shows the four pick prompts the owner approved, and not the list they replace (#75)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const section = page.locator('#decision-panel');
+	for (const name of [
+		'Choose 3 resources',
+		'Advance to Tanks',
+		'Take the bonus: gain 10 VP?',
+		'Choose a trade',
+	]) {
+		await expect(section.getByRole('dialog', { name })).toBeVisible();
+	}
+	await expect(
+		section.getByRole('dialog', { name: 'How do you pay for Ships?' })
+	).toHaveCount(0);
+});

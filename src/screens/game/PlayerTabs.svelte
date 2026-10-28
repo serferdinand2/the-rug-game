@@ -21,7 +21,7 @@
 	 * @property {PlayerTabsPlacement | null} [placement=null] - A building or landmark to place: the Capital tab lights a building's plots, or offers the landmark in the tray, and snaps it only to the options' places
 	 * @property {{ plots: { row: number, col: number }[], landmarks: string[] }} [fresh] - What the viewer just built (#29): the plots glow and the landmarks shine on the Capital tab
 	 * @property {Function} [onPlayerTabsPlace] - Callback fired with { index, confirm }: index is the option a building or landmark landed on, or null when the landmark went back to the tray; confirm is true when the landmark's own confirm control was pressed
-	 * @property {{ tiles: number[], selected: number | null } | null} [tilePick=null] - While the viewer explores (#74): the territory tiles on offer, and the one picked, so In hand tiles can be picked here too
+	 * @property {{ tiles: number[], selected: number | number[] | null, disabled?: number[] } | null} [tilePick=null] - While the viewer explores (#74) or pays tiles (#75): the territory tiles on offer and the one or ones picked, so In hand tiles can be picked here too; `disabled` can't be pressed now
 	 * @property {Function} [onPlayerTabsPick] - Callback fired with { tile } when an offered territory tile is pressed
 	 */
 
@@ -604,7 +604,12 @@
 							<button
 								type="button"
 								class="rg-player-tabs--pick"
-								aria-pressed={tilePick.selected === tile.id}
+								aria-pressed={Array.isArray(tilePick.selected)
+									? tilePick.selected.includes(tile.id)
+									: tilePick.selected === tile.id}
+								disabled={tilePick.disabled?.includes(
+									tile.id
+								) ?? false}
 								aria-label={tileWords(tile.id)}
 								data-id="terrain-tile-{tile.id}"
 								onclick={(event) =>
@@ -763,7 +768,12 @@
 		cursor: pointer;
 	}
 
-	.rg-player-tabs--pick:hover,
+	.rg-player-tabs--pick:disabled {
+		opacity: 0.35;
+		cursor: default;
+	}
+
+	.rg-player-tabs--pick:not(:disabled):hover,
 	.rg-player-tabs--pick:focus-visible {
 		border-color: var(--gold);
 		background: color-mix(in srgb, var(--gold) 10%, transparent);

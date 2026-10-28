@@ -15,7 +15,8 @@
 	 * @property {'tapestry' | 'tech' | 'civ' | 'mat'} kind - What the cards are
 	 * @property {ShelfCard[]} cards - The cards in order
 	 * @property {string} [label] - Names the row for assistive technology; defaults to the kind, such as 'Tapestry cards to choose from'
-	 * @property {number | null} [selected=null] - The chosen card's index
+	 * @property {number | number[] | null} [selected=null] - The chosen card's index, or the indexes of several chosen at once (#75)
+	 * @property {number[]} [disabled=[]] - Indexes of cards that can't be pressed now, as when enough are chosen (#75)
 	 * @property {number} [terrainSeed=0] - For capital mats: the table's terrain seed, so a mat looks as it will in the Capital tab (#56)
 	 * @property {Function} [onCardShelfSelect] - Callback fired when a card is pressed; its value is the card's index
 	 * @property {Function} [onCardShelfInspect] - Callback fired when a card is hovered or focused, and with null when that ends; its value is the card's index
@@ -62,6 +63,7 @@
 		kind,
 		cards,
 		selected = null,
+		disabled = [],
 		terrainSeed = 0,
 		label,
 		onCardShelfSelect,
@@ -156,7 +158,10 @@
 		<button
 			type="button"
 			class="rg-card-shelf--card"
-			aria-pressed={selected === card.index}
+			aria-pressed={Array.isArray(selected)
+				? selected.includes(card.index)
+				: selected === card.index}
+			disabled={disabled.includes(card.index)}
 			aria-label={card.label}
 			style:width={size ? `${size.width * size.scale}px` : undefined}
 			style:height={size ? `${size.height * size.scale}px` : undefined}
@@ -254,6 +259,11 @@
 		z-index: 1;
 		outline: var(--border-thick) solid var(--gold);
 		outline-offset: 2px;
+	}
+
+	.rg-card-shelf--card:disabled {
+		opacity: 0.35;
+		cursor: default;
 	}
 
 	.rg-card-shelf--card[aria-pressed='true'] {
