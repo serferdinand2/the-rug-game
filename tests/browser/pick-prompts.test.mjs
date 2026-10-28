@@ -187,6 +187,15 @@ test('a bonus is paid with the 2 tiles the player picks', async ({
 		await expect(
 			page.getByText('Your tiles · 0 of 2 chosen')
 		).toBeVisible();
+		// The tiles wrap three to a row, favouring height (owner).
+		const tops = await page
+			.locator('.rg-game--pick-tiles button')
+			.evaluateAll((buttons) =>
+				buttons.map((b) => Math.round(b.getBoundingClientRect().top))
+			);
+		for (const top of new Set(tops)) {
+			expect(tops.filter((t) => t === top).length).toBeLessThanOrEqual(3);
+		}
 		const pay = page.getByRole('button', {
 			name: 'Pay 2 tiles',
 			exact: true,

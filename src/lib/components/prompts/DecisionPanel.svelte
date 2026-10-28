@@ -314,10 +314,6 @@
 		box-shadow: none;
 	}
 
-	/* A choice on the map leaves the board clickable: no scrim, only the panel takes the pointer, docked at the
-	   right beside the map rather than over its hexes (#26 review). What is chosen gets its own line. The panel is
-	   --docked-panel-width wide and --docked-panel-inset in from the right, so a board can keep both free and lay the
-	   map out beside it (#74). */
 	/* Fixed to the screen's centre, between the header and the footer (#75). */
 	.rg-decision-panel--centred .rg-decision-panel--panel {
 		position: fixed;
@@ -329,6 +325,10 @@
 		transform: translate(-50%, -50%);
 	}
 
+	/* A choice on the map leaves the board clickable: no scrim, only the panel takes the pointer, docked at the
+	   right beside the map rather than over its hexes (#26 review). What is chosen gets its own line. The panel is
+	   --docked-panel-width wide and --docked-panel-inset in from the right, so a board can keep both free and lay the
+	   map out beside it (#74). */
 	.rg-decision-panel--docked {
 		align-items: flex-end;
 		justify-content: flex-start;

@@ -1541,6 +1541,11 @@
 		gap: var(--space-6);
 	}
 
+	/* A payment's tiles wrap three to a row, favouring height (owner, #75). */
+	.rg-game--picks :global(.rg-game--pick-tiles) {
+		max-width: calc(3 * 88px + 2 * var(--space-3));
+	}
+
 	/* A trade's offers (#75), two columns of three. */
 	.rg-game--trades {
 		display: grid;
