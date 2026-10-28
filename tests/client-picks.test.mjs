@@ -360,6 +360,43 @@ test('the status counts down, then says what happens, and warns at the cap', () 
 	});
 });
 
+test('the status and the lead give every amount its plural (#124)', () => {
+	const { decision, game, held } = decisionOf(
+		{ kind: 'chooseResource', count: 3, from: 'any' },
+		{ coin: 8 }
+	);
+	const model = /** @type {any} */ (pickModel(decision, game, 1));
+	assert.deepEqual(
+		pickStatus(model, picked(model, ['coin', 'coin', 'worker']), held),
+		{
+			text: 'You gain 2 coins and 1 worker. You can hold 8 of each: 2 coins would be lost.',
+			warn: true,
+		}
+	);
+	assert.equal(
+		pickStatus(model, picked(model, ['worker', 'worker', 'culture']), held)
+			.text,
+		'You gain 2 workers and 1 culture.'
+	);
+
+	const bonus = decisionOf(
+		{
+			kind: 'chooseBonus',
+			track: 'science',
+			space: 2,
+			cost: { coin: 2, any: 1 },
+			gain: [{ building: 'house' }],
+		},
+		{ coin: 3, worker: 1 }
+	);
+	const bonusModel = pickModel(bonus.decision, bonus.game, 1);
+	assert.ok(bonusModel);
+	assert.equal(
+		bonusModel.lead,
+		'Pay 2 coins and 1 resource of your choice. Pick one in each empty row.'
+	);
+});
+
 test('a selection shaped for another model never matches', () => {
 	const two = decisionOf({ kind: 'chooseResource', count: 2, from: 'any' });
 	const three = decisionOf({ kind: 'chooseResource', count: 3, from: 'any' });

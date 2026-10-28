@@ -37,17 +37,10 @@
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
 	import { ComponentEvent } from '../../component-event.js';
-	import { RESOURCES } from '../../ui.js';
+	import { resourceName } from '../../describe.js';
 
 	/** @type {ResourceRowsProps} */
 	let { rows, disabled = false, onResourceRowsPick, ...attr } = $props();
-
-	/**
-	 * A resource's name.
-	 * @param {string} id
-	 * @returns {string}
-	 */
-	const nameOf = (id) => RESOURCES.find((r) => r.id === id)?.name ?? id;
 
 	/**
 	 * @param {number} row
@@ -87,7 +80,7 @@
 					{#if row.fixed !== null}
 						<span
 							class="rg-resource-rows--choice rg-resource-rows--fixed"
-							title="{nameOf(choice.id)}, set by the cost">
+							title="{resourceName(choice.id)}, set by the cost">
 							<ResourceIcon
 								symbol={choice.id}
 								size="large"
@@ -100,12 +93,12 @@
 							type="button"
 							class="rg-resource-rows--choice"
 							aria-pressed={row.picked === choice.id}
-							aria-label="{nameOf(
+							aria-label="{resourceName(
 								choice.id
 							)}, {choice.count} held"
 							title={choice.disabled
 								? choice.reason
-								: nameOf(choice.id)}
+								: resourceName(choice.id)}
 							data-id="row-{index}-{choice.id}"
 							disabled={disabled || choice.disabled}
 							onclick={(event) =>
@@ -127,7 +120,7 @@
 				{#if row.picked === null}
 					—
 				{:else}
-					{nameOf(row.picked)}{row.fixed !== null
+					{resourceName(row.picked)}{row.fixed !== null
 						? ' · set by the cost'
 						: ''}
 				{/if}

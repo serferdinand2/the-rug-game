@@ -21,7 +21,8 @@
 </script>
 
 <script>
-	import { RESOURCES, artUrl } from '../../ui.js';
+	import { resourceName } from '../../describe.js';
+	import { artUrl } from '../../ui.js';
 
 	/** @type {ResourceIconProps} */
 	let {
@@ -32,12 +33,7 @@
 		...attr
 	} = $props();
 
-	let name = $derived(
-		symbol === 'any'
-			? 'Any resource'
-			: (RESOURCES.find((resource) => resource.id === symbol)?.name ??
-					symbol)
-	);
+	let name = $derived(resourceName(symbol));
 </script>
 
 <i
@@ -52,7 +48,9 @@
 	class:rg-resource-icon--accent={Boolean(color)}
 	style:--rg-resource-icon-color={color}>
 	<img
-		src={artUrl(`${size === 'large' ? 'resource-48' : 'resource-24'}/${symbol}`)}
+		src={artUrl(
+			`${size === 'large' ? 'resource-48' : 'resource-24'}/${symbol}`
+		)}
 		width={size === 'large' ? 48 : 24}
 		height={size === 'large' ? 48 : 24}
 		alt=""
