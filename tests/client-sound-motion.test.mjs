@@ -3,6 +3,8 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { CUES, cueFor } from '../src/lib/sound.js';
 import { highlights } from '../src/lib/motion.js';
+import { DECISIONS, openDecisions, play } from '../src/lib/engine/game.js';
+import { newGame } from './helpers/engine.mjs';
 
 /** @param {string} type @param {Record<string, any>} [fields] */
 const ev = (type, fields = {}) => ({ seq: 1, type, player: 1, ...fields });
@@ -94,4 +96,27 @@ test('a roll earns the dice cue, after a reward and before a turn (#61)', () => 
 		'reward'
 	);
 	assert.equal(CUES.dice, 'drop_001');
+});
+
+test("the turn cue is not played for a seat's own automatic first turn (#77)", () => {
+	let { state, random } = newGame(2);
+	let before = state;
+	while (state.phase === 'setup') {
+		before = state;
+		const decision = openDecisions(state)[0];
+		const [first] = DECISIONS[decision.kind].answers(state, decision);
+		state = play(
+			state,
+			/** @type {number} */ (decision.player),
+			{ decision: decision.id, ...first },
+			random
+		);
+	}
+	// The move that ends setup runs both seats' income turn 1 and starts the first player's next turn.
+	const events = state.events.filter((e) => e.seq > before.seq);
+	const first = /** @type {number} */ (state.first);
+	const second = first === 1 ? 2 : 1;
+	assert.equal(cueFor(events, first), 'turn');
+	assert.notEqual(cueFor(events, second), 'turn');
+	assert.equal(cueFor(events, null), 'turn');
 });

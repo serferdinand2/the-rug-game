@@ -75,14 +75,20 @@ function earns(cue, event, seat) {
 }
 
 /**
- * The one cue a batch of fresh events earns: the most important, so a busy batch is not noisy.
+ * The one cue a batch of fresh events earns: the most important, so a busy batch is not noisy. Only the batch's last
+ * `turnStarted` can earn the turn cue: the turns before it started and ended inside the batch, such as each seat's
+ * income turn 1 as setup ends (#77).
  * @param {{ type: string, player?: number }[]} events
  * @param {number | null} seat
  * @returns {Cue | null}
  */
 export function cueFor(events, seat) {
+	const last = events.findLast((event) => event.type === 'turnStarted');
+	const heard = events.filter(
+		(event) => event.type !== 'turnStarted' || event === last
+	);
 	return (
-		ORDER.find((cue) => events.some((event) => earns(cue, event, seat))) ??
+		ORDER.find((cue) => heard.some((event) => earns(cue, event, seat))) ??
 		null
 	);
 }
