@@ -176,6 +176,25 @@ test('the player area keeps its tabs, capital and counters inside it at every de
 				).toBe(true);
 			}
 		}
+
+		// Each tech card's box on the Tech tab, the display's included, is as tall as the card it scales (#84).
+		await page.setViewportSize({ width: 1920, height: 1080 });
+		await row.getByRole('tab', { name: 'Tech' }).click();
+		const cards = page.locator('.rg-player-tabs .rg-technology-card');
+		await expect(cards.first()).toBeVisible();
+		const heights = await cards.evaluateAll((drawn) =>
+			drawn.map((card) => [
+				card.getBoundingClientRect().height,
+				card.closest('.rg-player-tabs--scale')?.getBoundingClientRect()
+					.height ?? 0,
+			])
+		);
+		for (const [card, box] of heights) {
+			expect(
+				Math.abs(box - card),
+				`a ${box}px box for a ${card}px tech card`
+			).toBeLessThanOrEqual(0.5);
+		}
 		expect(errors).toEqual([]);
 	} finally {
 		// A running hot-seat game is ended, then left, so the table closes and the address's table limit is free.

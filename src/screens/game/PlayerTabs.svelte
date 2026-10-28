@@ -570,7 +570,7 @@
 							class="rg-player-tabs--scale"
 							style:--rg-player-tabs-scale="0.42"
 							style:--rg-player-tabs-width="425px"
-							style:--rg-player-tabs-height="286px">
+							style:--rg-player-tabs-height="298px">
 							<div class="rg-player-tabs--scaled">
 								<TechnologyCard data={techCardData(id)} />
 							</div>
