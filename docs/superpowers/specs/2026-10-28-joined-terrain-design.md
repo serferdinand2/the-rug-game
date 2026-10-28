@@ -18,7 +18,7 @@ Each impassable plot is drawn today as its own 32×32 obstacle on open ground, w
 - The pictures are 2.5D: seen from the front and above, with nearer things overlapping farther ones.
 - The mass grows out of the ground: no hard edge at its foot.
 - The buildable ground is redrawn to look natural.
-- All 18 biomes, in batches the owner approves.
+- The six base biomes here. The expansion biomes follow in #132 (Arts & Architecture, M8) and #133 (Fantasies & Futures, M9), done the same way, and the World Map's terrain in #134 **(owner, 2026-10-28)**.
 
 ### Non-goals
 
@@ -135,14 +135,12 @@ The look depends on each group's whole shape, so it can't be put together from f
 - The Art area gets a **Capital relief** group: each mat's relief over its ground, at 2×, plus a specimen sheet per biome (a lone plot, a side pair, two corner-only pairs, an L of three and a 2×2 block), drawn live from the toolkit. The owner approves each batch there.
 - The CapitalGrid section shows the real mats.
 
-## 4. Batches (my call, as the issue asks: one biome approved before the rest)
+## 4. Scope and order
 
-1. The pipeline, CapitalGrid, and **Mountain and Forest** (relief and ground). The owner approves them in the library. Then their manifest entries are updated and the old blocked tiles of those two biomes go.
-2. **Wetland, Tropical, Desert, Grassland.**
-3. **The Arts & Architecture six:** Archipelago, Canyon, Cavern, Cloud City, Mesa, Swamp.
-4. **The Fantasies & Futures six:** Quagmire, City in a Bottle, Veil, Savanna, Polar, Netherworld.
-
-The advanced mats aren't playable until #36 and the Fantasies & Futures issues land, so batches 3 and 4 show only in the library until then. The issue closes when all four batches are approved.
+- **The base game only, for now (owner, 2026-10-28: "just the base game for now").** This issue builds the pipeline, `CapitalGrid` and the six base biomes: Mountain and Forest first, then Wetland, Tropical, Desert and Grassland. The owner approves all six in the library before the approved tiles change.
+- **The expansion mats** are in their own milestones, each with step-by-step instructions to repeat this work: #132 (Arts & Architecture, M8) and #133 (Fantasies & Futures, M9). Their reliefs show in the game once #36 and #40 make the mats playable.
+- **The World Map's terrain** gets the same 2.5D style in #134 (M12).
+- This issue closes when the six base mats are approved and released.
 
 ## 5. Tests
 

@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Draw each group of impassable plots on the Mountain and Forest mats as one 2.5D relief picture over redrawn, natural ground, and show it in `CapitalGrid` everywhere a capital appears.
+**Goal:** Draw each group of impassable plots on the six base mats as one 2.5D relief picture over redrawn, natural ground, and show it in `CapitalGrid` everywhere a capital appears. Mountain and Forest come first (Tasks 1–8), then Wetland, Tropical, Desert and Grassland (Tasks 9–12). The owner approves all six in the library before Task 13 releases them. Scope: the owner asked on 2026-10-28 for "just the base game for now"; the expansion mats are #132 and #133.
 
-**Architecture:** The art toolkit gains `tools/art/parts/capital-relief/`. It works out each mat's footprint from its printed layout, packs peaks or trees into it, and draws one transparent relief SVG per mat (`capital-relief/<mat id>`) at build time. `CapitalGrid` lays that picture over its per-plot ground tiles, with a proportional gap so the plots line up with the relief's pixels. Everything before Task 9 is additive and leaves the owner-approved assets' pixels and the approval manifest untouched. Task 9 runs only after the owner approves the batch in the library.
+**Architecture:** The art toolkit gains `tools/art/parts/capital-relief/`. It works out each mat's footprint from its printed layout, packs peaks or trees into it, and draws one transparent relief SVG per mat (`capital-relief/<mat id>`) at build time. `CapitalGrid` lays that picture over its per-plot ground tiles, with a proportional gap so the plots line up with the relief's pixels. Everything before Task 13 is additive and leaves the owner-approved assets' pixels and the approval manifest untouched. Task 13 runs only after the owner approves the batch in the library.
 
 **Tech Stack:** Plain JS ES modules with JSDoc, the toolkit's painter (`tools/art/painter.js`), Svelte 5 runes, Vitest with `node:assert/strict`, and Playwright in Chromium.
 
@@ -19,8 +19,8 @@
 - Relief parts paint only `PALETTE` colours. Shadows are `PALETTE.ink` with a per-pixel opacity in `canvas.alpha`, painted only on empty pixels.
 - **Geometry:** plots are 32 px with a 1-px gap, a pitch of 33, so a layout of R rows and C columns gives a relief of `(C × 33 − 1) × (R × 33 − 1)`: 296×296 for a base mat. The ground margin on an open side is 2 px. The outer corner radius is 8. The saddle half-width is 6. The corner patch is a radius of 16 px around a corner join's gap pixel.
 - **Layouts:** a base mat's layout is `CAPITAL_MATS[i].grid`, with `'1'` for impassable and `'0'` for buildable. A plot counts as impassable when its character is `'1'` or `'X'`, so the advanced `LAYOUT`s work in later batches.
-- **Until Task 9:** don't change the pixels of any asset in `docs/art/approved-assets.json` or the manifest itself. That means the `capital-terrain/*` tiles and the `capital-mat/*` examples.
-- The branch merges only after the owner approves the batch in the library. The README screenshots are retaken in Task 9, the batch's last commit before the merge.
+- **Until Task 13:** don't change the pixels of any asset in `docs/art/approved-assets.json` or the manifest itself. That means the `capital-terrain/*` tiles and the `capital-mat/*` examples.
+- The branch merges only after the owner approves the batch in the library. The README screenshots are retaken in Task 13, the batch's last commit before the merge.
 
 ## Review Focus
 
@@ -28,7 +28,7 @@
 2. **A landmark hanging over the edge (R106) must still line up with the plots** once the gap is proportional. Task 8's browser test measures the library's overhanging Lighthouse.
 3. **A mat on offer at setup (#56) must show its relief at the shelf's smaller size.** Task 8's browser test checks the CardShelf `kind="mat"` example's Mountain mat.
 4. **Clicks must reach target plots through the relief.** Task 8's browser test checks that the relief has `pointer-events: none` and that a target under a corner patch is still the element at its centre.
-5. **A cube or a terraformed plot on a biome without a relief** (Wetland, Tropical, Desert or Grassland, until their batch) must still draw: a cube piece on open ground, and a terraformed plot as an ordinary built plot. Task 7's unit tests cover it.
+5. **A cube or a terraformed plot on a biome without a relief** (Wetland, Tropical, Desert or Grassland, until Tasks 9–12 add theirs) must still draw: a cube piece on open ground, and a terraformed plot as an ordinary built plot. Task 7's unit tests cover it.
 
 ---
 
@@ -42,7 +42,7 @@
 
 **Interfaces:**
 - Produces, in `src/lib/art/relief.js`:
-  - `RELIEF_BIOMES`: frozen `['mountain', 'forest']`. Later batches add to it.
+  - `RELIEF_BIOMES`: frozen `['mountain', 'forest']`. Tasks 9–12 add the other four base biomes.
   - `PLOT = 32`, `GAP = 1`, `PITCH = 33`.
   - `reliefSize(rows: number, cols: number) → { w: number, h: number }`.
 - Produces, in `footprint.js`:
@@ -143,7 +143,7 @@ test('the toolkit reads the base layouts from the engine', () => {
   - **Mountain:** the base is `alpineMeadow`, the light tone `alpineMeadowLight` and the dark tone `alpineMeadowShade`, plus grey pebbles, tufts of `alpineMeadowDeep` and `alpineMoss`, and a few `cream` or `alpineMeadowDark` dots.
   - **Forest:** the base is `grass`, the light tone `grassLight` and the dark tone `grassShade`, plus tufts, `cream` and `gold` flowers, and `forestFloor` specks.
   - The noise is seeded from the biome and the variant. Variants 0–7.
-  - It doesn't change `drawCapitalTile` yet. Task 9 switches the game's tiles over.
+  - It doesn't change `drawCapitalTile` yet. Task 13 switches the game's tiles over.
 
 - [ ] **Step 1: Write the failing tests.**
   - `the natural ground fills its plot deterministically in palette colours`: for each biome and each variant 0–7, the plot's pixels are all set, two draws are deep-equal, and every colour is in `PALETTE`.
@@ -334,30 +334,75 @@ Library section:
 - [ ] **Step 4: Run the tests and see them pass.** Run `npx playwright test tests/browser/library.test.mjs tests/browser/player-area.test.mjs tests/browser/setup-prompts.test.mjs`, then `npm run test:unit` and `npm run check`. Expected: all pass.
 - [ ] **Step 5: Commit** with `Refs #82: CapitalGrid lays each mat's relief over its ground`.
 
-### Checkpoint: the owner approves batch 1
+### Tasks 9–12: Wetland, Tropical, Desert and Grassland
 
-- [ ] Run `npm run dev` and screenshot the library at 1920×1080. Take the Art area's **Capital relief** section (the two previews and both specimen sheets) and the CapitalGrid section's Mountain and Forest examples. Send them to the owner and ask them to review `/components.html#art-capital-relief`.
-- [ ] **Stop.** Apply any changes the owner asks for and repeat. Go on to Task 9 only with the owner's approval.
+One task per biome, in this order: Task 9 Wetland, Task 10 Tropical, Task 11 Desert, Task 12 Grassland. Each follows the pattern of Tasks 2–5 and adds no new interface. There is no owner-approved sketch for these four biomes, so each implementer designs the look from the rules below. The controller renders it before the review, and the owner judges it at the checkpoint.
 
-### Task 9: Release the approved batch
+**Files (per biome `<b>`):**
+- Modify: `tools/art/palette.js`. Add the biome's new colours in a commented block, only where `PALETTE` lacks a tone it needs.
+- Modify: `tools/art/parts/capital-relief/ground.js`. Add `GROUNDS[<b>]`.
+- Create: `tools/art/parts/capital-relief/<b>.js`, exporting `paint<B>(canvas, fp, seed)`.
+- Modify: `tools/art/parts/capital-relief/index.js` (`RELIEF_PAINTERS`) and `src/lib/art/relief.js` (`RELIEF_BIOMES` gains `<b>`).
+- Create: `tools/art/drawings/capital-relief/<b>.js`, then run `npm run art`.
+- Test: `tests/art-capital-relief.test.mjs`. The ground tests and the relief tests loop over every biome in `RELIEF_BIOMES` (refactor the Task 2–5 tests to do so in Task 9), so each new biome is checked for:
+  - deterministic output inside the reach;
+  - every impassable plot's middle covered;
+  - palette colours, with ink only below full opacity;
+  - a piece over every corner-only join;
+  - a 296×296 relief.
+
+**The look (the owner's rules from #82):**
+- 2.5D, seen from the front and above, with features packed back to front by the y of their base.
+- A lone plot is one mass, and touching plots are one bigger mass.
+- The mass grows out of the ground: the lower parts turn to ground colours, there is no ink outline at the foot, and there are low hills or banks on the sides.
+- Every corner-only join gets its own piece, which may use `fp.reach`. Everything else fits `fp.plots`.
+- Shadows follow Task 3's ruling: ink at partial opacity on empty pixels, one tone darker on painted ones.
+- No stamped icons.
+
+**The biomes:**
+
+| Task | Biome | Its mass | Its ground (`GROUNDS`) |
+|---|---|---|---|
+| 9 | Wetland | Dark pools, with reflections, ringed by reed beds: clumps of reeds and cattails with brown heads, a few low bushes, and a muddy bank where it meets the meadow. A reed clump stands over each corner join. | A wet meadow: dark greens (`forestFloor` and `forestFloorShade`), with a few small puddles. |
+| 10 | Tropical | Jungle: palms (a curved trunk under a fan of fronds) among big broadleaf crowns brighter than the Forest's, with vines and a few red flowers. A palm and a crown stand over each corner join. | Lush green (`pine` and `grass`), with ferns. |
+| 11 | Desert | Sandstone outcrops: rounded boulders and small flat-topped buttes in `sand*`, `mesaRock*` and `mesaSoil*` tones, lit on the left, with sand dunes as the foothills. An outcrop stands over each corner join. | Sand (`sand`, `sandLight` and `sandShade`), with ripples. |
+| 12 | Grassland | Rolling grassy hills topped with grey boulder tors: Task 3's hill shapes, scaled up, with `stone*` boulders on their crests. A tor stands over each corner join. | A warm meadow (`grass` and `grassLight`), with golden grass. |
+
+- [ ] **Step 1: Write the failing tests:** add `<b>` to the looped lists, so the tests fail on the missing painter and ground.
+- [ ] **Step 2: Run them and see them fail.** Run `npx vitest run tests/art-capital-relief.test.mjs`. Expected: FAIL.
+- [ ] **Step 3: Implement** the ground, the painter, the registry and the drawing, then run `npm run art`. Only `static/art/capital-relief/<b>.svg` may be new.
+- [ ] **Step 4: Run the tests and see them pass.** Run `npm run test:unit` and `npm run check`. Expected: all pass, with 0 errors and 0 warnings.
+- [ ] **Step 5: Commit** with `Refs #82: draw the <Biome> relief and ground`.
+
+### Checkpoint: the owner approves the six base mats
+
+- [ ] Run `npm run dev` and screenshot the library at 1920×1080. Take the Art area's **Capital relief** section (the six previews and specimen sheets) and the CapitalGrid section's examples. Send them to the owner and ask them to review `/components.html#art-capital-relief`.
+- [ ] **Stop.** Apply any changes the owner asks for and repeat. Go on to Task 13 only with the owner's approval.
+
+### Task 13: Release the approved base mats
 
 **Files:**
 - Modify: `tools/art/parts/capital-terrain.js`:
   - `drawCapitalTile` draws open plots of a `RELIEF_BIOMES` biome with `drawNaturalGround`;
-  - `drawCapitalMat` for those biomes returns `drawReliefPreview(CAPITAL_GRIDS[biome], biome)`;
-  - delete the mountain and forest obstacle code that nothing else uses (`grep` before deleting `rock`).
-- Delete: `tools/art/drawings/capital-terrain/{mountain,forest}-blocked-0{1..6}.js`
-- Modify: `src/lib/art/catalog.js` (remove those 12 entries), `tests/art-catalog.test.mjs` (`capital-terrain: { base: 72, … }`, icons down by 12 to 306), `tests/art-capital-terrain.test.mjs` (no blocked variants for relief biomes; relief biomes' example mats are 296×296), `tests/ui.test.mjs` (skip `blocked` for relief biomes)
-- Modify: `docs/art/approved-assets.json`: remove the 12 retired ids; update `sha256` for the 16 `mountain-open-*` and `forest-open-*` tiles and for `capital-mat/mountain` and `capital-mat/forest` (with their new 296×296 size); add `capital-relief/mountain`, `capital-relief/forest` and `piece/architects-cube`. That makes 121 entries, and the test's count and name change to 121.
+  - `drawCapitalMat` returns `drawReliefPreview(CAPITAL_GRIDS[biome], biome)`;
+  - delete the obstacle code that nothing uses any more (`grep` first).
+- Delete: `tools/art/drawings/capital-terrain/<biome>-blocked-0{1..6}.js` for all six base biomes (36 files).
+- Modify: `src/lib/art/catalog.js` (remove those 36 entries), `tests/art-catalog.test.mjs` (`capital-terrain: { base: 48, … }`, icons down by 36 to 282), `tests/art-capital-terrain.test.mjs` (no blocked variants for the base biomes; the base example mats are 296×296), `tests/ui.test.mjs` (no `blocked` tiles for the base biomes)
+- Modify: `docs/art/approved-assets.json`:
+  - remove the 36 retired ids;
+  - update `sha256` for the 48 base `*-open-*` tiles and the six `capital-mat/*` examples (with their new 296×296 size);
+  - add the six `capital-relief/*` ids and `piece/architects-cube`.
+
+  That makes 101 entries, and the test's count and name change to 101.
 - Docs:
-  - `README.md`: line 17's restatement of the old ruling, the "Current interface" text, and the screenshots `game-player-area.png`, `game-overview.png`, `game-prompt-capital-mat.png` and `opponent-capital.png`, retaken from the running game at 1920×1080 with a Mountain or Forest capital.
+  - `README.md`: line 17's restatement of the old ruling, the "Current interface" text, and the screenshots `game-player-area.png`, `game-overview.png`, `game-prompt-capital-mat.png` and `opponent-capital.png`, retaken from the running game at 1920×1080.
   - `docs/ui/README.md`: the capital descriptions at lines 367 and 397 lose the red X and gain the relief.
   - `docs/art/README.md`: a `capital-relief/` row in the toolkit table, and the approval rule "the manifest is updated with the art on the issue branch, which merges only after the owner approves the batch".
   - `docs/architecture.md`: `src/lib/capital-terrain.js` and `tools/art/parts/capital-relief/`.
-  - `docs/status.md`: a #82 entry saying batch 1 is done and batches 2–4 are next, plus the summary.
+  - `docs/status.md`: a #82 entry, the summary, and #132, #133 and #134 as what follows.
 
 - [ ] **Step 1: Update the tests first** (counts, the manifest, `ui.test.mjs`). Run `npm run test:unit`. Expected: FAIL, because the drawings haven't changed yet.
-- [ ] **Step 2: Implement,** then run `npm run art`, which writes the new tiles and example mats and removes the 12 blocked SVGs.
+- [ ] **Step 2: Implement,** then run `npm run art`, which writes the new tiles and example mats and removes the 36 blocked SVGs.
 - [ ] **Step 3: Run everything.** Run `npm test` and `npm run check`. Expected: all pass.
 - [ ] **Step 4: Retake the screenshots and update the docs.**
-- [ ] **Step 5: Commit** with `Refs #82: release the mountain and forest reliefs and ground (batch 1)`, then ask the owner before merging into `main`. Batches 2–4 are later plans; the issue stays open.
+- [ ] **Step 5: Commit** with `Fix #82: release the joined 2.5D terrain of the six base mats`, then ask the owner before merging into `main`.
