@@ -37,6 +37,24 @@ test('the library page shows every section, with no console errors', async ({
 	expect(errors).toEqual([]);
 });
 
+test('the library opens without drawing the art below the fold (#82)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const tile = page.locator('figure[data-id="capital-relief/mountain"]');
+	await expect(tile).toHaveAttribute('data-drawn', 'yes');
+	expect(await tile.locator('img').count(), 'drawn at load').toBe(0);
+	const waiting = await tile.boundingBox();
+
+	await tile.scrollIntoViewIfNeeded();
+	await expect(tile).toHaveAttribute('data-loaded', 'yes');
+	await expect(tile.locator('img')).toHaveCount(2);
+	// Its placeholder took the picture's room, so the slot doesn't jump when the picture lands.
+	const drawn = await tile.boundingBox();
+	expect(drawn?.width).toBe(waiting?.width);
+	expect(drawn?.height).toBe(waiting?.height);
+});
+
 /**
  * A colour as the page computes it, such as 'rgb(226, 184, 87)' for 'var(--gold)', so a test compares like with like.
  * @param {import('@playwright/test').Page} page

@@ -50,11 +50,12 @@
 	import {
 		ART_SECTIONS,
 		PARTS,
-		PICTURES,
 		RELIEF_SPECIMENS,
 		DEFERRED_ART,
 		artAnchor,
 		artDescription,
+		loadPicture,
+		pictureSize,
 	} from './art.js';
 	import { EXPANSIONS } from '../lib/art/catalog.js';
 
@@ -158,7 +159,8 @@
 			{#each PARTS as part (part.label)}
 				<ArtTile
 					name={part.label}
-					picture={part.picture} />
+					load={part.load}
+					size={part.size} />
 			{/each}
 		</Section>
 		{#each ART_SECTIONS as section (section.id)}
@@ -179,7 +181,10 @@
 								name={tile.asset.name}
 								id={tile.asset.id}
 								example={tile.asset.example}
-								picture={PICTURES.get(tile.asset.id)}
+								load={tile.drawn
+									? () => loadPicture(tile.asset.id)
+									: undefined}
+								size={pictureSize(tile.asset.id)}
 								plots={tile.plots}
 								expansion={tile.showExpansion
 									? EXPANSION_NAMES.get(tile.asset.expansion)
@@ -192,7 +197,8 @@
 						{#each RELIEF_SPECIMENS as specimen (specimen.label)}
 							<ArtTile
 								name={specimen.label}
-								picture={specimen.picture} />
+								load={specimen.load}
+								size={specimen.size} />
 						{/each}
 					{/if}
 				{/if}
