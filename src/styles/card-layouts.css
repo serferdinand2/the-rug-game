@@ -25,8 +25,8 @@
 	display: grid;
 	grid-template-rows: 40px 174px 50px 30px;
 }
-.rg-tech-layout__band,
-.rg-tapestry-layout__band {
+.rg-tech-layout--band,
+.rg-tapestry-layout--band {
 	display: flex;
 	align-items: center;
 	margin: 0 -10px;
@@ -44,8 +44,8 @@
 		auto;
 	border-bottom: 1px solid var(--card-line-strong);
 }
-.rg-tech-layout__band strong,
-.rg-tapestry-layout__band strong {
+.rg-tech-layout--band strong,
+.rg-tapestry-layout--band strong {
 	color: var(--card-title);
 	font:
 		700 22px/1 Cinzel,
@@ -53,14 +53,14 @@
 	letter-spacing: 0.025em;
 	text-shadow: 0 1px 0 var(--card-text);
 }
-.rg-tech-layout__body {
+.rg-tech-layout--body {
 	display: grid;
 	grid-template-columns: 150px 1fr;
 	gap: 12px;
 	align-items: start;
 	padding: 12px 2px;
 }
-.rg-tech-layout__art {
+.rg-tech-layout--art {
 	display: block;
 	width: 150px;
 	height: 150px;
@@ -69,14 +69,14 @@
 		0 0 0 1px var(--card-line),
 		0 0 0 3px var(--card-text);
 }
-.rg-tech-layout__effects {
+.rg-tech-layout--effects {
 	display: grid;
 	grid-template-rows: 1fr 1fr;
 	gap: 6px;
 	align-items: center;
 	min-width: 0;
 }
-.rg-tech-layout__effect {
+.rg-tech-layout--effect {
 	height: 72px;
 	display: grid;
 	grid-template-columns: 30px 1fr;
@@ -86,7 +86,7 @@
 	background: var(--card-raised);
 	border: 1px solid var(--card-line-soft);
 }
-.rg-tech-layout__shape {
+.rg-tech-layout--shape {
 	display: block;
 	flex: none;
 	width: 23px;
@@ -94,10 +94,10 @@
 	justify-self: center;
 	border: 3.5px solid var(--card-band-start);
 }
-.rg-tech-layout__shape--circle {
+.rg-tech-layout--shape-circle {
 	border-radius: 50%;
 }
-.rg-tech-layout__effect small {
+.rg-tech-layout--effect small {
 	display: block;
 	margin-bottom: 2px;
 	color: var(--card-band-start);
@@ -108,20 +108,20 @@
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
 }
-.rg-tech-layout__effect p {
+.rg-tech-layout--effect p {
 	margin: 0;
 	color: var(--card-text);
 	font-size: 12px;
 	line-height: 1.16;
 }
-.rg-tech-layout__conditions {
+.rg-tech-layout--conditions {
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
 	gap: 6px;
 	padding-bottom: 12px;
 }
-.rg-tech-layout__condition {
+.rg-tech-layout--condition {
 	min-height: 32px;
 	display: flex;
 	align-items: center;
@@ -134,17 +134,17 @@
 	font-size: 12px;
 	line-height: 1;
 }
-.rg-tech-layout__condition img {
+.rg-tech-layout--condition img {
 	width: 22px;
 	height: 22px;
 	image-rendering: pixelated;
 }
-.rg-tech-layout__condition .rg-tech-layout__shape {
+.rg-tech-layout--condition .rg-tech-layout--shape {
 	width: 18px;
 	height: 18px;
 	border-color: var(--card-condition-text);
 }
-.rg-tech-layout__condition b {
+.rg-tech-layout--condition b {
 	display: inline-flex;
 	align-items: center;
 	min-height: 22px;
@@ -153,32 +153,32 @@
 		Atkinson,
 		sans-serif;
 }
-.rg-tech-layout__condition .rg-tech-layout__track {
+.rg-tech-layout--condition .rg-tech-layout--track {
 	font:
 		600 14px/1 Cinzel,
 		serif;
 	color: var(--card-technology-text);
 }
-.rg-tech-layout__condition .rg-tech-layout__track--exploration {
+.rg-tech-layout--condition .rg-tech-layout--track-exploration {
 	color: var(--card-exploration-text);
 }
-.rg-tech-layout__condition .rg-tech-layout__track--science {
+.rg-tech-layout--condition .rg-tech-layout--track-science {
 	color: var(--card-science-text);
 }
-.rg-tech-layout__condition .rg-tech-layout__track--military {
+.rg-tech-layout--condition .rg-tech-layout--track-military {
 	color: var(--card-military-text);
 }
-.rg-tech-layout__footer,
-.rg-tapestry-layout__footer {
+.rg-tech-layout--footer,
+.rg-tapestry-layout--footer {
 	display: flex;
 	align-items: center;
 	border-top: 1px solid var(--card-line);
 }
-.rg-tech-layout__footer {
+.rg-tech-layout--footer {
 	margin: 0 -10px;
 	padding: 0 10px;
 }
-.rg-tapestry-layout__footer {
+.rg-tapestry-layout--footer {
 	margin: 0 -12px;
 	padding: 0 12px;
 }
@@ -213,14 +213,14 @@
 	display: grid;
 	grid-template-rows: 49px 184px minmax(max-content, 1fr) 30px;
 }
-.rg-tapestry-layout__band {
+.rg-tapestry-layout--band {
 	margin: 0 -12px;
 	padding: 0 12px;
 }
-.rg-tapestry-layout__band strong {
+.rg-tapestry-layout--band strong {
 	font-size: 21px;
 }
-.rg-tapestry-layout--trap .rg-tapestry-layout__band {
+.rg-tapestry-layout--trap .rg-tapestry-layout--band {
 	background-image:
 		url('./card-paper-noise.svg'),
 		linear-gradient(
@@ -231,14 +231,14 @@
 		);
 	border-bottom-color: var(--card-trap-line);
 }
-.rg-tapestry-layout__portrait {
+.rg-tapestry-layout--portrait {
 	display: grid;
 	grid-template-columns: 160px minmax(0, 1fr);
 	gap: 10px;
 	align-items: start;
 	padding-top: 12px;
 }
-.rg-tapestry-layout__portrait img {
+.rg-tapestry-layout--portrait img {
 	display: block;
 	width: 160px;
 	height: 160px;
@@ -247,7 +247,7 @@
 		0 0 0 1px var(--card-line),
 		0 0 0 3px var(--card-text);
 }
-.rg-tapestry-layout__timing {
+.rg-tapestry-layout--timing {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -262,22 +262,22 @@
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
 }
-.rg-tapestry-layout__timing--this-era {
+.rg-tapestry-layout--timing-this-era {
 	border-color: var(--science);
 	background: color-mix(in srgb, var(--science) 22%, transparent);
 	color: var(--card-science-text);
 }
-.rg-tapestry-layout__timing--when-played {
+.rg-tapestry-layout--timing-when-played {
 	border-color: var(--bronze);
 	background: color-mix(in srgb, var(--bronze) 22%, transparent);
 	color: var(--card-technology-text);
 }
-.rg-tapestry-layout__timing--trap {
+.rg-tapestry-layout--timing-trap {
 	border-color: var(--military);
 	background: color-mix(in srgb, var(--military) 22%, transparent);
 	color: var(--card-military-text);
 }
-.rg-tapestry-layout__copy {
+.rg-tapestry-layout--copy {
 	align-self: stretch;
 	margin: 0;
 	padding: 18px 10px 24px;
@@ -285,7 +285,7 @@
 	font-size: 15px;
 	line-height: 1.42;
 }
-.rg-tapestry-layout__note {
+.rg-tapestry-layout--note {
 	display: block;
 	margin-top: 14px;
 	padding-top: 10px;

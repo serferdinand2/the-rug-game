@@ -9,7 +9,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78 and #84 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
-  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88 and #101 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101 and #108 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -78,6 +78,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#129 (each decision kind's client facts in one table)](#129-each-decision-kinds-client-facts-in-one-table)
 - [#88 (the game's keys and Escape through one layer state)](#88-the-games-keys-and-escape-through-one-layer-state)
 - [#101 (rules versions, expansions and variants named in one place)](#101-rules-versions-expansions-and-variants-named-in-one-place)
+- [#108 (tech and tapestry cards in Svelte from the engine's data)](#108-tech-and-tapestry-cards-in-svelte-from-the-engines-data)
 
 ## Issues
 
@@ -756,6 +757,27 @@ Built on 2026-10-29, among the refactors #32 waits for. The design is `docs/supe
 - **Handed off:**
   - #109's edition chips use `expansionName` and `expansionColor`.
   - #32 is the first expansion to show them.
+
+### #108 (tech and tapestry cards in Svelte from the engine's data)
+
+Built on 2026-10-29, the first of the card refactors #32–#40 wait for. The design is `docs/superpowers/specs/2026-10-29-svelte-cards-design.md` and the plan `docs/superpowers/plans/2026-10-29-svelte-cards-issue-108.md`.
+- **Built:**
+  - `TechnologyCard` and `TapestryCard` draw their own Svelte markup, with the DOM the `{@html}` strings had, and take the engine's data. An `id` alone draws the engine's card, not a fixture.
+  - The classes follow the conventions: `rg-tech-layout--band`, `rg-tech-layout--shape-square`, `rg-tapestry-layout--timing-trap` and so on, in `card-layouts.css`.
+  - `game-cards.js` holds the card typedefs and the new, tested `tapestryTiming`.
+  - `card-layouts.js` is gone. The static main-screen mockup keeps its own copy of the fixtures and string markup in `docs/ui/assets/card-markup.js` and `card-layouts.css`; the copy also takes ids again, as the mockup calls it.
+  - The library's TechnologyCard and TapestryCard sections show only engine cards: one per track and tier, the innovations, the timings, the longest ability and the trap.
+- **Checks:** screenshots of every tech and tapestry card, before and after.
+  - The card gallery's 148 are identical, pixel for pixel.
+  - In the library, the cards that already showed engine data match to within 3 of 255 in one colour channel: texture shimmer from their new positions.
+  - The fixture cards now read the engine's text. For example, Age of Discovery: "…then your opponents advance there without its benefit or bonus."
+- **For the owner:** the card gallery is unchanged. The library's TechnologyCard, TapestryCard and CardFan sections now show the engine's wording; please check them.
+- **Tests:**
+  - `client-game-cards` renders the components server-side instead of asserting on strings, and tests `tapestryTiming`.
+  - A guard fails on `{@html}`, on `card-layouts.js` and on the old `__` class names.
+  - The browser `card-layouts` test uses the new names.
+  - `npm run check` is clean, all 2014 unit tests pass, and all 43 browser tests pass on the branch's own servers.
+- **Handed off:** #109 shares the band and edition chip. The tech card still always says "Base game", and the tapestry chip colours every expansion as Arts & Architecture, as before.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

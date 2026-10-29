@@ -1,4 +1,5 @@
-// Reviewed visual fixtures and the card markup. Fixture rules text is display copy, not engine authority; game-cards.js builds real cards.
+// The static main-screen mockup's own copy of the reviewed card fixtures and their string markup (#108): the app draws its
+// cards in Svelte from the engine's data (TechnologyCard, TapestryCard), so this mockup keeps the builders it was made with.
 /** @typedef {{title:string,art:string,circle:string,square:string,track?:string,level?:number,innovation?:string}} TechnologyCardData */
 /** @typedef {{title:string,art:string,timing:string,copy:string,note?:string,trap?:boolean,edition?:string}} TapestryCardData */
 /** @type {Readonly<Record<string, TechnologyCardData>>} */
@@ -144,10 +145,13 @@ export function tapestryFixture(id) {
 
 /**
  * A technology card's markup, from a fixture or from the engine's data (game-cards.js).
- * @param {TechnologyCardData} card
+ * @param {TechnologyCardData | string} card - A fixture, or its id
  * @returns {string}
  */
 export function technologyCardMarkup(card) {
+	if (typeof card === 'string') {
+		card = technologyFixture(card);
+	}
 	const track = card.track
 		? card.track[0].toUpperCase() + card.track.slice(1)
 		: '';
@@ -159,10 +163,13 @@ export function technologyCardMarkup(card) {
 
 /**
  * A tapestry card's markup, from a fixture or from the engine's data (game-cards.js).
- * @param {TapestryCardData} card
+ * @param {TapestryCardData | string} card - A fixture, or its id
  * @returns {string}
  */
 export function tapestryCardMarkup(card) {
+	if (typeof card === 'string') {
+		card = tapestryFixture(card);
+	}
 	const timingClass = card.trap
 		? 'trap'
 		: card.timing === 'When Played'
