@@ -25,57 +25,15 @@
 
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
-	import { RESOURCES, trackColor } from '../../ui.js';
+	import { priceWords } from '../../describe.js';
+	import { trackColor } from '../../ui.js';
 	import { roman } from '../../game-names.js';
 
 	/** @type {TierPriceProps} */
 	let { era, symbols, track, highlighted = false, ...attr } = $props();
 
-	const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six'];
-	// Resources whose names take no plural s: "two food", but "two coins".
-	const UNCOUNTABLE = new Set(['food', 'culture']);
-
 	let numeral = $derived(roman(era));
-	let label = $derived(`Tier ${numeral} ${describe(symbols)}`);
-
-	/**
-	 * The price in words, such as 'costs one food and one resource of any type'.
-	 * @param {import('../../ui.js').CostSymbol[]} price
-	 * @returns {string}
-	 */
-	function describe(price) {
-		if (price.length === 0) {
-			return 'is free';
-		}
-		/** @type {Map<string, number>} */
-		const counts = new Map();
-		for (const symbol of price) {
-			counts.set(symbol, (counts.get(symbol) ?? 0) + 1);
-		}
-		const parts = [...counts].map(
-			([symbol, count]) =>
-				`${COUNT_WORDS[count] ?? count} ${noun(symbol, count)}`
-		);
-		const last = parts.pop();
-		return `costs ${parts.length ? `${parts.join(', ')} and ` : ''}${last}`;
-	}
-
-	/**
-	 * @param {string} symbol
-	 * @param {number} count
-	 * @returns {string}
-	 */
-	function noun(symbol, count) {
-		if (symbol === 'any') {
-			return count === 1
-				? 'resource of any type'
-				: 'resources of any type';
-		}
-		const name = (
-			RESOURCES.find((resource) => resource.id === symbol)?.name ?? symbol
-		).toLowerCase();
-		return count === 1 || UNCOUNTABLE.has(symbol) ? name : `${name}s`;
-	}
+	let label = $derived(`Tier ${numeral} costs ${priceWords(symbols)}`);
 </script>
 
 <div

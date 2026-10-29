@@ -35,10 +35,7 @@ import { HEIGHT_RANKING } from '../src/lib/engine/data/landmarks.js';
 const SRC = fileURLToPath(new URL('../src/', import.meta.url));
 
 /** The copies other issues remove, with the issue that does. */
-const LEFT = /** @type {Readonly<Record<string, string>>} */ ({
-	// Its own price words, joined by hand, go with #124's remainder after #85.
-	'lib/components/board/TierPrice.svelte': '#124',
-});
+const LEFT = /** @type {Readonly<Record<string, string>>} */ ({});
 
 test('a track is named, and an id no track has reads as a title', () => {
 	assert.deepEqual(TRACK_IDS.map(trackName), [
@@ -268,6 +265,16 @@ test('no client module keeps its own copy of a name or an English helper', () =>
 			source,
 			/TRACKS\[[^\]]+\]\[[^\]]+\]\.name/,
 			`${file} reads a space's name from the engine`
+		);
+		assert.doesNotMatch(
+			source,
+			/\bRESOURCES\.find\(/,
+			`${file} looks a resource's name up itself (#124)`
+		);
+		assert.doesNotMatch(
+			source,
+			/'resources? of any type'/,
+			`${file} words "any" its own way (#124)`
 		);
 		assert.doesNotMatch(
 			source,
