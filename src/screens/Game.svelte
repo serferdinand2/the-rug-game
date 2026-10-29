@@ -34,7 +34,13 @@
 	import TableSettings from './game/TableSettings.svelte';
 	import RulesPanel from './game/RulesPanel.svelte';
 	import { RULES_HELP } from '../lib/rules-help.js';
-	import { hotkeyAction } from '../lib/hotkeys.js';
+	import { hotkeyAction, hotkeyGate } from '../lib/hotkeys.js';
+	import {
+		NO_LAYERS,
+		closeLayer,
+		escapeLayer,
+		openLayer,
+	} from '../lib/layers.js';
 	import { eventText } from '../lib/log.js';
 	import { highlights, prefersReducedMotion } from '../lib/motion.js';
 	import TapestryCard from '../lib/components/player/TapestryCard.svelte';
@@ -80,27 +86,23 @@
 	let tab = $state('capital');
 	/** @type {{ kind: 'tech' | 'tapestry', data: any, side?: boolean } | null} A card shown in full over the shared area; beside the shelf, without a scrim, for a shelf card */
 	let inspected = $state(null);
-	/** Whether the players overview is open (#27). */
-	let overviewOpen = $state(false);
-	/** The log and scores panel (#29): open, its tab, and a dot for entries it hasn't shown yet. */
-	let logOpen = $state(false);
+	/**
+	 * What is open over the screen (#88): How to play, Table settings, the players overview (#27) and the player it
+	 * opened on, the log and scores (#29), and the footer's question (#83, owner): "Take an income turn?" before income
+	 * is taken, or "Advance on which track?" after A, answered by 1 to 4.
+	 */
+	let layers = $state(
+		/** @type {import('../lib/layers.js').Layers} */ (NO_LAYERS)
+	);
+	/** The log's tab, and a dot for entries it hasn't shown yet. */
 	let logTab = $state(/** @type {'log' | 'scores'} */ ('log'));
 	let logUnread = $state(false);
-	/** The host's table settings during a game (#29 design §9). */
-	let settingsOpen = $state(false);
-	/** How to play (#42): open, and the tab on show, a rules section or the keyboard shortcuts. */
-	let rulesOpen = $state(false);
+	/** How to play's tab on show (#42): a rules section or the keyboard shortcuts. */
 	let rulesTab = $state(RULES_HELP[0].id);
-	/** The footer asks "Take an income turn?" before taking it, from the button or I (#83, owner). */
-	let incomeAsk = $state(false);
-	/** The footer asks "Advance on which track?" after A, answered by 1 to 4 (#83, owner). */
-	let trackAsk = $state(false);
 	/** The log and scores, shown while Tab is held (#83, owner). */
 	let logPeek = $state(false);
 	/** @type {ReturnType<typeof setTimeout> | undefined} */
 	let peekTimer;
-	/** The player whose capital the overview opens on, from 1 to 5 (#83); null from a chip. */
-	let overviewPlayer = $state(/** @type {number | null} */ (null));
 
 	/** @type {import('../lib/motion.js').Highlights} */
 	const STILL = { hexes: [], plots: [], landmarks: [], vp: [] };
@@ -120,7 +122,10 @@
 		handled = count;
 		untrack(() => {
 			const events = store.fresh;
-			if (!logOpen && events.some((e) => eventText(e, game) !== null)) {
+			if (
+				!layers.log &&
+				events.some((e) => eventText(e, game) !== null)
+			) {
 				logUnread = true;
 			}
 			if (prefersReducedMotion()) {
@@ -165,27 +170,19 @@
 	let noticeClosed = $state(false);
 	/** The notice shows unless closed, and never under the players overview or the table settings. */
 	let noticeOpen = $derived(
-		Boolean(notice) && !noticeClosed && !overviewOpen && !settingsOpen
+		Boolean(notice) && !noticeClosed && !layers.overview && !layers.settings
 	);
 	$effect(() => {
 		const key = noticeKey;
 		untrack(() => {
-			try {
-				noticeClosed = sessionStorage.getItem(key) === '1';
-			} catch {
-				noticeClosed = false;
-			}
+			noticeClosed = store.noticeClosed(key);
 		});
 	});
 
 	/** Closes the income notice for good at this table and seat. */
 	const noticeCloseHandler = () => {
 		noticeClosed = true;
-		try {
-			sessionStorage.setItem(noticeKey, '1');
-		} catch {
-			// Without storage it opens again after a refresh, which is harmless.
-		}
+		store.closeNotice(noticeKey);
 	};
 	let held = $derived(
 		summary?.resources ?? { coin: 0, food: 0, worker: 0, culture: 0 }
@@ -270,10 +267,10 @@
 	/** Which footer shows, and what it says (#86). */
 	let footer = $derived(
 		footerView(game, seat, {
-			overviewOpen,
+			overviewOpen: layers.overview,
 			noticeOpen,
-			incomeAsk,
-			trackAsk,
+			incomeAsk: layers.question === 'income',
+			trackAsk: layers.question === 'track',
 			selected,
 			options,
 			paying: promptState.paying,
@@ -288,8 +285,7 @@
 	 * @param {{ track: TrackId, space: number }} space
 	 */
 	function selectSpace(space) {
-		incomeAsk = false;
-		trackAsk = false;
+		clearQuestion();
 		selected = space;
 		promptState.clearPayment();
 	}
@@ -306,9 +302,13 @@
 		if (!turnDecision || turnDecision.kind !== 'chooseTurn' || sending) {
 			return;
 		}
-		trackAsk = false;
-		incomeAsk = true;
+		layers = openLayer(layers, 'income');
 	};
+
+	/** The footer's question goes, whichever it was. */
+	function clearQuestion() {
+		layers = closeLayer(closeLayer(layers, 'income'), 'track');
+	}
 
 	/** The tracks with a space the viewer can pay for, which the track question offers (#83). */
 	let askTracks = $derived([...new Set(options.map((o) => o.track))]);
@@ -336,7 +336,7 @@
 		if (!turnDecision || turnDecision.kind !== 'chooseTurn' || sending) {
 			return;
 		}
-		incomeAsk = false;
+		clearQuestion();
 		sending = true;
 		await store.move({ decision: turnDecision.id, turn: 'income' });
 		selected = null;
@@ -386,32 +386,32 @@
 	 */
 	const menuHandler = (event) => {
 		if (event.value === 'settings') {
-			// One Escape closes one thing, so the settings open alone.
-			logOpen = false;
-			overviewOpen = false;
-			settingsOpen = true;
+			layers = openLayer(layers, 'settings');
 		} else if (event.value === 'help' || event.value === 'keys') {
-			// How to play opens alone too, on the rules or on the keyboard shortcuts (#42).
-			logOpen = false;
-			overviewOpen = false;
-			settingsOpen = false;
+			// On the rules or on the keyboard shortcuts (#42).
 			rulesTab = event.value === 'keys' ? 'keys' : RULES_HELP[0].id;
-			rulesOpen = true;
+			layers = openLayer(layers, 'rules');
 		}
 	};
 
 	const logToggleHandler = () => {
-		logOpen = !logOpen;
+		layers = layers.log
+			? closeLayer(layers, 'log')
+			: openLayer(layers, 'log');
 		logUnread = false;
+	};
+
+	/** The header's chips open the players overview on no one in particular, and close it. */
+	const chipHandler = () => {
+		layers = layers.overview
+			? closeLayer(layers, 'overview')
+			: openLayer(layers, 'overview');
 	};
 
 	/** A question in the footer belongs to the turn choice it was asked on. */
 	$effect(() => {
 		void turnDecision?.id;
-		untrack(() => {
-			incomeAsk = false;
-			trackAsk = false;
-		});
+		untrack(clearQuestion);
 	});
 
 	/**
@@ -420,12 +420,7 @@
 	 * @param {KeyboardEvent} event
 	 */
 	function tabDown(event) {
-		if (
-			event.ctrlKey ||
-			event.altKey ||
-			event.metaKey ||
-			document.querySelector('[aria-modal="true"]')
-		) {
+		if (event.ctrlKey || event.altKey || event.metaKey || layers.rules) {
 			return;
 		}
 		if (event.repeat) {
@@ -433,7 +428,7 @@
 			return;
 		}
 		clearTimeout(peekTimer);
-		if (!logOpen) {
+		if (!layers.log) {
 			peekTimer = setTimeout(() => (logPeek = true), 200);
 		}
 	}
@@ -453,8 +448,30 @@
 	$effect(() => () => clearTimeout(peekTimer));
 
 	/**
-	 * Escape closes the players overview (#27 review), then the notice; every other key is a hotkey (#83) unless the
-	 * player is typing, holds a browser shortcut's key, has a menu, dialog or settings open, or a component took it.
+	 * What the screen needs to know about a key press, read from the event and the element it was pressed on (#88).
+	 * @param {KeyboardEvent} event
+	 * @returns {import('../lib/hotkeys.js').KeyFacts}
+	 */
+	function keyFacts(event) {
+		const target = /** @type {HTMLElement | null} */ (event.target);
+		/** @param {string} selector */
+		const within = (selector) => Boolean(target?.closest?.(selector));
+		return {
+			key: event.key,
+			modified: event.ctrlKey || event.altKey || event.metaKey,
+			taken: event.defaultPrevented,
+			typing:
+				Boolean(target?.isContentEditable) ||
+				within('input, textarea, select'),
+			inMenu: within('[role="menu"]'),
+			inModal: within('[aria-modal="true"]'),
+			onControl: target !== document.body,
+		};
+	}
+
+	/**
+	 * Escape closes the one thing on top (#88); every other key is a hotkey (#83). hotkeyGate decides whether the
+	 * screen takes the key at all.
 	 * @param {KeyboardEvent} event
 	 */
 	const keyHandler = (event) => {
@@ -462,47 +479,16 @@
 			tabDown(event);
 			return;
 		}
-		if (event.key === 'Escape' && overviewOpen) {
-			overviewOpen = false;
+		if (!hotkeyGate(keyFacts(event), layers)) {
 			return;
 		}
-		if (event.key === 'Escape' && (incomeAsk || trackAsk)) {
-			incomeAsk = false;
-			trackAsk = false;
-			return;
-		}
-		const target = /** @type {HTMLElement | null} */ (event.target);
-		// One Escape closes one thing: the notice only when nothing else is open and the key isn't meant for another
-		// layer, such as the header menu, a dialog or a field (#77).
-		const elsewhere = target?.closest?.(
-			'[role="menu"], [role="dialog"], input, textarea, select'
-		);
-		if (
-			event.key === 'Escape' &&
-			noticeOpen &&
-			!logOpen &&
-			!document.querySelector('[aria-modal="true"]') &&
-			(!elsewhere || Boolean(elsewhere.closest('.rg-income-notice')))
-		) {
-			noticeCloseHandler();
-			return;
-		}
-		if (
-			event.defaultPrevented ||
-			event.ctrlKey ||
-			event.altKey ||
-			event.metaKey ||
-			target?.isContentEditable ||
-			// A menu, a modal or a field keeps its keys; a decision panel's controls don't, so . still turns a tile.
-			target?.closest?.(
-				'[role="menu"], [aria-modal="true"], input, textarea, select'
-			) ||
-			settingsOpen ||
-			// How to play, over the whole screen.
-			document.querySelector('[aria-modal="true"]') ||
-			// Enter on a control presses that control.
-			(event.key === 'Enter' && target !== document.body)
-		) {
+		if (event.key === 'Escape') {
+			const layer = escapeLayer(layers, noticeOpen);
+			if (layer === 'notice') {
+				noticeCloseHandler();
+			} else if (layer !== null) {
+				layers = closeLayer(layers, layer);
+			}
 			return;
 		}
 		const action = hotkeyAction(event.key, {
@@ -514,8 +500,8 @@
 				!noticeOpen &&
 				!sending,
 			canUndo: Boolean(room.canUndo),
-			confirming: incomeAsk,
-			asking: trackAsk,
+			confirming: layers.question === 'income',
+			asking: layers.question === 'track',
 			tracks: askTracks,
 			players: players.length,
 			board,
@@ -541,17 +527,12 @@
 				incomeHandler();
 				break;
 			case 'advance':
-				incomeAsk = false;
 				selected = null;
 				promptState.clearPayment();
-				trackAsk = true;
+				layers = openLayer(layers, 'track');
 				break;
 			case 'track':
 				trackPickHandler(action.track);
-				break;
-			case 'cancel':
-				incomeAsk = false;
-				trackAsk = false;
 				break;
 			case 'confirm':
 				// The open panel's Confirm (the payment's Advance, the notice's Got it), or the footer's Advance.
@@ -577,24 +558,20 @@
 				tab = action.tab;
 				break;
 			case 'player':
-				if (overviewOpen && overviewPlayer === action.seat) {
-					overviewOpen = false;
-				} else {
-					logOpen = false;
-					settingsOpen = false;
-					overviewPlayer = action.seat;
-					overviewOpen = true;
-				}
+				layers =
+					layers.overview && layers.player === action.seat
+						? closeLayer(layers, 'overview')
+						: openLayer(layers, 'overview', {
+								player: action.seat,
+							});
 				break;
 			case 'log':
 				logToggleHandler();
 				break;
 			case 'help':
 			case 'keys':
-				logOpen = false;
-				overviewOpen = false;
 				rulesTab = action.type === 'keys' ? 'keys' : RULES_HELP[0].id;
-				rulesOpen = true;
+				layers = openLayer(layers, 'rules');
 				break;
 			case 'turn':
 				promptState.turnTile(action.step);
@@ -615,14 +592,11 @@
 		{store}
 		{game}
 		{seat}
-		{overviewOpen}
-		{logOpen}
+		overviewOpen={layers.overview}
+		logOpen={layers.log}
 		{logUnread}
 		bumped={moved.vp}
-		onGameHeaderChip={() => {
-			overviewPlayer = null;
-			overviewOpen = !overviewOpen;
-		}}
+		onGameHeaderChip={chipHandler}
 		onGameHeaderLog={logToggleHandler}
 		onGameHeaderMenu={menuHandler} />
 
@@ -630,7 +604,7 @@
 		<section
 			class="rg-game--shared"
 			aria-label="Shared board"
-			inert={overviewOpen}>
+			inert={layers.overview}>
 			<div class="rg-game--head">
 				<BoardSwitcher bind:value={board} />
 				<AchievementStrip achievements={achievements(game)} />
@@ -691,7 +665,7 @@
 		<aside
 			class="rg-game--private"
 			aria-label="Your player area"
-			inert={overviewOpen}>
+			inert={layers.overview}>
 			{#if seat !== null && summary}
 				<PlayerTabs
 					{game}
@@ -723,33 +697,35 @@
 					changed={promptState.changed} />
 			{/if}
 		</aside>
-		{#if overviewOpen}
+		{#if layers.overview}
 			<PlayersOverview
 				{game}
 				{seat}
 				host={room.host}
 				code={room.code}
-				player={overviewPlayer} />
+				player={layers.player} />
 		{/if}
-		{#if (logOpen || logPeek) && !overviewOpen}
+		{#if (layers.log || logPeek) && !layers.overview}
 			<LogPanel
 				{game}
 				{seat}
 				bind:tab={logTab}
 				onLogPanelClose={() => {
-					logOpen = false;
+					layers = closeLayer(layers, 'log');
 					logPeek = false;
 				}} />
 		{/if}
-		{#if settingsOpen}
+		{#if layers.settings}
 			<TableSettings
 				{store}
-				onTableSettingsClose={() => (settingsOpen = false)} />
+				onTableSettingsClose={() =>
+					(layers = closeLayer(layers, 'settings'))} />
 		{/if}
-		{#if rulesOpen}
+		{#if layers.rules}
 			<RulesPanel
 				bind:tab={rulesTab}
-				onRulesPanelClose={() => (rulesOpen = false)} />
+				onRulesPanelClose={() =>
+					(layers = closeLayer(layers, 'rules'))} />
 		{/if}
 	</div>
 
@@ -761,13 +737,11 @@
 		onTurnFooterAdvance={() => advanceHandler()}
 		onTurnFooterTrack={(/** @type {ComponentEvent} */ event) =>
 			trackPickHandler(event.value)}
-		onTurnFooterCancel={() => {
-			incomeAsk = false;
-			trackAsk = false;
-		}}
+		onTurnFooterCancel={clearQuestion}
 		onTurnFooterResults={(/** @type {ComponentEvent} */ event) =>
 			onGameResults?.(event)}
-		onTurnFooterOverviewClose={() => (overviewOpen = false)} />
+		onTurnFooterOverviewClose={() =>
+			(layers = closeLayer(layers, 'overview'))} />
 </div>
 
 <style>

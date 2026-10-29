@@ -1,4 +1,4 @@
-<!-- The log and scores panel (#29 design §5): over the player area, the table's log or the current scores, chosen by two tabs, closed with its button or Escape. -->
+<!-- The log and scores panel (#29 design §5): over the player area, the table's log or the current scores, chosen by two tabs, closed with its button, or by Escape, which the game screen routes (#88). -->
 <script module>
 	/**
 	 * Properties of the LogPanel screen part itself.
@@ -54,19 +54,7 @@
 			);
 		}
 	}
-
-	/**
-	 * Escape closes the panel.
-	 * @param {KeyboardEvent} event
-	 */
-	const keyHandler = (event) => {
-		if (event.key === 'Escape') {
-			close(event);
-		}
-	};
 </script>
-
-<svelte:window onkeydown={keyHandler} />
 
 <section
 	aria-label="Log and scores"

@@ -19,12 +19,24 @@ import { TRACK_IDS } from './engine/data/ids.js';
 
 /**
  * The action a key asks for.
- * @typedef {{ type: 'income' | 'incomeConfirm' | 'advance' | 'confirm' | 'undo' | 'log' | 'help' | 'keys' | 'cancel' }
+ * @typedef {{ type: 'income' | 'incomeConfirm' | 'advance' | 'confirm' | 'undo' | 'log' | 'help' | 'keys' }
  *   | { type: 'track', track: TrackId }
  *   | { type: 'board', board: 'tracks' | 'map' }
  *   | { type: 'tab', tab: string }
  *   | { type: 'player', seat: number }
  *   | { type: 'turn', step: 1 | -1 }} HotkeyAction
+ */
+
+/**
+ * What the screen knows about a key press, read from the event and its target (#88).
+ * @typedef {Object} KeyFacts
+ * @property {string} key - KeyboardEvent.key
+ * @property {boolean} modified - Ctrl, Alt or Cmd is held, for a browser shortcut
+ * @property {boolean} taken - A component already handled it
+ * @property {boolean} typing - It was typed into a field or editable text
+ * @property {boolean} inMenu - It was pressed in an open menu
+ * @property {boolean} inModal - It was pressed in a modal dialog
+ * @property {boolean} onControl - It was pressed on a control rather than the page, where Enter presses that control
  */
 
 /** The engine's tracks in board order, which the track question numbers from 1; the arts track (#35) will be 5. */
@@ -60,9 +72,6 @@ export function hotkeyAction(key, context) {
 		board = 'tracks',
 		exploring = false,
 	} = context;
-	if (key === 'Escape') {
-		return confirming || asking ? { type: 'cancel' } : null;
-	}
 	if (key === 'Enter') {
 		return confirming ? { type: 'incomeConfirm' } : { type: 'confirm' };
 	}
@@ -107,4 +116,31 @@ export function hotkeyAction(key, context) {
 		default:
 			return null;
 	}
+}
+
+/**
+ * Whether the game screen takes a key at all (#88). A modifier, a component, a field, a menu or a modal keeps its keys,
+ * Escape included; How to play and Table settings keep every key but Escape, which closes the layer on top; Enter on
+ * a control presses that control.
+ * @param {KeyFacts} facts
+ * @param {import('./layers.js').Layers} layers
+ * @returns {boolean}
+ */
+export function hotkeyGate(facts, layers) {
+	if (
+		facts.modified ||
+		facts.taken ||
+		facts.typing ||
+		facts.inMenu ||
+		facts.inModal
+	) {
+		return false;
+	}
+	if (facts.key === 'Escape') {
+		return true;
+	}
+	if (layers.rules || layers.settings) {
+		return false;
+	}
+	return !(facts.key === 'Enter' && facts.onControl);
 }
