@@ -33,7 +33,6 @@
 <script>
 	import { onMount } from 'svelte';
 	import { ComponentEvent } from '../../component-event.js';
-	import { formatClock } from '../../clock.js';
 	import { playerColor } from '../../ui.js';
 	import PlayerToken from '../player/PlayerToken.svelte';
 	import Button from './Button.svelte';
@@ -113,9 +112,9 @@
 	{#if clockMs !== null}
 		<TurnClock
 			{seat}
+			{name}
 			ms={clockMs}
-			running={clockRunning}
-			title="{name}: {formatClock(clockMs)}" />
+			running={clockRunning} />
 	{/if}
 	<Button
 		mode="gold"

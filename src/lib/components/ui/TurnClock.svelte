@@ -1,9 +1,10 @@
-<!-- The turn clock in the game header: a player's colour mark and the time left, red in the last seconds. -->
+<!-- The turn clock in the game header: a player's colour mark and the time left, red in the last seconds, titled with the player's name. -->
 <script module>
 	/**
 	 * Properties of the TurnClock component itself.
 	 * @typedef {Object} TurnClockOwnProps
 	 * @property {import('../../ui.js').Seat} seat - The seat the clock belongs to; sets the colour mark
+	 * @property {string} name - The name of the clock's player, for its title, as in "Vera: 1:42"
 	 * @property {number} ms - Milliseconds left; the parent ticks it
 	 * @property {boolean} [running=true] - false shows the clock paused and muted
 	 * @property {boolean} [warn=false] - The viewer's own clock in its last 5 seconds: red, and read in words
@@ -14,8 +15,8 @@
 	 * @typedef {TurnClockOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} TurnClockProps
 	 *
 	 * @example
-	 * <TurnClock seat={1} ms={102000} />
-	 * <TurnClock seat={1} ms={4200} warn />
+	 * <TurnClock seat={1} name="Vera" ms={102000} />
+	 * <TurnClock seat={1} name="Vera" ms={4200} warn />
 	 */
 </script>
 
@@ -24,7 +25,7 @@
 	import { playerColor } from '../../ui.js';
 
 	/** @type {TurnClockProps} */
-	let { seat, ms, running = true, warn = false, ...attr } = $props();
+	let { seat, name, ms, running = true, warn = false, ...attr } = $props();
 
 	const text = $derived(formatClock(ms));
 	const seconds = $derived(Math.ceil(Math.max(0, ms) / 1000));
@@ -32,9 +33,10 @@
 
 <div
 	{...attr}
-	class="rg-turn-clock {running ? '' : 'rg-turn-clock--paused'} {warn
-		? 'rg-turn-clock--warn'
-		: ''} {attr.class ? attr.class : ''}"
+	class="rg-turn-clock {attr.class ? attr.class : ''}"
+	class:rg-turn-clock--paused={!running}
+	class:rg-turn-clock--warn={warn}
+	title="{name}: {text}"
 	style:--rg-turn-clock-color={playerColor(seat)}>
 	<span
 		class="rg-turn-clock--mark"

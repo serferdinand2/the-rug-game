@@ -49,7 +49,8 @@
 	import TechnologyCard from '../lib/components/player/TechnologyCard.svelte';
 	import { tabFor } from '../lib/area/tabs.js';
 	import { achievements, spaceWords, trackBoard } from '../lib/board.js';
-	import { formatClock, timeLeft } from '../lib/clock.js';
+	import { isRunning, shownClock, timeLeft } from '../lib/clock.js';
+	import { clockTime } from '../lib/now.svelte.js';
 	import { civilizationName } from '../lib/describe.js';
 	import { mapHexes } from '../lib/hexmap.js';
 	import { PromptState } from '../lib/prompt-state.svelte.js';
@@ -291,24 +292,9 @@
 	});
 
 	// The turn clock: the running one, the viewer's own first; a paused one only when none runs (spec §4).
-	let now = $state(Date.now());
-	$effect(() => {
-		const timer = setInterval(() => {
-			now = Date.now();
-		}, 250);
-		return () => clearInterval(timer);
-	});
-	let clock = $derived(
-		room.clocks.find(
-			(/** @type {any} */ c) => c.seat === seat && c.ends !== undefined
-		) ??
-			room.clocks.find((/** @type {any} */ c) => c.ends !== undefined) ??
-			room.clocks.find((/** @type {any} */ c) => c.seat === seat) ??
-			room.clocks[0] ??
-			null
-	);
+	let clock = $derived(shownClock(room, seat));
 	let clockMs = $derived(
-		clock ? timeLeft(clock, room.now, store.receivedAt, now) : 0
+		clock ? timeLeft(clock, room.now, store.receivedAt, clockTime.now) : 0
 	);
 
 	let currentSeat = $derived(
@@ -740,12 +726,12 @@
 			{#if clock}
 				<TurnClock
 					seat={clock.seat}
+					name={nameOf(clock.seat)}
 					ms={clockMs}
-					running={clock.ends !== undefined && !clock.expired}
+					running={isRunning(clock)}
 					warn={clock.seat === seat &&
 						clock.ends !== undefined &&
-						clockMs <= 5000}
-					title="{nameOf(clock.seat)}: {formatClock(clockMs)}" />
+						clockMs <= 5000} />
 			{/if}
 			<IconButton
 				icon="history"
