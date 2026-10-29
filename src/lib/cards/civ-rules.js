@@ -1,6 +1,6 @@
 // The 16 base civilizations' full abilities in plain words, in each table version (#42), as the engine plays them.
 
-/** @typedef {import('./engine/data/ids.js').VersionId} VersionId */
+/** @typedef {import('../engine/data/ids.js').VersionId} VersionId */
 
 /**
  * One civilization's words, as short paragraphs: those both versions share, then those only one version has.

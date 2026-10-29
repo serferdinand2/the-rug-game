@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { playerCards, playerChips } from '../src/lib/area/players.js';
 import { civilizationName } from '../src/lib/game-names.js';
-import { civAbilityText } from '../src/lib/civ-rules.js';
+import { civAbilityText } from '../src/lib/cards/civ-rules.js';
 import { startedGame } from './helpers/engine.mjs';
 
 test('one card per player, the viewer and the host marked', () => {

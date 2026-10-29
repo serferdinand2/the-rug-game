@@ -4,7 +4,7 @@ import { TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
 import { BUILDING_IDS, TRACK_IDS } from './engine/data/ids.js';
 import { RESOURCE_ORDER } from './ui.js';
-import { decisionTitle, describeAnswer } from './describe.js';
+import { decisionTitle, describeAnswer } from './decision-words.js';
 import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
 import { cardSpot, spotWords } from './civ-card.js';
 
