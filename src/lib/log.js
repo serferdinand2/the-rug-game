@@ -1,16 +1,15 @@
 // Words for the engine's events, for the table log (#29 design §5): one plain sentence for each event worth reading.
 import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { BLACK_DIE, RED_DIE } from './engine/data/dice.js';
-import { VARIANTS } from './engine/game.js';
+import { VERSIONS } from './engine/game.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
-import { EXPANSIONS } from './art/catalog.js';
-import { VARIANT_LABELS } from './lobby.js';
 import { describeCost } from './describe.js';
 import { PROPHECIES } from './decision-words.js';
 import { article, capitalize, countWords, joinList } from './words.js';
 import {
 	achievementName,
 	buildingName,
+	expansionName,
 	civilizationName,
 	hexName,
 	landmarkName,
@@ -20,6 +19,8 @@ import {
 	tapestryName,
 	techName,
 	trackName,
+	variantName,
+	versionName,
 } from './game-names.js';
 
 /** @typedef {import('./describe.js').Table} Game - The game as view() gives it: the seats' names */
@@ -40,8 +41,7 @@ import {
  * @typedef {(event: Record<string, any>, game: Game | undefined, name: string) => string | null} Words
  */
 
-/** The rules versions as the log names them. */
-const RULES = /** @type {Readonly<Record<string, string>>} */ ({
+/** @type {Readonly<Record<string, string>>} */ ({
 	original: 'Original 2019 rules',
 	current: 'Current official rules',
 });
@@ -282,18 +282,11 @@ const WORDS = {
 		if (names.length > 0) {
 			text += ` for ${joinList(names)}`;
 		}
-		if (typeof e.version === 'string' && Object.hasOwn(RULES, e.version)) {
-			text += ` under the ${RULES[e.version]}`;
+		if (VERSIONS.some((version) => version.id === e.version)) {
+			text += ` under the ${versionName(e.version)}`;
 		}
-		const expansions = strings(e.expansions).map(
-			(code) => EXPANSIONS.find((x) => x.code === code)?.name ?? code
-		);
-		const variants = strings(e.variants).map(
-			(id) =>
-				VARIANT_LABELS[id] ??
-				VARIANTS.find((v) => v.id === id)?.name ??
-				id
-		);
+		const expansions = strings(e.expansions).map(expansionName);
+		const variants = strings(e.variants).map((id) => variantName(id));
 		const extras = [
 			...(expansions.length > 0 ? [joinList(expansions)] : []),
 			...(variants.length > 0

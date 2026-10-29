@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import {
 	achievementName,
 	buildingName,
+	expansionName,
 	civilizationName,
 	civilizationOf,
 	hexName,
@@ -18,7 +19,11 @@ import {
 	tapestryName,
 	techName,
 	trackName,
+	variantName,
+	versionName,
 } from '../src/lib/game-names.js';
+import { EXPANSIONS as EDITIONS } from '../src/lib/art/catalog.js';
+import { VARIANTS, VERSIONS } from '../src/lib/engine/game.js';
 import * as describe from '../src/lib/describe.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
@@ -170,6 +175,34 @@ test('eras and tiers are written as Roman numerals', () => {
 	assert.throws(() => roman(0), /1 to 10/);
 });
 
+test("the rules versions read as the lobby's mockup names them, everywhere (owner, #101)", () => {
+	assert.equal(versionName('current'), 'Current rules');
+	assert.equal(versionName('original'), 'Original 2019 rules');
+	assert.equal(versionName('current', { short: true }), 'Current rules');
+	assert.equal(versionName('original', { short: true }), 'Original 2019');
+	for (const version of VERSIONS) {
+		assert.notEqual(versionName(version.id), version.id, version.id);
+	}
+	assert.equal(versionName('future'), 'future');
+});
+
+test('an expansion is named as the art catalog names it (#101)', () => {
+	for (const edition of EDITIONS) {
+		assert.equal(expansionName(edition.code), edition.name);
+	}
+	assert.equal(expansionName('aa'), 'Arts & Architecture');
+	assert.equal(expansionName('zz'), 'zz');
+});
+
+test("every variant has the lobby's short row title (#101)", () => {
+	for (const variant of VARIANTS) {
+		assert.notEqual(variantName(variant.id), variant.id, variant.id);
+	}
+	assert.equal(variantName('tapestry-draft'), 'Tapestry draft');
+	assert.equal(variantName('closest-island'), 'Closest island');
+	assert.equal(variantName('no-such-variant'), 'no-such-variant');
+});
+
 test('describe.js names nothing itself: the names come from game-names.js and words.js', () => {
 	for (const name of [
 		'trackName',
@@ -225,6 +258,11 @@ test('no client module keeps its own copy of a name or an English helper', () =>
 			source,
 			/'(?:A|Another|another) player'/,
 			`${file} names a missing seat itself`
+		);
+		assert.doesNotMatch(
+			source,
+			/\bEXPANSIONS\.find|\bVERSIONS\.find\([^)]*\)\??\.name|\bVARIANT_LABELS\b|\bRULES\b/,
+			`${file} names a version, expansion or variant itself`
 		);
 		assert.doesNotMatch(
 			source,

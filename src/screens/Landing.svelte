@@ -22,7 +22,8 @@
 	import TextInput from '../lib/components/ui/TextInput.svelte';
 	import OpenTableRow from '../lib/components/lobby/OpenTableRow.svelte';
 	import { untrack } from 'svelte';
-	import { rulesLabel, validCode } from '../lib/lobby.js';
+	import { expansionBadges, validCode } from '../lib/lobby.js';
+	import { versionName } from '../lib/game-names.js';
 
 	/** @type {LandingProps} */
 	let { store, ...attr } = $props();
@@ -151,7 +152,8 @@
 						<OpenTableRow
 							code={table.code}
 							players={table.seats}
-							rules={rulesLabel(table.version)}
+							rules={versionName(table.version)}
+							expansions={expansionBadges(table.expansions)}
 							onOpenTableRowJoin={openTableJoinHandler} />
 					{/each}
 				</div>

@@ -71,6 +71,22 @@ export function resourceColor(resource) {
 	return `var(--${resource})`;
 }
 
+/** Each expansion's badge colour; the base game has the gold. */
+const EXPANSION_COLORS = /** @type {Readonly<Record<string, string>>} */ ({
+	pp: 'var(--plans-ploys)',
+	aa: 'var(--arts-architecture)',
+	ff: 'var(--fantasies-futures)',
+});
+
+/**
+ * The colour of an expansion's badges and chips (#101).
+ * @param {string} code - Such as 'pp', 'aa', 'ff' or 'base'
+ * @returns {string} A token reference, such as 'var(--plans-ploys)'; 'var(--gold)' for the base game.
+ */
+export function expansionColor(code) {
+	return EXPANSION_COLORS[code] ?? 'var(--gold)';
+}
+
 /**
  * The colour of a terrain type on the map.
  * @param {Terrain} terrain

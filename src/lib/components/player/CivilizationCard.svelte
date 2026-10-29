@@ -40,9 +40,9 @@
 	import CardTerrainRewards from './CardTerrainRewards.svelte';
 	import CardTokenReserve from './CardTokenReserve.svelte';
 	import PlayerToken from './PlayerToken.svelte';
-	import { civilizationName } from '../../game-names.js';
+	import { civilizationName, expansionName } from '../../game-names.js';
 	import { playerColor } from '../../ui.js';
-	import { ASSETS, EXPANSIONS } from '../../art/catalog.js';
+	import { ASSETS } from '../../art/catalog.js';
 	import '../../engine/game.js';
 	import { entertainersMoves } from '../../engine/civs/entertainers.js';
 	import {
@@ -140,11 +140,10 @@
 	);
 	const choices = $derived(live?.choices ?? {});
 	const edition = $derived(
-		EXPANSIONS.find(
-			(entry) =>
-				entry.code ===
-				ASSETS.find((asset) => asset.id === `civ/${id}`)?.expansion
-		)?.name ?? 'Base game'
+		expansionName(
+			ASSETS.find((asset) => asset.id === `civ/${id}`)?.expansion ??
+				'base'
+		)
 	);
 
 	/**
