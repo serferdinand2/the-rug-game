@@ -2,7 +2,8 @@
 import { techCard } from '../engine/data/tech-cards.js';
 import { tapestryCard } from '../engine/data/tapestry-cards.js';
 import { INCOME_MAT } from '../engine/data/income-mat.js';
-import { describeEffects, describeTapestryCard } from '../describe.js';
+import { describeEffects } from '../describe.js';
+import { describeTapestryCard } from './tapestry-text.js';
 
 /** @typedef {import('./card-layouts.js').TechnologyCardData} TechnologyCardData */
 /** @typedef {import('./card-layouts.js').TapestryCardData} TapestryCardData */

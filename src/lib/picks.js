@@ -2,7 +2,8 @@
 import { advanceCost, TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
 import { RESOURCES } from './ui.js';
-import { describeAnswer, describePayment } from './describe.js';
+import { describeAnswer } from './decision-words.js';
+import { describePayment } from './describe.js';
 import { amountWords, joinList } from './words.js';
 import { roman } from './game-names.js';
 

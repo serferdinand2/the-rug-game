@@ -1,7 +1,7 @@
 // The base civilizations' full abilities in words, in each table version (#42), checked against the engine's own rules.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { civAbilityText, civRules } from '../src/lib/civ-rules.js';
+import { civAbilityText, civRules } from '../src/lib/cards/civ-rules.js';
 // game.js first: it loads the civilization modules in an order free of their import cycle.
 import { VERSIONS } from '../src/lib/engine/game.js';
 import { CIVS } from '../src/lib/engine/civs/index.js';

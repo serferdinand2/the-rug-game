@@ -2,7 +2,7 @@
 // and a player's chip carries their civilization's ability; then the table is ended and left, so it closes.
 import { expect, test } from '@playwright/test';
 import { askedSeats } from '../../src/lib/engine/game.js';
-import { civAbilityText } from '../../src/lib/civ-rules.js';
+import { civAbilityText } from '../../src/lib/cards/civ-rules.js';
 import { RULES_HELP } from '../../src/lib/rules-help.js';
 
 test.use({ viewport: { width: 1920, height: 1080 } });

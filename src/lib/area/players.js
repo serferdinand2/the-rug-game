@@ -1,6 +1,6 @@
 // The players overview's cards (#27 design §4) and the header's chips (#90): each player's public facts, from the viewer's view.
 import { civilizationOf } from '../game-names.js';
-import { civAbilityText } from '../civ-rules.js';
+import { civAbilityText } from '../cards/civ-rules.js';
 import { selfSummary } from '../overview.js';
 import { mapHexes } from '../hexmap.js';
 import { TERRAINS } from '../ui.js';

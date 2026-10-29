@@ -3,7 +3,7 @@
 	import PlayerChip from '../../../lib/components/player/PlayerChip.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
-	import { civAbilityText } from '../../../lib/civ-rules.js';
+	import { civAbilityText } from '../../../lib/cards/civ-rules.js';
 
 	/** @type {{ name: string, civilization: string, vp: number, seat: import('../../../lib/ui.js').Seat }[]} */
 	const PLAYERS = [

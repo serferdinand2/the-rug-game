@@ -9,7 +9,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78 and #84 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
-  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123 and #127 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127 and #126 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -25,7 +25,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
 - **Next:**
-  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123 and #127 are done (see [#123](#123-every-game-name-and-english-list-from-one-helper) and [#127](#127-the-track-resource-and-building-lists-from-the-engine)); next are #126 and #129. What is left of #124, #125 and #128 waits for #85.
+  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123, #127 and #126 are done (see [#123](#123-every-game-name-and-english-list-from-one-helper), [#127](#127-the-track-resource-and-building-lists-from-the-engine) and [#126](#126-describejs-split-into-effect-words-decision-words-and-card-text)); next is #129. What is left of #124, #125 and #128 waits for #85.
   - #77 (the first turn takes income by itself) is done: the owner approved its IncomeNotice and TurnBar sections and closed it on 2026-10-29.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
   - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
@@ -74,6 +74,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#78 (choices on the civilization card)](#78-choices-on-the-civilization-card)
 - [#123 (every game name and English list from one helper)](#123-every-game-name-and-english-list-from-one-helper)
 - [#127 (the track, resource and building lists from the engine)](#127-the-track-resource-and-building-lists-from-the-engine)
+- [#126 (describe.js split into effect words, decision words and card text)](#126-describejs-split-into-effect-words-decision-words-and-card-text)
 
 ## Issues
 
@@ -655,6 +656,29 @@ Built on 2026-10-29, right after #123. The design is `docs/superpowers/specs/202
   - #35 adds `arts` to the engine's `TRACK_IDS`; the new test then asks for its name, symbol and tint.
   - #120 lays the board out for any number of tracks.
   - The hotkeys test's civilization pick is worth a small fix.
+
+### #126 (describe.js split into effect words, decision words and card text)
+
+Built on 2026-10-29, after #123 and #127. The owner had made #31 and #32 wait for it the same day. The design is `docs/superpowers/specs/2026-10-29-describe-split-design.md` and the plan `docs/superpowers/plans/2026-10-29-describe-split-issue-126.md`.
+- **Built:**
+  - `describe.js` (679 lines, from 1,391) keeps the effect, cost, bonus and payment words.
+  - `src/lib/decision-words.js` takes `decisionTitle`, `describeAnswer` and `PROPHECIES`, with the helpers only they use: `whose`, the capital plot names, the tech card lookup and the fallback answer.
+  - `src/lib/cards/tapestry-text.js` takes the 33 tapestry card texts and `describeTapestryCard`. `civ-rules.js` moved beside it, into `src/lib/cards/`.
+  - `describe.js` exports the five pieces the decision words build on: `effectsPhrase`, `effectPhrase`, `paymentVerbs`, `amounts` and `describeTurn`.
+  - `prompts.js`, `picks.js`, `log.js`, `cards/game-cards.js`, `area/players.js` and the PlayerChip section import from the new places.
+- **Calls to revisit** (my calls):
+  - `isRecord` and `isCount` stay as small local copies in each module, as in `log.js`, `prompts.js` and `glyphs.js`.
+  - The tapestry text keeps its own "Take this effect" for an unknown card. Its test checks it against `describe.js`'s words for an unknown effect.
+- **Tests:**
+  - `client-describe` split into three files: it keeps the effect words, and the new `client-decision-words` and `client-tapestry-text` take the rest. The one test that mixed decision and effect fallbacks split in two.
+  - A new test pins `describe.js`'s exports.
+  - `assertReadable` moved to `tests/helpers/readable.mjs`.
+  - `npm run check` is clean, all 1991 unit tests pass, and all 43 browser tests pass on the branch's own servers.
+- **Handed off:**
+  - #60 edits the effect phrases in `describe.js` and the titles in `decision-words.js`.
+  - #129 builds its table beside `decision-words.js`.
+  - #108 builds the tapestry cards from `cards/tapestry-text.js`.
+  - #31 and #32–#41 add their decision kinds to `decision-words.js`.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

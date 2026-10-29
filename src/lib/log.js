@@ -5,7 +5,8 @@ import { VARIANTS } from './engine/game.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
 import { EXPANSIONS } from './art/catalog.js';
 import { VARIANT_LABELS } from './lobby.js';
-import { PROPHECIES, describeCost } from './describe.js';
+import { describeCost } from './describe.js';
+import { PROPHECIES } from './decision-words.js';
 import { article, capitalize, countWords, joinList } from './words.js';
 import {
 	achievementName,
