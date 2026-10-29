@@ -10,6 +10,7 @@ import {
 	joinList,
 	nounOf,
 	ordinal,
+	pluralOf,
 	signed,
 	titleOf,
 	wordsOf,
@@ -93,6 +94,13 @@ test('a count of any noun takes an s, or the plural given', () => {
 	assert.equal(countWords(2, 'toppled outpost'), '2 toppled outposts');
 	assert.equal(countWords(0, 'territory', 'territories'), '0 territories');
 	assert.equal(countWords(1, 'territory', 'territories'), '1 territory');
+});
+
+test('a name takes its plural: an s, or ies after a consonant and y (#125)', () => {
+	assert.equal(pluralOf('Market'), 'Markets');
+	assert.equal(pluralOf('House'), 'Houses');
+	assert.equal(pluralOf('Armory'), 'Armories');
+	assert.equal(pluralOf('Day'), 'Days');
 });
 
 test('ordinals read as places', () => {

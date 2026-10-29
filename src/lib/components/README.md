@@ -80,8 +80,8 @@ These components are updated as the art issues deliver their assets. Each will s
 | `IncomeMat` | The income mat: four building rows of six spaces, covered ones showing the building, exposed ones their name and reward in words (#27). |
 | `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows; with `autofocus`, its first row takes the focus as it is drawn (#91). |
 | `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. 210px wide, shrinking to 120px; below 190px it drops the civilization name. `bump` pops the VP once when it rises (#29). |
-| `ResourceChip` | A resource symbol and its count. |
-| `SelfSummary` | Your overview at the foot of the player area: name, era, VP, hand, tech, territory and capital-line counts, and the four resources (#26). `changed` draws gold the counts a prompt's choices so far change (#75). |
+| `ResourceChip` | A resource symbol and its count; `size="medium"` draws the native 24px symbol and `changed` draws the count gold (#125). |
+| `SelfSummary` | Your overview at the foot of the player area: name, era, VP, hand, tech, territory and capital-line counts, and the four resources as medium `ResourceChip`s (#26, #125). `changed` draws gold the counts a prompt's choices so far change (#75). |
 
 ## prompts/
 

@@ -12,7 +12,7 @@
 <Section
 	name="ResourceChip"
 	area="player"
-	description="A resource symbol and how many of it a player holds, four to a row on each player card. The symbols are placeholders until the resource icons land.">
+	description="A resource symbol and how many of it a player holds, four to a row on each player card. size='medium' draws the native 24px symbol, as in Your overview, and changed draws the count gold while a prompt's choices so far change it.">
 	{#each RESOURCES as resource (resource.id)}
 		<Example
 			label={`resource="${resource.id}" count={${COUNTS[resource.id]}}`}
@@ -30,6 +30,25 @@
 		<ResourceChip
 			resource="culture"
 			count={0} />
+	</Example>
+	<Example
+		label={'size="medium"'}
+		surface="chrome"
+		width={100}>
+		<ResourceChip
+			resource="worker"
+			count={4}
+			size="medium" />
+	</Example>
+	<Example
+		label={'changed size="medium"  (as Your overview draws a count a prompt changes)'}
+		surface="chrome"
+		width={100}>
+		<ResourceChip
+			resource="food"
+			count={8}
+			changed
+			size="medium" />
 	</Example>
 	<Example
 		label="A player card's resource row"

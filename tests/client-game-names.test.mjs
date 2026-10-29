@@ -278,7 +278,17 @@ test('no client module keeps its own copy of a name or an English helper', () =>
 		);
 		assert.doesNotMatch(
 			source,
-			/function (?:capitalize|titleCase|titleOf|wordsOf|article|joinList|listWords|joinNames|words|ordinal|signed|hexName|seatName|roman)\(/,
+			/\b(?:ROW_NAMES|RESOURCE_ROWS)\b/,
+			`${file} keeps its own resource or building names (#125)`
+		);
+		assert.doesNotMatch(
+			source,
+			/slice\(0, -1\)\}?ies/,
+			`${file} builds a plural itself (#125)`
+		);
+		assert.doesNotMatch(
+			source,
+			/function (?:pluralOf|capitalize|titleCase|titleOf|wordsOf|article|joinList|listWords|joinNames|words|ordinal|signed|hexName|seatName|roman)\(/,
 			`${file} defines its own English helper`
 		);
 	}

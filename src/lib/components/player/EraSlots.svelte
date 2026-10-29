@@ -19,7 +19,6 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
-	import { roman } from '../../game-names.js';
 
 	/** @type {EraSlotsProps} */
 	let {
@@ -50,12 +49,10 @@
 	{...attr}
 	class="rg-era-slots {attr.class ? attr.class : ''}">
 	{#each slots as slot (slot.era)}
-		{@const text =
-			slot.card ?? (slot.faceDown ? 'Face-down card' : 'Not yet chosen')}
 		{#if slot.era === 1 && slot.id === null}
 			<div class="rg-era-slots--slot rg-era-slots--printed">
-				<b>Era {roman(slot.era)}</b>
-				<span>{text}</span>
+				<b>{slot.heading}</b>
+				<span>{slot.text}</span>
 			</div>
 		{:else}
 			<button
@@ -66,8 +63,8 @@
 				aria-pressed={selected === slot.era}
 				disabled={slot.card === null}
 				onclick={(event) => slotClickHandler(event, slot.era)}>
-				<b>Era {roman(slot.era)}{slot.active ? ' · Active' : ''}</b>
-				<span>{text}</span>
+				<b>{slot.heading}</b>
+				<span>{slot.text}</span>
 			</button>
 		{/if}
 	{/each}
