@@ -1,4 +1,4 @@
-// What moves for a batch of fresh events (#29 design §8): the hexes to pulse on the map, the viewer's plots and landmarks to glow on the capital, and the chips whose VP rose.
+// What moves for a batch of fresh events (#29 design §8): the hexes to pulse on the map, the viewer's plots and landmarks to glow on the capital, and the chips whose VP rose; and whether anything may move (#119).
 
 /** The events that change a hex someone can see on the map. */
 const HEX_EVENTS = new Set([
@@ -58,4 +58,30 @@ export function highlights(events, seat) {
 		}
 	}
 	return out;
+}
+
+/**
+ * Whether the system asks for reduced motion (#119): the one check the screens and the dice tray make.
+ * @param {{ matchMedia?: (query: string) => { matches: boolean } }} [view] - The page's window; none in Node
+ * @returns {boolean}
+ */
+export function prefersReducedMotion(
+	view = typeof window === 'undefined' ? undefined : window
+) {
+	return Boolean(
+		view?.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+	);
+}
+
+/**
+ * A CSS time in milliseconds, such as a motion token's value read from the page (#119).
+ * @param {string} time - Such as '220ms' or '0.38s'; an empty value is 0
+ * @returns {number}
+ */
+export function msOf(time) {
+	const value = parseFloat(time);
+	if (Number.isNaN(value)) {
+		return 0;
+	}
+	return time.trim().endsWith('ms') ? value : value * 1000;
 }

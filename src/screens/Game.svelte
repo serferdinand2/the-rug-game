@@ -42,7 +42,7 @@
 	import { TRACK_KEYS, hotkeyAction } from '../lib/hotkeys.js';
 	import { trackName } from '../lib/describe.js';
 	import { eventText } from '../lib/log.js';
-	import { highlights } from '../lib/motion.js';
+	import { highlights, prefersReducedMotion } from '../lib/motion.js';
 	import { isHost } from '../lib/lobby.js';
 	import OverviewCloseBar from '../lib/components/prompts/OverviewCloseBar.svelte';
 	import TapestryCard from '../lib/components/player/TapestryCard.svelte';
@@ -138,9 +138,7 @@
 			if (!logOpen && events.some((e) => eventText(e, game) !== null)) {
 				logUnread = true;
 			}
-			if (
-				window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-			) {
+			if (prefersReducedMotion()) {
 				return;
 			}
 			const next = highlights(events, seat);
