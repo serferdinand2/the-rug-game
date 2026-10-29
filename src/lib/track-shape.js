@@ -27,8 +27,8 @@ export const TRACK_TIP = 16;
 /** How far the gold selected outline sits inside the silhouette: half its 3-pixel stroke. */
 export const OUTLINE_INSET = 1.5;
 
-/** Spaces that share one tier price (I–IV). */
-export const TIER_SPACES = 3;
+// A space's tier is a rule, so it comes from the engine's track data (#128); components keep importing it from here.
+export { TIER_SPACES, tierOf } from './engine/data/tracks.js';
 
 /**
  * The silhouette of a space, clockwise from the top-left corner, in pixels.
@@ -104,15 +104,6 @@ export function outlinePath(width, height, options = {}) {
 			)
 			.join(' ') + ' Z'
 	);
-}
-
-/**
- * The tier a space belongs to: three spaces under each price.
- * @param {number} space - 1 to SPACE_COUNT
- * @returns {number} 1 to 4, shown as I–IV
- */
-export function tierOf(space) {
-	return Math.floor((space - 1) / TIER_SPACES) + 1;
 }
 
 /**

@@ -1,7 +1,7 @@
 // The viewer's part in the turn (#26 design §5.1, §6): which open decision is theirs, the advances they can pay
 // for, from the engine run on their own view, the words for income turns (#77), and the footer that shows (#86).
 import { DECISIONS, askedSeats, openDecisions } from './engine/game.js';
-import { TRACKS } from './engine/data/tracks.js';
+import { TRACKS, tierOf } from './engine/data/tracks.js';
 import { spaceWords, tierSymbols } from './board.js';
 import { describeCost } from './describe.js';
 import { roman, seatName, spaceName, trackName } from './game-names.js';
@@ -321,10 +321,7 @@ export function footerView(game, seat, inputs) {
 			properName: spaceName(selected.track, selected.space),
 			track: selected.track,
 			detail: spaceWords(game, selected.track, selected.space),
-			cost: tierSymbols(
-				selected.track,
-				/** @type {1 | 2 | 3 | 4} */ (Math.ceil(selected.space / 3))
-			),
+			cost: tierSymbols(selected.track, tierOf(selected.space)),
 			income,
 			advance: {
 				enabled: reachable && !inputs.paying,

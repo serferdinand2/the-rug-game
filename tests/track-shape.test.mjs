@@ -10,9 +10,11 @@ import {
 	spacePoints,
 	insetPolygon,
 	outlinePath,
+	TIER_SPACES,
 	tierOf,
 	progressSpan,
 } from '../src/lib/track-shape.js';
+import * as tracks from '../src/lib/engine/data/tracks.js';
 
 /**
  * Rounds every coordinate, so float noise does not fail a comparison.
@@ -133,11 +135,9 @@ test('an unmeasured space has no outline yet', () => {
 	assert.equal(outlinePath(100, 0), '');
 });
 
-test('every three spaces share one tier, I to IV', () => {
-	assert.deepEqual(
-		Array.from({ length: 12 }, (_, index) => tierOf(index + 1)),
-		[1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4]
-	);
+test("a space's tier is the engine's, three spaces under each price (#128)", () => {
+	assert.equal(tierOf, tracks.tierOf);
+	assert.equal(TIER_SPACES, tracks.TIER_SPACES);
 });
 
 test('a progress line stops beneath the middle of the reached space', () => {

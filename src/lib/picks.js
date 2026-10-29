@@ -1,5 +1,5 @@
 // The pick model (#75 design §4–5): a choice of several resources, cards or tiles made one by one, then matched to one of the decision's own answers.
-import { advanceCost, TRACK_RESOURCE } from './engine/data/tracks.js';
+import { advanceCost, tierOf, TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
 import { RESOURCES } from './ui.js';
 import { describeAnswer } from './decision-words.js';
@@ -462,7 +462,7 @@ export function advanceModel(option, _game) {
 		return null;
 	}
 	const cost = advanceCost(option.track, option.to);
-	const tier = Math.ceil(option.to / 3);
+	const tier = tierOf(option.to);
 	return worthPicking({
 		mode: 'pay',
 		rows: rowsOfCost(cost),

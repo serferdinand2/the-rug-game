@@ -90,3 +90,22 @@ test('no client module writes the track, resource or building list by hand', () 
 		);
 	}
 });
+
+test("no client module works out a space's tier by hand (#128)", () => {
+	const files = readdirSync(SRC, { recursive: true })
+		.map(String)
+		.map((file) => file.replaceAll('\\', '/'))
+		.filter(
+			(file) =>
+				/\.(svelte|js)$/.test(file) && !file.startsWith('lib/engine/')
+		);
+	assert.ok(files.length > 100, 'the source files are found');
+	for (const file of files) {
+		const source = readFileSync(`${SRC}${file}`, 'utf8');
+		assert.doesNotMatch(
+			source,
+			/Math\.(?:ceil|floor)\([^)]*\/\s*(?:3|TIER_SPACES)\b/,
+			`${file} works out a tier`
+		);
+	}
+});
