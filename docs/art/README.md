@@ -96,9 +96,9 @@ The owner's five native 24 px terrain hex markers are now active `terrain/{sea,d
 The map is composed, as the capital is (#5): the game never shows a painted board.
 - **Terrain hexes.** Each terrain has one 64×56 hex picture, `hex/<terrain>`: a flat-topped hex of radius 32, transparent outside it. The game fills each corner's wedge, and each island part, with its terrain's picture, clipped to the wedge. It strokes a coast where land meets sea, and lays the cloud and the volcano at their spots from `src/lib/art/hex-overlays.js`. A turned tile therefore stays crisp in all six turns, and always shows the terrains the engine scores.
 - **Territory tiles.** `territory-tile/1–48` are the same composition in pixels. The game uses them nowhere that it composes: they are for the gallery's review.
-- **Example boards.** `board/map-small` and `board/map-large` are examples too, like the base capital mats.
+- **Example boards.** `board/map-small` and `board/map-large` are examples too, like the advanced capital mats.
 - **Clouds are game data (R77).** The engine's `TERRITORY_TILES` and printed hexes carry `clouds` and `volcano`. The art draws a cloud only where they say, in colours nothing else on the map uses, and `tests/art-territory.test.mjs` checks every tile and board against R77.
-- **Advanced capitals.** Each of the 12 advanced biomes has 8 buildable and 6 impassable 32×32 plots, and an example mat on its printed layout from 03-expansions. What the research doesn't show (rule text, icons, frames) is left out; each module says what. #132 and #133 replace their impassable plots with reliefs, as #82 did for the base mats.
+- **Advanced capitals.** Each of the 12 advanced biomes has 8 buildable and 6 impassable 32×32 plots, and an example mat on its printed layout from 03-expansions. What the research doesn't show (rule text, icons, frames) is left out; each module says what. #132 and #133 replace their impassable plots with reliefs, as #82 did for the base mats. A mat's example then duplicates its relief preview and goes too, once whatever it alone draws (`FEATURES.matOnly`: Canyon's cacti, Netherworld's imps, the Veil and so on) is drawn somewhere else (my call, from the owner's 2026-10-29 ruling).
 
 ## The joined terrain of the base mats (#82, 2026-10-28)
 
@@ -106,5 +106,5 @@ The owner approved all six base mats on 2026-10-28. The design is [2026-10-28-jo
 - **One relief per mat.** `capital-relief/<mat>` is the mat's impassable plots drawn as one transparent picture from its printed layout: 32-pixel plots with 1-pixel gaps, so 296×296 for a 9×9 mat. Plots that touch by a side or a corner are one mass. The game lays it over the grid.
 - **The ground stays per plot.** `capital-terrain/<biome>-open-01` to `-08` are each base biome's natural ground, and the game still picks one per plot from the table's seed.
 - **The base impassable tiles are retired.** `capital-terrain/<biome>-blocked-*` no longer exist for the six base biomes; the expansion biomes keep theirs until #132 and #133.
-- **The example mats** `capital-mat/<biome>` are the ground with the relief over it, 296×296.
+- **No base example mats.** A base mat's only picture is its relief, shown on its ground in the library's Capital relief group. Its example `capital-mat/<biome>` was the same picture, so it is gone (owner, 2026-10-29: "let's not duplicate the art").
 

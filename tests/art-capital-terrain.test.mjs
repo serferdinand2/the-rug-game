@@ -1,4 +1,4 @@
-// The base capital terrain: each biome's 8 buildable 32px plots of natural ground, its relief, and its example mat (#82).
+// The base capital terrain: each biome's 8 buildable 32px plots of natural ground and its relief (#82).
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { createCanvas } from '../tools/art/painter.js';
@@ -6,11 +6,10 @@ import {
 	CAPITAL_GRIDS,
 	OPEN_VARIANTS,
 	drawTile,
-	drawCapitalMat,
 } from '../tools/art/parts/capital-terrain.js';
 import { drawNaturalGround } from '../tools/art/parts/capital-relief/ground.js';
-import { drawReliefPreview } from '../tools/art/parts/capital-relief/index.js';
 import { RELIEF_BIOMES } from '../src/lib/art/relief.js';
+import { ASSETS } from '../src/lib/art/catalog.js';
 import { listDrawingIds } from '../tools/art/build.mjs';
 
 const BIOMES = Object.keys(CAPITAL_GRIDS);
@@ -58,19 +57,21 @@ test('all 48 buildable plots are 32×32 natural ground, the same in every build'
 	}
 });
 
-test('the six example mats are 296×296: natural ground with the relief over it', () => {
+test('a base mat has no example picture: its relief preview in the library is the only one (owner, 2026-10-29)', async () => {
+	const ids = await listDrawingIds();
 	for (const biome of BIOMES) {
-		const mat = drawCapitalMat(biome);
-		assert.deepEqual([mat.w, mat.h], [296, 296], biome);
-		assert.deepEqual(
-			mat,
-			drawReliefPreview(CAPITAL_GRIDS[biome], biome),
-			biome
-		);
+		assert.ok(!ids.includes(`capital-mat/${biome}`), biome);
+		assert.ok(ids.includes(`capital-relief/${biome}`), biome);
 	}
+	assert.ok(
+		!ASSETS.some(
+			(asset) =>
+				asset.id.startsWith('capital-mat/') &&
+				BIOMES.includes(asset.id.split('/')[1])
+		)
+	);
 });
 
-test('an unknown biome has no tile and no mat', () => {
+test('an unknown biome has no tile', () => {
 	assert.throws(() => drawTile('tundra', 0), /tundra/);
-	assert.throws(() => drawCapitalMat('tundra'), /tundra/);
 });

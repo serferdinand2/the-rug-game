@@ -235,8 +235,9 @@ test('every landmark, capital mat and tile has an asset in the catalog', () => {
 	for (const landmark of LANDMARKS) {
 		assert.ok(ids.has(`landmark/${landmark.id}`), landmark.id);
 	}
+	// A base mat's picture is its relief over the per-plot ground (owner, 2026-10-29).
 	for (const mat of CAPITAL_MATS) {
-		assert.ok(ids.has(`capital-mat/${mat.id}`), mat.id);
+		assert.ok(ids.has(`capital-relief/${mat.id}`), mat.id);
 	}
 	for (const tile of TERRITORY_TILES) {
 		assert.ok(ids.has(`territory-tile/${tile.id}`), String(tile.id));

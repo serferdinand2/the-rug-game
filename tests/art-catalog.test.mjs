@@ -30,7 +30,7 @@ const EXPECTED_COUNTS = {
 	board: { base: 5, ff: 1 },
 	hex: { base: 8 },
 	'territory-tile': { base: 48 },
-	'capital-mat': { base: 6, aa: 6, ff: 6 },
+	'capital-mat': { aa: 6, ff: 6 }, // a base mat's only picture is its relief (owner, 2026-10-29)
 	'capital-terrain': { base: 48, aa: 84, ff: 84 }, // the base biomes' impassable plots are their reliefs (#82)
 	'capital-relief': { base: 6, aa: 6, ff: 6 },
 	'inspiration-tile': { aa: 4 },
@@ -107,11 +107,11 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 282 icons and 102 boards', () => {
+test('there are 294 illustrations, 282 icons and 96 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
 	assert.equal(count('icon'), 282);
-	assert.equal(count('board'), 102);
+	assert.equal(count('board'), 96);
 });
 
 test('the slug rules turn awkward names into the agreed slugs', () => {

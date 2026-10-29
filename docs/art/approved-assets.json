@@ -276,12 +276,6 @@
     "sha256": "e426e80d353987b40cf97eef9a660127097cc9f2a5f1934d6809f13d3f1d0f8d"
   },
   {
-    "id": "capital-mat/mountain",
-    "width": 296,
-    "height": 296,
-    "sha256": "c28bc2e1929563f20360608e5f20e8778b34fe509f4361ea6599d2da889e7a9a"
-  },
-  {
     "id": "capital-relief/mountain",
     "width": 296,
     "height": 296,
@@ -334,12 +328,6 @@
     "width": 32,
     "height": 32,
     "sha256": "2ef9401b24cec23a1210c02c9e1dce51dd5a578f1ce788ebfaf42174b8fc7adf"
-  },
-  {
-    "id": "capital-mat/wetland",
-    "width": 296,
-    "height": 296,
-    "sha256": "c371786643131b25ec2533a6800fc1dd61bdcc3b08fc1d625b136a95cd1b18f9"
   },
   {
     "id": "capital-relief/wetland",
@@ -396,12 +384,6 @@
     "sha256": "7ff020d1e2d1eb39238fe6df8e1b1134f230523b128428e73f618c9f30f9eb4c"
   },
   {
-    "id": "capital-mat/tropical",
-    "width": 296,
-    "height": 296,
-    "sha256": "9e086ecdbcde39254df301f5f51e49c1d24a98e33594018d9249d79f334c03b6"
-  },
-  {
     "id": "capital-relief/tropical",
     "width": 296,
     "height": 296,
@@ -454,12 +436,6 @@
     "width": 32,
     "height": 32,
     "sha256": "958568bdae47d266d63ebac84ec9c6c2dab76f700789b3ac301158e1485e25df"
-  },
-  {
-    "id": "capital-mat/desert",
-    "width": 296,
-    "height": 296,
-    "sha256": "57e07d291e342e1e74c5d7daa4d47d4db2864e873d80cc9d7445efc8ae2c8101"
   },
   {
     "id": "capital-relief/desert",
@@ -516,12 +492,6 @@
     "sha256": "bda751d5c6c137391563c23f1060e2656b560cd67b54977647e19a43f1b567a9"
   },
   {
-    "id": "capital-mat/grassland",
-    "width": 296,
-    "height": 296,
-    "sha256": "18744f00bae96c29c2366e27548a4450e0c5753e33d0505c95700636daa21818"
-  },
-  {
     "id": "capital-relief/grassland",
     "width": 296,
     "height": 296,
@@ -574,12 +544,6 @@
     "width": 32,
     "height": 32,
     "sha256": "f1fe75db012036599cbe7ca64296de22b21d978f5b59f4360ea0794319edfd2f"
-  },
-  {
-    "id": "capital-mat/forest",
-    "width": 296,
-    "height": 296,
-    "sha256": "2ac4edc8e5148bb35df4a954e50ca62c717c1bea90307ea41a57d21836f8a23a"
   },
   {
     "id": "capital-relief/forest",

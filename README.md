@@ -14,7 +14,7 @@ No official Stonemaier artwork, logos or rulebook text are used.
 
 ## Current interface
 
-The full capital mat SVGs are examples only. A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82).
+A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82). The art isn't duplicated (owner, 2026-10-29): a base mat's only picture is its relief, which the component library shows on its ground, and only the 12 expansion mats keep a full example SVG, until #132 and #133 draw their reliefs.
 
 The owner-reviewed icons and small pieces from **#5** are available as SVGs in `static/art/`, with matching drawing sources and stable catalog ids. [The release notes](docs/art/issue-5.md) list the approved set and explain the text rendering or later artwork for dice faces, terrain hex markers and game symbols. [The complete review mockup](docs/art/archive/2026-10-23-issue-5/README.md), including its linked capital terrain page, is archived as a frozen reference.
 

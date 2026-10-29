@@ -672,15 +672,8 @@ const LISTS = {
 	},
 	// Numbered as in 01 Appendix B (R4).
 	'territory-tile': { base: numbered(48, 'Territory tile') },
+	// The advanced mats only: a base mat's one picture is its relief preview, so it has no example (owner, 2026-10-29).
 	'capital-mat': {
-		base: [
-			['mountain', 'Mountain'],
-			['wetland', 'Wetland'],
-			['tropical', 'Tropical'],
-			['desert', 'Desert'],
-			['grassland', 'Grassland'],
-			['forest', 'Forest'],
-		],
 		aa: ADVANCED_MATS.aa,
 		ff: ADVANCED_MATS.ff,
 	},
