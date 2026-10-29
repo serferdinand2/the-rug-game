@@ -120,7 +120,7 @@
 
 	/* As Button's disabled look. */
 	.rg-segmented--option:disabled {
-		opacity: 0.5;
+		opacity: var(--opacity-disabled);
 		cursor: not-allowed;
 	}
 

@@ -349,3 +349,61 @@ test('the pixel texture token points at the texture beside tokens.css', () => {
 		`missing ${url}`
 	);
 });
+
+test('the scrims, the floating surface and the disabled look are tokens (#97)', () => {
+	for (const name of [
+		'--scrim',
+		'--scrim-strong',
+		'--float-surface',
+		'--opacity-disabled',
+	]) {
+		assert.ok(tokens.has(name), `${name} is declared`);
+	}
+});
+
+test('no component or screen copies a scrim, the floating surface or the disabled opacity (#97)', () => {
+	for (const [path, contents] of sources) {
+		if (!path.endsWith('.svelte') || path.startsWith('library/')) {
+			continue;
+		}
+		assert.doesNotMatch(
+			contents,
+			/var\(--ink\) (?:52|60|70)%, transparent/,
+			`${path} mixes its own scrim or surface`
+		);
+		// The dimmer look of a blocked choice (0.3–0.35) is its own, and #116's.
+		assert.doesNotMatch(
+			contents,
+			/disabled[^{]*\{[^}]*opacity: 0\.5;/,
+			`${path} writes its own disabled opacity`
+		);
+	}
+});
+
+test('Button has an aria-disabled look, so no screen reaches into it (#97)', () => {
+	const button = sources.find(
+		([path]) => path === 'lib/components/ui/Button.svelte'
+	)?.[1];
+	assert.match(String(button), /\.rg-button\[aria-disabled='true'\]/);
+	for (const [path, contents] of sources) {
+		assert.doesNotMatch(
+			contents,
+			/:global\([^)]*\[aria-disabled/,
+			`${path} styles another component's aria-disabled look`
+		);
+	}
+});
+
+test("no screen fights Panel over its heading's font (#97)", () => {
+	for (const [path, contents] of sources) {
+		assert.doesNotMatch(
+			contents,
+			/\.(rg-[\w-]+)\.\1\b/,
+			`${path} doubles a class to win`
+		);
+	}
+	const lobby = sources.find(
+		([path]) => path === 'screens/Lobby.svelte'
+	)?.[1];
+	assert.doesNotMatch(String(lobby), /rg-lobby--players-title/);
+});

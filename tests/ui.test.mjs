@@ -2,6 +2,8 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import { render } from 'svelte/server';
+import Panel from '../src/lib/components/ui/Panel.svelte';
 import {
 	TRACKS,
 	RESOURCES,
@@ -130,4 +132,17 @@ test('an asset id becomes its URL under /art', () => {
 test('eras and tiers are written as Roman numerals', () => {
 	assert.deepEqual([1, 2, 3, 4, 5].map(roman), ['I', 'II', 'III', 'IV', 'V']);
 	assert.throws(() => roman(0), /1 to 10/);
+});
+
+test("Panel sets its heading's font: the body font by default, the title font on request (#97)", () => {
+	const plain = render(Panel, { props: { title: 'Players' } }).body;
+	assert.doesNotMatch(plain, /rg-panel--title-font/);
+	assert.match(plain, /<h2 class="rg-panel--title[^"]*">Players<\/h2>/);
+	const titled = render(Panel, {
+		props: { title: 'Open tables', titleFont: 'title' },
+	}).body;
+	assert.match(
+		titled,
+		/class="rg-panel rg-panel--medium[^"]*rg-panel--title-font/
+	);
 });

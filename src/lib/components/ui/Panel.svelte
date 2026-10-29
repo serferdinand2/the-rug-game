@@ -6,6 +6,7 @@
 	 * @property {string} [title] - The heading, such as 'Open tables'; also names the section for assistive technology
 	 * @property {import('svelte').Snippet} [heading] - A heading row with more than a title, such as 'Players' and '2 of 5 joined'; it replaces the visible title, and an h2 inside it gets the title's look
 	 * @property {'small' | 'medium' | 'large'} [padding='medium'] - small: 10px 14px, the lobby; medium: 18px 20px; large: 22px 24px, the launch page
+	 * @property {'body' | 'title'} [titleFont='body'] - The heading's font, for the title or an h2 in `heading`: Atkinson Hyperlegible, or Cinzel, as the launch page's Open tables (#97)
 	 * @property {import('svelte').Snippet} [children] - The panel's content
 	 */
 
@@ -14,7 +15,7 @@
 	 * @typedef {PanelOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} PanelProps
 	 *
 	 * @example
-	 * <Panel title="Open tables">…</Panel>
+	 * <Panel title="Open tables" titleFont="title">…</Panel>
 	 *
 	 * <Panel title="Players" padding="small">
 	 *   {#snippet heading()}
@@ -28,13 +29,21 @@
 
 <script>
 	/** @type {PanelProps} */
-	let { title, heading, padding = 'medium', children, ...attr } = $props();
+	let {
+		title,
+		heading,
+		padding = 'medium',
+		titleFont = 'body',
+		children,
+		...attr
+	} = $props();
 </script>
 
 <section
 	aria-label={title}
 	{...attr}
-	class="rg-panel rg-panel--{padding} {attr.class ? attr.class : ''}">
+	class="rg-panel rg-panel--{padding} {attr.class ? attr.class : ''}"
+	class:rg-panel--title-font={titleFont === 'title'}>
 	{#if heading}
 		<div class="rg-panel--heading">{@render heading()}</div>
 	{:else if title}
@@ -86,5 +95,11 @@
 		color: var(--text);
 		font: var(--weight-bold) var(--font-size-lg) / var(--leading-snug)
 			var(--font-body);
+	}
+
+	.rg-panel--title-font .rg-panel--title,
+	.rg-panel--title-font .rg-panel--heading :global(h2) {
+		font: var(--weight-title) var(--font-size-lg) / var(--leading-snug)
+			var(--font-title);
 	}
 </style>

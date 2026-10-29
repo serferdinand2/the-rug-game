@@ -189,13 +189,13 @@
 		z-index: var(--layer-popover);
 		display: grid;
 		place-items: center;
-		background: color-mix(in srgb, var(--ink) 70%, transparent);
+		background: var(--scrim-strong);
 	}
 
 	/* Over its positioned parent only, so the rest of the screen stays in use. */
 	.rg-dialog--modeless {
 		position: absolute;
-		background: color-mix(in srgb, var(--ink) 52%, transparent);
+		background: var(--scrim);
 	}
 
 	/* A column as tall as its content, up to the screen's height less a margin; the body takes what is left. */

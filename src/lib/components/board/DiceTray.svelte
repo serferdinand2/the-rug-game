@@ -167,12 +167,7 @@
 		padding: var(--space-8) var(--space-10);
 		border: var(--border) solid var(--line);
 		border-radius: var(--radius);
-		background:
-			linear-gradient(
-				color-mix(in srgb, var(--ink) 60%, transparent),
-				color-mix(in srgb, var(--ink) 60%, transparent)
-			),
-			var(--texture) var(--chrome);
+		background: var(--float-surface);
 		box-shadow: var(--shadow-float);
 		transform: translate(-50%, -50%);
 		cursor: pointer;

@@ -171,8 +171,14 @@
 	}
 
 	.rg-button:disabled {
-		opacity: 0.5;
+		opacity: var(--opacity-disabled);
 		cursor: not-allowed;
 		pointer-events: none;
+	}
+
+	/* Not choosable yet, but still focusable and clickable, so the screen can say why (#97). */
+	.rg-button[aria-disabled='true'] {
+		opacity: var(--opacity-disabled);
+		cursor: default;
 	}
 </style>

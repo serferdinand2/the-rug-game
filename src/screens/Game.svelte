@@ -1043,7 +1043,7 @@
 		inset: 0;
 		display: grid;
 		place-items: center;
-		background: color-mix(in srgb, var(--ink) 52%, transparent);
+		background: var(--scrim);
 		pointer-events: none;
 	}
 
