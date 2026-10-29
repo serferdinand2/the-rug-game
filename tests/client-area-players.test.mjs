@@ -2,7 +2,11 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { capitalScore, view } from '../src/lib/engine/game.js';
-import { playerCards } from '../src/lib/area/players.js';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { playerCards, playerChips } from '../src/lib/area/players.js';
+import { civilizationName } from '../src/lib/describe.js';
+import { civAbilityText } from '../src/lib/civ-rules.js';
 import { startedGame } from './helpers/engine.mjs';
 
 test('one card per player, the viewer and the host marked', () => {
@@ -69,4 +73,44 @@ test("an Architects card's capital points are the engine's capital score, unifor
 	assert.ok(score.uniform > 0, 'the row of houses is uniform');
 	const [card] = playerCards(view(state, 2), 2, 1);
 	assert.equal(card.capitalPoints, score.vp);
+});
+
+test("the header's chips name each player, their VP and whose turn it is, in seat order (#90)", () => {
+	const { state } = startedGame(3);
+	/** @type {any} */ (state.seats[1]).vp = 7;
+	const game = view(state, 2);
+	const chips = playerChips(game);
+	assert.deepEqual(
+		chips.map((chip) => [chip.seat, chip.name, chip.vp, chip.current]),
+		[
+			[1, state.seats[0].name, state.seats[0].vp, state.current === 1],
+			[2, state.seats[1].name, 7, state.current === 2],
+			[3, state.seats[2].name, state.seats[2].vp, state.current === 3],
+		]
+	);
+});
+
+test('a chip says "Setting up" and has no ability until its player has a civilization, as the cards do (#90)', () => {
+	const { state } = startedGame(2);
+	const [bare] = playerChips(view(state, 1));
+	assert.equal(bare.civilization, 'Setting up');
+	assert.equal(bare.ability, undefined);
+	/** @type {any} */ (state.seats[0]).civs = ['alchemists'];
+	const game = view(state, 1);
+	const [chip] = playerChips(game);
+	const [card] = playerCards(game, 1, 1);
+	assert.equal(chip.civilization, civilizationName('alchemists'));
+	assert.equal(chip.civilization, card.civilization);
+	assert.equal(chip.ability, civAbilityText('alchemists', game.version));
+	assert.ok(chip.ability);
+});
+
+test('Game.svelte renders one GameHeader and draws no chip, clock or log button of its own (#90)', () => {
+	const source = readFileSync(
+		fileURLToPath(new URL('../src/screens/Game.svelte', import.meta.url)),
+		'utf8'
+	);
+	assert.match(source, /<GameHeader\b/);
+	assert.doesNotMatch(source, /<PageHeader\b|<PlayerChip\b|<TurnClock\b/);
+	assert.doesNotMatch(source, /rg-game--unread|Setting up/);
 });

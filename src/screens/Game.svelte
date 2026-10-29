@@ -23,20 +23,16 @@
 	import AchievementStrip from '../lib/components/board/AchievementStrip.svelte';
 	import TrackBoard from '../lib/components/board/TrackBoard.svelte';
 	import WorldMap from '../lib/components/board/WorldMap.svelte';
-	import PlayerChip from '../lib/components/player/PlayerChip.svelte';
 	import SelfSummary from '../lib/components/player/SelfSummary.svelte';
 	import IncomeNotice from '../lib/components/prompts/IncomeNotice.svelte';
-	import IconButton from '../lib/components/ui/IconButton.svelte';
-	import TurnClock from '../lib/components/ui/TurnClock.svelte';
-	import PageHeader from './PageHeader.svelte';
 	import DecisionPrompt from './game/DecisionPrompt.svelte';
+	import GameHeader from './game/GameHeader.svelte';
 	import TurnFooter from './game/TurnFooter.svelte';
 	import PlayerTabs from './game/PlayerTabs.svelte';
 	import PlayersOverview from './game/PlayersOverview.svelte';
 	import LogPanel from './game/LogPanel.svelte';
 	import TableSettings from './game/TableSettings.svelte';
 	import RulesPanel from './game/RulesPanel.svelte';
-	import { civAbilityText } from '../lib/civ-rules.js';
 	import { RULES_HELP } from '../lib/rules-help.js';
 	import { hotkeyAction } from '../lib/hotkeys.js';
 	import { eventText } from '../lib/log.js';
@@ -45,9 +41,6 @@
 	import TechnologyCard from '../lib/components/player/TechnologyCard.svelte';
 	import { tabFor } from '../lib/area/tabs.js';
 	import { achievements, trackBoard } from '../lib/board.js';
-	import { isRunning, shownClock, timeLeft } from '../lib/clock.js';
-	import { clockTime } from '../lib/now.svelte.js';
-	import { civilizationName } from '../lib/describe.js';
 	import { mapHexes } from '../lib/hexmap.js';
 	import { PromptState } from '../lib/prompt-state.svelte.js';
 	import { selfSummary } from '../lib/overview.js';
@@ -273,12 +266,6 @@
 			board = 'map';
 		}
 	});
-
-	// The turn clock: the running one, the viewer's own first; a paused one only when none runs (spec §4).
-	let clock = $derived(shownClock(room, seat));
-	let clockMs = $derived(
-		clock ? timeLeft(clock, room.now, store.receivedAt, clockTime.now) : 0
-	);
 
 	/** Which footer shows, and what it says (#86). */
 	let footer = $derived(
@@ -614,11 +601,6 @@
 				break;
 		}
 	}
-
-	/** @param {number} seatNumber */
-	function nameOf(seatNumber) {
-		return game.seats[seatNumber - 1]?.name ?? `Seat ${seatNumber}`;
-	}
 </script>
 
 <svelte:window
@@ -629,62 +611,20 @@
 <div
 	{...attr}
 	class="rg-game {attr.class ? attr.class : ''}">
-	<PageHeader
+	<GameHeader
 		{store}
-		menu="game"
-		onPageHeaderMenu={menuHandler}>
-		{#snippet center()}
-			{#each players as player (player.seat)}
-				<PlayerChip
-					name={player.name}
-					civilization={player.civs.length
-						? civilizationName(player.civs[0])
-						: 'Setting up'}
-					vp={player.vp}
-					seat={player.seat}
-					current={game.current === player.seat}
-					filled={overviewOpen}
-					bump={moved.vp.includes(player.seat)}
-					ability={player.civs.length
-						? (civAbilityText(player.civs[0], game.version) ??
-							undefined)
-						: undefined}
-					onPlayerChipClick={() => {
-						overviewPlayer = null;
-						overviewOpen = !overviewOpen;
-					}} />
-			{/each}
-		{/snippet}
-		{#snippet before()}
-			{#if clock}
-				<TurnClock
-					seat={clock.seat}
-					name={nameOf(clock.seat)}
-					ms={clockMs}
-					running={isRunning(clock)}
-					warn={clock.seat === seat &&
-						clock.ends !== undefined &&
-						clockMs <= 5000} />
-			{/if}
-			<IconButton
-				icon="history"
-				label="Undo"
-				disabled={!room.canUndo}
-				onIconButtonClick={() => store.undo()} />
-			<span class="rg-game--log-button">
-				<IconButton
-					icon="log"
-					label="Log and scores"
-					expanded={logOpen}
-					onIconButtonClick={logToggleHandler} />
-				{#if logUnread}
-					<i
-						class="rg-game--unread"
-						title="New entries"></i>
-				{/if}
-			</span>
-		{/snippet}
-	</PageHeader>
+		{game}
+		{seat}
+		{overviewOpen}
+		{logOpen}
+		{logUnread}
+		bumped={moved.vp}
+		onGameHeaderChip={() => {
+			overviewPlayer = null;
+			overviewOpen = !overviewOpen;
+		}}
+		onGameHeaderLog={logToggleHandler}
+		onGameHeaderMenu={menuHandler} />
 
 	<div class="rg-game--middle">
 		<section
@@ -897,24 +837,6 @@
 		display: grid;
 		place-items: center;
 		background: var(--scrim);
-		pointer-events: none;
-	}
-
-	/* The log button carries a gold dot while the log has entries the viewer hasn't seen. */
-	.rg-game--log-button {
-		position: relative;
-		display: inline-flex;
-	}
-
-	.rg-game--unread {
-		position: absolute;
-		top: 5px;
-		right: 5px;
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background: var(--gold);
-		box-shadow: 0 0 0 var(--border) var(--chrome);
 		pointer-events: none;
 	}
 
