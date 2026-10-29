@@ -5,17 +5,19 @@
 	 * @property {string} title - Landmark name
 	 * @property {string} artwork - Full landmark card picture
 	 * @property {readonly string[]} footprint - Capital plots covered, top row first
-	 * @property {string} edition - Expansion name
+	 * @property {string} edition - Its edition's code, such as 'pp' or 'aa'
 	 * @property {string} [condition='Rules text pending'] - End-of-turn condition
 	 */
 	/**
 	 * @typedef {LandmarkCardOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} LandmarkCardProps
 	 * @example
-	 * <LandmarkCard title="Castle" artwork="/art/landmark-card/castle.svg" footprint={FOOTPRINTS.castle} edition="Arts & Architecture" />
+	 * <LandmarkCard title="Castle" artwork="/art/landmark-card/castle.svg" footprint={FOOTPRINTS.castle} edition="aa" />
 	 */
 </script>
 
 <script>
+	import CardBand from './CardBand.svelte';
+	import CardEdition from './CardEdition.svelte';
 	import '../../../styles/landmark-card.css';
 	/** @type {LandmarkCardProps} */
 	let {
@@ -32,13 +34,16 @@
 	{...attr}
 	class="rg-landmark-card {attr.class ?? ''}"
 	aria-label={`${title} landmark card`}>
-	<header class="rg-landmark-card__band"><h3>{title}</h3></header>
-	<div class="rg-landmark-card__visual">
+	<CardBand
+		class="rg-landmark-card--band"
+		{title}
+		size="small" />
+	<div class="rg-landmark-card--visual">
 		<img
 			src={artwork}
 			alt={`${title} artwork`} />
 		<div
-			class="rg-landmark-card__footprint"
+			class="rg-landmark-card--footprint"
 			style:--cols={footprint[0]?.length ?? 0}
 			aria-label={`Capital footprint: ${footprint.join(' / ')}`}>
 			{#each footprint as row, rowIndex (rowIndex)}
@@ -48,11 +53,11 @@
 			{/each}
 		</div>
 	</div>
-	<div class="rg-landmark-card__condition">
+	<div class="rg-landmark-card--condition">
 		<small>END OF YOUR TURN · GAIN THIS LANDMARK WHEN YOU</small>
 		<p>{condition}</p>
 	</div>
-	<footer class="rg-landmark-card__footer">
-		<span class="rg-landmark-card__edition">{edition}</span>
+	<footer class="rg-landmark-card--footer">
+		<CardEdition code={edition} />
 	</footer>
 </article>

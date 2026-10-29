@@ -19,6 +19,7 @@ The owner-reviewed #5 icon mockup and its linked capital terrain page are preser
 | [main-screen.html](main-screen.html) | Play page: tracks/map, private tabs, footer decisions, city placement and player overview |
 | [end-screen.html](end-screen.html) | The final standings page: player results and the selected rules version's tie-break explanation; built in #29 |
 | [card-design-rules.md](card-design-rules.md) | Owner-approved Civilization, Technology and Tapestry card layouts, including sizes, effects, timing and placement rules |
+| [edition-chips.html](edition-chips.html) | The edition chip of every card family, as it was and as proposed (#109). The owner chose one chip for all, each expansion in its own card colour, with Fantasies & Futures in teal (2026-10-29). Screenshot: `screens/edition-chips-options.png` |
 | [collectors-card-options.html](collectors-card-options.html) | Five Collectors civilization card designs, printed and in play; the owner chose option B (#47, 2026-10-23). Open it from disk: it loads the art from `static/art/` |
 | [screens/](screens/) | Current screenshots captured from these HTML files at 1920×1080 |
 | [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) | Editable source of the shared pixel texture embedded in the pages |

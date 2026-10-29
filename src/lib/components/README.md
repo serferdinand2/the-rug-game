@@ -130,7 +130,9 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 
 | Component | Responsibility |
 |---|---|
-| `player/CardFrame` | 425 px frame, title, full portrait, main effect and footer metadata |
+| `player/CardFrame` | 425 px frame: a `CardBand` title, full portrait, main effect, and footer metadata with a `CardEdition` per edition |
+| `player/CardBand` | The title band every card family shares (#109): the brown gradient over the paper noise, a gold Cinzel title at 28, 22 or 21 px, and the trap's red band |
+| `player/CardEdition` | The edition chip at every card's foot (#109): the edition's name in its own card colour, base brown, Plans & Ploys green, Arts & Architecture purple or Fantasies & Futures teal |
 | `player/CivilizationCard` | Eighteen recipes, every base civilization among them (the Futurists, Heralds, Nomads and The Chosen await review), with empty/in-play example states; any other civilization shows its frame, portrait and name only. The six card civilizations (Entertainers, Merrymakers, Leaders, Militants, Historians, Mystics) draw a seat's `live` state from `civCardView()` (`src/lib/civ-card.js`) in the play look, their tokens in the `seat`'s colour, and turn the spots its decision offers into buttons with the green available outline, the `selected` one gold, reporting `onCivilizationCardPick` with the spot id (#78) |
 | `player/TechnologyCard` | Horizontal 425 px technology frame with full artwork, square/circle effects, conditions and edition badge; Svelte markup from the engine's data: `data` from `techCardData()` (`src/lib/cards/game-cards.js`), or an `id` (#108) |
 | `player/TapestryCard` | 319 px tapestry frame with timing beside the portrait, including the red Trap variant; Svelte markup from the engine's data: `data` from `tapestryCardData()`, or an `id` (#108) |

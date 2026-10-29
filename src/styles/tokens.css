@@ -83,7 +83,8 @@
 	--font-size-2xl: 20px; /* the brand, player names in the overview */
 	--font-size-3xl: 22px; /* page headings, the table code */
 	--font-size-4xl: 25px; /* a player's score in the final standings */
-	--font-size-5xl: 28px; /* a player's place in the final standings */
+	--font-size-5xl: 28px; /* a player's place in the final standings, a civilization card's title */
+	--font-size-card-title-sm: 21px; /* the tapestry and landmark cards' titles (#109) */
 	--font-size-6xl: 42px; /* a hero name: the pass screen's player, your place on the results */
 	--font-size-display-sm: clamp(20px, 2vw, 26px); /* the lobby invitation */
 	--font-size-display: clamp(24px, 3vw, 38px); /* the launch headline */
@@ -208,7 +209,9 @@
 	--card-strong-text: #4c3c2a;
 	--card-die-number: #5a5149;
 	--card-band-start: #5c3e1f;
-	--card-expansion: #715398;
+	--card-expansion: #715398; /* Arts & Architecture on a card: its edition chip */
+	--card-plans-ploys: #3f6b4b; /* Plans & Ploys on a card, dark enough for the paper (owner, #109) */
+	--card-fantasies-futures: #276966; /* Fantasies & Futures on a card: teal, apart from the A&A purple (owner, #109) */
 	--card-line-strong: #735934;
 	--card-path: #755c3d;
 	--card-muted: #756447;

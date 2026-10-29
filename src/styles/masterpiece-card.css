@@ -18,38 +18,19 @@
 .rg-masterpiece-card * {
 	box-sizing: border-box;
 }
-.rg-masterpiece-card__band {
+/* CardBand draws the band itself (issue 109); the frame sets its height. */
+.rg-masterpiece-card--band {
 	min-height: 49px;
-	display: flex;
-	align-items: center;
 	padding: 0 12px;
-	background-image:
-		url('./card-paper-noise.svg'),
-		linear-gradient(
-			90deg,
-			var(--card-band-start),
-			var(--card-band-middle) 57%,
-			var(--card-band-end)
-		);
-	border-bottom: 1px solid var(--card-line-strong);
 }
-.rg-masterpiece-card__band h3 {
-	margin: 0;
-	color: var(--card-title);
-	font:
-		700 22px/1 Cinzel,
-		serif;
-	letter-spacing: 0.025em;
-	text-shadow: 0 1px var(--card-text);
-}
-.rg-masterpiece-card__body {
+.rg-masterpiece-card--body {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) 144px;
 	align-items: center;
 	gap: 12px;
 	padding: 12px;
 }
-.rg-masterpiece-card__effects {
+.rg-masterpiece-card--effects {
 	min-height: 100px;
 	display: flex;
 	flex-direction: column;
@@ -61,10 +42,10 @@
 	background: var(--card-raised);
 	border: 1px solid var(--card-line-soft);
 }
-.rg-masterpiece-card__effects p {
+.rg-masterpiece-card--effects p {
 	margin: 0;
 }
-.rg-masterpiece-card__resource {
+.rg-masterpiece-card--resource {
 	display: inline-flex;
 	align-items: center;
 	gap: 2px;
@@ -72,11 +53,11 @@
 	vertical-align: middle;
 	font-weight: 700;
 }
-.rg-masterpiece-card__resource img {
+.rg-masterpiece-card--resource img {
 	display: block;
 	image-rendering: pixelated;
 }
-.rg-masterpiece-card__art {
+.rg-masterpiece-card--art {
 	width: 144px;
 	height: 144px;
 	display: block;
@@ -86,25 +67,10 @@
 		0 0 0 1px var(--card-line),
 		0 0 0 3px var(--card-text);
 }
-.rg-masterpiece-card__footer {
+.rg-masterpiece-card--footer {
 	min-height: 38px;
 	display: flex;
 	align-items: center;
 	padding: 7px 12px;
 	border-top: 1px solid var(--card-line);
-}
-.rg-masterpiece-card__edition {
-	display: inline-flex;
-	align-items: center;
-	min-height: 18px;
-	padding: 2px 6px;
-	border: 1px solid var(--arts-architecture);
-	background: color-mix(in srgb, var(--arts-architecture) 16%, transparent);
-	color: var(--card-technology-text);
-	white-space: nowrap;
-	font:
-		700 10px/1 'Atkinson Hyperlegible',
-		Atkinson,
-		sans-serif;
-	letter-spacing: 0.04em;
 }

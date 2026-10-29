@@ -17,6 +17,8 @@
 </script>
 
 <script>
+	import CardBand from './CardBand.svelte';
+	import CardEdition from './CardEdition.svelte';
 	import '../../../styles/masterpiece-card.css';
 	/** @type {MasterpieceCardProps} */
 	let { title, artwork, artworkAlt = '', effects, ...attr } = $props();
@@ -26,18 +28,18 @@
 	{...attr}
 	class="rg-masterpiece-card {attr.class ?? ''}"
 	aria-label={`${title} masterpiece card`}>
-	<header class="rg-masterpiece-card__band">
-		<h3>{title}</h3>
-	</header>
-	<div class="rg-masterpiece-card__body">
-		<div class="rg-masterpiece-card__effects">{@render effects()}</div>
+	<CardBand
+		class="rg-masterpiece-card--band"
+		{title}
+		size="medium" />
+	<div class="rg-masterpiece-card--body">
+		<div class="rg-masterpiece-card--effects">{@render effects()}</div>
 		<img
-			class="rg-masterpiece-card__art"
+			class="rg-masterpiece-card--art"
 			src={artwork}
 			alt={artworkAlt} />
 	</div>
-	<footer class="rg-masterpiece-card__footer">
-		<span class="rg-masterpiece-card__edition"
-			>Arts &amp; Architecture</span>
+	<footer class="rg-masterpiece-card--footer">
+		<CardEdition code="aa" />
 	</footer>
 </article>

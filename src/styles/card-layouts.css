@@ -25,33 +25,10 @@
 	display: grid;
 	grid-template-rows: 40px 174px 50px 30px;
 }
-.rg-tech-layout--band,
-.rg-tapestry-layout--band {
-	display: flex;
-	align-items: center;
+/* CardBand draws the band itself (issue 109); each frame sets its width. */
+.rg-tech-layout--band {
 	margin: 0 -10px;
 	padding: 0 10px;
-	background-image:
-		url('./card-paper-noise.svg'),
-		linear-gradient(
-			90deg,
-			var(--card-band-start) 0%,
-			var(--card-band-middle) 57%,
-			var(--card-band-end) 100%
-		);
-	background-size:
-		256px 256px,
-		auto;
-	border-bottom: 1px solid var(--card-line-strong);
-}
-.rg-tech-layout--band strong,
-.rg-tapestry-layout--band strong {
-	color: var(--card-title);
-	font:
-		700 22px/1 Cinzel,
-		serif;
-	letter-spacing: 0.025em;
-	text-shadow: 0 1px 0 var(--card-text);
 }
 .rg-tech-layout--body {
 	display: grid;
@@ -182,30 +159,6 @@
 	margin: 0 -12px;
 	padding: 0 12px;
 }
-.rg-card-edition {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 18px;
-	padding: 2px 6px;
-	border: 1px solid;
-	white-space: nowrap;
-	font:
-		700 10px/1 'Atkinson Hyperlegible',
-		Atkinson,
-		sans-serif;
-	letter-spacing: 0.04em;
-}
-.rg-card-edition--base {
-	border-color: var(--card-line);
-	background: color-mix(in srgb, var(--card-band-start) 16%, transparent);
-	color: var(--card-band-start);
-}
-.rg-card-edition--arts {
-	border-color: var(--card-expansion);
-	background: color-mix(in srgb, var(--card-expansion) 16%, transparent);
-	color: var(--card-expansion);
-}
 .rg-tapestry-layout {
 	width: 319px;
 	min-height: 560px;
@@ -216,20 +169,6 @@
 .rg-tapestry-layout--band {
 	margin: 0 -12px;
 	padding: 0 12px;
-}
-.rg-tapestry-layout--band strong {
-	font-size: 21px;
-}
-.rg-tapestry-layout--trap .rg-tapestry-layout--band {
-	background-image:
-		url('./card-paper-noise.svg'),
-		linear-gradient(
-			90deg,
-			var(--card-trap-band-start) 0%,
-			var(--card-trap-band-middle) 57%,
-			var(--card-trap-band-end) 100%
-		);
-	border-bottom-color: var(--card-trap-line);
 }
 .rg-tapestry-layout--portrait {
 	display: grid;

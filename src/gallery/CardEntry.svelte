@@ -69,7 +69,7 @@
 				art: slug,
 				timing: '',
 				copy: 'Rules text pending',
-				edition,
+				edition: asset.expansion,
 			}} />
 	{:else if asset.group === 'masterpiece'}
 		<MasterpieceCard
@@ -85,7 +85,7 @@
 			title={asset.name}
 			artwork={art}
 			footprint={FOOTPRINTS[slug] ?? []}
-			{edition} />
+			edition={asset.expansion} />
 	{:else if CARD_GROUPS.includes(asset.group)}
 		<article
 			class="rg-gallery-entry__frame"

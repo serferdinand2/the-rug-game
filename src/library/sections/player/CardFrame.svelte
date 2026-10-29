@@ -14,7 +14,7 @@
 		><CardFrame
 			title="Collectors"
 			portrait="/art/civ/collectors.svg"
-			badges={['Arts & Architecture']}
+			editions={['aa']}
 			complexity={2}
 			>{#snippet effect()}A 425 px card with large artwork and a readable
 				main effect.{/snippet}
