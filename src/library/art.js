@@ -8,6 +8,7 @@ import {
 	PICTURE_SIZE,
 	VOLCANO_SIZE,
 } from '../lib/art/hex-overlays.js';
+import { CAPITAL_MATS } from '../lib/engine/data/capitals.js';
 import { MAPS } from '../lib/engine/data/maps.js';
 import { inSlice } from './slices.js';
 
@@ -46,7 +47,7 @@ export function artDescription(section) {
 		return 'Five owner-reviewed terrain hex markers at native 24×24. These are card/map terrain symbols, separate from the capital biome tile solutions.';
 	}
 	if (section.id === 'capital-mat') {
-		return "The full mats are example compositions only. Each one lays ground tiles on its printed layout. The six base mats' reliefs lie over their ground; the expansion mats keep their impassable tiles until #132 and #133 draw theirs. The game composes each mat the same way.";
+		return 'The expansion mats as example compositions only: each lays its buildable and impassable tiles on its printed layout, with what only the mat draws, until #132 and #133 draw its relief. A base mat has no example here: its relief preview under Capital relief is that picture. The game composes each mat from its tiles.';
 	}
 	if (section.id === 'capital-relief') {
 		return `${section.total} reliefs, ${section.drawn} drawn. Each mat's impassable plots are one relief, drawn from its printed layout over the mat's per-plot ground. Each preview shows the relief on that ground, and the specimens show every kind of join. The owner approves each batch here. Source issue #${section.issues.join(', #')}.`;
@@ -233,8 +234,8 @@ function boardSize(side) {
 
 /**
  * An asset's picture size before it is drawn: a landmark is its footprint at 32 pixels per plot, a
- * capital terrain tile one plot, a relief and a base mat 32-pixel plots with 1-pixel gaps on the mat's
- * layout, an advanced mat 32-pixel plots on its layout, a map board its hexes, a hex overlay its own size, a territory
+ * capital terrain tile one plot, a relief 32-pixel plots with 1-pixel gaps on its mat's layout, an
+ * advanced mat 32-pixel plots on its layout, a map board its hexes, a hex overlay its own size, a territory
  * picture a 64×56 hex, an inspiration tile its six spaces, an outpost 128×128 and any other piece or
  * icon its native size, and any other illustration 64×64. Its placeholder takes that room, so nothing
  * on the page moves when it is drawn; tests/library-art.test.mjs checks each against npm run art.
@@ -256,9 +257,11 @@ export function pictureSize(id) {
 		const advanced = Object.hasOwn(BIOMES, slug)
 			? BIOMES[slug].LAYOUT
 			: undefined;
-		// An advanced mat lays its plots edge to edge; a relief and a base mat leave a 1-pixel gap between them.
-		if (group === 'capital-mat' && advanced) {
-			return { w: advanced[0].length * PLOT, h: advanced.length * PLOT };
+		// An advanced mat lays its plots edge to edge; a relief leaves a 1-pixel gap between them.
+		if (group === 'capital-mat') {
+			return advanced
+				? { w: advanced[0].length * PLOT, h: advanced.length * PLOT }
+				: null;
 		}
 		const layout = reliefLayout(slug) ?? advanced;
 		return layout ? reliefSize(layout.length, layout[0].length) : null;
@@ -285,13 +288,8 @@ export function pictureSize(id) {
 		: null;
 }
 
-/** The capital mat names by slug, such as 'Mountain'. */
-const MAT_NAMES = new Map(
-	ASSETS.filter((asset) => asset.group === 'capital-mat').map((asset) => [
-		asset.id.split('/')[1],
-		asset.name,
-	])
-);
+/** The base capital mat names by slug, such as 'Mountain'. */
+const MAT_NAMES = new Map(CAPITAL_MATS.map((mat) => [mat.id, mat.name]));
 
 /**
  * Each relief biome's preview on a layout with every kind of join.

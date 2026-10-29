@@ -136,7 +136,8 @@ The design document has the details. In short:
 
 Rulings the owner made along the way. Each issue's design document records its own; these apply across issues.
 
-- The full capital mat SVGs are examples only. A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82).
+- Don't duplicate the art (owner, 2026-10-29): a base mat's only picture is its relief, and only the expansion mats keep a full example SVG (`capital-mat/<biome>`), until #132 and #133 draw their reliefs.
+- A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82).
 - **Decided 2026-10-28:**
   - Every decision prompt opens at the centre of the tracks (the shared area), not of the screen, with any shelf of cards above it as one stack. Only a choice on the map, while the Map view shows, docks at the right (owner, #79).
   - The app is for private use: build no screen-reader support (aria-label wording, live regions, visually hidden text) and ask nothing about it. Skip those parts of issues and leave the labels already built as they are (owner). This overrides the conventions' aria-label rules.

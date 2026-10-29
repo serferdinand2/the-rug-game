@@ -39,6 +39,7 @@
 	import TerritoryTile from '../player/TerritoryTile.svelte';
 	import { tilePreview } from '../../area/explore.js';
 	import { CAPITAL_MATS } from '../../engine/data/capitals.js';
+	import { reliefUrl } from '../../capital-terrain.js';
 	import { artUrl } from '../../ui.js';
 
 	/** @type {PromptArtProps} */
@@ -59,9 +60,8 @@
 			case 'space-tile':
 				return artUrl(`${item.kind}/${item.id}`);
 			case 'mat':
-				return artUrl(
-					`capital-mat/${CAPITAL_MATS[item.id - 1].id.toLowerCase()}`
-				);
+				// A base mat's one picture is its relief; the shelf draws the whole mat as its CapitalGrid (#56).
+				return reliefUrl(CAPITAL_MATS[item.id - 1].id);
 			default:
 				return null;
 		}

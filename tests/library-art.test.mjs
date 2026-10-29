@@ -158,10 +158,6 @@ test('every picture has a placeholder its size before it is drawn, as npm run ar
 		w: 32,
 		h: 32,
 	});
-	assert.deepEqual(art.pictureSize('capital-mat/mountain'), {
-		w: 296,
-		h: 296,
-	});
 	assert.deepEqual(art.pictureSize('capital-mat/archipelago'), {
 		w: 288,
 		h: 352,

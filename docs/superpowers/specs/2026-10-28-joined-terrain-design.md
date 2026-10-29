@@ -129,6 +129,7 @@ The look depends on each group's whole shape, so it can't be put together from f
 - New palette entries for the alpine meadow and any other colours a biome needs, named for their biome.
 - `tools/art/drawings/capital-relief/<mat id>.js`, one per mat, each calling `drawRelief`.
 - The example mats `capital-mat/<biome>` stay examples: they are redrawn as ground tiles plus relief, so the library shows the new look.
+  - **Superseded (owner, 2026-10-29):** "let's not duplicate the art". A redrawn base example mat was the same picture as its relief preview, so the six are removed: their drawings, SVGs, catalog entries and manifest lines. The 12 expansion mats keep their examples until #132 and #133.
 
 ### 3.5 The library
 

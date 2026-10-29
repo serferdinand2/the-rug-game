@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import { listDrawingIds, renderAsset } from '../tools/art/build.mjs';
 
-test('the 18 capital mats and the two map boards are explicitly marked as example compositions', () => {
+test('the 12 advanced capital mats and the two map boards are explicitly marked as example compositions', () => {
 	assert.deepEqual(
 		ASSETS.filter((asset) => asset.example)
 			.map((asset) => asset.id)
@@ -22,7 +22,7 @@ test('the 18 capital mats and the two map boards are explicitly marked as exampl
 	);
 	assert.equal(
 		ASSETS.filter((asset) => asset.group === 'capital-mat').length,
-		18
+		12
 	);
 });
 
@@ -32,14 +32,14 @@ test('SVG round trips retain different alpha values for the same color', () => {
 	assert.equal(toSvg(fromSvg(svg)), svg);
 });
 
-test('all 101 released SVGs match the reviewed artwork and have stable catalog ids', async () => {
+test('all 95 released SVGs match the reviewed artwork and have stable catalog ids', async () => {
 	const manifest = JSON.parse(
 		await readFile(
 			new URL('../docs/art/approved-assets.json', import.meta.url),
 			'utf8'
 		)
 	);
-	assert.equal(manifest.length, 101);
+	assert.equal(manifest.length, 95);
 	for (const { id, width, height, sha256 } of manifest) {
 		assert.ok(
 			ASSETS.some((asset) => asset.id === id),

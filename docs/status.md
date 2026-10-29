@@ -35,6 +35,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
   - The owner ruled out screen-reader work (CLAUDE.md, 2026-10-28), so #121, which is only labels, is closed as not planned.
   - #80 is done: its findings are #84 and #86–#131.
   - #82 (the joined terrain of the base mats) is done: the owner approved all six base mats in the component library on 2026-10-28, and it merged into main on 2026-10-29. The expansion mats follow in #132 (M8) and #133 (M9), and the World Map's terrain in #134 (M12).
+  - The six base example mats left the library on 2026-10-29, as duplicates of their reliefs' previews (owner; see [its entry](#the-base-example-mats-leave-the-library-refs-82)).
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - The cosmetic boards wait in #51 until the core features are done.
@@ -593,6 +594,15 @@ Built on 2026-10-29, when the owner asked for it to be done and pushed while awa
 - Tests: `tests/client-civ-card.test.mjs` (new), `client-prompt-state` (choices on the card), `client-prompts` (every card option has its spot), `limits` (the environment's limits) and the new browser test `tests/browser/civ-card.test.mjs`, which deals one hot-seat table of five again until the Entertainers are offered and moves their token on the card. Together on main: `npm run check` clean, 1965 unit tests and all 43 browser tests pass, twice in a row.
 - Handed off: #107 draws the card from data on these spot ids and marks; #60 can add where an effect comes from to the card's panel; #33, #37 and #40 add a case to `civCardMarks` and `cardSpot` for each expansion civilization whose choice is a spot on its card.
 - **Closed** on 2026-10-29, when the owner approved the CivilizationCard section in the component library ("78 looks good").
+
+### The base example mats leave the library (Refs #82)
+
+Done on 2026-10-29, when the owner asked what the Art area's Capital mats and Capital relief sections each are and ruled "let's not duplicate the art". The design document's §3.4 records the ruling.
+- Removed: the six base example mats `capital-mat/<biome>`, with their drawings, SVGs, catalog entries and lines in `docs/art/approved-assets.json` (now 95). Each was `drawReliefPreview` on the mat's layout, the same picture as its relief's preview under Capital relief. `drawCapitalMat` is gone from `tools/art/parts/capital-terrain.js`.
+- Kept: the 12 expansion example mats. They are not duplicates: nine of them draw printed features no tile has (`FEATURES.matOnly`), such as Canyon's cacti, Netherworld's imps, Polar's field lines and the Veil.
+- `PromptArt` draws a `mat` item as its relief. The game never shows that picture: the capital shelf draws each mat as its `CapitalGrid` (#56).
+- Tests: `art-capital-terrain` (a base mat has no example drawing or catalog entry, and has a relief), `art-catalog` (the group's counts), `art-approved` (12 example mats, 95 pinned assets), `engine-data` (every base mat has a relief) and `library-art`.
+- Handed off: #132 and #133 drop each expansion mat's example once its relief is drawn and whatever only the example draws is drawn elsewhere (my call).
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 
