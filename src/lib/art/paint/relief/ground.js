@@ -1,9 +1,9 @@
 // The natural ground of a buildable plot on the joined-terrain mats, ported from the approved #82 spike.
-import { seededRandom } from '../../painter.js';
-import { PALETTE as C } from '../../palette.js';
-import { PLOT } from '../../../../src/lib/art/relief.js';
+import { seededRandom } from '../painter.js';
+import { PALETTE as C } from '../palette.js';
+import { PLOT } from '../../relief.js';
 
-/** @typedef {import('../../painter.js').Canvas} Canvas */
+/** @typedef {import('../painter.js').Canvas} Canvas */
 
 /** A 4×4 ordered-dither table, row by row, centred on 0: from -0.5 to 0.4375. */
 export const BAYER = Object.freeze(

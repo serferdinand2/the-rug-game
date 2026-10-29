@@ -1,11 +1,11 @@
 // Broadleaf trees and pines packed into a mat's impassable footprint, ported from the approved #82 spike.
-import { seededRandom } from '../../painter.js';
-import { PALETTE as C } from '../../palette.js';
+import { seededRandom } from '../painter.js';
+import { PALETTE as C } from '../palette.js';
 import { cast, put } from './canvas.js';
 import { withCornerPatches } from './footprint.js';
 import { hash, noise } from './ground.js';
 
-/** @typedef {import('../../painter.js').Canvas} Canvas */
+/** @typedef {import('../painter.js').Canvas} Canvas */
 /** @typedef {import('./footprint.js').Footprint} Footprint */
 /** @typedef {{ corner: boolean, bx: number, by: number, r: number, tone: number, kind: 'pine' | 'leaf' }} Tree */
 

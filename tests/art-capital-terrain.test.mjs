@@ -7,7 +7,7 @@ import {
 	OPEN_VARIANTS,
 	drawTile,
 } from '../tools/art/parts/capital-terrain.js';
-import { drawNaturalGround } from '../tools/art/parts/capital-relief/ground.js';
+import { drawNaturalGround } from '../src/lib/art/paint/relief/ground.js';
 import { RELIEF_BIOMES } from '../src/lib/art/relief.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import { listDrawingIds } from '../tools/art/build.mjs';

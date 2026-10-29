@@ -1,7 +1,7 @@
 // The Architects' cube (#82): a neutral stone block seen from the front and above, as the relief is, with a shadow on the ground.
 import { createCanvas, set } from '../../painter.js';
 import { PALETTE } from '../../palette.js';
-import { shadow } from '../../parts/capital-relief/canvas.js';
+import { shadow } from '../../../../src/lib/art/paint/relief/canvas.js';
 
 const LEFT = 7;
 const WIDTH = 18;
