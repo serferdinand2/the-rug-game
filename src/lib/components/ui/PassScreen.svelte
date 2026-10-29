@@ -196,11 +196,6 @@
 			var(--font-body);
 	}
 
-	.rg-pass-screen :global(.rg-pass-screen--take[aria-disabled='true']) {
-		opacity: 0.6;
-		cursor: default;
-	}
-
 	@keyframes rg-pass-screen-in {
 		from {
 			opacity: 0;

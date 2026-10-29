@@ -171,7 +171,7 @@
 		display: flex;
 		justify-content: center;
 		padding: var(--space-9) var(--rg-decision-panel-inline);
-		background: color-mix(in srgb, var(--ink) 52%, transparent);
+		background: var(--scrim);
 	}
 
 	.rg-decision-panel--narrow .rg-decision-panel--panel {
@@ -210,12 +210,7 @@
 		overflow: auto;
 		border: var(--border) solid var(--line);
 		border-radius: var(--radius);
-		background:
-			linear-gradient(
-				color-mix(in srgb, var(--ink) 60%, transparent),
-				color-mix(in srgb, var(--ink) 60%, transparent)
-			),
-			var(--texture) var(--chrome);
+		background: var(--float-surface);
 		color: var(--text);
 		box-shadow: var(--shadow-float);
 	}

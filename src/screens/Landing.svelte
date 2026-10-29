@@ -131,10 +131,9 @@
 				</p>
 			</div>
 		</Panel>
-		<Panel aria-label="Open tables">
-			{#snippet heading()}
-				<h2 class="rg-landing--tables-title">Open tables</h2>
-			{/snippet}
+		<Panel
+			title="Open tables"
+			titleFont="title">
 			{#if store.tablesState === 'loading' && store.tables.length === 0}
 				<p class="rg-landing--empty">Looking for tables…</p>
 			{:else if store.tablesState === 'failed'}
@@ -230,12 +229,6 @@
 		color: color-mix(in srgb, var(--gold) 70%, var(--text));
 		font-size: var(--font-size-md);
 		text-align: center;
-	}
-
-	/* Cinzel, as the launch mockup titles this panel. */
-	.rg-landing--tables-title.rg-landing--tables-title {
-		font: var(--weight-title) var(--font-size-lg) / var(--leading-snug)
-			var(--font-title);
 	}
 
 	.rg-landing--tables {

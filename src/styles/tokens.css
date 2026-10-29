@@ -141,6 +141,19 @@
 	--border-thick: 2px;
 	--radius: 0;
 
+	/* ---------- Scrims, floating surfaces and the disabled look (#97) ---------- */
+	/* Over the board, under a prompt or a modeless dialog; under a modal dialog. */
+	--scrim: color-mix(in srgb, var(--ink) 52%, transparent);
+	--scrim-strong: color-mix(in srgb, var(--ink) 70%, transparent);
+	/* The whole background of the decision panel and the dice tray. */
+	--float-surface:
+		linear-gradient(
+			color-mix(in srgb, var(--ink) 60%, transparent),
+			color-mix(in srgb, var(--ink) 60%, transparent)
+		),
+		var(--texture) var(--chrome);
+	--opacity-disabled: 0.5;
+
 	/* ---------- Shadows and glows (ordinary panels have none) ---------- */
 	--shadow-float: 0 8px 24px rgb(0 0 0 / 53%); /* menus and dragged pieces */
 	--shadow-card: 0 12px 28px rgb(0 0 0 / 27%); /* player overview cards */

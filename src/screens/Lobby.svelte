@@ -221,7 +221,7 @@
 
 		<Panel padding="small">
 			{#snippet heading()}
-				<h2 class="rg-lobby--players-title">Players</h2>
+				<h2>Players</h2>
 				<span class="rg-lobby--count"
 					>{room.seats.length} of {config?.maxSeats ?? 5} joined</span>
 			{/snippet}
@@ -437,12 +437,6 @@
 		margin-left: var(--space-2);
 		color: var(--ok);
 		font-weight: var(--weight-bold);
-	}
-
-	.rg-lobby--players-title {
-		margin: 0;
-		font: var(--weight-bold) var(--font-size-lg) / var(--leading-tight)
-			var(--font-body);
 	}
 
 	.rg-lobby--count {

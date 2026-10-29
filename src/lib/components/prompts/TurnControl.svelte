@@ -90,7 +90,7 @@
 
 	.rg-turn-control--button:disabled {
 		color: var(--muted);
-		opacity: 0.5;
+		opacity: var(--opacity-disabled);
 		cursor: default;
 	}
 
