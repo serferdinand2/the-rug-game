@@ -1,12 +1,39 @@
-// The time left on a player's turn clock, corrected to the server's time.
+// The time left on a player's turn clock, corrected to the server's time, and which clock a screen shows (#89).
 
 /**
  * @typedef {Object} Clock
- * @property {number} seat - The seat the clock belongs to
+ * @property {import('./ui.js').Seat} seat - The seat the clock belongs to
  * @property {number} [ends] - Server time in ms when a running clock runs out
  * @property {number} [left] - Milliseconds a paused clock has left
  * @property {boolean} expired - Whether the clock has run out
  */
+
+/**
+ * The clock a screen shows (#26 spec §4): the running one, the seat's own first; a paused one only when none runs,
+ * again the seat's own first.
+ * @param {{ clocks?: Clock[] }} room - A room view
+ * @param {number | null} seat - The seat on show, or the player a pass screen names
+ * @returns {Clock | null}
+ */
+export function shownClock(room, seat) {
+	const clocks = room.clocks ?? [];
+	return (
+		clocks.find((c) => c.seat === seat && c.ends !== undefined) ??
+		clocks.find((c) => c.ends !== undefined) ??
+		clocks.find((c) => c.seat === seat) ??
+		clocks[0] ??
+		null
+	);
+}
+
+/**
+ * Whether a clock is counting down: it has an end and has not run out.
+ * @param {Clock} clock
+ * @returns {boolean}
+ */
+export function isRunning(clock) {
+	return clock.ends !== undefined && !clock.expired;
+}
 
 /**
  * Milliseconds left on a clock, never below 0.

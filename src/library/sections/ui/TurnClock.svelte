@@ -20,10 +20,11 @@
 	area="ui"
 	description="The turn clock in the game header: the player's colour mark and the time left. Paused clocks are muted; the viewer's own clock turns red and reads the seconds in words for the last 5 seconds.">
 	<Example
-		label={'ms={102000}'}
+		label={'name="Vera" ms={102000}'}
 		surface="chrome">
 		<TurnClock
 			seat={1}
+			name="Vera"
 			ms={102_000} />
 	</Example>
 	<Example
@@ -31,6 +32,7 @@
 		surface="chrome">
 		<TurnClock
 			seat={2}
+			name="Ana"
 			ms={42_000}
 			running={false} />
 	</Example>
@@ -39,6 +41,7 @@
 		surface="chrome">
 		<TurnClock
 			seat={1}
+			name="Vera"
 			ms={4_200}
 			warn />
 	</Example>
@@ -47,6 +50,7 @@
 		surface="chrome">
 		<TurnClock
 			seat={3}
+			name="Milo"
 			ms={live}
 			warn={live <= 5_000} />
 	</Example>
