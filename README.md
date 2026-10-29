@@ -38,7 +38,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Play: the tracks, with an advance chosen | Play: the World Map |
 |---|---|
-| ![The play screen: every track space with its benefit and bonus, the payable spaces outlined in green, Rafts selected and the footer offering the advance](docs/ui/screens/game-tracks.png) | ![The play screen a few turns in: the World Map composed from the terrain art, explored territories with coasts and clouds, both players' outposts, and the footer offering an advance or income, which ends era I and begins era II](docs/ui/screens/game-map.png) |
+| ![The play screen: every track space with its benefit and bonus, the payable spaces outlined in green, Rafts selected and the footer offering the advance](docs/ui/screens/game-tracks.png) | ![The play screen a few turns in: the World Map painted in the 2.5D style (#134), its mountain ranges and woods running across explored territories, coasts and clouds, three players' outposts, and the footer offering an advance or income, which ends era I and begins era II](docs/ui/screens/game-map.png) |
 
 | Play: the player area (Capital) | Play: the players overview |
 |---|---|
