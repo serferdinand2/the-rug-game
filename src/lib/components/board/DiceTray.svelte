@@ -1,10 +1,7 @@
 <!-- DiceTray: a roll over the middle of the screen for the whole table (#61); a batch plays one roll after another, then fades. -->
 <script module>
-	/** How long the dice tumble, and how long they hold their faces, in milliseconds. */
-	export const TUMBLE_MS = 1000;
-	export const HOLD_MS = 1500;
-	/** How long the tray takes to fade out: the --duration-medium token. */
-	export const FADE_MS = 220;
+	/** How long the dice hold their faces once they land, in milliseconds. */
+	const HOLD_MS = 1500;
 
 	/**
 	 * Properties of the DiceTray component itself.
@@ -28,6 +25,8 @@
 	import { untrack } from 'svelte';
 	import Die from './Die.svelte';
 	import { ComponentEvent } from '../../component-event.js';
+	import { TUMBLE_MS } from '../../dice.js';
+	import { msOf, prefersReducedMotion } from '../../motion.js';
 
 	/** @type {DiceTrayProps} */
 	let { rolls, batch, panel = 'none', onDiceTrayDone, ...attr } = $props();
@@ -47,11 +46,15 @@
 	/** The batch already played, so a new mount with the same batch plays nothing. */
 	let started = untrack(() => batch);
 
-	const still = () =>
-		typeof window !== 'undefined' &&
-		Boolean(
-			window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-		);
+	/** How long the tray fades: its --duration-medium token, which is 0 under reduced motion. */
+	function fadeMs() {
+		if (!region) {
+			return 0;
+		}
+		const token =
+			getComputedStyle(region).getPropertyValue('--duration-medium');
+		return msOf(token);
+	}
 
 	/** Ends the batch: the tray fades out, then goes, and the callback fires. */
 	function finish() {
@@ -61,16 +64,13 @@
 		}
 		rolling = false;
 		leaving = true;
-		timer = setTimeout(
-			() => {
-				current = null;
-				leaving = false;
-				if (region && typeof onDiceTrayDone === 'function') {
-					onDiceTrayDone(new ComponentEvent(null, region));
-				}
-			},
-			still() ? 0 : FADE_MS
-		);
+		timer = setTimeout(() => {
+			current = null;
+			leaving = false;
+			if (region && typeof onDiceTrayDone === 'function') {
+				onDiceTrayDone(new ComponentEvent(null, region));
+			}
+		}, fadeMs());
 	}
 
 	/**
@@ -83,7 +83,7 @@
 			return;
 		}
 		current = index;
-		const tumble = still() ? 0 : TUMBLE_MS;
+		const tumble = prefersReducedMotion() ? 0 : TUMBLE_MS;
 		rolling = tumble > 0;
 		timer = setTimeout(() => {
 			rolling = false;

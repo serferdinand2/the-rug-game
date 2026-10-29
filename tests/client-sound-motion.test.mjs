@@ -1,8 +1,11 @@
 // The sound cue for a batch of fresh events (#29 design §7) and what moves for them (§8).
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { readdirSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { CUES, cueFor } from '../src/lib/sound.js';
-import { highlights } from '../src/lib/motion.js';
+import { highlights, msOf, prefersReducedMotion } from '../src/lib/motion.js';
+import { TUMBLE_MS } from '../src/lib/dice.js';
 import { DECISIONS, openDecisions, play } from '../src/lib/engine/game.js';
 import { newGame } from './helpers/engine.mjs';
 
@@ -119,4 +122,59 @@ test("the turn cue is not played for a seat's own automatic first turn (#77)", (
 	assert.equal(cueFor(events, first), 'turn');
 	assert.notEqual(cueFor(events, second), 'turn');
 	assert.equal(cueFor(events, null), 'turn');
+});
+
+/**
+ * A window whose matchMedia answers the reduced-motion query.
+ * @param {boolean} reduce
+ */
+function windowAsking(reduce) {
+	return {
+		matchMedia: (/** @type {string} */ query) => ({
+			matches: reduce && query === '(prefers-reduced-motion: reduce)',
+		}),
+	};
+}
+
+test('reduced motion is what the system asks for, and nothing without a window (#119)', () => {
+	assert.equal(prefersReducedMotion(windowAsking(true)), true);
+	assert.equal(prefersReducedMotion(windowAsking(false)), false);
+	assert.equal(prefersReducedMotion({}), false);
+	assert.equal(prefersReducedMotion(undefined), false);
+	assert.equal(prefersReducedMotion(), false, 'Node has no window');
+});
+
+test('a CSS time is read in milliseconds (#119)', () => {
+	assert.equal(msOf('220ms'), 220);
+	assert.equal(msOf(' 0ms'), 0);
+	assert.equal(msOf('0.38s'), 380);
+	assert.equal(msOf('1s'), 1000);
+	assert.equal(msOf(''), 0);
+});
+
+test('only motion.js asks for reduced motion, and the dice write no timing of their own (#119)', () => {
+	const src = fileURLToPath(new URL('../src/', import.meta.url));
+	const files = readdirSync(src, { recursive: true })
+		.map(String)
+		.filter(
+			(file) => /\.(svelte|js)$/.test(file) && file !== 'lib/motion.js'
+		);
+	for (const file of files) {
+		assert.doesNotMatch(
+			readFileSync(`${src}${file}`, 'utf8'),
+			/matchMedia/,
+			`${file} asks for reduced motion itself`
+		);
+	}
+	const board = `${src}lib/components/board/`;
+	const die = readFileSync(`${board}Die.svelte`, 'utf8');
+	assert.doesNotMatch(die, /rg-die-tumble\s+[\d.]+m?s/, 'Die names a length');
+	assert.match(die, /var\(--rg-die-tumble\)/);
+	const tray = readFileSync(`${board}DiceTray.svelte`, 'utf8');
+	assert.doesNotMatch(
+		tray,
+		/FADE_MS|TUMBLE_MS = /,
+		'the tray times its fade'
+	);
+	assert.equal(TUMBLE_MS, 1000);
 });

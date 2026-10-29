@@ -2,6 +2,9 @@
 import { BLACK_DIE, RED_DIE, SCIENCE_DIE } from './engine/data/dice.js';
 import { eventText } from './log.js';
 
+/** How long the dice tumble, in milliseconds: the tray waits this long before a roll lands, and Die animates for it (#119). */
+export const TUMBLE_MS = 1000;
+
 /** @typedef {'science' | 'red' | 'black'} DieId */
 
 /**
