@@ -109,6 +109,8 @@ Player identity and track identity are separate colour systems. **The game uses 
 
 Use gold for selection, the track colours for track names, and green for the current player glow, valid placement guidance and confirmation. Keep names, outlines and symbols as additional signals; colour alone must not carry state. Use the native 24 px SVG resource icons for compact track prices, overview counts, footer costs and inline choice costs. Use the native 48 px icons for large resource choices in decision prompts. Do not scale the deprecated 32 px resource artwork.
 
+**Tooltips** (#137, 2026-10-29) are never the browser's own. One `Tooltip`, mounted at the root of the app and of the component library, shows every element's `title` in a `--chrome` box with a `--line` border, `--shadow-float` and an arrow, in Atkinson Hyperlegible at 15 px, up to 360 px wide, keeping the title's line breaks. It shows after 250 ms of hover or keyboard focus, sits above its element (below near the top of the window) and stays inside the window. A press, a key, or a scroll that moves the element closes it. Components keep writing plain `title` attributes.
+
 The pixel noise from `src/styles/pixel-noise.svg` covers the launch page, lobby, and both the shared and player areas of the game over `--surface`. Keep the resource art in advancement tier costs and decision cost boxes free of per-icon outlines; the surrounding rules and cost box supply the structure.
 
 ## Launch page

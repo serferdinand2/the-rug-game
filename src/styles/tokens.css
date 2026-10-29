@@ -192,6 +192,7 @@
 	--layer-popover: 20;
 	--layer-tray: 30; /* the dice tray, above a decision panel (#61) */
 	--layer-drag: 100;
+	--layer-tooltip: 200; /* the tooltip, over everything, dragged pieces too (#137) */
 }
 
 @media (prefers-reduced-motion: reduce) {

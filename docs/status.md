@@ -8,7 +8,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
-  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78, #84 and #85 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
+  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78, #84, #85 and #137 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
   - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101, #108 and #109 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; #85 is done, so what is left of each can start.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
@@ -818,6 +818,20 @@ Built on 2026-10-29, after #108. The design is `docs/superpowers/specs/2026-10-2
 - **Tests:** the new `tests/client-card-band.test.mjs` covers each colour and its token, the chip, the band, every family's chip, and a guard against the old classes. `npm run check` is clean.
 - **For the owner:** please check the card gallery (`/cards.html`) and the library's CardBand and CardEdition sections.
 - **Handed off:** #106 and #107 build on `CardFrame` with `CardBand` and `CardEdition`, and each expansion card passes its edition code.
+
+### #137 (every title in one styled tooltip)
+
+Built on 2026-10-29, at the owner's request: "style the tooltip and make it bigger", using the approach of their surveyplanet `tooltip` action, with this repo's look.
+- **Built:**
+  - `Tooltip` (`src/lib/components/ui/`), mounted once in `App.svelte` and `Library.svelte`. It takes over every `title` on the page: while an element is hovered or keyboard-focused, its title waits in `data-rg-title` and the element keeps an empty `title`, which hides the browser's own; the title goes back when the pointer leaves. Components keep writing plain `title` attributes, so nothing else changed.
+  - The look: `--chrome`, a `--line` border, `--shadow-float`, square corners and an arrow; Atkinson Hyperlegible at 15 px, up to 360 px wide, keeping line breaks. The new token `--layer-tooltip` (200) puts it over everything.
+  - The behaviour: it shows after 250 ms, and at once when the pointer moves on from one that shows. It sits above its element, or below near the top of the window, and stays inside the window. A press, a key, or a scroll that moves the element closes it. It follows a title that changes while it shows, such as the turn clock's. It closes when its element leaves the page, checked on the clocks' shared tick (#89), because no component may run its own `setInterval`.
+  - `placeTooltip` and `tooltipText` in `src/lib/tooltip.js`. There is no `@floating-ui/dom`, because the repo has no runtime packages.
+  - `placement="inline"` shows a given `text` in place, for the library section.
+- **Calls to revisit** (my calls): the 250 ms wait and the 300 ms in which the next tooltip shows at once; no auto-hide (surveyplanet hides after 5 s, but a civilization's ability takes longer to read); left-aligned text (surveyplanet centres it), for the abilities' paragraphs.
+- **Checks:** in Chromium at 1920×1080 on the library page: a player chip's long ability, track spaces (switching from one space to the next without the wait), the host-only Segmented group over its disabled buttons, and a key press closing it. The README's screenshots are unchanged, since tooltips only show on hover.
+- **Tests:** the new `tests/client-tooltip.test.mjs` covers above, below, the window's edges, the roomier side and the text. `npm run check` is clean and all 2026 unit tests pass. The browser tests `setup-prompts` and `track-text` still fail exactly as on main since #85 (see the summary).
+- **For the owner:** please check the library's Tooltip section, and hover around a game.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

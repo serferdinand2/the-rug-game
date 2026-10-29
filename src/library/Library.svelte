@@ -47,6 +47,7 @@
 <script>
 	import ArtTile from './ArtTile.svelte';
 	import Section from './Section.svelte';
+	import Tooltip from '../lib/components/ui/Tooltip.svelte';
 	import {
 		ART_SECTIONS,
 		PARTS,
@@ -200,6 +201,7 @@
 			</Section>
 		{/each}
 	</main>
+	<Tooltip />
 </div>
 
 <style>
