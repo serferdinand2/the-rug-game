@@ -55,7 +55,7 @@ export function spaceWords(view, track, space) {
  * A tier's price as symbols, the track's own resource before any resource of the player's choice (#86): what the
  * board shows above each tier and the footer beside a selected space.
  * @param {TrackId} track
- * @param {1 | 2 | 3 | 4} tier - A space's tier is `Math.ceil(space / 3)`
+ * @param {1 | 2 | 3 | 4} tier - A space's tier is the engine's `tierOf(space)`
  * @returns {CostSymbol[]}
  */
 export function tierSymbols(track, tier) {

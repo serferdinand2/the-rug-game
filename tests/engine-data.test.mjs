@@ -17,7 +17,9 @@ import {
 	TIER_COSTS,
 	TRACK_RESOURCE,
 	TRACK_BUILDING,
+	TIER_SPACES,
 	advanceCost,
+	tierOf,
 } from '../src/lib/engine/data/tracks.js';
 import {
 	INCOME_MAT,
@@ -626,6 +628,26 @@ test('a tier costs 1 any, then the track resource and 1 or 2 any, then 2 of the 
 	assert.deepEqual(advanceCost('military', 10), { culture: 2 });
 	assert.throws(() => advanceCost('military', 0), RangeError);
 	assert.throws(() => advanceCost('military', 13), RangeError);
+});
+
+test('every three spaces share one tier, I to IV, and each space keeps its tier (#128)', () => {
+	assert.equal(TIER_SPACES, 3);
+	assert.deepEqual(
+		Array.from({ length: 12 }, (_, index) => tierOf(index + 1)),
+		[1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4]
+	);
+	assert.throws(() => tierOf(0), RangeError);
+	assert.throws(() => tierOf(13), RangeError);
+	assert.throws(() => tierOf(1.5), RangeError);
+	for (const track of TRACK_IDS) {
+		for (const space of TRACKS[track].slice(1)) {
+			assert.equal(
+				space.tier,
+				tierOf(space.space),
+				`${track} ${space.space}`
+			);
+		}
+	}
 });
 
 // Income mat

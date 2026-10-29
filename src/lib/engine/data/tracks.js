@@ -60,6 +60,21 @@ export const TIER_COSTS = deepFreeze({
 	4: { track: 2 },
 });
 
+/** The spaces under one tier price (01 §3.1). */
+export const TIER_SPACES = 3;
+
+/**
+ * The tier a track space belongs to, three spaces under each price: the one tier helper of the engine and the app (#128).
+ * @param {number} space - The space, 1–12; the start has no tier.
+ * @returns {1 | 2 | 3 | 4}
+ */
+export function tierOf(space) {
+	if (!Number.isInteger(space) || space < 1 || space > 12) {
+		throw new RangeError(`track spaces run from 1 to 12, not ${space}`);
+	}
+	return /** @type {1 | 2 | 3 | 4} */ (Math.ceil(space / TIER_SPACES));
+}
+
 /**
  * A space without its number and tier, which its place on the track sets.
  * @param {string} name
@@ -98,7 +113,7 @@ function track(spaces) {
 		...spaces.map((entry, index) => ({
 			...entry,
 			space: index + 1,
-			tier: Math.ceil((index + 1) / 3),
+			tier: tierOf(index + 1),
 		})),
 	];
 }
@@ -325,11 +340,7 @@ export const TRACKS = deepFreeze({
  * @returns {Cost} The resources to pay.
  */
 export function advanceCost(track, space) {
-	if (!Number.isInteger(space) || space < 1 || space > 12) {
-		throw new RangeError(`track spaces run from 1 to 12, not ${space}`);
-	}
-	const tier = /** @type {1 | 2 | 3 | 4} */ (Math.ceil(space / 3));
-	const { track: own = 0, any = 0 } = TIER_COSTS[tier];
+	const { track: own = 0, any = 0 } = TIER_COSTS[tierOf(space)];
 	/** @type {Cost} */
 	const cost = {};
 	if (own) {
