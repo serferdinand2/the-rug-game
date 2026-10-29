@@ -17,20 +17,11 @@
 </script>
 
 <script>
-	import { article } from '../../words.js';
 	import { roman } from '../../game-names.js';
 	import { artUrl } from '../../ui.js';
 
 	/** @type {IncomeMatProps} */
 	let { rows, era, ...attr } = $props();
-
-	/** @type {Record<string, string>} */
-	const ROW_NAMES = {
-		market: 'Markets',
-		house: 'Houses',
-		farm: 'Farms',
-		armory: 'Armories',
-	};
 </script>
 
 <section
@@ -48,7 +39,7 @@
 		{#each rows as row (row.building)}
 			<div class="rg-income-mat--row rg-income-mat--row-{row.building}">
 				<div class="rg-income-mat--head">
-					<strong>{ROW_NAMES[row.building]}</strong>
+					<strong>{row.name}</strong>
 					<span>{row.left} left</span>
 				</div>
 				<ul class="rg-income-mat--spaces">
@@ -57,9 +48,7 @@
 							class="rg-income-mat--space {space.covered
 								? 'rg-income-mat--space-covered'
 								: ''}"
-							aria-label={space.covered
-								? `${space.name}, covered by ${article(row.building)} ${row.building}`
-								: `${space.name}. ${space.reward}`}>
+							aria-label={space.label}>
 							{#if space.covered}
 								<img
 									src={artUrl(`building/${row.building}`)}

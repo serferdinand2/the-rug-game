@@ -25,8 +25,8 @@
 </script>
 
 <script>
-	import ResourceIcon from '../ui/ResourceIcon.svelte';
-	import { playerColor } from '../../ui.js';
+	import ResourceChip from './ResourceChip.svelte';
+	import { playerColor, RESOURCES } from '../../ui.js';
 	import { roman } from '../../game-names.js';
 
 	/** @type {SelfSummaryProps} */
@@ -43,14 +43,6 @@
 		lines,
 		...attr
 	} = $props();
-
-	/** @type {{ id: 'coin' | 'food' | 'worker' | 'culture', one: string, many: string }[]} */
-	const RESOURCE_ROWS = [
-		{ id: 'coin', one: 'coin', many: 'coins' },
-		{ id: 'food', one: 'food', many: 'food' },
-		{ id: 'worker', one: 'worker', many: 'workers' },
-		{ id: 'culture', one: 'culture', many: 'culture' },
-	];
 </script>
 
 <section
@@ -75,18 +67,13 @@
 	<div
 		class="rg-self-summary--resources"
 		aria-label="Your resources">
-		{#each RESOURCE_ROWS as row (row.id)}
-			<span
+		{#each RESOURCES as resource (resource.id)}
+			<ResourceChip
 				class="rg-self-summary--resource"
-				class:rg-self-summary--changed={changed.includes(row.id)}
-				aria-label="{resources[row.id]} {resources[row.id] === 1
-					? row.one
-					: row.many}">
-				<ResourceIcon
-					symbol={row.id}
-					size="medium"
-					decorative /><b>{resources[row.id]}</b>
-			</span>
+				resource={resource.id}
+				count={resources[resource.id]}
+				changed={changed.includes(resource.id)}
+				size="medium" />
 		{/each}
 	</div>
 </section>
@@ -157,21 +144,5 @@
 		display: grid;
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: var(--space-3);
-	}
-
-	.rg-self-summary--resource {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: var(--space-2);
-		min-width: 0;
-		min-height: 34px;
-		background: var(--raised);
-		color: var(--text);
-		font: var(--weight-bold) var(--font-size-base) / 1 var(--font-body);
-	}
-
-	.rg-self-summary--changed b {
-		color: var(--gold);
 	}
 </style>

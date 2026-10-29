@@ -115,6 +115,15 @@ export function amountWords(id, n) {
 }
 
 /**
+ * A name's plural: "Markets", "Armories" after a consonant and y, "Days" after a vowel and y.
+ * @param {string} word
+ * @returns {string}
+ */
+export function pluralOf(word) {
+	return /[^aeiou]y$/i.test(word) ? `${word.slice(0, -1)}ies` : `${word}s`;
+}
+
+/**
  * A count of any noun: "1 outpost", "2 toppled outposts", "0 territories".
  * @param {number} n
  * @param {string} one

@@ -7,6 +7,7 @@ import {
 	capitalize,
 	joinList,
 	nounOf,
+	pluralOf,
 	wordsOf,
 } from './words.js';
 import {
@@ -575,7 +576,7 @@ function gainNouns(gains) {
 		if (n === 1) {
 			return `${article(name)} ${name}`;
 		}
-		return `${n} ${name.endsWith('y') ? `${name.slice(0, -1)}ies` : `${name}s`}`;
+		return `${n} ${pluralOf(name)}`;
 	});
 	return [
 		...amounts(gains.counts),

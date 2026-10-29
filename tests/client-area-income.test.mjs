@@ -29,6 +29,23 @@ test('a dealt seat has every space covered but the first of each row', () => {
 	assert.match(rows[0].spaces[0].reward, /Score: .*tech card/);
 });
 
+test('each row is named by its buildings, and each space has its label (#125)', () => {
+	const { state } = startedGame(2);
+	/** @type {any} */ (state.seats[0]).incomeMat.buildings.armory = 4;
+	const rows = incomeRows(mine(state));
+	assert.deepEqual(
+		rows.map((r) => r.name),
+		['Markets', 'Houses', 'Farms', 'Armories']
+	);
+	const [barter, second] = rows[0].spaces;
+	assert.equal(barter.label, `Barter. ${barter.reward}`);
+	assert.equal(second.label, `${second.name}, covered by a market`);
+	assert.equal(
+		rows[3].spaces[2].label,
+		`${rows[3].spaces[2].name}, covered by an armory`
+	);
+});
+
 test('removing two markets exposes three spaces, and the others stay', () => {
 	const { state } = startedGame(2);
 	/** @type {any} */ (state.seats[0]).incomeMat.buildings.market = 3;
@@ -80,6 +97,24 @@ test('era 1 is Maker of Fire and empty slots have no card', () => {
 		assert.equal(slot.faceDown, false);
 		assert.equal(slot.active, false);
 	}
+});
+
+test('each era slot has its heading and text (#125)', () => {
+	const { state } = startedGame(2);
+	const seat = /** @type {any} */ (state.seats[0]);
+	seat.incomeMat.tapestry[1] = ['capitalism'];
+	seat.incomeMat.tapestry[2] = ['trap-1'];
+	seat.incomeMat.faceDown = ['trap-1'];
+	seat.era = { card: 'capitalism', ability: {} };
+	const slots = eraSlots(mine(state));
+	assert.deepEqual(
+		slots.map((s) => s.heading),
+		['Era I', 'Era II · Active', 'Era III', 'Era IV']
+	);
+	assert.deepEqual(
+		slots.map((s) => s.text),
+		['Maker of Fire', 'Capitalism', 'Face-down card', 'Not yet chosen']
+	);
 });
 
 test('a face-down card reads face down, and the active era is marked', () => {
