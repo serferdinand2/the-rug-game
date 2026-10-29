@@ -1,7 +1,9 @@
 // The explore prompt (#28, #74): the tiles an explore offers, what each scores on the lit hexes, and the answer for a tile, hex and turn.
 import { matchingSides, turned } from '../engine/game.js';
 import { describeTurn } from '../describe.js';
-import { hexName, territoryWords } from '../hexmap.js';
+import { territoryWords } from '../hexmap.js';
+import { hexName } from '../game-names.js';
+import { capitalize } from '../words.js';
 import { TERRITORY_TILES } from '../engine/data/territory-tiles.js';
 
 /** @typedef {import('../ui.js').Terrain} Terrain */
@@ -133,5 +135,6 @@ export function tileWords(tile) {
  */
 export function exploreLine(hex, orient) {
 	const turn = describeTurn(orient);
-	return turn ? `Hex ${hexName(hex)}, ${turn}` : `Hex ${hexName(hex)}`;
+	const name = capitalize(hexName(hex));
+	return turn ? `${name}, ${turn}` : name;
 }

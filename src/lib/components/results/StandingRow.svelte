@@ -20,7 +20,7 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
-	import { ordinal } from '../../results.js';
+	import { ordinal } from '../../words.js';
 	import { playerColor } from '../../ui.js';
 	import PlayerToken from '../player/PlayerToken.svelte';
 

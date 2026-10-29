@@ -1,26 +1,25 @@
 // Words for the engine's events, for the table log (#29 design §5): one plain sentence for each event worth reading.
-import { ACHIEVEMENTS } from './engine/data/achievements.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { BLACK_DIE, RED_DIE } from './engine/data/dice.js';
 import { VARIANTS } from './engine/game.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
 import { EXPANSIONS } from './art/catalog.js';
 import { VARIANT_LABELS } from './lobby.js';
+import { PROPHECIES, describeCost } from './describe.js';
+import { article, capitalize, countWords, joinList } from './words.js';
 import {
-	PROPHECIES,
-	article,
+	achievementName,
 	buildingName,
 	civilizationName,
-	describeCost,
 	hexName,
-	joinList,
 	landmarkName,
 	seatName,
 	spaceName,
+	tapestryCardOf,
 	tapestryName,
 	techName,
 	trackName,
-} from './describe.js';
+} from './game-names.js';
 
 /** @typedef {import('./describe.js').Table} Game - The game as view() gives it: the seats' names */
 /** @typedef {{ type?: unknown, seq?: unknown, player?: unknown, secret?: unknown } & Record<string, any>} LogEvent */
@@ -44,13 +43,6 @@ import {
 const RULES = /** @type {Readonly<Record<string, string>>} */ ({
 	original: 'Original 2019 rules',
 	current: 'Current official rules',
-});
-
-/** The achievements by their short names, as the achievement strip shows them. */
-const ACHIEVEMENT_NAMES = /** @type {Readonly<Record<string, string>>} */ ({
-	'complete-track': 'Complete a track',
-	'topple-two': 'Topple two outposts',
-	'middle-island': 'Conquer the middle',
 });
 
 /** Where VP came from, as the end of a VP line says it (#29 design §2); other says nothing. */
@@ -122,17 +114,6 @@ function strings(value) {
 }
 
 /**
- * A count with its noun, one or many: "1 side", "2 sides".
- * @param {number} n
- * @param {string} one
- * @param {string} many
- * @returns {string}
- */
-function counted(n, one, many) {
-	return `${n} ${n === 1 ? one : many}`;
-}
-
-/**
  * Resources in words, such as "1 coin and 2 food"; null when there are none.
  * @param {unknown} resources
  * @returns {string | null}
@@ -151,9 +132,7 @@ function resourceWords(resources) {
  * @returns {string}
  */
 function tapestryWords(id) {
-	return typeof id === 'string' && /^trap-\d+$/.test(id)
-		? 'a trap'
-		: tapestryName(id);
+	return tapestryCardOf(id)?.id === 'trap' ? 'a trap' : tapestryName(id);
 }
 
 /**
@@ -383,7 +362,7 @@ const WORDS = {
 	},
 	outpostsPlaced(e, game, name) {
 		const n = isCount(e.count) ? e.count : 2;
-		return `${name} started with ${counted(n, 'outpost', 'outposts')} on ${hexName(e.hex)}.`;
+		return `${name} started with ${countWords(n, 'outpost', 'outposts')} on ${hexName(e.hex)}.`;
 	},
 	firstPlayerChosen: (e, game, name) => `${name} goes first.`,
 
@@ -445,12 +424,8 @@ const WORDS = {
 	trackUnblocked: (e, game, name) =>
 		`${name}'s block on ${trackName(e.track)} was lifted.`,
 	achievementClaimed(e, game, name) {
-		const id = typeof e.achievement === 'string' ? e.achievement : '';
-		const title =
-			ACHIEVEMENT_NAMES[id] ??
-			ACHIEVEMENTS.find((a) => a.id === id)?.name;
-		return title
-			? `${name} claimed the achievement ${title}.`
+		return typeof e.achievement === 'string'
+			? `${name} claimed the achievement ${achievementName(e.achievement)}.`
 			: `${name} claimed an achievement.`;
 	},
 
@@ -547,14 +522,14 @@ const WORDS = {
 	capitalScored(e, game, name) {
 		const parts = [
 			...(isCount(e.rows) && e.rows > 0
-				? [counted(e.rows, 'complete row', 'complete rows')]
+				? [countWords(e.rows, 'complete row', 'complete rows')]
 				: []),
 			...(isCount(e.columns) && e.columns > 0
-				? [counted(e.columns, 'complete column', 'complete columns')]
+				? [countWords(e.columns, 'complete column', 'complete columns')]
 				: []),
 			...(isCount(e.uniform) && e.uniform > 0
 				? [
-						counted(
+						countWords(
 							e.uniform,
 							'line of a single building type',
 							'lines of a single building type'
@@ -571,7 +546,7 @@ const WORDS = {
 	explored(e, game, name) {
 		const where = `${name} explored ${hexName(e.hex)}`;
 		return isCount(e.vp) && e.vp > 0
-			? `${where}, matching ${counted(e.vp, 'side', 'sides')}.`
+			? `${where}, matching ${countWords(e.vp, 'side', 'sides')}.`
 			: `${where}.`;
 	},
 	noExplore: (e, game, name) => `${name} had nowhere to explore.`,
@@ -719,7 +694,7 @@ const WORDS = {
 			return `${name} drew ${joinList(civs.map(civWords))}.`;
 		}
 		return isCount(e.count) && e.count > 0
-			? `${name} drew ${counted(e.count, 'civilization', 'civilizations')}.`
+			? `${name} drew ${countWords(e.count, 'civilization', 'civilizations')}.`
 			: `${name} drew civilizations.`;
 	},
 	noCivLeft: (e, game, name) => `${name} found no civilization left to gain.`,
@@ -763,7 +738,7 @@ const WORDS = {
 	prophecyMade(e, game, name) {
 		const [one, many] = prophecyNouns(e.category);
 		return isCount(e.value)
-			? `${name} predicted ${counted(e.value, one, many)}.`
+			? `${name} predicted ${countWords(e.value, one, many)}.`
 			: `${name} made a prophecy.`;
 	},
 	prophecyReached(e, game, name) {
@@ -787,10 +762,13 @@ export function eventText(event, game) {
 		return null;
 	}
 	const table = game ?? undefined;
-	const name = isSeat(event.player)
-		? seatName(table, event.player)
-		: 'A player';
-	return WORDS[event.type](event, table, name);
+	// A player's own name keeps the case they typed; "a player" starts its sentence.
+	const name = seatName(table, event.player);
+	return WORDS[event.type](
+		event,
+		table,
+		isSeat(event.player) ? name : capitalize(name)
+	);
 }
 
 /**

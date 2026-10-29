@@ -1,7 +1,8 @@
 // The results screen and the scoreboard (#29 design §5–§6): the standings, shared places, each tie step by step, VP by source and the table's facts, from a game view.
 import { VARIANTS, VERSIONS, tiebreakValues } from './engine/game.js';
-import { ASSETS, EXPANSIONS } from './art/catalog.js';
-import { civilizationName } from './describe.js';
+import { EXPANSIONS } from './art/catalog.js';
+import { civilizationOf, landmarkName, seatName } from './game-names.js';
+import { countWords, joinList, ordinal } from './words.js';
 import { VARIANT_LABELS } from './lobby.js';
 
 /** @typedef {import('./engine/stack.js').VpSource} VpSource */
@@ -30,14 +31,6 @@ const STEP_TITLES = /** @type {Readonly<Record<string, string>>} */ ({
 	resources: 'Resources left',
 });
 
-/** Every landmark's name, the expansions' too, by id. */
-const LANDMARK_NAMES = new Map(
-	ASSETS.filter((asset) => asset.group === 'landmark').map((asset) => [
-		asset.id.slice('landmark/'.length),
-		asset.name,
-	])
-);
-
 /**
  * One source of a seat's VP.
  * @typedef {{ id: VpSource, label: string, vp: number }} SourceLine
@@ -48,7 +41,7 @@ const LANDMARK_NAMES = new Map(
  * @typedef {Object} StandingRow
  * @property {Seat} seat
  * @property {string} name
- * @property {string} civ - Their first civilization's name, or '' without one
+ * @property {string} civ - Their first civilization's name, or 'Setting up' without one
  * @property {number} place - 1 for the winners; a shared place repeats and the next one skips
  * @property {number} vp
  * @property {boolean} winner
@@ -65,25 +58,6 @@ const LANDMARK_NAMES = new Map(
  */
 
 /**
- * A place as a word, such as '1st' or '3rd'.
- * @param {number} place
- * @returns {string}
- */
-export function ordinal(place) {
-	const last = place % 10;
-	const teen = place % 100 >= 11 && place % 100 <= 13;
-	const suffix =
-		!teen && last === 1
-			? 'st'
-			: !teen && last === 2
-				? 'nd'
-				: !teen && last === 3
-					? 'rd'
-					: 'th';
-	return `${place}${suffix}`;
-}
-
-/**
  * A seat's VP by source, in VP_SOURCES order, without the sources that gave nothing.
  * @param {{ vpSources?: Record<string, number> }} seat
  * @returns {SourceLine[]}
@@ -93,26 +67,6 @@ export function vpBreakdown(seat) {
 	return VP_SOURCES.flatMap(({ id, label }) =>
 		sources[id] ? [{ id, label, vp: sources[id] }] : []
 	);
-}
-
-/**
- * Names joined in English: "Ana", "Ana and Bo", "Ana, Bo and Cy".
- * @param {string[]} names
- * @returns {string}
- */
-function joinNames(names) {
-	return names.length < 2
-		? (names[0] ?? '')
-		: `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
-}
-
-/**
- * @param {any} game
- * @param {number} seat
- * @returns {string}
- */
-function nameOf(game, seat) {
-	return game.seats[seat - 1]?.name ?? `Seat ${seat}`;
 }
 
 /**
@@ -143,8 +97,8 @@ export function standings(game) {
 		const player = game.seats[seat - 1];
 		return {
 			seat: /** @type {Seat} */ (seat),
-			name: nameOf(game, seat),
-			civ: player?.civs?.length ? civilizationName(player.civs[0]) : '',
+			name: seatName(game, seat),
+			civ: civilizationOf(player ?? {}),
 			place,
 			vp,
 			winner: place === 1,
@@ -174,21 +128,20 @@ export function tieExplanations(game) {
 		return [];
 	}
 	return result.ties.map((tie) => {
-		const names = tie.seats.map((seat) => nameOf(game, seat));
+		const names = tie.seats.map((seat) => seatName(game, seat));
 		const both = tie.seats.length === 2 ? 'both' : 'all';
-		const intro = `${joinNames(names)} ${both} finished on ${tie.vp} VP. Under the ${versionName(game).toLowerCase()}, the tiebreaks decide their order.`;
+		const intro = `${joinList(names)} ${both} finished on ${tie.vp} VP. Under the ${versionName(game).toLowerCase()}, the tiebreaks decide their order.`;
 		const steps = tie.steps.map((step) => ({
 			title: STEP_TITLES[step.by] ?? step.by,
 			values: step.values.map(({ seat, value }) => ({
 				seat,
-				name: nameOf(game, seat),
+				name: seatName(game, seat),
 				value:
 					step.by === 'tallestLandmark'
 						? value === null
 							? 'No landmark'
-							: (LANDMARK_NAMES.get(String(value)) ??
-								String(value))
-						: `${value} ${value === 1 ? 'resource' : 'resources'}`,
+							: landmarkName(String(value))
+						: countWords(/** @type {number} */ (value), 'resource'),
 				landmark: step.by === 'tallestLandmark' && value !== null,
 			})),
 			separates: new Set(step.values.map((v) => v.value)).size > 1,
@@ -198,8 +151,8 @@ export function tieExplanations(game) {
 		const first = places.filter((p) => p.place === best);
 		const outcome =
 			first.length > 1
-				? `${joinNames(first.map((p) => nameOf(game, p.seat)))} share ${ordinal(best)} place.`
-				: `${nameOf(game, first[0].seat)} takes ${ordinal(best)} place.`;
+				? `${joinList(first.map((p) => seatName(game, p.seat)))} share ${ordinal(best)} place.`
+				: `${seatName(game, first[0].seat)} takes ${ordinal(best)} place.`;
 		return { vp: tie.vp, intro, steps, outcome };
 	});
 }
@@ -214,7 +167,7 @@ export function yourResult(game, seat) {
 	const rows = standings(game);
 	const winners = rows.filter((row) => row.winner);
 	const shared = winners.length > 1;
-	const winnerNames = joinNames(winners.map((row) => row.name));
+	const winnerNames = joinList(winners.map((row) => row.name));
 	const won = shared
 		? `${winnerNames} share the victory.`
 		: `${winnerNames} won this table.`;
@@ -234,7 +187,7 @@ export function yourResult(game, seat) {
 		vp: own.vp,
 		outcome: own.winner
 			? shared
-				? `You share the victory with ${joinNames(others.map((row) => row.name))}.`
+				? `You share the victory with ${joinList(others.map((row) => row.name))}.`
 				: 'You won this table.'
 			: won,
 	};
@@ -313,7 +266,7 @@ export function scoreboard(game) {
 		const row = {
 			seat: seat.seat,
 			name: seat.name,
-			civ: seat.civs?.length ? civilizationName(seat.civs[0]) : '',
+			civ: civilizationOf(seat),
 			place:
 				1 +
 				players.filter((/** @type {any} */ o) => o.vp > seat.vp).length,
@@ -325,7 +278,7 @@ export function scoreboard(game) {
 			row.landmark =
 				values.tallestLandmark === null
 					? null
-					: (LANDMARK_NAMES.get(values.tallestLandmark) ?? null);
+					: landmarkName(values.tallestLandmark);
 		}
 		return row;
 	});

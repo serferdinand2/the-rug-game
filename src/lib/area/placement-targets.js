@@ -1,15 +1,7 @@
 // Placing on the capital (#28): a building's lit plots, and the legal places a landmark snaps to, from the prompt's options.
 // The engine's answers are the only legal places; the grid's own fit check never decides one.
 import { FOOTPRINTS } from '../art/footprints.js';
-import { ASSETS } from '../art/catalog.js';
-
-/** All 33 landmarks' names, by id, from the asset catalog. */
-const LANDMARK_NAMES = new Map(
-	ASSETS.filter((asset) => asset.group === 'landmark').map((asset) => [
-		asset.id.slice('landmark/'.length),
-		asset.name,
-	])
-);
+import { landmarkName } from '../game-names.js';
 
 /**
  * A capital plot an option stands for: a building's plot, or a landmark's top-left corner and turn.
@@ -34,7 +26,7 @@ const LANDMARK_NAMES = new Map(
 export function placingPiece(landmark) {
 	return {
 		id: landmark,
-		name: LANDMARK_NAMES.get(landmark) ?? landmark,
+		name: landmarkName(landmark),
 		footprint: FOOTPRINTS[landmark],
 	};
 }

@@ -175,6 +175,8 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 | M7–M9 | Plans & Ploys, Arts & Architecture, Fantasies & Futures |
 | M10 · Rules pages | In-game help and a card reference |
 | M11 · Discord Activity | Playing inside Discord |
+| M12 · Cosmetic enhancements | The cosmetic boards and polish, after the core features |
+| M13 · Refactor | Shared client components and helpers, ahead of solo play and the expansions |
 
 ## Rules conventions
 

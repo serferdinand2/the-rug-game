@@ -40,7 +40,7 @@
 	import CardTerrainRewards from './CardTerrainRewards.svelte';
 	import CardTokenReserve from './CardTokenReserve.svelte';
 	import PlayerToken from './PlayerToken.svelte';
-	import { civilizationName } from '../../describe.js';
+	import { civilizationName } from '../../game-names.js';
 	import { playerColor } from '../../ui.js';
 	import { ASSETS, EXPANSIONS } from '../../art/catalog.js';
 	import '../../engine/game.js';

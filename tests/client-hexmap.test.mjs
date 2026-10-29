@@ -8,7 +8,6 @@ import {
 	fitBox,
 	hexCenter,
 	hexCorner,
-	hexName,
 	hexPicture,
 	islandParts,
 	mapHexes,
@@ -283,11 +282,6 @@ test('a toppled outpost keeps toppled, and pieces and tokens are named', () => {
 			'Ana: 1 toppled outpost, a Traders token. ' +
 			'Bo: a Farm, a toppled Lighthouse, a TV Station.'
 	);
-});
-
-test('hexes are named by their axial key, with true minus signs', () => {
-	assert.equal(hexName('2_-1'), '2,−1');
-	assert.equal(hexName('0_0'), '0,0');
 });
 
 test('points become an SVG points attribute, rounded to hundredths', () => {

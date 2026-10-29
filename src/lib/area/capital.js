@@ -2,23 +2,8 @@
 import { cityPlots, completeLines, completeDistricts } from '../engine/game.js';
 import { CAPITAL_MATS } from '../engine/data/capitals.js';
 import { FOOTPRINTS } from '../art/footprints.js';
-import { ASSETS } from '../art/catalog.js';
-
-/** The income buildings' names, by id. @type {Readonly<Record<string, string>>} */
-const BUILDING_NAMES = Object.freeze({
-	market: 'Market',
-	house: 'House',
-	farm: 'Farm',
-	armory: 'Armory',
-});
-
-/** All 33 landmarks' names, by id, from the asset catalog, which lists the expansions' too. */
-const LANDMARK_NAMES = new Map(
-	ASSETS.filter((asset) => asset.group === 'landmark').map((asset) => [
-		asset.id.slice('landmark/'.length),
-		asset.name,
-	])
-);
+import { BUILDING_IDS } from '../engine/data/ids.js';
+import { buildingName, landmarkName } from '../game-names.js';
 
 /**
  * What the Capital tab draws.
@@ -59,7 +44,7 @@ export function capitalView(seat, code) {
 				/** @type {import('../engine/city.js').PlacedLandmark} */ piece
 			) => ({
 				id: piece.landmark,
-				name: LANDMARK_NAMES.get(piece.landmark) ?? piece.landmark,
+				name: landmarkName(piece.landmark),
 				footprint: FOOTPRINTS[piece.landmark],
 				row: piece.row,
 				col: piece.col,
@@ -72,9 +57,10 @@ export function capitalView(seat, code) {
 			columns: lines.columns,
 			districts: completeDistricts(plots).length,
 		},
-		besideMat: seat.besideMat.map(
-			(/** @type {string} */ id) =>
-				BUILDING_NAMES[id] ?? LANDMARK_NAMES.get(id) ?? id
+		besideMat: seat.besideMat.map((/** @type {string} */ id) =>
+			/** @type {readonly string[]} */ (BUILDING_IDS).includes(id)
+				? buildingName(id)
+				: landmarkName(id)
 		),
 	};
 }

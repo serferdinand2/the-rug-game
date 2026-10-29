@@ -9,6 +9,7 @@
 	import TurnControl from '../../../lib/components/prompts/TurnControl.svelte';
 	import { tilePreview, tileWords } from '../../../lib/area/explore.js';
 	import { describePayment } from '../../../lib/describe.js';
+	import { joinList } from '../../../lib/words.js';
 	import {
 		canPickItem,
 		emptySelection,
@@ -118,7 +119,7 @@
 			index,
 			resources: {},
 			items,
-			label: `Discard territory tiles ${items.slice(0, -1).join(', ')} and ${items.at(-1)}`,
+			label: `Discard territory tiles ${joinList(items.map(String))}`,
 		})),
 		decline: null,
 		lead: 'Pay 3 territory tiles. Pick them here or on your Terrain tab.',

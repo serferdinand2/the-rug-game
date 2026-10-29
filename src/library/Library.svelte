@@ -58,6 +58,7 @@
 		pictureSize,
 	} from './art.js';
 	import { EXPANSIONS } from '../lib/art/catalog.js';
+	import { joinList } from '../lib/words.js';
 
 	const EXPANSION_NAMES = new Map(
 		EXPANSIONS.map(({ code, name }) => [code, name])
@@ -73,10 +74,8 @@
 	 */
 	function issueText(issues) {
 		const names = issues.map((issue) => `#${issue}`);
-		if (names.length === 1) {
-			return `art issue ${names[0]} draws them`;
-		}
-		return `art issues ${names.slice(0, -1).join(', ')} and ${names.at(-1)} draw them`;
+		const issue = names.length === 1 ? 'art issue' : 'art issues';
+		return `${issue} ${joinList(names)} draw${names.length === 1 ? 's' : ''} them`;
 	}
 
 	const modules = /** @type {Record<string, import('svelte').Component>} */ (

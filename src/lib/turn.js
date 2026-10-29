@@ -3,10 +3,11 @@
 import { DECISIONS, askedSeats, openDecisions } from './engine/game.js';
 import { TRACKS } from './engine/data/tracks.js';
 import { spaceWords, tierSymbols } from './board.js';
-import { describeCost, trackName } from './describe.js';
+import { describeCost } from './describe.js';
+import { roman, seatName, spaceName, trackName } from './game-names.js';
 import { TRACK_KEYS } from './hotkeys.js';
 import { incomeView } from './prompts.js';
-import { playerColor, roman } from './ui.js';
+import { playerColor } from './ui.js';
 
 /** @typedef {import('./engine/data/ids.js').TrackId} TrackId */
 
@@ -92,13 +93,8 @@ export function decisionTurnHeading(view, seat) {
 	if (!Number.isInteger(current)) {
 		return 'Your turn is in progress';
 	}
-	const actor = view.seats?.find(
-		(/** @type {any} */ s) => s.seat === current
-	);
 	const prefix =
-		current === seat
-			? 'Your turn'
-			: `${actor?.name ?? 'Another player'}’s turn`;
+		current === seat ? 'Your turn' : `${seatName(view, current)}’s turn`;
 	const events = Array.isArray(view.events) ? view.events : [];
 	const started = events.findLast(
 		(/** @type {any} */ event) => event.type === 'turnStarted'
@@ -112,7 +108,7 @@ export function decisionTurnHeading(view, seat) {
 			TRACKS[/** @type {TrackId} */ (event.track)]?.[event.to]
 	);
 	return moved
-		? `${prefix} · Advance to ${TRACKS[/** @type {TrackId} */ (moved.track)][moved.to].name}`
+		? `${prefix} · Advance to ${spaceName(moved.track, moved.to)}`
 		: `${prefix} is in progress`;
 }
 
@@ -322,7 +318,7 @@ export function footerView(game, seat, inputs) {
 			kind: 'selected',
 			tone: 'selected',
 			heading: 'Advance to',
-			properName: TRACKS[selected.track][selected.space].name,
+			properName: spaceName(selected.track, selected.space),
 			track: selected.track,
 			detail: spaceWords(game, selected.track, selected.space),
 			cost: tierSymbols(
@@ -388,8 +384,7 @@ export function footerView(game, seat, inputs) {
 	}
 	const asked = askedSeats(game);
 	const other = asked.length > 0 && !asked.includes(current.seat);
-	const name = (/** @type {number} */ player) =>
-		game.seats[player - 1]?.name ?? `Seat ${player}`;
+	const name = (/** @type {number} */ player) => seatName(game, player);
 	return {
 		kind: 'waiting',
 		tone: 'waiting',

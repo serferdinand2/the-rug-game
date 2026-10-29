@@ -25,7 +25,8 @@
 
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
-	import { RESOURCES, roman, trackColor } from '../../ui.js';
+	import { RESOURCES, trackColor } from '../../ui.js';
+	import { roman } from '../../game-names.js';
 
 	/** @type {TierPriceProps} */
 	let { era, symbols, track, highlighted = false, ...attr } = $props();

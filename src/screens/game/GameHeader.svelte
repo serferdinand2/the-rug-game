@@ -38,6 +38,7 @@
 	import PageHeader from '../PageHeader.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { playerChips } from '../../lib/area/players.js';
+	import { seatName } from '../../lib/game-names.js';
 	import { isRunning, shownClock, timeLeft } from '../../lib/clock.js';
 	import { clockTime } from '../../lib/now.svelte.js';
 
@@ -100,11 +101,6 @@
 			}
 		};
 	}
-
-	/** @param {number} seatNumber */
-	function nameOf(seatNumber) {
-		return game.seats[seatNumber - 1]?.name ?? `Seat ${seatNumber}`;
-	}
 </script>
 
 <PageHeader
@@ -130,7 +126,7 @@
 		{#if clock}
 			<TurnClock
 				seat={clock.seat}
-				name={nameOf(clock.seat)}
+				name={seatName(game, clock.seat)}
 				ms={clockMs}
 				running={isRunning(clock)}
 				warn={clock.seat === seat &&

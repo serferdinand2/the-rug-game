@@ -8,9 +8,10 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
-  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78, #84, #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119 and #130 are done. #103, #124 and #128 are partly built; what is left of each waits for #85. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
+  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78 and #84 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130 and #123 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
-  - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
+  - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
   - Rules research (`docs/research/`).
   - The approved design document.
@@ -24,6 +25,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
 - **Next:**
+  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123 is done (see [its entry](#123-every-game-name-and-english-list-from-one-helper)); next are #126 and #127, which it unblocked, and #129. What is left of #124, #125 and #128 waits for #85.
   - #77 (the first turn takes income by itself) is done: the owner approved its IncomeNotice and TurnBar sections and closed it on 2026-10-29.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
   - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
@@ -70,6 +72,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#80's findings, second batch](#80s-findings-second-batch)
 - [#86 and #90 (the game's footer and header)](#86-and-90-the-games-footer-and-header)
 - [#78 (choices on the civilization card)](#78-choices-on-the-civilization-card)
+- [#123 (every game name and English list from one helper)](#123-every-game-name-and-english-list-from-one-helper)
 
 ## Issues
 
@@ -603,6 +606,29 @@ Done on 2026-10-29, when the owner asked what the Art area's Capital mats and Ca
 - `PromptArt` draws a `mat` item as its relief. The game never shows that picture: the capital shelf draws each mat as its `CapitalGrid` (#56).
 - Tests: `art-capital-terrain` (a base mat has no example drawing or catalog entry, and has a relief), `art-catalog` (the group's counts), `art-approved` (12 example mats, 95 pinned assets), `engine-data` (every base mat has a relief) and `library-art`.
 - Handed off: #132 and #133 drop each expansion mat's example once its relief is drawn and whatever only the example draws is drawn elsewhere (my call).
+
+### #123 (every game name and English list from one helper)
+
+Built on 2026-10-29, the first of M13's Words and names issues, after the owner moved the refactors to M13 and asked for this block first. The design is `docs/superpowers/specs/2026-10-29-game-names-design.md` and the plan `docs/superpowers/plans/2026-10-29-game-names-issue-123.md`.
+- **Built:**
+  - `src/lib/words.js`: the English helpers, from `describe.js` and `results.js`. It adds `countWords` for nouns that are not ids, which replaces the map's and the log's own counting.
+  - `src/lib/game-names.js`: one function per game name, from `describe.js` and `ui.js`. Three are new: `tapestryCardOf` (the engine's `tapestryCard`, so the trap copies are mapped in one place), `civilizationOf` (the one "Setting up") and `achievementName` (the strip's short names).
+  - `ui.js`'s `TRACKS` and `RESOURCES` take their names from it.
+  - Gone: the six list joins, the second `article` and title case, six landmark maps, two building maps, four trap regexes, two achievement maps, three numeral lists, every `Seat N` and `Player N` fallback, and the map's second `hexName`. `describe.js` exports no names.
+- **Calls to revisit** (my calls):
+  - A seat without a name is "Player N" and no seat is "a player". The log and the prompts used to say "Seat N", "A player" and "another player".
+  - The one hex name is "hex 2,−1", capitalized at the start of the map's label and the explore line.
+  - The standings say "Setting up" for a player without a civilization, as the header does, instead of nothing.
+  - None of these shows in a real game, so nothing on screen changes.
+- **Tests:** test-first. `tests/client-words.test.mjs` and `tests/client-game-names.test.mjs` are new. The second checks all 33 catalog landmarks and every card's name, and holds a source guard against copies; `TierPrice`'s own price words are its one allowed copy, until #124's remainder. The name tests moved there from `client-describe`, `client-results` and `ui.test.mjs`.
+  - `npm run check` is clean, and all 1984 unit tests pass.
+  - All 43 browser tests passed on the branch's own dev servers (ports 3021 and 5174, since the main checkout's dev server held 3020 and 5173). The dice tray's conquest test failed once and passed five times in a row on a rerun. It plays random moves through the API, which this issue doesn't touch.
+- **Handed off:**
+  - #126 splits what is left of `describe.js`.
+  - #127 reads `ui.js`'s id lists from the engine.
+  - #124 and #125 finish the price and player-area words with `amountWords` and `nounOf`, `TierPrice` included.
+  - #101 names the versions and expansions.
+  - #31 names the Automa's seat through `seatName`.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

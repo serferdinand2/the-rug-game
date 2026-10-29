@@ -1,4 +1,5 @@
 // Interface ids shared by the components, and helpers that turn them into references to the design tokens in tokens.css.
+import { resourceName, trackName } from './game-names.js';
 
 /** @typedef {'exploration' | 'science' | 'technology' | 'military'} TrackId */
 /** @typedef {'coin' | 'food' | 'worker' | 'culture'} ResourceId */
@@ -7,21 +8,25 @@
 /** @typedef {1 | 2 | 3 | 4 | 5} Seat - A table seat, which sets the player's colour */
 /** @typedef {'mountain' | 'wetland' | 'tropical' | 'desert' | 'grassland' | 'forest'} CapitalBiome */
 
-/** The four tracks, in board order. @type {readonly { id: TrackId, name: string }[]} */
-export const TRACKS = Object.freeze([
-	{ id: 'exploration', name: 'Exploration' },
-	{ id: 'science', name: 'Science' },
-	{ id: 'technology', name: 'Technology' },
-	{ id: 'military', name: 'Military' },
-]);
+/** The four tracks, in board order, named by game-names.js. @type {readonly { id: TrackId, name: string }[]} */
+export const TRACKS = Object.freeze(
+	/** @type {TrackId[]} */ ([
+		'exploration',
+		'science',
+		'technology',
+		'military',
+	]).map((id) => ({ id, name: trackName(id) }))
+);
 
-/** The four resources, in the order the player overview lists them. @type {readonly { id: ResourceId, name: string }[]} */
-export const RESOURCES = Object.freeze([
-	{ id: 'coin', name: 'Coin' },
-	{ id: 'food', name: 'Food' },
-	{ id: 'worker', name: 'Worker' },
-	{ id: 'culture', name: 'Culture' },
-]);
+/** The four resources, in the order the player overview lists them, named by game-names.js. @type {readonly { id: ResourceId, name: string }[]} */
+export const RESOURCES = Object.freeze(
+	/** @type {ResourceId[]} */ (['coin', 'food', 'worker', 'culture']).map(
+		(id) => ({
+			id,
+			name: resourceName(id),
+		})
+	)
+);
 
 /** The map's terrain types. @type {readonly { id: Terrain, name: string }[]} */
 export const TERRAINS = Object.freeze([
@@ -117,21 +122,4 @@ export function capitalTileUrl(biome, blocked, index, seed) {
 	return artUrl(
 		`capital-terrain/${biome}-${blocked ? 'blocked' : 'open'}-${variant}`
 	);
-}
-
-const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-
-/**
- * An era or tier number as a Roman numeral.
- * @param {number} number - 1 to 10.
- * @returns {string} The numeral, such as 'IV'.
- */
-export function roman(number) {
-	const numeral = NUMERALS[number - 1];
-	if (!Number.isInteger(number) || !numeral) {
-		throw new RangeError(
-			`Roman numerals here run from 1 to 10, not ${number}`
-		);
-	}
-	return numeral;
 }

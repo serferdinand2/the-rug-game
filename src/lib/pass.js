@@ -1,6 +1,7 @@
 // The hot-seat hand-over (#30 design §2–§6): which view the client takes or asks for, and whom the pass screen names.
 import { freshEvents } from './event-feed.js';
 import { seatToShow } from './moves.js';
+import { seatName } from './game-names.js';
 
 /** @typedef {import('./event-feed.js').GameEvent} GameEvent */
 
@@ -112,7 +113,7 @@ export function acceptStep(current, incoming, shown, passing) {
  * @returns {string}
  */
 export function passReason(game, seat) {
-	const name = game.seats[seat - 1]?.name ?? `Player ${seat}`;
+	const name = seatName(game, seat);
 	if (game.phase === 'setup') {
 		return `${name}'s setup choices.`;
 	}

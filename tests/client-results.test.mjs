@@ -5,7 +5,6 @@ import { tiebreakValues, view } from '../src/lib/engine/game.js';
 import { simulate } from './helpers/simulation.mjs';
 import {
 	VP_SOURCES,
-	ordinal,
 	ruleNote,
 	scoreboard,
 	standings,
@@ -77,16 +76,6 @@ function sharedWin() {
 	};
 	return game;
 }
-
-test('ordinals read as places', () => {
-	assert.deepEqual([1, 2, 3, 4, 5].map(ordinal), [
-		'1st',
-		'2nd',
-		'3rd',
-		'4th',
-		'5th',
-	]);
-});
 
 test("a finished game's standings follow the engine's ranking, each with VP by source adding up", () => {
 	const state = finished(2);

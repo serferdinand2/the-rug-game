@@ -1,18 +1,38 @@
 // Words for the engine's effects, costs, decisions and answers (#26 design §8): the short English the play screen shows.
-import { TRACKS } from './engine/data/tracks.js';
-import { TAPESTRY_CARDS } from './engine/data/tapestry-cards.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
 import { SPACE_TILES } from './engine/data/space-tiles.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
-import { RESOURCES as RESOURCE_NAMES, TRACKS as TRACK_NAMES } from './ui.js';
-import { ASSETS } from './art/catalog.js';
+import { TRACKS as UI_TRACKS } from './ui.js';
 import { GRID_SIZE } from './capital.js';
+import {
+	AMOUNT_ORDER,
+	amountWords,
+	article,
+	capitalize,
+	joinList,
+	nounOf,
+	signed,
+	titleOf,
+	wordsOf,
+} from './words.js';
+import {
+	buildingName,
+	civilizationName,
+	hexName,
+	landmarkName,
+	seatName,
+	spaceName,
+	tapestryCardOf,
+	tapestryName,
+	techName,
+	trackName,
+} from './game-names.js';
 
 /** @typedef {Record<string, any>} Effect - One engine effect, `{ kind: value }`, of any shape */
 /** @typedef {Record<string, any>} Decision - An open decision as a view shows it */
 /** @typedef {Record<string, any>} Answer - One of a decision's answers */
-/** @typedef {{ seats?: readonly { name?: string }[], hexes?: Record<string, any> }} Table - A state or a view: the seats' names, and the map */
+/** @typedef {import('./game-names.js').Table & { hexes?: Record<string, any> }} Table - A state or a view: the seats' names, and the map */
 
 /** What a decision's answer reads when its shape is not one this module knows. */
 const ANY_ANSWER = 'Choose this option';
@@ -20,37 +40,11 @@ const ANY_ANSWER = 'Choose this option';
 /** What an effect reads when its kind is not one this module knows. */
 const ANY_EFFECT = 'take this effect';
 
-/** The minus sign hex keys show, as in "Hex 2,−1". */
-const MINUS = '−';
-
-/**
- * Each counted thing's name, one and many, in the order amounts are listed: the resources as the player overview
- * lists them, then VP, then tiles and cards.
- */
-const NOUNS = /** @type {Readonly<Record<string, [string, string]>>} */ ({
-	coin: ['coin', 'coins'],
-	food: ['food', 'food'],
-	worker: ['worker', 'workers'],
-	culture: ['culture', 'culture'],
-	any: ['resource of your choice', 'resources of your choice'],
-	vp: ['VP', 'VP'],
-	territory: ['territory tile', 'territory tiles'],
-	space: ['space tile', 'space tiles'],
-	tapestry: ['tapestry card', 'tapestry cards'],
-	tech: ['tech card', 'tech cards'],
-});
-
-/** The order amounts are listed in. */
-const ORDER = Object.keys(NOUNS);
-
 /** What a cost discards rather than pays. */
 const DISCARDS = ['territory', 'space', 'tapestry', 'tech'];
 
 /** The resources, in the engine's order. */
 const RESOURCES = ['coin', 'worker', 'food', 'culture'];
-
-/** Words a title keeps in lower case, unless they come first. */
-const SMALL_WORDS = ['of', 'and', 'for', 'the', 'a', 'an', 'on', 'in'];
 
 /** The tapestry cards whose rules are their own effect kind. */
 const CARD_RULES = [
@@ -110,97 +104,6 @@ function isCount(value) {
 }
 
 /**
- * A text with its first letter in upper case.
- * @param {string} text
- * @returns {string}
- */
-function capitalize(text) {
-	return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-/**
- * A list in words: "a", "a and b", "a, b and c".
- * @param {readonly string[]} items
- * @param {string} [word] - The last joining word, 'and' or 'or'
- * @returns {string}
- */
-export function joinList(items, word = 'and') {
-	if (items.length <= 1) {
-		return items[0] ?? '';
-	}
-	return `${items.slice(0, -1).join(', ')} ${word} ${items[items.length - 1]}`;
-}
-
-/**
- * A whole number as shown, with a real minus sign.
- * @param {number} n
- * @returns {string}
- */
-function signed(n) {
-	return n < 0 ? `${MINUS}${-n}` : String(n);
-}
-
-/**
- * An id in words: 'the-chosen' or 'theChosen' to 'the chosen'.
- * @param {string} id
- * @returns {string}
- */
-function wordsOf(id) {
-	return id
-		.replace(/([a-z])([A-Z])/g, '$1 $2')
-		.replace(/[-_]+/g, ' ')
-		.toLowerCase()
-		.trim();
-}
-
-/**
- * An id as a name: 'age-of-sail' to 'Age of Sail'.
- * @param {string} id
- * @returns {string}
- */
-function titleOf(id) {
-	return wordsOf(id)
-		.split(' ')
-		.map((word, i) =>
-			i > 0 && SMALL_WORDS.includes(word) ? word : capitalize(word)
-		)
-		.join(' ');
-}
-
-/**
- * "a" or "an", for the name that follows.
- * @param {string} name
- * @returns {string}
- */
-export function article(name) {
-	return /^[aeiou]/i.test(name) ? 'an' : 'a';
-}
-
-/**
- * An amount of one counted thing, with its plural: "1 coin", "2 coins", "2 food", "2 resources of your choice".
- * @param {string} id - A NOUNS key (a resource, 'any', 'vp', a tile or card kind), or any other id
- * @param {number} n
- * @returns {string}
- */
-export function amountWords(id, n) {
-	const [one, many] = NOUNS[id] ?? [wordsOf(id), wordsOf(id)];
-	return `${n} ${n === 1 ? one : many}`;
-}
-
-/**
- * A resource's name as a title or a tooltip shows it: "Coin", and "Resource of your choice" for `any`. Any other id
- * comes back as it is.
- * @param {string} id - A resource, or 'any'
- * @returns {string}
- */
-export function resourceName(id) {
-	if (id === 'any') {
-		return capitalize(NOUNS.any[0]);
-	}
-	return RESOURCE_NAMES.find((r) => r.id === id)?.name ?? id;
-}
-
-/**
  * A price in words, its symbols counted in the order they first appear: "1 food and 1 resource of your choice",
  * "2 coins", and "nothing" for an empty price.
  * @param {readonly import('./ui.js').CostSymbol[]} symbols - One symbol per resource paid
@@ -219,15 +122,15 @@ export function priceWords(symbols) {
 }
 
 /**
- * The amounts of a cost or gain, in ORDER, then any other keys; zero, missing and odd values are left out.
+ * The amounts of a cost or gain, in AMOUNT_ORDER, then any other keys; zero, missing and odd values are left out.
  * @param {Record<string, unknown>} counts
  * @param {(key: string) => boolean} [only] - Which keys to take
  * @returns {string[]}
  */
 function amounts(counts, only = () => true) {
 	const keys = [
-		...ORDER.filter((key) => key in counts),
-		...Object.keys(counts).filter((key) => !ORDER.includes(key)),
+		...AMOUNT_ORDER.filter((key) => key in counts),
+		...Object.keys(counts).filter((key) => !AMOUNT_ORDER.includes(key)),
 	];
 	return keys
 		.filter((key) => only(key))
@@ -238,37 +141,12 @@ function amounts(counts, only = () => true) {
 }
 
 /**
- * A track's name, such as "Exploration".
- * @param {unknown} track
- * @returns {string}
- */
-export function trackName(track) {
-	if (typeof track !== 'string') {
-		return 'a track';
-	}
-	return TRACK_NAMES.find((t) => t.id === track)?.name ?? titleOf(track);
-}
-
-/**
  * Whether a value is one of the four track ids.
  * @param {unknown} track
  * @returns {track is import('./engine/data/ids.js').TrackId}
  */
 function isTrack(track) {
-	return TRACK_NAMES.some((t) => t.id === track);
-}
-
-/**
- * A track space's name, such as "Ships"; space 0 is the start.
- * @param {unknown} track
- * @param {unknown} space
- * @returns {string}
- */
-export function spaceName(track, space) {
-	if (!isTrack(track) || !isCount(space) || space > 12) {
-		return isCount(space) ? `space ${space}` : 'a space';
-	}
-	return space === 0 ? 'the start' : TRACKS[track][space].name;
+	return UI_TRACKS.some((t) => t.id === track);
 }
 
 /**
@@ -280,45 +158,10 @@ function tracksPhrase(tracks) {
 	if (!Array.isArray(tracks) || tracks.length === 0) {
 		return 'a track';
 	}
-	if (TRACK_NAMES.every((t) => tracks.includes(t.id))) {
+	if (UI_TRACKS.every((t) => tracks.includes(t.id))) {
 		return 'any track';
 	}
 	return joinList(tracks.map(trackName), 'or');
-}
-
-/**
- * An income building's name, such as "Farm".
- * @param {unknown} building
- * @returns {string}
- */
-export function buildingName(building) {
-	return typeof building === 'string' ? titleOf(building) : 'Building';
-}
-
-/**
- * A landmark's name, such as "Train Station" or "TV Station", from the art catalog, which names every landmark of
- * the game and its expansions.
- * @param {unknown} id
- * @returns {string}
- */
-export function landmarkName(id) {
-	if (typeof id !== 'string') {
-		return 'Landmark';
-	}
-	return ASSETS.find((a) => a.id === `landmark/${id}`)?.name ?? titleOf(id);
-}
-
-/**
- * A tapestry card's name, such as "Age of Sail"; the 7 trap copies are each "Trap".
- * @param {unknown} id
- * @returns {string}
- */
-export function tapestryName(id) {
-	if (typeof id !== 'string') {
-		return 'a face-down card';
-	}
-	const wanted = /^trap-\d+$/.test(id) ? 'trap' : id;
-	return TAPESTRY_CARDS.find((c) => c.id === wanted)?.name ?? titleOf(id);
 }
 
 /**
@@ -331,43 +174,6 @@ function techCardOf(id) {
 }
 
 /**
- * A tech card's name, such as "Light Bulb".
- * @param {unknown} id
- * @returns {string}
- */
-export function techName(id) {
-	if (typeof id !== 'string') {
-		return 'a tech card';
-	}
-	return techCardOf(id)?.name ?? titleOf(id);
-}
-
-/**
- * A civilization's name, such as "The Chosen".
- * @param {unknown} id
- * @returns {string}
- */
-export function civilizationName(id) {
-	if (typeof id !== 'string') {
-		return 'a civilization';
-	}
-	return ASSETS.find((a) => a.id === `civ/${id}`)?.name ?? titleOf(id);
-}
-
-/**
- * A seat's player's name, from a state or view.
- * @param {Table | undefined} table
- * @param {unknown} seat
- * @returns {string}
- */
-export function seatName(table, seat) {
-	if (!isCount(seat) || seat === 0) {
-		return 'another player';
-	}
-	return table?.seats?.[seat - 1]?.name ?? `Player ${seat}`;
-}
-
-/**
  * Whose a piece or card is: "yours", or its player's name.
  * @param {Table | undefined} table
  * @param {unknown} seat
@@ -376,19 +182,6 @@ export function seatName(table, seat) {
  */
 function whose(table, seat, decision) {
 	return seat === decision.player ? 'yours' : seatName(table, seat);
-}
-
-/**
- * A map hex: "hex 2,−1", from its key '2_-1'.
- * @param {unknown} key
- * @returns {string}
- */
-export function hexName(key) {
-	const match = typeof key === 'string' && /^(-?\d+)_(-?\d+)$/.exec(key);
-	if (!match) {
-		return 'a territory';
-	}
-	return `hex ${signed(Number(match[1]))},${signed(Number(match[2]))}`;
 }
 
 /**
@@ -484,11 +277,8 @@ function paymentVerbs(payment) {
 			discarded.push(amountWords(key, given));
 		} else if (Array.isArray(given) && given.length > 0) {
 			if (key === 'territory' || key === 'space') {
-				const [one, many] = NOUNS[key];
 				const ids = given.map((id) => (isCount(id) ? String(id) : '?'));
-				discarded.push(
-					`${given.length === 1 ? one : many} ${joinList(ids)}`
-				);
+				discarded.push(`${nounOf(key, given.length)} ${joinList(ids)}`);
 			} else {
 				discarded.push(
 					...given.map(key === 'tech' ? techName : tapestryName)
@@ -1053,8 +843,7 @@ const TAPESTRY_RULES = Object.freeze({
  * @returns {{ ability: string, note?: string }}
  */
 export function describeTapestryCard(id) {
-	const wanted = /^trap-\d+$/.test(id) ? 'trap' : id;
-	const card = TAPESTRY_CARDS.find((c) => c.id === wanted);
+	const card = tapestryCardOf(id);
 	if (!card) {
 		return { ability: capitalize(ANY_EFFECT) };
 	}
