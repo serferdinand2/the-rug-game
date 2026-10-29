@@ -30,6 +30,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
   - #79 (every decision prompt at the tracks' centre, the prompt out of `Game.svelte`) is done; it merged and closed on 2026-10-28, after the owner's ruling on the library.
   - A first batch of #80's findings landed together on 2026-10-28: #84, #87, #91, #93, #98, #103, #113, #124, #128 and #130 (see [its entry](#80s-findings-first-batch)). #104 waits for #103's last piece and #125 for #124's.
   - A second batch of #80's findings landed together on 2026-10-29: #89, #97, #99, #100 and #119 (see [its entry](#80s-findings-second-batch)).
+  - #78 (choices on the civilization card) is built and on main (see [its entry](#78-choices-on-the-civilization-card)); it closes once the owner approves the CivilizationCard section in the component library.
   - #86 (the turn footer) and #90 (the game header) followed the same day (see [their entry](#86-and-90-the-games-footer-and-header)). #88 and #122 can start now that #86 is in.
   - The owner ruled out screen-reader work (CLAUDE.md, 2026-10-28), so #121, which is only labels, is closed as not planned.
   - #80 is done: its findings are #84 and #86–#131.
@@ -67,6 +68,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#82 (the joined terrain of the base mats)](#82-the-joined-terrain-of-the-base-mats)
 - [#80's findings, second batch](#80s-findings-second-batch)
 - [#86 and #90 (the game's footer and header)](#86-and-90-the-games-footer-and-header)
+- [#78 (choices on the civilization card)](#78-choices-on-the-civilization-card)
 
 ## Issues
 
@@ -577,6 +579,19 @@ Built on 2026-10-29, after the second batch, one branch each, merged onto main i
 - **Pixels:** screenshots of six footers and five header states in a hot-seat game are byte-identical before and after.
 - **Tests:** test-first; `tests/client-footer.test.mjs` is new. #90's design and plan were written after its tests and code, not before. Together on main: `npm run check` clean, 1947 unit tests (the simulation included) and all 42 browser tests pass. Two browser runs during the work failed in milliseconds when back-to-back runs went over the dev server's per-minute table and login limits; on a fresh server everything passes.
 - **Handed off:** #62 (End turn) and #71 (the decision footer's words) now change `footerView` and `TurnFooter`. #122 moves `TurnBar`'s income reveal out, and #88 routes the keys, which still set `incomeAsk` and `trackAsk` in `Game.svelte`. #128's remainder is `tierOf` and `picks.js`' tier lines, after #85. #31 adds bot seats to `playerChips` and bot turns to the waiting footer.
+
+### #78 (choices on the civilization card)
+
+Built on 2026-10-29, when the owner asked for it to be done and pushed while away ("work on 78 next and push to main"), so there was no question round. The design is `docs/superpowers/specs/2026-10-29-civ-card-choices-design.md` and the plan `docs/superpowers/plans/2026-10-29-civ-card-choices-issue-78.md`. It stays open until the owner approves the CivilizationCard section in the component library, as its checklist asks.
+- Built: `src/lib/civ-card.js` turns a seat's `civData` into marks on named spots for the Entertainers, Merrymakers, Leaders, Militants, Historians and Mystics (`civCardMarks`), says which spot an answer picks (`cardSpot`) and what it gives (`spotWords`), and gives a card its marks and the spots on offer (`civCardView`). The library's reviewed play illustration now comes from `SAMPLE_CIV_DATA` through the same code. The engine exports the Historians' squares and the Mystics' prophecies for it.
+  - `prompts.js` places those answers on the card (`place: 'card'`, `spot`, the `card` layout and its instruction), worded by `spotWords`. `PromptState` keeps the chosen `spot`; `selectSpot()` picks a spot's answer, or lists the answers several share (the Historians' opponents) in the panel; `civPick` feeds the Civ tab. The panel lists no column-and-row buttons; a picked spot's words are its status line.
+  - `CivilizationCard` takes `live`, `seat`, `selected` and `onCivilizationCardPick`; `CardSlot` takes `pickable`, `picked`, `value` and `onCardSlotPick` and is then a button. A spot on offer has a `--ok` outline (dashed with keyboard focus), the picked one gold. The card sets `--player-1` to its seat's colour, so its borders match its tokens. The 12 other civilizations ignore `live`. The library has a live and a choosing example for each of the six; its 58 existing card screenshots are byte-identical.
+  - The Civ tab and the players overview draw the six cards live; the overview's are to look at only.
+  - New screenshot `docs/ui/screens/game-civ-card-choice.png` in the README and `docs/ui/README.md`.
+  - The browser tests' dev server raises its per-address limits on new tables and logins (`CREATE_LIMIT` and `LOGIN_LIMIT`, set in `playwright.config.js`; production keeps 20 and 30). The suite had reached about 21 new tables a minute from one address, so a test's `create` was refused now and then; this was probably behind the hotkeys flakes earlier the same day.
+- Calls to revisit: the panel opens at the tracks' centre, as every prompt does under the owner's #79 ruling, though #78 asked for it not to cover the board; a Mystics prediction reached shows no mark (no reviewed style for one); seat 3's green tokens look like the outline of a spot on offer and seat 4's yellow like the picked gold; spots carry no new accessible names (the screen-reader ruling); an Entertainers token on the start shows the start token at full strength.
+- Tests: `tests/client-civ-card.test.mjs` (new), `client-prompt-state` (choices on the card), `client-prompts` (every card option has its spot), `limits` (the environment's limits) and the new browser test `tests/browser/civ-card.test.mjs`, which deals one hot-seat table of five again until the Entertainers are offered and moves their token on the card. Together on main: `npm run check` clean, 1965 unit tests and all 43 browser tests pass, twice in a row.
+- Handed off: #107 draws the card from data on these spot ids and marks; #60 can add where an effect comes from to the card's panel; #33, #37 and #40 add a case to `civCardMarks` and `cardSpot` for each expansion civilization whose choice is a spot on its card.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

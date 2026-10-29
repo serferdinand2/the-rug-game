@@ -52,6 +52,9 @@ function layoutOf(options) {
 	if (places.has('map')) {
 		return 'map';
 	}
+	if (places.has('card')) {
+		return 'card';
+	}
 	return places.has('shelf') ? 'cards' : 'options';
 }
 
@@ -158,6 +161,10 @@ test("every open decision of the viewer's own view gets a prompt with one option
 					if (typeof answer.hex === 'string') {
 						assert.equal(option.place, 'map', where);
 						assert.equal(option.hex, answer.hex, where);
+					}
+					// A civilization's own choice is made on its card, at a spot (#78).
+					if (option.place === 'card') {
+						assert.equal(typeof option.spot, 'string', where);
 					}
 					if (typeof answer.row === 'number') {
 						assert.equal(option.place, 'capital', where);

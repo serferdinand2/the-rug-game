@@ -1,6 +1,8 @@
 // Rate limits and client addresses, tested without a running server.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { rateLimiter, clientAddress, addressKey } from '../server/limits.mjs';
 
 test('each address may send a fixed number of requests per window', () => {
@@ -74,4 +76,28 @@ test('limits count an IPv6 address by its /64 block, which one household or host
 	assert.equal(addressKey('::1'), '0:0:0:0::/64');
 	assert.equal(addressKey('fe80::1%en0'), 'fe80:0:0:0::/64');
 	assert.equal(addressKey(undefined), 'unknown');
+});
+
+test('the browser tests can raise the new-table and login limits from the environment, and the defaults stay (#78)', () => {
+	const read = (/** @type {Record<string, string>} */ env) =>
+		JSON.parse(
+			execFileSync(
+				process.execPath,
+				[
+					'--input-type=module',
+					'-e',
+					"const { config } = await import('./server/server.mjs'); console.log(JSON.stringify([config.createLimit, config.loginLimit]));",
+				],
+				{
+					cwd: fileURLToPath(new URL('..', import.meta.url)),
+					env: { ...process.env, ...env },
+					encoding: 'utf8',
+				}
+			)
+		);
+	assert.deepEqual(read({ CREATE_LIMIT: '', LOGIN_LIMIT: '' }), [20, 30]);
+	assert.deepEqual(
+		read({ CREATE_LIMIT: '200', LOGIN_LIMIT: '300' }),
+		[200, 300]
+	);
 });

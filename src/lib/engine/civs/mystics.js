@@ -26,6 +26,9 @@ const PROPHECIES = [
 	{ category: 'tracks', most: 4 },
 ];
 
+/** The card's prophecies, for the interface's live card (#78). */
+export { PROPHECIES as MYSTICS_PROPHECIES };
+
 /**
  * What a player counts now in each category: tech cards in every row, complete districts, controlled territories
  * and completed tracks.

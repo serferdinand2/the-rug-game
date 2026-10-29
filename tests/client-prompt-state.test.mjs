@@ -257,3 +257,108 @@ test('nothing is chosen or sent while a move is being sent', async () => {
 	await prompt.confirm();
 	assert.equal(source.sent.length, 0);
 });
+
+/**
+ * An open slot decision of the given purpose for seat 1, holding `civ`, in a game of `players`.
+ * @param {string} civ
+ * @param {Record<string, any>} fields - The decision's purpose and options
+ * @param {number} [players]
+ */
+function cardDecision(civ, fields, players = 2) {
+	const { state } = startedGame(players);
+	const seat = /** @type {any} */ (state.seats[0]);
+	seat.civs = [civ];
+	seat.civData = {
+		historians: { squares: [true, true, true, true], given: {} },
+	};
+	const decision = /** @type {Record<string, any>} */ ({
+		id: 99,
+		player: 1,
+		kind: 'chooseSlot',
+		then: { kind: 'effects' },
+		...fields,
+	});
+	decision.answers = DECISIONS.chooseSlot.answers(state, decision);
+	return { decision, game: view(state, 1) };
+}
+
+test('a choice on the civilization card lists no buttons; a spot picked there is the answer, worded by what it gives (#78)', async () => {
+	const { decision, game } = cardDecision('entertainers', {
+		purpose: 'entertainers',
+		options: ['c1r1', 'c1r2', 'c1r3', 'c1r4'],
+	});
+	const source = promptSource({ game, decision });
+	const prompt = new PromptState(source);
+	assert.equal(prompt.prompt?.layout, 'card');
+	assert.deepEqual(prompt.panelOptions, []);
+	assert.equal(prompt.civPick?.civ, 'entertainers');
+	assert.deepEqual(Object.keys(prompt.civPick?.view.choices ?? {}), [
+		'c1r1',
+		'c1r2',
+		'c1r3',
+		'c1r4',
+	]);
+	assert.equal(prompt.civPick?.selected, null);
+	assert.equal(prompt.controls?.confirmDisabled, true);
+	prompt.selectSpot('c1r2');
+	assert.equal(prompt.spot, 'c1r2');
+	assert.equal(prompt.civPick?.selected, 'c1r2');
+	assert.equal(prompt.picked, 1);
+	assert.equal(prompt.controls?.status, 'Gain 1 culture');
+	assert.equal(prompt.controls?.confirmDisabled, false);
+	await prompt.confirm();
+	assert.deepEqual(source.sent, [{ decision: 99, slot: 'c1r2' }]);
+});
+
+test('a spot several answers share lists them in the panel, as a hex does (#78)', () => {
+	const { decision, game } = cardDecision(
+		'historians',
+		{
+			purpose: 'historians',
+			options: [
+				{ to: 2, square: 0 },
+				{ to: 3, square: 0 },
+			],
+		},
+		3
+	);
+	const prompt = new PromptState(promptSource({ game, decision }));
+	assert.deepEqual(Object.keys(prompt.civPick?.view.choices ?? {}), [
+		'square0',
+	]);
+	assert.deepEqual(prompt.panelOptions, []);
+	prompt.selectSpot('square0');
+	assert.equal(prompt.picked, null);
+	assert.deepEqual(
+		prompt.panelOptions.map((o) => o.index),
+		[0, 1]
+	);
+});
+
+test('an optional choice on the card keeps its decline in the panel (#78)', () => {
+	const { decision, game } = cardDecision('leaders', {
+		purpose: 'leaders',
+		options: ['science', 'military'],
+		optional: true,
+	});
+	const prompt = new PromptState(promptSource({ game, decision }));
+	assert.deepEqual(
+		prompt.panelOptions.map((o) => decision.answers[o.index].slot),
+		[null]
+	);
+	assert.deepEqual(Object.keys(prompt.civPick?.view.choices ?? {}), [
+		'science',
+		'military',
+	]);
+});
+
+test('a decision answered elsewhere offers nothing on the card (#78)', () => {
+	const { decision, game } = decisionOf({
+		kind: 'chooseSlot',
+		purpose: 'loseResource',
+		options: ['coin', 'food'],
+		then: { kind: 'effects' },
+	});
+	const prompt = new PromptState(promptSource({ game, decision }));
+	assert.equal(prompt.civPick, null);
+});

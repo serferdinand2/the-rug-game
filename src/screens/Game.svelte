@@ -704,6 +704,9 @@
 					tilePick={promptState.tilePick}
 					onPlayerTabsPick={(/** @type {ComponentEvent} */ event) =>
 						promptState.pickTile(event.value.tile)}
+					civPick={promptState.civPick}
+					onPlayerTabsSpot={(/** @type {ComponentEvent} */ event) =>
+						promptState.selectSpot(event.value)}
 					onPlayerTabsInspect={(
 						/** @type {ComponentEvent} */ event
 					) => (inspected = event.value)} />

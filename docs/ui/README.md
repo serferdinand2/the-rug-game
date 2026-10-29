@@ -225,6 +225,10 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **Tab switching:** a decision about a tab's things opens that tab by itself.
 - **The players overview** opens from the chips, as in the mockup: one card per player, and Capital, Civilization or Tech of any player on the right. Opponents' hands appear only as counts.
 
+**Built in #78 (2026-10-29): choices on the civilization card.** The Entertainers, Merrymakers, Leaders, Militants, Historians and Mystics cards show where their pieces are, in the Civ tab and the players overview. Their own choices are made on the card: the spots on offer are outlined in green, the picked one in gold, and the panel at the tracks' centre says what it gives beside **Confirm choice**. A spot several answers share (the Historians' opponents) lists them in the panel. Awaiting the owner's approval in the library's CivilizationCard section.
+
+![The Civ tab at an Entertainers income turn: the four next spaces outlined, + culture picked, and the panel saying Gain 1 culture](screens/game-civ-card-choice.png)
+
 **Built in #28 (2026-10-27): the decision prompts.**
 
 ![Choosing a capital: the Mountain and Forest mats as their 9×9 grids, each with its relief, the Mountain chosen](screens/game-prompt-capital-mat.png)

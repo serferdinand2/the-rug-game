@@ -44,6 +44,10 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 |---|---|
 | ![The play screen with the Capital tab (#82): Teodor's Wetland mat, its reed beds and dark pools joined across the grid over a wet meadow, an Architects' cube on the top-left plot, and the completion counters](docs/ui/screens/game-player-area.png) | ![The players overview (#82): a card per player and Mira's Desert capital opened on the right, its buttes standing on pale sand](docs/ui/screens/game-overview.png) |
 
+| Play: a choice on the civilization card (#78) |
+|---|
+| ![The Civ tab at an Entertainers income turn (#78): the token's four next spaces outlined in green on the card, the + culture space picked in gold, and the panel at the tracks' centre saying Gain 1 culture beside Confirm choice](docs/ui/screens/game-civ-card-choice.png) |
+
 | Prompt: choosing a capital | Prompt: choosing a civilization |
 |---|---|
 | ![The capital choice at the tracks' centre (#79, #82): the Mountain and Forest mats as their 9×9 grids, each with its relief over its ground, above the panel; the Mountain is chosen and outlined](docs/ui/screens/game-prompt-capital-mat.png) | ![The civilization choice at the tracks' centre (#79): both cards whole, sized to the room above the panel, the chosen one outlined in gold](docs/ui/screens/game-prompt-civ.png) |

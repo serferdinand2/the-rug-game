@@ -4,6 +4,7 @@ import { TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
 import { decisionTitle, describeAnswer } from './describe.js';
 import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
+import { cardSpot, spotWords } from './civ-card.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 /** @typedef {import('./ui.js').CostSymbol} CostSymbol */
@@ -30,10 +31,11 @@ import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
  * One answer of the decision, as the prompt offers it.
  * @typedef {Object} PromptOption
  * @property {number} index - The answer's index in decision.answers
- * @property {'panel' | 'shelf' | 'map' | 'capital'} place - Where it is chosen
+ * @property {'panel' | 'shelf' | 'map' | 'capital' | 'card'} place - Where it is chosen: 'card' on the player's civilization card in the Civ tab (#78)
  * @property {string} label - describeAnswer(decision, answer, game)
  * @property {Art[]} art - Drawn before or above the label; may be empty
  * @property {string} [hex] - For place 'map': the hex it is chosen on
+ * @property {string} [spot] - For place 'card': the spot on the card it is chosen on (civ-card.js)
  * @property {{ row: number, col: number, rotation: number | null }} [plot] - For place 'capital'; rotation null for a building
  */
 
@@ -51,7 +53,7 @@ import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
  * @property {string} kind - The decision kind
  * @property {string} title - decisionTitle(decision, game)
  * @property {string} instruction - One sentence on how to answer
- * @property {'options' | 'cards' | 'map' | 'capital'} layout - Where the decision is mainly made; the capital leads, then the map
+ * @property {'options' | 'cards' | 'map' | 'capital' | 'card'} layout - Where the decision is mainly made; the capital leads, then the map, then the civilization card
  * @property {'tapestry' | 'tech' | 'civ' | 'mat' | null} shelf - What the shelf holds, whenever an option is on it
  * @property {string[]} mapHexes - The hexes lit on the map, whenever an option is on it, in answer order
  * @property {TrackId | null} track - The track that tints the panel
@@ -266,12 +268,17 @@ function techDeckCount(game) {
 }
 
 /**
- * Where an answer is chosen: on the map, on the capital, on the card shelf or on the panel.
+ * Where an answer is chosen: on the civilization card, the map, the capital, the card shelf or the panel.
  * @param {Decision} decision
  * @param {Answer} answer
+ * @param {any} game - The game view, which says where a civilization's token climbs to
  * @returns {PromptOption['place']}
  */
-function placeOf(decision, answer) {
+function placeOf(decision, answer, game) {
+	// The civilizations' own choices are made on their card (#78).
+	if (cardSpot(decision, answer, game) !== null) {
+		return 'card';
+	}
 	if (typeof answer.hex === 'string') {
 		return 'map';
 	}
@@ -429,14 +436,19 @@ function artOf(decision, answer, place, game) {
  * @returns {PromptOption}
  */
 function optionOf(decision, answer, index, game) {
-	const place = placeOf(decision, answer);
+	const place = placeOf(decision, answer, game);
 	/** @type {PromptOption} */
 	const option = {
 		index,
 		place,
-		label: describeAnswer(decision, answer, game),
+		label:
+			(place === 'card' ? spotWords(decision, answer, game) : null) ??
+			describeAnswer(decision, answer, game),
 		art: artOf(decision, answer, place, game),
 	};
+	if (place === 'card') {
+		option.spot = /** @type {string} */ (cardSpot(decision, answer, game));
+	}
 	if (place === 'map') {
 		option.hex = answer.hex;
 	}
@@ -465,6 +477,9 @@ function layoutOf(options) {
 	}
 	if (places.has('map')) {
 		return 'map';
+	}
+	if (places.has('card')) {
+		return 'card';
 	}
 	return places.has('shelf') ? 'cards' : 'options';
 }
@@ -542,6 +557,8 @@ function instructionOf(decision, layout, onMap) {
 				: 'Choose a lit plot in your capital.';
 		case 'cards':
 			return 'Choose a card above, then confirm it here.';
+		case 'card':
+			return 'Choose a lit spot on your civilization card, then confirm it here.';
 		default:
 			return 'Choose one.';
 	}

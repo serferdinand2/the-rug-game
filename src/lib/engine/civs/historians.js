@@ -23,6 +23,9 @@ const SQUARES = [
 	{ vp: 3 },
 ];
 
+/** The card's squares, for the interface's live card (#78). */
+export { SQUARES as HISTORIANS_SQUARES };
+
 /**
  * The Historians' state of a player.
  * @param {import('../state.js').State} state
