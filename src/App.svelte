@@ -16,6 +16,7 @@
 	import { rollsOf } from './lib/dice.js';
 	import { createApi } from './lib/api.js';
 	import { createStore } from './lib/game.svelte.js';
+	import { randomInt, safeStorage } from './lib/storage.js';
 	import HelpPanel from './screens/HelpPanel.svelte';
 	import Game from './screens/Game.svelte';
 	import HandOver from './screens/HandOver.svelte';
@@ -28,47 +29,14 @@
 	/** @type {AppProps} */
 	let { ...attr } = $props();
 
-	/**
-	 * The browser's storage, or one that forgets, where a private window refuses it.
-	 * @param {() => Storage} get
-	 * @returns {import('./lib/api.js').SessionStore}
-	 */
-	function storage(get) {
-		try {
-			const store = get();
-			store.getItem('rg-check');
-			return store;
-		} catch {
-			/** @type {Map<string, string>} */
-			const items = new Map();
-			return {
-				getItem: (key) => items.get(key) ?? null,
-				setItem: (key, value) => {
-					items.set(key, value);
-				},
-				removeItem: (key) => {
-					items.delete(key);
-				},
-			};
-		}
-	}
-
-	/**
-	 * @param {number} n
-	 * @returns {number} A whole number from 0 to n − 1
-	 */
-	function random(n) {
-		return crypto.getRandomValues(new Uint32Array(1))[0] % n;
-	}
-
 	const store = createStore({
 		api: createApi({
 			base: '/api/',
 			fetch: window.fetch.bind(window),
-			storage: storage(() => sessionStorage),
+			storage: safeStorage(() => sessionStorage),
 		}),
-		random,
-		prefs: storage(() => localStorage),
+		random: randomInt,
+		prefs: safeStorage(() => localStorage),
 		copy: (text) => navigator.clipboard.writeText(text),
 	});
 
@@ -98,10 +66,7 @@
 			if (!store.sound || store.fresh.length === 0) {
 				return;
 			}
-			const cue = cueFor(
-				store.fresh,
-				store.room?.mode === 'hotseat' ? null : store.seat
-			);
+			const cue = cueFor(store.fresh, store.viewer);
 			if (cue) {
 				sound.play(cue);
 			}
@@ -181,11 +146,7 @@
 	     hot-seat table the whole table shares the screen, so the caption names the roller rather than "You". -->
 	{#if store.room?.game}
 		<DiceTray
-			rolls={rollsOf(
-				store.fresh,
-				store.room.game,
-				store.room.mode === 'hotseat' ? null : store.seat
-			)}
+			rolls={rollsOf(store.fresh, store.room.game, store.viewer)}
 			batch={store.freshCount}
 			panel={gamePanel} />
 	{/if}
