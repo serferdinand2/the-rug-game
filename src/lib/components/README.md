@@ -33,12 +33,12 @@ These components are updated as the art issues deliver their assets. Each will s
 | Component | Purpose |
 |---|---|
 | `Badge` | Expansion tags tinted with their colour, and the YOU, HOST and READY capitals. |
-| `Button` | Every button: `primary`, `secondary`, `gold`, `confirm` (a decision panel's solid gold Confirm, #65), `success` or `danger`, in three sizes, with a `selected` toggle state. |
+| `Button` | Every button: `primary`, `secondary`, `gold`, `confirm` (a decision panel's solid gold Confirm, #65), `success` or `danger`, in three sizes, with a `selected` toggle state; `aria-disabled` dims it as `disabled` does but keeps it clickable (#97). |
 | `Dialog` | A dialog over a scrim, `narrow` or `wide`: a title, the content and Close or its own `actions`. Escape, Close and the backdrop close it; it takes the focus and gives it back. Modal, it covers the screen and keeps Tab inside; with `modal={false}`, it covers its positioned parent only, as Table settings over the board (#87). |
 | `Divider` | A thin rule, optionally paused by a short italic label such as "or join friends". |
 | `IconButton` | The 36px header controls (sound, history, log, menu, close), with the red mute slash. |
 | `Menu` | The header popover: entries as links or buttons, arrow keys and Escape. |
-| `Panel` | A chrome panel with a thin border and an optional heading. |
+| `Panel` | A chrome panel with a thin border and an optional heading, in the body font or, with `titleFont="title"`, Cinzel (#97). |
 | `PassScreen` | The hot-seat pass screen (#30): the next player's token, name and reason, their clock when the table has a timer, and I'm …, which answers after a short wait. |
 | `ResourceIcon` | The five resource symbols at 16px, native 24px or native 48px, shared by prices, chips and footer costs. The native assets are 24×24 and 48×48; 16px display scales the 24px SVG. The 32px source is deprecated and archived. |
 | `Segmented` | A row of pressed/unpressed choices, single or multiple, tinted or filled, and disabled for a player who can't change them. |
@@ -46,7 +46,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `TextInput` | Labelled text fields with a hint and a validation message, and the small gold read-only code. |
 | `Toast` | A short status message at the bottom of the screen. |
 | `TopBar` | The 58px header: brand, centre content and controls. Player chips go straight into the centre, so they shrink to fit a narrow header. |
-| `TurnClock` | The header's turn clock: a player colour mark and the time left, paused muted, red with the seconds in words when low. |
+| `TurnClock` | The header's turn clock: a player colour mark and the time left, paused muted, red with the seconds in words when low; titled with its player's `name`, as "Vera: 1:42" (#89). |
 
 ## board/
 

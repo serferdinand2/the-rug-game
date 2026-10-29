@@ -2,13 +2,13 @@
 
 The only record of the project's progress (owner, 2026-10-28): what is done and what comes next, then issue by issue what each issue built, the calls to revisit after playing, and what it handed on to later issues. CLAUDE.md links here and holds no progress of its own. Claude and Codex both update this file whenever an issue lands or a milestone moves: the summary below and the issue's entry (see CLAUDE.md and AGENTS.md).
 
-Updated 2026-10-28. The issues are listed in the order they were finished.
+Updated 2026-10-29. The issues are listed in the order they were finished.
 
 ## Summary
 
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
-  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #84, #87, #91, #93, #98, #113 and #130 are done. #103, #124 and #128 are partly built; what is left of each waits for #85 or #86. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
+  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #84, #87, #89, #91, #93, #97, #98, #99, #100, #113, #119 and #130 are done. #103, #124 and #128 are partly built; what is left of each waits for #85 or #86. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -29,6 +29,7 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
   - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
   - #79 (every decision prompt at the tracks' centre, the prompt out of `Game.svelte`) is done; it merged and closed on 2026-10-28, after the owner's ruling on the library.
   - A first batch of #80's findings landed together on 2026-10-28: #84, #87, #91, #93, #98, #103, #113, #124, #128 and #130 (see [its entry](#80s-findings-first-batch)). #104 waits for #103's last piece and #125 for #124's.
+  - A second batch of #80's findings landed together on 2026-10-29: #89, #97, #99, #100 and #119 (see [its entry](#80s-findings-second-batch)). #90 can start now that #89 is in.
   - The owner ruled out screen-reader work (CLAUDE.md, 2026-10-28), so #121, which is only labels, is closed as not planned.
   - #80 is done: its findings are #84 and #86–#131.
   - #82 (the joined terrain of the base mats) is done: the owner approved all six base mats in the component library on 2026-10-28, and it merged into main on 2026-10-29. The expansion mats follow in #132 (M8) and #133 (M9), and the World Map's terrain in #134 (M12).
@@ -63,6 +64,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#83 (the game's hotkeys)](#83-the-games-hotkeys)
 - [#80's findings, first batch](#80s-findings-first-batch)
 - [#82 (the joined terrain of the base mats)](#82-the-joined-terrain-of-the-base-mats)
+- [#80's findings, second batch](#80s-findings-second-batch)
 
 ## Issues
 
@@ -551,6 +553,18 @@ Built on 2026-10-28. The owner set the look over five rounds of throwaway sketch
 - Calls to revisit after playing: Tropical's palms barely read as palms at the Capital tab's size; the Desert's butte outlines are strong; the Grassland's golden ground may read as sand. Each mat's relief is the same in every game, like the printed mat, and only the ground varies with the table's seed (my call).
 - Tests: `tests/art-capital-relief.test.mjs` (the groups, joins, footprints and corner patches on every base mat and the specimen layouts; each relief the same in every build, palette colours only, nothing on a buildable plot outside a corner patch; each biome's ground and corner piece), `art-capital-terrain` (the natural ground and the 296×296 example mats), `client-capital-terrain` (what each plot shows), `art-approved` (the 101 pinned assets), and the library's browser tests (the relief's place in the stack, the cube, a cleared plot, the gap, a landmark over the edge, a mat on offer, and targets under a corner patch).
 - Handed off: #132 (the Arts & Architecture mats' reliefs, M8) and #133 (the Fantasies & Futures mats', M9), each done the same way, with the advanced mats' printed features kept; #134 (the World Map's terrain hexes and territory tiles in the 2.5D style, M12).
+
+### #80's findings, second batch
+
+Built on 2026-10-29 as five more of #80's smallest unassigned findings, one branch each, merged onto main one after another. They keep clear of Lazar's issues (#60, #62, #63, #71, #81 and #85: the track spaces, the turn bar and the prompts' wording). Each issue has its design and plan under `docs/superpowers/` (2026-10-29).
+- **#100:** `viewerSeat(room)` in `moves.js` is the one viewer-seat rule (the person's own seat online, nobody at a hot-seat table), behind the store's `viewer` getter; App's sound cue and dice tray and Results read it. App's storage fallback and random source are `safeStorage` and `randomInt` in the new `src/lib/storage.js`, tested with a getter and a `getItem` that throw. `HandOver` types its store. `seatSlots` keeps its own rule, since it marks the seats in `room.you`, not the seat on show.
+- **#119:** `prefersReducedMotion()` in `motion.js` is the one `matchMedia` call. `TUMBLE_MS` moved to `dice.js`, and `Die` sets `--rg-die-tumble` from it on its own root, so a die rolls at the same pace in the library. The tray's fade reads the `--duration-medium` token through `msOf()`, so `FADE_MS` and its separate reduced-motion check are gone.
+- **#89:** `shownClock(room, seat)` (the header's four-step choice, moved unchanged) and `isRunning(clock)` in `clock.js`. `clockTime.now` in the new `src/lib/now.svelte.js` is one 250 ms timer, through Svelte's `createSubscriber`, that runs only while a screen reads it. `TurnClock` takes `name` and titles itself ("Vera: 1:42"). The pass screen chooses with `shownClock` too, and shows the clock only when it is the named player's own.
+- **#99:** `menuItems(screen, { hosting })` in the new `src/lib/menu.js` lists the start pages', the pass screen's, the results' and the game's entries. `PageHeader` takes the store and its `menu`, turns sound on and off, and leaves the table itself. New browser test `tests/browser/menu.test.mjs`.
+- **#97:** tokens `--scrim`, `--scrim-strong`, `--float-surface` and `--opacity-disabled`, used by `DecisionPanel`, `Dialog`, the game's card inspector, `DiceTray`, `Button`, `Segmented` and `TurnControl`. `Button` styles `aria-disabled`, so `PassScreen` drops its `:global` patch. `Panel` takes `titleFont`, so the landing page's Open tables panel needs no doubled class, and the lobby's dead players-title rule is gone. The issue's `Spoken` component (visually hidden text) is left out under the screen-reader ruling. Before-and-after screenshots of the touched library sections and the landing page are byte-identical apart from the item below.
+- Calls to revisit after playing: the pass screen's take button dims to 0.5 while it arms and loads, as every `Button` does, instead of 0.6 (#97); the pass screen shows no clock when the header would show another player's (#89).
+- **Tests:** every issue was built test-first; the browser tests for #89 and #99 were written to pass on the old code, so they pin its behaviour, and #89's was checked to fail with the ticker's subscription taken out. Together on main: `npm run check` clean, 1923 unit tests (the simulation included) and all 42 browser tests pass. The hotkeys browser test failed once under a slow parallel run and passed on every run after.
+- **Handed off:** #90 moves the header with `shownClock`, `clockTime` and `menu="game"`. #116 takes the dimmer look of a choice that can't be picked (0.3–0.35) and `DecisionOption`'s disabled state. #43 can reuse `safeStorage` and give its screen its own entries in `menuItems`.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 
