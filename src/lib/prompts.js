@@ -7,6 +7,7 @@ import { RESOURCE_ORDER } from './ui.js';
 import { decisionTitle, describeAnswer } from './decision-words.js';
 import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
 import { cardSpot, spotWords } from './civ-card.js';
+import { kindFacts } from './decision-kinds.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 /** @typedef {import('./ui.js').CostSymbol} CostSymbol */
@@ -87,44 +88,6 @@ const SYMBOL_ORDER = /** @type {readonly CostSymbol[]} */ ([
 
 /** The resources a payment can hold. @type {readonly string[]} */
 const PAID_RESOURCES = RESOURCE_ORDER;
-
-/** Which shelf each card decision fills. */
-const SHELVES = /** @type {Readonly<Record<string, Prompt['shelf']>>} */ ({
-	chooseTapestry: 'tapestry',
-	chooseKeep: 'tapestry',
-	chooseDiscard: 'tapestry',
-	chooseResponse: 'tapestry',
-	chooseCopy: 'tapestry',
-	chooseInvent: 'tech',
-	chooseUpgrade: 'tech',
-	chooseTechBenefit: 'tech',
-	chooseCiv: 'civ',
-	chooseCapital: 'mat',
-});
-
-/** The confirm button's words for each decision kind that has its own. */
-const CONFIRM_LABELS = /** @type {Readonly<Record<string, string>>} */ ({
-	chooseTapestry: 'Play card',
-	chooseKeep: 'Keep card',
-	chooseCiv: 'Keep civilization',
-	chooseCapital: 'Take this capital',
-	chooseInvent: 'Invent',
-	chooseUpgrade: 'Upgrade',
-	chooseExplore: 'Explore',
-	chooseConquer: 'Conquer',
-	choosePlacement: 'Place',
-});
-
-/** The decision kinds whose answer may name a track. */
-const TRACK_ANSWERS = [
-	'chooseTrack',
-	'chooseRoll',
-	'chooseRestart',
-	'chooseMove',
-	'chooseRepeat',
-	'chooseSpace',
-	'choosePartner',
-];
 
 /**
  * Whether a value is a plain object.
@@ -278,23 +241,16 @@ function placeOf(decision, answer, game) {
 	if (decision.kind === 'choosePlacement' && typeof answer.row === 'number') {
 		return 'capital';
 	}
-	switch (decision.kind) {
-		case 'chooseTapestry':
-		case 'chooseKeep':
-		case 'chooseDiscard':
-		case 'chooseResponse':
-		case 'chooseCopy':
-		case 'chooseInvent':
-		case 'chooseUpgrade':
-		case 'chooseTechBenefit':
-			return typeof answer.card === 'string' ? 'shelf' : 'panel';
-		case 'chooseCiv':
-			return typeof answer.civ === 'string' ? 'shelf' : 'panel';
-		case 'chooseCapital':
-			return 'shelf';
-		default:
-			return 'panel';
+	// A shelf holds every mat on offer, and the civilizations or cards an answer names.
+	const { shelf } = kindFacts(decision.kind);
+	if (shelf === 'mat') {
+		return 'shelf';
 	}
+	if (shelf !== null) {
+		const named = shelf === 'civ' ? answer.civ : answer.card;
+		return typeof named === 'string' ? 'shelf' : 'panel';
+	}
+	return 'panel';
 }
 
 /**
@@ -319,7 +275,70 @@ function slotArt(slot) {
 }
 
 /**
- * What an answer shows beside its words.
+ * The art beside an answer of each shape (decision-kinds.js), for an answer that isn't on a shelf.
+ * @type {Readonly<Record<import('./decision-kinds.js').ArtShape, (decision: Decision, answer: Answer, place: PromptOption['place']) => Art[]>>}
+ */
+const ART = Object.freeze({
+	track: (decision, answer) =>
+		isTrack(answer.track) ? [{ kind: 'track', id: answer.track }] : [],
+	resources: (decision, answer) =>
+		isRecord(answer.resources) ? resourceArt(answer.resources) : [],
+	payment: (decision, answer) => paymentArt(answer.pay),
+	die: (decision, answer) => {
+		const faces = answer.die === 'red' ? RED_DIE : BLACK_DIE;
+		const face = Number.isInteger(decision[answer.die])
+			? faces[decision[answer.die]]
+			: undefined;
+		return face ? effectArt([face]) : [];
+	},
+	landmark: (decision, answer) =>
+		typeof answer.landmark === 'string'
+			? [{ kind: 'landmark', id: answer.landmark }]
+			: [],
+	'space-tile': (decision, answer) =>
+		isCount(answer.tile) ? [{ kind: 'space-tile', id: answer.tile }] : [],
+	gift: (decision, answer) =>
+		isCount(answer.tile)
+			? [{ kind: 'territory', id: answer.tile, orient: 0 }]
+			: [],
+	explore: (decision, answer) =>
+		isCount(answer.tile)
+			? [
+					{
+						kind: 'territory',
+						id: answer.tile,
+						orient: Number.isInteger(answer.orient)
+							? answer.orient
+							: 0,
+					},
+				]
+			: [],
+	civ: (decision, answer) =>
+		typeof answer.civ === 'string' ? [{ kind: 'civ', id: answer.civ }] : [],
+	placement: (decision, answer, place) => {
+		if (place !== 'panel') {
+			return [];
+		}
+		if (typeof decision.landmark === 'string') {
+			return [{ kind: 'landmark', id: decision.landmark }];
+		}
+		return BUILDING_IDS.includes(decision.building)
+			? [{ kind: 'building', id: decision.building }]
+			: [];
+	},
+	option: (decision, answer) =>
+		Array.isArray(decision.options)
+			? effectArt(decision.options[answer.option])
+			: [],
+	order: (decision, answer) =>
+		Array.isArray(decision.effects) && Number.isInteger(answer.effect)
+			? effectArt([decision.effects[answer.effect]])
+			: [],
+	slot: (decision, answer) => slotArt(answer.slot),
+});
+
+/**
+ * What an answer shows beside its words: a shelf's card, civilization or mat, or its kind's art shape.
  * @param {Decision} decision
  * @param {Answer} answer
  * @param {PromptOption['place']} place
@@ -327,14 +346,8 @@ function slotArt(slot) {
  * @returns {Art[]}
  */
 function artOf(decision, answer, place, game) {
-	const { kind } = decision;
-	if (TRACK_ANSWERS.includes(kind)) {
-		return isTrack(answer.track)
-			? [{ kind: 'track', id: answer.track }]
-			: [];
-	}
+	const { shelf, art } = kindFacts(decision.kind);
 	if (place === 'shelf') {
-		const shelf = SHELVES[kind];
 		if (shelf === 'tapestry') {
 			return [{ kind: 'tapestry', id: answer.card }];
 		}
@@ -350,74 +363,7 @@ function artOf(decision, answer, place, game) {
 			? [{ kind: 'mat', id: answer.capital }]
 			: [];
 	}
-	switch (kind) {
-		case 'chooseResource':
-		case 'chooseConversion':
-			return isRecord(answer.resources)
-				? resourceArt(answer.resources)
-				: [];
-		case 'chooseBonus':
-		case 'chooseTrade':
-			return paymentArt(answer.pay);
-		case 'chooseDie': {
-			const faces = answer.die === 'red' ? RED_DIE : BLACK_DIE;
-			const face = Number.isInteger(decision[answer.die])
-				? faces[decision[answer.die]]
-				: undefined;
-			return face ? effectArt([face]) : [];
-		}
-		case 'chooseLandmark':
-			return typeof answer.landmark === 'string'
-				? [{ kind: 'landmark', id: answer.landmark }]
-				: [];
-		case 'chooseSpaceTile':
-			return isCount(answer.tile)
-				? [{ kind: 'space-tile', id: answer.tile }]
-				: [];
-		case 'chooseGift':
-			return isCount(answer.tile)
-				? [{ kind: 'territory', id: answer.tile, orient: 0 }]
-				: [];
-		case 'chooseExplore':
-			return isCount(answer.tile)
-				? [
-						{
-							kind: 'territory',
-							id: answer.tile,
-							orient: Number.isInteger(answer.orient)
-								? answer.orient
-								: 0,
-						},
-					]
-				: [];
-		case 'chooseCivAbility':
-			return typeof answer.civ === 'string'
-				? [{ kind: 'civ', id: answer.civ }]
-				: [];
-		case 'choosePlacement':
-			if (place !== 'panel') {
-				return [];
-			}
-			if (typeof decision.landmark === 'string') {
-				return [{ kind: 'landmark', id: decision.landmark }];
-			}
-			return BUILDING_IDS.includes(decision.building)
-				? [{ kind: 'building', id: decision.building }]
-				: [];
-		case 'chooseOption':
-			return Array.isArray(decision.options)
-				? effectArt(decision.options[answer.option])
-				: [];
-		case 'chooseOrder':
-			return Array.isArray(decision.effects) &&
-				Number.isInteger(answer.effect)
-				? effectArt([decision.effects[answer.effect]])
-				: [];
-		case 'chooseSlot':
-			return slotArt(answer.slot);
-		default:
-			return [];
-	}
+	return art === null ? [] : ART[art](decision, answer, place);
 }
 
 /**
@@ -648,7 +594,7 @@ export function promptFor(decision, game, seat) {
 		instruction: instructionOf(decision, layout, mapHexes.length > 0),
 		layout,
 		shelf: options.some((o) => o.place === 'shelf')
-			? (SHELVES[decision.kind] ?? null)
+			? kindFacts(decision.kind).shelf
 			: null,
 		mapHexes,
 		track: trackOf(decision),
@@ -657,7 +603,7 @@ export function promptFor(decision, game, seat) {
 			seat !== null && decision.player === seat
 				? incomeView(game, seat)
 				: null,
-		confirmLabel: CONFIRM_LABELS[decision.kind] ?? 'Confirm choice',
+		confirmLabel: kindFacts(decision.kind).confirm ?? 'Confirm choice',
 		options,
 		picks: pickModel(decision, game, seat),
 		trade: tradeOffers(decision, game, seat),
