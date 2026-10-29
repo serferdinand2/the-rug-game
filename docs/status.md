@@ -9,7 +9,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78, #84 and #85 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
-  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101 and #108 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101, #108 and #109 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -79,6 +79,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#88 (the game's keys and Escape through one layer state)](#88-the-games-keys-and-escape-through-one-layer-state)
 - [#101 (rules versions, expansions and variants named in one place)](#101-rules-versions-expansions-and-variants-named-in-one-place)
 - [#108 (tech and tapestry cards in Svelte from the engine's data)](#108-tech-and-tapestry-cards-in-svelte-from-the-engines-data)
+- [#109 (one card band and edition chip across the card families)](#109-one-card-band-and-edition-chip-across-the-card-families)
 
 ## Issues
 
@@ -790,6 +791,31 @@ Lazar completed the owner-reviewed redesign on 2026-10-29. The design and implem
   - `track-text`: Academic Research's benefit is cut off at every screen size; at 2560 and 3840 wide, 11 spaces with a bonus have overlapping parts; and resource art is 18, 27, 20 and 20 px from 1920 to 3840 wide, so it shrinks past 2240.
   - `setup-prompts`: it counts `.rg-track-space--benefit` and `.rg-track-space--bonus`, which `ExplorationFace` doesn't use (36 + 12 benefits and 11 + 7 bonuses are all drawn), and it finds the same Academic Research cut-off.
   - The library's dice tray fade test (#61) is flaky, as before; CI's retries cover it.
+
+### #109 (one card band and edition chip across the card families)
+
+Built on 2026-10-29, after #108. The design is `docs/superpowers/specs/2026-10-29-card-band-design.md` and the plan `docs/superpowers/plans/2026-10-29-card-band-issue-109.md`.
+- **The owner's decisions:** one edition chip for every card family, and each edition in its own card colour: base brown, Plans & Ploys green (#3f6b4b), Arts & Architecture the reviewed purple, Fantasies & Futures teal (#276966). They were chosen from the mockup `docs/ui/edition-chips.html`.
+- **Built:**
+  - `CardBand` (three title sizes, and the trap's red) and `CardEdition` (`code`, coloured by `cardEditionColor` in `ui.js`), each with a library section.
+  - The civilization (`CardFrame`), tech, tapestry, landmark and masterpiece cards draw their band and chip through them, and the copied CSS is gone from the four card stylesheets.
+  - `CardFrame` takes `editions` (codes), and `CivilizationCard`'s 18 branches pass codes. The gallery passes each asset's expansion code.
+  - The landmark and masterpiece classes use `--`.
+  - New tokens: `--card-plans-ploys`, `--card-fantasies-futures` and `--font-size-card-title-sm`.
+- **Calls to revisit** (my calls):
+  - The civilization band's bottom line was a faint purple, left over from the Option B colour rule. It is now the brown every card has.
+  - The landmark title takes the tapestry title's 21 px settings.
+  - The base chip keeps its lighter border, as approved.
+- **Checks:** each of the gallery's 218 cards (one is not findable by name) was screenshotted alone on main and on the branch. At a tolerance of 3:
+  - civilization cards changed only in the band's bottom line and the chip;
+  - tech cards are identical;
+  - base tapestry cards are identical, and expansion tapestry cards changed only their chip;
+  - landmark cards changed the title spacing and the chip, and masterpiece cards only the chip.
+
+  The README's `card-gallery.png`, `civilization-card-components.png` and `game-civ-card-choice.png` were retaken. The last also shows #85's new track spaces now.
+- **Tests:** the new `tests/client-card-band.test.mjs` covers each colour and its token, the chip, the band, every family's chip, and a guard against the old classes. `npm run check` is clean.
+- **For the owner:** please check the card gallery (`/cards.html`) and the library's CardBand and CardEdition sections.
+- **Handed off:** #106 and #107 build on `CardFrame` with `CardBand` and `CardEdition`, and each expansion card passes its edition code.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Edition chips · #109 options</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="../../src/styles/tokens.css">
+	<style>
+		/* #109's question: one edition chip for every card family, in each expansion's colour on card paper. */
+		:root {
+			/* Proposed card-paper shades: base brown and Arts & Architecture purple are the reviewed ones. */
+			--chip-base: var(--card-band-start);
+			--chip-pp: #3f6b4b;
+			--chip-aa: var(--card-expansion);
+			--chip-ff-blue: #36598a;
+			--chip-ff-teal: #276966;
+			--chip-ff-rose: #8b3a5f;
+		}
+		body {
+			margin: 0;
+			padding: 28px 36px 40px;
+			background: var(--texture) var(--surface);
+			color: var(--text);
+			font: 400 15px/1.4 'Atkinson Hyperlegible', sans-serif;
+		}
+		h1 { margin: 0 0 4px; font: 700 26px/1.2 Cinzel, serif; color: var(--gold); }
+		h2 { margin: 26px 0 10px; font: 700 17px/1.2 Cinzel, serif; color: var(--gold); }
+		p { margin: 0 0 8px; max-width: 1180px; color: var(--muted); }
+		.grid { display: grid; grid-template-columns: 150px repeat(4, 1fr); gap: 8px 14px; align-items: center; }
+		.grid > b { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+		.now img { display: block; zoom: 0.5; max-width: none; border: 2px solid var(--line-soft); }
+		.paper {
+			display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 7px 12px;
+			background: var(--card-paper) url('../../src/styles/card-paper-noise.svg') repeat;
+			border: 2px solid var(--card-line-strong);
+		}
+		.chip {
+			display: inline-flex; align-items: center; justify-content: center; min-height: 18px; padding: 2px 6px;
+			border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); color: var(--c);
+			white-space: nowrap; font: 700 10px/1 'Atkinson Hyperlegible', sans-serif; letter-spacing: 0.04em;
+		}
+		.empty { color: var(--faint); font-size: 12px; }
+		.note { font-size: 13px; }
+	</style>
+</head>
+<body>
+	<h1>Edition chips (#109)</h1>
+	<p><strong>Owner's decision, 2026-10-29:</strong> one chip for every card family, each expansion in its own card colour, and Fantasies &amp; Futures in teal (choice 2). The base chip keeps the lighter border it was approved with.</p>
+	<p>Every card family gets one shared edition chip: the tech and tapestry cards' chip, border, 16% tint and text in the expansion's colour. Today the five families draw it four ways, and several chips show the wrong expansion.</p>
+
+	<h2>Today, from the card gallery</h2>
+	<div class="grid now">
+		<b></b><b>Base game</b><b>Plans &amp; Ploys</b><b>Arts &amp; Architecture</b><b>Fantasies &amp; Futures</b>
+		<b>Civilization</b>
+		<img src="assets/edition-chips/civ-Base-game.png" alt="">
+		<img src="assets/edition-chips/civ-Plans-Ploys.png" alt="">
+		<img src="assets/edition-chips/civ-Arts-Architecture.png" alt="">
+		<img src="assets/edition-chips/civ-Fantasies-Futures.png" alt="">
+		<b>Tech</b>
+		<img src="assets/edition-chips/tech-Base-game.png" alt="">
+		<span class="empty">no cards yet</span><span class="empty">no cards yet</span><span class="empty">no cards yet</span>
+		<b>Tapestry</b>
+		<img src="assets/edition-chips/tapestry-Base-game.png" alt="">
+		<img src="assets/edition-chips/tapestry-Plans-Ploys.png" alt="">
+		<img src="assets/edition-chips/tapestry-Arts-Architecture.png" alt="">
+		<img src="assets/edition-chips/tapestry-Fantasies-Futures.png" alt="">
+		<b>Landmark</b>
+		<span class="empty">none</span>
+		<img src="assets/edition-chips/landmark-Plans-Ploys.png" alt="">
+		<img src="assets/edition-chips/landmark-Arts-Architecture.png" alt="">
+		<span class="empty">none</span>
+		<b>Masterpiece</b>
+		<span class="empty">none</span><span class="empty">none</span>
+		<img src="assets/edition-chips/masterpiece-Arts-Architecture.png" alt="">
+		<span class="empty">none</span>
+	</div>
+	<p class="note">Civilization chips use the base colours for every edition; tapestry chips use Arts &amp; Architecture purple for every expansion; landmark and masterpiece chips use the interface's tan for every edition.</p>
+
+	<h2>Proposed: one chip, each expansion in its own colour on card paper</h2>
+	<p>Base game stays brown and Arts &amp; Architecture stays the reviewed purple (card-design-rules.md). Plans &amp; Ploys takes a green dark enough to read on the paper. Fantasies &amp; Futures is purple in the rest of the interface, which would look like Arts &amp; Architecture on a card, so it needs a card colour of its own: three choices.</p>
+	<div class="grid">
+		<b></b><b>Base game</b><b>Plans &amp; Ploys</b><b>Arts &amp; Architecture</b><b>Fantasies &amp; Futures</b>
+		<b>F&amp;F choice 1 · blue</b>
+		<div class="paper"><span class="chip" style="--c: var(--chip-base)">Base game</span></div>
+		<div class="paper"><span class="chip" style="--c: var(--chip-pp)">Plans &amp; Ploys</span></div>
+		<div class="paper"><span class="chip" style="--c: var(--chip-aa)">Arts &amp; Architecture</span></div>
+		<div class="paper"><span class="chip" style="--c: var(--chip-ff-blue)">Fantasies &amp; Futures</span></div>
+		<b>F&amp;F choice 2 · teal</b>
+		<div class="paper"><span class="chip" style="--c: var(--chip-base)">Base game</span></div>
+		<div class="paper"><span class="chip" style="--c: var(--chip-pp)">Plans &amp; Ploys</span></div>
+		<div class="paper"><span class="chip" style="--c: var(--chip-aa)">Arts &amp; Architecture</span></div>
+		<div class="paper"><span class="chip" style="--c: var(--chip-ff-teal)">Fantasies &amp; Futures</span></div>
+		<b>F&amp;F choice 3 · rose</b>
+		<div class="paper"><span class="chip" style="--c: var(--chip-base)">Base game</span></div>
+		<div class="paper"><span class="chip" style="--c: var(--chip-pp)">Plans &amp; Ploys</span></div>
+		<div class="paper"><span class="chip" style="--c: var(--chip-aa)">Arts &amp; Architecture</span></div>
+		<div class="paper"><span class="chip" style="--c: var(--chip-ff-rose)">Fantasies &amp; Futures</span></div>
+	</div>
+	<p class="note">The civilization card's base chip changes slightly: from a light card-control fill with dark text to the brown tint the tech and tapestry cards already use. The landmark and masterpiece chips change from tan to their expansion's colour.</p>
+</body>
+</html>

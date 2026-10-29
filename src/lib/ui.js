@@ -78,6 +78,24 @@ const EXPANSION_COLORS = /** @type {Readonly<Record<string, string>>} */ ({
 	ff: 'var(--fantasies-futures)',
 });
 
+/** Each edition's chip colour on card paper (owner, #109); the interface's own badge colours are EXPANSION_COLORS. */
+const CARD_EDITION_COLORS = /** @type {Readonly<Record<string, string>>} */ ({
+	base: 'var(--card-band-start)',
+	pp: 'var(--card-plans-ploys)',
+	aa: 'var(--card-expansion)',
+	ff: 'var(--card-fantasies-futures)',
+});
+
+/**
+ * The colour of an edition's chip on a card (#109): base brown, Plans & Ploys green, Arts & Architecture purple and
+ * Fantasies & Futures teal.
+ * @param {string} code - 'base', 'pp', 'aa' or 'ff'
+ * @returns {string} A token reference, such as 'var(--card-plans-ploys)'; the base brown for an unknown code.
+ */
+export function cardEditionColor(code) {
+	return CARD_EDITION_COLORS[code] ?? CARD_EDITION_COLORS.base;
+}
+
 /**
  * The colour of an expansion's badges and chips (#101).
  * @param {string} code - Such as 'pp', 'aa', 'ff' or 'base'

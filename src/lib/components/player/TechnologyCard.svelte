@@ -17,6 +17,8 @@
 </script>
 
 <script>
+	import CardBand from './CardBand.svelte';
+	import CardEdition from './CardEdition.svelte';
 	import { techCardData } from '../../cards/game-cards.js';
 	import { trackName } from '../../game-names.js';
 	import { artUrl } from '../../ui.js';
@@ -34,9 +36,10 @@
 	<div
 		class="rg-tech-layout"
 		aria-label="{card.title} technology card">
-		<header class="rg-tech-layout--band">
-			<strong>{card.title}</strong>
-		</header>
+		<CardBand
+			class="rg-tech-layout--band"
+			title={card.title}
+			size="medium" />
 		<div class="rg-tech-layout--body">
 			<img
 				class="rg-tech-layout--art"
@@ -83,7 +86,7 @@
 				><b>Top row</b></span>
 		</div>
 		<footer class="rg-tech-layout--footer">
-			<span class="rg-card-edition rg-card-edition--base">Base game</span>
+			<CardEdition code={card.edition ?? 'base'} />
 		</footer>
 	</div>
 </div>

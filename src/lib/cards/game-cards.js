@@ -15,6 +15,7 @@ import { describeTapestryCard } from './tapestry-text.js';
  * @property {string} [track] - The track whose tier it needs to reach the top row
  * @property {number} [level] - That tier, 2 to 4
  * @property {string} [innovation] - Or the income-mat innovation it needs, by its printed name (R18)
+ * @property {string} [edition] - Its edition's code, such as 'aa'; the base game when not given
  */
 
 /**
@@ -26,7 +27,7 @@ import { describeTapestryCard } from './tapestry-text.js';
  * @property {string} copy - Its ability, as sentences
  * @property {string} [note] - The trap's note: what it gains played as a tapestry card (R22)
  * @property {boolean} [trap] - It is the trap, which has its own red band
- * @property {string} [edition] - Its edition's name, when not the base game
+ * @property {string} [edition] - Its edition's code, such as 'pp'; the base game when not given
  */
 
 /** The timing labels of card-design-rules.md, by the engine's timing. */

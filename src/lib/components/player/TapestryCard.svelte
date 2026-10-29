@@ -17,6 +17,8 @@
 </script>
 
 <script>
+	import CardBand from './CardBand.svelte';
+	import CardEdition from './CardEdition.svelte';
 	import {
 		tapestryCardData,
 		tapestryTiming,
@@ -29,7 +31,6 @@
 
 	const card = $derived(data ?? tapestryCardData(id ?? ''));
 	const timing = $derived(tapestryTiming(card));
-	const edition = $derived(card.edition ?? 'Base game');
 </script>
 
 <div
@@ -39,9 +40,11 @@
 		class="rg-tapestry-layout"
 		class:rg-tapestry-layout--trap={card.trap}
 		aria-label="{card.title} tapestry card">
-		<header class="rg-tapestry-layout--band">
-			<strong>{card.title}</strong>
-		</header>
+		<CardBand
+			class="rg-tapestry-layout--band"
+			title={card.title}
+			size="small"
+			trap={card.trap} />
 		<div class="rg-tapestry-layout--portrait">
 			<img
 				src={artUrl(`tapestry/${card.art}`)}
@@ -58,10 +61,7 @@
 				>{/if}
 		</p>
 		<footer class="rg-tapestry-layout--footer">
-			<span
-				class="rg-card-edition {edition === 'Base game'
-					? 'rg-card-edition--base'
-					: 'rg-card-edition--arts'}">{edition}</span>
+			<CardEdition code={card.edition ?? 'base'} />
 		</footer>
 	</div>
 </div>

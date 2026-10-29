@@ -17,7 +17,7 @@
 			title="Castle"
 			artwork="/art/landmark-card/castle.svg"
 			footprint={FOOTPRINTS.castle}
-			edition="Arts & Architecture" />
+			edition="aa" />
 	</Example>
 	<Example
 		label="Windmill · a footprint two rows tall"
@@ -26,6 +26,6 @@
 			title="Windmill"
 			artwork="/art/landmark-card/windmill.svg"
 			footprint={FOOTPRINTS.windmill}
-			edition="Arts & Architecture" />
+			edition="aa" />
 	</Example>
 </Section>

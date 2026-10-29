@@ -40,7 +40,7 @@
 	import CardTerrainRewards from './CardTerrainRewards.svelte';
 	import CardTokenReserve from './CardTokenReserve.svelte';
 	import PlayerToken from './PlayerToken.svelte';
-	import { civilizationName, expansionName } from '../../game-names.js';
+	import { civilizationName } from '../../game-names.js';
 	import { playerColor } from '../../ui.js';
 	import { ASSETS } from '../../art/catalog.js';
 	import '../../engine/game.js';
@@ -139,11 +139,9 @@
 				: {}
 	);
 	const choices = $derived(live?.choices ?? {});
+	/** The edition's code, for the chip (#109). */
 	const edition = $derived(
-		expansionName(
-			ASSETS.find((asset) => asset.id === `civ/${id}`)?.expansion ??
-				'base'
-		)
+		ASSETS.find((asset) => asset.id === `civ/${id}`)?.expansion ?? 'base'
 	);
 
 	/**
@@ -221,7 +219,7 @@
 			title="Collectors"
 			portrait="/art/civ/collectors.svg"
 			portraitAlt="A collector studies a gem through a magnifying glass"
-			badges={['Arts & Architecture']}
+			editions={['aa']}
 			complexity={2}
 			{state}
 			class="">
@@ -349,7 +347,7 @@
 			title="Architects"
 			portrait="/art/civ/architects.svg"
 			portraitAlt="Architects civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={3}
 			{state}
 			class="rg-card-frame--architects">
@@ -393,7 +391,7 @@
 			title="Leaders"
 			portrait="/art/civ/leaders.svg"
 			portraitAlt="Leaders civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={1}
 			state={cardState}
 			class="rg-card-frame--leaders">
@@ -460,7 +458,7 @@
 			title="Treasure Hunters"
 			portrait="/art/civ/treasure-hunters.svg"
 			portraitAlt="Treasure Hunters civilization portrait"
-			badges={['Plans & Ploys']}
+			editions={['pp']}
 			complexity={3}
 			{state}
 			class="rg-card-frame--treasure">
@@ -528,7 +526,7 @@
 			title="Craftsmen"
 			portrait="/art/civ/craftsmen.svg"
 			portraitAlt="Craftsmen civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={1}
 			{state}
 			class="rg-card-frame--craftsmen">
@@ -692,7 +690,7 @@
 			title="Entertainers"
 			portrait="/art/civ/entertainers.svg"
 			portraitAlt="Entertainers civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={2}
 			state={cardState}
 			class="rg-card-frame--entertainers">
@@ -776,7 +774,7 @@
 			title="Militants"
 			portrait="/art/civ/militants.svg"
 			portraitAlt="Militants civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={1}
 			state={cardState}
 			class="rg-card-frame--militants">
@@ -922,7 +920,7 @@
 			title="Mystics"
 			portrait="/art/civ/mystics.svg"
 			portraitAlt="Mystics civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={3}
 			state={cardState}
 			class="rg-card-frame--mystics">
@@ -995,7 +993,7 @@
 			title="Alchemists"
 			portrait="/art/civ/alchemists.svg"
 			portraitAlt="Alchemists civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={3}
 			{state}
 			class="rg-card-frame--alchemists">
@@ -1087,7 +1085,7 @@
 			title="Isolationists"
 			portrait="/art/civ/isolationists.svg"
 			portraitAlt="Isolationists civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={2}
 			{state}
 			class="rg-card-frame--isolationists">
@@ -1149,7 +1147,7 @@
 			title="Traders"
 			portrait="/art/civ/traders.svg"
 			portraitAlt="Traders civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={1}
 			{state}
 			class="rg-card-frame--traders">
@@ -1192,7 +1190,7 @@
 			title="Merrymakers"
 			portrait="/art/civ/merrymakers.svg"
 			portraitAlt="Merrymakers civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={1}
 			state={cardState}
 			class="rg-card-frame--merrymakers">
@@ -1308,7 +1306,7 @@
 			title="Historians"
 			portrait="/art/civ/historians.svg"
 			portraitAlt="Historians civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={1}
 			state={cardState}
 			class="rg-card-frame--historians">
@@ -1386,7 +1384,7 @@
 			title="Inventors"
 			portrait="/art/civ/inventors.svg"
 			portraitAlt="Inventors civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={1}
 			{state}
 			class="rg-card-frame--inventors">
@@ -1427,7 +1425,7 @@
 			title="Futurists"
 			portrait="/art/civ/futurists.svg"
 			portraitAlt="Futurists civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={3}
 			{state}
 			class="rg-card-frame--futurists">
@@ -1476,7 +1474,7 @@
 			title="Heralds"
 			portrait="/art/civ/heralds.svg"
 			portraitAlt="Heralds civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={1}
 			{state}
 			class="rg-card-frame--heralds">
@@ -1522,7 +1520,7 @@
 			title="Nomads"
 			portrait="/art/civ/nomads.svg"
 			portraitAlt="Nomads civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={3}
 			{state}
 			class="rg-card-frame--nomads">
@@ -1563,7 +1561,7 @@
 			title="The Chosen"
 			portrait="/art/civ/the-chosen.svg"
 			portraitAlt="The Chosen civilization portrait"
-			badges={['Base game']}
+			editions={['base']}
 			complexity={2}
 			{state}
 			class="rg-card-frame--the-chosen">
@@ -1609,7 +1607,7 @@
 			title={civilizationName(id)}
 			portrait="/art/civ/{id}.svg"
 			portraitAlt=""
-			badges={[edition]}
+			editions={[edition]}
 			{state}
 			class="">
 			{#snippet effect()}

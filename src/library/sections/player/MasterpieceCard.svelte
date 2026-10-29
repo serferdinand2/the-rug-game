@@ -19,7 +19,7 @@
 			{#snippet effects()}
 				<p>Gain <strong>4 VP</strong>.</p>
 				<p>
-					<span class="rg-masterpiece-card__resource"
+					<span class="rg-masterpiece-card--resource"
 						>+<img
 							src="/art/resource-24/any.svg"
 							alt="any resource"

@@ -21,7 +21,7 @@ The card study at `C:/Users/lazar/.codex/visualizations/2026/10/23/01a16638-a2cd
 - Keep effect wording in Atkinson. The shape and its benefit share one light beige box. Separate the two benefits so their distinct upgrade timing is immediately visible.
 - Put the conditions in a dedicated row **below the artwork and effects**. Align the light-grey condition boxes right. For a track requirement, show its icon, its name in Cinzel and its track colour, then the **Arabic numeral** (for example `Technology 2`). A row condition uses the same empty square followed by `Top row`.
 - Leave equal visual breathing room above and below the condition row: the gap from the artwork to the conditions matches the gap from the conditions to the edition separator.
-- Put the edition chip at the bottom in the same position, vertical alignment and colours as the other cards. Base game is brown; Arts & Architecture is purple. Do not add an extra separator around the chip.
+- Put the edition chip at the bottom in the same position, vertical alignment and colours as the other cards. Base game is brown; Plans & Ploys is green; Arts & Architecture is purple; Fantasies & Futures is teal, so it never looks like Arts & Architecture on a card (owner, 2026-10-29, #109). Every card family draws it through `CardEdition`, and its title band through `CardBand`. Do not add an extra separator around the chip.
 - In the Tech tab, card wrappers may overlap horizontally. Hover and keyboard focus raise one card above its neighbours. Empty row placeholders use a **solid border**, never a dashed one.
 
 ### Tapestry
