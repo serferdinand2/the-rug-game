@@ -12,6 +12,7 @@
 <script>
 	import { onMount, untrack } from 'svelte';
 	import Toast from './lib/components/ui/Toast.svelte';
+	import Tooltip from './lib/components/ui/Tooltip.svelte';
 	import DiceTray from './lib/components/board/DiceTray.svelte';
 	import { rollsOf } from './lib/dice.js';
 	import { createApi } from './lib/api.js';
@@ -148,6 +149,8 @@
 	{#if helpOpen}
 		<HelpPanel onHelpPanelClose={() => (helpOpen = false)} />
 	{/if}
+	<!-- Every title on every screen shows in this one tooltip, not the browser's. -->
+	<Tooltip />
 </div>
 
 <style>

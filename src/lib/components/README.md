@@ -46,6 +46,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `Tabs` | The right panel's tabs, with a count, roving focus and arrow keys; `--rg-tabs-padding` and `--rg-tabs-gap` tighten the row, and a row wider than its place scrolls, fades at a cut edge and keeps the selected tab in view (#64). It draws the selected tab's panel from its children, laid out through `panelClass`, starts every id with its own prefix (`idPrefix`, by default `$props.id()`), and with `autofocus` gives the selected tab the focus as it is drawn (#91). |
 | `TextInput` | Labelled text fields with a hint and a validation message, and the small gold read-only code. |
 | `Toast` | A short status message at the bottom of the screen. |
+| `Tooltip` | Every title on the page in one large chrome box with an arrow, instead of the browser's small tooltip: mounted once at the root, it shows on hover or keyboard focus after 250 ms, sits above its element or below near the top, and stays in the window. `placement="inline"` shows a given `text` in place, as on the library page. |
 | `TopBar` | The 58px header: brand, centre content and controls. Player chips go straight into the centre, so they shrink to fit a narrow header. |
 | `TurnClock` | The header's turn clock: a player colour mark and the time left, paused muted, red with the seconds in words when low; titled with its player's `name`, as "Vera: 1:42" (#89). |
 
