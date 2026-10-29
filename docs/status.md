@@ -8,7 +8,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
-  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #84, #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119 and #130 are done. #103, #124 and #128 are partly built; what is left of each waits for #85. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
+  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #84, #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119 and #130 are done. #103, #124 and #128 are partly built; what is left of each waits for #85. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -24,7 +24,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
 - **Next:**
-  - #77 (the first turn takes income by itself) is built; it closes once the owner has looked at its IncomeNotice and TurnBar sections in the component library.
+  - #77 (the first turn takes income by itself) is done: the owner approved its IncomeNotice and TurnBar sections and closed it on 2026-10-29.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
   - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
   - #79 (every decision prompt at the tracks' centre, the prompt out of `Game.svelte`) is done; it merged and closed on 2026-10-28, after the owner's ruling on the library.
@@ -492,6 +492,7 @@ Built on 2026-10-28. The owner changed the issue's brief when asked: "Just make 
   - Calls to revisit: the notice is a centred panel over the board with **Got it**, titled "Era I begins", remembered in `sessionStorage`; its holdings follow `describeCost()`'s order (coin, food, worker, culture); a later forced income turn stays a click, since it ends an era; its **Take income** is the outlined `gold` button, as the footer's **Results** is; the waiting footer names any income turn ("Ana is taking income turn 3."); "End era IV, score it and finish playing." before income turn 5.
   - Tests: `startedGame()` (`tests/helpers/engine.mjs`) answers setup with every seat's `incomeTurns` already 1 unless `keepIncome` is passed, so tests start from what setup gave, as before; `firstIncomeTurn()` runs a seat's income turn 1 again after a `fill`. `tests/browser/first-income.test.mjs` plays a hot-seat setup and sees each player's notice once. `pick-prompts` closes the notice as it takes the screen, and its several-resources test now reads the answer's own `resourcesGained`, since an income step's gains could follow in the same move.
   - Handed off: #31 (whether the Automa and the Shadow Empire take an automatic income turn 1; `startTurn()` only does it for player seats), #62 (the first turn has no **End turn** moment), #71 (the footer's heading and detail wording agree with these states).
+- **Closed** on 2026-10-29, when the owner approved the IncomeNotice and TurnBar sections in the component library.
 
 ### #42 (How to play in the game)
 
