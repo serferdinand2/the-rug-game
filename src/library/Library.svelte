@@ -57,12 +57,8 @@
 		loadPicture,
 		pictureSize,
 	} from './art.js';
-	import { EXPANSIONS } from '../lib/art/catalog.js';
+	import { expansionName } from '../lib/game-names.js';
 	import { joinList } from '../lib/words.js';
-
-	const EXPANSION_NAMES = new Map(
-		EXPANSIONS.map(({ code, name }) => [code, name])
-	);
 
 	/** @type {LibraryProps} */
 	let { title = 'Components', ...attr } = $props();
@@ -186,7 +182,7 @@
 								size={pictureSize(tile.asset.id)}
 								plots={tile.plots}
 								expansion={tile.showExpansion
-									? EXPANSION_NAMES.get(tile.asset.expansion)
+									? expansionName(tile.asset.expansion)
 									: undefined}
 								issue={tile.asset.issue} />
 						{/each}

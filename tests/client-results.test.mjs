@@ -129,7 +129,7 @@ test('a shared victory: both winners, the shared place, the rule note and the ti
 	const [ana, bo] = [game.seats[0].name, game.seats[1].name];
 	assert.equal(
 		tie.intro,
-		`${ana} and ${bo} both finished on 87 VP. Under the current official rules, the tiebreaks decide their order.`
+		`${ana} and ${bo} both finished on 87 VP. Under the current rules, the tiebreaks decide their order.`
 	);
 	assert.deepEqual(
 		tie.steps.map((step) => [step.title, step.separates]),
@@ -198,7 +198,7 @@ test("the table's facts: rules, mode and players, expansions and variants by nam
 	const game = sharedWin();
 	game.variants = ['tapestry-draft', 'closest-island'];
 	const facts = tableFacts({ mode: 'hotseat', game });
-	assert.equal(facts.rules, 'Current official rules');
+	assert.equal(facts.rules, 'Current rules');
 	assert.equal(facts.mode, `Hot-seat · ${game.seats.length} players`);
 	assert.deepEqual(facts.expansions, []);
 	assert.equal(facts.variants.length, 2);
@@ -245,4 +245,13 @@ test("the scoreboard's tiebreak values are the engine's, the landmark by name (#
 	assert.equal(row.landmark, 'Skyscraper');
 	assert.equal(row.resources, values.resources);
 	assert.equal(row.resources, 7);
+});
+
+test("the table's expansions carry their name and their own colour, not gold (#101)", () => {
+	const game = sharedWin();
+	game.expansions = ['pp', 'aa'];
+	assert.deepEqual(tableFacts({ mode: 'online', game }).expansions, [
+		{ name: 'Plans & Ploys', color: 'var(--plans-ploys)' },
+		{ name: 'Arts & Architecture', color: 'var(--arts-architecture)' },
+	]);
 });

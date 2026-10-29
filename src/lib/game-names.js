@@ -1,9 +1,9 @@
-// The game's names as players read them (#123): tracks, spaces, resources, pieces, cards, civilizations, seats, hexes, achievements and numerals.
+// The game's names as players read them (#123, #101): tracks, spaces, resources, pieces, cards, civilizations, seats, hexes, achievements, numerals, rules versions, expansions and variants.
 import { TRACKS } from './engine/data/tracks.js';
 import { tapestryCard } from './engine/data/tapestry-cards.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
 import { ACHIEVEMENTS } from './engine/data/achievements.js';
-import { ASSETS } from './art/catalog.js';
+import { ASSETS, EXPANSIONS } from './art/catalog.js';
 import { capitalize, nounOf, signed, titleOf } from './words.js';
 
 /** @typedef {{ seats?: readonly { name?: string }[] }} Table - A state or a view: the seats' names */
@@ -27,6 +27,22 @@ const ACHIEVEMENT_NAMES = /** @type {Readonly<Record<string, string>>} */ ({
 	'complete-track': 'Complete a track',
 	'topple-two': 'Topple two outposts',
 	'middle-island': 'Conquer the middle',
+});
+
+/** The rules versions as the lobby's mockup names them, in full and in the settings row (owner, #101). */
+const VERSION_NAMES =
+	/** @type {Readonly<Record<string, { full: string, short: string }>>} */ ({
+		current: { full: 'Current rules', short: 'Current rules' },
+		original: { full: 'Original 2019 rules', short: 'Original 2019' },
+	});
+
+/** The variants (#53) by the lobby's short row titles; the engine's full names are their tooltips. */
+const VARIANT_NAMES = /** @type {Readonly<Record<string, string>>} */ ({
+	'tapestry-draft': 'Tapestry draft',
+	'civ-draft': 'Civilization draft',
+	'neoprene-nanotechnology': 'Neoprene Nanotechnology',
+	'no-radio-battery': 'No Radio or Battery',
+	'closest-island': 'Closest island',
 });
 
 const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
@@ -229,4 +245,39 @@ export function roman(number) {
 		);
 	}
 	return numeral;
+}
+
+/**
+ * A rules version's name, the same everywhere (owner, #101): "Current rules" or "Original 2019 rules"; the settings
+ * row's short name is "Original 2019". An id no version has comes back as it is.
+ * @param {string} id - 'current' or 'original'
+ * @param {{ short?: boolean }} [options]
+ * @returns {string}
+ */
+export function versionName(id, { short = false } = {}) {
+	const names = VERSION_NAMES[id];
+	if (!names) {
+		return id;
+	}
+	return short ? names.short : names.full;
+}
+
+/**
+ * An expansion's name, as the art catalog names it: "Plans & Ploys", and "Base game" for 'base'. A code no edition
+ * has comes back as it is.
+ * @param {string} code - Such as 'pp', 'aa', 'ff' or 'base'
+ * @returns {string}
+ */
+export function expansionName(code) {
+	return EXPANSIONS.find((edition) => edition.code === code)?.name ?? code;
+}
+
+/**
+ * A variant's short name, as the lobby's settings row titles it, such as "Tapestry draft".
+ * @param {string} id
+ * @param {string} [fallback] - What a variant without a short name reads, such as the server's full name; its id by default
+ * @returns {string}
+ */
+export function variantName(id, fallback = id) {
+	return VARIANT_NAMES[id] ?? fallback;
 }

@@ -9,7 +9,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78 and #84 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
-  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129 and #88 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88 and #101 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -77,6 +77,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#126 (describe.js split into effect words, decision words and card text)](#126-describejs-split-into-effect-words-decision-words-and-card-text)
 - [#129 (each decision kind's client facts in one table)](#129-each-decision-kinds-client-facts-in-one-table)
 - [#88 (the game's keys and Escape through one layer state)](#88-the-games-keys-and-escape-through-one-layer-state)
+- [#101 (rules versions, expansions and variants named in one place)](#101-rules-versions-expansions-and-variants-named-in-one-place)
 
 ## Issues
 
@@ -732,6 +733,29 @@ Built on 2026-10-29, when the owner chose it as the M13 refactor that fixes a bu
   - The hotkeys browser test now presses I, L, Esc, Esc. Its setup no longer takes the Futurists, which fixes the flake #127's entry noted. It and the rules-panel and dialogs tests passed 5 times in a row.
   - `npm run check` is clean, all 2009 unit tests pass, and all 43 browser tests pass on the branch's own servers.
 - **Handed off:** #62 (End turn) and #35 (the arts track's key) add their keys through `hotkeyAction`, and a layer where they open something.
+
+### #101 (rules versions, expansions and variants named in one place)
+
+Built on 2026-10-29, among the refactors #32 waits for. The design is `docs/superpowers/specs/2026-10-29-version-names-design.md` and the plan `docs/superpowers/plans/2026-10-29-version-names-issue-101.md`.
+- **The owner's wording:** the rules versions are "Current rules" and "Original 2019 rules" everywhere, the lobby's mockup words. The settings row keeps "Original 2019" (owner, 2026-10-29). Before, the results said "Current official rules", and the log mixed the two sets.
+- **Built:**
+  - `versionName`, `expansionName` and `variantName` in `game-names.js`, `expansionColor` in `ui.js`, and `expansionBadges` in `lobby.js`.
+  - The lobby, the landing page, the log, the results, `CivilizationCard`, the card gallery's `CardEntry` and the library use them. `rulesLabel`, `VARIANT_LABELS`, the two `RULES` maps and the copied `EXPANSIONS.find` lookups are gone.
+  - The results draw each expansion badge in its own colour, not gold.
+  - `OpenTableRow` takes `expansions: { name, color }[]`, and the landing page now passes each open table's expansions.
+  - `npm run check` caught a real bug while this was built: `.map(variantName)` would have passed the index as the fallback.
+- **Calls to revisit** (my calls):
+  - Several badges stack under the rules line, as the one badge did. The library's OpenTableRow section has a new example with two expansions, for the owner to check.
+  - The log keeps the names' capitals ("under the Current rules"), while the results' tie sentence lowercases them ("Under the current rules").
+- **Screens:** `docs/ui/screens/game-results.png` was retaken from a real three-player hot-seat game with the tapestry draft, so its facts list says "Current rules".
+- **Tests:**
+  - `client-game-names` gains the three names and a guard against the old lookups.
+  - `ui.test` checks each expansion colour's token, and `client-results` the badges' colours.
+  - `client-log` and `client-results` take the owner's wording, and `client-lobby`'s naming tests moved to `client-game-names`.
+  - `npm run check` is clean, all 2012 unit tests pass, and all 43 browser tests pass on the branch's own servers.
+- **Handed off:**
+  - #109's edition chips use `expansionName` and `expansionColor`.
+  - #32 is the first expansion to show them.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

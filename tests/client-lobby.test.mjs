@@ -3,7 +3,6 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
 	UNDO_CHOICES,
-	VARIANT_LABELS,
 	YES_NO_CHOICES,
 	canChangeMode,
 	expansionChoices,
@@ -11,7 +10,6 @@ import {
 	modeChoices,
 	modeLock,
 	rulesChoices,
-	rulesLabel,
 	seatSlots,
 	settingsLock,
 	timerChoices,
@@ -123,21 +121,6 @@ test('a table code is 8 letters or digits, spaces trimmed', () => {
 	assert.ok(!validCode('3f9a1c077'));
 	assert.ok(!validCode('3f9a-c07'));
 	assert.ok(!validCode(''));
-});
-
-test('the rules read as the mockups name them', () => {
-	assert.equal(rulesLabel('current'), 'Current rules');
-	assert.equal(rulesLabel('original'), 'Original 2019 rules');
-	assert.equal(rulesLabel('original', { short: true }), 'Original 2019');
-});
-
-test('every variant has a short row title', () => {
-	assert.deepEqual(
-		Object.keys(VARIANT_LABELS).sort(),
-		VARIANTS.map((v) => v.id).sort()
-	);
-	assert.equal(VARIANT_LABELS['tapestry-draft'], 'Tapestry draft');
-	assert.equal(VARIANT_LABELS['closest-island'], 'Closest island');
 });
 
 test('the timer choices name off and the minutes, in the exploration colour', () => {

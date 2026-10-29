@@ -164,8 +164,10 @@
 					<dd>{facts.mode}</dd>
 					<dt>Expansions</dt>
 					<dd class="rg-results--badges">
-						{#each facts.expansions as name (name)}
-							<Badge label={name} />
+						{#each facts.expansions as expansion (expansion.name)}
+							<Badge
+								label={expansion.name}
+								color={expansion.color} />
 						{:else}
 							Base game
 						{/each}

@@ -15,17 +15,14 @@
 	import { SPACE_TILES } from '../lib/engine/data/space-tiles.js';
 	import { techCardData, tapestryCardData } from '../lib/cards/game-cards.js';
 	import { describeEffects } from '../lib/describe.js';
-	import { EXPANSIONS } from '../lib/art/catalog.js';
+	import { expansionName } from '../lib/game-names.js';
 	import { CARD_GROUPS } from './gallery-data.js';
 
 	/** @type {CardEntryProps} */
 	let { asset } = $props();
 	const slug = $derived(asset.id.slice(asset.group.length + 1));
 	const art = $derived(`/art/${asset.id}.svg`);
-	const edition = $derived(
-		EXPANSIONS.find((item) => item.code === asset.expansion)?.name ??
-			asset.expansion
-	);
+	const edition = $derived(expansionName(asset.expansion));
 	const techIds = new Set(TECH_CARDS.map((card) => card.id));
 	const tapestryIds = new Set(TAPESTRY_CARDS.map((card) => card.id));
 	const spaceTile = $derived(

@@ -14,6 +14,7 @@ import {
 	resourceColor,
 	terrainColor,
 	artUrl,
+	expansionColor,
 	playerPieceUrl,
 	capitalTileUrl,
 } from '../src/lib/ui.js';
@@ -139,4 +140,15 @@ test("Panel sets its heading's font: the body font by default, the title font on
 		titled,
 		/class="rg-panel rg-panel--medium[^"]*rg-panel--title-font/
 	);
+});
+
+test('each expansion has its own colour token, and the base game the gold (#101)', () => {
+	assert.equal(expansionColor('pp'), 'var(--plans-ploys)');
+	assert.equal(expansionColor('aa'), 'var(--arts-architecture)');
+	assert.equal(expansionColor('ff'), 'var(--fantasies-futures)');
+	assert.equal(expansionColor('base'), 'var(--gold)');
+	for (const code of ['pp', 'aa', 'ff']) {
+		const token = expansionColor(code).slice('var('.length, -1);
+		assert.match(tokens, new RegExp(`${token}:`), code);
+	}
 });

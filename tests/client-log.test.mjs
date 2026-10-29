@@ -552,7 +552,7 @@ test('the important events read as plain sentences', () => {
 				version: 'current',
 				variants: ['tapestry-draft', 'closest-island'],
 			}),
-			'A new game began for Ana and Bo under the Current official rules, with the variants Tapestry draft and Closest island.',
+			'A new game began for Ana and Bo under the Current rules, with the variants Tapestry draft and Closest island.',
 		],
 		[sample('spaceActivated'), null],
 	];

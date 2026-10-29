@@ -1,5 +1,6 @@
 // What the lobby screen shows and allows (#25 design §6): the seat slots, who may change what, and the choices' lists and labels.
-import { EXPANSIONS } from './art/catalog.js';
+import { expansionName, variantName, versionName } from './game-names.js';
+import { expansionColor } from './ui.js';
 
 /**
  * One of the lobby's five places, as a SeatCard shows it.
@@ -12,18 +13,6 @@ import { EXPANSIONS } from './art/catalog.js';
  * @property {boolean | undefined} ready - Online only; undefined shows no readiness
  * @property {boolean} removable - The viewer hosts and may clear it with the ×
  */
-
-/**
- * The short row titles of the variants (#53), in the lobby's settings; the full names are their tooltips.
- * @type {Readonly<Record<string, string>>}
- */
-export const VARIANT_LABELS = Object.freeze({
-	'tapestry-draft': 'Tapestry draft',
-	'civ-draft': 'Civilization draft',
-	'neoprene-nanotechnology': 'Neoprene Nanotechnology',
-	'no-radio-battery': 'No Radio or Battery',
-	'closest-island': 'Closest island',
-});
 
 /**
  * One choice of a lobby setting, as a Segmented takes it.
@@ -42,12 +31,6 @@ export const VARIANT_LABELS = Object.freeze({
  * @property {'yes' | 'no'} value - Whether the table plays it, as YES_NO_CHOICES names it
  */
 
-/** The rules versions as the mockups name them: the open tables in full, the settings row short. */
-const RULES = Object.freeze({
-	current: { full: 'Current rules', short: 'Current rules' },
-	original: { full: 'Original 2019 rules', short: 'Original 2019' },
-});
-
 /** The settings row's order, the current rules first as in the mockup, and each version's colour. */
 const RULES_ORDER = Object.freeze(['current', 'original']);
 /** @type {Readonly<Record<string, string>>} */
@@ -60,13 +43,6 @@ const RULES_COLORS = Object.freeze({
 const MODE_LABELS = Object.freeze({
 	online: 'Online mode',
 	hotseat: 'Local mode',
-});
-
-/** Each expansion's colour token, as the library's Expansions row shows them. @type {Readonly<Record<string, string>>} */
-const EXPANSION_COLORS = Object.freeze({
-	pp: 'var(--plans-ploys)',
-	aa: 'var(--arts-architecture)',
-	ff: 'var(--fantasies-futures)',
 });
 
 /** Undo's two choices, in the lobby and in Table settings. @type {readonly Choice[]} */
@@ -175,20 +151,6 @@ export function validCode(text) {
 }
 
 /**
- * A rules version's label.
- * @param {string} id - 'current' or 'original'
- * @param {{ short?: boolean }} [options] - short: the settings row's 'Original 2019'
- * @returns {string}
- */
-export function rulesLabel(id, { short = false } = {}) {
-	const label = RULES[/** @type {keyof typeof RULES} */ (id)];
-	if (!label) {
-		return id;
-	}
-	return short ? label.short : label.full;
-}
-
-/**
  * The mode's choices, from the server's `config.modes`, in its order.
  * @param {readonly string[]} modes - Such as ['online', 'hotseat']
  * @returns {Choice[]}
@@ -216,9 +178,21 @@ export function rulesChoices(versions) {
 		.sort((a, b) => rank(a.id) - rank(b.id))
 		.map(({ id }) => ({
 			value: id,
-			label: rulesLabel(id, { short: true }),
+			label: versionName(id, { short: true }),
 			color: RULES_COLORS[id] ?? 'var(--gold)',
 		}));
+}
+
+/**
+ * Expansions as badges: each one's name and its own colour (#101), for the open tables and the results.
+ * @param {readonly string[] | undefined} codes - Such as ['pp', 'aa']
+ * @returns {{ name: string, color: string }[]}
+ */
+export function expansionBadges(codes) {
+	return (codes ?? []).map((code) => ({
+		name: expansionName(code),
+		color: expansionColor(code),
+	}));
 }
 
 /**
@@ -229,10 +203,8 @@ export function rulesChoices(versions) {
 export function expansionChoices(codes) {
 	return (codes ?? []).map((code) => ({
 		value: code,
-		label:
-			EXPANSIONS.find((expansion) => expansion.code === code)?.name ??
-			code,
-		color: EXPANSION_COLORS[code] ?? 'var(--gold)',
+		label: expansionName(code),
+		color: expansionColor(code),
 	}));
 }
 
@@ -245,8 +217,7 @@ export function expansionChoices(codes) {
 export function variantRows(config, room) {
 	return (config?.variants ?? []).map(({ id, name }) => ({
 		id,
-		label:
-			/** @type {Record<string, string>} */ (VARIANT_LABELS)[id] ?? name,
+		label: variantName(id, name),
 		name,
 		value: room.options.variants.includes(id) ? 'yes' : 'no',
 	}));

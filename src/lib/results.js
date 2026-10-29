@@ -1,9 +1,14 @@
 // The results screen and the scoreboard (#29 design §5–§6): the standings, shared places, each tie step by step, VP by source and the table's facts, from a game view.
-import { VARIANTS, VERSIONS, tiebreakValues } from './engine/game.js';
-import { EXPANSIONS } from './art/catalog.js';
-import { civilizationOf, landmarkName, seatName } from './game-names.js';
+import { VERSIONS, tiebreakValues } from './engine/game.js';
+import {
+	civilizationOf,
+	landmarkName,
+	seatName,
+	variantName,
+	versionName,
+} from './game-names.js';
 import { countWords, joinList, ordinal } from './words.js';
-import { VARIANT_LABELS } from './lobby.js';
+import { expansionBadges } from './lobby.js';
 
 /** @typedef {import('./engine/stack.js').VpSource} VpSource */
 /** @typedef {import('./ui.js').Seat} Seat */
@@ -108,15 +113,6 @@ export function standings(game) {
 }
 
 /**
- * The rules version's name.
- * @param {any} game
- * @returns {string}
- */
-function versionName(game) {
-	return VERSIONS.find((v) => v.id === game.version)?.name ?? game.version;
-}
-
-/**
  * Each tie the ranking split, step by step, as the owner asked (#15): who tied, each step's values, whether it
  * separated them, and the outcome.
  * @param {any} game
@@ -130,7 +126,7 @@ export function tieExplanations(game) {
 	return result.ties.map((tie) => {
 		const names = tie.seats.map((seat) => seatName(game, seat));
 		const both = tie.seats.length === 2 ? 'both' : 'all';
-		const intro = `${joinList(names)} ${both} finished on ${tie.vp} VP. Under the ${versionName(game).toLowerCase()}, the tiebreaks decide their order.`;
+		const intro = `${joinList(names)} ${both} finished on ${tie.vp} VP. Under the ${versionName(game.version).toLowerCase()}, the tiebreaks decide their order.`;
 		const steps = tie.steps.map((step) => ({
 			title: STEP_TITLES[step.by] ?? step.by,
 			values: step.values.map(({ seat, value }) => ({
@@ -209,7 +205,7 @@ export function ruleNote(game) {
  * The table's facts for the results: the rules, the mode with the number of players, and the expansions and
  * variants by name (#53).
  * @param {{ mode: string, game: any }} room
- * @returns {{ rules: string, mode: string, expansions: string[], variants: string[] }}
+ * @returns {{ rules: string, mode: string, expansions: { name: string, color: string }[], variants: string[] }}
  */
 export function tableFacts(room) {
 	const { game } = room;
@@ -217,18 +213,12 @@ export function tableFacts(room) {
 		(/** @type {any} */ s) => s.kind === 'player'
 	).length;
 	return {
-		rules: versionName(game),
+		rules: versionName(game.version),
 		mode: `${room.mode === 'hotseat' ? 'Hot-seat' : 'Online'} · ${players} players`,
-		expansions: (game.expansions ?? []).map(
-			(/** @type {string} */ id) =>
-				EXPANSIONS.find((e) => e.code === id)?.name ?? id
-		),
+		expansions: expansionBadges(game.expansions),
 		// The lobby's short names, as the table was set up with them.
-		variants: (game.variants ?? []).map(
-			(/** @type {string} */ id) =>
-				/** @type {Record<string, string>} */ (VARIANT_LABELS)[id] ??
-				VARIANTS.find((v) => v.id === id)?.name ??
-				id
+		variants: (game.variants ?? []).map((/** @type {string} */ id) =>
+			variantName(id)
 		),
 	};
 }
