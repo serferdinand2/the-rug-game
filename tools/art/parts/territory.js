@@ -1,5 +1,5 @@
-// Board part: the map's terrain hexes, and the territories and boards composed from them (#6).
-import { createCanvas, outline, paint, set, seededRandom } from '../painter.js';
+// Board part: the map's terrain hexes, the 48 territory tiles and the example boards, painted in the 2.5D style by the map's painter (#6, #134).
+import { createCanvas, paint, set, seededRandom } from '../painter.js';
 import { PALETTE as C } from '../palette.js';
 import { MAPS } from '../../../src/lib/engine/data/maps.js';
 import { turned } from '../../../src/lib/engine/terrain.js';
@@ -9,8 +9,6 @@ import {
 	volcanoCorner,
 } from '../../../src/lib/art/hex-overlays.js';
 import {
-	CX,
-	CY,
 	HEX_W,
 	HEX_H,
 	HEX_R,
@@ -24,8 +22,14 @@ import {
 	VOLCANO_CRATER,
 	volcanoSpot,
 } from '../../../src/lib/art/paint/hex.js';
+import {
+	hexOrigin,
+	paintMap,
+	paintTerritory,
+} from '../../../src/lib/art/paint/map.js';
+import { paintSea } from '../../../src/lib/art/paint/sea.js';
 
-// The overlays' places are shared with the game, which lays them over the hexes it composes.
+// The overlays' places are shared with the game, whose map painter lays them over the hexes.
 export { CLOUD_SPOT, VOLCANO_SIZE, volcanoCorner };
 
 // The hex's geometry and the overlays moved to src/lib/art/paint/hex.js, so the game's map painter shares them (#134).
@@ -49,8 +53,8 @@ export {
 /** @typedef {() => number} Random */
 
 /**
- * Which pixels a painter fills, and the cell each one lies in: a feature (a peak, a tree, a dune) stays inside one
- * cell, so cutting the picture along the cells' edges never splits one. −1 leaves the pixel alone.
+ * Which pixels the fog's painter fills, and the cell each one lies in: a wisp stays inside one cell, so no cell's
+ * edge cuts it. −1 leaves the pixel alone.
  * @typedef {(x: number, y: number) => number} CellAt
  */
 
@@ -61,17 +65,7 @@ export {
  * @property {Readonly<Record<string, Colour>>} colours
  */
 
-/**
- * A territory to compose: its corners already turned, as the board shows them.
- * @typedef {Object} TerritoryOptions
- * @property {readonly TerrainId[]} corners - The terrain at each corner, clockwise from the top-left
- * @property {readonly TerrainId[]} [island] - The island's terrains, split as hexmap.js's islandParts splits them
- * @property {boolean} [clouds] - The cloud overlay goes on (R77)
- * @property {boolean} [volcano] - The volcano goes on a mountain corner (R77)
- * @property {number} seed - Picks each terrain picture's variant
- */
-
-/** The canonical seed: the `hex/*` pictures, which the game composes its map from. */
+/** The fog's seed: the `hex/unexplored` picture, which the game lays on every unexplored hex. */
 export const HEX_SEED = 1;
 
 /**
@@ -116,45 +110,32 @@ function zone(cellAt, island) {
 	};
 }
 
+/** The terrains a territory shows. @type {readonly string[]} */
+const TERRAINS = Object.freeze([
+	'sea',
+	'desert',
+	'forest',
+	'grassland',
+	'mountain',
+]);
+
 /**
- * Draws one terrain's hex picture: the ground and its features, transparent outside the hex.
+ * Draws one terrain's hex picture, transparent outside the hex: a land or sea terrain painted alone all round, as the
+ * map paints it, or the unexplored fog, which #134 kept as it was.
  * @param {HexTerrain} terrain
- * @param {number} seed
  * @returns {Canvas} 64×56
  * @throws {Error} For an unknown terrain.
  */
-export function drawHexTerrain(terrain, seed) {
-	const canvas = createCanvas(HEX_W, HEX_H);
-	paintTerrain(canvas, terrain, hexCell, seededRandom(seed));
-	return canvas;
-}
-
-/** @type {Record<HexTerrain, (canvas: Canvas, cellAt: CellAt, random: Random) => void>} */
-const PAINTERS = {
-	sea: paintSea,
-	desert: paintDesert,
-	forest: paintForest,
-	grassland: paintGrassland,
-	mountain: paintMountain,
-	unexplored: paintUnexplored,
-};
-
-/**
- * Paints a terrain over the pixels a cell function covers.
- * @param {Canvas} canvas
- * @param {HexTerrain} terrain
- * @param {CellAt} cellAt
- * @param {Random} random
- * @throws {Error} For an unknown terrain.
- */
-function paintTerrain(canvas, terrain, cellAt, random) {
-	const painter = Object.hasOwn(PAINTERS, terrain)
-		? PAINTERS[terrain]
-		: undefined;
-	if (!painter) {
+export function drawHexTerrain(terrain) {
+	if (terrain === 'unexplored') {
+		const canvas = createCanvas(HEX_W, HEX_H);
+		paintUnexplored(canvas, hexCell, seededRandom(HEX_SEED));
+		return canvas;
+	}
+	if (!TERRAINS.includes(terrain)) {
 		throw new Error(`drawHexTerrain: unknown terrain "${terrain}"`);
 	}
-	painter(canvas, cellAt, random);
+	return paintTerritory({ corners: Array(6).fill(terrain) });
 }
 
 /**
@@ -373,225 +354,6 @@ function features(canvas, cellAt, random, around, island) {
 	scatter(canvas, zone(cellAt, true), random, island);
 }
 
-// The sea: deep blue, with darker depths, wave crests and glints.
-const WAVE = { l: C.dayWave, d: C.dayWaveDeep };
-const WAVES = /** @type {readonly Sprite[]} */ ([
-	{ rows: ['.lll.', 'd...d'], colours: WAVE },
-	{ rows: ['.ll.', 'd..d'], colours: WAVE },
-	{ rows: ['.ll', 'd..'], colours: WAVE },
-	{ rows: ['ddd'], colours: WAVE },
-]);
-
-/** @param {Canvas} canvas @param {CellAt} cellAt @param {Random} random */
-function paintSea(canvas, cellAt, random) {
-	ground(canvas, cellAt, random, {
-		base: C.daySea2,
-		low: C.daySea3,
-		high: C.daySea1,
-		lowAt: 0.36,
-		highAt: 0.75,
-		grain: [12, 4],
-	});
-	features(
-		canvas,
-		cellAt,
-		random,
-		{ spacing: 9, sprite: (r) => pick(r, WAVES), skip: 0.2 },
-		{ spacing: 6, sprite: (r) => pick(r, WAVES.slice(1)), tries: 6 }
-	);
-}
-
-// The desert: warm sand rippled by the wind, with crescent dunes lit from the top left.
-/**
- * A crescent dune: a lit crest arching over its shadowed slip face, the shadow deepest under the top of the arch.
- * @param {number} w - Its width, odd
- * @returns {Sprite}
- */
-function dune(w) {
-	const height = w > 7 ? 2 : 1;
-	const grid = Array.from({ length: height + 3 }, () => [...'.'.repeat(w)]);
-	for (let i = 0; i < w; i++) {
-		const rise = Math.sin((Math.PI * i) / (w - 1));
-		const crest = Math.round(height * (1 - rise));
-		grid[crest][i] = 'l';
-		grid[crest + 1][i] = 's';
-		if (rise > 0.6 && w > 5) {
-			grid[crest + 2][i] = 's';
-		}
-	}
-	return {
-		rows: grid
-			.map((row) => row.join(''))
-			.filter((row) => row !== '.'.repeat(w)),
-		colours: { l: C.sandLight, s: C.sandShade },
-	};
-}
-
-const DUNES = Object.freeze([dune(13), dune(11), dune(9), dune(7)]);
-const RIPPLES = Object.freeze([dune(7), dune(5), dune(5)]);
-
-/** @param {Canvas} canvas @param {CellAt} cellAt @param {Random} random */
-function paintDesert(canvas, cellAt, random) {
-	ground(canvas, cellAt, random, {
-		base: C.sand,
-		high: C.sandLight,
-		highAt: 0.64,
-		grain: [12, 6],
-	});
-	features(
-		canvas,
-		cellAt,
-		random,
-		{ spacing: 9, sprite: (r) => pick(r, DUNES), tries: 6 },
-		{ spacing: 5, sprite: (r) => pick(r, RIPPLES), tries: 6 }
-	);
-}
-
-// Grassland: bright meadow with tufts, small bushes and a scatter of flowers.
-const GRASS = { l: C.grassLight, s: C.grassShade };
-const MEADOW = /** @type {readonly Sprite[]} */ ([
-	{ rows: ['l.l', '.s.'], colours: GRASS },
-	{ rows: ['l.l', '.s.'], colours: GRASS },
-	{ rows: ['.l.', 'lls', '.s.'], colours: GRASS },
-	{ rows: ['.l.', 'lls', '.s.'], colours: GRASS },
-	{ rows: ['f', 's'], colours: { f: C.creamLight, s: C.grassShade } },
-	{ rows: ['f', 's'], colours: { f: C.arcaneLight, s: C.grassShade } },
-	{ rows: ['f', 's'], colours: { f: C.brickRedLight, s: C.grassShade } },
-]);
-
-/** @param {Canvas} canvas @param {CellAt} cellAt @param {Random} random */
-function paintGrassland(canvas, cellAt, random) {
-	ground(canvas, cellAt, random, {
-		base: C.grass,
-		low: C.grassShade,
-		high: C.grassLight,
-		lowAt: 0.28,
-		highAt: 0.64,
-		grain: [9, 7],
-	});
-	const meadow = {
-		spacing: 6,
-		sprite: (/** @type {Random} */ r) => pick(r, MEADOW),
-		skip: 0.15,
-	};
-	features(canvas, cellAt, random, meadow, { ...meadow, spacing: 5 });
-}
-
-/**
- * A round tree crown seen from above, lit on its top left and shaded on its lower right.
- * @param {number} r - Its radius, 2 or 3
- * @returns {Sprite}
- */
-function crown(r) {
-	const rows = [];
-	for (let dy = -r; dy <= r; dy++) {
-		let row = '';
-		for (let dx = -r; dx <= r; dx++) {
-			const inside = dx * dx + dy * dy <= r * r + r * 0.6;
-			if (!inside) {
-				row += '.';
-			} else if (dx + dy <= -r) {
-				row += 'l';
-			} else if (dx + dy >= r - 1 && dx * dx + dy * dy >= r * r - r) {
-				row += 's';
-			} else {
-				row += 'p';
-			}
-		}
-		rows.push(row);
-	}
-	return {
-		rows,
-		colours: { l: C.pineLight, p: C.pine, s: C.pineShade },
-	};
-}
-
-const CROWNS = Object.freeze([crown(2), crown(3), crown(3)]);
-const SMALL_CROWNS = Object.freeze([crown(2)]);
-
-/** @param {Canvas} canvas @param {CellAt} cellAt @param {Random} random */
-function paintForest(canvas, cellAt, random) {
-	ground(canvas, cellAt, random, {
-		base: C.forestFloorShade,
-		high: C.forestFloor,
-		highAt: 0.58,
-		grain: [7, 7],
-	});
-	features(
-		canvas,
-		cellAt,
-		random,
-		{ spacing: 4, sprite: (r) => pick(r, CROWNS), overlap: true, tries: 6 },
-		{
-			spacing: 3,
-			sprite: (r) => pick(r, SMALL_CROWNS),
-			overlap: true,
-			tries: 6,
-		}
-	);
-}
-
-// Mountains: grey scree under a crowd of peaks, snow on their tips, lit from the top left.
-const ROCK = {
-	S: C.snow,
-	s: C.snowShade,
-	L: C.stoneLight,
-	M: C.stone,
-	D: C.stoneShade,
-};
-const PEAKS = /** @type {readonly Sprite[]} */ ([
-	{
-		rows: [
-			'.....S.....',
-			'....SSs....',
-			'...SSsss...',
-			'...LSMsD...',
-			'..LLLMDDD..',
-			'.LLLLMDDDD.',
-			'LLLLLMDDDDD',
-		],
-		colours: ROCK,
-	},
-	{
-		rows: ['...S...', '..SSs..', '.LSMsD.', '.LLMDD.', 'LLLMDDD'],
-		colours: ROCK,
-	},
-]);
-const SMALL_PEAKS = /** @type {readonly Sprite[]} */ ([
-	{ rows: ['...S...', '..SSs..', '.LLMDD.', 'LLLMDDD'], colours: ROCK },
-	{ rows: ['..S..', '.LSs.', 'LLMDD'], colours: ROCK },
-]);
-
-/** @param {Canvas} canvas @param {CellAt} cellAt @param {Random} random */
-function paintMountain(canvas, cellAt, random) {
-	ground(canvas, cellAt, random, {
-		base: C.stoneMid,
-		low: C.stoneShade,
-		high: C.stone,
-		lowAt: 0.3,
-		highAt: 0.6,
-		grain: [7, 6],
-	});
-	features(
-		canvas,
-		cellAt,
-		random,
-		{
-			spacing: 7,
-			sprite: (r) =>
-				r() < 0.6 ? PEAKS[0] : pick(r, [...PEAKS, ...SMALL_PEAKS]),
-			overlap: true,
-			tries: 8,
-		},
-		{
-			spacing: 4,
-			sprite: (r) => pick(r, SMALL_PEAKS),
-			overlap: true,
-			tries: 8,
-		}
-	);
-}
-
 // Unexplored: dark fog with drifting wisps, inside a dashed rim.
 const WISPS = /** @type {readonly Sprite[]} */ ([
 	{ rows: ['.lll..', 'l...ll'], colours: { l: C.fogLight } },
@@ -628,104 +390,6 @@ function paintUnexplored(canvas, cellAt, random) {
 }
 
 /**
- * Composes a territory: each pixel from its wedge's or island part's terrain picture, a coast of beach and surf where
- * land meets sea, then the volcano and the cloud.
- * @param {TerritoryOptions} options
- * @returns {Canvas} 64×56, transparent outside the hex
- */
-export function drawTerritory({
-	corners,
-	island = [],
-	clouds = false,
-	volcano = false,
-	seed,
-}) {
-	/** @type {Map<TerrainId, Canvas>} */
-	const pictures = new Map();
-	/** @param {TerrainId} terrain */
-	const pictureOf = (terrain) => {
-		let picture = pictures.get(terrain);
-		if (!picture) {
-			picture = drawHexTerrain(terrain, seed);
-			pictures.set(terrain, picture);
-		}
-		return picture;
-	};
-	const canvas = createCanvas(HEX_W, HEX_H);
-	/** @type {(TerrainId | null)[]} */
-	const terrains = new Array(HEX_W * HEX_H).fill(null);
-	for (let y = 0; y < HEX_H; y++) {
-		for (let x = 0; x < HEX_W; x++) {
-			if (!inHex(x, y)) {
-				continue;
-			}
-			const part = islandPartOf(x, y, island.length);
-			const terrain = part >= 0 ? island[part] : corners[wedgeOf(x, y)];
-			const i = y * HEX_W + x;
-			terrains[i] = terrain;
-			canvas.p[i] = pictureOf(terrain).p[i];
-		}
-	}
-	drawCoast(canvas, terrains);
-	if (volcano) {
-		lay(canvas, drawVolcano(), volcanoSpot(volcanoCorner(corners)));
-	}
-	if (clouds) {
-		lay(canvas, drawCloud(), CLOUD_SPOT);
-	}
-	return canvas;
-}
-
-/**
- * Draws the coast where land meets sea: a line of beach on the land, surf on the sea beside it and a band of
- * shallows beyond.
- * @param {Canvas} canvas
- * @param {readonly (TerrainId | null)[]} terrains - Each pixel's terrain, null outside the hex
- */
-function drawCoast(canvas, terrains) {
-	/** @param {number} x @param {number} y */
-	const at = (x, y) =>
-		x < 0 || y < 0 || x >= HEX_W || y >= HEX_H
-			? null
-			: terrains[y * HEX_W + x];
-	const sides = [
-		[1, 0],
-		[-1, 0],
-		[0, 1],
-		[0, -1],
-	];
-	/** @type {[number, number, Colour][]} */
-	const coast = [];
-	for (let y = 0; y < HEX_H; y++) {
-		for (let x = 0; x < HEX_W; x++) {
-			const here = at(x, y);
-			if (!here) {
-				continue;
-			}
-			const sea = here === 'sea';
-			/** @param {number} dx @param {number} dy */
-			const other = (dx, dy) => {
-				const there = at(x + dx, y + dy);
-				return there !== null && (there === 'sea') !== sea;
-			};
-			if (sides.some(([dx, dy]) => other(dx, dy))) {
-				const surf = (x + 2 * y) % 7 === 0 ? C.dayWave : C.foam;
-				coast.push([x, y, sea ? surf : C.sandLight]);
-			} else if (
-				sea &&
-				sides.some(([dx, dy]) => other(2 * dx, 2 * dy)) &&
-				(x + y) % 2 === 0
-			) {
-				coast.push([x, y, C.daySea1]);
-			}
-		}
-	}
-	for (const [x, y, colour] of coast) {
-		set(canvas, x, y, colour);
-	}
-}
-
-/**
  * Lays an overlay's painted pixels over a canvas.
  * @param {Canvas} canvas
  * @param {Canvas} overlay
@@ -743,63 +407,45 @@ function lay(canvas, overlay, [left, top]) {
 }
 
 /**
- * Where hex 0_0's centre lies on a board's picture: the hexes sit at x = 48·(b − a), y = 28·(a + b) from it,
- * and the board starts at the left and top hexes' edges.
+ * Draws one side of the map board as an example: the printed territories turned as printed and painted as one
+ * picture, as the game paints its map, every other hex unexplored under the fog, and open sea round them.
  * @param {'large' | 'small'} side
- * @returns {[number, number]}
- */
-export function boardOrigin(side) {
-	const centres = MAPS[side].hexes.map(centreOf);
-	return [
-		CX - Math.min(...centres.map(([x]) => x)),
-		CY - Math.min(...centres.map(([, y]) => y)),
-	];
-}
-
-/**
- * A hex's centre in pixels from hex 0_0's.
- * @param {string} key - An axial key, such as '2_-1'
- * @returns {[number, number]}
- */
-function centreOf(key) {
-	const [a, b] = key.split('_').map(Number);
-	return [48 * (b - a), 28 * (a + b)];
-}
-
-/**
- * Draws one side of the map board as an example: the printed territories composed and turned as printed, every
- * other hex unexplored, and open sea round them. The game composes its own map from the `hex/*` pictures.
- * @param {'large' | 'small'} side
- * @returns {Canvas}
+ * @returns {Canvas} The box round every hex of the board
  */
 export function drawBoard(side) {
 	const map = MAPS[side];
-	const [ox, oy] = boardOrigin(side);
-	const centres = map.hexes.map(centreOf);
-	const canvas = createCanvas(
-		ox + Math.max(...centres.map(([x]) => x)) + CX,
-		oy + Math.max(...centres.map(([, y]) => y)) + CY
-	);
-	paintTerrain(
-		canvas,
-		'sea',
-		() => 0,
-		seededRandom(side === 'large' ? 61 : 34)
-	);
-	const fog = drawHexTerrain('unexplored', HEX_SEED);
-	map.hexes.forEach((key, i) => {
+	const hexes = map.hexes.map((key) => {
 		const printed = map.printed[key];
-		const picture = printed
-			? drawTerritory({
+		return printed
+			? {
+					key,
 					corners: turned(printed.corners, printed.orient),
 					island: printed.island,
 					clouds: printed.clouds,
 					volcano: printed.volcano,
-					seed: printed.tile,
-				})
-			: fog;
-		const [x, y] = centres[i];
-		lay(canvas, picture, [ox + x - CX, oy + y - CY]);
+				}
+			: { key };
 	});
+	const { canvas: explored, left, top } = paintMap(hexes);
+	const { w, h } = explored;
+	const canvas = createCanvas(w, h);
+	paintSea(
+		canvas,
+		new Uint8Array(w * h).fill(1),
+		new Uint8Array(w * h),
+		side === 'large' ? 61 : 34
+	);
+	explored.p.forEach((colour, i) => {
+		if (colour) {
+			canvas.p[i] = colour;
+		}
+	});
+	const fog = drawHexTerrain('unexplored');
+	for (const hex of hexes) {
+		if (!hex.corners) {
+			const [x, y] = hexOrigin(hex.key);
+			lay(canvas, fog, [x - left, y - top]);
+		}
+	}
 	return canvas;
 }
