@@ -6,6 +6,7 @@ import { run, resolveEffects } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { cityPlots } from '../src/lib/engine/city.js';
+import { capitalScore } from '../src/lib/engine/game.js';
 import { groupsOf, plotIndex } from '../src/lib/capital.js';
 import { TRACK_IDS } from '../src/lib/engine/data/ids.js';
 import {
@@ -558,9 +559,10 @@ test('Architects score 2 VP per uniform complete line', () => {
 		assert.equal(plots[columns[8][0]], 'blocked');
 		build(seat, 'house', open(columns[8]));
 		const vp = seat.vp;
+		const score = capitalScore(seat);
 		const next = resolveEffects(state, 1, [{ scoreCapital: {} }], random);
 		const [event] = eventsOf(next, 'capitalScored', state.seq);
-		return { event, vp: next.seats[0].vp - vp };
+		return { event, vp: next.seats[0].vp - vp, score };
 	};
 	const architects = scored(['architects']);
 	assert.deepEqual(architects.event, {
@@ -571,9 +573,17 @@ test('Architects score 2 VP per uniform complete line', () => {
 		uniform: 2,
 	});
 	assert.equal(architects.vp, 5);
+	// What the player card shows is what the effect scores (#128).
+	assert.deepEqual(architects.score, {
+		rows: 1,
+		columns: 2,
+		uniform: 2,
+		vp: 5,
+	});
 	const plain = scored([]);
 	assert.equal(plain.event.uniform, 0);
 	assert.equal(plain.vp, 3);
+	assert.deepEqual(plain.score, { rows: 1, columns: 2, uniform: 0, vp: 3 });
 });
 
 test('Architects gained mid-game may swap up to 3 pairs of buildings', () => {

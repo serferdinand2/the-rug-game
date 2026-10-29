@@ -20,8 +20,9 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
-	import { ordinal } from '../../results.js';
-	import { playerColor, playerPieceUrl } from '../../ui.js';
+	import { ordinal } from '../../words.js';
+	import { playerColor } from '../../ui.js';
+	import PlayerToken from '../player/PlayerToken.svelte';
 
 	/** @type {StandingRowProps} */
 	let {
@@ -57,15 +58,14 @@
 	class="rg-standing-row {attr.class ? attr.class : ''}"
 	class:rg-standing-row--winner={row.winner}
 	class:rg-standing-row--you={you}
-	style:--rg-standing-row-color={playerColor(/** @type {any} */ (row.seat))}>
+	style:--rg-standing-row-color={playerColor(row.seat)}>
 	<div class="rg-standing-row--line">
 		<span class="rg-standing-row--place">{row.place}</span>
 		<div class="rg-standing-row--person">
-			<img
-				src={playerPieceUrl('token', /** @type {any} */ (row.seat))}
-				alt=""
-				width="36"
-				height="36" />
+			<PlayerToken
+				seat={row.seat}
+				size={36}
+				decorative />
 			<div>
 				<button
 					type="button"
@@ -150,11 +150,6 @@
 		align-items: center;
 		gap: 14px;
 		min-width: 0;
-	}
-
-	.rg-standing-row--person img {
-		flex: none;
-		image-rendering: pixelated;
 	}
 
 	.rg-standing-row--name {

@@ -26,10 +26,11 @@ export const config = {
 	maxConnections: 10_000,
 	// The tables one address may keep open at once.
 	tablesPerAddress: 10,
-	// Requests per address a minute: every /api/ request, new tables and logins (#23 design §9).
+	// Requests per address a minute: every /api/ request, new tables and logins (#23 design §9). The browser tests raise
+	// the last two from the environment, since all their tables come from one address (#78).
 	apiLimit: 1800,
-	createLimit: 20,
-	loginLimit: 30,
+	createLimit: Number(process.env.CREATE_LIMIT || 20),
+	loginLimit: Number(process.env.LOGIN_LIMIT || 30),
 	// A minute of the turn timer, and the wait before the server answers a response only the decline answers (#24).
 	minuteMs: 60_000,
 	declineMinMs: 3_000,

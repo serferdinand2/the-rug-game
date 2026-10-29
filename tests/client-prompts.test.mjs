@@ -12,7 +12,13 @@ import { seededRandom } from '../src/lib/engine/random.js';
 import { push } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
-import { effectArt, incomeView, promptFor } from '../src/lib/prompts.js';
+import {
+	effectArt,
+	incomeView,
+	panelControls,
+	paymentControls,
+	promptFor,
+} from '../src/lib/prompts.js';
 import {
 	exploreIndex,
 	exploreTiles,
@@ -45,6 +51,9 @@ function layoutOf(options) {
 	}
 	if (places.has('map')) {
 		return 'map';
+	}
+	if (places.has('card')) {
+		return 'card';
 	}
 	return places.has('shelf') ? 'cards' : 'options';
 }
@@ -152,6 +161,10 @@ test("every open decision of the viewer's own view gets a prompt with one option
 					if (typeof answer.hex === 'string') {
 						assert.equal(option.place, 'map', where);
 						assert.equal(option.hex, answer.hex, where);
+					}
+					// A civilization's own choice is made on its card, at a spot (#78).
+					if (option.place === 'card') {
+						assert.equal(typeof option.spot, 'string', where);
 					}
 					if (typeof answer.row === 'number') {
 						assert.equal(option.place, 'capital', where);
@@ -429,7 +442,7 @@ test('placing a landmark asks for it on the capital, with the landmark sentence'
 	assert.equal(prompt.confirmLabel, 'Place');
 	assert.equal(
 		prompt.instruction,
-		'Place the landmark in your capital: drag it, turn it with R, then confirm.'
+		'Place the landmark in your capital: drag it, turn it with the . and , keys, then confirm.'
 	);
 	for (const option of prompt.options) {
 		if (option.place === 'capital') {
@@ -636,4 +649,245 @@ test('every answer of a pick prompt can be built by allowed picks and matches ba
 	}
 	const total = Object.values(checked).reduce((a, b) => a + b, 0);
 	assert.ok(total > 100, `only ${total} pick models checked`);
+});
+
+/**
+ * A prompt as panelControls reads it: its instruction, its confirm label, its options' labels, its cost and its trade.
+ * @param {Record<string, any>} [fields]
+ * @returns {any}
+ */
+function panelPrompt(fields = {}) {
+	return {
+		instruction: 'Choose one.',
+		confirmLabel: 'Confirm choice',
+		options: [
+			{ index: 0, label: 'Gain 1 coin' },
+			{ index: 1, label: 'Gain 1 food' },
+		],
+		cost: null,
+		trade: null,
+		...fields,
+	};
+}
+
+/**
+ * What the viewer has chosen, nothing by default.
+ * @param {Record<string, any>} [fields]
+ * @returns {import('../src/lib/prompts.js').PanelChoice}
+ */
+function panelChoice(fields = {}) {
+	return {
+		picked: null,
+		pick: null,
+		pickStatus: null,
+		pickIndex: -1,
+		offering: false,
+		offered: false,
+		tradeAnswer: -1,
+		decline: -1,
+		exploring: false,
+		docked: false,
+		hex: null,
+		options: true,
+		sending: false,
+		...fields,
+	};
+}
+
+/** A pick of 2 tapestry cards to pay, as picks.js models it. */
+const CARD_PICK = /** @type {any} */ ({
+	mode: 'pay',
+	rows: [],
+	items: { kind: 'tapestry', ids: ['a', 'b', 'c'], count: 2 },
+	decline: 3,
+});
+
+test('an options prompt gives its instruction until an answer is picked, then that answer, and Confirm waits for it', () => {
+	const prompt = panelPrompt();
+	assert.deepEqual(panelControls(prompt, panelChoice()), {
+		status: 'Choose one.',
+		warn: false,
+		confirmLabel: 'Confirm choice',
+		confirmDisabled: true,
+		cancelLabel: undefined,
+		cancel: null,
+		confirm: 'answer',
+		content: true,
+	});
+	const picked = panelControls(prompt, panelChoice({ picked: 1 }));
+	assert.equal(picked.status, 'Gain 1 food');
+	assert.equal(picked.confirmDisabled, false);
+	assert.equal(
+		panelControls(prompt, panelChoice({ picked: 1, sending: true }))
+			.confirmDisabled,
+		true
+	);
+});
+
+test('a prompt with nothing of its own in the panel, such as cards on the shelf, has no content area', () => {
+	const prompt = panelPrompt({ confirmLabel: 'Keep card' });
+	const controls = panelControls(prompt, panelChoice({ options: false }));
+	assert.equal(controls.content, false);
+	assert.equal(controls.confirmLabel, 'Keep card');
+	assert.equal(
+		panelControls(
+			panelPrompt({ cost: ['coin'] }),
+			panelChoice({ options: false })
+		).content,
+		true
+	);
+});
+
+test('a pick of cards says how many to pay, Confirm waits for a match, and Decline declines when it may (#75)', () => {
+	const prompt = panelPrompt();
+	const status = { text: 'Choose 2 more cards.', warn: false };
+	const controls = panelControls(
+		prompt,
+		panelChoice({ pick: CARD_PICK, pickStatus: status, decline: 3 })
+	);
+	assert.equal(controls.status, 'Choose 2 more cards.');
+	assert.equal(controls.confirmLabel, 'Pay 2 cards');
+	assert.equal(controls.confirmDisabled, true);
+	assert.equal(controls.cancelLabel, 'Decline');
+	assert.equal(controls.cancel, 'decline');
+	assert.equal(controls.confirm, 'pick');
+	assert.equal(controls.content, true);
+	const matched = panelControls(
+		prompt,
+		panelChoice({ pick: CARD_PICK, pickStatus: status, pickIndex: 0 })
+	);
+	assert.equal(matched.confirmDisabled, false);
+	assert.equal(matched.cancel, null);
+});
+
+test('a pick of one tile pays 1 tile, and a pick of resource rows confirms with Confirm and its warning (#75)', () => {
+	const tiles = /** @type {any} */ ({
+		...CARD_PICK,
+		items: { kind: 'territory', ids: [3, 7], count: 1 },
+	});
+	assert.equal(
+		panelControls(
+			panelPrompt(),
+			panelChoice({ pick: tiles, pickStatus: { text: '', warn: false } })
+		).confirmLabel,
+		'Pay 1 tile'
+	);
+	const rows = /** @type {any} */ ({
+		mode: 'gain',
+		rows: [{ fixed: null, offers: ['coin', 'food'] }],
+		items: null,
+		decline: null,
+	});
+	const lost = {
+		text: 'You gain 1 coin. You can hold 8 of each: 1 coin would be lost.',
+		warn: true,
+	};
+	const controls = panelControls(
+		panelPrompt(),
+		panelChoice({ pick: rows, pickStatus: lost, pickIndex: 0 })
+	);
+	assert.equal(controls.confirmLabel, 'Confirm');
+	assert.equal(controls.status, lost.text);
+	assert.equal(controls.warn, true);
+	assert.equal(controls.confirmDisabled, false);
+});
+
+test("a trade's offers wait for one to be chosen, and a chosen offer goes Back or confirms its one answer (#75)", () => {
+	const prompt = panelPrompt({
+		trade: [{ offer: 0 }, { offer: 1 }],
+		options: [
+			{ index: 0, label: 'Pay 1 culture: gain 1 VP' },
+			{ index: 1, label: 'Decline' },
+		],
+	});
+	const offers = panelControls(
+		prompt,
+		panelChoice({ offering: true, decline: 1, options: false })
+	);
+	assert.equal(offers.status, 'Choose a trade.');
+	assert.equal(offers.confirmDisabled, true);
+	assert.equal(offers.cancelLabel, 'Decline');
+	assert.equal(offers.cancel, 'decline');
+	assert.equal(offers.content, true);
+	const chosen = panelControls(
+		prompt,
+		panelChoice({ offered: true, tradeAnswer: 0, options: false })
+	);
+	assert.equal(chosen.status, 'Pay 1 culture: gain 1 VP');
+	assert.equal(chosen.confirmLabel, 'Confirm');
+	assert.equal(chosen.confirmDisabled, false);
+	assert.equal(chosen.cancelLabel, 'Back');
+	assert.equal(chosen.cancel, 'back');
+	assert.equal(chosen.confirm, 'pick');
+	assert.equal(
+		panelControls(
+			prompt,
+			panelChoice({
+				offered: true,
+				tradeAnswer: 0,
+				options: false,
+				sending: true,
+			})
+		).confirmDisabled,
+		true
+	);
+});
+
+test("an explore's status line stays empty, and only a docked choice on the map with a hex offers another territory", () => {
+	const explore = panelControls(
+		panelPrompt({ confirmLabel: 'Explore' }),
+		panelChoice({
+			exploring: true,
+			docked: true,
+			hex: '0,0',
+			picked: 1,
+			options: false,
+		})
+	);
+	assert.equal(explore.status, '');
+	assert.equal(explore.cancel, null);
+	assert.equal(explore.content, true);
+	assert.equal(explore.confirmDisabled, false);
+	const conquer = panelControls(
+		panelPrompt({ confirmLabel: 'Conquer' }),
+		panelChoice({ docked: true, hex: '1,0', picked: 0 })
+	);
+	assert.equal(conquer.status, 'Gain 1 coin');
+	assert.equal(conquer.cancelLabel, 'Choose another territory');
+	assert.equal(conquer.cancel, 'clear');
+	assert.equal(
+		panelControls(
+			panelPrompt(),
+			panelChoice({ docked: false, hex: '1,0', picked: 0 })
+		).cancel,
+		null
+	);
+});
+
+test("an advance's payment says what is still missing, and Advance waits for a payment that matches (#75)", () => {
+	const model = advanceModel(
+		{
+			track: 'exploration',
+			from: 0,
+			to: 1,
+			payments: [{ coin: 1 }, { food: 1 }, { worker: 1 }, { culture: 1 }],
+		},
+		null
+	);
+	assert.ok(model);
+	const empty = emptySelection(model);
+	assert.deepEqual(paymentControls(model, empty, {}, false), {
+		status: 'Pick a resource.',
+		warn: false,
+		confirmLabel: 'Advance',
+		confirmDisabled: true,
+		cancelLabel: 'Cancel',
+	});
+	const coin = togglePick(model, empty, 0, 'coin');
+	const paid = paymentControls(model, coin, { coin: 2 }, false);
+	assert.equal(paid.confirmDisabled, false);
+	assert.equal(
+		paymentControls(model, coin, { coin: 2 }, true).confirmDisabled,
+		true
+	);
 });

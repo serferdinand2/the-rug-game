@@ -224,3 +224,19 @@ export function uniformLines(seat) {
 			uniformGroup(seat, group)
 	).length;
 }
+
+/**
+ * What the capital scores now (01 §6.1; R71): 1 VP for each complete row and column and, for the Architects, 1 more
+ * for each of those lines that holds income buildings of one type only (02 §1.2). A seat with no capital mat yet
+ * scores nothing.
+ * @param {PlayerSeat} seat
+ * @returns {{ rows: number, columns: number, uniform: number, vp: number }}
+ */
+export function capitalScore(seat) {
+	if (seat.capital.mat === null) {
+		return { rows: 0, columns: 0, uniform: 0, vp: 0 };
+	}
+	const { rows, columns } = completeLines(cityPlots(seat));
+	const uniform = seat.civs.includes('architects') ? uniformLines(seat) : 0;
+	return { rows, columns, uniform, vp: rows + columns + uniform };
+}

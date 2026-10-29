@@ -1,4 +1,4 @@
-import { technologyCardMarkup, tapestryCardMarkup, TAPESTRY_CARDS } from '../../../src/lib/cards/card-layouts.js';
+import { technologyCardMarkup, tapestryCardMarkup, TAPESTRY_CARDS } from './card-markup.js';
 // Design-only decision examples for issue #3. The game engine supplies legal
 // options and consequences in production; these fixtures only test the layout.
 const art = (group, name) => `../../static/art/${group}/${name}.svg`;

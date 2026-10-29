@@ -1,4 +1,4 @@
-<!-- Library section: SettingRow holding the lobby's Rules, Expansions, Map and a Yes/No setting. -->
+<!-- Library section: SettingRow holding the lobby's Rules, Expansions, Map and two Yes/No settings, one divided. -->
 <script>
 	import SettingRow from '../../../lib/components/lobby/SettingRow.svelte';
 	import Segmented from '../../../lib/components/ui/Segmented.svelte';
@@ -13,6 +13,7 @@
 	let expansions = $state(['arts-architecture']);
 	let map = $state('random');
 	let draft = $state('no');
+	let tapestryDraft = $state('yes');
 </script>
 
 <Section
@@ -108,6 +109,22 @@
 					{ value: 'no', label: 'No', color: 'var(--text)' },
 				]}
 				bind:value={draft} />
+		</SettingRow>
+	</Example>
+	<Example
+		label={'label="Tapestry draft" divided  (a soft rule under the row, as between the variants in the lobby)'}
+		surface="chrome"
+		width={RIGHT_WIDTH}>
+		<SettingRow
+			label="Tapestry draft"
+			divided>
+			<Segmented
+				label="Tapestry draft"
+				options={[
+					{ value: 'yes', label: 'Yes', color: 'var(--science)' },
+					{ value: 'no', label: 'No', color: 'var(--text)' },
+				]}
+				bind:value={tapestryDraft} />
 		</SettingRow>
 	</Example>
 </Section>

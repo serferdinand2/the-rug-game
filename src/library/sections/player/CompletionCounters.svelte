@@ -1,31 +1,26 @@
-<!-- Library section: CompletionCounters on their own and inspecting Ana's capital by hover and toggle. -->
+<!-- Library section: CompletionCounters on their own and inspecting Ana's capital, on the Mountain mat, by hover and toggle. -->
 <script>
 	import CompletionCounters from '../../../lib/components/player/CompletionCounters.svelte';
 	import CapitalGrid from '../../../lib/components/player/CapitalGrid.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
+	import { matPlots } from '../../../lib/area/capital.js';
 	import { completionCounts } from '../../../lib/placement.js';
 
 	/** @typedef {import('../../../lib/capital.js').PlotKind} PlotKind */
 	/** @typedef {import('../../../lib/capital.js').GroupKind} GroupKind */
 	/** @typedef {import('../../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
-	/** Ana's capital in the players overview mockup. */
+	/** Ana's capital on the Mountain mat, as in the CapitalGrid section: row 0, columns 0, 5 and 7, and the top left and centre districts are complete. */
 	const ANA_FILLED = [
-		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 18, 19, 20, 27, 28, 29, 36, 45,
-		54, 63, 72, 14, 23, 32, 41, 50, 59, 68, 77, 16, 25, 34, 43, 52, 61, 70,
-		79, 5, 22, 39, 56, 73,
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 18, 19, 20, 27, 36, 45, 54, 63, 72, 50,
+		59, 68, 77, 25, 43, 52, 61, 79, 39, 40, 49, 73,
 	];
-	const ANA_BLOCKED = [4, 22, 40, 58, 76];
 	/** @type {PlotKind[]} */
 	const KINDS = ['house', 'farm', 'market', 'landmark'];
 	/** @type {PlotKind[]} */
-	const ANA = Array.from({ length: 81 }, (_, index) =>
-		ANA_BLOCKED.includes(index)
-			? 'blocked'
-			: ANA_FILLED.includes(index)
-				? KINDS[(index * 7 + 3) % 4]
-				: 'empty'
+	const ANA = matPlots(1).map((kind, index) =>
+		ANA_FILLED.includes(index) ? KINDS[(index * 7 + 3) % 4] : kind
 	);
 	const ANA_COUNTS = completionCounts(ANA, []);
 
@@ -61,15 +56,15 @@
 		</div>
 	</Example>
 	<Example
-		label={'counts={{ rows: 1, columns: 3, districts: 1 }}'}
+		label={'counts={{ rows: 1, columns: 3, districts: 2 }}'}
 		width={468}>
-		<CompletionCounters counts={{ rows: 1, columns: 3, districts: 1 }} />
+		<CompletionCounters counts={{ rows: 1, columns: 3, districts: 2 }} />
 	</Example>
 	<Example
 		label={'active="columns"'}
 		width={468}>
 		<CompletionCounters
-			counts={{ rows: 1, columns: 3, districts: 1 }}
+			counts={{ rows: 1, columns: 3, districts: 2 }}
 			active="columns" />
 	</Example>
 	<Example

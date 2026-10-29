@@ -1,11 +1,10 @@
 // The results screen and the scoreboard (#29 design §5–§6): standings, shared places, ties step by step, VP by source and the table's facts.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { view } from '../src/lib/engine/game.js';
+import { tiebreakValues, view } from '../src/lib/engine/game.js';
 import { simulate } from './helpers/simulation.mjs';
 import {
 	VP_SOURCES,
-	ordinal,
 	ruleNote,
 	scoreboard,
 	standings,
@@ -78,16 +77,6 @@ function sharedWin() {
 	return game;
 }
 
-test('ordinals read as places', () => {
-	assert.deepEqual([1, 2, 3, 4, 5].map(ordinal), [
-		'1st',
-		'2nd',
-		'3rd',
-		'4th',
-		'5th',
-	]);
-});
-
 test("a finished game's standings follow the engine's ranking, each with VP by source adding up", () => {
 	const state = finished(2);
 	const game = view(state, 1);
@@ -140,7 +129,7 @@ test('a shared victory: both winners, the shared place, the rule note and the ti
 	const [ana, bo] = [game.seats[0].name, game.seats[1].name];
 	assert.equal(
 		tie.intro,
-		`${ana} and ${bo} both finished on 87 VP. Under the current official rules, the tiebreaks decide their order.`
+		`${ana} and ${bo} both finished on 87 VP. Under the current rules, the tiebreaks decide their order.`
 	);
 	assert.deepEqual(
 		tie.steps.map((step) => [step.title, step.separates]),
@@ -209,7 +198,7 @@ test("the table's facts: rules, mode and players, expansions and variants by nam
 	const game = sharedWin();
 	game.variants = ['tapestry-draft', 'closest-island'];
 	const facts = tableFacts({ mode: 'hotseat', game });
-	assert.equal(facts.rules, 'Current official rules');
+	assert.equal(facts.rules, 'Current rules');
 	assert.equal(facts.mode, `Hot-seat · ${game.seats.length} players`);
 	assert.deepEqual(facts.expansions, []);
 	assert.equal(facts.variants.length, 2);
@@ -239,4 +228,30 @@ test('the scoreboard during play: players by VP, with their sources and the tieb
 	assert.ok(rows.every((row) => 'landmark' in row));
 	game.version = 'original';
 	assert.ok(scoreboard(game).every((row) => !('landmark' in row)));
+});
+
+test("the scoreboard's tiebreak values are the engine's, the landmark by name (#128)", () => {
+	const game = sharedWin();
+	game.phase = 'play';
+	game.result = null;
+	game.seats[0].resources = { coin: 2, worker: 1, food: 0, culture: 4 };
+	game.seats[0].capital.landmarks = [
+		{ landmark: 'lighthouse', row: 0, col: 0, rotation: 0 },
+		{ landmark: 'skyscraper', row: 4, col: 0, rotation: 0 },
+	];
+	const row = /** @type {any} */ (scoreboard(game).find((r) => r.seat === 1));
+	const values = tiebreakValues(game.seats[0]);
+	assert.equal(values.tallestLandmark, 'skyscraper');
+	assert.equal(row.landmark, 'Skyscraper');
+	assert.equal(row.resources, values.resources);
+	assert.equal(row.resources, 7);
+});
+
+test("the table's expansions carry their name and their own colour, not gold (#101)", () => {
+	const game = sharedWin();
+	game.expansions = ['pp', 'aa'];
+	assert.deepEqual(tableFacts({ mode: 'online', game }).expansions, [
+		{ name: 'Plans & Ploys', color: 'var(--plans-ploys)' },
+		{ name: 'Arts & Architecture', color: 'var(--arts-architecture)' },
+	]);
 });

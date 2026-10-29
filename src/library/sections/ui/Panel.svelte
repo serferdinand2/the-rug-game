@@ -1,4 +1,4 @@
-<!-- Library section: Panel at each padding, with a title, with a heading row, and with no heading. -->
+<!-- Library section: Panel at each padding, with a title in either font, with a heading row, and with no heading. -->
 <script>
 	import Panel from '../../../lib/components/ui/Panel.svelte';
 	import Example from '../../Example.svelte';
@@ -17,6 +17,16 @@
 			title="Open tables"
 			padding="large">
 			<p style:margin="0">Three tables are waiting for players.</p>
+		</Panel>
+	</Example>
+	<Example
+		label={'title="Open tables" titleFont="title"'}
+		surface="surface"
+		width={530}>
+		<Panel
+			title="Open tables"
+			titleFont="title">
+			<p style:margin="0">The launch page titles its tables in Cinzel.</p>
 		</Panel>
 	</Example>
 	<Example

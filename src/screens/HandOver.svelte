@@ -3,7 +3,7 @@
 	/**
 	 * Properties of the HandOver screen itself.
 	 * @typedef {Object} HandOverOwnProps
-	 * @property {any} store - The client's store, while it names a player to pass to
+	 * @property {import('../lib/game.svelte.js').GameStore} store - The client's store, while it names a player to pass to
 	 */
 
 	/**
@@ -17,8 +17,10 @@
 
 <script>
 	import PassScreen from '../lib/components/ui/PassScreen.svelte';
-	import { timeLeft } from '../lib/clock.js';
+	import { isRunning, shownClock, timeLeft } from '../lib/clock.js';
+	import { clockTime } from '../lib/now.svelte.js';
 	import { passReason } from '../lib/pass.js';
+	import { seatName } from '../lib/game-names.js';
 
 	/** @type {HandOverProps} */
 	let { store, ...attr } = $props();
@@ -27,22 +29,12 @@
 	let seat = $derived(
 		/** @type {import('../lib/ui.js').Seat} */ (store.passing)
 	);
-	let name = $derived(room.game.seats[seat - 1]?.name ?? `Player ${seat}`);
+	let name = $derived(seatName(room.game, seat));
 
-	// The named player's clock keeps running while the screen waits for them, as in the game header.
-	let now = $state(Date.now());
-	let clock = $derived(
-		room.clocks?.find((/** @type {any} */ c) => c.seat === seat) ?? null
-	);
-	$effect(() => {
-		if (!clock) {
-			return;
-		}
-		const timer = setInterval(() => {
-			now = Date.now();
-		}, 250);
-		return () => clearInterval(timer);
-	});
+	// The named player's clock keeps running while the screen waits for them, chosen as in the game header. The
+	// screen speaks to that player, so it shows only their own (#89).
+	let shown = $derived(shownClock(room, seat));
+	let clock = $derived(shown?.seat === seat ? shown : null);
 </script>
 
 <main
@@ -54,11 +46,9 @@
 			{seat}
 			reason={passReason(room.game, seat)}
 			clockMs={clock
-				? timeLeft(clock, room.now, store.receivedAt, now)
+				? timeLeft(clock, room.now, store.receivedAt, clockTime.now)
 				: null}
-			clockRunning={clock
-				? clock.ends !== undefined && !clock.expired
-				: true}
+			clockRunning={clock ? isRunning(clock) : true}
 			taking={store.taking}
 			onPassScreenTake={() => store.takeSeat()} />
 	{/key}

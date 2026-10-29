@@ -1,16 +1,14 @@
 <!-- DiceTray: a roll over the middle of the screen for the whole table (#61); a batch plays one roll after another, then fades. -->
 <script module>
-	/** How long the dice tumble, and how long they hold their faces, in milliseconds. */
-	export const TUMBLE_MS = 1000;
-	export const HOLD_MS = 1500;
-	/** How long the tray takes to fade out: the --duration-medium token. */
-	export const FADE_MS = 220;
+	/** How long the dice hold their faces once they land, in milliseconds. */
+	const HOLD_MS = 1500;
 
 	/**
 	 * Properties of the DiceTray component itself.
 	 * @typedef {Object} DiceTrayOwnProps
 	 * @property {import('../../dice.js').Roll[]} rolls - The batch's rolls, in order (dice.js rollsOf)
 	 * @property {number} batch - A new value plays `rolls` from the start; a refresh keeps it, so nothing replays
+	 * @property {'none' | 'panel' | 'shelf'} [panel='none'] - What the game has open over the board (#79): with a decision panel the tray rolls at the top of the board, clear of it; with a stack of cards, which can fill the board's height, over the player area
 	 * @property {Function} [onDiceTrayDone] - Callback fired when a batch has played or been dismissed
 	 */
 
@@ -19,7 +17,7 @@
 	 * @typedef {DiceTrayOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} DiceTrayProps
 	 *
 	 * @example
-	 * <DiceTray rolls={rollsOf(store.fresh, game, seat)} batch={store.freshCount} />
+	 * <DiceTray rolls={rollsOf(store.fresh, game, seat)} batch={store.freshCount} panel={gamePanel} />
 	 */
 </script>
 
@@ -27,9 +25,11 @@
 	import { untrack } from 'svelte';
 	import Die from './Die.svelte';
 	import { ComponentEvent } from '../../component-event.js';
+	import { TUMBLE_MS } from '../../dice.js';
+	import { msOf, prefersReducedMotion } from '../../motion.js';
 
 	/** @type {DiceTrayProps} */
-	let { rolls, batch, onDiceTrayDone, ...attr } = $props();
+	let { rolls, batch, panel = 'none', onDiceTrayDone, ...attr } = $props();
 
 	/** @type {import('../../dice.js').Roll[]} The batch on show, kept while later props change */
 	let playing = $state([]);
@@ -38,8 +38,6 @@
 	let rolling = $state(false);
 	/** The tray is fading out after its batch. */
 	let leaving = $state(false);
-	/** Whether a decision panel is open beside the tray, which then rolls at the top of the board, clear of it. */
-	let aside = $state(false);
 	let spoken = $state('');
 	/** @type {ReturnType<typeof setTimeout> | undefined} */
 	let timer;
@@ -48,11 +46,15 @@
 	/** The batch already played, so a new mount with the same batch plays nothing. */
 	let started = untrack(() => batch);
 
-	const still = () =>
-		typeof window !== 'undefined' &&
-		Boolean(
-			window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-		);
+	/** How long the tray fades: its --duration-medium token, which is 0 under reduced motion. */
+	function fadeMs() {
+		if (!region) {
+			return 0;
+		}
+		const token =
+			getComputedStyle(region).getPropertyValue('--duration-medium');
+		return msOf(token);
+	}
 
 	/** Ends the batch: the tray fades out, then goes, and the callback fires. */
 	function finish() {
@@ -62,23 +64,13 @@
 		}
 		rolling = false;
 		leaving = true;
-		timer = setTimeout(
-			() => {
-				current = null;
-				leaving = false;
-				if (region && typeof onDiceTrayDone === 'function') {
-					onDiceTrayDone(new ComponentEvent(null, region));
-				}
-			},
-			still() ? 0 : FADE_MS
-		);
-	}
-
-	/** Looks for a decision panel among the tray's neighbours (the screen on show, or a library stage). */
-	function look() {
-		aside = Boolean(
-			region?.parentElement?.querySelector('.rg-decision-panel--panel')
-		);
+		timer = setTimeout(() => {
+			current = null;
+			leaving = false;
+			if (region && typeof onDiceTrayDone === 'function') {
+				onDiceTrayDone(new ComponentEvent(null, region));
+			}
+		}, fadeMs());
 	}
 
 	/**
@@ -91,12 +83,10 @@
 			return;
 		}
 		current = index;
-		look();
-		const tumble = still() ? 0 : TUMBLE_MS;
+		const tumble = prefersReducedMotion() ? 0 : TUMBLE_MS;
 		rolling = tumble > 0;
 		timer = setTimeout(() => {
 			rolling = false;
-			look();
 			spoken = playing[index].spoken;
 			timer = setTimeout(() => play(index + 1), HOLD_MS);
 		}, tumble);
@@ -146,7 +136,8 @@
 		{...attr}
 		class="rg-dice-tray {attr.class ? attr.class : ''}"
 		class:rg-dice-tray--bust={roll.bust}
-		class:rg-dice-tray--aside={aside}
+		class:rg-dice-tray--aside={panel === 'panel'}
+		class:rg-dice-tray--player={panel === 'shelf'}
 		class:rg-dice-tray--leaving={leaving}
 		data-roll={roll.id}
 		onclick={finish}>
@@ -176,12 +167,7 @@
 		padding: var(--space-8) var(--space-10);
 		border: var(--border) solid var(--line);
 		border-radius: var(--radius);
-		background:
-			linear-gradient(
-				color-mix(in srgb, var(--ink) 60%, transparent),
-				color-mix(in srgb, var(--ink) 60%, transparent)
-			),
-			var(--texture) var(--chrome);
+		background: var(--float-surface);
 		box-shadow: var(--shadow-float);
 		transform: translate(-50%, -50%);
 		cursor: pointer;
@@ -189,11 +175,17 @@
 	}
 
 	/* With a decision panel open, the tray rolls at the top of the board (the left three quarters), clear of a panel at
-	   the bottom, at the centre or docked at the right (#61 review). */
+	   the centre or docked at the right (#61 review). */
 	.rg-dice-tray--aside {
 		top: calc(var(--bar-height) + var(--space-8));
 		left: 37.5%;
 		transform: translate(-50%, 0);
+	}
+
+	/* A stack of cards can fill the board's height, so the tray rolls over the middle of the player area, the right
+	   quarter (#79). */
+	.rg-dice-tray--player {
+		left: 87.5%;
 	}
 
 	.rg-dice-tray--dice {

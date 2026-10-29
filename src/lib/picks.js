@@ -2,7 +2,10 @@
 import { advanceCost, TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
 import { RESOURCES } from './ui.js';
-import { describeAnswer, describePayment } from './describe.js';
+import { describeAnswer } from './decision-words.js';
+import { describePayment } from './describe.js';
+import { amountWords, joinList } from './words.js';
+import { roman } from './game-names.js';
 
 /** @typedef {'coin' | 'food' | 'worker' | 'culture'} ResourceId */
 
@@ -54,8 +57,6 @@ import { describeAnswer, describePayment } from './describe.js';
 /** The resources in the order every row lists them. @type {readonly ResourceId[]} */
 const RESOURCE_IDS = RESOURCES.map((r) => /** @type {ResourceId} */ (r.id));
 
-const ROMAN = ['I', 'II', 'III', 'IV'];
-
 /**
  * @param {unknown} value
  * @returns {value is Record<string, any>}
@@ -92,25 +93,14 @@ function resourcesOf(record) {
 }
 
 /**
- * Words joined as a list: "a", "a and b", "a, b and c".
- * @param {string[]} parts
- * @returns {string}
- */
-function listWords(parts) {
-	return parts.length < 2
-		? parts.join('')
-		: `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`;
-}
-
-/**
- * Resource counts in words, such as "1 coin and 2 food".
+ * Resource counts in words, such as "2 coins and 1 food".
  * @param {Partial<Record<ResourceId, number>>} counts
  * @returns {string}
  */
 function resourceWords(counts) {
-	return listWords(
-		RESOURCE_IDS.filter((id) => amount(counts, id)).map(
-			(id) => `${counts[id]} ${id}`
+	return joinList(
+		RESOURCE_IDS.filter((id) => amount(counts, id)).map((id) =>
+			amountWords(id, amount(counts, id))
 		)
 	);
 }
@@ -161,14 +151,14 @@ function rowsOfCost(cost, track) {
  */
 function costWords(cost, track) {
 	const named = namedOf(cost, track);
-	const parts = RESOURCE_IDS.filter((id) => named[id]).map(
-		(id) => `${named[id]} ${id}`
+	const parts = RESOURCE_IDS.filter((id) => named[id]).map((id) =>
+		amountWords(id, named[id])
 	);
 	const any = amount(cost, 'any');
 	if (any) {
-		parts.push(`${any} resource${any > 1 ? 's' : ''} of your choice`);
+		parts.push(amountWords('any', any));
 	}
-	return listWords(parts);
+	return joinList(parts);
 }
 
 /**
@@ -257,7 +247,7 @@ function payLead(cost, track, items) {
 			how.length ? `Pick the ${noun}s ${where}.` : `Pick them ${where}.`
 		);
 	}
-	return `Pay ${listWords(parts)}. ${how.join(' ')}`.trim();
+	return `Pay ${joinList(parts)}. ${how.join(' ')}`.trim();
 }
 
 /**
@@ -287,7 +277,7 @@ function gainOf(offer) {
 function sideWords(side) {
 	const parts = amount(side, 'vp') ? [`${amount(side, 'vp')} VP`] : [];
 	const words = costWords(side);
-	return listWords(words ? [...parts, words] : parts);
+	return joinList(words ? [...parts, words] : parts);
 }
 
 /**
@@ -300,14 +290,14 @@ function shortWords(side) {
 	const named = namedOf(side, undefined);
 	for (const id of RESOURCE_IDS) {
 		if (named[id]) {
-			parts.push(`${named[id]} ${id}`);
+			parts.push(amountWords(id, named[id]));
 		}
 	}
 	const any = amount(side, 'any');
 	if (any) {
 		parts.push(`${any} resource${any > 1 ? 's' : ''}`);
 	}
-	return listWords(parts);
+	return joinList(parts);
 }
 
 /**
@@ -484,7 +474,7 @@ export function advanceModel(option, _game) {
 			label: describePayment(payment),
 		})),
 		decline: null,
-		lead: `Tier ${ROMAN[tier - 1]} costs ${costWords(cost)}. Pick one in each empty row.`,
+		lead: `Tier ${roman(tier)} costs ${costWords(cost)}. Pick one in each empty row.`,
 		then: null,
 	});
 }
@@ -813,11 +803,11 @@ export function pickStatus(model, selection, held) {
 	}
 	const after = pendingCounts(model, selection, held);
 	const lost = RESOURCE_IDS.filter((id) => after[id] > RESOURCE_CAP).map(
-		(id) => `${after[id] - RESOURCE_CAP} ${id}`
+		(id) => amountWords(id, after[id] - RESOURCE_CAP)
 	);
 	return lost.length
 		? {
-				text: `${text} You can hold ${RESOURCE_CAP} of each: ${listWords(lost)} would be lost.`,
+				text: `${text} You can hold ${RESOURCE_CAP} of each: ${joinList(lost)} would be lost.`,
 				warn: true,
 			}
 		: { text, warn: false };

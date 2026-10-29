@@ -2,12 +2,16 @@
 import { INCOME_STEPS, INCOME_STEP_KINDS } from './engine/game.js';
 import { TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
-import { decisionTitle, describeAnswer } from './describe.js';
-import { pickModel, tradeOffers } from './picks.js';
+import { BUILDING_IDS, TRACK_IDS } from './engine/data/ids.js';
+import { RESOURCE_ORDER } from './ui.js';
+import { decisionTitle, describeAnswer } from './decision-words.js';
+import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
+import { cardSpot, spotWords } from './civ-card.js';
+import { kindFacts } from './decision-kinds.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 /** @typedef {import('./ui.js').CostSymbol} CostSymbol */
-/** @typedef {'market' | 'house' | 'farm' | 'armory'} BuildingId */
+/** @typedef {import('./engine/data/ids.js').BuildingId} BuildingId */
 
 /**
  * One thing drawn with an option: a resource with its count, a track symbol, a piece, a card, a tile or VP in words.
@@ -30,10 +34,11 @@ import { pickModel, tradeOffers } from './picks.js';
  * One answer of the decision, as the prompt offers it.
  * @typedef {Object} PromptOption
  * @property {number} index - The answer's index in decision.answers
- * @property {'panel' | 'shelf' | 'map' | 'capital'} place - Where it is chosen
+ * @property {'panel' | 'shelf' | 'map' | 'capital' | 'card'} place - Where it is chosen: 'card' on the player's civilization card in the Civ tab (#78)
  * @property {string} label - describeAnswer(decision, answer, game)
  * @property {Art[]} art - Drawn before or above the label; may be empty
  * @property {string} [hex] - For place 'map': the hex it is chosen on
+ * @property {string} [spot] - For place 'card': the spot on the card it is chosen on (civ-card.js)
  * @property {{ row: number, col: number, rotation: number | null }} [plot] - For place 'capital'; rotation null for a building
  */
 
@@ -51,7 +56,7 @@ import { pickModel, tradeOffers } from './picks.js';
  * @property {string} kind - The decision kind
  * @property {string} title - decisionTitle(decision, game)
  * @property {string} instruction - One sentence on how to answer
- * @property {'options' | 'cards' | 'map' | 'capital'} layout - Where the decision is mainly made; the capital leads, then the map
+ * @property {'options' | 'cards' | 'map' | 'capital' | 'card'} layout - Where the decision is mainly made; the capital leads, then the map, then the civilization card
  * @property {'tapestry' | 'tech' | 'civ' | 'mat' | null} shelf - What the shelf holds, whenever an option is on it
  * @property {string[]} mapHexes - The hexes lit on the map, whenever an option is on it, in answer order
  * @property {TrackId | null} track - The track that tints the panel
@@ -75,61 +80,14 @@ const STEP_LABELS = /** @type {Readonly<Record<string, string>>} */ ({
 	income: 'Income',
 });
 
-/** The resources, in the order the labels list them (describe.js), then a resource of any type. */
-const RESOURCE_ORDER = /** @type {readonly CostSymbol[]} */ ([
-	'coin',
-	'food',
-	'worker',
-	'culture',
+/** The resources, in the order the screens list them, then a resource of any type. */
+const SYMBOL_ORDER = /** @type {readonly CostSymbol[]} */ ([
+	...RESOURCE_ORDER,
 	'any',
 ]);
 
 /** The resources a payment can hold. @type {readonly string[]} */
-const PAID_RESOURCES = RESOURCE_ORDER.filter((id) => id !== 'any');
-
-/** @type {readonly TrackId[]} */
-const TRACK_IDS = ['exploration', 'science', 'technology', 'military'];
-
-/** @type {readonly BuildingId[]} */
-const BUILDING_IDS = ['market', 'house', 'farm', 'armory'];
-
-/** Which shelf each card decision fills. */
-const SHELVES = /** @type {Readonly<Record<string, Prompt['shelf']>>} */ ({
-	chooseTapestry: 'tapestry',
-	chooseKeep: 'tapestry',
-	chooseDiscard: 'tapestry',
-	chooseResponse: 'tapestry',
-	chooseCopy: 'tapestry',
-	chooseInvent: 'tech',
-	chooseUpgrade: 'tech',
-	chooseTechBenefit: 'tech',
-	chooseCiv: 'civ',
-	chooseCapital: 'mat',
-});
-
-/** The confirm button's words for each decision kind that has its own. */
-const CONFIRM_LABELS = /** @type {Readonly<Record<string, string>>} */ ({
-	chooseTapestry: 'Play card',
-	chooseKeep: 'Keep card',
-	chooseCiv: 'Keep civilization',
-	chooseCapital: 'Take this capital',
-	chooseInvent: 'Invent',
-	chooseUpgrade: 'Upgrade',
-	chooseExplore: 'Explore',
-	chooseConquer: 'Conquer',
-	choosePlacement: 'Place',
-});
-
-/** The decision kinds whose answer may name a track. */
-const TRACK_ANSWERS = [
-	'chooseTrack',
-	'chooseRoll',
-	'chooseRestart',
-	'chooseMove',
-	'chooseRepeat',
-	'chooseSpace',
-	'choosePartner',
-];
+const PAID_RESOURCES = RESOURCE_ORDER;
 
 /**
  * Whether a value is a plain object.
@@ -164,7 +122,7 @@ function isTrack(value) {
  * @returns {Art[]}
  */
 function resourceArt(counts) {
-	return RESOURCE_ORDER.filter((id) => isCount(counts[id])).map((id) => ({
+	return SYMBOL_ORDER.filter((id) => isCount(counts[id])).map((id) => ({
 		kind: 'resource',
 		id,
 		count: counts[id],
@@ -266,35 +224,33 @@ function techDeckCount(game) {
 }
 
 /**
- * Where an answer is chosen: on the map, on the capital, on the card shelf or on the panel.
+ * Where an answer is chosen: on the civilization card, the map, the capital, the card shelf or the panel.
  * @param {Decision} decision
  * @param {Answer} answer
+ * @param {any} game - The game view, which says where a civilization's token climbs to
  * @returns {PromptOption['place']}
  */
-function placeOf(decision, answer) {
+function placeOf(decision, answer, game) {
+	// The civilizations' own choices are made on their card (#78).
+	if (cardSpot(decision, answer, game) !== null) {
+		return 'card';
+	}
 	if (typeof answer.hex === 'string') {
 		return 'map';
 	}
 	if (decision.kind === 'choosePlacement' && typeof answer.row === 'number') {
 		return 'capital';
 	}
-	switch (decision.kind) {
-		case 'chooseTapestry':
-		case 'chooseKeep':
-		case 'chooseDiscard':
-		case 'chooseResponse':
-		case 'chooseCopy':
-		case 'chooseInvent':
-		case 'chooseUpgrade':
-		case 'chooseTechBenefit':
-			return typeof answer.card === 'string' ? 'shelf' : 'panel';
-		case 'chooseCiv':
-			return typeof answer.civ === 'string' ? 'shelf' : 'panel';
-		case 'chooseCapital':
-			return 'shelf';
-		default:
-			return 'panel';
+	// A shelf holds every mat on offer, and the civilizations or cards an answer names.
+	const { shelf } = kindFacts(decision.kind);
+	if (shelf === 'mat') {
+		return 'shelf';
 	}
+	if (shelf !== null) {
+		const named = shelf === 'civ' ? answer.civ : answer.card;
+		return typeof named === 'string' ? 'shelf' : 'panel';
+	}
+	return 'panel';
 }
 
 /**
@@ -319,7 +275,70 @@ function slotArt(slot) {
 }
 
 /**
- * What an answer shows beside its words.
+ * The art beside an answer of each shape (decision-kinds.js), for an answer that isn't on a shelf.
+ * @type {Readonly<Record<import('./decision-kinds.js').ArtShape, (decision: Decision, answer: Answer, place: PromptOption['place']) => Art[]>>}
+ */
+const ART = Object.freeze({
+	track: (decision, answer) =>
+		isTrack(answer.track) ? [{ kind: 'track', id: answer.track }] : [],
+	resources: (decision, answer) =>
+		isRecord(answer.resources) ? resourceArt(answer.resources) : [],
+	payment: (decision, answer) => paymentArt(answer.pay),
+	die: (decision, answer) => {
+		const faces = answer.die === 'red' ? RED_DIE : BLACK_DIE;
+		const face = Number.isInteger(decision[answer.die])
+			? faces[decision[answer.die]]
+			: undefined;
+		return face ? effectArt([face]) : [];
+	},
+	landmark: (decision, answer) =>
+		typeof answer.landmark === 'string'
+			? [{ kind: 'landmark', id: answer.landmark }]
+			: [],
+	'space-tile': (decision, answer) =>
+		isCount(answer.tile) ? [{ kind: 'space-tile', id: answer.tile }] : [],
+	gift: (decision, answer) =>
+		isCount(answer.tile)
+			? [{ kind: 'territory', id: answer.tile, orient: 0 }]
+			: [],
+	explore: (decision, answer) =>
+		isCount(answer.tile)
+			? [
+					{
+						kind: 'territory',
+						id: answer.tile,
+						orient: Number.isInteger(answer.orient)
+							? answer.orient
+							: 0,
+					},
+				]
+			: [],
+	civ: (decision, answer) =>
+		typeof answer.civ === 'string' ? [{ kind: 'civ', id: answer.civ }] : [],
+	placement: (decision, answer, place) => {
+		if (place !== 'panel') {
+			return [];
+		}
+		if (typeof decision.landmark === 'string') {
+			return [{ kind: 'landmark', id: decision.landmark }];
+		}
+		return BUILDING_IDS.includes(decision.building)
+			? [{ kind: 'building', id: decision.building }]
+			: [];
+	},
+	option: (decision, answer) =>
+		Array.isArray(decision.options)
+			? effectArt(decision.options[answer.option])
+			: [],
+	order: (decision, answer) =>
+		Array.isArray(decision.effects) && Number.isInteger(answer.effect)
+			? effectArt([decision.effects[answer.effect]])
+			: [],
+	slot: (decision, answer) => slotArt(answer.slot),
+});
+
+/**
+ * What an answer shows beside its words: a shelf's card, civilization or mat, or its kind's art shape.
  * @param {Decision} decision
  * @param {Answer} answer
  * @param {PromptOption['place']} place
@@ -327,14 +346,8 @@ function slotArt(slot) {
  * @returns {Art[]}
  */
 function artOf(decision, answer, place, game) {
-	const { kind } = decision;
-	if (TRACK_ANSWERS.includes(kind)) {
-		return isTrack(answer.track)
-			? [{ kind: 'track', id: answer.track }]
-			: [];
-	}
+	const { shelf, art } = kindFacts(decision.kind);
 	if (place === 'shelf') {
-		const shelf = SHELVES[kind];
 		if (shelf === 'tapestry') {
 			return [{ kind: 'tapestry', id: answer.card }];
 		}
@@ -350,74 +363,7 @@ function artOf(decision, answer, place, game) {
 			? [{ kind: 'mat', id: answer.capital }]
 			: [];
 	}
-	switch (kind) {
-		case 'chooseResource':
-		case 'chooseConversion':
-			return isRecord(answer.resources)
-				? resourceArt(answer.resources)
-				: [];
-		case 'chooseBonus':
-		case 'chooseTrade':
-			return paymentArt(answer.pay);
-		case 'chooseDie': {
-			const faces = answer.die === 'red' ? RED_DIE : BLACK_DIE;
-			const face = Number.isInteger(decision[answer.die])
-				? faces[decision[answer.die]]
-				: undefined;
-			return face ? effectArt([face]) : [];
-		}
-		case 'chooseLandmark':
-			return typeof answer.landmark === 'string'
-				? [{ kind: 'landmark', id: answer.landmark }]
-				: [];
-		case 'chooseSpaceTile':
-			return isCount(answer.tile)
-				? [{ kind: 'space-tile', id: answer.tile }]
-				: [];
-		case 'chooseGift':
-			return isCount(answer.tile)
-				? [{ kind: 'territory', id: answer.tile, orient: 0 }]
-				: [];
-		case 'chooseExplore':
-			return isCount(answer.tile)
-				? [
-						{
-							kind: 'territory',
-							id: answer.tile,
-							orient: Number.isInteger(answer.orient)
-								? answer.orient
-								: 0,
-						},
-					]
-				: [];
-		case 'chooseCivAbility':
-			return typeof answer.civ === 'string'
-				? [{ kind: 'civ', id: answer.civ }]
-				: [];
-		case 'choosePlacement':
-			if (place !== 'panel') {
-				return [];
-			}
-			if (typeof decision.landmark === 'string') {
-				return [{ kind: 'landmark', id: decision.landmark }];
-			}
-			return BUILDING_IDS.includes(decision.building)
-				? [{ kind: 'building', id: decision.building }]
-				: [];
-		case 'chooseOption':
-			return Array.isArray(decision.options)
-				? effectArt(decision.options[answer.option])
-				: [];
-		case 'chooseOrder':
-			return Array.isArray(decision.effects) &&
-				Number.isInteger(answer.effect)
-				? effectArt([decision.effects[answer.effect]])
-				: [];
-		case 'chooseSlot':
-			return slotArt(answer.slot);
-		default:
-			return [];
-	}
+	return art === null ? [] : ART[art](decision, answer, place);
 }
 
 /**
@@ -429,14 +375,19 @@ function artOf(decision, answer, place, game) {
  * @returns {PromptOption}
  */
 function optionOf(decision, answer, index, game) {
-	const place = placeOf(decision, answer);
+	const place = placeOf(decision, answer, game);
 	/** @type {PromptOption} */
 	const option = {
 		index,
 		place,
-		label: describeAnswer(decision, answer, game),
+		label:
+			(place === 'card' ? spotWords(decision, answer, game) : null) ??
+			describeAnswer(decision, answer, game),
 		art: artOf(decision, answer, place, game),
 	};
+	if (place === 'card') {
+		option.spot = /** @type {string} */ (cardSpot(decision, answer, game));
+	}
 	if (place === 'map') {
 		option.hex = answer.hex;
 	}
@@ -465,6 +416,9 @@ function layoutOf(options) {
 	}
 	if (places.has('map')) {
 		return 'map';
+	}
+	if (places.has('card')) {
+		return 'card';
 	}
 	return places.has('shelf') ? 'cards' : 'options';
 }
@@ -503,7 +457,7 @@ function costOf(decision) {
 	for (const [key, n] of Object.entries(decision.cost)) {
 		/** @type {CostSymbol | undefined} */
 		let symbol;
-		if (RESOURCE_ORDER.includes(/** @type {CostSymbol} */ (key))) {
+		if (SYMBOL_ORDER.includes(/** @type {CostSymbol} */ (key))) {
 			symbol = /** @type {CostSymbol} */ (key);
 		} else if (key === 'track' && isTrack(decision.track)) {
 			symbol = /** @type {CostSymbol} */ (TRACK_RESOURCE[decision.track]);
@@ -534,14 +488,16 @@ function instructionOf(decision, layout, onMap) {
 		case 'capital':
 			if (typeof decision.landmark === 'string') {
 				return onMap
-					? 'Place the landmark in your capital (drag it, turn it with R, then confirm), or choose a lit territory on the map.'
-					: 'Place the landmark in your capital: drag it, turn it with R, then confirm.';
+					? 'Place the landmark in your capital (drag it, turn it with the . and , keys, then confirm), or choose a lit territory on the map.'
+					: 'Place the landmark in your capital: drag it, turn it with the . and , keys, then confirm.';
 			}
 			return onMap
 				? 'Choose a lit plot in your capital, or a lit territory on the map.'
 				: 'Choose a lit plot in your capital.';
 		case 'cards':
 			return 'Choose a card above, then confirm it here.';
+		case 'card':
+			return 'Choose a lit spot on your civilization card, then confirm it here.';
 		default:
 			return 'Choose one.';
 	}
@@ -638,7 +594,7 @@ export function promptFor(decision, game, seat) {
 		instruction: instructionOf(decision, layout, mapHexes.length > 0),
 		layout,
 		shelf: options.some((o) => o.place === 'shelf')
-			? (SHELVES[decision.kind] ?? null)
+			? kindFacts(decision.kind).shelf
 			: null,
 		mapHexes,
 		track: trackOf(decision),
@@ -647,9 +603,135 @@ export function promptFor(decision, game, seat) {
 			seat !== null && decision.player === seat
 				? incomeView(game, seat)
 				: null,
-		confirmLabel: CONFIRM_LABELS[decision.kind] ?? 'Confirm choice',
+		confirmLabel: kindFacts(decision.kind).confirm ?? 'Confirm choice',
 		options,
 		picks: pickModel(decision, game, seat),
 		trade: tradeOffers(decision, game, seat),
+	};
+}
+
+/**
+ * What the viewer has chosen so far in the open decision's panel (#79), as the prompt state derives it.
+ * @typedef {Object} PanelChoice
+ * @property {number | null} picked - The answer chosen in the panel, on the shelf, on the map or on the capital
+ * @property {import('./picks.js').PickModel | null} pick - The pick on show (#75): the prompt's own, or a chosen trade offer's
+ * @property {{ text: string, warn: boolean } | null} pickStatus - What the picks so far say (picks.js pickStatus)
+ * @property {number} pickIndex - The answer the picks so far match, or -1
+ * @property {boolean} offering - A trade's offers are on show, none chosen yet: its first step
+ * @property {boolean} offered - A trade's offer is chosen: its second step
+ * @property {number} tradeAnswer - A chosen offer with nothing to pick: its one answer, or -1
+ * @property {number} decline - The answer that declines the pick or the trade, or -1
+ * @property {boolean} exploring - The decision is an explore (#74), whose chosen line is pinned instead
+ * @property {boolean} docked - The panel is docked beside the map
+ * @property {string | null} hex - The hex chosen on the map
+ * @property {boolean} options - The panel lists options of its own
+ * @property {boolean} sending - A move is being sent
+ */
+
+/**
+ * The decision panel's words and buttons.
+ * @typedef {Object} PanelControls
+ * @property {string} status - The line beside the buttons: what is chosen, or what is missing
+ * @property {boolean} warn - The status line is a warning, such as resources lost to the cap
+ * @property {string} confirmLabel
+ * @property {boolean} confirmDisabled
+ * @property {string | undefined} cancelLabel - Left out, there is no cancel button
+ * @property {'back' | 'decline' | 'clear' | null} cancel - What cancel does: a trade's offers again, decline, or another territory
+ * @property {'pick' | 'answer'} confirm - What Confirm sends: the answer the picks match, or the picked answer
+ * @property {boolean} content - The panel has a content area; without one its status line carries the instruction (#57)
+ */
+
+/**
+ * The open decision's panel (#79): its status line, its buttons and what they do, for what the viewer has chosen.
+ * @param {Pick<Prompt, 'instruction' | 'confirmLabel' | 'options' | 'cost'>} prompt
+ * @param {PanelChoice} choice
+ * @returns {PanelControls}
+ */
+export function panelControls(prompt, choice) {
+	const { pick, picked, tradeAnswer, sending } = choice;
+	const label = (/** @type {number} */ index) =>
+		prompt.options[index]?.label ?? '';
+	/** @type {string} */
+	let status = prompt.instruction;
+	if (choice.pickStatus) {
+		status = choice.pickStatus.text;
+	} else if (choice.offering) {
+		status = 'Choose a trade.';
+	} else if (tradeAnswer !== -1) {
+		status = label(tradeAnswer);
+	} else if (choice.exploring) {
+		status = '';
+	} else if (picked !== null) {
+		status = label(picked);
+	}
+	/** @type {string} */
+	let confirmLabel = prompt.confirmLabel;
+	if (pick?.items) {
+		const { count, kind } = pick.items;
+		const noun = kind === 'territory' ? 'tile' : 'card';
+		confirmLabel = `Pay ${count} ${noun}${count > 1 ? 's' : ''}`;
+	} else if (pick || tradeAnswer !== -1) {
+		confirmLabel = 'Confirm';
+	}
+	/** @type {boolean} */
+	let confirmDisabled = picked === null || sending;
+	if (pick) {
+		confirmDisabled = choice.pickIndex === -1 || sending;
+	} else if (choice.offering) {
+		confirmDisabled = true;
+	} else if (tradeAnswer !== -1) {
+		confirmDisabled = sending;
+	}
+	/** @type {PanelControls['cancel']} */
+	let cancel = null;
+	if (choice.offered) {
+		cancel = 'back';
+	} else if ((pick || choice.offering) && choice.decline >= 0) {
+		cancel = 'decline';
+	} else if (choice.docked && choice.hex && !choice.exploring) {
+		cancel = 'clear';
+	}
+	return {
+		status,
+		warn: choice.pickStatus?.warn ?? false,
+		confirmLabel,
+		confirmDisabled,
+		cancelLabel: cancel ? CANCEL_LABELS[cancel] : undefined,
+		cancel,
+		confirm: pick || tradeAnswer !== -1 ? 'pick' : 'answer',
+		content:
+			choice.exploring ||
+			Boolean(pick) ||
+			choice.offering ||
+			tradeAnswer !== -1 ||
+			Boolean(prompt.cost) ||
+			choice.options,
+	};
+}
+
+/** The cancel button's words for what it does. */
+const CANCEL_LABELS = Object.freeze({
+	back: 'Back',
+	decline: 'Decline',
+	clear: 'Choose another territory',
+});
+
+/**
+ * The panel for an advance's payment when it has a choice (#75): what is still missing, and Advance once the
+ * resources picked match one of the payments.
+ * @param {import('./picks.js').PickModel} model - advanceModel() of the selected advance
+ * @param {import('./picks.js').Selection} selection
+ * @param {Partial<Record<import('./picks.js').ResourceId, number>>} held
+ * @param {boolean} sending
+ * @returns {Omit<PanelControls, 'cancel' | 'confirm' | 'content'>}
+ */
+export function paymentControls(model, selection, held, sending) {
+	const { text, warn } = pickStatus(model, selection, held);
+	return {
+		status: text,
+		warn,
+		confirmLabel: 'Advance',
+		confirmDisabled: matchIndex(model, selection) === -1 || sending,
+		cancelLabel: 'Cancel',
 	};
 }

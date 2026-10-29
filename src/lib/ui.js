@@ -1,27 +1,35 @@
 // Interface ids shared by the components, and helpers that turn them into references to the design tokens in tokens.css.
+import { resourceName, trackName } from './game-names.js';
+import { TRACK_IDS } from './engine/data/ids.js';
 
-/** @typedef {'exploration' | 'science' | 'technology' | 'military'} TrackId */
-/** @typedef {'coin' | 'food' | 'worker' | 'culture'} ResourceId */
+/** @typedef {import('./engine/data/ids.js').TrackId} TrackId */
+/** @typedef {import('./engine/data/ids.js').ResourceId} ResourceId */
 /** @typedef {ResourceId | 'any'} CostSymbol - A price symbol: one resource, or one resource of any type */
 /** @typedef {'sea' | 'desert' | 'forest' | 'grassland' | 'mountain' | 'unexplored'} Terrain */
 /** @typedef {1 | 2 | 3 | 4 | 5} Seat - A table seat, which sets the player's colour */
 /** @typedef {'mountain' | 'wetland' | 'tropical' | 'desert' | 'grassland' | 'forest'} CapitalBiome */
 
-/** The four tracks, in board order. @type {readonly { id: TrackId, name: string }[]} */
-export const TRACKS = Object.freeze([
-	{ id: 'exploration', name: 'Exploration' },
-	{ id: 'science', name: 'Science' },
-	{ id: 'technology', name: 'Technology' },
-	{ id: 'military', name: 'Military' },
+/** The engine's tracks, in board order, named by game-names.js. @type {readonly { id: TrackId, name: string }[]} */
+export const TRACKS = Object.freeze(
+	TRACK_IDS.map((id) => ({ id, name: trackName(id) }))
+);
+
+/**
+ * The engine's resources in the order every screen lists them: food comes before workers, unlike the engine's own
+ * order (01 §1.2). tests/client-id-lists.test.mjs checks it holds exactly the engine's resources.
+ * @type {readonly ResourceId[]}
+ */
+export const RESOURCE_ORDER = Object.freeze([
+	'coin',
+	'food',
+	'worker',
+	'culture',
 ]);
 
-/** The four resources, in the order the player overview lists them. @type {readonly { id: ResourceId, name: string }[]} */
-export const RESOURCES = Object.freeze([
-	{ id: 'coin', name: 'Coin' },
-	{ id: 'food', name: 'Food' },
-	{ id: 'worker', name: 'Worker' },
-	{ id: 'culture', name: 'Culture' },
-]);
+/** The resources in RESOURCE_ORDER, named by game-names.js. @type {readonly { id: ResourceId, name: string }[]} */
+export const RESOURCES = Object.freeze(
+	RESOURCE_ORDER.map((id) => ({ id, name: resourceName(id) }))
+);
 
 /** The map's terrain types. @type {readonly { id: Terrain, name: string }[]} */
 export const TERRAINS = Object.freeze([
@@ -61,6 +69,22 @@ export function playerColor(seat) {
  */
 export function resourceColor(resource) {
 	return `var(--${resource})`;
+}
+
+/** Each expansion's badge colour; the base game has the gold. */
+const EXPANSION_COLORS = /** @type {Readonly<Record<string, string>>} */ ({
+	pp: 'var(--plans-ploys)',
+	aa: 'var(--arts-architecture)',
+	ff: 'var(--fantasies-futures)',
+});
+
+/**
+ * The colour of an expansion's badges and chips (#101).
+ * @param {string} code - Such as 'pp', 'aa', 'ff' or 'base'
+ * @returns {string} A token reference, such as 'var(--plans-ploys)'; 'var(--gold)' for the base game.
+ */
+export function expansionColor(code) {
+	return EXPANSION_COLORS[code] ?? 'var(--gold)';
 }
 
 /**
@@ -104,7 +128,8 @@ export function playerPieceUrl(piece, seat) {
  * A repeatable terrain variant for one plot in a game's capital composition.
  * The screen supplies the setup seed and plot mask; this does not change the rules layout.
  * @param {CapitalBiome} biome
- * @param {boolean} blocked
+ * @param {boolean} blocked - An impassable plot's own tile: only a mat without a relief has them, since each base
+ *   mat's relief draws its impassable plots (#82)
  * @param {number} index - Row-major plot index
  * @param {number} seed - This game's visual setup seed
  * @returns {string}
@@ -116,21 +141,4 @@ export function capitalTileUrl(biome, blocked, index, seed) {
 	return artUrl(
 		`capital-terrain/${biome}-${blocked ? 'blocked' : 'open'}-${variant}`
 	);
-}
-
-const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-
-/**
- * An era or tier number as a Roman numeral.
- * @param {number} number - 1 to 10.
- * @returns {string} The numeral, such as 'IV'.
- */
-export function roman(number) {
-	const numeral = NUMERALS[number - 1];
-	if (!Number.isInteger(number) || !numeral) {
-		throw new RangeError(
-			`Roman numerals here run from 1 to 10, not ${number}`
-		);
-	}
-	return numeral;
 }

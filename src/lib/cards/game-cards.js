@@ -2,10 +2,32 @@
 import { techCard } from '../engine/data/tech-cards.js';
 import { tapestryCard } from '../engine/data/tapestry-cards.js';
 import { INCOME_MAT } from '../engine/data/income-mat.js';
-import { describeEffects, describeTapestryCard } from '../describe.js';
+import { describeEffects } from '../describe.js';
+import { describeTapestryCard } from './tapestry-text.js';
 
-/** @typedef {import('./card-layouts.js').TechnologyCardData} TechnologyCardData */
-/** @typedef {import('./card-layouts.js').TapestryCardData} TapestryCardData */
+/**
+ * A tech card's face, as TechnologyCard draws it.
+ * @typedef {Object} TechnologyCardData
+ * @property {string} title
+ * @property {string} art - Its art's name under art/tech/
+ * @property {string} circle - The circle (middle-row) benefit, as a sentence
+ * @property {string} square - The square (top-row) benefit, as a sentence
+ * @property {string} [track] - The track whose tier it needs to reach the top row
+ * @property {number} [level] - That tier, 2 to 4
+ * @property {string} [innovation] - Or the income-mat innovation it needs, by its printed name (R18)
+ */
+
+/**
+ * A tapestry card's face, as TapestryCard draws it.
+ * @typedef {Object} TapestryCardData
+ * @property {string} title
+ * @property {string} art - Its art's name under art/tapestry/
+ * @property {string} timing - "This Era", "When Played" or "Trap · Response"; empty for a card without rules yet
+ * @property {string} copy - Its ability, as sentences
+ * @property {string} [note] - The trap's note: what it gains played as a tapestry card (R22)
+ * @property {boolean} [trap] - It is the trap, which has its own red band
+ * @property {string} [edition] - Its edition's name, when not the base game
+ */
 
 /** The timing labels of card-design-rules.md, by the engine's timing. */
 const TIMINGS = Object.freeze({ played: 'When Played', era: 'This Era' });
@@ -85,4 +107,20 @@ export function tapestryCardData(id) {
 		data.trap = true;
 	}
 	return data;
+}
+
+/**
+ * A tapestry card's timing as its label's colour: the trap's red, When Played's bronze or This Era's green; null for a
+ * card without a timing yet (#108).
+ * @param {TapestryCardData} card
+ * @returns {'trap' | 'when-played' | 'this-era' | null}
+ */
+export function tapestryTiming(card) {
+	if (!card.timing) {
+		return null;
+	}
+	if (card.trap) {
+		return 'trap';
+	}
+	return card.timing === TIMINGS.played ? 'when-played' : 'this-era';
 }

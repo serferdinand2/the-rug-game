@@ -43,7 +43,7 @@
 	let rows = $derived(standings(game));
 	let ties = $derived(tieExplanations(game));
 	/** The viewer's seat online; at a hot-seat table the results belong to everyone, so the winners show instead. */
-	let you = $derived(room.mode === 'hotseat' ? null : store.seat);
+	let you = $derived(store.viewer);
 	let result = $derived(yourResult(game, you));
 	/** The result box takes the viewer's colour, or the (first) winner's. */
 	let resultColor = $derived(
@@ -68,9 +68,7 @@
 	 * @param {ComponentEvent} event
 	 */
 	const menuHandler = (event) => {
-		if (event.value === 'leave') {
-			store.leaveTable();
-		} else if (typeof onResultsHelp === 'function') {
+		if (typeof onResultsHelp === 'function') {
 			onResultsHelp(event);
 		}
 	};
@@ -89,13 +87,8 @@
 	{...attr}
 	class="rg-results {attr.class ? attr.class : ''}">
 	<PageHeader
-		sound={store.sound}
-		items={[
-			{ id: 'help', label: 'How to play' },
-			{ id: 'leave', label: 'Leave table' },
-		]}
-		onPageHeaderSound={(/** @type {any} */ event) =>
-			store.setSound(event.value)}
+		{store}
+		menu="results"
 		onPageHeaderMenu={menuHandler}>
 		{#snippet center()}
 			<strong class="rg-results--state">Game complete</strong>
@@ -171,8 +164,10 @@
 					<dd>{facts.mode}</dd>
 					<dt>Expansions</dt>
 					<dd class="rg-results--badges">
-						{#each facts.expansions as name (name)}
-							<Badge label={name} />
+						{#each facts.expansions as expansion (expansion.name)}
+							<Badge
+								label={expansion.name}
+								color={expansion.color} />
 						{:else}
 							Base game
 						{/each}

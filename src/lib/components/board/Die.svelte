@@ -20,7 +20,7 @@
 
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
-	import { faceOf } from '../../dice.js';
+	import { TUMBLE_MS, faceOf } from '../../dice.js';
 	import { artUrl } from '../../ui.js';
 
 	/** @type {DieProps} */
@@ -41,7 +41,8 @@
 	{...attr}
 	class="rg-die rg-die--{die} {attr.class ? attr.class : ''}"
 	class:rg-die--rolling={rolling}
-	style:--rg-die-size="{size}px">
+	style:--rg-die-size="{size}px"
+	style:--rg-die-tumble="{TUMBLE_MS}ms">
 	<img
 		class="rg-die--body"
 		src={artUrl(`die/${die}-body`)}
@@ -114,7 +115,8 @@
 	}
 
 	.rg-die--rolling {
-		animation: rg-die-tumble 1s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+		animation: rg-die-tumble var(--rg-die-tumble)
+			cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
 	}
 
 	@keyframes rg-die-tumble {

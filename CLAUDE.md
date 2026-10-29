@@ -69,7 +69,7 @@ The modules in detail, with the issue that added each, are in [docs/architecture
 
 ## Working on issues
 
-- **Order.** Work milestone by milestone, M0 to M12, as shown by the `M… · …` labels and milestones.
+- **Order.** Work milestone by milestone, M0 to M13, as shown by the `M… · …` labels and milestones, except where an owner ruling below sets another order.
   - Before starting an issue, check its blockers. Never start a blocked issue.
   - On GitHub, the blockers are under **Relationships → Blocked by**, and each blocked issue also has a "Blocked by" comment.
   - From the command line: `gh api repos/serferdinand2/the-rug-game/issues/<n>/dependencies/blocked_by --jq '.[] | "\(.number) \(.state) \(.title)"'`.
@@ -136,7 +136,20 @@ The design document has the details. In short:
 
 Rulings the owner made along the way. Each issue's design document records its own; these apply across issues.
 
-- The six full capital mat SVGs are examples only. Actual capital mats must be generated from the reusable terrain tiles for each game, following the game setup and the rules-defined plot layout.
+- Don't duplicate the art (owner, 2026-10-29): a base mat's only picture is its relief, and only the expansion mats keep a full example SVG (`capital-mat/<biome>`), until #132 and #133 draw their reliefs.
+- A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82).
+- **Decided 2026-10-29:**
+  - Refactors go in the milestone M13 · Refactor, not M12, each with one area label: `Words and names`, `Cards`, `Track board`, `Players and scoring`, `Capital and map`, `Game screen` or `Lobby`. M12 keeps the cosmetic work. The owner asked for M13's Words and names issues before M6, starting with #123 (owner).
+  - Solo play and the expansions wait for the refactors they build on, as GitHub blocked-by links (owner):
+    - #31 and #32 wait for #126 and #129, and #32 also for #101 and #109;
+    - the expansion civilization and card issues wait for #107 or #109;
+    - #35 waits for #120, and #36 for #112.
+
+    The other M13 issues wait until a feature needs them.
+- **Decided 2026-10-28:**
+  - Every decision prompt opens at the centre of the tracks (the shared area), not of the screen, with any shelf of cards above it as one stack. Only a choice on the map, while the Map view shows, docks at the right (owner, #79).
+  - The app is for private use: build no screen-reader support (aria-label wording, live regions, visually hidden text) and ask nothing about it. Skip those parts of issues and leave the labels already built as they are (owner). This overrides the conventions' aria-label rules.
+  - Impassable plots that touch, by a side or a corner, are drawn as one 2.5D mass that shows its biome, such as one mountain range or one forest, and grows out of the ground. A corner-only join may reach into the corners of the two buildable plots beside it. The red X on impassable plots goes (owner, #82).
 - **Decided 2026-10-27:**
   - Lazar's mockups decide the look and the owner's design decides what works, where they collide; the client is designed for our own API (owner, #25).
   - Readiness is informational: the host may start without it (owner, #25).

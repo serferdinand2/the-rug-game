@@ -7,6 +7,7 @@ import {
 	GROUPS,
 	EXPANSIONS,
 	COSMETIC_BOARDS,
+	EXPANSION_ISSUES,
 } from '../src/lib/art/catalog.js';
 
 /** Counts per group and expansion, copied from the design's §7.4 table. */
@@ -21,7 +22,7 @@ const EXPECTED_COUNTS = {
 	'resource-24': { base: 5 },
 	'resource-48': { base: 5 },
 	building: { base: 4 },
-	piece: { base: 18 },
+	piece: { base: 19 },
 	die: { base: 17, aa: 1 }, // 14 faces (#5) and the 3 die bodies the tray rolls (#61)
 	terrain: { base: 5 },
 	track: { base: 4, aa: 1 },
@@ -29,8 +30,9 @@ const EXPECTED_COUNTS = {
 	board: { base: 5, ff: 1 },
 	hex: { base: 8 },
 	'territory-tile': { base: 48 },
-	'capital-mat': { base: 6, aa: 6, ff: 6 },
-	'capital-terrain': { base: 84, aa: 84, ff: 84 },
+	'capital-mat': { aa: 6, ff: 6 }, // a base mat's only picture is its relief (owner, 2026-10-29)
+	'capital-terrain': { base: 48, aa: 84, ff: 84 }, // the base biomes' impassable plots are their reliefs (#82)
+	'capital-relief': { base: 6, aa: 6, ff: 6 },
 	'inspiration-tile': { aa: 4 },
 };
 
@@ -68,14 +70,18 @@ test('ids are unique', () => {
 	assert.equal(byId.size, ASSETS.length);
 });
 
-test('every asset takes its kind and issue from its group, and its id starts with its group', () => {
+test("every asset takes its kind and issue from its group, or its expansion's issue, and its id starts with its group", () => {
 	const groups = new Map(GROUPS.map((group) => [group.id, group]));
 	for (const asset of ASSETS) {
 		const group = groups.get(asset.group);
 		assert.ok(group, `${asset.id}: unknown group ${asset.group}`);
 		assert.equal(asset.kind, group.kind, asset.id);
 		if (!COSMETIC_BOARDS.includes(asset.id)) {
-			assert.equal(asset.issue, group.issue, asset.id);
+			assert.equal(
+				asset.issue,
+				EXPANSION_ISSUES[asset.group]?.[asset.expansion] ?? group.issue,
+				asset.id
+			);
 		}
 		assert.ok(asset.id.startsWith(`${asset.group}/`), asset.id);
 		assert.ok(
@@ -101,11 +107,11 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 320 icons and 84 boards', () => {
+test('there are 294 illustrations, 285 icons and 96 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
-	assert.equal(count('icon'), 320);
-	assert.equal(count('board'), 84);
+	assert.equal(count('icon'), 285);
+	assert.equal(count('board'), 96);
 });
 
 test('the slug rules turn awkward names into the agreed slugs', () => {
@@ -161,6 +167,13 @@ test('spot checks match the agreed spellings', () => {
 		['board/map-large', 'Large map (4–5 players)', 'base', 6],
 		['inspiration-tile/armories', 'Armories', 'aa', 11],
 		['landmark/forge', 'Forge', 'base', 7],
+		['capital-relief/mountain', 'Mountain relief', 'base', 82],
+		[
+			'capital-relief/city-in-a-bottle',
+			'City in a Bottle relief',
+			'ff',
+			133,
+		],
 	];
 	for (const [id, name, expansion, issue] of expected) {
 		const asset = byId.get(id);
@@ -175,6 +188,21 @@ test('spot checks match the agreed spellings', () => {
 			id
 		);
 	}
+});
+
+test('the expansion reliefs belong to #132 and #133, the base reliefs to #82', () => {
+	const issue = (/** @type {string} */ id) =>
+		ASSETS.find((a) => a.id === id)?.issue;
+	assert.equal(issue('capital-relief/mesa'), 132);
+	assert.equal(issue('capital-relief/polar'), 133);
+	assert.equal(issue('capital-relief/mountain'), 82);
+	const expected = { base: 82, aa: 132, ff: 133 };
+	for (const asset of ASSETS.filter((a) => a.group === 'capital-relief')) {
+		assert.equal(asset.issue, expected[asset.expansion], asset.id);
+	}
+	assert.deepEqual(EXPANSION_ISSUES, {
+		'capital-relief': { aa: 132, ff: 133 },
+	});
 });
 
 test('the cosmetic boards wait for #51, after the core features', () => {

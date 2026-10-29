@@ -1,4 +1,5 @@
-// The player tabs, and which one a decision opens (#27 design §1, §5).
+// The player tabs, and which one a decision opens (#27 design §1, §5), from its kind's facts (#129).
+import { kindFacts } from '../decision-kinds.js';
 
 /** The tabs of the player area, in the mockup's order. */
 export const TABS = Object.freeze([
@@ -10,25 +11,6 @@ export const TABS = Object.freeze([
 	{ id: 'tech', label: 'Tech' },
 	{ id: 'terrain', label: 'Terrain' },
 ]);
-
-/** The tab each decision kind's things are on. */
-const TAB_OF = Object.freeze({
-	choosePlacement: 'capital',
-	chooseSwap: 'capital',
-	chooseTapestry: 'hand',
-	chooseKeep: 'hand',
-	chooseDiscard: 'hand',
-	chooseCopy: 'eras',
-	chooseInvent: 'tech',
-	chooseUpgrade: 'tech',
-	chooseTechBenefit: 'tech',
-	chooseCivAbility: 'civ',
-	chooseAlchemists: 'civ',
-	chooseProphecy: 'civ',
-	chooseSlot: 'civ',
-	chooseSpaceTile: 'terrain',
-	chooseGift: 'terrain',
-});
 
 /**
  * The tab a decision opens by itself, or null when its things are elsewhere (the board, or nowhere in particular).
@@ -46,7 +28,5 @@ export function tabFor(decision) {
 	) {
 		return null;
 	}
-	return (
-		/** @type {Record<string, string>} */ (TAB_OF)[decision.kind] ?? null
-	);
+	return kindFacts(decision.kind).tab;
 }

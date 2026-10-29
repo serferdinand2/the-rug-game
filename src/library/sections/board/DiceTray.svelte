@@ -3,7 +3,9 @@
 	import DiceTray from '../../../lib/components/board/DiceTray.svelte';
 	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
 	import Button from '../../../lib/components/ui/Button.svelte';
+	import CardShelf from '../../../lib/components/prompts/CardShelf.svelte';
 	import Example from '../../Example.svelte';
+	import Screen from '../../Screen.svelte';
 	import Section from '../../Section.svelte';
 
 	/** @typedef {import('../../../lib/dice.js').Roll} Roll */
@@ -49,6 +51,9 @@
 	/** @type {Roll[]} */
 	let besideRolls = $state([]);
 	let besideBatch = $state(0);
+	/** @type {Roll[]} */
+	let shelfRolls = $state([]);
+	let shelfBatch = $state(0);
 
 	/** @param {Roll[]} next */
 	const roll = (next) => {
@@ -79,7 +84,7 @@
 		</div>
 	</Example>
 	<Example
-		label="beside an open decision  (with a panel open, the tray rolls at the top of the board, clear of it; press the button)"
+		label={'panel="panel"  (with a decision panel open, the tray rolls at the top of the board, clear of it; press the button)'}
 		wide
 		width={1100}>
 		<div class="rg-library-tray-controls">
@@ -91,7 +96,7 @@
 		</div>
 		<div class="rg-library-tray-stage rg-library-tray-stage--screen">
 			<DecisionPanel
-				centred
+				narrow
 				title="Choose a resource"
 				status="Pick a resource."
 				confirmDisabled>
@@ -101,10 +106,47 @@
 			</DecisionPanel>
 			<DiceTray
 				rolls={besideRolls}
-				batch={besideBatch} />
+				batch={besideBatch}
+				panel="panel" />
 		</div>
 	</Example>
+	<Example
+		label={'panel="shelf"  (cards on the shelf can fill the board\'s height, so the tray rolls over the player area; the game\'s screen at 1920×1080, scaled; press the button; #79)'}
+		wide
+		width={1100}>
+		<div class="rg-library-tray-controls">
+			<Button
+				onButtonClick={() => {
+					shelfRolls = CONQUEST;
+					shelfBatch += 1;
+				}}>Roll beside the shelf</Button>
+		</div>
+		<Screen board={shelfBoard}>
+			<DiceTray
+				rolls={shelfRolls}
+				batch={shelfBatch}
+				panel="shelf" />
+		</Screen>
+	</Example>
 </Section>
+
+{#snippet shelfBoard()}
+	<DecisionPanel
+		title="Choose your civilization"
+		status="Choose a card above, then confirm it here."
+		confirmLabel="Keep civilization"
+		confirmDisabled>
+		{#snippet shelf(/** @type {number | undefined} */ room)}
+			<CardShelf
+				kind="civ"
+				cards={[
+					{ index: 0, id: 'historians', label: 'Historians' },
+					{ index: 1, id: 'leaders', label: 'Leaders' },
+				]}
+				{room} />
+		{/snippet}
+	</DecisionPanel>
+{/snippet}
 
 <style>
 	/* The tray is fixed to the screen's centre; contained, the stage stands in for the screen. */

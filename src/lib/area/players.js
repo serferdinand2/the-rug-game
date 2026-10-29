@@ -1,16 +1,11 @@
-// The players overview's cards (#27 design §4): each player's public facts, from the viewer's view.
-import { civilizationName } from '../describe.js';
+// The players overview's cards (#27 design §4) and the header's chips (#90): each player's public facts, from the viewer's view.
+import { civilizationOf } from '../game-names.js';
+import { civAbilityText } from '../cards/civ-rules.js';
 import { selfSummary } from '../overview.js';
 import { mapHexes } from '../hexmap.js';
 import { TERRAINS } from '../ui.js';
-import { controlledTerritories, uniformLines } from '../engine/game.js';
-
-const TRACK_IDS = /** @type {const} */ ([
-	'exploration',
-	'science',
-	'technology',
-	'military',
-]);
+import { capitalScore, controlledTerritories } from '../engine/game.js';
+import { TRACK_IDS } from '../engine/data/ids.js';
 
 /**
  * The props of one PlayerCard.
@@ -29,6 +24,37 @@ const TRACK_IDS = /** @type {const} */ ([
  * @property {number} tech
  * @property {string[]} terrain - The land terrains of the territories they control, each once, in the interface's order
  */
+
+/**
+ * The props of one PlayerChip in the game header (#90).
+ * @typedef {Object} PlayerChipFacts
+ * @property {import('../ui.js').Seat} seat
+ * @property {string} name
+ * @property {string} civilization - Its name, or 'Setting up' before the player has one
+ * @property {number} vp
+ * @property {boolean} current - It is this player's turn
+ * @property {string | undefined} ability - The civilization's full ability, for the chip's tooltip
+ */
+
+/**
+ * One chip per player seat, in seat order, for the game header (#90).
+ * @param {any} view - The game as view() gives it to the viewer
+ * @returns {PlayerChipFacts[]}
+ */
+export function playerChips(view) {
+	return view.seats
+		.filter((/** @type {any} */ seat) => seat.kind === 'player')
+		.map((/** @type {any} */ seat) => ({
+			seat: seat.seat,
+			name: seat.name,
+			civilization: civilizationOf(seat),
+			vp: seat.vp,
+			current: view.current === seat.seat,
+			ability: seat.civs.length
+				? (civAbilityText(seat.civs[0], view.version) ?? undefined)
+				: undefined,
+		}));
+}
 
 /**
  * One card per player seat, in seat order.
@@ -52,9 +78,7 @@ export function playerCards(view, viewer, host) {
 				vp: seat.vp,
 				you: seat.seat === viewer,
 				host: seat.seat === host,
-				civilization: seat.civs.length
-					? civilizationName(seat.civs[0])
-					: 'Setting up',
+				civilization: civilizationOf(seat),
 				era: summary.era,
 				resources: { ...seat.resources },
 				tracks: /** @type {Record<import('../ui.js').TrackId, number>} */ (
@@ -66,9 +90,7 @@ export function playerCards(view, viewer, host) {
 					)
 				),
 				handSize: summary.hand,
-				capitalPoints:
-					summary.lines +
-					(seat.civs.includes('architects') ? uniformLines(seat) : 0),
+				capitalPoints: capitalScore(seat).vp,
 				tech: summary.tech,
 				terrain: landTerrains(view, seat.seat, hexes),
 			};

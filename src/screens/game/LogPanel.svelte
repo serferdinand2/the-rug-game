@@ -1,4 +1,4 @@
-<!-- The log and scores panel (#29 design §5): over the player area, the table's log or the current scores, chosen by two tabs, closed with its button or Escape. -->
+<!-- The log and scores panel (#29 design §5): over the player area, the table's log or the current scores, chosen by two tabs, closed with its button, or by Escape, which the game screen routes (#88). -->
 <script module>
 	/**
 	 * Properties of the LogPanel screen part itself.
@@ -54,42 +54,21 @@
 			);
 		}
 	}
-
-	/**
-	 * Escape closes the panel.
-	 * @param {KeyboardEvent} event
-	 */
-	const keyHandler = (event) => {
-		if (event.key === 'Escape') {
-			close(event);
-		}
-	};
 </script>
-
-<svelte:window onkeydown={keyHandler} />
 
 <section
 	aria-label="Log and scores"
 	{...attr}
 	class="rg-log-panel {attr.class ? attr.class : ''}">
-	<div class="rg-log-panel--head">
-		<Tabs
-			label="Log and scores"
-			tabs={[
-				{ id: 'log', label: 'Log' },
-				{ id: 'scores', label: 'Scores' },
-			]}
-			bind:value={tab} />
-		<IconButton
-			icon="close"
-			label="Close the log"
-			onIconButtonClick={close} />
-	</div>
-	<div
-		class="rg-log-panel--body"
-		role="tabpanel"
-		id="{tab}-panel"
-		aria-labelledby="{tab}-tab">
+	<Tabs
+		class="rg-log-panel--tabs"
+		panelClass="rg-log-panel--body"
+		label="Log and scores"
+		tabs={[
+			{ id: 'log', label: 'Log' },
+			{ id: 'scores', label: 'Scores' },
+		]}
+		bind:value={tab}>
 		{#if tab === 'log'}
 			<TableLog {entries} />
 		{:else}
@@ -97,10 +76,16 @@
 				{rows}
 				you={seat} />
 		{/if}
-	</div>
+	</Tabs>
+	<IconButton
+		class="rg-log-panel--close"
+		icon="close"
+		label="Close the log"
+		onIconButtonClick={close} />
 </section>
 
 <style>
+	/* The tab row and Close share the head row; Tabs draws its panel after the row, so the panel spans the row below. */
 	.rg-log-panel {
 		position: absolute;
 		z-index: var(--layer-popover);
@@ -108,27 +93,37 @@
 		right: 0;
 		bottom: 0;
 		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
 		grid-template-rows: auto minmax(0, 1fr);
+		column-gap: var(--space-4);
 		width: calc((100% - var(--play-gap)) / 4);
 		border-left: var(--border) solid var(--line);
 		background: var(--texture) var(--surface);
 		box-shadow: var(--shadow-float);
 	}
 
-	.rg-log-panel--head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--space-4);
-		padding-right: var(--space-5);
-		border-bottom: var(--border) solid var(--line);
+	/* Tabs' row, reached through its class prop. */
+	.rg-log-panel :global(.rg-log-panel--tabs) {
+		grid-area: 1 / 1;
+		align-self: center;
+		justify-self: start;
 	}
 
-	.rg-log-panel--body {
+	/* IconButton's root, reached through its class prop. */
+	.rg-log-panel :global(.rg-log-panel--close) {
+		grid-area: 1 / 2;
+		align-self: center;
+		margin-right: var(--space-5);
+	}
+
+	/* Tabs' panel, reached through its panelClass prop; its top border rules off the head. */
+	.rg-log-panel :global(.rg-log-panel--body) {
+		grid-area: 2 / 1 / 3 / 3;
 		display: flex;
 		flex-direction: column;
 		min-height: 0;
 		padding: var(--space-6) 22px var(--space-8);
+		border-top: var(--border) solid var(--line);
 		overflow-y: auto;
 	}
 </style>

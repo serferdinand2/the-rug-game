@@ -1,7 +1,9 @@
 // The interface helpers: ids of tracks, resources, terrain and players become references to existing design tokens.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { render } from 'svelte/server';
+import Panel from '../src/lib/components/ui/Panel.svelte';
 import {
 	TRACKS,
 	RESOURCES,
@@ -12,9 +14,9 @@ import {
 	resourceColor,
 	terrainColor,
 	artUrl,
+	expansionColor,
 	playerPieceUrl,
 	capitalTileUrl,
-	roman,
 } from '../src/lib/ui.js';
 
 const tokens = readFileSync(
@@ -44,7 +46,7 @@ test('every seat resolves to its released player-piece SVGs', () => {
 	}
 });
 
-test('capital compositions use released tiles and retain the supplied plot state', () => {
+test('capital compositions use released open tiles; the base biomes have no impassable tiles, as their reliefs draw those plots (#82)', () => {
 	for (const biome of [
 		'mountain',
 		'wetland',
@@ -53,29 +55,30 @@ test('capital compositions use released tiles and retain the supplied plot state
 		'grassland',
 		'forest',
 	]) {
-		for (const blocked of [false, true]) {
-			for (let index = 0; index < 81; index++) {
-				const url = capitalTileUrl(biome, blocked, index, 42);
-				assert.match(
-					url,
-					new RegExp(
-						`/${biome}-${blocked ? 'blocked' : 'open'}-0[1-${blocked ? 6 : 8}]\\.svg$`
-					)
-				);
-				assert.match(
-					readFileSync(
-						new URL(`../static${url}`, import.meta.url),
-						'utf8'
-					),
-					/<svg/
-				);
-				assert.equal(url, capitalTileUrl(biome, blocked, index, 42));
-			}
+		for (let index = 0; index < 81; index++) {
+			const url = capitalTileUrl(biome, false, index, 42);
+			assert.match(url, new RegExp(`/${biome}-open-0[1-8]\\.svg$`));
+			assert.match(
+				readFileSync(
+					new URL(`../static${url}`, import.meta.url),
+					'utf8'
+				),
+				/<svg/
+			);
+			assert.equal(url, capitalTileUrl(biome, false, index, 42));
+		}
+		for (let variant = 1; variant <= 6; variant++) {
+			const file = `../static/art/capital-terrain/${biome}-blocked-0${variant}.svg`;
+			assert.equal(
+				existsSync(new URL(file, import.meta.url)),
+				false,
+				file
+			);
 		}
 	}
 	assert.notEqual(
-		capitalTileUrl('wetland', true, 0, 42),
-		capitalTileUrl('wetland', true, 0, 43)
+		capitalTileUrl('wetland', false, 0, 42),
+		capitalTileUrl('wetland', false, 0, 43)
 	);
 });
 
@@ -126,7 +129,26 @@ test('an asset id becomes its URL under /art', () => {
 	assert.equal(artUrl('landmark/lighthouse'), '/art/landmark/lighthouse.svg');
 });
 
-test('eras and tiers are written as Roman numerals', () => {
-	assert.deepEqual([1, 2, 3, 4, 5].map(roman), ['I', 'II', 'III', 'IV', 'V']);
-	assert.throws(() => roman(0), /1 to 10/);
+test("Panel sets its heading's font: the body font by default, the title font on request (#97)", () => {
+	const plain = render(Panel, { props: { title: 'Players' } }).body;
+	assert.doesNotMatch(plain, /rg-panel--title-font/);
+	assert.match(plain, /<h2 class="rg-panel--title[^"]*">Players<\/h2>/);
+	const titled = render(Panel, {
+		props: { title: 'Open tables', titleFont: 'title' },
+	}).body;
+	assert.match(
+		titled,
+		/class="rg-panel rg-panel--medium[^"]*rg-panel--title-font/
+	);
+});
+
+test('each expansion has its own colour token, and the base game the gold (#101)', () => {
+	assert.equal(expansionColor('pp'), 'var(--plans-ploys)');
+	assert.equal(expansionColor('aa'), 'var(--arts-architecture)');
+	assert.equal(expansionColor('ff'), 'var(--fantasies-futures)');
+	assert.equal(expansionColor('base'), 'var(--gold)');
+	for (const code of ['pp', 'aa', 'ff']) {
+		const token = expansionColor(code).slice('var('.length, -1);
+		assert.match(tokens, new RegExp(`${token}:`), code);
+	}
 });

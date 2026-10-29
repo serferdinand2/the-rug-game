@@ -316,6 +316,10 @@ Added on 2026-10-23. The owner moved the boards that only dress the screen out o
 
 51. **Cosmetic boards:** the tracks-view backdrop, the income mat with its Fantasies & Futures overlay, and the table background. Until then the screens work without them.
 
+### Milestone 13: Refactor
+
+Added on 2026-10-29. The owner moved the refactors that the client scan (#80) filed out of M12, and asked for them ahead of solo play, starting with the Words and names issues. Each has one area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. These are the repository's only area labels. **(owner, 2026-10-29)**
+
 ## 7. How the issues get filed
 
 - One issue per item above, in this order, using the layout of the existing repositories:

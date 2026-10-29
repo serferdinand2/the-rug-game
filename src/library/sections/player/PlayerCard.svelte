@@ -1,5 +1,6 @@
-<!-- Library section: PlayerCard for the four overview players, with selectable civilization, capital and tech rows. -->
+<!-- Library section: PlayerCard for the four overview players, with selectable civilization, capital and tech rows, and its autofocus. -->
 <script>
+	import Button from '../../../lib/components/ui/Button.svelte';
 	import PlayerCard from '../../../lib/components/player/PlayerCard.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
@@ -75,6 +76,8 @@
 				? null
 				: { seat, row: event.value };
 	};
+
+	let focusShown = $state(false);
 </script>
 
 <Section
@@ -122,5 +125,19 @@
 		surface="chrome"
 		width={300}>
 		<PlayerCard {...PLAYERS[2]} />
+	</Example>
+	<Example
+		label={'autofocus  (press Draw: the civilization row takes the focus, as the overview opens)'}
+		surface="chrome"
+		width={300}>
+		<Button
+			size="small"
+			onButtonClick={() => (focusShown = !focusShown)}
+			>{focusShown ? 'Remove' : 'Draw'}</Button>
+		{#if focusShown}
+			<PlayerCard
+				{...PLAYERS[1]}
+				autofocus />
+		{/if}
 	</Example>
 </Section>

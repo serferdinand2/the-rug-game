@@ -1,10 +1,25 @@
 // The World Map's geometry (#26 design §5.2): flat-topped hexes laid out from the engine's axial keys, terrain wedges, the island, the pieces and the fit.
-import { PICTURE_SIZE } from './art/hex-overlays.js';
+import {
+	CLOUD_SIZE,
+	CLOUD_SPOT,
+	PICTURE_SIZE,
+	VOLCANO_SIZE,
+	VOLCANO_SPOTS,
+	volcanoCorner,
+} from './art/hex-overlays.js';
 import { MAPS } from './engine/data/maps.js';
-import { LANDMARKS } from './engine/data/landmarks.js';
 import { terrainsOf, turned } from './engine/terrain.js';
+import { article, capitalize, countWords, joinList } from './words.js';
+import {
+	buildingName,
+	civilizationName,
+	hexName,
+	landmarkName,
+	seatName,
+} from './game-names.js';
 
 /** @typedef {[number, number]} Point - x and y, with y pointing down */
+/** @typedef {{ x: number, y: number, width: number, height: number }} Box */
 /** @typedef {import('./ui.js').Terrain} Terrain */
 /** @typedef {import('./ui.js').Seat} Seat */
 
@@ -45,6 +60,9 @@ export const HEX_SIZE = 40;
 const ISLAND = 0.42;
 
 const HALF_ROOT_3 = Math.sqrt(3) / 2;
+
+/** The centre a territory's face is drawn round; each hex moves it to its own centre. */
+const ORIGIN = /** @type {Point} */ ([0, 0]);
 
 /** Each corner's offset from the centre for a hex of size 1: top-left first, then clockwise (y points down). */
 const CORNERS = /** @type {readonly Point[]} */ ([
@@ -192,6 +210,90 @@ export function overlayBox(spot, sizeInPicture, size) {
 }
 
 /**
+ * A territory's face round the origin (#113): what TerritoryArt draws, cut by territoryClips at the same size.
+ * @typedef {Object} TerritoryShapes
+ * @property {Box} picture - Where each terrain picture goes, as hexPicture
+ * @property {{ terrain: Terrain, k: number }[]} wedges - One per corner; wedge k is cut by the clips' wedges[k]
+ * @property {Point[]} coasts - The far end of each coast line, which starts at the origin
+ * @property {{ terrain: Terrain, n: number, i: number, points: string }[]} islands - Each part of the island, cut by
+ *   the clips' islands[n − 1][i], with its outline
+ * @property {Box | null} cloud - The cloud overlay, or null
+ * @property {Box | null} volcano - The volcano overlay on its mountains' corner, or null
+ */
+
+/**
+ * A territory's face round the origin, for a hex of this size: the terrain wedges, the coasts, the island and the
+ * cloud and volcano overlays (R77), as the World Map and a tile in hand both draw it.
+ * @param {readonly Terrain[]} corners - Six terrains, clockwise from the top-left, already turned
+ * @param {readonly Terrain[]} island - Empty when there is none
+ * @param {{ clouds: boolean, volcano: boolean }} pictures - What the territory's picture shows
+ * @param {number} size
+ * @returns {TerritoryShapes}
+ */
+export function territoryShapes(corners, island, { clouds, volcano }, size) {
+	return {
+		picture: hexPicture(ORIGIN, size),
+		wedges: corners.map((terrain, k) => ({ terrain, k })),
+		coasts: coastLines(ORIGIN, corners, size).map((line) => line.to),
+		islands: islandParts(ORIGIN, island, size).map((part, i) => ({
+			terrain: part.terrain,
+			n: island.length,
+			i,
+			points: svgPoints(part.points),
+		})),
+		// The cloud sits at one spot in every turn; the volcano on its mountains' corner (#6).
+		cloud: clouds ? overlayBox(CLOUD_SPOT, CLOUD_SIZE, size) : null,
+		volcano: volcano
+			? overlayBox(
+					VOLCANO_SPOTS[volcanoCorner(corners)],
+					[VOLCANO_SIZE, VOLCANO_SIZE],
+					size
+				)
+			: null,
+	};
+}
+
+/**
+ * The clip outlines a territory's face is cut with, round the origin: the six wedges, and each part of an island of
+ * 1 to 6 parts, which depends only on how many parts it has. One set serves every territory of this size.
+ * @param {number} size
+ * @returns {{ wedges: string[], islands: string[][] }} islands[n − 1][i] is part i of an island of n parts
+ */
+export function territoryClips(size) {
+	return {
+		wedges: [0, 1, 2, 3, 4, 5].map((k) =>
+			svgPoints(cornerWedge(ORIGIN, k, size))
+		),
+		islands: [1, 2, 3, 4, 5, 6].map((n) =>
+			islandParts(ORIGIN, Array(n).fill('sea'), size).map((part) =>
+				svgPoints(part.points)
+			)
+		),
+	};
+}
+
+/**
+ * A territory in words, as every screen says it (#113): "sea, forest and mountain, with an island of desert, with
+ * clouds". Each terrain is named once, in the order given. Clouds are scoring data (R77, #49), so a screen reader
+ * hears them too.
+ * @param {{ corners: readonly string[], island: readonly string[], clouds: boolean, volcano: boolean }} territory
+ * @returns {string}
+ */
+export function territoryWords({ corners, island, clouds, volcano }) {
+	let text = joinList([...new Set(corners)]);
+	if (island.length > 0) {
+		text += `, with an island of ${joinList([...new Set(island)])}`;
+	}
+	if (clouds) {
+		text += ', with clouds';
+	}
+	if (volcano) {
+		text += ', with a volcano';
+	}
+	return text;
+}
+
+/**
  * Where the pieces on a hex stand: side by side in one row, through the middle, or below the island when there is one.
  * The row shrinks to stay inside the hex.
  * @param {Point} center
@@ -251,15 +353,6 @@ export function fitBox(hexes, size) {
 }
 
 /**
- * A hex's name for players: its axial key with a true minus sign, such as '2,−1'.
- * @param {string} key
- * @returns {string}
- */
-export function hexName(key) {
-	return key.replace('_', ',').replaceAll('-', '−');
-}
-
-/**
  * A list of points as an SVG `points` attribute.
  * @param {readonly Point[]} points
  * @returns {string}
@@ -280,7 +373,7 @@ export function mapHexes(view, size = HEX_SIZE) {
 		/** @type {unknown} */ (view)
 	);
 	/** @param {number} seat */
-	const nameOf = (seat) => view.seats[seat - 1]?.name ?? `Seat ${seat}`;
+	const nameOf = (seat) => seatName(view, seat);
 	return MAPS[view.map].hexes.map((key) => {
 		const hex = view.hexes[key];
 		const terrains = terrainsOf(state, key);
@@ -342,17 +435,9 @@ function pieceOf(piece) {
  * @returns {string}
  */
 function hexLabel(key, corners, island, outposts, tokens, nameOf, pictures) {
-	let land = corners ? words([...new Set(corners)]) : 'unexplored';
-	if (island.length > 0) {
-		land += `, with an island of ${words(island)}`;
-	}
-	// Clouds are scoring data (R77, #49), so a screen reader hears them too.
-	if (pictures.clouds) {
-		land += ', with clouds';
-	}
-	if (pictures.volcano) {
-		land += ', with a volcano';
-	}
+	const land = corners
+		? territoryWords({ corners, island, ...pictures })
+		: 'unexplored';
 	const seats = [
 		...new Set([...outposts, ...tokens].map((item) => item.seat)),
 	].sort((a, b) => a - b);
@@ -361,8 +446,8 @@ function hexLabel(key, corners, island, outposts, tokens, nameOf, pictures) {
 		const standing = own.filter((o) => !o.piece && !o.toppled).length;
 		const toppled = own.filter((o) => !o.piece && o.toppled).length;
 		const items = [
-			...(standing ? [count(standing, 'outpost')] : []),
-			...(toppled ? [count(toppled, 'toppled outpost')] : []),
+			...(standing ? [countWords(standing, 'outpost')] : []),
+			...(toppled ? [countWords(toppled, 'toppled outpost')] : []),
 			...own
 				.filter((o) => o.piece)
 				.map((o) => {
@@ -370,60 +455,36 @@ function hexLabel(key, corners, island, outposts, tokens, nameOf, pictures) {
 						/** @type {NonNullable<MapOutpost['piece']>} */ (
 							o.piece
 						);
-					return article(
+					return withArticle(
 						`${o.toppled ? 'toppled ' : ''}${pieceName(piece)}`
 					);
 				}),
 			...tokens
 				.filter((token) => token.seat === seat)
-				.map((token) => article(`${titleCase(token.civ)} token`)),
+				.map((token) =>
+					withArticle(`${civilizationName(token.civ)} token`)
+				),
 		];
 		return `${nameOf(seat)}: ${items.join(', ')}.`;
 	});
-	return [`Hex ${hexName(key)}: ${land}.`, ...pieces].join(' ');
+	return [`${capitalize(hexName(key))}: ${land}.`, ...pieces].join(' ');
 }
 
 /** @param {NonNullable<MapOutpost['piece']>} piece */
 function pieceName(piece) {
 	if (piece.kind === 'landmark') {
-		return (
-			LANDMARKS.find((landmark) => landmark.id === piece.id)?.name ??
-			titleCase(piece.id)
-		);
+		return landmarkName(piece.id);
 	}
-	return titleCase(piece.id);
+	return buildingName(piece.id);
 }
 
 /**
- * "desert", "desert and sea", "desert, forest and sea".
- * @param {readonly string[]} list
+ * A piece with its article: "a Farm", "an Armory".
+ * @param {string} phrase
+ * @returns {string}
  */
-function words(list) {
-	if (list.length < 2) {
-		return list.join('');
-	}
-	return `${list.slice(0, -1).join(', ')} and ${list.at(-1)}`;
-}
-
-/**
- * @param {number} n
- * @param {string} noun
- */
-function count(n, noun) {
-	return `${n} ${noun}${n === 1 ? '' : 's'}`;
-}
-
-/** @param {string} phrase */
-function article(phrase) {
-	return `${/^[aeiou]/i.test(phrase) ? 'an' : 'a'} ${phrase}`;
-}
-
-/** @param {string} id - Kebab case, such as 'the-chosen' */
-function titleCase(id) {
-	return id
-		.split('-')
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-		.join(' ');
+function withArticle(phrase) {
+	return `${article(phrase)} ${phrase}`;
 }
 
 /**

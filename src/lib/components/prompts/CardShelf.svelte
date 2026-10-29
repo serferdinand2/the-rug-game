@@ -18,6 +18,7 @@
 	 * @property {number | number[] | null} [selected=null] - The chosen card's index, or the indexes of several chosen at once (#75)
 	 * @property {number[]} [disabled=[]] - Indexes of cards that can't be pressed now, as when enough are chosen (#75)
 	 * @property {number} [terrainSeed=0] - For capital mats: the table's terrain seed, so a mat looks as it will in the Capital tab (#56)
+	 * @property {number} [room] - The height the shelf may take, from the decision panel (#79): civilization cards fit it. Left out, the shelf's own height
 	 * @property {Function} [onCardShelfSelect] - Callback fired when a card is pressed; its value is the card's index
 	 * @property {Function} [onCardShelfInspect] - Callback fired when a card is hovered or focused, and with null when that ends; its value is the card's index
 	 */
@@ -65,6 +66,7 @@
 		selected = null,
 		disabled = [],
 		terrainSeed = 0,
+		room,
 		label,
 		onCardShelfSelect,
 		onCardShelfInspect,
@@ -80,12 +82,14 @@
 	let tallest = $derived(
 		Math.max(0, ...cards.map((card) => civHeights[card.index] ?? 0))
 	);
-	/** Civilization cards at full size when they fit the shelf's height; otherwise the row shrinks just enough. */
+	/** The height the cards may take: the room the panel gives, or the shelf's own. */
+	let fitHeight = $derived(room ?? shelfHeight);
+	/** Civilization cards at full size when they fit that height; otherwise the row shrinks just enough. */
 	let civFit = $derived(
-		kind === 'civ' && tallest > 0 && shelfHeight > 0
+		kind === 'civ' && tallest > 0 && fitHeight > 0
 			? Math.min(
 					1,
-					Math.max(CIV_MIN_FIT, (shelfHeight - CIV_ROOM) / tallest)
+					Math.max(CIV_MIN_FIT, (fitHeight - CIV_ROOM) / tallest)
 				)
 			: 1
 	);

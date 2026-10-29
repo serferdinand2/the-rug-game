@@ -1,4 +1,4 @@
-<!-- Library section: TilePicker, the territory tiles in hand as pressable hexes, with the VP each scores on the chosen hex. -->
+<!-- Library section: TilePicker, the territory tiles in hand as pressable hexes, with the VP each scores on the chosen hex, and the Terrain tab's large tiles, some on offer. -->
 <script>
 	import TilePicker from '../../../lib/components/prompts/TilePicker.svelte';
 	import { tilePreview, tileWords } from '../../../lib/area/explore.js';
@@ -23,12 +23,14 @@
 	/** @type {number[]} */
 	let chosen = $state([13, 21, 25]);
 	let reported = $state('');
+	/** The Terrain tab while paying 2 tiles: 4 in hand, 3 on offer. @type {number[]} */
+	let paying = $state([9]);
 </script>
 
 <Section
 	name="TilePicker"
 	area="prompts"
-	description="The territory tiles in a player's hand as a wrapping row of pressable hexes about 88×80 px. The picked one has a 2px gold outline and a gold tint. When a hex is chosen, each tile carries a corner tag with the VP it would score there.">
+	description="The territory tiles in a player's hand as a wrapping row of pressable hexes about 88×80 px. The picked one has a 2px gold outline and a gold tint. When a hex is chosen, each tile carries a corner tag with the VP it would score there. Large, as the Terrain tab draws them, the tiles keep their own size, only those on offer (pickable) are pressable, and a frame rests clear with a faint gold wash on hover.">
 	<Example
 		label="tiles={3}  (nothing picked)"
 		surface="chrome">
@@ -88,5 +90,32 @@
 				(chosen = chosen.includes(event.value.tile)
 					? chosen.filter((id) => id !== event.value.tile)
 					: [...chosen, event.value.tile])} />
+	</Example>
+	<Example
+		label={'size="large" pickable={[]}  (the Terrain tab with nothing on offer: plain tiles)'}
+		surface="surface"
+		width={392}>
+		<TilePicker
+			size="large"
+			tiles={tilesOf([2, 9, 18, 33])}
+			pickable={[]} />
+	</Example>
+	<Example
+		label={`size="large" pickable={[9, 18, 33]} selected={[${paying.join(', ')}]} disabled dataIdPrefix="terrain-tile"  (paying 2 tiles on the Terrain tab; tile 2 is not on offer)`}
+		surface="surface"
+		width={392}>
+		<TilePicker
+			size="large"
+			tiles={tilesOf([2, 9, 18, 33])}
+			pickable={[9, 18, 33]}
+			selected={paying}
+			disabled={paying.length >= 2
+				? [9, 18, 33].filter((id) => !paying.includes(id))
+				: []}
+			dataIdPrefix="terrain-tile"
+			onTilePickerSelect={(/** @type {ComponentEvent} */ event) =>
+				(paying = paying.includes(event.value.tile)
+					? paying.filter((id) => id !== event.value.tile)
+					: [...paying, event.value.tile])} />
 	</Example>
 </Section>

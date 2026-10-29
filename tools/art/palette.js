@@ -155,6 +155,18 @@ const COLOURS = {
 	mesaStrata: '#ee9f66',
 	mesaSage: '#8e9c63',
 
+	// Alpine meadow (#82): the natural ground of the joined-terrain mountain mat
+	alpineMeadow: '#8e9c63',
+	alpineMeadowLight: '#a7b69a',
+	alpineMeadowPale: '#cbd2b0',
+	alpineMeadowShade: '#707046',
+	alpineMeadowDeep: '#5a5a3a',
+	alpineMeadowDark: '#434330',
+	alpineMoss: '#86a03f',
+
+	// Tropical (#82): the sunlit top of the joined-terrain jungle's broadleaf crowns, brighter than grassLight
+	jungleLeafLight: '#c4e36a',
+
 	// Swamp capital terrain (#6): murky mud, black water and lily pads
 	swampMudLight: '#707046',
 	swampMud: '#5a5a3a',

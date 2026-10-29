@@ -1,4 +1,4 @@
-<!-- One open table on the launch page: Join, the table code over five seat boxes, then its rules and expansion. -->
+<!-- One open table on the launch page: Join, the table code over five seat boxes, then its rules and expansions. -->
 <script module>
 	/**
 	 * An expansion the table plays with.
@@ -13,7 +13,7 @@
 	 * @property {string} code - The 8-character table code
 	 * @property {number} [players=0] - Seats taken, 0–5; the boxes fill from the left in the seats' player colours
 	 * @property {string} rules - The rules version, such as 'Current rules' or 'Original 2019 rules'
-	 * @property {OpenTableExpansion | null} [expansion=null] - The expansion badge, or none for the base game
+	 * @property {OpenTableExpansion[]} [expansions=[]] - One badge per expansion, in its own colour (#101); none for the base game
 	 * @property {Function} [onOpenTableRowJoin] - Callback fired with { code } when Join is pressed
 	 */
 
@@ -26,7 +26,7 @@
 	 *   code="DAWN2048"
 	 *   players={2}
 	 *   rules="Current rules"
-	 *   expansion={{ name: 'Arts & Architecture', color: 'var(--arts-architecture)' }}
+	 *   expansions={[{ name: 'Arts & Architecture', color: 'var(--arts-architecture)' }]}
 	 *   onOpenTableRowJoin={(event) => join(event.value.code)} />
 	 */
 </script>
@@ -42,7 +42,7 @@
 		code,
 		players = 0,
 		rules,
-		expansion = null,
+		expansions = [],
 		onOpenTableRowJoin,
 		...attr
 	} = $props();
@@ -83,11 +83,11 @@
 	</div>
 	<div class="rg-open-table-row--details">
 		<span>{rules}</span>
-		{#if expansion}
+		{#each expansions as expansion (expansion.name)}
 			<Badge
 				label={expansion.name}
 				color={expansion.color} />
-		{/if}
+		{/each}
 	</div>
 </div>
 

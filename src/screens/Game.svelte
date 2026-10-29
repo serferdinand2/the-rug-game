@@ -5,6 +5,7 @@
 	 * @typedef {Object} GameOwnProps
 	 * @property {import('../lib/game.svelte.js').GameStore} store - Its room holds the game on show
 	 * @property {Function} [onGameResults] - Callback fired when Results is chosen, once the game is over (#29)
+	 * @property {'none' | 'panel' | 'shelf'} [panel='none'] - What is open over the board, so the dice tray outside the screen rolls clear of it (#61, #79); bindable
 	 */
 
 	/**
@@ -12,7 +13,7 @@
 	 * @typedef {GameOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} GameProps
 	 *
 	 * @example
-	 * <Game {store} onGameResults={() => (reviewing = false)} />
+	 * <Game {store} bind:panel onGameResults={() => (reviewing = false)} />
 	 */
 </script>
 
@@ -22,94 +23,46 @@
 	import AchievementStrip from '../lib/components/board/AchievementStrip.svelte';
 	import TrackBoard from '../lib/components/board/TrackBoard.svelte';
 	import WorldMap from '../lib/components/board/WorldMap.svelte';
-	import PlayerChip from '../lib/components/player/PlayerChip.svelte';
 	import SelfSummary from '../lib/components/player/SelfSummary.svelte';
-	import DecisionOption from '../lib/components/prompts/DecisionOption.svelte';
-	import DecisionPanel from '../lib/components/prompts/DecisionPanel.svelte';
-	import CardShelf from '../lib/components/prompts/CardShelf.svelte';
-	import CostBox from '../lib/components/prompts/CostBox.svelte';
 	import IncomeNotice from '../lib/components/prompts/IncomeNotice.svelte';
-	import IncomeSteps from '../lib/components/prompts/IncomeSteps.svelte';
-	import ResourceRows from '../lib/components/prompts/ResourceRows.svelte';
-	import TilePicker from '../lib/components/prompts/TilePicker.svelte';
-	import TurnBar from '../lib/components/prompts/TurnBar.svelte';
-	import TurnControl from '../lib/components/prompts/TurnControl.svelte';
-	import Button from '../lib/components/ui/Button.svelte';
-	import IconButton from '../lib/components/ui/IconButton.svelte';
-	import TurnClock from '../lib/components/ui/TurnClock.svelte';
-	import PageHeader from './PageHeader.svelte';
+	import DecisionPrompt from './game/DecisionPrompt.svelte';
+	import GameHeader from './game/GameHeader.svelte';
+	import TurnFooter from './game/TurnFooter.svelte';
 	import PlayerTabs from './game/PlayerTabs.svelte';
 	import PlayersOverview from './game/PlayersOverview.svelte';
 	import LogPanel from './game/LogPanel.svelte';
 	import TableSettings from './game/TableSettings.svelte';
 	import RulesPanel from './game/RulesPanel.svelte';
-	import { civAbilityText } from '../lib/civ-rules.js';
 	import { RULES_HELP } from '../lib/rules-help.js';
-	import { TRACK_KEYS, hotkeyAction } from '../lib/hotkeys.js';
-	import { trackName } from '../lib/describe.js';
+	import { hotkeyAction, hotkeyGate } from '../lib/hotkeys.js';
+	import {
+		NO_LAYERS,
+		closeLayer,
+		escapeLayer,
+		openLayer,
+	} from '../lib/layers.js';
 	import { eventText } from '../lib/log.js';
-	import { highlights } from '../lib/motion.js';
-	import { isHost } from '../lib/lobby.js';
-	import OverviewCloseBar from '../lib/components/prompts/OverviewCloseBar.svelte';
+	import { highlights, prefersReducedMotion } from '../lib/motion.js';
 	import TapestryCard from '../lib/components/player/TapestryCard.svelte';
 	import TechnologyCard from '../lib/components/player/TechnologyCard.svelte';
 	import { tabFor } from '../lib/area/tabs.js';
 	import { achievements, trackBoard } from '../lib/board.js';
-	import { formatClock, timeLeft } from '../lib/clock.js';
-	import {
-		civilizationName,
-		describeBonus,
-		describeEffects,
-		tapestryName,
-		techName,
-	} from '../lib/describe.js';
 	import { mapHexes } from '../lib/hexmap.js';
-	import { promptFor } from '../lib/prompts.js';
-	import {
-		advanceModel,
-		canPickItem,
-		emptySelection,
-		matchIndex,
-		offerArt,
-		offerModel,
-		pendingCounts,
-		pickModel,
-		pickStatus,
-		rowView,
-		toggleItem,
-		togglePick,
-	} from '../lib/picks.js';
-	import { RESOURCE_CAP } from '../lib/engine/effects/gain.js';
-	import {
-		exploreIndex,
-		exploreLine,
-		exploreTiles,
-		hexScores,
-		tilePreview,
-		tileScores,
-		tileWords,
-	} from '../lib/area/explore.js';
-	import { terrainSeed } from '../lib/area/capital.js';
-	import { tapestryCardData, techCardData } from '../lib/cards/game-cards.js';
+	import { PromptState } from '../lib/prompt-state.svelte.js';
 	import { selfSummary } from '../lib/overview.js';
 	import {
 		advanceOptions,
-		decisionTurnHeading,
 		firstIncomeNotice,
-		forcedIncome,
-		incomeWords,
+		footerView,
 		myDecision,
-		takingTurnWords,
 	} from '../lib/turn.js';
-	import { askedSeats, bonusOf, matchingSides } from '../lib/engine/game.js';
-	import { TRACKS } from '../lib/engine/data/tracks.js';
-	import { playerColor } from '../lib/ui.js';
+	import { sendAdvance } from '../lib/moves.js';
 
 	/** @typedef {import('../lib/component-event.js').ComponentEvent} ComponentEvent */
 	/** @typedef {import('../lib/ui.js').TrackId} TrackId */
 
 	/** @type {GameProps} */
-	let { store, onGameResults, ...attr } = $props();
+	let { store, onGameResults, panel = $bindable('none'), ...attr } = $props();
 
 	let room = $derived(store.room);
 	let game = $derived(room.game);
@@ -127,48 +80,29 @@
 	let board = $state(/** @type {'tracks' | 'map'} */ ('tracks'));
 	/** @type {{ track: TrackId, space: number } | null} */
 	let selected = $state(null);
-	/** Whether the payment choice for the selected advance is open. */
-	let paying = $state(false);
-	/** @type {import('../lib/picks.js').Selection} The advance's payment picked so far (#75) */
-	let advanceChoice = $state({ rows: [], items: [] });
-	/** @type {number | null} The plain prompt's chosen answer, by index */
-	let picked = $state(null);
-	/** @type {string | null} The hex chosen for a map decision */
-	let mapPick = $state(null);
-	/** @type {number | null} The tile chosen for an explore (#74) */
-	let exploreTile = $state(null);
-	/** The explore's turn on the chosen hex, 0-5 (#74). */
-	let exploreOrient = $state(0);
-	/** @type {import('../lib/picks.js').Selection} A pick prompt's choices so far (#75) */
-	let selection = $state({ rows: [], items: [] });
-	/** @type {number | null} A trade's chosen offer, its second step (#75) */
-	let tradeOffer = $state(null);
+	/** A move of the turn's own is being sent; the prompt has its own (#79). */
 	let sending = $state(false);
 	/** The player tab on show (#27). */
 	let tab = $state('capital');
 	/** @type {{ kind: 'tech' | 'tapestry', data: any, side?: boolean } | null} A card shown in full over the shared area; beside the shelf, without a scrim, for a shelf card */
 	let inspected = $state(null);
-	/** Whether the players overview is open (#27). */
-	let overviewOpen = $state(false);
-	/** The log and scores panel (#29): open, its tab, and a dot for entries it hasn't shown yet. */
-	let logOpen = $state(false);
+	/**
+	 * What is open over the screen (#88): How to play, Table settings, the players overview (#27) and the player it
+	 * opened on, the log and scores (#29), and the footer's question (#83, owner): "Take an income turn?" before income
+	 * is taken, or "Advance on which track?" after A, answered by 1 to 4.
+	 */
+	let layers = $state(
+		/** @type {import('../lib/layers.js').Layers} */ (NO_LAYERS)
+	);
+	/** The log's tab, and a dot for entries it hasn't shown yet. */
 	let logTab = $state(/** @type {'log' | 'scores'} */ ('log'));
 	let logUnread = $state(false);
-	/** The host's table settings during a game (#29 design §9). */
-	let settingsOpen = $state(false);
-	/** How to play (#42): open, and the tab on show, a rules section or the keyboard shortcuts. */
-	let rulesOpen = $state(false);
+	/** How to play's tab on show (#42): a rules section or the keyboard shortcuts. */
 	let rulesTab = $state(RULES_HELP[0].id);
-	/** The footer asks "Take an income turn?" before taking it, from the button or I (#83, owner). */
-	let incomeAsk = $state(false);
-	/** The footer asks "Advance on which track?" after A, answered by 1 to 4 (#83, owner). */
-	let trackAsk = $state(false);
 	/** The log and scores, shown while Tab is held (#83, owner). */
 	let logPeek = $state(false);
 	/** @type {ReturnType<typeof setTimeout> | undefined} */
 	let peekTimer;
-	/** The player whose capital the overview opens on, from 1 to 5 (#83); null from a chip. */
-	let overviewPlayer = $state(/** @type {number | null} */ (null));
 
 	/** @type {import('../lib/motion.js').Highlights} */
 	const STILL = { hexes: [], plots: [], landmarks: [], vp: [] };
@@ -188,12 +122,13 @@
 		handled = count;
 		untrack(() => {
 			const events = store.fresh;
-			if (!logOpen && events.some((e) => eventText(e, game) !== null)) {
+			if (
+				!layers.log &&
+				events.some((e) => eventText(e, game) !== null)
+			) {
 				logUnread = true;
 			}
-			if (
-				window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-			) {
+			if (prefersReducedMotion()) {
 				return;
 			}
 			const next = highlights(events, seat);
@@ -229,284 +164,55 @@
 			: null
 	);
 	let promptDecision = $derived(mine && !turnDecision ? mine : null);
-	/** Income is the only move this turn: no advance can be paid for (#77). */
-	let onlyIncome = $derived(forcedIncome(game, seat));
-	/** What taking income now does, for the footer: it would be the viewer's next income turn (#77). */
-	let incomeDescription = $derived(
-		turnDecision?.kind === 'chooseTurn'
-			? incomeWords(game.seats[turnDecision.player - 1].incomeTurns + 1)
-			: ''
-	);
 	/** The one-time notice after income turn 1 (#77), and whether this seat closed it, kept per table and seat. */
 	let notice = $derived(firstIncomeNotice(game, seat));
 	let noticeKey = $derived(`rg-first-income:${room.code}:${seat}`);
 	let noticeClosed = $state(false);
 	/** The notice shows unless closed, and never under the players overview or the table settings. */
 	let noticeOpen = $derived(
-		Boolean(notice) && !noticeClosed && !overviewOpen && !settingsOpen
+		Boolean(notice) && !noticeClosed && !layers.overview && !layers.settings
 	);
 	$effect(() => {
 		const key = noticeKey;
 		untrack(() => {
-			try {
-				noticeClosed = sessionStorage.getItem(key) === '1';
-			} catch {
-				noticeClosed = false;
-			}
+			noticeClosed = store.noticeClosed(key);
 		});
 	});
 
 	/** Closes the income notice for good at this table and seat. */
 	const noticeCloseHandler = () => {
 		noticeClosed = true;
-		try {
-			sessionStorage.setItem(noticeKey, '1');
-		} catch {
-			// Without storage it opens again after a refresh, which is harmless.
-		}
+		store.closeNotice(noticeKey);
 	};
-	/** The designed prompt for the decision (#28): its words, art, layout and one option per answer. */
-	let prompt = $derived(promptFor(promptDecision, game, seat));
-	let isMapDecision = $derived(prompt?.layout === 'map');
-	/** The hexes lit on the map, whatever leads: a Nomads placement lights hexes beside the capital (#28 review). */
-	let mapTargets = $derived(prompt?.mapHexes ?? []);
-	/** The panel docks beside the map while the map shows hexes to choose, so they stay clickable. */
-	let docked = $derived(mapTargets.length > 0 && board === 'map');
-	/** A trade's offers while none is chosen, its first step (#75). */
-	let tradeStep = $derived(
-		prompt?.trade && tradeOffer === null ? prompt.trade : null
-	);
-	/** The pick prompt on show (#75): a trade's chosen offer, or the prompt's own resources, cards or tiles. */
-	let pickView = $derived(
-		!prompt || !promptDecision
-			? null
-			: prompt.trade
-				? tradeOffer === null
-					? null
-					: offerModel(promptDecision, tradeOffer, game, seat)
-				: prompt.picks
-	);
-	/** A chosen trade offer with nothing to pick: its one answer, or -1 (#75). */
-	let tradeAnswer = $derived(
-		promptDecision && prompt?.trade && tradeOffer !== null && !pickView
-			? promptDecision.answers.findIndex(
-					(/** @type {any} */ a) => a.offer === tradeOffer
-				)
-			: -1
-	);
-	/** The choices so far, fitted to the model on show. */
-	let picks = $derived(
-		pickView
-			? selection.rows.length === pickView.rows.length
-				? selection
-				: emptySelection(pickView)
-			: null
-	);
 	let held = $derived(
 		summary?.resources ?? { coin: 0, food: 0, worker: 0, culture: 0 }
 	);
-	let pickIndex = $derived(
-		pickView && picks ? matchIndex(pickView, picks) : -1
-	);
-	let pickState = $derived(
-		pickView && picks ? pickStatus(pickView, picks, held) : null
-	);
-	let pickRows = $derived(
-		pickView && picks ? rowView(pickView, picks, held) : []
-	);
-	/** Cards to pay sit on the shelf above a panel at the bottom; every other pick prompt is centred (#75). */
-	let cardPick = $derived(
-		pickView?.items && pickView.items.kind !== 'territory'
-			? pickView.items
-			: null
-	);
-	let centred = $derived(
-		(!!pickView && !cardPick) || !!tradeStep || tradeAnswer !== -1
-	);
-	/** The cards or tiles that can't be pressed now: none while the move is sent. */
-	let pickBlocked = $derived(
-		pickView?.items && picks
-			? pickView.items.ids.filter(
-					(id) =>
-						sending ||
-						!canPickItem(
-							/** @type {any} */ (pickView),
-							/** @type {any} */ (picks),
-							id
-						)
-				)
-			: []
-	);
-	/** The tiles of a tile payment, as TilePicker draws them. */
-	let pickTiles = $derived(
-		pickView?.items?.kind === 'territory'
-			? pickView.items.ids.map((id) => ({
-					id: Number(id),
-					label: tileWords(Number(id)),
-					...tilePreview(Number(id), 0),
-				}))
-			: []
-	);
-	/** The counts the overview shows while a resource prompt is open: after the choices so far, within the cap. */
-	let shownResources = $derived.by(() => {
-		const advancing = paying && advancePick && advanceSelection;
-		const model = advancing ? advancePick : pickView;
-		const chosen = advancing ? advanceSelection : picks;
-		if (!model || !chosen) {
+	/** The decision prompt (#79): what the viewer has chosen in the open decision or an advance's payment. */
+	const promptState = new PromptState({
+		get game() {
+			return game;
+		},
+		get seat() {
+			return seat;
+		},
+		get decision() {
+			return promptDecision;
+		},
+		get board() {
+			return board;
+		},
+		get advance() {
+			return chosenAdvance;
+		},
+		get held() {
 			return held;
-		}
-		const after = pendingCounts(model, chosen, held);
-		return {
-			coin: Math.max(0, Math.min(after.coin, RESOURCE_CAP)),
-			food: Math.max(0, Math.min(after.food, RESOURCE_CAP)),
-			worker: Math.max(0, Math.min(after.worker, RESOURCE_CAP)),
-			culture: Math.max(0, Math.min(after.culture, RESOURCE_CAP)),
-		};
+		},
+		get busy() {
+			return sending;
+		},
+		move: (action) =>
+			store.move(/** @type {{ decision: number }} */ (action)),
 	});
-	let changedResources = $derived(
-		/** @type {const} */ (['coin', 'food', 'worker', 'culture']).filter(
-			(id) => shownResources[id] !== held[id]
-		)
-	);
-	/** The answer that declines the pick or the trade, or -1. */
-	let declineIndex = $derived(
-		pickView && pickView.decline !== null
-			? pickView.decline
-			: tradeStep && promptDecision
-				? promptDecision.answers.findIndex(
-						(/** @type {any} */ a) => a.offer === null
-					)
-				: -1
-	);
-	let pickNoun = $derived(
-		pickView?.items?.kind === 'territory' ? 'tile' : 'card'
-	);
-	/** The viewer's explore (#74): they choose a tile, a lit hex and a turn, and Confirm sends that one answer. */
-	let exploring = $derived(
-		prompt?.kind === 'chooseExplore' ? promptDecision : null
-	);
-	/** The tiles the explore offers, lowest first: under Coal Baron only its tile, not the whole hand. */
-	let offeredTiles = $derived(exploring ? exploreTiles(exploring) : []);
-	/** Each offered tile's best VP and turn on the chosen hex. */
-	let tileBest = $derived(
-		exploring && mapPick ? tileScores(game, exploring, mapPick) : {}
-	);
-	/** The chosen tile's best VP and turn on every lit hex. */
-	let hexBest = $derived(
-		exploring && exploreTile !== null
-			? hexScores(game, exploring, exploreTile)
-			: {}
-	);
-	/** The panel's tile row, each tile with its best VP on the chosen hex once there is one. */
-	let exploreRow = $derived(
-		offeredTiles.map((id) => {
-			const best = tileBest[id];
-			return {
-				id,
-				label: tileWords(id),
-				...tilePreview(id, 0),
-				vp: best && best.vp >= 0 ? best.vp : null,
-			};
-		})
-	);
-	/** What the chosen tile scores on the chosen hex in the chosen turn. */
-	let exploreCurrent = $derived(
-		exploring && exploreTile !== null && mapPick
-			? matchingSides(game, mapPick, exploreTile, exploreOrient)
-			: null
-	);
-	/** The VP tags on the lit hexes: the chosen tile's best on each, and the current turn's on the chosen hex. */
-	let mapScores = $derived.by(() => {
-		/** @type {Record<string, number>} */
-		const scores = {};
-		for (const [hex, best] of Object.entries(hexBest)) {
-			scores[hex] = best.vp;
-		}
-		if (mapPick && exploreCurrent !== null) {
-			scores[mapPick] = exploreCurrent;
-		}
-		return scores;
-	});
-	/** What is chosen so far: the panel's one line naming the hex and turn (the status line stays empty). */
-	let exploreChosen = $derived(
-		mapPick && exploreTile !== null
-			? exploreLine(mapPick, exploreOrient)
-			: exploreTile !== null
-				? 'Now pick a lit hex: each shows the best this tile scores there.'
-				: 'Pick a tile, or a lit hex on the map.'
-	);
-	/** What the panel lists: its own options, and on the map those of the chosen hex. An explore lists none. */
-	let panelOptions = $derived(
-		!prompt || exploring || pickView || tradeStep || tradeAnswer !== -1
-			? []
-			: prompt.options
-					.filter(
-						(o) =>
-							o.place === 'panel' ||
-							(o.place === 'map' && o.hex === mapPick)
-					)
-					.map((o) => ({ ...o, vp: null }))
-	);
-	/** The cards on the shelf above the panel, for a card decision. */
-	let shelfCards = $derived(
-		prompt?.shelf && promptDecision
-			? prompt.options
-					.filter((o) => o.place === 'shelf')
-					.map((o) => {
-						const answer = promptDecision.answers[o.index];
-						const art = o.art[0];
-						return {
-							index: o.index,
-							id: String(
-								answer.card ?? answer.civ ?? answer.capital
-							),
-							label: o.label,
-							deck: art?.kind === 'deck' ? art.count : undefined,
-						};
-					})
-			: []
-	);
-	/** The chosen tile in the chosen turn, drawn on the chosen hex. */
-	let preview = $derived(
-		exploring && exploreTile !== null && mapPick
-			? { hex: mapPick, ...tilePreview(exploreTile, exploreOrient) }
-			: null
-	);
-	/** A building or landmark to place on the capital, from the Capital tab. */
-	let placement = $derived(
-		prompt &&
-			promptDecision &&
-			prompt.options.some((o) => o.place === 'capital')
-			? {
-					piece: promptDecision.landmark
-						? { landmark: promptDecision.landmark }
-						: { building: promptDecision.building },
-					options: prompt.options.filter(
-						(o) => o.place === 'capital'
-					),
-					picked,
-				}
-			: null
-	);
-	let incomeStepLabel = $derived(
-		prompt?.income?.steps.find(
-			(step) => step.id === prompt?.income?.current
-		)?.label ?? null
-	);
-	/** The selected advance's payment as rows, when it has a choice (#75). */
-	let advancePick = $derived(advanceModel(chosenAdvance, game));
-	let advanceSelection = $derived(
-		advancePick
-			? advanceChoice.rows.length === advancePick.rows.length
-				? advanceChoice
-				: emptySelection(advancePick)
-			: null
-	);
-	let advanceIndex = $derived(
-		advancePick && advanceSelection
-			? matchIndex(advancePick, advanceSelection)
-			: -1
-	);
 
 	// The turn's own choices end with it, however it ends: a timeout, an undo, a refused move (#26 review).
 	let turnKey = $derived(turnDecision ? turnDecision.id : null);
@@ -514,8 +220,7 @@
 		turnKey;
 		if (!untrack(() => sending)) {
 			selected = null;
-			paying = false;
-			advanceChoice = { rows: [], items: [] };
+			promptState.clearPayment();
 		}
 	});
 
@@ -536,106 +241,60 @@
 		}
 	});
 
-	// A new decision starts with nothing chosen, and a map decision opens the map. An explore offering one tile
-	// (Coal Baron's, or the last in hand) starts with it picked, so the player sees what they place (#74).
+	// The dice tray rolls clear of what is open over the board: a panel, a stack of cards, or the income notice. It is
+	// outside this screen, so it learns of it from here, and of nothing once the screen goes (#61, #79).
+	$effect(() => {
+		panel =
+			promptState.panel !== 'none'
+				? promptState.panel
+				: noticeOpen
+					? 'panel'
+					: 'none';
+		return () => {
+			panel = 'none';
+		};
+	});
+
+	// A map decision opens the map; the prompt state starts each decision with nothing chosen (#79).
 	let decisionKey = $derived(mine ? `${mine.id}` : '');
 	$effect(() => {
 		decisionKey;
-		picked = null;
-		mapPick = null;
-		exploreOrient = 0;
-		selection = { rows: [], items: [] };
-		tradeOffer = null;
-		const tiles = untrack(() => offeredTiles);
-		exploreTile = tiles.length === 1 ? tiles[0] : null;
-		if (isMapDecision) {
+		if (promptState.isMap) {
 			board = 'map';
 		}
 	});
 
-	// The turn clock: the running one, the viewer's own first; a paused one only when none runs (spec §4).
-	let now = $state(Date.now());
-	$effect(() => {
-		const timer = setInterval(() => {
-			now = Date.now();
-		}, 250);
-		return () => clearInterval(timer);
-	});
-	let clock = $derived(
-		room.clocks.find(
-			(/** @type {any} */ c) => c.seat === seat && c.ends !== undefined
-		) ??
-			room.clocks.find((/** @type {any} */ c) => c.ends !== undefined) ??
-			room.clocks.find((/** @type {any} */ c) => c.seat === seat) ??
-			room.clocks[0] ??
-			null
-	);
-	let clockMs = $derived(
-		clock ? timeLeft(clock, room.now, store.receivedAt, now) : 0
-	);
-
-	let currentSeat = $derived(
-		game.current === null ? null : game.seats[game.current - 1]
+	/** Which footer shows, and what it says (#86). */
+	let footer = $derived(
+		footerView(game, seat, {
+			overviewOpen: layers.overview,
+			noticeOpen,
+			incomeAsk: layers.question === 'income',
+			trackAsk: layers.question === 'track',
+			selected,
+			options,
+			paying: promptState.paying,
+			income: promptState.prompt?.income ?? null,
+			incomeStep: promptState.incomeStep,
+		})
 	);
 
 	/**
-	 * The words for the selected space: its benefit, and its bonus when it has one.
-	 * @param {TrackId} track
-	 * @param {number} space
+	 * A space picked on the tracks, or by the track question: with a choice of payment, its panel opens at once, as
+	 * BGA opens its payment on the click (#75).
+	 * @param {{ track: TrackId, space: number }} space
 	 */
-	function spaceWords(track, space) {
-		const benefit = describeEffects(TRACKS[track][space].benefit, {
-			state: game,
-		});
-		const bonus = bonusOf(game, track, space);
-		return bonus
-			? `${benefit}. Bonus: ${describeBonus(bonus, { state: game })}.`
-			: `${benefit}.`;
+	function selectSpace(space) {
+		clearQuestion();
+		selected = space;
+		promptState.clearPayment();
 	}
 
 	/**
-	 * The tier price as symbols, for the footer.
-	 * @param {TrackId} track
-	 * @param {number} space
-	 * @returns {import('../lib/ui.js').CostSymbol[]}
-	 */
-	function priceSymbols(track, space) {
-		const tier = trackBoard(game).find((t) => t.id === track)?.tiers[
-			Math.ceil(space / 3) - 1
-		];
-		return tier ?? [];
-	}
-
-	/**
-	 * A space picked on the tracks: with a choice of payment, its panel opens at once, as BGA opens its payment on the
-	 * click (#75).
 	 * @param {ComponentEvent} event
 	 */
 	const trackSelectHandler = (event) => {
-		incomeAsk = false;
-		trackAsk = false;
-		selected = event.value;
-		advanceChoice = { rows: [], items: [] };
-		const option = options.find(
-			(o) => o.track === event.value.track && o.to === event.value.space
-		);
-		paying = advanceModel(option, game) !== null;
-	};
-
-	/**
-	 * A resource pressed in the advance's payment (#75).
-	 * @param {ComponentEvent} event
-	 */
-	const advancePickHandler = (event) => {
-		if (sending || !advancePick || !advanceSelection) {
-			return;
-		}
-		advanceChoice = togglePick(
-			advancePick,
-			advanceSelection,
-			event.value.row,
-			event.value.resource
-		);
+		selectSpace(event.value);
 	};
 
 	/** Asks "Take an income turn?" in the footer first: income is never taken on one press (#83, owner). */
@@ -643,9 +302,13 @@
 		if (!turnDecision || turnDecision.kind !== 'chooseTurn' || sending) {
 			return;
 		}
-		trackAsk = false;
-		incomeAsk = true;
+		layers = openLayer(layers, 'income');
 	};
+
+	/** The footer's question goes, whichever it was. */
+	function clearQuestion() {
+		layers = closeLayer(closeLayer(layers, 'income'), 'track');
+	}
 
 	/** The tracks with a space the viewer can pay for, which the track question offers (#83). */
 	let askTracks = $derived([...new Set(options.map((o) => o.track))]);
@@ -662,14 +325,8 @@
 		if (!option || sending) {
 			return;
 		}
-		trackSelectHandler(
-			/** @type {ComponentEvent} */ (
-				/** @type {unknown} */ ({
-					value: { track, space: option.to },
-				})
-			)
-		);
-		if (!paying) {
+		selectSpace({ track, space: option.to });
+		if (!promptState.paying) {
 			advanceHandler();
 		}
 	};
@@ -679,270 +336,41 @@
 		if (!turnDecision || turnDecision.kind !== 'chooseTurn' || sending) {
 			return;
 		}
-		incomeAsk = false;
+		clearQuestion();
 		sending = true;
 		await store.move({ decision: turnDecision.id, turn: 'income' });
 		selected = null;
 		sending = false;
 	};
 
-	/** Advances on the selected space, asking for the payment first when there is a choice. */
-	const advanceHandler = async () => {
+	/**
+	 * Advances on the selected space. A payment with a choice is picked in the prompt's panel first (#75), which
+	 * passes the payment's index; without a choice the one payment goes.
+	 * @param {number} [pay] - The payment's index in the advance's payments
+	 */
+	const advanceHandler = async (pay = -1) => {
 		const option = chosenAdvance;
 		if (!option || !turnDecision || sending) {
 			return;
 		}
-		if (advancePick && advanceIndex === -1) {
-			paying = true;
+		if (promptState.paying && pay === -1) {
 			return;
 		}
-		const pay = option.payments[advanceIndex === -1 ? 0 : advanceIndex];
 		sending = true;
-		if (turnDecision.kind === 'chooseTurn') {
-			const ok = await store.move({
-				decision: turnDecision.id,
-				turn: 'advance',
-			});
-			if (!ok) {
-				sending = false;
-				return;
-			}
-		}
-		const next = myDecision(store.room.game, store.seat);
-		if (next?.kind === 'chooseAdvance') {
-			await store.move({
-				decision: next.id,
-				track: option.track,
-				from: option.from,
-				pay,
-			});
+		const moved = await sendAdvance(
+			(action) => store.move(action),
+			() => myDecision(store.room.game, store.seat),
+			turnDecision,
+			option,
+			option.payments[pay === -1 ? 0 : pay]
+		);
+		if (!moved) {
+			sending = false;
+			return;
 		}
 		selected = null;
-		paying = false;
-		advanceChoice = { rows: [], items: [] };
+		promptState.clearPayment();
 		sending = false;
-	};
-
-	/** Sends the prompt's chosen answer. */
-	const promptConfirmHandler = async () => {
-		if (!promptDecision || picked === null || sending) {
-			return;
-		}
-		sending = true;
-		await store.move({
-			decision: promptDecision.id,
-			...promptDecision.answers[picked],
-		});
-		sending = false;
-	};
-
-	/**
-	 * A resource pressed in a row (#75); nothing changes while the move is sent.
-	 * @param {ComponentEvent} event
-	 */
-	const rowPickHandler = (event) => {
-		if (sending || !pickView || !picks) {
-			return;
-		}
-		selection = togglePick(
-			pickView,
-			picks,
-			event.value.row,
-			event.value.resource
-		);
-	};
-
-	/**
-	 * A card or tile pressed for a payment (#75), in the panel, on the shelf or on the Terrain tab.
-	 * @param {number | string} id
-	 */
-	function pickItem(id) {
-		if (sending || !pickView || !picks) {
-			return;
-		}
-		selection = toggleItem(pickView, picks, id);
-	}
-
-	/**
-	 * A trade's offer chosen, its second step (#75).
-	 * @param {number} offer
-	 */
-	function chooseOffer(offer) {
-		if (sending) {
-			return;
-		}
-		tradeOffer = offer;
-		selection = { rows: [], items: [] };
-	}
-
-	/** Sends the pick prompt's matched answer (#75); a VP trade then answers the chooseResource it opens with the same rows. */
-	const pickConfirmHandler = async () => {
-		if (!promptDecision || sending) {
-			return;
-		}
-		const index = pickView ? pickIndex : tradeAnswer;
-		if (index === -1) {
-			return;
-		}
-		const rows = picks;
-		const then = pickView?.then ?? null;
-		sending = true;
-		const ok = await store.move({
-			decision: promptDecision.id,
-			...promptDecision.answers[index],
-		});
-		if (ok && then === 'chooseResource' && rows) {
-			const next = myDecision(store.room.game, store.seat);
-			const model =
-				next?.kind === 'chooseResource'
-					? pickModel(next, store.room.game, store.seat)
-					: null;
-			const answer = model ? matchIndex(model, rows) : -1;
-			if (next && answer !== -1) {
-				await store.move({
-					decision: next.id,
-					...next.answers[answer],
-				});
-			}
-		}
-		sending = false;
-	};
-
-	/** Declines the pick or the trade (#75). */
-	const declineHandler = async () => {
-		if (!promptDecision || declineIndex < 0 || sending) {
-			return;
-		}
-		sending = true;
-		await store.move({
-			decision: promptDecision.id,
-			...promptDecision.answers[declineIndex],
-		});
-		sending = false;
-	};
-
-	/**
-	 * A payment's card hovered or focused on the shelf shows in full (#75).
-	 * @param {ComponentEvent} event
-	 */
-	const pickInspectHandler = (event) => {
-		const id =
-			event.value === null ? undefined : cardPick?.ids[event.value];
-		inspected =
-			id === undefined
-				? null
-				: cardPick?.kind === 'tech'
-					? {
-							kind: 'tech',
-							data: techCardData(String(id)),
-							side: true,
-						}
-					: {
-							kind: 'tapestry',
-							data: tapestryCardData(String(id)),
-							side: true,
-						};
-	};
-
-	/** Points the pick at the explore's tile, hex and turn, so Confirm sends that answer. */
-	function pickExplore() {
-		const index =
-			exploring && exploreTile !== null && mapPick
-				? exploreIndex(exploring, {
-						tile: exploreTile,
-						hex: mapPick,
-						orient: exploreOrient,
-					})
-				: -1;
-		picked = index === -1 ? null : index;
-	}
-
-	/**
-	 * A lit hex chosen. An explore keeps its tile, or takes the first one offered, at its best turn there (#74).
-	 * Nothing changes while a move is being sent.
-	 * @param {ComponentEvent} event
-	 */
-	const mapSelectHandler = (event) => {
-		if (sending || event.value.hex === mapPick) {
-			return;
-		}
-		mapPick = event.value.hex;
-		if (exploring) {
-			if (exploreTile === null) {
-				exploreTile = offeredTiles[0] ?? null;
-			}
-			exploreOrient =
-				exploreTile === null ? 0 : (tileBest[exploreTile]?.orient ?? 0);
-			pickExplore();
-			return;
-		}
-		const here = (prompt?.options ?? []).filter((o) => o.hex === mapPick);
-		picked = here.length === 1 ? here[0].index : null;
-	};
-
-	/**
-	 * A tile chosen for the explore: on a chosen hex it goes to its best turn there. The picked tile again does nothing,
-	 * and nothing changes while the explore is being sent.
-	 * @param {ComponentEvent} event
-	 */
-	const tilePickHandler = (event) => {
-		const tile = event.value.tile;
-		if (pickView?.items?.kind === 'territory') {
-			pickItem(tile);
-			return;
-		}
-		if (sending || tile === exploreTile || !offeredTiles.includes(tile)) {
-			return;
-		}
-		exploreTile = tile;
-		if (mapPick) {
-			exploreOrient = tileBest[tile]?.orient ?? 0;
-		}
-		pickExplore();
-	};
-
-	/**
-	 * Turns the explore's tile one step: 1 forward, -1 back, through all 6 turns; not while the explore is being sent.
-	 * @param {number} step
-	 */
-	function turnTile(step) {
-		if (sending || !exploring || exploreTile === null || !mapPick) {
-			return;
-		}
-		exploreOrient = (exploreOrient + step + 6) % 6;
-		pickExplore();
-	}
-
-	/**
-	 * @param {ComponentEvent} event
-	 */
-	const turnHandler = (event) => {
-		turnTile(event.value.step);
-	};
-
-	/**
-	 * A shelf card hovered or focused shows in full over the shared area; a civilization or a mat is already whole.
-	 * @param {ComponentEvent} event
-	 */
-	const shelfInspectHandler = (event) => {
-		const card = shelfCards.find((c) => c.index === event.value);
-		if (!card || card.id === 'deck') {
-			inspected = null;
-		} else if (prompt?.shelf === 'tapestry') {
-			inspected = {
-				kind: 'tapestry',
-				data: tapestryCardData(card.id),
-				side: true,
-			};
-		} else if (prompt?.shelf === 'tech') {
-			inspected = {
-				kind: 'tech',
-				data: techCardData(card.id),
-				side: true,
-			};
-		} else {
-			inspected = null;
-		}
 	};
 
 	/**
@@ -950,45 +378,40 @@
 	 * @param {ComponentEvent} event
 	 */
 	const placeHandler = (event) => {
-		picked = event.value.index;
-		if (event.value.confirm && picked !== null) {
-			promptConfirmHandler();
-		}
+		promptState.place(event.value.index, event.value.confirm);
 	};
 
 	/**
 	 * @param {ComponentEvent} event
 	 */
 	const menuHandler = (event) => {
-		if (event.value === 'leave') {
-			store.leaveTable();
-		} else if (event.value === 'settings') {
-			// One Escape closes one thing, so the settings open alone.
-			logOpen = false;
-			overviewOpen = false;
-			settingsOpen = true;
+		if (event.value === 'settings') {
+			layers = openLayer(layers, 'settings');
 		} else if (event.value === 'help' || event.value === 'keys') {
-			// How to play opens alone too, on the rules or on the keyboard shortcuts (#42).
-			logOpen = false;
-			overviewOpen = false;
-			settingsOpen = false;
+			// On the rules or on the keyboard shortcuts (#42).
 			rulesTab = event.value === 'keys' ? 'keys' : RULES_HELP[0].id;
-			rulesOpen = true;
+			layers = openLayer(layers, 'rules');
 		}
 	};
 
 	const logToggleHandler = () => {
-		logOpen = !logOpen;
+		layers = layers.log
+			? closeLayer(layers, 'log')
+			: openLayer(layers, 'log');
 		logUnread = false;
+	};
+
+	/** The header's chips open the players overview on no one in particular, and close it. */
+	const chipHandler = () => {
+		layers = layers.overview
+			? closeLayer(layers, 'overview')
+			: openLayer(layers, 'overview');
 	};
 
 	/** A question in the footer belongs to the turn choice it was asked on. */
 	$effect(() => {
 		void turnDecision?.id;
-		untrack(() => {
-			incomeAsk = false;
-			trackAsk = false;
-		});
+		untrack(clearQuestion);
 	});
 
 	/**
@@ -997,12 +420,7 @@
 	 * @param {KeyboardEvent} event
 	 */
 	function tabDown(event) {
-		if (
-			event.ctrlKey ||
-			event.altKey ||
-			event.metaKey ||
-			document.querySelector('[aria-modal="true"]')
-		) {
+		if (event.ctrlKey || event.altKey || event.metaKey || layers.rules) {
 			return;
 		}
 		if (event.repeat) {
@@ -1010,7 +428,7 @@
 			return;
 		}
 		clearTimeout(peekTimer);
-		if (!logOpen) {
+		if (!layers.log) {
 			peekTimer = setTimeout(() => (logPeek = true), 200);
 		}
 	}
@@ -1030,8 +448,30 @@
 	$effect(() => () => clearTimeout(peekTimer));
 
 	/**
-	 * Escape closes the players overview (#27 review), then the notice; every other key is a hotkey (#83) unless the
-	 * player is typing, holds a browser shortcut's key, has a menu, dialog or settings open, or a component took it.
+	 * What the screen needs to know about a key press, read from the event and the element it was pressed on (#88).
+	 * @param {KeyboardEvent} event
+	 * @returns {import('../lib/hotkeys.js').KeyFacts}
+	 */
+	function keyFacts(event) {
+		const target = /** @type {HTMLElement | null} */ (event.target);
+		/** @param {string} selector */
+		const within = (selector) => Boolean(target?.closest?.(selector));
+		return {
+			key: event.key,
+			modified: event.ctrlKey || event.altKey || event.metaKey,
+			taken: event.defaultPrevented,
+			typing:
+				Boolean(target?.isContentEditable) ||
+				within('input, textarea, select'),
+			inMenu: within('[role="menu"]'),
+			inModal: within('[aria-modal="true"]'),
+			onControl: target !== document.body,
+		};
+	}
+
+	/**
+	 * Escape closes the one thing on top (#88); every other key is a hotkey (#83). hotkeyGate decides whether the
+	 * screen takes the key at all.
 	 * @param {KeyboardEvent} event
 	 */
 	const keyHandler = (event) => {
@@ -1039,47 +479,16 @@
 			tabDown(event);
 			return;
 		}
-		if (event.key === 'Escape' && overviewOpen) {
-			overviewOpen = false;
+		if (!hotkeyGate(keyFacts(event), layers)) {
 			return;
 		}
-		if (event.key === 'Escape' && (incomeAsk || trackAsk)) {
-			incomeAsk = false;
-			trackAsk = false;
-			return;
-		}
-		const target = /** @type {HTMLElement | null} */ (event.target);
-		// One Escape closes one thing: the notice only when nothing else is open and the key isn't meant for another
-		// layer, such as the header menu, a dialog or a field (#77).
-		const elsewhere = target?.closest?.(
-			'[role="menu"], [role="dialog"], input, textarea, select'
-		);
-		if (
-			event.key === 'Escape' &&
-			noticeOpen &&
-			!logOpen &&
-			!document.querySelector('[aria-modal="true"]') &&
-			(!elsewhere || Boolean(elsewhere.closest('.rg-income-notice')))
-		) {
-			noticeCloseHandler();
-			return;
-		}
-		if (
-			event.defaultPrevented ||
-			event.ctrlKey ||
-			event.altKey ||
-			event.metaKey ||
-			target?.isContentEditable ||
-			// A menu, a modal or a field keeps its keys; a decision panel's controls don't, so . still turns a tile.
-			target?.closest?.(
-				'[role="menu"], [aria-modal="true"], input, textarea, select'
-			) ||
-			settingsOpen ||
-			// How to play, over the whole screen.
-			document.querySelector('[aria-modal="true"]') ||
-			// Enter on a control presses that control.
-			(event.key === 'Enter' && target !== document.body)
-		) {
+		if (event.key === 'Escape') {
+			const layer = escapeLayer(layers, noticeOpen);
+			if (layer === 'notice') {
+				noticeCloseHandler();
+			} else if (layer !== null) {
+				layers = closeLayer(layers, layer);
+			}
 			return;
 		}
 		const action = hotkeyAction(event.key, {
@@ -1091,12 +500,12 @@
 				!noticeOpen &&
 				!sending,
 			canUndo: Boolean(room.canUndo),
-			confirming: incomeAsk,
-			asking: trackAsk,
+			confirming: layers.question === 'income',
+			asking: layers.question === 'track',
 			tracks: askTracks,
 			players: players.length,
 			board,
-			exploring: exploring && exploreTile !== null && Boolean(mapPick),
+			exploring: promptState.canTurn,
 		});
 		if (!action) {
 			return;
@@ -1118,30 +527,27 @@
 				incomeHandler();
 				break;
 			case 'advance':
-				incomeAsk = false;
 				selected = null;
-				paying = false;
-				trackAsk = true;
+				promptState.clearPayment();
+				layers = openLayer(layers, 'track');
 				break;
 			case 'track':
 				trackPickHandler(action.track);
 				break;
-			case 'cancel':
-				incomeAsk = false;
-				trackAsk = false;
-				break;
-			case 'confirm': {
-				// The open panel's Confirm (the notice's Got it too), or the footer's Advance for a selected space.
-				const confirm = /** @type {HTMLButtonElement | null} */ (
-					document.querySelector('.rg-decision-panel--confirm')
-				);
-				if (confirm && !confirm.disabled) {
-					confirm.click();
-				} else if (selected && chosenAdvance && !paying) {
+			case 'confirm':
+				// The open panel's Confirm (the payment's Advance, the notice's Got it), or the footer's Advance.
+				if (promptState.paying) {
+					if (promptState.payIndex !== -1) {
+						advanceHandler(promptState.payIndex);
+					}
+				} else if (promptState.prompt) {
+					promptState.confirm();
+				} else if (noticeOpen) {
+					noticeCloseHandler();
+				} else if (selected && chosenAdvance) {
 					advanceHandler();
 				}
 				break;
-			}
 			case 'undo':
 				store.undo();
 				break;
@@ -1152,37 +558,26 @@
 				tab = action.tab;
 				break;
 			case 'player':
-				if (overviewOpen && overviewPlayer === action.seat) {
-					overviewOpen = false;
-				} else {
-					logOpen = false;
-					settingsOpen = false;
-					overviewPlayer = action.seat;
-					overviewOpen = true;
-				}
+				layers =
+					layers.overview && layers.player === action.seat
+						? closeLayer(layers, 'overview')
+						: openLayer(layers, 'overview', {
+								player: action.seat,
+							});
 				break;
 			case 'log':
 				logToggleHandler();
 				break;
 			case 'help':
 			case 'keys':
-				logOpen = false;
-				overviewOpen = false;
 				rulesTab = action.type === 'keys' ? 'keys' : RULES_HELP[0].id;
-				rulesOpen = true;
+				layers = openLayer(layers, 'rules');
 				break;
 			case 'turn':
-				turnTile(action.step);
+				promptState.turnTile(action.step);
 				break;
 		}
 	}
-
-	/** @param {number} seatNumber */
-	function nameOf(seatNumber) {
-		return game.seats[seatNumber - 1]?.name ?? `Seat ${seatNumber}`;
-	}
-
-	let asked = $derived(askedSeats(game));
 </script>
 
 <svelte:window
@@ -1190,251 +585,33 @@
 	onkeyup={keyUpHandler}
 	onblur={blurHandler} />
 
-{#snippet forcedIncomeAction()}
-	<Button
-		mode="gold"
-		disabled={sending}
-		onButtonClick={incomeAskHandler}>Take income</Button>
-{/snippet}
-
-{#snippet incomeAskActions()}
-	<Button
-		disabled={sending}
-		onButtonClick={() => (incomeAsk = false)}>Cancel</Button>
-	<Button
-		mode="gold"
-		disabled={sending}
-		onButtonClick={incomeHandler}>Take income</Button>
-{/snippet}
-
-{#snippet trackAskActions()}
-	{#each TRACK_KEYS as track, at (track)}
-		<Button
-			disabled={sending || !askTracks.includes(track)}
-			onButtonClick={() => trackPickHandler(track)}
-			>{at + 1} · {trackName(track)}</Button>
-	{/each}
-	<Button onButtonClick={() => (trackAsk = false)}>Cancel</Button>
-{/snippet}
-
-{#snippet incomeSteps()}
-	{#if prompt?.income}
-		<IncomeSteps
-			steps={prompt.income.steps}
-			current={prompt.income.current} />
-	{/if}
-{/snippet}
-
-<!-- The prompt's cost and its own options; a prompt without them (cards on the shelf, plots, hexes) has no content
-     area, and its status line gives the instruction, so the shelf has more room (#57). -->
-{#snippet promptContent()}
-	{#if tradeStep}
-		<div class="rg-game--trades">
-			{#each tradeStep as offer (offer.offer)}
-				<DecisionOption
-					label={offer.label}
-					art={offerArt(offer)}
-					disabled={!offer.enabled || sending}
-					onDecisionOptionClick={() => chooseOffer(offer.offer)} />
-			{/each}
-		</div>
-	{:else if pickView && picks}
-		<div class="rg-game--picks">
-			<p class="rg-game--lead">{pickView.lead}</p>
-			{#if pickView.rows.length}
-				<ResourceRows
-					rows={pickRows}
-					disabled={sending}
-					onResourceRowsPick={rowPickHandler} />
-			{/if}
-			{#if pickView.items}
-				<p class="rg-game--label">
-					Your {pickNoun}s · {picks.items.length} of {pickView.items
-						.count} chosen
-				</p>
-				{#if pickView.items.kind === 'territory'}
-					<TilePicker
-						class="rg-game--pick-tiles"
-						tiles={pickTiles}
-						selected={picks.items.map(Number)}
-						disabled={pickBlocked.map(Number)}
-						onTilePickerSelect={tilePickHandler} />
-				{/if}
-			{/if}
-		</div>
-	{:else if tradeAnswer !== -1 && prompt}
-		<p class="rg-game--lead">{prompt.options[tradeAnswer]?.label}</p>
-	{/if}
-	{#if exploring}
-		<div class="rg-game--explore">
-			<p class="rg-game--lead">
-				Pick one of your tiles and a lit hex, then turn the tile until
-				you like it.
-			</p>
-			<p class="rg-game--label">Your tiles · {offeredTiles.length}</p>
-			<TilePicker
-				tiles={exploreRow}
-				selected={exploreTile}
-				onTilePickerSelect={tilePickHandler} />
-		</div>
-	{/if}
-	{#if prompt?.cost && !pickView}
-		<CostBox
-			class="rg-game--cost"
-			symbols={prompt.cost}
-			track={prompt.track ?? undefined} />
-	{/if}
-	{#if panelOptions.length}
-		<div class="rg-game--options">
-			{#each panelOptions as option (option.index)}
-				<DecisionOption
-					label={option.label}
-					art={option.art}
-					vp={option.vp}
-					pressed={picked === option.index}
-					onDecisionOptionClick={() => (picked = option.index)} />
-			{/each}
-		</div>
-	{/if}
-{/snippet}
-
-<!-- An explore's chosen hex and turn, and the control that turns the tile, kept in sight while the tiles scroll
-     (#74). The line is the one place that names them; it is announced with the VP the turn scores. -->
-{#snippet explorePinned()}
-	<div class="rg-game--explore">
-		<p
-			class="rg-game--chosen"
-			role="status">
-			{exploreChosen}{#if exploreCurrent !== null}<span
-					class="rg-game--spoken">, {exploreCurrent} VP</span
-				>{/if}
-		</p>
-		<TurnControl
-			vp={exploreCurrent}
-			onTurnControlTurn={turnHandler} />
-	</div>
-{/snippet}
-
-<!-- Cards to pay (#75), several chosen at once on the shelf above the panel. -->
-{#snippet pickShelf()}
-	{#if cardPick && picks}
-		<CardShelf
-			kind={cardPick.kind === 'tech' ? 'tech' : 'tapestry'}
-			cards={cardPick.ids.map((id, index) => ({
-				index,
-				id: String(id),
-				label:
-					cardPick?.kind === 'tech'
-						? techName(String(id))
-						: tapestryName(String(id)),
-			}))}
-			selected={cardPick.ids.flatMap((id, index) =>
-				picks?.items.includes(id) ? [index] : []
-			)}
-			disabled={cardPick.ids.flatMap((id, index) =>
-				pickBlocked.includes(id) ? [index] : []
-			)}
-			terrainSeed={terrainSeed(room.code)}
-			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
-				cardPick && pickItem(cardPick.ids[event.value])}
-			onCardShelfInspect={pickInspectHandler} />
-	{/if}
-{/snippet}
-
-{#snippet cardShelf()}
-	{#if prompt?.shelf}
-		<CardShelf
-			kind={prompt.shelf}
-			cards={shelfCards}
-			selected={picked}
-			terrainSeed={terrainSeed(room.code)}
-			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
-				(picked = event.value)}
-			onCardShelfInspect={shelfInspectHandler} />
-	{/if}
-{/snippet}
-
 <div
 	{...attr}
 	class="rg-game {attr.class ? attr.class : ''}">
-	<PageHeader
-		sound={store.sound}
-		items={[
-			{ id: 'help', label: 'How to play' },
-			{ id: 'keys', label: 'Keyboard shortcuts' },
-			...(isHost(room)
-				? [{ id: 'settings', label: 'Table settings' }]
-				: []),
-			{ id: 'leave', label: 'Leave table' },
-		]}
-		onPageHeaderSound={(/** @type {any} */ event) =>
-			store.setSound(event.value)}
-		onPageHeaderMenu={menuHandler}>
-		{#snippet center()}
-			{#each players as player (player.seat)}
-				<PlayerChip
-					name={player.name}
-					civilization={player.civs.length
-						? civilizationName(player.civs[0])
-						: 'Setting up'}
-					vp={player.vp}
-					seat={player.seat}
-					current={game.current === player.seat}
-					filled={overviewOpen}
-					bump={moved.vp.includes(player.seat)}
-					ability={player.civs.length
-						? (civAbilityText(player.civs[0], game.version) ??
-							undefined)
-						: undefined}
-					onPlayerChipClick={() => {
-						overviewPlayer = null;
-						overviewOpen = !overviewOpen;
-					}} />
-			{/each}
-		{/snippet}
-		{#snippet before()}
-			{#if clock}
-				<TurnClock
-					seat={clock.seat}
-					ms={clockMs}
-					running={clock.ends !== undefined && !clock.expired}
-					warn={clock.seat === seat &&
-						clock.ends !== undefined &&
-						clockMs <= 5000}
-					title="{nameOf(clock.seat)}: {formatClock(clockMs)}" />
-			{/if}
-			<IconButton
-				icon="history"
-				label="Undo"
-				disabled={!room.canUndo}
-				onIconButtonClick={() => store.undo()} />
-			<span class="rg-game--log-button">
-				<IconButton
-					icon="log"
-					label="Log and scores"
-					expanded={logOpen}
-					onIconButtonClick={logToggleHandler} />
-				{#if logUnread}
-					<i
-						class="rg-game--unread"
-						title="New entries"></i>
-				{/if}
-			</span>
-		{/snippet}
-	</PageHeader>
+	<GameHeader
+		{store}
+		{game}
+		{seat}
+		overviewOpen={layers.overview}
+		logOpen={layers.log}
+		{logUnread}
+		bumped={moved.vp}
+		onGameHeaderChip={chipHandler}
+		onGameHeaderLog={logToggleHandler}
+		onGameHeaderMenu={menuHandler} />
 
 	<div class="rg-game--middle">
 		<section
 			class="rg-game--shared"
 			aria-label="Shared board"
-			inert={overviewOpen}>
+			inert={layers.overview}>
 			<div class="rg-game--head">
 				<BoardSwitcher bind:value={board} />
 				<AchievementStrip achievements={achievements(game)} />
 			</div>
 			<div
 				class="rg-game--board"
-				class:rg-game--board-docked={docked}>
+				class:rg-game--board-docked={promptState.docked}>
 				{#if board === 'tracks'}
 					<TrackBoard
 						tracks={trackBoard(game)}
@@ -1444,109 +621,27 @@
 				{:else}
 					<WorldMap
 						hexes={mapHexes(game)}
-						targets={mapTargets}
-						selected={mapPick}
-						scores={mapScores}
-						{preview}
+						targets={promptState.targets}
+						selected={promptState.hex}
+						scores={promptState.scores}
+						preview={promptState.preview}
 						fresh={moved.hexes}
-						onWorldMapSelect={mapSelectHandler} />
+						onWorldMapSelect={(
+							/** @type {ComponentEvent} */ event
+						) => promptState.selectHex(event.value.hex)} />
 				{/if}
 			</div>
-			{#if paying && chosenAdvance && selected && advancePick && advanceSelection}
-				<DecisionPanel
-					centred
-					title="Advance to {TRACKS[selected.track][selected.space]
-						.name}"
-					status={pickStatus(advancePick, advanceSelection, held)
-						.text}
-					track={selected.track}
-					confirmLabel="Advance"
-					confirmDisabled={advanceIndex === -1 || sending}
-					cancelLabel="Cancel"
-					onDecisionPanelConfirm={advanceHandler}
-					onDecisionPanelCancel={() => {
-						paying = false;
-						selected = null;
-						advanceChoice = { rows: [], items: [] };
-					}}>
-					<div class="rg-game--picks">
-						<p class="rg-game--lead">{advancePick.lead}</p>
-						<ResourceRows
-							rows={rowView(advancePick, advanceSelection, held)}
-							disabled={sending}
-							onResourceRowsPick={advancePickHandler} />
-					</div>
-				</DecisionPanel>
-			{:else if prompt}
-				<DecisionPanel
-					docked={docked && !centred}
-					{centred}
-					title={prompt.title}
-					track={prompt.track}
-					tone={prompt.income ? 'income' : 'default'}
-					steps={prompt.income ? incomeSteps : undefined}
-					shelf={cardPick
-						? pickShelf
-						: shelfCards.length
-							? cardShelf
-							: undefined}
-					status={pickState
-						? pickState.text
-						: tradeStep
-							? 'Choose a trade.'
-							: tradeAnswer !== -1
-								? (prompt.options[tradeAnswer]?.label ?? '')
-								: exploring
-									? ''
-									: picked !== null
-										? (prompt.options[picked]?.label ?? '')
-										: prompt.instruction}
-					statusWarn={pickState?.warn ?? false}
-					children={exploring ||
-					pickView ||
-					tradeStep ||
-					tradeAnswer !== -1 ||
-					prompt.cost ||
-					panelOptions.length
-						? promptContent
-						: undefined}
-					pinned={exploring ? explorePinned : undefined}
-					confirmLabel={pickView?.items
-						? `Pay ${pickView.items.count} ${pickNoun}${pickView.items.count > 1 ? 's' : ''}`
-						: pickView || tradeAnswer !== -1
-							? 'Confirm'
-							: prompt.confirmLabel}
-					confirmDisabled={pickView
-						? pickIndex === -1 || sending
-						: tradeStep
-							? true
-							: tradeAnswer !== -1
-								? sending
-								: picked === null || sending}
-					cancelLabel={prompt.trade && tradeOffer !== null
-						? 'Back'
-						: (pickView || tradeStep) && declineIndex >= 0
-							? 'Decline'
-							: docked && mapPick && !exploring
-								? 'Choose another territory'
-								: undefined}
-					onDecisionPanelConfirm={pickView || tradeAnswer !== -1
-						? pickConfirmHandler
-						: promptConfirmHandler}
-					onDecisionPanelCancel={() => {
-						if (prompt?.trade && tradeOffer !== null) {
-							tradeOffer = null;
-							selection = { rows: [], items: [] };
-						} else if (
-							(pickView || tradeStep) &&
-							declineIndex >= 0
-						) {
-							declineHandler();
-						} else {
-							mapPick = null;
-							picked = null;
-						}
-					}} />
+			{#if promptState.panel !== 'none'}
+				<DecisionPrompt
+					state={promptState}
+					code={room.code}
+					onDecisionPromptAdvance={(
+						/** @type {ComponentEvent} */ event
+					) => advanceHandler(event.value)}
+					onDecisionPromptCancel={() => (selected = null)}
+					onDecisionPromptInspect={(
+						/** @type {ComponentEvent} */ event
+					) => (inspected = event.value)} />
 			{:else if noticeOpen && notice}
 				<IncomeNotice
 					resources={notice.resources}
@@ -1570,26 +665,22 @@
 		<aside
 			class="rg-game--private"
 			aria-label="Your player area"
-			inert={overviewOpen}>
+			inert={layers.overview}>
 			{#if seat !== null && summary}
 				<PlayerTabs
 					{game}
 					{seat}
 					code={room.code}
 					bind:tab
-					{placement}
+					placement={promptState.placement}
 					fresh={{ plots: moved.plots, landmarks: moved.landmarks }}
 					onPlayerTabsPlace={placeHandler}
-					tilePick={exploring
-						? { tiles: offeredTiles, selected: exploreTile }
-						: pickView?.items?.kind === 'territory' && picks
-							? {
-									tiles: pickView.items.ids.map(Number),
-									selected: picks.items.map(Number),
-									disabled: pickBlocked.map(Number),
-								}
-							: null}
-					onPlayerTabsPick={tilePickHandler}
+					tilePick={promptState.tilePick}
+					onPlayerTabsPick={(/** @type {ComponentEvent} */ event) =>
+						promptState.pickTile(event.value.tile)}
+					civPick={promptState.civPick}
+					onPlayerTabsSpot={(/** @type {ComponentEvent} */ event) =>
+						promptState.selectSpot(event.value)}
 					onPlayerTabsInspect={(
 						/** @type {ComponentEvent} */ event
 					) => (inspected = event.value)} />
@@ -1602,146 +693,55 @@
 			{#if summary}
 				<SelfSummary
 					{...summary}
-					resources={shownResources}
-					changed={changedResources} />
+					resources={promptState.resources}
+					changed={promptState.changed} />
 			{/if}
 		</aside>
-		{#if overviewOpen}
+		{#if layers.overview}
 			<PlayersOverview
 				{game}
 				{seat}
 				host={room.host}
 				code={room.code}
-				player={overviewPlayer} />
+				player={layers.player} />
 		{/if}
-		{#if (logOpen || logPeek) && !overviewOpen}
+		{#if (layers.log || logPeek) && !layers.overview}
 			<LogPanel
 				{game}
 				{seat}
 				bind:tab={logTab}
 				onLogPanelClose={() => {
-					logOpen = false;
+					layers = closeLayer(layers, 'log');
 					logPeek = false;
 				}} />
 		{/if}
-		{#if settingsOpen}
+		{#if layers.settings}
 			<TableSettings
 				{store}
-				onTableSettingsClose={() => (settingsOpen = false)} />
+				onTableSettingsClose={() =>
+					(layers = closeLayer(layers, 'settings'))} />
 		{/if}
-		{#if rulesOpen}
+		{#if layers.rules}
 			<RulesPanel
 				bind:tab={rulesTab}
-				onRulesPanelClose={() => (rulesOpen = false)} />
+				onRulesPanelClose={() =>
+					(layers = closeLayer(layers, 'rules'))} />
 		{/if}
 	</div>
 
-	{#if overviewOpen}
-		<OverviewCloseBar
-			onOverviewCloseBarClick={() => (overviewOpen = false)} />
-	{:else if game.phase === 'over'}
-		<TurnBar
-			tone="neutral"
-			label="Game complete"
-			heading="The game is complete."
-			detail="The board as the game ended.">
-			{#snippet actions()}
-				<Button
-					mode="gold"
-					onButtonClick={(/** @type {ComponentEvent} */ event) =>
-						onGameResults?.(event)}>Results</Button>
-			{/snippet}
-		</TurnBar>
-	{:else if turnDecision?.kind === 'chooseTurn' && incomeAsk}
-		<TurnBar
-			tone="neutral"
-			heading="Take an income turn?"
-			detail={incomeDescription}
-			actions={incomeAskActions} />
-	{:else if turnDecision && trackAsk}
-		<TurnBar
-			tone="neutral"
-			heading="Advance on which track?"
-			detail="Press its number, or Esc to go back."
-			actions={trackAskActions} />
-	{:else if turnDecision && onlyIncome}
-		<TurnBar
-			tone="neutral"
-			heading="You can't pay for any advance, so take an income turn."
-			detail={incomeDescription}
-			actions={noticeOpen ? undefined : forcedIncomeAction} />
-	{:else if turnDecision && selected}
-		<TurnBar
-			tone="selected"
-			heading="Advance to"
-			properName={TRACKS[selected.track][selected.space].name}
-			track={selected.track}
-			detail={spaceWords(selected.track, selected.space)}
-			cost={priceSymbols(selected.track, selected.space)}
-			income={turnDecision.kind === 'chooseTurn' && !noticeOpen
-				? { description: incomeDescription, label: 'Take income' }
-				: null}
-			onTurnBarIncome={incomeAskHandler}>
-			{#snippet actions()}
-				<Button
-					mode="primary"
-					disabled={!chosenAdvance || sending || paying}
-					title={!chosenAdvance
-						? "You can't advance there now."
-						: paying
-							? 'Pick the payment in the panel.'
-							: undefined}
-					onButtonClick={advanceHandler}>Advance</Button>
-			{/snippet}
-		</TurnBar>
-	{:else if turnDecision}
-		<TurnBar
-			tone="neutral"
-			heading={available.length
-				? 'Choose a space to advance to, or take income.'
-				: 'Take an income turn.'}
-			detail={available.length
-				? 'The spaces you can pay for are outlined in green.'
-				: undefined}
-			income={turnDecision.kind === 'chooseTurn' && !noticeOpen
-				? { description: incomeDescription, label: 'Take income' }
-				: null}
-			onTurnBarIncome={incomeAskHandler} />
-	{:else if prompt?.income}
-		<TurnBar
-			tone="income"
-			label="Your income turn"
-			heading="Income turn {prompt.income.turn}{incomeStepLabel
-				? ` · ${incomeStepLabel}`
-				: ''}"
-			detail={prompt.income.turn === 1
-				? 'Every player’s first turn is an income turn.'
-				: undefined} />
-	{:else if promptDecision}
-		<TurnBar
-			tone="neutral"
-			label="Your decision"
-			heading={decisionTurnHeading(game, seat)} />
-	{:else if game.phase === 'setup'}
-		<TurnBar
-			tone="waiting"
-			label="Setting up"
-			heading="Waiting for the others to choose." />
-	{:else if currentSeat}
-		<TurnBar
-			tone="waiting"
-			label={asked.length && !asked.includes(currentSeat.seat)
-				? `Waiting for ${nameOf(asked[0])}`
-				: `${currentSeat.name}’s turn`}
-			labelColor={playerColor(
-				asked.length && !asked.includes(currentSeat.seat)
-					? asked[0]
-					: currentSeat.seat
-			)}
-			heading={asked.length && !asked.includes(currentSeat.seat)
-				? `${nameOf(asked[0])} is deciding.`
-				: takingTurnWords(game, currentSeat.seat, currentSeat.name)} />
-	{/if}
+	<TurnFooter
+		view={footer}
+		{sending}
+		onTurnFooterIncomeAsk={incomeAskHandler}
+		onTurnFooterIncome={incomeHandler}
+		onTurnFooterAdvance={() => advanceHandler()}
+		onTurnFooterTrack={(/** @type {ComponentEvent} */ event) =>
+			trackPickHandler(event.value)}
+		onTurnFooterCancel={clearQuestion}
+		onTurnFooterResults={(/** @type {ComponentEvent} */ event) =>
+			onGameResults?.(event)}
+		onTurnFooterOverviewClose={() =>
+			(layers = closeLayer(layers, 'overview'))} />
 </div>
 
 <style>
@@ -1813,25 +813,7 @@
 		inset: 0;
 		display: grid;
 		place-items: center;
-		background: color-mix(in srgb, var(--ink) 52%, transparent);
-		pointer-events: none;
-	}
-
-	/* The log button carries a gold dot while the log has entries the viewer hasn't seen. */
-	.rg-game--log-button {
-		position: relative;
-		display: inline-flex;
-	}
-
-	.rg-game--unread {
-		position: absolute;
-		top: 5px;
-		right: 5px;
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background: var(--gold);
-		box-shadow: 0 0 0 var(--border) var(--chrome);
+		background: var(--scrim);
 		pointer-events: none;
 	}
 
@@ -1839,82 +821,6 @@
 		margin: 0;
 		padding: var(--space-9) 22px;
 		color: var(--muted);
-	}
-
-	.rg-game--options {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-5);
-		max-height: 340px;
-		overflow: auto;
-	}
-
-	/* A pick prompt's content (#75): the lead, the resource rows, then the cards' or tiles' count and the tiles. */
-	.rg-game--picks {
-		display: grid;
-		gap: var(--space-6);
-	}
-
-	/* A payment's tiles wrap three to a row, favouring height (owner, #75). */
-	.rg-game--picks :global(.rg-game--pick-tiles) {
-		max-width: calc(3 * 88px + 2 * var(--space-3));
-	}
-
-	/* A trade's offers (#75), two columns of three. */
-	.rg-game--trades {
-		display: grid;
-		grid-template-rows: repeat(3, auto);
-		grid-template-columns: repeat(2, 1fr);
-		grid-auto-flow: column;
-		gap: var(--space-4);
-	}
-
-	.rg-game--trades :global(.rg-decision-option:disabled) {
-		opacity: 0.35;
-		cursor: default;
-	}
-
-	/* The explore's content (#74): the lead and the tile row, then (pinned) what is chosen and the turn control. */
-	.rg-game--explore {
-		display: grid;
-		gap: var(--space-6);
-	}
-
-	.rg-game--lead,
-	.rg-game--label,
-	.rg-game--chosen {
-		margin: 0;
-	}
-
-	.rg-game--lead {
-		color: var(--muted);
-		font-size: var(--font-size-md);
-	}
-
-	.rg-game--label {
-		color: var(--muted);
-		font-size: var(--font-size-xs);
-		font-weight: var(--weight-bold);
-		letter-spacing: var(--letter-spacing-caps);
-		text-transform: uppercase;
-	}
-
-	.rg-game--chosen {
-		color: var(--text);
-		font-size: var(--font-size-md);
-	}
-
-	/* Words for screen readers only. */
-	.rg-game--spoken {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-	}
-
-	.rg-game--shared :global(.rg-game--cost) {
-		margin-bottom: var(--space-6);
 	}
 
 	/* A shelf card shown in full beside the shelf, at the left, so the shelf and its focus stay in sight (#28 review). */

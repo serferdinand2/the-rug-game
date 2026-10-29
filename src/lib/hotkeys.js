@@ -1,4 +1,5 @@
 // The game's hotkeys (#83): which action a key asks for on the game screen, given what the screen can do now.
+import { TRACK_IDS } from './engine/data/ids.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 
@@ -18,7 +19,7 @@
 
 /**
  * The action a key asks for.
- * @typedef {{ type: 'income' | 'incomeConfirm' | 'advance' | 'confirm' | 'undo' | 'log' | 'help' | 'keys' | 'cancel' }
+ * @typedef {{ type: 'income' | 'incomeConfirm' | 'advance' | 'confirm' | 'undo' | 'log' | 'help' | 'keys' }
  *   | { type: 'track', track: TrackId }
  *   | { type: 'board', board: 'tracks' | 'map' }
  *   | { type: 'tab', tab: string }
@@ -26,18 +27,23 @@
  *   | { type: 'turn', step: 1 | -1 }} HotkeyAction
  */
 
-/** The tracks in the board's order, which the track question numbers from 1; the arts track (#35) will be 5. */
-export const TRACK_KEYS = Object.freeze(
-	/** @type {TrackId[]} */ ([
-		'exploration',
-		'science',
-		'technology',
-		'military',
-	])
-);
+/**
+ * What the screen knows about a key press, read from the event and its target (#88).
+ * @typedef {Object} KeyFacts
+ * @property {string} key - KeyboardEvent.key
+ * @property {boolean} modified - Ctrl, Alt or Cmd is held, for a browser shortcut
+ * @property {boolean} taken - A component already handled it
+ * @property {boolean} typing - It was typed into a field or editable text
+ * @property {boolean} inMenu - It was pressed in an open menu
+ * @property {boolean} inModal - It was pressed in a modal dialog
+ * @property {boolean} onControl - It was pressed on a control rather than the page, where Enter presses that control
+ */
 
-/** The player tabs in order, on the keyboard's top row (owner). */
-const TAB_KEYS = Object.freeze({
+/** The engine's tracks in board order, which the track question numbers from 1; the arts track (#35) will be 5. */
+export const TRACK_KEYS = TRACK_IDS;
+
+/** The player tabs in order, on the keyboard's top row (owner); shortcuts.js lists them from here. */
+export const TAB_KEYS = Object.freeze({
 	q: 'capital',
 	w: 'hand',
 	e: 'income',
@@ -66,9 +72,6 @@ export function hotkeyAction(key, context) {
 		board = 'tracks',
 		exploring = false,
 	} = context;
-	if (key === 'Escape') {
-		return confirming || asking ? { type: 'cancel' } : null;
-	}
 	if (key === 'Enter') {
 		return confirming ? { type: 'incomeConfirm' } : { type: 'confirm' };
 	}
@@ -113,4 +116,31 @@ export function hotkeyAction(key, context) {
 		default:
 			return null;
 	}
+}
+
+/**
+ * Whether the game screen takes a key at all (#88). A modifier, a component, a field, a menu or a modal keeps its keys,
+ * Escape included; How to play and Table settings keep every key but Escape, which closes the layer on top; Enter on
+ * a control presses that control.
+ * @param {KeyFacts} facts
+ * @param {import('./layers.js').Layers} layers
+ * @returns {boolean}
+ */
+export function hotkeyGate(facts, layers) {
+	if (
+		facts.modified ||
+		facts.taken ||
+		facts.typing ||
+		facts.inMenu ||
+		facts.inModal
+	) {
+		return false;
+	}
+	if (facts.key === 'Escape') {
+		return true;
+	}
+	if (layers.rules || layers.settings) {
+		return false;
+	}
+	return !(facts.key === 'Enter' && facts.onControl);
 }

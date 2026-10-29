@@ -28,6 +28,7 @@
 	import { capitalView } from '../../lib/area/capital.js';
 	import { playerCards } from '../../lib/area/players.js';
 	import { techCardData } from '../../lib/cards/game-cards.js';
+	import { CARD_CIVS, civCardView } from '../../lib/civ-card.js';
 
 	/** @typedef {import('../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
@@ -52,23 +53,17 @@
 	);
 	/** @type {'rows' | 'columns' | 'districts' | null} */
 	let highlight = $state(null);
-
-	/** @type {HTMLDivElement | undefined} */
-	let element = $state();
-	// Opening the overview takes the focus to its first card (#27 review).
-	$effect(() => {
-		element?.querySelector('button')?.focus();
-	});
 </script>
 
 <div
-	bind:this={element}
 	{...attr}
 	class="rg-players-overview {attr.class ? attr.class : ''}">
 	<div class="rg-players-overview--cards">
-		{#each cards as card (card.seat)}
+		{#each cards as card, index (card.seat)}
+			<!-- Opening the overview takes the focus to its first card (#27 review). -->
 			<PlayerCard
 				{...card}
+				autofocus={index === 0}
 				selected={open?.seat === card.seat ? open.row : null}
 				onPlayerCardSelect={(/** @type {ComponentEvent} */ event) => {
 					open =
@@ -115,9 +110,13 @@
 			{/if}
 		{:else if open.row === 'civilization'}
 			{#each openSeat.civs as civ (civ)}
+				<!-- Each player's card as it stands, to look at only (#78). -->
 				<CivilizationCard
 					id={civ}
-					state="empty" />
+					seat={openSeat.seat}
+					live={CARD_CIVS.includes(civ)
+						? civCardView(game, openSeat.seat, civ)
+						: null} />
 			{:else}
 				<p class="rg-players-overview--waiting">No civilization yet</p>
 			{/each}

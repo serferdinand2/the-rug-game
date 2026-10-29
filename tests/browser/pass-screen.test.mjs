@@ -190,3 +190,62 @@ test("a hot-seat table asks for a seat's view only after its player takes the sc
 		await api(request, 'leave', {}, token);
 	}
 });
+
+test("the asked player's clock counts down on the pass screen, then in the game header (#89)", async ({
+	page,
+	request,
+}) => {
+	const { token } = await api(request, 'login', { name: NAMES[0] });
+	let room = await api(
+		request,
+		'create',
+		{ options: { mode: 'hotseat' } },
+		token
+	);
+	room = await api(
+		request,
+		'add-seat',
+		{ version: room.version, name: NAMES[1] },
+		token
+	);
+	room = await api(
+		request,
+		'settings',
+		{ version: room.version, timer: 5 },
+		token
+	);
+	await api(request, 'start', { version: room.version }, token);
+
+	try {
+		await page.addInitScript(
+			(saved) => sessionStorage.setItem('rg-token', saved),
+			token
+		);
+		await page.goto('/');
+		const name = NAMES[(await askedNow(request, token)).seat - 1];
+		await expect(
+			page.getByRole('heading', { name: `Pass the screen to ${name}` })
+		).toBeVisible();
+
+		// TurnClock titles itself with its player's name and the time left, which ticks down.
+		const passClock = page.getByTitle(new RegExp(`^${name}: \\d+:\\d\\d$`));
+		await expect(passClock).toBeVisible();
+		const passed = await passClock.getAttribute('title');
+		await expect(passClock).not.toHaveAttribute('title', String(passed));
+
+		await page.getByRole('button', { name: `I'm ${name}` }).click();
+		await expect(page.locator('.rg-game')).toBeVisible();
+		const headerClock = page
+			.locator('.rg-game')
+			.getByTitle(new RegExp(`^${name}: \\d+:\\d\\d$`));
+		await expect(headerClock).toBeVisible();
+		const shown = await headerClock.getAttribute('title');
+		await expect(headerClock).not.toHaveAttribute('title', String(shown));
+	} finally {
+		const latest = await api(request, 'state', undefined, token);
+		if (latest.phase === 'playing') {
+			await api(request, 'end', { version: latest.version }, token);
+		}
+		await api(request, 'leave', {}, token);
+	}
+});

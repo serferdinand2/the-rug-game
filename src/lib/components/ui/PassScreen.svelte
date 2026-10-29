@@ -33,8 +33,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { ComponentEvent } from '../../component-event.js';
-	import { formatClock } from '../../clock.js';
-	import { PLAYER_ART_COLORS, playerColor } from '../../ui.js';
+	import { playerColor } from '../../ui.js';
 	import PlayerToken from '../player/PlayerToken.svelte';
 	import Button from './Button.svelte';
 	import TurnClock from './TurnClock.svelte';
@@ -54,12 +53,6 @@
 	} = $props();
 
 	const uid = $props.id();
-	/** The token's artwork colour for the seat. */
-	const color = $derived(
-		/** @type {'blue' | 'red' | 'green' | 'yellow' | 'purple'} */ (
-			PLAYER_ART_COLORS[seat - 1]
-		)
-	);
 	/** Whether the button answers yet. */
 	let armed = $state(false);
 	/** @type {HTMLHeadingElement | undefined} */
@@ -109,7 +102,7 @@
 		<span class="rg-pass-screen--lead">Pass the screen to</span>
 		<span class="rg-pass-screen--who">
 			<PlayerToken
-				{color}
+				{seat}
 				size={48}
 				decorative />
 			<span class="rg-pass-screen--name">{name}</span>
@@ -119,9 +112,9 @@
 	{#if clockMs !== null}
 		<TurnClock
 			{seat}
+			{name}
 			ms={clockMs}
-			running={clockRunning}
-			title="{name}: {formatClock(clockMs)}" />
+			running={clockRunning} />
 	{/if}
 	<Button
 		mode="gold"
@@ -201,11 +194,6 @@
 		color: var(--muted);
 		font: var(--weight-regular) var(--font-size-sm) / var(--leading-normal)
 			var(--font-body);
-	}
-
-	.rg-pass-screen :global(.rg-pass-screen--take[aria-disabled='true']) {
-		opacity: 0.6;
-		cursor: default;
 	}
 
 	@keyframes rg-pass-screen-in {

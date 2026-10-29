@@ -18,19 +18,18 @@
 
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
-	import { RESOURCES } from '../../ui.js';
+	import { amountWords } from '../../words.js';
+	import { resourceName } from '../../game-names.js';
 
 	/** @type {ResourceChipProps} */
 	let { resource, count, ...attr } = $props();
 
-	let name = $derived(
-		RESOURCES.find((item) => item.id === resource)?.name ?? resource
-	);
+	let name = $derived(resourceName(resource));
 </script>
 
 <span
 	role="img"
-	aria-label="{count} {resource}"
+	aria-label={amountWords(resource, count)}
 	title={name}
 	{...attr}
 	class="rg-resource-chip {attr.class ? attr.class : ''}">

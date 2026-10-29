@@ -16,6 +16,7 @@
 	import { rollsOf } from './lib/dice.js';
 	import { createApi } from './lib/api.js';
 	import { createStore } from './lib/game.svelte.js';
+	import { randomInt, safeStorage } from './lib/storage.js';
 	import HelpPanel from './screens/HelpPanel.svelte';
 	import Game from './screens/Game.svelte';
 	import HandOver from './screens/HandOver.svelte';
@@ -28,53 +29,23 @@
 	/** @type {AppProps} */
 	let { ...attr } = $props();
 
-	/**
-	 * The browser's storage, or one that forgets, where a private window refuses it.
-	 * @param {() => Storage} get
-	 * @returns {import('./lib/api.js').SessionStore}
-	 */
-	function storage(get) {
-		try {
-			const store = get();
-			store.getItem('rg-check');
-			return store;
-		} catch {
-			/** @type {Map<string, string>} */
-			const items = new Map();
-			return {
-				getItem: (key) => items.get(key) ?? null,
-				setItem: (key, value) => {
-					items.set(key, value);
-				},
-				removeItem: (key) => {
-					items.delete(key);
-				},
-			};
-		}
-	}
-
-	/**
-	 * @param {number} n
-	 * @returns {number} A whole number from 0 to n − 1
-	 */
-	function random(n) {
-		return crypto.getRandomValues(new Uint32Array(1))[0] % n;
-	}
-
 	const store = createStore({
 		api: createApi({
 			base: '/api/',
 			fetch: window.fetch.bind(window),
-			storage: storage(() => sessionStorage),
+			storage: safeStorage(() => sessionStorage),
 		}),
-		random,
-		prefs: storage(() => localStorage),
+		random: randomInt,
+		prefs: safeStorage(() => localStorage),
+		session: safeStorage(() => sessionStorage),
 		copy: (text) => navigator.clipboard.writeText(text),
 	});
 
 	let helpOpen = $state(false);
 	/** Whether a finished game's board is on show instead of its results (#29 design §6). */
 	let reviewing = $state(false);
+	/** What the game screen has open over its board, which the dice tray rolls clear of (#61, #79). */
+	let gamePanel = $state(/** @type {'none' | 'panel' | 'shelf'} */ ('none'));
 
 	/** The table and deal on show: a key that changes only with a new deal or another table, not with every room view. */
 	let dealKey = $derived(
@@ -96,10 +67,7 @@
 			if (!store.sound || store.fresh.length === 0) {
 				return;
 			}
-			const cue = cueFor(
-				store.fresh,
-				store.room?.mode === 'hotseat' ? null : store.seat
-			);
+			const cue = cueFor(store.fresh, store.viewer);
 			if (cue) {
 				sound.play(cue);
 			}
@@ -107,14 +75,12 @@
 	});
 
 	/**
-	 * The menu outside the game screen: How to play, About this project, or, on the pass screen, Leave table.
+	 * The menu outside the game screen: How to play or About this project. PageHeader leaves the table itself.
 	 * @param {import('./lib/component-event.js').ComponentEvent} event
 	 */
 	const menuHandler = (event) => {
 		if (event.value === 'help') {
 			helpOpen = true;
-		} else if (event.value === 'leave') {
-			store.leaveTable();
 		} else {
 			store.notify(
 				'A browser game of civilizations rising through the eras, inspired by Tapestry.'
@@ -144,27 +110,21 @@
 			onResultsHelp={() => (helpOpen = true)} />
 	{:else if store.passing !== null && store.room?.game}
 		<PageHeader
-			sound={store.sound}
-			items={[
-				{ id: 'help', label: 'How to play' },
-				{ id: 'leave', label: 'Leave table' },
-			]}
-			onPageHeaderSound={(/** @type {any} */ event) =>
-				store.setSound(event.value)}
+			{store}
+			menu="passing"
 			onPageHeaderMenu={menuHandler} />
 		<HandOver {store} />
 	{:else if store.room && store.room.phase !== 'lobby'}
 		<Game
 			{store}
+			bind:panel={gamePanel}
 			onGameResults={() => (reviewing = false)} />
 	{:else}
 		<PageHeader
 			title={store.screen === 'landing'
 				? 'Build a civilization that stands the test of time'
 				: undefined}
-			sound={store.sound}
-			onPageHeaderSound={(/** @type {any} */ event) =>
-				store.setSound(event.value)}
+			{store}
 			onPageHeaderMenu={menuHandler} />
 		{#if store.screen === 'loading'}
 			<main class="rg-app--loading"></main>
@@ -178,12 +138,9 @@
 	     hot-seat table the whole table shares the screen, so the caption names the roller rather than "You". -->
 	{#if store.room?.game}
 		<DiceTray
-			rolls={rollsOf(
-				store.fresh,
-				store.room.game,
-				store.room.mode === 'hotseat' ? null : store.seat
-			)}
-			batch={store.freshCount} />
+			rolls={rollsOf(store.fresh, store.room.game, store.viewer)}
+			batch={store.freshCount}
+			panel={gamePanel} />
 	{/if}
 	<Toast
 		message={store.toast}

@@ -1,7 +1,8 @@
 // The game's hotkeys (#83): each key's action in each context of the game screen.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { hotkeyAction } from '../src/lib/hotkeys.js';
+import { hotkeyAction, hotkeyGate } from '../src/lib/hotkeys.js';
+import { NO_LAYERS } from '../src/lib/layers.js';
 
 /** A turn on which everything is possible. */
 const OPEN = {
@@ -22,7 +23,6 @@ test('I asks before taking income, and I or Enter then confirms it (#83, owner)'
 	assert.deepEqual(hotkeyAction('Enter', confirming), {
 		type: 'incomeConfirm',
 	});
-	assert.deepEqual(hotkeyAction('Escape', confirming), { type: 'cancel' });
 });
 
 test('A asks which track, and 1 to 4 answer in the board order (#83, owner)', () => {
@@ -55,7 +55,6 @@ test('A asks which track, and 1 to 4 answer in the board order (#83, owner)', ()
 		hotkeyAction('2', { ...asking, tracks: ['exploration'] }),
 		null
 	);
-	assert.deepEqual(hotkeyAction('Escape', asking), { type: 'cancel' });
 });
 
 test('1 to 5 open the players overview on a player, outside the track question (#83, owner)', () => {
@@ -116,4 +115,60 @@ test('the other keys: Z, L, H, K, Enter, and comma and full stop while exploring
 	});
 	assert.equal(hotkeyAction('Escape', OPEN), null);
 	assert.equal(hotkeyAction('x', OPEN), null);
+});
+
+test('Escape is no hotkey: the screen closes the layer on top instead (#88)', () => {
+	assert.equal(hotkeyAction('Escape', OPEN), null);
+	assert.equal(hotkeyAction('Escape', { ...OPEN, confirming: true }), null);
+	assert.equal(hotkeyAction('Escape', { ...OPEN, asking: true }), null);
+});
+
+/** A key pressed on the page itself, with nothing else holding it. */
+const PLAIN = {
+	key: 'i',
+	modified: false,
+	taken: false,
+	typing: false,
+	inMenu: false,
+	inModal: false,
+	onControl: false,
+};
+
+test('the screen takes a key pressed on the page with nothing open (#88)', () => {
+	assert.equal(hotkeyGate(PLAIN, NO_LAYERS), true);
+	assert.equal(hotkeyGate({ ...PLAIN, key: 'Escape' }, NO_LAYERS), true);
+	assert.equal(hotkeyGate({ ...PLAIN, key: 'Enter' }, NO_LAYERS), true);
+});
+
+test('a modifier, a component, a field, a menu or a modal keeps its keys, Escape too (#88)', () => {
+	for (const fact of ['modified', 'taken', 'typing', 'inMenu', 'inModal']) {
+		for (const key of ['i', 'Escape']) {
+			assert.equal(
+				hotkeyGate({ ...PLAIN, key, [fact]: true }, NO_LAYERS),
+				false,
+				`${fact} ${key}`
+			);
+		}
+	}
+});
+
+test('How to play and Table settings keep every key but Escape, and Enter presses the control it is on (#88)', () => {
+	for (const layer of ['rules', 'settings']) {
+		const open = { ...NO_LAYERS, [layer]: true };
+		assert.equal(hotkeyGate(PLAIN, open), false, layer);
+		assert.equal(
+			hotkeyGate({ ...PLAIN, key: 'Escape' }, open),
+			true,
+			layer
+		);
+	}
+	assert.equal(
+		hotkeyGate({ ...PLAIN, key: 'Enter', onControl: true }, NO_LAYERS),
+		false
+	);
+	assert.equal(hotkeyGate({ ...PLAIN, onControl: true }, NO_LAYERS), true);
+	assert.equal(
+		hotkeyGate({ ...PLAIN, key: 'Escape', onControl: true }, NO_LAYERS),
+		true
+	);
 });

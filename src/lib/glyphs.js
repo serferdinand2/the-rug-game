@@ -1,9 +1,11 @@
 // The symbols a track space shows for its benefit and bonus (#59): resources, buildings and tracks as their approved
 // art, and the game symbols that have no art yet (tiles, cards, explore, conquer, VP) as short words, as #5 decided.
+import { BUILDING_IDS, TRACK_IDS } from './engine/data/ids.js';
+import { RESOURCE_ORDER } from './ui.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 /** @typedef {import('./ui.js').CostSymbol} CostSymbol */
-/** @typedef {'market' | 'house' | 'farm' | 'armory'} BuildingId */
+/** @typedef {import('./engine/data/ids.js').BuildingId} BuildingId */
 
 /**
  * One symbol on a track space. A count of 1 draws no count; `cross` marks a benefit taken without its own benefit,
@@ -25,20 +27,14 @@
  * @property {Glyph[]} gain
  */
 
-/** The resources in the order the words list them (describe.js), then a resource of any type. */
+/** The resources in the order the screens list them, then a resource of any type. */
 const RESOURCES = /** @type {readonly CostSymbol[]} */ ([
-	'coin',
-	'food',
-	'worker',
-	'culture',
+	...RESOURCE_ORDER,
 	'any',
 ]);
 
 /** @type {readonly BuildingId[]} */
-const BUILDINGS = ['market', 'house', 'farm', 'armory'];
-
-/** @type {readonly TrackId[]} */
-const TRACK_IDS = ['exploration', 'science', 'technology', 'military'];
+const BUILDINGS = BUILDING_IDS;
 
 /** The words for the things gained, paid or counted that have no art yet. */
 const NOUNS = /** @type {Readonly<Record<string, string>>} */ ({

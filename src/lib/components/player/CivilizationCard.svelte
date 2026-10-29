@@ -1,14 +1,27 @@
-<!-- CivilizationCard: an extracted owner-reviewed card pattern. -->
+<!-- CivilizationCard: an extracted owner-reviewed card pattern; six cards draw a seat's live state and take its choices (#78). -->
 <script module>
 	/**
 	 * @typedef {Object} CivilizationCardOwnProps
 	 * @property {string} [id] - Civilization slug; one without a reviewed layout shows its frame, portrait and name only
-	 * @property {'empty' | 'play'} [state] - Starting state or labelled illustration
+	 * @property {'empty' | 'play'} [state] - Starting state or labelled illustration; the six card civilizations draw
+	 *   their play illustration from `SAMPLE_CIV_DATA`
+	 * @property {import('../../civ-card.js').CivCardView | null} [live=null] - A seat's live state, from `civCardView`:
+	 *   the six card civilizations (`CARD_CIVS`) draw its marks in the play state instead of the illustration, and its
+	 *   choices as buttons; the other civilizations ignore it
+	 * @property {import('../../ui.js').Seat} [seat] - The card's player, whose colour its tokens take
+	 * @property {string | null} [selected=null] - The spot the player has picked among `live.choices`, drawn in gold
+	 * @property {Function} [onCivilizationCardPick] - Callback fired with the spot id when a spot the decision offers is pressed
 	 */
 	/**
 	 * @typedef {CivilizationCardOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} CivilizationCardProps
 	 * @example
 	 * <CivilizationCard />
+	 * <CivilizationCard
+	 *   id="entertainers"
+	 *   live={civCardView(game, 2, 'entertainers', decision)}
+	 *   seat={2}
+	 *   selected="c2r1"
+	 *   onCivilizationCardPick={(event) => pick(event.value)} />
 	 */
 </script>
 
@@ -27,10 +40,18 @@
 	import CardTerrainRewards from './CardTerrainRewards.svelte';
 	import CardTokenReserve from './CardTokenReserve.svelte';
 	import PlayerToken from './PlayerToken.svelte';
-	import { civilizationName } from '../../describe.js';
-	import { ASSETS, EXPANSIONS } from '../../art/catalog.js';
+	import { civilizationName, expansionName } from '../../game-names.js';
+	import { playerColor } from '../../ui.js';
+	import { ASSETS } from '../../art/catalog.js';
 	import '../../engine/game.js';
 	import { entertainersMoves } from '../../engine/civs/entertainers.js';
+	import {
+		CARD_CIVS,
+		PREDICTIONS,
+		SAMPLE_CIV_DATA,
+		civCardMarks,
+	} from '../../civ-card.js';
+	import { ComponentEvent } from '../../component-event.js';
 
 	/** The Entertainers' links, drawn from the engine's own moves (R28), so the card never shows a link it refuses. */
 	const ENTERTAINER_ROW_Y = [37.5, 119.5, 201.5, 283.5];
@@ -49,20 +70,152 @@
 			)
 			.join(' ')
 	);
-	/** @type {CivilizationCardProps} */
-	let { id = 'collectors', state = 'empty', ...attr } = $props();
-	const edition = $derived(
-		EXPANSIONS.find(
-			(entry) =>
-				entry.code ===
-				ASSETS.find((asset) => asset.id === `civ/${id}`)?.expansion
-		)?.name ?? 'Base game'
+	/** The Entertainers' grid by row, as the card reads it: a resource, a building, an action and an advance. */
+	const ENTERTAINER_ROWS = [
+		{
+			row: 1,
+			resource: /** @type {const} */ ('worker'),
+			building: 'farm',
+			name: 'Farm',
+			action: 'Conquer',
+			advance: 'Advance Technology',
+		},
+		{
+			row: 2,
+			resource: /** @type {const} */ ('culture'),
+			building: 'market',
+			name: 'Market',
+			action: 'Research without benefit or bonus',
+			advance: 'Advance Exploration',
+		},
+		{
+			row: 3,
+			resource: /** @type {const} */ ('food'),
+			building: 'house',
+			name: 'House',
+			action: 'Invent',
+			advance: 'Advance Military',
+		},
+		{
+			row: 4,
+			resource: /** @type {const} */ ('coin'),
+			building: 'armory',
+			name: 'Armory',
+			action: 'Explore',
+			advance: 'Advance Science',
+		},
+	];
+	/** The most each Mystics prediction can be, by category: its numbers run from 1 to it. */
+	const MYSTIC_MOST = /** @type {Record<string, number>} */ (
+		Object.fromEntries(
+			PREDICTIONS.map(({ category, most }) => [category, most])
+		)
 	);
+	/** The class each mark draws a spot with: the play illustration's own. */
+	const MARK_CLASSES = {
+		token: 'rg-card-is-current',
+		used: 'rg-card-is-used',
+		exposed: 'rg-card-is-exposed',
+		moved: 'rg-card-is-moved',
+		chosen: 'rg-card-is-selected',
+	};
+	/** @type {CivilizationCardProps} */
+	let {
+		id = 'collectors',
+		state = 'empty',
+		live = null,
+		seat,
+		selected = null,
+		onCivilizationCardPick,
+		...attr
+	} = $props();
+	/** The six card civilizations draw live state in play; their illustration is sample data drawn the same way. */
+	const cardState = $derived(live && CARD_CIVS.includes(id) ? 'play' : state);
+	const marks = $derived(
+		live
+			? live.marks
+			: state === 'play' && CARD_CIVS.includes(id)
+				? civCardMarks(id, SAMPLE_CIV_DATA[id])
+				: {}
+	);
+	const choices = $derived(live?.choices ?? {});
+	const edition = $derived(
+		expansionName(
+			ASSETS.find((asset) => asset.id === `civ/${id}`)?.expansion ??
+				'base'
+		)
+	);
+
+	/**
+	 * A CardSlot's pick, reported as the card's own.
+	 * @param {ComponentEvent} event - Its value is the spot id
+	 */
+	const slotPickHandler = (event) => {
+		if (typeof onCivilizationCardPick === 'function') {
+			onCivilizationCardPick(
+				new ComponentEvent(
+					event.value,
+					event.target,
+					event.originalEvent
+				)
+			);
+		}
+	};
+
+	/**
+	 * The class a spot draws a mark with, or nothing when the spot doesn't show it.
+	 * @param {string} spot
+	 * @param {keyof typeof MARK_CLASSES} mark
+	 * @returns {string}
+	 */
+	function marked(spot, mark) {
+		return marks[spot]?.includes(mark) ? MARK_CLASSES[mark] : '';
+	}
+
+	/**
+	 * The CardSlot props of a spot: a button when the open decision offers it, gold when it is the one picked.
+	 * @param {string} spot
+	 */
+	function spotProps(spot) {
+		return spot in choices
+			? {
+					pickable: true,
+					picked: selected === spot,
+					value: spot,
+					'data-id': `civ-spot-${spot}`,
+					onCardSlotPick: slotPickHandler,
+				}
+			: {};
+	}
 </script>
 
+{#snippet merryToken(
+	/** @type {string} */ spot
+)}{#if marked(spot, 'token')}<PlayerToken
+			{seat}
+			color="blue"
+			class="rg-card-merry-cell--token"
+			decorative />{/if}{/snippet}
+
+{#snippet mysticNumbers(/** @type {string} */ category)}
+	{#each Array.from({ length: MYSTIC_MOST[category] }, (_, index) => index + 1) as value (value)}
+		<CardSlot
+			size={39}
+			{...spotProps(`${category}:${value}`)}
+			class="rg-card-mystic-number {marked(
+				`${category}:${value}`,
+				'chosen'
+			)}">{value}</CardSlot>
+	{/each}
+{/snippet}
+
+<!-- The play look draws the player's marks in --player-1; a seat's card draws them in that seat's colour. -->
 <div
 	{...attr}
-	class="rg-civilization-card {attr.class ?? ''}">
+	class="rg-civilization-card {attr.class ?? ''}"
+	style:--player-1={seat !== undefined && seat !== 1
+		? playerColor(seat)
+		: undefined}>
 	{#if id === 'collectors'}
 		<CardFrame
 			title="Collectors"
@@ -242,7 +395,7 @@
 			portraitAlt="Leaders civilization portrait"
 			badges={['Base game']}
 			complexity={1}
-			{state}
+			state={cardState}
 			class="rg-card-frame--leaders">
 			{#snippet effect()}At the start of income turns 2–5, you may cover
 				one unused track space. Advance on that track for free and gain
@@ -251,37 +404,45 @@
 			<CardPlacementRows
 				kind="leaders"
 				as="ol">
-				<li class="rg-card-leader-track rg-card-is-used">
+				<li
+					class="rg-card-leader-track {marked(
+						'exploration',
+						'used'
+					)}">
 					<CardSlot
 						size={75}
 						label="exploration placement"
+						{...spotProps('exploration')}
 						><img
 							src="/art/track/exploration.svg"
 							alt="" /></CardSlot
 					><span>Exploration</span>
 				</li>
-				<li class="rg-card-leader-track">
+				<li class="rg-card-leader-track {marked('technology', 'used')}">
 					<CardSlot
 						size={75}
 						label="technology placement"
+						{...spotProps('technology')}
 						><img
 							src="/art/track/technology.svg"
 							alt="" /></CardSlot
 					><span>Technology</span>
 				</li>
-				<li class="rg-card-leader-track rg-card-is-used">
+				<li class="rg-card-leader-track {marked('science', 'used')}">
 					<CardSlot
 						size={75}
 						label="science placement"
+						{...spotProps('science')}
 						><img
 							src="/art/track/science.svg"
 							alt="" /></CardSlot
 					><span>Science</span>
 				</li>
-				<li class="rg-card-leader-track">
+				<li class="rg-card-leader-track {marked('military', 'used')}">
 					<CardSlot
 						size={75}
 						label="military placement"
+						{...spotProps('military')}
 						><img
 							src="/art/track/military.svg"
 							alt="" /></CardSlot
@@ -533,7 +694,7 @@
 			portraitAlt="Entertainers civilization portrait"
 			badges={['Base game']}
 			complexity={2}
-			{state}
+			state={cardState}
 			class="rg-card-frame--entertainers">
 			{#snippet effect()}At the start of income turns 2–5, move your token
 				one column right along a path and gain the space&#x27;s reward.{/snippet}
@@ -553,89 +714,51 @@
 							<path {d}></path>
 						{/each}
 					</svg>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						>+ <CardResource
-							symbol="worker"
-							class="" /></CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						><img
-							src="/art/building/farm.svg"
-							alt="" /><span>Farm</span></CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space">Conquer</CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						>Advance Technology</CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						>+ <CardResource
-							symbol="culture"
-							class="" /></CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						><img
-							src="/art/building/market.svg"
-							alt="" /><span>Market</span></CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space rg-card-is-current"
-						>Research without benefit or bonus</CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						>Advance Exploration</CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						>+ <CardResource
-							symbol="food"
-							class="" /></CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						><img
-							src="/art/building/house.svg"
-							alt="" /><span>House</span></CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space">Invent</CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						>Advance Military</CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						>+ <CardResource
-							symbol="coin"
-							class="" /></CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						><img
-							src="/art/building/armory.svg"
-							alt="" /><span>Armory</span></CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space">Explore</CardSlot>
-					<CardSlot
-						size={75}
-						class="rg-card-entertainer-space"
-						>Advance Science</CardSlot>
+					{#each ENTERTAINER_ROWS as space (space.row)}
+						<CardSlot
+							size={75}
+							{...spotProps(`c1r${space.row}`)}
+							class="rg-card-entertainer-space {marked(
+								`c1r${space.row}`,
+								'token'
+							)}"
+							>+ <CardResource
+								symbol={space.resource}
+								class="" /></CardSlot>
+						<CardSlot
+							size={75}
+							{...spotProps(`c2r${space.row}`)}
+							class="rg-card-entertainer-space {marked(
+								`c2r${space.row}`,
+								'token'
+							)}"
+							><img
+								src="/art/building/{space.building}.svg"
+								alt="" /><span>{space.name}</span></CardSlot>
+						<CardSlot
+							size={75}
+							{...spotProps(`c3r${space.row}`)}
+							class="rg-card-entertainer-space {marked(
+								`c3r${space.row}`,
+								'token'
+							)}">{space.action}</CardSlot>
+						<CardSlot
+							size={75}
+							{...spotProps(`c4r${space.row}`)}
+							class="rg-card-entertainer-space {marked(
+								`c4r${space.row}`,
+								'token'
+							)}">{space.advance}</CardSlot>
+					{/each}
 				</div>
 				<div class="rg-card-entertainer-path--start">
 					<PlayerToken
+						{seat}
 						decorative
-						class="rg-card-entertainer-path--token" /> Start at the left;
-					move one column each income turn.
+						class="rg-card-entertainer-path--token {marked(
+							'start',
+							'token'
+						)}" /> Start at the left; move one column each income turn.
 				</div>
 			</CardPathGrid>
 			<CardClarity
@@ -655,16 +778,17 @@
 			portraitAlt="Militants civilization portrait"
 			badges={['Base game']}
 			complexity={1}
-			{state}
+			state={cardState}
 			class="rg-card-frame--militants">
 			{#snippet effect()}When you conquer, take the leftmost outpost from
 				either row. At the start of every income turn, gain all
 				uncovered rewards.{/snippet}
 
 			<CardPlacementRows kind="covered">
-				<div class="rg-card-militant-space rg-card-is-exposed">
+				<div class="rg-card-militant-space {marked('top0', 'exposed')}">
 					<CardSlot
 						size={62}
+						{...spotProps('top0')}
 						class="rg-card-militant-space--slot"
 						><span class="rg-card-militant-space--gain"
 							>+ <CardResource
@@ -674,9 +798,10 @@
 							src="/art/piece/outpost.svg"
 							alt="" /></CardSlot>
 				</div>
-				<div class="rg-card-militant-space">
+				<div class="rg-card-militant-space {marked('top1', 'exposed')}">
 					<CardSlot
 						size={62}
+						{...spotProps('top1')}
 						class="rg-card-militant-space--slot"
 						><span
 							class="rg-card-militant-space--gain rg-card-militant-space--gain--vp"
@@ -685,9 +810,10 @@
 							src="/art/piece/outpost.svg"
 							alt="" /></CardSlot>
 				</div>
-				<div class="rg-card-militant-space">
+				<div class="rg-card-militant-space {marked('top2', 'exposed')}">
 					<CardSlot
 						size={62}
+						{...spotProps('top2')}
 						class="rg-card-militant-space--slot"
 						><span class="rg-card-militant-space--gain"
 							>+ <CardResource
@@ -697,9 +823,10 @@
 							src="/art/piece/outpost.svg"
 							alt="" /></CardSlot>
 				</div>
-				<div class="rg-card-militant-space">
+				<div class="rg-card-militant-space {marked('top3', 'exposed')}">
 					<CardSlot
 						size={62}
+						{...spotProps('top3')}
 						class="rg-card-militant-space--slot"
 						><span
 							class="rg-card-militant-space--gain rg-card-militant-space--gain--vp"
@@ -712,9 +839,14 @@
 					class="rg-card-militant-divider"
 					aria-hidden="true">
 				</div>
-				<div class="rg-card-militant-space rg-card-is-exposed">
+				<div
+					class="rg-card-militant-space {marked(
+						'bottom0',
+						'exposed'
+					)}">
 					<CardSlot
 						size={62}
+						{...spotProps('bottom0')}
 						class="rg-card-militant-space--slot"
 						><span
 							class="rg-card-militant-space--gain rg-card-militant-space--gain--vp"
@@ -723,9 +855,14 @@
 							src="/art/piece/outpost.svg"
 							alt="" /></CardSlot>
 				</div>
-				<div class="rg-card-militant-space rg-card-is-exposed">
+				<div
+					class="rg-card-militant-space {marked(
+						'bottom1',
+						'exposed'
+					)}">
 					<CardSlot
 						size={62}
+						{...spotProps('bottom1')}
 						class="rg-card-militant-space--slot"
 						><span class="rg-card-militant-space--gain"
 							>+ <CardResource
@@ -735,9 +872,14 @@
 							src="/art/piece/outpost.svg"
 							alt="" /></CardSlot>
 				</div>
-				<div class="rg-card-militant-space">
+				<div
+					class="rg-card-militant-space {marked(
+						'bottom2',
+						'exposed'
+					)}">
 					<CardSlot
 						size={62}
+						{...spotProps('bottom2')}
 						class="rg-card-militant-space--slot"
 						><span
 							class="rg-card-militant-space--gain rg-card-militant-space--gain--vp"
@@ -746,9 +888,14 @@
 							src="/art/piece/outpost.svg"
 							alt="" /></CardSlot>
 				</div>
-				<div class="rg-card-militant-space">
+				<div
+					class="rg-card-militant-space {marked(
+						'bottom3',
+						'exposed'
+					)}">
 					<CardSlot
 						size={62}
+						{...spotProps('bottom3')}
 						class="rg-card-militant-space--slot"
 						><span class="rg-card-militant-space--gain"
 							>+ <CardResource
@@ -777,7 +924,7 @@
 			portraitAlt="Mystics civilization portrait"
 			badges={['Base game']}
 			complexity={3}
-			{state}
+			state={cardState}
 			class="rg-card-frame--mystics">
 			{#snippet effect()}When you gain this civilization, predict one
 				number in each category by placing a token on it.{/snippet}
@@ -788,34 +935,7 @@
 						Tech cards <small>you have</small>
 					</div>
 					<div class="rg-card-mystic-prediction--numbers">
-						<CardSlot
-							size={39}
-							class="rg-card-mystic-number">1</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">2</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">3</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number rg-card-is-selected"
-							>4</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">5</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">6</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">7</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">8</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">9</CardSlot>
+						{@render mysticNumbers('techCards')}
 					</div>
 				</div>
 				<div class="rg-card-mystic-prediction">
@@ -823,34 +943,7 @@
 						Complete districts
 					</div>
 					<div class="rg-card-mystic-prediction--numbers">
-						<CardSlot
-							size={39}
-							class="rg-card-mystic-number">1</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">2</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number rg-card-is-selected"
-							>3</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">4</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">5</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">6</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">7</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">8</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">9</CardSlot>
+						{@render mysticNumbers('districts')}
 					</div>
 				</div>
 				<div class="rg-card-mystic-prediction">
@@ -858,34 +951,7 @@
 						Territories <small>you control</small>
 					</div>
 					<div class="rg-card-mystic-prediction--numbers">
-						<CardSlot
-							size={39}
-							class="rg-card-mystic-number">1</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">2</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">3</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">4</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number rg-card-is-selected"
-							>5</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">6</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">7</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">8</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">9</CardSlot>
+						{@render mysticNumbers('territories')}
 					</div>
 				</div>
 				<div class="rg-card-mystic-prediction">
@@ -894,19 +960,7 @@
 					</div>
 					<div
 						class="rg-card-mystic-prediction--numbers rg-card-mystic-prediction--numbers--four">
-						<CardSlot
-							size={39}
-							class="rg-card-mystic-number">1</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number rg-card-is-selected"
-							>2</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">3</CardSlot
-						><CardSlot
-							size={39}
-							class="rg-card-mystic-number">4</CardSlot>
+						{@render mysticNumbers('tracks')}
 					</div>
 				</div>
 			</CardPredictionTracks>
@@ -1140,86 +1194,99 @@
 			portraitAlt="Merrymakers civilization portrait"
 			badges={['Base game']}
 			complexity={1}
-			{state}
+			state={cardState}
 			class="rg-card-frame--merrymakers">
 			{#snippet effect()}At the start of income turns 2–5, move one token
 				up one square and gain everything shown there.{/snippet}
 
 			<CardRewardColumns kind="inside">
-				<div class="rg-card-merry-column rg-card-is-moved">
+				<div class="rg-card-merry-column {marked('m0', 'moved')}">
 					<CardSlot
 						size={75}
-						class="rg-card-merry-cell"
+						{...spotProps('m0l3')}
+						class="rg-card-merry-cell {marked('m0l3', 'token')}"
 						><span class="rg-card-merry-cell--reward"
 							><CardResource
 								symbol="culture"
 								class="" /> + armory</span
-						></CardSlot
+						>{@render merryToken('m0l3')}</CardSlot
 					><CardSlot
 						size={75}
-						class="rg-card-merry-cell rg-card-is-current"
+						{...spotProps('m0l2')}
+						class="rg-card-merry-cell {marked('m0l2', 'token')}"
 						><span class="rg-card-merry-cell--reward"
 							><CardResource
 								symbol="worker"
 								class="" /> + <CardResource
 								symbol="food"
 								class="" /></span
-						><PlayerToken
-							color="blue"
-							class="rg-card-merry-cell--token"
-							decorative /></CardSlot
+						>{@render merryToken('m0l2')}</CardSlot
 					><CardSlot
 						size={75}
-						class="rg-card-merry-cell"
+						{...spotProps('m0l1')}
+						class="rg-card-merry-cell {marked('m0l1', 'token')}"
 						><span class="rg-card-merry-cell--reward"
 							><CardResource
 								symbol="coin"
 								class="" /></span
-						></CardSlot
+						>{@render merryToken('m0l1')}</CardSlot
 					><CardSlot
 						size={62}
 						class="rg-card-merry-start"
 						><PlayerToken
+							{seat}
 							color="blue"
 							decorative /></CardSlot>
 				</div>
-				<div class="rg-card-merry-column rg-card-is-moved">
+				<div class="rg-card-merry-column {marked('m1', 'moved')}">
 					<CardSlot
 						size={75}
-						class="rg-card-merry-cell"
-						>Explore +<br />Research</CardSlot
+						{...spotProps('m1l3')}
+						class="rg-card-merry-cell {marked('m1l3', 'token')}"
+						>Explore +<br />Research{@render merryToken(
+							'm1l3'
+						)}</CardSlot
 					><CardSlot
 						size={75}
-						class="rg-card-merry-cell"
-						>Invent +<br />tapestry card</CardSlot
+						{...spotProps('m1l2')}
+						class="rg-card-merry-cell {marked('m1l2', 'token')}"
+						>Invent +<br />tapestry card{@render merryToken(
+							'm1l2'
+						)}</CardSlot
 					><CardSlot
 						size={75}
-						class="rg-card-merry-cell rg-card-is-current"
-						>Territory tile<PlayerToken
-							color="blue"
-							class="rg-card-merry-cell--token"
-							decorative /></CardSlot
+						{...spotProps('m1l1')}
+						class="rg-card-merry-cell {marked('m1l1', 'token')}"
+						>Territory tile{@render merryToken('m1l1')}</CardSlot
 					><CardSlot
 						size={62}
 						class="rg-card-merry-start"
 						><PlayerToken
+							{seat}
 							color="blue"
 							decorative /></CardSlot>
 				</div>
-				<div class="rg-card-merry-column">
+				<div class="rg-card-merry-column {marked('m2', 'moved')}">
 					<CardSlot
 						size={75}
-						class="rg-card-merry-cell">15 VP</CardSlot
+						{...spotProps('m2l3')}
+						class="rg-card-merry-cell {marked('m2l3', 'token')}"
+						>15 VP{@render merryToken('m2l3')}</CardSlot
 					><CardSlot
 						size={75}
-						class="rg-card-merry-cell">10 VP</CardSlot
+						{...spotProps('m2l2')}
+						class="rg-card-merry-cell {marked('m2l2', 'token')}"
+						>10 VP{@render merryToken('m2l2')}</CardSlot
 					><CardSlot
 						size={75}
-						class="rg-card-merry-cell">5 VP</CardSlot
+						{...spotProps('m2l1')}
+						class="rg-card-merry-cell {marked('m2l1', 'token')}"
+						>5 VP{@render merryToken('m2l1')}</CardSlot
 					><CardSlot
 						size={62}
 						class="rg-card-merry-start"
 						><PlayerToken
+							{seat}
 							color="blue"
 							decorative /></CardSlot>
 				</div>
@@ -1243,7 +1310,7 @@
 			portraitAlt="Historians civilization portrait"
 			badges={['Base game']}
 			complexity={1}
-			{state}
+			state={cardState}
 			class="rg-card-frame--historians">
 			{#snippet effect()}At the start of income turns 2–5, you may discard
 				a territory tile to give one of these tokens to an opponent.{/snippet}
@@ -1251,30 +1318,50 @@
 			<CardPlacementRows kind="history"
 				><CardSlot
 					size={75}
-					class="rg-card-history-square rg-card-is-exposed"
+					{...spotProps('square0')}
+					class="rg-card-history-square {marked(
+						'square0',
+						'exposed'
+					)}"
 					>3 VP<PlayerToken
+						{seat}
 						color="blue"
 						decorative /></CardSlot
 				><CardSlot
 					size={75}
-					class="rg-card-history-square rg-card-is-exposed"
+					{...spotProps('square1')}
+					class="rg-card-history-square {marked(
+						'square1',
+						'exposed'
+					)}"
 					>+ <CardResource
 						symbol="food"
 						class="" /><PlayerToken
+						{seat}
 						color="blue"
 						decorative /></CardSlot
 				><CardSlot
 					size={75}
-					class="rg-card-history-square"
+					{...spotProps('square2')}
+					class="rg-card-history-square {marked(
+						'square2',
+						'exposed'
+					)}"
 					>+ <CardResource
 						symbol="worker"
 						class="" /><PlayerToken
+						{seat}
 						color="blue"
 						decorative /></CardSlot
 				><CardSlot
 					size={75}
-					class="rg-card-history-square"
+					{...spotProps('square3')}
+					class="rg-card-history-square {marked(
+						'square3',
+						'exposed'
+					)}"
 					>3 VP<PlayerToken
+						{seat}
 						color="blue"
 						decorative /></CardSlot
 				></CardPlacementRows>

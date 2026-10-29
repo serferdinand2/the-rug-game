@@ -27,6 +27,7 @@
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
 	import { playerColor } from '../../ui.js';
+	import { roman } from '../../game-names.js';
 
 	/** @type {SelfSummaryProps} */
 	let {
@@ -43,7 +44,6 @@
 		...attr
 	} = $props();
 
-	const NUMERALS = ['I', 'II', 'III', 'IV'];
 	/** @type {{ id: 'coin' | 'food' | 'worker' | 'culture', one: string, many: string }[]} */
 	const RESOURCE_ROWS = [
 		{ id: 'coin', one: 'coin', many: 'coins' },
@@ -63,7 +63,7 @@
 			><i
 				class="rg-self-summary--mark"
 				aria-hidden="true"></i
-			>{name} <span>· Era {NUMERALS[era - 1]}</span></strong>
+			>{name} <span>· Era {roman(era)}</span></strong>
 		<b>{vp} VP</b>
 	</div>
 	<div class="rg-self-summary--facts">

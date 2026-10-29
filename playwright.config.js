@@ -37,6 +37,8 @@ export default defineConfig({
 		url: BASE_URL,
 		reuseExistingServer: true,
 		timeout: process.env.CI ? 180 * 1000 : 120 * 1000,
+		// Every test's tables and logins come from this one address, more than a person's limits allow a minute (#78).
+		env: { CREATE_LIMIT: '200', LOGIN_LIMIT: '200' },
 	},
 	// Chromium only, locally and in CI (owner, 2026-10-27).
 	projects: [

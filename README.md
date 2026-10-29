@@ -14,19 +14,19 @@ No official Stonemaier artwork, logos or rulebook text are used.
 
 ## Current interface
 
-The six full capital mat SVGs are examples only. Actual capital mats must be generated from the reusable terrain tiles for each game, following the game setup and the rules-defined plot layout.
+A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82). The art isn't duplicated (owner, 2026-10-29): a base mat's only picture is its relief, which the component library shows on its ground, and only the 12 expansion mats keep a full example SVG, until #132 and #133 draw their reliefs.
 
 The owner-reviewed icons and small pieces from **#5** are available as SVGs in `static/art/`, with matching drawing sources and stable catalog ids. [The release notes](docs/art/issue-5.md) list the approved set and explain the text rendering or later artwork for dice faces, terrain hex markers and game symbols. [The complete review mockup](docs/art/archive/2026-10-23-issue-5/README.md), including its linked capital terrain page, is archived as a frozen reference.
 
-| Resource components using the approved SVGs | Capital composed from terrain tiles |
+| Resource components using the approved SVGs | Capital composed from ground tiles under its relief (#82) |
 |---|---|
-| ![Resource component examples with the approved artwork](docs/ui/screens/issue-5-components-resources.png) | ![Capital component composed from tile SVGs and income-building artwork](docs/ui/screens/issue-5-components-capital.png) |
+| ![Resource component examples with the approved artwork](docs/ui/screens/issue-5-components-resources.png) | ![The component library's CapitalGrid: the Mountain mat's peaks joined across the grid over its alpine meadow, an Architects' cube on the top-left plot and a farm clearing the relief on an impassable plot, with the Forest mat's woods below](docs/ui/screens/issue-5-components-capital.png) |
 
-The component library now uses the approved resources in prices and chips, income-building SVGs on capital plots, track symbols in headings, and player-color token SVGs on progress lanes. Its Art sections show the complete issue #5 set and explain the three deferred groups. Capital examples compose individual terrain tile SVGs using their supplied biome, visual seed and plot mask; the six full mat SVGs remain example compositions only.
+The component library now uses the approved resources in prices and chips, income-building SVGs on capital plots, track symbols in headings, and player-color token SVGs on progress lanes. Its Art sections show the complete issue #5 set and explain the three deferred groups. Capital examples compose the ground tile SVGs from their supplied biome, visual seed and plot mask, and lay the mat's relief over its impassable plots (#82); the full mat SVGs remain example compositions only.
 
 The **UI/UX handoff for #3** is in [docs/ui/README.md](docs/ui/README.md). It is the manifest for building the real game pages: layout, typography, colours, control states, placement and decision examples. The HTML pages are interactive mockups with fixture data.
 
-**The landing page, the lobby (#25) and the play screen (#26) are built** and run on the real table API. Sign in by name, create or join a table, set it up and start; then play: the Advancement Tracks with the spaces you can pay for, the World Map as the real board's hex grid, composed from the terrain art (#6), the footer turn (income, or advance), and a designed prompt for every other decision (#28): resources and payments with their art, cards on a shelf above the panel, the map's territories with each explore's tile, turn and VP, buildings and landmarks placed on the Capital tab, dice and tracks, and the gold income turn with its steps. Several resources, cards or tiles are picked one by one, as on Board Game Arena (#75): each resource to choose is a row of the four resources, cards and tiles are pictures pressed several at once, and the panel sits at the screen's centre; an advance with a choice of payment opens that panel as soon as its space is picked. Every roll of the dice tumbles in the middle of every screen at the table, lands on the rolled faces under a caption, and fades (#61). A first turn is never a choice, so the game takes every player's income turn 1 as setup ends; each player then sees a notice, once, saying so and what they start with. A turn with no advance to pay for says so, with a gold **Take income** where **Advance** sits (#77). **How to play** in the game's menu explains the rules in our own words, one tab per part of the game, and a **Keyboard shortcuts** entry opens it on the list of every shortcut; hovering a player's chip reads their civilization's full ability (#42). The game plays from the keyboard too (#83): **I** takes income after asking first (as the **Take income** button does), **A** then **1–4** advances on a track, **Q W E R T Y U** switch the player tabs, **M** goes to the World Map, **1–5** open the players overview on a player, and holding **Tab** shows the log and scores. Each track space shows its benefit and its bonus, as on the printed board (#59); at setup each capital mat on offer is its real 9×9 grid (#56) and the civilization cards are whole at full size (#57, #58). The player area (#27) has the Capital, Hand, Income, Eras, Civ, Tech and Terrain tabs, with real tech and tapestry cards, and the header chips open the players overview. A whole base game can be played with the mouse. At a hot-seat table, a pass screen (#30) stands between players: it names the next one, whose view isn't even loaded until they take the screen. A defender at a hot-seat table answers a conquest themselves, trap or not, so nothing gives a trap away. When the game ends, the results screen (#29) shows the final standings with each player's VP by source, how any tie was decided and the table's rules; the host can deal again. The header's log button opens the table log and the current scores; sound cues start muted, and a little motion marks what just happened. Run `npm start` and open <http://127.0.0.1:3020/>.
+**The landing page, the lobby (#25) and the play screen (#26) are built** and run on the real table API. Sign in by name, create or join a table, set it up and start; then play: the Advancement Tracks with the spaces you can pay for, the World Map as the real board's hex grid, composed from the terrain art (#6), the footer turn (income, or advance), and a designed prompt for every other decision (#28): resources and payments with their art, cards on a shelf above the panel, the map's territories with each explore's tile, turn and VP, buildings and landmarks placed on the Capital tab, dice and tracks, and the gold income turn with its steps. Several resources, cards or tiles are picked one by one, as on Board Game Arena (#75): each resource to choose is a row of the four resources, cards and tiles are pictures pressed several at once, and the panel sits at the screen's centre; an advance with a choice of payment opens that panel as soon as its space is picked. Every roll of the dice tumbles in the middle of every screen at the table, lands on the rolled faces under a caption, and fades (#61). A first turn is never a choice, so the game takes every player's income turn 1 as setup ends; each player then sees a notice, once, saying so and what they start with. A turn with no advance to pay for says so, with a gold **Take income** where **Advance** sits (#77). **How to play** in the game's menu explains the rules in our own words, one tab per part of the game, and a **Keyboard shortcuts** entry opens it on the list of every shortcut; hovering a player's chip reads their civilization's full ability (#42). The game plays from the keyboard too (#83): **I** takes income after asking first (as the **Take income** button does), **A** then **1–4** advances on a track, **Q W E R T Y U** switch the player tabs, **M** goes to the World Map, **1–5** open the players overview on a player, and holding **Tab** shows the log and scores. Each track space shows its benefit and its bonus, as on the printed board (#59); at setup each capital mat on offer is its real 9×9 grid (#56) and the civilization cards are whole at full size (#57, #58). Each base mat's impassable plots are one 2.5D picture, its relief, laid over natural ground (#82): mountains, woods, reed beds round dark pools, jungle, desert buttes and rocky hills that join across the grid lines where the plots touch, with no red X. The Architects' cubes are small pieces on their plots, and a building on an impassable plot clears the relief there. The player area (#27) has the Capital, Hand, Income, Eras, Civ, Tech and Terrain tabs, with real tech and tapestry cards, and the header chips open the players overview. A whole base game can be played with the mouse. At a hot-seat table, a pass screen (#30) stands between players: it names the next one, whose view isn't even loaded until they take the screen. A defender at a hot-seat table answers a conquest themselves, trap or not, so nothing gives a trap away. When the game ends, the results screen (#29) shows the final standings with each player's VP by source, how any tie was decided and the table's rules; the host can deal again. The header's log button opens the table log and the current scores; sound cues start muted, and a little motion marks what just happened. Run `npm start` and open <http://127.0.0.1:3020/>.
 
 **The boards (#6)** are drawn: the map's six terrain hex pictures, the 48 territory tiles (clouds exactly where R77 says), both map sides as examples, and the 12 advanced capital biomes with their example mats. The game composes its map from the terrain pictures, as it composes the capital from its plot tiles. They wait for the owner's approval in the component library's Art part.
 
@@ -42,15 +42,23 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Play: the player area (Capital) | Play: the players overview |
 |---|---|
-| ![The play screen with the Capital tab: Mira's Wetland mat with the Lighthouse placed, and the completion counters](docs/ui/screens/game-player-area.png) | ![The players overview: a card per player and Ana's Wetland capital opened on the right](docs/ui/screens/game-overview.png) |
+| ![The play screen with the Capital tab (#82): Teodor's Wetland mat, its reed beds and dark pools joined across the grid over a wet meadow, an Architects' cube on the top-left plot, and the completion counters](docs/ui/screens/game-player-area.png) | ![The players overview (#82): a card per player and Mira's Desert capital opened on the right, its buttes standing on pale sand](docs/ui/screens/game-overview.png) |
+
+| Play: a choice on the civilization card (#78) |
+|---|
+| ![The Civ tab at an Entertainers income turn (#78): the token's four next spaces outlined in green on the card, the + culture space picked in gold, and the panel at the tracks' centre saying Gain 1 culture beside Confirm choice](docs/ui/screens/game-civ-card-choice.png) |
 
 | Prompt: choosing a capital | Prompt: choosing a civilization |
 |---|---|
-| ![The capital choice: both mats as their 9×9 grids of terrain tiles, with the impassable plots and districts, the chosen one outlined](docs/ui/screens/game-prompt-capital-mat.png) | ![The civilization choice: both cards whole at full size, the chosen one outlined in gold](docs/ui/screens/game-prompt-civ.png) |
+| ![The capital choice at the tracks' centre (#79, #82): the Mountain and Forest mats as their 9×9 grids, each with its relief over its ground, above the panel; the Mountain is chosen and outlined](docs/ui/screens/game-prompt-capital-mat.png) | ![The civilization choice at the tracks' centre (#79): both cards whole, sized to the room above the panel, the chosen one outlined in gold](docs/ui/screens/game-prompt-civ.png) |
 
-| Prompt: cards on the shelf (the tapestry draft) | Prompt: exploring a territory |
+| Prompt: cards on the shelf (the tapestry draft) | Prompt: tech cards to invent |
 |---|---|
-| ![The tapestry draft's keep prompt: two cards on the shelf above the gold income panel](docs/ui/screens/game-prompt-cards.png) | ![An explore: the player's tiles in the panel, each lit hex with the picked tile's best VP, and the chosen hex previewing it turned once](docs/ui/screens/game-prompt-explore.png) |
+| ![The tapestry draft's keep prompt (#79): two cards on the shelf and the gold income panel, one stack at the tracks' centre](docs/ui/screens/game-prompt-cards.png) | ![Inventing (#79): the three face-up tech cards and the deck above the panel, centred on the tracks, the chosen card outlined](docs/ui/screens/game-prompt-invent.png) |
+
+| Prompt: exploring a territory |
+|---|
+| ![An explore: the player's tiles in the panel docked beside the map, each lit hex with the picked tile's best VP, and the chosen hex previewing it turned once](docs/ui/screens/game-prompt-explore.png) |
 
 | Results: the final standings | The log and the scores |
 |---|---|
@@ -62,11 +70,11 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Prompt: placing a landmark | Prompt: the income turn |
 |---|---|
-| ![The Lighthouse waiting for placement on the Capital tab, with the decision panel below](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold, with the panel's question shown only once](docs/ui/screens/game-prompt-income.png) |
+| ![The Lighthouse waiting for placement on the Capital tab, with the decision panel at the tracks' centre (#79)](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold: the card on the shelf above the panel, at the tracks' centre (#79)](docs/ui/screens/game-prompt-income.png) |
 
 | Prompt: paying for an advance, one row per resource | Prompt: paying a bonus with the tiles picked |
 |---|---|
-| ![Advance to Scouting: the centred panel's one row of the four resources, coin picked, and Pay 1 coin beside Cancel and Advance](docs/ui/screens/game-prompt-advance.png) | ![Cars' bonus: the centred panel with six territory tiles three to a row, one chosen, 1 of 2 chosen, and Decline beside Pay 2 tiles](docs/ui/screens/game-prompt-tiles.png) |
+| ![Advance to Scouting: the panel at the tracks' centre with one row of the four resources, coin picked, and Pay 1 coin beside Cancel and Advance](docs/ui/screens/game-prompt-advance.png) | ![A bonus paid in tiles: the panel at the tracks' centre with the territory tiles three to a row, one chosen, 1 of 2 chosen, and Decline beside Pay 2 tiles](docs/ui/screens/game-prompt-tiles.png) |
 
 | The dice tray: a conquest's roll on the other player's screen |
 |---|
@@ -74,7 +82,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | The first turn: the game took income turn 1 (#77) |
 |---|
-| ![Era I begins: the gold notice over the tracks says every player's first turn is an income turn, so the game took yours; you start with 1 coin, 1 food, 1 worker, 1 culture, 1 territory tile and 1 tapestry card; Got it](docs/ui/screens/game-first-income.png) |
+| ![Era I begins: the gold notice at the tracks' centre says every player's first turn is an income turn, so the game took yours; you start with 1 coin, 1 food, 1 worker, 1 culture, 1 territory tile and 1 tapestry card; Got it](docs/ui/screens/game-first-income.png) |
 
 | A turn with only income to take (#77, the component library's TurnBar) |
 |---|
@@ -167,6 +175,8 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 | M7–M9 | Plans & Ploys, Arts & Architecture, Fantasies & Futures |
 | M10 · Rules pages | In-game help and a card reference |
 | M11 · Discord Activity | Playing inside Discord |
+| M12 · Cosmetic enhancements | The cosmetic boards and polish, after the core features |
+| M13 · Refactor | Shared client components and helpers, ahead of solo play and the expansions |
 
 ## Rules conventions
 

@@ -10,7 +10,7 @@ The visual authority is **Style B / Civilization mat, Refs #47**, as refined in 
 
 ## Technology and tapestry cards (Second Tapestry UI review, 2026-10-26)
 
-The card study at `C:/Users/lazar/.codex/visualizations/2026/10/23/01a16638-a2cd-76f3-a4d0-b0043756ddbc/tech-card/index.html` established these layouts. `src/lib/cards/card-layouts.js` holds the review fixtures and markup; `src/styles/card-layouts.css` holds their shared appearance. `TechnologyCard` and `TapestryCard` are the reusable components shown in the component library and main-screen mockup. Engine rules remain authoritative for actual effects and requirements.
+The card study at `C:/Users/lazar/.codex/visualizations/2026/10/23/01a16638-a2cd-76f3-a4d0-b0043756ddbc/tech-card/index.html` established these layouts. `TechnologyCard` and `TapestryCard` are the reusable components shown in the component library and the card gallery. They draw their markup in Svelte from the engine's data, through `techCardData` and `tapestryCardData` in `src/lib/cards/game-cards.js` (#108). `src/styles/card-layouts.css` holds their shared appearance. The static main-screen mockup keeps its own copy of the first review fixtures and string markup in `docs/ui/assets/card-markup.js` and `card-layouts.css`. Engine rules remain authoritative for actual effects and requirements.
 
 ### Technology
 

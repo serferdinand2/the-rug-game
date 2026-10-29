@@ -1,6 +1,10 @@
 // The dice tray's rolls (#61 design §4): which fresh events roll which dice, the faces they land on, and the words for them.
 import { BLACK_DIE, RED_DIE, SCIENCE_DIE } from './engine/data/dice.js';
 import { eventText } from './log.js';
+import { seatName } from './game-names.js';
+
+/** How long the dice tumble, in milliseconds: the tray waits this long before a roll lands, and Die animates for it (#119). */
+export const TUMBLE_MS = 1000;
 
 /** @typedef {'science' | 'red' | 'black'} DieId */
 
@@ -89,11 +93,7 @@ export function rollsOf(events, game, viewer) {
 			return [];
 		}
 		const player = Number(event.player);
-		const name =
-			game?.seats?.find((/** @type {any} */ s) => s.seat === player)
-				?.name ??
-			game?.seats?.[player - 1]?.name ??
-			'A player';
+		const name = seatName(game, player);
 		const who = player === viewer ? 'You roll' : `${name} rolls`;
 		const bust = event.type === 'alchemistsBust';
 		return [

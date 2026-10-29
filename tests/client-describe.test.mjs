@@ -1,20 +1,13 @@
-// Words for the engine's effects, costs, decisions and answers (#26): short English the play screen shows.
+// Words for the engine's effects, costs, bonuses and payments (#26, #126): short English the play screen shows.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import * as describe from '../src/lib/describe.js';
 import {
-	civilizationName,
-	decisionTitle,
-	describeAnswer,
 	describeBonus,
 	describeCost,
 	describeEffects,
-	describePayment,
-	describeTapestryCard,
+	priceWords,
 } from '../src/lib/describe.js';
-import { createGame, play, VARIANTS, view } from '../src/lib/engine/game.js';
-import { DECISIONS } from '../src/lib/engine/kinds.js';
-import { openDecisions } from '../src/lib/engine/stack.js';
-import { seededRandom } from '../src/lib/engine/random.js';
 import { EFFECT_KINDS, VP_COUNTERS } from '../src/lib/engine/data/effects.js';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
 import { TRACK_IDS } from '../src/lib/engine/data/ids.js';
@@ -23,28 +16,7 @@ import { TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
 import { SPACE_TILES } from '../src/lib/engine/data/space-tiles.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';
 import { RED_DIE, BLACK_DIE } from '../src/lib/engine/data/dice.js';
-import { allOps } from './helpers/views.mjs';
-
-/**
- * Checks that a description is a sentence a player can read: never empty, and no JSON or missing value shows through.
- * @param {unknown} text
- * @param {string} what - Named in the failure
- */
-function assertReadable(text, what) {
-	assert.equal(typeof text, 'string', `${what} is not a string`);
-	const words = /** @type {string} */ (text);
-	assert.ok(words.trim().length > 0, `${what} is empty`);
-	for (const bad of ['undefined', 'null', 'NaN', '[object', '{', '}', '"']) {
-		assert.ok(!words.includes(bad), `${what} reads "${words}"`);
-	}
-	assert.equal(words, words.trim(), `${what} has stray spaces: "${words}"`);
-	assert.ok(!words.includes('  '), `${what} has a double space: "${words}"`);
-	assert.match(
-		words,
-		/^[A-Z0-9]/,
-		`${what} starts in lower case: "${words}"`
-	);
-}
+import { assertReadable } from './helpers/readable.mjs';
 
 test('a cost names each resource, and "any" as resources of your choice', () => {
 	assert.equal(
@@ -62,6 +34,25 @@ test('a cost names each resource, and "any" as resources of your choice', () => 
 	assert.equal(describeCost({ tech: 3 }), '3 tech cards');
 	assert.equal(describeCost({ vp: 5 }), '5 VP');
 	assert.equal(describeCost({}), 'Nothing');
+});
+
+test('a price reads as its amounts, in the order its symbols first appear (#124)', () => {
+	assert.equal(priceWords(['any']), '1 resource of your choice');
+	assert.equal(
+		priceWords(['food', 'any']),
+		'1 food and 1 resource of your choice'
+	);
+	assert.equal(
+		priceWords(['worker', 'any', 'any']),
+		'1 worker and 2 resources of your choice'
+	);
+	assert.equal(priceWords(['coin', 'coin']), '2 coins');
+	assert.equal(priceWords(['culture', 'culture']), '2 culture');
+	assert.equal(
+		priceWords(['any', 'coin', 'worker', 'coin']),
+		'1 resource of your choice, 2 coins and 1 worker'
+	);
+	assert.equal(priceWords([]), 'nothing');
 });
 
 test('a benefit reads as a short sentence', () => {
@@ -210,48 +201,6 @@ test('every card, tile and die face describes to a sentence', () => {
 	}
 });
 
-test('every tapestry card face has words, also for the rules the engine keeps in code', () => {
-	for (const card of TAPESTRY_CARDS) {
-		const { ability, note } = describeTapestryCard(card.id);
-		assertReadable(ability, `tapestry card ${card.id}'s ability`);
-		assert.notEqual(ability, 'Nothing', `${card.id} has no words`);
-		assert.doesNotMatch(
-			ability,
-			/\bresolve\b/i,
-			`${card.id}: "${ability}"`
-		);
-		if (note !== undefined) {
-			assertReadable(note, `tapestry card ${card.id}'s note`);
-		}
-	}
-	// A card whose rules are all effects reads as them.
-	const democracy = /** @type {any} */ (
-		TAPESTRY_CARDS.find((c) => c.id === 'democracy')
-	);
-	assert.equal(
-		describeTapestryCard('democracy').ability,
-		describeEffects(democracy.played, { ordered: democracy.ordered })
-	);
-	assert.equal(describeTapestryCard('democracy').note, undefined);
-	assert.equal(
-		describeTapestryCard('academia').ability,
-		'Whenever you invent a tech card or gain a tapestry card, gain 3 VP'
-	);
-	// R22: the trap is a response card, and gains 10 VP played as a card.
-	assert.deepEqual(
-		describeTapestryCard('trap-5'),
-		describeTapestryCard('trap')
-	);
-	assert.equal(
-		describeTapestryCard('trap').note,
-		'Played as a tapestry card on an income turn: gain 10 VP'
-	);
-	assert.equal(
-		describeTapestryCard('no-such-card').ability,
-		describeEffects([{ notAnEffect: {} }])
-	);
-});
-
 test('every effect kind and VP counter has its own words', () => {
 	const fallback = describeEffects([{ notAnEffect: {} }]);
 	assertReadable(fallback, 'an unknown effect');
@@ -314,159 +263,7 @@ test('every effect kind and VP counter has its own words', () => {
 	assert.equal(describeEffects([{ darkAges: {} }]), 'Resolve Dark Ages');
 });
 
-test('payments read as what is paid and discarded', () => {
-	assert.equal(
-		describePayment({ food: 1, worker: 1 }),
-		'Pay 1 food and 1 worker'
-	);
-	assert.equal(describePayment({}), 'Pay nothing');
-	assert.equal(
-		describePayment({ coin: 1, tapestry: ['democracy', 'trap-3'] }),
-		'Pay 1 coin and discard Democracy and Trap'
-	);
-	assert.equal(
-		describePayment({ territory: [17, 3] }),
-		'Discard territory tiles 17 and 3'
-	);
-	assert.equal(
-		describePayment({ tech: ['clocks', 'radio', 'paper'] }),
-		'Discard Clocks, Radio and Paper'
-	);
-	const bonus = {
-		id: 7,
-		batch: 1,
-		player: 1,
-		kind: 'chooseBonus',
-		track: 'exploration',
-		space: 5,
-		cost: { any: 1 },
-		gain: [{ building: 'farm' }],
-	};
-	assert.equal(
-		describeAnswer(bonus, { pay: { food: 1, worker: 1 } }),
-		'Pay 1 food and 1 worker'
-	);
-	assert.equal(describeAnswer(bonus, { pay: null }), 'No bonus');
-	assert.equal(decisionTitle(bonus), 'Take the bonus: gain a Farm?');
-	const advance = { id: 8, batch: 1, player: 1, kind: 'chooseAdvance' };
-	assert.equal(
-		describeAnswer(advance, {
-			track: 'exploration',
-			from: 4,
-			pay: { food: 1, culture: 1 },
-		}),
-		'Advance to Ships and pay 1 food and 1 culture'
-	);
-});
-
-test('places in the capital and on the map read as rows, columns and hexes', () => {
-	const landmark = {
-		id: 1,
-		batch: 1,
-		player: 1,
-		kind: 'choosePlacement',
-		landmark: 'lighthouse',
-	};
-	assert.equal(
-		describeAnswer(landmark, { row: 2, col: 4, rotation: 1 }),
-		'Row 3, column 5, turned once'
-	);
-	assert.equal(
-		describeAnswer(landmark, { row: 2, col: 4, rotation: 2 }),
-		'Row 3, column 5, turned twice'
-	);
-	assert.equal(
-		describeAnswer(landmark, { row: 0, col: 0, rotation: 0 }),
-		'Row 1, column 1'
-	);
-	assert.equal(decisionTitle(landmark), 'Where does the Lighthouse go?');
-	const farm = { ...landmark, landmark: undefined, building: 'farm' };
-	delete farm.landmark;
-	assert.equal(describeAnswer(farm, { row: 8, col: 8 }), 'Row 9, column 9');
-	assert.equal(
-		describeAnswer(farm, { besideMat: true }),
-		'Beside your capital mat'
-	);
-	assert.equal(decisionTitle(farm), 'Where does the Farm go?');
-	const explore = { id: 2, batch: 1, player: 1, kind: 'chooseExplore' };
-	assert.equal(
-		describeAnswer(explore, { tile: 17, hex: '2_-1', orient: 2 }),
-		'Hex 2,−1 with tile 17, turned twice'
-	);
-	assert.equal(
-		describeAnswer(explore, { tile: 17, hex: '0_3', orient: 0 }),
-		'Hex 0,3 with tile 17'
-	);
-});
-
-test('answers name seats, cards and resources', () => {
-	const game = { seats: [{ name: 'Ana' }, { name: 'Bo' }] };
-	const gift = { id: 1, batch: 1, player: 1, kind: 'chooseGift' };
-	assert.equal(
-		describeAnswer(
-			gift,
-			{ tile: 12, player: 2 },
-			/** @type {any} */ (game)
-		),
-		'Give tile 12 to Bo'
-	);
-	assert.equal(
-		describeAnswer(
-			{ id: 2, batch: 1, player: 1, kind: 'chooseResource', count: 2 },
-			{ resources: { coin: 1, food: 1 } }
-		),
-		'Gain 1 coin and 1 food'
-	);
-	assert.equal(
-		describeAnswer(
-			{ id: 3, batch: 1, player: 1, kind: 'chooseCiv', options: [] },
-			{ civ: 'the-chosen' }
-		),
-		'The Chosen'
-	);
-	assert.equal(
-		describeAnswer(
-			{ id: 4, batch: 1, player: 1, kind: 'chooseTurn' },
-			{ turn: 'income' }
-		),
-		'Take income'
-	);
-	assert.equal(
-		describeAnswer(
-			{ id: 5, batch: 1, player: 1, kind: 'chooseInvent' },
-			{ card: 'deck' }
-		),
-		'The top card of the deck'
-	);
-	assert.equal(
-		describeAnswer(
-			{ id: 6, batch: 1, player: 1, kind: 'chooseTapestry' },
-			{ card: 'age-of-sail' }
-		),
-		'Age of Sail'
-	);
-});
-
-test('unknown decisions and answers fall back to a readable sentence', () => {
-	const odd = { id: 1, batch: 1, player: 1, kind: 'chooseSomethingNew' };
-	assertReadable(decisionTitle(odd), 'an unknown title');
-	assert.equal(describeAnswer(odd, { x: { y: 1 } }), 'Choose this option');
-	const slot = {
-		id: 2,
-		batch: 1,
-		player: 1,
-		kind: 'chooseSlot',
-		purpose: 'somethingNew',
-		options: [],
-	};
-	assertReadable(describeAnswer(slot, { slot: { z: [1] } }), 'an odd slot');
-	assertReadable(
-		describeAnswer(
-			{ id: 3, batch: 1, player: 1, kind: 'chooseResource' },
-			{ resources: 'lots' }
-		),
-		'an odd resource answer'
-	);
+test('unknown effects and costs fall back to a readable sentence', () => {
 	assertReadable(
 		describeEffects([{ gain: { coin: 1, glitter: 2 } }]),
 		'an odd gain'
@@ -482,108 +279,17 @@ test('unknown decisions and answers fall back to a readable sentence', () => {
 	assertReadable(describeCost(/** @type {any} */ ({ beads: 2 })), 'odd cost');
 });
 
-test('every decision kind has a title of its own', () => {
-	const fallback = decisionTitle({
-		id: 1,
-		batch: 1,
-		player: 1,
-		kind: 'chooseSomethingNew',
-	});
-	for (const kind of Object.keys(DECISIONS)) {
-		const title = decisionTitle({ id: 1, batch: 1, player: 1, kind });
-		assertReadable(title, `the ${kind} title`);
-		assert.notEqual(title, fallback, `${kind} has no title`);
-	}
-});
-
-const NAMES = ['Ana', 'Bo', 'Cy', 'Dee', 'Eli'];
-
-test('over 20 random games, every open decision and answer describes to a sentence', () => {
-	const generic = {
-		title: decisionTitle({ kind: 'chooseSomethingNew' }),
-		answer: describeAnswer({ kind: 'chooseSomethingNew' }, {}),
-		effect: describeEffects([{ notAnEffect: {} }]).toLowerCase(),
-	};
-	/**
-	 * Checks words the games produce: readable, and never the fallback for a shape this module doesn't know.
-	 * @param {string} words
-	 * @param {string} what
-	 */
-	const known = (words, what) => {
-		assertReadable(words, what);
-		assert.ok(
-			!words.toLowerCase().includes(generic.effect),
-			`${what}: ${words}`
-		);
-		assert.notEqual(words, generic.title, what);
-		assert.notEqual(words, generic.answer, what);
-	};
-	const kinds = new Set();
-	for (let i = 0; i < 20; i++) {
-		const seed = 101 + i;
-		const random = seededRandom(seed);
-		const pick = seededRandom(seed * 7919);
-		let state = createGame({
-			players: NAMES.slice(0, 1 + (i % 5)).map((name) => ({ name })),
-			version: i % 2 === 0 ? 'original' : 'current',
-			variants: i % 4 >= 2 ? VARIANTS.map((v) => v.id) : [],
-			random,
-		});
-		for (let actions = 0; ; actions++) {
-			const open = openDecisions(state);
-			if (open.length === 0) {
-				break;
-			}
-			assert.ok(actions < 5000, `game ${seed} never ended`);
-			/** @type {Map<number, any>} */
-			const seen = new Map();
-			for (const decision of open) {
-				const seat = /** @type {number} */ (decision.player);
-				const mine = view(state, seat);
-				const op = allOps(mine).find((o) => o.id === decision.id);
-				assert.ok(op?.answers, `game ${seed}: ${decision.kind}`);
-				seen.set(decision.id, op);
-				kinds.add(op.kind);
-				const what = `game ${seed}, action ${actions}, ${op.kind}`;
-				known(decisionTitle(op, mine), `${what}: the title`);
-				// What another player sees of it: no answers and no hidden fields.
-				const stranger = { ...op };
-				delete stranger.answers;
-				for (const field of DECISIONS[op.kind].hidden) {
-					delete stranger[field];
-				}
-				known(
-					decisionTitle(stranger, mine),
-					`${what}: a stranger's title`
-				);
-				for (const answer of op.answers) {
-					known(
-						describeAnswer(op, answer, mine),
-						`${what}: the answer ${JSON.stringify(answer)}`
-					);
-				}
-			}
-			const decision = open[pick(open.length)];
-			const seat = /** @type {number} */ (decision.player);
-			const answers = seen.get(decision.id).answers;
-			const advances = answers.filter((a) => a.turn === 'advance');
-			const answer =
-				advances.length > 0 && pick(100) < 85
-					? advances[0]
-					: answers[pick(answers.length)];
-			state = play(
-				state,
-				seat,
-				{ decision: decision.id, ...answer },
-				random
-			);
-		}
-		assert.equal(state.phase, 'over', `game ${seed} ended`);
-	}
-	assert.ok(kinds.size >= 15, `only ${kinds.size} decision kinds opened`);
-});
-
-test('a civilization reads by its name, for the header chips', () => {
-	assert.equal(civilizationName('the-chosen'), 'The Chosen');
-	assert.equal(civilizationName('alchemists'), 'Alchemists');
+test('describe.js holds the effect, cost, bonus and payment words, and what the decision words build on (#126)', () => {
+	assert.deepEqual(Object.keys(describe).sort(), [
+		'amounts',
+		'describeBonus',
+		'describeCost',
+		'describeEffects',
+		'describePayment',
+		'describeTurn',
+		'effectPhrase',
+		'effectsPhrase',
+		'paymentVerbs',
+		'priceWords',
+	]);
 });

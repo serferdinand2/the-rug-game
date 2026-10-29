@@ -8,8 +8,10 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
-  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75 and #85 are done.
-  - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
+  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78, #84 and #85 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101 and #108 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
+  - #80's scan filed #84 and #86–#131, ranked in its summary comment.
+  - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
   - Rules research (`docs/research/`).
   - The approved design document.
@@ -23,9 +25,19 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
 - **Next:**
-  - #77 (the first turn takes income by itself) is built; it closes once the owner has looked at its IncomeNotice and TurnBar sections in the component library.
+  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123, #127, #126 and #129 are done (see [#123](#123-every-game-name-and-english-list-from-one-helper), [#127](#127-the-track-resource-and-building-lists-from-the-engine), [#126](#126-describejs-split-into-effect-words-decision-words-and-card-text) and [#129](#129-each-decision-kinds-client-facts-in-one-table)), so #31 is unblocked. What is left of #124, #125 and #128 waits for #85.
+  - #77 (the first turn takes income by itself) is done: the owner approved its IncomeNotice and TurnBar sections and closed it on 2026-10-29.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
   - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
+  - #79 (every decision prompt at the tracks' centre, the prompt out of `Game.svelte`) is done; it merged and closed on 2026-10-28, after the owner's ruling on the library.
+  - A first batch of #80's findings landed together on 2026-10-28: #84, #87, #91, #93, #98, #103, #113, #124, #128 and #130 (see [its entry](#80s-findings-first-batch)). #104 waits for #103's last piece and #125 for #124's.
+  - A second batch of #80's findings landed together on 2026-10-29: #89, #97, #99, #100 and #119 (see [its entry](#80s-findings-second-batch)).
+  - #78 (choices on the civilization card) is done: the owner approved the CivilizationCard section and closed it on 2026-10-29 (see [its entry](#78-choices-on-the-civilization-card)).
+  - #86 (the turn footer) and #90 (the game header) followed the same day (see [their entry](#86-and-90-the-games-footer-and-header)). #88 and #122 can start now that #86 is in.
+  - The owner ruled out screen-reader work (CLAUDE.md, 2026-10-28), so #121, which is only labels, is closed as not planned.
+  - #80 is done: its findings are #84 and #86–#131.
+  - #82 (the joined terrain of the base mats) is done: the owner approved all six base mats in the component library on 2026-10-28, and it merged into main on 2026-10-29. The expansion mats follow in #132 (M8) and #133 (M9), and the World Map's terrain in #134 (M12).
+  - The six base example mats left the library on 2026-10-29, as duplicates of their reliefs' previews (owner; see [its entry](#the-base-example-mats-leave-the-library-refs-82)).
   - Then the next unblocked issues by milestone (see [Working on issues](../CLAUDE.md#working-on-issues)).
   - #45 Check R12 (landmark heights) and R39 (decision-card arrows) against the physical box. This is the owner's job, and it blocks nothing.
   - The cosmetic boards wait in #51 until the core features are done.
@@ -55,6 +67,18 @@ Many issues were built without a question round, so their designs mark every uns
 - [#77 (the first turn takes income by itself)](#77-the-first-turn-takes-income-by-itself)
 - [#42 (How to play in the game)](#42-how-to-play-in-the-game)
 - [#83 (the game's hotkeys)](#83-the-games-hotkeys)
+- [#80's findings, first batch](#80s-findings-first-batch)
+- [#82 (the joined terrain of the base mats)](#82-the-joined-terrain-of-the-base-mats)
+- [#80's findings, second batch](#80s-findings-second-batch)
+- [#86 and #90 (the game's footer and header)](#86-and-90-the-games-footer-and-header)
+- [#78 (choices on the civilization card)](#78-choices-on-the-civilization-card)
+- [#123 (every game name and English list from one helper)](#123-every-game-name-and-english-list-from-one-helper)
+- [#127 (the track, resource and building lists from the engine)](#127-the-track-resource-and-building-lists-from-the-engine)
+- [#126 (describe.js split into effect words, decision words and card text)](#126-describejs-split-into-effect-words-decision-words-and-card-text)
+- [#129 (each decision kind's client facts in one table)](#129-each-decision-kinds-client-facts-in-one-table)
+- [#88 (the game's keys and Escape through one layer state)](#88-the-games-keys-and-escape-through-one-layer-state)
+- [#101 (rules versions, expansions and variants named in one place)](#101-rules-versions-expansions-and-variants-named-in-one-place)
+- [#108 (tech and tapestry cards in Svelte from the engine's data)](#108-tech-and-tapestry-cards-in-svelte-from-the-engines-data)
 
 ## Issues
 
@@ -480,6 +504,7 @@ Built on 2026-10-28. The owner changed the issue's brief when asked: "Just make 
   - Calls to revisit: the notice is a centred panel over the board with **Got it**, titled "Era I begins", remembered in `sessionStorage`; its holdings follow `describeCost()`'s order (coin, food, worker, culture); a later forced income turn stays a click, since it ends an era; its **Take income** is the outlined `gold` button, as the footer's **Results** is; the waiting footer names any income turn ("Ana is taking income turn 3."); "End era IV, score it and finish playing." before income turn 5.
   - Tests: `startedGame()` (`tests/helpers/engine.mjs`) answers setup with every seat's `incomeTurns` already 1 unless `keepIncome` is passed, so tests start from what setup gave, as before; `firstIncomeTurn()` runs a seat's income turn 1 again after a `fill`. `tests/browser/first-income.test.mjs` plays a hot-seat setup and sees each player's notice once. `pick-prompts` closes the notice as it takes the screen, and its several-resources test now reads the answer's own `resourcesGained`, since an income step's gains could follow in the same move.
   - Handed off: #31 (whether the Automa and the Shadow Empire take an automatic income turn 1; `startTurn()` only does it for player seats), #62 (the first turn has no **End turn** moment), #71 (the footer's heading and detail wording agree with these states).
+- **Closed** on 2026-10-29, when the owner approved the IncomeNotice and TurnBar sections in the component library.
 
 ### #42 (How to play in the game)
 
@@ -497,11 +522,268 @@ Built on 2026-10-28, filed and specified by the owner in a few messages after #4
   - Tests: `tests/client-hotkeys.test.mjs` (every key in each context), `tests/client-shortcuts.test.mjs` (every hotkey is listed), `tests/browser/hotkeys.test.mjs` (a hot-seat game played with the keys: Enter, W, Q, M, 2, a held Tab, A then 1, and I asked, cancelled and taken). `explore-prompt` presses **.** where it pressed R.
   - Handed off: #35 gives the arts track key **5** in `TRACK_KEYS`.
 
+### #80 (scan the client for code that should be its own component)
+
+Done on 2026-10-28, with no code change. Five read-only passes covered `src/App.svelte`, `src/screens/`, every component in `src/lib/components/`, every client module in `src/lib/` and the library sections. The findings were merged where they touch the same code and filed as #84 (nine small bugs) and #86–#131, each in the repository's layout, with the M12 milestone and blocked-by links where they must land in order. The ranked list is the summary comment on #80. Line numbers in those issues are as of commit 047209f.
+- Highest cost to open work: #86 (the turn footer, for #62 and #71), #95 (split `PlayerTabs`, for #78 and #82), #106 and #107 (the civilization card from data; #47 closed without it), #123 (one names module) and #127 (the client's track lists from the engine, for #35).
+- Handed off: #79 was the first finding; the issues blocked by it are listed on #80.
+
+### #79 (the decision prompt in one place, at the tracks' centre)
+
+Built on 2026-10-28. The design is `docs/superpowers/specs/2026-10-28-decision-prompt-design.md`. The owner ruled that every prompt opens at the centre, then, reviewing the library, that it is the centre of the tracks, not of the screen.
+- Built: `src/lib/prompt-state.svelte.js` (`PromptState`: the prompt's selection keyed to the decision, what the board, the player area, the footer and the dice tray read, and the actions), `panelControls` and `paymentControls` in `src/lib/prompts.js`, and the screen part `src/screens/game/DecisionPrompt.svelte`. `Game.svelte` went from 1,926 to about 1,100 lines and keeps only the turn's state. `DecisionPanel` centres by default, with the shelf and the panel as one stack; `centred` became `narrow` (440 px, `--narrow-panel-width`) and `docked` stays for the Map view. `CardShelf` takes the `room` the panel leaves it. `DiceTray` takes `panel` from the game (bound from `Game` through `App`) instead of finding the panel by its class, and Enter confirms through the prompt state instead of clicking the panel's button. The library's DecisionPanel and DiceTray sections show the stacks in a scaled 1920×1080 screen (`src/library/Screen.svelte`).
+  - Also: the footer words a space as its track does, so an ordered space says "then" (`spaceWords` in `board.js`, Refs #84), and the landmark prompt names the **.** and **,** keys instead of R.
+  - Calls to revisit: the stack is centred in the shared area, so on the vertical its middle is the screen's, a little above the tracks' own middle (the board's head row sits above them); a dice roll over a stack of cards rolls over the player area; the options panel's 480 to 900 px width and the shelf's 18 px gap are #28's.
+  - Tests: `tests/client-prompts.test.mjs` (`panelControls`, `paymentControls`), `tests/client-prompt-state.test.mjs` (resets, explore, picks, trades, shelf, placement, payment, sending), `tests/client-board.test.mjs` (`spaceWords`), `tests/browser/decision-prompt.test.mjs` (a card choice and an options prompt open at the tracks' centre); the pick tests measure against the tracks' centre.
+  - Handed off: #86, #88, #92, #96, #97, #99, #105, #116, #117, #118, #119, #126, #129 and #131 waited for this.
+
+### #80's findings, first batch
+
+Built on 2026-10-28 as ten of #80's smallest findings, in four parallel streams that kept clear of #79, #82 and #85 (Lazar's track-space rework), then merged onto main with #79 in it. Each issue has its design and plan under `docs/superpowers/` (2026-10-28). The owner ruled out screen-reader work the same day, so the labels these issues changed stay as built and nothing more is done for them.
+- **#130:** the store's take-or-fetch rule is `acceptStep()` in `src/lib/pass.js`, tested case by case; `game.svelte.js` only applies it, and `#fetchView` and `takeSeat` share one `#askView`. The timeout toast reads as the log does, "Vera's clock ran out; the rest of the turn was played for them." (owner, 2026-10-28).
+- **#103 (partly):** `PlayerToken` takes a `seat`, and the pass screen, the standings and the scoreboard draw their tokens with it. Left: `ProgressLanes`' token, after #85; `tests/library.test.mjs` names it in `TOKENS_LEFT` until then. #104 waits for it.
+- **#113:** `territoryShapes()`, `territoryClips()` and `territoryWords()` in `hexmap.js`, drawn by the new `TerritoryClips` and `TerritoryArt`, which `WorldMap` and `TerritoryTile` both use; `PromptArt` takes `tilePreview`. Pixel-identical. #114 builds on it.
+- **#124 (partly):** `describe.js` exports `amountWords`, `resourceName` and `priceWords`; `CostBox`, `ResourceIcon`, `ResourceChip`, `ResourceRows` and `picks.js` use them, so every amount has its plural. The owner approved "resource of your choice" for "any" everywhere and digits in prices. Left: `TierPrice` switches to `priceWords` after #85. Found, not fixed: `engine/payment.js` 217 still says "Pay 2 coin".
+- **#84:** landmark names come from the art catalog ("TV Station"), the income mat says "an armory", the placed landmark's rotate title is "Rotate (. or ,)" (owner), `CardRewardColumns` keeps its class, the Tech tab's display row is 298 px, and #124 (plurals), #91 (duplicate ids) and #79 (the footer's "then") did the rest. The achievement label was dropped with the screen-reader ruling.
+- **#128 (partly):** the engine exports `capitalScore`, `tiebreakValues` and `exposedSpaces` through `game.js`; the player cards, the overview, the scoreboard and the income mat read them, and `PlayerTabs` takes the era from `selfSummary`. Left: the tier part (`tierOf` as the one helper, `tierSymbols` in `board.js`, `picks.js`' tier lines, `Game.svelte`'s `priceSymbols`), after #85 and #86.
+- **#98:** the lobby's lists and lock rules are in `lobby.js` (`modeChoices`, `modeLock`, `settingsLock`, `rulesChoices`, `expansionChoices`, `variantRows`, `toggleVariant`, `UNDO_CHOICES`, `YES_NO_CHOICES`); the new `PlaySettings` draws the timer and undo rows in the lobby and in Table settings; `SeatCard` gains `closed` and `SettingRow` `divided`. Undo rules moved to the left column under Turn timer (owner, 2026-10-28; `docs/ui/screens/lobby.png`). New browser test `tests/browser/lobby.test.mjs`.
+- **#91:** `Tabs` prefixes its ids, draws its panel and takes the focus (`idPrefix`, `panelClass`, `autofocus`); `PlayerCard` takes `autofocus`, so nothing queries another component's markup.
+- **#93:** `TilePicker` gains `pickable`, `size` and `dataIdPrefix` and draws the Terrain tab's tiles; a picked tile keeps its fill on hover.
+- **#87:** `src/lib/components/ui/Dialog.svelte` is the one shell for How to play, the launch help and Table settings: it takes the focus and gives it back, handles Escape on its own box and keeps Tab inside when modal. Table settings stays not modal and takes the shared look (owner, 2026-10-28). Open: should Results and the pass screen show the game's rules under How to play?
+  - Calls to revisit: Table settings closes on a click on the scrim; the launch page's How to play opens with the focus on its box, not Close.
+- **Tests:** every issue built test-first. Together on main: `npm run check` clean, 1801 unit tests (the simulation included) and all 31 browser tests pass.
+- **Handed off:** #85 finishes #103, #124 and #128's track parts; #86 takes `priceSymbols`; #88 routes Escape and decides whether Table settings is modal; #95 builds on #91 and #93; #101 and #102 on #98.
+
+### #82 (the joined terrain of the base mats)
+
+Built on 2026-10-28. The owner set the look over five rounds of throwaway sketches ("More realistic and less symbolic", "Make it visually appear 2.5D"), then approved all six base mats in the component library on 2026-10-28 ("ok push to main"). Mountain and Forest were drawn first, from the approved sketch; Wetland, Tropical, Desert and Grassland followed without one. The owner scoped the issue to the base game ("just the base game for now"). The design is `docs/superpowers/specs/2026-10-28-joined-terrain-design.md` and the plan `docs/superpowers/plans/2026-10-28-joined-terrain-issue-82.md`.
+- Built: `tools/art/parts/capital-relief/` draws a mat's impassable plots as one 2.5D picture, its relief (`capital-relief/<mat>`, 296×296, transparent), from the mat's printed layout. Plots joined by a side or a corner make one group. Its footprint is inset from the open sides with rounded corners, and a corner-only join gets a small patch that may reach into the buildable plots' corners (owner). Each biome has a painter: snow-capped peaks, broadleaf trees and pines, reed beds round dark pools, jungle with palms, sandstone buttes among dunes, and grassy hills with stone tors. `ground.js` draws each biome's natural ground.
+  - The base `capital-terrain/<biome>-open-01` to `-08` are now that natural ground, and the example mats `capital-mat/<biome>` are the ground with the relief over it.
+  - `CapitalGrid` lays the relief over its ground tiles, under the buildings. The red X and the flat background on impassable plots are gone (owner), and the gap is 1/296 of the width, so the plots line up with the relief's pixels.
+  - `src/lib/capital-terrain.js` (`plotTerrain`, `reliefUrl`) decides what each plot shows. A building on a printed impassable plot (Terraforming) clears the relief there. An Architects' cube is now a piece of its own, `piece/architects-cube`, on its plot's ground.
+  - The library's Art area has a Capital relief group: each mat's relief on its ground, and a specimen sheet per biome with every kind of join.
+  - The library draws its art only when a tile comes into view, a slice at a time, and loads each drawing module only then (owner, 2026-10-28). The page opens in about 1.1 s instead of 8.4 s. Each drawing's size is known up front (`src/library/`), so the `#art-…` links land and stay put; a new asset of an odd size needs its size added there, and `tests/library-art.test.mjs` says so.
+- Released: the 36 base impassable tiles are retired, with their drawings, SVGs and catalog entries. `docs/art/approved-assets.json` pins the redrawn ground tiles and example mats, the six reliefs and the cube: 101 entries. From now on the manifest is updated with the art on the issue branch, which merges only after the owner approves the batch (`docs/art/README.md`).
+- The README's capital screenshots are retaken from the running game: the Capital tab, the players overview, the mats on offer at setup and the library's CapitalGrid.
+- Calls to revisit after playing: Tropical's palms barely read as palms at the Capital tab's size; the Desert's butte outlines are strong; the Grassland's golden ground may read as sand. Each mat's relief is the same in every game, like the printed mat, and only the ground varies with the table's seed (my call).
+- Tests: `tests/art-capital-relief.test.mjs` (the groups, joins, footprints and corner patches on every base mat and the specimen layouts; each relief the same in every build, palette colours only, nothing on a buildable plot outside a corner patch; each biome's ground and corner piece), `art-capital-terrain` (the natural ground and the 296×296 example mats), `client-capital-terrain` (what each plot shows), `art-approved` (the 101 pinned assets), and the library's browser tests (the relief's place in the stack, the cube, a cleared plot, the gap, a landmark over the edge, a mat on offer, and targets under a corner patch).
+- Handed off: #132 (the Arts & Architecture mats' reliefs, M8) and #133 (the Fantasies & Futures mats', M9), each done the same way, with the advanced mats' printed features kept; #134 (the World Map's terrain hexes and territory tiles in the 2.5D style, M12).
+
+### #80's findings, second batch
+
+Built on 2026-10-29 as five more of #80's smallest unassigned findings, one branch each, merged onto main one after another. They keep clear of Lazar's issues (#60, #62, #63, #71, #81 and #85: the track spaces, the turn bar and the prompts' wording). Each issue has its design and plan under `docs/superpowers/` (2026-10-29).
+- **#100:** `viewerSeat(room)` in `moves.js` is the one viewer-seat rule (the person's own seat online, nobody at a hot-seat table), behind the store's `viewer` getter; App's sound cue and dice tray and Results read it. App's storage fallback and random source are `safeStorage` and `randomInt` in the new `src/lib/storage.js`, tested with a getter and a `getItem` that throw. `HandOver` types its store. `seatSlots` keeps its own rule, since it marks the seats in `room.you`, not the seat on show.
+- **#119:** `prefersReducedMotion()` in `motion.js` is the one `matchMedia` call. `TUMBLE_MS` moved to `dice.js`, and `Die` sets `--rg-die-tumble` from it on its own root, so a die rolls at the same pace in the library. The tray's fade reads the `--duration-medium` token through `msOf()`, so `FADE_MS` and its separate reduced-motion check are gone.
+- **#89:** `shownClock(room, seat)` (the header's four-step choice, moved unchanged) and `isRunning(clock)` in `clock.js`. `clockTime.now` in the new `src/lib/now.svelte.js` is one 250 ms timer, through Svelte's `createSubscriber`, that runs only while a screen reads it. `TurnClock` takes `name` and titles itself ("Vera: 1:42"). The pass screen chooses with `shownClock` too, and shows the clock only when it is the named player's own.
+- **#99:** `menuItems(screen, { hosting })` in the new `src/lib/menu.js` lists the start pages', the pass screen's, the results' and the game's entries. `PageHeader` takes the store and its `menu`, turns sound on and off, and leaves the table itself. New browser test `tests/browser/menu.test.mjs`.
+- **#97:** tokens `--scrim`, `--scrim-strong`, `--float-surface` and `--opacity-disabled`, used by `DecisionPanel`, `Dialog`, the game's card inspector, `DiceTray`, `Button`, `Segmented` and `TurnControl`. `Button` styles `aria-disabled`, so `PassScreen` drops its `:global` patch. `Panel` takes `titleFont`, so the landing page's Open tables panel needs no doubled class, and the lobby's dead players-title rule is gone. The issue's `Spoken` component (visually hidden text) is left out under the screen-reader ruling. Before-and-after screenshots of the touched library sections and the landing page are byte-identical apart from the item below.
+- Calls to revisit after playing: the pass screen's take button dims to 0.5 while it arms and loads, as every `Button` does, instead of 0.6 (#97); the pass screen shows no clock when the header would show another player's (#89).
+- **Tests:** every issue was built test-first; the browser tests for #89 and #99 were written to pass on the old code, so they pin its behaviour, and #89's was checked to fail with the ticker's subscription taken out. Together on main: `npm run check` clean, 1923 unit tests (the simulation included) and all 42 browser tests pass. The hotkeys browser test failed once under a slow parallel run and passed on every run after.
+- **Handed off:** #90 moves the header with `shownClock`, `clockTime` and `menu="game"`. #116 takes the dimmer look of a choice that can't be picked (0.3–0.35) and `DecisionOption`'s disabled state. #43 can reuse `safeStorage` and give its screen its own entries in `menuItems`.
+
+### #86 and #90 (the game's footer and header)
+
+Built on 2026-10-29, after the second batch, one branch each, merged onto main in turn. Each issue has its design and plan under `docs/superpowers/` (2026-10-29). Together they take about 300 lines out of `Game.svelte`.
+- **#86:** `footerView(game, seat, inputs)` in `turn.js` decides which of the eleven footers shows (the overview's close bar, game over, the income and track questions, forced income, a selected space, the turn choice, an income turn, a decision, setup, waiting) and every word in it, with a test for each on a real game view. The new screen part `src/screens/game/TurnFooter.svelte` draws it as one `TurnBar`, keyed on its kind. `tierSymbols(track, tier)` in `board.js` is a tier's price, used by `trackBoard()` and the footer, so the footer no longer rebuilds the board; that was `tierSymbols` from #128's remainder. `sendAdvance` in `moves.js` sends the advance's two moves and is tested, and selecting a space is a plain `selectSpace()`, so the fake `ComponentEvent` is gone.
+- **#90:** `playerChips(view)` in `area/players.js` gives the header's chips; its "Setting up" rule is `civilizationOf()`, shared with `playerCards()`. The new screen part `src/screens/game/GameHeader.svelte` draws `PageHeader` with the game's menu, the chips, the turn clock, Undo and the log button with its dot. `IconButton` got no `dot` prop (the issue's optional idea): the dot stays a span over the button, inside `GameHeader`.
+- **Pixels:** screenshots of six footers and five header states in a hot-seat game are byte-identical before and after.
+- **Tests:** test-first; `tests/client-footer.test.mjs` is new. #90's design and plan were written after its tests and code, not before. Together on main: `npm run check` clean, 1947 unit tests (the simulation included) and all 42 browser tests pass. Two browser runs during the work failed in milliseconds when back-to-back runs went over the dev server's per-minute table and login limits; on a fresh server everything passes.
+- **Handed off:** #62 (End turn) and #71 (the decision footer's words) now change `footerView` and `TurnFooter`. #122 moves `TurnBar`'s income reveal out, and #88 routes the keys, which still set `incomeAsk` and `trackAsk` in `Game.svelte`. #128's remainder is `tierOf` and `picks.js`' tier lines, after #85. #31 adds bot seats to `playerChips` and bot turns to the waiting footer.
+
+### #78 (choices on the civilization card)
+
+Built on 2026-10-29, when the owner asked for it to be done and pushed while away ("work on 78 next and push to main"), so there was no question round. The design is `docs/superpowers/specs/2026-10-29-civ-card-choices-design.md` and the plan `docs/superpowers/plans/2026-10-29-civ-card-choices-issue-78.md`. It stayed open until the owner approved the CivilizationCard section in the component library, as its checklist asked.
+- Built: `src/lib/civ-card.js` turns a seat's `civData` into marks on named spots for the Entertainers, Merrymakers, Leaders, Militants, Historians and Mystics (`civCardMarks`), says which spot an answer picks (`cardSpot`) and what it gives (`spotWords`), and gives a card its marks and the spots on offer (`civCardView`). The library's reviewed play illustration now comes from `SAMPLE_CIV_DATA` through the same code. The engine exports the Historians' squares and the Mystics' prophecies for it.
+  - `prompts.js` places those answers on the card (`place: 'card'`, `spot`, the `card` layout and its instruction), worded by `spotWords`. `PromptState` keeps the chosen `spot`; `selectSpot()` picks a spot's answer, or lists the answers several share (the Historians' opponents) in the panel; `civPick` feeds the Civ tab. The panel lists no column-and-row buttons; a picked spot's words are its status line.
+  - `CivilizationCard` takes `live`, `seat`, `selected` and `onCivilizationCardPick`; `CardSlot` takes `pickable`, `picked`, `value` and `onCardSlotPick` and is then a button. A spot on offer has a `--ok` outline (dashed with keyboard focus), the picked one gold. The card sets `--player-1` to its seat's colour, so its borders match its tokens. The 12 other civilizations ignore `live`. The library has a live and a choosing example for each of the six; its 58 existing card screenshots are byte-identical.
+  - The Civ tab and the players overview draw the six cards live; the overview's are to look at only.
+  - New screenshot `docs/ui/screens/game-civ-card-choice.png` in the README and `docs/ui/README.md`.
+  - The browser tests' dev server raises its per-address limits on new tables and logins (`CREATE_LIMIT` and `LOGIN_LIMIT`, set in `playwright.config.js`; production keeps 20 and 30). The suite had reached about 21 new tables a minute from one address, so a test's `create` was refused now and then; this was probably behind the hotkeys flakes earlier the same day.
+- Calls to revisit: the panel opens at the tracks' centre, as every prompt does under the owner's #79 ruling, though #78 asked for it not to cover the board; a Mystics prediction reached shows no mark (no reviewed style for one); seat 3's green tokens look like the outline of a spot on offer and seat 4's yellow like the picked gold; spots carry no new accessible names (the screen-reader ruling); an Entertainers token on the start shows the start token at full strength.
+- Tests: `tests/client-civ-card.test.mjs` (new), `client-prompt-state` (choices on the card), `client-prompts` (every card option has its spot), `limits` (the environment's limits) and the new browser test `tests/browser/civ-card.test.mjs`, which deals one hot-seat table of five again until the Entertainers are offered and moves their token on the card. Together on main: `npm run check` clean, 1965 unit tests and all 43 browser tests pass, twice in a row.
+- Handed off: #107 draws the card from data on these spot ids and marks; #60 can add where an effect comes from to the card's panel; #33, #37 and #40 add a case to `civCardMarks` and `cardSpot` for each expansion civilization whose choice is a spot on its card.
+- **Closed** on 2026-10-29, when the owner approved the CivilizationCard section in the component library ("78 looks good").
+
+### The base example mats leave the library (Refs #82)
+
+Done on 2026-10-29, when the owner asked what the Art area's Capital mats and Capital relief sections each are and ruled "let's not duplicate the art". The design document's §3.4 records the ruling.
+- Removed: the six base example mats `capital-mat/<biome>`, with their drawings, SVGs, catalog entries and lines in `docs/art/approved-assets.json` (now 95). Each was `drawReliefPreview` on the mat's layout, the same picture as its relief's preview under Capital relief. `drawCapitalMat` is gone from `tools/art/parts/capital-terrain.js`.
+- Kept: the 12 expansion example mats. They are not duplicates: nine of them draw printed features no tile has (`FEATURES.matOnly`), such as Canyon's cacti, Netherworld's imps, Polar's field lines and the Veil.
+- `PromptArt` draws a `mat` item as its relief. The game never shows that picture: the capital shelf draws each mat as its `CapitalGrid` (#56).
+- Tests: `art-capital-terrain` (a base mat has no example drawing or catalog entry, and has a relief), `art-catalog` (the group's counts), `art-approved` (12 example mats, 95 pinned assets), `engine-data` (every base mat has a relief) and `library-art`.
+- Handed off: #132 and #133 drop each expansion mat's example once its relief is drawn and whatever only the example draws is drawn elsewhere (my call).
+
+### #123 (every game name and English list from one helper)
+
+Built on 2026-10-29, the first of M13's Words and names issues, after the owner moved the refactors to M13 and asked for this block first. The design is `docs/superpowers/specs/2026-10-29-game-names-design.md` and the plan `docs/superpowers/plans/2026-10-29-game-names-issue-123.md`.
+- **Built:**
+  - `src/lib/words.js`: the English helpers, from `describe.js` and `results.js`. It adds `countWords` for nouns that are not ids, which replaces the map's and the log's own counting.
+  - `src/lib/game-names.js`: one function per game name, from `describe.js` and `ui.js`. Three are new: `tapestryCardOf` (the engine's `tapestryCard`, so the trap copies are mapped in one place), `civilizationOf` (the one "Setting up") and `achievementName` (the strip's short names).
+  - `ui.js`'s `TRACKS` and `RESOURCES` take their names from it.
+  - Gone: the six list joins, the second `article` and title case, six landmark maps, two building maps, four trap regexes, two achievement maps, three numeral lists, every `Seat N` and `Player N` fallback, and the map's second `hexName`. `describe.js` exports no names.
+- **Calls to revisit** (my calls):
+  - A seat without a name is "Player N" and no seat is "a player". The log and the prompts used to say "Seat N", "A player" and "another player".
+  - The one hex name is "hex 2,−1", capitalized at the start of the map's label and the explore line.
+  - The standings say "Setting up" for a player without a civilization, as the header does, instead of nothing.
+  - None of these shows in a real game, so nothing on screen changes.
+- **Tests:** test-first. `tests/client-words.test.mjs` and `tests/client-game-names.test.mjs` are new. The second checks all 33 catalog landmarks and every card's name, and holds a source guard against copies; `TierPrice`'s own price words are its one allowed copy, until #124's remainder. The name tests moved there from `client-describe`, `client-results` and `ui.test.mjs`.
+  - `npm run check` is clean, and all 1984 unit tests pass.
+  - All 43 browser tests passed on the branch's own dev servers (ports 3021 and 5174, since the main checkout's dev server held 3020 and 5173). The dice tray's conquest test failed once and passed five times in a row on a rerun. It plays random moves through the API, which this issue doesn't touch.
+- **Handed off:**
+  - #126 splits what is left of `describe.js`.
+  - #127 reads `ui.js`'s id lists from the engine.
+  - #124 and #125 finish the price and player-area words with `amountWords` and `nounOf`, `TierPrice` included.
+  - #101 names the versions and expansions.
+  - #31 names the Automa's seat through `seatName`.
+
+### #127 (the track, resource and building lists from the engine)
+
+Built on 2026-10-29, right after #123. The design is `docs/superpowers/specs/2026-10-29-engine-lists-design.md` and the plan `docs/superpowers/plans/2026-10-29-engine-lists-issue-127.md`.
+- **Built:**
+  - The client reads the engine's `TRACK_IDS` and `BUILDING_IDS` in `ui.js`, `prompts.js`, `glyphs.js`, `describe.js`, `area/players.js`, `board.js` and `hotkeys.js`; `board.js` takes its tiers from `TIER_COSTS`.
+  - `ui.js` exports `RESOURCE_ORDER`, the one screen order of the resources. `prompts.js`, `glyphs.js`, `prompt-state.svelte.js`, `IncomeNotice` and two library sections use it. `describe.js` uses the engine's `RESOURCE_IDS`, since it only asks whether something is a resource.
+  - `ui.js`'s `TrackId` and `ResourceId` are the engine's types.
+  - `hotkeys.js` exports `TAB_KEYS`, and `shortcuts.js` builds its track line and its player-area group from the hotkeys' own keys, with the same words as before.
+- **Calls to revisit** (my calls):
+  - The screens keep listing food before workers, unlike the engine (01 §1.2). Changing that would change the interface.
+  - Library fixtures that draw a mockup's tracks stay hand-written, since they are samples.
+- **Tests:** test-first. The new `tests/client-id-lists.test.mjs` checks:
+  - the lists against the engine;
+  - every engine track's name, art symbol, tint token, board track and player-card place;
+  - a source guard against hand-written track, resource and building lists.
+
+  `client-shortcuts` takes its expected keys from `TRACK_KEYS` and `TAB_KEYS`.
+  - `npm run check` is clean, and all 1989 unit tests pass.
+  - All 43 browser tests pass on the branch's own servers.
+  - `hotkeys.test.mjs` failed twice and then passed 6 times in a row. It is an old flake, not this change: its setup takes the first civilization offered, and a Futurists deal starts the player on space 4, so pressing 1 selects Ships instead of opening Scouting's payment.
+- **Handed off:**
+  - #35 adds `arts` to the engine's `TRACK_IDS`; the new test then asks for its name, symbol and tint.
+  - #120 lays the board out for any number of tracks.
+  - The hotkeys test's civilization pick is worth a small fix.
+
+### #126 (describe.js split into effect words, decision words and card text)
+
+Built on 2026-10-29, after #123 and #127. The owner had made #31 and #32 wait for it the same day. The design is `docs/superpowers/specs/2026-10-29-describe-split-design.md` and the plan `docs/superpowers/plans/2026-10-29-describe-split-issue-126.md`.
+- **Built:**
+  - `describe.js` (679 lines, from 1,391) keeps the effect, cost, bonus and payment words.
+  - `src/lib/decision-words.js` takes `decisionTitle`, `describeAnswer` and `PROPHECIES`, with the helpers only they use: `whose`, the capital plot names, the tech card lookup and the fallback answer.
+  - `src/lib/cards/tapestry-text.js` takes the 33 tapestry card texts and `describeTapestryCard`. `civ-rules.js` moved beside it, into `src/lib/cards/`.
+  - `describe.js` exports the five pieces the decision words build on: `effectsPhrase`, `effectPhrase`, `paymentVerbs`, `amounts` and `describeTurn`.
+  - `prompts.js`, `picks.js`, `log.js`, `cards/game-cards.js`, `area/players.js` and the PlayerChip section import from the new places.
+- **Calls to revisit** (my calls):
+  - `isRecord` and `isCount` stay as small local copies in each module, as in `log.js`, `prompts.js` and `glyphs.js`.
+  - The tapestry text keeps its own "Take this effect" for an unknown card. Its test checks it against `describe.js`'s words for an unknown effect.
+- **Tests:**
+  - `client-describe` split into three files: it keeps the effect words, and the new `client-decision-words` and `client-tapestry-text` take the rest. The one test that mixed decision and effect fallbacks split in two.
+  - A new test pins `describe.js`'s exports.
+  - `assertReadable` moved to `tests/helpers/readable.mjs`.
+  - `npm run check` is clean, all 1991 unit tests pass, and all 43 browser tests pass on the branch's own servers.
+- **Handed off:**
+  - #60 edits the effect phrases in `describe.js` and the titles in `decision-words.js`.
+  - #129 builds its table beside `decision-words.js`.
+  - #108 builds the tapestry cards from `cards/tapestry-text.js`.
+  - #31 and #32–#41 add their decision kinds to `decision-words.js`.
+
+### #129 (each decision kind's client facts in one table)
+
+Built on 2026-10-29, the last of M13's unblocked Words and names issues, after #126. The design is `docs/superpowers/specs/2026-10-29-decision-kinds-design.md` and the plan `docs/superpowers/plans/2026-10-29-decision-kinds-issue-129.md`.
+- **Built:**
+  - `src/lib/decision-kinds.js` holds `DECISION_KINDS`: one entry for each of the engine's 38 kinds, with the facts it has (shelf, tab, Confirm words, art shape). `kindFacts(kind)` returns all four, null where a kind has none. `ART_SHAPES` lists the 13 art shapes.
+  - In `prompts.js`, `SHELVES`, `CONFIRM_LABELS`, `TRACK_ANSWERS` and the two kind switches are gone:
+    - `placeOf` reads the shelf;
+    - `artOf` draws a shelf answer from its shelf, and any other answer through one maker per shape, in a map typed by `ArtShape`, so `npm run check` fails on a shape without a maker.
+  - `area/tabs.js`'s `TAB_OF` is gone: `tabFor` reads the table, and the Nomads' map-only placement stays its one exception.
+  - A new decision kind (#31, #32–#41) is one table entry, plus its title and answer words in `decision-words.js`.
+- **Calls to revisit** (my calls):
+  - The titles and answer words stay in `decision-words.js`, where #60 edits them, and are not in the table.
+  - Kinds share art shapes, rather than each kind having its own art function.
+- **Tests:** test-first. The new `tests/client-decision-kinds.test.mjs` checks:
+  - the table against the engine's `DECISIONS`;
+  - that every fact is a known one;
+  - that every engine kind has its own `TITLES` and `ANSWERS` entry in `decision-words.js`, read from the source, so the answers are checked now too;
+  - a guard against per-kind maps elsewhere.
+
+  `npm run check` is clean, all 1997 unit tests pass, and all 43 browser tests pass on the branch's own servers.
+- **Handed off:**
+  - #31 and #32–#41 add their kinds to `DECISION_KINDS`; the new test fails until they do.
+  - #31's blockers are now all closed.
+
+### #88 (the game's keys and Escape through one layer state)
+
+Built on 2026-10-29, when the owner chose it as the M13 refactor that fixes a bug players hit. The design is `docs/superpowers/specs/2026-10-29-layers-design.md` and the plan `docs/superpowers/plans/2026-10-29-layers-issue-88.md`.
+- **The bug:** **I**, then **L**, then **Esc** closed both the log and the footer's question, because `LogPanel` and `Game.svelte` each listened for Escape on the window. Now one Escape closes one thing.
+- **Built:**
+  - `src/lib/layers.js` holds what is open over the game screen: How to play, Table settings, the overview and its player, the log, and the footer's question.
+    - `openLayer` writes the opening rules once. How to play, Table settings and the overview open alone; the log closes only the overview; a question closes the overview.
+    - `escapeLayer` names the one thing Escape closes, from the top down, with the first-income notice last.
+  - `hotkeyGate` in `hotkeys.js` decides whether the screen takes a key, from facts about it: a modifier, a component, a field, a menu, a modal, or Enter on a control.
+  - `Game.svelte`:
+    - one `layers` state replaces seven booleans;
+    - the menu, the hotkeys, the chips and the log button all go through `openLayer`;
+    - no document query or `.rg-income-notice` lookup decides a key any more;
+    - `hotkeyAction`'s dead `cancel` is gone.
+  - `LogPanel`'s window listener is gone.
+  - The first-income notice's flag goes through the store's new optional `session` storage. App passes `safeStorage(() => sessionStorage)`; `forgetfulStorage()` is the default.
+- **Calls to revisit** (my calls):
+  - **L** with the overview open now shows the log. Before, the log opened unseen under the overview.
+  - **I** or **A** with the overview open closes it, so the question shows.
+  - Escape now closes the notice even when the focus is in a decision panel, since a decision panel has no Escape of its own.
+- **Tests:** test-first.
+  - The new `tests/client-layers.test.mjs` walks every combination reachable by opening layers in any order, with and without the notice, and checks that each Escape closes exactly one thing.
+  - `client-hotkeys` covers `hotkeyGate`, and `client-storage` covers `forgetfulStorage`.
+  - The hotkeys browser test now presses I, L, Esc, Esc. Its setup no longer takes the Futurists, which fixes the flake #127's entry noted. It and the rules-panel and dialogs tests passed 5 times in a row.
+  - `npm run check` is clean, all 2009 unit tests pass, and all 43 browser tests pass on the branch's own servers.
+- **Handed off:** #62 (End turn) and #35 (the arts track's key) add their keys through `hotkeyAction`, and a layer where they open something.
+
+### #101 (rules versions, expansions and variants named in one place)
+
+Built on 2026-10-29, among the refactors #32 waits for. The design is `docs/superpowers/specs/2026-10-29-version-names-design.md` and the plan `docs/superpowers/plans/2026-10-29-version-names-issue-101.md`.
+- **The owner's wording:** the rules versions are "Current rules" and "Original 2019 rules" everywhere, the lobby's mockup words. The settings row keeps "Original 2019" (owner, 2026-10-29). Before, the results said "Current official rules", and the log mixed the two sets.
+- **Built:**
+  - `versionName`, `expansionName` and `variantName` in `game-names.js`, `expansionColor` in `ui.js`, and `expansionBadges` in `lobby.js`.
+  - The lobby, the landing page, the log, the results, `CivilizationCard`, the card gallery's `CardEntry` and the library use them. `rulesLabel`, `VARIANT_LABELS`, the two `RULES` maps and the copied `EXPANSIONS.find` lookups are gone.
+  - The results draw each expansion badge in its own colour, not gold.
+  - `OpenTableRow` takes `expansions: { name, color }[]`, and the landing page now passes each open table's expansions.
+  - `npm run check` caught a real bug while this was built: `.map(variantName)` would have passed the index as the fallback.
+- **Calls to revisit** (my calls):
+  - Several badges stack under the rules line, as the one badge did. The library's OpenTableRow section has a new example with two expansions, for the owner to check.
+  - The log keeps the names' capitals ("under the Current rules"), while the results' tie sentence lowercases them ("Under the current rules").
+- **Screens:** `docs/ui/screens/game-results.png` was retaken from a real three-player hot-seat game with the tapestry draft, so its facts list says "Current rules".
+- **Tests:**
+  - `client-game-names` gains the three names and a guard against the old lookups.
+  - `ui.test` checks each expansion colour's token, and `client-results` the badges' colours.
+  - `client-log` and `client-results` take the owner's wording, and `client-lobby`'s naming tests moved to `client-game-names`.
+  - `npm run check` is clean, all 2012 unit tests pass, and all 43 browser tests pass on the branch's own servers.
+- **Handed off:**
+  - #109's edition chips use `expansionName` and `expansionColor`.
+  - #32 is the first expansion to show them.
+
+### #108 (tech and tapestry cards in Svelte from the engine's data)
+
+Built on 2026-10-29, the first of the card refactors #32–#40 wait for. The design is `docs/superpowers/specs/2026-10-29-svelte-cards-design.md` and the plan `docs/superpowers/plans/2026-10-29-svelte-cards-issue-108.md`.
+- **Built:**
+  - `TechnologyCard` and `TapestryCard` draw their own Svelte markup, with the DOM the `{@html}` strings had, and take the engine's data. An `id` alone draws the engine's card, not a fixture.
+  - The classes follow the conventions: `rg-tech-layout--band`, `rg-tech-layout--shape-square`, `rg-tapestry-layout--timing-trap` and so on, in `card-layouts.css`.
+  - `game-cards.js` holds the card typedefs and the new, tested `tapestryTiming`.
+  - `card-layouts.js` is gone. The static main-screen mockup keeps its own copy of the fixtures and string markup in `docs/ui/assets/card-markup.js` and `card-layouts.css`; the copy also takes ids again, as the mockup calls it.
+  - The library's TechnologyCard and TapestryCard sections show only engine cards: one per track and tier, the innovations, the timings, the longest ability and the trap.
+- **Checks:** screenshots of every tech and tapestry card, before and after.
+  - The card gallery's 148 are identical, pixel for pixel.
+  - In the library, the cards that already showed engine data match to within 3 of 255 in one colour channel: texture shimmer from their new positions.
+  - The fixture cards now read the engine's text. For example, Age of Discovery: "…then your opponents advance there without its benefit or bonus."
+- **For the owner:** the card gallery is unchanged. The library's TechnologyCard, TapestryCard and CardFan sections now show the engine's wording; please check them.
+- **Tests:**
+  - `client-game-cards` renders the components server-side instead of asserting on strings, and tests `tapestryTiming`.
+  - A guard fails on `{@html}`, on `card-layouts.js` and on the old `__` class names.
+  - The browser `card-layouts` test uses the new names.
+  - `npm run check` is clean, all 2014 unit tests pass, and all 43 browser tests pass on the branch's own servers.
+- **Handed off:** #109 shares the band and edition chip. The tech card still always says "Base game", and the tapestry chip colours every expansion as Arts & Architecture, as before.
+
 ### #85 (advancement track visual rework)
 
 Lazar completed the owner-reviewed redesign on 2026-10-29. The design and implementation record is in `docs/superpowers/specs/2026-10-29-track-visual-rework-design.md` and its matching plan.
-- Built: the four tracks now share the approved name, number, centered effect, optional-band and landmark placement. Exploration's twelve faces live in `ExplorationFace`; the tile wrapper is `TrackSpace`, and the approved technology, tapestry and civilization card pictograms live in `CardSymbol`. The vector symbols and native PNG sources are catalogued and available in the component gallery, with the representative Exploration faces and full TrackBoard also on that page.
-- Calls to revisit after playing: none recorded. Future rules or expansion effects should use the same icon vocabulary and vertical layout.
+- Built: the four tracks share the approved name, number, centered effect, optional-band and landmark placement. Exploration's twelve faces live in `ExplorationFace`; the tile wrapper is `TrackSpace`, and the approved technology, tapestry and civilization card pictograms live in `CardSymbol`. Their SVG art and native PNG sources are catalogued and shown in the component gallery.
+- Calls to revisit after playing: none recorded. Future expansion effects should use the same icon vocabulary and vertical layout.
 - Handed off: #35's arts track can use the same `TrackSpace` conventions and add its own symbols.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)

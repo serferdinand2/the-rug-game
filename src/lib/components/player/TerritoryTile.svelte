@@ -21,23 +21,10 @@
 </script>
 
 <script>
-	import {
-		coastLines,
-		cornerWedge,
-		hexCorner,
-		hexPicture,
-		islandParts,
-		overlayBox,
-		svgPoints,
-	} from '../../hexmap.js';
-	import {
-		CLOUD_SIZE,
-		CLOUD_SPOT,
-		VOLCANO_SIZE,
-		VOLCANO_SPOTS,
-		volcanoCorner,
-	} from '../../art/hex-overlays.js';
-	import { artUrl } from '../../ui.js';
+	import { hexCorner, svgPoints, territoryWords } from '../../hexmap.js';
+	import { volcanoCorner } from '../../art/hex-overlays.js';
+	import TerritoryArt from '../board/TerritoryArt.svelte';
+	import TerritoryClips from '../board/TerritoryClips.svelte';
 
 	/** @type {TerritoryTileProps} */
 	let {
@@ -60,35 +47,8 @@
 	let outline = $derived(
 		svgPoints(CORNERS.map((k) => hexCorner(CENTER, k, size)))
 	);
-	let picture = $derived(hexPicture(CENTER, size));
-	// The cloud sits at one spot in every turn; the volcano on its mountains' corner (#6).
-	let cloud = $derived(overlayBox(CLOUD_SPOT, CLOUD_SIZE, size));
-	let volcanoBox = $derived(
-		volcano
-			? overlayBox(
-					VOLCANO_SPOTS[volcanoCorner(corners)],
-					[VOLCANO_SIZE, VOLCANO_SIZE],
-					size
-				)
-			: null
-	);
-	let wedges = $derived(
-		corners.map((terrain, k) => ({
-			terrain,
-			k,
-			points: svgPoints(cornerWedge(CENTER, k, size)),
-		}))
-	);
-	let parts = $derived(
-		islandParts(CENTER, island, size).map((part, i) => ({
-			...part,
-			i,
-			points: svgPoints(part.points),
-		}))
-	);
-	let coasts = $derived(coastLines(CENTER, corners, size));
 	let name = $derived(
-		`Territory tile ${id}: ${[...new Set(corners)].join(', ')}${island.length ? `, island of ${island.join(' and ')}` : ''}${clouds ? ', with clouds' : ''}${volcano ? ', with a volcano' : ''}`
+		`Territory tile ${id}: ${territoryWords({ corners, island, clouds, volcano })}`
 	);
 	// The number sits at the foot of the hex, or at its top when the volcano stands at the foot (#6 review).
 	let numberY = $derived(
@@ -106,57 +66,16 @@
 	height={Math.round(height)}
 	{...attr}
 	class="rg-territory-tile {attr.class ?? ''}">
-	<defs>
-		{#each wedges as wedge (wedge.k)}
-			<clipPath id="{uid}-w{wedge.k}"
-				><polygon points={wedge.points} /></clipPath>
-		{/each}
-		{#each parts as part (part.i)}
-			<clipPath id="{uid}-i{part.i}"
-				><polygon points={part.points} /></clipPath>
-		{/each}
-	</defs>
-	{#each wedges as wedge (wedge.k)}
-		<image
-			class="rg-territory-tile--art"
-			href={artUrl(`hex/${wedge.terrain}`)}
-			{...picture}
-			preserveAspectRatio="none"
-			clip-path="url(#{uid}-w{wedge.k})" />
-	{/each}
-	{#each coasts as coast, i (i)}
-		<line
-			class="rg-territory-tile--coast"
-			x1={coast.from[0]}
-			y1={coast.from[1]}
-			x2={coast.to[0]}
-			y2={coast.to[1]} />
-	{/each}
-	{#each parts as part (part.i)}
-		<image
-			class="rg-territory-tile--art"
-			href={artUrl(`hex/${part.terrain}`)}
-			{...picture}
-			preserveAspectRatio="none"
-			clip-path="url(#{uid}-i{part.i})" />
-		<polygon
-			class="rg-territory-tile--island"
-			points={part.points} />
-	{/each}
-	{#if clouds}
-		<image
-			class="rg-territory-tile--art"
-			href={artUrl('hex/cloud')}
-			{...cloud}
-			preserveAspectRatio="none" />
-	{/if}
-	{#if volcanoBox}
-		<image
-			class="rg-territory-tile--art"
-			href={artUrl('hex/volcano')}
-			{...volcanoBox}
-			preserveAspectRatio="none" />
-	{/if}
+	<TerritoryClips
+		prefix={uid}
+		{size} />
+	<TerritoryArt
+		prefix={uid}
+		{size}
+		{corners}
+		{island}
+		{clouds}
+		{volcano} />
 	<polygon
 		class="rg-territory-tile--edge"
 		points={outline} />
@@ -171,23 +90,6 @@
 	.rg-territory-tile {
 		display: block;
 		overflow: visible;
-	}
-
-	/* The terrain pictures are pixel art: keep their edges hard when they are scaled. */
-	.rg-territory-tile--art {
-		image-rendering: pixelated;
-	}
-
-	.rg-territory-tile--coast {
-		stroke: var(--coast);
-		stroke-width: 1.2;
-		stroke-linecap: round;
-	}
-
-	.rg-territory-tile--island {
-		fill: none;
-		stroke: var(--chrome);
-		stroke-width: 0.8;
 	}
 
 	.rg-territory-tile--edge {

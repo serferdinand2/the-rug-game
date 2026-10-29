@@ -67,6 +67,7 @@ A player's first turn must be income turn 1 (01 §4.1), so it offers no choice. 
 - The README's "Current interface" and `docs/ui/README.md` show the notice and the forced-income footer from the running game. `docs/status.md` and `docs/architecture.md` record the engine change; the components README gets a row if the notice is its own component.
 - #77's body is rewritten to the owner's new brief before the work lands.
 - The owner approves the notice and the footer states in the library. As with #61 and #74, they are built into the game in the same change, and #77 closes once the owner has looked **(my call, following "Just make…")**.
+  - **Approved (owner, 2026-10-29):** the owner approved the IncomeNotice and TurnBar sections and asked for #77 to be closed with the other completed issues.
 - **Hand-offs.**
   - #31: whether the Automa and the Shadow Empire take an automatic income turn 1. `startTurn()` only does it for player seats.
   - #62: the first turn has no **End turn** moment, since nobody takes it.

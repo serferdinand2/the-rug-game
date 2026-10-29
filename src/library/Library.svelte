@@ -50,16 +50,15 @@
 	import {
 		ART_SECTIONS,
 		PARTS,
-		PICTURES,
+		RELIEF_SPECIMENS,
 		DEFERRED_ART,
 		artAnchor,
 		artDescription,
+		loadPicture,
+		pictureSize,
 	} from './art.js';
-	import { EXPANSIONS } from '../lib/art/catalog.js';
-
-	const EXPANSION_NAMES = new Map(
-		EXPANSIONS.map(({ code, name }) => [code, name])
-	);
+	import { expansionName } from '../lib/game-names.js';
+	import { joinList } from '../lib/words.js';
 
 	/** @type {LibraryProps} */
 	let { title = 'Components', ...attr } = $props();
@@ -71,10 +70,8 @@
 	 */
 	function issueText(issues) {
 		const names = issues.map((issue) => `#${issue}`);
-		if (names.length === 1) {
-			return `art issue ${names[0]} draws them`;
-		}
-		return `art issues ${names.slice(0, -1).join(', ')} and ${names.at(-1)} draw them`;
+		const issue = names.length === 1 ? 'art issue' : 'art issues';
+		return `${issue} ${joinList(names)} draw${names.length === 1 ? 's' : ''} them`;
 	}
 
 	const modules = /** @type {Record<string, import('svelte').Component>} */ (
@@ -157,7 +154,8 @@
 			{#each PARTS as part (part.label)}
 				<ArtTile
 					name={part.label}
-					picture={part.picture} />
+					load={part.load}
+					size={part.size} />
 			{/each}
 		</Section>
 		{#each ART_SECTIONS as section (section.id)}
@@ -178,14 +176,26 @@
 								name={tile.asset.name}
 								id={tile.asset.id}
 								example={tile.asset.example}
-								picture={PICTURES.get(tile.asset.id)}
+								load={tile.drawn
+									? () => loadPicture(tile.asset.id)
+									: undefined}
+								size={pictureSize(tile.asset.id)}
 								plots={tile.plots}
 								expansion={tile.showExpansion
-									? EXPANSION_NAMES.get(tile.asset.expansion)
+									? expansionName(tile.asset.expansion)
 									: undefined}
 								issue={tile.asset.issue} />
 						{/each}
 					{/each}
+					{#if section.id === 'capital-relief'}
+						<h3 class="rg-library--expansion">Specimens</h3>
+						{#each RELIEF_SPECIMENS as specimen (specimen.label)}
+							<ArtTile
+								name={specimen.label}
+								load={specimen.load}
+								size={specimen.size} />
+						{/each}
+					{/if}
 				{/if}
 			</Section>
 		{/each}

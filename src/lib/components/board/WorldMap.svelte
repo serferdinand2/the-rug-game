@@ -31,24 +31,15 @@
 	import { ComponentEvent } from '../../component-event.js';
 	import {
 		HEX_SIZE,
-		coastLines,
-		cornerWedge,
 		fitBox,
 		hexCorner,
 		hexPicture,
-		islandParts,
-		overlayBox,
 		pieceSpots,
 		svgPoints,
 	} from '../../hexmap.js';
-	import {
-		CLOUD_SIZE,
-		CLOUD_SPOT,
-		VOLCANO_SIZE,
-		VOLCANO_SPOTS,
-		volcanoCorner,
-	} from '../../art/hex-overlays.js';
 	import { artUrl, playerColor } from '../../ui.js';
+	import TerritoryArt from './TerritoryArt.svelte';
+	import TerritoryClips from './TerritoryClips.svelte';
 
 	/** @type {WorldMapProps} */
 	let {
@@ -67,23 +58,6 @@
 	const uid = $props.id();
 
 	const CORNERS = [0, 1, 2, 3, 4, 5];
-	const ORIGIN = /** @type {[number, number]} */ ([0, 0]);
-	// The clips are drawn once round the origin; each hex's art is moved there with a translate.
-	const WEDGE_CLIPS = CORNERS.map((k) =>
-		svgPoints(cornerWedge(ORIGIN, k, HEX_SIZE))
-	);
-	// Island clips by the number of parts (an island has at most 6), then the part.
-	const ISLAND_CLIPS = [1, 2, 3, 4, 5, 6].map((n) =>
-		islandParts(ORIGIN, Array(n).fill('sea'), HEX_SIZE).map((part) =>
-			svgPoints(part.points)
-		)
-	);
-	const PICTURE = hexPicture(ORIGIN, HEX_SIZE);
-	// The cloud sits at one spot in every hex; the volcano on its mountains' corner (#6).
-	const CLOUD = overlayBox(CLOUD_SPOT, CLOUD_SIZE, HEX_SIZE);
-	const VOLCANOES = VOLCANO_SPOTS.map((spot) =>
-		overlayBox(spot, [VOLCANO_SIZE, VOLCANO_SIZE], HEX_SIZE)
-	);
 	// A VP tag near a hex's top, in map units: the text is 11, so it stays 10px or more down to 1366×768 on the
 	// 61-hex map, and the box keeps clear of the outline along the top edge (y = -34.6 for HEX_SIZE 40).
 	const TAG = { width: 36, height: 14, top: -32, font: 11 };
@@ -128,23 +102,6 @@
 				outline: svgPoints(
 					CORNERS.map((k) => hexCorner(hex.center, k, HEX_SIZE))
 				),
-				wedges: hex.corners
-					? hex.corners.map((terrain, k) => ({ terrain, k }))
-					: [],
-				islands: islandParts(ORIGIN, hex.island, HEX_SIZE).map(
-					(part, i) => ({
-						terrain: part.terrain,
-						i,
-						n: hex.island.length,
-						points: svgPoints(part.points),
-					})
-				),
-				coasts: hex.corners
-					? coastLines(ORIGIN, hex.corners, HEX_SIZE).map((line) => ({
-							x: line.to[0],
-							y: line.to[1],
-						}))
-					: [],
 				unexploredPicture: hexPicture(hex.center, HEX_SIZE),
 				pieces: pieces(hex),
 			};
@@ -260,49 +217,15 @@
 	class="rg-world-map {attr.class ? attr.class : ''}">
 	{#snippet tile(/** @type {(typeof drawn)[number]} */ hex)}
 		{#if hex.corners}
-			<g transform="translate({hex.center[0]} {hex.center[1]})">
-				{#each hex.wedges as wedge (wedge.k)}
-					<image
-						class="rg-world-map--art"
-						href={artUrl(`hex/${wedge.terrain}`)}
-						{...PICTURE}
-						preserveAspectRatio="none"
-						clip-path="url(#{uid}-w{wedge.k})" />
-				{/each}
-				{#each hex.coasts as coast, i (i)}
-					<line
-						class="rg-world-map--coast"
-						x1="0"
-						y1="0"
-						x2={coast.x}
-						y2={coast.y} />
-				{/each}
-				{#each hex.islands as part (part.i)}
-					<image
-						class="rg-world-map--art"
-						href={artUrl(`hex/${part.terrain}`)}
-						{...PICTURE}
-						preserveAspectRatio="none"
-						clip-path="url(#{uid}-i{part.n}-{part.i})" />
-					<polygon
-						class="rg-world-map--island"
-						points={part.points} />
-				{/each}
-				{#if hex.clouds}
-					<image
-						class="rg-world-map--art"
-						href={artUrl('hex/cloud')}
-						{...CLOUD}
-						preserveAspectRatio="none" />
-				{/if}
-				{#if hex.volcano}
-					<image
-						class="rg-world-map--art"
-						href={artUrl('hex/volcano')}
-						{...VOLCANOES[volcanoCorner(hex.corners ?? [])]}
-						preserveAspectRatio="none" />
-				{/if}
-			</g>
+			<!-- The clips are drawn once round the origin; each hex's face is moved there. -->
+			<TerritoryArt
+				prefix={uid}
+				size={HEX_SIZE}
+				corners={hex.corners}
+				island={hex.island}
+				clouds={hex.clouds}
+				volcano={hex.volcano}
+				transform="translate({hex.center[0]} {hex.center[1]})" />
 			<polygon
 				class="rg-world-map--edge"
 				points={hex.outline} />
@@ -362,17 +285,9 @@
 			{/if}
 		{/each}
 	{/snippet}
-	<defs>
-		{#each WEDGE_CLIPS as points, k (k)}
-			<clipPath id="{uid}-w{k}"><polygon {points} /></clipPath>
-		{/each}
-		{#each ISLAND_CLIPS as parts, n (n)}
-			{#each parts as points, i (i)}
-				<clipPath id="{uid}-i{n + 1}-{i}"
-					><polygon {points} /></clipPath>
-			{/each}
-		{/each}
-	</defs>
+	<TerritoryClips
+		prefix={uid}
+		size={HEX_SIZE} />
 	{#each drawn as hex (hex.key)}
 		{#if hex.target}
 			<g
@@ -476,19 +391,6 @@
 	/* The terrain pictures are pixel art: keep their edges hard when they are scaled. */
 	.rg-world-map--art {
 		image-rendering: pixelated;
-	}
-
-	/* The shore, where land meets sea inside a territory. */
-	.rg-world-map--coast {
-		stroke: var(--coast);
-		stroke-width: 1.2;
-		stroke-linecap: round;
-	}
-
-	.rg-world-map--island {
-		fill: none;
-		stroke: var(--chrome);
-		stroke-width: 0.8;
 	}
 
 	.rg-world-map--edge {
