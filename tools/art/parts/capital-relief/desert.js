@@ -3,7 +3,11 @@ import { seededRandom } from '../../painter.js';
 import { PALETTE as C } from '../../palette.js';
 import { PITCH } from '../../../../src/lib/art/relief.js';
 import { cast, put } from '../../../../src/lib/art/paint/relief/canvas.js';
-import { BAYER, hash, noise } from '../../../../src/lib/art/paint/relief/ground.js';
+import {
+	BAYER,
+	hash,
+	noise,
+} from '../../../../src/lib/art/paint/relief/ground.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 /** @typedef {import('../../../../src/lib/art/paint/relief/footprint.js').Footprint} Footprint */

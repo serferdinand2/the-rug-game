@@ -2,8 +2,14 @@
 import { createCanvas, overlay } from '../../painter.js';
 import { PALETTE } from '../../palette.js';
 import { PLOT, PITCH } from '../../../../src/lib/art/relief.js';
-import { footprint, isImpassable } from '../../../../src/lib/art/paint/relief/footprint.js';
-import { drawNaturalGround, hash } from '../../../../src/lib/art/paint/relief/ground.js';
+import {
+	footprint,
+	isImpassable,
+} from '../../../../src/lib/art/paint/relief/footprint.js';
+import {
+	drawNaturalGround,
+	hash,
+} from '../../../../src/lib/art/paint/relief/ground.js';
 import { paintMountains } from '../../../../src/lib/art/paint/relief/mountain.js';
 import { paintForest } from '../../../../src/lib/art/paint/relief/forest.js';
 import { paintWetland } from './wetland.js';

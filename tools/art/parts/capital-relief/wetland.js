@@ -2,8 +2,15 @@
 import { seededRandom } from '../../painter.js';
 import { PALETTE as C } from '../../palette.js';
 import { cast, put } from '../../../../src/lib/art/paint/relief/canvas.js';
-import { distanceInside, withCornerPatches } from '../../../../src/lib/art/paint/relief/footprint.js';
-import { BAYER, hash, noise } from '../../../../src/lib/art/paint/relief/ground.js';
+import {
+	distanceInside,
+	withCornerPatches,
+} from '../../../../src/lib/art/paint/relief/footprint.js';
+import {
+	BAYER,
+	hash,
+	noise,
+} from '../../../../src/lib/art/paint/relief/ground.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 /** @typedef {import('../../../../src/lib/art/paint/relief/footprint.js').Footprint} Footprint */
