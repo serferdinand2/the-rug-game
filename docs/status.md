@@ -9,7 +9,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78 and #84 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
-  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127 and #126 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126 and #129 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -25,7 +25,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
 - **Next:**
-  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123, #127 and #126 are done (see [#123](#123-every-game-name-and-english-list-from-one-helper), [#127](#127-the-track-resource-and-building-lists-from-the-engine) and [#126](#126-describejs-split-into-effect-words-decision-words-and-card-text)); next is #129. What is left of #124, #125 and #128 waits for #85.
+  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123, #127, #126 and #129 are done (see [#123](#123-every-game-name-and-english-list-from-one-helper), [#127](#127-the-track-resource-and-building-lists-from-the-engine), [#126](#126-describejs-split-into-effect-words-decision-words-and-card-text) and [#129](#129-each-decision-kinds-client-facts-in-one-table)), so #31 is unblocked. What is left of #124, #125 and #128 waits for #85.
   - #77 (the first turn takes income by itself) is done: the owner approved its IncomeNotice and TurnBar sections and closed it on 2026-10-29.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
   - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
@@ -75,6 +75,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#123 (every game name and English list from one helper)](#123-every-game-name-and-english-list-from-one-helper)
 - [#127 (the track, resource and building lists from the engine)](#127-the-track-resource-and-building-lists-from-the-engine)
 - [#126 (describe.js split into effect words, decision words and card text)](#126-describejs-split-into-effect-words-decision-words-and-card-text)
+- [#129 (each decision kind's client facts in one table)](#129-each-decision-kinds-client-facts-in-one-table)
 
 ## Issues
 
@@ -679,6 +680,30 @@ Built on 2026-10-29, after #123 and #127. The owner had made #31 and #32 wait fo
   - #129 builds its table beside `decision-words.js`.
   - #108 builds the tapestry cards from `cards/tapestry-text.js`.
   - #31 and #32–#41 add their decision kinds to `decision-words.js`.
+
+### #129 (each decision kind's client facts in one table)
+
+Built on 2026-10-29, the last of M13's unblocked Words and names issues, after #126. The design is `docs/superpowers/specs/2026-10-29-decision-kinds-design.md` and the plan `docs/superpowers/plans/2026-10-29-decision-kinds-issue-129.md`.
+- **Built:**
+  - `src/lib/decision-kinds.js` holds `DECISION_KINDS`: one entry for each of the engine's 38 kinds, with the facts it has (shelf, tab, Confirm words, art shape). `kindFacts(kind)` returns all four, null where a kind has none. `ART_SHAPES` lists the 13 art shapes.
+  - In `prompts.js`, `SHELVES`, `CONFIRM_LABELS`, `TRACK_ANSWERS` and the two kind switches are gone:
+    - `placeOf` reads the shelf;
+    - `artOf` draws a shelf answer from its shelf, and any other answer through one maker per shape, in a map typed by `ArtShape`, so `npm run check` fails on a shape without a maker.
+  - `area/tabs.js`'s `TAB_OF` is gone: `tabFor` reads the table, and the Nomads' map-only placement stays its one exception.
+  - A new decision kind (#31, #32–#41) is one table entry, plus its title and answer words in `decision-words.js`.
+- **Calls to revisit** (my calls):
+  - The titles and answer words stay in `decision-words.js`, where #60 edits them, and are not in the table.
+  - Kinds share art shapes, rather than each kind having its own art function.
+- **Tests:** test-first. The new `tests/client-decision-kinds.test.mjs` checks:
+  - the table against the engine's `DECISIONS`;
+  - that every fact is a known one;
+  - that every engine kind has its own `TITLES` and `ANSWERS` entry in `decision-words.js`, read from the source, so the answers are checked now too;
+  - a guard against per-kind maps elsewhere.
+
+  `npm run check` is clean, all 1997 unit tests pass, and all 43 browser tests pass on the branch's own servers.
+- **Handed off:**
+  - #31 and #32–#41 add their kinds to `DECISION_KINDS`; the new test fails until they do.
+  - #31's blockers are now all closed.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 
