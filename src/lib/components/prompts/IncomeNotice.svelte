@@ -28,11 +28,7 @@
 	import DecisionPanel from './DecisionPanel.svelte';
 	import ResourceChip from '../player/ResourceChip.svelte';
 	import { ComponentEvent } from '../../component-event.js';
-
-	/** @typedef {import('../../ui.js').ResourceId} ResourceId */
-
-	/** @type {ResourceId[]} */
-	const ORDER = ['coin', 'food', 'worker', 'culture'];
+	import { RESOURCE_ORDER } from '../../ui.js';
 
 	/** @type {IncomeNoticeProps} */
 	let {
@@ -46,7 +42,7 @@
 		...attr
 	} = $props();
 
-	let chips = $derived(ORDER.filter((id) => resources[id] > 0));
+	let chips = $derived(RESOURCE_ORDER.filter((id) => resources[id] > 0));
 
 	/**
 	 * @param {ComponentEvent} event

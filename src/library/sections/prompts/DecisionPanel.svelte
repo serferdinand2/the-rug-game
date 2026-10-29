@@ -1,5 +1,6 @@
 <!-- Library section: DecisionPanel, the decision prompt over the shared area, with its scrim, content and Confirm, at the tracks' centre with any shelf of cards above it (#79), or docked beside the map. -->
 <script>
+	import { RESOURCE_ORDER } from '../../../lib/ui.js';
 	import DecisionOption from '../../../lib/components/prompts/DecisionOption.svelte';
 	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
 	import CardShelf from '../../../lib/components/prompts/CardShelf.svelte';
@@ -29,8 +30,7 @@
 	/** @typedef {import('../../../lib/picks.js').PickModel} PickModel */
 	/** @typedef {import('../../../lib/picks.js').ResourceId} ResourceId */
 
-	/** @type {ResourceId[]} */
-	const IDS = ['coin', 'food', 'worker', 'culture'];
+	const IDS = RESOURCE_ORDER;
 	const FREE = () => ({ fixed: null, offers: [...IDS] });
 
 	/**
@@ -491,13 +491,11 @@
 					rows={[0, 1, 2].map((row) => ({
 						fixed: null,
 						picked: row === 0 ? 'food' : null,
-						choices: ['coin', 'food', 'worker', 'culture'].map(
-							(id) => ({
-								id: /** @type {any} */ (id),
-								count: id === 'food' ? 8 : 2,
-								disabled: false,
-							})
-						),
+						choices: RESOURCE_ORDER.map((id) => ({
+							id: /** @type {any} */ (id),
+							count: id === 'food' ? 8 : 2,
+							disabled: false,
+						})),
 					}))} />
 			</DecisionPanel>
 		</div>

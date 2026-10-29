@@ -9,7 +9,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78 and #84 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
-  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130 and #123 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123 and #127 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -25,7 +25,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
 - **Next:**
-  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123 is done (see [its entry](#123-every-game-name-and-english-list-from-one-helper)); next are #126 and #127, which it unblocked, and #129. What is left of #124, #125 and #128 waits for #85.
+  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123 and #127 are done (see [#123](#123-every-game-name-and-english-list-from-one-helper) and [#127](#127-the-track-resource-and-building-lists-from-the-engine)); next are #126 and #129. What is left of #124, #125 and #128 waits for #85.
   - #77 (the first turn takes income by itself) is done: the owner approved its IncomeNotice and TurnBar sections and closed it on 2026-10-29.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
   - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
@@ -73,6 +73,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#86 and #90 (the game's footer and header)](#86-and-90-the-games-footer-and-header)
 - [#78 (choices on the civilization card)](#78-choices-on-the-civilization-card)
 - [#123 (every game name and English list from one helper)](#123-every-game-name-and-english-list-from-one-helper)
+- [#127 (the track, resource and building lists from the engine)](#127-the-track-resource-and-building-lists-from-the-engine)
 
 ## Issues
 
@@ -629,6 +630,31 @@ Built on 2026-10-29, the first of M13's Words and names issues, after the owner 
   - #124 and #125 finish the price and player-area words with `amountWords` and `nounOf`, `TierPrice` included.
   - #101 names the versions and expansions.
   - #31 names the Automa's seat through `seatName`.
+
+### #127 (the track, resource and building lists from the engine)
+
+Built on 2026-10-29, right after #123. The design is `docs/superpowers/specs/2026-10-29-engine-lists-design.md` and the plan `docs/superpowers/plans/2026-10-29-engine-lists-issue-127.md`.
+- **Built:**
+  - The client reads the engine's `TRACK_IDS` and `BUILDING_IDS` in `ui.js`, `prompts.js`, `glyphs.js`, `describe.js`, `area/players.js`, `board.js` and `hotkeys.js`; `board.js` takes its tiers from `TIER_COSTS`.
+  - `ui.js` exports `RESOURCE_ORDER`, the one screen order of the resources. `prompts.js`, `glyphs.js`, `prompt-state.svelte.js`, `IncomeNotice` and two library sections use it. `describe.js` uses the engine's `RESOURCE_IDS`, since it only asks whether something is a resource.
+  - `ui.js`'s `TrackId` and `ResourceId` are the engine's types.
+  - `hotkeys.js` exports `TAB_KEYS`, and `shortcuts.js` builds its track line and its player-area group from the hotkeys' own keys, with the same words as before.
+- **Calls to revisit** (my calls):
+  - The screens keep listing food before workers, unlike the engine (01 §1.2). Changing that would change the interface.
+  - Library fixtures that draw a mockup's tracks stay hand-written, since they are samples.
+- **Tests:** test-first. The new `tests/client-id-lists.test.mjs` checks:
+  - the lists against the engine;
+  - every engine track's name, art symbol, tint token, board track and player-card place;
+  - a source guard against hand-written track, resource and building lists.
+
+  `client-shortcuts` takes its expected keys from `TRACK_KEYS` and `TAB_KEYS`.
+  - `npm run check` is clean, and all 1989 unit tests pass.
+  - All 43 browser tests pass on the branch's own servers.
+  - `hotkeys.test.mjs` failed twice and then passed 6 times in a row. It is an old flake, not this change: its setup takes the first civilization offered, and a Futurists deal starts the player on space 4, so pressing 1 selects Ships instead of opening Scouting's payment.
+- **Handed off:**
+  - #35 adds `arts` to the engine's `TRACK_IDS`; the new test then asks for its name, symbol and tint.
+  - #120 lays the board out for any number of tracks.
+  - The hotkeys test's civilization pick is worth a small fix.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

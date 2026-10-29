@@ -1,5 +1,6 @@
 // The advancement tracks and the achievements as the board components take them, from a game view.
 import { TRACKS, TIER_COSTS, TRACK_RESOURCE } from './engine/data/tracks.js';
+import { TRACK_IDS } from './engine/data/ids.js';
 import { ACHIEVEMENTS } from './engine/data/achievements.js';
 import { bonusOf } from './engine/game.js';
 import { describeBonus, describeEffects } from './describe.js';
@@ -65,14 +66,19 @@ export function tierSymbols(track, tier) {
 	];
 }
 
+/** The tiers, from the engine's tier prices. */
+const TIERS = /** @type {(1 | 2 | 3 | 4)[]} */ (
+	Object.keys(TIER_COSTS).map(Number)
+);
+
 /**
- * The four tracks for TrackBoard. Which spaces are available is TrackBoard's own `available` prop.
+ * The engine's tracks for TrackBoard. Which spaces are available is TrackBoard's own `available` prop.
  * @param {BoardView} view
  * @returns {TrackBoardTrack[]}
  */
 export function trackBoard(view) {
 	const unowned = new Set(view.landmarks);
-	return /** @type {TrackId[]} */ (Object.keys(TRACKS)).map((track) => {
+	return TRACK_IDS.map((track) => {
 		return {
 			id: track,
 			name: trackName(track),
@@ -94,9 +100,7 @@ export function trackBoard(view) {
 				}
 				return entry;
 			}),
-			tiers: /** @type {(1 | 2 | 3 | 4)[]} */ ([1, 2, 3, 4]).map((tier) =>
-				tierSymbols(track, tier)
-			),
+			tiers: TIERS.map((tier) => tierSymbols(track, tier)),
 			players: view.seats
 				.filter((seat) => seat.kind === 'player')
 				.map((seat) => ({

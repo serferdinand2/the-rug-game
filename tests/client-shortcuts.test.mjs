@@ -2,6 +2,7 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { SHORTCUTS } from '../src/lib/shortcuts.js';
+import { TAB_KEYS, TRACK_KEYS } from '../src/lib/hotkeys.js';
 
 test('every group has a title and shortcuts, and every shortcut has keys and an action (#42)', () => {
 	assert.ok(SHORTCUTS.length >= 4);
@@ -30,7 +31,7 @@ test('the list names every hotkey the game answers to (#83)', () => {
 	for (const key of [
 		'I',
 		'A',
-		'1–4',
+		`1–${TRACK_KEYS.length}`,
 		'Enter',
 		'Z',
 		'Esc',
@@ -38,13 +39,7 @@ test('the list names every hotkey the game answers to (#83)', () => {
 		'1–5',
 		'Tab',
 		'L',
-		'Q',
-		'W',
-		'E',
-		'R',
-		'T',
-		'Y',
-		'U',
+		...Object.keys(TAB_KEYS).map((tab) => tab.toUpperCase()),
 		',',
 		'.',
 		'←',
@@ -58,4 +53,31 @@ test('the list names every hotkey the game answers to (#83)', () => {
 	]) {
 		assert.ok(keys.has(key), key);
 	}
+});
+
+test("the track answers and the player tabs are listed from the hotkeys' own keys (#127)", () => {
+	const turn = SHORTCUTS.find((group) => group.title === 'Your turn');
+	const tracks = turn?.shortcuts.find(
+		(shortcut) => shortcut.keys[0][0] === `1–${TRACK_KEYS.length}`
+	);
+	assert.equal(
+		tracks?.action,
+		'Then answer it: 1 Exploration, 2 Science, 3 Technology or 4 Military.'
+	);
+	const area = SHORTCUTS.find((group) => group.title === 'Your player area');
+	assert.deepEqual(
+		area?.shortcuts.map((shortcut) => [
+			shortcut.keys[0][0],
+			shortcut.action,
+		]),
+		[
+			['Q', 'Capital.'],
+			['W', 'Hand.'],
+			['E', 'Income.'],
+			['R', 'Eras.'],
+			['T', 'Civ.'],
+			['Y', 'Tech.'],
+			['U', 'Terrain.'],
+		]
+	);
 });

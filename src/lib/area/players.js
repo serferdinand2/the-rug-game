@@ -5,13 +5,7 @@ import { selfSummary } from '../overview.js';
 import { mapHexes } from '../hexmap.js';
 import { TERRAINS } from '../ui.js';
 import { capitalScore, controlledTerritories } from '../engine/game.js';
-
-const TRACK_IDS = /** @type {const} */ ([
-	'exploration',
-	'science',
-	'technology',
-	'military',
-]);
+import { TRACK_IDS } from '../engine/data/ids.js';
 
 /**
  * The props of one PlayerCard.
