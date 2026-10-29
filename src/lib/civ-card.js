@@ -7,6 +7,7 @@ import { MILITANTS_SPACES } from './engine/civs/militants.js';
 import { HISTORIANS_SQUARES } from './engine/civs/historians.js';
 import { MYSTICS_PROPHECIES } from './engine/civs/mystics.js';
 import { describeEffects } from './describe.js';
+import { seatName } from './game-names.js';
 
 /**
  * What a spot on a card shows: a player's piece on it, a used Leaders track, a space or square uncovered, a Merrymakers
@@ -254,7 +255,7 @@ export function spotWords(decision, answer, game) {
 			return `${verb} the ${reward(space)} space`;
 		}
 		case 'historians': {
-			const name = game.seats?.[slot.to - 1]?.name ?? `Seat ${slot.to}`;
+			const name = seatName(game, slot.to);
 			return `Give ${name} a token, uncovering the ${reward(HISTORIANS_SQUARES[slot.square])} square`;
 		}
 		default:

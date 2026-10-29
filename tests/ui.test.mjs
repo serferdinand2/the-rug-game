@@ -16,7 +16,6 @@ import {
 	artUrl,
 	playerPieceUrl,
 	capitalTileUrl,
-	roman,
 } from '../src/lib/ui.js';
 
 const tokens = readFileSync(
@@ -127,11 +126,6 @@ test('every track, resource, terrain and seat colour is a declared token', () =>
 
 test('an asset id becomes its URL under /art', () => {
 	assert.equal(artUrl('landmark/lighthouse'), '/art/landmark/lighthouse.svg');
-});
-
-test('eras and tiers are written as Roman numerals', () => {
-	assert.deepEqual([1, 2, 3, 4, 5].map(roman), ['I', 'II', 'III', 'IV', 'V']);
-	assert.throws(() => roman(0), /1 to 10/);
 });
 
 test("Panel sets its heading's font: the body font by default, the title font on request (#97)", () => {

@@ -17,8 +17,9 @@
 </script>
 
 <script>
-	import { article } from '../../describe.js';
-	import { artUrl, roman } from '../../ui.js';
+	import { article } from '../../words.js';
+	import { roman } from '../../game-names.js';
+	import { artUrl } from '../../ui.js';
 
 	/** @type {IncomeMatProps} */
 	let { rows, era, ...attr } = $props();

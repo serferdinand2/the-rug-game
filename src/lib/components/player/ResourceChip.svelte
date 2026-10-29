@@ -18,7 +18,8 @@
 
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
-	import { amountWords, resourceName } from '../../describe.js';
+	import { amountWords } from '../../words.js';
+	import { resourceName } from '../../game-names.js';
 
 	/** @type {ResourceChipProps} */
 	let { resource, count, ...attr } = $props();

@@ -19,7 +19,7 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
-	import { roman } from '../../ui.js';
+	import { roman } from '../../game-names.js';
 
 	/** @type {EraSlotsProps} */
 	let {

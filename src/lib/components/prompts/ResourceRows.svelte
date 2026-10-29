@@ -37,7 +37,7 @@
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
 	import { ComponentEvent } from '../../component-event.js';
-	import { resourceName } from '../../describe.js';
+	import { resourceName } from '../../game-names.js';
 
 	/** @type {ResourceRowsProps} */
 	let { rows, disabled = false, onResourceRowsPick, ...attr } = $props();

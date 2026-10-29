@@ -5,7 +5,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SILENT, eventText, logEntries } from '../src/lib/log.js';
-import { civilizationName, tapestryName } from '../src/lib/describe.js';
+import { civilizationName, tapestryName } from '../src/lib/game-names.js';
 import { view } from '../src/lib/engine/game.js';
 import { CAPITAL_MATS } from '../src/lib/engine/data/capitals.js';
 import { simulate } from './helpers/simulation.mjs';

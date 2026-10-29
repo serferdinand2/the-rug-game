@@ -21,7 +21,7 @@
 </script>
 
 <script>
-	import { resourceName } from '../../describe.js';
+	import { resourceName } from '../../game-names.js';
 	import { artUrl } from '../../ui.js';
 
 	/** @type {ResourceIconProps} */

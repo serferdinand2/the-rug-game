@@ -50,13 +50,8 @@
 	import Badge from '../ui/Badge.svelte';
 	import ResourceChip from './ResourceChip.svelte';
 	import { ComponentEvent } from '../../component-event.js';
-	import {
-		RESOURCES,
-		TRACKS,
-		playerColor,
-		roman,
-		trackColor,
-	} from '../../ui.js';
+	import { RESOURCES, TRACKS, playerColor, trackColor } from '../../ui.js';
+	import { roman } from '../../game-names.js';
 
 	/** @type {PlayerCardProps} */
 	let {

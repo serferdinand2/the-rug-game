@@ -35,9 +35,8 @@
 	import TurnControl from '../../lib/components/prompts/TurnControl.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { offerArt } from '../../lib/picks.js';
-	import { tapestryName, techName } from '../../lib/describe.js';
+	import { spaceName, tapestryName, techName } from '../../lib/game-names.js';
 	import { terrainSeed } from '../../lib/area/capital.js';
-	import { TRACKS } from '../../lib/engine/data/tracks.js';
 
 	/** @type {DecisionPromptProps} */
 	let {
@@ -286,7 +285,7 @@
 	<DecisionPanel
 		{...attr}
 		narrow
-		title="Advance to {TRACKS[advance.track][advance.to].name}"
+		title="Advance to {spaceName(advance.track, advance.to)}"
 		status={state.payControls.status}
 		statusWarn={state.payControls.warn}
 		track={advance.track}

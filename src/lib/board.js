@@ -1,9 +1,9 @@
 // The advancement tracks and the achievements as the board components take them, from a game view.
 import { TRACKS, TIER_COSTS, TRACK_RESOURCE } from './engine/data/tracks.js';
-import { LANDMARKS } from './engine/data/landmarks.js';
 import { ACHIEVEMENTS } from './engine/data/achievements.js';
 import { bonusOf } from './engine/game.js';
 import { describeBonus, describeEffects } from './describe.js';
+import { achievementName, landmarkName, trackName } from './game-names.js';
 import { bonusGlyphs, spaceGlyphs } from './glyphs.js';
 
 /** @typedef {import('./components/board/TrackBoard.svelte').TrackBoardTrack} TrackBoardTrack */
@@ -29,23 +29,6 @@ import { bonusGlyphs, spaceGlyphs } from './glyphs.js';
  * @property {number | null} vp - The VP the next claimant gets, or null when every place is taken
  * @property {Seat[]} claimed - The seats that claimed it, in order
  */
-
-/** @type {Record<TrackId, string>} */
-const TRACK_NAMES = {
-	exploration: 'Exploration',
-	science: 'Science',
-	technology: 'Technology',
-	military: 'Military',
-};
-
-/** @type {Record<string, string>} */
-const SHORT_NAMES = {
-	'complete-track': 'Complete a track',
-	'topple-two': 'Topple two outposts',
-	'middle-island': 'Conquer the middle',
-};
-
-const LANDMARK_NAMES = new Map(LANDMARKS.map((l) => [l.id, l.name]));
 
 /**
  * A space's benefit and its bonus in words, as the track's hover and the footer say them; an ordered space's effects
@@ -92,7 +75,7 @@ export function trackBoard(view) {
 	return /** @type {TrackId[]} */ (Object.keys(TRACKS)).map((track) => {
 		return {
 			id: track,
-			name: TRACK_NAMES[track],
+			name: trackName(track),
 			spaces: TRACKS[track].slice(1).map((space) => {
 				const bonus = bonusOf(
 					/** @type {any} */ (view),
@@ -107,8 +90,7 @@ export function trackBoard(view) {
 					words: spaceWords(view, track, space.space),
 				};
 				if (space.landmark && unowned.has(space.landmark)) {
-					entry.landmark =
-						LANDMARK_NAMES.get(space.landmark) ?? space.landmark;
+					entry.landmark = landmarkName(space.landmark);
 				}
 				return entry;
 			}),
@@ -138,7 +120,7 @@ export function achievements(view) {
 		);
 		return {
 			id: achievement.id,
-			name: SHORT_NAMES[achievement.id] ?? achievement.name,
+			name: achievementName(achievement.id),
 			vp: achievement.vp[view.map][claimed.length] ?? null,
 			claimed: [...claimed],
 		};

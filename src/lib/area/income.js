@@ -3,7 +3,7 @@ import { describeEffects } from '../describe.js';
 import { exposedSpaces } from '../engine/game.js';
 import { INCOME_MAT } from '../engine/data/income-mat.js';
 import { BUILDING_IDS } from '../engine/data/ids.js';
-import { TAPESTRY_CARDS } from '../engine/data/tapestry-cards.js';
+import { tapestryName } from '../game-names.js';
 
 /** @typedef {import('../engine/data/effects.js').Effect} Effect */
 
@@ -95,10 +95,9 @@ export function eraSlots(seat) {
 		if (id === null) {
 			return { era, card: null, faceDown: true, active: false, id: null };
 		}
-		const wanted = /^trap-\d+$/.test(id) ? 'trap' : id;
 		return {
 			era,
-			card: TAPESTRY_CARDS.find((c) => c.id === wanted)?.name ?? id,
+			card: tapestryName(id),
 			faceDown: false,
 			active: active === id,
 			id,

@@ -1,5 +1,5 @@
 // The players overview's cards (#27 design §4) and the header's chips (#90): each player's public facts, from the viewer's view.
-import { civilizationName } from '../describe.js';
+import { civilizationOf } from '../game-names.js';
 import { civAbilityText } from '../civ-rules.js';
 import { selfSummary } from '../overview.js';
 import { mapHexes } from '../hexmap.js';
@@ -41,15 +41,6 @@ const TRACK_IDS = /** @type {const} */ ([
  * @property {boolean} current - It is this player's turn
  * @property {string | undefined} ability - The civilization's full ability, for the chip's tooltip
  */
-
-/**
- * A player's civilization as the chips and cards name it: their first, or 'Setting up' before they have one.
- * @param {any} seat - A player seat of the view
- * @returns {string}
- */
-function civilizationOf(seat) {
-	return seat.civs.length ? civilizationName(seat.civs[0]) : 'Setting up';
-}
 
 /**
  * One chip per player seat, in seat order, for the game header (#90).
