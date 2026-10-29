@@ -398,7 +398,7 @@ test("no screen fights Panel over its heading's font (#97)", () => {
 	for (const [path, contents] of sources) {
 		assert.doesNotMatch(
 			contents,
-			/\.(rg-[\w-]+)\.\1\b/,
+			/\.(rg-[\w-]+)\.\1(?![\w-])/,
 			`${path} doubles a class to win`
 		);
 	}

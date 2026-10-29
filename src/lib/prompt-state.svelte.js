@@ -26,6 +26,7 @@ import {
 } from './area/explore.js';
 import { tapestryCardData, techCardData } from './cards/game-cards.js';
 import { myDecision } from './turn.js';
+import { cardCivOf, civCardView } from './civ-card.js';
 
 /** @typedef {import('./picks.js').Selection} Selection */
 /** @typedef {import('./picks.js').ResourceId} ResourceId */
@@ -50,6 +51,7 @@ import { myDecision } from './turn.js';
  * @property {string} key - The decision they belong to
  * @property {number | null} picked - The answer chosen, by index
  * @property {string | null} hex - The hex chosen on the map
+ * @property {string | null} spot - The spot chosen on the civilization card (#78)
  * @property {number | null} tile - The explore's tile (#74)
  * @property {number} orient - The explore's turn on the hex, 0–5 (#74)
  * @property {Selection} selection - A pick's choices so far (#75)
@@ -76,6 +78,7 @@ export class PromptState {
 		key: '',
 		picked: null,
 		hex: null,
+		spot: null,
 		tile: null,
 		orient: 0,
 		selection: nothing(),
@@ -138,6 +141,7 @@ export class PromptState {
 			key,
 			picked: null,
 			hex: null,
+			spot: null,
 			tile: tiles.length === 1 ? tiles[0] : null,
 			orient: 0,
 			selection: nothing(),
@@ -156,6 +160,10 @@ export class PromptState {
 
 	get hex() {
 		return this.#now.hex;
+	}
+
+	get spot() {
+		return this.#now.spot;
 	}
 
 	get tile() {
@@ -343,7 +351,26 @@ export class PromptState {
 		Boolean(this.exploring) && this.tile !== null && Boolean(this.hex)
 	);
 
-	/** What the panel lists: its own options, and on the map those of the chosen hex. An explore lists none. */
+	/** The viewer's civilization card while its own decision is made on it (#78): the card's state, and the spot chosen. */
+	civPick = $derived.by(() => {
+		const civ = cardCivOf(this.decision);
+		if (!civ || this.prompt?.layout !== 'card') {
+			return null;
+		}
+		return {
+			civ,
+			view: civCardView(this.#game, this.#seat, civ, this.decision),
+			selected: this.spot,
+		};
+	});
+	/** The options a spot several answers share, such as the Historians' opponents for one square (#78). */
+	#spotOptions = $derived(
+		(this.prompt?.options ?? []).filter(
+			(o) => o.place === 'card' && o.spot === this.spot
+		)
+	);
+
+	/** What the panel lists: its own options, on the map those of the chosen hex, and those a chosen spot shares. An explore lists none. */
 	panelOptions = $derived(
 		!this.prompt ||
 			this.exploring ||
@@ -355,7 +382,10 @@ export class PromptState {
 					.filter(
 						(o) =>
 							o.place === 'panel' ||
-							(o.place === 'map' && o.hex === this.hex)
+							(o.place === 'map' && o.hex === this.hex) ||
+							(o.place === 'card' &&
+								this.#spotOptions.length > 1 &&
+								o.spot === this.spot)
 					)
 					.map((o) => ({ ...o, vp: null }))
 	);
@@ -533,6 +563,24 @@ export class PromptState {
 		}
 		const here = (this.prompt?.options ?? []).filter((o) => o.hex === hex);
 		this.#set({ hex, picked: here.length === 1 ? here[0].index : null });
+	}
+
+	/**
+	 * A spot chosen on the civilization card (#78): its answer, or, when several share it, a choice among them in the
+	 * panel.
+	 * @param {string} spot
+	 */
+	selectSpot(spot) {
+		if (this.sending || spot === this.spot) {
+			return;
+		}
+		const here = (this.prompt?.options ?? []).filter(
+			(o) => o.place === 'card' && o.spot === spot
+		);
+		if (here.length === 0) {
+			return;
+		}
+		this.#set({ spot, picked: here.length === 1 ? here[0].index : null });
 	}
 
 	/**

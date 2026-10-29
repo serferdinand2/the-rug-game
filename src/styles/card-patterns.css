@@ -737,6 +737,11 @@
 	opacity: 1;
 	box-shadow: var(--glow-current);
 }
+/* A track the decision offers drops the unused grey, which would grey its green outline too (#78). */
+.rg-card-leader-track > .rg-card-slot-surface--pickable {
+	filter: none;
+	opacity: 1;
+}
 .rg-card-frame--leaders .rg-card-frame--clarity {
 	margin-top: 16px;
 }
@@ -976,6 +981,11 @@
 }
 .rg-card-frame[data-state='play'] .rg-card-entertainer-path--token {
 	opacity: 0.38;
+}
+/* Live state whose token still waits on the start (#78). */
+.rg-card-frame[data-state='play']
+	.rg-card-entertainer-path--token.rg-card-is-current {
+	opacity: 1;
 }
 
 /* Militants: covered reward squares form two outpost rows. */
@@ -1634,6 +1644,43 @@
 }
 .rg-card-slot-surface--filled {
 	border: 2px solid var(--player-1);
+}
+/* A spot the open decision offers is a button drawn as its square (#78). The reset only undoes the browser's button
+   look, at zero specificity, so every card rule still wins. The outline is the track spaces' available green, and
+   their gold once picked: inside a card --gold is the paper's brown, so the picked outline takes the palette's gold,
+   --card-title. */
+:where(.rg-card-slot-surface--pickable) {
+	appearance: none;
+	margin: 0;
+	padding: 0;
+	color: inherit;
+	font: inherit;
+	letter-spacing: inherit;
+	word-spacing: inherit;
+	text-align: inherit;
+	text-indent: inherit;
+	text-transform: inherit;
+	text-shadow: inherit;
+}
+.rg-card-slot-surface--pickable {
+	cursor: pointer;
+	outline: var(--border-thick) solid var(--ok);
+	outline-offset: 0;
+}
+.rg-card-slot-surface--pickable:hover {
+	box-shadow: var(--glow-ok);
+}
+.rg-card-slot-surface--pickable:focus-visible {
+	outline: var(--border-thick) dashed var(--ok);
+	outline-offset: 0;
+}
+.rg-card-slot-surface--pickable.rg-card-slot-surface--picked {
+	outline: var(--border-thick) solid var(--card-title);
+	outline-offset: 0;
+	box-shadow: var(--glow-gold);
+}
+.rg-card-slot-surface--pickable.rg-card-slot-surface--picked:focus-visible {
+	outline-style: dashed;
 }
 .rg-card-token-reserve {
 	display: flex;

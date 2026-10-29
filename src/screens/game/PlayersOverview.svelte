@@ -28,6 +28,7 @@
 	import { capitalView } from '../../lib/area/capital.js';
 	import { playerCards } from '../../lib/area/players.js';
 	import { techCardData } from '../../lib/cards/game-cards.js';
+	import { CARD_CIVS, civCardView } from '../../lib/civ-card.js';
 
 	/** @typedef {import('../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
@@ -109,9 +110,13 @@
 			{/if}
 		{:else if open.row === 'civilization'}
 			{#each openSeat.civs as civ (civ)}
+				<!-- Each player's card as it stands, to look at only (#78). -->
 				<CivilizationCard
 					id={civ}
-					state="empty" />
+					seat={openSeat.seat}
+					live={CARD_CIVS.includes(civ)
+						? civCardView(game, openSeat.seat, civ)
+						: null} />
 			{:else}
 				<p class="rg-players-overview--waiting">No civilization yet</p>
 			{/each}

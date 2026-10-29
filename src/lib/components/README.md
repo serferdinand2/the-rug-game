@@ -129,7 +129,7 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | Component | Responsibility |
 |---|---|
 | `player/CardFrame` | 425 px frame, title, full portrait, main effect and footer metadata |
-| `player/CivilizationCard` | Eighteen recipes, every base civilization among them (the Futurists, Heralds, Nomads and The Chosen await review), with empty/in-play example states; any other civilization shows its frame, portrait and name only |
+| `player/CivilizationCard` | Eighteen recipes, every base civilization among them (the Futurists, Heralds, Nomads and The Chosen await review), with empty/in-play example states; any other civilization shows its frame, portrait and name only. The six card civilizations (Entertainers, Merrymakers, Leaders, Militants, Historians, Mystics) draw a seat's `live` state from `civCardView()` (`src/lib/civ-card.js`) in the play look, their tokens in the `seat`'s colour, and turn the spots its decision offers into buttons with the green available outline, the `selected` one gold, reporting `onCivilizationCardPick` with the spot id (#78) |
 | `player/TechnologyCard` | Horizontal 425 px technology frame with full artwork, square/circle effects, conditions and edition badge; a reviewed fixture by `id`, or a real card by `data` from `techCardData()` (`src/lib/cards/game-cards.js`) |
 | `player/TapestryCard` | 319 px tapestry frame with timing beside the portrait, including the red Trap variant; a reviewed fixture by `id`, or a real card by `data` from `tapestryCardData()` |
 | `player/ScaledTapestryCard` | A whole `TapestryCard` shown smaller, keeping its measured height: 0.7 on the choice shelf, 0.6 for the current era, 0.42 in the hand |
@@ -139,7 +139,7 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | `player/CardFan` | Overlapping cards; hover or focus raises one and reports it for a full view |
 | `player/CardResource` | Native 24 px inline icon without changing row spacing |
 | `player/PlayerToken` | A player's token, from its seat (#103) or one of the five supplied shaded 32 px colour variants |
-| `player/CardSlot` | Compact, large or prediction square, never larger than 75 px |
+| `player/CardSlot` | Compact, large or prediction square, never larger than 75 px; `pickable`, a button with the green available outline that reports `onCardSlotPick` with its `value`, gold when `picked` (#78) |
 | `player/CardEffectBox` | Beige trigger/scoring row |
 | `player/CardClarity` | Supporting rules beneath the relevant layout |
 | `player/CardPlacementRows` | Collection, covered rewards, track and history rows |
