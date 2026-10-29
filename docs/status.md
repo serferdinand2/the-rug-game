@@ -9,7 +9,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78 and #84 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
-  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126 and #129 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129 and #88 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; what is left of each waits for #85.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -76,6 +76,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#127 (the track, resource and building lists from the engine)](#127-the-track-resource-and-building-lists-from-the-engine)
 - [#126 (describe.js split into effect words, decision words and card text)](#126-describejs-split-into-effect-words-decision-words-and-card-text)
 - [#129 (each decision kind's client facts in one table)](#129-each-decision-kinds-client-facts-in-one-table)
+- [#88 (the game's keys and Escape through one layer state)](#88-the-games-keys-and-escape-through-one-layer-state)
 
 ## Issues
 
@@ -704,6 +705,33 @@ Built on 2026-10-29, the last of M13's unblocked Words and names issues, after #
 - **Handed off:**
   - #31 and #32–#41 add their kinds to `DECISION_KINDS`; the new test fails until they do.
   - #31's blockers are now all closed.
+
+### #88 (the game's keys and Escape through one layer state)
+
+Built on 2026-10-29, when the owner chose it as the M13 refactor that fixes a bug players hit. The design is `docs/superpowers/specs/2026-10-29-layers-design.md` and the plan `docs/superpowers/plans/2026-10-29-layers-issue-88.md`.
+- **The bug:** **I**, then **L**, then **Esc** closed both the log and the footer's question, because `LogPanel` and `Game.svelte` each listened for Escape on the window. Now one Escape closes one thing.
+- **Built:**
+  - `src/lib/layers.js` holds what is open over the game screen: How to play, Table settings, the overview and its player, the log, and the footer's question.
+    - `openLayer` writes the opening rules once. How to play, Table settings and the overview open alone; the log closes only the overview; a question closes the overview.
+    - `escapeLayer` names the one thing Escape closes, from the top down, with the first-income notice last.
+  - `hotkeyGate` in `hotkeys.js` decides whether the screen takes a key, from facts about it: a modifier, a component, a field, a menu, a modal, or Enter on a control.
+  - `Game.svelte`:
+    - one `layers` state replaces seven booleans;
+    - the menu, the hotkeys, the chips and the log button all go through `openLayer`;
+    - no document query or `.rg-income-notice` lookup decides a key any more;
+    - `hotkeyAction`'s dead `cancel` is gone.
+  - `LogPanel`'s window listener is gone.
+  - The first-income notice's flag goes through the store's new optional `session` storage. App passes `safeStorage(() => sessionStorage)`; `forgetfulStorage()` is the default.
+- **Calls to revisit** (my calls):
+  - **L** with the overview open now shows the log. Before, the log opened unseen under the overview.
+  - **I** or **A** with the overview open closes it, so the question shows.
+  - Escape now closes the notice even when the focus is in a decision panel, since a decision panel has no Escape of its own.
+- **Tests:** test-first.
+  - The new `tests/client-layers.test.mjs` walks every combination reachable by opening layers in any order, with and without the notice, and checks that each Escape closes exactly one thing.
+  - `client-hotkeys` covers `hotkeyGate`, and `client-storage` covers `forgetfulStorage`.
+  - The hotkeys browser test now presses I, L, Esc, Esc. Its setup no longer takes the Futurists, which fixes the flake #127's entry noted. It and the rules-panel and dialogs tests passed 5 times in a row.
+  - `npm run check` is clean, all 2009 unit tests pass, and all 43 browser tests pass on the branch's own servers.
+- **Handed off:** #62 (End turn) and #35 (the arts track's key) add their keys through `hotkeyAction`, and a layer where they open something.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 

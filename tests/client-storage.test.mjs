@@ -1,7 +1,11 @@
 // The browser fallbacks (#100): storage that a private window or an iframe refuses, and the random source.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { randomInt, safeStorage } from '../src/lib/storage.js';
+import {
+	forgetfulStorage,
+	randomInt,
+	safeStorage,
+} from '../src/lib/storage.js';
 
 /** A storage kept in a Map, as a browser's would be. */
 function working() {
@@ -69,4 +73,15 @@ test('randomInt gives whole numbers from 0 to n − 1', () => {
 	}
 	assert.equal(seen.size, 6);
 	assert.equal(randomInt(1), 0);
+});
+
+test('forgetfulStorage keeps items for as long as the page lives, each its own (#88)', () => {
+	const one = forgetfulStorage();
+	const two = forgetfulStorage();
+	assert.equal(one.getItem('rg-first-income:abc:1'), null);
+	one.setItem('rg-first-income:abc:1', '1');
+	assert.equal(one.getItem('rg-first-income:abc:1'), '1');
+	assert.equal(two.getItem('rg-first-income:abc:1'), null);
+	one.removeItem('rg-first-income:abc:1');
+	assert.equal(one.getItem('rg-first-income:abc:1'), null);
 });

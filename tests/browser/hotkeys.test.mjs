@@ -79,13 +79,19 @@ test('the keys close the notice, switch tabs, the board and players, peek at the
 			const op = ops(own.game.pending ?? []).find(
 				(o) => o.answers && o.player === seat
 			);
+			// Not the Futurists: they start four spaces up every track, so 1 would select Ships rather than open
+			// Scouting's payment (#88).
+			const answer =
+				op.answers.find(
+					(/** @type {any} */ a) => a.civ !== 'futurists'
+				) ?? op.answers[0];
 			await api(
 				request,
 				'move',
 				{
 					version: own.version,
 					seat,
-					action: { decision: op.id, ...op.answers[0] },
+					action: { decision: op.id, ...answer },
 				},
 				token
 			);
@@ -153,6 +159,18 @@ test('the keys close the notice, switch tabs, the board and players, peek at the
 		// I asks before taking income; Esc goes back, and I twice takes it.
 		await page.keyboard.press('i');
 		const ask = page.getByRole('heading', { name: 'Take an income turn?' });
+		await expect(ask).toBeVisible();
+		await page.keyboard.press('Escape');
+		await expect(ask).toHaveCount(0);
+
+		// I, then L for the log: one Esc closes the log and leaves the question, and the next closes the question (#88).
+		await page.keyboard.press('i');
+		await expect(ask).toBeVisible();
+		await page.keyboard.press('l');
+		const log = page.locator('.rg-log-panel');
+		await expect(log).toBeVisible();
+		await page.keyboard.press('Escape');
+		await expect(log).toHaveCount(0);
 		await expect(ask).toBeVisible();
 		await page.keyboard.press('Escape');
 		await expect(ask).toHaveCount(0);

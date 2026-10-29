@@ -11,18 +11,26 @@ export function safeStorage(get) {
 		store.getItem('rg-check');
 		return store;
 	} catch {
-		/** @type {Map<string, string>} */
-		const items = new Map();
-		return {
-			getItem: (key) => items.get(key) ?? null,
-			setItem: (key, value) => {
-				items.set(key, value);
-			},
-			removeItem: (key) => {
-				items.delete(key);
-			},
-		};
+		return forgetfulStorage();
 	}
+}
+
+/**
+ * A storage that keeps its items only while the page lives: safeStorage's fallback, and the store's default (#88).
+ * @returns {import('./api.js').SessionStore}
+ */
+export function forgetfulStorage() {
+	/** @type {Map<string, string>} */
+	const items = new Map();
+	return {
+		getItem: (key) => items.get(key) ?? null,
+		setItem: (key, value) => {
+			items.set(key, value);
+		},
+		removeItem: (key) => {
+			items.delete(key);
+		},
+	};
 }
 
 /**

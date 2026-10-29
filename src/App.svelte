@@ -37,6 +37,7 @@
 		}),
 		random: randomInt,
 		prefs: safeStorage(() => localStorage),
+		session: safeStorage(() => sessionStorage),
 		copy: (text) => navigator.clipboard.writeText(text),
 	});
 

@@ -8,6 +8,7 @@ import { generateName } from './names.js';
 import { backoff, pollTable } from './poll.js';
 import { eventText } from './log.js';
 import { acceptStep } from './pass.js';
+import { forgetfulStorage } from './storage.js';
 
 /** How often the landing page asks for the open tables again. */
 const TABLES_EVERY_MS = 10_000;
@@ -21,6 +22,8 @@ const SOUND = 'rg-sound';
  * @property {import('./api.js').Api} api
  * @property {(n: number) => number} random - A whole number from 0 to n − 1, for generated names
  * @property {import('./api.js').SessionStore} prefs - Where the sound choice is remembered (localStorage)
+ * @property {import('./api.js').SessionStore} [session] - What this browser tab remembers until it closes, such as a
+ *   closed first-income notice (sessionStorage); without one, nothing is remembered past the page (#88)
  * @property {(text: string) => Promise<void>} copy - Puts text on the clipboard
  * @property {(ms: number) => Promise<void>} [wait]
  */
@@ -61,6 +64,7 @@ class Store {
 	#api;
 	#random;
 	#prefs;
+	#session;
 	#copy;
 	#wait;
 	/** Bumped whenever the tab leaves a screen, so the loops of the old one stop. */
@@ -71,10 +75,11 @@ class Store {
 	#toastTimer;
 
 	/** @param {StoreDeps} deps */
-	constructor({ api, random, prefs, copy, wait }) {
+	constructor({ api, random, prefs, session, copy, wait }) {
 		this.#api = api;
 		this.#random = random;
 		this.#prefs = prefs;
+		this.#session = session ?? forgetfulStorage();
 		this.#copy = copy;
 		this.#wait =
 			wait ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
@@ -233,6 +238,23 @@ class Store {
 		this.#toastTimer = setTimeout(() => {
 			this.toastVisible = false;
 		}, TOAST_MS);
+	}
+
+	/**
+	 * Whether this tab closed the first-income notice of a table and seat (#77, #88).
+	 * @param {string} key - Such as 'rg-first-income:abc12345:2'
+	 * @returns {boolean}
+	 */
+	noticeClosed(key) {
+		return this.#session.getItem(key) === '1';
+	}
+
+	/**
+	 * Remembers in this tab that the first-income notice of a table and seat was closed.
+	 * @param {string} key
+	 */
+	closeNotice(key) {
+		this.#session.setItem(key, '1');
 	}
 
 	/** @param {boolean} on */
