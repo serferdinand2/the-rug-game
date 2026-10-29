@@ -568,5 +568,335 @@
     "width": 32,
     "height": 32,
     "sha256": "9095bf525883d58a46c79fac3a78e32afb30e7be71c92c3afdd440ae16924de9"
+  },
+  {
+    "id": "hex/sea",
+    "width": 64,
+    "height": 56,
+    "sha256": "c2f8742295ac0997da200830fb103b231bb1faf3215856abcdbb54bcf93b779f"
+  },
+  {
+    "id": "hex/desert",
+    "width": 64,
+    "height": 56,
+    "sha256": "6fd3243e3e8cf7eaa9d9ca9e2cb53023f76c13fac6d02253850830d00b1746df"
+  },
+  {
+    "id": "hex/forest",
+    "width": 64,
+    "height": 56,
+    "sha256": "fc7ba9979aa6cc561e2954b5c2b77c077d18ca6608045667099762d7f27a208d"
+  },
+  {
+    "id": "hex/grassland",
+    "width": 64,
+    "height": 56,
+    "sha256": "6b6271645c08036f5a4b286fc71fb63661be37d59a9b77dc8aa088643603a3af"
+  },
+  {
+    "id": "hex/mountain",
+    "width": 64,
+    "height": 56,
+    "sha256": "da063f1dcd735733567c115920ab68fda9a4dc150dadb35a632f9fc7d1ea4f2b"
+  },
+  {
+    "id": "territory-tile/1",
+    "width": 64,
+    "height": 56,
+    "sha256": "cd0bfcbe764cfbafdc5104ca08b90df6c75fa59ea9ce5b63529cfe7d229d26a2"
+  },
+  {
+    "id": "territory-tile/2",
+    "width": 64,
+    "height": 56,
+    "sha256": "0debee4c0668210eaa2bad8354ee3603fde5ccb97713116f20dd9f7daa4ae4f9"
+  },
+  {
+    "id": "territory-tile/3",
+    "width": 64,
+    "height": 56,
+    "sha256": "0756b5e1a62267931e7d0191ef50b281d9a0c54ce8643e24f92bb19d60aa704d"
+  },
+  {
+    "id": "territory-tile/4",
+    "width": 64,
+    "height": 56,
+    "sha256": "b767e6c9f295271bce4ba57ba3e93757382581c6cda54c8eb1e3a811e21d2cd7"
+  },
+  {
+    "id": "territory-tile/5",
+    "width": 64,
+    "height": 56,
+    "sha256": "1362df383c82509c768d6572f5376ff0dc025d64a164eb2e1d073b820b753bde"
+  },
+  {
+    "id": "territory-tile/6",
+    "width": 64,
+    "height": 56,
+    "sha256": "6b8da2c209d75bb53a63bee681cd784a712a732a36ee389700c8d973f8c97e74"
+  },
+  {
+    "id": "territory-tile/7",
+    "width": 64,
+    "height": 56,
+    "sha256": "f0713c32025474de83deba6ea80627dddf73c4b0a7943cc70cb8ebb6b4fee5c9"
+  },
+  {
+    "id": "territory-tile/8",
+    "width": 64,
+    "height": 56,
+    "sha256": "30ebf6def89e7c5d758e7a1cc0949e016842e3971673722e22bf6ef1f9d6d3da"
+  },
+  {
+    "id": "territory-tile/9",
+    "width": 64,
+    "height": 56,
+    "sha256": "4153b811984d63908c2e6a174cf14d577ec2277e26cb0322374efffed04c6332"
+  },
+  {
+    "id": "territory-tile/10",
+    "width": 64,
+    "height": 56,
+    "sha256": "49c098456a8cce093ab29c2dcb16cd5a5a31915278eaa3e1085412c2f34d87d2"
+  },
+  {
+    "id": "territory-tile/11",
+    "width": 64,
+    "height": 56,
+    "sha256": "b767e6c9f295271bce4ba57ba3e93757382581c6cda54c8eb1e3a811e21d2cd7"
+  },
+  {
+    "id": "territory-tile/12",
+    "width": 64,
+    "height": 56,
+    "sha256": "7eb2a133f6dc532f49ae5cd0810560f50d230b69d9763579dba359a9f2d54de1"
+  },
+  {
+    "id": "territory-tile/13",
+    "width": 64,
+    "height": 56,
+    "sha256": "994253daa447807db862b3642950a1c4e6052a76c71fff696046b04e6e269038"
+  },
+  {
+    "id": "territory-tile/14",
+    "width": 64,
+    "height": 56,
+    "sha256": "6a0b2484fed27bfcd4abb07fbdba751a4501dc681c6319dec6e4a1404e3f8690"
+  },
+  {
+    "id": "territory-tile/15",
+    "width": 64,
+    "height": 56,
+    "sha256": "994253daa447807db862b3642950a1c4e6052a76c71fff696046b04e6e269038"
+  },
+  {
+    "id": "territory-tile/16",
+    "width": 64,
+    "height": 56,
+    "sha256": "4dd8e15ff89f71307363edc599c378d3682511d58a31797271de7e9b880079f5"
+  },
+  {
+    "id": "territory-tile/17",
+    "width": 64,
+    "height": 56,
+    "sha256": "df1c4f63d7747e5777c7be8bdddb60b581d13c294deebde359793fed59cdb95f"
+  },
+  {
+    "id": "territory-tile/18",
+    "width": 64,
+    "height": 56,
+    "sha256": "58c6cf36c30d962849fd1f0eb0d94eb326948c9ce2555ddacd6465d1a52164f3"
+  },
+  {
+    "id": "territory-tile/19",
+    "width": 64,
+    "height": 56,
+    "sha256": "4ee77ef5fecee5d12017a487e9a05066685d0c888681ad5a883e37d8eb319ecc"
+  },
+  {
+    "id": "territory-tile/20",
+    "width": 64,
+    "height": 56,
+    "sha256": "64db2969dcf8f71ba9cabe671a22bb542f58c7c443f6f2095907cd092f092685"
+  },
+  {
+    "id": "territory-tile/21",
+    "width": 64,
+    "height": 56,
+    "sha256": "21dd472ca6814d7450f1c69ba10cef1a511cf3e6025e3a7cfc43e21d72c50a4f"
+  },
+  {
+    "id": "territory-tile/22",
+    "width": 64,
+    "height": 56,
+    "sha256": "58c6cf36c30d962849fd1f0eb0d94eb326948c9ce2555ddacd6465d1a52164f3"
+  },
+  {
+    "id": "territory-tile/23",
+    "width": 64,
+    "height": 56,
+    "sha256": "95d2ec5a8fbffc8f63d72e8aae9314ade07678ce80c9f354232101121c92f438"
+  },
+  {
+    "id": "territory-tile/24",
+    "width": 64,
+    "height": 56,
+    "sha256": "f12cf618ddc9bb3e304e1892a733be2915466237659224e556940f6f96a53c6d"
+  },
+  {
+    "id": "territory-tile/25",
+    "width": 64,
+    "height": 56,
+    "sha256": "fdebccd1234d82883975b6ddfcc4ad97579bf33511d63a994b6ac8aa182c8bb7"
+  },
+  {
+    "id": "territory-tile/26",
+    "width": 64,
+    "height": 56,
+    "sha256": "ffbd0d6fba3354dc9022d689bc373bf293b6853d85137473085c23454ceafc41"
+  },
+  {
+    "id": "territory-tile/27",
+    "width": 64,
+    "height": 56,
+    "sha256": "6e41d5074f55d51a584edf2cd39f93c39ffd4898d98abfb12cca0340104148c5"
+  },
+  {
+    "id": "territory-tile/28",
+    "width": 64,
+    "height": 56,
+    "sha256": "ffbd0d6fba3354dc9022d689bc373bf293b6853d85137473085c23454ceafc41"
+  },
+  {
+    "id": "territory-tile/29",
+    "width": 64,
+    "height": 56,
+    "sha256": "dccf894cacfa8ddb8ce4f285b23b3a6c206249c8bfc60f50bfb7a04b93de2d1c"
+  },
+  {
+    "id": "territory-tile/30",
+    "width": 64,
+    "height": 56,
+    "sha256": "1595ea5c0c09f8951ad45688a96d412f030d3e787676eba1903a15dff70c901b"
+  },
+  {
+    "id": "territory-tile/31",
+    "width": 64,
+    "height": 56,
+    "sha256": "0c1548e89aa18302cadab5a8bb38ef3d516fd89060025e49251988db9133eba2"
+  },
+  {
+    "id": "territory-tile/32",
+    "width": 64,
+    "height": 56,
+    "sha256": "d9177d9aef9a49276e744d4e9b0ba3312ad0dc5f7dae430c587d193f9b11a6fb"
+  },
+  {
+    "id": "territory-tile/33",
+    "width": 64,
+    "height": 56,
+    "sha256": "0133a1d4c9ebbf8d3f5970eeee63e1f3165a11137439b0cddcfd8c8e5c132fbb"
+  },
+  {
+    "id": "territory-tile/34",
+    "width": 64,
+    "height": 56,
+    "sha256": "e2bbfa0dd4c0aba799dea6bc5c1a0f6517d76890b1667d556034dda51d26b043"
+  },
+  {
+    "id": "territory-tile/35",
+    "width": 64,
+    "height": 56,
+    "sha256": "b66cb39192cec6569dbb8e317ef4f8186cadd0fde92f93bd09eda53c69d6ab32"
+  },
+  {
+    "id": "territory-tile/36",
+    "width": 64,
+    "height": 56,
+    "sha256": "6e41d5074f55d51a584edf2cd39f93c39ffd4898d98abfb12cca0340104148c5"
+  },
+  {
+    "id": "territory-tile/37",
+    "width": 64,
+    "height": 56,
+    "sha256": "d2c22de033f5a28abc2dea309beca05cee2b8a8b8551405f8487c519bffaf91b"
+  },
+  {
+    "id": "territory-tile/38",
+    "width": 64,
+    "height": 56,
+    "sha256": "29c60b5e50c3c523e77d6b9b2c19871a8ba3c9c9ec53f74a5c819400260aa611"
+  },
+  {
+    "id": "territory-tile/39",
+    "width": 64,
+    "height": 56,
+    "sha256": "d310411601d7cf4f8bf635ef9bede588ec3fb8c87850b6865fd0687ea19d67e4"
+  },
+  {
+    "id": "territory-tile/40",
+    "width": 64,
+    "height": 56,
+    "sha256": "269eb13e6a4717f205d256a493fa551437384c54c2b1b83ec3c16fa2c05af566"
+  },
+  {
+    "id": "territory-tile/41",
+    "width": 64,
+    "height": 56,
+    "sha256": "813d94d2b492cddb0c5eca792971bc5ccb5e9ec4949f5be2ed67a3d1acd55c22"
+  },
+  {
+    "id": "territory-tile/42",
+    "width": 64,
+    "height": 56,
+    "sha256": "905ebe9b98b85c25382219b999e463d4d9d0ab4957bde729db1b5ccf1487c172"
+  },
+  {
+    "id": "territory-tile/43",
+    "width": 64,
+    "height": 56,
+    "sha256": "4d30011cb8e481b34c45dec3f4f83585771a9271224f63b1c7b3b732ace5cabb"
+  },
+  {
+    "id": "territory-tile/44",
+    "width": 64,
+    "height": 56,
+    "sha256": "e116d8cda9a4980db0c8adaabfa69ef760ff7c05c863e8b26b906be26d60829c"
+  },
+  {
+    "id": "territory-tile/45",
+    "width": 64,
+    "height": 56,
+    "sha256": "ad3587d114df3ee11311f219f91d7c8063792af35aeba7fdf6b7e1fb157db594"
+  },
+  {
+    "id": "territory-tile/46",
+    "width": 64,
+    "height": 56,
+    "sha256": "6aaf55296c7a21e4fefbaddcb879890c764b90e508a7a858544ae9a0ad2f473f"
+  },
+  {
+    "id": "territory-tile/47",
+    "width": 64,
+    "height": 56,
+    "sha256": "cd48ad007ced1c3532fb981cb8d0be7478336e2f601fe901260052fef5c6eda6"
+  },
+  {
+    "id": "territory-tile/48",
+    "width": 64,
+    "height": 56,
+    "sha256": "e116d8cda9a4980db0c8adaabfa69ef760ff7c05c863e8b26b906be26d60829c"
+  },
+  {
+    "id": "board/map-large",
+    "width": 448,
+    "height": 504,
+    "sha256": "3129740985697ae095449c74b7c468b70bfb3463ab218d00760a2a1f29800f16"
+  },
+  {
+    "id": "board/map-small",
+    "width": 352,
+    "height": 364,
+    "sha256": "1aada91c3e8ca7a969b28d79089847eb2c07ad20d77795c2577b15a9535d647b"
   }
 ]

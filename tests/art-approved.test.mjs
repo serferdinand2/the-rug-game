@@ -32,14 +32,14 @@ test('SVG round trips retain different alpha values for the same color', () => {
 	assert.equal(toSvg(fromSvg(svg)), svg);
 });
 
-test('all 95 released SVGs match the reviewed artwork and have stable catalog ids', async () => {
+test('all 150 released SVGs match the reviewed artwork and have stable catalog ids', async () => {
 	const manifest = JSON.parse(
 		await readFile(
 			new URL('../docs/art/approved-assets.json', import.meta.url),
 			'utf8'
 		)
 	);
-	assert.equal(manifest.length, 95);
+	assert.equal(manifest.length, 150);
 	for (const { id, width, height, sha256 } of manifest) {
 		assert.ok(
 			ASSETS.some((asset) => asset.id === id),
@@ -58,6 +58,29 @@ test('all 95 released SVGs match the reviewed artwork and have stable catalog id
 			/<image|data:image|<script|https?:\/\/(?!www.w3.org)/,
 			id
 		);
+	}
+});
+
+test("the owner approved the map's 2.5D terrain (#134): its hexes, the 48 territory tiles and both boards are pinned", async () => {
+	const manifest = JSON.parse(
+		await readFile(
+			new URL('../docs/art/approved-assets.json', import.meta.url),
+			'utf8'
+		)
+	);
+	const ids = new Set(
+		manifest.map((/** @type {{ id: string }} */ e) => e.id)
+	);
+	const map = [
+		...['sea', 'desert', 'forest', 'grassland', 'mountain'].map(
+			(t) => `hex/${t}`
+		),
+		...Array.from({ length: 48 }, (_, i) => `territory-tile/${i + 1}`),
+		'board/map-large',
+		'board/map-small',
+	];
+	for (const id of map) {
+		assert.ok(ids.has(id), id);
 	}
 });
 
