@@ -10,7 +10,7 @@ Written 2026-10-28. #124 is a refactor the client scan (#80) filed; it also cove
 
 ## 2. The pieces
 
-All three are exported from `src/lib/describe.js` (#123's `words.js` isn't started) and tested in `tests/client-describe.test.mjs`.
+All three were first exported from `src/lib/describe.js`, because #123's `words.js` wasn't started. Since #123 and #126, `amountWords` lives in `src/lib/words.js` (tested in `tests/client-words.test.mjs`), `resourceName` in `src/lib/game-names.js` (tested in `tests/client-game-names.test.mjs`), and `priceWords` stays in `describe.js` (tested in `tests/client-describe.test.mjs`) **(my call, 2026-10-29)**: it is a price, not a game name or a general English helper, and `CostBox` already imports it from there.
 
 - `amountWords(id, n)`: "1 coin", "2 coins", "2 food", "2 resources of your choice", "5 VP", "2 territory tiles", from `NOUNS`. It replaces the private `amount(n, key)`, whose callers in `describe.js` move to it.
 - `resourceName(id)`: a resource's name as a title shows it, "Coin", and "Resource of your choice" for `any`; any other id comes back as it is.
@@ -19,7 +19,7 @@ All three are exported from `src/lib/describe.js` (#123's `words.js` isn't start
 Callers:
 
 - `CostBox`'s label stays "Cost: …" and calls `priceWords`.
-- `TierPrice` is left as it is for now: #85 is reworking the track spaces and their files are off limits while it runs. After #85 it drops its copy and labels itself `Tier ${numeral} costs ${priceWords(symbols)}` ("Tier I costs nothing" for an empty price), so `priceWords` already covers its range and its "free" case. Until then this issue stays open (`Refs #124`).
+- `TierPrice` waited for #85, which reworked the track spaces. With #85 done (2026-10-29), it drops its copy (its number words, its "resource of any type", its plural rule, its join and its `RESOURCES.find`) and labels itself `Tier ${numeral} costs ${priceWords(symbols)}` ("Tier I costs nothing" for an empty price). `tests/client-game-names.test.mjs` loses `TierPrice`'s exemption from the source guard, which now also rejects `RESOURCES.find(` and "resource(s) of any type" in any client module.
 - `ResourceIcon`, `ResourceChip`, `ResourceRows` and `CostBox` take names from `resourceName`. `ResourceChip`'s label "4 coin" becomes `amountWords`: "4 coins".
 - `picks.js`'s `resourceWords`, `costWords`, `shortWords` and the cap warning's lost amounts use `amountWords`.
 
@@ -33,7 +33,7 @@ Callers:
 ## 4. What a player sees change
 
 - `ResourceIcon`'s tooltip on the `any` icon reads "Resource of your choice" instead of "Any resource".
-- Screen-reader labels: the cost boxes read digits and "resource of your choice"; a resource chip reads "4 coins". The tier prices keep their own words until #85 lands.
+- Screen-reader labels: the cost boxes and the tier prices read digits and "resource of your choice" ("Tier II costs 1 food and 1 resource of your choice" instead of "Tier II costs one food and one resource of any type"); a resource chip reads "4 coins".
 - The pick prompts: "You gain 2 coins.", "2 coins would be lost."
 
 Nothing else on screen changes.

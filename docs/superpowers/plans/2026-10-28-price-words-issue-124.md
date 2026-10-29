@@ -33,3 +33,13 @@
 - [ ] `resourceWords`, `costWords`, `shortWords` and the lost amounts use `amountWords`. Run: PASS.
 - [ ] Browser: `setup-prompts`, `pick-prompts`, `player-area`.
 - [ ] Commit `Refs #124: every amount the pick prompts print has its plural` (body: `Refs #84`). `Refs`, not `Fix`: TierPrice's switch waits for #85.
+
+### Task 4: TierPrice after #85 (2026-10-29)
+
+**Files:** `src/lib/components/board/TierPrice.svelte`, `tests/client-game-names.test.mjs`, `tests/browser/setup-prompts.test.mjs`.
+
+- [x] Write the failing test: `TierPrice` loses its exemption from the source guard, which also rejects `RESOURCES.find(` and "resource(s) of any type". Run: FAIL on `TierPrice`'s hand-joined list.
+- [x] `TierPrice` labels itself `Tier ${numeral} costs ${priceWords(symbols)}` and drops its copy. Run: PASS.
+- [x] Browser: `setup-prompts` checks the first tier's label, "Tier I costs 1 resource of your choice".
+- [x] `npm run check`, `npm run test:unit`, `npm run test:e2e`.
+- [x] Commit `Fix #124: TierPrice says its price with priceWords`.

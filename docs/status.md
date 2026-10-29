@@ -9,7 +9,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78, #84, #85 and #137 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
-  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101, #108 and #109 are done, and #121 closed as not planned. #103, #124 and #128 are partly built; #85 is done, so what is left of each can start.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101, #108, #109 and #124 are done, and #121 closed as not planned. #103 and #128 are partly built; #85 is done, so what is left of each can start.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -25,7 +25,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
 - **Next:**
-  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123, #127, #126 and #129 are done (see [#123](#123-every-game-name-and-english-list-from-one-helper), [#127](#127-the-track-resource-and-building-lists-from-the-engine), [#126](#126-describejs-split-into-effect-words-decision-words-and-card-text) and [#129](#129-each-decision-kinds-client-facts-in-one-table)), so #31 (Lazar's) is unblocked. What is left of #124, #125 and #128 can start now that #85 is done, then #103's last token and #104.
+  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123, #127, #126 and #129 are done (see [#123](#123-every-game-name-and-english-list-from-one-helper), [#127](#127-the-track-resource-and-building-lists-from-the-engine), [#126](#126-describejs-split-into-effect-words-decision-words-and-card-text) and [#129](#129-each-decision-kinds-client-facts-in-one-table)), so #31 (Lazar's) is unblocked. #124 is done (see [its entry](#124-prices-and-resource-amounts-in-words)), so #125 can start; what is left of #128 can start now that #85 is done, then #103's last token and #104.
   - #88, #101, #108 and #109 are done too (2026-10-29). #106 (the card patterns as data components) is next in the Cards area. It is a large job, planned as about eight steps that each land pixel-identical: the clarity and effect boxes with a new `CardEffectList`, then the score ladder, token reserve and tech transfer, the terrain rewards, the prediction tracks, the reward columns, the path grid, the placement rows, and last `CardSlot`'s `filled`, `CardFrame`'s plain mode and the dead stylesheet rules. #107 follows it. The effect boxes' civilization-specific symbol styles (Mystics, Alchemists, Isolationists, Traders, Inventors) become options of the component.
   - Main's CI has failed since #85: the browser tests `setup-prompts` and `track-text` no longer match the reworked track spaces (2026-10-29).
   - #77 (the first turn takes income by itself) is done: the owner approved its IncomeNotice and TurnBar sections and closed it on 2026-10-29.
@@ -832,6 +832,16 @@ Built on 2026-10-29, at the owner's request: "style the tooltip and make it bigg
 - **Checks:** in Chromium at 1920×1080 on the library page: a player chip's long ability, track spaces (switching from one space to the next without the wait), the host-only Segmented group over its disabled buttons, and a key press closing it. The README's screenshots are unchanged, since tooltips only show on hover.
 - **Tests:** the new `tests/client-tooltip.test.mjs` covers above, below, the window's edges, the roomier side and the text. `npm run check` is clean and all 2026 unit tests pass. The browser tests `setup-prompts` and `track-text` still fail exactly as on main since #85 (see the summary).
 - **For the owner:** please check the library's Tooltip section, and hover around a game.
+
+### #124 (prices and resource amounts in words)
+
+Finished on 2026-10-29. Most of it landed with [#80's first batch](#80s-findings-first-batch); the tier prices waited for #85.
+- **Built:**
+  - `TierPrice` labels itself `Tier ${numeral} costs ${priceWords(symbols)}`, like `CostBox`'s "Cost: …", and drops its own copy of the price words: number words up to six, "resource of any type", its plural rule, its join and its `RESOURCES.find`. So one function puts every price into words, and "any" reads "resource of your choice" everywhere.
+  - Where the helpers live now: `amountWords` in `words.js` and `resourceName` in `game-names.js` (both moved there by #123 and #126), `priceWords` in `describe.js` (my call: it is a price, not a name or an English helper).
+- **What changes for a player:** only the tier prices' `aria-label`, which reads digits: "Tier II costs 1 food and 1 resource of your choice". Nothing on screen changes, so the README's screenshots stay.
+- **Tests:** test-first. `tests/client-game-names.test.mjs` drops `TierPrice`'s exemption from the source guard (`LEFT` is empty now), which also rejects `RESOURCES.find(` and "resource(s) of any type" in any client module; `setup-prompts` checks the first tier's label. `npm run check` is clean and all unit tests pass. In the browser, the tier labels were checked on the library page; `setup-prompts` and `track-text` still fail as on main since #85 (see the summary), before the new assertion is reached.
+- **Handed off:** #125 reuses `amountWords(id, n)` in the player area. `engine/payment.js` still says "Pay 2 coin" (found in the first batch; engine wording, not this issue's).
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 
