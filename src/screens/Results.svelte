@@ -68,9 +68,7 @@
 	 * @param {ComponentEvent} event
 	 */
 	const menuHandler = (event) => {
-		if (event.value === 'leave') {
-			store.leaveTable();
-		} else if (typeof onResultsHelp === 'function') {
+		if (typeof onResultsHelp === 'function') {
 			onResultsHelp(event);
 		}
 	};
@@ -89,13 +87,8 @@
 	{...attr}
 	class="rg-results {attr.class ? attr.class : ''}">
 	<PageHeader
-		sound={store.sound}
-		items={[
-			{ id: 'help', label: 'How to play' },
-			{ id: 'leave', label: 'Leave table' },
-		]}
-		onPageHeaderSound={(/** @type {any} */ event) =>
-			store.setSound(event.value)}
+		{store}
+		menu="results"
 		onPageHeaderMenu={menuHandler}>
 		{#snippet center()}
 			<strong class="rg-results--state">Game complete</strong>
