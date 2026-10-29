@@ -1,11 +1,11 @@
 // Snow-capped peaks and foothills packed into a mat's impassable footprint, ported from the approved #82 spike.
-import { seededRandom } from '../../painter.js';
-import { PALETTE as C } from '../../palette.js';
-import { PITCH } from '../../../../src/lib/art/relief.js';
+import { seededRandom } from '../painter.js';
+import { PALETTE as C } from '../palette.js';
+import { PITCH } from '../../relief.js';
 import { cast, put } from './canvas.js';
 import { BAYER, hash, noise } from './ground.js';
 
-/** @typedef {import('../../painter.js').Canvas} Canvas */
+/** @typedef {import('../painter.js').Canvas} Canvas */
 /** @typedef {import('./footprint.js').Footprint} Footprint */
 /** @typedef {{ bx: number, by: number, hw: number, ph: number }} PeakSpec */
 

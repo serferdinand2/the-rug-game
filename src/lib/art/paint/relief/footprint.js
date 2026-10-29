@@ -1,5 +1,5 @@
 // The joined footprint of a layout's impassable plots, ported from the approved #82 spike.
-import { PLOT, PITCH, reliefSize } from '../../../../src/lib/art/relief.js';
+import { PLOT, PITCH, reliefSize } from '../../relief.js';
 
 const MARGIN = 2; // the ground margin on an open side
 const RADIUS = 8; // the outer corner radius

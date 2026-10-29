@@ -1,7 +1,7 @@
 // Painting helpers for the joined-terrain relief: opaque pixels limited to an area, and translucent shadows.
-import { PALETTE } from '../../palette.js';
+import { PALETTE } from '../palette.js';
 
-/** @typedef {import('../../painter.js').Canvas} Canvas */
+/** @typedef {import('../painter.js').Canvas} Canvas */
 
 /**
  * Paints one opaque pixel, only where `allowed` is set and the pixel is on the canvas.

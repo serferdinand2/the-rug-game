@@ -2,17 +2,17 @@
 import { createCanvas, overlay } from '../../painter.js';
 import { PALETTE } from '../../palette.js';
 import { PLOT, PITCH } from '../../../../src/lib/art/relief.js';
-import { footprint, isImpassable } from './footprint.js';
-import { drawNaturalGround, hash } from './ground.js';
-import { paintMountains } from './mountain.js';
-import { paintForest } from './forest.js';
+import { footprint, isImpassable } from '../../../../src/lib/art/paint/relief/footprint.js';
+import { drawNaturalGround, hash } from '../../../../src/lib/art/paint/relief/ground.js';
+import { paintMountains } from '../../../../src/lib/art/paint/relief/mountain.js';
+import { paintForest } from '../../../../src/lib/art/paint/relief/forest.js';
 import { paintWetland } from './wetland.js';
 import { paintTropical } from './tropical.js';
 import { paintDesert } from './desert.js';
 import { paintGrassland } from './grassland.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
-/** @typedef {import('./footprint.js').Footprint} Footprint */
+/** @typedef {import('../../../../src/lib/art/paint/relief/footprint.js').Footprint} Footprint */
 
 /**
  * Paints a biome's relief into a footprint, on a transparent canvas of the footprint's size.

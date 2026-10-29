@@ -1,4 +1,4 @@
-<!-- The World Map: the real board's flat-topped hex grid, each territory drawn from its corner terrains and island, with the outposts and tokens on it and the hexes a decision can target. -->
+<!-- The World Map: the real board's flat-topped hex grid, its explored territories painted as one 2.5D picture (#134), with the outposts and tokens on it and the hexes a decision can target. -->
 <script module>
 	/**
 	 * Properties of the WorldMap component itself.
@@ -37,9 +37,14 @@
 		pieceSpots,
 		svgPoints,
 	} from '../../hexmap.js';
+	import {
+		mapArt,
+		mapPictureBox,
+		paintedMap,
+		pictureUrl,
+	} from '../../painted-map.js';
+	import { paintTerritory } from '../../art/paint/map.js';
 	import { artUrl, playerColor } from '../../ui.js';
-	import TerritoryArt from './TerritoryArt.svelte';
-	import TerritoryClips from './TerritoryClips.svelte';
 
 	/** @type {WorldMapProps} */
 	let {
@@ -54,9 +59,6 @@
 		...attr
 	} = $props();
 
-	// Clip ids must differ between the maps on one page.
-	const uid = $props.id();
-
 	const CORNERS = [0, 1, 2, 3, 4, 5];
 	// A VP tag near a hex's top, in map units: the text is 11, so it stays 10px or more down to 1366×768 on the
 	// 61-hex map, and the box keeps clear of the outline along the top edge (y = -34.6 for HEX_SIZE 40).
@@ -70,10 +72,36 @@
 	// The hex keyboard focus is on, outlined above its neighbours.
 	/** @type {string | null} */
 	let focused = $state(null);
+	// The blob URLs of the painted map and of the previewed tile, made and revoked by the effects below.
+	/** @type {string | undefined} */
+	let mapHref = $state();
+	/** @type {string | undefined} */
+	let previewHref = $state();
 
 	let box = $derived(fitBox(hexes, HEX_SIZE));
 	let viewBox = $derived(
 		box.width ? `${box.x} ${box.y} ${box.width} ${box.height}` : undefined
+	);
+	// The terrain alone, as text: a new view with the same territories gives the same text, so the map is repainted
+	// only when a territory is explored, never for a piece, a hover or a choice (#134).
+	let terrain = $derived(JSON.stringify(mapArt(hexes)));
+	let painted = $derived(paintedMap(JSON.parse(terrain)));
+	let pictureBox = $derived(
+		painted ? mapPictureBox(painted, HEX_SIZE) : null
+	);
+	// A tile shown before it is explored is painted on its own, at its turn, so the map is not repainted for it.
+	let previewTerrain = $derived(
+		preview
+			? JSON.stringify({
+					corners: preview.corners,
+					island: preview.island,
+					clouds: preview.clouds ?? false,
+					volcano: preview.volcano ?? false,
+				})
+			: null
+	);
+	let previewCanvas = $derived(
+		previewTerrain ? paintTerritory(JSON.parse(previewTerrain)) : null
 	);
 	let targetSet = $derived(new Set(targets));
 	let targeting = $derived(targetSet.size > 0);
@@ -99,10 +127,15 @@
 					typeof scores[hex.key] === 'number'
 						? scores[hex.key]
 						: null,
+				// The painted map shows its terrain: a veil dims it when a decision lights other hexes.
+				veiled:
+					targeting &&
+					raw.corners !== null &&
+					!targetSet.has(hex.key),
 				outline: svgPoints(
 					CORNERS.map((k) => hexCorner(hex.center, k, HEX_SIZE))
 				),
-				unexploredPicture: hexPicture(hex.center, HEX_SIZE),
+				picture: hexPicture(hex.center, HEX_SIZE),
 				pieces: pieces(hex),
 			};
 		})
@@ -117,6 +150,26 @@
 				fresh.includes(hex.key)
 		)
 	);
+
+	$effect(() => {
+		if (!painted) {
+			mapHref = undefined;
+			return;
+		}
+		const url = pictureUrl(painted.canvas);
+		mapHref = url;
+		return () => URL.revokeObjectURL(url);
+	});
+
+	$effect(() => {
+		if (!previewCanvas) {
+			previewHref = undefined;
+			return;
+		}
+		const url = pictureUrl(previewCanvas);
+		previewHref = url;
+		return () => URL.revokeObjectURL(url);
+	});
 
 	/**
 	 * @param {MouseEvent} event
@@ -217,15 +270,17 @@
 	class="rg-world-map {attr.class ? attr.class : ''}">
 	{#snippet tile(/** @type {(typeof drawn)[number]} */ hex)}
 		{#if hex.corners}
-			<!-- The clips are drawn once round the origin; each hex's face is moved there. -->
-			<TerritoryArt
-				prefix={uid}
-				size={HEX_SIZE}
-				corners={hex.corners}
-				island={hex.island}
-				clouds={hex.clouds}
-				volcano={hex.volcano}
-				transform="translate({hex.center[0]} {hex.center[1]})" />
+			{#if hex.previewed && previewHref}
+				<image
+					class="rg-world-map--art"
+					href={previewHref}
+					{...hex.picture}
+					preserveAspectRatio="none" />
+			{/if}
+			<!-- The terrain is in the painted map below; the face takes the pointer and the hover. -->
+			<polygon
+				class="rg-world-map--face"
+				points={hex.outline} />
 			<polygon
 				class="rg-world-map--edge"
 				points={hex.outline} />
@@ -236,7 +291,7 @@
 			<image
 				class="rg-world-map--art"
 				href={artUrl('hex/unexplored')}
-				{...hex.unexploredPicture}
+				{...hex.picture}
 				preserveAspectRatio="none" />
 			<polygon
 				class="rg-world-map--edge rg-world-map--fog"
@@ -285,9 +340,22 @@
 			{/if}
 		{/each}
 	{/snippet}
-	<TerritoryClips
-		prefix={uid}
-		size={HEX_SIZE} />
+	<!-- Every explored territory in one painted picture, under the hexes' faces, edges and pieces (#134). -->
+	{#if pictureBox && mapHref}
+		<image
+			class="rg-world-map--art rg-world-map--terrain"
+			href={mapHref}
+			{...pictureBox}
+			preserveAspectRatio="none"
+			aria-hidden="true" />
+	{/if}
+	{#each drawn as hex (hex.key)}
+		{#if hex.veiled}
+			<polygon
+				class="rg-world-map--veil"
+				points={hex.outline} />
+		{/if}
+	{/each}
 	{#each drawn as hex (hex.key)}
 		{#if hex.target}
 			<g
@@ -384,6 +452,12 @@
 		filter: brightness(1.15);
 	}
 
+	/* An explored target's terrain is in the painted map, under the filter's reach: its face lightens it instead. */
+	.rg-world-map--target:hover .rg-world-map--face,
+	.rg-world-map--target:focus-visible .rg-world-map--face {
+		fill: color-mix(in srgb, var(--text) 15%, transparent);
+	}
+
 	.rg-world-map--dim {
 		opacity: 0.35;
 	}
@@ -393,10 +467,24 @@
 		image-rendering: pixelated;
 	}
 
+	/* Transparent, but painted, so the whole hex takes the pointer. */
+	.rg-world-map--face {
+		fill: transparent;
+	}
+
+	/* Faint: the painted map draws its own faint rim between territories (issue 134). */
 	.rg-world-map--edge {
 		fill: none;
 		stroke: var(--chrome);
-		stroke-width: 2;
+		stroke-width: 1;
+		stroke-opacity: 0.35;
+	}
+
+	/* Over a dimmed explored hex's terrain, the play area's colour, as the dimmed hexes' 35% opacity shows it. */
+	.rg-world-map--veil {
+		fill: var(--surface);
+		fill-opacity: 0.65;
+		pointer-events: none;
 	}
 
 	/* Unexplored hexes are dashed, like fog over the map. */
@@ -408,6 +496,7 @@
 		fill: none;
 		stroke: var(--line-strong);
 		stroke-width: 1.5;
+		stroke-opacity: 1;
 		stroke-dasharray: 5 4;
 	}
 

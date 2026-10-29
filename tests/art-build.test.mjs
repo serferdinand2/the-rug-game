@@ -13,6 +13,7 @@ import {
 	renderAsset,
 	buildArt,
 } from '../tools/art/build.mjs';
+import { fromSvg } from '../tools/art/painter.js';
 
 const TWO_BY_TWO = `export function draw() {
 	return { w: 2, h: 2, p: ['#aa0000', null, null, '#0000bb'] };
@@ -182,6 +183,40 @@ test('buildArt takes the hex overlays and the boards at their own sizes', async 
 		]);
 	} finally {
 		await rm(root, { recursive: true, force: true });
+	}
+});
+
+test("the map's pictures keep their ids and sizes through the 2.5D redraw (#134)", async () => {
+	/** @type {Record<string, [number, number]>} */
+	const sizes = {
+		'board/map-large': [448, 504],
+		'board/map-small': [352, 364],
+		'hex/cloud': [22, 12],
+		'hex/volcano': [17, 17],
+	};
+	for (const terrain of [
+		'sea',
+		'desert',
+		'forest',
+		'grassland',
+		'mountain',
+		'unexplored',
+	]) {
+		sizes[`hex/${terrain}`] = [64, 56];
+	}
+	for (let id = 1; id <= 48; id++) {
+		sizes[`territory-tile/${id}`] = [64, 56];
+	}
+	const ids = (await listDrawingIds()).filter(
+		(id) =>
+			id.startsWith('hex/') ||
+			id.startsWith('territory-tile/') ||
+			id.startsWith('board/map-')
+	);
+	assert.deepEqual([...ids].sort(), Object.keys(sizes).sort());
+	for (const [id, size] of Object.entries(sizes)) {
+		const canvas = fromSvg(await renderAsset(id));
+		assert.deepEqual([canvas.w, canvas.h], size, id);
 	}
 });
 

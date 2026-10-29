@@ -6,15 +6,15 @@ import { CAPITAL_GRIDS } from '../tools/art/parts/capital-terrain.js';
 import { RELIEF_BIOMES, reliefSize } from '../src/lib/art/relief.js';
 import { createCanvas, mix, overlay, toSvg } from '../tools/art/painter.js';
 import { PALETTE } from '../tools/art/palette.js';
-import { drawNaturalGround } from '../tools/art/parts/capital-relief/ground.js';
+import { drawNaturalGround } from '../src/lib/art/paint/relief/ground.js';
 import {
 	distanceInside,
 	footprint,
 	impassableGroups,
 	isImpassable,
 	withCornerPatches,
-} from '../tools/art/parts/capital-relief/footprint.js';
-import { cast } from '../tools/art/parts/capital-relief/canvas.js';
+} from '../src/lib/art/paint/relief/footprint.js';
+import { cast } from '../src/lib/art/paint/relief/canvas.js';
 import {
 	RELIEF_PAINTERS,
 	SPECIMEN_LAYOUT,

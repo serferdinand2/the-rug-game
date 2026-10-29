@@ -1,7 +1,7 @@
-// The sea hex: deep blue water with darker depths and wave crests, the picture every sea wedge is cut from.
-import { HEX_SEED, drawHexTerrain } from '../../parts/territory.js';
+// The sea hex: the 2.5D sea painted alone, long bands of depth under short wave crests lit on top (#134).
+import { drawHexTerrain } from '../../parts/territory.js';
 
 /** Draws the sea hex, 64×56 and transparent outside the hex. @returns {import('../../painter.js').Canvas} */
 export function draw() {
-	return drawHexTerrain('sea', HEX_SEED);
+	return drawHexTerrain('sea');
 }

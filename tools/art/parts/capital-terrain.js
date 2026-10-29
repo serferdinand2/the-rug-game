@@ -2,7 +2,7 @@
 // The impassable plots have no tiles of their own: each mat's relief draws them (#82, tools/art/parts/capital-relief/).
 import { createCanvas } from '../painter.js';
 import { CAPITAL_MATS } from '../../../src/lib/engine/data/capitals.js';
-import { drawNaturalGround } from './capital-relief/ground.js';
+import { drawNaturalGround } from '../../../src/lib/art/paint/relief/ground.js';
 /** @typedef {'mountain' | 'wetland' | 'tropical' | 'desert' | 'grassland' | 'forest'} Biome */
 /** @typedef {import('../painter.js').Canvas} Canvas */
 
