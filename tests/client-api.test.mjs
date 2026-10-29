@@ -1,11 +1,13 @@
 // The browser's API client (#25): sign-in, errors, the 409 retry and where a returning person lands, on a server at port 0.
 import { afterAll, beforeAll, test } from 'vitest';
 import assert from 'node:assert/strict';
+import { readdirSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { server, config } from '../server/server.mjs';
 import { ApiError, createApi, withSession } from '../src/lib/api.js';
 import { change, sameSeats } from '../src/lib/changes.js';
 import { boot } from '../src/lib/boot.js';
-import { seatToShow, sendMove } from '../src/lib/moves.js';
+import { seatToShow, sendMove, viewerSeat } from '../src/lib/moves.js';
 import { myDecision } from '../src/lib/turn.js';
 
 let base = '';
@@ -315,4 +317,26 @@ test('a hot-seat table shows the lowest seat being asked (#26)', () => {
 		seatToShow({ mode: 'hotseat', game: null, you: [1, 2] }),
 		null
 	);
+});
+
+test('the viewer is their own seat online and nobody at a shared hot-seat screen', () => {
+	assert.equal(viewerSeat({ mode: 'online', viewing: 3 }), 3);
+	assert.equal(viewerSeat({ mode: 'hotseat', viewing: 2 }), null);
+	assert.equal(viewerSeat({ mode: 'hotseat', viewing: null }), null);
+	assert.equal(viewerSeat(null), null);
+});
+
+test('no screen works out the viewer seat itself', () => {
+	const src = fileURLToPath(new URL('../src/', import.meta.url));
+	const files = readdirSync(src, { recursive: true })
+		.map(String)
+		.filter((file) => /\.(svelte|js)$/.test(file));
+	assert.ok(files.length > 100, 'the source files are found');
+	for (const file of files) {
+		assert.doesNotMatch(
+			readFileSync(`${src}${file}`, 'utf8'),
+			/mode === 'hotseat'\s*\?\s*null/,
+			`${file} works out the viewer seat`
+		);
+	}
 });

@@ -1,4 +1,4 @@
-// Answering a decision from the browser (#26 design §6): one move with the table's version, and which seat a hot-seat table shows.
+// Answering a decision from the browser (#26 design §6): one move with the table's version, which seat a hot-seat table shows, and whose screen it is (#100).
 import { ApiError } from './api.js';
 import { askedSeats } from './engine/game.js';
 
@@ -29,6 +29,19 @@ export async function sendMove(request, room, seat, action) {
 		);
 		throw stale;
 	}
+}
+
+/**
+ * The seat of the person at this screen: their own online, and nobody at a hot-seat table, where the whole table
+ * shares the screen (#100). Sound cues, the dice tray's caption and the results speak to it as "you".
+ * @param {{ mode: string, viewing: number | null } | null} room - A room view
+ * @returns {number | null}
+ */
+export function viewerSeat(room) {
+	if (!room || room.mode === 'hotseat') {
+		return null;
+	}
+	return room.viewing;
 }
 
 /**

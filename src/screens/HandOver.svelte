@@ -3,7 +3,7 @@
 	/**
 	 * Properties of the HandOver screen itself.
 	 * @typedef {Object} HandOverOwnProps
-	 * @property {any} store - The client's store, while it names a player to pass to
+	 * @property {import('../lib/game.svelte.js').GameStore} store - The client's store, while it names a player to pass to
 	 */
 
 	/**

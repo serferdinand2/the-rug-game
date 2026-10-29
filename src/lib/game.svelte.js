@@ -3,7 +3,7 @@ import { withSession } from './api.js';
 import { boot } from './boot.js';
 import { change } from './changes.js';
 import { validCode } from './lobby.js';
-import { sendMove } from './moves.js';
+import { sendMove, viewerSeat } from './moves.js';
 import { generateName } from './names.js';
 import { backoff, pollTable } from './poll.js';
 import { eventText } from './log.js';
@@ -412,6 +412,11 @@ class Store {
 	/** The seat whose view is on show: the person's own online, the asked one at a hot-seat table. */
 	get seat() {
 		return this.room?.viewing ?? null;
+	}
+
+	/** The seat of the person at this screen: their own online, none at a hot-seat table, which shares it (#100). */
+	get viewer() {
+		return viewerSeat(this.room);
 	}
 
 	/**

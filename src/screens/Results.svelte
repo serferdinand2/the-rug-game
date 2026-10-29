@@ -43,7 +43,7 @@
 	let rows = $derived(standings(game));
 	let ties = $derived(tieExplanations(game));
 	/** The viewer's seat online; at a hot-seat table the results belong to everyone, so the winners show instead. */
-	let you = $derived(room.mode === 'hotseat' ? null : store.seat);
+	let you = $derived(store.viewer);
 	let result = $derived(yourResult(game, you));
 	/** The result box takes the viewer's colour, or the (first) winner's. */
 	let resultColor = $derived(
