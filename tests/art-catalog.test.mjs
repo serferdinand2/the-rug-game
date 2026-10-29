@@ -26,7 +26,7 @@ const EXPECTED_COUNTS = {
 	die: { base: 17, aa: 1 }, // 14 faces (#5) and the 3 die bodies the tray rolls (#61)
 	terrain: { base: 5 },
 	track: { base: 4, aa: 1 },
-	symbol: { base: 8 },
+	symbol: { base: 13 },
 	board: { base: 5, ff: 1 },
 	hex: { base: 8 },
 	'territory-tile': { base: 48 },
@@ -107,10 +107,10 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 285 icons and 96 boards', () => {
+test('there are 294 illustrations, 290 icons and 96 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
-	assert.equal(count('icon'), 285);
+	assert.equal(count('icon'), 290);
 	assert.equal(count('board'), 96);
 });
 

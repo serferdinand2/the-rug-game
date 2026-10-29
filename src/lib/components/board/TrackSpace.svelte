@@ -36,6 +36,7 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
+	import { TRACK_IDS } from '../../engine/data/ids.js';
 	import { SPACE_COUNT, outlinePath } from '../../track-shape.js';
 	import { artUrl, trackColor } from '../../ui.js';
 	import CardSymbol from '../ui/CardSymbol.svelte';
@@ -454,7 +455,7 @@
 							><img
 								src={artUrl('symbol/restart')}
 								alt="" /><span
-								>{#each ['exploration', 'science', 'technology', 'military'] as id}<img
+								>{#each TRACK_IDS as id}<img
 										src={artUrl(`track/${id}`)}
 										alt="" />{/each}</span
 							></span>

@@ -63,6 +63,7 @@ test('every engine track has a name, a symbol, a tint, a board track and a place
 test('no client module writes the track, resource or building list by hand', () => {
 	const files = readdirSync(SRC, { recursive: true })
 		.map(String)
+		.map((file) => file.replaceAll('\\', '/'))
 		.filter(
 			(file) =>
 				/\.(svelte|js)$/.test(file) &&

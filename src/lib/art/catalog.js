@@ -649,6 +649,11 @@ const LISTS = {
 			['capital-city', 'Capital city'],
 			['restart', 'Restart arrow'],
 			['space-tile', 'Space tile'],
+			['explore', 'Explore'],
+			['explore-anywhere', 'Explore anywhere'],
+			['explore-space', 'Explore space'],
+			['invent', 'Invent'],
+			['science-die', 'Science die'],
 		],
 	},
 	board: {

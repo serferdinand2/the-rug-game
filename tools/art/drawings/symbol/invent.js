@@ -1,0 +1,8 @@
+// Approved track symbol invent, preserved pixel for pixel.
+import { fromSvg } from '../../painter.js';
+
+const SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" shape-rendering=\"crispEdges\"><path fill=\"#e8ddc4\" d=\"M19 5h2v1h-2zM18 6h4v1h-4zM17 8h1v1h-1zM22 8h1v1h-1zM16 9h2v1h-2zM22 9h2v1h-2z\"/><path fill=\"#120c1e\" d=\"M1 8h15v1h-15zM1 9h1v1h-1zM15 9h1v1h-1zM1 10h1v1h-1zM15 10h1v1h-1zM1 11h1v1h-1zM15 11h1v1h-1zM1 12h1v1h-1zM15 12h1v1h-1zM1 13h1v1h-1zM15 13h1v1h-1zM1 14h1v1h-1zM15 14h1v1h-1zM1 15h1v1h-1zM15 15h1v1h-1zM1 16h1v1h-1zM15 16h1v1h-1zM1 17h15v1h-15z\"/><path fill=\"#c6ad78\" d=\"M2 9h13v1h-13zM2 10h1v1h-1zM14 10h1v1h-1zM2 11h1v1h-1zM14 11h1v1h-1zM2 12h1v1h-1zM14 12h1v1h-1zM2 13h1v1h-1zM14 13h1v1h-1zM2 14h1v1h-1zM14 14h1v1h-1zM2 15h1v1h-1zM14 15h1v1h-1zM2 16h13v1h-13z\"/><path fill=\"#74492b\" d=\"M3 10h6v1h-6zM3 11h5v1h-5zM3 12h3v1h-3zM13 12h1v1h-1zM3 13h2v1h-2zM12 13h2v1h-2zM3 14h1v1h-1zM11 14h3v1h-3zM3 15h1v1h-1zM10 15h4v1h-4z\"/><path fill=\"#5f866d\" d=\"M9 10h5v1h-5zM8 11h6v1h-6zM6 12h7v1h-7zM5 13h7v1h-7zM4 14h7v1h-7zM4 15h6v1h-6z\"/><path fill=\"#e2b857\" d=\"M19 10h2v1h-2zM19 11h2v1h-2zM19 12h2v1h-2zM19 13h2v1h-2zM19 14h2v1h-2zM19 15h2v1h-2zM19 16h2v1h-2zM19 17h2v1h-2zM19 18h2v1h-2zM19 19h2v1h-2z\"/></svg>";
+
+export function draw() {
+	return fromSvg(SVG);
+}

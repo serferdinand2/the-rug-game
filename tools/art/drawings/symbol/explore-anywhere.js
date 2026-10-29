@@ -1,0 +1,8 @@
+// Approved track symbol explore-anywhere, preserved pixel for pixel.
+import { fromSvg } from '../../painter.js';
+
+const SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" shape-rendering=\"crispEdges\"><path fill=\"#e8ddc4\" d=\"M11 1h2v1h-2zM9 2h6v1h-6zM7 3h4v1h-4zM13 3h4v1h-4zM7 4h3v1h-3zM14 4h3v1h-3zM7 5h1v1h-1zM16 5h4v1h-4zM2 6h4v1h-4zM18 6h4v1h-4zM2 7h2v1h-2zM20 7h2v1h-2zM2 8h2v1h-2zM20 8h2v1h-2zM2 9h2v1h-2zM20 9h2v1h-2zM2 10h2v1h-2zM20 10h2v1h-2zM2 11h2v1h-2zM20 11h2v1h-2zM2 12h2v1h-2zM20 12h2v1h-2zM2 13h2v1h-2zM20 13h2v1h-2zM2 14h2v1h-2zM20 14h2v1h-2zM2 15h2v1h-2zM20 15h2v1h-2zM2 16h2v1h-2zM20 16h2v1h-2zM2 17h4v1h-4zM18 17h4v1h-4zM4 18h4v1h-4zM16 18h2v1h-2zM5 19h5v1h-5zM14 19h4v1h-4zM7 20h4v1h-4zM13 20h4v1h-4zM9 21h6v1h-6zM11 22h2v1h-2z\"/><path fill=\"#5d91ad\" d=\"M17 3h3v1h-3zM4 4h3v1h-3zM17 4h3v1h-3zM4 5h3v1h-3zM18 18h3v1h-3zM18 19h3v1h-3z\"/><path fill=\"#e2b857\" d=\"M10 5h4v1h-4zM10 6h4v1h-4zM10 7h4v1h-4zM10 8h4v1h-4zM10 9h4v1h-4zM10 10h4v1h-4zM10 11h4v1h-4zM10 12h4v1h-4zM10 13h4v1h-4zM7 14h11v1h-11zM8 15h9v1h-9zM9 16h7v1h-7zM10 17h5v1h-5zM11 18h3v1h-3zM12 19h1v1h-1z\"/></svg>";
+
+export function draw() {
+	return fromSvg(SVG);
+}
