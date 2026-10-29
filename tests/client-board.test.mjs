@@ -4,7 +4,12 @@ import assert from 'node:assert/strict';
 import { view } from '../src/lib/engine/game.js';
 import { newGame } from './helpers/engine.mjs';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
-import { trackBoard, achievements, spaceWords } from '../src/lib/board.js';
+import {
+	trackBoard,
+	achievements,
+	spaceWords,
+	tierSymbols,
+} from '../src/lib/board.js';
 
 /**
  * A view of a fresh game, after changes to a copy of its state.
@@ -132,4 +137,15 @@ test("the footer words a space as its track does, Navigation's effects joined by
 		(space) => space.name === 'Navigation'
 	);
 	assert.match(spaceWords(game, 'exploration', navigation), /, then /);
+});
+
+test("tierSymbols is each tier's price, as the board shows it (#86)", () => {
+	const board = trackBoard(viewOf(2));
+	for (const track of board) {
+		track.tiers.forEach((tier, index) => {
+			assert.deepEqual(tierSymbols(track.id, index + 1), tier);
+		});
+	}
+	assert.deepEqual(tierSymbols('science', 1), ['any']);
+	assert.deepEqual(tierSymbols('science', 4), ['worker', 'worker']);
 });

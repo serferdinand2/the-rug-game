@@ -68,6 +68,21 @@ export function spaceWords(view, track, space) {
 }
 
 /**
+ * A tier's price as symbols, the track's own resource before any resource of the player's choice (#86): what the
+ * board shows above each tier and the footer beside a selected space.
+ * @param {TrackId} track
+ * @param {1 | 2 | 3 | 4} tier - A space's tier is `Math.ceil(space / 3)`
+ * @returns {CostSymbol[]}
+ */
+export function tierSymbols(track, tier) {
+	const { track: own = 0, any = 0 } = TIER_COSTS[tier];
+	return [
+		...Array(own).fill(TRACK_RESOURCE[track]),
+		...Array(any).fill('any'),
+	];
+}
+
+/**
  * The four tracks for TrackBoard. Which spaces are available is TrackBoard's own `available` prop.
  * @param {BoardView} view
  * @returns {TrackBoardTrack[]}
@@ -75,7 +90,6 @@ export function spaceWords(view, track, space) {
 export function trackBoard(view) {
 	const unowned = new Set(view.landmarks);
 	return /** @type {TrackId[]} */ (Object.keys(TRACKS)).map((track) => {
-		const resource = TRACK_RESOURCE[track];
 		return {
 			id: track,
 			name: TRACK_NAMES[track],
@@ -98,16 +112,8 @@ export function trackBoard(view) {
 				}
 				return entry;
 			}),
-			tiers: /** @type {(1 | 2 | 3 | 4)[]} */ ([1, 2, 3, 4]).map(
-				(tier) => {
-					const { track: own = 0, any = 0 } = TIER_COSTS[tier];
-					/** @type {CostSymbol[]} */
-					const symbols = [
-						...Array(own).fill(resource),
-						...Array(any).fill('any'),
-					];
-					return symbols;
-				}
+			tiers: /** @type {(1 | 2 | 3 | 4)[]} */ ([1, 2, 3, 4]).map((tier) =>
+				tierSymbols(track, tier)
 			),
 			players: view.seats
 				.filter((seat) => seat.kind === 'player')

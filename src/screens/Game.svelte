@@ -26,12 +26,11 @@
 	import PlayerChip from '../lib/components/player/PlayerChip.svelte';
 	import SelfSummary from '../lib/components/player/SelfSummary.svelte';
 	import IncomeNotice from '../lib/components/prompts/IncomeNotice.svelte';
-	import TurnBar from '../lib/components/prompts/TurnBar.svelte';
-	import Button from '../lib/components/ui/Button.svelte';
 	import IconButton from '../lib/components/ui/IconButton.svelte';
 	import TurnClock from '../lib/components/ui/TurnClock.svelte';
 	import PageHeader from './PageHeader.svelte';
 	import DecisionPrompt from './game/DecisionPrompt.svelte';
+	import TurnFooter from './game/TurnFooter.svelte';
 	import PlayerTabs from './game/PlayerTabs.svelte';
 	import PlayersOverview from './game/PlayersOverview.svelte';
 	import LogPanel from './game/LogPanel.svelte';
@@ -39,15 +38,13 @@
 	import RulesPanel from './game/RulesPanel.svelte';
 	import { civAbilityText } from '../lib/civ-rules.js';
 	import { RULES_HELP } from '../lib/rules-help.js';
-	import { TRACK_KEYS, hotkeyAction } from '../lib/hotkeys.js';
-	import { trackName } from '../lib/describe.js';
+	import { hotkeyAction } from '../lib/hotkeys.js';
 	import { eventText } from '../lib/log.js';
 	import { highlights, prefersReducedMotion } from '../lib/motion.js';
-	import OverviewCloseBar from '../lib/components/prompts/OverviewCloseBar.svelte';
 	import TapestryCard from '../lib/components/player/TapestryCard.svelte';
 	import TechnologyCard from '../lib/components/player/TechnologyCard.svelte';
 	import { tabFor } from '../lib/area/tabs.js';
-	import { achievements, spaceWords, trackBoard } from '../lib/board.js';
+	import { achievements, trackBoard } from '../lib/board.js';
 	import { isRunning, shownClock, timeLeft } from '../lib/clock.js';
 	import { clockTime } from '../lib/now.svelte.js';
 	import { civilizationName } from '../lib/describe.js';
@@ -56,16 +53,11 @@
 	import { selfSummary } from '../lib/overview.js';
 	import {
 		advanceOptions,
-		decisionTurnHeading,
 		firstIncomeNotice,
-		forcedIncome,
-		incomeWords,
+		footerView,
 		myDecision,
-		takingTurnWords,
 	} from '../lib/turn.js';
-	import { askedSeats } from '../lib/engine/game.js';
-	import { TRACKS } from '../lib/engine/data/tracks.js';
-	import { playerColor } from '../lib/ui.js';
+	import { sendAdvance } from '../lib/moves.js';
 
 	/** @typedef {import('../lib/component-event.js').ComponentEvent} ComponentEvent */
 	/** @typedef {import('../lib/ui.js').TrackId} TrackId */
@@ -174,14 +166,6 @@
 			: null
 	);
 	let promptDecision = $derived(mine && !turnDecision ? mine : null);
-	/** Income is the only move this turn: no advance can be paid for (#77). */
-	let onlyIncome = $derived(forcedIncome(game, seat));
-	/** What taking income now does, for the footer: it would be the viewer's next income turn (#77). */
-	let incomeDescription = $derived(
-		turnDecision?.kind === 'chooseTurn'
-			? incomeWords(game.seats[turnDecision.player - 1].incomeTurns + 1)
-			: ''
-	);
 	/** The one-time notice after income turn 1 (#77), and whether this seat closed it, kept per table and seat. */
 	let notice = $derived(firstIncomeNotice(game, seat));
 	let noticeKey = $derived(`rg-first-income:${room.code}:${seat}`);
@@ -296,33 +280,38 @@
 		clock ? timeLeft(clock, room.now, store.receivedAt, clockTime.now) : 0
 	);
 
-	let currentSeat = $derived(
-		game.current === null ? null : game.seats[game.current - 1]
+	/** Which footer shows, and what it says (#86). */
+	let footer = $derived(
+		footerView(game, seat, {
+			overviewOpen,
+			noticeOpen,
+			incomeAsk,
+			trackAsk,
+			selected,
+			options,
+			paying: promptState.paying,
+			income: promptState.prompt?.income ?? null,
+			incomeStep: promptState.incomeStep,
+		})
 	);
 
 	/**
-	 * The tier price as symbols, for the footer.
-	 * @param {TrackId} track
-	 * @param {number} space
-	 * @returns {import('../lib/ui.js').CostSymbol[]}
+	 * A space picked on the tracks, or by the track question: with a choice of payment, its panel opens at once, as
+	 * BGA opens its payment on the click (#75).
+	 * @param {{ track: TrackId, space: number }} space
 	 */
-	function priceSymbols(track, space) {
-		const tier = trackBoard(game).find((t) => t.id === track)?.tiers[
-			Math.ceil(space / 3) - 1
-		];
-		return tier ?? [];
+	function selectSpace(space) {
+		incomeAsk = false;
+		trackAsk = false;
+		selected = space;
+		promptState.clearPayment();
 	}
 
 	/**
-	 * A space picked on the tracks: with a choice of payment, its panel opens at once, as BGA opens its payment on the
-	 * click (#75).
 	 * @param {ComponentEvent} event
 	 */
 	const trackSelectHandler = (event) => {
-		incomeAsk = false;
-		trackAsk = false;
-		selected = event.value;
-		promptState.clearPayment();
+		selectSpace(event.value);
 	};
 
 	/** Asks "Take an income turn?" in the footer first: income is never taken on one press (#83, owner). */
@@ -349,13 +338,7 @@
 		if (!option || sending) {
 			return;
 		}
-		trackSelectHandler(
-			/** @type {ComponentEvent} */ (
-				/** @type {unknown} */ ({
-					value: { track, space: option.to },
-				})
-			)
-		);
+		selectSpace({ track, space: option.to });
 		if (!promptState.paying) {
 			advanceHandler();
 		}
@@ -386,26 +369,17 @@
 		if (promptState.paying && pay === -1) {
 			return;
 		}
-		const payment = option.payments[pay === -1 ? 0 : pay];
 		sending = true;
-		if (turnDecision.kind === 'chooseTurn') {
-			const ok = await store.move({
-				decision: turnDecision.id,
-				turn: 'advance',
-			});
-			if (!ok) {
-				sending = false;
-				return;
-			}
-		}
-		const next = myDecision(store.room.game, store.seat);
-		if (next?.kind === 'chooseAdvance') {
-			await store.move({
-				decision: next.id,
-				track: option.track,
-				from: option.from,
-				pay: payment,
-			});
+		const moved = await sendAdvance(
+			(action) => store.move(action),
+			() => myDecision(store.room.game, store.seat),
+			turnDecision,
+			option,
+			option.payments[pay === -1 ? 0 : pay]
+		);
+		if (!moved) {
+			sending = false;
+			return;
 		}
 		selected = null;
 		promptState.clearPayment();
@@ -645,41 +619,12 @@
 	function nameOf(seatNumber) {
 		return game.seats[seatNumber - 1]?.name ?? `Seat ${seatNumber}`;
 	}
-
-	let asked = $derived(askedSeats(game));
 </script>
 
 <svelte:window
 	onkeydown={keyHandler}
 	onkeyup={keyUpHandler}
 	onblur={blurHandler} />
-
-{#snippet forcedIncomeAction()}
-	<Button
-		mode="gold"
-		disabled={sending}
-		onButtonClick={incomeAskHandler}>Take income</Button>
-{/snippet}
-
-{#snippet incomeAskActions()}
-	<Button
-		disabled={sending}
-		onButtonClick={() => (incomeAsk = false)}>Cancel</Button>
-	<Button
-		mode="gold"
-		disabled={sending}
-		onButtonClick={incomeHandler}>Take income</Button>
-{/snippet}
-
-{#snippet trackAskActions()}
-	{#each TRACK_KEYS as track, at (track)}
-		<Button
-			disabled={sending || !askTracks.includes(track)}
-			onButtonClick={() => trackPickHandler(track)}
-			>{at + 1} · {trackName(track)}</Button>
-	{/each}
-	<Button onButtonClick={() => (trackAsk = false)}>Cancel</Button>
-{/snippet}
 
 <div
 	{...attr}
@@ -865,113 +810,21 @@
 		{/if}
 	</div>
 
-	{#if overviewOpen}
-		<OverviewCloseBar
-			onOverviewCloseBarClick={() => (overviewOpen = false)} />
-	{:else if game.phase === 'over'}
-		<TurnBar
-			tone="neutral"
-			label="Game complete"
-			heading="The game is complete."
-			detail="The board as the game ended.">
-			{#snippet actions()}
-				<Button
-					mode="gold"
-					onButtonClick={(/** @type {ComponentEvent} */ event) =>
-						onGameResults?.(event)}>Results</Button>
-			{/snippet}
-		</TurnBar>
-	{:else if turnDecision?.kind === 'chooseTurn' && incomeAsk}
-		<TurnBar
-			tone="neutral"
-			heading="Take an income turn?"
-			detail={incomeDescription}
-			actions={incomeAskActions} />
-	{:else if turnDecision && trackAsk}
-		<TurnBar
-			tone="neutral"
-			heading="Advance on which track?"
-			detail="Press its number, or Esc to go back."
-			actions={trackAskActions} />
-	{:else if turnDecision && onlyIncome}
-		<TurnBar
-			tone="neutral"
-			heading="You can't pay for any advance, so take an income turn."
-			detail={incomeDescription}
-			actions={noticeOpen ? undefined : forcedIncomeAction} />
-	{:else if turnDecision && selected}
-		<TurnBar
-			tone="selected"
-			heading="Advance to"
-			properName={TRACKS[selected.track][selected.space].name}
-			track={selected.track}
-			detail={spaceWords(game, selected.track, selected.space)}
-			cost={priceSymbols(selected.track, selected.space)}
-			income={turnDecision.kind === 'chooseTurn' && !noticeOpen
-				? { description: incomeDescription, label: 'Take income' }
-				: null}
-			onTurnBarIncome={incomeAskHandler}>
-			{#snippet actions()}
-				<Button
-					mode="primary"
-					disabled={!chosenAdvance || sending || promptState.paying}
-					title={!chosenAdvance
-						? "You can't advance there now."
-						: promptState.paying
-							? 'Pick the payment in the panel.'
-							: undefined}
-					onButtonClick={() => advanceHandler()}>Advance</Button>
-			{/snippet}
-		</TurnBar>
-	{:else if turnDecision}
-		<TurnBar
-			tone="neutral"
-			heading={available.length
-				? 'Choose a space to advance to, or take income.'
-				: 'Take an income turn.'}
-			detail={available.length
-				? 'The spaces you can pay for are outlined in green.'
-				: undefined}
-			income={turnDecision.kind === 'chooseTurn' && !noticeOpen
-				? { description: incomeDescription, label: 'Take income' }
-				: null}
-			onTurnBarIncome={incomeAskHandler} />
-	{:else if promptState.prompt?.income}
-		<TurnBar
-			tone="income"
-			label="Your income turn"
-			heading="Income turn {promptState.prompt.income
-				.turn}{promptState.incomeStep
-				? ` · ${promptState.incomeStep}`
-				: ''}"
-			detail={promptState.prompt.income.turn === 1
-				? 'Every player’s first turn is an income turn.'
-				: undefined} />
-	{:else if promptDecision}
-		<TurnBar
-			tone="neutral"
-			label="Your decision"
-			heading={decisionTurnHeading(game, seat)} />
-	{:else if game.phase === 'setup'}
-		<TurnBar
-			tone="waiting"
-			label="Setting up"
-			heading="Waiting for the others to choose." />
-	{:else if currentSeat}
-		<TurnBar
-			tone="waiting"
-			label={asked.length && !asked.includes(currentSeat.seat)
-				? `Waiting for ${nameOf(asked[0])}`
-				: `${currentSeat.name}’s turn`}
-			labelColor={playerColor(
-				asked.length && !asked.includes(currentSeat.seat)
-					? asked[0]
-					: currentSeat.seat
-			)}
-			heading={asked.length && !asked.includes(currentSeat.seat)
-				? `${nameOf(asked[0])} is deciding.`
-				: takingTurnWords(game, currentSeat.seat, currentSeat.name)} />
-	{/if}
+	<TurnFooter
+		view={footer}
+		{sending}
+		onTurnFooterIncomeAsk={incomeAskHandler}
+		onTurnFooterIncome={incomeHandler}
+		onTurnFooterAdvance={() => advanceHandler()}
+		onTurnFooterTrack={(/** @type {ComponentEvent} */ event) =>
+			trackPickHandler(event.value)}
+		onTurnFooterCancel={() => {
+			incomeAsk = false;
+			trackAsk = false;
+		}}
+		onTurnFooterResults={(/** @type {ComponentEvent} */ event) =>
+			onGameResults?.(event)}
+		onTurnFooterOverviewClose={() => (overviewOpen = false)} />
 </div>
 
 <style>

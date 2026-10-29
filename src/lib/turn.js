@@ -1,10 +1,12 @@
 // The viewer's part in the turn (#26 design §5.1, §6): which open decision is theirs, the advances they can pay
-// for, from the engine run on their own view, and the words for income turns (#77).
-import { DECISIONS, openDecisions } from './engine/game.js';
+// for, from the engine run on their own view, the words for income turns (#77), and the footer that shows (#86).
+import { DECISIONS, askedSeats, openDecisions } from './engine/game.js';
 import { TRACKS } from './engine/data/tracks.js';
-import { describeCost } from './describe.js';
+import { spaceWords, tierSymbols } from './board.js';
+import { describeCost, trackName } from './describe.js';
+import { TRACK_KEYS } from './hotkeys.js';
 import { incomeView } from './prompts.js';
-import { roman } from './ui.js';
+import { playerColor, roman } from './ui.js';
 
 /** @typedef {import('./engine/data/ids.js').TrackId} TrackId */
 
@@ -210,5 +212,193 @@ export function firstIncomeNotice(view, seat) {
 		territoryTiles,
 		tapestryCards,
 		holdings: words === 'Nothing' ? 'nothing' : words,
+	};
+}
+
+/**
+ * What only the game screen knows about its footer (#86).
+ * @typedef {Object} FooterInputs
+ * @property {boolean} overviewOpen - The players overview is open
+ * @property {boolean} noticeOpen - The first-income notice is open (#77), which takes income's place
+ * @property {boolean} incomeAsk - The footer asks "Take an income turn?" (#83)
+ * @property {boolean} trackAsk - The footer asks "Advance on which track?" (#83)
+ * @property {{ track: TrackId, space: number } | null} selected - The space picked on the tracks
+ * @property {readonly { track: TrackId, to: number }[]} options - The advances the viewer can pay for (advanceOptions)
+ * @property {boolean} [paying] - The selected advance's payment is picked in the panel (#75)
+ * @property {{ turn: number } | null} [income] - The viewer's own income turn, as the prompt has it
+ * @property {string | null} [incomeStep] - The income turn's step running now, such as 'Gain income'
+ */
+
+/**
+ * The footer to show, with every word in it, as TurnBar takes them (#86).
+ * @typedef {Object} FooterView
+ * @property {'none' | 'overview' | 'over' | 'incomeAsk' | 'trackAsk' | 'forcedIncome' | 'selected' | 'turn' | 'income' | 'decision' | 'setup' | 'waiting'} kind
+ * @property {import('./components/prompts/TurnBar.svelte').TurnBarTone} [tone]
+ * @property {string} [label] - Left out for TurnBar's own 'Your turn'
+ * @property {string} [labelColor] - Another player's colour, for their turn
+ * @property {string} [heading]
+ * @property {string} [properName] - The selected space's name
+ * @property {TrackId} [track] - The selected space's track
+ * @property {string} [detail]
+ * @property {import('./ui.js').CostSymbol[] | null} [cost] - The selected space's tier price
+ * @property {{ description: string, label: string } | null} [income] - The income choice beside the turn label
+ * @property {{ track: TrackId, label: string, enabled: boolean }[]} [tracks] - The track question's choices, by key
+ * @property {{ enabled: boolean, title: string | undefined }} [advance] - The selected space's Advance button
+ * @property {boolean} [takeIncome] - Forced income's Take income button shows
+ */
+
+/**
+ * Which footer the game screen shows, and what it says (#86): the first that applies of the players overview's
+ * close bar, game over, the income question, the track question, forced income, a selected space, the turn choice,
+ * the viewer's income turn, their other decisions, setup and waiting for another player; or none.
+ * @param {any} game - The viewer's game view
+ * @param {number | null} seat - The viewer's seat, or null for the public view
+ * @param {FooterInputs} inputs
+ * @returns {FooterView}
+ */
+export function footerView(game, seat, inputs) {
+	const { selected, options } = inputs;
+	const mine = myDecision(game, seat);
+	const turn =
+		mine?.kind === 'chooseTurn' || mine?.kind === 'chooseAdvance'
+			? mine
+			: null;
+	const choosing = turn?.kind === 'chooseTurn';
+	const incomeDescription = choosing
+		? incomeWords(game.seats[turn.player - 1].incomeTurns + 1)
+		: '';
+	const income =
+		choosing && !inputs.noticeOpen
+			? { description: incomeDescription, label: 'Take income' }
+			: null;
+	if (inputs.overviewOpen) {
+		return { kind: 'overview' };
+	}
+	if (game.phase === 'over') {
+		return {
+			kind: 'over',
+			tone: 'neutral',
+			label: 'Game complete',
+			heading: 'The game is complete.',
+			detail: 'The board as the game ended.',
+		};
+	}
+	if (choosing && inputs.incomeAsk) {
+		return {
+			kind: 'incomeAsk',
+			tone: 'neutral',
+			heading: 'Take an income turn?',
+			detail: incomeDescription,
+		};
+	}
+	if (turn && inputs.trackAsk) {
+		const open = new Set(options.map((o) => o.track));
+		return {
+			kind: 'trackAsk',
+			tone: 'neutral',
+			heading: 'Advance on which track?',
+			detail: 'Press its number, or Esc to go back.',
+			tracks: TRACK_KEYS.map((track, at) => ({
+				track,
+				label: `${at + 1} · ${trackName(track)}`,
+				enabled: open.has(track),
+			})),
+		};
+	}
+	if (turn && forcedIncome(game, seat)) {
+		return {
+			kind: 'forcedIncome',
+			tone: 'neutral',
+			heading: "You can't pay for any advance, so take an income turn.",
+			detail: incomeDescription,
+			takeIncome: !inputs.noticeOpen,
+		};
+	}
+	if (turn && selected) {
+		const reachable = options.some(
+			(o) => o.track === selected.track && o.to === selected.space
+		);
+		return {
+			kind: 'selected',
+			tone: 'selected',
+			heading: 'Advance to',
+			properName: TRACKS[selected.track][selected.space].name,
+			track: selected.track,
+			detail: spaceWords(game, selected.track, selected.space),
+			cost: tierSymbols(
+				selected.track,
+				/** @type {1 | 2 | 3 | 4} */ (Math.ceil(selected.space / 3))
+			),
+			income,
+			advance: {
+				enabled: reachable && !inputs.paying,
+				title: !reachable
+					? "You can't advance there now."
+					: inputs.paying
+						? 'Pick the payment in the panel.'
+						: undefined,
+			},
+		};
+	}
+	if (turn) {
+		return {
+			kind: 'turn',
+			tone: 'neutral',
+			heading: options.length
+				? 'Choose a space to advance to, or take income.'
+				: 'Take an income turn.',
+			detail: options.length
+				? 'The spaces you can pay for are outlined in green.'
+				: undefined,
+			income,
+		};
+	}
+	if (mine && inputs.income) {
+		const { turn: number } = inputs.income;
+		return {
+			kind: 'income',
+			tone: 'income',
+			label: 'Your income turn',
+			heading: `Income turn ${number}${inputs.incomeStep ? ` · ${inputs.incomeStep}` : ''}`,
+			detail:
+				number === 1
+					? 'Every player’s first turn is an income turn.'
+					: undefined,
+		};
+	}
+	if (mine) {
+		return {
+			kind: 'decision',
+			tone: 'neutral',
+			label: 'Your decision',
+			heading: decisionTurnHeading(game, seat),
+		};
+	}
+	if (game.phase === 'setup') {
+		return {
+			kind: 'setup',
+			tone: 'waiting',
+			label: 'Setting up',
+			heading: 'Waiting for the others to choose.',
+		};
+	}
+	const current = game.current === null ? null : game.seats[game.current - 1];
+	if (!current) {
+		return { kind: 'none' };
+	}
+	const asked = askedSeats(game);
+	const other = asked.length > 0 && !asked.includes(current.seat);
+	const name = (/** @type {number} */ player) =>
+		game.seats[player - 1]?.name ?? `Seat ${player}`;
+	return {
+		kind: 'waiting',
+		tone: 'waiting',
+		label: other
+			? `Waiting for ${name(asked[0])}`
+			: `${current.name}’s turn`,
+		labelColor: playerColor(other ? asked[0] : current.seat),
+		heading: other
+			? `${name(asked[0])} is deciding.`
+			: takingTurnWords(game, current.seat, current.name),
 	};
 }
