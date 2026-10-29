@@ -1,4 +1,4 @@
-// Answering a decision from the browser (#26 design §6): one move with the table's version, which seat a hot-seat table shows, and whose screen it is (#100).
+// Answering a decision from the browser (#26 design §6): one move with the table's version, an advance's two (#86), which seat a hot-seat table shows, and whose screen it is (#100).
 import { ApiError } from './api.js';
 import { askedSeats } from './engine/game.js';
 
@@ -29,6 +29,35 @@ export async function sendMove(request, room, seat, action) {
 		);
 		throw stale;
 	}
+}
+
+/**
+ * Advances from the turn's footer (#86): from the turn choice it answers "advance" first, then the advance the newest
+ * view opens, with the token and payment; from an open advance it answers only that.
+ * @param {(action: { decision: number } & Record<string, unknown>) => Promise<boolean>} move - The store's move
+ * @param {() => any} next - The viewer's open decision once the turn choice is answered, from the newest view
+ * @param {{ id: number, kind: string }} turn - The turn's open decision: chooseTurn or chooseAdvance
+ * @param {{ track: string, from: number }} option - The advance: its track and the token's space
+ * @param {unknown} pay - The payment, one of the advance's payments
+ * @returns {Promise<boolean>} False when the turn choice was refused, so nothing more was sent and the turn is as it was
+ */
+export async function sendAdvance(move, next, turn, option, pay) {
+	if (
+		turn.kind === 'chooseTurn' &&
+		!(await move({ decision: turn.id, turn: 'advance' }))
+	) {
+		return false;
+	}
+	const advance = next();
+	if (advance?.kind === 'chooseAdvance') {
+		await move({
+			decision: advance.id,
+			track: option.track,
+			from: option.from,
+			pay,
+		});
+	}
+	return true;
 }
 
 /**

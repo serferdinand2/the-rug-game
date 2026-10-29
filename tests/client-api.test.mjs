@@ -7,7 +7,12 @@ import { server, config } from '../server/server.mjs';
 import { ApiError, createApi, withSession } from '../src/lib/api.js';
 import { change, sameSeats } from '../src/lib/changes.js';
 import { boot } from '../src/lib/boot.js';
-import { seatToShow, sendMove, viewerSeat } from '../src/lib/moves.js';
+import {
+	seatToShow,
+	sendAdvance,
+	sendMove,
+	viewerSeat,
+} from '../src/lib/moves.js';
 import { myDecision } from '../src/lib/turn.js';
 
 let base = '';
@@ -339,4 +344,75 @@ test('no screen works out the viewer seat itself', () => {
 			`${file} works out the viewer seat`
 		);
 	}
+});
+
+/**
+ * A store's move that records what it sends and answers each with the next of `results`.
+ * @param {boolean[]} results
+ */
+function recorder(results) {
+	/** @type {Record<string, unknown>[]} */
+	const sent = [];
+	return {
+		sent,
+		move: async (/** @type {Record<string, unknown>} */ action) => {
+			sent.push(action);
+			return results[sent.length - 1] ?? true;
+		},
+	};
+}
+
+const ADVANCE = { track: 'science', from: 0 };
+
+test('an advance from the turn choice answers it first, then the advance the new view opens (#86)', async () => {
+	const { sent, move } = recorder([true, true]);
+	const ok = await sendAdvance(
+		move,
+		() => ({ id: 8, kind: 'chooseAdvance' }),
+		{ id: 7, kind: 'chooseTurn' },
+		ADVANCE,
+		{ any: 1 }
+	);
+	assert.equal(ok, true);
+	assert.deepEqual(sent, [
+		{ decision: 7, turn: 'advance' },
+		{ decision: 8, track: 'science', from: 0, pay: { any: 1 } },
+	]);
+});
+
+test('an open advance is answered alone (#86)', async () => {
+	const { sent, move } = recorder([true]);
+	const open = { id: 8, kind: 'chooseAdvance' };
+	assert.equal(await sendAdvance(move, () => open, open, ADVANCE, {}), true);
+	assert.deepEqual(sent, [
+		{ decision: 8, track: 'science', from: 0, pay: {} },
+	]);
+});
+
+test('a refused turn choice sends nothing more and says so (#86)', async () => {
+	const { sent, move } = recorder([false]);
+	const ok = await sendAdvance(
+		move,
+		() => {
+			throw new Error('the view is not read after a refusal');
+		},
+		{ id: 7, kind: 'chooseTurn' },
+		ADVANCE,
+		{}
+	);
+	assert.equal(ok, false);
+	assert.equal(sent.length, 1);
+});
+
+test('a turn choice that opens no advance sends nothing more, but has moved the turn on (#86)', async () => {
+	const { sent, move } = recorder([true]);
+	const ok = await sendAdvance(
+		move,
+		() => null,
+		{ id: 7, kind: 'chooseTurn' },
+		ADVANCE,
+		{}
+	);
+	assert.equal(ok, true);
+	assert.equal(sent.length, 1);
 });
