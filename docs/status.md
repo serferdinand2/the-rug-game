@@ -8,7 +8,7 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
 
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
-  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #84, #87, #89, #91, #93, #97, #98, #99, #100, #113, #119 and #130 are done. #103, #124 and #128 are partly built; what is left of each waits for #85 or #86. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
+  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #84, #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119 and #130 are done. #103, #124 and #128 are partly built; what is left of each waits for #85. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -29,7 +29,8 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
   - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
   - #79 (every decision prompt at the tracks' centre, the prompt out of `Game.svelte`) is done; it merged and closed on 2026-10-28, after the owner's ruling on the library.
   - A first batch of #80's findings landed together on 2026-10-28: #84, #87, #91, #93, #98, #103, #113, #124, #128 and #130 (see [its entry](#80s-findings-first-batch)). #104 waits for #103's last piece and #125 for #124's.
-  - A second batch of #80's findings landed together on 2026-10-29: #89, #97, #99, #100 and #119 (see [its entry](#80s-findings-second-batch)). #90 can start now that #89 is in.
+  - A second batch of #80's findings landed together on 2026-10-29: #89, #97, #99, #100 and #119 (see [its entry](#80s-findings-second-batch)).
+  - #86 (the turn footer) and #90 (the game header) followed the same day (see [their entry](#86-and-90-the-games-footer-and-header)). #88 and #122 can start now that #86 is in.
   - The owner ruled out screen-reader work (CLAUDE.md, 2026-10-28), so #121, which is only labels, is closed as not planned.
   - #80 is done: its findings are #84 and #86–#131.
   - #82 (the joined terrain of the base mats) is done: the owner approved all six base mats in the component library on 2026-10-28, and it merged into main on 2026-10-29. The expansion mats follow in #132 (M8) and #133 (M9), and the World Map's terrain in #134 (M12).
@@ -65,6 +66,7 @@ Many issues were built without a question round, so their designs mark every uns
 - [#80's findings, first batch](#80s-findings-first-batch)
 - [#82 (the joined terrain of the base mats)](#82-the-joined-terrain-of-the-base-mats)
 - [#80's findings, second batch](#80s-findings-second-batch)
+- [#86 and #90 (the game's footer and header)](#86-and-90-the-games-footer-and-header)
 
 ## Issues
 
@@ -565,6 +567,15 @@ Built on 2026-10-29 as five more of #80's smallest unassigned findings, one bran
 - Calls to revisit after playing: the pass screen's take button dims to 0.5 while it arms and loads, as every `Button` does, instead of 0.6 (#97); the pass screen shows no clock when the header would show another player's (#89).
 - **Tests:** every issue was built test-first; the browser tests for #89 and #99 were written to pass on the old code, so they pin its behaviour, and #89's was checked to fail with the ticker's subscription taken out. Together on main: `npm run check` clean, 1923 unit tests (the simulation included) and all 42 browser tests pass. The hotkeys browser test failed once under a slow parallel run and passed on every run after.
 - **Handed off:** #90 moves the header with `shownClock`, `clockTime` and `menu="game"`. #116 takes the dimmer look of a choice that can't be picked (0.3–0.35) and `DecisionOption`'s disabled state. #43 can reuse `safeStorage` and give its screen its own entries in `menuItems`.
+
+### #86 and #90 (the game's footer and header)
+
+Built on 2026-10-29, after the second batch, one branch each, merged onto main in turn. Each issue has its design and plan under `docs/superpowers/` (2026-10-29). Together they take about 300 lines out of `Game.svelte`.
+- **#86:** `footerView(game, seat, inputs)` in `turn.js` decides which of the eleven footers shows (the overview's close bar, game over, the income and track questions, forced income, a selected space, the turn choice, an income turn, a decision, setup, waiting) and every word in it, with a test for each on a real game view. The new screen part `src/screens/game/TurnFooter.svelte` draws it as one `TurnBar`, keyed on its kind. `tierSymbols(track, tier)` in `board.js` is a tier's price, used by `trackBoard()` and the footer, so the footer no longer rebuilds the board; that was `tierSymbols` from #128's remainder. `sendAdvance` in `moves.js` sends the advance's two moves and is tested, and selecting a space is a plain `selectSpace()`, so the fake `ComponentEvent` is gone.
+- **#90:** `playerChips(view)` in `area/players.js` gives the header's chips; its "Setting up" rule is `civilizationOf()`, shared with `playerCards()`. The new screen part `src/screens/game/GameHeader.svelte` draws `PageHeader` with the game's menu, the chips, the turn clock, Undo and the log button with its dot. `IconButton` got no `dot` prop (the issue's optional idea): the dot stays a span over the button, inside `GameHeader`.
+- **Pixels:** screenshots of six footers and five header states in a hot-seat game are byte-identical before and after.
+- **Tests:** test-first; `tests/client-footer.test.mjs` is new. #90's design and plan were written after its tests and code, not before. Together on main: `npm run check` clean, 1947 unit tests (the simulation included) and all 42 browser tests pass. Two browser runs during the work failed in milliseconds when back-to-back runs went over the dev server's per-minute table and login limits; on a fresh server everything passes.
+- **Handed off:** #62 (End turn) and #71 (the decision footer's words) now change `footerView` and `TurnFooter`. #122 moves `TurnBar`'s income reveal out, and #88 routes the keys, which still set `incomeAsk` and `trackAsk` in `Game.svelte`. #128's remainder is `tierOf` and `picks.js`' tier lines, after #85. #31 adds bot seats to `playerChips` and bot turns to the waiting footer.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 
