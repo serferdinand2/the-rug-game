@@ -21,13 +21,13 @@ test('card art and edition rules align, and tapestry cards grow with their text'
 		],
 		[
 			'#technology-card .rg-tech-layout',
-			'.rg-tech-layout__art',
-			'.rg-tech-layout__footer',
+			'.rg-tech-layout--art',
+			'.rg-tech-layout--footer',
 		],
 		[
 			'#tapestry-card .rg-tapestry-layout',
-			'.rg-tapestry-layout__portrait img',
-			'.rg-tapestry-layout__footer',
+			'.rg-tapestry-layout--portrait img',
+			'.rg-tapestry-layout--footer',
 		],
 	]) {
 		const card = page.locator(frame).first();
@@ -73,7 +73,7 @@ test('card art and edition rules align, and tapestry cards grow with their text'
 	const original = await card.evaluate(
 		(element) => element.getBoundingClientRect().height
 	);
-	await card.locator('.rg-tapestry-layout__copy').evaluate((copy) => {
+	await card.locator('.rg-tapestry-layout--copy').evaluate((copy) => {
 		copy.textContent =
 			'A long tapestry effect that needs its own room. '.repeat(45);
 	});
@@ -83,10 +83,10 @@ test('card art and edition rules align, and tapestry cards grow with their text'
 	expect(grown).toBeGreaterThan(original);
 	const overlap = await card.evaluate((element) => {
 		const copy = element
-			.querySelector('.rg-tapestry-layout__copy')
+			.querySelector('.rg-tapestry-layout--copy')
 			.getBoundingClientRect();
 		const footer = element
-			.querySelector('.rg-tapestry-layout__footer')
+			.querySelector('.rg-tapestry-layout--footer')
 			.getBoundingClientRect();
 		return footer.top - copy.bottom;
 	});
@@ -96,7 +96,7 @@ test('card art and edition rules align, and tapestry cards grow with their text'
 	const scaledBefore = await scaled.evaluate(
 		(element) => element.getBoundingClientRect().height
 	);
-	await scaled.locator('.rg-tapestry-layout__copy').evaluate((copy) => {
+	await scaled.locator('.rg-tapestry-layout--copy').evaluate((copy) => {
 		copy.textContent =
 			'A long tapestry effect that needs its own room. '.repeat(45);
 	});

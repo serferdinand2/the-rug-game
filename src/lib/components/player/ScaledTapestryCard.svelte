@@ -1,6 +1,6 @@
 <!-- ScaledTapestryCard: preserves a tapestry card's measured height when it is shown smaller in a shelf or tab. -->
 <script module>
-	/** @typedef {import('../../cards/card-layouts.js').TapestryCardData} TapestryCardData */
+	/** @typedef {import('../../cards/game-cards.js').TapestryCardData} TapestryCardData */
 	/**
 	 * @typedef {Object} ScaledTapestryCardOwnProps
 	 * @property {TapestryCardData} data - The card face

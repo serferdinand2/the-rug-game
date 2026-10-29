@@ -1,0 +1,316 @@
+/* The static main-screen mockup's own copy of the tech and tapestry frames, with their first class names (#108); the app's are src/styles/card-layouts.css. */
+.rg-tech-layout,
+.rg-tapestry-layout {
+	box-sizing: border-box;
+	color: var(--card-text);
+	background: var(--card-paper) url('../../../src/styles/card-paper-noise.svg') repeat;
+	border: 2px solid var(--card-line-strong);
+	box-shadow:
+		0 10px 26px var(--card-shadow-strong),
+		inset 0 0 0 1px var(--card-raised);
+	font:
+		400 15px/1.3 'Atkinson Hyperlegible',
+		Atkinson,
+		sans-serif;
+	text-align: left;
+}
+.rg-tech-layout *,
+.rg-tapestry-layout * {
+	box-sizing: border-box;
+}
+.rg-tech-layout {
+	width: 425px;
+	min-height: 298px;
+	padding: 0 10px;
+	display: grid;
+	grid-template-rows: 40px 174px 50px 30px;
+}
+.rg-tech-layout__band,
+.rg-tapestry-layout__band {
+	display: flex;
+	align-items: center;
+	margin: 0 -10px;
+	padding: 0 10px;
+	background-image:
+		url('../../../src/styles/card-paper-noise.svg'),
+		linear-gradient(
+			90deg,
+			var(--card-band-start) 0%,
+			var(--card-band-middle) 57%,
+			var(--card-band-end) 100%
+		);
+	background-size:
+		256px 256px,
+		auto;
+	border-bottom: 1px solid var(--card-line-strong);
+}
+.rg-tech-layout__band strong,
+.rg-tapestry-layout__band strong {
+	color: var(--card-title);
+	font:
+		700 22px/1 Cinzel,
+		serif;
+	letter-spacing: 0.025em;
+	text-shadow: 0 1px 0 var(--card-text);
+}
+.rg-tech-layout__body {
+	display: grid;
+	grid-template-columns: 150px 1fr;
+	gap: 12px;
+	align-items: start;
+	padding: 12px 2px;
+}
+.rg-tech-layout__art {
+	display: block;
+	width: 150px;
+	height: 150px;
+	image-rendering: pixelated;
+	box-shadow:
+		0 0 0 1px var(--card-line),
+		0 0 0 3px var(--card-text);
+}
+.rg-tech-layout__effects {
+	display: grid;
+	grid-template-rows: 1fr 1fr;
+	gap: 6px;
+	align-items: center;
+	min-width: 0;
+}
+.rg-tech-layout__effect {
+	height: 72px;
+	display: grid;
+	grid-template-columns: 30px 1fr;
+	gap: 6px;
+	align-items: center;
+	padding: 4px 7px;
+	background: var(--card-raised);
+	border: 1px solid var(--card-line-soft);
+}
+.rg-tech-layout__shape {
+	display: block;
+	flex: none;
+	width: 23px;
+	height: 23px;
+	justify-self: center;
+	border: 3.5px solid var(--card-band-start);
+}
+.rg-tech-layout__shape--circle {
+	border-radius: 50%;
+}
+.rg-tech-layout__effect small {
+	display: block;
+	margin-bottom: 2px;
+	color: var(--card-band-start);
+	font:
+		700 11px/1.1 'Atkinson Hyperlegible',
+		Atkinson,
+		sans-serif;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.rg-tech-layout__effect p {
+	margin: 0;
+	color: var(--card-text);
+	font-size: 12px;
+	line-height: 1.16;
+}
+.rg-tech-layout__conditions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+	padding-bottom: 12px;
+}
+.rg-tech-layout__condition {
+	min-height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 5px 8px;
+	background: var(--card-condition);
+	border: 1px solid var(--card-condition-line);
+	color: var(--card-condition-text);
+	font-size: 12px;
+	line-height: 1;
+}
+.rg-tech-layout__condition img {
+	width: 22px;
+	height: 22px;
+	image-rendering: pixelated;
+}
+.rg-tech-layout__condition .rg-tech-layout__shape {
+	width: 18px;
+	height: 18px;
+	border-color: var(--card-condition-text);
+}
+.rg-tech-layout__condition b {
+	display: inline-flex;
+	align-items: center;
+	min-height: 22px;
+	font:
+		700 13px/1 'Atkinson Hyperlegible',
+		Atkinson,
+		sans-serif;
+}
+.rg-tech-layout__condition .rg-tech-layout__track {
+	font:
+		600 14px/1 Cinzel,
+		serif;
+	color: var(--card-technology-text);
+}
+.rg-tech-layout__condition .rg-tech-layout__track--exploration {
+	color: var(--card-exploration-text);
+}
+.rg-tech-layout__condition .rg-tech-layout__track--science {
+	color: var(--card-science-text);
+}
+.rg-tech-layout__condition .rg-tech-layout__track--military {
+	color: var(--card-military-text);
+}
+.rg-tech-layout__footer,
+.rg-tapestry-layout__footer {
+	display: flex;
+	align-items: center;
+	border-top: 1px solid var(--card-line);
+}
+.rg-tech-layout__footer {
+	margin: 0 -10px;
+	padding: 0 10px;
+}
+.rg-tapestry-layout__footer {
+	margin: 0 -12px;
+	padding: 0 12px;
+}
+.rg-card-edition {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 18px;
+	padding: 2px 6px;
+	border: 1px solid;
+	white-space: nowrap;
+	font:
+		700 10px/1 'Atkinson Hyperlegible',
+		Atkinson,
+		sans-serif;
+	letter-spacing: 0.04em;
+}
+.rg-card-edition--base {
+	border-color: var(--card-line);
+	background: color-mix(in srgb, var(--card-band-start) 16%, transparent);
+	color: var(--card-band-start);
+}
+.rg-card-edition--arts {
+	border-color: var(--card-expansion);
+	background: color-mix(in srgb, var(--card-expansion) 16%, transparent);
+	color: var(--card-expansion);
+}
+.rg-tapestry-layout {
+	width: 319px;
+	min-height: 560px;
+	padding: 0 12px;
+	display: grid;
+	grid-template-rows: 49px 184px minmax(max-content, 1fr) 30px;
+}
+.rg-tapestry-layout__band {
+	margin: 0 -12px;
+	padding: 0 12px;
+}
+.rg-tapestry-layout__band strong {
+	font-size: 21px;
+}
+.rg-tapestry-layout--trap .rg-tapestry-layout__band {
+	background-image:
+		url('../../../src/styles/card-paper-noise.svg'),
+		linear-gradient(
+			90deg,
+			var(--card-trap-band-start) 0%,
+			var(--card-trap-band-middle) 57%,
+			var(--card-trap-band-end) 100%
+		);
+	border-bottom-color: var(--card-trap-line);
+}
+.rg-tapestry-layout__portrait {
+	display: grid;
+	grid-template-columns: 160px minmax(0, 1fr);
+	gap: 10px;
+	align-items: start;
+	padding-top: 12px;
+}
+.rg-tapestry-layout__portrait img {
+	display: block;
+	width: 160px;
+	height: 160px;
+	image-rendering: pixelated;
+	box-shadow:
+		0 0 0 1px var(--card-line),
+		0 0 0 3px var(--card-text);
+}
+.rg-tapestry-layout__timing {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 20px;
+	padding: 3px 6px;
+	border: 1px solid;
+	text-align: center;
+	font:
+		700 11px/1.15 'Atkinson Hyperlegible',
+		Atkinson,
+		sans-serif;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.rg-tapestry-layout__timing--this-era {
+	border-color: var(--science);
+	background: color-mix(in srgb, var(--science) 22%, transparent);
+	color: var(--card-science-text);
+}
+.rg-tapestry-layout__timing--when-played {
+	border-color: var(--bronze);
+	background: color-mix(in srgb, var(--bronze) 22%, transparent);
+	color: var(--card-technology-text);
+}
+.rg-tapestry-layout__timing--trap {
+	border-color: var(--military);
+	background: color-mix(in srgb, var(--military) 22%, transparent);
+	color: var(--card-military-text);
+}
+.rg-tapestry-layout__copy {
+	align-self: stretch;
+	margin: 0;
+	padding: 18px 10px 24px;
+	border-top: 1px solid var(--card-line);
+	font-size: 15px;
+	line-height: 1.42;
+}
+.rg-tapestry-layout__note {
+	display: block;
+	margin-top: 14px;
+	padding-top: 10px;
+	border-top: 1px solid var(--card-line-soft);
+	color: var(--card-note);
+	font-size: 13px;
+	line-height: 1.35;
+}
+/* The same complete frame scales inside a narrow private tab without editing its content. */
+.rg-card-scale {
+	/* The page sets the frame's size and scale; these are a Technology card at full size. */
+	--card-width: 425px;
+	--card-height: 298px;
+	--card-scale: 1;
+	position: relative;
+	display: block;
+	flex: none;
+	width: calc(var(--card-width) * var(--card-scale));
+	height: calc(var(--card-height) * var(--card-scale));
+}
+.rg-card-scale > .rg-tech-layout,
+.rg-card-scale > .rg-tapestry-layout {
+	position: absolute;
+	inset: 0 auto auto 0;
+	transform: scale(var(--card-scale));
+	transform-origin: top left;
+	pointer-events: none;
+}
