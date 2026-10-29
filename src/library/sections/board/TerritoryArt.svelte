@@ -65,7 +65,7 @@
 <Section
 	name="TerritoryArt"
 	area="board"
-	description="A territory's face round the origin (#113): one terrain picture per corner wedge, the coast where land meets sea, the island's parts outlined, and the cloud and volcano overlays (R77). It draws inside an svg next to a TerritoryClips of the same size and prefix; the World Map and TerritoryTile both draw their territories with it.">
+	description="A territory's face round the origin (#113): one terrain picture per corner wedge, the coast where land meets sea, the island's parts outlined, and the cloud and volcano overlays (R77). It draws inside an svg next to a TerritoryClips of the same size and prefix; since #134 the World Map and TerritoryTile paint their territories instead, so no game screen uses it.">
 	{#each EXAMPLES as example, i (example.label)}
 		<Example label={example.label}>
 			<svg

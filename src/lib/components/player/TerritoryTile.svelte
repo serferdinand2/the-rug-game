@@ -1,4 +1,4 @@
-<!-- TerritoryTile: one small flat-topped hex drawn like a territory on the World Map, with its number. -->
+<!-- TerritoryTile: one small flat-topped hex painted as the World Map paints a territory, at its turn (#134), with its number. -->
 <script module>
 	/**
 	 * Properties of the TerritoryTile component itself.
@@ -21,10 +21,15 @@
 </script>
 
 <script>
-	import { hexCorner, svgPoints, territoryWords } from '../../hexmap.js';
+	import {
+		hexCorner,
+		hexPicture,
+		svgPoints,
+		territoryWords,
+	} from '../../hexmap.js';
 	import { volcanoCorner } from '../../art/hex-overlays.js';
-	import TerritoryArt from '../board/TerritoryArt.svelte';
-	import TerritoryClips from '../board/TerritoryClips.svelte';
+	import { paintTerritory } from '../../art/paint/map.js';
+	import { pictureUrl } from '../../painted-map.js';
 
 	/** @type {TerritoryTileProps} */
 	let {
@@ -37,13 +42,20 @@
 		...attr
 	} = $props();
 
-	// Clip ids must differ between the tiles on one page.
-	const uid = $props.id();
-
 	const CORNERS = [0, 1, 2, 3, 4, 5];
 	const CENTER = /** @type {[number, number]} */ ([0, 0]);
 
+	// The blob URL of the painted tile, made and revoked by the effect below.
+	/** @type {string | undefined} */
+	let href = $state();
+
 	let height = $derived(Math.sqrt(3) * size);
+	let picture = $derived(hexPicture(CENTER, size));
+	// The terrain as text, so the tile is repainted only when its terrain or its turn changes.
+	let terrain = $derived(
+		JSON.stringify({ corners, island, clouds, volcano })
+	);
+	let canvas = $derived(paintTerritory(JSON.parse(terrain)));
 	let outline = $derived(
 		svgPoints(CORNERS.map((k) => hexCorner(CENTER, k, size)))
 	);
@@ -56,6 +68,12 @@
 			? -height / 2 + 11
 			: height / 2 - 4
 	);
+
+	$effect(() => {
+		const url = pictureUrl(canvas);
+		href = url;
+		return () => URL.revokeObjectURL(url);
+	});
 </script>
 
 <svg
@@ -66,16 +84,13 @@
 	height={Math.round(height)}
 	{...attr}
 	class="rg-territory-tile {attr.class ?? ''}">
-	<TerritoryClips
-		prefix={uid}
-		{size} />
-	<TerritoryArt
-		prefix={uid}
-		{size}
-		{corners}
-		{island}
-		{clouds}
-		{volcano} />
+	{#if href}
+		<image
+			class="rg-territory-tile--art"
+			{href}
+			{...picture}
+			preserveAspectRatio="none" />
+	{/if}
 	<polygon
 		class="rg-territory-tile--edge"
 		points={outline} />
@@ -90,6 +105,11 @@
 	.rg-territory-tile {
 		display: block;
 		overflow: visible;
+	}
+
+	/* The painted tile is pixel art: keep its edges hard when it is scaled. */
+	.rg-territory-tile--art {
+		image-rendering: pixelated;
 	}
 
 	.rg-territory-tile--edge {

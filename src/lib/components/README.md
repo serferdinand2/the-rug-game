@@ -26,7 +26,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | Civilization names only | `PlayerChip`, `PlayerCard`, `SeatCard`, `CivChooser` | `civ/*` | #8 |
 | Expansion capital terrain | `CapitalGrid` | `capital-terrain/<advanced biome>-*` are drawn (#6); `CapitalGrid` draws the base biomes only until #36 adds the advanced mats | #36 |
 
-`LandmarkPiece` already shows the drawn landmarks (`landmark/*`, #7). `WorldMap` and `TerritoryTile` compose their hexes from the terrain pictures (`hex/*`, #6).
+`LandmarkPiece` already shows the drawn landmarks (`landmark/*`, #7). `WorldMap` and `TerritoryTile` paint their territories at runtime with `src/lib/art/paint/` (#134, an owner exception to referencing art by id); the unexplored hexes keep `hex/unexplored`.
 
 ## ui/
 
@@ -62,9 +62,9 @@ These components are updated as the art issues deliver their assets. Each will s
 | `TrackBoard` | The four tracks stacked, with one selected space across them; a size container, so the spaces grow up to 1.25 times as tall as wide when the board has the height (#59). |
 | `TrackSpace` | One pointed space with the #85 layout: name and number on top, centered symbolic benefit, optional track-coloured translucent band below, and landmark icon and name at the bottom. The component handles first/last geometry, track-specific benefit groups, selected and focus states, and a full words tooltip and label. |
 | `ExplorationFace` | The approved twelve Exploration face layouts. It composes the hex, exploration, resource, score and operator symbols; keeps the optional band and landmark in their shared vertical positions. `TrackSpace` uses it for Exploration, and its gallery section shows representative states. |
-| `TerritoryArt` | A territory's face round the origin (#113): a terrain picture per corner wedge, the coasts, the island's parts outlined, and the cloud and volcano (R77), from `territoryShapes()`; `WorldMap` and `TerritoryTile` draw every territory with it. |
+| `TerritoryArt` | A territory's face round the origin (#113): a terrain picture per corner wedge, the coasts, the island's parts outlined, and the cloud and volcano (R77), from `territoryShapes()`. Since #134 no game screen draws with it: `WorldMap` and `TerritoryTile` paint their territories. |
 | `TerritoryClips` | The clip outlines `TerritoryArt` is cut with (#113), from `territoryClips()`: one set per svg and size, ids starting with its `prefix`. |
-| `WorldMap` | The real board's hex grid from `mapHexes(view)`: corner terrains as wedges, islands, unexplored hexes dashed, outposts (toppled ones lying), Nomads pieces and tokens; `targets` become buttons and the rest dim, `selected` is outlined in gold; a `fresh` hex pulses gold twice (#29); `scores` puts a gold "+N VP" tag on target hexes (#74). |
+| `WorldMap` | The real board's hex grid from `mapHexes(view)`: the explored territories painted as one 2.5D picture (#134), each run of one terrain across hexes one mass, under faint hex edges; a preview tile painted on its own; unexplored hexes dashed, outposts (toppled ones lying), Nomads pieces and tokens; `targets` become buttons and the rest dim, `selected` is outlined in gold; a `fresh` hex pulses gold twice (#29); `scores` puts a gold "+N VP" tag on target hexes (#74). |
 | `Die` | One die as the dice tray rolls it (#61): its style C body (a cream d12, a red or a black d6) with the rolled face on top: the track's symbol, VP in words, a resource icon or ? for the tile's benefit; it tumbles while `rolling`, not with reduced motion. |
 | `DiceTray` | A roll over the middle of the screen for the whole table (#61): a new `batch` plays its rolls one after another (a tumble of about a second, the faces held, then a fade) under each roll's caption; a click or Escape ends it, it takes no focus, and a live region reads each result once. Its `panel` says what the game has open (#79): over a decision panel it rolls at the top of the board, over a stack of cards over the player area. |
 
@@ -140,7 +140,7 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | `player/ScaledTapestryCard` | A whole `TapestryCard` shown smaller, keeping its measured height: 0.7 on the choice shelf, 0.6 for the current era, 0.42 in the hand |
 | `player/LandmarkCard` | 319 px landmark frame with the capital footprint beside the art, the end-of-turn condition (Rules text pending until game data supplies it) and the edition footer |
 | `player/MasterpieceCard` | 319 px Arts & Architecture masterpiece frame: a centered beige effect box (the caller's `effects` snippet) beside the 144 px artwork |
-| `player/TerritoryTile` | One small flat-topped territory tile in hand, drawn like the World Map's, with its number |
+| `player/TerritoryTile` | One small flat-topped territory tile in hand, painted at its turn as the World Map paints it (#134), with its number |
 | `player/CardFan` | Overlapping cards; hover or focus raises one and reports it for a full view |
 | `player/CardResource` | Native 24 px inline icon without changing row spacing |
 | `player/PlayerToken` | A player's token, from its seat (#103) or one of the five supplied shaded 32 px colour variants |
