@@ -98,12 +98,11 @@ test('the five colored pieces change only the neutral interior channel', async (
 	);
 });
 
-test('placeholder dice faces and game symbols are not released as drawings; the tray’s die bodies are (#61)', async () => {
+test('dice faces remain placeholders, while approved track symbols and tray bodies have drawings (#85)', async () => {
 	const ids = await listDrawingIds();
 	const bodies = ['die/science-body', 'die/red-body', 'die/black-body'];
-	assert.ok(
-		!ids.some((id) => /^(die|symbol)\//.test(id) && !bodies.includes(id))
-	);
+	assert.ok(!ids.some((id) => id.startsWith('die/') && !bodies.includes(id)));
+	assert.ok(ids.includes('symbol/territory-tile'));
 	for (const body of bodies) {
 		assert.ok(ids.includes(body), body);
 	}

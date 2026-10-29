@@ -280,6 +280,13 @@ export function pictureSize(id) {
 			? { w: 128, h: 128 }
 			: { w: 32, h: 32 };
 	}
+	if (group === 'symbol') {
+		return slug === 'restart'
+			? { w: 40, h: 20 }
+			: slug === 'science-die'
+				? { w: 32, h: 32 }
+				: { w: 24, h: 24 };
+	}
 	if (Object.hasOwn(ICON_SIZES, group)) {
 		return { w: ICON_SIZES[group], h: ICON_SIZES[group] };
 	}
