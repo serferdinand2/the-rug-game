@@ -3,7 +3,7 @@ import { TECH_CARDS } from './engine/data/tech-cards.js';
 import { SPACE_TILES } from './engine/data/space-tiles.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
-import { TRACKS as UI_TRACKS } from './ui.js';
+import { RESOURCE_IDS, TRACK_IDS } from './engine/data/ids.js';
 import { GRID_SIZE } from './capital.js';
 import {
 	AMOUNT_ORDER,
@@ -42,9 +42,6 @@ const ANY_EFFECT = 'take this effect';
 
 /** What a cost discards rather than pays. */
 const DISCARDS = ['territory', 'space', 'tapestry', 'tech'];
-
-/** The resources, in the engine's order. */
-const RESOURCES = ['coin', 'worker', 'food', 'culture'];
 
 /** The tapestry cards whose rules are their own effect kind. */
 const CARD_RULES = [
@@ -146,7 +143,7 @@ function amounts(counts, only = () => true) {
  * @returns {track is import('./engine/data/ids.js').TrackId}
  */
 function isTrack(track) {
-	return UI_TRACKS.some((t) => t.id === track);
+	return TRACK_IDS.includes(/** @type {any} */ (track));
 }
 
 /**
@@ -158,7 +155,7 @@ function tracksPhrase(tracks) {
 	if (!Array.isArray(tracks) || tracks.length === 0) {
 		return 'a track';
 	}
-	if (UI_TRACKS.every((t) => tracks.includes(t.id))) {
+	if (TRACK_IDS.every((track) => tracks.includes(track))) {
 		return 'any track';
 	}
 	return joinList(tracks.map(trackName), 'or');
@@ -1026,7 +1023,7 @@ export function decisionTitle(decision, table) {
  */
 const SLOT_ANSWERS = {
 	loseResource: (slot) =>
-		RESOURCES.includes(slot) ? `Lose ${amountWords(slot, 1)}` : null,
+		RESOURCE_IDS.includes(slot) ? `Lose ${amountWords(slot, 1)}` : null,
 	architectsCube: (slot) => (isCount(slot) ? capitalize(plotAt(slot)) : null),
 	merrymakers: (slot) => (isCount(slot) ? `Column ${slot + 1}` : null),
 	entertainers: (slot) => {
@@ -1062,7 +1059,10 @@ function anySlot(slot) {
 	if (isTrack(slot)) {
 		return trackName(slot);
 	}
-	if (typeof slot === 'string' && RESOURCES.includes(slot)) {
+	if (
+		typeof slot === 'string' &&
+		RESOURCE_IDS.includes(/** @type {any} */ (slot))
+	) {
 		return capitalize(amountWords(slot, 1));
 	}
 	if (typeof slot === 'string' && hexName(slot) !== 'a territory') {

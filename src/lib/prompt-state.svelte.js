@@ -26,6 +26,7 @@ import {
 } from './area/explore.js';
 import { tapestryCardData, techCardData } from './cards/game-cards.js';
 import { myDecision } from './turn.js';
+import { RESOURCE_ORDER } from './ui.js';
 import { cardCivOf, civCardView } from './civ-card.js';
 
 /** @typedef {import('./picks.js').Selection} Selection */
@@ -62,9 +63,6 @@ import { cardCivOf, civCardView } from './civ-card.js';
  * A card shown in full over the shared area; beside the shelf, without a scrim, for a shelf card.
  * @typedef {{ kind: 'tech' | 'tapestry', data: any, side?: boolean }} Inspected
  */
-
-/** @type {readonly ResourceId[]} */
-const RESOURCE_IDS = ['coin', 'food', 'worker', 'culture'];
 
 /** @returns {Selection} */
 const nothing = () => ({ rows: [], items: [] });
@@ -510,14 +508,14 @@ export class PromptState {
 		const after = pendingCounts(model, chosen, held);
 		/** @type {Counts} */
 		const shown = { coin: 0, food: 0, worker: 0, culture: 0 };
-		for (const id of RESOURCE_IDS) {
+		for (const id of RESOURCE_ORDER) {
 			shown[id] = Math.max(0, Math.min(after[id], RESOURCE_CAP));
 		}
 		return shown;
 	});
 	/** The resources the choices so far change. */
 	changed = $derived(
-		RESOURCE_IDS.filter((id) => this.resources[id] !== this.#held[id])
+		RESOURCE_ORDER.filter((id) => this.resources[id] !== this.#held[id])
 	);
 
 	/**

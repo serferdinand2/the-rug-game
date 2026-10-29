@@ -2,13 +2,15 @@
 import { INCOME_STEPS, INCOME_STEP_KINDS } from './engine/game.js';
 import { TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
+import { BUILDING_IDS, TRACK_IDS } from './engine/data/ids.js';
+import { RESOURCE_ORDER } from './ui.js';
 import { decisionTitle, describeAnswer } from './describe.js';
 import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
 import { cardSpot, spotWords } from './civ-card.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 /** @typedef {import('./ui.js').CostSymbol} CostSymbol */
-/** @typedef {'market' | 'house' | 'farm' | 'armory'} BuildingId */
+/** @typedef {import('./engine/data/ids.js').BuildingId} BuildingId */
 
 /**
  * One thing drawn with an option: a resource with its count, a track symbol, a piece, a card, a tile or VP in words.
@@ -77,23 +79,14 @@ const STEP_LABELS = /** @type {Readonly<Record<string, string>>} */ ({
 	income: 'Income',
 });
 
-/** The resources, in the order the labels list them (describe.js), then a resource of any type. */
-const RESOURCE_ORDER = /** @type {readonly CostSymbol[]} */ ([
-	'coin',
-	'food',
-	'worker',
-	'culture',
+/** The resources, in the order the screens list them, then a resource of any type. */
+const SYMBOL_ORDER = /** @type {readonly CostSymbol[]} */ ([
+	...RESOURCE_ORDER,
 	'any',
 ]);
 
 /** The resources a payment can hold. @type {readonly string[]} */
-const PAID_RESOURCES = RESOURCE_ORDER.filter((id) => id !== 'any');
-
-/** @type {readonly TrackId[]} */
-const TRACK_IDS = ['exploration', 'science', 'technology', 'military'];
-
-/** @type {readonly BuildingId[]} */
-const BUILDING_IDS = ['market', 'house', 'farm', 'armory'];
+const PAID_RESOURCES = RESOURCE_ORDER;
 
 /** Which shelf each card decision fills. */
 const SHELVES = /** @type {Readonly<Record<string, Prompt['shelf']>>} */ ({
@@ -166,7 +159,7 @@ function isTrack(value) {
  * @returns {Art[]}
  */
 function resourceArt(counts) {
-	return RESOURCE_ORDER.filter((id) => isCount(counts[id])).map((id) => ({
+	return SYMBOL_ORDER.filter((id) => isCount(counts[id])).map((id) => ({
 		kind: 'resource',
 		id,
 		count: counts[id],
@@ -518,7 +511,7 @@ function costOf(decision) {
 	for (const [key, n] of Object.entries(decision.cost)) {
 		/** @type {CostSymbol | undefined} */
 		let symbol;
-		if (RESOURCE_ORDER.includes(/** @type {CostSymbol} */ (key))) {
+		if (SYMBOL_ORDER.includes(/** @type {CostSymbol} */ (key))) {
 			symbol = /** @type {CostSymbol} */ (key);
 		} else if (key === 'track' && isTrack(decision.track)) {
 			symbol = /** @type {CostSymbol} */ (TRACK_RESOURCE[decision.track]);

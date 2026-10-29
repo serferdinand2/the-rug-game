@@ -1,5 +1,6 @@
 <!-- Library section: ResourceRows, one row per resource to choose (#75): empty, part chosen, complete, a fixed row with a resource the player lacks, and everything off while a move is sent. -->
 <script>
+	import { RESOURCE_ORDER } from '../../../lib/ui.js';
 	import ResourceRows from '../../../lib/components/prompts/ResourceRows.svelte';
 	import { emptySelection, rowView, togglePick } from '../../../lib/picks.js';
 	import Example from '../../Example.svelte';
@@ -9,8 +10,7 @@
 	/** @typedef {import('../../../lib/picks.js').PickModel} PickModel */
 	/** @typedef {import('../../../lib/picks.js').ResourceId} ResourceId */
 
-	/** @type {ResourceId[]} */
-	const IDS = ['coin', 'food', 'worker', 'culture'];
+	const IDS = RESOURCE_ORDER;
 	const FREE = () => ({ fixed: null, offers: [...IDS] });
 
 	/**

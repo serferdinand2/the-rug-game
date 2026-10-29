@@ -1,5 +1,9 @@
 // The game's hotkeys, for How to play's Keyboard shortcuts tab (#42, #83): one list, so a new key is added here and
-// nowhere else; src/lib/hotkeys.js maps the keys to actions.
+// nowhere else; src/lib/hotkeys.js maps the keys to actions, and the track and tab keys are listed from its own (#127).
+import { TAB_KEYS, TRACK_KEYS } from './hotkeys.js';
+import { TABS } from './area/tabs.js';
+import { trackName } from './game-names.js';
+import { joinList } from './words.js';
 
 /**
  * One shortcut: the keys of each way to press it, pressed together, and what it does.
@@ -29,8 +33,13 @@ export const SHORTCUTS = Object.freeze([
 				action: 'Advance: the footer asks which track.',
 			},
 			{
-				keys: [['1–4']],
-				action: 'Then answer it: 1 Exploration, 2 Science, 3 Technology or 4 Military.',
+				keys: [[`1–${TRACK_KEYS.length}`]],
+				action: `Then answer it: ${joinList(
+					TRACK_KEYS.map(
+						(track, at) => `${at + 1} ${trackName(track)}`
+					),
+					'or'
+				)}.`,
 			},
 			{
 				keys: [['Enter']],
@@ -69,15 +78,10 @@ export const SHORTCUTS = Object.freeze([
 	},
 	{
 		title: 'Your player area',
-		shortcuts: [
-			{ keys: [['Q']], action: 'Capital.' },
-			{ keys: [['W']], action: 'Hand.' },
-			{ keys: [['E']], action: 'Income.' },
-			{ keys: [['R']], action: 'Eras.' },
-			{ keys: [['T']], action: 'Civ.' },
-			{ keys: [['Y']], action: 'Tech.' },
-			{ keys: [['U']], action: 'Terrain.' },
-		],
+		shortcuts: Object.entries(TAB_KEYS).map(([key, tab]) => ({
+			keys: [[key.toUpperCase()]],
+			action: `${TABS.find((t) => t.id === tab)?.label ?? tab}.`,
+		})),
 	},
 	{
 		title: 'Exploring and placing',

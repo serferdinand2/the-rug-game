@@ -1,4 +1,5 @@
 // The game's hotkeys (#83): which action a key asks for on the game screen, given what the screen can do now.
+import { TRACK_IDS } from './engine/data/ids.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 
@@ -26,18 +27,11 @@
  *   | { type: 'turn', step: 1 | -1 }} HotkeyAction
  */
 
-/** The tracks in the board's order, which the track question numbers from 1; the arts track (#35) will be 5. */
-export const TRACK_KEYS = Object.freeze(
-	/** @type {TrackId[]} */ ([
-		'exploration',
-		'science',
-		'technology',
-		'military',
-	])
-);
+/** The engine's tracks in board order, which the track question numbers from 1; the arts track (#35) will be 5. */
+export const TRACK_KEYS = TRACK_IDS;
 
-/** The player tabs in order, on the keyboard's top row (owner). */
-const TAB_KEYS = Object.freeze({
+/** The player tabs in order, on the keyboard's top row (owner); shortcuts.js lists them from here. */
+export const TAB_KEYS = Object.freeze({
 	q: 'capital',
 	w: 'hand',
 	e: 'income',

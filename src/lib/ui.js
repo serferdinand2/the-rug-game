@@ -1,31 +1,34 @@
 // Interface ids shared by the components, and helpers that turn them into references to the design tokens in tokens.css.
 import { resourceName, trackName } from './game-names.js';
+import { TRACK_IDS } from './engine/data/ids.js';
 
-/** @typedef {'exploration' | 'science' | 'technology' | 'military'} TrackId */
-/** @typedef {'coin' | 'food' | 'worker' | 'culture'} ResourceId */
+/** @typedef {import('./engine/data/ids.js').TrackId} TrackId */
+/** @typedef {import('./engine/data/ids.js').ResourceId} ResourceId */
 /** @typedef {ResourceId | 'any'} CostSymbol - A price symbol: one resource, or one resource of any type */
 /** @typedef {'sea' | 'desert' | 'forest' | 'grassland' | 'mountain' | 'unexplored'} Terrain */
 /** @typedef {1 | 2 | 3 | 4 | 5} Seat - A table seat, which sets the player's colour */
 /** @typedef {'mountain' | 'wetland' | 'tropical' | 'desert' | 'grassland' | 'forest'} CapitalBiome */
 
-/** The four tracks, in board order, named by game-names.js. @type {readonly { id: TrackId, name: string }[]} */
+/** The engine's tracks, in board order, named by game-names.js. @type {readonly { id: TrackId, name: string }[]} */
 export const TRACKS = Object.freeze(
-	/** @type {TrackId[]} */ ([
-		'exploration',
-		'science',
-		'technology',
-		'military',
-	]).map((id) => ({ id, name: trackName(id) }))
+	TRACK_IDS.map((id) => ({ id, name: trackName(id) }))
 );
 
-/** The four resources, in the order the player overview lists them, named by game-names.js. @type {readonly { id: ResourceId, name: string }[]} */
+/**
+ * The engine's resources in the order every screen lists them: food comes before workers, unlike the engine's own
+ * order (01 §1.2). tests/client-id-lists.test.mjs checks it holds exactly the engine's resources.
+ * @type {readonly ResourceId[]}
+ */
+export const RESOURCE_ORDER = Object.freeze([
+	'coin',
+	'food',
+	'worker',
+	'culture',
+]);
+
+/** The resources in RESOURCE_ORDER, named by game-names.js. @type {readonly { id: ResourceId, name: string }[]} */
 export const RESOURCES = Object.freeze(
-	/** @type {ResourceId[]} */ (['coin', 'food', 'worker', 'culture']).map(
-		(id) => ({
-			id,
-			name: resourceName(id),
-		})
-	)
+	RESOURCE_ORDER.map((id) => ({ id, name: resourceName(id) }))
 );
 
 /** The map's terrain types. @type {readonly { id: Terrain, name: string }[]} */
