@@ -38,6 +38,8 @@
 	import { ComponentEvent } from '../../component-event.js';
 	import { SPACE_COUNT, outlinePath } from '../../track-shape.js';
 	import { artUrl, trackColor } from '../../ui.js';
+	import CardSymbol from '../ui/CardSymbol.svelte';
+	import ExplorationFace from './ExplorationFace.svelte';
 
 	/** @type {TrackSpaceProps} */
 	let {
@@ -66,6 +68,51 @@
 	let path = $derived(outlinePath(width, height, { first, last }));
 	let label = $derived(
 		`${name}, ${track} space ${space}${landmark ? `, landmark ${landmark}` : ''}${available ? ', available' : ''}${words ? `. ${words}` : ''}`
+	);
+	const militaryPlusBefore = /** @type {Record<number, number>} */ ({
+		4: 1,
+		5: 1,
+		6: 1,
+		9: 1,
+		10: 3,
+		12: 2,
+	});
+	let displayedBenefit = $derived(
+		track === 'technology' &&
+			benefit.some(
+				(glyph) => glyph.kind === 'word' && glyph.text === 'May refresh'
+			)
+			? benefit.flatMap((glyph, index) =>
+					index > 0 &&
+					glyph.kind === 'word' &&
+					glyph.text === 'May refresh'
+						? [
+								/** @type {import('../../glyphs.js').Glyph} */ ({
+									kind: 'plus',
+								}),
+								glyph,
+							]
+						: [glyph]
+				)
+			: track === 'military' && militaryPlusBefore[space] !== undefined
+				? benefit.flatMap((glyph, index) =>
+						index === militaryPlusBefore[space]
+							? [
+									/** @type {import('../../glyphs.js').Glyph} */ ({
+										kind: 'plus',
+									}),
+									glyph,
+								]
+							: [glyph]
+					)
+				: benefit
+	);
+	let hasTrackProgress = $derived(
+		benefit.some(
+			(glyph) =>
+				glyph.kind === 'word' &&
+				['Advance', 'May advance', 'Regress'].includes(glyph.text)
+		)
 	);
 
 	/**
@@ -132,6 +179,28 @@
 			);
 		}
 	}
+
+	/** @param {string} word */
+	function iconForWord(word) {
+		return (
+			/** @type {Record<string, string>} */ ({
+				Tile: 'territory-tile',
+				Territory: 'territory-tile',
+				'Space tile': 'space-tile',
+				Tech: 'tech-card',
+				Civilization: 'civilization-card',
+				'Science die': 'science-die',
+				Explore: 'explore',
+				'Explore anywhere': 'explore-anywhere',
+				'Explore space': 'explore-space',
+				Tapestry: 'tapestry-card',
+				'Play tapestry': 'tapestry-card',
+				Conquer: 'piece/outpost',
+				'Conquer anywhere': 'piece/outpost',
+				Invent: 'invent',
+			})[word] ?? ''
+		);
+	}
 </script>
 
 {#snippet symbol(/** @type {import('../../glyphs.js').Glyph} */ glyph)}
@@ -156,18 +225,121 @@
 			alt=""
 			draggable="false" />
 	{:else if glyph.kind === 'word'}
-		<span
-			class="rg-track-space--word"
-			class:rg-track-space--crossed={glyph.cross}
-			>{glyph.text}{glyph.count > 1 ? ` ×${glyph.count}` : ''}</span>
+		{#if glyph.text === 'Advance' || glyph.text === 'May advance' || glyph.text === 'Regress'}
+			<span
+				class="rg-track-space--direction"
+				class:rg-track-space--crossed={glyph.cross}
+				>{glyph.text === 'Regress' ? '↶' : '↷'}{#if glyph.count > 1}<b
+						>×{glyph.count}</b
+					>{/if}{#if glyph.text === 'May advance'}<small>may</small
+					>{/if}</span>
+		{:else if glyph.text === 'Upgrade'}
+			<span
+				class="rg-track-space--upgrade"
+				aria-label="Upgrade technology"
+				><svg
+					class="rg-track-space--up-arrow"
+					viewBox="0 0 18 24"
+					aria-hidden="true"
+					><path
+						fill="currentColor"
+						d="M9 1 17 10h-5v13H6V10H1z" /></svg
+				><CardSymbol
+					kind="tech"
+					class="rg-track-space--symbol-icon rg-track-space--card-icon"
+					decorative /></span>
+		{:else if glyph.text === 'Circle benefit' || glyph.text === 'Square benefit'}
+			<span
+				class="rg-track-space--benefit-shape"
+				class:rg-track-space--benefit-shape--circle={glyph.text ===
+					'Circle benefit'}
+				aria-label={glyph.text}></span>
+		{:else if glyph.text === 'Score capital'}
+			<span
+				class="rg-track-space--capital-score"
+				aria-label="Score capital"
+				><img
+					src={artUrl('symbol/victory-points')}
+					alt="" /><span>×</span><img
+					src={artUrl('symbol/capital-city')}
+					alt="" /></span>
+		{:else if glyph.text === 'Restart' || glyph.text === 'Repeat'}
+			{#if glyph.text === 'Restart'}<img
+					class="rg-track-space--restart-icon"
+					src={artUrl('symbol/restart')}
+					alt="Restart" />{:else}<span
+					class="rg-track-space--repeat"
+					aria-label="Repeat a track space"
+					><span class="rg-track-space--direction">⟳</span><svg
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+						><path d="M2 3h14l6 9-6 9H2l6-9z" /></svg
+					></span
+				>{/if}
+		{:else if glyph.text === 'May refresh'}
+			<span
+				class="rg-track-space--refresh"
+				aria-label="May refresh">↔</span>
+		{:else if iconForWord(glyph.text)}
+			<span
+				class="rg-track-space--symbol-group"
+				class:rg-track-space--invent-stack={glyph.text === 'Invent' &&
+					glyph.count > 1}
+				class:rg-track-space--crossed={glyph.cross}>
+				{#each Array.from( { length: glyph.text === 'Tile' || glyph.text === 'Space tile' || glyph.text === 'Invent' ? glyph.count : 1 } ) as _}
+					{#if glyph.text === 'Tech' || glyph.text === 'Invent' || glyph.text === 'Tapestry' || glyph.text === 'Play tapestry' || glyph.text === 'Civilization'}
+						<CardSymbol
+							kind={glyph.text === 'Tech' ||
+							glyph.text === 'Invent'
+								? 'tech'
+								: glyph.text === 'Civilization'
+									? 'civilization'
+									: 'tapestry'}
+							class="rg-track-space--symbol-icon rg-track-space--card-icon"
+							decorative />
+					{:else}
+						<img
+							class="rg-track-space--symbol-icon"
+							class:rg-track-space--outpost-icon={glyph.text ===
+								'Conquer' || glyph.text === 'Conquer anywhere'}
+							src={artUrl(
+								iconForWord(glyph.text).includes('/')
+									? iconForWord(glyph.text)
+									: `symbol/${iconForWord(glyph.text)}`
+							)}
+							alt=""
+							draggable="false" />
+					{/if}
+				{/each}
+				{#if glyph.count > 1 && glyph.text !== 'Tile' && glyph.text !== 'Space tile' && glyph.text !== 'Invent'}<b
+						class="rg-track-space--count">×{glyph.count}</b
+					>{/if}
+			</span>
+		{:else}
+			<span
+				class="rg-track-space--word"
+				class:rg-track-space--small-note={glyph.text === 'Both dice' ||
+					glyph.text === 'Both dice vs. opponent'}
+				class:rg-track-space--crossed={glyph.cross}
+				>{glyph.text}{glyph.count > 1 ? ` ×${glyph.count}` : ''}</span>
+		{/if}
 	{:else if glyph.kind === 'vp'}
 		<span class="rg-track-space--vp"
-			>{glyph.count === null ? 'VP' : `${glyph.count} VP`}</span>
+			><img
+				src={artUrl('symbol/victory-points')}
+				alt=""
+				draggable="false" />{#if glyph.count !== null}<b
+					>{glyph.count}</b
+				>{/if}</span>
 	{:else}
 		<span
 			class="rg-track-space--joint"
 			class:rg-track-space--or={glyph.kind === 'or'}
-			>{glyph.kind === 'or' ? 'or' : '/'}</span>
+			>{glyph.kind === 'or'
+				? '/'
+				: glyph.kind === 'plus'
+					? '+'
+					: '×'}</span>
 	{/if}
 {/snippet}
 
@@ -181,6 +353,23 @@
 	class:rg-track-space--first={first}
 	class:rg-track-space--last={last}
 	class:rg-track-space--has-landmark={Boolean(landmark)}
+	class:rg-track-space--has-bonus={Boolean(bonus)}
+	class:rg-track-space--exploration={track === 'exploration'}
+	class:rg-track-space--military={track === 'military'}
+	class:rg-track-space--dense={track === 'technology' &&
+		[5, 6, 8].includes(space)}
+	class:rg-track-space--track-progress={hasTrackProgress}
+	class:rg-track-space--drone-assassins={track === 'military' &&
+		name === 'Drone Assassins'}
+	class:rg-track-space--mechs={track === 'military' && name === 'Mechs'}
+	class:rg-track-space--computers={track === 'technology' &&
+		name === 'Computers'}
+	class:rg-track-space--tech-combo={track === 'technology' &&
+		(name === 'Electronics' || name === 'Nanotech')}
+	class:rg-track-space--ai-singularity={track === 'technology' &&
+		name === 'AI Singularity'}
+	class:rg-track-space--alien-biology={track === 'science' &&
+		name === 'Alien Biology'}
 	class:rg-track-space--selected={selected}
 	class:rg-track-space--available={available}
 	style:--rg-track-space-color={trackColor(track)}
@@ -194,35 +383,110 @@
 	onblur={blurHandler}>
 	<i class="rg-track-space--shell"></i>
 	<i class="rg-track-space--fill"></i>
+	{#if bonus}<i class="rg-track-space--bonus-band"></i>{/if}
 	<svg
 		class="rg-track-space--outline"
 		aria-hidden="true"><path d={path} /></svg>
 	<span class="rg-track-space--body">
-		<span class="rg-track-space--name">{name}</span>
-		{#if benefit.length}
-			<span
-				class="rg-track-space--benefit"
-				aria-hidden="true">
-				{#each benefit as glyph, index (index)}
-					{@render symbol(glyph)}
-				{/each}
-			</span>
-		{/if}
-		{#if bonus}
-			<span
-				class="rg-track-space--bonus"
-				aria-hidden="true">
-				{#each bonus.pay as glyph, index (index)}
-					{@render symbol(glyph)}
-				{/each}
-				<span class="rg-track-space--then">→</span>
-				{#each bonus.gain as glyph, index (index)}
-					{@render symbol(glyph)}
-				{/each}
-			</span>
-		{/if}
-		{#if landmark}
-			<span class="rg-track-space--landmark">{landmark}</span>
+		{#if track === 'exploration'}
+			<ExplorationFace
+				{space}
+				{name}
+				{landmark}
+				{bonus} />
+		{:else}
+			<span class="rg-track-space--name">{name}</span>
+			{#if benefit.length}
+				<span
+					class="rg-track-space--benefit"
+					aria-hidden="true">
+					{#if track === 'technology' && name === 'Computers'}
+						<span class="rg-track-space--effect-row"
+							>{#each displayedBenefit.slice(0, 3) as glyph, index (index)}{@render symbol(
+									glyph
+								)}{/each}</span>
+						<span
+							class="rg-track-space--joint rg-track-space--effect-plus"
+							>+</span>
+						<span class="rg-track-space--effect-row"
+							>{#each displayedBenefit.slice(3) as glyph, index (index)}{@render symbol(
+									glyph
+								)}{/each}</span>
+					{:else if track === 'science' && name === 'Alien Biology'}
+						<span class="rg-track-space--alien-choice"
+							><span class="rg-track-space--alien-rolls"
+								>{#each [1, 2, 3, 4] as roll}<img
+										src={artUrl('symbol/science-die')}
+										alt="" />{/each}</span
+							><span class="rg-track-space--alien-no-benefit"
+								>×</span
+							><span class="rg-track-space--joint">/</span><span
+								class="rg-track-space--vp"
+								><img
+									src={artUrl('symbol/victory-points')}
+									alt="" /><b>5</b></span
+							></span>
+					{:else if track === 'science' && (space === 9 || space === 10)}
+						{#each space === 10 ? [0, 1] : [0] as group}
+							<span class="rg-track-space--progress-group">
+								{@render symbol(displayedBenefit[group * 4])}
+								<span class="rg-track-space--progress-tracks">
+									{#each displayedBenefit.slice(group * 4 + 1, group * 4 + (space === 10 ? 4 : 3)) as glyph, index (index)}{@render symbol(
+											glyph
+										)}{/each}
+								</span>
+							</span>
+						{/each}
+					{:else if track === 'technology' && (name === 'Electronics' || name === 'Nanotech')}
+						{#each displayedBenefit as glyph, index (index)}
+							{#if index === 1}<span class="rg-track-space--joint"
+									>+</span
+								>{/if}
+							{@render symbol(glyph)}
+						{/each}
+					{:else if track === 'technology' && name === 'AI Singularity'}
+						<span class="rg-track-space--ai-resources"
+							>{#each displayedBenefit.slice(0, 4) as glyph, index (index)}{@render symbol(
+									glyph
+								)}{/each}</span>
+						<span class="rg-track-space--joint">+</span>
+						<span class="rg-track-space--ai-restart"
+							><img
+								src={artUrl('symbol/restart')}
+								alt="" /><span
+								>{#each ['exploration', 'science', 'technology', 'military'] as id}<img
+										src={artUrl(`track/${id}`)}
+										alt="" />{/each}</span
+							></span>
+					{:else}
+						{#each displayedBenefit as glyph, index (index)}{@render symbol(
+								glyph
+							)}{/each}
+					{/if}
+				</span>
+			{/if}
+			{#if bonus}
+				<span
+					class="rg-track-space--bonus"
+					aria-hidden="true">
+					<span class="rg-track-space--bonus-rule">
+						{#each bonus.pay as glyph, index (index)}{@render symbol(
+								glyph
+							)}{/each}
+						<strong class="rg-track-space--then">:</strong>
+						{#each bonus.gain as glyph, index (index)}{@render symbol(
+								glyph
+							)}{/each}
+					</span>
+				</span>
+			{/if}
+			<span class="rg-track-space--landmark"
+				>{#if landmark}<img
+						src={artUrl(
+							`landmark/${landmark.toLowerCase().replaceAll(' ', '-')}`
+						)}
+						alt=""
+						draggable="false" />{landmark}{/if}</span>
 		{/if}
 	</span>
 	<span
@@ -233,6 +497,7 @@
 <style>
 	/* The body is about square; the arrow tip reaches --track-tip past it and lies in the next space's inlet. */
 	.rg-track-space {
+		--rg-vp-cup-size: 23px;
 		--rg-track-space-border: color-mix(
 			in srgb,
 			var(--rg-track-space-color) 65%,
@@ -425,7 +690,7 @@
 		z-index: 4;
 		top: 0;
 		left: 0;
-		display: none;
+		display: block;
 		width: calc(100% + var(--track-tip));
 		height: 100%;
 		overflow: visible;
@@ -436,16 +701,19 @@
 		width: 100%;
 	}
 
-	.rg-track-space--selected .rg-track-space--outline,
-	.rg-track-space:focus-visible .rg-track-space--outline {
-		display: block;
-	}
-
 	.rg-track-space--outline path {
 		fill: none;
-		stroke: var(--gold);
+		stroke: var(--rg-track-space-border);
 		stroke-width: 3;
 		stroke-linejoin: miter;
+	}
+	.rg-track-space--selected .rg-track-space--outline path {
+		stroke: var(--gold);
+	}
+	.rg-track-space--available:not(.rg-track-space--selected)
+		.rg-track-space--outline
+		path {
+		stroke: var(--ok);
 	}
 
 	.rg-track-space:focus-visible:not(.rg-track-space--selected)
@@ -459,7 +727,7 @@
 	.rg-track-space--body {
 		position: absolute;
 		z-index: 1;
-		inset: 7px calc(var(--track-tip) - 3px) 7px var(--track-tip);
+		inset: 4px 5px 4px 9px;
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-2);
@@ -467,9 +735,7 @@
 	}
 
 	/* The last space's number sits inside it, not in a tip. */
-	.rg-track-space--last .rg-track-space--body {
-		right: 20px;
-	}
+	/* Every track uses the same interior and keeps the bottom line for a landmark. */
 
 	.rg-track-space--last .rg-track-space--name {
 		margin-right: -14px;
@@ -484,6 +750,7 @@
 			var(--rg-track-space-text, var(--font-size-3xs)) /
 			var(--leading-tight) var(--font-title);
 		text-align: left;
+		padding-right: 15px;
 	}
 
 	.rg-track-space--benefit,
@@ -491,6 +758,9 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
+		justify-content: center;
+		align-content: center;
+		text-align: center;
 		gap: var(--space-1) 3px;
 		min-width: 0;
 	}
@@ -500,27 +770,312 @@
 		align-content: safe center;
 		min-height: 0;
 		overflow: hidden;
+		translate: calc(var(--track-tip) / 2 - 2px) 0;
+	}
+	.rg-track-space--effect-row {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 1px;
+		white-space: nowrap;
+	}
+	.rg-track-space--computers .rg-track-space--benefit {
+		flex-direction: column;
+		flex-wrap: nowrap;
+		gap: 0;
+	}
+	.rg-track-space--computers .rg-track-space--effect-plus {
+		height: 15px;
+	}
+	.rg-track-space:not(.rg-track-space--has-bonus) .rg-track-space--benefit {
+		position: absolute;
+		top: 50%;
+		left: 0;
+		right: 0;
+		transform: translateY(-50%);
+		flex: none;
+		justify-content: center;
+		align-items: center;
+		max-height: calc(100% - 20px);
+		translate: calc(var(--track-tip) - 2px) 0;
+	}
+	.rg-track-space--first .rg-track-space--benefit {
+		translate: calc(var(--track-tip) / 4 - 6px) 0;
+	}
+	.rg-track-space--last .rg-track-space--benefit {
+		translate: calc(var(--track-tip) / 2 - 2px) 0;
+	}
+	.rg-track-space--military .rg-track-space--benefit {
+		justify-content: center;
+		align-items: center;
+		align-content: safe center;
+		gap: 2px;
+	}
+	.rg-track-space--mechs .rg-track-space--benefit {
+		display: grid;
+		grid-template-columns: 32px 12px 24px;
+		grid-template-rows: 32px 10px;
+		justify-content: center;
+		align-content: center;
+		column-gap: 3px;
+		row-gap: 0;
+	}
+	.rg-track-space--mechs .rg-track-space--benefit > :first-child {
+		grid-column: 1;
+		grid-row: 1;
+	}
+	.rg-track-space--mechs .rg-track-space--benefit > :nth-child(2) {
+		grid-column: 1;
+		grid-row: 2;
+		justify-self: center;
+		text-align: center;
+		width: max-content;
+	}
+	.rg-track-space--mechs .rg-track-space--benefit > :nth-child(3) {
+		grid-column: 2;
+		grid-row: 1;
+		align-self: center;
+	}
+	.rg-track-space--mechs .rg-track-space--benefit > :nth-child(4) {
+		grid-column: 3;
+		grid-row: 1;
+		align-self: center;
+	}
+	.rg-track-space--mechs .rg-track-space--small-note {
+		white-space: nowrap;
+		font-size: var(--font-size-3xs);
+	}
+	.rg-track-space--tech-combo .rg-track-space--benefit {
+		flex-wrap: nowrap;
+		gap: 1px;
+	}
+	.rg-track-space--ai-singularity .rg-track-space--benefit {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		gap: 2px;
+	}
+	.rg-track-space--ai-resources,
+	.rg-track-space--ai-restart {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1px;
+	}
+	.rg-track-space--ai-singularity .rg-track-space--ai-resources img {
+		width: 17px;
+		height: 17px;
+	}
+	.rg-track-space--ai-restart > img {
+		width: 26px;
+		height: 14px;
+	}
+	.rg-track-space--ai-restart > span {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1px;
+	}
+	.rg-track-space--ai-restart > span img {
+		width: 18px;
+		height: 18px;
+	}
+	.rg-track-space--alien-biology .rg-track-space--benefit {
+		flex-direction: row;
+		flex-wrap: nowrap;
+		gap: 1px;
+	}
+	.rg-track-space--alien-choice {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 2px;
+		white-space: nowrap;
+	}
+	.rg-track-space--alien-rolls {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0;
+	}
+	.rg-track-space--alien-rolls img {
+		width: 17px;
+		height: 17px;
+	}
+	.rg-track-space--alien-no-benefit {
+		color: var(--danger);
+		font: var(--weight-bold) var(--font-size-xl) / 1 var(--font-body);
+	}
+	.rg-track-space--track-progress .rg-track-space--benefit {
+		flex-direction: column;
+		flex-wrap: nowrap;
+		justify-content: center;
+		align-items: center;
+		align-content: center;
+	}
+	.rg-track-space--track-progress
+		.rg-track-space--benefit:has(.rg-track-space--progress-group) {
+		flex-direction: row;
+		gap: 4px;
+	}
+	.rg-track-space--progress-group {
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+	}
+	.rg-track-space--progress-tracks {
+		display: inline-flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1px;
+	}
+	.rg-track-space--has-bonus .rg-track-space--benefit {
+		flex: 0 1 calc(50% - 16px);
+		max-height: calc(50% - 16px);
+	}
+	.rg-track-space--dense .rg-track-space--benefit {
+		gap: 0 1px;
+	}
+	.rg-track-space--dense
+		.rg-track-space--benefit
+		img:not(.rg-track-space--card-icon) {
+		width: 18px;
+		height: 18px;
+	}
+	.rg-track-space--dense .rg-track-space--benefit .rg-track-space--vp img {
+		width: var(--rg-vp-cup-size, 23px);
+		height: var(--rg-vp-cup-size, 23px);
+	}
+	.rg-track-space--dense
+		.rg-track-space--benefit
+		.rg-track-space--building
+		img {
+		width: 24px;
+		height: 24px;
+	}
+	.rg-track-space--dense .rg-track-space--benefit .rg-track-space--joint {
+		height: 18px;
+		font-size: var(--font-size-xs);
 	}
 
-	/* The bonus sits in a small box, as on the printed board: its price, an arrow, then what it gives. */
+	/* The track-colour gradient is clipped by the tile; its sides are the tile borders. */
+	.rg-track-space--bonus-band {
+		position: absolute;
+		z-index: 1;
+		inset: 50% calc(-1 * var(--track-tip)) 28px 0;
+		--rg-bonus-top: color-mix(
+			in srgb,
+			var(--rg-track-space-color) 70%,
+			var(--raised)
+		);
+		background: linear-gradient(
+			180deg,
+			var(--rg-bonus-top) 0%,
+			transparent 100%
+		);
+		pointer-events: none;
+	}
 	.rg-track-space--bonus {
-		flex: none;
-		align-self: flex-start;
-		max-width: 100%;
-		padding: 1px 3px;
-		border: var(--border) solid
-			color-mix(in srgb, var(--rg-track-space-color) 55%, var(--line));
-		background: color-mix(in srgb, var(--ink) 45%, transparent);
+		position: absolute;
+		top: 50%;
+		bottom: 24px;
+		left: 0;
+		right: 0;
+		display: flex;
+		flex-direction: column;
+		flex-wrap: nowrap;
+		align-items: center;
+		justify-content: center;
+		gap: 1px;
+		padding: 0 2px;
+		border: 0;
+		background: transparent;
+		color: var(--gold);
+	}
+	.rg-track-space--bonus-rule {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 1px;
+		white-space: nowrap;
+		translate: calc(var(--track-tip) / 2 + 1px) 0;
+	}
+	.rg-track-space--first .rg-track-space--bonus-rule,
+	.rg-track-space--last .rg-track-space--bonus-rule {
+		translate: calc(var(--track-tip) / 4 + 1px) 0;
+	}
+	.rg-track-space--bonus-rule .rg-track-space--then {
+		margin-inline: 3px;
+	}
+
+	.rg-track-space--bonus .rg-track-space--word,
+	.rg-track-space--bonus .rg-track-space--then,
+	.rg-track-space--bonus .rg-track-space--joint {
+		color: var(--gold);
+	}
+	.rg-track-space--bonus .rg-track-space--word,
+	.rg-track-space--bonus .rg-track-space--vp {
+		padding: 0;
+		border: 0;
+		background: transparent;
+	}
+
+	.rg-track-space--symbol-group {
+		display: inline-flex;
+		align-items: center;
+		gap: 1px;
+	}
+	.rg-track-space--invent-stack {
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.rg-track-space--symbol-icon {
+		display: block;
+		width: 24px;
+		height: 24px;
+		object-fit: contain;
+		image-rendering: pixelated;
+	}
+	.rg-track-space .rg-track-space--outpost-icon {
+		width: 32px;
+		height: 32px;
+	}
+	.rg-track-space--repeat {
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+	}
+	.rg-track-space--repeat svg {
+		width: 17px;
+		height: 17px;
+		fill: none;
+		stroke: var(--gold);
+		stroke-width: 3;
+		stroke-linejoin: miter;
+	}
+	.rg-track-space--card-icon {
+		min-width: 24px;
+		min-height: 24px;
 	}
 
 	.rg-track-space--landmark {
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
 		flex: none;
 		margin-top: auto;
+		min-height: 14px;
 		color: var(--gold);
-		font: var(--weight-title)
-			var(--rg-track-space-text, var(--font-size-3xs)) /
-			var(--leading-tight) var(--font-title);
+		font: var(--weight-title) var(--font-size-3xs) / 1 var(--font-title);
 		text-align: left;
+	}
+	.rg-track-space--landmark img {
+		width: 13px;
+		height: 13px;
+		object-fit: contain;
+		image-rendering: pixelated;
 	}
 
 	.rg-track-space--art {
@@ -538,30 +1093,34 @@
 	}
 
 	.rg-track-space--resource img {
-		width: 16px;
-		height: 16px;
+		width: 24px;
+		height: 24px;
 	}
 
 	.rg-track-space--building img {
+		width: 24px;
+		height: 24px;
+	}
+
+	.rg-track-space--track {
+		width: 24px;
+		height: 24px;
+	}
+	.rg-track-space--bonus-rule img,
+	.rg-track-space--bonus-rule .rg-track-space--symbol-icon {
 		width: 18px;
 		height: 18px;
 	}
 
-	.rg-track-space--track {
-		width: 14px;
-		height: 14px;
-	}
-
 	.rg-track-space--count {
-		margin-left: 1px;
+		margin-inline: 2px;
 		font: var(--weight-bold)
 			var(--rg-track-space-text, var(--font-size-3xs)) /
 			var(--leading-none) var(--font-body);
 	}
 
 	/* The game symbols without art yet are short words (#5). */
-	.rg-track-space--word,
-	.rg-track-space--vp {
+	.rg-track-space--word {
 		padding: 1px 3px;
 		border-radius: var(--radius);
 		font: var(--weight-bold)
@@ -573,12 +1132,75 @@
 		background: color-mix(in srgb, var(--ink) 50%, transparent);
 		color: var(--text);
 	}
+	.rg-track-space--small-note {
+		font: var(--weight-regular) var(--font-size-3xs) / 1 var(--font-body);
+		background: transparent;
+		color: var(--muted);
+	}
+	.rg-track-space--upgrade {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 1px;
+		color: var(--gold);
+		font: var(--weight-bold) var(--font-size-2xl) / 1 var(--font-body);
+	}
+	.rg-track-space--up-arrow {
+		width: 16px;
+		height: 24px;
+		flex: none;
+	}
+	.rg-track-space--benefit-shape {
+		width: 23px;
+		height: 23px;
+		flex: none;
+		border: 4px solid var(--gold);
+	}
+	.rg-track-space--benefit-shape--circle {
+		border-radius: 50%;
+	}
+	.rg-track-space--restart-icon {
+		display: block;
+		width: 38px;
+		height: 19px;
+		object-fit: contain;
+	}
+	.rg-track-space--capital-score {
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+		color: var(--gold);
+		font: var(--weight-bold) var(--font-size-sm) / 1 var(--font-body);
+	}
+	.rg-track-space--capital-score img {
+		width: 24px;
+		height: 24px;
+	}
+	.rg-track-space--capital-score img:first-child {
+		width: var(--rg-vp-cup-size, 23px);
+		height: var(--rg-vp-cup-size, 23px);
+	}
 
 	.rg-track-space--vp {
-		border: var(--border) solid
-			color-mix(in srgb, var(--gold) 60%, transparent);
+		display: inline-flex;
+		align-items: center;
+		gap: 1px;
 		color: var(--gold);
 		white-space: nowrap;
+	}
+	.rg-track-space--vp img {
+		display: block;
+		width: var(--rg-vp-cup-size, 23px);
+		height: var(--rg-vp-cup-size, 23px);
+		object-fit: contain;
+		image-rendering: pixelated;
+	}
+	.rg-track-space--vp b {
+		font: var(--weight-bold) var(--font-size-3xs) / 1 var(--font-body);
+	}
+	.rg-track-space--bonus-rule .rg-track-space--vp img {
+		width: var(--rg-vp-cup-size, 23px);
+		height: var(--rg-vp-cup-size, 23px);
 	}
 
 	/* A benefit taken without its own benefit carries the board's red X. */
@@ -612,38 +1234,58 @@
 
 	.rg-track-space--joint,
 	.rg-track-space--then {
-		color: var(--muted);
-		font: var(--weight-bold)
-			var(--rg-track-space-text, var(--font-size-3xs)) /
-			var(--leading-none) var(--font-body);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		height: 24px;
+		color: var(--gold);
+		font: var(--weight-bold) var(--font-size-md) / 1 var(--font-body);
+	}
+	.rg-track-space--joint {
+		margin-inline: 2px;
+	}
+	.rg-track-space--refresh {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 24px;
+		height: 24px;
+		color: var(--gold);
+		font: var(--weight-bold) var(--font-size-3xl) / 1 var(--font-body);
+	}
+	.rg-track-space--bonus-rule .rg-track-space--then {
+		height: 18px;
 	}
 
 	.rg-track-space--or {
-		font-style: italic;
-		font-weight: var(--weight-regular);
+		font-style: normal;
+		font-weight: var(--weight-bold);
+	}
+	.rg-track-space--direction {
+		display: inline-flex;
+		align-items: center;
+		gap: 1px;
+		color: var(--gold);
+		font: var(--weight-bold) var(--font-size-3xl) / 1 var(--font-body);
+	}
+	.rg-track-space--direction b,
+	.rg-track-space--direction small {
+		font: var(--weight-bold) var(--font-size-3xs) / 1 var(--font-body);
 	}
 
 	/* A short space, on a short screen, draws its symbols smaller and its words tighter; its tooltip and label keep
 	   the full words. */
 	@container (max-height: 112px) {
 		.rg-track-space--body {
-			inset-block: 5px;
+			--rg-vp-cup-size: 24px;
+			inset-block: 4px;
 			gap: var(--space-1);
 		}
-
-		.rg-track-space--resource img,
-		.rg-track-space--track {
-			width: 12px;
-			height: 12px;
+		.rg-track-space--landmark {
+			font-size: var(--font-size-3xs);
 		}
 
-		.rg-track-space--building img {
-			width: 14px;
-			height: 14px;
-		}
-
-		.rg-track-space--word,
-		.rg-track-space--vp {
+		.rg-track-space--word {
 			padding: 0 2px;
 			line-height: var(--leading-none);
 		}
@@ -670,20 +1312,16 @@
 		.rg-track-space--number {
 			--rg-track-space-text: var(--font-size-2xs);
 		}
-
-		.rg-track-space--resource img {
-			width: 18px;
-			height: 18px;
+		.rg-track-space--body {
+			--rg-vp-cup-size: 27px;
 		}
 
-		.rg-track-space--building img {
-			width: 20px;
-			height: 20px;
-		}
-
-		.rg-track-space--track {
-			width: 16px;
-			height: 16px;
+		.rg-track-space--resource img,
+		.rg-track-space--building img,
+		.rg-track-space--track,
+		.rg-track-space--symbol-icon {
+			width: 27px;
+			height: 27px;
 		}
 	}
 
@@ -691,21 +1329,21 @@
 	@container (min-width: 145px) and (min-height: 160px) {
 		.rg-track-space--body {
 			--rg-track-space-text: var(--font-size-xs);
+			--rg-vp-cup-size: 29px;
 		}
 
-		.rg-track-space--resource img {
+		.rg-track-space--resource img,
+		.rg-track-space--building img,
+		.rg-track-space--track,
+		.rg-track-space--symbol-icon,
+		.rg-track-space--vp img {
+			width: 29px;
+			height: 29px;
+		}
+		.rg-track-space--bonus-rule img,
+		.rg-track-space--bonus-rule .rg-track-space--symbol-icon {
 			width: 20px;
 			height: 20px;
-		}
-
-		.rg-track-space--building img {
-			width: 22px;
-			height: 22px;
-		}
-
-		.rg-track-space--track {
-			width: 18px;
-			height: 18px;
 		}
 
 		.rg-track-space--crossed {
@@ -721,11 +1359,10 @@
 	/* The small number sits in the arrow tip. */
 	.rg-track-space--number {
 		position: absolute;
-		z-index: 2;
-		top: 50%;
-		right: calc(2px - var(--track-tip));
+		z-index: 5;
+		top: 7px;
+		right: 5px;
 		width: 12px;
-		transform: translateY(-50%);
 		color: var(--muted);
 		font: var(--weight-bold)
 			var(--rg-track-space-text, var(--font-size-3xs)) /
@@ -734,6 +1371,6 @@
 	}
 
 	.rg-track-space--last .rg-track-space--number {
-		right: 7px;
+		right: 5px;
 	}
 </style>

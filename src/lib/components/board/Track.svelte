@@ -133,6 +133,8 @@
 
 <div
 	{...attr}
+	role="group"
+	aria-label={name}
 	class="rg-track {attr.class ? attr.class : ''}"
 	style:--rg-track-color={trackColor(id)}
 	style:--rg-track-spaces={spaces.length}>
@@ -143,7 +145,6 @@
 			width="24"
 			height="24"
 			alt="" />
-		<h2 class="rg-track--name">{name}</h2>
 	</div>
 	<div class="rg-track--costs">
 		{#each tiers as symbols, index (index)}
@@ -200,14 +201,6 @@
 		flex: 1;
 		height: var(--border);
 		background: color-mix(in srgb, var(--rg-track-color) 55%, var(--line));
-	}
-
-	.rg-track--name {
-		flex: none;
-		margin: 0;
-		font: var(--weight-title) var(--font-size-sm) / var(--leading-none)
-			var(--font-title);
-		letter-spacing: var(--letter-spacing-title);
 	}
 
 	.rg-track--symbol {

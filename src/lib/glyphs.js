@@ -14,6 +14,7 @@
  *   | { kind: 'word', text: string, count: number, cross?: boolean }
  *   | { kind: 'vp', count: number | null }
  *   | { kind: 'per' }
+ *   | { kind: 'plus' }
  *   | { kind: 'or' }} Glyph
  */
 

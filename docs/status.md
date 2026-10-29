@@ -2,13 +2,13 @@
 
 The only record of the project's progress (owner, 2026-10-28): what is done and what comes next, then issue by issue what each issue built, the calls to revisit after playing, and what it handed on to later issues. CLAUDE.md links here and holds no progress of its own. Claude and Codex both update this file whenever an issue lands or a milestone moves: the summary below and the issue's entry (see CLAUDE.md and AGENTS.md).
 
-Updated 2026-10-28. The issues are listed in the order they were finished.
+Updated 2026-10-29. The issues are listed in the order they were finished.
 
 ## Summary
 
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
-  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74 and #75 are done.
+  - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75 and #85 are done.
   - Solo play (M6) and the expansions (M7–M9) come next by milestone; see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
   - Rules research (`docs/research/`).
@@ -18,7 +18,7 @@ Updated 2026-10-28. The issues are listed in the order they were finished.
   - The component library (#48, 2026-10-21): 34 components in `src/lib/components/`, each shown in all its states on `/components.html`, which also holds the art. Several components show placeholders until their art lands; `src/lib/components/README.md` lists them. The owner closed #48 on 2026-10-21, ahead of its blocker #3.
   - The approved art style C (`docs/art/`).
   - All 43 issues filed in [serferdinand2/the-rug-game](https://github.com/serferdinand2/the-rug-game/issues).
-- **#1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #44, #46, #47, #48, #52, #53, #54, #55, #56, #57, #58, #59, #61, #66, #67, #68, #69, #70, #72, #73, #74 and #75 are done.** Lazar closed #3 and #73 on 2026-10-27, and the owner closed #6 the same day. The owner approved #69 and #74 in the component library on 2026-10-28, and closed #75 and #61 the same day. Lazar closed #68 on 2026-10-28, and #47 closed the same day when his card gallery merged.
+- **#1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #44, #46, #47, #48, #52, #53, #54, #55, #56, #57, #58, #59, #61, #66, #67, #68, #69, #70, #72, #73, #74, #75 and #85 are done.** Lazar closed #3 and #73 on 2026-10-27, and the owner closed #6 the same day. The owner approved #69 and #74 in the component library on 2026-10-28, and closed #75 and #61 the same day. Lazar closed #68 on 2026-10-28, and #47 closed the same day when his card gallery merged.
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
@@ -496,6 +496,13 @@ Built on 2026-10-28, filed and specified by the owner in a few messages after #4
   - Calls to revisit: **M** on the map goes back to the tracks; the track question's numbered buttons work with the mouse too; a track with several tokens advances the most advanced; Enter acts only when no control has the focus (a focused button presses itself); a decision panel's controls don't block the hotkeys, a menu, a modal or a field does; the Tab peek waits 200 ms.
   - Tests: `tests/client-hotkeys.test.mjs` (every key in each context), `tests/client-shortcuts.test.mjs` (every hotkey is listed), `tests/browser/hotkeys.test.mjs` (a hot-seat game played with the keys: Enter, W, Q, M, 2, a held Tab, A then 1, and I asked, cancelled and taken). `explore-prompt` presses **.** where it pressed R.
   - Handed off: #35 gives the arts track key **5** in `TRACK_KEYS`.
+
+### #85 (advancement track visual rework)
+
+Lazar completed the owner-reviewed redesign on 2026-10-29. The design and implementation record is in `docs/superpowers/specs/2026-10-29-track-visual-rework-design.md` and its matching plan.
+- Built: the four tracks now share the approved name, number, centered effect, optional-band and landmark placement. Exploration's twelve faces live in `ExplorationFace`; the tile wrapper is `TrackSpace`, and the approved technology, tapestry and civilization card pictograms live in `CardSymbol`. The vector symbols and native PNG sources are catalogued and available in the component gallery, with the representative Exploration faces and full TrackBoard also on that page.
+- Calls to revisit after playing: none recorded. Future rules or expansion effects should use the same icon vocabulary and vertical layout.
+- Handed off: #35's arts track can use the same `TrackSpace` conventions and add its own symbols.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 
