@@ -115,6 +115,23 @@
 				['Advance', 'May advance', 'Regress'].includes(glyph.text)
 		)
 	);
+	// Science's Physics, Neuroscience and Quantum Physics: the arrow beside a column of the tracks it moves on, once per move.
+	let progressGroups = $derived.by(() => {
+		const [arrow, ...tracks] = benefit;
+		if (
+			track !== 'science' ||
+			arrow?.kind !== 'word' ||
+			!['Advance', 'Regress'].includes(arrow.text) ||
+			!tracks.length ||
+			!tracks.every((glyph) => glyph.kind === 'track')
+		) {
+			return [];
+		}
+		return Array.from({ length: arrow.count }, () => ({
+			arrow: { ...arrow, count: 1 },
+			tracks,
+		}));
+	});
 
 	/**
 	 * @param {MouseEvent} event
@@ -427,12 +444,12 @@
 									src={artUrl('symbol/victory-points')}
 									alt="" /><b>5</b></span
 							></span>
-					{:else if track === 'science' && (space === 9 || space === 10)}
-						{#each space === 10 ? [0, 1] : [0] as group}
+					{:else if progressGroups.length}
+						{#each progressGroups as group, index (index)}
 							<span class="rg-track-space--progress-group">
-								{@render symbol(displayedBenefit[group * 4])}
+								{@render symbol(group.arrow)}
 								<span class="rg-track-space--progress-tracks">
-									{#each displayedBenefit.slice(group * 4 + 1, group * 4 + (space === 10 ? 4 : 3)) as glyph, index (index)}{@render symbol(
+									{#each group.tracks as glyph, index (index)}{@render symbol(
 											glyph
 										)}{/each}
 								</span>

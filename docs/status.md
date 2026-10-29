@@ -785,6 +785,11 @@ Lazar completed the owner-reviewed redesign on 2026-10-29. The design and implem
 - Built: the four tracks share the approved name, number, centered effect, optional-band and landmark placement. Exploration's twelve faces live in `ExplorationFace`; the tile wrapper is `TrackSpace`, and the approved technology, tapestry and civilization card pictograms live in `CardSymbol`. Their SVG art and native PNG sources are catalogued and shown in the component gallery.
 - Calls to revisit after playing: none recorded. Future expansion effects should use the same icon vocabulary and vertical layout.
 - Handed off: #35's arts track can use the same `TrackSpace` conventions and add its own symbols.
+- Fixed after landing (2026-10-29, Refs #85): `TrackSpace` drew Physics, Neuroscience and Quantum Physics from fixed places in the benefit's glyphs. Neuroscience has three, so drawing it threw: the component library and every game screen went blank once the tracks drew, which is the bug Lazar found after a hot-seat game started, and Physics left out military. The groups now come from the glyphs: the arrow beside a column of its tracks, once per move, so Quantum Physics shows it twice, as the design says. `tests/track-space.test.mjs` draws every real space of the four tracks.
+- Still failing: two browser tests that CI never reached, because it stops at the first failure.
+  - `track-text`: Academic Research's benefit is cut off at every screen size; at 2560 and 3840 wide, 11 spaces with a bonus have overlapping parts; and resource art is 18, 27, 20 and 20 px from 1920 to 3840 wide, so it shrinks past 2240.
+  - `setup-prompts`: it counts `.rg-track-space--benefit` and `.rg-track-space--bonus`, which `ExplorationFace` doesn't use (36 + 12 benefits and 11 + 7 bonuses are all drawn), and it finds the same Academic Research cut-off.
+  - The library's dice tray fade test (#61) is flaky, as before; CI's retries cover it.
 
 ## Card-design handoff (2026-10-24, Refs #3 #47)
 
