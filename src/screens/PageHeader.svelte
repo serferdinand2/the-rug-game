@@ -1,4 +1,4 @@
-<!-- The header of every page (#25, #26): the brand, a sentence or the player chips, extra controls such as the clock and Undo, then sound and the menu. -->
+<!-- The header of every page (#25, #26): the brand, a sentence or the player chips, extra controls such as the clock and Undo, then sound and the screen's menu, which leaves the table itself (#99). -->
 <script module>
 	/**
 	 * Properties of the PageHeader screen part itself.
@@ -6,10 +6,9 @@
 	 * @property {string} [title] - The centred sentence, as on the landing page
 	 * @property {import('svelte').Snippet} [center] - Centre content instead of the title, such as the player chips
 	 * @property {import('svelte').Snippet} [before] - Controls before sound, such as the turn clock and Undo
-	 * @property {boolean} sound - Whether sound is on
-	 * @property {import('../lib/components/ui/Menu.svelte').MenuItem[]} [items] - The menu's other entries; Card gallery is always included and opens in a new tab
-	 * @property {Function} [onPageHeaderSound] - Callback fired with the new sound choice
-	 * @property {Function} [onPageHeaderMenu] - Callback fired with the chosen entry's id
+	 * @property {import('../lib/game.svelte.js').GameStore} store - The client's store: its sound choice, its table and leaving it
+	 * @property {import('../lib/menu.js').MenuScreen} [menu='start'] - The screen whose entries the menu shows (menu.js)
+	 * @property {Function} [onPageHeaderMenu] - Callback fired with the chosen entry's id, for every entry but Leave table and the card gallery
 	 */
 
 	/**
@@ -17,7 +16,7 @@
 	 * @typedef {PageHeaderOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} PageHeaderProps
 	 *
 	 * @example
-	 * <PageHeader sound={store.sound} onPageHeaderSound={(event) => store.setSound(event.value)} onPageHeaderMenu={(event) => choose(event.value)} />
+	 * <PageHeader {store} menu="results" onPageHeaderMenu={(event) => choose(event.value)} />
 	 */
 </script>
 
@@ -25,7 +24,8 @@
 	import IconButton from '../lib/components/ui/IconButton.svelte';
 	import Menu from '../lib/components/ui/Menu.svelte';
 	import TopBar from '../lib/components/ui/TopBar.svelte';
-	import { ComponentEvent } from '../lib/component-event.js';
+	import { isHost } from '../lib/lobby.js';
+	import { menuItems } from '../lib/menu.js';
 
 	/** @typedef {import('../lib/component-event.js').ComponentEvent} Event */
 
@@ -34,27 +34,15 @@
 		title,
 		center,
 		before,
-		sound,
-		items = [
-			{ id: 'help', label: 'How to play' },
-			{ id: 'about', label: 'About this project' },
-		],
-		onPageHeaderSound,
+		store,
+		menu = 'start',
 		onPageHeaderMenu,
 		...attr
 	} = $props();
 
-	const menuItems = $derived.by(() => {
-		const result = items.filter((item) => item.id !== 'gallery');
-		const afterHelp = result.findIndex((item) => item.id === 'help') + 1;
-		result.splice(afterHelp, 0, {
-			id: 'gallery',
-			label: 'Card gallery',
-			href: '/cards.html',
-			target: '_blank',
-		});
-		return result;
-	});
+	let items = $derived(
+		menuItems(menu, { hosting: store.room ? isHost(store.room) : false })
+	);
 
 	let menuOpen = $state(false);
 	/** @type {HTMLElement | undefined} */
@@ -62,15 +50,8 @@
 	/** @type {HTMLElement | undefined} */
 	let menuHolder = $state();
 
-	/**
-	 * @param {Event} event
-	 */
-	const soundClickHandler = (event) => {
-		if (typeof onPageHeaderSound === 'function') {
-			onPageHeaderSound(
-				new ComponentEvent(!sound, event.target, event.originalEvent)
-			);
-		}
+	const soundClickHandler = () => {
+		store.setSound(!store.sound);
 	};
 
 	/**
@@ -85,8 +66,13 @@
 	 * @param {Event} event
 	 */
 	const menuSelectHandler = (event) => {
-		if (event.value === 'gallery') return;
-		if (typeof onPageHeaderMenu === 'function') {
+		// The gallery is a link, which opens itself.
+		if (event.value === 'gallery') {
+			return;
+		}
+		if (event.value === 'leave') {
+			store.leaveTable();
+		} else if (typeof onPageHeaderMenu === 'function') {
 			onPageHeaderMenu(event);
 		}
 	};
@@ -128,7 +114,7 @@
 		<IconButton
 			icon="sound"
 			label="Mute"
-			muted={!sound}
+			muted={!store.sound}
 			onIconButtonClick={soundClickHandler} />
 		<div
 			class="rg-page-header--menu"
@@ -141,7 +127,7 @@
 			<div class="rg-page-header--popover">
 				<Menu
 					label="Menu"
-					items={menuItems}
+					{items}
 					bind:open={menuOpen}
 					onMenuSelect={menuSelectHandler}
 					onMenuClose={menuCloseHandler} />

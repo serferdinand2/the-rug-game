@@ -43,7 +43,6 @@
 	import { trackName } from '../lib/describe.js';
 	import { eventText } from '../lib/log.js';
 	import { highlights, prefersReducedMotion } from '../lib/motion.js';
-	import { isHost } from '../lib/lobby.js';
 	import OverviewCloseBar from '../lib/components/prompts/OverviewCloseBar.svelte';
 	import TapestryCard from '../lib/components/player/TapestryCard.svelte';
 	import TechnologyCard from '../lib/components/player/TechnologyCard.svelte';
@@ -425,9 +424,7 @@
 	 * @param {ComponentEvent} event
 	 */
 	const menuHandler = (event) => {
-		if (event.value === 'leave') {
-			store.leaveTable();
-		} else if (event.value === 'settings') {
+		if (event.value === 'settings') {
 			// One Escape closes one thing, so the settings open alone.
 			logOpen = false;
 			overviewOpen = false;
@@ -688,17 +685,8 @@
 	{...attr}
 	class="rg-game {attr.class ? attr.class : ''}">
 	<PageHeader
-		sound={store.sound}
-		items={[
-			{ id: 'help', label: 'How to play' },
-			{ id: 'keys', label: 'Keyboard shortcuts' },
-			...(isHost(room)
-				? [{ id: 'settings', label: 'Table settings' }]
-				: []),
-			{ id: 'leave', label: 'Leave table' },
-		]}
-		onPageHeaderSound={(/** @type {any} */ event) =>
-			store.setSound(event.value)}
+		{store}
+		menu="game"
 		onPageHeaderMenu={menuHandler}>
 		{#snippet center()}
 			{#each players as player (player.seat)}

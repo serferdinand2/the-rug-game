@@ -74,14 +74,12 @@
 	});
 
 	/**
-	 * The menu outside the game screen: How to play, About this project, or, on the pass screen, Leave table.
+	 * The menu outside the game screen: How to play or About this project. PageHeader leaves the table itself.
 	 * @param {import('./lib/component-event.js').ComponentEvent} event
 	 */
 	const menuHandler = (event) => {
 		if (event.value === 'help') {
 			helpOpen = true;
-		} else if (event.value === 'leave') {
-			store.leaveTable();
 		} else {
 			store.notify(
 				'A browser game of civilizations rising through the eras, inspired by Tapestry.'
@@ -111,13 +109,8 @@
 			onResultsHelp={() => (helpOpen = true)} />
 	{:else if store.passing !== null && store.room?.game}
 		<PageHeader
-			sound={store.sound}
-			items={[
-				{ id: 'help', label: 'How to play' },
-				{ id: 'leave', label: 'Leave table' },
-			]}
-			onPageHeaderSound={(/** @type {any} */ event) =>
-				store.setSound(event.value)}
+			{store}
+			menu="passing"
 			onPageHeaderMenu={menuHandler} />
 		<HandOver {store} />
 	{:else if store.room && store.room.phase !== 'lobby'}
@@ -130,9 +123,7 @@
 			title={store.screen === 'landing'
 				? 'Build a civilization that stands the test of time'
 				: undefined}
-			sound={store.sound}
-			onPageHeaderSound={(/** @type {any} */ event) =>
-				store.setSound(event.value)}
+			{store}
 			onPageHeaderMenu={menuHandler} />
 		{#if store.screen === 'loading'}
 			<main class="rg-app--loading"></main>
