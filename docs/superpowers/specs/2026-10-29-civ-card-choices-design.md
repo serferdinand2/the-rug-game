@@ -8,6 +8,8 @@ The **Civ** tab draws the viewer's civilization card as a static picture, and a 
 
 **Done when** the six civilizations' cards draw their live state in the Civ tab and the players overview, their choices are made on the card with the spots on offer outlined and **Confirm choice** in the panel, and the panel says what the picked spot gives.
 
+**Approved (owner, 2026-10-29):** the owner approved the live and choosing states in the library's CivilizationCard section ("78 looks good"), and #78 closed. The calls marked (my call) below stand until the owner revisits them after playing.
+
 ## 2. The changes
 
 - **The card's state.** `src/lib/civ-card.js` turns a seat's `civData` into marks on named spots (`civCardMarks`): the Entertainers' `c{column}r{row}` and `start`, the Merrymakers' `m{column}l{level}` cells and `m{column}` columns, the Leaders' tracks, the Militants' `top0`–`bottom3` spaces, the Historians' `square0`–`square3`, and the Mystics' `{category}:{n}` numbers. A mark is a piece on the spot (`token`), a used track, an exposed space or square, a moved column, a prediction made, or a prediction reached.
