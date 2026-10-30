@@ -98,6 +98,19 @@
 	/** @type {GroupKind[]} */
 	const GROUPS = ['rows', 'columns', 'districts'];
 
+	/**
+	 * Three of the engine's places for the Lighthouse on your capital, each in every turn (#112): row 6, column 5;
+	 * row 6, column 8, over the right edge, since columns 6 and 7 would cover the impassable plot at row 7, column 7;
+	 * and row 8, column 5, over the bottom edge (R14).
+	 */
+	const EDGE_POSITIONS = [
+		[6, 5],
+		[6, 8],
+		[8, 5],
+	].flatMap(([row, col]) =>
+		[0, 1, 2, 3].map((rotation) => ({ row, col, rotation }))
+	);
+
 	/* The interactive example's state, as the play screen would keep it. */
 	let position = $state(
 		/** @type {{ row: number, col: number } | null} */ (null)
@@ -112,6 +125,8 @@
 	let farm = $state({ row: 4, col: 4 });
 	let forestFarm = $state({ row: 4, col: 4 });
 	let toggled = $state(/** @type {GroupKind | null} */ (null));
+	/* The positions example: where its Lighthouse stands. */
+	let edge = $state({ row: 6, col: 5, rotation: 0 });
 
 	let pieces = $derived(
 		position
@@ -313,6 +328,29 @@ Click a lit plot, or press Enter or Space on it, to preview the farm there.`}
 			plots={YOURS}
 			pieces={[{ ...LIGHTHOUSE, row: 6, col: 5 }]}
 			awaitingPlacement />
+	</Example>
+	<Example
+		label={`pieces={[Lighthouse, placed, row ${edge.row}, col ${edge.col}, rotation ${edge.rotation}]} positions={[row 6 col 5, row 6 col 8, row 8 col 5] in every turn} awaitingPlacement
+The engine's places decide where it goes (#112): the right arrow from row 6, column 5 hangs it over the edge (R14).`}
+		width={468}>
+		<CapitalGrid
+			plots={YOURS}
+			pieces={[{ ...LIGHTHOUSE, ...edge }]}
+			positions={EDGE_POSITIONS}
+			awaitingPlacement
+			room
+			onCapitalGridMove={(/** @type {ComponentEvent} */ event) =>
+				(edge = {
+					...edge,
+					row: event.value.row,
+					col: event.value.col,
+				})}
+			onCapitalGridRotate={(/** @type {ComponentEvent} */ event) =>
+				(edge = {
+					row: event.value.row,
+					col: event.value.col,
+					rotation: event.value.rotation,
+				})} />
 	</Example>
 	<Example
 		label={'pieces={[Lighthouse, locked, fresh]}'}

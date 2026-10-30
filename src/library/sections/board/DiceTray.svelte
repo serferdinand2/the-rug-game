@@ -4,6 +4,7 @@
 	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
 	import Button from '../../../lib/components/ui/Button.svelte';
 	import CardShelf from '../../../lib/components/prompts/CardShelf.svelte';
+	import { shelfFace } from '../../../lib/prompts.js';
 	import Example from '../../Example.svelte';
 	import Screen from '../../Screen.svelte';
 	import Section from '../../Section.svelte';
@@ -140,8 +141,16 @@
 			<CardShelf
 				kind="civ"
 				cards={[
-					{ index: 0, id: 'historians', label: 'Historians' },
-					{ index: 1, id: 'leaders', label: 'Leaders' },
+					{
+						index: 0,
+						label: 'Historians',
+						face: shelfFace('civ', 'historians'),
+					},
+					{
+						index: 1,
+						label: 'Leaders',
+						face: shelfFace('civ', 'leaders'),
+					},
 				]}
 				{room} />
 		{/snippet}

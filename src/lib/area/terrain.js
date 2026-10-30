@@ -1,6 +1,7 @@
 // The player area's terrain (#27 design §2.7): a seat's territory tiles in hand and its space tiles, held and explored.
 import { TERRITORY_TILES } from '../engine/data/territory-tiles.js';
 import { describeEffects } from '../describe.js';
+import { RESOURCES } from '../ui.js';
 
 /** @typedef {import('../ui.js').Terrain} Terrain */
 
@@ -80,7 +81,7 @@ export function territoryBenefit(id) {
 			icon = 'symbol/territory-tile';
 		} else if (gain === 'tapestry') {
 			icon = 'symbol/tapestry-card';
-		} else if (['coin', 'food', 'worker', 'culture'].includes(gain)) {
+		} else if (RESOURCES.some((resource) => resource.id === gain)) {
 			icon = `resource-24/${gain}`;
 		} else if (['farm', 'house', 'market', 'armory'].includes(gain)) {
 			icon = `building/${gain}`;

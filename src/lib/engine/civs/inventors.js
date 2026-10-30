@@ -54,13 +54,19 @@ export function inventorsTake(ctx, op) {
 	ctx.push(triggered(state, 'countsChanged', { player }));
 }
 
+/** The tokens the Inventors start with, for the engine and the card (#107). */
+export const INVENTORS_TOKENS = 4;
+
 /** @type {import('./civ.js').Civ} */
 export const inventors = {
 	id: 'inventors',
 	incomeTurns: [2, 3, 4, 5],
 	setup(ctx, player) {
 		playerSeat(ctx.state, player).civData.inventors =
-			/** @type {InventorsData} */ ({ tokens: 4, cards: [] });
+			/** @type {InventorsData} */ ({
+				tokens: INVENTORS_TOKENS,
+				cards: [],
+			});
 	},
 	// You may put a token on any tech card in a bottom or middle row, yours or an opponent's.
 	income(ctx, player) {

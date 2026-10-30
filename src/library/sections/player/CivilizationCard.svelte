@@ -6,6 +6,7 @@
 	import '../../../styles/card-patterns.css';
 	import { REVIEWED_CIVILIZATIONS } from '../../../lib/cards/reviewed-civilizations.js';
 	import { civCardView } from '../../../lib/civ-card.js';
+	import { civilizationName } from '../../../lib/game-names.js';
 
 	/** @typedef {import('../../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
@@ -183,7 +184,7 @@
 	area="player"
 	description="Owner-reviewed card pattern; see docs/ui/card-design-rules.md for the composition rules. The six card civilizations draw a seat's live state and offer a decision's spots on the card (#78)."
 	>{#each REVIEWED_CIVILIZATIONS as card}<Example
-			label={`${card.title} · ${card.edition}`}
+			label={`${civilizationName(card.id)} · ${card.edition}`}
 			width={425}
 			><CivilizationCard
 				id={card.id}

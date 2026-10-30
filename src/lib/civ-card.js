@@ -21,6 +21,7 @@ import { seatName } from './game-names.js';
  * @property {Record<string, SpotMark[]>} marks - What each spot shows now, by spot id
  * @property {Record<string, number[]>} choices - The spots the viewer's open decision offers on this card, each with
  *   the indexes of its answers; empty when there is nothing to choose here
+ * @property {Record<string, string>} [pieces] - The piece on a spot, such as the income building on a Craftsmen space
  */
 
 /** The civilizations whose decisions are answered on their own card, in the issue's order. */
@@ -49,25 +50,6 @@ const CARD_OF_PURPOSE = /** @type {Readonly<Record<string, string>>} */ (
 const MILITANT_SPACES = /** @type {Record<string, any[]>} */ (MILITANTS_SPACES);
 
 const MILITANT_ROWS = /** @type {const} */ (['top', 'bottom']);
-
-/**
- * The data the library's play state shows: the reviewed illustration of each card, now drawn as live data is.
- * @type {Readonly<Record<string, any>>}
- */
-export const SAMPLE_CIV_DATA = Object.freeze({
-	entertainers: { at: 'c3r2' },
-	merrymakers: { levels: [2, 1, 0] },
-	leaders: { used: ['exploration', 'science'] },
-	militants: {
-		top: [false, true, true, true],
-		bottom: [false, false, true, true],
-	},
-	historians: { squares: [false, false, true, true], given: {} },
-	mystics: {
-		predictions: { techCards: 4, districts: 3, territories: 5, tracks: 2 },
-		reached: [],
-	},
-});
 
 /**
  * What each spot of a civilization's card shows, from its civData.

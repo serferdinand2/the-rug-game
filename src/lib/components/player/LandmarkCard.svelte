@@ -18,6 +18,7 @@
 <script>
 	import CardBand from './CardBand.svelte';
 	import CardEdition from './CardEdition.svelte';
+	import LandmarkShape from './LandmarkShape.svelte';
 	import '../../../styles/landmark-card.css';
 	/** @type {LandmarkCardProps} */
 	let {
@@ -44,13 +45,17 @@
 			alt={`${title} artwork`} />
 		<div
 			class="rg-landmark-card--footprint"
-			style:--cols={footprint[0]?.length ?? 0}
 			aria-label={`Capital footprint: ${footprint.join(' / ')}`}>
-			{#each footprint as row, rowIndex (rowIndex)}
-				{#each [...row] as plot, columnIndex (`${rowIndex}-${columnIndex}`)}
-					<span class:empty={plot === '.'}></span>
-				{/each}
-			{/each}
+			{#if footprint.length}
+				<LandmarkShape
+					{footprint}
+					plotSize={20}
+					gap={2}
+					picture={false}
+					plots
+					color="var(--card-line-strong)"
+					tint="var(--card-score-line)" />
+			{/if}
 		</div>
 	</div>
 	<div class="rg-landmark-card--condition">

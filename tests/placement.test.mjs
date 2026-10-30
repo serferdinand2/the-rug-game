@@ -16,6 +16,14 @@ import {
 	grabAt,
 	writeGrab,
 	readGrab,
+	pictureTransform,
+	fitsAt,
+	snapAmong,
+	stepAmong,
+	turnAmong,
+	overhangReach,
+	overhangOffset,
+	plotFromPointer,
 } from '../src/lib/placement.js';
 
 /** An empty capital with the given plots set. */
@@ -186,6 +194,39 @@ test('a shape is filled with one unit square per covered plot', () => {
 	);
 });
 
+test('a gap between plots spaces the unit squares apart, as on a card footprint (#110)', () => {
+	assert.equal(fillPath(['.X', 'XX'], 0), fillPath(['.X', 'XX']));
+	assert.equal(
+		fillPath(['.X', 'XX'], 0.1),
+		'M1.1 0h1v1h-1zM0 1.1h1v1h-1zM1.1 1.1h1v1h-1z'
+	);
+	assert.equal(
+		fillPath(['XXX'], 0.1),
+		'M0 0h1v1h-1zM1.1 0h1v1h-1zM2.2 0h1v1h-1z',
+		'no floating-point noise in the path'
+	);
+});
+
+test('the picture is turned about the centre of the turned shape (#110)', () => {
+	assert.equal(
+		pictureTransform(['XX', 'XX'], 0),
+		'translate(1 1) rotate(0) translate(-1 -1)'
+	);
+	assert.equal(
+		pictureTransform(['XXX', 'XXX'], 1),
+		'translate(1 1.5) rotate(90) translate(-1.5 -1)'
+	);
+	assert.equal(
+		pictureTransform(['XXX', 'XXX'], -1),
+		pictureTransform(['XXX', 'XXX'], 3),
+		'a negative turn counts as its quarter turns clockwise'
+	);
+	assert.equal(
+		pictureTransform(rubberWorks, 6),
+		'translate(2 2) rotate(180) translate(-2 -2)'
+	);
+});
+
 test('the outline follows only the edges on the border of the shape', () => {
 	assert.equal(
 		outlinePath(['XX', 'XX']),
@@ -265,4 +306,187 @@ test('the grab travels with the drag as "x y" in plots, and broken data reads as
 		other.setData(GRAB_TYPE, broken);
 		assert.equal(readGrab(other), null, broken);
 	}
+});
+
+test('a piece fits where its plots are open and inside the grid, ignoring its own plots but not the others', () => {
+	const other = { id: 'forge', footprint: ['XX', 'XX'], row: 0, col: 2 };
+	const moving = { ...lighthouse, row: 0, col: 0 };
+	const pieces = [moving, other];
+	assert.equal(fitsAt(capital(), pieces, moving, 0, 0), true);
+	assert.equal(fitsAt(capital(), pieces, moving, 0, 1), false);
+	assert.equal(fitsAt(capital({ 40: 'farm' }), pieces, moving, 4, 4), false);
+	assert.equal(fitsAt(capital(), pieces, moving, 0, 8), false);
+	assert.equal(fitsAt(capital(), pieces, moving, -1, 0), false);
+});
+
+/**
+ * Positions with every turn at each corner.
+ * @param {[number, number][]} corners
+ */
+const everyTurn = (corners) =>
+	corners.flatMap(([row, col]) =>
+		[0, 1, 2, 3].map((rotation) => ({ row, col, rotation }))
+	);
+
+test('a drop snaps to the nearest position of its turn, a tie going to the earlier one', () => {
+	const positions = [
+		{ row: 0, col: 0, rotation: 0 },
+		{ row: 4, col: 4, rotation: 1 },
+		{ row: 4, col: 6, rotation: 0 },
+		{ row: 4, col: 2, rotation: 0 },
+	];
+	assert.deepEqual(snapAmong(positions, 0, 4, 5), { row: 4, col: 6 });
+	assert.deepEqual(snapAmong(positions, 0, 4, 4), { row: 4, col: 6 });
+	assert.deepEqual(snapAmong(positions, 1, 0, 0), { row: 4, col: 4 });
+	assert.equal(snapAmong(positions, 2, 4, 4), null);
+	assert.equal(snapAmong([], 0, 4, 4), null);
+});
+
+test('a drop over the edge snaps to a position over the edge (R14)', () => {
+	const positions = everyTurn([
+		[6, 5],
+		[6, 8],
+	]);
+	assert.deepEqual(snapAmong(positions, 0, 6, 9), { row: 6, col: 8 });
+});
+
+test('an arrow key steps to the next position straight along it, hopping over gaps', () => {
+	const positions = everyTurn([
+		[0, 0],
+		[0, 1],
+		[0, 4],
+		[3, 1],
+	]);
+	const piece = { ...lighthouse, row: 0, col: 0 };
+	assert.deepEqual(stepAmong(positions, piece, 0, 1), { row: 0, col: 1 });
+	assert.deepEqual(stepAmong(positions, { ...piece, col: 1 }, 0, 1), {
+		row: 0,
+		col: 4,
+	});
+	assert.deepEqual(stepAmong(positions, { ...piece, col: 1 }, 1, 0), {
+		row: 3,
+		col: 1,
+	});
+	assert.equal(stepAmong(positions, piece, -1, 0), null);
+	assert.equal(stepAmong(positions, piece, 0, -1), null);
+});
+
+test('an arrow key toward the edge reaches a position over it (R14)', () => {
+	// The Mountain mat's Lighthouse at row 6, column 5: columns 6 and 7 cover the impassable plot at row 7, column 7.
+	const positions = everyTurn([
+		[6, 5],
+		[6, 8],
+	]);
+	assert.deepEqual(
+		stepAmong(positions, { ...lighthouse, row: 6, col: 5 }, 0, 1),
+		{ row: 6, col: 8 }
+	);
+});
+
+test('with nothing straight along the arrow, a piece steps to the nearest position ahead of it', () => {
+	const positions = everyTurn([
+		[4, 4],
+		[6, 7],
+		[3, 6],
+		[5, 9],
+	]);
+	const piece = { ...lighthouse, row: 4, col: 4 };
+	assert.deepEqual(stepAmong(positions, piece, 0, 1), { row: 3, col: 6 });
+	assert.deepEqual(stepAmong(positions, piece, 1, 0), { row: 5, col: 9 });
+	assert.equal(stepAmong(positions, piece, 0, -1), null);
+});
+
+test("an arrow key only steps among positions of the piece's own turn", () => {
+	const positions = [
+		{ row: 0, col: 0, rotation: 1 },
+		{ row: 0, col: 1, rotation: 0 },
+		{ row: 0, col: 2, rotation: 1 },
+	];
+	assert.deepEqual(
+		stepAmong(positions, { ...lighthouse, rotation: 1 }, 0, 1),
+		{ row: 0, col: 2 }
+	);
+});
+
+test('turning steps to the next legal turn nearest the same corner, cycling past 3 to 0', () => {
+	const positions = [
+		{ row: 2, col: 2, rotation: 3 },
+		{ row: 6, col: 6, rotation: 0 },
+		{ row: 2, col: 3, rotation: 0 },
+	];
+	assert.deepEqual(
+		turnAmong(positions, { ...lighthouse, row: 2, col: 2, rotation: 3 }),
+		{ rotation: 0, row: 2, col: 3 }
+	);
+});
+
+test('turning skips a turn with no legal position', () => {
+	const positions = [
+		{ row: 4, col: 4, rotation: 0 },
+		{ row: 4, col: 4, rotation: 2 },
+		{ row: 0, col: 0, rotation: 3 },
+	];
+	const piece = { ...lighthouse, row: 4, col: 4 };
+	assert.deepEqual(turnAmong(positions, piece), {
+		rotation: 2,
+		row: 4,
+		col: 4,
+	});
+	assert.deepEqual(turnAmong(positions, { ...piece, rotation: 2 }), {
+		rotation: 3,
+		row: 0,
+		col: 0,
+	});
+});
+
+test('turning is null when no other turn is legal', () => {
+	const positions = [
+		{ row: 4, col: 4, rotation: 1 },
+		{ row: 0, col: 0, rotation: 1 },
+	];
+	assert.equal(
+		turnAmong(positions, { ...lighthouse, row: 4, col: 4, rotation: 1 }),
+		null
+	);
+	assert.equal(turnAmong([], lighthouse), null);
+});
+
+test('the pieces reach over each edge as far as the farthest of them', () => {
+	assert.deepEqual(overhangReach([]), {
+		top: 0,
+		right: 0,
+		bottom: 0,
+		left: 0,
+	});
+	assert.deepEqual(
+		overhangReach([
+			{ ...lighthouse, row: 6, col: -1 },
+			{ ...lighthouse, id: 'forge', row: 8, col: 8 },
+			{ id: 'rubber-works', footprint: rubberWorks, row: -3, col: 2 },
+		]),
+		{ top: 3, right: 1, bottom: 1, left: 1 }
+	);
+});
+
+test('a piece over the edge reaches past its area by one pitch of plot and gap per plot', () => {
+	assert.equal(overhangOffset(0, 2), undefined);
+	assert.equal(overhangOffset(1, 1), `calc(-1 * ${3300 / 32}%)`);
+	assert.equal(overhangOffset(2, 3), `calc(-2 * ${3300 / 98}%)`);
+});
+
+test('the pointer is read in plots from the corners of plot 0 and the plot diagonally after it', () => {
+	const first = { left: 100, top: 50 };
+	const next = { left: 140, top: 90 };
+	assert.deepEqual(plotFromPointer({ x: 100, y: 50 }, first, next), {
+		row: 0,
+		col: 0,
+	});
+	assert.deepEqual(plotFromPointer({ x: 190, y: 70 }, first, next), {
+		row: 0.5,
+		col: 2.25,
+	});
+	assert.deepEqual(plotFromPointer({ x: 60, y: 50 }, first, next), {
+		row: 0,
+		col: -1,
+	});
 });

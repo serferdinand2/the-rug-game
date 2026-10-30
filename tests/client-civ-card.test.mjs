@@ -5,13 +5,13 @@ import { openDecisions, view } from '../src/lib/engine/game.js';
 import { entertainersMoves } from '../src/lib/engine/civs/entertainers.js';
 import {
 	CARD_CIVS,
-	SAMPLE_CIV_DATA,
 	cardCivOf,
 	cardSpot,
 	civCardMarks,
 	civCardView,
 	spotWords,
 } from '../src/lib/civ-card.js';
+import { SAMPLE_CIV_DATA } from '../src/lib/cards/reviewed-civilizations.js';
 import { answer, startedGame } from './helpers/engine.mjs';
 
 /**

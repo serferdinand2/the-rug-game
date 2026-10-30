@@ -19,6 +19,7 @@
 <script>
 	import { playerColor } from '../../ui.js';
 	import PlayerToken from '../player/PlayerToken.svelte';
+	import VpSources from '../results/VpSources.svelte';
 
 	/** @type {ScoreBoardProps} */
 	let { rows, you = null, ...attr } = $props();
@@ -48,28 +49,14 @@
 				<strong class="rg-score-board--vp">{row.vp} VP</strong>
 			</div>
 			{#if row.sources.length}
-				<dl class="rg-score-board--sources">
-					{#each row.sources as source (source.id)}
-						<div>
-							<dt>{source.label}</dt>
-							<dd>{source.vp} VP</dd>
-						</div>
-					{/each}
-				</dl>
+				<div class="rg-score-board--sources">
+					<VpSources sources={row.sources} />
+				</div>
 			{/if}
 			<p class="rg-score-board--ties">
-				{#if 'landmark' in row}
-					Tallest landmark:
-					{#if row.landmark}
-						<span class="rg-score-board--landmark"
-							>{row.landmark}</span>
-					{:else}
-						none
-					{/if}
-					·
-				{/if}
-				{row.resources}
-				{row.resources === 1 ? 'resource' : 'resources'}
+				{#each row.tiebreak as part, index (index)}{#if part.landmark}<span
+							class="rg-score-board--landmark">{part.text}</span
+						>{:else}{part.text}{/if}{/each}
 			</p>
 		</li>
 	{/each}
@@ -125,26 +112,10 @@
 		white-space: nowrap;
 	}
 
+	/* Where the VP came from, set under the row's head in the log's small type. */
 	.rg-score-board--sources {
-		display: grid;
-		gap: var(--space-1);
-		margin: var(--space-4) 0 0;
+		margin-top: var(--space-4);
 		font-size: var(--font-size-xs);
-	}
-
-	.rg-score-board--sources div {
-		display: flex;
-		justify-content: space-between;
-		gap: var(--space-4);
-	}
-
-	.rg-score-board--sources dt {
-		color: var(--muted);
-	}
-
-	.rg-score-board--sources dd {
-		margin: 0;
-		font-weight: var(--weight-bold);
 	}
 
 	.rg-score-board--ties {

@@ -135,6 +135,8 @@
 	--progress-lane: 8px; /* distance between two progress lines */
 	--track-heading: 18px; /* a track's row with its symbol, which TrackBoard adds up as chrome */
 	--track-prices: 18px; /* a track's row of tier prices */
+	--track-bar-mix: 18%; /* how much of its track's colour tints a bar about a track: a decision's actions, the optional footer (#117) */
+	--track-bar-band: 3px; /* the band of the track's colour along the bottom of such a bar (#117) */
 	--docked-panel-width: 340px; /* a decision panel docked beside the World Map (#74) */
 	--narrow-panel-width: 440px; /* a narrow decision panel: a pick of several things (#75), the first-income notice (#77) */
 	/* A docked panel's distance from the shared area's right edge: the area's right padding, so the panel ends where the map would. */

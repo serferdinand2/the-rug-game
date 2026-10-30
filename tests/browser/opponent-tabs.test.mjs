@@ -3,6 +3,7 @@
 import { expect, test } from '@playwright/test';
 import { askedSeats } from '../../src/lib/engine/game.js';
 import { amountWords } from '../../src/lib/words.js';
+import { RESOURCES } from '../../src/lib/ui.js';
 
 test.use({ viewport: { width: 1920, height: 1080 } });
 
@@ -127,6 +128,11 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		const back = page.getByRole('button', { name: 'Back to your area' });
 		const footer = await page.locator('.rg-turn-bar').innerText();
 		const summary = page.locator('.rg-self-summary');
+		const summaryHead = summary.locator('.rg-self-summary--head strong');
+		const counts = summary.locator('.rg-resource-chip--count');
+		/** @param {any} entry @returns {string[]} */
+		const amounts = (entry) =>
+			RESOURCES.map((resource) => String(entry.resources[resource.id]));
 
 		// Their chip shows their tabs, bordered in their colour, and not the players overview.
 		await chip.click();
@@ -141,13 +147,7 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		expect(parseFloat(border.width)).toBeGreaterThan(0);
 
 		// The summary belongs to the inspected player too, including their public resource counts.
-		await expect(summary.locator('.rg-self-summary--head')).toContainText(
-			name
-		);
-		await expect(summary).toHaveAttribute(
-			'aria-label',
-			`${name}'s resources and game summary`
-		);
+		await expect(summaryHead).toContainText(name);
 		const summaryBorder = await summary.evaluate(
 			(element) => getComputedStyle(element).boxShadow
 		);
@@ -162,6 +162,12 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		await expect(summary.locator('.rg-resource-chip--changed')).toHaveCount(
 			0
 		);
+		// The summary at the foot is theirs, framed in their colour, with their own resources (#157).
+		await expect(counts).toHaveText(amounts(theirs.game.seats[other - 1]));
+		const frame = await summary.evaluate(
+			(element) => getComputedStyle(element).boxShadow
+		);
+		expect(frame).not.toBe('none');
 
 		// Their hand is a count, with no card face.
 		await tabs.getByRole('tab', { name: /^Hand/ }).click();
@@ -188,6 +194,14 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		// Back to your area returns to your own tabs.
 		await back.click();
 		await expect(inspecting).toHaveCount(0);
+		// And the summary is yours again, without the frame (#157).
+		await expect(summaryHead).toContainText(NAMES[seat - 1]);
+		await expect(counts).toHaveText(amounts(theirs.game.seats[seat - 1]));
+		expect(
+			await summary.evaluate(
+				(element) => getComputedStyle(element).boxShadow
+			)
+		).toBe('none');
 		await expect(
 			tabs.getByRole('heading', { name: 'Territory tiles' })
 		).toBeVisible();

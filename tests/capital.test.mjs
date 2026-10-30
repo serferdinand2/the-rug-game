@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
 	GRID_SIZE,
 	plotIndex,
+	plotPosition,
 	rotateFootprint,
 	footprintCells,
 	fits,
@@ -127,4 +128,14 @@ test('a group knows the rectangle it covers', () => {
 		rows: 3,
 		cols: 3,
 	});
+});
+
+test('a plot index gives back its row and column', () => {
+	assert.deepEqual(plotPosition(0), { row: 0, col: 0 });
+	assert.deepEqual(plotPosition(10), { row: 1, col: 1 });
+	assert.deepEqual(plotPosition(80), { row: 8, col: 8 });
+	for (let index = 0; index < 81; index++) {
+		const { row, col } = plotPosition(index);
+		assert.equal(plotIndex(row, col), index);
+	}
 });

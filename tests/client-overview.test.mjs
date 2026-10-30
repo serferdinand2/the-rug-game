@@ -2,7 +2,7 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { view } from '../src/lib/engine/game.js';
-import { selfSummary } from '../src/lib/overview.js';
+import { areaSummary, selfSummary } from '../src/lib/overview.js';
 import { startedGame } from './helpers/engine.mjs';
 
 test("a started game's summary has the seat's name, VP, resources and counts", () => {
@@ -54,4 +54,42 @@ test('during setup, before a capital mat is dealt, the summary counts no lines',
 	const { state } = newGame(2);
 	const summary = selfSummary(view(state, 1), 1);
 	assert.equal(summary?.lines, 0);
+});
+
+test("the summary follows the seat on show: another player's own counts, without your prompt's preview (#157)", () => {
+	const { state } = startedGame(2);
+	/** @type {any} */ (state.seats[1]).resources = {
+		coin: 4,
+		worker: 3,
+		food: 2,
+		culture: 1,
+	};
+	/** @type {any} */ (state.seats[1]).vp = 7;
+	const game = view(state, 1);
+	const preview = {
+		resources: { coin: 0, worker: 1, food: 1, culture: 1 },
+		changed: ['coin'],
+	};
+	const theirs = areaSummary(game, 2, 1, preview);
+	assert.equal(theirs?.seat, 2);
+	assert.equal(theirs?.name, state.seats[1].name);
+	assert.equal(theirs?.vp, 7);
+	assert.deepEqual(theirs?.resources, {
+		coin: 4,
+		worker: 3,
+		food: 2,
+		culture: 1,
+	});
+	assert.deepEqual(theirs?.changed, []);
+	// Your own shows your prompt's preview of your resources.
+	const mine = areaSummary(game, 1, 1, preview);
+	assert.equal(mine?.seat, 1);
+	assert.equal(mine?.name, state.seats[0].name);
+	assert.deepEqual(mine?.resources, preview.resources);
+	assert.deepEqual(mine?.changed, ['coin']);
+	// The public view shows the seat a chip opened, and nothing otherwise.
+	const shared = view(state, null);
+	assert.equal(areaSummary(shared, 2, null, preview)?.seat, 2);
+	assert.deepEqual(areaSummary(shared, 2, null, preview)?.changed, []);
+	assert.equal(areaSummary(shared, null, null, preview), null);
 });

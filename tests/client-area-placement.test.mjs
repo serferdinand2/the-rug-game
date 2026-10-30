@@ -7,10 +7,12 @@ import { GRID_SIZE, fits, rotateFootprint } from '../src/lib/capital.js';
 import {
 	plotTargets,
 	legalNear,
-	nextRotation,
 	placeNear,
 	placingPiece,
+	landmarkPositions,
+	optionAt,
 } from '../src/lib/area/placement-targets.js';
+import { stepAmong, turnAmong } from '../src/lib/placement.js';
 import { startedGame } from './helpers/engine.mjs';
 
 /**
@@ -61,23 +63,26 @@ test('legalNear is null for a rotation no option has', () => {
 	assert.equal(legalNear([], 4, 4, 0), null);
 });
 
-test('nextRotation cycles from 3 to 0, nearest the same top-left', () => {
-	const options = [at(0, 2, 2, 3), at(1, 6, 6, 0), at(2, 2, 3, 0)];
-	assert.equal(nextRotation(options, 0), 2);
+test('landmarkPositions keeps the landmark places and leaves out the buildings and the panel', () => {
+	const options = [
+		BESIDE,
+		at(1, 0, 3, null),
+		at(2, -1, 4, 2),
+		at(3, 5, 7, 0),
+	];
+	assert.deepEqual(landmarkPositions(options), [
+		{ row: -1, col: 4, rotation: 2 },
+		{ row: 5, col: 7, rotation: 0 },
+	]);
+	assert.deepEqual(landmarkPositions([BESIDE]), []);
 });
 
-test('nextRotation skips a rotation with no legal place', () => {
-	const options = [at(0, 4, 4, 0), at(1, 4, 4, 2), at(2, 0, 0, 3)];
-	assert.equal(nextRotation(options, 0), 1);
-	assert.equal(nextRotation(options, 1), 2);
-	assert.equal(nextRotation(options, 2), 0);
-});
-
-test('nextRotation is null when no other rotation is legal', () => {
-	const options = [at(0, 4, 4, 1), at(1, 0, 0, 1)];
-	assert.equal(nextRotation(options, 0), null);
-	assert.equal(nextRotation(options, 7), null);
-	assert.equal(nextRotation([BESIDE], 9), null);
+test('optionAt finds the option exactly at a position and turn', () => {
+	const options = [BESIDE, at(1, 4, 4, 0), at(2, 4, 4, 1), at(3, 6, 8, 0)];
+	assert.equal(optionAt(options, { row: 4, col: 4, rotation: 1 }), 2);
+	assert.equal(optionAt(options, { row: 6, col: 8, rotation: 0 }), 3);
+	assert.equal(optionAt(options, { row: 4, col: 5, rotation: 0 }), null);
+	assert.equal(optionAt(options, { row: 6, col: 8, rotation: 2 }), null);
 });
 
 test('placeNear prefers the rotation asked for, then the nearest place of any rotation', () => {
@@ -101,7 +106,11 @@ test('plotTargets keeps the indexes of the building places and leaves out the pa
 	assert.deepEqual(plotTargets([BESIDE]), []);
 });
 
-test("every place the grid's own snapping reaches is one of the engine's answers, so a snapped move lands on it exactly", () => {
+/**
+ * A real game's options for the Lighthouse on seat 1's capital, with a farm and a house built.
+ * @returns {{ options: any[], plots: import('../src/lib/capital.js').PlotKind[] }}
+ */
+function lighthouseOptions() {
 	const { state } = startedGame(2);
 	const seat = state.seats[0];
 	seat.capital.buildings.push(
@@ -118,7 +127,11 @@ test("every place the grid's own snapping reaches is one of the engine's answers
 		.map((/** @type {any} */ answer, /** @type {number} */ index) =>
 			at(index, answer.row, answer.col, answer.rotation)
 		);
-	const plots = cityPlots(view(state, 1).seats[0]);
+	return { options, plots: cityPlots(view(state, 1).seats[0]) };
+}
+
+test("every place the grid's own snapping reaches is one of the engine's answers, so a snapped move lands on it exactly", () => {
+	const { options, plots } = lighthouseOptions();
 	for (let rotation = 0; rotation < 4; rotation++) {
 		const shape = rotateFootprint(FOOTPRINTS.lighthouse, rotation);
 		for (let row = 0; row < GRID_SIZE; row++) {
@@ -133,17 +146,40 @@ test("every place the grid's own snapping reaches is one of the engine's answers
 			}
 		}
 	}
+});
+
+test("every step and turn among the engine's positions lands on one of its options, over the edge included (R14)", () => {
+	const { options } = lighthouseOptions();
+	const positions = landmarkPositions(options);
 	const start = /** @type {number} */ (placeNear(options, 4, 4, 0));
-	const turns = [start];
+	let piece = {
+		...placingPiece('lighthouse'),
+		.../** @type {{ row: number, col: number, rotation: number }} */ (
+			options[start].plot
+		),
+	};
+	const turns = [piece.rotation];
 	for (let step = 0; step < 4; step++) {
-		turns.push(
-			/** @type {number} */ (nextRotation(options, turns.at(-1) ?? start))
-		);
+		const turned =
+			/** @type {NonNullable<ReturnType<typeof turnAmong>>} */ (
+				turnAmong(positions, piece)
+			);
+		assert.notEqual(optionAt(options, turned), null);
+		piece = { ...piece, ...turned };
+		turns.push(piece.rotation);
 	}
-	assert.deepEqual(
-		turns.map((index) => options[index].plot?.rotation),
-		[0, 1, 2, 3, 0]
-	);
+	assert.deepEqual(turns, [0, 1, 2, 3, 0]);
+	// Right until it can go no further: the last step hangs over the edge.
+	let moved = { ...piece, row: 0, col: 0 };
+	for (;;) {
+		const next = stepAmong(positions, moved, 0, 1);
+		if (!next) {
+			break;
+		}
+		assert.notEqual(optionAt(options, { ...next, rotation: 0 }), null);
+		moved = { ...moved, ...next };
+	}
+	assert.equal(moved.col, GRID_SIZE - 1);
 });
 
 test('the landmark being placed has its name and printed footprint', () => {

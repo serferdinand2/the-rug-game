@@ -234,7 +234,34 @@ export function tableFacts(room) {
  * @property {SourceLine[]} sources
  * @property {number} resources - The resources held, the last tiebreak
  * @property {string | null} [landmark] - The tallest landmark in the capital, for the current rules' tiebreak only
+ * @property {TiebreakPart[]} tiebreak - The tiebreak values as one line, such as "Tallest landmark: Skyscraper · 7 resources" (#104)
  */
+
+/**
+ * A piece of a scoreboard row's tiebreak line; a landmark's name is marked so it can be drawn in gold.
+ * @typedef {{ text: string, landmark: boolean }} TiebreakPart
+ */
+
+/**
+ * The tiebreak line of a scoreboard row: the tallest landmark under the current rules, then the resources.
+ * @param {string | null | undefined} landmark - Undefined when the table's rules don't compare landmarks
+ * @param {number} resources
+ * @returns {TiebreakPart[]}
+ */
+export function tiebreakLine(landmark, resources) {
+	const held = countWords(resources, 'resource');
+	if (landmark === undefined) {
+		return [{ text: held, landmark: false }];
+	}
+	if (landmark === null) {
+		return [{ text: `Tallest landmark: none · ${held}`, landmark: false }];
+	}
+	return [
+		{ text: 'Tallest landmark: ', landmark: false },
+		{ text: landmark, landmark: true },
+		{ text: ` · ${held}`, landmark: false },
+	];
+}
 
 /**
  * The scoreboard during play: the players by VP, with where it came from and the tiebreak values of the version.
@@ -263,6 +290,7 @@ export function scoreboard(game) {
 			vp: seat.vp,
 			sources: vpBreakdown(seat),
 			resources: values.resources,
+			tiebreak: [],
 		};
 		if (usesLandmark) {
 			row.landmark =
@@ -270,6 +298,7 @@ export function scoreboard(game) {
 					? null
 					: landmarkName(values.tallestLandmark);
 		}
+		row.tiebreak = tiebreakLine(row.landmark, row.resources);
 		return row;
 	});
 }

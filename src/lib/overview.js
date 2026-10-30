@@ -1,4 +1,4 @@
-// Your overview (#26 design §9): the viewer's name, era, VP, resources and counts, from their own view.
+// Your overview (#26 design §9, #157): the name, era, VP, resources and counts of the seat on show, from the view.
 import { capitalScore, controlledTerritories } from './engine/game.js';
 
 /**
@@ -43,4 +43,28 @@ export function selfSummary(view, seat) {
 			.length,
 		lines: lines.rows + lines.columns,
 	};
+}
+
+/**
+ * The summary at the foot of the player area for the seat on show (#157): the viewer's own with their open prompt's
+ * preview of their resources, or another seat's with its own resources and nothing highlighted.
+ * @param {any} view - The game as view() gives it to the viewer
+ * @param {number | null} shown - The seat whose tabs show
+ * @param {number | null} viewer - The viewer's seat; null for the public view
+ * @param {{ resources: SelfSummary['resources'], changed: string[] }} preview - The viewer's prompt's resources
+ * @returns {(SelfSummary & { changed: string[] }) | null}
+ */
+export function areaSummary(view, shown, viewer, preview) {
+	const summary = selfSummary(view, shown);
+	if (!summary) {
+		return null;
+	}
+	if (shown === viewer) {
+		return {
+			...summary,
+			resources: preview.resources,
+			changed: preview.changed,
+		};
+	}
+	return { ...summary, changed: [] };
 }

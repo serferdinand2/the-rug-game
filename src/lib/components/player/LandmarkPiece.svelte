@@ -53,14 +53,8 @@
 		landmarkKeyAction,
 		landmarkLabel,
 	} from '../../landmark-keys.js';
-	import {
-		controlsAnchor,
-		fillPath,
-		grabAt,
-		outlinePath,
-		writeGrab,
-	} from '../../placement.js';
-	import { artUrl } from '../../ui.js';
+	import { controlsAnchor, grabAt, writeGrab } from '../../placement.js';
+	import LandmarkShape from './LandmarkShape.svelte';
 
 	/** @type {LandmarkPieceProps} */
 	let {
@@ -86,8 +80,6 @@
 	/** Where the piece was held when its drag started, in plots. */
 	let grab = { x: 0, y: 0 };
 
-	const uid = $props.id();
-
 	/** The pressable body, which focus() focuses. @type {HTMLDivElement | undefined} */
 	let body = $state();
 	/** The picture, which is dragged. @type {SVGSVGElement | undefined} */
@@ -95,16 +87,11 @@
 
 	let turns = $derived(((rotation % 4) + 4) % 4);
 	let shape = $derived(rotateFootprint(footprint, turns));
-	let rows = $derived(shape.length);
 	let cols = $derived(shape[0].length);
 	let plots = $derived(shape.join('').replaceAll('.', '').length);
-	let fill = $derived(fillPath(shape));
 	let anchor = $derived(controlsAnchor(shape));
 	let controlsRight = $derived(
 		`calc(${((cols - 1 - anchor.col) / cols) * 100}% + var(--space-1))`
-	);
-	let pictureTransform = $derived(
-		`translate(${cols / 2} ${rows / 2}) rotate(${turns * 90}) translate(${-footprint[0].length / 2} ${-footprint.length / 2})`
 	);
 	let label = $derived(landmarkLabel(name, plots, pieceState));
 
@@ -251,39 +238,15 @@
 	ondragstart={dragstartHandler}
 	ondragend={dragendHandler}>
 	{#snippet content()}
-		<svg
-			bind:this={picture}
+		<LandmarkShape
+			bind:element={picture}
 			class="rg-landmark-piece--shape"
-			viewBox="0 0 {cols} {rows}"
-			preserveAspectRatio="none"
-			aria-hidden="true"
-			style:width={pieceState === 'tray'
-				? `${cols * TRAY_PLOT_SIZE}px`
-				: undefined}
-			style:height={pieceState === 'tray'
-				? `${rows * TRAY_PLOT_SIZE}px`
-				: undefined}>
-			<defs>
-				<clipPath id="{uid}-clip">
-					<path d={fill} />
-				</clipPath>
-			</defs>
-			<path
-				class="rg-landmark-piece--fill"
-				d={fill} />
-			<image
-				class="rg-landmark-piece--picture"
-				href={artUrl(`landmark/${id}`)}
-				width={footprint[0].length}
-				height={footprint.length}
-				preserveAspectRatio="none"
-				transform={pictureTransform} />
-			<path
-				class="rg-landmark-piece--outline"
-				d={outlinePath(shape)}
-				clip-path="url(#{uid}-clip)"
-				vector-effect="non-scaling-stroke" />
-		</svg>
+			{id}
+			{footprint}
+			rotation={turns}
+			plotSize={pieceState === 'tray' ? TRAY_PLOT_SIZE : undefined}
+			color="var(--rg-landmark-piece-outline)"
+			tint="var(--rg-landmark-piece-tint)" />
 		{#if pieceState === 'tray'}
 			<span class="rg-landmark-piece--name">{name}</span>
 		{/if}
@@ -369,13 +332,13 @@
 		--rg-landmark-piece-outline: var(--gold);
 	}
 
-	.rg-landmark-piece--selected .rg-landmark-piece--shape {
+	.rg-landmark-piece--selected :global(.rg-landmark-piece--shape) {
 		filter: drop-shadow(
 			0 0 var(--space-2) color-mix(in srgb, var(--gold) 53%, transparent)
 		);
 	}
 
-	.rg-landmark-piece--fresh .rg-landmark-piece--shape {
+	.rg-landmark-piece--fresh :global(.rg-landmark-piece--shape) {
 		filter: drop-shadow(var(--glow-ok-strong));
 	}
 
@@ -385,7 +348,7 @@
 		cursor: grabbing;
 	}
 
-	.rg-landmark-piece--dragging .rg-landmark-piece--shape {
+	.rg-landmark-piece--dragging :global(.rg-landmark-piece--shape) {
 		filter: drop-shadow(var(--shadow-float));
 	}
 
@@ -402,37 +365,9 @@
 		inset: 0;
 	}
 
-	.rg-landmark-piece--shape {
-		display: block;
-		flex: none;
-		overflow: visible;
-		pointer-events: none;
+	/* The shape is a LandmarkShape; the piece adds its glows. */
+	.rg-landmark-piece--body :global(.rg-landmark-piece--shape) {
 		transition: filter var(--duration-fast) var(--ease);
-	}
-
-	.rg-landmark-piece--placed .rg-landmark-piece--shape,
-	.rg-landmark-piece--locked .rg-landmark-piece--shape {
-		width: 100%;
-		height: 100%;
-	}
-
-	.rg-landmark-piece--fill {
-		fill: var(--rg-landmark-piece-tint);
-		pointer-events: auto;
-	}
-
-	.rg-landmark-piece--picture {
-		image-rendering: pixelated;
-		pointer-events: none;
-	}
-
-	.rg-landmark-piece--outline {
-		fill: none;
-		stroke: var(--rg-landmark-piece-outline);
-		stroke-width: calc(var(--border-thick) * 2);
-		stroke-linecap: square;
-		pointer-events: none;
-		transition: stroke var(--duration-fast) var(--ease);
 	}
 
 	.rg-landmark-piece--name {

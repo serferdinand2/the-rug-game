@@ -20,16 +20,12 @@
 </script>
 
 <script>
-	import CapitalGrid from '../../lib/components/player/CapitalGrid.svelte';
-	import CompletionCounters from '../../lib/components/player/CompletionCounters.svelte';
+	import CapitalCity from '../../lib/components/player/CapitalCity.svelte';
 	import CivilizationCard from '../../lib/components/player/CivilizationCard.svelte';
 	import PlayerCard from '../../lib/components/player/PlayerCard.svelte';
-	import ScaledCard from '../../lib/components/player/ScaledCard.svelte';
-	import TechnologyCard from '../../lib/components/player/TechnologyCard.svelte';
+	import TechRows from '../../lib/components/player/TechRows.svelte';
 	import { capitalView } from '../../lib/area/capital.js';
 	import { playerCards } from '../../lib/area/players.js';
-	import { techCardData } from '../../lib/cards/game-cards.js';
-	import { CARD_SIZES } from '../../lib/cards/card-sizes.js';
 	import { CARD_CIVS, civCardView } from '../../lib/civ-card.js';
 
 	/** @typedef {import('../../lib/component-event.js').ComponentEvent} ComponentEvent */
@@ -53,8 +49,6 @@
 	let capital = $derived(
 		open?.row === 'capital' && openSeat ? capitalView(openSeat, code) : null
 	);
-	/** @type {'rows' | 'columns' | 'districts' | null} */
-	let highlight = $state(null);
 </script>
 
 <div
@@ -72,7 +66,6 @@
 						open?.seat === card.seat && open.row === event.value
 							? null
 							: { seat: card.seat, row: event.value };
-					highlight = null;
 				}} />
 		{/each}
 	</div>
@@ -83,30 +76,13 @@
 			<p class="rg-players-overview--waiting">Waiting for overview</p>
 		{:else if open.row === 'capital'}
 			{#if capital}
-				<h2 class="rg-players-overview--title">
-					{openSeat.name} ·
-					<span class="rg-players-overview--name"
-						>{capital.name}</span>
-				</h2>
-				<CapitalGrid
-					plots={capital.plots}
-					biome={capital.biome}
-					terrainSeed={capital.terrainSeed}
-					pieces={capital.pieces}
-					{highlight}
-					room
-					label="{openSeat.name}'s capital city" />
-				<CompletionCounters
-					counts={capital.counts}
-					active={highlight}
-					onCompletionCountersHover={(
-						/** @type {ComponentEvent} */ event
-					) => (highlight = event.value)}
-					onCompletionCountersToggle={(
-						/** @type {ComponentEvent} */ event
-					) =>
-						(highlight =
-							highlight === event.value ? null : event.value)} />
+				<!-- Another seat's capital starts with nothing lit, as a new choice of row does. -->
+				{#key openSeat.seat}
+					<CapitalCity
+						{capital}
+						owner={openSeat.name}
+						label="{openSeat.name}'s capital city" />
+				{/key}
 			{:else}
 				<p class="rg-players-overview--waiting">No capital mat yet</p>
 			{/if}
@@ -115,6 +91,7 @@
 				<!-- Each player's card as it stands, to look at only (#78). -->
 				<CivilizationCard
 					id={civ}
+					version={game.version}
 					seat={openSeat.seat}
 					live={CARD_CIVS.includes(civ)
 						? civCardView(game, openSeat.seat, civ)
@@ -126,26 +103,9 @@
 			<h2 class="rg-players-overview--title">
 				{openSeat.name}'s technology
 			</h2>
-			{#each ['top', 'middle', 'bottom'] as row (row)}
-				<h3 class="rg-players-overview--row">
-					{row === 'top'
-						? 'Top'
-						: row === 'middle'
-							? 'Middle'
-							: 'Bottom'} row
-				</h3>
-				<div class="rg-players-overview--tech">
-					{#each openSeat.tech[row] as id (id)}
-						<ScaledCard
-							scale={0.4}
-							{...CARD_SIZES.tech}>
-							<TechnologyCard data={techCardData(id)} />
-						</ScaledCard>
-					{:else}
-						<p class="rg-players-overview--empty">No cards</p>
-					{/each}
-				</div>
-			{/each}
+			<TechRows
+				tech={openSeat.tech}
+				layout="wrap" />
 		{/if}
 	</aside>
 </div>
@@ -170,7 +130,9 @@
 		background: var(--chrome);
 	}
 
+	/* The detail's grid gap spaces the capital's title from its grid. */
 	.rg-players-overview--detail {
+		--rg-capital-city-title-gap: 0;
 		display: grid;
 		align-content: start;
 		justify-items: center;
@@ -195,30 +157,5 @@
 		margin: 0;
 		font: var(--weight-bold) var(--font-size-xl) / var(--leading-tight)
 			var(--font-body);
-	}
-
-	.rg-players-overview--name {
-		color: var(--gold);
-		font-family: var(--font-title);
-		font-weight: var(--weight-title);
-	}
-
-	.rg-players-overview--row {
-		justify-self: start;
-		margin: var(--space-4) 0 0;
-		font-size: var(--font-size-sm);
-	}
-
-	.rg-players-overview--tech {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-3);
-		justify-self: start;
-	}
-
-	.rg-players-overview--empty {
-		margin: 0;
-		color: var(--muted);
-		font-size: var(--font-size-sm);
 	}
 </style>

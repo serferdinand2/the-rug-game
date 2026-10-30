@@ -7,7 +7,7 @@
 	 * @property {string} code - The table code, which seeds a capital mat's terrain on the shelf (#56)
 	 * @property {Function} [onDecisionPromptAdvance] - Callback fired when the payment's Advance is pressed; its value is the payment's index in the advance's payments
 	 * @property {Function} [onDecisionPromptCancel] - Callback fired when the payment's Cancel is pressed
-	 * @property {Function} [onDecisionPromptInspect] - Callback fired with a shelf card to show in full ({ kind, data, side }) while it is hovered or focused, and with null when that ends
+	 * @property {Function} [onDecisionPromptInspect] - Callback fired with a shelf card to show in full ({ kind, id, side }, for CardPreview) while it is hovered or focused, and with null when that ends
 	 */
 
 	/**
@@ -35,7 +35,7 @@
 	import TurnControl from '../../lib/components/prompts/TurnControl.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { offerArt } from '../../lib/picks.js';
-	import { spaceName, tapestryName, techName } from '../../lib/game-names.js';
+	import { spaceName } from '../../lib/game-names.js';
 	import { terrainSeed } from '../../lib/area/capital.js';
 
 	/** @type {DecisionPromptProps} */
@@ -245,14 +245,7 @@
 	{#if cardPick && picks}
 		<CardShelf
 			kind={cardPick.kind === 'tech' ? 'tech' : 'tapestry'}
-			cards={cardPick.ids.map((id, index) => ({
-				index,
-				id: String(id),
-				label:
-					cardPick?.kind === 'tech'
-						? techName(String(id))
-						: tapestryName(String(id)),
-			}))}
+			cards={state.pickCards}
 			selected={cardPick.ids.flatMap((id, index) =>
 				picks?.items.includes(id) ? [index] : []
 			)}

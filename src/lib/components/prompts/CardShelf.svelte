@@ -1,19 +1,12 @@
 <!-- CardShelf: the cards a decision offers, shown in a row above the panel; each is a pressable card, the chosen one outlined in gold. -->
 <script module>
-	/**
-	 * One card on the shelf.
-	 * @typedef {Object} ShelfCard
-	 * @property {number} index - The answer's index
-	 * @property {string} id - A tapestry or tech card id, a civilization id, a capital mat's number, or 'deck'
-	 * @property {string} label - The card in words, for assistive technology
-	 * @property {number} [deck] - For the tech deck: the cards left
-	 */
+	/** @typedef {import('../../prompts.js').ShelfCard} ShelfCard - One card: its index, label and face, from shelfCards() or shelfFace() (#118) */
 
 	/**
 	 * Properties of the CardShelf component itself.
 	 * @typedef {Object} CardShelfOwnProps
 	 * @property {'tapestry' | 'tech' | 'civ' | 'mat'} kind - What the cards are
-	 * @property {ShelfCard[]} cards - The cards in order
+	 * @property {ShelfCard[]} cards - The cards in order, each with its face resolved (#118)
 	 * @property {string} [label] - Names the row for assistive technology; defaults to the kind, such as 'Tapestry cards to choose from'
 	 * @property {number | number[] | null} [selected=null] - The chosen card's index, or the indexes of several chosen at once (#75)
 	 * @property {number[]} [disabled=[]] - Indexes of cards that can't be pressed now, as when enough are chosen (#75)
@@ -33,16 +26,14 @@
 </script>
 
 <script>
-	import CapitalGrid from '../player/CapitalGrid.svelte';
+	import CapitalMatFace from '../player/CapitalMatFace.svelte';
 	import CardFan from '../player/CardFan.svelte';
 	import CivilizationCard from '../player/CivilizationCard.svelte';
 	import ScaledCard from '../player/ScaledCard.svelte';
 	import TapestryCard from '../player/TapestryCard.svelte';
+	import TechDeckBack from '../player/TechDeckBack.svelte';
 	import TechnologyCard from '../player/TechnologyCard.svelte';
-	import { tapestryCardData, techCardData } from '../../cards/game-cards.js';
-	import { CARD_SIZES } from '../../cards/card-sizes.js';
-	import { matPlots } from '../../area/capital.js';
-	import { CAPITAL_MATS } from '../../engine/data/capitals.js';
+	import { CARD_SIZES, fitScale } from '../../cards/card-sizes.js';
 	import { ComponentEvent } from '../../component-event.js';
 
 	/**
@@ -83,12 +74,9 @@
 	/** The height the cards may take: the room the panel gives, or the shelf's own. */
 	let fitHeight = $derived(room ?? shelfHeight);
 	/** Civilization cards at full size when they fit that height; otherwise the row shrinks just enough. */
-	let civFit = $derived(
-		kind === 'civ' && tallest > 0 && fitHeight > 0
-			? Math.min(
-					1,
-					Math.max(CIV_MIN_FIT, (fitHeight - CIV_ROOM) / tallest)
-				)
+	let civScale = $derived(
+		kind === 'civ'
+			? fitScale(fitHeight, tallest, { min: CIV_MIN_FIT, room: CIV_ROOM })
 			: 1
 	);
 
@@ -121,17 +109,6 @@
 		)
 	);
 
-	/** A mat's terrain, which is its id. */
-	const biomeOf = (/** @type {{ id: string }} */ mat) =>
-		/** @type {import('../../ui.js').CapitalBiome} */ (mat.id);
-
-	/**
-	 * @param {string} id
-	 */
-	const matOf = (id) =>
-		CAPITAL_MATS.find((mat) => mat.number === Number(id)) ??
-		CAPITAL_MATS[0];
-
 	/** @param {ComponentEvent} event - The fan's, whose value is the card's position */
 	const fanSelectHandler = (event) => {
 		if (typeof onCardShelfSelect === 'function') {
@@ -145,14 +122,12 @@
 		}
 	};
 
-	/** @param {ComponentEvent} event - The fan's, whose value is the card's position, or null when it ends */
+	/** @param {ComponentEvent} event - The fan's, whose item is the shelf card, or null when it ends (#96) */
 	const fanInspectHandler = (event) => {
 		if (typeof onCardShelfInspect === 'function') {
 			onCardShelfInspect(
 				new ComponentEvent(
-					event.value.index === null
-						? null
-						: cards[event.value.index].index,
+					event.value.item?.index ?? null,
 					event.target,
 					event.originalEvent
 				)
@@ -181,48 +156,45 @@
 		onCardFanSelect={fanSelectHandler}
 		onCardFanInspect={fanInspectHandler}>
 		{#snippet card(/** @type {ShelfCard} */ offer)}
-			{#if kind === 'tapestry'}
+			{@const face = offer.face}
+			{#if typeof face === 'string'}
 				<ScaledCard
-					scale={SCALE.tapestry}
-					{...CARD_SIZES.tapestry}
-					aria-hidden="true">
-					<TapestryCard data={tapestryCardData(offer.id)} />
-				</ScaledCard>
-			{:else if kind === 'tech'}
-				<ScaledCard
-					scale={SCALE.tech}
-					{...CARD_SIZES.tech}
-					aria-hidden="true">
-					{#if offer.id === 'deck'}
-						<span class="rg-card-shelf--back">
-							<b>Deck · {offer.deck ?? 0}</b>
-						</span>
-					{:else}
-						<TechnologyCard data={techCardData(offer.id)} />
-					{/if}
-				</ScaledCard>
-			{:else if kind === 'civ'}
-				<ScaledCard
-					scale={civFit}
+					scale={civScale}
 					{...CARD_SIZES.civilization}
 					bind:measuredHeight={civHeights[offer.index]}
 					aria-hidden="true">
 					<CivilizationCard
-						id={offer.id}
+						id={face}
 						state="empty" />
 				</ScaledCard>
-			{:else}
-				{@const mat = matOf(offer.id)}
-				<span
-					class="rg-card-shelf--whole rg-card-shelf--mat-face"
+			{:else if 'plots' in face}
+				<CapitalMatFace
+					name={face.name}
+					plots={face.plots}
+					biome={face.biome}
+					{terrainSeed}
+					aria-hidden="true" />
+			{:else if 'deck' in face}
+				<ScaledCard
+					scale={SCALE.tech}
+					{...CARD_SIZES.tech}
 					aria-hidden="true">
-					<b class="rg-card-shelf--mat-name">{mat.name}</b>
-					<CapitalGrid
-						plots={matPlots(mat.number)}
-						biome={biomeOf(mat)}
-						{terrainSeed}
-						label="{mat.name} capital, 9 by 9 plots" />
-				</span>
+					<TechDeckBack count={face.count} />
+				</ScaledCard>
+			{:else if 'timing' in face}
+				<ScaledCard
+					scale={SCALE.tapestry}
+					{...CARD_SIZES.tapestry}
+					aria-hidden="true">
+					<TapestryCard data={face} />
+				</ScaledCard>
+			{:else}
+				<ScaledCard
+					scale={SCALE.tech}
+					{...CARD_SIZES.tech}
+					aria-hidden="true">
+					<TechnologyCard data={face} />
+				</ScaledCard>
 			{/if}
 		{/snippet}
 	</CardFan>
@@ -261,51 +233,5 @@
 	.rg-card-shelf--civ :global(.rg-card-shelf--row),
 	.rg-card-shelf--mat :global(.rg-card-shelf--row) {
 		gap: 18px;
-	}
-
-	.rg-card-shelf--whole {
-		display: block;
-		text-align: left;
-	}
-
-	.rg-card-shelf--back {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-		box-sizing: border-box;
-		border: var(--border-thick) solid var(--card-line);
-		background: var(--card-band-start);
-		color: var(--card-title);
-		font: var(--weight-title) var(--font-size-3xl) / var(--leading-tight)
-			var(--font-title);
-	}
-
-	/* A capital mat: its name on a card band over its 9×9 grid of plots, large enough to read the districts and the
-	   impassable plots (#56). */
-	.rg-card-shelf--mat-face {
-		width: 392px;
-		box-sizing: border-box;
-		padding: 0 var(--space-3) var(--space-3);
-		border: var(--border-thick) solid var(--card-line);
-		background: var(--ink);
-	}
-
-	.rg-card-shelf--mat-name {
-		display: block;
-		margin: 0 calc(-1 * var(--space-3)) var(--space-3);
-		padding: var(--space-4) var(--space-6);
-		background: linear-gradient(
-			90deg,
-			var(--card-band-start),
-			var(--card-band-middle) 65%,
-			var(--card-band-end)
-		);
-		color: var(--card-title);
-		font: var(--weight-title) var(--font-size-xl) / var(--leading-tight)
-			var(--font-title);
-		letter-spacing: var(--letter-spacing-title);
 	}
 </style>
