@@ -149,7 +149,7 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | `player/CardEffectList` | A card's column of `CardEffectBox` rows inside the 12 px inset, with `above` for extra space (#106) |
 | `player/CardClarity` | Supporting rules beneath the relevant layout as its own 11 px paragraph, with an optional fainter `setup` line, and `above` and `minHeight` for a card's spacing (#106) |
 | `player/CardPlacementRows` | Collection, covered rewards, track and history rows |
-| `player/CardRewardColumns` | Bottom-aligned square/benefit pairs or upward tracks |
+| `player/CardRewardColumns` | `columns` of reward squares: filled from the bottom with each benefit (`vp`, `gain` or `text`) beside its 62 px square and a `filled` square's building in the player's colour (the Craftsmen), or `kind="inside"`, climbed by the `seat`'s token from a start square, the rewards inside 75 px squares and the `current` one in the player's colour (the Merrymakers); the `choices` a decision offers are buttons, the `picked` one gold, reported by `onCardRewardColumnsPick` (#106) |
 | `player/CardPathGrid` | Connected reward-path composition |
 | `player/CardPredictionTracks` | `categories` (`{ id, label, note, most, selected }`) of 39 px number targets with separators, the `selected` number in the player's colour; the `choices` a decision offers are buttons, the `picked` one gold, reported by `onCardPredictionTracksPick` (#106) |
 | `player/CardTerrainRewards` | `rows` of a terrain hex marker, the terrain's `name` and its reward (`gain` resource, then `effect`); a `used` row fades and its name is struck through (#106) |

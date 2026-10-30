@@ -133,6 +133,83 @@
 			effect: 'roll the red conquer die twice and gain both results.',
 		},
 	]);
+	/**
+	 * The Craftsmen's three columns, top first; the play example has a farm and a house in column A.
+	 * @type {{ title: string, note: string, rows: { vp?: number, gain?: import('../../ui.js').CostSymbol, text?: string, keep?: string, after?: string, building?: string }[] }[]}
+	 */
+	const CRAFTSMEN_COLUMNS = [
+		{
+			title: 'Column A',
+			note: 'fill from bottom',
+			rows: [
+				{ vp: 5 },
+				{ text: 'Gain 1 territory tile', building: 'farm' },
+				{ gain: 'worker', building: 'house' },
+			],
+		},
+		{
+			title: 'Column B',
+			note: 'fill from bottom',
+			rows: [
+				{ vp: 10 },
+				{ text: 'Upgrade 1 tech card' },
+				{ text: 'Invent 1 tech card' },
+				{ gain: 'coin' },
+			],
+		},
+		{
+			title: 'Column C',
+			note: 'fill from bottom',
+			rows: [
+				{ vp: 15 },
+				{
+					text: 'Research',
+					keep: 'with benefit;',
+					after: 'bonus is available',
+				},
+				{ gain: 'culture' },
+				{ text: 'Gain 1 tapestry card' },
+				{ gain: 'food' },
+			],
+		},
+	];
+	/**
+	 * The Merrymakers' columns, top first: each square's spot id and reward.
+	 * @type {{ id: string, cells: { id: string, gains?: import('../../ui.js').CostSymbol[], also?: string, lines?: string[] }[] }[]}
+	 */
+	const MERRYMAKER_COLUMNS = [
+		{
+			id: 'm0',
+			cells: [
+				{
+					id: 'm0l3',
+					gains: ['culture'],
+					also: 'armory',
+				},
+				{
+					id: 'm0l2',
+					gains: ['worker', 'food'],
+				},
+				{ id: 'm0l1', gains: ['coin'] },
+			],
+		},
+		{
+			id: 'm1',
+			cells: [
+				{ id: 'm1l3', lines: ['Explore +', 'Research'] },
+				{ id: 'm1l2', lines: ['Invent +', 'tapestry card'] },
+				{ id: 'm1l1', lines: ['Territory tile'] },
+			],
+		},
+		{
+			id: 'm2',
+			cells: [
+				{ id: 'm2l3', lines: ['15 VP'] },
+				{ id: 'm2l2', lines: ['10 VP'] },
+				{ id: 'm2l1', lines: ['5 VP'] },
+			],
+		},
+	];
 	/** The Collectors' end-of-game score by the number of different items collected. */
 	const COLLECTOR_SCORE = [1, 3, 6, 10, 15, 21].map((points, index) => ({
 		count: index + 1,
@@ -247,14 +324,6 @@
 			: {};
 	}
 </script>
-
-{#snippet merryToken(
-	/** @type {string} */ spot
-)}{#if marked(spot, 'token')}<PlayerToken
-			{seat}
-			color="blue"
-			class="rg-card-merry-cell--token"
-			decorative />{/if}{/snippet}
 
 <!-- The play look draws the player's marks in --player-1; a seat's card draws them in that seat's colour. -->
 <div
@@ -532,148 +601,14 @@
 					>lowest open space</b> in any column and immediately gain that
 				space&#x27;s reward.{/snippet}
 
-			<CardRewardColumns kind="beside">
-				<section
-					class="rg-card-craftsmen-column"
-					aria-labelledby="craftsmen-column-a">
-					<h4
-						class="rg-card-craftsmen-column--title"
-						id="craftsmen-column-a">
-						Column A <small>fill from bottom</small>
-					</h4>
-					<ol class="rg-card-craftsmen-column--rows">
-						<li class="rg-card-craftsmen-row">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"></CardSlot
-							><span
-								class="rg-card-craftsmen-benefit rg-card-craftsmen-benefit--vp"
-								>5 VP</span>
-						</li>
-						<li class="rg-card-craftsmen-row rg-card-is-filled">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"
-								><img
-									src="/art/building/farm.svg"
-									alt="" /></CardSlot
-							><span class="rg-card-craftsmen-benefit"
-								>Gain 1 territory tile</span>
-						</li>
-						<li class="rg-card-craftsmen-row rg-card-is-filled">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"
-								><img
-									src="/art/building/house.svg"
-									alt="" /></CardSlot
-							><span
-								class="rg-card-craftsmen-benefit rg-card-craftsmen-benefit--resource"
-								>+ <CardResource
-									symbol="worker"
-									class="" /></span>
-						</li>
-					</ol>
-				</section>
-				<section
-					class="rg-card-craftsmen-column"
-					aria-labelledby="craftsmen-column-b">
-					<h4
-						class="rg-card-craftsmen-column--title"
-						id="craftsmen-column-b">
-						Column B <small>fill from bottom</small>
-					</h4>
-					<ol class="rg-card-craftsmen-column--rows">
-						<li class="rg-card-craftsmen-row">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"></CardSlot
-							><span
-								class="rg-card-craftsmen-benefit rg-card-craftsmen-benefit--vp"
-								>10 VP</span>
-						</li>
-						<li class="rg-card-craftsmen-row">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"></CardSlot
-							><span class="rg-card-craftsmen-benefit"
-								>Upgrade 1 tech card</span>
-						</li>
-						<li class="rg-card-craftsmen-row">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"></CardSlot
-							><span class="rg-card-craftsmen-benefit"
-								>Invent 1 tech card</span>
-						</li>
-						<li class="rg-card-craftsmen-row">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"></CardSlot
-							><span
-								class="rg-card-craftsmen-benefit rg-card-craftsmen-benefit--resource"
-								>+ <CardResource
-									symbol="coin"
-									class="" /></span>
-						</li>
-					</ol>
-				</section>
-				<section
-					class="rg-card-craftsmen-column"
-					aria-labelledby="craftsmen-column-c">
-					<h4
-						class="rg-card-craftsmen-column--title"
-						id="craftsmen-column-c">
-						Column C <small>fill from bottom</small>
-					</h4>
-					<ol class="rg-card-craftsmen-column--rows">
-						<li class="rg-card-craftsmen-row">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"></CardSlot
-							><span
-								class="rg-card-craftsmen-benefit rg-card-craftsmen-benefit--vp"
-								>15 VP</span>
-						</li>
-						<li class="rg-card-craftsmen-row">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"></CardSlot
-							><span class="rg-card-craftsmen-benefit"
-								>Research <span
-									class="rg-card-craftsmen-benefit--nowrap"
-									>with benefit;</span> bonus is available</span>
-						</li>
-						<li class="rg-card-craftsmen-row">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"></CardSlot
-							><span
-								class="rg-card-craftsmen-benefit rg-card-craftsmen-benefit--resource"
-								>+ <CardResource
-									symbol="culture"
-									class="" /></span>
-						</li>
-						<li class="rg-card-craftsmen-row">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"></CardSlot
-							><span class="rg-card-craftsmen-benefit"
-								>Gain 1 tapestry card</span>
-						</li>
-						<li class="rg-card-craftsmen-row">
-							<CardSlot
-								size={62}
-								class="rg-card-craftsmen-slot"></CardSlot
-							><span
-								class="rg-card-craftsmen-benefit rg-card-craftsmen-benefit--resource"
-								>+ <CardResource
-									symbol="food"
-									class="" /></span>
-						</li>
-					</ol>
-				</section>
-			</CardRewardColumns>
+			<CardRewardColumns
+				columns={CRAFTSMEN_COLUMNS.map((column) => ({
+					...column,
+					rows: column.rows.map((row) => ({
+						...row,
+						filled: state === 'play' && row.building !== undefined,
+					})),
+				}))} />
 			<CardClarity>
 				Buildings here count as part of your capital for
 				building-related benefits, but these columns do not score as
@@ -1112,98 +1047,20 @@
 			{#snippet effect()}At the start of income turns 2–5, move one token
 				up one square and gain everything shown there.{/snippet}
 
-			<CardRewardColumns kind="inside">
-				<div class="rg-card-merry-column {marked('m0', 'moved')}">
-					<CardSlot
-						size={75}
-						{...spotProps('m0l3')}
-						class="rg-card-merry-cell {marked('m0l3', 'token')}"
-						><span class="rg-card-merry-cell--reward"
-							><CardResource
-								symbol="culture"
-								class="" /> + armory</span
-						>{@render merryToken('m0l3')}</CardSlot
-					><CardSlot
-						size={75}
-						{...spotProps('m0l2')}
-						class="rg-card-merry-cell {marked('m0l2', 'token')}"
-						><span class="rg-card-merry-cell--reward"
-							><CardResource
-								symbol="worker"
-								class="" /> + <CardResource
-								symbol="food"
-								class="" /></span
-						>{@render merryToken('m0l2')}</CardSlot
-					><CardSlot
-						size={75}
-						{...spotProps('m0l1')}
-						class="rg-card-merry-cell {marked('m0l1', 'token')}"
-						><span class="rg-card-merry-cell--reward"
-							><CardResource
-								symbol="coin"
-								class="" /></span
-						>{@render merryToken('m0l1')}</CardSlot
-					><CardSlot
-						size={62}
-						class="rg-card-merry-start"
-						><PlayerToken
-							{seat}
-							color="blue"
-							decorative /></CardSlot>
-				</div>
-				<div class="rg-card-merry-column {marked('m1', 'moved')}">
-					<CardSlot
-						size={75}
-						{...spotProps('m1l3')}
-						class="rg-card-merry-cell {marked('m1l3', 'token')}"
-						>Explore +<br />Research{@render merryToken(
-							'm1l3'
-						)}</CardSlot
-					><CardSlot
-						size={75}
-						{...spotProps('m1l2')}
-						class="rg-card-merry-cell {marked('m1l2', 'token')}"
-						>Invent +<br />tapestry card{@render merryToken(
-							'm1l2'
-						)}</CardSlot
-					><CardSlot
-						size={75}
-						{...spotProps('m1l1')}
-						class="rg-card-merry-cell {marked('m1l1', 'token')}"
-						>Territory tile{@render merryToken('m1l1')}</CardSlot
-					><CardSlot
-						size={62}
-						class="rg-card-merry-start"
-						><PlayerToken
-							{seat}
-							color="blue"
-							decorative /></CardSlot>
-				</div>
-				<div class="rg-card-merry-column {marked('m2', 'moved')}">
-					<CardSlot
-						size={75}
-						{...spotProps('m2l3')}
-						class="rg-card-merry-cell {marked('m2l3', 'token')}"
-						>15 VP{@render merryToken('m2l3')}</CardSlot
-					><CardSlot
-						size={75}
-						{...spotProps('m2l2')}
-						class="rg-card-merry-cell {marked('m2l2', 'token')}"
-						>10 VP{@render merryToken('m2l2')}</CardSlot
-					><CardSlot
-						size={75}
-						{...spotProps('m2l1')}
-						class="rg-card-merry-cell {marked('m2l1', 'token')}"
-						>5 VP{@render merryToken('m2l1')}</CardSlot
-					><CardSlot
-						size={62}
-						class="rg-card-merry-start"
-						><PlayerToken
-							{seat}
-							color="blue"
-							decorative /></CardSlot>
-				</div>
-			</CardRewardColumns>
+			<CardRewardColumns
+				kind="inside"
+				{seat}
+				columns={MERRYMAKER_COLUMNS.map((column) => ({
+					id: column.id,
+					moved: marks[column.id]?.includes('moved'),
+					cells: column.cells.map((cell) => ({
+						...cell,
+						current: marks[cell.id]?.includes('token'),
+					})),
+				}))}
+				choices={Object.keys(choices)}
+				picked={selected}
+				onCardRewardColumnsPick={slotPickHandler} />
 			<CardClarity>
 				Each column starts with one token below its lowest square.
 				Double rewards grant both items; Explore and Research include

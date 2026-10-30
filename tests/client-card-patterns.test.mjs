@@ -9,6 +9,7 @@ import CardClarity from '../src/lib/components/player/CardClarity.svelte';
 import CardEffectBox from '../src/lib/components/player/CardEffectBox.svelte';
 import CardEffectList from '../src/lib/components/player/CardEffectList.svelte';
 import CardPredictionTracks from '../src/lib/components/player/CardPredictionTracks.svelte';
+import CardRewardColumns from '../src/lib/components/player/CardRewardColumns.svelte';
 import CardResource from '../src/lib/components/player/CardResource.svelte';
 import CardScoreLadder from '../src/lib/components/player/CardScoreLadder.svelte';
 import CardTerrainRewards from '../src/lib/components/player/CardTerrainRewards.svelte';
@@ -340,5 +341,106 @@ test('CivilizationCard writes no prediction row by hand (#106)', () => {
 	assert.doesNotMatch(
 		source('CivilizationCard'),
 		/rg-card-mystic-|mysticNumbers/
+	);
+});
+
+test('CardRewardColumns draws columns beside from data: titles, benefits by kind, and a filled square with its building', () => {
+	const body = html(
+		render(CardRewardColumns, {
+			props: {
+				columns: [
+					{
+						title: 'Column A',
+						note: 'fill from bottom',
+						rows: [
+							{ vp: 5 },
+							{
+								text: 'Gain 1 territory tile',
+								building: 'farm',
+								filled: true,
+							},
+							{ gain: 'worker' },
+						],
+					},
+					{
+						title: 'Column C',
+						rows: [
+							{
+								text: 'Research',
+								keep: 'with benefit;',
+								after: 'bonus is available',
+							},
+						],
+					},
+				],
+			},
+		})
+	);
+	assert.equal(body.match(/<section /g)?.length, 2);
+	assert.match(body, /Column A\s*<small[^>]*>fill from bottom<\/small>/);
+	assert.match(body, /rg-card-reward-columns--vp[^"]*">5 VP</);
+	assert.match(
+		body,
+		/rg-card-reward-columns--gain[^"]*">\+ <span class="rg-card-resource/
+	);
+	assert.equal(body.match(/rg-card-reward-columns--filled/g)?.length, 1);
+	assert.equal(
+		body.match(/<img src="\/art\/building\/farm\.svg"/g)?.length,
+		1
+	);
+	assert.match(
+		body,
+		/Research <span class="rg-card-reward-columns--keep[^"]*">with benefit;<\/span> bonus is available/
+	);
+});
+
+test('CardRewardColumns draws columns inside from data: rewards, the token on the current square, the start token until it moves, and the offered squares', () => {
+	const body = html(
+		render(CardRewardColumns, {
+			props: {
+				kind: 'inside',
+				seat: 2,
+				columns: [
+					{
+						id: 'm0',
+						moved: true,
+						cells: [
+							{
+								id: 'm0l2',
+								gains: ['worker', 'food'],
+								current: true,
+							},
+							{ id: 'm0l1', gains: ['culture'], also: 'armory' },
+						],
+					},
+					{
+						id: 'm1',
+						cells: [
+							{ id: 'm1l1', lines: ['Explore +', 'Research'] },
+						],
+					},
+				],
+				choices: ['m1l1'],
+			},
+		})
+	);
+	assert.match(body, /rg-card-reward-columns--inside/);
+	assert.equal(body.match(/rg-card-reward-columns--current/g)?.length, 1);
+	assert.match(body, /<\/span> \+ <span class="rg-card-resource/);
+	assert.match(body, /<\/span> \+ armory<\/span>/);
+	assert.match(body, /Explore \+<br\/?>Research/);
+	assert.equal(
+		body.match(/rg-player-token/g)?.length,
+		2,
+		'the current token and one start token'
+	);
+	assert.equal(body.match(/<button/g)?.length, 1);
+	assert.match(body, /data-id="civ-spot-m1l1"/);
+});
+
+test('CivilizationCard writes no reward column by hand (#106)', () => {
+	assert.doesNotMatch(
+		source('CivilizationCard'),
+		/rg-card-(craftsmen|merry)-|merryToken/
 	);
 });

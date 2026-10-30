@@ -471,96 +471,6 @@
 .rg-card-frame--craftsmen .rg-card-frame--body {
 	min-height: 184px;
 }
-.rg-card-craftsmen-columns {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 5px;
-	margin: 3px 12px 0;
-}
-.rg-card-craftsmen-column {
-	display: flex;
-	flex-direction: column;
-	min-width: 0;
-	margin: 0;
-}
-.rg-card-craftsmen-column + .rg-card-craftsmen-column {
-	border-left: 1px solid var(--line-soft);
-	padding-left: 5px;
-}
-.rg-card-craftsmen-column--title {
-	margin: 0 0 8px;
-	color: var(--gold);
-	font:
-		700 12px/1.2 'Atkinson Hyperlegible',
-		sans-serif;
-}
-.rg-card-craftsmen-column--title small {
-	display: block;
-	color: var(--muted);
-	font-size: 10px;
-	font-weight: 400;
-}
-.rg-card-craftsmen-column--rows {
-	display: grid;
-	gap: 5px;
-	margin: auto 0 0;
-	padding: 0;
-	list-style: none;
-}
-.rg-card-craftsmen-row {
-	display: grid;
-	grid-template-columns: 62px minmax(0, 1fr);
-	align-items: center;
-	gap: 5px;
-	min-height: 62px;
-}
-.rg-card-craftsmen-slot {
-	display: grid;
-	place-items: center;
-	width: 62px;
-	height: 62px;
-	background: var(--card-slot);
-	border: 1px solid var(--card-slot-border);
-}
-.rg-card-craftsmen-slot img {
-	display: none;
-	width: 36px;
-	height: 36px;
-}
-.rg-card-craftsmen-benefit {
-	min-width: 0;
-	overflow-wrap: break-word;
-	color: var(--text);
-	font:
-		400 11px/1.2 'Atkinson Hyperlegible',
-		sans-serif;
-}
-.rg-card-craftsmen-benefit {
-	--card-resource-center: -4px;
-}
-.rg-card-craftsmen-benefit--resource,
-.rg-card-craftsmen-benefit--nowrap {
-	white-space: nowrap;
-}
-.rg-card-craftsmen-benefit--nowrap {
-	font-size: 10px;
-}
-.rg-card-craftsmen-benefit--vp {
-	font-size: 14px;
-	font-weight: 700;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-craftsmen-row.rg-card-is-filled
-	.rg-card-craftsmen-slot {
-	background: var(--card-filled-slot);
-	border: 2px solid var(--player-1);
-}
-.rg-card-frame[data-state='play']
-	.rg-card-craftsmen-row.rg-card-is-filled
-	.rg-card-craftsmen-slot
-	img {
-	display: block;
-}
 
 /* Entertainers: a token travels across four columns of rewards. */
 .rg-card-entertainer-path {
@@ -851,86 +761,7 @@
 }
 
 /* More original mats: compact square tracks and owner changes. */
-.rg-card-merry-grid {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 0;
-	margin: 2px 12px 12px;
-}
-.rg-card-merry-column {
-	display: grid;
-	justify-items: center;
-	gap: 6px;
-	padding: 0 8px;
-}
-.rg-card-merry-column + .rg-card-merry-column {
-	border-left: 1px solid var(--line-soft);
-}
-.rg-card-merry-cell {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
-	width: 75px;
-	height: 75px;
-	padding: 4px;
-	border: 1px solid var(--card-slot-border);
-	background: var(--card-slot);
-	color: var(--card-text);
-	font:
-		700 11px/1.15 'Atkinson Hyperlegible',
-		sans-serif;
-	text-align: center;
-}
-.rg-card-merry-cell {
-	--card-resource-height: 24px;
-	--card-resource-center: 12px;
-}
-.rg-card-merry-cell--reward {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
-	white-space: nowrap;
-}
-.rg-card-merry-cell--token {
-	position: absolute;
-	right: 3px;
-	top: 3px;
-	display: none;
-	width: 21px;
-	height: 21px;
-}
-.rg-card-merry-start {
-	display: grid;
-	place-items: center;
-	width: 62px;
-	height: 62px;
-	margin-top: 4px;
-	border: 1px solid var(--card-slot-border);
-	background: var(--card-slot);
-}
-.rg-card-merry-start img {
-	width: 26px;
-	height: 26px;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-merry-column.rg-card-is-moved
-	.rg-card-merry-start
-	img {
-	display: none;
-}
-.rg-card-frame[data-state='play'] .rg-card-merry-cell.rg-card-is-current {
-	border: 2px solid var(--player-1);
-	box-shadow: var(--glow-current);
-}
-.rg-card-frame[data-state='play']
-	.rg-card-merry-cell.rg-card-is-current
-	.rg-card-merry-cell--token {
-	display: block;
-}
+
 .rg-card-history-grid {
 	display: grid;
 	grid-template-columns: repeat(2, 75px);
@@ -1045,12 +876,7 @@
 	justify-content: center;
 	gap: 2px;
 }
-.rg-card-merry-cell {
-	display: flex;
-}
-.rg-card-frame .rg-card-craftsmen-benefit {
-	overflow-wrap: normal;
-}
+
 .rg-card-frame [tabindex='0']:focus-visible {
 	outline: 2px solid var(--player-1);
 	outline-offset: 2px;
