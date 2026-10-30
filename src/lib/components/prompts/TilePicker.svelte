@@ -37,6 +37,7 @@
 
 <script>
 	import TerritoryTile from '../player/TerritoryTile.svelte';
+	import VpTag from './VpTag.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 
 	/** @type {TilePickerProps} */
@@ -111,10 +112,11 @@
 				data-id="{dataIdPrefix}-{tile.id}"
 				onclick={(event) => selectHandler(tile.id, event)}>
 				{#if typeof tile.vp === 'number'}
-					<span
-						class="rg-tile-picker--vp"
-						class:rg-tile-picker--vp-zero={tile.vp === 0}
-						aria-hidden="true">+{tile.vp}</span>
+					<VpTag
+						value={tile.vp}
+						unit=""
+						muted={tile.vp === 0}
+						aria-hidden="true" />
 				{/if}
 				<span aria-hidden="true">
 					<TerritoryTile
@@ -147,11 +149,7 @@
 	}
 
 	.rg-tile-picker--small {
-		--rg-tile-picker-fill: color-mix(
-			in srgb,
-			var(--raised) 70%,
-			transparent
-		);
+		--rg-tile-picker-fill: var(--choice-fill);
 		--rg-tile-picker-hover-fill: var(--rg-tile-picker-fill);
 	}
 
@@ -184,7 +182,7 @@
 	}
 
 	.rg-tile-picker--tile:disabled {
-		opacity: 0.35;
+		opacity: var(--opacity-unpickable);
 		cursor: default;
 	}
 
@@ -201,7 +199,7 @@
 
 	.rg-tile-picker--tile[aria-pressed='true'] {
 		border-color: var(--gold);
-		background: color-mix(in srgb, var(--gold) 17%, var(--surface));
+		background: var(--picked-fill);
 		outline: var(--border-thick) solid var(--gold);
 	}
 
@@ -210,22 +208,5 @@
 	.rg-tile-picker--tile[aria-pressed='true']:focus-visible {
 		outline-style: dashed;
 		outline-offset: var(--focus-offset);
-	}
-
-	.rg-tile-picker--vp {
-		position: absolute;
-		top: calc(var(--border) * -1);
-		right: calc(var(--border) * -1);
-		padding: 0 var(--space-3);
-		background: var(--gold);
-		color: var(--ink);
-		font-size: var(--font-size-xs);
-		font-weight: var(--weight-bold);
-		line-height: var(--leading-snug);
-	}
-
-	.rg-tile-picker--vp-zero {
-		background: var(--line);
-		color: var(--text);
 	}
 </style>

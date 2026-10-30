@@ -357,11 +357,6 @@
 		gap: var(--space-4);
 	}
 
-	.rg-decision-prompt--trades :global(.rg-decision-option:disabled) {
-		opacity: 0.35;
-		cursor: default;
-	}
-
 	/* The explore's content (#74): the lead and the tile row, then (pinned) what is chosen and the turn control. */
 	.rg-decision-prompt--explore {
 		display: grid;

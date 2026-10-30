@@ -382,7 +382,8 @@ test('no component or screen copies a scrim, the floating surface or the disable
 
 test('Button has an aria-disabled look, so no screen reaches into it (#97)', () => {
 	const button = sources.find(
-		([path]) => path.replaceAll('\\', '/') === 'lib/components/ui/Button.svelte'
+		([path]) =>
+			path.replaceAll('\\', '/') === 'lib/components/ui/Button.svelte'
 	)?.[1];
 	assert.match(String(button), /\.rg-button\[aria-disabled='true'\]/);
 	for (const [path, contents] of sources) {
@@ -406,4 +407,102 @@ test("no screen fights Panel over its heading's font (#97)", () => {
 		([path]) => path === 'screens/Lobby.svelte'
 	)?.[1];
 	assert.doesNotMatch(String(lobby), /rg-lobby--players-title/);
+});
+
+/**
+ * The source of a component or screen, by its path under src/.
+ * @param {string} path
+ */
+const sourceOf = (path) =>
+	String(
+		sources.find(
+			([candidate]) => candidate.replaceAll('\\', '/') === path
+		)?.[1]
+	);
+
+test('the chosen and resting fills, the VP tag and the unpickable look are tokens (#116)', () => {
+	for (const name of [
+		'--choice-fill',
+		'--picked-fill',
+		'--vp-tag',
+		'--vp-tag-text',
+		'--opacity-unpickable',
+	]) {
+		assert.ok(tokens.has(name), `${name} is declared`);
+	}
+	assert.equal(
+		tokens.get('--picked-fill'),
+		'color-mix(in srgb, var(--gold) 17%, var(--surface))'
+	);
+	assert.equal(
+		tokens.get('--choice-fill'),
+		'color-mix(in srgb, var(--raised) 70%, transparent)'
+	);
+	assert.equal(tokens.get('--opacity-unpickable'), '0.35');
+});
+
+test('no component or screen copies the chosen or the resting fill (#116)', () => {
+	for (const [path, contents] of sources) {
+		if (!path.endsWith('.svelte')) {
+			continue;
+		}
+		const css = cssOf(path, contents);
+		assert.doesNotMatch(
+			css,
+			/var\(--gold\)\s+17%,\s*var\(--surface\)/,
+			`${path} mixes its own chosen fill`
+		);
+		assert.doesNotMatch(
+			css,
+			/var\(--raised\)\s+70%,\s*transparent/,
+			`${path} mixes its own resting fill`
+		);
+	}
+});
+
+test('DecisionOption owns its disabled look, so nothing styles it from outside (#116)', () => {
+	const own = 'lib/components/prompts/DecisionOption.svelte';
+	for (const [path, contents] of sources) {
+		if (path.replaceAll('\\', '/') === own) {
+			continue;
+		}
+		assert.doesNotMatch(
+			cssOf(path, contents),
+			/\.rg-decision-option\b/,
+			`${path} styles DecisionOption`
+		);
+	}
+	assert.match(
+		cssOf(own, sourceOf(own)),
+		/\.rg-decision-option:disabled\s*\{[^}]*opacity: var\(--opacity-unpickable\);/
+	);
+});
+
+test('one VpTag draws "+N VP" for the options, the tiles and the turn control (#116)', () => {
+	const tag = sourceOf('lib/components/prompts/VpTag.svelte');
+	assert.match(tag, /var\(--vp-tag\)/);
+	assert.match(tag, /var\(--vp-tag-text\)/);
+	for (const [name, own] of [
+		['DecisionOption', /rg-decision-option--vp/],
+		['TilePicker', /rg-tile-picker--vp/],
+		['TurnControl', /rg-turn-control--tag/],
+	]) {
+		const source = sourceOf(`lib/components/prompts/${name}.svelte`);
+		assert.match(
+			source,
+			/import VpTag from '\.\/VpTag\.svelte';/,
+			`${name} draws its VP with VpTag`
+		);
+		assert.doesNotMatch(source, own, `${name} keeps a VP tag of its own`);
+	}
+	const mapPath = 'lib/components/board/WorldMap.svelte';
+	const map = cssOf(mapPath, sourceOf(mapPath));
+	assert.match(
+		map,
+		/\.rg-world-map--score-box\s*\{[^}]*fill: var\(--vp-tag\);[^}]*stroke: var\(--vp-tag-text\);/
+	);
+	assert.match(
+		map,
+		/\.rg-world-map--score-text\s*\{[^}]*fill: var\(--vp-tag-text\);/
+	);
 });
