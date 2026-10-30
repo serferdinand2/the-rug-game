@@ -47,8 +47,7 @@
 	} from '../lib/layers.js';
 	import { eventText } from '../lib/log.js';
 	import { highlights, prefersReducedMotion } from '../lib/motion.js';
-	import TapestryCard from '../lib/components/player/TapestryCard.svelte';
-	import TechnologyCard from '../lib/components/player/TechnologyCard.svelte';
+	import CardPreview from '../lib/components/player/CardPreview.svelte';
 	import { tabFor } from '../lib/area/tabs.js';
 	import { nextInspected, shownSeat } from '../lib/area/inspect.js';
 	import { achievements, trackBoard } from '../lib/board.js';
@@ -116,7 +115,7 @@
 	/** Another player whose tabs the player area shows, read-only, as their chip or number key chose them; null for your own (#145, owner 2026-10-30). */
 	let viewing = $state(/** @type {number | null} */ (null));
 	let tabSeat = $derived(shownSeat(viewing, seat));
-	/** @type {{ kind: 'tech' | 'tapestry', data: any, side?: boolean } | null} A card shown in full over the shared area; beside the shelf, without a scrim, for a shelf card */
+	/** @type {import('../lib/prompt-state.svelte.js').Inspected | null} A card shown in full over the shared area; beside the shelf, without a scrim, for a shelf card */
 	let inspected = $state(null);
 	/**
 	 * What is open over the screen (#88): How to play, Table settings, the players overview (#27) and the player it
@@ -721,16 +720,7 @@
 					onIncomeNoticeClose={noticeCloseHandler} />
 			{/if}
 			{#if inspected}
-				<div
-					class="rg-game--inspect"
-					class:rg-game--inspect-side={inspected.side}
-					aria-hidden="true">
-					{#if inspected.kind === 'tech'}
-						<TechnologyCard data={inspected.data} />
-					{:else}
-						<TapestryCard data={inspected.data} />
-					{/if}
-				</div>
+				<CardPreview {...inspected} />
 			{/if}
 		</div>
 	{/snippet}
@@ -860,27 +850,9 @@
 				var(--rg-self-summary-color);
 	}
 
-	/* A card shown in full over the shared area, as the mockup's card overview: a scrim, the card, no pointer. */
-	.rg-game--inspect {
-		position: absolute;
-		z-index: var(--layer-popover);
-		inset: 0;
-		display: grid;
-		place-items: center;
-		background: var(--scrim);
-		pointer-events: none;
-	}
-
 	.rg-game--soon {
 		margin: 0;
 		padding: var(--space-9) 22px;
 		color: var(--muted);
-	}
-
-	/* A shelf card shown in full beside the shelf, at the left, so the shelf and its focus stay in sight (#28 review). */
-	.rg-game--inspect-side {
-		justify-items: start;
-		padding-left: var(--space-10);
-		background: transparent;
 	}
 </style>

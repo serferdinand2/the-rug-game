@@ -19,7 +19,7 @@
 	 * @property {Function} [onPlayerTabsBack] - Callback fired when Back to your area is pressed over another player's tabs
 	 * @property {string} code - The table code, which seeds the capital's terrain tiles
 	 * @property {string} [tab='capital'] - The tab on show; bindable
-	 * @property {Function} [onPlayerTabsInspect] - Callback fired with { kind: 'tech' | 'tapestry', data } when a card is hovered or focused, and with null on leave, so the shared area shows it in full
+	 * @property {Function} [onPlayerTabsInspect] - Callback fired with { kind: 'tech' | 'tapestry', id } for CardPreview when a card is hovered or focused, and with null on leave, so the shared area shows it in full
 	 * @property {PlayerTabsPlacement | null} [placement=null] - A building or landmark to place: the Capital tab lights a building's plots, or offers the landmark in the tray, and snaps it only to the options' places
 	 * @property {{ plots: { row: number, col: number }[], landmarks: string[] }} [fresh] - What the viewer just built (#29): the plots glow and the landmarks shine on the Capital tab
 	 * @property {Function} [onPlayerTabsPlace] - Callback fired with { index, confirm }: index is the option a building or landmark landed on, or null when the landmark went back to the tray; confirm is true when the landmark's own confirm control was pressed
@@ -402,10 +402,10 @@
 	}
 
 	/**
-	 * Tells the shared area which card to show in full, or none.
+	 * Tells the shared area which card to show in full, by its kind and id for CardPreview (#96), or none.
 	 * @param {'tech' | 'tapestry'} kind
 	 * @param {string | null} id
-	 * @param {Event} [event]
+	 * @param {ComponentEvent} event - The fan's or the tech rows' event
 	 */
 	function inspect(kind, id, event) {
 		if (typeof onPlayerTabsInspect !== 'function') {
@@ -413,19 +413,9 @@
 		}
 		onPlayerTabsInspect(
 			new ComponentEvent(
-				id === null
-					? null
-					: {
-							kind,
-							data:
-								kind === 'tech'
-									? techCardData(id)
-									: tapestryCardData(id),
-						},
-				/** @type {HTMLElement} */ (
-					event?.currentTarget ?? document.body
-				),
-				event
+				id === null ? null : { kind, id },
+				event.target,
+				event.originalEvent
 			)
 		);
 	}
@@ -492,13 +482,7 @@
 					overlap={70}
 					label="Tapestry cards in hand"
 					onCardFanInspect={(/** @type {ComponentEvent} */ event) =>
-						inspect(
-							'tapestry',
-							event.value.index === null
-								? null
-								: hand[event.value.index],
-							event.originalEvent
-						)}>
+						inspect('tapestry', event.value.item, event)}>
 					{#snippet card(/** @type {string} */ id)}
 						<ScaledCard
 							scale={0.42}
@@ -557,7 +541,7 @@
 			<TechRows
 				tech={player.tech}
 				onTechRowsInspect={(/** @type {ComponentEvent} */ event) =>
-					inspect('tech', event.value, event.originalEvent)} />
+					inspect('tech', event.value, event)} />
 			<section class="rg-player-tabs--row">
 				<h3 class="rg-player-tabs--row-title">
 					The display · {game.supply.tech.deck} in the deck
@@ -567,13 +551,7 @@
 					overlap={120}
 					label="Face-up tech cards"
 					onCardFanInspect={(/** @type {ComponentEvent} */ event) =>
-						inspect(
-							'tech',
-							event.value.index === null
-								? null
-								: game.supply.tech.faceUp[event.value.index],
-							event.originalEvent
-						)}>
+						inspect('tech', event.value.item, event)}>
 					{#snippet card(/** @type {string} */ id)}
 						<ScaledCard
 							scale={0.42}

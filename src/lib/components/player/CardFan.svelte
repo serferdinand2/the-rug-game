@@ -13,7 +13,7 @@
 	 * @property {'hand' | 'shelf'} [look='hand'] - 'hand': the hovered card rises and the chosen one has the focus outline; 'shelf': as a decision's card shelf, the hovered and chosen cards are outlined in gold, the chosen one glows and lifts, and a disabled one is faded
 	 * @property {boolean} [lift=true] - In the shelf look, whether the chosen card lifts; whole cards such as civilizations stay where they stand, so the outline fits them
 	 * @property {string} [label='Cards'] - Names the list for assistive technology
-	 * @property {Function} [onCardFanInspect] - Callback fired with { index } on hover or focus, and { index: null } on leave
+	 * @property {Function} [onCardFanInspect] - Callback fired with { index, item } on hover or focus, and { index: null, item: null } on leave
 	 * @property {Function} [onCardFanSelect] - Callback fired with { index } when a card is clicked or chosen with Enter
 	 */
 
@@ -22,7 +22,7 @@
 	 * @typedef {CardFanOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} CardFanProps
 	 *
 	 * @example
-	 * <CardFan items={hand} onCardFanInspect={(event) => (shown = event.value.index)}>
+	 * <CardFan items={hand} onCardFanInspect={(event) => (shown = event.value.item)}>
 	 *   {#snippet card(item)}<TapestryCard id={item} />{/snippet}
 	 * </CardFan>
 	 */
@@ -57,7 +57,13 @@
 			const target = /** @type {HTMLElement} */ (
 				/** @type {unknown} */ (event.currentTarget)
 			);
-			onCardFanInspect(new ComponentEvent({ index }, target, event));
+			onCardFanInspect(
+				new ComponentEvent(
+					{ index, item: index === null ? null : items[index] },
+					target,
+					event
+				)
+			);
 		}
 	}
 

@@ -122,14 +122,12 @@
 		}
 	};
 
-	/** @param {ComponentEvent} event - The fan's, whose value is the card's position, or null when it ends */
+	/** @param {ComponentEvent} event - The fan's, whose item is the shelf card, or null when it ends (#96) */
 	const fanInspectHandler = (event) => {
 		if (typeof onCardShelfInspect === 'function') {
 			onCardShelfInspect(
 				new ComponentEvent(
-					event.value.index === null
-						? null
-						: cards[event.value.index].index,
+					event.value.item?.index ?? null,
 					event.target,
 					event.originalEvent
 				)

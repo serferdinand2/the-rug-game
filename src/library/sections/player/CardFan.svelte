@@ -10,7 +10,7 @@
 
 	const hand = ['academia', 'age-of-discovery', 'age-of-sail', 'trap'];
 
-	/** @type {number | null} */
+	/** @type {string | null} */
 	let inspected = $state(null);
 	/** @type {number | null} */
 	let chosen = $state(null);
@@ -34,14 +34,14 @@
 			items={hand}
 			label="Tapestry cards in hand"
 			onCardFanInspect={(/** @type {any} */ event) =>
-				(inspected = event.value.index)}>
+				(inspected = event.value.item)}>
 			{#snippet card(/** @type {string} */ id)}
 				<div style:zoom="0.5">
 					<TapestryCard {id} />
 				</div>
 			{/snippet}
 		</CardFan>
-		<p>Inspecting: {inspected === null ? 'none' : hand[inspected]}</p>
+		<p>Inspecting: {inspected ?? 'none'}</p>
 	</Example>
 	<Example
 		label="selected={chosen}"
