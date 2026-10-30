@@ -96,6 +96,19 @@ export function eraSlots(seat) {
 }
 
 /**
+ * The era to show by default: the active slot, otherwise the latest slot with a card.
+ * @param {readonly EraSlotView[]} slots
+ * @returns {number | null}
+ */
+export function defaultEra(slots) {
+	return (
+		slots.find((slot) => slot.active)?.era ??
+		slots.findLast((slot) => slot.id !== null)?.era ??
+		null
+	);
+}
+
+/**
  * One era slot's card, before its words.
  * @param {any} seat
  * @param {number} era

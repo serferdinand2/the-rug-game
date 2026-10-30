@@ -1,7 +1,45 @@
 // Placing on the capital (#28): a building's lit plots, and the legal places a landmark snaps to, from the prompt's options.
 // The engine's answers are the only legal places; the grid's own fit check never decides one.
 import { FOOTPRINTS } from '../art/footprints.js';
+import { rotateFootprint } from '../capital.js';
 import { landmarkName } from '../game-names.js';
+
+/**
+ * A placeable landmark as the Capital tab draws it.
+ * @typedef {Object} PlaceablePiece
+ * @property {string} id
+ * @property {string} name
+ * @property {readonly string[]} footprint
+ */
+
+/**
+ * A building or landmark placement decision from the game view.
+ * @typedef {Object} PlacementPrompt
+ * @property {{ building?: string, landmark?: string }} piece
+ * @property {PlacementOption[]} options
+ * @property {number | null} picked
+ */
+
+/**
+ * The landmarks and plots that were just built.
+ * @typedef {Object} FreshCapital
+ * @property {import('../components/player/CapitalGrid.svelte').CapitalGridTarget[]} plots
+ * @property {string[]} landmarks
+ */
+
+/**
+ * The values the Capital tab draws for a pending placement.
+ * @typedef {Object} CapitalPlacementView
+ * @property {string | null} building
+ * @property {PlaceablePiece | null} landmark
+ * @property {OptionPlot | null} picked
+ * @property {{ row: number, col: number, index: number }[]} targets
+ * @property {import('../placement.js').PiecePosition[] | null} positions
+ * @property {import('../components/player/CapitalGrid.svelte').CapitalGridPreview | null} preview
+ * @property {(import('../components/player/CapitalGrid.svelte').CapitalGridPiece & { rotation: number }) | null} placed
+ * @property {import('../components/player/CapitalGrid.svelte').CapitalGridPiece[]} pieces
+ * @property {(PlaceablePiece & { rotation: number })[]} tray
+ */
 
 /**
  * A capital plot an option stands for: a building's plot, or a landmark's top-left corner and turn.
@@ -28,6 +66,93 @@ export function placingPiece(landmark) {
 		id: landmark,
 		name: landmarkName(landmark),
 		footprint: FOOTPRINTS[landmark],
+	};
+}
+
+/**
+ * The top-left corner that puts a turned landmark's middle on the requested plot.
+ * @param {readonly string[]} footprint
+ * @param {number} rotation - Quarter turns clockwise, 0–3
+ * @param {number} row - The plot to centre on
+ * @param {number} col - The plot to centre on
+ * @returns {{ row: number, col: number }}
+ */
+export function centredCorner(footprint, rotation, row, col) {
+	const shape = rotateFootprint(footprint, rotation);
+	return {
+		row: row - Math.floor((shape.length - 1) / 2),
+		col: col - Math.floor((shape[0].length - 1) / 2),
+	};
+}
+
+/**
+ * The nearest legal option when a plot is clicked for a landmark.
+ * @param {readonly PlacementOption[]} options
+ * @param {PlaceablePiece} landmark
+ * @param {{ row: number, col: number }} at - The plot that was clicked
+ * @param {{ rotation: number } | null} placed - The landmark's current turn, or null when it is in the tray
+ * @returns {number | null}
+ */
+export function landingIndex(options, landmark, at, placed) {
+	const rotation = placed?.rotation ?? 0;
+	const corner = centredCorner(landmark.footprint, rotation, at.row, at.col);
+	return placed
+		? legalNear(options, corner.row, corner.col, rotation)
+		: placeNear(options, corner.row, corner.col, rotation);
+}
+
+/**
+ * The Capital tab's placement and landmark values, derived from the prompt.
+ * @param {import('./capital.js').CapitalView | null} capital
+ * @param {PlacementPrompt | null} placement
+ * @param {FreshCapital} fresh
+ * @returns {CapitalPlacementView}
+ */
+export function capitalPlacement(capital, placement, fresh) {
+	const building = placement?.piece.building ?? null;
+	const landmark =
+		placement?.piece.landmark &&
+		placement.options.some((option) => option.plot)
+			? placingPiece(placement.piece.landmark)
+			: null;
+	const picked =
+		placement?.options.find(
+			(option) => option.plot && option.index === placement?.picked
+		)?.plot ?? null;
+	const targets = building && placement ? plotTargets(placement.options) : [];
+	const positions =
+		landmark && placement ? landmarkPositions(placement.options) : null;
+	const preview =
+		building && picked
+			? { row: picked.row, col: picked.col, building }
+			: null;
+	const placed =
+		landmark && picked && picked.rotation !== null
+			? {
+					...landmark,
+					row: picked.row,
+					col: picked.col,
+					rotation: picked.rotation,
+				}
+			: null;
+	const pieces = (
+		capital && placed
+			? [...capital.pieces, placed]
+			: (capital?.pieces ?? [])
+	).map((piece) =>
+		fresh.landmarks.includes(piece.id) ? { ...piece, fresh: true } : piece
+	);
+	const tray = landmark && !placed ? [{ ...landmark, rotation: 0 }] : [];
+	return {
+		building,
+		landmark,
+		picked,
+		targets,
+		positions,
+		preview,
+		placed,
+		pieces,
+		tray,
 	};
 }
 

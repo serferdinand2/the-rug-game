@@ -110,13 +110,19 @@ test("Your area's Capital and Tech tabs draw CapitalCity and TechRows", () => {
 });
 
 test('neither screen keeps its own capital or tech rows', () => {
+	const playerTabs = source('src/screens/game/PlayerTabs.svelte');
+	const capitalTab = source('src/screens/game/CapitalTab.svelte');
+	const techTab = source('src/screens/game/TechTab.svelte');
+	assert.match(playerTabs, /import CapitalTab from/);
+	assert.match(playerTabs, /import TechTab from/);
+	assert.match(capitalTab, /import CapitalCity from/);
+	assert.match(techTab, /import TechRows from/);
+
 	for (const path of [
 		'src/screens/game/PlayerTabs.svelte',
 		'src/screens/game/PlayersOverview.svelte',
 	]) {
 		const text = source(path);
-		assert.match(text, /import CapitalCity from/, path);
-		assert.match(text, /import TechRows from/, path);
 		assert.doesNotMatch(
 			text,
 			/import (CapitalGrid|CompletionCounters) /,
@@ -126,4 +132,8 @@ test('neither screen keeps its own capital or tech rows', () => {
 		assert.doesNotMatch(text, /TECH_ROWS|'Middle'|'Top row'/, path);
 		assert.doesNotMatch(text, /--name\b|--shape|--empty-row/, path);
 	}
+
+	const overview = source('src/screens/game/PlayersOverview.svelte');
+	assert.match(overview, /import CapitalCity from/);
+	assert.match(overview, /import TechRows from/);
 });

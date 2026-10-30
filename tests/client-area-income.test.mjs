@@ -2,7 +2,7 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { exposedSpaces, view } from '../src/lib/engine/game.js';
-import { eraSlots, incomeRows } from '../src/lib/area/income.js';
+import { defaultEra, eraSlots, incomeRows } from '../src/lib/area/income.js';
 import { startedGame } from './helpers/engine.mjs';
 
 /** @param {any} state @returns {any} */
@@ -143,4 +143,22 @@ test('a card the Heralds play on Maker of Fire shows on era 1, and may be the ac
 	assert.equal(slots[0].card, 'Capitalism');
 	assert.equal(slots[0].id, 'capitalism');
 	assert.equal(slots[0].active, true);
+});
+
+test('defaultEra chooses the active card, otherwise the latest card, or none', () => {
+	const slots = [
+		{ era: 1, id: 'first', active: false },
+		{ era: 2, id: null, active: false },
+		{ era: 3, id: 'third', active: false },
+		{ era: 4, id: 'fourth', active: false },
+	];
+	assert.equal(defaultEra(slots), 4);
+	assert.equal(
+		defaultEra(slots.map((slot) => ({ ...slot, active: slot.era === 1 }))),
+		1
+	);
+	assert.equal(
+		defaultEra(slots.map((slot) => ({ ...slot, id: null }))),
+		null
+	);
 });

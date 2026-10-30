@@ -11,6 +11,9 @@ import {
 	placingPiece,
 	landmarkPositions,
 	optionAt,
+	centredCorner,
+	landingIndex,
+	capitalPlacement,
 } from '../src/lib/area/placement-targets.js';
 import { stepAmong, turnAmong } from '../src/lib/placement.js';
 import { startedGame } from './helpers/engine.mjs';
@@ -189,4 +192,117 @@ test('the landmark being placed has its name and printed footprint', () => {
 		footprint: FOOTPRINTS.lighthouse,
 	});
 	assert.equal(placingPiece('rubber-works').name, 'Rubber Works');
+});
+
+test('centredCorner accounts for the turned footprint', () => {
+	assert.deepEqual(centredCorner(['XXX'], 0, 4, 4), { row: 4, col: 3 });
+	assert.deepEqual(centredCorner(['XXX'], 1, 4, 4), { row: 3, col: 4 });
+});
+
+test('landingIndex centres a clicked plot and keeps a placed landmark turned', () => {
+	const options = [at(0, 4, 3, 0), at(1, 4, 4, 0), at(2, 3, 4, 1)];
+	const landmark = { ...placingPiece('lighthouse'), footprint: ['XXX'] };
+	assert.equal(landingIndex(options, landmark, { row: 4, col: 4 }, null), 0);
+	assert.equal(
+		landingIndex(options, landmark, { row: 4, col: 4 }, { rotation: 1 }),
+		2
+	);
+	assert.equal(
+		landingIndex([BESIDE], landmark, { row: 4, col: 4 }, null),
+		null
+	);
+});
+
+test('capitalPlacement derives building preview and empty landmark state', () => {
+	const capital = { pieces: [] };
+	const fresh = { plots: [], landmarks: [] };
+	const building = capitalPlacement(
+		capital,
+		{
+			piece: { building: 'market' },
+			options: [at(0, 2, 3, null)],
+			picked: 0,
+		},
+		fresh
+	);
+	assert.equal(building.building, 'market');
+	assert.equal(building.landmark, null);
+	assert.deepEqual(building.picked, { row: 2, col: 3, rotation: null });
+	assert.deepEqual(building.targets, [{ row: 2, col: 3, index: 0 }]);
+	assert.deepEqual(building.preview, {
+		row: 2,
+		col: 3,
+		building: 'market',
+	});
+	assert.deepEqual(building.positions, null);
+	assert.deepEqual(building.placed, null);
+	assert.deepEqual(building.pieces, []);
+	assert.deepEqual(building.tray, []);
+
+	assert.deepEqual(capitalPlacement(capital, null, fresh), {
+		building: null,
+		landmark: null,
+		picked: null,
+		targets: [],
+		positions: null,
+		preview: null,
+		placed: null,
+		pieces: [],
+		tray: [],
+	});
+});
+
+test('capitalPlacement derives a landmark, tray, legal positions, and fresh pieces', () => {
+	const capital = {
+		pieces: [
+			{
+				id: 'observatory',
+				name: 'Observatory',
+				footprint: FOOTPRINTS.observatory,
+				row: 1,
+				col: 1,
+				rotation: 0,
+			},
+		],
+	};
+	const fresh = { plots: [], landmarks: ['observatory'] };
+	const options = [at(0, 3, 4, 1), at(1, 6, 8, 0), BESIDE];
+	const onCapital = capitalPlacement(
+		capital,
+		{
+			piece: { landmark: 'lighthouse' },
+			options,
+			picked: 0,
+		},
+		fresh
+	);
+	assert.equal(onCapital.landmark?.id, 'lighthouse');
+	assert.deepEqual(onCapital.picked, { row: 3, col: 4, rotation: 1 });
+	assert.deepEqual(onCapital.positions, [
+		{ row: 3, col: 4, rotation: 1 },
+		{ row: 6, col: 8, rotation: 0 },
+	]);
+	assert.deepEqual(onCapital.placed, {
+		...placingPiece('lighthouse'),
+		row: 3,
+		col: 4,
+		rotation: 1,
+	});
+	assert.equal(onCapital.pieces.length, 2);
+	assert.equal(onCapital.pieces[0].fresh, true);
+	assert.equal(onCapital.tray.length, 0);
+
+	const inTray = capitalPlacement(
+		capital,
+		{
+			piece: { landmark: 'lighthouse' },
+			options: [at(0, 6, 8, 0)],
+			picked: null,
+		},
+		{ plots: [], landmarks: [] }
+	);
+	assert.equal(inTray.placed, null);
+	assert.deepEqual(inTray.tray, [
+		{ ...placingPiece('lighthouse'), rotation: 0 },
+	]);
 });

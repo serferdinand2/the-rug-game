@@ -88,9 +88,9 @@ test('a small picker draws 34px tiles in its frames, a large one the tiles at th
 	);
 });
 
-test('the Terrain tab draws its territory tiles with TilePicker, not a button of its own', () => {
+test('TerrainTab draws its territory tiles with TilePicker, not a button of its own', () => {
 	const source = readFileSync(
-		new URL('../src/screens/game/PlayerTabs.svelte', import.meta.url),
+		new URL('../src/screens/game/TerrainTab.svelte', import.meta.url),
 		'utf8'
 	);
 	assert.match(source, /<TilePicker\b/);

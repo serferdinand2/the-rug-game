@@ -1,14 +1,7 @@
 <!-- The player area's tabs (#27 design §2): Capital, Hand, Income, Eras, Civ, Tech and Terrain, for the viewer's own seat, or read-only for another player's (#145). -->
 <script module>
-	/** @typedef {import('../../lib/area/placement-targets.js').PlacementOption} PlacementOption */
-
-	/**
-	 * A gained building or landmark waiting for a place, chosen on the Capital tab (#28).
-	 * @typedef {Object} PlayerTabsPlacement
-	 * @property {{ building?: string, landmark?: string }} piece - What is being placed
-	 * @property {PlacementOption[]} options - The prompt's options; only those with a plot are on the capital
-	 * @property {number | null} picked - The index of the option chosen so far, if any
-	 */
+	/** @typedef {import('../../lib/area/placement-targets.js').FreshCapital} FreshCapital */
+	/** @typedef {import('../../lib/area/placement-targets.js').PlacementPrompt} PlacementPrompt */
 
 	/**
 	 * Properties of the PlayerTabs screen part itself.
@@ -20,8 +13,8 @@
 	 * @property {string} code - The table code, which seeds the capital's terrain tiles
 	 * @property {string} [tab='capital'] - The tab on show; bindable
 	 * @property {Function} [onPlayerTabsInspect] - Callback fired with { kind: 'tech' | 'tapestry', id } for CardPreview when a card is hovered or focused, and with null on leave, so the shared area shows it in full
-	 * @property {PlayerTabsPlacement | null} [placement=null] - A building or landmark to place: the Capital tab lights a building's plots, or offers the landmark in the tray, and snaps it only to the options' places
-	 * @property {{ plots: { row: number, col: number }[], landmarks: string[] }} [fresh] - What the viewer just built (#29): the plots glow and the landmarks shine on the Capital tab
+	 * @property {PlacementPrompt | null} [placement=null] - A building or landmark to place: the Capital tab lights a building's plots, or offers the landmark in the tray, and snaps it only to the options' places
+	 * @property {FreshCapital} [fresh] - What the viewer just built (#29): the plots glow and the landmarks shine on the Capital tab
 	 * @property {Function} [onPlayerTabsPlace] - Callback fired with { index, confirm }: index is the option a building or landmark landed on, or null when the landmark went back to the tray; confirm is true when the landmark's own confirm control was pressed
 	 * @property {{ tiles: number[], selected: number | number[] | null, disabled?: number[] } | null} [tilePick=null] - While the viewer explores (#74) or pays tiles (#75): the territory tiles on offer and the one or ones picked, so In hand tiles can be picked here too; `disabled` can't be pressed now
 	 * @property {Function} [onPlayerTabsPick] - Callback fired with { tile } when an offered territory tile is pressed
@@ -48,40 +41,24 @@
 
 <script>
 	import Tabs from '../../lib/components/ui/Tabs.svelte';
-	import CapitalCity from '../../lib/components/player/CapitalCity.svelte';
-	import PlacementTray from '../../lib/components/player/PlacementTray.svelte';
 	import CardFan from '../../lib/components/player/CardFan.svelte';
 	import CivilizationCard from '../../lib/components/player/CivilizationCard.svelte';
-	import EraSlots from '../../lib/components/player/EraSlots.svelte';
 	import IncomeMat from '../../lib/components/player/IncomeMat.svelte';
 	import ScaledCard from '../../lib/components/player/ScaledCard.svelte';
 	import TapestryCard from '../../lib/components/player/TapestryCard.svelte';
-	import TechnologyCard from '../../lib/components/player/TechnologyCard.svelte';
-	import TechRows from '../../lib/components/player/TechRows.svelte';
-	import TilePicker from '../../lib/components/prompts/TilePicker.svelte';
+	import CapitalTab from './CapitalTab.svelte';
+	import ErasTab from './ErasTab.svelte';
+	import TechTab from './TechTab.svelte';
+	import TerrainTab from './TerrainTab.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { TABS } from '../../lib/area/tabs.js';
 	import { capitalView } from '../../lib/area/capital.js';
-	import { rotateFootprint } from '../../lib/capital.js';
-	import {
-		landmarkPositions,
-		legalNear,
-		optionAt,
-		placeNear,
-		placingPiece,
-		plotTargets,
-	} from '../../lib/area/placement-targets.js';
-	import { eraSlots, incomeRows } from '../../lib/area/income.js';
+	import { defaultEra, eraSlots, incomeRows } from '../../lib/area/income.js';
 	import { selfSummary } from '../../lib/overview.js';
 	import { terrainView } from '../../lib/area/terrain.js';
-	import {
-		tapestryCardData,
-		techCardData,
-	} from '../../lib/cards/game-cards.js';
+	import { tapestryCardData } from '../../lib/cards/game-cards.js';
 	import { CARD_SIZES } from '../../lib/cards/card-sizes.js';
-	import { artUrl } from '../../lib/ui.js';
 	import { CARD_CIVS, civCardView } from '../../lib/civ-card.js';
-	import { tileWords } from '../../lib/area/explore.js';
 	import InspectBar from '../../lib/components/player/InspectBar.svelte';
 	import {
 		areaWords,
@@ -133,108 +110,24 @@
 		}
 	};
 
-	/**
-	 * Reports a pressed territory tile, so the explore's tile picker follows.
-	 * @param {ComponentEvent} event - From TilePicker: { tile }
-	 */
-	const tilePickerSelectHandler = (event) => {
-		if (own && typeof onPlayerTabsPick === 'function') {
-			onPlayerTabsPick(
-				new ComponentEvent(
-					{ tile: event.value.tile },
-					event.target,
-					event.originalEvent
-				)
-			);
-		}
-	};
-
 	// Only what the viewer may see: another seat's hand and picks never reach the tabs (#145).
 	let player = $derived(publicSeat(game.seats[seat - 1], viewerSeat));
 	let hand = $derived(
 		/** @type {string[]} */ (own ? (player.hand ?? []) : [])
 	);
 	let capital = $derived(capitalView(player, code));
-	/** A placed landmark is being dragged, so the tray offers itself to take it back. */
-	let dragging = $state(false);
-	let building = $derived(placement?.piece.building ?? null);
-	/** The landmark being placed, when it has a place on the capital; with none, nothing is offered there. */
-	let landmark = $derived(
-		placement?.piece.landmark &&
-			placement.options.some((option) => option.plot)
-			? placingPiece(placement.piece.landmark)
-			: null
-	);
-	let picked = $derived(
-		placement?.options.find(
-			(option) => option.plot && option.index === placement?.picked
-		)?.plot ?? null
-	);
-	let targets = $derived(
-		building && placement ? plotTargets(placement.options) : []
-	);
-	/** The landmark's legal places, which the grid steps and snaps among (#112). */
-	let positions = $derived(
-		landmark && placement ? landmarkPositions(placement.options) : null
-	);
-	let preview = $derived(
-		building && picked
-			? { row: picked.row, col: picked.col, building }
-			: null
-	);
-	/** The landmark on the capital, unconfirmed, at the chosen place. */
-	let placed = $derived(
-		landmark && picked && picked.rotation !== null
-			? {
-					...landmark,
-					row: picked.row,
-					col: picked.col,
-					rotation: picked.rotation,
-				}
-			: null
-	);
-	let pieces = $derived(
-		(capital && placed
-			? [...capital.pieces, placed]
-			: (capital?.pieces ?? [])
-		).map((piece) =>
-			fresh.landmarks.includes(piece.id)
-				? { ...piece, fresh: true }
-				: piece
-		)
-	);
-	/** The tray holds the landmark until it is on the capital; it always starts unturned. */
-	let tray = $derived(
-		landmark && !placed ? [{ ...landmark, rotation: 0 }] : []
-	);
 	let income = $derived(incomeRows(player));
 	let eras = $derived(eraSlots(player));
 	/** @type {number | null} */
 	let eraShown = $state(null);
-	/** The era whose card shows by default: the active one, otherwise the latest slot with a card. */
-	let activeEra = $derived(
-		eras.find((/** @type {any} */ s) => s.active)?.era ??
-			eras.findLast((/** @type {any} */ s) => s.id !== null)?.era ??
-			null
-	);
+	let activeEra = $derived(defaultEra(eras));
 	// A new era card, or another seat, goes back to the default (#27 review).
 	$effect(() => {
 		activeEra;
 		seat;
 		eraShown = null;
 	});
-	let eraCard = $derived(
-		eras.find((/** @type {any} */ s) => s.era === (eraShown ?? activeEra))
-			?.id ?? null
-	);
 	let terrain = $derived(terrainView(player));
-	/** The territory tiles in hand, with their words for the ones on offer. */
-	let territories = $derived(
-		terrain.territories.map((tile) => ({
-			...tile,
-			label: tileWords(tile.id),
-		}))
-	);
 	let era = $derived(selfSummary(game, seat)?.era ?? 1);
 
 	let tabs = $derived(
@@ -242,164 +135,6 @@
 			t.id === 'hand' ? { ...t, count: handCount(player) } : { ...t }
 		)
 	);
-
-	/**
-	 * A lit plot was chosen for a building, or a plot for the landmark: it moves there, as near as it may go.
-	 * @param {ComponentEvent} event - From CapitalCity: { row, col }
-	 */
-	const plotClickHandler = (event) => {
-		const { row, col } = event.value;
-		if (building) {
-			const target = targets.find(
-				(plot) => plot.row === row && plot.col === col
-			);
-			if (target) {
-				place(target.index, false, event);
-			}
-		} else if (landmark) {
-			const rotation = placed ? placed.rotation : 0;
-			const at = centred(row, col, rotation);
-			land(
-				placed
-					? legalNear(
-							placement?.options ?? [],
-							at.row,
-							at.col,
-							rotation
-						)
-					: placeNear(placement?.options ?? [], at.row, at.col, 0),
-				event
-			);
-		}
-	};
-
-	/**
-	 * The top-left corner that puts the landmark's middle, in a turn, on a plot (#28 review): a 3×3 landmark asked for
-	 * at the middle starts a plot up and to the left of it.
-	 * @param {number} row
-	 * @param {number} col
-	 * @param {number} rotation
-	 * @returns {{ row: number, col: number }}
-	 */
-	function centred(row, col, rotation) {
-		const shape = landmark
-			? rotateFootprint(landmark.footprint, rotation)
-			: ['X'];
-		return {
-			row: row - Math.floor((shape.length - 1) / 2),
-			col: col - Math.floor((shape[0].length - 1) / 2),
-		};
-	}
-
-	/**
-	 * The landmark was chosen in the tray, by pointer or key: it goes near the middle of the capital.
-	 * @param {ComponentEvent} event
-	 */
-	const trayChooseHandler = (event) => {
-		const at = centred(4, 4, 0);
-		land(placeNear(placement?.options ?? [], at.row, at.col, 0), event);
-	};
-
-	/**
-	 * The landmark was dropped from the tray; row and col are where its top-left corner landed.
-	 * @param {ComponentEvent} event - From CapitalCity: { id, row, col }
-	 */
-	const dropHandler = (event) => {
-		land(
-			placeNear(
-				placement?.options ?? [],
-				event.value.row,
-				event.value.col,
-				0
-			),
-			event
-		);
-	};
-
-	/**
-	 * The placed landmark was dragged or moved with the arrow keys, onto one of the positions.
-	 * @param {ComponentEvent} event - From CapitalCity: { id, row, col }
-	 */
-	const moveHandler = (event) => {
-		if (placed) {
-			land(
-				optionAt(placement?.options ?? [], {
-					row: event.value.row,
-					col: event.value.col,
-					rotation: placed.rotation,
-				}),
-				event
-			);
-		}
-	};
-
-	/**
-	 * The placed landmark was turned, by its control or the . and , keys, to the next legal turn among the positions.
-	 * @param {ComponentEvent} event - From CapitalCity: { id, rotation, row, col }
-	 */
-	const rotateHandler = (event) => {
-		if (placed) {
-			land(
-				optionAt(placement?.options ?? [], {
-					row: event.value.row,
-					col: event.value.col,
-					rotation: event.value.rotation,
-				}),
-				event
-			);
-		}
-	};
-
-	/**
-	 * @param {ComponentEvent} event
-	 */
-	const confirmHandler = (event) => {
-		if (
-			placed &&
-			placement?.picked !== null &&
-			placement?.picked !== undefined
-		) {
-			place(placement.picked, true, event);
-		}
-	};
-
-	/**
-	 * The placed landmark went back to the tray, by its control, a key or a drop on the tray.
-	 * @param {ComponentEvent} event
-	 */
-	const returnHandler = (event) => {
-		dragging = false;
-		place(null, false, event);
-	};
-
-	/**
-	 * Moves the landmark to a legal place, unless it is already there.
-	 * @param {number | null} index - The option it lands on; null when there is none
-	 * @param {ComponentEvent} event
-	 */
-	function land(index, event) {
-		if (index !== null && index !== placement?.picked) {
-			place(index, false, event);
-		}
-	}
-
-	/**
-	 * Tells the screen which place is chosen.
-	 * @param {number | null} index - The option's index; null when the landmark went back to the tray
-	 * @param {boolean} confirm - The landmark's confirm control was pressed
-	 * @param {ComponentEvent} event - The event that caused it
-	 */
-	function place(index, confirm, event) {
-		if (own && typeof onPlayerTabsPlace === 'function') {
-			onPlayerTabsPlace(
-				new ComponentEvent(
-					{ index, confirm },
-					event.target,
-					event.originalEvent
-				)
-			);
-		}
-	}
 
 	/**
 	 * Tells the shared area which card to show in full, by its kind and id for CardPreview (#96), or none.
@@ -441,39 +176,12 @@
 		bind:value={tab}
 		label={words.tabs}>
 		{#if tab === 'capital'}
-			{#if capital}
-				<CapitalCity
-					{capital}
-					owner="Capital City"
-					{pieces}
-					{positions}
-					{targets}
-					{preview}
-					fresh={fresh.plots}
-					awaitingPlacement={placement !== null}
-					onCapitalCityPlotClick={plotClickHandler}
-					onCapitalCityDrop={dropHandler}
-					onCapitalCityMove={moveHandler}
-					onCapitalCityRotate={rotateHandler}
-					onCapitalCityConfirm={confirmHandler}
-					onCapitalCityReturn={returnHandler}
-					onCapitalCityDragStart={() => (dragging = true)}
-					onCapitalCityDragEnd={() => (dragging = false)} />
-				<PlacementTray
-					class="rg-player-tabs--tray"
-					items={tray}
-					returnTarget={dragging && placed !== null}
-					onPlacementTraySelect={trayChooseHandler}
-					onPlacementTrayPlace={trayChooseHandler}
-					onPlacementTrayReturn={returnHandler} />
-				{#if capital.besideMat.length}
-					<p class="rg-player-tabs--note">
-						Beside the mat: {capital.besideMat.join(', ')}
-					</p>
-				{/if}
-			{:else}
-				<p class="rg-player-tabs--note">{words.capitalSoon}</p>
-			{/if}
+			<CapitalTab
+				{capital}
+				capitalSoon={words.capitalSoon}
+				{placement}
+				{fresh}
+				onCapitalTabPlace={own ? onPlayerTabsPlace : undefined} />
 		{:else if tab === 'hand'}
 			<h2 class="rg-player-tabs--title">Hand</h2>
 			{#if hand.length}
@@ -501,17 +209,8 @@
 				rows={income}
 				{era} />
 		{:else if tab === 'eras'}
-			<h2 class="rg-player-tabs--title">{words.eras}</h2>
-			{#if eraCard}
-				<div class="rg-player-tabs--era-card">
-					<ScaledCard
-						scale={0.6}
-						{...CARD_SIZES.tapestry}>
-						<TapestryCard data={tapestryCardData(eraCard)} />
-					</ScaledCard>
-				</div>
-			{/if}
-			<EraSlots
+			<ErasTab
+				title={words.eras}
 				slots={eras}
 				bind:selected={eraShown} />
 		{:else if tab === 'civ'}
@@ -537,66 +236,18 @@
 				</div>
 			{/each}
 		{:else if tab === 'tech'}
-			<h2 class="rg-player-tabs--title">{words.tech}</h2>
-			<TechRows
+			<TechTab
+				title={words.tech}
 				tech={player.tech}
-				onTechRowsInspect={(/** @type {ComponentEvent} */ event) =>
+				deck={game.supply.tech.deck}
+				faceUp={game.supply.tech.faceUp}
+				onTechTabInspect={(/** @type {ComponentEvent} */ event) =>
 					inspect('tech', event.value, event)} />
-			<section class="rg-player-tabs--row">
-				<h3 class="rg-player-tabs--row-title">
-					The display · {game.supply.tech.deck} in the deck
-				</h3>
-				<CardFan
-					items={game.supply.tech.faceUp}
-					overlap={120}
-					label="Face-up tech cards"
-					onCardFanInspect={(/** @type {ComponentEvent} */ event) =>
-						inspect('tech', event.value.item, event)}>
-					{#snippet card(/** @type {string} */ id)}
-						<ScaledCard
-							scale={0.42}
-							{...CARD_SIZES.tech}>
-							<TechnologyCard data={techCardData(id)} />
-						</ScaledCard>
-					{/snippet}
-				</CardFan>
-			</section>
 		{:else if tab === 'terrain'}
-			<h2 class="rg-player-tabs--title">Territory tiles</h2>
-			{#if territories.length}
-				<!-- While exploring (#74) or paying tiles (#75), the tiles on offer can be pressed. -->
-				<TilePicker
-					class="rg-player-tabs--tiles"
-					aria-label="Territory tiles in hand"
-					size="large"
-					tiles={territories}
-					pickable={tilePick?.tiles ?? []}
-					selected={tilePick?.selected ?? null}
-					disabled={tilePick?.disabled ?? []}
-					dataIdPrefix="terrain-tile"
-					onTilePickerSelect={tilePickerSelectHandler} />
-			{:else}
-				<p class="rg-player-tabs--note">No territory tiles in hand.</p>
-			{/if}
-			<h2 class="rg-player-tabs--title">Space tiles</h2>
-			{#if terrain.space.length}
-				<div class="rg-player-tabs--tiles">
-					{#each terrain.space as tile (tile.id)}
-						<figure class="rg-player-tabs--space">
-							<img
-								src={artUrl(`space-tile/${tile.id}`)}
-								alt="Space tile {tile.id}"
-								width="64"
-								height="64" />
-							<figcaption>
-								{tile.explored ? 'Explored' : 'In hand'}
-							</figcaption>
-						</figure>
-					{/each}
-				</div>
-			{:else}
-				<p class="rg-player-tabs--note">No space tiles.</p>
-			{/if}
+			<TerrainTab
+				{terrain}
+				{tilePick}
+				onTerrainTabPick={own ? onPlayerTabsPick : undefined} />
 		{/if}
 	</Tabs>
 </div>
@@ -634,21 +285,16 @@
 		padding: var(--space-9) 22px;
 	}
 
-	.rg-player-tabs--title {
+	.rg-player-tabs :global(.rg-player-tabs--title) {
 		margin: 0 0 var(--space-6);
 		color: var(--text);
 		font: var(--weight-bold) var(--font-size-xl) / var(--leading-tight)
 			var(--font-body);
 	}
 
-	.rg-player-tabs--note {
+	.rg-player-tabs :global(.rg-player-tabs--note) {
 		margin: var(--space-6) 0;
 		color: var(--muted);
-	}
-
-	/* PlacementTray's root, reached through its class prop. */
-	.rg-player-tabs :global(.rg-player-tabs--tray) {
-		margin-top: var(--space-6);
 	}
 
 	/* A civilization card at full size, unscaled: its box is as wide as the card and positioned, as before #92. */
@@ -656,44 +302,5 @@
 		position: relative;
 		flex: none;
 		width: fit-content;
-	}
-
-	.rg-player-tabs--era-card {
-		margin-bottom: var(--space-8);
-	}
-
-	.rg-player-tabs--row {
-		margin-bottom: var(--space-8);
-	}
-
-	.rg-player-tabs--row-title {
-		display: flex;
-		align-items: center;
-		gap: var(--space-4);
-		margin: 0 0 var(--space-4);
-		color: var(--text);
-		font: var(--weight-bold) var(--font-size-sm) / var(--leading-tight)
-			var(--font-body);
-	}
-
-	/* Also TilePicker's root, reached through its class prop. */
-	.rg-player-tabs :global(.rg-player-tabs--tiles) {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-5);
-		margin-bottom: var(--space-9);
-	}
-
-	.rg-player-tabs--space {
-		display: grid;
-		justify-items: center;
-		gap: var(--space-2);
-		margin: 0;
-		color: var(--muted);
-		font-size: var(--font-size-2xs);
-	}
-
-	.rg-player-tabs--space img {
-		image-rendering: pixelated;
 	}
 </style>
