@@ -1,4 +1,4 @@
-// The World Map's geometry (#26 design §5.2): flat-topped hexes laid out from the engine's axial keys, terrain wedges, the island, the pieces and the fit.
+// The World Map's geometry (#26 design §5.2) and what it draws on each hex (#114): flat-topped hexes laid out from the engine's axial keys, terrain wedges, the island, the pieces, the fit, and the targets, scores and preview.
 import {
 	CLOUD_SIZE,
 	CLOUD_SPOT,
@@ -9,7 +9,13 @@ import {
 } from './art/hex-overlays.js';
 import { MAPS } from './engine/data/maps.js';
 import { terrainsOf, turned } from './engine/terrain.js';
-import { article, capitalize, countWords, joinList } from './words.js';
+import {
+	amountWords,
+	article,
+	capitalize,
+	countWords,
+	joinList,
+} from './words.js';
 import {
 	buildingName,
 	civilizationName,
@@ -407,6 +413,215 @@ export function mapHexes(view, size = HEX_SIZE) {
 			}),
 		};
 	});
+}
+
+/**
+ * A tile shown on a hex before it is explored.
+ * @typedef {Object} MapPreview
+ * @property {string} hex - The hex's key
+ * @property {Terrain[]} corners - Six terrains, clockwise from the top-left, already turned
+ * @property {Terrain[]} island - Empty when there is none
+ * @property {boolean} [clouds=false]
+ * @property {boolean} [volcano=false]
+ */
+
+/**
+ * What the World Map is asked to show on its hexes.
+ * @typedef {Object} MapAsk
+ * @property {readonly string[]} [targets=[]] - Hex keys a decision can choose
+ * @property {Record<string, number>} [scores={}] - The VP a picked tile scores on each target hex
+ * @property {string | null} [selected=null] - The chosen hex
+ * @property {MapPreview | null} [preview=null] - A tile to show on a hex before it is explored
+ * @property {readonly string[]} [fresh=[]] - Hexes that just changed (#29)
+ */
+
+/**
+ * A piece on a hex, in its spot.
+ * @typedef {Object} MapPiece
+ * @property {'outpost' | 'token'} kind
+ * @property {Seat} seat
+ * @property {boolean} toppled - Always false for a token
+ * @property {string | null} mark - A Nomads piece's mark as SVG points for a piece of side 1, or null
+ * @property {number} x - The spot's centre
+ * @property {number} y
+ * @property {number} size - The spot's side
+ */
+
+/**
+ * A VP tag near a hex's top: its box, the centre of its text, the font size and the text.
+ * @typedef {Box & { font: number, text: string }} MapTag
+ */
+
+/**
+ * One hex as the World Map draws it (#114): the hex, with a previewed tile in it, and everything worked out for it.
+ * @typedef {MapHex & {
+ *   previewed: boolean,
+ *   target: boolean,
+ *   score: number | null,
+ *   tag: MapTag | null,
+ *   selected: boolean,
+ *   dimmed: boolean,
+ *   veiled: boolean,
+ *   outlined: boolean,
+ *   pulses: boolean,
+ *   outline: string,
+ *   picture: Box,
+ *   pieces: MapPiece[],
+ * }} MapViewHex
+ * label is the hex for assistive technology, with "Showing the chosen tile." on a previewed hex and the VP on a
+ * scored one; score is the VP on a target hex, or null; dimmed is a hex that is not a target while others are, and
+ * veiled one of those that is explored, so a veil covers its painted terrain; outlined is drawn in the outline layer
+ * (a target, the preview, the selected hex or a fresh one; the screen adds the focused hex); pulses is a fresh hex
+ * that is neither a target nor selected; outline is its outline as SVG points.
+ */
+
+/**
+ * A VP tag near a hex's top, at HEX_SIZE, in map units: the text is 11, so it stays 10px or more down to 1366×768 on
+ * the 61-hex map, and the box keeps clear of the outline along the top edge (y = -34.6 for HEX_SIZE 40).
+ */
+const TAG = { width: 36, height: 14, top: -32, font: 11 };
+
+/** A Nomads piece's mark, for a piece of side 1: a house for a building, a narrow tower for a landmark. */
+const MARKS = {
+	building: '-0.26,0.26 -0.26,-0.04 0,-0.28 0.26,-0.04 0.26,0.26',
+	landmark: '-0.12,0.3 -0.12,-0.1 0,-0.32 0.12,-0.1 0.12,0.3',
+};
+
+/**
+ * The most a tile can score on a hex, in words, as the map and the tile picker both say it: "up to 3 VP".
+ * @param {number} vp
+ * @returns {string}
+ */
+export function upToVp(vp) {
+	return `up to ${amountWords('vp', vp)}`;
+}
+
+/**
+ * Every hex as the World Map draws it (#114): a previewed tile swapped in, each hex's target, score, tag, label,
+ * outline, picture and pieces, and which hexes dim, are veiled, are outlined and pulse.
+ * @param {readonly MapHex[]} hexes - From mapHexes at the same size
+ * @param {MapAsk} ask
+ * @param {number} [size=HEX_SIZE]
+ * @returns {MapViewHex[]}
+ */
+export function mapView(
+	hexes,
+	{ targets = [], scores = {}, selected = null, preview = null, fresh = [] },
+	size = HEX_SIZE
+) {
+	const targetSet = new Set(targets);
+	const targeting = targetSet.size > 0;
+	const scale = size / HEX_SIZE;
+	return hexes.map((raw) => {
+		const previewed = preview !== null && preview.hex === raw.key;
+		const hex = previewed
+			? {
+					...raw,
+					corners: preview.corners,
+					island: preview.island,
+					clouds: preview.clouds ?? false,
+					volcano: preview.volcano ?? false,
+					label: addWords(raw.label, 'showing the chosen tile'),
+				}
+			: raw;
+		const target = targetSet.has(hex.key);
+		const score =
+			target && typeof scores[hex.key] === 'number'
+				? scores[hex.key]
+				: null;
+		const isSelected = hex.key === selected;
+		const isFresh = fresh.includes(hex.key);
+		return {
+			...hex,
+			label:
+				score === null
+					? hex.label
+					: addWords(
+							hex.label,
+							isSelected
+								? amountWords('vp', score)
+								: upToVp(score)
+						),
+			previewed,
+			target,
+			score,
+			tag: score === null ? null : scoreTag(hex.center, score, scale),
+			selected: isSelected,
+			dimmed: targeting && !target,
+			// The painted map shows its terrain: a veil dims it when a decision lights other hexes.
+			veiled: targeting && raw.corners !== null && !target,
+			outlined: target || previewed || isSelected || isFresh,
+			pulses: isFresh && !target && !isSelected,
+			outline: svgPoints(
+				[0, 1, 2, 3, 4, 5].map((k) => hexCorner(hex.center, k, size))
+			),
+			picture: hexPicture(hex.center, size),
+			pieces: piecesOn(hex, size),
+		};
+	});
+}
+
+/**
+ * Words added to a hex's label: a sentence of their own after a full stop, otherwise after a comma.
+ * @param {string} text - The label, such as 'Hex −1,−1: unexplored.'
+ * @param {string} words - In lower case, such as 'up to 3 VP'
+ * @returns {string} Such as 'Hex −1,−1: unexplored. Up to 3 VP.'
+ */
+function addWords(text, words) {
+	return text.endsWith('.')
+		? `${text} ${capitalize(words)}.`
+		: `${text}, ${words}`;
+}
+
+/**
+ * A scored hex's "+N VP" tag, inside its top edge.
+ * @param {Point} center
+ * @param {number} score
+ * @param {number} scale - The hex size over HEX_SIZE
+ * @returns {MapTag}
+ */
+function scoreTag(center, score, scale) {
+	const width = TAG.width * scale;
+	const height = TAG.height * scale;
+	return {
+		x: center[0] - width / 2,
+		y: center[1] + TAG.top * scale,
+		width,
+		height,
+		font: TAG.font * scale,
+		text: `+${score} VP`,
+	};
+}
+
+/**
+ * The pieces on a hex, outposts first, each in its spot.
+ * @param {MapHex} hex
+ * @param {number} size
+ * @returns {MapPiece[]}
+ */
+function piecesOn(hex, size) {
+	const spots = pieceSpots(
+		hex.center,
+		hex.outposts.length + hex.tokens.length,
+		hex.island.length > 0,
+		size
+	);
+	return [
+		...hex.outposts.map((outpost, i) => ({
+			kind: /** @type {const} */ ('outpost'),
+			seat: outpost.seat,
+			toppled: outpost.toppled,
+			mark: outpost.piece ? MARKS[outpost.piece.kind] : null,
+			...spots[i],
+		})),
+		...hex.tokens.map((token, i) => ({
+			kind: /** @type {const} */ ('token'),
+			seat: token.seat,
+			toppled: false,
+			mark: null,
+			...spots[hex.outposts.length + i],
+		})),
+	];
 }
 
 /**
