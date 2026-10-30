@@ -1,10 +1,11 @@
-<!-- Library section: TextInput as the launch page's name and code fields, with a hint and an error, and the lobby's small read-only code. -->
+<!-- Library section: TextInput as the launch page's name and code fields, with a hint and an error, the lobby's small read-only code, and a hot-seat seat's small name field. -->
 <script>
 	import TextInput from '../../../lib/components/ui/TextInput.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
 
 	let name = $state('');
+	let seatName = $state('');
 	let code = $state('DAWN20');
 	let codeError = $derived(
 		/^[A-Za-z0-9]{8}$/.test(code) ? '' : 'Enter an 8-character table code.'
@@ -22,7 +23,7 @@
 <Section
 	name="TextInput"
 	area="ui"
-	description="Text fields with a bold label: the launch page's name and table-code inputs, with an optional hint and a validation message, and the lobby's small gold read-only code.">
+	description="Text fields with a bold label: the launch page's name and table-code inputs, with an optional hint and a validation message, the lobby's small gold read-only code, which keeps its line border on focus, and a hot-seat seat's small name field, which takes the gold focus and fills its frame with block.">
 	<Example
 		label={`label="Your name" value="${name}"  (type in it)`}
 		surface="chrome"
@@ -66,5 +67,19 @@
 			readonly
 			value="DAWN2048"
 			onTextInputFocus={selectHandler} />
+	</Example>
+	<Example
+		label={'size="small" block label="Name of the player in seat 3" hideLabel placeholder="Name, or leave empty"  (a hot-seat seat\'s name field; focus it for the gold glow)'}
+		surface="chrome"
+		width={222}>
+		<TextInput
+			size="small"
+			block
+			label="Name of the player in seat 3"
+			hideLabel
+			placeholder="Name, or leave empty"
+			maxlength={24}
+			autocomplete="off"
+			bind:value={seatName} />
 	</Example>
 </Section>

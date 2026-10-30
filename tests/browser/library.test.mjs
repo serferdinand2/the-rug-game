@@ -184,18 +184,23 @@ test('a hot-seat seat to name draws one gold frame, not one inside another', asy
 		.getByRole('group', { name: 'Seat 3: add a player' })
 		.first();
 	await expect(seat).toBeVisible();
-	// The frame is a border with the gold glow around it; the name field and Add have borders but no glow.
+	// The frame is a border with the gold glow around it: a shadow that blurs. The name field and Add have borders but no glow; the focused field's 1px gold ring does not blur (owner, 2026-10-30).
 	const frames = await seat.evaluate(
 		(root) =>
 			[root, ...root.querySelectorAll('*')].filter((el) => {
 				const style = getComputedStyle(el);
 				return (
-					style.boxShadow !== 'none' &&
+					/\) -?[\d.]+px -?[\d.]+px [1-9]/.test(style.boxShadow) &&
 					parseFloat(style.borderTopWidth) > 0
 				);
 			}).length
 	);
 	expect(frames).toBe(1);
+	// The name field and Add are the shared TextInput and gold Button.
+	await expect(seat.locator('.rg-text-input--field')).toHaveCount(1);
+	await expect(
+		seat.getByRole('button', { name: 'Add', exact: true })
+	).toHaveClass(/rg-button--gold/);
 });
 
 test('two chosen resources are gained, and a resource can be picked with the keyboard (#75)', async ({

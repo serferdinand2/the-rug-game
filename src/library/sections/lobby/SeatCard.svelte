@@ -135,7 +135,7 @@
 <Section
 	name="SeatCard"
 	area="lobby"
-	description="One of the five lobby seats. Every state is exactly one seat tall and as wide as its column: an empty slot offers Open seat, a closed one offers nothing, a seat at a hot-seat table asks for a name, and a joined player shows the badges, name and civilization. The host's × appears on hover or keyboard focus.">
+	description="One of the five lobby seats. Every state is exactly one seat tall and as wide as its column: an empty slot offers Open seat, a closed one offers nothing, a seat at a hot-seat table asks for a name in a small TextInput with a small gold Add Button (owner, 2026-10-30), and a joined player shows the badges, name and civilization. The civilization line and CivChooser are kept for a civilization choice in the lobby (owner, 2026-10-30); the lobby itself passes showCivilization={false} today. The host's × appears on hover or keyboard focus.">
 	<Example
 		label={'state="player" seat={1} you host ready={false} canChooseCivilization'}
 		surface="chrome"
