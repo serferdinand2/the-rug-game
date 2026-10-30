@@ -4,7 +4,11 @@ import { civAbilityText } from '../cards/civ-rules.js';
 import { selfSummary } from '../overview.js';
 import { mapHexes } from '../hexmap.js';
 import { TERRAINS } from '../ui.js';
-import { capitalScore, controlledTerritories } from '../engine/game.js';
+import {
+	capitalScore,
+	controlledTerritories,
+	spacesAdvanced,
+} from '../engine/game.js';
 import { TRACK_IDS } from '../engine/data/ids.js';
 
 /**
@@ -18,7 +22,7 @@ import { TRACK_IDS } from '../engine/data/ids.js';
  * @property {string} civilization
  * @property {number} era
  * @property {{ coin: number, worker: number, food: number, culture: number }} resources
- * @property {Record<import('../ui.js').TrackId, number>} tracks - Each track's furthest token
+ * @property {Record<import('../ui.js').TrackId, number>} tracks - Each track's furthest token, or 12 where AI Singularity took it off (#147)
  * @property {number} handSize - Only the count: a hand never leaves its owner's view
  * @property {number} capitalPoints - What the capital scores: its complete rows and columns, and the Architects' uniform lines again
  * @property {number} tech
@@ -85,7 +89,7 @@ export function playerCards(view, viewer, host) {
 					Object.fromEntries(
 						TRACK_IDS.map((track) => [
 							track,
-							Math.max(0, ...seat.tracks[track]),
+							spacesAdvanced(seat, track),
 						])
 					)
 				),

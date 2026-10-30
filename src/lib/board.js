@@ -2,7 +2,7 @@
 import { TRACKS, TIER_COSTS, TRACK_RESOURCE } from './engine/data/tracks.js';
 import { TRACK_IDS } from './engine/data/ids.js';
 import { ACHIEVEMENTS } from './engine/data/achievements.js';
-import { bonusOf } from './engine/game.js';
+import { bonusOf, spacesAdvanced } from './engine/game.js';
 import { describeBonus, describeEffects } from './describe.js';
 import { achievementName, landmarkName, trackName } from './game-names.js';
 import { bonusGlyphs, spaceGlyphs } from './glyphs.js';
@@ -106,7 +106,8 @@ export function trackBoard(view) {
 				.map((seat) => ({
 					seat: /** @type {Seat} */ (seat.seat),
 					name: seat.name,
-					position: Math.max(0, ...seat.tracks[track]),
+					// The most advanced token, or 12 on a track AI Singularity took it off (#147, FAQ #9, R109).
+					position: spacesAdvanced(/** @type {any} */ (seat), track),
 				})),
 		};
 	});
