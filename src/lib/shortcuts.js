@@ -71,7 +71,7 @@ export const SHORTCUTS = Object.freeze([
 			},
 			{
 				keys: [['1–5']],
-				action: 'Open the players overview on that player; the same key closes it.',
+				action: "Show that player's tabs in your player area, as their chip does; the same key or your own goes back.",
 			},
 			{
 				keys: [['Tab']],

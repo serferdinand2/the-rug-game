@@ -1,4 +1,4 @@
-<!-- The player area's tabs (#27 design §2): Capital, Hand, Income, Eras, Civ, Tech and Terrain, for the viewer's own seat. -->
+<!-- The player area's tabs (#27 design §2): Capital, Hand, Income, Eras, Civ, Tech and Terrain, for the viewer's own seat, or read-only for another player's (#145). -->
 <script module>
 	/** @typedef {import('../../lib/area/placement-targets.js').PlacementOption} PlacementOption */
 
@@ -14,7 +14,9 @@
 	 * Properties of the PlayerTabs screen part itself.
 	 * @typedef {Object} PlayerTabsOwnProps
 	 * @property {any} game - The game as view() gives it to the viewer
-	 * @property {number} seat - The viewer's seat
+	 * @property {number} seat - The seat whose tabs show: the viewer's own, or another player's (#145)
+	 * @property {number | null} [viewer] - The viewer's seat, null for the public view; left out, `seat` is the viewer's own. Another seat's tabs are read-only, bordered in its colour and draw nothing private
+	 * @property {Function} [onPlayerTabsBack] - Callback fired when Back to your area is pressed over another player's tabs
 	 * @property {string} code - The table code, which seeds the capital's terrain tiles
 	 * @property {string} [tab='capital'] - The tab on show; bindable
 	 * @property {Function} [onPlayerTabsInspect] - Callback fired with { kind: 'tech' | 'tapestry', data } when a card is hovered or focused, and with null on leave, so the shared area shows it in full
@@ -79,23 +81,46 @@
 	import { artUrl } from '../../lib/ui.js';
 	import { CARD_CIVS, civCardView } from '../../lib/civ-card.js';
 	import { tileWords } from '../../lib/area/explore.js';
+	import InspectBar from '../../lib/components/player/InspectBar.svelte';
+	import {
+		areaWords,
+		handCount,
+		publicSeat,
+	} from '../../lib/area/inspect.js';
+	import { playerColor } from '../../lib/ui.js';
 
 	/** @type {PlayerTabsProps} */
 	let {
 		game,
 		seat,
+		viewer,
 		code,
 		tab = $bindable('capital'),
 		onPlayerTabsInspect,
-		placement = null,
-		fresh = { plots: [], landmarks: [] },
+		placement: placementProp = null,
+		fresh: freshProp = { plots: [], landmarks: [] },
 		onPlayerTabsPlace,
-		tilePick = null,
+		tilePick: tilePickProp = null,
 		onPlayerTabsPick,
-		civPick = null,
+		civPick: civPickProp = null,
 		onPlayerTabsSpot,
+		onPlayerTabsBack,
 		...attr
 	} = $props();
+
+	/** The viewer's seat: `seat` itself unless another is given. */
+	let viewerSeat = $derived(viewer === undefined ? seat : viewer);
+	let own = $derived(viewerSeat === seat);
+	let words = $derived(areaWords(game, seat, viewerSeat));
+	/** The seat as a table seat, which sets the border's colour. */
+	let colorSeat = $derived(
+		/** @type {import('../../lib/ui.js').Seat} */ (seat)
+	);
+	// Another player's tabs are read-only (#145): no placement, tile pick or card spot, and none of the viewer's fresh highlights.
+	let placement = $derived(own ? placementProp : null);
+	let fresh = $derived(own ? freshProp : { plots: [], landmarks: [] });
+	let tilePick = $derived(own ? tilePickProp : null);
+	let civPick = $derived(own ? civPickProp : null);
 
 	/** The tech rows, top first, as the mockup draws them. */
 	const TECH_ROWS = /** @type {const} */ ([
@@ -109,7 +134,7 @@
 	 * @param {ComponentEvent} event - From CivilizationCard: the spot id
 	 */
 	const spotHandler = (event) => {
-		if (typeof onPlayerTabsSpot === 'function') {
+		if (own && typeof onPlayerTabsSpot === 'function') {
 			onPlayerTabsSpot(event);
 		}
 	};
@@ -119,7 +144,7 @@
 	 * @param {ComponentEvent} event - From TilePicker: { tile }
 	 */
 	const tilePickerSelectHandler = (event) => {
-		if (typeof onPlayerTabsPick === 'function') {
+		if (own && typeof onPlayerTabsPick === 'function') {
 			onPlayerTabsPick(
 				new ComponentEvent(
 					{ tile: event.value.tile },
@@ -130,8 +155,11 @@
 		}
 	};
 
-	let player = $derived(game.seats[seat - 1]);
-	let hand = $derived(/** @type {string[]} */ (player.hand ?? []));
+	// Only what the viewer may see: another seat's hand and picks never reach the tabs (#145).
+	let player = $derived(publicSeat(game.seats[seat - 1], viewerSeat));
+	let hand = $derived(
+		/** @type {string[]} */ (own ? (player.hand ?? []) : [])
+	);
 	let capital = $derived(capitalView(player, code));
 	/** @type {'rows' | 'columns' | 'districts' | null} */
 	let highlight = $state(null);
@@ -215,7 +243,7 @@
 
 	let tabs = $derived(
 		TABS.map((t) =>
-			t.id === 'hand' ? { ...t, count: hand.length } : { ...t }
+			t.id === 'hand' ? { ...t, count: handCount(player) } : { ...t }
 		)
 	);
 
@@ -360,7 +388,7 @@
 	 * @param {ComponentEvent} event - The event that caused it
 	 */
 	function place(index, confirm, event) {
-		if (typeof onPlayerTabsPlace === 'function') {
+		if (own && typeof onPlayerTabsPlace === 'function') {
 			onPlayerTabsPlace(
 				new ComponentEvent(
 					{ index, confirm },
@@ -403,13 +431,23 @@
 
 <div
 	{...attr}
-	class="rg-player-tabs {attr.class ? attr.class : ''}">
+	class="rg-player-tabs {attr.class ? attr.class : ''}"
+	class:rg-player-tabs--inspecting={!own}
+	style:--rg-player-tabs-color={own ? null : playerColor(colorSeat)}>
+	{#if !own}
+		<InspectBar
+			text={words.viewing}
+			seat={colorSeat}
+			back={viewerSeat !== null}
+			onInspectBarBack={(/** @type {ComponentEvent} */ event) =>
+				onPlayerTabsBack?.(event)} />
+	{/if}
 	<Tabs
 		class="rg-player-tabs--tabs"
 		panelClass="rg-player-tabs--body"
 		{tabs}
 		bind:value={tab}
-		label="Your city and cards">
+		label={words.tabs}>
 		{#if tab === 'capital'}
 			{#if capital}
 				<h2 class="rg-player-tabs--title">
@@ -459,9 +497,7 @@
 					</p>
 				{/if}
 			{:else}
-				<p class="rg-player-tabs--note">
-					Your capital mat is dealt as the game starts.
-				</p>
+				<p class="rg-player-tabs--note">{words.capitalSoon}</p>
 			{/if}
 		{:else if tab === 'hand'}
 			<h2 class="rg-player-tabs--title">Hand</h2>
@@ -487,14 +523,16 @@
 					{/snippet}
 				</CardFan>
 			{:else}
-				<p class="rg-player-tabs--note">No tapestry cards in hand.</p>
+				<p class="rg-player-tabs--note">
+					{words.hand(handCount(player))}
+				</p>
 			{/if}
 		{:else if tab === 'income'}
 			<IncomeMat
 				rows={income}
 				{era} />
 		{:else if tab === 'eras'}
-			<h2 class="rg-player-tabs--title">Your eras</h2>
+			<h2 class="rg-player-tabs--title">{words.eras}</h2>
 			{#if eraCard}
 				<div class="rg-player-tabs--era-card">
 					<ScaledCard
@@ -509,9 +547,7 @@
 				bind:selected={eraShown} />
 		{:else if tab === 'civ'}
 			{#if player.civs.length === 0}
-				<p class="rg-player-tabs--note">
-					You choose your civilization as the game starts.
-				</p>
+				<p class="rg-player-tabs--note">{words.civSoon}</p>
 			{/if}
 			{#each player.civs as civ (civ)}
 				<div class="rg-player-tabs--civ">
@@ -531,7 +567,7 @@
 				</div>
 			{/each}
 		{:else if tab === 'tech'}
-			<h2 class="rg-player-tabs--title">Your technology</h2>
+			<h2 class="rg-player-tabs--title">{words.tech}</h2>
 			{#each TECH_ROWS as row (row.id)}
 				<section class="rg-player-tabs--row">
 					<h3 class="rg-player-tabs--row-title">
@@ -645,6 +681,13 @@
 		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: auto minmax(0, 1fr);
 		min-height: 0;
+	}
+
+	/* Another player's tabs (issue 145): their line on top, and a border in their colour, drawn inside so nothing moves. */
+	.rg-player-tabs--inspecting {
+		grid-template-rows: auto auto minmax(0, 1fr);
+		outline: var(--border-thick) solid var(--rg-player-tabs-color);
+		outline-offset: calc(-1 * var(--border-thick));
 	}
 
 	/* Under 420px (windows under 1680px wide) the tabs tighten, so all seven still show at 1366×768 (#64); narrower
