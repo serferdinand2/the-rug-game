@@ -1,4 +1,4 @@
-<!-- The app root (#25, #26, #29, #30): one screen at a time, landing, lobby, the game, the hot-seat hand-over or the results, from the client's store; and the sound cues. -->
+<!-- The app root (#25, #26, #29, #30): one screen at a time, landing, lobby, the game, the hot-seat hand-over or the results, from the client's store; the sound cues, the dice tray (#61) and what other players just did (#153). -->
 <script module>
 	/**
 	 * Properties for the App component, including any attributes for its root element.
@@ -14,7 +14,16 @@
 	import Toast from './lib/components/ui/Toast.svelte';
 	import Tooltip from './lib/components/ui/Tooltip.svelte';
 	import DiceTray from './lib/components/board/DiceTray.svelte';
+	import PlayerAction from './lib/components/board/PlayerAction.svelte';
 	import { rollsOf } from './lib/dice.js';
+	import {
+		EMPTY_QUEUE,
+		actionsOf,
+		queueAdd,
+		queueCurrent,
+		queueNext,
+		queuePosition,
+	} from './lib/player-actions.js';
 	import { createApi } from './lib/api.js';
 	import { createStore } from './lib/game.svelte.js';
 	import { randomInt, safeStorage } from './lib/storage.js';
@@ -53,11 +62,111 @@
 		`${store.room?.code ?? ''}:${store.room?.deal ?? 0}`
 	);
 
-	// A new deal, or another table, shows its game rather than the review of the last one.
+	/** What other players just did, played one after another (#153): the run's items and the one on show. */
+	let queue = $state.raw(
+		/** @type {import('./lib/player-actions.js').ActionQueue} */ (
+			EMPTY_QUEUE
+		)
+	);
+	/** @type {import('./lib/player-actions.js').PlayerActionItem[]} The last run, which the footer's Show again plays again */
+	let lastRun = $state.raw([]);
+	/** Counts the displays shown, so each one, even one shown again, starts its own timer. */
+	let shownCount = $state(0);
+	/** The dice tray is rolling: the actions wait for it (#153 design). */
+	let rolling = $state(false);
+	/** The seat whose own actions show nothing: the viewer online, the seat on show at a hot-seat table. */
+	let actor = $derived(
+		store.room?.mode === 'hotseat' ? store.seat : store.viewer
+	);
+	/** The game screen is on show: no lobby, pass screen or results over it. */
+	let onGame = $derived(
+		Boolean(store.room?.game) &&
+			store.room.phase !== 'lobby' &&
+			store.passing === null &&
+			!(store.room.phase === 'finished' && !reviewing)
+	);
+	// The actions wait while the dice roll, and while the viewer has a question or notice of their own open (#153 design).
+	let action = $derived(
+		onGame && !rolling && gamePanel === 'none' ? queueCurrent(queue) : null
+	);
+	let position = $derived(queuePosition(queue));
+
+	// A new deal, or another table, shows its game rather than the review of the last one, and none of its actions.
 	$effect(() => {
 		dealKey;
 		reviewing = false;
+		queue = EMPTY_QUEUE;
+		lastRun = [];
+		rolling = false;
 	});
+
+	/**
+	 * Queues what other players did in a batch of events.
+	 * @param {any[]} events
+	 */
+	function enqueue(events) {
+		const game = store.room?.game;
+		if (!game) {
+			return;
+		}
+		const items = actionsOf(events, game, actor, game.events);
+		if (items.length === 0) {
+			return;
+		}
+		if (queue.items.length === 0) {
+			shownCount += 1;
+		}
+		queue = queueAdd(queue, items);
+		lastRun = queue.items;
+	}
+
+	/** The batches already queued: one that arrived before the app opened is not played. */
+	let freshQueued = untrack(() => store.freshCount);
+	let handedQueued = untrack(() => store.handedCount);
+
+	// Each batch of fresh events once; a roll in it plays first.
+	$effect(() => {
+		const count = store.freshCount;
+		if (count === freshQueued) {
+			return;
+		}
+		freshQueued = count;
+		untrack(() => {
+			const game = store.room?.game;
+			if (game && rollsOf(store.fresh, game, store.viewer).length > 0) {
+				rolling = true;
+			}
+			enqueue(store.fresh);
+		});
+	});
+
+	// At a hot-seat table, what the others did since this player last held the screen (#153 design).
+	$effect(() => {
+		const count = store.handedCount;
+		if (count === handedQueued) {
+			return;
+		}
+		handedQueued = count;
+		untrack(() => enqueue(store.handed));
+	});
+
+	/**
+	 * The display closed: the next one shows, or none with Skip all.
+	 * @param {import('./lib/component-event.js').ComponentEvent} event
+	 */
+	const actionCloseHandler = (event) => {
+		queue = event.value.all ? EMPTY_QUEUE : queueNext(queue);
+		shownCount += 1;
+	};
+
+	/** The footer's Show again plays the last run again. */
+	const showAgainHandler = () => {
+		if (lastRun.length === 0) {
+			return;
+		}
+		queue = queueAdd(EMPTY_QUEUE, lastRun);
+		shownCount += 1;
+	};
 
 	const sound = createSoundPlayer();
 
@@ -119,6 +228,9 @@
 		<Game
 			{store}
 			bind:panel={gamePanel}
+			{action}
+			justNow={lastRun.at(-1)?.text}
+			onGameShowAgain={showAgainHandler}
 			onGameResults={() => (reviewing = false)} />
 	{:else}
 		<PageHeader
@@ -141,7 +253,18 @@
 		<DiceTray
 			rolls={rollsOf(store.fresh, store.room.game, store.viewer)}
 			batch={store.freshCount}
-			panel={gamePanel} />
+			panel={gamePanel}
+			onDiceTrayDone={() => (rolling = false)} />
+	{/if}
+	<!-- What another player just did, at the centre of the tracks, after any roll (#153). -->
+	{#if action}
+		{#key shownCount}
+			<PlayerAction
+				item={action}
+				index={position.index}
+				count={position.count}
+				onPlayerActionClose={actionCloseHandler} />
+		{/key}
 	{/if}
 	<Toast
 		message={store.toast}

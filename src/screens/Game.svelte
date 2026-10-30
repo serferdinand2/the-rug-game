@@ -6,6 +6,9 @@
 	 * @property {import('../lib/game.svelte.js').GameStore} store - Its room holds the game on show
 	 * @property {Function} [onGameResults] - Callback fired when Results is chosen, once the game is over (#29)
 	 * @property {'none' | 'panel' | 'shelf'} [panel='none'] - What is open over the board, so the dice tray outside the screen rolls clear of it (#61, #79); bindable
+	 * @property {import('../lib/player-actions.js').PlayerActionItem | null} [action=null] - What another player did, on show outside the screen (#153): its space or hex is lit in their colour
+	 * @property {string} [justNow] - The last thing another player did, for the footer's "Just now" line (#153)
+	 * @property {Function} [onGameShowAgain] - Callback fired when the footer's Show again is pressed
 	 */
 
 	/**
@@ -64,7 +67,15 @@
 	/** @typedef {import('../lib/ui.js').TrackId} TrackId */
 
 	/** @type {GameProps} */
-	let { store, onGameResults, panel = $bindable('none'), ...attr } = $props();
+	let {
+		store,
+		onGameResults,
+		panel = $bindable('none'),
+		action = null,
+		justNow,
+		onGameShowAgain,
+		...attr
+	} = $props();
 
 	let room = $derived(store.room);
 	let game = $derived(room.game);
@@ -80,6 +91,22 @@
 	);
 
 	let board = $state(/** @type {'tracks' | 'map'} */ ('tracks'));
+	/** The space another player just advanced to, lit in their colour while it shows (#153). */
+	let litSpace = $derived(
+		action?.kind === 'advance'
+			? {
+					track: action.picture.track,
+					space: action.picture.space,
+					color: action.color,
+				}
+			: null
+	);
+	/** The hex another player just explored or conquered, lit on the map when it is on show (#153). */
+	let litHex = $derived(
+		action?.kind === 'explore' || action?.kind === 'conquer'
+			? { hex: action.picture.hex, color: action.color }
+			: null
+	);
 	/** @type {{ track: TrackId, space: number } | null} */
 	let selected = $state(null);
 	/** A move of the turn's own is being sent; the prompt has its own (#79). */
@@ -612,7 +639,10 @@
 		onTurnFooterResults={(/** @type {ComponentEvent} */ event) =>
 			onGameResults?.(event)}
 		onTurnFooterOverviewClose={() =>
-			(layers = closeLayer(layers, 'overview'))} />
+			(layers = closeLayer(layers, 'overview'))}
+		{justNow}
+		onTurnFooterShowAgain={(/** @type {ComponentEvent} */ event) =>
+			onGameShowAgain?.(event)} />
 {/snippet}
 
 <PlayLayout
@@ -650,6 +680,7 @@
 						tracks={trackBoard(game)}
 						{available}
 						{selected}
+						lit={litSpace}
 						onTrackBoardSelect={trackSelectHandler} />
 				{:else}
 					<WorldMap
@@ -659,6 +690,7 @@
 						scores={promptState.scores}
 						preview={promptState.preview}
 						fresh={moved.hexes}
+						lit={litHex}
 						onWorldMapSelect={(
 							/** @type {ComponentEvent} */ event
 						) => promptState.selectHex(event.value.hex)} />

@@ -7,7 +7,7 @@ import { sendMove, viewerSeat } from './moves.js';
 import { generateName } from './names.js';
 import { backoff, pollTable } from './poll.js';
 import { eventText } from './log.js';
-import { acceptStep } from './pass.js';
+import { acceptStep, handedEvents } from './pass.js';
 import { forgetfulStorage } from './storage.js';
 
 /** How often the landing page asks for the open tables again. */
@@ -60,6 +60,10 @@ class Store {
 	freshCount = $state(0);
 	/** @type {number | null} At a hot-seat table, the player the pass screen names until they take the screen (#30) */
 	passing = $state(null);
+	/** @type {any[]} At a hot-seat table, the events a player is handed when they take the screen: what happened since they last held it (#153) */
+	handed = $state.raw([]);
+	/** Counts the hand-overs that brought events, so the screen shows each once. */
+	handedCount = $state(0);
 
 	#api;
 	#random;
@@ -73,6 +77,10 @@ class Store {
 	#shownSeat = $state(null);
 	/** @type {ReturnType<typeof setTimeout> | undefined} */
 	#toastTimer;
+	/** @type {Map<number, number>} At a hot-seat table, the last event each seat saw on its own view (#153) */
+	#seen = new Map();
+	/** @type {number | null} The last event when a player last took the screen, or when the table opened; a seat new to the screen is handed what came after it */
+	#takenSeq = null;
 
 	/** @param {StoreDeps} deps */
 	constructor({ api, random, prefs, session, copy, wait }) {
@@ -342,6 +350,7 @@ class Store {
 	 * @param {any} room
 	 */
 	#accept(room) {
+		const wasPassing = this.passing !== null;
 		const step = acceptStep(this.room, room, this.#shownSeat, this.passing);
 		this.#shownSeat = step.shown;
 		this.passing = step.passing;
@@ -360,6 +369,41 @@ class Store {
 			this.freshCount += 1;
 			this.#notices(step.fresh, room);
 		}
+		if (step.take) {
+			this.#hand(room, wasPassing && step.passing === null);
+		}
+	}
+
+	/**
+	 * At a hot-seat table, keeps the last event each seat saw, and hands a player who takes the screen what the others
+	 * did since they last held it, or, the first time, since the player before them took it (#153 design).
+	 * @param {any} room - The room view taken
+	 * @param {boolean} taken - The pass screen just went: its player took the screen
+	 */
+	#hand(room, taken) {
+		const events = room.game?.events;
+		if (room.mode !== 'hotseat' || !Array.isArray(events)) {
+			return;
+		}
+		const last = events.at(-1)?.seq ?? 0;
+		// A table opened, or refreshed, hands over nothing that came before.
+		this.#takenSeq ??= last;
+		const seat = room.viewing;
+		if (seat === null || seat === undefined) {
+			return;
+		}
+		if (taken) {
+			const handed = handedEvents(
+				events,
+				this.#seen.get(seat) ?? this.#takenSeq ?? last
+			);
+			this.#takenSeq = last;
+			if (handed.length > 0) {
+				this.handed = handed;
+				this.handedCount += 1;
+			}
+		}
+		this.#seen.set(seat, last);
 	}
 
 	/**
@@ -492,6 +536,8 @@ class Store {
 		this.room = null;
 		this.#shownSeat = null;
 		this.passing = null;
+		this.#seen = new Map();
+		this.#takenSeq = null;
 		this.#accept(room);
 		this.screen = 'table';
 		this.connection = '';

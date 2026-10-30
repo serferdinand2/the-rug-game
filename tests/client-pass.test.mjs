@@ -1,7 +1,12 @@
 // The hot-seat hand-over (#30 design §2–§6): which view the client takes or asks for, and whom the pass screen names.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { acceptStep, handOver, passReason } from '../src/lib/pass.js';
+import {
+	acceptStep,
+	handOver,
+	handedEvents,
+	passReason,
+} from '../src/lib/pass.js';
 
 /**
  * A game view asking the given seats at once, one decision each in the open batch.
@@ -384,4 +389,40 @@ test('once the named player takes the screen, only their own view is shown, and 
 		passing: null,
 		fresh: [],
 	});
+});
+
+test('a player taking the screen is handed the events since they last held it, without what an undo took back (#153)', () => {
+	const events = [
+		{ seq: 1, type: 'turnStarted', player: 1 },
+		{
+			seq: 2,
+			type: 'tokenMoved',
+			player: 1,
+			track: 'science',
+			from: 0,
+			to: 1,
+		},
+		{
+			seq: 3,
+			type: 'tokenMoved',
+			player: 1,
+			track: 'military',
+			from: 0,
+			to: 1,
+		},
+		{ seq: 4, type: 'undone', player: 1, from: 3 },
+		{
+			seq: 5,
+			type: 'techInvented',
+			player: 1,
+			card: 'compass',
+			from: 'face',
+		},
+	];
+	assert.deepEqual(
+		handedEvents(events, 1).map((event) => event.seq),
+		[2, 4, 5]
+	);
+	assert.deepEqual(handedEvents(events, 5), []);
+	assert.deepEqual(handedEvents(/** @type {any} */ (null), 0), []);
 });

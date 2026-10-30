@@ -23,6 +23,7 @@
 	 * @property {TrackBoardTrack[]} tracks - The tracks, top to bottom: the base game's four, or five with the arts track; each shares the board's height
 	 * @property {TrackBoardSelection[]} [available=[]] - Spaces the viewer can advance to, outlined in green
 	 * @property {TrackBoardSelection | null} [selected=null] - The selected space, outlined in gold; bindable
+	 * @property {{ track: string, space: number, color: string } | null} [lit=null] - A space another player just advanced to, lit in their colour while their action shows (#153)
 	 * @property {Function} [onTrackBoardSelect] - Callback fired with { track, space } when a space is chosen
 	 */
 
@@ -49,6 +50,7 @@
 		tracks,
 		available = [],
 		selected = $bindable(null),
+		lit = null,
 		onTrackBoardSelect,
 		...attr
 	} = $props();
@@ -83,6 +85,7 @@
 				.filter((entry) => entry.track === track.id)
 				.map((entry) => entry.space)}
 			selectedSpace={selected?.track === track.id ? selected.space : null}
+			lit={lit?.track === track.id ? lit : null}
 			onTrackSelect={trackSelectHandler} />
 	{/each}
 </div>

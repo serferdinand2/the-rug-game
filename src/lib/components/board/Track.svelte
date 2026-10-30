@@ -28,6 +28,7 @@
 	 * @property {TrackPlayer[]} players - The players at the table, one progress lane each
 	 * @property {number[]} [available=[]] - Space numbers the viewer can advance to, outlined in green
 	 * @property {number | null} [selectedSpace=null] - The selected space's number, outlined in gold; bindable
+	 * @property {{ space: number, color: string } | null} [lit=null] - A space another player just advanced to, lit in their colour (#153)
 	 * @property {Function} [onTrackSelect] - Callback fired with { track, space } when a space is chosen
 	 */
 
@@ -65,6 +66,7 @@
 		players,
 		available = [],
 		selectedSpace = $bindable(null),
+		lit = null,
 		onTrackSelect,
 		...attr
 	} = $props();
@@ -165,6 +167,7 @@
 				last={index + 1 === spaces.length}
 				selected={selectedSpace === index + 1}
 				available={available.includes(index + 1)}
+				lit={lit?.space === index + 1 ? lit.color : null}
 				onTrackSpaceClick={spaceClickHandler}
 				onTrackSpaceHover={spaceHoverHandler} />
 		{/each}

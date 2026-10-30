@@ -1,6 +1,6 @@
 # What other players just did (#153): mockup and design questions
 
-Written 2026-10-30. The owner asked (2026-10-30): "As for what happens on other players' turn, whenever they play a card or do an action I wanna see what they did. I want it to be more apparent. If they play a tapestry show me that tapestry and say who played it." CLAUDE.md asks for interface ideas as clickable HTML mockups before anything is built, so this note goes with the mockup and asks the owner to choose. Nothing is built yet.
+Written 2026-10-30. The owner asked (2026-10-30): "As for what happens on other players' turn, whenever they play a card or do an action I wanna see what they did. I want it to be more apparent. If they play a tapestry show me that tapestry and say who played it." CLAUDE.md asks for interface ideas as clickable HTML mockups before anything is built, so this note goes with the mockup and asks the owner to choose. The owner chose on 2026-10-30; the decisions are below, and the build follows them.
 
 ## The mockup
 
@@ -42,13 +42,43 @@ One line sits above the footer at the bottom of the tracks: a small picture, "La
 7. **The log:** the log already lists every line. Should the displayed actions be marked there too, for example with a "shown" picture beside them? Should **Show again** in the footer stay?
 8. **A long turn of other players:** with four opponents, should their displays play one after another, or should each player's turn collapse into one summary like the income turn's?
 
-## What the build would touch (after approval)
+## Decisions (2026-10-30)
+
+### The owner's
+
+- **Option A** (owner, 2026-10-30): the panel opens at the centre of the tracks, like the decision prompts and the dice tray, as in the `a-*.png` screenshots. Option B is not built.
+- **A 4-second timer** (owner, 2026-10-30): under the "Lazar played Industrialism" headline, a progress line in the player's colour runs down over 4 seconds. When it runs out, the panel closes by itself, and the next queued action, if any, shows.
+- **Hovering pauses it** (owner, 2026-10-30): while the pointer is over the panel the timer stops; it goes on from where it was when the pointer leaves.
+- **A button to cancel it** (owner, 2026-10-30): a visible **Close** button closes the panel at once and moves on to the next queued action. A click on the panel and Escape do the same, so "Click or Esc to close" and the button agree. While more actions wait, **Skip all** (and Shift+Escape) closes the rest too.
+
+### Claude's calls, to revisit after playing
+
+- **Only other players' actions show**, not your own (Claude's call, to revisit after playing). At a hot-seat table "your own" is the seat on show.
+- **Which actions** (Claude's call, to revisit after playing): each main action has its own display: a tapestry card played (face up with the card; face down as a card back that says so), an advance (the track and space, lit on the board, with the landmark it gained), a tech card invented or upgraded (the full card, with "Middle row → Top row"), an explore (the tile as it lies), a conquer (the hex's tile, the conquer dice), and an income turn as one summary. The small gains that follow an action (resources, VP, buildings, tiles, outposts toppled) are lines under its headline, in the log's words (`src/lib/log.js`), at most six, then "and N more in the log".
+- **An income turn** (Claude's call, to revisit after playing): its tapestry card shows on its own, large, then one summary of the rest of the turn (the tech upgrade, the VP scored, the income), as the mockup's income queue. The summary covers what arrived in one batch of events; a turn that arrives in several batches (the player answering one question at a time) makes one summary per batch that has something to say. Income turn 1, which everyone takes during setup, shows nothing.
+- **Several in a row** play one after another, with "1 of N" and dots in the band (Claude's call, to revisit after playing). A batch that arrives while one plays joins the end of the queue, and N grows.
+- **The map** (Claude's call, to revisit after playing): for an explore or a conquer the board does not switch to the World Map. The panel stays at the centre of the tracks and shows the tile in its picture; when the map is the view on screen, the hex is lit there in the player's colour.
+- **Hot-seat** (Claude's call, to revisit after playing): the next player sees the previous players' actions after taking the screen (#30): the other players' events since that seat last had the screen, or, the first time, since the previous player took it.
+- **The footer keeps "Just now: …"** with **Show again** (Claude's call, to revisit after playing): the last display's headline stays in the footer, and Show again plays the last run again. The log is not marked.
+- **A refresh plays nothing** (Claude's call, to revisit after playing): only fresh events show, as with the dice tray (#61).
+- **It takes no focus** (Claude's call, to revisit after playing): opening the panel never moves the focus; its buttons can be clicked.
+- **Reduced motion** (Claude's call, to revisit after playing): the panel appears and goes without sliding; the progress line still runs, because it shows time rather than moving anything.
+- **The dice tray goes first** (Claude's call, to revisit after playing): while it rolls, the actions wait, then play.
+- **Your own question goes first** (Claude's call, to revisit after playing): while you have a decision panel, a card shelf or the first-income notice open, the actions wait, and play once it is answered, so the panel never covers your question.
+- **Income turn 1 shows its tapestry card** (Claude's call, to revisit after playing): the Heralds' Maker of Fire plays a card in income turn 1; it shows like any other card, while the rest of income turn 1 stays silent.
+- **Where an income turn's card ends** (Claude's call, to revisit after playing): the events have no marker for the income steps, so the lines after the card are the card's until the score step's first VP (any VP not from a tapestry card, or the capital's score); from there they go to the summary.
+- **Nothing the viewer's view() lacks** is ever shown: an opponent's face-down card is a back, because the event carries no card.
+
+## What the build touches
 
 - **`src/lib/player-actions.js`** (new, a plain module with Vitest tests first). It turns fresh events from other seats into display items, the way `rollsOf()` in `src/lib/dice.js` turns them into rolls. It groups an income turn into one summary, keeps a face-down card's id hidden, and uses `log.js`'s sentences for the words.
 - **A queue in `src/App.svelte`** next to the dice tray's. It is fed by `freshEvents()` (`src/lib/event-feed.js`) from the store `src/lib/game.svelte.js`, waits for a dice roll in the same batch to finish, and plays the rest in order.
 - **`src/lib/components/board/PlayerAction.svelte`** (new, presentational). It shows the band, the picture (`TapestryCard`, `TechnologyCard`, the landmark art, a map hex or a card back), the words and the timer. It has a library section and a row in `src/lib/components/README.md`.
 - **Lighting:** a prop on `Track`/`TrackSpace` and `WorldMap` for the lit space or hex, in the acting player's colour. `WorldMap` already has a "fresh" outline.
 - **`TurnFooter.svelte`:** the "Just now" line and **Show again**.
-- **The pass screen** (`src/screens/HandOver.svelte`, `PassScreen`), depending on question 6.
-- **Tests:** Vitest for the mapping and the queue, and a browser test in which an opponent's tapestry card is shown and a reload shows nothing.
-- **Docs:** `docs/ui/README.md` and the README's screenshots, from the running game.
+- **The hot-seat hand-over:** not the pass screen itself, which is unchanged, but the store (`handed`, `handedCount`, from `handedEvents()` in `src/lib/pass.js`): a player who takes the screen is handed the other players' events since they last held it.
+- **The timer** is its own plain module, `src/lib/action-timer.js`, with the time passed in, so its 4 seconds, pause and resume are tested without real timers.
+- **Tests:** Vitest for the mapping, the queue and the timer (`tests/client-player-actions.test.mjs`) and the hand-over (`tests/client-pass.test.mjs`), and a browser test (`tests/browser/player-actions.test.mjs`) in which an opponent's tapestry card is shown with their name, holds while hovered, closes by its button, and a reload shows nothing.
+- **Docs:** `docs/ui/README.md` and the README's screenshot `docs/ui/screens/game-player-action.png`, from the running game.
+
+The plan is `docs/superpowers/plans/2026-10-30-opponent-actions-issue-153.md`. The build follows it; the plan's step 3 placed the hand-over in the store, and the panel waits for the viewer's own question rather than moving aside, as the browser tests showed it otherwise covers a notice's button.

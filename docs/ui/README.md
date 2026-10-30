@@ -285,6 +285,16 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **The dice tray** learns from the game what is open: over a panel it rolls at the top of the board, as #61 approved; over a stack of cards, which can fill the board's height, it rolls over the player area.
 - **Code:** `src/screens/game/DecisionPrompt.svelte` renders the one panel from `src/lib/prompt-state.svelte.js` (what the viewer has chosen, keyed to the decision) and `panelControls` in `src/lib/prompts.js` (its words and buttons).
 
+**Built in #153 (2026-10-30): what other players just did.** The owner asked to see, more plainly, what the others do on their turns, and chose option A of the mockup (`docs/ui/opponent-actions.html`, screenshots in `screens/issue-153/`): a panel at the tracks' centre with a 4-second timer line that holds while hovered and a button to close it. The design, with the owner's decisions and Claude's calls, is `docs/superpowers/specs/2026-10-30-opponent-actions-design.md`.
+
+![Ben's Alliance on Ana's screen: the panel at the tracks' centre, 1 of 2, with Skip all and Close](screens/game-player-action.png)
+
+- **One display per action of another player**, made from the fresh events by `actionsOf()` in `src/lib/player-actions.js`: a tapestry card (the full card face up; a card back that says "Face down" otherwise), an advance (the track and space, lit in the player's colour on the tracks, and the landmark gained), an invented or upgraded tech card ("Middle row → Top row"), an explore (the tile as it lies) and a conquest (its tile and the dice). An income turn shows its card on its own, then one summary of the rest. What followed each action is listed under it in the log's words, six lines at most.
+- **The panel** (`board/PlayerAction.svelte`) has a band in the player's colour ("Ben's turn · The Chosen · Income turn 2", "1 of 2" with dots), the picture, the log's sentence as a headline with the name in the player's colour and game things in Cinzel gold, and under it a progress line in the player's colour that runs down over 4 seconds (`src/lib/action-timer.js`). Hovering holds it; a click, **Close** or Escape closes it and the next one shows; **Skip all** or Shift+Escape closes the rest. It takes no focus. With reduced motion it appears without sliding, and the line still runs.
+- **Order:** the dice tray rolls first; while the viewer has a question or notice of their own open, the actions wait and then play. Only other players' actions show, only from fresh events, so a refresh plays nothing. Explores and conquests don't switch the board: the hex is lit when the World Map is on show.
+- **Hot-seat:** a player who takes the screen sees what the others did since they last held it.
+- **The footer** keeps "· Just now: Ben took income turn 2." after its heading, with **Show again**, which plays the last run again, on another player's turn and on your own before you choose.
+
 **Built in #77 (2026-10-28): the first turn takes income by itself.** The owner changed the issue's brief: "Just make the first income automatic. make sure player knows what's going on. also make sure player knows when there are no more legal moves except to income." The design is `docs/superpowers/specs/2026-10-28-first-income-turn-design.md`.
 
 ![Era I begins: the notice after income turn 1](screens/game-first-income.png)
