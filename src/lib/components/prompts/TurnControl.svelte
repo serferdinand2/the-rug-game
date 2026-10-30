@@ -17,6 +17,7 @@
 </script>
 
 <script>
+	import VpTag from './VpTag.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 
 	/** @type {TurnControlProps} */
@@ -50,10 +51,11 @@
 		disabled={vp === null}
 		onclick={(event) => turnHandler(-1, event)}>↺</button>
 	{#if vp === null}
-		<span class="rg-turn-control--tag rg-turn-control--tag-muted"
-			>No hex yet</span>
+		<span class="rg-turn-control--no-hex">No hex yet</span>
 	{:else}
-		<span class="rg-turn-control--tag">+{vp} VP</span>
+		<VpTag
+			value={vp}
+			variant="inline" />
 	{/if}
 	<button
 		type="button"
@@ -77,7 +79,7 @@
 		min-height: 36px;
 		border: var(--border) solid var(--line-strong);
 		border-radius: var(--radius);
-		background: color-mix(in srgb, var(--raised) 70%, transparent);
+		background: var(--choice-fill);
 		color: var(--text);
 		font-size: var(--font-size-xl);
 		line-height: var(--leading-none);
@@ -94,15 +96,9 @@
 		cursor: default;
 	}
 
-	.rg-turn-control--tag {
-		color: var(--gold);
-		font-size: var(--font-size-md);
-		font-weight: var(--weight-bold);
-	}
-
-	.rg-turn-control--tag-muted {
+	.rg-turn-control--no-hex {
 		color: var(--muted);
-		font-weight: var(--weight-regular);
+		font-size: var(--font-size-md);
 	}
 
 	.rg-turn-control--hint {

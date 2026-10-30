@@ -185,7 +185,7 @@
 	.rg-resource-rows--choice[aria-pressed='true'],
 	.rg-resource-rows--fixed {
 		border-color: var(--gold);
-		background: color-mix(in srgb, var(--gold) 17%, var(--surface));
+		background: var(--picked-fill);
 		outline: var(--border-thick) solid var(--gold);
 	}
 

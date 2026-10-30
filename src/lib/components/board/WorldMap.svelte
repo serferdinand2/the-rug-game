@@ -426,13 +426,13 @@
 	}
 
 	.rg-world-map--score-box {
-		fill: var(--gold);
-		stroke: var(--ink);
+		fill: var(--vp-tag);
+		stroke: var(--vp-tag-text);
 		stroke-width: 0.6;
 	}
 
 	.rg-world-map--score-text {
-		fill: var(--ink);
+		fill: var(--vp-tag-text);
 		font-weight: var(--weight-bold);
 	}
 

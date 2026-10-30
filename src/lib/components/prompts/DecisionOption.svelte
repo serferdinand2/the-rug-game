@@ -1,4 +1,4 @@
-<!-- One choice in a decision prompt: a pressable box with its words and optional symbols, gold while chosen. -->
+<!-- One choice in a decision prompt: a pressable box with its words and optional symbols, gold while chosen, dimmed while it can't be picked. -->
 <script module>
 	/**
 	 * Properties of the DecisionOption component itself.
@@ -7,7 +7,7 @@
 	 * @property {boolean} [pressed=false] - It is the chosen one
 	 * @property {import('../../ui.js').CostSymbol[]} [symbols] - Resource symbols drawn before the words, native 24px
 	 * @property {import('./PromptArt.svelte').PromptArtItem[]} [art] - Pictures drawn above the words at 48px
-	 * @property {number | null} [vp=null] - A small gold '+n VP' badge in the corner
+	 * @property {number | null} [vp=null] - A small gold '+n VP' badge in the corner (VpTag)
 	 * @property {Function} [onDecisionOptionClick] - Callback fired when the choice is pressed
 	 */
 
@@ -23,6 +23,7 @@
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
 	import PromptArt from './PromptArt.svelte';
+	import VpTag from './VpTag.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 
 	/** @type {DecisionOptionProps} */
@@ -60,7 +61,7 @@
 	class:rg-decision-option--has-art={art.length > 0}
 	onclick={clickHandler}>
 	{#if vp !== null}
-		<span class="rg-decision-option--vp">+{vp} VP</span>
+		<VpTag value={vp} />
 	{/if}
 	{#if art.length}
 		<span
@@ -98,9 +99,15 @@
 		padding: var(--space-4) var(--space-6);
 		border: var(--border) solid var(--line);
 		border-radius: var(--radius);
-		background: color-mix(in srgb, var(--raised) 70%, transparent);
+		background: var(--choice-fill);
 		color: var(--text);
 		text-align: left;
+	}
+
+	/* Unpickable now, as a trade the player can't pay for; hover still lights its border. */
+	.rg-decision-option:disabled {
+		opacity: var(--opacity-unpickable);
+		cursor: default;
 	}
 
 	.rg-decision-option:hover,
@@ -110,7 +117,7 @@
 
 	.rg-decision-option[aria-pressed='true'] {
 		border-color: var(--gold);
-		background: color-mix(in srgb, var(--gold) 17%, var(--surface));
+		background: var(--picked-fill);
 		outline: var(--border) solid var(--gold);
 	}
 
@@ -128,17 +135,5 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--space-4);
-	}
-
-	.rg-decision-option--vp {
-		position: absolute;
-		top: calc(var(--border) * -1);
-		right: calc(var(--border) * -1);
-		padding: 0 var(--space-3);
-		background: var(--gold);
-		color: var(--ink);
-		font-size: var(--font-size-xs);
-		font-weight: var(--weight-bold);
-		line-height: var(--leading-snug);
 	}
 </style>

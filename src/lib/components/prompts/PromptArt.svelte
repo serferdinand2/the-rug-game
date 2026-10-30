@@ -136,7 +136,7 @@
 		padding: var(--space-1) var(--space-3);
 		border: var(--border) solid var(--gold);
 		border-radius: var(--radius);
-		background: color-mix(in srgb, var(--gold) 17%, var(--surface));
+		background: var(--picked-fill);
 		color: var(--gold);
 		font-size: var(--font-size-sm);
 		white-space: nowrap;

@@ -650,10 +650,6 @@
 		gap: var(--space-4);
 	}
 
-	.rg-library-trades :global(.rg-decision-option:disabled) {
-		opacity: 0.35;
-	}
-
 	.rg-library-decision-stage--contained {
 		height: 520px;
 	}

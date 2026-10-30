@@ -155,6 +155,14 @@
 		var(--texture) var(--chrome);
 	--opacity-disabled: 0.5;
 
+	/* ---------- A prompt's choices: at rest, chosen, unpickable, and the "+N VP" tag (#116) ---------- */
+	--choice-fill: color-mix(in srgb, var(--raised) 70%, transparent);
+	--picked-fill: color-mix(in srgb, var(--gold) 17%, var(--surface));
+	/* A choice that can't be picked now: dimmer than a disabled control. */
+	--opacity-unpickable: 0.35;
+	--vp-tag: var(--gold);
+	--vp-tag-text: var(--ink);
+
 	/* ---------- Shadows and glows (ordinary panels have none) ---------- */
 	--shadow-float: 0 8px 24px rgb(0 0 0 / 53%); /* menus and dragged pieces */
 	--shadow-card: 0 12px 28px rgb(0 0 0 / 27%); /* player overview cards */
