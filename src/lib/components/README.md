@@ -135,7 +135,7 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 
 | Component | Responsibility |
 |---|---|
-| `player/CardFrame` | 425 px frame: a `CardBand` title, full portrait, main effect, and footer metadata with a `CardEdition` per edition |
+| `player/CardFrame` | 425 px frame: a `CardBand` title, full portrait, main effect, and footer metadata with a `CardEdition` per edition; `bodyMinHeight` and `textLeading` for a short card's proportions, and `plain` for only the paper and its palette, as the library shows each card pattern (#106) |
 | `player/CardBand` | The title band every card family shares (#109): the brown gradient over the paper noise, a gold Cinzel title at 28, 22 or 21 px, and the trap's red band |
 | `player/CardEdition` | The edition chip at every card's foot (#109): the edition's name in its own card colour, base brown, Plans & Ploys green, Arts & Architecture purple or Fantasies & Futures teal |
 | `player/CivilizationCard` | Eighteen recipes, every base civilization among them (the Futurists, Heralds, Nomads and The Chosen await review), with empty/in-play example states; any other civilization shows its frame, portrait and name only. The six card civilizations (Entertainers, Merrymakers, Leaders, Militants, Historians, Mystics) draw a seat's `live` state from `civCardView()` (`src/lib/civ-card.js`) in the play look, their tokens in the `seat`'s colour, and turn the spots its decision offers into buttons with the green available outline, the `selected` one gold, reporting `onCivilizationCardPick` with the spot id (#78) |
@@ -146,16 +146,17 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | `player/MasterpieceCard` | 319 px Arts & Architecture masterpiece frame: a centered beige effect box (the caller's `effects` snippet) beside the 144 px artwork |
 | `player/TerritoryTile` | One small flat-topped territory tile in hand, painted at its turn as the World Map paints it (#134), with its number |
 | `player/CardFan` | Overlapping cards; hover or focus raises one and reports it for a full view. `selected` takes one index or several, `disabled` cards wait, `labels` name them, `key` keeps a card's button when the items change; the `shelf` look is `CardShelf`'s, with gold outlines and the chosen card lifted unless `lift` is false (#92) |
-| `player/CardResource` | Native 24 px inline icon without changing row spacing |
+| `player/CardResource` | Native 24 px inline icon without changing row spacing; `fine` for 11 px supporting text, and a container centres it with `--card-resource-center` and `--card-resource-height` instead of styling it (#106) |
 | `player/PlayerToken` | A player's token, from its seat (#103) or one of the five supplied shaded 32 px colour variants |
-| `player/CardSlot` | Compact, large or prediction square, never larger than 75 px; `pickable`, a button with the green available outline that reports `onCardSlotPick` with its `value`, gold when `picked` (#78) |
-| `player/CardEffectBox` | Beige trigger/scoring row |
-| `player/CardClarity` | Supporting rules beneath the relevant layout |
-| `player/CardPlacementRows` | Collection, covered rewards, track and history rows |
-| `player/CardRewardColumns` | Bottom-aligned square/benefit pairs or upward tracks |
-| `player/CardPathGrid` | Connected reward-path composition |
-| `player/CardPredictionTracks` | Number-target categories and separators |
-| `player/CardTerrainRewards` | Actual terrain marker, label and benefit rows |
-| `player/CardTokenReserve` | Compact starting-token squares with used counts |
-| `player/CardScoreLadder` | Horizontal Atkinson `X VP` rewards and collection counts |
-| `player/CardTechnologyTransfer` | Explicit owner/row transition schematic |
+| `player/CardSlot` | Compact, large or prediction square, never larger than 75 px, `filled` with the 2 px border in the player's colour (#106); `pickable`, a button with the green available outline that reports `onCardSlotPick` with its `value`, gold when `picked` (#78) |
+| `player/CardEffectBox` | Beige trigger/scoring row: its `title`, a `gain` resource or a `label` word as its symbol (or a `symbol` snippet for a pictogram) at `symbolText` 12–15 px, and the rules as children (#106) |
+| `player/CardEffectList` | A card's column of `CardEffectBox` rows inside the 12 px inset, with `above` for extra space (#106) |
+| `player/CardClarity` | Supporting rules beneath the relevant layout as its own 11 px paragraph, with an optional fainter `setup` line, and `above` and `minHeight` for a card's spacing (#106) |
+| `player/CardPlacementRows` | A card's placement squares from `items`, in five `kind`s: the Collectors' `collection` (greyed until `collected`, cards and tiles then face down, a name and gain beneath), the Militants' `covered` rewards (an outpost lifted when `exposed`, a rule between rows of `perRow`), the Alchemists' `tracks` (a token when `rolled`), the Leaders' once-only `leaders` tracks (in the player's colour when `used`) and the Historians' `history` squares under the `seat`'s tokens; the `choices` a decision offers are buttons, the `picked` one gold, reported by `onCardPlacementRowsPick` (#106) |
+| `player/CardRewardColumns` | `columns` of reward squares: filled from the bottom with each benefit (`vp`, `gain` or `text`) beside its 62 px square and a `filled` square's building in the player's colour (the Craftsmen), or `kind="inside"`, climbed by the `seat`'s token from a start square, the rewards inside 75 px squares and the `current` one in the player's colour (the Merrymakers); the `choices` a decision offers are buttons, the `picked` one gold, reported by `onCardRewardColumnsPick` (#106) |
+| `player/CardPathGrid` | 75 px reward `spaces` (a `gain`, a `picture` with its name, or `text`) under column `heads`, joined only by the legal `links` a token may follow, with the `seat`'s start token and its `start` words beneath; the `current` square takes the player's colour and the start token fades; the `choices` a decision offers are buttons, the `picked` one gold, reported by `onCardPathGridPick` (#106) |
+| `player/CardPredictionTracks` | `categories` (`{ id, label, note, most, selected }`) of 39 px number targets with separators, the `selected` number in the player's colour; the `choices` a decision offers are buttons, the `picked` one gold, reported by `onCardPredictionTracksPick` (#106) |
+| `player/CardTerrainRewards` | `rows` of a terrain hex marker, the terrain's `name` and its reward (`gain` resource, then `effect`); a `used` row fades and its name is struck through (#106) |
+| `player/CardTokenReserve` | Compact starting-token squares: `count`, the `used` ones emptied from the left, and the token `color` (#106) |
+| `player/CardScoreLadder` | A card's score by count from `steps` (`{ count, points }`): the Collectors' rising gold steps with the counts beneath and the `current` one in the player's colour, or the Isolationists' `kind="flat"` boxes with a worked `example`; `label` says when it scores, `noun` what it counts (#106) |
+| `player/CardTechnologyTransfer` | A technology card moving from the `from` owner's top row into the `to` owner's bottom row, a token marking both when `active` (#106) |

@@ -1,15 +1,19 @@
-<!-- CardTokenReserve: an extracted owner-reviewed card pattern. -->
+<!-- CardTokenReserve: a card's starting tokens on compact squares, those already sent away left empty (#106). -->
 <script module>
 	/**
 	 * @typedef {Object} CardTokenReserveOwnProps
-	 * @property {number} [count] - Number of initial token squares
-	 * @property {number} [used] - Tokens already sent away
-	 * @property {'blue' | 'red' | 'green' | 'yellow' | 'purple'} [color] - Player colour
+	 * @property {number} [count=4] - Number of initial token squares
+	 * @property {number} [used=0] - Tokens already sent away, emptied from the left
+	 * @property {'blue' | 'red' | 'green' | 'yellow' | 'purple'} [color='blue'] - Player colour
 	 */
 	/**
 	 * @typedef {CardTokenReserveOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} CardTokenReserveProps
 	 * @example
 	 * <CardTokenReserve />
+	 * <CardTokenReserve
+	 *   count={4}
+	 *   used={2}
+	 *   color="red" />
 	 */
 </script>
 
@@ -33,3 +37,11 @@
 					decorative />{/if}</CardSlot
 		>{/each}
 </div>
+
+<style>
+	.rg-card-token-reserve {
+		display: flex;
+		justify-content: space-between;
+		margin: 2px 12px 12px;
+	}
+</style>

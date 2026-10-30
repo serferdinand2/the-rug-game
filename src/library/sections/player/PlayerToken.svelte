@@ -1,9 +1,9 @@
 <!-- Library section: PlayerToken by seat, at the sizes the game draws it, and by colour, as the reviewed cards use it. -->
 <script>
 	import PlayerToken from '../../../lib/components/player/PlayerToken.svelte';
+	import CardFrame from '../../../lib/components/player/CardFrame.svelte';
 	import Section from '../../Section.svelte';
 	import Example from '../../Example.svelte';
-	import '../../../styles/card-patterns.css';
 
 	/** @type {import('../../../lib/ui.js').Seat[]} */
 	const SEATS = [1, 2, 3, 4, 5];
@@ -27,11 +27,9 @@
 			size={48}
 			decorative /></Example
 	><Example label="Reviewed card pattern: color=…"
-		><div
-			class="rg-card-frame"
-			data-state="play">
+		><CardFrame plain>
 			<PlayerToken color="blue" /><PlayerToken color="red" /><PlayerToken
 				color="green" /><PlayerToken color="yellow" /><PlayerToken
 				color="purple" />
-		</div></Example
+		</CardFrame></Example
 	></Section>
