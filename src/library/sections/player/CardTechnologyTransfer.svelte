@@ -1,4 +1,4 @@
-<!-- Library section: CardTechnologyTransfer, extracted from the reviewed cards. -->
+<!-- Library section: CardTechnologyTransfer, a technology card changing owner (#106). -->
 <script>
 	import CardTechnologyTransfer from '../../../lib/components/player/CardTechnologyTransfer.svelte';
 	import Section from '../../Section.svelte';
@@ -9,11 +9,15 @@
 <Section
 	name="CardTechnologyTransfer"
 	area="player"
-	description="Owner-reviewed card pattern; see docs/ui/card-design-rules.md for the composition rules."
-	><Example label="Reviewed card pattern"
-		><div
-			class="rg-card-frame"
-			data-state="play">
-			<CardTechnologyTransfer /><CardTechnologyTransfer active />
+	description="A technology card moving from one owner's top row into another's bottom row; when active, a token marks it in both. See docs/ui/card-design-rules.md."
+	><Example
+		label="from to"
+		width={425}
+		><div class="rg-card-frame"><CardTechnologyTransfer /></div></Example
+	><Example
+		label="active"
+		width={425}
+		><div class="rg-card-frame">
+			<CardTechnologyTransfer active />
 		</div></Example
 	></Section>

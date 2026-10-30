@@ -8,6 +8,9 @@ import CardClarity from '../src/lib/components/player/CardClarity.svelte';
 import CardEffectBox from '../src/lib/components/player/CardEffectBox.svelte';
 import CardEffectList from '../src/lib/components/player/CardEffectList.svelte';
 import CardResource from '../src/lib/components/player/CardResource.svelte';
+import CardScoreLadder from '../src/lib/components/player/CardScoreLadder.svelte';
+import CardTechnologyTransfer from '../src/lib/components/player/CardTechnologyTransfer.svelte';
+import CardTokenReserve from '../src/lib/components/player/CardTokenReserve.svelte';
 
 /** @param {string} name - A component in src/lib/components/player/ */
 const source = (name) =>
@@ -158,4 +161,87 @@ test('CivilizationCard writes no effect list, clarity paragraph or effect title 
 	assert.doesNotMatch(card, /rg-card-ability-/);
 	assert.doesNotMatch(card, /rg-card-fine|rg-card-setup/);
 	assert.doesNotMatch(card, /rg-card-resource-icon/);
+});
+
+test('CardScoreLadder draws its steps from data: the stepped ladder with the current step, and the flat row with its example', () => {
+	const steps = [1, 3, 6].map((points, index) => ({
+		count: index + 1,
+		points,
+	}));
+	const stepped = html(
+		render(CardScoreLadder, {
+			props: { steps, current: 2, noun: 'different items' },
+		})
+	);
+	assert.equal(stepped.match(/<li /g)?.length, 3);
+	assert.match(stepped, /aria-label="2 different items: 3 VP"/);
+	assert.equal(stepped.match(/rg-card-score-ladder--current/g)?.length, 1);
+	assert.match(
+		stepped,
+		/<li class="rg-card-score-ladder--step[^"]*rg-card-score-ladder--current"[^>]*style="height: 46px;"/
+	);
+	assert.match(
+		stepped,
+		/<span[^>]*>1<\/span><span[^>]*>2<\/span><span[^>]*>3<\/span>/
+	);
+	const none = html(render(CardScoreLadder, { props: { steps } }));
+	assert.doesNotMatch(none, /rg-card-score-ladder--current/);
+	const flat = html(
+		render(CardScoreLadder, {
+			props: {
+				kind: 'flat',
+				label: 'Final income turn',
+				steps: [
+					{ count: 5, points: 31 },
+					{ count: '6+', points: 40 },
+				],
+				example: {
+					pictures: ['/art/terrain/grassland.svg'],
+					text: '1 grassland territory',
+					result: '= 5 VP',
+				},
+			},
+		})
+	);
+	assert.match(flat, /rg-card-score-ladder--flat/);
+	assert.match(flat, /<small[^>]*>6\+<\/small>40 VP/);
+	assert.match(
+		flat,
+		/<img src="\/art\/terrain\/grassland\.svg" alt=""[^>]*\/?><span>1 grassland territory<\/span><b[^>]*>= 5 VP<\/b>/
+	);
+	assert.doesNotMatch(flat, /<ol/);
+});
+
+test('CardTokenReserve empties the used squares from the left', () => {
+	const body = html(
+		render(CardTokenReserve, { props: { count: 4, used: 1 } })
+	);
+	assert.equal(body.match(/rg-player-token/g)?.length, 3);
+	assert.match(body, /aria-label="3 of 4 player tokens remain"/);
+});
+
+test('CardTechnologyTransfer marks the top row it leaves and the bottom row it reaches only when active', () => {
+	const idle = html(render(CardTechnologyTransfer, {}));
+	assert.doesNotMatch(
+		idle,
+		/rg-card-technology-transfer--target|rg-player-token/
+	);
+	const active = html(
+		render(CardTechnologyTransfer, { props: { active: true } })
+	);
+	assert.equal(
+		active.match(/rg-card-technology-transfer--target/g)?.length,
+		2
+	);
+	assert.equal(active.match(/rg-player-token/g)?.length, 2);
+	assert.match(active, /Opponent's tech/);
+});
+
+test('CivilizationCard draws both score ladders with CardScoreLadder (#106)', () => {
+	const card = source('CivilizationCard');
+	assert.doesNotMatch(
+		card,
+		/rg-card-isolation-score|rg-card-inventor-tech|values=/
+	);
+	assert.equal(card.match(/<CardScoreLadder/g)?.length, 2);
 });

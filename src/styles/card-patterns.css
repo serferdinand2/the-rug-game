@@ -170,10 +170,6 @@
 	opacity: 0;
 }
 
-.rg-card-vp--string {
-	display: none;
-}
-
 /* ================= Option B · Civilization mat ================= */
 .rg-card-frame {
 	width: 425px;
@@ -265,91 +261,6 @@
 	.rg-card-slot--item {
 	transform: none;
 }
-.rg-card-frame--score {
-	margin: var(--space-6) var(--space-6) var(--space-6);
-	padding-top: var(--space-5);
-	border-top: var(--border) solid var(--line);
-}
-.rg-card-frame--vps {
-	display: grid;
-	grid-template-columns: repeat(6, 1fr);
-	gap: var(--space-3);
-	align-items: end;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-.rg-card-frame .rg-card-vp {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: flex-start;
-	gap: 0;
-	padding-top: var(--space-2);
-	background: color-mix(in srgb, var(--gold) 13%, var(--control));
-	border-top: var(--border-thick) solid var(--gold);
-}
-.rg-card-frame .rg-card-vp[data-n='1'] {
-	height: 38px;
-}
-.rg-card-frame .rg-card-vp[data-n='2'] {
-	height: 46px;
-}
-.rg-card-frame .rg-card-vp[data-n='3'] {
-	height: 54px;
-}
-.rg-card-frame .rg-card-vp[data-n='4'] {
-	height: 62px;
-}
-.rg-card-frame .rg-card-vp[data-n='5'] {
-	height: 70px;
-}
-.rg-card-frame .rg-card-vp[data-n='6'] {
-	height: 78px;
-}
-.rg-card-frame .rg-card-vp--pts {
-	font: var(--weight-bold) var(--font-size-lg)/1 var(--font-title);
-	color: var(--gold);
-}
-.rg-card-frame .rg-card-vp--pts small {
-	display: block;
-	margin-top: 1px;
-	font: var(--weight-bold) var(--font-size-3xs)/1 var(--font-body);
-	letter-spacing: var(--letter-spacing-caps);
-	color: var(--bronze);
-	text-align: center;
-}
-.rg-card-frame .rg-card-vp--n {
-	display: none;
-}
-.rg-card-frame .rg-card-vp--pips {
-	display: none;
-}
-.rg-card-frame[data-state='play'] .rg-card-vp.rg-card-is-current {
-	background: color-mix(in srgb, var(--player-1) 26%, var(--control));
-	border-top-color: var(--player-1);
-}
-.rg-card-frame--counts {
-	display: grid;
-	grid-template-columns: repeat(6, 1fr);
-	gap: var(--space-3);
-	margin-top: var(--space-2);
-	font-size: var(--font-size-3xs);
-	font-weight: var(--weight-bold);
-	color: var(--faint);
-	text-align: center;
-}
-.rg-card-frame--axis {
-	display: flex;
-	justify-content: space-between;
-	margin-top: var(--space-1);
-	font-size: var(--font-size-3xs);
-	letter-spacing: var(--letter-spacing-caps);
-	text-transform: uppercase;
-	color: var(--bronze);
-	font-weight: var(--weight-bold);
-}
 
 /* Only Option B's surface treatment changes for this colour proof. */
 .rg-card-frame {
@@ -373,8 +284,7 @@
 	background-size: 128px 128px;
 }
 .rg-card-frame .rg-card-slot--item,
-.rg-card-frame .rg-card-slot--gain,
-.rg-card-frame .rg-card-vp {
+.rg-card-frame .rg-card-slot--gain {
 	background-image: url('./pixel-noise.svg');
 	background-size: 128px 128px;
 }
@@ -398,24 +308,7 @@
 .rg-card-frame .rg-card-slot--gain {
 	--card-resource-center: 0px;
 }
-.rg-card-frame .rg-card-vp--pts {
-	display: flex;
-	align-items: baseline;
-	justify-content: center;
-	gap: 3px;
-	white-space: nowrap;
-	font:
-		700 15px/1 'Atkinson Hyperlegible',
-		sans-serif;
-}
-.rg-card-frame .rg-card-vp--pts small {
-	display: inline;
-	margin: 0;
-	color: inherit;
-	font:
-		700 var(--font-size-3xs)/1 'Atkinson Hyperlegible',
-		sans-serif;
-}
+
 .rg-card-frame--body {
 	grid-template-columns: 160px 1fr;
 	gap: 12px;
@@ -453,20 +346,6 @@
 	background: none;
 }
 
-.rg-card-frame--score {
-	margin: 12px 12px 10px;
-	padding-top: 8px;
-}
-.rg-card-frame--score .rg-card-ladder-label {
-	display: block;
-	color: var(--text);
-	font:
-		700 12px/1.2 'Atkinson Hyperlegible',
-		sans-serif;
-	letter-spacing: 0;
-	text-transform: none;
-	margin-bottom: 6px;
-}
 .rg-card-frame--foot {
 	display: flex;
 	justify-content: space-between;
@@ -478,8 +357,7 @@
 	background-image: url('./card-paper-noise.svg');
 }
 .rg-card-frame .rg-card-slot--item,
-.rg-card-frame .rg-card-slot--gain,
-.rg-card-frame .rg-card-vp {
+.rg-card-frame .rg-card-slot--gain {
 	background-image: url('./card-paper-noise.svg');
 	background-size: 256px 256px;
 }
@@ -1030,107 +908,6 @@
 	display: block;
 }
 
-/* Isolationists: a limited token reserve and a six-step landmass score. */
-.rg-card-isolation-reserve {
-	display: flex;
-	justify-content: space-between;
-	margin: 4px 12px 12px;
-}
-.rg-card-isolation-reserve--slot {
-	display: grid;
-	place-items: center;
-	width: 62px;
-	height: 62px;
-	border: 1px solid var(--card-slot-border);
-	background: var(--card-slot);
-}
-.rg-card-isolation-reserve--slot img {
-	width: 26px;
-	height: 26px;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-isolation-reserve--slot.rg-card-is-used
-	img {
-	display: none;
-}
-
-.rg-card-isolation-score {
-	margin: 8px 12px 0;
-	padding: 9px;
-	border: 1px solid var(--line);
-	background: color-mix(in srgb, var(--control) 75%, transparent);
-}
-.rg-card-isolation-score--title {
-	margin-bottom: 7px;
-	color: var(--gold);
-	font:
-		700 11px/1.2 'Atkinson Hyperlegible',
-		sans-serif;
-	text-transform: uppercase;
-}
-.rg-card-isolation-score--ladder {
-	display: grid;
-	grid-template-columns: repeat(6, minmax(0, 1fr));
-	gap: 5px;
-}
-.rg-card-isolation-score--step {
-	display: grid;
-	place-items: center;
-	gap: 3px;
-	min-height: 48px;
-	border: 1px solid var(--line-soft);
-	background: var(--raised);
-	font:
-		700 12px/1 'Atkinson Hyperlegible',
-		sans-serif;
-}
-.rg-card-isolation-score--step small {
-	color: var(--muted);
-	font-size: 10px;
-	font-weight: 400;
-}
-.rg-card-isolation-score--example {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	margin-top: 8px;
-	color: var(--muted);
-	font:
-		11px/1.2 'Atkinson Hyperlegible',
-		sans-serif;
-}
-.rg-card-isolation-score--example img {
-	width: 26px;
-	height: 26px;
-}
-.rg-card-isolation-score--example b {
-	margin-left: 4px;
-	color: var(--text);
-}
-
-/* Traders: four starting tokens and two different map targets. */
-.rg-card-trader-reserve {
-	display: flex;
-	justify-content: space-between;
-	margin: 4px 12px 12px;
-}
-.rg-card-trader-reserve--slot {
-	display: grid;
-	place-items: center;
-	width: 62px;
-	height: 62px;
-	border: 1px solid var(--card-slot-border);
-	background: var(--card-slot);
-}
-.rg-card-trader-reserve--slot img {
-	width: 26px;
-	height: 26px;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-trader-reserve--slot.rg-card-is-used
-	img {
-	display: none;
-}
 /* Maker of Fire, printed on the income mat with no picture of its own: era I in a mini tapestry card (#47). */
 .rg-card-era-numeral {
 	display: grid;
@@ -1299,88 +1076,6 @@
 	> img {
 	display: none;
 }
-.rg-card-inventor-reserve {
-	display: flex;
-	justify-content: space-between;
-	margin: 2px 12px 12px;
-}
-.rg-card-inventor-reserve--slot {
-	display: grid;
-	place-items: center;
-	width: 62px;
-	height: 62px;
-	border: 1px solid var(--card-slot-border);
-	background: var(--card-slot);
-}
-.rg-card-inventor-reserve--slot img {
-	width: 26px;
-	height: 26px;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-inventor-reserve--slot.rg-card-is-used
-	img {
-	display: none;
-}
-.rg-card-inventor-tech {
-	display: grid;
-	grid-template-columns: 1fr 22px 1fr;
-	align-items: center;
-	gap: 7px;
-	margin: 0 12px 12px;
-}
-.rg-card-inventor-tech--card {
-	display: grid;
-	gap: 5px;
-	padding: 7px;
-	border: 1px solid var(--line-strong);
-	background: var(--raised);
-}
-.rg-card-inventor-tech--owner {
-	color: var(--muted);
-	font:
-		700 11px/1.2 'Atkinson Hyperlegible',
-		sans-serif;
-	text-align: center;
-	text-transform: uppercase;
-}
-.rg-card-inventor-tech--owner--opponent {
-	color: var(--card-loss);
-}
-.rg-card-inventor-tech--row {
-	position: relative;
-	display: grid;
-	place-items: center;
-	height: 32px;
-	border: 1px solid var(--line-soft);
-	color: var(--text);
-	font:
-		12px/1 'Atkinson Hyperlegible',
-		sans-serif;
-}
-.rg-card-inventor-tech--row.rg-card-is-target {
-	border: 1px solid var(--line-soft);
-}
-.rg-card-inventor-tech--row img {
-	display: none;
-	position: absolute;
-	right: 5px;
-	width: 22px;
-	height: 22px;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-inventor-tech--row.rg-card-is-target {
-	border: 2px solid var(--player-1);
-}
-.rg-card-frame[data-state='play'] .rg-card-inventor-tech--row img {
-	display: block;
-}
-.rg-card-inventor-tech--arrow {
-	color: var(--gold);
-	font:
-		700 20px/1 'Atkinson Hyperlegible',
-		sans-serif;
-	text-align: center;
-}
 
 /* Native token and resource assets keep their colour, dimensions and alpha. */
 .rg-card-frame,
@@ -1446,18 +1141,11 @@
 .rg-card-slot-surface--pickable.rg-card-slot-surface--picked:focus-visible {
 	outline-style: dashed;
 }
-.rg-card-token-reserve {
-	display: flex;
-	justify-content: space-between;
-	margin: 2px 12px 12px;
-}
 
 .rg-card-frame--text > p {
 	margin: 0;
 }
-.rg-card-inventor-tech--row > .rg-player-token {
-	display: block;
-}
+
 .rg-card-history-square {
 	display: flex;
 	align-items: center;

@@ -106,6 +106,20 @@
 			advance: 'Advance Science',
 		},
 	];
+	/** The Collectors' end-of-game score by the number of different items collected. */
+	const COLLECTOR_SCORE = [1, 3, 6, 10, 15, 21].map((points, index) => ({
+		count: index + 1,
+		points,
+	}));
+	/** The Isolationists' final score by the territories in their largest landmass of one terrain. */
+	const ISOLATIONIST_SCORE = [
+		{ count: 1, points: 5 },
+		{ count: 2, points: 10 },
+		{ count: 3, points: 16 },
+		{ count: 4, points: 23 },
+		{ count: 5, points: 31 },
+		{ count: '6+', points: 40 },
+	];
 	/** The most each Mystics prediction can be, by category: its numbers run from 1 to it. */
 	const MYSTIC_MOST = /** @type {Record<string, number>} */ (
 		Object.fromEntries(
@@ -335,7 +349,7 @@
 				at them.{#snippet setup()}Setup, current rules: gain
 					<CardResource symbol="any" />.{/snippet}</CardClarity>
 			<CardScoreLadder
-				values={[1, 3, 6, 10, 15, 21]}
+				steps={COLLECTOR_SCORE}
 				current={state === 'play' ? 3 : 0} />
 		</CardFrame>
 	{:else if id === 'architects'}
@@ -1072,36 +1086,15 @@
 					>Gain any resource. With two tokens on it, that territory
 					cannot be conquered.</CardEffectBox>
 			</CardEffectList>
-			<div class="rg-card-isolation-score">
-				<div class="rg-card-isolation-score--title">
-					Final income turn · territories in your largest connected
-					landmass of one terrain
-				</div>
-				<div class="rg-card-isolation-score--ladder">
-					<span class="rg-card-isolation-score--step"
-						><small>1</small>5 VP</span
-					><span class="rg-card-isolation-score--step"
-						><small>2</small>10 VP</span
-					><span class="rg-card-isolation-score--step"
-						><small>3</small>16 VP</span
-					><span class="rg-card-isolation-score--step"
-						><small>4</small>23 VP</span
-					><span class="rg-card-isolation-score--step"
-						><small>5</small>31 VP</span
-					><span class="rg-card-isolation-score--step"
-						><small>6+</small>40 VP</span>
-				</div>
-				<div class="rg-card-isolation-score--example">
-					<img
-						src="/art/terrain/grassland.svg"
-						alt="" /><img
-						src="/art/terrain/grassland.svg"
-						alt="" /><img
-						src="/art/terrain/grassland.svg"
-						alt="" /><span>3 connected grassland territories</span
-					><b>= 16 VP</b>
-				</div>
-			</div>
+			<CardScoreLadder
+				kind="flat"
+				label="Final income turn · territories in your largest connected landmass of one terrain"
+				steps={ISOLATIONIST_SCORE}
+				example={{
+					pictures: Array(3).fill('/art/terrain/grassland.svg'),
+					text: '3 connected grassland territories',
+					result: '= 16 VP',
+				}} />
 			<CardClarity>
 				Only land territories you control count; water does not form a
 				landmass. The middle island is not a wildcard.{#snippet setup()}Setup,
