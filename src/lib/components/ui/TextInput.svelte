@@ -199,7 +199,7 @@
 		letter-spacing: var(--letter-spacing-caps);
 	}
 
-	/* The lobby's read-only code keeps its line border on focus and shows only the page's focus outline (#102). */
+	/* The lobby's read-only code keeps its line border on focus and shows only the page's focus outline, issue 102. */
 	.rg-text-input--small .rg-text-input--field:focus {
 		border-color: var(--line);
 		box-shadow: none;
