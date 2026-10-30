@@ -161,11 +161,7 @@
 			<TrackSpace
 				track={id}
 				space={index + 1}
-				name={entry.name}
-				landmark={entry.landmark}
-				benefit={entry.benefit}
-				bonus={entry.bonus}
-				words={entry.words}
+				{...entry}
 				selected={selectedSpace === index + 1}
 				available={available.includes(index + 1)}
 				onTrackSpaceClick={spaceClickHandler}
