@@ -71,12 +71,13 @@
 				{...effects('science', 7)} />
 		</div>
 	</Example>
-	<Example label={'track="military" space={12} name="Mechs"'}>
+	<Example label={'track="military" space={12} name="Mechs" last'}>
 		<div style={TILE}>
 			<TrackSpace
 				track="military"
 				space={12}
 				name="Mechs"
+				last
 				{...effects('military', 12)} />
 		</div>
 	</Example>
