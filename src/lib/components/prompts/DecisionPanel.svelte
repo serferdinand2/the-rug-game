@@ -65,6 +65,9 @@
 
 	const uid = $props.id();
 
+	/** The track's colour, which tints the bottom bar, the border and Confirm. */
+	let tint = $derived(track ? trackColor(track) : undefined);
+
 	/** The gap between the shelf and the panel. */
 	const SHELF_GAP = 18;
 
@@ -106,7 +109,7 @@
 	class="rg-decision-panel {attr.class ? attr.class : ''}"
 	class:rg-decision-panel--docked={docked}
 	class:rg-decision-panel--narrow={narrow}
-	style:--rg-decision-panel-track={track ? trackColor(track) : undefined}
+	style:--rg-decision-panel-track={tint}
 	style:--rg-decision-panel-gap="{SHELF_GAP}px">
 	<div
 		class="rg-decision-panel--stack"
@@ -152,7 +155,7 @@
 				{/if}
 				<Button
 					mode="confirm"
-					class="rg-decision-panel--confirm"
+					{tint}
 					disabled={confirmDisabled}
 					onButtonClick={confirmClickHandler}>{confirmLabel}</Button>
 			</div>
@@ -263,42 +266,22 @@
 		color: var(--danger);
 	}
 
-	/* A decision about a track takes a tint of it along the bottom, as the mockup's --track does. */
+	/* A decision about a track takes a tint of it along the bottom, as the mockup's --track does; Confirm takes its
+	   colour through Button's tint (issue 117). */
 	.rg-decision-panel--tracked .rg-decision-panel--bottom {
 		background: color-mix(
 			in srgb,
-			var(--rg-decision-panel-track) 18%,
+			var(--rg-decision-panel-track) var(--track-bar-mix),
 			var(--chrome)
 		);
-		box-shadow: inset 0 -3px var(--rg-decision-panel-track);
+		box-shadow: inset 0 calc(-1 * var(--track-bar-band))
+			var(--rg-decision-panel-track);
 	}
 
 	.rg-decision-panel--tracked .rg-decision-panel--status {
 		color: color-mix(
 			in srgb,
 			var(--rg-decision-panel-track) 35%,
-			var(--text)
-		);
-	}
-
-	/* Confirm takes the track's colour too, as the mockup's [data-track] #decision-confirm; the Button is reached
-	   through its class prop. */
-	.rg-decision-panel--tracked
-		:global(.rg-decision-panel--confirm:not(:disabled)) {
-		border-color: var(--rg-decision-panel-track);
-		background: color-mix(
-			in srgb,
-			var(--rg-decision-panel-track) 65%,
-			var(--text)
-		);
-		color: var(--ink);
-	}
-
-	.rg-decision-panel--tracked
-		:global(.rg-decision-panel--confirm:not(:disabled):hover) {
-		background: color-mix(
-			in srgb,
-			var(--rg-decision-panel-track) 55%,
 			var(--text)
 		);
 	}

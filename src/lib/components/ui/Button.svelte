@@ -9,6 +9,7 @@
 	 * @property {'small' | 'medium' | 'large'} [size='medium'] - 30, 36 or 44 pixels tall
 	 * @property {boolean} [block=false] - Fill the container's width
 	 * @property {boolean} [selected] - A toggle's pressed state, such as I'm ready; sets aria-pressed
+	 * @property {string} [tint] - A track's colour as a token reference from trackColor, such as 'var(--military)': primary takes 60% of it over the text colour, as the optional footer's commit button; confirm takes 65% with a border of the colour itself while it can be pressed, as a track decision's Confirm (#117); other modes ignore it
 	 * @property {import('svelte').Snippet} [children] - The label
 	 * @property {Function} [onButtonClick] - Callback fired when the button is pressed
 	 */
@@ -21,6 +22,9 @@
 	 * <Button mode="gold" size="large" block onButtonClick={() => createTable()}>
 	 *   Create a table
 	 * </Button>
+	 *
+	 * @example
+	 * <Button mode="confirm" tint={trackColor('military')}>Confirm choice</Button>
 	 */
 </script>
 
@@ -33,6 +37,7 @@
 		size = 'medium',
 		block = false,
 		selected,
+		tint,
 		children,
 		onButtonClick,
 		...attr
@@ -60,6 +65,8 @@
 		: ''}"
 	class:rg-button--block={block}
 	class:rg-button--selected={selected}
+	class:rg-button--tinted={Boolean(tint)}
+	style:--rg-button-tint={tint}
 	onclick={clickHandler}>
 	{@render children?.()}
 </button>
@@ -146,6 +153,36 @@
 
 	.rg-button--confirm:hover {
 		background: color-mix(in srgb, var(--gold) 88%, var(--text));
+	}
+
+	/* A track's tint (issue 117): primary is the optional footer's commit button, as the mockup's .turnbar.optional
+	   .btn.primary; confirm is a track decision's Confirm, as its [data-track] #decision-confirm. */
+	.rg-button--tinted.rg-button--primary {
+		--rg-button-tint-fill: color-mix(
+			in srgb,
+			var(--rg-button-tint) 60%,
+			var(--text)
+		);
+		border-color: var(--rg-button-tint-fill);
+		background: var(--rg-button-tint-fill);
+	}
+
+	.rg-button--tinted.rg-button--primary:hover {
+		background: color-mix(
+			in srgb,
+			var(--rg-button-tint-fill) 88%,
+			var(--text)
+		);
+	}
+
+	/* A Confirm that cannot be pressed yet stays gold. */
+	.rg-button--tinted.rg-button--confirm:not(:disabled) {
+		border-color: var(--rg-button-tint);
+		background: color-mix(in srgb, var(--rg-button-tint) 65%, var(--text));
+	}
+
+	.rg-button--tinted.rg-button--confirm:not(:disabled):hover {
+		background: color-mix(in srgb, var(--rg-button-tint) 55%, var(--text));
 	}
 
 	.rg-button--success {

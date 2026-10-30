@@ -123,9 +123,11 @@
 			track="exploration"
 			cost={['food']}
 			reveal={unavailable}>
-			{#snippet actions()}
+			{#snippet actions(tint)}
 				<Button>Skip</Button>
-				<Button mode="primary">Pay &amp; build</Button>
+				<Button
+					mode="primary"
+					{tint}>Pay &amp; build</Button>
 			{/snippet}
 		</TurnBar>
 	</Example>
@@ -304,11 +306,12 @@
 				track="exploration"
 				cost={['food']}
 				reveal={unavailable}>
-				{#snippet actions()}
+				{#snippet actions(tint)}
 					<Button onButtonClick={() => go('neutral', 'Skip')}
 						>Skip</Button>
 					<Button
 						mode="primary"
+						{tint}
 						onButtonClick={() => go('neutral', 'Pay & build')}
 						>Pay &amp; build</Button>
 				{/snippet}

@@ -561,3 +561,63 @@ test('every choice that cannot be picked dims to --opacity-unpickable (#116, own
 		/opacity: var\(--opacity-unpickable\);/
 	);
 });
+
+test('Button takes a track tint for its primary and confirm modes (#117)', () => {
+	const button = sourceOf('lib/components/ui/Button.svelte');
+	assert.match(button, /@property \{string\} \[tint\]/);
+	assert.match(button, /style:--rg-button-tint=\{tint\}/);
+	const css = cssOf('Button.svelte', button);
+	assert.match(css, /\.rg-button--tinted\.rg-button--primary\b/);
+	assert.match(css, /\.rg-button--tinted\.rg-button--confirm\b/);
+	assert.match(css, /var\(--rg-button-tint\)/);
+});
+
+test('no component restyles Button from outside (#117)', () => {
+	for (const [path, contents] of sources) {
+		const css = cssOf(path, contents);
+		if (path.replaceAll('\\', '/') !== 'styles/tokens.css') {
+			assert.doesNotMatch(
+				css,
+				/--action\s*:/,
+				`${path} overrides the --action token Button reads`
+			);
+		}
+		if (!path.endsWith('.svelte')) {
+			continue;
+		}
+		assert.doesNotMatch(
+			css,
+			/:global\([^)]*\.rg-button\b/,
+			`${path} reaches into Button`
+		);
+		// A class handed to a Button lands on its root, so a :global rule on that class restyles the Button.
+		const handed = [
+			...contents.matchAll(/<Button\b[^>]*?\bclass="([^"{]+)"/g),
+		].flatMap(([, names]) => names.split(/\s+/).filter(Boolean));
+		for (const name of handed) {
+			assert.doesNotMatch(
+				css,
+				new RegExp(`:global\\([^)]*\\.${name}(?![\\w-])`),
+				`${path} restyles the Button it hands ${name}`
+			);
+		}
+	}
+});
+
+test('the tracked bars take their tint and band from tokens (#117)', () => {
+	assert.equal(tokens.get('--track-bar-mix'), '18%');
+	assert.equal(tokens.get('--track-bar-band'), '3px');
+	for (const path of [
+		'lib/components/prompts/DecisionPanel.svelte',
+		'lib/components/prompts/TurnBar.svelte',
+	]) {
+		const css = cssOf(path, sourceOf(path));
+		assert.match(css, /var\(--track-bar-mix\)/, path);
+		assert.match(
+			css,
+			/inset 0 calc\(-1 \* var\(--track-bar-band\)\)/,
+			path
+		);
+		assert.doesNotMatch(css, /-track\) 18%/, path);
+	}
+});
