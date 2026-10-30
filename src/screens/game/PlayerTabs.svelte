@@ -64,8 +64,9 @@
 	import { capitalView } from '../../lib/area/capital.js';
 	import { rotateFootprint } from '../../lib/capital.js';
 	import {
+		landmarkPositions,
 		legalNear,
-		nextRotation,
+		optionAt,
 		placeNear,
 		placingPiece,
 		plotTargets,
@@ -171,6 +172,10 @@
 	);
 	let targets = $derived(
 		building && placement ? plotTargets(placement.options) : []
+	);
+	/** The landmark's legal places, which the grid steps and snaps among (#112). */
+	let positions = $derived(
+		landmark && placement ? landmarkPositions(placement.options) : null
 	);
 	let preview = $derived(
 		building && picked
@@ -312,30 +317,36 @@
 	};
 
 	/**
-	 * The placed landmark was dragged or moved with the arrow keys.
+	 * The placed landmark was dragged or moved with the arrow keys, onto one of the positions.
 	 * @param {ComponentEvent} event - From CapitalCity: { id, row, col }
 	 */
 	const moveHandler = (event) => {
 		if (placed) {
 			land(
-				legalNear(
-					placement?.options ?? [],
-					event.value.row,
-					event.value.col,
-					placed.rotation
-				),
+				optionAt(placement?.options ?? [], {
+					row: event.value.row,
+					col: event.value.col,
+					rotation: placed.rotation,
+				}),
 				event
 			);
 		}
 	};
 
 	/**
-	 * The placed landmark was turned, by its control or the . and , keys: the engine's next legal turn, not the grid's.
-	 * @param {ComponentEvent} event
+	 * The placed landmark was turned, by its control or the . and , keys, to the next legal turn among the positions.
+	 * @param {ComponentEvent} event - From CapitalCity: { id, rotation, row, col }
 	 */
 	const rotateHandler = (event) => {
-		if (placement?.picked !== null && placement?.picked !== undefined) {
-			land(nextRotation(placement.options, placement.picked), event);
+		if (placed) {
+			land(
+				optionAt(placement?.options ?? [], {
+					row: event.value.row,
+					col: event.value.col,
+					rotation: event.value.rotation,
+				}),
+				event
+			);
 		}
 	};
 
@@ -445,6 +456,7 @@
 					{capital}
 					owner="Capital City"
 					{pieces}
+					{positions}
 					{targets}
 					{preview}
 					fresh={fresh.plots}

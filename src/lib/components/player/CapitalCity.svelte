@@ -4,6 +4,7 @@
 	/** @typedef {import('./CapitalGrid.svelte').CapitalGridPiece} CapitalGridPiece */
 	/** @typedef {import('./CapitalGrid.svelte').CapitalGridTarget} CapitalGridTarget */
 	/** @typedef {import('./CapitalGrid.svelte').CapitalGridPreview} CapitalGridPreview */
+	/** @typedef {import('./CapitalGrid.svelte').CapitalGridPosition} CapitalGridPosition */
 
 	/**
 	 * Properties of the CapitalCity component itself.
@@ -12,6 +13,7 @@
 	 * @property {string} owner - The title before the mat's name, such as 'Capital City' or the player's name
 	 * @property {string} [label] - Names the grid for assistive technology; left out, CapitalGrid's own
 	 * @property {CapitalGridPiece[]} [pieces] - The landmarks to draw, when they differ from the capital's own (a landmark being placed, a fresh one); left out, `capital.pieces`
+	 * @property {CapitalGridPosition[] | null} [positions=null] - The engine's legal places for the landmark being placed, which it moves, turns and snaps among (#112)
 	 * @property {CapitalGridTarget[]} [targets=[]] - Plots a decision can choose, lit on the grid
 	 * @property {CapitalGridPreview | null} [preview=null] - The chosen building, drawn faintly on its plot
 	 * @property {CapitalGridTarget[]} [fresh=[]] - Plots just built on, which glow once
@@ -54,6 +56,7 @@
 		owner,
 		label,
 		pieces,
+		positions = null,
 		targets = [],
 		preview = null,
 		fresh = [],
@@ -228,6 +231,7 @@
 		biome={capital.biome}
 		terrainSeed={capital.terrainSeed}
 		pieces={pieces ?? capital.pieces}
+		{positions}
 		{highlight}
 		{targets}
 		{preview}

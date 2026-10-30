@@ -51,6 +51,42 @@ export function plotTargets(options) {
 }
 
 /**
+ * The places a landmark may go on the capital, as CapitalGrid steps and snaps among them.
+ * @param {readonly PlacementOption[]} options - The prompt's options; the buildings' and the panel's are left out
+ * @returns {import('../placement.js').PiecePosition[]}
+ */
+export function landmarkPositions(options) {
+	return options.flatMap((option) =>
+		option.plot && option.plot.rotation !== null
+			? [
+					{
+						row: option.plot.row,
+						col: option.plot.col,
+						rotation: option.plot.rotation,
+					},
+				]
+			: []
+	);
+}
+
+/**
+ * The option exactly at a landmark position, as CapitalGrid reports a move or a turn.
+ * @param {readonly PlacementOption[]} options
+ * @param {import('../placement.js').PiecePosition} position
+ * @returns {number | null} Its index; null when no option is there.
+ */
+export function optionAt(options, { row, col, rotation }) {
+	return (
+		options.find(
+			(option) =>
+				option.plot?.row === row &&
+				option.plot.col === col &&
+				option.plot.rotation === rotation
+		)?.index ?? null
+	);
+}
+
+/**
  * The option with that rotation whose top-left corner is nearest (row, col), by squared distance.
  * @param {readonly PlacementOption[]} options
  * @param {number} row
@@ -64,32 +100,6 @@ export function legalNear(options, row, col, rotation) {
 		row,
 		col
 	);
-}
-
-/**
- * The next legal turn of a placed landmark: from the option at `current`, the option of the next rotation (+1, then
- * +2, then +3, cycling past 3 to 0) nearest the same top-left corner.
- * @param {readonly PlacementOption[]} options
- * @param {number} current - The index of the option the landmark is on
- * @returns {number | null} Null when no other rotation is legal.
- */
-export function nextRotation(options, current) {
-	const plot = options.find((option) => option.index === current)?.plot;
-	if (!plot || plot.rotation === null) {
-		return null;
-	}
-	for (let turn = 1; turn < 4; turn++) {
-		const index = legalNear(
-			options,
-			plot.row,
-			plot.col,
-			(plot.rotation + turn) % 4
-		);
-		if (index !== null) {
-			return index;
-		}
-	}
-	return null;
 }
 
 /**
