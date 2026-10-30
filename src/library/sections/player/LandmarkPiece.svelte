@@ -32,7 +32,7 @@
 <Section
 	name="LandmarkPiece"
 	area="player"
-	description="A landmark's picture in its footprint's shape. In the To be placed tray it is a small box (29 pixels a plot) beside its Cinzel name; on the capital it covers its plots, with rotate, confirm and return controls until it is locked. The Lighthouse is outlined in exploration blue.">
+	description="A landmark's picture in its footprint's shape. In the To be placed tray it is a small box (29 pixels a plot) beside its Cinzel name; on the capital it covers its plots, with rotate, confirm and return controls until it is locked. The Lighthouse is outlined in exploration blue. It drags itself (its picture, from where it was held, reporting its id and grab), answers its own keys (src/lib/landmark-keys.js, the keys How to play lists) and takes the focus through its focus() (#111).">
 	<Example
 		label={`Interactive: state="${pieceState}" rotation={${rotation}}${fresh ? ' fresh' : ''}  (press the piece, then use its controls)`}
 		width={300}>

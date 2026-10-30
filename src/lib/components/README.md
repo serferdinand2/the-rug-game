@@ -74,7 +74,7 @@ These components are updated as the art issues deliver their assets. Each will s
 |---|---|
 | `CapitalGrid` | The 9×9 capital: each plot's ground tile, the mat's relief drawn over its impassable plots where the biome has one, with a building on a printed impassable plot clearing it, and Architects' cubes (#82); districts, completion overlays, placed landmarks (a locked one may hang over the edge, R106, and `room` keeps space for it) and their drag, keyboard and drop handling, and a decision's lit `targets` (green-outlined plot buttons) with a faint `preview` of the chosen building; a `fresh` plot glows once (#29). |
 | `CompletionCounters` | Completed rows, columns and districts; hover or focus previews, a press keeps them shown. |
-| `LandmarkPiece` | A landmark's picture in its footprint's shape, in the tray or on the grid, with rotate, confirm and return. |
+| `LandmarkPiece` | A landmark's picture in its footprint's shape, in the tray or on the grid, with rotate, confirm and return. It sets its own drag data and drag image and reports `{ id, grab }` (`grabAt`, `writeGrab` and `readGrab` in `placement.js`), answers its keys from `src/lib/landmark-keys.js`, whose keys How to play lists, and exports `focus()` (#111). |
 | `PlacementTray` | The To be placed tray: select, drag or arrow a landmark onto the grid, or drop one back. |
 | `EraSlots` | The four era slots: printed Maker of Fire, then each top tapestry card, "Face-down card" or "Not yet chosen"; the active era is outlined and a card can be chosen (#27). |
 | `IncomeMat` | The income mat: four building rows of six spaces, covered ones showing the building, exposed ones their name and reward in words (#27). |

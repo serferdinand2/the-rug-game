@@ -12,6 +12,10 @@ import {
 	outlinePath,
 	controlsAnchor,
 	pieceArea,
+	GRAB_TYPE,
+	grabAt,
+	writeGrab,
+	readGrab,
 } from '../src/lib/placement.js';
 
 /** An empty capital with the given plots set. */
@@ -201,4 +205,64 @@ test('the placement controls sit at the rightmost plot of the top row', () => {
 		row: 0,
 		col: 3,
 	});
+});
+
+/** A stand-in for a drag's DataTransfer, which Node lacks. */
+function transfer() {
+	/** @type {Map<string, string>} */
+	const data = new Map();
+	return {
+		data,
+		/** @param {string} type @param {string} value */
+		setData: (type, value) => void data.set(type, value),
+		/** @param {string} type */
+		getData: (type) => data.get(type) ?? '',
+	};
+}
+
+test('a piece in the tray is grabbed in plots of 29 pixels, from its picture (#111)', () => {
+	// The Rubber Works in the tray: 4 by 4 plots, 116 pixels square, at (100, 50).
+	const box = { left: 100, top: 50, width: 116, height: 116 };
+	assert.deepEqual(grabAt(box, 129, 108, rubberWorks), {
+		offset: { x: 29, y: 58 },
+		grab: { x: 1, y: 2 },
+	});
+});
+
+test('a piece on the grid is grabbed in plots of its own box (#111)', () => {
+	// The Lighthouse turned on the grid: 2 by 2 plots over 90 pixels.
+	const box = { left: 10, top: 20, width: 90, height: 90 };
+	assert.deepEqual(grabAt(box, 77.5, 42.5, ['XX', 'XX']), {
+		offset: { x: 67.5, y: 22.5 },
+		grab: { x: 1.5, y: 0.5 },
+	});
+	assert.deepEqual(grabAt(box, 10, 20, ['XXX', 'XXX']), {
+		offset: { x: 0, y: 0 },
+		grab: { x: 0, y: 0 },
+	});
+});
+
+test('a grab outside the picture is held to its edge, and an empty box grabs its corner (#111)', () => {
+	const box = { left: 0, top: 0, width: 58, height: 58 };
+	assert.deepEqual(grabAt(box, -5, 70, ['XX', 'XX']), {
+		offset: { x: 0, y: 58 },
+		grab: { x: 0, y: 2 },
+	});
+	assert.deepEqual(
+		grabAt({ left: 0, top: 0, width: 0, height: 0 }, 3, 3, ['XX', 'XX']),
+		{ offset: { x: 0, y: 0 }, grab: { x: 0, y: 0 } }
+	);
+});
+
+test('the grab travels with the drag as "x y" in plots, and broken data reads as none (#111)', () => {
+	const drag = transfer();
+	writeGrab(drag, { x: 1.25, y: 0.5 });
+	assert.equal(drag.data.get(GRAB_TYPE), '1.25 0.5');
+	assert.deepEqual(readGrab(drag), { x: 1.25, y: 0.5 });
+	assert.equal(readGrab(transfer()), null);
+	for (const broken of ['1', 'x y', '1 y', ' ']) {
+		const other = transfer();
+		other.setData(GRAB_TYPE, broken);
+		assert.equal(readGrab(other), null, broken);
+	}
 });

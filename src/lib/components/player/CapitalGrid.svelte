@@ -81,6 +81,7 @@
 </script>
 
 <script>
+	import { tick } from 'svelte';
 	import LandmarkPiece from './LandmarkPiece.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 	import { artUrl } from '../../ui.js';
@@ -93,9 +94,9 @@
 		plotIndex,
 	} from '../../capital.js';
 	import {
-		GRAB_TYPE,
 		pieceArea,
 		pieceShape,
+		readGrab,
 		rotatePiece,
 		snapPiece,
 		stepPiece,
@@ -130,6 +131,8 @@
 	let grab = { x: 0.5, y: 0.5 };
 	/** The pieces seen so far, so a newly placed one can take the focus; null before the first render. @type {Set<string> | null} */
 	let seen = null;
+	/** Each piece on the grid by its id, to focus a newly placed one. @type {Record<string, { focus: () => void } | null>} */
+	const drawn = {};
 
 	/** @type {HTMLDivElement | undefined} */
 	let element = $state();
@@ -200,18 +203,14 @@
 				onCapitalGridDragEnd(new ComponentEvent({ id }, element));
 			}
 		}
-		const focused = document.activeElement;
-		if (
-			!firstRender &&
-			added &&
-			element &&
-			(!focused || focused === document.body)
-		) {
-			/** @type {HTMLElement | null} */ (
-				element.querySelector(
-					`[data-piece="${CSS.escape(added.id)}"] [tabindex="0"]`
-				)
-			)?.focus();
+		if (!firstRender && added) {
+			// After tick, so the new piece's binding is set.
+			tick().then(() => {
+				const focused = document.activeElement;
+				if (!focused || focused === document.body) {
+					drawn[added.id]?.focus();
+				}
+			});
 		}
 	});
 
@@ -285,13 +284,9 @@
 			return;
 		}
 		event.preventDefault();
-		const [x, y] = event.dataTransfer
-			.getData(GRAB_TYPE)
-			.split(' ')
-			.map(Number);
 		const { row, col } = topLeft(
 			event,
-			Number.isFinite(x) && Number.isFinite(y) ? { x, y } : grab
+			readGrab(event.dataTransfer) ?? grab
 		);
 		const target = /** @type {HTMLElement} */ (event.currentTarget);
 		const piece = pieces.find((candidate) => candidate.id === id);
@@ -318,45 +313,28 @@
 	};
 
 	/**
-	 * @param {DragEvent} event
+	 * @param {ComponentEvent} event - From LandmarkPiece: { id, grab }
 	 * @param {CapitalGridPiece} piece
 	 */
-	const pieceDragstartHandler = (event, piece) => {
-		if (piece.locked || !event.dataTransfer) {
-			event.preventDefault();
-			return;
-		}
-		const root = /** @type {HTMLElement} */ (event.currentTarget);
-		const rect = root.getBoundingClientRect();
-		const shape = pieceShape(piece);
-		grab = {
-			x: ((event.clientX - rect.left) / rect.width) * shape[0].length,
-			y: ((event.clientY - rect.top) / rect.height) * shape.length,
-		};
-		event.dataTransfer.setData('text/plain', piece.id);
-		event.dataTransfer.setData(GRAB_TYPE, `${grab.x} ${grab.y}`);
-		event.dataTransfer.effectAllowed = 'move';
-		const picture = root.querySelector('svg');
-		if (picture) {
-			event.dataTransfer.setDragImage(
-				picture,
-				event.clientX - rect.left,
-				event.clientY - rect.top
-			);
-		}
+	const pieceDragStartHandler = (event, piece) => {
+		grab = event.value.grab;
 		draggingId = piece.id;
 		if (typeof onCapitalGridDragStart === 'function') {
 			onCapitalGridDragStart(
-				new ComponentEvent({ id: piece.id }, root, event)
+				new ComponentEvent(
+					{ id: piece.id },
+					event.target,
+					event.originalEvent
+				)
 			);
 		}
 	};
 
 	/**
-	 * @param {DragEvent} event
+	 * @param {ComponentEvent} event - From LandmarkPiece: { id, grab }
 	 * @param {CapitalGridPiece} piece
 	 */
-	const pieceDragendHandler = (event, piece) => {
+	const pieceDragEndHandler = (event, piece) => {
 		dragTarget = false;
 		legalDrop = false;
 		if (draggingId !== piece.id) {
@@ -364,9 +342,12 @@
 		}
 		draggingId = null;
 		if (typeof onCapitalGridDragEnd === 'function') {
-			const target = /** @type {HTMLElement} */ (event.currentTarget);
 			onCapitalGridDragEnd(
-				new ComponentEvent({ id: piece.id }, target, event)
+				new ComponentEvent(
+					{ id: piece.id },
+					event.target,
+					event.originalEvent
+				)
 			);
 		}
 	};
@@ -593,6 +574,7 @@
 			style:bottom={overhang(area.bottom, area.rows)}
 			style:left={overhang(area.left, area.cols)}>
 			<LandmarkPiece
+				bind:this={drawn[piece.id]}
 				id={piece.id}
 				name={piece.name}
 				footprint={piece.footprint}
@@ -601,11 +583,11 @@
 				fresh={piece.fresh}
 				dragging={draggingId === piece.id}
 				color={piece.color}
-				draggable={!piece.locked}
-				ondragstart={(/** @type {DragEvent} */ event) =>
-					pieceDragstartHandler(event, piece)}
-				ondragend={(/** @type {DragEvent} */ event) =>
-					pieceDragendHandler(event, piece)}
+				onLandmarkPieceDragStart={(
+					/** @type {ComponentEvent} */ event
+				) => pieceDragStartHandler(event, piece)}
+				onLandmarkPieceDragEnd={(/** @type {ComponentEvent} */ event) =>
+					pieceDragEndHandler(event, piece)}
 				onLandmarkPieceMove={(/** @type {ComponentEvent} */ event) =>
 					pieceMoveHandler(event, piece)}
 				onLandmarkPieceRotate={(/** @type {ComponentEvent} */ event) =>

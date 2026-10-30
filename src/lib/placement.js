@@ -230,3 +230,48 @@ export function controlsAnchor(shape) {
 
 /** The drag data type that says where a dragged piece was grabbed, as "x y" in plots from its top-left corner. */
 export const GRAB_TYPE = 'application/x-rug-game-grab';
+
+/**
+ * Where a piece's picture was grabbed. The pointer is held to the picture's box, which is the shape's columns and rows
+ * at any size: 29 pixels a plot in the tray, the plots it covers on the grid.
+ * @param {{ left: number, top: number, width: number, height: number }} box - The picture's box on the page
+ * @param {number} clientX - The pointer, as the drag event has it
+ * @param {number} clientY
+ * @param {readonly string[]} shape - The piece's turned shape
+ * @returns {{ offset: { x: number, y: number }, grab: { x: number, y: number } }} offset: in pixels from the box's
+ *   corner, for the drag image; grab: in plots from the shape's top-left corner.
+ */
+export function grabAt(box, clientX, clientY, shape) {
+	const x = Math.min(Math.max(clientX - box.left, 0), box.width);
+	const y = Math.min(Math.max(clientY - box.top, 0), box.height);
+	return {
+		offset: { x, y },
+		grab: {
+			x: box.width ? (x / box.width) * shape[0].length : 0,
+			y: box.height ? (y / box.height) * shape.length : 0,
+		},
+	};
+}
+
+/**
+ * Puts where a piece was grabbed into its drag data, under GRAB_TYPE.
+ * @param {Pick<DataTransfer, 'setData'>} transfer - The drag's data
+ * @param {{ x: number, y: number }} grab - In plots from the shape's top-left corner
+ */
+export function writeGrab(transfer, grab) {
+	transfer.setData(GRAB_TYPE, `${grab.x} ${grab.y}`);
+}
+
+/**
+ * Reads where a dropped piece was grabbed from its drag data.
+ * @param {Pick<DataTransfer, 'getData'>} transfer - The drop's data
+ * @returns {{ x: number, y: number } | null} Null when the drag carries no grab, or a broken one.
+ */
+export function readGrab(transfer) {
+	const parts = transfer.getData(GRAB_TYPE).split(' ');
+	if (parts.length !== 2 || parts.some((part) => part.trim() === '')) {
+		return null;
+	}
+	const [x, y] = parts.map(Number);
+	return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null;
+}

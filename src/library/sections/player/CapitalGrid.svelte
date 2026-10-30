@@ -196,7 +196,7 @@ Plot 26, beside the corner join at row 2, column 7, still takes the click.`}
 		label={`Interactive: PlacementTray + CapitalGrid + CompletionCounters
 pieces=${position ? `[Lighthouse at row ${position.row}, col ${position.col}, rotation ${rotation}${locked ? ', locked' : ''}]` : '[]'} awaitingPlacement={${!locked}} highlight=${(hovered ?? toggled) ? `"${hovered ?? toggled}"` : '{null}'}
 Click the Lighthouse, then a plot, or drag it in; drag it again to move it or back to the tray.
-Keyboard: an arrow key on the Lighthouse puts it on the grid and moves it, R rotates, Enter confirms, Delete returns it.`}
+Keyboard: an arrow key on the Lighthouse puts it on the grid and moves it, full stop or comma rotates it, Enter confirms, Delete returns it.`}
 		width={468}>
 		<div
 			style:display="grid"

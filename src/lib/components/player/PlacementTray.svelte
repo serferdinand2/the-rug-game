@@ -37,10 +37,9 @@
 </script>
 
 <script>
-	import LandmarkPiece, { TRAY_PLOT_SIZE } from './LandmarkPiece.svelte';
+	import { tick } from 'svelte';
+	import LandmarkPiece from './LandmarkPiece.svelte';
 	import { ComponentEvent } from '../../component-event.js';
-	import { rotateFootprint } from '../../capital.js';
-	import { GRAB_TYPE } from '../../placement.js';
 
 	/** @type {PlacementTrayProps} */
 	let {
@@ -55,9 +54,9 @@
 
 	/** The items seen so far, so one that comes back can take the focus; null before the first render. @type {Set<string> | null} */
 	let seen = null;
+	/** Each item's piece by its id, to focus one that comes back. @type {Record<string, { focus: () => void } | null>} */
+	const drawn = {};
 
-	/** @type {HTMLElement | undefined} */
-	let element = $state();
 	/** The item being dragged out of the tray. @type {string | null} */
 	let draggingId = $state(null);
 
@@ -72,18 +71,14 @@
 			// An item placed on its drop can leave the tray before its dragend arrives.
 			draggingId = null;
 		}
-		const focused = document.activeElement;
-		if (
-			!firstRender &&
-			added &&
-			element &&
-			(!focused || focused === document.body)
-		) {
-			/** @type {HTMLElement | null} */ (
-				element.querySelector(
-					`[data-item="${CSS.escape(added)}"] [tabindex="0"]`
-				)
-			)?.focus();
+		if (!firstRender && added) {
+			// After tick, so the new piece's binding is set.
+			tick().then(() => {
+				const focused = document.activeElement;
+				if (!focused || focused === document.body) {
+					drawn[added]?.focus();
+				}
+			});
 		}
 	});
 
@@ -118,32 +113,13 @@
 	};
 
 	/**
-	 * @param {DragEvent} event
-	 * @param {PlacementTrayItem} item
+	 * @param {ComponentEvent} event - From LandmarkPiece: { id, grab }
 	 */
-	const itemDragstartHandler = (event, item) => {
-		if (!event.dataTransfer) {
-			return;
-		}
-		const root = /** @type {HTMLElement} */ (event.currentTarget);
-		const picture = root.querySelector('svg');
-		const rect = (picture ?? root).getBoundingClientRect();
-		const shape = rotateFootprint(item.footprint, item.rotation ?? 0);
-		const x = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
-		const y = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
-		event.dataTransfer.setData('text/plain', item.id);
-		event.dataTransfer.setData(
-			GRAB_TYPE,
-			`${Math.min(x / TRAY_PLOT_SIZE, shape[0].length)} ${Math.min(y / TRAY_PLOT_SIZE, shape.length)}`
-		);
-		event.dataTransfer.effectAllowed = 'move';
-		if (picture) {
-			event.dataTransfer.setDragImage(picture, x, y);
-		}
-		draggingId = item.id;
+	const itemDragStartHandler = (event) => {
+		draggingId = event.value.id;
 	};
 
-	const itemDragendHandler = () => {
+	const itemDragEndHandler = () => {
 		draggingId = null;
 	};
 
@@ -179,7 +155,6 @@
 
 {#if shown}
 	<section
-		bind:this={element}
 		aria-label="To be placed"
 		{...attr}
 		class="rg-placement-tray {attr.class ? attr.class : ''}"
@@ -189,8 +164,9 @@
 		<h3 class="rg-placement-tray--heading">To be placed</h3>
 		<ul class="rg-placement-tray--items">
 			{#each items as item (item.id)}
-				<li data-item={item.id}>
+				<li>
 					<LandmarkPiece
+						bind:this={drawn[item.id]}
 						id={item.id}
 						name={item.name}
 						footprint={item.footprint}
@@ -199,10 +175,8 @@
 						state="tray"
 						selected={selectedId === item.id}
 						dragging={draggingId === item.id}
-						draggable="true"
-						ondragstart={(/** @type {DragEvent} */ event) =>
-							itemDragstartHandler(event, item)}
-						ondragend={itemDragendHandler}
+						onLandmarkPieceDragStart={itemDragStartHandler}
+						onLandmarkPieceDragEnd={itemDragEndHandler}
 						onLandmarkPieceSelect={itemSelectHandler}
 						onLandmarkPieceMove={itemMoveHandler} />
 				</li>
