@@ -50,3 +50,29 @@ test('PlayLayout holds the frame: the bars, the 3/4 + 1/4 split and its regions'
 		assert.match(text, new RegExp(`@render ${snippet}\\b`));
 	}
 });
+
+test('the results footer is a TurnBar in the complete tone, with its actions and no bar of its own (owner, 2026-10-30)', () => {
+	const text = source('src/screens/Results.svelte');
+	assert.equal(text.match(/<TurnBar\b/g)?.length, 1);
+	assert.match(text, /tone="complete"/);
+	assert.match(text, /label="Game complete"/);
+	for (const action of [
+		'Review game board',
+		'Return to tables',
+		'Deal again',
+	]) {
+		assert.match(text, new RegExp(action));
+	}
+	assert.doesNotMatch(
+		text,
+		/<footer\b|rg-results--footer|rg-results--actions/
+	);
+});
+
+test('TurnBar has a complete tone, its label upright in Cinzel as the header names the finished game', () => {
+	const text = source('src/lib/components/prompts/TurnBar.svelte');
+	assert.match(text, /'income' \| 'complete'\} TurnBarTone/);
+	assert.match(text, /\.rg-turn-bar--complete \.rg-turn-bar--label \{/);
+	const library = source('src/library/sections/prompts/TurnBar.svelte');
+	assert.match(library, /tone="complete"/);
+});

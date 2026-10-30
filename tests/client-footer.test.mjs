@@ -65,11 +65,11 @@ test('the players overview shows its close bar over every other footer', () => {
 	);
 });
 
-test('a finished game offers its results', () => {
+test('a finished game offers its results, in the complete tone the results footer shares (#105)', () => {
 	const { game, player } = turnChoice();
 	const footer = footerView({ ...game, phase: 'over' }, player, QUIET);
 	assert.equal(footer.kind, 'over');
-	assert.equal(footer.tone, 'neutral');
+	assert.equal(footer.tone, 'complete');
 	assert.equal(footer.label, 'Game complete');
 	assert.equal(footer.heading, 'The game is complete.');
 	assert.equal(footer.detail, 'The board as the game ended.');

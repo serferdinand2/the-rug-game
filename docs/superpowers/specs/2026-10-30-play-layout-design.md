@@ -36,7 +36,17 @@ Nothing on screen changes.
 
 ## 4. Not done
 
-- **The results footer stays its own bar.** #86 built `TurnFooter` for the game's footers, and the results bar's buttons (Review game board, Return to tables, Deal again) and its "Game complete" label are not a `TurnBar` state. Drawing it as one would change how it looks, so it is left for a cosmetic issue if the owner wants it.
+- **The results footer stays its own bar.** #86 built `TurnFooter` for the game's footers, and the results bar's buttons (Review game board, Return to tables, Deal again) and its "Game complete" label are not a `TurnBar` state. Drawing it as one would change how it looks, so it is left for a cosmetic issue if the owner wants it. *Superseded by §7.*
+
+## 7. Follow-up: the results footer is a TurnBar (owner, 2026-10-30)
+
+The owner answered the open question "yes": the results screen's footer becomes a `TurnBar` instead of its own bar. This changes how it looks, and is approved.
+
+- **A `complete` tone in `TurnBar`** for the finished game **(my call)**. It is the neutral bar with the label upright and spaced (`font-style: normal`, `--letter-spacing-title`), as the end-screen mockup's footer and the header draw **Game complete** in Cinzel; the italic turn label would have read as a turn in play. The other tones are unchanged, and the library shows the tone as the results footer (with Deal again) and as the board review's.
+- **Results** passes `<TurnBar tone="complete" label="Game complete" heading="The game is complete." detail="The final standings, and where each player's VP came from.">` as `PlayLayout`'s footer, with **Review game board**, **Return to tables** and the host's **Deal again** in its `actions` snippet, their modes as before. Its `.rg-results--footer` and `.rg-results--actions` rules are gone.
+- **The board review's footer** (`turn.js` `footerView`, kind `over`) takes the same `complete` tone, so the two footers of the finished game read as one: the same label, the same heading, and each its own detail and buttons (Results back to the standings).
+- **Tests:** `tests/client-play-layout.test.mjs` checks that Results draws one `TurnBar` in the complete tone with its three actions and no footer of its own, and that `TurnBar` has the tone and its library example; `tests/client-footer.test.mjs` that a finished game's footer is in the complete tone. The browser test `tests/browser/results.test.mjs` finds the buttons by role and the review's footer by `.rg-turn-bar`, so its selectors stand.
+- **Screens:** `docs/ui/screens/game-results.png` and `game-log.png` were retaken from the running game at 1920×1080.
 
 ## 5. Tests
 

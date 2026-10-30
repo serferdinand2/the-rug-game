@@ -274,7 +274,7 @@ export function footerView(game, seat, inputs) {
 	if (game.phase === 'over') {
 		return {
 			kind: 'over',
-			tone: 'neutral',
+			tone: 'complete',
 			label: 'Game complete',
 			heading: 'The game is complete.',
 			detail: 'The board as the game ended.',
