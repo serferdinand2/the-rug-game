@@ -181,3 +181,24 @@ test('every player token is a PlayerToken (#103)', () => {
 		);
 	}
 });
+
+test('the DecisionPanel and TrackBoard sections build from dealt games, not copies of the modules (#131)', () => {
+	const source = (/** @type {string} */ area, /** @type {string} */ name) =>
+		/** @type {{ source: string }} */ (
+			sections.find((s) => s.area === area && s.name === name)
+		).source;
+	const decision = source('prompts', 'DecisionPanel');
+	assert.match(decision, /new PromptState\(/);
+	assert.doesNotMatch(
+		decision,
+		/function payMixes|const sets =|mode: 'pay'|kind: 'chooseTrade'/,
+		'the DecisionPanel section hand-builds a pick model'
+	);
+	const board = source('board', 'TrackBoard');
+	assert.match(board, /trackBoard\(/);
+	assert.doesNotMatch(
+		board,
+		/function fixtureTrack|describeEffects|spaceGlyphs/,
+		'the TrackBoard section re-implements trackBoard()'
+	);
+});

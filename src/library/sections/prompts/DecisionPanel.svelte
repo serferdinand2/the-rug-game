@@ -1,6 +1,5 @@
 <!-- Library section: DecisionPanel, the decision prompt over the shared area, with its scrim, content and Confirm, at the tracks' centre with any shelf of cards above it (#79), or docked beside the map. -->
 <script>
-	import { RESOURCE_ORDER } from '../../../lib/ui.js';
 	import DecisionOption from '../../../lib/components/prompts/DecisionOption.svelte';
 	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
 	import CardShelf from '../../../lib/components/prompts/CardShelf.svelte';
@@ -9,163 +8,35 @@
 	import TilePicker from '../../../lib/components/prompts/TilePicker.svelte';
 	import TurnControl from '../../../lib/components/prompts/TurnControl.svelte';
 	import { tilePreview, tileWords } from '../../../lib/area/explore.js';
-	import { describePayment } from '../../../lib/describe.js';
-	import { joinList } from '../../../lib/words.js';
-	import {
-		canPickItem,
-		emptySelection,
-		matchIndex,
-		offerArt,
-		offerModel,
-		pickStatus,
-		rowView,
-		toggleItem,
-		togglePick,
-		tradeOffers,
-	} from '../../../lib/picks.js';
+	import { spaceName } from '../../../lib/game-names.js';
+	import { offerArt } from '../../../lib/picks.js';
+	import { PromptState } from '../../../lib/prompt-state.svelte.js';
 	import Example from '../../Example.svelte';
 	import Screen from '../../Screen.svelte';
 	import Section from '../../Section.svelte';
+	import {
+		capWarning,
+		guildsTrade,
+		shuttleBonus,
+		tanksPayment,
+	} from '../../models.js';
 
-	/** @typedef {import('../../../lib/picks.js').PickModel} PickModel */
 	/** @typedef {import('../../../lib/picks.js').ResourceId} ResourceId */
 
-	const IDS = RESOURCE_ORDER;
-	const FREE = () => ({ fixed: null, offers: [...IDS] });
-
-	/**
-	 * Every mix of `count` resources that `held` can pay.
-	 * @param {number} count
-	 * @param {Record<ResourceId, number>} held
-	 * @returns {Partial<Record<ResourceId, number>>[]}
-	 */
-	function payMixes(count, held) {
-		/** @type {Partial<Record<ResourceId, number>>[]} */
-		const found = [];
-		/**
-		 * @param {number} from
-		 * @param {number} left
-		 * @param {Partial<Record<ResourceId, number>>} chosen
-		 */
-		const build = (from, left, chosen) => {
-			if (left === 0) {
-				found.push(chosen);
-				return;
-			}
-			for (let i = from; i < IDS.length; i++) {
-				const id = IDS[i];
-				if ((chosen[id] ?? 0) < held[id]) {
-					build(i, left - 1, {
-						...chosen,
-						[id]: (chosen[id] ?? 0) + 1,
-					});
-				}
-			}
-		};
-		build(0, count, {});
-		return found;
+	// The pick prompts come from dealt games played to their decision, through the game's own prompt state (#131).
+	const tanks = new PromptState(tanksPayment());
+	const SHUTTLE = shuttleBonus();
+	/** Decline sends nothing here: a fresh prompt state stands in for the next decision. */
+	let shuttle = $state(new PromptState(SHUTTLE));
+	const trade = new PromptState(guildsTrade());
+	const capped = new PromptState(capWarning());
+	for (const [row, resource] of /** @type {[number, ResourceId][]} */ ([
+		[0, 'food'],
+		[1, 'food'],
+		[2, 'coin'],
+	])) {
+		capped.pickRow(row, resource);
 	}
-
-	/**
-	 * Every set of `size` ids, in order.
-	 * @param {number[]} ids
-	 * @param {number} size
-	 * @returns {number[][]}
-	 */
-	const sets = (ids, size) =>
-		size === 0
-			? [[]]
-			: ids.flatMap((id, i) =>
-					sets(ids.slice(i + 1), size - 1).map((rest) => [
-						id,
-						...rest,
-					])
-				);
-
-	/** Advance to Tanks (tier III): 1 culture set by the cost and 2 of the player's choice. */
-	const TANKS_HELD = { coin: 2, food: 1, worker: 0, culture: 3 };
-	/** @type {PickModel} */
-	const TANKS = {
-		mode: 'pay',
-		rows: [{ fixed: 'culture', offers: [] }, FREE(), FREE()],
-		items: null,
-		candidates: payMixes(2, { ...TANKS_HELD, culture: 2 }).map(
-			(extra, index) => {
-				const resources = {
-					...extra,
-					culture: (extra.culture ?? 0) + 1,
-				};
-				return {
-					index,
-					resources,
-					items: [],
-					label: describePayment(resources),
-				};
-			}
-		),
-		decline: null,
-		lead: 'Tier III costs 1 culture and 2 resources of your choice. Pick one in each empty row.',
-		then: null,
-	};
-
-	/** Space Shuttle's bonus: 3 of the player's 6 territory tiles for 10 VP. */
-	const SHUTTLE_TILES = [6, 13, 19, 21, 25, 29];
-	/** @type {PickModel} */
-	const SHUTTLE = {
-		mode: 'pay',
-		rows: [],
-		items: { kind: 'territory', ids: SHUTTLE_TILES, count: 3 },
-		candidates: sets(SHUTTLE_TILES, 3).map((items, index) => ({
-			index,
-			resources: {},
-			items,
-			label: `Discard territory tiles ${joinList(items.map(String))}`,
-		})),
-		decline: null,
-		lead: 'Pay 3 territory tiles. Pick them here or on your Terrain tab.',
-		then: null,
-	};
-
-	/** Guilds' trades for a player with 12 VP, 2 food and 1 culture: the 15 VP trade is out of reach. */
-	const GUILDS = {
-		kind: 'chooseTrade',
-		offers: [
-			{ pay: { vp: 5 }, gain: [{ gain: { any: 1 } }] },
-			{ pay: { vp: 10 }, gain: [{ gain: { any: 2 } }] },
-			{ pay: { vp: 15 }, gain: [{ gain: { any: 3 } }] },
-			{ pay: { any: 1 }, gain: [{ vp: 5 }] },
-			{ pay: { any: 2 }, gain: [{ vp: 10 }] },
-			{ pay: { any: 3 }, gain: [{ vp: 15 }] },
-		],
-		answers: [
-			{ offer: 0, pay: { vp: 5 } },
-			{ offer: 1, pay: { vp: 10 } },
-			{ offer: 3, pay: { food: 1 } },
-			{ offer: 3, pay: { culture: 1 } },
-			{ offer: 4, pay: { food: 2 } },
-			{ offer: 4, pay: { food: 1, culture: 1 } },
-			{ offer: 5, pay: { food: 2, culture: 1 } },
-		],
-	};
-	const OFFERS = tradeOffers(GUILDS, null, 1) ?? [];
-	const TRADE_HELD = { coin: 0, food: 2, worker: 0, culture: 1 };
-
-	let tanks = $state(emptySelection(TANKS));
-	let shuttle = $state(emptySelection(SHUTTLE));
-	/** @type {number | null} */
-	let offer = $state(null);
-	/** @type {import('../../../lib/picks.js').Selection} */
-	let tradePicks = $state({ rows: [], items: [] });
-	let tradeModel = $derived(
-		offer === null ? null : offerModel(GUILDS, offer, null, 1)
-	);
-	let tradeSelection = $derived(
-		tradeModel
-			? tradePicks.rows.length === tradeModel.rows.length
-				? tradePicks
-				: emptySelection(tradeModel)
-			: null
-	);
 
 	const STEPS = [
 		{ id: 'civilization', label: 'Civilization' },
@@ -252,23 +123,27 @@
 			<DecisionPanel
 				narrow
 				track="military"
-				title="Advance to Tanks"
-				status={pickStatus(TANKS, tanks, TANKS_HELD).text}
-				confirmLabel="Advance"
-				confirmDisabled={matchIndex(TANKS, tanks) === -1}
-				cancelLabel="Cancel"
-				onDecisionPanelCancel={() => (tanks = emptySelection(TANKS))}>
+				title="Advance to {spaceName(
+					tanks.advance?.track,
+					tanks.advance?.to
+				)}"
+				status={tanks.payControls?.status}
+				statusWarn={tanks.payControls?.warn}
+				confirmLabel={tanks.payControls?.confirmLabel}
+				confirmDisabled={tanks.payControls?.confirmDisabled}
+				cancelLabel={tanks.payControls?.cancelLabel}
+				onDecisionPanelCancel={() => tanks.clearPayment()}>
 				<div class="rg-library-picks">
-					<p class="rg-library-explore--lead">{TANKS.lead}</p>
+					<p class="rg-library-explore--lead">
+						{tanks.payModel?.lead}
+					</p>
 					<ResourceRows
-						rows={rowView(TANKS, tanks, TANKS_HELD)}
+						rows={tanks.payRows}
 						onResourceRowsPick={(/** @type {any} */ event) =>
-							(tanks = togglePick(
-								TANKS,
-								tanks,
+							tanks.payRow(
 								event.value.row,
 								event.value.resource
-							))} />
+							)} />
 				</div>
 			</DecisionPanel>
 		</div>
@@ -282,31 +157,29 @@
 			<DecisionPanel
 				narrow
 				track="exploration"
-				title="Take the bonus: gain 10 VP?"
-				status={pickStatus(SHUTTLE, shuttle, {}).text}
-				confirmLabel="Pay 3 tiles"
-				confirmDisabled={matchIndex(SHUTTLE, shuttle) === -1}
-				cancelLabel="Decline"
+				title={shuttle.prompt?.title ?? ''}
+				status={shuttle.controls?.status}
+				statusWarn={shuttle.controls?.warn}
+				confirmLabel={shuttle.controls?.confirmLabel}
+				confirmDisabled={shuttle.controls?.confirmDisabled}
+				cancelLabel={shuttle.controls?.cancelLabel}
 				onDecisionPanelCancel={() =>
-					(shuttle = emptySelection(SHUTTLE))}>
+					(shuttle = new PromptState(SHUTTLE))}>
 				<div class="rg-library-picks">
-					<p class="rg-library-explore--lead">{SHUTTLE.lead}</p>
+					<p class="rg-library-explore--lead">
+						{shuttle.pick?.lead}
+					</p>
 					<p class="rg-library-explore--label">
-						Your tiles · {shuttle.items.length} of 3 chosen
+						Your tiles · {shuttle.picks?.items.length} of {shuttle
+							.pick?.items?.count} chosen
 					</p>
 					<TilePicker
 						class="rg-library-pick-tiles"
-						tiles={tilesOf(SHUTTLE_TILES)}
-						selected={shuttle.items.map(Number)}
-						disabled={SHUTTLE_TILES.filter(
-							(id) => !canPickItem(SHUTTLE, shuttle, id)
-						)}
+						tiles={shuttle.pickTiles}
+						selected={shuttle.picks?.items.map(Number)}
+						disabled={shuttle.pickBlocked.map(Number)}
 						onTilePickerSelect={(/** @type {any} */ event) =>
-							(shuttle = toggleItem(
-								SHUTTLE,
-								shuttle,
-								event.value.tile
-							))} />
+							shuttle.pickTile(event.value.tile)} />
 				</div>
 			</DecisionPanel>
 		</div>
@@ -319,48 +192,35 @@
 			class="rg-library-decision-stage rg-library-decision-stage--contained">
 			<DecisionPanel
 				narrow
-				title="Choose a trade"
-				status={tradeModel && tradeSelection
-					? pickStatus(tradeModel, tradeSelection, TRADE_HELD).text
-					: 'Choose a trade.'}
-				confirmDisabled={!tradeModel ||
-					!tradeSelection ||
-					matchIndex(tradeModel, tradeSelection) === -1}
-				cancelLabel={offer === null ? undefined : 'Back'}
-				onDecisionPanelCancel={() => {
-					offer = null;
-					tradePicks = { rows: [], items: [] };
-				}}>
-				{#if tradeModel && tradeSelection}
+				title={trade.prompt?.title ?? ''}
+				status={trade.controls?.status}
+				statusWarn={trade.controls?.warn}
+				confirmLabel={trade.controls?.confirmLabel}
+				confirmDisabled={trade.controls?.confirmDisabled}
+				cancelLabel={trade.controls?.cancelLabel}
+				onDecisionPanelCancel={() => trade.cancel()}>
+				{#if trade.pick}
 					<div class="rg-library-picks">
 						<p class="rg-library-explore--lead">
-							{tradeModel.lead}
+							{trade.pick.lead}
 						</p>
 						<ResourceRows
-							rows={rowView(
-								tradeModel,
-								tradeSelection,
-								TRADE_HELD
-							)}
+							rows={trade.pickRows}
 							onResourceRowsPick={(/** @type {any} */ event) =>
-								(tradePicks = togglePick(
-									/** @type {PickModel} */ (tradeModel),
-									/** @type {any} */ (tradeSelection),
+								trade.pickRow(
 									event.value.row,
 									event.value.resource
-								))} />
+								)} />
 					</div>
-				{:else}
+				{:else if trade.offering}
 					<div class="rg-library-trades">
-						{#each OFFERS as item (item.offer)}
+						{#each trade.offering as item (item.offer)}
 							<DecisionOption
 								label={item.label}
 								art={offerArt(item)}
 								disabled={!item.enabled}
-								onDecisionOptionClick={() => {
-									offer = item.offer;
-									tradePicks = { rows: [], items: [] };
-								}} />
+								onDecisionOptionClick={() =>
+									trade.chooseOffer(item.offer)} />
 						{/each}
 					</div>
 				{/if}
@@ -480,23 +340,21 @@
 			class="rg-library-decision-stage rg-library-decision-stage--contained">
 			<DecisionPanel
 				narrow
-				title="Choose 3 resources"
-				status="You gain 1 coin and 2 food. You can hold 8 of each: 1 food would be lost."
-				statusWarn
-				confirmDisabled>
+				title={capped.prompt?.title ?? ''}
+				status={capped.controls?.status}
+				statusWarn={capped.controls?.warn}
+				confirmLabel={capped.controls?.confirmLabel}
+				confirmDisabled={capped.controls?.confirmDisabled}>
 				<p class="rg-library-explore--lead">
-					Pick one resource in each row.
+					{capped.pick?.lead}
 				</p>
 				<ResourceRows
-					rows={[0, 1, 2].map((row) => ({
-						fixed: null,
-						picked: row === 0 ? 'food' : null,
-						choices: RESOURCE_ORDER.map((id) => ({
-							id: /** @type {any} */ (id),
-							count: id === 'food' ? 8 : 2,
-							disabled: false,
-						})),
-					}))} />
+					rows={capped.pickRows}
+					onResourceRowsPick={(/** @type {any} */ event) =>
+						capped.pickRow(
+							event.value.row,
+							event.value.resource
+						)} />
 			</DecisionPanel>
 		</div>
 	</Example>
