@@ -8,7 +8,7 @@
 <Section
 	name="VpTag"
 	area="prompts"
-	description="The VP a choice scores, after a plus sign. corner: a small gold badge over the top-right corner of its parent, as DecisionOption and TilePicker draw it; muted, a tile that scores nothing. inline: bold gold text in a row, as TurnControl draws it (#116).">
+	description="The VP a choice scores, as one small gold badge (owner, 2026-10-30). corner: over the top-right corner of its parent, as DecisionOption and TilePicker draw it; muted, a tile that scores nothing. inline: in its row, as TurnControl and PromptArt draw it (#116).">
 	<Example
 		label={'value={4}  (corner, in a box)'}
 		surface="chrome">
@@ -17,21 +17,11 @@
 		</span>
 	</Example>
 	<Example
-		label={'value={3} unit=""  (as a tile)'}
-		surface="chrome">
-		<span class="rg-library-vp-tag-box">
-			<VpTag
-				value={3}
-				unit="" />
-		</span>
-	</Example>
-	<Example
-		label={'value={0} unit="" muted'}
+		label={'value={0} muted  (a tile that scores nothing)'}
 		surface="chrome">
 		<span class="rg-library-vp-tag-box">
 			<VpTag
 				value={0}
-				unit=""
 				muted />
 		</span>
 	</Example>

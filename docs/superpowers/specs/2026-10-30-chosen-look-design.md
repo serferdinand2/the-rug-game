@@ -37,7 +37,7 @@ Vitest, in `tests/styles.test.mjs`:
 
 `tests/library.test.mjs` checks VpTag's section and structure. Pixels: Playwright screenshots of the DecisionOption, TilePicker, ResourceRows, TurnControl, PromptArt, DecisionPanel and WorldMap sections, plus a pressed option and a picked tile focused from the keyboard and a disabled trade offer at rest and hovered, byte-identical before and after.
 
-## 4. For the owner: one look would change pixels
+## 4. For the owner: one look would change pixels (answered 2026-10-30)
 
 Each of these is left as it is. The pictures are in `docs/ui/screens/issue-116/`, taken from the component library: `-before` is today, `-after` the unified look put on with a stylesheet for the picture only, and `-reference` the look the others would follow.
 
@@ -46,6 +46,18 @@ Each of these is left as it is. The pictures are in `docs/ui/screens/issue-116/`
 3. **The dashed focus.** A picked tile or resource focused from the keyboard turns its outline dashed and stands it off; a chosen `DecisionOption` keeps a solid 1 px outline, stood off 2 px. (`3-dashed-focus-*`, with the thick outline of item 2)
 4. **How dim an unpickable choice is.** `DecisionOption` and `TilePicker` dim to 0.35, `ResourceRows` to 0.3. (`4-unpickable-dim-*`, at 0.35)
 5. **Hover on a disabled choice.** A disabled `DecisionOption` (a trade the player can't pay for) still turns its border gold on hover; a disabled tile doesn't. (`5-disabled-hover-*`)
+
+### The owner's answers (owner, 2026-10-30)
+
+The owner answered yes to all five, and each is built:
+
+1. **One "+N VP": `DecisionOption`'s gold corner badge** (owner). `VpTag` draws it everywhere: `corner` over a parent's corner for `DecisionOption` and `TilePicker`, `inline` in its row for `TurnControl` and `PromptArt`'s VP picture, which now reads "+N VP" as the others do. `TilePicker`'s tiles read "+N VP", so `VpTag`'s `unit` prop goes; a muted tag (a tile that scores 0) is `--line` with `--text` in both variants. The World Map's SVG tag keeps its shape and its tokens. **(my call)** `PromptArt`'s picture takes the plus sign, as one "+N VP" asks, though its `-after` picture kept "N VP": the stylesheet that drew it could not change the words.
+2. **`DecisionOption`'s chosen outline is 2 px** (`--border-thick`), as `TilePicker`'s and `ResourceRows`' (owner).
+3. **A chosen `DecisionOption` focused from the keyboard turns its outline dashed and stands it off** (`--focus-offset`), as a picked tile or resource does (owner).
+4. **One dim, 0.35** (`--opacity-unpickable`), for every choice that can't be picked: `ResourceRows` moves from 0.3 (owner).
+5. **A disabled `DecisionOption` gets no hover highlight**, as a disabled tile has none (owner).
+
+These change pixels on purpose. The README's explore and advance screenshots (`game-prompt-explore.png`, `game-prompt-advance.png`) were retaken from the running game; tests in `tests/styles.test.mjs` hold each answer.
 
 ## 5. Hand-offs
 

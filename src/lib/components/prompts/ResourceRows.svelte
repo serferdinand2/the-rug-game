@@ -197,7 +197,7 @@
 
 	.rg-resource-rows--done .rg-resource-rows--choice[aria-pressed='false'],
 	.rg-resource-rows--choice:disabled {
-		opacity: 0.3;
+		opacity: var(--opacity-unpickable);
 	}
 
 	.rg-resource-rows--choice:disabled {

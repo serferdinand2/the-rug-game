@@ -506,3 +506,58 @@ test('one VpTag draws "+N VP" for the options, the tiles and the turn control (#
 		/\.rg-world-map--score-text\s*\{[^}]*fill: var\(--vp-tag-text\);/
 	);
 });
+
+test('every "+N VP" is the one gold badge: PromptArt draws VpTag and the tiles read "+N VP" (#116, owner 2026-10-30)', () => {
+	const art = sourceOf('lib/components/prompts/PromptArt.svelte');
+	assert.match(art, /import VpTag from '\.\/VpTag\.svelte';/);
+	assert.doesNotMatch(art, /rg-prompt-art--badge/);
+	assert.doesNotMatch(
+		sourceOf('lib/components/prompts/TilePicker.svelte'),
+		/unit=/,
+		'TilePicker reads "+N VP", as every other tag'
+	);
+	// The inline tag is the corner's gold badge in its row, not gold text.
+	const tagPath = 'lib/components/prompts/VpTag.svelte';
+	const tag = cssOf(tagPath, sourceOf(tagPath));
+	assert.match(
+		tag,
+		/\.rg-vp-tag\s*\{[^}]*background: var\(--vp-tag\);[^}]*color: var\(--vp-tag-text\);/
+	);
+	assert.doesNotMatch(
+		tag,
+		/\.rg-vp-tag--inline\s*\{[^}]*color: var\(--vp-tag\);/
+	);
+});
+
+test('a chosen DecisionOption looks as a picked tile: thick outline, dashed focus, no hover while disabled (#116, owner 2026-10-30)', () => {
+	const own = 'lib/components/prompts/DecisionOption.svelte';
+	const css = cssOf(own, sourceOf(own));
+	assert.match(
+		css,
+		/\.rg-decision-option\[aria-pressed='true'\]\s*\{[^}]*outline: var\(--border-thick\) solid var\(--gold\);/
+	);
+	assert.match(
+		css,
+		/\.rg-decision-option\[aria-pressed='true'\]:focus-visible\s*\{[^}]*outline-style: dashed;[^}]*outline-offset: var\(--focus-offset\);/
+	);
+	assert.match(css, /\.rg-decision-option:not\(:disabled\):hover/);
+	assert.doesNotMatch(css, /\.rg-decision-option:hover/);
+});
+
+test('every choice that cannot be picked dims to --opacity-unpickable (#116, owner 2026-10-30)', () => {
+	for (const [path, contents] of sources) {
+		if (!path.endsWith('.svelte') || path.startsWith('library/')) {
+			continue;
+		}
+		assert.doesNotMatch(
+			cssOf(path, contents),
+			/opacity: 0\.3;/,
+			`${path} writes its own unpickable opacity`
+		);
+	}
+	const rowsPath = 'lib/components/prompts/ResourceRows.svelte';
+	assert.match(
+		cssOf(rowsPath, sourceOf(rowsPath)),
+		/opacity: var\(--opacity-unpickable\);/
+	);
+});
