@@ -82,7 +82,7 @@
 <Section
 	name="CardPlacementRows"
 	area="player"
-	description="A card's placement squares in five reviewed layouts, each item's state a field: the Collectors' collection (greyed until collected; cards and tiles then lie face down), the Militants' covered rewards (an outpost lifts to show its reward), the Alchemists' rolled tracks, the Leaders' once-only tracks and the Historians' squares under the player's tokens. The spots a decision offers are buttons, the picked one gold. See docs/ui/card-design-rules.md."
+	description="A card's placement squares in five reviewed layouts, each item's state a field: the Collectors' collection (greyed until collected; cards and tiles then lie face down), the Militants' covered rewards (an outpost lifts to show its reward), the Alchemists' rolled tracks (the player's token in a rolled square's corner), the Leaders' once-only tracks and the Historians' squares under the player's tokens. The spots a decision offers are buttons, the picked one gold. See docs/ui/card-design-rules.md."
 	><Example
 		label={'kind="collection" items, two collected'}
 		width={425}

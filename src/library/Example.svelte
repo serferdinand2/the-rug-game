@@ -58,7 +58,9 @@
 		flex-basis: 100%;
 	}
 
+	/* The width is the component's own, so the padding and border go outside it. */
 	.rg-library-example--stage {
+		box-sizing: content-box;
 		position: relative;
 		max-width: 100%;
 		padding: var(--space-8);

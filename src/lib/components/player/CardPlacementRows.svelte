@@ -27,7 +27,7 @@
 	 * @property {'collection' | 'covered' | 'tracks' | 'leaders' | 'history'} kind - The layout
 	 * @property {readonly CardPlacement[]} items - The squares, in reading order
 	 * @property {number} [perRow=4] - Covered rewards: the squares in a row, with a rule between rows
-	 * @property {import('../../ui.js').Seat} [seat] - Whose tokens cover the history squares, for their colour
+	 * @property {import('../../ui.js').Seat} [seat] - Whose tokens mark the rolled tracks and cover the history squares, for their colour
 	 * @property {readonly string[]} [choices=[]] - The spot ids the open decision offers, drawn as buttons
 	 * @property {string | null} [picked=null] - The offered spot the player has picked, in gold
 	 * @property {Function} [onCardPlacementRowsPick] - Callback fired with the spot id when an offered square is pressed
@@ -180,6 +180,8 @@
 						class="rg-card-placement-rows--icon"
 						src={item.picture}
 						alt="" /><PlayerToken
+						{seat}
+						color="blue"
 						decorative
 						class="rg-card-placement-rows--token" /></CardSlot
 				><span>{item.name}</span>
@@ -433,15 +435,16 @@
 		filter: grayscale(1);
 		opacity: 0.7;
 	}
-	/* The reviewed token is the track icon's size and grey, as the icon's rule always drew it. */
+	/* A rolled track's token: the player's own, in full colour, marking the square's corner as the Merrymakers' token
+	   does, so the greyed track icon stays readable; the square keeps its unused look, as the mark is temporary. */
 	.rg-card-placement-rows--track :global(.rg-card-placement-rows--token) {
 		display: none;
 		position: absolute;
 		z-index: 1;
-		width: 43px;
-		height: 43px;
-		filter: grayscale(1);
-		opacity: 0.7;
+		top: 3px;
+		right: 3px;
+		width: 21px;
+		height: 21px;
 	}
 	.rg-card-placement-rows--rolled :global(.rg-card-placement-rows--token) {
 		display: block;

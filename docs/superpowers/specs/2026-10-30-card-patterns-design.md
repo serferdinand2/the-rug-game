@@ -43,3 +43,12 @@ After each step the library section of every primitive it touched renders the pr
 ## 5. Hand-offs
 
 #107 fills `CivilizationCard`'s branches from data with these props, and moves the pictogram symbols (`rg-card-district-icon`, `rg-card-trader-hex`, the quads, the mini cards) that stay in `card-patterns.css` until then. #78's state props are these. The owner checks the card gallery for visual changes; none are meant.
+
+## 6. After the gallery check (owner, 2026-10-30)
+
+The owner checked the card gallery and ruled: "106: fix what needs to be fixed" (owner, 2026-10-30: fix what needs fixing after the gallery check). Two defects were fixed; no approved look was restyled.
+
+- **The Alchemists' rolled token.** It was drawn 43 px, grey and at 0.7 opacity, because it copied the track icon's rule, so a rolled track read as a second grey icon on top of the first. It is now the player's own token (`seat`, which the card passes, blue without one) in full colour, 21 px in the square's top-right corner, as the Merrymakers' token marks its square. The greyed track icon stays readable and the square keeps its unused look, because the card-design rules call these marks temporary results, not used spaces. **(my call: the Merrymakers' corner marker rather than the Historians' covering token, since nothing is hidden under an Alchemists token)**
+- **Library examples too narrow.** `Example`'s stage was `border-box`, so its `width` (documented as the component's real width) included its 16 px padding and border: every 425 px card pattern on its plain `CardFrame` stuck 34 px out of its stage, and fluid components were shown 34 px narrower than in the game. The stage is now `content-box`, so the width is the component's own. This touches every library section with a `width`; none overflows any more, and the page has no new horizontal scroll.
+- Looked over and left as they are: the other rebuilt player sections and the 32 CivilizationCard examples match the approved cards. The Merrymakers' "+ armory" reaches the square's edge and the Historians' rewards peek around their tokens, as on the reviewed cards.
+- Tests: `tests/client-card-patterns.test.mjs` pins the rolled token's seat colour, its corner rule without filter or opacity, that the Alchemists pass their seat, and the stage's `content-box`. Screenshots: `docs/ui/screens/issue-106/`.

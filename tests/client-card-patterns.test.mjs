@@ -637,6 +637,51 @@ test('CardPlacementRows draws rolled tracks, used leader tracks and uncovered hi
 	assert.match(history, /token-green/);
 });
 
+test("the Alchemists' rolled token is a player's token marking its track, not a grey icon (owner, 2026-10-30)", () => {
+	const rolled = html(
+		render(CardPlacementRows, {
+			props: {
+				kind: 'tracks',
+				seat: 3,
+				items: [
+					{
+						name: 'Science',
+						picture: '/art/track/science.svg',
+						rolled: true,
+					},
+				],
+			},
+		})
+	);
+	assert.match(rolled, /token-green/);
+	const css = source('CardPlacementRows');
+	const token = css.match(
+		/\.rg-card-placement-rows--track :global\(\.rg-card-placement-rows--token\) \{([^}]*)\}/
+	);
+	assert.ok(token, 'the rolled token has its own rule');
+	assert.doesNotMatch(token[1], /filter|opacity/);
+	// It marks the square in its corner, as the Merrymakers' token does, so the track's icon stays readable.
+	assert.match(token[1], /width: 21px;/);
+	assert.match(token[1], /top: 3px;/);
+	assert.match(token[1], /right: 3px;/);
+	assert.match(
+		source('CivilizationCard'),
+		/kind="tracks"\s+\{seat\}/,
+		'the Alchemists pass their seat'
+	);
+});
+
+test('a library example of a given width shows the component at that width (owner, 2026-10-30)', () => {
+	const example = readFileSync(
+		new URL('../src/library/Example.svelte', import.meta.url),
+		'utf8'
+	);
+	assert.match(
+		example,
+		/\.rg-library-example--stage \{[^}]*box-sizing: content-box;/
+	);
+});
+
 test('CivilizationCard writes no placement square or play-state class by hand (#106)', () => {
 	const card = source('CivilizationCard');
 	assert.doesNotMatch(

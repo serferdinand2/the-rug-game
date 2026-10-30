@@ -648,6 +648,7 @@
 
 			<CardPlacementRows
 				kind="tracks"
+				{seat}
 				items={ALCHEMIST_TRACKS.map((item, index) => ({
 					...item,
 					rolled: state === 'play' && [0, 2].includes(index),
