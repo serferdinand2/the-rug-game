@@ -215,13 +215,15 @@ export function techBenefitOptions(state, player, icon) {
 }
 
 /**
- * Pushes one card's circle or square benefit without moving the card (§8).
+ * Pushes one card's circle or square benefit without moving the card (§8). `techBenefitUsed` names the card, so the
+ * log says whose benefit follows, also when the only card was taken without asking (#144).
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {string} card
  * @param {'circle' | 'square'} icon
  */
 export function useTechBenefit(ctx, player, card, icon) {
+	emit(ctx.state, { type: 'techBenefitUsed', player, card, icon });
 	// The `passive` mark is deliberately not carried: a card's benefit is never passive civilization VP, and a finished player gains nothing else (01 §4.3).
 	ctx.push([
 		{
