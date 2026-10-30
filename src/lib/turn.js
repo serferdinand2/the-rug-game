@@ -237,7 +237,7 @@ export function firstIncomeNotice(view, seat) {
  * @property {TrackId} [track] - The selected space's track
  * @property {string} [detail]
  * @property {import('./ui.js').CostSymbol[] | null} [cost] - The selected space's tier price
- * @property {{ description: string, label: string } | null} [income] - The income choice beside the turn label
+ * @property {{ description: string, label: string, folded: boolean } | null} [income] - The income reveal beside the turn label, as IncomeReveal takes it (#122)
  * @property {{ track: TrackId, label: string, enabled: boolean }[]} [tracks] - The track question's choices, by key
  * @property {{ enabled: boolean, title: string | undefined }} [advance] - The selected space's Advance button
  * @property {boolean} [takeIncome] - Forced income's Take income button shows
@@ -263,9 +263,10 @@ export function footerView(game, seat, inputs) {
 	const incomeDescription = choosing
 		? incomeWords(game.seats[turn.player - 1].incomeTurns + 1)
 		: '';
-	const income =
+	/** @param {boolean} folded - Folded behind the turn label while a space is selected (#122) */
+	const income = (folded) =>
 		choosing && !inputs.noticeOpen
-			? { description: incomeDescription, label: 'Take income' }
+			? { description: incomeDescription, label: 'Take income', folded }
 			: null;
 	if (inputs.overviewOpen) {
 		return { kind: 'overview' };
@@ -322,7 +323,7 @@ export function footerView(game, seat, inputs) {
 			track: selected.track,
 			detail: spaceWords(game, selected.track, selected.space),
 			cost: tierSymbols(selected.track, tierOf(selected.space)),
-			income,
+			income: income(true),
 			advance: {
 				enabled: reachable && !inputs.paying,
 				title: !reachable
@@ -343,7 +344,7 @@ export function footerView(game, seat, inputs) {
 			detail: options.length
 				? 'The spaces you can pay for are outlined in green.'
 				: undefined,
-			income,
+			income: income(false),
 		};
 	}
 	if (mine && inputs.income) {
