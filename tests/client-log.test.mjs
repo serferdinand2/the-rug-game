@@ -160,6 +160,7 @@ const SAMPLES = {
 	spaceActivated: { player: 1, track: 'exploration', space: 1 },
 	spaceExplored: { player: 1, tile: 7 },
 	tapestryPlayed: { player: 1, era: 2, card: 'militarism', faceDown: false },
+	techBenefitUsed: { player: 1, card: 'the-nail', icon: 'square' },
 	techDeckShuffled: { count: 12 },
 	techDisplayRefreshed: {
 		discarded: ['irrigation', 'telescope', 'compass'],
@@ -505,6 +506,14 @@ test('the important events read as plain sentences', () => {
 		[
 			sample('techUpgraded', { card: 'clocks' }),
 			'Ana upgraded Clocks to the middle row.',
+		],
+		[
+			sample('techBenefitUsed'),
+			'Ana took the square benefit of The Nail, which stays in the top row.',
+		],
+		[
+			sample('techBenefitUsed', { card: 'ammonia', icon: 'circle' }),
+			'Ana took the circle benefit of Ammonia, which stays in the middle row.',
 		],
 		[
 			sample('eraStarted'),
