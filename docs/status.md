@@ -9,7 +9,7 @@ Updated 2026-10-30. The issues are listed in the order they were finished.
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78, #84, #85 and #137 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29. #134 (the World Map's terrain in the 2.5D style) is done: the owner approved its art on 2026-10-29 (see [its entry](#134-the-world-maps-terrain-in-the-25d-style)).
-  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101, #108, #109, #124 and #128 are done, and #121 closed as not planned. On 2026-10-30 a third batch landed together on one branch, built in parallel: #92, #102, #103, #105, #111, #114, #115, #116, #120, #122 and #131 (see [its entry](#m13-refactors-third-batch-2026-10-30)); #102 and #116 each leave the owner a look to decide. #106 is built in its eight steps the same day; the owner checked the card gallery, and its fixes close it.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101, #108, #109, #124 and #128 are done, and #121 closed as not planned. On 2026-10-30 a third batch landed together on one branch, built in parallel: #92, #102, #103, #105, #111, #114, #115, #116, #120, #122 and #131 (see [its entry](#m13-refactors-third-batch-2026-10-30)); #102 and #116 each leave the owner a look to decide. #106 is built in its eight steps the same day; the owner checked the card gallery, and its fixes close it. A fourth batch landed the same way the same evening: #94, #96, #104, #107, #110, #112, #117 and #118, with the bugs #157 and #81 (see [its entry](#m13-refactors-fourth-batch-with-157-and-81-2026-10-30)); #107 and #117 each leave the owner a check in the library.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -29,6 +29,7 @@ Updated 2026-10-30. The issues are listed in the order they were finished.
   - #88, #101, #108 and #109 are done too (2026-10-29). #106 (the card patterns as data components) is built, in eight pixel-identical steps (2026-10-30; see [its entry](#106-the-card-patterns-as-data-components)); the owner checked the gallery the same day. #107 follows it. The effect boxes' civilization-specific symbol styles (Mystics, Alchemists, Isolationists, Traders, Inventors) become options of the component.
   - Merged into main on 2026-10-30 (#152). After it, the same day: #147 (AI Singularity's track on the board) and #145 with #143 (another player's tabs from the header, on the owner's ruling) are done; #144 got a log line and tests but no failure reproduced, so it stays open; #153 (what other players just did) is built on the owner's choice, option A with a 4-second progress line (see the entries at the end).
   - The third batch of M13 refactors (2026-10-30) unblocks #94 and #118 (after #92), #112 (after #111, then #36), #35 (after #120) and #104 (after #103); #95 still waits for #94. Of M13's other ready issues, #117, #110 and #96 were held back because they touch the same components as this batch, and can start now.
+  - The fourth batch (2026-10-30) unblocks #95 (after #94) and hands #63 `LandmarkShape` (#110) and `CardPreview` (#96). M13's open issues after it: #95, plus the owner's checks on #107 and #117.
   - Main's CI failed from #85 to 2026-10-30: the browser tests `setup-prompts` and `track-text` no longer matched the reworked track spaces. Fixed on 2026-10-30 (see [the entry](#main-ci-green-again-the-track-spaces-browser-tests)); the whole browser suite passes again, as CI runs it.
   - #77 (the first turn takes income by itself) is done: the owner approved its IncomeNotice and TurnBar sections and closed it on 2026-10-29.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
@@ -1049,3 +1050,76 @@ Fixed on 2026-10-30. `setup-prompts` and `track-text` had failed on main since #
 - **Stale checks, updated to #85's approved layout:** the twelve Exploration spaces draw their benefit and their seven bonuses in `ExplorationFace` (`--main`, `--bonus`), not in the space's own `--benefit` and `--bonus`, so the counts are 36 + 12 benefits and 11 + 7 bonuses. The first resource `track-text` measures is a bonus picture, so it expects 18, 19, then 20px.
 - **Real faults, fixed:** at the middle size step (a space at least 125×135, about 2240×1260) a bonus's pictures took the benefit's 27px, larger than at the step above; they are 19px now, between 18 and 20. At the largest step (about 2560×1440 and up) the larger name pushed a benefit 1.2px into the bonus band in the 11 spaces with a bonus; the benefit's height there allows 18px instead of 16px. Academic Research's ⟳ came from a fallback font whose line box overflowed its benefit by 2px; `SpaceGlyphs` clips the arrow glyphs to their em box, which keeps every pixel (checked byte for byte).
 - **Checks:** `npm run check` clean; 2224 unit tests; all 47 browser tests, run as CI runs them (`CI=true`, the repo's timeouts).
+
+### M13 refactors, fourth batch, with #157 and #81 (2026-10-30)
+
+Ten issues built side by side on 2026-10-30, each by its own agent in its own worktree, then merged one by one into one branch: #157, #104, #118, #94, #110, #112, #107, #96, #81 and #117. The refactors kept the screen as it was; where an issue asked for a look to be decided, the look was left as it is and the question goes to the owner below. Each issue's design and plan are in `docs/superpowers/specs/` and `plans/`, dated 2026-10-30.
+- **Merging:** six worktrees began on an old local `main` (96af4e9, 72 commits behind) and were moved onto the branch before they finished. #94, #110 and #118 each added to the same long line of `docs/architecture.md` and to the components README; both keep every addition. #157 added a CSS comment in `Game.svelte` naming "#157" and "#145", which `styles.test.mjs` read as hex colours; it now says "issue 157" and "issue 145".
+- **Checks on the merged branch:** `npm run check` is clean; 171 unit test files, 2074 tests (simulation left out) pass. The browser results are below.
+- **For the owner:**
+  - #107: check the card gallery against the approved civilization cards (its last checklist item). The Inventors' "When their marked card reaches the top" box still describes both rule versions in one sentence; drawing only the table's version would change the card's look.
+  - #117: check the tinted buttons in Button's library section. Should one track tint serve both buttons (Confirm 65%, the footer's commit button 60%) and one serve both bars' text (the status line 35%, the footer label 60%)? All were kept as they were.
+  - #94: should the overview's tech rows take the Tech tab's look (shape marks, bold titles, the "No cards yet" box), and should the two capitals share one spacing (the counters sit flush under the grid in Your area, with a gap in the overview)? Nothing opens `PlayersOverview` since #145: keep it for a later way in, or remove it?
+  - #118: a capital mat's name band on offer fades at 65% where `CardBand` uses 57%; left at 65%.
+
+#### #157 Another player's summary at the foot of the player area (bug, M5), 2026-10-30
+
+- `areaSummary(view, shown, viewer, preview)` in `src/lib/overview.js` decides whose summary shows: your own with your open prompt's preview of your resources and the gold highlight, or another seat's from the view with no highlight (also in the public view). `Game.svelte` draws it, and another player's summary carries their border colour (`rg-game--theirs`).
+- The #145 design's "your overview stays yours" is superseded. The README's opponent-tab screenshots (`docs/ui/screens/game-opponent-*.png`) were retaken from a running three-player hot-seat game.
+- Tests: `client-overview` (failed first: no `areaSummary`) and `tests/browser/opponent-tabs.test.mjs` (failed first: the summary showed your own name).
+
+#### #104 The VP sources list, shared (M13 · Refactor, Players and scoring), 2026-10-30
+
+- `results/VpSources.svelte` draws a seat's VP by source in one column (the log's `ScoreBoard`) or two (the results' `StandingRow`), with an optional `empty` line. Its CSS moved in from both.
+- `scoreboard()` words each row's tiebreak line through `tiebreakLine(landmark, resources)` in `results.js`, as parts, so the landmark's name stays gold; #31's Automa row only needs adding once.
+- Left for later: the rows' shared background and the viewer's bar, still written in `ScoreBoard`, `StandingRow` and `Results.svelte`, could become tokens.
+
+#### #118 CardShelf takes resolved card faces (M13 · Refactor, Cards), 2026-10-30
+
+- `shelfFace()` and `shelfCards()` in `prompts.js` resolve each shelf card's `face` once (tapestry or tech data, the deck's `{ deck, count }`, a civilization id, or a mat's `{ mat, name, plots, biome }`). The prompt state's `shelfCards` and new `pickCards` hand them to `CardShelf`, and the full view reuses them.
+- `player/TechDeckBack` (card and chip) replaces the two hand-drawn deck backs in `CardShelf` and `PromptArt`; `player/CapitalMatFace` draws a mat on offer; `fitScale()` in `card-sizes.js` replaces `civFit`. `CardShelf` imports no engine data.
+- Tests: `tests/card-shelf-faces.test.mjs`.
+
+#### #94 A player's capital and tech rows drawn once (M13 · Refactor, Cards), 2026-10-30
+
+- `player/CapitalCity` (the title, `CapitalGrid` and `CompletionCounters`, owning the highlight) and `player/TechRows` (`fan` for the Tech tab, `wrap` for the players overview, the rows named by `TECH_ROWS` in `src/lib/area/tech-rows.js`) replace the copies in `PlayerTabs` and `PlayersOverview`. Both roots are `display: contents`, so each screen keeps its own layout.
+- 15 screenshots at 1920×1080 before and after are byte-identical, apart from one 3×10 px antialiasing edge in a scaled tech card.
+- Tests: `tests/capital-tech-rows.test.mjs`. Hands on: #95 splits `PlayerTabs` per tab on top of these.
+
+#### #110 LandmarkShape (M13 · Refactor, Track board), 2026-10-30
+
+- `player/LandmarkShape` draws a landmark's footprint as one SVG: its picture clipped inside, or plain plots as a landmark card prints them (`picture={false}`, `plots`, `gap`). `LandmarkPiece` and `LandmarkCard` both draw with it; the picture's transform is `pictureTransform` in `placement.js`.
+- Before-and-after screenshots match, apart from a 2/255 antialiasing difference in one column of the landmark card.
+- Handed to #63: put `LandmarkShape` on the track spaces and the tech cards. With `plots` and no gap, the inner plot lines come out twice as thick as the border, so #63 decides its plot grid's look with the owner.
+
+#### #112 The engine's places decide where a landmark moves (M13 · Refactor, Capital and map), 2026-10-30
+
+- `CapitalGrid` takes `positions` (from `landmarkPositions(options)`, passed through `CapitalCity`) and moves, turns, snaps and lights the drop outline only among them, so an arrow toward the edge now reaches an overhanging place (R14). Without positions (the library) it keeps its own in-grid check.
+- The geometry is in `placement.js` (`fitsAt`, `snapAmong`, `stepAmong`, `turnAmong`, `overhangReach`, `overhangOffset`, `plotFromPointer`) and `capital.js` (`plotPosition`), all tested; `nextRotation` is gone. `CapitalGrid` uses `GRID_SIZE` and `BUILDING_IDS` instead of typed values.
+- **Claude's calls, to revisit after playing:** when nothing lies straight along an arrow, the piece jumps to the nearest place ahead instead of staying put; the drag position is no longer held inside the grid.
+
+#### #107 CivilizationCard drawn from data (M13 · Refactor, Cards), 2026-10-30
+
+Built; the owner's gallery check is open (see above).
+- `civCard(id, { version, view })` in `src/lib/cards/civ-cards.js` builds each card from the engine: the reward grids and columns, the land-mass VP, token counts, and the current rules' setup lines worded from the engine's setup adjustments. Values the engine kept private are now small named exports, with no change in behaviour.
+- `CivilizationCard` is one layout over it, with no `{#if id === …}` branch, and a `version` prop the game's tabs and overview pass (the original version leaves out the current rules' setup line). The play illustrations are `SAMPLE_VIEWS` in `reviewed-civilizations.js`; `CardEffectBox` takes a `pictogram` prop, so `card-patterns.css` keeps only the palette and paper.
+- 118 civilization-card screenshots (the review page in both states, the library and the gallery) are byte-identical to before. Tests: `tests/client-civ-cards.test.mjs`.
+
+#### #96 CardPreview (M13 · Refactor, Cards), 2026-10-30
+
+- `player/CardPreview` is the one component that shows a tech or tapestry card in full over the shared area, owning the scrim and the side variant `Game.svelte` drew. Callers pass `{ kind, id, side }`, or the face a shelf already drew (#118) as `data`.
+- `CardFan`'s inspect event carries `{ index, item }`, so `PlayerTabs`, `TechRows` and `CardShelf` no longer look cards up by index. Nothing on screen changes.
+- Tests: `client-prompt-state` (three new) and a hover check in `tests/browser/player-area.test.mjs`. If #63 makes landmark cards inspectable, it adds a landmark kind to `CardPreview` alone.
+
+#### #81 The track hover previews only the active player's line (bug, M12), 2026-10-30
+
+- `Track` dashed the line of every player whose next space was the hovered one. `Track` and `TrackBoard` now take `previewSeat`, and the game passes `trackPreviewSeat(game, seat)` from `src/lib/turn.js`: the viewer's seat while their own turn choice or advance is open, otherwise `null`, so another player's turn, setup and a trap response preview no line.
+- The library's Track and TrackBoard sections show two players on one space with one line dashed.
+- Tests: `client-turn` and the new `tests/browser/track-preview.test.mjs` (library and a hot-seat game), both failing before the fix.
+
+#### #117 Button takes a track tint (M13 · Refactor, Track board), 2026-10-30
+
+Built; the owner's library check is open (see above).
+- `Button` has a `tint` prop (a `trackColor` reference): primary takes 60% of the track over `--text`, confirm 65% with a full-colour border while it can be pressed. `DecisionPanel` dropped its `:global` Confirm rule and `TurnBar` its `--action` override; TurnBar's `actions` snippet receives the tint in the optional tone.
+- The bars' 18% tint and 3 px band are the tokens `--track-bar-mix` and `--track-bar-band`. `tests/styles.test.mjs` now fails if a component restyles `Button` from outside.
+- The DecisionPanel and TurnBar library sections are pixel-identical before and after, and so are the computed styles of their 105 buttons.
