@@ -183,7 +183,7 @@
 
 <style>
 	/* Isolated, so the spaces' stacking (up to 20 for the selected one) never rises over the header and its menu.
-	   TrackBoard adds up these rows, gaps and padding as a track's chrome (#120): keep them in step. */
+	   TrackBoard adds up these rows, gaps and padding as a track's chrome: keep them in step. */
 	.rg-track {
 		isolation: isolate;
 		display: grid;

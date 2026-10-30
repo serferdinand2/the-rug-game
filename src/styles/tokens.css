@@ -132,8 +132,8 @@
 	--track-tip: 16px; /* the arrow tip of a track space and the inlet of the next one */
 	--progress-line: 3px; /* player progress lines and tier price lines */
 	--progress-lane: 8px; /* distance between two progress lines */
-	--track-heading: 18px; /* a track's row with its symbol (#120) */
-	--track-prices: 18px; /* a track's row of tier prices (#120) */
+	--track-heading: 18px; /* a track's row with its symbol, which TrackBoard adds up as chrome */
+	--track-prices: 18px; /* a track's row of tier prices */
 	--docked-panel-width: 340px; /* a decision panel docked beside the World Map (#74) */
 	--narrow-panel-width: 440px; /* a narrow decision panel: a pick of several things (#75), the first-income notice (#77) */
 	/* A docked panel's distance from the shared area's right edge: the area's right padding, so the panel ends where the map would. */

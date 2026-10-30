@@ -90,7 +90,7 @@
 <style>
 	/* A size container, so a space can take the height the board has to spare (#59): the board's share for one track
 	   less the track's chrome, between 48px and 1.25 times a space's width. The chrome is Track's heading and price
-	   rows, its three row gaps and the lanes' top padding (each --space-1), and the progress lanes' box (#120). */
+	   rows, its three row gaps and the lanes' top padding (each --space-1), and the progress lanes' box. */
 	.rg-track-board {
 		--rg-track-board-chrome: calc(
 			var(--track-heading) + var(--track-prices) + 4 * var(--space-1) +
