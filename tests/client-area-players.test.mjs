@@ -114,3 +114,14 @@ test('Game.svelte renders one GameHeader and draws no chip, clock or log button 
 	assert.doesNotMatch(source, /<PageHeader\b|<PlayerChip\b|<TurnClock\b/);
 	assert.doesNotMatch(source, /rg-game--unread|Setting up/);
 });
+
+test('a track AI Singularity took the token off reads 12 on the card (#147, FAQ #9)', () => {
+	const { state } = startedGame(2);
+	const seat = /** @type {any} */ (state.seats[0]);
+	seat.tracks.technology = [];
+	seat.tracks.science = [3, 0];
+	seat.restartedTracks = ['technology'];
+	const [card] = playerCards(view(state, 2), 2, 1);
+	assert.equal(card.tracks.technology, 12);
+	assert.equal(card.tracks.science, 3);
+});

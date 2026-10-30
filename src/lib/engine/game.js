@@ -12,6 +12,8 @@ export { view } from './view.js';
 export { bonusOf } from './decisions/choose-bonus.js';
 // What the app runs on the viewer's own view to preview a turn (#26): legal advances and every decision's answers.
 export { advances } from './decisions/choose-advance.js';
+// How far a seat has advanced on a track, as the board and the player cards draw it (#147).
+export { spacesAdvanced } from './movement.js';
 export { DECISIONS } from './kinds.js';
 export { openDecisions } from './stack.js';
 export { controlledTerritories } from './control.js';
