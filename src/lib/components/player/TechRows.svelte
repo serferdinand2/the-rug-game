@@ -36,16 +36,13 @@
 
 	/**
 	 * Reports the card hovered or focused in a row's fan, by its id, or null on leave.
-	 * @param {ComponentEvent} event - From CardFan: { index }
-	 * @param {string[]} cards - The row's card ids
+	 * @param {ComponentEvent} event - From CardFan: { index, item }, the item being the card's id (#96)
 	 */
-	const fanInspectHandler = (event, cards) => {
+	const fanInspectHandler = (event) => {
 		if (typeof onTechRowsInspect === 'function') {
 			onTechRowsInspect(
 				new ComponentEvent(
-					event.value.index === null
-						? null
-						: cards[event.value.index],
+					event.value.item,
 					event.target,
 					event.originalEvent
 				)
@@ -73,9 +70,7 @@
 						items={tech[row.id]}
 						overlap={120}
 						label="{row.label} tech cards"
-						onCardFanInspect={(
-							/** @type {ComponentEvent} */ event
-						) => fanInspectHandler(event, tech[row.id])}>
+						onCardFanInspect={fanInspectHandler}>
 						{#snippet card(/** @type {string} */ id)}
 							<ScaledCard
 								scale={0.42}

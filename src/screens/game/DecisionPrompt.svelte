@@ -7,7 +7,7 @@
 	 * @property {string} code - The table code, which seeds a capital mat's terrain on the shelf (#56)
 	 * @property {Function} [onDecisionPromptAdvance] - Callback fired when the payment's Advance is pressed; its value is the payment's index in the advance's payments
 	 * @property {Function} [onDecisionPromptCancel] - Callback fired when the payment's Cancel is pressed
-	 * @property {Function} [onDecisionPromptInspect] - Callback fired with a shelf card to show in full ({ kind, data, side }) while it is hovered or focused, and with null when that ends
+	 * @property {Function} [onDecisionPromptInspect] - Callback fired with a shelf card to show in full ({ kind, id, side }, for CardPreview) while it is hovered or focused, and with null when that ends
 	 */
 
 	/**

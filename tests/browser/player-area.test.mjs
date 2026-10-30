@@ -195,6 +195,27 @@ test('the player area keeps its tabs, capital and counters inside it at every de
 				`a ${box}px box for a ${card}px tech card`
 			).toBeLessThanOrEqual(0.5);
 		}
+
+		// A display card hovered is shown in full over the shared area by CardPreview, and goes on leave (#96). The last
+		// card is the one no neighbour covers.
+		const display = page
+			.getByRole('group', { name: 'Face-up tech cards' })
+			.getByRole('button')
+			.last();
+		const preview = page.locator('.rg-card-preview');
+		await display.hover();
+		await expect(preview).toBeVisible();
+		await expect(preview.locator('.rg-technology-card')).toHaveCount(1);
+		const title = await display
+			.locator('.rg-card-band')
+			.first()
+			.textContent();
+		expect(title?.trim()).toBeTruthy();
+		await expect(preview.locator('.rg-card-band').first()).toHaveText(
+			/** @type {string} */ (title)
+		);
+		await page.mouse.move(5, 5);
+		await expect(preview).toHaveCount(0);
 		expect(errors).toEqual([]);
 	} finally {
 		// A running hot-seat game is ended, then left, so the table closes and the address's table limit is free.

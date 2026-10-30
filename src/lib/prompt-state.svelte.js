@@ -66,8 +66,9 @@ import { cardCivOf, civCardView } from './civ-card.js';
  */
 
 /**
- * A card shown in full over the shared area; beside the shelf, without a scrim, for a shelf card.
- * @typedef {{ kind: 'tech' | 'tapestry', data: any, side?: boolean }} Inspected
+ * A card shown in full over the shared area by CardPreview (#96): its kind and its id, or the face a shelf already drew
+ * (#118); beside the shelf, without a scrim, for a shelf card.
+ * @typedef {{ kind: 'tech' | 'tapestry', id?: string, data?: any, side?: boolean }} Inspected
  */
 
 /** @returns {Selection} */

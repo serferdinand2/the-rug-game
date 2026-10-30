@@ -1,6 +1,7 @@
 // The decision prompt's state (#79): what the viewer has chosen in the open decision, keyed to it, and what the board, the player area and the dice tray read from it.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { openDecisions, view } from '../src/lib/engine/game.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { push } from '../src/lib/engine/stack.js';
@@ -361,4 +362,77 @@ test('a decision answered elsewhere offers nothing on the card (#78)', () => {
 	});
 	const prompt = new PromptState(promptSource({ game, decision }));
 	assert.equal(prompt.civPick, null);
+});
+
+test('a tech card on the shelf is shown in full from the face the shelf drew, and the deck is not (#96, #118)', () => {
+	const { state, random } = startedGame(2);
+	const player = /** @type {number} */ (state.current);
+	state.pending.length = 0;
+	push(state, state.pending, [
+		{ player, kind: 'effects', effects: [{ invent: { refresh: true } }] },
+	]);
+	run(state, random);
+	const game = view(state, player);
+	const decision = /** @type {any} */ (myDecision(game, player));
+	assert.equal(decision.kind, 'chooseInvent');
+	const prompt = new PromptState(
+		promptSource({ game, seat: player, decision })
+	);
+	const isDeck = (/** @type {any} */ c) =>
+		typeof c.face === 'object' && 'deck' in c.face;
+	const card = prompt.shelfCards.find((c) => !isDeck(c));
+	const deck = prompt.shelfCards.find(isDeck);
+	assert.ok(card && deck);
+	const shown = prompt.inspectShelf(card.index);
+	assert.deepEqual(shown, { kind: 'tech', data: card.face, side: true });
+	assert.equal(prompt.inspectShelf(deck.index), null);
+	assert.equal(prompt.inspectShelf(null), null);
+});
+
+test('a tapestry card to pay is shown in full from the face the shelf drew (#96, #118)', () => {
+	const { state } = startedGame(2);
+	state.seats[0].hand = ['trade-economy', 'technocracy'];
+	const decision = /** @type {Record<string, any>} */ ({
+		id: 99,
+		player: 1,
+		kind: 'chooseBonus',
+		track: 'exploration',
+		space: 10,
+		cost: { tapestry: 1 },
+		gain: [{ vp: 10 }],
+	});
+	decision.answers = DECISIONS.chooseBonus.answers(state, decision);
+	const prompt = new PromptState(
+		promptSource({ game: view(state, 1), decision })
+	);
+	assert.equal(prompt.cardPick?.kind, 'tapestry');
+	const index = /** @type {any} */ (prompt.cardPick).ids.indexOf(
+		'technocracy'
+	);
+	const card = prompt.pickCards[index];
+	assert.equal(card.face.title, 'Technocracy');
+	const shown = prompt.inspectPick(index);
+	assert.deepEqual(shown, { kind: 'tapestry', data: card.face, side: true });
+	assert.equal(prompt.inspectPick(null), null);
+});
+
+test('only CardPreview draws a card in full, and no caller builds card data for it (#96)', () => {
+	/** @param {string} path */
+	const source = (path) =>
+		readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
+	const screen = source('src/screens/Game.svelte');
+	assert.match(screen, /<CardPreview\b/);
+	assert.doesNotMatch(screen, /import (TechnologyCard|TapestryCard)\b/);
+	assert.doesNotMatch(source('src/lib/prompt-state.svelte.js'), /CardData\(/);
+	const tabs = source('src/screens/game/PlayerTabs.svelte');
+	const inspect = tabs.slice(tabs.indexOf('function inspect('));
+	assert.doesNotMatch(
+		inspect.slice(0, inspect.indexOf('\n\t}\n')),
+		/CardData\(/
+	);
+	assert.doesNotMatch(tabs, /event\.value\.index === null/);
+	assert.doesNotMatch(
+		source('src/lib/components/player/TechRows.svelte'),
+		/event\.value\.index === null/
+	);
 });
