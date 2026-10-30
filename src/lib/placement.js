@@ -1,4 +1,4 @@
-// Landmark placement on the capital grid: pieces as occupied plots, snapping, keyboard moves, turning, and the shape a piece is drawn in.
+// Landmark placement on the capital grid: pieces as occupied plots, snapping, keyboard moves, turning, and the shape a landmark is drawn in.
 // The rules engine decides whether a placement is legal; this only answers where a piece fits and how it looks.
 import {
 	GRID_SIZE,
@@ -182,16 +182,32 @@ export function pieceArea(shape, row, col) {
 /**
  * The covered plots of a shape as an SVG path, one unit square per plot.
  * @param {readonly string[]} shape - Rows, top first, with X for a covered plot
+ * @param {number} [gap=0] - Space between neighbouring plots, in plots, as on a card's footprint (#110)
  * @returns {string}
  */
-export function fillPath(shape) {
+export function fillPath(shape, gap = 0) {
+	/** @param {number} index */
+	const at = (index) => Math.round(index * (1 + gap) * 1e4) / 1e4;
 	return shape
 		.flatMap((line, row) =>
 			[...line].map((cell, col) =>
-				cell === 'X' ? `M${col} ${row}h1v1h-1z` : ''
+				cell === 'X' ? `M${at(col)} ${at(row)}h1v1h-1z` : ''
 			)
 		)
 		.join('');
+}
+
+/**
+ * How a landmark's picture, drawn for its footprint as printed, is turned to fill the turned shape: about the shape's centre, in plots (#110).
+ * @param {readonly string[]} footprint - The footprint as printed
+ * @param {number} [rotation=0] - Quarter turns clockwise
+ * @returns {string} An SVG transform
+ */
+export function pictureTransform(footprint, rotation = 0) {
+	const turns = ((rotation % 4) + 4) % 4;
+	const rows = turns % 2 ? footprint[0].length : footprint.length;
+	const cols = turns % 2 ? footprint.length : footprint[0].length;
+	return `translate(${cols / 2} ${rows / 2}) rotate(${turns * 90}) translate(${-footprint[0].length / 2} ${-footprint.length / 2})`;
 }
 
 /**
