@@ -607,7 +607,7 @@
 		flex-wrap: nowrap;
 		gap: 0;
 	}
-	/* The special spaces place SpaceGlyphs' glyphs, reaching them by position, as its root draws no box (#115). */
+	/* The special spaces place SpaceGlyphs' glyphs, reaching them by position, as its root draws no box. */
 	.rg-track-space--computers :global(.rg-track-space--effect-plus > *) {
 		height: 15px;
 	}
