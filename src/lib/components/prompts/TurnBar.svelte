@@ -1,11 +1,11 @@
 <!-- The footer: the current decision or what another player is doing, its cost and actions, and a reveal beside the turn label. -->
 <script module>
-	/** @typedef {'neutral' | 'selected' | 'optional' | 'waiting' | 'income'} TurnBarTone */
+	/** @typedef {'neutral' | 'selected' | 'optional' | 'waiting' | 'income' | 'complete'} TurnBarTone */
 
 	/**
 	 * Properties of the TurnBar component itself.
 	 * @typedef {Object} TurnBarOwnProps
-	 * @property {TurnBarTone} [tone='neutral'] - neutral: your turn, nothing chosen; selected: a space is chosen; optional: an optional benefit tinted with the track; waiting: another player's turn, label and text only; income: the viewer's own income turn, a gold footer
+	 * @property {TurnBarTone} [tone='neutral'] - neutral: your turn, nothing chosen; selected: a space is chosen; optional: an optional benefit tinted with the track; waiting: another player's turn, label and text only; income: the viewer's own income turn, a gold footer; complete: the finished game, on the results and the board review, its label upright as the header's Game complete (#105)
 	 * @property {string} [label='Your turn'] - The turn label, such as 'Optional action' or 'Ana’s turn'
 	 * @property {string} [labelColor] - The label's colour as a token reference, such as 'var(--player-2)' for another player's turn; defaults to gold
 	 * @property {string} heading - The decision, such as 'Advance to'
@@ -195,6 +195,12 @@
 
 	.rg-turn-bar--optional .rg-turn-bar--label {
 		color: var(--rg-turn-bar-tint);
+	}
+
+	/* The finished game's label stands upright and spaced, as the end-screen mockup's footer and the header's Game complete (issue 105). */
+	.rg-turn-bar--complete .rg-turn-bar--label {
+		font-style: normal;
+		letter-spacing: var(--letter-spacing-title);
 	}
 
 	/* Another player's turn carries their name, and player names never use Cinzel. */

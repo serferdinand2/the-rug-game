@@ -1,4 +1,4 @@
-<!-- Library section: TurnBar in its neutral, selected, optional and waiting tones with the income reveal passed in (#122), the forced and first income turns (#77), and the Ships walk-through from the mockup. -->
+<!-- Library section: TurnBar in its neutral, selected, optional and waiting tones with the income reveal passed in (#122), the forced and first income turns (#77), the finished game (#105), and the Ships walk-through from the mockup. -->
 <script>
 	import IncomeReveal from '../../../lib/components/prompts/IncomeReveal.svelte';
 	import TurnBar from '../../../lib/components/prompts/TurnBar.svelte';
@@ -228,6 +228,36 @@
 			label="Ana’s turn"
 			labelColor="var(--player-2)"
 			heading="Ana is choosing where to conquer…" />
+	</Example>
+	<Example
+		label={'tone="complete" label="Game complete"  (the results footer, as the host sees it; #105)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			tone="complete"
+			label="Game complete"
+			heading="The game is complete."
+			detail="The final standings, and where each player's VP came from.">
+			{#snippet actions()}
+				<Button>Review game board</Button>
+				<Button mode="secondary">Return to tables</Button>
+				<Button mode="gold">Deal again</Button>
+			{/snippet}
+		</TurnBar>
+	</Example>
+	<Example
+		label={'tone="complete"  (the board review after the game, with Results back)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			tone="complete"
+			label="Game complete"
+			heading="The game is complete."
+			detail="The board as the game ended.">
+			{#snippet actions()}
+				<Button mode="gold">Results</Button>
+			{/snippet}
+		</TurnBar>
 	</Example>
 	<Example
 		{label}

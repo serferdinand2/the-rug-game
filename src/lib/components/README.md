@@ -102,7 +102,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `TurnControl` | The ↺ and ↻ buttons that turn the picked tile, with a gold `+n VP` tag between them (`No hex yet` and disabled until a hex is chosen) and the hint that . and , turn it (#74, #83). |
 | `VpTag` | The "+N VP" a choice scores: a gold badge over its parent's top-right corner (`corner`, muted for a tile that scores nothing) or bold gold text in a row (`inline`); `unit=""` draws "+N" alone. `DecisionOption`, `TilePicker` and `TurnControl` draw it (#116). |
 | `OverviewCloseBar` | The footer while the players overview is open. |
-| `TurnBar` | The footer: neutral, selected, optional-action, waiting and gold income states; a `reveal` snippet, such as the `IncomeReveal`, sits before the turn label (#122); a turn with only income to take puts a gold Take income in its actions (#77). |
+| `TurnBar` | The footer: neutral, selected, optional-action, waiting, gold income and finished-game (`complete`, on the results and the board review; #105) states; a `reveal` snippet, such as the `IncomeReveal`, sits before the turn label (#122); a turn with only income to take puts a gold Take income in its actions (#77). |
 
 ## lobby/
 

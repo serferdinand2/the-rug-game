@@ -23,6 +23,7 @@
 	import StandingRow from '../lib/components/results/StandingRow.svelte';
 	import TieSteps from '../lib/components/results/TieSteps.svelte';
 	import PlayLayout from '../lib/components/ui/PlayLayout.svelte';
+	import TurnBar from '../lib/components/prompts/TurnBar.svelte';
 	import PageHeader from './PageHeader.svelte';
 	import { isHost } from '../lib/lobby.js';
 	import { playerColor } from '../lib/ui.js';
@@ -188,9 +189,13 @@
 	{/snippet}
 
 	{#snippet footer()}
-		<footer class="rg-results--footer">
-			<span class="rg-results--state">Game complete</span>
-			<div class="rg-results--actions">
+		<!-- The board review's footer says the same in the same tone (turn.js footerView), so the two read as one (owner, 2026-10-30). -->
+		<TurnBar
+			tone="complete"
+			label="Game complete"
+			heading="The game is complete."
+			detail="The final standings, and where each player's VP came from.">
+			{#snippet actions()}
 				<Button onButtonClick={reviewHandler}>Review game board</Button>
 				<Button
 					mode={hosting ? 'secondary' : 'gold'}
@@ -203,8 +208,8 @@
 						onButtonClick={() => store.startGame()}
 						>Deal again</Button>
 				{/if}
-			</div>
-		</footer>
+			{/snippet}
+		</TurnBar>
 	{/snippet}
 </PlayLayout>
 
@@ -353,20 +358,5 @@
 		flex-wrap: wrap;
 		justify-content: flex-end;
 		gap: var(--space-3);
-	}
-
-	.rg-results--footer {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 20px;
-		padding: 0 24px;
-		border-top: var(--border) solid var(--line);
-		background: var(--chrome);
-	}
-
-	.rg-results--actions {
-		display: flex;
-		gap: 9px;
 	}
 </style>
