@@ -1,11 +1,12 @@
 <!-- The shared-area selector between the Advancement Tracks and the World Map: an icon each, the chosen one titled and coloured. -->
 <script module>
-	/** @typedef {'tracks' | 'map'} BoardView */
+	/** @typedef {import('../../board-icons.js').BoardView} BoardView */
 
 	/**
 	 * Properties of the BoardSwitcher component itself.
 	 * @typedef {Object} BoardSwitcherOwnProps
 	 * @property {BoardView} [value='tracks'] - The board on show; bindable
+	 * @property {readonly import('../../ui.js').TrackId[]} [tracks] - The tracks on the board, one band each in the icon; the base game's four by default (#120)
 	 * @property {Function} [onBoardSwitcherChange] - Callback fired with the new view when the player picks the other board
 	 */
 
@@ -19,41 +20,19 @@
 </script>
 
 <script>
+	import { boardChoices } from '../../board-icons.js';
 	import { ComponentEvent } from '../../component-event.js';
-	import { TRACKS, terrainColor, trackColor } from '../../ui.js';
+	import { TRACKS } from '../../ui.js';
 
 	/** @type {BoardSwitcherProps} */
 	let {
 		value = $bindable('tracks'),
+		tracks = TRACKS.map((track) => track.id),
 		onBoardSwitcherChange,
 		...attr
 	} = $props();
 
-	/** @type {readonly { value: BoardView, title: string }[]} */
-	const CHOICES = [
-		{ value: 'tracks', title: 'Advancement Tracks' },
-		{ value: 'map', title: 'World Map' },
-	];
-	// Four short right-pointing bands, coloured like the tracks when chosen.
-	const TRACK_MARKS = [
-		'1,2 44,2 53,5.5 44,9 1,9',
-		'1,9.5 44,9.5 53,13 44,16.5 1,16.5',
-		'1,17 44,17 53,20.5 44,24 1,24',
-		'1,24.5 44,24.5 53,28 44,31.5 1,31.5',
-	].map((points, index) => ({ points, color: trackColor(TRACKS[index].id) }));
-	// Seven point-up hexagons, 2 / 3 / 2, coloured like terrain when chosen.
-	const HEX_MARKS = [
-		['21,1 26.2,4 26.2,10 21,13 15.8,10 15.8,4', terrainColor('forest')],
-		['33,1 38.2,4 38.2,10 33,13 27.8,10 27.8,4', terrainColor('grassland')],
-		['15,10 20.2,13 20.2,19 15,22 9.8,19 9.8,13', terrainColor('desert')],
-		[
-			'27,10 32.2,13 32.2,19 27,22 21.8,19 21.8,13',
-			terrainColor('mountain'),
-		],
-		['39,10 44.2,13 44.2,19 39,22 33.8,19 33.8,13', terrainColor('sea')],
-		['21,19 26.2,22 26.2,28 21,31 15.8,28 15.8,22', terrainColor('forest')],
-		['33,19 38.2,22 38.2,28 33,31 27.8,28 27.8,22', 'var(--bronze)'],
-	].map(([points, color]) => ({ points, color }));
+	let choices = $derived(boardChoices(tracks));
 
 	/**
 	 * @param {MouseEvent} event
@@ -77,8 +56,9 @@
 	aria-label="Shared board view"
 	{...attr}
 	class="rg-board-switcher {attr.class ? attr.class : ''}">
-	{#each CHOICES as choice (choice.value)}
+	{#each choices as choice (choice.value)}
 		{@const active = value === choice.value}
+		{@const bands = choice.value === 'tracks'}
 		<button
 			type="button"
 			class="rg-board-switcher--choice"
@@ -86,32 +66,21 @@
 			aria-pressed={active}
 			title={active ? undefined : choice.title}
 			onclick={(event) => choiceClickHandler(event, choice.value)}>
-			{#if choice.value === 'tracks'}
-				<svg
-					class="rg-board-switcher--icon rg-board-switcher--tracks-icon"
-					viewBox="0 0 54 32"
-					preserveAspectRatio="none"
-					aria-hidden="true">
-					{#each TRACK_MARKS as mark (mark.points)}
-						<polygon
-							class="rg-board-switcher--track-mark"
-							points={mark.points}
-							style:--rg-board-switcher-mark={mark.color} />
-					{/each}
-				</svg>
-			{:else}
-				<svg
-					class="rg-board-switcher--icon"
-					viewBox="0 0 54 32"
-					aria-hidden="true">
-					{#each HEX_MARKS as mark (mark.points)}
-						<polygon
-							class="rg-board-switcher--hex-mark"
-							points={mark.points}
-							style:--rg-board-switcher-mark={mark.color} />
-					{/each}
-				</svg>
-			{/if}
+			<!-- The track bands stretch into the narrower tracks icon; the hexes keep their shape. -->
+			<svg
+				class="rg-board-switcher--icon"
+				class:rg-board-switcher--tracks-icon={bands}
+				viewBox={choice.viewBox}
+				preserveAspectRatio={bands ? 'none' : undefined}
+				aria-hidden="true">
+				{#each choice.marks as mark, index (index)}
+					<polygon
+						class:rg-board-switcher--track-mark={bands}
+						class:rg-board-switcher--hex-mark={!bands}
+						points={mark.points}
+						style:--rg-board-switcher-mark={mark.color} />
+				{/each}
+			</svg>
 			<strong class="rg-board-switcher--title">{choice.title}</strong>
 		</button>
 	{/each}

@@ -166,6 +166,7 @@
 				benefit={entry.benefit}
 				bonus={entry.bonus}
 				words={entry.words}
+				last={index + 1 === spaces.length}
 				selected={selectedSpace === index + 1}
 				available={available.includes(index + 1)}
 				onTrackSpaceClick={spaceClickHandler}
@@ -181,11 +182,12 @@
 </div>
 
 <style>
-	/* Isolated, so the spaces' stacking (up to 20 for the selected one) never rises over the header and its menu. */
+	/* Isolated, so the spaces' stacking (up to 20 for the selected one) never rises over the header and its menu.
+	   TrackBoard adds up these rows, gaps and padding as a track's chrome: keep them in step. */
 	.rg-track {
 		isolation: isolate;
 		display: grid;
-		grid-template-rows: 18px 18px auto auto;
+		grid-template-rows: var(--track-heading) var(--track-prices) auto auto;
 		gap: var(--space-1);
 	}
 

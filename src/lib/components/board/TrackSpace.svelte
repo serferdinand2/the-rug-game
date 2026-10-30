@@ -4,7 +4,8 @@
 	 * Properties of the TrackSpace component itself.
 	 * @typedef {Object} TrackSpaceOwnProps
 	 * @property {import('../../ui.js').TrackId} track - The track, which sets the colours
-	 * @property {number} space - The space number, 1–12; space 1 has a flat left edge, space 12 a square finish line
+	 * @property {number} space - The space number, 1–12; space 1 has a flat left edge
+	 * @property {boolean} [last=false] - The track's last space, which Track sets (#120): a square finish line and no tip
 	 * @property {string} name - The space's name, such as 'Ships'
 	 * @property {string} [landmark] - The landmark the first player here takes, such as 'Lighthouse'
 	 * @property {import('../../glyphs.js').Glyph[]} [benefit=[]] - The benefit's symbols, drawn under the name (#59)
@@ -37,7 +38,7 @@
 <script>
 	import { ComponentEvent } from '../../component-event.js';
 	import { TRACK_IDS } from '../../engine/data/ids.js';
-	import { SPACE_COUNT, outlinePath } from '../../track-shape.js';
+	import { outlinePath } from '../../track-shape.js';
 	import { artUrl, trackColor } from '../../ui.js';
 	import CardSymbol from '../ui/CardSymbol.svelte';
 	import ExplorationFace from './ExplorationFace.svelte';
@@ -51,6 +52,7 @@
 		benefit = [],
 		bonus = null,
 		words = '',
+		last = false,
 		selected = false,
 		available = false,
 		onTrackSpaceClick,
@@ -65,7 +67,6 @@
 	let height = $state(0);
 
 	let first = $derived(space === 1);
-	let last = $derived(space === SPACE_COUNT);
 	let path = $derived(outlinePath(width, height, { first, last }));
 	let label = $derived(
 		`${name}, ${track} space ${space}${landmark ? `, landmark ${landmark}` : ''}${available ? ', available' : ''}${words ? `. ${words}` : ''}`
@@ -409,6 +410,7 @@
 		{#if track === 'exploration'}
 			<ExplorationFace
 				{space}
+				{last}
 				{name}
 				{landmark}
 				{bonus} />

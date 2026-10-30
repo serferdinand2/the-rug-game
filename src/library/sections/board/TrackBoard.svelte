@@ -1,4 +1,4 @@
-<!-- Library section: TrackBoard with the play-page mockup's four tracks and the real spaces' benefits, at its real width and height. -->
+<!-- Library section: TrackBoard with the play-page mockup's four tracks and the real spaces' benefits, at its real width and height, and with a stand-in fifth track (#120). -->
 <script module>
 	import { TRACKS } from '../../../lib/engine/data/tracks.js';
 	import { describeBonus, describeEffects } from '../../../lib/describe.js';
@@ -157,6 +157,20 @@
 			['Barracks', 'Tank Factory', 'Fusion Reactor']
 		),
 	];
+
+	/**
+	 * The four tracks and a stand-in fifth, as Arts & Architecture will have (#120): a copy of Science under the arts
+	 * track's id, only to show that five fit. #35 brings the arts track's own spaces and colour.
+	 * @type {FixtureTrack[]}
+	 */
+	const FIVE_TRACKS = [
+		...BOARD_TRACKS,
+		{
+			...BOARD_TRACKS[1],
+			id: /** @type {TrackId} */ ('arts'),
+			name: 'Arts (stand-in)',
+		},
+	];
 </script>
 
 <script>
@@ -171,7 +185,7 @@
 <Section
 	name="TrackBoard"
 	area="board"
-	description="The four advancement tracks stacked to fill the shared area's height, with one space selected across all of them.">
+	description="The advancement tracks stacked to fill the shared area's height, with one space selected across all of them. Each track takes an equal share, so the base game's four and Arts & Architecture's five both fit.">
 	<Example
 		label={`tracks={the mockup's four tracks} selected={${JSON.stringify(selected)}}  (hover, Tab or click the spaces)`}
 		wide
@@ -185,6 +199,15 @@
 					{ track: 'technology', space: 6 },
 				]}
 				bind:selected />
+		</div>
+	</Example>
+	<Example
+		label={'tracks={the four tracks and a stand-in fifth}  (five tracks share the same height at 1920×1080, #120)'}
+		wide
+		width={1428}>
+		<!-- The stand-in borrows Arts & Architecture's colour until #35 gives the arts track its own. -->
+		<div style="height: 892px; --arts: var(--arts-architecture)">
+			<TrackBoard tracks={FIVE_TRACKS} />
 		</div>
 	</Example>
 </Section>

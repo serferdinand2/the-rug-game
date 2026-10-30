@@ -1,4 +1,4 @@
-<!-- The four advancement tracks stacked to fill the board's height, with one space selected across all of them. -->
+<!-- The advancement tracks stacked to fill the board's height, four or five of them (#120), with one space selected across all of them. -->
 <script module>
 	/**
 	 * One track on the board: the Track component's props without its selection and callback.
@@ -20,7 +20,7 @@
 	/**
 	 * Properties of the TrackBoard component itself.
 	 * @typedef {Object} TrackBoardOwnProps
-	 * @property {TrackBoardTrack[]} tracks - The four tracks, top to bottom
+	 * @property {TrackBoardTrack[]} tracks - The tracks, top to bottom: the base game's four, or five with the arts track; each shares the board's height
 	 * @property {TrackBoardSelection[]} [available=[]] - Spaces the viewer can advance to, outlined in green
 	 * @property {TrackBoardSelection | null} [selected=null] - The selected space, outlined in gold; bindable
 	 * @property {Function} [onTrackBoardSelect] - Callback fired with { track, space } when a space is chosen
@@ -41,6 +41,7 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
+	import { SPACE_COUNT } from '../../track-shape.js';
 	import Track from './Track.svelte';
 
 	/** @type {TrackBoardProps} */
@@ -72,6 +73,8 @@
 <div
 	{...attr}
 	class="rg-track-board {attr.class ? attr.class : ''}"
+	style:--rg-track-board-count={Math.max(1, tracks.length)}
+	style:--rg-track-board-spaces={tracks[0]?.spaces.length || SPACE_COUNT}
 	style:--rg-track-board-lanes={Math.max(1, tracks[0]?.players.length ?? 1)}>
 	{#each tracks as track (track.id)}
 		<Track
@@ -85,18 +88,23 @@
 </div>
 
 <style>
-	/* A size container, so a space can take the height the board has to spare (#59): a quarter of the board less a
-	   track's heading, prices, gaps and progress lanes (53px and 8px a lane), between 48px and 1.25 times a space's
-	   width, a twelfth of the board. */
+	/* A size container, so a space can take the height the board has to spare (#59): the board's share for one track
+	   less the track's chrome, between 48px and 1.25 times a space's width. The chrome is Track's heading and price
+	   rows, its three row gaps and the lanes' top padding (each --space-1), and the progress lanes' box. */
 	.rg-track-board {
+		--rg-track-board-chrome: calc(
+			var(--track-heading) + var(--track-prices) + 4 * var(--space-1) +
+				(var(--rg-track-board-lanes) - 1) * var(--progress-lane) + 3 *
+				var(--progress-line)
+		);
 		--rg-track-space-aspect: auto;
 		--rg-track-space-height: clamp(
 			48px,
 			calc(
-				(100cqh - 3 * var(--space-4)) / 4 - 53px -
-					(var(--rg-track-board-lanes) - 1) * var(--progress-lane)
+				(100cqh - (var(--rg-track-board-count) - 1) * var(--space-4)) /
+					var(--rg-track-board-count) - var(--rg-track-board-chrome)
 			),
-			calc(100cqw / 12 * 1.25)
+			calc(100cqw / var(--rg-track-board-spaces) * 1.25)
 		);
 		container-type: size;
 		display: flex;

@@ -33,6 +33,7 @@
 				style="width: 116px; height: 132px; background: #252f2b; --rg-track-space-color: #55a783; --track-tip: 16px;">
 				<ExplorationFace
 					{space}
+					last={space === names.length}
 					name={names[space - 1]}
 					landmark={space === 4
 						? 'Lighthouse'
