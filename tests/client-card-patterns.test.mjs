@@ -8,6 +8,7 @@ import { spotChoice } from '../src/lib/card-spots.js';
 import CardClarity from '../src/lib/components/player/CardClarity.svelte';
 import CardEffectBox from '../src/lib/components/player/CardEffectBox.svelte';
 import CardEffectList from '../src/lib/components/player/CardEffectList.svelte';
+import CardPathGrid from '../src/lib/components/player/CardPathGrid.svelte';
 import CardPredictionTracks from '../src/lib/components/player/CardPredictionTracks.svelte';
 import CardRewardColumns from '../src/lib/components/player/CardRewardColumns.svelte';
 import CardResource from '../src/lib/components/player/CardResource.svelte';
@@ -442,5 +443,77 @@ test('CivilizationCard writes no reward column by hand (#106)', () => {
 	assert.doesNotMatch(
 		source('CivilizationCard'),
 		/rg-card-(craftsmen|merry)-|merryToken/
+	);
+});
+
+/** A two-column path grid, as the Entertainers' first two columns. */
+const PATH = {
+	heads: ['1st move', '2nd'],
+	spaces: [
+		{ id: 'c1r1', gain: 'worker' },
+		{ id: 'c2r1', picture: '/art/building/farm.svg', text: 'Farm' },
+		{ id: 'c1r2', gain: 'culture' },
+		{ id: 'c2r2', text: 'Conquer' },
+	],
+	links: [
+		['c1r1', 'c2r1'],
+		['c1r1', 'c2r2'],
+		['c1r2', 'c2r2'],
+	],
+	start: 'Start at the left.',
+};
+
+test('CardPathGrid draws its squares from data and its links from the moves, one path per gap', () => {
+	const body = html(render(CardPathGrid, { props: PATH }));
+	assert.match(body, /<span>1st move<\/span><span>2nd<\/span>/);
+	assert.match(body, /viewBox="0 0 401 157"/);
+	assert.equal(body.match(/<path /g)?.length, 1);
+	assert.match(
+		body,
+		/d="M75 37\.5L326 37\.5 M75 37\.5L326 119\.5 M75 119\.5L326 119\.5"/
+	);
+	assert.match(
+		body,
+		/rg-card-path-grid--gain[^>]*>\+ <span class="rg-card-resource/
+	);
+	assert.match(
+		body,
+		/<img src="\/art\/building\/farm\.svg" alt=""[^>]*\/?><span>Farm<\/span>/
+	);
+	assert.doesNotMatch(
+		body,
+		/rg-card-path-grid--current|rg-card-path-grid--away/
+	);
+	assert.match(body, /Start at the left\./);
+});
+
+test("CardPathGrid marks the token's square, fades the start token, and offers the decision's squares", () => {
+	const away = html(
+		render(CardPathGrid, {
+			props: {
+				...PATH,
+				current: 'c1r2',
+				choices: ['c2r2'],
+				picked: 'c2r2',
+			},
+		})
+	);
+	assert.equal(away.match(/rg-card-path-grid--current/g)?.length, 1);
+	assert.match(away, /rg-card-path-grid--away/);
+	assert.equal(away.match(/<button/g)?.length, 1);
+	assert.match(away, /data-id="civ-spot-c2r2"/);
+	const home = html(
+		render(CardPathGrid, { props: { ...PATH, current: 'start' } })
+	);
+	assert.doesNotMatch(
+		home,
+		/rg-card-path-grid--current|rg-card-path-grid--away/
+	);
+});
+
+test('CivilizationCard writes no path grid by hand (#106)', () => {
+	assert.doesNotMatch(
+		source('CivilizationCard'),
+		/rg-card-entertainer-|ENTERTAINER_GAPS|<svg/
 	);
 });

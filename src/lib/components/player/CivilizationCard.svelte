@@ -54,27 +54,9 @@
 	} from '../../civ-card.js';
 	import { ComponentEvent } from '../../component-event.js';
 
-	/** The Entertainers' links, drawn from the engine's own moves (R28), so the card never shows a link it refuses. */
-	const ENTERTAINER_ROW_Y = [37.5, 119.5, 201.5, 283.5];
-	const ENTERTAINER_GAPS = [
-		[75, 108.67],
-		[183.67, 217.33],
-		[292.33, 326],
-	];
-	const ENTERTAINER_LINKS = ENTERTAINER_GAPS.map(([from, to], index) =>
-		[1, 2, 3, 4]
-			.flatMap((row) =>
-				entertainersMoves(`c${index + 1}r${row}`).map(
-					(id) =>
-						`M${from} ${ENTERTAINER_ROW_Y[row - 1]}L${to} ${ENTERTAINER_ROW_Y[Number(id.split('r')[1]) - 1]}`
-				)
-			)
-			.join(' ')
-	);
 	/** The Entertainers' grid by row, as the card reads it: a resource, a building, an action and an advance. */
 	const ENTERTAINER_ROWS = [
 		{
-			row: 1,
 			resource: /** @type {const} */ ('worker'),
 			building: 'farm',
 			name: 'Farm',
@@ -82,7 +64,6 @@
 			advance: 'Advance Technology',
 		},
 		{
-			row: 2,
 			resource: /** @type {const} */ ('culture'),
 			building: 'market',
 			name: 'Market',
@@ -90,7 +71,6 @@
 			advance: 'Advance Exploration',
 		},
 		{
-			row: 3,
 			resource: /** @type {const} */ ('food'),
 			building: 'house',
 			name: 'House',
@@ -98,7 +78,6 @@
 			advance: 'Advance Military',
 		},
 		{
-			row: 4,
 			resource: /** @type {const} */ ('coin'),
 			building: 'armory',
 			name: 'Armory',
@@ -106,6 +85,25 @@
 			advance: 'Advance Science',
 		},
 	];
+	/** The Entertainers' squares row by row, columns 1 to 4. */
+	const ENTERTAINER_SPACES = ENTERTAINER_ROWS.flatMap((space, index) => [
+		{ id: `c1r${index + 1}`, gain: space.resource },
+		{
+			id: `c2r${index + 1}`,
+			picture: `/art/building/${space.building}.svg`,
+			text: space.name,
+		},
+		{ id: `c3r${index + 1}`, text: space.action },
+		{ id: `c4r${index + 1}`, text: space.advance },
+	]);
+	/** The Entertainers' links, from the engine's own moves (R28), so the card never shows a link it refuses. */
+	const ENTERTAINER_LINKS = [1, 2, 3].flatMap((column) =>
+		[1, 2, 3, 4].flatMap((row) =>
+			entertainersMoves(`c${column}r${row}`).map(
+				(to) => /** @type {const} */ ([`c${column}r${row}`, to])
+			)
+		)
+	);
 	/** The Treasure Hunters' terrains and rewards; the play example has used Desert. */
 	const TREASURE_HUNTER_TERRAINS = /** @type {const} */ ([
 		{
@@ -628,68 +626,20 @@
 			{#snippet effect()}At the start of income turns 2–5, move your token
 				one column right along a path and gain the space&#x27;s reward.{/snippet}
 
-			<CardPathGrid>
-				<div class="rg-card-entertainer-path--head">
-					<span>1st move</span><span>2nd</span><span>3rd</span><span
-						>4th</span>
-				</div>
-				<div class="rg-card-entertainer-path--grid">
-					<svg
-						class="rg-card-entertainer-links"
-						viewBox="0 0 401 321"
-						preserveAspectRatio="none"
-						aria-hidden="true">
-						{#each ENTERTAINER_LINKS as d, index (index)}
-							<path {d}></path>
-						{/each}
-					</svg>
-					{#each ENTERTAINER_ROWS as space (space.row)}
-						<CardSlot
-							size={75}
-							{...spotProps(`c1r${space.row}`)}
-							class="rg-card-entertainer-space {marked(
-								`c1r${space.row}`,
-								'token'
-							)}"
-							>+ <CardResource
-								symbol={space.resource}
-								class="" /></CardSlot>
-						<CardSlot
-							size={75}
-							{...spotProps(`c2r${space.row}`)}
-							class="rg-card-entertainer-space {marked(
-								`c2r${space.row}`,
-								'token'
-							)}"
-							><img
-								src="/art/building/{space.building}.svg"
-								alt="" /><span>{space.name}</span></CardSlot>
-						<CardSlot
-							size={75}
-							{...spotProps(`c3r${space.row}`)}
-							class="rg-card-entertainer-space {marked(
-								`c3r${space.row}`,
-								'token'
-							)}">{space.action}</CardSlot>
-						<CardSlot
-							size={75}
-							{...spotProps(`c4r${space.row}`)}
-							class="rg-card-entertainer-space {marked(
-								`c4r${space.row}`,
-								'token'
-							)}">{space.advance}</CardSlot>
-					{/each}
-				</div>
-				<div class="rg-card-entertainer-path--start">
-					<PlayerToken
-						{seat}
-						decorative
-						class="rg-card-entertainer-path--token {marked(
-							'start',
-							'token'
-						)}" /> Start at the left; move one column each income turn.
-				</div>
-			</CardPathGrid>
+			<CardPathGrid
+				heads={['1st move', '2nd', '3rd', '4th']}
+				spaces={ENTERTAINER_SPACES}
+				links={ENTERTAINER_LINKS}
+				current={cardState === 'play'
+					? (Object.keys(marks).find((spot) =>
+							marks[spot].includes('token')
+						) ?? null)
+					: null}
+				start="Start at the left; move one column each income turn."
+				{seat}
+				choices={Object.keys(choices)}
+				picked={selected}
+				onCardPathGridPick={slotPickHandler} />
 			<CardClarity>
 				If gained mid-game, place the token on any reward space and gain
 				it immediately.{#snippet setup()}Setup, current rules: gain
