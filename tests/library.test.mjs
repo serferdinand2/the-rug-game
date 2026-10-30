@@ -169,12 +169,9 @@ test('every class a component styles starts with rg-{component}', () => {
 	}
 });
 
-/** Components that still draw a token themselves: ProgressLanes waits for #85, which reworks the track spaces. */
-const TOKENS_LEFT = ['ProgressLanes'];
-
 test('every player token is a PlayerToken (#103)', () => {
 	for (const { name, source } of components) {
-		if (name === 'PlayerToken' || TOKENS_LEFT.includes(name)) {
+		if (name === 'PlayerToken') {
 			continue;
 		}
 		assert.doesNotMatch(
