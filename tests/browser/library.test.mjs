@@ -520,3 +520,69 @@ test('a hovered target stays over the relief (#82)', async ({ page }) => {
 		'brightness(1.15)'
 	);
 });
+
+test('a landmark moves onto the capital by keyboard, turns, locks, and starts again (#111)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const example = capitalExample(page, 'Interactive: PlacementTray');
+	const caption = example.locator('figcaption');
+	await expect(caption).toContainText('pieces=[]');
+
+	// An arrow key on the tray's piece puts it on the grid, and the grid's piece takes the focus.
+	await example
+		.getByRole('button', { name: /^Lighthouse, \d+ plots, to be placed$/ })
+		.press('ArrowRight');
+	await expect(caption).toContainText(
+		/Lighthouse at row \d, col \d, rotation 0\]/
+	);
+	const placed = example.getByRole('button', {
+		name: /^Lighthouse, \d+ plots, not confirmed/,
+	});
+	await expect(placed).toBeFocused();
+	const [, row, col] = /row (\d), col (\d)/.exec(
+		(await caption.textContent()) ?? ''
+	) ?? ['', '0', '0'];
+
+	await page.keyboard.press('ArrowDown');
+	await expect(caption).toContainText(
+		`Lighthouse at row ${Number(row) + 1}, col ${col}, rotation 0]`
+	);
+	await page.keyboard.press('.');
+	await expect(caption).toContainText('rotation 1]');
+	await page.keyboard.press('Enter');
+	await expect(caption).toContainText('rotation 1, locked]');
+
+	await example.getByRole('button', { name: 'Start again' }).click();
+	await expect(caption).toContainText('pieces=[]');
+});
+
+test('a landmark drags from the tray onto the capital and back (#111)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const example = capitalExample(page, 'Interactive: PlacementTray');
+	const caption = example.locator('figcaption');
+	await expect(caption).toContainText('pieces=[]');
+
+	await example
+		.getByRole('button', { name: /^Lighthouse, \d+ plots, to be placed$/ })
+		.dragTo(example.locator('[data-plot="40"]'));
+	await expect(caption).toContainText(
+		/Lighthouse at row \d, col \d, rotation 0\]/
+	);
+
+	// The tray only shows itself as a drop target once a drag has started, so the drag back is driven by hand.
+	const placed = example.getByRole('button', {
+		name: /^Lighthouse, \d+ plots, not confirmed/,
+	});
+	await placed.hover();
+	await page.mouse.down();
+	const box = await placed.boundingBox();
+	await page.mouse.move((box?.x ?? 0) + 5, (box?.y ?? 0) + 5, { steps: 5 });
+	const tray = example.getByRole('region', { name: 'To be placed' });
+	await expect(tray).toBeVisible();
+	await tray.hover();
+	await page.mouse.up();
+	await expect(caption).toContainText('pieces=[]');
+});
