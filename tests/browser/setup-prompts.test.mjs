@@ -78,10 +78,17 @@ test('the tracks show every benefit, and setup shows capital mats as grids and c
 		await takeScreen('Ana');
 
 		// The tracks, drawn under every prompt: every space shows its benefit, and the 18 with a bonus show it, with
-		// nothing cut off (#59). Some civilizations ask more once setup is over, so they are checked first.
+		// nothing cut off (#59). Some civilizations ask more once setup is over, so they are checked first. Since #85
+		// the twelve Exploration spaces draw their benefit in ExplorationFace's main row, the other 36 in the space's
+		// own benefit.
 		const spaces = page.locator('.rg-track-space');
 		await expect(spaces).toHaveCount(48);
-		await expect(page.locator('.rg-track-space--benefit')).toHaveCount(48);
+		await expect(page.locator('.rg-track-space--benefit')).toHaveCount(36);
+		await expect(
+			page.locator(
+				'.rg-track-space--exploration .rg-exploration-face--main'
+			)
+		).toHaveCount(12);
 		const tierCostOutline = await page
 			.locator('.rg-tier-price .rg-resource-icon')
 			.first()
@@ -97,9 +104,18 @@ test('the tracks show every benefit, and setup shows capital mats as grids and c
 		const bonuses = Object.values(TRACKS)
 			.flatMap((track) => track.slice(1))
 			.filter((space) => space.bonus).length;
+		// Exploration draws its seven bonuses in ExplorationFace's bonus row (#85), the other tracks in the space's own.
+		const explorationBonuses = TRACKS.exploration
+			.slice(1)
+			.filter((space) => space.bonus).length;
 		await expect(page.locator('.rg-track-space--bonus')).toHaveCount(
-			bonuses
+			bonuses - explorationBonuses
 		);
+		await expect(
+			page.locator(
+				'.rg-track-space--exploration .rg-exploration-face--bonus:not(.rg-exploration-face--bonus--empty)'
+			)
+		).toHaveCount(explorationBonuses);
 		const cut = await spaces.evaluateAll((all) =>
 			all
 				.filter((space) => {

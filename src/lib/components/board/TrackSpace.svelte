@@ -895,6 +895,11 @@
 			--rg-track-space-text: var(--font-size-xs);
 			--rg-vp-cup-size: 29px;
 		}
+		/* The larger name takes 2px more, so the benefit still ends where the bonus band begins. */
+		.rg-track-space--has-bonus .rg-track-space--benefit {
+			flex-basis: calc(50% - 18px);
+			max-height: calc(50% - 18px);
+		}
 	}
 
 	/* The small number sits in the arrow tip. */
