@@ -169,7 +169,7 @@ Use **two separate beige boxes**: the reward for first reaching a prediction, an
 
 ### Alchemists: temporary marked results
 
-Four track squares record the current activation. Beige effect boxes distinguish stopping, repeating a rolled track, and advancing beyond the track end. Tokens here represent temporary results, not permanent used spaces. The demo must clear/mark them consistently with its labelled state.
+Four track squares record the current activation. Beige effect boxes distinguish stopping, repeating a rolled track, and advancing beyond the track end. Tokens here represent temporary results, not permanent used spaces. The demo must clear/mark them consistently with its labelled state. A rolled track's token is the player's own, in full colour, in the square's top-right corner as the Merrymakers' token marks its square, so the greyed track icon stays readable; the square keeps its unused look (owner, 2026-10-30).
 
 ### Isolationists: reserve plus score scale
 
