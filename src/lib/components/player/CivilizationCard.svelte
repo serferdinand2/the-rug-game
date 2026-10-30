@@ -208,6 +208,90 @@
 			],
 		},
 	];
+	/** A track's picture. @param {string} track */
+	const trackPicture = (track) => `/art/track/${track}.svg`;
+	/**
+	 * The Collectors' six items; the play example has collected the outpost, the house and the tech card.
+	 * @type {{ name: string, picture: string, placed?: string, large?: boolean, facedown?: boolean, gain: import('../../ui.js').CostSymbol }[]}
+	 */
+	const COLLECTOR_ITEMS = [
+		{
+			name: 'Outpost*',
+			picture: '/art/piece/outpost.svg',
+			placed: '/art/piece/outpost-blue.svg',
+			large: true,
+			gain: 'any',
+		},
+		{ name: 'House', picture: '/art/building/house.svg', gain: 'any' },
+		{
+			name: 'Landmark',
+			picture: '/art/landmark/clock-tower.svg',
+			gain: 'any',
+		},
+		{
+			name: 'Tapestry',
+			picture: '/art/tapestry/lost-artifacts.svg',
+			facedown: true,
+			gain: 'any',
+		},
+		{
+			name: 'Territory',
+			picture: '/art/capital-terrain/grassland-open-01.svg',
+			facedown: true,
+			gain: 'any',
+		},
+		{
+			name: 'Tech',
+			picture: '/art/tech/eyeglasses.svg',
+			facedown: true,
+			gain: 'any',
+		},
+	];
+	/** The Leaders' four tracks, in the card's order. */
+	const LEADER_TRACKS = [
+		'exploration',
+		'technology',
+		'science',
+		'military',
+	].map((track) => ({
+		id: track,
+		name: track[0].toUpperCase() + track.slice(1),
+		picture: trackPicture(track),
+	}));
+	/**
+	 * The Militants' rewards under their outposts, the top row then the bottom.
+	 * @type {{ id: string, gain?: import('../../ui.js').CostSymbol, vp?: number }[]}
+	 */
+	const MILITANT_SPACES = [
+		{ id: 'top0', gain: 'coin' },
+		{ id: 'top1', vp: 2 },
+		{ id: 'top2', gain: 'food' },
+		{ id: 'top3', vp: 4 },
+		{ id: 'bottom0', vp: 1 },
+		{ id: 'bottom1', gain: 'worker' },
+		{ id: 'bottom2', vp: 3 },
+		{ id: 'bottom3', gain: 'culture' },
+	];
+	/** The Alchemists' four tracks; the play example has rolled Exploration and Science. */
+	const ALCHEMIST_TRACKS = [
+		'exploration',
+		'technology',
+		'science',
+		'military',
+	].map((track) => ({
+		name: track[0].toUpperCase() + track.slice(1),
+		picture: trackPicture(track),
+	}));
+	/**
+	 * The Historians' four rewards under their tokens.
+	 * @type {{ id: string, gain?: import('../../ui.js').CostSymbol, vp?: number }[]}
+	 */
+	const HISTORIAN_SQUARES = [
+		{ id: 'square0', vp: 3 },
+		{ id: 'square1', gain: 'food' },
+		{ id: 'square2', gain: 'worker' },
+		{ id: 'square3', vp: 3 },
+	];
 	/** The Collectors' end-of-game score by the number of different items collected. */
 	const COLLECTOR_SCORE = [1, 3, 6, 10, 15, 21].map((points, index) => ({
 		count: index + 1,
@@ -234,13 +318,6 @@
 			PREDICTIONS.find((each) => each.category === category.id)?.most
 		),
 	}));
-	/** The class each mark draws a spot with: the play illustration's own. */
-	const MARK_CLASSES = {
-		token: 'rg-card-is-current',
-		used: 'rg-card-is-used',
-		exposed: 'rg-card-is-exposed',
-		moved: 'rg-card-is-moved',
-	};
 	/** @type {CivilizationCardProps} */
 	let {
 		id = 'collectors',
@@ -283,16 +360,6 @@
 	};
 
 	/**
-	 * The class a spot draws a mark with, or nothing when the spot doesn't show it.
-	 * @param {string} spot
-	 * @param {keyof typeof MARK_CLASSES} mark
-	 * @returns {string}
-	 */
-	function marked(spot, mark) {
-		return marks[spot]?.includes(mark) ? MARK_CLASSES[mark] : '';
-	}
-
-	/**
 	 * The number the Mystics predicted in a category, as the marks show it.
 	 * @param {string} category
 	 * @returns {number | undefined}
@@ -304,22 +371,6 @@
 				marks[each].includes('chosen')
 		);
 		return spot === undefined ? undefined : Number(spot.split(':')[1]);
-	}
-
-	/**
-	 * The CardSlot props of a spot: a button when the open decision offers it, gold when it is the one picked.
-	 * @param {string} spot
-	 */
-	function spotProps(spot) {
-		return spot in choices
-			? {
-					pickable: true,
-					picked: selected === spot,
-					value: spot,
-					'data-id': `civ-spot-${spot}`,
-					onCardSlotPick: slotPickHandler,
-				}
-			: {};
 	}
 </script>
 
@@ -349,100 +400,10 @@
 
 			<CardPlacementRows
 				kind="collection"
-				as="ol"
-				><li class="rg-card-slot rg-card-is-collected">
-					<CardSlot
-						size={62}
-						class="rg-card-slot--item"
-						label="Outpost*"
-						tabindex={0}
-						><img
-							class="rg-card-piece rg-card-piece--outpost rg-card-piece--printed"
-							src="/art/piece/outpost.svg"
-							alt="" /><img
-							class="rg-card-piece rg-card-piece--outpost rg-card-piece--played"
-							src="/art/piece/outpost-blue.svg"
-							alt="" /></CardSlot
-					><span class="rg-card-slot--name">Outpost*</span><span
-						class="rg-card-slot--gain"
-						>+<CardResource symbol="any" /></span>
-				</li>
-				<li class="rg-card-slot rg-card-is-collected">
-					<CardSlot
-						size={62}
-						class="rg-card-slot--item"
-						label="House"
-						tabindex={0}
-						><img
-							class="rg-card-piece"
-							src="/art/building/house.svg"
-							alt="" /></CardSlot
-					><span class="rg-card-slot--name">House</span><span
-						class="rg-card-slot--gain"
-						>+<CardResource symbol="any" /></span>
-				</li>
-				<li class="rg-card-slot">
-					<CardSlot
-						size={62}
-						class="rg-card-slot--item"
-						label="Landmark"
-						tabindex={0}
-						><img
-							class="rg-card-piece"
-							src="/art/landmark/clock-tower.svg"
-							alt="" /></CardSlot
-					><span class="rg-card-slot--name">Landmark</span><span
-						class="rg-card-slot--gain"
-						>+<CardResource symbol="any" /></span>
-				</li>
-				<li class="rg-card-slot">
-					<CardSlot
-						size={62}
-						class="rg-card-slot--item"
-						label="Tapestry"
-						tabindex={0}
-						><span class="rg-card-mini-card rg-card-face-down"
-							><img
-								class="rg-card-piece"
-								src="/art/tapestry/lost-artifacts.svg"
-								alt="" /></span
-						></CardSlot
-					><span class="rg-card-slot--name">Tapestry</span><span
-						class="rg-card-slot--gain"
-						>+<CardResource symbol="any" /></span>
-				</li>
-				<li class="rg-card-slot">
-					<CardSlot
-						size={62}
-						class="rg-card-slot--item"
-						label="Territory"
-						tabindex={0}
-						><span class="rg-card-mini-card rg-card-face-down"
-							><img
-								class="rg-card-piece"
-								src="/art/capital-terrain/grassland-open-01.svg"
-								alt="" /></span
-						></CardSlot
-					><span class="rg-card-slot--name">Territory</span><span
-						class="rg-card-slot--gain"
-						>+<CardResource symbol="any" /></span>
-				</li>
-				<li class="rg-card-slot rg-card-is-collected">
-					<CardSlot
-						size={62}
-						class="rg-card-slot--item"
-						label="Tech"
-						tabindex={0}
-						><span class="rg-card-mini-card rg-card-face-down"
-							><img
-								class="rg-card-piece"
-								src="/art/tech/eyeglasses.svg"
-								alt="" /></span
-						></CardSlot
-					><span class="rg-card-slot--name">Tech</span><span
-						class="rg-card-slot--gain"
-						>+<CardResource symbol="any" /></span>
-				</li></CardPlacementRows>
+				items={COLLECTOR_ITEMS.map((item, index) => ({
+					...item,
+					collected: state === 'play' && [0, 1, 5].includes(index),
+				}))} />
 			<CardClarity>
 				<b>*</b> Only from a conquer benefit, instead of conquering;
 				don&#x27;t roll the dice.<br />Items here count for scoring but
@@ -506,52 +467,13 @@
 
 			<CardPlacementRows
 				kind="leaders"
-				as="ol">
-				<li
-					class="rg-card-leader-track {marked(
-						'exploration',
-						'used'
-					)}">
-					<CardSlot
-						size={75}
-						label="exploration placement"
-						{...spotProps('exploration')}
-						><img
-							src="/art/track/exploration.svg"
-							alt="" /></CardSlot
-					><span>Exploration</span>
-				</li>
-				<li class="rg-card-leader-track {marked('technology', 'used')}">
-					<CardSlot
-						size={75}
-						label="technology placement"
-						{...spotProps('technology')}
-						><img
-							src="/art/track/technology.svg"
-							alt="" /></CardSlot
-					><span>Technology</span>
-				</li>
-				<li class="rg-card-leader-track {marked('science', 'used')}">
-					<CardSlot
-						size={75}
-						label="science placement"
-						{...spotProps('science')}
-						><img
-							src="/art/track/science.svg"
-							alt="" /></CardSlot
-					><span>Science</span>
-				</li>
-				<li class="rg-card-leader-track {marked('military', 'used')}">
-					<CardSlot
-						size={75}
-						label="military placement"
-						{...spotProps('military')}
-						><img
-							src="/art/track/military.svg"
-							alt="" /></CardSlot
-					><span>Military</span>
-				</li>
-			</CardPlacementRows>
+				items={LEADER_TRACKS.map((item) => ({
+					...item,
+					used: marks[item.id]?.includes('used'),
+				}))}
+				choices={Object.keys(choices)}
+				picked={selected}
+				onCardPlacementRowsPick={slotPickHandler} />
 			<CardClarity
 				above={16}
 				minHeight={70}>
@@ -658,128 +580,15 @@
 				either row. At the start of every income turn, gain all
 				uncovered rewards.{/snippet}
 
-			<CardPlacementRows kind="covered">
-				<div class="rg-card-militant-space {marked('top0', 'exposed')}">
-					<CardSlot
-						size={62}
-						{...spotProps('top0')}
-						class="rg-card-militant-space--slot"
-						><span class="rg-card-militant-space--gain"
-							>+ <CardResource
-								symbol="coin"
-								class="" /></span
-						><img
-							src="/art/piece/outpost.svg"
-							alt="" /></CardSlot>
-				</div>
-				<div class="rg-card-militant-space {marked('top1', 'exposed')}">
-					<CardSlot
-						size={62}
-						{...spotProps('top1')}
-						class="rg-card-militant-space--slot"
-						><span
-							class="rg-card-militant-space--gain rg-card-militant-space--gain--vp"
-							>2 VP</span
-						><img
-							src="/art/piece/outpost.svg"
-							alt="" /></CardSlot>
-				</div>
-				<div class="rg-card-militant-space {marked('top2', 'exposed')}">
-					<CardSlot
-						size={62}
-						{...spotProps('top2')}
-						class="rg-card-militant-space--slot"
-						><span class="rg-card-militant-space--gain"
-							>+ <CardResource
-								symbol="food"
-								class="" /></span
-						><img
-							src="/art/piece/outpost.svg"
-							alt="" /></CardSlot>
-				</div>
-				<div class="rg-card-militant-space {marked('top3', 'exposed')}">
-					<CardSlot
-						size={62}
-						{...spotProps('top3')}
-						class="rg-card-militant-space--slot"
-						><span
-							class="rg-card-militant-space--gain rg-card-militant-space--gain--vp"
-							>4 VP</span
-						><img
-							src="/art/piece/outpost.svg"
-							alt="" /></CardSlot>
-				</div>
-				<div
-					class="rg-card-militant-divider"
-					aria-hidden="true">
-				</div>
-				<div
-					class="rg-card-militant-space {marked(
-						'bottom0',
-						'exposed'
-					)}">
-					<CardSlot
-						size={62}
-						{...spotProps('bottom0')}
-						class="rg-card-militant-space--slot"
-						><span
-							class="rg-card-militant-space--gain rg-card-militant-space--gain--vp"
-							>1 VP</span
-						><img
-							src="/art/piece/outpost.svg"
-							alt="" /></CardSlot>
-				</div>
-				<div
-					class="rg-card-militant-space {marked(
-						'bottom1',
-						'exposed'
-					)}">
-					<CardSlot
-						size={62}
-						{...spotProps('bottom1')}
-						class="rg-card-militant-space--slot"
-						><span class="rg-card-militant-space--gain"
-							>+ <CardResource
-								symbol="worker"
-								class="" /></span
-						><img
-							src="/art/piece/outpost.svg"
-							alt="" /></CardSlot>
-				</div>
-				<div
-					class="rg-card-militant-space {marked(
-						'bottom2',
-						'exposed'
-					)}">
-					<CardSlot
-						size={62}
-						{...spotProps('bottom2')}
-						class="rg-card-militant-space--slot"
-						><span
-							class="rg-card-militant-space--gain rg-card-militant-space--gain--vp"
-							>3 VP</span
-						><img
-							src="/art/piece/outpost.svg"
-							alt="" /></CardSlot>
-				</div>
-				<div
-					class="rg-card-militant-space {marked(
-						'bottom3',
-						'exposed'
-					)}">
-					<CardSlot
-						size={62}
-						{...spotProps('bottom3')}
-						class="rg-card-militant-space--slot"
-						><span class="rg-card-militant-space--gain"
-							>+ <CardResource
-								symbol="culture"
-								class="" /></span
-						><img
-							src="/art/piece/outpost.svg"
-							alt="" /></CardSlot>
-				</div>
-			</CardPlacementRows>
+			<CardPlacementRows
+				kind="covered"
+				items={MILITANT_SPACES.map((item) => ({
+					...item,
+					exposed: marks[item.id]?.includes('exposed'),
+				}))}
+				choices={Object.keys(choices)}
+				picked={selected}
+				onCardPlacementRowsPick={slotPickHandler} />
 			<div class="rg-card-militant-guide">
 				Take from the left of either row →
 			</div>
@@ -842,52 +651,12 @@
 				science die and mark its track. After each roll, stop or roll
 				again.{/snippet}
 
-			<CardPlacementRows kind="tracks">
-				<div class="rg-card-alchemist-track rg-card-is-rolled">
-					<CardSlot
-						size={75}
-						class="rg-card-alchemist-track--slot"
-						><img
-							src="/art/track/exploration.svg"
-							alt="" /><PlayerToken
-							decorative
-							class="rg-card-alchemist-track--token" /></CardSlot
-					><span>Exploration</span>
-				</div>
-				<div class="rg-card-alchemist-track">
-					<CardSlot
-						size={75}
-						class="rg-card-alchemist-track--slot"
-						><img
-							src="/art/track/technology.svg"
-							alt="" /><PlayerToken
-							decorative
-							class="rg-card-alchemist-track--token" /></CardSlot
-					><span>Technology</span>
-				</div>
-				<div class="rg-card-alchemist-track rg-card-is-rolled">
-					<CardSlot
-						size={75}
-						class="rg-card-alchemist-track--slot"
-						><img
-							src="/art/track/science.svg"
-							alt="" /><PlayerToken
-							decorative
-							class="rg-card-alchemist-track--token" /></CardSlot
-					><span>Science</span>
-				</div>
-				<div class="rg-card-alchemist-track">
-					<CardSlot
-						size={75}
-						class="rg-card-alchemist-track--slot"
-						><img
-							src="/art/track/military.svg"
-							alt="" /><PlayerToken
-							decorative
-							class="rg-card-alchemist-track--token" /></CardSlot
-					><span>Military</span>
-				</div>
-			</CardPlacementRows>
+			<CardPlacementRows
+				kind="tracks"
+				items={ALCHEMIST_TRACKS.map((item, index) => ({
+					...item,
+					rolled: state === 'play' && [0, 2].includes(index),
+				}))} />
 			<CardEffectList above={4}>
 				<CardEffectBox
 					title="Keep distinct rolls"
@@ -1030,56 +799,16 @@
 			{#snippet effect()}At the start of income turns 2–5, you may discard
 				a territory tile to give one of these tokens to an opponent.{/snippet}
 
-			<CardPlacementRows kind="history"
-				><CardSlot
-					size={75}
-					{...spotProps('square0')}
-					class="rg-card-history-square {marked(
-						'square0',
-						'exposed'
-					)}"
-					>3 VP<PlayerToken
-						{seat}
-						color="blue"
-						decorative /></CardSlot
-				><CardSlot
-					size={75}
-					{...spotProps('square1')}
-					class="rg-card-history-square {marked(
-						'square1',
-						'exposed'
-					)}"
-					>+ <CardResource
-						symbol="food"
-						class="" /><PlayerToken
-						{seat}
-						color="blue"
-						decorative /></CardSlot
-				><CardSlot
-					size={75}
-					{...spotProps('square2')}
-					class="rg-card-history-square {marked(
-						'square2',
-						'exposed'
-					)}"
-					>+ <CardResource
-						symbol="worker"
-						class="" /><PlayerToken
-						{seat}
-						color="blue"
-						decorative /></CardSlot
-				><CardSlot
-					size={75}
-					{...spotProps('square3')}
-					class="rg-card-history-square {marked(
-						'square3',
-						'exposed'
-					)}"
-					>3 VP<PlayerToken
-						{seat}
-						color="blue"
-						decorative /></CardSlot
-				></CardPlacementRows>
+			<CardPlacementRows
+				kind="history"
+				{seat}
+				items={HISTORIAN_SQUARES.map((item) => ({
+					...item,
+					exposed: marks[item.id]?.includes('exposed'),
+				}))}
+				choices={Object.keys(choices)}
+				picked={selected}
+				onCardPlacementRowsPick={slotPickHandler} />
 			<CardEffectList>
 				<CardEffectBox
 					title="Opponent holding your token"

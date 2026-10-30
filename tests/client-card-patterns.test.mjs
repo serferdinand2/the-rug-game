@@ -9,6 +9,7 @@ import CardClarity from '../src/lib/components/player/CardClarity.svelte';
 import CardEffectBox from '../src/lib/components/player/CardEffectBox.svelte';
 import CardEffectList from '../src/lib/components/player/CardEffectList.svelte';
 import CardPathGrid from '../src/lib/components/player/CardPathGrid.svelte';
+import CardPlacementRows from '../src/lib/components/player/CardPlacementRows.svelte';
 import CardPredictionTracks from '../src/lib/components/player/CardPredictionTracks.svelte';
 import CardRewardColumns from '../src/lib/components/player/CardRewardColumns.svelte';
 import CardResource from '../src/lib/components/player/CardResource.svelte';
@@ -515,5 +516,125 @@ test('CivilizationCard writes no path grid by hand (#106)', () => {
 	assert.doesNotMatch(
 		source('CivilizationCard'),
 		/rg-card-entertainer-|ENTERTAINER_GAPS|<svg/
+	);
+});
+
+test('CardPlacementRows draws the collection from data: each item greyed until collected, cards face down, its name and gain', () => {
+	const body = html(
+		render(CardPlacementRows, {
+			props: {
+				kind: 'collection',
+				items: [
+					{
+						name: 'Outpost*',
+						picture: '/art/piece/outpost.svg',
+						placed: '/art/piece/outpost-blue.svg',
+						large: true,
+						gain: 'any',
+						collected: true,
+					},
+					{
+						name: 'Tech',
+						picture: '/art/tech/eyeglasses.svg',
+						facedown: true,
+						gain: 'any',
+					},
+				],
+			},
+		})
+	);
+	assert.match(
+		body,
+		/^<ol class="rg-card-placement-rows rg-card-placement-rows--collection/
+	);
+	assert.equal(body.match(/rg-card-placement-rows--collected/g)?.length, 1);
+	assert.match(body, /src="\/art\/piece\/outpost-blue\.svg"/);
+	assert.equal(
+		body.match(/<span class="rg-card-placement-rows--card/g)?.length,
+		1
+	);
+	assert.match(
+		body,
+		/rg-card-placement-rows--name[^"]*">Tech<\/span><span class="rg-card-placement-rows--gain[^"]*">\+<span class="rg-card-resource/
+	);
+});
+
+test("CardPlacementRows draws covered rewards in rows with a rule between, each exposed one uncovered, and offers the decision's spots", () => {
+	const items = ['top0', 'top1', 'bottom0', 'bottom1'].map((id, index) => ({
+		id,
+		...(index % 2 ? { vp: index } : { gain: 'coin' }),
+		exposed: index === 0,
+	}));
+	const body = html(
+		render(CardPlacementRows, {
+			props: {
+				kind: 'covered',
+				items,
+				perRow: 2,
+				choices: ['top1'],
+				picked: null,
+			},
+		})
+	);
+	assert.equal(body.match(/rg-card-placement-rows--divider/g)?.length, 1);
+	assert.equal(body.match(/rg-card-placement-rows--exposed/g)?.length, 1);
+	assert.match(body, /rg-card-placement-rows--vp[^>]*>1 VP</);
+	assert.equal(body.match(/<button/g)?.length, 1);
+	assert.match(body, /data-id="civ-spot-top1"/);
+	assert.match(body, /style="grid-template-columns: repeat\(2, 1fr\);"/);
+});
+
+test('CardPlacementRows draws rolled tracks, used leader tracks and uncovered history squares from their state', () => {
+	const tracks = ['exploration', 'science'].map((track, index) => ({
+		id: track,
+		name: track,
+		picture: `/art/track/${track}.svg`,
+		rolled: index === 0,
+		used: index === 0,
+	}));
+	const rolled = html(
+		render(CardPlacementRows, { props: { kind: 'tracks', items: tracks } })
+	);
+	assert.equal(rolled.match(/rg-card-placement-rows--rolled/g)?.length, 1);
+	assert.equal(rolled.match(/rg-player-token/g)?.length, 2);
+	const leaders = html(
+		render(CardPlacementRows, {
+			props: {
+				kind: 'leaders',
+				items: tracks,
+				choices: ['science'],
+				picked: 'science',
+			},
+		})
+	);
+	assert.equal(leaders.match(/rg-card-placement-rows--used/g)?.length, 1);
+	assert.equal(leaders.match(/rg-card-placement-rows--offered/g)?.length, 1);
+	assert.match(leaders, /aria-label="exploration placement"/);
+	assert.equal(leaders.match(/rg-card-slot-surface--picked/g)?.length, 1);
+	const history = html(
+		render(CardPlacementRows, {
+			props: {
+				kind: 'history',
+				seat: 3,
+				items: [
+					{ id: 'square0', vp: 3, exposed: true },
+					{ id: 'square1', gain: 'food' },
+				],
+			},
+		})
+	);
+	assert.equal(
+		history.match(/rg-card-placement-rows--uncovered/g)?.length,
+		1
+	);
+	assert.match(history, />3 VP<img/);
+	assert.match(history, /token-green/);
+});
+
+test('CivilizationCard writes no placement square or play-state class by hand (#106)', () => {
+	const card = source('CivilizationCard');
+	assert.doesNotMatch(
+		card,
+		/rg-card-is-|<CardSlot|rg-card-slot|rg-card-(leader|alchemist|history)-|rg-card-militant-space/
 	);
 });

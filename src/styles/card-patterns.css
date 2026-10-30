@@ -51,27 +51,7 @@
 	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent);
 }
 
-/* An item on the mat: a piece, a mini card or a hex tile. */
-.rg-card-slot--item {
-	position: relative;
-	display: grid;
-	place-items: center;
-	transition:
-		opacity var(--duration-medium) var(--ease),
-		filter var(--duration-medium) var(--ease),
-		transform var(--duration-medium) var(--ease-out);
-}
-.rg-card-slot--item img.rg-card-piece {
-	width: 44px;
-	height: 44px;
-}
-.rg-card-slot--item img.rg-card-piece--outpost {
-	width: 48px;
-	height: 48px;
-}
-.rg-card-slot--item .rg-card-piece--played {
-	display: none;
-}
+/* A mini tapestry card in an effect box's symbol (the Heralds). */
 .rg-card-mini-card {
 	position: relative;
 	display: block;
@@ -98,76 +78,6 @@
 }
 .rg-card-mini-card--tech::before {
 	background: var(--technology);
-}
-.rg-card-hex {
-	display: block;
-	width: 48px;
-	height: 42px;
-	padding: 2px;
-	background: var(--bronze);
-	clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
-}
-.rg-card-hex img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	clip-path: inherit;
-}
-/* Cards and tiles on the mat lie face down; the owner may look at them (hover or focus). */
-.rg-card-face-down::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	opacity: 0;
-	pointer-events: none;
-	background: repeating-linear-gradient(
-		45deg,
-		color-mix(in srgb, var(--bronze) 42%, var(--ink)) 0 3px,
-		var(--control) 3px 6px
-	);
-	box-shadow: inset 0 0 0 2px
-		color-mix(in srgb, var(--bronze) 70%, var(--ink));
-	transition: opacity var(--duration-fast) var(--ease);
-}
-.rg-card-hex.rg-card-face-down {
-	position: relative;
-}
-.rg-card-hex.rg-card-face-down::after {
-	clip-path: inherit;
-}
-
-/* Printed state: the item types are shown muted, waiting to be covered. */
-.rg-card-slot .rg-card-slot--item {
-	opacity: 0.72;
-	filter: saturate(0.5);
-}
-.rg-card-frame[data-state='play']
-	.rg-card-slot.rg-card-is-collected
-	.rg-card-slot--item {
-	opacity: 1;
-	filter: none;
-	transform: translateY(-2px) scale(1.06);
-}
-.rg-card-frame[data-state='play']
-	.rg-card-slot.rg-card-is-collected
-	.rg-card-piece--printed {
-	display: none;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-slot.rg-card-is-collected
-	.rg-card-piece--played {
-	display: block;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-slot.rg-card-is-collected
-	.rg-card-face-down::after {
-	opacity: 1;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-slot.rg-card-is-collected
-	.rg-card-slot--item:is(:hover, :focus-visible)
-	.rg-card-face-down::after {
-	opacity: 0;
 }
 
 /* ================= Option B · Civilization mat ================= */
@@ -202,65 +112,6 @@
 	font-size: var(--font-size-sm);
 	line-height: var(--leading-normal);
 }
-.rg-card-frame--slots {
-	display: grid;
-	grid-template-columns: repeat(6, 1fr);
-	gap: var(--space-3);
-	margin: 0;
-	padding: 0 var(--space-6);
-	list-style: none;
-}
-.rg-card-frame .rg-card-slot {
-	display: grid;
-	justify-items: center;
-	gap: var(--space-2);
-}
-.rg-card-frame .rg-card-slot--item {
-	width: 100%;
-	height: 64px;
-	border: var(--border) dashed var(--line-strong);
-	background: var(--ink);
-}
-.rg-card-frame .rg-card-slot--name {
-	font-size: var(--font-size-3xs);
-	font-weight: var(--weight-bold);
-	letter-spacing: 0.03em;
-	text-transform: uppercase;
-	color: var(--muted);
-	text-align: center;
-	line-height: 1.15;
-	min-height: 2.3em;
-	display: grid;
-	place-items: center;
-}
-.rg-card-frame .rg-card-slot--gain {
-	display: flex;
-	align-items: center;
-	gap: 1px;
-	padding: 0 var(--space-2) 0 var(--space-3);
-	background: var(--control);
-	box-shadow: inset 0 0 0 1px var(--line-soft);
-	font-size: var(--font-size-3xs);
-	font-weight: var(--weight-bold);
-	color: var(--muted);
-}
-.rg-card-frame .rg-card-slot--gain .rg-card-any {
-	width: 16px;
-	height: 16px;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-slot.rg-card-is-collected
-	.rg-card-slot--item {
-	border: var(--border) solid var(--player-1);
-	box-shadow: var(--glow-current);
-	background: color-mix(in srgb, var(--player-1) 12%, var(--ink));
-	opacity: 1;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-slot.rg-card-is-collected
-	.rg-card-slot--item {
-	transform: none;
-}
 
 /* Only Option B's surface treatment changes for this colour proof. */
 .rg-card-frame {
@@ -283,11 +134,7 @@
 	background-image: url('./pixel-noise.svg');
 	background-size: 128px 128px;
 }
-.rg-card-frame .rg-card-slot--item,
-.rg-card-frame .rg-card-slot--gain {
-	background-image: url('./pixel-noise.svg');
-	background-size: 128px 128px;
-}
+
 .rg-card-options {
 	padding-top: 44px;
 }
@@ -305,10 +152,6 @@
 	line-height: 1.38;
 }
 
-.rg-card-frame .rg-card-slot--gain {
-	--card-resource-center: 0px;
-}
-
 .rg-card-frame--body {
 	grid-template-columns: 160px 1fr;
 	gap: 12px;
@@ -318,32 +161,6 @@
 .rg-card-frame--portrait {
 	width: 160px;
 	height: 160px;
-}
-.rg-card-frame--slots {
-	padding: 0 12px;
-	gap: 5px;
-}
-.rg-card-frame .rg-card-slot--item {
-	aspect-ratio: 1;
-	height: auto;
-	background-color: var(--card-slot);
-	border: 1px solid var(--card-slot-border);
-	filter: grayscale(1);
-	opacity: 0.72;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-slot.rg-card-is-collected
-	.rg-card-slot--item {
-	filter: none;
-	opacity: 1;
-}
-.rg-card-frame .rg-card-slot--gain {
-	min-height: 24px;
-	gap: 4px;
-	border: 0;
-	box-shadow: none;
-	padding: 0;
-	background: none;
 }
 
 .rg-card-frame--foot {
@@ -355,11 +172,6 @@
 }
 .rg-card-frame {
 	background-image: url('./card-paper-noise.svg');
-}
-.rg-card-frame .rg-card-slot--item,
-.rg-card-frame .rg-card-slot--gain {
-	background-image: url('./card-paper-noise.svg');
-	background-size: 256px 256px;
 }
 
 .rg-card-options {
@@ -417,138 +229,17 @@
 	align-items: center;
 	gap: 6px;
 }
-.rg-card-leader-tracks {
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
-	gap: 6px;
-	margin: 0;
-	padding: 0 12px;
-	list-style: none;
-}
-.rg-card-leader-track {
-	display: grid;
-	justify-items: center;
-	align-content: start;
-	gap: 6px;
-	min-width: 0;
-	color: var(--muted);
-	font:
-		700 10px/1.1 'Atkinson Hyperlegible',
-		sans-serif;
-	text-align: center;
-	text-transform: uppercase;
-}
-.rg-card-leader-track > .rg-card-slot-surface {
-	width: 100%;
-	aspect-ratio: 1;
-	padding: 12px;
-	background: var(--card-slot);
-	border: 1px solid var(--card-slot-border);
-	filter: grayscale(1);
-	opacity: 0.72;
-	image-rendering: pixelated;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-leader-track.rg-card-is-used
-	> .rg-card-slot-surface {
-	background: var(--card-filled-slot);
-	border: 2px solid var(--player-1);
-	filter: none;
-	opacity: 1;
-	box-shadow: var(--glow-current);
-}
-/* A track the decision offers drops the unused grey, which would grey its green outline too (#78). */
-.rg-card-leader-track > .rg-card-slot-surface--pickable {
-	filter: none;
-	opacity: 1;
-}
 
 .rg-card-frame--treasure .rg-card-frame--body {
 	min-height: 184px;
 }
 
-/* Craftsmen: every building gets a square slot, with its benefit alongside. */
 .rg-card-frame--craftsmen .rg-card-frame--body {
 	min-height: 184px;
 }
 
-/* Militants: covered reward squares form two outpost rows. */
-.rg-card-militant-grid {
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
-	gap: 9px 5px;
-	margin: 4px 12px 0;
-	padding: 9px 0;
-	border-top: 1px solid var(--line-soft);
-	border-bottom: 1px solid var(--line-soft);
-}
-.rg-card-militant-divider {
-	grid-column: 1 / -1;
-	height: 1px;
-	margin: 0 7px;
-	background: var(--line-soft);
-}
-.rg-card-militant-space {
-	display: grid;
-	place-items: center;
-	min-width: 0;
-}
-.rg-card-militant-space--slot {
-	position: relative;
-	display: grid;
-	place-items: center;
-	width: 62px;
-	height: 62px;
-	border: 1px solid var(--card-slot-border);
-	background: var(--card-slot);
-}
-.rg-card-militant-space--slot > img {
-	position: relative;
-	z-index: 1;
-	display: block;
-	width: 48px;
-	height: 48px;
-	image-rendering: pixelated;
-}
-.rg-card-militant-space--gain {
-	position: absolute;
-	inset: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
-	visibility: hidden;
-	color: var(--text);
-	font:
-		400 11px/1.15 'Atkinson Hyperlegible',
-		sans-serif;
-	text-align: center;
-	white-space: nowrap;
-}
-.rg-card-militant-space--gain {
-	--card-resource-height: 24px;
-	--card-resource-center: 12px;
-}
-.rg-card-militant-space--gain--vp {
-	font-weight: 700;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-militant-space.rg-card-is-exposed
-	.rg-card-militant-space--slot {
-	border: 2px solid var(--player-1);
-	background: var(--raised);
-}
-.rg-card-frame[data-state='play']
-	.rg-card-militant-space.rg-card-is-exposed
-	.rg-card-militant-space--slot
-	> img {
-	display: none;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-militant-space.rg-card-is-exposed
-	.rg-card-militant-space--gain {
-	visibility: visible;
-}
+/* The Militants' instruction under their rows, until the civilization card is drawn from data. */
+
 .rg-card-militant-guide {
 	margin: 7px 20px 0;
 	color: var(--muted);
@@ -556,64 +247,6 @@
 		700 10px/1.2 'Atkinson Hyperlegible',
 		sans-serif;
 	text-transform: uppercase;
-}
-
-/* Original Mystics mat: one prediction token per numbered category. */
-
-/* Alchemists: rolled tracks are temporary square token spaces. */
-.rg-card-alchemist-tracks {
-	display: grid;
-	grid-template-columns: repeat(4, 75px);
-	justify-content: space-between;
-	margin: 4px 12px 12px;
-}
-.rg-card-alchemist-track {
-	display: grid;
-	justify-items: center;
-	gap: 5px;
-	color: var(--muted);
-	font:
-		700 10px/1.2 'Atkinson Hyperlegible',
-		sans-serif;
-	text-align: center;
-	text-transform: uppercase;
-}
-.rg-card-alchemist-track--slot {
-	position: relative;
-	display: grid;
-	place-items: center;
-	width: 75px;
-	height: 75px;
-	border: 1px solid var(--card-slot-border);
-	background: var(--card-slot);
-}
-.rg-card-alchemist-track--slot > img {
-	width: 43px;
-	height: 43px;
-	filter: grayscale(1);
-	opacity: 0.7;
-}
-.rg-card-alchemist-track--slot::after {
-	content: '×';
-	position: absolute;
-	right: 5px;
-	bottom: 1px;
-	color: var(--card-die-number);
-	font:
-		700 23px/1 'Atkinson Hyperlegible',
-		sans-serif;
-}
-.rg-card-alchemist-track--token {
-	display: none;
-	position: absolute;
-	z-index: 1;
-	width: 32px;
-	height: 32px;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-alchemist-track.rg-card-is-rolled
-	.rg-card-alchemist-track--token {
-	display: block;
 }
 
 /* Maker of Fire, printed on the income mat with no picture of its own: era I in a mini tapestry card (#47). */
@@ -663,47 +296,6 @@
 	z-index: 1;
 	width: 29px;
 	height: 29px;
-}
-
-/* More original mats: compact square tracks and owner changes. */
-
-.rg-card-history-grid {
-	display: grid;
-	grid-template-columns: repeat(2, 75px);
-	justify-content: center;
-	gap: 8px;
-	margin: 2px 12px 12px;
-}
-.rg-card-history-square {
-	position: relative;
-	display: grid;
-	place-items: center;
-	width: 75px;
-	height: 75px;
-	border: 1px solid var(--card-slot-border);
-	background: var(--card-slot);
-	color: var(--card-text);
-	font:
-		700 15px/1 'Atkinson Hyperlegible',
-		sans-serif;
-}
-.rg-card-history-square {
-	--card-resource-height: 24px;
-	--card-resource-center: 12px;
-}
-.rg-card-history-square > img {
-	position: absolute;
-	width: 35px;
-	height: 35px;
-}
-.rg-card-frame[data-state='play'] .rg-card-history-square.rg-card-is-exposed {
-	border: 2px solid var(--player-1);
-	background: var(--card-filled-slot);
-}
-.rg-card-frame[data-state='play']
-	.rg-card-history-square.rg-card-is-exposed
-	> img {
-	display: none;
 }
 
 /* Native token and resource assets keep their colour, dimensions and alpha. */
@@ -775,20 +367,7 @@
 	margin: 0;
 }
 
-.rg-card-history-square {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
-}
-
 .rg-card-frame [tabindex='0']:focus-visible {
 	outline: 2px solid var(--player-1);
 	outline-offset: 2px;
-}
-
-.rg-card-leader-track > .rg-card-slot-surface img {
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
 }
