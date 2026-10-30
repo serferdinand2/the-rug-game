@@ -1,18 +1,11 @@
-<!-- The footer: the current decision or what another player is doing, its cost and actions, and the income reveal. -->
+<!-- The footer: the current decision or what another player is doing, its cost and actions, and a reveal beside the turn label. -->
 <script module>
 	/** @typedef {'neutral' | 'selected' | 'optional' | 'waiting' | 'income'} TurnBarTone */
 
 	/**
-	 * The income choice offered beside the turn label.
-	 * @typedef {Object} TurnBarIncome
-	 * @property {string} description - What taking income does, such as 'End this era, gain income and begin your next era.'
-	 * @property {string} label - The button's text, such as 'Take income'
-	 */
-
-	/**
 	 * Properties of the TurnBar component itself.
 	 * @typedef {Object} TurnBarOwnProps
-	 * @property {TurnBarTone} [tone='neutral'] - neutral: your turn, nothing chosen, income shown; selected: a space is chosen, income folds behind the turn label and opens on hover or focus; optional: an optional benefit tinted with the track, income unavailable; waiting: another player's turn, label and text only; income: the viewer's own income turn, a gold footer with no income button
+	 * @property {TurnBarTone} [tone='neutral'] - neutral: your turn, nothing chosen; selected: a space is chosen; optional: an optional benefit tinted with the track; waiting: another player's turn, label and text only; income: the viewer's own income turn, a gold footer
 	 * @property {string} [label='Your turn'] - The turn label, such as 'Optional action' or 'Ana’s turn'
 	 * @property {string} [labelColor] - The label's colour as a token reference, such as 'var(--player-2)' for another player's turn; defaults to gold
 	 * @property {string} heading - The decision, such as 'Advance to'
@@ -24,8 +17,7 @@
 	 * @property {import('../../ui.js').CostSymbol[] | null} [cost=null] - The price shown before the actions
 	 * @property {string} [costLabel] - The word before the price; defaults to 'Optional cost' in the optional tone and 'Cost' otherwise
 	 * @property {import('svelte').Snippet} [actions] - The action Buttons, after the cost
-	 * @property {TurnBarIncome | null} [income=null] - The income choice; never shown in the waiting tone
-	 * @property {Function} [onTurnBarIncome] - Callback fired when the income button is pressed
+	 * @property {import('svelte').Snippet} [reveal] - Drawn before the turn label, in the group whose hover and focus open it, such as the IncomeReveal (#122)
 	 */
 
 	/**
@@ -39,9 +31,10 @@
 	 *   properName="Ships"
 	 *   detail="Gain 1 VP per territory you control. You control 4 territories."
 	 *   track="exploration"
-	 *   cost={['food', 'any']}
-	 *   income={{ description: 'End this era, gain income and begin your next era.', label: 'Take income' }}
-	 *   onTurnBarIncome={() => takeIncome()}>
+	 *   cost={['food', 'any']}>
+	 *   {#snippet reveal()}
+	 *     <IncomeReveal description="End this era, gain income and begin your next era." label="Take income" folded onIncomeRevealClick={() => takeIncome()} />
+	 *   {/snippet}
 	 *   {#snippet actions()}
 	 *     <Button mode="primary" onButtonClick={() => advance()}>Advance · +4 VP</Button>
 	 *   {/snippet}
@@ -50,9 +43,7 @@
 </script>
 
 <script>
-	import Button from '../ui/Button.svelte';
 	import CostBox from './CostBox.svelte';
-	import { ComponentEvent } from '../../component-event.js';
 	import { trackColor } from '../../ui.js';
 
 	/** @type {TurnBarProps} */
@@ -69,28 +60,15 @@
 		cost = null,
 		costLabel,
 		actions,
-		income = null,
-		onTurnBarIncome,
+		reveal,
 		...attr
 	} = $props();
 
 	let waiting = $derived(tone === 'waiting');
-	let showIncome = $derived(Boolean(income) && !waiting && tone !== 'income');
 	let showCost = $derived(!waiting && Boolean(cost?.length));
 	let showActions = $derived(
 		!waiting && tone !== 'income' && (showCost || Boolean(actions))
 	);
-
-	/**
-	 * @param {import('../../component-event.js').ComponentEvent} event
-	 */
-	const incomeButtonClickHandler = (event) => {
-		if (typeof onTurnBarIncome === 'function') {
-			onTurnBarIncome(
-				new ComponentEvent(undefined, event.target, event.originalEvent)
-			);
-		}
-	};
 </script>
 
 <footer
@@ -100,20 +78,9 @@
 	style:--rg-turn-bar-proper={track ? trackColor(track) : 'var(--gold)'}
 	style:--rg-turn-bar-label={labelColor}>
 	<div class="rg-turn-bar--copy">
-		<div class="rg-turn-bar--income-access">
-			{#if showIncome && income}
-				<div
-					class="rg-turn-bar--income-reveal"
-					inert={tone === 'optional' || undefined}>
-					<div class="rg-turn-bar--income-inner">
-						<span class="rg-turn-bar--income-explanation"
-							>{income.description}</span>
-						<Button
-							disabled={tone === 'optional'}
-							onButtonClick={incomeButtonClickHandler}
-							>{income.label}</Button>
-					</div>
-				</div>
+		<div class="rg-turn-bar--lead">
+			{#if reveal}
+				{@render reveal()}
 			{/if}
 			<span class="rg-turn-bar--label">{label}</span>
 		</div>
@@ -212,57 +179,11 @@
 		min-width: 0;
 	}
 
-	.rg-turn-bar--income-access {
+	/* The reveal and the turn label: hovering or focusing either opens a folded reveal. */
+	.rg-turn-bar--lead {
 		display: flex;
 		align-items: center;
 		min-width: 0;
-	}
-
-	.rg-turn-bar--income-reveal {
-		max-width: 455px;
-		margin-right: var(--space-6);
-		overflow: hidden;
-		opacity: 1;
-		transition:
-			max-width var(--duration-medium) var(--ease),
-			margin-right var(--duration-medium) var(--ease),
-			opacity var(--duration-fast) var(--ease);
-	}
-
-	.rg-turn-bar--selected .rg-turn-bar--income-reveal,
-	.rg-turn-bar--optional .rg-turn-bar--income-reveal {
-		max-width: 0;
-		margin-right: 0;
-		opacity: 0;
-	}
-
-	.rg-turn-bar--selected
-		.rg-turn-bar--income-access:hover
-		.rg-turn-bar--income-reveal,
-	.rg-turn-bar--selected
-		.rg-turn-bar--income-access:focus-within
-		.rg-turn-bar--income-reveal {
-		max-width: 455px;
-		margin-right: var(--space-6);
-		opacity: 1;
-	}
-
-	/* A fixed width, so the text does not reflow while the reveal slides open. */
-	.rg-turn-bar--income-inner {
-		display: flex;
-		align-items: center;
-		gap: var(--space-6);
-		width: 455px;
-		height: 40px;
-		padding-right: var(--space-7);
-		border-right: var(--border) solid var(--line);
-	}
-
-	.rg-turn-bar--income-explanation {
-		flex: 1;
-		color: var(--muted);
-		font-size: var(--font-size-xs);
-		line-height: var(--leading-tight);
 	}
 
 	.rg-turn-bar--label {

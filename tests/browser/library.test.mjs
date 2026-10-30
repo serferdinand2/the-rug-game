@@ -306,7 +306,7 @@ test('the library shows the first-income notice and the forced-income footer (#7
 			.locator('.rg-turn-bar--actions')
 			.getByRole('button', { name: 'Take income' })
 	).toBeVisible();
-	await expect(forced.locator('.rg-turn-bar--income-reveal')).toHaveCount(0);
+	await expect(forced.locator('.rg-income-reveal')).toHaveCount(0);
 });
 
 /**
