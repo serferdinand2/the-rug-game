@@ -185,7 +185,7 @@ test('the player area keeps its tabs, capital and counters inside it at every de
 		const heights = await cards.evaluateAll((drawn) =>
 			drawn.map((card) => [
 				card.getBoundingClientRect().height,
-				card.closest('.rg-player-tabs--scale')?.getBoundingClientRect()
+				card.closest('.rg-scaled-card')?.getBoundingClientRect()
 					.height ?? 0,
 			])
 		);

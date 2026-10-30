@@ -92,7 +92,7 @@ test('card art and edition rules align, and tapestry cards grow with their text'
 	});
 	expect(overlap).toBeGreaterThanOrEqual(0);
 
-	const scaled = page.locator('#card-shelf .rg-scaled-tapestry-card').first();
+	const scaled = page.locator('#card-shelf .rg-scaled-card').first();
 	const scaledBefore = await scaled.evaluate(
 		(element) => element.getBoundingClientRect().height
 	);

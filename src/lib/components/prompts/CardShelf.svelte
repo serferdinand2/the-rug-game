@@ -34,26 +34,26 @@
 
 <script>
 	import CapitalGrid from '../player/CapitalGrid.svelte';
+	import CardFan from '../player/CardFan.svelte';
 	import CivilizationCard from '../player/CivilizationCard.svelte';
-	import ScaledTapestryCard from '../player/ScaledTapestryCard.svelte';
+	import ScaledCard from '../player/ScaledCard.svelte';
+	import TapestryCard from '../player/TapestryCard.svelte';
 	import TechnologyCard from '../player/TechnologyCard.svelte';
 	import { tapestryCardData, techCardData } from '../../cards/game-cards.js';
+	import { CARD_SIZES } from '../../cards/card-sizes.js';
 	import { matPlots } from '../../area/capital.js';
 	import { CAPITAL_MATS } from '../../engine/data/capitals.js';
 	import { ComponentEvent } from '../../component-event.js';
 
 	/**
-	 * The tech card's size before scaling, and the scale the shelf draws it at. Tapestry cards measure their own height.
-	 * Civilization cards are
-	 * drawn whole, 425 px wide at their own height, as the decision mockup shows them (#57, #58), and capital mats
-	 * as their 9×9 grid (#56); each sizes its own button, so the gold outline fits it.
+	 * The scale the shelf draws tapestry and tech cards at. Civilization cards are drawn whole, at their own height,
+	 * as the decision mockup shows them (#57, #58), and capital mats as their 9×9 grid (#56); each sizes its own
+	 * button, so the gold outline fits it.
 	 */
-	const SCALED = {
-		tech: { width: 425, height: 298, scale: 0.65 },
-	};
+	const SCALE = { tapestry: 0.7, tech: 0.65 };
 
-	/** A civilization card's width; its height is its own. */
-	const CIV_WIDTH = 425;
+	/** How far each fanned tapestry card hides under the one before it. */
+	const FAN_OVERLAP = 72;
 	/** The smallest a row of civilization cards shrinks to fit the shelf's height; below it, the shelf scrolls. */
 	const CIV_MIN_FIT = 0.75;
 	/** The shelf's padding, top and bottom, which also holds the chosen card's outline. */
@@ -72,8 +72,6 @@
 		onCardShelfInspect,
 		...attr
 	} = $props();
-
-	let size = $derived(kind === 'tech' ? SCALED.tech : null);
 
 	/** The shelf's height, and each civilization card's own height, unscaled, by answer index. */
 	let shelfHeight = $state(0);
@@ -105,6 +103,24 @@
 	/** Tapestry cards fan out only when there are too many to sit side by side (#28 review). */
 	let fanned = $derived(kind === 'tapestry' && cards.length > 4);
 
+	/** The fan counts its cards by position; the shelf's props and events use the answers' indexes. */
+	let chosen = $derived(
+		cards.flatMap((card, position) =>
+			(
+				Array.isArray(selected)
+					? selected.includes(card.index)
+					: selected === card.index
+			)
+				? [position]
+				: []
+		)
+	);
+	let waiting = $derived(
+		cards.flatMap((card, position) =>
+			disabled.includes(card.index) ? [position] : []
+		)
+	);
+
 	/** A mat's terrain, which is its id. */
 	const biomeOf = (/** @type {{ id: string }} */ mat) =>
 		/** @type {import('../../ui.js').CapitalBiome} */ (mat.id);
@@ -116,101 +132,87 @@
 		CAPITAL_MATS.find((mat) => mat.number === Number(id)) ??
 		CAPITAL_MATS[0];
 
-	/**
-	 * @param {number} index
-	 * @param {MouseEvent} event
-	 */
-	const selectHandler = (index, event) => {
+	/** @param {ComponentEvent} event - The fan's, whose value is the card's position */
+	const fanSelectHandler = (event) => {
 		if (typeof onCardShelfSelect === 'function') {
 			onCardShelfSelect(
 				new ComponentEvent(
-					index,
-					/** @type {HTMLElement} */ (event.currentTarget),
-					event
+					cards[event.value.index].index,
+					event.target,
+					event.originalEvent
 				)
 			);
 		}
 	};
 
-	/**
-	 * @param {number | null} index
-	 * @param {Event} event
-	 */
-	const inspectHandler = (index, event) => {
+	/** @param {ComponentEvent} event - The fan's, whose value is the card's position, or null when it ends */
+	const fanInspectHandler = (event) => {
 		if (typeof onCardShelfInspect === 'function') {
 			onCardShelfInspect(
 				new ComponentEvent(
-					index,
-					/** @type {HTMLElement} */ (event.currentTarget),
-					event
+					event.value.index === null
+						? null
+						: cards[event.value.index].index,
+					event.target,
+					event.originalEvent
 				)
 			);
 		}
 	};
 </script>
 
+<!-- The shelf scrolls and centres its row; the fan inside lays the cards out and names the group. -->
 <div
-	role="group"
-	aria-label={label ?? LABELS[kind]}
 	{...attr}
 	class="rg-card-shelf rg-card-shelf--{kind} {attr.class ? attr.class : ''}"
 	class:rg-card-shelf--fanned={fanned}
 	bind:clientHeight={shelfHeight}>
-	{#each cards as card (card.index)}
-		<button
-			type="button"
-			class="rg-card-shelf--card"
-			aria-pressed={Array.isArray(selected)
-				? selected.includes(card.index)
-				: selected === card.index}
-			disabled={disabled.includes(card.index)}
-			aria-label={card.label}
-			style:width={size ? `${size.width * size.scale}px` : undefined}
-			style:height={size ? `${size.height * size.scale}px` : undefined}
-			onclick={(event) => selectHandler(card.index, event)}
-			onmouseenter={(event) => inspectHandler(card.index, event)}
-			onmouseleave={(event) => inspectHandler(null, event)}
-			onfocus={(event) => inspectHandler(card.index, event)}
-			onblur={(event) => inspectHandler(null, event)}>
+	<CardFan
+		class="rg-card-shelf--row"
+		look="shelf"
+		lift={kind === 'tapestry' || kind === 'tech'}
+		items={cards}
+		key={(/** @type {ShelfCard} */ card) => card.index}
+		labels={cards.map((card) => card.label)}
+		label={label ?? LABELS[kind]}
+		overlap={fanned ? FAN_OVERLAP : 0}
+		selected={chosen}
+		disabled={waiting}
+		onCardFanSelect={fanSelectHandler}
+		onCardFanInspect={fanInspectHandler}>
+		{#snippet card(/** @type {ShelfCard} */ offer)}
 			{#if kind === 'tapestry'}
-				<ScaledTapestryCard
-					data={tapestryCardData(card.id)}
-					scale={0.7}
-					aria-hidden="true" />
-			{:else if size}
-				<span
-					class="rg-card-shelf--scaled"
-					style:width="{size.width}px"
-					style:height="{size.height}px"
-					style:transform="scale({size.scale})"
+				<ScaledCard
+					scale={SCALE.tapestry}
+					{...CARD_SIZES.tapestry}
 					aria-hidden="true">
-					{#if card.id === 'deck'}
+					<TapestryCard data={tapestryCardData(offer.id)} />
+				</ScaledCard>
+			{:else if kind === 'tech'}
+				<ScaledCard
+					scale={SCALE.tech}
+					{...CARD_SIZES.tech}
+					aria-hidden="true">
+					{#if offer.id === 'deck'}
 						<span class="rg-card-shelf--back">
-							<b>Deck · {card.deck ?? 0}</b>
+							<b>Deck · {offer.deck ?? 0}</b>
 						</span>
 					{:else}
-						<TechnologyCard data={techCardData(card.id)} />
+						<TechnologyCard data={techCardData(offer.id)} />
 					{/if}
-				</span>
+				</ScaledCard>
 			{:else if kind === 'civ'}
-				<span
-					class="rg-card-shelf--whole rg-card-shelf--fit"
-					style:width="{CIV_WIDTH * civFit}px"
-					style:height={civHeights[card.index]
-						? `${civHeights[card.index] * civFit}px`
-						: undefined}
+				<ScaledCard
+					scale={civFit}
+					{...CARD_SIZES.civilization}
+					bind:measuredHeight={civHeights[offer.index]}
 					aria-hidden="true">
-					<span
-						class="rg-card-shelf--scaled"
-						style:transform="scale({civFit})"
-						bind:offsetHeight={civHeights[card.index]}>
-						<CivilizationCard
-							id={card.id}
-							state="empty" />
-					</span>
-				</span>
+					<CivilizationCard
+						id={offer.id}
+						state="empty" />
+				</ScaledCard>
 			{:else}
-				{@const mat = matOf(card.id)}
+				{@const mat = matOf(offer.id)}
 				<span
 					class="rg-card-shelf--whole rg-card-shelf--mat-face"
 					aria-hidden="true">
@@ -222,8 +224,8 @@
 						label="{mat.name} capital, 9 by 9 plots" />
 				</span>
 			{/if}
-		</button>
-	{/each}
+		{/snippet}
+	</CardFan>
 </div>
 
 <style>
@@ -233,82 +235,36 @@
 		display: flex;
 		align-items: flex-end;
 		justify-content: safe center;
-		gap: var(--space-5);
 		max-width: 100%;
 		overflow-x: auto;
 		padding: var(--space-8) var(--space-4) var(--space-4);
 	}
 
-	.rg-card-shelf--card {
-		position: relative;
-		flex: none;
-		padding: 0;
-		border: 0;
-		background: transparent;
-		box-shadow: var(--shadow-float);
-		cursor: pointer;
-		transition: transform var(--duration-fast) var(--ease);
+	/* CardFan's root, reached through its class prop: the cards stand 10 px apart. */
+	.rg-card-shelf :global(.rg-card-shelf--row) {
+		gap: var(--space-5);
 	}
 
-	/* Many tapestry cards overlap, as the mockup fans them; the hovered one comes forward. */
-	.rg-card-shelf--fanned {
+	/* Many tapestry cards overlap, as the mockup fans them (CardFan's overlap); the hovered one comes forward. */
+	.rg-card-shelf--fanned :global(.rg-card-shelf--row) {
 		gap: 0;
-	}
-
-	.rg-card-shelf--fanned .rg-card-shelf--card + .rg-card-shelf--card {
-		margin-left: -72px;
-	}
-
-	.rg-card-shelf--card:hover,
-	.rg-card-shelf--card:focus-visible {
-		z-index: 1;
-		outline: var(--border-thick) solid var(--gold);
-		outline-offset: 2px;
-	}
-
-	.rg-card-shelf--card:disabled {
-		opacity: 0.35;
-		cursor: default;
-	}
-
-	.rg-card-shelf--card[aria-pressed='true'] {
-		z-index: 2;
-		outline: var(--border-thick) solid var(--gold);
-		outline-offset: 3px;
-		box-shadow: var(--shadow-float), var(--glow-gold);
-		transform: translateY(-14px);
 	}
 
 	/* Civilizations and capital mats sit whole and 18 px apart, as in the decision mockup; the chosen one is outlined
 	   where it stands, so the outline always fits it (#58). A shelf too small for them scrolls. */
 	.rg-card-shelf--civ,
 	.rg-card-shelf--mat {
-		gap: 18px;
 		padding: var(--space-4);
 		scrollbar-width: thin;
 	}
 
-	.rg-card-shelf--civ .rg-card-shelf--card[aria-pressed='true'],
-	.rg-card-shelf--mat .rg-card-shelf--card[aria-pressed='true'] {
-		transform: none;
+	.rg-card-shelf--civ :global(.rg-card-shelf--row),
+	.rg-card-shelf--mat :global(.rg-card-shelf--row) {
+		gap: 18px;
 	}
 
 	.rg-card-shelf--whole {
 		display: block;
-		text-align: left;
-	}
-
-	/* A civilization card keeps its layout at 425 px and is scaled as a whole; this box takes the scaled size. */
-	.rg-card-shelf--fit {
-		position: relative;
-	}
-
-	.rg-card-shelf--scaled {
-		position: absolute;
-		top: 0;
-		left: 0;
-		display: block;
-		transform-origin: top left;
 		text-align: left;
 	}
 

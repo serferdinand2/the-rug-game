@@ -24,10 +24,12 @@
 	import CompletionCounters from '../../lib/components/player/CompletionCounters.svelte';
 	import CivilizationCard from '../../lib/components/player/CivilizationCard.svelte';
 	import PlayerCard from '../../lib/components/player/PlayerCard.svelte';
+	import ScaledCard from '../../lib/components/player/ScaledCard.svelte';
 	import TechnologyCard from '../../lib/components/player/TechnologyCard.svelte';
 	import { capitalView } from '../../lib/area/capital.js';
 	import { playerCards } from '../../lib/area/players.js';
 	import { techCardData } from '../../lib/cards/game-cards.js';
+	import { CARD_SIZES } from '../../lib/cards/card-sizes.js';
 	import { CARD_CIVS, civCardView } from '../../lib/civ-card.js';
 
 	/** @typedef {import('../../lib/component-event.js').ComponentEvent} ComponentEvent */
@@ -134,11 +136,11 @@
 				</h3>
 				<div class="rg-players-overview--tech">
 					{#each openSeat.tech[row] as id (id)}
-						<div class="rg-players-overview--scale">
-							<div class="rg-players-overview--scaled">
-								<TechnologyCard data={techCardData(id)} />
-							</div>
-						</div>
+						<ScaledCard
+							scale={0.4}
+							{...CARD_SIZES.tech}>
+							<TechnologyCard data={techCardData(id)} />
+						</ScaledCard>
 					{:else}
 						<p class="rg-players-overview--empty">No cards</p>
 					{/each}
@@ -212,19 +214,6 @@
 		flex-wrap: wrap;
 		gap: var(--space-3);
 		justify-self: start;
-	}
-
-	.rg-players-overview--scale {
-		position: relative;
-		width: calc(425px * 0.4);
-		height: calc(298px * 0.4);
-	}
-
-	.rg-players-overview--scaled {
-		position: absolute;
-		inset: 0 auto auto 0;
-		transform: scale(0.4);
-		transform-origin: top left;
 	}
 
 	.rg-players-overview--empty {
