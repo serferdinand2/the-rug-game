@@ -896,7 +896,7 @@ Eleven M13 issues built side by side on 2026-10-30, each by its own agent in its
 - **For the owner:**
   - #102: does `SeatCard`'s civilization line and `CivChooser` have a future? And should the lobby's add-a-player field and Add button take `TextInput`'s and `Button`'s look (gold capitals and a gold focus glow)?
   - #116: five looks, with pictures in `docs/ui/screens/issue-116/`: one "+N VP" tag; a 2px chosen outline on `DecisionOption`; its dashed focus; one dim (0.3 or 0.35) for a choice that can't be picked; no hover on a disabled option.
-  - #122: whether `TurnBar`'s `optional` tone and the library-only `properIcon`, `headingEnd` and `costLabel` stay.
+  - #122: whether `TurnBar`'s `optional` tone and the library-only `properIcon`, `headingEnd` and `costLabel` stay. **Answered (owner, 2026-10-30): they stay.**
   - #105: whether the results footer becomes a `TurnBar` (a visible change).
 
 #### #122 Move TurnBar's income reveal into its own component (M13 · Refactor, Game screen), 2026-10-30
@@ -905,7 +905,7 @@ Eleven M13 issues built side by side on 2026-10-30, each by its own agent in its
 - `TurnBar` takes a `reveal` snippet in place of `income` and `onTurnBarIncome`, and keeps no income rules. `footerView`'s `income` gains `folded` (true on a selected space), and `TurnFooter` passes the `IncomeReveal` in. Nothing on screen changes; the reveal's class is now `rg-income-reveal`.
 - The library has an IncomeReveal section (open, folded, disabled), and TurnBar's section passes the reveal as a snippet.
 - Tests: `client-footer.test.mjs` checks `folded` and guards `TurnBar` against income rules; the library browser test looks for `.rg-income-reveal`.
-- **Owner call open:** whether the `optional` tone and the library-only `properIcon`, `headingEnd` and `costLabel` stay. They are kept for now, because the Ships mockup draws them.
+- **Owner call (2026-10-30):** the `optional` tone and the library-only `properIcon`, `headingEnd` and `costLabel` stay.
 - Hands on: #62 adds End turn to `TurnFooter`'s actions without meeting the reveal; #71 changes the footer's words in `footerView`.
 
 #### #102 SeatCard cut down to the lobby's seat states (M13 · Refactor, Lobby), 2026-10-30

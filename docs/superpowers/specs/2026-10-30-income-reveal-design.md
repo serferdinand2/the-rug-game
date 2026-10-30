@@ -1,6 +1,6 @@
 # The income reveal as its own component (#122): design
 
-Written 2026-10-30. #122 is in M13 · Refactor, found by the client scan (#80), and waited for #86. Every decision here is **(my call)**, except the one in §4 left to the owner.
+Written 2026-10-30. #122 is in M13 · Refactor, found by the client scan (#80), and waited for #86. Every decision here is **(my call)**, except the one in §4, which the owner decided.
 
 ## 1. What and why
 
@@ -32,7 +32,7 @@ Playwright: the library, first-income, hotkeys and game tests cover the footer; 
 
 ## 4. Left to the owner
 
-The issue asks whether the `optional` tone and the props only the library uses (`properIcon`, `headingEnd`, `costLabel`) stay; the approved Ships mockup draws them, and #20's optional benefits may need them. They are kept, unchanged, until the owner decides. Removing them later touches only `TurnBar` and its library section.
+The issue asks whether the `optional` tone and the props only the library uses (`properIcon`, `headingEnd`, `costLabel`) stay; the approved Ships mockup draws them, and #20's optional benefits may need them. **Decided (owner, 2026-10-30): they stay.** The `optional` tone and `properIcon`, `headingEnd` and `costLabel` are kept as they are, for the Ships mockup's optional action and #20's optional benefits.
 
 ## 5. Hand-offs
 
