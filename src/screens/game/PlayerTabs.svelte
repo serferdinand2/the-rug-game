@@ -48,8 +48,7 @@
 
 <script>
 	import Tabs from '../../lib/components/ui/Tabs.svelte';
-	import CapitalGrid from '../../lib/components/player/CapitalGrid.svelte';
-	import CompletionCounters from '../../lib/components/player/CompletionCounters.svelte';
+	import CapitalCity from '../../lib/components/player/CapitalCity.svelte';
 	import PlacementTray from '../../lib/components/player/PlacementTray.svelte';
 	import CardFan from '../../lib/components/player/CardFan.svelte';
 	import CivilizationCard from '../../lib/components/player/CivilizationCard.svelte';
@@ -58,6 +57,7 @@
 	import ScaledCard from '../../lib/components/player/ScaledCard.svelte';
 	import TapestryCard from '../../lib/components/player/TapestryCard.svelte';
 	import TechnologyCard from '../../lib/components/player/TechnologyCard.svelte';
+	import TechRows from '../../lib/components/player/TechRows.svelte';
 	import TilePicker from '../../lib/components/prompts/TilePicker.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { TABS } from '../../lib/area/tabs.js';
@@ -122,13 +122,6 @@
 	let tilePick = $derived(own ? tilePickProp : null);
 	let civPick = $derived(own ? civPickProp : null);
 
-	/** The tech rows, top first, as the mockup draws them. */
-	const TECH_ROWS = /** @type {const} */ ([
-		{ id: 'top', label: 'Top row', shape: 'square' },
-		{ id: 'middle', label: 'Middle row', shape: 'circle' },
-		{ id: 'bottom', label: 'Bottom row', shape: 'none' },
-	]);
-
 	/**
 	 * Reports a spot pressed on the Civ tab's card (#78).
 	 * @param {ComponentEvent} event - From CivilizationCard: the spot id
@@ -161,8 +154,6 @@
 		/** @type {string[]} */ (own ? (player.hand ?? []) : [])
 	);
 	let capital = $derived(capitalView(player, code));
-	/** @type {'rows' | 'columns' | 'districts' | null} */
-	let highlight = $state(null);
 	/** A placed landmark is being dragged, so the tray offers itself to take it back. */
 	let dragging = $state(false);
 	let building = $derived(placement?.piece.building ?? null);
@@ -249,7 +240,7 @@
 
 	/**
 	 * A lit plot was chosen for a building, or a plot for the landmark: it moves there, as near as it may go.
-	 * @param {ComponentEvent} event - From CapitalGrid: { row, col }
+	 * @param {ComponentEvent} event - From CapitalCity: { row, col }
 	 */
 	const plotClickHandler = (event) => {
 		const { row, col } = event.value;
@@ -306,7 +297,7 @@
 
 	/**
 	 * The landmark was dropped from the tray; row and col are where its top-left corner landed.
-	 * @param {ComponentEvent} event - From CapitalGrid: { id, row, col }
+	 * @param {ComponentEvent} event - From CapitalCity: { id, row, col }
 	 */
 	const dropHandler = (event) => {
 		land(
@@ -322,7 +313,7 @@
 
 	/**
 	 * The placed landmark was dragged or moved with the arrow keys.
-	 * @param {ComponentEvent} event - From CapitalGrid: { id, row, col }
+	 * @param {ComponentEvent} event - From CapitalCity: { id, row, col }
 	 */
 	const moveHandler = (event) => {
 		if (placed) {
@@ -450,40 +441,22 @@
 		label={words.tabs}>
 		{#if tab === 'capital'}
 			{#if capital}
-				<h2 class="rg-player-tabs--title">
-					Capital City · <span class="rg-player-tabs--name"
-						>{capital.name}</span>
-				</h2>
-				<CapitalGrid
-					plots={capital.plots}
-					biome={capital.biome}
-					terrainSeed={capital.terrainSeed}
+				<CapitalCity
+					{capital}
+					owner="Capital City"
 					{pieces}
-					{highlight}
 					{targets}
 					{preview}
 					fresh={fresh.plots}
 					awaitingPlacement={placement !== null}
-					room
-					onCapitalGridPlotClick={plotClickHandler}
-					onCapitalGridDrop={dropHandler}
-					onCapitalGridMove={moveHandler}
-					onCapitalGridRotate={rotateHandler}
-					onCapitalGridConfirm={confirmHandler}
-					onCapitalGridReturn={returnHandler}
-					onCapitalGridDragStart={() => (dragging = true)}
-					onCapitalGridDragEnd={() => (dragging = false)} />
-				<CompletionCounters
-					counts={capital.counts}
-					active={highlight}
-					onCompletionCountersHover={(
-						/** @type {ComponentEvent} */ event
-					) => (highlight = event.value)}
-					onCompletionCountersToggle={(
-						/** @type {ComponentEvent} */ event
-					) =>
-						(highlight =
-							highlight === event.value ? null : event.value)} />
+					onCapitalCityPlotClick={plotClickHandler}
+					onCapitalCityDrop={dropHandler}
+					onCapitalCityMove={moveHandler}
+					onCapitalCityRotate={rotateHandler}
+					onCapitalCityConfirm={confirmHandler}
+					onCapitalCityReturn={returnHandler}
+					onCapitalCityDragStart={() => (dragging = true)}
+					onCapitalCityDragEnd={() => (dragging = false)} />
 				<PlacementTray
 					class="rg-player-tabs--tray"
 					items={tray}
@@ -568,46 +541,10 @@
 			{/each}
 		{:else if tab === 'tech'}
 			<h2 class="rg-player-tabs--title">{words.tech}</h2>
-			{#each TECH_ROWS as row (row.id)}
-				<section class="rg-player-tabs--row">
-					<h3 class="rg-player-tabs--row-title">
-						<i
-							class="rg-player-tabs--shape rg-player-tabs--shape-{row.shape}"
-							aria-hidden="true"></i
-						>{row.label}
-					</h3>
-					{#if player.tech[row.id].length}
-						<CardFan
-							items={player.tech[row.id]}
-							overlap={120}
-							label="{row.label} tech cards"
-							onCardFanInspect={(
-								/** @type {ComponentEvent} */ event
-							) =>
-								inspect(
-									'tech',
-									event.value.index === null
-										? null
-										: player.tech[row.id][
-												event.value.index
-											],
-									event.originalEvent
-								)}>
-							{#snippet card(/** @type {string} */ id)}
-								<ScaledCard
-									scale={0.42}
-									{...CARD_SIZES.tech}>
-									<TechnologyCard data={techCardData(id)} />
-								</ScaledCard>
-							{/snippet}
-						</CardFan>
-					{:else}
-						<div class="rg-player-tabs--empty-row">
-							No cards yet
-						</div>
-					{/if}
-				</section>
-			{/each}
+			<TechRows
+				tech={player.tech}
+				onTechRowsInspect={(/** @type {ComponentEvent} */ event) =>
+					inspect('tech', event.value, event.originalEvent)} />
 			<section class="rg-player-tabs--row">
 				<h3 class="rg-player-tabs--row-title">
 					The display · {game.supply.tech.deck} in the deck
@@ -713,12 +650,6 @@
 			var(--font-body);
 	}
 
-	.rg-player-tabs--name {
-		color: var(--gold);
-		font-family: var(--font-title);
-		font-weight: var(--weight-title);
-	}
-
 	.rg-player-tabs--note {
 		margin: var(--space-6) 0;
 		color: var(--muted);
@@ -752,29 +683,6 @@
 		color: var(--text);
 		font: var(--weight-bold) var(--font-size-sm) / var(--leading-tight)
 			var(--font-body);
-	}
-
-	.rg-player-tabs--shape {
-		width: 14px;
-		height: 14px;
-		border: 3px solid var(--text);
-	}
-
-	.rg-player-tabs--shape-circle {
-		border-radius: 50%;
-	}
-
-	.rg-player-tabs--shape-none {
-		display: none;
-	}
-
-	.rg-player-tabs--empty-row {
-		display: grid;
-		place-items: center;
-		height: 60px;
-		border: var(--border) solid var(--line);
-		color: var(--muted);
-		font-size: var(--font-size-sm);
 	}
 
 	/* Also TilePicker's root, reached through its class prop. */
