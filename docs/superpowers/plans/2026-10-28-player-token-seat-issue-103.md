@@ -1,13 +1,13 @@
 # PlayerToken takes a seat (#103) Implementation Plan
 
-**Goal:** `PlayerToken` takes a `seat`, and the pass screen, the standings and the scoreboard draw their tokens with it.
+**Goal:** `PlayerToken` takes a `seat`, and the pass screen, the standings, the scoreboard and (after #85) the progress lanes draw their tokens with it.
 
 **Spec:** `docs/superpowers/specs/2026-10-28-player-token-seat-design.md`
 
 ## Global Constraints
 
 - Pixel-identical: each token keeps its size, empty `alt` and pixelated rendering.
-- `ProgressLanes.svelte` is off-limits until #85 lands; it stays a raw `<img>`.
+- `ProgressLanes.svelte` was off-limits until #85 landed; Task 3 finishes it.
 - Only the two typedefs change in `results.js` (another stream edits `scoreboard()`).
 - Conventions: JSDoc, Prettier on the changed files only, `npm run check` clean.
 - Commits: `Refs #103: …` (ProgressLanes is left over).
@@ -27,3 +27,12 @@
 - [ ] `StandingRow.seat` and `ScoreRow.seat` are `Seat`.
 - [ ] The library test passes; `npm run check` clean; `pass-screen` and `results` browser tests pass.
 - [ ] Commit `Refs #103: …`.
+
+### Task 3: ProgressLanes, after #85 (2026-10-30)
+
+**Files:** `tests/library.test.mjs`, `src/lib/components/board/ProgressLanes.svelte` (the token and its rule only; #120 works on the board in parallel).
+
+- [x] Drop `TOKENS_LEFT` from the guard test. Run: FAIL on `ProgressLanes`.
+- [x] The marker draws `<PlayerToken class="rg-progress-lanes--token" seat={lane.seat} decorative />`; its rule goes `:global` under the marker and loses `object-fit` and `image-rendering`, which `PlayerToken` sets; `playerPieceUrl` leaves the imports.
+- [x] The guard passes; `npm run check` clean; `npm run test:unit` passes. Browser test covering it: `tests/browser/library.test.mjs` (#72's token-on-the-line test), run by the coordinator.
+- [x] Commit `Fix #103: …`.
