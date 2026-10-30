@@ -315,7 +315,8 @@
 		gap: var(--space-3);
 		width: 100%;
 		height: 100%;
-		padding: var(--space-4) var(--space-5);
+		/* The top keeps the ×'s 22px corner clear of the focused name field's outline. */
+		padding: calc(var(--space-2) + 22px) var(--space-5) var(--space-4);
 		border: var(--border) solid var(--gold);
 		border-radius: var(--radius);
 		background: color-mix(in srgb, var(--gold) 22%, var(--ink));
