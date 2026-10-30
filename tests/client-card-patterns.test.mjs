@@ -1,13 +1,15 @@
 // The card pattern primitives take their content as data and their state as props, with their own styles (#106).
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { createRawSnippet } from 'svelte';
 import { render } from 'svelte/server';
 import { spotChoice } from '../src/lib/card-spots.js';
 import CardClarity from '../src/lib/components/player/CardClarity.svelte';
 import CardEffectBox from '../src/lib/components/player/CardEffectBox.svelte';
 import CardEffectList from '../src/lib/components/player/CardEffectList.svelte';
+import CardFrame from '../src/lib/components/player/CardFrame.svelte';
+import CardSlot from '../src/lib/components/player/CardSlot.svelte';
 import CardPathGrid from '../src/lib/components/player/CardPathGrid.svelte';
 import CardPlacementRows from '../src/lib/components/player/CardPlacementRows.svelte';
 import CardPredictionTracks from '../src/lib/components/player/CardPredictionTracks.svelte';
@@ -33,6 +35,10 @@ const html = (result) => result.body.replace(/<!--[\s\S]*?-->/g, '');
 
 /** The primitives this issue has given data, state props and their own styles so far. */
 const DONE = ['CardResource', 'CardClarity', 'CardEffectBox', 'CardEffectList'];
+
+/** The pattern classes that left card-patterns.css; the Militants' guide stays until the card is drawn from data. */
+const CIVILIZATION_CLASS_PATTERNS =
+	/rg-card-(?:collector|leader|treasure|craftsmen|entertainer|mystic|alchemist|isolation|merry|histor|inventor)/;
 
 /** Words that name one civilization in a class, as the primitives used to. */
 const CIVILIZATION_CLASS =
@@ -336,7 +342,7 @@ test('CardPredictionTracks draws each category from data, its selected number an
 	assert.match(body, /style="grid-template-columns: repeat\(4, 39px\);"/);
 	assert.equal(body.match(/<button/g)?.length, 2);
 	assert.match(body, /data-id="civ-spot-tracks:2"/);
-	assert.equal(body.match(/rg-card-slot-surface--picked/g)?.length, 1);
+	assert.equal(body.match(/rg-card-slot--picked/g)?.length, 1);
 });
 
 test('CivilizationCard writes no prediction row by hand (#106)', () => {
@@ -610,7 +616,7 @@ test('CardPlacementRows draws rolled tracks, used leader tracks and uncovered hi
 	assert.equal(leaders.match(/rg-card-placement-rows--used/g)?.length, 1);
 	assert.equal(leaders.match(/rg-card-placement-rows--offered/g)?.length, 1);
 	assert.match(leaders, /aria-label="exploration placement"/);
-	assert.equal(leaders.match(/rg-card-slot-surface--picked/g)?.length, 1);
+	assert.equal(leaders.match(/rg-card-slot--picked/g)?.length, 1);
 	const history = html(
 		render(CardPlacementRows, {
 			props: {
@@ -637,4 +643,81 @@ test('CivilizationCard writes no placement square or play-state class by hand (#
 		card,
 		/rg-card-is-|<CardSlot|rg-card-slot|rg-card-(leader|alchemist|history)-|rg-card-militant-space/
 	);
+});
+
+test('CardSlot draws its own filled border, and the patterns pass filled for a mark in the player colour (#106)', () => {
+	assert.match(
+		html(render(CardSlot, { props: { filled: true } })),
+		/rg-card-slot--filled/
+	);
+	assert.doesNotMatch(html(render(CardSlot, {})), /rg-card-slot--filled/);
+	for (const name of [
+		'CardPredictionTracks',
+		'CardPathGrid',
+		'CardRewardColumns',
+		'CardPlacementRows',
+	]) {
+		assert.match(source(name), /filled=\{/, name);
+	}
+	const filled = html(
+		render(CardPathGrid, {
+			props: {
+				heads: ['1st'],
+				spaces: [{ id: 'c1r1', text: 'x' }],
+				current: 'c1r1',
+			},
+		})
+	);
+	assert.match(filled, /rg-card-slot--filled/);
+});
+
+test('CardFrame has a plain mode, only the paper, and takes its reviewed spacing as props', () => {
+	const plain = html(
+		render(CardFrame, {
+			props: { plain: true, children: snippet('<p>x</p>') },
+		})
+	);
+	assert.match(plain, /^<article class="rg-card-frame rg-card-frame--plain/);
+	assert.doesNotMatch(plain, /rg-card-band|rg-card-frame--portrait|<footer/);
+	const full = html(
+		render(CardFrame, {
+			props: {
+				title: 'Leaders',
+				portrait: '/art/civ/leaders.svg',
+				bodyMinHeight: 184,
+				textLeading: 1.5,
+			},
+		})
+	);
+	assert.match(full, /rg-card-frame--body[^"]*" style="min-height: 184px;"/);
+	assert.match(full, /rg-card-frame--text[^"]*" style="line-height: 1.5;"/);
+});
+
+test('the library sections draw the patterns on a plain CardFrame, never a fake frame (#106)', () => {
+	for (const file of readdirSync(
+		new URL('../src/library/sections/player/', import.meta.url)
+	)) {
+		const text = readFileSync(
+			new URL(`../src/library/sections/player/${file}`, import.meta.url),
+			'utf8'
+		);
+		assert.doesNotMatch(text, /class="rg-card-frame"/, file);
+	}
+});
+
+test('CivilizationCard gives its frames no civilization class (#106)', () => {
+	assert.doesNotMatch(source('CivilizationCard'), /rg-card-frame--/);
+});
+
+test('card-patterns.css keeps the frame palette and the symbols, and no pattern or dead rule (#106)', () => {
+	const css = readFileSync(
+		new URL('../src/styles/card-patterns.css', import.meta.url),
+		'utf8'
+	);
+	assert.equal(css.match(/^\.rg-card-frame \{/gm)?.length, 1);
+	assert.doesNotMatch(
+		css,
+		/rg-card-(slot|any|notch|shadow|option|cx|vp|ability|fine|setup|resource-icon|frame--(body|text|foot|portrait|band))/
+	);
+	assert.doesNotMatch(css, CIVILIZATION_CLASS_PATTERNS);
 });

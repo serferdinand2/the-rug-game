@@ -8,18 +8,18 @@ Each step: tests first in `tests/client-card-patterns.test.mjs` (FAIL), then the
 
 ### Task 0: Baseline
 
-- [ ] Screenshots and computed styles of every civilization card on main, from a production build.
+- [x] Screenshots and computed styles of every civilization card on main, from a production build.
 
 ### Task 1: Text and effect boxes
 
-- [ ] `CardResource`: own style, `fine`, `--card-resource-center` and `--card-resource-height`.
-- [ ] `CardClarity`: its paragraph, `setup`, `above`, `minHeight`.
-- [ ] `CardEffectBox`: `title`, `gain`, `label`, `symbolText`; new `CardEffectList` with `above`.
+- [x] `CardResource`: own style, `fine`, `--card-resource-center` and `--card-resource-height`.
+- [x] `CardClarity`: its paragraph, `setup`, `above`, `minHeight`.
+- [x] `CardEffectBox`: `title`, `gain`, `label`, `symbolText`; new `CardEffectList` with `above`.
 
 ### Task 2: Score ladder, token reserve, technology transfer
 
-- [ ] `CardScoreLadder` `steps`, `current`, `label`, `noun`, `kind`; the Isolationists' score uses it.
-- [ ] `CardTokenReserve` and `CardTechnologyTransfer` styles.
+- [x] `CardScoreLadder` `steps`, `current`, `label`, `noun`, `kind`; the Isolationists' score uses it.
+- [x] `CardTokenReserve` and `CardTechnologyTransfer` styles.
 
 ### Task 3: Terrain rewards — `rows`
 
@@ -33,5 +33,6 @@ Each step: tests first in `tests/client-card-patterns.test.mjs` (FAIL), then the
 
 ### Task 8: Clean-up
 
-- [ ] `CardSlot` `filled`; `CardFrame` `plain`; library sections without the fake frame; dead rules out of `card-patterns.css`.
-- [ ] card-design-rules.md, docs/architecture.md, docs/status.md; `Fix #106: …` once the owner has checked the gallery.
+- [x] `CardSlot` `filled`; `CardFrame` `plain`; library sections without the fake frame; dead rules out of `card-patterns.css`.
+- [x] card-design-rules.md and docs/architecture.md.
+- [ ] docs/status.md; `Fix #106: …` once the owner has checked the gallery.

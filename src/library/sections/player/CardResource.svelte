@@ -1,9 +1,9 @@
 <!-- Library section: CardResource, the native 24 px resource icon in card text (#106). -->
 <script>
 	import CardResource from '../../../lib/components/player/CardResource.svelte';
+	import CardFrame from '../../../lib/components/player/CardFrame.svelte';
 	import Section from '../../Section.svelte';
 	import Example from '../../Example.svelte';
-	import '../../../styles/card-patterns.css';
 </script>
 
 <Section
@@ -13,7 +13,7 @@
 	><Example
 		label={'symbol="any" | "coin" | "worker" | "food" | "culture"'}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<p style="margin:12px;font-size:15px;line-height:1.38">
 				Then gain <CardResource symbol="any" />, or
 				<CardResource symbol="coin" />, <CardResource
@@ -21,16 +21,16 @@
 				<CardResource symbol="food" /> and <CardResource
 					symbol="culture" />.
 			</p>
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label="fine"
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<p style="margin:12px;font-size:11px;line-height:1.3">
 				If all its income buildings match, gain <strong
 					>+ <CardResource
 						symbol="any"
 						fine /></strong> in addition to its usual reward.
 			</p>
-		</div></Example
+		</CardFrame></Example
 	></Section>

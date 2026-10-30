@@ -150,6 +150,7 @@
 				class:rg-card-placement-rows--exposed={item.exposed}>
 				<CardSlot
 					size={62}
+					filled={item.exposed}
 					{...choice(item)}
 					class="rg-card-placement-rows--space"
 					><span
@@ -217,6 +218,7 @@
 			''}">
 		{#each items as item, index (index)}<CardSlot
 				size={75}
+				filled={item.exposed}
 				{...choice(item)}
 				class="rg-card-placement-rows--square {item.exposed
 					? 'rg-card-placement-rows--uncovered'
@@ -364,7 +366,6 @@
 		min-width: 0;
 	}
 	.rg-card-placement-rows--exposed :global(.rg-card-placement-rows--space) {
-		border: 2px solid var(--player-1);
 		background: var(--raised);
 	}
 	.rg-card-placement-rows--outpost {
@@ -515,7 +516,6 @@
 	}
 	.rg-card-placement-rows--history
 		:global(.rg-card-placement-rows--uncovered) {
-		border: 2px solid var(--player-1);
 		background: var(--card-filled-slot);
 	}
 	.rg-card-placement-rows--history :global(.rg-card-placement-rows--holder) {

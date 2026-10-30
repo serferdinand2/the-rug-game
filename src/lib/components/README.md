@@ -131,7 +131,7 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 
 | Component | Responsibility |
 |---|---|
-| `player/CardFrame` | 425 px frame: a `CardBand` title, full portrait, main effect, and footer metadata with a `CardEdition` per edition |
+| `player/CardFrame` | 425 px frame: a `CardBand` title, full portrait, main effect, and footer metadata with a `CardEdition` per edition; `bodyMinHeight` and `textLeading` for a short card's proportions, and `plain` for only the paper and its palette, as the library shows each card pattern (#106) |
 | `player/CardBand` | The title band every card family shares (#109): the brown gradient over the paper noise, a gold Cinzel title at 28, 22 or 21 px, and the trap's red band |
 | `player/CardEdition` | The edition chip at every card's foot (#109): the edition's name in its own card colour, base brown, Plans & Ploys green, Arts & Architecture purple or Fantasies & Futures teal |
 | `player/CivilizationCard` | Eighteen recipes, every base civilization among them (the Futurists, Heralds, Nomads and The Chosen await review), with empty/in-play example states; any other civilization shows its frame, portrait and name only. The six card civilizations (Entertainers, Merrymakers, Leaders, Militants, Historians, Mystics) draw a seat's `live` state from `civCardView()` (`src/lib/civ-card.js`) in the play look, their tokens in the `seat`'s colour, and turn the spots its decision offers into buttons with the green available outline, the `selected` one gold, reporting `onCivilizationCardPick` with the spot id (#78) |
@@ -144,7 +144,7 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | `player/CardFan` | Overlapping cards; hover or focus raises one and reports it for a full view |
 | `player/CardResource` | Native 24 px inline icon without changing row spacing; `fine` for 11 px supporting text, and a container centres it with `--card-resource-center` and `--card-resource-height` instead of styling it (#106) |
 | `player/PlayerToken` | A player's token, from its seat (#103) or one of the five supplied shaded 32 px colour variants |
-| `player/CardSlot` | Compact, large or prediction square, never larger than 75 px; `pickable`, a button with the green available outline that reports `onCardSlotPick` with its `value`, gold when `picked` (#78) |
+| `player/CardSlot` | Compact, large or prediction square, never larger than 75 px, `filled` with the 2 px border in the player's colour (#106); `pickable`, a button with the green available outline that reports `onCardSlotPick` with its `value`, gold when `picked` (#78) |
 | `player/CardEffectBox` | Beige trigger/scoring row: its `title`, a `gain` resource or a `label` word as its symbol (or a `symbol` snippet for a pictogram) at `symbolText` 12–15 px, and the rules as children (#106) |
 | `player/CardEffectList` | A card's column of `CardEffectBox` rows inside the 12 px inset, with `above` for extra space (#106) |
 | `player/CardClarity` | Supporting rules beneath the relevant layout as its own 11 px paragraph, with an optional fainter `setup` line, and `above` and `minHeight` for a card's spacing (#106) |

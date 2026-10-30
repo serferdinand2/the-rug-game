@@ -1,9 +1,9 @@
 <!-- Library section: CardPathGrid, reward squares joined by legal links (#106). -->
 <script>
 	import CardPathGrid from '../../../lib/components/player/CardPathGrid.svelte';
+	import CardFrame from '../../../lib/components/player/CardFrame.svelte';
 	import Section from '../../Section.svelte';
 	import Example from '../../Example.svelte';
-	import '../../../styles/card-patterns.css';
 
 	/** @typedef {import('../../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
@@ -41,17 +41,17 @@
 	><Example
 		label="heads spaces links start"
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardPathGrid
 				heads={HEADS}
 				spaces={SPACES}
 				links={LINKS}
 				start={START} />
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label={`current="c1r1" choices={['c2r1', 'c2r2']} picked="${picked}"`}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardPathGrid
 				heads={HEADS}
 				spaces={SPACES}
@@ -61,5 +61,5 @@
 				choices={['c2r1', 'c2r2']}
 				{picked}
 				onCardPathGridPick={pickHandler} />
-		</div></Example
+		</CardFrame></Example
 	></Section>

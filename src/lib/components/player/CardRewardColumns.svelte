@@ -120,6 +120,7 @@
 						class:rg-card-reward-columns--filled={row.filled}>
 						<CardSlot
 							size={62}
+							filled={row.filled}
 							class="rg-card-reward-columns--slot"
 							>{#if row.filled && row.building}<img
 									src="/art/building/{row.building}.svg"
@@ -148,6 +149,7 @@
 			class:rg-card-reward-columns--moved={track.moved}>
 			{#each track.cells as cell (cell.id)}<CardSlot
 					size={75}
+					filled={cell.current}
 					{...spotChoice(cell.id, choices, picked, cellPickHandler)}
 					class="rg-card-reward-columns--cell {cell.current
 						? 'rg-card-reward-columns--current'
@@ -223,7 +225,6 @@
 	/* CardSlot draws the squares; the columns draw what is on them. */
 	.rg-card-reward-columns--filled :global(.rg-card-reward-columns--slot) {
 		background: var(--card-filled-slot);
-		border: 2px solid var(--player-1);
 	}
 	.rg-card-reward-columns--row :global(.rg-card-reward-columns--slot img) {
 		display: block;
@@ -270,7 +271,6 @@
 		text-align: center;
 	}
 	.rg-card-reward-columns--track :global(.rg-card-reward-columns--current) {
-		border: 2px solid var(--player-1);
 		box-shadow: var(--glow-current);
 	}
 	.rg-card-reward-columns--reward {

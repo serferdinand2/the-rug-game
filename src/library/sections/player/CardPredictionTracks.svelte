@@ -1,9 +1,9 @@
 <!-- Library section: CardPredictionTracks, numbered prediction targets by category (#106). -->
 <script>
 	import CardPredictionTracks from '../../../lib/components/player/CardPredictionTracks.svelte';
+	import CardFrame from '../../../lib/components/player/CardFrame.svelte';
 	import Section from '../../Section.svelte';
 	import Example from '../../Example.svelte';
-	import '../../../styles/card-patterns.css';
 
 	/** @typedef {import('../../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
@@ -26,27 +26,27 @@
 	><Example
 		label="categories"
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardPredictionTracks categories={CATEGORIES} />
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label="categories, techCards selected={4}"
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardPredictionTracks
 				categories={CATEGORIES.map((category) => ({
 					...category,
 					selected: category.id === 'techCards' ? 4 : undefined,
 				}))} />
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label={`choices={['tracks:1' … 'tracks:4']} picked="${picked}"`}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardPredictionTracks
 				categories={CATEGORIES}
 				choices={['tracks:1', 'tracks:2', 'tracks:3', 'tracks:4']}
 				{picked}
 				onCardPredictionTracksPick={pickHandler} />
-		</div></Example
+		</CardFrame></Example
 	></Section>

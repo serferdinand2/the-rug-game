@@ -147,6 +147,7 @@
 		{#each spaces as space (space.id)}
 			<CardSlot
 				size={75}
+				filled={current === space.id}
 				{...spotChoice(space.id, choices, picked, spacePickHandler)}
 				class="rg-card-path-grid--space {space.gain
 					? 'rg-card-path-grid--gain'
@@ -225,7 +226,6 @@
 		image-rendering: pixelated;
 	}
 	.rg-card-path-grid--grid :global(.rg-card-path-grid--current) {
-		border: 2px solid var(--player-1);
 		box-shadow: var(--glow-current);
 	}
 	.rg-card-path-grid--start {

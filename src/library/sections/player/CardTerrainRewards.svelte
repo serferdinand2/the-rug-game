@@ -1,9 +1,9 @@
 <!-- Library section: CardTerrainRewards, a card's terrain reward rows (#106). -->
 <script>
 	import CardTerrainRewards from '../../../lib/components/player/CardTerrainRewards.svelte';
+	import CardFrame from '../../../lib/components/player/CardFrame.svelte';
 	import Section from '../../Section.svelte';
 	import Example from '../../Example.svelte';
-	import '../../../styles/card-patterns.css';
 
 	const ROWS = /** @type {const} */ ([
 		{
@@ -28,17 +28,17 @@
 	><Example
 		label="rows"
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardTerrainRewards rows={ROWS} />
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label="rows, the first used"
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardTerrainRewards
 				rows={ROWS.map((row, index) => ({
 					...row,
 					used: index === 0,
 				}))} />
-		</div></Example
+		</CardFrame></Example
 	></Section>

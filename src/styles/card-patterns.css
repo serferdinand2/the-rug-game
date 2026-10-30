@@ -1,54 +1,45 @@
-/* Owner-reviewed civilization card composition, extracted without changing its visual rules. */
-/* ---------- Shared pieces ---------- */
-/* Stepped "pixel" corners: two steps of --s at every corner. */
-.rg-card-notch {
-	--s: 3px;
-	clip-path: polygon(
-		0 calc(var(--s) * 2),
-		var(--s) calc(var(--s) * 2),
-		var(--s) var(--s),
-		calc(var(--s) * 2) var(--s),
-		calc(var(--s) * 2) 0,
-		calc(100% - var(--s) * 2) 0,
-		calc(100% - var(--s) * 2) var(--s),
-		calc(100% - var(--s)) var(--s),
-		calc(100% - var(--s)) calc(var(--s) * 2),
-		100% calc(var(--s) * 2),
-		100% calc(100% - var(--s) * 2),
-		calc(100% - var(--s)) calc(100% - var(--s) * 2),
-		calc(100% - var(--s)) calc(100% - var(--s)),
-		calc(100% - var(--s) * 2) calc(100% - var(--s)),
-		calc(100% - var(--s) * 2) 100%,
-		calc(var(--s) * 2) 100%,
-		calc(var(--s) * 2) calc(100% - var(--s)),
-		var(--s) calc(100% - var(--s)),
-		var(--s) calc(100% - var(--s) * 2),
-		0 calc(100% - var(--s) * 2)
-	);
+/* The civilization card's palette and paper, which CardFrame and everything on it read, and the pictogram symbols
+   CivilizationCard still draws itself until it is drawn from data. Each card pattern styles itself (issue 106). */
+
+/* The card's palette over the app's, its paper and its border. */
+.rg-card-frame {
+	--chrome: var(--card-paper);
+	--ink: var(--card-ink);
+	--control: var(--card-control);
+	--raised: var(--card-raised);
+	--text: var(--card-text);
+	--muted: var(--card-muted);
+	--faint: var(--card-faint);
+	--gold: var(--card-band-start);
+	--bronze: var(--card-line);
+	--line: var(--card-line);
+	--line-strong: var(--card-line-strong);
+	--line-soft: var(--card-line-soft);
+	--arts-architecture: var(--card-expansion);
+	--shadow-card: 0 10px 26px var(--card-shadow-soft);
+	flex: none;
+	width: 425px;
+	border: var(--border-thick) solid var(--line-strong);
+	box-shadow:
+		var(--shadow-card),
+		inset 0 0 0 1px var(--ink);
+	color: var(--text);
+	background-color: var(--chrome);
+	background-image: url('./card-paper-noise.svg');
+	background-size: 256px 256px;
+	font-family: var(--font-body);
 }
-.rg-card-shadow {
-	filter: drop-shadow(0 14px 20px var(--card-shadow-strong));
+/* Native token and resource assets keep their colour, dimensions and alpha. */
+.rg-card-frame,
+.rg-card-frame * {
+	box-sizing: border-box;
 }
-.rg-card-any {
-	display: inline-block;
-	width: 18px;
-	height: 18px;
-	vertical-align: -4px;
+.rg-card-frame img {
+	image-rendering: pixelated;
 }
-.rg-card-cx {
-	display: inline-flex;
-	gap: 3px;
-	align-items: center;
-}
-.rg-card-cx i {
-	width: 7px;
-	height: 7px;
-	background: var(--gold);
-	transform: rotate(45deg);
-}
-.rg-card-cx i.rg-card-off {
-	background: transparent;
-	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent);
+.rg-card-frame [tabindex='0']:focus-visible {
+	outline: 2px solid var(--player-1);
+	outline-offset: 2px;
 }
 
 /* A mini tapestry card in an effect box's symbol (the Heralds). */
@@ -76,125 +67,8 @@
 .rg-card-mini-card--tapestry::before {
 	background: var(--gold);
 }
-.rg-card-mini-card--tech::before {
-	background: var(--technology);
-}
 
-/* ================= Option B · Civilization mat ================= */
-.rg-card-frame {
-	width: 425px;
-	background: var(--chrome);
-	border: var(--border-thick) solid var(--line-strong);
-	box-shadow:
-		var(--shadow-card),
-		inset 0 0 0 1px var(--ink);
-}
-/* CardBand draws the band itself (issue 109); the frame sets its height and padding. */
-.rg-card-frame--band {
-	min-height: 49px;
-	padding: var(--space-4) var(--space-6);
-}
-.rg-card-frame--body {
-	display: grid;
-	grid-template-columns: 128px 1fr;
-	gap: var(--space-6);
-	padding: var(--space-6);
-}
-.rg-card-frame--portrait {
-	width: 128px;
-	height: 128px;
-	box-shadow:
-		0 0 0 1px var(--bronze),
-		0 0 0 3px var(--ink);
-}
-.rg-card-frame--text {
-	margin: 0 0 var(--space-4);
-	font-size: var(--font-size-sm);
-	line-height: var(--leading-normal);
-}
-
-/* Only Option B's surface treatment changes for this colour proof. */
-.rg-card-frame {
-	--chrome: var(--card-paper);
-	--ink: var(--card-ink);
-	--control: var(--card-control);
-	--raised: var(--card-raised);
-	--text: var(--card-text);
-	--muted: var(--card-muted);
-	--faint: var(--card-faint);
-	--gold: var(--card-band-start);
-	--bronze: var(--card-line);
-	--line: var(--card-line);
-	--line-strong: var(--card-line-strong);
-	--line-soft: var(--card-line-soft);
-	--arts-architecture: var(--card-expansion);
-	--shadow-card: 0 10px 26px var(--card-shadow-soft);
-	color: var(--text);
-	background-color: var(--chrome);
-	background-image: url('./pixel-noise.svg');
-	background-size: 128px 128px;
-}
-
-.rg-card-options {
-	padding-top: 44px;
-}
-.rg-card-option {
-	flex: 0 0 auto;
-	width: 560px;
-}
-
-.rg-card-frame {
-	width: 425px;
-	background-size: 256px 256px;
-}
-.rg-card-frame--text {
-	font-size: 15px;
-	line-height: 1.38;
-}
-
-.rg-card-frame--body {
-	grid-template-columns: 160px 1fr;
-	gap: 12px;
-	padding: 12px;
-	align-items: start;
-}
-.rg-card-frame--portrait {
-	width: 160px;
-	height: 160px;
-}
-
-.rg-card-frame--foot {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 7px 12px 9px;
-	border-top: 1px solid var(--line);
-}
-.rg-card-frame {
-	background-image: url('./card-paper-noise.svg');
-}
-
-.rg-card-options {
-	gap: 22px;
-	padding: 34px 18px;
-}
-.rg-card-option {
-	width: 450px;
-	padding: 8px 10px 20px;
-	gap: 15px;
-}
-.rg-card-option--head {
-	min-height: 114px;
-}
-.rg-card-frame--architects .rg-card-frame--body,
-.rg-card-frame--leaders .rg-card-frame--body {
-	min-height: 184px;
-}
-.rg-card-frame--architects .rg-card-frame--text,
-.rg-card-frame--leaders .rg-card-frame--text {
-	line-height: 1.5;
-}
-
+/* The Architects' district and line pictograms. */
 .rg-card-district-icon {
 	display: grid;
 	grid-template-columns: repeat(3, 12px);
@@ -224,28 +98,11 @@
 	background: var(--card-score-line);
 }
 
-.rg-card-badge-group {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.rg-card-frame--treasure .rg-card-frame--body {
-	min-height: 184px;
-}
-
-.rg-card-frame--craftsmen .rg-card-frame--body {
-	min-height: 184px;
-}
-
-/* The Militants' instruction under their rows, until the civilization card is drawn from data. */
-
+/* The Militants' instruction under their rows. */
 .rg-card-militant-guide {
 	margin: 7px 20px 0;
 	color: var(--muted);
-	font:
-		700 10px/1.2 'Atkinson Hyperlegible',
-		sans-serif;
+	font: var(--weight-bold) var(--font-size-3xs) / 1.2 var(--font-body);
 	text-transform: uppercase;
 }
 
@@ -275,6 +132,7 @@
 	image-rendering: pixelated;
 }
 
+/* A map territory, empty or with an outpost (the Traders and the Nomads). */
 .rg-card-trader-hex {
 	position: relative;
 	display: grid;
@@ -296,78 +154,4 @@
 	z-index: 1;
 	width: 29px;
 	height: 29px;
-}
-
-/* Native token and resource assets keep their colour, dimensions and alpha. */
-.rg-card-frame,
-.rg-card-frame * {
-	box-sizing: border-box;
-}
-.rg-card-frame {
-	flex: none;
-	font-family: var(--font-body);
-}
-.rg-card-frame img {
-	image-rendering: pixelated;
-}
-.rg-card-slot-surface {
-	display: inline-grid;
-	position: relative;
-	place-items: center;
-	width: var(--card-slot-size);
-	height: var(--card-slot-size);
-	min-width: var(--card-slot-size);
-	max-width: 75px;
-	aspect-ratio: 1;
-	border: 1px solid var(--card-slot-border);
-	background: var(--card-slot);
-}
-.rg-card-slot-surface--filled {
-	border: 2px solid var(--player-1);
-}
-/* A spot the open decision offers is a button drawn as its square (#78). The reset only undoes the browser's button
-   look, at zero specificity, so every card rule still wins. The outline is the track spaces' available green, and
-   their gold once picked: inside a card --gold is the paper's brown, so the picked outline takes the palette's gold,
-   --card-title. */
-:where(.rg-card-slot-surface--pickable) {
-	appearance: none;
-	margin: 0;
-	padding: 0;
-	color: inherit;
-	font: inherit;
-	letter-spacing: inherit;
-	word-spacing: inherit;
-	text-align: inherit;
-	text-indent: inherit;
-	text-transform: inherit;
-	text-shadow: inherit;
-}
-.rg-card-slot-surface--pickable {
-	cursor: pointer;
-	outline: var(--border-thick) solid var(--ok);
-	outline-offset: 0;
-}
-.rg-card-slot-surface--pickable:hover {
-	box-shadow: var(--glow-ok);
-}
-.rg-card-slot-surface--pickable:focus-visible {
-	outline: var(--border-thick) dashed var(--ok);
-	outline-offset: 0;
-}
-.rg-card-slot-surface--pickable.rg-card-slot-surface--picked {
-	outline: var(--border-thick) solid var(--card-title);
-	outline-offset: 0;
-	box-shadow: var(--glow-gold);
-}
-.rg-card-slot-surface--pickable.rg-card-slot-surface--picked:focus-visible {
-	outline-style: dashed;
-}
-
-.rg-card-frame--text > p {
-	margin: 0;
-}
-
-.rg-card-frame [tabindex='0']:focus-visible {
-	outline: 2px solid var(--player-1);
-	outline-offset: 2px;
 }

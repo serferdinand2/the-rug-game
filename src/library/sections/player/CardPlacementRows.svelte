@@ -1,9 +1,9 @@
 <!-- Library section: CardPlacementRows, the five placement layouts (#106). -->
 <script>
 	import CardPlacementRows from '../../../lib/components/player/CardPlacementRows.svelte';
+	import CardFrame from '../../../lib/components/player/CardFrame.svelte';
 	import Section from '../../Section.svelte';
 	import Example from '../../Example.svelte';
-	import '../../../styles/card-patterns.css';
 
 	/** @typedef {import('../../../lib/component-event.js').ComponentEvent} ComponentEvent */
 	/** @typedef {import('../../../lib/ui.js').CostSymbol} CostSymbol */
@@ -86,45 +86,45 @@
 	><Example
 		label={'kind="collection" items, two collected'}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardPlacementRows
 				kind="collection"
 				items={COLLECTION} />
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label={'kind="covered" items, two exposed'}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardPlacementRows
 				kind="covered"
 				items={COVERED} />
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label={'kind="tracks" items, one rolled'}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardPlacementRows
 				kind="tracks"
 				items={TRACKS} />
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label={`kind="leaders" items, one used, choices={['science', 'military']} picked="${picked}"`}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardPlacementRows
 				kind="leaders"
 				items={TRACKS}
 				choices={['science', 'military']}
 				{picked}
 				onCardPlacementRowsPick={pickHandler} />
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label={'kind="history" seat={3} items, one exposed'}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardPlacementRows
 				kind="history"
 				seat={3}
 				items={HISTORY} />
-		</div></Example
+		</CardFrame></Example
 	></Section>

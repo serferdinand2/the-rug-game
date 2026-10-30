@@ -2,9 +2,9 @@
 <script>
 	import CardEffectBox from '../../../lib/components/player/CardEffectBox.svelte';
 	import CardEffectList from '../../../lib/components/player/CardEffectList.svelte';
+	import CardFrame from '../../../lib/components/player/CardFrame.svelte';
 	import Section from '../../Section.svelte';
 	import Example from '../../Example.svelte';
-	import '../../../styles/card-patterns.css';
 </script>
 
 <Section
@@ -14,7 +14,7 @@
 	><Example
 		label="children"
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardEffectList>
 				<CardEffectBox
 					title="Place a token"
@@ -23,11 +23,11 @@
 					>Gain any resource. With two tokens on it, that territory
 					cannot be conquered.</CardEffectBox>
 			</CardEffectList>
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label={'above={14}'}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardEffectList above={14}>
 				<CardEffectBox
 					title="First time reached"
@@ -41,5 +41,5 @@
 					symbolText={15}
 					>Score 10 VP for each category predicted exactly.</CardEffectBox>
 			</CardEffectList>
-		</div></Example
+		</CardFrame></Example
 	></Section>

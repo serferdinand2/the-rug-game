@@ -1,9 +1,9 @@
 <!-- Library section: CardScoreLadder, the stepped and the flat end-of-game score (#106). -->
 <script>
 	import CardScoreLadder from '../../../lib/components/player/CardScoreLadder.svelte';
+	import CardFrame from '../../../lib/components/player/CardFrame.svelte';
 	import Section from '../../Section.svelte';
 	import Example from '../../Example.svelte';
-	import '../../../styles/card-patterns.css';
 
 	const STEPPED = [1, 3, 6, 10, 15, 21].map((points, index) => ({
 		count: index + 1,
@@ -26,21 +26,21 @@
 	><Example
 		label="steps"
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardScoreLadder steps={STEPPED} />
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label={'steps current={3}'}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardScoreLadder
 				steps={STEPPED}
 				current={3} />
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label={'kind="flat" label steps example'}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardScoreLadder
 				kind="flat"
 				label="Final income turn · territories in your largest connected landmass of one terrain"
@@ -50,5 +50,5 @@
 					text: '3 connected grassland territories',
 					result: '= 16 VP',
 				}} />
-		</div></Example
+		</CardFrame></Example
 	></Section>

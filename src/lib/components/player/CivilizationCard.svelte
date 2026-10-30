@@ -388,14 +388,11 @@
 			portraitAlt="A collector studies a gem through a magnifying glass"
 			editions={['aa']}
 			complexity={2}
-			{state}
-			class="">
+			{state}>
 			{#snippet effect()}
 				During an <b>advance</b> turn, when you gain one of these, you
 				may place it on its space if the space is empty. Then gain
-				<CardResource
-					symbol="any"
-					class="" />. One item per turn.
+				<CardResource symbol="any" />. One item per turn.
 			{/snippet}
 
 			<CardPlacementRows
@@ -422,7 +419,8 @@
 			editions={['base']}
 			complexity={3}
 			{state}
-			class="rg-card-frame--architects">
+			bodyMinHeight={184}
+			textLeading={1.5}>
 			{#snippet effect()}Build with matching income buildings to gain more
 				from completed districts and score more from completed rows and
 				columns.{/snippet}
@@ -460,7 +458,8 @@
 			editions={['base']}
 			complexity={1}
 			state={cardState}
-			class="rg-card-frame--leaders">
+			bodyMinHeight={184}
+			textLeading={1.5}>
 			{#snippet effect()}At the start of income turns 2–5, you may cover
 				one unused track space. Advance on that track for free and gain
 				its benefit.{/snippet}
@@ -489,7 +488,7 @@
 			editions={['pp']}
 			complexity={3}
 			{state}
-			class="rg-card-frame--treasure">
+			bodyMinHeight={184}>
 			{#snippet effect()}At the start of income turns 2–5, you may move
 				one token from this mat to an empty adjacent territory matching
 				an unused terrain below. Control it and gain that terrain&#x27;s
@@ -515,7 +514,7 @@
 			editions={['base']}
 			complexity={1}
 			{state}
-			class="rg-card-frame--craftsmen">
+			bodyMinHeight={184}>
 			{#snippet effect()}When you gain an income building, you may place
 				it here instead of in your capital. Place it on the <b
 					>lowest open space</b> in any column and immediately gain that
@@ -543,8 +542,7 @@
 			portraitAlt="Entertainers civilization portrait"
 			editions={['base']}
 			complexity={2}
-			state={cardState}
-			class="rg-card-frame--entertainers">
+			state={cardState}>
 			{#snippet effect()}At the start of income turns 2–5, move your token
 				one column right along a path and gain the space&#x27;s reward.{/snippet}
 
@@ -574,8 +572,7 @@
 			portraitAlt="Militants civilization portrait"
 			editions={['base']}
 			complexity={1}
-			state={cardState}
-			class="rg-card-frame--militants">
+			state={cardState}>
 			{#snippet effect()}When you conquer, take the leftmost outpost from
 				either row. At the start of every income turn, gain all
 				uncovered rewards.{/snippet}
@@ -605,8 +602,7 @@
 			portraitAlt="Mystics civilization portrait"
 			editions={['base']}
 			complexity={3}
-			state={cardState}
-			class="rg-card-frame--mystics">
+			state={cardState}>
 			{#snippet effect()}When you gain this civilization, predict one
 				number in each category by placing a token on it.{/snippet}
 
@@ -645,8 +641,7 @@
 			portraitAlt="Alchemists civilization portrait"
 			editions={['base']}
 			complexity={3}
-			{state}
-			class="rg-card-frame--alchemists">
+			{state}>
 			{#snippet effect()}At the start of income turns 2–5, roll the
 				science die and mark its track. After each roll, stop or roll
 				again.{/snippet}
@@ -668,9 +663,7 @@
 					title="Roll a marked track again"
 					label="BUST"
 					symbolText={14}
-					>Clear all tokens and gain + <CardResource
-						symbol="any"
-						class="" /> instead.</CardEffectBox>
+					>Clear all tokens and gain + <CardResource symbol="any" /> instead.</CardEffectBox>
 				<CardEffectBox
 					title="Past a track's end"
 					label="5 VP"
@@ -690,8 +683,7 @@
 			portraitAlt="Isolationists civilization portrait"
 			editions={['base']}
 			complexity={2}
-			{state}
-			class="rg-card-frame--isolationists">
+			{state}>
 			{#snippet effect()}When you conquer an empty territory, you may add
 				one of your four tokens there beside your outpost.{/snippet}
 
@@ -727,8 +719,7 @@
 			portraitAlt="Traders civilization portrait"
 			editions={['base']}
 			complexity={1}
-			{state}
-			class="rg-card-frame--traders">
+			{state}>
 			{#snippet effect()}At the start of income turns 2–5, you may place
 				one of these tokens on a qualifying map territory.{/snippet}
 
@@ -761,8 +752,7 @@
 			portraitAlt="Merrymakers civilization portrait"
 			editions={['base']}
 			complexity={1}
-			state={cardState}
-			class="rg-card-frame--merrymakers">
+			state={cardState}>
 			{#snippet effect()}At the start of income turns 2–5, move one token
 				up one square and gain everything shown there.{/snippet}
 
@@ -794,8 +784,7 @@
 			portraitAlt="Historians civilization portrait"
 			editions={['base']}
 			complexity={1}
-			state={cardState}
-			class="rg-card-frame--historians">
+			state={cardState}>
 			{#snippet effect()}At the start of income turns 2–5, you may discard
 				a territory tile to give one of these tokens to an opponent.{/snippet}
 
@@ -830,8 +819,7 @@
 			portraitAlt="Inventors civilization portrait"
 			editions={['base']}
 			complexity={1}
-			{state}
-			class="rg-card-frame--inventors">
+			{state}>
 			{#snippet effect()}At the start of income turns 2–5, you may put one
 				token on any technology card and upgrade it one row.{/snippet}
 
@@ -868,8 +856,7 @@
 			portraitAlt="Futurists civilization portrait"
 			editions={['base']}
 			complexity={3}
-			{state}
-			class="rg-card-frame--futurists">
+			{state}>
 			{#snippet effect()}When you gain this civilization, at setup or
 				during the game, jump ahead on every advancement track at once.{/snippet}
 
@@ -910,8 +897,7 @@
 			portraitAlt="Heralds civilization portrait"
 			editions={['base']}
 			complexity={1}
-			{state}
-			class="rg-card-frame--heralds">
+			{state}>
 			{#snippet effect()}At the start of income turns 2–5, you may move
 				one of these tokens onto a When Played tapestry card, yours or
 				an opponent&#x27;s, and gain its benefit.{/snippet}
@@ -949,8 +935,7 @@
 			portraitAlt="Nomads civilization portrait"
 			editions={['base']}
 			complexity={3}
-			{state}
-			class="rg-card-frame--nomads">
+			{state}>
 			{#snippet effect()}Whenever you gain a building or a landmark, you
 				may place it on the map instead of in your capital, in one of
 				two ways.{/snippet}
@@ -986,8 +971,7 @@
 			portraitAlt="The Chosen civilization portrait"
 			editions={['base']}
 			complexity={2}
-			{state}
-			class="rg-card-frame--the-chosen">
+			{state}>
 			{#snippet effect()}At the start of income turns 2–5, gain VP for the
 				tracks you lead and resources for your achievements.{/snippet}
 
@@ -1024,8 +1008,7 @@
 			portrait="/art/civ/{id}.svg"
 			portraitAlt=""
 			editions={[edition]}
-			{state}
-			class="">
+			{state}>
 			{#snippet effect()}
 				<span class="rg-civilization-card--missing"
 					>The full card is on its way.</span>

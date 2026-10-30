@@ -77,6 +77,7 @@
 				{#each Array.from({ length: category.most }, (_, index) => index + 1) as value (value)}
 					<CardSlot
 						size={39}
+						filled={category.selected === value}
 						{...spotChoice(
 							`${category.id}:${value}`,
 							choices,
@@ -136,7 +137,6 @@
 	}
 	.rg-card-prediction-tracks--numbers
 		:global(.rg-card-prediction-tracks--selected) {
-		border: 2px solid var(--player-1);
 		background: var(--card-filled-slot);
 		box-shadow: var(--glow-current);
 	}

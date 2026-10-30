@@ -1,9 +1,9 @@
 <!-- Library section: CardRewardColumns, the Craftsmen's columns beside and the Merrymakers' columns inside (#106). -->
 <script>
 	import CardRewardColumns from '../../../lib/components/player/CardRewardColumns.svelte';
+	import CardFrame from '../../../lib/components/player/CardFrame.svelte';
 	import Section from '../../Section.svelte';
 	import Example from '../../Example.svelte';
-	import '../../../styles/card-patterns.css';
 
 	/** @typedef {import('../../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
@@ -71,18 +71,18 @@
 	><Example
 		label="columns, two rows filled"
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardRewardColumns columns={BESIDE} />
-		</div></Example
+		</CardFrame></Example
 	><Example
 		label={`kind="inside" columns choices={['m1l1']} picked="${picked}"`}
 		width={425}
-		><div class="rg-card-frame">
+		><CardFrame plain>
 			<CardRewardColumns
 				kind="inside"
 				columns={INSIDE}
 				choices={['m1l1']}
 				{picked}
 				onCardRewardColumnsPick={pickHandler} />
-		</div></Example
+		</CardFrame></Example
 	></Section>
