@@ -20,6 +20,7 @@ import {
 	incomeWords,
 	myDecision,
 	takingTurnWords,
+	trackPreviewSeat,
 } from '../src/lib/turn.js';
 import {
 	answer,
@@ -119,6 +120,30 @@ test("the viewer's decision is the defender's trap response on the attacker's tu
 	const mine = myDecision(view(state, 2), 2);
 	assert.equal(mine?.kind, 'chooseResponse');
 	assert.equal(myDecision(view(state, 1), 1), null);
+	// A trap response is the defender's, but not their turn: hovering previews no line (#81).
+	assert.equal(trackPreviewSeat(view(state, 2), 2), null);
+	assert.equal(trackPreviewSeat(view(state, 1), 1), null);
+});
+
+test("only the viewer's own line is previewed, and only while their turn choice or advance is open (#81)", () => {
+	const { state, random } = startedGame(3, { keepIncome: true });
+	const current = /** @type {number} */ (state.current);
+	assert.equal(myDecision(view(state, current), current)?.kind, 'chooseTurn');
+	assert.equal(trackPreviewSeat(view(state, current), current), current);
+	for (const seat of [1, 2, 3].filter((s) => s !== current)) {
+		assert.equal(trackPreviewSeat(view(state, seat), seat), null);
+	}
+	assert.equal(trackPreviewSeat(view(state, null), null), null);
+	const advancing = answer(state, random, current, 'chooseTurn', {
+		turn: 'advance',
+	});
+	assert.equal(
+		myDecision(view(advancing, current), current)?.kind,
+		'chooseAdvance'
+	);
+	assert.equal(trackPreviewSeat(view(advancing, current), current), current);
+	const { state: setup } = newGame(3);
+	assert.equal(trackPreviewSeat(view(setup, 1), 1), null);
 });
 
 test('in setup each seat finds its own pick in its lane', () => {
