@@ -38,7 +38,7 @@ function ops(stack) {
 	);
 }
 
-test('the keys close the notice, switch tabs, the board and players, peek at the log, advance and take income (#83)', async ({
+test("the keys close the notice, switch tabs, the board and a player's tabs, peek at the log, advance and take income (#83, #145)", async ({
 	page,
 	request,
 }) => {
@@ -131,11 +131,14 @@ test('the keys close the notice, switch tabs, the board and players, peek at the
 		await page.keyboard.press('m');
 		await expect(page.locator('.rg-track-board')).toBeVisible();
 
-		// 2 opens the players overview, and 2 again closes it.
-		await page.keyboard.press('2');
-		await expect(page.locator('.rg-players-overview')).toBeVisible();
-		await page.keyboard.press('2');
+		// The other player's number shows their tabs in the player area, and the same number again goes back (#145).
+		const other = String(3 - seat);
+		const inspecting = page.locator('.rg-player-tabs--inspecting');
+		await page.keyboard.press(other);
+		await expect(inspecting).toBeVisible();
 		await expect(page.locator('.rg-players-overview')).toHaveCount(0);
+		await page.keyboard.press(other);
+		await expect(inspecting).toHaveCount(0);
 
 		// Tab held shows the log and scores until it is let go.
 		await page.keyboard.down('Tab');

@@ -222,12 +222,22 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 
 ![The player area with the Capital tab: Teodor's Wetland mat with its relief (#82) and an Architects' cube on the top-left plot](screens/game-player-area.png)
 
-![The players overview, with Mira's Desert capital opened on the right](screens/game-overview.png)
-
 - **The tabs** are the mockup's: Capital (the seat's real mat and plots, landmarks over the edge allowed, the counters, and what lies beside the mat), Hand (the tapestry cards overlapping; hovering shows one in full over the shared area), Income (the four rows, covered spaces with their building, exposed ones with their reward in words), Eras (the four slots, a face-down card shown as such, the active card in full), Civ (the reviewed card for the twelve base civilizations with a recipe, a plain portrait card for the other four until #47), Tech (the three rows and the display with the deck count) and Terrain (territory tiles drawn like the map's, and space tiles).
 - **Real cards:** the tech and tapestry cards are built from the engine's data through `describe.js`; no text is invented. Lazar's fixtures stay for the library and the card review.
 - **Tab switching:** a decision about a tab's things opens that tab by itself.
-- **The players overview** opens from the chips, as in the mockup: one card per player, and Capital, Civilization or Tech of any player on the right. Opponents' hands appear only as counts.
+- **The players overview** opened from the chips, as in the mockup: one card per player, and Capital, Civilization or Tech of any player on the right. Since #145 (below) nothing opens it; its code stays.
+
+**Built in #145 (2026-10-30): another player's tabs in the player area.** The owner ruled: "When I click on the other player in the top nav, no longer open the card view of all players, just show me their view of the right sidenav but hide all cards that are private." It also meets #143's goal, an opponent's eras and territory tiles, whose overview rows it supersedes. The design is `docs/superpowers/specs/2026-10-30-opponent-tabs-design.md`.
+
+![Vera's turn with Mira's chip pressed: Mira's capital in the player area, bordered in her blue, under Viewing Mira's area and Back to your area](screens/game-opponent-tabs.png)
+
+![Mira's Hand tab seen by Vera: a count, no card](screens/game-opponent-hand.png)
+
+- **A chip shows that player's tabs** in the 1/4 player area: the same seven tabs, on the tab you had open, read-only. The area is bordered in their colour, and `InspectBar` says "Viewing Mira's area" with their colour square and **Back to your area**. The headings name them ("Mira's eras").
+- **Private things stay hidden:** their Hand tab is a count; a face-down tapestry card is "Face-down card" in their Eras tab, as in yours. The client draws a seat through `publicSeat` (`src/lib/area/inspect.js`), which drops another seat's hand and picks even if a view held them.
+- **Read-only:** no placement, tile pick or card spot on their tabs; hovering a face-up card still shows it in full. Your turn, the footer and any open panel are untouched, and **Your overview** at the foot stays yours. A decision that opens one of your tabs takes you back to your own area.
+- **The way back:** their chip again, your own chip, **Back to your area**, or Escape once nothing else is open. **1–5** do what the chips do.
+- **The players overview** is no longer reached from anywhere; `PlayersOverview`, `PlayerCard` and its layer stay in the code for the owner to decide on.
 
 **Built in #78 (2026-10-29): choices on the civilization card.** The Entertainers, Merrymakers, Leaders, Militants, Historians and Mystics cards show where their pieces are, in the Civ tab and the players overview. Their own choices are made on the card: the spots on offer are outlined in green, the picked one in gold, and the panel at the tracks' centre says what it gives beside **Confirm choice**. A spot several answers share (the Historians' opponents) lists them in the panel. The owner approved the library's CivilizationCard section on 2026-10-29.
 
@@ -303,7 +313,7 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 ![Income asks first](screens/game-income-ask.png)
 
 - **Your turn:** **I** asks "Take an income turn?" in the footer, as the **Take income** button now does too; **I** or **Enter** takes it, **Esc** or **Cancel** goes back. **A** asks "Advance on which track?" with a numbered button per track, the ones you can't pay for off; **1–4** answer (the payment panel opens when the payment has a choice, otherwise it advances at once). **Enter** confirms the open panel (the notice's Got it too) or the selected space's Advance; **Z** undoes.
-- **The board and the players:** **M** goes to the World Map and back; **1–5** open the players overview on that player's capital, the same key closes it; holding **Tab** shows the log and scores until it is let go (a tap still moves the focus); **L** opens or closes them.
+- **The board and the players:** **M** goes to the World Map and back; **1–5** open the players overview on that player's capital, the same key closes it (since #145 they show that player's tabs in the player area, as the chips do); holding **Tab** shows the log and scores until it is let go (a tap still moves the focus); **L** opens or closes them.
 - **Your player area:** **Q W E R T Y U** are Capital, Hand, Income, Eras, Civ, Tech and Terrain. **,** and **.** turn an explore's tile or a landmark being placed, since R is now the Eras tab. **H** and **K** open How to play and its Keyboard shortcuts tab.
 - No key acts while typing in a field, with Ctrl, Alt or Cmd held, in a menu or over How to play; an action key does nothing unless its action is available (`src/lib/hotkeys.js`).
 
@@ -405,6 +415,8 @@ The capital is always **9×9**. Its title is Atkinson with only the mat type, su
 The Mountain passability pattern matches canonical capital data, while its tile variants, placed buildings and occupancy remain review fixtures rather than a valid saved game. Production must use the canonical capital data, occupancy model and landmark footprints; the screenshot is a layout and interaction reference.
 
 ### Player overview and inspecting another player
+
+**In the game, #145 replaced this (owner, 2026-10-30):** a chip shows that player's tabs in the player area instead of opening the overview; see "Built in #145" above. The mockup below is kept as the record.
 
 ![Player overview](screens/players-overview.png)
 

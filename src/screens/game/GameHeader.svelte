@@ -25,7 +25,7 @@
 	 *   {game}
 	 *   {seat}
 	 *   {logUnread}
-	 *   onGameHeaderChip={() => (overviewOpen = !overviewOpen)}
+	 *   onGameHeaderChip={(event) => (viewing = nextInspected(viewing, event.value, seat))}
 	 *   onGameHeaderLog={() => (logOpen = !logOpen)}
 	 *   onGameHeaderMenu={(event) => choose(event.value)} />
 	 */

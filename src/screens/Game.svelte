@@ -47,6 +47,7 @@
 	import TapestryCard from '../lib/components/player/TapestryCard.svelte';
 	import TechnologyCard from '../lib/components/player/TechnologyCard.svelte';
 	import { tabFor } from '../lib/area/tabs.js';
+	import { nextInspected, shownSeat } from '../lib/area/inspect.js';
 	import { achievements, trackBoard } from '../lib/board.js';
 	import { mapHexes } from '../lib/hexmap.js';
 	import { PromptState } from '../lib/prompt-state.svelte.js';
@@ -85,6 +86,9 @@
 	let sending = $state(false);
 	/** The player tab on show (#27). */
 	let tab = $state('capital');
+	/** Another player whose tabs the player area shows, read-only, as their chip or number key chose them; null for your own (#145, owner 2026-10-30). */
+	let viewing = $state(/** @type {number | null} */ (null));
+	let tabSeat = $derived(shownSeat(viewing, seat));
 	/** @type {{ kind: 'tech' | 'tapestry', data: any, side?: boolean } | null} A card shown in full over the shared area; beside the shelf, without a scrim, for a shelf card */
 	let inspected = $state(null);
 	/**
@@ -228,18 +232,25 @@
 	// A card shown in full goes when what it was shown from may have gone: another tab, seat or decision (#27 review).
 	$effect(() => {
 		tab;
-		seat;
+		tabSeat;
 		decisionKey;
 		inspected = null;
 	});
 
-	// A decision about a tab's things opens that tab (#27 design §5).
+	// A decision about a tab's things opens that tab (#27 design §5), in your own area (#145).
 	$effect(() => {
 		decisionKey;
 		const wanted = untrack(() => tabFor(mine));
 		if (wanted) {
 			tab = wanted;
+			viewing = null;
 		}
+	});
+
+	// Another seat at the screen (a hot-seat pass) starts in its own area (#145).
+	$effect(() => {
+		seat;
+		viewing = null;
 	});
 
 	// The dice tray rolls clear of what is open over the board: a panel, a stack of cards, or the income notice. It is
@@ -402,11 +413,13 @@
 		logUnread = false;
 	};
 
-	/** The header's chips open the players overview on no one in particular, and close it. */
-	const chipHandler = () => {
-		layers = layers.overview
-			? closeLayer(layers, 'overview')
-			: openLayer(layers, 'overview');
+	/**
+	 * A header chip shows that player's tabs in the player area, and the same chip or your own goes back (#145, owner
+	 * 2026-10-30): the players overview no longer opens from the chips.
+	 * @param {ComponentEvent} event - From GameHeader: the chip's seat
+	 */
+	const chipHandler = (event) => {
+		viewing = nextInspected(viewing, event.value, seat);
 	};
 
 	/** A question in the footer belongs to the turn choice it was asked on. */
@@ -489,6 +502,9 @@
 				noticeCloseHandler();
 			} else if (layer !== null) {
 				layers = closeLayer(layers, layer);
+			} else if (viewing !== null) {
+				// With nothing open over the screen, Escape goes back to your own tabs (#145).
+				viewing = null;
 			}
 			return;
 		}
@@ -559,12 +575,8 @@
 				tab = action.tab;
 				break;
 			case 'player':
-				layers =
-					layers.overview && layers.player === action.seat
-						? closeLayer(layers, 'overview')
-						: openLayer(layers, 'overview', {
-								player: action.seat,
-							});
+				// As the chip: that player's tabs, and the same key or your own goes back (#145).
+				viewing = nextInspected(viewing, action.seat, seat);
 				break;
 			case 'log':
 				logToggleHandler();
@@ -686,10 +698,12 @@
 
 	{#snippet player()}
 		<div class="rg-game--private">
-			{#if seat !== null && summary}
+			{#if tabSeat !== null && (viewing !== null || summary)}
 				<PlayerTabs
 					{game}
-					{seat}
+					seat={tabSeat}
+					viewer={seat}
+					onPlayerTabsBack={() => (viewing = null)}
 					code={room.code}
 					bind:tab
 					placement={promptState.placement}
@@ -707,7 +721,7 @@
 			{:else}
 				<p class="rg-game--soon">
 					Hands stay hidden at a shared screen. Open a player's chip
-					to see their capital, civilization and tech.
+					to see their tabs.
 				</p>
 			{/if}
 			{#if summary}

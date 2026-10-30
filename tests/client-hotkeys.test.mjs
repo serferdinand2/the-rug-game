@@ -57,7 +57,7 @@ test('A asks which track, and 1 to 4 answer in the board order (#83, owner)', ()
 	);
 });
 
-test('1 to 5 open the players overview on a player, outside the track question (#83, owner)', () => {
+test("1 to 5 show a player's tabs, as the chips do, outside the track question (#83, #145, owner)", () => {
 	assert.deepEqual(hotkeyAction('1', OPEN), { type: 'player', seat: 1 });
 	assert.deepEqual(hotkeyAction('3', OPEN), { type: 'player', seat: 3 });
 	assert.equal(hotkeyAction('4', OPEN), null);
