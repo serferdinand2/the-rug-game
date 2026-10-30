@@ -8,6 +8,9 @@ import { decisionTitle, describeAnswer } from './decision-words.js';
 import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
 import { cardSpot, spotWords } from './civ-card.js';
 import { kindFacts } from './decision-kinds.js';
+import { tapestryCardData, techCardData } from './cards/game-cards.js';
+import { matPlots } from './area/capital.js';
+import { CAPITAL_MATS } from './engine/data/capitals.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 /** @typedef {import('./ui.js').CostSymbol} CostSymbol */
@@ -608,6 +611,89 @@ export function promptFor(decision, game, seat) {
 		picks: pickModel(decision, game, seat),
 		trade: tradeOffers(decision, game, seat),
 	};
+}
+
+/**
+ * A capital mat on offer, as CapitalMatFace draws it (#118).
+ * @typedef {Object} MatFace
+ * @property {number} mat - The mat's number, 1–6
+ * @property {string} name - Its name, such as 'Mountain'
+ * @property {import('./capital.js').PlotKind[]} plots - Its 81 plots before anything is built
+ * @property {import('./ui.js').CapitalBiome} biome - Its terrain, which is its id
+ */
+
+/**
+ * What a shelf card shows, resolved once (#118): a tapestry or tech card's data, the top of the tech deck, a
+ * civilization's id or a capital mat.
+ * @typedef {import('./cards/game-cards.js').TapestryCardData
+ *   | import('./cards/game-cards.js').TechnologyCardData
+ *   | { deck: 'tech', count: number }
+ *   | string
+ *   | MatFace} ShelfFace
+ */
+
+/**
+ * One card on the shelf: the answer it chooses (or its place among the cards to pay), its name and its face.
+ * @typedef {Object} ShelfCard
+ * @property {number} index - The answer's index, or the card's place among the cards to pay (#75)
+ * @property {string} label - The card in words, for assistive technology
+ * @property {ShelfFace} face - What the shelf draws
+ */
+
+/**
+ * A shelf card's face, from the id an answer names (#118).
+ * @param {'tapestry' | 'tech' | 'civ' | 'mat'} kind - What the shelf holds
+ * @param {string} id - A tapestry or tech card id, 'deck', a civilization id or a mat's number
+ * @param {number} [count=0] - For the tech deck: the cards left
+ * @returns {ShelfFace}
+ */
+export function shelfFace(kind, id, count = 0) {
+	if (kind === 'tapestry') {
+		return tapestryCardData(id);
+	}
+	if (kind === 'tech') {
+		return id === 'deck' ? { deck: 'tech', count } : techCardData(id);
+	}
+	if (kind === 'civ') {
+		return id;
+	}
+	const mat =
+		CAPITAL_MATS.find((m) => m.number === Number(id)) ?? CAPITAL_MATS[0];
+	return {
+		mat: mat.number,
+		name: mat.name,
+		plots: matPlots(mat.number),
+		biome: /** @type {import('./ui.js').CapitalBiome} */ (mat.id),
+	};
+}
+
+/**
+ * The cards on a decision's shelf, each with its face, in answer order (#118). The full view of a hovered card
+ * reuses the face.
+ * @param {Prompt | null} prompt
+ * @param {Decision | null} decision
+ * @returns {ShelfCard[]}
+ */
+export function shelfCards(prompt, decision) {
+	const kind = prompt?.shelf;
+	if (!prompt || !kind || !decision) {
+		return [];
+	}
+	return prompt.options
+		.filter((o) => o.place === 'shelf')
+		.map((o) => {
+			const answer = decision.answers[o.index];
+			const art = o.art[0];
+			return {
+				index: o.index,
+				label: o.label,
+				face: shelfFace(
+					kind,
+					String(answer.card ?? answer.civ ?? answer.capital),
+					art?.kind === 'deck' ? art.count : 0
+				),
+			};
+		});
 }
 
 /**

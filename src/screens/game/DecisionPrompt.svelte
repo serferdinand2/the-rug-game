@@ -35,7 +35,7 @@
 	import TurnControl from '../../lib/components/prompts/TurnControl.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { offerArt } from '../../lib/picks.js';
-	import { spaceName, tapestryName, techName } from '../../lib/game-names.js';
+	import { spaceName } from '../../lib/game-names.js';
 	import { terrainSeed } from '../../lib/area/capital.js';
 
 	/** @type {DecisionPromptProps} */
@@ -245,14 +245,7 @@
 	{#if cardPick && picks}
 		<CardShelf
 			kind={cardPick.kind === 'tech' ? 'tech' : 'tapestry'}
-			cards={cardPick.ids.map((id, index) => ({
-				index,
-				id: String(id),
-				label:
-					cardPick?.kind === 'tech'
-						? techName(String(id))
-						: tapestryName(String(id)),
-			}))}
+			cards={state.pickCards}
 			selected={cardPick.ids.flatMap((id, index) =>
 				picks?.items.includes(id) ? [index] : []
 			)}
