@@ -1,7 +1,10 @@
 // The results screen and the scoreboard (#29 design §5–§6): standings, shared places, ties step by step, VP by source and the table's facts.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { render } from 'svelte/server';
 import { tiebreakValues, view } from '../src/lib/engine/game.js';
+import VpSources from '../src/lib/components/results/VpSources.svelte';
 import { simulate } from './helpers/simulation.mjs';
 import {
 	VP_SOURCES,
@@ -245,6 +248,88 @@ test("the scoreboard's tiebreak values are the engine's, the landmark by name (#
 	assert.equal(row.landmark, 'Skyscraper');
 	assert.equal(row.resources, values.resources);
 	assert.equal(row.resources, 7);
+});
+
+/**
+ * A scoreboard row's tiebreak line as it reads.
+ * @param {{ tiebreak: { text: string }[] }} row
+ * @returns {string}
+ */
+const sentence = (row) => row.tiebreak.map((part) => part.text).join('');
+
+test("the scoreboard words each row's tiebreak line, the landmark marked, with the resources' plural (#104)", () => {
+	const game = sharedWin();
+	game.phase = 'play';
+	game.result = null;
+	game.seats[0].resources = { coin: 2, worker: 1, food: 0, culture: 4 };
+	game.seats[0].capital.landmarks = [
+		{ landmark: 'skyscraper', row: 4, col: 0, rotation: 0 },
+	];
+	game.seats[1].resources = { coin: 1, worker: 0, food: 0, culture: 0 };
+	game.seats[1].capital.landmarks = [];
+	const rows = scoreboard(game);
+	const one = /** @type {any} */ (rows.find((r) => r.seat === 1));
+	const two = /** @type {any} */ (rows.find((r) => r.seat === 2));
+	assert.equal(sentence(one), 'Tallest landmark: Skyscraper · 7 resources');
+	assert.deepEqual(
+		one.tiebreak.filter((/** @type {any} */ part) => part.landmark),
+		[{ text: 'Skyscraper', landmark: true }]
+	);
+	assert.equal(sentence(two), 'Tallest landmark: none · 1 resource');
+	assert.ok(two.tiebreak.every((/** @type {any} */ part) => !part.landmark));
+	game.version = 'original';
+	const original = /** @type {any} */ (
+		scoreboard(game).find((r) => r.seat === 1)
+	);
+	assert.equal(sentence(original), '7 resources');
+});
+
+test('VpSources lists each source with its VP, in one or two columns, or the empty words (#104)', () => {
+	const sources = [
+		{ id: 'income', label: 'Income turn scoring', vp: 35 },
+		{ id: 'paid', label: 'VP paid', vp: -3 },
+	];
+	const one = render(VpSources, { props: { sources } }).body;
+	assert.match(one, /<dl[^>]*class="rg-vp-sources/);
+	assert.match(
+		one,
+		/<dt[^>]*>Income turn scoring<\/dt>\s*<dd[^>]*>35 VP<\/dd>/
+	);
+	assert.match(one, /<dt[^>]*>VP paid<\/dt>\s*<dd[^>]*>-3 VP<\/dd>/);
+	assert.doesNotMatch(one, /rg-vp-sources--two/);
+	const two = render(VpSources, { props: { sources, columns: 2 } }).body;
+	assert.match(two, /rg-vp-sources--two/);
+	const empty = render(VpSources, {
+		props: { sources: [], empty: 'No VP this game.' },
+	}).body;
+	assert.doesNotMatch(empty, /<dl/);
+	assert.match(
+		empty,
+		/<p[^>]*rg-vp-sources--none[^>]*>No VP this game\.<\/p>/
+	);
+	assert.doesNotMatch(
+		render(VpSources, { props: { sources: [] } }).body,
+		/<dl|<p/
+	);
+});
+
+test('ScoreBoard and StandingRow draw their VP sources with VpSources, and results.js words the tiebreak line (#104)', () => {
+	for (const file of [
+		'log/ScoreBoard.svelte',
+		'results/StandingRow.svelte',
+	]) {
+		const source = readFileSync(
+			new URL(`../src/lib/components/${file}`, import.meta.url),
+			'utf8'
+		);
+		assert.match(source, /<VpSources/, file);
+		assert.doesNotMatch(source, /<dl|<dt|<dd/, file);
+	}
+	const board = readFileSync(
+		new URL('../src/lib/components/log/ScoreBoard.svelte', import.meta.url),
+		'utf8'
+	);
+	assert.doesNotMatch(board, /Tallest landmark|'resources'/);
 });
 
 test("the table's expansions carry their name and their own colour, not gold (#101)", () => {

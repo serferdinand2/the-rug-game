@@ -1,6 +1,7 @@
 <!-- Library section: ScoreBoard during a game with the current rules, and with the original rules (no landmark tiebreak). -->
 <script>
 	import ScoreBoard from '../../../lib/components/log/ScoreBoard.svelte';
+	import { tiebreakLine } from '../../../lib/results.js';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
 
@@ -19,6 +20,7 @@
 			],
 			resources: 3,
 			landmark: 'Barracks',
+			tiebreak: tiebreakLine('Barracks', 3),
 		},
 		{
 			seat: 1,
@@ -33,6 +35,7 @@
 			],
 			resources: 5,
 			landmark: null,
+			tiebreak: tiebreakLine(null, 5),
 		},
 		{
 			seat: 3,
@@ -43,14 +46,21 @@
 			sources: [],
 			resources: 4,
 			landmark: null,
+			tiebreak: tiebreakLine(null, 4),
 		},
 	];
+
+	/** The same rows under the original rules, which compare no landmarks. */
+	const ORIGINAL = ROWS.map(({ landmark: _landmark, ...row }) => ({
+		...row,
+		tiebreak: tiebreakLine(undefined, row.resources),
+	}));
 </script>
 
 <Section
 	name="ScoreBoard"
 	area="log"
-	description="The scores during play: the players by VP, the viewer marked with their colour, each with where the VP came from and the tiebreak values of the table's rules (the tallest landmark only under the current rules, then the resources).">
+	description="The scores during play: the players by VP, the viewer marked with their colour, each with where the VP came from (VpSources) and the tiebreak values of the table's rules, worded by scoreboard() (the tallest landmark only under the current rules, then the resources).">
 	<Example label={'rows={current rules} you={1}'}>
 		<div style="width: 420px">
 			<ScoreBoard
@@ -60,8 +70,7 @@
 	</Example>
 	<Example label={'rows={original rules: no landmark tiebreak}'}>
 		<div style="width: 420px">
-			<ScoreBoard
-				rows={ROWS.map(({ landmark: _landmark, ...row }) => row)} />
+			<ScoreBoard rows={ORIGINAL} />
 		</div>
 	</Example>
 </Section>
