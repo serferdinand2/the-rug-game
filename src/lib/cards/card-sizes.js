@@ -17,3 +17,19 @@ export const CARD_SIZES = Object.freeze({
 	tapestry: Object.freeze({ width: 319 }),
 	civilization: Object.freeze({ width: 425 }),
 });
+
+/**
+ * The scale that fits cards into the height they may take: the tallest card's unscaled height into `available`
+ * less `room` (padding, outlines), never above full size nor below `min`. Until both heights are measured, full
+ * size (#118).
+ * @param {number} available - The height the cards may take, in CSS pixels; 0 while unmeasured
+ * @param {number} tallest - The tallest card's unscaled height; 0 while unmeasured
+ * @param {{ min: number, room: number }} fit - The smallest scale, below which the row scrolls, and the height kept free
+ * @returns {number}
+ */
+export function fitScale(available, tallest, { min, room }) {
+	if (tallest <= 0 || available <= 0) {
+		return 1;
+	}
+	return Math.min(1, Math.max(min, (available - room) / tallest));
+}

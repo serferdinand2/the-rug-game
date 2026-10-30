@@ -38,6 +38,7 @@
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
 	import VpTag from './VpTag.svelte';
 	import TerritoryTile from '../player/TerritoryTile.svelte';
+	import TechDeckBack from '../player/TechDeckBack.svelte';
 	import { tilePreview } from '../../area/explore.js';
 	import { CAPITAL_MATS } from '../../engine/data/capitals.js';
 	import { reliefUrl } from '../../capital-terrain.js';
@@ -97,7 +98,10 @@
 			value={item.count}
 			variant="inline" />
 	{:else if item.kind === 'deck'}
-		<b class="rg-prompt-art--back">Deck · {item.count}</b>
+		<TechDeckBack
+			class="rg-prompt-art--chip"
+			count={item.count}
+			size="chip" />
 	{:else if source}
 		<img
 			src={source}
@@ -135,21 +139,8 @@
 		line-height: var(--leading-tight);
 	}
 
-	.rg-prompt-art--back {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		padding: var(--space-1) var(--space-3);
-		border: var(--border) solid var(--card-line);
-		border-radius: var(--radius);
-		background: var(--card-band-start);
-		color: var(--card-title);
-		font: var(--weight-title) var(--font-size-sm) / var(--leading-tight)
-			var(--font-title);
-		white-space: nowrap;
-	}
-
-	.rg-prompt-art--large .rg-prompt-art--back {
+	/* TechDeckBack's chip, reached through its class prop: as large as the other 48 px pictures. */
+	.rg-prompt-art--large :global(.rg-prompt-art--chip) {
 		min-width: 48px;
 		min-height: 48px;
 	}

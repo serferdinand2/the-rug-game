@@ -11,6 +11,7 @@
 	import { spaceName } from '../../../lib/game-names.js';
 	import { offerArt } from '../../../lib/picks.js';
 	import { PromptState } from '../../../lib/prompt-state.svelte.js';
+	import { shelfFace } from '../../../lib/prompts.js';
 	import Example from '../../Example.svelte';
 	import Screen from '../../Screen.svelte';
 	import Section from '../../Section.svelte';
@@ -59,22 +60,34 @@
 			vp: vps[index] ?? null,
 		}));
 
+	/**
+	 * Shelf cards with their faces, as the prompt state hands them over (#118).
+	 * @param {'tapestry' | 'tech' | 'civ'} kind
+	 * @param {[id: string, label: string][]} cards
+	 */
+	const cardsOf = (kind, cards) =>
+		cards.map(([id, label], index) => ({
+			index,
+			label,
+			face: shelfFace(kind, id, 21),
+		}));
+
 	/** The cards on the screen examples' shelves (#79). */
-	const TAPESTRY = [
-		{ index: 0, id: 'academia', label: 'Academia' },
-		{ index: 1, id: 'age-of-discovery', label: 'Age of Discovery' },
-		{ index: 2, id: 'capitalism', label: 'Capitalism' },
-	];
-	const TECH = [
-		{ index: 0, id: 'clocks', label: 'Clocks' },
-		{ index: 1, id: 'bakery', label: 'Bakery' },
-		{ index: 2, id: 'compass', label: 'Compass' },
-		{ index: 3, id: 'deck', label: 'Top of the deck', deck: 21 },
-	];
-	const CIVS = [
-		{ index: 0, id: 'historians', label: 'Historians' },
-		{ index: 1, id: 'leaders', label: 'Leaders' },
-	];
+	const TAPESTRY = cardsOf('tapestry', [
+		['academia', 'Academia'],
+		['age-of-discovery', 'Age of Discovery'],
+		['capitalism', 'Capitalism'],
+	]);
+	const TECH = cardsOf('tech', [
+		['clocks', 'Clocks'],
+		['bakery', 'Bakery'],
+		['compass', 'Compass'],
+		['deck', 'Top of the deck'],
+	]);
+	const CIVS = cardsOf('civ', [
+		['historians', 'Historians'],
+		['leaders', 'Leaders'],
+	]);
 
 	/** @type {number | null} */
 	let played = $state(null);

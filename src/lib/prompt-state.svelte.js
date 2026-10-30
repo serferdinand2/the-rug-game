@@ -1,7 +1,13 @@
 // The decision prompt's state (#79): what the viewer has chosen so far in the open decision, keyed to it, and what the board, the player area, the footer and the dice tray show of it.
 import { matchingSides } from './engine/game.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
-import { panelControls, paymentControls, promptFor } from './prompts.js';
+import {
+	panelControls,
+	paymentControls,
+	promptFor,
+	shelfCards as shelfCardsOf,
+	shelfFace,
+} from './prompts.js';
 import {
 	advanceModel,
 	canPickItem,
@@ -24,7 +30,7 @@ import {
 	tileScores,
 	tileWords,
 } from './area/explore.js';
-import { tapestryCardData, techCardData } from './cards/game-cards.js';
+import { tapestryName, techName } from './game-names.js';
 import { myDecision } from './turn.js';
 import { RESOURCE_ORDER } from './ui.js';
 import { cardCivOf, civCardView } from './civ-card.js';
@@ -245,6 +251,24 @@ export class PromptState {
 			? this.pick.items
 			: null
 	);
+	/** Those cards as the shelf draws them, indexed by their place among the cards to pay (#118). */
+	pickCards = $derived(
+		this.cardPick
+			? this.cardPick.ids.map((id, index) =>
+					this.cardPick?.kind === 'tech'
+						? {
+								index,
+								label: techName(String(id)),
+								face: shelfFace('tech', String(id)),
+							}
+						: {
+								index,
+								label: tapestryName(String(id)),
+								face: shelfFace('tapestry', String(id)),
+							}
+				)
+			: []
+	);
 	/** The cards or tiles that can't be pressed now: none while a move is sent. */
 	pickBlocked = $derived(
 		this.pick?.items && this.picks
@@ -388,25 +412,7 @@ export class PromptState {
 					.map((o) => ({ ...o, vp: null }))
 	);
 	/** The cards on the shelf above the panel, for a card decision. */
-	shelfCards = $derived(
-		this.prompt?.shelf && this.decision
-			? this.prompt.options
-					.filter((o) => o.place === 'shelf')
-					.map((o) => {
-						const answer = /** @type {any} */ (this.decision)
-							.answers[o.index];
-						const art = o.art[0];
-						return {
-							index: o.index,
-							id: String(
-								answer.card ?? answer.civ ?? answer.capital
-							),
-							label: o.label,
-							deck: art?.kind === 'deck' ? art.count : undefined,
-						};
-					})
-			: []
-	);
+	shelfCards = $derived(shelfCardsOf(this.prompt, this.decision));
 	/** A building or landmark to place on the capital, from the Capital tab. */
 	placement = $derived(
 		this.prompt &&
@@ -795,20 +801,16 @@ export class PromptState {
 	 */
 	inspectShelf(index) {
 		const card = this.shelfCards.find((c) => c.index === index);
-		if (!card || card.id === 'deck') {
+		const kind = this.prompt?.shelf;
+		if (
+			!card ||
+			(kind !== 'tapestry' && kind !== 'tech') ||
+			typeof card.face === 'string' ||
+			'deck' in card.face
+		) {
 			return null;
 		}
-		if (this.prompt?.shelf === 'tapestry') {
-			return {
-				kind: 'tapestry',
-				data: tapestryCardData(card.id),
-				side: true,
-			};
-		}
-		if (this.prompt?.shelf === 'tech') {
-			return { kind: 'tech', data: techCardData(card.id), side: true };
-		}
-		return null;
+		return { kind, data: card.face, side: true };
 	}
 
 	/**
@@ -817,16 +819,14 @@ export class PromptState {
 	 * @returns {Inspected | null}
 	 */
 	inspectPick(index) {
-		const id = index === null ? undefined : this.cardPick?.ids[index];
-		if (id === undefined) {
+		const card = this.pickCards.find((c) => c.index === index);
+		if (!card) {
 			return null;
 		}
-		return this.cardPick?.kind === 'tech'
-			? { kind: 'tech', data: techCardData(String(id)), side: true }
-			: {
-					kind: 'tapestry',
-					data: tapestryCardData(String(id)),
-					side: true,
-				};
+		return {
+			kind: this.cardPick?.kind === 'tech' ? 'tech' : 'tapestry',
+			data: card.face,
+			side: true,
+		};
 	}
 }

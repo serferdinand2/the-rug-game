@@ -8,6 +8,19 @@ import CardFan from '../src/lib/components/player/CardFan.svelte';
 import ScaledCard from '../src/lib/components/player/ScaledCard.svelte';
 import CardShelf from '../src/lib/components/prompts/CardShelf.svelte';
 import { CARD_SIZES } from '../src/lib/cards/card-sizes.js';
+import { shelfFace } from '../src/lib/prompts.js';
+
+/**
+ * Shelf cards named by id, with the faces the shelf takes (#118).
+ * @param {'tapestry' | 'tech' | 'civ' | 'mat'} kind
+ * @param {{ index: number, id: string, label: string, deck?: number }[]} cards
+ */
+const faced = (kind, cards) =>
+	cards.map(({ index, id, label, deck }) => ({
+		index,
+		label,
+		face: shelfFace(kind, id, deck),
+	}));
 
 /** @param {string} path - A path from the project root */
 const source = (path) =>
@@ -224,11 +237,11 @@ test('the shelf fans with CardFan, its cards pressed and disabled by answer inde
 	const html = render(CardShelf, {
 		props: {
 			kind: 'tapestry',
-			cards: [
+			cards: faced('tapestry', [
 				{ index: 4, id: 'academia', label: 'Academia' },
 				{ index: 7, id: 'capitalism', label: 'Capitalism' },
 				{ index: 9, id: 'monarchy', label: 'Monarchy' },
-			],
+			]),
 			selected: [7],
 			disabled: [9],
 		},
@@ -269,7 +282,11 @@ test('more than four tapestry cards overlap by 72 px on the shelf; fewer sit apa
 		'monarchy',
 		'colonialism',
 		'trap-1',
-	].map((id, index) => ({ index, id, label: id }));
+	].map((id, index) => ({
+		index,
+		label: id,
+		face: shelfFace('tapestry', id),
+	}));
 	const fanned = render(CardShelf, {
 		props: { kind: 'tapestry', cards: six },
 	}).body;
@@ -293,10 +310,10 @@ test('the shelf draws tech cards and the deck in a ScaledCard; civilizations and
 	const tech = render(CardShelf, {
 		props: {
 			kind: 'tech',
-			cards: [
+			cards: faced('tech', [
 				{ index: 0, id: 'clocks', label: 'Clocks' },
 				{ index: 1, id: 'deck', label: 'Top of the deck', deck: 21 },
-			],
+			]),
 		},
 	}).body;
 	assert.equal(countOf(tech, 'rg-scaled-card'), 2);
@@ -307,13 +324,13 @@ test('the shelf draws tech cards and the deck in a ScaledCard; civilizations and
 		const html = render(CardShelf, {
 			props: {
 				kind,
-				cards: [
+				cards: faced(kind, [
 					{
 						index: 0,
 						id: kind === 'civ' ? 'nomads' : '1',
 						label: 'One',
 					},
-				],
+				]),
 			},
 		}).body;
 		assert.match(html, /rg-card-fan--flat/, kind);

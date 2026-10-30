@@ -1,6 +1,7 @@
 <!-- Library section: CardShelf, the cards a decision offers, for tapestry cards, tech cards, civilizations and capital mats. -->
 <script>
 	import CardShelf from '../../../lib/components/prompts/CardShelf.svelte';
+	import { shelfFace } from '../../../lib/prompts.js';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
 
@@ -17,6 +18,19 @@
 	/** @type {number[]} */
 	let paid = $state([0, 2]);
 	let inspected = $state('');
+
+	/**
+	 * Shelf cards with their faces, as the prompt state hands them over (#118).
+	 * @param {'tapestry' | 'tech' | 'civ' | 'mat'} kind
+	 * @param {[id: string, label: string][]} cards
+	 * @param {number} [deck] - The tech deck's count, for a 'deck' card
+	 */
+	const cardsOf = (kind, cards, deck) =>
+		cards.map(([id, label], index) => ({
+			index,
+			label,
+			face: shelfFace(kind, id, deck),
+		}));
 </script>
 
 <Section
@@ -29,11 +43,11 @@
 		wide>
 		<CardShelf
 			kind="tapestry"
-			cards={[
-				{ index: 0, id: 'academia', label: 'Academia' },
-				{ index: 1, id: 'age-of-discovery', label: 'Age of Discovery' },
-				{ index: 2, id: 'capitalism', label: 'Capitalism' },
-			]}
+			cards={cardsOf('tapestry', [
+				['academia', 'Academia'],
+				['age-of-discovery', 'Age of Discovery'],
+				['capitalism', 'Capitalism'],
+			])}
 			selected={tapestry}
 			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 				(tapestry = event.value)}
@@ -54,7 +68,11 @@
 				'monarchy',
 				'colonialism',
 				'trap-1',
-			].map((id, index) => ({ index, id, label: id }))}
+			].map((id, index) => ({
+				index,
+				label: id,
+				face: shelfFace('tapestry', id),
+			}))}
 			selected={null} />
 	</Example>
 	<Example
@@ -63,12 +81,16 @@
 		wide>
 		<CardShelf
 			kind="tech"
-			cards={[
-				{ index: 0, id: 'clocks', label: 'Clocks' },
-				{ index: 1, id: 'bakery', label: 'Bakery' },
-				{ index: 2, id: 'compass', label: 'Compass' },
-				{ index: 3, id: 'deck', label: 'Top of the deck', deck: 21 },
-			]}
+			cards={cardsOf(
+				'tech',
+				[
+					['clocks', 'Clocks'],
+					['bakery', 'Bakery'],
+					['compass', 'Compass'],
+					['deck', 'Top of the deck'],
+				],
+				21
+			)}
 			selected={tech}
 			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 				(tech = event.value)} />
@@ -79,10 +101,10 @@
 		wide>
 		<CardShelf
 			kind="civ"
-			cards={[
-				{ index: 0, id: 'collectors', label: 'Collectors' },
-				{ index: 1, id: 'nomads', label: 'Nomads' },
-			]}
+			cards={cardsOf('civ', [
+				['collectors', 'Collectors'],
+				['nomads', 'Nomads'],
+			])}
 			selected={civ}
 			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 				(civ = event.value)} />
@@ -93,10 +115,10 @@
 		wide>
 		<CardShelf
 			kind="civ"
-			cards={[
-				{ index: 0, id: 'collectors', label: 'Collectors' },
-				{ index: 1, id: 'nomads', label: 'Nomads' },
-			]}
+			cards={cardsOf('civ', [
+				['collectors', 'Collectors'],
+				['nomads', 'Nomads'],
+			])}
 			room={460} />
 	</Example>
 	<Example
@@ -105,10 +127,10 @@
 		wide>
 		<CardShelf
 			kind="mat"
-			cards={[
-				{ index: 0, id: '1', label: 'Mountain mat' },
-				{ index: 1, id: '2', label: 'Second mat' },
-			]}
+			cards={cardsOf('mat', [
+				['1', 'Mountain mat'],
+				['2', 'Second mat'],
+			])}
 			selected={mat}
 			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 				(mat = event.value)} />
@@ -119,11 +141,11 @@
 		wide>
 		<CardShelf
 			kind="tapestry"
-			cards={[
-				{ index: 0, id: 'academia', label: 'Academia' },
-				{ index: 1, id: 'age-of-discovery', label: 'Age of Discovery' },
-				{ index: 2, id: 'capitalism', label: 'Capitalism' },
-			]}
+			cards={cardsOf('tapestry', [
+				['academia', 'Academia'],
+				['age-of-discovery', 'Age of Discovery'],
+				['capitalism', 'Capitalism'],
+			])}
 			selected={paid}
 			disabled={paid.length >= 2
 				? [0, 1, 2].filter((i) => !paid.includes(i))
