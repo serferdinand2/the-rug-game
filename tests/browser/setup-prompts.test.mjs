@@ -62,7 +62,8 @@ test('the tracks show every benefit, and setup shows capital mats as grids and c
 		);
 		await page.goto('/');
 		const heading = page.locator('.rg-decision-panel--panel h2');
-		const confirm = page.locator('.rg-decision-panel--confirm');
+		// The panel's confirming Button (#117 dropped DecisionPanel's own class for it).
+		const confirm = page.locator('.rg-decision-panel .rg-button--confirm');
 		/**
 		 * Takes the hot-seat screen for a player at the pass screen (#30).
 		 * @param {string} name
