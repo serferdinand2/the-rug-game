@@ -131,7 +131,7 @@ test('a finished game shows the results; the board, log and scores can be review
 			)?.replace(/\D/g, '')
 		);
 		const parts = await first
-			.locator('.rg-standing-row--list dd')
+			.locator('.rg-vp-sources dd')
 			.allTextContents();
 		expect(
 			parts.reduce((sum, text) => sum + Number.parseInt(text, 10), 0)

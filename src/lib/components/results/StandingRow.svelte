@@ -23,6 +23,7 @@
 	import { ordinal } from '../../words.js';
 	import { playerColor } from '../../ui.js';
 	import PlayerToken from '../player/PlayerToken.svelte';
+	import VpSources from './VpSources.svelte';
 
 	/** @type {StandingRowProps} */
 	let {
@@ -94,18 +95,10 @@
 			<strong>Where the VP came from</strong>
 			<span>Already awarded during play</span>
 		</div>
-		{#if row.sources.length}
-			<dl class="rg-standing-row--list">
-				{#each row.sources as source (source.id)}
-					<div>
-						<dt>{source.label}</dt>
-						<dd>{source.vp} VP</dd>
-					</div>
-				{/each}
-			</dl>
-		{:else}
-			<p class="rg-standing-row--none">No VP this game.</p>
-		{/if}
+		<VpSources
+			sources={row.sources}
+			columns={2}
+			empty="No VP this game." />
 	</div>
 </article>
 
@@ -220,31 +213,5 @@
 
 	.rg-standing-row--heading strong {
 		color: var(--text);
-	}
-
-	.rg-standing-row--list {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--space-4) 30px;
-		margin: 0;
-	}
-
-	.rg-standing-row--list div {
-		display: flex;
-		justify-content: space-between;
-		gap: var(--space-6);
-		min-width: 0;
-	}
-
-	.rg-standing-row--list dt,
-	.rg-standing-row--none {
-		margin: 0;
-		color: var(--muted);
-	}
-
-	.rg-standing-row--list dd {
-		margin: 0;
-		font-weight: var(--weight-bold);
-		white-space: nowrap;
 	}
 </style>

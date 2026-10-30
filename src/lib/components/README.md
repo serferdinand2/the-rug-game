@@ -129,6 +129,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | Component | Purpose |
 |---|---|
 | `StandingRow` | One player in the final standings, as Lazar's end screen (#29): place, token, name, civilization and VP; winners gold, the viewer's bar in their colour; the name opens where the VP came from. |
+| `VpSources` | Where a player's VP came from (#104): one line per source with its VP, in one compact column (`ScoreBoard`) or two (`StandingRow`), with optional words when there is none. |
 | `TieSteps` | How a tie was decided (#29, owner #15): who tied, each step of the rules' chain with every value (landmarks in gold), whether it separated them, and the outcome. |
 
 ## Reviewed card system (Refs #47)
