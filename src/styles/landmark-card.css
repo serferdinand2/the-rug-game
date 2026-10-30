@@ -38,20 +38,10 @@
 		0 0 0 1px var(--card-line),
 		0 0 0 3px var(--card-text);
 }
+/* The footprint is a LandmarkShape without its picture: 20 px plots, 2 px apart, each with a 2 px border. */
 .rg-landmark-card--footprint {
 	display: grid;
 	justify-content: center;
-	grid-template-columns: repeat(var(--cols), 20px);
-	gap: 2px;
-}
-.rg-landmark-card--footprint span {
-	width: 20px;
-	height: 20px;
-	background: var(--card-score-line);
-	border: 2px solid var(--card-line-strong);
-}
-.rg-landmark-card--footprint span.empty {
-	visibility: hidden;
 }
 .rg-landmark-card--condition {
 	margin: 0 12px 6px;

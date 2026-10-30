@@ -16,6 +16,7 @@ import {
 	grabAt,
 	writeGrab,
 	readGrab,
+	pictureTransform,
 } from '../src/lib/placement.js';
 
 /** An empty capital with the given plots set. */
@@ -183,6 +184,39 @@ test('a shape is filled with one unit square per covered plot', () => {
 	assert.equal(
 		fillPath(['.X', 'XX']),
 		'M1 0h1v1h-1zM0 1h1v1h-1zM1 1h1v1h-1z'
+	);
+});
+
+test('a gap between plots spaces the unit squares apart, as on a card footprint (#110)', () => {
+	assert.equal(fillPath(['.X', 'XX'], 0), fillPath(['.X', 'XX']));
+	assert.equal(
+		fillPath(['.X', 'XX'], 0.1),
+		'M1.1 0h1v1h-1zM0 1.1h1v1h-1zM1.1 1.1h1v1h-1z'
+	);
+	assert.equal(
+		fillPath(['XXX'], 0.1),
+		'M0 0h1v1h-1zM1.1 0h1v1h-1zM2.2 0h1v1h-1z',
+		'no floating-point noise in the path'
+	);
+});
+
+test('the picture is turned about the centre of the turned shape (#110)', () => {
+	assert.equal(
+		pictureTransform(['XX', 'XX'], 0),
+		'translate(1 1) rotate(0) translate(-1 -1)'
+	);
+	assert.equal(
+		pictureTransform(['XXX', 'XXX'], 1),
+		'translate(1 1.5) rotate(90) translate(-1.5 -1)'
+	);
+	assert.equal(
+		pictureTransform(['XXX', 'XXX'], -1),
+		pictureTransform(['XXX', 'XXX'], 3),
+		'a negative turn counts as its quarter turns clockwise'
+	);
+	assert.equal(
+		pictureTransform(rubberWorks, 6),
+		'translate(2 2) rotate(180) translate(-2 -2)'
 	);
 });
 
