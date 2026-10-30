@@ -9,7 +9,7 @@ Add a row here, and a section in `src/library/sections/<area>/<Name>.svelte`, in
 ## Boundaries
 
 - Components are presentational. They render the props they get and report what the player did through `on{Component}{Action}` callbacks, which receive a `ComponentEvent`. They never hold game state, call the server, decide a rule or roll anything random. The screen that owns the game state does that.
-- Geometry worth testing lives in plain modules beside this folder: `../ui.js` (ids and token helpers), `../capital.js` (the capital grid), `../placement.js` (placing landmarks), `../track-shape.js` (track spaces and progress lanes) and `../hexmap.js` (the World Map's hexes, terrain wedges, pieces and fit).
+- Geometry worth testing lives in plain modules beside this folder: `../ui.js` (ids and token helpers), `../capital.js` (the capital grid), `../placement.js` (placing landmarks), `../track-shape.js` (track spaces and progress lanes), `../board-icons.js` (the board switcher's icons) and `../hexmap.js` (the World Map's hexes, terrain wedges, pieces and fit).
 - Styles live in the component, use only the tokens in `src/styles/tokens.css`, and style only the component's own `rg-{name}` classes.
 
 ## Approved issue #5 artwork
@@ -55,12 +55,12 @@ These components are updated as the art issues deliver their assets. Each will s
 | Component | Purpose |
 |---|---|
 | `AchievementStrip` | The three achievements on one line: claimants' colour squares in order and the next VP. |
-| `BoardSwitcher` | Advancement Tracks / World Map selector with its icons. |
+| `BoardSwitcher` | Advancement Tracks / World Map selector with its icons; the tracks icon has a band for every track it is given (#120). |
 | `ProgressLanes` | One progress line per player under a track, with the dashed preview to the next space; a line grows to its new space (#29). |
 | `TierPrice` | A tier's numeral and price over its three spaces; gold while one of them is hovered. |
 | `Track` | One track: name, four tier prices, twelve spaces (each with its benefit and bonus) and the lanes. |
-| `TrackBoard` | The four tracks stacked, with one selected space across them; a size container, so the spaces grow up to 1.25 times as tall as wide when the board has the height (#59). |
-| `TrackSpace` | One pointed space with the #85 layout: name and number on top, centered symbolic benefit, optional track-coloured translucent band below, and landmark icon and name at the bottom. The component handles first/last geometry, track-specific benefit groups, selected and focus states, and a full words tooltip and label. |
+| `TrackBoard` | The tracks stacked, four or five (#120), with one selected space across them; each takes an equal share of the height less its chrome (the `--track-heading` and `--track-prices` rows, gaps and lanes); a size container, so the spaces grow up to 1.25 times as tall as wide when the board has the height (#59). |
+| `TrackSpace` | One pointed space with the #85 layout: name and number on top, centered symbolic benefit, optional track-coloured translucent band below, and landmark icon and name at the bottom. The component handles first/last geometry (`Track` sets `last`, #120), track-specific benefit groups, selected and focus states, and a full words tooltip and label. |
 | `ExplorationFace` | The approved twelve Exploration face layouts. It composes the hex, exploration, resource, score and operator symbols; keeps the optional band and landmark in their shared vertical positions. `TrackSpace` uses it for Exploration, and its gallery section shows representative states. |
 | `TerritoryArt` | A territory's face round the origin (#113): a terrain picture per corner wedge, the coasts, the island's parts outlined, and the cloud and volcano (R77), from `territoryShapes()`. Since #134 no game screen draws with it: `WorldMap` and `TerritoryTile` paint their territories. |
 | `TerritoryClips` | The clip outlines `TerritoryArt` is cut with (#113), from `territoryClips()`: one set per svg and size, ids starting with its `prefix`. |
