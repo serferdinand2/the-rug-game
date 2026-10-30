@@ -40,6 +40,7 @@
 	import VpTag from './VpTag.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 	import { upToVp } from '../../hexmap.js';
+	import { territoryBenefit } from '../../area/terrain.js';
 
 	/** @type {TilePickerProps} */
 	let {
@@ -110,6 +111,7 @@
 				aria-pressed={isPicked(tile.id)}
 				disabled={disabled.includes(tile.id)}
 				aria-label={labelOf(tile)}
+				title={territoryBenefit(tile.id).words}
 				data-id="{dataIdPrefix}-{tile.id}"
 				onclick={(event) => selectHandler(tile.id, event)}>
 				{#if typeof tile.vp === 'number'}

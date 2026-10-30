@@ -85,7 +85,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `PlayerCard` | A player's overview card, with the selectable Civilization, Capital and Tech rows; with `autofocus`, its first row takes the focus as it is drawn (#91). |
 | `PlayerChip` | A header chip: colour, name, civilization, VP, the current player's glow and the overview's filled state. 210px wide, shrinking to 120px; below 190px it drops the civilization name. `bump` pops the VP once when it rises (#29). |
 | `ResourceChip` | A resource symbol and its count; `size="medium"` draws the native 24px symbol and `changed` draws the count gold (#125). |
-| `SelfSummary` | Your overview at the foot of the player area: name, era, VP, hand, tech, territory and capital-line counts, and the four resources as medium `ResourceChip`s (#26, #125). `changed` draws gold the counts a prompt's choices so far change (#75). |
+| `SelfSummary` | The shown player's overview at the foot of the player area: name, era, VP, hand, tech, territory and capital-line counts, and the four resources as medium `ResourceChip`s (#26, #125). `changed` draws gold the counts a prompt's choices so far change (#75); `inspected` marks another player's summary with their matching coloured border (#157). |
 
 ## prompts/
 
@@ -146,7 +146,7 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | `player/ScaledCard` | Any card shown smaller, scaled as a whole at full layout, its box the scaled size; `width` and `height` come from `CARD_SIZES` (`src/lib/cards/card-sizes.js`), and a card without a `height` (tapestry, civilization) is measured, its height bindable as `measuredHeight`: tapestry cards at 0.7 on the shelf, 0.6 for the current era and 0.42 in the hand, tech cards at 0.65 on the shelf, 0.42 in the Tech tab and 0.4 in the players overview (#92) |
 | `player/LandmarkCard` | 319 px landmark frame with the capital footprint beside the art, the end-of-turn condition (Rules text pending until game data supplies it) and the edition footer |
 | `player/MasterpieceCard` | 319 px Arts & Architecture masterpiece frame: a centered beige effect box (the caller's `effects` snippet) beside the 144 px artwork |
-| `player/TerritoryTile` | One small flat-topped territory tile in hand, painted at its turn as the World Map paints it (#134), with its number |
+| `player/TerritoryTile` | One small flat-topped territory tile in hand, painted at its turn as the World Map paints it (#134), with its number and centered reward icon; hover names the reward in words (#150) |
 | `player/CardFan` | Overlapping cards; hover or focus raises one and reports it for a full view. `selected` takes one index or several, `disabled` cards wait, `labels` name them, `key` keeps a card's button when the items change; the `shelf` look is `CardShelf`'s, with gold outlines and the chosen card lifted unless `lift` is false (#92) |
 | `player/CardResource` | Native 24 px inline icon without changing row spacing; `fine` for 11 px supporting text, and a container centres it with `--card-resource-center` and `--card-resource-height` instead of styling it (#106) |
 | `player/PlayerToken` | A player's token, from its seat (#103) or one of the five supplied shaded 32 px colour variants |

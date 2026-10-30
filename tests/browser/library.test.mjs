@@ -55,6 +55,33 @@ test('the library opens without drawing the art below the fold (#82)', async ({
 	expect(drawn?.height).toBe(waiting?.height);
 });
 
+test('territory tiles show their reward icon and matching hover words (#150)', async ({
+	page,
+}) => {
+	await page.goto('/components.html#territory-tile');
+	const coinTile = page.locator(
+		'#territory-tile .rg-territory-tile[aria-label^="Territory tile 1:"]'
+	);
+	await expect(coinTile.first().locator('title')).toHaveText(
+		/Benefit:.*coin/i
+	);
+	await expect(
+		coinTile.first().locator('.rg-territory-tile--reward-icon')
+	).toHaveAttribute('href', '/art/resource-24/coin.svg');
+	const twoTileReward = page.locator(
+		'#territory-tile .rg-territory-tile[aria-label^="Territory tile 2:"]'
+	);
+	await expect(
+		twoTileReward.locator('.rg-territory-tile--reward-count')
+	).toHaveText('×2');
+	const researchTile = page.locator(
+		'#territory-tile .rg-territory-tile[aria-label^="Territory tile 12:"]'
+	);
+	await expect(
+		researchTile.locator('.rg-territory-tile--reward-cross')
+	).toBeVisible();
+});
+
 /**
  * A colour as the page computes it, such as 'rgb(226, 184, 87)' for 'var(--gold)', so a test compares like with like.
  * @param {import('@playwright/test').Page} page

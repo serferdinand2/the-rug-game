@@ -19,6 +19,23 @@ test("a started game's summary has the seat's name, VP, resources and counts", (
 	assert.equal(summary.era, 1);
 });
 
+test('the summary follows the seat whose tabs are shown', () => {
+	const { state } = startedGame(2);
+	const viewer = /** @type {any} */ (state.seats[0]);
+	const opponent = /** @type {any} */ (state.seats[1]);
+	opponent.name = 'Asterdoria';
+	opponent.resources = { coin: 2, worker: 3, food: 4, culture: 5 };
+	opponent.vp = 17;
+
+	const summary = selfSummary(view(state, 1), 2);
+
+	assert.equal(summary?.name, 'Asterdoria');
+	assert.equal(summary?.seat, 2);
+	assert.equal(summary?.vp, 17);
+	assert.deepEqual(summary?.resources, opponent.resources);
+	assert.notDeepEqual(summary?.resources, viewer.resources);
+});
+
 test('tech counts every row, and complete rows and columns count as lines', () => {
 	const { state } = startedGame(2);
 	const seat = /** @type {any} */ (state.seats[0]);

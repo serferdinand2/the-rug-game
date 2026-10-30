@@ -22,7 +22,7 @@ The owner-reviewed #5 icon mockup and its linked capital terrain page are preser
 | [edition-chips.html](edition-chips.html) | The edition chip of every card family, as it was and as proposed (#109). The owner chose one chip for all, each expansion in its own card colour, with Fantasies & Futures in teal (2026-10-29). Screenshot: `screens/edition-chips-options.png` |
 | [opponent-actions.html](opponent-actions.html) | What other players just did (#153), awaiting the owner's choice: their tapestry card, advance, tech card, explore, conquer and income turn, as a panel at the tracks' centre (A) or a strip above the footer (B), over screenshots of the running game. Design notes and questions: `docs/superpowers/specs/2026-10-30-opponent-actions-design.md`. Screenshots: `screens/issue-153/` |
 | [collectors-card-options.html](collectors-card-options.html) | Five Collectors civilization card designs, printed and in play; the owner chose option B (#47, 2026-10-23). Open it from disk: it loads the art from `static/art/` |
-| [screens/](screens/) | Current screenshots captured from these HTML files at 1920×1080 |
+| [screens/](screens/) | Current 1920×1080 screenshots captured from the live game or component library |
 | [assets/middle-pixel-noise.svg](assets/middle-pixel-noise.svg) | Editable source of the shared pixel texture embedded in the pages |
 | [tokens.css](../../src/styles/tokens.css) and [base.css](../../src/styles/base.css) | The production design tokens, fonts, page and focus styles made from these references |
 | `/components.html` ([src/lib/components/](../../src/lib/components/README.md)) | The component library (#48): every component built from these references, in all its states, and the art; screenshots `screens/component-library.png` and `screens/component-library-art.png` |
@@ -222,20 +222,28 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 
 ![The player area with the Capital tab: Teodor's Wetland mat with its relief (#82) and an Architects' cube on the top-left plot](screens/game-player-area.png)
 
-- **The tabs** are the mockup's: Capital (the seat's real mat and plots, landmarks over the edge allowed, the counters, and what lies beside the mat), Hand (the tapestry cards overlapping; hovering shows one in full over the shared area), Income (the four rows, covered spaces with their building, exposed ones with their reward in words), Eras (the four slots, a face-down card shown as such, the active card in full), Civ (the reviewed card for the twelve base civilizations with a recipe, a plain portrait card for the other four until #47), Tech (the three rows and the display with the deck count) and Terrain (territory tiles drawn like the map's, and space tiles).
+- **The tabs** are the mockup's: Capital (the seat's real mat and plots, landmarks over the edge allowed, the counters, and what lies beside the mat), Hand (the tapestry cards overlapping; hovering shows one in full over the shared area), Income (the four rows, covered spaces with their building, exposed ones with their reward in words), Eras (the four slots, a face-down card shown as such, the active card in full), Civ (the reviewed card for the twelve base civilizations with a recipe, a plain portrait card for the other four until #47), Tech (the three rows and the display with the deck count) and Terrain (territory tiles drawn like the map's, and space tiles, with each tile's centered benefit icon and matching hover words since #150).
 - **Real cards:** the tech and tapestry cards are built from the engine's data through `describe.js`; no text is invented. Lazar's fixtures stay for the library and the card review.
 - **Tab switching:** a decision about a tab's things opens that tab by itself.
 - **The players overview** opened from the chips, as in the mockup: one card per player, and Capital, Civilization or Tech of any player on the right. Since #145 (below) nothing opens it; its code stays.
 
+**Built in #150 (2026-10-30): terrain tile benefits.** The 48 territory tiles show their reward icon in the centre and the same benefit in words on hover. Quantities, the science-die no-benefit X and the tech-upgrade marker follow the engine's tile data and `describeEffects`.
+
+![The component library's territory tiles with centered benefit icons, including quantity, no-benefit and upgrade markers](screens/territory-tile-benefits.png)
+
 **Built in #145 (2026-10-30): another player's tabs in the player area.** The owner ruled: "When I click on the other player in the top nav, no longer open the card view of all players, just show me their view of the right sidenav but hide all cards that are private." It also meets #143's goal, an opponent's eras and territory tiles, whose overview rows it supersedes. The design is `docs/superpowers/specs/2026-10-30-opponent-tabs-design.md`.
 
-![Vera's turn with Mira's chip pressed: Mira's capital in the player area, bordered in her blue, under Viewing Mira's area and Back to your area](screens/game-opponent-tabs.png)
+![Vera's turn with Mira's chip pressed: Mira's Tropical capital and public summary in the player area, both bordered in her red, under Viewing Mira's area and Back to your area](screens/game-opponent-tabs.png)
 
 ![Mira's Hand tab seen by Vera: a count, no card](screens/game-opponent-hand.png)
 
-- **A chip shows that player's tabs** in the 1/4 player area: the same seven tabs, on the tab you had open, read-only. The area is bordered in their colour, and `InspectBar` says "Viewing Mira's area" with their colour square and **Back to your area**. The headings name them ("Mira's eras").
+![Mira's eras in Vera's player area, with her public summary below](screens/game-opponent-eras.png)
+
+![Mira's Terrain tab in Vera's player area, with her public summary below](screens/game-opponent-terrain.png)
+
+- **A chip shows that player's tabs** in the 1/4 player area: the same seven tabs, on the tab you had open, read-only. The area is bordered in their colour, and `InspectBar` says "Viewing Mira's area" with their colour square and **Back to your area**. The headings name them ("Mira's eras"), and the compact summary below the tabs follows too: it shows Mira's public counts and resources inside the matching coloured border. Back to your area restores your own summary, including any pending resource-pick preview.
 - **Private things stay hidden:** their Hand tab is a count; a face-down tapestry card is "Face-down card" in their Eras tab, as in yours. The client draws a seat through `publicSeat` (`src/lib/area/inspect.js`), which drops another seat's hand and picks even if a view held them.
-- **Read-only:** no placement, tile pick or card spot on their tabs; hovering a face-up card still shows it in full. Your turn, the footer and any open panel are untouched, and **Your overview** at the foot stays yours. A decision that opens one of your tabs takes you back to your own area.
+- **Read-only:** no placement, tile pick or card spot on their tabs; hovering a face-up card still shows it in full. Your turn, the footer and any open panel are untouched. The summary at the foot follows the inspected player and returns to yours with your area. A decision that opens one of your tabs takes you back to your own area.
 - **The way back:** their chip again, your own chip, **Back to your area**, or Escape once nothing else is open. **1–5** do what the chips do.
 - **The players overview** is no longer reached from anywhere; `PlayersOverview`, `PlayerCard` and its layer stay in the code for the owner to decide on.
 

@@ -1016,7 +1016,7 @@ Fixed on 2026-10-30. Design and plan: `docs/superpowers/specs/2026-10-30-ai-sing
 ### #145 (another player's tabs in the player area) and #143
 
 Built on 2026-10-30 on the owner's ruling: "When I click on the other player in the top nav, no longer open the card view of all players, just show me their view of the right sidenav but hide all cards that are private." Design and plan: `docs/superpowers/specs/2026-10-30-opponent-tabs-design.md` and `docs/superpowers/plans/2026-10-30-opponent-tabs-issue-145.md`.
-- **Built:** a header chip or 1–5 shows that player's Capital, Hand, Income, Eras, Civ, Tech and Terrain tabs in the player area, read-only, bordered in their colour, under `InspectBar` ("Viewing Mira's area", Back to your area); tab headings name the player ("Mira's eras"). Their hand is a count, and a face-down tapestry card says so; `publicSeat` in `src/lib/area/inspect.js` is the client guard that drops another seat's `hand` and `picks`. Nothing on their tabs can be placed, picked or chosen; your turn, footer, open panel and Your overview stay as they were. Ways back: the same chip, your own chip, Back, Escape, the same number; a decision that opens one of your tabs, or a hot-seat pass, returns you.
+- **Built:** a header chip or 1–5 shows that player's Capital, Hand, Income, Eras, Civ, Tech and Terrain tabs in the player area, read-only, bordered in their colour, under `InspectBar` ("Viewing Mira's area", Back to your area); tab headings name the player ("Mira's eras"). Their hand is a count, and a face-down tapestry card says so; `publicSeat` in `src/lib/area/inspect.js` is the client guard that drops another seat's `hand` and `picks`. Nothing on their tabs can be placed, picked or chosen; your turn, footer and open panel stay as they were. Ways back: the same chip, your own chip, Back, Escape, the same number; a decision that opens one of your tabs, or a hot-seat pass, returns you. #157 later made the compact summary follow the inspected player too.
 - **#143:** its goal (an opponent's eras and territory tiles) is met in the sidebar, and its overview-rows checklist is superseded by the ruling.
 - **Tests:** `client-area-inspect` (the guard, and `PlayerTabs` rendered for another seat shows no hand card and no face-down card); browser `opponent-tabs` (the border, the line, the hand count, the eras, no pressable tiles, the footer unchanged, every way back) and `hotkeys` updated.
 - **Screenshots:** `game-opponent-tabs.png`, `game-opponent-eras.png`, `game-opponent-terrain.png` and `game-opponent-hand.png` replace `game-overview.png` in the README.
@@ -1042,6 +1042,22 @@ Built on 2026-10-30 on the owner's choice: option A, at the tracks' centre, with
 - **Claude's calls, to revisit after playing:** only other players' actions show; small gains are lines, not displays; explores and conquests don't switch to the World Map; the actions wait for the dice tray and for the viewer's own open question (the panel covered the first-income notice's Got it otherwise); income turn 1 shows only a tapestry card a civilization plays then (the Heralds' Maker of Fire); the lines after an income turn's card belong to it until the first VP that isn't the card's or the capital's score; "Just now" shows on your own turn before you choose; a refresh plays nothing.
 - **Tests:** `client-player-actions` (27: each kind, other seats only, a face-down card never named, traps, conquests, income summaries across batches, income turn 1, the line cap, ordering, the queue and the timer), `client-pass` (`handedEvents`), and browser `player-actions` (an opponent's card with their name, no focus taken, held past 4 s while hovered, Close, Just now and Show again, nothing after a reload).
 - **Screenshot:** `docs/ui/screens/game-player-action.png` in the README.
+
+### #150 (terrain tile benefits)
+
+Built on 2026-10-30. The issue remains open pending merge and owner close.
+- **Built:** each territory tile shows its data-defined reward in the centre using existing tile art; hover text gives the same benefit in words. Quantities, the no-benefit science-die X and the tech-upgrade marker are included.
+- **Tests:** `client-area-terrain` covers all 48 tiles and reward descriptions; browser `library` covers the tile examples.
+- **Docs and screenshot:** updated the component index and UI manifest; added the real component-library screenshot to the README.
+- **For the owner / revisit after playing:** none known.
+
+### #157 (another player's tabs: the summary at the foot)
+
+Built on 2026-10-30. The issue remains open pending merge and owner close. The existing #145 design document was updated; no new Markdown files were created.
+- **Built:** the compact summary follows `tabSeat`, showing the inspected player's public name, era, VP, counts and resources. Its resource preview and gold changed highlights are suppressed while inspecting, then the viewer's `PromptState` values return with their own area. The summary gets the same player's inset border colour as the inspected tabs.
+- **Tests:** `client-overview` proves the summary model follows the requested seat; browser `opponent-tabs` checks the other player's name and resources, matching border, no prompt highlights, and that Back, the own chip, Escape and the viewer's number key restore the viewer's summary.
+- **Docs and screenshots:** updated the existing opponent-tabs design ruling and UI manifest; retook the four opponent-tab screenshots in the README from the running game.
+- **For the owner / revisit after playing:** none known.
 
 ### Main CI green again: the track spaces' browser tests
 

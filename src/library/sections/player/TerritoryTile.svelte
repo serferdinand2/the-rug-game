@@ -7,21 +7,25 @@
 	import Section from '../../Section.svelte';
 
 	const { territories } = terrainView({
-		territoryTiles: [1, 5, 17, 47],
+		territoryTiles: [1, 2, 5, 8, 12, 17, 22, 23, 47],
 		spaceTiles: [],
 		exploredSpace: [],
 	});
 	// Tile 17 as the explore prompt shows it after two turns: each turn is painted, not rotated.
+	const tile17 = territories.find(({ id }) => id === 17);
+	if (!tile17) {
+		throw new Error('library example is missing territory tile 17');
+	}
 	const turnedTile = {
-		...territories[2],
-		corners: /** @type {any} */ (turned(territories[2].corners, 2)),
+		...tile17,
+		corners: /** @type {any} */ (turned(tile17.corners, 2)),
 	};
 </script>
 
 <Section
 	name="TerritoryTile"
 	area="player"
-	description="A territory tile in hand: a small flat-topped hex painted at its turn as the World Map paints a territory (#134), with its number. Tile 1 shows clouds and tile 47 the volcano.">
+	description="A small flat-topped territory hex painted as the World Map paints it (#134), with its number and the reward icon centered on the tile. The hover title repeats the benefit in words. Tile 1 shows clouds and tile 47 the volcano.">
 	{#each territories as tile (tile.id)}
 		<Example
 			label="id={tile.id}{tile.island.length ? ' with island' : ''}"

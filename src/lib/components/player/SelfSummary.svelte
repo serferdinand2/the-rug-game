@@ -1,14 +1,15 @@
-<!-- Your overview: the compact block at the foot of the player area, with the viewer's era, VP, counts and resources. -->
+<!-- The compact summary at the foot of the player area, for the shown player's era, VP, counts and resources. -->
 <script module>
 	/**
 	 * Properties of the SelfSummary component itself.
 	 * @typedef {Object} SelfSummaryOwnProps
-	 * @property {import('../../ui.js').Seat} seat - The viewer's seat, which sets the colour mark
-	 * @property {string} name - The viewer's name
+	 * @property {import('../../ui.js').Seat} seat - The shown player's seat, which sets the colour mark
+	 * @property {string} name - The shown player's name
 	 * @property {number} era - 1 to 4, shown as I–IV
 	 * @property {number} vp
 	 * @property {{ coin: number, worker: number, food: number, culture: number }} resources
 	 * @property {string[]} [changed=[]] - Resources whose count shows a prompt's choices so far, drawn gold (#75)
+	 * @property {boolean} [inspected=false] - The summary belongs to another player's inspected area (#157)
 	 * @property {number} hand - Tapestry cards in hand
 	 * @property {number} tech - Tech cards in all rows
 	 * @property {number} territories - Territories controlled
@@ -37,6 +38,7 @@
 		vp,
 		resources,
 		changed = [],
+		inspected = false,
 		hand,
 		tech,
 		territories,
@@ -46,9 +48,12 @@
 </script>
 
 <section
-	aria-label="Your resources and game summary"
+	aria-label={inspected
+		? `${name}'s resources and game summary`
+		: 'Your resources and game summary'}
 	{...attr}
 	class="rg-self-summary {attr.class ? attr.class : ''}"
+	class:rg-self-summary--inspecting={inspected}
 	style:--rg-self-summary-color={playerColor(seat)}>
 	<div class="rg-self-summary--head">
 		<strong
@@ -66,7 +71,7 @@
 	</div>
 	<div
 		class="rg-self-summary--resources"
-		aria-label="Your resources">
+		aria-label={inspected ? `${name}'s resources` : 'Your resources'}>
 		{#each RESOURCES as resource (resource.id)}
 			<ResourceChip
 				class="rg-self-summary--resource"
@@ -85,6 +90,10 @@
 		padding: 9px var(--space-8) 11px;
 		border-top: var(--border-thick) solid var(--ink);
 		background: color-mix(in srgb, var(--chrome) 72%, var(--surface));
+	}
+
+	.rg-self-summary--inspecting {
+		box-shadow: inset 0 0 0 var(--border-thick) var(--rg-self-summary-color);
 	}
 
 	.rg-self-summary--head {

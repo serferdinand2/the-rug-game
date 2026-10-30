@@ -85,7 +85,6 @@
 	let available = $derived(
 		options.map((o) => ({ track: o.track, space: o.to }))
 	);
-	let summary = $derived(selfSummary(game, seat));
 	let players = $derived(
 		game.seats.filter((/** @type {any} */ s) => s.kind === 'player')
 	);
@@ -116,6 +115,7 @@
 	/** Another player whose tabs the player area shows, read-only, as their chip or number key chose them; null for your own (#145, owner 2026-10-30). */
 	let viewing = $state(/** @type {number | null} */ (null));
 	let tabSeat = $derived(shownSeat(viewing, seat));
+	let summary = $derived(selfSummary(game, tabSeat));
 	/** @type {{ kind: 'tech' | 'tapestry', data: any, side?: boolean } | null} A card shown in full over the shared area; beside the shelf, without a scrim, for a shelf card */
 	let inspected = $state(null);
 	/**
@@ -759,8 +759,11 @@
 			{#if summary}
 				<SelfSummary
 					{...summary}
-					resources={promptState.resources}
-					changed={promptState.changed} />
+					resources={viewing === null
+						? promptState.resources
+						: summary.resources}
+					changed={viewing === null ? promptState.changed : []}
+					inspected={viewing !== null} />
 			{/if}
 		</div>
 	{/snippet}

@@ -2,6 +2,7 @@
 // area, read-only and private cards hidden, and every way back returns to your own; then the table is ended and left.
 import { expect, test } from '@playwright/test';
 import { askedSeats } from '../../src/lib/engine/game.js';
+import { amountWords } from '../../src/lib/words.js';
 
 test.use({ viewport: { width: 1920, height: 1080 } });
 
@@ -100,6 +101,8 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		);
 		const held = theirs.game.seats[other - 1].handCount;
 		expect(theirs.game.seats[other - 1].hand).toBeUndefined();
+		const ownPlayer = theirs.game.seats[seat - 1];
+		const opponent = theirs.game.seats[other - 1];
 
 		await page.addInitScript(
 			(saved) => sessionStorage.setItem('rg-token', saved),
@@ -123,6 +126,7 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		});
 		const back = page.getByRole('button', { name: 'Back to your area' });
 		const footer = await page.locator('.rg-turn-bar').innerText();
+		const summary = page.locator('.rg-self-summary');
 
 		// Their chip shows their tabs, bordered in their colour, and not the players overview.
 		await chip.click();
@@ -135,6 +139,29 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		});
 		expect(border.style).toBe('solid');
 		expect(parseFloat(border.width)).toBeGreaterThan(0);
+
+		// The summary belongs to the inspected player too, including their public resource counts.
+		await expect(summary.locator('.rg-self-summary--head')).toContainText(
+			name
+		);
+		await expect(summary).toHaveAttribute(
+			'aria-label',
+			`${name}'s resources and game summary`
+		);
+		const summaryBorder = await summary.evaluate(
+			(element) => getComputedStyle(element).boxShadow
+		);
+		expect(summaryBorder).not.toBe('none');
+		for (const resource of ['coin', 'worker', 'food', 'culture']) {
+			await expect(
+				summary.getByRole('img', {
+					name: amountWords(resource, opponent.resources[resource]),
+				})
+			).toBeVisible();
+		}
+		await expect(summary.locator('.rg-resource-chip--changed')).toHaveCount(
+			0
+		);
 
 		// Their hand is a count, with no card face.
 		await tabs.getByRole('tab', { name: /^Hand/ }).click();
@@ -164,16 +191,35 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		await expect(
 			tabs.getByRole('heading', { name: 'Territory tiles' })
 		).toBeVisible();
+		const expectOwnSummary = async () => {
+			await expect(
+				summary.locator('.rg-self-summary--head')
+			).toContainText(NAMES[seat - 1]);
+			await expect(summary).toHaveAttribute(
+				'aria-label',
+				'Your resources and game summary'
+			);
+		};
+		await expectOwnSummary();
+		for (const resource of ['coin', 'worker', 'food', 'culture']) {
+			await expect(
+				summary.getByRole('img', {
+					name: amountWords(resource, ownPlayer.resources[resource]),
+				})
+			).toBeVisible();
+		}
 
 		// The same chip again goes back, and so does your own.
 		await chip.click();
 		await expect(inspecting).toBeVisible();
 		await chip.click();
 		await expect(inspecting).toHaveCount(0);
+		await expectOwnSummary();
 		await chip.click();
 		await expect(inspecting).toBeVisible();
 		await ownChip.click();
 		await expect(inspecting).toHaveCount(0);
+		await expectOwnSummary();
 
 		// Escape goes back; their number key opens them as the chip does, and yours goes back (#83).
 		await chip.click();
@@ -181,10 +227,12 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		await page.locator('body').focus();
 		await page.keyboard.press('Escape');
 		await expect(inspecting).toHaveCount(0);
+		await expectOwnSummary();
 		await page.keyboard.press(String(other));
 		await expect(inspecting).toBeVisible();
 		await page.keyboard.press(String(seat));
 		await expect(inspecting).toHaveCount(0);
+		await expectOwnSummary();
 	} finally {
 		// A running hot-seat game is ended, then left, so the table closes and the address's table limit is free.
 		const latest = await api(request, 'state', undefined, token);

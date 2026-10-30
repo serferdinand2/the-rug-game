@@ -8,7 +8,7 @@
 <Section
 	name="SelfSummary"
 	area="player"
-	description="Your overview: the viewer's name, era and VP, their hand, tech, territory and capital-line counts, and the four resources with their native 24px icons. It sits at the foot of the player area and updates with every answer.">
+	description="The compact summary at the foot of the player area: the shown player's name, era, VP, counts and four resources. It follows the inspected player (#157), while your own pending resource choices stay yours.">
 	<Example
 		label={'seat={1} era={3}  (mid-game)'}
 		width={430}>
@@ -22,6 +22,21 @@
 			tech={3}
 			territories={4}
 			lines={2} />
+	</Example>
+	<Example
+		label="inspected={true}  (another player's area)"
+		width={430}>
+		<SelfSummary
+			seat={2}
+			name="Wrenwick"
+			era={2}
+			vp={18}
+			resources={{ coin: 3, worker: 2, food: 5, culture: 1 }}
+			hand={2}
+			tech={1}
+			territories={3}
+			lines={0}
+			inspected />
 	</Example>
 	<Example
 		label={'seat={5} era={1}  (the first turn)'}
