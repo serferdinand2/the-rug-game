@@ -4,9 +4,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRawSnippet } from 'svelte';
 import { render } from 'svelte/server';
+import { spotChoice } from '../src/lib/card-spots.js';
 import CardClarity from '../src/lib/components/player/CardClarity.svelte';
 import CardEffectBox from '../src/lib/components/player/CardEffectBox.svelte';
 import CardEffectList from '../src/lib/components/player/CardEffectList.svelte';
+import CardPredictionTracks from '../src/lib/components/player/CardPredictionTracks.svelte';
 import CardResource from '../src/lib/components/player/CardResource.svelte';
 import CardScoreLadder from '../src/lib/components/player/CardScoreLadder.svelte';
 import CardTerrainRewards from '../src/lib/components/player/CardTerrainRewards.svelte';
@@ -280,4 +282,63 @@ test('CardTerrainRewards draws each row from data: marker, name, then the resour
 
 test('CivilizationCard writes no terrain row by hand (#106)', () => {
 	assert.doesNotMatch(source('CivilizationCard'), /rg-card-treasure-/);
+});
+
+test('spotChoice makes a spot the decision offers a button, gold when picked, and leaves the others alone', () => {
+	const pick = () => {};
+	assert.deepEqual(spotChoice('c1r1', ['c2r1'], null, pick), {});
+	assert.deepEqual(spotChoice('c2r1', ['c2r1', 'c2r2'], 'c2r1', pick), {
+		pickable: true,
+		picked: true,
+		value: 'c2r1',
+		'data-id': 'civ-spot-c2r1',
+		onCardSlotPick: pick,
+	});
+	assert.equal(
+		spotChoice('c2r2', ['c2r1', 'c2r2'], 'c2r1', pick).picked,
+		false
+	);
+});
+
+test('CardPredictionTracks draws each category from data, its selected number and the offered numbers as buttons', () => {
+	const body = html(
+		render(CardPredictionTracks, {
+			props: {
+				categories: [
+					{
+						id: 'techCards',
+						label: 'Tech cards',
+						note: 'you have',
+						most: 9,
+						selected: 4,
+					},
+					{
+						id: 'tracks',
+						label: 'Completed advancement tracks',
+						most: 4,
+					},
+				],
+				choices: ['tracks:1', 'tracks:2'],
+				picked: 'tracks:2',
+			},
+		})
+	);
+	assert.equal(
+		body.match(/rg-card-prediction-tracks--number\b/g)?.length,
+		13
+	);
+	assert.match(body, /Tech cards\s*<small[^>]*>you have<\/small>/);
+	assert.equal(body.match(/rg-card-prediction-tracks--selected/g)?.length, 1);
+	assert.match(body, /rg-card-prediction-tracks--selected[^>]*>4</);
+	assert.match(body, /style="grid-template-columns: repeat\(4, 39px\);"/);
+	assert.equal(body.match(/<button/g)?.length, 2);
+	assert.match(body, /data-id="civ-spot-tracks:2"/);
+	assert.equal(body.match(/rg-card-slot-surface--picked/g)?.length, 1);
+});
+
+test('CivilizationCard writes no prediction row by hand (#106)', () => {
+	assert.doesNotMatch(
+		source('CivilizationCard'),
+		/rg-card-mystic-|mysticNumbers/
+	);
 });

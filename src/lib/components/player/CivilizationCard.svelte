@@ -147,19 +147,24 @@
 		{ count: 5, points: 31 },
 		{ count: '6+', points: 40 },
 	];
-	/** The most each Mystics prediction can be, by category: its numbers run from 1 to it. */
-	const MYSTIC_MOST = /** @type {Record<string, number>} */ (
-		Object.fromEntries(
-			PREDICTIONS.map(({ category, most }) => [category, most])
-		)
-	);
+	/** The Mystics' categories, with the most each prediction can be: its numbers run from 1 to it. */
+	const MYSTIC_CATEGORIES = [
+		{ id: 'techCards', label: 'Tech cards', note: 'you have' },
+		{ id: 'districts', label: 'Complete districts' },
+		{ id: 'territories', label: 'Territories', note: 'you control' },
+		{ id: 'tracks', label: 'Completed advancement tracks' },
+	].map((category) => ({
+		...category,
+		most: /** @type {number} */ (
+			PREDICTIONS.find((each) => each.category === category.id)?.most
+		),
+	}));
 	/** The class each mark draws a spot with: the play illustration's own. */
 	const MARK_CLASSES = {
 		token: 'rg-card-is-current',
 		used: 'rg-card-is-used',
 		exposed: 'rg-card-is-exposed',
 		moved: 'rg-card-is-moved',
-		chosen: 'rg-card-is-selected',
 	};
 	/** @type {CivilizationCardProps} */
 	let {
@@ -213,6 +218,20 @@
 	}
 
 	/**
+	 * The number the Mystics predicted in a category, as the marks show it.
+	 * @param {string} category
+	 * @returns {number | undefined}
+	 */
+	function chosenNumber(category) {
+		const spot = Object.keys(marks).find(
+			(each) =>
+				each.startsWith(`${category}:`) &&
+				marks[each].includes('chosen')
+		);
+		return spot === undefined ? undefined : Number(spot.split(':')[1]);
+	}
+
+	/**
 	 * The CardSlot props of a spot: a button when the open decision offers it, gold when it is the one picked.
 	 * @param {string} spot
 	 */
@@ -236,18 +255,6 @@
 			color="blue"
 			class="rg-card-merry-cell--token"
 			decorative />{/if}{/snippet}
-
-{#snippet mysticNumbers(/** @type {string} */ category)}
-	{#each Array.from({ length: MYSTIC_MOST[category] }, (_, index) => index + 1) as value (value)}
-		<CardSlot
-			size={39}
-			{...spotProps(`${category}:${value}`)}
-			class="rg-card-mystic-number {marked(
-				`${category}:${value}`,
-				'chosen'
-			)}">{value}</CardSlot>
-	{/each}
-{/snippet}
 
 <!-- The play look draws the player's marks in --player-1; a seat's card draws them in that seat's colour. -->
 <div
@@ -909,41 +916,14 @@
 			{#snippet effect()}When you gain this civilization, predict one
 				number in each category by placing a token on it.{/snippet}
 
-			<CardPredictionTracks>
-				<div class="rg-card-mystic-prediction">
-					<div class="rg-card-mystic-prediction--label">
-						Tech cards <small>you have</small>
-					</div>
-					<div class="rg-card-mystic-prediction--numbers">
-						{@render mysticNumbers('techCards')}
-					</div>
-				</div>
-				<div class="rg-card-mystic-prediction">
-					<div class="rg-card-mystic-prediction--label">
-						Complete districts
-					</div>
-					<div class="rg-card-mystic-prediction--numbers">
-						{@render mysticNumbers('districts')}
-					</div>
-				</div>
-				<div class="rg-card-mystic-prediction">
-					<div class="rg-card-mystic-prediction--label">
-						Territories <small>you control</small>
-					</div>
-					<div class="rg-card-mystic-prediction--numbers">
-						{@render mysticNumbers('territories')}
-					</div>
-				</div>
-				<div class="rg-card-mystic-prediction">
-					<div class="rg-card-mystic-prediction--label">
-						Completed advancement tracks
-					</div>
-					<div
-						class="rg-card-mystic-prediction--numbers rg-card-mystic-prediction--numbers--four">
-						{@render mysticNumbers('tracks')}
-					</div>
-				</div>
-			</CardPredictionTracks>
+			<CardPredictionTracks
+				categories={MYSTIC_CATEGORIES.map((category) => ({
+					...category,
+					selected: chosenNumber(category.id),
+				}))}
+				choices={Object.keys(choices)}
+				picked={selected}
+				onCardPredictionTracksPick={slotPickHandler} />
 			<CardEffectList above={14}>
 				<CardEffectBox
 					title="First time reached"
