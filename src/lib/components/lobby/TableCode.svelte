@@ -1,4 +1,4 @@
-<!-- The lobby's table code: a read-only gold field and a COPY button that reports the code to copy. -->
+<!-- The lobby's table code: a small read-only TextInput and a COPY button that reports the code to copy. -->
 <script module>
 	/**
 	 * Properties of the TableCode component itself.
@@ -21,6 +21,7 @@
 
 <script>
 	import Button from '../ui/Button.svelte';
+	import TextInput from '../ui/TextInput.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 
 	/** @type {TableCodeProps} */
@@ -28,10 +29,10 @@
 
 	/**
 	 * Selects the whole code, so it can also be copied by hand.
-	 * @param {FocusEvent} event
+	 * @param {import('../../component-event.js').ComponentEvent} event
 	 */
 	const fieldFocusHandler = (event) => {
-		/** @type {HTMLInputElement} */ (event.currentTarget).select();
+		/** @type {HTMLInputElement} */ (event.target).select();
 	};
 
 	/**
@@ -49,12 +50,13 @@
 <div
 	{...attr}
 	class="rg-table-code {attr.class ? attr.class : ''}">
-	<input
-		class="rg-table-code--field"
-		value={code}
+	<TextInput
+		size="small"
+		{label}
+		hideLabel
 		readonly
-		aria-label={label}
-		onfocus={fieldFocusHandler} />
+		value={code}
+		onTextInputFocus={fieldFocusHandler} />
 	<Button
 		size="small"
 		aria-label="Copy the table code"
@@ -66,18 +68,5 @@
 		display: inline-flex;
 		align-items: center;
 		gap: var(--space-2);
-	}
-
-	.rg-table-code--field {
-		width: 105px;
-		height: var(--input-height-small);
-		padding: var(--space-2) var(--space-4);
-		border: var(--border) solid var(--line);
-		border-radius: var(--radius);
-		background: var(--ink);
-		color: var(--gold);
-		font-size: var(--font-size-sm);
-		font-weight: var(--weight-bold);
-		letter-spacing: var(--letter-spacing-caps);
 	}
 </style>

@@ -1,4 +1,4 @@
-<!-- Library section: SeatCard as a joined player, an empty slot, a closed slot, an open seat and a seat to name, and a working row of five seats. -->
+<!-- Library section: SeatCard as a joined player, an empty slot, a closed slot and a seat to name, and a working row of five seats. -->
 <script>
 	import SeatCard from '../../../lib/components/lobby/SeatCard.svelte';
 	import CivChooser from '../../../lib/components/lobby/CivChooser.svelte';
@@ -12,7 +12,7 @@
 	/**
 	 * One seat in the working row.
 	 * @typedef {Object} DemoSeat
-	 * @property {'empty' | 'open' | 'player'} state
+	 * @property {'empty' | 'add' | 'player'} state
 	 * @property {string} [name]
 	 * @property {string | null} [civilization]
 	 * @property {boolean} [you]
@@ -33,6 +33,7 @@
 	let added = $state('Bryndoria');
 	/** @type {string | null} */
 	let lastAdded = $state(null);
+	let rowName = $state('');
 
 	/** @type {DemoSeat[]} */
 	let seats = $state([
@@ -45,7 +46,7 @@
 		},
 		{ state: 'player', name: 'Ana', civilization: 'Architects' },
 		{ state: 'empty' },
-		{ state: 'open' },
+		{ state: 'empty' },
 		{ state: 'empty' },
 	]);
 
@@ -76,18 +77,15 @@
 	}
 
 	/**
-	 * Moves you, the host, into an open seat.
+	 * Opens an empty seat's name field, closing any other one, as the lobby does.
 	 * @param {Seat} seat
 	 */
-	function take(seat) {
-		const from = seats.findIndex((item) => item.you);
-		if (from < 0) {
-			return;
-		}
-		const you = seats[from];
-		seats[from] = { state: 'empty' };
-		seats[seat - 1] = { ...you };
-		chooserSeat = null;
+	function open(seat) {
+		seats = seats.map((item) =>
+			item.state === 'add' ? { state: 'empty' } : item
+		);
+		rowName = '';
+		setSeat(seat, { state: 'add' });
 	}
 
 	/**
@@ -108,6 +106,19 @@
 	};
 
 	/**
+	 * The typed name joins as a player; the parent names an empty one, here "Player 3".
+	 * @param {ComponentEvent} event
+	 */
+	const rowAddHandler = (event) => {
+		const seat = /** @type {Seat} */ (event.value.seat);
+		setSeat(seat, {
+			state: 'player',
+			name: event.value.name.trim() || `Player ${seat}`,
+			civilization: null,
+		});
+	};
+
+	/**
 	 * @param {ComponentEvent} event
 	 */
 	const pickHandler = (event) => {
@@ -124,7 +135,7 @@
 <Section
 	name="SeatCard"
 	area="lobby"
-	description="One of the five lobby seats. Every state is exactly one seat tall and as wide as its column: an empty slot offers Open seat, a closed one offers nothing, an open seat asks to be taken, a seat at a hot-seat table asks for a name, and a joined player shows the badges, name and civilization. The host's × appears on hover or keyboard focus.">
+	description="One of the five lobby seats. Every state is exactly one seat tall and as wide as its column: an empty slot offers Open seat, a closed one offers nothing, a seat at a hot-seat table asks for a name, and a joined player shows the badges, name and civilization. The host's × appears on hover or keyboard focus.">
 	<Example
 		label={'state="player" seat={1} you host ready={false} canChooseCivilization'}
 		surface="chrome"
@@ -211,37 +222,38 @@
 			seat={3} />
 	</Example>
 	<Example
-		label={'state="open" seat={4} removable'}
-		surface="chrome"
-		width={SEAT_WIDTH}>
-		<SeatCard
-			state="open"
-			seat={4}
-			removable />
-	</Example>
-	<Example
-		label={`Five seats at the lobby's width  (open, take, remove, choose a civilization, toggle ready)`}
+		label={`Five seats at the lobby's width  (open a seat and name a player, remove, choose a civilization, toggle ready)`}
 		surface="chrome"
 		width={1000}>
 		<div class="rg-library-seats">
 			{#each seats as item, index (index)}
 				{@const seat = seatOf(index)}
-				<SeatCard
-					state={item.state}
-					{seat}
-					name={item.name}
-					civilization={item.civilization ?? null}
-					you={item.you}
-					host={item.host}
-					ready={item.you ? ready : undefined}
-					canChooseCivilization={item.you}
-					removable={!item.you && item.state !== 'empty'}
-					onSeatCardOpen={() => setSeat(seat, { state: 'open' })}
-					onSeatCardCancel={() => setSeat(seat, { state: 'empty' })}
-					onSeatCardRemove={() => setSeat(seat, { state: 'empty' })}
-					onSeatCardTake={() => take(seat)}
-					onSeatCardChooseCivilization={() =>
-						(chooserSeat = chooserSeat === seat ? null : seat)} />
+				{#if item.state === 'add'}
+					<SeatCard
+						state="add"
+						{seat}
+						bind:name={rowName}
+						onSeatCardAdd={rowAddHandler}
+						onSeatCardCancel={() =>
+							setSeat(seat, { state: 'empty' })} />
+				{:else}
+					<SeatCard
+						state={item.state}
+						{seat}
+						name={item.name}
+						civilization={item.civilization ?? null}
+						you={item.you}
+						host={item.host}
+						ready={item.you ? ready : undefined}
+						canChooseCivilization={item.you}
+						removable={!item.you && item.state !== 'empty'}
+						onSeatCardOpen={() => open(seat)}
+						onSeatCardRemove={() =>
+							setSeat(seat, { state: 'empty' })}
+						onSeatCardChooseCivilization={() =>
+							(chooserSeat =
+								chooserSeat === seat ? null : seat)} />
+				{/if}
 			{/each}
 		</div>
 		<p class="rg-library-seats--controls">
