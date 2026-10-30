@@ -20,10 +20,13 @@ async function api(request, endpoint, body, token) {
 	return response.json();
 }
 
-/** Each screen, with the size of a space's name and a resource's picture there. */
+/**
+ * Each screen, with the size of a space's name and of the first resource's picture there. That resource is in a
+ * bonus (Mathematics' "pay 1 resource"), whose pictures grow 18, 19, then 20px with the space (#85).
+ */
 const SCREENS = [
-	{ width: 1920, height: 1080, text: '10px', resource: 16 },
-	{ width: 2240, height: 1260, text: '11px', resource: 18 },
+	{ width: 1920, height: 1080, text: '10px', resource: 18 },
+	{ width: 2240, height: 1260, text: '11px', resource: 19 },
 	{ width: 2560, height: 1440, text: '12px', resource: 20 },
 	{ width: 3840, height: 2160, text: '12px', resource: 20 },
 ];

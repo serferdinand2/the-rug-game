@@ -441,10 +441,13 @@
 		font-style: normal;
 		font-weight: var(--weight-bold);
 	}
+	/* The arrow glyphs come from a fallback font whose line box is taller than its em box; clipping to the em box
+	   keeps every ink pixel and stops the extra box from overflowing the space's benefit (track-text test). */
 	.rg-space-glyphs--direction {
 		display: inline-flex;
 		align-items: center;
 		gap: 1px;
+		overflow: hidden;
 		color: var(--gold);
 		font: var(--weight-bold) var(--font-size-3xl) / 1 var(--font-body);
 	}
@@ -498,6 +501,12 @@
 		.rg-space-glyphs--symbol-icon {
 			width: 27px;
 			height: 27px;
+		}
+		/* A bonus's pictures stay between the 18px below and the 20px above this step, not the benefit's 27px. */
+		.rg-space-glyphs--bonus img,
+		.rg-space-glyphs--bonus .rg-space-glyphs--symbol-icon {
+			width: 19px;
+			height: 19px;
 		}
 	}
 
