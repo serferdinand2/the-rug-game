@@ -850,7 +850,7 @@
 		overflow: hidden;
 	}
 
-	/* Another player's summary (#157) continues the border their tabs draw (#145) down its sides and foot. */
+	/* Another player's summary (issue 157) continues the border their tabs draw (issue 145) down its sides and foot. */
 	.rg-game--private :global(.rg-game--theirs) {
 		box-shadow:
 			inset var(--border-thick) 0 0 var(--rg-self-summary-color),
