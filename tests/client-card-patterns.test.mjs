@@ -5,6 +5,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { createRawSnippet } from 'svelte';
 import { render } from 'svelte/server';
 import { spotChoice } from '../src/lib/card-spots.js';
+import { civCard } from '../src/lib/cards/civ-cards.js';
 import CardClarity from '../src/lib/components/player/CardClarity.svelte';
 import CardEffectBox from '../src/lib/components/player/CardEffectBox.svelte';
 import CardEffectList from '../src/lib/components/player/CardEffectList.svelte';
@@ -36,7 +37,7 @@ const html = (result) => result.body.replace(/<!--[\s\S]*?-->/g, '');
 /** The primitives this issue has given data, state props and their own styles so far. */
 const DONE = ['CardResource', 'CardClarity', 'CardEffectBox', 'CardEffectList'];
 
-/** The pattern classes that left card-patterns.css; the Militants' guide stays until the card is drawn from data. */
+/** The pattern classes that left card-patterns.css (#106); the symbols and the Militants' guide followed in #107. */
 const CIVILIZATION_CLASS_PATTERNS =
 	/rg-card-(?:collector|leader|treasure|craftsmen|entertainer|mystic|alchemist|isolation|merry|histor|inventor)/;
 
@@ -150,6 +151,47 @@ test('CardEffectBox takes its title, and a gained resource or a word as its symb
 	assert.match(label, /rg-card-effect-box--text-15/);
 });
 
+test('CardEffectBox draws a pictogram as its symbol, styled by itself (#107)', () => {
+	/** @param {any} pictogram */
+	const symbol = (pictogram) =>
+		html(
+			render(CardEffectBox, {
+				props: { title: 'Effect', pictogram },
+			})
+		).match(
+			/<div class="rg-card-effect-box--symbol[^"]*">([\s\S]*?)<\/div>\s*<div/
+		)?.[1] ?? '';
+	assert.equal(symbol({ kind: 'district' }).match(/<i/g)?.length, 9);
+	assert.match(symbol({ kind: 'district' }), /rg-card-effect-box--district/);
+	assert.equal(symbol({ kind: 'lines' }).match(/<i/g)?.length, 3);
+	assert.match(
+		symbol({ kind: 'territory' }),
+		/rg-card-effect-box--territory[^"]*"><\/span>/
+	);
+	assert.match(
+		symbol({ kind: 'territory', piece: '/art/piece/outpost-red.svg' }),
+		/src="\/art\/piece\/outpost-red.svg"/
+	);
+	assert.deepEqual(
+		[...symbol({ kind: 'tracks' }).matchAll(/track\/(\w+)\.svg/g)].map(
+			(m) => m[1]
+		),
+		['exploration', 'science', 'technology', 'military']
+	);
+	assert.equal(
+		symbol({ kind: 'resources' }).match(/rg-card-resource--art/g)?.length,
+		4
+	);
+	assert.match(
+		symbol({ kind: 'card', picture: '/art/tapestry/renaissance.svg' }),
+		/rg-card-effect-box--mini-card[^"]*"><img[^>]*src="\/art\/tapestry\/renaissance.svg"/
+	);
+	assert.match(
+		symbol({ kind: 'era', numeral: 'I', title: 'Maker of Fire, era I' }),
+		/rg-card-effect-box--era[^"]*" title="Maker of Fire, era I"><b[^>]*>I<\/b>/
+	);
+});
+
 test('CardEffectList holds the effect boxes, with the space above it as a prop', () => {
 	const body = html(
 		render(CardEffectList, {
@@ -249,13 +291,21 @@ test('CardTechnologyTransfer marks the top row it leaves and the bottom row it r
 	assert.match(active, /Opponent's tech/);
 });
 
-test('CivilizationCard draws both score ladders with CardScoreLadder (#106)', () => {
+test('CivilizationCard draws both score ladders with CardScoreLadder (#106, #107)', () => {
 	const card = source('CivilizationCard');
 	assert.doesNotMatch(
 		card,
 		/rg-card-isolation-score|rg-card-inventor-tech|values=/
 	);
-	assert.equal(card.match(/<CardScoreLadder/g)?.length, 2);
+	assert.equal(card.match(/<CardScoreLadder/g)?.length, 1);
+	for (const civ of ['collectors', 'isolationists']) {
+		assert.ok(
+			civCard(civ).sections.some(
+				(section) => section.pattern === 'scoreLadder'
+			),
+			civ
+		);
+	}
 });
 
 test('CardTerrainRewards draws each row from data: marker, name, then the resource with its + and the effect', () => {
@@ -664,9 +714,11 @@ test("the Alchemists' rolled token is a player's token marking its track, not a 
 	assert.match(token[1], /width: 21px;/);
 	assert.match(token[1], /top: 3px;/);
 	assert.match(token[1], /right: 3px;/);
-	assert.match(
-		source('CivilizationCard'),
-		/kind="tracks"\s+\{seat\}/,
+	const tracks = civCard('alchemists').sections.find(
+		(section) => section.pattern === 'placementRows'
+	);
+	assert.ok(
+		tracks && 'seated' in tracks && tracks.seated,
 		'the Alchemists pass their seat'
 	);
 });
@@ -754,7 +806,7 @@ test('CivilizationCard gives its frames no civilization class (#106)', () => {
 	assert.doesNotMatch(source('CivilizationCard'), /rg-card-frame--/);
 });
 
-test('card-patterns.css keeps the frame palette and the symbols, and no pattern or dead rule (#106)', () => {
+test('card-patterns.css keeps only the frame palette and paper, and no pattern, symbol or dead rule (#106, #107)', () => {
 	const css = readFileSync(
 		new URL('../src/styles/card-patterns.css', import.meta.url),
 		'utf8'
@@ -765,4 +817,8 @@ test('card-patterns.css keeps the frame palette and the symbols, and no pattern 
 		/rg-card-(slot|any|notch|shadow|option|cx|vp|ability|fine|setup|resource-icon|frame--(body|text|foot|portrait|band))/
 	);
 	assert.doesNotMatch(css, CIVILIZATION_CLASS_PATTERNS);
+	assert.doesNotMatch(
+		css,
+		/rg-card-(mini-card|district-icon|line-icon|militant-guide|era-numeral|track-quad|resource-quad|trader-hex)/
+	);
 });

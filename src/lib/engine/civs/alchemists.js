@@ -9,8 +9,11 @@ import { SCIENCE_DIE } from '../data/dice.js';
  * @property {import('../data/ids.js').TrackId[]} marked - The tracks rolled in this activation, in roll order
  */
 
+/** The VP a marked track whose tokens are all at its end gives instead of the advance. */
+export const ALCHEMISTS_OFF_TRACK_VP = 5;
+
 /**
- * Stops: an optional advance without benefit on each marked track in roll order, 5 VP instead on a track whose
+ * Stops:an optional advance without benefit on each marked track in roll order, 5 VP instead on a track whose
  * tokens are all on space 12. The marks clear.
  * @param {import('../state.js').Context} ctx
  * @param {number} player
@@ -30,7 +33,7 @@ export function stopAlchemists(ctx, player, marked) {
 						tracks: [track],
 						noBenefit: true,
 						optional: true,
-						offTrackVp: 5,
+						offTrackVp: ALCHEMISTS_OFF_TRACK_VP,
 					},
 				},
 			],

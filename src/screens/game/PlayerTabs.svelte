@@ -527,6 +527,7 @@
 					<!-- The six civilizations with spots of their own show where their pieces are, and take their choices (#78). -->
 					<CivilizationCard
 						id={civ}
+						version={game.version}
 						seat={player.seat}
 						live={CARD_CIVS.includes(civ)
 							? civPick && civPick.civ === civ

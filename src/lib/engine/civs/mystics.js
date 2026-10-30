@@ -26,6 +26,9 @@ const PROPHECIES = [
 	{ category: 'tracks', most: 4 },
 ];
 
+/** The VP for each category predicted exactly, on the final income turn. */
+export const MYSTICS_EXACT_VP = 10;
+
 /** The card's prophecies, for the interface's live card (#78). */
 export { PROPHECIES as MYSTICS_PROPHECIES };
 
@@ -176,7 +179,11 @@ export const mystics = {
 		).length;
 		if (exact > 0) {
 			ctx.push([
-				{ player, kind: 'effects', effects: [{ vp: 10 * exact }] },
+				{
+					player,
+					kind: 'effects',
+					effects: [{ vp: MYSTICS_EXACT_VP * exact }],
+				},
 			]);
 		}
 	},

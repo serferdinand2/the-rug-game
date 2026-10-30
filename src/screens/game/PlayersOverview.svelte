@@ -91,6 +91,7 @@
 				<!-- Each player's card as it stands, to look at only (#78). -->
 				<CivilizationCard
 					id={civ}
+					version={game.version}
 					seat={openSeat.seat}
 					live={CARD_CIVS.includes(civ)
 						? civCardView(game, openSeat.seat, civ)

@@ -13,6 +13,9 @@ function achievementsHeld(state, player) {
 	).length;
 }
 
+/** The VP for each achievement on the final income turn, instead of a resource. */
+export const CHOSEN_FINAL_VP = 5;
+
 /** @type {import('./civ.js').Civ} */
 export const theChosen = {
 	id: 'the-chosen',
@@ -31,7 +34,9 @@ export const theChosen = {
 		];
 		if (held > 0) {
 			effects.push(
-				turn === 5 ? { vp: 5 * held } : { gain: { any: held } }
+				turn === 5
+					? { vp: CHOSEN_FINAL_VP * held }
+					: { gain: { any: held } }
 			);
 		}
 		ctx.push([{ player, kind: 'effects', effects, ordered: true }]);
