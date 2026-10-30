@@ -38,6 +38,7 @@
 <script>
 	import TerritoryTile from '../player/TerritoryTile.svelte';
 	import { ComponentEvent } from '../../component-event.js';
+	import { upToVp } from '../../hexmap.js';
 
 	/** @type {TilePickerProps} */
 	let {
@@ -89,7 +90,7 @@
 	 */
 	const labelOf = (tile) =>
 		typeof tile.vp === 'number'
-			? `${tile.label}, up to ${tile.vp} VP on this hex`
+			? `${tile.label}, ${upToVp(tile.vp)} on this hex`
 			: tile.label;
 </script>
 
