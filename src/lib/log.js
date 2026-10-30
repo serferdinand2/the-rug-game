@@ -674,6 +674,17 @@ const WORDS = {
 	},
 	noInvent: (e, game, name) => `${name} had no tech card to invent.`,
 	noUpgrade: (e, game, name) => `${name} had no tech card to upgrade.`,
+	// Assembly Line, Electronics and Nanotechnology (#144): the card's benefit follows as its own lines.
+	techBenefitUsed(e, game, name) {
+		const card = techName(e.card);
+		if (e.icon === 'square') {
+			return `${name} took the square benefit of ${card}, which stays in the top row.`;
+		}
+		if (e.icon === 'circle') {
+			return `${name} took the circle benefit of ${card}, which stays in the middle row.`;
+		}
+		return `${name} took the benefit of ${card}.`;
+	},
 	noTechBenefit: (e, game, name) =>
 		`${name} had no tech card to take a benefit from.`,
 

@@ -17,6 +17,7 @@
 	 * @property {import('../../ui.js').CostSymbol[] | null} [cost=null] - The price shown before the actions
 	 * @property {string} [costLabel] - The word before the price; defaults to 'Optional cost' in the optional tone and 'Cost' otherwise
 	 * @property {import('svelte').Snippet} [actions] - The action Buttons, after the cost
+	 * @property {import('svelte').Snippet} [note] - Drawn after the heading, on its line, such as the footer's "Just now" line with Show again (#153)
 	 * @property {import('svelte').Snippet} [reveal] - Drawn before the turn label, in the group whose hover and focus open it, such as the IncomeReveal (#122)
 	 */
 
@@ -60,6 +61,7 @@
 		cost = null,
 		costLabel,
 		actions,
+		note,
 		reveal,
 		...attr
 	} = $props();
@@ -87,14 +89,19 @@
 		<div
 			class="rg-turn-bar--text"
 			aria-live="polite">
-			<h3 class="rg-turn-bar--heading">
-				{heading}
-				{#if properName}<span class="rg-turn-bar--proper"
-						>{properName}</span
-					>{/if}{#if properIcon}<span class="rg-turn-bar--icon"
-						>{@render properIcon()}</span
-					>{/if}{headingEnd ?? ''}
-			</h3>
+			<div class="rg-turn-bar--line">
+				<h3 class="rg-turn-bar--heading">
+					{heading}
+					{#if properName}<span class="rg-turn-bar--proper"
+							>{properName}</span
+						>{/if}{#if properIcon}<span class="rg-turn-bar--icon"
+							>{@render properIcon()}</span
+						>{/if}{headingEnd ?? ''}
+				</h3>
+				{#if note}
+					{@render note()}
+				{/if}
+			</div>
 			{#if detail}
 				<p class="rg-turn-bar--detail">{detail}</p>
 			{/if}
@@ -214,8 +221,16 @@
 		min-width: 0;
 	}
 
-	.rg-turn-bar--heading {
+	.rg-turn-bar--line {
+		display: flex;
+		align-items: baseline;
+		gap: var(--space-4);
+		min-width: 0;
 		margin: 0 0 var(--space-1);
+	}
+
+	.rg-turn-bar--heading {
+		margin: 0;
 		font: var(--weight-bold) var(--font-size-base) / var(--leading-tight)
 			var(--font-body);
 	}

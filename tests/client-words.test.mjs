@@ -11,6 +11,7 @@ import {
 	nounOf,
 	ordinal,
 	pluralOf,
+	possessive,
 	signed,
 	titleOf,
 	wordsOf,
@@ -117,4 +118,9 @@ test('ordinals read as places', () => {
 		'22nd',
 		'23rd',
 	]);
+});
+
+test('a name takes the possessive, with only an apostrophe after a final s (#145)', () => {
+	assert.equal(possessive('Vera'), "Vera's");
+	assert.equal(possessive('Marcus'), "Marcus'");
 });

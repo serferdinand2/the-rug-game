@@ -11,7 +11,7 @@
 	 * @property {boolean} [filled=false] - The players overview is open: the colour slides across the chip and its text hides, at the same size
 	 * @property {boolean} [bump=false] - Their VP just rose (#29): the score pops once in gold, unless the system asks for reduced motion
 	 * @property {string} [ability] - The civilization's full ability, which hovering the chip shows after its name (#42)
-	 * @property {Function} [onPlayerChipClick] - Callback fired when the chip is pressed, to open or close the players overview
+	 * @property {Function} [onPlayerChipClick] - Callback fired when the chip is pressed, to show that player's tabs in the player area (#145)
 	 */
 
 	/**
@@ -26,7 +26,7 @@
 	 *   seat={2}
 	 *   current
 	 *   filled={overviewOpen}
-	 *   onPlayerChipClick={() => (overviewOpen = !overviewOpen)}
+	 *   onPlayerChipClick={() => (viewing = seat)}
 	 * />
 	 */
 </script>

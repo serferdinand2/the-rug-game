@@ -124,6 +124,15 @@ export function pluralOf(word) {
 }
 
 /**
+ * A name's possessive: "Vera's", and "Marcus'" after a final s (#145).
+ * @param {string} name
+ * @returns {string}
+ */
+export function possessive(name) {
+	return /s$/i.test(name) ? `${name}'` : `${name}'s`;
+}
+
+/**
  * A count of any noun: "1 outpost", "2 toppled outposts", "0 territories".
  * @param {number} n
  * @param {string} one

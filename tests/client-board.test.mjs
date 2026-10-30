@@ -1,8 +1,13 @@
 // Tests for the tracks and achievements the board components take from a game view.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { view } from '../src/lib/engine/game.js';
-import { newGame } from './helpers/engine.mjs';
+import {
+	DECISIONS,
+	openDecisions,
+	play,
+	view,
+} from '../src/lib/engine/game.js';
+import { answer, newGame, readyTurn } from './helpers/engine.mjs';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
 import {
 	trackBoard,
@@ -73,6 +78,53 @@ test("a player's lane is their furthest token", () => {
 	const lane = tracks[1].players.find((p) => p.seat === 1);
 	assert.equal(lane?.position, 5);
 	assert.equal(tracks[1].players.length, 2);
+});
+
+/**
+ * A view of a 2-player game in which the current player advanced onto technology 12, AI Singularity, from
+ * military 5, and started the token again on `restart` (01 §3.4).
+ * @param {'exploration' | 'science' | 'technology' | 'military'} restart
+ */
+function afterSingularity(restart) {
+	const ready = readyTurn(2, (seat) => {
+		seat.tracks.technology = [11];
+		seat.tracks.military = [5];
+		seat.resources = { coin: 2, worker: 2, food: 2, culture: 2 };
+	});
+	const { random, player } = ready;
+	const chosen = answer(ready.state, random, player, 'chooseTurn', {
+		turn: 'advance',
+	});
+	const [decision] = openDecisions(chosen);
+	const move = DECISIONS.chooseAdvance
+		.answers(chosen, decision)
+		.find((a) => a.track === 'technology' && a.from === 11);
+	const state = answer(
+		play(chosen, player, { decision: decision.id, ...move }, random),
+		random,
+		player,
+		'chooseRestart',
+		{ track: restart }
+	);
+	return { game: /** @type {any} */ (view(state, player)), player };
+}
+
+test('after AI Singularity the technology lane stays complete, at space 12 (#147, FAQ #9, R109)', () => {
+	const { game, player } = afterSingularity('military');
+	assert.deepEqual(game.seats[player - 1].tracks.technology, []);
+	assert.deepEqual(game.seats[player - 1].tracks.military, [5, 0]);
+	const lane = (/** @type {number} */ index) =>
+		trackBoard(game)[index].players.find((p) => p.seat === player);
+	assert.equal(lane(2)?.position, 12);
+	// Only the most advanced token counts when positions are compared (01 §3.1).
+	assert.equal(lane(3)?.position, 5);
+});
+
+test('AI Singularity onto the technology track itself keeps its lane complete (#147)', () => {
+	const { game, player } = afterSingularity('technology');
+	assert.deepEqual(game.seats[player - 1].tracks.technology, [0]);
+	const lane = trackBoard(game)[2].players.find((p) => p.seat === player);
+	assert.equal(lane?.position, 12);
 });
 
 test('achievements list claimants in order and the next VP by map size', () => {

@@ -1,0 +1,14 @@
+# What other players just did (#153): plan
+
+The design is `docs/superpowers/specs/2026-10-30-opponent-actions-design.md`, with the owner's decisions of 2026-10-30 (option A, a 4-second timer line, hover pauses, a close button) and Claude's calls for the rest.
+
+1. **Tests first** (`tests/client-player-actions.test.mjs`): `actionsOf()` turns fresh events into display items, one test per kind (a tapestry card face up, face down, a trap; an advance with its landmark; an invented and an upgraded tech card; an explore; a conquer with its toppled outpost and dice; an income turn's summary after its card); only other seats; the viewer's own actions dropped; order; income turn 1 left out; the income turn read from the events before the batch; the lines in the log's words, capped. Then the queue (`queueAdd`, `queueNext`, `queueClear`, "1 of N") and the timer (`src/lib/action-timer.js`: start, pause, resume, time left, over), with time passed in, no real timers. Then `handedEvents()` in `tests/client-pass.test.mjs` for the hot-seat hand-over. Watch them fail.
+2. **`src/lib/player-actions.js`** and **`src/lib/action-timer.js`** until they pass; `handedEvents()` in `src/lib/pass.js`.
+3. **The store** (`src/lib/game.svelte.js`): at a hot-seat table, remember the last event each seat saw; when a player takes the screen, `handed` holds the other players' events since then and `handedCount` goes up.
+4. **`board/PlayerAction.svelte`** (presentational, with its own timer from action-timer.js, like the dice tray's): the band in the player's colour with "1 of N", the picture (TapestryCard, a card back, the track and landmark, TechnologyCard, TerritoryTile, the conquer dice, the income steps), the headline and lines, the 4-second progress line, Close and Skip all. Hover pauses; a click, Close or Escape closes; Shift+Escape or Skip all ends the queue. Library section, README row.
+5. **Lighting:** `lit` on `TrackBoard` → `Track` → `TrackSpace`, and on `WorldMap`, in the acting player's colour.
+6. **`TurnBar`/`TurnFooter`:** the "Just now: …" line with **Show again**.
+7. **`App.svelte`:** the queue fed by `store.fresh` and `store.handed`, waiting while the dice tray rolls; `Game.svelte` takes `action` (what is lit) and `justNow`/`onGameShowAgain`.
+8. **Browser test** `tests/browser/player-actions.test.mjs`: an online table played through the API to an income turn; the opponent's tapestry card shows with their name, hovering pauses the timer, the Close button closes it, and a reload plays nothing. Run it with dice-tray, game and pass-screen.
+9. **Docs and screenshots:** `docs/ui/screens/game-player-action.png` from the running game at 1920×1080; README "Current interface", `docs/ui/README.md` ("Built in #153"), `docs/architecture.md`.
+10. `npm run check` (0/0), `npm run test:unit`, Prettier on the changed files; commit "Fix #153: …".

@@ -15,6 +15,7 @@
 	 * @property {string} [words=''] - The benefit and bonus in words, for the label and the tooltip
 	 * @property {boolean} [selected=false] - Draw the gold outline; sets aria-pressed
 	 * @property {boolean} [available=false] - The viewer can advance to this space: a green outline, named in the label; selected wins visually
+	 * @property {string | null} [lit=null] - Another player just advanced here (#153): the space glows in their colour, a token reference such as 'var(--player-1)', while their action shows
 	 * @property {Function} [onTrackSpaceClick] - Callback fired with { track, space } when the space is chosen
 	 * @property {Function} [onTrackSpaceHover] - Callback fired with { track, space, hovering } when the pointer or keyboard focus arrives or leaves
 	 */
@@ -57,6 +58,7 @@
 		last = false,
 		selected = false,
 		available = false,
+		lit = null,
 		onTrackSpaceClick,
 		onTrackSpaceHover,
 		...attr
@@ -239,6 +241,8 @@
 		name === 'Alien Biology'}
 	class:rg-track-space--selected={selected}
 	class:rg-track-space--available={available}
+	class:rg-track-space--lit={lit !== null}
+	style:--rg-track-space-lit={lit}
 	style:--rg-track-space-color={trackColor(track)}
 	style:--rg-track-space-step={space}
 	bind:clientWidth={width}
@@ -529,6 +533,18 @@
 	}
 	.rg-track-space--selected .rg-track-space--outline path {
 		stroke: var(--gold);
+	}
+
+	/* Another player's advance, lit in their colour while it shows (issue 153). */
+	.rg-track-space--lit {
+		z-index: 19;
+	}
+
+	.rg-track-space--lit:not(.rg-track-space--selected)
+		.rg-track-space--outline
+		path {
+		stroke: var(--rg-track-space-lit);
+		filter: drop-shadow(0 0 6px var(--rg-track-space-lit));
 	}
 	.rg-track-space--available:not(.rg-track-space--selected)
 		.rg-track-space--outline
