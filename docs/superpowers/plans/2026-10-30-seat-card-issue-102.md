@@ -32,3 +32,11 @@
 - [ ] `npx vitest run tests/client-lobby.test.mjs tests/client-seat-card.test.mjs`, `npm run test:unit`, `npm run check`.
 - [ ] Browser (after merging): lobby, library.
 - [ ] Commit `Fix #102: …`.
+
+### Task 5: The owner's answers (owner, 2026-10-30)
+
+- [x] Keep the civilization line and `CivChooser`; record it in the design, on `SeatCard` and in the README and library.
+- [x] Tests first: the add seat renders a small, block `TextInput` and a small, block gold submit `Button`; `SeatCard` has no field or add-button CSS of its own; `TextInput`'s small focus rule is read-only only; the library's one-frame test counts blurred shadows only.
+- [x] `TextInput` gains `block`; `SeatCard`'s add form uses `TextInput` and `Button` and focuses the form's input on opening; its own field and button CSS goes.
+- [x] Before and after screenshots in `docs/ui/screens/issue-102/`.
+- [x] `npm run check`, the client Vitest files, Prettier; commit `Fix #102: …`.

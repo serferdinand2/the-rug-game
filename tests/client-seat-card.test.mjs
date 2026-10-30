@@ -10,6 +10,10 @@ const seatSource = readFileSync(
 	new URL('../src/lib/components/lobby/SeatCard.svelte', import.meta.url),
 	'utf8'
 );
+const textInputSource = readFileSync(
+	new URL('../src/lib/components/ui/TextInput.svelte', import.meta.url),
+	'utf8'
+);
 const codeSource = readFileSync(
 	new URL('../src/lib/components/lobby/TableCode.svelte', import.meta.url),
 	'utf8'
@@ -49,7 +53,9 @@ test('a seat to name holds the name field, Add and the × that closes it (#102)'
 	assert.match(html, /class="rg-seat-card--frame/);
 	assert.match(html, /aria-label="Name of the player in seat 3"/);
 	assert.match(html, /value="Vera"/);
-	assert.match(html, />Add<\/button>/);
+	assert.match(html, /placeholder="Name, or leave empty"/);
+	assert.match(html, /maxlength="24"/);
+	assert.match(html, />(<!---->)?Add(<!---->)?<\/button>/);
 	assert.equal(crosses(html), 1);
 	assert.match(html, /aria-label="Close seat 3"/);
 	assert.match(html, /title="Close the seat"/);
@@ -73,6 +79,34 @@ test('a player shows the badges and name, and a × only when removable (#102)', 
 	assert.equal(crosses(removable), 1);
 	assert.match(removable, /aria-label="Remove Ana"/);
 	assert.match(removable, /title="Remove the player"/);
+});
+
+test('the name field and Add take TextInput and Button, filling the frame (owner, 2026-10-30, #102)', () => {
+	const html = seat({ state: 'add', name: '' });
+	assert.match(
+		html,
+		/class="rg-text-input rg-text-input--small [^"]*rg-text-input--block"/
+	);
+	assert.match(
+		html,
+		/<button type="submit"[^>]*class="rg-button rg-button--gold rg-button--small [^"]*rg-button--block"/
+	);
+	assert.doesNotMatch(seatSource, /<input|rg-seat-card--add-input/);
+	assert.doesNotMatch(seatSource, /rg-seat-card--add-button/);
+	assert.match(seatSource, /<TextInput/);
+	assert.match(seatSource, /<Button/);
+});
+
+test('a small TextInput keeps its line border on focus only while read-only, so the add field shows the gold focus (#102)', () => {
+	assert.match(
+		textInputSource,
+		/\.rg-text-input--small \.rg-text-input--field\[readonly\]:focus \{/
+	);
+	assert.doesNotMatch(
+		textInputSource,
+		/\.rg-text-input--small \.rg-text-input--field:focus/
+	);
+	assert.match(textInputSource, /\.rg-text-input--block \{/);
 });
 
 test('SeatCard keeps only the lobby states: no open seat to take, one × and its words from lobby.js (#102)', () => {

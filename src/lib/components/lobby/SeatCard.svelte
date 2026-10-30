@@ -5,10 +5,10 @@
 	/**
 	 * Properties of the SeatCard component itself.
 	 * @typedef {Object} SeatCardOwnProps
-	 * @property {SeatCardState} [state='empty'] - empty: one "Open seat" choice; closed: the same empty slot without the choice, for a viewer who can't open it (#98); add: a gold frame holding a name field and Add, for a hot-seat table; player: a joined player
+	 * @property {SeatCardState} [state='empty'] - empty: one "Open seat" choice; closed: the same empty slot without the choice, for a viewer who can't open it (#98); add: a gold frame holding a small TextInput for the name and a small gold Add Button, for a hot-seat table; player: a joined player
 	 * @property {import('../../ui.js').Seat} seat - The seat number, which sets the player's colour
 	 * @property {string} [name] - The player's name, in the player state; in the add state, the typed name, bindable so a refused name stays
-	 * @property {string | null} [civilization=null] - The chosen civilization, or null before one is chosen
+	 * @property {string | null} [civilization=null] - The chosen civilization, or null before one is chosen; kept for a civilization choice in the lobby (owner, 2026-10-30), which today passes showCivilization={false}
 	 * @property {boolean} [showCivilization=true] - The civilization line under the name; false where civilizations are dealt later, as in the lobby
 	 * @property {boolean} [canChooseCivilization=false] - The civilization is a button that opens the chooser; it reads "Choose civilization" while none is chosen
 	 * @property {boolean} [you=false] - The player is the viewer; shows YOU
@@ -42,6 +42,8 @@
 
 <script>
 	import Badge from '../ui/Badge.svelte';
+	import Button from '../ui/Button.svelte';
+	import TextInput from '../ui/TextInput.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 	import { seatBadges, seatLabel } from '../../lobby.js';
 	import { playerColor } from '../../ui.js';
@@ -70,13 +72,13 @@
 	let badges = $derived(seatBadges({ you, host, ready }));
 	let label = $derived(seatLabel({ seat, state: kind, name }));
 
-	/** @type {HTMLInputElement | undefined} */
-	let nameInput = $state();
+	/** @type {HTMLFormElement | undefined} */
+	let addForm = $state();
 
 	// The name field takes the focus when the seat opens, so the keyboard can type straight in.
 	$effect(() => {
-		if (kind === 'add' && nameInput) {
-			nameInput.focus();
+		if (kind === 'add' && addForm) {
+			addForm.querySelector('input')?.focus();
 		}
 	});
 
@@ -182,19 +184,23 @@
 		</button>
 	{:else if kind === 'add'}
 		<form
+			bind:this={addForm}
 			class="rg-seat-card--frame"
 			onsubmit={addSubmitHandler}>
-			<input
-				bind:this={nameInput}
+			<TextInput
 				bind:value={name}
-				class="rg-seat-card--add-input"
-				aria-label="Name of the player in seat {seat}"
+				label="Name of the player in seat {seat}"
+				hideLabel
+				size="small"
+				block
 				placeholder="Name, or leave empty"
-				maxlength="24"
+				maxlength={24}
 				autocomplete="off" />
-			<button
+			<Button
 				type="submit"
-				class="rg-seat-card--add-button">Add</button>
+				mode="gold"
+				size="small"
+				block>Add</Button>
 		</form>
 		{@render remove(
 			`Close seat ${seat}`,
@@ -316,39 +322,6 @@
 		box-shadow:
 			inset 0 0 0 2px color-mix(in srgb, var(--gold) 33%, transparent),
 			var(--glow-gold);
-	}
-
-	.rg-seat-card--add-input {
-		width: 100%;
-		min-width: 0;
-		height: var(--input-height-small);
-		padding: var(--space-2) var(--space-3);
-		border: var(--border) solid var(--line);
-		border-radius: var(--radius);
-		background: var(--ink);
-		color: var(--text);
-		font-size: var(--font-size-sm);
-	}
-
-	.rg-seat-card--add-input:focus {
-		border-color: var(--gold);
-		outline: none;
-	}
-
-	.rg-seat-card--add-button {
-		height: var(--input-height-small);
-		padding: 0 var(--space-4);
-		border: var(--border) solid var(--gold);
-		border-radius: var(--radius);
-		background: color-mix(in srgb, var(--gold) 30%, var(--ink));
-		color: color-mix(in srgb, var(--gold) 40%, var(--text));
-		font-size: var(--font-size-sm);
-		font-weight: var(--weight-bold);
-		transition: background var(--duration-fast) var(--ease);
-	}
-
-	.rg-seat-card--add-button:hover {
-		background: color-mix(in srgb, var(--gold) 40%, var(--ink));
 	}
 
 	.rg-seat-card--badges {

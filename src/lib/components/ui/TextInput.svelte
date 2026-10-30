@@ -1,4 +1,4 @@
-<!-- A labelled text field: the launch page's name and table-code inputs, or the lobby's small gold read-only code. -->
+<!-- A labelled text field: the launch page's name and table-code inputs, the lobby's small gold read-only code, or the name of a hot-seat player to add. -->
 <script module>
 	/**
 	 * Properties of the TextInput component itself.
@@ -13,7 +13,8 @@
 	 * @property {boolean} [readonly=false] - Shown but not editable, such as the lobby's table code
 	 * @property {string} [hint] - A short muted note under the input
 	 * @property {string} [error] - A validation message under the input; also marks the input invalid
-	 * @property {'medium' | 'small'} [size='medium'] - medium: 44px, the launch page; small: 30px by 105px, gold and bold, the lobby's table code
+	 * @property {'medium' | 'small'} [size='medium'] - medium: 44px, the launch page; small: 30px by 105px, gold and bold, the lobby's table code and a hot-seat seat's name field
+	 * @property {boolean} [block=false] - Fill the container's width, as a hot-seat seat's name field does
 	 * @property {Function} [onTextInputInput] - Callback fired on every keystroke, with the new text
 	 * @property {Function} [onTextInputChange] - Callback fired when an edit is committed, with the text
 	 * @property {Function} [onTextInputFocus] - Callback fired when the input takes the focus, with the text; its target is the input, so the lobby's code can select itself
@@ -33,6 +34,7 @@
 	 *   bind:value={code}
 	 * />
 	 * <TextInput label="Table code" hideLabel size="small" readonly value="DAWN2048" />
+	 * <TextInput label="Name of the player in seat 3" hideLabel size="small" block bind:value={name} />
 	 */
 </script>
 
@@ -52,6 +54,7 @@
 		hint,
 		error,
 		size = 'medium',
+		block = false,
 		onTextInputInput,
 		onTextInputChange,
 		onTextInputFocus,
@@ -104,7 +107,8 @@
 
 <div
 	{...attr}
-	class="rg-text-input rg-text-input--{size} {attr.class ? attr.class : ''}">
+	class="rg-text-input rg-text-input--{size} {attr.class ? attr.class : ''}"
+	class:rg-text-input--block={block}>
 	{#if label && !hideLabel}
 		<label
 			class="rg-text-input--label"
@@ -154,6 +158,10 @@
 		width: 105px;
 	}
 
+	.rg-text-input--block {
+		width: 100%;
+	}
+
 	.rg-text-input--label {
 		margin-bottom: var(--space-5);
 		color: var(--text);
@@ -199,8 +207,8 @@
 		letter-spacing: var(--letter-spacing-caps);
 	}
 
-	/* The lobby's read-only code keeps its line border on focus and shows only the page's focus outline, issue 102. */
-	.rg-text-input--small .rg-text-input--field:focus {
+	/* The lobby's read-only code keeps its line border on focus and shows only the page's focus outline; an editable small field takes the gold focus. */
+	.rg-text-input--small .rg-text-input--field[readonly]:focus {
 		border-color: var(--line);
 		box-shadow: none;
 	}
