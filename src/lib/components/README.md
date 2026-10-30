@@ -44,7 +44,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `CardSymbol` | The approved 24px technology, tapestry and civilization card pictograms, traced from the owner's PNGs. Used by advancement spaces and shown separately in the library. |
 | `Segmented` | A row of pressed/unpressed choices, single or multiple, tinted or filled, and disabled for a player who can't change them. |
 | `Tabs` | The right panel's tabs, with a count, roving focus and arrow keys; `--rg-tabs-padding` and `--rg-tabs-gap` tighten the row, and a row wider than its place scrolls, fades at a cut edge and keeps the selected tab in view (#64). It draws the selected tab's panel from its children, laid out through `panelClass`, starts every id with its own prefix (`idPrefix`, by default `$props.id()`), and with `autofocus` gives the selected tab the focus as it is drawn (#91). |
-| `TextInput` | Labelled text fields with a hint and a validation message, and the small gold read-only code. |
+| `TextInput` | Labelled text fields with a hint and a validation message, and the small gold read-only code that `TableCode` draws; `onTextInputFocus` lets it select itself. |
 | `Toast` | A short status message at the bottom of the screen. |
 | `Tooltip` | Every title on the page in one large chrome box with an arrow, instead of the browser's small tooltip: mounted once at the root, it shows on hover or keyboard focus after 250 ms, sits above its element or below near the top, and stays in the window. `placement="inline"` shows a given `text` in place, as on the library page. |
 | `TopBar` | The 58px header: brand, centre content and controls. Player chips go straight into the centre, so they shrink to fit a narrow header. |
@@ -108,9 +108,9 @@ These components are updated as the art issues deliver their assets. Each will s
 | `CivChooser` | Civilization tiles and Random, bordered in the edited player's colour. |
 | `OpenTableRow` | One open table on the launch page: Join, code, seat boxes, rules and expansion. |
 | `PlaySettings` | The turn timer and undo rows, the same in the lobby and in Table settings; its rows join the parent's layout, and a guest sees them disabled (#98). |
-| `SeatCard` | A lobby seat: empty (Open seat), closed (an empty seat the viewer can't open, #98), open (Take the seat!), add (a name field for a hot-seat player) or a joined player, with or without the civilization line. Add bot is shelved. |
+| `SeatCard` | A lobby seat: empty (Open seat), closed (an empty seat the viewer can't open, #98), add (a name field for a hot-seat player) or a joined player, with or without the civilization line; its label and badges come from `lobby.js` (#102). Add bot is shelved. |
 | `SettingRow` | A setting's title, a thin rule and its choices on one line; `divided` draws a soft rule under it (#98). |
-| `TableCode` | The read-only table code with COPY. |
+| `TableCode` | The read-only table code, a small `TextInput` that selects itself on focus, with COPY. |
 
 ## log/
 

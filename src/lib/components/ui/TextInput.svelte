@@ -16,6 +16,7 @@
 	 * @property {'medium' | 'small'} [size='medium'] - medium: 44px, the launch page; small: 30px by 105px, gold and bold, the lobby's table code
 	 * @property {Function} [onTextInputInput] - Callback fired on every keystroke, with the new text
 	 * @property {Function} [onTextInputChange] - Callback fired when an edit is committed, with the text
+	 * @property {Function} [onTextInputFocus] - Callback fired when the input takes the focus, with the text; its target is the input, so the lobby's code can select itself
 	 */
 
 	/**
@@ -53,6 +54,7 @@
 		size = 'medium',
 		onTextInputInput,
 		onTextInputChange,
+		onTextInputFocus,
 		...attr
 	} = $props();
 
@@ -86,6 +88,18 @@
 			onTextInputChange(new ComponentEvent(target.value, target, event));
 		}
 	};
+
+	/**
+	 * @param {FocusEvent} event
+	 */
+	const focusHandler = (event) => {
+		if (typeof onTextInputFocus === 'function') {
+			const target = /** @type {HTMLInputElement} */ (
+				event.currentTarget
+			);
+			onTextInputFocus(new ComponentEvent(target.value, target, event));
+		}
+	};
 </script>
 
 <div
@@ -110,7 +124,8 @@
 		aria-invalid={error ? 'true' : undefined}
 		aria-describedby={describedBy}
 		oninput={inputHandler}
-		onchange={changeHandler} />
+		onchange={changeHandler}
+		onfocus={focusHandler} />
 	{#if hint}
 		<p
 			class="rg-text-input--hint"
@@ -182,6 +197,12 @@
 		font-size: var(--font-size-sm);
 		font-weight: var(--weight-bold);
 		letter-spacing: var(--letter-spacing-caps);
+	}
+
+	/* The lobby's read-only code keeps its line border on focus and shows only the page's focus outline, issue 102. */
+	.rg-text-input--small .rg-text-input--field:focus {
+		border-color: var(--line);
+		box-shadow: none;
 	}
 
 	.rg-text-input--hint {

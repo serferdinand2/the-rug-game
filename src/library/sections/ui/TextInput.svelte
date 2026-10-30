@@ -9,6 +9,14 @@
 	let codeError = $derived(
 		/^[A-Za-z0-9]{8}$/.test(code) ? '' : 'Enter an 8-character table code.'
 	);
+
+	/**
+	 * Selects the whole code, as TableCode does.
+	 * @param {import('../../../lib/component-event.js').ComponentEvent} event
+	 */
+	const selectHandler = (event) => {
+		/** @type {HTMLInputElement} */ (event.target).select();
+	};
 </script>
 
 <Section
@@ -49,13 +57,14 @@
 			hint="Other players see this name at the table." />
 	</Example>
 	<Example
-		label={'size="small" label="Table code" hideLabel readonly value="DAWN2048"'}
+		label={'size="small" label="Table code" hideLabel readonly value="DAWN2048" onTextInputFocus  (focus it: the code selects itself, as in the lobby)'}
 		surface="chrome">
 		<TextInput
 			size="small"
 			label="Table code"
 			hideLabel
 			readonly
-			value="DAWN2048" />
+			value="DAWN2048"
+			onTextInputFocus={selectHandler} />
 	</Example>
 </Section>
