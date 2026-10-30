@@ -12,6 +12,8 @@
 	 * @property {Function} [onTurnFooterCancel] - Callback fired when the income or track question is cancelled
 	 * @property {Function} [onTurnFooterResults] - Callback fired when a finished game's Results is pressed
 	 * @property {Function} [onTurnFooterOverviewClose] - Callback fired when the players overview's close bar is pressed
+	 * @property {string} [justNow] - What another player did last, in the log's words, shown as "Just now: …" after the heading (#153)
+	 * @property {Function} [onTurnFooterShowAgain] - Callback fired when Show again is pressed, to play the last actions again
 	 */
 
 	/**
@@ -45,6 +47,8 @@
 		onTurnFooterCancel,
 		onTurnFooterResults,
 		onTurnFooterOverviewClose,
+		justNow,
+		onTurnFooterShowAgain,
 		...attr
 	} = $props();
 
@@ -109,6 +113,16 @@
 	{/if}
 {/snippet}
 
+{#snippet justNowNote()}
+	<span class="rg-turn-footer--just-now">
+		<span class="rg-turn-footer--just-now-text"
+			>· Just now: <b>{justNow}</b></span>
+		<Button
+			size="small"
+			onButtonClick={report(onTurnFooterShowAgain)}>Show again</Button>
+	</span>
+{/snippet}
+
 {#snippet incomeReveal()}
 	{#if view.income}
 		<IncomeReveal
@@ -135,8 +149,34 @@
 			properName={view.properName}
 			track={view.track}
 			detail={view.detail}
+			note={justNow &&
+			(view.tone === 'waiting' || view.tone === 'neutral')
+				? justNowNote
+				: undefined}
 			cost={view.cost ?? null}
 			reveal={view.income ? incomeReveal : undefined}
 			actions={hasActions ? footerActions : undefined} />
 	{/key}
 {/if}
+
+<style>
+	/* What another player did last stays after the heading, with Show again (issue 153). */
+	.rg-turn-footer--just-now {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-4);
+		min-width: 0;
+		color: var(--muted);
+		font-size: var(--font-size-md);
+	}
+
+	.rg-turn-footer--just-now-text {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.rg-turn-footer--just-now b {
+		color: var(--text);
+	}
+</style>

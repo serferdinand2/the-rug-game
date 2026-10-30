@@ -9,6 +9,7 @@
 	 * @property {string | null} [selected=null] - The chosen hex, outlined in gold
 	 * @property {import('../../hexmap.js').MapPreview | null} [preview=null] - A tile to show on a hex before it is explored: drawn like an explored hex, with its clouds or volcano, at 85% opacity with a gold outline
 	 * @property {string[]} [fresh=[]] - Hexes that just changed (#29): a gold outline pulses on each twice, unless the system asks for reduced motion
+	 * @property {{ hex: string, color: string } | null} [lit=null] - A hex another player just explored or conquered, outlined in their colour while their action shows (#153)
 	 * @property {string} [label='World map'] - Names the map for assistive technology
 	 * @property {Function} [onWorldMapSelect] - Callback fired with { hex } when the player chooses a target hex
 	 */
@@ -47,6 +48,7 @@
 		selected = null,
 		preview = null,
 		fresh = [],
+		lit = null,
 		label = 'World map',
 		onWorldMapSelect,
 		...attr
@@ -91,7 +93,9 @@
 	);
 	// The hexes in the outline layer: those mapView outlines, and the one keyboard focus is on.
 	let overlays = $derived(
-		drawn.filter((hex) => hex.outlined || hex.key === focused)
+		drawn.filter(
+			(hex) => hex.outlined || hex.key === focused || hex.key === lit?.hex
+		)
 	);
 
 	$effect(() => {
@@ -293,6 +297,10 @@
 			class:rg-world-map--outline-focus={hex.key === focused}
 			class:rg-world-map--outline-selected={hex.selected}
 			class:rg-world-map--outline-fresh={hex.pulses}
+			class:rg-world-map--outline-lit={hex.key === lit?.hex}
+			style:--rg-world-map-lit={hex.key === lit?.hex
+				? lit.color
+				: undefined}
 			points={hex.outline} />
 	{/each}
 	<!-- The VP the picked tile scores on a lit hex, above the outlines, inside the hex's top edge (y = -34.6). -->
@@ -456,6 +464,20 @@
 		stroke: var(--gold);
 		stroke-width: 3.5;
 		stroke-dasharray: none;
+	}
+
+	/* A hex another player just explored or conquered, in their colour while their action shows (issue 153). */
+	.rg-world-map--outline-lit {
+		stroke: var(--rg-world-map-lit);
+		stroke-width: 3.5;
+		filter: drop-shadow(0 0 6px var(--rg-world-map-lit));
+	}
+
+	/* The lit outline stays while the action shows, over the fresh pulse that fades. */
+	.rg-world-map--outline-lit.rg-world-map--outline-fresh {
+		stroke: var(--rg-world-map-lit);
+		stroke-opacity: 1;
+		animation: none;
 	}
 
 	/* A hex that just changed pulses gold twice, then fades (#29). */

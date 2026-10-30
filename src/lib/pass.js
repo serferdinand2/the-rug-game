@@ -1,5 +1,5 @@
 // The hot-seat hand-over (#30 design §2–§6): which view the client takes or asks for, and whom the pass screen names.
-import { freshEvents } from './event-feed.js';
+import { freshEvents, liveEvents } from './event-feed.js';
 import { seatToShow } from './moves.js';
 import { seatName } from './game-names.js';
 
@@ -103,6 +103,20 @@ export function acceptStep(current, incoming, shown, passing) {
 		passing: step.passing,
 		fresh: take && !wasPassing ? freshEvents(current, incoming) : [],
 	};
+}
+
+/**
+ * The events a hot-seat player is handed when they take the screen (#153): those after the last one they saw, without
+ * what an undo took back, oldest first.
+ * @param {GameEvent[] | null | undefined} events - The game's events, oldest first
+ * @param {number} since - The seq of the last event the player saw
+ * @returns {GameEvent[]}
+ */
+export function handedEvents(events, since) {
+	if (!Array.isArray(events)) {
+		return [];
+	}
+	return liveEvents(events).filter((event) => event.seq > since);
 }
 
 /**
