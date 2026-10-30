@@ -28,6 +28,7 @@
 <script>
 	import CardClarity from './CardClarity.svelte';
 	import CardEffectBox from './CardEffectBox.svelte';
+	import CardEffectList from './CardEffectList.svelte';
 	import CardFrame from './CardFrame.svelte';
 	import CardPathGrid from './CardPathGrid.svelte';
 	import CardPlacementRows from './CardPlacementRows.svelte';
@@ -327,17 +328,12 @@
 						class="rg-card-slot--gain"
 						>+<CardResource symbol="any" /></span>
 				</li></CardPlacementRows>
-			<CardClarity
-				><p class="rg-card-fine">
-					<b>*</b> Only from a conquer benefit, instead of conquering;
-					don&#x27;t roll the dice.<br />Items here count for scoring
-					but can&#x27;t be used. Cards and tiles lie face down; you
-					may look at them.<br /><span class="rg-card-setup"
-						>Setup, current rules: gain
-						<CardResource
-							symbol="any"
-							class="rg-card-resource-icon--fine" />.</span>
-				</p></CardClarity>
+			<CardClarity>
+				<b>*</b> Only from a conquer benefit, instead of conquering;
+				don&#x27;t roll the dice.<br />Items here count for scoring but
+				can&#x27;t be used. Cards and tiles lie face down; you may look
+				at them.{#snippet setup()}Setup, current rules: gain
+					<CardResource symbol="any" />.{/snippet}</CardClarity>
 			<CardScoreLadder
 				values={[1, 3, 6, 10, 15, 21]}
 				current={state === 'play' ? 3 : 0} />
@@ -355,36 +351,30 @@
 				from completed districts and score more from completed rows and
 				columns.{/snippet}
 
-			<div class="rg-card-ability-list">
-				<CardEffectBox>
-					{#snippet symbol()}<span class="rg-card-district-icon"
+			<CardEffectList>
+				<CardEffectBox title="Complete a district"
+					>{#snippet symbol()}<span class="rg-card-district-icon"
 							><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i
 							></i
 							><i></i></span
-						>{/snippet}<b>Complete a district</b><span
-						>If all its income buildings match, gain <strong
-							>+ <CardResource
-								symbol="any"
-								class="rg-card-resource-icon--fine" /></strong> in
-						addition to its usual reward.</span
-					></CardEffectBox>
-				<CardEffectBox>
-					{#snippet symbol()}<span class="rg-card-line-icon"
+						>{/snippet}If all its income buildings match, gain
+					<strong
+						>+ <CardResource
+							symbol="any"
+							fine /></strong> in addition to its usual reward.</CardEffectBox>
+				<CardEffectBox title="Score the capital"
+					>{#snippet symbol()}<span class="rg-card-line-icon"
 							><i></i><i></i><i></i></span
-						>{/snippet}<b>Score the capital</b><span
-						>Each complete row or column whose income buildings
-						match is worth <strong>+1 VP</strong> beyond its usual score.</span
-					></CardEffectBox>
-			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					Each qualifying district, row or column needs at least one
-					income building. If gained mid-game, you may swap the places
-					of 2 income buildings in your capital, up to 3 times.<br /><span
-						class="rg-card-setup"
-						>Setup, current rules: place one impassable plot per
-						opponent, each in a different district.</span>
-				</p></CardClarity>
+						>{/snippet}Each complete row or column whose income
+					buildings match is worth <strong>+1 VP</strong> beyond its usual
+					score.</CardEffectBox>
+			</CardEffectList>
+			<CardClarity minHeight={70}>
+				Each qualifying district, row or column needs at least one
+				income building. If gained mid-game, you may swap the places of
+				2 income buildings in your capital, up to 3 times.{#snippet setup()}Setup,
+					current rules: place one impassable plot per opponent, each
+					in a different district.{/snippet}</CardClarity>
 		</CardFrame>
 	{:else if id === 'leaders'}
 		<CardFrame
@@ -448,10 +438,11 @@
 				</li>
 			</CardPlacementRows>
 			<CardClarity
-				><p class="rg-card-fine">
-					Each track space can be used once. This advance gains the
-					benefit, but cannot gain its bonus.
-				</p></CardClarity>
+				above={16}
+				minHeight={70}>
+				Each track space can be used once. This advance gains the
+				benefit, but cannot gain its bonus.
+			</CardClarity>
 		</CardFrame>
 	{:else if id === 'treasure-hunters'}
 		<CardFrame
@@ -513,13 +504,12 @@
 						both results.</span>
 				</li>
 			</CardTerrainRewards>
-			<CardClarity
-				><p class="rg-card-fine">
-					Setup: put 4 player tokens here and gain 2 territory tiles.
-					Each terrain can be used once. Claiming a territory this way
-					is not a conquer action. For Grassland, you may pay for the
-					advancement bonus.
-				</p></CardClarity>
+			<CardClarity>
+				Setup: put 4 player tokens here and gain 2 territory tiles. Each
+				terrain can be used once. Claiming a territory this way is not a
+				conquer action. For Grassland, you may pay for the advancement
+				bonus.
+			</CardClarity>
 		</CardFrame>
 	{:else if id === 'craftsmen'}
 		<CardFrame
@@ -677,13 +667,12 @@
 					</ol>
 				</section>
 			</CardRewardColumns>
-			<CardClarity
-				><p class="rg-card-fine">
-					Buildings here count as part of your capital for
-					building-related benefits, but these columns do not score as
-					completed capital rows or columns. You may start another
-					column before finishing one.
-				</p></CardClarity>
+			<CardClarity>
+				Buildings here count as part of your capital for
+				building-related benefits, but these columns do not score as
+				completed capital rows or columns. You may start another column
+				before finishing one.
+			</CardClarity>
 		</CardFrame>
 	{:else if id === 'entertainers'}
 		<CardFrame
@@ -759,15 +748,10 @@
 						)}" /> Start at the left; move one column each income turn.
 				</div>
 			</CardPathGrid>
-			<CardClarity
-				><p class="rg-card-fine">
-					If gained mid-game, place the token on any reward space and
-					gain it immediately.<br /><span class="rg-card-setup"
-						>Setup, current rules: gain
-						<CardResource
-							symbol="any"
-							class="rg-card-resource-icon--fine" /> and 10 VP.</span>
-				</p></CardClarity>
+			<CardClarity>
+				If gained mid-game, place the token on any reward space and gain
+				it immediately.{#snippet setup()}Setup, current rules: gain
+					<CardResource symbol="any" /> and 10 VP.{/snippet}</CardClarity>
 		</CardFrame>
 	{:else if id === 'militants'}
 		<CardFrame
@@ -907,13 +891,11 @@
 			<div class="rg-card-militant-guide">
 				Take from the left of either row →
 			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					Start with 8 outposts here and 2 on your starting territory.
-					If you gain this civilization mid-game, refill spaces from
-					right to left, choosing either row for each remaining
-					outpost.
-				</p></CardClarity>
+			<CardClarity>
+				Start with 8 outposts here and 2 on your starting territory. If
+				you gain this civilization mid-game, refill spaces from right to
+				left, choosing either row for each remaining outpost.
+			</CardClarity>
 		</CardFrame>
 	{:else if id === 'mystics'}
 		<CardFrame
@@ -962,31 +944,25 @@
 					</div>
 				</div>
 			</CardPredictionTracks>
-			<div class="rg-card-ability-list rg-card-mystic-payoffs">
-				<CardEffectBox>
-					{#snippet symbol()}+ <CardResource
-							symbol="any"
-							class="" />{/snippet}<b>First time reached</b><span
-						>Gain one resource of your choice when you first reach
-						each predicted number.</span
-					></CardEffectBox>
-				<CardEffectBox>
-					{#snippet symbol()}10 VP{/snippet}<b>Final income turn</b
-					><span
-						>Score 10 VP for each category predicted exactly.</span
-					></CardEffectBox>
-			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					If gained mid-game, discard this civilization and gain
-					another. This is the original prediction mat; the revised
-					Mystics ability uses a different system.<br /><span
-						class="rg-card-setup"
-						>Setup, current rules: gain
-						<CardResource
-							symbol="any"
-							class="rg-card-resource-icon--fine" />.</span>
-				</p></CardClarity>
+			<CardEffectList above={14}>
+				<CardEffectBox
+					title="First time reached"
+					gain="any"
+					symbolText={15}
+					>Gain one resource of your choice when you first reach each
+					predicted number.</CardEffectBox>
+				<CardEffectBox
+					title="Final income turn"
+					label="10 VP"
+					symbolText={15}
+					>Score 10 VP for each category predicted exactly.</CardEffectBox>
+			</CardEffectList>
+			<CardClarity>
+				If gained mid-game, discard this civilization and gain another.
+				This is the original prediction mat; the revised Mystics ability
+				uses a different system.{#snippet setup()}Setup, current rules:
+					gain
+					<CardResource symbol="any" />.{/snippet}</CardClarity>
 		</CardFrame>
 	{:else if id === 'alchemists'}
 		<CardFrame
@@ -1047,38 +1023,31 @@
 					><span>Military</span>
 				</div>
 			</CardPlacementRows>
-			<div class="rg-card-ability-list rg-card-alchemist-outcomes">
-				<CardEffectBox>
-					{#snippet symbol()}STOP{/snippet}<b>Keep distinct rolls</b
-					><span
-						>Advance once on each marked track, without benefits or
-						bonuses. Then clear the tokens.</span
-					></CardEffectBox>
-				<CardEffectBox>
-					{#snippet symbol()}BUST{/snippet}<b
-						>Roll a marked track again</b
-					><span
-						>Clear all tokens and gain + <CardResource
-							symbol="any"
-							class="" /> instead.</span
-					></CardEffectBox>
-				<CardEffectBox>
-					{#snippet symbol()}5 VP{/snippet}<b
-						>Past a track&#x27;s end</b
-					><span
-						>Gain 5 VP each time the final result would push you
-						beyond a track&#x27;s end.</span
-					></CardEffectBox>
-			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					Tokens mark only rolls from this activation; remove them
-					after stopping or busting.<br /><span class="rg-card-setup"
-						>Setup, current rules: gain
-						<CardResource
-							symbol="any"
-							class="rg-card-resource-icon--fine" /> and 10 VP.</span>
-				</p></CardClarity>
+			<CardEffectList above={4}>
+				<CardEffectBox
+					title="Keep distinct rolls"
+					label="STOP"
+					symbolText={14}
+					>Advance once on each marked track, without benefits or
+					bonuses. Then clear the tokens.</CardEffectBox>
+				<CardEffectBox
+					title="Roll a marked track again"
+					label="BUST"
+					symbolText={14}
+					>Clear all tokens and gain + <CardResource
+						symbol="any"
+						class="" /> instead.</CardEffectBox>
+				<CardEffectBox
+					title="Past a track's end"
+					label="5 VP"
+					symbolText={14}
+					>Gain 5 VP each time the final result would push you beyond
+					a track&#x27;s end.</CardEffectBox>
+			</CardEffectList>
+			<CardClarity>
+				Tokens mark only rolls from this activation; remove them after
+				stopping or busting.{#snippet setup()}Setup, current rules: gain
+					<CardResource symbol="any" /> and 10 VP.{/snippet}</CardClarity>
 		</CardFrame>
 	{:else if id === 'isolationists'}
 		<CardFrame
@@ -1095,15 +1064,14 @@
 			<CardTokenReserve
 				count={4}
 				used={state === 'play' ? 1 : 0} />
-			<div class="rg-card-ability-list rg-card-isolation-effects">
-				<CardEffectBox>
-					{#snippet symbol()}+ <CardResource
-							symbol="any"
-							class="" />{/snippet}<b>Place a token</b><span
-						>Gain any resource. With two tokens on it, that
-						territory cannot be conquered.</span
-					></CardEffectBox>
-			</div>
+			<CardEffectList>
+				<CardEffectBox
+					title="Place a token"
+					gain="any"
+					symbolText={13}
+					>Gain any resource. With two tokens on it, that territory
+					cannot be conquered.</CardEffectBox>
+			</CardEffectList>
 			<div class="rg-card-isolation-score">
 				<div class="rg-card-isolation-score--title">
 					Final income turn · territories in your largest connected
@@ -1134,13 +1102,10 @@
 					><b>= 16 VP</b>
 				</div>
 			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					Only land territories you control count; water does not form
-					a landmass. The middle island is not a wildcard.<br /><span
-						class="rg-card-setup"
-						>Setup, current rules: gain 2 territory tiles.</span>
-				</p></CardClarity>
+			<CardClarity>
+				Only land territories you control count; water does not form a
+				landmass. The middle island is not a wildcard.{#snippet setup()}Setup,
+					current rules: gain 2 territory tiles.{/snippet}</CardClarity>
 		</CardFrame>
 	{:else if id === 'traders'}
 		<CardFrame
@@ -1157,33 +1122,24 @@
 			<CardTokenReserve
 				count={4}
 				used={state === 'play' ? 2 : 0} />
-			<div class="rg-card-ability-list rg-card-trader-options">
-				<CardEffectBox>
-					{#snippet symbol()}<span class="rg-card-trader-hex"></span
-						>{/snippet}<b>Empty territory</b><span
-						>Gain 1 VP per adjacent opponent-controlled territory.
-						If an opponent later conquers it, you may gain the
-						benefit of an unselected conquer die.</span
-					></CardEffectBox>
-				<CardEffectBox>
-					{#snippet symbol()}<span class="rg-card-trader-hex"
+			<CardEffectList>
+				<CardEffectBox title="Empty territory"
+					>{#snippet symbol()}<span class="rg-card-trader-hex"></span
+						>{/snippet}Gain 1 VP per adjacent opponent-controlled
+					territory. If an opponent later conquers it, you may gain
+					the benefit of an unselected conquer die.</CardEffectBox>
+				<CardEffectBox title="One opponent outpost"
+					>{#snippet symbol()}<span class="rg-card-trader-hex"
 							><img
 								src="/art/piece/outpost-red.svg"
 								alt="" /></span
-						>{/snippet}<b>One opponent outpost</b><span
-						>Gain the benefit printed on its territory tile, if it
-						has one.</span
-					></CardEffectBox>
-			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					A territory with two tokens of any kind cannot be conquered.
-					The token placement is not a conquer action.<br /><span
-						class="rg-card-setup"
-						>Setup, current rules: gain 2 <CardResource
-							symbol="any"
-							class="rg-card-resource-icon--fine" /> and 10 VP.</span>
-				</p></CardClarity>
+						>{/snippet}Gain the benefit printed on its territory
+					tile, if it has one.</CardEffectBox>
+			</CardEffectList>
+			<CardClarity>
+				A territory with two tokens of any kind cannot be conquered. The
+				token placement is not a conquer action.{#snippet setup()}Setup,
+					current rules: gain 2 <CardResource symbol="any" /> and 10 VP.{/snippet}</CardClarity>
 		</CardFrame>
 	{:else if id === 'merrymakers'}
 		<CardFrame
@@ -1289,17 +1245,12 @@
 							decorative /></CardSlot>
 				</div>
 			</CardRewardColumns>
-			<CardClarity
-				><p class="rg-card-fine">
-					Each column starts with one token below its lowest square.
-					Double rewards grant both items; Explore and Research
-					include their benefits. This shows the original mat.<br /><span
-						class="rg-card-setup"
-						>Setup, current rules: gain
-						<CardResource
-							symbol="any"
-							class="rg-card-resource-icon--fine" />.</span>
-				</p></CardClarity>
+			<CardClarity>
+				Each column starts with one token below its lowest square.
+				Double rewards grant both items; Explore and Research include
+				their benefits. This shows the original mat.{#snippet setup()}Setup,
+					current rules: gain
+					<CardResource symbol="any" />.{/snippet}</CardClarity>
 		</CardFrame>
 	{:else if id === 'historians'}
 		<CardFrame
@@ -1363,21 +1314,19 @@
 						color="blue"
 						decorative /></CardSlot
 				></CardPlacementRows>
-			<div class="rg-card-ability-list rg-card-inventor-effects">
-				<CardEffectBox>
-					{#snippet symbol()}Landmark{/snippet}<b
-						>Opponent holding your token</b
-					><span
-						>When they gain a landmark, gain every currently exposed
-						reward above.</span
-					></CardEffectBox>
-			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					An opponent may hold more than one token. If gained
-					mid-game, give away all four immediately and expose every
-					reward. This shows the original mat.
-				</p></CardClarity>
+			<CardEffectList>
+				<CardEffectBox
+					title="Opponent holding your token"
+					label="Landmark"
+					symbolText={12}
+					>When they gain a landmark, gain every currently exposed
+					reward above.</CardEffectBox>
+			</CardEffectList>
+			<CardClarity>
+				An opponent may hold more than one token. If gained mid-game,
+				give away all four immediately and expose every reward. This
+				shows the original mat.
+			</CardClarity>
 		</CardFrame>
 	{:else if id === 'inventors'}
 		<CardFrame
@@ -1395,29 +1344,26 @@
 				count={4}
 				used={state === 'play' ? 1 : 0} />
 			<CardTechnologyTransfer active={state === 'play'} />
-			<div class="rg-card-ability-list rg-card-inventor-effects">
-				<CardEffectBox>
-					{#snippet symbol()}Upgrade{/snippet}<b
-						>On an opponent&#x27;s card</b
-					><span
-						>They gain the upgrade benefit; you may gain it too.
-						Top-row prerequisites are ignored.</span
-					></CardEffectBox
-				><CardEffectBox>
-					{#snippet symbol()}Top row{/snippet}<b
-						>When their marked card reaches the top</b
-					><span
-						>They gain the benefit first; under the original rules
-						you may gain it too, under the current rules only if
-						your own token moved it there. Then take the card into
-						your bottom row, keeping your token on it.</span
-					></CardEffectBox>
-			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					On your own card, gain the upgrade benefit normally. A
-					landmark already claimed by the opponent gives you nothing.
-				</p></CardClarity>
+			<CardEffectList>
+				<CardEffectBox
+					title="On an opponent's card"
+					label="Upgrade"
+					symbolText={12}
+					>They gain the upgrade benefit; you may gain it too. Top-row
+					prerequisites are ignored.</CardEffectBox
+				><CardEffectBox
+					title="When their marked card reaches the top"
+					label="Top row"
+					symbolText={12}
+					>They gain the benefit first; under the original rules you
+					may gain it too, under the current rules only if your own
+					token moved it there. Then take the card into your bottom
+					row, keeping your token on it.</CardEffectBox>
+			</CardEffectList>
+			<CardClarity>
+				On your own card, gain the upgrade benefit normally. A landmark
+				already claimed by the opponent gives you nothing.
+			</CardClarity>
 		</CardFrame>
 	{:else if id === 'futurists'}
 		<!-- 02-base-content §1.2; current rules' adjustment D (§2.2), at the end of income turn 1 (#20 design). -->
@@ -1432,9 +1378,9 @@
 			{#snippet effect()}When you gain this civilization, at setup or
 				during the game, jump ahead on every advancement track at once.{/snippet}
 
-			<div class="rg-card-ability-list">
-				<CardEffectBox>
-					{#snippet symbol()}<span class="rg-card-track-quad"
+			<CardEffectList>
+				<CardEffectBox title="Head start"
+					>{#snippet symbol()}<span class="rg-card-track-quad"
 							><img
 								src="/art/track/exploration.svg"
 								alt="" /><img
@@ -1444,29 +1390,22 @@
 								alt="" /><img
 								src="/art/track/military.svg"
 								alt="" /></span
-						>{/snippet}<b>Head start</b><span
-						>Advance exactly <strong>4 spaces</strong> on each of the
-						four tracks, without their benefits, bonuses or landmarks.
-						The end of a track is the limit.</span
-					></CardEffectBox>
-				<CardEffectBox>
-					{#snippet symbol()}<span class="rg-card-resource-quad"
+						>{/snippet}Advance exactly <strong>4 spaces</strong> on each
+					of the four tracks, without their benefits, bonuses or landmarks.
+					The end of a track is the limit.</CardEffectBox>
+				<CardEffectBox title="Supplies"
+					>{#snippet symbol()}<span class="rg-card-resource-quad"
 							><CardResource symbol="coin" /><CardResource
 								symbol="worker" /><CardResource
 								symbol="food" /><CardResource
 								symbol="culture" /></span
-						>{/snippet}<b>Supplies</b><span
-						>Gain 1 of each resource.</span
-					></CardEffectBox>
-			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					A landmark you jump past stays on its track; you gain it
-					only by later advancing onto its space.<br /><span
-						class="rg-card-setup"
-						>Current rules: at the end of your first income turn,
-						lose 1 culture and 1 other resource of your choice.</span>
-				</p></CardClarity>
+						>{/snippet}Gain 1 of each resource.</CardEffectBox>
+			</CardEffectList>
+			<CardClarity>
+				A landmark you jump past stays on its track; you gain it only by
+				later advancing onto its space.{#snippet setup()}Current rules:
+					at the end of your first income turn, lose 1 culture and 1
+					other resource of your choice.{/snippet}</CardClarity>
 		</CardFrame>
 	{:else if id === 'heralds'}
 		<!-- 02-base-content §1.2; current rules' adjustment D (§2.2), at the end of income turn 1 (#20 design). -->
@@ -1485,34 +1424,27 @@
 			<CardTokenReserve
 				count={4}
 				used={state === 'play' ? 1 : 0} />
-			<div class="rg-card-ability-list">
-				<CardEffectBox>
-					{#snippet symbol()}<span
+			<CardEffectList>
+				<CardEffectBox title="Copy a card"
+					>{#snippet symbol()}<span
 							class="rg-card-mini-card rg-card-mini-card--tapestry"
 							><img
 								src="/art/tapestry/renaissance.svg"
 								alt="" /></span
-						>{/snippet}<b>Copy a card</b><span
-						>Only the top card of a slot can be chosen, and each
-						card holds at most one token.</span
-					></CardEffectBox>
-				<CardEffectBox>
-					{#snippet symbol()}<span
+						>{/snippet}Only the top card of a slot can be chosen,
+					and each card holds at most one token.</CardEffectBox>
+				<CardEffectBox title="Started with the Heralds"
+					>{#snippet symbol()}<span
 							class="rg-card-mini-card rg-card-mini-card--tapestry rg-card-era-numeral"
 							title="Maker of Fire, era I"><b>I</b></span
-						>{/snippet}<b>Started with the Heralds</b><span
-						>At the end of your first income turn, you may play a
-						tapestry card on top of Maker of Fire.</span
-					></CardEffectBox>
-			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					<span class="rg-card-setup"
-						>Current rules: instead, at the end of your first income
-						turn draw tapestry cards until you find a When Played
-						card, and discard the others. You may play that card on
-						Maker of Fire, unless it is Renaissance.</span>
-				</p></CardClarity>
+						>{/snippet}At the end of your first income turn, you may
+					play a tapestry card on top of Maker of Fire.</CardEffectBox>
+			</CardEffectList>
+			<CardClarity>
+				{#snippet setup()}Current rules: instead, at the end of your
+					first income turn draw tapestry cards until you find a When
+					Played card, and discard the others. You may play that card
+					on Maker of Fire, unless it is Renaissance.{/snippet}</CardClarity>
 		</CardFrame>
 	{:else if id === 'nomads'}
 		<!-- 02-base-content §1.2; no adjustment in either version (§2.2). -->
@@ -1528,32 +1460,28 @@
 				may place it on the map instead of in your capital, in one of
 				two ways.{/snippet}
 
-			<div class="rg-card-ability-list rg-card-trader-options">
-				<CardEffectBox>
-					{#snippet symbol()}<span class="rg-card-trader-hex"
+			<CardEffectList>
+				<CardEffectBox title="Your territory with one item"
+					>{#snippet symbol()}<span class="rg-card-trader-hex"
 							><img
 								src="/art/piece/outpost-blue.svg"
 								alt="" /></span
-						>{/snippet}<b>Your territory with one item</b><span
-						>Place it beside the one outpost or building there and
-						gain <strong
-							>+ <CardResource
-								symbol="any"
-								class="rg-card-resource-icon--fine" /></strong
-						>. Opponents can no longer conquer that territory.</span
-					></CardEffectBox>
-				<CardEffectBox>
-					{#snippet symbol()}<span class="rg-card-trader-hex"></span
-						>{/snippet}<b>Empty territory next to yours</b><span
-						>Place it there to take control. This is not a conquest;
-						if an opponent conquers the territory, the piece counts
-						as an outpost.</span
-					></CardEffectBox>
-			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					Buildings on the map still count for VP per building.
-				</p></CardClarity>
+						>{/snippet}Place it beside the one outpost or building
+					there and gain
+					<strong
+						>+ <CardResource
+							symbol="any"
+							fine /></strong
+					>. Opponents can no longer conquer that territory.</CardEffectBox>
+				<CardEffectBox title="Empty territory next to yours"
+					>{#snippet symbol()}<span class="rg-card-trader-hex"></span
+						>{/snippet}Place it there to take control. This is not a
+					conquest; if an opponent conquers the territory, the piece
+					counts as an outpost.</CardEffectBox>
+			</CardEffectList>
+			<CardClarity>
+				Buildings on the map still count for VP per building.
+			</CardClarity>
 		</CardFrame>
 	{:else if id === 'the-chosen'}
 		<!-- 02-base-content §1.2; current rules' adjustment (§2.2): +15 VP per opponent. -->
@@ -1568,9 +1496,9 @@
 			{#snippet effect()}At the start of income turns 2–5, gain VP for the
 				tracks you lead and resources for your achievements.{/snippet}
 
-			<div class="rg-card-ability-list">
-				<CardEffectBox>
-					{#snippet symbol()}<span class="rg-card-track-quad"
+			<CardEffectList>
+				<CardEffectBox title="Each track you lead"
+					>{#snippet symbol()}<span class="rg-card-track-quad"
 							><img
 								src="/art/track/exploration.svg"
 								alt="" /><img
@@ -1580,26 +1508,19 @@
 								alt="" /><img
 								src="/art/track/military.svg"
 								alt="" /></span
-						>{/snippet}<b>Each track you lead</b><span
-						>Gain <strong>1 VP per opponent</strong> for each track you
-						have completed, or on which no token is further advanced than
-						yours.</span
-					></CardEffectBox>
-				<CardEffectBox>
-					{#snippet symbol()}+ <CardResource
-							symbol="any"
-							class="" />{/snippet}<b>Each achievement</b><span
-						>Gain any resource for each achievement you have earned.
-						On your final income turn, gain <strong>5 VP</strong> per
-						achievement instead.</span
-					></CardEffectBox>
-			</div>
-			<CardClarity
-				><p class="rg-card-fine">
-					A track where another token is level with yours still
-					counts.<br /><span class="rg-card-setup"
-						>Setup, current rules: start with 15 VP per opponent.</span>
-				</p></CardClarity>
+						>{/snippet}Gain <strong>1 VP per opponent</strong> for each
+					track you have completed, or on which no token is further advanced
+					than yours.</CardEffectBox>
+				<CardEffectBox
+					title="Each achievement"
+					gain="any"
+					>Gain any resource for each achievement you have earned. On
+					your final income turn, gain <strong>5 VP</strong> per achievement
+					instead.</CardEffectBox>
+			</CardEffectList>
+			<CardClarity>
+				A track where another token is level with yours still counts.{#snippet setup()}Setup,
+					current rules: start with 15 VP per opponent.{/snippet}</CardClarity>
 		</CardFrame>
 	{:else}
 		<!-- A civilization without a reviewed layout yet: its frame, portrait and name, and no invented rules text. -->

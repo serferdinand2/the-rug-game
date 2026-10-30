@@ -142,11 +142,12 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | `player/MasterpieceCard` | 319 px Arts & Architecture masterpiece frame: a centered beige effect box (the caller's `effects` snippet) beside the 144 px artwork |
 | `player/TerritoryTile` | One small flat-topped territory tile in hand, painted at its turn as the World Map paints it (#134), with its number |
 | `player/CardFan` | Overlapping cards; hover or focus raises one and reports it for a full view |
-| `player/CardResource` | Native 24 px inline icon without changing row spacing |
+| `player/CardResource` | Native 24 px inline icon without changing row spacing; `fine` for 11 px supporting text, and a container centres it with `--card-resource-center` and `--card-resource-height` instead of styling it (#106) |
 | `player/PlayerToken` | A player's token, from its seat (#103) or one of the five supplied shaded 32 px colour variants |
 | `player/CardSlot` | Compact, large or prediction square, never larger than 75 px; `pickable`, a button with the green available outline that reports `onCardSlotPick` with its `value`, gold when `picked` (#78) |
-| `player/CardEffectBox` | Beige trigger/scoring row |
-| `player/CardClarity` | Supporting rules beneath the relevant layout |
+| `player/CardEffectBox` | Beige trigger/scoring row: its `title`, a `gain` resource or a `label` word as its symbol (or a `symbol` snippet for a pictogram) at `symbolText` 12–15 px, and the rules as children (#106) |
+| `player/CardEffectList` | A card's column of `CardEffectBox` rows inside the 12 px inset, with `above` for extra space (#106) |
+| `player/CardClarity` | Supporting rules beneath the relevant layout as its own 11 px paragraph, with an optional fainter `setup` line, and `above` and `minHeight` for a card's spacing (#106) |
 | `player/CardPlacementRows` | Collection, covered rewards, track and history rows |
 | `player/CardRewardColumns` | Bottom-aligned square/benefit pairs or upward tracks |
 | `player/CardPathGrid` | Connected reward-path composition |

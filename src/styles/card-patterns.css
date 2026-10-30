@@ -50,18 +50,6 @@
 	background: transparent;
 	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent);
 }
-.rg-card-fine {
-	margin: 0;
-	color: var(--muted);
-	font-size: var(--font-size-3xs);
-	line-height: var(--leading-normal);
-}
-.rg-card-fine b {
-	color: var(--text);
-}
-.rg-card-setup {
-	color: var(--faint);
-}
 
 /* An item on the mat: a piece, a mini card or a hex tile. */
 .rg-card-slot--item {
@@ -406,37 +394,9 @@
 	font-size: 15px;
 	line-height: 1.38;
 }
-.rg-card-resource-icon {
-	display: inline-block;
-	position: relative;
-	width: 24px;
-	height: 0;
-	vertical-align: baseline;
-	flex: none;
-	--resource-center: -5px;
-}
-.rg-card-resource-icon--art {
-	position: absolute;
-	left: 0;
-	top: calc(var(--resource-center) - 12px);
-	display: grid;
-	place-items: center;
-	width: 24px;
-	height: 24px;
-}
-.rg-card-frame .rg-card-resource-icon--art > img {
-	display: block;
-	width: 24px;
-	height: 24px;
-	max-width: 24px;
-	max-height: 24px;
-	image-rendering: pixelated;
-}
-.rg-card-resource-icon--fine {
-	--resource-center: -4px;
-}
-.rg-card-frame .rg-card-slot--gain .rg-card-resource-icon {
-	--resource-center: 0px;
+
+.rg-card-frame .rg-card-slot--gain {
+	--card-resource-center: 0px;
 }
 .rg-card-frame .rg-card-vp--pts {
 	display: flex;
@@ -492,15 +452,7 @@
 	padding: 0;
 	background: none;
 }
-.rg-card-frame--clarity {
-	margin: 12px 12px 0;
-	padding: 8px 10px;
-	border-top: 1px solid var(--line-soft);
-}
-.rg-card-frame--clarity .rg-card-fine {
-	font-size: 11px;
-	line-height: 1.3;
-}
+
 .rg-card-frame--score {
 	margin: 12px 12px 10px;
 	padding-top: 8px;
@@ -552,44 +504,7 @@
 .rg-card-frame--leaders .rg-card-frame--text {
 	line-height: 1.5;
 }
-.rg-card-ability-list {
-	display: grid;
-	gap: 8px;
-	margin: 0 12px;
-}
-.rg-card-ability-row {
-	display: grid;
-	grid-template-columns: 64px 1fr;
-	gap: 10px;
-	align-items: center;
-	padding: 8px;
-	border: 1px solid var(--line);
-	background: color-mix(in srgb, var(--control) 75%, transparent);
-}
-.rg-card-ability-symbol {
-	display: grid;
-	place-items: center;
-	width: 64px;
-	height: 64px;
-	background: var(--card-filled-slot);
-	border: 1px solid var(--line-strong);
-}
-.rg-card-ability-copy {
-	display: grid;
-	gap: 4px;
-	color: var(--text);
-	font:
-		12px/1.3 'Atkinson Hyperlegible',
-		sans-serif;
-}
-.rg-card-ability-copy b {
-	color: var(--gold);
-	text-transform: uppercase;
-	font-size: 11px;
-}
-.rg-card-ability-copy strong {
-	white-space: nowrap;
-}
+
 .rg-card-district-icon {
 	display: grid;
 	grid-template-columns: repeat(3, 12px);
@@ -618,10 +533,7 @@
 .rg-card-line-icon i:nth-child(2) {
 	background: var(--card-score-line);
 }
-.rg-card-frame--architects .rg-card-frame--clarity,
-.rg-card-frame--leaders .rg-card-frame--clarity {
-	min-height: 70px;
-}
+
 .rg-card-badge-group {
 	display: inline-flex;
 	align-items: center;
@@ -672,9 +584,7 @@
 	filter: none;
 	opacity: 1;
 }
-.rg-card-frame--leaders .rg-card-frame--clarity {
-	margin-top: 16px;
-}
+
 .rg-card-frame--treasure .rg-card-frame--body {
 	min-height: 184px;
 }
@@ -710,8 +620,8 @@
 		12px/1.3 'Atkinson Hyperlegible',
 		sans-serif;
 }
-.rg-card-treasure-row--effect .rg-card-resource-icon {
-	--resource-center: -4px;
+.rg-card-treasure-row--effect {
+	--card-resource-center: -4px;
 }
 .rg-card-frame[data-state='play'] .rg-card-treasure-row.rg-card-is-used {
 	opacity: 0.55;
@@ -720,9 +630,6 @@
 	.rg-card-treasure-row.rg-card-is-used
 	.rg-card-treasure-row--name {
 	text-decoration: line-through;
-}
-.rg-card-frame--treasure .rg-card-frame--clarity {
-	margin-top: 12px;
 }
 
 /* Craftsmen: every building gets a square slot, with its benefit alongside. */
@@ -793,8 +700,8 @@
 		400 11px/1.2 'Atkinson Hyperlegible',
 		sans-serif;
 }
-.rg-card-craftsmen-benefit .rg-card-resource-icon {
-	--resource-center: -4px;
+.rg-card-craftsmen-benefit {
+	--card-resource-center: -4px;
 }
 .rg-card-craftsmen-benefit--resource,
 .rg-card-craftsmen-benefit--nowrap {
@@ -818,9 +725,6 @@
 	.rg-card-craftsmen-slot
 	img {
 	display: block;
-}
-.rg-card-frame--craftsmen .rg-card-frame--clarity {
-	margin-top: 12px;
 }
 
 /* Entertainers: a token travels across four columns of rewards. */
@@ -874,7 +778,7 @@
 		sans-serif;
 	text-align: center;
 }
-.rg-card-entertainer-space:has(.rg-card-resource-icon) {
+.rg-card-entertainer-space:has(.rg-card-resource) {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -886,9 +790,9 @@
 	height: 32px;
 	image-rendering: pixelated;
 }
-.rg-card-entertainer-space .rg-card-resource-icon {
-	height: 24px;
-	--resource-center: 12px;
+.rg-card-entertainer-space {
+	--card-resource-height: 24px;
+	--card-resource-center: 12px;
 }
 .rg-card-frame[data-state='play']
 	.rg-card-entertainer-space.rg-card-is-current {
@@ -971,9 +875,9 @@
 	text-align: center;
 	white-space: nowrap;
 }
-.rg-card-militant-space--gain .rg-card-resource-icon {
-	height: 24px;
-	--resource-center: 12px;
+.rg-card-militant-space--gain {
+	--card-resource-height: 24px;
+	--card-resource-center: 12px;
 }
 .rg-card-militant-space--gain--vp {
 	font-weight: 700;
@@ -1069,27 +973,6 @@
 	background: var(--player-1);
 	opacity: 0.48;
 }
-.rg-card-mystic-payoffs {
-	margin-top: 14px;
-}
-.rg-card-mystic-payoffs .rg-card-ability-symbol {
-	color: var(--text);
-	font:
-		700 15px/1 'Atkinson Hyperlegible',
-		sans-serif;
-}
-.rg-card-mystic-payoffs .rg-card-ability-symbol--resource {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
-}
-.rg-card-mystic-payoffs
-	.rg-card-ability-symbol--resource
-	.rg-card-resource-icon {
-	height: 24px;
-	--resource-center: 12px;
-}
 
 /* Alchemists: rolled tracks are temporary square token spaces. */
 .rg-card-alchemist-tracks {
@@ -1146,27 +1029,6 @@
 	.rg-card-alchemist-track--token {
 	display: block;
 }
-.rg-card-alchemist-outcomes {
-	margin-top: 4px;
-}
-.rg-card-alchemist-outcomes .rg-card-ability-symbol {
-	color: var(--text);
-	font:
-		700 14px/1 'Atkinson Hyperlegible',
-		sans-serif;
-	text-align: center;
-}
-.rg-card-alchemist-outcomes
-	.rg-card-ability-symbol:has(.rg-card-resource-icon) {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
-}
-.rg-card-alchemist-outcomes .rg-card-ability-symbol .rg-card-resource-icon {
-	height: 24px;
-	--resource-center: 12px;
-}
 
 /* Isolationists: a limited token reserve and a six-step landmass score. */
 .rg-card-isolation-reserve {
@@ -1191,23 +1053,7 @@
 	img {
 	display: none;
 }
-.rg-card-isolation-effects .rg-card-ability-symbol {
-	color: var(--text);
-	font:
-		700 13px/1 'Atkinson Hyperlegible',
-		sans-serif;
-	text-align: center;
-}
-.rg-card-isolation-effects .rg-card-ability-symbol:has(.rg-card-resource-icon) {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
-}
-.rg-card-isolation-effects .rg-card-ability-symbol .rg-card-resource-icon {
-	height: 24px;
-	--resource-center: 12px;
-}
+
 .rg-card-isolation-score {
 	margin: 8px 12px 0;
 	padding: 9px;
@@ -1310,10 +1156,7 @@
 	height: 24px;
 	image-rendering: pixelated;
 }
-.rg-card-trader-options .rg-card-ability-symbol {
-	position: relative;
-	color: var(--text);
-}
+
 .rg-card-trader-hex {
 	position: relative;
 	display: grid;
@@ -1336,9 +1179,7 @@
 	width: 29px;
 	height: 29px;
 }
-.rg-card-trader-options .rg-card-ability-copy {
-	font-size: 12px;
-}
+
 /* More original mats: compact square tracks and owner changes. */
 .rg-card-merry-grid {
 	display: grid;
@@ -1373,9 +1214,9 @@
 		sans-serif;
 	text-align: center;
 }
-.rg-card-merry-cell .rg-card-resource-icon {
-	height: 24px;
-	--resource-center: 12px;
+.rg-card-merry-cell {
+	--card-resource-height: 24px;
+	--card-resource-center: 12px;
 }
 .rg-card-merry-cell--reward {
 	display: flex;
@@ -1440,9 +1281,9 @@
 		700 15px/1 'Atkinson Hyperlegible',
 		sans-serif;
 }
-.rg-card-history-square .rg-card-resource-icon {
-	height: 24px;
-	--resource-center: 12px;
+.rg-card-history-square {
+	--card-resource-height: 24px;
+	--card-resource-center: 12px;
 }
 .rg-card-history-square > img {
 	position: absolute;
@@ -1540,13 +1381,6 @@
 		sans-serif;
 	text-align: center;
 }
-.rg-card-inventor-effects .rg-card-ability-symbol {
-	color: var(--text);
-	font:
-		700 12px/1.1 'Atkinson Hyperlegible',
-		sans-serif;
-	text-align: center;
-}
 
 /* Native token and resource assets keep their colour, dimensions and alpha. */
 .rg-card-frame,
@@ -1617,20 +1451,7 @@
 	justify-content: space-between;
 	margin: 2px 12px 12px;
 }
-.rg-card-resource-icon--art > .rg-resource-icon {
-	width: 24px;
-	height: 24px;
-}
-.rg-card-ability-symbol:has(.rg-card-resource-icon) {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
-}
-.rg-card-ability-symbol .rg-card-resource-icon {
-	height: 24px;
-	--resource-center: 12px;
-}
+
 .rg-card-frame--text > p {
 	margin: 0;
 }
