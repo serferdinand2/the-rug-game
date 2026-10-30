@@ -2,6 +2,7 @@
 <script>
 	import CivilizationCard from '../lib/components/player/CivilizationCard.svelte';
 	import { REVIEWED_CIVILIZATIONS } from '../lib/cards/reviewed-civilizations.js';
+	import { civilizationName } from '../lib/game-names.js';
 	let state = $state(/** @type {'empty'|'play'} */ ('empty'));
 	const embeddedCard = new URLSearchParams(window.location.search).get(
 		'embed'
@@ -29,10 +30,10 @@
 	{#each cards as card}<section
 			aria-labelledby={embeddedCard ? undefined : `${card.id}-heading`}
 			aria-label={embeddedCard
-				? `${card.title} civilization card`
+				? `${civilizationName(card.id)} civilization card`
 				: undefined}>
 			{#if !embeddedCard}
-				<h2 id={`${card.id}-heading`}>{card.title}</h2>
+				<h2 id={`${card.id}-heading`}>{civilizationName(card.id)}</h2>
 				<p>
 					{card.edition === 'original'
 						? 'Original mat · layout example'

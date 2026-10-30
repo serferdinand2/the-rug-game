@@ -91,13 +91,16 @@ function drawForMakerOfFire(ctx, player) {
 	ctx.push(triggered(state, 'tapestryGained', { player, cards: [found] }));
 }
 
+/** The tokens the Heralds start with, for the engine and the card (#107). */
+export const HERALDS_TOKENS = 4;
+
 /** @type {import('./civ.js').Civ} */
 export const heralds = {
 	id: 'heralds',
 	incomeTurns: [2, 3, 4, 5],
 	setup(ctx, player) {
 		playerSeat(ctx.state, player).civData.heralds =
-			/** @type {HeraldsData} */ ({ tokens: 4, cards: [] });
+			/** @type {HeraldsData} */ ({ tokens: HERALDS_TOKENS, cards: [] });
 	},
 	// You may put a token on a visible WHEN PLAYED card, on any income mat, that holds no Herald token yet.
 	income(ctx, player) {

@@ -4,7 +4,7 @@ import { LAST_SPACE, moveToken } from '../movement.js';
 import { TRACK_IDS } from '../data/ids.js';
 
 /** How many spaces the Futurists advance on each track. */
-const HEAD_START = 4;
+export const FUTURISTS_HEAD_START = 4;
 
 /** @type {import('./civ.js').Civ} */
 export const futurists = {
@@ -19,7 +19,7 @@ export const futurists = {
 				continue;
 			}
 			const from = Math.max(...tokens);
-			const to = Math.min(from + HEAD_START, LAST_SPACE);
+			const to = Math.min(from + FUTURISTS_HEAD_START, LAST_SPACE);
 			if (to > from) {
 				moveToken(ctx, player, {
 					track,

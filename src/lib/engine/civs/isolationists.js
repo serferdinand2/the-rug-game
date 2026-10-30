@@ -18,7 +18,10 @@ import { offer } from './civ.js';
 const LAND = TERRAIN_IDS.filter((terrain) => terrain !== 'sea');
 
 /** R31: the VP for a land mass of 0 to 6 territories; 6 or more score 40. */
-const LAND_MASS_VP = [0, 5, 10, 16, 23, 31, 40];
+export const LAND_MASS_VP = [0, 5, 10, 16, 23, 31, 40];
+
+/** The tokens the Isolationists start with, for the engine and the card (#107). */
+export const ISOLATIONISTS_TOKENS = 4;
 
 /**
  * The offer that comes with a conquest, made before the outpost goes on: when the territory holds no item and the
@@ -129,7 +132,7 @@ export const isolationists = {
 	incomeTurns: [5],
 	setup(ctx, player) {
 		playerSeat(ctx.state, player).civData.isolationists =
-			/** @type {IsolationistsData} */ ({ tokens: 4 });
+			/** @type {IsolationistsData} */ ({ tokens: ISOLATIONISTS_TOKENS });
 	},
 	// The final income turn: R31's VP for the largest land mass; none without one.
 	income(ctx, player) {

@@ -8,7 +8,7 @@ import { cityPlots, uniformGroup } from '../city.js';
 import { groupsOf } from '../../capital.js';
 
 /** How many swaps the Architects gained mid-game may make. */
-const SWAPS = 3;
+export const ARCHITECTS_SWAPS = 3;
 
 /**
  * Asks where the next impassable cube goes: an open plot in a district that holds no cube yet.
@@ -52,7 +52,7 @@ export const architects = {
 	// Nothing at setup; gained mid-game, up to 3 swaps.
 	setup(ctx, player, midGame) {
 		if (midGame) {
-			askSwap(ctx, player, SWAPS);
+			askSwap(ctx, player, ARCHITECTS_SWAPS);
 		}
 	},
 	hooks: {

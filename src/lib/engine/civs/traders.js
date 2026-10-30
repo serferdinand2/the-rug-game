@@ -84,13 +84,16 @@ export function tradersToken(ctx, op) {
 	}
 }
 
+/** The tokens the Traders start with, for the engine and the card (#107). */
+export const TRADERS_TOKENS = 4;
+
 /** @type {import('./civ.js').Civ} */
 export const traders = {
 	id: 'traders',
 	incomeTurns: [2, 3, 4, 5],
 	setup(ctx, player) {
 		playerSeat(ctx.state, player).civData.traders =
-			/** @type {TradersData} */ ({ tokens: 4 });
+			/** @type {TradersData} */ ({ tokens: TRADERS_TOKENS });
 	},
 	// You may place a token while one is left.
 	income(ctx, player) {
