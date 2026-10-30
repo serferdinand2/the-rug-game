@@ -24,6 +24,7 @@
 	import TrackBoard from '../lib/components/board/TrackBoard.svelte';
 	import WorldMap from '../lib/components/board/WorldMap.svelte';
 	import SelfSummary from '../lib/components/player/SelfSummary.svelte';
+	import PlayLayout from '../lib/components/ui/PlayLayout.svelte';
 	import IncomeNotice from '../lib/components/prompts/IncomeNotice.svelte';
 	import DecisionPrompt from './game/DecisionPrompt.svelte';
 	import GameHeader from './game/GameHeader.svelte';
@@ -585,26 +586,46 @@
 	onkeyup={keyUpHandler}
 	onblur={blurHandler} />
 
-<div
-	{...attr}
-	class="rg-game {attr.class ? attr.class : ''}">
-	<GameHeader
-		{store}
-		{game}
-		{seat}
-		overviewOpen={layers.overview}
-		logOpen={layers.log}
-		{logUnread}
-		bumped={moved.vp}
-		onGameHeaderChip={chipHandler}
-		onGameHeaderLog={logToggleHandler}
-		onGameHeaderMenu={menuHandler} />
+<!-- The turn footer is a snippet of its own, outside PlayLayout's children, because `footer` already names its view. -->
+{#snippet turnFooter()}
+	<TurnFooter
+		view={footer}
+		{sending}
+		onTurnFooterIncomeAsk={incomeAskHandler}
+		onTurnFooterIncome={incomeHandler}
+		onTurnFooterAdvance={() => advanceHandler()}
+		onTurnFooterTrack={(/** @type {ComponentEvent} */ event) =>
+			trackPickHandler(event.value)}
+		onTurnFooterCancel={clearQuestion}
+		onTurnFooterResults={(/** @type {ComponentEvent} */ event) =>
+			onGameResults?.(event)}
+		onTurnFooterOverviewClose={() =>
+			(layers = closeLayer(layers, 'overview'))} />
+{/snippet}
 
-	<div class="rg-game--middle">
-		<section
-			class="rg-game--shared"
-			aria-label="Shared board"
-			inert={layers.overview}>
+<PlayLayout
+	{...attr}
+	class="rg-game {attr.class ? attr.class : ''}"
+	sharedLabel="Shared board"
+	playerLabel="Your player area"
+	areasInert={layers.overview}
+	footer={turnFooter}>
+	{#snippet header()}
+		<GameHeader
+			{store}
+			{game}
+			{seat}
+			overviewOpen={layers.overview}
+			logOpen={layers.log}
+			{logUnread}
+			bumped={moved.vp}
+			onGameHeaderChip={chipHandler}
+			onGameHeaderLog={logToggleHandler}
+			onGameHeaderMenu={menuHandler} />
+	{/snippet}
+
+	{#snippet shared()}
+		<div class="rg-game--shared">
 			<div class="rg-game--head">
 				<BoardSwitcher bind:value={board} />
 				<AchievementStrip achievements={achievements(game)} />
@@ -660,12 +681,11 @@
 					{/if}
 				</div>
 			{/if}
-		</section>
+		</div>
+	{/snippet}
 
-		<aside
-			class="rg-game--private"
-			aria-label="Your player area"
-			inert={layers.overview}>
+	{#snippet player()}
+		<div class="rg-game--private">
 			{#if seat !== null && summary}
 				<PlayerTabs
 					{game}
@@ -696,7 +716,10 @@
 					resources={promptState.resources}
 					changed={promptState.changed} />
 			{/if}
-		</aside>
+		</div>
+	{/snippet}
+
+	{#snippet overlays()}
 		{#if layers.overview}
 			<PlayersOverview
 				{game}
@@ -727,51 +750,16 @@
 				onRulesPanelClose={() =>
 					(layers = closeLayer(layers, 'rules'))} />
 		{/if}
-	</div>
-
-	<TurnFooter
-		view={footer}
-		{sending}
-		onTurnFooterIncomeAsk={incomeAskHandler}
-		onTurnFooterIncome={incomeHandler}
-		onTurnFooterAdvance={() => advanceHandler()}
-		onTurnFooterTrack={(/** @type {ComponentEvent} */ event) =>
-			trackPickHandler(event.value)}
-		onTurnFooterCancel={clearQuestion}
-		onTurnFooterResults={(/** @type {ComponentEvent} */ event) =>
-			onGameResults?.(event)}
-		onTurnFooterOverviewClose={() =>
-			(layers = closeLayer(layers, 'overview'))} />
-</div>
+	{/snippet}
+</PlayLayout>
 
 <style>
-	.rg-game {
-		display: grid;
-		grid-template-rows: var(--bar-height) minmax(0, 1fr) var(--bar-height);
-		height: 100vh;
-		min-height: 0;
-		overflow: hidden;
-	}
-
-	.rg-game--middle {
-		position: relative;
-		display: grid;
-		grid-template-columns: var(--play-columns);
-		gap: var(--play-gap);
-		min-height: 0;
-		background: var(--ink);
-	}
-
-	.rg-game--shared,
-	.rg-game--private {
-		min-width: 0;
-		min-height: 0;
-		background: var(--texture) var(--surface);
-	}
-
+	/* The frame and its areas are PlayLayout's (issue 105); these two fill the areas and set their own layout. */
 	.rg-game--shared {
 		position: relative;
 		display: flex;
+		min-width: 0;
+		min-height: 0;
 		flex-direction: column;
 		padding: 14px var(--space-9) var(--space-6) var(--space-10);
 		overflow: hidden;
@@ -801,6 +789,8 @@
 	/* The column, not its widest content, sets the width, so the tabs, capital and counters fit inside it (#64). */
 	.rg-game--private {
 		display: grid;
+		min-width: 0;
+		min-height: 0;
 		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: minmax(0, 1fr) auto;
 		overflow: hidden;
