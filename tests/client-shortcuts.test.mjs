@@ -2,7 +2,13 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { SHORTCUTS } from '../src/lib/shortcuts.js';
-import { TAB_KEYS, TRACK_KEYS } from '../src/lib/hotkeys.js';
+import { TAB_KEYS, TRACK_KEYS, TURN_KEYS } from '../src/lib/hotkeys.js';
+import {
+	CONFIRM_KEY,
+	MOVE_KEYS,
+	RETURN_KEYS,
+	keyName,
+} from '../src/lib/landmark-keys.js';
 
 test('every group has a title and shortcuts, and every shortcut has keys and an action (#42)', () => {
 	assert.ok(SHORTCUTS.length >= 4);
@@ -20,7 +26,7 @@ test('every group has a title and shortcuts, and every shortcut has keys and an 
 	}
 });
 
-test('the list names every hotkey the game answers to (#83)', () => {
+test('the list names every hotkey the game and a landmark piece answer to (#83, #111)', () => {
 	const keys = new Set(
 		SHORTCUTS.flatMap((group) =>
 			group.shortcuts.flatMap((shortcut) =>
@@ -40,14 +46,11 @@ test('the list names every hotkey the game answers to (#83)', () => {
 		'Tab',
 		'L',
 		...Object.keys(TAB_KEYS).map((tab) => tab.toUpperCase()),
-		',',
-		'.',
-		'←',
-		'↑',
-		'→',
-		'↓',
-		'Backspace',
-		'Delete',
+		TURN_KEYS.back,
+		TURN_KEYS.forward,
+		...Object.keys(MOVE_KEYS).map(keyName),
+		CONFIRM_KEY,
+		...RETURN_KEYS,
 		'H',
 		'K',
 	]) {
@@ -78,6 +81,21 @@ test("the track answers and the player tabs are listed from the hotkeys' own key
 			['T', 'Civ.'],
 			['Y', 'Tech.'],
 			['U', 'Terrain.'],
+		]
+	);
+});
+
+test("the placing keys are listed from the explore's and the landmark piece's own keys, as before (#111)", () => {
+	const placing = SHORTCUTS.find(
+		(group) => group.title === 'Exploring and placing'
+	);
+	assert.deepEqual(
+		placing?.shortcuts.map((shortcut) => shortcut.keys),
+		[
+			[[','], ['.']],
+			[['←'], ['↑'], ['→'], ['↓']],
+			[['Enter']],
+			[['Backspace'], ['Delete']],
 		]
 	);
 });

@@ -18,6 +18,7 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
+	import { TURN_KEYS } from '../../hotkeys.js';
 
 	/** @type {TurnControlProps} */
 	let { vp = null, onTurnControlTurn, ...attr } = $props();
@@ -46,7 +47,7 @@
 		type="button"
 		class="rg-turn-control--button"
 		aria-label="Turn the tile back"
-		title="Turn back (,)"
+		title="Turn back ({TURN_KEYS.back})"
 		disabled={vp === null}
 		onclick={(event) => turnHandler(-1, event)}>↺</button>
 	{#if vp === null}
@@ -59,10 +60,11 @@
 		type="button"
 		class="rg-turn-control--button"
 		aria-label="Turn the tile"
-		title="Turn (.)"
+		title="Turn ({TURN_KEYS.forward})"
 		disabled={vp === null}
 		onclick={(event) => turnHandler(1, event)}>↻</button>
-	<span class="rg-turn-control--hint">. and , turn it</span>
+	<span class="rg-turn-control--hint"
+		>{TURN_KEYS.forward} and {TURN_KEYS.back} turn it</span>
 </div>
 
 <style>

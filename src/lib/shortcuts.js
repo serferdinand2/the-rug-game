@@ -1,6 +1,13 @@
 // The game's hotkeys, for How to play's Keyboard shortcuts tab (#42, #83): one list, so a new key is added here and
-// nowhere else; src/lib/hotkeys.js maps the keys to actions, and the track and tab keys are listed from its own (#127).
-import { TAB_KEYS, TRACK_KEYS } from './hotkeys.js';
+// nowhere else; src/lib/hotkeys.js maps the keys to actions, and the track, tab and turn keys are listed from its own (#127),
+// the landmark piece's from src/lib/landmark-keys.js (#111).
+import { TAB_KEYS, TRACK_KEYS, TURN_KEYS } from './hotkeys.js';
+import {
+	CONFIRM_KEY,
+	MOVE_KEYS,
+	RETURN_KEYS,
+	keyName,
+} from './landmark-keys.js';
 import { TABS } from './area/tabs.js';
 import { trackName } from './game-names.js';
 import { joinList } from './words.js';
@@ -87,19 +94,19 @@ export const SHORTCUTS = Object.freeze([
 		title: 'Exploring and placing',
 		shortcuts: [
 			{
-				keys: [[','], ['.']],
+				keys: [[TURN_KEYS.back], [TURN_KEYS.forward]],
 				action: "Turn the explore's territory tile back or forward, or turn the landmark you are placing.",
 			},
 			{
-				keys: [['←'], ['↑'], ['→'], ['↓']],
+				keys: Object.keys(MOVE_KEYS).map((key) => [keyName(key)]),
 				action: 'Move the landmark you are placing one plot.',
 			},
 			{
-				keys: [['Enter']],
+				keys: [[CONFIRM_KEY]],
 				action: 'Place the landmark where it is.',
 			},
 			{
-				keys: [['Backspace'], ['Delete']],
+				keys: RETURN_KEYS.map((key) => [key]),
 				action: 'Take it off the capital again.',
 			},
 		],

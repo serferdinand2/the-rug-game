@@ -53,6 +53,9 @@ export const TAB_KEYS = Object.freeze({
 	u: 'terrain',
 });
 
+/** The keys that turn an explore's tile, and a landmark being placed (#83): back and forward; shortcuts.js and the turn controls name them from here. */
+export const TURN_KEYS = Object.freeze({ back: ',', forward: '.' });
+
 /**
  * The action a key asks for, or null when it asks for nothing now. The caller has already left out keys typed into a
  * field, pressed with Ctrl, Alt or Cmd, or handled by a component.
@@ -85,8 +88,10 @@ export function hotkeyAction(key, context) {
 		}
 		return number <= players ? { type: 'player', seat: number } : null;
 	}
-	if (key === ',' || key === '.') {
-		return exploring ? { type: 'turn', step: key === '.' ? 1 : -1 } : null;
+	if (key === TURN_KEYS.back || key === TURN_KEYS.forward) {
+		return exploring
+			? { type: 'turn', step: key === TURN_KEYS.forward ? 1 : -1 }
+			: null;
 	}
 	const letter = key.toLowerCase();
 	if (Object.hasOwn(TAB_KEYS, letter)) {
