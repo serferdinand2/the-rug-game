@@ -152,7 +152,7 @@ The owner decisions are in [card-design-rules.md](../../../docs/ui/card-design-r
 | `player/CardRewardColumns` | Bottom-aligned square/benefit pairs or upward tracks |
 | `player/CardPathGrid` | Connected reward-path composition |
 | `player/CardPredictionTracks` | Number-target categories and separators |
-| `player/CardTerrainRewards` | Actual terrain marker, label and benefit rows |
+| `player/CardTerrainRewards` | `rows` of a terrain hex marker, the terrain's `name` and its reward (`gain` resource, then `effect`); a `used` row fades and its name is struck through (#106) |
 | `player/CardTokenReserve` | Compact starting-token squares: `count`, the `used` ones emptied from the left, and the token `color` (#106) |
 | `player/CardScoreLadder` | A card's score by count from `steps` (`{ count, points }`): the Collectors' rising gold steps with the counts beneath and the `current` one in the player's colour, or the Isolationists' `kind="flat"` boxes with a worked `example`; `label` says when it scores, `noun` what it counts (#106) |
 | `player/CardTechnologyTransfer` | A technology card moving from the `from` owner's top row into the `to` owner's bottom row, a token marking both when `active` (#106) |

@@ -9,6 +9,7 @@ import CardEffectBox from '../src/lib/components/player/CardEffectBox.svelte';
 import CardEffectList from '../src/lib/components/player/CardEffectList.svelte';
 import CardResource from '../src/lib/components/player/CardResource.svelte';
 import CardScoreLadder from '../src/lib/components/player/CardScoreLadder.svelte';
+import CardTerrainRewards from '../src/lib/components/player/CardTerrainRewards.svelte';
 import CardTechnologyTransfer from '../src/lib/components/player/CardTechnologyTransfer.svelte';
 import CardTokenReserve from '../src/lib/components/player/CardTokenReserve.svelte';
 
@@ -244,4 +245,39 @@ test('CivilizationCard draws both score ladders with CardScoreLadder (#106)', ()
 		/rg-card-isolation-score|rg-card-inventor-tech|values=/
 	);
 	assert.equal(card.match(/<CardScoreLadder/g)?.length, 2);
+});
+
+test('CardTerrainRewards draws each row from data: marker, name, then the resource with its + and the effect', () => {
+	const body = html(
+		render(CardTerrainRewards, {
+			props: {
+				rows: [
+					{
+						terrain: 'desert',
+						name: 'Desert',
+						gain: 'coin',
+						effect: 'roll the black conquer die twice.',
+						used: true,
+					},
+					{
+						terrain: 'forest',
+						name: 'Forest',
+						gain: 'food',
+						effect: 'roll the red conquer die twice.',
+					},
+				],
+			},
+		})
+	);
+	assert.equal(body.match(/<li /g)?.length, 2);
+	assert.match(body, /src="\/art\/terrain\/desert\.svg"/);
+	assert.match(
+		body,
+		/rg-card-terrain-rewards--name[^"]*">Forest<\/span><span class="rg-card-terrain-rewards--effect[^"]*">\+ <span class="rg-card-resource[\s\S]*?<\/span><\/span>; roll the red conquer die twice\.<\/span>/
+	);
+	assert.equal(body.match(/rg-card-terrain-rewards--used/g)?.length, 1);
+});
+
+test('CivilizationCard writes no terrain row by hand (#106)', () => {
+	assert.doesNotMatch(source('CivilizationCard'), /rg-card-treasure-/);
 });

@@ -466,49 +466,6 @@
 .rg-card-frame--treasure .rg-card-frame--body {
 	min-height: 184px;
 }
-.rg-card-treasure-list {
-	display: grid;
-	gap: 5px;
-	margin: 0;
-	padding: 0 12px;
-	list-style: none;
-}
-.rg-card-treasure-row {
-	display: grid;
-	grid-template-columns: 38px 74px 1fr;
-	gap: 8px;
-	align-items: center;
-	min-height: 62px;
-	padding: 7px;
-	border: 1px solid var(--line);
-	background: color-mix(in srgb, var(--control) 75%, transparent);
-}
-.rg-card-treasure-row > img {
-	width: 32px;
-	height: 32px;
-}
-.rg-card-treasure-row--name {
-	font:
-		700 12px/1.2 'Atkinson Hyperlegible',
-		sans-serif;
-	color: var(--gold);
-}
-.rg-card-treasure-row--effect {
-	font:
-		12px/1.3 'Atkinson Hyperlegible',
-		sans-serif;
-}
-.rg-card-treasure-row--effect {
-	--card-resource-center: -4px;
-}
-.rg-card-frame[data-state='play'] .rg-card-treasure-row.rg-card-is-used {
-	opacity: 0.55;
-}
-.rg-card-frame[data-state='play']
-	.rg-card-treasure-row.rg-card-is-used
-	.rg-card-treasure-row--name {
-	text-decoration: line-through;
-}
 
 /* Craftsmen: every building gets a square slot, with its benefit alongside. */
 .rg-card-frame--craftsmen .rg-card-frame--body {

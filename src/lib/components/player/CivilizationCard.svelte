@@ -106,6 +106,33 @@
 			advance: 'Advance Science',
 		},
 	];
+	/** The Treasure Hunters' terrains and rewards; the play example has used Desert. */
+	const TREASURE_HUNTER_TERRAINS = /** @type {const} */ ([
+		{
+			terrain: 'desert',
+			name: 'Desert',
+			gain: 'coin',
+			effect: 'roll the black conquer die twice and take one result.',
+		},
+		{
+			terrain: 'grassland',
+			name: 'Grassland',
+			gain: 'culture',
+			effect: 'roll the science die twice, choose one result, and advance with benefit.',
+		},
+		{
+			terrain: 'mountain',
+			name: 'Mountain',
+			gain: 'worker',
+			effect: 'roll both conquer dice and gain both results.',
+		},
+		{
+			terrain: 'forest',
+			name: 'Forest',
+			gain: 'food',
+			effect: 'roll the red conquer die twice and gain both results.',
+		},
+	]);
 	/** The Collectors' end-of-game score by the number of different items collected. */
 	const COLLECTOR_SCORE = [1, 3, 6, 10, 15, 21].map((points, index) => ({
 		count: index + 1,
@@ -472,52 +499,11 @@
 				an unused terrain below. Control it and gain that terrain&#x27;s
 				reward.{/snippet}
 
-			<CardTerrainRewards>
-				<li class="rg-card-treasure-row rg-card-is-used">
-					<img
-						src="/art/terrain/desert.svg"
-						alt="" /><span class="rg-card-treasure-row--name"
-						>Desert</span
-					><span class="rg-card-treasure-row--effect"
-						>+ <CardResource
-							symbol="coin"
-							class="" />; roll the black conquer die twice and
-						take one result.</span>
-				</li>
-				<li class="rg-card-treasure-row">
-					<img
-						src="/art/terrain/grassland.svg"
-						alt="" /><span class="rg-card-treasure-row--name"
-						>Grassland</span
-					><span class="rg-card-treasure-row--effect"
-						>+ <CardResource
-							symbol="culture"
-							class="" />; roll the science die twice, choose one
-						result, and advance with benefit.</span>
-				</li>
-				<li class="rg-card-treasure-row">
-					<img
-						src="/art/terrain/mountain.svg"
-						alt="" /><span class="rg-card-treasure-row--name"
-						>Mountain</span
-					><span class="rg-card-treasure-row--effect"
-						>+ <CardResource
-							symbol="worker"
-							class="" />; roll both conquer dice and gain both
-						results.</span>
-				</li>
-				<li class="rg-card-treasure-row">
-					<img
-						src="/art/terrain/forest.svg"
-						alt="" /><span class="rg-card-treasure-row--name"
-						>Forest</span
-					><span class="rg-card-treasure-row--effect"
-						>+ <CardResource
-							symbol="food"
-							class="" />; roll the red conquer die twice and gain
-						both results.</span>
-				</li>
-			</CardTerrainRewards>
+			<CardTerrainRewards
+				rows={TREASURE_HUNTER_TERRAINS.map((row, index) => ({
+					...row,
+					used: state === 'play' && index === 0,
+				}))} />
 			<CardClarity>
 				Setup: put 4 player tokens here and gain 2 territory tiles. Each
 				terrain can be used once. Claiming a territory this way is not a
