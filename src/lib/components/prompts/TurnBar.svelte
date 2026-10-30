@@ -16,7 +16,7 @@
 	 * @property {import('../../ui.js').TrackId} [track] - The chosen space's track: colours the proper name, the cost and the optional tint
 	 * @property {import('../../ui.js').CostSymbol[] | null} [cost=null] - The price shown before the actions
 	 * @property {string} [costLabel] - The word before the price; defaults to 'Optional cost' in the optional tone and 'Cost' otherwise
-	 * @property {import('svelte').Snippet} [actions] - The action Buttons, after the cost
+	 * @property {import('svelte').Snippet<[string | undefined]>} [actions] - The action Buttons, after the cost; it gets the tint for a primary Button, the track's colour in the optional tone and undefined otherwise (#117)
 	 * @property {import('svelte').Snippet} [note] - Drawn after the heading, on its line, such as the footer's "Just now" line with Show again (#153)
 	 * @property {import('svelte').Snippet} [reveal] - Drawn before the turn label, in the group whose hover and focus open it, such as the IncomeReveal (#122)
 	 */
@@ -36,8 +36,8 @@
 	 *   {#snippet reveal()}
 	 *     <IncomeReveal description="End this era, gain income and begin your next era." label="Take income" folded onIncomeRevealClick={() => takeIncome()} />
 	 *   {/snippet}
-	 *   {#snippet actions()}
-	 *     <Button mode="primary" onButtonClick={() => advance()}>Advance · +4 VP</Button>
+	 *   {#snippet actions(tint)}
+	 *     <Button mode="primary" {tint} onButtonClick={() => advance()}>Advance · +4 VP</Button>
 	 *   {/snippet}
 	 * </TurnBar>
 	 */
@@ -66,6 +66,7 @@
 		...attr
 	} = $props();
 
+	let trackTint = $derived(track ? trackColor(track) : 'var(--gold)');
 	let waiting = $derived(tone === 'waiting');
 	let showCost = $derived(!waiting && Boolean(cost?.length));
 	let showActions = $derived(
@@ -76,8 +77,8 @@
 <footer
 	{...attr}
 	class="rg-turn-bar rg-turn-bar--{tone} {attr.class ? attr.class : ''}"
-	style:--rg-turn-bar-track={track ? trackColor(track) : 'var(--gold)'}
-	style:--rg-turn-bar-proper={track ? trackColor(track) : 'var(--gold)'}
+	style:--rg-turn-bar-track={trackTint}
+	style:--rg-turn-bar-proper={trackTint}
 	style:--rg-turn-bar-label={labelColor}>
 	<div class="rg-turn-bar--copy">
 		<div class="rg-turn-bar--lead">
@@ -120,7 +121,9 @@
 			{/if}
 			{#if actions}
 				<div class="rg-turn-bar--buttons">
-					{@render actions()}
+					{@render actions(
+						tone === 'optional' ? trackTint : undefined
+					)}
 				</div>
 			{/if}
 		</div>
@@ -151,10 +154,11 @@
 		);
 		background: color-mix(
 			in srgb,
-			var(--rg-turn-bar-track) 18%,
+			var(--rg-turn-bar-track) var(--track-bar-mix),
 			var(--chrome)
 		);
-		box-shadow: inset 0 -3px 0 var(--rg-turn-bar-track);
+		box-shadow: inset 0 calc(-1 * var(--track-bar-band)) 0
+			var(--rg-turn-bar-track);
 	}
 
 	/* The income turn is gold from edge to edge, as the mockup's .turnbar.income-turn. */
@@ -277,10 +281,5 @@
 		grid-auto-columns: minmax(126px, auto);
 		grid-auto-flow: column;
 		gap: var(--space-4);
-	}
-
-	/* The optional benefit's commit button takes the light track tint instead of the action green. */
-	.rg-turn-bar--optional .rg-turn-bar--buttons {
-		--action: var(--rg-turn-bar-tint);
 	}
 </style>

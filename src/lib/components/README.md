@@ -33,7 +33,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | Component | Purpose |
 |---|---|
 | `Badge` | Expansion tags tinted with their colour, and the YOU, HOST and READY capitals. |
-| `Button` | Every button: `primary`, `secondary`, `gold`, `confirm` (a decision panel's solid gold Confirm, #65), `success` or `danger`, in three sizes, with a `selected` toggle state; `aria-disabled` dims it as `disabled` does but keeps it clickable (#97). |
+| `Button` | Every button: `primary`, `secondary`, `gold`, `confirm` (a decision panel's solid gold Confirm, #65), `success` or `danger`, in three sizes, with a `selected` toggle state; a `tint` from `trackColor` takes a track's colour into `primary` and `confirm`, so no bar restyles it (#117); `aria-disabled` dims it as `disabled` does but keeps it clickable (#97). |
 | `Dialog` | A dialog over a scrim, `narrow` or `wide`: a title, the content and Close or its own `actions`. Escape, Close and the backdrop close it; it takes the focus and gives it back. Modal, it covers the screen and keeps Tab inside; with `modal={false}`, it covers its positioned parent only, as Table settings over the board (#87). |
 | `Divider` | A thin rule, optionally paused by a short italic label such as "or join friends". |
 | `IconButton` | The 36px header controls (sound, history, log, menu, close), with the red mute slash. |
@@ -107,7 +107,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `TurnControl` | The ↺ and ↻ buttons that turn the picked tile, with a gold `+N VP` badge (`VpTag`) between them (`No hex yet` and disabled until a hex is chosen) and the hint that . and , turn it (#74, #83). |
 | `VpTag` | The "+N VP" a choice scores, the one gold badge (owner, 2026-10-30): over its parent's top-right corner (`corner`, muted for a tile that scores nothing) or in its row (`inline`). `DecisionOption`, `TilePicker`, `TurnControl` and `PromptArt` draw it (#116). |
 | `OverviewCloseBar` | The footer while the players overview is open. |
-| `TurnBar` | The footer: neutral, selected, optional-action, waiting, gold income and finished-game (`complete`, on the results and the board review; #105) states; a `reveal` snippet, such as the `IncomeReveal`, sits before the turn label (#122); a turn with only income to take puts a gold Take income in its actions (#77). |
+| `TurnBar` | The footer: neutral, selected, optional-action, waiting, gold income and finished-game (`complete`, on the results and the board review; #105) states; a `reveal` snippet, such as the `IncomeReveal`, sits before the turn label (#122); its `actions` snippet gets the tint for a primary Button, the track's colour in the optional tone (#117); a turn with only income to take puts a gold Take income in its actions (#77). |
 
 ## lobby/
 

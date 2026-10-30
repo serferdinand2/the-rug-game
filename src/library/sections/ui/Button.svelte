@@ -1,8 +1,9 @@
-<!-- Library section: Button in each mode and size, selected and disabled. -->
+<!-- Library section: Button in each mode and size, selected and disabled, and its primary and confirm modes tinted by each track (#117). -->
 <script>
 	import Button from '../../../lib/components/ui/Button.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
+	import { TRACKS, trackColor } from '../../../lib/ui.js';
 
 	let ready = $state(true);
 </script>
@@ -10,7 +11,7 @@
 <Section
 	name="Button"
 	area="ui"
-	description="Every button in the game. The mode names the job: primary commits a move, gold creates, joins and marks ready, confirm answers a decision, success starts the game and danger leaves.">
+	description="Every button in the game. The mode names the job: primary commits a move, gold creates, joins and marks ready, confirm answers a decision, success starts the game and danger leaves. A tint takes a track's colour into primary, as the optional footer's commit button, and into confirm, as a track decision's Confirm.">
 	<Example
 		label={'mode="primary"'}
 		surface="chrome">
@@ -66,4 +67,41 @@
 			mode="primary"
 			disabled>Not reachable</Button>
 	</Example>
+	<Example
+		label={'mode="primary" tint={trackColor(track)}  (the optional footer’s commit button, one per track; #117)'}
+		surface="chrome">
+		<div class="rg-library-button--row">
+			{#each TRACKS as track (track.id)}
+				<Button
+					mode="primary"
+					tint={trackColor(track.id)}>{track.name}</Button>
+			{/each}
+		</div>
+	</Example>
+	<Example
+		label={'mode="confirm" tint={trackColor(track)}  (a track decision’s Confirm, one per track; #117)'}
+		surface="chrome">
+		<div class="rg-library-button--row">
+			{#each TRACKS as track (track.id)}
+				<Button
+					mode="confirm"
+					tint={trackColor(track.id)}>{track.name}</Button>
+			{/each}
+		</div>
+	</Example>
+	<Example
+		label={'mode="confirm" tint={trackColor(\'military\')} disabled  (stays gold until it can be pressed)'}
+		surface="chrome">
+		<Button
+			mode="confirm"
+			tint={trackColor('military')}
+			disabled>Confirm choice</Button>
+	</Example>
 </Section>
+
+<style>
+	.rg-library-button--row {
+		display: flex;
+		gap: var(--space-4);
+	}
+</style>
