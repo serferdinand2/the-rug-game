@@ -115,7 +115,6 @@
 				{#if typeof tile.vp === 'number'}
 					<VpTag
 						value={tile.vp}
-						unit=""
 						muted={tile.vp === 0}
 						aria-hidden="true" />
 				{/if}

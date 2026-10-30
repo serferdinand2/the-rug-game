@@ -104,21 +104,29 @@
 		text-align: left;
 	}
 
-	/* Unpickable now, as a trade the player can't pay for; hover still lights its border. */
+	/* Unpickable now, as a trade the player can't pay for; hover leaves it be, as a disabled tile. */
 	.rg-decision-option:disabled {
 		opacity: var(--opacity-unpickable);
 		cursor: default;
 	}
 
-	.rg-decision-option:hover,
+	.rg-decision-option:not(:disabled):hover,
 	.rg-decision-option:focus-visible {
 		border-color: var(--gold);
 	}
 
+	/* Chosen: the thick gold ring of a picked tile or resource (owner, 2026-10-30). */
 	.rg-decision-option[aria-pressed='true'] {
 		border-color: var(--gold);
 		background: var(--picked-fill);
-		outline: var(--border) solid var(--gold);
+		outline: var(--border-thick) solid var(--gold);
+	}
+
+	/* Focus on the chosen one: its solid ring hugging the border turns dashed and stands off, so focus reads apart
+	   from the choice. */
+	.rg-decision-option[aria-pressed='true']:focus-visible {
+		outline-style: dashed;
+		outline-offset: var(--focus-offset);
 	}
 
 	.rg-decision-option--symbols {
