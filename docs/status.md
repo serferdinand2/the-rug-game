@@ -2,14 +2,14 @@
 
 The only record of the project's progress (owner, 2026-10-28): what is done and what comes next, then issue by issue what each issue built, the calls to revisit after playing, and what it handed on to later issues. CLAUDE.md links here and holds no progress of its own. Claude and Codex both update this file whenever an issue lands or a milestone moves: the summary below and the issue's entry (see CLAUDE.md and AGENTS.md).
 
-Updated 2026-10-29. The issues are listed in the order they were finished.
+Updated 2026-10-30. The issues are listed in the order they were finished.
 
 ## Summary
 
 - **At a glance:**
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78, #84, #85 and #137 are done. #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29. #134 (the World Map's terrain in the 2.5D style) is done: the owner approved its art on 2026-10-29 (see [its entry](#134-the-world-maps-terrain-in-the-25d-style)).
-  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101, #108, #109, #124 and #128 are done, and #121 closed as not planned. #103 is partly built; #85 is done, so what is left of it can start.
+  - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101, #108, #109, #124 and #128 are done, and #121 closed as not planned. On 2026-10-30 a third batch landed together on one branch, built in parallel: #92, #102, #103, #105, #111, #114, #115, #116, #120, #122 and #131 (see [its entry](#m13-refactors-third-batch-2026-10-30)); #102 and #116 each leave the owner a look to decide.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
@@ -25,14 +25,15 @@ Updated 2026-10-29. The issues are listed in the order they were finished.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
   - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R110).
 - **Next:**
-  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123, #127, #126 and #129 are done (see [#123](#123-every-game-name-and-english-list-from-one-helper), [#127](#127-the-track-resource-and-building-lists-from-the-engine), [#126](#126-describejs-split-into-effect-words-decision-words-and-card-text) and [#129](#129-each-decision-kinds-client-facts-in-one-table)), so #31 (Lazar's) is unblocked. #124 and #128 are done (see [#124](#124-prices-and-resource-amounts-in-words) and [#128](#128-a-spaces-tier-from-one-helper)), and #125 is built (see [#125](#125-the-player-areas-words-from-shared-helpers)), so #103's last token and #104 are next.
+  - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123, #127, #126 and #129 are done (see [#123](#123-every-game-name-and-english-list-from-one-helper), [#127](#127-the-track-resource-and-building-lists-from-the-engine), [#126](#126-describejs-split-into-effect-words-decision-words-and-card-text) and [#129](#129-each-decision-kinds-client-facts-in-one-table)), so #31 (Lazar's) is unblocked. #124 and #128 are done (see [#124](#124-prices-and-resource-amounts-in-words) and [#128](#128-a-spaces-tier-from-one-helper)), and #125 is built (see [#125](#125-the-player-areas-words-from-shared-helpers)), and #103's last token is in (2026-10-30), so #104 can start.
   - #88, #101, #108 and #109 are done too (2026-10-29). #106 (the card patterns as data components) is next in the Cards area. It is a large job, planned as about eight steps that each land pixel-identical: the clarity and effect boxes with a new `CardEffectList`, then the score ladder, token reserve and tech transfer, the terrain rewards, the prediction tracks, the reward columns, the path grid, the placement rows, and last `CardSlot`'s `filled`, `CardFrame`'s plain mode and the dead stylesheet rules. #107 follows it. The effect boxes' civilization-specific symbol styles (Mystics, Alchemists, Isolationists, Traders, Inventors) become options of the component.
+  - The third batch of M13 refactors (2026-10-30) unblocks #94 and #118 (after #92), #112 (after #111, then #36), #35 (after #120) and #104 (after #103); #95 still waits for #94. Of M13's other ready issues, #117, #110 and #96 were held back because they touch the same components as this batch, and can start now.
   - Main's CI has failed since #85: the browser tests `setup-prompts` and `track-text` no longer match the reworked track spaces (2026-10-29).
   - #77 (the first turn takes income by itself) is done: the owner approved its IncomeNotice and TurnBar sections and closed it on 2026-10-29.
   - #42 (How to play in the game, the keyboard shortcuts and the civilizations' text) is done for the base game; each expansion issue adds its own text.
   - #83 (the game's hotkeys) is done; its commit closed it on 2026-10-28, and the owner can still check the new TurnBar states in the component library.
   - #79 (every decision prompt at the tracks' centre, the prompt out of `Game.svelte`) is done; it merged and closed on 2026-10-28, after the owner's ruling on the library.
-  - A first batch of #80's findings landed together on 2026-10-28: #84, #87, #91, #93, #98, #103, #113, #124, #128 and #130 (see [its entry](#80s-findings-first-batch)). #104 waits for #103's last piece; #125 is built.
+  - A first batch of #80's findings landed together on 2026-10-28: #84, #87, #91, #93, #98, #103, #113, #124, #128 and #130 (see [its entry](#80s-findings-first-batch)). #103's last piece landed on 2026-10-30; #125 is built.
   - A second batch of #80's findings landed together on 2026-10-29: #89, #97, #99, #100 and #119 (see [its entry](#80s-findings-second-batch)).
   - #78 (choices on the civilization card) is done: the owner approved the CivilizationCard section and closed it on 2026-10-29 (see [its entry](#78-choices-on-the-civilization-card)).
   - #86 (the turn footer) and #90 (the game header) followed the same day (see [their entry](#86-and-90-the-games-footer-and-header)). #88 and #122 can start now that #86 is in.
@@ -886,3 +887,110 @@ Built on 2026-10-29, after #124. Design and plan: `docs/superpowers/specs/2026-1
 - **What changes for a player:** nothing on screen. The library sections of SelfSummary, IncomeMat, EraSlots, PlayerCard and IncomeNotice were screenshotted before and after at 1920×1080 and are pixel-identical; the ResourceChip section gains two examples (medium, and medium with `changed`). On hover, Your overview's resources now show their name in the styled tooltip, as the player cards' do. So the README's screenshots stay.
 - **Tests:** test-first. `client-words` covers `pluralOf`; `client-area-income` the rows' names, the spaces' labels (with "an armory") and the slots' headings and text; `client-game-names`' source guard rejects `ROW_NAMES`, `RESOURCE_ROWS`, a hand-built "ies" plural and a second `pluralOf`. `npm run check` is clean and all 2050 unit tests pass. 41 of 43 browser tests pass, `player-area` included; `setup-prompts` and `track-text` fail as on main since #85 (see the summary).
 - **For the owner:** please check the ResourceChip section's two new examples in the component library.
+
+### M13 refactors, third batch (2026-10-30)
+
+Eleven M13 issues built side by side on 2026-10-30, each by its own agent in its own worktree, then merged one by one into one branch: #122, #102, #114, #116, #103, #111, #92, #120, #105, #115 and #131. Each kept the screen pixel-identical; where an issue asked for a look to change, the look was left as it is and the question goes to the owner below. #106 ran with them (see its own entry).
+- **Merging:** #92, #102 and #120 each added to the same long lines of `docs/architecture.md` and the components README, and #115 and #120 both changed how `Track` hands a space to `TrackSpace` (`{...entry}` plus `last`); #120's stand-in fifth track in the TrackBoard library section is now built from #131's dealt game. Both sides were kept each time.
+- **Checks on the merged branch:** `npm run check` is clean. 43 of 45 browser tests pass, with two new #111 tests in `tests/browser/library.test.mjs` that place, move, turn, lock and drag a landmark in the library's capital example (no browser test had moved one); `setup-prompts` and `track-text` fail exactly as on main since #85 (36 of 48 benefits, an 18px icon where 16px is expected). Unit tests pass file by file; the full run on a machine shared by twelve agents timed out in `simulation`, `art-map-paint`'s paint budget, `api`'s long polls and `client-prompts`' random games, which pass alone.
+- **For the owner:**
+  - #102: does `SeatCard`'s civilization line and `CivChooser` have a future? And should the lobby's add-a-player field and Add button take `TextInput`'s and `Button`'s look (gold capitals and a gold focus glow)?
+  - #116: five looks, with pictures in `docs/ui/screens/issue-116/`: one "+N VP" tag; a 2px chosen outline on `DecisionOption`; its dashed focus; one dim (0.3 or 0.35) for a choice that can't be picked; no hover on a disabled option.
+  - #122: whether `TurnBar`'s `optional` tone and the library-only `properIcon`, `headingEnd` and `costLabel` stay.
+  - #105: whether the results footer becomes a `TurnBar` (a visible change).
+
+#### #122 Move TurnBar's income reveal into its own component (M13 · Refactor, Game screen), 2026-10-30
+
+- `src/lib/components/prompts/IncomeReveal.svelte` draws the footer's folding Take income: the words and the button, reported as `onIncomeRevealClick`. `folded` closes it to nothing until its parent, TurnBar's label group, is hovered or holds the focus; `disabled` keeps it closed and inert. The CSS moved from TurnBar unchanged, so the slide and its reduced-motion zero durations are the same.
+- `TurnBar` takes a `reveal` snippet in place of `income` and `onTurnBarIncome`, and keeps no income rules. `footerView`'s `income` gains `folded` (true on a selected space), and `TurnFooter` passes the `IncomeReveal` in. Nothing on screen changes; the reveal's class is now `rg-income-reveal`.
+- The library has an IncomeReveal section (open, folded, disabled), and TurnBar's section passes the reveal as a snippet.
+- Tests: `client-footer.test.mjs` checks `folded` and guards `TurnBar` against income rules; the library browser test looks for `.rg-income-reveal`.
+- **Owner call open:** whether the `optional` tone and the library-only `properIcon`, `headingEnd` and `costLabel` stay. They are kept for now, because the Ships mockup draws them.
+- Hands on: #62 adds End turn to `TurnFooter`'s actions without meeting the reveal; #71 changes the footer's words in `footerView`.
+
+#### #102 SeatCard cut down to the lobby's seat states (M13 · Refactor, Lobby), 2026-10-30
+
+Partly built: two items wait on the owner. Design and plan: `docs/superpowers/specs/2026-10-30-seat-card-design.md` and `docs/superpowers/plans/2026-10-30-seat-card-issue-102.md`.
+- **Built:**
+  - `seatLabel(slot)` and `seatBadges(slot)` in `lobby.js`; `SeatCard` calls them, and its nested ternary and badge list are gone.
+  - `SeatCard` keeps `empty`, `closed`, `add` and `player`. The library-only `open` state ("Take the seat!", `onSeatCardTake`) is gone. The × is one snippet, and the add form's gold frame one class, `rg-seat-card--frame`.
+  - `TextInput` gains `onTextInputFocus`. `TableCode` draws its field as `<TextInput size="small" hideLabel readonly>`, which selects itself on focus.
+- **What changes for a player:** nothing. The small `TextInput` keeps its normal border on focus, as the lobby's code always had; the launch page's fields keep their gold focus. The library's SeatCard section drops the open seat, and its five-seat row now opens a seat into the name field.
+- **Tests:** test-first. `client-lobby` covers the labels and badges; the new `client-seat-card` renders each seat state, its × and `TableCode`'s `TextInput`.
+- **For the owner:**
+  - Do `SeatCard`'s civilization line and `CivChooser` have a future? #78 was built without them, and only the library draws them.
+  - The add seat's name field and Add still use their own styles, because `TextInput` and `Button` would change their look. Approve the shared look in the library, or keep the add form as it is.
+
+#### #114 Work out WorldMap's hexes in hexmap.js (M13 · Refactor, Capital and map), 2026-10-30
+
+- `mapView(hexes, { targets, scores, selected, preview, fresh }, size)` in `src/lib/hexmap.js` gives each hex what the World Map draws: the previewed tile swapped in; the label ("Showing the chosen tile.", "Up to N VP." / "N VP."); target, score, selected, dimmed and veiled; outlined and pulses; the outline, the picture, the pieces (outposts before tokens, the Nomads' marks) and the "+N VP" tag. `TAG` and `MARKS` moved there with it.
+- `upToVp()` is the one "up to N VP" phrase, shared with `TilePicker`. `WorldMap` keeps only `focused`, the events, the painted pictures and the SVG.
+- Its server-rendered HTML is byte-identical before and after in nine states. Tests are in `tests/client-hexmap.test.mjs`.
+- Hands on: #49 changes the preview and the hex labels in `mapView`, under test. Design: `docs/superpowers/specs/2026-10-30-world-map-view-design.md`; plan: `docs/superpowers/plans/2026-10-30-world-map-view-issue-114.md`.
+
+#### #116 The chosen look in one home, and one VpTag (M13 · Refactor, Game screen), 2026-10-30
+
+Design: `docs/superpowers/specs/2026-10-30-chosen-look-design.md`; plan: `docs/superpowers/plans/2026-10-30-chosen-look-issue-116.md`.
+- Built: tokens `--choice-fill` (a choice at rest), `--picked-fill` (the chosen one), `--opacity-unpickable` (0.35, a choice that can't be picked now, apart from #97's `--opacity-disabled`), `--vp-tag` and `--vp-tag-text`. `DecisionOption`, `TilePicker`, `ResourceRows`, `PromptArt` and `TurnControl` take the fills from them, and the World Map's SVG score tag takes the tag's colours. `DecisionOption` owns its disabled look, so the trades prompt's (`DecisionPrompt.svelte`) and the library's `:global(.rg-decision-option:disabled)` patches are gone. The new `VpTag` (`value`, `unit`, `muted`, `variant: 'corner' | 'inline'`) draws the VP of `DecisionOption`, `TilePicker` and `TurnControl`, with its own library section. The Terrain tab's copy that the issue named had already gone with #93.
+- Pixels: screenshots of the touched library sections, a focused chosen option and tile, and a disabled trade at rest and hovered are byte-identical before and after.
+- **For the owner** (not built, since each changes pixels; pictures in `docs/ui/screens/issue-116/`): one look for "+N VP" in place of five; `DecisionOption`'s chosen outline at 2 px, as the tiles and resources have; the dashed focus on a chosen `DecisionOption`; `ResourceRows`' 0.3 against 0.35 for a choice that can't be picked; a disabled `DecisionOption` still lighting its border on hover.
+- Tests: `tests/styles.test.mjs` (the tokens and their values, no copied fills, nothing outside `DecisionOption` styles it, `VpTag` used by the three components, the map's tag on the tokens); `tests/library.test.mjs` covers VpTag's section.
+- Hands on: the owner's answers become one change each in `VpTag`, `DecisionOption` or the tokens; #60 may add to `DecisionOption`.
+
+#### #103 Let PlayerToken take a seat: the last token (M13 · Refactor, Players and scoring), 2026-10-30
+- `ProgressLanes`' marker draws `PlayerToken` with its seat, so every player token is a `PlayerToken` and `tests/library.test.mjs` names no exception (`TOKENS_LEFT` went). The rule reaches the token's class through `:global` and leaves the pixelated rendering to `PlayerToken`; pixel-identical. #104 is unblocked. Design §5 and plan Task 3 extend #103's 2026-10-28 docs.
+- Tests: `tests/library.test.mjs` ("every player token is a PlayerToken (#103)"); browser `tests/browser/library.test.mjs` (#72's token-on-the-line test).
+- Update the summary lines that say "#103 is partly built" to done.
+
+#### #111 LandmarkPiece owns its drag data, focus and keys (M13 · Refactor, Capital and map), 2026-10-30
+
+Design and plan: `docs/superpowers/specs/2026-10-30-landmark-piece-design.md` and `docs/superpowers/plans/2026-10-30-landmark-piece-issue-111.md`.
+- **Built:**
+  - `LandmarkPiece` sets its own drag data and drag image (its picture, from where it was held), fires `onLandmarkPieceDragStart` and `onLandmarkPieceDragEnd` with `{ id, grab }`, and exports `focus()`. It is draggable unless locked.
+  - `grabAt`, `writeGrab` and `readGrab` sit next to `GRAB_TYPE` in `placement.js`, so the tray and the grid share one grab formula.
+  - `CapitalGrid` and `PlacementTray` no longer query its markup: they focus a new piece through `bind:this` after `tick()`, and the grid reads a drop's grab with `readGrab`.
+  - `src/lib/landmark-keys.js` holds the piece's keys, its label and its control titles. `TURN_KEYS` in `hotkeys.js` holds the `,` and `.` keys, which `hotkeyAction`, How to play's list, the piece and `TurnControl` all read.
+- **What changes for a player:** nothing. The titles, label and shortcut list read word for word as before. In the library, the interactive capital example's stale "R rotates" now says "full stop or comma rotates it".
+- **Left as it is:** `PlayerTabs` still passes `dragging` from the grid to the tray (the issue proposes no change; it is the screen's). The parents keep their `seen` sets, because only they know which piece is new.
+- **Tests:** test-first. `client-landmark-keys` covers every key in each state, the label and titles word for word, the keys How to play lists, and a guard against parents reaching into the piece. `placement` covers `grabAt`, `writeGrab` and `readGrab`, and `client-shortcuts` reads the placing keys from the modules.
+- **Handed off:** #112 can now replace the grid's snapping in its drop, move and rotate handlers without touching any drag code. #110 extracts the piece's drawing; the drag image is still the piece's own `svg`.
+
+#### #92 Scale cards one way (M13 · Refactor, Cards), 2026-10-30
+
+- `ScaledCard` (`src/lib/components/player/`) draws any card smaller, its size from `CARD_SIZES` in `src/lib/cards/card-sizes.js` (tech 425×298, tapestry 319 wide, civilization 425 wide). It measures tapestry and civilization cards, and the measured height is bindable as `measuredHeight`. It replaces `ScaledTapestryCard` and the hand-made 425×298 wrappers in the Tech tab, the players overview and the shelf, so no caller types a card's size. The Civ tab's invalid `calc(auto * 1)` box is a plain `fit-content` box.
+- `CardFan` gains `selected` as one or several, `disabled`, `labels`, `key` and a `shelf` look with `lift`. `CardShelf` lays its cards out with it instead of its own copy of the overlap.
+- Nothing on screen changes. The browser tests changed selectors only (`.rg-card-fan--card`, `.rg-scaled-card`). Tests: `tests/scaled-card.test.mjs`.
+- Design: `docs/superpowers/specs/2026-10-30-scaled-card-design.md`; plan: `docs/superpowers/plans/2026-10-30-scaled-card-issue-92.md`. Hands on to #94, #95 and #118. `.rg-card-scale` in `card-layouts.css` is now unused, left for a later clean-up.
+
+#### #120 The track board for any number of tracks (M13 · Refactor, Track board), 2026-10-30
+
+Built so #35's fifth, arts track fits. Design: `docs/superpowers/specs/2026-10-30-track-layout-design.md`; plan: `docs/superpowers/plans/2026-10-30-track-layout-issue-120.md`.
+- **Built:** `Track`'s first two rows are the tokens `--track-heading` and `--track-prices`. `TrackBoard` sets `--rg-track-board-count` and `--rg-track-board-spaces` and adds up a track's chrome from the tokens, so it shares the board's height among however many tracks it gets; the old `/ 4`, `53px` and `/ 12` are gone. `src/lib/board-icons.js` (`trackMarks`, `boardChoices`, `MAP_MARKS`, `ICON_VIEWBOX`) gives `BoardSwitcher` its icons, a band for every track in its new optional `tracks` prop, drawn in one `<svg>` loop. `Track` passes `last` to `TrackSpace` and on to `ExplorationFace`, which no longer compare with 12. The library shows a stand-in fifth track (a copy of Science under the arts track's id, in Arts & Architecture's colour) on the board and the switcher.
+- **Pixels:** in the library at 1920×1080, the four-track board, both four-band switchers and the track spaces are byte-identical before and after. Nothing in the game changes.
+- **Tests:** test-first; `tests/track-layout.test.mjs` is new.
+- **Handed off:** #35 adds the arts track's colour, id, spaces and symbol, and passes the table's tracks to `BoardSwitcher` (`Game.svelte` still uses the default four). With five tracks and four players a space is about 95px tall at 1920×1080, against 140px with four tracks; crowded Exploration faces such as Ships' "controlled" and Airplanes' "anywhere" press on their bonus band, so #35 should check its spaces at that height.
+
+#### #105 The play screen's frame in one component (M13 · Refactor, Game screen), 2026-10-30
+
+Design: `docs/superpowers/specs/2026-10-30-play-layout-design.md`; plan: `docs/superpowers/plans/2026-10-30-play-layout-issue-105.md`.
+- Built: `src/lib/components/ui/PlayLayout.svelte` draws the play screen's frame, which `Game.svelte` and `Results.svelte` shared as copied CSS: the header and footer rows, the 3/4 + 1/4 middle on `--ink`, and the two areas on the pixel texture. Its snippets are `header`, `shared`, `player` and `footer`, plus `overlays` for what lies over the middle (the players overview, the log, Table settings, How to play). It takes `sharedLabel`, `playerLabel` and `areasInert`. Each area is one cell that the screen's own element fills, so the screens keep their own padding, layout and scrolling. The issue's `private` snippet is `player`, since `private` is a reserved word; `areasInert` avoids the HTML `inert` in the props type. The library has a section, at 320px tall through `--rg-play-layout-height`.
+- Game passes `TurnFooter` as `footer={turnFooter}`. Its shared area is now a `<main>` (it was a labelled `<section>`). The results footer stays its own bar: as a `TurnBar` it would look different (owner's call).
+- Pixels: eight screenshots at 1920×1080 (five game states, the pass screen, the results, the board review) are byte-identical before and after.
+- Tests: `tests/client-play-layout.test.mjs` (new): each screen draws one `PlayLayout` and keeps no copy of its grid.
+- Handed off: a change to the frame is made once in `PlayLayout`; solo's Automa view (#31) can use the same frame.
+
+#### #115 SpaceGlyphs (M13 · Refactor, Track board), 2026-10-30
+
+- A track space's symbols moved out of `TrackSpace` into `src/lib/components/board/SpaceGlyphs.svelte`. It takes a list of `glyphs` and a `variant` (`benefit`, `dense` for Glass, Steel and Plastic, or `bonus`), and its root is `display: contents`, so the glyphs stay items of the layout they are drawn in. Its text size comes from `--rg-space-glyphs-text` and its VP cup from `--rg-vp-cup-size`, and its container steps answer to `TrackSpace`'s container.
+- `TrackSpace` keeps the shell, name, landmark, number, hover and the special spaces' layouts. The shell and fill clip to one `--rg-track-space-shape` per variant, and `Track` passes `{...entry}` (plus #120's `last`).
+- Glyph classes are now `rg-space-glyphs--…`, and the track-text browser test uses `.rg-space-glyphs--resource img`. The board is pixel-identical at every container step. Tests: `tests/space-glyphs.test.mjs`.
+- Noticed, left as they were: the track-text browser test expects resource images at 16/18/20px, but the benefit CSS gives them 24/27/29px; the library fixture names a space "Nanotech" where the game says "Nanotechnology", so the `tech-combo` styling only shows in the library.
+- Hands on: #63 adds the landmark shape to a body without glyph code; #60 can reuse `SpaceGlyphs`. Design: `docs/superpowers/specs/2026-10-30-space-glyphs-design.md`; plan: `docs/superpowers/plans/2026-10-30-space-glyphs-issue-115.md`.
+
+#### #131 The DecisionPanel and TrackBoard library examples from real models (M13 · Refactor, Track board), 2026-10-30
+
+Design: `docs/superpowers/specs/2026-10-30-library-models-design.md`; plan: `docs/superpowers/plans/2026-10-30-library-models-issue-131.md`.
+- Built: `src/library/models.js` deals a seeded four-player game (You, Ana, Marko, Vera) and plays it to each decision the library shows: the board (`boardView`), the advance to Tanks, Space Shuttle's tile bonus, Guilds' trade and the 3 resources its 15 VP trade gains past the cap. The DecisionPanel section's pick examples run the game's own `PromptState`, so their models and words come from `picks.js`, `panelControls` and `paymentControls`; its hand-made models, `payMixes` and `sets` are gone. The TrackBoard section's `BOARD_TRACKS` is `trackBoard(boardView())`, which the Track and ProgressLanes sections reuse; #120's stand-in fifth track is built from it.
+- Visible changes (library only): seven ordered spaces' hover words say "then"; Interstellar Travel, Nanotechnology and Anti-Aircraft Defense have their full names (so #115's note about "Nanotech" no longer applies); the cap-warning example has all three rows picked, and Confirm is enabled.
+- Calls to revisit: the shelf, options, income, docked and explore examples keep hand-written props; the Guilds trade comes up on an income turn, but the library panel shows no income steps; Decline starts a fresh prompt, since the library sends nothing; the WorldMap section keeps its own `dealt()`.
+- Tests: `tests/library-models.test.mjs` (the board and each pick prompt), and a check in `tests/library.test.mjs` that neither section copies a module.
