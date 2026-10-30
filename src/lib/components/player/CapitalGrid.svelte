@@ -33,23 +33,29 @@
 	 */
 
 	/**
+	 * A legal place for an unlocked landmark, as the engine offers it (#112).
+	 * @typedef {import('../../placement.js').PiecePosition} CapitalGridPosition
+	 */
+
+	/**
 	 * Properties of the CapitalGrid component itself.
 	 * @typedef {Object} CapitalGridOwnProps
 	 * @property {PlotKind[]} plots - All 81 plots, row by row
 	 * @property {import('../../ui.js').CapitalBiome} [biome='mountain'] - The mat's terrain: its ground tiles, and its relief over the printed impassable plots where the biome has one (#82)
 	 * @property {number} [terrainSeed=0] - Visual seed supplied by the game's setup; 0 is the library fixture
 	 * @property {CapitalGridPiece[]} [pieces=[]] - Landmarks on the grid, drawn over the plots they cover; a locked one may hang over the edge, and only its plots on the grid count
+	 * @property {CapitalGridPosition[] | null} [positions=null] - The engine's legal top-left corners and turns for the unlocked pieces: they move, turn, snap and light the drop outline only among these, over the edge included (R14). Null keeps the grid's own in-grid fit check, for the library
 	 * @property {GroupKind | null} [highlight=null] - Cover each completed row, column or district with one flat green rectangle
 	 * @property {boolean} [awaitingPlacement=false] - Something is waiting to be placed: a green outline around the grid
 	 * @property {boolean} [room=false] - Keep room around the grid for the pieces that hang over its edges (R106), so nothing next to it is covered
 	 * @property {CapitalGridTarget[]} [targets=[]] - Plots a decision can choose: each gets a green outline and becomes a button that fires onCapitalGridPlotClick
 	 * @property {CapitalGridPreview | null} [preview=null] - The chosen building, drawn faintly on its plot until it is placed
 	 * @property {CapitalGridTarget[]} [fresh=[]] - Plots just built on (#29): each glows green once, unless the system asks for reduced motion
-	 * @property {string} [label='Capital city, 9 by 9 plots'] - Names the grid for assistive technology
+	 * @property {string} [label] - Names the grid for assistive technology; 'Capital city, 9 by 9 plots' by default
 	 * @property {Function} [onCapitalGridPlotClick] - Callback fired with { row, col } when a plot is clicked, for click-to-place from the tray
-	 * @property {Function} [onCapitalGridDrop] - Callback fired with { id, row, col } when a piece from the tray is dropped; row and col are where its top-left corner landed, not yet snapped
-	 * @property {Function} [onCapitalGridMove] - Callback fired with { id, row, col } when a placed piece is dragged or moved with the arrow keys, already snapped to where it fits
-	 * @property {Function} [onCapitalGridRotate] - Callback fired with { id, rotation, row, col }: the next rotation, and where the turned piece fits
+	 * @property {Function} [onCapitalGridDrop] - Callback fired with { id, row, col } when a piece from the tray is dropped; row and col are where its top-left corner landed, not yet snapped, and may be off the grid
+	 * @property {Function} [onCapitalGridMove] - Callback fired with { id, row, col } when a placed piece is dragged or moved with the arrow keys, already snapped to one of the positions (or where it fits, without them)
+	 * @property {Function} [onCapitalGridRotate] - Callback fired with { id, rotation, row, col }: the next legal turn, and where the turned piece goes
 	 * @property {Function} [onCapitalGridConfirm] - Callback fired with { id } to lock a placed piece
 	 * @property {Function} [onCapitalGridReturn] - Callback fired with { id } to send a placed piece back to the tray
 	 * @property {Function} [onCapitalGridDragStart] - Callback fired with { id } when a placed piece starts being dragged, so the tray can offer itself as a return target
@@ -72,6 +78,7 @@
 	 * <CapitalGrid
 	 *   {plots}
 	 *   pieces={[{ id: 'lighthouse', name: 'Lighthouse', footprint: FOOTPRINTS.lighthouse, row: 3, col: 4, color: 'var(--exploration)' }]}
+	 *   positions={prompt.positions}
 	 *   highlight={hovered}
 	 *   awaitingPlacement
 	 *   onCapitalGridMove={(event) => move(event.value)}
@@ -86,20 +93,28 @@
 	import { ComponentEvent } from '../../component-event.js';
 	import { artUrl } from '../../ui.js';
 	import { plotTerrain, reliefUrl } from '../../capital-terrain.js';
+	import { BUILDING_IDS } from '../../engine/data/ids.js';
 	import {
 		GRID_SIZE,
 		completedGroups,
-		fits,
 		groupBounds,
 		plotIndex,
+		plotPosition,
 	} from '../../capital.js';
 	import {
+		fitsAt,
+		overhangOffset,
+		overhangReach,
 		pieceArea,
 		pieceShape,
+		plotFromPointer,
 		readGrab,
 		rotatePiece,
+		snapAmong,
 		snapPiece,
+		stepAmong,
 		stepPiece,
+		turnAmong,
 		withPieces,
 	} from '../../placement.js';
 
@@ -109,13 +124,14 @@
 		biome = 'mountain',
 		terrainSeed = 0,
 		pieces = [],
+		positions = null,
 		highlight = null,
 		awaitingPlacement = false,
 		room = false,
 		targets = [],
 		preview = null,
 		fresh = [],
-		label = 'Capital city, 9 by 9 plots',
+		label = `Capital city, ${GRID_SIZE} by ${GRID_SIZE} plots`,
 		onCapitalGridPlotClick,
 		onCapitalGridDrop,
 		onCapitalGridMove,
@@ -126,6 +142,9 @@
 		onCapitalGridDragEnd,
 		...attr
 	} = $props();
+
+	/** The income buildings, which draw their pictures on their plots. @type {ReadonlySet<string>} */
+	const BUILDINGS = new Set(BUILDING_IDS);
 
 	/** Where the dragged piece was grabbed, in plots from its top-left corner. */
 	let grab = { x: 0.5, y: 0.5 };
@@ -148,30 +167,19 @@
 		)
 	);
 	/** How many plots the pieces hang over each edge, at most, when room is kept for them. */
-	let reach = $derived(
-		pieces.reduce(
-			(most, piece) => {
-				const area = pieceArea(pieceShape(piece), piece.row, piece.col);
-				return {
-					top: Math.max(most.top, area.top),
-					right: Math.max(most.right, area.right),
-					bottom: Math.max(most.bottom, area.bottom),
-					left: Math.max(most.left, area.left),
-				};
-			},
-			{ top: 0, right: 0, bottom: 0, left: 0 }
-		)
-	);
+	let reach = $derived(overhangReach(pieces));
 	/** A ninth of the space the grid sits in for each plot of overhang. */
 	let margin = $derived(
 		room
 			? [reach.top, reach.right, reach.bottom, reach.left]
-					.map((plots) => `calc(${plots} * 100% / 9)`)
+					.map((plots) => `calc(${plots} * 100% / ${GRID_SIZE})`)
 					.join(' ')
 			: undefined
 	);
 	let width = $derived(
-		room ? `calc(100% - ${reach.left + reach.right} * 100% / 9)` : undefined
+		room
+			? `calc(100% - ${reach.left + reach.right} * 100% / ${GRID_SIZE})`
+			: undefined
 	);
 	let overlays = $derived(
 		highlight ? completedGroups(locked, highlight).map(groupBounds) : []
@@ -224,13 +232,9 @@
 		if (!plot || typeof onCapitalGridPlotClick !== 'function') {
 			return;
 		}
-		const index = Number(plot.dataset.plot);
 		onCapitalGridPlotClick(
 			new ComponentEvent(
-				{
-					row: Math.floor(index / GRID_SIZE),
-					col: index % GRID_SIZE,
-				},
+				plotPosition(Number(plot.dataset.plot)),
 				plot,
 				event
 			)
@@ -250,15 +254,14 @@
 		const piece = pieces.find((candidate) => candidate.id === draggingId);
 		if (piece) {
 			const { row, col } = topLeft(event, grab);
-			legalDrop = fits(
-				withPieces(
-					plots,
-					pieces.filter((other) => other.id !== piece.id)
-				),
-				pieceShape(piece),
-				row,
-				col
-			);
+			legalDrop = positions
+				? positions.some(
+						(position) =>
+							position.rotation === (piece.rotation ?? 0) &&
+							position.row === row &&
+							position.col === col
+					)
+				: fitsAt(plots, pieces, piece, row, col);
 		}
 	};
 
@@ -300,7 +303,9 @@
 		}
 		const position = piece.locked
 			? null
-			: snapPiece(plots, pieces, piece, row, col);
+			: positions
+				? snapAmong(positions, piece.rotation ?? 0, row, col)
+				: snapPiece(plots, pieces, piece, row, col);
 		if (
 			position &&
 			(position.row !== piece.row || position.col !== piece.col) &&
@@ -357,13 +362,10 @@
 	 * @param {CapitalGridPiece} piece
 	 */
 	const pieceMoveHandler = (event, piece) => {
-		const position = stepPiece(
-			plots,
-			pieces,
-			piece,
-			event.value.row,
-			event.value.col
-		);
+		const { row, col } = event.value;
+		const position = positions
+			? stepAmong(positions, piece, row, col)
+			: stepPiece(plots, pieces, piece, row, col);
 		if (position && typeof onCapitalGridMove === 'function') {
 			onCapitalGridMove(
 				new ComponentEvent(
@@ -380,7 +382,9 @@
 	 * @param {CapitalGridPiece} piece
 	 */
 	const pieceRotateHandler = (event, piece) => {
-		const turned = rotatePiece(plots, pieces, piece);
+		const turned = positions
+			? turnAmong(positions, piece)
+			: rotatePiece(plots, pieces, piece);
 		if (turned && typeof onCapitalGridRotate === 'function') {
 			onCapitalGridRotate(
 				new ComponentEvent(
@@ -425,61 +429,35 @@
 	};
 
 	/**
-	 * How far a piece reaches past its area on the grid on one side, as a CSS length. As in the relief, a plot is 32
-	 * units and a gap 1, so one plot and its gap are a pitch of 33 units, and an area `span` plots long is
-	 * 33 × span − 1 units: one pitch is 3300 / (33 × span − 1) percent of it.
-	 * @param {number} plots - Plots over the edge on that side
-	 * @param {number} span - Plots the area covers along that side's axis
-	 * @returns {string | undefined} Undefined when the piece doesn't hang over that edge.
-	 */
-	function overhang(plots, span) {
-		return plots
-			? `calc(-${plots} * ${3300 / (33 * span - 1)}%)`
-			: undefined;
-	}
-
-	/**
 	 * A target plot's name, counted from 1 as players read it.
 	 * @param {number} index - The plot, row by row
 	 * @returns {string}
 	 */
 	function targetLabel(index) {
-		return `Place at row ${Math.floor(index / GRID_SIZE) + 1}, column ${(index % GRID_SIZE) + 1}`;
+		const { row, col } = plotPosition(index);
+		return `Place at row ${row + 1}, column ${col + 1}`;
 	}
 
 	/**
-	 * The plot under the pointer, in fractions of a plot.
-	 * @param {MouseEvent} event
-	 * @returns {{ row: number, col: number }}
-	 */
-	function pointerPlot(event) {
-		const first = element?.querySelector('[data-plot="0"]');
-		const next = element?.querySelector(`[data-plot="${GRID_SIZE + 1}"]`);
-		if (!first || !next) {
-			return { row: 0, col: 0 };
-		}
-		const origin = first.getBoundingClientRect();
-		const step = next.getBoundingClientRect();
-		return {
-			row: (event.clientY - origin.top) / (step.top - origin.top),
-			col: (event.clientX - origin.left) / (step.left - origin.left),
-		};
-	}
-
-	/**
-	 * The plot a dragged piece's top-left corner is over.
+	 * The plot a dragged piece's top-left corner is over; off the grid when it hangs over the edge (R14).
 	 * @param {MouseEvent} event
 	 * @param {{ x: number, y: number }} from - Where the piece was grabbed, in plots
 	 * @returns {{ row: number, col: number }}
 	 */
 	function topLeft(event, from) {
-		const point = pointerPlot(event);
-		/** @param {number} value */
-		const clamp = (value) =>
-			Math.min(GRID_SIZE - 1, Math.max(0, Math.round(value)));
+		const first = element?.querySelector('[data-plot="0"]');
+		const next = element?.querySelector(`[data-plot="${GRID_SIZE + 1}"]`);
+		if (!first || !next) {
+			return { row: 0, col: 0 };
+		}
+		const point = plotFromPointer(
+			{ x: event.clientX, y: event.clientY },
+			first.getBoundingClientRect(),
+			next.getBoundingClientRect()
+		);
 		return {
-			row: clamp(point.row - from.y),
-			col: clamp(point.col - from.x),
+			row: Math.round(point.row - from.y),
+			col: Math.round(point.col - from.x),
 		};
 	}
 </script>
@@ -494,6 +472,7 @@
 	class:rg-capital-grid--awaiting={awaitingPlacement}
 	class:rg-capital-grid--drag-target={dragTarget}
 	class:rg-capital-grid--legal-drop={legalDrop}
+	style:--rg-capital-grid-size={GRID_SIZE}
 	style:margin
 	style:width
 	onclick={clickHandler}
@@ -509,7 +488,7 @@
 				alt=""
 				draggable="false" />
 		{/if}
-		{#if kind === 'market' || kind === 'house' || kind === 'farm' || kind === 'armory'}
+		{#if BUILDINGS.has(kind)}
 			<img
 				class="rg-capital-grid--building"
 				src={artUrl(`building/${kind}`)}
@@ -569,10 +548,10 @@
 			data-piece={piece.id}
 			style:grid-row="{area.row + 1} / span {area.rows}"
 			style:grid-column="{area.col + 1} / span {area.cols}"
-			style:top={overhang(area.top, area.rows)}
-			style:right={overhang(area.right, area.cols)}
-			style:bottom={overhang(area.bottom, area.rows)}
-			style:left={overhang(area.left, area.cols)}>
+			style:top={overhangOffset(area.top, area.rows)}
+			style:right={overhangOffset(area.right, area.cols)}
+			style:bottom={overhangOffset(area.bottom, area.rows)}
+			style:left={overhangOffset(area.left, area.cols)}>
 			<LandmarkPiece
 				bind:this={drawn[piece.id]}
 				id={piece.id}
@@ -612,8 +591,11 @@
 		position: relative;
 		isolation: isolate;
 		display: grid;
-		grid-template-columns: repeat(9, minmax(0, 1fr));
-		grid-template-rows: repeat(9, minmax(0, 1fr));
+		grid-template-columns: repeat(
+			var(--rg-capital-grid-size),
+			minmax(0, 1fr)
+		);
+		grid-template-rows: repeat(var(--rg-capital-grid-size), minmax(0, 1fr));
 		/* The relief is 296 pixels across: nine plots of 32 and eight gaps of 1. A gap of 1/296 lines the plots up with it (#82). */
 		gap: calc(100% / 296);
 		width: 100%;
@@ -700,18 +682,9 @@
 		}
 	}
 
-	.rg-capital-grid--market {
-		background: var(--surface);
-	}
-
-	.rg-capital-grid--house {
-		background: var(--surface);
-	}
-
-	.rg-capital-grid--farm {
-		background: var(--surface);
-	}
-
+	.rg-capital-grid--market,
+	.rg-capital-grid--house,
+	.rg-capital-grid--farm,
 	.rg-capital-grid--armory {
 		background: var(--surface);
 	}

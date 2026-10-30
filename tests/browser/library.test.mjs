@@ -480,6 +480,32 @@ test('a landmark over the edge still lines up with the plots (#82)', async ({
 	}
 });
 
+test("an arrow key steps a landmark among the engine's places, over the edge included (#112, R14)", async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const example = capitalExample(page, 'positions={[row 6 col 5');
+	const piece = example.locator('[data-piece="lighthouse"]');
+	await expect(piece).toHaveCSS('grid-column-start', '6');
+	await piece.locator('[tabindex="0"]').focus();
+	await page.keyboard.press('ArrowRight');
+	await expect(example.locator('figcaption')).toContainText(
+		'row 6, col 8, rotation 0'
+	);
+	await expect(piece).toHaveCSS('grid-column-start', '9');
+	await expect(piece).toHaveCSS('grid-column-end', 'span 1');
+	await page.keyboard.press('ArrowRight');
+	await expect(example.locator('figcaption')).toContainText('row 6, col 8');
+	await page.keyboard.press('ArrowDown');
+	await expect(example.locator('figcaption')).toContainText(
+		'row 8, col 5, rotation 0'
+	);
+	await page.keyboard.press('.');
+	await expect(example.locator('figcaption')).toContainText(
+		'row 8, col 5, rotation 1'
+	);
+});
+
 test('a mat on offer shows its relief (#82)', async ({ page }) => {
 	await page.goto('/components.html');
 	const example = page

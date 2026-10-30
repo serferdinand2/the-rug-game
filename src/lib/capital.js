@@ -21,6 +21,15 @@ export function plotIndex(row, col) {
 }
 
 /**
+ * The row and column of a plot in a row-by-row list of the grid: plotIndex the other way.
+ * @param {number} index
+ * @returns {Position}
+ */
+export function plotPosition(index) {
+	return { row: Math.floor(index / GRID_SIZE), col: index % GRID_SIZE };
+}
+
+/**
  * Turns a footprint clockwise. Footprints are rows, top first, with X for a covered plot and . for an empty one.
  * @param {readonly string[]} rows
  * @param {number} turns - Quarter turns; negative turns go anticlockwise.

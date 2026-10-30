@@ -1,5 +1,6 @@
 // Landmark placement on the capital grid: pieces as occupied plots, snapping, keyboard moves, turning, and the shape a landmark is drawn in.
-// The rules engine decides whether a placement is legal; this only answers where a piece fits and how it looks.
+// The rules engine decides whether a placement is legal: in a game the grid steps and snaps among its positions (#112),
+// and the in-grid fit check here is only the component library's fallback.
 import {
 	GRID_SIZE,
 	rotateFootprint,
@@ -21,6 +22,15 @@ import {
  * @property {number} col - The left column of its turned shape
  * @property {number} [rotation=0] - Quarter turns clockwise, 0–3
  * @property {boolean} [locked=false] - Confirmed: it can no longer move and counts towards completed groups
+ */
+
+/**
+ * A legal place for a landmark, as the engine offers it: its turned shape's top-left corner, which may be off the grid
+ * (R14, R106), and its turn.
+ * @typedef {Object} PiecePosition
+ * @property {number} row - The top row of the turned shape
+ * @property {number} col - The left column of the turned shape
+ * @property {number} rotation - Quarter turns clockwise, 0–3
  */
 
 /**
@@ -81,6 +91,25 @@ function othersFilled(plots, pieces, id) {
 	return withPieces(
 		plots,
 		pieces.filter((other) => other.id !== id)
+	);
+}
+
+/**
+ * Whether a piece fits with its turned shape's top-left corner at (row, col): inside the grid, on open plots, and off
+ * every other piece. The component library's fallback; in a game the engine's positions decide.
+ * @param {readonly PlotKind[]} plots
+ * @param {readonly PlacedPiece[]} pieces - Every piece on the grid; the moving one may be among them
+ * @param {Pick<PlacedPiece, 'id' | 'footprint' | 'rotation'>} piece
+ * @param {number} row
+ * @param {number} col
+ * @returns {boolean}
+ */
+export function fitsAt(plots, pieces, piece, row, col) {
+	return fits(
+		othersFilled(plots, pieces, piece.id),
+		pieceShape(piece),
+		row,
+		col
 	);
 }
 
@@ -149,6 +178,124 @@ export function rotatePiece(plots, pieces, piece) {
 		piece.col
 	);
 	return position && { rotation, ...position };
+}
+
+/**
+ * The position of a turn nearest (row, col), by squared distance, for a dropped piece.
+ * @param {readonly PiecePosition[]} positions - The engine's legal positions
+ * @param {number} rotation - The piece's turn
+ * @param {number} row - Where its top-left corner landed; it may be off the grid
+ * @param {number} col
+ * @returns {Position | null} A tie goes to the earlier position. Null when that turn has none.
+ */
+export function snapAmong(positions, rotation, row, col) {
+	/** @type {Position | null} */
+	let best = null;
+	let bestDistance = Infinity;
+	for (const position of positions) {
+		const distance = (position.row - row) ** 2 + (position.col - col) ** 2;
+		if (position.rotation === rotation && distance < bestDistance) {
+			best = { row: position.row, col: position.col };
+			bestDistance = distance;
+		}
+	}
+	return best;
+}
+
+/**
+ * Where an arrow key moves a piece among the engine's positions of its turn: the nearest straight along the arrow,
+ * hopping over gaps as stepPiece does; with none there, the nearest ahead of it, fewest plots along, then fewest across.
+ * @param {readonly PiecePosition[]} positions - The engine's legal positions; they may hang over the edge (R14)
+ * @param {Pick<PlacedPiece, 'row' | 'col' | 'rotation'>} piece
+ * @param {number} dRow - -1, 0 or 1
+ * @param {number} dCol - -1, 0 or 1
+ * @returns {Position | null} Null when there is nothing ahead.
+ */
+export function stepAmong(positions, piece, dRow, dCol) {
+	const rotation = piece.rotation ?? 0;
+	/** @type {Position | null} */
+	let best = null;
+	let bestRank = [Infinity, Infinity, Infinity];
+	for (const position of positions) {
+		const down = position.row - piece.row;
+		const right = position.col - piece.col;
+		const along = down * dRow + right * dCol;
+		const across = Math.abs(down * dCol - right * dRow);
+		if (position.rotation !== rotation || along <= 0) {
+			continue;
+		}
+		const rank = [across === 0 ? 0 : 1, along, across];
+		const better = rank.findIndex((value, i) => value !== bestRank[i]);
+		if (better !== -1 && rank[better] < bestRank[better]) {
+			best = { row: position.row, col: position.col };
+			bestRank = rank;
+		}
+	}
+	return best;
+}
+
+/**
+ * A piece turned to its next legal turn among the engine's positions: +1, then +2, then +3 quarter turns, cycling
+ * past 3 to 0, each at the position of that turn nearest the same top-left corner.
+ * @param {readonly PiecePosition[]} positions
+ * @param {Pick<PlacedPiece, 'row' | 'col' | 'rotation'>} piece
+ * @returns {PiecePosition | null} Null when no other turn is legal.
+ */
+export function turnAmong(positions, piece) {
+	for (let turn = 1; turn < 4; turn++) {
+		const rotation = ((piece.rotation ?? 0) + turn) % 4;
+		const position = snapAmong(positions, rotation, piece.row, piece.col);
+		if (position) {
+			return { ...position, rotation };
+		}
+	}
+	return null;
+}
+
+/**
+ * How many plots the pieces hang over each edge, at most (R106), so the grid can keep room for them.
+ * @param {readonly Pick<PlacedPiece, 'footprint' | 'rotation' | 'row' | 'col'>[]} pieces
+ * @returns {{ top: number, right: number, bottom: number, left: number }}
+ */
+export function overhangReach(pieces) {
+	return pieces.reduce(
+		(most, piece) => {
+			const area = pieceArea(pieceShape(piece), piece.row, piece.col);
+			return {
+				top: Math.max(most.top, area.top),
+				right: Math.max(most.right, area.right),
+				bottom: Math.max(most.bottom, area.bottom),
+				left: Math.max(most.left, area.left),
+			};
+		},
+		{ top: 0, right: 0, bottom: 0, left: 0 }
+	);
+}
+
+/**
+ * How far a piece reaches past its area on the grid on one side, as a CSS length. As in the relief, a plot is 32
+ * units and a gap 1, so one plot and its gap are a pitch of 33 units, and an area `span` plots long is
+ * 33 × span − 1 units: one pitch is 3300 / (33 × span − 1) percent of it.
+ * @param {number} plots - Plots over the edge on that side
+ * @param {number} span - Plots the area covers along that side's axis
+ * @returns {string | undefined} Undefined when the piece doesn't hang over that edge.
+ */
+export function overhangOffset(plots, span) {
+	return plots ? `calc(-${plots} * ${3300 / (33 * span - 1)}%)` : undefined;
+}
+
+/**
+ * The plot under a pointer, in fractions of a plot, from where plot 0 and the plot diagonally after it start on screen.
+ * @param {{ x: number, y: number }} pointer - The pointer's client coordinates
+ * @param {{ left: number, top: number }} first - Plot 0's box
+ * @param {{ left: number, top: number }} next - The box of the plot one row down and one column right
+ * @returns {{ row: number, col: number }} Off the grid when the pointer is.
+ */
+export function plotFromPointer(pointer, first, next) {
+	return {
+		row: (pointer.y - first.top) / (next.top - first.top),
+		col: (pointer.x - first.left) / (next.left - first.left),
+	};
 }
 
 /**
