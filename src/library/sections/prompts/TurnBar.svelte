@@ -1,5 +1,6 @@
-<!-- Library section: TurnBar in its neutral, selected, optional and waiting tones, the forced and first income turns (#77), and the Ships walk-through from the mockup. -->
+<!-- Library section: TurnBar in its neutral, selected, optional and waiting tones with the income reveal passed in (#122), the forced and first income turns (#77), the finished game (#105), and the Ships walk-through from the mockup. -->
 <script>
+	import IncomeReveal from '../../../lib/components/prompts/IncomeReveal.svelte';
 	import TurnBar from '../../../lib/components/prompts/TurnBar.svelte';
 	import Button from '../../../lib/components/ui/Button.svelte';
 	import Example from '../../Example.svelte';
@@ -32,6 +33,36 @@
 	}
 </script>
 
+{#snippet open()}
+	<IncomeReveal {...INCOME} />
+{/snippet}
+
+{#snippet folded()}
+	<IncomeReveal
+		{...INCOME}
+		folded />
+{/snippet}
+
+{#snippet unavailable()}
+	<IncomeReveal
+		{...INCOME}
+		folded
+		disabled />
+{/snippet}
+
+{#snippet openWalk()}
+	<IncomeReveal
+		{...INCOME}
+		onIncomeRevealClick={() => go('neutral', 'onIncomeRevealClick')} />
+{/snippet}
+
+{#snippet foldedWalk()}
+	<IncomeReveal
+		{...INCOME}
+		folded
+		onIncomeRevealClick={() => go('neutral', 'onIncomeRevealClick')} />
+{/snippet}
+
 {#snippet farm()}
 	<svg
 		viewBox="0 0 18 18"
@@ -52,16 +83,16 @@
 	area="prompts"
 	description="The footer gives the turn's context while the decision panel asks the question. Its cost and actions sit at the right. While a space is chosen, the income choice folds behind Your turn and opens on hover or keyboard focus.">
 	<Example
-		label={'tone="neutral" income={…}'}
+		label={'tone="neutral" reveal={IncomeReveal}'}
 		surface="ink"
 		wide>
 		<TurnBar
 			heading="The table is waiting for your move"
 			detail="Choose an available advancement space or take income."
-			income={INCOME} />
+			reveal={open} />
 	</Example>
 	<Example
-		label={`tone="selected" properName="Ships" track="exploration" cost={['food', 'any']}  (hover or tab to Your turn)`}
+		label={`tone="selected" properName="Ships" track="exploration" cost={['food', 'any']} reveal={IncomeReveal folded}  (hover or tab to Your turn)`}
 		surface="ink"
 		wide>
 		<TurnBar
@@ -71,14 +102,14 @@
 			detail="Gain 1 VP per territory you control. You control 4 territories."
 			track="exploration"
 			cost={['food', 'any']}
-			income={INCOME}>
+			reveal={folded}>
 			{#snippet actions()}
 				<Button mode="primary">Advance · +4 VP</Button>
 			{/snippet}
 		</TurnBar>
 	</Example>
 	<Example
-		label={`tone="optional" label="Optional action" properName="Farm" properIcon headingEnd="?" cost={['food']}`}
+		label={`tone="optional" label="Optional action" properName="Farm" properIcon headingEnd="?" cost={['food']} reveal={IncomeReveal folded disabled}`}
 		surface="ink"
 		wide>
 		<TurnBar
@@ -91,7 +122,7 @@
 			detail="Pay the shown resource to place a Farm in your capital city, or skip this benefit."
 			track="exploration"
 			cost={['food']}
-			income={INCOME}>
+			reveal={unavailable}>
 			{#snippet actions()}
 				<Button>Skip</Button>
 				<Button mode="primary">Pay &amp; build</Button>
@@ -199,6 +230,36 @@
 			heading="Ana is choosing where to conquer…" />
 	</Example>
 	<Example
+		label={'tone="complete" label="Game complete"  (the results footer, as the host sees it; #105)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			tone="complete"
+			label="Game complete"
+			heading="The game is complete."
+			detail="The final standings, and where each player's VP came from.">
+			{#snippet actions()}
+				<Button>Review game board</Button>
+				<Button mode="secondary">Return to tables</Button>
+				<Button mode="gold">Deal again</Button>
+			{/snippet}
+		</TurnBar>
+	</Example>
+	<Example
+		label={'tone="complete"  (the board review after the game, with Results back)'}
+		surface="ink"
+		wide>
+		<TurnBar
+			tone="complete"
+			label="Game complete"
+			heading="The game is complete."
+			detail="The board as the game ended.">
+			{#snippet actions()}
+				<Button mode="gold">Results</Button>
+			{/snippet}
+		</TurnBar>
+	</Example>
+	<Example
 		{label}
 		surface="ink"
 		wide>
@@ -214,8 +275,7 @@
 			<TurnBar
 				heading="The table is waiting for your move"
 				detail="Choose an available advancement space or take income."
-				income={INCOME}
-				onTurnBarIncome={() => go('neutral', 'onTurnBarIncome')} />
+				reveal={openWalk} />
 		{:else if step === 'selected'}
 			<TurnBar
 				tone="selected"
@@ -224,8 +284,7 @@
 				detail="Gain 1 VP per territory you control. You control 4 territories."
 				track="exploration"
 				cost={['food', 'any']}
-				income={INCOME}
-				onTurnBarIncome={() => go('neutral', 'onTurnBarIncome')}>
+				reveal={foldedWalk}>
 				{#snippet actions()}
 					<Button
 						mode="primary"
@@ -244,7 +303,7 @@
 				detail="Pay the shown resource to place a Farm in your capital city, or skip this benefit."
 				track="exploration"
 				cost={['food']}
-				income={INCOME}>
+				reveal={unavailable}>
 				{#snippet actions()}
 					<Button onButtonClick={() => go('neutral', 'Skip')}
 						>Skip</Button>

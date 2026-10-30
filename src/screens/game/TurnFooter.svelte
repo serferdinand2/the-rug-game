@@ -1,4 +1,4 @@
-<!-- The game's footer (#86): the players overview's close bar, or one TurnBar drawn from turn.js' footerView, with its actions. -->
+<!-- The game's footer (#86): the players overview's close bar, or one TurnBar drawn from turn.js' footerView, with its actions and income reveal. -->
 <script module>
 	/**
 	 * Properties of the TurnFooter screen part itself.
@@ -29,6 +29,7 @@
 
 <script>
 	import Button from '../../lib/components/ui/Button.svelte';
+	import IncomeReveal from '../../lib/components/prompts/IncomeReveal.svelte';
 	import OverviewCloseBar from '../../lib/components/prompts/OverviewCloseBar.svelte';
 	import TurnBar from '../../lib/components/prompts/TurnBar.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
@@ -108,6 +109,16 @@
 	{/if}
 {/snippet}
 
+{#snippet incomeReveal()}
+	{#if view.income}
+		<IncomeReveal
+			description={view.income.description}
+			label={view.income.label}
+			folded={view.income.folded}
+			onIncomeRevealClick={report(onTurnFooterIncomeAsk)} />
+	{/if}
+{/snippet}
+
 {#if view.kind === 'overview'}
 	<OverviewCloseBar
 		{...attr}
@@ -125,8 +136,7 @@
 			track={view.track}
 			detail={view.detail}
 			cost={view.cost ?? null}
-			income={view.income ?? null}
-			actions={hasActions ? footerActions : undefined}
-			onTurnBarIncome={report(onTurnFooterIncomeAsk)} />
+			reveal={view.income ? incomeReveal : undefined}
+			actions={hasActions ? footerActions : undefined} />
 	{/key}
 {/if}

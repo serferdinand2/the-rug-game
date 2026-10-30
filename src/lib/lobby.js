@@ -142,6 +142,44 @@ export function seatSlots(room, maxSeats) {
 }
 
 /**
+ * A seat's group name, as SeatCard gives it: "Seat 3: Ana", "Seat 3: add a player", or "Seat 3: empty" for an empty
+ * or closed slot.
+ * @param {{ seat: number, state: 'player' | 'add' | 'empty' | 'closed', name?: string }} slot
+ * @returns {string}
+ */
+export function seatLabel(slot) {
+	if (slot.state === 'player') {
+		return `Seat ${slot.seat}: ${slot.name}`;
+	}
+	if (slot.state === 'add') {
+		return `Seat ${slot.seat}: add a player`;
+	}
+	return `Seat ${slot.seat}: empty`;
+}
+
+/**
+ * A joined player's badges, in order: YOU and HOST in gold, then READY or NOT READY when the readiness is known.
+ * @param {{ you?: boolean, host?: boolean, ready?: boolean }} slot
+ * @returns {{ label: string, color: string }[]}
+ */
+export function seatBadges(slot) {
+	/** @type {{ label: string, color: string }[]} */
+	const badges = [];
+	if (slot.you) {
+		badges.push({ label: 'You', color: 'var(--gold)' });
+	}
+	if (slot.host) {
+		badges.push({ label: 'Host', color: 'var(--gold)' });
+	}
+	if (slot.ready === true) {
+		badges.push({ label: 'Ready', color: 'var(--ok)' });
+	} else if (slot.ready === false) {
+		badges.push({ label: 'Not ready', color: 'var(--muted)' });
+	}
+	return badges;
+}
+
+/**
  * Whether a typed table code can be one: 8 letters or digits once trimmed.
  * @param {string} text
  * @returns {boolean}

@@ -6,6 +6,7 @@
 	 * @property {string} name - Printed space name
 	 * @property {string} [landmark] - Landmark shown at the bottom
 	 * @property {import('../../glyphs.js').BonusGlyphs | null} [bonus] - Optional price and reward
+	 * @property {boolean} [last=false] - The track's last space, which TrackSpace passes on from Track (#120)
 	 */
 	/**
 	 * @typedef {ExplorationFaceOwnProps & import('svelte/elements').HTMLAttributes<HTMLSpanElement>} ExplorationFaceProps
@@ -17,7 +18,14 @@
 	import { artUrl } from '../../ui.js';
 
 	/** @type {ExplorationFaceProps} */
-	let { space, name, landmark, bonus = null, ...attr } = $props();
+	let {
+		space,
+		name,
+		landmark,
+		bonus = null,
+		last = false,
+		...attr
+	} = $props();
 
 	/** @type {Record<number, Array<{icon?: string, text?: string, count?: number, label?: string}>>} */
 	const faces = {
@@ -98,7 +106,7 @@
 	class:rg-exploration-face--dense-bonus={space === 10}
 	class:rg-exploration-face--plain={!bonus}
 	class:rg-exploration-face--first={space === 1}
-	class:rg-exploration-face--last={space === 12}>
+	class:rg-exploration-face--last={last}>
 	<span class="rg-exploration-face--name">{name}</span>
 	<span
 		class="rg-exploration-face--main"

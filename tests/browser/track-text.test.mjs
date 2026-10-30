@@ -66,7 +66,7 @@ test('the track spaces keep 10px text at 1920×1080 and grow it on larger screen
 				screen.text
 			);
 			await expect(
-				page.locator('.rg-track-space--resource img').first()
+				page.locator('.rg-space-glyphs--resource img').first()
 			).toHaveCSS('width', `${screen.resource}px`);
 
 			const faults = await spaces.evaluateAll((all) =>

@@ -36,6 +36,7 @@
 
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
+	import VpTag from './VpTag.svelte';
 	import TerritoryTile from '../player/TerritoryTile.svelte';
 	import { tilePreview } from '../../area/explore.js';
 	import { CAPITAL_MATS } from '../../engine/data/capitals.js';
@@ -92,7 +93,9 @@
 			{...tile}
 			size={pixels * 0.75} />
 	{:else if item.kind === 'vp'}
-		<b class="rg-prompt-art--badge">{item.count} VP</b>
+		<VpTag
+			value={item.count}
+			variant="inline" />
 	{:else if item.kind === 'deck'}
 		<b class="rg-prompt-art--back">Deck · {item.count}</b>
 	{:else if source}
@@ -130,16 +133,6 @@
 		color: var(--text);
 		font-size: var(--font-size-xs);
 		line-height: var(--leading-tight);
-	}
-
-	.rg-prompt-art--badge {
-		padding: var(--space-1) var(--space-3);
-		border: var(--border) solid var(--gold);
-		border-radius: var(--radius);
-		background: color-mix(in srgb, var(--gold) 17%, var(--surface));
-		color: var(--gold);
-		font-size: var(--font-size-sm);
-		white-space: nowrap;
 	}
 
 	.rg-prompt-art--back {

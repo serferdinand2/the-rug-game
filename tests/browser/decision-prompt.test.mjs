@@ -184,7 +184,7 @@ test("cards on the shelf and the panel open as one stack at the tracks' centre (
 			Math.abs(middle - (scrim.y + scrim.height / 2))
 		).toBeLessThanOrEqual(2);
 		// Every card is on the screen, above the panel, and the cards are pressable.
-		const cards = page.locator('.rg-card-shelf--card');
+		const cards = page.locator('.rg-card-shelf .rg-card-fan--card');
 		await expect(cards).toHaveCount(op.answers.length);
 		for (const card of await cards.all()) {
 			const box = await boxOf(card);

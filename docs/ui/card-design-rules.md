@@ -34,7 +34,7 @@ The card study at `C:/Users/lazar/.codex/visualizations/2026/10/23/01a16638-a2cd
 - The active era tab displays the complete current card. Earlier eras remain selectable for inspection. The Hand and decision choice shelf use the same complete card layout, scaled to their available space; hovering or focusing overlapping cards raises the chosen one.
 - Tapestry choice remains in the card shelf above the decision box. The box carries the confirmation action, not a second list of card buttons.
 
-The production implementation is `src/lib/components/player/`; the common style source is `src/styles/card-patterns.css`; the fixture inventory is `src/lib/cards/reviewed-civilizations.js`. Both `/docs/ui/collectors-review.html` and the component library consume these components. The previous static HTML is archived at `archive/2026-10-24-civilization-review.html`.
+The production implementation is `src/lib/components/player/`, where each card pattern takes its content as data and its state as props and owns its styles (#106); `src/styles/card-patterns.css` keeps only the card's palette, its paper and the pictogram symbols `CivilizationCard` still draws itself; the fixture inventory is `src/lib/cards/reviewed-civilizations.js`. Both `/docs/ui/collectors-review.html` and the component library consume these components. The previous static HTML is archived at `archive/2026-10-24-civilization-review.html`.
 
 Priority when generating a card:
 
@@ -125,7 +125,7 @@ Use the two reviewed ordinary sizes:
 
 Unfilled spaces and any illustrative printed item are greyed. Filled/selected spaces use the player-colour border. Printed rewards under a piece stay in the same square and become visible as the piece leaves. Do not put a second reward box under an outpost.
 
-Square states are supplied by the caller. These components do not decide whether a move is legal, pay a cost or mutate a game. A production interactive adapter must use legal options from the engine and expose actual buttons/keyboard controls, not clickable decorative spans.
+Square states are supplied by the caller as props (`collected`, `exposed`, `used`, `current`, `selected`, `filled`), and only in the play look; no card class or stylesheet gate decides them. These components do not decide whether a move is legal, pay a cost or mutate a game. A production interactive adapter must use legal options from the engine and expose actual buttons/keyboard controls, not clickable decorative spans.
 
 ## Pattern recipes
 
@@ -169,7 +169,7 @@ Use **two separate beige boxes**: the reward for first reaching a prediction, an
 
 ### Alchemists: temporary marked results
 
-Four track squares record the current activation. Beige effect boxes distinguish stopping, repeating a rolled track, and advancing beyond the track end. Tokens here represent temporary results, not permanent used spaces. The demo must clear/mark them consistently with its labelled state.
+Four track squares record the current activation. Beige effect boxes distinguish stopping, repeating a rolled track, and advancing beyond the track end. Tokens here represent temporary results, not permanent used spaces. The demo must clear/mark them consistently with its labelled state. A rolled track's token is the player's own, in full colour, in the square's top-right corner as the Merrymakers' token marks its square, so the greyed track icon stays readable; the square keeps its unused look (owner, 2026-10-30).
 
 ### Isolationists: reserve plus score scale
 
@@ -201,36 +201,43 @@ All public card primitives live under `src/lib/components/player/` and appear on
 
 | Component | Contract |
 |---|---|
-| `CardFrame` | `title`, full `portrait`, `portraitAlt`, footer `badges`, `complexity`, `state`, main `effect` snippet and layout `children` |
+| `CardFrame` | `title`, full `portrait`, `portraitAlt`, edition codes in `editions`, `complexity`, `state`, main `effect` snippet and layout `children`; `bodyMinHeight` and `textLeading` for a short card's reviewed proportions; `plain` draws only the paper around the children, as the library shows a pattern |
 | `CivilizationCard` | A recipe by `id`, with `state="empty"` or `"play"`; eighteen fixture recipes: the fourteen reviewed ones and the Futurists, Heralds, Nomads and The Chosen, awaiting review |
-| `CardResource` | Native 24 px `symbol`, inline baseline treatment; delegates artwork to `ResourceIcon` |
+| `CardResource` | Native 24 px `symbol`, inline baseline treatment, `fine` in 11 px text; a container centres it with `--card-resource-center` and `--card-resource-height`; delegates artwork to `ResourceIcon` |
 | `PlayerToken` | The supplied five `color` variants, native 32 px by default; optional display `size` and `decorative` |
-| `CardSlot` | Only approved `size` values 39, 62 or 75; `label`, `filled`, content snippet; never runs game logic |
-| `CardEffectBox` | Beige triggered/scoring row; optional `symbol` snippet plus text `children` |
-| `CardClarity` | Supporting rules below the relevant spaces/effects |
-| `CardPlacementRows` | `collection`, `covered`, `history`, `tracks` or `leaders` layout; semantic list via `as="ol"` |
-| `CardRewardColumns` | `kind="beside"` for bottom-aligned slot/reward pairs; `"inside"` for upward reward tracks |
-| `CardPathGrid` | Contains the reward squares and the explicit legal connector drawing |
-| `CardPredictionTracks` | Numbered square categories with boundary and row separators |
-| `CardTerrainRewards` | Terrain marker/name/benefit rows |
+| `CardSlot` | Only approved `size` values 39, 62 or 75; `label`, `filled` (the 2 px player border), content snippet; `pickable`, `picked`, `value` and `onCardSlotPick` for a decision's spot; never runs game logic |
+| `CardEffectBox` | Beige triggered/scoring row: `title`, a `gain` resource or a `label` word as its symbol (or a `symbol` snippet), `symbolText` 12–15 px, rules as `children` |
+| `CardEffectList` | The column of effect boxes, `above` for extra space |
+| `CardClarity` | Supporting rules below the relevant spaces/effects as its own paragraph, an optional fainter `setup` line, `above` and `minHeight` |
+| `CardPlacementRows` | `items` in a `collection`, `covered`, `tracks`, `leaders` or `history` layout, each item's state a field |
+| `CardRewardColumns` | `columns`: `kind="beside"` for bottom-aligned slot/benefit rows; `"inside"` for cells a token climbs |
+| `CardPathGrid` | `heads`, `spaces`, the legal `links` as pairs of square ids (drawn by the component), `current` and the `start` words |
+| `CardPredictionTracks` | `categories` of numbered squares with boundary and row separators, each with its `selected` number |
+| `CardTerrainRewards` | `rows` of terrain marker, name, `gain` and `effect`, each maybe `used` |
 | `CardTokenReserve` | `count`, `used`, player `color`; renders remaining physical tokens in compact squares |
-| `CardScoreLadder` | Score `values`, current count and timing `label`; horizontal `X VP` values |
+| `CardScoreLadder` | `steps` of `{ count, points }`, `current`, timing `label` and item `noun`; the stepped ladder or `kind="flat"` boxes with an `example` |
 | `CardTechnologyTransfer` | Labelled ownership/row diagram, optional `active` illustration |
 
-The pattern components accept typed Svelte snippets, not raw HTML strings. Use the existing reviewed recipe as a composition example. A new card does not need its own copied frame, badge styling, circle/resource implementation or giant page stylesheet.
+The squares a decision offers come to the patterns as `choices` (spot ids) and `picked`, and each reports `onCard{Name}Pick` with the spot id; `spotChoice` in `src/lib/card-spots.js` makes the CardSlot a button.
+
+The pattern components take their structure as data and their rules text as typed Svelte snippets, never raw HTML strings. Use the existing reviewed recipe as a composition example. A new card does not need its own copied frame, badge styling, circle/resource implementation or giant page stylesheet.
 
 Example for a new researched civilization layout:
 
 ```svelte
 <CardFrame title={card.name} portrait={card.art} portraitAlt={card.artDescription}
-  badges={card.expansions} complexity={card.complexity}>
+  editions={card.editions} complexity={card.complexity}>
   {#snippet effect()}{card.mainInstruction}{/snippet}
   <CardTokenReserve count={card.initialTokens} used={view.sentTokens} />
-  <CardEffectBox>
-    {#snippet symbol()}<CardResource symbol="any" />{/snippet}
-    <b>{card.trigger}</b><span>{card.triggeredInstruction}</span>
-  </CardEffectBox>
-  <CardClarity>{card.clarification}</CardClarity>
+  <CardEffectList>
+    <CardEffectBox title={card.trigger} gain="any" symbolText={13}>
+      {card.triggeredInstruction}
+    </CardEffectBox>
+  </CardEffectList>
+  <CardClarity>
+    {card.clarification}
+    {#snippet setup()}{card.setup}{/snippet}
+  </CardClarity>
 </CardFrame>
 ```
 

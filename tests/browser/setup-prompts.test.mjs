@@ -134,9 +134,7 @@ test('the tracks show every benefit, and setup shows capital mats as grids and c
 				await takeScreen('Ben');
 			}
 			await expect(heading).toHaveText('Choose your capital city');
-			const mats = page.locator(
-				'.rg-card-shelf--mat .rg-card-shelf--card'
-			);
+			const mats = page.locator('.rg-card-shelf--mat .rg-card-fan--card');
 			await expect(mats).toHaveCount(2);
 			for (const mat of await mats.all()) {
 				const grid = mat.locator('.rg-capital-grid');
@@ -153,9 +151,7 @@ test('the tracks show every benefit, and setup shows capital mats as grids and c
 			await confirm.click();
 
 			await expect(heading).toHaveText('Choose your civilization');
-			const civs = page.locator(
-				'.rg-card-shelf--civ .rg-card-shelf--card'
-			);
+			const civs = page.locator('.rg-card-shelf--civ .rg-card-fan--card');
 			await expect(civs).toHaveCount(2);
 			const shelf = await page.locator('.rg-card-shelf').boundingBox();
 			const cards = [];

@@ -169,12 +169,9 @@ test('every class a component styles starts with rg-{component}', () => {
 	}
 });
 
-/** Components that still draw a token themselves: ProgressLanes waits for #85, which reworks the track spaces. */
-const TOKENS_LEFT = ['ProgressLanes'];
-
 test('every player token is a PlayerToken (#103)', () => {
 	for (const { name, source } of components) {
-		if (name === 'PlayerToken' || TOKENS_LEFT.includes(name)) {
+		if (name === 'PlayerToken') {
 			continue;
 		}
 		assert.doesNotMatch(
@@ -183,4 +180,25 @@ test('every player token is a PlayerToken (#103)', () => {
 			`${name} draws a player token without PlayerToken`
 		);
 	}
+});
+
+test('the DecisionPanel and TrackBoard sections build from dealt games, not copies of the modules (#131)', () => {
+	const source = (/** @type {string} */ area, /** @type {string} */ name) =>
+		/** @type {{ source: string }} */ (
+			sections.find((s) => s.area === area && s.name === name)
+		).source;
+	const decision = source('prompts', 'DecisionPanel');
+	assert.match(decision, /new PromptState\(/);
+	assert.doesNotMatch(
+		decision,
+		/function payMixes|const sets =|mode: 'pay'|kind: 'chooseTrade'/,
+		'the DecisionPanel section hand-builds a pick model'
+	);
+	const board = source('board', 'TrackBoard');
+	assert.match(board, /trackBoard\(/);
+	assert.doesNotMatch(
+		board,
+		/function fixtureTrack|describeEffects|spaceGlyphs/,
+		'the TrackBoard section re-implements trackBoard()'
+	);
 });

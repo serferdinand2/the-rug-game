@@ -65,11 +65,11 @@ test('the players overview shows its close bar over every other footer', () => {
 	);
 });
 
-test('a finished game offers its results', () => {
+test('a finished game offers its results, in the complete tone the results footer shares (#105)', () => {
 	const { game, player } = turnChoice();
 	const footer = footerView({ ...game, phase: 'over' }, player, QUIET);
 	assert.equal(footer.kind, 'over');
-	assert.equal(footer.tone, 'neutral');
+	assert.equal(footer.tone, 'complete');
 	assert.equal(footer.label, 'Game complete');
 	assert.equal(footer.heading, 'The game is complete.');
 	assert.equal(footer.detail, 'The board as the game ended.');
@@ -136,6 +136,7 @@ test('a selected space names it, says its benefit and prices its tier', () => {
 	assert.deepEqual(footer.income, {
 		description: 'End era I, gain income and begin era II.',
 		label: 'Take income',
+		folded: true,
 	});
 	assert.deepEqual(footer.advance, { enabled: true, title: undefined });
 });
@@ -178,6 +179,7 @@ test('the turn choice points at the outlined spaces and offers income, not under
 		'The spaces you can pay for are outlined in green.'
 	);
 	assert.equal(footer.income?.label, 'Take income');
+	assert.equal(footer.income?.folded, false);
 	assert.equal(
 		footerView(game, player, { ...QUIET, options, noticeOpen: true })
 			.income,
@@ -281,4 +283,18 @@ test('Game.svelte renders one TurnFooter and draws no footer of its own', () => 
 		source,
 		/function priceSymbols|\/\*\* @type \{ComponentEvent\} \*\/ \(\s*\/\*\* @type \{unknown\} \*\//
 	);
+});
+
+test('TurnBar has no income reveal of its own, and TurnFooter passes it an IncomeReveal (#122)', () => {
+	const read = (/** @type {string} */ path) =>
+		readFileSync(fileURLToPath(new URL(path, import.meta.url)), 'utf8');
+	const bar = read('../src/lib/components/prompts/TurnBar.svelte');
+	assert.doesNotMatch(
+		bar,
+		/onTurnBarIncome|TurnBarIncome|income-reveal|income-access|showIncome/
+	);
+	assert.doesNotMatch(bar, /\bincome\s*=\s*null/);
+	const footer = read('../src/screens/game/TurnFooter.svelte');
+	assert.match(footer, /<IncomeReveal\b/);
+	assert.match(footer, /reveal=/);
 });

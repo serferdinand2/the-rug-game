@@ -53,7 +53,8 @@
 	import CivilizationCard from '../../lib/components/player/CivilizationCard.svelte';
 	import EraSlots from '../../lib/components/player/EraSlots.svelte';
 	import IncomeMat from '../../lib/components/player/IncomeMat.svelte';
-	import ScaledTapestryCard from '../../lib/components/player/ScaledTapestryCard.svelte';
+	import ScaledCard from '../../lib/components/player/ScaledCard.svelte';
+	import TapestryCard from '../../lib/components/player/TapestryCard.svelte';
 	import TechnologyCard from '../../lib/components/player/TechnologyCard.svelte';
 	import TilePicker from '../../lib/components/prompts/TilePicker.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
@@ -74,6 +75,7 @@
 		tapestryCardData,
 		techCardData,
 	} from '../../lib/cards/game-cards.js';
+	import { CARD_SIZES } from '../../lib/cards/card-sizes.js';
 	import { artUrl } from '../../lib/ui.js';
 	import { CARD_CIVS, civCardView } from '../../lib/civ-card.js';
 	import { tileWords } from '../../lib/area/explore.js';
@@ -477,9 +479,11 @@
 							event.originalEvent
 						)}>
 					{#snippet card(/** @type {string} */ id)}
-						<ScaledTapestryCard
-							data={tapestryCardData(id)}
-							scale={0.42} />
+						<ScaledCard
+							scale={0.42}
+							{...CARD_SIZES.tapestry}>
+							<TapestryCard data={tapestryCardData(id)} />
+						</ScaledCard>
 					{/snippet}
 				</CardFan>
 			{:else}
@@ -493,9 +497,11 @@
 			<h2 class="rg-player-tabs--title">Your eras</h2>
 			{#if eraCard}
 				<div class="rg-player-tabs--era-card">
-					<ScaledTapestryCard
-						data={tapestryCardData(eraCard)}
-						scale={0.6} />
+					<ScaledCard
+						scale={0.6}
+						{...CARD_SIZES.tapestry}>
+						<TapestryCard data={tapestryCardData(eraCard)} />
+					</ScaledCard>
 				</div>
 			{/if}
 			<EraSlots
@@ -508,11 +514,7 @@
 				</p>
 			{/if}
 			{#each player.civs as civ (civ)}
-				<div
-					class="rg-player-tabs--scale"
-					style:--rg-player-tabs-scale="1"
-					style:--rg-player-tabs-width="425px"
-					style:--rg-player-tabs-height="auto">
+				<div class="rg-player-tabs--civ">
 					<!-- The six civilizations with spots of their own show where their pieces are, and take their choices (#78). -->
 					<CivilizationCard
 						id={civ}
@@ -556,16 +558,11 @@
 									event.originalEvent
 								)}>
 							{#snippet card(/** @type {string} */ id)}
-								<div
-									class="rg-player-tabs--scale"
-									style:--rg-player-tabs-scale="0.42"
-									style:--rg-player-tabs-width="425px"
-									style:--rg-player-tabs-height="298px">
-									<div class="rg-player-tabs--scaled">
-										<TechnologyCard
-											data={techCardData(id)} />
-									</div>
-								</div>
+								<ScaledCard
+									scale={0.42}
+									{...CARD_SIZES.tech}>
+									<TechnologyCard data={techCardData(id)} />
+								</ScaledCard>
 							{/snippet}
 						</CardFan>
 					{:else}
@@ -592,15 +589,11 @@
 							event.originalEvent
 						)}>
 					{#snippet card(/** @type {string} */ id)}
-						<div
-							class="rg-player-tabs--scale"
-							style:--rg-player-tabs-scale="0.42"
-							style:--rg-player-tabs-width="425px"
-							style:--rg-player-tabs-height="298px">
-							<div class="rg-player-tabs--scaled">
-								<TechnologyCard data={techCardData(id)} />
-							</div>
-						</div>
+						<ScaledCard
+							scale={0.42}
+							{...CARD_SIZES.tech}>
+							<TechnologyCard data={techCardData(id)} />
+						</ScaledCard>
 					{/snippet}
 				</CardFan>
 			</section>
@@ -693,20 +686,11 @@
 		margin-top: var(--space-6);
 	}
 
-	.rg-player-tabs--scale {
+	/* A civilization card at full size, unscaled: its box is as wide as the card and positioned, as before #92. */
+	.rg-player-tabs--civ {
 		position: relative;
 		flex: none;
-		width: calc(var(--rg-player-tabs-width) * var(--rg-player-tabs-scale));
-		height: calc(
-			var(--rg-player-tabs-height) * var(--rg-player-tabs-scale)
-		);
-	}
-
-	.rg-player-tabs--scaled {
-		position: absolute;
-		inset: 0 auto auto 0;
-		transform: scale(var(--rg-player-tabs-scale));
-		transform-origin: top left;
+		width: fit-content;
 	}
 
 	.rg-player-tabs--era-card {

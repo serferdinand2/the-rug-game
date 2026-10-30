@@ -22,6 +22,8 @@
 	import Button from '../lib/components/ui/Button.svelte';
 	import StandingRow from '../lib/components/results/StandingRow.svelte';
 	import TieSteps from '../lib/components/results/TieSteps.svelte';
+	import PlayLayout from '../lib/components/ui/PlayLayout.svelte';
+	import TurnBar from '../lib/components/prompts/TurnBar.svelte';
 	import PageHeader from './PageHeader.svelte';
 	import { isHost } from '../lib/lobby.js';
 	import { playerColor } from '../lib/ui.js';
@@ -83,24 +85,27 @@
 	};
 </script>
 
-<div
+<PlayLayout
 	{...attr}
-	class="rg-results {attr.class ? attr.class : ''}">
-	<PageHeader
-		{store}
-		menu="results"
-		onPageHeaderMenu={menuHandler}>
-		{#snippet center()}
-			<strong class="rg-results--state">Game complete</strong>
-		{/snippet}
-		{#snippet before()}
-			<span class="rg-results--table"
-				>Table {room.code} · {rows.length} players</span>
-		{/snippet}
-	</PageHeader>
+	class="rg-results {attr.class ? attr.class : ''}"
+	playerLabel="Result details">
+	{#snippet header()}
+		<PageHeader
+			{store}
+			menu="results"
+			onPageHeaderMenu={menuHandler}>
+			{#snippet center()}
+				<strong class="rg-results--state">Game complete</strong>
+			{/snippet}
+			{#snippet before()}
+				<span class="rg-results--table"
+					>Table {room.code} · {rows.length} players</span>
+			{/snippet}
+		</PageHeader>
+	{/snippet}
 
-	<div class="rg-results--middle">
-		<main class="rg-results--standings">
+	{#snippet shared()}
+		<div class="rg-results--standings">
 			<div class="rg-results--head">
 				<h1>Final standings</h1>
 				<p>
@@ -128,11 +133,11 @@
 				{/each}
 			</div>
 			<p class="rg-results--note">{ruleNote(game)}</p>
-		</main>
+		</div>
+	{/snippet}
 
-		<aside
-			class="rg-results--details"
-			aria-label="Result details">
+	{#snippet player()}
+		<div class="rg-results--details">
 			<section
 				class="rg-results--yours"
 				style:--rg-results-color={resultColor}>
@@ -180,36 +185,35 @@
 					</dd>
 				</dl>
 			</section>
-		</aside>
-	</div>
-
-	<footer class="rg-results--footer">
-		<span class="rg-results--state">Game complete</span>
-		<div class="rg-results--actions">
-			<Button onButtonClick={reviewHandler}>Review game board</Button>
-			<Button
-				mode={hosting ? 'secondary' : 'gold'}
-				onButtonClick={() => store.leaveTable()}
-				>Return to tables</Button>
-			{#if hosting}
-				<Button
-					mode="gold"
-					title="A new game at this table, with the players here"
-					onButtonClick={() => store.startGame()}>Deal again</Button>
-			{/if}
 		</div>
-	</footer>
-</div>
+	{/snippet}
+
+	{#snippet footer()}
+		<!-- The board review's footer says the same in the same tone (turn.js footerView), so the two read as one (owner, 2026-10-30). -->
+		<TurnBar
+			tone="complete"
+			label="Game complete"
+			heading="The game is complete."
+			detail="The final standings, and where each player's VP came from.">
+			{#snippet actions()}
+				<Button onButtonClick={reviewHandler}>Review game board</Button>
+				<Button
+					mode={hosting ? 'secondary' : 'gold'}
+					onButtonClick={() => store.leaveTable()}
+					>Return to tables</Button>
+				{#if hosting}
+					<Button
+						mode="gold"
+						title="A new game at this table, with the players here"
+						onButtonClick={() => store.startGame()}
+						>Deal again</Button>
+				{/if}
+			{/snippet}
+		</TurnBar>
+	{/snippet}
+</PlayLayout>
 
 <style>
-	.rg-results {
-		display: grid;
-		grid-template-rows: var(--bar-height) minmax(0, 1fr) var(--bar-height);
-		height: 100vh;
-		min-height: 0;
-		overflow: hidden;
-	}
-
 	.rg-results--state {
 		color: var(--gold);
 		font: var(--weight-title) var(--font-size-xl) / var(--leading-none)
@@ -223,20 +227,12 @@
 		white-space: nowrap;
 	}
 
-	.rg-results--middle {
-		display: grid;
-		grid-template-columns: var(--play-columns);
-		gap: var(--play-gap);
-		min-height: 0;
-		background: var(--ink);
-	}
-
+	/* The frame and its areas are PlayLayout's (issue 105); these two fill the areas and scroll inside them. */
 	.rg-results--standings,
 	.rg-results--details {
 		min-width: 0;
 		min-height: 0;
 		overflow-y: auto;
-		background: var(--texture) var(--surface);
 	}
 
 	.rg-results--standings {
@@ -362,20 +358,5 @@
 		flex-wrap: wrap;
 		justify-content: flex-end;
 		gap: var(--space-3);
-	}
-
-	.rg-results--footer {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 20px;
-		padding: 0 24px;
-		border-top: var(--border) solid var(--line);
-		background: var(--chrome);
-	}
-
-	.rg-results--actions {
-		display: flex;
-		gap: 9px;
 	}
 </style>

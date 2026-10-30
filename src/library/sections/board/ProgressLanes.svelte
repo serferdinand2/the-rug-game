@@ -5,7 +5,7 @@
 	import Section from '../../Section.svelte';
 	import { BOARD_TRACKS } from './TrackBoard.svelte';
 
-	// Exploration in the mockup: You 4, Ana 2, Marko 5, Vera 1.
+	// Exploration in the board's review game (#131): You 4, Ana 2, Marko 5, Vera 1.
 	const players = BOARD_TRACKS[0].players;
 
 	/** @type {{ seat: import('../../../lib/ui.js').Seat, name: string, position: number }[]} */

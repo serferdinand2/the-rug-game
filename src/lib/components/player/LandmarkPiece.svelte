@@ -1,6 +1,6 @@
-<!-- A landmark drawn in its footprint's shape: in the To be placed tray with its name, placed on the capital with its controls, or locked. -->
+<!-- A landmark drawn in its footprint's shape: in the To be placed tray with its name, placed on the capital with its controls, or locked; it drags, focuses and answers its keys itself (#111). -->
 <script module>
-	/** @typedef {'tray' | 'placed' | 'locked'} LandmarkPieceState */
+	/** @typedef {import('../../landmark-keys.js').LandmarkPieceState} LandmarkPieceState */
 
 	/** The size of one plot in the To be placed tray, in pixels; on the capital the piece fills the plots it covers. */
 	export const TRAY_PLOT_SIZE = 29;
@@ -15,13 +15,15 @@
 	 * @property {LandmarkPieceState} [state='tray'] - tray: a box beside its name; placed: fills its plots, with rotate, confirm and return controls; locked: no controls
 	 * @property {boolean} [selected=false] - Chosen for placing: a gold outline
 	 * @property {boolean} [fresh=false] - Just locked: a green glow until the parent clears it
-	 * @property {boolean} [dragging=false] - Being dragged: a green outline and a floating shadow
+	 * @property {boolean} [dragging=false] - Being dragged: a green outline and a floating shadow; the parent sets it from the drag callbacks
 	 * @property {string} [color='var(--gold)'] - The outline colour on the capital, as a token reference; the Lighthouse uses 'var(--exploration)'
 	 * @property {Function} [onLandmarkPieceSelect] - Callback fired with { id } when the piece is pressed, or Space (or Enter in the tray) is pressed on it
 	 * @property {Function} [onLandmarkPieceMove] - Callback fired with { id, row, col } when an arrow key is pressed on it; row and col are -1, 0 or 1
 	 * @property {Function} [onLandmarkPieceRotate] - Callback fired with { id } by the rotate control or the . and , keys (#83: R is the Eras tab)
 	 * @property {Function} [onLandmarkPieceConfirm] - Callback fired with { id } by the confirm control or the Enter key
 	 * @property {Function} [onLandmarkPieceReturn] - Callback fired with { id } by the return control or the Backspace and Delete keys
+	 * @property {Function} [onLandmarkPieceDragStart] - Callback fired with { id, grab } when a piece that is not locked starts being dragged; grab is where it was held, in plots from its top-left corner, also in the drag data (readGrab in placement.js)
+	 * @property {Function} [onLandmarkPieceDragEnd] - Callback fired with { id, grab } when that drag ends, wherever it ends
 	 */
 
 	/**
@@ -38,6 +40,7 @@
 	 *   onLandmarkPieceRotate={(event) => rotate(event.value.id)}
 	 *   onLandmarkPieceConfirm={(event) => confirm(event.value.id)}
 	 *   onLandmarkPieceReturn={(event) => putBack(event.value.id)}
+	 *   onLandmarkPieceDragStart={(event) => (dragging = event.value.id)}
 	 * />
 	 */
 </script>
@@ -45,7 +48,18 @@
 <script>
 	import { ComponentEvent } from '../../component-event.js';
 	import { rotateFootprint } from '../../capital.js';
-	import { controlsAnchor, fillPath, outlinePath } from '../../placement.js';
+	import {
+		LANDMARK_TITLES,
+		landmarkKeyAction,
+		landmarkLabel,
+	} from '../../landmark-keys.js';
+	import {
+		controlsAnchor,
+		fillPath,
+		grabAt,
+		outlinePath,
+		writeGrab,
+	} from '../../placement.js';
 	import { artUrl } from '../../ui.js';
 
 	/** @type {LandmarkPieceProps} */
@@ -54,7 +68,7 @@
 		name,
 		footprint,
 		rotation = 0,
-		state = 'tray',
+		state: pieceState = 'tray',
 		selected = false,
 		fresh = false,
 		dragging = false,
@@ -64,18 +78,20 @@
 		onLandmarkPieceRotate,
 		onLandmarkPieceConfirm,
 		onLandmarkPieceReturn,
+		onLandmarkPieceDragStart,
+		onLandmarkPieceDragEnd,
 		...attr
 	} = $props();
 
+	/** Where the piece was held when its drag started, in plots. */
+	let grab = { x: 0, y: 0 };
+
 	const uid = $props.id();
 
-	/** Arrow keys as row and column steps. @type {Record<string, [number, number]>} */
-	const ARROWS = {
-		ArrowUp: [-1, 0],
-		ArrowDown: [1, 0],
-		ArrowLeft: [0, -1],
-		ArrowRight: [0, 1],
-	};
+	/** The pressable body, which focus() focuses. @type {HTMLDivElement | undefined} */
+	let body = $state();
+	/** The picture, which is dragged. @type {SVGSVGElement | undefined} */
+	let picture = $state();
 
 	let turns = $derived(((rotation % 4) + 4) % 4);
 	let shape = $derived(rotateFootprint(footprint, turns));
@@ -87,16 +103,15 @@
 	let controlsRight = $derived(
 		`calc(${((cols - 1 - anchor.col) / cols) * 100}% + var(--space-1))`
 	);
-	let picture = $derived(
+	let pictureTransform = $derived(
 		`translate(${cols / 2} ${rows / 2}) rotate(${turns * 90}) translate(${-footprint[0].length / 2} ${-footprint.length / 2})`
 	);
-	let label = $derived(
-		state === 'tray'
-			? `${name}, ${plots} plots, to be placed`
-			: state === 'placed'
-				? `${name}, ${plots} plots, not confirmed. Arrow keys move it, full stop or comma rotates it, Enter confirms it, Delete returns it`
-				: `${name}, locked in place`
-	);
+	let label = $derived(landmarkLabel(name, plots, pieceState));
+
+	/** Focuses the piece, as a parent does when the piece has just arrived (#111). */
+	export function focus() {
+		body?.focus();
+	}
 
 	/**
 	 * @param {MouseEvent} event
@@ -112,59 +127,77 @@
 	 * @param {KeyboardEvent} event
 	 */
 	const bodyKeydownHandler = (event) => {
-		if (event.altKey || event.ctrlKey || event.metaKey) {
+		const action = landmarkKeyAction(event.key, pieceState, event);
+		if (!action) {
 			return;
 		}
-		const arrow = ARROWS[event.key];
+		event.preventDefault();
 		const target = /** @type {HTMLElement} */ (event.currentTarget);
-		if (arrow) {
-			event.preventDefault();
+		if (action.type === 'move') {
 			if (typeof onLandmarkPieceMove === 'function') {
 				onLandmarkPieceMove(
 					new ComponentEvent(
-						{ id, row: arrow[0], col: arrow[1] },
+						{ id, row: action.row, col: action.col },
 						target,
 						event
 					)
 				);
 			}
-		} else if (
-			event.key === ' ' ||
-			(event.key === 'Enter' && state === 'tray')
-		) {
+			return;
+		}
+		const callback = {
+			select: onLandmarkPieceSelect,
+			rotate: onLandmarkPieceRotate,
+			confirm: onLandmarkPieceConfirm,
+			return: onLandmarkPieceReturn,
+		}[action.type];
+		if (typeof callback === 'function') {
+			callback(new ComponentEvent({ id }, target, event));
+		}
+	};
+
+	/**
+	 * @param {DragEvent} event
+	 */
+	const dragstartHandler = (event) => {
+		if (pieceState === 'locked' || !event.dataTransfer) {
 			event.preventDefault();
-			if (typeof onLandmarkPieceSelect === 'function') {
-				onLandmarkPieceSelect(
-					new ComponentEvent({ id }, target, event)
-				);
-			}
-		} else if (state === 'placed' && event.key === 'Enter') {
-			event.preventDefault();
-			if (typeof onLandmarkPieceConfirm === 'function') {
-				onLandmarkPieceConfirm(
-					new ComponentEvent({ id }, target, event)
-				);
-			}
-		} else if (
-			state === 'placed' &&
-			(event.key === '.' || event.key === ',')
-		) {
-			event.preventDefault();
-			if (typeof onLandmarkPieceRotate === 'function') {
-				onLandmarkPieceRotate(
-					new ComponentEvent({ id }, target, event)
-				);
-			}
-		} else if (
-			state === 'placed' &&
-			(event.key === 'Backspace' || event.key === 'Delete')
-		) {
-			event.preventDefault();
-			if (typeof onLandmarkPieceReturn === 'function') {
-				onLandmarkPieceReturn(
-					new ComponentEvent({ id }, target, event)
-				);
-			}
+			return;
+		}
+		const target = /** @type {HTMLElement} */ (event.currentTarget);
+		const held = grabAt(
+			(picture ?? target).getBoundingClientRect(),
+			event.clientX,
+			event.clientY,
+			shape
+		);
+		grab = held.grab;
+		event.dataTransfer.setData('text/plain', id);
+		writeGrab(event.dataTransfer, grab);
+		event.dataTransfer.effectAllowed = 'move';
+		if (picture) {
+			event.dataTransfer.setDragImage(
+				picture,
+				held.offset.x,
+				held.offset.y
+			);
+		}
+		if (typeof onLandmarkPieceDragStart === 'function') {
+			onLandmarkPieceDragStart(
+				new ComponentEvent({ id, grab }, target, event)
+			);
+		}
+	};
+
+	/**
+	 * @param {DragEvent} event
+	 */
+	const dragendHandler = (event) => {
+		if (typeof onLandmarkPieceDragEnd === 'function') {
+			const target = /** @type {HTMLElement} */ (event.currentTarget);
+			onLandmarkPieceDragEnd(
+				new ComponentEvent({ id, grab }, target, event)
+			);
 		}
 	};
 
@@ -207,23 +240,27 @@
 
 <div
 	{...attr}
-	class="rg-landmark-piece rg-landmark-piece--{state} {attr.class
+	class="rg-landmark-piece rg-landmark-piece--{pieceState} {attr.class
 		? attr.class
 		: ''}"
 	class:rg-landmark-piece--selected={selected}
-	class:rg-landmark-piece--fresh={fresh && state === 'locked'}
+	class:rg-landmark-piece--fresh={fresh && pieceState === 'locked'}
 	class:rg-landmark-piece--dragging={dragging}
-	style:--rg-landmark-piece-color={color}>
+	style:--rg-landmark-piece-color={color}
+	draggable={pieceState !== 'locked'}
+	ondragstart={dragstartHandler}
+	ondragend={dragendHandler}>
 	{#snippet content()}
 		<svg
+			bind:this={picture}
 			class="rg-landmark-piece--shape"
 			viewBox="0 0 {cols} {rows}"
 			preserveAspectRatio="none"
 			aria-hidden="true"
-			style:width={state === 'tray'
+			style:width={pieceState === 'tray'
 				? `${cols * TRAY_PLOT_SIZE}px`
 				: undefined}
-			style:height={state === 'tray'
+			style:height={pieceState === 'tray'
 				? `${rows * TRAY_PLOT_SIZE}px`
 				: undefined}>
 			<defs>
@@ -240,18 +277,18 @@
 				width={footprint[0].length}
 				height={footprint.length}
 				preserveAspectRatio="none"
-				transform={picture} />
+				transform={pictureTransform} />
 			<path
 				class="rg-landmark-piece--outline"
 				d={outlinePath(shape)}
 				clip-path="url(#{uid}-clip)"
 				vector-effect="non-scaling-stroke" />
 		</svg>
-		{#if state === 'tray'}
+		{#if pieceState === 'tray'}
 			<span class="rg-landmark-piece--name">{name}</span>
 		{/if}
 	{/snippet}
-	{#if state === 'locked'}
+	{#if pieceState === 'locked'}
 		<div
 			class="rg-landmark-piece--body"
 			role="img"
@@ -260,17 +297,18 @@
 		</div>
 	{:else}
 		<div
+			bind:this={body}
 			class="rg-landmark-piece--body"
 			role="button"
 			tabindex="0"
 			aria-label={label}
-			aria-pressed={state === 'tray' ? selected : undefined}
+			aria-pressed={pieceState === 'tray' ? selected : undefined}
 			onclick={bodyClickHandler}
 			onkeydown={bodyKeydownHandler}>
 			{@render content()}
 		</div>
 	{/if}
-	{#if state === 'placed'}
+	{#if pieceState === 'placed'}
 		<div
 			class="rg-landmark-piece--controls"
 			style:right={controlsRight}>
@@ -278,19 +316,19 @@
 				type="button"
 				class="rg-landmark-piece--control"
 				aria-label="Rotate {name}"
-				title="Rotate (. or ,)"
+				title={LANDMARK_TITLES.rotate}
 				onclick={rotateClickHandler}>↻</button>
 			<button
 				type="button"
 				class="rg-landmark-piece--control"
 				aria-label="Lock {name} in place"
-				title="Confirm (Enter)"
+				title={LANDMARK_TITLES.confirm}
 				onclick={confirmClickHandler}>✓</button>
 			<button
 				type="button"
 				class="rg-landmark-piece--control rg-landmark-piece--return"
 				aria-label="Return {name} to be placed"
-				title="Return (Delete)"
+				title={LANDMARK_TITLES.return}
 				onclick={returnClickHandler}>↓</button>
 		</div>
 	{/if}

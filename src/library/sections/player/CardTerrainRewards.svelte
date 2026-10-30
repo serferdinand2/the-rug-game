@@ -1,25 +1,44 @@
-<!-- Library section: CardTerrainRewards, extracted from the reviewed cards. -->
+<!-- Library section: CardTerrainRewards, a card's terrain reward rows (#106). -->
 <script>
 	import CardTerrainRewards from '../../../lib/components/player/CardTerrainRewards.svelte';
+	import CardFrame from '../../../lib/components/player/CardFrame.svelte';
 	import Section from '../../Section.svelte';
 	import Example from '../../Example.svelte';
-	import '../../../styles/card-patterns.css';
+
+	const ROWS = /** @type {const} */ ([
+		{
+			terrain: 'desert',
+			name: 'Desert',
+			gain: 'coin',
+			effect: 'roll the black conquer die twice and take one result.',
+		},
+		{
+			terrain: 'mountain',
+			name: 'Mountain',
+			gain: 'worker',
+			effect: 'roll both conquer dice and gain both results.',
+		},
+	]);
 </script>
 
 <Section
 	name="CardTerrainRewards"
 	area="player"
-	description="Owner-reviewed card pattern; see docs/ui/card-design-rules.md for the composition rules."
-	><Example label="Reviewed card pattern"
-		><div
-			class="rg-card-frame"
-			data-state="play">
+	description="Rows of a terrain hex marker, the terrain's name and its reward, the resource kept with its +; a used terrain fades and its name is struck through. See docs/ui/card-design-rules.md."
+	><Example
+		label="rows"
+		width={425}
+		><CardFrame plain>
+			<CardTerrainRewards rows={ROWS} />
+		</CardFrame></Example
+	><Example
+		label="rows, the first used"
+		width={425}
+		><CardFrame plain>
 			<CardTerrainRewards
-				><li class="rg-card-treasure-row">
-					<img
-						src="/art/terrain/forest.svg"
-						alt="" /><span>Forest</span><span
-						>A terrain-specific reward.</span>
-				</li></CardTerrainRewards>
-		</div></Example
+				rows={ROWS.map((row, index) => ({
+					...row,
+					used: index === 0,
+				}))} />
+		</CardFrame></Example
 	></Section>

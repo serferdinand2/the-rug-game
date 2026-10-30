@@ -185,7 +185,7 @@
 	.rg-resource-rows--choice[aria-pressed='true'],
 	.rg-resource-rows--fixed {
 		border-color: var(--gold);
-		background: color-mix(in srgb, var(--gold) 17%, var(--surface));
+		background: var(--picked-fill);
 		outline: var(--border-thick) solid var(--gold);
 	}
 
@@ -197,7 +197,7 @@
 
 	.rg-resource-rows--done .rg-resource-rows--choice[aria-pressed='false'],
 	.rg-resource-rows--choice:disabled {
-		opacity: 0.3;
+		opacity: var(--opacity-unpickable);
 	}
 
 	.rg-resource-rows--choice:disabled {

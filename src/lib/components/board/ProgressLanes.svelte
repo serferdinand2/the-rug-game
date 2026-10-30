@@ -33,7 +33,8 @@
 
 <script>
 	import { SPACE_COUNT, progressSpan } from '../../track-shape.js';
-	import { playerColor, playerPieceUrl } from '../../ui.js';
+	import { playerColor } from '../../ui.js';
+	import PlayerToken from '../player/PlayerToken.svelte';
 
 	/** @type {ProgressLanesProps} */
 	let { players, preview = null, spaces = SPACE_COUNT, ...attr } = $props();
@@ -75,11 +76,10 @@
 			class="rg-progress-lanes--marker"
 			style:--rg-progress-lanes-lane={lane.lane}
 			style:--rg-progress-lanes-end={lane.span.end}
-			><img
+			><PlayerToken
 				class="rg-progress-lanes--token"
-				src={playerPieceUrl('token', lane.seat)}
-				alt=""
-				draggable="false" /></i>
+				seat={lane.seat}
+				decorative /></i>
 		{#if lane.span.next}
 			<i
 				class="rg-progress-lanes--dash"
@@ -144,16 +144,14 @@
 		transition: transform var(--duration-slow) var(--ease-out);
 	}
 
-	/* The approved player token stays centred at the same progress position. */
-	.rg-progress-lanes--token {
+	/* The approved player token stays centred at the same progress position; PlayerToken draws it pixelated. */
+	.rg-progress-lanes--marker :global(.rg-progress-lanes--token) {
 		position: absolute;
 		top: calc(-1 * var(--progress-line));
 		left: calc(-1.5 * var(--progress-line));
 		width: calc(3 * var(--progress-line));
 		height: calc(3 * var(--progress-line));
 		border-radius: var(--radius);
-		object-fit: contain;
-		image-rendering: pixelated;
 	}
 
 	.rg-progress-lanes--dash {

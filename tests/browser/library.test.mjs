@@ -184,18 +184,23 @@ test('a hot-seat seat to name draws one gold frame, not one inside another', asy
 		.getByRole('group', { name: 'Seat 3: add a player' })
 		.first();
 	await expect(seat).toBeVisible();
-	// The frame is a border with the gold glow around it; the name field and Add have borders but no glow.
+	// The frame is a border with the gold glow around it: a shadow that blurs. The name field and Add have borders but no glow; the focused field's 1px gold ring does not blur (owner, 2026-10-30).
 	const frames = await seat.evaluate(
 		(root) =>
 			[root, ...root.querySelectorAll('*')].filter((el) => {
 				const style = getComputedStyle(el);
 				return (
-					style.boxShadow !== 'none' &&
+					/\) -?[\d.]+px -?[\d.]+px [1-9]/.test(style.boxShadow) &&
 					parseFloat(style.borderTopWidth) > 0
 				);
 			}).length
 	);
 	expect(frames).toBe(1);
+	// The name field and Add are the shared TextInput and gold Button.
+	await expect(seat.locator('.rg-text-input--field')).toHaveCount(1);
+	await expect(
+		seat.getByRole('button', { name: 'Add', exact: true })
+	).toHaveClass(/rg-button--gold/);
 });
 
 test('two chosen resources are gained, and a resource can be picked with the keyboard (#75)', async ({
@@ -306,7 +311,7 @@ test('the library shows the first-income notice and the forced-income footer (#7
 			.locator('.rg-turn-bar--actions')
 			.getByRole('button', { name: 'Take income' })
 	).toBeVisible();
-	await expect(forced.locator('.rg-turn-bar--income-reveal')).toHaveCount(0);
+	await expect(forced.locator('.rg-income-reveal')).toHaveCount(0);
 });
 
 /**
@@ -519,4 +524,70 @@ test('a hovered target stays over the relief (#82)', async ({ page }) => {
 		'filter',
 		'brightness(1.15)'
 	);
+});
+
+test('a landmark moves onto the capital by keyboard, turns, locks, and starts again (#111)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const example = capitalExample(page, 'Interactive: PlacementTray');
+	const caption = example.locator('figcaption');
+	await expect(caption).toContainText('pieces=[]');
+
+	// An arrow key on the tray's piece puts it on the grid, and the grid's piece takes the focus.
+	await example
+		.getByRole('button', { name: /^Lighthouse, \d+ plots, to be placed$/ })
+		.press('ArrowRight');
+	await expect(caption).toContainText(
+		/Lighthouse at row \d, col \d, rotation 0\]/
+	);
+	const placed = example.getByRole('button', {
+		name: /^Lighthouse, \d+ plots, not confirmed/,
+	});
+	await expect(placed).toBeFocused();
+	const [, row, col] = /row (\d), col (\d)/.exec(
+		(await caption.textContent()) ?? ''
+	) ?? ['', '0', '0'];
+
+	await page.keyboard.press('ArrowDown');
+	await expect(caption).toContainText(
+		`Lighthouse at row ${Number(row) + 1}, col ${col}, rotation 0]`
+	);
+	await page.keyboard.press('.');
+	await expect(caption).toContainText('rotation 1]');
+	await page.keyboard.press('Enter');
+	await expect(caption).toContainText('rotation 1, locked]');
+
+	await example.getByRole('button', { name: 'Start again' }).click();
+	await expect(caption).toContainText('pieces=[]');
+});
+
+test('a landmark drags from the tray onto the capital and back (#111)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const example = capitalExample(page, 'Interactive: PlacementTray');
+	const caption = example.locator('figcaption');
+	await expect(caption).toContainText('pieces=[]');
+
+	await example
+		.getByRole('button', { name: /^Lighthouse, \d+ plots, to be placed$/ })
+		.dragTo(example.locator('[data-plot="40"]'));
+	await expect(caption).toContainText(
+		/Lighthouse at row \d, col \d, rotation 0\]/
+	);
+
+	// The tray only shows itself as a drop target once a drag has started, so the drag back is driven by hand.
+	const placed = example.getByRole('button', {
+		name: /^Lighthouse, \d+ plots, not confirmed/,
+	});
+	await placed.hover();
+	await page.mouse.down();
+	const box = await placed.boundingBox();
+	await page.mouse.move((box?.x ?? 0) + 5, (box?.y ?? 0) + 5, { steps: 5 });
+	const tray = example.getByRole('region', { name: 'To be placed' });
+	await expect(tray).toBeVisible();
+	await tray.hover();
+	await page.mouse.up();
+	await expect(caption).toContainText('pieces=[]');
 });

@@ -10,6 +10,8 @@ import {
 	modeChoices,
 	modeLock,
 	rulesChoices,
+	seatBadges,
+	seatLabel,
 	seatSlots,
 	settingsLock,
 	timerChoices,
@@ -277,4 +279,58 @@ test('undo and the variants choose between two coloured answers (#98)', () => {
 		{ value: 'yes', label: 'Yes', color: 'var(--science)' },
 		{ value: 'no', label: 'No', color: 'var(--text)' },
 	]);
+});
+
+test('a seat is named by its number and what it holds (#102)', () => {
+	assert.equal(
+		seatLabel({ seat: 1, state: 'player', name: 'Ana' }),
+		'Seat 1: Ana'
+	);
+	assert.equal(
+		seatLabel({ seat: 3, state: 'add', name: '' }),
+		'Seat 3: add a player'
+	);
+	assert.equal(
+		seatLabel({ seat: 3, state: 'empty', name: '' }),
+		'Seat 3: empty'
+	);
+	assert.equal(
+		seatLabel({ seat: 4, state: 'closed', name: '' }),
+		'Seat 4: empty'
+	);
+});
+
+test("a seat's badges are YOU and HOST in gold, then its readiness (#102)", () => {
+	const gold = 'var(--gold)';
+	assert.deepEqual(seatBadges({ you: true, host: true, ready: true }), [
+		{ label: 'You', color: gold },
+		{ label: 'Host', color: gold },
+		{ label: 'Ready', color: 'var(--ok)' },
+	]);
+	assert.deepEqual(seatBadges({ you: false, host: true, ready: false }), [
+		{ label: 'Host', color: gold },
+		{ label: 'Not ready', color: 'var(--muted)' },
+	]);
+	assert.deepEqual(seatBadges({ you: true, host: false, ready: undefined }), [
+		{ label: 'You', color: gold },
+	]);
+	assert.deepEqual(
+		seatBadges({ you: false, host: false, ready: undefined }),
+		[]
+	);
+});
+
+test("every lobby slot gives a seat's label and badges (#102)", () => {
+	const slots = seatSlots(view(), 5);
+	assert.deepEqual(slots.map(seatLabel), [
+		'Seat 1: Ana',
+		'Seat 2: Bo',
+		'Seat 3: empty',
+		'Seat 4: empty',
+		'Seat 5: empty',
+	]);
+	assert.deepEqual(
+		slots.map((slot) => seatBadges(slot).map((badge) => badge.label)),
+		[['You', 'Host', 'Ready'], ['Not ready'], [], [], []]
+	);
 });

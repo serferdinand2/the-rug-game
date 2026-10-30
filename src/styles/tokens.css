@@ -85,6 +85,7 @@
 	--font-size-4xl: 25px; /* a player's score in the final standings */
 	--font-size-5xl: 28px; /* a player's place in the final standings, a civilization card's title */
 	--font-size-card-title-sm: 21px; /* the tapestry and landmark cards' titles (#109) */
+	--font-size-card-die: 23px; /* the × on the Alchemists' die faces (#106) */
 	--font-size-6xl: 42px; /* a hero name: the pass screen's player, your place on the results */
 	--font-size-display-sm: clamp(20px, 2vw, 26px); /* the lobby invitation */
 	--font-size-display: clamp(24px, 3vw, 38px); /* the launch headline */
@@ -132,6 +133,8 @@
 	--track-tip: 16px; /* the arrow tip of a track space and the inlet of the next one */
 	--progress-line: 3px; /* player progress lines and tier price lines */
 	--progress-lane: 8px; /* distance between two progress lines */
+	--track-heading: 18px; /* a track's row with its symbol, which TrackBoard adds up as chrome */
+	--track-prices: 18px; /* a track's row of tier prices */
 	--docked-panel-width: 340px; /* a decision panel docked beside the World Map (#74) */
 	--narrow-panel-width: 440px; /* a narrow decision panel: a pick of several things (#75), the first-income notice (#77) */
 	/* A docked panel's distance from the shared area's right edge: the area's right padding, so the panel ends where the map would. */
@@ -154,6 +157,14 @@
 		),
 		var(--texture) var(--chrome);
 	--opacity-disabled: 0.5;
+
+	/* ---------- A prompt's choices: at rest, chosen, unpickable, and the "+N VP" tag (#116) ---------- */
+	--choice-fill: color-mix(in srgb, var(--raised) 70%, transparent);
+	--picked-fill: color-mix(in srgb, var(--gold) 17%, var(--surface));
+	/* A choice that can't be picked now: dimmer than a disabled control. */
+	--opacity-unpickable: 0.35;
+	--vp-tag: var(--gold);
+	--vp-tag-text: var(--ink);
 
 	/* ---------- Shadows and glows (ordinary panels have none) ---------- */
 	--shadow-float: 0 8px 24px rgb(0 0 0 / 53%); /* menus and dragged pieces */

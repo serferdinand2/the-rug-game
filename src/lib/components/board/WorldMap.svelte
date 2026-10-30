@@ -7,7 +7,7 @@
 	 * @property {string[]} [targets=[]] - Hex keys a decision can choose; each becomes a button and the other hexes dim
 	 * @property {Record<string, number>} [scores={}] - The VP a picked tile scores on each target hex (hex key to VP): a "+N VP" tag sits near the top of that hex, and its label ends "Up to N VP.", the best of its turns there, or "N VP." on the selected hex, where the tile lies in the turn chosen
 	 * @property {string | null} [selected=null] - The chosen hex, outlined in gold
-	 * @property {{ hex: string, corners: import('../../ui.js').Terrain[], island: import('../../ui.js').Terrain[], clouds?: boolean, volcano?: boolean } | null} [preview=null] - A tile to show on a hex before it is explored: drawn like an explored hex, with its clouds or volcano, at 85% opacity with a gold outline
+	 * @property {import('../../hexmap.js').MapPreview | null} [preview=null] - A tile to show on a hex before it is explored: drawn like an explored hex, with its clouds or volcano, at 85% opacity with a gold outline
 	 * @property {string[]} [fresh=[]] - Hexes that just changed (#29): a gold outline pulses on each twice, unless the system asks for reduced motion
 	 * @property {string} [label='World map'] - Names the map for assistive technology
 	 * @property {Function} [onWorldMapSelect] - Callback fired with { hex } when the player chooses a target hex
@@ -29,14 +29,7 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
-	import {
-		HEX_SIZE,
-		fitBox,
-		hexCorner,
-		hexPicture,
-		pieceSpots,
-		svgPoints,
-	} from '../../hexmap.js';
+	import { HEX_SIZE, fitBox, mapView } from '../../hexmap.js';
 	import {
 		mapArt,
 		mapPictureBox,
@@ -58,16 +51,6 @@
 		onWorldMapSelect,
 		...attr
 	} = $props();
-
-	const CORNERS = [0, 1, 2, 3, 4, 5];
-	// A VP tag near a hex's top, in map units: the text is 11, so it stays 10px or more down to 1366×768 on the
-	// 61-hex map, and the box keeps clear of the outline along the top edge (y = -34.6 for HEX_SIZE 40).
-	const TAG = { width: 36, height: 14, top: -32, font: 11 };
-	// A Nomads piece's mark, for a piece of side 1: a house for a building, a narrow tower for a landmark.
-	const MARKS = {
-		building: '-0.26,0.26 -0.26,-0.04 0,-0.28 0.26,-0.04 0.26,0.26',
-		landmark: '-0.12,0.3 -0.12,-0.1 0,-0.32 0.12,-0.1 0.12,0.3',
-	};
 
 	// The hex keyboard focus is on, outlined above its neighbours.
 	/** @type {string | null} */
@@ -103,52 +86,12 @@
 	let previewCanvas = $derived(
 		previewTerrain ? paintTerritory(JSON.parse(previewTerrain)) : null
 	);
-	let targetSet = $derived(new Set(targets));
-	let targeting = $derived(targetSet.size > 0);
 	let drawn = $derived(
-		hexes.map((raw) => {
-			const previewed = preview !== null && preview.hex === raw.key;
-			const hex = previewed
-				? {
-						...raw,
-						corners: preview.corners,
-						island: preview.island,
-						clouds: preview.clouds ?? false,
-						volcano: preview.volcano ?? false,
-						label: addWords(raw.label, 'showing the chosen tile'),
-					}
-				: raw;
-			return {
-				...hex,
-				previewed,
-				target: targetSet.has(hex.key),
-				score:
-					targetSet.has(hex.key) &&
-					typeof scores[hex.key] === 'number'
-						? scores[hex.key]
-						: null,
-				// The painted map shows its terrain: a veil dims it when a decision lights other hexes.
-				veiled:
-					targeting &&
-					raw.corners !== null &&
-					!targetSet.has(hex.key),
-				outline: svgPoints(
-					CORNERS.map((k) => hexCorner(hex.center, k, HEX_SIZE))
-				),
-				picture: hexPicture(hex.center, HEX_SIZE),
-				pieces: pieces(hex),
-			};
-		})
+		mapView(hexes, { targets, scores, selected, preview, fresh })
 	);
+	// The hexes in the outline layer: those mapView outlines, and the one keyboard focus is on.
 	let overlays = $derived(
-		drawn.filter(
-			(hex) =>
-				hex.target ||
-				hex.previewed ||
-				hex.key === selected ||
-				hex.key === focused ||
-				fresh.includes(hex.key)
-		)
+		drawn.filter((hex) => hex.outlined || hex.key === focused)
 	);
 
 	$effect(() => {
@@ -211,54 +154,13 @@
 	 * @param {string} hex
 	 */
 	function choose(event, hex) {
-		if (!targetSet.has(hex) || typeof onWorldMapSelect !== 'function') {
+		if (!targets.includes(hex) || typeof onWorldMapSelect !== 'function') {
 			return;
 		}
 		const target = /** @type {HTMLElement} */ (
 			/** @type {unknown} */ (event.currentTarget)
 		);
 		onWorldMapSelect(new ComponentEvent({ hex }, target, event));
-	}
-
-	/**
-	 * Words added to a hex's label: a sentence of their own after a full stop, otherwise after a comma.
-	 * @param {string} text - The label, such as 'Hex −1,−1: unexplored.'
-	 * @param {string} words - In lower case, such as 'up to 3 VP'
-	 * @returns {string} Such as 'Hex −1,−1: unexplored. Up to 3 VP.'
-	 */
-	function addWords(text, words) {
-		return text.endsWith('.')
-			? `${text} ${words[0].toUpperCase()}${words.slice(1)}.`
-			: `${text}, ${words}`;
-	}
-
-	/**
-	 * The pieces on a hex, outposts first, each in its spot.
-	 * @param {import('../../hexmap.js').MapHex} hex
-	 */
-	function pieces(hex) {
-		const spots = pieceSpots(
-			hex.center,
-			hex.outposts.length + hex.tokens.length,
-			hex.island.length > 0,
-			HEX_SIZE
-		);
-		return [
-			...hex.outposts.map((outpost, i) => ({
-				kind: /** @type {'outpost' | 'token'} */ ('outpost'),
-				seat: outpost.seat,
-				toppled: outpost.toppled,
-				mark: outpost.piece ? MARKS[outpost.piece.kind] : null,
-				...spots[i],
-			})),
-			...hex.tokens.map((token, i) => ({
-				kind: /** @type {'outpost' | 'token'} */ ('token'),
-				seat: token.seat,
-				toppled: false,
-				mark: null,
-				...spots[hex.outposts.length + i],
-			})),
-		];
 	}
 </script>
 
@@ -268,7 +170,7 @@
 	{viewBox}
 	{...attr}
 	class="rg-world-map {attr.class ? attr.class : ''}">
-	{#snippet tile(/** @type {(typeof drawn)[number]} */ hex)}
+	{#snippet tile(/** @type {import('../../hexmap.js').MapViewHex} */ hex)}
 		{#if hex.corners}
 			{#if hex.previewed && previewHref}
 				<image
@@ -363,15 +265,8 @@
 				role="button"
 				tabindex="0"
 				class:rg-world-map--preview={hex.previewed}
-				aria-label={hex.score === null
-					? hex.label
-					: addWords(
-							hex.label,
-							hex.key === selected
-								? `${hex.score} VP`
-								: `up to ${hex.score} VP`
-						)}
-				aria-pressed={selected === hex.key}
+				aria-label={hex.label}
+				aria-pressed={hex.selected}
 				onclick={(event) => hexClickHandler(event, hex.key)}
 				onkeydown={(event) => hexKeydownHandler(event, hex.key)}
 				onfocus={(event) => hexFocusHandler(event, hex.key)}
@@ -381,7 +276,7 @@
 		{:else}
 			<g
 				class="rg-world-map--hex"
-				class:rg-world-map--dim={targeting}
+				class:rg-world-map--dim={hex.dimmed}
 				class:rg-world-map--preview={hex.previewed}
 				role="img"
 				aria-label={hex.label}>
@@ -396,32 +291,30 @@
 			class:rg-world-map--outline-target={hex.target}
 			class:rg-world-map--outline-preview={hex.previewed}
 			class:rg-world-map--outline-focus={hex.key === focused}
-			class:rg-world-map--outline-selected={hex.key === selected}
-			class:rg-world-map--outline-fresh={fresh.includes(hex.key) &&
-				!hex.target &&
-				hex.key !== selected}
+			class:rg-world-map--outline-selected={hex.selected}
+			class:rg-world-map--outline-fresh={hex.pulses}
 			points={hex.outline} />
 	{/each}
 	<!-- The VP the picked tile scores on a lit hex, above the outlines, inside the hex's top edge (y = -34.6). -->
 	{#each drawn as hex (hex.key)}
-		{#if hex.score !== null}
+		{#if hex.tag}
 			<g
 				class="rg-world-map--score"
 				aria-hidden="true">
 				<rect
 					class="rg-world-map--score-box"
-					x={hex.center[0] - TAG.width / 2}
-					y={hex.center[1] + TAG.top}
-					width={TAG.width}
-					height={TAG.height}
+					x={hex.tag.x}
+					y={hex.tag.y}
+					width={hex.tag.width}
+					height={hex.tag.height}
 					rx="2" />
 				<text
 					class="rg-world-map--score-text"
 					x={hex.center[0]}
-					y={hex.center[1] + TAG.top + TAG.height / 2}
+					y={hex.tag.y + hex.tag.height / 2}
 					text-anchor="middle"
 					dominant-baseline="central"
-					font-size={TAG.font}>+{hex.score} VP</text>
+					font-size={hex.tag.font}>{hex.tag.text}</text>
 			</g>
 		{/if}
 	{/each}
@@ -533,13 +426,13 @@
 	}
 
 	.rg-world-map--score-box {
-		fill: var(--gold);
-		stroke: var(--ink);
+		fill: var(--vp-tag);
+		stroke: var(--vp-tag-text);
 		stroke-width: 0.6;
 	}
 
 	.rg-world-map--score-text {
-		fill: var(--ink);
+		fill: var(--vp-tag-text);
 		font-weight: var(--weight-bold);
 	}
 

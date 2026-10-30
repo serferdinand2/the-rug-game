@@ -1,23 +1,22 @@
-<!-- One lobby seat, always the same size: an empty slot to open, a closed one, an open seat to take, a hot-seat player to name, or a joined player. -->
+<!-- One lobby seat, always the same size: an empty slot to open, a closed one, a hot-seat player to name, or a joined player. -->
 <script module>
-	/** @typedef {'empty' | 'closed' | 'open' | 'add' | 'player'} SeatCardState */
+	/** @typedef {'empty' | 'closed' | 'add' | 'player'} SeatCardState */
 
 	/**
 	 * Properties of the SeatCard component itself.
 	 * @typedef {Object} SeatCardOwnProps
-	 * @property {SeatCardState} [state='empty'] - empty: one "Open seat" choice; closed: the same empty slot without the choice, for a viewer who can't open it (#98); open: the gold "Take the seat!" prompt; add: the same gold frame holding a name field and Add, for a hot-seat table; player: a joined player
+	 * @property {SeatCardState} [state='empty'] - empty: one "Open seat" choice; closed: the same empty slot without the choice, for a viewer who can't open it (#98); add: a gold frame holding a small TextInput for the name and a small gold Add Button, for a hot-seat table; player: a joined player
 	 * @property {import('../../ui.js').Seat} seat - The seat number, which sets the player's colour
 	 * @property {string} [name] - The player's name, in the player state; in the add state, the typed name, bindable so a refused name stays
-	 * @property {string | null} [civilization=null] - The chosen civilization, or null before one is chosen
+	 * @property {string | null} [civilization=null] - The chosen civilization, or null before one is chosen; kept for a civilization choice in the lobby (owner, 2026-10-30), which today passes showCivilization={false}
 	 * @property {boolean} [showCivilization=true] - The civilization line under the name; false where civilizations are dealt later, as in the lobby
 	 * @property {boolean} [canChooseCivilization=false] - The civilization is a button that opens the chooser; it reads "Choose civilization" while none is chosen
 	 * @property {boolean} [you=false] - The player is the viewer; shows YOU
 	 * @property {boolean} [host=false] - The player hosts the table; shows HOST
 	 * @property {boolean} [ready] - Readiness, shown after the badges as READY or NOT READY; left out, nothing is shown
-	 * @property {boolean} [removable=false] - The viewer may clear this seat: a × at the top right, shown on hover or focus, removes the player or closes the open seat
+	 * @property {boolean} [removable=false] - The viewer may remove this player: a × at the top right, shown on hover or focus
 	 * @property {Function} [onSeatCardOpen] - Callback fired when an empty seat is opened
-	 * @property {Function} [onSeatCardTake] - Callback fired when the viewer takes an open seat
-	 * @property {Function} [onSeatCardCancel] - Callback fired when an open or add seat goes back to empty
+	 * @property {Function} [onSeatCardCancel] - Callback fired when the × closes an add seat, back to empty
 	 * @property {Function} [onSeatCardAdd] - Callback fired with { seat, name } when Add is pressed or Enter typed in the add state
 	 * @property {Function} [onSeatCardRemove] - Callback fired when the host removes the player
 	 * @property {Function} [onSeatCardChooseCivilization] - Callback fired when the civilization button is pressed
@@ -35,8 +34,7 @@
 	 *   you
 	 *   host
 	 *   ready={false}
-	 *   canChooseCivilization
-	 *   onSeatCardChooseCivilization={(event) => openChooser(event.value.seat)} />
+	 *   showCivilization={false} />
 	 * <SeatCard seat={3} onSeatCardOpen={(event) => openSeat(event.value.seat)} />
 	 * <SeatCard state="add" seat={3} bind:name onSeatCardAdd={(event) => addPlayer(event.value.name)} />
 	 */
@@ -44,7 +42,10 @@
 
 <script>
 	import Badge from '../ui/Badge.svelte';
+	import Button from '../ui/Button.svelte';
+	import TextInput from '../ui/TextInput.svelte';
 	import { ComponentEvent } from '../../component-event.js';
+	import { seatBadges, seatLabel } from '../../lobby.js';
 	import { playerColor } from '../../ui.js';
 
 	/** @type {SeatCardProps} */
@@ -61,7 +62,6 @@
 		ready,
 		removable = false,
 		onSeatCardOpen,
-		onSeatCardTake,
 		onSeatCardCancel,
 		onSeatCardAdd,
 		onSeatCardRemove,
@@ -69,40 +69,16 @@
 		...attr
 	} = $props();
 
-	let badges = $derived.by(() => {
-		/** @type {{ label: string, color: string }[]} */
-		const list = [];
-		if (you) {
-			list.push({ label: 'You', color: 'var(--gold)' });
-		}
-		if (host) {
-			list.push({ label: 'Host', color: 'var(--gold)' });
-		}
-		if (ready === true) {
-			list.push({ label: 'Ready', color: 'var(--ok)' });
-		} else if (ready === false) {
-			list.push({ label: 'Not ready', color: 'var(--muted)' });
-		}
-		return list;
-	});
+	let badges = $derived(seatBadges({ you, host, ready }));
+	let label = $derived(seatLabel({ seat, state: kind, name }));
 
-	let seatLabel = $derived(
-		kind === 'player'
-			? `Seat ${seat}: ${name}`
-			: kind === 'open'
-				? `Seat ${seat}: open`
-				: kind === 'add'
-					? `Seat ${seat}: add a player`
-					: `Seat ${seat}: empty`
-	);
-
-	/** @type {HTMLInputElement | undefined} */
-	let nameInput = $state();
+	/** @type {HTMLFormElement | undefined} */
+	let addForm = $state();
 
 	// The name field takes the focus when the seat opens, so the keyboard can type straight in.
 	$effect(() => {
-		if (kind === 'add' && nameInput) {
-			nameInput.focus();
+		if (kind === 'add' && addForm) {
+			addForm.querySelector('input')?.focus();
 		}
 	});
 
@@ -128,15 +104,6 @@
 	const openClickHandler = (event) => {
 		if (typeof onSeatCardOpen === 'function') {
 			onSeatCardOpen(new ComponentEvent({ seat }, button(event), event));
-		}
-	};
-
-	/**
-	 * @param {MouseEvent} event
-	 */
-	const takeClickHandler = (event) => {
-		if (typeof onSeatCardTake === 'function') {
-			onSeatCardTake(new ComponentEvent({ seat }, button(event), event));
 		}
 	};
 
@@ -183,9 +150,23 @@
 	}
 </script>
 
+{#snippet remove(
+	/** @type {string} */ removeLabel,
+	/** @type {string} */ tooltip,
+	/** @type {(event: MouseEvent) => void} */ handler
+)}
+	<!-- The ×: closes an add seat, or removes a player. -->
+	<button
+		type="button"
+		class="rg-seat-card--remove"
+		aria-label={removeLabel}
+		title={tooltip}
+		onclick={handler}>×</button>
+{/snippet}
+
 <div
 	role="group"
-	aria-label={seatLabel}
+	aria-label={label}
 	{...attr}
 	class="rg-seat-card rg-seat-card--{kind} {attr.class ? attr.class : ''}"
 	style:--rg-seat-card-color={playerColor(seat)}>
@@ -201,41 +182,31 @@
 				aria-hidden="true">+</span>
 			<span>Open seat</span>
 		</button>
-	{:else if kind === 'open'}
-		<button
-			type="button"
-			class="rg-seat-card--take"
-			onclick={takeClickHandler}>Take the seat!</button>
-		{#if removable}
-			<button
-				type="button"
-				class="rg-seat-card--remove"
-				aria-label="Close seat {seat}"
-				title="Close the seat"
-				onclick={cancelClickHandler}>×</button>
-		{/if}
 	{:else if kind === 'add'}
 		<form
-			class="rg-seat-card--add-form"
+			bind:this={addForm}
+			class="rg-seat-card--frame"
 			onsubmit={addSubmitHandler}>
-			<input
-				bind:this={nameInput}
+			<TextInput
 				bind:value={name}
-				class="rg-seat-card--add-input"
-				aria-label="Name of the player in seat {seat}"
+				label="Name of the player in seat {seat}"
+				hideLabel
+				size="small"
+				block
 				placeholder="Name, or leave empty"
-				maxlength="24"
+				maxlength={24}
 				autocomplete="off" />
-			<button
+			<Button
 				type="submit"
-				class="rg-seat-card--add-button">Add</button>
+				mode="gold"
+				size="small"
+				block>Add</Button>
 		</form>
-		<button
-			type="button"
-			class="rg-seat-card--remove"
-			aria-label="Close seat {seat}"
-			title="Close the seat"
-			onclick={cancelClickHandler}>×</button>
+		{@render remove(
+			`Close seat ${seat}`,
+			'Close the seat',
+			cancelClickHandler
+		)}
 	{:else}
 		{#if badges.length}
 			<div class="rg-seat-card--badges">
@@ -272,12 +243,11 @@
 				>{civilization ?? 'Not yet chosen'}</span>
 		{/if}
 		{#if removable}
-			<button
-				type="button"
-				class="rg-seat-card--remove"
-				aria-label="Remove {name}"
-				title="Remove the player"
-				onclick={removeClickHandler}>×</button>
+			{@render remove(
+				`Remove ${name}`,
+				'Remove the player',
+				removeClickHandler
+			)}
 		{/if}
 	{/if}
 </div>
@@ -337,73 +307,22 @@
 		line-height: var(--leading-none);
 	}
 
-	.rg-seat-card--take {
-		width: 100%;
-		height: 100%;
-		padding: var(--space-4);
-		border: var(--border) solid var(--gold);
-		border-radius: var(--radius);
-		background: color-mix(in srgb, var(--gold) 22%, var(--ink));
-		color: color-mix(in srgb, var(--gold) 40%, var(--text));
-		font-size: var(--font-size-md);
-		font-weight: var(--weight-bold);
-		box-shadow:
-			inset 0 0 0 2px color-mix(in srgb, var(--gold) 33%, transparent),
-			var(--glow-gold);
-		transition: background var(--duration-fast) var(--ease);
-	}
-
-	.rg-seat-card--take:hover {
-		background: color-mix(in srgb, var(--gold) 30%, var(--ink));
-	}
-
-	.rg-seat-card--add-form {
+	/* The add seat's one gold frame (the library's browser test checks there is only one). */
+	.rg-seat-card--frame {
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
 		gap: var(--space-3);
 		width: 100%;
 		height: 100%;
-		padding: var(--space-4) var(--space-5);
+		/* The top keeps the ×'s 22px corner clear of the focused name field's outline. */
+		padding: calc(var(--space-2) + 22px) var(--space-5) var(--space-4);
 		border: var(--border) solid var(--gold);
 		border-radius: var(--radius);
 		background: color-mix(in srgb, var(--gold) 22%, var(--ink));
 		box-shadow:
 			inset 0 0 0 2px color-mix(in srgb, var(--gold) 33%, transparent),
 			var(--glow-gold);
-	}
-
-	.rg-seat-card--add-input {
-		width: 100%;
-		min-width: 0;
-		height: 30px;
-		padding: var(--space-2) var(--space-3);
-		border: var(--border) solid var(--line);
-		border-radius: var(--radius);
-		background: var(--ink);
-		color: var(--text);
-		font-size: var(--font-size-sm);
-	}
-
-	.rg-seat-card--add-input:focus {
-		border-color: var(--gold);
-		outline: none;
-	}
-
-	.rg-seat-card--add-button {
-		height: 30px;
-		padding: 0 var(--space-4);
-		border: var(--border) solid var(--gold);
-		border-radius: var(--radius);
-		background: color-mix(in srgb, var(--gold) 30%, var(--ink));
-		color: color-mix(in srgb, var(--gold) 40%, var(--text));
-		font-size: var(--font-size-sm);
-		font-weight: var(--weight-bold);
-		transition: background var(--duration-fast) var(--ease);
-	}
-
-	.rg-seat-card--add-button:hover {
-		background: color-mix(in srgb, var(--gold) 40%, var(--ink));
 	}
 
 	.rg-seat-card--badges {

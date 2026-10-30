@@ -1,6 +1,7 @@
-// The World Map's geometry (#26): hex positions and corners, terrain wedges, the island, the pieces and the fit.
+// The World Map's geometry (#26) and what it draws on each hex (#114): hex positions and corners, terrain wedges, the island, the pieces, the fit, the targets, scores and preview.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
 	HEX_SIZE,
 	coastLines,
@@ -11,12 +12,14 @@ import {
 	hexPicture,
 	islandParts,
 	mapHexes,
+	mapView,
 	overlayBox,
 	pieceSpots,
 	svgPoints,
 	territoryClips,
 	territoryShapes,
 	territoryWords,
+	upToVp,
 } from '../src/lib/hexmap.js';
 import {
 	CLOUD_SIZE,
@@ -33,7 +36,7 @@ import {
 	view,
 } from '../src/lib/engine/game.js';
 import { seededRandom } from '../src/lib/engine/random.js';
-import { HEX_SIDES, MAPS } from '../src/lib/engine/data/maps.js';
+import { HEX_SIDES, MAPS, hexNeighbours } from '../src/lib/engine/data/maps.js';
 import { CAPITAL_MATS } from '../src/lib/engine/data/capitals.js';
 import { turned } from '../src/lib/engine/terrain.js';
 
@@ -566,4 +569,268 @@ test('a territory is worded once: its terrains, an island, clouds and a volcano'
 		}),
 		'sea, forest and mountain, with clouds, with a volcano'
 	);
+});
+
+/**
+ * A small dealt map, Ana's start and the unexplored hexes next to it, for mapView (#114).
+ */
+function mapFixture() {
+	const game = dealtView(2, 5);
+	const start = /** @type {string} */ (
+		Object.keys(game.hexes).find((key) =>
+			game.hexes[key].outposts.some((o) => o.seat === 1)
+		)
+	);
+	const fog = hexNeighbours(start).filter(
+		(key) => game.hexes[key]?.tile === null
+	);
+	return { game, start, fog };
+}
+
+/**
+ * @param {import('../src/lib/hexmap.js').MapViewHex[]} drawn
+ * @param {string} key
+ */
+const hexOf = (drawn, key) =>
+	/** @type {import('../src/lib/hexmap.js').MapViewHex} */ (
+		drawn.find((hex) => hex.key === key)
+	);
+
+test('mapView with nothing asked: every hex as mapHexes gives it, outlined and placed, nothing lit (#114)', () => {
+	const hexes = mapHexes(dealtView(3));
+	const drawn = mapView(hexes, {});
+	assert.equal(drawn.length, hexes.length);
+	drawn.forEach((hex, i) => {
+		const raw = hexes[i];
+		assert.equal(hex.key, raw.key);
+		assert.deepEqual(hex.corners, raw.corners);
+		assert.equal(hex.label, raw.label);
+		assert.equal(hex.target, false);
+		assert.equal(hex.previewed, false);
+		assert.equal(hex.score, null);
+		assert.equal(hex.tag, null);
+		assert.equal(hex.veiled, false);
+		assert.equal(hex.dimmed, false);
+		assert.equal(hex.selected, false);
+		assert.equal(hex.outlined, false);
+		assert.equal(hex.pulses, false);
+		assert.equal(
+			hex.outline,
+			svgPoints(
+				[0, 1, 2, 3, 4, 5].map((k) => hexCorner(raw.center, k, S))
+			)
+		);
+		assert.deepEqual(hex.picture, hexPicture(raw.center, S));
+	});
+});
+
+test('mapView lights the targets: the rest dim, and a veil covers only the explored ones (#114)', () => {
+	const { game, start, fog } = mapFixture();
+	const targets = [...fog, start];
+	const drawn = mapView(mapHexes(game), { targets });
+	for (const hex of drawn) {
+		const lit = targets.includes(hex.key);
+		assert.equal(hex.target, lit, hex.key);
+		assert.equal(hex.dimmed, !lit, hex.key);
+		assert.equal(hex.veiled, !lit && hex.corners !== null, hex.key);
+		assert.equal(hex.outlined, lit, hex.key);
+	}
+	assert.ok(drawn.some((hex) => hex.dimmed && !hex.veiled));
+});
+
+test('mapView scores only the targets, with a "+N VP" tag near the top and the VP in the label (#114)', () => {
+	const { game, start, fog } = mapFixture();
+	const hexes = mapHexes(game);
+	const scores = { [fog[0]]: 3, [fog[1]]: 0, [start]: 5 };
+	const drawn = mapView(hexes, { targets: fog, scores });
+	const best = hexOf(drawn, fog[0]);
+	const raw = /** @type {import('../src/lib/hexmap.js').MapHex} */ (
+		hexes.find((hex) => hex.key === fog[0])
+	);
+	assert.equal(best.score, 3);
+	assert.equal(best.label, `${raw.label} Up to 3 VP.`);
+	assert.match(best.label, /^Hex .*: unexplored\. Up to 3 VP\.$/);
+	assert.deepEqual(best.tag, {
+		x: raw.center[0] - 18,
+		y: raw.center[1] - 32,
+		width: 36,
+		height: 14,
+		font: 11,
+		text: '+3 VP',
+	});
+	assert.equal(hexOf(drawn, fog[1]).score, 0);
+	assert.match(hexOf(drawn, fog[1]).label, / Up to 0 VP\.$/);
+	// The start is no target, so its score is left out.
+	assert.equal(hexOf(drawn, start).score, null);
+	assert.equal(hexOf(drawn, start).tag, null);
+	assert.doesNotMatch(hexOf(drawn, start).label, /VP/);
+	// A target with no score says nothing of VP.
+	for (const key of fog.slice(2)) {
+		assert.equal(hexOf(drawn, key).score, null);
+		assert.doesNotMatch(hexOf(drawn, key).label, /VP/);
+	}
+});
+
+test('on the selected hex the label gives the VP of the turn chosen, not "up to" (#114)', () => {
+	const { game, fog } = mapFixture();
+	const drawn = mapView(mapHexes(game), {
+		targets: fog,
+		scores: { [fog[0]]: 3, [fog[1]]: 2 },
+		selected: fog[0],
+	});
+	assert.match(hexOf(drawn, fog[0]).label, /: unexplored\. 3 VP\.$/);
+	assert.equal(hexOf(drawn, fog[0]).selected, true);
+	assert.equal(hexOf(drawn, fog[0]).outlined, true);
+	assert.match(hexOf(drawn, fog[1]).label, / Up to 2 VP\.$/);
+	assert.equal(hexOf(drawn, fog[1]).selected, false);
+});
+
+test('mapView shows a previewed tile on its hex, with its pictures and words (#114)', () => {
+	const { game, fog } = mapFixture();
+	/** @type {import('../src/lib/ui.js').Terrain[]} */
+	const corners = ['sea', 'sea', 'forest', 'forest', 'desert', 'desert'];
+	/** @type {import('../src/lib/ui.js').Terrain[]} */
+	const island = ['mountain'];
+	const preview = { hex: fog[0], corners, island };
+	const drawn = mapView(mapHexes(game), { preview });
+	const plain = hexOf(drawn, fog[0]);
+	assert.equal(plain.previewed, true);
+	assert.deepEqual(plain.corners, corners);
+	assert.deepEqual(plain.island, ['mountain']);
+	assert.equal(plain.clouds, false);
+	assert.equal(plain.volcano, false);
+	assert.equal(plain.outlined, true);
+	assert.match(plain.label, /: unexplored\. Showing the chosen tile\.$/);
+	// Only the previewed hex changes.
+	assert.ok(
+		drawn.filter((hex) => hex.key !== fog[0]).every((h) => !h.previewed)
+	);
+
+	const lit = hexOf(
+		mapView(mapHexes(game), {
+			targets: fog.slice(1),
+			scores: { [fog[0]]: 4 },
+			preview: { ...preview, clouds: true, volcano: true },
+		}),
+		fog[0]
+	);
+	assert.equal(lit.clouds, true);
+	assert.equal(lit.volcano, true);
+	// Not a target here, so dimmed but not veiled: the painted map has no terrain under an unexplored hex.
+	assert.equal(lit.dimmed, true);
+	assert.equal(lit.veiled, false);
+	assert.equal(lit.score, null);
+
+	const scored = hexOf(
+		mapView(mapHexes(game), {
+			targets: fog,
+			scores: { [fog[0]]: 4 },
+			preview,
+		}),
+		fog[0]
+	);
+	assert.match(
+		scored.label,
+		/: unexplored\. Showing the chosen tile\. Up to 4 VP\.$/
+	);
+});
+
+test('a fresh hex is outlined and pulses, unless it is a target or selected (#114)', () => {
+	const { game, start, fog } = mapFixture();
+	const drawn = mapView(mapHexes(game), {
+		fresh: ['0_0', fog[0], start],
+		targets: [fog[0]],
+		selected: start,
+	});
+	assert.equal(hexOf(drawn, '0_0').outlined, true);
+	assert.equal(hexOf(drawn, '0_0').pulses, true);
+	assert.equal(hexOf(drawn, fog[0]).pulses, false);
+	assert.equal(hexOf(drawn, start).outlined, true);
+	assert.equal(hexOf(drawn, start).pulses, false);
+	assert.equal(hexOf(drawn, fog[1]).outlined, false);
+});
+
+test("mapView stands a hex's outposts first, then its tokens, each in its spot, with the Nomads' marks (#114)", () => {
+	const game = dealtView(2);
+	const hex = game.hexes['0_0'];
+	hex.outposts.push(
+		{ seat: 1, toppled: true, toppledBy: 2 },
+		{ seat: 2, toppled: false, piece: { building: 'farm' } },
+		{ seat: 2, toppled: true, piece: { landmark: 'lighthouse' } }
+	);
+	hex.tokens.push({ seat: 1, civ: 'traders' });
+	const drawn = mapView(mapHexes(game), {});
+	const middle = hexOf(drawn, '0_0');
+	const spots = pieceSpots(middle.center, 4, true, S);
+	assert.deepEqual(middle.pieces, [
+		{ kind: 'outpost', seat: 1, toppled: true, mark: null, ...spots[0] },
+		{
+			kind: 'outpost',
+			seat: 2,
+			toppled: false,
+			mark: '-0.26,0.26 -0.26,-0.04 0,-0.28 0.26,-0.04 0.26,0.26',
+			...spots[1],
+		},
+		{
+			kind: 'outpost',
+			seat: 2,
+			toppled: true,
+			mark: '-0.12,0.3 -0.12,-0.1 0,-0.32 0.12,-0.1 0.12,0.3',
+			...spots[2],
+		},
+		{ kind: 'token', seat: 1, toppled: false, mark: null, ...spots[3] },
+	]);
+	const empty = drawn.find(
+		(h) => h.outposts.length === 0 && h.tokens.length === 0
+	);
+	assert.deepEqual(empty?.pieces, []);
+});
+
+test('mapView at another size scales the outline, the picture and the tag (#114)', () => {
+	const { game, fog } = mapFixture();
+	const hex = hexOf(
+		mapView(
+			mapHexes(game, 20),
+			{ targets: [fog[0]], scores: { [fog[0]]: 1 } },
+			20
+		),
+		fog[0]
+	);
+	assert.deepEqual(hex.picture, hexPicture(hex.center, 20));
+	assert.equal(
+		hex.outline,
+		svgPoints([0, 1, 2, 3, 4, 5].map((k) => hexCorner(hex.center, k, 20)))
+	);
+	assert.deepEqual(hex.tag, {
+		x: hex.center[0] - 9,
+		y: hex.center[1] - 16,
+		width: 18,
+		height: 7,
+		font: 5.5,
+		text: '+1 VP',
+	});
+});
+
+test('one phrase words the most a tile can score: "up to N VP" (#114)', () => {
+	assert.equal(upToVp(3), 'up to 3 VP');
+	assert.equal(upToVp(1), 'up to 1 VP');
+	assert.equal(upToVp(0), 'up to 0 VP');
+});
+
+test('WorldMap leaves the hexes to mapView, and TilePicker words its VP with upToVp (#114)', () => {
+	const map = readFileSync(
+		new URL('../src/lib/components/board/WorldMap.svelte', import.meta.url),
+		'utf8'
+	);
+	assert.match(map, /\bmapView\(/);
+	assert.doesNotMatch(map, /\b(TAG|MARKS|pieceSpots|addWords)\b/);
+	const picker = readFileSync(
+		new URL(
+			'../src/lib/components/prompts/TilePicker.svelte',
+			import.meta.url
+		),
+		'utf8'
+	);
+	assert.match(picker, /\bupToVp\(/);
+	assert.doesNotMatch(picker, /up to \$\{/);
 });
