@@ -60,6 +60,7 @@
 		firstIncomeNotice,
 		footerView,
 		myDecision,
+		trackPreviewSeat,
 	} from '../lib/turn.js';
 	import { sendAdvance } from '../lib/moves.js';
 
@@ -686,6 +687,7 @@
 					<TrackBoard
 						tracks={trackBoard(game)}
 						{available}
+						previewSeat={trackPreviewSeat(game, seat)}
 						{selected}
 						lit={litSpace}
 						onTrackBoardSelect={trackSelectHandler} />

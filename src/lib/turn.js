@@ -39,6 +39,21 @@ export function myDecision(view, seat) {
 }
 
 /**
+ * The seat whose dashed line a hovered track space may preview (#81): the viewer's, while their turn choice or advance
+ * is open, and no one's otherwise, so a hover never suggests another player's token moves. At a hot-seat table the
+ * viewer is the player taking the turn.
+ * @param {any} view - The game as view() gives it to the viewer
+ * @param {number | null} seat - The viewer's seat, or null for the public view
+ * @returns {import('./ui.js').Seat | null}
+ */
+export function trackPreviewSeat(view, seat) {
+	const kind = myDecision(view, seat)?.kind;
+	return kind === 'chooseTurn' || kind === 'chooseAdvance'
+		? /** @type {import('./ui.js').Seat} */ (seat)
+		: null;
+}
+
+/**
  * The advances the viewer can pay for now: while their turn choice offers an advance, before anything is sent, or
  * while their advance is open. The engine reads only what the viewer can see, so its preview on the view equals the
  * server's answers (tests/client-turn.test.mjs).

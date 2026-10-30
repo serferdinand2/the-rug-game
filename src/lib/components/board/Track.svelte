@@ -27,6 +27,7 @@
 	 * @property {import('../../ui.js').CostSymbol[][]} tiers - The four tier prices, I–IV, each over three spaces
 	 * @property {TrackPlayer[]} players - The players at the table, one progress lane each
 	 * @property {number[]} [available=[]] - Space numbers the viewer can advance to, outlined in green
+	 * @property {import('../../ui.js').Seat | null} [previewSeat=null] - The player taking the turn at this screen, whose dashed line a hovered or focused next space previews; null previews no line (#81)
 	 * @property {number | null} [selectedSpace=null] - The selected space's number, outlined in gold; bindable
 	 * @property {{ space: number, color: string } | null} [lit=null] - A space another player just advanced to, lit in their colour (#153)
 	 * @property {Function} [onTrackSelect] - Callback fired with { track, space } when a space is chosen
@@ -43,6 +44,7 @@
 	 *   spaces={[{ name: 'Scouting' }, … , { name: 'Warpgates' }]}
 	 *   tiers={[['any'], ['food', 'any'], ['food', 'any', 'any'], ['food', 'food']]}
 	 *   players={[{ seat: 1, name: 'You', position: 4 }]}
+	 *   previewSeat={1}
 	 *   bind:selectedSpace
 	 *   onTrackSelect={(event) => select(event.value)}
 	 * />
@@ -65,6 +67,7 @@
 		tiers,
 		players,
 		available = [],
+		previewSeat = null,
 		selectedSpace = $bindable(null),
 		lit = null,
 		onTrackSelect,
@@ -80,13 +83,16 @@
 	let hoveredTier = $derived(
 		hoveredSpace === null ? null : tierOf(hoveredSpace)
 	);
-	// Every player whose next space is the hovered one sees the dashed line to it.
-	let previewSeats = $derived(
-		hoveredSpace === null
-			? []
-			: players
-					.filter((player) => player.position + 1 === hoveredSpace)
-					.map((player) => player.seat)
+	// Only the player taking the turn sees their dashed line, when the hovered space is their next one (#81).
+	let previewLine = $derived(
+		hoveredSpace !== null &&
+			players.some(
+				(player) =>
+					player.seat === previewSeat &&
+					player.position + 1 === hoveredSpace
+			)
+			? previewSeat
+			: null
 	);
 
 	/**
@@ -175,7 +181,7 @@
 	<div class="rg-track--lanes">
 		<ProgressLanes
 			{players}
-			preview={previewSeats}
+			preview={previewLine}
 			spaces={spaces.length} />
 	</div>
 </div>
