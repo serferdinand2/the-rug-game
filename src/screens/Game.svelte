@@ -54,7 +54,7 @@
 	import { achievements, trackBoard } from '../lib/board.js';
 	import { mapHexes } from '../lib/hexmap.js';
 	import { PromptState } from '../lib/prompt-state.svelte.js';
-	import { selfSummary } from '../lib/overview.js';
+	import { areaSummary, selfSummary } from '../lib/overview.js';
 	import {
 		advanceOptions,
 		firstIncomeNotice,
@@ -245,6 +245,13 @@
 		move: (action) =>
 			store.move(/** @type {{ decision: number }} */ (action)),
 	});
+	/** The summary at the foot of the area: the seat on show's, with your prompt's preview only on your own (#157). */
+	let shownSummary = $derived(
+		areaSummary(game, tabSeat, seat, {
+			resources: promptState.resources,
+			changed: promptState.changed,
+		})
+	);
 
 	// The turn's own choices end with it, however it ends: a timeout, an undo, a refused move (#26 review).
 	let turnKey = $derived(turnDecision ? turnDecision.id : null);
@@ -756,11 +763,12 @@
 					to see their tabs.
 				</p>
 			{/if}
-			{#if summary}
+			{#if shownSummary}
 				<SelfSummary
-					{...summary}
-					resources={promptState.resources}
-					changed={promptState.changed} />
+					{...shownSummary}
+					class={viewing !== null && shownSummary.seat !== seat
+						? 'rg-game--theirs'
+						: ''} />
 			{/if}
 		</div>
 	{/snippet}
@@ -840,6 +848,16 @@
 		grid-template-columns: minmax(0, 1fr);
 		grid-template-rows: minmax(0, 1fr) auto;
 		overflow: hidden;
+	}
+
+	/* Another player's summary (#157) continues the border their tabs draw (#145) down its sides and foot. */
+	.rg-game--private :global(.rg-game--theirs) {
+		box-shadow:
+			inset var(--border-thick) 0 0 var(--rg-self-summary-color),
+			inset calc(-1 * var(--border-thick)) 0 0
+				var(--rg-self-summary-color),
+			inset 0 calc(-1 * var(--border-thick)) 0
+				var(--rg-self-summary-color);
 	}
 
 	/* A card shown in full over the shared area, as the mockup's card overview: a scrim, the card, no pointer. */

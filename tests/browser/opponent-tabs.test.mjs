@@ -2,6 +2,7 @@
 // area, read-only and private cards hidden, and every way back returns to your own; then the table is ended and left.
 import { expect, test } from '@playwright/test';
 import { askedSeats } from '../../src/lib/engine/game.js';
+import { RESOURCES } from '../../src/lib/ui.js';
 
 test.use({ viewport: { width: 1920, height: 1080 } });
 
@@ -136,6 +137,20 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		expect(border.style).toBe('solid');
 		expect(parseFloat(border.width)).toBeGreaterThan(0);
 
+		// The summary at the foot is theirs, framed in their colour, with their own resources (#157).
+		const summary = page.locator('.rg-self-summary');
+		const summaryHead = summary.locator('.rg-self-summary--head strong');
+		const counts = summary.locator('.rg-resource-chip--count');
+		/** @param {any} entry @returns {string[]} */
+		const amounts = (entry) =>
+			RESOURCES.map((resource) => String(entry.resources[resource.id]));
+		await expect(summaryHead).toContainText(name);
+		await expect(counts).toHaveText(amounts(theirs.game.seats[other - 1]));
+		const frame = await summary.evaluate(
+			(element) => getComputedStyle(element).boxShadow
+		);
+		expect(frame).not.toBe('none');
+
 		// Their hand is a count, with no card face.
 		await tabs.getByRole('tab', { name: /^Hand/ }).click();
 		await expect(
@@ -161,6 +176,14 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		// Back to your area returns to your own tabs.
 		await back.click();
 		await expect(inspecting).toHaveCount(0);
+		// And the summary is yours again, without the frame (#157).
+		await expect(summaryHead).toContainText(NAMES[seat - 1]);
+		await expect(counts).toHaveText(amounts(theirs.game.seats[seat - 1]));
+		expect(
+			await summary.evaluate(
+				(element) => getComputedStyle(element).boxShadow
+			)
+		).toBe('none');
 		await expect(
 			tabs.getByRole('heading', { name: 'Territory tiles' })
 		).toBeVisible();
@@ -181,6 +204,7 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		await page.locator('body').focus();
 		await page.keyboard.press('Escape');
 		await expect(inspecting).toHaveCount(0);
+		await expect(summaryHead).toContainText(NAMES[seat - 1]);
 		await page.keyboard.press(String(other));
 		await expect(inspecting).toBeVisible();
 		await page.keyboard.press(String(seat));

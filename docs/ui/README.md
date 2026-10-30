@@ -229,13 +229,14 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 
 **Built in #145 (2026-10-30): another player's tabs in the player area.** The owner ruled: "When I click on the other player in the top nav, no longer open the card view of all players, just show me their view of the right sidenav but hide all cards that are private." It also meets #143's goal, an opponent's eras and territory tiles, whose overview rows it supersedes. The design is `docs/superpowers/specs/2026-10-30-opponent-tabs-design.md`.
 
-![Vera's turn with Mira's chip pressed: Mira's capital in the player area, bordered in her blue, under Viewing Mira's area and Back to your area](screens/game-opponent-tabs.png)
+![Vera's turn with Mira's chip pressed: Mira's capital in the player area, under Viewing Mira's area and Back to your area, and Mira's summary at the foot, all bordered in her blue](screens/game-opponent-tabs.png)
 
 ![Mira's Hand tab seen by Vera: a count, no card](screens/game-opponent-hand.png)
 
 - **A chip shows that player's tabs** in the 1/4 player area: the same seven tabs, on the tab you had open, read-only. The area is bordered in their colour, and `InspectBar` says "Viewing Mira's area" with their colour square and **Back to your area**. The headings name them ("Mira's eras").
 - **Private things stay hidden:** their Hand tab is a count; a face-down tapestry card is "Face-down card" in their Eras tab, as in yours. The client draws a seat through `publicSeat` (`src/lib/area/inspect.js`), which drops another seat's hand and picks even if a view held them.
-- **Read-only:** no placement, tile pick or card spot on their tabs; hovering a face-up card still shows it in full. Your turn, the footer and any open panel are untouched, and **Your overview** at the foot stays yours. A decision that opens one of your tabs takes you back to your own area.
+- **Read-only:** no placement, tile pick or card spot on their tabs; hovering a face-up card still shows it in full. Your turn, the footer and any open panel are untouched. A decision that opens one of your tabs takes you back to your own area.
+- **The summary at the foot is theirs (#157):** their name, era, VP, hand, tech, territories, lines and resources, from the view, with no gold highlight; the border in their colour runs on round it. Back in your own area it is yours again, with your open prompt's preview of your resources.
 - **The way back:** their chip again, your own chip, **Back to your area**, or Escape once nothing else is open. **1–5** do what the chips do.
 - **The players overview** is no longer reached from anywhere; `PlayersOverview`, `PlayerCard` and its layer stay in the code for the owner to decide on.
 
