@@ -26,6 +26,7 @@ import {
 import { BIOMES } from '../../tools/art/parts/capital-biomes/index.js';
 import { SPACE, SPACES } from '../../tools/art/parts/inspiration-tile.js';
 import {
+	SPECIMEN_DATA,
 	SPECIMEN_LAYOUT,
 	drawReliefPreview,
 	matData,
@@ -296,13 +297,32 @@ export function pictureSize(id) {
 const MAT_NAMES = new Map(CAPITAL_MATS.map((mat) => [mat.id, mat.name]));
 
 /**
- * Each relief biome's preview on a layout with every kind of join.
+ * A relief biome's mat name: a base mat's, or an advanced mat's from its relief's catalog name (#132).
+ * @param {string} biome - Such as 'mountain' or 'cloud-city'
+ * @returns {string} Such as 'Cloud City'
+ */
+function matName(biome) {
+	return (
+		MAT_NAMES.get(biome) ??
+		ASSETS_BY_ID.get(`capital-relief/${biome}`)?.name.replace(
+			/ relief$/,
+			''
+		) ??
+		biome
+	);
+}
+
+/**
+ * Each relief biome's preview on a layout with every kind of join, drawn with the specimen's own printed
+ * data: a volcano on the Archipelago's lone plot, and Cloud City's real clouds.
  * @type {readonly LazyPicture[]}
  */
 export const RELIEF_SPECIMENS = RELIEF_BIOMES.map((biome) => ({
-	label: `${MAT_NAMES.get(biome) ?? biome}: a lone plot, side and corner joins, an L, a 2×2`,
+	label: `${matName(biome)}: a lone plot, side and corner joins, an L, a 2×2`,
 	size: reliefSize(SPECIMEN_LAYOUT.length, SPECIMEN_LAYOUT[0].length),
-	load: drawnOnce(() => drawReliefPreview(SPECIMEN_LAYOUT, biome)),
+	load: drawnOnce(() =>
+		drawReliefPreview(SPECIMEN_LAYOUT, biome, 0, SPECIMEN_DATA[biome] ?? {})
+	),
 }));
 
 /** One picture per scene part, each on a 64×64 canvas. @type {readonly LazyPicture[]} */

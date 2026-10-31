@@ -29,7 +29,10 @@ test('each base capital has a 9×9 mask with 59 buildable and 22 impassable plot
 });
 
 test('every base biome has a relief, so none keeps impassable tiles of its own', async () => {
-	assert.deepEqual([...RELIEF_BIOMES].sort(), [...BIOMES].sort());
+	// The relief biomes go on with the expansion mats' (#132, #133).
+	for (const biome of BIOMES) {
+		assert.ok(RELIEF_BIOMES.includes(biome), biome);
+	}
 	const ids = await listDrawingIds();
 	for (const biome of BIOMES) {
 		assert.deepEqual(

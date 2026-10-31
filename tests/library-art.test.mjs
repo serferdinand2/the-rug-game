@@ -112,6 +112,32 @@ test("a capital relief is shown as its preview on the mat's ground, 296×296 (#8
 	assert.deepEqual({ w: picture.w, h: picture.h }, { w: 296, h: 296 });
 });
 
+test('RELIEF_SPECIMENS has one specimen per relief biome, named for its mat (#132)', async () => {
+	const { RELIEF_BIOMES } = await import('../src/lib/art/relief.js');
+	const labels = art.RELIEF_SPECIMENS.map((specimen) => specimen.label);
+	assert.equal(labels.length, 12);
+	assert.equal(RELIEF_BIOMES.length, 12);
+	assert.ok(
+		labels.some((label) => label.startsWith('Cloud City:')),
+		labels.join(' | ')
+	);
+	assert.ok(labels.some((label) => label.startsWith('Mountain:')));
+	for (const specimen of art.RELIEF_SPECIMENS) {
+		assert.deepEqual(specimen.size, { w: 296, h: 296 }, specimen.label);
+	}
+});
+
+test("an Arts & Architecture relief is shown on its mat's ground, with no transparent pixel (#132)", async () => {
+	const { fromSvg } = await import('../tools/art/painter.js');
+	const canvas = fromSvg(
+		svgOf(await art.loadPicture('capital-relief/swamp'))
+	);
+	for (let i = 0; i < canvas.p.length; i++) {
+		assert.notEqual(canvas.p[i], null, `pixel ${i}`);
+		assert.equal(canvas.alpha?.[i] ?? 1, 1, `pixel ${i} opaque`);
+	}
+});
+
 test('a drawing that throws, or an id with no drawing, gives its error and never rejects (#82)', async () => {
 	assert.deepEqual(await art.loadPicture('building/farm'), {
 		error: 'the farm is broken',

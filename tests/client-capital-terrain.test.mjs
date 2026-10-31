@@ -28,21 +28,22 @@ test("an Architects' cube is a cube on open ground", () => {
 });
 
 test('a mat without a relief keeps its impassable tiles', () => {
-	// Every base mat has a relief, so an advanced mat with none yet (#132) keeps the fallback tested.
+	// The base and Arts & Architecture mats have reliefs, so a Fantasies & Futures mat with none yet (#133)
+	// keeps the fallback tested.
 	const plots = matPlots(1).map((_, i) =>
 		i % 7 === 3 ? 'blocked' : 'empty'
 	);
-	const printed = plotTerrain(plots, 'mesa', 7);
+	const printed = plotTerrain(plots, 'polar', 7);
 	for (const [i, kind] of plots.entries()) {
 		if (kind === 'blocked') {
-			assert.match(printed[i].ground, /mesa-blocked-0[1-6]\.svg$/);
+			assert.match(printed[i].ground, /polar-blocked-0[1-6]\.svg$/);
 			assert.equal(printed[i].cleared, false);
 			assert.equal(printed[i].cube, false);
 		} else {
-			assert.match(printed[i].ground, /mesa-open-0[1-8]\.svg$/);
+			assert.match(printed[i].ground, /polar-open-0[1-8]\.svg$/);
 		}
 	}
-	assert.equal(reliefUrl('mesa'), null);
+	assert.equal(reliefUrl('polar'), null);
 });
 
 test('reliefUrl names the relief', () => {
