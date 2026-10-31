@@ -89,7 +89,7 @@ test('income mat rewards use shared symbols and retain readable accessible label
 	const section = page.locator('#income-mat');
 	const barter = section.getByRole('img', {
 		name: /Barter\. Income: Gain 1 coin\. Score: Gain 1 VP for each tech card you have/,
-	});
+	}).first();
 	await expect(barter).toBeVisible();
 	await expect(barter.getByText('Income:')).toBeVisible();
 	await expect(barter.getByText('Score')).toHaveCount(0);
