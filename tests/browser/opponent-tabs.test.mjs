@@ -134,17 +134,17 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		const amounts = (entry) =>
 			RESOURCES.map((resource) => String(entry.resources[resource.id]));
 
-		// Their chip shows their tabs, bordered in their colour, and not the players overview.
+		// Their chip shows their tabs and summary in one continuous frame, in their colour, and not the players overview.
 		await chip.click();
 		await expect(inspecting).toBeVisible();
 		await expect(page.locator('.rg-players-overview')).toHaveCount(0);
 		await expect(tabs.getByText(`Viewing ${name}'s area`)).toBeVisible();
-		const border = await inspecting.evaluate((element) => {
-			const style = getComputedStyle(element);
-			return { style: style.outlineStyle, width: style.outlineWidth };
+		const border = await inspecting.locator('xpath=..').evaluate((element) => {
+			const frame = getComputedStyle(element, '::after');
+			return frame.boxShadow;
 		});
-		expect(border.style).toBe('solid');
-		expect(parseFloat(border.width)).toBeGreaterThan(0);
+		expect(border).not.toBe('none');
+		expect(border).toMatch(/rgba?\(/);
 
 		// The summary belongs to the inspected player too, including their public resource counts.
 		await expect(summaryHead).toContainText(name);
