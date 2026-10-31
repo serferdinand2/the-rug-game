@@ -74,7 +74,7 @@ test('the track spaces keep 10px text at 1920×1080 and grow it on larger screen
 		await expect(landmarkDetail).toBeVisible();
 		await expect(landmarkDetail).toContainText('Lighthouse');
 		await expect(
-			landmarkDetail.locator('.rg-track-landmark-tooltip--name')
+			landmarkDetail.locator('.rg-landmark-hover-detail--name')
 		).toHaveCSS('color', 'rgb(226, 184, 87)');
 		await expect(landmarkDetail.locator('img')).toHaveAttribute(
 			'src',

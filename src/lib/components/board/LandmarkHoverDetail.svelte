@@ -1,8 +1,10 @@
 <!-- A track reward's name and printed capital footprint, beside its shared track tooltip. -->
 <script module>
 	/**
-	 * @typedef {Object} LandmarkHoverDetailProps
+	 * @typedef {Object} LandmarkHoverDetailOwnProps
 	 * @property {string} id - A landmark catalog slug, such as 'lighthouse'.
+	 * @typedef {LandmarkHoverDetailOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} LandmarkHoverDetailProps
+	 * @example <LandmarkHoverDetail id="lighthouse" />
 	 */
 </script>
 
@@ -13,7 +15,7 @@
 	import '../../../styles/landmark-card.css';
 
 	/** @type {LandmarkHoverDetailProps} */
-	let { id } = $props();
+	let { id, ...attr } = $props();
 
 	const landmark = $derived(
 		LANDMARKS.find((item) => item.id === id && 'track' in item.source)
@@ -22,17 +24,18 @@
 
 {#if landmark}
 	<div
-		class="rg-track-landmark-tooltip"
+		{...attr}
+		class="rg-landmark-hover-detail {attr.class ?? ''}"
 		data-landmark-detail={landmark.id}>
 		<img
-			class="rg-track-landmark-tooltip--art"
+			class="rg-landmark-hover-detail--art"
 			src={artUrl(`landmark/${landmark.id}`)}
 			alt=""
 			aria-hidden="true"
 			draggable="false" />
-		<span class="rg-track-landmark-tooltip--name">{landmark.name}</span>
+		<span class="rg-landmark-hover-detail--name">{landmark.name}</span>
 		<div
-			class="rg-landmark-card--footprint rg-track-landmark-tooltip--footprint"
+			class="rg-landmark-card--footprint rg-landmark-hover-detail--footprint"
 			aria-label={`Capital footprint: ${landmark.footprint.join(' / ')}`}
 			data-footprint={landmark.footprint.join('/')}>
 			<LandmarkShape
@@ -48,7 +51,7 @@
 {/if}
 
 <style>
-	.rg-track-landmark-tooltip {
+	.rg-landmark-hover-detail {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -58,7 +61,7 @@
 		border-top: var(--border) solid var(--line);
 	}
 
-	.rg-track-landmark-tooltip--art {
+	.rg-landmark-hover-detail--art {
 		flex: none;
 		width: 44px;
 		height: 44px;
@@ -66,14 +69,14 @@
 		image-rendering: pixelated;
 	}
 
-	.rg-track-landmark-tooltip--name {
+	.rg-landmark-hover-detail--name {
 		min-width: 0;
 		color: var(--gold);
 		font: var(--weight-title) var(--font-size-sm) / var(--leading-tight)
 			var(--font-title);
 	}
 
-	.rg-track-landmark-tooltip--footprint {
+	.rg-landmark-hover-detail--footprint {
 		flex: none;
 	}
 </style>
