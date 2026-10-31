@@ -155,6 +155,8 @@ test('every class a component styles starts with rg-{component}', () => {
 		const selectors = [
 			...style
 				.replace(/\/\*[\s\S]*?\*\//g, '')
+				// Global selectors style the child component that owns these classes.
+				.replace(/:global\([^)]*\)/g, '')
 				// A url() can hold dots, such as an inline SVG's www.w3.org namespace.
 				.replace(/url\((["'])[\s\S]*?\1\)|url\([^)]*\)/g, '')
 				.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g),
@@ -202,3 +204,4 @@ test('the DecisionPanel and TrackBoard sections build from dealt games, not copi
 		'the TrackBoard section re-implements trackBoard()'
 	);
 });
+
