@@ -102,16 +102,20 @@
 		padding: var(--space-2) var(--space-4);
 		border: 0;
 		border-radius: var(--radius);
-		background: transparent;
+		background: color-mix(in srgb, var(--raised) 50%, transparent);
 		color: var(--faint);
 		transition:
 			background var(--duration-fast) var(--ease),
 			color var(--duration-fast) var(--ease);
 	}
 
-	/* Not in the mockup: a faint hover, so the icon-only choice reads as a button. */
-	.rg-board-switcher--choice:hover {
-		background: color-mix(in srgb, var(--raised) 50%, transparent);
+	/* Keep the hover glow inside the two board controls. */
+	.rg-board-switcher--choice:not(.rg-board-switcher--active):is(
+			:hover,
+			:focus-visible
+		) {
+		box-shadow: inset 0 0 12px
+			color-mix(in srgb, var(--gold) 48%, transparent);
 	}
 
 	/* The chosen board keeps the raised highlight without hover. */

@@ -153,6 +153,7 @@
 			width="24"
 			height="24"
 			alt="" />
+		<h2 class="rg-track--name">{name}</h2>
 	</div>
 	<div class="rg-track--costs">
 		{#each tiers as symbols, index (index)}
@@ -201,6 +202,13 @@
 		align-items: center;
 		gap: var(--space-5);
 		color: var(--rg-track-color);
+	}
+
+	.rg-track--name {
+		flex: none;
+		margin: 0;
+		color: inherit;
+		font: var(--weight-title) var(--font-size-sm) / 1 var(--font-title);
 	}
 
 	.rg-track--heading::after {

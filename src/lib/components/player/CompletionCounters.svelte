@@ -124,6 +124,7 @@
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: var(--space-3);
+		margin-block-start: var(--space-3);
 		width: 100%;
 	}
 

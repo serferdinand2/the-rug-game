@@ -217,7 +217,7 @@ test('mapHexes on a dealt 4-player game gives 61 hexes, 25 explored, and the sta
 				.large;
 		const hex = /** @type {any} */ (hexes.find((h) => h.key === start));
 		assert.deepEqual(hex.outposts, [
-			{ seat: seat.seat, toppled: false, piece: null },
+			{ seat: seat.seat, toppled: false, piece: null, capital: true },
 			{ seat: seat.seat, toppled: false, piece: null },
 		]);
 		assert.match(hex.label, new RegExp(`${seat.name}: 2 outposts`));
@@ -763,13 +763,23 @@ test("mapView stands a hex's outposts first, then its tokens, each in its spot, 
 	const middle = hexOf(drawn, '0_0');
 	const spots = pieceSpots(middle.center, 4, true, S);
 	assert.deepEqual(middle.pieces, [
-		{ kind: 'outpost', seat: 1, toppled: true, mark: null, ...spots[0] },
+		{
+			kind: 'outpost',
+			seat: 1,
+			toppled: true,
+			mark: null,
+			...spots[0],
+			width: spots[0].size * 2,
+			height: spots[0].size * 2,
+		},
 		{
 			kind: 'outpost',
 			seat: 2,
 			toppled: false,
 			mark: '-0.26,0.26 -0.26,-0.04 0,-0.28 0.26,-0.04 0.26,0.26',
 			...spots[1],
+			width: spots[1].size * 2,
+			height: spots[1].size * 2,
 		},
 		{
 			kind: 'outpost',
@@ -777,6 +787,8 @@ test("mapView stands a hex's outposts first, then its tokens, each in its spot, 
 			toppled: true,
 			mark: '-0.12,0.3 -0.12,-0.1 0,-0.32 0.12,-0.1 0.12,0.3',
 			...spots[2],
+			width: spots[2].size * 2,
+			height: spots[2].size * 2,
 		},
 		{ kind: 'token', seat: 1, toppled: false, mark: null, ...spots[3] },
 	]);

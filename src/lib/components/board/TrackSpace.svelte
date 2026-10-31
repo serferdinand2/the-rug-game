@@ -94,7 +94,14 @@
 
 	let techCombo = $derived(
 		track === 'technology' &&
-			(name === 'Electronics' || name === 'Nanotech')
+			(name === 'Electronics' ||
+				name === 'Nanotech' ||
+				name === 'Nanotechnology')
+	);
+	let twoLineName = $derived(
+		(track === 'science' && (space === 7 || space === 11)) ||
+			(track === 'technology' && name === 'Nanotechnology') ||
+			(track === 'military' && name === 'Drone Assassins')
 	);
 	let dense = $derived(track === 'technology' && [5, 6, 8].includes(space));
 	let displayedBenefit = $derived(
@@ -203,6 +210,12 @@
 		if (techCombo) {
 			return index === 1;
 		}
+		if (
+			(track === 'technology' && space === 8) ||
+			(track === 'science' && space === 8)
+		) {
+			return index === 1;
+		}
 		if (track === 'technology') {
 			return (
 				index > 0 &&
@@ -219,6 +232,9 @@
 	aria-pressed={selected}
 	aria-label={label}
 	title={words || undefined}
+	data-landmark={landmark
+		? landmark.toLowerCase().replaceAll(' ', '-')
+		: undefined}
 	{...attr}
 	class="rg-track-space {attr.class ? attr.class : ''}"
 	class:rg-track-space--first={first}
@@ -235,6 +251,8 @@
 	class:rg-track-space--computers={track === 'technology' &&
 		name === 'Computers'}
 	class:rg-track-space--tech-combo={techCombo}
+	class:rg-track-space--repeat-large={track === 'science' && space === 7}
+	class:rg-track-space--large-civ={track === 'military' && name === 'Mechs'}
 	class:rg-track-space--ai-singularity={track === 'technology' &&
 		name === 'AI Singularity'}
 	class:rg-track-space--alien-biology={track === 'science' &&
@@ -267,7 +285,15 @@
 				{landmark}
 				{bonus} />
 		{:else}
-			<span class="rg-track-space--name">{name}</span>
+			<span
+				class="rg-track-space--name"
+				class:rg-track-space--name-lines={twoLineName}
+				>{#if track === 'technology' && name === 'Nanotechnology'}<span
+						class="rg-track-space--name-line">Nano-</span
+					><span class="rg-track-space--name-line">technology</span
+					>{:else if twoLineName}{#each name.split(' ') as word, index (index)}<span
+							class="rg-track-space--name-line">{word}</span
+						>{/each}{:else}{name}{/if}</span>
 			{#if benefit.length}
 				<span
 					class="rg-track-space--benefit"
@@ -433,7 +459,7 @@
 	.rg-track-space--last::after {
 		content: '';
 		position: absolute;
-		z-index: 3;
+		z-index: 5;
 		top: 0;
 		right: 0;
 		bottom: 0;
@@ -443,15 +469,6 @@
 			color-mix(in srgb, var(--rg-track-space-color) 25%, var(--text)) 0
 				4px,
 			transparent 4px 8px
-		);
-	}
-
-	.rg-track-space:hover,
-	.rg-track-space:focus-visible {
-		--rg-track-space-body: color-mix(
-			in srgb,
-			var(--rg-track-space-color) 24%,
-			var(--raised)
 		);
 	}
 
@@ -491,6 +508,15 @@
 		background: var(--rg-track-space-body);
 		clip-path: var(--rg-track-space-shape);
 		transition: background var(--duration-fast) var(--ease);
+	}
+
+	.rg-track-space:hover,
+	.rg-track-space:focus-visible {
+		--rg-track-space-body: color-mix(
+			in srgb,
+			var(--rg-track-space-color) 24%,
+			var(--raised)
+		);
 	}
 
 	.rg-track-space--last .rg-track-space--fill {
@@ -593,6 +619,12 @@
 		text-align: left;
 		padding-right: 15px;
 	}
+	.rg-track-space--name-lines {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+		line-height: 0.9;
+	}
 
 	.rg-track-space--benefit,
 	.rg-track-space--bonus {
@@ -644,8 +676,8 @@
 	.rg-track-space--first .rg-track-space--benefit {
 		translate: calc(var(--track-tip) / 4 - 6px) 0;
 	}
-	.rg-track-space--last .rg-track-space--benefit {
-		translate: calc(var(--track-tip) / 2 - 2px) 0;
+	.rg-track-space.rg-track-space--last .rg-track-space--benefit {
+		translate: calc(var(--track-tip) / 2 - 6px) 0;
 	}
 	.rg-track-space--military .rg-track-space--benefit {
 		justify-content: center;
@@ -656,12 +688,18 @@
 	/* Mechs: Conquer over Both dice, then + and the civilization card. */
 	.rg-track-space--mechs .rg-track-space--benefit {
 		display: grid;
-		grid-template-columns: 32px 12px 24px;
-		grid-template-rows: 32px 10px;
+		grid-template-columns: 32px 12px 34px;
+		grid-template-rows: 36px 14px;
 		justify-content: center;
 		align-content: center;
 		column-gap: 3px;
 		row-gap: 0;
+	}
+	.rg-track-space--large-civ
+		.rg-track-space--benefit
+		:global(.rg-space-glyphs--card-icon) {
+		width: 34px;
+		height: 34px;
 	}
 	.rg-track-space--mechs
 		.rg-track-space--benefit
@@ -697,6 +735,20 @@
 		flex-wrap: nowrap;
 		gap: 1px;
 	}
+	.rg-track-space--repeat-large
+		.rg-track-space--benefit
+		:global(.rg-space-glyphs--repeat .rg-space-glyphs--direction) {
+		width: 31px;
+		height: 31px;
+		justify-content: center;
+		font-size: calc(var(--font-size-3xl) * 1.3);
+	}
+	.rg-track-space--repeat-large
+		.rg-track-space--benefit
+		:global(.rg-space-glyphs--repeat svg) {
+		width: 22px;
+		height: 22px;
+	}
 	.rg-track-space--ai-singularity .rg-track-space--benefit {
 		display: flex;
 		flex-direction: row;
@@ -712,8 +764,8 @@
 		gap: 1px;
 	}
 	.rg-track-space--ai-singularity .rg-track-space--ai-resources :global(img) {
-		width: 17px;
-		height: 17px;
+		width: 18px;
+		height: 18px;
 	}
 	.rg-track-space--ai-restart > img {
 		width: 26px;
@@ -729,7 +781,8 @@
 		width: 18px;
 		height: 18px;
 	}
-	.rg-track-space--alien-biology .rg-track-space--benefit {
+	.rg-track-space--alien-biology:not(.rg-track-space--has-bonus)
+		.rg-track-space--benefit {
 		flex-direction: row;
 		flex-wrap: nowrap;
 		gap: 1px;
@@ -748,8 +801,8 @@
 		gap: 0;
 	}
 	.rg-track-space--alien-rolls img {
-		width: 17px;
-		height: 17px;
+		width: 24px;
+		height: 24px;
 	}
 	.rg-track-space--alien-no-benefit {
 		color: var(--danger);
@@ -887,6 +940,16 @@
 		.rg-track-space--body {
 			--rg-vp-cup-size: 27px;
 		}
+		.rg-track-space--alien-rolls img {
+			width: 27px;
+			height: 27px;
+		}
+		.rg-track-space--ai-singularity
+			.rg-track-space--ai-resources
+			:global(img) {
+			width: 19px;
+			height: 19px;
+		}
 	}
 
 	/* The number stays at the step below, so it still fits the arrow tip. */
@@ -894,6 +957,16 @@
 		.rg-track-space--body {
 			--rg-track-space-text: var(--font-size-xs);
 			--rg-vp-cup-size: 29px;
+		}
+		.rg-track-space--alien-rolls img {
+			width: 29px;
+			height: 29px;
+		}
+		.rg-track-space--ai-singularity
+			.rg-track-space--ai-resources
+			:global(img) {
+			width: 20px;
+			height: 20px;
 		}
 		/* The larger name takes 2px more, so the benefit still ends where the bonus band begins. */
 		.rg-track-space--has-bonus .rg-track-space--benefit {

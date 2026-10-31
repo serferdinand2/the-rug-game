@@ -67,7 +67,6 @@
 		handCount,
 		publicSeat,
 	} from '../../lib/area/inspect.js';
-	import { playerColor } from '../../lib/ui.js';
 
 	/** @type {PlayerTabsProps} */
 	let {
@@ -163,8 +162,7 @@
 <div
 	{...attr}
 	class="rg-player-tabs {attr.class ? attr.class : ''}"
-	class:rg-player-tabs--inspecting={!own}
-	style:--rg-player-tabs-color={own ? null : playerColor(colorSeat)}>
+	class:rg-player-tabs--inspecting={!own}>
 	{#if !own}
 		<InspectBar
 			text={words.viewing}
@@ -274,8 +272,11 @@
 	/* Another player's tabs (issue 145): their line on top, and a border in their colour, drawn inside so nothing moves. */
 	.rg-player-tabs--inspecting {
 		grid-template-rows: auto auto minmax(0, 1fr);
-		outline: var(--border-thick) solid var(--rg-player-tabs-color);
-		outline-offset: calc(-1 * var(--border-thick));
+	}
+
+	/* Keep a selected edge tab inside the colored frame, even when the row scrolls to its start. */
+	.rg-player-tabs--inspecting :global(.rg-player-tabs--tabs) {
+		padding-inline-start: var(--border-thick);
 	}
 
 	/* Under 420px (windows under 1680px wide) the tabs tighten, so all seven still show at 1366×768 (#64); narrower

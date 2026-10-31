@@ -55,6 +55,7 @@
 							<div class="rg-income-mat--tile-content">
 								<b
 									class="rg-income-mat--name"
+					class:rg-income-mat--name-symbology={space.name === 'Symbology'}
 									class:rg-income-mat--name-fit={[
 										'Preservation',
 										'Fertilization',
@@ -210,6 +211,11 @@
 
 	.rg-income-mat--name-fit {
 		font-size: var(--font-size-income-mat-fit);
+		white-space: nowrap;
+	}
+
+	.rg-income-mat--name-symbology {
+		font-size: var(--font-size-income-name-fit);
 		white-space: nowrap;
 	}
 

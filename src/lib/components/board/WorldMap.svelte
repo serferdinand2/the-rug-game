@@ -38,7 +38,7 @@
 		pictureUrl,
 	} from '../../painted-map.js';
 	import { paintTerritory } from '../../art/paint/map.js';
-	import { artUrl, playerColor } from '../../ui.js';
+	import { artUrl, playerColor, playerPieceUrl } from '../../ui.js';
 
 	/** @type {WorldMapProps} */
 	let {
@@ -53,7 +53,6 @@
 		onWorldMapSelect,
 		...attr
 	} = $props();
-
 	// The hex keyboard focus is on, outlined above its neighbours.
 	/** @type {string | null} */
 	let focused = $state(null);
@@ -211,37 +210,34 @@
 					cy={piece.y}
 					r={piece.size * 0.42}
 					style:fill={playerColor(piece.seat)} />
-			{:else if piece.toppled}
-				<!-- Lying on its side: half as tall, outlined in the player's colour. -->
-				<rect
-					class="rg-world-map--toppled"
-					x={piece.x - piece.size / 2}
-					y={piece.y}
-					width={piece.size}
-					height={piece.size / 2}
-					style:stroke={playerColor(piece.seat)} />
-				{#if piece.mark}
-					<polygon
-						class="rg-world-map--mark"
-						points={piece.mark}
-						transform="translate({piece.x} {piece.y +
-							piece.size / 4}) rotate(90) scale({piece.size *
-							0.6})"
-						style:fill={playerColor(piece.seat)} />
-				{/if}
 			{:else}
-				<rect
+				{@const markSize = piece.capital
+					? piece.size
+					: (piece.width ?? piece.size)}
+				<image
 					class="rg-world-map--outpost"
-					x={piece.x - piece.size / 2}
-					y={piece.y - piece.size / 2}
-					width={piece.size}
-					height={piece.size}
-					style:fill={playerColor(piece.seat)} />
+					href={playerPieceUrl(
+						piece.capital
+							? 'capital-fortress'
+							: piece.toppled
+								? 'outpost-toppled'
+								: 'outpost',
+						piece.seat
+					)}
+					x={piece.x - (piece.width ?? piece.size) / 2}
+					y={piece.y - (piece.height ?? piece.size) / 2}
+					width={piece.width ?? piece.size}
+					height={piece.height ?? piece.size}
+					preserveAspectRatio="none"
+					aria-hidden="true" />
 				{#if piece.mark}
 					<polygon
 						class="rg-world-map--mark"
 						points={piece.mark}
-						transform="translate({piece.x} {piece.y}) scale({piece.size})" />
+						transform={piece.toppled
+							? `translate(${piece.x} ${piece.y + markSize / 4}) rotate(90) scale(${markSize * 0.6})`
+							: `translate(${piece.x} ${piece.y}) scale(${markSize})`}
+						style:fill={playerColor(piece.seat)} />
 				{/if}
 			{/if}
 		{/each}
@@ -401,15 +397,13 @@
 		stroke-dasharray: 5 4;
 	}
 
-	.rg-world-map--outpost,
+	.rg-world-map--outpost {
+		pointer-events: none;
+	}
+
 	.rg-world-map--token {
 		stroke: var(--ink);
 		stroke-width: 1.2;
-	}
-
-	.rg-world-map--toppled {
-		fill: var(--ink);
-		stroke-width: 1.5;
 	}
 
 	.rg-world-map--mark {

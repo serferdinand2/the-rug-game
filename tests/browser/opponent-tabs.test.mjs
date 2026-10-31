@@ -134,24 +134,20 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		const amounts = (entry) =>
 			RESOURCES.map((resource) => String(entry.resources[resource.id]));
 
-		// Their chip shows their tabs, bordered in their colour, and not the players overview.
+		// Their chip shows their tabs and summary in one continuous frame, in their colour, and not the players overview.
 		await chip.click();
 		await expect(inspecting).toBeVisible();
 		await expect(page.locator('.rg-players-overview')).toHaveCount(0);
 		await expect(tabs.getByText(`Viewing ${name}'s area`)).toBeVisible();
-		const border = await inspecting.evaluate((element) => {
-			const style = getComputedStyle(element);
-			return { style: style.outlineStyle, width: style.outlineWidth };
+		const border = await inspecting.locator('xpath=..').evaluate((element) => {
+			const frame = getComputedStyle(element, '::after');
+			return frame.boxShadow;
 		});
-		expect(border.style).toBe('solid');
-		expect(parseFloat(border.width)).toBeGreaterThan(0);
+		expect(border).not.toBe('none');
+		expect(border).toMatch(/rgba?\(/);
 
 		// The summary belongs to the inspected player too, including their public resource counts.
 		await expect(summaryHead).toContainText(name);
-		const summaryBorder = await summary.evaluate(
-			(element) => getComputedStyle(element).boxShadow
-		);
-		expect(summaryBorder).not.toBe('none');
 		for (const resource of ['coin', 'worker', 'food', 'culture']) {
 			await expect(
 				summary.getByRole('img', {
@@ -162,12 +158,8 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		await expect(summary.locator('.rg-resource-chip--changed')).toHaveCount(
 			0
 		);
-		// The summary at the foot is theirs, framed in their colour, with their own resources (#157).
+		// The summary at the foot is theirs and keeps their own resources (#157); the shared parent frame covers it.
 		await expect(counts).toHaveText(amounts(theirs.game.seats[other - 1]));
-		const frame = await summary.evaluate(
-			(element) => getComputedStyle(element).boxShadow
-		);
-		expect(frame).not.toBe('none');
 
 		// Their hand is a count, with no card face.
 		await tabs.getByRole('tab', { name: /^Hand/ }).click();

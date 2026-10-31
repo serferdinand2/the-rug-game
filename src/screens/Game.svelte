@@ -54,6 +54,7 @@
 	import { mapHexes } from '../lib/hexmap.js';
 	import { PromptState } from '../lib/prompt-state.svelte.js';
 	import { areaSummary, selfSummary } from '../lib/overview.js';
+	import { playerColor } from '../lib/ui.js';
 	import {
 		advanceOptions,
 		firstIncomeNotice,
@@ -732,7 +733,14 @@
 	{/snippet}
 
 	{#snippet player()}
-		<div class="rg-game--private">
+		<div
+			class="rg-game--private"
+			class:rg-game--private-inspecting={viewing !== null}
+			style:--rg-game-inspection-color={viewing !== null
+				? playerColor(
+						/** @type {import('../lib/ui.js').Seat} */ (viewing)
+					)
+				: null}>
 			{#if tabSeat !== null && (viewing !== null || summary)}
 				<PlayerTabs
 					{game}
@@ -760,11 +768,7 @@
 				</p>
 			{/if}
 			{#if shownSummary}
-				<SelfSummary
-					{...shownSummary}
-					class={viewing !== null && shownSummary.seat !== seat
-						? 'rg-game--theirs'
-						: ''} />
+				<SelfSummary {...shownSummary} />
 			{/if}
 		</div>
 	{/snippet}
@@ -816,6 +820,11 @@
 		overflow: hidden;
 	}
 
+	/* In the 3/4 play area, bold only each track name between its icon and rule line. */
+	.rg-game--shared :global(.rg-track--heading .rg-track--name) {
+		font-weight: var(--weight-bold);
+	}
+
 	.rg-game--head {
 		display: flex;
 		align-items: center;
@@ -847,14 +856,20 @@
 		overflow: hidden;
 	}
 
-	/* Another player's summary (issue 157) continues the border their tabs draw (issue 145) down its sides and foot. */
-	.rg-game--private :global(.rg-game--theirs) {
-		box-shadow:
-			inset var(--border-thick) 0 0 var(--rg-self-summary-color),
-			inset calc(-1 * var(--border-thick)) 0 0
-				var(--rg-self-summary-color),
-			inset 0 calc(-1 * var(--border-thick)) 0
-				var(--rg-self-summary-color);
+	/* Draw one uninterrupted inspection frame around tabs and the resource summary. */
+	.rg-game--private-inspecting {
+		position: relative;
+		isolation: isolate;
+	}
+
+	.rg-game--private-inspecting::after {
+		position: absolute;
+		z-index: 10;
+		inset: 0;
+		box-shadow: inset 0 0 0 var(--border-thick)
+			var(--rg-game-inspection-color);
+		content: '';
+		pointer-events: none;
 	}
 
 	.rg-game--soon {

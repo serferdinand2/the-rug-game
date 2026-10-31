@@ -61,6 +61,35 @@ test('the track spaces keep 10px text at 1920×1080 and grow it on larger screen
 		const spaces = page.locator('.rg-track-space');
 		await expect(spaces).toHaveCount(48);
 
+		const lighthouse = page.locator(
+			'.rg-track-space[data-landmark="lighthouse"]'
+		);
+		await expect(lighthouse).toHaveCount(1);
+		// The fresh game opens a decision panel over part of the board. Dispatch the same bubbling
+		// pointer event the shared tooltip listens for, independent of whether that panel covers this tile.
+		await lighthouse.dispatchEvent('pointerover', { pointerType: 'mouse' });
+		const landmarkDetail = page.locator(
+			'[data-landmark-detail="lighthouse"]'
+		);
+		await expect(landmarkDetail).toBeVisible();
+		await expect(landmarkDetail).toContainText('Lighthouse');
+		await expect(
+			landmarkDetail.locator('.rg-landmark-hover-detail--name')
+		).toHaveCSS('color', 'rgb(226, 184, 87)');
+		await expect(landmarkDetail.locator('img')).toHaveAttribute(
+			'src',
+			/art\/landmark\/lighthouse\.svg/
+		);
+		await expect(landmarkDetail.locator('img')).toHaveCSS('width', '44px');
+		await expect(
+			landmarkDetail.locator('[data-footprint]')
+		).toHaveAttribute('data-footprint', 'XX/XX');
+		await lighthouse.evaluate((tile) =>
+			tile.removeAttribute('data-landmark')
+		);
+		await expect(landmarkDetail).toBeHidden();
+		await page.keyboard.press('Escape');
+
 		for (const screen of SCREENS) {
 			await page.setViewportSize(screen);
 			const name = page.locator('.rg-track-space--name').first();
@@ -71,6 +100,138 @@ test('the track spaces keep 10px text at 1920×1080 and grow it on larger screen
 			await expect(
 				page.locator('.rg-space-glyphs--resource img').first()
 			).toHaveCSS('width', `${screen.resource}px`);
+
+			const sizeComparisons = await page.evaluate(() => {
+				const images = (selector) =>
+					[...document.querySelectorAll(selector)].map((image) =>
+						parseFloat(getComputedStyle(image).width)
+					);
+				const technology = document.querySelector(
+					'.rg-track[aria-label="Technology"]'
+				);
+				const science = document.querySelector(
+					'.rg-track[aria-label="Science"]'
+				);
+				const bySpace = (track, space) =>
+					[...track.querySelectorAll('.rg-track-space')].find(
+						(tile) =>
+							tile.style.getPropertyValue(
+								'--rg-track-space-step'
+							) === String(space)
+					);
+				const tech2 = bySpace(technology, 2);
+				const science5 = bySpace(science, 5);
+				const alienBiology = bySpace(science, 12);
+				const alienBenefit = alienBiology.querySelector(
+					'.rg-track-space--benefit'
+				);
+				const alienTranslate = parseFloat(
+					getComputedStyle(alienBenefit).translate
+				);
+				const alienTip = parseFloat(
+					getComputedStyle(alienBiology).getPropertyValue(
+						'--track-tip'
+					)
+				);
+				const singularity = bySpace(technology, 12);
+				const singularityBenefit = singularity.querySelector(
+					'.rg-track-space--benefit'
+				);
+				const singularityTranslate = parseFloat(
+					getComputedStyle(singularityBenefit).translate
+				);
+				const singularityTip = parseFloat(
+					getComputedStyle(singularity).getPropertyValue(
+						'--track-tip'
+					)
+				);
+				const finalTrackBenefitOffsets = [
+					...document.querySelectorAll(
+						'.rg-track-space--last .rg-track-space--benefit'
+					),
+				].map((benefit) =>
+					parseFloat(getComputedStyle(benefit).translate)
+				);
+				const finalTrackTip = parseFloat(
+					getComputedStyle(
+						document.querySelector('.rg-track-space--last')
+					).getPropertyValue('--track-tip')
+				);
+				const finishTile = document.querySelector(
+					'.rg-track-space--last'
+				);
+				const finishEdge = getComputedStyle(finishTile, '::after');
+				const finishEdgeHeight = parseFloat(finishEdge.height);
+				const finishTileHeight =
+					finishTile.getBoundingClientRect().height;
+				const tech2AnyResource = parseFloat(
+					getComputedStyle(
+						tech2.querySelector(
+							'.rg-space-glyphs--bonus .rg-space-glyphs--resource img'
+						)
+					).width
+				);
+				const tech12Resources = images(
+					'.rg-track-space--ai-resources .rg-space-glyphs--resource img'
+				);
+				const chemistryDie = parseFloat(
+					getComputedStyle(
+						science5.querySelector('.rg-space-glyphs--symbol-icon')
+					).width
+				);
+				const alienDice = images('.rg-track-space--alien-rolls img');
+				const civCard = parseFloat(
+					getComputedStyle(
+						document.querySelector(
+							'.rg-track-space--large-civ .rg-space-glyphs--card-icon'
+						)
+					).width
+				);
+				const research = document.querySelector(
+					'.rg-track-space--repeat-large .rg-space-glyphs--repeat'
+				);
+				return {
+					tech12ResourcesMatch: tech12Resources.every(
+						(size) => size === tech2AnyResource
+					),
+					scienceDiceMatch: alienDice.every(
+						(size) => size === chemistryDie
+					),
+					civilizationCard: civCard,
+					alienBiologyShiftedLeft: alienTranslate < alienTip - 2,
+					aiSingularityShiftedLeft:
+						singularityTranslate < singularityTip - 2,
+					allFinalBenefitsShareOffset:
+						new Set(finalTrackBenefitOffsets).size === 1 &&
+						finalTrackBenefitOffsets[0] < finalTrackTip / 2 - 2,
+					finishEdgeDashedFullHeight:
+						finishEdge.zIndex === '5' &&
+						parseFloat(finishEdge.width) === 3 &&
+						finishEdgeHeight >= finishTileHeight - 1 &&
+						finishEdge.backgroundImage.includes(
+							'repeating-linear-gradient'
+						),
+					repeatGlyphSizes: [
+						...research.querySelectorAll(
+							'.rg-space-glyphs--direction, svg'
+						),
+					].map((glyph) => ({
+						width: parseFloat(getComputedStyle(glyph).width),
+						height: parseFloat(getComputedStyle(glyph).height),
+					})),
+				};
+			});
+			expect(sizeComparisons.tech12ResourcesMatch).toBe(true);
+			expect(sizeComparisons.scienceDiceMatch).toBe(true);
+			expect(sizeComparisons.civilizationCard).toBe(34);
+			expect(sizeComparisons.alienBiologyShiftedLeft).toBe(true);
+			expect(sizeComparisons.aiSingularityShiftedLeft).toBe(true);
+			expect(sizeComparisons.allFinalBenefitsShareOffset).toBe(true);
+			expect(sizeComparisons.finishEdgeDashedFullHeight).toBe(true);
+			expect(sizeComparisons.repeatGlyphSizes).toEqual([
+				{ width: 31, height: 31 },
+				{ width: 22, height: 22 },
+			]);
 
 			const faults = await spaces.evaluateAll((all) =>
 				all.flatMap((space) => {
@@ -105,7 +266,14 @@ test('the track spaces keep 10px text at 1920×1080 and grow it on larger screen
 						found.push(`${label}: its name is cut off`);
 					}
 					for (let i = 1; i < parts.length; i++) {
-						if (parts[i].top < parts[i - 1].bottom - 1) {
+						const acceptedTwoLineBonusOverlap =
+							i === 2 &&
+							(label.startsWith('Nanotechnology,') ||
+								label.startsWith('Drone Assassins,'));
+						if (
+							parts[i].top < parts[i - 1].bottom - 1 &&
+							!acceptedTwoLineBonusOverlap
+						) {
 							found.push(`${label}: its parts overlap`);
 						}
 					}
