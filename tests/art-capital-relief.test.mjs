@@ -316,11 +316,20 @@ test('the natural ground paints at an offset and stays inside its plot', () => {
  * @param {string} biome
  * @returns {{ fp: ReturnType<typeof footprint>, canvas: ReturnType<typeof createCanvas> }}
  */
-function paint(layout, biome) {
+function paint(layout, biome, mat = {}) {
 	const fp = footprint(layout);
 	const canvas = createCanvas(fp.w, fp.h);
-	RELIEF_PAINTERS[biome](canvas, fp, 5);
+	RELIEF_PAINTERS[biome](canvas, fp, 5, mat);
 	return { fp, canvas };
+}
+
+/**
+ * What a relief's mat prints beyond its plots: its own mat's data, or the specimen's.
+ * @param {string} biome
+ * @param {'mat' | 'specimen'} which
+ */
+function dataOf(biome, which) {
+	return which === 'mat' ? matData(biome) : (SPECIMEN_DATA[biome] ?? {});
 }
 
 /**
@@ -346,7 +355,10 @@ const painted = new Map();
 function relief(biome, which) {
 	const key = `${biome} ${which}`;
 	if (!painted.has(key)) {
-		painted.set(key, paint(layoutOf(biome, which), biome));
+		painted.set(
+			key,
+			paint(layoutOf(biome, which), biome, dataOf(biome, which))
+		);
 	}
 	return painted.get(key);
 }
@@ -364,7 +376,11 @@ for (const biome of RELIEF_BIOMES) {
 	test(`${biome}: the relief is deterministic and stays within the reach`, () => {
 		for (const which of /** @type {const} */ (['mat', 'specimen'])) {
 			const a = relief(biome, which);
-			const b = paint(layoutOf(biome, which), biome);
+			const b = paint(
+				layoutOf(biome, which),
+				biome,
+				dataOf(biome, which)
+			);
 			assert.deepEqual(a.canvas.p, b.canvas.p, which);
 			assert.deepEqual(a.canvas.alpha, b.canvas.alpha, which);
 			for (let i = 0; i < a.canvas.p.length; i++) {
@@ -424,23 +440,25 @@ for (const biome of RELIEF_BIOMES) {
 		}
 	});
 
-	test(`${biome}: a piece stands over every corner-only join`, () => {
-		const { fp, canvas } = relief(biome, 'specimen');
-		assert.ok(fp.corners.length > 0);
-		for (const { gx, gy } of fp.corners) {
-			let near = false;
-			for (let dy = -4; dy <= 4 && !near; dy++) {
-				for (let dx = -4; dx <= 4 && !near; dx++) {
-					near = opaque(canvas, (gy + dy) * fp.w + gx + dx);
+	test(`${biome}: a piece stands over every corner-only join, on the specimen and on its own mat`, () => {
+		assert.ok(relief(biome, 'specimen').fp.corners.length > 0);
+		for (const which of /** @type {const} */ (['specimen', 'mat'])) {
+			const { fp, canvas } = relief(biome, which);
+			for (const { gx, gy } of fp.corners) {
+				let near = false;
+				for (let dy = -4; dy <= 4 && !near; dy++) {
+					for (let dx = -4; dx <= 4 && !near; dx++) {
+						near = opaque(canvas, (gy + dy) * fp.w + gx + dx);
+					}
 				}
+				assert.ok(near, `${which}: corner ${gx},${gy}`);
 			}
-			assert.ok(near, `corner ${gx},${gy}`);
 		}
 	});
 
 	test(`${biome}: the relief of its mat is the mat's size and stays within its reach`, () => {
 		const grid = layoutOf(biome, 'mat');
-		const drawn = drawRelief(grid, biome);
+		const drawn = drawRelief(grid, biome, matData(biome));
 		const { w, h } = reliefSize(grid.length, grid[0].length);
 		assert.deepEqual([drawn.w, drawn.h], [w, h]);
 		assert.deepEqual(drawn.p, relief(biome, 'mat').canvas.p);
@@ -452,6 +470,40 @@ for (const biome of RELIEF_BIOMES) {
 		}
 	});
 }
+
+test('the Canyon gorge carries a river along its middle', () => {
+	const { fp, canvas } = relief('canyon', 'mat');
+	const water = new Set([
+		PALETTE.daySea2,
+		PALETTE.daySea3,
+		PALETTE.dayWaveDeep,
+	]);
+	const depth = distanceInside(fp.mask, fp.w, fp.h);
+	let river = 0;
+	for (let i = 0; i < canvas.p.length; i++) {
+		if (water.has(canvas.p[i])) {
+			river++;
+			assert.ok(
+				depth[i] >= 3,
+				`river at ${i} lies ${depth[i]} from the rim`
+			);
+		}
+	}
+	assert.ok(river >= 60, `${river} river pixels`);
+});
+
+test('the Canyon is cut into the plain, not raised on it', () => {
+	const { canvas } = relief('canyon', 'mat');
+	let ink = 0;
+	let painted = 0;
+	for (let i = 0; i < canvas.p.length; i++) {
+		if (opaque(canvas, i)) {
+			painted++;
+			ink += canvas.p[i] === PALETTE.ink ? 1 : 0;
+		}
+	}
+	assert.ok(ink < 0.02 * painted, `${ink} of ${painted} pixels are outline`);
+});
 
 test('a corner-only join stands a peak over the corner', () => {
 	const { fp, canvas } = relief('mountain', 'specimen');
