@@ -522,6 +522,30 @@ test("the Cavern is cave rock with stalagmites and glowing crystals, not the Mou
 	}
 });
 
+test('the Swamp is black water with bleached dead trees', () => {
+	const { canvas } = relief('swamp', 'mat');
+	const water = new Set([
+		PALETTE.quagWater,
+		PALETTE.quagWaterDeep,
+		PALETTE.swampWaterDeep,
+	]);
+	let wet = 0;
+	let painted = 0;
+	for (let i = 0; i < canvas.p.length; i++) {
+		if (opaque(canvas, i)) {
+			painted++;
+			wet += water.has(canvas.p[i]) ? 1 : 0;
+		}
+	}
+	assert.ok(wet >= 0.3 * painted, `${wet} of ${painted} pixels are water`);
+	const colours = new Set(canvas.p);
+	assert.ok(colours.has(PALETTE.creamShade), 'lit dead wood');
+	assert.ok(
+		colours.has(PALETTE.quagReed) || colours.has(PALETTE.swampReed),
+		'reeds'
+	);
+});
+
 test('a corner-only join stands a peak over the corner', () => {
 	const { fp, canvas } = relief('mountain', 'specimen');
 	for (const { gx, gy } of fp.corners) {
