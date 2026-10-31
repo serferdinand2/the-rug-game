@@ -152,6 +152,11 @@ test('every picture has a placeholder its size before it is drawn, as npm run ar
 		w: 296,
 		h: 296,
 	});
+	// The Archipelago's mat has 11 rows (#132).
+	assert.deepEqual(art.pictureSize('capital-relief/archipelago'), {
+		w: 296,
+		h: 362,
+	});
 	assert.deepEqual(art.pictureSize('tapestry/academia'), { w: 64, h: 64 });
 	// The capital art is sized by its plots, so the sections above the reliefs keep their room too.
 	assert.deepEqual(art.pictureSize('capital-terrain/mountain-open-01'), {

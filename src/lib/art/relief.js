@@ -12,6 +12,7 @@ export const RELIEF_BIOMES = Object.freeze([
 	'cavern',
 	'swamp',
 	'mesa',
+	'archipelago',
 ]);
 
 /** A plot's side in pixels. */

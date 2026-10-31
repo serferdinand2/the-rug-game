@@ -589,6 +589,60 @@ test('the Mesa is one tableland per group', () => {
 	}
 });
 
+test("the Archipelago's volcano plots are land and its other impassable plots are sea", () => {
+	const layout = layoutOf('archipelago', 'mat');
+	const { fp, canvas } = relief('archipelago', 'mat');
+	const sea = new Set([PALETTE.daySea1, PALETTE.daySea2, PALETTE.daySea3]);
+	const water = new Set([
+		...sea,
+		PALETTE.dayWave,
+		PALETTE.dayWaveDeep,
+		PALETTE.foam,
+	]);
+	const volcanoes = matData('archipelago').volcanoes ?? [];
+	/** How many pixels of a plot's square, from `from` to `to` on each side, have one of the colours. */
+	const count = (
+		/** @type {number} */ r,
+		/** @type {number} */ c,
+		/** @type {Set<string | null>} */ colours,
+		/** @type {number} */ from,
+		/** @type {number} */ to
+	) => {
+		let n = 0;
+		for (let y = from; y < to; y++) {
+			for (let x = from; x < to; x++) {
+				n += colours.has(canvas.p[(r * 33 + y) * fp.w + c * 33 + x])
+					? 1
+					: 0;
+			}
+		}
+		return n;
+	};
+	for (let r = 0; r < layout.length; r++) {
+		for (let c = 0; c < layout[0].length; c++) {
+			if (!isImpassable(layout, r, c)) {
+				continue;
+			}
+			if (volcanoes.some(([vr, vc]) => vr === r && vc === c)) {
+				assert.equal(count(r, c, sea, 12, 20), 0, `volcano ${r},${c}`);
+			} else {
+				// Over the whole plot, as an islet may stand in its middle.
+				const wet = count(r, c, water, 0, 32);
+				assert.ok(wet > 512, `sea ${r},${c}: ${wet}/1024`);
+			}
+		}
+	}
+});
+
+test("the Archipelago's relief is 296×362", () => {
+	const drawn = drawRelief(
+		layoutOf('archipelago', 'mat'),
+		'archipelago',
+		matData('archipelago')
+	);
+	assert.deepEqual([drawn.w, drawn.h], [296, 362]);
+});
+
 test('a corner-only join stands a peak over the corner', () => {
 	const { fp, canvas } = relief('mountain', 'specimen');
 	for (const { gx, gy } of fp.corners) {
@@ -888,7 +942,10 @@ for (const biome of RELIEF_BIOMES) {
 				}
 			}
 		}
-		assert.ok(bare > 0, `${biome}: the relief covers every gap`);
+		// The Archipelago's sea and wet sand cover every gap inside a group, so none is left bare.
+		if (biome !== 'archipelago') {
+			assert.ok(bare > 0, `${biome}: the relief covers every gap`);
+		}
 	});
 }
 

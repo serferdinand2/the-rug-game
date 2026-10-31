@@ -304,6 +304,36 @@ test('buildArt takes a capital relief the size of its mat, and refuses one with 
 	}
 });
 
+test("buildArt takes the Archipelago's relief at 296×362, its 11 rows, and refuses it at 296×296 (#132)", async () => {
+	const assets = /** @type {any} */ ([relief('archipelago')]);
+	// Each size in a scratch folder of its own, as a drawing module is imported only once.
+	for (const [h, ok] of /** @type {const} */ ([
+		[296, false],
+		[362, true],
+	])) {
+		const { root, drawingsDir, outDir } = await scratch({
+			'capital-relief/archipelago.js': filledDrawing(296, h),
+		});
+		try {
+			if (ok) {
+				const { written } = await buildArt({
+					drawingsDir,
+					outDir,
+					assets,
+				});
+				assert.deepEqual(written, ['capital-relief/archipelago']);
+			} else {
+				await assert.rejects(
+					buildArt({ drawingsDir, outDir, assets }),
+					/must be 296×362/
+				);
+			}
+		} finally {
+			await rm(root, { recursive: true, force: true });
+		}
+	}
+});
+
 /** A landmark asset for a synthetic catalog. */
 const landmark = (/** @type {string} */ slug) => ({
 	id: `landmark/${slug}`,
