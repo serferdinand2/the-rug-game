@@ -85,9 +85,9 @@
 	viewBox="{-size} {-height / 2} {size * 2} {height}"
 	width={size * 2}
 	height={Math.round(height)}
+	{...{ title: name }}
 	{...attr}
 	class="rg-territory-tile {attr.class ?? ''}">
-	<title>{name}</title>
 	{#if href}
 		<image
 			class="rg-territory-tile--art"

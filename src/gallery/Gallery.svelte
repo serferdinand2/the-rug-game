@@ -1,6 +1,7 @@
 <!-- The public card reference: searchable catalog groups, real game card faces, and labelled unfinished slots. -->
 <script>
 	import CardEntry from './CardEntry.svelte';
+	import Tooltip from '../lib/components/ui/Tooltip.svelte';
 	import {
 		CARD_GROUPS,
 		GALLERY_EXPANSIONS,
@@ -142,6 +143,9 @@
 		{/if}
 	</main>
 </div>
+
+<!-- One styled tooltip for every titled element on the page, as in the game (#137). -->
+<Tooltip />
 
 <style>
 	.rg-gallery {

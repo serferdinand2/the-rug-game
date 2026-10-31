@@ -62,9 +62,9 @@ test('territory tiles show their reward icon and matching hover words (#150)', a
 	const coinTile = page.locator(
 		'#territory-tile .rg-territory-tile[aria-label^="Territory tile 1:"]'
 	);
-	await expect(coinTile.first().locator('title')).toHaveText(
-		/Benefit:.*coin/i
-	);
+	// A title attribute, which the styled Tooltip shows; an SVG <title> would show the browser's own.
+	await expect(coinTile.first()).toHaveAttribute('title', /Benefit:.*coin/i);
+	await expect(coinTile.first().locator('title')).toHaveCount(0);
 	await expect(
 		coinTile.first().locator('.rg-territory-tile--reward-icon')
 	).toHaveAttribute('href', '/art/resource-24/coin.svg');
