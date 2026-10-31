@@ -44,6 +44,14 @@ export const CLOUDS = [
  */
 export const CLOUD_TINTS = [0, 1, 2, 3, 0, 1, 3, 2, 0, 0];
 
+/** The names of the four cloud tints, by tint index (#132). */
+export const CLOUD_TINT_NAMES = Object.freeze([
+	'white',
+	'grey',
+	'tan',
+	'cream',
+]);
+
 const SIZE = 32;
 
 /** Cloud surface colours per tint: base, lit, shaded and a line colour for the cloud's rim. */

@@ -271,6 +271,47 @@ const COLOURS = {
 	veilNight: '#43356b',
 	veilNightLight: '#55458a',
 	veilNightShade: '#30254f',
+	// The Arts & Architecture reliefs and their ground (#132).
+	caveFloor: '#403c4f', // the Cavern's floor
+	caveFloorDark: '#2f293c',
+	caveFloorLight: '#625f71',
+	caveGrit: '#716e7f',
+	cloudWhiteBase: '#f1f6fb', // Cloud City's four cloud tints
+	cloudWhiteRim: '#95bee6',
+	cloudGreyBase: '#b8c0ce',
+	cloudGreyLight: '#c7d3e1',
+	cloudGreyDark: '#a7abba',
+	cloudGreyRim: '#737082',
+	cloudTanBase: '#ecdfb6',
+	cloudTanDark: '#ddbd7e',
+	cloudTanRim: '#a67b47',
+	cloudCreamBase: '#f5efe2',
+	cloudCreamRim: '#b09e81',
+	terraceWhite: '#d0d9cf', // Cloud City's mountain terraces in each cloud's tint
+	terraceWhiteLight: '#eaeddf',
+	terraceWhiteDark: '#a3ab9d',
+	terraceGrey: '#b0bcb7',
+	terraceGreyLight: '#c9d3cd',
+	terraceGreyDark: '#8c8e80',
+	terraceTan: '#cdcda9',
+	terraceTanLight: '#eaead6', // the cream terraces' light tone too
+	terraceTanDark: '#a79762',
+	terraceCream: '#d2d5c2',
+	terraceCreamDark: '#9a9473',
+	strataCapLit: '#ae9a7f', // the Mesa's cliff layers, lit and in shade
+	strataCapShade: '#7a6652',
+	strataRoseLit: '#e6986f',
+	strataRoseShade: '#ad6443',
+	strataCreamLit: '#cfc4b0',
+	strataCreamShade: '#988c7f',
+	strataRedLit: '#c67454',
+	strataRedShade: '#8f432b',
+	strataOrangeLit: '#f1b082',
+	strataOrangeShade: '#b77a54',
+	strataBrownLit: '#a1604e',
+	strataBrownShade: '#6e3125',
+	strataMaroonLit: '#9f4c59',
+	strataMaroonShade: '#6c1f2f',
 };
 
 /**

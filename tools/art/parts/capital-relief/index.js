@@ -19,7 +19,11 @@ import { paintGrassland } from './grassland.js';
 import { CAPITAL_GRIDS } from '../capital-terrain.js';
 import { BIOMES } from '../capital-biomes/index.js';
 import { VOLCANOES } from '../capital-biomes/archipelago.js';
-import { CLOUDS, CLOUD_TINTS } from '../capital-biomes/cloud-city.js';
+import {
+	CLOUDS,
+	CLOUD_TINTS,
+	CLOUD_TINT_NAMES,
+} from '../capital-biomes/cloud-city.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 /** @typedef {import('../../../../src/lib/art/paint/relief/footprint.js').Footprint} Footprint */
@@ -117,6 +121,24 @@ export const SPECIMEN_DATA = Object.freeze({
 });
 
 /**
+ * The natural ground a plot of a mat shows: its biome's, or for Cloud City, the ground in its cloud's tint.
+ * Without clouds, a Cloud City plot is white.
+ * @param {string} biome
+ * @param {number} row
+ * @param {number} col
+ * @param {MatData} mat
+ * @returns {string} A natural ground's name, such as 'canyon' or 'cloud-city-grey'
+ */
+export function groundKey(biome, row, col, mat) {
+	if (biome !== 'cloud-city') {
+		return biome;
+	}
+	const tint =
+		mat.clouds && mat.tints ? mat.tints[Number(mat.clouds[row][col])] : 0;
+	return `cloud-city-${CLOUD_TINT_NAMES[tint]}`;
+}
+
+/**
  * Draws a layout's impassable plots as one relief: transparent everywhere it doesn't reach.
  * @param {readonly string[]} layout - One string per row: '1' or 'X' impassable
  * @param {string} biome - Such as 'mountain'
@@ -153,7 +175,7 @@ export function drawReliefPreview(layout, biome, seed = 0, mat = {}) {
 	for (let row = 0; row < rows; row++) {
 		for (let col = 0; col < cols; col++) {
 			drawNaturalGround(canvas, {
-				biome,
+				biome: groundKey(biome, row, col, mat),
 				variant: hash(row, col, seed) % GROUND_VARIANTS,
 				x: col * PITCH,
 				y: row * PITCH,

@@ -22,6 +22,7 @@ import {
 	SPECIMEN_LAYOUT,
 	drawRelief,
 	drawReliefPreview,
+	groundKey,
 	matData,
 	matLayout,
 } from '../tools/art/parts/capital-relief/index.js';
@@ -223,7 +224,19 @@ function plot(biome, variant) {
 	return canvas;
 }
 
-for (const biome of RELIEF_BIOMES) {
+/** Every natural ground: one per relief biome, the five other Arts & Architecture biomes, and Cloud City's four tints (#132). */
+const GROUND_KEYS = [
+	...RELIEF_BIOMES,
+	...['archipelago', 'canyon', 'cavern', 'mesa', 'swamp'].filter(
+		(biome) => !RELIEF_BIOMES.includes(biome)
+	),
+	'cloud-city-white',
+	'cloud-city-grey',
+	'cloud-city-tan',
+	'cloud-city-cream',
+];
+
+for (const biome of GROUND_KEYS) {
 	test(`${biome}: the natural ground fills its plot deterministically in palette colours`, () => {
 		const colours = new Set(Object.values(PALETTE));
 		for (let variant = 0; variant < 8; variant++) {
@@ -248,6 +261,32 @@ for (const biome of RELIEF_BIOMES) {
 		assert.equal(svgs.size, 8, biome);
 	});
 }
+
+test("groundKey picks a Cloud City plot's ground by its cloud's tint", () => {
+	const mat = matData('cloud-city');
+	assert.equal(groundKey('cloud-city', 0, 0, mat), 'cloud-city-grey');
+	assert.equal(groundKey('cloud-city', 0, 3, mat), 'cloud-city-tan');
+	assert.equal(groundKey('cloud-city', 0, 7, mat), 'cloud-city-cream');
+	assert.equal(groundKey('cloud-city', 2, 2, mat), 'cloud-city-white');
+	assert.equal(groundKey('canyon', 0, 0, {}), 'canyon');
+});
+
+test("the Canyon's earth is paler than the Mesa's soil", () => {
+	/** The share of a ground's pixels in its pale tones, over its eight variants. */
+	const pale = (/** @type {string} */ biome) => {
+		let n = 0;
+		for (let variant = 0; variant < 8; variant++) {
+			n += plot(biome, variant).p.filter(
+				(c) => c === PALETTE.mesaSoilLight || c === PALETTE.sandLight
+			).length;
+		}
+		return n / (8 * 32 * 32);
+	};
+	assert.ok(
+		pale('canyon') > pale('mesa'),
+		`${pale('canyon')} > ${pale('mesa')}`
+	);
+});
 
 test('a biome without a natural ground has none', () => {
 	assert.throws(

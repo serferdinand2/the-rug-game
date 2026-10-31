@@ -169,6 +169,130 @@ function scatterGrassland(put, px, py, roll, rand) {
 	}
 }
 
+/** Sage shrubs, red pebbles and hardpan cracks on the Mesa's red soil (#132). @type {Scatter} */
+function scatterMesa(put, px, py, roll, rand) {
+	if (roll < 0.3) {
+		// A sage shrub.
+		put(px, py, C.mesaSage);
+		put(px - 1, py, C.mesaSage);
+		put(px + 1, py, C.alpineMeadowShade);
+		put(px, py - 1, C.alpineMeadowLight);
+		put(px, py + 1, C.mesaSoilShade);
+		put(px + 1, py + 1, C.mesaSoilShade);
+	} else if (roll < 0.55) {
+		// A red pebble, lit from the upper left.
+		put(px, py, C.mesaRockLight);
+		put(px + 1, py, C.mesaRock);
+		put(px, py + 1, C.mesaRockShade);
+		put(px + 1, py + 1, C.mesaSoilDark);
+	} else if (roll < 0.72) {
+		// A crack in the hardpan.
+		let x = px;
+		let y = py;
+		for (let i = 0; i < 4 + rand() * 4; i++) {
+			put(x, y, C.mesaSoilShade);
+			x++;
+			if (rand() < 0.4) {
+				y += rand() < 0.5 ? -1 : 1;
+			}
+		}
+	}
+}
+
+/** Dry tufts, pebbles and the odd sage on the Canyon's pale red earth (#132). @type {Scatter} */
+function scatterCanyon(put, px, py, roll, rand) {
+	if (roll < 0.35) {
+		put(px, py, C.savannaGoldShade);
+		put(px - 1, py - 1, C.savannaGold);
+		put(px + 1, py - 1, C.savannaGoldShade);
+		put(px, py - 2, rand() < 0.5 ? C.savannaGoldLight : C.savannaGold);
+	} else if (roll < 0.6) {
+		put(px, py, C.mesaSoil);
+		put(px + 1, py, C.mesaSoilShade);
+		put(px, py + 1, C.mesaSoilShade);
+	} else if (roll < 0.68) {
+		put(px, py, C.mesaSage);
+		put(px + 1, py, C.alpineMeadowShade);
+	}
+}
+
+/** Grit, still puddles, crystal glints and pebbles on the Cavern's dark floor (#132). @type {Scatter} */
+function scatterCave(put, px, py, roll, rand) {
+	if (roll < 0.35) {
+		put(px, py, C.caveGrit);
+		put(px + 1, py, C.caveFloorDark);
+	} else if (roll < 0.47) {
+		// A still puddle with a glint.
+		const n = 3 + Math.floor(rand() * 3);
+		for (let i = 0; i < n; i++) {
+			put(px + i, py, i === 1 ? C.nightSea2 : C.nightSea3);
+		}
+		for (let i = 1; i < n - 1; i++) {
+			put(px + i, py + 1, C.caveFloorDark);
+		}
+	} else if (roll < 0.54) {
+		put(px, py, C.tealShade);
+		put(px, py - 1, C.teal);
+	} else if (roll < 0.8) {
+		put(px, py - 1, C.stoneMid);
+		put(px, py, C.stoneShade);
+		put(px + 1, py, C.roofShade);
+	}
+}
+
+/** Moss, puddles, sedge and twigs on the Swamp's mud (#132). @type {Scatter} */
+function scatterSwamp(put, px, py, roll, rand) {
+	if (roll < 0.3) {
+		put(px, py, C.swampMoss);
+		put(px + 1, py, C.quagMoss);
+		put(px, py - 1, C.quagMossLight);
+	} else if (roll < 0.42) {
+		const n = 3 + Math.floor(rand() * 3);
+		for (let i = 0; i < n; i++) {
+			put(px + i, py, i === 1 ? C.swampWaterLight : C.swampWater);
+		}
+		for (let i = 1; i < n - 1; i++) {
+			put(px + i, py - 1, C.swampWaterDeep);
+		}
+	} else if (roll < 0.6) {
+		// Sedge.
+		put(px, py, C.quagReedShade);
+		put(px - 1, py - 1, C.quagReed);
+		put(px + 1, py - 1, C.quagReedShade);
+		put(px, py - 2, C.swampReed);
+	} else if (roll < 0.72) {
+		// A fallen twig.
+		put(px, py, C.timberShade);
+		put(px + 1, py, C.timberShade);
+		put(px + 2, py + 1, C.timberShade);
+	}
+}
+
+/**
+ * Stones, wisps of cloud and alpine tufts on a Cloud City terrace, in the tint of its cloud (#132).
+ * @param {string} wisp - The cloud's lit tone
+ * @param {string} tuft - The terrace's dark tone
+ * @returns {Scatter}
+ */
+function scatterTerrace(wisp, tuft) {
+	return (put, px, py, roll, rand) => {
+		if (roll < 0.3) {
+			put(px, py, C.stoneLight);
+			put(px + 1, py, C.stone);
+			put(px + 1, py + 1, C.stoneShade);
+		} else if (roll < 0.55) {
+			const n = 4 + Math.floor(rand() * 5);
+			for (let i = 0; i < n; i++) {
+				put(px + i, py, wisp);
+			}
+		} else if (roll < 0.75) {
+			put(px, py, tuft);
+			put(px - 1, py - 1, C.alpineMoss);
+			put(px + 1, py - 1, tuft);
+		}
+	};
+}
+
 /**
  * Each biome's natural ground: its seed, its three tones and the small things lying on it.
  * @type {Record<string, { seed: number, base: string, light: string, dark: string, scatter: Scatter }>}
@@ -219,6 +343,72 @@ const GROUNDS = {
 		light: C.savannaGoldLight,
 		dark: C.grass,
 		scatter: scatterGrassland,
+	},
+	// The Arts & Architecture biomes (#132). The Mesa's red soil; the Canyon's paler, dustier earth.
+	mesa: {
+		seed: 7103,
+		base: C.mesaSoil,
+		light: C.mesaSoilLight,
+		dark: C.mesaSoilShade,
+		scatter: scatterMesa,
+	},
+	canyon: {
+		seed: 7211,
+		base: C.mesaSoilLight,
+		light: C.sandLight,
+		dark: C.mesaSoil,
+		scatter: scatterCanyon,
+	},
+	cavern: {
+		seed: 7307,
+		base: C.caveFloor,
+		light: C.caveFloorLight,
+		dark: C.caveFloorDark,
+		scatter: scatterCave,
+	},
+	swamp: {
+		seed: 7411,
+		base: C.swampMud,
+		light: C.swampMudLight,
+		dark: C.swampMudShade,
+		scatter: scatterSwamp,
+	},
+	// The Archipelago's islands: meadow grass, like the Forest's.
+	archipelago: {
+		seed: 7507,
+		base: C.grass,
+		light: C.grassLight,
+		dark: C.grassShade,
+		scatter: scatterMeadow,
+	},
+	// Cloud City's mountain terraces, one ground per cloud tint.
+	'cloud-city-white': {
+		seed: 7700,
+		base: C.terraceWhite,
+		light: C.terraceWhiteLight,
+		dark: C.terraceWhiteDark,
+		scatter: scatterTerrace(C.white, C.terraceWhiteDark),
+	},
+	'cloud-city-grey': {
+		seed: 7701,
+		base: C.terraceGrey,
+		light: C.terraceGreyLight,
+		dark: C.terraceGreyDark,
+		scatter: scatterTerrace(C.cloudGreyLight, C.terraceGreyDark),
+	},
+	'cloud-city-tan': {
+		seed: 7702,
+		base: C.terraceTan,
+		light: C.terraceTanLight,
+		dark: C.terraceTanDark,
+		scatter: scatterTerrace(C.creamLight, C.terraceTanDark),
+	},
+	'cloud-city-cream': {
+		seed: 7703,
+		base: C.terraceCream,
+		light: C.terraceTanLight,
+		dark: C.terraceCreamDark,
+		scatter: scatterTerrace(C.creamLight, C.terraceCreamDark),
 	},
 };
 
