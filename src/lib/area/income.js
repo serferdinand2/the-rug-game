@@ -5,6 +5,7 @@ import { INCOME_MAT } from '../engine/data/income-mat.js';
 import { BUILDING_IDS } from '../engine/data/ids.js';
 import { buildingName, roman, tapestryName } from '../game-names.js';
 import { article, pluralOf } from '../words.js';
+import { spaceGlyphs } from '../glyphs.js';
 
 /** @typedef {import('../engine/data/effects.js').Effect} Effect */
 
@@ -13,6 +14,8 @@ import { article, pluralOf } from '../words.js';
  * @typedef {Object} IncomeSpaceView
  * @property {string} name - The innovation, as printed
  * @property {string} reward - Its income and scoring in words, or '' when it has neither
+ * @property {import('../glyphs.js').Glyph[]} incomeGlyphs - Income effects as shared symbols
+ * @property {import('../glyphs.js').Glyph[]} scoreGlyphs - Scoring effects as shared symbols
  * @property {boolean} covered - A building still sits on it
  * @property {string} label - The space in words: "Barter. Income: Gain 1 coin", or "Barter, covered by a market"
  */
@@ -52,6 +55,8 @@ export function incomeRows(seat) {
 			name: pluralOf(buildingName(building)),
 			left,
 			spaces: INCOME_MAT[building].map((space, index) => {
+				const incomeGlyphs = spaceGlyphs(space.income);
+				const scoreGlyphs = spaceGlyphs(space.score);
 				const reward = /** @type {[string, readonly Effect[]][]} */ ([
 					['Income', space.income],
 					['Score', space.score],
@@ -66,6 +71,8 @@ export function incomeRows(seat) {
 				return {
 					name: space.name,
 					reward,
+					incomeGlyphs,
+					scoreGlyphs,
 					covered,
 					label: covered
 						? `${space.name}, covered by ${article(building)} ${building}`

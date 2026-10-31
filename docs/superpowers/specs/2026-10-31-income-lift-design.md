@@ -1,4 +1,6 @@
-# Lifting a building off the income mat (#142): design
+# Lifting a building off the income mat (#142): deprecated design
+
+> Historical design only. The owner later deprecated this lift-up interaction in favor of the shared income tile layout and left-sliding cover documented in `2026-10-31-income-mat-symbols-design.md` (#151). Do not use this design as the current implementation specification.
 
 Written 2026-10-31. #142 is in M12 · Cosmetic enhancements and has no blockers. The owner chose the lift and its timing from the clickable mockup [docs/ui/income-lift.html](../../ui/income-lift.html) (screenshots in `docs/ui/screens/issue-142/`). Every other decision here is **(my call)**.
 

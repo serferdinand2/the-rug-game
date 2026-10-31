@@ -29,6 +29,27 @@ test('a dealt seat has every space covered but the first of each row', () => {
 	assert.match(rows[0].spaces[0].reward, /Score: .*tech card/);
 });
 
+test('exposed income spaces expose their shared glyphs and keep full accessible words (#151)', () => {
+	const { state } = startedGame(2);
+	const rows = incomeRows(mine(state));
+	const barter = rows[0].spaces[0];
+	assert.deepEqual(barter.incomeGlyphs, [
+		{ kind: 'resource', id: 'coin', count: 1 },
+	]);
+	assert.deepEqual(barter.scoreGlyphs, [
+		{ kind: 'vp', count: null },
+		{ kind: 'per' },
+		{ kind: 'word', text: 'Tech', count: 1 },
+	]);
+	assert.match(barter.label, /Income: Gain 1 coin/);
+	assert.match(barter.label, /Score: .*tech card/);
+	const biometrics = rows[0].spaces.find(
+		(space) => space.name === 'Biometrics'
+	);
+	assert.ok(biometrics);
+	assert.deepEqual(biometrics.scoreGlyphs, [{ kind: 'vp', count: 10 }]);
+});
+
 test('each row is named by its buildings, and each space has its label (#125)', () => {
 	const { state } = startedGame(2);
 	/** @type {any} */ (state.seats[0]).incomeMat.buildings.armory = 4;

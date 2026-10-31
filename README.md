@@ -124,6 +124,8 @@ Open the references directly or run `node docs/ui/preview.mjs` (port 52990): [La
 |---|---|
 | ![The component library, showing the track board](docs/ui/screens/component-library.png) | ![The Art part of the component library, showing landmarks under their plot grid](docs/ui/screens/component-library-art.png) |
 
+The Income tab uses identical 110px tiles for all six spaces in every building row. Each has a light-gray surface, a brown fancy-font tile name, and a 60px dark reward box inset by 2px with a 2px gold border. **Income:** sits above the box when present; the reward symbols, including score effects, sit inside without a redundant Score label. The row's track color glows around the spaces. Covered tiles keep the same content underneath a dark building cover; hover or focus slides the cover left with a shadow to reveal it without moving the cell. Income mat cup icons are 19px, and multiplication signs are compact only on this mat.
+
 **Card gallery (#47).** Every card and asset in the catalog, by type and expansion, with a count per type, a search and an edition filter. Each card is shown in its game frame with the engine's text where it exists; art not drawn yet is a slot that names it. Players open it during a game from the header menu, in a new tab, or at `/cards.html`.
 
 | The card gallery |

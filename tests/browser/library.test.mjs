@@ -82,6 +82,68 @@ test('territory tiles show their reward icon and matching hover words (#150)', a
 	).toBeVisible();
 });
 
+test('income mat rewards use shared symbols and retain readable accessible labels (#151)', async ({
+	page,
+}) => {
+	await page.goto('/components.html#income-mat');
+	const section = page.locator('#income-mat');
+	const barter = section.getByRole('img', {
+		name: /Barter\. Income: Gain 1 coin\. Score: Gain 1 VP per tech card/,
+	});
+	await expect(barter).toBeVisible();
+	await expect(barter.getByText('Income:')).toBeVisible();
+	await expect(barter.getByText('Score')).toHaveCount(0);
+	await expect(barter.getByText('Gain 1 coin')).toHaveCount(0);
+	await expect(barter.locator('img').first()).toHaveAttribute(
+		'src',
+		'/art/resource-24/coin.svg'
+	);
+	await expect(barter.locator('img').nth(1)).toHaveAttribute(
+		'src',
+		'/art/symbol/victory-points.svg'
+	);
+	await expect(barter.locator('img').nth(2)).toHaveAttribute(
+		'src',
+		'/art/symbol/tech-card.svg'
+	);
+
+	const biometrics = section.getByRole('img', {
+		name: /Biometrics\. Score: Gain 10 VP/,
+	});
+	await expect(biometrics).toBeVisible();
+	await expect(biometrics.locator('img')).toHaveAttribute(
+		'src',
+		'/art/symbol/victory-points.svg'
+	);
+	await expect(biometrics.locator('b').last()).toHaveText('10');
+});
+
+test('covered income buildings lift to reveal their printed rewards without changing cell size (#142)', async ({
+	page,
+}) => {
+	await page.goto('/components.html#income-mat');
+	const section = page.locator('#income-mat');
+	const barterCell = section.locator('.rg-income-mat--space-covered').first();
+	const building = barterCell.locator('.rg-income-mat--building');
+	const cover = barterCell.locator('.rg-income-mat--cover');
+	const content = barterCell.locator('.rg-income-mat--tile-content');
+	const before = await barterCell.boundingBox();
+	await expect(content.getByText('Currency')).toBeVisible();
+	await expect(cover).toHaveCSS('transform', 'none');
+	await barterCell.hover();
+	await expect(content.getByText('Income:')).toBeVisible();
+	await expect(cover).toHaveCSS('transform', /matrix\(/);
+	await expect(building).toBeVisible();
+	const after = await barterCell.boundingBox();
+	expect(after?.width).toBe(before?.width);
+	expect(after?.height).toBe(before?.height);
+
+	await barterCell.focus();
+	await expect(barterCell).toBeFocused();
+	await expect(content.getByText('Currency')).toBeVisible();
+	await expect(cover).toHaveCSS('transform', /matrix\(/);
+});
+
 /**
  * A colour as the page computes it, such as 'rgb(226, 184, 87)' for 'var(--gold)', so a test compares like with like.
  * @param {import('@playwright/test').Page} page
@@ -666,20 +728,7 @@ function coveredSpace(page, name) {
 	};
 }
 
-/**
- * The building's bottom edge less the space's top edge: negative once it floats above its space.
- * @param {ReturnType<typeof coveredSpace>} parts
- * @returns {Promise<number>}
- */
-async function clearance({ space, building }) {
-	const spaceBox = await space.boundingBox();
-	const buildingBox = await building.boundingBox();
-	return (
-		(buildingBox?.y ?? 0) + (buildingBox?.height ?? 0) - (spaceBox?.y ?? 0)
-	);
-}
-
-test('pointing at a building lifts it off the income mat and shows the space under it, and it settles back (#142)', async ({
+test('pointing at a covered income tile slides its cover left and restores it on leave (#151)', async ({
 	page,
 }) => {
 	await page.goto('/components.html#income-mat');
@@ -687,50 +736,46 @@ test('pointing at a building lifts it off the income mat and shows the space und
 	await telephone.space.scrollIntoViewIfNeeded();
 	const resting = await telephone.space.boundingBox();
 
-	// At rest the cover hides the printed reward, and the building sits on its space.
-	await expect(telephone.reward).toHaveText('Income: Gain 1 worker');
-	await expect(telephone.cover).toHaveCSS('opacity', '1');
-	expect(await clearance(telephone)).toBeGreaterThan(0);
+	// The building cover hides the shared printed tile at rest.
+	await expect(
+		telephone.space.locator('.rg-income-mat--effect-label')
+	).toHaveText('Income:');
+	await expect(telephone.cover).toHaveCSS('transform', 'none');
 
 	await telephone.space.hover();
-	await expect(telephone.cover).toHaveCSS('opacity', '0');
-	await expect.poll(() => clearance(telephone)).toBeLessThan(0);
+	await expect(telephone.cover).toHaveCSS('transform', /matrix\(/);
 	expect(await telephone.space.boundingBox()).toEqual(resting);
 
 	await page.mouse.move(0, 0);
-	await expect(telephone.cover).toHaveCSS('opacity', '1');
-	await expect.poll(() => clearance(telephone)).toBeGreaterThan(0);
+	await expect(telephone.cover).toHaveCSS('transform', 'none');
 });
 
-test('keyboard focus lifts a building too, and lifted holds one up (#142)', async ({
+test('keyboard focus reveals a covered income tile without a lifted preview prop (#151)', async ({
 	page,
 }) => {
 	await page.goto('/components.html#income-mat');
-	// The section's mid-game mat holds Credit Cards up.
 	const creditCards = coveredSpace(page, 'Credit Cards');
-	await expect(creditCards.cover).toHaveCSS('opacity', '0');
-	await expect.poll(() => clearance(creditCards)).toBeLessThan(0);
+	await expect(creditCards.cover).toHaveCSS('transform', 'none');
 
 	const telephone = coveredSpace(page, 'Telephone');
 	const email = coveredSpace(page, 'Email');
 	await telephone.space.focus();
 	await page.keyboard.press('Tab');
 	await expect(email.space).toBeFocused();
-	await expect(email.cover).toHaveCSS('opacity', '0');
-	await expect.poll(() => clearance(email)).toBeLessThan(0);
-	await expect(telephone.cover).toHaveCSS('opacity', '1');
+	await expect(email.cover).toHaveCSS('transform', /matrix\(/);
+	await expect(telephone.cover).toHaveCSS('transform', 'none');
 });
 
-test('with reduced motion, a building fades where it stands instead of lifting (#142)', async ({
+test('with reduced motion, covered income tile reveal slides immediately (#151)', async ({
 	page,
 }) => {
 	await page.emulateMedia({ reducedMotion: 'reduce' });
 	await page.goto('/components.html#income-mat');
 	const telephone = coveredSpace(page, 'Telephone');
 	await telephone.space.scrollIntoViewIfNeeded();
-	const before = await telephone.building.boundingBox();
+	const before = await telephone.space.boundingBox();
 	await telephone.space.hover();
-	await expect(telephone.building).toHaveCSS('opacity', '0');
-	await expect(telephone.cover).toHaveCSS('opacity', '0');
-	expect(await telephone.building.boundingBox()).toEqual(before);
+	await expect(telephone.cover).toHaveCSS('transform', /matrix\(/);
+	await expect(telephone.cover).toHaveCSS('opacity', '1');
+	expect(await telephone.space.boundingBox()).toEqual(before);
 });

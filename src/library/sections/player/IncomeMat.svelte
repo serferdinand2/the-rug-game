@@ -1,4 +1,4 @@
-<!-- Library section: IncomeMat, a seat's four building rows with covered and exposed spaces, and a building lifted to show its space. -->
+<!-- Library section: IncomeMat, a seat's four building rows with covered and exposed spaces. -->
 <script>
 	import IncomeMat from '../../../lib/components/player/IncomeMat.svelte';
 	import Example from '../../Example.svelte';
@@ -16,7 +16,7 @@
 <Section
 	name="IncomeMat"
 	area="player"
-	description="The income mat: four building rows of six spaces. A space under a building shows the building; an exposed one shows its name in Cinzel and its income and scoring in words. Each building taken from the mat exposes the next space. Pointing at a building, or Tab to its space, lifts it straight up over 220 ms, with a shadow, to show the printed space under it; it settles back when the pointer or focus leaves. With reduced motion the building fades where it stands (#142).">
+	description="The income mat: four rows of six 110px tiles. Every tile uses the same layout: a brown fancy-font name at the top, then an optional Income label above the 60px dark reward box with a 2px gold border. Covered tiles add the row's building over the same printed tile; hovering or focusing slides the building left. The VP cup is 19px, and multiplication signs have no added spacing within this mat.">
 	<Example
 		label={'rows={fresh mat}  era={1}'}
 		width={430}>
@@ -25,12 +25,11 @@
 			era={1} />
 	</Example>
 	<Example
-		label={'rows={mid-game}  era={3}  lifted="Credit Cards"  (point at or Tab to another building)'}
+		label={'rows={mid-game}  era={3}'}
 		width={430}>
 		<IncomeMat
 			rows={MID}
-			era={3}
-			lifted="Credit Cards" />
+			era={3} />
 	</Example>
 	<Example
 		label={'rows={late game}  era={4}'}

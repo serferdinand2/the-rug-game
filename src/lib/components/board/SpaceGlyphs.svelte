@@ -201,6 +201,7 @@
 		{:else}
 			<span
 				class="rg-space-glyphs--joint"
+				class:rg-space-glyphs--times={glyph.kind === 'per'}
 				class:rg-space-glyphs--or={glyph.kind === 'or'}
 				>{glyph.kind === 'or'
 					? '/'
