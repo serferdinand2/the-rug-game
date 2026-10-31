@@ -1,11 +1,11 @@
-<!-- CardShelf: the cards a decision offers, shown in a row above the panel; each is a pressable card, the chosen one outlined in gold. -->
+<!-- CardShelf: the cards a decision offers, shown in a row above the panel; each is a pressable card, the chosen one outlined in gold. Landmark cards too (#32). -->
 <script module>
 	/** @typedef {import('../../prompts.js').ShelfCard} ShelfCard - One card: its index, label and face, from shelfCards() or shelfFace() (#118) */
 
 	/**
 	 * Properties of the CardShelf component itself.
 	 * @typedef {Object} CardShelfOwnProps
-	 * @property {'tapestry' | 'tech' | 'civ' | 'mat'} kind - What the cards are
+	 * @property {import('../../decision-kinds.js').Shelf} kind - What the cards are
 	 * @property {ShelfCard[]} cards - The cards in order, each with its face resolved (#118)
 	 * @property {string} [label] - Names the row for assistive technology; defaults to the kind, such as 'Tapestry cards to choose from'
 	 * @property {number | number[] | null} [selected=null] - The chosen card's index, or the indexes of several chosen at once (#75)
@@ -29,6 +29,7 @@
 	import CapitalMatFace from '../player/CapitalMatFace.svelte';
 	import CardFan from '../player/CardFan.svelte';
 	import CivilizationCard from '../player/CivilizationCard.svelte';
+	import LandmarkCard from '../player/LandmarkCard.svelte';
 	import ScaledCard from '../player/ScaledCard.svelte';
 	import TapestryCard from '../player/TapestryCard.svelte';
 	import TechDeckBack from '../player/TechDeckBack.svelte';
@@ -86,6 +87,7 @@
 		tech: 'Tech cards to choose from',
 		civ: 'Civilizations to choose from',
 		mat: 'Capital mats to choose from',
+		landmark: 'Landmark cards to choose from',
 	};
 
 	/** Tapestry cards fan out only when there are too many to sit side by side (#28 review). */
@@ -181,6 +183,15 @@
 					aria-hidden="true">
 					<TechDeckBack count={face.count} />
 				</ScaledCard>
+			{:else if 'condition' in face}
+				<!-- Landmark cards stand whole, as the #32 mockup draws them. -->
+				<LandmarkCard
+					title={face.title}
+					artwork={face.artwork}
+					footprint={face.footprint}
+					edition={face.edition}
+					condition={face.condition}
+					aria-hidden="true" />
 			{:else if 'timing' in face}
 				<ScaledCard
 					scale={SCALE.tapestry}
@@ -225,13 +236,15 @@
 	/* Civilizations and capital mats sit whole and 18 px apart, as in the decision mockup; the chosen one is outlined
 	   where it stands, so the outline always fits it (#58). A shelf too small for them scrolls. */
 	.rg-card-shelf--civ,
-	.rg-card-shelf--mat {
+	.rg-card-shelf--mat,
+	.rg-card-shelf--landmark {
 		padding: var(--space-4);
 		scrollbar-width: thin;
 	}
 
 	.rg-card-shelf--civ :global(.rg-card-shelf--row),
-	.rg-card-shelf--mat :global(.rg-card-shelf--row) {
+	.rg-card-shelf--mat :global(.rg-card-shelf--row),
+	.rg-card-shelf--landmark :global(.rg-card-shelf--row) {
 		gap: 18px;
 	}
 </style>

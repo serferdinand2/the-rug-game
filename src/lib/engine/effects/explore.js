@@ -3,7 +3,7 @@ import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
 import { hasEra, opponents } from '../abilities.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
-import { SPACE_TILES } from '../data/space-tiles.js';
+import { spaceTile } from '../data/space-tiles.js';
 import { exploreHexes, matchingSides } from '../map.js';
 import { turned } from '../terrain.js';
 import { gainTiles } from './gain.js';
@@ -219,7 +219,7 @@ export function exploreSpaceTile(ctx, player, tile) {
 	seat.spaceTiles.splice(seat.spaceTiles.indexOf(tile), 1);
 	seat.exploredSpace.push(tile);
 	emit(ctx.state, { type: 'spaceExplored', player, tile });
-	const { benefit, ordered } = SPACE_TILES[tile - 1];
+	const { benefit, ordered } = spaceTile(tile);
 	ctx.push([
 		{
 			player,

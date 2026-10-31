@@ -11,19 +11,19 @@ import { DECISIONS } from '../../src/lib/engine/kinds.js';
 const NAMES = ['Ana', 'Bo', 'Cy', 'Dee', 'Eli'];
 
 /**
- * A new base game for `count` players.
+ * A new game for `count` players, base unless `expansions` names some.
  * @param {number} count
- * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[] }} [options]
+ * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], expansions?: string[] }} [options]
  * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random }}
  */
 export function newGame(
 	count,
-	{ version = 'current', seed = 1, variants = [] } = {}
+	{ version = 'current', seed = 1, variants = [], expansions = [] } = {}
 ) {
 	const random = seededRandom(seed);
 	const players = NAMES.slice(0, count).map((name) => ({ name }));
 	return {
-		state: createGame({ players, version, variants, random }),
+		state: createGame({ players, version, variants, expansions, random }),
 		random,
 	};
 }
@@ -93,7 +93,7 @@ function dealCivs(state, wanted) {
  * With `civs`, each seat keeps the one named for it, after its setup and, in the current version, its adjustment,
  * every setup question answered with its default.
  * @param {number} count
- * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], civs?: string[], keepIncome?: boolean }} [options]
+ * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], expansions?: string[], civs?: string[], keepIncome?: boolean }} [options]
  * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random }}
  */
 export function startedGame(
@@ -128,7 +128,7 @@ export function startedGame(
  * the change.
  * @param {number} [count]
  * @param {(seat: any, state: import('../../src/lib/engine/state.js').State) => void} [fill]
- * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], civs?: string[] }} [options] - As startedGame()'s
+ * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], expansions?: string[], civs?: string[] }} [options] - As startedGame()'s
  * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random, player: number }}
  */
 export function readyTurn(count = 2, fill = () => {}, options) {
@@ -149,7 +149,7 @@ export function readyTurn(count = 2, fill = () => {}, options) {
  * (#77). For a test that must set something up before income turn 1, which setup's end no longer leaves time for.
  * @param {number} [count]
  * @param {(seat: any, state: import('../../src/lib/engine/state.js').State) => void} [fill]
- * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], civs?: string[] }} [options] - As startedGame()'s
+ * @param {{ version?: 'original' | 'current', seed?: number, variants?: string[], expansions?: string[], civs?: string[] }} [options] - As startedGame()'s
  * @returns {{ state: import('../../src/lib/engine/state.js').State, random: import('../../src/lib/engine/random.js').Random, player: number }}
  */
 export function firstIncomeTurn(count = 2, fill = () => {}, options) {

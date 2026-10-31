@@ -14,7 +14,7 @@ import { TABS } from '../src/lib/area/tabs.js';
 const SRC = fileURLToPath(new URL('../src/', import.meta.url));
 
 /** The card shelves a decision's answers can be on. */
-const SHELVES = ['tapestry', 'tech', 'civ', 'mat'];
+const SHELVES = ['tapestry', 'tech', 'civ', 'mat', 'landmark'];
 
 test('every engine decision kind has its client facts, and no entry names a kind the engine lacks', () => {
 	assert.deepEqual(

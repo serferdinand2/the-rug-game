@@ -56,6 +56,7 @@
  * @property {Record<string, any>} civData - Each civilization's own state, by civilization id; public, like everything on a civilization mat
  * @property {Era | null} era - The active THIS ERA ability, if any
  * @property {{ capital?: number, civ?: string }} picks - Setup picks until the reveal
+ * @property {{ card: string, gained: boolean } | null} landmarkCard - The landmark card drafted at setup, face up, and whether its landmark is gained (#32)
  */
 /** @typedef {Seat & PlayerFields} PlayerSeat */
 /**
@@ -68,6 +69,7 @@
  * @property {string[]} civs
  * @property {string[]} civDiscard - Civilizations discarded mid-game (Mystics), face up; the newest last
  * @property {number[]} capitals - Mats nobody holds, face up
+ * @property {string[]} landmarkCards - The face-down landmark deck: the cards nobody drafted (#32)
  */
 /** @typedef {{ id: number, batch: number, player: number | null, kind: string } & Record<string, any>} Operation - `origin`, when set, is where its VP counts (#29) */
 /** @typedef {{ player: number | null, kind: string } & Record<string, any>} NewOperation */

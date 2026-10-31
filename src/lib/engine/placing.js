@@ -313,6 +313,14 @@ export function placeLandmark(ctx, op) {
 	} else if (places.size === 1 && others.length === 0) {
 		placePiece(ctx, player, { landmark, ...spots[0] }, true);
 	} else {
-		ctx.push([{ player, kind: 'choosePlacement', landmark }]);
+		// A landmark card's landmark names its card, for the placing prompt (#32).
+		ctx.push([
+			{
+				player,
+				kind: 'choosePlacement',
+				landmark,
+				...(op.source ? { source: op.source } : {}),
+			},
+		]);
 	}
 }

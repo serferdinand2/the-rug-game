@@ -1,4 +1,4 @@
-// The 15 base space tiles and their benefits, gained when a tile is explored next to the income mat (R5; 01 §7.2).
+// The 15 base space tiles and Plans & Ploys' 4, and their benefits, gained when a tile is explored next to the income mat (R5; 01 §7.2; 03 §1.5).
 import { deepFreeze } from './ids.js';
 
 /** @typedef {import('./effects.js').Effect} Effect */
@@ -9,6 +9,9 @@ import { deepFreeze } from './ids.js';
  * @property {number} id - 1–15, the catalog's tile number
  * @property {readonly Effect[]} benefit
  * @property {boolean} ordered - The parts are taken in the order listed, because the tile says "then"
+ * @property {string} [expansion] - Its expansion's code; left out for the base game's
+ * @property {string} [art] - Its catalog slug, when not its number
+ * @property {{ track: import('./ids.js').TrackId, vp: number }} [ongoing] - Once explored: whenever its player advances on `track`, they gain `vp` (#32)
  */
 
 // R5: the erratum reads "conquer, then 1 VP per territory you control".
@@ -55,3 +58,60 @@ export const SPACE_TILES = deepFreeze(
 		ordered: ORDERED.has(index + 1),
 	}))
 );
+
+/**
+ * Plans & Ploys' 4 space tiles, numbered on from the base game's in the catalog's order: three that gain 5 VP whenever
+ * their player advances on a track, and the Monolith (03 §1.5, #32).
+ * @type {readonly SpaceTile[]}
+ */
+export const EXPANSION_SPACE_TILES = deepFreeze(
+	/** @type {SpaceTile[]} */ ([
+		...['technology', 'science', 'military'].map((track, index) => ({
+			id: 16 + index,
+			benefit: [],
+			ordered: false,
+			expansion: 'pp',
+			art: `${track}-5-vp`,
+			ongoing: { track, vp: 5 },
+		})),
+		{
+			id: 19,
+			benefit: [{ landmark: 'monolith' }],
+			ordered: false,
+			expansion: 'pp',
+			art: 'monolith',
+		},
+	])
+);
+
+/** Every space tile the engine knows, by id. */
+const BY_ID = new Map(
+	[...SPACE_TILES, ...EXPANSION_SPACE_TILES].map((tile) => [tile.id, tile])
+);
+
+/**
+ * The space tiles of a game: the base game's, then its expansions'.
+ * @param {readonly string[]} expansions
+ * @returns {SpaceTile[]}
+ */
+export function spaceTilesFor(expansions) {
+	return [
+		...SPACE_TILES,
+		...EXPANSION_SPACE_TILES.filter((tile) =>
+			expansions.includes(/** @type {string} */ (tile.expansion))
+		),
+	];
+}
+
+/**
+ * A space tile by id.
+ * @param {number} id
+ * @returns {SpaceTile}
+ */
+export function spaceTile(id) {
+	const tile = BY_ID.get(id);
+	if (!tile) {
+		throw new RangeError(`There is no space tile ${id}.`);
+	}
+	return tile;
+}

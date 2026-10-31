@@ -93,7 +93,7 @@
 			{#each terrain.space as tile (tile.id)}
 				<figure class="rg-player-tabs--space">
 					<img
-						src={artUrl(`space-tile/${tile.id}`)}
+						src={artUrl(tile.art)}
 						alt="Space tile {tile.id}"
 						width="64"
 						height="64" />

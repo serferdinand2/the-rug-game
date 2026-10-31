@@ -7,9 +7,10 @@ import {
 	BASE_TAPESTRY,
 	techDeck,
 } from '../../src/lib/engine/decks.js';
-import { LANDMARKS } from '../../src/lib/engine/data/landmarks.js';
+import { landmarksFor } from '../../src/lib/engine/data/landmarks.js';
+import { landmarkCardsFor } from '../../src/lib/engine/data/landmark-cards.js';
 import { TERRITORY_TILES } from '../../src/lib/engine/data/territory-tiles.js';
-import { SPACE_TILES } from '../../src/lib/engine/data/space-tiles.js';
+import { spaceTilesFor } from '../../src/lib/engine/data/space-tiles.js';
 import { SMALL_MAP_PAIRS } from '../../src/lib/engine/data/capitals.js';
 import { RESOURCE_CAP } from '../../src/lib/engine/effects/gain.js';
 import {
@@ -30,8 +31,6 @@ const OUTPOSTS = 10;
 const CIV_TOKENS = { traders: 4, isolationists: 4 };
 const MATS = [1, 2, 3, 4, 5, 6];
 const TERRITORY_IDS = TERRITORY_TILES.map((t) => t.id);
-const SPACE_IDS = SPACE_TILES.map((t) => t.id);
-const LANDMARK_IDS = LANDMARKS.map((l) => l.id);
 
 /**
  * Asserts that `found` holds every id of `expected` exactly once, naming what is duplicated and what is missing.
@@ -121,7 +120,19 @@ export function checkState(state, previousSeq = 0) {
 			...supply.space,
 			...players.flatMap((p) => [...p.spaceTiles, ...p.exploredSpace]),
 		],
-		SPACE_IDS
+		spaceTilesFor(state.expansions).map((t) => t.id)
+	);
+	// #32: each landmark card is in the deck, offered in the draft, or kept by one player.
+	exactlyOnce(
+		'landmark cards',
+		[
+			...supply.landmarkCards,
+			...opsOf('chooseLandmarkCard').flatMap((op) => op.options),
+			...players.flatMap((p) =>
+				p.landmarkCard ? [p.landmarkCard.card] : []
+			),
+		],
+		landmarkCardsFor(state.expansions).map((c) => c.id)
 	);
 	exactlyOnce(
 		'civilizations',
@@ -173,7 +184,7 @@ export function checkState(state, previousSeq = 0) {
 				op.landmark !== undefined ? [op.landmark] : []
 			),
 		],
-		LANDMARK_IDS
+		landmarksFor(state.expansions).map((l) => l.id)
 	);
 
 	for (const p of players) {

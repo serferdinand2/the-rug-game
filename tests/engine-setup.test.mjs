@@ -257,7 +257,7 @@ test('the setup events come in order and number from 1', () => {
 	}
 });
 
-test('createGame refuses a bad player count, an unknown version and any expansion', () => {
+test('createGame refuses a bad player count, an unknown version and an expansion not built yet', () => {
 	const base = {
 		players: [{ name: 'Ana' }],
 		version: 'current',
@@ -277,9 +277,9 @@ test('createGame refuses a bad player count, an unknown version and any expansio
 	assert.throws(() => createGame({ ...base, version: '2024' }), {
 		name: 'PlayerError',
 	});
-	assert.throws(() => createGame({ ...base, expansions: ['pp'] }), {
+	assert.throws(() => createGame({ ...base, expansions: ['aa'] }), {
 		name: 'PlayerError',
-		message: /Plans & Ploys isn't available yet/,
+		message: /Arts & Architecture isn't available yet/,
 	});
 	assert.throws(() => createGame({ ...base, expansions: ['xx'] }), {
 		name: 'PlayerError',
@@ -322,8 +322,8 @@ test('checkOptions refuses what createGame refuses, variants included (#22, #53)
 		[{ version: '2024' }, /Unknown rules version: 2024/],
 		[{ version: 'current', expansions: 'pp' }, /expansions must be a list/],
 		[
-			{ version: 'current', expansions: ['pp'] },
-			/Plans & Ploys isn't available yet/,
+			{ version: 'current', expansions: ['aa'] },
+			/Arts & Architecture isn't available yet/,
 		],
 		[{ version: 'current', expansions: ['xx'] }, /Unknown expansion: xx/],
 		[{ version: 'current', variants: 'draft' }, /variants must be a list/],
@@ -352,8 +352,8 @@ test('a game keeps its variants, and says so when it is created (#53)', () => {
 	assert.deepEqual(state.events[0].variants, []);
 });
 
-test('an expansion is refused until its setup is built, and the versions are public', () => {
-	assert.deepEqual(EXPANSIONS_BUILT, []);
+test('an expansion is refused until its setup is built: Plans & Ploys is (owner, #32), and the versions are public', () => {
+	assert.deepEqual(EXPANSIONS_BUILT, ['pp']);
 	assert.ok(Object.isFrozen(EXPANSIONS_BUILT));
 	assert.deepEqual(
 		VERSIONS.map((v) => v.id),

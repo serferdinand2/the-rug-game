@@ -28,6 +28,7 @@ import { chooseTechBenefit } from './decisions/choose-tech-benefit.js';
 import { chooseLandmark } from './decisions/choose-landmark.js';
 import { chooseDiscard } from './decisions/choose-discard.js';
 import { chooseKeep } from './decisions/choose-keep.js';
+import { chooseLandmarkCard } from './decisions/choose-landmark-card.js';
 import { chooseTrade } from './decisions/choose-trade.js';
 import { chooseTrack } from './decisions/choose-track.js';
 import { chooseRoll } from './decisions/choose-roll.js';
@@ -113,6 +114,7 @@ export const DECISIONS = {
 	chooseAlchemists,
 	chooseProphecy,
 	chooseSwap,
+	chooseLandmarkCard,
 };
 
 /** @type {Record<string, import('./state.js').AutomaticKind>} */

@@ -5,12 +5,25 @@ import { playerSeat } from './state.js';
 import { SMALL_MAP_PAIRS } from './data/capitals.js';
 import { startTurn } from './turn.js';
 import { setupCivs } from './civ-turns.js';
+import { draftLandmarkCards } from './landmark-cards.js';
 
 /**
  * The after-setup steps in order. Later issues insert theirs before 'start', which begins play:
  * turns then follow each other on top of the stack, so a step after it would never run.
  */
 export const AFTER_SETUP = ['reveal', 'civDeck', 'civSetup', 'start'];
+
+/**
+ * A game's after-setup steps: with Plans & Ploys, the landmark-card draft comes just before 'start' (#32; 03 §1.2).
+ * @param {readonly string[]} expansions
+ * @returns {string[]}
+ */
+export function afterSetupSteps(expansions) {
+	if (!expansions.includes('pp')) {
+		return [...AFTER_SETUP];
+	}
+	return [...AFTER_SETUP.slice(0, -1), 'landmarkCards', 'start'];
+}
 
 /** @type {Record<string, (ctx: import('./state.js').Context) => void>} */
 export const AFTER_SETUP_STEPS = {
@@ -54,6 +67,7 @@ export const AFTER_SETUP_STEPS = {
 	},
 	// Each player's civilizations set up at the same time, after the reveal (#20 design §5).
 	civSetup: setupCivs,
+	landmarkCards: draftLandmarkCards,
 	start(ctx) {
 		const { state } = ctx;
 		state.phase = 'play';

@@ -5,6 +5,8 @@ import { VERSIONS } from './engine/game.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
 import { describeCost } from './describe.js';
 import { PROPHECIES } from './decision-words.js';
+import { landmarkGoalPhrase } from './cards/landmark-text.js';
+import { LANDMARK_CARDS } from './engine/data/landmark-cards.js';
 import { article, capitalize, countWords, joinList } from './words.js';
 import {
 	achievementName,
@@ -494,6 +496,19 @@ const WORDS = {
 		`${name} swapped two income buildings in their capital.`,
 	landmarkGained: (e, game, name) =>
 		`${name} gained ${landmarkWords(e.landmark)}.`,
+	// The landmark-card draft and goal (#32); the cards drawn stay the drafter's secret.
+	landmarkCardsDrawn: (e, game, name) =>
+		isCount(e.count)
+			? `${name} drew ${e.count} landmark cards.`
+			: `${name} drew landmark cards.`,
+	landmarkCardKept: (e, game, name) =>
+		e.auto
+			? `${name} kept the last landmark card, ${landmarkWords(e.card)}.`
+			: `${name} kept ${landmarkWords(e.card)} landmark card.`,
+	landmarkCardGoalMet: (e, game, name) =>
+		LANDMARK_CARDS.some((card) => card.id === e.card)
+			? `${name} met the ${landmarkName(e.card)} card's goal: ${landmarkGoalPhrase(e.card)}.`
+			: `${name} met their landmark card's goal.`,
 	noLandmarkLeft: (e, game, name) =>
 		typeof e.landmark === 'string'
 			? `${name} could not gain ${landmarkWords(e.landmark)}: it was already taken.`

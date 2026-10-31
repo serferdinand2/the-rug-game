@@ -1,8 +1,9 @@
-// What lasts for a player: the active THIS ERA ability and the civilizations, the triggers they answer, advance blocks and allies (design §5, §6).
+// What lasts for a player: the active THIS ERA ability, the civilizations and the ongoing space tiles, the triggers they answer, advance blocks and allies (design §5, §6).
 import { emit } from './events.js';
 import { isPlayerSeat, playerSeat, seatOf } from './state.js';
 import { ERA_HOOKS } from './eras.js';
 import { civsOf } from './civs/index.js';
+import { EXPANSION_SPACE_TILES } from './data/space-tiles.js';
 
 /** @typedef {import('./data/ids.js').TrackId} TrackId */
 
@@ -72,8 +73,39 @@ export function opponents(state, player) {
 }
 
 /**
- * The trigger handlers of each ability active for a seat: its THIS ERA card's, then each civilization's in the order held.
- * A civilization's operations are `passive`, so a finished player still gets their VP (01 §4.3, #20 design §4).
+ * The handlers of each space tile that lasts once explored: whenever its player advances on its track, they gain its
+ * VP, once per move however many spaces it covers (03 §1.2, §1.5; #32). The VP count as exploring's.
+ * @type {ReadonlyMap<number, Record<string, import('./eras.js').Hook>>}
+ */
+const SPACE_TILE_HOOKS = new Map(
+	EXPANSION_SPACE_TILES.flatMap((tile) => {
+		const { ongoing } = tile;
+		if (!ongoing) {
+			return [];
+		}
+		/** @type {Record<string, import('./eras.js').Hook>} */
+		const hooks = {
+			advanced: (_state, owner, { player, track }) =>
+				owner === player && track === ongoing.track
+					? [
+							{
+								player: owner,
+								kind: 'effects',
+								effects: [{ vp: ongoing.vp }],
+								source: { spaceTile: tile.id },
+								origin: 'map',
+							},
+						]
+					: [],
+		};
+		return [[tile.id, hooks]];
+	})
+);
+
+/**
+ * The trigger handlers of each ability active for a seat: its THIS ERA card's, then each civilization's in the order
+ * held, then each ongoing space tile's in the order explored. A civilization's and a tile's operations are `passive`,
+ * so a finished player still gets their VP (01 §4.3, #20 design §4).
  * @param {import('./state.js').State} state
  * @param {number} seat
  * @returns {{ hooks: Record<string, import('./eras.js').Hook>, passive: boolean }[]}
@@ -87,6 +119,14 @@ function activeHooks(state, seat) {
 	for (const civ of civsOf(state, seat)) {
 		if (civ.hooks) {
 			active.push({ hooks: civ.hooks, passive: true });
+		}
+	}
+	if (isPlayerSeat(state, seat)) {
+		for (const tile of playerSeat(state, seat).exploredSpace) {
+			const hooks = SPACE_TILE_HOOKS.get(tile);
+			if (hooks) {
+				active.push({ hooks, passive: true });
+			}
 		}
 	}
 	return active;

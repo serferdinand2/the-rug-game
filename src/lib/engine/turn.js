@@ -5,6 +5,7 @@ import { rankPlayers } from './ranking.js';
 import { liftBlocks } from './abilities.js';
 import { startIncomeTurn } from './income.js';
 import { seatOf } from './state.js';
+import { landmarkCardOps } from './landmark-cards.js';
 
 /**
  * Starts a seat's turn: its Dictatorship blocks lift (R26), nothing is activated yet (R19), and the turn choice sits above the turn's end.
@@ -37,9 +38,15 @@ export function startTurn(ctx, player) {
 /**
  * Ends a turn once everything it started is done: the next seat in seat order that hasn't finished takes its turn,
  * and when every seat has finished, the game ends. A finished seat's Dictatorship blocks lift as it is skipped (R26).
+ * First, a player whose landmark card's goal is met gains its landmark, and the turn ends after it is placed (#32, R111).
  * @type {import('./state.js').AutomaticKind}
  */
 export function endTurn(ctx, op) {
+	const gain = landmarkCardOps(ctx.state, /** @type {number} */ (op.player));
+	if (gain.length > 0) {
+		ctx.push([...gain, { player: op.player, kind: 'endTurn' }]);
+		return;
+	}
 	const { seats } = ctx.state;
 	const at = seats.findIndex((s) => s.seat === op.player);
 	for (let step = 1; step <= seats.length; step++) {

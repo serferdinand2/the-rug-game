@@ -255,10 +255,11 @@ export function techBenefit(ctx, player, value) {
 }
 
 /**
- * The landmark effect (§8): a landmark card's square gains its landmark and places it, if nobody owns it yet.
+ * The landmark effect (§8): a tech card's square, or the Monolith space tile (#32), gains its landmark and places it,
+ * if nobody owns it yet.
  * @type {import('../state.js').EffectHandler}
  */
-export function landmark(ctx, player, value) {
+export function landmark(ctx, player, value, op) {
 	const { state } = ctx;
 	const id = /** @type {string} */ (value);
 	const at = state.landmarks.indexOf(id);
@@ -267,7 +268,13 @@ export function landmark(ctx, player, value) {
 		return;
 	}
 	state.landmarks.splice(at, 1);
-	emit(state, { type: 'landmarkGained', player, landmark: id, tech: true });
+	const tile = op?.source?.spaceTile;
+	emit(state, {
+		type: 'landmarkGained',
+		player,
+		landmark: id,
+		...(tile === undefined ? { tech: true } : { spaceTile: tile }),
+	});
 	ctx.push([
 		{ player, kind: 'placeLandmark', landmark: id },
 		...triggered(state, 'landmarkGained', {

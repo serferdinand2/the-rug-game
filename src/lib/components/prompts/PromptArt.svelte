@@ -40,6 +40,7 @@
 	import TerritoryTile from '../player/TerritoryTile.svelte';
 	import TechDeckBack from '../player/TechDeckBack.svelte';
 	import { tilePreview } from '../../area/explore.js';
+	import { spaceTileArt } from '../../area/terrain.js';
 	import { CAPITAL_MATS } from '../../engine/data/capitals.js';
 	import { reliefUrl } from '../../capital-terrain.js';
 	import { artUrl } from '../../ui.js';
@@ -59,8 +60,9 @@
 			case 'civ':
 			case 'tapestry':
 			case 'tech':
-			case 'space-tile':
 				return artUrl(`${item.kind}/${item.id}`);
+			case 'space-tile':
+				return artUrl(spaceTileArt(item.id));
 			case 'mat':
 				// A base mat's one picture is its relief; the shelf draws the whole mat as its CapitalGrid (#56).
 				return reliefUrl(CAPITAL_MATS[item.id - 1].id);

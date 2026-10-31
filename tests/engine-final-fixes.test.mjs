@@ -396,6 +396,12 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: [1, 2, 3, 4],
 		},
 		chooseSwap: { player: 1, kind: 'chooseSwap', left: 3 },
+		chooseLandmarkCard: {
+			player: 1,
+			kind: 'chooseLandmarkCard',
+			options: ['skyscraper', 'urban-farm'],
+			drafters: [2],
+		},
 	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),

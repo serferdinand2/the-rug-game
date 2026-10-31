@@ -1,6 +1,6 @@
 // The decisions' titles and answers in words (#26 design §8, #126): what the decision panel asks, and each answer it offers.
 import { TECH_CARDS } from './engine/data/tech-cards.js';
-import { SPACE_TILES } from './engine/data/space-tiles.js';
+import { spaceTileWords } from './area/terrain.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
 import { RESOURCE_IDS, TRACK_IDS } from './engine/data/ids.js';
@@ -237,6 +237,7 @@ const TITLES = {
 			? `Discard a tapestry card for ${d.vpEach} VP?`
 			: 'Discard a tapestry card?',
 	chooseKeep: () => 'Choose a tapestry card to keep',
+	chooseLandmarkCard: () => 'Keep a landmark card',
 	chooseTrade: (d, table) => {
 		const host = isCount(d.host) ? ` with ${seatName(table, d.host)}` : '';
 		return d.optional ? `Make a trade${host}?` : `Choose a trade${host}`;
@@ -279,6 +280,41 @@ const TITLES = {
 			: 'Make a prophecy',
 	chooseSwap: () => 'Swap two income buildings in your capital?',
 };
+
+/** Small counts in words, for "the other two". */
+const FEW = Object.freeze(['no', 'one', 'two', 'three', 'four']);
+
+/**
+ * Who keeps the landmark cards a drafter passes on (#32): as a clause, "Ana and Cy keep the other two", or as the
+ * prompt's sentence, "Ana keeps one of the other two, and Cy the last."
+ * @param {Decision} decision - A chooseLandmarkCard decision, with its `options` and `drafters`
+ * @param {Table | undefined} table
+ * @param {boolean} sentence
+ * @returns {string}
+ */
+export function draftRest(decision, table, sentence) {
+	const drafters = Array.isArray(decision.drafters) ? decision.drafters : [];
+	const names = drafters.map((/** @type {number} */ seat) =>
+		seatName(table, seat)
+	);
+	const left = Array.isArray(decision.options)
+		? decision.options.length - 1
+		: drafters.length;
+	const end = sentence ? '.' : '';
+	if (names.length === 0) {
+		return `${sentence ? 'The' : 'the'} other goes back under the landmark deck${end}`;
+	}
+	if (names.length === 1) {
+		return `${names[0]} gets the other${end}`;
+	}
+	const others = `the other ${FEW[left] ?? left}`;
+	if (!sentence) {
+		return `${joinList(names)} keep ${others}`;
+	}
+	const first = names.slice(0, -1);
+	const each = first.length === 1 ? 'keeps one' : 'keep one each';
+	return `${joinList(first)} ${each} of ${others}, and ${names.at(-1)} the last.`;
+}
 
 /**
  * A decision's question in words: "Choose a resource", "Take the bonus: gain a Farm?", "Where does the Farm go?".
@@ -471,10 +507,7 @@ const ANSWERS = {
 		if (!isCount(a.tile)) {
 			return null;
 		}
-		const tile = SPACE_TILES.find((t) => t.id === a.tile);
-		return tile
-			? `Space tile ${a.tile}: ${effectsPhrase(tile.benefit, table, tile.ordered)}`
-			: `Space tile ${a.tile}`;
+		return `Space tile ${a.tile}: ${spaceTileWords(a.tile, table)}`;
 	},
 	chooseConquer: (a, d, table) => {
 		if (typeof a.hex !== 'string') {
@@ -555,6 +588,10 @@ const ANSWERS = {
 	},
 	chooseKeep: (a) =>
 		typeof a.card === 'string' ? `Keep ${tapestryName(a.card)}` : null,
+	chooseLandmarkCard: (a, d, table) =>
+		typeof a.card === 'string'
+			? `Keep ${landmarkName(a.card)}: ${draftRest(d, table, false)}`
+			: null,
 	chooseTrade: (a, d, table) => {
 		if (a.offer === null) {
 			return 'No trade';

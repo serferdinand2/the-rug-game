@@ -5,7 +5,11 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SILENT, eventText, logEntries } from '../src/lib/log.js';
-import { civilizationName, tapestryName } from '../src/lib/game-names.js';
+import {
+	civilizationName,
+	landmarkName,
+	tapestryName,
+} from '../src/lib/game-names.js';
 import { view } from '../src/lib/engine/game.js';
 import { CAPITAL_MATS } from '../src/lib/engine/data/capitals.js';
 import { simulate } from './helpers/simulation.mjs';
@@ -46,6 +50,13 @@ const SAMPLES = {
 	capitalDealt: { player: 1, options: [2, 4] },
 	capitalScored: { player: 1, rows: 1, columns: 2, uniform: 1 },
 	cardsDiscarded: { player: 2, deck: 'tapestry', cards: ['trade-economy'] },
+	landmarkCardsDrawn: {
+		player: 2,
+		count: 3,
+		secret: { landmarkCards: ['skyscraper', 'tv-station', 'urban-farm'] },
+	},
+	landmarkCardKept: { player: 2, card: 'skyscraper', auto: false },
+	landmarkCardGoalMet: { player: 1, card: 'skyscraper' },
 	cardsDrawn: { player: 1, count: 1, secret: { cards: ['militarism'] } },
 	cardsRevealed: {
 		player: 1,
@@ -252,6 +263,8 @@ function secretWords(secret) {
 				words.push(/** @type {string} */ (mat?.name));
 			} else if (key === 'cards') {
 				words.push(item, tapestryName(item));
+			} else if (key === 'landmarkCards') {
+				words.push(item, landmarkName(item));
 			} else if (key === 'civ' || key === 'civs') {
 				words.push(item, civilizationName(item));
 			} else {

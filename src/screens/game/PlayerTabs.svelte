@@ -43,6 +43,7 @@
 	import Tabs from '../../lib/components/ui/Tabs.svelte';
 	import CardFan from '../../lib/components/player/CardFan.svelte';
 	import CivilizationCard from '../../lib/components/player/CivilizationCard.svelte';
+	import HeldLandmarkCard from '../../lib/components/player/HeldLandmarkCard.svelte';
 	import IncomeMat from '../../lib/components/player/IncomeMat.svelte';
 	import ScaledCard from '../../lib/components/player/ScaledCard.svelte';
 	import TapestryCard from '../../lib/components/player/TapestryCard.svelte';
@@ -56,6 +57,7 @@
 	import { defaultEra, eraSlots, incomeRows } from '../../lib/area/income.js';
 	import { selfSummary } from '../../lib/overview.js';
 	import { terrainView } from '../../lib/area/terrain.js';
+	import { heldLandmarkCard } from '../../lib/area/landmark-card.js';
 	import { tapestryCardData } from '../../lib/cards/game-cards.js';
 	import { CARD_SIZES } from '../../lib/cards/card-sizes.js';
 	import { CARD_CIVS, civCardView } from '../../lib/civ-card.js';
@@ -117,6 +119,8 @@
 	);
 	let capital = $derived(capitalView(player, code));
 	let income = $derived(incomeRows(player));
+	/** The Plans & Ploys landmark card, under the civilizations on the Civ tab (#32, option A). */
+	let landmarkCard = $derived(heldLandmarkCard(player, own));
 	let eras = $derived(eraSlots(player));
 	/** @type {number | null} */
 	let eraShown = $state(null);
@@ -235,6 +239,9 @@
 						onCivilizationCardPick={spotHandler} />
 				</div>
 			{/each}
+			{#if landmarkCard}
+				<HeldLandmarkCard held={landmarkCard} />
+			{/if}
 		{:else if tab === 'tech'}
 			<TechTab
 				title={words.tech}

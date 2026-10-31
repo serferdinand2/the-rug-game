@@ -32,9 +32,9 @@ test('space tiles split held and explored', () => {
 		exploredSpace: [2],
 	});
 	assert.deepEqual(view.space, [
-		{ id: 3, explored: false },
-		{ id: 7, explored: false },
-		{ id: 2, explored: true },
+		{ id: 3, explored: false, art: 'space-tile/3' },
+		{ id: 7, explored: false, art: 'space-tile/7' },
+		{ id: 2, explored: true, art: 'space-tile/2' },
 	]);
 });
 

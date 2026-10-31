@@ -12,7 +12,14 @@
 	import { FOOTPRINTS } from '../lib/art/footprints.js';
 	import { TECH_CARDS } from '../lib/engine/data/tech-cards.js';
 	import { TAPESTRY_CARDS } from '../lib/engine/data/tapestry-cards.js';
-	import { SPACE_TILES } from '../lib/engine/data/space-tiles.js';
+	import {
+		SPACE_TILES,
+		EXPANSION_SPACE_TILES,
+	} from '../lib/engine/data/space-tiles.js';
+	import { LANDMARK_CARDS } from '../lib/engine/data/landmark-cards.js';
+	import { landmarkCondition } from '../lib/cards/landmark-text.js';
+	import { spaceTileWords } from '../lib/area/terrain.js';
+	import { capitalize } from '../lib/words.js';
 	import { techCardData, tapestryCardData } from '../lib/cards/game-cards.js';
 	import { describeEffects } from '../lib/describe.js';
 	import { expansionName } from '../lib/game-names.js';
@@ -27,7 +34,9 @@
 	const tapestryIds = new Set(TAPESTRY_CARDS.map((card) => card.id));
 	const spaceTile = $derived(
 		asset.group === 'space-tile'
-			? SPACE_TILES.find((tile) => String(tile.id) === slug)
+			? [...SPACE_TILES, ...EXPANSION_SPACE_TILES].find(
+					(tile) => (tile.art ?? String(tile.id)) === slug
+				)
 			: undefined
 	);
 	let artState = $state('loading');
@@ -85,7 +94,10 @@
 			title={asset.name}
 			artwork={art}
 			footprint={FOOTPRINTS[slug] ?? []}
-			edition={asset.expansion} />
+			edition={asset.expansion}
+			condition={LANDMARK_CARDS.some((card) => card.id === slug)
+				? landmarkCondition(slug)
+				: undefined} />
 	{:else if CARD_GROUPS.includes(asset.group)}
 		<article
 			class="rg-gallery-entry__frame"
@@ -97,9 +109,11 @@
 					alt={`${asset.name} artwork`}
 					loading="lazy" />
 				<p>
-					{spaceTile
-						? describeEffects(spaceTile.benefit)
-						: 'Rules text pending'}
+					{spaceTile?.ongoing
+						? `${capitalize(spaceTileWords(spaceTile.id))}.`
+						: spaceTile
+							? describeEffects(spaceTile.benefit)
+							: 'Rules text pending'}
 				</p>
 			</div>
 			<div class="rg-gallery-entry__foot"><span>{edition}</span></div>

@@ -222,7 +222,8 @@ export function checkViews(
 		if (!revealed) {
 			assert.deepEqual(v.supply.capitals, facts.capitals);
 		}
-		for (const key of ['territory', 'space', 'civs']) {
+		// The landmark deck's card ids are landmark names, public anyway, so only its count may show (#32).
+		for (const key of ['territory', 'space', 'civs', 'landmarkCards']) {
 			assert.equal(typeof v.supply[key], 'number', `the ${key} stack`);
 		}
 		assert.equal(typeof v.supply.tech.deck, 'number');

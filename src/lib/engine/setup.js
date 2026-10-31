@@ -4,22 +4,24 @@ import { emit } from './events.js';
 import { shuffle } from './random.js';
 import { push, pushGroup } from './stack.js';
 import { run } from './loop.js';
-import { AFTER_SETUP } from './after-setup.js';
+import { afterSetupSteps } from './after-setup.js';
 import { BASE_CIVS, BASE_TAPESTRY, techDeck } from './decks.js';
 import { EXPANSIONS } from '../art/catalog.js';
 import { MAPS } from './data/maps.js';
 import { CAPITAL_MATS, SMALL_MAP_PAIRS } from './data/capitals.js';
-import { LANDMARKS } from './data/landmarks.js';
+import { landmarksFor } from './data/landmarks.js';
+import { landmarkCardsFor } from './data/landmark-cards.js';
 import { ACHIEVEMENTS } from './data/achievements.js';
 import { TERRITORY_TILES } from './data/territory-tiles.js';
-import { SPACE_TILES } from './data/space-tiles.js';
+import { spaceTilesFor } from './data/space-tiles.js';
 import { VERSIONS, TRACK_IDS, RESOURCE_IDS, BUILDING_IDS } from './data/ids.js';
 
 /**
  * The expansions whose setup is built, so a table may choose them. Each expansion issue adds its code (#32, #35, #39).
+ * Plans & Ploys is offered from #32 on, with its civilizations and cards to follow in #33 (owner, 2026-10-31).
  * @type {readonly string[]}
  */
-export const EXPANSIONS_BUILT = Object.freeze([]);
+export const EXPANSIONS_BUILT = Object.freeze(['pp']);
 
 /**
  * One official optional variant a table may switch on (03 FF.2.6, 01 §2.2).
@@ -148,6 +150,7 @@ function newSeat(seat, name) {
 		civData: {},
 		era: null,
 		picks: {},
+		landmarkCard: null,
 	};
 }
 
@@ -291,7 +294,7 @@ export const SETUP_STEPS = [
  * @param {Object} options
  * @param {{ name: string }[]} options.players - In seat order, which is clockwise and turn order
  * @param {import('./data/ids.js').VersionId} options.version
- * @param {string[]} [options.expansions] - None are built yet
+ * @param {string[]} [options.expansions] - Codes from EXPANSIONS_BUILT
  * @param {string[]} [options.variants] - Ids from VARIANTS
  * @param {import('./random.js').Random} options.random
  * @returns {import('./state.js').State}
@@ -356,15 +359,22 @@ export function createGame({
 			),
 			territoryDiscard: [],
 			space: shuffle(
-				SPACE_TILES.map((t) => t.id),
+				spaceTilesFor(expansions).map((t) => t.id),
 				random
 			),
+			// Shuffled only with an expansion that has landmark cards, so a base game draws as it always did (#32).
+			landmarkCards: expansions.includes('pp')
+				? shuffle(
+						landmarkCardsFor(expansions).map((c) => c.id),
+						random
+					)
+				: [],
 			civs: [],
 			civDiscard: [],
 			capitals: [],
 		},
 		hexes,
-		landmarks: LANDMARKS.map((l) => l.id),
+		landmarks: landmarksFor(expansions).map((l) => l.id),
 		achievements: Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, []])),
 		activated: [],
 		usedThisTurn: [],
@@ -397,7 +407,11 @@ export function createGame({
 	}
 
 	push(state, state.pending, [
-		{ player: null, kind: 'setupSteps', steps: [...AFTER_SETUP] },
+		{
+			player: null,
+			kind: 'setupSteps',
+			steps: afterSetupSteps(expansions),
+		},
 	]);
 	pushGroup(state, setup.lanes);
 	run(state, random);

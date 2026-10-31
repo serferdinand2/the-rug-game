@@ -17,6 +17,7 @@ export const HIDDEN_DECKS = [
 	['territory'],
 	['space'],
 	['civs'],
+	['landmarkCards'],
 ];
 
 /**

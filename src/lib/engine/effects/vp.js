@@ -5,7 +5,7 @@ import { sourceOrigin } from '../stack.js';
 import { controlledTerritories } from '../control.js';
 import { spacesAdvanced } from '../movement.js';
 import { BUILDING_IDS, TRACK_IDS } from '../data/ids.js';
-import { LANDMARKS } from '../data/landmarks.js';
+import { ALL_LANDMARKS } from '../data/landmarks.js';
 import { MAPS } from '../data/maps.js';
 
 /** How many income buildings of each type a player starts with on the income mat. */
@@ -20,7 +20,7 @@ const BUILDINGS_PER_ROW = 5;
  */
 export function landmarksOwned(state, player) {
 	const seat = playerSeat(state, player);
-	const ids = new Set(LANDMARKS.map((landmark) => landmark.id));
+	const ids = new Set(ALL_LANDMARKS.map((landmark) => landmark.id));
 	const onMap = MAPS[state.map].hexes.flatMap((hex) =>
 		state.hexes[hex].outposts.flatMap(({ seat: owner, piece }) =>
 			owner === player && piece && 'landmark' in piece

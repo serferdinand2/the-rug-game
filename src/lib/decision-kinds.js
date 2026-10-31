@@ -1,7 +1,7 @@
 // Each decision kind's client facts (#129): the card shelf its answers are on, the tab it opens, its Confirm words and the art beside its answers.
 // A new engine kind adds its entry here, and its title and answer words in decision-words.js.
 
-/** @typedef {'tapestry' | 'tech' | 'civ' | 'mat'} Shelf - The card shelf a decision's answers are on */
+/** @typedef {'tapestry' | 'tech' | 'civ' | 'mat' | 'landmark'} Shelf - The card shelf a decision's answers are on */
 
 /**
  * The shapes of the art beside an answer, which prompts.js draws: a track, resources, a payment, a die face, a
@@ -84,6 +84,7 @@ export const DECISION_KINDS = Object.freeze({
 	chooseAlchemists: { tab: 'civ' },
 	chooseProphecy: { tab: 'civ' },
 	chooseSwap: { tab: 'capital' },
+	chooseLandmarkCard: { shelf: 'landmark', confirm: 'Keep card' },
 });
 
 /**

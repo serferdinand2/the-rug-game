@@ -36,5 +36,6 @@ export {
 } from './table.js';
 // What the prompts read (#28): an explore's matching sides, a tile's turned corners and the income turn's steps.
 export { matchingSides } from './map.js';
+export { landmarkGoal } from './landmark-cards.js';
 export { turned } from './terrain.js';
 export { INCOME_STEPS, INCOME_STEP_KINDS, exposedSpaces } from './income.js';

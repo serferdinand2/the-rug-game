@@ -28,6 +28,7 @@
 	import DecisionOption from '../../lib/components/prompts/DecisionOption.svelte';
 	import DecisionPanel from '../../lib/components/prompts/DecisionPanel.svelte';
 	import CardShelf from '../../lib/components/prompts/CardShelf.svelte';
+	import LandmarkCard from '../../lib/components/player/LandmarkCard.svelte';
 	import CostBox from '../../lib/components/prompts/CostBox.svelte';
 	import IncomeSteps from '../../lib/components/prompts/IncomeSteps.svelte';
 	import ResourceRows from '../../lib/components/prompts/ResourceRows.svelte';
@@ -37,6 +38,7 @@
 	import { offerArt } from '../../lib/picks.js';
 	import { spaceName } from '../../lib/game-names.js';
 	import { terrainSeed } from '../../lib/area/capital.js';
+	import { placingCard } from '../../lib/prompts.js';
 
 	/** @type {DecisionPromptProps} */
 	let {
@@ -54,6 +56,8 @@
 	let picks = $derived(state.picks);
 	let cardPick = $derived(state.cardPick);
 	let advance = $derived(state.advance);
+	/** The landmark card whose goal brought the landmark being placed, above the panel (#32). */
+	let placing = $derived(placingCard(state.decision));
 	/** A pick of several things, or a trade, is narrow, as #75 drew it. */
 	let narrow = $derived(
 		(!!pick && !cardPick) || !!state.offering || state.tradeAnswer !== -1
@@ -274,6 +278,20 @@
 	{/if}
 {/snippet}
 
+<!-- A landmark card's landmark to place: the card above the panel, outlined as the one met (#32 mockup). -->
+{#snippet placingShelf()}
+	{#if placing}
+		<div class="rg-decision-prompt--placing">
+			<LandmarkCard
+				title={placing.title}
+				artwork={placing.artwork}
+				footprint={placing.footprint}
+				edition={placing.edition}
+				condition={placing.condition} />
+		</div>
+	{/if}
+{/snippet}
+
 {#if state.paying && advance && state.payModel && state.payControls}
 	<DecisionPanel
 		{...attr}
@@ -309,7 +327,9 @@
 			? pickShelf
 			: state.shelfCards.length
 				? cardShelf
-				: undefined}
+				: placing
+					? placingShelf
+					: undefined}
 		status={controls.status}
 		statusWarn={controls.warn}
 		children={controls.content ? promptContent : undefined}
@@ -322,6 +342,12 @@
 {/if}
 
 <style>
+	.rg-decision-prompt--placing {
+		margin: var(--space-8) 0 var(--space-4);
+		outline: 3px solid var(--gold);
+		outline-offset: 3px;
+	}
+
 	.rg-decision-prompt--options {
 		display: flex;
 		flex-wrap: wrap;

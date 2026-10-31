@@ -1,4 +1,4 @@
-// The 18 base landmarks, where each one comes from, and the height ranking the current rules' tiebreak uses (01 §6.3; R11–R13).
+// The 18 base landmarks and the expansions', where each one comes from, and the height ranking the current rules' tiebreak uses (01 §6.3; R11–R13).
 // Footprints come from src/lib/art/footprints.js, the one copy the art, the interface and the engine share.
 import { FOOTPRINTS } from '../../art/footprints.js';
 import { deepFreeze } from './ids.js';
@@ -6,8 +6,9 @@ import { deepFreeze } from './ids.js';
 /** @typedef {import('./ids.js').TrackId} TrackId */
 
 /**
- * Where a landmark comes from: the first player into a track's tier II, III or IV, or upgrading the tech card of the same name to the top row.
- * @typedef {{ track: TrackId, tier: 2 | 3 | 4, space: 4 | 7 | 10 } | { tech: string }} LandmarkSource
+ * Where a landmark comes from: the first player into a track's tier II, III or IV, upgrading the tech card of the same
+ * name to the top row, the goal of the landmark card of the same name, or exploring a space tile (#32).
+ * @typedef {{ track: TrackId, tier: 2 | 3 | 4, space: 4 | 7 | 10 } | { tech: string } | { card: string } | { spaceTile: number }} LandmarkSource
  */
 
 /**
@@ -17,6 +18,7 @@ import { deepFreeze } from './ids.js';
  * @property {string} name
  * @property {readonly string[]} footprint - Rows top first, X for a covered plot; any of the 4 rotations, never a mirror (R15)
  * @property {LandmarkSource} source
+ * @property {string} [expansion] - Its expansion's code; left out for the base game's
  */
 
 /**
@@ -95,6 +97,44 @@ export const LANDMARKS = deepFreeze([
 	landmark('stock-market', 'Stock Market', { tech: 'stock-market' }),
 	landmark('treasury', 'Treasury', { tech: 'treasury' }),
 ]);
+
+/**
+ * The expansions' landmarks: Plans & Ploys' 5 landmark-card landmarks and the Monolith (03 §1.6, #32). The Stadium
+ * comes with its tapestry card (#33).
+ * @type {readonly Landmark[]}
+ */
+export const EXPANSION_LANDMARKS = deepFreeze(
+	[
+		landmark('game-store', 'Game Store', { card: 'game-store' }),
+		landmark('tv-station', 'TV Station', { card: 'tv-station' }),
+		landmark('digital-studio', 'Digital Studio', {
+			card: 'digital-studio',
+		}),
+		landmark('skyscraper', 'Skyscraper', { card: 'skyscraper' }),
+		landmark('urban-farm', 'Urban Farm', { card: 'urban-farm' }),
+		landmark('monolith', 'Monolith', { spaceTile: 19 }),
+	].map((l) => ({ ...l, expansion: 'pp' }))
+);
+
+/**
+ * Every landmark the engine knows, base first.
+ * @type {readonly Landmark[]}
+ */
+export const ALL_LANDMARKS = Object.freeze([
+	...LANDMARKS,
+	...EXPANSION_LANDMARKS,
+]);
+
+/**
+ * The landmarks of a game: the base game's, then its expansions'.
+ * @param {readonly string[]} expansions
+ * @returns {Landmark[]}
+ */
+export function landmarksFor(expansions) {
+	return ALL_LANDMARKS.filter(
+		(l) => l.expansion === undefined || expansions.includes(l.expansion)
+	);
+}
 
 /**
  * R12: every landmark of the game and its expansions, tallest first, for the current rules' tiebreak (R11).

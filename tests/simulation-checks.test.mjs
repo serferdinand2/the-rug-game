@@ -167,19 +167,25 @@ test("the state checks count the Traders' and Isolationists' tokens", () => {
 	}
 });
 
-test('the 200 games cover every player count, version and policy 10 times, 5 of them with every variant', () => {
+test('the 200 games cover every player count, version and policy 10 times, 5 of them with every variant, 2 of those 5 with Plans & Ploys', () => {
 	/** @type {Map<string, number>} */
 	const combos = new Map();
+	/** @type {Map<string, number>} */
+	const withPp = new Map();
 	for (let index = 0; index < GAMES; index++) {
-		const { seed, players, version, policy, variants } = gameOf(index);
+		const { seed, players, version, policy, variants, expansions } =
+			gameOf(index);
 		assert.equal(seed, index + 1);
 		assert.ok(variants.length === 0 || variants.length === VARIANTS.length);
+		assert.ok(expansions.length === 0 || expansions[0] === 'pp');
 		const key = `${players} ${version} ${policy} ${variants.length}`;
 		combos.set(key, (combos.get(key) ?? 0) + 1);
+		withPp.set(key, (withPp.get(key) ?? 0) + expansions.length);
 	}
 	assert.equal(GAMES, 200);
 	assert.equal(combos.size, 5 * 2 * 2 * 2);
 	assert.ok([...combos.values()].every((n) => n === 5));
+	assert.ok([...withPp.values()].every((n) => n === 2));
 });
 
 test('a simulated game ends with every player finished and ranked', () => {

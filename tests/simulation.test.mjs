@@ -39,8 +39,9 @@ function setting(name, fallback) {
  * @param {number} index
  */
 function nameOf(index) {
-	const { seed, players, version, policy, variants } = gameOf(index);
-	return `game ${seed}: ${players} players, ${version}, ${policy} play, ${variants.length > 0 ? 'all' : 'no'} variants`;
+	const { seed, players, version, policy, variants, expansions } =
+		gameOf(index);
+	return `game ${seed}: ${players} players, ${version}, ${policy} play, ${variants.length > 0 ? 'all' : 'no'} variants${expansions.length > 0 ? ', Plans & Ploys' : ''}`;
 }
 
 /**

@@ -4,11 +4,17 @@ import { TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
 import { BUILDING_IDS, TRACK_IDS } from './engine/data/ids.js';
 import { RESOURCE_ORDER } from './ui.js';
-import { decisionTitle, describeAnswer } from './decision-words.js';
+import { decisionTitle, describeAnswer, draftRest } from './decision-words.js';
+import { landmarkGoalPhrase } from './cards/landmark-text.js';
 import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
 import { cardSpot, spotWords } from './civ-card.js';
 import { kindFacts } from './decision-kinds.js';
-import { tapestryCardData, techCardData } from './cards/game-cards.js';
+import {
+	landmarkCardData,
+	tapestryCardData,
+	techCardData,
+} from './cards/game-cards.js';
+import { landmarkName } from './game-names.js';
 import { matPlots } from './area/capital.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
 
@@ -60,7 +66,7 @@ import { CAPITAL_MATS } from './engine/data/capitals.js';
  * @property {string} title - decisionTitle(decision, game)
  * @property {string} instruction - One sentence on how to answer
  * @property {'options' | 'cards' | 'map' | 'capital' | 'card'} layout - Where the decision is mainly made; the capital leads, then the map, then the civilization card
- * @property {'tapestry' | 'tech' | 'civ' | 'mat' | null} shelf - What the shelf holds, whenever an option is on it
+ * @property {import('./decision-kinds.js').Shelf | null} shelf - What the shelf holds, whenever an option is on it
  * @property {string[]} mapHexes - The hexes lit on the map, whenever an option is on it, in answer order
  * @property {TrackId | null} track - The track that tints the panel
  * @property {CostSymbol[] | null} cost - A price shown above the options
@@ -478,27 +484,36 @@ function costOf(decision) {
 }
 
 /**
- * How to answer, in one sentence, for the layout.
+ * How to answer, in one sentence, for the layout. The landmark-card draft names who gets the rest, and a landmark
+ * card's landmark says why it came (#32).
  * @param {Decision} decision
  * @param {Prompt['layout']} layout
  * @param {boolean} onMap - Some options are on the map too
+ * @param {any} game - The view, to name the seats
  * @returns {string}
  */
-function instructionOf(decision, layout, onMap) {
+function instructionOf(decision, layout, onMap, game) {
 	switch (layout) {
 		case 'map':
 			return 'Choose a lit territory on the map.';
 		case 'capital':
 			if (typeof decision.landmark === 'string') {
+				const card = decision.source?.landmarkCard;
+				const why =
+					typeof card === 'string'
+						? `Your ${landmarkName(card)} card's goal is met: ${landmarkGoalPhrase(card)}. `
+						: '';
 				return onMap
-					? 'Place the landmark in your capital (drag it, turn it with the . and , keys, then confirm), or choose a lit territory on the map.'
-					: 'Place the landmark in your capital: drag it, turn it with the . and , keys, then confirm.';
+					? `${why}Place the landmark in your capital (drag it, turn it with the . and , keys, then confirm), or choose a lit territory on the map.`
+					: `${why}Place the landmark in your capital: drag it, turn it with the . and , keys, then confirm.`;
 			}
 			return onMap
 				? 'Choose a lit plot in your capital, or a lit territory on the map.'
 				: 'Choose a lit plot in your capital.';
 		case 'cards':
-			return 'Choose a card above, then confirm it here.';
+			return decision.kind === 'chooseLandmarkCard'
+				? `Choose the card to keep, then confirm it here. ${draftRest(decision, game, true)}`
+				: 'Choose a card above, then confirm it here.';
 		case 'card':
 			return 'Choose a lit spot on your civilization card, then confirm it here.';
 		default:
@@ -594,7 +609,7 @@ export function promptFor(decision, game, seat) {
 	return {
 		kind: decision.kind,
 		title: decisionTitle(decision, game),
-		instruction: instructionOf(decision, layout, mapHexes.length > 0),
+		instruction: instructionOf(decision, layout, mapHexes.length > 0, game),
 		layout,
 		shelf: options.some((o) => o.place === 'shelf')
 			? kindFacts(decision.kind).shelf
@@ -623,10 +638,11 @@ export function promptFor(decision, game, seat) {
  */
 
 /**
- * What a shelf card shows, resolved once (#118): a tapestry or tech card's data, the top of the tech deck, a
- * civilization's id or a capital mat.
+ * What a shelf card shows, resolved once (#118): a tapestry, tech or landmark card's data (#32), the top of the tech
+ * deck, a civilization's id or a capital mat.
  * @typedef {import('./cards/game-cards.js').TapestryCardData
  *   | import('./cards/game-cards.js').TechnologyCardData
+ *   | import('./cards/game-cards.js').LandmarkCardData
  *   | { deck: 'tech', count: number }
  *   | string
  *   | MatFace} ShelfFace
@@ -642,8 +658,8 @@ export function promptFor(decision, game, seat) {
 
 /**
  * A shelf card's face, from the id an answer names (#118).
- * @param {'tapestry' | 'tech' | 'civ' | 'mat'} kind - What the shelf holds
- * @param {string} id - A tapestry or tech card id, 'deck', a civilization id or a mat's number
+ * @param {import('./decision-kinds.js').Shelf} kind - What the shelf holds
+ * @param {string} id - A tapestry, tech or landmark card id, 'deck', a civilization id or a mat's number
  * @param {number} [count=0] - For the tech deck: the cards left
  * @returns {ShelfFace}
  */
@@ -657,6 +673,9 @@ export function shelfFace(kind, id, count = 0) {
 	if (kind === 'civ') {
 		return id;
 	}
+	if (kind === 'landmark') {
+		return landmarkCardData(id);
+	}
 	const mat =
 		CAPITAL_MATS.find((m) => m.number === Number(id)) ?? CAPITAL_MATS[0];
 	return {
@@ -665,6 +684,19 @@ export function shelfFace(kind, id, count = 0) {
 		plots: matPlots(mat.number),
 		biome: /** @type {import('./ui.js').CapitalBiome} */ (mat.id),
 	};
+}
+
+/**
+ * The landmark card whose goal brought the landmark being placed, shown above the placing panel (#32); null for any
+ * other decision or landmark.
+ * @param {Decision | null | undefined} decision
+ * @returns {import('./cards/game-cards.js').LandmarkCardData | null}
+ */
+export function placingCard(decision) {
+	const card = isRecord(decision) ? decision.source?.landmarkCard : null;
+	return decision?.kind === 'choosePlacement' && typeof card === 'string'
+		? landmarkCardData(card)
+		: null;
 }
 
 /**

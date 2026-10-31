@@ -1,6 +1,8 @@
 // The player area's terrain (#27 design §2.7): a seat's territory tiles in hand and its space tiles, held and explored.
 import { TERRITORY_TILES } from '../engine/data/territory-tiles.js';
-import { describeEffects } from '../describe.js';
+import { spaceTile } from '../engine/data/space-tiles.js';
+import { describeEffects, effectsPhrase } from '../describe.js';
+import { trackName } from '../game-names.js';
 import { RESOURCES } from '../ui.js';
 
 /** @typedef {import('../ui.js').Terrain} Terrain */
@@ -18,9 +20,34 @@ import { RESOURCES } from '../ui.js';
 /**
  * A space tile, held or explored beside the income mat.
  * @typedef {Object} SpaceEntry
- * @property {number} id - The tile's number (the art is `space-tile/<id>`)
+ * @property {number} id - The tile's number
  * @property {boolean} explored
+ * @property {string} art - Its art's catalog id, from spaceTileArt()
  */
+
+/**
+ * A space tile's art catalog id: `space-tile/<id>`, or its slug for an expansion's tile, such as
+ * `space-tile/technology-5-vp` (#32).
+ * @param {number} id
+ * @returns {string}
+ */
+export function spaceTileArt(id) {
+	return `space-tile/${spaceTile(id).art ?? id}`;
+}
+
+/**
+ * What a space tile does once explored, as a phrase: its benefit, or what it does whenever its player advances (#32).
+ * @param {number} id
+ * @param {any} [table] - The view, to name seats
+ * @returns {string}
+ */
+export function spaceTileWords(id, table) {
+	const tile = spaceTile(id);
+	if (tile.ongoing) {
+		return `whenever you advance on the ${trackName(tile.ongoing.track).toLowerCase()} track, gain ${tile.ongoing.vp} VP`;
+	}
+	return effectsPhrase(tile.benefit, table, tile.ordered);
+}
 
 /**
  * What a seat holds of terrain: its territory tiles, and its space tiles held first, then explored.
@@ -40,8 +67,16 @@ export function terrainView(seat) {
 			};
 		}),
 		space: [
-			...seat.spaceTiles.map((id) => ({ id, explored: false })),
-			...seat.exploredSpace.map((id) => ({ id, explored: true })),
+			...seat.spaceTiles.map((id) => ({
+				id,
+				explored: false,
+				art: spaceTileArt(id),
+			})),
+			...seat.exploredSpace.map((id) => ({
+				id,
+				explored: true,
+				art: spaceTileArt(id),
+			})),
 		],
 	};
 }

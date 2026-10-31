@@ -1,4 +1,4 @@
-<!-- Library section: CardShelf, the cards a decision offers, for tapestry cards, tech cards, civilizations and capital mats. -->
+<!-- Library section: CardShelf, the cards a decision offers, for tapestry cards, tech cards, civilizations, capital mats and landmark cards. -->
 <script>
 	import CardShelf from '../../../lib/components/prompts/CardShelf.svelte';
 	import { shelfFace } from '../../../lib/prompts.js';
@@ -15,13 +15,15 @@
 	let civ = $state(null);
 	/** @type {number | null} */
 	let mat = $state(0);
+	/** @type {number | null} */
+	let landmark = $state(0);
 	/** @type {number[]} */
 	let paid = $state([0, 2]);
 	let inspected = $state('');
 
 	/**
 	 * Shelf cards with their faces, as the prompt state hands them over (#118).
-	 * @param {'tapestry' | 'tech' | 'civ' | 'mat'} kind
+	 * @param {import('../../../lib/decision-kinds.js').Shelf} kind
 	 * @param {[id: string, label: string][]} cards
 	 * @param {number} [deck] - The tech deck's count, for a 'deck' card
 	 */
@@ -36,7 +38,7 @@
 <Section
 	name="CardShelf"
 	area="prompts"
-	description="The cards a decision offers, in a row above the panel. Each card is a button; the chosen one is outlined in gold, and a tapestry or tech card is also lifted. Civilization cards are whole, 425 px wide at their own height, shrinking only as far as the shelf's height needs (never below 0.75), and capital mats are their 9×9 grid of terrain tiles; each sizes its own button, so the outline fits it. Hovering or focusing a card reports it so the screen can show it in full.">
+	description="The cards a decision offers, in a row above the panel. Each card is a button; the chosen one is outlined in gold, and a tapestry or tech card is also lifted. Civilization cards are whole, 425 px wide at their own height, shrinking only as far as the shelf's height needs (never below 0.75), capital mats are their 9×9 grid of terrain tiles, and Plans & Ploys' landmark cards are whole, 319 px wide (#32); each sizes its own button, so the outline fits it. Hovering or focusing a card reports it so the screen can show it in full.">
 	<Example
 		label={`kind="tapestry"  (selected ${tapestry})${inspected ? `  · inspecting ${inspected}` : ''}`}
 		surface="ink"
@@ -134,6 +136,21 @@
 			selected={mat}
 			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 				(mat = event.value)} />
+	</Example>
+	<Example
+		label={`kind="landmark"  (the landmark-card draft, #32 · selected ${landmark})`}
+		surface="ink"
+		wide>
+		<CardShelf
+			kind="landmark"
+			cards={cardsOf('landmark', [
+				['skyscraper', 'Skyscraper'],
+				['tv-station', 'TV Station'],
+				['urban-farm', 'Urban Farm'],
+			])}
+			selected={landmark}
+			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
+				(landmark = event.value)} />
 	</Example>
 	<Example
 		label={`kind="tapestry" selected={[${paid.join(', ')}]}  (paying 2 cards: several chosen)`}

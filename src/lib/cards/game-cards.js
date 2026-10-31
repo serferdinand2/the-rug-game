@@ -1,9 +1,14 @@
-// The tech and tapestry cards as their faces show them, built from the engine's data with describe.js's words (#27 design §3).
+// The tech, tapestry and landmark cards as their faces show them, built from the engine's data with describe.js's words (#27 design §3, #32).
 import { techCard } from '../engine/data/tech-cards.js';
 import { tapestryCard } from '../engine/data/tapestry-cards.js';
 import { INCOME_MAT } from '../engine/data/income-mat.js';
 import { describeEffects } from '../describe.js';
 import { describeTapestryCard } from './tapestry-text.js';
+import { landmarkCondition } from './landmark-text.js';
+import { landmarkCard } from '../engine/data/landmark-cards.js';
+import { FOOTPRINTS } from '../art/footprints.js';
+import { landmarkName } from '../game-names.js';
+import { artUrl } from '../ui.js';
 
 /**
  * A tech card's face, as TechnologyCard draws it.
@@ -28,6 +33,17 @@ import { describeTapestryCard } from './tapestry-text.js';
  * @property {string} [note] - The trap's note: what it gains played as a tapestry card (R22)
  * @property {boolean} [trap] - It is the trap, which has its own red band
  * @property {string} [edition] - Its edition's code, such as 'pp'; the base game when not given
+ */
+
+/**
+ * A landmark card's face, as LandmarkCard draws it (#32).
+ * @typedef {Object} LandmarkCardData
+ * @property {string} id - The card's id, the same as its landmark's
+ * @property {string} title - Its landmark's name
+ * @property {string} artwork - Its picture's URL
+ * @property {readonly string[]} footprint - The plots its landmark covers, top row first
+ * @property {string} edition - Its edition's code, such as 'pp'
+ * @property {string} condition - Its goal, finishing "Gain this landmark when you …"
  */
 
 /** The timing labels of card-design-rules.md, by the engine's timing. */
@@ -124,4 +140,21 @@ export function tapestryTiming(card) {
 		return 'trap';
 	}
 	return card.timing === TIMINGS.played ? 'when-played' : 'this-era';
+}
+
+/**
+ * A landmark card's face: its landmark's name and footprint, its picture and its goal (#32).
+ * @param {string} id - A landmark card id, such as 'skyscraper'
+ * @returns {LandmarkCardData}
+ */
+export function landmarkCardData(id) {
+	const card = landmarkCard(id);
+	return {
+		id: card.id,
+		title: landmarkName(card.landmark),
+		artwork: artUrl(`landmark-card/${card.id}`),
+		footprint: FOOTPRINTS[card.landmark],
+		edition: card.expansion,
+		condition: landmarkCondition(card.id),
+	};
 }
