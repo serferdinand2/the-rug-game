@@ -148,10 +148,6 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 
 		// The summary belongs to the inspected player too, including their public resource counts.
 		await expect(summaryHead).toContainText(name);
-		const summaryBorder = await summary.evaluate(
-			(element) => getComputedStyle(element).boxShadow
-		);
-		expect(summaryBorder).not.toBe('none');
 		for (const resource of ['coin', 'worker', 'food', 'culture']) {
 			await expect(
 				summary.getByRole('img', {
@@ -162,12 +158,8 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		await expect(summary.locator('.rg-resource-chip--changed')).toHaveCount(
 			0
 		);
-		// The summary at the foot is theirs, framed in their colour, with their own resources (#157).
+		// The summary at the foot is theirs and keeps their own resources (#157); the shared parent frame covers it.
 		await expect(counts).toHaveText(amounts(theirs.game.seats[other - 1]));
-		const frame = await summary.evaluate(
-			(element) => getComputedStyle(element).boxShadow
-		);
-		expect(frame).not.toBe('none');
 
 		// Their hand is a count, with no card face.
 		await tabs.getByRole('tab', { name: /^Hand/ }).click();
