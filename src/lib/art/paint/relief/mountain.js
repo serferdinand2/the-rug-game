@@ -69,7 +69,7 @@ function drawFloor(canvas, fp, seed) {
 }
 
 /**
- * A jagged edge from (x0, y0) to (x1, y1), as the x on each row.
+ * A jagged edge from (x0, y0) to (x1, y1), as the x on each row. Cavern, the islets and the volcanoes share it (#132).
  * @param {() => number} rand
  * @param {number} x0
  * @param {number} y0
@@ -78,7 +78,7 @@ function drawFloor(canvas, fp, seed) {
  * @param {number} rough
  * @returns {(y: number) => number}
  */
-function jagged(rand, x0, y0, x1, y1, rough) {
+export function jagged(rand, x0, y0, x1, y1, rough) {
 	/** @type {number[][]} */
 	let pts = [
 		[x0, y0],
@@ -117,15 +117,19 @@ function jagged(rand, x0, y0, x1, y1, rough) {
 }
 
 /**
+ * A peak's outline: jagged flanks from its summit to a horizontal base, and a ridge between its lit and shaded faces.
  * @param {PeakSpec} p
  * @param {number} seed
+ * @param {{ rough?: number, flat?: number }} [options] - How jagged the flanks are, and how far each flank's top
+ *   stands from the summit's middle; the defaults draw the Mountain's peaks
+ * @example peakShape({ bx: 50, by: 60, hw: 10, ph: 12 }, 5, { flat: 3 }) // a flat-topped rock
  */
-function peakShape(p, seed) {
+export function peakShape(p, seed, { rough = 0.35, flat = 0 } = {}) {
 	const rand = seededRandom(hash(p.bx, p.by, p.hw, seed));
 	const sx = p.bx + Math.round((rand() - 0.5) * p.hw * 0.4);
 	const sy = p.by - p.ph;
-	const left = jagged(rand, sx, sy, p.bx - p.hw, p.by, 0.35);
-	const right = jagged(rand, sx, sy, p.bx + p.hw, p.by, 0.35);
+	const left = jagged(rand, sx - flat, sy, p.bx - p.hw, p.by, rough);
+	const right = jagged(rand, sx + flat, sy, p.bx + p.hw, p.by, rough);
 	const ridge = jagged(
 		rand,
 		sx,
@@ -150,13 +154,29 @@ function peakShape(p, seed) {
 /** @typedef {ReturnType<typeof peakShape>} Peak */
 
 /**
+ * A peak's rows, from its summit down to its base.
+ * @param {Peak} s
+ * @returns {[y: number, left: number, right: number][]}
+ */
+export function peakRows(s) {
+	/** @type {[number, number, number][]} */
+	const rows = [];
+	for (let y = s.sy; y <= s.by; y++) {
+		rows.push([
+			y,
+			Math.round(Math.min(s.left(y), s.right(y))),
+			Math.round(Math.max(s.left(y), s.right(y))),
+		]);
+	}
+	return rows;
+}
+
+/**
  * @param {Peak} s
  * @returns {Generator<number[]>} Each pixel as [x, y]
  */
 function* pixels(s) {
-	for (let y = s.sy; y <= s.by; y++) {
-		const a = Math.round(Math.min(s.left(y), s.right(y)));
-		const b = Math.round(Math.max(s.left(y), s.right(y)));
+	for (const [y, a, b] of peakRows(s)) {
 		for (let x = a; x <= b; x++) {
 			yield [x, y];
 		}

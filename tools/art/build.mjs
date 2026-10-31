@@ -5,8 +5,7 @@ import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { toSvg } from './painter.js';
 import { drawingCanvas } from './gallery.js';
-import { CAPITAL_GRIDS } from './parts/capital-terrain.js';
-import { BIOMES } from './parts/capital-biomes/index.js';
+import { matLayout } from './parts/capital-relief/index.js';
 import { ASSETS } from '../../src/lib/art/catalog.js';
 import {
 	FOOTPRINTS,
@@ -77,11 +76,7 @@ function checkLandmarkPicture(id, canvas) {
  */
 function checkCapitalRelief(id, canvas) {
 	const slug = id.split('/')[1];
-	const layout = Object.hasOwn(CAPITAL_GRIDS, slug)
-		? CAPITAL_GRIDS[slug]
-		: Object.hasOwn(BIOMES, slug)
-			? BIOMES[slug].LAYOUT
-			: null;
+	const layout = matLayout(slug);
 	if (!layout) {
 		throw new Error(`${id}: no capital mat for this relief`);
 	}

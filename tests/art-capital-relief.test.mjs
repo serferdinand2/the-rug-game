@@ -15,12 +15,20 @@ import {
 	withCornerPatches,
 } from '../src/lib/art/paint/relief/footprint.js';
 import { cast } from '../src/lib/art/paint/relief/canvas.js';
+import { peakRows, peakShape } from '../src/lib/art/paint/relief/mountain.js';
 import {
 	RELIEF_PAINTERS,
+	SPECIMEN_DATA,
 	SPECIMEN_LAYOUT,
 	drawRelief,
 	drawReliefPreview,
+	matData,
+	matLayout,
 } from '../tools/art/parts/capital-relief/index.js';
+import {
+	RED_ROCK as RED_ROCK_STYLE,
+	rockShape,
+} from '../tools/art/parts/capital-relief/rock.js';
 
 const SPECIMEN = [
 	'000000000',
@@ -163,6 +171,47 @@ test('the toolkit reads the base layouts from the engine', () => {
 	assert.deepEqual(reliefSize(11, 9), { w: 296, h: 362 });
 });
 
+test("matLayout gives a base or an advanced mat's printed layout", () => {
+	assert.deepEqual(matLayout('desert'), CAPITAL_GRIDS.desert);
+	assert.equal(matLayout('archipelago')?.length, 11);
+	assert.equal(matLayout('tundra'), undefined);
+});
+
+test('matData gives the volcanoes and the clouds, and nothing for other mats', () => {
+	assert.deepEqual(matData('archipelago').volcanoes, [
+		[4, 3],
+		[5, 3],
+		[9, 2],
+	]);
+	assert.deepEqual(
+		matData('cloud-city').tints,
+		[0, 1, 2, 3, 0, 1, 3, 2, 0, 0]
+	);
+	assert.equal(matData('cloud-city').clouds?.length, 9);
+	assert.deepEqual(matData('mesa'), {});
+	assert.deepEqual(SPECIMEN_DATA.archipelago.volcanoes, [[1, 1]]);
+	assert.deepEqual(SPECIMEN_DATA['cloud-city'], matData('cloud-city'));
+});
+
+test('a flat peak has a wider summit', () => {
+	const width = (/** @type {number[]} */ [, a, b]) => b - a + 1;
+	const spec = { bx: 50, by: 60, hw: 10, ph: 12 };
+	assert.ok(width(peakRows(peakShape(spec, 5))[0]) <= 3);
+	assert.ok(width(peakRows(peakShape(spec, 5, { flat: 3 }))[0]) >= 6);
+});
+
+test('a hoodoo is a cap rock on a thin neck', () => {
+	const { rows } = rockShape(
+		{ kind: 'hoodoo', bx: 20, by: 30, hw: 4, ph: 12 },
+		5,
+		RED_ROCK_STYLE
+	);
+	const width = (/** @type {number[]} */ [, a, b]) => b - a + 1;
+	assert.ok(width(rows[0]) >= 4, 'cap');
+	assert.ok(width(rows[Math.floor(rows.length / 2)]) <= 3, 'neck');
+	assert.ok(width(rows[rows.length - 1]) >= 6, 'foot');
+});
+
 /**
  * Draws one natural-ground plot on its own canvas.
  * @param {string} biome
@@ -242,7 +291,9 @@ function paint(layout, biome) {
  * @returns {readonly string[]}
  */
 function layoutOf(biome, which) {
-	return which === 'mat' ? CAPITAL_GRIDS[biome] : SPECIMEN;
+	return which === 'mat'
+		? /** @type {readonly string[]} */ (matLayout(biome))
+		: SPECIMEN;
 }
 
 /** Paintings already made, so each relief is painted once per layout: a Mountain takes over half a second. */
@@ -349,9 +400,10 @@ for (const biome of RELIEF_BIOMES) {
 	});
 
 	test(`${biome}: the relief of its mat is the mat's size and stays within its reach`, () => {
-		const grid = CAPITAL_GRIDS[biome];
+		const grid = layoutOf(biome, 'mat');
 		const drawn = drawRelief(grid, biome);
-		assert.deepEqual([drawn.w, drawn.h], [296, 296]);
+		const { w, h } = reliefSize(grid.length, grid[0].length);
+		assert.deepEqual([drawn.w, drawn.h], [w, h]);
 		assert.deepEqual(drawn.p, relief(biome, 'mat').canvas.p);
 		const { reach } = footprint(grid);
 		for (let i = 0; i < drawn.p.length; i++) {

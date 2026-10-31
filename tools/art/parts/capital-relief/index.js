@@ -16,13 +16,26 @@ import { paintWetland } from './wetland.js';
 import { paintTropical } from './tropical.js';
 import { paintDesert } from './desert.js';
 import { paintGrassland } from './grassland.js';
+import { CAPITAL_GRIDS } from '../capital-terrain.js';
+import { BIOMES } from '../capital-biomes/index.js';
+import { VOLCANOES } from '../capital-biomes/archipelago.js';
+import { CLOUDS, CLOUD_TINTS } from '../capital-biomes/cloud-city.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 /** @typedef {import('../../../../src/lib/art/paint/relief/footprint.js').Footprint} Footprint */
 
 /**
+ * What a mat prints beyond its plots, which some reliefs draw (#132): the Archipelago's volcano plots as
+ * [row, column], and Cloud City's clouds (one digit per plot, row by row) with each cloud's tint index.
+ * @typedef {Object} MatData
+ * @property {readonly (readonly [number, number])[]} [volcanoes]
+ * @property {readonly string[]} [clouds]
+ * @property {readonly number[]} [tints]
+ */
+
+/**
  * Paints a biome's relief into a footprint, on a transparent canvas of the footprint's size.
- * @typedef {(canvas: Canvas, fp: Footprint, seed: number) => void} ReliefPainter
+ * @typedef {(canvas: Canvas, fp: Footprint, seed: number, mat?: MatData) => void} ReliefPainter
  */
 
 /** Every relief is painted from this seed, so a mat's relief is the same in every build. */
@@ -62,19 +75,62 @@ export const SPECIMEN_LAYOUT = Object.freeze([
 ]);
 
 /**
+ * A mat's printed layout, by its slug: a base mat's from the engine, an advanced mat's from its biome module.
+ * @param {string} slug - Such as 'desert' or 'cloud-city'
+ * @returns {readonly string[] | undefined}
+ * @example matLayout('archipelago').length // 11
+ */
+export function matLayout(slug) {
+	if (Object.hasOwn(CAPITAL_GRIDS, slug)) {
+		return CAPITAL_GRIDS[/** @type {keyof typeof CAPITAL_GRIDS} */ (slug)];
+	}
+	return Object.hasOwn(BIOMES, slug) ? BIOMES[slug].LAYOUT : undefined;
+}
+
+/**
+ * What a mat prints beyond its plots, by its slug.
+ * @param {string} slug
+ * @returns {MatData}
+ * @example matData('archipelago') // { volcanoes: [[4, 3], [5, 3], [9, 2]] }
+ */
+export function matData(slug) {
+	if (slug === 'archipelago') {
+		return { volcanoes: VOLCANOES };
+	}
+	if (slug === 'cloud-city') {
+		return { clouds: CLOUDS, tints: CLOUD_TINTS };
+	}
+	return {};
+}
+
+/**
+ * The printed data each specimen sheet is drawn with: a volcano on the Archipelago's lone plot, and Cloud City's real clouds.
+ * @type {Readonly<Record<string, MatData>>}
+ */
+export const SPECIMEN_DATA = Object.freeze({
+	archipelago: Object.freeze({
+		volcanoes: /** @type {readonly (readonly [number, number])[]} */ (
+			Object.freeze([Object.freeze([1, 1])])
+		),
+	}),
+	'cloud-city': Object.freeze({ clouds: CLOUDS, tints: CLOUD_TINTS }),
+});
+
+/**
  * Draws a layout's impassable plots as one relief: transparent everywhere it doesn't reach.
  * @param {readonly string[]} layout - One string per row: '1' or 'X' impassable
  * @param {string} biome - Such as 'mountain'
+ * @param {MatData} [mat] - What the mat prints beyond its plots, for the painters that draw it
  * @returns {Canvas} The relief, `reliefSize` of the layout
  * @throws {Error} When the biome has no relief painter.
  */
-export function drawRelief(layout, biome) {
+export function drawRelief(layout, biome, mat = {}) {
 	if (!Object.hasOwn(RELIEF_PAINTERS, biome)) {
 		throw new Error(`No relief for ${biome}`);
 	}
 	const fp = footprint(layout);
 	const canvas = createCanvas(fp.w, fp.h);
-	RELIEF_PAINTERS[biome](canvas, fp, RELIEF_SEED);
+	RELIEF_PAINTERS[biome](canvas, fp, RELIEF_SEED, mat);
 	return canvas;
 }
 
@@ -84,11 +140,12 @@ export function drawRelief(layout, biome) {
  * @param {readonly string[]} layout - One string per row: '1' or 'X' impassable
  * @param {string} biome - Such as 'mountain'
  * @param {number} [seed=0] - Picks each plot's ground variant
+ * @param {MatData} [mat] - What the mat prints beyond its plots
  * @returns {Canvas} An opaque picture, `reliefSize` of the layout
  * @throws {Error} When the biome has no relief painter.
  */
-export function drawReliefPreview(layout, biome, seed = 0) {
-	const relief = drawRelief(layout, biome);
+export function drawReliefPreview(layout, biome, seed = 0, mat = {}) {
+	const relief = drawRelief(layout, biome, mat);
 	const canvas = createCanvas(relief.w, relief.h);
 	canvas.p.fill(PALETTE.ink);
 	const rows = layout.length;

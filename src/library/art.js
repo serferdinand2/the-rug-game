@@ -23,12 +23,13 @@ import {
 	drawingCanvas,
 	gallerySections,
 } from '../../tools/art/gallery.js';
-import { CAPITAL_GRIDS } from '../../tools/art/parts/capital-terrain.js';
 import { BIOMES } from '../../tools/art/parts/capital-biomes/index.js';
 import { SPACE, SPACES } from '../../tools/art/parts/inspiration-tile.js';
 import {
 	SPECIMEN_LAYOUT,
 	drawReliefPreview,
+	matData,
+	matLayout,
 } from '../../tools/art/parts/capital-relief/index.js';
 
 /** @typedef {import('../../tools/art/painter.js').Canvas} Canvas */
@@ -133,17 +134,6 @@ const DRAWINGS = new Map(
 );
 
 /**
- * The capital mat layout of a relief, by its slug.
- * @param {string} slug - Such as 'mountain'
- * @returns {readonly string[] | undefined}
- */
-function reliefLayout(slug) {
-	return Object.hasOwn(CAPITAL_GRIDS, slug)
-		? CAPITAL_GRIDS[/** @type {keyof typeof CAPITAL_GRIDS} */ (slug)]
-		: undefined;
-}
-
-/**
  * Loads a drawing's module and draws it. A base mat's relief is shown as its preview on the mat's ground,
  * because alone it is mostly transparent; the preview draws the same relief.
  * @param {string} id
@@ -155,9 +145,11 @@ async function drawPicture(id) {
 		return { error: `${id}: there is no drawing for this asset` };
 	}
 	const [group, slug] = id.split('/');
-	const layout = group === 'capital-relief' ? reliefLayout(slug) : undefined;
+	const layout = group === 'capital-relief' ? matLayout(slug) : undefined;
 	if (layout) {
-		return inSlice(() => safely(() => drawReliefPreview(layout, slug)));
+		return inSlice(() =>
+			safely(() => drawReliefPreview(layout, slug, 0, matData(slug)))
+		);
 	}
 	try {
 		const drawing = /** @type {{ draw?: unknown }} */ (await load());
@@ -263,7 +255,7 @@ export function pictureSize(id) {
 				? { w: advanced[0].length * PLOT, h: advanced.length * PLOT }
 				: null;
 		}
-		const layout = reliefLayout(slug) ?? advanced;
+		const layout = matLayout(slug);
 		return layout ? reliefSize(layout.length, layout[0].length) : null;
 	}
 	if (Object.hasOwn(BOARDS, id)) {
