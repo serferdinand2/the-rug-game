@@ -26,6 +26,7 @@ import {
 	matData,
 	matLayout,
 } from '../tools/art/parts/capital-relief/index.js';
+import { drawFloor } from '../tools/art/parts/capital-relief/floor.js';
 import {
 	cloudRamp,
 	cloudTint,
@@ -703,6 +704,127 @@ test("Cloud City's pillars are stone with pines on top", () => {
 	assert.ok(colours.has(PALETTE.stoneLight), 'lit stone');
 	assert.ok(colours.has(PALETTE.pine), 'pines');
 });
+
+/**
+ * Each Arts & Architecture biome's corner-piece colours: the colours its corner pieces paint and its floor never
+ * does (#132). A corner join's gorge, strait, rock, tree or puffs must show them in the corner patch.
+ */
+const CORNER_PIECES = {
+	canyon: [
+		'mesaStrata',
+		'mesaRockLight',
+		'mesaRock',
+		'mesaRockShade',
+		'mesaRockDark',
+		'night',
+		'daySea3',
+		'dayWaveDeep',
+	],
+	cavern: [
+		'stoneLight',
+		'stone',
+		'stoneMid',
+		'stoneShade',
+		'roofShade',
+		'ink',
+	],
+	swamp: ['creamShade', 'plasterShade', 'timberShade', 'wood'],
+	mesa: [
+		'mesaStrata',
+		'mesaRockLight',
+		'mesaRock',
+		'mesaRockShade',
+		'mesaRockDark',
+		'ink',
+	],
+	archipelago: [
+		'daySea1',
+		'daySea2',
+		'daySea3',
+		'dayWave',
+		'dayWaveDeep',
+		'foam',
+	],
+	'cloud-city': [
+		'white',
+		'creamLight',
+		'cloudGreyLight',
+		'cloudWhiteRim',
+		'cloudGreyRim',
+		'cloudTanRim',
+		'cloudCreamRim',
+		'stoneLight',
+		'stone',
+		'pine',
+	],
+};
+
+/**
+ * How many opaque pixels of the given colours each corner join shows outside the floor's footprint, within 12 px
+ * of its gap pixel: there, only a corner piece paints.
+ * @param {ReturnType<typeof footprint>} fp
+ * @param {ReturnType<typeof createCanvas>} canvas
+ * @param {Set<string | null>} colours
+ * @returns {number[]} One count per corner join
+ */
+function cornerPieces(fp, canvas, colours) {
+	return fp.corners.map(({ gx, gy }) => {
+		let n = 0;
+		for (let dy = -12; dy <= 12; dy++) {
+			for (let dx = -12; dx <= 12; dx++) {
+				const x = gx + dx;
+				const y = gy + dy;
+				const i = y * fp.w + x;
+				if (
+					dx * dx + dy * dy <= 144 &&
+					x >= 0 &&
+					y >= 0 &&
+					x < fp.w &&
+					y < fp.h &&
+					fp.reach[i] &&
+					!fp.mask[i] &&
+					opaque(canvas, i) &&
+					colours.has(canvas.p[i])
+				) {
+					n++;
+				}
+			}
+		}
+		return n;
+	});
+}
+
+test('the corner-piece check finds nothing on a relief that is only its floor (#132)', () => {
+	const fp = footprint(SPECIMEN);
+	const canvas = createCanvas(fp.w, fp.h);
+	drawFloor(canvas, withCornerPatches(fp, 12), 5, () => PALETTE.mesaRock);
+	const colours = new Set(CORNER_PIECES.mesa.map((name) => PALETTE[name]));
+	// The floor reaches the corner patches, but a floor is not a piece: here it is painted in rock colours, and
+	// still the check counts only what lies outside the footprint's floor area.
+	assert.ok(cornerPieces(fp, canvas, colours).some((n) => n > 0));
+	const floorOnly = createCanvas(fp.w, fp.h);
+	drawFloor(floorOnly, fp.mask, 5, () => PALETTE.mesaRock);
+	assert.deepEqual(
+		cornerPieces(fp, floorOnly, colours),
+		fp.corners.map(() => 0)
+	);
+});
+
+for (const [biome, names] of Object.entries(CORNER_PIECES)) {
+	test(`${biome}: its own piece stands over every corner-only join, on the specimen and on its mat (#132)`, () => {
+		const colours = new Set(names.map((name) => PALETTE[name]));
+		for (const which of /** @type {const} */ (['specimen', 'mat'])) {
+			const { fp, canvas } = relief(biome, which);
+			cornerPieces(fp, canvas, colours).forEach((n, k) => {
+				const { row, col } = fp.corners[k];
+				assert.ok(
+					n >= 6,
+					`${which} corner ${row},${col}: ${n} piece pixels`
+				);
+			});
+		}
+	});
+}
 
 test('a corner-only join stands a peak over the corner', () => {
 	const { fp, canvas } = relief('mountain', 'specimen');

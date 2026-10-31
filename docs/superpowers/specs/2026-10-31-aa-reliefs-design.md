@@ -75,7 +75,7 @@ Every relief uses #82's footprint unchanged: `footprint(layout)` in `src/lib/art
   - the near wall faces away, out of sight. Below the near rim lies floor in its shadow, darkest right under the rim.
   - the floor is the strip within about 1.5 px of the gorge's middle line, with a blue river along that line.
   - the rim's lip is lit (`mesaSoilLight`), except along the near rim, which is dark (`mesaSoilDark`).
-- **Around the gorge:** dusty soil, ragged where it meets the plain. Small red boulders sit on the near and far rims. Beside each corner-only join stand a hoodoo and a boulder, on the ground of the two corner patches.
+- **Around the gorge:** dusty soil, ragged where it meets the plain. Small red boulders sit on the near and far rims. Beside each corner-only join a boulder stands on the ground of a corner patch. A hoodoo is placed on the other side too, but it is taller than the patch reaches, so it never fits: the approved specimen shows the boulder alone, and the real Canyon mat has no corner-only join **(corrected after the final review, 2026-10-31, to match the approved art)**.
 
 ### 2.3 Cavern: cave rock, stalagmites and crystals (owner, round 1)
 
@@ -126,7 +126,7 @@ Every relief uses #82's footprint unchanged: `footprint(layout)` in `src/lib/art
   - Only the outside of a bank is outlined, so the puffs inside it read as one cloud.
   - Each puff is drawn in the tint of the cloud (district) under its centre: `CLOUDS` and `CLOUD_TINTS` from `capital-biomes/cloud-city.js`.
   - A pillar is drawn behind the puffs in front of its foot, so the cloud wraps round its base.
-- **A corner-only join** gets a pillar and puffs over the corner, inside `reach`.
+- **A corner-only join** is bridged by two puffs over the corner, inside `reach`. A pillar is placed there too, but with its pines it is taller than the corner patch reaches, so it never fits: the approved sketches and the library show the puffs alone, and the owner approved that look **(corrected after the final review, 2026-10-31, to match the approved art)**.
 - **Rejected options:**
   - round 1's plain cloud banks: "does not seem to have much to it" **(owner)**;
   - round 2's option A, the Mountain's snowy peaks wrapped in cloud **(owner chose B)**.
