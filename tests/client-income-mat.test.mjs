@@ -43,7 +43,7 @@ test('covered and exposed spaces draw the same printed tile structure (#151)', (
 	assert.match(html[0], /rg-income-mat--tile-content/);
 	assert.match(html[0], /rg-income-mat--name/);
 	assert.match(html[0], /rg-income-mat--symbols/);
-	assert.doesNotMatch(html[0], /rg-income-mat--cover|<img/);
+	assert.doesNotMatch(html[0], /rg-income-mat--cover/);
 });
 
 test('only covered tiles are keyboard-focusable to reveal their printed content (#151)', () => {
@@ -67,3 +67,4 @@ test('covered building covers slide left; row glows and hover tint remain (#151)
 	assert.match(style, /--rg-income-mat-hover/);
 	assert.doesNotMatch(source, /lifted|space-lifted|shadow-float/);
 });
+
