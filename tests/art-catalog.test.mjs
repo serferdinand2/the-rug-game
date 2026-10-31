@@ -33,6 +33,7 @@ const EXPECTED_COUNTS = {
 	'capital-mat': { aa: 6, ff: 6 }, // a base mat's only picture is its relief (owner, 2026-10-29)
 	'capital-terrain': { base: 48, aa: 84, ff: 84 }, // the base biomes' impassable plots are their reliefs (#82)
 	'capital-relief': { base: 6, aa: 6, ff: 6 },
+	'capital-feature': { aa: 4 }, // the cacti, lily ponds, beaches and cloud rims (#132)
 	'inspiration-tile': { aa: 4 },
 };
 
@@ -107,11 +108,11 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 290 icons and 96 boards', () => {
+test('there are 294 illustrations, 290 icons and 100 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
 	assert.equal(count('icon'), 290);
-	assert.equal(count('board'), 96);
+	assert.equal(count('board'), 100);
 });
 
 test('the slug rules turn awkward names into the agreed slugs', () => {
@@ -203,6 +204,9 @@ test('the expansion reliefs belong to #132 and #133, the base reliefs to #82', (
 	assert.deepEqual(EXPANSION_ISSUES, {
 		'capital-relief': { aa: 132, ff: 133 },
 	});
+	for (const asset of ASSETS.filter((a) => a.group === 'capital-feature')) {
+		assert.equal(asset.issue, 132, asset.id);
+	}
 });
 
 test('the cosmetic boards wait for #51, after the core features', () => {

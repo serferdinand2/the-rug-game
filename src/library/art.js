@@ -245,6 +245,11 @@ export function pictureSize(id) {
 	if (group === 'capital-terrain') {
 		return { w: PLOT, h: PLOT };
 	}
+	if (group === 'capital-feature') {
+		// A mat's features picture is its relief's size (#132).
+		const layout = matLayout(slug);
+		return layout ? reliefSize(layout.length, layout[0].length) : null;
+	}
 	if (group === 'capital-relief' || group === 'capital-mat') {
 		const advanced = Object.hasOwn(BIOMES, slug)
 			? BIOMES[slug].LAYOUT

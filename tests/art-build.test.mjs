@@ -334,6 +334,30 @@ test("buildArt takes the Archipelago's relief at 296×362, its 11 rows, and refu
 	}
 });
 
+test('buildArt refuses a capital feature picture that is not the size of its mat (#132)', async () => {
+	const { root, drawingsDir, outDir } = await scratch({
+		'capital-feature/archipelago.js': filledDrawing(296, 296),
+	});
+	try {
+		await assert.rejects(
+			buildArt({
+				drawingsDir,
+				outDir,
+				assets: /** @type {any} */ ([
+					{
+						id: 'capital-feature/archipelago',
+						kind: 'board',
+						group: 'capital-feature',
+					},
+				]),
+			}),
+			/a capital feature picture must be 296×362/
+		);
+	} finally {
+		await rm(root, { recursive: true, force: true });
+	}
+});
+
 /** A landmark asset for a synthetic catalog. */
 const landmark = (/** @type {string} */ slug) => ({
 	id: `landmark/${slug}`,

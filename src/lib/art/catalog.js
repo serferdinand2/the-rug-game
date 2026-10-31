@@ -106,6 +106,12 @@ export const GROUPS = Object.freeze(
 			issue: 82,
 		},
 		{
+			id: 'capital-feature',
+			label: 'Capital features',
+			kind: 'board',
+			issue: 132,
+		},
+		{
 			id: 'inspiration-tile',
 			label: 'Inspiration tiles',
 			kind: 'board',
@@ -758,6 +764,15 @@ const LISTS = {
 			([slug, name]) =>
 				/** @type {[string, string]} */ ([slug, `${name} relief`])
 		),
+	},
+	// What a mat prints on its buildable plots, drawn between its ground and its relief (#132).
+	'capital-feature': {
+		aa: [
+			['archipelago', 'Archipelago features'],
+			['canyon', 'Canyon features'],
+			['cloud-city', 'Cloud City features'],
+			['swamp', 'Swamp features'],
+		],
 	},
 	'inspiration-tile': {
 		aa: [

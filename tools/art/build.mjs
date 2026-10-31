@@ -82,8 +82,11 @@ function checkCapitalRelief(id, canvas) {
 	}
 	const { w, h } = reliefSize(layout.length, layout[0].length);
 	if (canvas.w !== w || canvas.h !== h) {
+		const what = id.startsWith('capital-feature/')
+			? 'a capital feature picture'
+			: 'a capital relief';
 		throw new Error(
-			`${id}: a capital relief must be ${w}×${h}, not ${canvas.w}×${canvas.h}`
+			`${id}: ${what} must be ${w}×${h}, not ${canvas.w}×${canvas.h}`
 		);
 	}
 }
@@ -198,7 +201,10 @@ export async function buildArt({
 			canvas.w !== ILLUSTRATION_SIZE || canvas.h !== ILLUSTRATION_SIZE;
 		if (asset?.group === 'landmark') {
 			checkLandmarkPicture(id, canvas);
-		} else if (asset?.group === 'capital-relief') {
+		} else if (
+			asset?.group === 'capital-relief' ||
+			asset?.group === 'capital-feature'
+		) {
 			checkCapitalRelief(id, canvas);
 		} else if (asset?.kind === 'illustration' && wrongSize) {
 			throw new Error(

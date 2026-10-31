@@ -23,6 +23,8 @@ import { paintMesa } from './mesa.js';
 import { paintArchipelago } from './archipelago.js';
 import { paintCloudCity } from './cloud-city.js';
 import { CAPITAL_GRIDS } from '../capital-terrain.js';
+import { drawFeatures } from '../capital-feature/index.js';
+import { FEATURE_BIOMES } from '../../../../src/lib/art/relief.js';
 import { BIOMES } from '../capital-biomes/index.js';
 import { VOLCANOES } from '../capital-biomes/archipelago.js';
 import {
@@ -170,7 +172,8 @@ export function drawRelief(layout, biome, mat = {}) {
 
 /**
  * Draws a layout's relief on its ground, as the game shows it: natural ground on every plot, ink in the
- * gaps between plots except inside a group, where the ground runs on, and the relief over it all.
+ * gaps between plots except inside a group, where the ground runs on, then the mat's printed features
+ * where it has any (#132), and the relief over it all.
  * @param {readonly string[]} layout - One string per row: '1' or 'X' impassable
  * @param {string} biome - Such as 'mountain'
  * @param {number} [seed=0] - Picks each plot's ground variant
@@ -223,6 +226,9 @@ export function drawReliefPreview(layout, biome, seed = 0, mat = {}) {
 				copy(right, below, right - 1, below - 1);
 			}
 		}
+	}
+	if (FEATURE_BIOMES.includes(biome)) {
+		overlay(canvas, drawFeatures(layout, biome, mat));
 	}
 	overlay(canvas, relief);
 	return canvas;

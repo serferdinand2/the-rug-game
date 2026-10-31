@@ -1010,6 +1010,23 @@ for (const biome of RELIEF_BIOMES) {
 	});
 }
 
+test('a preview stacks the features under the relief', () => {
+	const preview = drawReliefPreview(
+		layoutOf('canyon', 'mat'),
+		'canyon',
+		0,
+		matData('canyon')
+	);
+	// Plot 1,1 is a cactus plot: its saguaro stands in the middle.
+	const middle = preview.p[(33 + 16) * preview.w + 33 + 16];
+	assert.ok(
+		[PALETTE.pine, PALETTE.pineLight, PALETTE.pineShade].includes(
+			/** @type {string} */ (middle)
+		),
+		`${middle}`
+	);
+});
+
 test('overlay blends a shadow and replaces an opaque pixel', () => {
 	const base = createCanvas(2, 1);
 	base.p.fill(PALETTE.grass);
