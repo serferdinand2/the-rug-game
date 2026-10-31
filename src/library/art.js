@@ -274,9 +274,11 @@ export function pictureSize(id) {
 		return { w: SPACE * SPACES, h: SPACE };
 	}
 	if (group === 'piece') {
-		return slug.startsWith('outpost')
-			? { w: 128, h: 128 }
-			: { w: 32, h: 32 };
+		return slug.startsWith('capital-fortress')
+			? { w: 225, h: 150 }
+			: slug.startsWith('outpost')
+				? { w: 128, h: 128 }
+				: { w: 32, h: 32 };
 	}
 	if (group === 'symbol') {
 		return slug === 'restart'

@@ -73,6 +73,7 @@
 
 	/* ---------- Type: sizes ---------- */
 	--font-size-3xs: 10px; /* the smallest text anywhere: badges, tags, cost labels, space numbers, landmark names on spaces */
+	--font-size-income-name-fit: clamp(9px, 9px, var(--font-size-3xs)); /* a compact fixed fit for the Symbology income-space title */
 	--font-size-income-mat-fit: clamp(5px, 14.5cqi, var(--font-size-3xs));
 	--font-size-2xs: 11px; /* tier prices, small caps headings */
 	--font-size-xs: 12px; /* hints, compact rows, small buttons */

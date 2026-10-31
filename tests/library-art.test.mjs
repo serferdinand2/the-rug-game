@@ -213,6 +213,7 @@ test('every picture has a placeholder its size before it is drawn, as npm run ar
 		['track/arts', 32, 32],
 		['piece/token', 32, 32],
 		['piece/architects-cube', 32, 32],
+		['piece/capital-fortress-blue', 225, 150],
 		['piece/outpost-red', 128, 128],
 		['inspiration-tile/farms', 192, 32],
 	]) {

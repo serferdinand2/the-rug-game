@@ -215,7 +215,7 @@
 	}
 
 	.rg-income-mat--name-symbology {
-		font-size: calc(var(--font-size-3xs) - 1px);
+		font-size: var(--font-size-income-name-fit);
 		white-space: nowrap;
 	}
 
