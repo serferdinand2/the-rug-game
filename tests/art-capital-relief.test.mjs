@@ -505,6 +505,23 @@ test('the Canyon is cut into the plain, not raised on it', () => {
 	assert.ok(ink < 0.02 * painted, `${ink} of ${painted} pixels are outline`);
 });
 
+test("the Cavern is cave rock with stalagmites and glowing crystals, not the Mountain's peaks", () => {
+	const colours = new Set(relief('cavern', 'mat').canvas.p);
+	assert.ok(
+		colours.has(PALETTE.teal) || colours.has(PALETTE.tealLight),
+		'crystals'
+	);
+	assert.ok(colours.has(PALETTE.stoneLight), 'lit rock');
+	for (const name of ['snow', 'snowShade']) {
+		assert.ok(!colours.has(PALETTE[name]), name);
+	}
+	for (const [name, colour] of Object.entries(PALETTE)) {
+		if (name.startsWith('alpineMeadow')) {
+			assert.ok(!colours.has(colour), name);
+		}
+	}
+});
+
 test('a corner-only join stands a peak over the corner', () => {
 	const { fp, canvas } = relief('mountain', 'specimen');
 	for (const { gx, gy } of fp.corners) {

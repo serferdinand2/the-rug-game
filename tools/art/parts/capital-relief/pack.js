@@ -82,3 +82,64 @@ export function frontToBack(w, h, rand) {
 	}
 	return spots;
 }
+
+/**
+ * Keeps count of which footprint pixels pieces already cover, so each new piece covers fresh floor.
+ * @param {Footprint} fp
+ */
+export function packer(fp) {
+	const { w: W, h: H, mask } = fp;
+	const covered = new Uint8Array(W * H);
+	return {
+		/**
+		 * The share of a shape's pixels on uncovered floor, or -1 if any pixel lies outside an area.
+		 * @param {readonly (readonly number[])[]} rows
+		 * @param {Uint8Array} ok
+		 * @returns {number}
+		 */
+		fresh(rows, ok) {
+			let n = 0;
+			let total = 0;
+			for (const [x, y] of rowPixels(rows)) {
+				if (x < 0 || y < 0 || x >= W || y >= H || !ok[y * W + x]) {
+					return -1;
+				}
+				total++;
+				if (mask[y * W + x] && !covered[y * W + x]) {
+					n++;
+				}
+			}
+			return n / total;
+		},
+		/**
+		 * Marks a shape's pixels covered.
+		 * @param {readonly (readonly number[])[]} rows
+		 */
+		cover(rows) {
+			for (const [x, y] of rowPixels(rows)) {
+				covered[y * W + x] = 1;
+			}
+		},
+		/**
+		 * Whether nothing already placed stands in the three rows just in front of a base.
+		 * @param {number} bx
+		 * @param {number} by
+		 * @param {number} hw
+		 * @returns {boolean}
+		 */
+		clearInFront(bx, by, hw) {
+			for (let y = by + 1; y <= Math.min(H - 1, by + 3); y++) {
+				for (
+					let x = Math.max(0, bx - hw);
+					x <= Math.min(W - 1, bx + hw);
+					x++
+				) {
+					if (covered[y * W + x]) {
+						return false;
+					}
+				}
+			}
+			return true;
+		},
+	};
+}

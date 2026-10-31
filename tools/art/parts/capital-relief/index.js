@@ -17,6 +17,7 @@ import { paintTropical } from './tropical.js';
 import { paintDesert } from './desert.js';
 import { paintGrassland } from './grassland.js';
 import { paintCanyon } from './canyon.js';
+import { paintCavern } from './cavern.js';
 import { CAPITAL_GRIDS } from '../capital-terrain.js';
 import { BIOMES } from '../capital-biomes/index.js';
 import { VOLCANOES } from '../capital-biomes/archipelago.js';
@@ -61,6 +62,7 @@ export const RELIEF_PAINTERS = Object.freeze({
 	desert: paintDesert,
 	grassland: paintGrassland,
 	canyon: paintCanyon,
+	cavern: paintCavern,
 });
 
 /**
