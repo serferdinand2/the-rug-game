@@ -27,6 +27,11 @@ import {
 	matLayout,
 } from '../tools/art/parts/capital-relief/index.js';
 import {
+	cloudRamp,
+	cloudTint,
+	puffPainter,
+} from '../tools/art/parts/capital-relief/cloud-city.js';
+import {
 	RED_ROCK as RED_ROCK_STYLE,
 	rockShape,
 } from '../tools/art/parts/capital-relief/rock.js';
@@ -226,7 +231,8 @@ function plot(biome, variant) {
 
 /** Every natural ground: one per relief biome, the five other Arts & Architecture biomes, and Cloud City's four tints (#132). */
 const GROUND_KEYS = [
-	...RELIEF_BIOMES,
+	// Cloud City's ground is one per cloud tint, below.
+	...RELIEF_BIOMES.filter((biome) => biome !== 'cloud-city'),
 	...['archipelago', 'canyon', 'cavern', 'mesa', 'swamp'].filter(
 		(biome) => !RELIEF_BIOMES.includes(biome)
 	),
@@ -641,6 +647,61 @@ test("the Archipelago's relief is 296×362", () => {
 		matData('archipelago')
 	);
 	assert.deepEqual([drawn.w, drawn.h], [296, 362]);
+});
+
+/** Each cloud tint's own colours, the ones no other tint shares, by tint index (#132). */
+const TINT_OWN = [
+	[PALETTE.cloudWhiteBase, PALETTE.cloudShade, PALETTE.cloudWhiteRim],
+	[
+		PALETTE.cloudGreyLight,
+		PALETTE.cloudGreyBase,
+		PALETTE.cloudGreyDark,
+		PALETTE.cloudGreyRim,
+	],
+	[PALETTE.cloudTanBase, PALETTE.cloudTanDark, PALETTE.cloudTanRim],
+	[PALETTE.cloudCreamBase, PALETTE.creamShade, PALETTE.cloudCreamRim],
+];
+
+test('each Cloud City puff takes the tint of one cloud', () => {
+	const layout = layoutOf('cloud-city', 'mat');
+	const { clouds = [], tints = [] } = matData('cloud-city');
+	const used = new Set();
+	for (let r = 0; r < layout.length; r++) {
+		for (let c = 0; c < layout[0].length; c++) {
+			if (isImpassable(layout, r, c)) {
+				used.add(tints[Number(clouds[r][c])]);
+			}
+		}
+	}
+	const colours = new Set(relief('cloud-city', 'mat').canvas.p);
+	TINT_OWN.forEach((own, tint) => {
+		const shown = own.some((c) => colours.has(c));
+		assert.equal(shown, used.has(tint), `tint ${tint}`);
+	});
+	// One puff where two clouds meet, at the 5,6 corner join's gap pixel: a tan cloud and a white one.
+	const fp = footprint(layout);
+	const corner = fp.corners.find((j) => j.row === 5 && j.col === 6);
+	assert.ok(corner);
+	const tintAt = cloudTint(fp, matData('cloud-city'));
+	const canvas = createCanvas(fp.w, fp.h);
+	const everywhere = new Uint8Array(fp.w * fp.h).fill(1);
+	const puff = { cx: corner.gx, cy: corner.gy, r: 6, ok: everywhere };
+	puffPainter(canvas, [puff], tintAt)(puff);
+	const ramp = new Set(cloudRamp(tintAt(corner.gx, corner.gy)));
+	let painted = 0;
+	for (const c of canvas.p) {
+		if (c !== null) {
+			painted++;
+			assert.ok(ramp.has(c), `${c} is not in the puff's own tint`);
+		}
+	}
+	assert.ok(painted > 60, `${painted} pixels`);
+});
+
+test("Cloud City's pillars are stone with pines on top", () => {
+	const colours = new Set(relief('cloud-city', 'mat').canvas.p);
+	assert.ok(colours.has(PALETTE.stoneLight), 'lit stone');
+	assert.ok(colours.has(PALETTE.pine), 'pines');
 });
 
 test('a corner-only join stands a peak over the corner', () => {

@@ -21,6 +21,7 @@ import { paintCavern } from './cavern.js';
 import { paintSwamp } from './swamp.js';
 import { paintMesa } from './mesa.js';
 import { paintArchipelago } from './archipelago.js';
+import { paintCloudCity } from './cloud-city.js';
 import { CAPITAL_GRIDS } from '../capital-terrain.js';
 import { BIOMES } from '../capital-biomes/index.js';
 import { VOLCANOES } from '../capital-biomes/archipelago.js';
@@ -69,6 +70,7 @@ export const RELIEF_PAINTERS = Object.freeze({
 	swamp: paintSwamp,
 	mesa: paintMesa,
 	archipelago: paintArchipelago,
+	'cloud-city': paintCloudCity,
 });
 
 /**
