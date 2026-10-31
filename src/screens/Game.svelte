@@ -737,7 +737,9 @@
 			class="rg-game--private"
 			class:rg-game--private-inspecting={viewing !== null}
 			style:--rg-game-inspection-color={viewing !== null
-				? playerColor(tabSeat)
+				? playerColor(
+						/** @type {import('../lib/ui.js').Seat} */ (viewing)
+					)
 				: null}>
 			{#if tabSeat !== null && (viewing !== null || summary)}
 				<PlayerTabs
