@@ -25,7 +25,7 @@
 </script>
 
 <script>
-	import { playerColor } from '../../ui.js';
+	import { artUrl, playerColor } from '../../ui.js';
 
 	/** @type {AchievementStripProps} */
 	let { achievements, ...attr } = $props();
@@ -50,7 +50,16 @@
 					style:background={playerColor(seat)}></i>
 			{/each}
 			<span class="rg-achievement-strip--vp">
-				{achievement.vp === null ? '–' : `${achievement.vp} VP`}
+				{#if achievement.vp === null}
+					–
+				{:else}
+					<img
+						src={artUrl('symbol/victory-points')}
+						alt=""
+						width="16"
+						height="16"
+						draggable="false" />{achievement.vp}
+				{/if}
 			</span>
 		</li>
 	{/each}
@@ -71,7 +80,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		padding: 2px var(--space-3);
+		padding: 3px var(--space-3);
 		border: var(--border) solid var(--line);
 		border-radius: var(--radius);
 		background: var(--raised);
@@ -91,6 +100,15 @@
 	}
 
 	.rg-achievement-strip--vp {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
 		color: var(--gold);
+	}
+
+	.rg-achievement-strip--vp img {
+		width: 16px;
+		height: 16px;
+		image-rendering: pixelated;
 	}
 </style>

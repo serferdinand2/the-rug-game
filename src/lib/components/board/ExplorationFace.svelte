@@ -248,10 +248,40 @@
 		gap: 0;
 	}
 	.rg-exploration-face--space-sequence .rg-exploration-face--main {
-		grid-row: 2 / 4;
-		flex-wrap: wrap;
-		align-content: center;
-		row-gap: 3px;
+		display: grid;
+		top: 22%;
+		bottom: 15px;
+		transform: none;
+		grid-template-rows: minmax(24px, 1fr) 24px minmax(34px, 1fr);
+		justify-items: center;
+		align-items: center;
+		gap: 0;
+	}
+	.rg-exploration-face--space-sequence
+		.rg-exploration-face--unit:first-child {
+		width: 100%;
+		gap: 1px;
+	}
+	.rg-exploration-face--space-sequence
+		.rg-exploration-face--unit:first-child
+		img {
+		width: 23px;
+		height: 23px;
+	}
+	.rg-exploration-face--space-sequence .rg-exploration-face--operator {
+		grid-row: 2;
+		margin: 0;
+	}
+	.rg-exploration-face--space-sequence .rg-exploration-face--unit:last-child {
+		grid-row: 3;
+		flex-direction: column;
+		gap: 1px;
+	}
+	.rg-exploration-face--space-sequence
+		.rg-exploration-face--unit:last-child
+		small {
+		position: static;
+		transform: none;
 	}
 	.rg-exploration-face--space-sequence .rg-exploration-face--bonus {
 		display: none;

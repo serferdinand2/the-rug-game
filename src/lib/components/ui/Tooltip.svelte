@@ -25,6 +25,7 @@
 	import { tick } from 'svelte';
 	import { clockTime } from '../../now.svelte.js';
 	import { placeTooltip, tooltipText } from '../../tooltip.js';
+	import LandmarkHoverDetail from '../board/LandmarkHoverDetail.svelte';
 
 	/** @type {TooltipProps} */
 	let {
@@ -44,6 +45,7 @@
 	let element = $state();
 	/** The followed title, trimmed. */
 	let followed = $state('');
+	let followedLandmark = $state('');
 	let open = $state(false);
 	let place = $state(
 		/** @type {import('../../tooltip.js').TooltipPlace | null} */ (null)
@@ -196,6 +198,7 @@
 		if (!target) {
 			return;
 		}
+		followedLandmark = target.getAttribute('data-landmark') ?? '';
 		const title = target.getAttribute('title');
 		// The empty title is the hold itself.
 		if (title === '') {
@@ -204,6 +207,7 @@
 		if (title === null) {
 			target.removeAttribute(HELD);
 			followed = '';
+			followedLandmark = '';
 			return;
 		}
 		target.setAttribute(HELD, title);
@@ -238,12 +242,13 @@
 		}
 		target = found;
 		via = how;
+		followedLandmark = found.getAttribute('data-landmark') ?? '';
 		found.setAttribute(HELD, title);
 		found.setAttribute('title', '');
 		followed = tooltipText(title);
 		observer?.observe(found, {
 			attributes: true,
-			attributeFilter: ['title'],
+			attributeFilter: ['title', 'data-landmark'],
 		});
 		timer = setTimeout(show, warm ? 0 : delay);
 	}
@@ -269,6 +274,7 @@
 		}
 		open = false;
 		place = null;
+		followedLandmark = '';
 	}
 
 	/** Opens the tooltip unseen, measures it, then places it by its element and fades it in. */
@@ -306,6 +312,9 @@
 			class="rg-tooltip--arrow"
 			style:left={place ? `${place.arrow}px` : undefined}></span>
 		<span class="rg-tooltip--text">{content}</span>
+		{#if placement === 'fixed' && followedLandmark}
+			<LandmarkHoverDetail id={followedLandmark} />
+		{/if}
 	</div>
 {/if}
 

@@ -134,7 +134,7 @@ export const PLAYER_ART_COLORS = Object.freeze([
 
 /**
  * The approved colored SVG for a player piece.
- * @param {'token' | 'outpost' | 'outpost-toppled'} piece
+ * @param {'token' | 'outpost' | 'outpost-toppled' | 'capital-fortress'} piece
  * @param {Seat} seat
  * @returns {string}
  */

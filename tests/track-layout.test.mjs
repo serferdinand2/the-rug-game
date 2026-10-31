@@ -144,6 +144,21 @@ test("Track's fixed rows are tokens, and the board adds them up for its chrome",
 	assert.doesNotMatch(board, /53px|\/ 4\b|\/ 12\b/);
 });
 
+test('track names follow their symbols and precede the divider line', () => {
+	const html = render(Track, { props: plainTrack('science') }).body;
+	const heading =
+		html.match(
+			/<div class="rg-track--heading[^\"]*">([\s\S]*?)<\/div>/
+		)?.[1] ?? '';
+	assert.ok(
+		heading.indexOf('rg-track--symbol') < heading.indexOf('rg-track--name')
+	);
+	assert.match(heading, /rg-track--name[^>]*>science<\/h2>/);
+	const style = cssOf('src/lib/components/board/Track.svelte');
+	assert.match(style, /\.rg-track--heading::after/);
+	assert.match(style, /\.rg-track--name[\s\S]*?flex:\s*none/);
+});
+
 test('TrackBoard sets the count of tracks, of spaces and of lanes', () => {
 	const style = (tracks) =>
 		render(TrackBoard, { props: { tracks } }).body.match(
@@ -192,4 +207,26 @@ test('TrackSpace and ExplorationFace take the last space from their parent', () 
 	]) {
 		assert.doesNotMatch(read(path), /SPACE_COUNT|=== 12\b/, path);
 	}
+});
+
+test('Exploration 11 lays out three space tiles, a plus, and one explored space tile', () => {
+	const face = render(ExplorationFace, {
+		props: { space: 11, name: 'Interstellar Travel' },
+	}).body;
+	assert.equal((face.match(/symbol\/space-tile\.svg/g) ?? []).length, 3);
+	assert.equal((face.match(/symbol\/explore-space\.svg/g) ?? []).length, 1);
+	assert.match(face, />\+<\/span>/);
+	const style = cssOf('src/lib/components/board/ExplorationFace.svelte');
+	assert.match(
+		style,
+		/space-sequence \.rg-exploration-face--main\s*\{[\s\S]*?display:\s*grid/
+	);
+	assert.match(
+		style,
+		/space-sequence \.rg-exploration-face--operator\s*\{[\s\S]*?grid-row:\s*2/
+	);
+	assert.match(
+		style,
+		/space-sequence \.rg-exploration-face--unit:last-child\s*\{[\s\S]*?grid-row:\s*3/
+	);
 });

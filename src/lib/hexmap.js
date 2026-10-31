@@ -8,6 +8,7 @@ import {
 	volcanoCorner,
 } from './art/hex-overlays.js';
 import { MAPS } from './engine/data/maps.js';
+import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { terrainsOf, turned } from './engine/terrain.js';
 import {
 	amountWords,
@@ -35,6 +36,7 @@ import {
  * @property {Seat} seat
  * @property {boolean} toppled
  * @property {{ kind: 'building' | 'landmark', id: string } | null} piece - The Nomads piece; null for an outpost
+ * @property {boolean} [capital] - First starting outpost on this player's capital hex
  */
 
 /**
@@ -380,6 +382,7 @@ export function mapHexes(view, size = HEX_SIZE) {
 	);
 	/** @param {number} seat */
 	const nameOf = (seat) => seatName(view, seat);
+	const startHexes = startingHexes(view);
 	return MAPS[view.map].hexes.map((key) => {
 		const hex = view.hexes[key];
 		const terrains = terrainsOf(state, key);
@@ -387,12 +390,23 @@ export function mapHexes(view, size = HEX_SIZE) {
 		const corners = terrains ? turned(terrains.corners, hex.orient) : null;
 		/** @type {Terrain[]} */
 		const island = terrains ? [...terrains.island] : [];
+		/** @type {Set<number>} */
+		const markedCapitals = new Set();
 		/** @type {MapOutpost[]} */
-		const outposts = hex.outposts.map((outpost) => ({
-			seat: /** @type {Seat} */ (outpost.seat),
-			toppled: outpost.toppled,
-			piece: pieceOf(outpost.piece),
-		}));
+		const outposts = hex.outposts.map((outpost) => {
+			const capital =
+				startHexes.get(outpost.seat) === key &&
+				!markedCapitals.has(outpost.seat);
+			if (capital) {
+				markedCapitals.add(outpost.seat);
+			}
+			return {
+				seat: /** @type {Seat} */ (outpost.seat),
+				toppled: outpost.toppled,
+				piece: pieceOf(outpost.piece),
+				...(capital ? { capital: true } : {}),
+			};
+		});
 		/** @type {MapToken[]} */
 		const tokens = hex.tokens.map((token) => ({
 			seat: /** @type {Seat} */ (token.seat),
@@ -413,6 +427,41 @@ export function mapHexes(view, size = HEX_SIZE) {
 			}),
 		};
 	});
+}
+
+/**
+ * The first territory where each player placed their two starting outposts. The setup event also covers the
+ * closest-island variant; the capital mat is a fallback for long event histories.
+ * @param {import('./engine/view.js').View} view
+ * @returns {Map<number, string>}
+ */
+function startingHexes(view) {
+	/** @type {Map<number, string>} */
+	const starts = new Map();
+	for (const event of view.events) {
+		if (
+			event.type === 'outpostsPlaced' &&
+			event.count === 2 &&
+			typeof event.player === 'number' &&
+			typeof event.hex === 'string' &&
+			!starts.has(event.player)
+		) {
+			starts.set(event.player, event.hex);
+		}
+	}
+	for (const seat of view.seats) {
+		if (
+			seat.kind === 'player' &&
+			seat.capital?.mat &&
+			!starts.has(seat.seat)
+		) {
+			starts.set(
+				seat.seat,
+				CAPITAL_MATS[seat.capital.mat - 1].start[view.map]
+			);
+		}
+	}
+	return starts;
 }
 
 /**
@@ -441,10 +490,13 @@ export function mapHexes(view, size = HEX_SIZE) {
  * @property {'outpost' | 'token'} kind
  * @property {Seat} seat
  * @property {boolean} toppled - Always false for a token
+ * @property {boolean} [capital] - Combine this outpost with the second starting outpost into a fortress marker
  * @property {string | null} mark - A Nomads piece's mark as SVG points for a piece of side 1, or null
  * @property {number} x - The spot's centre
  * @property {number} y
  * @property {number} size - The spot's side
+ * @property {number} [width] - A capital marker spans both starting outpost spots
+ * @property {number} [height] - A capital marker's height
  */
 
 /**
@@ -606,14 +658,49 @@ function piecesOn(hex, size) {
 		hex.island.length > 0,
 		size
 	);
-	return [
-		...hex.outposts.map((outpost, i) => ({
-			kind: /** @type {const} */ ('outpost'),
+	/** @type {MapPiece[]} */
+	const pieces = [];
+	/** @type {Set<number>} */
+	const combined = new Set();
+	for (const [i, outpost] of hex.outposts.entries()) {
+		if (combined.has(i)) {
+			continue;
+		}
+		const spot = spots[i];
+		let x = spot.x;
+		let width = spot.size * 2;
+		let height = spot.size * 2;
+		if (outpost.capital) {
+			const other = hex.outposts.findIndex(
+				(candidate, index) =>
+					index > i &&
+					!combined.has(index) &&
+					candidate.seat === outpost.seat &&
+					candidate.piece === null
+			);
+			if (other >= 0) {
+				combined.add(other);
+				x = (spot.x + spots[other].x) / 2;
+				width = spots[other].x - spot.x + spot.size;
+			} else {
+				width = spot.size * 2.25;
+			}
+			height = width / 1.5;
+		}
+		pieces.push({
+			kind: 'outpost',
 			seat: outpost.seat,
 			toppled: outpost.toppled,
+			...(outpost.capital ? { capital: true } : {}),
+			width,
+			height,
 			mark: outpost.piece ? MARKS[outpost.piece.kind] : null,
-			...spots[i],
-		})),
+			...spot,
+			x,
+		});
+	}
+	return [
+		...pieces,
 		...hex.tokens.map((token, i) => ({
 			kind: /** @type {const} */ ('token'),
 			seat: token.seat,
