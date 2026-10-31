@@ -1,4 +1,5 @@
-// The advanced capital biomes (#6): each module draws its 32×32 plots and its example mat on its printed layout.
+// The advanced capital biomes (#6): each module holds its printed layout and features; the Fantasies & Futures ones
+// still draw their 32×32 plots and example mats, while the Arts & Architecture mats have reliefs (#132).
 import * as archipelago from './archipelago.js';
 import * as canyon from './canyon.js';
 import * as cavern from './cavern.js';
@@ -39,8 +40,9 @@ import * as netherworld from './netherworld.js';
  * One advanced biome's drawing module.
  * @typedef {Object} BiomeModule
  * @property {readonly string[]} LAYOUT - The printed layout, one string per row: '.' open, 'X' impassable
- * @property {(blocked: boolean, variant: number) => import('../../painter.js').Canvas} drawBiomeTile - One 32×32 plot
- * @property {() => import('../../painter.js').Canvas} drawBiomeMat - The example mat
+ * @property {(blocked: boolean, variant: number) => import('../../painter.js').Canvas} [drawBiomeTile] - One 32×32 plot;
+ *   only the Fantasies & Futures biomes keep their own tiles, until #133 draws their reliefs
+ * @property {() => import('../../painter.js').Canvas} [drawBiomeMat] - The example mat, likewise
  * @property {BiomeFeatures} FEATURES - Which variants are ordinary, which are special, and what only the mat draws
  */
 

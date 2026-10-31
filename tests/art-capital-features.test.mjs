@@ -2,9 +2,10 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { BIOMES } from '../tools/art/parts/capital-biomes/index.js';
+import { RELIEF_BIOMES } from '../src/lib/art/relief.js';
 
 const OPEN_COUNT = 8;
-const BLOCKED_COUNT = 6;
+const BLOCKED_TILES = 6;
 
 /**
  * @param {readonly number[]} variants
@@ -25,6 +26,8 @@ function assertIndexes(variants, count, what) {
 for (const [name, biome] of Object.entries(BIOMES)) {
 	test(`${name} lists valid FEATURES`, () => {
 		const { FEATURES } = biome;
+		// A biome with a relief keeps no impassable tiles of its own (#132).
+		const BLOCKED_COUNT = RELIEF_BIOMES.includes(name) ? 0 : BLOCKED_TILES;
 		assert.ok(FEATURES, 'has FEATURES');
 		assert.ok(Object.isFrozen(FEATURES), 'frozen');
 		assert.ok(Object.isFrozen(FEATURES.pools));

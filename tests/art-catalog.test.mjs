@@ -30,8 +30,8 @@ const EXPECTED_COUNTS = {
 	board: { base: 5, ff: 1 },
 	hex: { base: 8 },
 	'territory-tile': { base: 48 },
-	'capital-mat': { aa: 6, ff: 6 }, // a base mat's only picture is its relief (owner, 2026-10-29)
-	'capital-terrain': { base: 48, aa: 84, ff: 84 }, // the base biomes' impassable plots are their reliefs (#82)
+	'capital-mat': { ff: 6 }, // a base or Arts & Architecture mat's only picture is its relief (owner, 2026-10-29; #132)
+	'capital-terrain': { base: 48, aa: 72, ff: 84 }, // the base and Arts & Architecture biomes' impassable plots are their reliefs (#82, #132); Cloud City's ground comes in four tints
 	'capital-relief': { base: 6, aa: 6, ff: 6 },
 	'capital-feature': { aa: 4 }, // the cacti, lily ponds, beaches and cloud rims (#132)
 	'inspiration-tile': { aa: 4 },
@@ -108,11 +108,11 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 290 icons and 100 boards', () => {
+test('there are 294 illustrations, 278 icons and 94 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
-	assert.equal(count('icon'), 290);
-	assert.equal(count('board'), 100);
+	assert.equal(count('icon'), 278);
+	assert.equal(count('board'), 94);
 });
 
 test('the slug rules turn awkward names into the agreed slugs', () => {

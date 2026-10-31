@@ -49,7 +49,7 @@ export function artDescription(section) {
 		return 'Five owner-reviewed terrain hex markers at native 24×24. These are card/map terrain symbols, separate from the capital biome tile solutions.';
 	}
 	if (section.id === 'capital-mat') {
-		return 'The expansion mats as example compositions only: each lays its buildable and impassable tiles on its printed layout, with what only the mat draws, until #132 and #133 draw its relief. A base mat has no example here: its relief preview under Capital relief is that picture. The game composes each mat from its tiles.';
+		return 'The Fantasies & Futures mats as example compositions only: each lays its buildable and impassable tiles on its printed layout, with what only the mat draws, until #133 draws its relief. A base or Arts & Architecture mat has no example here: its relief preview under Capital relief is that picture (#132). The game composes each mat from its tiles.';
 	}
 	if (section.id === 'capital-relief') {
 		return `${section.total} reliefs, ${section.drawn} drawn. Each mat's impassable plots are one relief, drawn from its printed layout over the mat's per-plot ground. Each preview shows the relief on that ground, and the specimens show every kind of join. The owner approves each batch here. Source issue #${section.issues.join(', #')}.`;

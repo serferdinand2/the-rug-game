@@ -1,7 +1,7 @@
-// Reviewed 32×32 mesa capital plot, buildable variant 4.
-import { drawBiomeTile } from '../../parts/capital-biomes/mesa.js';
+// Reviewed 32×32 Mesa capital plot, buildable variant 4: natural ground (#132).
+import { drawTile } from '../../parts/capital-terrain.js';
 
 /** Draws this fixed plot variant. @returns {import('../../painter.js').Canvas} */
 export function draw() {
-	return drawBiomeTile(false, 3);
+	return drawTile('mesa', 3);
 }

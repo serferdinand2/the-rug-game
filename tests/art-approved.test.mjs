@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import { listDrawingIds, renderAsset } from '../tools/art/build.mjs';
 
-test('the 12 advanced capital mats and the two map boards are explicitly marked as example compositions', () => {
+test('the 6 Fantasies & Futures capital mats and the two map boards are explicitly marked as example compositions', () => {
 	assert.deepEqual(
 		ASSETS.filter((asset) => asset.example)
 			.map((asset) => asset.id)
@@ -20,9 +20,10 @@ test('the 12 advanced capital mats and the two map boards are explicitly marked 
 			'board/map-small',
 		].sort()
 	);
+	// The Arts & Architecture examples retired with their reliefs (#132).
 	assert.equal(
 		ASSETS.filter((asset) => asset.group === 'capital-mat').length,
-		12
+		6
 	);
 });
 
@@ -32,14 +33,14 @@ test('SVG round trips retain different alpha values for the same color', () => {
 	assert.equal(toSvg(fromSvg(svg)), svg);
 });
 
-test('all 150 released SVGs match the reviewed artwork and have stable catalog ids', async () => {
+test('all 232 released SVGs match the reviewed artwork and have stable catalog ids', async () => {
 	const manifest = JSON.parse(
 		await readFile(
 			new URL('../docs/art/approved-assets.json', import.meta.url),
 			'utf8'
 		)
 	);
-	assert.equal(manifest.length, 150);
+	assert.equal(manifest.length, 232);
 	for (const { id, width, height, sha256 } of manifest) {
 		assert.ok(
 			ASSETS.some((asset) => asset.id === id),
@@ -80,6 +81,50 @@ test("the owner approved the map's 2.5D terrain (#134): its hexes, the 48 territ
 		'board/map-small',
 	];
 	for (const id of map) {
+		assert.ok(ids.has(id), id);
+	}
+});
+
+test('the owner approved the Arts & Architecture reliefs (#132): the six reliefs, four features pictures and 72 ground tiles are pinned', async () => {
+	const manifest = JSON.parse(
+		await readFile(
+			new URL('../docs/art/approved-assets.json', import.meta.url),
+			'utf8'
+		)
+	);
+	const ids = new Set(
+		manifest.map((/** @type {{ id: string }} */ e) => e.id)
+	);
+	const two = (/** @type {number} */ n) => String(n).padStart(2, '0');
+	const pinned = [
+		...[
+			'archipelago',
+			'canyon',
+			'cavern',
+			'cloud-city',
+			'mesa',
+			'swamp',
+		].map((slug) => `capital-relief/${slug}`),
+		...['archipelago', 'canyon', 'cloud-city', 'swamp'].map(
+			(slug) => `capital-feature/${slug}`
+		),
+		...['archipelago', 'canyon', 'cavern', 'mesa', 'swamp'].flatMap(
+			(slug) =>
+				Array.from(
+					{ length: 8 },
+					(_, i) => `capital-terrain/${slug}-open-${two(i + 1)}`
+				)
+		),
+		...['white', 'grey', 'tan', 'cream'].flatMap((tint) =>
+			Array.from(
+				{ length: 8 },
+				(_, i) =>
+					`capital-terrain/cloud-city-${tint}-open-${two(i + 1)}`
+			)
+		),
+	];
+	assert.equal(pinned.length, 82);
+	for (const id of pinned) {
 		assert.ok(ids.has(id), id);
 	}
 });

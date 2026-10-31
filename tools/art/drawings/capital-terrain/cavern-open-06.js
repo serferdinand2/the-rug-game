@@ -1,7 +1,7 @@
-// Reviewed 32×32 Cavern capital plot, buildable variant 6.
-import { drawBiomeTile } from '../../parts/capital-biomes/cavern.js';
+// Reviewed 32×32 Cavern capital plot, buildable variant 6: natural ground (#132).
+import { drawTile } from '../../parts/capital-terrain.js';
 
 /** Draws this fixed plot variant. @returns {import('../../painter.js').Canvas} */
 export function draw() {
-	return drawBiomeTile(false, 5);
+	return drawTile('cavern', 5);
 }

@@ -898,5 +898,497 @@
     "width": 352,
     "height": 364,
     "sha256": "1aada91c3e8ca7a969b28d79089847eb2c07ad20d77795c2577b15a9535d647b"
+  },
+  {
+    "id": "capital-relief/archipelago",
+    "width": 296,
+    "height": 362,
+    "sha256": "70b3a5f71a1951dd05155712ab4c13e112a4e47b337507b93772307a48cf74f7"
+  },
+  {
+    "id": "capital-relief/canyon",
+    "width": 296,
+    "height": 296,
+    "sha256": "834f6c1e10ff02ad030edd83af5d9290a54abef3c4f28ece3f91b21a412f459c"
+  },
+  {
+    "id": "capital-relief/cavern",
+    "width": 296,
+    "height": 296,
+    "sha256": "70015da69cacc0592d4d0292279e2742c2607bdf663bd62c6215e39f3c469d5a"
+  },
+  {
+    "id": "capital-relief/cloud-city",
+    "width": 296,
+    "height": 296,
+    "sha256": "db26d7d087be78435a7242e68d2c30e708ea014636365d1a451a701c68651890"
+  },
+  {
+    "id": "capital-relief/mesa",
+    "width": 296,
+    "height": 296,
+    "sha256": "fe5c54c81ac28eee0724395ec24fba8ba319cf4d7d6d497e3c339563effdaf7c"
+  },
+  {
+    "id": "capital-relief/swamp",
+    "width": 296,
+    "height": 296,
+    "sha256": "f1d2578167e24c6ee95966d7c2e6d25c224ad68451201aee93d30e899770511c"
+  },
+  {
+    "id": "capital-feature/archipelago",
+    "width": 296,
+    "height": 362,
+    "sha256": "e43cb87ece06d60362b5827c98cfb6f1cbc064b4a3caf07f3fcb6890a4da7f29"
+  },
+  {
+    "id": "capital-feature/canyon",
+    "width": 296,
+    "height": 296,
+    "sha256": "2a6e4cf5accd253f7ab96e0db9d0099cc3203368725022791ccb589d0e26902a"
+  },
+  {
+    "id": "capital-feature/cloud-city",
+    "width": 296,
+    "height": 296,
+    "sha256": "44737b9ea85b478056611f2a89211c7118bc75bcb4305f1188caa831fd90b469"
+  },
+  {
+    "id": "capital-feature/swamp",
+    "width": 296,
+    "height": 296,
+    "sha256": "980751b6acd7a21e19d221a1e25d02835f4e204d78a2dee102993acb9e7e95f6"
+  },
+  {
+    "id": "capital-terrain/archipelago-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "742d30a09e1ee7a3c38bdacab423f25905d5628547593d37a4207d67bf35d08e"
+  },
+  {
+    "id": "capital-terrain/archipelago-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "2afc259873ecb3c93dd81d3d95295da68fff1aa5970e95f1405a684dc1427e9b"
+  },
+  {
+    "id": "capital-terrain/archipelago-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "c746367b7e1160c0d6f402a6706c4bd2125e82e876ed5d98e56390143da08fa0"
+  },
+  {
+    "id": "capital-terrain/archipelago-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "8b72408bc173725e557e325f39ac942734a8624a4eb6142e03134c3184faff41"
+  },
+  {
+    "id": "capital-terrain/archipelago-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "f9825817932621ba2e6be2331917fa153db89eb1e404f66a9b32c60baeda7659"
+  },
+  {
+    "id": "capital-terrain/archipelago-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "1471e61ebb9c413e8d040e969126b82fda4aea277759b2e645697b3efd8196c7"
+  },
+  {
+    "id": "capital-terrain/archipelago-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "6b91597fdae417f8e39a355ee001e74c6f7aac9a9c06a7a85a4b41f2b35426e3"
+  },
+  {
+    "id": "capital-terrain/archipelago-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "24006ef79626157689134206eab30c732f2777663da91fae81d3237eb0a8514f"
+  },
+  {
+    "id": "capital-terrain/canyon-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "e99286863d51cbe546826627bcff239d099be8f5f7df4a35db19a237c5299c21"
+  },
+  {
+    "id": "capital-terrain/canyon-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "cda8a35f901dd0883bf270a6dec94664bde2444fca2a0d850b805487c0718acd"
+  },
+  {
+    "id": "capital-terrain/canyon-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "d06da396c62cd9949bacf0f292a4c2eca8586ac5919b8be06ab2e90473fce5d2"
+  },
+  {
+    "id": "capital-terrain/canyon-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "79ce0765877ddbd2912aca3fe3dfb8f10ecb57eed3d29d4168a8c03aab3ccdb4"
+  },
+  {
+    "id": "capital-terrain/canyon-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "930841e0ba6799c673b3ceeb446aecf1309d9420678f2dd1d65688cd591136b4"
+  },
+  {
+    "id": "capital-terrain/canyon-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "c615e1ba835dfe07bc5063b04a3c2de68d20e2ea064babe151ea56baebc39513"
+  },
+  {
+    "id": "capital-terrain/canyon-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "cf356f83161e01c161fe12f99a9ad0680dd49eb8ed21f7501e951ec563ab3663"
+  },
+  {
+    "id": "capital-terrain/canyon-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "7328934cf40b60f517f6efc5d3bb7b7cff9fdb0f95663992b0e57526cdb3afa9"
+  },
+  {
+    "id": "capital-terrain/cavern-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "77bebc4ca9036400047d38aefd44439ad1a013613b710f5d0ad0536e55bbb743"
+  },
+  {
+    "id": "capital-terrain/cavern-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "6701d764b2b626f55a94daaf22a81b00c021a3bded0c3b0f4cfb8ac52eee41ba"
+  },
+  {
+    "id": "capital-terrain/cavern-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "1068dbdfa7d25079ed4c54a225cbcdc6bcf167010a9911534815499a5aefdfcd"
+  },
+  {
+    "id": "capital-terrain/cavern-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "c5cb660edf3356494e7e330940cebacb925cc1a2bb3e5b54c9ff8dbacc3cee85"
+  },
+  {
+    "id": "capital-terrain/cavern-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "5a5d6e134a23bc145c263c30e2a5b123ccd991c7538dec8a97ea98ce3727e123"
+  },
+  {
+    "id": "capital-terrain/cavern-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "e257336ff87a3a15dae1c4e571a773a25f6dbd14caeb77feff80ce858524c0ce"
+  },
+  {
+    "id": "capital-terrain/cavern-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "35b338b93bf9df50d436aa7f053782c8e5641dc8a47ed06f9fa9b830052fa27d"
+  },
+  {
+    "id": "capital-terrain/cavern-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "92b272dc2189bab2a410507656845e30e493fedebbcf019b4fb4a4a71dcb2ac3"
+  },
+  {
+    "id": "capital-terrain/mesa-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "2b6f6862831b728f060eff802b385abf4d702ea78bbad3ade76aada02bed6a41"
+  },
+  {
+    "id": "capital-terrain/mesa-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "54874d575489bfd8e9e663ec03aeb38b80c091fd97efd332d6b0d96db0703df6"
+  },
+  {
+    "id": "capital-terrain/mesa-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "2ad3984a64b588d3eb80a39f9b8c9028711c6f3120aa39e798e73d01090e79d7"
+  },
+  {
+    "id": "capital-terrain/mesa-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "4ef4b23ae3dcb87e955ee6173e449baa16fbfde85471049a0f6d0b50147198c3"
+  },
+  {
+    "id": "capital-terrain/mesa-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "dcb469e22d6b7f753014d310e9d3d804f0ca5b739c8ec3f72bd58a96cca343e4"
+  },
+  {
+    "id": "capital-terrain/mesa-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "87aaadc9df4e9e825bb440fd1b1c441c0a96a0e3348d6cbd8bfb2d6f5f5dba36"
+  },
+  {
+    "id": "capital-terrain/mesa-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "bb86bb9d342a3eddbb31e343e7c6a9c70420a6f792a6ac0f466f3cc9f2e51123"
+  },
+  {
+    "id": "capital-terrain/mesa-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "01730d3b77d463321115f9307d55dfbd4bea9a0e6866ba638b4a9c8ec95151de"
+  },
+  {
+    "id": "capital-terrain/swamp-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "f7ceb17c1a68c575adcf92f15a5e615fb6a1f3437cb7319338b0513fb9c7f83b"
+  },
+  {
+    "id": "capital-terrain/swamp-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "c5d91d3bacc14c569679ef9f4584d74416d149656639f26ed344f71135a64ac6"
+  },
+  {
+    "id": "capital-terrain/swamp-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "22062cf40fa1f4c1581b46bc0b64825363e1b1ada6e35705a95067423d7dccb9"
+  },
+  {
+    "id": "capital-terrain/swamp-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "98107a1ddeb87e151f8a91318927ede3ebf2dc985595d7148ecdaea4f80882a2"
+  },
+  {
+    "id": "capital-terrain/swamp-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "857b665ec8f92e3635c80fca45c08d69404794ffe085440e52fefa43a97e270e"
+  },
+  {
+    "id": "capital-terrain/swamp-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "a72f74202bb6b6128d18be4ec29d2a6ba5543bf2530a6bfefaa5677eb05eab5b"
+  },
+  {
+    "id": "capital-terrain/swamp-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "0f2f9f34e56de80a0339c5bc95236709ea1e2fa317681d55f5d8d3c2ba3dc7e3"
+  },
+  {
+    "id": "capital-terrain/swamp-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "a917da79e9f925cba05833d077abf237c69cc5e7686b10eb90bf1b43d0766e85"
+  },
+  {
+    "id": "capital-terrain/cloud-city-white-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "c7614ed36267db39a58b70b371b97d9e515d9e3496486b8146fc65c6a8dcbcd4"
+  },
+  {
+    "id": "capital-terrain/cloud-city-white-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "2d96cc2ce27506d5221b26d7cdbf0668387a8e42c6322d1d6b1ac673821d7482"
+  },
+  {
+    "id": "capital-terrain/cloud-city-white-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "e0d67c7ed756ebad9cef9662ae858306f20ef6bdfe6e8eb1d2f1a4ad953eeede"
+  },
+  {
+    "id": "capital-terrain/cloud-city-white-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "7f1369fb3787a60e11c5bd1a50d4860ab01957680bb2f06ea9f265523eb932fb"
+  },
+  {
+    "id": "capital-terrain/cloud-city-white-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "9a1d889f156063e5b8569c9442595928968f69559fb5c4a1721a8f1297fed937"
+  },
+  {
+    "id": "capital-terrain/cloud-city-white-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "6e1d5f3698b3cae14c3d99c11094bcbdd83a5a97981edabb918e7d1e20a0f417"
+  },
+  {
+    "id": "capital-terrain/cloud-city-white-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "f383fdd8026628644f3b098d7aecc6da75a799ccae9374e173f5858542fba8a2"
+  },
+  {
+    "id": "capital-terrain/cloud-city-white-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "f7e9ff19e8826f5ecfab12cc490cf76cbccf050b9b4291f28b6fd8f3fa3d2076"
+  },
+  {
+    "id": "capital-terrain/cloud-city-grey-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "06d655dced7157aa93e5cf0dacbf1895dc29d98eee8a259443ac33b712e1f054"
+  },
+  {
+    "id": "capital-terrain/cloud-city-grey-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "aa327f7504e6e68a9ff72a606da5020a9365cd7372a3a18d982ce9e2feab3ba9"
+  },
+  {
+    "id": "capital-terrain/cloud-city-grey-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "c754add67704cff409d55bfac974b2f8666ed57a29d4452837814bd02d75e36c"
+  },
+  {
+    "id": "capital-terrain/cloud-city-grey-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "a93e6adf386fbc2bdda2d194c9e9ad0feb61b04ae2006b1bf5fdbf6caa6220ad"
+  },
+  {
+    "id": "capital-terrain/cloud-city-grey-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "c2e5544c4e5dadb7926f743f3c34036642e8e9b84d63796808450bf8e776fa8d"
+  },
+  {
+    "id": "capital-terrain/cloud-city-grey-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "e9450943e715f39714e5515846676bd4f11d5f026abcbeaed5c28636c331c2ba"
+  },
+  {
+    "id": "capital-terrain/cloud-city-grey-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "250548ff1b33d280e7387deea379df8cf7866a8347fc69a61caa6d357003bc81"
+  },
+  {
+    "id": "capital-terrain/cloud-city-grey-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "5aa468f3536d43ad4c84c64123426fff00154252da1f981e9b9e747042dfa944"
+  },
+  {
+    "id": "capital-terrain/cloud-city-tan-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "d2f8ce31adb8f76bd8d5736476d955b3294c6ba2599bec33239e3dea5e4af094"
+  },
+  {
+    "id": "capital-terrain/cloud-city-tan-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "c94b06afcd2b44738a4dc395829e676a844f3f5da10d870f82dcff97a3a15a8e"
+  },
+  {
+    "id": "capital-terrain/cloud-city-tan-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "c64d5c728159497feaa4d5d994f0741bbcbdd95ac6dc8af505324288212e8b1d"
+  },
+  {
+    "id": "capital-terrain/cloud-city-tan-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "1fa2b636351a025c0812318d016d2a139705f21a740a4a19dba263ce872f7145"
+  },
+  {
+    "id": "capital-terrain/cloud-city-tan-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "2636332918dc24200c41320b89f9e9810a7bcf4215d472fea2e04f58aebdf760"
+  },
+  {
+    "id": "capital-terrain/cloud-city-tan-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "d3b219f17bd90da002cd460fac581da2aa6fe5693933b66f71a4c44066e55664"
+  },
+  {
+    "id": "capital-terrain/cloud-city-tan-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "b58a420f522c535c9a6c0f3865e31826d9c520fa5ba4d8e6a74390b73346ce77"
+  },
+  {
+    "id": "capital-terrain/cloud-city-tan-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "20f4d3cad42ac7983734f2ee7dc36f4dd58c23f8a83465c6af020dcc62a0ea48"
+  },
+  {
+    "id": "capital-terrain/cloud-city-cream-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "6bf648e9ddd30c414b8733ba898157f7ad108ab4ea53b446d76815db20834ccb"
+  },
+  {
+    "id": "capital-terrain/cloud-city-cream-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "a2be8c6ca9146e0c7e6d6056108e5eff07e0ac9caa4486e00ce8b388dd8abfed"
+  },
+  {
+    "id": "capital-terrain/cloud-city-cream-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "71eab37934e30b2fd0f224a4c35c0565062b909e6efd0ee2dbf00703de9dfee0"
+  },
+  {
+    "id": "capital-terrain/cloud-city-cream-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "49fdbf315a49a35f94ebaf223ca080207b273276063a0e1232cc13604d57d884"
+  },
+  {
+    "id": "capital-terrain/cloud-city-cream-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "98ea9cd214fc0a2d85bea032313217fbcf92e79433fd4651c54949ca1f6c9913"
+  },
+  {
+    "id": "capital-terrain/cloud-city-cream-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "ad408f6a571c4e2133e89cbd8f6c85ada1d5e076568de324c76e6c3592882494"
+  },
+  {
+    "id": "capital-terrain/cloud-city-cream-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "413524ce984130eb663c75020422a9a5c29be588c6e4eaba06e06409ff6f18ab"
+  },
+  {
+    "id": "capital-terrain/cloud-city-cream-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "054acd1878df0b63ef84fa78fd6c164542540695e55a3f5cc36eb1f39baef8b7"
   }
 ]

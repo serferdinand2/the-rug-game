@@ -161,10 +161,11 @@ function numbered(count, label) {
 }
 
 /**
- * An advanced capital biome's 14 terrain tiles: 8 buildable and 6 impassable variants (#6). The base biomes keep
- * only their 8 buildable tiles, as each base mat's relief draws its impassable plots (#82).
- * @param {string} slug - Such as 'cloud-city'
- * @param {string} name - Such as 'Cloud City'
+ * A Fantasies & Futures biome's 14 terrain tiles: 8 buildable and 6 impassable variants (#6), until #133 draws their
+ * reliefs. The base and Arts & Architecture biomes keep only their buildable tiles, as each mat's relief draws its
+ * impassable plots (#82, #132).
+ * @param {string} slug - Such as 'polar'
+ * @param {string} name - Such as 'Polar'
  * @returns {Entries}
  */
 function biomeTiles(slug, name) {
@@ -187,6 +188,34 @@ function biomeTiles(slug, name) {
 				])
 		),
 	];
+}
+
+/**
+ * An Arts & Architecture biome's 8 buildable tiles of natural ground (#132); Cloud City's 8 in each of its four
+ * cloud tints. Their impassable plots are each mat's relief.
+ * @param {string} slug - Such as 'cloud-city'
+ * @param {string} name - Such as 'Cloud City'
+ * @returns {Entries}
+ */
+function groundTiles(slug, name) {
+	const two = (/** @type {number} */ n) => String(n).padStart(2, '0');
+	const grounds =
+		slug === 'cloud-city'
+			? ['white', 'grey', 'tan', 'cream'].map((tint) => [
+					`${slug}-${tint}`,
+					`${name} ${tint}`,
+				])
+			: [[slug, name]];
+	return grounds.flatMap(([ground, label]) =>
+		Array.from(
+			{ length: 8 },
+			(_, i) =>
+				/** @type {[string, string]} */ ([
+					`${ground}-open-${two(i + 1)}`,
+					`${label} buildable ${i + 1}`,
+				])
+		)
+	);
 }
 
 /**
@@ -686,12 +715,12 @@ const LISTS = {
 	},
 	// Numbered as in 01 Appendix B (R4).
 	'territory-tile': { base: numbered(48, 'Territory tile') },
-	// The advanced mats only: a base mat's one picture is its relief preview, so it has no example (owner, 2026-10-29).
+	// The Fantasies & Futures mats only, until #133: a base or Arts & Architecture mat's one picture is its relief
+	// preview, so it has no example (owner, 2026-10-29; #132).
 	'capital-mat': {
-		aa: ADVANCED_MATS.aa,
 		ff: ADVANCED_MATS.ff,
 	},
-	// The base biomes' buildable ground; their impassable plots are each mat's relief (#82).
+	// The base and Arts & Architecture biomes' buildable ground; their impassable plots are each mat's relief (#82, #132).
 	'capital-terrain': {
 		base: [
 			['mountain-open-01', 'Mountain buildable 1'],
@@ -743,7 +772,7 @@ const LISTS = {
 			['forest-open-07', 'Forest buildable 7'],
 			['forest-open-08', 'Forest buildable 8'],
 		],
-		aa: ADVANCED_MATS.aa.flatMap(([slug, name]) => biomeTiles(slug, name)),
+		aa: ADVANCED_MATS.aa.flatMap(([slug, name]) => groundTiles(slug, name)),
 		ff: ADVANCED_MATS.ff.flatMap(([slug, name]) => biomeTiles(slug, name)),
 	},
 	// One relief per mat: its impassable plots drawn as one picture (#82; the expansion mats' in #132 and #133).

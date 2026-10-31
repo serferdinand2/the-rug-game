@@ -75,6 +75,58 @@ test('a base mat has no example picture: its relief preview in the library is th
 	);
 });
 
+/** The Arts & Architecture biomes (#132), and their ground tiles' names, Cloud City's by tint. */
+const AA = ['archipelago', 'canyon', 'cavern', 'cloud-city', 'mesa', 'swamp'];
+const TINTS = ['white', 'grey', 'tan', 'cream'];
+
+test('every Arts & Architecture biome has a relief, so none keeps impassable tiles or an example of its own', async () => {
+	const ids = await listDrawingIds();
+	const two = (/** @type {number} */ n) => String(n).padStart(2, '0');
+	for (const biome of AA) {
+		assert.ok(RELIEF_BIOMES.includes(biome), biome);
+		const grounds =
+			biome === 'cloud-city'
+				? TINTS.map((t) => `${biome}-${t}`)
+				: [biome];
+		assert.deepEqual(
+			ids
+				.filter((id) => id.startsWith(`capital-terrain/${biome}-`))
+				.sort(),
+			grounds
+				.flatMap((g) =>
+					Array.from(
+						{ length: OPEN_VARIANTS },
+						(_, i) => `capital-terrain/${g}-open-${two(i + 1)}`
+					)
+				)
+				.sort(),
+			biome
+		);
+		assert.ok(
+			!ids.includes(`capital-mat/${biome}`),
+			`capital-mat/${biome}`
+		);
+		assert.ok(
+			!ASSETS.some((asset) => asset.id === `capital-mat/${biome}`),
+			biome
+		);
+	}
+});
+
+test("Cloud City's 32 buildable plots are natural ground in its four tints", () => {
+	const seen = new Set();
+	for (const tint of TINTS) {
+		for (let variant = 0; variant < OPEN_VARIANTS; variant++) {
+			const tile = drawTile(`cloud-city-${tint}`, variant);
+			const ground = createCanvas(32, 32);
+			drawNaturalGround(ground, { biome: `cloud-city-${tint}`, variant });
+			assert.deepEqual(tile, ground, `${tint} ${variant}`);
+			seen.add(tile.p.join());
+		}
+	}
+	assert.equal(seen.size, 32);
+});
+
 test('an unknown biome has no tile', () => {
 	assert.throws(() => drawTile('tundra', 0), /tundra/);
 });

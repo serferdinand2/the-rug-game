@@ -29,6 +29,7 @@ What the owner said about the sketches **(owner, 2026-10-31)**:
 - "Archipelago volcanos look off and art does not seem to be unison."
 - "cloud city is the city so high up in the mountains it is in the clouds. it is not literally built on top of the clouds."
 - Round 2: "B for cloud city", with the new Mesa and Archipelago, "all good".
+- In the component library, the built six on their ground with their features and specimens: "looks good" (2026-10-31). That is the issue's step 4 approval, so the release (§4.2–§4.4) went ahead.
 
 ### Goals
 
