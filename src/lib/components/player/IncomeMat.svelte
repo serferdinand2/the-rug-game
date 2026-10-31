@@ -183,7 +183,7 @@
 		height: 110px;
 		padding: 4px var(--space-1);
 		border: var(--border) solid var(--card-score-line);
-		background: #d5d8d8;
+		background: var(--card-slot);
 		color: var(--card-text);
 		text-align: center;
 		box-shadow: 0 0 11px
@@ -209,7 +209,7 @@
 	}
 
 	.rg-income-mat--name-fit {
-		font-size: clamp(5px, 14.5cqi, var(--font-size-3xs));
+		font-size: var(--font-size-income-mat-fit);
 		white-space: nowrap;
 	}
 
@@ -229,7 +229,7 @@
 		background: var(--control);
 		border: 2px solid var(--gold);
 		box-shadow: inset 0 1px 2px
-			color-mix(in srgb, var(--ink) 70%, transparent);
+			var(--scrim-strong);
 	}
 
 	.rg-income-mat--reward-push {
@@ -295,7 +295,7 @@
 		.rg-income-mat--cover {
 		transform: translateX(-100%);
 		filter: drop-shadow(
-			-5px 0 4px color-mix(in srgb, var(--ink) 60%, transparent)
+			-5px 0 4px var(--scrim)
 		);
 	}
 
@@ -348,3 +348,4 @@
 		}
 	}
 </style>
+
