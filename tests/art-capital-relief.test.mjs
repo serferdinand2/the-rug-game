@@ -546,6 +546,49 @@ test('the Swamp is black water with bleached dead trees', () => {
 	);
 });
 
+test("the Mesa is red rock and red soil, not the Desert's sandstone", () => {
+	const colours = new Set(relief('mesa', 'mat').canvas.p);
+	for (const name of ['sand', 'sandLight', 'sandShade']) {
+		assert.ok(!colours.has(PALETTE[name]), name);
+	}
+	assert.ok(colours.has(PALETTE.mesaRock), 'red rock');
+	assert.ok(colours.has(PALETTE.mesaSoil), 'red soil');
+});
+
+test("the Mesa's cliffs show its painted layers", () => {
+	const layers = [
+		'plasterShade',
+		'mesaRockLight',
+		'creamShade',
+		'mesaRock',
+		'mesaStrata',
+		'mesaRockShade',
+		'brickRedShade',
+	].map((name) => PALETTE[name]);
+	for (const [name, colour] of Object.entries(PALETTE)) {
+		if (name.startsWith('strata')) {
+			layers.push(colour);
+		}
+	}
+	const colours = new Set(relief('mesa', 'mat').canvas.p);
+	const used = layers.filter((c) => colours.has(c)).length;
+	assert.ok(used >= 5, `${used} layer tones`);
+});
+
+test('the Mesa is one tableland per group', () => {
+	const { fp, canvas } = relief('mesa', 'mat');
+	for (let c = 1; c <= 8; c++) {
+		assert.ok(opaque(canvas, 16 * fp.w + c * 33 + 16), `plot 0,${c}`);
+	}
+	for (let x = 40; x <= 280; x++) {
+		let any = false;
+		for (let y = 0; y < 32 && !any; y++) {
+			any = opaque(canvas, y * fp.w + x);
+		}
+		assert.ok(any, `column ${x}`);
+	}
+});
+
 test('a corner-only join stands a peak over the corner', () => {
 	const { fp, canvas } = relief('mountain', 'specimen');
 	for (const { gx, gy } of fp.corners) {
