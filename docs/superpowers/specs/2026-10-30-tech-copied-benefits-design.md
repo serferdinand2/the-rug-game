@@ -49,3 +49,17 @@ What does go wrong for a player: **nothing in the game says whose benefit was ta
 These are not decided by R1–R110 and are left as the engine has them; they need the owner:
 - When Alliance or an Inventors token gives a player an opponent's Assembly Line benefit, "your top row" or "your middle row" is read as the gaining player's own rows.
 - Nanotechnology or Assembly Line's circle may still pick a landmark card whose landmark is gone; it gains nothing (`noLandmarkLeft`), as #18 §8 decided.
+
+## 7. Reopened report: copied income-building benefit appears not to work (2026-10-31)
+
+The owner reports that a copied benefit that gains an income building does not appear to award it, and asks whether that benefit is consumed when the source card first gains the building. They confirm that matching building pieces remained in the failing game. They also ask to check copied non-building circle and square effects.
+
+The building is not consumed by its tech card. Each activation runs the card's effect again, but only while a piece of that type remains on the income mat. Starting supply is five pieces per building type (space 1 is already uncovered); with zero left, `building` emits `noBuildingLeft` under FAQ #23. A source card already having gained its building does not prevent a second gain while supply remains.
+
+Initial trace on 2026-10-31: with one Ammonia in the middle row and one Farm left, copying its circle emits `buildingGained`, decrements the mat supply, and opens the usual placement decision. With zero Farms left, it emits `noBuildingLeft` and opens no placement. The owner confirms the failing game had pieces left, so exhausted supply does not explain their report. A direct engine sweep of all 66 base tech-card circle/square benefits completed with no thrown errors, no source-card movement, and no tech upgrades. Follow-up regressions also exercise building benefits through Assembly Line's circle and square and through Technology 9/11's full any-order effect; each awards and places the building. The live UI failure remains unreproduced.
+
+Regression coverage now includes a source card whose original building benefit already resolved, repeated building gain with supply remaining, exhausted supply, observable resource/VP benefits, and all four copy-entry paths. Keep #144 open: verify the live shelf selection and follow-on placement prompt, and capture the source card, copied icon and exact trigger if the player still sees no building.
+
+## 8. Follow-up report: no building, prompt or Capital switch (2026-10-31)
+
+The owner confirms the building did not appear and the UI did not open a placement prompt or switch to Capital. The client path explains why a shelf selection can appear to do nothing: `PromptState.choose(index)` only marks the card; `PromptState.confirm()` is what sends the selected answer to the engine. Until the panel action is pressed, the game remains on Tech and no copied effect runs. The generic button text was `Confirm choice`, which did not say it would activate the selected card's benefit. `chooseTechBenefit` now labels the action **Use benefit**. The copied-benefit prompt test checks this label, and after submit the existing engine/client test verifies that a copied Farm benefit opens `Where does the Farm go?` and the Capital tab. Verify this clearer action in the live UI; if the owner pressed it and still received no building, trace that run's client/server request and events. Keep #144 open until live confirmation.

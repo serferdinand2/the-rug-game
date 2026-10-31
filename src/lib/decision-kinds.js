@@ -62,7 +62,11 @@ export const DECISION_KINDS = Object.freeze({
 	chooseResponse: { shelf: 'tapestry' },
 	chooseInvent: { shelf: 'tech', tab: 'tech', confirm: 'Invent' },
 	chooseUpgrade: { shelf: 'tech', tab: 'tech', confirm: 'Upgrade' },
-	chooseTechBenefit: { shelf: 'tech', tab: 'tech' },
+	chooseTechBenefit: {
+		shelf: 'tech',
+		tab: 'tech',
+		confirm: 'Use benefit',
+	},
 	chooseLandmark: { art: 'landmark' },
 	chooseDiscard: { shelf: 'tapestry', tab: 'hand' },
 	chooseKeep: { shelf: 'tapestry', tab: 'hand', confirm: 'Keep card' },

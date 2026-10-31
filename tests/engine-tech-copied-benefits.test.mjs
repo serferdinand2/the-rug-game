@@ -96,7 +96,7 @@ const CARDS = {
  * @param {Partial<Record<Row, string[]>>} rows
  * @param {(state: any) => void} [fill] - Changes the state first
  */
-function techGame(effects, rows, fill = () => {}) {
+function techGame(effects, rows, fill = () => {}, ordered = true) {
 	const { state: started, random } = startedGame(2);
 	const state = structuredClone(started);
 	const { tech } = state.supply;
@@ -112,7 +112,9 @@ function techGame(effects, rows, fill = () => {}) {
 		state.seats[0].tech[/** @type {Row} */ (row)] = [...cards];
 	}
 	fill(state);
-	push(state, state.pending, [{ player: 1, kind: 'effects', effects }]);
+	push(state, state.pending, [
+		{ player: 1, kind: 'effects', effects, ordered },
+	]);
 	run(state, random);
 	checkState(state);
 	return { state, random };
@@ -130,6 +132,20 @@ const events = (state, type) => state.events.filter((e) => e.type === type);
  */
 const opened = (state, kind) =>
 	openDecisions(state).filter((d) => d.player === 1 && d.kind === kind);
+
+/**
+ * Resolves only building placement questions and leaves the test independent of the unrelated turn prompt underneath.
+ * @param {any} state
+ * @param {any} random
+ */
+function placeBuildings(state, random) {
+	while (opened(state, 'choosePlacement').length > 0) {
+		const [decision] = opened(state, 'choosePlacement');
+		const [first] = DECISIONS.choosePlacement.answers(state, decision);
+		state = play(state, 1, { decision: decision.id, ...first }, random);
+	}
+	return state;
+}
 
 for (const source of SOURCES) {
 	const { row, other, icon, effect } = source;
@@ -221,6 +237,8 @@ test("Assembly Line's own upgrade to the middle row takes the square of a top-ro
 	const [choice] = opened(next, 'chooseOption');
 	assert.ok(choice);
 	next = play(next, 1, { decision: choice.id, option: 2 }, random);
+	assert.equal(events(next, 'buildingGained').length, 1);
+	assert.equal(next.seats[0].incomeMat.buildings.farm, 4);
 	assert.deepEqual(
 		opened(next, 'choosePlacement').map((d) => d.building),
 		['farm']
@@ -232,6 +250,47 @@ test("Assembly Line's own upgrade to the middle row takes the square of a top-ro
 	});
 	checkState(next);
 });
+
+for (const source of [
+	{
+		name: 'Electronics',
+		row: 'middle',
+		card: 'ammonia',
+		icon: 'circle',
+	},
+	{
+		name: 'Nanotechnology',
+		row: 'top',
+		card: 'irrigation',
+		icon: 'square',
+	},
+]) {
+	test(`${source.name} resolves a copied building benefit through its any-order effect`, () => {
+		const { state, random } = techGame(
+			spaceBenefit(source.name),
+			{ [source.row]: [source.card] },
+			undefined,
+			false
+		);
+		const [order] = opened(state, 'chooseOrder');
+		assert.ok(order);
+		const next = play(state, 1, { decision: order.id, effect: 1 }, random);
+		assert.equal(events(next, 'techBenefitUsed')[0].card, source.card);
+		assert.equal(events(next, 'techBenefitUsed')[0].icon, source.icon);
+		assert.equal(events(next, 'buildingGained').length, 1);
+		assert.equal(next.seats[0].incomeMat.buildings.farm, 4);
+		assert.deepEqual(
+			opened(next, 'choosePlacement').map((d) => d.building),
+			['farm']
+		);
+
+		const placed = placeBuildings(next, random);
+		assert.equal(events(placed, 'buildingPlaced').length, 1);
+		assert.deepEqual(placed.seats[0].tech[source.row], [source.card]);
+		assert.equal(events(placed, 'techUpgraded').length, 0);
+		checkState(placed);
+	});
+}
 
 test("Assembly Line's own upgrade to the top row takes the circle of a middle-row card, never its own (R19, #144)", () => {
 	const { state, random } = techGame(
@@ -246,17 +305,126 @@ test("Assembly Line's own upgrade to the top row takes the circle of a middle-ro
 	const [open] = opened(state, 'chooseTechBenefit');
 	assert.equal(open.icon, 'circle');
 	assert.deepEqual(open.options, ['ammonia', 'irrigation']);
-	const next = answer(state, random, 1, 'chooseTechBenefit', {
+	let next = answer(state, random, 1, 'chooseTechBenefit', {
 		card: 'ammonia',
 	});
+	assert.equal(events(next, 'buildingGained').length, 1);
+	assert.equal(next.seats[0].incomeMat.buildings.farm, 4);
 	assert.deepEqual(
 		opened(next, 'choosePlacement').map((d) => d.building),
 		['farm']
 	);
+	next = placeBuildings(next, random);
+	assert.equal(events(next, 'buildingPlaced').length, 1);
 	assert.deepEqual(next.seats[0].tech, {
 		bottom: [],
 		middle: ['ammonia', 'irrigation'],
 		top: ['assembly-line'],
 	});
 	checkState(next);
+});
+
+test("Assembly Line's circle can repeat the square building benefit of a top-row card", () => {
+	const { state, random } = techGame([{ upgrade: {} }], {
+		bottom: ['assembly-line'],
+		top: ['irrigation'],
+	});
+	assert.deepEqual(state.seats[0].tech, {
+		bottom: [],
+		middle: ['assembly-line'],
+		top: ['irrigation'],
+	});
+	assert.deepEqual(
+		events(state, 'techBenefitUsed').map((e) => [e.card, e.icon]),
+		[['irrigation', 'square']]
+	);
+	assert.equal(events(state, 'buildingGained').length, 1);
+	assert.equal(state.seats[0].incomeMat.buildings.farm, 4);
+	assert.deepEqual(
+		opened(state, 'choosePlacement').map((d) => d.building),
+		['farm']
+	);
+	const placed = placeBuildings(state, random);
+	assert.equal(events(placed, 'buildingPlaced').length, 1);
+	assert.deepEqual(placed.seats[0].tech.top, ['irrigation']);
+	checkState(placed);
+});
+
+test("copying a card's building benefit again works while that building remains on its income mat", () => {
+	// Ammonia already gained its first Farm when it entered the middle row. Its copied circle is a second activation.
+	let { state, random } = techGame([{ upgrade: {} }], {
+		bottom: ['ammonia'],
+	});
+	state = placeBuildings(state, random);
+	assert.equal(state.seats[0].incomeMat.buildings.farm, 4);
+	assert.equal(events(state, 'buildingGained').length, 1);
+	assert.deepEqual(state.seats[0].tech.middle, ['ammonia']);
+	checkState(state);
+
+	push(state, state.pending, [
+		{
+			player: 1,
+			kind: 'effects',
+			effects: [{ techBenefit: { icon: 'circle' } }],
+		},
+	]);
+	run(state, random);
+	assert.equal(state.seats[0].incomeMat.buildings.farm, 3);
+	assert.equal(events(state, 'buildingGained').length, 2);
+	assert.equal(events(state, 'noBuildingLeft').length, 0);
+	assert.deepEqual(
+		opened(state, 'choosePlacement').map((d) => d.building),
+		['farm']
+	);
+
+	state = placeBuildings(state, random);
+	assert.equal(events(state, 'buildingPlaced').length, 2);
+	assert.deepEqual(state.seats[0].tech.middle, ['ammonia']);
+	assert.equal(events(state, 'techUpgraded').length, 1);
+	checkState(state);
+});
+
+test('copying a building benefit with no matching building left reports exhausted supply', () => {
+	const { state: pending, random } = techGame(
+		Array.from({ length: 5 }, () => ({ building: 'farm' })),
+		{ middle: ['ammonia'] }
+	);
+	let state = placeBuildings(pending, random);
+	assert.equal(state.seats[0].incomeMat.buildings.farm, 0);
+	assert.equal(events(state, 'buildingGained').length, 5);
+	checkState(state);
+
+	push(state, state.pending, [
+		{
+			player: 1,
+			kind: 'effects',
+			effects: [{ techBenefit: { icon: 'circle' } }],
+		},
+	]);
+	run(state, random);
+	assert.equal(events(state, 'techBenefitUsed').length, 1);
+	assert.equal(events(state, 'noBuildingLeft').length, 1);
+	assert.equal(events(state, 'noBuildingLeft')[0].building, 'farm');
+	assert.equal(events(state, 'buildingGained').length, 5);
+	assert.equal(opened(state, 'choosePlacement').length, 0);
+	assert.deepEqual(state.seats[0].tech.middle, ['ammonia']);
+	checkState(state);
+});
+
+test('copied non-building circle and square benefits still resolve their effects', () => {
+	const { state: middle } = techGame([{ techBenefit: { icon: 'circle' } }], {
+		middle: ['irrigation'],
+	});
+	assert.equal(middle.seats[0].resources.food, 1);
+	assert.deepEqual(middle.seats[0].tech.middle, ['irrigation']);
+	assert.equal(events(middle, 'techUpgraded').length, 0);
+	checkState(middle);
+
+	const { state: top } = techGame([{ techBenefit: { icon: 'square' } }], {
+		top: ['calendar'],
+	});
+	assert.equal(top.seats[0].vp, 7);
+	assert.deepEqual(top.seats[0].tech.top, ['calendar']);
+	assert.equal(events(top, 'techUpgraded').length, 0);
+	checkState(top);
 });

@@ -61,6 +61,7 @@ test("Assembly Line's circle offers the top-row cards on the tech shelf, each wi
 	);
 	assert.equal(prompt.layout, 'cards');
 	assert.equal(prompt.shelf, 'tech');
+	assert.equal(prompt.confirmLabel, 'Use benefit');
 	// Only the top row's cards, never Ammonia in the middle row.
 	assert.deepEqual(
 		prompt.options.map((o) => [o.place, o.art, o.label]),
@@ -110,6 +111,48 @@ test("Assembly Line's square offers the other middle-row cards on the tech shelf
 			['shelf', 'Ammonia: gain a Farm'],
 			['shelf', 'Irrigation: gain 1 food'],
 		]
+	);
+});
+
+test("choosing a tech card's building benefit opens the normal placement prompt", () => {
+	const { state, random, player, game, decision } = upgradeAssemblyLine(
+		{ bottom: ['assembly-line'], top: ['the-nail', 'irrigation'] },
+		0
+	);
+	assert.equal(decision?.kind, 'chooseTechBenefit');
+	const prompt = promptFor(decision, game, player);
+	assert.ok(prompt);
+	const farm = prompt.options.find((option) =>
+		option.label.startsWith('Irrigation: gain a Farm')
+	);
+	assert.ok(farm);
+	assert.equal(farm.place, 'shelf');
+
+	const next = play(
+		state,
+		player,
+		{ decision: decision.id, ...decision.answers[farm.index] },
+		random
+	);
+	const nextGame = view(next, player);
+	const placement = myDecision(nextGame, player);
+	assert.equal(placement?.kind, 'choosePlacement');
+	assert.equal(next.seats[player - 1].incomeMat.buildings.farm, 4);
+	assert.ok(
+		next.events.some(
+			(e) => e.type === 'buildingGained' && e.building === 'farm'
+		)
+	);
+	assert.deepEqual(next.seats[player - 1].tech.top, [
+		'the-nail',
+		'irrigation',
+	]);
+
+	const placementPrompt = promptFor(placement, nextGame, player);
+	assert.ok(placementPrompt);
+	assert.equal(placementPrompt.title, 'Where does the Farm go?');
+	assert.ok(
+		placementPrompt.options.some((option) => option.place === 'capital')
 	);
 });
 
