@@ -215,3 +215,33 @@ test("the achievements' VP boxes are the engine's on both map sides (#42)", () =
 		);
 	}
 });
+
+test("Plans & Ploys has its own section, shown only with the expansion, with the engine's goals and VP (#32)", async () => {
+	const { LANDMARK_CARDS } =
+		await import('../src/lib/engine/data/landmark-cards.js');
+	const { EXPANSION_SPACE_TILES } =
+		await import('../src/lib/engine/data/space-tiles.js');
+	const { rulesSections } = await import('../src/lib/rules-help.js');
+	const pp = section('plans-ploys');
+	assert.equal(pp.expansion, 'pp');
+	assert.ok(
+		RULES_HELP.every(
+			(s) => s.expansion === undefined || s.expansion === 'pp'
+		)
+	);
+	assert.deepEqual(
+		rulesSections([]).map((s) => s.id),
+		RULES_HELP.filter((s) => !s.expansion).map((s) => s.id)
+	);
+	assert.ok(rulesSections(['pp']).some((s) => s.id === 'plans-ploys'));
+	const text = lines('plans-ploys').join(' ');
+	for (const card of LANDMARK_CARDS) {
+		assert.match(text, new RegExp(`at least ${card.goal.need} `));
+	}
+	const vp = new Set(
+		EXPANSION_SPACE_TILES.flatMap((t) => (t.ongoing ? [t.ongoing.vp] : []))
+	);
+	assert.deepEqual([...vp], [5]);
+	assert.match(text, /give 5 VP whenever you advance/);
+	assert.match(text, /final income turn included/);
+});

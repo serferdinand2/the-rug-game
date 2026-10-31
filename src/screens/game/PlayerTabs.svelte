@@ -240,7 +240,9 @@
 				</div>
 			{/each}
 			{#if landmarkCard}
-				<HeldLandmarkCard held={landmarkCard} />
+				<HeldLandmarkCard
+					class="rg-player-tabs--landmark"
+					held={landmarkCard} />
 			{/if}
 		{:else if tab === 'tech'}
 			<TechTab
@@ -309,5 +311,10 @@
 		position: relative;
 		flex: none;
 		width: fit-content;
+	}
+
+	/* The landmark card stands apart from the civilization cards above it (#32). */
+	.rg-player-tabs :global(.rg-player-tabs--landmark) {
+		margin-top: var(--space-10);
 	}
 </style>

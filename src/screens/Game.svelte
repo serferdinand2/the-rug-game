@@ -797,6 +797,7 @@
 		{#if layers.rules}
 			<RulesPanel
 				bind:tab={rulesTab}
+				expansions={game.expansions ?? []}
 				onRulesPanelClose={() =>
 					(layers = closeLayer(layers, 'rules'))} />
 		{/if}

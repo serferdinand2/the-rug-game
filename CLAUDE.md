@@ -213,7 +213,7 @@ How to read the research:
   3. the base rulebook;
   4. the printed art;
   5. the Board Game Arena implementation.
-- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R110**.
+- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R112**.
   - Follow those decisions, not the research's working assumptions.
   - Cite the id in code comments and test names, for example `// R16`.
   - Content listed there as "left out" is never invented.

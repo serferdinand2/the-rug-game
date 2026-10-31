@@ -1,5 +1,8 @@
-// How to play's rules for the base game (#42): the sections the rules panel shows, in our own words, one tab each.
+// How to play's rules for the base game (#42) and its expansions (#32): the sections the rules panel shows, in our own words, one tab each.
 import { deepFreeze } from './engine/data/ids.js';
+import { LANDMARK_CARDS } from './engine/data/landmark-cards.js';
+import { landmarkGoalPhrase } from './cards/landmark-text.js';
+import { landmarkName } from './game-names.js';
 
 /**
  * A block of a section: a paragraph, or a list of short sentences.
@@ -12,6 +15,7 @@ import { deepFreeze } from './engine/data/ids.js';
  * @property {string} id - Stable, such as 'tracks'
  * @property {string} title - The tab's name
  * @property {RulesBlock[]} blocks - In reading order
+ * @property {string} [expansion] - The expansion whose rules it tells, shown only at a table with it; left out for the base game's
  */
 
 /**
@@ -190,4 +194,45 @@ export const RULES_HELP = deepFreeze([
 			},
 		],
 	},
+	{
+		id: 'plans-ploys',
+		title: 'Plans & Ploys',
+		expansion: 'pp',
+		blocks: [
+			{
+				text: 'With Plans & Ploys, each player has a landmark card: a goal, and the landmark it gains.',
+			},
+			// 03 §1.2: the draft passes counter-clockwise from the player going last; alone, draw 2 and keep 1.
+			{
+				text: 'As setup ends, the player going last draws one landmark card per player and keeps one; the rest pass back through turn order, each player keeping one, the first player last. Alone, you draw 2 and keep 1. Your card shows on your Civ tab, for everyone to see.',
+			},
+			// R111: the final income turn's end counts too.
+			{
+				text: "At the end of each of your turns, your final income turn included, if your card's goal is met you must gain its landmark and place it in your capital city.",
+			},
+			{
+				list: LANDMARK_CARDS.map(
+					(card) =>
+						`${landmarkName(card.landmark)}: ${landmarkGoalPhrase(card.id)}.`
+				),
+			},
+			// 03 §1.5: a move of several spaces is one advance.
+			{
+				text: 'Four space tiles join the stack. Once explored, three give 5 VP whenever you advance on their track (technology, science or military); a move of several spaces is one advance. The fourth gains you the Monolith landmark.',
+			},
+		],
+	},
 ]);
+
+/**
+ * How to play's sections for a table: the base game's, and those of its expansions (#32).
+ * @param {readonly string[]} expansions - The table's expansion codes
+ * @returns {RulesSection[]}
+ */
+export function rulesSections(expansions) {
+	return RULES_HELP.filter(
+		(section) =>
+			section.expansion === undefined ||
+			expansions.includes(section.expansion)
+	);
+}

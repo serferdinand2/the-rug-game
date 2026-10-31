@@ -1,9 +1,10 @@
-<!-- How to play in the game (#42): the rules in our own words, one tab per part of the game, and the keyboard shortcuts. -->
+<!-- How to play in the game (#42): the rules in our own words, one tab per part of the game and per expansion the table plays with (#32), and the keyboard shortcuts. -->
 <script module>
 	/**
 	 * Properties of the RulesPanel screen part itself.
 	 * @typedef {Object} RulesPanelOwnProps
 	 * @property {string} [tab] - The tab on show: a section id of RULES_HELP, or 'keys' for the keyboard shortcuts; bindable, the first section by default
+	 * @property {readonly string[]} [expansions=[]] - The table's expansions, whose sections show too (#32)
 	 * @property {Function} [onRulesPanelClose] - Callback fired when Close, Escape or the backdrop closes the panel
 	 */
 
@@ -20,7 +21,7 @@
 	import Dialog from '../../lib/components/ui/Dialog.svelte';
 	import Tabs from '../../lib/components/ui/Tabs.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
-	import { RULES_HELP } from '../../lib/rules-help.js';
+	import { RULES_HELP, rulesSections } from '../../lib/rules-help.js';
 	import { SHORTCUTS } from '../../lib/shortcuts.js';
 
 	/** The keyboard shortcuts' tab, after the rules. */
@@ -29,19 +30,21 @@
 	/** @type {RulesPanelProps} */
 	let {
 		tab = $bindable(RULES_HELP[0]?.id ?? KEYS),
+		expansions = [],
 		onRulesPanelClose,
 		...attr
 	} = $props();
 
-	const tabs = [
-		...RULES_HELP.map((section) => ({
+	let sections = $derived(rulesSections(expansions));
+	let tabs = $derived([
+		...sections.map((section) => ({
 			id: section.id,
 			label: section.title,
 		})),
 		{ id: KEYS, label: 'Keyboard shortcuts' },
-	];
+	]);
 
-	let section = $derived(RULES_HELP.find((s) => s.id === tab) ?? null);
+	let section = $derived(sections.find((s) => s.id === tab) ?? null);
 
 	/**
 	 * Close, Escape or the backdrop closed the dialog.
