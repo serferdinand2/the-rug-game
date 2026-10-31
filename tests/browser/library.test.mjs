@@ -644,3 +644,93 @@ test('a landmark drags from the tray onto the capital and back (#111)', async ({
 	await page.mouse.up();
 	await expect(caption).toContainText('pieces=[]');
 });
+
+/**
+ * A covered space of the IncomeMat section's mid-game mat, with its parts.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} name - The space's innovation
+ */
+function coveredSpace(page, name) {
+	const space = page
+		.locator('#income-mat figure')
+		.filter({ has: page.locator('figcaption', { hasText: 'mid-game' }) })
+		.locator('.rg-income-mat--space-covered')
+		.filter({
+			has: page.locator('.rg-income-mat--name', { hasText: name }),
+		});
+	return {
+		space,
+		cover: space.locator('.rg-income-mat--cover'),
+		building: space.locator('.rg-income-mat--building'),
+		reward: space.locator('.rg-income-mat--reward'),
+	};
+}
+
+/**
+ * The building's bottom edge less the space's top edge: negative once it floats above its space.
+ * @param {ReturnType<typeof coveredSpace>} parts
+ * @returns {Promise<number>}
+ */
+async function clearance({ space, building }) {
+	const spaceBox = await space.boundingBox();
+	const buildingBox = await building.boundingBox();
+	return (
+		(buildingBox?.y ?? 0) + (buildingBox?.height ?? 0) - (spaceBox?.y ?? 0)
+	);
+}
+
+test('pointing at a building lifts it off the income mat and shows the space under it, and it settles back (#142)', async ({
+	page,
+}) => {
+	await page.goto('/components.html#income-mat');
+	const telephone = coveredSpace(page, 'Telephone');
+	await telephone.space.scrollIntoViewIfNeeded();
+	const resting = await telephone.space.boundingBox();
+
+	// At rest the cover hides the printed reward, and the building sits on its space.
+	await expect(telephone.reward).toHaveText('Income: Gain 1 worker');
+	await expect(telephone.cover).toHaveCSS('opacity', '1');
+	expect(await clearance(telephone)).toBeGreaterThan(0);
+
+	await telephone.space.hover();
+	await expect(telephone.cover).toHaveCSS('opacity', '0');
+	await expect.poll(() => clearance(telephone)).toBeLessThan(0);
+	expect(await telephone.space.boundingBox()).toEqual(resting);
+
+	await page.mouse.move(0, 0);
+	await expect(telephone.cover).toHaveCSS('opacity', '1');
+	await expect.poll(() => clearance(telephone)).toBeGreaterThan(0);
+});
+
+test('keyboard focus lifts a building too, and lifted holds one up (#142)', async ({
+	page,
+}) => {
+	await page.goto('/components.html#income-mat');
+	// The section's mid-game mat holds Credit Cards up.
+	const creditCards = coveredSpace(page, 'Credit Cards');
+	await expect(creditCards.cover).toHaveCSS('opacity', '0');
+	await expect.poll(() => clearance(creditCards)).toBeLessThan(0);
+
+	const telephone = coveredSpace(page, 'Telephone');
+	const email = coveredSpace(page, 'Email');
+	await telephone.space.focus();
+	await page.keyboard.press('Tab');
+	await expect(email.space).toBeFocused();
+	await expect(email.cover).toHaveCSS('opacity', '0');
+	await expect.poll(() => clearance(email)).toBeLessThan(0);
+	await expect(telephone.cover).toHaveCSS('opacity', '1');
+});
+
+test('with reduced motion, a building fades where it stands instead of lifting (#142)', async ({
+	page,
+}) => {
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await page.goto('/components.html#income-mat');
+	const telephone = coveredSpace(page, 'Telephone');
+	await telephone.space.scrollIntoViewIfNeeded();
+	const before = await telephone.building.boundingBox();
+	await telephone.space.hover();
+	await expect(telephone.building).toHaveCSS('opacity', '0');
+	await expect(telephone.cover).toHaveCSS('opacity', '0');
+	expect(await telephone.building.boundingBox()).toEqual(before);
+});

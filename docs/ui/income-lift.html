@@ -1,0 +1,220 @@
+<!doctype html>
+<!-- Issue #142: clickable mockup of a building lifting off the income mat to show the printed space under it; demo state, not the playable game. -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>The Rug Game · Lift a building off the income mat (#142)</title>
+	<link rel="stylesheet" href="../../src/styles/tokens.css">
+	<style>
+		@font-face {
+			font-family: 'Cinzel';
+			src: url('../../static/fonts/cinzel.woff2') format('woff2');
+			font-weight: 400 900;
+			font-display: swap;
+		}
+		@font-face {
+			font-family: 'Atkinson Hyperlegible';
+			src: url('../../static/fonts/atkinson-hyperlegible-regular.woff2') format('woff2');
+			font-weight: 400;
+			font-display: swap;
+		}
+		@font-face {
+			font-family: 'Atkinson Hyperlegible';
+			src: url('../../static/fonts/atkinson-hyperlegible-bold.woff2') format('woff2');
+			font-weight: 700;
+			font-display: swap;
+		}
+
+		* { box-sizing: border-box; }
+		html, body { margin: 0; background: var(--ink); color: var(--text); font-family: var(--font-body); }
+		body { min-width: 1920px; min-height: 1080px; }
+
+		/* ---------- The mockup's page: controls, then the options side by side ---------- */
+		.mk-page { padding: var(--space-9) 40px; display: grid; gap: var(--space-9); }
+		.mk-title { margin: 0; font: var(--weight-bold) var(--font-size-3xl) / var(--leading-tight) var(--font-body); }
+		.mk-title span { color: var(--gold); }
+		.mk-lead { margin: 0; max-width: 1100px; color: var(--muted); font-size: var(--font-size-base); line-height: var(--leading-snug); }
+		.mk-controls { display: flex; flex-wrap: wrap; gap: var(--space-9); align-items: center; padding: var(--space-6) var(--space-8); background: var(--chrome); border: var(--border) solid var(--line-soft); }
+		.mk-control { display: flex; gap: var(--space-3); align-items: center; color: var(--muted); font-size: var(--font-size-sm); }
+		.mk-control b { color: var(--text); margin-right: var(--space-2); }
+		.mk-control button { padding: var(--space-3) var(--space-6); border: var(--border) solid var(--line-strong); background: var(--control); color: var(--text); font: inherit; cursor: pointer; }
+		.mk-control button[aria-pressed='true'] { border-color: var(--gold); background: var(--picked-fill); color: var(--gold); }
+		.mk-options { display: flex; gap: 40px; align-items: flex-start; }
+		.mk-option { display: grid; gap: var(--space-6); width: 474px; }
+		.mk-option h2 { margin: 0; font-size: var(--font-size-xl); }
+		.mk-option h2 span { color: var(--gold); }
+		.mk-option p { margin: 0; color: var(--muted); font-size: var(--font-size-sm); line-height: var(--leading-snug); min-height: 72px; }
+		/* The player area's tab body, as the game draws it around the Income tab. */
+		.mk-area { padding: var(--space-9) 22px; background: var(--texture) var(--chrome); border: var(--border) solid var(--line-soft); }
+		.mk-notes { margin: 0; padding-left: 20px; max-width: 1100px; color: var(--muted); font-size: var(--font-size-sm); line-height: var(--leading-snug); display: grid; gap: var(--space-2); }
+		.mk-notes b { color: var(--text); }
+
+		/* ---------- The income mat, as IncomeMat draws it today ---------- */
+		.rg-income-mat h3 { margin: 0; color: var(--text); font: var(--weight-bold) var(--font-size-xl) / var(--leading-tight) var(--font-body); }
+		.rg-income-mat--era { color: var(--gold); }
+		.rg-income-mat > p { margin: var(--space-3) 0 var(--space-8); color: var(--muted); font-size: var(--font-size-sm); line-height: 1.35; min-height: 0; }
+		.rg-income-mat--rows { display: grid; gap: var(--space-6); }
+		.rg-income-mat--row-market { --rg-income-mat-hover: var(--technology); }
+		.rg-income-mat--row-house { --rg-income-mat-hover: var(--science); }
+		.rg-income-mat--row-farm { --rg-income-mat-hover: var(--exploration); }
+		.rg-income-mat--row-armory { --rg-income-mat-hover: var(--military); }
+		.rg-income-mat--head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-2); }
+		.rg-income-mat--head strong { color: var(--gold); font: var(--weight-bold) var(--font-size-sm) / var(--leading-tight) var(--font-body); }
+		.rg-income-mat--head span { color: var(--muted); font-size: var(--font-size-2xs); }
+		.rg-income-mat--spaces { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-2); margin: 0; padding: 0; list-style: none; }
+		.rg-income-mat--space { position: relative; display: flex; flex-direction: column; align-items: center; min-width: 0; min-height: 96px; padding: var(--space-3) var(--space-1); border: var(--border) solid var(--card-score-line); background: var(--card-filled-slot); color: var(--card-text); text-align: center; }
+		.rg-income-mat--name { width: 100%; min-height: 24px; font-family: var(--font-title); font-size: var(--font-size-3xs); line-height: 1.1; overflow-wrap: anywhere; }
+		.rg-income-mat--reward { display: flex; flex: 1; align-items: center; justify-content: center; width: 100%; font: var(--weight-bold) var(--font-size-3xs) / 1.15 var(--font-body); overflow-wrap: anywhere; }
+
+		/* ---------- New: a covered space is the printed space, with the building resting on it ---------- */
+		.rg-income-mat--space-covered { outline: none; }
+		.rg-income-mat--space-covered:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+		/* The building's resting place: the dark tile and the space's name in grey, over the printed space. */
+		.rg-income-mat--cover { position: absolute; inset: calc(-1 * var(--border)); border: var(--border) solid var(--line); background: var(--raised); transition: opacity var(--rg-lift-duration) var(--ease-out); }
+		.rg-income-mat--cover::after { position: absolute; inset: 0; content: ''; background: color-mix(in srgb, var(--rg-income-mat-hover) 32%, transparent); opacity: 0; transition: opacity var(--duration-fast) var(--ease-out); }
+		.rg-income-mat--covered-name { position: absolute; top: 64px; left: var(--space-1); right: var(--space-1); color: var(--muted); font-size: var(--font-size-3xs); line-height: 1.1; overflow-wrap: anywhere; }
+		.rg-income-mat--building { position: absolute; top: 24px; left: 50%; width: 32px; height: 32px; image-rendering: pixelated; transform: translateX(-50%); z-index: 1; pointer-events: none; transition: transform var(--rg-lift-duration) var(--ease-out), filter var(--rg-lift-duration) var(--ease-out), opacity var(--rg-lift-duration) var(--ease-out); }
+
+		/* Lifted: the cover lifts with the building, and the building floats above its space with a dragged piece's shadow. */
+		.rg-income-mat--space-covered:is(:hover, :focus-visible, .mk-lifted) .rg-income-mat--cover { opacity: 0; }
+		.rg-income-mat--space-covered:is(:hover, :focus-visible, .mk-lifted) .rg-income-mat--building { z-index: var(--layer-popover); filter: drop-shadow(var(--shadow-float)); }
+		/* A · Straight up: 64 px up, so it clears the space's top edge, and 15% larger, as if nearer. */
+		.mk-a .rg-income-mat--space-covered:is(:hover, :focus-visible, .mk-lifted) .rg-income-mat--building { transform: translate(-50%, -64px) scale(1.15); }
+		/* B · Up and aside: up and to the left, tipped as if held by a corner. */
+		.mk-b .rg-income-mat--space-covered:is(:hover, :focus-visible, .mk-lifted) .rg-income-mat--building { transform: translate(calc(-50% - 22px), -60px) rotate(-10deg) scale(1.15); }
+
+		/* The shadow the lifted building casts on the mat, along the space's top edge. */
+		.rg-income-mat--shadow { position: absolute; top: -7px; left: 50%; width: 44px; height: 14px; background: radial-gradient(closest-side, var(--card-shadow-strong), transparent); opacity: 0; transform: translateX(-50%) scale(0.5); pointer-events: none; transition: transform var(--rg-lift-duration) var(--ease-out), opacity var(--rg-lift-duration) var(--ease-out); }
+		.rg-income-mat--space-covered:is(:hover, :focus-visible, .mk-lifted) .rg-income-mat--shadow { opacity: 1; transform: translateX(-50%); }
+		.mk-b .rg-income-mat--space-covered:is(:hover, :focus-visible, .mk-lifted) .rg-income-mat--shadow { transform: translateX(calc(-50% - 22px)); }
+
+		/* Reduced motion: the building and its tile fade where they stand. */
+		.mk-reduced .rg-income-mat--space-covered:is(:hover, :focus-visible, .mk-lifted) .rg-income-mat--building { transform: translateX(-50%); filter: none; opacity: 0; }
+		.mk-reduced .rg-income-mat--space-covered:is(:hover, :focus-visible, .mk-lifted) .rg-income-mat--shadow { opacity: 0; }
+	</style>
+</head>
+<body>
+	<main class="mk-page">
+		<h1 class="mk-title">Income tab · <span>lift a building to see the space under it</span> (#142)</h1>
+		<p class="mk-lead">Point at any building on a dark space, or press Tab to reach one with the keyboard. The building lifts off the mat, its dark resting tile goes with it, and the printed space underneath shows its name and reward exactly as an exposed space does. Move away and it settles back. Nothing else on the mat moves.</p>
+
+		<div class="mk-controls">
+			<div class="mk-control" data-control="duration">
+				<b>Timing</b>
+				<button type="button" data-value="var(--duration-fast)">Fast · 150 ms</button>
+				<button type="button" data-value="var(--duration-medium)" aria-pressed="true">Medium · 220 ms</button>
+				<button type="button" data-value="var(--duration-slow)">Slow · 380 ms</button>
+			</div>
+			<div class="mk-control" data-control="lifted">
+				<b>Show</b>
+				<button type="button" data-value="none" aria-pressed="true">Pointer only</button>
+				<button type="button" data-value="one">Credit Cards lifted</button>
+				<button type="button" data-value="all">Every building lifted</button>
+			</div>
+			<div class="mk-control" data-control="reduced">
+				<b>Reduced motion</b>
+				<button type="button" data-value="off" aria-pressed="true">Off</button>
+				<button type="button" data-value="on">On · fade</button>
+			</div>
+		</div>
+
+		<div class="mk-options">
+			<section class="mk-option">
+				<h2>A · <span>Straight up</span></h2>
+				<p>The building rises straight up until it floats just above its space, 15% larger, with the shadow a dragged piece casts (<code>--shadow-float</code>) and a soft shadow on the mat along the space's top edge. It hangs over the row's heading, never over another space.</p>
+				<div class="mk-area mk-a" data-mat></div>
+			</section>
+			<section class="mk-option">
+				<h2>B · <span>Up and aside</span></h2>
+				<p>The building rises, drifts a little to the left and tips 10°, as if picked up by one corner, with the same shadows. It feels more handled, and still clears the printed name and reward.</p>
+				<div class="mk-area mk-b" data-mat></div>
+			</section>
+		</div>
+
+		<ul class="mk-notes">
+			<li><b>Both options</b> keep every space its size, so the mat never shifts; the dark tile fades with the same timing as the building, and the row-coloured tint on hover goes, since the revealed space says more.</li>
+			<li><b>Reduced motion</b>: the building and its tile fade where they stand, without moving. The game's motion tokens are 0 ms under reduced motion, so in the game this fade is instant.</li>
+			<li><b>Keyboard</b>: each covered space takes the focus (gold outline) and lifts its building while it holds it.</li>
+		</ul>
+	</main>
+
+	<template id="mk-mat">
+		<div class="rg-income-mat">
+			<h3>Income mat · <span class="rg-income-mat--era">Era III</span></h3>
+			<p>Each building removed from the mat exposes the next printed space. Open spaces score before they pay income.</p>
+			<div class="rg-income-mat--rows"></div>
+		</div>
+	</template>
+
+	<script>
+		// The mid-game mat of the component library's IncomeMat section, worded by incomeRows().
+		const ROWS = [{"building":"market","name":"Markets","left":3,"spaces":[["Barter","Income: Gain 1 coin. Score: Gain 1 VP for each tech card you have",false],["Currency","Income: Gain 1 coin",false],["Banking","Score: Gain 1 VP for each tech card you have",false],["Credit Cards","Income: Gain 1 coin",true],["E-Commerce","Income: Gain 1 coin. Score: Gain 1 VP for each tech card you have",true],["Biometrics","Score: Gain 10 VP",true]]},{"building":"house","name":"Houses","left":3,"spaces":[["Symbology","Income: Gain 1 worker. Score: Score your capital city",false],["Language","Income: Gain 1 worker",false],["Writing","Score: Score your capital city",false],["Telephone","Income: Gain 1 worker",true],["Email","Income: Gain 1 worker. Score: Score your capital city",true],["Neural Implants","Score: Gain 10 VP",true]]},{"building":"farm","name":"Farms","left":3,"spaces":[["Hunting","Income: Gain 1 food and 1 territory tile",false],["Farming","Income: Gain 1 food",false],["Breeding","Score: Gain 4 VP",false],["Preservation","Income: Gain 1 food",true],["Fertilization","Income: Gain 1 food. Score: Gain 7 VP",true],["Food Printing","Score: Gain 10 VP",true]]},{"building":"armory","name":"Armories","left":4,"spaces":[["Ceremony","Income: Gain 1 culture and 1 tapestry card",false],["Racing","Income: Gain 1 culture",false],["Team Sports","Score: Gain 1 VP for each territory you control",true],["Tabletop Games","Income: Gain 1 culture",true],["Video Games","Income: Gain 1 culture. Score: Gain 1 VP for each territory you control",true],["Virtual Reality","Score: Gain 10 VP",true]]}];
+
+		/** @param {string} tag @param {string} [className] @param {string} [text] */
+		function el(tag, className, text) {
+			const node = document.createElement(tag);
+			if (className) {
+				node.className = className;
+			}
+			if (text) {
+				node.textContent = text;
+			}
+			return node;
+		}
+
+		for (const area of document.querySelectorAll('[data-mat]')) {
+			area.append(document.getElementById('mk-mat').content.cloneNode(true));
+			const rows = area.querySelector('.rg-income-mat--rows');
+			for (const row of ROWS) {
+				const rowEl = el('div', `rg-income-mat--row rg-income-mat--row-${row.building}`);
+				const head = el('div', 'rg-income-mat--head');
+				head.append(el('strong', '', row.name), el('span', '', `${row.left} left`));
+				const list = el('ul', 'rg-income-mat--spaces');
+				for (const [name, reward, covered] of row.spaces) {
+					const space = el('li', `rg-income-mat--space${covered ? ' rg-income-mat--space-covered' : ''}`);
+					space.dataset.name = name;
+					space.append(el('b', 'rg-income-mat--name', name), el('span', 'rg-income-mat--reward', reward));
+					if (covered) {
+						space.tabIndex = 0;
+						const cover = el('span', 'rg-income-mat--cover');
+						cover.append(el('span', 'rg-income-mat--covered-name', name));
+						const building = el('img', 'rg-income-mat--building');
+						building.src = `../../static/art/building/${row.building}.svg`;
+						building.alt = '';
+						space.append(cover, el('span', 'rg-income-mat--shadow'), building);
+					}
+					list.append(space);
+				}
+				rowEl.append(head, list);
+				rows.append(rowEl);
+			}
+		}
+
+		const page = document.documentElement;
+		page.style.setProperty('--rg-lift-duration', 'var(--duration-medium)');
+
+		for (const control of document.querySelectorAll('[data-control]')) {
+			control.addEventListener('click', (event) => {
+				const button = event.target.closest('button');
+				if (!button) {
+					return;
+				}
+				for (const other of control.querySelectorAll('button')) {
+					other.setAttribute('aria-pressed', String(other === button));
+				}
+				const value = button.dataset.value;
+				if (control.dataset.control === 'duration') {
+					page.style.setProperty('--rg-lift-duration', value);
+				} else if (control.dataset.control === 'reduced') {
+					document.body.classList.toggle('mk-reduced', value === 'on');
+				} else {
+					for (const space of document.querySelectorAll('.rg-income-mat--space-covered')) {
+						space.classList.toggle('mk-lifted', value === 'all' || (value === 'one' && space.dataset.name === 'Credit Cards'));
+					}
+				}
+			});
+		}
+	</script>
+</body>
+</html>

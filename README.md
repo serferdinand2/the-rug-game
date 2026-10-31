@@ -52,6 +52,10 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 |---|---|
 | ![Mira's eras in Vera's player area: Maker of Fire, then three not-yet-chosen eras; Mira's public summary remains below in red](docs/ui/screens/game-opponent-eras.png) | ![Mira's Terrain tab in Vera's player area: her one held territory tile is not pressable, with no space tiles, and her public summary remains below](docs/ui/screens/game-opponent-terrain.png) |
 
+| Play: the Income tab, a building lifted (#142) |
+|---|
+| ![Teodor's Income tab in era II: Barter and Currency are exposed, and pointing at Banking lifts its market straight up over the row's heading with a shadow, showing the printed space under it, "Score: Gain 1 VP for each tech card you have", while the other buildings rest on their dark spaces](docs/ui/screens/game-income-lift.png) |
+
 | Play: a choice on the civilization card (#78) | Play: what another player just did (#153) |
 |---|---|
 | ![The Civ tab at an Entertainers income turn (#78): the token's four next spaces outlined in green on the card, the + culture space picked in gold, and the panel at the tracks' centre saying Gain 1 culture beside Confirm choice](docs/ui/screens/game-civ-card-choice.png) | ![Ana's screen while Ben takes his income turn (#153): at the tracks' centre, a panel banded in Ben's red says "Ben's turn · The Chosen · Income turn 2" and "1 of 2" with Skip all and Close, shows his Alliance card in full beside "Ben played Alliance" and its 4-second line, then what followed; the footer keeps "Just now" with Show again](docs/ui/screens/game-player-action.png) |

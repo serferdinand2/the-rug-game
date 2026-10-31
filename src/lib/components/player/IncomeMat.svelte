@@ -1,10 +1,11 @@
-<!-- The income mat: four building rows of six spaces; covered spaces show their building, exposed ones their name and reward. -->
+<!-- The income mat: four building rows of six spaces; a covered space's building lifts on hover or focus to show the printed space under it (#142). -->
 <script module>
 	/**
 	 * Properties of the IncomeMat component itself.
 	 * @typedef {Object} IncomeMatOwnProps
 	 * @property {import('../../area/income.js').IncomeRowView[]} rows - The four building rows
 	 * @property {number} era - 1 to 4, shown as I–IV in the heading
+	 * @property {string | null} [lifted=null] - A covered space, by name, whose building is held up as if pointed at
 	 */
 
 	/**
@@ -12,7 +13,7 @@
 	 * @typedef {IncomeMatOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} IncomeMatProps
 	 *
 	 * @example
-	 * <IncomeMat rows={incomeRows(seat)} era={2} />
+	 * <IncomeMat rows={incomeRows(seat)} era={2} lifted="Credit Cards" />
 	 */
 </script>
 
@@ -21,7 +22,7 @@
 	import { artUrl } from '../../ui.js';
 
 	/** @type {IncomeMatProps} */
-	let { rows, era, ...attr } = $props();
+	let { rows, era, lifted = null, ...attr } = $props();
 </script>
 
 <section
@@ -37,30 +38,37 @@
 	</p>
 	<div class="rg-income-mat--rows">
 		{#each rows as row (row.building)}
-			<div class="rg-income-mat--row rg-income-mat--row-{row.building}">
+			<div class="rg-income-mat--row">
 				<div class="rg-income-mat--head">
 					<strong>{row.name}</strong>
 					<span>{row.left} left</span>
 				</div>
 				<ul class="rg-income-mat--spaces">
 					{#each row.spaces as space (space.name)}
+						<!-- A covered space takes the focus so the keyboard can lift its building too (#142). -->
+						<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 						<li
-							class="rg-income-mat--space {space.covered
-								? 'rg-income-mat--space-covered'
-								: ''}"
-							aria-label={space.label}>
+							class="rg-income-mat--space"
+							class:rg-income-mat--space-covered={space.covered}
+							class:rg-income-mat--space-lifted={space.covered &&
+								space.name === lifted}
+							aria-label={space.label}
+							tabindex={space.covered ? 0 : undefined}>
+							<b class="rg-income-mat--name">{space.name}</b>
+							<span class="rg-income-mat--reward"
+								>{space.reward}</span>
 							{#if space.covered}
+								<span class="rg-income-mat--cover">
+									<span class="rg-income-mat--covered-name"
+										>{space.name}</span>
+								</span>
+								<span class="rg-income-mat--shadow"></span>
 								<img
+									class="rg-income-mat--building"
 									src={artUrl(`building/${row.building}`)}
 									alt=""
 									width="32"
 									height="32" />
-								<span class="rg-income-mat--covered-name"
-									>{space.name}</span>
-							{:else}
-								<b class="rg-income-mat--name">{space.name}</b>
-								<span class="rg-income-mat--reward"
-									>{space.reward}</span>
 							{/if}
 						</li>
 					{/each}
@@ -96,22 +104,6 @@
 
 	.rg-income-mat--row {
 		min-width: 0;
-	}
-
-	.rg-income-mat--row-market {
-		--rg-income-mat-hover: var(--technology);
-	}
-
-	.rg-income-mat--row-house {
-		--rg-income-mat-hover: var(--science);
-	}
-
-	.rg-income-mat--row-farm {
-		--rg-income-mat-hover: var(--exploration);
-	}
-
-	.rg-income-mat--row-armory {
-		--rg-income-mat-hover: var(--military);
 	}
 
 	.rg-income-mat--head {
@@ -175,41 +167,107 @@
 		overflow-wrap: anywhere;
 	}
 
-	.rg-income-mat--space-covered {
-		justify-content: center;
-		gap: var(--space-2);
-		border-color: var(--line);
-		background: var(--raised);
-	}
-
-	.rg-income-mat--space-covered::after {
+	/* A covered space is the printed space, with the building resting on it (issue 142). */
+	.rg-income-mat--cover {
 		position: absolute;
-		inset: 0;
-		content: '';
-		background: color-mix(
-			in srgb,
-			var(--rg-income-mat-hover) 32%,
-			transparent
-		);
-		opacity: 0;
+		inset: calc(-1 * var(--border));
+		border: var(--border) solid var(--line);
+		background: var(--raised);
 		pointer-events: none;
-		transition: opacity var(--duration-fast) var(--ease-out);
-	}
-
-	.rg-income-mat--space-covered:hover::after {
-		opacity: 1;
-	}
-
-	.rg-income-mat--space-covered img {
-		width: 32px;
-		height: 32px;
-		image-rendering: pixelated;
+		transition: opacity var(--duration-medium) var(--ease-out);
 	}
 
 	.rg-income-mat--covered-name {
+		position: absolute;
+		top: calc(50% + var(--space-5));
+		right: var(--space-1);
+		left: var(--space-1);
 		color: var(--muted);
 		font-size: var(--font-size-3xs);
 		line-height: 1.1;
 		overflow-wrap: anywhere;
+	}
+
+	/* Its shadow on the mat, along the space's top edge, once it is lifted. */
+	.rg-income-mat--shadow {
+		position: absolute;
+		top: -7px;
+		left: 50%;
+		width: 44px;
+		height: 14px;
+		background: radial-gradient(
+			closest-side,
+			var(--card-shadow-strong),
+			transparent
+		);
+		opacity: 0;
+		pointer-events: none;
+		transform: translateX(-50%) scale(0.5);
+	}
+
+	.rg-income-mat--building {
+		position: absolute;
+		top: calc(50% - 26px);
+		left: 50%;
+		width: 32px;
+		height: 32px;
+		image-rendering: pixelated;
+		pointer-events: none;
+		transform: translateX(-50%);
+	}
+
+	.rg-income-mat--space-covered:is(
+			:hover,
+			:focus-visible,
+			.rg-income-mat--space-lifted
+		)
+		.rg-income-mat--cover {
+		opacity: 0;
+	}
+
+	/* Option A (owner, issue 142): the building rises straight up to float above its space, nearer and casting a shadow. */
+	@media (prefers-reduced-motion: no-preference) {
+		.rg-income-mat--shadow,
+		.rg-income-mat--building {
+			transition:
+				top var(--duration-medium) var(--ease-out),
+				transform var(--duration-medium) var(--ease-out),
+				filter var(--duration-medium) var(--ease-out),
+				opacity var(--duration-medium) var(--ease-out);
+		}
+
+		.rg-income-mat--space-covered:is(
+				:hover,
+				:focus-visible,
+				.rg-income-mat--space-lifted
+			)
+			.rg-income-mat--shadow {
+			opacity: 1;
+			transform: translateX(-50%);
+		}
+
+		.rg-income-mat--space-covered:is(
+				:hover,
+				:focus-visible,
+				.rg-income-mat--space-lifted
+			)
+			.rg-income-mat--building {
+			z-index: 1;
+			top: -40px;
+			filter: drop-shadow(var(--shadow-float));
+			transform: translateX(-50%) scale(1.15);
+		}
+	}
+
+	/* Reduced motion: the building fades where it stands. */
+	@media (prefers-reduced-motion: reduce) {
+		.rg-income-mat--space-covered:is(
+				:hover,
+				:focus-visible,
+				.rg-income-mat--space-lifted
+			)
+			.rg-income-mat--building {
+			opacity: 0;
+		}
 	}
 </style>
