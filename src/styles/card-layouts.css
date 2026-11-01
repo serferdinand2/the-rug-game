@@ -145,6 +145,32 @@
 .rg-tech-layout--condition .rg-tech-layout--track-military {
 	color: var(--card-military-text);
 }
+.rg-tech-layout--condition .rg-tech-layout--innovation-name {
+	color: var(--card-condition-text);
+	font:
+		600 14px/1 Cinzel,
+		serif;
+	text-shadow:
+		0 0 4px var(--rg-tech-layout-innovation-color),
+		0 0 8px
+			color-mix(
+				in srgb,
+				var(--rg-tech-layout-innovation-color) 72%,
+				transparent
+			);
+}
+.rg-tech-layout--condition-innovation-market {
+	--rg-tech-layout-innovation-color: var(--technology);
+}
+.rg-tech-layout--condition-innovation-house {
+	--rg-tech-layout-innovation-color: var(--science);
+}
+.rg-tech-layout--condition-innovation-farm {
+	--rg-tech-layout-innovation-color: var(--exploration);
+}
+.rg-tech-layout--condition-innovation-armory {
+	--rg-tech-layout-innovation-color: var(--military);
+}
 .rg-tech-layout--footer,
 .rg-tapestry-layout--footer {
 	display: flex;

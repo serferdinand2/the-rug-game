@@ -47,6 +47,7 @@
 	import IncomeMat from '../../lib/components/player/IncomeMat.svelte';
 	import ScaledCard from '../../lib/components/player/ScaledCard.svelte';
 	import TapestryCard from '../../lib/components/player/TapestryCard.svelte';
+	import TapestryCardBack from '../../lib/components/player/TapestryCardBack.svelte';
 	import CapitalTab from './CapitalTab.svelte';
 	import ErasTab from './ErasTab.svelte';
 	import TechTab from './TechTab.svelte';
@@ -115,6 +116,9 @@
 	let player = $derived(publicSeat(game.seats[seat - 1], viewerSeat));
 	let hand = $derived(
 		/** @type {string[]} */ (own ? (player.hand ?? []) : [])
+	);
+	let opponentHand = $derived(
+		Array.from({ length: own ? 0 : handCount(player) }, (_, index) => index)
 	);
 	let capital = $derived(capitalView(player, code));
 	let income = $derived(incomeRows(player));
@@ -185,8 +189,8 @@
 				{fresh}
 				onCapitalTabPlace={own ? onPlayerTabsPlace : undefined} />
 		{:else if tab === 'hand'}
-			<h2 class="rg-player-tabs--title">Hand</h2>
-			{#if hand.length}
+			<h2 class="rg-player-tabs--title">{words.handHeading}</h2>
+			{#if own && hand.length}
 				<CardFan
 					items={hand}
 					overlap={70}
@@ -198,6 +202,26 @@
 							scale={0.42}
 							{...CARD_SIZES.tapestry}>
 							<TapestryCard data={tapestryCardData(id)} />
+						</ScaledCard>
+					{/snippet}
+				</CardFan>
+			{:else if !own && opponentHand.length}
+				{@const handLabels = opponentHand.map(
+					(_, index) => `${words.handHeading}, card ${index + 1}`
+				)}
+				<CardFan
+					items={opponentHand}
+					labels={handLabels}
+					interactive={false}
+					overlap={70}
+					label={words.handHeading}>
+					{#snippet card()}
+						<ScaledCard
+							scale={0.42}
+							{...CARD_SIZES.tapestry}>
+							<TapestryCardBack
+								frame={false}
+								aria-hidden="true" />
 						</ScaledCard>
 					{/snippet}
 				</CardFan>

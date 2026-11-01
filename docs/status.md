@@ -4,6 +4,8 @@ The only record of the project's progress (owner, 2026-10-28): what is done and 
 
 Updated 2026-10-31. The issues are listed in the order they were finished.
 
+On 2026-10-31, landmark-granting technology cards gained the same shared gray tooltip detail used by track landmarks when their square benefit is hovered. This completes the tech-card hover detail portion of #63; the issue remains open for its other display locations.
+
 ## Summary
 
 - **At a glance:**

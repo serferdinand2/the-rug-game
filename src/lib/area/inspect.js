@@ -11,6 +11,7 @@ import { countWords, possessive } from '../words.js';
  * @property {string} tabs - The tab list's label: "Your city and cards" or "Vera's city and cards"
  * @property {string} eras - The Eras tab's heading
  * @property {string} tech - The Tech tab's heading
+ * @property {string} handHeading - The Hand tab's heading
  * @property {(count: number) => string} hand - What the Hand tab says when it draws no cards
  * @property {string} capitalSoon - What the Capital tab says before the mat is dealt
  * @property {string} civSoon - What the Civ tab says before the civilization is chosen
@@ -81,6 +82,7 @@ export function areaWords(game, seat, viewer) {
 			tabs: 'Your city and cards',
 			eras: 'Your eras',
 			tech: 'Your technology',
+			handHeading: 'Your hand',
 			hand: () => 'No tapestry cards in hand.',
 			capitalSoon: 'Your capital mat is dealt as the game starts.',
 			civSoon: 'You choose your civilization as the game starts.',
@@ -94,6 +96,7 @@ export function areaWords(game, seat, viewer) {
 		tabs: `${theirs} city and cards`,
 		eras: `${theirs} eras`,
 		tech: `${theirs} technology`,
+		handHeading: `${theirs} hand`,
 		hand: (count) =>
 			count === 0
 				? `${name} holds no tapestry cards.`

@@ -17,9 +17,11 @@ import { artUrl } from '../ui.js';
  * @property {string} art - Its art's name under art/tech/
  * @property {string} circle - The circle (middle-row) benefit, as a sentence
  * @property {string} square - The square (top-row) benefit, as a sentence
+ * @property {string} [landmark] - Landmark id granted by the square benefit
  * @property {string} [track] - The track whose tier it needs to reach the top row
  * @property {number} [level] - That tier, 2 to 4
  * @property {string} [innovation] - Or the income-mat innovation it needs, by its printed name (R18)
+ * @property {'market' | 'house' | 'farm' | 'armory'} [innovationRow] - Its income row, for the matching accent color
  * @property {string} [edition] - Its edition's code, such as 'aa'; the base game when not given
  */
 
@@ -64,16 +66,17 @@ function sentence(text) {
 /**
  * An income-mat innovation's printed name, such as 'Farming', from its id.
  * @param {string} id
- * @returns {string}
+ * @returns {import('../engine/data/income-mat.js').IncomeSpace}
  */
-function innovationName(id) {
+
+function innovationSpace(id) {
 	const space = Object.values(INCOME_MAT)
 		.flat()
 		.find((s) => s.id === id);
 	if (!space) {
 		throw new Error(`no income-mat innovation ${id}`);
 	}
-	return space.name;
+	return space;
 }
 
 /**
@@ -91,8 +94,13 @@ export function techCardData(id) {
 		circle: sentence(describeEffects(card.circle)),
 		square: sentence(describeEffects(card.square)),
 	};
+	if (card.landmark) {
+		data.landmark = card.landmark;
+	}
 	if ('innovation' in card.requires) {
-		data.innovation = innovationName(card.requires.innovation);
+		const space = innovationSpace(card.requires.innovation);
+		data.innovation = space.name;
+		data.innovationRow = space.row;
 	} else {
 		data.track = card.requires.track;
 		data.level = card.requires.tier;

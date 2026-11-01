@@ -237,14 +237,14 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 
 ![Vera's turn with Mira's chip pressed: Mira's Tropical capital and public summary in the player area, both bordered in her red, under Viewing Mira's area and Back to your area](screens/game-opponent-tabs.png)
 
-![Mira's Hand tab seen by Vera: a count, no card](screens/game-opponent-hand.png)
+![Mira's Hand tab seen by Vera: her tapestry cards shown as backs with the card faces and identities hidden](screens/game-opponent-hand.png)
 
 ![Mira's eras in Vera's player area, with her public summary below](screens/game-opponent-eras.png)
 
 ![Mira's Terrain tab in Vera's player area, with her public summary below](screens/game-opponent-terrain.png)
 
 - **A chip shows that player's tabs** in the 1/4 player area: the same seven tabs, on the tab you had open, read-only. The area is bordered in their colour, and `InspectBar` says "Viewing Mira's area" with their colour square and **Back to your area**. The headings name them ("Mira's eras"), and the compact summary below follows the inspected player: their name, era, VP, hand, tech, territories, lines and resources, without a gold highlight, inside the matching coloured border. Back to your own area restores your summary, including any pending resource-pick preview.
-- **Private things stay hidden:** their Hand tab is a count; a face-down tapestry card is "Face-down card" in their Eras tab, as in yours. The client draws a seat through `publicSeat` (`src/lib/area/inspect.js`), which drops another seat's hand and picks even if a view held them.
+- **Private things stay hidden:** their Hand tab shows one full tapestry-card back for each card, without exposing its face or identity; a face-down tapestry card uses the same full card back in their Eras tab, as in yours. The client draws a seat through `publicSeat` (`src/lib/area/inspect.js`), which drops another seat's hand and picks even if a view held them.
 - **Read-only:** no placement, tile pick or card spot on their tabs; hovering a face-up card still shows it in full. Your turn, the footer and any open panel are untouched. A decision that opens one of your tabs takes you back to your own area.
 - **The way back:** their chip again, your own chip, **Back to your area**, or Escape once nothing else is open. **1–5** do what the chips do.
 - **The players overview** is no longer reached from anywhere; `PlayersOverview`, `PlayerCard` and its layer stay in the code for the owner to decide on.

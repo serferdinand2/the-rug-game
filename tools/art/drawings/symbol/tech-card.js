@@ -1,8 +1,53 @@
-// Approved track symbol tech-card, preserved pixel for pixel.
-import { fromSvg } from '../../painter.js';
+// Vectorized pixel-for-pixel from static/art/card-back/tech-24.png.
+import { createCanvas, rect } from '../../painter.js';
 
-const SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" shape-rendering=\"crispEdges\"><path fill=\"#120c1e\" d=\"M1 5h22v1h-22zM1 6h1v1h-1zM22 6h1v1h-1zM1 7h1v1h-1zM22 7h1v1h-1zM1 8h1v1h-1zM22 8h1v1h-1zM1 9h1v1h-1zM22 9h1v1h-1zM1 10h1v1h-1zM22 10h1v1h-1zM1 11h1v1h-1zM22 11h1v1h-1zM1 12h1v1h-1zM22 12h1v1h-1zM1 13h1v1h-1zM22 13h1v1h-1zM1 14h1v1h-1zM22 14h1v1h-1zM1 15h1v1h-1zM22 15h1v1h-1zM1 16h1v1h-1zM22 16h1v1h-1zM1 17h1v1h-1zM22 17h1v1h-1zM1 18h22v1h-22z\"/><path fill=\"#c6ad78\" d=\"M2 6h20v1h-20zM2 7h1v1h-1zM21 7h1v1h-1zM2 8h1v1h-1zM21 8h1v1h-1zM2 9h1v1h-1zM21 9h1v1h-1zM2 10h1v1h-1zM21 10h1v1h-1zM2 11h1v1h-1zM21 11h1v1h-1zM2 12h1v1h-1zM21 12h1v1h-1zM2 13h1v1h-1zM21 13h1v1h-1zM2 14h1v1h-1zM21 14h1v1h-1zM2 15h1v1h-1zM21 15h1v1h-1zM2 16h1v1h-1zM21 16h1v1h-1zM2 17h20v1h-20z\"/><path fill=\"#74492b\" d=\"M3 7h1v1h-1zM6 7h2v1h-2zM10 7h2v1h-2zM14 7h2v1h-2zM18 7h2v1h-2zM5 8h2v1h-2zM9 8h2v1h-2zM13 8h2v1h-2zM17 8h2v1h-2zM4 9h2v1h-2zM8 9h2v1h-2zM12 9h2v1h-2zM16 9h2v1h-2zM20 9h1v1h-1zM3 10h2v1h-2zM7 10h2v1h-2zM11 10h2v1h-2zM15 10h2v1h-2zM19 10h2v1h-2zM3 11h1v1h-1zM6 11h2v1h-2zM10 11h2v1h-2zM14 11h2v1h-2zM18 11h2v1h-2zM5 12h2v1h-2zM9 12h2v1h-2zM13 12h2v1h-2zM17 12h2v1h-2zM4 13h2v1h-2zM8 13h2v1h-2zM12 13h2v1h-2zM16 13h2v1h-2zM20 13h1v1h-1zM3 14h2v1h-2zM7 14h2v1h-2zM11 14h2v1h-2zM15 14h2v1h-2zM19 14h2v1h-2zM3 15h1v1h-1zM6 15h2v1h-2zM10 15h2v1h-2zM14 15h2v1h-2zM18 15h2v1h-2zM5 16h2v1h-2zM9 16h2v1h-2zM13 16h2v1h-2zM17 16h2v1h-2z\"/><path fill=\"#5f866d\" d=\"M4 7h2v1h-2zM8 7h2v1h-2zM12 7h2v1h-2zM16 7h2v1h-2zM20 7h1v1h-1zM3 8h2v1h-2zM7 8h2v1h-2zM11 8h2v1h-2zM15 8h2v1h-2zM19 8h2v1h-2zM3 9h1v1h-1zM6 9h2v1h-2zM10 9h2v1h-2zM14 9h2v1h-2zM18 9h2v1h-2zM5 10h2v1h-2zM9 10h2v1h-2zM13 10h2v1h-2zM17 10h2v1h-2zM4 11h2v1h-2zM8 11h2v1h-2zM12 11h2v1h-2zM16 11h2v1h-2zM20 11h1v1h-1zM3 12h2v1h-2zM7 12h2v1h-2zM11 12h2v1h-2zM15 12h2v1h-2zM19 12h2v1h-2zM3 13h1v1h-1zM6 13h2v1h-2zM10 13h2v1h-2zM14 13h2v1h-2zM18 13h2v1h-2zM5 14h2v1h-2zM9 14h2v1h-2zM13 14h2v1h-2zM17 14h2v1h-2zM4 15h2v1h-2zM8 15h2v1h-2zM12 15h2v1h-2zM16 15h2v1h-2zM20 15h1v1h-1zM3 16h2v1h-2zM7 16h2v1h-2zM11 16h2v1h-2zM15 16h2v1h-2zM19 16h2v1h-2z\"/></svg>";
+/** @type {[string, number][]} */
+const PALETTE = [['#120c1e', 1], ['#c6ad78', 1], ['#5f866d', 1], ['#74492b', 1]];
+const ROWS = [
+  '24:-',
+  '24:-',
+  '24:-',
+  '24:-',
+  '24:-',
+  '1:- 22:0 1:-',
+  '1:- 1:0 20:1 1:0 1:-',
+  '1:- 1:0 1:1 1:2 2:3 2:2 2:3 2:2 2:3 2:2 2:3 2:2 1:3 1:1 1:0 1:-',
+  '1:- 1:0 1:1 2:2 2:3 2:2 2:3 2:2 2:3 2:2 2:3 2:2 1:1 1:0 1:-',
+  '1:- 1:0 1:1 1:3 2:2 2:3 2:2 2:3 2:2 2:3 2:2 2:3 1:2 1:1 1:0 1:-',
+  '1:- 1:0 1:1 2:3 2:2 2:3 2:2 2:3 2:2 2:3 2:2 2:3 1:1 1:0 1:-',
+  '1:- 1:0 1:1 1:2 2:3 2:2 2:3 2:2 2:3 2:2 2:3 2:2 1:3 1:1 1:0 1:-',
+  '1:- 1:0 1:1 2:2 2:3 2:2 2:3 2:2 2:3 2:2 2:3 2:2 1:1 1:0 1:-',
+  '1:- 1:0 1:1 1:3 2:2 2:3 2:2 2:3 2:2 2:3 2:2 2:3 1:2 1:1 1:0 1:-',
+  '1:- 1:0 1:1 2:3 2:2 2:3 2:2 2:3 2:2 2:3 2:2 2:3 1:1 1:0 1:-',
+  '1:- 1:0 1:1 1:2 2:3 2:2 2:3 2:2 2:3 2:2 2:3 2:2 1:3 1:1 1:0 1:-',
+  '1:- 1:0 1:1 2:2 2:3 2:2 2:3 2:2 2:3 2:2 2:3 2:2 1:1 1:0 1:-',
+  '1:- 1:0 20:1 1:0 1:-',
+  '1:- 22:0 1:-',
+  '24:-',
+  '24:-',
+  '24:-',
+  '24:-',
+  '24:-'
+];
 
 export function draw() {
-	return fromSvg(SVG);
+  const canvas = createCanvas(24, 24);
+  for (let y = 0; y < ROWS.length; y++) {
+    let x = 0;
+    for (const segment of ROWS[y].split(' ')) {
+      const separator = segment.indexOf(':');
+      const width = Number(segment.slice(0, separator));
+      const index = segment.slice(separator + 1);
+      if (index !== '-') {
+        const [color, alpha] = PALETTE[Number(index)];
+        rect(canvas, x, y, width, 1, color);
+        if (alpha !== 1) {
+          canvas.alpha ??= new Array(canvas.w * canvas.h).fill(1);
+          canvas.alpha.fill(alpha, y * canvas.w + x, y * canvas.w + x + width);
+        }
+      }
+      x += width;
+    }
+  }
+  return canvas;
 }

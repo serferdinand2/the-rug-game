@@ -184,6 +184,8 @@ test('every picture has a placeholder its size before it is drawn, as npm run ar
 		h: 362,
 	});
 	assert.deepEqual(art.pictureSize('tapestry/academia'), { w: 64, h: 64 });
+	assert.deepEqual(art.pictureSize('card-back/tapestry'), { w: 319, h: 560 });
+	assert.deepEqual(art.pictureSize('card-back/tech'), { w: 425, h: 298 });
 	// The capital art is sized by its plots, so the sections above the reliefs keep their room too.
 	assert.deepEqual(art.pictureSize('capital-terrain/mountain-open-01'), {
 		w: 32,

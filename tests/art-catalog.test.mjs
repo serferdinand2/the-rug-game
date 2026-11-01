@@ -27,6 +27,7 @@ const EXPECTED_COUNTS = {
 	terrain: { base: 5 },
 	track: { base: 4, aa: 1 },
 	symbol: { base: 13 },
+	'card-back': { base: 2 },
 	board: { base: 5, ff: 1 },
 	hex: { base: 8 },
 	'territory-tile': { base: 48 },
@@ -108,10 +109,10 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 283 icons and 94 boards', () => {
+test('there are 294 illustrations, 285 icons and 94 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
-	assert.equal(count('icon'), 283);
+	assert.equal(count('icon'), 285);
 	assert.equal(count('board'), 94);
 });
 

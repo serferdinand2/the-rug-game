@@ -18,6 +18,8 @@
 </script>
 
 <script>
+	import { artUrl } from '../../ui.js';
+
 	/** @type {TechDeckBackProps} */
 	let { count, size = 'card', ...attr } = $props();
 </script>
@@ -34,6 +36,10 @@
 		class="rg-tech-deck-back rg-tech-deck-back--card {attr.class
 			? attr.class
 			: ''}">
+		<img
+			src={artUrl('card-back/tech')}
+			alt=""
+			aria-hidden="true" />
 		<b>Deck · {count}</b>
 	</span>
 {/if}
@@ -46,6 +52,7 @@
 
 	/* The whole card: the frame's size, which the ScaledCard around it gives. */
 	.rg-tech-deck-back--card {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -56,6 +63,23 @@
 		border: var(--border-thick) solid var(--card-line);
 		font: var(--weight-title) var(--font-size-3xl) / var(--leading-tight)
 			var(--font-title);
+	}
+
+	.rg-tech-deck-back--card img {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: fill;
+	}
+
+	.rg-tech-deck-back--card b {
+		z-index: 1;
+		padding: var(--space-3) var(--space-5);
+		border: 2px solid var(--gold);
+		background: var(--scrim-strong);
+		color: var(--gold);
+		text-shadow: 0 2px var(--ink);
 	}
 
 	/* The chip beside an option's words. */
