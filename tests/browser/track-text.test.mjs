@@ -65,37 +65,6 @@ test('the track spaces keep 10px text at 1920×1080 and grow it on larger screen
 			'.rg-track-space[data-landmark="lighthouse"]'
 		);
 		await expect(lighthouse).toHaveCount(1);
-		const offeredFootprints = page.locator(
-			'.rg-track-space [data-landmark-footprint]'
-		);
-		await expect(offeredFootprints).toHaveCount(12);
-		const footprintBounds = await offeredFootprints.evaluateAll((shapes) =>
-			shapes.map((shape) => {
-				const box = shape.getBoundingClientRect();
-				const tile = shape
-					.closest('.rg-track-space')
-					.getBoundingClientRect();
-				return {
-					label: shape.getAttribute('aria-label'),
-					inside:
-						box.left >= tile.left &&
-						box.right <= tile.right &&
-						box.top >= tile.top &&
-						box.bottom <= tile.bottom,
-					width: box.width,
-					height: box.height,
-				};
-			})
-		);
-		expect(footprintBounds.every((shape) => shape.inside)).toBe(true);
-		expect(
-			footprintBounds.every(
-				(shape) => shape.width <= 23 && shape.height <= 23
-			)
-		).toBe(true);
-		expect(footprintBounds.map((shape) => shape.label)).toContain(
-			'Rubber Works, capital footprint: 4 rows by 4 columns'
-		);
 		// The fresh game opens a decision panel over part of the board. Dispatch the same bubbling
 		// pointer event the shared tooltip listens for, independent of whether that panel covers this tile.
 		await lighthouse.dispatchEvent('pointerover', { pointerType: 'mouse' });

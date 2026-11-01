@@ -91,19 +91,6 @@
 	font-size: 12px;
 	line-height: 1.16;
 }
-.rg-tech-layout--effect-copy {
-	min-width: 0;
-}
-.rg-tech-layout--effect-detail {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
-	align-items: center;
-	gap: 5px;
-}
-.rg-tech-layout--landmark-footprint {
-	max-width: 31px;
-	max-height: 31px;
-}
 .rg-tech-layout--conditions {
 	display: flex;
 	align-items: center;

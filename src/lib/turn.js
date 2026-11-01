@@ -250,7 +250,6 @@ export function firstIncomeNotice(view, seat) {
  * @property {string} [heading]
  * @property {string} [properName] - The selected space's name
  * @property {TrackId} [track] - The selected space's track
- * @property {string} [landmark] - The offered landmark on the selected space, if still unclaimed
  * @property {string} [detail]
  * @property {import('./ui.js').CostSymbol[] | null} [cost] - The selected space's tier price
  * @property {{ description: string, label: string, folded: boolean } | null} [income] - The income reveal beside the turn label, as IncomeReveal takes it (#122)
@@ -331,11 +330,6 @@ export function footerView(game, seat, inputs) {
 		const reachable = options.some(
 			(o) => o.track === selected.track && o.to === selected.space
 		);
-		const landmark = TRACKS[selected.track][selected.space].landmark;
-		const offeredLandmark =
-			landmark && game.landmarks.includes(landmark)
-				? landmark
-				: undefined;
 		return {
 			kind: 'selected',
 			tone: 'selected',
@@ -343,7 +337,6 @@ export function footerView(game, seat, inputs) {
 			properName: spaceName(selected.track, selected.space),
 			track: selected.track,
 			detail: spaceWords(game, selected.track, selected.space),
-			...(offeredLandmark ? { landmark: offeredLandmark } : {}),
 			cost: tierSymbols(selected.track, tierOf(selected.space)),
 			income: income(true),
 			advance: {

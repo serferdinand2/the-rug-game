@@ -77,9 +77,6 @@ test('the tracks show every benefit, and setup shows capital mats as grids and c
 			await page.getByRole('button', { name: `I'm ${name}` }).click();
 		};
 		await takeScreen('Ana');
-		await expect(
-			page.locator('.rg-track-space [data-landmark-footprint]')
-		).toHaveCount(12);
 
 		// The tracks, drawn under every prompt: every space shows its benefit, and the 18 with a bonus show it, with
 		// nothing cut off (#59). Some civilizations ask more once setup is over, so they are checked first. Since #85

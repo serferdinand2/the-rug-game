@@ -40,7 +40,7 @@
 <Section
 	name="TrackSpace"
 	area="board"
-	description="One pointed space on a track: its name, benefit, optional bonus, and any available landmark offer. Available landmarks show a compact footprint and name; the offer disappears after it is claimed. The first space has a flat left edge and the last a dashed finish line; selection draws a gold outline, and keyboard focus a dashed one.">
+	description="One pointed space on a track: its name at the top left, its benefit under it and any bonus in a small box (its price, an arrow, what it gives), any landmark at the bottom over a darker track-coloured band, and its number in the arrow tip. Resources, buildings and tracks use their art; the other game symbols are short words, and a benefit without its own benefit carries a red X. The full words are its tooltip and label. The first space has a flat left edge and the last a dashed finish line; selection draws a gold outline, and keyboard focus a dashed one. In a short space the symbols shrink; in a large one, on a large screen, the words and symbols grow.">
 	<Example label={'track="exploration" space={1} name="Scouting"'}>
 		<div style={TILE}>
 			<TrackSpace
@@ -69,17 +69,6 @@
 				name="Academic Research"
 				landmark="Academy"
 				{...effects('science', 7)} />
-		</div>
-	</Example>
-	<Example
-		label={'track="technology" space={7} name="Rubber Works" landmark="Rubber Works" · irregular 4×4 footprint'}>
-		<div style={TILE}>
-			<TrackSpace
-				track="technology"
-				space={7}
-				name="Rubber Works"
-				landmark="Rubber Works"
-				{...effects('technology', 7)} />
 		</div>
 	</Example>
 	<Example label={'track="military" space={12} name="Mechs" last'}>
