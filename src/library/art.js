@@ -237,6 +237,9 @@ function boardSize(side) {
  */
 export function pictureSize(id) {
 	const [group, slug] = id.split('/');
+	if (group === 'card-back') {
+		return slug === 'tapestry' ? { w: 319, h: 560 } : { w: 425, h: 298 };
+	}
 	if (group === 'landmark') {
 		const rows = Object.hasOwn(FOOTPRINTS, slug) ? FOOTPRINTS[slug] : null;
 		return rows
