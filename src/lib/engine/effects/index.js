@@ -35,6 +35,13 @@ import {
 	revolution,
 	placeOutpost,
 } from './cards.js';
+import {
+	astronomy,
+	cartography,
+	manifestDestiny,
+	statusQuo,
+	worldsFair,
+} from './pp-cards.js';
 import { gainCiv } from '../civ-turns.js';
 import { placeToken } from '../civs/civ.js';
 
@@ -82,6 +89,11 @@ export const EFFECTS = {
 	revolution,
 	placeOutpost,
 	placeToken,
+	astronomy,
+	cartography,
+	manifestDestiny,
+	statusQuo,
+	worldsFair,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

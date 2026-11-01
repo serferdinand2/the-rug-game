@@ -60,6 +60,12 @@ import { chooseProphecy } from './decisions/choose-prophecy.js';
 import { chooseSwap } from './decisions/choose-swap.js';
 import { leadersAdvance } from './civs/leaders.js';
 import { merrymakersMove } from './civs/merrymakers.js';
+import {
+	cartographyCheck,
+	manifestDestinyBenefit,
+	territoryBenefit,
+	statusQuoBonus,
+} from './effects/pp-cards.js';
 import { entertainersMove } from './civs/entertainers.js';
 import { alchemistsRoll } from './civs/alchemists.js';
 import { mysticsCheck } from './civs/mystics.js';
@@ -160,4 +166,8 @@ export const AUTOMATIC = {
 	historiansDiscard,
 	inventorsToken,
 	inventorsTake,
+	cartographyCheck,
+	manifestDestinyBenefit,
+	territoryBenefit,
+	statusQuoBonus,
 };

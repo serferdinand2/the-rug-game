@@ -127,6 +127,8 @@ const SAMPLES = {
 	noBuildingLeft: { player: 2, building: 'armory' },
 	noCivLeft: { player: 1 },
 	noColonialism: { player: 1 },
+	noStatusQuo: { player: 1 },
+	freeBonus: { player: 1, track: 'military', space: 8 },
 	noConquer: { player: 1 },
 	noCopy: { player: 2 },
 	noExplore: { player: 1 },

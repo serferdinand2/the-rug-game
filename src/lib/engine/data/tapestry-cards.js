@@ -203,13 +203,17 @@ export const TAPESTRY_CARDS = deepFreeze([
 	// R22: a trap played as a tapestry card is worth 10 VP.
 	{ ...when('trap', [{ vp: 10 }]), response: 'conquest' },
 	// Plans & Ploys (#33; 03 §1.4). A response card played as a tapestry card gains its printed line (R45 for Retreat).
+	pp(when('astronomy', [{ astronomy: {} }])),
+	pp(when('cartography', [{ cartography: {} }])),
 	pp(when('double-cross', [{ vp: 9 }, { gain: { territory: 1 } }]), {
 		response: 'trap',
 	}),
 	pp(when('entertain-the-masses', [{ landmark: 'stadium' }])),
+	pp(when('manifest-destiny', [{ manifestDestiny: {} }])),
 	pp(when('retreat', [{ vp: 9 }, { gain: { tapestry: 1 } }]), {
 		response: 'conquest',
 	}),
+	pp(when('status-quo', [{ statusQuo: {} }])),
 	pp(when('stolen-plans', [{ vp: 8 }, { invent: {} }]), {
 		response: 'trap',
 	}),
@@ -221,6 +225,9 @@ export const TAPESTRY_CARDS = deepFreeze([
 	),
 	pp(when('surrender', [{ vp: 7 }, { gain: { any: 1 } }]), {
 		response: 'conquest',
+	}),
+	pp(when('worlds-fair', [{ gain: { culture: 1 } }, { worldsFair: {} }]), {
+		name: "World's Fair",
 	}),
 ]);
 

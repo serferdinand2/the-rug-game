@@ -64,7 +64,7 @@ import { deepFreeze } from './ids.js';
  * - `vp`: gain that many VP, or VP per thing counted.
  * - `explore`: explore with a territory tile from the supply; `anywhere` drops the adjacency rule; `tile` allows only that tile; `sailed` marks an explore Age of Sail has already drawn for.
  * - `exploreSpace`: explore a space tile from the supply; `fromGained` limits it to the tiles this benefit just gained (R105).
- * - `conquer`: conquer; `anywhere` drops adjacency; `bothDice` gives both dice always, or only if an opponent controlled the territory (R17).
+ * - `conquer`: conquer; `anywhere` drops adjacency; `bothDice` gives both dice always, or only if an opponent controlled the territory (R17); `only` limits the targets to those hexes (#33).
  * - `research`: roll the science die and you may advance on that track; `noBenefit` is the X.
  * - `advance`: advance 1 space on one of the listed tracks, with its benefit and optional bonus; `noBenefit` is the X; `optional` lets the player decline; `freeBonus` lets them take the bonus of the space reached without paying; `noBonus` gives the benefit without the bonus; `offTrackVp` gives that many VP instead when every token on the listed tracks is on space 12.
  * - `regress`: go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus; `noBenefit` is the X.
@@ -90,6 +90,7 @@ import { deepFreeze } from './ids.js';
  * - `placeOutpost`: put an outpost from the supply on a hex, without a conquest.
  * - `placeToken`: put one of a civilization's tokens from its mat on a hex, as an item that gives no control (R33).
  * - `darkAges`, `socialism`, `dictatorship`, `revolution`, `colonialism`, `pleaForAid`, `technocracy`, `tradeEconomy`, `coalBaron`, `olympicHost`: the rules of the card of that name.
+ * - `astronomy`, `cartography`, `manifestDestiny`, `statusQuo`, `worldsFair`: the rules of the Plans & Ploys card of that name (#33).
  * @typedef {{ gain: Gain }
  *   | { lose: { culture?: number, any?: number } }
  *   | { building: BuildingId }
@@ -97,7 +98,7 @@ import { deepFreeze } from './ids.js';
  *   | { vp: number | VpPer }
  *   | { explore: { anywhere?: boolean, tile?: number, sailed?: boolean } }
  *   | { exploreSpace: { fromGained?: boolean } }
- *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent' } }
+ *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent', only?: string[] } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
  *   | { advance: { tracks: TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean, noBonus?: boolean, offTrackVp?: number } }
  *   | { regress: { tracks: TrackId[], noBenefit?: boolean } }
@@ -131,7 +132,12 @@ import { deepFreeze } from './ids.js';
  *   | { technocracy: {} }
  *   | { tradeEconomy: {} }
  *   | { coalBaron: {} }
- *   | { olympicHost: {} }} Effect
+ *   | { olympicHost: {} }
+ *   | { astronomy: {} }
+ *   | { cartography: {} }
+ *   | { manifestDestiny: {} }
+ *   | { statusQuo: {} }
+ *   | { worldsFair: {} }} Effect
  */
 
 /**
@@ -188,6 +194,11 @@ export const EFFECT_KINDS = deepFreeze([
 	'tradeEconomy',
 	'coalBaron',
 	'olympicHost',
+	'astronomy',
+	'cartography',
+	'manifestDestiny',
+	'statusQuo',
+	'worldsFair',
 ]);
 
 /**

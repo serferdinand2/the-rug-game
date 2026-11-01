@@ -44,6 +44,11 @@ const CARD_RULES = [
 	'tradeEconomy',
 	'coalBaron',
 	'olympicHost',
+	'astronomy',
+	'cartography',
+	'manifestDestiny',
+	'statusQuo',
+	'worldsFair',
 ];
 
 /**

@@ -158,6 +158,27 @@ test('several targets ask which to conquer', () => {
 	assert.equal(done.hexes['-2_-1'].outposts.length, 0);
 });
 
+test("the conquer effect's only limits its targets (#33)", () => {
+	const { state } = game(['-2_-1', '-1_-2', '1_-1']);
+	conquer(state, face(0), { only: ['-2_-1', '1_-1'], anywhere: true });
+	const [decision] = openDecisions(state);
+	assert.equal(decision.kind, 'chooseConquer');
+	assert.deepEqual(
+		DECISIONS.chooseConquer
+			.answers(state, decision)
+			.map((/** @type {any} */ a) => a.hex)
+			.sort(),
+		['-2_-1', '1_-1']
+	);
+	assert.throws(
+		() => answer(state, face(0), 1, 'chooseConquer', { hex: '-1_-2' }),
+		/can't conquer there/
+	);
+	const one = game(['-2_-1', '-1_-2']).state;
+	conquer(one, face(0), { only: ['-1_-2'] });
+	assert.equal(one.hexes['-1_-2'].outposts.length, 1);
+});
+
 test('one die is chosen, and the default is red', () => {
 	const { state } = game();
 	conquer(state, face(0));

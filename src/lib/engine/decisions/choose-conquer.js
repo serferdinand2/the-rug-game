@@ -10,7 +10,8 @@ export const chooseConquer = {
 		return conquerTargets(
 			state,
 			/** @type {number} */ (decision.player),
-			decision.anywhere === true
+			decision.anywhere === true,
+			decision.only
 		).map((hex) => ({ hex }));
 	},
 	check(state, decision, answer) {

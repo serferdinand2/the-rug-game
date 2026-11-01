@@ -74,7 +74,18 @@ const TAPESTRY_RULES = Object.freeze({
 	'trade-economy':
 		"Choose an opponent's current space on any track and gain its benefit. If it has a bonus, that opponent may take it for free",
 	trap: 'When an opponent tries to conquer one of your territories, discard this card. Gain 1 resource of your choice, keep control and topple their outpost; they still gain the benefit of 1 conquer die',
-	// Plans & Ploys' response cards (#33; 03 §1.4); a defender plays one card at most against a conquest.
+	// Plans & Ploys' cards (#33; 03 §1.4).
+	astronomy:
+		'Gain 1 territory tile and explore with it. Then gain 2 space tiles and keep them; you may explore them later',
+	cartography:
+		'Gain 1 territory tile and explore with it. If that scored at least 3 VP, you may also conquer that territory',
+	'manifest-destiny':
+		'Conquer a territory next to your capital-city territory. Then you may gain the benefit of a territory tile you control',
+	'status-quo':
+		'For each tier where you have a token on a space with a bonus, gain one such bonus without paying for it, up to 4',
+	'worlds-fair':
+		'Gain 1 culture. Then gain 1 resource of your choice if your capital city has a complete row or column, and 1 VP for each complete district',
+	// The response cards; a defender plays one card at most against a conquest.
 	'double-cross':
 		'When an opponent plays a trap against your conquest, discard this card to cancel the trap: your outpost stays and theirs stays toppled. Gain 5 VP',
 	retreat:

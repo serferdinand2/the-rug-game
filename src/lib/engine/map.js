@@ -67,9 +67,10 @@ export function exploreHexes(state, player, anywhere) {
  * @param {import('./state.js').State} state
  * @param {number} player
  * @param {boolean} anywhere
+ * @param {readonly string[]} [only] - When given, only these hexes may be targets (#33: Manifest Destiny, Cartography)
  * @returns {string[]}
  */
-export function conquerTargets(state, player, anywhere) {
+export function conquerTargets(state, player, anywhere, only) {
 	const owned = new Set(controlledTerritories(state, player));
 	const allied = new Set(
 		allies(state, player).flatMap((ally) =>
@@ -82,7 +83,8 @@ export function conquerTargets(state, player, anywhere) {
 			itemCount(state, hex) <= 1 &&
 			!owned.has(hex) &&
 			!allied.has(hex) &&
-			(anywhere || touches(hex, owned))
+			(anywhere || touches(hex, owned)) &&
+			(only === undefined || only.includes(hex))
 	);
 }
 

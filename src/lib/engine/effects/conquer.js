@@ -96,9 +96,11 @@ export function responseCards(state, defender) {
 export function conquer(ctx, player, value) {
 	const anywhere = value?.anywhere === true;
 	const bothDice = value?.bothDice;
+	/** @type {string[] | undefined} */
+	const only = value?.only;
 	const targets =
 		playerSeat(ctx.state, player).outposts > 0
-			? conquerTargets(ctx.state, player, anywhere)
+			? conquerTargets(ctx.state, player, anywhere, only)
 			: [];
 	if (targets.length === 0) {
 		emit(ctx.state, { type: 'noConquer', player });
@@ -108,7 +110,15 @@ export function conquer(ctx, player, value) {
 		conquerHex(ctx, player, targets[0], bothDice);
 		return;
 	}
-	ctx.push([{ player, kind: 'chooseConquer', anywhere, bothDice }]);
+	ctx.push([
+		{
+			player,
+			kind: 'chooseConquer',
+			anywhere,
+			bothDice,
+			...(only !== undefined && { only }),
+		},
+	]);
 }
 
 /**

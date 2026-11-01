@@ -667,6 +667,13 @@ const WORDS = {
 	noCopy: (e, game, name) => `${name} had no tapestry card to copy.`,
 	noColonialism: (e, game, name) =>
 		`${name} controlled no territory tile for Colonialism.`,
+	// Status Quo (#33).
+	noStatusQuo: (e, game, name) =>
+		`${name} had no track bonus for Status Quo.`,
+	freeBonus: (e, game, name) =>
+		typeof e.track === 'string'
+			? `${name} took the bonus of their ${trackName(e.track)} space for free.`
+			: `${name} took a track bonus for free.`,
 	noMove: (e, game, name) => `${name}'s tapestry card had no effect.`,
 
 	// Tech cards.

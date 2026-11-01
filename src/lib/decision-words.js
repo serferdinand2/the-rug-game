@@ -188,6 +188,8 @@ const TITLES = {
 				return 'Place an outpost on the territory you explored?';
 			case 'exploitation':
 				return 'Choose what exploring gives you';
+			case 'cartography':
+				return 'Conquer the territory you just explored?';
 			default:
 				return 'Choose one';
 		}
@@ -250,6 +252,8 @@ const TITLES = {
 				return 'Choose a track for Dictatorship';
 			case 'sharedAdvance':
 				return 'Choose a track to advance on';
+			case 'statusQuo':
+				return "Which track's bonus for this tier?";
 			default:
 				return 'Choose a track';
 		}
@@ -257,6 +261,9 @@ const TITLES = {
 	chooseRoll: () => 'Choose one of the two science die results',
 	chooseSpace: () => "Choose an opponent's track space to gain its benefit",
 	chooseHex: (d) => {
+		if (d.purpose === 'manifestDestiny') {
+			return 'Gain the benefit of a territory tile you control?';
+		}
 		const words = ['colonialism', 'revolution'].includes(d.purpose)
 			? `Choose a territory for ${titleOf(d.purpose)}`
 			: 'Choose a territory';
