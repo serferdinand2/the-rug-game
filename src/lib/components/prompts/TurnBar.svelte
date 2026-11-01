@@ -10,6 +10,7 @@
 	 * @property {string} [labelColor] - The label's colour as a token reference, such as 'var(--player-2)' for another player's turn; defaults to gold
 	 * @property {string} heading - The decision, such as 'Advance to'
 	 * @property {string} [properName] - A game thing's name after the heading, in Cinzel and the track's colour, such as 'Ships'
+	 * @property {string} [landmark] - The offered landmark slug, shown with its footprint on a selected track space
 	 * @property {import('svelte').Snippet} [properIcon] - A small inline icon after the proper name, such as the farm; an SVG that fills its 17px box and draws with currentColor
 	 * @property {string} [headingEnd] - Text after the proper name and icon, such as '?'
 	 * @property {string} [detail] - One line under the heading: the benefit or the instruction
@@ -45,6 +46,7 @@
 
 <script>
 	import CostBox from './CostBox.svelte';
+	import LandmarkFootprint from '../player/LandmarkFootprint.svelte';
 	import { trackColor } from '../../ui.js';
 
 	/** @type {TurnBarProps} */
@@ -54,6 +56,7 @@
 		labelColor,
 		heading,
 		properName,
+		landmark,
 		properIcon,
 		headingEnd,
 		detail,
@@ -104,7 +107,18 @@
 				{/if}
 			</div>
 			{#if detail}
-				<p class="rg-turn-bar--detail">{detail}</p>
+				{#if landmark}
+					<div class="rg-turn-bar--detail-with-landmark">
+						<p class="rg-turn-bar--detail">{detail}</p>
+						<LandmarkFootprint
+							id={landmark}
+							plotSize={7}
+							gap={1}
+							class="rg-turn-bar--landmark-shape" />
+					</div>
+				{:else}
+					<p class="rg-turn-bar--detail">{detail}</p>
+				{/if}
 			{/if}
 		</div>
 	</div>
@@ -262,6 +276,19 @@
 		margin: 0;
 		color: var(--muted);
 		font-size: var(--font-size-sm);
+	}
+
+	.rg-turn-bar--detail-with-landmark {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+	}
+	.rg-turn-bar--detail-with-landmark .rg-turn-bar--detail {
+		min-width: 0;
+	}
+	:global(.rg-turn-bar--landmark-shape) {
+		max-width: 31px;
+		max-height: 31px;
 	}
 
 	.rg-turn-bar--actions {

@@ -41,9 +41,11 @@
 <script>
 	import { ComponentEvent } from '../../component-event.js';
 	import { TRACK_IDS } from '../../engine/data/ids.js';
+	import { LANDMARKS } from '../../engine/data/landmarks.js';
 	import { outlinePath } from '../../track-shape.js';
 	import { artUrl, trackColor } from '../../ui.js';
 	import ExplorationFace from './ExplorationFace.svelte';
+	import TrackLandmark from './TrackLandmark.svelte';
 	import SpaceGlyphs from './SpaceGlyphs.svelte';
 
 	/** @type {TrackSpaceProps} */
@@ -72,9 +74,14 @@
 
 	let first = $derived(space === 1);
 	let path = $derived(outlinePath(width, height, { first, last }));
-	let label = $derived(
-		`${name}, ${track} space ${space}${landmark ? `, landmark ${landmark}` : ''}${available ? ', available' : ''}${words ? `. ${words}` : ''}`
-	);
+	let label = $derived.by(() => {
+		const slug = landmark?.toLowerCase().replaceAll(' ', '-');
+		const shape = LANDMARKS.find((item) => item.id === slug);
+		const dimensions = shape
+			? `, ${shape.footprint.length} rows by ${shape.footprint[0].length} columns`
+			: '';
+		return `${name}, ${track} space ${space}${landmark ? `, landmark ${landmark}${dimensions}` : ''}${available ? ', available' : ''}${words ? `. ${words}` : ''}`;
+	});
 	/** The board's + between two of a benefit's glyphs. */
 	const PLUS = /** @type {Glyph} */ ({ kind: 'plus' });
 	/** On these military spaces, the board prints a + before the benefit's glyph at this place. */
@@ -361,13 +368,12 @@
 					</span>
 				</span>
 			{/if}
-			<span class="rg-track-space--landmark"
-				>{#if landmark}<img
-						src={artUrl(
-							`landmark/${landmark.toLowerCase().replaceAll(' ', '-')}`
-						)}
-						alt=""
-						draggable="false" />{landmark}{/if}</span>
+			{#if landmark}
+				<TrackLandmark
+					id={landmark.toLowerCase().replaceAll(' ', '-')}
+					name={landmark}
+					class="rg-track-space--landmark" />
+			{/if}
 		{/if}
 	</span>
 	<span
@@ -895,24 +901,6 @@
 		font: var(--weight-bold) var(--font-size-md) / 1 var(--font-body);
 	}
 
-	.rg-track-space--landmark {
-		display: inline-flex;
-		align-items: center;
-		gap: 2px;
-		flex: none;
-		margin-top: auto;
-		min-height: 14px;
-		color: var(--gold);
-		font: var(--weight-title) var(--font-size-3xs) / 1 var(--font-title);
-		text-align: left;
-	}
-	.rg-track-space--landmark img {
-		width: 13px;
-		height: 13px;
-		object-fit: contain;
-		image-rendering: pixelated;
-	}
-
 	/* A short space, on a short screen, draws its symbols smaller and its words tighter; its tooltip and label keep
 	   the full words. SpaceGlyphs answers to the same three steps. */
 	@container (max-height: 112px) {
@@ -921,10 +909,6 @@
 			inset-block: 4px;
 			gap: var(--space-1);
 		}
-		.rg-track-space--landmark {
-			font-size: var(--font-size-3xs);
-		}
-
 		.rg-track-space--bonus {
 			padding: 0 2px;
 		}
