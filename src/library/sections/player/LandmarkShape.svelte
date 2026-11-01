@@ -9,7 +9,7 @@
 <Section
 	name="LandmarkShape"
 	area="player"
-	description="A landmark footprint as one SVG shape: its picture clipped to covered plots with the border inside them, or plain plot outlines as printed on landmark cards. LandmarkPiece, LandmarkCard and the compact landmark-offer components share this shape.">
+	description="A landmark's footprint as one SVG shape (#110): its picture clipped to the covered plots with the border inside them, or the plain plots as a landmark card prints them. LandmarkPiece and LandmarkCard draw their shapes with it, and #63 will put it on the track spaces.">
 	<Example label={'id="academy" plotSize={29}'}>
 		<LandmarkShape
 			id="academy"

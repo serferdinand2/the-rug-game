@@ -19,7 +19,6 @@
 <script>
 	import CardBand from './CardBand.svelte';
 	import CardEdition from './CardEdition.svelte';
-	import LandmarkFootprint from './LandmarkFootprint.svelte';
 	import { techCardData } from '../../cards/game-cards.js';
 	import { trackName } from '../../game-names.js';
 	import { artUrl } from '../../ui.js';
@@ -54,16 +53,9 @@
 					<span
 						class="rg-tech-layout--shape rg-tech-layout--shape-square"
 						aria-label="Square benefit"></span>
-					<div class="rg-tech-layout--effect-copy">
+					<div>
 						<small>Square · top row</small>
-						<div class="rg-tech-layout--effect-detail">
-							<p>{card.square}</p>
-							{#if card.landmark}<LandmarkFootprint
-									id={card.landmark}
-									plotSize={7}
-									gap={1}
-									class="rg-tech-layout--landmark-footprint" />{/if}
-						</div>
+						<p>{card.square}</p>
 					</div>
 				</div>
 				<div class="rg-tech-layout--effect">
