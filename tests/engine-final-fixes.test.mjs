@@ -297,6 +297,15 @@ test('every decision kind has the full shape, and its answers pass its own check
 			kind: 'chooseResponse',
 			attacker: 1,
 			hex: '-2_-1',
+			both: false,
+		},
+		chooseCounter: {
+			player: 1,
+			kind: 'chooseCounter',
+			defender: 2,
+			hex: '-2_-1',
+			trap: 'trap-1',
+			both: false,
 		},
 		chooseSpaceTile: {
 			player: 1,

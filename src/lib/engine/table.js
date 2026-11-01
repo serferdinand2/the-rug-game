@@ -40,17 +40,18 @@ export function defaultAction(state, seat) {
 }
 
 /**
- * The open responses to a conquest whose only legal answer is to decline: the defender holds no card that can answer.
+ * The open responses to a conquest, and counters to a trap (#33), whose only legal answer is to decline: the seat holds
+ * no card that can answer.
  * @param {State} state
  * @returns {{ decision: number, player: number }[]}
  */
 export function declineOnly(state) {
 	return openDecisions(state)
 		.filter((op) => {
-			if (op.kind !== 'chooseResponse') {
+			if (op.kind !== 'chooseResponse' && op.kind !== 'chooseCounter') {
 				return false;
 			}
-			const answers = DECISIONS.chooseResponse.answers(state, op);
+			const answers = DECISIONS[op.kind].answers(state, op);
 			return answers.length === 1 && answers[0].card === null;
 		})
 		.map((op) => ({

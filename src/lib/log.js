@@ -603,7 +603,13 @@ const WORDS = {
 	},
 	responseDeclined: (e, game, name) =>
 		`${name} did not respond to the conquest of ${hexName(e.hex)}.`,
-	// Plans & Ploys' response cards (#33).
+	// Plans & Ploys' response cards (#33). The stolen card stays the thief's secret.
+	counterPlayed: (e, game, name) =>
+		`${name} played ${tapestryWords(e.card)} against ${seatName(game, e.defender)}'s trap on ${hexName(e.hex)}; the trap did nothing.`,
+	counterDeclined: (e, game, name) =>
+		`${name} let the trap on ${hexName(e.hex)} stand.`,
+	tapestryStolen: (e, game, name) =>
+		`${name} took a tapestry card from ${seatName(game, e.from)}'s hand.`,
 	retreated: (e, game, name) =>
 		`${name} retreated their outpost from ${hexName(e.hex)} to ${hexName(e.to)}.`,
 	surprisePartyThrown: (e, game, name) =>

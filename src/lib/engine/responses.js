@@ -1,6 +1,6 @@
-// The response cards a defender discards against a conquest (#17, #33; 01 §7.4, 03 §1.2, §1.4): which they may play now, and what each does before the dice.
+// The response cards (#17, #33; 01 §7.4, 03 §1.2, §1.4): which a defender may play against a conquest and an attacker against a trap, and what each does before the dice.
 import { emit } from './events.js';
-import { playerSeat, seatOf } from './state.js';
+import { isPlayerSeat, playerSeat, seatOf } from './state.js';
 import { hasEra, triggered } from './abilities.js';
 import { controlledTerritories } from './control.js';
 import { spacesAdvanced } from './movement.js';
@@ -11,6 +11,9 @@ import { tapestryCard } from './data/tapestry-cards.js';
 
 /** What Surprise Party gains (03 §1.4). */
 const SURPRISE_PARTY_VP = 15;
+
+/** What Double Cross gains (03 §1.4). */
+const DOUBLE_CROSS_VP = 5;
 
 /**
  * The conquest's dice, rolled for the attacker once any response is settled (01 §7.3).
@@ -132,27 +135,116 @@ export function playResponse(ctx, { defender, attacker, hex, card, both }) {
 		ctx.push([diceOp(attacker, hex, both, defender)]);
 		return;
 	}
-	turnTables(state, defender, attacker, hex);
-	if (id === 'surprise-party') {
-		emit(state, {
-			type: 'surprisePartyThrown',
-			player: defender,
-			attacker,
-			hex,
-		});
+	if (id === 'trap') {
+		// The attacker may counter before the trap acts, and is asked whenever they hold any card (#17's privacy).
+		if (
+			isPlayerSeat(state, attacker) &&
+			playerSeat(state, attacker).hand.length > 0
+		) {
+			ctx.push([
+				{
+					player: attacker,
+					kind: 'chooseCounter',
+					defender,
+					hex,
+					trap: card,
+					both,
+				},
+			]);
+			return;
+		}
+		springTrap(ctx, defender, attacker, hex, both);
+		return;
 	}
-	// R21: a trap gains 1 resource of the trapper's choice; Surprise Party gains 15 VP. Control changed, so the
-	// defender's `countsChanged` triggers follow (#20 design §7, Mystics).
+	turnTables(state, defender, attacker, hex);
+	emit(state, {
+		type: 'surprisePartyThrown',
+		player: defender,
+		attacker,
+		hex,
+	});
+	// Control changed, so the defender's `countsChanged` triggers follow (#20 design §7, Mystics).
 	ctx.push([
 		{
 			player: defender,
 			kind: 'effects',
-			effects:
-				id === 'surprise-party'
-					? [{ vp: SURPRISE_PARTY_VP }]
-					: [{ gain: { any: 1 } }],
+			effects: [{ vp: SURPRISE_PARTY_VP }],
 		},
 		...triggered(state, 'countsChanged', { player: defender }),
+		diceOp(attacker, hex, both),
+	]);
+}
+
+/**
+ * A trap takes effect: the defender keeps control and the attacker's outpost topples; R21's resource and the
+ * defender's `countsChanged` triggers (#20 design §7, Mystics) come before the attacker's dice.
+ * @param {import('./state.js').Context} ctx
+ * @param {number} defender
+ * @param {number} attacker
+ * @param {string} hex
+ * @param {boolean} both
+ */
+export function springTrap(ctx, defender, attacker, hex, both) {
+	turnTables(ctx.state, defender, attacker, hex);
+	ctx.push([
+		{ player: defender, kind: 'effects', effects: [{ gain: { any: 1 } }] },
+		...triggered(ctx.state, 'countsChanged', { player: defender }),
+		diceOp(attacker, hex, both),
+	]);
+}
+
+/**
+ * The cards in an attacker's hand that counter a trap: Double Cross and Stolen Plans, in hand order.
+ * @param {import('./state.js').State} state
+ * @param {number} attacker
+ * @returns {string[]}
+ */
+export function counterCards(state, attacker) {
+	if (!isPlayerSeat(state, attacker)) {
+		return [];
+	}
+	return playerSeat(state, attacker).hand.filter(
+		(card) => tapestryCard(card).response === 'trap'
+	);
+}
+
+/**
+ * A played counter: the trap is cancelled and does nothing, so the conquest stands. Double Cross gains 5 VP; Stolen
+ * Plans takes a random card from the trapper's hand, which only the thief sees. The card has left the hand.
+ * @param {import('./state.js').Context} ctx
+ * @param {{ attacker: number, defender: number, hex: string, card: string, both: boolean }} counter
+ */
+export function playCounter(ctx, { attacker, defender, hex, card, both }) {
+	const { state } = ctx;
+	if (tapestryCard(card).id === 'double-cross') {
+		ctx.push([
+			{
+				player: attacker,
+				kind: 'effects',
+				effects: [{ vp: DOUBLE_CROSS_VP }],
+			},
+			diceOp(attacker, hex, both),
+		]);
+		return;
+	}
+	const hand = playerSeat(state, defender).hand;
+	if (hand.length === 0) {
+		ctx.push([diceOp(attacker, hex, both)]);
+		return;
+	}
+	const [stolen] = hand.splice(ctx.random(hand.length), 1);
+	playerSeat(state, attacker).hand.push(stolen);
+	emit(state, {
+		type: 'tapestryStolen',
+		player: attacker,
+		from: defender,
+		secret: { cards: [stolen] },
+	});
+	ctx.push([
+		...triggered(state, 'tapestryGained', {
+			player: attacker,
+			cards: [stolen],
+		}),
 		diceOp(attacker, hex, both),
 	]);
 }

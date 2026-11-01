@@ -95,6 +95,27 @@ test('places in the capital and on the map read as rows, columns and hexes', () 
 	);
 });
 
+test("the attacker's counter names the trapper and the card (#33)", () => {
+	const game = { seats: [{ name: 'Ana' }, { name: 'Bo' }] };
+	const decision = {
+		id: 4,
+		batch: 1,
+		player: 2,
+		kind: 'chooseCounter',
+		defender: 1,
+		hex: '1_2',
+	};
+	assert.equal(
+		decisionTitle(decision, /** @type {any} */ (game)),
+		"Counter Ana's trap?"
+	);
+	assert.equal(
+		describeAnswer(decision, { card: 'double-cross' }),
+		'Play Double Cross'
+	);
+	assert.equal(describeAnswer(decision, { card: null }), "Don't counter");
+});
+
 test('answers name seats, cards and resources', () => {
 	const game = { seats: [{ name: 'Ana' }, { name: 'Bo' }] };
 	const gift = { id: 1, batch: 1, player: 1, kind: 'chooseGift' };

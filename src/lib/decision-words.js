@@ -226,6 +226,10 @@ const TITLES = {
 		isCount(d.attacker)
 			? `Respond to the conquest by ${seatName(table, d.attacker)}?`
 			: 'Respond to the conquest?',
+	chooseCounter: (d, table) =>
+		isCount(d.defender)
+			? `Counter ${seatName(table, d.defender)}'s trap?`
+			: 'Counter the trap?',
 	chooseInvent: () => 'Choose a tech card to invent',
 	chooseUpgrade: (d) =>
 		d.optional ? 'Upgrade a tech card?' : 'Choose a tech card to upgrade',
@@ -546,6 +550,14 @@ const ANSWERS = {
 	chooseResponse: (a) => {
 		if (a.card === null) {
 			return "Don't respond";
+		}
+		return typeof a.card === 'string'
+			? `Play ${tapestryName(a.card)}`
+			: null;
+	},
+	chooseCounter: (a) => {
+		if (a.card === null) {
+			return "Don't counter";
 		}
 		return typeof a.card === 'string'
 			? `Play ${tapestryName(a.card)}`

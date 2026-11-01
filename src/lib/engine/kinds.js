@@ -22,6 +22,7 @@ import { chooseSpaceTile } from './decisions/choose-space-tile.js';
 import { chooseConquer } from './decisions/choose-conquer.js';
 import { chooseDie } from './decisions/choose-die.js';
 import { chooseResponse } from './decisions/choose-response.js';
+import { chooseCounter } from './decisions/choose-counter.js';
 import { chooseInvent } from './decisions/choose-invent.js';
 import { chooseUpgrade } from './decisions/choose-upgrade.js';
 import { chooseTechBenefit } from './decisions/choose-tech-benefit.js';
@@ -101,6 +102,7 @@ export const DECISIONS = {
 	chooseConquer,
 	chooseDie,
 	chooseResponse,
+	chooseCounter,
 	chooseInvent,
 	chooseUpgrade,
 	chooseTechBenefit,

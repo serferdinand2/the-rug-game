@@ -60,6 +60,7 @@ export const DECISION_KINDS = Object.freeze({
 	chooseConquer: { confirm: 'Conquer' },
 	chooseDie: { art: 'die' },
 	chooseResponse: { shelf: 'tapestry' },
+	chooseCounter: { shelf: 'tapestry' },
 	chooseInvent: { shelf: 'tech', tab: 'tech', confirm: 'Invent' },
 	chooseUpgrade: { shelf: 'tech', tab: 'tech', confirm: 'Upgrade' },
 	chooseTechBenefit: {

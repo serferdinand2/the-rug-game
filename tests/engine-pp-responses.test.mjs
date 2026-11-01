@@ -6,9 +6,14 @@ import { run } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { controlledTerritories } from '../src/lib/engine/control.js';
-import { declineOnly, defaultAction } from '../src/lib/engine/table.js';
+import {
+	declineOnly,
+	defaultAction,
+	revealed,
+} from '../src/lib/engine/table.js';
+import { view } from '../src/lib/engine/view.js';
 import { hexNeighbours, MAPS } from '../src/lib/engine/data/maps.js';
-import { answerDefaults, conquestGame } from './helpers/engine.mjs';
+import { conquestGame } from './helpers/engine.mjs';
 
 const PP = { expansions: ['pp'] };
 
@@ -52,6 +57,27 @@ const offered = (/** @type {any} */ state) => {
 
 const types = (/** @type {any} */ state) =>
 	state.events.map((/** @type {any} */ e) => e.type);
+
+/**
+ * Answers open decisions with their first answers until an event of this type happens, and no further.
+ * @param {any} state
+ * @param {string} type
+ */
+function until(state, type) {
+	let next = state;
+	for (let step = 0; step < 20 && !types(next).includes(type); step++) {
+		const [open] = openDecisions(next);
+		assert.ok(open, `no ${type} and nothing left to answer`);
+		next = play(
+			next,
+			/** @type {number} */ (open.player),
+			/** @type {any} */ (defaultAction(next, open.player)),
+			face(0)
+		);
+	}
+	assert.ok(types(next).includes(type), `no ${type}`);
+	return next;
+}
 
 /** A hex next to '-2_-1' that seat 2 explores and controls, so Retreat has somewhere to go. */
 const RETREAT_TO = '-1_-1';
@@ -130,7 +156,7 @@ test("Surrender lets the conquest stand and rolls both dice for the defender aft
 	const state = conquestGame(['surrender'], PP);
 	conquer(state);
 	assert.deepEqual(offered(state), [null, 'surrender']);
-	const after = answerDefaults(respond(state, 'surrender'), face(0));
+	const after = until(respond(state, 'surrender'), 'surrenderRolled');
 	assert.deepEqual(after.hexes['-2_-1'].outposts, [
 		{ seat: 2, toppled: true, toppledBy: 1 },
 		{ seat: 1, toppled: false },
@@ -186,6 +212,131 @@ test('R108: a finished defender may respond under the original rules, not under 
 	current.seats[1].finished = true;
 	conquer(current);
 	assert.ok(!openDecisions(current).some((d) => d.kind === 'chooseResponse'));
+});
+
+/**
+ * A conquest of seat 2's outpost answered with a trap, seat 1 holding `hand`.
+ * @param {string[]} hand
+ * @param {string[]} [defenderHand]
+ */
+function trapped(hand, defenderHand = ['trap-1']) {
+	const state = conquestGame(defenderHand, PP);
+	state.seats[0].hand = [...hand];
+	conquer(state);
+	return respond(state, 'trap-1');
+}
+
+/**
+ * Answers seat 1's counter question.
+ * @param {any} state
+ * @param {string | null} card
+ */
+function counter(state, card) {
+	const question = openDecisions(state).find(
+		(d) => d.kind === 'chooseCounter'
+	);
+	assert.ok(question, 'seat 1 is asked to counter');
+	return play(state, 1, { decision: question.id, card }, face(0));
+}
+
+test('a Trap asks the attacker to counter whenever they hold any card (#17), before the trap takes effect', () => {
+	const state = trapped(['academia']);
+	const question = openDecisions(state).find(
+		(d) => d.kind === 'chooseCounter'
+	);
+	assert.equal(question.player, 1);
+	assert.deepEqual(
+		DECISIONS.chooseCounter
+			.answers(state, question)
+			.map((/** @type {any} */ a) => a.card),
+		[null]
+	);
+	// The trap hasn't acted yet: the conquest still stands.
+	assert.deepEqual(state.hexes['-2_-1'].outposts, [
+		{ seat: 2, toppled: true, toppledBy: 1 },
+		{ seat: 1, toppled: false },
+	]);
+	assert.ok(!types(state).includes('conquerDiceRolled'));
+	assert.deepEqual(declineOnly(state), [
+		{ decision: question.id, player: 1 },
+	]);
+
+	const empty = trapped([]);
+	assert.ok(!openDecisions(empty).some((d) => d.kind === 'chooseCounter'));
+	assert.deepEqual(empty.hexes['-2_-1'].outposts, [
+		{ seat: 2, toppled: false },
+		{ seat: 1, toppled: true, toppledBy: 2 },
+	]);
+});
+
+test('Double Cross cancels the trap: the conquest stands, the trapper gains nothing, the attacker gains 5 VP', () => {
+	const state = trapped(['double-cross']);
+	const resources = { ...state.seats[1].resources };
+	const vp = state.seats[0].vp;
+	const after = counter(state, 'double-cross');
+	assert.deepEqual(after.hexes['-2_-1'].outposts, [
+		{ seat: 2, toppled: true, toppledBy: 1 },
+		{ seat: 1, toppled: false },
+	]);
+	assert.ok(controlledTerritories(after, 1).includes('-2_-1'));
+	assert.deepEqual(after.seats[1].resources, resources);
+	assert.equal(after.seats[0].vp, vp + 5);
+	assert.ok(after.supply.tapestry.discard.includes('double-cross'));
+	assert.ok(after.supply.tapestry.discard.includes('trap-1'));
+	assert.ok(types(after).includes('counterPlayed'));
+	assert.ok(types(after).includes('conquerDiceRolled'));
+});
+
+test("Stolen Plans cancels the trap and takes a random card from the trapper's hand, which only the thief sees", () => {
+	const state = trapped(['stolen-plans'], ['trap-1', 'academia']);
+	const after = counter(state, 'stolen-plans');
+	assert.deepEqual(after.seats[1].hand, []);
+	assert.deepEqual(after.seats[0].hand, ['academia']);
+	assert.ok(controlledTerritories(after, 1).includes('-2_-1'));
+	const stolen = after.events.find(
+		(/** @type {any} */ e) => e.type === 'tapestryStolen'
+	);
+	assert.equal(stolen.player, 1);
+	assert.equal(stolen.from, 2);
+	assert.deepEqual(stolen.secret, { cards: ['academia'] });
+	const seen = (/** @type {number} */ seat) =>
+		view(after, seat).events.find(
+			(/** @type {any} */ e) => e.type === 'tapestryStolen'
+		);
+	assert.deepEqual(seen(1)?.secret, { cards: ['academia'] });
+	assert.equal(seen(2)?.secret, undefined);
+	assert.ok(revealed(state, after));
+});
+
+test('Surprise Party, Retreat and Surrender cannot be countered', () => {
+	for (const card of ['surprise-party', 'surrender']) {
+		const state = conquestGame([card], PP);
+		state.seats[0].hand = ['double-cross'];
+		state.seats[1].tracks.military = [3];
+		conquer(state);
+		const after = respond(state, card);
+		assert.ok(
+			!openDecisions(after).some((d) => d.kind === 'chooseCounter'),
+			card
+		);
+	}
+});
+
+test('a declined or timed-out counter springs the trap and rolls the dice', () => {
+	const state = trapped(['double-cross']);
+	const declined = until(counter(state, null), 'conquerDiceRolled');
+	const timed = until(
+		play(state, 1, /** @type {any} */ (defaultAction(state, 1)), face(0)),
+		'conquerDiceRolled'
+	);
+	for (const after of [declined, timed]) {
+		assert.deepEqual(after.hexes['-2_-1'].outposts, [
+			{ seat: 2, toppled: false },
+			{ seat: 1, toppled: true, toppledBy: 2 },
+		]);
+		assert.ok(types(after).includes('conquerDiceRolled'));
+		assert.deepEqual(after.seats[0].hand, ['double-cross']);
+	}
 });
 
 test("against Pillage and Plunder a defender may play Plans & Ploys' response cards, never a trap (03 §1.2)", () => {
