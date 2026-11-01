@@ -77,6 +77,10 @@ const TAPESTRY_RULES = Object.freeze({
 	// Plans & Ploys' cards (#33; 03 §1.4).
 	astronomy:
 		'Gain 1 territory tile and explore with it. Then gain 2 space tiles and keep them; you may explore them later',
+	engineering:
+		'Whenever you invent a tech card, upgrade it to your middle row at once and gain its circle benefit',
+	'public-works':
+		'After you advance on a track, if it is now your least advanced track (ties count), gain 3 VP',
 	cartography:
 		'Gain 1 territory tile and explore with it. If that scored at least 3 VP, you may also conquer that territory',
 	'manifest-destiny':

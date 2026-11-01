@@ -1,7 +1,9 @@
 // Plans & Ploys' tapestry cards (#33; 03 §1.4): what each does played as a tapestry card, the Stadium, and the deck.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { openDecisions } from '../src/lib/engine/stack.js';
+import { openDecisions, push } from '../src/lib/engine/stack.js';
+import { run } from '../src/lib/engine/loop.js';
+import { seededRandom } from '../src/lib/engine/random.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { tapestryCard } from '../src/lib/engine/data/tapestry-cards.js';
@@ -465,6 +467,71 @@ test("World's Fair gains 1 culture, any 1 resource with a complete row or column
 		1
 	);
 	assert.equal(bare.seats[0].vp, empty.seats[0].vp);
+});
+
+/**
+ * Runs effects for seat 1 with a THIS ERA ability active or not, answering everything with first answers.
+ * @param {any} state
+ * @param {string | null} ability
+ * @param {any[]} effects
+ * @param {number} seed
+ */
+function withEra(state, ability, effects, seed) {
+	const next = structuredClone(state);
+	next.seats[0].era = ability === null ? null : { card: ability, ability };
+	const random = seededRandom(seed);
+	push(next, next.pending, [{ player: 1, kind: 'effects', effects }]);
+	run(next, random);
+	return answerDefaults(next, random);
+}
+
+test('Engineering upgrades each invented card to the middle row at once, gaining its circle benefit once', () => {
+	const { state } = ppGame();
+	const invented = (/** @type {any} */ s) =>
+		s.events.find(
+			(/** @type {any} */ e) =>
+				e.type === 'techInvented' && e.player === 1
+		)?.card;
+	const on = withEra(state, 'engineering', [{ invent: {} }], 3);
+	const card = invented(on);
+	assert.ok(card, 'a card was invented');
+	assert.ok(on.seats[0].tech.middle.includes(card));
+	assert.equal(
+		on.events.filter(
+			(/** @type {any} */ e) =>
+				e.type === 'techUpgraded' && e.card === card
+		).length,
+		1
+	);
+	const off = withEra(state, null, [{ invent: {} }], 3);
+	assert.ok(off.seats[0].tech.bottom.includes(invented(off)));
+});
+
+test('Public Works gains 3 VP after an advance that leaves that track the least advanced, ties included', () => {
+	/**
+	 * The VP Public Works adds to one advance from these spaces.
+	 * @param {[number, number, number, number]} spaces - Exploration, science, technology, military
+	 * @param {string} track
+	 */
+	const extra = (spaces, track) => {
+		const { state } = ppGame();
+		const [exploration, science, technology, military] = spaces;
+		state.seats[0].tracks = {
+			exploration: [exploration],
+			science: [science],
+			technology: [technology],
+			military: [military],
+		};
+		const effects = [{ advance: { tracks: [track] } }];
+		return (
+			withEra(state, 'public-works', effects, 5).seats[0].vp -
+			withEra(state, null, effects, 5).seats[0].vp
+		);
+	};
+	assert.equal(extra([3, 5, 5, 5], 'exploration'), 3);
+	assert.equal(extra([4, 5, 5, 5], 'exploration'), 3);
+	assert.equal(extra([4, 4, 6, 6], 'exploration'), 0);
+	assert.equal(extra([4, 5, 5, 5], 'technology'), 0);
 });
 
 test('a Plans & Ploys game has 25 landmarks with the Stadium, a base game 18', () => {

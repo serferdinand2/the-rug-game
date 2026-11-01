@@ -31,6 +31,19 @@ function vp(player, amount) {
 }
 
 /**
+ * Spaces a seat has advanced on a track, as movement.js's spacesAdvanced counts them. A copy, because importing
+ * movement.js here would close a cycle through abilities.js.
+ * @param {import('./state.js').PlayerSeat} seat
+ * @param {import('./data/ids.js').TrackId} track
+ * @returns {number}
+ */
+function spacesOn(seat, track) {
+	return seat.restartedTracks.includes(track)
+		? TRACKS[track].length - 1
+		: Math.max(0, ...seat.tracks[track]);
+}
+
+/**
  * The trigger handlers of each THIS ERA card, by card id and then by hook, such as `invented` or `advanced`.
  * @type {Record<string, Record<string, Hook>>}
  */
@@ -55,6 +68,32 @@ export const ERA_HOOKS = {
 					source: { tech: card, icon: 'circle' },
 				},
 			];
+		},
+	},
+	// Plans & Ploys (#33; 03 §1.4): the invented card goes up to the middle row, its circle benefit gained once.
+	engineering: {
+		invented: (_state, owner, { player, card }) =>
+			owner === player
+				? [{ player: owner, kind: 'upgradeTech', card }]
+				: [],
+	},
+	// After the move, the track must be the player's least advanced; ties count.
+	'public-works': {
+		advanced(state, owner, { player, track }) {
+			if (owner !== player) {
+				return [];
+			}
+			const seat = playerSeat(state, owner);
+			const moved = spacesOn(seat, track);
+			const least = Object.keys(seat.tracks).every(
+				(other) =>
+					moved <=
+					spacesOn(
+						seat,
+						/** @type {import('./data/ids.js').TrackId} */ (other)
+					)
+			);
+			return least ? [vp(owner, 3)] : [];
 		},
 	},
 	'golden-age': {

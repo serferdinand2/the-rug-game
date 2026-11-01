@@ -208,8 +208,10 @@ export const TAPESTRY_CARDS = deepFreeze([
 	pp(when('double-cross', [{ vp: 9 }, { gain: { territory: 1 } }]), {
 		response: 'trap',
 	}),
+	pp(era('engineering')),
 	pp(when('entertain-the-masses', [{ landmark: 'stadium' }])),
 	pp(when('manifest-destiny', [{ manifestDestiny: {} }])),
+	pp(era('public-works')),
 	pp(when('retreat', [{ vp: 9 }, { gain: { tapestry: 1 } }]), {
 		response: 'conquest',
 	}),
