@@ -131,6 +131,10 @@ export function tapestryCardData(id) {
 	if (trap) {
 		data.trap = true;
 	}
+	// An expansion's card names its edition, for the chip at its foot (#33).
+	if (card.expansion !== 'base') {
+		data.edition = card.expansion;
+	}
 	return data;
 }
 

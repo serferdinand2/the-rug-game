@@ -139,6 +139,13 @@ test('every tapestry card builds its face from the engine data', () => {
 	}
 });
 
+test("a Plans & Ploys tapestry card's face names its edition; a base card's leaves it to the default (#33)", () => {
+	assert.equal(tapestryCardData('astronomy').edition, 'pp');
+	assert.equal(tapestryCardData('double-cross').edition, 'pp');
+	assert.equal(tapestryCardData('academia').edition, undefined);
+	assert.equal(tapestryCardData('trap-2').edition, undefined);
+});
+
 test('a tapestry card shows its timing as This Era or When Played', () => {
 	assert.equal(tapestryCardData('academia').timing, 'This Era');
 	assert.equal(
