@@ -222,6 +222,39 @@ export const RULES_HELP = deepFreeze([
 			},
 		],
 	},
+	// #33; 03 §1.2, §1.4, R45. The other new cards' rules are on the cards themselves.
+	{
+		id: 'response-cards',
+		title: 'Response cards',
+		expansion: 'pp',
+		blocks: [
+			{
+				text: 'Plans & Ploys adds 13 tapestry cards. Five of them are response cards: discard one when someone conquers or traps you, or play it on an income turn like any other card for the reward printed on it.',
+			},
+			{
+				text: 'When someone conquers one of your territories, you may play one response card: a trap or one of these.',
+			},
+			{
+				list: [
+					'Retreat: move your outpost to a territory you control next to it and gain 1 worker; they still take the territory.',
+					'Surprise Party: if you are further along the Military track than they are, topple their outpost, keep control and gain 15 VP.',
+					'Surrender: they take the territory, but after their roll you roll both conquer dice and gain both results.',
+				],
+			},
+			{
+				text: 'When your conquest is answered with a trap, you may cancel it before it acts with one of these.',
+			},
+			{
+				list: [
+					'Double Cross: the trap does nothing, the territory is yours, and you gain 5 VP.',
+					"Stolen Plans: the trap does nothing, the territory is yours, and you take a random tapestry card from the trapper's hand.",
+				],
+			},
+			{
+				text: 'Nothing answers Double Cross or Stolen Plans, and they answer only a trap. Pillage and Plunder stops traps, not the other response cards.',
+			},
+		],
+	},
 ]);
 
 /**

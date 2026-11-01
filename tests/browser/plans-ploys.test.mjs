@@ -1,5 +1,5 @@
-// Plans & Ploys at a hot-seat table (#32): the landmark-card draft on the card shelf, then the kept card on the Civ tab
-// with its goal line. The test plays the rest of setup through the API, then ends and leaves the table.
+// Plans & Ploys at a hot-seat table (#32, #33): the landmark-card draft on the card shelf, then the kept card on the Civ tab
+// with its goal line, and How to play's Response cards tab. The test plays the rest of setup through the API, then ends and leaves the table.
 import { expect, test } from '@playwright/test';
 import { askedSeats } from '../../src/lib/engine/game.js';
 
@@ -144,6 +144,20 @@ test('a Plans & Ploys table drafts landmark cards on the shelf, and the Civ tab 
 		if (first !== drafter) {
 			expect(mine).not.toBe(kept);
 		}
+
+		// How to play has a tab for the response cards at a Plans & Ploys table (#33).
+		await page.getByRole('button', { name: 'Menu' }).click();
+		await page.getByRole('menuitem', { name: 'How to play' }).click();
+		const help = page.getByRole('dialog', { name: 'How to play' });
+		await help.getByRole('tab', { name: 'Response cards' }).click();
+		await expect(help.getByRole('tabpanel')).toContainText(
+			'Double Cross: the trap does nothing'
+		);
+		await expect(help.getByRole('tabpanel')).toContainText(
+			'Surprise Party: if you are further along the Military track'
+		);
+		await page.keyboard.press('Escape');
+		await expect(help).toHaveCount(0);
 	} finally {
 		const latest = await api(request, 'state', undefined, token);
 		if (latest.phase === 'playing') {

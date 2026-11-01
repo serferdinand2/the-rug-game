@@ -245,3 +245,26 @@ test("Plans & Ploys has its own section, shown only with the expansion, with the
 	assert.match(text, /give 5 VP whenever you advance/);
 	assert.match(text, /final income turn included/);
 });
+
+test("Plans & Ploys' response cards have their own section, shown only with the expansion, with the counter to a trap (#33)", async () => {
+	const { rulesSections } = await import('../src/lib/rules-help.js');
+	assert.equal(section('response-cards').expansion, 'pp');
+	assert.ok(!rulesSections([]).some((s) => s.id === 'response-cards'));
+	assert.ok(rulesSections(['pp']).some((s) => s.id === 'response-cards'));
+	const text = lines('response-cards').join(' ');
+	for (const name of [
+		'Retreat',
+		'Surprise Party',
+		'Surrender',
+		'Double Cross',
+		'Stolen Plans',
+	]) {
+		assert.match(text, new RegExp(name), name);
+	}
+	assert.match(text, /one response card/i);
+	assert.match(text, /15 VP/);
+	assert.match(text, /5 VP/);
+	assert.match(text, /1 worker/);
+	assert.match(text, /random tapestry card/);
+	assert.match(text, /Pillage and Plunder/);
+});
