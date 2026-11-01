@@ -12,6 +12,7 @@ import { hexNeighbours } from '../src/lib/engine/data/maps.js';
 import { conquerTargets, matchingSides } from '../src/lib/engine/map.js';
 import { cityPlots, completeDistricts } from '../src/lib/engine/city.js';
 import { groupsOf } from '../src/lib/capital.js';
+import { checkState } from './helpers/invariants.mjs';
 import {
 	startedGame,
 	resolveTapestry,
@@ -532,6 +533,22 @@ test('Public Works gains 3 VP after an advance that leaves that track the least 
 	assert.equal(extra([4, 5, 5, 5], 'exploration'), 3);
 	assert.equal(extra([4, 4, 6, 6], 'exploration'), 0);
 	assert.equal(extra([4, 5, 5, 5], 'technology'), 0);
+});
+
+test('a Plans & Ploys game played on keeps each of its 63 tapestry cards in exactly one place', () => {
+	const { state: started, random } = startedGame(3, PP);
+	const state = answerDefaults(started, random, 400);
+	const places = [
+		...state.supply.tapestry.deck,
+		...state.supply.tapestry.discard,
+		...state.seats.flatMap((/** @type {any} */ s) => [
+			...s.hand,
+			...s.incomeMat.tapestry.flat(),
+		]),
+	];
+	assert.equal(places.length, 63);
+	assert.ok(places.includes('retreat'));
+	checkState(state);
 });
 
 test('a Plans & Ploys game has 25 landmarks with the Stadium, a base game 18', () => {

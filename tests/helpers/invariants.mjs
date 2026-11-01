@@ -4,7 +4,7 @@ import { DECISIONS } from '../../src/lib/engine/kinds.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
 import {
 	BASE_CIVS,
-	BASE_TAPESTRY,
+	tapestryFor,
 	techDeck,
 } from '../../src/lib/engine/decks.js';
 import { landmarksFor } from '../../src/lib/engine/data/landmarks.js';
@@ -97,7 +97,7 @@ export function checkState(state, previousSeq = 0) {
 				...p.incomeMat.tapestry.flat(),
 			]),
 		],
-		BASE_TAPESTRY
+		tapestryFor(state.expansions)
 	);
 	exactlyOnce(
 		'territory tiles',

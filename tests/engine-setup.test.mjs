@@ -15,7 +15,12 @@ import {
 import { seededRandom } from '../src/lib/engine/random.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
-import { BASE_CIVS, BASE_TECH } from '../src/lib/engine/decks.js';
+import {
+	BASE_CIVS,
+	BASE_TAPESTRY,
+	BASE_TECH,
+	tapestryFor,
+} from '../src/lib/engine/decks.js';
 import { MAPS } from '../src/lib/engine/data/maps.js';
 import {
 	CAPITAL_MATS,
@@ -110,6 +115,53 @@ test('every player starts empty, with tokens on every track start (01 §2.2)', (
 			assert.equal(seat.finished, false);
 		});
 	}
+});
+
+test('a Plans & Ploys deck holds 63 tapestry cards, its 13 with the base 50, and a base deck the same 50 (#33)', () => {
+	assert.deepEqual(tapestryFor([]), [...BASE_TAPESTRY]);
+	const pp = tapestryFor(['pp']);
+	assert.equal(pp.length, 63);
+	assert.deepEqual(pp.slice(0, 50), [...BASE_TAPESTRY]);
+	assert.deepEqual(pp.slice(50), [
+		'astronomy',
+		'cartography',
+		'double-cross',
+		'engineering',
+		'entertain-the-masses',
+		'manifest-destiny',
+		'public-works',
+		'retreat',
+		'status-quo',
+		'stolen-plans',
+		'surprise-party',
+		'surrender',
+		'worlds-fair',
+	]);
+	const { supply } = newGame(3, { expansions: ['pp'] }).state;
+	assert.deepEqual([...supply.tapestry.deck].sort(), [...pp].sort());
+});
+
+test('a seeded base game deals the same decks as before #33', () => {
+	const { supply } = newGame(3, { seed: 7 }).state;
+	assert.deepEqual(supply.tapestry.deck.slice(0, 10), [
+		'broker-of-peace',
+		'socialism',
+		'guilds',
+		'age-of-sail',
+		'trade-economy',
+		'oil-magnate',
+		'olympic-host',
+		'technocracy',
+		'trap-7',
+		'boast-of-superiority',
+	]);
+	assert.deepEqual(supply.civs.slice(0, 4), [
+		'merrymakers',
+		'isolationists',
+		'nomads',
+		'inventors',
+	]);
+	assert.deepEqual(supply.space.slice(0, 4), [10, 12, 14, 5]);
 });
 
 test('each seat records the territory its two outposts started on (#33)', () => {

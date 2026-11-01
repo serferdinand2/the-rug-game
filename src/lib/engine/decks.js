@@ -1,4 +1,4 @@
-// The base game's card lists, read from the asset catalog: civilizations, tech cards and tapestry cards.
+// The card lists, read from the asset catalog: civilizations, tech cards and tapestry cards, with the expansions' (#33).
 import { ASSETS } from '../art/catalog.js';
 
 /**
@@ -7,8 +7,18 @@ import { ASSETS } from '../art/catalog.js';
  * @returns {string[]}
  */
 function baseSlugs(group) {
+	return slugsOf(group, 'base');
+}
+
+/**
+ * The slugs of a group's assets from one expansion, in catalog order.
+ * @param {string} group
+ * @param {string} expansion
+ * @returns {string[]}
+ */
+function slugsOf(group, expansion) {
 	return ASSETS.filter(
-		(asset) => asset.group === group && asset.expansion === 'base'
+		(asset) => asset.group === group && asset.expansion === expansion
 	).map((asset) => asset.id.slice(group.length + 1));
 }
 
@@ -37,3 +47,16 @@ export const BASE_TAPESTRY = Object.freeze([
 	...baseSlugs('tapestry').filter((slug) => slug !== 'trap'),
 	...Array.from({ length: 7 }, (_, i) => `trap-${i + 1}`),
 ]);
+
+/**
+ * The tapestry cards a game with these expansions plays with: the base 50, then Plans & Ploys' 13 (R43 and R44 leave
+ * out the other two; the catalog lists only these), in catalog order (#33).
+ * @param {readonly string[]} expansions
+ * @returns {string[]}
+ */
+export function tapestryFor(expansions) {
+	return [
+		...BASE_TAPESTRY,
+		...(expansions.includes('pp') ? slugsOf('tapestry', 'pp') : []),
+	];
+}

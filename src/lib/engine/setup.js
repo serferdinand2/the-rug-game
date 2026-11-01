@@ -5,7 +5,7 @@ import { shuffle } from './random.js';
 import { push, pushGroup } from './stack.js';
 import { run } from './loop.js';
 import { afterSetupSteps } from './after-setup.js';
-import { BASE_CIVS, BASE_TAPESTRY, techDeck } from './decks.js';
+import { BASE_CIVS, tapestryFor, techDeck } from './decks.js';
 import { EXPANSIONS } from '../art/catalog.js';
 import { MAPS } from './data/maps.js';
 import { CAPITAL_MATS, SMALL_MAP_PAIRS } from './data/capitals.js';
@@ -357,7 +357,10 @@ export function createGame({
 				faceUp: tech.slice(0, 3),
 				discard: [],
 			},
-			tapestry: { deck: shuffle(BASE_TAPESTRY, random), discard: [] },
+			tapestry: {
+				deck: shuffle(tapestryFor(expansions), random),
+				discard: [],
+			},
 			territory: shuffle(
 				TERRITORY_TILES.map((t) => t.id),
 				random

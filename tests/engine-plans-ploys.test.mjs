@@ -319,8 +319,27 @@ test('a card offered must be the one kept', () => {
 
 // The goal
 
-/** @param {any} seat @param {string} card */
-const holding = (seat, card) => {
+/**
+ * Gives a seat a landmark card, swapping it with the card the seat drafted wherever it lies, so every card stays in
+ * exactly one place for the invariants.
+ * @param {any} state
+ * @param {any} seat
+ * @param {string} card
+ */
+const holding = (state, seat, card) => {
+	const old = seat.landmarkCard?.card;
+	if (old !== undefined && old !== card) {
+		const deck = state.supply.landmarkCards;
+		const other = state.seats.find(
+			(/** @type {any} */ s) =>
+				s !== seat && s.landmarkCard?.card === card
+		);
+		if (other) {
+			other.landmarkCard = { ...other.landmarkCard, card: old };
+		} else if (deck.includes(card)) {
+			deck[deck.indexOf(card)] = old;
+		}
+	}
 	seat.landmarkCard = { card, gained: false };
 };
 
@@ -389,7 +408,7 @@ test('a goal met at the end of your turn gains its landmark, placed in your capi
 	} = readyTurn(
 		2,
 		(seat, s) => {
-			holding(seat, 'urban-farm');
+			holding(s, seat, 'urban-farm');
 			seat.territoryTiles = s.supply.territory.splice(0, 6);
 		},
 		PP
@@ -416,8 +435,8 @@ test('the placement of a card landmark names its card, for the placing prompt', 
 		player,
 	} = readyTurn(
 		2,
-		(seat) => {
-			holding(seat, 'skyscraper');
+		(seat, s) => {
+			holding(s, seat, 'skyscraper');
 			completeRow(seat, 4);
 		},
 		PP
@@ -443,10 +462,10 @@ test("a goal not met leaves the card, and a goal met on another player's turn wa
 	} = readyTurn(
 		2,
 		(seat, s) => {
-			holding(seat, 'game-store');
+			holding(s, seat, 'game-store');
 			// The other player meets their goal, but it is not their turn.
 			const other = s.seats.find((/** @type {any} */ x) => x !== seat);
-			holding(other, 'urban-farm');
+			holding(s, other, 'urban-farm');
 			other.territoryTiles = s.supply.territory.splice(0, 6);
 		},
 		PP
@@ -468,7 +487,7 @@ test('a card landmark is gained once only', () => {
 	} = readyTurn(
 		2,
 		(seat, s) => {
-			holding(seat, 'urban-farm');
+			holding(s, seat, 'urban-farm');
 			seat.territoryTiles = s.supply.territory.splice(0, 6);
 		},
 		PP
@@ -491,7 +510,7 @@ test('R111: the goal is checked at the end of the final income turn too', () => 
 	} = readyTurn(
 		2,
 		(seat, s) => {
-			holding(seat, 'urban-farm');
+			holding(s, seat, 'urban-farm');
 			seat.territoryTiles = s.supply.territory.splice(0, 6);
 			seat.incomeTurns = 4;
 		},
