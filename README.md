@@ -204,7 +204,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 The research in [docs/research/](docs/research/) left 92 details unconfirmed, marked **[UNVERIFIED]**, plus a list of open questions. Each one has a decision here, so the engine never guesses. These decisions settle [#2](https://github.com/serferdinand2/the-rug-game/issues/2).
 
-- **Rule ids** (R1–R112) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
+- **Rule ids** (R1–R115) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
 - **Versions.** A table plays either the **Original 2019 printing** or the **Current official rules**. A rule applies to both unless it names one.
 - **Sources** are trusted in this order:
   1. the Fantasies & Futures integrated rulebook;
@@ -355,7 +355,7 @@ How the ranking was built:
 </details>
 
 <details>
-<summary><b>Plans & Ploys</b> (8 rules)</summary>
+<summary><b>Plans & Ploys</b> (11 rules)</summary>
 
 | Rule | Question | Decision | Basis | Check |
 |---|---|---|---|---|
@@ -367,6 +367,9 @@ How the ranking was built:
 | R48 | Tinkerers: does the F&F adjustment add to the printed setup? | Original printing: the printed line only (each opponent gains 1 tech card and may not upgrade during their first income turn). Current: p.32 replaces the gain, so each opponent gains 1 tapestry card and 1 tech card (1 tech card in total). The no-upgrade restriction stays. | 03 §6, FF.8.3, 03 OQ P&P6. Jamey: "replaces the printed text; still just 1 tech card". Rejected: 1 tapestry card + 2 tech cards. | |
 | R111 | Is a landmark card's goal checked at the end of the final income turn? | Yes. The end of your 5th income turn is still the end of one of your turns, so a goal met then gains its landmark. It scores nothing then, but counts for the tallest-landmark tiebreak (R11). | 03 §1.2 ("at the end of one of your turns"; "cannot be met … after your final income turn"). Owner, 2026-10-31 ([#32](https://github.com/serferdinand2/the-rug-game/issues/32)). | |
 | R112 | Which tiebreaker does an original-rules table use with Plans & Ploys on? | The version alone decides: the original 2019 rules keep R10 (resources left), the current rules R11, whichever expansions are on. | 03 §1.2 (P&P introduced the tallest-landmark tiebreaker). Owner, 2026-10-31 ([#32](https://github.com/serferdinand2/the-rug-game/issues/32)). | |
+| R113 | A civilization gained mid-game: which of its start applies? | Its printed start (tokens, resources, cards, tiles, VP) applies whenever it is gained, at setup or later, except text the mat marks "if you start with them" (the Tinkerers' opponents' tech card, the Utilitarians' tier II landmark). The setup adjustments stay setup-only (R34). So the Islanders would gain their 4 tiles before placing up to 4. | 03 §1.3 (Joe Aubrey's rulings for the Aliens and Infiltrators); the base civilizations' tokens already work so. Design call ([#33](https://github.com/serferdinand2/the-rug-game/issues/33)). | |
+| R114 | Treasure Hunters: which territories match a treasure, and how is their token defended? | A territory, tile or printed, has a treasure's terrain if it shows that terrain anywhere, as R32 reads land masses; when several unused treasures match, the player picks one. Their token controls the hex. An opponent may conquer it as they would a lone outpost: the Treasure Hunters are the defender (asked for a response, and "an opponent controlled it" for both dice). A Trap, Surprise Party or Surrender works for them; Retreat does not, as it moves an outpost and they have only a token there. After a conquest the token stays, so the hex holds 2 items, and the attacker controls it. | 03 §1.3, R32. Design call ([#33](https://github.com/serferdinand2/the-rug-game/issues/33)). | |
+| R115 | The Islanders? | Left out: their mat prints a central hex whose six corners no source shows (exploring beside it scores 1 VP per matching side), and content no source shows is never invented (#2). Plans & Ploys therefore deals 25 civilizations, not 26. [#165](https://github.com/serferdinand2/the-rug-game/issues/165) adds them once a source shows the hex. | 03 §1.3. Design call ([#33](https://github.com/serferdinand2/the-rug-game/issues/33)). | |
 
 </details>
 

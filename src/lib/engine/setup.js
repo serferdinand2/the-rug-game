@@ -5,7 +5,7 @@ import { shuffle } from './random.js';
 import { push, pushGroup } from './stack.js';
 import { run } from './loop.js';
 import { afterSetupSteps } from './after-setup.js';
-import { BASE_CIVS, tapestryFor, techDeck } from './decks.js';
+import { civsFor, tapestryFor, techDeck } from './decks.js';
 import { EXPANSIONS } from '../art/catalog.js';
 import { MAPS } from './data/maps.js';
 import { CAPITAL_MATS, SMALL_MAP_PAIRS } from './data/capitals.js';
@@ -259,7 +259,7 @@ function placeOutposts({ state, seats, starts }) {
  * @param {SetupContext} setup
  */
 function dealCivs({ state, seats, random, lanes }) {
-	const civs = shuffle(BASE_CIVS, random);
+	const civs = shuffle(civsFor(state.expansions), random);
 	seats.forEach((s, i) => {
 		const options = civs.slice(2 * i, 2 * i + 2);
 		lanes[i].ops.push({ player: s.seat, kind: 'chooseCiv', options });

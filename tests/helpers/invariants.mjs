@@ -2,11 +2,7 @@
 import assert from 'node:assert/strict';
 import { DECISIONS } from '../../src/lib/engine/kinds.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
-import {
-	BASE_CIVS,
-	tapestryFor,
-	techDeck,
-} from '../../src/lib/engine/decks.js';
+import { civsFor, tapestryFor, techDeck } from '../../src/lib/engine/decks.js';
 import { landmarksFor } from '../../src/lib/engine/data/landmarks.js';
 import { landmarkCardsFor } from '../../src/lib/engine/data/landmark-cards.js';
 import { TERRITORY_TILES } from '../../src/lib/engine/data/territory-tiles.js';
@@ -145,7 +141,7 @@ export function checkState(state, previousSeq = 0) {
 			]),
 			...opsOf('chooseCiv').flatMap((op) => op.options),
 		],
-		BASE_CIVS
+		civsFor(state.expansions)
 	);
 	exactlyOnce(
 		'capital mats',

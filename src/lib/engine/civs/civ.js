@@ -9,6 +9,7 @@ import { playerSeat, seatOf } from '../state.js';
  * @typedef {Object} Civ
  * @property {string} id - The catalog id, such as 'the-chosen'
  * @property {(ctx: Context, player: number, midGame: boolean) => void} [setup] - Tokens and starting choices; `midGame` for a gain after setup
+ * @property {boolean} [solo] - False for the civilizations the solo opponents cannot play: Advisors and Spies (#31 reads it)
  * @property {number[]} [incomeTurns] - The income turns its ability fires on, usually [2, 3, 4, 5]
  * @property {(ctx: Context, player: number, turn: number) => void} [income] - The ability in step 1
  * @property {Record<string, import('../eras.js').Hook>} [hooks] - #19's trigger handlers; every operation they return is passive

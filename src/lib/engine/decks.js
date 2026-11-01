@@ -25,6 +25,22 @@ function slugsOf(group, expansion) {
 /** The 16 base civilizations. @type {readonly string[]} */
 export const BASE_CIVS = Object.freeze(baseSlugs('civ'));
 
+/**
+ * The Plans & Ploys civilizations built so far, in catalog order; each civilization's task appends its id (#33). The
+ * Islanders are never here: no source shows their mat's printed centre hex (R115).
+ * @type {readonly string[]}
+ */
+export const PP_CIVS = Object.freeze([]);
+
+/**
+ * The civilizations a game with these expansions deals from: the base 16, then Plans & Ploys' built ones (#33).
+ * @param {readonly string[]} expansions
+ * @returns {string[]}
+ */
+export function civsFor(expansions) {
+	return [...BASE_CIVS, ...(expansions.includes('pp') ? PP_CIVS : [])];
+}
+
 /** The 33 base tech cards. @type {readonly string[]} */
 export const BASE_TECH = Object.freeze(baseSlugs('tech'));
 

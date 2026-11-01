@@ -5,7 +5,7 @@ import { play } from '../src/lib/engine/play.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { CIVS } from '../src/lib/engine/civs/index.js';
-import { BASE_CIVS } from '../src/lib/engine/decks.js';
+import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { TRACK_IDS } from '../src/lib/engine/data/ids.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import { startedGame } from './helpers/engine.mjs';
@@ -139,51 +139,65 @@ function abilityTurns(log, player, civ) {
  */
 const nameOf = (id) => ASSETS.find((a) => a.id === `civ/${id}`)?.name;
 
+/** The base civilizations, then Plans & Ploys' built ones (#33), each group with the expansions it needs. */
+const GROUPS = [
+	{ ids: BASE_CIVS, expansions: /** @type {string[]} */ ([]) },
+	{ ids: PP_CIVS, expansions: ['pp'] },
+];
+
 for (const version of VERSIONS) {
-	for (const [i, id] of BASE_CIVS.entries()) {
-		// The other seat plays the next civilization in the list, so each one is also played as an opponent.
-		const civs = [id, BASE_CIVS[(i + 1) % BASE_CIVS.length]];
-		test(`every civilization plays its setup and every income turn to the end in both versions: ${nameOf(id)} (${version})`, () => {
-			const plays = /** @type {[string, Choose][]} */ ([
-				['default answers', defaults],
-				['a busy game', eager()],
-			]);
-			for (const [how, choose] of plays) {
-				const { state: started, random } = startedGame(2, {
-					civs,
-					version,
-				});
-				assert.deepEqual(
-					started.seats.map((s) => /** @type {any} */ (s).civs[0]),
-					civs
-				);
-				let played;
-				try {
-					played = playToEnd(started, random, choose);
-				} catch (error) {
-					const failure = /** @type {Error} */ (error);
-					failure.message = `${how}: ${failure.message}`;
-					throw failure;
-				}
-				const { state, log } = played;
-				assert.equal(state.phase, 'over', how);
-				assert.deepEqual(openDecisions(state), [], how);
-				assert.ok(state.result, how);
-				for (const [seat, civ] of civs.entries()) {
-					const player = seat + 1;
-					assert.equal(
-						/** @type {any} */ (state.seats[seat]).incomeTurns,
-						5,
-						how
-					);
-					// Step 1 of each income turn the ability fires on, and of no other.
+	for (const { ids, expansions } of GROUPS)
+		for (const [i, id] of ids.entries()) {
+			// The other seat plays the next civilization in the list, so each one is also played as an opponent.
+			// A lone expansion civilization is paired with a base one instead.
+			const civs = [
+				id,
+				ids.length > 1 ? ids[(i + 1) % ids.length] : BASE_CIVS[0],
+			];
+			test(`every civilization plays its setup and every income turn to the end in both versions: ${nameOf(id)} (${version})`, () => {
+				const plays = /** @type {[string, Choose][]} */ ([
+					['default answers', defaults],
+					['a busy game', eager()],
+				]);
+				for (const [how, choose] of plays) {
+					const { state: started, random } = startedGame(2, {
+						civs,
+						version,
+						expansions,
+					});
 					assert.deepEqual(
-						abilityTurns(log, player, civ),
-						CIVS[civ].incomeTurns ?? [],
-						`${how}: ${civ}'s ability turns (seat ${player})`
+						started.seats.map(
+							(s) => /** @type {any} */ (s).civs[0]
+						),
+						civs
 					);
+					let played;
+					try {
+						played = playToEnd(started, random, choose);
+					} catch (error) {
+						const failure = /** @type {Error} */ (error);
+						failure.message = `${how}: ${failure.message}`;
+						throw failure;
+					}
+					const { state, log } = played;
+					assert.equal(state.phase, 'over', how);
+					assert.deepEqual(openDecisions(state), [], how);
+					assert.ok(state.result, how);
+					for (const [seat, civ] of civs.entries()) {
+						const player = seat + 1;
+						assert.equal(
+							/** @type {any} */ (state.seats[seat]).incomeTurns,
+							5,
+							how
+						);
+						// Step 1 of each income turn the ability fires on, and of no other.
+						assert.deepEqual(
+							abilityTurns(log, player, civ),
+							CIVS[civ].incomeTurns ?? [],
+							`${how}: ${civ}'s ability turns (seat ${player})`
+						);
+					}
 				}
-			}
-		});
-	}
+			});
+		}
 }

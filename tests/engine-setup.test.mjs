@@ -20,6 +20,8 @@ import {
 	BASE_TAPESTRY,
 	BASE_TECH,
 	tapestryFor,
+	civsFor,
+	PP_CIVS,
 } from '../src/lib/engine/decks.js';
 import { MAPS } from '../src/lib/engine/data/maps.js';
 import {
@@ -139,6 +141,29 @@ test('a Plans & Ploys deck holds 63 tapestry cards, its 13 with the base 50, and
 	]);
 	const { supply } = newGame(3, { expansions: ['pp'] }).state;
 	assert.deepEqual([...supply.tapestry.deck].sort(), [...pp].sort());
+});
+
+test('a Plans & Ploys deck deals the base 16 and the built Plans & Ploys civilizations; a seeded base game deals as before (#33)', () => {
+	assert.deepEqual(civsFor([]), [...BASE_CIVS]);
+	assert.deepEqual(civsFor(['pp']), [...BASE_CIVS, ...PP_CIVS]);
+	assert.ok(!PP_CIVS.includes('islanders'), 'R115');
+	const { supply } = newGame(3, { expansions: ['pp'] }).state;
+	assert.deepEqual(
+		[
+			...supply.civs,
+			...openDecisions(newGame(3, { expansions: ['pp'] }).state).flatMap(
+				(d) => (d.kind === 'chooseCiv' ? d.options : [])
+			),
+		].sort(),
+		civsFor(['pp']).sort()
+	);
+	const base = newGame(3, { seed: 7 }).state.supply.civs;
+	assert.deepEqual(base.slice(0, 4), [
+		'merrymakers',
+		'isolationists',
+		'nomads',
+		'inventors',
+	]);
 });
 
 test('a seeded base game deals the same decks as before #33', () => {

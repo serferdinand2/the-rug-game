@@ -9,7 +9,7 @@ import { AFTER_SETUP } from '../src/lib/engine/after-setup.js';
 import { INCOME_STEPS, INCOME_STEP_KINDS } from '../src/lib/engine/income.js';
 import { CIVS, civsOf, offer } from '../src/lib/engine/civs/index.js';
 import { askSlot } from '../src/lib/engine/decisions/choose-slot.js';
-import { BASE_CIVS } from '../src/lib/engine/decks.js';
+import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { newGame, startedGame, readyTurn, answer } from './helpers/engine.mjs';
 
 /** The civilizations startedGame() deals by default, in seat order. */
@@ -742,7 +742,10 @@ test('a new seat holds no civilization data, and the civilization discards start
 	}
 	assert.deepEqual(state.supply.civDiscard, []);
 	assert.deepEqual(civsOf(state, 9), []);
-	assert.deepEqual(Object.keys(CIVS).sort(), [...BASE_CIVS].sort());
+	assert.deepEqual(
+		Object.keys(CIVS).sort(),
+		[...BASE_CIVS, ...PP_CIVS].sort()
+	);
 	for (const [id, civ] of Object.entries(CIVS)) {
 		assert.equal(civ.id, id);
 	}
