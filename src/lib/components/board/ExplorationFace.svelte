@@ -16,6 +16,7 @@
 
 <script>
 	import { artUrl } from '../../ui.js';
+	import TrackLandmark from './TrackLandmark.svelte';
 
 	/** @type {ExplorationFaceProps} */
 	let {
@@ -178,15 +179,12 @@
 			</span>
 		{/if}
 	</span>
-	<span
-		class="rg-exploration-face--landmark"
-		aria-hidden="true"
-		>{#if landmark}<img
-				src={artUrl(
-					`landmark/${landmark.toLowerCase().replaceAll(' ', '-')}`
-				)}
-				alt=""
-				draggable="false" />{landmark}{/if}</span>
+	{#if landmark}
+		<TrackLandmark
+			id={landmark.toLowerCase().replaceAll(' ', '-')}
+			name={landmark}
+			class="rg-exploration-face--landmark" />
+	{/if}
 </span>
 
 <style>
@@ -194,7 +192,7 @@
 		position: relative;
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
-		grid-template-rows: 16px minmax(30px, 1fr) 29px 14px;
+		grid-template-rows: 16px minmax(30px, 1fr) 29px 25px;
 		gap: 1px;
 		width: 100%;
 		height: 100%;
@@ -400,27 +398,12 @@
 		font: var(--weight-bold) var(--font-size-2xs) / 1 var(--font-body);
 		margin-inline: 3px;
 	}
-	.rg-exploration-face--landmark {
-		display: inline-flex;
+	:global(.rg-exploration-face--landmark) {
 		grid-row: 4;
-		align-items: center;
-		align-self: end;
-		gap: 2px;
-		overflow: hidden;
-		color: var(--gold);
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		font: var(--weight-title) var(--font-size-3xs) / 1 var(--font-title);
-	}
-	.rg-exploration-face--landmark img {
-		width: 13px;
-		height: 13px;
-		object-fit: contain;
-		image-rendering: pixelated;
 	}
 	@container (max-height: 112px) {
 		.rg-exploration-face {
-			grid-template-rows: 16px minmax(30px, 1fr) 29px 13px;
+			grid-template-rows: 16px minmax(30px, 1fr) 29px 25px;
 		}
 		.rg-exploration-face--unit img {
 			width: 24px;
@@ -433,9 +416,6 @@
 		.rg-exploration-face--bonus-unit img {
 			width: 19px;
 			height: 19px;
-		}
-		.rg-exploration-face--landmark {
-			font-size: var(--font-size-3xs);
 		}
 	}
 	@container (min-width: 125px) and (min-height: 135px) {

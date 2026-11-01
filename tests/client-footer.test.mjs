@@ -141,6 +141,24 @@ test('a selected space names it, says its benefit and prices its tier', () => {
 	assert.deepEqual(footer.advance, { enabled: true, title: undefined });
 });
 
+test('a selected unclaimed landmark space includes its landmark footprint in the footer', () => {
+	const { game, player, options } = turnChoice();
+	const selected = { track: /** @type {const} */ ('exploration'), space: 4 };
+	const footer = footerView(game, player, { ...QUIET, options, selected });
+	assert.equal(footer.landmark, 'lighthouse');
+
+	const claimed = {
+		...game,
+		landmarks: game.landmarks.filter((id) => id !== 'lighthouse'),
+	};
+	const claimedFooter = footerView(claimed, player, {
+		...QUIET,
+		options,
+		selected,
+	});
+	assert.equal(claimedFooter.landmark, undefined);
+});
+
 test("Advance says why it can't be pressed: a space out of reach, or a payment to pick in the panel", () => {
 	const { game, player, options } = turnChoice();
 	const far = footerView(game, player, {

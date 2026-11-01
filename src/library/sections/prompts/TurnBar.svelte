@@ -109,6 +109,19 @@
 		</TurnBar>
 	</Example>
 	<Example
+		label={'tone="selected" landmark="lighthouse" · a selected landmark space adds its pictured footprint'}
+		surface="ink"
+		wide>
+		<TurnBar
+			tone="selected"
+			heading="Advance to"
+			properName="Navigation"
+			landmark="lighthouse"
+			detail="Gain the Lighthouse landmark."
+			track="exploration"
+			cost={['food', 'any']} />
+	</Example>
+	<Example
 		label={`tone="optional" label="Optional action" properName="Farm" properIcon headingEnd="?" cost={['food']} reveal={IncomeReveal folded disabled}`}
 		surface="ink"
 		wide>
