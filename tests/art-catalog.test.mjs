@@ -23,11 +23,11 @@ const EXPECTED_COUNTS = {
 	'resource-48': { base: 5 },
 	building: { base: 4 },
 	piece: { base: 24 },
-	'card-back': { base: 2 },
 	die: { base: 17, aa: 1 }, // 14 faces (#5) and the 3 die bodies the tray rolls (#61)
 	terrain: { base: 5 },
 	track: { base: 4, aa: 1 },
 	symbol: { base: 13 },
+	'card-back': { base: 2 },
 	board: { base: 5, ff: 1 },
 	hex: { base: 8 },
 	'territory-tile': { base: 48 },
@@ -39,7 +39,6 @@ const EXPECTED_COUNTS = {
 };
 
 const SLUGGED_GROUPS = [
-	'card-back',
 	'civ',
 	'tapestry',
 	'tech',
