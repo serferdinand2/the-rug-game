@@ -1,4 +1,4 @@
-// The 43 base tapestry cards and the trap played as a card: timing and what happens when played (02 §3, design 2026-10-25).
+// The 43 base tapestry cards, the trap played as a card, and Plans & Ploys' cards (#33): timing and what happens when played (02 §3, 03 §1.4).
 import { deepFreeze, TRACK_IDS } from './ids.js';
 
 /** @typedef {import('./effects.js').Effect} Effect */
@@ -11,6 +11,9 @@ import { deepFreeze, TRACK_IDS } from './ids.js';
  * @property {'played' | 'era'} timing - 'played' is WHEN PLAYED; 'era' is THIS ERA
  * @property {Effect[]} played - What runs when the card's ability resolves; a THIS ERA card's setup choice, if any
  * @property {boolean} ordered - Whether the effects run in the order listed (Renaissance is the only false)
+ * @property {'base' | 'pp'} expansion - Where it comes from
+ * @property {'conquest' | 'trap'} [response] - A response card: 'conquest' a defender discards against a conquest (the
+ *   trap, Retreat, Surprise Party, Surrender); 'trap' an attacker discards against a Trap (Double Cross, Stolen Plans)
  */
 
 /** Words a name keeps in lower case. */
@@ -42,6 +45,7 @@ const era = (id, played = []) => ({
 	timing: 'era',
 	played,
 	ordered: true,
+	expansion: 'base',
 });
 
 /**
@@ -57,7 +61,16 @@ const when = (id, played, ordered = true) => ({
 	timing: 'played',
 	played,
 	ordered,
+	expansion: 'base',
 });
+
+/**
+ * A Plans & Ploys card (#33; 03 §1.4), with its name when the slug doesn't give it.
+ * @param {TapestryCard} card
+ * @param {{ name?: string, response?: 'conquest' | 'trap' }} [extra]
+ * @returns {TapestryCard}
+ */
+const pp = (card, extra = {}) => ({ ...card, ...extra, expansion: 'pp' });
 
 /**
  * A trade offer of VP for resources of the player's choice.
@@ -80,7 +93,7 @@ const buyVp = (resources, vp) => ({
 });
 
 /**
- * The 43 base cards in BASE_TAPESTRY order (alphabetical), then the trap.
+ * The 43 base cards in BASE_TAPESTRY order (alphabetical), then the trap, then Plans & Ploys' cards (#33).
  * @type {readonly TapestryCard[]}
  */
 export const TAPESTRY_CARDS = deepFreeze([
@@ -188,7 +201,27 @@ export const TAPESTRY_CARDS = deepFreeze([
 	era('tyranny'),
 	era('wartime-economy'),
 	// R22: a trap played as a tapestry card is worth 10 VP.
-	when('trap', [{ vp: 10 }]),
+	{ ...when('trap', [{ vp: 10 }]), response: 'conquest' },
+	// Plans & Ploys (#33; 03 §1.4). A response card played as a tapestry card gains its printed line (R45 for Retreat).
+	pp(when('double-cross', [{ vp: 9 }, { gain: { territory: 1 } }]), {
+		response: 'trap',
+	}),
+	pp(when('entertain-the-masses', [{ landmark: 'stadium' }])),
+	pp(when('retreat', [{ vp: 9 }, { gain: { tapestry: 1 } }]), {
+		response: 'conquest',
+	}),
+	pp(when('stolen-plans', [{ vp: 8 }, { invent: {} }]), {
+		response: 'trap',
+	}),
+	pp(
+		when('surprise-party', [
+			{ choice: [[{ vp: 10 }], [{ building: 'armory' }]] },
+		]),
+		{ response: 'conquest' }
+	),
+	pp(when('surrender', [{ vp: 7 }, { gain: { any: 1 } }]), {
+		response: 'conquest',
+	}),
 ]);
 
 /**

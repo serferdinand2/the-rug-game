@@ -8,11 +8,20 @@ import {
 	tapestryCard,
 } from '../src/lib/engine/data/tapestry-cards.js';
 
+/** The base game's cards, the trap last. */
+const BASE_CARDS = TAPESTRY_CARDS.filter((card) => card.expansion === 'base');
+
 test('the 43 base tapestry cards are in catalog order, then the trap', () => {
-	assert.equal(TAPESTRY_CARDS.length, 44);
+	assert.equal(BASE_CARDS.length, 44);
 	assert.deepEqual(
-		TAPESTRY_CARDS.map((card) => card.id),
+		BASE_CARDS.map((card) => card.id),
 		[...BASE_TAPESTRY.filter((id) => !id.startsWith('trap-')), 'trap']
+	);
+	// Plans & Ploys' cards come after them (#33).
+	assert.ok(
+		TAPESTRY_CARDS.slice(BASE_CARDS.length).every(
+			(card) => card.expansion === 'pp'
+		)
 	);
 });
 
@@ -23,12 +32,12 @@ test('tapestryCard maps every trap copy to the trap (R22)', () => {
 	assert.throws(() => tapestryCard('nope'), /nope/);
 });
 
-test('20 cards are THIS ERA and 24 are played', () => {
-	const cards = TAPESTRY_CARDS.filter((card) => card.id !== 'trap');
+test('20 base cards are THIS ERA and 24 are played', () => {
+	const cards = BASE_CARDS.filter((card) => card.id !== 'trap');
 	assert.equal(cards.filter((card) => card.timing === 'era').length, 20);
 	assert.equal(cards.filter((card) => card.timing === 'played').length, 23);
 	assert.equal(
-		TAPESTRY_CARDS.filter((card) => card.timing === 'played').length,
+		BASE_CARDS.filter((card) => card.timing === 'played').length,
 		24
 	);
 });

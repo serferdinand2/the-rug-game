@@ -7,8 +7,9 @@ import { deepFreeze } from './ids.js';
 
 /**
  * Where a landmark comes from: the first player into a track's tier II, III or IV, upgrading the tech card of the same
- * name to the top row, the goal of the landmark card of the same name, or exploring a space tile (#32).
- * @typedef {{ track: TrackId, tier: 2 | 3 | 4, space: 4 | 7 | 10 } | { tech: string } | { card: string } | { spaceTile: number }} LandmarkSource
+ * name to the top row, the goal of the landmark card of the same name, exploring a space tile (#32), or playing a
+ * tapestry card (#33).
+ * @typedef {{ track: TrackId, tier: 2 | 3 | 4, space: 4 | 7 | 10 } | { tech: string } | { card: string } | { spaceTile: number } | { tapestry: string }} LandmarkSource
  */
 
 /**
@@ -99,8 +100,8 @@ export const LANDMARKS = deepFreeze([
 ]);
 
 /**
- * The expansions' landmarks: Plans & Ploys' 5 landmark-card landmarks and the Monolith (03 §1.6, #32). The Stadium
- * comes with its tapestry card (#33).
+ * The expansions' landmarks: Plans & Ploys' 5 landmark-card landmarks and the Monolith (03 §1.6, #32), and the Stadium
+ * that Entertain the Masses gains (#33).
  * @type {readonly Landmark[]}
  */
 export const EXPANSION_LANDMARKS = deepFreeze(
@@ -113,6 +114,7 @@ export const EXPANSION_LANDMARKS = deepFreeze(
 		landmark('skyscraper', 'Skyscraper', { card: 'skyscraper' }),
 		landmark('urban-farm', 'Urban Farm', { card: 'urban-farm' }),
 		landmark('monolith', 'Monolith', { spaceTile: 19 }),
+		landmark('stadium', 'Stadium', { tapestry: 'entertain-the-masses' }),
 	].map((l) => ({ ...l, expansion: 'pp' }))
 );
 

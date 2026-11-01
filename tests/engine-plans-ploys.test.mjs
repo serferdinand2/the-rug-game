@@ -104,7 +104,7 @@ test('Plans & Ploys has 5 landmark cards, each naming its own landmark and goal 
 	assert.ok(Object.isFrozen(LANDMARK_CARDS[0].goal));
 });
 
-test("Plans & Ploys adds 6 landmarks with the shared footprints: the 5 cards' and the Monolith", () => {
+test("Plans & Ploys adds 7 landmarks with the shared footprints: the 5 cards', the Monolith and the Stadium (#33)", () => {
 	assert.deepEqual(
 		EXPANSION_LANDMARKS.map((l) => [l.id, l.source, l.expansion]),
 		[
@@ -114,6 +114,7 @@ test("Plans & Ploys adds 6 landmarks with the shared footprints: the 5 cards' an
 			['skyscraper', { card: 'skyscraper' }, 'pp'],
 			['urban-farm', { card: 'urban-farm' }, 'pp'],
 			['monolith', { spaceTile: 19 }, 'pp'],
+			['stadium', { tapestry: 'entertain-the-masses' }, 'pp'],
 		]
 	);
 	for (const landmark of EXPANSION_LANDMARKS) {
@@ -121,7 +122,7 @@ test("Plans & Ploys adds 6 landmarks with the shared footprints: the 5 cards' an
 	}
 	assert.equal(landmarksFor([]).length, 18);
 	assert.deepEqual(landmarksFor([]), LANDMARKS);
-	assert.equal(landmarksFor(['pp']).length, 24);
+	assert.equal(landmarksFor(['pp']).length, 25);
 });
 
 test('Plans & Ploys adds space tiles 16 to 19: three ongoing +5 VP tiles and the Monolith (03 §1.5)', () => {
@@ -169,16 +170,16 @@ test('a base game deals 15 space tiles, the 18 base landmarks and no landmark ca
 	);
 });
 
-test('with Plans & Ploys, the space stack holds 19 tiles and the landmark supply 24', () => {
+test('with Plans & Ploys, the space stack holds 19 tiles and the landmark supply 25', () => {
 	const { state } = newGame(3, PP);
 	assert.deepEqual(
 		[...state.supply.space].sort((a, b) => a - b),
 		Array.from({ length: 19 }, (_, i) => i + 1)
 	);
-	assert.equal(state.landmarks.length, 24);
+	assert.equal(state.landmarks.length, 25);
 	assert.ok(state.landmarks.includes('monolith'));
 	assert.ok(state.landmarks.includes('skyscraper'));
-	assert.ok(!state.landmarks.includes('stadium'));
+	assert.ok(state.landmarks.includes('stadium'));
 });
 
 /**

@@ -47,3 +47,26 @@ test('every tapestry card face has words, also for the rules the engine keeps in
 		describeEffects([{ notAnEffect: {} }])
 	);
 });
+
+test('a Plans & Ploys response card reads as its response, and its note says what it gains as a tapestry card (#33)', () => {
+	for (const id of [
+		'double-cross',
+		'retreat',
+		'stolen-plans',
+		'surprise-party',
+		'surrender',
+	]) {
+		const { ability, note } = describeTapestryCard(id);
+		assert.match(ability, /^When /, `${id}: "${ability}"`);
+		assert.match(
+			String(note),
+			/^Played as a tapestry card on an income turn: /,
+			id
+		);
+	}
+	assert.equal(
+		describeTapestryCard('surrender').note,
+		'Played as a tapestry card on an income turn: gain 1 resource of your choice and 7 VP'
+	);
+	assert.match(describeTapestryCard('retreat').ability, /1 worker/);
+});

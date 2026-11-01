@@ -74,6 +74,17 @@ const TAPESTRY_RULES = Object.freeze({
 	'trade-economy':
 		"Choose an opponent's current space on any track and gain its benefit. If it has a bonus, that opponent may take it for free",
 	trap: 'When an opponent tries to conquer one of your territories, discard this card. Gain 1 resource of your choice, keep control and topple their outpost; they still gain the benefit of 1 conquer die',
+	// Plans & Ploys' response cards (#33; 03 §1.4); a defender plays one card at most against a conquest.
+	'double-cross':
+		'When an opponent plays a trap against your conquest, discard this card to cancel the trap: your outpost stays and theirs stays toppled. Gain 5 VP',
+	retreat:
+		'When an opponent conquers one of your territories, discard this card instead of a trap. Move your outpost to a territory you control next to it, even one with 2 tokens, and gain 1 worker; they still take the territory',
+	'stolen-plans':
+		'When an opponent plays a trap against your conquest, discard this card to cancel the trap and take a random tapestry card from their hand',
+	'surprise-party':
+		'When an opponent conquers one of your territories while you are further along the Military track, discard this card instead of a trap. Topple their outpost, keep control and gain 15 VP. It is not a trap',
+	surrender:
+		'When an opponent conquers one of your territories, discard this card instead of a trap. After they roll, roll both conquer dice and gain both results; they still take the territory',
 	tyranny:
 		'When you gain a tapestry card, you may play it on top of this card at once. The first and only time you do, gain 5 VP',
 	'wartime-economy':
@@ -81,8 +92,8 @@ const TAPESTRY_RULES = Object.freeze({
 });
 
 /**
- * A tapestry card's face in words: its ability, and for the trap what it gains played as a tapestry card (R22).
- * A card whose rules are all effects reads as them.
+ * A tapestry card's face in words: its ability, and for a response card (the trap, Plans & Ploys' five) what it gains
+ * played as a tapestry card (R22, #33). A card whose rules are all effects reads as them.
  * @param {string} id - A card id; each trap copy, such as 'trap-3', is the trap
  * @returns {{ ability: string, note?: string }}
  */
@@ -91,9 +102,9 @@ export function describeTapestryCard(id) {
 	if (!card) {
 		return { ability: ANY_ABILITY };
 	}
-	if (card.id === 'trap') {
+	if (card.response !== undefined) {
 		return {
-			ability: TAPESTRY_RULES.trap,
+			ability: TAPESTRY_RULES[card.id],
 			note: `Played as a tapestry card on an income turn: ${effectsPhrase(card.played, undefined, card.ordered)}`,
 		};
 	}

@@ -269,11 +269,16 @@ export function landmark(ctx, player, value, op) {
 	}
 	state.landmarks.splice(at, 1);
 	const tile = op?.source?.spaceTile;
+	const card = op?.source?.tapestry;
 	emit(state, {
 		type: 'landmarkGained',
 		player,
 		landmark: id,
-		...(tile === undefined ? { tech: true } : { spaceTile: tile }),
+		...(tile !== undefined
+			? { spaceTile: tile }
+			: card !== undefined
+				? { tapestry: card }
+				: { tech: true }),
 	});
 	ctx.push([
 		{ player, kind: 'placeLandmark', landmark: id },
