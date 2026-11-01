@@ -68,7 +68,11 @@ export function responseCards(state, defender, attacker, hex) {
 			return !plunder;
 		}
 		if (data.id === 'retreat') {
-			return retreatHexes(state, defender, hex).length > 0;
+			// Retreat moves an outpost: a Nomads piece is no outpost (as a Treasure Hunters token isn't, R114).
+			const outpost = state.hexes[hex].outposts.some(
+				(o) => o.seat === defender && o.toppled && !o.piece
+			);
+			return outpost && retreatHexes(state, defender, hex).length > 0;
 		}
 		if (data.id === 'surprise-party') {
 			return (
@@ -168,6 +172,7 @@ export function playResponse(ctx, { defender, attacker, hex, card, both }) {
 		{
 			player: defender,
 			kind: 'effects',
+			origin: 'tapestry',
 			effects: [{ vp: SURPRISE_PARTY_VP }],
 		},
 		...triggered(state, 'countsChanged', { player: defender }),
@@ -221,6 +226,7 @@ export function playCounter(ctx, { attacker, defender, hex, card, both }) {
 			{
 				player: attacker,
 				kind: 'effects',
+				origin: 'tapestry',
 				effects: [{ vp: DOUBLE_CROSS_VP }],
 			},
 			diceOp(attacker, hex, both),

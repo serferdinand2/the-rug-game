@@ -642,3 +642,15 @@ test('the log keeps the events’ order, marks turns, income turns and notices, 
 	]);
 	assert.deepEqual(logEntries([], GAME), []);
 });
+
+test('with Plans & Ploys a trap only says it was played, as the attacker may still cancel it (#33)', () => {
+	const pp = { ...GAME, expansions: ['pp'] };
+	assert.equal(
+		eventText(sample('responsePlayed'), pp),
+		"Bo played a trap against Ana's conquest of hex 1,2."
+	);
+	assert.equal(
+		eventText(sample('responsePlayed'), GAME),
+		"Bo's trap stopped Ana's conquest of hex 1,2."
+	);
+});

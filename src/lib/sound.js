@@ -30,6 +30,7 @@ const ORDER = /** @type {readonly Cue[]} */ ([
 const ROLLS = new Set([
 	'scienceDieRolled',
 	'conquerDiceRolled',
+	'surrenderRolled',
 	'alchemistsRolled',
 	'alchemistsBust',
 ]);

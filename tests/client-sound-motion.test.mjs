@@ -88,6 +88,8 @@ test('nothing moves for nothing', () => {
 
 test('a roll earns the dice cue, after a reward and before a turn (#61)', () => {
 	assert.equal(cueFor([ev('conquerDiceRolled')], 1), 'dice');
+	// #33: Surrender's roll sounds as the conquer dice do.
+	assert.equal(cueFor([ev('surrenderRolled')], 1), 'dice');
 	assert.equal(cueFor([ev('scienceDieRolled'), ev('tokenMoved')], 2), 'dice');
 	assert.equal(cueFor([ev('alchemistsBust')], 1), 'dice');
 	assert.equal(

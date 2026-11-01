@@ -35,6 +35,7 @@ export const TUMBLE_MS = 1000;
 const ROLLED = /** @type {Readonly<Record<string, string>>} */ ({
 	scienceDieRolled: 'the science die',
 	conquerDiceRolled: 'the conquer dice',
+	surrenderRolled: 'the conquer dice for Surrender',
 	alchemistsRolled: 'for the Alchemists',
 	alchemistsBust: 'for the Alchemists',
 });
@@ -68,6 +69,7 @@ function diceOf(event) {
 		case 'alchemistsBust':
 			return [{ die: 'science', face: scienceFace(event.track) }];
 		case 'conquerDiceRolled':
+		case 'surrenderRolled':
 			return [
 				{ die: 'red', face: Number(event.red) || 0 },
 				{ die: 'black', face: Number(event.black) || 0 },

@@ -78,7 +78,16 @@ So the response question carries the conquest's dice and pushes them itself once
 
 Privacy follows #17: the attacker is asked whenever they hold any card; with nothing playable they are declined after the random wait, so `declineOnly` covers `chooseCounter` too. In hot-seat play the attacker answers on their own screen.
 
-### 6.3 Hidden information
+### 6.3 Calls made while building (2026-11-01, my calls)
+
+- **Pillage and Plunder stops only traps.** With Plans & Ploys on, its defender is still asked, and may play Retreat, Surprise Party or Surrender, but never a trap (03 §1.2: Joe Aubrey, "traps cannot be played" ignores other response cards). A base game asks nothing, as the tapestry design's §8 had it.
+- **Retreat moves an outpost.** It is offered only when the defender's toppled item is an outpost, never a Nomads piece, as it is never offered for a Treasure Hunters token (R114). With one territory to go to, it goes there without asking.
+- **A stolen card is a gained card.** It fires the thief's tapestry-gained abilities: Academia's 3 VP, and under Tyranny the thief may play it at once, during the conquest, before the dice.
+- **Surprise Party's 15 VP and Double Cross's 5 VP count as a tapestry card's** in the end-game breakdown, not as the conquest's source.
+- **The log.** With Plans & Ploys on, a trap's line says only that it was played ("Bo played a trap against Ana's conquest"), as the attacker may still cancel it. A base game keeps "Bo's trap stopped Ana's conquest".
+- **How to play** gets a Response cards tab of its own, as the Plans & Ploys tab would pass the one-screen limit (#42).
+
+### 6.4 Hidden information
 
 A random card taken by Stolen Plans emits an event with a `secret` (the card), so undo is refused after it (#24's rule). The defender's hand stays hidden in every view.
 

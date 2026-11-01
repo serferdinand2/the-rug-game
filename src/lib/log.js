@@ -597,7 +597,10 @@ const WORDS = {
 		const attacker = seatName(game, e.attacker);
 		const where = hexName(e.hex);
 		const card = tapestryWords(e.card);
-		return card === 'a trap'
+		// With Plans & Ploys the attacker may still cancel a trap (#33), so the line says only that it was played.
+		const counters =
+			Array.isArray(game?.expansions) && game.expansions.includes('pp');
+		return card === 'a trap' && !counters
 			? `${name}'s trap stopped ${attacker}'s conquest of ${where}.`
 			: `${name} played ${card} against ${attacker}'s conquest of ${where}.`;
 	},

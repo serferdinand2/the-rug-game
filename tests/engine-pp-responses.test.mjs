@@ -171,6 +171,48 @@ test("Surrender lets the conquest stand and rolls both dice for the defender aft
 	assert.equal(rolled.player, 2);
 });
 
+test('Retreat moves an outpost, so a Nomads piece cannot retreat (#33 final review)', () => {
+	const state = conquestGame(['retreat'], PP);
+	retreatSpot(state);
+	state.hexes['-2_-1'].outposts = [
+		{ seat: 2, toppled: false, piece: { landmark: 'lighthouse' } },
+	];
+	conquer(state, { only: ['-2_-1'] });
+	assert.deepEqual(offered(state), [null]);
+});
+
+test("Surprise Party's and Double Cross's VP count as a tapestry card's, not as the conquest's source", () => {
+	const party = conquestGame(['surprise-party'], PP);
+	party.seats[1].tracks.military = [3];
+	push(party, party.pending, [
+		{
+			player: 1,
+			kind: 'effects',
+			effects: [{ conquer: {} }],
+			origin: 'tracks',
+		},
+	]);
+	run(party, face(0));
+	const thrown = respond(party, 'surprise-party');
+	assert.equal(thrown.seats[1].vpSources.tapestry, 15);
+	assert.equal(thrown.seats[1].vpSources.tracks, undefined);
+
+	const crossed = conquestGame(['trap-1'], PP);
+	crossed.seats[0].hand = ['double-cross'];
+	push(crossed, crossed.pending, [
+		{
+			player: 1,
+			kind: 'effects',
+			effects: [{ conquer: {} }],
+			origin: 'tracks',
+		},
+	]);
+	run(crossed, face(0));
+	const after = counter(respond(crossed, 'trap-1'), 'double-cross');
+	assert.equal(after.seats[0].vpSources.tapestry, 5);
+	assert.equal(after.seats[0].vpSources.tracks ?? 0, 0);
+});
+
 test('a defender holding only cards they cannot play now is still asked, and declineOnly declines them (#17)', () => {
 	const state = conquestGame(['retreat', 'surprise-party'], PP);
 	conquer(state);

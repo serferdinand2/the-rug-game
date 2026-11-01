@@ -48,6 +48,20 @@ test('the conquer dice are the red die, then the black', () => {
 	);
 });
 
+test("Surrender's roll tumbles too: the defender's red and black conquer dice (#33)", () => {
+	const [roll] = rollsOf(
+		[{ seq: 9, type: 'surrenderRolled', player: 1, red: 0, black: 3 }],
+		GAME,
+		2
+	);
+	assert.deepEqual(roll.dice, [
+		{ die: 'red', face: 0 },
+		{ die: 'black', face: 3 },
+	]);
+	assert.equal(roll.caption, 'Vera rolls the conquer dice for Surrender');
+	assert.match(roll.spoken, /^Vera surrendered and rolled the conquer dice/);
+});
+
 test('the Alchemists roll the science die, and a bust says so', () => {
 	const rolls = rollsOf(
 		[

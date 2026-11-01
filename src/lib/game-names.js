@@ -6,7 +6,7 @@ import { ACHIEVEMENTS } from './engine/data/achievements.js';
 import { ASSETS, EXPANSIONS } from './art/catalog.js';
 import { capitalize, nounOf, signed, titleOf } from './words.js';
 
-/** @typedef {{ seats?: readonly { name?: string }[] }} Table - A state or a view: the seats' names */
+/** @typedef {{ seats?: readonly { name?: string }[], expansions?: readonly string[] }} Table - A state or a view: the seats' names, and the expansions on (#33) */
 
 const TRACK_NAMES = /** @type {Readonly<Record<string, string>>} */ ({
 	exploration: 'Exploration',
