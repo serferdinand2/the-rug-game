@@ -1170,6 +1170,435 @@ const RECIPES = {
 			),
 		],
 	}),
+	// #33: Plans & Ploys' other nine civilizations, from 03 §1.3's text (numbers exact) and the F&F p.32 setup lines
+	// (03 §6), built from the existing patterns and awaiting the owner's review. Their engine modules follow.
+	advisors: (context) => ({
+		portraitAlt: 'Advisors civilization portrait',
+		complexity: 3,
+		effect: [
+			'Score the tapestry cards in your hand, and hand your neighbours cards of your choice.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Income turns 2–5',
+						label: 'Hand',
+						symbolText: 12,
+						text: [
+							'Gain 1 VP for each tapestry card in your hand. Then discard down to 4; if you discarded any, gain ',
+							strong('+ ', res('any', true)),
+							'.',
+						],
+					},
+					{
+						title: "A neighbour's advance turn",
+						label: 'Give',
+						symbolText: 12,
+						text: [
+							'When a neighbour would draw a tapestry card, you may give them one from your hand instead. Then draw 1.',
+						],
+					},
+				],
+			},
+			...clarity(context, [
+				'Setup: start with 3 tapestry cards. If gained mid-game, you may give any of them to neighbours for 5 VP each. Not in solo games.',
+			]),
+		],
+	}),
+	aliens: (context) => ({
+		portraitAlt: 'Aliens civilization portrait',
+		complexity: 1,
+		effect: [
+			'At the start of income turns 2–5, a new space tile lands on this mat, or you gain a resource.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Income turns 2–5',
+						label: 'Space',
+						symbolText: 12,
+						text: [
+							'Discard the space tile on this mat. Then explore a space tile from your supply onto it and gain its benefits; if you just discarded one, first pay ',
+							res('any', true),
+							'.',
+						],
+					},
+					{
+						title: 'Or instead',
+						gain: 'any',
+						text: ['Gain 1 resource of your choice.'],
+					},
+				],
+			},
+			...clarity(context, [
+				'Setup: put 4 space tiles face up in your supply, also when gained mid-game. A tile on this mat works until it is discarded.',
+			]),
+		],
+	}),
+	infiltrators: (context) => ({
+		portraitAlt: 'Infiltrators civilization portrait',
+		complexity: 2,
+		effect: [
+			"At the start of income turns 2–5, you may slip into an opponent's territory or onto their capital-city territory.",
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'A territory with 1 opponent outpost',
+						label: 'A',
+						text: [
+							"Place an outpost beside theirs without conquering. You share control and gain the tile's benefit; nobody can conquer it now, and it doesn't count for the middle island.",
+						],
+					},
+					{
+						title: "An opponent's capital-city territory",
+						label: 'B',
+						text: [
+							'Place a player token there and gain 1 VP for each outpost they have not placed yet. Your third token on the same territory gains you a civilization.',
+						],
+					},
+					{
+						title: 'Gaining a civilization',
+						label: 'Civ',
+						symbolText: 12,
+						text: ['Draw 3 civilizations and keep 1.'],
+					},
+				],
+			},
+			...clarity(
+				context,
+				['Setup: gain 1 culture, also when gained mid-game.'],
+				{ current: ['Setup, current rules: do not gain the culture.'] }
+			),
+		],
+	}),
+	islanders: (context) => ({
+		portraitAlt: 'Islanders civilization portrait',
+		complexity: 1,
+		effect: [
+			'Your mat is an island: explore the 6 hexes around its printed centre, then score its coastline.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Income turns 2–5',
+						label: 'Explore',
+						symbolText: 12,
+						text: [
+							"You may explore 1 hex of this island: matching sides score 1 VP each and you gain the tile's benefit, as on the map. Any explore on an advance turn may land here too, and these hexes can't be conquered.",
+						],
+					},
+					{
+						title: 'Final income turn',
+						label: '4 VP',
+						symbolText: 12,
+						text: [
+							'Gain 4 VP for each tile on this island whose outer edges show only water.',
+						],
+					},
+				],
+			},
+			...clarity(context, [
+				'Setup: start with 4 territory tiles. If gained mid-game, you may discard it and gain another; if you keep it, place up to 4 of your tiles here without benefits.',
+			]),
+		],
+	}),
+	recyclers: (context) => ({
+		portraitAlt: 'Recyclers civilization portrait',
+		complexity: 2,
+		effect: [
+			'Upgrade more, send top-row cards back down for VP, and take tech cards from the discard pile.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Income turns 2–5',
+						label: 'Upgrade',
+						symbolText: 12,
+						text: [
+							'You may upgrade a tech card, as well as the usual upgrade.',
+						],
+					},
+					{
+						title: 'Whenever you upgrade',
+						label: '5 VP',
+						symbolText: 12,
+						text: [
+							"You may instead move a top-row card back to your bottom row and gain 5 VP. Only your own upgrades can, not another player's.",
+						],
+					},
+					{
+						title: 'Gaining a tech card',
+						label: 'Discard',
+						symbolText: 12,
+						text: ['You may take it from the tech discard pile.'],
+					},
+				],
+			},
+			...clarity(
+				context,
+				[
+					'Setup: draw 3 tech cards, keep 1 in your bottom row and discard 2. You may not upgrade it during your first income turn.',
+				],
+				{ current: ['Setup, current rules: upgrade a tech card.'] }
+			),
+		],
+	}),
+	riverfolk: (context) => ({
+		portraitAlt: 'Riverfolk civilization portrait',
+		complexity: 2,
+		effect: [
+			'Build over the impassable plots of your capital city, and score them at the end.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Your capital city',
+						label: 'Build',
+						symbolText: 12,
+						text: [
+							'You may place buildings on impassable plots; they still count as filled for districts, rows and columns.',
+						],
+					},
+					{
+						title: "Covering a district's last impassable plot",
+						gain: 'any',
+						text: [
+							'Gain 1 resource of your choice. A district without impassable plots gives nothing.',
+						],
+					},
+					{
+						title: 'Final income turn',
+						label: '−1 VP',
+						symbolText: 12,
+						text: [
+							'Lose 1 VP for each impassable plot still showing.',
+						],
+					},
+				],
+			},
+			...clarity(context, [
+				'Setup: gain 4 VP for each district with at least 2 impassable plots. If gained mid-game, you may discard it and gain another.',
+			]),
+		],
+	}),
+	spies: (context) => ({
+		portraitAlt: 'Spies civilization portrait',
+		complexity: 3,
+		effect: [
+			"At the start of income turns 2–5, place a token on an unused option to copy a neighbour's benefit. Then you may look at their hand.",
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'A WHEN PLAYED card',
+						label: '1',
+						text: [
+							"Gain the benefit of a WHEN PLAYED tapestry card on a neighbour's income mat.",
+						],
+					},
+					{
+						title: 'A tile in their supply',
+						label: '2',
+						text: [
+							"Gain the benefit of a territory or space tile in a neighbour's supply. An ongoing space tile keeps giving while it stays there.",
+						],
+					},
+					{
+						title: 'Their track position',
+						label: '3',
+						text: [
+							"Gain the benefit of a neighbour's current space on any track, without its bonus.",
+						],
+					},
+					{
+						title: 'Their tech card',
+						label: '4',
+						text: [
+							"Gain the benefit of one of a neighbour's tech cards, for the row it is in.",
+						],
+					},
+				],
+			},
+			...clarity(
+				context,
+				['Each option once a game. Not in solo games.'],
+				{
+					current: [
+						'Setup, current rules: lose ',
+						res('any', true),
+						'.',
+					],
+				}
+			),
+		],
+	}),
+	tinkerers: (context) => ({
+		portraitAlt: 'Tinkerers civilization portrait',
+		complexity: 3,
+		effect: [
+			'At the start of income turns 2–5, place a token on an unused option to bend one of your tracks.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Pay back',
+						label: '1',
+						text: [
+							'Gain the resources it cost to advance into the current space of one of your tracks.',
+						],
+					},
+					{
+						title: 'Catch up',
+						label: '2',
+						text: [
+							'Advance on a track to the space of the closest opponent ahead of you; gain its benefit, not its bonus.',
+						],
+					},
+					{
+						title: 'Step back',
+						label: '3',
+						text: [
+							'Go back exactly 3 spaces on a track; gain the benefit, and you may pay for the bonus.',
+						],
+					},
+					{
+						title: 'Jump ahead',
+						label: '4',
+						text: [
+							'Advance to the next space with a bonus and gain that bonus for free; no benefit, and no landmarks for the tiers you pass.',
+						],
+					},
+				],
+			},
+			...clarity(
+				context,
+				[
+					'Each option once a game. If you start with them, opponents may not upgrade during their first income turn.',
+				],
+				{
+					original: ['Setup: each opponent gains 1 tech card.'],
+					current: [
+						'Setup, current rules: each opponent gains 1 tapestry card and 1 tech card.',
+					],
+				}
+			),
+		],
+	}),
+	utilitarians: (context) => ({
+		portraitAlt: 'Utilitarians civilization portrait',
+		complexity: 3,
+		effect: [
+			"Switch on up to 2 of your landmarks' abilities by placing your 2 tokens beside them.",
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Forge',
+						label: 'Top',
+						symbolText: 12,
+						text: [
+							'Whenever you upgrade a tech card to your top row, gain ',
+							res('any', true),
+							'.',
+						],
+					},
+					{
+						title: 'Barracks',
+						label: 'Red',
+						symbolText: 12,
+						text: [
+							"Whenever you conquer, also gain the red die's result.",
+						],
+					},
+					{
+						title: 'Lighthouse',
+						label: 'Tiles',
+						symbolText: 12,
+						text: [
+							'Once each advance turn, you may discard 2 territory tiles to gain ',
+							res('any', true),
+							'.',
+						],
+					},
+					{
+						title: 'Apothecary',
+						label: 'Gain',
+						symbolText: 12,
+						text: [
+							'Whenever you gain another landmark, gain ',
+							res('any', true),
+							'.',
+						],
+					},
+					{
+						title: 'Rubber Works',
+						label: '4 VP',
+						symbolText: 12,
+						text: [
+							'Whenever you advance on tier III or IV of Technology, gain 4 VP.',
+						],
+					},
+					{
+						title: 'Tank Factory',
+						label: '4 VP',
+						symbolText: 12,
+						text: [
+							'Whenever you advance on tier III or IV of Military, gain 4 VP.',
+						],
+					},
+					{
+						title: 'Train Station',
+						label: '4 VP',
+						symbolText: 12,
+						text: [
+							'Whenever you advance on tier III or IV of Exploration, gain 4 VP.',
+						],
+					},
+					{
+						title: 'Academy',
+						label: '4 VP',
+						symbolText: 12,
+						text: [
+							'Whenever you advance on tier III or IV of Science, gain 4 VP.',
+						],
+					},
+				],
+			},
+			reserve(context, 2),
+			...clarity(
+				context,
+				[
+					'A token goes beside a landmark you own: at most 2 are on at once, and after gaining a listed landmark you may move one. Setup: choose a tier II landmark from a track and place it, with a token beside it. If gained mid-game, place up to 2 tokens.',
+				],
+				{
+					current: [
+						'Setup, current rules: lose ',
+						res('any', true),
+						'.',
+					],
+				}
+			),
+		],
+	}),
 };
 
 /** The Mystics' categories as the card names them. */

@@ -28,6 +28,16 @@ export const REVIEWED_CIVILIZATIONS = Object.freeze([
 	{ id: 'heralds', edition: 'awaiting review' },
 	{ id: 'nomads', edition: 'awaiting review' },
 	{ id: 'the-chosen', edition: 'awaiting review' },
+	// #33: Plans & Ploys' other nine, from 03 §1.3's text; not yet reviewed by the owner.
+	{ id: 'advisors', edition: 'awaiting review' },
+	{ id: 'aliens', edition: 'awaiting review' },
+	{ id: 'infiltrators', edition: 'awaiting review' },
+	{ id: 'islanders', edition: 'awaiting review' },
+	{ id: 'recyclers', edition: 'awaiting review' },
+	{ id: 'riverfolk', edition: 'awaiting review' },
+	{ id: 'spies', edition: 'awaiting review' },
+	{ id: 'tinkerers', edition: 'awaiting review' },
+	{ id: 'utilitarians', edition: 'awaiting review' },
 ]);
 
 /**
@@ -98,4 +108,13 @@ export const SAMPLE_VIEWS = Object.freeze({
 	heralds: sample(['token0'], 'used'),
 	nomads: sample([], 'token'),
 	'the-chosen': sample([], 'token'),
+	advisors: sample([], 'token'),
+	aliens: sample([], 'token'),
+	infiltrators: sample([], 'token'),
+	islanders: sample([], 'token'),
+	recyclers: sample([], 'token'),
+	riverfolk: sample([], 'token'),
+	spies: sample([], 'token'),
+	tinkerers: sample([], 'token'),
+	utilitarians: sample([], 'token'),
 });

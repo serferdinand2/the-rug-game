@@ -72,10 +72,80 @@ test('every base civilization and both built expansion cards have a recipe with 
 	assert.equal(civCard('the-chosen').title, 'The Chosen');
 });
 
+test("the nine other Plans & Ploys civilizations get a card from 03 §1.3's text, awaiting review (#33)", () => {
+	/** 03 §1.3's complexity of each. */
+	const complexity = {
+		advisors: 3,
+		aliens: 1,
+		infiltrators: 2,
+		islanders: 1,
+		recyclers: 2,
+		riverfolk: 2,
+		spies: 3,
+		tinkerers: 3,
+		utilitarians: 3,
+	};
+	for (const [id, stars] of Object.entries(complexity)) {
+		const recipe = civCard(id);
+		assert.deepEqual(recipe.editions, ['pp'], id);
+		assert.equal(recipe.complexity, stars, id);
+		assert.equal(
+			recipe.portraitAlt,
+			`${recipe.title} civilization portrait`,
+			id
+		);
+		assert.ok(words(recipe.effect).length > 20, id);
+		assert.ok(sectionOf(recipe, 'effects'), id);
+		assert.ok(
+			REVIEWED_CIVILIZATIONS.some(
+				(c) => c.id === id && c.edition === 'awaiting review'
+			),
+			id
+		);
+	}
+	const boxes = (/** @type {string} */ id) =>
+		sectionOf(civCard(id), 'effects').effects;
+	for (const id of ['spies', 'tinkerers']) {
+		assert.deepEqual(
+			boxes(id).map((/** @type {any} */ e) => e.label),
+			['1', '2', '3', '4'],
+			id
+		);
+	}
+	assert.deepEqual(
+		boxes('utilitarians').map((/** @type {any} */ e) => e.title),
+		[
+			'Forge',
+			'Barracks',
+			'Lighthouse',
+			'Apothecary',
+			'Rubber Works',
+			'Tank Factory',
+			'Train Station',
+			'Academy',
+		]
+	);
+	const setup = (/** @type {string} */ id, /** @type {any} */ version) =>
+		words(sectionOf(civCard(id, { version }), 'clarity')?.setup);
+	assert.equal(
+		setup('spies', 'current'),
+		'Setup, current rules: lose [any].'
+	);
+	assert.equal(
+		setup('infiltrators', 'current'),
+		'Setup, current rules: do not gain the culture.'
+	);
+	assert.equal(
+		setup('recyclers', 'current'),
+		'Setup, current rules: upgrade a tech card.'
+	);
+	assert.equal(setup('spies', 'original'), '');
+});
+
 test('a civilization without a reviewed layout gets its frame, portrait and name only', () => {
-	const recipe = civCard('infiltrators');
-	assert.equal(recipe.title, 'Infiltrators');
-	assert.deepEqual(recipe.editions, ['pp']);
+	const recipe = civCard('gamblers');
+	assert.equal(recipe.title, 'Gamblers');
+	assert.deepEqual(recipe.editions, ['aa']);
 	assert.equal(recipe.portraitAlt, '');
 	assert.deepEqual(recipe.sections, []);
 	assert.equal(words(recipe.effect), 'The full card is on its way.');
