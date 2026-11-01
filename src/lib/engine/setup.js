@@ -151,6 +151,7 @@ function newSeat(seat, name) {
 		era: null,
 		picks: {},
 		landmarkCard: null,
+		start: null,
 	};
 }
 
@@ -236,11 +237,15 @@ function dealCapitals({ state, seats, random, lanes, starts }) {
 }
 
 /**
- * Two outposts for each seat on its start hex.
+ * Two outposts for each seat on its start hex, which the seat records (#33: Manifest Destiny, the Infiltrators).
  * @param {SetupContext} setup
  */
-function placeOutposts({ state, starts }) {
+function placeOutposts({ state, seats, starts }) {
 	for (const { player, hex } of starts) {
+		const seat = seats.find((s) => s.seat === player);
+		if (seat) {
+			seat.start = hex;
+		}
 		state.hexes[hex].outposts.push(
 			{ seat: player, toppled: false },
 			{ seat: player, toppled: false }

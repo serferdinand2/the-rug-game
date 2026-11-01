@@ -57,6 +57,7 @@
  * @property {Era | null} era - The active THIS ERA ability, if any
  * @property {{ capital?: number, civ?: string }} picks - Setup picks until the reveal
  * @property {{ card: string, gained: boolean } | null} landmarkCard - The landmark card drafted at setup, face up, and whether its landmark is gained (#32)
+ * @property {string | null} start - The hex its two outposts started on, its capital-city territory; null until setup places them (#33)
  */
 /** @typedef {Seat & PlayerFields} PlayerSeat */
 /**

@@ -112,6 +112,22 @@ test('every player starts empty, with tokens on every track start (01 §2.2)', (
 	}
 });
 
+test('each seat records the territory its two outposts started on (#33)', () => {
+	for (const options of [{}, { variants: ['closest-island'] }]) {
+		const { state } = startedGame(3, options);
+		for (const seat of state.seats) {
+			const placed = state.events.find(
+				(e) =>
+					e.type === 'outpostsPlaced' &&
+					e.player === seat.seat &&
+					e.count === 2
+			);
+			assert.ok(placed, `seat ${seat.seat} placed two outposts`);
+			assert.equal(/** @type {any} */ (seat).start, placed.hex);
+		}
+	}
+});
+
 test('on the large map each player is dealt a different mat and starts on its territory (01 §2.2–2.3)', () => {
 	for (const count of [4, 5]) {
 		for (let seed = 1; seed <= 10; seed++) {
