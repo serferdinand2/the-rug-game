@@ -104,7 +104,10 @@ test('a landmark card needs the income-mat innovation by its printed name (R18)'
 	assert.equal(techCardData('com-tower').innovation, 'Telephone');
 	assert.equal(techCardData('stock-market').innovation, 'Banking');
 	assert.equal(data.square, 'Gain the Bakery landmark.');
-	assert.match(techMarkup(data), /<b>Farming uncovered<\/b>/);
+	assert.match(
+		techMarkup(data),
+		/<b class="rg-tech-layout--innovation-name">Farming<\/b> <b>uncovered<\/b>/
+	);
 });
 
 test('a card title is escaped in the markup', () => {

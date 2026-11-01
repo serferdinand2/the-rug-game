@@ -110,7 +110,7 @@ export function eraSlots(seat) {
 export function defaultEra(slots) {
 	return (
 		slots.find((slot) => slot.active)?.era ??
-		slots.findLast((slot) => slot.id !== null)?.era ??
+		slots.findLast((slot) => slot.id !== null || slot.faceDown)?.era ??
 		null
 	);
 }

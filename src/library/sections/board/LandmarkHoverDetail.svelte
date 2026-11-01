@@ -8,7 +8,7 @@
 <Section
 	name="LandmarkHoverDetail"
 	area="board"
-	description="The shared detail row used in a track-space hover tooltip when an unclaimed landmark is available: its larger artwork, gold fancy-font name and exact capital footprint, vertically centered on one row. Once claimed, the parent tooltip omits the detail.">
+	description="The shared detail row used in track-space and technology-card hover tooltips when a landmark is available: larger artwork on the left, a centered gold fancy-font name, and the exact capital footprint on the right, vertically centered on one row. Once a track landmark is claimed, the parent tooltip omits the detail.">
 	<Example label={'id="lighthouse"'}>
 		<LandmarkHoverDetail id="lighthouse" />
 	</Example>

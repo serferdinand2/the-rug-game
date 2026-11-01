@@ -46,7 +46,10 @@
 				src={artUrl(`tech/${card.art}`)}
 				alt="" />
 			<div class="rg-tech-layout--effects">
-				<div class="rg-tech-layout--effect">
+				<div
+					class="rg-tech-layout--effect"
+					title={card.landmark ? card.square : undefined}
+					data-landmark={card.landmark}>
 					<span
 						class="rg-tech-layout--shape rg-tech-layout--shape-square"
 						aria-label="Square benefit"></span>
@@ -67,9 +70,20 @@
 			</div>
 		</div>
 		<div class="rg-tech-layout--conditions">
-			<span class="rg-tech-layout--condition">
+			<span
+				class="rg-tech-layout--condition"
+				class:rg-tech-layout--condition-innovation-market={card.innovationRow ===
+					'market'}
+				class:rg-tech-layout--condition-innovation-house={card.innovationRow ===
+					'house'}
+				class:rg-tech-layout--condition-innovation-farm={card.innovationRow ===
+					'farm'}
+				class:rg-tech-layout--condition-innovation-armory={card.innovationRow ===
+					'armory'}>
 				{#if card.innovation}
-					<b>{card.innovation} uncovered</b>
+					<b class="rg-tech-layout--innovation-name"
+						>{card.innovation}</b>
+					<b>uncovered</b>
 				{:else if card.track}
 					<img
 						src={artUrl(`track/${card.track}`)}

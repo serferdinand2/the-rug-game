@@ -35,6 +35,7 @@
 	import { untrack } from 'svelte';
 	import Die from './Die.svelte';
 	import TapestryCard from '../player/TapestryCard.svelte';
+	import TapestryCardBack from '../player/TapestryCardBack.svelte';
 	import TechnologyCard from '../player/TechnologyCard.svelte';
 	import TerritoryTile from '../player/TerritoryTile.svelte';
 	import { ComponentEvent } from '../../component-event.js';
@@ -224,13 +225,7 @@
 				{#if picture.card}
 					<TapestryCard id={picture.card} />
 				{:else}
-					<div class="rg-player-action--back">
-						<img
-							src={artUrl('symbol/tapestry-card')}
-							alt="" />
-						<b>Tapestry</b>
-						<span>Face down</span>
-					</div>
+					<TapestryCardBack class="rg-player-action--back" />
 				{/if}
 			</div>
 		{:else if item.kind === 'advance'}
@@ -512,44 +507,6 @@
 
 	.rg-player-action--hint {
 		font-size: var(--font-size-xs);
-	}
-
-	/* A face-down card: its back, in the cards' own colours, saying so. */
-	.rg-player-action--back {
-		display: grid;
-		place-items: center;
-		align-content: center;
-		gap: var(--space-8);
-		width: 319px;
-		height: 560px;
-		border: 6px solid var(--card-band-start);
-		background: linear-gradient(
-			160deg,
-			var(--card-path),
-			var(--card-band-start)
-		);
-		box-shadow:
-			inset 0 0 0 2px var(--card-line),
-			0 12px 18px var(--card-shadow-strong);
-		color: var(--card-paper);
-		text-align: center;
-	}
-
-	.rg-player-action--back img {
-		width: 120px;
-		height: 120px;
-		image-rendering: pixelated;
-	}
-
-	.rg-player-action--back b {
-		font-family: var(--font-title);
-		font-size: var(--font-size-2xl);
-		letter-spacing: var(--letter-spacing-title);
-	}
-
-	.rg-player-action--back span {
-		color: var(--card-ink);
-		font-size: var(--font-size-sm);
 	}
 
 	.rg-player-action--tag {

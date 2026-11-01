@@ -19,6 +19,9 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
+	import { CARD_SIZES } from '../../cards/card-sizes.js';
+	import ScaledCard from './ScaledCard.svelte';
+	import TapestryCardBack from './TapestryCardBack.svelte';
 
 	/** @type {EraSlotsProps} */
 	let {
@@ -49,7 +52,7 @@
 	{...attr}
 	class="rg-era-slots {attr.class ? attr.class : ''}">
 	{#each slots as slot (slot.era)}
-		{#if slot.era === 1 && slot.id === null}
+		{#if slot.era === 1 && slot.card === 'Maker of Fire'}
 			<div class="rg-era-slots--slot rg-era-slots--printed">
 				<b>{slot.heading}</b>
 				<span>{slot.text}</span>
@@ -58,13 +61,21 @@
 			<button
 				type="button"
 				class="rg-era-slots--slot"
-				class:rg-era-slots--card={slot.card !== null}
+				class:rg-era-slots--card={slot.card !== null || slot.faceDown}
 				data-active={slot.active}
 				aria-pressed={selected === slot.era}
-				disabled={slot.card === null}
+				disabled={slot.card === null && !slot.faceDown}
 				onclick={(event) => slotClickHandler(event, slot.era)}>
 				<b>{slot.heading}</b>
-				<span>{slot.text}</span>
+				{#if slot.faceDown}
+					<ScaledCard
+						scale={0.08}
+						{...CARD_SIZES.tapestry}>
+						<TapestryCardBack />
+					</ScaledCard>
+				{:else}
+					<span>{slot.text}</span>
+				{/if}
 			</button>
 		{/if}
 	{/each}

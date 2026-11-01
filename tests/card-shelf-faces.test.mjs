@@ -135,7 +135,7 @@ test("shelfCards draws the top of the tech deck with the deck's count", () => {
 test('TechDeckBack draws the deck as a card or a chip', () => {
 	const card = render(TechDeckBack, { props: { count: 21 } }).body;
 	assert.match(card, /class="rg-tech-deck-back rg-tech-deck-back--card/);
-	assert.match(card, /<b>Deck · 21<\/b>/);
+	assert.match(card, /<b[^>]*>Deck · 21<\/b>/);
 	const chip = render(TechDeckBack, {
 		props: { count: 3, size: 'chip', class: 'extra' },
 	}).body;

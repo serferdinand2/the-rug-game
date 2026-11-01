@@ -84,6 +84,7 @@ export const GROUPS = Object.freeze(
 		{ id: 'terrain', label: 'Terrain hex markers', kind: 'icon', issue: 5 },
 		{ id: 'track', label: 'Track symbols', kind: 'icon', issue: 5 },
 		{ id: 'symbol', label: 'Game symbols', kind: 'icon', issue: 5 },
+		{ id: 'card-back', label: 'Card backs', kind: 'icon', issue: 156 },
 		{ id: 'board', label: 'Boards', kind: 'board', issue: 6 },
 		{ id: 'hex', label: 'Map hexes', kind: 'board', issue: 6 },
 		{
@@ -694,6 +695,12 @@ const LISTS = {
 			['explore-space', 'Explore space'],
 			['invent', 'Invent'],
 			['science-die', 'Science die'],
+		],
+	},
+	'card-back': {
+		base: [
+			['tapestry', 'Tapestry card back'],
+			['tech', 'Tech card back'],
 		],
 	},
 	board: {
