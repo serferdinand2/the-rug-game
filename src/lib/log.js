@@ -603,6 +603,13 @@ const WORDS = {
 	},
 	responseDeclined: (e, game, name) =>
 		`${name} did not respond to the conquest of ${hexName(e.hex)}.`,
+	// Plans & Ploys' response cards (#33).
+	retreated: (e, game, name) =>
+		`${name} retreated their outpost from ${hexName(e.hex)} to ${hexName(e.to)}.`,
+	surprisePartyThrown: (e, game, name) =>
+		`${name}'s Surprise Party toppled ${seatName(game, e.attacker)}'s outpost on ${hexName(e.hex)}.`,
+	surrenderRolled: (e, game, name) =>
+		`${name} surrendered and rolled the conquer dice: red ${faceWords(isCount(e.red) ? RED_DIE[e.red] : undefined)}, black ${faceWords(isCount(e.black) ? BLACK_DIE[e.black] : undefined)}.`,
 	conquered: (e, game, name) =>
 		e.trapped === true
 			? `${name}'s conquest of ${hexName(e.hex)} failed.`

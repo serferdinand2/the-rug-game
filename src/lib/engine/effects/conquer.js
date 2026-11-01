@@ -9,10 +9,12 @@ import { MAPS } from '../data/maps.js';
 import { conquerTargets, loneOpponent } from '../map.js';
 import { takeOutpost } from '../outposts.js';
 import { isolationistsOffer } from '../civs/isolationists.js';
+import { diceOp } from '../responses.js';
 
 /**
  * Conquers a hex: an outpost goes on it, and an opponent's lone outpost or Nomads piece topples. The dice follow (a defender who qualifies is asked for a response between the two).
- * Against an opponent, Pillage and Plunder asks no response and gives both dice (design §8).
+ * Against an opponent, Pillage and Plunder gives both dice and stops traps (design §8); with Plans & Ploys its defender
+ * is still asked, as the expansion's other response cards may answer it (03 §1.2, #33).
  * On a territory that held no item, the Isolationists may put a token beside the outpost before the dice (#20 design §7).
  * The `outpostTaken` triggers wait below the conquest, so they come after it.
  * @param {import('../state.js').Context} ctx
@@ -45,18 +47,26 @@ export function conquerHex(ctx, player, hex, bothDice) {
 			by: player,
 		});
 	}
-	const dice = { player, kind: 'conquerDice', hex, both };
-	if (opponent !== null && !plunder && asksResponse(state, opponent)) {
-		// The question goes on top of the dice, which wait for the answer. It is asked whatever the defender holds, so
-		// the table learns nothing about their hand.
+	if (
+		opponent !== null &&
+		(!plunder || state.expansions.includes('pp')) &&
+		asksResponse(state, opponent)
+	) {
+		// The question holds the dice and pushes them once answered, so a response can act first (#33). It is asked
+		// whatever the defender holds, so the table learns nothing about their hand.
 		ctx.push([
-			{ player: opponent, kind: 'chooseResponse', attacker: player, hex },
-			dice,
+			{
+				player: opponent,
+				kind: 'chooseResponse',
+				attacker: player,
+				hex,
+				both,
+			},
 		]);
 		return;
 	}
 	// A territory with no item has no defender, so the Isolationists' offer only ever comes here.
-	ctx.push([...token, dice]);
+	ctx.push([...token, diceOp(player, hex, both)]);
 }
 
 /**
@@ -73,18 +83,6 @@ function asksResponse(state, defender) {
 	const seat = playerSeat(state, defender);
 	return (
 		seat.hand.length > 0 && (!seat.finished || state.version === 'original')
-	);
-}
-
-/**
- * The response cards in a player's hand, in hand order. In the base game these are the traps.
- * @param {import('../state.js').State} state
- * @param {number} defender
- * @returns {string[]}
- */
-export function responseCards(state, defender) {
-	return playerSeat(state, defender).hand.filter((card) =>
-		card.startsWith('trap-')
 	);
 }
 
@@ -124,6 +122,7 @@ export function conquer(ctx, player, value) {
 /**
  * The automatic operation after a conquest: roll both dice, then give both faces (black first) or let the player pick one (01 §7.3).
  * The dice always roll, even after a trap. Pirate Rule then gives the tile's benefit, also after a trap (design §8).
+ * After a Surrender (`op.surrender`, the defender), the defender's own roll follows the attacker's (#33).
  * The conquest is over, so the `countsChanged` triggers follow, once (#20 design §7, Mystics).
  * @type {import('../state.js').AutomaticKind}
  */
@@ -157,6 +156,11 @@ export function conquerDice(ctx, op) {
 	const black = ctx.random(6);
 	emit(ctx.state, { type: 'conquerDiceRolled', player, red, black });
 	/** @type {import('../state.js').NewOperation[]} */
+	/** @type {import('../state.js').NewOperation[]} */
+	const surrender =
+		typeof op.surrender === 'number'
+			? [{ player: op.surrender, kind: 'surrenderDice', hex }]
+			: [];
 	const pirate = hasEra(ctx.state, player, 'pirate-rule')
 		? [
 				{
@@ -184,6 +188,7 @@ export function conquerDice(ctx, op) {
 			},
 			...pirate,
 			...counts,
+			...surrender,
 		]);
 		return;
 	}
@@ -191,6 +196,7 @@ export function conquerDice(ctx, op) {
 		{ player, kind: 'chooseDie', hex, red, black },
 		...pirate,
 		...counts,
+		...surrender,
 	]);
 }
 

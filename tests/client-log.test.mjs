@@ -162,6 +162,9 @@ const SAMPLES = {
 	resourcesPaid: { player: 1, paid: { food: 1 } },
 	responseDeclined: { player: 2, hex: '-1_-2' },
 	responsePlayed: { player: 2, hex: '1_2', card: 'trap-7', attacker: 1 },
+	retreated: { player: 2, hex: '1_2', to: '0_2' },
+	surprisePartyThrown: { player: 2, attacker: 1, hex: '1_2' },
+	surrenderRolled: { player: 2, red: 0, black: 3 },
 	scienceDieRolled: { player: 1, track: 'technology' },
 	setupDone: {},
 	setupRevealed: {

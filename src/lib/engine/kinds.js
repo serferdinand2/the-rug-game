@@ -60,6 +60,7 @@ import { chooseProphecy } from './decisions/choose-prophecy.js';
 import { chooseSwap } from './decisions/choose-swap.js';
 import { leadersAdvance } from './civs/leaders.js';
 import { merrymakersMove } from './civs/merrymakers.js';
+import { retreatTo, surrenderDice } from './responses.js';
 import {
 	cartographyCheck,
 	manifestDestinyBenefit,
@@ -170,4 +171,6 @@ export const AUTOMATIC = {
 	manifestDestinyBenefit,
 	territoryBenefit,
 	statusQuoBonus,
+	retreatTo,
+	surrenderDice,
 };

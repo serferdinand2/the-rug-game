@@ -264,6 +264,9 @@ const TITLES = {
 		if (d.purpose === 'manifestDestiny') {
 			return 'Gain the benefit of a territory tile you control?';
 		}
+		if (d.purpose === 'retreat') {
+			return 'Where does your outpost retreat to?';
+		}
 		const words = ['colonialism', 'revolution'].includes(d.purpose)
 			? `Choose a territory for ${titleOf(d.purpose)}`
 			: 'Choose a territory';
