@@ -48,7 +48,7 @@ Each card's effect is 03 §1.4's, with every number exact. Engine notes:
 | Entertain the Masses | WHEN PLAYED | Gain the Stadium (`XXXX/XXXX`, `{ card }`) and place it, as #32 does the Monolith. It joins `EXPANSION_LANDMARKS`; a copy (Espionage, Heralds) finds none left and gains nothing. |
 | Manifest Destiny | WHEN PLAYED | Conquer a territory adjacent to the player's capital-city territory (the starting hex); then they may gain the benefit of any territory tile they control. |
 | Public Works | THIS ERA | `advanced` hook: if, after the move, that track is the player's least advanced (ties count), gain 3 VP. |
-| Status Quo | WHEN PLAYED | Choose up to 4 of the player's track tokens, each in a different tier (I–IV); gain each one's current space's bonus, free. |
+| Status Quo | WHEN PLAYED | Choose up to 4 of the player's track tokens, each in a different tier (I–IV); gain each one's current space's bonus, free. Every tier with a bonus is taken, asking only between tracks in the same tier, since a free bonus never hurts **(my call)**. |
 | World's Fair | WHEN PLAYED | Gain 1 culture; then any 1 resource if the capital has at least one complete row or column; then 1 VP per complete district. |
 | Double Cross, Retreat, Stolen Plans, Surprise Party, Surrender | WHEN PLAYED (as a tapestry) | The "as a tapestry" line: Double Cross 9 VP and 1 territory tile; Retreat 9 VP and 1 tapestry card (R45); Stolen Plans 8 VP and invent 1 tech card; Surprise Party 10 VP **or** 1 armory (a choice); Surrender 7 VP and any 1 resource. |
 
@@ -68,10 +68,13 @@ One response per defender per conquest; the question stays one decision, as toda
 
 ### 6.2 The attacker's counter
 
-A new decision, `chooseCounter`, follows a sprung **Trap** only, before the dice:
-- **Double Cross:** the trap is cancelled: the attacker's outpost stands up again and the defender's topples, as the conquest left them; the attacker gains 5 VP.
+A new decision, `chooseCounter`, follows a played **Trap** only, before the trap takes effect and before the dice:
+- **Double Cross:** the trap is cancelled: it has no effect, so the outposts stay as the conquest left them (the attacker's upright, the defender's toppled); the attacker gains 5 VP. The trap is still discarded.
 - **Stolen Plans:** as Double Cross, and the attacker takes a random tapestry card from the defender's hand. The trap and the stolen card both leave the defender.
-- Nothing answers a counter. The trap's own resource (R21) is still gained **(my call: the trap was played)**.
+- Declined: the trap takes effect as today (R21's resource, the outposts swapped).
+- Nothing answers a counter. A cancelled trap gives the trapper nothing, not even R21's resource **(my call: "cancel" means the card does nothing)**.
+
+So the response question carries the conquest's dice and pushes them itself once answered (`push` puts its first operation on top): a decline or a trap pushes its effects, then the dice; a Trap pushes `chooseCounter` with the dice, which pushes them once answered; Surrender's roll is pushed after the attacker's dice, so it comes "after they roll".
 
 Privacy follows #17: the attacker is asked whenever they hold any card; with nothing playable they are declined after the random wait, so `declineOnly` covers `chooseCounter` too. In hot-seat play the attacker answers on their own screen.
 
