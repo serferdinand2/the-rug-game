@@ -12,6 +12,7 @@
 	 * @property {string[]} [labels] - Each card's name for assistive technology, by index
 	 * @property {'hand' | 'shelf'} [look='hand'] - 'hand': the hovered card rises and the chosen one has the focus outline; 'shelf': as a decision's card shelf, the hovered and chosen cards are outlined in gold, the chosen one glows and lifts, and a disabled one is faded
 	 * @property {boolean} [lift=true] - In the shelf look, whether the chosen card lifts; whole cards such as civilizations stay where they stand, so the outline fits them
+	 * @property {boolean} [interactive=true] - Whether cards are buttons that can be hovered, focused or selected; false draws a presentation-only fan
 	 * @property {string} [label='Cards'] - Names the list for assistive technology
 	 * @property {Function} [onCardFanInspect] - Callback fired with { index, item } on hover or focus, and { index: null, item: null } on leave
 	 * @property {Function} [onCardFanSelect] - Callback fired with { index } when a card is clicked or chosen with Enter
@@ -42,6 +43,7 @@
 		labels,
 		look = 'hand',
 		lift = true,
+		interactive = true,
 		label = 'Cards',
 		onCardFanInspect,
 		onCardFanSelect,
@@ -109,23 +111,34 @@
 	aria-label={label}
 	{...attr}
 	class="rg-card-fan rg-card-fan--{look} {attr.class ?? ''}"
+	class:rg-card-fan--static={!interactive}
 	class:rg-card-fan--flat={!lift}>
 	{#each items as item, index (key ? key(item, index) : index)}
-		<button
-			type="button"
-			class="rg-card-fan--card"
-			class:rg-card-fan--selected={chosen(index)}
-			style:margin-left={index === 0 ? '0' : `${-overlap}px`}
-			aria-pressed={selected === null ? undefined : chosen(index)}
-			aria-label={labels?.[index]}
-			disabled={disabled.includes(index)}
-			onmouseenter={(event) => cardEnterHandler(event, index)}
-			onmouseleave={cardLeaveHandler}
-			onfocus={(event) => cardEnterHandler(event, index)}
-			onblur={cardLeaveHandler}
-			onclick={(event) => cardClickHandler(event, index)}>
-			{@render card(item, index)}
-		</button>
+		{#if interactive}
+			<button
+				type="button"
+				class="rg-card-fan--card"
+				class:rg-card-fan--selected={chosen(index)}
+				style:margin-left={index === 0 ? '0' : `${-overlap}px`}
+				aria-pressed={selected === null ? undefined : chosen(index)}
+				aria-label={labels?.[index]}
+				disabled={disabled.includes(index)}
+				onmouseenter={(event) => cardEnterHandler(event, index)}
+				onmouseleave={cardLeaveHandler}
+				onfocus={(event) => cardEnterHandler(event, index)}
+				onblur={cardLeaveHandler}
+				onclick={(event) => cardClickHandler(event, index)}>
+				{@render card(item, index)}
+			</button>
+		{:else}
+			<div
+				role="img"
+				class="rg-card-fan--card"
+				style:margin-left={index === 0 ? '0' : `${-overlap}px`}
+				aria-label={labels?.[index]}>
+				{@render card(item, index)}
+			</div>
+		{/if}
 	{/each}
 </div>
 
@@ -165,10 +178,16 @@
 	}
 
 	/* Raised cards sit on top without shifting their neighbours. */
-	.rg-card-fan--hand .rg-card-fan--card:hover,
-	.rg-card-fan--hand .rg-card-fan--card:focus-visible {
+	.rg-card-fan--hand:not(.rg-card-fan--static) .rg-card-fan--card:hover,
+	.rg-card-fan--hand:not(.rg-card-fan--static)
+		.rg-card-fan--card:focus-visible {
 		z-index: var(--layer-bar);
 		transform: translateY(calc(-1 * var(--space-4)));
+	}
+
+	.rg-card-fan--static .rg-card-fan--card {
+		cursor: default;
+		box-shadow: var(--shadow-card);
 	}
 
 	.rg-card-fan--hand .rg-card-fan--card:focus-visible {

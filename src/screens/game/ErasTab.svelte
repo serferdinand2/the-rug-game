@@ -26,13 +26,14 @@
 	import EraSlots from '../../lib/components/player/EraSlots.svelte';
 	import ScaledCard from '../../lib/components/player/ScaledCard.svelte';
 	import TapestryCard from '../../lib/components/player/TapestryCard.svelte';
+	import TapestryCardBack from '../../lib/components/player/TapestryCardBack.svelte';
 
 	/** @type {ErasTabProps} */
 	let { title, slots, selected = $bindable(null), ...attr } = $props();
 
 	let shownEra = $derived(selected ?? defaultEra(slots));
-	let card = $derived(
-		slots.find((slot) => slot.era === shownEra)?.id ?? null
+	let selectedSlot = $derived(
+		slots.find((slot) => slot.era === shownEra) ?? null
 	);
 </script>
 
@@ -40,12 +41,20 @@
 	{...attr}
 	class="rg-eras-tab {attr.class ? attr.class : ''}">
 	<h2 class="rg-player-tabs--title">{title}</h2>
-	{#if card}
+	{#if selectedSlot?.id}
 		<div class="rg-player-tabs--era-card">
 			<ScaledCard
 				scale={0.6}
 				{...CARD_SIZES.tapestry}>
-				<TapestryCard data={tapestryCardData(card)} />
+				<TapestryCard data={tapestryCardData(selectedSlot.id)} />
+			</ScaledCard>
+		</div>
+	{:else if selectedSlot?.faceDown}
+		<div class="rg-player-tabs--era-card">
+			<ScaledCard
+				scale={0.6}
+				{...CARD_SIZES.tapestry}>
+				<TapestryCardBack />
 			</ScaledCard>
 		</div>
 	{/if}

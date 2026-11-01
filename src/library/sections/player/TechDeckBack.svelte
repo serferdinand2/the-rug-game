@@ -10,11 +10,21 @@
 <Section
 	name="TechDeckBack"
 	area="player"
-	description="The top of the tech deck, offered beside the face-up tech cards: 'Deck · N' in gold on the card band's colour. As a card it fills a tech card's frame, scaled with it; as a chip it sits beside an option's words, as PromptArt draws it (#118).">
+	description="The top of the tech deck, offered beside the face-up tech cards: its full landscape back enlarges the approved tech-card symbol's stepped brown-and-green weave, with 'Deck · N' retained for the remaining count. As a card it fills the 425×298 tech frame, scaled with it; as a chip it stays a compact label beside an option's words (#118).">
 	<Example
-		label={'count={21}  (in a ScaledCard at 0.65 with CARD_SIZES.tech · the shelf)'}
+		label={'count={21} · full card size 425×298'}
 		surface="ink"
-		width={277}>
+		width={425}>
+		<ScaledCard
+			scale={1}
+			{...CARD_SIZES.tech}>
+			<TechDeckBack count={21} />
+		</ScaledCard>
+	</Example>
+	<Example
+		label={'count={21} · shelf scale 0.65'}
+		surface="ink"
+		width={276}>
 		<ScaledCard
 			scale={0.65}
 			{...CARD_SIZES.tech}>

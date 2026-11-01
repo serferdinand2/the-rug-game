@@ -139,10 +139,12 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		await expect(inspecting).toBeVisible();
 		await expect(page.locator('.rg-players-overview')).toHaveCount(0);
 		await expect(tabs.getByText(`Viewing ${name}'s area`)).toBeVisible();
-		const border = await inspecting.locator('xpath=..').evaluate((element) => {
-			const frame = getComputedStyle(element, '::after');
-			return frame.boxShadow;
-		});
+		const border = await inspecting
+			.locator('xpath=..')
+			.evaluate((element) => {
+				const frame = getComputedStyle(element, '::after');
+				return frame.boxShadow;
+			});
 		expect(border).not.toBe('none');
 		expect(border).toMatch(/rgba?\(/);
 
@@ -161,15 +163,12 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		// The summary at the foot is theirs and keeps their own resources (#157); the shared parent frame covers it.
 		await expect(counts).toHaveText(amounts(theirs.game.seats[other - 1]));
 
-		// Their hand is a count, with no card face.
+		// Their hand shows only card backs: count and card identities stay private.
 		await tabs.getByRole('tab', { name: /^Hand/ }).click();
 		await expect(
-			tabs.getByText(
-				held === 0
-					? `${name} holds no tapestry cards.`
-					: new RegExp(`${name} holds ${held} tapestry cards?\\.`)
-			)
+			tabs.getByRole('heading', { name: `${name}'s hand` })
 		).toBeVisible();
+		await expect(tabs.locator('.rg-tapestry-card-back')).toHaveCount(held);
 		await expect(tabs.locator('.rg-tapestry-card')).toHaveCount(0);
 
 		// Their eras and terrain, read-only: no tile can be pressed.
@@ -177,6 +176,14 @@ test("a chip shows that player's tabs, read-only with their hand hidden, and eve
 		await expect(
 			tabs.getByRole('heading', { name: `${name}'s eras` })
 		).toBeVisible();
+		const eraStacks = opponent.incomeMat.tapestry;
+		const hiddenSlots = eraStacks.filter(
+			(stack) => stack.at(-1) === null
+		).length;
+		const latestStack = eraStacks.findLast((stack) => stack.length > 0);
+		await expect(tabs.locator('.rg-tapestry-card-back')).toHaveCount(
+			hiddenSlots + (latestStack?.at(-1) === null ? 1 : 0)
+		);
 		await tabs.getByRole('tab', { name: 'Terrain' }).click();
 		await expect(tabs.locator('[data-id^="terrain-tile-"]')).toHaveCount(0);
 

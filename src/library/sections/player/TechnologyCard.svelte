@@ -9,7 +9,7 @@
 <Section
 	name="TechnologyCard"
 	area="player"
-	description="425 px horizontal technology cards with square and circle benefits, full artwork and prerequisites, each a real card from the engine's data: one per track and tier, and the income-mat innovations.">
+	description="425 px horizontal technology cards with square and circle benefits, full artwork and prerequisites, each a real card from the engine's data. All six landmark-granting innovation cards are included so their square-benefit landmark hover details can be checked here.">
 	<Example
 		label="data=techCardData('clocks') · Technology 2"
 		width={425}>
@@ -41,9 +41,29 @@
 		<TechnologyCard data={techCardData('bakery')} />
 	</Example>
 	<Example
+		label="data=techCardData('barn') · the Breeding innovation"
+		width={425}>
+		<TechnologyCard data={techCardData('barn')} />
+	</Example>
+	<Example
+		label="data=techCardData('com-tower') · the Telephone innovation"
+		width={425}>
+		<TechnologyCard data={techCardData('com-tower')} />
+	</Example>
+	<Example
+		label="data=techCardData('library') · the Writing innovation"
+		width={425}>
+		<TechnologyCard data={techCardData('library')} />
+	</Example>
+	<Example
 		label="data=techCardData('stock-market') · the Banking innovation"
 		width={425}>
 		<TechnologyCard data={techCardData('stock-market')} />
+	</Example>
+	<Example
+		label="data=techCardData('treasury') · the Currency innovation"
+		width={425}>
+		<TechnologyCard data={techCardData('treasury')} />
 	</Example>
 	<Example
 		label="data=techCardData('sewage-plumbing') · escaped title"

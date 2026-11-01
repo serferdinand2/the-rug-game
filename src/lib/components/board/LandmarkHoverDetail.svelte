@@ -1,4 +1,4 @@
-<!-- A track reward's name and printed capital footprint, beside its shared track tooltip. -->
+<!-- A landmark's name and printed capital footprint, beside its shared game tooltip. -->
 <script module>
 	/**
 	 * @typedef {Object} LandmarkHoverDetailOwnProps
@@ -17,9 +17,7 @@
 	/** @type {LandmarkHoverDetailProps} */
 	let { id, ...attr } = $props();
 
-	const landmark = $derived(
-		LANDMARKS.find((item) => item.id === id && 'track' in item.source)
-	);
+	const landmark = $derived(LANDMARKS.find((item) => item.id === id));
 </script>
 
 {#if landmark}
@@ -52,9 +50,9 @@
 
 <style>
 	.rg-landmark-hover-detail {
-		display: flex;
+		display: grid;
+		grid-template-columns: 44px minmax(0, 1fr) auto;
 		align-items: center;
-		justify-content: space-between;
 		gap: var(--space-4);
 		margin-top: var(--space-3);
 		padding-top: var(--space-3);
@@ -74,6 +72,7 @@
 		color: var(--gold);
 		font: var(--weight-title) var(--font-size-sm) / var(--leading-tight)
 			var(--font-title);
+		text-align: center;
 	}
 
 	.rg-landmark-hover-detail--footprint {

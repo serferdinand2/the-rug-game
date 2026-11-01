@@ -119,7 +119,7 @@ function tabs(props) {
 	return render(PlayerTabs, { props: { code: 'ABCD', ...props } }).body;
 }
 
-test("another player's Hand tab draws a count and no card (#145)", () => {
+test("another player's Hand tab draws card backs without revealing faces (#156)", () => {
 	const state = dealt();
 	const game = view(state, 1);
 	// Even a view that leaked their hand draws none of it.
@@ -127,8 +127,11 @@ test("another player's Hand tab draws a count and no card (#145)", () => {
 	const html = tabs({ game, seat: 2, viewer: 1, tab: 'hand' });
 	assert.ok(!html.includes(tapestryName('capitalism')));
 	assert.ok(!html.includes(tapestryName('empiricism')));
-	assert.ok(!html.includes('rg-tapestry-card'));
-	assert.match(html, /holds 2 tapestry cards/);
+	assert.equal(
+		(html.match(/class="rg-tapestry-card-back(?:\s|")/g) ?? []).length,
+		2
+	);
+	assert.match(html, /Bo's hand, card 1/);
 	assert.match(html, /rg-player-tabs--inspecting/);
 	assert.match(html, /Back to your area/);
 });
@@ -138,7 +141,9 @@ test("another player's Eras tab draws their face-up card, and the face-down one 
 	const html = tabs({ game, seat: 2, viewer: 1, tab: 'eras' });
 	assert.ok(html.includes(tapestryName('academia')));
 	assert.ok(!html.includes(tapestryName('alliance')));
-	assert.match(html, /Face-down card/);
+	assert.match(html, /rg-tapestry-card-back/);
+	assert.match(html, /Face down/);
+	assert.doesNotMatch(html, /Face-down card/);
 });
 
 test("another player's Terrain tab draws the tiles they hold, none of them pickable (#143)", () => {
