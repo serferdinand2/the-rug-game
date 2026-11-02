@@ -294,6 +294,76 @@ test("the Spies' look shows a neighbour's hand to the Spies alone, in its own ev
 	);
 });
 
+test('a card the Advisors give shows to them and to the neighbour who gets it alone, and the checker catches it anywhere else (#33)', () => {
+	const { state, random } = startedGame(3);
+	const dealt = resolveEffects(state, 2, [{ gain: { tapestry: 1 } }], random);
+	const facts = setupFacts(newGame(3).state);
+	const [card] = playerSeat(dealt, 2).hand;
+	/**
+	 * The state after seat 1 gave seat `to` the cards `secret`, which seat `to` now holds.
+	 * @param {string[]} [secret]
+	 * @param {any} [base]
+	 * @param {number} [to]
+	 */
+	const giving = (secret = [card], base = dealt, to = 2) => {
+		const next = structuredClone(base);
+		next.seq += 1;
+		next.events.push({
+			seq: next.seq,
+			type: 'tapestryGiven',
+			player: 1,
+			to,
+			secret: { cards: secret },
+		});
+		return next;
+	};
+	const given = giving();
+	checkViews(given, facts, { before: dealt });
+	const secretOf = (/** @type {number | null} */ seat) =>
+		/** @type {any} */ (view(given, seat)).events.at(-1).secret;
+	assert.deepEqual(secretOf(1), { cards: [card] });
+	assert.deepEqual(secretOf(2), { cards: [card] });
+	assert.deepEqual([secretOf(3), secretOf(null)], [undefined, undefined]);
+	// The gift excuses the card now in that neighbour's hand alone: a deck card in its secret is a leak.
+	const deckCard = /** @type {string} */ (dealt.supply.tapestry.deck[0]);
+	assert.throws(
+		() => checkViews(giving([card, deckCard]), facts, { before: dealt }),
+		/deck card .* shown to 1/
+	);
+	// A gift to a seat that is no neighbour fails.
+	const four = startedGame(4);
+	const across = resolveEffects(
+		four.state,
+		3,
+		[{ gain: { tapestry: 1 } }],
+		four.random
+	);
+	assert.throws(
+		() =>
+			checkViews(
+				giving(playerSeat(across, 3).hand, across, 3),
+				setupFacts(newGame(4).state),
+				{ before: across }
+			),
+		/no neighbour/
+	);
+	// And only to those two: the gift shown to the third seat is a leak.
+	assert.throws(
+		() =>
+			checkViews(given, facts, {
+				before: dealt,
+				viewOf: (s, seat) => {
+					const v = view(s, seat);
+					if (seat === 3) {
+						v.events = s.events;
+					}
+					return v;
+				},
+			}),
+		/shown to 3|shown to a stranger/
+	);
+});
+
 test('the view checker catches an open decision without answers', () => {
 	const { state } = startedGame(2);
 	const facts = setupFacts(newGame(2).state);

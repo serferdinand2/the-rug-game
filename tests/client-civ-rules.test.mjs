@@ -36,6 +36,11 @@ import {
 	INFILTRATORS_CULTURE,
 	INFILTRATORS_DRAW,
 } from '../src/lib/engine/civs/infiltrators.js';
+import {
+	ADVISORS_CARDS,
+	ADVISORS_GIFT_VP,
+	ADVISORS_HAND,
+} from '../src/lib/engine/civs/advisors.js';
 import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 
@@ -623,4 +628,33 @@ test('the Infiltrators read as the engine plays them, and the current rules with
 		'Current rules: if you start the game with the Infiltrators, you don’t gain that culture.',
 	]);
 	assert.equal(CIVS.infiltrators.adjustment, undefined);
+});
+
+test('the Advisors read as the engine plays them, the same in both versions (03 §1.3, §1.8, R113)', () => {
+	const text = /** @type {string} */ (civAbilityText('advisors', 'original'));
+	assert.equal(civAbilityText('advisors', 'current'), text);
+	assertInOrder(
+		text,
+		'When you start',
+		[
+			'or gain them later',
+			`draw ${ADVISORS_CARDS} tapestry cards`,
+			'later in the game',
+			`any of those ${ADVISORS_CARDS} cards`,
+			'neighbours',
+			`${ADVISORS_GIFT_VP} VP for each card`,
+			'income turns 2 to 5',
+			'1 VP for each tapestry card in your hand',
+			`more than ${ADVISORS_HAND}`,
+			`down to ${ADVISORS_HAND}`,
+			'1 resource of your choice',
+			'neighbour’s advance turn',
+			'would draw a tapestry card',
+			'instead',
+			'then draw 1 tapestry card',
+			'not on an income turn',
+			'finished',
+		],
+		'Advisors'
+	);
 });

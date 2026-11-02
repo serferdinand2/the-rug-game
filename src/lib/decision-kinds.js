@@ -78,6 +78,8 @@ export const DECISION_KINDS = Object.freeze({
 	chooseSpace: { art: 'track' },
 	chooseHex: {},
 	chooseGift: { tab: 'terrain', art: 'gift' },
+	// The Advisors' gift from their hand (#33), often asked on another player's turn, as a response is.
+	chooseGive: { shelf: 'tapestry', confirm: 'Give card' },
 	choosePartner: { art: 'track' },
 	chooseCopy: { shelf: 'tapestry', tab: 'eras' },
 	chooseConversion: { art: 'resources' },

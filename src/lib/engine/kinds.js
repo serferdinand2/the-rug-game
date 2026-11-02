@@ -37,6 +37,7 @@ import { chooseRoll } from './decisions/choose-roll.js';
 import { chooseSpace } from './decisions/choose-space.js';
 import { chooseHex } from './decisions/choose-hex.js';
 import { chooseGift } from './decisions/choose-gift.js';
+import { chooseGive } from './decisions/choose-give.js';
 import { chooseCopy } from './decisions/choose-copy.js';
 import { choosePartner } from './decisions/choose-partner.js';
 import { chooseConversion } from './decisions/choose-conversion.js';
@@ -97,6 +98,7 @@ import {
 	utilitariansLighthouseUsed,
 } from './civs/utilitarians.js';
 import { infiltrate } from './civs/infiltrators.js';
+import { advisorsDraw } from './civs/advisors.js';
 import { heraldsToken } from './civs/heralds.js';
 import { historiansToken, historiansDiscard } from './civs/historians.js';
 import { inventorsToken, inventorsTake } from './civs/inventors.js';
@@ -140,6 +142,7 @@ export const DECISIONS = {
 	chooseSpace,
 	chooseHex,
 	chooseGift,
+	chooseGive,
 	choosePartner,
 	chooseCopy,
 	chooseConversion,
@@ -205,6 +208,7 @@ export const AUTOMATIC = {
 	utilitariansLighthouse,
 	utilitariansLighthouseUsed,
 	infiltrate,
+	advisorsDraw,
 	militantsTake,
 	militantsUncover,
 	militantsCover,

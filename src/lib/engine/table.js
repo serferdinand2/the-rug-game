@@ -39,16 +39,19 @@ export function defaultAction(state, seat) {
 	return { decision: decision.id, ...first };
 }
 
+/** The questions asked whenever the seat holds any card, so asking reveals nothing (#17), and the server declines for them when no card can answer: responses to a conquest, counters to a trap and the Advisors' gifts (#33). */
+const DECLINABLE = ['chooseResponse', 'chooseCounter', 'chooseGive'];
+
 /**
- * The open responses to a conquest, and counters to a trap (#33), whose only legal answer is to decline: the seat holds
- * no card that can answer.
+ * The open responses to a conquest, counters to a trap and Advisors' gifts (#33), whose only legal answer is to
+ * decline: the seat holds no card that can answer.
  * @param {State} state
  * @returns {{ decision: number, player: number }[]}
  */
 export function declineOnly(state) {
 	return openDecisions(state)
 		.filter((op) => {
-			if (op.kind !== 'chooseResponse' && op.kind !== 'chooseCounter') {
+			if (!DECLINABLE.includes(op.kind)) {
 				return false;
 			}
 			const answers = DECISIONS[op.kind].answers(state, op);

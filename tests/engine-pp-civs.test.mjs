@@ -9,7 +9,7 @@ import { cityPlots } from '../src/lib/engine/city.js';
 import { groupsOf } from '../src/lib/capital.js';
 import { view, controlledTerritories } from '../src/lib/engine/game.js';
 import { CIVS } from '../src/lib/engine/civs/index.js';
-import { revealed } from '../src/lib/engine/table.js';
+import { declineOnly, revealed } from '../src/lib/engine/table.js';
 import { conquerTargets, loneOpponent } from '../src/lib/engine/map.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { MAPS, hexNeighbours } from '../src/lib/engine/data/maps.js';
@@ -4277,4 +4277,486 @@ test('Infiltrators use their ability in step 1 of income turns 2 to 5', () => {
 		[player, 'infiltrators']
 	);
 	assert.ok(decision.options.includes(other.start));
+});
+
+// The Advisors.
+
+/**
+ * A started game for `count` players in which seat 1 holds the Advisors and each seat holds the hand `hands` gives it,
+ * taken out of the deck so every card stays in one place. Seat `current` is taking the turn `turn` names, an advance
+ * turn by default, with nothing pending.
+ * @param {Record<number, string[]>} [hands]
+ * @param {{ count?: number, current?: number, turn?: 'advance' | 'income' | null }} [options]
+ * @returns {{ state: any, random: any }}
+ */
+function advisorsGame(
+	hands = {},
+	{ count = 2, current = 2, turn = 'advance' } = {}
+) {
+	const { state: started, random } = startedGame(count, PP);
+	const state = /** @type {any} */ (structuredClone(started));
+	state.pending.length = 0;
+	const dealt = Object.values(hands).flat();
+	state.supply.tapestry.deck = [
+		...state.seats.flatMap((/** @type {any} */ seat) => seat.hand),
+		...state.supply.tapestry.deck,
+	].filter((/** @type {string} */ card) => !dealt.includes(card));
+	for (const seat of state.seats) {
+		seat.hand = [...(hands[seat.seat] ?? [])];
+	}
+	state.seats[0].civs = ['advisors'];
+	state.supply.civs = state.supply.civs.filter(
+		(/** @type {string} */ c) => c !== 'advisors'
+	);
+	state.current = current;
+	state.turnKind = turn;
+	return { state, random };
+}
+
+/**
+ * A seat gains tapestry cards, as a track space or a card gives them.
+ * @param {any} state
+ * @param {any} random
+ * @param {number} [player]
+ * @param {number} [count]
+ */
+const draws = (state, random, player = 2, count = 1) =>
+	resolveEffects(state, player, [{ gain: { tapestry: count } }], random);
+
+/** The Advisors' ability on an income turn. */
+const advisorsIncome = (/** @type {number} */ turn) => ({
+	player: 1,
+	kind: 'civIncome',
+	civ: 'advisors',
+	turn,
+	origin: 'civ',
+});
+
+test('Advisors draw 3 tapestry cards when they come in, at setup in both versions or mid-game, and are marked as no solo civilization (03 §1.3, R113)', () => {
+	for (const version of VERSIONS) {
+		const { state } = startedGame(2, {
+			civs: ['advisors', 'leaders'],
+			version,
+			...PP,
+		});
+		const seat = /** @type {any} */ (state.seats[0]);
+		assert.equal(seat.hand.length, 3, version);
+		assert.deepEqual(
+			state.events
+				.filter((e) => e.type === 'cardsDrawn' && e.player === 1)
+				.map((e) => e.secret?.cards),
+			[seat.hand],
+			version
+		);
+		// At setup they give nothing: the turn choice is all that is open.
+		assert.deepEqual(
+			openDecisions(state).map((d) => d.kind),
+			['chooseTurn'],
+			version
+		);
+		checkState(state);
+	}
+	assert.equal(CIVS.advisors.solo, false);
+
+	const { state, random } = game();
+	state.seats[0].civs = ['leaders'];
+	state.supply.civs = [
+		'advisors',
+		...state.supply.civs.filter(
+			(/** @type {string} */ c) => c !== 'advisors'
+		),
+	];
+	const top = state.supply.tapestry.deck.slice(0, 3);
+	const gained = resolveEffects(state, 1, [{ gainCiv: {} }], random);
+	assert.deepEqual(gained.seats[0].civs, ['leaders', 'advisors']);
+	assert.deepEqual(gained.seats[0].hand, top);
+	const gift = /** @type {any} */ (decisionOf(gained, 'chooseGive'));
+	assert.deepEqual(
+		[gift.player, gift.to, gift.after, gift.cards, gift.vp],
+		[1, 2, [], top, 5]
+	);
+});
+
+test('Advisors gained mid-game may give any of the 3 cards they drew to their neighbours, 5 VP for each card given (03 §1.3)', () => {
+	const { state, random } = advisorsGame({ 1: ['academia'] }, { current: 1 });
+	state.seats[0].civs = ['leaders'];
+	state.supply.civs.unshift('advisors');
+	const top = state.supply.tapestry.deck.slice(0, 3);
+	const asked = resolveEffects(state, 1, [{ gainCiv: {} }], random);
+	// The card they held before is not one of the 3.
+	assert.deepEqual(answersOf(asked, 'chooseGive'), [
+		{ card: null },
+		...top.map((/** @type {string} */ card) => ({ card })),
+	]);
+	assert.throws(
+		() => answer(asked, random, 1, 'chooseGive', { card: 'academia' }),
+		{ name: 'PlayerError' }
+	);
+
+	const gave = answer(asked, random, 1, 'chooseGive', { card: top[1] });
+	assert.deepEqual(gave.seats[1].hand, [top[1]]);
+	assert.deepEqual(gave.seats[0].hand, ['academia', top[0], top[2]]);
+	assert.deepEqual(eventsOf(gave, 'tapestryGiven', asked.seq), [
+		{
+			type: 'tapestryGiven',
+			player: 1,
+			to: 2,
+			secret: { cards: [top[1]] },
+		},
+	]);
+	assert.deepEqual(
+		eventsOf(gave, 'vpGained', asked.seq).map((e) => [
+			e.player,
+			e.vp,
+			e.source,
+		]),
+		[[1, 5, 'civ']]
+	);
+	// Giving draws nothing: that is only for a card given instead of a neighbour's draw.
+	assert.deepEqual(eventsOf(gave, 'cardsDrawn', asked.seq), []);
+	// Asked again, with the 2 left.
+	assert.deepEqual(answersOf(gave, 'chooseGive'), [
+		{ card: null },
+		{ card: top[0] },
+		{ card: top[2] },
+	]);
+	const all = answer(gave, random, 1, 'chooseGive', { card: top[2] });
+	const last = answer(all, random, 1, 'chooseGive', { card: top[0] });
+	assert.equal(last.seats[0].vp, state.seats[0].vp + 15);
+	assert.deepEqual(last.seats[0].hand, ['academia']);
+	assert.deepEqual(openDecisions(last), []);
+
+	const kept = answer(gave, random, 1, 'chooseGive', { card: null });
+	assert.deepEqual(openDecisions(kept), []);
+	assert.deepEqual(kept.seats[0].hand, ['academia', top[0], top[2]]);
+});
+
+test('Advisors gained mid-game in a bigger game offer their cards to each neighbour in turn, and the cards stay hidden from the others (03 §1.3)', () => {
+	const { state, random } = advisorsGame({}, { count: 4, current: 1 });
+	state.seats[0].civs = ['leaders'];
+	state.supply.civs.unshift('advisors');
+	const top = state.supply.tapestry.deck.slice(0, 3);
+	const asked = resolveEffects(state, 1, [{ gainCiv: {} }], random);
+	const first = /** @type {any} */ (decisionOf(asked, 'chooseGive'));
+	assert.deepEqual([first.to, first.after], [2, [4]]);
+	for (const seat of [null, 2, 3, 4]) {
+		const op = allOps(view(asked, seat)).find((o) => o.id === first.id);
+		assert.ok(!('cards' in op), `seat ${seat}`);
+	}
+	checkViews(asked, setupFacts(state), { before: state });
+
+	const gave = answer(asked, random, 1, 'chooseGive', { card: top[0] });
+	assert.equal(/** @type {any} */ (decisionOf(gave, 'chooseGive')).to, 2);
+	const next = answer(gave, random, 1, 'chooseGive', { card: null });
+	const second = /** @type {any} */ (decisionOf(next, 'chooseGive'));
+	assert.deepEqual([second.to, second.after], [4, []]);
+	assert.deepEqual(answersOf(next, 'chooseGive'), [
+		{ card: null },
+		{ card: top[1] },
+		{ card: top[2] },
+	]);
+	const done = answer(next, random, 1, 'chooseGive', { card: top[2] });
+	assert.deepEqual(
+		done.seats.map((/** @type {any} */ s) => s.hand),
+		[[top[1]], [top[0]], [], [top[2]]]
+	);
+	const stop = answer(done, random, 1, 'chooseGive', { card: null });
+	assert.deepEqual(openDecisions(stop), []);
+});
+
+test('Advisors gain 1 VP for each tapestry card in hand at the start of income turns 2 to 5, then discard down to 4, and gain 1 resource of their choice if they discarded any (03 §1.3)', () => {
+	const six = [
+		'academia',
+		'alliance',
+		'democracy',
+		'militarism',
+		'socialism',
+		'guilds',
+	];
+	const { state, random } = advisorsGame({ 1: six }, { current: 1 });
+	const asked = pushed(state, random, [advisorsIncome(2)]);
+	assert.deepEqual(
+		eventsOf(asked, 'vpGained', state.seq).map((e) => [e.vp, e.source]),
+		[[6, 'civ']]
+	);
+	const discard = /** @type {any} */ (decisionOf(asked, 'chooseDiscard'));
+	assert.deepEqual([discard.player, discard.downTo], [1, 4]);
+	// Down to 4 is not optional: there is no stop.
+	assert.deepEqual(
+		answersOf(asked, 'chooseDiscard'),
+		six.map((card) => ({ card }))
+	);
+	assert.throws(
+		() => answer(asked, random, 1, 'chooseDiscard', { card: null }),
+		{ name: 'PlayerError' }
+	);
+	const once = answer(asked, random, 1, 'chooseDiscard', {
+		card: 'democracy',
+	});
+	assert.equal(decisionOf(once, 'chooseResource'), undefined);
+	const twice = answer(once, random, 1, 'chooseDiscard', {
+		card: 'guilds',
+	});
+	assert.deepEqual(twice.seats[0].hand, [
+		'academia',
+		'alliance',
+		'militarism',
+		'socialism',
+	]);
+	assert.deepEqual(twice.supply.tapestry.discard, ['democracy', 'guilds']);
+	assert.deepEqual(
+		eventsOf(twice, 'cardsDiscarded', state.seq).map((e) => e.cards),
+		[['democracy'], ['guilds']]
+	);
+	// No VP for discarding, as Democracy gives.
+	assert.equal(twice.seats[0].vp, state.seats[0].vp + 6);
+	const resource = /** @type {any} */ (decisionOf(twice, 'chooseResource'));
+	assert.deepEqual([resource.player, resource.from], [1, 'any']);
+	const paid = answer(twice, random, 1, 'chooseResource', {
+		resources: { food: 1 },
+	});
+	assert.equal(
+		paid.seats[0].resources.food,
+		state.seats[0].resources.food + 1
+	);
+	assert.deepEqual(openDecisions(paid), []);
+
+	// With 4 cards or fewer they score them and discard nothing; with none, nothing happens.
+	const four = advisorsGame({ 1: six.slice(0, 4) }, { current: 1 });
+	const scored = pushed(four.state, four.random, [advisorsIncome(3)]);
+	assert.equal(scored.seats[0].vp, four.state.seats[0].vp + 4);
+	assert.deepEqual(openDecisions(scored), []);
+	const none = advisorsGame({}, { current: 1 });
+	const nothing = pushed(none.state, none.random, [advisorsIncome(4)]);
+	assert.deepEqual(eventsOf(nothing, 'vpGained', none.state.seq), []);
+	assert.deepEqual(openDecisions(nothing), []);
+});
+
+test("on a neighbour's advance turn, each tapestry card they would draw first asks the Advisors, who may give them one from their hand instead and then draw 1 (03 §1.3)", () => {
+	const { state, random } = advisorsGame({ 1: ['academia', 'alliance'] });
+	const deck = state.supply.tapestry.deck;
+	const asked = draws(state, random);
+	const gift = /** @type {any} */ (decisionOf(asked, 'chooseGive'));
+	assert.deepEqual([gift.player, gift.to], [1, 2]);
+	assert.ok(!('cards' in gift) && !('vp' in gift));
+	assert.deepEqual(answersOf(asked, 'chooseGive'), [
+		{ card: null },
+		{ card: 'academia' },
+		{ card: 'alliance' },
+	]);
+	// Nothing is drawn while they decide.
+	assert.deepEqual(asked.seats[1].hand, []);
+	assert.deepEqual(eventsOf(asked, 'cardsDrawn', state.seq), []);
+
+	const gave = answer(asked, random, 1, 'chooseGive', { card: 'alliance' });
+	assert.deepEqual(gave.seats[1].hand, ['alliance']);
+	assert.deepEqual(gave.seats[0].hand, ['academia', deck[0]]);
+	assert.deepEqual(gave.supply.tapestry.deck, deck.slice(1));
+	assert.deepEqual(
+		eventsOf(gave, 'tapestryGiven', asked.seq).concat(
+			eventsOf(gave, 'cardsDrawn', asked.seq)
+		),
+		[
+			{
+				type: 'tapestryGiven',
+				player: 1,
+				to: 2,
+				secret: { cards: ['alliance'] },
+			},
+			{
+				type: 'cardsDrawn',
+				player: 1,
+				count: 1,
+				secret: { cards: [deck[0]] },
+			},
+		]
+	);
+	// Instead of a draw, so no VP.
+	assert.deepEqual(eventsOf(gave, 'vpGained', asked.seq), []);
+	assert.deepEqual(openDecisions(gave), []);
+
+	const declined = answer(asked, random, 1, 'chooseGive', { card: null });
+	assert.deepEqual(declined.seats[1].hand, [deck[0]]);
+	assert.deepEqual(declined.seats[0].hand, ['academia', 'alliance']);
+	assert.deepEqual(eventsOf(declined, 'cardsDrawn', asked.seq), [
+		{
+			type: 'cardsDrawn',
+			player: 2,
+			count: 1,
+			secret: { cards: [deck[0]] },
+		},
+	]);
+	assert.deepEqual(openDecisions(declined), []);
+});
+
+test('the card given is a tapestry card the neighbour gains, so what gaining one triggers follows (Academia); two cards to draw ask twice (03 §1.3)', () => {
+	const { state, random } = advisorsGame({ 1: ['alliance', 'guilds'] });
+	state.seats[1].era = { card: 'academia', ability: 'academia' };
+	const deck = state.supply.tapestry.deck;
+	const asked = draws(state, random, 2, 2);
+	const gave = answer(asked, random, 1, 'chooseGive', { card: 'alliance' });
+	assert.equal(gave.seats[1].vp, state.seats[1].vp + 3);
+	// The second card asks again, from the hand as it is now.
+	assert.deepEqual(answersOf(gave, 'chooseGive'), [
+		{ card: null },
+		{ card: 'guilds' },
+		{ card: deck[0] },
+	]);
+	const drew = answer(gave, random, 1, 'chooseGive', { card: null });
+	assert.deepEqual(drew.seats[1].hand, ['alliance', deck[1]]);
+	assert.equal(drew.seats[1].vp, state.seats[1].vp + 6);
+	assert.deepEqual(openDecisions(drew), []);
+});
+
+test("the Advisors are asked only on that neighbour's own advance turn, while they hold a card, still play and a card could be drawn (03 §1.3, §1.8)", () => {
+	const hand = { 1: ['academia'] };
+	/**
+	 * Whether a draw asked the Advisors, and how many cards the drawing seat drew.
+	 * @param {{ state: any, random: any }} game
+	 * @param {number} [player]
+	 */
+	const outcome = ({ state, random }, player = 2) => {
+		const next = draws(state, random, player);
+		return {
+			asked: decisionOf(next, 'chooseGive') !== undefined,
+			drew: eventsOf(next, 'cardsDrawn', state.seq)
+				.filter((e) => e.player === player)
+				.map((e) => e.count),
+		};
+	};
+	const asked = { asked: true, drew: [] };
+	const drew = { asked: false, drew: [1] };
+	assert.deepEqual(outcome(advisorsGame(hand)), asked);
+	// Never on an income turn, nor before the turn is chosen.
+	assert.deepEqual(outcome(advisorsGame(hand, { turn: 'income' })), drew);
+	assert.deepEqual(outcome(advisorsGame(hand, { turn: null })), drew);
+	// On another seat's turn, the Advisors' own included, a neighbour's draw asks nothing; nor does their own draw.
+	assert.deepEqual(outcome(advisorsGame(hand, { current: 1 })), drew);
+	assert.deepEqual(outcome(advisorsGame(hand), 1), drew);
+	// With an empty hand there is nothing to give.
+	assert.deepEqual(outcome(advisorsGame()), drew);
+	// Once their game has ended they take no action that needs input (03 §1.8).
+	const finished = advisorsGame(hand);
+	finished.state.seats[0].finished = true;
+	assert.deepEqual(outcome(finished), drew);
+	// With no card left in the deck or the discards, the neighbour would draw none, so nothing is asked.
+	const empty = advisorsGame(hand);
+	empty.state.supply.tapestry.discard.push(
+		...empty.state.supply.tapestry.deck
+	);
+	empty.state.supply.tapestry.deck = [];
+	assert.deepEqual(outcome(empty), asked);
+	empty.state.supply.tapestry.discard = [];
+	assert.deepEqual(outcome(empty), { asked: false, drew: [0] });
+	// Only a neighbour: in a 4-player game the seats either side, never the one across.
+	for (const [current, near] of /** @type {[number, boolean][]} */ ([
+		[2, true],
+		[3, false],
+		[4, true],
+	])) {
+		const four = advisorsGame(hand, { count: 4, current });
+		assert.equal(outcome(four, current).asked, near, `seat ${current}`);
+	}
+});
+
+test('a card given is the secret of the Advisors and the neighbour alone; the question reveals nothing, the answer closes undo, and declineOnly passes over it while they hold a card (#17, #24)', () => {
+	const { state, random } = advisorsGame(
+		{ 1: ['academia', 'alliance'] },
+		{ count: 3 }
+	);
+	const asked = draws(state, random);
+	assert.equal(revealed(state, asked), false);
+	assert.deepEqual(declineOnly(asked), []);
+	const gave = answer(asked, random, 1, 'chooseGive', { card: 'alliance' });
+	assert.ok(revealed(asked, gave));
+	const given = (/** @type {number | null} */ seat) =>
+		/** @type {any} */ (view(gave, seat)).events.find(
+			(/** @type {any} */ e) => e.type === 'tapestryGiven'
+		);
+	assert.deepEqual(given(1)?.secret, { cards: ['alliance'] });
+	assert.deepEqual(given(2)?.secret, { cards: ['alliance'] });
+	assert.deepEqual(
+		[given(3)?.to, given(3)?.secret, given(null)?.secret],
+		[2, undefined, undefined]
+	);
+	checkViews(gave, setupFacts(state), { before: asked });
+	const declined = answer(asked, random, 1, 'chooseGive', { card: null });
+	assert.ok(revealed(asked, declined));
+	checkViews(declined, setupFacts(state), { before: asked });
+
+	// A question with only the decline left to answer is declined for them, as a response is.
+	const bare = structuredClone(asked);
+	bare.supply.tapestry.discard.push(...bare.seats[0].hand);
+	bare.seats[0].hand = [];
+	const gift = /** @type {any} */ (decisionOf(bare, 'chooseGive'));
+	assert.deepEqual(declineOnly(bare), [{ decision: gift.id, player: 1 }]);
+});
+
+test('a real advance turn records its kind: a neighbour advancing onto Mathematics asks the Advisors, and an income turn is no advance turn (03 §1.3)', () => {
+	const ready = readyTurn(
+		2,
+		(seat, s) => {
+			const other = s.seats.find((/** @type {any} */ x) => x !== seat);
+			const holder = s.seats.find(
+				(/** @type {any} */ x) => x.civs[0] === 'advisors'
+			);
+			if (holder !== other) {
+				[holder.civs, other.civs] = [other.civs, holder.civs];
+				[holder.civData, other.civData] = [
+					other.civData,
+					holder.civData,
+				];
+				[holder.hand, other.hand] = [other.hand, holder.hand];
+			}
+			seat.tracks.science = [1];
+			seat.resources = { coin: 0, worker: 0, food: 1, culture: 0 };
+		},
+		{ civs: ['nomads', 'advisors'], ...PP }
+	);
+	const { state, random, player } = ready;
+	const advisors = player === 1 ? 2 : 1;
+	assert.equal(state.turnKind, null);
+	const advancing = answer(state, random, player, 'chooseTurn', {
+		turn: 'advance',
+	});
+	assert.equal(advancing.turnKind, 'advance');
+	const move = DECISIONS.chooseAdvance
+		.answers(advancing, decisionOf(advancing, 'chooseAdvance'))
+		.find((a) => a.track === 'science');
+	const asked = answer(advancing, random, player, 'chooseAdvance', move);
+	const gift = /** @type {any} */ (decisionOf(asked, 'chooseGive'));
+	assert.deepEqual([gift.player, gift.to], [advisors, player]);
+	checkState(asked);
+
+	const income = answer(state, random, player, 'chooseTurn', {
+		turn: 'income',
+	});
+	assert.equal(income.turnKind, 'income');
+});
+
+test('Advisors use their ability in step 1 of income turns 2 to 5', () => {
+	const ready = turnHolding('advisors', (seat, state) => {
+		// The hand their setup drew goes with them.
+		const other = state.seats.find((/** @type {any} */ s) => s !== seat);
+		if (seat.hand.length === 0) {
+			[seat.hand, other.hand] = [other.hand, seat.hand];
+		}
+	});
+	const { player } = ready;
+	const held = ready.state.seats[player - 1].hand.length;
+	assert.equal(held, 3);
+	const since = ready.state.seq;
+	const state = answer(ready.state, ready.random, player, 'chooseTurn', {
+		turn: 'income',
+	});
+	assert.ok(
+		eventsOf(state, 'civAbilityUsed', since).some(
+			(e) => e.civ === 'advisors'
+		)
+	);
+	assert.ok(
+		eventsOf(state, 'vpGained', since).some(
+			(e) => e.player === player && e.vp === held && e.source === 'civ'
+		)
+	);
 });

@@ -30,6 +30,11 @@ function civ(both, { original, current } = {}) {
  * @type {Readonly<Record<string, Readonly<CivText>>>}
  */
 const CIV_TEXTS = Object.freeze({
+	advisors: civ([
+		'When you start the game with the Advisors, or gain them later, you draw 3 tapestry cards. If you gain them later in the game, you may then give any of those 3 cards to your neighbours, gaining 5 VP for each card you give.',
+		'At the start of income turns 2 to 5, gain 1 VP for each tapestry card in your hand. Then, if you hold more than 4, discard down to 4, choosing which; if you discarded any, gain 1 resource of your choice.',
+		'On a neighbour’s advance turn, whenever they would draw a tapestry card, you may give them a card of your choice from your hand instead, and then draw 1 tapestry card yourself. You are asked whenever you hold a card, but not on an income turn, and not once you have finished the game.',
+	]),
 	alchemists: civ(
 		[
 			'At the start of income turns 2 to 5, roll the science die and mark the track it shows. Then roll again or stop.',

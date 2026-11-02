@@ -365,6 +365,7 @@ test('every decision kind has the full shape, and its answers pass its own check
 			then: { kind: 'revolt', left: 1 },
 		},
 		chooseGift: { player: 1, kind: 'chooseGift' },
+		chooseGive: { player: 1, kind: 'chooseGive', to: 2 },
 		choosePartner: {
 			player: 1,
 			kind: 'choosePartner',

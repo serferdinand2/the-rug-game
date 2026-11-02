@@ -92,6 +92,8 @@
  * @property {number} first
  * @property {number | null} current
  * @property {number} turn - Turns started so far: 0 during setup, 1 for the first turn
+ * @property {'advance' | 'income' | null} turnKind - The kind of turn the current player chose, null until they choose
+ *   and outside play; income turn 1 is an income turn without a choice (#33: the Advisors give only on advance turns)
  * @property {(Seat | PlayerSeat)[]} seats - Index = seat - 1
  * @property {Supply} supply
  * @property {Record<string, Hex>} hexes
@@ -167,4 +169,22 @@ export function playerSeat(state, seat) {
 		throw new Error(`Seat ${seat} is not a player.`);
 	}
 	return /** @type {PlayerSeat} */ (found);
+}
+
+/**
+ * A seat's neighbours: the seats directly before and after it in seat order, each once (01 §4.2).
+ * In a 2-player game the one opponent is both; alone, a seat has none until #31 adds the bots.
+ * It lives here, with the other seat lookups, so the gain effect can find the Advisors without importing income.js (#33).
+ * @param {State} state
+ * @param {number} player
+ * @returns {number[]}
+ */
+export function neighbours(state, player) {
+	const { seats } = state;
+	const at = seats.findIndex((s) => s.seat === player);
+	const around = [
+		seats[(at - 1 + seats.length) % seats.length].seat,
+		seats[(at + 1) % seats.length].seat,
+	];
+	return [...new Set(around)].filter((seat) => seat !== player);
 }

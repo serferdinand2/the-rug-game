@@ -68,6 +68,8 @@ export const chooseTurn = {
 	resolve(ctx, decision, answer) {
 		const { state } = ctx;
 		const player = /** @type {number} */ (decision.player);
+		// What the turn is, for the abilities that work on one kind only (the Advisors, #33).
+		state.turnKind = answer.turn;
 		emit(state, { type: 'turnChosen', player, turn: answer.turn });
 		if (answer.turn === 'income') {
 			startIncomeTurn(ctx, player);

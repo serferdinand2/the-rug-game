@@ -1,7 +1,7 @@
 // The gain effect: resources (capped at 8), territory and space tiles, tapestry cards, and a choice of any.
 import { emit } from '../events.js';
 import { shuffle } from '../random.js';
-import { playerSeat } from '../state.js';
+import { neighbours, playerSeat } from '../state.js';
 import { triggered } from '../abilities.js';
 import { RESOURCE_IDS } from '../data/ids.js';
 
@@ -73,13 +73,13 @@ export function takeTapestryCard(ctx) {
 }
 
 /**
- * Draws up to `count` tapestry cards into the hand.
+ * Draws up to `count` tapestry cards into the hand, without the triggers of gaining them: the caller pushes those.
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {number} count
  * @returns {string[]} The cards drawn
  */
-function drawTapestry(ctx, player, count) {
+export function drawTapestry(ctx, player, count) {
 	const seat = playerSeat(ctx.state, player);
 	/** @type {string[]} */
 	const cards = [];
@@ -101,9 +101,41 @@ function drawTapestry(ctx, player, count) {
 }
 
 /**
+ * The seat of the Advisors who are asked before each tapestry card this player would draw now, or null (03 §1.3, #33):
+ * only on the player's own advance turn, never an income turn; a neighbour of theirs who holds the Advisors, still plays
+ * (03 §1.8: a finished player takes no action that needs input) and holds a card to give, asked whatever it is (#17);
+ * and only while a card is left to draw, as with none the player would gain no card.
+ * @param {import('../state.js').State} state
+ * @param {number} player - The seat that would draw
+ * @returns {number | null}
+ */
+export function advisorsBeside(state, player) {
+	if (state.turnKind !== 'advance' || state.current !== player) {
+		return null;
+	}
+	const { deck, discard } = state.supply.tapestry;
+	if (deck.length + discard.length === 0) {
+		return null;
+	}
+	const near = neighbours(state, player);
+	const advisors = state.seats.find(
+		(seat) =>
+			seat.kind === 'player' &&
+			near.includes(seat.seat) &&
+			playerSeat(state, seat.seat).civs.includes('advisors')
+	);
+	if (advisors === undefined) {
+		return null;
+	}
+	const { finished, hand } = playerSeat(state, advisors.seat);
+	return !finished && hand.length > 0 ? advisors.seat : null;
+}
+
+/**
  * Gains what a Gain names, in this order: named resources, territory, space, tapestry, then any.
  * Drawing at least one tapestry card has triggers, which come before the choice of any. With `keep`, the player
- * first chooses which drawn card to keep (`chooseKeep`), and only it triggers (#53 design §4.1).
+ * first chooses which drawn card to keep (`chooseKeep`), and only it triggers (#53 design §4.1). When the Advisors may
+ * give a card instead (advisorsBeside), the cards are drawn one at a time by `advisorsDraw`, each asking them first.
  * @type {import('../state.js').EffectHandler}
  */
 export function gain(ctx, player, value) {
@@ -141,7 +173,13 @@ export function gain(ctx, player, value) {
 	if (value.keep !== undefined && value.keep !== 1) {
 		throw new Error('Only keeping 1 drawn tapestry card is built.');
 	}
-	if (value.tapestry) {
+	if (
+		value.tapestry &&
+		value.keep === undefined &&
+		advisorsBeside(ctx.state, player) !== null
+	) {
+		ops.push({ player, kind: 'advisorsDraw', count: value.tapestry });
+	} else if (value.tapestry) {
 		const cards = drawTapestry(ctx, player, value.tapestry);
 		if (value.keep !== undefined && cards.length > value.keep) {
 			ops.push({

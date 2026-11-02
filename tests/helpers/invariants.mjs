@@ -73,6 +73,16 @@ export function checkState(state, previousSeq = 0) {
 		['choosePlacement', 'placeLandmark', 'placeBuilding'].includes(op.kind)
 	);
 
+	// #33: the kind of the turn being taken, once chosen; there is none outside play, nor without a current player.
+	assert.ok(
+		[null, 'advance', 'income'].includes(state.turnKind),
+		`turn kind ${state.turnKind}`
+	);
+	if (state.turnKind !== null) {
+		assert.equal(state.phase, 'play', `a turn kind in ${state.phase}`);
+		assert.notEqual(state.current, null, 'a turn kind with no turn');
+	}
+
 	exactlyOnce(
 		'tech cards',
 		[

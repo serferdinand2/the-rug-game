@@ -1,6 +1,7 @@
 // The view checker: what no viewer may see of a game, shared by the view tests and the simulation (#21 design §6).
 import assert from 'node:assert/strict';
 import { view } from '../../src/lib/engine/game.js';
+import { SHARED_SECRETS } from '../../src/lib/engine/view.js';
 import { DECISIONS } from '../../src/lib/engine/kinds.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
 import { neighbours } from '../../src/lib/engine/income.js';
@@ -41,6 +42,17 @@ export function setupFacts(state) {
 const REVEALS = {
 	// R35: the Heralds' draw reveals every card, and the card found goes to the hand (#20 design §6).
 	cardsRevealed: ['cards', 'found'],
+};
+
+/**
+ * The events whose secret may hold the cards of another seat's hand, to the event's own player, by type: the field
+ * naming that seat, which must be a neighbour (#33). The Spies' look shows a neighbour's hand; a card the Advisors give
+ * is in the hand of the neighbour who got it.
+ * @type {Record<string, string>}
+ */
+const HAND_SECRETS = {
+	handSeen: 'from',
+	tapestryGiven: 'to',
 };
 
 /**
@@ -110,7 +122,9 @@ function isRevealed(state) {
  * A secret id may appear only where it is public anyway: in a public place now, or, in the action's new events, in a
  * public place before the action (a discard just shuffled into a deck) or in a field the rules reveal (REVEALS). The
  * cards of a neighbour's hand may also show in the secret of the Spies' own look at it (`handSeen`), to the Spies
- * alone; anything else in that secret is searched as usual, and a look at a seat that is no neighbour fails (#33).
+ * alone, and a card the Advisors gave in their own `tapestryGiven`, while it is in the hand of the neighbour who got it
+ * (HAND_SECRETS); anything else in those secrets is searched as usual, and one naming a seat that is no neighbour fails
+ * (#33). A secret shows only to its event's player, and to the seat that shares it (SHARED_SECRETS, view.js).
  * Older events were checked when they were new, so they are not searched again.
  * @param {State} state
  * @param {SetupFacts} facts - From setupFacts() of the same game
@@ -175,22 +189,23 @@ export function checkViews(
 	) => viewer !== null && player === viewer;
 	const open = new Map(openDecisions(state).map((op) => [op.id, op]));
 	/**
-	 * The Spies' own look (#33), as the leak search reads it: it must be at a neighbour's hand, and the cards of that
-	 * hand (before the action or after it) leave its secret, which is searched for anything else.
-	 * @param {any} event - A handSeen event of the viewer's
+	 * A secret holding another seat's cards (HAND_SECRETS, #33), as the leak search reads it in its own player's view:
+	 * that seat must be a neighbour, and the cards of its hand leave the secret, which is searched for anything else.
+	 * The Spies' look excuses that hand before the action or after it; a gift, the cards the neighbour holds after it.
+	 * @param {any} event - A handSeen or tapestryGiven event of the viewer's
 	 * @returns {any}
 	 */
-	const lookedAt = (event) => {
+	const ofHand = (event) => {
+		const seat = event[HAND_SECRETS[event.type]];
 		assert.ok(
-			neighbours(state, event.player).includes(event.from),
-			`seat ${event.player} looked at seat ${event.from}'s hand, which is no neighbour's`
+			neighbours(state, event.player).includes(seat),
+			`seat ${event.player}'s ${event.type} shows seat ${seat}'s hand, which is no neighbour's`
 		);
 		const hand = new Set(
-			[before, state].flatMap(
+			(event.type === 'handSeen' ? [before, state] : [state]).flatMap(
 				(s) =>
-					/** @type {any} */ (
-						s?.seats.find((x) => x.seat === event.from)
-					)?.hand ?? []
+					/** @type {any} */ (s?.seats.find((x) => x.seat === seat))
+						?.hand ?? []
 			)
 		);
 		const cards = Array.isArray(event.secret?.cards)
@@ -215,8 +230,9 @@ export function checkViews(
 		const inNews = stringsOf(
 			JSON.stringify(
 				fresh.map((/** @type {any} */ e) =>
-					e.type === 'handSeen' && owns(e.player, viewer)
-						? lookedAt(e)
+					Object.hasOwn(HAND_SECRETS, e.type) &&
+					owns(e.player, viewer)
+						? ofHand(e)
 						: e
 				)
 			)
@@ -294,7 +310,10 @@ export function checkViews(
 			}
 		}
 		for (const event of events) {
-			if (!owns(event.player, viewer)) {
+			const sharer = Object.hasOwn(SHARED_SECRETS, event.type)
+				? event[SHARED_SECRETS[event.type]]
+				: undefined;
+			if (!owns(event.player, viewer) && !owns(sharer, viewer)) {
 				assert.ok(!('secret' in event), 'secret shown to a stranger');
 			}
 		}

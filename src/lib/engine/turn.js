@@ -10,6 +10,7 @@ import { landmarkCardOps } from './landmark-cards.js';
 /**
  * Starts a seat's turn: its Dictatorship blocks lift (R26), nothing is activated yet (R19), and the turn choice sits above the turn's end.
  * A player's first turn must be income turn 1 (01 §4.1), so it starts at once, with nobody asked (#77).
+ * The turn has no kind until it is chosen (`turnKind`, #33).
  * @param {import('./state.js').Context} ctx
  * @param {number} player
  */
@@ -18,11 +19,13 @@ export function startTurn(ctx, player) {
 	liftBlocks(ctx, player);
 	state.current = player;
 	state.turn += 1;
+	state.turnKind = null;
 	state.activated.length = 0;
 	state.usedThisTurn.length = 0;
 	emit(state, { type: 'turnStarted', player });
 	const seat = seatOf(state, player);
 	if (seat.kind === 'player' && seat.incomeTurns === 0) {
+		state.turnKind = 'income';
 		emit(state, { type: 'turnChosen', player, turn: 'income' });
 		// The income turn goes on top of the turn's end.
 		ctx.push([{ player, kind: 'endTurn' }]);
@@ -68,6 +71,7 @@ function endGame(ctx) {
 	const { state } = ctx;
 	state.phase = 'over';
 	state.current = null;
+	state.turnKind = null;
 	state.result = rankPlayers(state);
 	emit(state, { type: 'gameEnded', result: state.result });
 }

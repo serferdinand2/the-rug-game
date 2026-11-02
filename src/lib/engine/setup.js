@@ -350,6 +350,7 @@ export function createGame({
 		first: 1,
 		current: null,
 		turn: 0,
+		turnKind: null,
 		seats,
 		supply: {
 			tech: {

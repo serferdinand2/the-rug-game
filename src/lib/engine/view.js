@@ -21,10 +21,17 @@ export const HIDDEN_DECKS = [
 ];
 
 /**
+ * The events whose `secret` a second seat shares with the event's player, by type: the field naming that seat. A card
+ * the Advisors give is known to them and to the neighbour who gets it, and to nobody else (#33).
+ * @type {Readonly<Record<string, string>>}
+ */
+export const SHARED_SECRETS = Object.freeze({ tapestryGiven: 'to' });
+
+/**
  * What one seat may see of a game: the state with its hidden parts removed.
  * Decks become counts; other seats keep a `handCount` instead of `hand` and `picks`;
- * decisions lose their kind's hidden fields and events lose `secret` unless they belong to the viewer;
- * the viewer's own open decisions carry `answers`.
+ * decisions lose their kind's hidden fields and events lose `secret` unless they belong to the viewer, or the viewer
+ * shares it (SHARED_SECRETS); the viewer's own open decisions carry `answers`.
  * @typedef {Omit<import('./state.js').State, 'supply' | 'seats' | 'pending'> & {
  *   supply: Omit<import('./state.js').Supply, 'tech' | 'tapestry' | 'territory' | 'space' | 'civs'> & { tech: { deck: number, faceUp: string[], discard: string[] }, tapestry: { deck: number, discard: string[] }, territory: number, space: number, civs: number },
  *   seats: ViewSeat[],
@@ -100,7 +107,10 @@ export function view(state, seat) {
 	}
 
 	for (const event of copy.events) {
-		if (!owns(event.player)) {
+		const sharer = Object.hasOwn(SHARED_SECRETS, event.type)
+			? event[SHARED_SECRETS[event.type]]
+			: undefined;
+		if (!owns(event.player) && !owns(sharer)) {
 			delete event.secret;
 		}
 	}

@@ -1,6 +1,6 @@
 // The income turn: its steps by income turn number, and the spaces the income mat shows (01 §4.2, §5).
 import { emit } from './events.js';
-import { playerSeat, seatOf } from './state.js';
+import { neighbours, playerSeat, seatOf } from './state.js';
 import { hasEra } from './abilities.js';
 import { takeTapestryCard } from './effects/gain.js';
 import { endEra, playTapestry } from './tapestry.js';
@@ -116,22 +116,8 @@ function incomeStep(ctx, player, turn) {
 	ctx.push(ops);
 }
 
-/**
- * A seat's neighbours: the seats directly before and after it in seat order, each once (01 §4.2).
- * In a 2-player game the one opponent is both; alone, a seat has none until #31 adds the bots.
- * @param {import('./state.js').State} state
- * @param {number} player
- * @returns {number[]}
- */
-export function neighbours(state, player) {
-	const { seats } = state;
-	const at = seats.findIndex((s) => s.seat === player);
-	const around = [
-		seats[(at - 1 + seats.length) % seats.length].seat,
-		seats[(at + 1) % seats.length].seat,
-	];
-	return [...new Set(around)].filter((seat) => seat !== player);
-}
+// A seat's neighbours, which moved to state.js (#33); importers of income.js keep finding them here.
+export { neighbours };
 
 /**
  * Step 2: the first-of-neighbours bonus, then the era's tapestry card from the hand, or face down from the deck.

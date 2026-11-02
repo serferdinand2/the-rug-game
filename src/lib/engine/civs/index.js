@@ -1,5 +1,6 @@
 // The civilization registry: every civilization built, base and Plans & Ploys (#33), by id, and the ones a player holds (design §4).
 import { isPlayerSeat, playerSeat } from '../state.js';
+import { advisors } from './advisors.js';
 import { alchemists } from './alchemists.js';
 import { aliens } from './aliens.js';
 import { architects } from './architects.js';
@@ -59,6 +60,7 @@ export const CIVS = {
 	spies,
 	utilitarians,
 	infiltrators,
+	advisors,
 };
 
 /**

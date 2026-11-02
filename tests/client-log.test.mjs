@@ -11,6 +11,7 @@ import {
 	tapestryName,
 } from '../src/lib/game-names.js';
 import { view } from '../src/lib/engine/game.js';
+import { SHARED_SECRETS } from '../src/lib/engine/view.js';
 import { CAPITAL_MATS } from '../src/lib/engine/data/capitals.js';
 import { simulate } from './helpers/simulation.mjs';
 
@@ -172,6 +173,7 @@ const SAMPLES = {
 	counterPlayed: { player: 1, card: 'double-cross', defender: 2, hex: '1_2' },
 	counterDeclined: { player: 1, hex: '1_2' },
 	tapestryStolen: { player: 1, from: 2, secret: { cards: ['academia'] } },
+	tapestryGiven: { player: 1, to: 2, secret: { cards: ['academia'] } },
 	surprisePartyThrown: { player: 2, attacker: 1, hex: '1_2' },
 	surrenderRolled: { player: 2, red: 0, black: 3 },
 	scienceDieRolled: { player: 1, track: 'technology' },
@@ -380,7 +382,16 @@ test('every event of random games reads well in every seat’s view, and a secre
 						assertSentence(text, what);
 						worded.add(event.type);
 						const full = fresh.find((e) => e.seq === event.seq);
-						if (full?.secret && full.player !== seat) {
+						// A shared secret also belongs to the seat its event names (#33).
+						const sharer =
+							full && Object.hasOwn(SHARED_SECRETS, full.type)
+								? full[SHARED_SECRETS[full.type]]
+								: undefined;
+						if (
+							full?.secret &&
+							full.player !== seat &&
+							sharer !== seat
+						) {
 							for (const secret of secretWords(full.secret)) {
 								assert.ok(
 									!text.includes(secret),
@@ -485,6 +496,15 @@ test('a secret is named for its owner and kept from everyone else', () => {
 	assert.equal(
 		eventText(sample('handSeen', { secret: undefined }), GAME),
 		"Ana looked at Bo's hand."
+	);
+	// The Advisors' gift, whose card both they and the neighbour see (#33).
+	assert.equal(
+		eventText(sample('tapestryGiven'), GAME),
+		'Ana gave Academia to Bo.'
+	);
+	assert.equal(
+		eventText(sample('tapestryGiven', { secret: undefined }), GAME),
+		'Ana gave Bo a tapestry card.'
 	);
 });
 

@@ -4,7 +4,15 @@ import assert from 'node:assert/strict';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { advances } from '../src/lib/engine/decisions/choose-advance.js';
-import { startedGame, readyTurn, answer } from './helpers/engine.mjs';
+import { view } from '../src/lib/engine/game.js';
+import {
+	newGame,
+	startedGame,
+	readyTurn,
+	answer,
+	answerDefaults,
+} from './helpers/engine.mjs';
+import { checkState } from './helpers/invariants.mjs';
 
 /**
  * The current player's open turn choice.
@@ -191,5 +199,59 @@ test('a bad advance answer is refused with a PlayerError', () => {
 			{ name: 'PlayerError' },
 			JSON.stringify(move)
 		);
+	}
+});
+
+test("a turn records its kind once chosen, for every view: none in setup or before the choice, income for income turn 1, and none once the game is over (#33's Advisors)", () => {
+	const { state: setup } = newGame(2);
+	assert.equal(setup.turnKind, null);
+	// Income turn 1 is taken without a choice; the draft variant stops it at its keep question.
+	const { state: first } = startedGame(2, {
+		keepIncome: true,
+		variants: ['tapestry-draft'],
+	});
+	assert.deepEqual(
+		openDecisions(first).map((d) => d.kind),
+		['chooseKeep']
+	);
+	assert.equal(first.turnKind, 'income');
+
+	const { state, random, player } = readyTurn(2, (seat) => {
+		seat.resources.coin = 1;
+	});
+	assert.equal(state.turnKind, null);
+	const income = answer(state, random, player, 'chooseTurn', {
+		turn: 'income',
+	});
+	assert.equal(income.turnKind, 'income');
+	const chosen = answer(state, random, player, 'chooseTurn', {
+		turn: 'advance',
+	});
+	assert.equal(chosen.turnKind, 'advance');
+	for (const seat of [null, 1, 2]) {
+		assert.equal(view(chosen, seat).turnKind, 'advance');
+	}
+	// The next seat's turn starts with no kind until they choose.
+	const passed = answer(chosen, random, player, 'chooseAdvance', {
+		track: 'exploration',
+		from: 0,
+		pay: { coin: 1 },
+	});
+	assert.notEqual(passed.current, player);
+	assert.equal(passed.turnKind, null);
+
+	const over = answerDefaults(startedGame(2).state, random, 1000);
+	assert.equal(over.phase, 'over');
+	assert.equal(over.turnKind, null);
+
+	// The state checks hold a kind to play, and to a turn being taken.
+	checkState(chosen);
+	for (const bad of [
+		{ ...setup, turnKind: 'income' },
+		{ ...chosen, turnKind: 'auction' },
+		{ ...chosen, current: null },
+		{ ...over, turnKind: 'advance' },
+	]) {
+		assert.throws(() => checkState(/** @type {any} */ (bad)), /turn kind/);
 	}
 });

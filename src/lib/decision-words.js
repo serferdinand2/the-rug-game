@@ -446,10 +446,15 @@ const TITLES = {
 			? 'Choose a tech card in your top row for its square benefit'
 			: 'Choose a tech card in your middle row for its circle benefit',
 	chooseLandmark: () => 'Choose a landmark',
-	chooseDiscard: (d) =>
-		isCount(d.vpEach)
+	chooseDiscard: (d) => {
+		// The Advisors' discard down to 4 (#33).
+		if (isCount(d.downTo)) {
+			return `Discard a tapestry card, down to ${d.downTo} in your hand`;
+		}
+		return isCount(d.vpEach)
 			? `Discard a tapestry card for ${d.vpEach} VP?`
-			: 'Discard a tapestry card?',
+			: 'Discard a tapestry card?';
+	},
 	chooseKeep: () => 'Choose a tapestry card to keep',
 	chooseKeepTech: () => 'Choose a tech card to keep',
 	chooseLandmarkCard: () => 'Keep a landmark card',
@@ -503,6 +508,13 @@ const TITLES = {
 		return d.optional ? `${words}?` : words;
 	},
 	chooseGift: () => 'Give a territory tile to an opponent for 3 VP?',
+	// The Advisors' gift: instead of a neighbour's draw, or one of their new cards for VP (#33).
+	chooseGive: (d, table) => {
+		const who = isCount(d.to) ? seatName(table, d.to) : 'a neighbour';
+		return isCount(d.vp)
+			? `Give ${who} one of your new tapestry cards for ${d.vp} VP?`
+			: `Give ${who} a tapestry card instead of their draw?`;
+	},
 	choosePartner: () => 'Choose your partner for this era',
 	chooseCopy: () => 'Choose a tapestry card to copy',
 	chooseConversion: (d) =>
@@ -976,6 +988,17 @@ const ANSWERS = {
 		}
 		return isCount(a.tile)
 			? `Give tile ${a.tile} to ${seatName(table, a.player)}`
+			: null;
+	},
+	chooseGive: (a, d, table) => {
+		if (a.card === null) {
+			const who = isCount(d.to) ? seatName(table, d.to) : 'them';
+			return isCount(d.vp)
+				? `Don't give ${who} a card`
+				: `Let ${who} draw`;
+		}
+		return typeof a.card === 'string'
+			? `Give ${tapestryName(a.card)}`
 			: null;
 	},
 	choosePartner: (a, d, table) => {

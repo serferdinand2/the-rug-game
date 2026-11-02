@@ -675,6 +675,14 @@ const WORDS = {
 		`${name} let the trap on ${hexName(e.hex)} stand.`,
 	tapestryStolen: (e, game, name) =>
 		`${name} took a tapestry card from ${seatName(game, e.from)}'s hand.`,
+	// The Advisors' gift (#33): the card is named only to them and to the neighbour who got it.
+	tapestryGiven(e, game, name) {
+		const [card] = strings(isRecord(e.secret) ? e.secret.cards : undefined);
+		const to = seatName(game, e.to);
+		return card
+			? `${name} gave ${tapestryWords(card)} to ${to}.`
+			: `${name} gave ${to} a tapestry card.`;
+	},
 	retreated: (e, game, name) =>
 		`${name} retreated their outpost from ${hexName(e.hex)} to ${hexName(e.to)}.`,
 	surprisePartyThrown: (e, game, name) =>
@@ -926,7 +934,8 @@ const WORDS = {
 
 /**
  * Words for one event, or null for bookkeeping the log leaves out, and for an event of a type it doesn't know.
- * An event's `secret` is named only when present, which view() allows in its own player's view alone.
+ * An event's `secret` is named only when present, which view() allows in its own player's view alone, and in the view
+ * of a seat that shares it (view.js's SHARED_SECRETS: the neighbour an Advisors' card goes to, #33).
  * @param {LogEvent | null | undefined} event - An event as the viewer's view gives it
  * @param {Game | null} [game] - The viewer's view, for the seats' names
  * @returns {string | null}

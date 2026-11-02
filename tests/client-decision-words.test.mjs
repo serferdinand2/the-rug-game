@@ -685,6 +685,52 @@ test("the Utilitarians' landmark, their tokens and the Lighthouse's trade read a
 	);
 });
 
+test("the Advisors' gift instead of a neighbour's draw, their new cards' gift and their discard down to 4 read as what they do (#33)", () => {
+	const game = /** @type {any} */ ({
+		seats: [{ name: 'Ana' }, { name: 'Bo' }],
+	});
+	const instead = { id: 1, batch: 1, player: 1, kind: 'chooseGive', to: 2 };
+	assert.equal(
+		decisionTitle(instead, game),
+		'Give Bo a tapestry card instead of their draw?'
+	);
+	assert.deepEqual(
+		[{ card: 'academia' }, { card: null }].map((answer) =>
+			describeAnswer(instead, answer, game)
+		),
+		['Give Academia', 'Let Bo draw']
+	);
+	// Their 3 new cards, for 5 VP each; another player sees the question without its cards.
+	const start = { ...instead, after: [], vp: 5 };
+	assert.equal(
+		decisionTitle(start, game),
+		'Give Bo one of your new tapestry cards for 5 VP?'
+	);
+	assert.deepEqual(
+		[{ card: 'academia' }, { card: null }].map((answer) =>
+			describeAnswer(start, answer, game)
+		),
+		['Give Academia', "Don't give Bo a card"]
+	);
+	assertReadable(
+		decisionTitle({ ...instead, to: undefined }),
+		'a gift to nobody named'
+	);
+
+	const discard = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseDiscard',
+		downTo: 4,
+	};
+	assert.equal(
+		decisionTitle(discard),
+		'Discard a tapestry card, down to 4 in your hand'
+	);
+	assert.equal(describeAnswer(discard, { card: 'guilds' }), 'Discard Guilds');
+});
+
 test('unknown decisions and answers fall back to a readable sentence', () => {
 	const odd = { id: 1, batch: 1, player: 1, kind: 'chooseSomethingNew' };
 	assertReadable(decisionTitle(odd), 'an unknown title');

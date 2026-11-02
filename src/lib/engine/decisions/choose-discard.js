@@ -1,4 +1,4 @@
-// The decision to discard one hand card for VP, or to stop (Democracy).
+// The decision to discard one hand card for VP, or to stop (Democracy); or, with `downTo`, to discard one until the hand is down to that many (the Advisors, #33).
 import { PlayerError } from '../errors.js';
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
@@ -12,13 +12,22 @@ export const chooseDiscard = {
 			state,
 			/** @type {number} */ (decision.player)
 		);
-		return [{ card: null }, ...hand.map((card) => ({ card }))];
+		const cards = hand.map((card) => ({ card }));
+		// Down to a number, the discard is not optional.
+		return decision.downTo === undefined
+			? [{ card: null }, ...cards]
+			: cards;
 	},
 	check(state, decision, answer) {
 		const { hand } = playerSeat(
 			state,
 			/** @type {number} */ (decision.player)
 		);
+		if (decision.downTo !== undefined && !hand.includes(answer.card)) {
+			throw new PlayerError(
+				`Discard a tapestry card from your hand, down to ${decision.downTo}.`
+			);
+		}
 		if (answer.card !== null && !hand.includes(answer.card)) {
 			throw new PlayerError(
 				'Discard a tapestry card from your hand, or stop.'
@@ -40,6 +49,14 @@ export const chooseDiscard = {
 			deck: 'tapestry',
 			cards: [answer.card],
 		});
+		if (decision.downTo !== undefined) {
+			if (hand.length > decision.downTo) {
+				ctx.push([
+					{ player, kind: 'chooseDiscard', downTo: decision.downTo },
+				]);
+			}
+			return;
+		}
 		ctx.push([
 			{
 				player,
