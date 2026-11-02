@@ -189,7 +189,7 @@
 <Section
 	name="CivilizationCard"
 	area="player"
-	description="Owner-reviewed card pattern; see docs/ui/card-design-rules.md for the composition rules. The card civilizations draw a seat's live state, the Treasure Hunters only the treasures used (#33); the other six offer a decision's spots on the card (#78)."
+	description="Owner-reviewed card pattern; see docs/ui/card-design-rules.md for the composition rules. The card civilizations draw a seat's live state, the Treasure Hunters only the treasures used (#33), and the Tinkerers' used options have no look on their boxes yet (#33); the other six offer a decision's spots on the card (#78)."
 	>{#each REVIEWED_CIVILIZATIONS as card}<Example
 			label={`${civilizationName(card.id)} · ${card.edition}`}
 			width={425}

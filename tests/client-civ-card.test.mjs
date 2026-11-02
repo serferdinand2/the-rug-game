@@ -27,7 +27,7 @@ function table(civData) {
 	};
 }
 
-test('the seven civilizations whose cards show live state, six with choices on them', () => {
+test('the eight civilizations whose cards show live state, six with choices on them', () => {
 	assert.deepEqual(
 		[...CARD_CIVS],
 		[
@@ -38,6 +38,7 @@ test('the seven civilizations whose cards show live state, six with choices on t
 			'historians',
 			'mystics',
 			'treasure-hunters',
+			'tinkerers',
 		]
 	);
 });
@@ -139,6 +140,21 @@ test("the Treasure Hunters' used treasures are struck through; the treasure to c
 			pick
 		),
 		{ marks: { mountain: ['used'] }, choices: {} }
+	);
+});
+
+test("the Tinkerers' used options are marked; the option is chosen in the panel (#33)", () => {
+	assert.deepEqual(civCardMarks('tinkerers', { used: [3, 1] }), {
+		option3: ['used'],
+		option1: ['used'],
+	});
+	assert.deepEqual(civCardMarks('tinkerers', { used: [] }), {});
+	const pick = { kind: 'chooseSlot', player: 1, purpose: 'tinkerers' };
+	assert.equal(cardCivOf(pick), null);
+	assert.equal(cardSpot(pick, { slot: 2 }, table({})), null);
+	assert.deepEqual(
+		civCardView(table({ tinkerers: { used: [4] } }), 1, 'tinkerers', pick),
+		{ marks: { option4: ['used'] }, choices: {} }
 	);
 });
 

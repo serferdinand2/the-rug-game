@@ -57,6 +57,7 @@ import { buildingName, civilizationName, trackName } from '../game-names.js';
  * @property {string} [label] - The symbol is this word or value
  * @property {12 | 13 | 14 | 15} [symbolText] - Bold size of a word or "+" symbol in px
  * @property {CardPictogram} [pictogram] - The symbol is this pictogram
+ * @property {string} [spot] - The spot a live card's marks name for this box, such as a Tinkerers option's 'option2'
  * @property {CardText} text - The rules
  */
 
@@ -1455,11 +1456,13 @@ const RECIPES = {
 		],
 		sections: [
 			{
+				// Each box is the spot civs/tinkerers.js's used option marks; the box has no used look yet (#33).
 				pattern: 'effects',
 				effects: [
 					{
 						title: 'Pay back',
 						label: '1',
+						spot: 'option1',
 						text: [
 							'Gain the resources it cost to advance into the current space of one of your tracks.',
 						],
@@ -1467,6 +1470,7 @@ const RECIPES = {
 					{
 						title: 'Catch up',
 						label: '2',
+						spot: 'option2',
 						text: [
 							'Advance on a track to the space of the closest opponent ahead of you; gain its benefit, not its bonus.',
 						],
@@ -1474,6 +1478,7 @@ const RECIPES = {
 					{
 						title: 'Step back',
 						label: '3',
+						spot: 'option3',
 						text: [
 							'Go back exactly 3 spaces on a track; gain the benefit, and you may pay for the bonus.',
 						],
@@ -1481,6 +1486,7 @@ const RECIPES = {
 					{
 						title: 'Jump ahead',
 						label: '4',
+						spot: 'option4',
 						text: [
 							'Advance to the next space with a bonus and gain that bonus for free; no benefit, and no landmarks for the tiers you pass.',
 						],

@@ -1,10 +1,14 @@
-// The decision of which token to move: one space forward or back (research, advance and regress effects), or a jump to a set space (Socialism).
+// The decision of which token to move: one space forward or back (research, advance and regress effects), or a jump to a set space (Socialism, the Tinkerers).
 import { PlayerError } from '../errors.js';
 import { moveToken } from '../movement.js';
 
 /** @typedef {{ track: import('../data/ids.js').TrackId, from: number, to?: number }} Move - `to` only for a jump */
 
-/** @type {import('../state.js').DecisionKind} */
+/**
+ * The move picked is made as the decision says: `benefit`, and `freeBonus`, `noBonus` and `jump` as moveToken() takes
+ * them (`jump` for the Tinkerers' jump ahead, which gains no landmark and is no advance).
+ * @type {import('../state.js').DecisionKind}
+ */
 export const chooseMove = {
 	hidden: [],
 	answers(state, decision) {
@@ -48,6 +52,7 @@ export const chooseMove = {
 			benefit: decision.benefit,
 			freeBonus: decision.freeBonus ?? false,
 			noBonus: decision.noBonus ?? false,
+			jump: decision.jump ?? false,
 		});
 	},
 };

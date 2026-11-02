@@ -60,6 +60,8 @@ export const SAMPLE_CIV_DATA = Object.freeze({
 	},
 	// Desert used.
 	'treasure-hunters': { tokens: 3, used: ['desert'] },
+	// No option used: the card's boxes have no used look yet (#33).
+	tinkerers: { used: [] },
 });
 
 /**
@@ -115,6 +117,5 @@ export const SAMPLE_VIEWS = Object.freeze({
 	recyclers: sample([], 'token'),
 	riverfolk: sample([], 'token'),
 	spies: sample([], 'token'),
-	tinkerers: sample([], 'token'),
 	utilitarians: sample([], 'token'),
 });

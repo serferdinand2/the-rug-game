@@ -1917,3 +1917,414 @@ test('Treasure Hunters use their ability in step 1 of income turns 2 to 5', () =
 	);
 	assert.ok(decision.options.includes(near));
 });
+
+// The Tinkerers.
+
+/**
+ * A game for `count` players in which seat 1 holds the Tinkerers with these options used. Each seat's tokens stand
+ * where `tracks` puts them (by seat, then track), the others on the start; every capital is the empty Mountain mat.
+ * @param {Record<number, Record<string, number[]>>} tracks
+ * @param {{ count?: number, used?: number[] }} [options]
+ * @returns {{ state: any, random: any }}
+ */
+function tinkerersGame(tracks, { count = 2, used = [] } = {}) {
+	const { state: started, random } = startedGame(count, PP);
+	const state = /** @type {any} */ (structuredClone(started));
+	state.pending.length = 0;
+	for (const seat of state.seats) {
+		seat.capital = { mat: 1, buildings: [], landmarks: [], cubes: [] };
+		seat.tracks = {
+			exploration: [0],
+			science: [0],
+			technology: [0],
+			military: [0],
+			...tracks[seat.seat],
+		};
+	}
+	state.seats[0].civs = ['tinkerers'];
+	state.seats[0].civData.tinkerers = { used: [...used] };
+	return { state, random };
+}
+
+/** The Tinkerers' ability on an income turn. */
+const tinkerersIncome = (/** @type {number} */ turn) => ({
+	player: 1,
+	kind: 'civIncome',
+	civ: 'tinkerers',
+	turn,
+	origin: 'civ',
+});
+
+/**
+ * Seat 1's income ability, then the option picked.
+ * @param {any} state
+ * @param {any} random
+ * @param {number} option
+ */
+function tinker(state, random, option) {
+	const asked = pushed(state, random, [tinkerersIncome(2)]);
+	return answer(asked, random, 1, 'chooseSlot', { slot: option });
+}
+
+/**
+ * The options seat 1's income question offers, or null when it asks nothing.
+ * @param {{ state: any, random: any }} game
+ * @returns {number[] | null}
+ */
+function offered({ state, random }) {
+	const asked = pushed(state, random, [tinkerersIncome(2)]);
+	return decisionOf(asked, 'chooseSlot')?.options ?? null;
+}
+
+test('Tinkerers chosen at setup give each opponent 1 tech card from the deck, and under the current rules 1 tapestry card too (R48, R113)', () => {
+	for (const version of VERSIONS) {
+		const { state } = startedGame(3, {
+			civs: ['tinkerers', 'leaders', 'nomads'],
+			version,
+			...PP,
+		});
+		const [own, ...others] = /** @type {any[]} */ (state.seats);
+		assert.deepEqual(own.civData.tinkerers, { used: [] }, version);
+		assert.deepEqual(own.tech.bottom, [], version);
+		assert.deepEqual(own.hand, [], version);
+		for (const seat of others) {
+			assert.equal(seat.tech.bottom.length, 1, version);
+			assert.deepEqual(
+				[seat.tech.middle, seat.tech.top],
+				[[], []],
+				version
+			);
+			assert.equal(
+				seat.hand.length,
+				version === 'current' ? 1 : 0,
+				version
+			);
+		}
+		assert.deepEqual(
+			eventsOf(state, 'techInvented').map((e) => [e.player, e.from]),
+			[
+				[2, 'deck'],
+				[3, 'deck'],
+			],
+			version
+		);
+		checkState(state);
+	}
+});
+
+test('Tinkerers gained mid-game give the opponents nothing (R113, R34)', () => {
+	const { state, random } = game();
+	state.seats[0].civs = ['leaders'];
+	state.supply.civs = [
+		'tinkerers',
+		...state.supply.civs.filter(
+			(/** @type {string} */ c) => c !== 'tinkerers'
+		),
+	];
+	const gained = resolveEffects(state, 1, [{ gainCiv: {} }], random);
+	const [own, other] = /** @type {any[]} */ (gained.seats);
+	assert.deepEqual(own.civs, ['leaders', 'tinkerers']);
+	assert.deepEqual(own.civData.tinkerers, { used: [] });
+	assert.deepEqual(other.tech, state.seats[1].tech);
+	assert.deepEqual(other.hand, state.seats[1].hand);
+	assert.deepEqual(eventsOf(gained, 'techInvented', state.seq), []);
+	assert.deepEqual(eventsOf(gained, 'cardsDrawn', state.seq), []);
+	assert.deepEqual(openDecisions(gained), []);
+});
+
+test('Tinkerers may put a token on an unused option at the start of income turns 2 to 5, or decline (03 §1.3)', () => {
+	const { state, random } = tinkerersGame({ 1: { science: [5] } });
+	const asked = pushed(state, random, [tinkerersIncome(2)]);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseSlot'));
+	assert.deepEqual(
+		[decision.player, decision.purpose, decision.optional],
+		[1, 'tinkerers', true]
+	);
+	// Nobody is ahead of them anywhere, so Catch up is left out.
+	assert.deepEqual(answersOf(asked, 'chooseSlot'), [
+		{ slot: null },
+		{ slot: 1 },
+		{ slot: 3 },
+		{ slot: 4 },
+	]);
+	const declined = answer(asked, random, 1, 'chooseSlot', { slot: null });
+	assert.deepEqual(declined.seats[0].civData.tinkerers.used, []);
+	assert.deepEqual(declined.seats[0].tracks, state.seats[0].tracks);
+	assert.deepEqual(openDecisions(declined), []);
+	assert.deepEqual(eventsOf(declined, 'tinkerersUsed', state.seq), []);
+});
+
+test('each Tinkerers option is used once a game, and one with nothing to act on is not offered (03 §1.3)', () => {
+	const tracks = { 1: { science: [5] }, 2: { military: [3] } };
+	assert.deepEqual(offered(tinkerersGame(tracks)), [1, 2, 3, 4]);
+	assert.deepEqual(offered(tinkerersGame(tracks, { used: [2, 4] })), [1, 3]);
+	assert.equal(offered(tinkerersGame(tracks, { used: [4, 1, 3, 2] })), null);
+	// Every token on the start: no space paid for, none to go back from, nobody ahead, but bonus spaces ahead.
+	assert.deepEqual(offered(tinkerersGame({})), [4]);
+
+	const { state, random } = tinkerersGame(tracks);
+	const used = tinker(state, random, 3);
+	assert.deepEqual(used.seats[0].civData.tinkerers.used, [3]);
+	assert.deepEqual(eventsOf(used, 'tinkerersUsed', state.seq), [
+		{ type: 'tinkerersUsed', player: 1, option: 3 },
+	]);
+	assert.deepEqual(openDecisions(used), []);
+	assert.deepEqual(offered({ state: used, random }), [1, 2, 4]);
+});
+
+test('Pay back (option 1) gains the resources it cost to advance into the space of a token the player chooses (03 §1.3)', () => {
+	const { state, random } = tinkerersGame({
+		1: { exploration: [2], science: [5], military: [10] },
+	});
+	const payBack = tinker(state, random, 1);
+	const decision = /** @type {any} */ (decisionOf(payBack, 'chooseSlot'));
+	assert.deepEqual(
+		[decision.purpose, decision.optional, decision.options],
+		[
+			'tinkerersPayBack',
+			false,
+			[
+				{ track: 'exploration', space: 2 },
+				{ track: 'science', space: 5 },
+				{ track: 'military', space: 10 },
+			],
+		]
+	);
+	// Tier IV: 2 of the track's resource.
+	const military = answer(payBack, random, 1, 'chooseSlot', {
+		slot: { track: 'military', space: 10 },
+	});
+	assert.deepEqual(military.seats[0].resources, {
+		coin: 0,
+		worker: 0,
+		food: 0,
+		culture: 2,
+	});
+	assert.deepEqual(openDecisions(military), []);
+	// Tier II: 1 worker and 1 resource of the player's choice.
+	const science = answer(payBack, random, 1, 'chooseSlot', {
+		slot: { track: 'science', space: 5 },
+	});
+	const paid = answer(science, random, 1, 'chooseResource', {
+		resources: { coin: 1 },
+	});
+	assert.deepEqual(paid.seats[0].resources, {
+		coin: 1,
+		worker: 1,
+		food: 0,
+		culture: 0,
+	});
+	// The tokens stay where they are.
+	assert.deepEqual(paid.seats[0].tracks, state.seats[0].tracks);
+	assert.deepEqual(openDecisions(paid), []);
+});
+
+test('Pay back offers each token past the start, two on one track apart, and asks nothing for a lone one (03 §1.3)', () => {
+	const twice = tinkerersGame({ 1: { technology: [7, 2] } });
+	const asked = tinker(twice.state, twice.random, 1);
+	assert.deepEqual(decisionOf(asked, 'chooseSlot')?.options, [
+		{ track: 'technology', space: 2 },
+		{ track: 'technology', space: 7 },
+	]);
+
+	const lone = tinkerersGame({ 1: { technology: [11] } });
+	const gained = tinker(lone.state, lone.random, 1);
+	assert.equal(gained.seats[0].resources.coin, 2);
+	assert.deepEqual(openDecisions(gained), []);
+});
+
+test('Catch up (option 2) advances to the closest opponent ahead, with the benefit and the landmarks passed, as an advance (03 §1.3, R9)', () => {
+	// Tile 18: 5 VP whenever its player advances on Military.
+	const { state, random } = tinkerersGame(
+		{ 1: { military: [3] }, 2: { military: [9] }, 3: { military: [4] } },
+		{ count: 3 }
+	);
+	state.seats[0].exploredSpace = [18];
+	const caught = tinker(state, random, 2);
+	assert.deepEqual(caught.seats[0].tracks.military, [4]);
+	assert.deepEqual(eventsOf(caught, 'landmarkGained', state.seq), [
+		{
+			type: 'landmarkGained',
+			player: 1,
+			landmark: 'barracks',
+			track: 'military',
+		},
+	]);
+	const placed = answerFirst(caught, random, 1, 'choosePlacement');
+	// Standing Army's benefit gives 1 worker; the space tile gives 5 VP for the advance.
+	assert.equal(placed.seats[0].resources.worker, 1);
+	assert.deepEqual(
+		eventsOf(placed, 'vpGained', state.seq)
+			.filter((e) => e.source === 'map')
+			.map((e) => e.vp),
+		[5]
+	);
+	assert.deepEqual(openDecisions(placed), []);
+});
+
+test('Catch up gains no bonus, and leaves out tracks where nobody is ahead or the player is blocked (03 §1.3, design §5)', () => {
+	const { state, random } = tinkerersGame({
+		1: { exploration: [4], science: [6], technology: [2] },
+		2: { exploration: [5], science: [6], technology: [5] },
+	});
+	state.seats[0].resources = { coin: 3, worker: 3, food: 3, culture: 3 };
+	// The opponent's Dictatorship blocks Technology.
+	state.blocks = [{ player: 2, track: 'technology' }];
+	const caught = tinker(state, random, 2);
+	// The one move left is made without asking: Ships' benefit, but not its bonus farm.
+	assert.deepEqual(caught.seats[0].tracks.exploration, [5]);
+	assert.deepEqual(caught.seats[0].tracks.technology, [2]);
+	assert.deepEqual(eventsOf(caught, 'spaceActivated', state.seq), [
+		{
+			type: 'spaceActivated',
+			player: 1,
+			track: 'exploration',
+			space: 5,
+		},
+	]);
+	assert.deepEqual(openDecisions(caught), []);
+});
+
+test('with several tracks to catch up on, the player chooses the move (03 §1.3)', () => {
+	const { state, random } = tinkerersGame({
+		1: { exploration: [4], military: [1] },
+		2: { exploration: [5], military: [2] },
+	});
+	state.seats[0].resources = { coin: 3, worker: 3, food: 3, culture: 3 };
+	const asked = tinker(state, random, 2);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseMove'));
+	assert.deepEqual(
+		[decision.direction, decision.purpose, decision.option],
+		['jump', 'tinkerers', 2]
+	);
+	assert.deepEqual(answersOf(asked, 'chooseMove'), [
+		{ track: 'exploration', from: 4, to: 5 },
+		{ track: 'military', from: 1, to: 2 },
+	]);
+	const moved = answer(asked, random, 1, 'chooseMove', {
+		track: 'military',
+		from: 1,
+		to: 2,
+	});
+	assert.deepEqual(moved.seats[0].tracks, {
+		...state.seats[0].tracks,
+		military: [2],
+	});
+	// Bladed Weapons' benefit is 1 tapestry card; its armory bonus is not offered.
+	assert.equal(moved.seats[0].hand.length, 1);
+	assert.deepEqual(openDecisions(moved), []);
+});
+
+test('Step back (option 3) goes back exactly 3 spaces, with the benefit, and the bonus may be paid; it gains no landmark and is no advance (03 §1.3, R9)', () => {
+	// Tile 16: 5 VP whenever its player advances on Technology.
+	const { state, random } = tinkerersGame({
+		1: { exploration: [8], science: [2], technology: [3] },
+	});
+	state.seats[0].resources = { coin: 3, worker: 0, food: 0, culture: 0 };
+	state.seats[0].exploredSpace = [16];
+	const asked = tinker(state, random, 3);
+	// Science 2 is too close to the start; Technology 3 may go back onto it.
+	assert.deepEqual(answersOf(asked, 'chooseMove'), [
+		{ track: 'exploration', from: 8, to: 5 },
+		{ track: 'technology', from: 3, to: 0 },
+	]);
+	const back = answer(asked, random, 1, 'chooseMove', {
+		track: 'exploration',
+		from: 8,
+		to: 5,
+	});
+	assert.deepEqual(back.seats[0].tracks.exploration, [5]);
+	assert.deepEqual(eventsOf(back, 'landmarkGained', state.seq), []);
+	// Ships' benefit, then its bonus: pay 1 resource for a farm.
+	const bonus = /** @type {any} */ (decisionOf(back, 'chooseBonus'));
+	assert.deepEqual(
+		[bonus.track, bonus.space, bonus.cost],
+		['exploration', 5, { any: 1 }]
+	);
+
+	const start = answer(asked, random, 1, 'chooseMove', {
+		track: 'technology',
+		from: 3,
+		to: 0,
+	});
+	assert.deepEqual(start.seats[0].tracks.technology, [0]);
+	assert.deepEqual(eventsOf(start, 'vpGained', state.seq), []);
+	assert.deepEqual(openDecisions(start), []);
+});
+
+test('Jump ahead (option 4) moves to the next space with a bonus and offers it free: no benefit, no landmark for the tier passed, and no advance (03 §1.3, R9)', () => {
+	// Tile 17: 5 VP whenever its player advances on Science.
+	const { state, random } = tinkerersGame({
+		1: {
+			exploration: [12],
+			science: [2],
+			technology: [12],
+			military: [11],
+		},
+	});
+	state.seats[0].exploredSpace = [17];
+	// No other token has a bonus space ahead, so the jump is made without asking.
+	const jumped = tinker(state, random, 4);
+	assert.deepEqual(jumped.seats[0].tracks.science, [5]);
+	assert.ok(jumped.landmarks.includes('apothecary'));
+	assert.deepEqual(eventsOf(jumped, 'landmarkGained', state.seq), []);
+	// Chemistry's research is its benefit: no die is rolled.
+	assert.deepEqual(eventsOf(jumped, 'scienceDieRolled', state.seq), []);
+	const bonus = /** @type {any} */ (decisionOf(jumped, 'chooseBonus'));
+	assert.deepEqual(
+		[bonus.track, bonus.space, bonus.cost],
+		['science', 5, {}]
+	);
+	assert.deepEqual(answersOf(jumped, 'chooseBonus')[0], { pay: null });
+	const taken = answer(jumped, random, 1, 'chooseBonus', { pay: {} });
+	// Chemistry's bonus is 5 VP, and the space tile gives none.
+	assert.deepEqual(
+		eventsOf(taken, 'vpGained', state.seq).map((e) => e.vp),
+		[5]
+	);
+	assert.equal(taken.seats[0].vp, state.seats[0].vp + 5);
+	assert.deepEqual(openDecisions(taken), []);
+});
+
+test('Jump ahead leaves out a blocked track, and with several tracks the player chooses (03 §1.3, design §5)', () => {
+	const { state, random } = tinkerersGame({});
+	state.blocks = [{ player: 2, track: 'science' }];
+	const asked = tinker(state, random, 4);
+	assert.deepEqual(answersOf(asked, 'chooseMove'), [
+		{ track: 'exploration', from: 0, to: 2 },
+		{ track: 'technology', from: 0, to: 2 },
+		{ track: 'military', from: 0, to: 2 },
+	]);
+	const jumped = answer(asked, random, 1, 'chooseMove', {
+		track: 'military',
+		from: 0,
+		to: 2,
+	});
+	assert.deepEqual(jumped.seats[0].tracks.military, [2]);
+	// Bladed Weapons' benefit, 1 tapestry card, is not gained; its bonus is free.
+	assert.deepEqual(jumped.seats[0].hand, []);
+	const bonus = /** @type {any} */ (decisionOf(jumped, 'chooseBonus'));
+	assert.deepEqual([bonus.space, bonus.cost], [2, {}]);
+});
+
+test('Tinkerers use their ability in step 1 of income turns 2 to 5', () => {
+	const ready = turnHolding('tinkerers', (seat) => {
+		seat.tracks.science = [5];
+	});
+	const { player } = ready;
+	const since = ready.state.seq;
+	const state = answer(ready.state, ready.random, player, 'chooseTurn', {
+		turn: 'income',
+	});
+	assert.ok(
+		eventsOf(state, 'civAbilityUsed', since).some(
+			(e) => e.civ === 'tinkerers'
+		)
+	);
+	const decision = /** @type {any} */ (decisionOf(state, 'chooseSlot'));
+	assert.deepEqual(
+		[decision?.player, decision?.purpose],
+		[player, 'tinkerers']
+	);
+	assert.ok(decision.options.includes(1));
+});

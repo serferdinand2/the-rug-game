@@ -10,8 +10,9 @@ import { describeEffects } from './describe.js';
 import { seatName } from './game-names.js';
 
 /**
- * What a spot on a card shows: a player's piece on it, a used Leaders track or Treasure Hunters treasure, a space or
- * square uncovered, a Merrymakers column whose token has left the start, a Mystics prediction, or a prediction reached.
+ * What a spot on a card shows: a player's piece on it, a used Leaders track, Treasure Hunters treasure or Tinkerers
+ * option, a space or square uncovered, a Merrymakers column whose token has left the start, a Mystics prediction, or a
+ * prediction reached.
  * @typedef {'token' | 'used' | 'exposed' | 'moved' | 'chosen' | 'reached'} SpotMark
  */
 
@@ -26,7 +27,8 @@ import { seatName } from './game-names.js';
 
 /**
  * The civilizations whose cards draw a seat's live state, in the order built: the first six's decisions are answered on
- * their card (#78); the Treasure Hunters' card only shows the treasures used, as its treasure is picked in the panel (#33).
+ * their card (#78); the Treasure Hunters' and the Tinkerers' cards only mark the treasures and options used, as those
+ * are picked in the panel (#33).
  */
 export const CARD_CIVS = Object.freeze([
 	'entertainers',
@@ -36,6 +38,7 @@ export const CARD_CIVS = Object.freeze([
 	'historians',
 	'mystics',
 	'treasure-hunters',
+	'tinkerers',
 ]);
 
 /** The card each slot purpose is answered on. The Historians' tile to discard stays in the panel. */
@@ -122,6 +125,11 @@ export function civCardMarks(civ, data) {
 		case 'treasure-hunters':
 			for (const terrain of data.used) {
 				mark(terrain, 'used');
+			}
+			break;
+		case 'tinkerers':
+			for (const option of data.used) {
+				mark(`option${option}`, 'used');
 			}
 			break;
 	}

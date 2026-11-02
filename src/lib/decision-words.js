@@ -3,6 +3,7 @@
 import './engine/game.js';
 import { RECYCLERS_VP } from './engine/civs/recyclers.js';
 import { TREASURES } from './engine/civs/treasure-hunters.js';
+import { TRACKS, advanceCost } from './engine/data/tracks.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
 import { spaceTileWords } from './area/terrain.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
@@ -160,6 +161,8 @@ const SLOT_TITLES = {
 	militantsRow: () => 'Choose a Militants row to take an outpost from',
 	militantsPlace: () => 'Choose a Militants row for the outpost',
 	treasureHunters: () => 'Choose a treasure to claim',
+	tinkerers: () => 'Put a Tinkerers token on an option?',
+	tinkerersPayBack: () => 'Pay back: choose one of your track spaces',
 };
 
 /** What each Treasure Hunters treasure rolls once its resource is gained, by its die (03 §1.3). */
@@ -169,6 +172,27 @@ const TREASURE_ROLLS = /** @type {Readonly<Record<string, string>>} */ ({
 	conquer: 'roll both conquer dice and gain both results',
 	red: 'roll the red conquer die twice and gain both results',
 });
+
+/** The Tinkerers' options by number, named as their card names them (03 §1.3), for the panel and the log. */
+export const TINKERERS_OPTION_NAMES =
+	/** @type {Readonly<Record<number, string>>} */ (
+		Object.freeze({
+			1: 'Pay back',
+			2: 'Catch up',
+			3: 'Step back',
+			4: 'Jump ahead',
+		})
+	);
+
+/** What each Tinkerers option does, after its name. */
+const TINKERERS_OPTION_WORDS = /** @type {Readonly<Record<number, string>>} */ (
+	Object.freeze({
+		1: 'gain what advancing into one of your track spaces cost',
+		2: 'advance to the closest opponent ahead, with the benefit but not the bonus',
+		3: 'go back 3 spaces, with the benefit, and you may pay the bonus',
+		4: 'move to the next space with a bonus and take that bonus for free, without the benefit',
+	})
+);
 
 /**
  * Each decision kind's title.
@@ -213,6 +237,12 @@ const TITLES = {
 		}
 	},
 	chooseMove: (d) => {
+		if (
+			d.purpose === 'tinkerers' &&
+			Object.hasOwn(TINKERERS_OPTION_NAMES, d.option)
+		) {
+			return `${TINKERERS_OPTION_NAMES[d.option]}: choose a token to move`;
+		}
 		if (d.direction === 'regress') {
 			return 'Choose a track to go back on';
 		}
@@ -414,6 +444,18 @@ const SLOT_ANSWERS = {
 			? `${capitalize(treasure.terrain)}: ${effectPhrase({ gain: treasure.gain }, table)}, then ${TREASURE_ROLLS[treasure.die]}`
 			: null;
 	},
+	tinkerers: (slot) =>
+		Object.hasOwn(TINKERERS_OPTION_NAMES, slot)
+			? `${TINKERERS_OPTION_NAMES[slot]}: ${TINKERERS_OPTION_WORDS[slot]}`
+			: null,
+	tinkerersPayBack: (slot, decision, table) =>
+		isRecord(slot) &&
+		isTrack(slot.track) &&
+		isCount(slot.space) &&
+		slot.space >= 1 &&
+		slot.space < TRACKS[slot.track].length
+			? `${spaceName(slot.track, slot.space)} on ${trackName(slot.track)}: ${effectPhrase({ gain: advanceCost(slot.track, slot.space) }, table)}`
+			: null,
 };
 
 /**

@@ -81,6 +81,7 @@ import {
 	treasureClaim,
 	treasureRoll,
 } from './civs/treasure-hunters.js';
+import { tinkerersOption, tinkerersPayBack } from './civs/tinkerers.js';
 import { heraldsToken } from './civs/heralds.js';
 import { historiansToken, historiansDiscard } from './civs/historians.js';
 import { inventorsToken, inventorsTake } from './civs/inventors.js';
@@ -176,6 +177,8 @@ export const AUTOMATIC = {
 	treasureHex,
 	treasureClaim,
 	treasureRoll,
+	tinkerersOption,
+	tinkerersPayBack,
 	militantsTake,
 	militantsUncover,
 	militantsCover,

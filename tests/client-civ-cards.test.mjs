@@ -21,6 +21,8 @@ import { TRADERS_TOKENS } from '../src/lib/engine/civs/traders.js';
 import { INVENTORS_TOKENS } from '../src/lib/engine/civs/inventors.js';
 import { HERALDS_TOKENS } from '../src/lib/engine/civs/heralds.js';
 import { MYSTICS_PROPHECIES } from '../src/lib/engine/civs/mystics.js';
+import { TINKERERS_OPTIONS } from '../src/lib/engine/civs/tinkerers.js';
+import { TINKERERS_OPTION_NAMES } from '../src/lib/decision-words.js';
 import { civCard } from '../src/lib/cards/civ-cards.js';
 import {
 	REVIEWED_CIVILIZATIONS,
@@ -140,6 +142,20 @@ test("the nine other Plans & Ploys civilizations get a card from 03 §1.3's text
 		'Setup, current rules: upgrade a tech card.'
 	);
 	assert.equal(setup('spies', 'original'), '');
+});
+
+test("the Tinkerers' boxes are the spots their used options mark, named as the panel and the log name them (#33)", () => {
+	const effects = sectionOf(civCard('tinkerers'), 'effects').effects;
+	const spots = effects.map((/** @type {any} */ e) => e.spot);
+	assert.deepEqual(spots, ['option1', 'option2', 'option3', 'option4']);
+	assert.deepEqual(
+		Object.keys(civCardMarks('tinkerers', { used: [4, 2, 1, 3] })).sort(),
+		[...spots].sort()
+	);
+	assert.deepEqual(
+		effects.map((/** @type {any} */ e) => e.title),
+		TINKERERS_OPTIONS.map((option) => TINKERERS_OPTION_NAMES[option])
+	);
 });
 
 test('a civilization without a reviewed layout gets its frame, portrait and name only', () => {

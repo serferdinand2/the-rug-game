@@ -20,6 +20,10 @@ import {
 	TREASURE_HUNTERS_TILES,
 	TREASURE_HUNTERS_TOKENS,
 } from '../src/lib/engine/civs/treasure-hunters.js';
+import {
+	TINKERERS_OPTIONS,
+	TINKERERS_STEP_BACK,
+} from '../src/lib/engine/civs/tinkerers.js';
 import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 
@@ -418,4 +422,48 @@ test('the Treasure Hunters read as the engine plays them (03 §1.3, R114)', () =
 	]) {
 		assert.ok(text.includes(words), words);
 	}
+});
+
+test('the Tinkerers read as the engine plays them, with the current rules adding a tapestry card (03 §1.3, R48)', () => {
+	const text = /** @type {string} */ (
+		civAbilityText('tinkerers', 'original')
+	);
+	assertInOrder(
+		text,
+		'If you start',
+		[
+			'each opponent',
+			'1 tech card',
+			'from the deck into their bottom row',
+			'first income turn',
+			'gain the Tinkerers later',
+			'nothing',
+			'income turns 2 to 5',
+			`${TINKERERS_OPTIONS.length} options`,
+			'once a game',
+			'Pay back:',
+			'cost to advance into the space',
+			'stays',
+			'Catch up:',
+			'closest opponent ahead',
+			'the benefit but not the bonus',
+			'landmarks',
+			'Step back:',
+			`exactly ${TINKERERS_STEP_BACK} spaces`,
+			'benefit',
+			'may pay its bonus',
+			'no landmark',
+			'Jump ahead:',
+			'next space with a bonus',
+			'for free',
+			'no benefit',
+			'no landmark',
+			'not an advance',
+			'blocked',
+		],
+		'Tinkerers'
+	);
+	assert.deepEqual(currentOnly('tinkerers'), [
+		'Current rules: if you start the game with the Tinkerers, each opponent also gains 1 tapestry card.',
+	]);
 });

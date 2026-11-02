@@ -18,6 +18,7 @@ import { nomads } from './nomads.js';
 import { recyclers } from './recyclers.js';
 import { riverfolk } from './riverfolk.js';
 import { theChosen } from './the-chosen.js';
+import { tinkerers } from './tinkerers.js';
 import { traders } from './traders.js';
 import { treasureHunters } from './treasure-hunters.js';
 
@@ -51,6 +52,7 @@ export const CIVS = {
 	recyclers,
 	aliens,
 	'treasure-hunters': treasureHunters,
+	tinkerers,
 };
 
 /**

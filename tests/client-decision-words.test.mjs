@@ -326,6 +326,74 @@ test("the Treasure Hunters' territory, treasure and black die result read as wha
 	);
 });
 
+test("the Tinkerers' option, the space Pay back pays for and the token to move read as what they do (#33)", () => {
+	const option = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'tinkerers',
+		optional: true,
+		options: [1, 2, 3, 4],
+	};
+	assert.equal(decisionTitle(option), 'Put a Tinkerers token on an option?');
+	assert.deepEqual(
+		[null, ...option.options].map((slot) =>
+			describeAnswer(option, { slot })
+		),
+		[
+			'Decline',
+			'Pay back: gain what advancing into one of your track spaces cost',
+			'Catch up: advance to the closest opponent ahead, with the benefit but not the bonus',
+			'Step back: go back 3 spaces, with the benefit, and you may pay the bonus',
+			'Jump ahead: move to the next space with a bonus and take that bonus for free, without the benefit',
+		]
+	);
+	const payBack = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'tinkerersPayBack',
+		optional: false,
+		options: [
+			{ track: 'science', space: 5 },
+			{ track: 'military', space: 10 },
+		],
+	};
+	assert.equal(
+		decisionTitle(payBack),
+		'Pay back: choose one of your track spaces'
+	);
+	assert.deepEqual(
+		payBack.options.map((slot) => describeAnswer(payBack, { slot })),
+		[
+			'Chemistry on Science: gain 1 worker and 1 resource of your choice',
+			'Nuclear Bomb on Military: gain 2 culture',
+		]
+	);
+	const move = {
+		id: 3,
+		batch: 1,
+		player: 1,
+		kind: 'chooseMove',
+		direction: 'jump',
+		purpose: 'tinkerers',
+		option: 4,
+		optional: false,
+		options: [{ track: 'exploration', from: 0, to: 2 }],
+	};
+	assert.equal(decisionTitle(move), 'Jump ahead: choose a token to move');
+	assert.equal(
+		decisionTitle({ ...move, option: 2 }),
+		'Catch up: choose a token to move'
+	);
+	assert.equal(
+		describeAnswer(move, move.options[0]),
+		'Move from the start to Rafts on Exploration'
+	);
+});
+
 test('unknown decisions and answers fall back to a readable sentence', () => {
 	const odd = { id: 1, batch: 1, player: 1, kind: 'chooseSomethingNew' };
 	assertReadable(decisionTitle(odd), 'an unknown title');

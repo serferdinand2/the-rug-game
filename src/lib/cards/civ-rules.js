@@ -222,6 +222,22 @@ const CIV_TEXTS = Object.freeze({
 			],
 		}
 	),
+	tinkerers: civ(
+		[
+			'If you start the game with the Tinkerers, each opponent gains 1 tech card from the deck into their bottom row and may not upgrade a tech card during their first income turn. If you gain the Tinkerers later in the game, your opponents gain nothing.',
+			'At the start of income turns 2 to 5, you may put a token on one of these 4 options that you have not used yet: each is used once a game.',
+			'Pay back: gain the resources it cost to advance into the space of one of your tokens. The token stays where it is.',
+			'Catch up: advance a token to the space of the closest opponent ahead of you on its track. You gain the benefit but not the bonus, and the landmarks you reach or pass.',
+			'Step back: move a token back exactly 3 spaces. You gain that space’s benefit and you may pay its bonus, but no landmark.',
+			'Jump ahead: move a token forward to the next space with a bonus and gain that bonus for free. You gain no benefit and no landmark for the tiers you pass, and it is not an advance for abilities that reward one.',
+			'You may not catch up or jump ahead on a track you are blocked from advancing on.',
+		],
+		{
+			current: [
+				'Current rules: if you start the game with the Tinkerers, each opponent also gains 1 tapestry card.',
+			],
+		}
+	),
 	traders: civ(
 		[
 			'You start with 4 tokens.',

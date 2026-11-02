@@ -108,7 +108,8 @@ export function activationOps(ctx, player, track, space, bonus = true) {
  * With `freeBonus` and no benefit (Renaissance), the bonus of the space reached is offered for free, unless the
  * player already activated that space this turn; offering it activates the space (R19). With `noBonus` (Leaders),
  * the benefit comes without the bonus.
- * A `jump` (Futurists) gains no landmark (R9's exception), no benefit and no bonus, and fires no `advanced` trigger (#20 design §7).
+ * A `jump` (Futurists) gains no landmark (R9's exception), no benefit and no bonus, and fires no `advanced` trigger (#20 design §7);
+ * with `freeBonus` (the Tinkerers' jump ahead) it still offers the bonus of the space reached for free.
  * Reaching space 12 claims "complete any track" all the same, and pushes the `countsChanged` triggers last.
  * @param {import('./state.js').Context} ctx
  * @param {number} player
@@ -140,7 +141,7 @@ export function moveToken(
 	}
 	/** @type {import('./state.js').NewOperation[]} */
 	const ops = jump
-		? []
+		? freeBonusOps(state, player, track, to, freeBonus)
 		: arrivalOps(ctx, player, {
 				track,
 				from,
@@ -206,13 +207,30 @@ function arrivalOps(
 	}
 	if (benefit) {
 		ops.push(...activationOps(ctx, player, track, to, !noBonus));
-	} else if (
-		freeBonus &&
-		TRACKS[track][to].bonus &&
-		!isActivated(state, player, track, to)
-	) {
-		state.activated.push({ player, track, space: to });
-		ops.push({ player, kind: 'bonus', track, space: to, free: true });
+	} else {
+		ops.push(...freeBonusOps(state, player, track, to, freeBonus));
 	}
 	return ops;
+}
+
+/**
+ * The bonus of the space reached, offered for free (Renaissance, the Tinkerers' jump ahead), unless `freeBonus` is off,
+ * the space has none, or the player already activated it this turn; offering it activates the space (R19).
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @param {TrackId} track
+ * @param {number} to
+ * @param {boolean} freeBonus
+ * @returns {import('./state.js').NewOperation[]}
+ */
+function freeBonusOps(state, player, track, to, freeBonus) {
+	if (
+		!freeBonus ||
+		!TRACKS[track][to].bonus ||
+		isActivated(state, player, track, to)
+	) {
+		return [];
+	}
+	state.activated.push({ player, track, space: to });
+	return [{ player, kind: 'bonus', track, space: to, free: true }];
 }

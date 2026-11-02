@@ -4,7 +4,7 @@ import { BLACK_DIE, RED_DIE, SCIENCE_DIE } from './engine/data/dice.js';
 import { VERSIONS } from './engine/game.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
 import { describeCost } from './describe.js';
-import { PROPHECIES } from './decision-words.js';
+import { PROPHECIES, TINKERERS_OPTION_NAMES } from './decision-words.js';
 import { landmarkGoalPhrase } from './cards/landmark-text.js';
 import { LANDMARK_CARDS } from './engine/data/landmark-cards.js';
 import { article, capitalize, countWords, joinList } from './words.js';
@@ -817,6 +817,10 @@ const WORDS = {
 				return `${who} the dice for a treasure.`;
 		}
 	},
+	tinkerersUsed: (e, game, name) =>
+		Object.hasOwn(TINKERERS_OPTION_NAMES, e.option)
+			? `${name} put a Tinkerers token on option ${e.option}, ${TINKERERS_OPTION_NAMES[e.option]}.`
+			: `${name} put a Tinkerers token on an option.`,
 	heraldsCopied: (e, game, name) =>
 		`${name} used a Heralds token to copy ${whose(game, e.owner, e.player)} ${tapestryName(e.card)}.`,
 	historiansGave: (e, game, name) =>

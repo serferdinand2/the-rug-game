@@ -204,6 +204,7 @@ const SAMPLES = {
 	tilesDiscarded: { player: 1, stack: 'territory', tiles: [26] },
 	tilesGained: { player: 1, stack: 'territory', tiles: [26] },
 	timedOut: { player: 2 },
+	tinkerersUsed: { player: 1, option: 2 },
 	tokenMoved: { player: 1, track: 'exploration', from: 0, to: 1 },
 	tokenPlaced: { player: 2, civ: 'traders', hex: '0_2' },
 	treasureRolled: { player: 1, die: 'black', faces: [0, 4] },
@@ -615,6 +616,15 @@ test('the important events read as plain sentences', () => {
 		[
 			sample('tokenPlaced', { player: 1, civ: 'treasure-hunters' }),
 			'Ana placed a Treasure Hunters token on hex 0,2.',
+		],
+		// The Tinkerers' options (#33).
+		[
+			sample('tinkerersUsed'),
+			'Ana put a Tinkerers token on option 2, Catch up.',
+		],
+		[
+			sample('tinkerersUsed', { option: 4 }),
+			'Ana put a Tinkerers token on option 4, Jump ahead.',
 		],
 		[
 			sample('techUpgraded', { card: 'clocks' }),
