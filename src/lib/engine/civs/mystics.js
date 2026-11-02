@@ -5,6 +5,7 @@ import { cityPlots, completeDistricts } from '../city.js';
 import { countVp } from '../effects/vp.js';
 import { LAST_SPACE, spacesAdvanced } from '../movement.js';
 import { TRACK_IDS } from '../data/ids.js';
+import { discardCiv } from './civ.js';
 
 /** @typedef {'techCards' | 'districts' | 'territories' | 'tracks'} ProphecyCategory */
 
@@ -154,9 +155,7 @@ export const mystics = {
 		const { state } = ctx;
 		const seat = playerSeat(state, player);
 		if (midGame) {
-			seat.civs.splice(seat.civs.lastIndexOf('mystics'), 1);
-			state.supply.civDiscard.push('mystics');
-			emit(state, { type: 'civDiscarded', player, civ: 'mystics' });
+			discardCiv(ctx, player, { civ: 'mystics' });
 			ctx.push([{ player, kind: 'effects', effects: [{ gainCiv: {} }] }]);
 			return;
 		}

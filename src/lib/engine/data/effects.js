@@ -89,6 +89,7 @@ import { deepFreeze } from './ids.js';
  * - `landmarkRank`: compare landmarks owned with every opponent and run `fewest`, `most` or `otherwise`.
  * - `placeOutpost`: put an outpost from the supply on a hex, without a conquest.
  * - `placeToken`: put one of a civilization's tokens from its mat on a hex, as an item that gives no control (R33).
+ * - `discardCiv`: discard a civilization you hold, face up (the Riverfolk gained mid-game, #33).
  * - `darkAges`, `socialism`, `dictatorship`, `revolution`, `colonialism`, `pleaForAid`, `technocracy`, `tradeEconomy`, `coalBaron`, `olympicHost`: the rules of the card of that name.
  * - `astronomy`, `cartography`, `manifestDestiny`, `statusQuo`, `worldsFair`: the rules of the Plans & Ploys card of that name (#33).
  * @typedef {{ gain: Gain }
@@ -123,6 +124,7 @@ import { deepFreeze } from './ids.js';
  *   | { landmarkRank: { fewest: Effect[], most: Effect[], otherwise: Effect[] } }
  *   | { placeOutpost: { hex: string } }
  *   | { placeToken: { hex: string, civ: string } }
+ *   | { discardCiv: { civ: string } }
  *   | { darkAges: {} }
  *   | { socialism: {} }
  *   | { dictatorship: {} }
@@ -184,6 +186,7 @@ export const EFFECT_KINDS = deepFreeze([
 	'landmarkRank',
 	'placeOutpost',
 	'placeToken',
+	'discardCiv',
 	'darkAges',
 	'socialism',
 	'dictatorship',

@@ -245,6 +245,7 @@ test('every effect kind and VP counter has its own words', () => {
 		},
 		placeOutpost: { hex: '0_1' },
 		placeToken: { hex: '2_-1', civ: 'traders' },
+		discardCiv: { civ: 'riverfolk' },
 	};
 	for (const kind of EFFECT_KINDS) {
 		const words = describeEffects([{ [kind]: examples[kind] ?? {} }]);
@@ -261,6 +262,21 @@ test('every effect kind and VP counter has its own words', () => {
 		'Place an outpost on hex 2,−1'
 	);
 	assert.equal(describeEffects([{ darkAges: {} }]), 'Resolve Dark Ages');
+	assert.equal(
+		describeEffects(
+			[{ discardCiv: { civ: 'riverfolk' } }, { gainCiv: {} }],
+			{ ordered: true }
+		),
+		'Discard the Riverfolk, then draw another civilization from the deck'
+	);
+	assert.equal(
+		describeEffects([{ discardCiv: { civ: 'the-chosen' } }]),
+		'Discard The Chosen'
+	);
+	assert.equal(
+		describeEffects([{ discardCiv: {} }]),
+		'Discard a civilization'
+	);
 });
 
 test('unknown effects and costs fall back to a readable sentence', () => {

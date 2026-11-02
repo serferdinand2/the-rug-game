@@ -77,6 +77,7 @@ const SAMPLES = {
 	conquered: { player: 1, hex: '-2_-2', trapped: false },
 	cubePlaced: { player: 2, plot: 69 },
 	deckShuffled: { deck: 'civs', count: 15 },
+	districtsCleared: { player: 1, districts: [8] },
 	districtsCompleted: { player: 1, districts: [5, 6] },
 	entertainersMoved: { player: 2, space: 'c1r2' },
 	eraEnded: { player: 1, card: 'militarism', ability: 'militarism' },
@@ -495,6 +496,19 @@ test('the important events read as plain sentences', () => {
 		],
 		[sample('vpGained', { source: 'other' }), 'Ana scored 3 VP.'],
 		[sample('vpGained', { vp: 0 }), null],
+		[
+			sample('vpGained', { vp: -4, source: 'civ' }),
+			'Ana lost 4 VP from their civilization.',
+		],
+		[
+			sample('districtsCleared'),
+			'Ana covered the last impassable plot of a district in their capital.',
+		],
+		[
+			sample('districtsCleared', { districts: [1, 2] }),
+			'Ana covered the last impassable plots of 2 districts in their capital.',
+		],
+		[sample('districtsCleared', { districts: [] }), null],
 		[
 			sample('resourcesPaid', { paid: { coin: 1, food: 1 } }),
 			'Ana paid 1 coin and 1 food.',

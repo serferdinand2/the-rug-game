@@ -25,7 +25,21 @@ import { CAPITAL_MATS, impassablePlots } from './data/capitals.js';
  */
 
 /**
- * How many impassable plots a piece covers, the mat's and the Architects' cubes: none until Terraforming lets pieces go there.
+ * Whether a player's pieces may cover impassable plots, the mat's and the Architects' cubes: under Terraforming, or
+ * while they hold the Riverfolk (03 §1.3). Terraforming's 5 VP stay its own (eras.js).
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @returns {boolean}
+ */
+export function buildsOverImpassable(state, player) {
+	return (
+		hasEra(state, player, 'terraforming') ||
+		playerSeat(state, player).civs.includes('riverfolk')
+	);
+}
+
+/**
+ * How many impassable plots a piece covers, the mat's and the Architects' cubes: none unless buildsOverImpassable.
  * @param {import('./state.js').PlayerSeat} seat
  * @param {import('./city.js').PlacedBuilding | import('./city.js').PlacedLandmark} piece
  * @returns {number}
@@ -247,12 +261,12 @@ function otherPlaces(state, player, piece) {
  */
 export function placements(state, player, piece) {
 	const seat = playerSeat(state, player);
-	const terraform = hasEra(state, player, 'terraforming');
+	const overImpassable = buildsOverImpassable(state, player);
 	/** @type {Placement[]} */
 	const capital =
 		'landmark' in piece
-			? landmarkSpots(seat, piece.landmark, terraform)
-			: buildingSpots(seat, terraform);
+			? landmarkSpots(seat, piece.landmark, overImpassable)
+			: buildingSpots(seat, overImpassable);
 	const others = otherPlaces(state, player, piece);
 	return capital.length === 0 && others.length > 0
 		? [{ besideMat: true }, ...others]
@@ -270,10 +284,7 @@ export function placeBuilding(ctx, op) {
 		op.building
 	);
 	const seat = playerSeat(ctx.state, player);
-	const spots = buildingSpots(
-		seat,
-		hasEra(ctx.state, player, 'terraforming')
-	);
+	const spots = buildingSpots(seat, buildsOverImpassable(ctx.state, player));
 	const others = otherPlaces(ctx.state, player, { building });
 	if (spots.length === 0 && others.length === 0) {
 		placeBesideMat(ctx, player, { building });
@@ -297,7 +308,7 @@ export function placeLandmark(ctx, op) {
 	const spots = landmarkSpots(
 		seat,
 		landmark,
-		hasEra(ctx.state, player, 'terraforming')
+		buildsOverImpassable(ctx.state, player)
 	);
 	const places = new Set(
 		spots.map((spot) =>

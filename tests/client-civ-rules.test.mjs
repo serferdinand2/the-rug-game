@@ -1,4 +1,4 @@
-// The base civilizations' full abilities in words, in each table version (#42), checked against the engine's own rules.
+// The civilizations' full abilities in words, in each table version (#42, #33), checked against the engine's own rules.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { civAbilityText, civRules } from '../src/lib/cards/civ-rules.js';
@@ -9,6 +9,8 @@ import { CRAFTSMEN_COLUMNS } from '../src/lib/engine/civs/craftsmen.js';
 import { ENTERTAINERS_GRID } from '../src/lib/engine/civs/entertainers.js';
 import { MERRYMAKERS_COLUMNS } from '../src/lib/engine/civs/merrymakers.js';
 import { MILITANTS_SPACES } from '../src/lib/engine/civs/militants.js';
+import { RIVERFOLK_DISTRICT_VP } from '../src/lib/engine/civs/riverfolk.js';
+import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 
 /** @typedef {import('../src/lib/engine/data/effects.js').Effect} Effect */
@@ -111,8 +113,8 @@ function currentOnly(id) {
 	);
 }
 
-test('every base civilization the engine knows has its ability in words, in both versions', () => {
-	assert.equal(Object.keys(CIVS).length, 16);
+test('every civilization the engine knows has its ability in words, in both versions', () => {
+	assert.equal(Object.keys(CIVS).length, BASE_CIVS.length + PP_CIVS.length);
 	for (const id of Object.keys(CIVS)) {
 		for (const version of VERSION_IDS) {
 			const paragraphs = civRules(id, version);
@@ -169,13 +171,14 @@ test('the versions differ exactly for the civilizations the current rules change
 	}
 });
 
-test('an expansion or unknown civilization has no text', () => {
+test('an expansion civilization not built yet, or an unknown one, has no text', () => {
 	const expansion = ASSETS.filter(
 		(asset) => asset.group === 'civ' && asset.expansion !== 'base'
 	).map((asset) => asset.id.slice('civ-'.length));
-	assert.ok(expansion.includes('treasure-hunters'));
+	assert.ok(expansion.includes('collectors'));
+	assert.ok(PP_CIVS.every((id) => expansion.includes(id)));
 	for (const id of [
-		...expansion,
+		...expansion.filter((id) => !PP_CIVS.includes(id)),
 		'unknown',
 		'',
 		'constructor',
@@ -294,4 +297,26 @@ test('each current-rules adjustment gives what the engine gives (R34)', () => {
 			paragraph
 		);
 	}
+});
+
+test('the Riverfolk read as the engine plays them (03 §1.3)', () => {
+	const text = /** @type {string} */ (
+		civAbilityText('riverfolk', 'original')
+	);
+	assert.equal(civAbilityText('riverfolk', 'current'), text);
+	assertInOrder(
+		text,
+		'When you start',
+		[
+			`${RIVERFOLK_DISTRICT_VP} VP for each district`,
+			'at least 2 impassable plots',
+			'impassable plots',
+			'1 resource of your choice',
+			'income turn 5',
+			'1 VP for each impassable plot',
+			'0 VP',
+			'discard them and gain another civilization',
+		],
+		'Riverfolk'
+	);
 });

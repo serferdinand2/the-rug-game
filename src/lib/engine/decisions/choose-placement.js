@@ -1,9 +1,9 @@
 // The decision to pick a place for a gained building or landmark: a plot in the capital city, or another place a civilization offers (#20 design §9).
 import { PlayerError } from '../errors.js';
 import { playerSeat } from '../state.js';
-import { hasEra } from '../abilities.js';
 import { buildingProblem, landmarkProblem } from '../city.js';
 import {
+	buildsOverImpassable,
 	placeBesideMat,
 	placeInColumn,
 	placeOnMap,
@@ -67,7 +67,7 @@ export const choosePlacement = {
 		}
 		const player = /** @type {number} */ (decision.player);
 		const seat = playerSeat(state, player);
-		const terraform = hasEra(state, player, 'terraforming');
+		const overImpassable = buildsOverImpassable(state, player);
 		if (decision.landmark !== undefined) {
 			if (![0, 1, 2, 3].includes(answer.rotation)) {
 				throw new PlayerError('Choose a rotation from 0 to 3.');
@@ -80,7 +80,7 @@ export const choosePlacement = {
 					col: answer.col,
 					rotation: answer.rotation,
 				},
-				terraform
+				overImpassable
 			);
 			if (problem !== null) {
 				throw new PlayerError(problem);
@@ -93,7 +93,7 @@ export const choosePlacement = {
 		const problem = buildingProblem(
 			seat,
 			{ row: answer.row, col: answer.col },
-			terraform
+			overImpassable
 		);
 		if (problem !== null) {
 			throw new PlayerError(problem);

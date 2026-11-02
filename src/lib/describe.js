@@ -466,6 +466,13 @@ const PHRASES = {
 		const civ = civilizationName(value?.civ);
 		return `place ${article(civ)} ${civ} token on ${hexName(value?.hex)}`;
 	},
+	discardCiv(value) {
+		if (typeof value?.civ !== 'string') {
+			return 'discard a civilization';
+		}
+		const civ = civilizationName(value.civ);
+		return /^the /i.test(civ) ? `discard ${civ}` : `discard the ${civ}`;
+	},
 	...Object.fromEntries(
 		CARD_RULES.map((kind) => [
 			kind,

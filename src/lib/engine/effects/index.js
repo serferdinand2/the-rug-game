@@ -43,7 +43,7 @@ import {
 	worldsFair,
 } from './pp-cards.js';
 import { gainCiv } from '../civ-turns.js';
-import { placeToken } from '../civs/civ.js';
+import { discardCiv, placeToken } from '../civs/civ.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
@@ -89,6 +89,7 @@ export const EFFECTS = {
 	revolution,
 	placeOutpost,
 	placeToken,
+	discardCiv,
 	astronomy,
 	cartography,
 	manifestDestiny,

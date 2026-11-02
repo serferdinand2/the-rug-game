@@ -528,6 +528,15 @@ const WORDS = {
 			? `${name} completed a district in their capital.`
 			: `${name} completed ${n} districts in their capital.`;
 	},
+	districtsCleared(e, game, name) {
+		const n = Array.isArray(e.districts) ? e.districts.length : 0;
+		if (n === 0) {
+			return null;
+		}
+		return n === 1
+			? `${name} covered the last impassable plot of a district in their capital.`
+			: `${name} covered the last impassable plots of ${n} districts in their capital.`;
+	},
 	capitalScored(e, game, name) {
 		const parts = [
 			...(isCount(e.rows) && e.rows > 0

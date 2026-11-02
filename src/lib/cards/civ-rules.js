@@ -1,4 +1,4 @@
-// The 16 base civilizations' full abilities in plain words, in each table version (#42), as the engine plays them.
+// The civilizations' full abilities in plain words, in each table version (#42), as the engine plays them: the 16 base ones and Plans & Ploys' built ones (#33).
 
 /** @typedef {import('../engine/data/ids.js').VersionId} VersionId */
 
@@ -25,8 +25,8 @@ function civ(both, { original, current } = {}) {
 }
 
 /**
- * Each base civilization's words by the engine's id, paraphrased from 02 §1.2 with the README's rules (R28–R35) and
- * src/lib/engine/civs/. Expansion civilizations aren't built, so they have none here.
+ * Each civilization's words by the engine's id, paraphrased from 02 §1.2 and 03 §1.3 with the README's rules (R28–R35,
+ * R113) and src/lib/engine/civs/. Expansion civilizations not built yet have none here.
  * @type {Readonly<Record<string, Readonly<CivText>>>}
  */
 const CIV_TEXTS = Object.freeze({
@@ -185,6 +185,13 @@ const CIV_TEXTS = Object.freeze({
 		'A building or landmark on the map works like an outpost: it gives you control, and an opponent can conquer its territory and topple it.',
 		'Buildings on the map still count for VP per building.',
 	]),
+	riverfolk: civ([
+		'When you start the game with the Riverfolk, or keep them when you gain them later, you gain 4 VP for each district of your capital city with at least 2 impassable plots showing.',
+		'You may place income buildings and landmarks on impassable plots. They still count as filled for districts, rows and columns.',
+		'Whenever you cover the last impassable plot of a district, you gain 1 resource of your choice. Each district pays once, and one without impassable plots pays nothing.',
+		'At the start of income turn 5, you lose 1 VP for each impassable plot still showing, but you never go below 0 VP.',
+		'If you gain the Riverfolk later in the game, you may discard them and gain another civilization instead.',
+	]),
 	'the-chosen': civ(
 		[
 			'At the start of income turns 2 to 5, gain 1 VP per opponent for each track on which nobody is ahead of you. A tie counts, and so does a track you have finished.',
@@ -217,7 +224,7 @@ const CIV_TEXTS = Object.freeze({
  * of the civilization a player starts with (R34), or a rule they changed, as a last "Current rules:" paragraph.
  * @param {string} id - The engine's civilization id, such as 'the-chosen'
  * @param {VersionId} version - The table's rules version
- * @returns {string[] | null} A new list each call; null for a civilization with no text, such as an expansion's
+ * @returns {string[] | null} A new list each call; null for a civilization with no text, such as an expansion's not built yet
  */
 export function civRules(id, version) {
 	if (!Object.hasOwn(CIV_TEXTS, id)) {
@@ -232,7 +239,7 @@ export function civRules(id, version) {
  * A civilization's full ability as one text for a tooltip: its paragraphs with a blank line between them.
  * @param {string} id - The engine's civilization id, such as 'the-chosen'
  * @param {VersionId} version - The table's rules version
- * @returns {string | null} Null for a civilization with no text, such as an expansion's
+ * @returns {string | null} Null for a civilization with no text, such as an expansion's not built yet
  */
 export function civAbilityText(id, version) {
 	return civRules(id, version)?.join('\n\n') ?? null;

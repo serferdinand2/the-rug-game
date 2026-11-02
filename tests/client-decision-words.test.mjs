@@ -162,6 +162,23 @@ test('answers name seats, cards and resources', () => {
 		),
 		'Age of Sail'
 	);
+	// The Riverfolk gained mid-game (#33).
+	const riverfolk = {
+		id: 7,
+		batch: 1,
+		player: 1,
+		kind: 'chooseOption',
+		purpose: 'civOffer',
+		options: [[], [{ discardCiv: { civ: 'riverfolk' } }, { gainCiv: {} }]],
+	};
+	assert.equal(decisionTitle(riverfolk), 'Use your civilization?');
+	assert.deepEqual(
+		[0, 1].map((option) => describeAnswer(riverfolk, { option })),
+		[
+			'Decline',
+			'Discard the Riverfolk, then draw another civilization from the deck',
+		]
+	);
 });
 
 test('unknown decisions and answers fall back to a readable sentence', () => {

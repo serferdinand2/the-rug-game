@@ -1,4 +1,4 @@
-// The civilization registry: every base civilization by id and the ones a player holds (design §4).
+// The civilization registry: every civilization built, base and Plans & Ploys (#33), by id, and the ones a player holds (design §4).
 import { isPlayerSeat, playerSeat } from '../state.js';
 import { alchemists } from './alchemists.js';
 import { architects } from './architects.js';
@@ -14,6 +14,7 @@ import { merrymakers } from './merrymakers.js';
 import { militants } from './militants.js';
 import { mystics } from './mystics.js';
 import { nomads } from './nomads.js';
+import { riverfolk } from './riverfolk.js';
 import { theChosen } from './the-chosen.js';
 import { traders } from './traders.js';
 
@@ -23,7 +24,7 @@ import { traders } from './traders.js';
 export { offer } from './civ.js';
 
 /**
- * Every base civilization, by catalog id.
+ * Every civilization built, by catalog id: the base 16, then Plans & Ploys' (decks.js's PP_CIVS).
  * @type {Record<string, Civ>}
  */
 export const CIVS = {
@@ -43,6 +44,7 @@ export const CIVS = {
 	nomads,
 	'the-chosen': theChosen,
 	traders,
+	riverfolk,
 };
 
 /**

@@ -71,6 +71,7 @@ import {
 import { entertainersMove } from './civs/entertainers.js';
 import { alchemistsRoll } from './civs/alchemists.js';
 import { mysticsCheck } from './civs/mystics.js';
+import { riverfolkStart, riverfolkClear } from './civs/riverfolk.js';
 import { architectsCube } from './civs/architects.js';
 import { tradersToken } from './civs/traders.js';
 import { heraldsToken } from './civs/heralds.js';
@@ -159,6 +160,8 @@ export const AUTOMATIC = {
 	entertainersMove,
 	alchemistsRoll,
 	mysticsCheck,
+	riverfolkStart,
+	riverfolkClear,
 	architectsCube,
 	tradersToken,
 	militantsTake,

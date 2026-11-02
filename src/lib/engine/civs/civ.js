@@ -1,4 +1,4 @@
-// What every civilization module shares: the Civ shape, the offer of an optional gain (design §4) and tokens on the map (§8). It imports no civilization, so they can import it.
+// What every civilization module shares: the Civ shape, the offer of an optional gain (design §4), tokens on the map (§8) and a civilization's discard. It imports no civilization, so they can import it.
 import { emit } from '../events.js';
 import { playerSeat, seatOf } from '../state.js';
 
@@ -60,4 +60,24 @@ export function placeToken(ctx, player, { hex, civ }) {
 	data.tokens -= 1;
 	state.hexes[hex].tokens.push({ seat: player, civ });
 	emit(state, { type: 'tokenPlaced', player, civ, hex });
+}
+
+/**
+ * The discardCiv effect, which the Mystics' own discard shares: a civilization the player holds goes face up onto the
+ * civilization discards, the one gained last when they hold it twice.
+ * @param {Context} ctx
+ * @param {number} player
+ * @param {{ civ: string }} value
+ * @throws {Error} For a civilization the player doesn't hold: a bug, not a player's mistake
+ */
+export function discardCiv(ctx, player, { civ }) {
+	const { state } = ctx;
+	const seat = playerSeat(state, player);
+	const at = seat.civs.lastIndexOf(civ);
+	if (at === -1) {
+		throw new Error(`Seat ${player} holds no ${civ} to discard.`);
+	}
+	seat.civs.splice(at, 1);
+	state.supply.civDiscard.push(civ);
+	emit(state, { type: 'civDiscarded', player, civ });
 }
