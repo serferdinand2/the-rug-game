@@ -639,6 +639,19 @@ test('the important events read as plain sentences', () => {
 			sample('tokenPlaced', { player: 1, civ: 'treasure-hunters' }),
 			'Ana placed a Treasure Hunters token on hex 0,2.',
 		],
+		// The Infiltrators' shared territory and their token on a capital-city territory (#33).
+		[
+			sample('outpostPlaced', { hex: '-1_-1', sharedWith: 2 }),
+			"Ana placed an outpost on hex −1,−1 beside Bo's, sharing the territory.",
+		],
+		[
+			sample('tokenPlaced', {
+				player: 1,
+				civ: 'infiltrators',
+				capital: 2,
+			}),
+			"Ana placed an Infiltrators token on Bo's capital-city territory, hex 0,2.",
+		],
 		// The Tinkerers' options (#33).
 		[
 			sample('tinkerersUsed'),

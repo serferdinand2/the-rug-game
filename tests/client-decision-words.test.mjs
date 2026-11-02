@@ -326,6 +326,50 @@ test("the Treasure Hunters' territory, treasure and black die result read as wha
 	);
 });
 
+test("the Infiltrators' territory reads as what it does: a territory shared with its lone outpost's seat, or a token on a seat's capital-city territory (#33)", () => {
+	const hex = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseHex',
+		purpose: 'infiltrators',
+		optional: true,
+		options: ['-1_-1', '0_2'],
+	};
+	const table = {
+		seats: [
+			{ name: 'Ana', start: '-2_-2' },
+			{ name: 'Bo', start: '0_2' },
+		],
+		hexes: {
+			'-1_-1': { outposts: [{ seat: 2, toppled: false }], tokens: [] },
+			'0_2': {
+				outposts: [
+					{ seat: 2, toppled: false },
+					{ seat: 2, toppled: false },
+				],
+				tokens: [],
+			},
+		},
+	};
+	assert.equal(
+		decisionTitle(hex, table),
+		"Share a territory, or put a token on an opponent's capital-city territory?"
+	);
+	assert.deepEqual(
+		[{ hex: null }, { hex: '-1_-1' }, { hex: '0_2' }].map((a) =>
+			describeAnswer(hex, a, table)
+		),
+		[
+			'Decline',
+			'Hex −1,−1: share it with Bo',
+			"Hex 0,2: put a token on Bo's capital-city territory",
+		]
+	);
+	// Without the map, only the hex.
+	assert.equal(describeAnswer(hex, { hex: '-1_-1' }), 'Hex −1,−1');
+});
+
 test("the Tinkerers' option, the space Pay back pays for and the token to move read as what they do (#33)", () => {
 	const option = {
 		id: 1,

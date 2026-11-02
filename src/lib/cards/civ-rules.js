@@ -117,6 +117,20 @@ const CIV_TEXTS = Object.freeze({
 		'Whenever an opponent holding one of your tokens gains a landmark, you gain every uncovered square.',
 		'If you gain the Historians later in the game, give all 4 tokens to opponents at once, choosing who gets each one.',
 	]),
+	infiltrators: civ(
+		[
+			'When you start the game with the Infiltrators, or gain them later, you gain 1 culture.',
+			'At the start of income turns 2 to 5, you may do one of two things.',
+			'Share a territory: place an outpost from your supply on a territory whose only piece is an opponent’s upright outpost. It is not a conquest, and nothing topples. You both control the territory, and you gain the benefit shown on it. With two outposts on it, nobody can conquer it, and sharing the middle island doesn’t earn its achievement.',
+			'Slip into a capital: place a player token on an opponent’s capital-city territory, where their two outposts started, and gain 1 VP for each outpost still in their supply. The token gives you no control. When it is your third token on that same territory, you gain a civilization.',
+			'Whenever you gain a civilization while you hold the Infiltrators, draw 3 and keep 1; the others are discarded. This holds again when you discard a civilization you just gained, such as the Riverfolk, to gain another.',
+		],
+		{
+			current: [
+				'Current rules: if you start the game with the Infiltrators, you don’t gain that culture.',
+			],
+		}
+	),
 	inventors: civ(
 		[
 			'You start with 4 tokens.',

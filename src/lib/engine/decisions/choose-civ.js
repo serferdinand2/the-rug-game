@@ -1,4 +1,4 @@
-// Which of two civilizations to keep: the two dealt at setup, or the two drawn mid-game with civ-draft (#53).
+// Which civilization to keep: one of the two dealt at setup, or of those drawn mid-game, 2 with civ-draft (#53) or 3 with the Infiltrators (#33).
 import { PlayerError } from '../errors.js';
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
@@ -14,13 +14,13 @@ export const chooseCiv = {
 		if (!decision.options.includes(answer.civ)) {
 			throw new PlayerError(
 				decision.midGame
-					? 'Choose one of the two civilizations you drew.'
+					? 'Choose one of the civilizations you drew.'
 					: 'Choose one of the two civilizations you were dealt.'
 			);
 		}
 	},
 	resolve(ctx, decision, answer) {
-		// Mid-game, the other goes face up onto the discards (#53 design §4.2).
+		// Mid-game, the others go face up onto the discards (#53 design §4.2).
 		if (decision.midGame) {
 			const player = /** @type {number} */ (decision.player);
 			for (const civ of decision.options) {

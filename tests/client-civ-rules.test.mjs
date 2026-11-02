@@ -31,6 +31,11 @@ import {
 	UTILITARIANS_LANDMARKS,
 	UTILITARIANS_TOKENS,
 } from '../src/lib/engine/civs/utilitarians.js';
+import {
+	INFILTRATORS_CIV_TOKEN,
+	INFILTRATORS_CULTURE,
+	INFILTRATORS_DRAW,
+} from '../src/lib/engine/civs/infiltrators.js';
 import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 
@@ -39,10 +44,12 @@ import { ASSETS } from '../src/lib/art/catalog.js';
 const VERSION_IDS = VERSIONS.map((version) => version.id);
 
 /**
- * Civilizations whose rules, not a setup adjustment, change with the version: the Inventors' top-row benefit (the
- * F&F rulebook r10-1, 03 FF.8.2), which civs/inventors.js gives only under the original rules.
+ * Civilizations that change with the version without an `adjustment`: the Inventors' top-row benefit (the F&F
+ * rulebook r10-1, 03 FF.8.2), which civs/inventors.js gives only under the original rules; and the Infiltrators, whose
+ * setup itself withholds the culture from the civilization chosen at setup under the current rules (F&F p.32, R34), as
+ * an adjustment can only add or take away.
  */
-const VERSIONED_RULES = ['inventors'];
+const VERSIONED_RULES = ['inventors', 'infiltrators'];
 
 /** The words for a resource, a tile or a card, one and several. @type {Record<string, [string, string]>} */
 const NOUNS = {
@@ -578,4 +585,42 @@ test('the Utilitarians read as the engine plays them, each listed landmark in th
 	assert.deepEqual(currentOnly('utilitarians'), [
 		'Current rules: if you start the game with the Utilitarians, at the end of your first income turn you lose 1 resource of your choice.',
 	]);
+});
+
+test('the Infiltrators read as the engine plays them, and the current rules withhold their setup culture (03 §1.3, §1.8, R34)', () => {
+	const text = /** @type {string} */ (
+		civAbilityText('infiltrators', 'original')
+	);
+	assertInOrder(
+		text,
+		'When you start',
+		[
+			'or gain them later',
+			`${INFILTRATORS_CULTURE} culture`,
+			'income turns 2 to 5',
+			'one of two things',
+			'Share a territory:',
+			'an outpost from your supply',
+			'only piece is an opponent’s upright outpost',
+			'not a conquest',
+			'You both control',
+			'benefit',
+			'nobody can conquer it',
+			'middle island',
+			'Slip into a capital:',
+			'player token',
+			'capital-city territory',
+			'1 VP for each outpost still in their supply',
+			'no control',
+			`${['first', 'second', 'third'][INFILTRATORS_CIV_TOKEN - 1]} token on that same territory`,
+			'gain a civilization',
+			`draw ${INFILTRATORS_DRAW} and keep 1`,
+			'Riverfolk',
+		],
+		'Infiltrators'
+	);
+	assert.deepEqual(currentOnly('infiltrators'), [
+		'Current rules: if you start the game with the Infiltrators, you don’t gain that culture.',
+	]);
+	assert.equal(CIVS.infiltrators.adjustment, undefined);
 });

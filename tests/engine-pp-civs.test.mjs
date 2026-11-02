@@ -10,10 +10,11 @@ import { groupsOf } from '../src/lib/capital.js';
 import { view, controlledTerritories } from '../src/lib/engine/game.js';
 import { CIVS } from '../src/lib/engine/civs/index.js';
 import { revealed } from '../src/lib/engine/table.js';
-import { conquerTargets } from '../src/lib/engine/map.js';
+import { conquerTargets, loneOpponent } from '../src/lib/engine/map.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { MAPS, hexNeighbours } from '../src/lib/engine/data/maps.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';
+import { RED_DIE } from '../src/lib/engine/data/dice.js';
 import {
 	readyTurn,
 	startedGame,
@@ -3861,4 +3862,419 @@ test('Utilitarians lose 1 resource of their choice at the end of income turn 1, 
 		),
 		[]
 	);
+});
+
+// The Infiltrators.
+
+/** Their id, also the civilization of their tokens on the map. */
+const IN = 'infiltrators';
+
+/** Whether a territory tile's benefit is 1 coin. */
+const coinTile = (/** @type {number} */ tile) =>
+	JSON.stringify(TERRITORY_TILES[tile - 1].benefit) ===
+	JSON.stringify([{ gain: { coin: 1 } }]);
+
+/**
+ * A started game for `count` players in which seat 1 holds the Infiltrators, its turn choice still open, so the state
+ * checks hold. Each seat keeps its two outposts on its starting territory; `lone` stands one upright outpost of a seat,
+ * taken from its supply, on each hex it names, an unexplored one getting a territory tile from the stack whose benefit
+ * is 1 coin.
+ * @param {Record<string, number>} [lone] - The seat of the lone outpost, by hex
+ * @param {{ count?: number }} [options]
+ * @returns {{ state: any, random: any }}
+ */
+function infiltratorsGame(lone = {}, { count = 2 } = {}) {
+	const { state: started, random } = startedGame(count, PP);
+	const state = /** @type {any} */ (structuredClone(started));
+	state.seats[0].civs = [IN];
+	state.supply.civs = state.supply.civs.filter(
+		(/** @type {string} */ c) => c !== IN
+	);
+	for (const [hex, seat] of Object.entries(lone)) {
+		if (state.hexes[hex].tile === null) {
+			const tile = state.supply.territory.find(coinTile);
+			state.supply.territory.splice(
+				state.supply.territory.indexOf(tile),
+				1
+			);
+			state.hexes[hex].tile = tile;
+		}
+		state.hexes[hex].outposts = [{ seat, toppled: false }];
+		state.seats[seat - 1].outposts -= 1;
+	}
+	return { state, random };
+}
+
+/** The Infiltrators' ability on an income turn. */
+const infiltratorsIncome = (/** @type {number} */ turn) => ({
+	player: 1,
+	kind: 'civIncome',
+	civ: IN,
+	turn,
+	origin: 'civ',
+});
+
+/**
+ * Seat 1's income ability, then the hex picked.
+ * @param {any} state
+ * @param {any} random
+ * @param {string} hex
+ */
+function infiltrate(state, random, hex) {
+	const asked = pushed(state, random, [infiltratorsIncome(2)]);
+	return answer(asked, random, 1, 'chooseHex', { hex });
+}
+
+/**
+ * Asserts that the Infiltrators' ability left nothing to answer: only the turn choice open before it.
+ * @param {any} next
+ * @param {any} before
+ */
+const asksNothing = (next, before) =>
+	assert.deepEqual(openDecisions(next), openDecisions(before));
+
+/** A seat's capital-city territory, where its two outposts started. */
+const startOf = (/** @type {any} */ state, /** @type {number} */ seat) =>
+	state.seats[seat - 1].start;
+
+test('Infiltrators gain 1 culture when they come in: at setup only under the original rules, and when gained mid-game under both (03 §1.3, §6, R34, R113)', () => {
+	for (const version of VERSIONS) {
+		const { state } = startedGame(2, {
+			civs: [IN, 'leaders'],
+			version,
+			...PP,
+		});
+		const base = /** @type {any} */ (
+			startedGame(2, { civs: ['leaders', 'nomads'], version, ...PP })
+				.state
+		);
+		const seat = /** @type {any} */ (state.seats[0]);
+		assert.deepEqual(seat.civs, [IN], version);
+		const culture = version === 'original' ? 1 : 0;
+		assert.deepEqual(
+			seat.resources,
+			{
+				...base.seats[0].resources,
+				culture: base.seats[0].resources.culture + culture,
+			},
+			version
+		);
+		assert.equal(seat.vp, base.seats[0].vp, version);
+		checkState(state);
+
+		const { state: before, random } = game({ ...PP, version });
+		before.seats[0].civs = ['leaders'];
+		before.supply.civs = [
+			IN,
+			...before.supply.civs.filter((/** @type {string} */ c) => c !== IN),
+		];
+		const gained = resolveEffects(before, 1, [{ gainCiv: {} }], random);
+		assert.deepEqual(gained.seats[0].civs, ['leaders', IN], version);
+		assert.equal(
+			gained.seats[0].resources.culture,
+			before.seats[0].resources.culture + 1,
+			version
+		);
+		assert.deepEqual(openDecisions(gained), [], version);
+	}
+});
+
+test("Infiltrators may pick a territory whose only item is an opponent's upright outpost, or an opponent's capital-city territory, at the start of income turns 2 to 5, or decline (03 §1.3)", () => {
+	// '1_-1' holds their own lone outpost.
+	const { state, random } = infiltratorsGame({ '-1_-1': 2, '1_-1': 1 });
+	const asked = pushed(state, random, [infiltratorsIncome(2)]);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseHex'));
+	assert.deepEqual(
+		[decision.player, decision.purpose, decision.optional],
+		[1, 'infiltrators', true]
+	);
+	// In map order; neither their own territories nor their own capital-city territory.
+	assert.deepEqual(
+		decision.options,
+		MAPS.small.hexes.filter((hex) =>
+			['-1_-1', startOf(state, 2)].includes(hex)
+		)
+	);
+	assert.deepEqual(answersOf(asked, 'chooseHex')[0], { hex: null });
+
+	const declined = answer(asked, random, 1, 'chooseHex', { hex: null });
+	assert.deepEqual(declined.hexes, state.hexes);
+	assert.deepEqual(declined.seats, state.seats);
+	asksNothing(declined, state);
+});
+
+test("option A: an outpost from their supply joins an opponent's lone outpost; both stand, both seats control the territory and count it for VP, and the Infiltrators gain its tile's benefit (03 §1.3)", () => {
+	const { state, random } = infiltratorsGame({ '-1_-1': 2 });
+	const tile = state.hexes['-1_-1'].tile;
+	const next = infiltrate(state, random, '-1_-1');
+	const hex = next.hexes['-1_-1'];
+	assert.deepEqual(hex.outposts, [
+		{ seat: 2, toppled: false },
+		{ seat: 1, toppled: false },
+	]);
+	assert.equal(hex.shared, true);
+	assert.deepEqual(hex.tokens, []);
+	assert.equal(next.seats[0].outposts, state.seats[0].outposts - 1);
+	assert.equal(
+		next.seats[0].resources.coin,
+		state.seats[0].resources.coin + 1
+	);
+	assert.deepEqual(eventsOf(next, 'outpostPlaced', state.seq), [
+		{ type: 'outpostPlaced', player: 1, hex: '-1_-1', sharedWith: 2 },
+	]);
+	assert.deepEqual(eventsOf(next, 'tileBenefit', state.seq), [
+		{ type: 'tileBenefit', player: 1, hex: '-1_-1', tile },
+	]);
+	// It is no conquest: nothing topples and no dice roll.
+	assert.deepEqual(eventsOf(next, 'outpostToppled', state.seq), []);
+	assert.deepEqual(eventsOf(next, 'conquerDiceRolled', state.seq), []);
+	asksNothing(next, state);
+	checkState(next);
+
+	// Each seat controls it beside its capital-city territory, so a red die's VP per territory gives each of them 2.
+	for (const seat of [1, 2]) {
+		assert.deepEqual(
+			controlledTerritories(next, seat).sort(),
+			[startOf(state, seat), '-1_-1'].sort()
+		);
+		const scored = resolveEffects(
+			next,
+			seat,
+			[structuredClone(RED_DIE[4])],
+			random
+		);
+		assert.equal(scored.seats[seat - 1].vp, next.seats[seat - 1].vp + 2);
+	}
+	assert.deepEqual(controlledTerritories(state, 1), [startOf(state, 1)]);
+	// It holds 2 items, so nobody can conquer it.
+	for (const seat of [1, 2]) {
+		assert.ok(!conquerTargets(next, seat, true).includes('-1_-1'));
+		assert.equal(loneOpponent(next, '-1_-1', seat), null);
+	}
+});
+
+test("option A is only for a territory whose only item is an opponent's upright outpost, not a Nomads piece, and only with an outpost in supply (03 §1.3)", () => {
+	const { state, random } = infiltratorsGame({
+		'-1_-1': 2,
+		'-1_-2': 2,
+		'-2_-1': 2,
+		'1_-1': 2,
+	});
+	// A second item, a toppled outpost and a Nomads piece.
+	state.hexes['-1_-2'].tokens = [{ seat: 2, civ: 'traders' }];
+	state.hexes['-2_-1'].outposts[0].toppled = true;
+	state.hexes['1_-1'].outposts[0].piece = { building: 'farm' };
+	const options = (/** @type {any} */ s) =>
+		/** @type {any} */ (
+			decisionOf(pushed(s, random, [infiltratorsIncome(3)]), 'chooseHex')
+		).options;
+	assert.deepEqual(
+		options(state),
+		MAPS.small.hexes.filter((hex) =>
+			['-1_-1', startOf(state, 2)].includes(hex)
+		)
+	);
+	// With no outpost in their supply, only the capital-city territory is left.
+	const spent = structuredClone(state);
+	spent.seats[0].outposts = 0;
+	assert.deepEqual(options(spent), [startOf(state, 2)]);
+});
+
+test('sharing the middle island gains no achievement, and its printed territory no benefit; the Mystics count the shared territory (03 §1.3, R8, #20 design §7)', () => {
+	const { state, random } = infiltratorsGame({ '0_0': 2 });
+	const next = infiltrate(state, random, '0_0');
+	assert.equal(next.hexes['0_0'].shared, true);
+	assert.deepEqual(next.achievements['middle-island'], []);
+	assert.deepEqual(eventsOf(next, 'achievementClaimed', state.seq), []);
+	assert.deepEqual(eventsOf(next, 'tileBenefit', state.seq), [
+		{ type: 'tileBenefit', player: 1, hex: '0_0', tile: null },
+	]);
+	assert.deepEqual(next.seats[0].resources, state.seats[0].resources);
+	assert.ok(controlledTerritories(next, 1).includes('0_0'));
+
+	const mystic = structuredClone(state);
+	mystic.seats[0].civs = [IN, 'mystics'];
+	mystic.seats[0].civData.mystics = {
+		predictions: { techCards: 9, districts: 9, territories: 2, tracks: 4 },
+		reached: [],
+	};
+	const counted = infiltrate(mystic, random, '0_0');
+	assert.deepEqual(counted.seats[0].civData.mystics.reached, ['territories']);
+});
+
+test("option B: a player token on an opponent's capital-city territory gains 1 VP for each outpost in that opponent's supply; their third token on that same territory gains a civilization (03 §1.3, §1.8)", () => {
+	// Seat 2 has 3 outposts out of the 8 in its supply, so 5 are left.
+	const { state, random } = infiltratorsGame(
+		{ '-1_-2': 2, '-2_-1': 2, '1_-1': 2 },
+		{ count: 3 }
+	);
+	const [two, three] = [startOf(state, 2), startOf(state, 3)];
+	assert.deepEqual(
+		state.seats.map((/** @type {any} */ s) => s.outposts),
+		[8, 5, 8]
+	);
+	const first = infiltrate(state, random, two);
+	assert.deepEqual(first.hexes[two].tokens, [{ seat: 1, civ: IN }]);
+	assert.deepEqual(first.hexes[two].outposts, state.hexes[two].outposts);
+	assert.equal(first.seats[0].vp, state.seats[0].vp + 5);
+	assert.deepEqual(eventsOf(first, 'tokenPlaced', state.seq), [
+		{ type: 'tokenPlaced', player: 1, civ: IN, hex: two, capital: 2 },
+	]);
+	assert.deepEqual(eventsOf(first, 'civsDrawn', state.seq), []);
+	asksNothing(first, state);
+	// The token gives no control (R33).
+	assert.ok(!controlledTerritories(first, 1).includes(two));
+	assert.ok(controlledTerritories(first, 2).includes(two));
+	checkState(first);
+
+	// Two tokens on seat 2's territory and one on seat 3's: a second on seat 3's gains no civilization, a third on
+	// seat 2's does, after its VP, drawing 3 to keep 1.
+	const placed = structuredClone(state);
+	placed.hexes[two].tokens = [
+		{ seat: 1, civ: IN },
+		{ seat: 1, civ: IN },
+	];
+	placed.hexes[three].tokens = [{ seat: 1, civ: IN }];
+	const elsewhere = infiltrate(placed, random, three);
+	assert.equal(elsewhere.hexes[three].tokens.length, 2);
+	assert.equal(elsewhere.seats[0].vp, placed.seats[0].vp + 8);
+	asksNothing(elsewhere, placed);
+	const third = infiltrate(placed, random, two);
+	assert.equal(third.seats[0].vp, placed.seats[0].vp + 5);
+	const keep = /** @type {any} */ (decisionOf(third, 'chooseCiv'));
+	assert.deepEqual(
+		[keep.player, keep.midGame, keep.options],
+		[1, true, placed.supply.civs.slice(0, 3)]
+	);
+
+	// A fourth there gains none.
+	const fourth = structuredClone(placed);
+	fourth.hexes[two].tokens.push({ seat: 1, civ: IN });
+	asksNothing(infiltrate(fourth, random, two), fourth);
+
+	// With no outpost in that opponent's supply, no VP.
+	const empty = structuredClone(state);
+	empty.seats[1].outposts = 0;
+	const none = infiltrate(empty, random, two);
+	assert.equal(none.seats[0].vp, empty.seats[0].vp);
+	assert.deepEqual(eventsOf(none, 'vpGained', empty.seq), []);
+});
+
+test('a player holding the Infiltrators draws 3 civilizations whenever they gain one and keeps 1, also with the civ-draft variant (03 §1.3)', () => {
+	for (const variants of [[], ['civ-draft']]) {
+		const { state, random } = game({ ...PP, variants });
+		state.seats[0].civs = [IN];
+		const top = ['leaders', 'traders', 'merrymakers'];
+		state.supply.civs = [
+			...top,
+			...state.supply.civs.filter(
+				(/** @type {string} */ c) => !top.includes(c)
+			),
+		];
+		const drawn = resolveEffects(state, 1, [{ gainCiv: {} }], random);
+		const keep = /** @type {any} */ (decisionOf(drawn, 'chooseCiv'));
+		assert.deepEqual(
+			[keep.player, keep.midGame, keep.options],
+			[1, true, top],
+			`${variants}`
+		);
+		assert.deepEqual(eventsOf(drawn, 'civsDrawn', state.seq), [
+			{ type: 'civsDrawn', player: 1, count: 3, secret: { civs: top } },
+		]);
+		const kept = answer(drawn, random, 1, 'chooseCiv', { civ: 'traders' });
+		assert.deepEqual(kept.seats[0].civs, [IN, 'traders']);
+		assert.deepEqual(kept.supply.civDiscard, ['leaders', 'merrymakers']);
+
+		// Their opponent draws as before: 1 without asking, or 2 with the variant.
+		const other = resolveEffects(state, 2, [{ gainCiv: {} }], random);
+		const choice = /** @type {any} */ (decisionOf(other, 'chooseCiv'));
+		if (variants.length === 0) {
+			assert.equal(choice, undefined);
+			assert.deepEqual(other.seats[1].civs, ['leaders']);
+		} else {
+			assert.deepEqual(choice.options, ['leaders', 'traders']);
+		}
+	}
+});
+
+test('an Infiltrators player who keeps the Riverfolk and discards them draws 3 again for the civilization in their place (03 §1.8, ruling C)', () => {
+	const { state, random } = game();
+	state.seats[0].civs = [IN];
+	const deck = [
+		'riverfolk',
+		'leaders',
+		'traders',
+		'merrymakers',
+		'heralds',
+		'nomads',
+	];
+	state.supply.civs = [
+		...deck,
+		...state.supply.civs.filter(
+			(/** @type {string} */ c) => !deck.includes(c)
+		),
+	];
+	const drawn = resolveEffects(state, 1, [{ gainCiv: {} }], random);
+	const kept = answer(drawn, random, 1, 'chooseCiv', { civ: 'riverfolk' });
+	const offer = /** @type {any} */ (decisionOf(kept, 'chooseOption'));
+	assert.deepEqual([offer.player, offer.purpose], [1, 'civOffer']);
+	const discarded = answer(kept, random, 1, 'chooseOption', { option: 1 });
+	const again = /** @type {any} */ (decisionOf(discarded, 'chooseCiv'));
+	assert.deepEqual(
+		[again.player, again.midGame, again.options],
+		[1, true, ['merrymakers', 'heralds', 'nomads']]
+	);
+	assert.deepEqual(discarded.seats[0].civs, [IN]);
+	assert.deepEqual(discarded.supply.civDiscard, [
+		'leaders',
+		'traders',
+		'riverfolk',
+	]);
+});
+
+test("the state checks hold the Infiltrators' tokens on other seats' capital-city territories, and a shared territory's upright outposts of two seats", () => {
+	const { state, random } = infiltratorsGame({ '-1_-1': 2 });
+	const shared = infiltrate(state, random, '-1_-1');
+	const token = infiltrate(state, random, startOf(state, 2));
+	checkState(shared);
+	checkState(token);
+
+	const own = structuredClone(token);
+	own.hexes[startOf(state, 2)].tokens = [];
+	own.hexes[startOf(state, 1)].tokens = [{ seat: 1, civ: IN }];
+	assert.throws(() => checkState(own), /infiltrators token/);
+
+	const lone = structuredClone(shared);
+	lone.hexes['-1_-1'].outposts[0].toppled = true;
+	assert.throws(() => checkState(lone), /shared/);
+
+	// A base game never shares a territory.
+	const base = /** @type {any} */ (structuredClone(startedGame(2).state));
+	checkState(base);
+	const hex = base.hexes[startOf(base, 2)];
+	hex.outposts.push({ seat: 1, toppled: false });
+	hex.shared = true;
+	base.seats[0].outposts -= 1;
+	assert.throws(() => checkState(base), /shared/);
+});
+
+test('Infiltrators use their ability in step 1 of income turns 2 to 5', () => {
+	const ready = turnHolding(IN, () => {});
+	const { player } = ready;
+	const other = /** @type {any} */ (
+		ready.state.seats.find((s) => s.seat !== player)
+	);
+	const since = ready.state.seq;
+	const state = answer(ready.state, ready.random, player, 'chooseTurn', {
+		turn: 'income',
+	});
+	assert.ok(
+		eventsOf(state, 'civAbilityUsed', since).some((e) => e.civ === IN)
+	);
+	const decision = /** @type {any} */ (decisionOf(state, 'chooseHex'));
+	assert.deepEqual(
+		[decision?.player, decision?.purpose],
+		[player, 'infiltrators']
+	);
+	assert.ok(decision.options.includes(other.start));
 });

@@ -38,6 +38,7 @@ export const PP_CIVS = Object.freeze([
 	'tinkerers',
 	'spies',
 	'utilitarians',
+	'infiltrators',
 ]);
 
 /**

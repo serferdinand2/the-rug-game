@@ -3,6 +3,7 @@ import { emit } from './events.js';
 import { shuffle } from './random.js';
 import { playerSeat } from './state.js';
 import { civsOf, findCiv } from './civs/index.js';
+import { INFILTRATORS_DRAW } from './civs/infiltrators.js';
 
 /**
  * The after-setup step: a group with one lane per player, so they decide at the same time. Each lane runs the setup of
@@ -173,15 +174,30 @@ function drawCiv(ctx) {
 }
 
 /**
+ * How many civilizations a player draws to keep 1 when gaining one: 3 while they hold the Infiltrators, also with the
+ * civ-draft variant, so a Riverfolk or Mystics discard for another draws 3 again (03 §1.3, §1.8 ruling C); else 2 with
+ * the variant (#53 design §4.2), or 1.
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @returns {number}
+ */
+function civDraw(state, player) {
+	if (playerSeat(state, player).civs.includes('infiltrators')) {
+		return INFILTRATORS_DRAW;
+	}
+	return state.variants.includes('civ-draft') ? 2 : 1;
+}
+
+/**
  * The gainCiv effect: a random civilization from the deck joins the player's, to the left of the others (02 §1),
  * and its mid-game setup runs. With nothing left to draw, nothing is gained.
- * With the civ-draft variant the player draws 2 and keeps 1 (`chooseCiv` with `midGame`); with only 1 to draw, it is
- * gained without a question (#53 design §4.2).
+ * With the civ-draft variant or the Infiltrators the player draws more and keeps 1 (`chooseCiv` with `midGame`,
+ * civDraw); with only 1 to draw, it is gained without a question (#53 design §4.2).
  * @type {import('./state.js').EffectHandler}
  */
 export function gainCiv(ctx, player) {
 	const { state } = ctx;
-	const count = state.variants.includes('civ-draft') ? 2 : 1;
+	const count = civDraw(state, player);
 	/** @type {string[]} */
 	const drawn = [];
 	while (drawn.length < count) {

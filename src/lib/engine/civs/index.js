@@ -8,6 +8,7 @@ import { entertainers } from './entertainers.js';
 import { futurists } from './futurists.js';
 import { heralds } from './heralds.js';
 import { historians } from './historians.js';
+import { infiltrators } from './infiltrators.js';
 import { inventors } from './inventors.js';
 import { isolationists } from './isolationists.js';
 import { leaders } from './leaders.js';
@@ -57,6 +58,7 @@ export const CIVS = {
 	tinkerers,
 	spies,
 	utilitarians,
+	infiltrators,
 };
 
 /**

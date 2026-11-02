@@ -324,6 +324,27 @@ function spiesTileWords(slot, table) {
 }
 
 /**
+ * What picking a hex does for the Infiltrators (03 §1.3): a token on the capital-city territory of the seat that started
+ * there, or an outpost sharing the territory of the seat whose lone outpost stands there.
+ * @param {string} hex
+ * @param {Table | undefined} table - A view, whose seats name their `start` and whose hexes their outposts
+ * @returns {string | null} Null when the table doesn't say
+ */
+function infiltratorsWords(hex, table) {
+	const seats = /** @type {readonly Record<string, any>[]} */ (
+		table?.seats ?? []
+	);
+	const capital = seats.findIndex((seat) => seat?.start === hex);
+	if (capital !== -1) {
+		return `put a token on ${seatName(table, capital + 1)}'s capital-city territory`;
+	}
+	const [lone] = table?.hexes?.[hex]?.outposts ?? [];
+	return isRecord(lone) && isCount(lone.seat)
+		? `share it with ${seatName(table, lone.seat)}`
+		: null;
+}
+
+/**
  * Each decision kind's title.
  * @type {Record<string, (decision: Decision, table: Table | undefined) => string>}
  */
@@ -472,6 +493,9 @@ const TITLES = {
 		}
 		if (d.purpose === 'treasureHunters') {
 			return 'Move a Treasure Hunters token onto a territory?';
+		}
+		if (d.purpose === 'infiltrators') {
+			return "Share a territory, or put a token on an opponent's capital-city territory?";
 		}
 		const words = ['colonialism', 'revolution'].includes(d.purpose)
 			? `Choose a territory for ${titleOf(d.purpose)}`
@@ -932,11 +956,19 @@ const ANSWERS = {
 		isTrack(a.track) && isCount(a.space)
 			? `${spaceName(a.track, a.space)} (${seatName(table, a.player)})`
 			: null,
-	chooseHex: (a) => {
+	chooseHex: (a, d, table) => {
 		if (a.hex === null) {
 			return 'Decline';
 		}
-		return typeof a.hex === 'string' ? capitalize(hexName(a.hex)) : null;
+		if (typeof a.hex !== 'string') {
+			return null;
+		}
+		const hex = capitalize(hexName(a.hex));
+		const does =
+			d.purpose === 'infiltrators'
+				? infiltratorsWords(a.hex, table)
+				: null;
+		return does ? `${hex}: ${does}` : hex;
 	},
 	chooseGift: (a, d, table) => {
 		if (a.tile === null) {

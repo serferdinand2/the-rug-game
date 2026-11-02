@@ -11,12 +11,15 @@
  * @typedef {{ seat: number, toppled: boolean, toppledBy?: number, piece?: { building: BuildingId } | { landmark: string } }} Outpost
  */
 /**
- * A civilization's token on a hex (Traders, Isolationists). It is an item, but gives no control (R33).
+ * A civilization's token on a hex (Traders, Isolationists, the Infiltrators' player tokens). It is an item, but gives
+ * no control (R33), except a Treasure Hunters token's (R114).
  * @typedef {{ seat: number, civ: string }} MapToken
  */
 /**
  * A map hex. Its items are its outposts (pieces included) and its tokens; with more than one, nobody can conquer it.
- * @typedef {{ tile: number | null, orient: number, outposts: Outpost[], tokens: MapToken[] }} Hex
+ * `shared` marks a territory the Infiltrators share with an opponent: each seat with an upright outpost there controls
+ * it (#33, 03 §1.3). A base game never sets it.
+ * @typedef {{ tile: number | null, orient: number, outposts: Outpost[], tokens: MapToken[], shared?: boolean }} Hex
  */
 /**
  * A player's active THIS ERA ability (design §5).

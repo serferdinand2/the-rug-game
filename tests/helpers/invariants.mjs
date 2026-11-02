@@ -197,6 +197,23 @@ export function checkState(state, previousSeq = 0) {
 		landmarksFor(state.expansions).map((l) => l.id)
 	);
 
+	// #33: only the Infiltrators share a territory, which then holds the upright outposts of two seats or more; nothing
+	// topples there, as two items stop a conquest (03 §1.3).
+	for (const [key, hex] of Object.entries(state.hexes)) {
+		if (hex.shared === undefined) {
+			continue;
+		}
+		const sharing = new Set(
+			hex.outposts.filter((o) => !o.toppled).map((o) => o.seat)
+		);
+		assert.ok(
+			hex.shared === true &&
+				state.expansions.includes('pp') &&
+				sharing.size >= 2,
+			`${key} is shared by ${sharing.size} seats`
+		);
+	}
+
 	for (const p of players) {
 		const mine = outposts.filter((o) => o.seat === p.seat);
 		for (const building of BUILDING_IDS) {
@@ -239,6 +256,19 @@ export function checkState(state, previousSeq = 0) {
 				total,
 				`seat ${p.seat} owns ${data.tokens + placed} ${civ} tokens`
 			);
+		}
+		// #33: the Infiltrators' player tokens stand only on an opponent's capital-city territory (03 §1.3).
+		for (const [key, hex] of Object.entries(state.hexes)) {
+			for (const token of hex.tokens) {
+				if (token.seat !== p.seat || token.civ !== 'infiltrators') {
+					continue;
+				}
+				const owner = players.find((other) => other.start === key);
+				assert.ok(
+					owner !== undefined && owner.seat !== p.seat,
+					`seat ${p.seat} has an infiltrators token on ${key}, no opponent's capital-city territory`
+				);
+			}
 		}
 		// #33: the Utilitarians' tokens out, each beside a listed landmark the seat owns or is placing (03 §1.3).
 		const active = p.civData.utilitarians?.active;

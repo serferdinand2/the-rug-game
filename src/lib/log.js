@@ -639,10 +639,16 @@ const WORDS = {
 		isCount(e.tile)
 			? `${name} gained the benefit of territory tile ${e.tile} on ${hexName(e.hex)}.`
 			: `${name} gained no tile benefit: ${hexName(e.hex)} is a printed territory.`,
-	outpostPlaced: (e, game, name) =>
-		e.militarism === true
-			? `${name} placed an outpost on ${hexName(e.hex)} with Militarism.`
-			: `${name} placed an outpost on ${hexName(e.hex)}.`,
+	outpostPlaced(e, game, name) {
+		if (e.militarism === true) {
+			return `${name} placed an outpost on ${hexName(e.hex)} with Militarism.`;
+		}
+		// The Infiltrators' outpost beside an opponent's, sharing the territory (#33).
+		if (isCount(e.sharedWith)) {
+			return `${name} placed an outpost on ${hexName(e.hex)} beside ${seatName(game, e.sharedWith)}'s, sharing the territory.`;
+		}
+		return `${name} placed an outpost on ${hexName(e.hex)}.`;
+	},
 	noOutpost: (e, game, name) => `${name} had no outpost left to place.`,
 	outpostToppled: (e, game, name) =>
 		`${name}'s outpost on ${hexName(e.hex)} was toppled by ${seatName(game, e.by)}.`,
@@ -826,7 +832,11 @@ const WORDS = {
 	noCivLeft: (e, game, name) => `${name} found no civilization left to gain.`,
 	tokenPlaced(e, game, name) {
 		const civ = civilizationName(e.civ);
-		return `${name} placed ${article(civ)} ${civ} token on ${hexName(e.hex)}.`;
+		const token = `${name} placed ${article(civ)} ${civ} token on`;
+		// The Infiltrators' token names whose capital-city territory it is on (#33).
+		return isCount(e.capital)
+			? `${token} ${seatName(game, e.capital)}'s capital-city territory, ${hexName(e.hex)}.`
+			: `${token} ${hexName(e.hex)}.`;
 	},
 	alchemistsRolled: (e, game, name) =>
 		`${name}'s Alchemists rolled ${trackName(e.track)}.`,
