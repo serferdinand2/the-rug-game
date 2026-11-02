@@ -1,6 +1,6 @@
 // Words for the engine's events, for the table log (#29 design §5): one plain sentence for each event worth reading.
 import { CAPITAL_MATS } from './engine/data/capitals.js';
-import { BLACK_DIE, RED_DIE } from './engine/data/dice.js';
+import { BLACK_DIE, RED_DIE, SCIENCE_DIE } from './engine/data/dice.js';
 import { VERSIONS } from './engine/game.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
 import { describeCost } from './describe.js';
@@ -799,6 +799,24 @@ const WORDS = {
 		`${name}'s Alchemists rolled ${trackName(e.track)}.`,
 	alchemistsBust: (e, game, name) =>
 		`${name}'s Alchemists rolled a track twice and went bust.`,
+	treasureRolled(e, game, name) {
+		const [first, second] = Array.isArray(e.faces) ? e.faces : [];
+		/** @param {readonly any[]} faces @param {unknown} face */
+		const on = (faces, face) => (isCount(face) ? faces[face] : undefined);
+		const who = `${name}'s Treasure Hunters rolled`;
+		switch (e.die) {
+			case 'black':
+				return `${who} the black conquer die twice: ${faceWords(on(BLACK_DIE, first))} and ${faceWords(on(BLACK_DIE, second))}.`;
+			case 'red':
+				return `${who} the red conquer die twice: ${faceWords(on(RED_DIE, first))} and ${faceWords(on(RED_DIE, second))}.`;
+			case 'science':
+				return `${who} the science die twice: ${trackName(on(SCIENCE_DIE, first))} and ${trackName(on(SCIENCE_DIE, second))}.`;
+			case 'conquer':
+				return `${who} the conquer dice: red ${faceWords(on(RED_DIE, first))}, black ${faceWords(on(BLACK_DIE, second))}.`;
+			default:
+				return `${who} the dice for a treasure.`;
+		}
+	},
 	heraldsCopied: (e, game, name) =>
 		`${name} used a Heralds token to copy ${whose(game, e.owner, e.player)} ${tapestryName(e.card)}.`,
 	historiansGave: (e, game, name) =>

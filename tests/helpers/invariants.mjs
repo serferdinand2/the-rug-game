@@ -23,8 +23,8 @@ import { allOps } from './views.mjs';
 const BUILDINGS_EACH = 5;
 /** Every outpost a player owns: 2 start on the map, 8 in supply (01 §2.2). */
 const OUTPOSTS = 10;
-/** The tokens on the Traders' and Isolationists' mats (02 §1.2). */
-const CIV_TOKENS = { traders: 4, isolationists: 4 };
+/** The tokens on the Traders', Isolationists' (02 §1.2) and Treasure Hunters' (03 §1.3) mats. */
+const CIV_TOKENS = { traders: 4, isolationists: 4, 'treasure-hunters': 4 };
 const MATS = [1, 2, 3, 4, 5, 6];
 const TERRITORY_IDS = TERRITORY_TILES.map((t) => t.id);
 

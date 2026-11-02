@@ -41,8 +41,8 @@ export const REVIEWED_CIVILIZATIONS = Object.freeze([
 ]);
 
 /**
- * The data the library's play state shows for the six card civilizations: the reviewed illustration of each card,
- * drawn as live data is.
+ * The data the library's play state shows for the card civilizations (`CARD_CIVS`): the reviewed illustration of each
+ * card, drawn as live data is.
  * @type {Readonly<Record<string, any>>}
  */
 export const SAMPLE_CIV_DATA = Object.freeze({
@@ -58,6 +58,8 @@ export const SAMPLE_CIV_DATA = Object.freeze({
 		predictions: { techCards: 4, districts: 3, territories: 5, tracks: 2 },
 		reached: [],
 	},
+	// Desert used.
+	'treasure-hunters': { tokens: 3, used: ['desert'] },
 });
 
 /**
@@ -74,7 +76,7 @@ function sample(spots, mark) {
 }
 
 /**
- * Each reviewed card's play illustration, as the view a live card gets (`civCardView`): the six card civilizations'
+ * Each reviewed card's play illustration, as the view a live card gets (`civCardView`): the card civilizations'
  * from their sample data, the others' as marks on the spots their recipe names.
  * @type {Readonly<Record<string, CivCardView>>}
  */
@@ -88,8 +90,6 @@ export const SAMPLE_VIEWS = Object.freeze({
 	// The outpost, the house and the tech card collected.
 	collectors: sample(['outpost', 'house', 'tech'], 'token'),
 	architects: sample([], 'token'),
-	// Desert used.
-	'treasure-hunters': sample(['desert'], 'used'),
 	// A house on column A's bottom space and a farm above it.
 	craftsmen: {
 		...sample(['c0s0', 'c0s1'], 'token'),

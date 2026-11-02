@@ -276,6 +276,56 @@ test("the Aliens' choice, its payment and the tile for their mat read as what th
 	);
 });
 
+test("the Treasure Hunters' territory, treasure and black die result read as what they do (#33)", () => {
+	const hex = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseHex',
+		purpose: 'treasureHunters',
+		optional: true,
+		options: ['-2_-1'],
+	};
+	assert.equal(
+		decisionTitle(hex),
+		'Move a Treasure Hunters token onto a territory?'
+	);
+	assert.equal(describeAnswer(hex, { hex: '-2_-1' }), 'Hex −2,−1');
+	assert.equal(describeAnswer(hex, { hex: null }), 'Decline');
+	const treasure = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'treasureHunters',
+		optional: false,
+		options: ['desert', 'grassland', 'mountain', 'forest'],
+	};
+	assert.equal(decisionTitle(treasure), 'Choose a treasure to claim');
+	assert.deepEqual(
+		treasure.options.map((slot) => describeAnswer(treasure, { slot })),
+		[
+			'Desert: gain 1 coin, then roll the black conquer die twice and gain one result',
+			'Grassland: gain 1 culture, then roll the science die twice and advance on one result',
+			'Mountain: gain 1 worker, then roll both conquer dice and gain both results',
+			'Forest: gain 1 food, then roll the red conquer die twice and gain both results',
+		]
+	);
+	const black = {
+		id: 3,
+		batch: 1,
+		player: 1,
+		kind: 'chooseOption',
+		purpose: 'treasureHunters',
+		options: [[{ tileBenefit: {} }], [{ gain: { worker: 1 } }]],
+	};
+	assert.equal(decisionTitle(black), 'Keep one of the two black die results');
+	assert.deepEqual(
+		[0, 1].map((option) => describeAnswer(black, { option })),
+		['Gain the benefit of the territory tile you claimed', 'Gain 1 worker']
+	);
+});
+
 test('unknown decisions and answers fall back to a readable sentence', () => {
 	const odd = { id: 1, batch: 1, player: 1, kind: 'chooseSomethingNew' };
 	assertReadable(decisionTitle(odd), 'an unknown title');

@@ -1,4 +1,4 @@
-<!-- Library section: CivilizationCard, extracted from the reviewed cards; the six card civilizations' live state and choices (#78). -->
+<!-- Library section: CivilizationCard, extracted from the reviewed cards; the card civilizations' live state, and six cards' choices (#78, #33). -->
 <script>
 	import CivilizationCard from '../../../lib/components/player/CivilizationCard.svelte';
 	import Section from '../../Section.svelte';
@@ -51,8 +51,9 @@
 	});
 
 	/**
-	 * Each card civilization's live examples: a state that differs from the illustration, then a decision on it. The
-	 * decisions go to seats whose colour is neither the available green nor the picked gold.
+	 * Each card civilization's live examples: a state that differs from the illustration, then a decision on it, except
+	 * for the Treasure Hunters, whose treasure is picked in the panel. The decisions go to seats whose colour is neither
+	 * the available green nor the picked gold.
 	 */
 	const LIVE = [
 		{
@@ -164,6 +165,12 @@
 				"chooseProphecy for districts, choices 1 to 9 · selected='districts:4'",
 			selected: 'districts:4',
 		},
+		{
+			civ: 'treasure-hunters',
+			seat: /** @type {const} */ (4),
+			now: { tokens: 2, used: ['mountain', 'forest'] },
+			nowLabel: "{ tokens: 2, used: ['mountain', 'forest'] }",
+		},
 	];
 
 	/** The spot picked on each choosing example, by its index in LIVE. */
@@ -182,7 +189,7 @@
 <Section
 	name="CivilizationCard"
 	area="player"
-	description="Owner-reviewed card pattern; see docs/ui/card-design-rules.md for the composition rules. The six card civilizations draw a seat's live state and offer a decision's spots on the card (#78)."
+	description="Owner-reviewed card pattern; see docs/ui/card-design-rules.md for the composition rules. The card civilizations draw a seat's live state, the Treasure Hunters only the treasures used (#33); the other six offer a decision's spots on the card (#78)."
 	>{#each REVIEWED_CIVILIZATIONS as card}<Example
 			label={`${civilizationName(card.id)} · ${card.edition}`}
 			width={425}

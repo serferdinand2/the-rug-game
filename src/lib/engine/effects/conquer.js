@@ -12,7 +12,9 @@ import { isolationistsOffer } from '../civs/isolationists.js';
 import { diceOp } from '../responses.js';
 
 /**
- * Conquers a hex: an outpost goes on it, and an opponent's lone outpost or Nomads piece topples. The dice follow (a defender who qualifies is asked for a response between the two).
+ * Conquers a hex: an outpost goes on it, and an opponent's lone outpost or Nomads piece topples; a lone Treasure Hunters
+ * token stays standing, its seat the defender (R114). The dice follow (a defender who qualifies is asked for a response
+ * between the two).
  * Against an opponent, Pillage and Plunder gives both dice and stops traps (design §8); with Plans & Ploys its defender
  * is still asked, as the expansion's other response cards may answer it (03 §1.2, #33).
  * On a territory that held no item, the Isolationists may put a token beside the outpost before the dice (#20 design §7).
@@ -33,11 +35,12 @@ export function conquerHex(ctx, player, hex, bothDice) {
 		plunder ||
 		bothDice === 'always' ||
 		(bothDice === 'ifOpponent' && opponent !== null);
+	// The opponent's lone outpost or Nomads piece, before the attacker's joins it; a Treasure Hunters token has none (R114).
+	const [lone] = opponent !== null ? state.hexes[hex].outposts : [];
 	takeOutpost(ctx, player);
 	state.hexes[hex].outposts.push({ seat: player, toppled: false });
 	emit(state, { type: 'outpostPlaced', player, hex });
-	if (opponent !== null) {
-		const lone = state.hexes[hex].outposts[0];
+	if (lone !== undefined) {
 		lone.toppled = true;
 		lone.toppledBy = player;
 		emit(state, {

@@ -2,6 +2,7 @@
 // game.js first: it loads the civilization modules in an order free of their import cycle.
 import './engine/game.js';
 import { RECYCLERS_VP } from './engine/civs/recyclers.js';
+import { TREASURES } from './engine/civs/treasure-hunters.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
 import { spaceTileWords } from './area/terrain.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
@@ -158,7 +159,16 @@ const SLOT_TITLES = {
 	leaders: () => 'Advance with a Leaders square?',
 	militantsRow: () => 'Choose a Militants row to take an outpost from',
 	militantsPlace: () => 'Choose a Militants row for the outpost',
+	treasureHunters: () => 'Choose a treasure to claim',
 };
+
+/** What each Treasure Hunters treasure rolls once its resource is gained, by its die (03 §1.3). */
+const TREASURE_ROLLS = /** @type {Readonly<Record<string, string>>} */ ({
+	black: 'roll the black conquer die twice and gain one result',
+	science: 'roll the science die twice and advance on one result',
+	conquer: 'roll both conquer dice and gain both results',
+	red: 'roll the red conquer die twice and gain both results',
+});
 
 /**
  * Each decision kind's title.
@@ -196,6 +206,8 @@ const TITLES = {
 				return 'Conquer the territory you just explored?';
 			case 'aliens':
 				return 'Explore a space tile onto your Aliens mat, or gain a resource';
+			case 'treasureHunters':
+				return 'Keep one of the two black die results';
 			default:
 				return 'Choose one';
 		}
@@ -287,6 +299,9 @@ const TITLES = {
 		}
 		if (d.purpose === 'retreat') {
 			return 'Where does your outpost retreat to?';
+		}
+		if (d.purpose === 'treasureHunters') {
+			return 'Move a Treasure Hunters token onto a territory?';
 		}
 		const words = ['colonialism', 'revolution'].includes(d.purpose)
 			? `Choose a territory for ${titleOf(d.purpose)}`
@@ -393,6 +408,12 @@ const SLOT_ANSWERS = {
 		typeof slot === 'string' ? `The ${wordsOf(slot)} row` : null,
 	militantsPlace: (slot) =>
 		typeof slot === 'string' ? `The ${wordsOf(slot)} row` : null,
+	treasureHunters: (slot, decision, table) => {
+		const treasure = TREASURES.find(({ terrain }) => terrain === slot);
+		return treasure
+			? `${capitalize(treasure.terrain)}: ${effectPhrase({ gain: treasure.gain }, table)}, then ${TREASURE_ROLLS[treasure.die]}`
+			: null;
+	},
 };
 
 /**
@@ -473,9 +494,18 @@ const ANSWERS = {
 			return null;
 		}
 		const option = d.options[a.option];
-		return Array.isArray(option) && option.length === 0
-			? 'Decline'
-			: capitalize(effectsPhrase(option, table, true));
+		if (Array.isArray(option) && option.length === 0) {
+			return 'Decline';
+		}
+		// The black die's "?" on a territory the Treasure Hunters claimed, not conquered (#33).
+		if (
+			d.purpose === 'treasureHunters' &&
+			isRecord(option?.[0]) &&
+			'tileBenefit' in option[0]
+		) {
+			return 'Gain the benefit of the territory tile you claimed';
+		}
+		return capitalize(effectsPhrase(option, table, true));
 	},
 	chooseMove: (a, d) => {
 		if (a.track === null) {

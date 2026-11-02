@@ -1,7 +1,11 @@
 // The map's rules: matching sides, and the hexes a player may explore or conquer (R5, R16).
 import { MAPS, hexNeighbours } from './data/maps.js';
 import { TERRITORY_TILES } from './data/territory-tiles.js';
-import { controlledTerritories, itemCount } from './control.js';
+import {
+	controlledTerritories,
+	itemCount,
+	tokenController,
+} from './control.js';
 import { cornersOf, turned } from './terrain.js';
 import { allies } from './abilities.js';
 
@@ -89,8 +93,9 @@ export function conquerTargets(state, player, anywhere, only) {
 }
 
 /**
- * The seat of another seat's upright outpost or Nomads piece, when it is the only item on the hex. A token gives no
- * control, so a hex holding only a token has no opponent to topple (R33).
+ * The seat of another seat's upright outpost, Nomads piece or Treasure Hunters token, when it is the only item on the
+ * hex: the opponent who controlled it, and who defends it. Any other token gives no control, so a hex holding only one
+ * has no opponent (R33); a Treasure Hunters token does (R114), though nothing of theirs topples.
  * @param {import('./state.js').State} state
  * @param {string} hex
  * @param {number} player
@@ -98,9 +103,13 @@ export function conquerTargets(state, player, anywhere, only) {
  */
 export function loneOpponent(state, hex, player) {
 	const { outposts, tokens } = state.hexes[hex];
-	if (outposts.length !== 1 || tokens.length > 0) {
+	if (outposts.length + tokens.length !== 1) {
 		return null;
 	}
 	const [only] = outposts;
+	if (only === undefined) {
+		const seat = tokenController(state.hexes[hex]);
+		return seat !== player ? seat : null;
+	}
 	return !only.toppled && only.seat !== player ? only.seat : null;
 }

@@ -1,4 +1,4 @@
-<!-- CivilizationCard: a civilization card drawn from its recipe, in the table's rules version; six cards draw a seat's live state and take its choices (#78, #107). -->
+<!-- CivilizationCard: a civilization card drawn from its recipe, in the table's rules version; the card civilizations draw a seat's live state, and six take its choices (#78, #107). -->
 <script module>
 	/**
 	 * @typedef {Object} CivilizationCardOwnProps
@@ -8,7 +8,7 @@
 	 * @property {import('../../engine/data/ids.js').VersionId} [version='current'] - The table's rules version, whose
 	 *   setup line the card prints
 	 * @property {import('../../civ-card.js').CivCardView | null} [live=null] - A seat's live state, from `civCardView`:
-	 *   the six card civilizations (`CARD_CIVS`) draw its marks in the play state instead of the illustration, and its
+	 *   the card civilizations (`CARD_CIVS`) draw its marks in the play state instead of the illustration, and its
 	 *   choices as buttons; the other civilizations ignore it
 	 * @property {import('../../ui.js').Seat} [seat] - The card's player, whose colour its tokens take
 	 * @property {string | null} [selected=null] - The spot the player has picked among `live.choices`, drawn in gold
@@ -63,7 +63,7 @@
 		onCivilizationCardPick,
 		...attr
 	} = $props();
-	/** The six card civilizations draw live state in play; the illustration is a sample view drawn the same way. */
+	/** The card civilizations draw live state in play; the illustration is a sample view drawn the same way. */
 	const liveCard = $derived(live !== null && CARD_CIVS.includes(id));
 	const recipe = $derived(
 		civCard(id, {

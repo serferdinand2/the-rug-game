@@ -15,6 +15,11 @@ import {
 	RECYCLERS_VP,
 } from '../src/lib/engine/civs/recyclers.js';
 import { ALIENS_TILES } from '../src/lib/engine/civs/aliens.js';
+import {
+	TREASURES,
+	TREASURE_HUNTERS_TILES,
+	TREASURE_HUNTERS_TOKENS,
+} from '../src/lib/engine/civs/treasure-hunters.js';
 import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 
@@ -371,4 +376,46 @@ test('the Aliens read as the engine plays them (03 §1.3)', () => {
 		],
 		'Aliens'
 	);
+});
+
+test('the Treasure Hunters read as the engine plays them (03 §1.3, R114)', () => {
+	const text = /** @type {string} */ (
+		civAbilityText('treasure-hunters', 'original')
+	);
+	assert.equal(civAbilityText('treasure-hunters', 'current'), text);
+	/** Each treasure's terrain, then its resource, in the engine's order. */
+	const treasures = TREASURES.flatMap(({ terrain, gain }) => [
+		`${terrain[0].toUpperCase()}${terrain.slice(1)}:`,
+		...phrasesOf({ gain }),
+	]);
+	assertInOrder(
+		text,
+		'When you start',
+		[
+			'or gain them later',
+			`${TREASURE_HUNTERS_TOKENS} tokens`,
+			`${TREASURE_HUNTERS_TILES} territory tiles`,
+			'income turns 2 to 5',
+			'empty',
+			'next to one you control',
+			'anywhere',
+			'You control it',
+			'once',
+			...treasures,
+			'not a conquest',
+			'trap, Surprise Party or Surrender',
+			'not Retreat',
+			'your token stays',
+			'after a trap you control it again',
+		],
+		'Treasure Hunters'
+	);
+	for (const words of [
+		'black conquer die twice',
+		'science die twice',
+		'both conquer dice',
+		'red conquer die twice',
+	]) {
+		assert.ok(text.includes(words), words);
+	}
 });

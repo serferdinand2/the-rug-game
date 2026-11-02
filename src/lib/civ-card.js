@@ -10,8 +10,8 @@ import { describeEffects } from './describe.js';
 import { seatName } from './game-names.js';
 
 /**
- * What a spot on a card shows: a player's piece on it, a used Leaders track, a space or square uncovered, a Merrymakers
- * column whose token has left the start, a Mystics prediction, or a prediction reached.
+ * What a spot on a card shows: a player's piece on it, a used Leaders track or Treasure Hunters treasure, a space or
+ * square uncovered, a Merrymakers column whose token has left the start, a Mystics prediction, or a prediction reached.
  * @typedef {'token' | 'used' | 'exposed' | 'moved' | 'chosen' | 'reached'} SpotMark
  */
 
@@ -24,7 +24,10 @@ import { seatName } from './game-names.js';
  * @property {Record<string, string>} [pieces] - The piece on a spot, such as the income building on a Craftsmen space
  */
 
-/** The civilizations whose decisions are answered on their own card, in the issue's order. */
+/**
+ * The civilizations whose cards draw a seat's live state, in the order built: the first six's decisions are answered on
+ * their card (#78); the Treasure Hunters' card only shows the treasures used, as its treasure is picked in the panel (#33).
+ */
 export const CARD_CIVS = Object.freeze([
 	'entertainers',
 	'merrymakers',
@@ -32,6 +35,7 @@ export const CARD_CIVS = Object.freeze([
 	'militants',
 	'historians',
 	'mystics',
+	'treasure-hunters',
 ]);
 
 /** The card each slot purpose is answered on. The Historians' tile to discard stays in the panel. */
@@ -113,6 +117,11 @@ export function civCardMarks(civ, data) {
 			}
 			for (const category of data.reached) {
 				mark(category, 'reached');
+			}
+			break;
+		case 'treasure-hunters':
+			for (const terrain of data.used) {
+				mark(terrain, 'used');
 			}
 			break;
 	}

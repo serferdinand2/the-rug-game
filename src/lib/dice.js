@@ -38,6 +38,15 @@ const ROLLED = /** @type {Readonly<Record<string, string>>} */ ({
 	surrenderRolled: 'the conquer dice for Surrender',
 	alchemistsRolled: 'for the Alchemists',
 	alchemistsBust: 'for the Alchemists',
+	treasureRolled: 'for the Treasure Hunters',
+});
+
+/** The dice a Treasure Hunters treasure rolls (#33): one die twice, or both conquer dice once, red first. */
+const TREASURE_DICE = /** @type {Readonly<Record<string, DieId[]>>} */ ({
+	black: ['black', 'black'],
+	red: ['red', 'red'],
+	science: ['science', 'science'],
+	conquer: ['red', 'black'],
 });
 
 /**
@@ -74,6 +83,16 @@ function diceOf(event) {
 				{ die: 'red', face: Number(event.red) || 0 },
 				{ die: 'black', face: Number(event.black) || 0 },
 			];
+		case 'treasureRolled': {
+			const faces = Array.isArray(event.faces) ? event.faces : [];
+			const dice = Object.hasOwn(TREASURE_DICE, event.die)
+				? TREASURE_DICE[event.die]
+				: [];
+			return dice.map((die, i) => ({
+				die,
+				face: Number(faces[i]) || 0,
+			}));
+		}
 		default:
 			return [];
 	}

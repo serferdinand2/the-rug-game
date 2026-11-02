@@ -236,6 +236,15 @@ const CIV_TEXTS = Object.freeze({
 			],
 		}
 	),
+	'treasure-hunters': civ([
+		'When you start the game with the Treasure Hunters, or gain them later, you put 4 tokens on this mat and gain 2 territory tiles.',
+		'At the start of income turns 2 to 5, you may move a token from this mat onto an empty explored territory next to one you control, if it shows the terrain of an unused treasure anywhere, at a corner or on its island. If it shows more than one, you choose which. You control it, and that treasure is used: each is claimed once.',
+		'Desert: gain 1 coin, then roll the black conquer die twice and gain one of the two results.',
+		'Grassland: gain 1 culture, then roll the science die twice and choose one result. You may advance on that track, gaining its benefit, and you may pay its bonus.',
+		'Mountain: gain 1 worker, then roll both conquer dice and gain both results, the black die first.',
+		'Forest: gain 1 food, then roll the red conquer die twice and gain both results.',
+		'Claiming a territory this way is not a conquest. An opponent may conquer it as if your token were a lone outpost, and you may answer with a trap, Surprise Party or Surrender, but not Retreat. After their conquest your token stays and they control the territory; after a trap you control it again.',
+	]),
 });
 
 /**

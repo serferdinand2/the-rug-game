@@ -19,6 +19,7 @@ import { recyclers } from './recyclers.js';
 import { riverfolk } from './riverfolk.js';
 import { theChosen } from './the-chosen.js';
 import { traders } from './traders.js';
+import { treasureHunters } from './treasure-hunters.js';
 
 /** @typedef {import('./civ.js').Civ} Civ */
 
@@ -49,6 +50,7 @@ export const CIVS = {
 	riverfolk,
 	recyclers,
 	aliens,
+	'treasure-hunters': treasureHunters,
 };
 
 /**

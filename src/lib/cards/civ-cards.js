@@ -497,7 +497,7 @@ const RECIPES = {
 		],
 	}),
 	'treasure-hunters': (context) => ({
-		// Plans & Ploys has no engine module yet; the terrains and rewards are the reviewed card's.
+		// The terrains and rewards are the reviewed card's; civs/treasure-hunters.js plays them, and its civData marks the used ones.
 		portraitAlt: 'Treasure Hunters civilization portrait',
 		complexity: 3,
 		bodyMinHeight: 184,

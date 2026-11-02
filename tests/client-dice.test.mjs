@@ -62,6 +62,71 @@ test("Surrender's roll tumbles too: the defender's red and black conquer dice (#
 	assert.match(roll.spoken, /^Vera surrendered and rolled the conquer dice/);
 });
 
+test('a Treasure Hunters treasure rolls its dice: one die twice, or both conquer dice red first (#33)', () => {
+	const rolls = rollsOf(
+		[
+			{
+				seq: 4,
+				type: 'treasureRolled',
+				player: 1,
+				die: 'black',
+				faces: [0, 4],
+			},
+			{
+				seq: 5,
+				type: 'treasureRolled',
+				player: 1,
+				die: 'red',
+				faces: [5, 2],
+			},
+			{
+				seq: 6,
+				type: 'treasureRolled',
+				player: 1,
+				die: 'science',
+				faces: [0, 7],
+			},
+			{
+				seq: 7,
+				type: 'treasureRolled',
+				player: 2,
+				die: 'conquer',
+				faces: [1, 3],
+			},
+		],
+		GAME,
+		2
+	);
+	assert.deepEqual(
+		rolls.map((roll) => roll.dice),
+		[
+			[
+				{ die: 'black', face: 0 },
+				{ die: 'black', face: 4 },
+			],
+			[
+				{ die: 'red', face: 5 },
+				{ die: 'red', face: 2 },
+			],
+			[
+				{ die: 'science', face: 0 },
+				{ die: 'science', face: 7 },
+			],
+			[
+				{ die: 'red', face: 1 },
+				{ die: 'black', face: 3 },
+			],
+		]
+	);
+	assert.equal(rolls[0].caption, 'Vera rolls for the Treasure Hunters');
+	assert.equal(rolls[3].caption, 'You roll for the Treasure Hunters');
+	assert.match(rolls[0].spoken, /^Vera's Treasure Hunters rolled the black/);
+	assert.deepEqual(faceOf('science', 7), {
+		kind: 'track',
+		id: SCIENCE_DIE[7],
+	});
+});
+
 test('the Alchemists roll the science die, and a bust says so', () => {
 	const rolls = rollsOf(
 		[

@@ -206,6 +206,7 @@ const SAMPLES = {
 	timedOut: { player: 2 },
 	tokenMoved: { player: 1, track: 'exploration', from: 0, to: 1 },
 	tokenPlaced: { player: 2, civ: 'traders', hex: '0_2' },
+	treasureRolled: { player: 1, die: 'black', faces: [0, 4] },
 	tokenRestarted: { player: 1, from: 'technology', to: 'military' },
 	trackBlocked: { player: 1, track: 'technology' },
 	trackUnblocked: { player: 1, track: 'technology' },
@@ -593,6 +594,27 @@ test('the important events read as plain sentences', () => {
 		[
 			sample('techRecycled'),
 			'Ana recycled Com Tower back to the bottom row.',
+		],
+		// The Treasure Hunters' treasures (#33).
+		[
+			sample('treasureRolled'),
+			"Ana's Treasure Hunters rolled the black conquer die twice: 1 coin and the territory's benefit.",
+		],
+		[
+			sample('treasureRolled', { die: 'red', faces: [1, 4] }),
+			"Ana's Treasure Hunters rolled the red conquer die twice: 5 VP and 1 VP for each territory.",
+		],
+		[
+			sample('treasureRolled', { die: 'science', faces: [0, 3] }),
+			"Ana's Treasure Hunters rolled the science die twice: Exploration and Military.",
+		],
+		[
+			sample('treasureRolled', { die: 'conquer', faces: [1, 2] }),
+			"Ana's Treasure Hunters rolled the conquer dice: red 5 VP, black 1 food.",
+		],
+		[
+			sample('tokenPlaced', { player: 1, civ: 'treasure-hunters' }),
+			'Ana placed a Treasure Hunters token on hex 0,2.',
 		],
 		[
 			sample('techUpgraded', { card: 'clocks' }),

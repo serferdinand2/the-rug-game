@@ -7,11 +7,16 @@ import { openDecisions, push } from '../src/lib/engine/stack.js';
 import { run, resolveEffects } from '../src/lib/engine/loop.js';
 import { cityPlots } from '../src/lib/engine/city.js';
 import { groupsOf } from '../src/lib/capital.js';
-import { view } from '../src/lib/engine/game.js';
+import { view, controlledTerritories } from '../src/lib/engine/game.js';
+import { conquerTargets } from '../src/lib/engine/map.js';
+import { seededRandom } from '../src/lib/engine/random.js';
+import { MAPS, hexNeighbours } from '../src/lib/engine/data/maps.js';
+import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';
 import {
 	readyTurn,
 	startedGame,
 	answer,
+	conquestGame,
 	resolveTapestry,
 } from './helpers/engine.mjs';
 import { allOps } from './helpers/views.mjs';
@@ -1333,7 +1338,13 @@ test('the state checks count the space tiles discarded and the one on the Aliens
 });
 
 test('Aliens use their ability in step 1 of income turns 2 to 5: the tile on their mat goes, then they choose', () => {
-	const ready = turnHolding('aliens', (seat) => {
+	const ready = turnHolding('aliens', (seat, state) => {
+		// Dealt to the other seat, the Aliens' space tiles stayed there when the civilizations were traded.
+		for (const other of state.seats) {
+			if (other !== seat) {
+				seat.spaceTiles.push(...other.spaceTiles.splice(0));
+			}
+		}
 		seat.civData.aliens.tile = seat.spaceTiles.shift();
 		seat.resources.coin = 1;
 	});
@@ -1355,4 +1366,554 @@ test('Aliens use their ability in step 1 of income turns 2 to 5: the tile on the
 	assert.deepEqual(state.supply.spaceDiscard, [tile]);
 	const decision = /** @type {any} */ (decisionOf(state, 'chooseOption'));
 	assert.deepEqual([decision?.player, decision?.purpose], [player, 'aliens']);
+});
+
+// The Treasure Hunters.
+
+/** Their id, also their civData key. */
+const TH = 'treasure-hunters';
+
+/**
+ * A random whose first rolls follow a script, each checked against the die it rolls; later calls are seeded.
+ * @param {...number} faces
+ */
+function dice(...faces) {
+	const base = seededRandom(5);
+	return (/** @type {number} */ n) => {
+		const face = faces.shift();
+		if (face === undefined) {
+			return base(n);
+		}
+		assert.ok(face < n, `face ${face} on a die of ${n}`);
+		return face;
+	};
+}
+
+/**
+ * A game in which seat 1 holds the Treasure Hunters with these treasures used and a token for each other one, and
+ * their only item is an outpost on `home`. Only the hexes `tiles` names are explored: each with a territory tile's
+ * number (taken out of the stack) or a printed territory's.
+ * @param {Record<string, number>} tiles
+ * @param {{ home?: string, used?: string[], tokens?: number }} [options]
+ */
+function treasureGame(tiles, { home = '-2_-2', used = [], tokens } = {}) {
+	const { state, random } = game();
+	const seat = state.seats[0];
+	seat.civs = [TH];
+	seat.civData[TH] = { tokens: tokens ?? 4 - used.length, used: [...used] };
+	for (const [key, hex] of Object.entries(state.hexes)) {
+		hex.outposts = [];
+		hex.tokens = [];
+		hex.tile = Object.hasOwn(tiles, key) ? tiles[key] : null;
+		hex.orient = 0;
+	}
+	state.supply.territory = state.supply.territory.filter(
+		(/** @type {number} */ t) => !Object.values(tiles).includes(t)
+	);
+	state.hexes[home].outposts = [{ seat: 1, toppled: false }];
+	return { state, random };
+}
+
+/** A printed territory of the small map, by hex. */
+const printed = (/** @type {string} */ hex) => MAPS.small.printed[hex].tile;
+
+/** The Treasure Hunters' ability on an income turn. */
+const treasureIncome = (/** @type {number} */ turn) => ({
+	player: 1,
+	kind: 'civIncome',
+	civ: TH,
+	turn,
+	origin: 'civ',
+});
+
+/**
+ * Seat 1's income ability, then the territory picked.
+ * @param {any} state
+ * @param {any} random
+ * @param {string} hex
+ */
+function claim(state, random, hex) {
+	const asked = pushed(state, random, [treasureIncome(2)]);
+	return answer(asked, random, 1, 'chooseHex', { hex });
+}
+
+test('Treasure Hunters put 4 tokens on their mat and gain 2 territory tiles when they come in, at setup or mid-game (03 §1.3, R113)', () => {
+	for (const version of VERSIONS) {
+		const { state } = startedGame(2, {
+			civs: [TH, 'leaders'],
+			version,
+			...PP,
+		});
+		const base = startedGame(2, {
+			civs: ['leaders', 'nomads'],
+			version,
+			...PP,
+		}).state;
+		const seat = /** @type {any} */ (state.seats[0]);
+		assert.deepEqual(seat.civData[TH], { tokens: 4, used: [] }, version);
+		assert.equal(
+			seat.territoryTiles.length,
+			base.seats[0].territoryTiles.length + 2,
+			version
+		);
+		// No setup adjustment: the F&F list leaves them unchanged.
+		assert.deepEqual(seat.resources, base.seats[0].resources, version);
+		assert.equal(seat.vp, base.seats[0].vp, version);
+		checkState(state);
+	}
+
+	const { state, random } = game();
+	state.seats[0].civs = ['leaders'];
+	state.supply.civs = [
+		TH,
+		...state.supply.civs.filter((/** @type {string} */ c) => c !== TH),
+	];
+	const top = state.supply.territory.slice(0, 2);
+	const tiles = state.seats[0].territoryTiles.length;
+	const gained = resolveEffects(state, 1, [{ gainCiv: {} }], random);
+	const seat = gained.seats[0];
+	assert.deepEqual(seat.civs, ['leaders', TH]);
+	assert.deepEqual(seat.civData[TH], { tokens: 4, used: [] });
+	assert.equal(seat.territoryTiles.length, tiles + 2);
+	assert.deepEqual(seat.territoryTiles.slice(-2), top);
+	assert.deepEqual(openDecisions(gained), []);
+});
+
+test('Treasure Hunters may claim an empty explored territory next to one they control that shows an unused treasure anywhere, tile or printed (R114)', () => {
+	const { state, random } = treasureGame({
+		'-2_-2': printed('-2_-2'),
+		// Sea and forest.
+		'-3_-3': printed('-3_-3'),
+		// Desert and mountain.
+		'-2_-1': printed('-2_-1'),
+		// Mountain and forest, under an opponent's outpost.
+		'-1_-2': printed('-1_-2'),
+		// All sea, with an island of desert.
+		'-1_-1': 5,
+		// Not next to their territory.
+		'0_0': printed('0_0'),
+	});
+	state.hexes['-1_-2'].outposts = [{ seat: 2, toppled: false }];
+	const asked = pushed(state, random, [treasureIncome(2)]);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseHex'));
+	assert.deepEqual(
+		[decision.player, decision.purpose, decision.optional],
+		[1, 'treasureHunters', true]
+	);
+	assert.deepEqual(
+		decision.options,
+		MAPS.small.hexes.filter((hex) =>
+			['-3_-3', '-2_-1', '-1_-1'].includes(hex)
+		)
+	);
+	assert.deepEqual(answersOf(asked, 'chooseHex')[0], { hex: null });
+
+	// Declined, nothing changes.
+	const declined = answer(asked, random, 1, 'chooseHex', { hex: null });
+	assert.deepEqual(declined.seats[0].civData[TH], { tokens: 4, used: [] });
+	assert.deepEqual(declined.hexes['-3_-3'].tokens, []);
+	assert.deepEqual(openDecisions(declined), []);
+
+	// A civilization token is an item too.
+	const traded = structuredClone(state);
+	traded.hexes['-3_-3'].tokens = [{ seat: 2, civ: 'traders' }];
+	const fewer = /** @type {any} */ (
+		decisionOf(pushed(traded, random, [treasureIncome(3)]), 'chooseHex')
+	);
+	assert.ok(!fewer.options.includes('-3_-3'));
+
+	// With no token left, nothing is asked.
+	const spent = structuredClone(state);
+	spent.seats[0].civData[TH].tokens = 0;
+	assert.deepEqual(
+		openDecisions(pushed(spent, random, [treasureIncome(4)])),
+		[]
+	);
+});
+
+test('a Forest treasure: the token controls the territory, then 1 food and both results of the red die rolled twice (03 §1.3, R114)', () => {
+	const { state } = treasureGame({
+		'-2_-2': printed('-2_-2'),
+		'-3_-3': printed('-3_-3'),
+	});
+	const since = state.seq;
+	// 7 VP, then 1 VP for each territory they control, the new one included.
+	const random = dice(3, 4);
+	// Only forest shows, so no treasure is asked for.
+	const next = claim(state, random, '-3_-3');
+	const seat = next.seats[0];
+	assert.deepEqual(seat.civData[TH], { tokens: 3, used: ['forest'] });
+	assert.deepEqual(next.hexes['-3_-3'].tokens, [{ seat: 1, civ: TH }]);
+	assert.deepEqual(next.hexes['-3_-3'].outposts, []);
+	assert.deepEqual(controlledTerritories(next, 1).sort(), ['-2_-2', '-3_-3']);
+	assert.equal(seat.resources.food, state.seats[0].resources.food + 1);
+	assert.equal(seat.vp, state.seats[0].vp + 9);
+	assert.equal(
+		seat.vpSources.civ ?? 0,
+		(state.seats[0].vpSources.civ ?? 0) + 9
+	);
+	assert.deepEqual(eventsOf(next, 'tokenPlaced', since), [
+		{ type: 'tokenPlaced', player: 1, civ: TH, hex: '-3_-3' },
+	]);
+	assert.deepEqual(eventsOf(next, 'treasureRolled', since), [
+		{ type: 'treasureRolled', player: 1, die: 'red', faces: [3, 4] },
+	]);
+	// It is no conquest.
+	assert.deepEqual(eventsOf(next, 'conquered', since), []);
+	assert.deepEqual(openDecisions(next), []);
+});
+
+test('a territory showing several unused treasures asks which; a Mountain treasure gives 1 worker, then both conquer dice, black first (03 §1.3, R114)', () => {
+	const { state } = treasureGame({
+		'-2_-2': printed('-2_-2'),
+		'-2_-1': printed('-2_-1'),
+	});
+	const since = state.seq;
+	// Red 6 VP, black 1 worker.
+	const random = dice(2, 1);
+	const asked = claim(state, random, '-2_-1');
+	const pick = /** @type {any} */ (decisionOf(asked, 'chooseSlot'));
+	assert.deepEqual(
+		[pick.player, pick.purpose, pick.optional, pick.options],
+		[1, 'treasureHunters', false, ['desert', 'mountain']]
+	);
+	assert.deepEqual(asked.hexes['-2_-1'].tokens, []);
+	const next = answer(asked, random, 1, 'chooseSlot', { slot: 'mountain' });
+	const seat = next.seats[0];
+	assert.deepEqual(seat.civData[TH], { tokens: 3, used: ['mountain'] });
+	assert.equal(seat.resources.worker, state.seats[0].resources.worker + 2);
+	assert.equal(seat.vp, state.seats[0].vp + 6);
+	assert.deepEqual(eventsOf(next, 'treasureRolled', since), [
+		{ type: 'treasureRolled', player: 1, die: 'conquer', faces: [2, 1] },
+	]);
+	// The worker first, then black's worker, then red's VP.
+	const order = next.events
+		.filter(
+			(e) =>
+				e.seq > since &&
+				['resourcesGained', 'treasureRolled', 'vpGained'].includes(
+					e.type
+				)
+		)
+		.map((e) => e.type);
+	assert.deepEqual(order, [
+		'resourcesGained',
+		'treasureRolled',
+		'resourcesGained',
+		'vpGained',
+	]);
+	assert.deepEqual(openDecisions(next), []);
+});
+
+test("a Desert treasure gives 1 coin, then one of two black die results; its '?' is the claimed tile's benefit (03 §1.3, R8)", () => {
+	// Territory tile 1 shows desert; its benefit is 1 coin.
+	const { state } = treasureGame({ '-2_-2': printed('-2_-2'), '-1_-1': 1 });
+	const since = state.seq;
+	const random = dice(4, 1);
+	const asked = claim(state, random, '-1_-1');
+	assert.deepEqual(eventsOf(asked, 'treasureRolled', since), [
+		{ type: 'treasureRolled', player: 1, die: 'black', faces: [4, 1] },
+	]);
+	const choice = /** @type {any} */ (decisionOf(asked, 'chooseOption'));
+	assert.deepEqual(
+		[choice.player, choice.purpose, choice.options],
+		[
+			1,
+			'treasureHunters',
+			[[{ tileBenefit: {} }], [{ gain: { worker: 1 } }]],
+		]
+	);
+	const coin = state.seats[0].resources.coin;
+	const tile = answer(asked, random, 1, 'chooseOption', { option: 0 });
+	assert.equal(tile.seats[0].resources.coin, coin + 2);
+	assert.deepEqual(eventsOf(tile, 'tileBenefit', since), [
+		{ type: 'tileBenefit', player: 1, hex: '-1_-1', tile: 1 },
+	]);
+	assert.deepEqual(openDecisions(tile), []);
+	const worker = answer(asked, random, 1, 'chooseOption', { option: 1 });
+	assert.equal(worker.seats[0].resources.coin, coin + 1);
+	assert.equal(
+		worker.seats[0].resources.worker,
+		state.seats[0].resources.worker + 1
+	);
+
+	// Two rolls alike leave nothing to choose.
+	const same = claim(state, dice(0, 0), '-1_-1');
+	assert.equal(decisionOf(same, 'chooseOption'), undefined);
+	assert.equal(same.seats[0].resources.coin, coin + 2);
+	assert.deepEqual(openDecisions(same), []);
+});
+
+test('a Grassland treasure gives 1 culture, then one of two science die results to advance on with its benefit; the middle island gives no achievement (03 §1.3)', () => {
+	const tiles = { '-1_-1': 1, '0_0': printed('0_0') };
+	const { state } = treasureGame(tiles, { home: '-1_-1' });
+	const since = state.seq;
+	// Exploration and Military.
+	const random = dice(0, 3);
+	const asked = claim(state, random, '0_0');
+	// The middle island shows all four on its island.
+	assert.deepEqual(answersOf(asked, 'chooseSlot'), [
+		{ slot: 'desert' },
+		{ slot: 'grassland' },
+		{ slot: 'mountain' },
+		{ slot: 'forest' },
+	]);
+	const rolled = answer(asked, random, 1, 'chooseSlot', {
+		slot: 'grassland',
+	});
+	assert.equal(
+		rolled.seats[0].resources.culture,
+		state.seats[0].resources.culture + 1
+	);
+	assert.deepEqual(eventsOf(rolled, 'treasureRolled', since), [
+		{ type: 'treasureRolled', player: 1, die: 'science', faces: [0, 3] },
+	]);
+	assert.deepEqual(answersOf(rolled, 'chooseRoll'), [
+		{ track: 'exploration' },
+		{ track: 'military' },
+	]);
+	const chosen = answer(rolled, random, 1, 'chooseRoll', {
+		track: 'military',
+	});
+	const move = /** @type {any} */ (decisionOf(chosen, 'chooseMove'));
+	assert.deepEqual(
+		[
+			move.player,
+			move.direction,
+			move.options,
+			move.benefit,
+			move.optional,
+		],
+		[1, 'advance', [{ track: 'military', from: 0 }], true, true]
+	);
+	assert.ok(!chosen.achievements['middle-island'].includes(1));
+	assert.ok(controlledTerritories(chosen, 1).includes('0_0'));
+
+	// The same track twice leaves nothing to choose.
+	const twice = dice(1, 5);
+	const science = answer(claim(state, twice, '0_0'), twice, 1, 'chooseSlot', {
+		slot: 'grassland',
+	});
+	assert.equal(decisionOf(science, 'chooseRoll'), undefined);
+	assert.deepEqual(
+		/** @type {any} */ (decisionOf(science, 'chooseMove')).options,
+		[{ track: 'science', from: 0 }]
+	);
+});
+
+test('each treasure is claimed once: a territory showing only used ones is not offered (03 §1.3)', () => {
+	const tiles = {
+		'-2_-2': printed('-2_-2'),
+		'-3_-3': printed('-3_-3'),
+		'-2_-1': printed('-2_-1'),
+		'-1_-2': printed('-1_-2'),
+	};
+	const { state, random } = treasureGame(tiles, {
+		used: ['forest', 'mountain'],
+	});
+	const asked = pushed(state, random, [treasureIncome(4)]);
+	assert.deepEqual(
+		/** @type {any} */ (decisionOf(asked, 'chooseHex')).options,
+		['-2_-1']
+	);
+	// Only the desert is left there, so it is claimed without asking.
+	const next = answer(asked, random, 1, 'chooseHex', { hex: '-2_-1' });
+	assert.deepEqual(next.seats[0].civData[TH].used, [
+		'forest',
+		'mountain',
+		'desert',
+	]);
+	assert.equal(decisionOf(next, 'chooseSlot'), undefined);
+
+	const all = treasureGame(tiles, {
+		used: ['forest', 'mountain', 'desert', 'grassland'],
+	});
+	assert.deepEqual(
+		openDecisions(pushed(all.state, all.random, [treasureIncome(5)])),
+		[]
+	);
+});
+
+test('a claimed territory changes the counts the Mystics predict, so their check follows (#20 design §7)', () => {
+	const { state } = treasureGame({
+		'-2_-2': printed('-2_-2'),
+		'-3_-3': printed('-3_-3'),
+	});
+	state.seats[0].civs = [TH, 'mystics'];
+	state.seats[0].civData.mystics = {
+		predictions: { techCards: 9, districts: 9, territories: 2, tracks: 4 },
+		reached: [],
+	};
+	const next = claim(state, dice(0, 0), '-3_-3');
+	assert.deepEqual(next.seats[0].civData.mystics.reached, ['territories']);
+	assert.deepEqual(eventsOf(next, 'prophecyReached', state.seq), [
+		{ type: 'prophecyReached', player: 1, category: 'territories' },
+	]);
+});
+
+/**
+ * #17's conquest game, in which seat 2's only item on '-2_-1' is a Treasure Hunters token.
+ * @param {string[]} hand - Seat 2's
+ */
+function tokenConquest(hand) {
+	const state = /** @type {any} */ (conquestGame(hand, PP));
+	state.hexes['-2_-1'].outposts = [];
+	state.hexes['-2_-1'].tokens = [{ seat: 2, civ: TH }];
+	state.seats[0].hand = [];
+	state.seats[1].civs = [TH];
+	state.seats[1].civData = { [TH]: { tokens: 3, used: ['desert'] } };
+	return state;
+}
+
+/** A random that gives every roll the same face. */
+const face = (/** @type {number} */ n) => () => n;
+
+test('the Treasure Hunters token controls its territory; an opponent conquering it asks them to respond, never with Retreat, and Tanks gives both dice (R114, R17)', () => {
+	const state = tokenConquest([
+		'trap-1',
+		'retreat',
+		'surprise-party',
+		'surrender',
+	]);
+	assert.deepEqual(controlledTerritories(state, 2), ['-2_-1']);
+	// Somewhere to retreat to, and further along military, so only the token keeps Retreat out.
+	state.hexes['-1_-1'].tile = state.supply.territory.shift();
+	state.hexes['-1_-1'].outposts = [{ seat: 2, toppled: false }];
+	state.seats[1].tracks.military = [3];
+	const tanks = pushed(state, face(0), [
+		{
+			player: 1,
+			kind: 'effects',
+			effects: [{ conquer: { bothDice: 'ifOpponent', only: ['-2_-1'] } }],
+		},
+	]);
+	const question = /** @type {any} */ (decisionOf(tanks, 'chooseResponse'));
+	assert.deepEqual(
+		[question.player, question.attacker, question.hex, question.both],
+		[2, 1, '-2_-1', true]
+	);
+	assert.deepEqual(
+		answersOf(tanks, 'chooseResponse').map((a) => a.card),
+		[null, 'trap-1', 'surprise-party', 'surrender']
+	);
+	// Nothing to topple: the token stays beside the attacker's outpost.
+	assert.deepEqual(eventsOf(tanks, 'outpostToppled', state.seq), []);
+
+	const declined = answer(tanks, face(0), 2, 'chooseResponse', {
+		card: null,
+	});
+	assert.deepEqual(declined.hexes['-2_-1'].outposts, [
+		{ seat: 1, toppled: false },
+	]);
+	assert.deepEqual(declined.hexes['-2_-1'].tokens, [{ seat: 2, civ: TH }]);
+	assert.ok(controlledTerritories(declined, 1).includes('-2_-1'));
+	assert.ok(!controlledTerritories(declined, 2).includes('-2_-1'));
+	// Two items: nobody can conquer it now.
+	assert.ok(!conquerTargets(declined, 2, true).includes('-2_-1'));
+	// Both dice, black first: 1 coin and 4 VP, without choosing.
+	assert.equal(decisionOf(declined, 'chooseDie'), undefined);
+	assert.equal(
+		declined.seats[0].resources.coin,
+		state.seats[0].resources.coin + 1
+	);
+	assert.equal(declined.seats[0].vp, state.seats[0].vp + 4);
+});
+
+test('a trap or a Surprise Party against the conquest of a Treasure Hunters token gives them back its territory (R114)', () => {
+	const conquered = (/** @type {string} */ card) => {
+		const state = tokenConquest([card]);
+		state.seats[1].tracks.military = [3];
+		const asked = pushed(state, face(0), [
+			{ player: 1, kind: 'effects', effects: [{ conquer: {} }] },
+		]);
+		return answer(asked, face(0), 2, 'chooseResponse', { card });
+	};
+	for (const card of ['trap-1', 'surprise-party']) {
+		const after = conquered(card);
+		assert.deepEqual(
+			after.hexes['-2_-1'].outposts,
+			[{ seat: 1, toppled: true, toppledBy: 2 }],
+			card
+		);
+		assert.deepEqual(after.hexes['-2_-1'].tokens, [{ seat: 2, civ: TH }]);
+		assert.ok(controlledTerritories(after, 2).includes('-2_-1'), card);
+		assert.ok(!controlledTerritories(after, 1).includes('-2_-1'), card);
+	}
+	// The trap's resource, then the attacker's dice: the conquest failed.
+	const trapped = answer(conquered('trap-1'), face(0), 2, 'chooseResource', {
+		resources: { coin: 1 },
+	});
+	assert.deepEqual(eventsOf(trapped, 'conquered'), [
+		{ type: 'conquered', player: 1, hex: '-2_-1', trapped: true },
+	]);
+});
+
+test('only a Treasure Hunters token controls: a Traders token alone controls nothing and defends nothing, as in a base game (R33)', () => {
+	const state = /** @type {any} */ (conquestGame(['trap-1']));
+	state.hexes['-2_-1'].outposts = [];
+	state.hexes['-2_-1'].tokens = [{ seat: 2, civ: 'traders' }];
+	state.seats[1].civs = ['traders'];
+	state.seats[1].civData = { traders: { tokens: 3 } };
+	assert.deepEqual(controlledTerritories(state, 2), []);
+	const next = pushed(state, face(0), [
+		{
+			player: 1,
+			kind: 'effects',
+			effects: [{ conquer: { bothDice: 'ifOpponent' } }],
+		},
+	]);
+	assert.equal(decisionOf(next, 'chooseResponse'), undefined);
+	// No opponent controlled it, so Tanks gives one die.
+	assert.ok(decisionOf(next, 'chooseDie'));
+	assert.deepEqual(next.hexes['-2_-1'].outposts, [
+		{ seat: 1, toppled: false },
+	]);
+});
+
+test('the state checks count the Treasure Hunters tokens on their mat and on the map', () => {
+	const { state } = startedGame(2, { civs: [TH, 'leaders'], ...PP });
+	const hex = /** @type {string} */ (
+		MAPS[state.map].hexes.find((key) => state.hexes[key].tile === null)
+	);
+	state.hexes[hex].tokens.push({ seat: 1, civ: TH });
+	/** @type {any} */ (state.seats[0]).civData[TH].tokens = 3;
+	checkState(state);
+	const lost = /** @type {any} */ (structuredClone(state));
+	lost.hexes[hex].tokens = [];
+	assert.throws(() => checkState(lost), /treasure-hunters tokens/);
+});
+
+test('Treasure Hunters use their ability in step 1 of income turns 2 to 5', () => {
+	/** @type {string | undefined} */
+	let near;
+	const ready = turnHolding(TH, (seat, state) => {
+		near = hexNeighbours(seat.start).find(
+			(key) => state.hexes[key]?.tile === null
+		);
+		assert.ok(near, 'an unexplored territory beside the start');
+		const tile = /** @type {number} */ (
+			state.supply.territory.find((/** @type {number} */ t) =>
+				TERRITORY_TILES[t - 1].corners.some(
+					(/** @type {string} */ c) => c !== 'sea'
+				)
+			)
+		);
+		state.supply.territory.splice(state.supply.territory.indexOf(tile), 1);
+		state.hexes[near].tile = tile;
+		state.hexes[near].orient = 0;
+	});
+	const { player } = ready;
+	const since = ready.state.seq;
+	const state = answer(ready.state, ready.random, player, 'chooseTurn', {
+		turn: 'income',
+	});
+	assert.ok(
+		eventsOf(state, 'civAbilityUsed', since).some((e) => e.civ === TH)
+	);
+	const decision = /** @type {any} */ (decisionOf(state, 'chooseHex'));
+	assert.deepEqual(
+		[decision?.player, decision?.purpose],
+		[player, 'treasureHunters']
+	);
+	assert.ok(decision.options.includes(near));
 });

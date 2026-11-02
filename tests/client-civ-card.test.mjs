@@ -27,7 +27,7 @@ function table(civData) {
 	};
 }
 
-test('the six civilizations with choices on their cards', () => {
+test('the seven civilizations whose cards show live state, six with choices on them', () => {
 	assert.deepEqual(
 		[...CARD_CIVS],
 		[
@@ -37,6 +37,7 @@ test('the six civilizations with choices on their cards', () => {
 			'militants',
 			'historians',
 			'mystics',
+			'treasure-hunters',
 		]
 	);
 });
@@ -112,6 +113,32 @@ test("the Mystics' predictions are chosen numbers, and a reached one is marked",
 			'tracks:2': ['chosen'],
 			tracks: ['reached'],
 		}
+	);
+});
+
+test("the Treasure Hunters' used treasures are struck through; the treasure to claim is chosen in the panel (#33)", () => {
+	assert.deepEqual(
+		civCardMarks('treasure-hunters', {
+			tokens: 2,
+			used: ['desert', 'forest'],
+		}),
+		{ desert: ['used'], forest: ['used'] }
+	);
+	assert.deepEqual(
+		civCardMarks('treasure-hunters', { tokens: 4, used: [] }),
+		{}
+	);
+	const pick = { kind: 'chooseSlot', player: 1, purpose: 'treasureHunters' };
+	assert.equal(cardCivOf(pick), null);
+	assert.equal(cardSpot(pick, { slot: 'desert' }, table({})), null);
+	assert.deepEqual(
+		civCardView(
+			table({ 'treasure-hunters': { tokens: 3, used: ['mountain'] } }),
+			1,
+			'treasure-hunters',
+			pick
+		),
+		{ marks: { mountain: ['used'] }, choices: {} }
 	);
 });
 

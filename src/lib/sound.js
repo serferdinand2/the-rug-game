@@ -31,6 +31,7 @@ const ROLLS = new Set([
 	'scienceDieRolled',
 	'conquerDiceRolled',
 	'surrenderRolled',
+	'treasureRolled',
 	'alchemistsRolled',
 	'alchemistsBust',
 ]);
