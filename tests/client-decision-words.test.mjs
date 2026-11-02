@@ -596,10 +596,10 @@ test("the Utilitarians' landmark, their tokens and the Lighthouse's trade read a
 		'Put a Utilitarians token beside a landmark you own?'
 	);
 	assert.deepEqual(words(place), [
-		'Rubber Works: whenever you advance into tier III or IV of Technology, gain 4 VP',
-		'Tank Factory: whenever you advance into tier III or IV of Military, gain 4 VP',
-		'Train Station: whenever you advance into tier III or IV of Exploration, gain 4 VP',
-		'Academy: whenever you advance into tier III or IV of Science, gain 4 VP',
+		'Rubber Works: whenever you advance to a space in tier III or IV of Technology, gain 4 VP',
+		'Tank Factory: whenever you advance to a space in tier III or IV of Military, gain 4 VP',
+		'Train Station: whenever you advance to a space in tier III or IV of Exploration, gain 4 VP',
+		'Academy: whenever you advance to a space in tier III or IV of Science, gain 4 VP',
 	]);
 	assert.equal(describeAnswer(place, { slot: null }), 'Decline');
 

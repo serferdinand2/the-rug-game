@@ -216,7 +216,7 @@ const UTILITARIANS_ABILITIES = Object.freeze({
 				? [
 						[
 							id,
-							`whenever you advance into tier III or IV of ${trackName(source.track)}, gain ${UTILITARIANS_ADVANCE_VP} VP`,
+							`whenever you advance to a space in tier III or IV of ${trackName(source.track)}, gain ${UTILITARIANS_ADVANCE_VP} VP`,
 						],
 					]
 				: [];
