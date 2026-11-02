@@ -1649,6 +1649,26 @@ test("a Desert treasure gives 1 coin, then one of two black die results; its '?'
 	assert.deepEqual(openDecisions(same), []);
 });
 
+test("a Desert treasure's two different black results are asked, and the VP of the one chosen is credited to the civilization (03 §1.3, R8)", () => {
+	// The question the treasure pushes, with a VP result in place of the tile benefit, which no tile gives as VP.
+	const { state, random } = treasureGame({ '-2_-2': printed('-2_-2') });
+	const asked = pushed(state, random, [
+		{
+			player: 1,
+			kind: 'chooseOption',
+			options: [[{ vp: 3 }], [{ gain: { worker: 1 } }]],
+			purpose: 'treasureHunters',
+			source: { hex: '-1_-1' },
+			origin: 'civ',
+		},
+	]);
+	const next = answer(asked, random, 1, 'chooseOption', { option: 0 });
+	assert.deepEqual(
+		eventsOf(next, 'vpGained', state.seq).map((e) => [e.vp, e.source]),
+		[[3, 'civ']]
+	);
+});
+
 test('a Grassland treasure gives 1 culture, then one of two science die results to advance on with its benefit; the middle island gives no achievement (03 §1.3)', () => {
 	const tiles = { '-1_-1': 1, '0_0': printed('0_0') };
 	const { state } = treasureGame(tiles, { home: '-1_-1' });
