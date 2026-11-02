@@ -153,14 +153,23 @@ export function inventCard(ctx, player, answer, left, options = {}) {
 }
 
 /**
- * Upgrades the card Steam Tycoon or Technocracy just invented, if it is still in the bottom row.
+ * Upgrades the card Steam Tycoon, Technocracy or Engineering just invented, if it is still in the bottom row. It is an
+ * upgrade the player takes, so the Recyclers are asked whether to recycle a top-row card instead (03 §1.3): a choice
+ * between that card and their top row, which they can't decline.
  * @type {import('../state.js').AutomaticKind}
  */
 export function upgradeTech(ctx, op) {
 	const player = /** @type {number} */ (op.player);
-	if (playerSeat(ctx.state, player).tech.bottom.includes(op.card)) {
-		upgradeCard(ctx, player, op.card);
+	if (!playerSeat(ctx.state, player).tech.bottom.includes(op.card)) {
+		return;
 	}
+	if (recyclable(ctx.state, player).length > 0) {
+		ctx.push([
+			{ player, kind: 'chooseUpgrade', optional: false, only: op.card },
+		]);
+		return;
+	}
+	upgradeCard(ctx, player, op.card);
 }
 
 /**

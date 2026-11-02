@@ -221,6 +221,12 @@ test("the Recyclers' keep, discard pile and recycle read as what they do (#33)",
 			'Com Tower, back to the bottom row for 5 VP',
 		]
 	);
+	assert.equal(decisionTitle(upgrade), 'Upgrade a tech card?');
+	// The card just invented (Steam Tycoon, Technocracy, Engineering), or a recycle.
+	assert.equal(
+		decisionTitle({ ...upgrade, optional: false, only: 'bakery' }),
+		'Upgrade Bakery, or recycle a top-row card'
+	);
 });
 
 test('unknown decisions and answers fall back to a readable sentence', () => {

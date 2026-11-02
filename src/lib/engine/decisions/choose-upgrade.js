@@ -8,12 +8,16 @@ import { recycleCard } from '../civs/recyclers.js';
 export const chooseUpgrade = {
 	hidden: [],
 	// Every upgrade asked is the player's own, so the Recyclers' top-row cards join (03 §1.3); an Inventors token's
-	// upgrade never asks.
+	// upgrade never asks. `only` names the one card an upgrade may move (upgradeTech: the card just invented).
 	answers(state, decision) {
 		const player = /** @type {number} */ (decision.player);
+		const cards = upgradable(state, player).filter(
+			(card) =>
+				typeof decision.only !== 'string' || card === decision.only
+		);
 		return [
 			...(decision.optional ? [{ card: null }] : []),
-			...upgradable(state, player).map((card) => ({ card })),
+			...cards.map((card) => ({ card })),
 			...recyclable(state, player).map((card) => ({ card })),
 		];
 	},

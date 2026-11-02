@@ -234,8 +234,15 @@ const TITLES = {
 			? `Counter ${seatName(table, d.defender)}'s trap?`
 			: 'Counter the trap?',
 	chooseInvent: () => 'Choose a tech card to invent',
-	chooseUpgrade: (d) =>
-		d.optional ? 'Upgrade a tech card?' : 'Choose a tech card to upgrade',
+	chooseUpgrade: (d) => {
+		// The card just invented, or a Recyclers' recycle instead (#33).
+		if (typeof d.only === 'string') {
+			return `Upgrade ${techName(d.only)}, or recycle a top-row card`;
+		}
+		return d.optional
+			? 'Upgrade a tech card?'
+			: 'Choose a tech card to upgrade';
+	},
 	chooseTechBenefit: (d) =>
 		d.icon === 'square'
 			? 'Choose a tech card in your top row for its square benefit'

@@ -8,7 +8,12 @@ import { run, resolveEffects } from '../src/lib/engine/loop.js';
 import { cityPlots } from '../src/lib/engine/city.js';
 import { groupsOf } from '../src/lib/capital.js';
 import { view } from '../src/lib/engine/game.js';
-import { readyTurn, startedGame, answer } from './helpers/engine.mjs';
+import {
+	readyTurn,
+	startedGame,
+	answer,
+	resolveTapestry,
+} from './helpers/engine.mjs';
 import { allOps } from './helpers/views.mjs';
 
 const VERSIONS = /** @type {const} */ (['original', 'current']);
@@ -845,7 +850,7 @@ test("an Inventors token's upgrade of a Recyclers card never recycles, and a rec
 		top: ['com-tower'],
 	});
 	state.seats[1].civs = ['inventors'];
-	state.seats[1].civData.inventors = { tokens: 4, cards: ['com-tower'] };
+	state.seats[1].civData.inventors = { tokens: 4, cards: [] };
 	// The token goes on a bottom- or middle-row card, never a top-row one, and upgrades it at once.
 	const asked = pushed(state, random, [
 		{
@@ -871,13 +876,107 @@ test("an Inventors token's upgrade of a Recyclers card never recycles, and a rec
 	assert.deepEqual(eventsOf(marked, 'techRecycled', state.seq), []);
 	assert.equal(decisionOf(marked, 'chooseUpgrade'), undefined);
 
-	// The Recyclers' own upgrade sends the marked card down, its token with it.
-	const own = resolveEffects(state, 1, [{ upgrade: {} }], random);
+	// A marked card stays in a top row only when the Inventors had finished as it got there, or they would have taken
+	// it. The Recyclers' own upgrade sends it down, its token with it.
+	const late = structuredClone(state);
+	late.seats[1].finished = true;
+	late.seats[1].civData.inventors.cards = ['com-tower'];
+	const own = resolveEffects(late, 1, [{ upgrade: {} }], random);
 	const recycled = answer(own, random, 1, 'chooseUpgrade', {
 		card: 'com-tower',
 	});
 	assert.deepEqual(recycled.seats[0].tech.bottom, ['bakery', 'com-tower']);
 	assert.deepEqual(recycled.seats[1].civData.inventors.cards, ['com-tower']);
+});
+
+test('an upgrade of the card just invented (Steam Tycoon, Engineering) lets the Recyclers recycle a top-row card instead (03 §1.3)', () => {
+	const { state, random } = recyclersGame({
+		bottom: ['barn'],
+		top: ['com-tower'],
+	});
+	const { tech } = state.supply;
+	tech.deck.push(...tech.faceUp.splice(0));
+	tech.faceUp = takeTech(state, ['bakery', 'calendar', 'clocks']);
+	/**
+	 * Checks the question an upgrade of the Bakery just invented asks, then both answers.
+	 * @param {any} invented - The state with the question open
+	 */
+	const offered = (invented) => {
+		const decision = /** @type {any} */ (
+			decisionOf(invented, 'chooseUpgrade')
+		);
+		assert.deepEqual(
+			[decision?.player, decision?.only, decision?.optional],
+			[1, 'bakery', false]
+		);
+		// Only the card just invented, or a recycle: not the Barn.
+		assert.deepEqual(answersOf(invented, 'chooseUpgrade'), [
+			{ card: 'bakery' },
+			{ card: 'com-tower' },
+		]);
+		assert.throws(
+			() =>
+				answer(invented, random, 1, 'chooseUpgrade', { card: 'barn' }),
+			{ name: 'PlayerError', message: "You can't upgrade that card." }
+		);
+		const vp = invented.seats[0].vp;
+		// Upgraded: the Bakery goes up and pays its 4 VP.
+		const up = answer(invented, random, 1, 'chooseUpgrade', {
+			card: 'bakery',
+		});
+		assert.deepEqual(up.seats[0].tech, {
+			bottom: ['barn'],
+			middle: ['bakery'],
+			top: ['com-tower'],
+		});
+		assert.equal(up.seats[0].vp, vp + 4);
+		// Recycled instead: the Bakery stays down, and the Com Tower joins it for 5 VP.
+		const down = answer(invented, random, 1, 'chooseUpgrade', {
+			card: 'com-tower',
+		});
+		assert.deepEqual(down.seats[0].tech, {
+			bottom: ['barn', 'bakery', 'com-tower'],
+			middle: [],
+			top: [],
+		});
+		assert.equal(down.seats[0].vp, vp + 5);
+		assert.deepEqual(eventsOf(down, 'techRecycled', invented.seq), [
+			{ type: 'techRecycled', player: 1, card: 'com-tower' },
+		]);
+		assert.deepEqual(eventsOf(down, 'techUpgraded', invented.seq), []);
+	};
+
+	// Steam Tycoon: a face-up card, upgraded at once.
+	const played = resolveTapestry(state, random, 1, 'steam-tycoon');
+	offered(answer(played, random, 1, 'chooseInvent', { card: 'bakery' }));
+
+	// Engineering: each card invented goes up at once.
+	const engineering = structuredClone(state);
+	engineering.seats[0].era = { card: 'engineering', ability: 'engineering' };
+	const inventing = resolveEffects(engineering, 1, [{ invent: {} }], random);
+	offered(answer(inventing, random, 1, 'chooseInvent', { card: 'bakery' }));
+
+	// With an empty top row, or without the Recyclers, the card goes up at once, as before.
+	for (const fill of [
+		(/** @type {any} */ seat) => {
+			seat.tech.top = [];
+		},
+		(/** @type {any} */ seat) => {
+			seat.civs = [];
+		},
+	]) {
+		const plain = structuredClone(state);
+		fill(plain.seats[0]);
+		const next = answer(
+			resolveTapestry(plain, random, 1, 'steam-tycoon'),
+			random,
+			1,
+			'chooseInvent',
+			{ card: 'bakery' }
+		);
+		assert.deepEqual(next.seats[0].tech.middle, ['bakery']);
+		assert.equal(decisionOf(next, 'chooseUpgrade'), undefined);
+	}
 });
 
 test('Recyclers may invent a card from the tech discard pile, but not when only the deck or only the face-up cards may be taken (03 §1.3)', () => {
