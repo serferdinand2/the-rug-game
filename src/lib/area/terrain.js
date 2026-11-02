@@ -2,7 +2,7 @@
 import { TERRITORY_TILES } from '../engine/data/territory-tiles.js';
 import { spaceTile } from '../engine/data/space-tiles.js';
 import { describeEffects, effectsPhrase } from '../describe.js';
-import { trackName } from '../game-names.js';
+import { civilizationName, trackName } from '../game-names.js';
 import { RESOURCES } from '../ui.js';
 
 /** @typedef {import('../ui.js').Terrain} Terrain */
@@ -18,11 +18,12 @@ import { RESOURCES } from '../ui.js';
  */
 
 /**
- * A space tile, held or explored beside the income mat.
+ * A space tile, held, explored beside the income mat, or explored onto a civilization's mat.
  * @typedef {Object} SpaceEntry
  * @property {number} id - The tile's number
  * @property {boolean} explored
  * @property {string} art - Its art's catalog id, from spaceTileArt()
+ * @property {string} [civ] - The civilization whose mat it is on (the Aliens', #33); left out beside the income mat
  */
 
 /**
@@ -50,11 +51,27 @@ export function spaceTileWords(id, table) {
 }
 
 /**
- * What a seat holds of terrain: its territory tiles, and its space tiles held first, then explored.
- * @param {{ territoryTiles: number[], spaceTiles: number[], exploredSpace: number[] }} seat
+ * Where a space tile is, in words for its caption: "In hand", "Explored", or "On the Aliens’ mat".
+ * @param {SpaceEntry} entry
+ * @returns {string}
+ */
+export function spacePlace(entry) {
+	if (typeof entry.civ === 'string') {
+		const name = civilizationName(entry.civ);
+		return `On the ${name}${name.endsWith('s') ? '’' : '’s'} mat`;
+	}
+	return entry.explored ? 'Explored' : 'In hand';
+}
+
+/**
+ * What a seat holds of terrain: its territory tiles, and its space tiles held first, then explored, then the one on
+ * the Aliens' mat (#33), which was explored there and works until it is discarded.
+ * @param {{ territoryTiles: number[], spaceTiles: number[], exploredSpace: number[], civData?: Record<string, any> }} seat
  * @returns {{ territories: HeldTerritory[], space: SpaceEntry[] }}
  */
 export function terrainView(seat) {
+	/** @type {unknown} */
+	const onMat = seat.civData?.aliens?.tile;
 	return {
 		territories: seat.territoryTiles.map((id) => {
 			const tile = TERRITORY_TILES[id - 1];
@@ -77,6 +94,16 @@ export function terrainView(seat) {
 				explored: true,
 				art: spaceTileArt(id),
 			})),
+			...(typeof onMat === 'number'
+				? [
+						{
+							id: onMat,
+							explored: true,
+							art: spaceTileArt(onMat),
+							civ: 'aliens',
+						},
+					]
+				: []),
 		],
 	};
 }

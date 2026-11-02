@@ -2,7 +2,11 @@
 import { existsSync } from 'node:fs';
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { terrainView, territoryBenefit } from '../src/lib/area/terrain.js';
+import {
+	spacePlace,
+	terrainView,
+	territoryBenefit,
+} from '../src/lib/area/terrain.js';
 import { describeEffects } from '../src/lib/describe.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';
 
@@ -36,6 +40,45 @@ test('space tiles split held and explored', () => {
 		{ id: 7, explored: false, art: 'space-tile/7' },
 		{ id: 2, explored: true, art: 'space-tile/2' },
 	]);
+});
+
+test("the tile on the Aliens' mat shows once among the explored space tiles, worded as on their mat (#33)", () => {
+	const seat = {
+		territoryTiles: [],
+		spaceTiles: [3],
+		exploredSpace: [2],
+		civData: { aliens: { tile: 16 } },
+	};
+	const { space } = terrainView(seat);
+	assert.deepEqual(space, [
+		{ id: 3, explored: false, art: 'space-tile/3' },
+		{ id: 2, explored: true, art: 'space-tile/2' },
+		{
+			id: 16,
+			explored: true,
+			art: 'space-tile/technology-5-vp',
+			civ: 'aliens',
+		},
+	]);
+	assert.deepEqual(space.map(spacePlace), [
+		'In hand',
+		'Explored',
+		'On the Aliens’ mat',
+	]);
+	// An empty mat shows nothing more.
+	assert.deepEqual(
+		terrainView({ ...seat, civData: { aliens: { tile: null } } }).space,
+		space.slice(0, 2)
+	);
+});
+
+test('a seat without the Aliens shows its space tiles as before', () => {
+	const seat = { territoryTiles: [], spaceTiles: [3], exploredSpace: [2] };
+	const plain = terrainView(seat);
+	for (const civData of [{}, { recyclers: {} }]) {
+		assert.deepEqual(terrainView({ ...seat, civData }), plain);
+	}
+	assert.deepEqual(plain.space.map(spacePlace), ['In hand', 'Explored']);
 });
 
 test('an empty seat has nothing', () => {

@@ -7,7 +7,7 @@
 	 * What the Terrain tab draws.
 	 * @typedef {Object} TerrainTabView
 	 * @property {HeldTerritory[]} territories - Territory tiles in hand
-	 * @property {SpaceEntry[]} space - Space tiles held or explored
+	 * @property {SpaceEntry[]} space - Space tiles held, explored, or on the Aliens' mat (#33)
 	 */
 
 	/**
@@ -39,6 +39,7 @@
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { artUrl } from '../../lib/ui.js';
 	import { tileWords } from '../../lib/area/explore.js';
+	import { spacePlace } from '../../lib/area/terrain.js';
 	import TilePicker from '../../lib/components/prompts/TilePicker.svelte';
 
 	/** @type {TerrainTabProps} */
@@ -97,9 +98,7 @@
 						alt="Space tile {tile.id}"
 						width="64"
 						height="64" />
-					<figcaption>
-						{tile.explored ? 'Explored' : 'In hand'}
-					</figcaption>
+					<figcaption>{spacePlace(tile)}</figcaption>
 				</figure>
 			{/each}
 		</div>
