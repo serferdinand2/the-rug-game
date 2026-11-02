@@ -248,12 +248,17 @@ export function expansionChoices(codes) {
 
 /**
  * The variants' rows, in the server's order, each with whether the table plays it.
- * @param {{ variants?: readonly { id: string, name: string }[] } | null | undefined} config - The server's config
- * @param {{ options: { variants: readonly string[] } }} room - A room view
+ * A variant that needs an expansion shows only while the table has it switched on.
+ * @param {{ variants?: readonly { id: string, name: string, expansion?: string }[] } | null | undefined} config - The server's config
+ * @param {{ options: { variants: readonly string[], expansions?: readonly string[] } }} room - A room view
  * @returns {VariantRow[]}
  */
 export function variantRows(config, room) {
-	return (config?.variants ?? []).map(({ id, name }) => ({
+	const shown = (config?.variants ?? []).filter(
+		({ expansion }) =>
+			!expansion || (room.options.expansions ?? []).includes(expansion)
+	);
+	return shown.map(({ id, name }) => ({
 		id,
 		label: variantName(id, name),
 		name,

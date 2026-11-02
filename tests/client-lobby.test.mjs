@@ -334,3 +334,22 @@ test("every lobby slot gives a seat's label and badges (#102)", () => {
 		[['You', 'Host', 'Ready'], ['Not ready'], [], [], []]
 	);
 });
+
+test('a variant that needs an expansion shows only while the table has it on (#33)', () => {
+	const config = {
+		variants: [
+			{ id: 'civ-draft', name: 'Gaining a civilization: draw 2, keep 1' },
+			{
+				id: 'civs-from-pp',
+				name: 'All civilizations from Plans & Ploys',
+				expansion: 'pp',
+			},
+		],
+	};
+	const ids = (/** @type {string[]} */ expansions) =>
+		variantRows(config, {
+			options: { variants: ['civs-from-pp'], expansions },
+		}).map((row) => row.id);
+	assert.deepEqual(ids([]), ['civ-draft']);
+	assert.deepEqual(ids(['pp']), ['civ-draft', 'civs-from-pp']);
+});

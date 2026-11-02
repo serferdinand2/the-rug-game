@@ -28,6 +28,7 @@ export const EXPANSIONS_BUILT = Object.freeze(['pp']);
  * @typedef {Object} Variant
  * @property {string} id
  * @property {string} name - For the new-table screen
+ * @property {string} [expansion] - The expansion code the variant needs switched on
  */
 
 /**
@@ -51,6 +52,11 @@ export const VARIANTS = Object.freeze(
 			name: 'Leave out Radio and Lithium-Ion Battery',
 		},
 		{ id: 'closest-island', name: 'Start on the island closest to you' },
+		{
+			id: 'civs-from-pp',
+			name: 'All civilizations from Plans & Ploys',
+			expansion: 'pp',
+		},
 	].map((variant) => Object.freeze(variant))
 );
 
@@ -106,6 +112,17 @@ export function checkOptions({ version, expansions = [], variants = [] }) {
 	}
 	if (new Set(variants).size < variants.length) {
 		throw new PlayerError('Each variant may be switched on only once.');
+	}
+	for (const id of variants) {
+		const variant = VARIANTS.find((v) => v.id === id);
+		if (variant?.expansion && !expansions.includes(variant.expansion)) {
+			const name = EXPANSIONS.find(
+				(e) => e.code === variant.expansion
+			)?.name;
+			throw new PlayerError(
+				`The variant "${variant.name}" needs ${name}.`
+			);
+		}
 	}
 }
 
@@ -259,7 +276,7 @@ function placeOutposts({ state, seats, starts }) {
  * @param {SetupContext} setup
  */
 function dealCivs({ state, seats, random, lanes }) {
-	const civs = shuffle(civsFor(state.expansions), random);
+	const civs = shuffle(civsFor(state.expansions, state.variants), random);
 	seats.forEach((s, i) => {
 		const options = civs.slice(2 * i, 2 * i + 2);
 		lanes[i].ops.push({ player: s.seat, kind: 'chooseCiv', options });
@@ -319,6 +336,12 @@ export function createGame({
 		throw new TypeError('createGame needs a random function.');
 	}
 	const count = players.length;
+	// Plans & Ploys has 9 civilizations built (R115) and setup deals every player 2: 5 players would need 10.
+	if (civsFor(expansions, variants).length < 2 * count) {
+		throw new PlayerError(
+			'There are not enough civilizations in that variant for so many players.'
+		);
+	}
 	const map = count >= 4 ? 'large' : 'small';
 	const side = MAPS[map];
 

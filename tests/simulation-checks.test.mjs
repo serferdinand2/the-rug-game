@@ -176,9 +176,11 @@ test('the 200 games cover every player count, version and policy 10 times, 5 of 
 		const { seed, players, version, policy, variants, expansions } =
 			gameOf(index);
 		assert.equal(seed, index + 1);
-		assert.ok(variants.length === 0 || variants.length === VARIANTS.length);
+		assert.ok(
+			variants.length === 0 || variants.length >= VARIANTS.length - 1
+		);
 		assert.ok(expansions.length === 0 || expansions[0] === 'pp');
-		const key = `${players} ${version} ${policy} ${variants.length}`;
+		const key = `${players} ${version} ${policy} ${variants.length > 0}`;
 		combos.set(key, (combos.get(key) ?? 0) + 1);
 		withPp.set(key, (withPp.get(key) ?? 0) + expansions.length);
 	}

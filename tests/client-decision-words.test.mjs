@@ -797,7 +797,10 @@ test('over 20 random games, every open decision and answer describes to a senten
 		let state = createGame({
 			players: NAMES.slice(0, 1 + (i % 5)).map((name) => ({ name })),
 			version: i % 2 === 0 ? 'original' : 'current',
-			variants: i % 4 >= 2 ? VARIANTS.map((v) => v.id) : [],
+			variants:
+				i % 4 >= 2
+					? VARIANTS.filter((v) => !v.expansion).map((v) => v.id)
+					: [],
 			random,
 		});
 		for (let actions = 0; ; actions++) {

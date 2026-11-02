@@ -246,10 +246,20 @@ function settle(mode, options, changes) {
 	if (!MODES.includes(/** @type {Mode} */ (next))) {
 		throw new PlayerError(`Unknown table mode: ${next}.`);
 	}
+	const expansions = asked.expansions ?? options.expansions;
+	// Switching an expansion off takes its variants with it, unless the host named the variants too.
+	const variants =
+		asked.variants ??
+		(Array.isArray(expansions)
+			? options.variants.filter((id) => {
+					const needed = VARIANTS.find((v) => v.id === id)?.expansion;
+					return !needed || expansions.includes(needed);
+				})
+			: options.variants);
 	const raw = {
 		version: asked.version ?? options.version,
-		expansions: asked.expansions ?? options.expansions,
-		variants: asked.variants ?? options.variants,
+		expansions,
+		variants,
 	};
 	checkOptions(raw);
 	const merged = {
@@ -1159,14 +1169,16 @@ export function roomView(room, personId, seat) {
 /**
  * What a new table may choose today, for the new-table screen (#25), so it never offers what the engine refuses.
  * Solo joins the modes with the Automa (#31).
- * @returns {{ modes: Mode[], versions: { id: string, name: string }[], expansions: string[], variants: { id: string, name: string }[], levels: number[], maxSeats: number, timers: number[] }}
+ * @returns {{ modes: Mode[], versions: { id: string, name: string }[], expansions: string[], variants: { id: string, name: string, expansion?: string }[], levels: number[], maxSeats: number, timers: number[] }}
  */
 export function tableChoices() {
 	return {
 		modes: ['online', 'hotseat'],
 		versions: VERSIONS.map(({ id, name }) => ({ id, name })),
 		expansions: [...EXPANSIONS_BUILT],
-		variants: VARIANTS.map(({ id, name }) => ({ id, name })),
+		variants: VARIANTS.map(({ id, name, expansion }) =>
+			expansion ? { id, name, expansion } : { id, name }
+		),
 		levels: [...LEVELS],
 		maxSeats: MAX_SEATS,
 		timers: [...TIMERS],

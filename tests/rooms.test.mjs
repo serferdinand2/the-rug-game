@@ -616,7 +616,9 @@ test('the table choices are what a new table may pick today', () => {
 		],
 		// Plans & Ploys from #32 on (owner, 2026-10-31).
 		expansions: ['pp'],
-		variants: VARIANTS.map(({ id, name }) => ({ id, name })),
+		variants: VARIANTS.map(({ id, name, expansion }) =>
+			expansion ? { id, name, expansion } : { id, name }
+		),
 		levels: [1, 2, 3, 4, 5, 6],
 		maxSeats: 5,
 		timers: [0, 1, 2, 5],
@@ -1231,4 +1233,26 @@ test('random steps never break the room rules', () => {
 	}
 	// The default seeds take back 166 choices; fewer than 100 would mean the steps no longer reach undo.
 	assert.ok(undone >= 100, `only ${undone} choices were taken back`);
+});
+
+test('turning Plans & Ploys off takes its variant with it, and the variant needs the expansion (#33)', () => {
+	const on = configure(lobby('a'), 'a', {
+		expansions: ['pp'],
+		variants: ['civs-from-pp', 'civ-draft'],
+	});
+	assert.deepEqual(on.options.variants, ['civs-from-pp', 'civ-draft']);
+	const off = configure(on, 'a', { expansions: [] });
+	assert.deepEqual(off.options.variants, ['civ-draft']);
+	refuses(
+		() => configure(lobby('a'), 'a', { variants: ['civs-from-pp'] }),
+		'The variant "All civilizations from Plans & Ploys" needs Plans & Ploys.'
+	);
+	assert.deepEqual(
+		tableChoices().variants.find((v) => v.id === 'civs-from-pp'),
+		{
+			id: 'civs-from-pp',
+			name: 'All civilizations from Plans & Ploys',
+			expansion: 'pp',
+		}
+	);
 });

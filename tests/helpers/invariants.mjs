@@ -165,7 +165,7 @@ export function checkState(state, previousSeq = 0) {
 			]),
 			...opsOf('chooseCiv').flatMap((op) => op.options),
 		],
-		civsFor(state.expansions)
+		civsFor(state.expansions, state.variants)
 	);
 	exactlyOnce(
 		'capital mats',
