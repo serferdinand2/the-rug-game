@@ -168,16 +168,16 @@ test('answers name seats, cards and resources', () => {
 		batch: 1,
 		player: 1,
 		kind: 'chooseOption',
-		purpose: 'civOffer',
+		purpose: 'riverfolkDiscard',
 		options: [[], [{ discardCiv: { civ: 'riverfolk' } }, { gainCiv: {} }]],
 	};
-	assert.equal(decisionTitle(riverfolk), 'Use your civilization?');
+	assert.equal(
+		decisionTitle(riverfolk),
+		'Discard the Riverfolk for another civilization?'
+	);
 	assert.deepEqual(
 		[0, 1].map((option) => describeAnswer(riverfolk, { option })),
-		[
-			'Decline',
-			'Discard the Riverfolk, then draw another civilization from the deck',
-		]
+		['Keep the Riverfolk', 'Discard them and gain another']
 	);
 });
 

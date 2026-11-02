@@ -52,7 +52,7 @@ The modules in detail, with the issue that added each, are in [docs/architecture
 
 - **Server** (`server/`, `api/`): `server/server.mjs` is the `node:http` server. It exports `server` and `config` and only listens when run directly, so tests start it in-process on port 0; it serves only `build/`. `api/api.mjs` is the table API: every change goes through `commit()`, rooms leave only through `roomView()`, and its limits sit in `config`. `api/rooms.mjs` holds the table rules as pure transitions. `server/limits.mjs` holds the rate limits.
 - **Rules engine** (`src/lib/engine/`): pure, shared by the server and the browser, importing only relative paths. `game.js` is the entry point (`createGame`, `play`, `view`, `PlayerError`). The data is in `data/`, decision kinds in `decisions/` (registered in `kinds.js`), effects in `effects/`, civilizations in `civs/`. `view.js` is the only way state leaves the server; `table.js` holds what tables need to know about a game.
-  - **Import the engine through `game.js`, `kinds.js` or `play.js`.** Because of a cycle, 37 modules (most of `decisions/`, eight civilizations in `civs/`, `turn.js` and `after-setup.js`) throw a `ReferenceError` when imported first; docs/architecture.md lists them.
+  - **Import the engine through `game.js`, `kinds.js` or `play.js`.** Because of a cycle, 46 of the engine's 135 modules (29 of the 42 in `decisions/`, 15 civilizations in `civs/`, `turn.js` and `after-setup.js`) throw a `ReferenceError` when imported first; docs/architecture.md lists them.
 - **Client** (Svelte 5 with runes, built by Vite, no SvelteKit): `index.html` → `src/main.js` → `src/App.svelte`, which shows one screen from `src/screens/`. Screens own state and call the store `src/lib/game.svelte.js`; components in `src/lib/components/<area>/` stay presentational and are indexed in its README. Logic lives in plain modules in `src/lib/` (such as `prompts.js`, `describe.js`, `area/`), each tested under Vitest.
 - **Component library**: `components.html` → `src/library/`, which shows every component in all its states, and the art.
 - **Look**: `src/styles/tokens.css` is the single source of truth; `base.css` holds the fonts and the page. `static/` is copied into the build as is. `build/` is build output: never edit it.
@@ -213,7 +213,7 @@ How to read the research:
   3. the base rulebook;
   4. the printed art;
   5. the Board Game Arena implementation.
-- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R115**.
+- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R116**.
   - Follow those decisions, not the research's working assumptions.
   - Cite the id in code comments and test names, for example `// R16`.
   - Content listed there as "left out" is never invented.

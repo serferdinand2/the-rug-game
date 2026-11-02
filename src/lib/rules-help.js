@@ -220,6 +220,10 @@ export const RULES_HELP = deepFreeze([
 			{
 				text: 'Four space tiles join the stack. Once explored, three give 5 VP whenever you advance on their track (technology, science or military); a move of several spaces is one advance. The fourth gains you the Monolith landmark.',
 			},
+			// #42: the civilizations' text is the chip's hover, so the tab only points to it.
+			{
+				text: "Plans & Ploys' civilizations show their full text when you point at a player's chip.",
+			},
 		],
 	},
 	// #33; 03 §1.2, §1.4, R45. The other new cards' rules are on the cards themselves.

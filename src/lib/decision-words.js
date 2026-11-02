@@ -372,6 +372,8 @@ const TITLES = {
 		switch (d.purpose) {
 			case 'civOffer':
 				return 'Use your civilization?';
+			case 'riverfolkDiscard':
+				return 'Discard the Riverfolk for another civilization?';
 			case 'militarism':
 				return 'Place an outpost on the territory you explored?';
 			case 'exploitation':
@@ -765,6 +767,12 @@ const ANSWERS = {
 			a.option >= d.options.length
 		) {
 			return null;
+		}
+		// The Riverfolk gained mid-game: declining keeps them (#33).
+		if (d.purpose === 'riverfolkDiscard') {
+			return a.option === 0
+				? 'Keep the Riverfolk'
+				: 'Discard them and gain another';
 		}
 		const option = d.options[a.option];
 		if (Array.isArray(option) && option.length === 0) {

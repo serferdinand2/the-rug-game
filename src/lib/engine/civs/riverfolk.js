@@ -117,10 +117,12 @@ export const riverfolk = {
 			return;
 		}
 		ctx.push([
-			offer(ctx.state, player, [
-				{ discardCiv: { civ: 'riverfolk' } },
-				{ gainCiv: {} },
-			]),
+			offer(
+				ctx.state,
+				player,
+				[{ discardCiv: { civ: 'riverfolk' } }, { gainCiv: {} }],
+				'riverfolkDiscard'
+			),
 			{ player, kind: 'riverfolkStart' },
 		]);
 	},

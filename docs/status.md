@@ -2,7 +2,7 @@
 
 The only record of the project's progress (owner, 2026-10-28): what is done and what comes next, then issue by issue what each issue built, the calls to revisit after playing, and what it handed on to later issues. CLAUDE.md links here and holds no progress of its own. Claude and Codex both update this file whenever an issue lands or a milestone moves: the summary below and the issue's entry (see CLAUDE.md and AGENTS.md).
 
-Updated 2026-10-31. The issues are listed in the order they were finished.
+Updated 2026-11-02. The issues are listed in the order they were finished.
 
 On 2026-10-31, landmark-granting technology cards gained the same shared gray tooltip detail used by track landmarks when their square benefit is hovered. This completes the tech-card hover detail portion of #63; the issue remains open for its other display locations.
 
@@ -12,7 +12,7 @@ On 2026-10-31, landmark-granting technology cards gained the same shared gray to
   - M0 to M5 are built: a whole base game can be played with the mouse, online or hot-seat. One of their issues is still open: #45 (the owner checks R12 and R39 against the box).
   - M12 · Cosmetic enhancements: #61, #66, #67, #68, #69, #70, #72, #74, #75, #79, #80, #77, #78, #84, #85 and #137 are done. #142's original lift-up solution is deprecated in favor of the owner's later income mat decisions in #151 (see [the #142 history](#142-revealing-a-covered-income-space--original-lift-up-design)). #82 (the joined terrain of the base mats) is done: its branch merged into main on 2026-10-29. #134 (the World Map's terrain in the 2.5D style) is done: the owner approved its art on 2026-10-29 (see [its entry](#134-the-world-maps-terrain-in-the-25d-style)).
   - M13 · Refactor (new on 2026-10-29, owner) holds the refactors that #80's scan filed, each with an area label: Words and names, Cards, Track board, Players and scoring, Capital and map, Game screen or Lobby. #86, #87, #89, #90, #91, #93, #97, #98, #99, #100, #113, #119, #130, #123, #127, #126, #129, #88, #101, #108, #109, #124, #128 and #95 are done, and #121 closed as not planned. On 2026-10-30 a third batch landed together on one branch, built in parallel: #92, #102, #103, #105, #111, #114, #115, #116, #120, #122 and #131 (see [its entry](#m13-refactors-third-batch-2026-10-30)); #102 and #116 each leave the owner a look to decide. #106 is built in its eight steps the same day; the owner checked the card gallery, and its fixes close it. A fourth batch landed the same way the same evening: #94, #96, #104, #107, #110, #112, #117 and #118, with the bugs #157 and #81 (see [its entry](#m13-refactors-fourth-batch-with-157-and-81)). The owner checked #107 and #117 in the library and closed them on 2026-10-30.
-  - M7 · Plans & Ploys: #32 (landmark cards, the new space tiles, the expansion switch) is built, started before its blocker #31 on the owner's ruling, and merged into main on 2026-10-31 (see [its entry](#32-plans--ploys-rules-landmark-cards-and-space-tiles)). #33's first part (the 13 tapestry cards and the response cards) is built on the branch `issue-33-pp-content`, not yet merged (see [its entry](#33-part-1-plans--ploys-tapestry-and-response-cards)); its second part, the 10 civilizations, follows. #34 (the Automa civilizations) is out of the owner's scope for now.
+  - M7 · Plans & Ploys: #32 (landmark cards, the new space tiles, the expansion switch) is built, started before its blocker #31 on the owner's ruling, and merged into main on 2026-10-31 (see [its entry](#32-plans--ploys-rules-landmark-cards-and-space-tiles)). #33 is built on the branch `issue-33-pp-content`, not yet merged: its first part, the 13 tapestry cards and the response cards (see [its entry](#33-part-1-plans--ploys-tapestry-and-response-cards)), then 9 of the 10 civilizations and the variant "All civilizations from Plans & Ploys" (see [its entry](#33-parts-2-and-3-plans--ploys-civilizations-and-the-variant)). Its commit `Fix #33` closes it once pushed, which waits for the owner. The Islanders wait in #165 (R115). #34 (the Automa civilizations) is out of the owner's scope for now.
   - M8 · Arts & Architecture: #132 (the six mats' joined 2.5D reliefs) is built and the owner approved it in the component library on 2026-10-31, on the branch `issue-132-aa-reliefs`, not yet merged (see [its entry](#132-the-arts--architecture-mats-reliefs)). #35 and #36 wait for #34, and #37 and #38 follow them.
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
@@ -27,7 +27,7 @@ On 2026-10-31, landmark-granting technology cards gained the same shared gray to
 - **#1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24, #25, #26, #27, #28, #29, #30, #44, #46, #47, #48, #52, #53, #54, #55, #56, #57, #58, #59, #61, #66, #67, #68, #69, #70, #72, #73, #74, #75 and #85 are done.** Lazar closed #3 and #73 on 2026-10-27, and the owner closed #6 the same day. The owner approved #69 and #74 in the component library on 2026-10-28, and closed #75 and #61 the same day. Lazar closed #68 on 2026-10-28, and #47 closed the same day when his card gallery merged.
   - The Node server, tests and CI exist.
   - The client is a Svelte 5 app built by Vite. The landing page, the lobby (#25), the play screen (#26), the player area (#27) and the designed prompts (#28) are built; a whole base game can be played with the mouse.
-  - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R115).
+  - Every unverified rule detail is decided in the README's "Rules conventions" (R1–R116).
 - **Next:**
   - M13's Words and names issues, ahead of M6 (owner, 2026-10-29). #123, #127, #126 and #129 are done (see [#123](#123-every-game-name-and-english-list-from-one-helper), [#127](#127-the-track-resource-and-building-lists-from-the-engine), [#126](#126-describejs-split-into-effect-words-decision-words-and-card-text) and [#129](#129-each-decision-kinds-client-facts-in-one-table)), so #31 (Lazar's) is unblocked. #124 and #128 are done (see [#124](#124-prices-and-resource-amounts-in-words) and [#128](#128-a-spaces-tier-from-one-helper)), and #125 is built (see [#125](#125-the-player-areas-words-from-shared-helpers)), and #103's last token is in (2026-10-30), so #104 can start.
   - #88, #101, #108 and #109 are done too (2026-10-29). #106 (the card patterns as data components) is built, in eight pixel-identical steps (2026-10-30; see [its entry](#106-the-card-patterns-as-data-components)); the owner checked the gallery the same day. #107 followed it, was checked in the library and closed on 2026-10-30. The effect boxes' civilization-specific symbol styles (Mystics, Alchemists, Isolationists, Traders, Inventors) became options of the component.
@@ -89,6 +89,8 @@ Many issues were built without a question round, so their designs mark every uns
 - [#101 (rules versions, expansions and variants named in one place)](#101-rules-versions-expansions-and-variants-named-in-one-place)
 - [#108 (tech and tapestry cards in Svelte from the engine's data)](#108-tech-and-tapestry-cards-in-svelte-from-the-engines-data)
 - [#109 (one card band and edition chip across the card families)](#109-one-card-band-and-edition-chip-across-the-card-families)
+- [#33, part 1 (Plans & Ploys' tapestry and response cards)](#33-part-1-plans--ploys-tapestry-and-response-cards)
+- [#33, parts 2 and 3 (Plans & Ploys' civilizations and the variant)](#33-parts-2-and-3-plans--ploys-civilizations-and-the-variant)
 
 ## Issues
 
@@ -1195,3 +1197,58 @@ Built on 2026-11-01 on the branch `issue-33-pp-content`, not yet merged. The own
 - **Screenshots:** `docs/ui/screens/game-pp-counter.png` and `game-pp-response-cards.png` in the README, from a running game.
 - **Deferred from the review, for the owner:** Engineering with a card that upgrades itself (the Heralds copying Steam Tycoon or Technocracy) moves the card first, so the card's own upgrade finds nothing: owner check. Also open: the response branches name every card instead of falling through, one `spacesAdvanced` copy, a client prompt test for the counter, and three thin tests (Retreat in the no-counter test, Manifest Destiny's targets, a stale comment or two).
 - **Handed on:** part 2, the civilizations, reads `seat.start` (Infiltrators) and the response rules (Treasure Hunters' defence, R114).
+
+### #33, parts 2 and 3 (Plans & Ploys' civilizations and the variant)
+
+Built on 2026-11-02 on the branch `issue-33-pp-content`, not yet merged. The commit `Fix #33: Plans & Ploys' civilizations, cards and responses` closes the issue once it is pushed, and pushing waits for the owner. Design: `docs/superpowers/specs/2026-11-01-plans-ploys-content-design.md`, whose §7.1 now lists every call made while building the civilizations. Plan: `docs/superpowers/plans/2026-11-02-plans-ploys-civs-issue-33.md`.
+- **Built:**
+  - **Engine:** nine civilizations, each in its own commit: the Riverfolk, Recyclers, Aliens, Treasure Hunters, Tinkerers, Spies, Utilitarians, Infiltrators and Advisors (`civs/`). `PP_CIVS` and `civsFor(expansions, variants)` deal them, so a Plans & Ploys table deals from 25 civilizations, and a base game deals exactly as before (a seeded deal is pinned). The Islanders are left out (R115) and wait in #165.
+  - **New rules:** R113 (a civilization gained mid-game keeps its printed start), R114 (the Treasure Hunters' terrains and defence), R115 and R116.
+  - **Shared changes:**
+    - control by a Treasure Hunters token and by an Infiltrators' shared hex (`control.js`);
+    - the triggers `conquerRolled`, `advanceTurnStarted` and `afterAdvance`, and `Civ.opensAdvance` (the Utilitarians);
+    - `state.turnKind` and `chooseGive` (the Advisors);
+    - the public `supply.spaceDiscard` and the `pay` effect (the Aliens);
+    - `chooseKeepTech` and the recycle (the Recyclers);
+    - `offer()`'s `purpose`, the `discardCiv` effect, and the Infiltrators' draw of 3 whenever they gain a civilization.
+  - **The variant "All civilizations from Plans & Ploys"** (`civs-from-pp`) deals and draws only those 9. The lobby offers it only while Plans & Ploys is on and drops it when the expansion is switched off, and a table without the expansion is refused. It seats at most 4 players (R116), and the start refusal names the variant and the limit.
+  - **Client:**
+    - each civilization's full text in both versions, read by hovering a player's chip;
+    - its log lines, decision titles and answers;
+    - its card's live marks: `CardEffectBox`'s new `used` state (the Tinkerers' and Spies' options) and `token` state (the Utilitarians), and the Treasure Hunters' used terrains;
+    - the Treasure Hunters' dice in the tray, and the Aliens' mat tile on the Terrain tab;
+    - an advance that only the Lighthouse pays for, from the footer;
+    - one line in How to play's Plans & Ploys tab pointing to the chip.
+- **Claude's calls, to revisit after playing:** the design's §7.1 lists them by civilization. Five need the owner's check:
+  - a recycle isn't an upgrade, so Golden Age gives nothing for it;
+  - the Spies can't copy the Monolith's tile;
+  - the reviewed Treasure Hunters card prints complexity 3, where 03 says 1;
+  - the Utilitarians' token reserve draws blue, while the tokens in their boxes draw in the seat's colour;
+  - the Lighthouse is offered both before and after the advance.
+
+  R116 also departs from the design's first reading, which had five players use all ten.
+- **Tests:**
+  - Test-first: `engine-pp-civs` has 103 tests, one section per civilization; the variant's tests are in `engine-setup`, `rooms` and `client-lobby`.
+  - `engine-civs-all` plays each Plans & Ploys civilization paired with another, in full games and in both versions.
+  - The simulation's Plans & Ploys games deal them, under the invariants (the civilizations, their tokens, the space-tile discard) and the view checks (the Spies' look and the Advisors' gift reach only their seats).
+  - All 2629 unit tests, 600 simulated games and all 57 browser tests pass (one at a time), and `npm run check` is clean.
+- **Seen live** on 2026-11-02, at a four-player hot-seat table with the variant, played through the API:
+  - The Utilitarians card showed a token on its Forge box.
+  - At her income turn 4, Mira's third Infiltrators token on Ana's capital territory drew 3 civilizations onto the shelf: Treasure Hunters, Recyclers and Riverfolk.
+  - On Vera's advance turn, Ana's Advisors were asked "Give Vera a tapestry card instead of their draw?", with her four cards on the shelf. The card she gave was a secret only Ana and Vera saw.
+  - With five seats, Start refused with the new message.
+- **Screenshots:** `docs/ui/screens/game-pp-civ-card.png`, `lobby-pp-variant.png`, `game-pp-infiltrators-civ.png` and `game-pp-advisors-gift.png` in the README, and `lobby-pp-variant-refused.png` in `docs/ui/README.md`.
+- **Deferred from the reviews, for later:**
+  - The Riverfolk's card doesn't say their loss stops at 0 VP.
+  - The Aliens' mat tile has no picture on the card itself.
+  - The Lighthouse's tiles are picked from a plain list, and the hotkey A does nothing in an advance that only the Lighthouse pays for.
+  - A player who gains the Utilitarians in the middle of an advance isn't offered the Lighthouse after it.
+  - `civ-turns.js` names the Infiltrators' draw itself.
+  - The rule for secrets shared by two seats is written three times.
+  - Two helpers repeat existing code: the impassable-plot lines (Riverfolk) and Trade Economy's targets (Spies option 3).
+  - `checkViews` fails right after `startedGame` with named civilizations (the test helper).
+  - Some thin tests the reviews listed.
+- **Handed on:**
+  - #31 reads `Civ.solo` (false for the Advisors and the Spies), and must keep the Advisors from being asked about a Shadow Empire draw.
+  - #165 adds the Islanders and lifts R116's limit.
+  - #35 handles Arts & Architecture's cards that refer to these civilizations.

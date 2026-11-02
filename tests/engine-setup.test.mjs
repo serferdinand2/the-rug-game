@@ -389,7 +389,7 @@ test('checkOptions accepts both versions with no expansions or variants', () => 
 	assert.ok(Object.isFrozen(VARIANTS));
 });
 
-test('the five variants the owner chose can be switched on, each with a name (#53)', () => {
+test('the six variants can be switched on, each with a name: the five the owner chose and civilizations from Plans & Ploys (#53, #33)', () => {
 	assert.deepEqual(
 		VARIANTS.map((v) => v.id),
 		[
@@ -512,7 +512,7 @@ test("an after-setup step added after 'start' fails loudly instead of never runn
 	);
 });
 
-test('the variant "All civilizations from Plans & Ploys" deals and draws from the Plans & Ploys civilizations only, and needs the expansion (#33, #53)', () => {
+test('R116: the variant "All civilizations from Plans & Ploys" deals and draws from the Plans & Ploys civilizations only, needs the expansion and seats at most 4 players (#33, #53)', () => {
 	assert.deepEqual(civsFor(['pp'], ['civs-from-pp']), [...PP_CIVS]);
 	assert.deepEqual(civsFor([], ['civs-from-pp']), [...BASE_CIVS]);
 	assert.deepEqual(civsFor(['pp'], ['civ-draft']), civsFor(['pp']));
@@ -536,6 +536,11 @@ test('the variant "All civilizations from Plans & Ploys" deals and draws from th
 			[...PP_CIVS].sort()
 		);
 	}
-	// Nine civilizations cannot be dealt 2 each to 5 players: the table is refused at the start (R115).
-	assert.throws(() => newGame(5, options), /not enough civilizations/);
+	// R116: nine civilizations (the Islanders left out, R115) cannot be dealt 2 each to 5 players, so the start is
+	// refused, naming the variant and its limit.
+	assert.throws(() => newGame(5, options), {
+		name: 'PlayerError',
+		message:
+			'The variant "All civilizations from Plans & Ploys" seats at most 4 players: its 9 civilizations deal 2 each.',
+	});
 });

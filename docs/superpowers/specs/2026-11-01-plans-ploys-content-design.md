@@ -6,7 +6,7 @@ Written 2026-11-01. #33 is in M7 · Plans & Ploys; its blockers (#32, #107, #109
 
 #32 put Plans & Ploys behind the table's expansion switch with its landmark cards and space tiles. A table that turns it on still deals only the 16 base civilizations and the 50 base tapestry cards. #33 adds the expansion's own content, so a Plans & Ploys game plays as the box does, without the Automa.
 
-**Done when** a table with Plans & Ploys on deals from 26 civilizations and 63 tapestry cards (50 + 13), every one of them playable in a full game, and the five response cards answer conquests and traps; a base game is unchanged.
+**Done when** a table with Plans & Ploys on deals from 26 civilizations (25 with the Islanders left out, R115) and 63 tapestry cards (50 + 13), every one of them playable in a full game, and the five response cards answer conquests and traps; a base game is unchanged.
 
 ## 2. Decided by the owner (2026-11-01)
 
@@ -117,6 +117,74 @@ Three new rules go in the README's Rules conventions **(my calls)**:
 - **R114, the Treasure Hunters' terrains and defence:** a territory, tile or printed, has a treasure's terrain if it shows that terrain anywhere, as R32 reads land masses; when several unused treasures match, the player picks one. Their token controls the hex. An opponent may conquer it as they would a lone outpost: the Treasure Hunters are the defender (asked for a response, and "an opponent controlled it" for both dice). A Trap, Surprise Party or Surrender works for them; Retreat does not, as it moves an outpost and they have only a token there. After a conquest the token stays, so the hex holds 2 items, and the attacker controls it.
 - **R115, the Islanders:** §8.
 
+### 7.1 Calls made while building the civilizations (2026-11-02)
+
+Each civilization's calls, as its task built them: **(my call)** for the builder's, **(controller ruling)** for a call made at review. **Owner check** marks the ones the owner should confirm; the rest are to revisit after playing.
+
+- **The deck.** `PP_CIVS` lists the civilizations in the order built, and `civsFor` deals the base 16 and then them, in one shuffle, so a base game deals as before **(my call)**.
+- **Riverfolk.**
+  - Their final loss never takes their VP below 0. The card's text doesn't say so, as it awaits review **(controller ruling)**.
+  - A district already clear when they come in, say under Terraforming, never pays **(my call)**.
+  - Landmarks may cover impassable plots too, as income buildings do **(my call)**.
+  - Gained mid-game, they get their own question: "Discard the Riverfolk for another civilization?", answered **Keep the Riverfolk** or **Discard them and gain another** **(controller ruling)**.
+- **Recyclers.**
+  - **Owner check:** a recycle isn't an upgrade. It gives no tech benefit and fires no upgrade rewards, so Golden Age gives nothing for it **(my call)**.
+  - They may decline a recycle when a mandatory upgrade has nothing else to upgrade **(my call)**.
+  - The card kept at setup counts as invented, for Academia, Industrialism and Engineering **(my call)**.
+  - The recycle is offered at every upgrade they take, including a named card's upgrade (Steam Tycoon, Technocracy, Engineering): 03 §1.3 says "every upgrade opportunity" **(controller ruling)**.
+  - An Inventors token's upgrade of their card never recycles. "May not upgrade in your first income turn" needs nothing built, as income turn 1 has no upgrade step **(controller ruling)**.
+  - Their 5 VP count as the civilization's **(my call)**.
+- **Aliens.**
+  - Discarded space tiles leave the game, into the public `supply.spaceDiscard` **(my call)**.
+  - "First pay any 1 resource" applies in both versions. Its deletion comes from the out-of-scope Revised Civilization Pack **(my call)**.
+  - When the explore is impossible, the resource comes without asking **(my call)**.
+  - A mat tile's ongoing 5 VP count as exploring's **(my call)**.
+  - The tile on the mat shows on the Terrain tab. A picture on the card itself waits for a later change **(controller ruling; owner look)**.
+- **Treasure Hunters.**
+  - **Owner check:** the reviewed card prints complexity 3, where 03 says 1.
+  - The Grassland advance is optional, as research is ("you may advance") **(my call)**.
+  - Two equal rolls ask nothing **(my call)**.
+  - The treasure is picked in the panel, and the card only strikes out used terrains **(my call)**.
+  - The treasure VP count as the civilization's. On a Mountain the red die rolls first, and black's result is gained first **(my call)**.
+- **Tinkerers.**
+  - Jump ahead counts as an advance for advance blocks, as Catch up does, but fires no `advanced` trigger (Public Works, the ongoing tiles). Both readings are recorded together for the owner **(my call)**.
+  - Step back may land on the start, where it gains nothing **(my call)**.
+  - Catch up's benefit is always gained, as no track benefit is optional in this engine, though 03 says "you may" **(my call)**.
+  - Pay back picks a token, not a track, as a track can hold two after AI Singularity **(my call)**.
+  - An option is offered only when it has a target **(my call)**.
+  - At setup, the opponents' gains run in the Tinkerers' setup lane as each opponent's own operation. Their order beside an opponent's own civilization setup is the lanes' order, and no test covers it **(my call)**.
+  - The card strikes out used options with a `used` state on `CardEffectBox`, reusing the approved look of a used terrain row (#106) **(controller ruling)**.
+- **Spies.**
+  - **Owner check:** space tile 19, the Monolith, is left out of option 2. Option 4 prints that landmark benefits do nothing, and 03 §1.4 says copying gives no second Stadium **(controller ruling)**.
+  - Option 3 activates the space for the Spies and skips spaces already activated this turn (R19, as Trade Economy) **(my call)**.
+  - A top-row landmark card isn't offered for option 4, and no look is offered at an empty hand **(my call)**.
+  - VP count as whatever was copied: a card's as the tapestry's, a tile's as the map's, a space's as the tracks', a tech card's as tech **(my call)**.
+  - A watched ongoing tile stops once the neighbour explores it or puts it on an Aliens mat **(my call)**.
+  - The card's current-rules line reads "at the end of your first income turn, lose [any]" (R34) **(my call)**.
+- **Utilitarians.**
+  - **Owner check:** the Lighthouse is offered both before and after the advance (03 §1.8). It counts in the turn choice, so an advance turn that only its resource makes affordable is offered, and it is offered once more after the advance if unused. This supersedes the plan's "as the advance turn starts" **(controller ruling)**.
+  - **Owner check:** the card's token reserve draws blue, as every card's reserve does, while the tokens in its boxes draw in the seat's colour. Changing the reserve would change every reserve card, so it is left as it was **(my call)**.
+  - The Lighthouse is offered only with 2 territory tiles **(my call)**.
+  - After a gain, a token still on the mat can only be placed: moving one would only switch an ability off **(my call)**.
+  - The Barracks' red result comes right after the conquest's own dice, a trap's included, and its VP count as the civilization's **(my call)**.
+  - For the Apothecary, "another landmark" is any landmark but the Apothecary itself **(my call)**.
+  - Gained mid-game, "landmarks you already own" are the capital's, those beside the mat and the Nomads' map pieces **(my call)**.
+  - A player who gains them in the middle of an advance isn't offered the Lighthouse after it **(my call)**.
+- **Infiltrators.**
+  - Under the current rules, the civilization chosen at setup gains no culture. Setup itself withholds it; it isn't an adjustment **(my call)**.
+  - Option A's tile VP count as the map's, as the Traders' token does **(my call)**.
+  - Option B counts outposts in supply, those waiting on a Militants mat included. A 4th token on the same territory gains nothing **(my call)**.
+  - While they are held, every civilization gained draws 3 and keeps 1, including a Riverfolk or Mystics discard for another (03 §1.8, Joe Aubrey's ruling C) **(controller ruling)**.
+  - The choice between a shared hex and a capital is one map question for both options **(my call)**.
+- **Advisors.**
+  - They aren't asked when the deck and the discards are both empty, as nobody can draw then **(my call)**.
+  - The gift comes only on the neighbour's own advance turn **(my call)**.
+  - A card given is a gained card for the neighbour, so Academia and Tyranny answer it **(my call)**.
+  - Gained mid-game, their 3 cards are offered to each neighbour in turn, in seat order. A draw of several cards asks once per card **(my call)**.
+- **The variant "All civilizations from Plans & Ploys".**
+  - It seats at most 4 players while the Islanders are left out: 9 civilizations, 2 each (R116). Five players are refused at the start, by a message that names the variant and the limit, until #165. This departs from §9's first reading, which had five players use all ten **(my call; owner check)**.
+  - Switching Plans & Ploys off drops the variant, and the lobby offers it only while the expansion is on **(my call)**.
+
 ## 8. The Islanders: a gap first
 
 The Islanders' mat prints a central hex, and exploring a hex beside it scores 1 VP per matching side. No research file gives that central hex's six corners. CLAUDE.md: a detail no rule covers becomes an issue, never a guess.
@@ -126,7 +194,7 @@ The Islanders' mat prints a central hex, and exploring a hex beside it scores 1 
 ## 9. Handed on from earlier issues
 
 - **#24 (undo):** every new hidden thing goes in `view()` and `revealed()` together; Stolen Plans' card and the Spies' look at a hand each emit a secret event.
-- **#53 (variants):** the variant id `civs-from-pp` ("All civilizations from Plans & Ploys"): every civilization drawn, at setup and later, comes from the Plans & Ploys ten. The table needs `'pp'` on; `checkOptions()` refuses it otherwise. The base game is not a set of its own, because the source lists only PP, AA and FF (03 FF.2.6) **(my call)**. With five players the setup deal uses all ten; the five not kept go back to the deck (`chooseCiv`, as today), so later draws come from those.
+- **#53 (variants):** the variant id `civs-from-pp` ("All civilizations from Plans & Ploys"): every civilization drawn, at setup and later, comes from the Plans & Ploys ten. The table needs `'pp'` on; `checkOptions()` refuses it otherwise. The base game is not a set of its own, because the source lists only PP, AA and FF (03 FF.2.6) **(my call)**. This first said that five players use all ten. With the Islanders left out (R115) there are nine, so the variant seats at most 4 players, and a table of five is refused at the start until #165 (R116, §7.1). The civilizations not kept go back to the deck (`chooseCiv`, as today), so later draws come from those.
 - **#32:** the Stadium (§5) and the ongoing tiles with the Aliens and Spies (§7).
 
 ## 10. The client

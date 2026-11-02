@@ -480,7 +480,7 @@ test('Riverfolk gained mid-game may be discarded for another civilization; kept,
 		[decision.player, decision.purpose, decision.options],
 		[
 			1,
-			'civOffer',
+			'riverfolkDiscard',
 			[[], [{ discardCiv: { civ: 'riverfolk' } }, { gainCiv: {} }]],
 		]
 	);
@@ -4217,7 +4217,7 @@ test('an Infiltrators player who keeps the Riverfolk and discards them draws 3 a
 	const drawn = resolveEffects(state, 1, [{ gainCiv: {} }], random);
 	const kept = answer(drawn, random, 1, 'chooseCiv', { civ: 'riverfolk' });
 	const offer = /** @type {any} */ (decisionOf(kept, 'chooseOption'));
-	assert.deepEqual([offer.player, offer.purpose], [1, 'civOffer']);
+	assert.deepEqual([offer.player, offer.purpose], [1, 'riverfolkDiscard']);
 	const discarded = answer(kept, random, 1, 'chooseOption', { option: 1 });
 	const again = /** @type {any} */ (decisionOf(discarded, 'chooseCiv'));
 	assert.deepEqual(

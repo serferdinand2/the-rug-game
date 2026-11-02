@@ -244,6 +244,11 @@ test("Plans & Ploys has its own section, shown only with the expansion, with the
 	assert.deepEqual([...vp], [5]);
 	assert.match(text, /give 5 VP whenever you advance/);
 	assert.match(text, /final income turn included/);
+	// #33: the civilizations' text is the chip's hover (#42), so the tab only points to it.
+	assert.match(
+		text,
+		/Plans & Ploys' civilizations show their full text when you point at a player's chip\./
+	);
 });
 
 test("Plans & Ploys' response cards have their own section, shown only with the expansion, with the counter to a trap (#33)", async () => {
