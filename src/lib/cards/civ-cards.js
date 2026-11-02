@@ -58,6 +58,7 @@ import { buildingName, civilizationName, trackName } from '../game-names.js';
  * @property {12 | 13 | 14 | 15} [symbolText] - Bold size of a word or "+" symbol in px
  * @property {CardPictogram} [pictogram] - The symbol is this pictogram
  * @property {string} [spot] - The spot a live card's marks name for this box, such as a Tinkerers option's 'option2'
+ * @property {boolean} [used] - Whether the card's view marks the box's `spot` used; civCard() sets it on a box with a spot
  * @property {CardText} text - The rules
  */
 
@@ -1456,7 +1457,7 @@ const RECIPES = {
 		],
 		sections: [
 			{
-				// Each box is the spot civs/tinkerers.js's used option marks; the box has no used look yet (#33).
+				// Each box is the spot civs/tinkerers.js's used option marks, drawn used by civCard() (#33).
 				pattern: 'effects',
 				effects: [
 					{
@@ -1673,14 +1674,29 @@ export function civCard(id, { version = 'current', view = null } = {}) {
 	return {
 		...frame,
 		...parts,
-		// The patterns a decision is answered on offer its spots.
-		sections: parts.sections.map((section) =>
-			'pickable' in section && section.pickable
-				? {
-						...section,
-						props: { ...section.props, choices: context.choices },
-					}
-				: section
-		),
+		sections: parts.sections.map((section) => {
+			// The patterns a decision is answered on offer its spots.
+			if ('pickable' in section && section.pickable) {
+				return {
+					...section,
+					props: { ...section.props, choices: context.choices },
+				};
+			}
+			// An effect box with a spot shows whether the view marks it used (the Tinkerers' options).
+			if (section.pattern === 'effects') {
+				return {
+					...section,
+					effects: section.effects.map((box) =>
+						box.spot === undefined
+							? box
+							: {
+									...box,
+									used: marked(context, box.spot, 'used'),
+								}
+					),
+				};
+			}
+			return section;
+		}),
 	};
 }

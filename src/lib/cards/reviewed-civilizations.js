@@ -60,7 +60,7 @@ export const SAMPLE_CIV_DATA = Object.freeze({
 	},
 	// Desert used.
 	'treasure-hunters': { tokens: 3, used: ['desert'] },
-	// No option used: the card's boxes have no used look yet (#33).
+	// No option used yet; the library's live example shows one used (#33).
 	tinkerers: { used: [] },
 });
 

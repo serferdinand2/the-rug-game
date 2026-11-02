@@ -3,6 +3,7 @@
 import './engine/game.js';
 import { RECYCLERS_VP } from './engine/civs/recyclers.js';
 import { TREASURES } from './engine/civs/treasure-hunters.js';
+import { TINKERERS_STEP_BACK } from './engine/civs/tinkerers.js';
 import { TRACKS, advanceCost } from './engine/data/tracks.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
 import { spaceTileWords } from './area/terrain.js';
@@ -189,7 +190,7 @@ const TINKERERS_OPTION_WORDS = /** @type {Readonly<Record<number, string>>} */ (
 	Object.freeze({
 		1: 'gain what advancing into one of your track spaces cost',
 		2: 'advance to the closest opponent ahead, with the benefit but not the bonus',
-		3: 'go back 3 spaces, with the benefit, and you may pay the bonus',
+		3: `go back ${TINKERERS_STEP_BACK} spaces, with the benefit, and you may pay the bonus`,
 		4: 'move to the next space with a bonus and take that bonus for free, without the benefit',
 	})
 );

@@ -2162,7 +2162,7 @@ test('Catch up (option 2) advances to the closest opponent ahead, with the benef
 	assert.deepEqual(openDecisions(placed), []);
 });
 
-test('Catch up gains no bonus, and leaves out tracks where nobody is ahead or the player is blocked (03 §1.3, design §5)', () => {
+test('Catch up gains no bonus, and leaves out tracks where nobody is ahead or the player is blocked (03 §1.3, #19 design §5)', () => {
 	const { state, random } = tinkerersGame({
 		1: { exploration: [4], science: [6], technology: [2] },
 		2: { exploration: [5], science: [6], technology: [5] },
@@ -2286,7 +2286,7 @@ test('Jump ahead (option 4) moves to the next space with a bonus and offers it f
 	assert.deepEqual(openDecisions(taken), []);
 });
 
-test('Jump ahead leaves out a blocked track, and with several tracks the player chooses (03 §1.3, design §5)', () => {
+test('Jump ahead leaves out a blocked track, and with several tracks the player chooses (03 §1.3, #19 design §5)', () => {
 	const { state, random } = tinkerersGame({});
 	state.blocks = [{ player: 2, track: 'science' }];
 	const asked = tinker(state, random, 4);

@@ -95,7 +95,7 @@ function destination(option, track, from, theirs) {
 /**
  * What an option can act on now, in track order and then from the lowest token: pay back each of the player's tokens
  * past the start, the moving options each token they can move. Catch up and jump ahead leave out a track the player
- * may not advance on (design §5).
+ * may not advance on (#19 design §5).
  * @param {import('../state.js').State} state
  * @param {number} player
  * @param {TinkerersOption} option

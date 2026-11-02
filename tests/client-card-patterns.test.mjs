@@ -192,6 +192,42 @@ test('CardEffectBox draws a pictogram as its symbol, styled by itself (#107)', (
 	);
 });
 
+test('a used CardEffectBox fades and its title is struck through, as a used terrain row is (#33)', () => {
+	/** @param {boolean} [used] */
+	const box = (used) =>
+		html(
+			render(CardEffectBox, {
+				props: { title: 'Catch up', label: '2', ...(used && { used }) },
+			})
+		);
+	assert.match(
+		box(true),
+		/class="rg-card-effect-box [^"]*rg-card-effect-box--used/
+	);
+	assert.doesNotMatch(box(), /rg-card-effect-box--used/);
+	assert.doesNotMatch(box(false), /rg-card-effect-box--used/);
+	// The same treatment as CardTerrainRewards' used rows, no colour of its own.
+	/** @param {string} name @param {string} rule */
+	const declarations = (name, rule) =>
+		source(name)
+			.match(new RegExp(`\\.${rule} \\{([^}]*)\\}`))?.[1]
+			.trim();
+	assert.equal(
+		declarations('CardEffectBox', 'rg-card-effect-box--used'),
+		declarations('CardTerrainRewards', 'rg-card-terrain-rewards--used')
+	);
+	assert.equal(
+		declarations(
+			'CardEffectBox',
+			'rg-card-effect-box--used .rg-card-effect-box--title'
+		),
+		declarations(
+			'CardTerrainRewards',
+			'rg-card-terrain-rewards--used .rg-card-terrain-rewards--name'
+		)
+	);
+});
+
 test('CardEffectList holds the effect boxes, with the space above it as a prop', () => {
 	const body = html(
 		render(CardEffectList, {

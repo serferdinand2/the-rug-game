@@ -1,4 +1,4 @@
-<!-- CardEffectBox: a beige trigger or scoring row: its symbol (a gain, a word or a pictogram), then its title and rules (#106, #107). -->
+<!-- CardEffectBox: a beige trigger or scoring row: its symbol (a gain, a word or a pictogram), then its title and rules; a used one fades and its title is struck through (#106, #107, #33). -->
 <script module>
 	/**
 	 * @typedef {Object} CardEffectBoxOwnProps
@@ -10,6 +10,8 @@
 	 *   neither a gain nor a word: `district` and `lines` (the Architects), `territory` with an optional outpost `piece`
 	 *   (the Traders and the Nomads), `tracks` and `resources` in a 2×2 block, a mini tapestry `card` with its `picture`,
 	 *   or an `era` numeral on one (the Heralds)
+	 * @property {boolean} [used=false] - Already used, such as a Tinkerers option: the box fades and its title is struck
+	 *   through, as a used terrain row is (CardTerrainRewards, #33)
 	 * @property {import('svelte').Snippet} [children] - The rules text
 	 */
 	/**
@@ -26,6 +28,10 @@
 	 * <CardEffectBox
 	 *   title="Supplies"
 	 *   pictogram={{ kind: 'resources' }}>Gain 1 of each resource.</CardEffectBox>
+	 * <CardEffectBox
+	 *   title="Catch up"
+	 *   label="2"
+	 *   used>Advance to the closest opponent ahead of you.</CardEffectBox>
 	 */
 </script>
 
@@ -41,6 +47,7 @@
 		label = '',
 		symbolText,
 		pictogram,
+		used = false,
 		children,
 		...attr
 	} = $props();
@@ -51,7 +58,8 @@
 	class="rg-card-effect-box {symbolText
 		? `rg-card-effect-box--text-${symbolText}`
 		: ''} {attr.class ?? ''}"
-	class:rg-card-effect-box--gain={gain !== undefined}>
+	class:rg-card-effect-box--gain={gain !== undefined}
+	class:rg-card-effect-box--used={used}>
 	<div class="rg-card-effect-box--symbol">
 		{#if gain !== undefined}+ <CardResource
 				symbol={gain} />{:else if label}{label}{:else if pictogram?.kind === 'district'}<span
@@ -116,6 +124,10 @@
 		justify-content: center;
 		gap: 2px;
 	}
+	/* A used box fades, as a used CardTerrainRewards row does. */
+	.rg-card-effect-box--used {
+		opacity: 0.55;
+	}
 	.rg-card-effect-box--text-15 .rg-card-effect-box--symbol {
 		font: var(--weight-bold) var(--font-size-base) / var(--leading-none)
 			var(--font-body);
@@ -144,6 +156,9 @@
 		color: var(--gold);
 		text-transform: uppercase;
 		font-size: var(--font-size-2xs);
+	}
+	.rg-card-effect-box--used .rg-card-effect-box--title {
+		text-decoration: line-through;
 	}
 	.rg-card-effect-box--body :global(strong) {
 		white-space: nowrap;

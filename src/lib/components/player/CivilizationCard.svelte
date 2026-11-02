@@ -170,6 +170,7 @@
 							label={box.label}
 							symbolText={box.symbolText}
 							pictogram={box.pictogram}
+							used={box.used}
 							>{@render text(box.text)}</CardEffectBox
 						>{/each}
 				</CardEffectList>

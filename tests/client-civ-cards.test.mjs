@@ -158,6 +158,61 @@ test("the Tinkerers' boxes are the spots their used options mark, named as the p
 	);
 });
 
+test('an effect box whose spot is marked used draws used: the Tinkerers with option 2 used (#33)', () => {
+	const live = {
+		marks: civCardMarks('tinkerers', { used: [2] }),
+		choices: {},
+	};
+	assert.deepEqual(
+		sectionOf(civCard('tinkerers', { view: live }), 'effects').effects.map(
+			(/** @type {any} */ e) => e.used
+		),
+		[false, true, false, false]
+	);
+	const body = html(
+		render(CivilizationCard, {
+			props: { id: 'tinkerers', state: 'play', live, seat: 1 },
+		})
+	);
+	const boxes = [...body.matchAll(/class="(rg-card-effect-box [^"]*)"/g)].map(
+		(m) => m[1].includes('rg-card-effect-box--used')
+	);
+	assert.deepEqual(boxes, [false, true, false, false]);
+	// Without a seat's data the card shows no option used.
+	const empty = html(
+		render(CivilizationCard, { props: { id: 'tinkerers', state: 'play' } })
+	);
+	assert.doesNotMatch(empty, /rg-card-effect-box--used/);
+});
+
+test('an effect box without a spot never draws used: the base cards render as before', () => {
+	const marks = {
+		marks: { option1: /** @type {any[]} */ (['used']) },
+		choices: {},
+	};
+	for (const id of Object.keys(CIVS).filter((civ) =>
+		civCard(civ).sections.some((s) => s.pattern === 'effects')
+	)) {
+		for (const effects of civCard(id, { view: marks })
+			.sections.filter((s) => s.pattern === 'effects')
+			.map((s) => /** @type {any} */ (s).effects)) {
+			for (const box of effects) {
+				assert.equal(
+					'used' in box,
+					box.spot !== undefined,
+					`${id}: ${box.title}`
+				);
+			}
+		}
+		for (const state of /** @type {const} */ (['empty', 'play'])) {
+			const body = html(
+				render(CivilizationCard, { props: { id, state } })
+			);
+			assert.doesNotMatch(body, /rg-card-effect-box--used/, id);
+		}
+	}
+});
+
 test('a civilization without a reviewed layout gets its frame, portrait and name only', () => {
 	const recipe = civCard('gamblers');
 	assert.equal(recipe.title, 'Gamblers');

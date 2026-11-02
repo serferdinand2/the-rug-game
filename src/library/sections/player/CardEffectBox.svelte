@@ -1,4 +1,4 @@
-<!-- Library section: CardEffectBox, a beige trigger or scoring row with its symbol (#106), and each pictogram the cards draw (#107). -->
+<!-- Library section: CardEffectBox, a beige trigger or scoring row with its symbol (#106), a used one (#33), and each pictogram the cards draw (#107). -->
 <script>
 	import CardEffectBox from '../../../lib/components/player/CardEffectBox.svelte';
 	import CardResource from '../../../lib/components/player/CardResource.svelte';
@@ -76,7 +76,7 @@
 <Section
 	name="CardEffectBox"
 	area="player"
-	description="A triggered or scoring effect: a 64 px symbol (a gained resource, a word or a pictogram), then its title in capitals and its rules. See docs/ui/card-design-rules.md."
+	description="A triggered or scoring effect: a 64 px symbol (a gained resource, a word or a pictogram), then its title in capitals and its rules; a used one fades and its title is struck through, as a used terrain row is. See docs/ui/card-design-rules.md."
 	><Example
 		label={'title gain="any" symbolText={15}'}
 		width={425}
@@ -97,6 +97,17 @@
 				label="BUST"
 				symbolText={14}
 				>Clear all tokens and gain + <CardResource symbol="any" /> instead.</CardEffectBox>
+		</CardFrame></Example
+	><Example
+		label={'title label="2" used'}
+		width={425}
+		><CardFrame plain>
+			<CardEffectBox
+				title="Catch up"
+				label="2"
+				used
+				>Advance on a track to the space of the closest opponent ahead
+				of you; gain its benefit, not its bonus.</CardEffectBox>
 		</CardFrame></Example
 	><Example
 		label={'title label="Top row" symbolText={12}'}
