@@ -26,11 +26,11 @@ function slugsOf(group, expansion) {
 export const BASE_CIVS = Object.freeze(baseSlugs('civ'));
 
 /**
- * The Plans & Ploys civilizations built so far, in catalog order; each civilization's task appends its id (#33). The
+ * The Plans & Ploys civilizations built so far, in the order built; each civilization's task appends its id (#33). The
  * Islanders are never here: no source shows their mat's printed centre hex (R115).
  * @type {readonly string[]}
  */
-export const PP_CIVS = Object.freeze(['riverfolk', 'recyclers']);
+export const PP_CIVS = Object.freeze(['riverfolk', 'recyclers', 'aliens']);
 
 /**
  * The civilizations a game with these expansions deals from: the base 16, then Plans & Ploys' built ones (#33).

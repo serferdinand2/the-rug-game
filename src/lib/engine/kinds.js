@@ -57,6 +57,7 @@ import {
 	civFirstTurnEnd,
 } from './civ-turns.js';
 import { loseResource } from './effects/lose.js';
+import { payResource } from './effects/pay.js';
 import { chooseAlchemists } from './decisions/choose-alchemists.js';
 import { chooseProphecy } from './decisions/choose-prophecy.js';
 import { chooseSwap } from './decisions/choose-swap.js';
@@ -157,6 +158,7 @@ export const AUTOMATIC = {
 	civAdjust,
 	civFirstTurnEnd,
 	loseResource,
+	payResource,
 	leadersAdvance,
 	merrymakersMove,
 	entertainersMove,

@@ -1,4 +1,4 @@
-// The decision to pick which space tile to explore.
+// The decision to pick which space tile to explore: beside the income mat, or with `civ` onto that civilization's mat (the Aliens').
 import { PlayerError } from '../errors.js';
 import { exploreSpaceTile } from '../effects/explore.js';
 
@@ -21,7 +21,8 @@ export const chooseSpaceTile = {
 		exploreSpaceTile(
 			ctx,
 			/** @type {number} */ (decision.player),
-			answer.tile
+			answer.tile,
+			decision.civ
 		);
 	},
 };

@@ -209,6 +209,18 @@ function tileWords(stack, tiles) {
 }
 
 /**
+ * Where a tile went to or came from when it is a civilization's mat (the Aliens', #33): " onto their Aliens mat".
+ * @param {'onto' | 'from'} word
+ * @param {unknown} civ - The civilization, if any
+ * @returns {string} Empty for no civilization
+ */
+function matWords(word, civ) {
+	return typeof civ === 'string'
+		? ` ${word} their ${civilizationName(civ)} mat`
+		: '';
+}
+
+/**
  * Whose a card or piece is, from its owner and the event's player: "their own" or "Bo's".
  * @param {Game | undefined} game
  * @param {unknown} owner
@@ -568,10 +580,10 @@ const WORDS = {
 			: `${where}.`;
 	},
 	noExplore: (e, game, name) => `${name} had nowhere to explore.`,
-	spaceExplored: (e, game, name) =>
-		isCount(e.tile)
-			? `${name} explored space tile ${e.tile}.`
-			: `${name} explored a space tile.`,
+	spaceExplored(e, game, name) {
+		const tile = isCount(e.tile) ? `space tile ${e.tile}` : 'a space tile';
+		return `${name} explored ${tile}${matWords('onto', e.civ)}.`;
+	},
 	noSpaceTile: (e, game, name) => `${name} had no space tile to explore.`,
 	tilesGained(e, game, name) {
 		const tiles = tileWords(e.stack, e.tiles);
@@ -582,7 +594,9 @@ const WORDS = {
 	},
 	tilesDiscarded(e, game, name) {
 		const tiles = tileWords(e.stack, e.tiles);
-		return tiles ? `${name} discarded ${tiles}.` : null;
+		return tiles
+			? `${name} discarded ${tiles}${matWords('from', e.civ)}.`
+			: null;
 	},
 	tileGiven: (e, game, name) =>
 		isCount(e.tile)

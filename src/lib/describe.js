@@ -246,6 +246,9 @@ const PHRASES = {
 		const items = amounts(value);
 		return items.length > 0 ? `lose ${joinList(items)}` : 'lose nothing';
 	},
+	pay(value) {
+		return isRecord(value) ? paymentVerbs(value) : null;
+	},
 	building(value) {
 		const name = buildingName(value);
 		return typeof value === 'string'
@@ -273,6 +276,9 @@ const PHRASES = {
 		return `explore a territory${where}`;
 	},
 	exploreSpace(value) {
+		if (typeof value?.civ === 'string') {
+			return `explore a space tile onto your ${civilizationName(value.civ)} mat`;
+		}
 		return value?.fromGained
 			? 'explore one of the space tiles just gained'
 			: 'explore a space tile';

@@ -43,6 +43,12 @@ const CIV_TEXTS = Object.freeze({
 			],
 		}
 	),
+	aliens: civ([
+		'When you start the game with the Aliens, or gain them later, you gain 4 space tiles into your supply.',
+		'At the start of income turns 2 to 5, first discard the space tile on this mat, if there is one. It leaves the game.',
+		'Then either explore a space tile from your supply onto this mat, or gain 1 resource of your choice. If you just discarded a tile, you must first pay 1 resource of your choice to explore.',
+		'A tile on this mat gives you its benefit as if you explored it. One that lasts, such as 5 VP for each advance on a track, works until it is discarded.',
+	]),
 	architects: civ(
 		[
 			'When you complete a district whose income buildings are all of one type, you gain 1 more resource of your choice.',

@@ -3,6 +3,7 @@ import { seatOf } from '../state.js';
 import { vp } from './vp.js';
 import { gain } from './gain.js';
 import { lose } from './lose.js';
+import { pay } from './pay.js';
 import { building } from './building.js';
 import { choice } from './choice.js';
 import { research } from './research.js';
@@ -50,6 +51,7 @@ export const EFFECTS = {
 	vp,
 	gain,
 	lose,
+	pay,
 	building,
 	choice,
 	research,

@@ -59,11 +59,12 @@ import { deepFreeze } from './ids.js';
  * One effect: an object with exactly one key, its kind.
  * - `gain`: gain resources, tiles or cards.
  * - `lose`: lose up to `culture` culture, as much as is held, then `any` resources of your choice among those you hold.
+ * - `pay`: pay `any` resources of your choice, all of them: whatever offers it checks that you hold enough (the Aliens, #33).
  * - `building`: take the leftmost income building of that type from the income mat and place it in the capital city.
  * - `landmark`: place that landmark (a tech card's square) in the capital city.
  * - `vp`: gain that many VP, or VP per thing counted.
  * - `explore`: explore with a territory tile from the supply; `anywhere` drops the adjacency rule; `tile` allows only that tile; `sailed` marks an explore Age of Sail has already drawn for.
- * - `exploreSpace`: explore a space tile from the supply; `fromGained` limits it to the tiles this benefit just gained (R105).
+ * - `exploreSpace`: explore a space tile from the supply; `fromGained` limits it to the tiles this benefit just gained (R105); `civ` puts it on that civilization's mat instead of beside the income mat (the Aliens, #33).
  * - `conquer`: conquer; `anywhere` drops adjacency; `bothDice` gives both dice always, or only if an opponent controlled the territory (R17); `only` limits the targets to those hexes (#33).
  * - `research`: roll the science die and you may advance on that track; `noBenefit` is the X.
  * - `advance`: advance 1 space on one of the listed tracks, with its benefit and optional bonus; `noBenefit` is the X; `optional` lets the player decline; `freeBonus` lets them take the bonus of the space reached without paying; `noBonus` gives the benefit without the bonus; `offTrackVp` gives that many VP instead when every token on the listed tracks is on space 12.
@@ -94,11 +95,12 @@ import { deepFreeze } from './ids.js';
  * - `astronomy`, `cartography`, `manifestDestiny`, `statusQuo`, `worldsFair`: the rules of the Plans & Ploys card of that name (#33).
  * @typedef {{ gain: Gain }
  *   | { lose: { culture?: number, any?: number } }
+ *   | { pay: { any: number } }
  *   | { building: BuildingId }
  *   | { landmark: string }
  *   | { vp: number | VpPer }
  *   | { explore: { anywhere?: boolean, tile?: number, sailed?: boolean } }
- *   | { exploreSpace: { fromGained?: boolean } }
+ *   | { exploreSpace: { fromGained?: boolean, civ?: string } }
  *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent', only?: string[] } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
  *   | { advance: { tracks: TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean, noBonus?: boolean, offTrackVp?: number } }
@@ -156,6 +158,7 @@ import { deepFreeze } from './ids.js';
 export const EFFECT_KINDS = deepFreeze([
 	'gain',
 	'lose',
+	'pay',
 	'building',
 	'landmark',
 	'vp',

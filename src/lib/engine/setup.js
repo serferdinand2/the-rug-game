@@ -370,6 +370,7 @@ export function createGame({
 				spaceTilesFor(expansions).map((t) => t.id),
 				random
 			),
+			spaceDiscard: [],
 			// Shuffled only with an expansion that has landmark cards, so a base game draws as it always did (#32).
 			landmarkCards: expansions.includes('pp')
 				? shuffle(

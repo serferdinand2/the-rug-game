@@ -143,6 +143,7 @@ function plotAt(index) {
  */
 const SLOT_TITLES = {
 	loseResource: () => 'Choose a resource to lose',
+	payResource: () => 'Choose a resource to pay',
 	architectsCube: () => 'Choose a plot for an Architects cube',
 	merrymakers: () => 'Choose a Merrymakers column to move up',
 	entertainers: () => 'Choose a space for the Entertainers token',
@@ -193,6 +194,8 @@ const TITLES = {
 				return 'Choose what exploring gives you';
 			case 'cartography':
 				return 'Conquer the territory you just explored?';
+			case 'aliens':
+				return 'Explore a space tile onto your Aliens mat, or gain a resource';
 			default:
 				return 'Choose one';
 		}
@@ -222,7 +225,10 @@ const TITLES = {
 		return 'Where does it go?';
 	},
 	chooseExplore: () => 'Choose where to explore',
-	chooseSpaceTile: () => 'Choose a space tile to explore',
+	chooseSpaceTile: (d) =>
+		typeof d.civ === 'string'
+			? `Choose a space tile to explore onto your ${civilizationName(d.civ)} mat`
+			: 'Choose a space tile to explore',
 	chooseConquer: () => 'Choose a territory to conquer',
 	chooseDie: () => 'Choose a die to keep',
 	chooseResponse: (d, table) =>
@@ -361,6 +367,8 @@ export function decisionTitle(decision, table) {
 const SLOT_ANSWERS = {
 	loseResource: (slot) =>
 		RESOURCE_IDS.includes(slot) ? `Lose ${amountWords(slot, 1)}` : null,
+	payResource: (slot) =>
+		RESOURCE_IDS.includes(slot) ? `Pay ${amountWords(slot, 1)}` : null,
 	architectsCube: (slot) => (isCount(slot) ? capitalize(plotAt(slot)) : null),
 	merrymakers: (slot) => (isCount(slot) ? `Column ${slot + 1}` : null),
 	entertainers: (slot) => {

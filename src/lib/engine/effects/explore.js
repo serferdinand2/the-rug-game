@@ -209,16 +209,28 @@ export function spaceTileOptions(state, player, source, fromGained) {
 }
 
 /**
- * Explores a space tile: it moves beside the income mat and its benefit follows (R5; 01 §7.2).
+ * Explores a space tile: it moves beside the income mat and its benefit follows (R5; 01 §7.2). With `civ` it goes on
+ * that civilization's mat instead (`civData[civ].tile`, the Aliens', 03 §1.3): its benefit is the same, but it is not
+ * one of `exploredSpace`.
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {number} tile
+ * @param {string} [civ]
  */
-export function exploreSpaceTile(ctx, player, tile) {
+export function exploreSpaceTile(ctx, player, tile, civ) {
 	const seat = playerSeat(ctx.state, player);
 	seat.spaceTiles.splice(seat.spaceTiles.indexOf(tile), 1);
-	seat.exploredSpace.push(tile);
-	emit(ctx.state, { type: 'spaceExplored', player, tile });
+	if (civ === undefined) {
+		seat.exploredSpace.push(tile);
+	} else {
+		seat.civData[civ].tile = tile;
+	}
+	emit(ctx.state, {
+		type: 'spaceExplored',
+		player,
+		tile,
+		...(civ !== undefined && { civ }),
+	});
 	const { benefit, ordered } = spaceTile(tile);
 	ctx.push([
 		{
@@ -232,7 +244,8 @@ export function exploreSpaceTile(ctx, player, tile) {
 }
 
 /**
- * The exploreSpace effect. With no tile to explore it does nothing; with one it explores at once; otherwise its player chooses.
+ * The exploreSpace effect. With no tile to explore it does nothing; with one it explores at once; otherwise its player
+ * chooses. `civ` explores onto that civilization's mat.
  * @type {import('../state.js').EffectHandler}
  */
 export function exploreSpace(ctx, player, value, op) {
@@ -242,13 +255,22 @@ export function exploreSpace(ctx, player, value, op) {
 		/** @type {any} */ (op.source),
 		value?.fromGained === true
 	);
+	/** @type {string | undefined} */
+	const civ = value?.civ;
 	if (options.length === 0) {
 		emit(ctx.state, { type: 'noSpaceTile', player });
 		return;
 	}
 	if (options.length === 1) {
-		exploreSpaceTile(ctx, player, options[0]);
+		exploreSpaceTile(ctx, player, options[0], civ);
 		return;
 	}
-	ctx.push([{ player, kind: 'chooseSpaceTile', options }]);
+	ctx.push([
+		{
+			player,
+			kind: 'chooseSpaceTile',
+			options,
+			...(civ !== undefined && { civ }),
+		},
+	]);
 }

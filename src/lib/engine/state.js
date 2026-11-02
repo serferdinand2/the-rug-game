@@ -67,6 +67,7 @@
  * @property {number[]} territory
  * @property {number[]} territoryDiscard - Discarded territory tiles, out of the game (FAQ #20)
  * @property {number[]} space
+ * @property {number[]} spaceDiscard - Discarded space tiles (the Aliens' mat, #33), out of the game, face up
  * @property {string[]} civs
  * @property {string[]} civDiscard - Civilizations discarded mid-game (Mystics), face up; the newest last
  * @property {number[]} capitals - Mats nobody holds, face up

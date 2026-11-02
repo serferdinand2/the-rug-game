@@ -14,6 +14,7 @@ import {
 	RECYCLERS_DRAW,
 	RECYCLERS_VP,
 } from '../src/lib/engine/civs/recyclers.js';
+import { ALIENS_TILES } from '../src/lib/engine/civs/aliens.js';
 import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 
@@ -346,5 +347,28 @@ test('the Recyclers read as the engine plays them (03 §1.3)', () => {
 			'Steam Tycoon',
 		],
 		'Recyclers'
+	);
+});
+
+test('the Aliens read as the engine plays them (03 §1.3)', () => {
+	const text = /** @type {string} */ (civAbilityText('aliens', 'original'));
+	assert.equal(civAbilityText('aliens', 'current'), text);
+	assertInOrder(
+		text,
+		'When you start',
+		[
+			'or gain them later',
+			`${ALIENS_TILES} space tiles`,
+			'income turns 2 to 5',
+			'discard the space tile on this mat',
+			'leaves the game',
+			'explore a space tile from your supply onto this mat',
+			'1 resource of your choice',
+			'just discarded',
+			'first pay 1 resource of your choice',
+			'its benefit',
+			'until it is discarded',
+		],
+		'Aliens'
 	);
 });

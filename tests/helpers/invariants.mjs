@@ -116,7 +116,15 @@ export function checkState(state, previousSeq = 0) {
 		'space tiles',
 		[
 			...supply.space,
-			...players.flatMap((p) => [...p.spaceTiles, ...p.exploredSpace]),
+			...supply.spaceDiscard,
+			...players.flatMap((p) => [
+				...p.spaceTiles,
+				...p.exploredSpace,
+				// #33: the tile on the Aliens' mat.
+				...(typeof p.civData.aliens?.tile === 'number'
+					? [p.civData.aliens.tile]
+					: []),
+			]),
 		],
 		spaceTilesFor(state.expansions).map((t) => t.id)
 	);

@@ -482,6 +482,24 @@ test('the important events read as plain sentences', () => {
 			'Ana explored hex 1,3, matching 2 sides.',
 		],
 		[sample('explored', { vp: 0 }), 'Ana explored hex 1,3.'],
+		[sample('spaceExplored'), 'Ana explored space tile 7.'],
+		// The Aliens' mat (#33).
+		[
+			sample('spaceExplored', { civ: 'aliens' }),
+			'Ana explored space tile 7 onto their Aliens mat.',
+		],
+		[
+			sample('tilesDiscarded', { stack: 'space', tiles: [16] }),
+			'Ana discarded space tile 16.',
+		],
+		[
+			sample('tilesDiscarded', {
+				stack: 'space',
+				tiles: [16],
+				civ: 'aliens',
+			}),
+			'Ana discarded space tile 16 from their Aliens mat.',
+		],
 		[sample('conquered'), 'Ana conquered hex −2,−2.'],
 		[
 			sample('conquered', { trapped: true }),

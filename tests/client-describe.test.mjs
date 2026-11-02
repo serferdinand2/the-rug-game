@@ -208,6 +208,7 @@ test('every effect kind and VP counter has its own words', () => {
 	const examples = {
 		gain: { any: 1 },
 		lose: { culture: 1, any: 1 },
+		pay: { any: 1 },
 		building: 'house',
 		landmark: 'lighthouse',
 		vp: 3,
@@ -276,6 +277,18 @@ test('every effect kind and VP counter has its own words', () => {
 	assert.equal(
 		describeEffects([{ discardCiv: {} }]),
 		'Discard a civilization'
+	);
+	// The Aliens' explore onto their mat, paid for after a discard (#33).
+	assert.equal(
+		describeEffects(
+			[{ pay: { any: 1 } }, { exploreSpace: { civ: 'aliens' } }],
+			{ ordered: true }
+		),
+		'Pay 1 resource of your choice, then explore a space tile onto your Aliens mat'
+	);
+	assert.equal(
+		describeEffects([{ pay: { any: 2 } }]),
+		'Pay 2 resources of your choice'
 	);
 });
 

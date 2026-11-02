@@ -229,6 +229,53 @@ test("the Recyclers' keep, discard pile and recycle read as what they do (#33)",
 	);
 });
 
+test("the Aliens' choice, its payment and the tile for their mat read as what they do (#33)", () => {
+	const choice = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseOption',
+		purpose: 'aliens',
+		options: [
+			[{ pay: { any: 1 } }, { exploreSpace: { civ: 'aliens' } }],
+			[{ gain: { any: 1 } }],
+		],
+	};
+	assert.equal(
+		decisionTitle(choice),
+		'Explore a space tile onto your Aliens mat, or gain a resource'
+	);
+	assert.deepEqual(
+		[0, 1].map((option) => describeAnswer(choice, { option })),
+		[
+			'Pay 1 resource of your choice, then explore a space tile onto your Aliens mat',
+			'Gain 1 resource of your choice',
+		]
+	);
+	const pay = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'payResource',
+		options: ['coin', 'food'],
+	};
+	assert.equal(decisionTitle(pay), 'Choose a resource to pay');
+	assert.equal(describeAnswer(pay, { slot: 'food' }), 'Pay 1 food');
+	const tile = {
+		id: 3,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSpaceTile',
+		options: [13, 5],
+	};
+	assert.equal(decisionTitle(tile), 'Choose a space tile to explore');
+	assert.equal(
+		decisionTitle({ ...tile, civ: 'aliens' }),
+		'Choose a space tile to explore onto your Aliens mat'
+	);
+});
+
 test('unknown decisions and answers fall back to a readable sentence', () => {
 	const odd = { id: 1, batch: 1, player: 1, kind: 'chooseSomethingNew' };
 	assertReadable(decisionTitle(odd), 'an unknown title');

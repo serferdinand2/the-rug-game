@@ -15,6 +15,7 @@ import {
 	resolveTapestry,
 } from './helpers/engine.mjs';
 import { allOps } from './helpers/views.mjs';
+import { checkState } from './helpers/invariants.mjs';
 
 const VERSIONS = /** @type {const} */ (['original', 'current']);
 
@@ -1058,4 +1059,300 @@ test('Recyclers may invent a card from the tech discard pile, but not when only 
 		),
 		[...faceUp.map((card) => ({ card })), { card: 'deck' }]
 	);
+});
+
+// The Aliens.
+
+/**
+ * Takes space tiles out of the stack, so a test can put them elsewhere and every tile stays in one place.
+ * @param {any} state
+ * @param {number[]} tiles
+ * @returns {number[]} The tiles
+ */
+function takeSpace(state, tiles) {
+	state.supply.space = state.supply.space.filter(
+		(/** @type {number} */ t) => !tiles.includes(t)
+	);
+	return tiles;
+}
+
+/**
+ * A game in which seat 1 holds the Aliens, these space tiles in their supply and `onMat` on their mat, all taken out
+ * of the stack, and these resources.
+ * @param {number[]} tiles
+ * @param {number | null} onMat
+ * @param {Record<string, number>} [resources]
+ */
+function aliensGame(tiles, onMat, resources = { coin: 1, food: 1 }) {
+	const { state, random } = game();
+	const seat = state.seats[0];
+	seat.civs = ['aliens'];
+	takeSpace(state, [...tiles, ...(onMat === null ? [] : [onMat])]);
+	seat.spaceTiles = [...tiles];
+	seat.civData.aliens = { tile: onMat };
+	seat.resources = { coin: 0, worker: 0, food: 0, culture: 0, ...resources };
+	return { state, random };
+}
+
+/** The Aliens' ability on an income turn. */
+const aliensIncome = (/** @type {number} */ turn) => ({
+	player: 1,
+	kind: 'civIncome',
+	civ: 'aliens',
+	turn,
+	origin: 'civ',
+});
+
+test('Aliens gain 4 space tiles into their supply when they come in, at setup or mid-game, with nothing on their mat (03 §1.3, R113)', () => {
+	for (const version of VERSIONS) {
+		const { state } = startedGame(2, {
+			civs: ['aliens', 'leaders'],
+			version,
+			...PP,
+		});
+		const [seat, other] = /** @type {any[]} */ (state.seats);
+		assert.equal(seat.spaceTiles.length, 4, version);
+		assert.deepEqual(seat.exploredSpace, [], version);
+		assert.deepEqual(seat.civData.aliens, { tile: null }, version);
+		assert.deepEqual(other.spaceTiles, [], version);
+		assert.ok(
+			seat.spaceTiles.every(
+				(/** @type {number} */ t) => !state.supply.space.includes(t)
+			),
+			version
+		);
+	}
+
+	const { state, random } = game();
+	state.seats[0].civs = ['leaders'];
+	state.supply.civs = [
+		'aliens',
+		...state.supply.civs.filter(
+			(/** @type {string} */ c) => c !== 'aliens'
+		),
+	];
+	const top = state.supply.space.slice(0, 4);
+	const gained = resolveEffects(state, 1, [{ gainCiv: {} }], random);
+	assert.deepEqual(gained.seats[0].civs, ['leaders', 'aliens']);
+	assert.deepEqual(gained.seats[0].spaceTiles, top);
+	assert.deepEqual(gained.seats[0].civData.aliens, { tile: null });
+	assert.deepEqual(openDecisions(gained), []);
+});
+
+test('Aliens explore a space tile from their supply onto their mat: it gives its benefit, but is not explored beside the income mat (03 §1.3)', () => {
+	const { state, random } = aliensGame([13], null);
+	const since = state.seq;
+	const asked = pushed(state, random, [aliensIncome(2)]);
+	// Nothing was on the mat, so nothing is discarded and exploring costs nothing.
+	assert.deepEqual(eventsOf(asked, 'tilesDiscarded', since), []);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseOption'));
+	assert.deepEqual(
+		[decision.player, decision.purpose, decision.options],
+		[
+			1,
+			'aliens',
+			[[{ exploreSpace: { civ: 'aliens' } }], [{ gain: { any: 1 } }]],
+		]
+	);
+
+	// A lone tile is explored without asking which.
+	const explored = answer(asked, random, 1, 'chooseOption', { option: 0 });
+	const seat = explored.seats[0];
+	assert.deepEqual(seat.civData.aliens, { tile: 13 });
+	assert.deepEqual(seat.spaceTiles, []);
+	assert.deepEqual(seat.exploredSpace, []);
+	assert.equal(seat.vp, state.seats[0].vp + 13);
+	assert.deepEqual(eventsOf(explored, 'spaceExplored', since), [
+		{ type: 'spaceExplored', player: 1, tile: 13, civ: 'aliens' },
+	]);
+	assert.deepEqual(seat.resources, state.seats[0].resources);
+	assert.deepEqual(openDecisions(explored), []);
+
+	// Or a resource of their choice instead, the tile staying in the supply.
+	const gained = answer(asked, random, 1, 'chooseOption', { option: 1 });
+	const choice = answer(gained, random, 1, 'chooseResource', {
+		resources: { culture: 1 },
+	});
+	assert.equal(choice.seats[0].resources.culture, 1);
+	assert.deepEqual(choice.seats[0].spaceTiles, [13]);
+	assert.deepEqual(choice.seats[0].civData.aliens, { tile: null });
+	assert.deepEqual(openDecisions(choice), []);
+});
+
+test('Aliens first discard the tile on their mat, out of the game; then exploring onto it costs 1 resource of their choice, paid before the tile is chosen (03 §1.3)', () => {
+	const { state, random } = aliensGame([13, 5], 7);
+	const since = state.seq;
+	const asked = pushed(state, random, [aliensIncome(3)]);
+	assert.deepEqual(asked.supply.spaceDiscard, [7]);
+	assert.deepEqual(asked.seats[0].civData.aliens, { tile: null });
+	assert.deepEqual(eventsOf(asked, 'tilesDiscarded', since), [
+		{
+			type: 'tilesDiscarded',
+			player: 1,
+			stack: 'space',
+			tiles: [7],
+			civ: 'aliens',
+		},
+	]);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseOption'));
+	assert.deepEqual(decision.options, [
+		[{ pay: { any: 1 } }, { exploreSpace: { civ: 'aliens' } }],
+		[{ gain: { any: 1 } }],
+	]);
+
+	// The resource first: coin or food, the two they hold.
+	const paying = answer(asked, random, 1, 'chooseOption', { option: 0 });
+	assert.deepEqual(answersOf(paying, 'chooseSlot'), [
+		{ slot: 'coin' },
+		{ slot: 'food' },
+	]);
+	assert.equal(decisionOf(paying, 'chooseSpaceTile'), undefined);
+	const paid = answer(paying, random, 1, 'chooseSlot', { slot: 'food' });
+	assert.deepEqual(eventsOf(paid, 'resourcesPaid', since), [
+		{ type: 'resourcesPaid', player: 1, paid: { food: 1 } },
+	]);
+	assert.deepEqual(answersOf(paid, 'chooseSpaceTile'), [
+		{ tile: 13 },
+		{ tile: 5 },
+	]);
+	const explored = answer(paid, random, 1, 'chooseSpaceTile', { tile: 5 });
+	const seat = explored.seats[0];
+	assert.deepEqual(seat.civData.aliens, { tile: 5 });
+	assert.deepEqual(seat.spaceTiles, [13]);
+	assert.deepEqual(seat.exploredSpace, []);
+	// Tile 5: 1 coin, 1 worker and 8 VP.
+	assert.deepEqual(seat.resources, {
+		coin: 2,
+		worker: 1,
+		food: 0,
+		culture: 0,
+	});
+	assert.equal(seat.vp, state.seats[0].vp + 8);
+	assert.deepEqual(explored.supply.spaceDiscard, [7]);
+	assert.deepEqual(openDecisions(explored), []);
+
+	// With only one kind of resource, it is paid without asking.
+	const coin = aliensGame([13], 7, { coin: 2 });
+	const one = answer(
+		pushed(coin.state, coin.random, [aliensIncome(3)]),
+		coin.random,
+		1,
+		'chooseOption',
+		{ option: 0 }
+	);
+	assert.equal(one.seats[0].resources.coin, 1);
+	assert.deepEqual(one.seats[0].civData.aliens, { tile: 13 });
+	assert.deepEqual(openDecisions(one), []);
+});
+
+test('Aliens may explore only with a space tile in their supply, and after a discard only with a resource to pay; otherwise they gain a resource (03 §1.3)', () => {
+	/** What seat 1's Aliens are offered on an income turn: the options, or 'resource' for a resource gained without a choice. */
+	const offered = (
+		/** @type {number[]} */ tiles,
+		/** @type {number | null} */ onMat,
+		/** @type {Record<string, number>} */ resources
+	) => {
+		const { state, random } = aliensGame(tiles, onMat, resources);
+		const next = pushed(state, random, [aliensIncome(4)]);
+		const option = /** @type {any} */ (decisionOf(next, 'chooseOption'));
+		if (option) {
+			return option.options;
+		}
+		const resource = /** @type {any} */ (
+			decisionOf(next, 'chooseResource')
+		);
+		assert.deepEqual(
+			[resource?.player, resource?.count],
+			[1, 1],
+			'no choice and no resource'
+		);
+		return 'resource';
+	};
+	// Nothing was discarded: exploring is free, so no resource is needed.
+	assert.deepEqual(offered([13], null, {}), [
+		[{ exploreSpace: { civ: 'aliens' } }],
+		[{ gain: { any: 1 } }],
+	]);
+	// A tile was discarded and nothing can pay for the next one.
+	assert.equal(offered([13], 7, {}), 'resource');
+	// No space tile to explore.
+	assert.equal(offered([], null, { coin: 3 }), 'resource');
+	assert.equal(offered([], 7, { coin: 3 }), 'resource');
+});
+
+test('an ongoing space tile on the Aliens mat gains 5 VP for each advance on its track, until the next income turn discards it (03 §1.3, §1.5)', () => {
+	// Tile 16: 5 VP whenever its player advances on Technology.
+	const { state, random } = aliensGame([], 16, { coin: 8, culture: 8 });
+	/** The VP seat 1 gains from space tiles for one advance on a track, each open decision answered with its first answer. */
+	const tileVp = (/** @type {any} */ from, /** @type {string} */ track) => {
+		let next = resolveEffects(
+			from,
+			1,
+			[{ advance: { tracks: [track], noBenefit: true } }],
+			random
+		);
+		for (;;) {
+			const [open] = openDecisions(next);
+			if (!open) {
+				break;
+			}
+			next = answerFirst(next, random, 1, open.kind);
+		}
+		return eventsOf(next, 'vpGained', from.seq)
+			.filter((e) => e.source === 'map')
+			.map((e) => e.vp);
+	};
+	assert.deepEqual(tileVp(state, 'technology'), [5]);
+	assert.deepEqual(tileVp(state, 'science'), []);
+
+	// The next income turn discards it; it no longer counts.
+	let discarded = pushed(state, random, [aliensIncome(3)]);
+	assert.deepEqual(discarded.supply.spaceDiscard, [16]);
+	discarded = answer(discarded, random, 1, 'chooseResource', {
+		resources: { food: 1 },
+	});
+	assert.deepEqual(openDecisions(discarded), []);
+	assert.deepEqual(tileVp(discarded, 'technology'), []);
+});
+
+test('the state checks count the space tiles discarded and the one on the Aliens mat', () => {
+	const { state } = startedGame(2, { civs: ['aliens', 'leaders'], ...PP });
+	const seat = /** @type {any} */ (state.seats[0]);
+	seat.civData.aliens.tile = seat.spaceTiles.pop();
+	state.supply.spaceDiscard.push(
+		/** @type {number} */ (state.supply.space.shift())
+	);
+	checkState(state);
+
+	const lost = /** @type {any} */ (structuredClone(state));
+	lost.seats[0].civData.aliens.tile = null;
+	assert.throws(() => checkState(lost), /space tiles/);
+	const twice = structuredClone(state);
+	twice.supply.space.push(twice.supply.spaceDiscard[0]);
+	assert.throws(() => checkState(twice), /space tiles/);
+});
+
+test('Aliens use their ability in step 1 of income turns 2 to 5: the tile on their mat goes, then they choose', () => {
+	const ready = turnHolding('aliens', (seat) => {
+		seat.civData.aliens.tile = seat.spaceTiles.shift();
+		seat.resources.coin = 1;
+	});
+	const { player } = ready;
+	const tile = /** @type {any} */ (ready.state.seats[player - 1]).civData
+		.aliens.tile;
+	const since = ready.state.seq;
+	const state = answer(ready.state, ready.random, player, 'chooseTurn', {
+		turn: 'income',
+	});
+	const events = state.events.filter((e) => e.seq > since);
+	const used = events.findIndex(
+		(e) => e.type === 'civAbilityUsed' && e.civ === 'aliens'
+	);
+	const gone = events.findIndex(
+		(e) => e.type === 'tilesDiscarded' && e.stack === 'space'
+	);
+	assert.ok(used !== -1 && used < gone);
+	assert.deepEqual(state.supply.spaceDiscard, [tile]);
+	const decision = /** @type {any} */ (decisionOf(state, 'chooseOption'));
+	assert.deepEqual([decision?.player, decision?.purpose], [player, 'aliens']);
 });
