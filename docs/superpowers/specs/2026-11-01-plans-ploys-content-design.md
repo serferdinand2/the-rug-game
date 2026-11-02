@@ -185,11 +185,13 @@ Each civilization's calls, as its task built them: **(my call)** for the builder
   - It seats at most 4 players while the Islanders are left out: 9 civilizations, 2 each (R116). Five players are refused at the start, by a message that names the variant and the limit, until #165. This departs from §9's first reading, which had five players use all ten **(my call; owner check)**.
   - Switching Plans & Ploys off drops the variant, and the lobby offers it only while the expansion is on **(my call)**.
 
-## 8. The Islanders: a gap first
+## 8. The Islanders: the gap is closed, the build is still #165's
 
-The Islanders' mat prints a central hex, and exploring a hex beside it scores 1 VP per matching side. No research file gives that central hex's six corners. CLAUDE.md: a detail no rule covers becomes an issue, never a guess.
-- **First**, look for a clear photo or scan of the mat; Board Game Arena implements only the base game, so it has none. If a source shows the six corners, record them as R115 and build the Islanders: 4 territory tiles at setup; income 2–5 may explore one mat hex, scoring matched sides against the centre and any mat hex beside it, exactly as on the board (R5), and gaining the tile's benefit; any explore on an advance turn may target a mat hex; on the final income turn, 4 VP per mat tile whose three outward sides show only sea at every corner; gained mid-game, they gain the 4 tiles (R113), then may discard it, or keep it and place up to 4 tiles there with no benefit **(my calls on the corner model)**.
-- **If not**, the Islanders are left out as R115, under the owner's standing rule that content no source shows is left out (#2); the README lists them and a new issue holds them, as R43 did for the 15th card. Plans & Ploys then deals 25 civilizations.
+The Islanders' mat prints a central hex, and exploring a hex beside it scores 1 VP per matching side. No research file gave that central hex's six corners, and Board Game Arena implements only the base game, so it had none either. CLAUDE.md: a detail no rule covers becomes an issue, never a guess.
+
+The owner found a clear photo of the printed mat in a BGG thread ("The ten civilizations of Tapestry: Plans and Ploys") and read its centre hex directly, 2026-11-02. Recorded as R115: clockwise from the top-left corner, mountain, grassland, grassland, forest, desert, desert.
+
+With the corners known, build the Islanders in #165: 4 territory tiles at setup; income 2–5 may explore one mat hex, scoring matched sides against the centre and any mat hex beside it, exactly as on the board (R5), and gaining the tile's benefit; any explore on an advance turn may target a mat hex; on the final income turn, 4 VP per mat tile whose three outward sides show only sea at every corner; gained mid-game, they gain the 4 tiles (R113), then may discard it, or keep it and place up to 4 tiles there with no benefit **(my calls on the corner model)**. Until #165 lands, the Islanders stay out of the deck and Plans & Ploys deals 25 civilizations, as R115 and R116 say.
 
 ## 9. Handed on from earlier issues
 
