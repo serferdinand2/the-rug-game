@@ -215,7 +215,7 @@ const CIV_TEXTS = Object.freeze({
 		[
 			'At the start of income turns 2 to 5, you may put a token on one of these 4 options that you have not used yet, and gain its benefit from a neighbour of your choice. Each option is used once a game.',
 			'A When Played card: gain the effect of a When Played tapestry card face up on that neighbour’s income mat, as if you had played it. If you copy Espionage, you copy another card through it, and a This Era card copied so lasts until your next income turn.',
-			'A tile in their supply: gain the benefit of a territory or space tile in that neighbour’s supply; the tile stays there. A space tile that gives VP for each advance on a track gives them to you whenever you advance on it, for as long as it stays in their supply. Once they explore it, it stops.',
+			'A tile in their supply: gain the benefit of a territory or space tile in that neighbour’s supply; the tile stays there. A space tile that gives VP for each advance on a track gives them to you whenever you advance on it, for as long as it stays in their supply. Once they explore it, it stops. The Monolith’s tile can’t be taken, as a copied landmark gives nothing.',
 			'Their track position: gain the benefit of the space one of that neighbour’s tokens stands on, without its bonus.',
 			'Their tech card: gain the benefit of one of that neighbour’s tech cards for the row it is in, the circle of a middle-row card or the square of a top-row card. A landmark card’s square gives nothing.',
 			'Then, if that neighbour holds any tapestry cards, you may look at their hand.',

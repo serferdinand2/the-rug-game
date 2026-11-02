@@ -2700,6 +2700,29 @@ test("option 2 gains the benefit of a territory or space tile in a neighbour's s
 	assert.deepEqual(openDecisions(territory), []);
 });
 
+test("option 2 never takes the Monolith's space tile: a copied landmark benefit gives nothing, as option 4 prints (#33 ruling)", () => {
+	// Space tile 19 places the Monolith; tile 13 gives 13 VP.
+	assert.equal(spiesOffered(spiesGame({ 2: { space: [19] } })), null);
+	const { state, random } = spiesGame({ 2: { space: [19, 13] } });
+	assert.deepEqual(spiesOffered({ state, random }), [2]);
+	// Tile 13 is the only one left, so it is taken without asking; the Monolith stays for the neighbour.
+	const taken = spy(state, random, 2);
+	assert.deepEqual(eventsOf(taken, 'spiesUsed', state.seq), [
+		{
+			type: 'spiesUsed',
+			player: 1,
+			option: 2,
+			from: 2,
+			stack: 'space',
+			tile: 13,
+		},
+	]);
+	assert.equal(taken.seats[0].vp, state.seats[0].vp + 13);
+	assert.ok(taken.landmarks.includes('monolith'));
+	assert.deepEqual(taken.seats[1].spaceTiles, [19, 13]);
+	assert.deepEqual(openDecisions(taken), []);
+});
+
 test("an ongoing space tile taken with option 2 gives the Spies 5 VP for each advance on its track while it stays in the neighbour's supply, and stops once they explore it (03 §1.3, §1.5)", () => {
 	// Tile 16: 5 VP whenever its player advances on Technology.
 	const { state, random } = spiesGame({ 2: { space: [16] } });

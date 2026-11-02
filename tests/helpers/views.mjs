@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { view } from '../../src/lib/engine/game.js';
 import { DECISIONS } from '../../src/lib/engine/kinds.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
+import { neighbours } from '../../src/lib/engine/income.js';
 
 /** @typedef {import('../../src/lib/engine/state.js').State} State */
 /** @typedef {import('../../src/lib/engine/state.js').PlayerSeat} PlayerSeat */
@@ -107,8 +108,9 @@ function isRevealed(state) {
  * holds privately, and throws an AssertionError naming the first leak.
  *
  * A secret id may appear only where it is public anyway: in a public place now, or, in the action's new events, in a
- * public place before the action (a discard just shuffled into a deck) or in a field the rules reveal (REVEALS). A
- * neighbour's hand may also show in the secret of the Spies' own look (`handSeen`), to the Spies alone (#33).
+ * public place before the action (a discard just shuffled into a deck) or in a field the rules reveal (REVEALS). The
+ * cards of a neighbour's hand may also show in the secret of the Spies' own look at it (`handSeen`), to the Spies
+ * alone; anything else in that secret is searched as usual, and a look at a seat that is no neighbour fails (#33).
  * Older events were checked when they were new, so they are not searched again.
  * @param {State} state
  * @param {SetupFacts} facts - From setupFacts() of the same game
@@ -172,18 +174,49 @@ export function checkViews(
 		/** @type {number | null} */ viewer
 	) => viewer !== null && player === viewer;
 	const open = new Map(openDecisions(state).map((op) => [op.id, op]));
+	/**
+	 * The Spies' own look (#33), as the leak search reads it: it must be at a neighbour's hand, and the cards of that
+	 * hand (before the action or after it) leave its secret, which is searched for anything else.
+	 * @param {any} event - A handSeen event of the viewer's
+	 * @returns {any}
+	 */
+	const lookedAt = (event) => {
+		assert.ok(
+			neighbours(state, event.player).includes(event.from),
+			`seat ${event.player} looked at seat ${event.from}'s hand, which is no neighbour's`
+		);
+		const hand = new Set(
+			[before, state].flatMap(
+				(s) =>
+					/** @type {any} */ (
+						s?.seats.find((x) => x.seat === event.from)
+					)?.hand ?? []
+			)
+		);
+		const cards = Array.isArray(event.secret?.cards)
+			? event.secret.cards
+			: [];
+		return {
+			...event,
+			secret: {
+				...event.secret,
+				cards: cards.filter(
+					(/** @type {unknown} */ card) => !hand.has(card)
+				),
+			},
+		};
+	};
 
 	for (const viewer of [null, ...players.map((s) => s.seat)]) {
 		const v = viewOf(state, viewer);
 		const { events, ...rest } = v;
 		const fresh = events.filter((/** @type {any} */ e) => e.seq > oldSeq);
 		const inBody = stringsOf(JSON.stringify(rest));
-		// The Spies' look shows them a neighbour's hand in its own event's secret, and nowhere else (#33).
 		const inNews = stringsOf(
 			JSON.stringify(
 				fresh.map((/** @type {any} */ e) =>
 					e.type === 'handSeen' && owns(e.player, viewer)
-						? { ...e, secret: undefined }
+						? lookedAt(e)
 						: e
 				)
 			)

@@ -198,24 +198,69 @@ test("an Inventors mark shows its tech card's id, wherever the card is", () => {
 
 test("the Spies' look shows a neighbour's hand to the Spies alone, in its own event, and the checker catches it anywhere else (#33)", () => {
 	const { state, random } = startedGame(3);
-	const dealt = resolveEffects(state, 2, [{ gain: { tapestry: 2 } }], random);
+	const dealt = resolveEffects(
+		resolveEffects(state, 2, [{ gain: { tapestry: 2 } }], random),
+		3,
+		[{ gain: { tapestry: 1 } }],
+		random
+	);
 	const facts = setupFacts(newGame(3).state);
 	const cards = [...playerSeat(dealt, 2).hand];
-	/** The state after an event of `type` in which seat 1 sees seat 2's hand. @param {string} type */
-	const seeing = (type) => {
-		const next = structuredClone(dealt);
+	/**
+	 * The state after an event of `type` in which seat 1 sees `secret` as seat `from`'s hand.
+	 * @param {string} type
+	 * @param {string[]} [secret]
+	 * @param {any} [base]
+	 * @param {number} [from]
+	 */
+	const seeing = (type, secret = cards, base = dealt, from = 2) => {
+		const next = structuredClone(base);
 		next.seq += 1;
 		next.events.push({
 			seq: next.seq,
 			type,
 			player: 1,
-			from: 2,
-			secret: { cards },
+			from,
+			secret: { cards: secret },
 		});
 		return next;
 	};
 	const looked = seeing('handSeen');
 	checkViews(looked, facts, { before: dealt });
+	// The look excuses that neighbour's hand alone: a deck card or another seat's card in its secret is a leak.
+	const deckCard = /** @type {string} */ (dealt.supply.tapestry.deck[0]);
+	assert.throws(
+		() =>
+			checkViews(seeing('handSeen', [...cards, deckCard]), facts, {
+				before: dealt,
+			}),
+		/deck card .* shown to 1/
+	);
+	const theirs = playerSeat(dealt, 3).hand[0];
+	assert.throws(
+		() =>
+			checkViews(seeing('handSeen', [...cards, theirs]), facts, {
+				before: dealt,
+			}),
+		/seat 3's card .* shown to 1/
+	);
+	// A look at a seat that is no neighbour fails, as the Spies look only at the neighbour they took from.
+	const four = startedGame(4);
+	const across = resolveEffects(
+		four.state,
+		3,
+		[{ gain: { tapestry: 1 } }],
+		four.random
+	);
+	assert.throws(
+		() =>
+			checkViews(
+				seeing('handSeen', playerSeat(across, 3).hand, across, 3),
+				setupFacts(newGame(4).state),
+				{ before: across }
+			),
+		/no neighbour's/
+	);
 	// Only in that event: the same cards in another of the viewer's events, or in their view's body, are a leak.
 	assert.throws(
 		() => checkViews(seeing('cardsSeen'), facts, { before: dealt }),

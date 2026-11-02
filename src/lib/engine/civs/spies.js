@@ -71,7 +71,8 @@ function dataOf(state, player) {
 
 /**
  * What one neighbour offers an option, in the order shown: (1) their face-up WHEN PLAYED cards, as visibleCards()
- * gives them; (2) their territory tiles, then their space tiles; (3) each of their tokens past the start, in track
+ * gives them; (2) their territory tiles, then their space tiles but the Monolith's, whose landmark a copy can't give
+ * (#33 ruling); (3) each of their tokens past the start, in track
  * order and then from the lowest, except a space the Spies already activated this turn (R19, as Trade Economy);
  * (4) their middle-row cards for the circle, then their top-row cards for the square, leaving out a landmark card,
  * whose square gives nothing (03 §1.3).
@@ -98,11 +99,19 @@ function targetsFrom(state, player, option, from) {
 				stack: /** @type {const} */ ('territory'),
 				tile,
 			})),
-			...seat.spaceTiles.map((tile) => ({
-				player: from,
-				stack: /** @type {const} */ ('space'),
-				tile,
-			})),
+			// #33 ruling: a copied landmark benefit gives nothing, as option 4 prints, so the Monolith's tile is left out.
+			...seat.spaceTiles
+				.filter(
+					(tile) =>
+						!spaceTile(tile).benefit.some(
+							(effect) => 'landmark' in effect
+						)
+				)
+				.map((tile) => ({
+					player: from,
+					stack: /** @type {const} */ ('space'),
+					tile,
+				})),
 		];
 	}
 	if (option === 3) {

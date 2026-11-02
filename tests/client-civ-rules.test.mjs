@@ -492,6 +492,8 @@ test('the Spies read as the engine plays them, Espionage and the watched space t
 			'as long as',
 			'explore it',
 			'stops',
+			'Monolith',
+			'can’t be taken',
 			'Their track position:',
 			'without its bonus',
 			'Their tech card:',
