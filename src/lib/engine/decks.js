@@ -30,7 +30,7 @@ export const BASE_CIVS = Object.freeze(baseSlugs('civ'));
  * Islanders are never here: no source shows their mat's printed centre hex (R115).
  * @type {readonly string[]}
  */
-export const PP_CIVS = Object.freeze(['riverfolk']);
+export const PP_CIVS = Object.freeze(['riverfolk', 'recyclers']);
 
 /**
  * The civilizations a game with these expansions deals from: the base 16, then Plans & Ploys' built ones (#33).

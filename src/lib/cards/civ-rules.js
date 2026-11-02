@@ -185,6 +185,19 @@ const CIV_TEXTS = Object.freeze({
 		'A building or landmark on the map works like an outpost: it gives you control, and an opponent can conquer its territory and topple it.',
 		'Buildings on the map still count for VP per building.',
 	]),
+	recyclers: civ(
+		[
+			'When you start the game with the Recyclers, or gain them later, you draw 3 tech cards, keep 1 in your bottom row and discard the others.',
+			'At the start of income turns 2 to 5, you may upgrade a tech card, as well as the usual upgrade.',
+			'Whenever you upgrade a tech card, you may instead move a card from your top row back to your bottom row and gain 5 VP. It takes the upgrade’s place: it gains no benefit, and abilities that reward an upgrade don’t count it. Only your own upgrades can, not an Inventors token’s.',
+			'Whenever you gain a tech card, you may take any card from the tech discard pile instead, unless what gives it names the deck or the face-up cards, as Steam Tycoon does.',
+		],
+		{
+			current: [
+				'Current rules: if you start the game with the Recyclers, you also upgrade a tech card.',
+			],
+		}
+	),
 	riverfolk: civ([
 		'When you start the game with the Riverfolk, or keep them when you gain them later, you gain 4 VP for each district of your capital city with at least 2 impassable plots showing.',
 		'You may place income buildings and landmarks on impassable plots. They still count as filled for districts, rows and columns.',

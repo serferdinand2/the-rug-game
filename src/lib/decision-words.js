@@ -1,4 +1,7 @@
 // The decisions' titles and answers in words (#26 design §8, #126): what the decision panel asks, and each answer it offers.
+// game.js first: it loads the civilization modules in an order free of their import cycle.
+import './engine/game.js';
+import { RECYCLERS_VP } from './engine/civs/recyclers.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
 import { spaceTileWords } from './area/terrain.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
@@ -243,6 +246,7 @@ const TITLES = {
 			? `Discard a tapestry card for ${d.vpEach} VP?`
 			: 'Discard a tapestry card?',
 	chooseKeep: () => 'Choose a tapestry card to keep',
+	chooseKeepTech: () => 'Choose a tech card to keep',
 	chooseLandmarkCard: () => 'Keep a landmark card',
 	chooseTrade: (d, table) => {
 		const host = isCount(d.host) ? ` with ${seatName(table, d.host)}` : '';
@@ -570,7 +574,13 @@ const ANSWERS = {
 		if (a.card === 'deck') {
 			return 'The top card of the deck';
 		}
-		return typeof a.card === 'string' ? techName(a.card) : null;
+		if (typeof a.card !== 'string') {
+			return null;
+		}
+		// The Recyclers' discard pile (#33).
+		return a.from === 'discard'
+			? `${techName(a.card)}, from the discard pile`
+			: techName(a.card);
 	},
 	chooseUpgrade: (a, d, table) => {
 		if (a.card === null) {
@@ -587,6 +597,10 @@ const ANSWERS = {
 		}
 		if (tech?.middle?.includes(a.card)) {
 			return `${techName(a.card)}, to the top row`;
+		}
+		// The Recyclers' recycle (#33).
+		if (tech?.top?.includes(a.card)) {
+			return `${techName(a.card)}, back to the bottom row for ${RECYCLERS_VP} VP`;
 		}
 		return techName(a.card);
 	},
@@ -610,6 +624,8 @@ const ANSWERS = {
 	},
 	chooseKeep: (a) =>
 		typeof a.card === 'string' ? `Keep ${tapestryName(a.card)}` : null,
+	chooseKeepTech: (a) =>
+		typeof a.card === 'string' ? `Keep ${techName(a.card)}` : null,
 	chooseLandmarkCard: (a, d, table) =>
 		typeof a.card === 'string'
 			? `Keep ${landmarkName(a.card)}: ${draftRest(d, table, false)}`

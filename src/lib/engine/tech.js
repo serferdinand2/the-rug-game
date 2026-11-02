@@ -1,7 +1,7 @@
-// The tech deck and its three face-up cards: drawing, refilling and refreshing (01 §8, FAQ #24), and what a card's prerequisites ask (R18).
+// The tech deck and its three face-up cards: drawing, refilling and refreshing (01 §8, FAQ #24), what a card's prerequisites ask (R18), and the cards a player may upgrade or recycle.
 import { emit } from './events.js';
 import { shuffle } from './random.js';
-import { playerSeat, seatOf } from './state.js';
+import { isPlayerSeat, playerSeat, seatOf } from './state.js';
 import { neighbours, exposedSpaces } from './income.js';
 import { spacesAdvanced } from './movement.js';
 import { hasEra } from './abilities.js';
@@ -136,4 +136,32 @@ export function upgradable(state, player) {
 				meetsRequirement(state, player, techCard(id))
 		),
 	];
+}
+
+/**
+ * Whether a player holds the Recyclers (03 §1.3): their own upgrades may send a top-row card back down, and they may
+ * invent from the tech discard pile.
+ * @param {import('./state.js').State} state
+ * @param {unknown} player
+ * @returns {boolean}
+ */
+export function recycles(state, player) {
+	return (
+		isPlayerSeat(state, player) &&
+		playerSeat(state, /** @type {number} */ (player)).civs.includes(
+			'recyclers'
+		)
+	);
+}
+
+/**
+ * The top-row cards a player's own upgrade may send back to the bottom row instead, in row order: the Recyclers' only.
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @returns {string[]}
+ */
+export function recyclable(state, player) {
+	return recycles(state, player)
+		? [...playerSeat(state, player).tech.top]
+		: [];
 }

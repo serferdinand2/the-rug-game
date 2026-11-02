@@ -182,6 +182,12 @@ const SAMPLES = {
 	tapestryPlayed: { player: 1, era: 2, card: 'militarism', faceDown: false },
 	techBenefitUsed: { player: 1, card: 'the-nail', icon: 'square' },
 	techDeckShuffled: { count: 12 },
+	techDrawn: {
+		player: 1,
+		count: 3,
+		secret: { cards: ['bakery', 'barn', 'compass'] },
+	},
+	techRecycled: { player: 1, card: 'com-tower' },
 	techDisplayRefreshed: {
 		discarded: ['irrigation', 'telescope', 'compass'],
 		faceUp: ['vaccines', 'anesthesia', 'paper'],
@@ -432,6 +438,30 @@ test('a secret is named for its owner and kept from everyone else', () => {
 		eventText(sample('civsDrawn', { secret: undefined }), GAME),
 		'Ana drew 2 civilizations.'
 	);
+	// The Recyclers' draw (#33).
+	assert.equal(
+		eventText(sample('techDrawn'), GAME),
+		'Ana drew Bakery, Barn and Compass to keep one.'
+	);
+	assert.equal(
+		eventText(sample('techDrawn', { secret: undefined }), GAME),
+		'Ana drew 3 tech cards to keep one.'
+	);
+	assert.equal(
+		eventText(
+			sample('techDrawn', { count: 1, secret: { cards: ['barn'] } }),
+			GAME
+		),
+		'Ana drew Barn.'
+	);
+	assert.equal(
+		eventText(sample('techDrawn', { count: 1, secret: undefined }), GAME),
+		'Ana drew a tech card.'
+	);
+	assert.equal(
+		eventText(sample('techDrawn', { count: 0, secret: undefined }), GAME),
+		'Ana found no tech card left to draw.'
+	);
 });
 
 test('the important events read as plain sentences', () => {
@@ -538,6 +568,14 @@ test('the important events read as plain sentences', () => {
 			'Ana played a trap as a tapestry card.',
 		],
 		[sample('techInvented', { card: 'clocks' }), 'Ana invented Clocks.'],
+		[
+			sample('techInvented', { card: 'clocks', from: 'discard' }),
+			'Ana invented Clocks from the discard pile.',
+		],
+		[
+			sample('techRecycled'),
+			'Ana recycled Com Tower back to the bottom row.',
+		],
 		[
 			sample('techUpgraded', { card: 'clocks' }),
 			'Ana upgraded Clocks to the middle row.',

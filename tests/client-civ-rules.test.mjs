@@ -10,6 +10,10 @@ import { ENTERTAINERS_GRID } from '../src/lib/engine/civs/entertainers.js';
 import { MERRYMAKERS_COLUMNS } from '../src/lib/engine/civs/merrymakers.js';
 import { MILITANTS_SPACES } from '../src/lib/engine/civs/militants.js';
 import { RIVERFOLK_DISTRICT_VP } from '../src/lib/engine/civs/riverfolk.js';
+import {
+	RECYCLERS_DRAW,
+	RECYCLERS_VP,
+} from '../src/lib/engine/civs/recyclers.js';
 import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 
@@ -266,6 +270,7 @@ test('each current-rules adjustment gives what the engine gives (R34)', () => {
 		'isolationists',
 		'merrymakers',
 		'mystics',
+		'recyclers',
 		'the-chosen',
 		'traders',
 	]) {
@@ -318,5 +323,28 @@ test('the Riverfolk read as the engine plays them (03 §1.3)', () => {
 			'discard them and gain another civilization',
 		],
 		'Riverfolk'
+	);
+});
+
+test('the Recyclers read as the engine plays them (03 §1.3)', () => {
+	const text = /** @type {string} */ (
+		civAbilityText('recyclers', 'original')
+	);
+	assertInOrder(
+		text,
+		'When you start',
+		[
+			'or gain them later',
+			`draw ${RECYCLERS_DRAW} tech cards`,
+			'keep 1 in your bottom row',
+			'income turns 2 to 5',
+			'upgrade a tech card',
+			'top row back to your bottom row',
+			`${RECYCLERS_VP} VP`,
+			'not an Inventors token',
+			'tech discard pile',
+			'Steam Tycoon',
+		],
+		'Recyclers'
 	);
 });

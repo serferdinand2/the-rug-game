@@ -702,10 +702,37 @@ const WORDS = {
 	noMove: (e, game, name) => `${name}'s tapestry card had no effect.`,
 
 	// Tech cards.
-	techInvented: (e, game, name) =>
-		e.from === 'deck'
-			? `${name} invented ${techName(e.card)} from the deck.`
-			: `${name} invented ${techName(e.card)}.`,
+	techInvented(e, game, name) {
+		const card = techName(e.card);
+		if (e.from === 'deck') {
+			return `${name} invented ${card} from the deck.`;
+		}
+		// The Recyclers (#33).
+		return e.from === 'discard'
+			? `${name} invented ${card} from the discard pile.`
+			: `${name} invented ${card}.`;
+	},
+	// The Recyclers' draw when they come in, 1 to keep (#33).
+	techDrawn(e, game, name) {
+		const cards = strings(isRecord(e.secret) ? e.secret.cards : undefined);
+		if (cards.length > 0) {
+			const drawn = joinList(cards.map(techName));
+			return cards.length === 1
+				? `${name} drew ${drawn}.`
+				: `${name} drew ${drawn} to keep one.`;
+		}
+		if (!isCount(e.count)) {
+			return `${name} drew tech cards.`;
+		}
+		if (e.count === 0) {
+			return `${name} found no tech card left to draw.`;
+		}
+		return e.count === 1
+			? `${name} drew a tech card.`
+			: `${name} drew ${e.count} tech cards to keep one.`;
+	},
+	techRecycled: (e, game, name) =>
+		`${name} recycled ${techName(e.card)} back to the bottom row.`,
 	techUpgraded(e, game, name) {
 		const card = techName(e.card);
 		if (e.to === 'middle' || e.to === 'top') {

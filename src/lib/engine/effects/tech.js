@@ -5,29 +5,42 @@ import { triggered } from '../abilities.js';
 import {
 	canDraw,
 	drawTech,
+	recyclable,
+	recycles,
 	refillDisplay,
 	refreshDisplay,
 	upgradable,
 } from '../tech.js';
 import { techCard } from '../data/tech-cards.js';
 
+/** @typedef {{ card?: string, from?: 'discard', refresh?: true }} InventAnswer */
+
 /**
- * What a player may answer when inventing: each face-up card, the top of the deck, and, before the first card, a refresh.
- * `faceUpOnly` leaves out the deck and the refresh; `deckOnly` leaves only the deck (Steam Tycoon).
+ * What a player may answer when inventing: each face-up card, the top of the deck, for the Recyclers each card of the
+ * discard pile (03 §1.3), and, before the first card, a refresh. `faceUpOnly` leaves out the deck, the discard pile and
+ * the refresh; `deckOnly` leaves only the deck (Steam Tycoon).
  * @param {import('../state.js').State} state
- * @param {{ refresh?: boolean, invent?: { faceUpOnly?: boolean, deckOnly?: boolean } }} decision
- * @returns {{ card?: string, refresh?: true }[]}
+ * @param {{ player?: unknown, refresh?: boolean, invent?: { faceUpOnly?: boolean, deckOnly?: boolean } }} decision
+ * @returns {InventAnswer[]}
  */
 export function inventAnswers(state, decision) {
-	const { faceUp } = state.supply.tech;
+	const { faceUp, discard } = state.supply.tech;
 	const { faceUpOnly = false, deckOnly = false } = decision.invent ?? {};
-	/** @type {{ card?: string, refresh?: true }[]} */
+	/** @type {InventAnswer[]} */
 	const answers = deckOnly ? [] : faceUp.map((card) => ({ card }));
 	if (faceUpOnly) {
 		return answers;
 	}
 	if (canDraw(state)) {
 		answers.push({ card: 'deck' });
+	}
+	if (!deckOnly && recycles(state, decision.player)) {
+		answers.push(
+			...discard.map((card) => ({
+				card,
+				from: /** @type {const} */ ('discard'),
+			}))
+		);
 	}
 	// A refresh with nothing to draw only deals the same cards back.
 	if (decision.refresh && !deckOnly && canDraw(state) && answers.length > 0) {
@@ -45,7 +58,11 @@ export function inventAnswers(state, decision) {
  * @param {Record<string, any>} options - The invent effect's other options, which carry over to each of its cards
  */
 function askInvent(ctx, player, left, refresh, options) {
-	const answers = inventAnswers(ctx.state, { refresh, invent: options });
+	const answers = inventAnswers(ctx.state, {
+		player,
+		refresh,
+		invent: options,
+	});
 	if (answers.length === 0) {
 		emit(ctx.state, { type: 'noInvent', player });
 		return;
@@ -64,7 +81,7 @@ function askInvent(ctx, player, left, refresh, options) {
  * After a card, its triggers, then its `countsChanged` triggers (#20 design §7), resolve before the next card is asked for (design §6).
  * @param {import('../state.js').Context} ctx
  * @param {number} player
- * @param {{ card?: string, refresh?: true }} answer
+ * @param {InventAnswer} answer
  * @param {number} left - Cards still to invent, this one included
  * @param {Record<string, any>} [options] - The invent effect's other options, which carry over to each of its cards
  */
@@ -75,12 +92,25 @@ export function inventCard(ctx, player, answer, left, options = {}) {
 		askInvent(ctx, player, left, false, options);
 		return;
 	}
-	const from = answer.card === 'deck' ? 'deck' : 'display';
+	const from =
+		answer.from === 'discard'
+			? 'discard'
+			: answer.card === 'deck'
+				? 'deck'
+				: 'display';
 	/** @type {number} */
 	let slot = -1;
 	/** @type {string | null | undefined} */
 	let card;
-	if (answer.card === 'deck') {
+	if (from === 'discard') {
+		const at = tech.discard.indexOf(answer.card ?? '');
+		if (at === -1) {
+			throw new Error(
+				'inventCard found that card is not in the discard pile.'
+			);
+		}
+		card = tech.discard.splice(at, 1)[0];
+	} else if (answer.card === 'deck') {
 		card = drawTech(ctx);
 	} else {
 		slot = tech.faceUp.indexOf(answer.card ?? '');
@@ -184,22 +214,31 @@ export function upgradeCard(ctx, player, card, inventors) {
 
 /**
  * The upgrade effect (§7): mandatory with one card is automatic, with none says so; optional always asks while a card can be upgraded.
+ * The Recyclers may recycle a top-row card instead (03 §1.3), so they are asked whenever they have one. The recycle is
+ * a "may": with nothing else to upgrade, they may decline it (my call).
  * @type {import('../state.js').EffectHandler}
  */
 export function upgrade(ctx, player, value) {
 	const cards = upgradable(ctx.state, player);
+	const recycled = recyclable(ctx.state, player);
 	const optional = value?.optional === true;
-	if (cards.length === 0) {
+	if (cards.length + recycled.length === 0) {
 		if (!optional) {
 			emit(ctx.state, { type: 'noUpgrade', player });
 		}
 		return;
 	}
-	if (cards.length === 1 && !optional) {
+	if (cards.length === 1 && recycled.length === 0 && !optional) {
 		upgradeCard(ctx, player, cards[0]);
 		return;
 	}
-	ctx.push([{ player, kind: 'chooseUpgrade', optional }]);
+	ctx.push([
+		{
+			player,
+			kind: 'chooseUpgrade',
+			optional: optional || cards.length === 0,
+		},
+	]);
 }
 
 /**

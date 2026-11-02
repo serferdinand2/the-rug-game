@@ -159,6 +159,12 @@ export function checkViews(
 			.filter((op) => op.kind === 'chooseCiv' && op.midGame)
 			.map((op) => [op.player, op.options])
 	);
+	/** The tech cards each seat's Recyclers drew and is choosing between (#33). */
+	const keeping = new Map(
+		openDecisions(state)
+			.filter((op) => op.kind === 'chooseKeepTech')
+			.map((op) => [op.player, op.options])
+	);
 	/** The public view (null) owns nothing, not even what belongs to no player. */
 	const owns = (
 		/** @type {unknown} */ player,
@@ -203,6 +209,9 @@ export function checkViews(
 			}
 			for (const civ of drafted.get(seat.seat) ?? []) {
 				hidden(civ, `seat ${seat.seat}'s drawn civilization ${civ}`);
+			}
+			for (const card of keeping.get(seat.seat) ?? []) {
+				hidden(card, `seat ${seat.seat}'s drawn tech card ${card}`);
 			}
 			const shown = v.seats[seat.seat - 1];
 			assert.ok(

@@ -324,6 +324,11 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: ['trap-1', 'age-of-sail'],
 			keep: 1,
 		},
+		chooseKeepTech: {
+			player: 1,
+			kind: 'chooseKeepTech',
+			options: ['bakery', 'barn', 'compass'],
+		},
 		chooseTrade: {
 			player: 1,
 			kind: 'chooseTrade',

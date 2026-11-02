@@ -210,6 +210,10 @@ function headlineOf(kind, event) {
 				plain(' invented '),
 				named(techName(event.card)),
 				...(event.from === 'deck' ? [plain(' from the deck')] : []),
+				// The Recyclers (#33).
+				...(event.from === 'discard'
+					? [plain(' from the discard pile')]
+					: []),
 			];
 		case 'upgrade':
 			return [

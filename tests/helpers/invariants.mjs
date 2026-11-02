@@ -80,6 +80,8 @@ export function checkState(state, previousSeq = 0) {
 				...p.tech.middle,
 				...p.tech.top,
 			]),
+			// #33: the Recyclers' drawn cards wait in their keep question.
+			...opsOf('chooseKeepTech').flatMap((op) => op.options),
 		],
 		techDeck(state.variants)
 	);

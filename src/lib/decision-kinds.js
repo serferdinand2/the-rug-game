@@ -71,6 +71,7 @@ export const DECISION_KINDS = Object.freeze({
 	chooseLandmark: { art: 'landmark' },
 	chooseDiscard: { shelf: 'tapestry', tab: 'hand' },
 	chooseKeep: { shelf: 'tapestry', tab: 'hand', confirm: 'Keep card' },
+	chooseKeepTech: { shelf: 'tech', tab: 'tech', confirm: 'Keep card' },
 	chooseTrade: { art: 'payment' },
 	chooseTrack: { art: 'track' },
 	chooseRoll: { art: 'track' },

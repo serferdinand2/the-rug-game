@@ -181,6 +181,48 @@ test('answers name seats, cards and resources', () => {
 	);
 });
 
+test("the Recyclers' keep, discard pile and recycle read as what they do (#33)", () => {
+	const keep = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseKeepTech',
+		options: ['bakery', 'barn'],
+	};
+	assert.equal(decisionTitle(keep), 'Choose a tech card to keep');
+	assert.equal(describeAnswer(keep, { card: 'barn' }), 'Keep Barn');
+	const invent = { id: 2, batch: 1, player: 1, kind: 'chooseInvent' };
+	assert.equal(
+		describeAnswer(invent, { card: 'barn', from: 'discard' }),
+		'Barn, from the discard pile'
+	);
+	assert.equal(describeAnswer(invent, { card: 'barn' }), 'Barn');
+	const game = {
+		seats: [
+			{
+				name: 'Ana',
+				tech: { bottom: ['bakery'], middle: [], top: ['com-tower'] },
+			},
+		],
+	};
+	const upgrade = {
+		id: 3,
+		batch: 1,
+		player: 1,
+		kind: 'chooseUpgrade',
+		optional: true,
+	};
+	assert.deepEqual(
+		[{ card: 'bakery' }, { card: 'com-tower' }].map((a) =>
+			describeAnswer(upgrade, a, /** @type {any} */ (game))
+		),
+		[
+			'Bakery, to the middle row',
+			'Com Tower, back to the bottom row for 5 VP',
+		]
+	);
+});
+
 test('unknown decisions and answers fall back to a readable sentence', () => {
 	const odd = { id: 1, batch: 1, player: 1, kind: 'chooseSomethingNew' };
 	assertReadable(decisionTitle(odd), 'an unknown title');

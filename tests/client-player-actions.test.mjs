@@ -224,6 +224,24 @@ test('an invented and an upgraded tech card show the card, the upgrade its rows'
 	assert.equal(upgrade.text, 'Ana upgraded Compass to the top row.');
 });
 
+test('a card the Recyclers invent from the discard pile says where it came from (#33)', () => {
+	const [invent] = actionsOf(
+		numbered([
+			{
+				type: 'techInvented',
+				player: 3,
+				card: 'compass',
+				from: 'discard',
+			},
+		]),
+		GAME,
+		2
+	);
+	assert.equal(invent.kind, 'invent');
+	assert.equal(words(invent), 'Ana invented Compass from the discard pile');
+	assert.equal(invent.text, 'Ana invented Compass from the discard pile.');
+});
+
 test('an explore shows the tile as it lies and the hex', () => {
 	const [item] = actionsOf(
 		numbered([

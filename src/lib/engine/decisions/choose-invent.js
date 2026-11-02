@@ -7,15 +7,20 @@ export const chooseInvent = {
 	hidden: [],
 	answers(state, decision) {
 		return inventAnswers(state, {
+			player: decision.player,
 			refresh: decision.refresh === true,
 			invent: decision.invent,
 		});
 	},
+	// A card is named with the pile it comes from: `from: 'discard'` for the Recyclers' discard pile (03 §1.3).
 	check(state, decision, answer) {
 		const found = chooseInvent
 			.answers(state, decision)
 			.some(
-				(a) => a.card === answer.card && a.refresh === answer.refresh
+				(a) =>
+					a.card === answer.card &&
+					a.from === answer.from &&
+					a.refresh === answer.refresh
 			);
 		if (!found) {
 			throw new PlayerError("You can't invent that card.");
@@ -25,7 +30,7 @@ export const chooseInvent = {
 		inventCard(
 			ctx,
 			/** @type {number} */ (decision.player),
-			{ card: answer.card, refresh: answer.refresh },
+			{ card: answer.card, from: answer.from, refresh: answer.refresh },
 			/** @type {number} */ (decision.left),
 			decision.invent ?? {}
 		);

@@ -69,8 +69,8 @@ import { deepFreeze } from './ids.js';
  * - `advance`: advance 1 space on one of the listed tracks, with its benefit and optional bonus; `noBenefit` is the X; `optional` lets the player decline; `freeBonus` lets them take the bonus of the space reached without paying; `noBonus` gives the benefit without the bonus; `offTrackVp` gives that many VP instead when every token on the listed tracks is on space 12.
  * - `regress`: go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus; `noBenefit` is the X.
  * - `repeat`: gain the benefit of your current space on any track, and you may pay its bonus; `oncePerTurn` limits it to once a turn (FAQ #6).
- * - `invent`: gain tech cards one at a time; `refresh` lets you first replace the 3 face-up cards; `faceUpOnly` and `deckOnly` limit where the card comes from; `thenUpgrade` upgrades a card after.
- * - `upgrade`: upgrade 1 tech card.
+ * - `invent`: gain tech cards one at a time; `refresh` lets you first replace the 3 face-up cards; `faceUpOnly` and `deckOnly` limit where the card comes from, which is otherwise also the tech discard pile for the Recyclers; `thenUpgrade` upgrades a card after.
+ * - `upgrade`: upgrade 1 tech card; `optional` lets you decline (an income turn's, the Recyclers' own). The Recyclers may recycle a top-row card instead.
  * - `techBenefit`: gain the circle benefit of a card in your middle row, or the square benefit of one in your top row, without moving it.
  * - `tapestryOnTop`: play a tapestry card from your hand on top of your current tapestry.
  * - `scoreCapital`: score the capital city, 1 VP per complete row and column on a basic mat.
@@ -105,7 +105,7 @@ import { deepFreeze } from './ids.js';
  *   | { regress: { tracks: TrackId[], noBenefit?: boolean } }
  *   | { repeat: { oncePerTurn?: boolean } }
  *   | { invent: { count?: number, refresh?: boolean, faceUpOnly?: boolean, deckOnly?: boolean, thenUpgrade?: boolean } }
- *   | { upgrade: {} }
+ *   | { upgrade: { optional?: boolean } }
  *   | { techBenefit: { icon: 'circle' | 'square' } }
  *   | { tapestryOnTop: {} }
  *   | { scoreCapital: {} }

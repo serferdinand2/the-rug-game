@@ -61,6 +61,13 @@ test('the shelves, tabs and Confirm words read as before', () => {
 	assert.equal(kindFacts('chooseTrade').art, 'payment');
 	assert.equal(kindFacts('choosePartner').art, 'track');
 	assert.equal(kindFacts('chooseTurn').confirm, null);
+	// The Recyclers' drawn tech cards (#33).
+	assert.deepEqual(kindFacts('chooseKeepTech'), {
+		shelf: 'tech',
+		tab: 'tech',
+		confirm: 'Keep card',
+		art: null,
+	});
 });
 
 test('every engine decision kind has its own title and answer words in decision-words.js', () => {
