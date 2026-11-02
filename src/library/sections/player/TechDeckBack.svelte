@@ -38,4 +38,16 @@
 			count={4}
 			size="chip" />
 	</Example>
+	<Example
+		label={'count={21}  (data-cards="dark" on the page: the menu\'s Dark cards)'}
+		surface="ink"
+		width={277}>
+		<div data-cards="dark">
+			<ScaledCard
+				scale={0.65}
+				{...CARD_SIZES.tech}>
+				<TechDeckBack count={21} />
+			</ScaledCard>
+		</div>
+	</Example>
 </Section>

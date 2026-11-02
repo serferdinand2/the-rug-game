@@ -1,4 +1,4 @@
-<!-- The header's popover menu: a floating list of actions and links, closed with Escape. -->
+<!-- The header's popover menu: a floating list of actions, links and on/off switches, closed with Escape. -->
 <script module>
 	/**
 	 * One menu entry.
@@ -7,6 +7,7 @@
 	 * @property {string} label - The visible text, such as 'How to play'
 	 * @property {string} [href] - Makes the entry a link to this address
 	 * @property {'_blank'} [target] - Opens the link in a new tab
+	 * @property {boolean} [checked] - Makes the entry an on/off switch, on when true; choosing it keeps the menu open
 	 */
 
 	/**
@@ -15,7 +16,7 @@
 	 * @property {MenuItem[]} items - The entries, in order
 	 * @property {boolean} [open=false] - Shown when true; renders nothing when false; bindable
 	 * @property {string} label - Names the menu for assistive technology, such as 'Menu'
-	 * @property {Function} [onMenuSelect] - Callback fired with the entry's id when one is chosen; the menu then closes
+	 * @property {Function} [onMenuSelect] - Callback fired with the entry's id when one is chosen; the menu then closes, unless the entry is a switch
 	 * @property {Function} [onMenuClose] - Callback fired when the menu closes itself, with the reason: 'escape', 'tab' or 'select'
 	 */
 
@@ -33,6 +34,7 @@
 	 *   items={[
 	 *     { id: 'help', label: 'How to play' },
 	 *     { id: 'lobby', label: 'Lobby page', href: '/lobby' },
+	 *     { id: 'cards', label: 'Dark cards', checked: darkCards },
 	 *   ]}
 	 *   bind:open={menuOpen}
 	 *   onMenuSelect={(event) => choose(event.value)}
@@ -85,7 +87,10 @@
 			const target = /** @type {HTMLElement} */ (event.currentTarget);
 			onMenuSelect(new ComponentEvent(item.id, target, event));
 		}
-		close('select', event);
+		// A switch stays open, so the player sees it turn.
+		if (item.checked === undefined) {
+			close('select', event);
+		}
 	};
 
 	/**
@@ -168,6 +173,20 @@
 					tabindex={index === focusIndex ? 0 : -1}
 					onclick={(event) => itemClickHandler(event, item)}
 					onfocus={() => itemFocusHandler(index)}>{item.label}</a>
+			{:else if item.checked !== undefined}
+				<button
+					bind:this={entries[index]}
+					type="button"
+					role="menuitemcheckbox"
+					aria-checked={item.checked}
+					class="rg-menu--item rg-menu--switch"
+					class:rg-menu--on={item.checked}
+					tabindex={index === focusIndex ? 0 : -1}
+					onclick={(event) => itemClickHandler(event, item)}
+					onfocus={() => itemFocusHandler(index)}
+					>{item.label}<span class="rg-menu--track"
+						><span class="rg-menu--knob"></span></span
+					></button>
 			{:else}
 				<button
 					bind:this={entries[index]}
@@ -212,5 +231,47 @@
 	.rg-menu--item:focus-visible {
 		background: var(--raised);
 		color: var(--gold);
+	}
+
+	/* An on/off switch: the label, then a square track whose knob slides right and turns gold when on. */
+	.rg-menu--switch {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-6);
+		width: 100%;
+	}
+
+	.rg-menu--track {
+		flex: none;
+		display: block;
+		width: 28px;
+		height: 14px;
+		padding: var(--space-1);
+		border: var(--border) solid var(--line-strong);
+		background: var(--ink);
+		transition:
+			background var(--duration-fast) var(--ease),
+			border-color var(--duration-fast) var(--ease);
+	}
+
+	.rg-menu--knob {
+		display: block;
+		width: 8px;
+		height: 8px;
+		background: var(--faint);
+		transition:
+			transform var(--duration-fast) var(--ease),
+			background var(--duration-fast) var(--ease);
+	}
+
+	.rg-menu--on .rg-menu--track {
+		border-color: var(--gold);
+		background: color-mix(in srgb, var(--gold) 22%, var(--ink));
+	}
+
+	.rg-menu--on .rg-menu--knob {
+		background: var(--gold);
+		transform: translateX(14px);
 	}
 </style>

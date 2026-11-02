@@ -10,7 +10,7 @@
 	--text: var(--card-text);
 	--muted: var(--card-muted);
 	--faint: var(--card-faint);
-	--gold: var(--card-band-start);
+	--gold: var(--card-accent);
 	--bronze: var(--card-line);
 	--line: var(--card-line);
 	--line-strong: var(--card-line-strong);

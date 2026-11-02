@@ -191,6 +191,9 @@
 		},
 	];
 
+	/** Cards shown again in the dark palette: a collection with a score ladder, and legal paths (owner, 2026-11-02). */
+	const DARK = ['collectors', 'entertainers'];
+
 	/** The spot picked on each choosing example, by its index in LIVE. */
 	let picked = $state(LIVE.map((example) => example.selected ?? null));
 
@@ -243,4 +246,12 @@
 					onCivilizationCardPick={(
 						/** @type {ComponentEvent} */ event
 					) => cardPickHandler(index, event)} /></Example
-			>{/if}{/each}</Section>
+			>{/if}{/each}{#each DARK as id (id)}<Example
+			label={`id="${id}" state="play"  (data-cards="dark" on the page: the menu's Dark cards)`}
+			width={425}
+			><div data-cards="dark">
+				<CivilizationCard
+					{id}
+					state="play" />
+			</div></Example
+		>{/each}</Section>

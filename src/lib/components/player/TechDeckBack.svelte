@@ -1,4 +1,4 @@
-<!-- TechDeckBack: the tech deck's back, "Deck · N" in gold on the card band's colour, as a whole card or as a small chip (#118). -->
+<!-- TechDeckBack: the tech deck's back, "Deck · N" in gold on the card back's brown (the band's on paper), as a whole card or as a small chip (#118). -->
 <script module>
 	/**
 	 * Properties of the TechDeckBack component itself.
@@ -46,7 +46,7 @@
 
 <style>
 	.rg-tech-deck-back {
-		background: var(--card-band-start);
+		background: var(--card-back);
 		color: var(--card-title);
 	}
 

@@ -29,4 +29,26 @@
 			{/snippet}
 		</MasterpieceCard>
 	</Example>
+	<Example
+		label={`Painting  (data-cards="dark" on the page: the menu's Dark cards)`}
+		width={319}>
+		<div data-cards="dark">
+			<MasterpieceCard
+				title="Painting"
+				artwork="/art/masterpiece/painting.svg"
+				artworkAlt="Painting artwork">
+				{#snippet effects()}
+					<p>Gain <strong>4 VP</strong>.</p>
+					<p>
+						<span class="rg-masterpiece-card--resource"
+							>+<img
+								src="/art/resource-24/any.svg"
+								alt="any resource"
+								width="24"
+								height="24" /></span>
+					</p>
+				{/snippet}
+			</MasterpieceCard>
+		</div>
+	</Example>
 </Section>

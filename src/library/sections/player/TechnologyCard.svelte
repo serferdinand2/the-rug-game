@@ -70,4 +70,18 @@
 		width={425}>
 		<TechnologyCard data={techCardData('sewage-plumbing')} />
 	</Example>
+	<Example
+		label={`data=techCardData('clocks')  (data-cards="dark" on the page: the menu's Dark cards)`}
+		width={425}>
+		<div data-cards="dark">
+			<TechnologyCard data={techCardData('clocks')} />
+		</div>
+	</Example>
+	<Example
+		label={`data=techCardData('dynamite')  (data-cards="dark")`}
+		width={425}>
+		<div data-cards="dark">
+			<TechnologyCard data={techCardData('dynamite')} />
+		</div>
+	</Example>
 </Section>

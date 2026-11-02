@@ -1,4 +1,4 @@
-<!-- Library section: Menu open with actions and with links, each under its menu toggle. -->
+<!-- Library section: Menu open with actions, with links and with an on/off switch, each under its menu toggle. -->
 <script>
 	import IconButton from '../../../lib/components/ui/IconButton.svelte';
 	import Menu from '../../../lib/components/ui/Menu.svelte';
@@ -21,12 +21,22 @@
 
 	let actionsOpen = $state(true);
 	let linksOpen = $state(true);
+	let switchOpen = $state(true);
 	let chosen = $state('');
+	let darkCards = $state(false);
+
+	let switches = $derived([
+		{ id: 'help', label: 'How to play' },
+		{ id: 'cards', label: 'Dark cards', checked: darkCards },
+		{ id: 'leave', label: 'Leave table' },
+	]);
 
 	/** @type {HTMLElement | undefined} */
 	let actionsToggle = $state();
 	/** @type {HTMLElement | undefined} */
 	let linksToggle = $state();
+	/** @type {HTMLElement | undefined} */
+	let switchToggle = $state();
 
 	/**
 	 * @param {ComponentEvent} event
@@ -47,8 +57,26 @@
 	/**
 	 * @param {ComponentEvent} event
 	 */
+	const switchToggleClickHandler = (event) => {
+		switchToggle = event.target;
+		switchOpen = !switchOpen;
+	};
+
+	/**
+	 * @param {ComponentEvent} event
+	 */
 	const actionsSelectHandler = (event) => {
 		chosen = event.value;
+	};
+
+	/**
+	 * The switch turns and the menu stays open; the other entries close it.
+	 * @param {ComponentEvent} event
+	 */
+	const switchSelectHandler = (event) => {
+		if (event.value === 'cards') {
+			darkCards = !darkCards;
+		}
 	};
 
 	/**
@@ -66,7 +94,7 @@
 <Section
 	name="Menu"
 	area="ui"
-	description="The header's popover: actions or links under the menu button. The arrow keys move between entries, and Escape closes it and returns to the button.">
+	description="The header's popover: actions, links or on/off switches under the menu button. The arrow keys move between entries, and Escape closes it and returns to the button. A switch stays open when chosen, so it shows itself turning.">
 	<Example
 		label={`open={${actionsOpen}}${chosen ? `  onMenuSelect → "${chosen}"` : ''}  (choose an entry, or press Escape)`}
 		surface="chrome"
@@ -114,6 +142,31 @@
 				bind:open={linksOpen}
 				onMenuClose={(/** @type {ComponentEvent} */ event) =>
 					menuCloseHandler(event, linksToggle)} />
+		</div>
+	</Example>
+	<Example
+		label={`items with checked={${darkCards}} open={${switchOpen}}  (choose Dark cards: it turns and the menu stays open)`}
+		surface="chrome"
+		width={260}>
+		<div
+			style:display="flex"
+			style:justify-content="flex-end">
+			<IconButton
+				icon="menu"
+				label="Switches"
+				expanded={switchOpen}
+				onIconButtonClick={switchToggleClickHandler} />
+		</div>
+		<div
+			style:min-height="125px"
+			style:padding-top="5px">
+			<Menu
+				label="Switches"
+				items={switches}
+				bind:open={switchOpen}
+				onMenuSelect={switchSelectHandler}
+				onMenuClose={(/** @type {ComponentEvent} */ event) =>
+					menuCloseHandler(event, switchToggle)} />
 		</div>
 	</Example>
 </Section>

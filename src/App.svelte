@@ -170,6 +170,13 @@
 
 	const sound = createSoundPlayer();
 
+	// The card theme sits on the page, so every card takes it, wherever it is drawn (owner, 2026-11-02).
+	$effect(() => {
+		document.documentElement.dataset.cards = store.darkCards
+			? 'dark'
+			: 'light';
+	});
+
 	// One cue for each batch of fresh events, while sound is on (#29 design §7). A refresh brings no fresh events.
 	$effect(() => {
 		store.freshCount;

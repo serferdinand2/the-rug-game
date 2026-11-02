@@ -36,7 +36,7 @@
 	image-rendering: pixelated;
 	box-shadow:
 		0 0 0 1px var(--card-line),
-		0 0 0 3px var(--card-text);
+		0 0 0 3px var(--card-art-frame);
 }
 /* The footprint is a LandmarkShape without its picture: 20 px plots, 2 px apart, each with a 2 px border. */
 .rg-landmark-card--footprint {

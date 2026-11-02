@@ -1,4 +1,4 @@
-// The header menu's entries for each screen (#99): one module builds them, and PageHeader handles sound and leaving.
+// The header menu's entries for each screen (#99): one module builds them, and PageHeader handles sound, dark cards and leaving.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -10,19 +10,21 @@ const SRC = fileURLToPath(new URL('../src/', import.meta.url));
 /** @param {{ label: string }[]} items */
 const labels = (items) => items.map((item) => item.label);
 
-test('the landing page and the lobby offer How to play, the card gallery and About', () => {
+test('the landing page and the lobby offer How to play, the card gallery, Dark cards and About', () => {
 	assert.deepEqual(labels(menuItems('start')), [
 		'How to play',
 		'Card gallery',
+		'Dark cards',
 		'About this project',
 	]);
 });
 
-test('the pass screen and the results offer How to play, the card gallery and Leave table', () => {
+test('the pass screen and the results offer How to play, the card gallery, Dark cards and Leave table', () => {
 	for (const screen of /** @type {const} */ (['passing', 'results'])) {
 		assert.deepEqual(labels(menuItems(screen)), [
 			'How to play',
 			'Card gallery',
+			'Dark cards',
 			'Leave table',
 		]);
 	}
@@ -32,6 +34,7 @@ test('the game adds the keyboard shortcuts, and Table settings for the host only
 	assert.deepEqual(labels(menuItems('game', { hosting: true })), [
 		'How to play',
 		'Card gallery',
+		'Dark cards',
 		'Keyboard shortcuts',
 		'Table settings',
 		'Leave table',
@@ -39,13 +42,34 @@ test('the game adds the keyboard shortcuts, and Table settings for the host only
 	assert.deepEqual(labels(menuItems('game', { hosting: false })), [
 		'How to play',
 		'Card gallery',
+		'Dark cards',
 		'Keyboard shortcuts',
 		'Leave table',
 	]);
 	assert.deepEqual(
 		menuItems('game', { hosting: true }).map((item) => item.id),
-		['help', 'gallery', 'keys', 'settings', 'leave']
+		['help', 'gallery', 'cards', 'keys', 'settings', 'leave']
 	);
+});
+
+test('Dark cards is a switch on every screen, on when the player chose dark cards (owner, 2026-11-02)', () => {
+	for (const screen of /** @type {const} */ ([
+		'start',
+		'passing',
+		'results',
+		'game',
+	])) {
+		for (const darkCards of [false, true]) {
+			const entry = menuItems(screen, { darkCards }).find(
+				(item) => item.id === 'cards'
+			);
+			assert.deepEqual(entry, {
+				id: 'cards',
+				label: 'Dark cards',
+				checked: darkCards,
+			});
+		}
+	}
 });
 
 test('the card gallery opens in a new tab', () => {
@@ -88,6 +112,11 @@ test('no screen lists menu entries or wires sound and leaving itself', () => {
 		}
 		if (file !== 'screens/PageHeader.svelte') {
 			assert.doesNotMatch(source, /setSound\(/, `${file} sets sound`);
+			assert.doesNotMatch(
+				source,
+				/setDarkCards\(/,
+				`${file} switches the dark cards`
+			);
 			assert.doesNotMatch(
 				source,
 				/event\.value === 'leave'/,

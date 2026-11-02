@@ -1,4 +1,4 @@
-<!-- The header of every page (#25, #26): the brand, a sentence or the player chips, extra controls such as the clock and Undo, then sound and the screen's menu, which leaves the table itself (#99). -->
+<!-- The header of every page (#25, #26): the brand, a sentence or the player chips, extra controls such as the clock and Undo, then sound and the screen's menu, which switches the dark cards and leaves the table itself (#99). -->
 <script module>
 	/**
 	 * Properties of the PageHeader screen part itself.
@@ -6,9 +6,9 @@
 	 * @property {string} [title] - The centred sentence, as on the landing page
 	 * @property {import('svelte').Snippet} [center] - Centre content instead of the title, such as the player chips
 	 * @property {import('svelte').Snippet} [before] - Controls before sound, such as the turn clock and Undo
-	 * @property {import('../lib/game.svelte.js').GameStore} store - The client's store: its sound choice, its table and leaving it
+	 * @property {import('../lib/game.svelte.js').GameStore} store - The client's store: its sound and card theme choices, its table and leaving it
 	 * @property {import('../lib/menu.js').MenuScreen} [menu='start'] - The screen whose entries the menu shows (menu.js)
-	 * @property {Function} [onPageHeaderMenu] - Callback fired with the chosen entry's id, for every entry but Leave table and the card gallery
+	 * @property {Function} [onPageHeaderMenu] - Callback fired with the chosen entry's id, for every entry but Dark cards, Leave table and the card gallery
 	 */
 
 	/**
@@ -41,7 +41,10 @@
 	} = $props();
 
 	let items = $derived(
-		menuItems(menu, { hosting: store.room ? isHost(store.room) : false })
+		menuItems(menu, {
+			hosting: store.room ? isHost(store.room) : false,
+			darkCards: store.darkCards,
+		})
 	);
 
 	let menuOpen = $state(false);
@@ -70,7 +73,9 @@
 		if (event.value === 'gallery') {
 			return;
 		}
-		if (event.value === 'leave') {
+		if (event.value === 'cards') {
+			store.setDarkCards(!store.darkCards);
+		} else if (event.value === 'leave') {
 			store.leaveTable();
 		} else if (typeof onPageHeaderMenu === 'function') {
 			onPageHeaderMenu(event);

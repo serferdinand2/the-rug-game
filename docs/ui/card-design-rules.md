@@ -66,6 +66,20 @@ Visual review does not certify rules text. Several examples deliberately use ori
 - Empty/unfilled placement squares are grey (`#aaa8a1`, border `#797875`). Their printed item examples are muted/greyscale. A completed example can use the blue player border/highlight.
 - Beige benefit boxes mean a **triggered effect or scoring rule**. They are not a generic border around every icon or sentence.
 
+## Dark cards (owner, 2026-11-02)
+
+The owner asked for a dark mode for the cards and left its design to Claude (#167); **Dark cards** in every header menu switches it on. Light paper stays the default, and the rest of this document still describes it: no light colour, size or layout changed.
+
+- **Only the cards change.** `tokens.css` gives the dark palette to each card family's root inside `[data-cards='dark']`: `.rg-card-frame`, `.rg-tech-layout`, `.rg-tapestry-layout`, `.rg-landmark-card`, `.rg-masterpiece-card`, `.rg-tech-deck-back` and the gallery's `.rg-gallery-entry__frame`. App puts `data-cards` on the page from the store's `darkCards`; the gallery reads the same remembered choice (`rg-cards` in localStorage, through `src/lib/card-theme.js`); the library wraps an example in `data-cards="dark"`. The board, the income mat, the capital mats and the track tiles that borrow a card colour keep theirs.
+- **The material** is walnut paper (`#2b241b`) under the same pixel-noise texture, whose white specks show on the dark as its dark specks do on the beige. Benefit boxes are a step lighter (`#3a3125`), so a triggered effect still reads as a box.
+- **The band** runs from near-black (`#130e08`) to dark brown (`#4c3922`), darker than the paper, under the same solid gold title (`#e2b857`) with a black drop. The trap's band is a deep red to oxblood.
+- **Text** is cream (`#ece1c8`) and secondary text warm grey (`#bfae8d`). Where the paper had brown, the dark card has gold (`#dcb263`): the row labels and shapes on tech cards, the effect titles and complexity dots on civilization cards, and the base edition chip.
+- **Lines** are bronze; the card's edge (`#a8874f`) is brighter than on paper, so a dark card stands apart from the dark board. The outer ring around art is near-black, an inset frame.
+- **Squares and chips:** empty placement squares are dark grey, a filled effect symbol warm brown, and the condition boxes on tech cards dark slate with light text. Every track, edition and loss colour is lifted to read on the dark: the track names in conditions and the timing labels, and the Plans & Ploys green, Arts & Architecture purple and Fantasies & Futures teal chips.
+- **The tech deck's back** is a warm dark brown (`#3a2a17`), not the band's near-black, so it still reads as a card.
+- **Roles, not copies.** Four tokens name colours the light paper reuses and the dark card needs apart: `--card-accent` (the band's start on paper), `--card-art-frame` and `--card-title-shadow` (the text colour on paper) and `--card-back` (the band's start). Use them, not `--card-band-start` or `--card-text`, for those roles.
+- **A new card colour** needs a dark value in the same change: `tests/styles.test.mjs` fails on a `--card-*` token without one, on a frame that paints the card paper but isn't in the dark rule, and on dark text below its contrast floor (7:1 for body text, 4.5:1 for labels, chips and titles).
+
 ## Typography and copy
 
 - Card titles use Cinzel, 28 px, bold, with the established gold treatment.

@@ -1,6 +1,7 @@
 // What the client knows (#25 design §7.2): the table choices, who the tab is, the open tables and the table it sits at, kept up to date by the long poll.
 import { withSession } from './api.js';
 import { boot } from './boot.js';
+import { darkCardsSaved, saveDarkCards } from './card-theme.js';
 import { change } from './changes.js';
 import { validCode } from './lobby.js';
 import { sendMove, viewerSeat } from './moves.js';
@@ -21,7 +22,7 @@ const SOUND = 'rg-sound';
  * @typedef {Object} StoreDeps
  * @property {import('./api.js').Api} api
  * @property {(n: number) => number} random - A whole number from 0 to n − 1, for generated names
- * @property {import('./api.js').SessionStore} prefs - Where the sound choice is remembered (localStorage)
+ * @property {import('./api.js').SessionStore} prefs - Where the sound and card theme choices are remembered (localStorage)
  * @property {import('./api.js').SessionStore} [session] - What this browser tab remembers until it closes, such as a
  *   closed first-income notice (sessionStorage); without one, nothing is remembered past the page (#88)
  * @property {(text: string) => Promise<void>} copy - Puts text on the clipboard
@@ -53,6 +54,8 @@ class Store {
 	/** The browser's time when the room on show arrived, for the turn clock (#26). */
 	receivedAt = $state(0);
 	sound = $state(false);
+	/** Whether the player chose dark cards in the header menu (owner, 2026-11-02). */
+	darkCards = $state(false);
 	busy = $state(false);
 	/** @type {any[]} The events that arrived with the latest room view, for sound, motion and the log's dot; none after a refresh (#29) */
 	fresh = $state.raw([]);
@@ -92,6 +95,7 @@ class Store {
 		this.#wait =
 			wait ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
 		this.sound = prefs.getItem(SOUND) === 'on';
+		this.darkCards = darkCardsSaved(prefs);
 	}
 
 	/** The name last signed in with, to fill the name field. */
@@ -273,6 +277,12 @@ class Store {
 		} catch {
 			// A browser that keeps nothing still plays for this visit.
 		}
+	}
+
+	/** @param {boolean} dark */
+	setDarkCards(dark) {
+		this.darkCards = dark;
+		saveDarkCards(this.#prefs, dark);
 	}
 
 	/**

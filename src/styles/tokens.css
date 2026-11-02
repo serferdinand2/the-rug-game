@@ -261,6 +261,13 @@
 	--card-trap-line: #8f4144;
 	--card-shadow-soft: rgb(0 0 0 / 22%);
 	--card-shadow-strong: rgb(0 0 0 / 40%);
+	/* Roles that reuse a colour above on paper and take their own on dark cards (owner, 2026-11-02): the paper's
+	   labels, row shapes and base edition chip, which are --gold on a civilization card; the outer ring around a
+	   card's art; the 1 px drop under a band title; and the tech deck's back. */
+	--card-accent: var(--card-band-start);
+	--card-art-frame: var(--card-text);
+	--card-title-shadow: var(--card-text);
+	--card-back: var(--card-band-start);
 	/* The income turn's gold prompt and footer (docs/ui/main-screen.html). */
 	--income-top: #a6792e;
 	--income-mid: #63491f;
@@ -277,3 +284,62 @@
 	--income-bright: #ffd478;
 }
 
+/* Dark cards (#167, owner, 2026-11-02): the menu's Dark cards switch puts data-cards="dark" on the page, and the library on
+   an example. Only the cards change: each card family's root takes this palette, so the board, the mats and the
+   track tiles that borrow a card colour keep theirs. Walnut paper under cream text, a near-black band under the
+   gold title, gold where the paper had brown, and every track and edition colour lifted to read on the dark. */
+[data-cards='dark']
+	:is(
+		.rg-card-frame,
+		.rg-tech-layout,
+		.rg-tapestry-layout,
+		.rg-landmark-card,
+		.rg-masterpiece-card,
+		.rg-tech-deck-back,
+		.rg-gallery-entry__frame
+	) {
+	--card-selection-edge: var(--player-1);
+	--card-text: #ece1c8;
+	--card-strong-text: #f6ebd1;
+	--card-die-number: #e0d6c3;
+	--card-band-start: #130e08;
+	--card-expansion: #bba2e2;
+	--card-plans-ploys: #91c79f;
+	--card-fantasies-futures: #70cac2;
+	--card-line-strong: #a8874f;
+	--card-path: #a88a5e;
+	--card-muted: #bfae8d;
+	--card-slot-border: #77726a;
+	--card-faint: #9a8970;
+	--card-line: #7f6646;
+	--card-band-middle: #2d2114;
+	--card-score-line: #7d6a4b;
+	--card-loss: #e68e82;
+	--card-slot: #4a463f;
+	--card-line-soft: #5a4935;
+	--card-filled-slot: #544636;
+	--card-band-end: #4c3922;
+	--card-ink: #14100b;
+	--card-control: #342b20;
+	--card-title: #e2b857;
+	--card-paper: #2b241b;
+	--card-raised: #3a3125;
+	--card-exploration-text: #8cc3e2;
+	--card-science-text: #93cdab;
+	--card-technology-text: #e3ab6c;
+	--card-military-text: #ec958e;
+	--card-condition: #353a3c;
+	--card-condition-line: #5f676a;
+	--card-condition-text: #e4e7e6;
+	--card-note: #cdbb97;
+	--card-trap-band-start: #2c0e11;
+	--card-trap-band-middle: #511d22;
+	--card-trap-band-end: #7d3435;
+	--card-trap-line: #b0555a;
+	--card-shadow-soft: rgb(0 0 0 / 45%);
+	--card-shadow-strong: rgb(0 0 0 / 60%);
+	--card-accent: #dcb263;
+	--card-art-frame: #0c0906;
+	--card-title-shadow: #000000;
+	--card-back: #3a2a17;
+}

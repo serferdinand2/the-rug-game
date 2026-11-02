@@ -12,7 +12,7 @@
 	 * @property {number[]} [bumped=[]] - The seats whose VP just rose, whose chips bump
 	 * @property {Function} [onGameHeaderChip] - Callback fired with the seat of the chip pressed
 	 * @property {Function} [onGameHeaderLog] - Callback fired when the log button is pressed
-	 * @property {Function} [onGameHeaderMenu] - Callback fired with the chosen menu entry's id, for all but Leave table and the card gallery
+	 * @property {Function} [onGameHeaderMenu] - Callback fired with the chosen menu entry's id, for all but Dark cards, Leave table and the card gallery
 	 */
 
 	/**

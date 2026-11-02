@@ -80,7 +80,7 @@ const EXPANSION_COLORS = /** @type {Readonly<Record<string, string>>} */ ({
 
 /** Each edition's chip colour on card paper (owner, #109); the interface's own badge colours are EXPANSION_COLORS. */
 const CARD_EDITION_COLORS = /** @type {Readonly<Record<string, string>>} */ ({
-	base: 'var(--card-band-start)',
+	base: 'var(--card-accent)',
 	pp: 'var(--card-plans-ploys)',
 	aa: 'var(--card-expansion)',
 	ff: 'var(--card-fantasies-futures)',

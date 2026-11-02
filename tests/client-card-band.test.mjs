@@ -30,7 +30,9 @@ const FAMILIES = [
 ];
 
 test("each edition's chip has its own card colour: base brown, Plans & Ploys green, Arts & Architecture purple, Fantasies & Futures teal (owner, #109)", () => {
-	assert.equal(cardEditionColor('base'), 'var(--card-band-start)');
+	// The base brown is the paper's accent: the band's first colour on light paper, a gold on dark cards (owner, 2026-11-02).
+	assert.equal(cardEditionColor('base'), 'var(--card-accent)');
+	assert.match(tokens, /--card-accent: var\(--card-band-start\);/);
 	assert.equal(cardEditionColor('pp'), 'var(--card-plans-ploys)');
 	assert.equal(cardEditionColor('aa'), 'var(--card-expansion)');
 	assert.equal(cardEditionColor('ff'), 'var(--card-fantasies-futures)');

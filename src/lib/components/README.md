@@ -37,7 +37,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `Dialog` | A dialog over a scrim, `narrow` or `wide`: a title, the content and Close or its own `actions`. Escape, Close and the backdrop close it; it takes the focus and gives it back. Modal, it covers the screen and keeps Tab inside; with `modal={false}`, it covers its positioned parent only, as Table settings over the board (#87). |
 | `Divider` | A thin rule, optionally paused by a short italic label such as "or join friends". |
 | `IconButton` | The 36px header controls (sound, history, log, menu, close), with the red mute slash. |
-| `Menu` | The header popover: entries as links or buttons, arrow keys and Escape. |
+| `Menu` | The header popover: entries as links, buttons or on/off switches (a switch stays open when chosen), arrow keys and Escape. |
 | `Panel` | A chrome panel with a thin border and an optional heading, in the body font or, with `titleFont="title"`, Cinzel (#97). |
 | `PlayLayout` | The play screen's frame, shared by the game and results screens (#105): the `header` and `footer` bars and, between them, the 3/4 `shared` area and the 1/4 `player` area on the pixel texture, with `overlays` positioned over the middle; `sharedLabel`, `playerLabel` and `areasInert` (the HTML `inert`) go on the two areas. |
 | `PassScreen` | The hot-seat pass screen (#30): the next player's token, name and reason, their clock when the table has a timer, and I'm …, which answers after a short wait. |

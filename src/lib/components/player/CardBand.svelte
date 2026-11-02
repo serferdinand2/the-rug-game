@@ -84,6 +84,6 @@
 		color: var(--card-title);
 		font-family: var(--font-title);
 		font-weight: var(--weight-bold);
-		text-shadow: 0 1px 0 var(--card-text);
+		text-shadow: 0 1px 0 var(--card-title-shadow);
 	}
 </style>

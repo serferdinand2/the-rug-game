@@ -35,4 +35,18 @@
 		width={319}>
 		<TapestryCard data={tapestryCardData('trap-1')} />
 	</Example>
+	<Example
+		label={`data=tapestryCardData('academia')  (data-cards="dark" on the page: the menu's Dark cards)`}
+		width={319}>
+		<div data-cards="dark">
+			<TapestryCard data={tapestryCardData('academia')} />
+		</div>
+	</Example>
+	<Example
+		label={`data=tapestryCardData('trap-1')  (data-cards="dark")`}
+		width={319}>
+		<div data-cards="dark">
+			<TapestryCard data={tapestryCardData('trap-1')} />
+		</div>
+	</Example>
 </Section>

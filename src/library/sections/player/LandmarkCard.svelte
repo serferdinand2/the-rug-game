@@ -28,4 +28,15 @@
 			footprint={FOOTPRINTS.windmill}
 			edition="aa" />
 	</Example>
+	<Example
+		label={`Castle  (data-cards="dark" on the page: the menu's Dark cards)`}
+		width={319}>
+		<div data-cards="dark">
+			<LandmarkCard
+				title="Castle"
+				artwork="/art/landmark-card/castle.svg"
+				footprint={FOOTPRINTS.castle}
+				edition="aa" />
+		</div>
+	</Example>
 </Section>

@@ -30,24 +30,25 @@ const tokens = declarations(rootBlock);
 /**
  * A colour as [r, g, b] from 0 to 255: a hex value, a token reference, or an sRGB color-mix of two of them.
  * @param {string} value
+ * @param {Map<string, string>} [lookup] - The tokens a reference reads, the first :root block's by default
  * @returns {number[]}
  */
-function rgb(value) {
+function rgb(value, lookup = tokens) {
 	const hex = value.match(/^#([0-9a-f]{6})$/i)?.[1];
 	if (hex) {
 		return [0, 2, 4].map((at) => parseInt(hex.slice(at, at + 2), 16));
 	}
 	const reference = value.match(/^var\((--[\w-]+)\)$/)?.[1];
 	if (reference) {
-		return rgb(tokens.get(reference) ?? `undeclared ${reference}`);
+		return rgb(lookup.get(reference) ?? `undeclared ${reference}`, lookup);
 	}
 	const mix = value.match(
 		/^color-mix\(\s*in srgb,\s*(.+?)\s+(\d+)%,\s*(.+?)\s*\)$/
 	);
 	if (mix) {
 		const share = Number(mix[2]) / 100;
-		const other = rgb(mix[3]);
-		return rgb(mix[1]).map(
+		const other = rgb(mix[3], lookup);
+		return rgb(mix[1], lookup).map(
 			(channel, i) => channel * share + other[i] * (1 - share)
 		);
 	}
@@ -620,4 +621,142 @@ test('the tracked bars take their tint and band from tokens (#117)', () => {
 		);
 		assert.doesNotMatch(css, /-track\) 18%/, path);
 	}
+});
+
+/** The card palette: every --card-* token in tokens.css's top-level :root blocks, as name → value. */
+const cardPalette = new Map(
+	[...tokensCss.matchAll(/(?:^|\n):root\s*\{([^}]*)\}/g)]
+		.flatMap(([, block]) => [...declarations(block)])
+		.filter(([name]) => name.startsWith('--card-'))
+);
+/** The dark cards' rule (owner, 2026-11-02): its selector and its declarations. */
+const darkRule = tokensCss.match(/\[data-cards='dark'\]([^{]*)\{([^}]*)\}/);
+const darkPalette = declarations(darkRule?.[2] ?? '');
+/** The light tokens with the dark palette over them, to read a dark card's colours. */
+const darkLookup = new Map([...tokens, ...cardPalette, ...darkPalette]);
+
+test('the light cards keep their approved colours under the new role names (owner, 2026-11-02)', () => {
+	assert.equal(cardPalette.get('--card-accent'), 'var(--card-band-start)');
+	assert.equal(cardPalette.get('--card-art-frame'), 'var(--card-text)');
+	assert.equal(cardPalette.get('--card-title-shadow'), 'var(--card-text)');
+	assert.equal(cardPalette.get('--card-back'), 'var(--card-band-start)');
+	assert.equal(cardPalette.get('--card-paper'), '#e8d6ad');
+	assert.equal(cardPalette.get('--card-title'), '#e2b857');
+});
+
+test('dark cards give every card colour a dark value and change nothing else (owner, 2026-11-02)', () => {
+	assert.ok(darkRule, 'tokens.css has no dark cards rule');
+	assert.deepEqual(
+		[...darkPalette.keys()].sort(),
+		[...cardPalette.keys()].sort()
+	);
+});
+
+test('the dark palette reaches every card family, and only the cards (owner, 2026-11-02)', () => {
+	const selector = darkRule?.[1] ?? '';
+	const roots = new Set([
+		'.rg-card-frame',
+		'.rg-tech-layout',
+		'.rg-tapestry-layout',
+		'.rg-landmark-card',
+		'.rg-masterpiece-card',
+		'.rg-tech-deck-back',
+	]);
+	// Every frame that paints the card paper is a card's root.
+	for (const [path, contents] of sources) {
+		for (const [, rule] of cssOf(path, contents).matchAll(
+			/([^{}]+)\{[^}]*background[^;]*var\(--card-paper\)/g
+		)) {
+			for (const part of rule
+				.replace(/\/\*[\s\S]*?\*\//g, '')
+				.split(',')) {
+				roots.add(part.trim());
+			}
+		}
+	}
+	for (const root of roots) {
+		assert.ok(
+			new RegExp(`${root.replace('.', '\\.')}(?![\\w-])`).test(selector),
+			`${root} keeps the light palette in dark mode`
+		);
+	}
+	assert.doesNotMatch(selector, /:root|html|body/);
+});
+
+test('dark card text, titles and chips read on the dark paper (owner, 2026-11-02)', () => {
+	/** @type {[string, string, number][]} */
+	const pairs = [
+		['--card-text', '--card-paper', 7],
+		['--card-text', '--card-raised', 7],
+		['--card-text', '--card-control', 7],
+		['--card-strong-text', '--card-paper', 7],
+		['--card-muted', '--card-paper', 4.5],
+		['--card-note', '--card-paper', 4.5],
+		['--card-faint', '--card-paper', 3],
+		['--card-accent', '--card-paper', 4.5],
+		['--card-accent', '--card-raised', 4.5],
+		['--card-text', '--card-slot', 4.5],
+		['--card-text', '--card-filled-slot', 4.5],
+		['--card-die-number', '--card-slot', 4.5],
+		['--card-title', '--card-band-start', 4.5],
+		['--card-title', '--card-band-middle', 4.5],
+		['--card-title', '--card-trap-band-start', 4.5],
+		['--card-title', '--card-trap-band-middle', 4.5],
+		['--card-title', '--card-back', 4.5],
+		['--card-condition-text', '--card-condition', 7],
+		['--card-exploration-text', '--card-condition', 4.5],
+		['--card-science-text', '--card-condition', 4.5],
+		['--card-technology-text', '--card-condition', 4.5],
+		['--card-military-text', '--card-condition', 4.5],
+		['--card-exploration-text', '--card-paper', 4.5],
+		['--card-science-text', '--card-paper', 4.5],
+		['--card-technology-text', '--card-paper', 4.5],
+		['--card-military-text', '--card-paper', 4.5],
+		['--card-plans-ploys', '--card-paper', 4.5],
+		['--card-expansion', '--card-paper', 4.5],
+		['--card-fantasies-futures', '--card-paper', 4.5],
+		['--card-loss', '--card-paper', 4.5],
+	];
+	for (const [text, ground, least] of pairs) {
+		const ratio = contrast(
+			rgb(`var(${text})`, darkLookup),
+			rgb(`var(${ground})`, darkLookup)
+		);
+		assert.ok(
+			ratio >= least,
+			`${text} on ${ground} is ${ratio.toFixed(2)}:1`
+		);
+	}
+});
+
+test('a dark card stands apart from the board by its edge (owner, 2026-11-02)', () => {
+	const ratio = contrast(
+		rgb('var(--card-line-strong)', darkLookup),
+		rgb('var(--surface)')
+	);
+	assert.ok(ratio >= 3, `the card edge is ${ratio.toFixed(2)}:1`);
+});
+
+test('the card art frames, the band title and the accents read their role tokens (owner, 2026-11-02)', () => {
+	for (const [path, contents] of sources) {
+		const css = cssOf(path, contents);
+		assert.doesNotMatch(
+			css,
+			/3px var\(--card-text\)/,
+			`${path} frames its art with the text colour`
+		);
+		assert.doesNotMatch(
+			css,
+			/text-shadow:[^;]*var\(--card-text\)/,
+			`${path} shadows a title with the text colour`
+		);
+	}
+	assert.doesNotMatch(
+		read('src/styles/card-layouts.css'),
+		/var\(--card-band-start\)/
+	);
+	assert.match(
+		read('src/styles/card-patterns.css'),
+		/--gold: var\(--card-accent\);/
+	);
 });

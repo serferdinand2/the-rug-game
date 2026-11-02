@@ -208,7 +208,7 @@
 		image-rendering: pixelated;
 		box-shadow:
 			0 0 0 1px var(--card-line),
-			0 0 0 3px var(--card-text);
+			0 0 0 3px var(--card-art-frame);
 	}
 	.rg-gallery-entry__body p {
 		margin: 0;

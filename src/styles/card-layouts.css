@@ -44,7 +44,7 @@
 	image-rendering: pixelated;
 	box-shadow:
 		0 0 0 1px var(--card-line),
-		0 0 0 3px var(--card-text);
+		0 0 0 3px var(--card-art-frame);
 }
 .rg-tech-layout--effects {
 	display: grid;
@@ -69,7 +69,7 @@
 	width: 23px;
 	height: 23px;
 	justify-self: center;
-	border: 3.5px solid var(--card-band-start);
+	border: 3.5px solid var(--card-accent);
 }
 .rg-tech-layout--shape-circle {
 	border-radius: 50%;
@@ -77,7 +77,7 @@
 .rg-tech-layout--effect small {
 	display: block;
 	margin-bottom: 2px;
-	color: var(--card-band-start);
+	color: var(--card-accent);
 	font:
 		700 11px/1.1 'Atkinson Hyperlegible',
 		Atkinson,
@@ -210,7 +210,7 @@
 	image-rendering: pixelated;
 	box-shadow:
 		0 0 0 1px var(--card-line),
-		0 0 0 3px var(--card-text);
+		0 0 0 3px var(--card-art-frame);
 }
 .rg-tapestry-layout--timing {
 	display: inline-flex;
