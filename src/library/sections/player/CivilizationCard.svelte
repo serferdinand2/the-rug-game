@@ -52,8 +52,8 @@
 
 	/**
 	 * Each card civilization's live examples: a state that differs from the illustration, then a decision on it, except
-	 * for the Treasure Hunters and the Tinkerers, whose treasure and option are picked in the panel. The decisions go to
-	 * seats whose colour is neither the available green nor the picked gold.
+	 * for the Treasure Hunters, the Tinkerers and the Spies, whose treasure and option are picked in the panel. The
+	 * decisions go to seats whose colour is neither the available green nor the picked gold.
 	 */
 	const LIVE = [
 		{
@@ -177,6 +177,12 @@
 			now: { used: [2] },
 			nowLabel: '{ used: [2] }',
 		},
+		{
+			civ: 'spies',
+			seat: /** @type {const} */ (1),
+			now: { used: [3, 1], watching: [] },
+			nowLabel: '{ used: [3, 1], watching: [] }',
+		},
 	];
 
 	/** The spot picked on each choosing example, by its index in LIVE. */
@@ -195,7 +201,7 @@
 <Section
 	name="CivilizationCard"
 	area="player"
-	description="Owner-reviewed card pattern; see docs/ui/card-design-rules.md for the composition rules. The card civilizations draw a seat's live state, the Treasure Hunters and the Tinkerers only the treasures and options used, struck through (#33); the other six offer a decision's spots on the card (#78)."
+	description="Owner-reviewed card pattern; see docs/ui/card-design-rules.md for the composition rules. The card civilizations draw a seat's live state, the Treasure Hunters, the Tinkerers and the Spies only the treasures and options used, struck through (#33); the other six offer a decision's spots on the card (#78)."
 	>{#each REVIEWED_CIVILIZATIONS as card}<Example
 			label={`${civilizationName(card.id)} · ${card.edition}`}
 			width={425}

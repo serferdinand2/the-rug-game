@@ -196,6 +196,59 @@ test("an Inventors mark shows its tech card's id, wherever the card is", () => {
 	checkViews(marked, facts, { before: state });
 });
 
+test("the Spies' look shows a neighbour's hand to the Spies alone, in its own event, and the checker catches it anywhere else (#33)", () => {
+	const { state, random } = startedGame(3);
+	const dealt = resolveEffects(state, 2, [{ gain: { tapestry: 2 } }], random);
+	const facts = setupFacts(newGame(3).state);
+	const cards = [...playerSeat(dealt, 2).hand];
+	/** The state after an event of `type` in which seat 1 sees seat 2's hand. @param {string} type */
+	const seeing = (type) => {
+		const next = structuredClone(dealt);
+		next.seq += 1;
+		next.events.push({
+			seq: next.seq,
+			type,
+			player: 1,
+			from: 2,
+			secret: { cards },
+		});
+		return next;
+	};
+	const looked = seeing('handSeen');
+	checkViews(looked, facts, { before: dealt });
+	// Only in that event: the same cards in another of the viewer's events, or in their view's body, are a leak.
+	assert.throws(
+		() => checkViews(seeing('cardsSeen'), facts, { before: dealt }),
+		/seat 2's card .* shown to 1/
+	);
+	assert.throws(
+		() =>
+			checkViews(looked, facts, {
+				before: dealt,
+				viewOf: (s, seat) =>
+					seat === 1
+						? { ...view(s, seat), leak: cards }
+						: view(s, seat),
+			}),
+		/seat 2's card .* shown to 1/
+	);
+	// And only to the Spies: the look shown to the third seat is a leak.
+	assert.throws(
+		() =>
+			checkViews(looked, facts, {
+				before: dealt,
+				viewOf: (s, seat) => {
+					const v = view(s, seat);
+					if (seat === 3) {
+						v.events = s.events;
+					}
+					return v;
+				},
+			}),
+		/shown to 3|shown to a stranger/
+	);
+});
+
 test('the view checker catches an open decision without answers', () => {
 	const { state } = startedGame(2);
 	const facts = setupFacts(newGame(2).state);

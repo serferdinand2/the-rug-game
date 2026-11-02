@@ -211,6 +211,21 @@ const CIV_TEXTS = Object.freeze({
 		'At the start of income turn 5, you lose 1 VP for each impassable plot still showing, but you never go below 0 VP.',
 		'If you gain the Riverfolk later in the game, you may discard them and gain another civilization instead.',
 	]),
+	spies: civ(
+		[
+			'At the start of income turns 2 to 5, you may put a token on one of these 4 options that you have not used yet, and gain its benefit from a neighbour of your choice. Each option is used once a game.',
+			'A When Played card: gain the effect of a When Played tapestry card face up on that neighbour’s income mat, as if you had played it. If you copy Espionage, you copy another card through it, and a This Era card copied so lasts until your next income turn.',
+			'A tile in their supply: gain the benefit of a territory or space tile in that neighbour’s supply; the tile stays there. A space tile that gives VP for each advance on a track gives them to you whenever you advance on it, for as long as it stays in their supply. Once they explore it, it stops.',
+			'Their track position: gain the benefit of the space one of that neighbour’s tokens stands on, without its bonus.',
+			'Their tech card: gain the benefit of one of that neighbour’s tech cards for the row it is in, the circle of a middle-row card or the square of a top-row card. A landmark card’s square gives nothing.',
+			'Then, if that neighbour holds any tapestry cards, you may look at their hand.',
+		],
+		{
+			current: [
+				'Current rules: if you start the game with the Spies, at the end of your first income turn you lose 1 resource of your choice.',
+			],
+		}
+	),
 	'the-chosen': civ(
 		[
 			'At the start of income turns 2 to 5, gain 1 VP per opponent for each track on which nobody is ahead of you. A tie counts, and so does a track you have finished.',

@@ -27,7 +27,7 @@ function table(civData) {
 	};
 }
 
-test('the eight civilizations whose cards show live state, six with choices on them', () => {
+test('the nine civilizations whose cards show live state, six with choices on them', () => {
 	assert.deepEqual(
 		[...CARD_CIVS],
 		[
@@ -39,6 +39,7 @@ test('the eight civilizations whose cards show live state, six with choices on t
 			'mystics',
 			'treasure-hunters',
 			'tinkerers',
+			'spies',
 		]
 	);
 });
@@ -155,6 +156,39 @@ test("the Tinkerers' used options are marked; the option is chosen in the panel 
 	assert.deepEqual(
 		civCardView(table({ tinkerers: { used: [4] } }), 1, 'tinkerers', pick),
 		{ marks: { option4: ['used'] }, choices: {} }
+	);
+});
+
+test("the Spies' used options are marked, whatever they watch; the option and its target are chosen in the panel (#33)", () => {
+	assert.deepEqual(
+		civCardMarks('spies', {
+			used: [2, 4],
+			watching: [{ tile: 16, from: 2 }],
+		}),
+		{ option2: ['used'], option4: ['used'] }
+	);
+	assert.deepEqual(civCardMarks('spies', { used: [], watching: [] }), {});
+	for (const purpose of [
+		'spies',
+		'spiesCard',
+		'spiesTile',
+		'spiesSpace',
+		'spiesTech',
+		'spiesLook',
+	]) {
+		const pick = { kind: 'chooseSlot', player: 1, purpose };
+		assert.equal(cardCivOf(pick), null, purpose);
+	}
+	const pick = { kind: 'chooseSlot', player: 1, purpose: 'spies' };
+	assert.equal(cardSpot(pick, { slot: 1 }, table({})), null);
+	assert.deepEqual(
+		civCardView(
+			table({ spies: { used: [1], watching: [] } }),
+			1,
+			'spies',
+			pick
+		),
+		{ marks: { option1: ['used'] }, choices: {} }
 	);
 });
 

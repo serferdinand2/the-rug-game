@@ -221,6 +221,39 @@ function matWords(word, civ) {
 }
 
 /**
+ * What a Spies option took from a neighbour (#33), as the end of its sentence: "copied Alliance from Bo's income
+ * mat"; null for an event of another shape.
+ * @param {LogEvent} e - A spiesUsed event
+ * @param {string} from - The neighbour's name
+ * @returns {string | null}
+ */
+function spiesTook(e, from) {
+	if (e.option === 1 && typeof e.card === 'string') {
+		return `copied ${tapestryWords(e.card)} from ${from}'s income mat`;
+	}
+	if (e.option === 2 && (e.stack === 'territory' || e.stack === 'space')) {
+		const tile = tileWords(e.stack, [e.tile]);
+		return tile ? `took the benefit of ${tile} in ${from}'s supply` : null;
+	}
+	if (
+		e.option === 3 &&
+		typeof e.track === 'string' &&
+		isCount(e.space) &&
+		e.space > 0
+	) {
+		return `took the benefit of ${from}'s space, ${spaceName(e.track, e.space)} on ${trackName(e.track)}`;
+	}
+	if (
+		e.option === 4 &&
+		typeof e.card === 'string' &&
+		(e.icon === 'circle' || e.icon === 'square')
+	) {
+		return `took the ${e.icon} benefit of ${from}'s ${techName(e.card)}`;
+	}
+	return null;
+}
+
+/**
  * Whose a card or piece is, from its owner and the event's player: "their own" or "Bo's".
  * @param {Game | undefined} game
  * @param {unknown} owner
@@ -821,6 +854,20 @@ const WORDS = {
 		Object.hasOwn(TINKERERS_OPTION_NAMES, e.option)
 			? `${name} put a Tinkerers token on option ${e.option}, ${TINKERERS_OPTION_NAMES[e.option]}.`
 			: `${name} put a Tinkerers token on an option.`,
+	// The Spies' options and their look at a neighbour's hand, whose cards stay the Spies' secret (#33).
+	spiesUsed(e, game, name) {
+		const took = spiesTook(e, seatName(game, e.from));
+		return took
+			? `${name} put a Spies token on option ${e.option} and ${took}.`
+			: `${name} put a Spies token on an option.`;
+	},
+	handSeen(e, game, name) {
+		const cards = strings(isRecord(e.secret) ? e.secret.cards : undefined);
+		const hand = `${name} looked at ${seatName(game, e.from)}'s hand`;
+		return cards.length > 0
+			? `${hand}: ${joinList(cards.map(tapestryWords))}.`
+			: `${hand}.`;
+	},
 	heraldsCopied: (e, game, name) =>
 		`${name} used a Heralds token to copy ${whose(game, e.owner, e.player)} ${tapestryName(e.card)}.`,
 	historiansGave: (e, game, name) =>

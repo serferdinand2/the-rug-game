@@ -1404,11 +1404,13 @@ const RECIPES = {
 		],
 		sections: [
 			{
+				// Each box is the spot civs/spies.js's used option marks, drawn used by civCard() (#33).
 				pattern: 'effects',
 				effects: [
 					{
 						title: 'A WHEN PLAYED card',
 						label: '1',
+						spot: 'option1',
 						text: [
 							"Gain the benefit of a WHEN PLAYED tapestry card on a neighbour's income mat.",
 						],
@@ -1416,6 +1418,7 @@ const RECIPES = {
 					{
 						title: 'A tile in their supply',
 						label: '2',
+						spot: 'option2',
 						text: [
 							"Gain the benefit of a territory or space tile in a neighbour's supply. An ongoing space tile keeps giving while it stays there.",
 						],
@@ -1423,6 +1426,7 @@ const RECIPES = {
 					{
 						title: 'Their track position',
 						label: '3',
+						spot: 'option3',
 						text: [
 							"Gain the benefit of a neighbour's current space on any track, without its bonus.",
 						],
@@ -1430,6 +1434,7 @@ const RECIPES = {
 					{
 						title: 'Their tech card',
 						label: '4',
+						spot: 'option4',
 						text: [
 							"Gain the benefit of one of a neighbour's tech cards, for the row it is in.",
 						],
@@ -1440,8 +1445,9 @@ const RECIPES = {
 				context,
 				['Each option once a game. Not in solo games.'],
 				{
+					// R34: the loss comes at the end of income turn 1, as the Futurists' does.
 					current: [
-						'Setup, current rules: lose ',
+						'Current rules: at the end of your first income turn, lose ',
 						res('any', true),
 						'.',
 					],

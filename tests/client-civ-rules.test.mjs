@@ -24,6 +24,7 @@ import {
 	TINKERERS_OPTIONS,
 	TINKERERS_STEP_BACK,
 } from '../src/lib/engine/civs/tinkerers.js';
+import { SPIES_OPTIONS } from '../src/lib/engine/civs/spies.js';
 import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 
@@ -281,6 +282,7 @@ test('each current-rules adjustment gives what the engine gives (R34)', () => {
 		'merrymakers',
 		'mystics',
 		'recyclers',
+		'spies',
 		'the-chosen',
 		'traders',
 	]) {
@@ -466,4 +468,40 @@ test('the Tinkerers read as the engine plays them, with the current rules adding
 	assert.deepEqual(currentOnly('tinkerers'), [
 		'Current rules: if you start the game with the Tinkerers, each opponent also gains 1 tapestry card.',
 	]);
+});
+
+test('the Spies read as the engine plays them, Espionage and the watched space tile included (03 §1.3, §1.8)', () => {
+	const text = /** @type {string} */ (civAbilityText('spies', 'original'));
+	assertInOrder(
+		text,
+		'At the start of income turns 2 to 5',
+		[
+			`${SPIES_OPTIONS.length} options`,
+			'neighbour of your choice',
+			'once a game',
+			'A When Played card:',
+			'face up',
+			'income mat',
+			'Espionage',
+			'This Era card',
+			'until your next income turn',
+			'A tile in their supply:',
+			'territory or space tile',
+			'stays there',
+			'VP for each advance',
+			'as long as',
+			'explore it',
+			'stops',
+			'Their track position:',
+			'without its bonus',
+			'Their tech card:',
+			'circle of a middle-row card',
+			'square of a top-row card',
+			'landmark',
+			'nothing',
+			'Then',
+			'look at their hand',
+		],
+		'Spies'
+	);
 });

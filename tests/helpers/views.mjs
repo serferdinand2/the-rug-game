@@ -107,7 +107,8 @@ function isRevealed(state) {
  * holds privately, and throws an AssertionError naming the first leak.
  *
  * A secret id may appear only where it is public anyway: in a public place now, or, in the action's new events, in a
- * public place before the action (a discard just shuffled into a deck) or in a field the rules reveal (REVEALS).
+ * public place before the action (a discard just shuffled into a deck) or in a field the rules reveal (REVEALS). A
+ * neighbour's hand may also show in the secret of the Spies' own look (`handSeen`), to the Spies alone (#33).
  * Older events were checked when they were new, so they are not searched again.
  * @param {State} state
  * @param {SetupFacts} facts - From setupFacts() of the same game
@@ -177,7 +178,16 @@ export function checkViews(
 		const { events, ...rest } = v;
 		const fresh = events.filter((/** @type {any} */ e) => e.seq > oldSeq);
 		const inBody = stringsOf(JSON.stringify(rest));
-		const inNews = stringsOf(JSON.stringify(fresh));
+		// The Spies' look shows them a neighbour's hand in its own event's secret, and nowhere else (#33).
+		const inNews = stringsOf(
+			JSON.stringify(
+				fresh.map((/** @type {any} */ e) =>
+					e.type === 'handSeen' && owns(e.player, viewer)
+						? { ...e, secret: undefined }
+						: e
+				)
+			)
+		);
 		/**
 		 * Fails when a secret id shows in this view, unless it is public anyway.
 		 * @param {string} id

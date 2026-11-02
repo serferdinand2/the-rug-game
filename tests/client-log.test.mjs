@@ -104,6 +104,11 @@ const SAMPLES = {
 			ties: [],
 		},
 	},
+	handSeen: {
+		player: 1,
+		from: 2,
+		secret: { cards: ['academia', 'trap-2'] },
+	},
 	heraldsCopied: { player: 2, owner: 1, card: 'espionage' },
 	historiansGave: { player: 1, to: 2, square: 1 },
 	incomeTurnStarted: { player: 1, turn: 1 },
@@ -179,6 +184,13 @@ const SAMPLES = {
 	},
 	spaceActivated: { player: 1, track: 'exploration', space: 1 },
 	spaceExplored: { player: 1, tile: 7 },
+	spiesUsed: {
+		player: 1,
+		option: 4,
+		from: 2,
+		card: 'clocks',
+		icon: 'circle',
+	},
 	tapestryPlayed: { player: 1, era: 2, card: 'militarism', faceDown: false },
 	techBenefitUsed: { player: 1, card: 'the-nail', icon: 'square' },
 	techDeckShuffled: { count: 12 },
@@ -464,6 +476,15 @@ test('a secret is named for its owner and kept from everyone else', () => {
 		eventText(sample('techDrawn', { count: 0, secret: undefined }), GAME),
 		'Ana found no tech card left to draw.'
 	);
+	// The Spies' look at a neighbour's hand (#33).
+	assert.equal(
+		eventText(sample('handSeen'), GAME),
+		"Ana looked at Bo's hand: Academia and a trap."
+	);
+	assert.equal(
+		eventText(sample('handSeen', { secret: undefined }), GAME),
+		"Ana looked at Bo's hand."
+	);
 });
 
 test('the important events read as plain sentences', () => {
@@ -625,6 +646,61 @@ test('the important events read as plain sentences', () => {
 		[
 			sample('tinkerersUsed', { option: 4 }),
 			'Ana put a Tinkerers token on option 4, Jump ahead.',
+		],
+		// The Spies' options, each naming what it took from whom (#33).
+		[
+			sample('spiesUsed', {
+				option: 1,
+				card: 'double-cross',
+				icon: undefined,
+			}),
+			"Ana put a Spies token on option 1 and copied Double Cross from Bo's income mat.",
+		],
+		[
+			sample('spiesUsed', { option: 1, card: 'trap-1', icon: undefined }),
+			"Ana put a Spies token on option 1 and copied a trap from Bo's income mat.",
+		],
+		[
+			sample('spiesUsed', {
+				option: 2,
+				card: undefined,
+				icon: undefined,
+				stack: 'space',
+				tile: 16,
+			}),
+			"Ana put a Spies token on option 2 and took the benefit of space tile 16 in Bo's supply.",
+		],
+		[
+			sample('spiesUsed', {
+				option: 2,
+				card: undefined,
+				icon: undefined,
+				stack: 'territory',
+				tile: 1,
+			}),
+			"Ana put a Spies token on option 2 and took the benefit of territory tile 1 in Bo's supply.",
+		],
+		[
+			sample('spiesUsed', {
+				option: 3,
+				card: undefined,
+				icon: undefined,
+				track: 'science',
+				space: 5,
+			}),
+			"Ana put a Spies token on option 3 and took the benefit of Bo's space, Chemistry on Science.",
+		],
+		[
+			sample('spiesUsed'),
+			"Ana put a Spies token on option 4 and took the circle benefit of Bo's Clocks.",
+		],
+		[
+			sample('spiesUsed', { card: 'calendar', icon: 'square' }),
+			"Ana put a Spies token on option 4 and took the square benefit of Bo's Calendar.",
+		],
+		[
+			sample('spiesUsed', { option: 7 }),
+			'Ana put a Spies token on an option.',
 		],
 		[
 			sample('techUpgraded', { card: 'clocks' }),

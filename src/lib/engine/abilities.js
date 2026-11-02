@@ -104,8 +104,9 @@ const SPACE_TILE_HOOKS = new Map(
 
 /**
  * The trigger handlers of each ability active for a seat: its THIS ERA card's, then each civilization's in the order
- * held, then each ongoing space tile's in the order explored, then the one on the Aliens' mat. A civilization's and a
- * tile's operations are `passive`, so a finished player still gets their VP (01 §4.3, #20 design §4).
+ * held, then each ongoing space tile's in the order explored, then the one on the Aliens' mat, then those the Spies
+ * watch in a neighbour's supply, in the order taken. A civilization's and a tile's operations are `passive`, so a
+ * finished player still gets their VP (01 §4.3, #20 design §4).
  * @param {import('./state.js').State} state
  * @param {number} seat
  * @returns {{ hooks: Record<string, import('./eras.js').Hook>, passive: boolean }[]}
@@ -127,6 +128,12 @@ function activeHooks(state, seat) {
 		/** @type {number | null | undefined} */
 		const onMat = civData.aliens?.tile;
 		const tiles = typeof onMat === 'number' ? [onMat] : [];
+		// A tile the Spies' option 2 took works for them while it stays in that neighbour's supply (03 §1.3, §1.5).
+		for (const { tile, from } of civData.spies?.watching ?? []) {
+			if (playerSeat(state, from).spaceTiles.includes(tile)) {
+				tiles.push(tile);
+			}
+		}
 		for (const tile of [...exploredSpace, ...tiles]) {
 			const hooks = SPACE_TILE_HOOKS.get(tile);
 			if (hooks) {

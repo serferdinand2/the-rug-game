@@ -6,6 +6,11 @@ import { TREASURES } from './engine/civs/treasure-hunters.js';
 import { TINKERERS_STEP_BACK } from './engine/civs/tinkerers.js';
 import { TRACKS, advanceCost } from './engine/data/tracks.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
+import { TERRITORY_TILES } from './engine/data/territory-tiles.js';
+import {
+	EXPANSION_SPACE_TILES,
+	SPACE_TILES,
+} from './engine/data/space-tiles.js';
 import { spaceTileWords } from './area/terrain.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
@@ -142,7 +147,7 @@ function plotAt(index) {
 
 /**
  * A title from a decision's options for a slot pick, keyed by its `purpose`.
- * @type {Record<string, (decision: Decision) => string>}
+ * @type {Record<string, (decision: Decision, table: Table | undefined) => string>}
  */
 const SLOT_TITLES = {
 	loseResource: () => 'Choose a resource to lose',
@@ -164,6 +169,13 @@ const SLOT_TITLES = {
 	treasureHunters: () => 'Choose a treasure to claim',
 	tinkerers: () => 'Put a Tinkerers token on an option?',
 	tinkerersPayBack: () => 'Pay back: choose one of your track spaces',
+	spies: () => 'Put a Spies token on an option?',
+	spiesCard: () => "Choose a neighbour's tapestry card to copy",
+	spiesTile: () => "Choose a tile in a neighbour's supply",
+	spiesSpace: () => "Choose a neighbour's track space",
+	spiesTech: () => "Choose a neighbour's tech card",
+	spiesLook: (d, table) =>
+		`Look at ${seatName(table, Array.isArray(d.options) ? d.options[0] : undefined)}'s hand?`,
 };
 
 /** What each Treasure Hunters treasure rolls once its resource is gained, by its die (03 §1.3). */
@@ -194,6 +206,64 @@ const TINKERERS_OPTION_WORDS = /** @type {Readonly<Record<number, string>>} */ (
 		4: 'move to the next space with a bonus and take that bonus for free, without the benefit',
 	})
 );
+
+/** The Spies' options by number, named as their card names them (03 §1.3), for the panel. */
+export const SPIES_OPTION_NAMES =
+	/** @type {Readonly<Record<number, string>>} */ (
+		Object.freeze({
+			1: 'A WHEN PLAYED card',
+			2: 'A tile in their supply',
+			3: 'Their track position',
+			4: 'Their tech card',
+		})
+	);
+
+/** What each Spies option gains from a neighbour, after its name. */
+const SPIES_OPTION_WORDS = /** @type {Readonly<Record<number, string>>} */ (
+	Object.freeze({
+		1: "gain the effect of a When Played tapestry card face up on a neighbour's income mat",
+		2: "gain the benefit of a territory or space tile in a neighbour's supply",
+		3: "gain the benefit of a neighbour's track space, without its bonus",
+		4: "gain the benefit of a neighbour's middle-row or top-row tech card",
+	})
+);
+
+/** Every space tile the engine knows, the base game's and the expansions'. */
+const SPACE_TILES_KNOWN = Object.freeze([
+	...SPACE_TILES,
+	...EXPANSION_SPACE_TILES,
+]);
+
+/**
+ * A neighbour's tile a Spies option takes, with what it gives: "Bo's space tile 5: gain 1 coin, 1 worker and 8 VP".
+ * An ongoing space tile gives its VP only while it stays in their supply (03 §1.5).
+ * @param {Record<string, any>} slot - `{ player, stack, tile }`
+ * @param {Table | undefined} table
+ * @returns {string | null} Null for a slot of another shape
+ */
+function spiesTileWords(slot, table) {
+	const owner = seatName(table, slot.player);
+	if (
+		slot.stack === 'territory' &&
+		isCount(slot.tile) &&
+		slot.tile >= 1 &&
+		slot.tile <= TERRITORY_TILES.length
+	) {
+		const benefit = TERRITORY_TILES[slot.tile - 1].benefit;
+		return `${owner}'s territory tile ${slot.tile}: ${effectsPhrase(benefit, table, true)}`;
+	}
+	const tile =
+		slot.stack === 'space'
+			? SPACE_TILES_KNOWN.find(({ id }) => id === slot.tile)
+			: undefined;
+	if (!tile) {
+		return null;
+	}
+	const words = `${owner}'s space tile ${slot.tile}: ${spaceTileWords(slot.tile, table)}`;
+	return tile.ongoing
+		? `${words}, while it stays in ${owner}'s supply`
+		: words;
+}
 
 /**
  * Each decision kind's title.
@@ -347,8 +417,9 @@ const TITLES = {
 			? `Convert up to ${d.max} food into other resources for 2 VP each?`
 			: 'Convert food into other resources for 2 VP each?',
 	chooseCivAbility: () => 'Choose which civilization goes next',
-	chooseSlot: (d) =>
-		(Object.hasOwn(SLOT_TITLES, d.purpose) && SLOT_TITLES[d.purpose](d)) ||
+	chooseSlot: (d, table) =>
+		(Object.hasOwn(SLOT_TITLES, d.purpose) &&
+			SLOT_TITLES[d.purpose](d, table)) ||
 		(d.optional ? 'Choose one, or decline' : 'Choose one'),
 	chooseAlchemists: () => 'Roll again?',
 	chooseProphecy: (d) =>
@@ -456,6 +527,43 @@ const SLOT_ANSWERS = {
 		slot.space >= 1 &&
 		slot.space < TRACKS[slot.track].length
 			? `${spaceName(slot.track, slot.space)} on ${trackName(slot.track)}: ${effectPhrase({ gain: advanceCost(slot.track, slot.space) }, table)}`
+			: null,
+	spies: (slot) =>
+		Object.hasOwn(SPIES_OPTION_NAMES, slot)
+			? `${SPIES_OPTION_NAMES[slot]}: ${SPIES_OPTION_WORDS[slot]}`
+			: null,
+	spiesCard: (slot, decision, table) =>
+		isRecord(slot) && typeof slot.card === 'string'
+			? `${seatName(table, slot.player)}'s ${tapestryName(slot.card)}`
+			: null,
+	spiesTile: (slot, decision, table) =>
+		isRecord(slot) ? spiesTileWords(slot, table) : null,
+	spiesSpace: (slot, decision, table) => {
+		if (
+			!isRecord(slot) ||
+			!isTrack(slot.track) ||
+			!isCount(slot.space) ||
+			slot.space < 1 ||
+			slot.space >= TRACKS[slot.track].length
+		) {
+			return null;
+		}
+		const entry = TRACKS[slot.track][slot.space];
+		return `${seatName(table, slot.player)}'s ${spaceName(slot.track, slot.space)} on ${trackName(slot.track)}: ${effectsPhrase(entry.benefit, table, entry.ordered)}`;
+	},
+	spiesTech: (slot, decision, table) => {
+		const card = isRecord(slot) ? techCardOf(slot.card) : undefined;
+		if (!card || (slot.icon !== 'circle' && slot.icon !== 'square')) {
+			return null;
+		}
+		const circle = slot.icon === 'circle';
+		const row = circle ? 'middle row' : 'top row';
+		const benefit = circle ? card.circle : card.square;
+		return `${seatName(table, slot.player)}'s ${card.name}, ${row}: ${effectsPhrase(benefit, table, false)}`;
+	},
+	spiesLook: (slot, decision, table) =>
+		isCount(slot) && slot > 0
+			? `Look at ${seatName(table, slot)}'s hand`
 			: null,
 };
 

@@ -17,6 +17,7 @@ import { mystics } from './mystics.js';
 import { nomads } from './nomads.js';
 import { recyclers } from './recyclers.js';
 import { riverfolk } from './riverfolk.js';
+import { spies } from './spies.js';
 import { theChosen } from './the-chosen.js';
 import { tinkerers } from './tinkerers.js';
 import { traders } from './traders.js';
@@ -53,6 +54,7 @@ export const CIVS = {
 	aliens,
 	'treasure-hunters': treasureHunters,
 	tinkerers,
+	spies,
 };
 
 /**

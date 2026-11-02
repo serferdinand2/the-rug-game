@@ -8,6 +8,8 @@ import { run, resolveEffects } from '../src/lib/engine/loop.js';
 import { cityPlots } from '../src/lib/engine/city.js';
 import { groupsOf } from '../src/lib/capital.js';
 import { view, controlledTerritories } from '../src/lib/engine/game.js';
+import { CIVS } from '../src/lib/engine/civs/index.js';
+import { revealed } from '../src/lib/engine/table.js';
 import { conquerTargets } from '../src/lib/engine/map.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { MAPS, hexNeighbours } from '../src/lib/engine/data/maps.js';
@@ -19,7 +21,7 @@ import {
 	conquestGame,
 	resolveTapestry,
 } from './helpers/engine.mjs';
-import { allOps } from './helpers/views.mjs';
+import { allOps, checkViews, setupFacts } from './helpers/views.mjs';
 import { checkState } from './helpers/invariants.mjs';
 
 const VERSIONS = /** @type {const} */ (['original', 'current']);
@@ -2327,4 +2329,651 @@ test('Tinkerers use their ability in step 1 of income turns 2 to 5', () => {
 		[player, 'tinkerers']
 	);
 	assert.ok(decision.options.includes(1));
+});
+
+// The Spies.
+
+/**
+ * What a seat holds in a Spies test, each taken out of its deck or stack: tapestry cards face up on its mat's slots
+ * (`mat`, era by era), tiles in its supply, its tokens, the tech cards above its bottom row, and its hand.
+ * @typedef {{ mat?: string[][], territory?: number[], space?: number[], tracks?: Record<string, number[]>, tech?: { middle?: string[], top?: string[] }, hand?: string[] }} Holdings
+ */
+
+/**
+ * A game for `count` players in which seat 1 holds the Spies with these options used, and each seat holds only what
+ * `holdings` gives it (by seat), so the state checks still hold.
+ * @param {Record<number, Holdings>} holdings
+ * @param {{ count?: number, used?: number[] }} [options]
+ * @returns {{ state: any, random: any }}
+ */
+function spiesGame(holdings, { count = 2, used = [] } = {}) {
+	const { state: started, random } = startedGame(count, PP);
+	const state = /** @type {any} */ (structuredClone(started));
+	state.pending.length = 0;
+	for (const seat of state.seats) {
+		const {
+			mat = [],
+			territory = [],
+			space = [],
+			tracks = {},
+			tech = {},
+			hand = [],
+		} = holdings[seat.seat] ?? {};
+		const { middle = [], top = [] } = tech;
+		const cards = [...mat.flat(), ...hand];
+		state.supply.tapestry.deck = state.supply.tapestry.deck.filter(
+			(/** @type {string} */ card) => !cards.includes(card)
+		);
+		state.supply.territory = state.supply.territory.filter(
+			(/** @type {number} */ tile) => !territory.includes(tile)
+		);
+		takeSpace(state, space);
+		takeTech(state, [...middle, ...top]);
+		seat.incomeMat.tapestry = [0, 1, 2, 3].map((era) => [
+			...(mat[era] ?? []),
+		]);
+		seat.territoryTiles = [...territory];
+		seat.spaceTiles = [...space];
+		seat.tracks = {
+			exploration: [0],
+			science: [0],
+			technology: [0],
+			military: [0],
+			...tracks,
+		};
+		seat.tech = { bottom: [], middle: [...middle], top: [...top] };
+		seat.hand = [...hand];
+	}
+	state.seats[0].civs = ['spies'];
+	state.seats[0].civData.spies = { used: [...used], watching: [] };
+	state.supply.civs = state.supply.civs.filter(
+		(/** @type {string} */ civ) => civ !== 'spies'
+	);
+	return { state, random };
+}
+
+/** A neighbour with something for every Spies option: a WHEN PLAYED card face up, a tile, a token, a middle-row card. */
+const STOCKED = /** @type {Holdings} */ ({
+	mat: [['trap-1']],
+	territory: [1],
+	tracks: { science: [5] },
+	tech: { middle: ['canned-food'] },
+});
+
+/** The Spies' ability on an income turn. */
+const spiesIncome = (/** @type {number} */ turn) => ({
+	player: 1,
+	kind: 'civIncome',
+	civ: 'spies',
+	turn,
+	origin: 'civ',
+});
+
+/**
+ * Seat 1's income ability, then the option picked.
+ * @param {any} state
+ * @param {any} random
+ * @param {number} option
+ */
+function spy(state, random, option) {
+	const asked = pushed(state, random, [spiesIncome(2)]);
+	return answer(asked, random, 1, 'chooseSlot', { slot: option });
+}
+
+/**
+ * The options seat 1's income question offers, or null when it asks nothing.
+ * @param {{ state: any, random: any }} game
+ * @returns {number[] | null}
+ */
+function spiesOffered({ state, random }) {
+	const asked = pushed(state, random, [spiesIncome(2)]);
+	return decisionOf(asked, 'chooseSlot')?.options ?? null;
+}
+
+/**
+ * The VP a seat gains from space tiles for one advance on a track, each open decision answered with its first answer.
+ * @param {any} from
+ * @param {any} random
+ * @param {number} player
+ * @param {string} track
+ * @returns {number[]}
+ */
+function spaceTileVp(from, random, player, track) {
+	let next = resolveEffects(
+		from,
+		player,
+		[{ advance: { tracks: [track], noBenefit: true } }],
+		random
+	);
+	for (;;) {
+		const [open] = openDecisions(next);
+		if (!open) {
+			break;
+		}
+		next = answerFirst(next, random, open.player, open.kind);
+	}
+	return eventsOf(next, 'vpGained', from.seq)
+		.filter((e) => e.source === 'map' && e.player === player)
+		.map((e) => e.vp);
+}
+
+test('Spies come in with their 4 options unused and no tile watched, at setup or mid-game, and are marked as no solo civilization (03 §1.3, R113)', () => {
+	for (const version of VERSIONS) {
+		const { state } = startedGame(2, {
+			civs: ['spies', 'leaders'],
+			version,
+			...PP,
+		});
+		assert.deepEqual(
+			/** @type {any} */ (state.seats[0]).civData.spies,
+			{ used: [], watching: [] },
+			version
+		);
+		checkState(state);
+	}
+	assert.equal(CIVS.spies.solo, false);
+
+	const { state, random } = game();
+	state.seats[0].civs = ['leaders'];
+	state.supply.civs = [
+		'spies',
+		...state.supply.civs.filter((/** @type {string} */ c) => c !== 'spies'),
+	];
+	const gained = resolveEffects(state, 1, [{ gainCiv: {} }], random);
+	assert.deepEqual(gained.seats[0].civs, ['leaders', 'spies']);
+	assert.deepEqual(gained.seats[0].civData.spies, {
+		used: [],
+		watching: [],
+	});
+	assert.deepEqual(openDecisions(gained), []);
+});
+
+test('Spies may put a token on an unused option at the start of income turns 2 to 5, or decline (03 §1.3)', () => {
+	const { state, random } = spiesGame({ 2: STOCKED });
+	const asked = pushed(state, random, [spiesIncome(2)]);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseSlot'));
+	assert.deepEqual(
+		[decision.player, decision.purpose, decision.optional],
+		[1, 'spies', true]
+	);
+	assert.deepEqual(answersOf(asked, 'chooseSlot'), [
+		{ slot: null },
+		{ slot: 1 },
+		{ slot: 2 },
+		{ slot: 3 },
+		{ slot: 4 },
+	]);
+	const declined = answer(asked, random, 1, 'chooseSlot', { slot: null });
+	assert.deepEqual(declined.seats[0].civData.spies, {
+		used: [],
+		watching: [],
+	});
+	assert.deepEqual(openDecisions(declined), []);
+	assert.deepEqual(eventsOf(declined, 'spiesUsed', state.seq), []);
+});
+
+test('each Spies option is used once a game, and one with nothing to take from a neighbour is not offered (03 §1.3)', () => {
+	assert.deepEqual(spiesOffered(spiesGame({ 2: STOCKED })), [1, 2, 3, 4]);
+	assert.deepEqual(
+		spiesOffered(spiesGame({ 2: STOCKED }, { used: [2, 4] })),
+		[1, 3]
+	);
+	assert.equal(
+		spiesOffered(spiesGame({ 2: STOCKED }, { used: [4, 1, 3, 2] })),
+		null
+	);
+	// No card on their mat, no tile, every token on the start, no tech card above the bottom row.
+	assert.equal(spiesOffered(spiesGame({})), null);
+	// What the Spies hold themselves never counts.
+	assert.equal(spiesOffered(spiesGame({ 1: STOCKED })), null);
+	assert.deepEqual(
+		spiesOffered(spiesGame({ 2: { mat: [['trap-1']] } })),
+		[1]
+	);
+	assert.deepEqual(spiesOffered(spiesGame({ 2: { space: [13] } })), [2]);
+	assert.deepEqual(
+		spiesOffered(spiesGame({ 2: { tracks: { military: [1] } } })),
+		[3]
+	);
+	assert.deepEqual(
+		spiesOffered(spiesGame({ 2: { tech: { top: ['calendar'] } } })),
+		[4]
+	);
+
+	// A lone target is taken without asking; the token stays on its option.
+	const { state, random } = spiesGame({ 2: STOCKED });
+	const used = spy(state, random, 2);
+	assert.deepEqual(used.seats[0].civData.spies.used, [2]);
+	assert.deepEqual(eventsOf(used, 'spiesUsed', state.seq), [
+		{
+			type: 'spiesUsed',
+			player: 1,
+			option: 2,
+			from: 2,
+			stack: 'territory',
+			tile: 1,
+		},
+	]);
+	assert.deepEqual(openDecisions(used), []);
+	assert.deepEqual(spiesOffered({ state: used, random }), [1, 3, 4]);
+});
+
+test('Spies take only from a neighbour: in a 4-player game the seats either side, never the one across (03 §1.3)', () => {
+	const { state, random } = spiesGame(
+		{
+			2: { mat: [['trap-1']] },
+			3: { mat: [['trap-2']] },
+			4: { mat: [['trap-3']] },
+		},
+		{ count: 4 }
+	);
+	const asked = spy(state, random, 1);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseSlot'));
+	assert.deepEqual(
+		[decision.player, decision.purpose, decision.optional],
+		[1, 'spiesCard', false]
+	);
+	assert.deepEqual(decision.options, [
+		{ player: 2, card: 'trap-1' },
+		{ player: 4, card: 'trap-3' },
+	]);
+	assert.equal(spiesOffered(spiesGame({ 3: STOCKED }, { count: 4 })), null);
+});
+
+test("option 1 copies a face-up WHEN PLAYED tapestry card on a neighbour's income mat, as the Heralds copy one (03 §1.3)", () => {
+	// A WHEN PLAYED card on top, a THIS ERA card on top of one, another WHEN PLAYED card, and one face down.
+	const { state, random } = spiesGame({
+		1: { mat: [['trap-2']] },
+		2: {
+			mat: [
+				['trap-1'],
+				['boast-of-superiority', 'academia'],
+				['double-cross'],
+				['retreat'],
+			],
+		},
+	});
+	state.seats[1].incomeMat.faceDown = ['retreat'];
+	const asked = spy(state, random, 1);
+	assert.deepEqual(answersOf(asked, 'chooseSlot'), [
+		{ slot: { player: 2, card: 'trap-1' } },
+		{ slot: { player: 2, card: 'double-cross' } },
+	]);
+	const since = asked.seq;
+	const copied = answer(asked, random, 1, 'chooseSlot', {
+		slot: { player: 2, card: 'double-cross' },
+	});
+	const [own, other] = /** @type {any[]} */ (copied.seats);
+	// Double Cross as a tapestry: 9 VP and 1 territory tile, as the Spies' own; the card stays where it is.
+	assert.equal(own.vp, state.seats[0].vp + 9);
+	assert.equal(own.territoryTiles.length, 1);
+	assert.deepEqual(own.civData.spies.used, [1]);
+	assert.equal(own.era, null);
+	assert.deepEqual(other.incomeMat, state.seats[1].incomeMat);
+	assert.deepEqual(other.territoryTiles, []);
+	assert.deepEqual(eventsOf(copied, 'spiesUsed', since), [
+		{
+			type: 'spiesUsed',
+			player: 1,
+			option: 1,
+			from: 2,
+			card: 'double-cross',
+		},
+	]);
+	assert.deepEqual(
+		eventsOf(copied, 'vpGained', since).map((e) => [e.vp, e.source]),
+		[[9, 'tapestry']]
+	);
+	assert.deepEqual(openDecisions(copied), []);
+});
+
+test('option 1 may copy Espionage, and through it a THIS ERA card, with no card of the Spies behind it (03 §1.8)', () => {
+	const { state, random } = spiesGame({
+		2: { mat: [['espionage'], ['golden-age']] },
+	});
+	// Golden Age is THIS ERA, so Espionage is the lone card offered and is copied without asking.
+	const copied = spy(state, random, 1);
+	assert.deepEqual(copied.seats[0].era, {
+		card: null,
+		ability: 'golden-age',
+	});
+	assert.deepEqual(eventsOf(copied, 'eraStarted', state.seq), [
+		{ type: 'eraStarted', player: 1, card: null, ability: 'golden-age' },
+	]);
+	assert.equal(copied.seats[1].era, null);
+	assert.deepEqual(openDecisions(copied), []);
+});
+
+test("option 2 gains the benefit of a territory or space tile in a neighbour's supply, which stays there (03 §1.3)", () => {
+	// Territory tile 1: 1 coin. Space tile 5: 1 coin, 1 worker and 8 VP.
+	const { state, random } = spiesGame({ 2: { territory: [1], space: [5] } });
+	const asked = spy(state, random, 2);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseSlot'));
+	assert.deepEqual(
+		[decision.purpose, decision.optional, decision.options],
+		[
+			'spiesTile',
+			false,
+			[
+				{ player: 2, stack: 'territory', tile: 1 },
+				{ player: 2, stack: 'space', tile: 5 },
+			],
+		]
+	);
+	// The token is on the option as soon as it is picked, so the card shows it while the tile is chosen.
+	assert.deepEqual(asked.seats[0].civData.spies.used, [2]);
+	assert.deepEqual(eventsOf(asked, 'spiesUsed', state.seq), []);
+
+	const since = asked.seq;
+	const space = answer(asked, random, 1, 'chooseSlot', {
+		slot: { player: 2, stack: 'space', tile: 5 },
+	});
+	const [own, other] = /** @type {any[]} */ (space.seats);
+	assert.deepEqual(own.resources, {
+		...state.seats[0].resources,
+		coin: state.seats[0].resources.coin + 1,
+		worker: state.seats[0].resources.worker + 1,
+	});
+	assert.deepEqual(
+		eventsOf(space, 'vpGained', since).map((e) => [e.vp, e.source]),
+		[[8, 'map']]
+	);
+	assert.deepEqual(
+		[own.spaceTiles, own.exploredSpace, other.exploredSpace],
+		[[], [], []]
+	);
+	assert.deepEqual(other.spaceTiles, [5]);
+	assert.deepEqual(eventsOf(space, 'spaceExplored', since), []);
+	// Not an ongoing tile: nothing is watched.
+	assert.deepEqual(own.civData.spies.watching, []);
+	assert.deepEqual(openDecisions(space), []);
+
+	const territory = answer(asked, random, 1, 'chooseSlot', {
+		slot: { player: 2, stack: 'territory', tile: 1 },
+	});
+	assert.equal(
+		territory.seats[0].resources.coin,
+		state.seats[0].resources.coin + 1
+	);
+	assert.deepEqual(territory.seats[1].territoryTiles, [1]);
+	assert.deepEqual(territory.seats[0].territoryTiles, []);
+	assert.deepEqual(openDecisions(territory), []);
+});
+
+test("an ongoing space tile taken with option 2 gives the Spies 5 VP for each advance on its track while it stays in the neighbour's supply, and stops once they explore it (03 §1.3, §1.5)", () => {
+	// Tile 16: 5 VP whenever its player advances on Technology.
+	const { state, random } = spiesGame({ 2: { space: [16] } });
+	for (const seat of state.seats) {
+		seat.resources = { coin: 8, worker: 8, food: 8, culture: 8 };
+	}
+	const watched = spy(state, random, 2);
+	assert.deepEqual(watched.seats[0].civData.spies.watching, [
+		{ tile: 16, from: 2 },
+	]);
+	assert.equal(watched.seats[0].vp, state.seats[0].vp);
+	// Watching takes nothing: the tile stays in the neighbour's supply alone.
+	assert.deepEqual(watched.seats[1].spaceTiles, [16]);
+	assert.deepEqual(
+		[watched.seats[0].spaceTiles, watched.seats[0].exploredSpace],
+		[[], []]
+	);
+	assert.deepEqual(openDecisions(watched), []);
+
+	assert.deepEqual(spaceTileVp(watched, random, 1, 'technology'), [5]);
+	assert.deepEqual(spaceTileVp(watched, random, 1, 'science'), []);
+	// The neighbour has not explored it, so it gives them nothing.
+	assert.deepEqual(spaceTileVp(watched, random, 2, 'technology'), []);
+
+	// Once the neighbour explores it, it is theirs alone.
+	const explored = resolveEffects(watched, 2, [{ exploreSpace: {} }], random);
+	assert.deepEqual(explored.seats[1].exploredSpace, [16]);
+	assert.deepEqual(spaceTileVp(explored, random, 1, 'technology'), []);
+	assert.deepEqual(spaceTileVp(explored, random, 2, 'technology'), [5]);
+});
+
+test("option 3 gains the benefit of a neighbour's track space for the Spies alone, with no bonus for anyone, except a space they activated this turn (03 §1.3, R19)", () => {
+	// Carpentry (technology 2): 1 tapestry card, and a bonus. Standing Army (military 4): 1 worker and 1 VP per territory tile.
+	const { state, random } = spiesGame({
+		2: { tracks: { technology: [2], military: [4] } },
+	});
+	for (const seat of state.seats) {
+		seat.resources = { coin: 3, worker: 0, food: 0, culture: 0 };
+	}
+	const asked = spy(state, random, 3);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseSlot'));
+	assert.deepEqual(
+		[decision.purpose, decision.optional, decision.options],
+		[
+			'spiesSpace',
+			false,
+			[
+				{ player: 2, track: 'technology', space: 2 },
+				{ player: 2, track: 'military', space: 4 },
+			],
+		]
+	);
+	const since = asked.seq;
+	const gained = answer(asked, random, 1, 'chooseSlot', {
+		slot: { player: 2, track: 'technology', space: 2 },
+	});
+	const [own, other] = /** @type {any[]} */ (gained.seats);
+	assert.equal(own.hand.length, 1);
+	assert.deepEqual(own.tracks, state.seats[0].tracks);
+	assert.deepEqual(other.hand, []);
+	assert.deepEqual(other.resources, state.seats[1].resources);
+	assert.equal(decisionOf(gained, 'chooseBonus'), undefined);
+	assert.deepEqual(eventsOf(gained, 'spaceActivated', since), [
+		{ type: 'spaceActivated', player: 1, track: 'technology', space: 2 },
+	]);
+	assert.deepEqual(openDecisions(gained), []);
+
+	// R19: a space the Spies activated this turn is left out, so the other is taken without asking.
+	state.activated = [{ player: 1, track: 'technology', space: 2 }];
+	const military = spy(state, random, 3);
+	assert.equal(military.seats[0].resources.worker, 1);
+	assert.deepEqual(military.seats[0].hand, []);
+	assert.deepEqual(openDecisions(military), []);
+});
+
+test("option 4 gains the circle of a neighbour's middle-row tech card or the square of a top-row one; a landmark card's square gives nothing, so it is not offered (03 §1.3)", () => {
+	// Canned Food's circle: 1 food. Calendar's square: 7 VP. Bakery's square: its landmark.
+	const { state, random } = spiesGame({
+		2: { tech: { middle: ['canned-food'], top: ['calendar', 'bakery'] } },
+	});
+	const asked = spy(state, random, 4);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseSlot'));
+	assert.deepEqual(
+		[decision.purpose, decision.optional, decision.options],
+		[
+			'spiesTech',
+			false,
+			[
+				{ player: 2, card: 'canned-food', icon: 'circle' },
+				{ player: 2, card: 'calendar', icon: 'square' },
+			],
+		]
+	);
+	const since = asked.seq;
+	const square = answer(asked, random, 1, 'chooseSlot', {
+		slot: { player: 2, card: 'calendar', icon: 'square' },
+	});
+	assert.deepEqual(
+		eventsOf(square, 'vpGained', since).map((e) => [e.vp, e.source]),
+		[[7, 'tech']]
+	);
+	assert.deepEqual(eventsOf(square, 'techBenefitUsed', since), [
+		{
+			type: 'techBenefitUsed',
+			player: 1,
+			card: 'calendar',
+			icon: 'square',
+		},
+	]);
+	assert.deepEqual(square.seats[1].tech, state.seats[1].tech);
+	assert.deepEqual(square.seats[0].tech, state.seats[0].tech);
+	assert.deepEqual(openDecisions(square), []);
+
+	const circle = answer(asked, random, 1, 'chooseSlot', {
+		slot: { player: 2, card: 'canned-food', icon: 'circle' },
+	});
+	assert.equal(
+		circle.seats[0].resources.food,
+		state.seats[0].resources.food + 1
+	);
+	assert.deepEqual(openDecisions(circle), []);
+
+	assert.equal(
+		spiesOffered(spiesGame({ 2: { tech: { top: ['bakery'] } } })),
+		null
+	);
+});
+
+test("after the benefit the Spies may look at that neighbour's hand, which only the Spies see, and undo closes (03 §1.3, #24)", () => {
+	const { state, random } = spiesGame({
+		2: { mat: [['trap-1']], hand: ['academia', 'alliance'] },
+	});
+	const asked = spy(state, random, 1);
+	// The trap's 10 VP come first, then the question.
+	assert.equal(asked.seats[0].vp, state.seats[0].vp + 10);
+	const decision = /** @type {any} */ (decisionOf(asked, 'chooseSlot'));
+	assert.deepEqual(
+		[decision.player, decision.purpose, decision.optional],
+		[1, 'spiesLook', true]
+	);
+	assert.deepEqual(answersOf(asked, 'chooseSlot'), [
+		{ slot: null },
+		{ slot: 2 },
+	]);
+
+	const declined = answer(asked, random, 1, 'chooseSlot', { slot: null });
+	assert.deepEqual(eventsOf(declined, 'handSeen', state.seq), []);
+	assert.deepEqual(openDecisions(declined), []);
+	assert.equal(revealed(state, declined), false);
+
+	const looked = answer(asked, random, 1, 'chooseSlot', { slot: 2 });
+	assert.deepEqual(eventsOf(looked, 'handSeen', state.seq), [
+		{
+			type: 'handSeen',
+			player: 1,
+			from: 2,
+			secret: { cards: ['academia', 'alliance'] },
+		},
+	]);
+	assert.deepEqual(looked.seats[1].hand, ['academia', 'alliance']);
+	assert.deepEqual(looked.seats[0].hand, []);
+	assert.deepEqual(openDecisions(looked), []);
+	const seen = (/** @type {number | null} */ seat) =>
+		/** @type {any} */ (view(looked, seat)).events.find(
+			(/** @type {any} */ e) => e.type === 'handSeen'
+		);
+	assert.deepEqual(seen(1)?.secret, { cards: ['academia', 'alliance'] });
+	assert.deepEqual(
+		[seen(2)?.from, seen(2)?.secret, seen(null)?.secret],
+		[2, undefined, undefined]
+	);
+	assert.ok(revealed(asked, looked));
+	checkViews(looked, setupFacts(state), { before: asked });
+
+	// With an empty hand there is nothing to look at.
+	const empty = spiesGame({ 2: { mat: [['trap-1']] } });
+	assert.deepEqual(openDecisions(spy(empty.state, empty.random, 1)), []);
+});
+
+test('the Spies look at the hand of the neighbour they took from, not the other (03 §1.3)', () => {
+	const { state, random } = spiesGame(
+		{
+			2: { hand: ['academia'] },
+			3: { mat: [['trap-1']], hand: ['alliance'] },
+		},
+		{ count: 3 }
+	);
+	const asked = spy(state, random, 1);
+	assert.deepEqual(answersOf(asked, 'chooseSlot'), [
+		{ slot: null },
+		{ slot: 3 },
+	]);
+	const looked = answer(asked, random, 1, 'chooseSlot', { slot: 3 });
+	assert.deepEqual(eventsOf(looked, 'handSeen', state.seq), [
+		{
+			type: 'handSeen',
+			player: 1,
+			from: 3,
+			secret: { cards: ['alliance'] },
+		},
+	]);
+});
+
+test('Spies lose 1 resource of their choice at the end of income turn 1, only in the current version and only when they start with them (R34)', () => {
+	for (const version of VERSIONS) {
+		const r = turnHolding(
+			'spies',
+			(seat) => {
+				seat.incomeTurns = 0;
+				seat.resources = { coin: 2, worker: 0, food: 1, culture: 0 };
+			},
+			{ version }
+		);
+		const seat = /** @type {any} */ (r.state.seats[r.player - 1]);
+		const pick = /** @type {any} */ (decisionOf(r.state, 'chooseSlot'));
+		if (version === 'original') {
+			assert.equal(pick, undefined);
+			// Only income turn 1's income: 1 of each.
+			assert.deepEqual(seat.resources, {
+				coin: 3,
+				worker: 1,
+				food: 2,
+				culture: 1,
+			});
+			continue;
+		}
+		assert.deepEqual(
+			[pick.player, pick.purpose, pick.options],
+			[r.player, 'loseResource', ['coin', 'worker', 'food', 'culture']]
+		);
+		const paid = answer(r.state, r.random, r.player, 'chooseSlot', {
+			slot: 'food',
+		});
+		assert.deepEqual(paid.seats[r.player - 1].resources, {
+			coin: 3,
+			worker: 1,
+			food: 1,
+			culture: 1,
+		});
+	}
+	// Spies gained mid-game lose nothing (R34).
+	const gained = turnHolding(
+		'spies',
+		(seat) => {
+			seat.incomeTurns = 0;
+			seat.civs = ['leaders', 'spies'];
+		},
+		{ version: 'current' }
+	);
+	assert.deepEqual(
+		eventsOf(gained.state, 'resourcesLost').filter(
+			(e) => e.player === gained.player
+		),
+		[]
+	);
+});
+
+test('Spies use their ability in step 1 of income turns 2 to 5', () => {
+	const ready = turnHolding('spies', (seat, state) => {
+		for (const other of state.seats) {
+			if (other !== seat) {
+				other.tracks.science = [5];
+			}
+		}
+	});
+	const { player } = ready;
+	const since = ready.state.seq;
+	const state = answer(ready.state, ready.random, player, 'chooseTurn', {
+		turn: 'income',
+	});
+	assert.ok(
+		eventsOf(state, 'civAbilityUsed', since).some((e) => e.civ === 'spies')
+	);
+	const decision = /** @type {any} */ (decisionOf(state, 'chooseSlot'));
+	assert.deepEqual([decision?.player, decision?.purpose], [player, 'spies']);
+	assert.ok(decision.options.includes(3));
 });

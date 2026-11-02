@@ -22,7 +22,11 @@ import { INVENTORS_TOKENS } from '../src/lib/engine/civs/inventors.js';
 import { HERALDS_TOKENS } from '../src/lib/engine/civs/heralds.js';
 import { MYSTICS_PROPHECIES } from '../src/lib/engine/civs/mystics.js';
 import { TINKERERS_OPTIONS } from '../src/lib/engine/civs/tinkerers.js';
-import { TINKERERS_OPTION_NAMES } from '../src/lib/decision-words.js';
+import { SPIES_OPTIONS } from '../src/lib/engine/civs/spies.js';
+import {
+	SPIES_OPTION_NAMES,
+	TINKERERS_OPTION_NAMES,
+} from '../src/lib/decision-words.js';
 import { civCard } from '../src/lib/cards/civ-cards.js';
 import {
 	REVIEWED_CIVILIZATIONS,
@@ -131,7 +135,7 @@ test("the nine other Plans & Ploys civilizations get a card from 03 §1.3's text
 		words(sectionOf(civCard(id, { version }), 'clarity')?.setup);
 	assert.equal(
 		setup('spies', 'current'),
-		'Setup, current rules: lose [any].'
+		'Current rules: at the end of your first income turn, lose [any].'
 	);
 	assert.equal(
 		setup('infiltrators', 'current'),
@@ -155,6 +159,32 @@ test("the Tinkerers' boxes are the spots their used options mark, named as the p
 	assert.deepEqual(
 		effects.map((/** @type {any} */ e) => e.title),
 		TINKERERS_OPTIONS.map((option) => TINKERERS_OPTION_NAMES[option])
+	);
+});
+
+test("the Spies' boxes are the spots their used options mark, named as the panel names them, and draw used (#33)", () => {
+	const effects = sectionOf(civCard('spies'), 'effects').effects;
+	const spots = effects.map((/** @type {any} */ e) => e.spot);
+	assert.deepEqual(spots, ['option1', 'option2', 'option3', 'option4']);
+	assert.deepEqual(
+		Object.keys(
+			civCardMarks('spies', { used: [4, 2, 1, 3], watching: [] })
+		).sort(),
+		[...spots].sort()
+	);
+	assert.deepEqual(
+		effects.map((/** @type {any} */ e) => e.title),
+		SPIES_OPTIONS.map((option) => SPIES_OPTION_NAMES[option])
+	);
+	const live = {
+		marks: civCardMarks('spies', { used: [3], watching: [] }),
+		choices: {},
+	};
+	assert.deepEqual(
+		sectionOf(civCard('spies', { view: live }), 'effects').effects.map(
+			(/** @type {any} */ e) => e.used
+		),
+		[false, false, true, false]
 	);
 });
 

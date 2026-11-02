@@ -394,6 +394,118 @@ test("the Tinkerers' option, the space Pay back pays for and the token to move r
 	);
 });
 
+test("the Spies' option, what it takes from a neighbour and the look at their hand read as what they do (#33)", () => {
+	const game = /** @type {any} */ ({
+		seats: [{ name: 'Ana' }, { name: 'Bo' }],
+	});
+	const option = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'spies',
+		optional: true,
+		options: [1, 2, 3, 4],
+	};
+	assert.equal(decisionTitle(option), 'Put a Spies token on an option?');
+	assert.deepEqual(
+		[null, ...option.options].map((slot) =>
+			describeAnswer(option, { slot })
+		),
+		[
+			'Decline',
+			"A WHEN PLAYED card: gain the effect of a When Played tapestry card face up on a neighbour's income mat",
+			"A tile in their supply: gain the benefit of a territory or space tile in a neighbour's supply",
+			"Their track position: gain the benefit of a neighbour's track space, without its bonus",
+			"Their tech card: gain the benefit of a neighbour's middle-row or top-row tech card",
+		]
+	);
+	/**
+	 * The question of what an option takes.
+	 * @param {string} purpose
+	 * @param {any[]} options
+	 */
+	const pick = (purpose, options) => ({
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose,
+		optional: false,
+		options,
+	});
+	/** @param {ReturnType<typeof pick>} decision */
+	const words = (decision) =>
+		decision.options.map((slot) =>
+			describeAnswer(decision, { slot }, game)
+		);
+
+	const card = pick('spiesCard', [
+		{ player: 2, card: 'double-cross' },
+		{ player: 2, card: 'trap-1' },
+	]);
+	assert.equal(
+		decisionTitle(card),
+		"Choose a neighbour's tapestry card to copy"
+	);
+	assert.deepEqual(words(card), ["Bo's Double Cross", "Bo's Trap"]);
+
+	const tile = pick('spiesTile', [
+		{ player: 2, stack: 'territory', tile: 1 },
+		{ player: 2, stack: 'space', tile: 5 },
+		{ player: 2, stack: 'space', tile: 16 },
+	]);
+	assert.equal(decisionTitle(tile), "Choose a tile in a neighbour's supply");
+	assert.deepEqual(words(tile), [
+		"Bo's territory tile 1: gain 1 coin",
+		"Bo's space tile 5: gain 1 coin, 1 worker and 8 VP",
+		"Bo's space tile 16: whenever you advance on the technology track, gain 5 VP, while it stays in Bo's supply",
+	]);
+
+	const space = pick('spiesSpace', [
+		{ player: 2, track: 'technology', space: 2 },
+		{ player: 2, track: 'military', space: 4 },
+	]);
+	assert.equal(decisionTitle(space), "Choose a neighbour's track space");
+	assert.deepEqual(words(space), [
+		"Bo's Carpentry on Technology: gain 1 tapestry card",
+		"Bo's Standing Army on Military: gain 1 worker and gain 1 VP for each territory tile in your supply",
+	]);
+
+	const tech = pick('spiesTech', [
+		{ player: 2, card: 'canned-food', icon: 'circle' },
+		{ player: 2, card: 'calendar', icon: 'square' },
+	]);
+	assert.equal(decisionTitle(tech), "Choose a neighbour's tech card");
+	assert.deepEqual(words(tech), [
+		"Bo's Canned Food, middle row: gain 1 food",
+		"Bo's Calendar, top row: gain 7 VP",
+	]);
+
+	const look = {
+		id: 3,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'spiesLook',
+		optional: true,
+		options: [2],
+	};
+	assert.equal(decisionTitle(look, game), "Look at Bo's hand?");
+	assert.equal(decisionTitle(look), "Look at Player 2's hand?");
+	assert.deepEqual(
+		[null, 2].map((slot) => describeAnswer(look, { slot }, game)),
+		['Decline', "Look at Bo's hand"]
+	);
+	// A slot of another shape falls back to a readable sentence.
+	for (const decision of [option, card, tile, space, tech, look]) {
+		assertReadable(
+			describeAnswer(decision, { slot: { odd: true } }, game),
+			`an odd ${decision.purpose} slot`
+		);
+	}
+});
+
 test('unknown decisions and answers fall back to a readable sentence', () => {
 	const odd = { id: 1, batch: 1, player: 1, kind: 'chooseSomethingNew' };
 	assertReadable(decisionTitle(odd), 'an unknown title');
