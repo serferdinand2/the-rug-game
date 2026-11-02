@@ -304,7 +304,7 @@ const CIV_TEXTS = Object.freeze({
 			'Barracks: whenever you conquer, also gain the red die’s result, even if you kept that die. When you gain both dice, as with Tanks, you gain the red result twice.',
 			'Lighthouse: once on each of your advance turns, before or after you advance, you may discard 2 territory tiles to gain 1 resource of your choice. It is offered as the turn starts and, if you didn’t use it then, once more after the advance. If you can afford an advance only with its resource, you may still take an advance turn: it starts with the Lighthouse, which you must use for a resource that pays for an advance.',
 			'Apothecary: whenever you gain another landmark, gain 1 resource of your choice.',
-			'Rubber Works, Tank Factory, Train Station and Academy: whenever you advance into tier III or IV of technology, military, exploration or science respectively, gain 4 VP.',
+			'Rubber Works, Tank Factory, Train Station and Academy: whenever you advance to a space in tier III or IV of technology, military, exploration or science respectively, gain 4 VP.',
 		],
 		{
 			current: [

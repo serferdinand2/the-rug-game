@@ -1229,7 +1229,8 @@ Built on 2026-11-02 on the branch `issue-33-pp-content`, not yet merged. The com
   R116 also departs from the design's first reading, which had five players use all ten.
 - **Tests:**
   - Test-first: `engine-pp-civs` has 103 tests, one section per civilization; the variant's tests are in `engine-setup`, `rooms` and `client-lobby`.
-  - `engine-civs-all` plays each Plans & Ploys civilization paired with another, in full games and in both versions.
+  - `engine-civs-all` plays each Plans & Ploys civilization paired with another, in full games and in both versions. Its pair test plays every ordered pair on one seat, the second gained mid-game (R113), under the invariants and view checks (about 30 s).
+  - The browser test `plans-ploys` also shows the Advisors' off-turn gift on the card shelf, played through the API.
   - The simulation's Plans & Ploys games deal them, under the invariants (the civilizations, their tokens, the space-tile discard) and the view checks (the Spies' look and the Advisors' gift reach only their seats).
   - All 2629 unit tests, 600 simulated games and all 57 browser tests pass (one at a time), and `npm run check` is clean.
 - **Seen live** on 2026-11-02, at a four-player hot-seat table with the variant, played through the API:
@@ -1246,7 +1247,7 @@ Built on 2026-11-02 on the branch `issue-33-pp-content`, not yet merged. The com
   - `civ-turns.js` names the Infiltrators' draw itself.
   - The rule for secrets shared by two seats is written three times.
   - Two helpers repeat existing code: the impassable-plot lines (Riverfolk) and Trade Economy's targets (Spies option 3).
-  - `checkViews` fails right after `startedGame` with named civilizations (the test helper).
+  - `checkViews` fails after any `startedGame` when called without `before`, because setup's `civsDealt` secret names the civilization that went back to the deck. That is legitimate, not a leak; callers pass `before` (the test helper).
   - Some thin tests the reviews listed.
 - **Handed on:**
   - #31 reads `Civ.solo` (false for the Advisors and the Spies), and must keep the Advisors from being asked about a Shadow Empire draw.
