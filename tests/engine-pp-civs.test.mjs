@@ -2647,6 +2647,32 @@ test('option 1 may copy Espionage, and through it a THIS ERA card, with no card 
 	assert.deepEqual(openDecisions(copied), []);
 });
 
+test('option 1 leaves out Entertain the Masses once the Stadium has left the supply, as its copy gives nothing (#33 ruling)', () => {
+	// (a) Alone, it is no target: option 1 is not offered and the token is not spent.
+	const alone = spiesGame({ 2: { mat: [['entertain-the-masses']] } });
+	alone.state.landmarks = alone.state.landmarks.filter(
+		(/** @type {string} */ id) => id !== 'stadium'
+	);
+	assert.equal(spiesOffered(alone), null);
+	// (b) Beside a live card, only the live card is a target.
+	const both = spiesGame({
+		2: { mat: [['entertain-the-masses', 'trap-1']] },
+	});
+	both.state.landmarks = both.state.landmarks.filter(
+		(/** @type {string} */ id) => id !== 'stadium'
+	);
+	assert.deepEqual(spiesOffered(both), [1]);
+	const copied = spy(both.state, both.random, 1);
+	assert.deepEqual(
+		eventsOf(copied, 'spiesUsed', both.state.seq).map((e) => e.card),
+		['trap-1']
+	);
+	// While the Stadium is still in the supply, the card is a target.
+	const live = spiesGame({ 2: { mat: [['entertain-the-masses']] } });
+	live.state.landmarks.push('stadium');
+	assert.deepEqual(spiesOffered(live), [1]);
+});
+
 test("option 2 gains the benefit of a territory or space tile in a neighbour's supply, which stays there (03 §1.3)", () => {
 	// Territory tile 1: 1 coin. Space tile 5: 1 coin, 1 worker and 8 VP.
 	const { state, random } = spiesGame({ 2: { territory: [1], space: [5] } });

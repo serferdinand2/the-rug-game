@@ -70,6 +70,26 @@ function dataOf(state, player) {
 }
 
 /**
+ * Whether a card's only effect gains a landmark that is no longer in the supply, as Entertain the Masses once its
+ * Stadium is taken: a copy gives nothing, so option 1 leaves the card out (as option 2 does the Monolith's tile).
+ * @param {import('../state.js').State} state
+ * @param {string} card
+ */
+function givesNoLandmark(state, card) {
+	const { played } = tapestryCard(card);
+	return (
+		played.length > 0 &&
+		played.every(
+			(effect) =>
+				'landmark' in effect &&
+				!state.landmarks.includes(
+					/** @type {string} */ (effect.landmark)
+				)
+		)
+	);
+}
+
+/**
  * What one neighbour offers an option, in the order shown: (1) their face-up WHEN PLAYED cards, as visibleCards()
  * gives them; (2) their territory tiles, then their space tiles but the Monolith's, whose landmark a copy can't give
  * (#33 ruling); (3) each of their tokens past the start, in track
@@ -88,7 +108,9 @@ function targetsFrom(state, player, option, from) {
 		return visibleCards(state)
 			.filter(
 				({ player: owner, card }) =>
-					owner === from && tapestryCard(card).timing === 'played'
+					owner === from &&
+					tapestryCard(card).timing === 'played' &&
+					!givesNoLandmark(state, card)
 			)
 			.map(({ card }) => ({ player: from, card }));
 	}
