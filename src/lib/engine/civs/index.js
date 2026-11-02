@@ -1,5 +1,5 @@
 // The civilization registry: every civilization built, base and Plans & Ploys (#33), by id, and the ones a player holds (design §4).
-import { isPlayerSeat, playerSeat } from '../state.js';
+import { CIVS } from './registry.js';
 import { advisors } from './advisors.js';
 import { alchemists } from './alchemists.js';
 import { aliens } from './aliens.js';
@@ -31,11 +31,8 @@ import { utilitarians } from './utilitarians.js';
 // For callers outside this folder. Civilization modules import `offer` from './civ.js', which keeps them out of a cycle with this module.
 export { offer } from './civ.js';
 
-/**
- * Every civilization built, by catalog id: the base 16, then Plans & Ploys' (decks.js's PP_CIVS).
- * @type {Record<string, Civ>}
- */
-export const CIVS = {
+// Every civilization built, by catalog id: the base 16, then Plans & Ploys' (decks.js's PP_CIVS).
+Object.assign(CIVS, {
 	alchemists,
 	architects,
 	craftsmen,
@@ -61,30 +58,6 @@ export const CIVS = {
 	utilitarians,
 	infiltrators,
 	advisors,
-};
+});
 
-/**
- * The rules of one civilization.
- * @param {string} id
- * @returns {Civ}
- * @throws {Error} For an id with no civilization (a bug, not a player's mistake)
- */
-export function findCiv(id) {
-	if (!Object.hasOwn(CIVS, id)) {
-		throw new Error(`There is no civilization ${id}.`);
-	}
-	return CIVS[id];
-}
-
-/**
- * The civilizations a player holds, the one chosen at setup first and those gained later after it.
- * @param {import('../state.js').State} state
- * @param {number} player
- * @returns {Civ[]} Empty for a seat that isn't a player
- */
-export function civsOf(state, player) {
-	if (!isPlayerSeat(state, player)) {
-		return [];
-	}
-	return playerSeat(state, player).civs.map(findCiv);
-}
+export { CIVS, findCiv, civsOf } from './registry.js';

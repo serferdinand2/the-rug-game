@@ -1,5 +1,5 @@
 // view(): the only way game state leaves the server. A copy with every private part removed.
-import { DECISIONS } from './kinds.js';
+import { DECISIONS } from './registry.js';
 import { openDecisions } from './stack.js';
 import { isPlayerSeat } from './state.js';
 

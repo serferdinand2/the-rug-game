@@ -1,5 +1,5 @@
 // The operation stack: pushing operations and groups, and finding the decisions that are open.
-import { DECISIONS } from './kinds.js';
+import { DECISIONS } from './registry.js';
 
 /** @typedef {import('./state.js').State} State */
 /** @typedef {import('./state.js').Operation} Operation */

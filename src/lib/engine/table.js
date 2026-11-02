@@ -1,5 +1,5 @@
 // What the table needs from the engine: who is asked, default answers, decline-only responses, the timeout event and undo's restore.
-import { DECISIONS } from './kinds.js';
+import { DECISIONS } from './registry.js';
 import { openDecisions } from './stack.js';
 import { emit } from './events.js';
 import { HIDDEN_DECKS } from './view.js';

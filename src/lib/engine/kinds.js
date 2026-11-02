@@ -1,4 +1,6 @@
-// The registry of decision kinds and automatic operation kinds.
+// Fills the registry of decision kinds and automatic operation kinds (registry.js holds it, #166); import this module, or game.js, so they are registered.
+import { DECISIONS, AUTOMATIC } from './registry.js';
+import './civs/index.js';
 import { chooseTurn } from './decisions/choose-turn.js';
 import { chooseCapital } from './decisions/choose-capital.js';
 import { chooseCiv } from './decisions/choose-civ.js';
@@ -108,8 +110,7 @@ import {
 	militantsCover,
 } from './civs/militants.js';
 
-/** @type {Record<string, import('./state.js').DecisionKind>} */
-export const DECISIONS = {
+Object.assign(DECISIONS, {
 	chooseTurn,
 	chooseCapital,
 	chooseCiv,
@@ -152,10 +153,9 @@ export const DECISIONS = {
 	chooseProphecy,
 	chooseSwap,
 	chooseLandmarkCard,
-};
+});
 
-/** @type {Record<string, import('./state.js').AutomaticKind>} */
-export const AUTOMATIC = {
+Object.assign(AUTOMATIC, {
 	effects: runEffects,
 	setupSteps: runSetupSteps,
 	bonus: offerBonus,
@@ -223,4 +223,6 @@ export const AUTOMATIC = {
 	statusQuoBonus,
 	retreatTo,
 	surrenderDice,
-};
+});
+
+export { DECISIONS, AUTOMATIC };

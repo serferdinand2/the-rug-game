@@ -4,7 +4,7 @@ import { emit } from '../events.js';
 import { advances } from './choose-advance.js';
 import { startIncomeTurn } from '../income.js';
 import { triggered } from '../abilities.js';
-import { civsOf } from '../civs/index.js';
+import { civsOf } from '../civs/registry.js';
 
 /**
  * Whether a player could pay for some advance holding other resources, for the civilizations whose turn-start offer

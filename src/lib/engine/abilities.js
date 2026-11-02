@@ -2,7 +2,7 @@
 import { emit } from './events.js';
 import { isPlayerSeat, playerSeat, seatOf } from './state.js';
 import { ERA_HOOKS } from './eras.js';
-import { civsOf } from './civs/index.js';
+import { civsOf } from './civs/registry.js';
 import { EXPANSION_SPACE_TILES } from './data/space-tiles.js';
 
 /** @typedef {import('./data/ids.js').TrackId} TrackId */

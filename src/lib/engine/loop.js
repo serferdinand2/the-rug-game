@@ -1,6 +1,6 @@
 // The run loop: runs automatic operations until a decision needs a player.
 import { push, pushGroup, isDecision } from './stack.js';
-import { AUTOMATIC } from './kinds.js';
+import { AUTOMATIC } from './registry.js';
 
 /** @typedef {import('./state.js').State} State */
 /** @typedef {(import('./state.js').Operation | import('./state.js').Group)[]} Stack */

@@ -2,7 +2,7 @@
 import { emit } from './events.js';
 import { shuffle } from './random.js';
 import { playerSeat } from './state.js';
-import { civsOf, findCiv } from './civs/index.js';
+import { civsOf, findCiv } from './civs/registry.js';
 import { INFILTRATORS_DRAW } from './civs/infiltrators.js';
 
 /**
