@@ -204,6 +204,13 @@ test("the Utilitarians' boxes are the spots of their landmarks; a token out draw
 		effects.map((/** @type {any} */ e) => e.spot),
 		UTILITARIANS_LANDMARKS
 	);
+	// The Lighthouse comes before or after the advance (03 §1.8).
+	assert.equal(
+		words(
+			effects.find((/** @type {any} */ e) => e.spot === 'lighthouse').text
+		),
+		'Once each advance turn, before or after you advance, you may discard 2 territory tiles to gain [any].'
+	);
 	assert.equal(
 		sectionOf(civCard('utilitarians'), 'tokenReserve').props.count,
 		UTILITARIANS_TOKENS

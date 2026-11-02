@@ -93,6 +93,8 @@ import {
 	utilitariansPlace,
 	utilitariansOffer,
 	utilitariansToken,
+	utilitariansLighthouse,
+	utilitariansLighthouseUsed,
 } from './civs/utilitarians.js';
 import { heraldsToken } from './civs/heralds.js';
 import { historiansToken, historiansDiscard } from './civs/historians.js';
@@ -199,6 +201,8 @@ export const AUTOMATIC = {
 	utilitariansPlace,
 	utilitariansOffer,
 	utilitariansToken,
+	utilitariansLighthouse,
+	utilitariansLighthouseUsed,
 	militantsTake,
 	militantsUncover,
 	militantsCover,

@@ -53,6 +53,10 @@ export const chooseTrade = {
 				ordered: true,
 				source: decision.source,
 			},
+			// What follows a trade made, such as the Utilitarians marking their Lighthouse used (#33).
+			...(decision.then
+				? [{ ...structuredClone(decision.then), player }]
+				: []),
 		]);
 	},
 };

@@ -5,6 +5,12 @@ import { playerSeat, seatOf } from '../state.js';
 /** @typedef {import('../state.js').Context} Context */
 
 /**
+ * Whether a player could pay for some advance holding these resources instead of their own; the turn choice gives it
+ * to `opensAdvance`, and the `advanceTurnStarted` triggers in their payload (#33).
+ * @typedef {(resources: Record<import('../data/ids.js').ResourceId, number>) => boolean} Affordable
+ */
+
+/**
  * A civilization's rules. Each module in this folder exports one, and keeps its own state in `seat.civData[id]`.
  * @typedef {Object} Civ
  * @property {string} id - The catalog id, such as 'the-chosen'
@@ -13,6 +19,9 @@ import { playerSeat, seatOf } from '../state.js';
  * @property {number[]} [incomeTurns] - The income turns its ability fires on, usually [2, 3, 4, 5]
  * @property {(ctx: Context, player: number, turn: number) => void} [income] - The ability in step 1
  * @property {Record<string, import('../eras.js').Hook>} [hooks] - #19's trigger handlers; every operation they return is passive
+ * @property {(state: import('../state.js').State, player: number, affordable: Affordable) => boolean} [opensAdvance] -
+ *   Whether what its `advanceTurnStarted` hook offers would make an advance affordable for a player who can't afford
+ *   one now, so the turn choice offers an advance turn (the Utilitarians' Lighthouse, #33)
  * @property {(ctx: Context, player: number) => void} [firstTurnEnd] - At the end of income turn 1
  * @property {{ setup?: (ctx: Context, player: number) => void, firstTurnEnd?: (ctx: Context, player: number) => void }} [adjustment] - Current version only, the setup civilization only (R34)
  */

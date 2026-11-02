@@ -3336,12 +3336,13 @@ test('the Forge: while its token is out, each of their own upgrades to the top r
 });
 
 /**
- * A conquest by seat 1, the Utilitarians with these tokens out, of seat 2's lone outpost; seat 2 holds no card, so
- * nobody is asked to respond.
+ * A conquest by seat 1, the Utilitarians with these tokens out, of seat 2's lone outpost; seat 2 holds `hand`, so with
+ * none nobody is asked to respond.
  * @param {string[]} active
+ * @param {string[]} [hand]
  */
-function barracksConquest(active) {
-	const state = /** @type {any} */ (conquestGame([], PP));
+function barracksConquest(active, hand = []) {
+	const state = /** @type {any} */ (conquestGame(hand, PP));
 	state.pending.length = 0;
 	const seat = state.seats[0];
 	seat.civs = ['utilitarians'];
@@ -3384,6 +3385,36 @@ test("the Barracks: while its token is out, every conquest also gains the red di
 	assert.deepEqual(conquest(['barracks'], null), [10, 1, 5]);
 	assert.deepEqual(conquest([], 'black'), [0, 1, 0]);
 	assert.deepEqual(conquest([], null), [5, 1, 0]);
+});
+
+test('the Barracks also answer a conquest a trap answered, as the dice always roll (03 §1.3, R107)', () => {
+	const state = barracksConquest(['barracks'], ['trap-1']);
+	state.supply.tapestry.deck = state.supply.tapestry.deck.filter(
+		(/** @type {string} */ card) => card !== 'trap-1'
+	);
+	const asked = pushed(state, dice(), [
+		{ player: 1, kind: 'effects', effects: [{ conquer: {} }] },
+	]);
+	const trapped = answer(asked, dice(), 2, 'chooseResponse', {
+		card: 'trap-1',
+	});
+	// The trap's resource, then the attacker's dice: red 5 VP, black 1 culture.
+	const rolled = answer(trapped, dice(1, 3), 2, 'chooseResource', {
+		resources: { coin: 1 },
+	});
+	assert.deepEqual(eventsOf(rolled, 'conquered', state.seq), [
+		{ type: 'conquered', player: 1, hex: '-2_-1', trapped: true },
+	]);
+	const kept = answer(rolled, dice(), 1, 'chooseDie', { die: 'black' });
+	assert.deepEqual(openDecisions(kept), []);
+	const [before, after] = [state.seats[0], kept.seats[0]];
+	assert.deepEqual(
+		[
+			after.vp - before.vp,
+			after.resources.culture - before.resources.culture,
+		],
+		[5, 1]
+	);
 });
 
 test("a base game's conquest is unchanged: nothing but the Utilitarians answers the dice rolled (conquerRolled, #33)", () => {
@@ -3436,11 +3467,13 @@ test("a base game's conquest is unchanged: nothing but the Utilitarians answers 
 
 /**
  * A readyTurn() in which the current player holds the Utilitarians, owns the Lighthouse, has a token beside each of
- * `active` and holds `tiles` territory tiles from the stack.
+ * `active`, holds `tiles` territory tiles from the stack and these resources, and has its tokens where `tracks` puts
+ * them (the others where they stand).
  * @param {string[]} active
  * @param {number} tiles
+ * @param {{ resources?: Record<string, number>, tracks?: Record<string, number[]> }} [options]
  */
-function lighthouseTurn(active, tiles) {
+function lighthouseTurn(active, tiles, { resources, tracks = {} } = {}) {
 	return turnHolding('utilitarians', (seat, state) => {
 		state.landmarks = state.landmarks.filter(
 			(/** @type {string} */ id) => id !== 'lighthouse'
@@ -3448,9 +3481,56 @@ function lighthouseTurn(active, tiles) {
 		seat.besideMat.push('lighthouse');
 		seat.civData.utilitarians = { active: [...active] };
 		seat.territoryTiles = state.supply.territory.splice(0, tiles);
-		seat.resources = { coin: 3, worker: 3, food: 3, culture: 3 };
+		seat.resources = resources ?? {
+			coin: 3,
+			worker: 3,
+			food: 3,
+			culture: 3,
+		};
+		Object.assign(seat.tracks, structuredClone(tracks));
 	});
 }
+
+/**
+ * Answers an advance turn on: the advance on `track`, then every decision with its first answer, until the player's
+ * Lighthouse is offered or their turn is over.
+ * @param {any} state - The advance chosen, the advance open
+ * @param {any} random
+ * @param {number} player
+ * @param {string} track
+ */
+function advanceThrough(state, random, player, track) {
+	const advance = /** @type {any} */ (decisionOf(state, 'chooseAdvance'));
+	let next = answer(
+		state,
+		random,
+		player,
+		'chooseAdvance',
+		/** @type {any} */ (
+			DECISIONS.chooseAdvance
+				.answers(state, advance)
+				.find((/** @type {any} */ a) => a.track === track)
+		)
+	);
+	for (let step = 0; step < 50; step++) {
+		const [open] = openDecisions(next);
+		if (
+			!open ||
+			next.current !== player ||
+			(open.kind === 'chooseTrade' && open.purpose === 'lighthouse')
+		) {
+			return next;
+		}
+		next = answerFirst(next, random, open.player, open.kind);
+	}
+	throw new Error('The advance never ended.');
+}
+
+/** The player's open Lighthouse trade, if any. */
+const lighthouseOf = (/** @type {any} */ state) =>
+	openDecisions(state).find(
+		(d) => d.kind === 'chooseTrade' && d.purpose === 'lighthouse'
+	);
 
 test('the Lighthouse: while its token is out, each advance turn starts with the offer to discard 2 territory tiles for 1 resource of their choice, before the advance (03 §1.3, §1.8)', () => {
 	const r = lighthouseTurn(['lighthouse'], 3);
@@ -3494,16 +3574,35 @@ test('the Lighthouse: while its token is out, each advance turn starts with the 
 		)
 	);
 	assert.equal(after.resources.coin, 4);
-	// Then the advance, and no second offer this turn.
+	// Then the advance; used once, it isn't offered again after it.
 	assert.equal(
 		/** @type {any} */ (decisionOf(traded, 'chooseAdvance'))?.player,
 		r.player
 	);
+	const done = advanceThrough(traded, r.random, r.player, 'science');
+	assert.equal(lighthouseOf(done), undefined);
+	assert.notEqual(done.current, r.player);
 	const declined = answer(asked, r.random, r.player, 'chooseTrade', {
 		offer: null,
 	});
 	assert.ok(decisionOf(declined, 'chooseAdvance'));
 	assert.deepEqual(declined.seats[r.player - 1].territoryTiles, tiles);
+	// Declined at the start, it is offered once more after the advance, and only once.
+	const later = advanceThrough(declined, r.random, r.player, 'science');
+	const again = /** @type {any} */ (lighthouseOf(later));
+	assert.deepEqual(
+		[again?.player, again?.optional, again?.offers],
+		[
+			r.player,
+			true,
+			[{ pay: { territory: 2 }, gain: [{ gain: { any: 1 } }] }],
+		]
+	);
+	const passed = answer(later, r.random, r.player, 'chooseTrade', {
+		offer: null,
+	});
+	assert.equal(lighthouseOf(passed), undefined);
+	assert.notEqual(passed.current, r.player);
 
 	// Off, or with a single tile: no offer.
 	for (const [active, count] of /** @type {[string[], number][]} */ ([
@@ -3526,6 +3625,123 @@ test('the Lighthouse: while its token is out, each advance turn starts with the 
 		turn: 'income',
 	});
 	assert.equal(decisionOf(income, 'chooseTrade'), undefined);
+});
+
+test('the Lighthouse unused at the start of an advance turn is offered after the advance, so tiles the advance gave can be spent (03 §1.3, §1.8)', () => {
+	// No tile at the start: nothing is offered before the advance.
+	const r = lighthouseTurn(['lighthouse'], 0);
+	const asked = answer(r.state, r.random, r.player, 'chooseTurn', {
+		turn: 'advance',
+	});
+	assert.equal(lighthouseOf(asked), undefined);
+	// Scouting gives 2 territory tiles, which the Lighthouse then takes.
+	const later = advanceThrough(asked, r.random, r.player, 'exploration');
+	const tiles = /** @type {any} */ (later.seats[r.player - 1]).territoryTiles;
+	assert.equal(tiles.length, 2);
+	assert.deepEqual(answersOf(later, 'chooseTrade'), [
+		{ offer: null },
+		{ offer: 0, pay: { territory: tiles } },
+	]);
+	const traded = answer(
+		answer(later, r.random, r.player, 'chooseTrade', {
+			offer: 0,
+			pay: { territory: tiles },
+		}),
+		r.random,
+		r.player,
+		'chooseResource',
+		{ resources: { worker: 1 } }
+	);
+	assert.deepEqual(traded.seats[r.player - 1].territoryTiles, []);
+	assert.equal(lighthouseOf(traded), undefined);
+	assert.notEqual(traded.current, r.player);
+	// Off, nothing after the advance either.
+	const off = lighthouseTurn([], 0);
+	const offAsked = answer(off.state, off.random, off.player, 'chooseTurn', {
+		turn: 'advance',
+	});
+	const offDone = advanceThrough(
+		offAsked,
+		off.random,
+		off.player,
+		'exploration'
+	);
+	assert.equal(lighthouseOf(offDone), undefined);
+	assert.notEqual(offDone.current, off.player);
+});
+
+test('a player who can afford an advance only with the Lighthouse may take an advance turn: it opens with the Lighthouse, which must pay for a resource that opens an advance (03 §1.3, §1.8)', () => {
+	// One coin; exploration's next space costs 1 food and 1 resource, the other tracks are finished.
+	const tracks = {
+		exploration: [3],
+		science: [12],
+		technology: [12],
+		military: [12],
+	};
+	const resources = { coin: 1, worker: 0, food: 0, culture: 0 };
+	const r = lighthouseTurn(['lighthouse'], 3, { resources, tracks });
+	const turn = /** @type {any} */ (decisionOf(r.state, 'chooseTurn'));
+	assert.deepEqual(turn.options, ['income', 'advance']);
+	const asked = answer(r.state, r.random, r.player, 'chooseTurn', {
+		turn: 'advance',
+	});
+	const trade = /** @type {any} */ (lighthouseOf(asked));
+	assert.deepEqual(
+		[trade?.player, trade?.optional, trade?.offers],
+		[
+			r.player,
+			false,
+			[{ pay: { territory: 2 }, gain: [{ gain: { food: 1 } }] }],
+		]
+	);
+	const tiles = [
+		.../** @type {any} */ (r.state.seats[r.player - 1]).territoryTiles,
+	];
+	assert.deepEqual(answersOf(asked, 'chooseTrade'), [
+		{ offer: 0, pay: { territory: [tiles[0], tiles[1]] } },
+		{ offer: 0, pay: { territory: [tiles[0], tiles[2]] } },
+		{ offer: 0, pay: { territory: [tiles[1], tiles[2]] } },
+	]);
+	const traded = answer(asked, r.random, r.player, 'chooseTrade', {
+		offer: 0,
+		pay: { territory: [tiles[0], tiles[1]] },
+	});
+	assert.equal(traded.seats[r.player - 1].resources.food, 1);
+	assert.deepEqual(
+		answersOf(traded, 'chooseAdvance').map((a) => [a.track, a.from]),
+		[['exploration', 3]]
+	);
+	// It was used at the start, so it isn't offered after the advance.
+	const done = advanceThrough(traded, r.random, r.player, 'exploration');
+	assert.equal(lighthouseOf(done), undefined);
+
+	// Off, with a single tile, or with nothing one more resource opens: an income turn only.
+	for (const [
+		active,
+		count,
+		coin,
+	] of /** @type {[string[], number, number][]} */ ([
+		[[], 3, 1],
+		[['lighthouse'], 1, 1],
+		[['lighthouse'], 3, 0],
+	])) {
+		const other = lighthouseTurn(active, count, {
+			resources: { ...resources, coin },
+			tracks,
+		});
+		assert.deepEqual(
+			/** @type {any} */ (decisionOf(other.state, 'chooseTurn')).options,
+			['income'],
+			`${active} ${count} ${coin}`
+		);
+	}
+	// Only the Utilitarians open an advance turn so: a base game's turn choice is unchanged.
+	assert.deepEqual(
+		Object.values(CIVS)
+			.filter((civ) => civ.opensAdvance)
+			.map((civ) => civ.id),
+		['utilitarians']
+	);
 });
 
 test('the Apothecary: while its token is out, gaining another landmark gains 1 resource of their choice; the Apothecary chosen at setup gives none (03 §1.3)', () => {

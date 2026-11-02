@@ -1555,7 +1555,7 @@ const RECIPES = {
 						label: 'Tiles',
 						symbolText: 12,
 						text: [
-							'Once each advance turn, you may discard 2 territory tiles to gain ',
+							'Once each advance turn, before or after you advance, you may discard 2 territory tiles to gain ',
 							res('any', true),
 							'.',
 						],

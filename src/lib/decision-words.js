@@ -204,7 +204,7 @@ const SLOT_TITLES = {
 const UTILITARIANS_ABILITIES = Object.freeze({
 	forge: 'whenever you upgrade a tech card to your top row, gain 1 resource of your choice',
 	barracks: "whenever you conquer, also gain the red die's result",
-	lighthouse: `at the start of each advance turn, you may discard ${amountWords('territory', LIGHTHOUSE_TRADE.pay.territory ?? 0)} to gain 1 resource of your choice`,
+	lighthouse: `once each advance turn, before or after you advance, you may discard ${amountWords('territory', LIGHTHOUSE_TRADE.pay.territory ?? 0)} to gain 1 resource of your choice`,
 	apothecary:
 		'whenever you gain another landmark, gain 1 resource of your choice',
 	...Object.fromEntries(
@@ -434,8 +434,15 @@ const TITLES = {
 	chooseLandmarkCard: () => 'Keep a landmark card',
 	chooseTrade: (d, table) => {
 		// The Utilitarians' Lighthouse (#33).
+		// Mandatory when only its resource pays for the turn's advance.
 		if (d.purpose === 'lighthouse') {
-			return `Use your Lighthouse: discard ${amountWords('territory', LIGHTHOUSE_TRADE.pay.territory ?? 0)} for a resource?`;
+			const tiles = amountWords(
+				'territory',
+				LIGHTHOUSE_TRADE.pay.territory ?? 0
+			);
+			return d.optional
+				? `Use your Lighthouse: discard ${tiles} for a resource?`
+				: `Use your Lighthouse: discard ${tiles} for a resource to advance with`;
 		}
 		const host = isCount(d.host) ? ` with ${seatName(table, d.host)}` : '';
 		return d.optional ? `Make a trade${host}?` : `Choose a trade${host}`;

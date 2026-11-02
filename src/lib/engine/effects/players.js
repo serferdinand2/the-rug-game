@@ -84,7 +84,8 @@ export function sharedAdvanceOn(ctx, op) {
 /**
  * Offers the player the trades they can pay for, one of which they must take unless `optional` (Guilds, Olympic Host).
  * Nothing affordable says so; a mandatory trade with one way to pay is made at once. A `purpose` names what offers it
- * for the panel, such as the Utilitarians' 'lighthouse' (#33).
+ * for the panel, such as the Utilitarians' 'lighthouse', and `then` is an operation (without its player) that follows
+ * a trade made, as their Lighthouse is marked used (#33).
  * @type {import('../state.js').EffectHandler}
  */
 export function trade(ctx, player, value, op) {
@@ -102,6 +103,7 @@ export function trade(ctx, player, value, op) {
 		optional: value.optional ?? false,
 		...(value.host !== undefined && { host: value.host }),
 		...(value.purpose !== undefined && { purpose: value.purpose }),
+		...(value.then !== undefined && { then: structuredClone(value.then) }),
 		source: op.source,
 	});
 	// A mandatory trade with one way to pay is made without asking.

@@ -538,7 +538,7 @@ test("the Utilitarians' landmark, their tokens and the Lighthouse's trade read a
 	assert.deepEqual(words(start), [
 		'Forge: whenever you upgrade a tech card to your top row, gain 1 resource of your choice',
 		"Barracks: whenever you conquer, also gain the red die's result",
-		'Lighthouse: at the start of each advance turn, you may discard 2 territory tiles to gain 1 resource of your choice',
+		'Lighthouse: once each advance turn, before or after you advance, you may discard 2 territory tiles to gain 1 resource of your choice',
 		'Apothecary: whenever you gain another landmark, gain 1 resource of your choice',
 	]);
 
@@ -615,6 +615,28 @@ test("the Utilitarians' landmark, their tokens and the Lighthouse's trade read a
 		[
 			'No trade',
 			'Discard territory tiles 4 and 16 to gain 1 resource of your choice',
+		]
+	);
+	// When only its resource pays for the turn's advance: mandatory, for the resources that open one.
+	const opening = {
+		...lighthouse,
+		optional: false,
+		offers: ['food', 'coin'].map((id) => ({
+			pay: { territory: 2 },
+			gain: [{ gain: { [id]: 1 } }],
+		})),
+	};
+	assert.equal(
+		decisionTitle(opening),
+		'Use your Lighthouse: discard 2 territory tiles for a resource to advance with'
+	);
+	assert.deepEqual(
+		[0, 1].map((offer) =>
+			describeAnswer(opening, { offer, pay: { territory: [4, 16] } })
+		),
+		[
+			'Discard territory tiles 4 and 16 to gain 1 food',
+			'Discard territory tiles 4 and 16 to gain 1 coin',
 		]
 	);
 });

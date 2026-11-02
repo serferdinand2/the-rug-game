@@ -7,17 +7,21 @@ import { canPay } from '../payment.js';
 import { landmarksOwned } from '../effects/vp.js';
 import { LANDMARKS } from '../data/landmarks.js';
 import { RED_DIE } from '../data/dice.js';
-import { deepFreeze } from '../data/ids.js';
+import { RESOURCE_IDS, deepFreeze } from '../data/ids.js';
+import { tierOf } from '../data/tracks.js';
+import { RESOURCE_CAP } from '../effects/gain.js';
 
 /** @typedef {import('../state.js').Context} Context */
 /** @typedef {import('../state.js').State} State */
 /** @typedef {import('../state.js').NewOperation} NewOperation */
+/** @typedef {import('./civ.js').Affordable} Affordable */
 
 /**
  * The Utilitarians' own state.
  * @typedef {Object} UtilitariansData
  * @property {string[]} active - The listed landmarks with a token beside them, in the order placed; the other tokens
  *   wait on the mat
+ * @property {number} [lighthouseTurn] - The turn (`state.turn`) they last used the Lighthouse: once each advance turn
  */
 
 /**
@@ -68,7 +72,7 @@ const SOURCES = UTILITARIANS_LANDMARKS.map((id) => {
 	};
 });
 
-/** The tier III landmarks: each one's ability rewards advancing on its own track from its space on (03 §1.3). */
+/** The tier III landmarks: each one's ability rewards advancing into tier III or IV of its own track (03 §1.3). */
 const TIER_THREE = SOURCES.filter(({ tier }) => tier === 3);
 
 /**
@@ -98,6 +102,69 @@ function isOn(state, player, landmark) {
  */
 function gainAny(player) {
 	return { player, kind: 'effects', effects: [{ gain: { any: 1 } }] };
+}
+
+/**
+ * Whether they may use the Lighthouse now: its token out, 2 territory tiles to pay with, and not used this turn.
+ * @param {State} state
+ * @param {number} player
+ */
+function lighthouseReady(state, player) {
+	const data = dataOf(state, player);
+	return (
+		data !== undefined &&
+		data.active.includes('lighthouse') &&
+		data.lighthouseTurn !== state.turn &&
+		canPay(state, player, LIGHTHOUSE_TRADE.pay)
+	);
+}
+
+/**
+ * The resources one more of which would make an advance affordable, those already at the cap left out.
+ * @param {State} state
+ * @param {number} player
+ * @param {Affordable} affordable
+ * @returns {import('../data/ids.js').ResourceId[]}
+ */
+function opening(state, player, affordable) {
+	const { resources } = playerSeat(state, player);
+	return RESOURCE_IDS.filter(
+		(id) =>
+			resources[id] < RESOURCE_CAP &&
+			affordable({ ...resources, [id]: resources[id] + 1 })
+	);
+}
+
+/**
+ * The Lighthouse's trade: optional, for any 1 resource; or, when only its resource makes the turn's advance
+ * affordable, mandatory and for one of the resources in `only`, so the advance always has an answer. Made, it is
+ * marked used for the turn.
+ * @param {number} player
+ * @param {import('../data/ids.js').ResourceId[] | null} only
+ * @returns {NewOperation}
+ */
+function lighthouseOp(player, only) {
+	const offers =
+		only === null
+			? [structuredClone(LIGHTHOUSE_TRADE)]
+			: only.map((id) => ({
+					pay: structuredClone(LIGHTHOUSE_TRADE.pay),
+					gain: [{ gain: { [id]: 1 } }],
+				}));
+	return {
+		player,
+		kind: 'effects',
+		effects: [
+			{
+				trade: {
+					offers,
+					optional: only === null,
+					purpose: 'lighthouse',
+					then: { kind: 'utilitariansLighthouseUsed' },
+				},
+			},
+		],
+	};
 }
 
 /**
@@ -222,9 +289,36 @@ export function utilitariansToken(ctx, op) {
 	activate(ctx, /** @type {number} */ (op.player), op.slot);
 }
 
+/**
+ * After an advance turn's advance and all it gave: the Lighthouse, if they didn't use it as the turn started, so a tile
+ * the advance gave can be spent (03 §1.3, §1.8).
+ * @type {import('../state.js').AutomaticKind}
+ */
+export function utilitariansLighthouse(ctx, op) {
+	const player = /** @type {number} */ (op.player);
+	if (lighthouseReady(ctx.state, player)) {
+		ctx.push([lighthouseOp(player, null)]);
+	}
+}
+
+/**
+ * The Lighthouse's trade was made: it is used for this turn.
+ * @type {import('../state.js').AutomaticKind}
+ */
+export function utilitariansLighthouseUsed(ctx, op) {
+	const data = /** @type {UtilitariansData} */ (
+		dataOf(ctx.state, /** @type {number} */ (op.player))
+	);
+	data.lighthouseTurn = ctx.state.turn;
+}
+
 /** @type {import('./civ.js').Civ} */
 export const utilitarians = {
 	id: 'utilitarians',
+	// The Lighthouse's resource may open an advance turn that nothing else can pay for (#33 ruling).
+	opensAdvance: (state, player, affordable) =>
+		lighthouseReady(state, player) &&
+		opening(state, player, affordable).length > 0,
 	// The tier II landmark only for whoever starts with them; gained later, tokens for landmarks owned (R113).
 	setup(ctx, player, midGame) {
 		const { state } = ctx;
@@ -279,7 +373,8 @@ export const utilitarians = {
 			isOn(state, owner, 'forge')
 				? [gainAny(owner)]
 				: [],
-		// The Barracks: the red die's result again, whichever die they keep, so twice with both dice (03 §1.3).
+		// The Barracks: the red die's result again, whichever die they keep, so twice with both dice (03 §1.3), and after
+		// a trap too, as the dice always roll (R107).
 		conquerRolled: (state, owner, { player, red }) =>
 			owner === player && isOn(state, owner, 'barracks')
 				? [
@@ -290,28 +385,22 @@ export const utilitarians = {
 						},
 					]
 				: [],
-		// The Lighthouse: offered as each advance turn starts, before the advance (03 §1.8 allows either; my call).
-		advanceTurnStarted: (state, owner, { player }) =>
-			owner === player &&
-			isOn(state, owner, 'lighthouse') &&
-			canPay(state, owner, LIGHTHOUSE_TRADE.pay)
-				? [
-						{
-							player: owner,
-							kind: 'effects',
-							effects: [
-								{
-									trade: {
-										offers: [
-											structuredClone(LIGHTHOUSE_TRADE),
-										],
-										optional: true,
-										purpose: 'lighthouse',
-									},
-								},
-							],
-						},
-					]
+		// The Lighthouse, once each advance turn, before or after the advance (03 §1.8): offered as the turn starts; and when
+		// only its resource pays for an advance, the turn starts with it, for such a resource (#33 ruling).
+		advanceTurnStarted(state, owner, { player, affordable }) {
+			if (owner !== player || !lighthouseReady(state, owner)) {
+				return [];
+			}
+			if (affordable(playerSeat(state, owner).resources)) {
+				return [lighthouseOp(owner, null)];
+			}
+			const only = opening(state, owner, affordable);
+			return only.length > 0 ? [lighthouseOp(owner, only)] : [];
+		},
+		// Unused as the turn started, the Lighthouse is offered again after the advance, judged then.
+		afterAdvance: (state, owner, { player }) =>
+			owner === player && dataOf(state, owner)
+				? [{ player: owner, kind: 'utilitariansLighthouse' }]
 				: [],
 		// Rubber Works, Tank Factory, Train Station and Academy: an advance into tier III or IV of their own track.
 		advanced(state, owner, { player, track, to }) {
@@ -319,8 +408,8 @@ export const utilitarians = {
 				return [];
 			}
 			return TIER_THREE.filter(
-				({ id, track: own, space }) =>
-					own === track && to >= space && isOn(state, owner, id)
+				({ id, track: own }) =>
+					own === track && tierOf(to) >= 3 && isOn(state, owner, id)
 			).map(() => ({
 				player: owner,
 				kind: 'effects',
