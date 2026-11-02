@@ -243,7 +243,7 @@ export function firstIncomeNotice(view, seat) {
 /**
  * The footer to show, with every word in it, as TurnBar takes them (#86).
  * @typedef {Object} FooterView
- * @property {'none' | 'overview' | 'over' | 'incomeAsk' | 'trackAsk' | 'forcedIncome' | 'selected' | 'turn' | 'income' | 'decision' | 'setup' | 'waiting'} kind
+ * @property {'none' | 'overview' | 'over' | 'incomeAsk' | 'trackAsk' | 'forcedIncome' | 'opening' | 'selected' | 'turn' | 'income' | 'decision' | 'setup' | 'waiting'} kind
  * @property {import('./components/prompts/TurnBar.svelte').TurnBarTone} [tone]
  * @property {string} [label] - Left out for TurnBar's own 'Your turn'
  * @property {string} [labelColor] - Another player's colour, for their turn
@@ -256,12 +256,28 @@ export function firstIncomeNotice(view, seat) {
  * @property {{ track: TrackId, label: string, enabled: boolean }[]} [tracks] - The track question's choices, by key
  * @property {{ enabled: boolean, title: string | undefined }} [advance] - The selected space's Advance button
  * @property {boolean} [takeIncome] - Forced income's Take income button shows
+ * @property {boolean} [openAdvance] - The opening footer's Advance button shows: it answers the turn choice alone (#33)
  */
 
 /**
+ * What opens an advance turn the viewer can't yet pay for, in words: the Utilitarians' Lighthouse, whose resource
+ * comes as the turn starts (#33), or their civilization.
+ * @param {any} game - The viewer's game view
+ * @param {number | null} seat
+ * @returns {string}
+ */
+function openerWords(game, seat) {
+	const data = seat === null ? null : game.seats?.[seat - 1]?.civData;
+	return data?.utilitarians?.active?.includes('lighthouse')
+		? 'Lighthouse'
+		: 'civilization';
+}
+
+/**
  * Which footer the game screen shows, and what it says (#86): the first that applies of the players overview's
- * close bar, game over, the income question, the track question, forced income, a selected space, the turn choice,
- * the viewer's income turn, their other decisions, setup and waiting for another player; or none.
+ * close bar, game over, the income question, the track question, forced income, an advance turn only an offer at its
+ * start can pay for (#33), a selected space, the turn choice, the viewer's income turn, their other decisions, setup
+ * and waiting for another player; or none.
  * @param {any} game - The viewer's game view
  * @param {number | null} seat - The viewer's seat, or null for the public view
  * @param {FooterInputs} inputs
@@ -324,6 +340,19 @@ export function footerView(game, seat, inputs) {
 			heading: "You can't pay for any advance, so take an income turn.",
 			detail: incomeDescription,
 			takeIncome: !inputs.noticeOpen,
+		};
+	}
+	// The turn choice offers an advance none of which can be paid for yet: the Lighthouse's resource opens one (#33).
+	// Advance answers the turn choice alone; the offer and the advance then come as their own prompts.
+	if (choosing && options.length === 0 && turn.options.includes('advance')) {
+		const opener = openerWords(game, seat);
+		return {
+			kind: 'opening',
+			tone: 'neutral',
+			heading: `Advance by first using your ${opener}, or take income.`,
+			detail: `No advance is affordable yet: the ${opener}’s resource will pay for one.`,
+			income: income(false),
+			openAdvance: !inputs.noticeOpen,
 		};
 	}
 	if (turn && selected) {

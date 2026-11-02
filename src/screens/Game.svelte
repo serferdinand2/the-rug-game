@@ -62,7 +62,7 @@
 		myDecision,
 		trackPreviewSeat,
 	} from '../lib/turn.js';
-	import { sendAdvance } from '../lib/moves.js';
+	import { keptAnswer, sendAdvance } from '../lib/moves.js';
 
 	/** @typedef {import('../lib/component-event.js').ComponentEvent} ComponentEvent */
 	/** @typedef {import('../lib/ui.js').TrackId} TrackId */
@@ -268,6 +268,31 @@
 		}
 	});
 
+	/** An advance picked from the turn choice while a decision came first, such as the Lighthouse trade (#33). */
+	let kept = $state(
+		/** @type {import('../lib/moves.js').KeptAdvance | null} */ (null)
+	);
+	// Once the advance opens, the kept one answers it while it is still offered; a new turn choice, or none, drops it.
+	$effect(() => {
+		const decision = mine;
+		const advance = kept;
+		if (!advance || untrack(() => sending)) {
+			return;
+		}
+		if (decision?.kind === 'chooseAdvance') {
+			kept = null;
+			const action = keptAnswer(decision, advance);
+			if (action) {
+				sending = true;
+				store.move(action).then(() => {
+					sending = false;
+				});
+			}
+		} else if (!decision || decision.kind === 'chooseTurn') {
+			kept = null;
+		}
+	});
+
 	// A card shown in full goes when what it was shown from may have gone: another tab, seat or decision (#27 review).
 	$effect(() => {
 		tab;
@@ -413,7 +438,10 @@
 			() => myDecision(store.room.game, store.seat),
 			turnDecision,
 			option,
-			option.payments[pay === -1 ? 0 : pay]
+			option.payments[pay === -1 ? 0 : pay],
+			(advance) => {
+				kept = advance;
+			}
 		);
 		if (!moved) {
 			sending = false;
@@ -421,6 +449,24 @@
 		}
 		selected = null;
 		promptState.clearPayment();
+		sending = false;
+	};
+
+	/** Answers the turn choice alone, for an advance turn only the Lighthouse's resource can pay for (#33). */
+	const openAdvanceHandler = async () => {
+		if (!turnDecision || turnDecision.kind !== 'chooseTurn' || sending) {
+			return;
+		}
+		clearQuestion();
+		sending = true;
+		await sendAdvance(
+			(action) => store.move(action),
+			() => myDecision(store.room.game, store.seat),
+			turnDecision,
+			null,
+			undefined
+		);
+		selected = null;
 		sending = false;
 	};
 
@@ -645,6 +691,7 @@
 		onTurnFooterIncomeAsk={incomeAskHandler}
 		onTurnFooterIncome={incomeHandler}
 		onTurnFooterAdvance={() => advanceHandler()}
+		onTurnFooterOpen={openAdvanceHandler}
 		onTurnFooterTrack={(/** @type {ComponentEvent} */ event) =>
 			trackPickHandler(event.value)}
 		onTurnFooterCancel={clearQuestion}

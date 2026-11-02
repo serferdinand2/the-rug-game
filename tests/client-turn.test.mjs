@@ -22,10 +22,12 @@ import {
 	takingTurnWords,
 	trackPreviewSeat,
 } from '../src/lib/turn.js';
+import { keptAnswer, sendAdvance } from '../src/lib/moves.js';
 import {
 	answer,
 	conquestGame,
 	newGame,
+	readyTurn,
 	startedGame,
 } from './helpers/engine.mjs';
 
@@ -217,6 +219,62 @@ test("forcedIncome: the viewer's turn offers only income (#77)", () => {
 	assert.equal(forcedIncome(view(empty, null), null), false);
 	const { state: paid } = startedGame(2, { keepIncome: true });
 	assert.equal(forcedIncome(view(paid, first), first), false);
+});
+
+test('an advance picked in the footer survives the Lighthouse trade that opens the turn, and is sent once the advance opens (#33)', async () => {
+	const {
+		state: ready,
+		random,
+		player,
+	} = readyTurn(
+		2,
+		(seat, s) => {
+			seat.civs = ['utilitarians'];
+			seat.civData = { utilitarians: { active: ['lighthouse'] } };
+			s.landmarks = s.landmarks.filter(
+				(/** @type {string} */ id) => id !== 'lighthouse'
+			);
+			seat.besideMat.push('lighthouse');
+			seat.territoryTiles = s.supply.territory.splice(0, 2);
+			seat.resources = { coin: 1, worker: 1, food: 1, culture: 1 };
+		},
+		{ expansions: ['pp'] }
+	);
+	let state = ready;
+	/** The store's move, played on the engine. */
+	const move = async (/** @type {any} */ action) => {
+		state = play(state, player, action, random);
+		return true;
+	};
+	const mine = () => myDecision(view(state, player), player);
+	const option = /** @type {any} */ (
+		advanceOptions(view(state, player), player).find(
+			(o) => o.track === 'science'
+		)
+	);
+	/** @type {any[]} */
+	const kept = [];
+	await sendAdvance(
+		move,
+		mine,
+		mine(),
+		option,
+		option.payments[0],
+		(/** @type {any} */ advance) => kept.push(advance)
+	);
+	// The Lighthouse's offer came first: the advance is kept, not sent.
+	assert.equal(mine()?.kind, 'chooseTrade');
+	assert.deepEqual(kept, [
+		{ track: 'science', from: 0, pay: option.payments[0] },
+	]);
+	await move({ decision: mine().id, offer: null });
+	const advance = keptAnswer(mine(), kept[0]);
+	assert.ok(advance);
+	await move(advance);
+	assert.deepEqual(
+		/** @type {any} */ (state.seats[player - 1]).tracks.science,
+		[1]
+	);
 });
 
 test('takingTurnWords names the income turn the seat is in (#77)', () => {

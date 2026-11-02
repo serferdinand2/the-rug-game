@@ -8,6 +8,8 @@
 	 * @property {Function} [onTurnFooterIncomeAsk] - Callback fired when Take income is pressed, before it is asked
 	 * @property {Function} [onTurnFooterIncome] - Callback fired when the income question's Take income is pressed
 	 * @property {Function} [onTurnFooterAdvance] - Callback fired when the selected space's Advance is pressed
+	 * @property {Function} [onTurnFooterOpen] - Callback fired when Advance is pressed on an advance turn only an offer at
+	 *   its start can pay for, such as the Lighthouse's (#33)
 	 * @property {Function} [onTurnFooterTrack] - Callback fired with a track chosen in the track question
 	 * @property {Function} [onTurnFooterCancel] - Callback fired when the income or track question is cancelled
 	 * @property {Function} [onTurnFooterResults] - Callback fired when a finished game's Results is pressed
@@ -43,6 +45,7 @@
 		onTurnFooterIncomeAsk,
 		onTurnFooterIncome,
 		onTurnFooterAdvance,
+		onTurnFooterOpen,
 		onTurnFooterTrack,
 		onTurnFooterCancel,
 		onTurnFooterResults,
@@ -52,13 +55,14 @@
 		...attr
 	} = $props();
 
-	/** Only these footers have buttons of their own; forced income only while its button shows. */
+	/** Only these footers have buttons of their own; forced income and an opened advance only while their button shows. */
 	let hasActions = $derived(
 		view.kind === 'over' ||
 			view.kind === 'incomeAsk' ||
 			view.kind === 'trackAsk' ||
 			view.kind === 'selected' ||
-			(view.kind === 'forcedIncome' && Boolean(view.takeIncome))
+			(view.kind === 'forcedIncome' && Boolean(view.takeIncome)) ||
+			(view.kind === 'opening' && Boolean(view.openAdvance))
 	);
 
 	/**
@@ -104,6 +108,11 @@
 			mode="gold"
 			disabled={sending}
 			onButtonClick={report(onTurnFooterIncomeAsk)}>Take income</Button>
+	{:else if view.kind === 'opening'}
+		<Button
+			mode="primary"
+			disabled={sending}
+			onButtonClick={report(onTurnFooterOpen)}>Advance</Button>
 	{:else if view.kind === 'selected'}
 		<Button
 			mode="primary"

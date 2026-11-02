@@ -1,7 +1,8 @@
-// The turn footer (#86): footerView decides which of the eleven footers shows and every word in it.
+// The turn footer (#86): footerView decides which of the twelve footers shows and every word in it.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { render } from 'svelte/server';
 import { fileURLToPath } from 'node:url';
 import { view } from '../src/lib/engine/game.js';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
@@ -14,6 +15,7 @@ import {
 import { spaceWords, tierSymbols } from '../src/lib/board.js';
 import { playerColor } from '../src/lib/ui.js';
 import { readyTurn } from './helpers/engine.mjs';
+import TurnFooter from '../src/screens/game/TurnFooter.svelte';
 
 const RICH = { coin: 3, food: 3, worker: 3, culture: 3 };
 
@@ -184,6 +186,93 @@ test('the turn choice points at the outlined spaces and offers income, not under
 		footerView(game, player, { ...QUIET, options, noticeOpen: true })
 			.income,
 		null
+	);
+});
+
+/**
+ * The turn's player's view at their turn choice holding the Utilitarians and owning the Lighthouse, with a token beside
+ * it while `on`: 1 coin and 3 territory tiles; exploration's next space costs 1 food and 1 resource, and the other
+ * tracks are finished, so only the Lighthouse's resource could pay for an advance (#33).
+ * @param {boolean} on
+ */
+function lighthouseChoice(on) {
+	const { state, player } = readyTurn(
+		2,
+		(seat, s) => {
+			seat.civs = ['utilitarians'];
+			seat.civData = {
+				utilitarians: { active: on ? ['lighthouse'] : [] },
+			};
+			s.landmarks = s.landmarks.filter(
+				(/** @type {string} */ id) => id !== 'lighthouse'
+			);
+			seat.besideMat.push('lighthouse');
+			seat.territoryTiles = s.supply.territory.splice(0, 3);
+			seat.resources = { coin: 1, worker: 0, food: 0, culture: 0 };
+			Object.assign(seat.tracks, {
+				exploration: [3],
+				science: [12],
+				technology: [12],
+				military: [12],
+			});
+		},
+		{ expansions: ['pp'] }
+	);
+	const game = view(state, player);
+	return { game, player, options: advanceOptions(game, player) };
+}
+
+test('an advance only the Lighthouse can pay for: the footer offers Advance and says the Lighthouse opens it (#33)', () => {
+	const { game, player, options } = lighthouseChoice(true);
+	assert.deepEqual(options, []);
+	const footer = footerView(game, player, { ...QUIET, options });
+	assert.equal(footer.kind, 'opening');
+	assert.equal(footer.tone, 'neutral');
+	assert.equal(
+		footer.heading,
+		'Advance by first using your Lighthouse, or take income.'
+	);
+	assert.equal(
+		footer.detail,
+		'No advance is affordable yet: the Lighthouse’s resource will pay for one.'
+	);
+	assert.equal(footer.income?.label, 'Take income');
+	assert.equal(footer.openAdvance, true);
+	assert.equal(
+		footerView(game, player, { ...QUIET, options, noticeOpen: true })
+			.openAdvance,
+		false
+	);
+	// Its Advance button answers the turn choice alone (Game.svelte's openAdvanceHandler).
+	/** A server render without Svelte's hydration comments. @param {any} props */
+	const html = (props) =>
+		render(TurnFooter, { props }).body.replace(/<!--[\s\S]*?-->/g, '');
+	const body = html({ view: footer });
+	assert.match(body, /<button[^>]*>Advance<\/button>/);
+	assert.doesNotMatch(body, /<button[^>]*disabled[^>]*>Advance<\/button>/);
+	assert.doesNotMatch(
+		html({ view: { ...footer, openAdvance: false } }),
+		/>Advance<\/button>/
+	);
+	// A space picked on the tracks can't be advanced to yet, so the footer stays.
+	assert.equal(
+		footerView(game, player, {
+			...QUIET,
+			options,
+			selected: { track: 'exploration', space: 4 },
+		}).kind,
+		'opening'
+	);
+	// Without the Lighthouse's token the footer takes income, exactly as before.
+	const off = lighthouseChoice(false);
+	const forced = footerView(off.game, off.player, {
+		...QUIET,
+		options: off.options,
+	});
+	assert.equal(forced.kind, 'forcedIncome');
+	assert.equal(
+		forced.heading,
+		"You can't pay for any advance, so take an income turn."
 	);
 });
 

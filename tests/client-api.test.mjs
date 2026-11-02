@@ -8,6 +8,7 @@ import { ApiError, createApi, withSession } from '../src/lib/api.js';
 import { change, sameSeats } from '../src/lib/changes.js';
 import { boot } from '../src/lib/boot.js';
 import {
+	keptAnswer,
 	seatToShow,
 	sendAdvance,
 	sendMove,
@@ -415,4 +416,67 @@ test('a turn choice that opens no advance sends nothing more, but has moved the 
 	);
 	assert.equal(ok, true);
 	assert.equal(sent.length, 1);
+});
+
+test('an advance turn opened without a token picked answers the turn choice alone (the Lighthouse, #33)', async () => {
+	const { sent, move } = recorder([true]);
+	const ok = await sendAdvance(
+		move,
+		() => ({ id: 8, kind: 'chooseTrade' }),
+		{ id: 7, kind: 'chooseTurn' },
+		null,
+		undefined
+	);
+	assert.equal(ok, true);
+	assert.deepEqual(sent, [{ decision: 7, turn: 'advance' }]);
+});
+
+test('an advance picked before a decision that comes first, such as the Lighthouse trade, is kept, not dropped (#33)', async () => {
+	const { sent, move } = recorder([true]);
+	/** @type {any[]} */
+	const kept = [];
+	const ok = await sendAdvance(
+		move,
+		() => ({ id: 8, kind: 'chooseTrade' }),
+		{ id: 7, kind: 'chooseTurn' },
+		ADVANCE,
+		{ coin: 1 },
+		(/** @type {any} */ advance) => kept.push(advance)
+	);
+	assert.equal(ok, true);
+	assert.deepEqual(sent, [{ decision: 7, turn: 'advance' }]);
+	assert.deepEqual(kept, [{ track: 'science', from: 0, pay: { coin: 1 } }]);
+	// Once the advance opens, the kept one answers it while it is still offered.
+	const open = {
+		id: 9,
+		kind: 'chooseAdvance',
+		answers: [
+			{ track: 'science', from: 0, pay: { food: 1 } },
+			{ track: 'science', from: 0, pay: { coin: 1 } },
+		],
+	};
+	assert.deepEqual(keptAnswer(open, kept[0]), {
+		decision: 9,
+		track: 'science',
+		from: 0,
+		pay: { coin: 1 },
+	});
+	// Gone, or not an advance: the player picks again.
+	assert.equal(
+		keptAnswer({ ...open, answers: [open.answers[0]] }, kept[0]),
+		null
+	);
+	assert.equal(keptAnswer({ ...open, kind: 'chooseTrade' }, kept[0]), null);
+	assert.equal(keptAnswer(open, null), null);
+	// An advance that opens next keeps nothing.
+	const direct = recorder([true, true]);
+	await sendAdvance(
+		direct.move,
+		() => ({ id: 8, kind: 'chooseAdvance' }),
+		{ id: 7, kind: 'chooseTurn' },
+		ADVANCE,
+		{ coin: 1 },
+		() => assert.fail('nothing to keep')
+	);
+	assert.equal(direct.sent.length, 2);
 });

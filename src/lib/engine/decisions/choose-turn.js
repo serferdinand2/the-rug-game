@@ -78,6 +78,7 @@ export const chooseTurn = {
 		ctx.push([
 			...triggered(state, 'advanceTurnStarted', {
 				player,
+				// A function: hooks call it now and never spread the payload into an operation, so state stays plain data.
 				affordable: affordableWith(state, player),
 			}),
 			{ player, kind: 'chooseAdvance' },
