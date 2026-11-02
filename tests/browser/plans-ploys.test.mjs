@@ -3,7 +3,10 @@
 import { expect, test } from '@playwright/test';
 import { askedSeats } from '../../src/lib/engine/game.js';
 
-const NAMES = ['Mira', 'Teodor'];
+const NAMES = ['Mira', 'Teodor', 'Vera', 'Ana'];
+
+/** Most tables the Advisors test opens looking for a deal that includes them (the server allows 10 open per address). */
+const ATTEMPTS = 6;
 
 /**
  * Sends one table API request as a guest.
@@ -37,16 +40,26 @@ function ops(stack) {
 }
 
 /**
- * Answers setup's questions with their first answers through the API until `stop` says so about the open one.
+ * Answers the open questions through the API until `stop` says so about the open ones: with their first answers, or
+ * with the answers `choose` gives.
  * @param {import('@playwright/test').APIRequestContext} request
  * @param {string} token
- * @param {(kinds: string[], game: any) => boolean} stop
+ * @param {(kinds: string[], game: any, open: any[]) => boolean} stop
+ * @param {(op: any) => any} [choose] - The answer to an operation; the first one when left out
+ * @param {number} [limit] - Most answers before giving up
  */
-async function playUntil(request, token, stop) {
-	for (let moves = 0; moves < 200; moves++) {
+async function playUntil(
+	request,
+	token,
+	stop,
+	choose = (op) => op.answers[0],
+	limit = 200
+) {
+	for (let moves = 0; moves < limit; moves++) {
 		const view = await api(request, 'state', undefined, token);
-		const kinds = ops(view.game.pending ?? []).map((op) => op.kind);
-		if (stop(kinds, view.game)) {
+		const open = ops(view.game.pending ?? []);
+		const kinds = open.map((op) => op.kind);
+		if (stop(kinds, view.game, open)) {
 			return view;
 		}
 		const seat = askedSeats(view.game)[0];
@@ -60,12 +73,12 @@ async function playUntil(request, token, stop) {
 			{
 				version: own.version,
 				seat,
-				action: { decision: op.id, ...op.answers[0] },
+				action: { decision: op.id, ...choose(op) },
 			},
 			token
 		);
 	}
-	throw new Error('Setup never got there.');
+	throw new Error('The game never got there.');
 }
 
 test('a Plans & Ploys table drafts landmark cards on the shelf, and the Civ tab shows the card kept with its goal (#32)', async ({
@@ -164,5 +177,129 @@ test('a Plans & Ploys table drafts landmark cards on the shelf, and the Civ tab 
 			await api(request, 'end', { version: latest.version }, token);
 		}
 		await api(request, 'leave', {}, token);
+	}
+});
+
+/**
+ * Opens a four-seat hot-seat Plans & Ploys table with the variant that deals only its civilizations, and starts it.
+ * @param {import('@playwright/test').APIRequestContext} request
+ * @param {string} token
+ */
+async function startCivsTable(request, token) {
+	let room = await api(
+		request,
+		'create',
+		{
+			options: {
+				mode: 'hotseat',
+				expansions: ['pp'],
+				variants: ['civs-from-pp'],
+			},
+		},
+		token
+	);
+	for (const name of NAMES.slice(1)) {
+		room = await api(
+			request,
+			'add-seat',
+			{ version: room.version, name },
+			token
+		);
+	}
+	await api(request, 'start', { version: room.version }, token);
+}
+
+/**
+ * Ends the table and leaves it.
+ * @param {import('@playwright/test').APIRequestContext} request
+ * @param {string} token
+ */
+async function endTable(request, token) {
+	const latest = await api(request, 'state', undefined, token);
+	if (latest.phase === 'playing') {
+		await api(request, 'end', { version: latest.version }, token);
+	}
+	await api(request, 'leave', {}, token);
+}
+
+/** The Advisors' question about a neighbour's draw, not the one about new cards gained mid-game. */
+const isGift = (/** @type {any} */ op) =>
+	op.kind === 'chooseGive' && op.vp === undefined;
+
+test("the Advisors' owner is asked on the shelf to give a neighbour a tapestry card instead of their draw (#33)", async ({
+	page,
+	request,
+}) => {
+	test.setTimeout(240_000);
+	const { token } = await api(request, 'login', { name: NAMES[0] });
+	await page.addInitScript(
+		(saved) => sessionStorage.setItem('rg-token', saved),
+		token
+	);
+	/** @type {number | null} */
+	let owner = null;
+	for (let attempt = 0; attempt < ATTEMPTS && owner === null; attempt++) {
+		await startCivsTable(request, token);
+		let keep = false;
+		try {
+			// Take the Advisors when dealt, else the first civilization; advance whenever a turn allows, so a
+			// neighbour of the Advisors draws a card.
+			let dealt = false;
+			const choose = (/** @type {any} */ op) => {
+				if (op.kind === 'chooseCiv') {
+					const advisors = op.answers.find(
+						(/** @type {any} */ a) => a.civ === 'advisors'
+					);
+					dealt ||= advisors !== undefined;
+					return advisors ?? op.answers[0];
+				}
+				return (
+					op.answers.find(
+						(/** @type {any} */ a) => a.turn === 'advance'
+					) ?? op.answers[0]
+				);
+			};
+			// A table nobody dealt the Advisors is left once its civilizations are chosen.
+			const view = await playUntil(
+				request,
+				token,
+				(_kinds, game, open) =>
+					open.some(isGift) || (game.phase === 'play' && !dealt),
+				choose,
+				600
+			);
+			const question = ops(view.game.pending ?? []).find(isGift);
+			if (question) {
+				owner = question.player;
+				keep = true;
+			}
+		} finally {
+			if (!keep) {
+				await endTable(request, token);
+			}
+		}
+	}
+	test.skip(
+		owner === null,
+		`no table was dealt the Advisors in ${ATTEMPTS} tries`
+	);
+
+	try {
+		await page.goto('/');
+		await page
+			.getByRole('button', { name: `I'm ${NAMES[Number(owner) - 1]}` })
+			.click();
+		const heading = page.getByRole('heading', {
+			name: /instead of their draw\?$/,
+		});
+		await expect(heading).toBeVisible();
+		await expect(
+			page.locator('.rg-card-shelf button').first()
+		).toBeVisible();
+		await page.locator('.rg-card-shelf button').first().click();
+		await page.getByRole('button', { name: 'Give card' }).click();
+		await expect(heading).toHaveCount(0);
+	} finally {
+		await endTable(request, token);
 	}
 });
