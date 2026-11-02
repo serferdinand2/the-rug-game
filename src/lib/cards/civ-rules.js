@@ -276,6 +276,23 @@ const CIV_TEXTS = Object.freeze({
 		'Forest: gain 1 food, then roll the red conquer die twice and gain both results.',
 		'Claiming a territory this way is not a conquest. An opponent may conquer it as if your token were a lone outpost, and you may answer with a trap, Surprise Party or Surrender, but not Retreat. After their conquest your token stays and they control the territory; after a trap you control it again.',
 	]),
+	utilitarians: civ(
+		[
+			'The mat lists 8 landmarks, each with an ability: the Forge, Barracks, Lighthouse and Apothecary from tier II of the tracks, and the Rubber Works, Tank Factory, Train Station and Academy from tier III. You have 2 tokens, and a landmark you own uses its ability while a token is beside it, so at most 2 abilities work at once.',
+			'If you start the game with the Utilitarians, choose a tier II landmark from a track that nobody owns, gain it and place it in your capital city, with a token beside it. If you gain them later in the game, you gain no landmark: put up to 2 tokens beside listed landmarks you already own.',
+			'Whenever you gain a listed landmark, you may put a token from your mat beside it, or, with both tokens out, move one beside it.',
+			'Forge: whenever you upgrade a tech card to your top row, gain 1 resource of your choice. An Inventors token’s upgrade of your card doesn’t count.',
+			'Barracks: whenever you conquer, also gain the red die’s result, even if you kept that die. When you gain both dice, as with Tanks, you gain the red result twice.',
+			'Lighthouse: at the start of each of your advance turns, before you advance, you may discard 2 territory tiles to gain 1 resource of your choice.',
+			'Apothecary: whenever you gain another landmark, gain 1 resource of your choice.',
+			'Rubber Works, Tank Factory, Train Station and Academy: whenever you advance into tier III or IV of technology, military, exploration or science respectively, gain 4 VP.',
+		],
+		{
+			current: [
+				'Current rules: if you start the game with the Utilitarians, at the end of your first income turn you lose 1 resource of your choice.',
+			],
+		}
+	),
 });
 
 /**

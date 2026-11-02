@@ -22,6 +22,7 @@ import { theChosen } from './the-chosen.js';
 import { tinkerers } from './tinkerers.js';
 import { traders } from './traders.js';
 import { treasureHunters } from './treasure-hunters.js';
+import { utilitarians } from './utilitarians.js';
 
 /** @typedef {import('./civ.js').Civ} Civ */
 
@@ -55,6 +56,7 @@ export const CIVS = {
 	'treasure-hunters': treasureHunters,
 	tinkerers,
 	spies,
+	utilitarians,
 };
 
 /**

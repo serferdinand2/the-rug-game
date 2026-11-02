@@ -3,6 +3,7 @@ import { PlayerError } from '../errors.js';
 import { emit } from '../events.js';
 import { advances } from './choose-advance.js';
 import { startIncomeTurn } from '../income.js';
+import { triggered } from '../abilities.js';
 
 /**
  * The turns a seat may choose. There is no pass: advancing is offered only when some advance can be paid for
@@ -43,6 +44,10 @@ export const chooseTurn = {
 			startIncomeTurn(ctx, player);
 			return;
 		}
-		ctx.push([{ player, kind: 'chooseAdvance' }]);
+		// What an advance turn's start offers comes before the advance: the Utilitarians' Lighthouse (#33).
+		ctx.push([
+			...triggered(ctx.state, 'advanceTurnStarted', { player }),
+			{ player, kind: 'chooseAdvance' },
+		]);
 	},
 };

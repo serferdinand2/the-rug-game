@@ -64,6 +64,8 @@ export const SAMPLE_CIV_DATA = Object.freeze({
 	tinkerers: { used: [] },
 	// No option used yet; the library's live example shows two used (#33).
 	spies: { used: [], watching: [] },
+	// No token out yet; the library's live example shows two out (#33).
+	utilitarians: { active: [] },
 });
 
 /**
@@ -118,5 +120,4 @@ export const SAMPLE_VIEWS = Object.freeze({
 	islanders: sample([], 'token'),
 	recyclers: sample([], 'token'),
 	riverfolk: sample([], 'token'),
-	utilitarians: sample([], 'token'),
 });

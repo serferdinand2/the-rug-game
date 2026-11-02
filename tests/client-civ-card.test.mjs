@@ -27,7 +27,7 @@ function table(civData) {
 	};
 }
 
-test('the nine civilizations whose cards show live state, six with choices on them', () => {
+test('the ten civilizations whose cards show live state, six with choices on them', () => {
 	assert.deepEqual(
 		[...CARD_CIVS],
 		[
@@ -40,6 +40,7 @@ test('the nine civilizations whose cards show live state, six with choices on th
 			'treasure-hunters',
 			'tinkerers',
 			'spies',
+			'utilitarians',
 		]
 	);
 });
@@ -189,6 +190,43 @@ test("the Spies' used options are marked, whatever they watch; the option and it
 			pick
 		),
 		{ marks: { option1: ['used'] }, choices: {} }
+	);
+});
+
+test("the Utilitarians' tokens out sit beside their landmarks and leave the reserve; the landmark and the token are chosen in the panel (#33)", () => {
+	assert.deepEqual(
+		civCardMarks('utilitarians', { active: ['academy', 'forge'] }),
+		{
+			academy: ['token'],
+			forge: ['token'],
+			token0: ['used'],
+			token1: ['used'],
+		}
+	);
+	assert.deepEqual(civCardMarks('utilitarians', { active: ['barracks'] }), {
+		barracks: ['token'],
+		token0: ['used'],
+	});
+	assert.deepEqual(civCardMarks('utilitarians', { active: [] }), {});
+	for (const purpose of [
+		'utilitariansLandmark',
+		'utilitariansPlace',
+		'utilitariansToken',
+	]) {
+		assert.equal(
+			cardCivOf({ kind: 'chooseSlot', player: 1, purpose }),
+			null,
+			purpose
+		);
+	}
+	assert.deepEqual(
+		civCardView(
+			table({ utilitarians: { active: ['lighthouse'] } }),
+			1,
+			'utilitarians',
+			{ kind: 'chooseSlot', player: 1, purpose: 'utilitariansToken' }
+		),
+		{ marks: { lighthouse: ['token'], token0: ['used'] }, choices: {} }
 	);
 });
 

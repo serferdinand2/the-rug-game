@@ -19,8 +19,10 @@ import {
 	startedGame,
 	answer,
 	conquestGame,
+	placeAll,
 	resolveTapestry,
 } from './helpers/engine.mjs';
+import { ERA_HOOKS } from '../src/lib/engine/eras.js';
 import { allOps, checkViews, setupFacts } from './helpers/views.mjs';
 import { checkState } from './helpers/invariants.mjs';
 
@@ -2999,4 +3001,648 @@ test('Spies use their ability in step 1 of income turns 2 to 5', () => {
 	const decision = /** @type {any} */ (decisionOf(state, 'chooseSlot'));
 	assert.deepEqual([decision?.player, decision?.purpose], [player, 'spies']);
 	assert.ok(decision.options.includes(3));
+});
+
+// The Utilitarians.
+
+/** The landmarks the Utilitarians' mat lists, in the card's order (03 §1.3). */
+const LISTED = [
+	'forge',
+	'barracks',
+	'lighthouse',
+	'apothecary',
+	'rubber-works',
+	'tank-factory',
+	'train-station',
+	'academy',
+];
+
+/**
+ * A started two-player game with nothing pending, in which seat 1 holds the Utilitarians, owns `owned` beside its
+ * capital mat (out of the supply) and has a token beside each of `active`. The capitals stay as dealt, so the state
+ * checks hold.
+ * @param {string[]} owned
+ * @param {string[]} [active]
+ * @returns {{ state: any, random: any }}
+ */
+function utilitariansGame(owned, active = []) {
+	const { state: started, random } = startedGame(2, PP);
+	const state = /** @type {any} */ (structuredClone(started));
+	state.pending.length = 0;
+	const seat = state.seats[0];
+	seat.civs = ['utilitarians'];
+	seat.civData.utilitarians = { active: [...active] };
+	state.landmarks = state.landmarks.filter(
+		(/** @type {string} */ id) => !owned.includes(id)
+	);
+	seat.besideMat.push(...owned);
+	state.supply.civs = state.supply.civs.filter(
+		(/** @type {string} */ civ) => civ !== 'utilitarians'
+	);
+	return { state, random };
+}
+
+/** The Utilitarians' setup, at the start or mid-game. */
+const utilitariansSetup = (/** @type {boolean} */ midGame) => ({
+	player: 1,
+	kind: 'civSetup',
+	civ: 'utilitarians',
+	midGame,
+	origin: 'civ',
+});
+
+/**
+ * Seat 1 gains a landmark through the landmark effect, every placement answered with its first answer.
+ * @param {any} state
+ * @param {any} random
+ * @param {string} landmark
+ */
+function gainLandmark(state, random, landmark) {
+	return placeAll(resolveEffects(state, 1, [{ landmark }], random), random);
+}
+
+/**
+ * The VP seat 1's civilization gains for one advance on a track, each open decision answered with its first answer.
+ * @param {any} from
+ * @param {any} random
+ * @param {string} track
+ * @returns {number[]}
+ */
+function civVp(from, random, track) {
+	let next = resolveEffects(
+		from,
+		1,
+		[{ advance: { tracks: [track], noBenefit: true } }],
+		random
+	);
+	for (;;) {
+		const [open] = openDecisions(next);
+		if (!open) {
+			break;
+		}
+		next = answerFirst(next, random, open.player, open.kind);
+	}
+	return eventsOf(next, 'vpGained', from.seq)
+		.filter((e) => e.source === 'civ' && e.player === 1)
+		.map((e) => e.vp);
+}
+
+test('Utilitarians who start the game choose a tier II track landmark nobody owns and place it, with a token beside it; the other token stays on the mat (03 §1.3, R113)', () => {
+	const { state, random } = utilitariansGame([]);
+	delete state.seats[0].civData.utilitarians;
+	// Another seat owns the Barracks, so only the other three are offered.
+	state.landmarks = state.landmarks.filter(
+		(/** @type {string} */ id) => id !== 'barracks'
+	);
+	state.seats[1].besideMat.push('barracks');
+	const asked = pushed(state, random, [utilitariansSetup(false)]);
+	const pick = /** @type {any} */ (decisionOf(asked, 'chooseSlot'));
+	assert.deepEqual(
+		[pick.player, pick.purpose, pick.optional, pick.options],
+		[
+			1,
+			'utilitariansLandmark',
+			false,
+			['forge', 'lighthouse', 'apothecary'],
+		]
+	);
+	const chosen = placeAll(
+		answer(asked, random, 1, 'chooseSlot', { slot: 'lighthouse' }),
+		random
+	);
+	const seat = chosen.seats[0];
+	assert.deepEqual(seat.civData.utilitarians, { active: ['lighthouse'] });
+	assert.deepEqual(
+		seat.capital.landmarks.map(
+			(/** @type {any} */ piece) => piece.landmark
+		),
+		['lighthouse']
+	);
+	assert.ok(!chosen.landmarks.includes('lighthouse'));
+	// Gained from the civilization, not from a track.
+	assert.deepEqual(eventsOf(chosen, 'landmarkGained', state.seq), [
+		{
+			type: 'landmarkGained',
+			player: 1,
+			landmark: 'lighthouse',
+			civ: 'utilitarians',
+		},
+	]);
+	assert.deepEqual(eventsOf(chosen, 'utilitariansToken', state.seq), [
+		{ type: 'utilitariansToken', player: 1, landmark: 'lighthouse' },
+	]);
+	// Its token is beside it already: nothing more is asked.
+	assert.deepEqual(openDecisions(chosen), []);
+
+	// In a game, in both versions, setup's first answer is the Forge.
+	for (const version of VERSIONS) {
+		const { state: started } = startedGame(2, {
+			civs: ['utilitarians', 'nomads'],
+			version,
+			...PP,
+		});
+		const own = /** @type {any} */ (started.seats[0]);
+		assert.deepEqual(own.civData.utilitarians, { active: ['forge'] });
+		assert.deepEqual(
+			own.capital.landmarks.map((/** @type {any} */ p) => p.landmark),
+			['forge'],
+			version
+		);
+		checkState(started);
+	}
+});
+
+test("the state checks hold the Utilitarians' tokens beside listed landmarks they own, 2 at most and each once", () => {
+	const { state } = startedGame(2, {
+		civs: ['utilitarians', 'leaders'],
+		...PP,
+	});
+	const seat = /** @type {any} */ (state.seats[0]);
+	state.landmarks = state.landmarks.filter(
+		(/** @type {string} */ id) => id !== 'academy' && id !== 'launch-pad'
+	);
+	seat.besideMat.push('academy', 'launch-pad');
+	seat.civData.utilitarians.active = ['forge', 'academy'];
+	checkState(state);
+	for (const active of [
+		['forge', 'academy', 'barracks'],
+		['forge', 'forge'],
+		['forge', 'barracks'],
+		['launch-pad'],
+	]) {
+		const broken = /** @type {any} */ (structuredClone(state));
+		broken.seats[0].civData.utilitarians.active = active;
+		assert.throws(() => checkState(broken), /utilitarians/, `${active}`);
+	}
+});
+
+test('Utilitarians gained mid-game gain no landmark, and may put up to 2 tokens beside listed landmarks they already own (03 §1.3, R113)', () => {
+	const { state, random } = utilitariansGame([
+		'launch-pad',
+		'lighthouse',
+		'forge',
+		'academy',
+	]);
+	const seat = state.seats[0];
+	seat.civs = ['leaders'];
+	delete seat.civData.utilitarians;
+	state.supply.civs = [
+		'utilitarians',
+		...state.supply.civs.filter(
+			(/** @type {string} */ civ) => civ !== 'leaders'
+		),
+	];
+	const landmarks = [...state.landmarks];
+	const asked = resolveEffects(state, 1, [{ gainCiv: {} }], random);
+	assert.deepEqual(asked.seats[0].civs, ['leaders', 'utilitarians']);
+	assert.deepEqual(asked.seats[0].civData.utilitarians, { active: [] });
+	const first = /** @type {any} */ (decisionOf(asked, 'chooseSlot'));
+	// In the card's order; the Launch Pad isn't listed.
+	assert.deepEqual(
+		[first.player, first.purpose, first.optional, first.options],
+		[1, 'utilitariansPlace', true, ['forge', 'lighthouse', 'academy']]
+	);
+	const one = answer(asked, random, 1, 'chooseSlot', { slot: 'academy' });
+	assert.deepEqual(
+		/** @type {any} */ (decisionOf(one, 'chooseSlot')).options,
+		['forge', 'lighthouse']
+	);
+	const two = answer(one, random, 1, 'chooseSlot', { slot: 'forge' });
+	assert.deepEqual(two.seats[0].civData.utilitarians, {
+		active: ['academy', 'forge'],
+	});
+	// Both tokens are out: nothing more is asked, and no landmark was gained.
+	assert.deepEqual(openDecisions(two), []);
+	assert.deepEqual(two.landmarks, landmarks);
+	assert.deepEqual(eventsOf(two, 'landmarkGained', state.seq), []);
+	assert.deepEqual(eventsOf(two, 'utilitariansToken', state.seq), [
+		{ type: 'utilitariansToken', player: 1, landmark: 'academy' },
+		{ type: 'utilitariansToken', player: 1, landmark: 'forge' },
+	]);
+	// Declining keeps both tokens on the mat.
+	const declined = answer(asked, random, 1, 'chooseSlot', { slot: null });
+	assert.deepEqual(declined.seats[0].civData.utilitarians, { active: [] });
+	assert.deepEqual(openDecisions(declined), []);
+	// Without a listed landmark, nothing is asked.
+	const bare = utilitariansGame(['launch-pad']);
+	delete bare.state.seats[0].civData.utilitarians;
+	const none = pushed(bare.state, bare.random, [utilitariansSetup(true)]);
+	assert.deepEqual(none.seats[0].civData.utilitarians, { active: [] });
+	assert.deepEqual(openDecisions(none), []);
+});
+
+test('after gaining a listed landmark the Utilitarians may put a token from their mat beside it, or with both out move one there; an unlisted landmark asks nothing (03 §1.3)', () => {
+	const { state, random } = utilitariansGame(['forge'], ['forge']);
+	const barracks = gainLandmark(state, random, 'barracks');
+	const offer = /** @type {any} */ (decisionOf(barracks, 'chooseSlot'));
+	assert.deepEqual(
+		[offer.player, offer.purpose, offer.optional, offer.options],
+		[1, 'utilitariansToken', true, [{ landmark: 'barracks', from: 'mat' }]]
+	);
+	const placed = answer(barracks, random, 1, 'chooseSlot', {
+		slot: { landmark: 'barracks', from: 'mat' },
+	});
+	assert.deepEqual(placed.seats[0].civData.utilitarians.active, [
+		'forge',
+		'barracks',
+	]);
+	assert.deepEqual(eventsOf(placed, 'utilitariansToken', barracks.seq), [
+		{ type: 'utilitariansToken', player: 1, landmark: 'barracks' },
+	]);
+
+	// Both tokens are out: the next listed landmark may take either.
+	const academy = gainLandmark(placed, random, 'academy');
+	assert.deepEqual(
+		/** @type {any} */ (decisionOf(academy, 'chooseSlot')).options,
+		[
+			{ landmark: 'academy', from: 'forge' },
+			{ landmark: 'academy', from: 'barracks' },
+		]
+	);
+	const moved = answer(academy, random, 1, 'chooseSlot', {
+		slot: { landmark: 'academy', from: 'forge' },
+	});
+	assert.deepEqual(moved.seats[0].civData.utilitarians.active, [
+		'academy',
+		'barracks',
+	]);
+	assert.deepEqual(eventsOf(moved, 'utilitariansToken', academy.seq), [
+		{
+			type: 'utilitariansToken',
+			player: 1,
+			landmark: 'academy',
+			from: 'forge',
+		},
+	]);
+	const kept = answer(academy, random, 1, 'chooseSlot', { slot: null });
+	assert.deepEqual(kept.seats[0].civData.utilitarians.active, [
+		'forge',
+		'barracks',
+	]);
+
+	// An unlisted landmark asks nothing.
+	const launchPad = gainLandmark(placed, random, 'launch-pad');
+	assert.equal(decisionOf(launchPad, 'chooseSlot'), undefined);
+	assert.deepEqual(openDecisions(launchPad), []);
+});
+
+test('the Forge: while its token is out, each of their own upgrades to the top row also gains 1 resource of their choice (03 §1.3)', () => {
+	/**
+	 * Seat 1 upgrades Calendar from `row`.
+	 * @param {string[]} active
+	 * @param {'bottom' | 'middle'} row
+	 */
+	const upgraded = (active, row) => {
+		const { state, random } = utilitariansGame(['forge'], active);
+		takeTech(state, ['calendar']);
+		// Tier II of exploration, Calendar's prerequisite for the top row.
+		state.seats[0].tracks.exploration = [4];
+		state.seats[0].tech = {
+			bottom: row === 'bottom' ? ['calendar'] : [],
+			middle: row === 'middle' ? ['calendar'] : [],
+			top: [],
+		};
+		return {
+			state,
+			random,
+			next: resolveEffects(state, 1, [{ upgrade: {} }], random),
+		};
+	};
+	const on = upgraded(['forge'], 'middle');
+	// Calendar's square first, then the Forge's resource.
+	assert.equal(on.next.seats[0].vp, on.state.seats[0].vp + 7);
+	const pick = /** @type {any} */ (decisionOf(on.next, 'chooseResource'));
+	assert.deepEqual([pick.player, pick.count, pick.from], [1, 1, 'any']);
+	const gained = answer(on.next, on.random, 1, 'chooseResource', {
+		resources: { food: 1 },
+	});
+	assert.equal(
+		gained.seats[0].resources.food,
+		on.state.seats[0].resources.food + 1
+	);
+	// Off, or to the middle row, nothing more.
+	assert.deepEqual(openDecisions(upgraded([], 'middle').next), []);
+	assert.deepEqual(openDecisions(upgraded(['forge'], 'bottom').next), []);
+	// An Inventors token's upgrade of their card isn't their own (as Golden Age, #20 design §7).
+	assert.deepEqual(
+		/** @type {any} */ (CIVS.utilitarians.hooks).upgraded(on.state, 1, {
+			player: 1,
+			card: 'calendar',
+			icon: 'square',
+			inventors: 2,
+		}),
+		[]
+	);
+});
+
+/**
+ * A conquest by seat 1, the Utilitarians with these tokens out, of seat 2's lone outpost; seat 2 holds no card, so
+ * nobody is asked to respond.
+ * @param {string[]} active
+ */
+function barracksConquest(active) {
+	const state = /** @type {any} */ (conquestGame([], PP));
+	state.pending.length = 0;
+	const seat = state.seats[0];
+	seat.civs = ['utilitarians'];
+	seat.civData = { utilitarians: { active: [...active] } };
+	state.landmarks = state.landmarks.filter(
+		(/** @type {string} */ id) => id !== 'barracks'
+	);
+	seat.besideMat.push('barracks');
+	state.supply.civs = state.supply.civs.filter(
+		(/** @type {string} */ civ) => civ !== 'utilitarians'
+	);
+	return state;
+}
+
+test("the Barracks: while its token is out, every conquest also gains the red die's result, even when they kept it; with Tanks they gain it twice (03 §1.3)", () => {
+	/**
+	 * Seat 1 conquers, the red die showing 5 VP and the black 1 culture, and keeps `die` when asked.
+	 * @param {string[]} active
+	 * @param {'red' | 'black' | null} die - Null when both dice come (Tanks)
+	 */
+	const conquest = (active, die) => {
+		const state = barracksConquest(active);
+		const conquer = die === null ? { bothDice: 'ifOpponent' } : {};
+		let next = pushed(state, dice(1, 3), [
+			{ player: 1, kind: 'effects', effects: [{ conquer }] },
+		]);
+		if (die !== null) {
+			next = answer(next, dice(), 1, 'chooseDie', { die });
+		}
+		assert.deepEqual(openDecisions(next), []);
+		const [before, after] = [state.seats[0], next.seats[0]];
+		return [
+			after.vp - before.vp,
+			after.resources.culture - before.resources.culture,
+			(after.vpSources.civ ?? 0) - (before.vpSources.civ ?? 0),
+		];
+	};
+	assert.deepEqual(conquest(['barracks'], 'black'), [5, 1, 5]);
+	assert.deepEqual(conquest(['barracks'], 'red'), [10, 0, 5]);
+	assert.deepEqual(conquest(['barracks'], null), [10, 1, 5]);
+	assert.deepEqual(conquest([], 'black'), [0, 1, 0]);
+	assert.deepEqual(conquest([], null), [5, 1, 0]);
+});
+
+test("a base game's conquest is unchanged: nothing but the Utilitarians answers the dice rolled (conquerRolled, #33)", () => {
+	assert.deepEqual(
+		Object.values(CIVS)
+			.filter((civ) => civ.hooks && 'conquerRolled' in civ.hooks)
+			.map((civ) => civ.id),
+		['utilitarians']
+	);
+	assert.deepEqual(
+		Object.keys(ERA_HOOKS).filter(
+			(card) => 'conquerRolled' in ERA_HOOKS[card]
+		),
+		[]
+	);
+	// A counted random: the conquest rolls the two dice and nothing more.
+	const state = /** @type {any} */ (conquestGame([]));
+	state.pending.length = 0;
+	let rolls = 0;
+	const counted = dice(1, 3);
+	const next = pushed(
+		state,
+		(/** @type {number} */ n) => {
+			rolls += 1;
+			return counted(n);
+		},
+		[{ player: 1, kind: 'effects', effects: [{ conquer: {} }] }]
+	);
+	assert.equal(rolls, 2);
+	assert.deepEqual(
+		next.pending.map((/** @type {any} */ op) => [
+			op.kind,
+			op.red,
+			op.black,
+		]),
+		[['chooseDie', 1, 3]]
+	);
+	// With the Barracks on, its red result waits below the die choice.
+	const barracks = pushed(barracksConquest(['barracks']), dice(1, 3), [
+		{ player: 1, kind: 'effects', effects: [{ conquer: {} }] },
+	]);
+	assert.deepEqual(
+		barracks.pending.map((/** @type {any} */ op) => [op.kind, op.effects]),
+		[
+			['chooseDie', undefined],
+			['effects', [{ vp: 5 }]],
+		]
+	);
+});
+
+/**
+ * A readyTurn() in which the current player holds the Utilitarians, owns the Lighthouse, has a token beside each of
+ * `active` and holds `tiles` territory tiles from the stack.
+ * @param {string[]} active
+ * @param {number} tiles
+ */
+function lighthouseTurn(active, tiles) {
+	return turnHolding('utilitarians', (seat, state) => {
+		state.landmarks = state.landmarks.filter(
+			(/** @type {string} */ id) => id !== 'lighthouse'
+		);
+		seat.besideMat.push('lighthouse');
+		seat.civData.utilitarians = { active: [...active] };
+		seat.territoryTiles = state.supply.territory.splice(0, tiles);
+		seat.resources = { coin: 3, worker: 3, food: 3, culture: 3 };
+	});
+}
+
+test('the Lighthouse: while its token is out, each advance turn starts with the offer to discard 2 territory tiles for 1 resource of their choice, before the advance (03 §1.3, §1.8)', () => {
+	const r = lighthouseTurn(['lighthouse'], 3);
+	const seat = /** @type {any} */ (r.state.seats[r.player - 1]);
+	const tiles = [...seat.territoryTiles];
+	const asked = answer(r.state, r.random, r.player, 'chooseTurn', {
+		turn: 'advance',
+	});
+	assert.equal(decisionOf(asked, 'chooseAdvance'), undefined);
+	const trade = /** @type {any} */ (decisionOf(asked, 'chooseTrade'));
+	assert.deepEqual(
+		[trade.player, trade.purpose, trade.optional, trade.offers],
+		[
+			r.player,
+			'lighthouse',
+			true,
+			[{ pay: { territory: 2 }, gain: [{ gain: { any: 1 } }] }],
+		]
+	);
+	assert.deepEqual(answersOf(asked, 'chooseTrade'), [
+		{ offer: null },
+		{ offer: 0, pay: { territory: [tiles[0], tiles[1]] } },
+		{ offer: 0, pay: { territory: [tiles[0], tiles[2]] } },
+		{ offer: 0, pay: { territory: [tiles[1], tiles[2]] } },
+	]);
+	const traded = answer(
+		answer(asked, r.random, r.player, 'chooseTrade', {
+			offer: 0,
+			pay: { territory: [tiles[0], tiles[2]] },
+		}),
+		r.random,
+		r.player,
+		'chooseResource',
+		{ resources: { coin: 1 } }
+	);
+	const after = /** @type {any} */ (traded.seats[r.player - 1]);
+	assert.deepEqual(after.territoryTiles, [tiles[1]]);
+	assert.ok(
+		[tiles[0], tiles[2]].every((t) =>
+			traded.supply.territoryDiscard.includes(t)
+		)
+	);
+	assert.equal(after.resources.coin, 4);
+	// Then the advance, and no second offer this turn.
+	assert.equal(
+		/** @type {any} */ (decisionOf(traded, 'chooseAdvance'))?.player,
+		r.player
+	);
+	const declined = answer(asked, r.random, r.player, 'chooseTrade', {
+		offer: null,
+	});
+	assert.ok(decisionOf(declined, 'chooseAdvance'));
+	assert.deepEqual(declined.seats[r.player - 1].territoryTiles, tiles);
+
+	// Off, or with a single tile: no offer.
+	for (const [active, count] of /** @type {[string[], number][]} */ ([
+		[[], 3],
+		[['lighthouse'], 1],
+	])) {
+		const other = lighthouseTurn(active, count);
+		const next = answer(
+			other.state,
+			other.random,
+			other.player,
+			'chooseTurn',
+			{ turn: 'advance' }
+		);
+		assert.equal(decisionOf(next, 'chooseTrade'), undefined, `${active}`);
+		assert.ok(decisionOf(next, 'chooseAdvance'), `${active}`);
+	}
+	// Nor on an income turn.
+	const income = answer(r.state, r.random, r.player, 'chooseTurn', {
+		turn: 'income',
+	});
+	assert.equal(decisionOf(income, 'chooseTrade'), undefined);
+});
+
+test('the Apothecary: while its token is out, gaining another landmark gains 1 resource of their choice; the Apothecary chosen at setup gives none (03 §1.3)', () => {
+	const on = utilitariansGame(['apothecary'], ['apothecary']);
+	const gained = gainLandmark(on.state, on.random, 'launch-pad');
+	const pick = /** @type {any} */ (decisionOf(gained, 'chooseResource'));
+	assert.deepEqual([pick.player, pick.count, pick.from], [1, 1, 'any']);
+	// A listed landmark also offers a token, after the resource.
+	const forge = gainLandmark(on.state, on.random, 'forge');
+	const took = answer(forge, on.random, 1, 'chooseResource', {
+		resources: { worker: 1 },
+	});
+	assert.equal(
+		/** @type {any} */ (decisionOf(took, 'chooseSlot'))?.purpose,
+		'utilitariansToken'
+	);
+	// Off: nothing.
+	const off = utilitariansGame(['apothecary'], []);
+	assert.deepEqual(
+		openDecisions(gainLandmark(off.state, off.random, 'launch-pad')),
+		[]
+	);
+	// Chosen at setup, the Apothecary is not another landmark.
+	const start = utilitariansGame([]);
+	delete start.state.seats[0].civData.utilitarians;
+	const asked = pushed(start.state, start.random, [utilitariansSetup(false)]);
+	const chosen = placeAll(
+		answer(asked, start.random, 1, 'chooseSlot', { slot: 'apothecary' }),
+		start.random
+	);
+	assert.deepEqual(chosen.seats[0].civData.utilitarians, {
+		active: ['apothecary'],
+	});
+	assert.deepEqual(openDecisions(chosen), []);
+});
+
+test('Rubber Works, Tank Factory, Train Station and Academy: while its token is out, each advance into tier III or IV of its track gains 4 VP (03 §1.3)', () => {
+	const pairs = /** @type {const} */ ([
+		['rubber-works', 'technology'],
+		['tank-factory', 'military'],
+		['train-station', 'exploration'],
+		['academy', 'science'],
+	]);
+	assert.deepEqual(
+		pairs.map(([landmark]) => landmark),
+		LISTED.slice(4)
+	);
+	for (const [landmark, track] of pairs) {
+		/**
+		 * The civilization's VP for an advance from `from` on `on`, with these tokens out.
+		 * @param {string[]} active
+		 * @param {string} on
+		 * @param {number} from
+		 */
+		const vp = (active, on, from) => {
+			const { state, random } = utilitariansGame([landmark], active);
+			state.seats[0].tracks[on] = [from];
+			return civVp(state, random, on);
+		};
+		assert.deepEqual(vp([landmark], track, 6), [4], `${landmark} 6`);
+		assert.deepEqual(vp([landmark], track, 10), [4], `${landmark} 10`);
+		assert.deepEqual(vp([landmark], track, 5), [], `${landmark} 5`);
+		assert.deepEqual(vp([], track, 6), [], `${landmark} off`);
+		const other = pairs.find(([, t]) => t !== track)?.[1] ?? track;
+		assert.deepEqual(vp([landmark], other, 6), [], `${landmark} ${other}`);
+	}
+});
+
+test('Utilitarians lose 1 resource of their choice at the end of income turn 1, only in the current version and only when they start with them (R34)', () => {
+	for (const version of VERSIONS) {
+		const r = turnHolding(
+			'utilitarians',
+			(seat) => {
+				seat.incomeTurns = 0;
+				seat.resources = { coin: 2, worker: 0, food: 1, culture: 0 };
+			},
+			{ version }
+		);
+		const seat = /** @type {any} */ (r.state.seats[r.player - 1]);
+		const pick = /** @type {any} */ (decisionOf(r.state, 'chooseSlot'));
+		if (version === 'original') {
+			assert.equal(pick, undefined);
+			assert.deepEqual(seat.resources, {
+				coin: 3,
+				worker: 1,
+				food: 2,
+				culture: 1,
+			});
+			continue;
+		}
+		assert.deepEqual(
+			[pick.player, pick.purpose, pick.options],
+			[r.player, 'loseResource', ['coin', 'worker', 'food', 'culture']]
+		);
+		const paid = answer(r.state, r.random, r.player, 'chooseSlot', {
+			slot: 'coin',
+		});
+		assert.deepEqual(paid.seats[r.player - 1].resources, {
+			coin: 2,
+			worker: 1,
+			food: 2,
+			culture: 1,
+		});
+	}
+	// Gained mid-game, they lose nothing (R34).
+	const gained = turnHolding(
+		'utilitarians',
+		(seat) => {
+			seat.incomeTurns = 0;
+			seat.civs = ['leaders', 'utilitarians'];
+		},
+		{ version: 'current' }
+	);
+	assert.deepEqual(
+		eventsOf(gained.state, 'resourcesLost').filter(
+			(e) => e.player === gained.player
+		),
+		[]
+	);
 });

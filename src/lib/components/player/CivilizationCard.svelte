@@ -171,7 +171,8 @@
 							symbolText={box.symbolText}
 							pictogram={box.pictogram}
 							used={box.used}
-							>{@render text(box.text)}</CardEffectBox
+							token={box.token}
+							{seat}>{@render text(box.text)}</CardEffectBox
 						>{/each}
 				</CardEffectList>
 			{:else if section.pattern === 'clarity'}

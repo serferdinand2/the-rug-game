@@ -125,6 +125,7 @@ export function conquer(ctx, player, value) {
 /**
  * The automatic operation after a conquest: roll both dice, then give both faces (black first) or let the player pick one (01 §7.3).
  * The dice always roll, even after a trap. Pirate Rule then gives the tile's benefit, also after a trap (design §8).
+ * The `conquerRolled` triggers, told both faces, follow the conquest's own die or dice (#33).
  * After a Surrender (`op.surrender`, the defender), the defender's own roll follows the attacker's (#33).
  * The conquest is over, so the `countsChanged` triggers follow, once (#20 design §7, Mystics).
  * @type {import('../state.js').AutomaticKind}
@@ -158,7 +159,14 @@ export function conquerDice(ctx, op) {
 	const red = ctx.random(6);
 	const black = ctx.random(6);
 	emit(ctx.state, { type: 'conquerDiceRolled', player, red, black });
-	/** @type {import('../state.js').NewOperation[]} */
+	// What answers the dice (the Utilitarians' Barracks, #33) comes after the conquest's own die or dice. Nothing in a
+	// base game answers it.
+	const rolled = triggered(ctx.state, 'conquerRolled', {
+		player,
+		hex,
+		red,
+		black,
+	});
 	/** @type {import('../state.js').NewOperation[]} */
 	const surrender =
 		typeof op.surrender === 'number'
@@ -189,6 +197,7 @@ export function conquerDice(ctx, op) {
 				ordered: true,
 				source: { hex },
 			},
+			...rolled,
 			...pirate,
 			...counts,
 			...surrender,
@@ -197,6 +206,7 @@ export function conquerDice(ctx, op) {
 	}
 	ctx.push([
 		{ player, kind: 'chooseDie', hex, red, black },
+		...rolled,
 		...pirate,
 		...counts,
 		...surrender,

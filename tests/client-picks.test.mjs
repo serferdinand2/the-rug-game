@@ -553,6 +553,28 @@ test('a trade with one legal payment keeps today’s prompt', () => {
 	assert.equal(tradeOffers(decision, game, 1), null);
 });
 
+test('a trade paying territory tiles keeps today’s prompt, each pair of tiles an answer of its own (the Lighthouse, #33)', () => {
+	const { state } = startedGame(2);
+	const seat = state.seats[0];
+	seat.territoryTiles = state.supply.territory.splice(0, 3);
+	state.pending.length = 0;
+	push(state, state.pending, [
+		{
+			player: 1,
+			kind: 'chooseTrade',
+			offers: [{ pay: { territory: 2 }, gain: [{ gain: { any: 1 } }] }],
+			optional: true,
+			purpose: 'lighthouse',
+		},
+	]);
+	const game = view(state, 1);
+	const decision = /** @type {Record<string, any>} */ (myDecision(game, 1));
+	// Three ways to pay: the resource picker of a trade would pay with the first.
+	assert.equal(decision.answers.length, 4);
+	assert.equal(tradeOffers(decision, game, 1), null);
+	assert.equal(pickModel(decision, game, 1), null);
+});
+
 test('Guilds offers six trades, the unaffordable ones disabled', () => {
 	const { decision, game } = tradeOf(
 		{ offers: GUILDS, optional: false },

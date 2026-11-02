@@ -598,6 +598,11 @@ test('an explored "+5 VP" tile ignores advances on other tracks', () => {
 				.answers(ready, decision)
 				.find((/** @type {any} */ a) => a.track === 'military');
 		}
+		// The military space's conquest keeps the black die, whose faces give no VP, so its red die's VP on the map
+		// can't pass for the tile's whatever the seeded deal rolls.
+		if (decision.kind === 'chooseDie') {
+			return { die: 'black' };
+		}
 		return undefined;
 	});
 	const tileVp = state.events.filter(

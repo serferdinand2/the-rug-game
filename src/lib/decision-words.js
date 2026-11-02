@@ -4,8 +4,14 @@ import './engine/game.js';
 import { RECYCLERS_VP } from './engine/civs/recyclers.js';
 import { TREASURES } from './engine/civs/treasure-hunters.js';
 import { TINKERERS_STEP_BACK } from './engine/civs/tinkerers.js';
+import {
+	LIGHTHOUSE_TRADE,
+	UTILITARIANS_ADVANCE_VP,
+	UTILITARIANS_LANDMARKS,
+} from './engine/civs/utilitarians.js';
 import { TRACKS, advanceCost } from './engine/data/tracks.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
+import { LANDMARKS } from './engine/data/landmarks.js';
 import { TERRITORY_TILES } from './engine/data/territory-tiles.js';
 import {
 	EXPANSION_SPACE_TILES,
@@ -176,7 +182,59 @@ const SLOT_TITLES = {
 	spiesTech: () => "Choose a neighbour's tech card",
 	spiesLook: (d, table) =>
 		`Look at ${seatName(table, Array.isArray(d.options) ? d.options[0] : undefined)}'s hand?`,
+	utilitariansLandmark: () =>
+		'Choose a tier II landmark for your Utilitarians',
+	utilitariansPlace: () =>
+		'Put a Utilitarians token beside a landmark you own?',
+	utilitariansToken: (d) => {
+		const [first] = Array.isArray(d.options) ? d.options : [];
+		if (!isRecord(first) || typeof first.landmark !== 'string') {
+			return 'Switch on a Utilitarians landmark?';
+		}
+		const verb = first.from === 'mat' ? 'Put' : 'Move';
+		return `${verb} a Utilitarians token beside the ${landmarkName(first.landmark)}?`;
+	},
 };
+
+/**
+ * What each landmark the Utilitarians' mat lists does while a token is beside it (03 §1.3), after its name, for the
+ * panel: the tier II ones' own words, and each tier III one's VP for its track.
+ * @type {Readonly<Record<string, string>>}
+ */
+const UTILITARIANS_ABILITIES = Object.freeze({
+	forge: 'whenever you upgrade a tech card to your top row, gain 1 resource of your choice',
+	barracks: "whenever you conquer, also gain the red die's result",
+	lighthouse: `at the start of each advance turn, you may discard ${amountWords('territory', LIGHTHOUSE_TRADE.pay.territory ?? 0)} to gain 1 resource of your choice`,
+	apothecary:
+		'whenever you gain another landmark, gain 1 resource of your choice',
+	...Object.fromEntries(
+		UTILITARIANS_LANDMARKS.flatMap((id) => {
+			const source = LANDMARKS.find(
+				(landmark) => landmark.id === id
+			)?.source;
+			return source && 'tier' in source && source.tier === 3
+				? [
+						[
+							id,
+							`whenever you advance into tier III or IV of ${trackName(source.track)}, gain ${UTILITARIANS_ADVANCE_VP} VP`,
+						],
+					]
+				: [];
+		})
+	),
+});
+
+/**
+ * A listed landmark with what its ability does: "Forge: whenever you upgrade …"; null for any other slot.
+ * @param {unknown} slot
+ * @returns {string | null}
+ */
+function utilitariansAbility(slot) {
+	return typeof slot === 'string' &&
+		Object.hasOwn(UTILITARIANS_ABILITIES, slot)
+		? `${landmarkName(slot)}: ${UTILITARIANS_ABILITIES[slot]}`
+		: null;
+}
 
 /** What each Treasure Hunters treasure rolls once its resource is gained, by its die (03 §1.3). */
 const TREASURE_ROLLS = /** @type {Readonly<Record<string, string>>} */ ({
@@ -375,6 +433,10 @@ const TITLES = {
 	chooseKeepTech: () => 'Choose a tech card to keep',
 	chooseLandmarkCard: () => 'Keep a landmark card',
 	chooseTrade: (d, table) => {
+		// The Utilitarians' Lighthouse (#33).
+		if (d.purpose === 'lighthouse') {
+			return `Use your Lighthouse: discard ${amountWords('territory', LIGHTHOUSE_TRADE.pay.territory ?? 0)} for a resource?`;
+		}
 		const host = isCount(d.host) ? ` with ${seatName(table, d.host)}` : '';
 		return d.optional ? `Make a trade${host}?` : `Choose a trade${host}`;
 	},
@@ -565,6 +627,23 @@ const SLOT_ANSWERS = {
 		isCount(slot) && slot > 0
 			? `Look at ${seatName(table, slot)}'s hand`
 			: null,
+	utilitariansLandmark: utilitariansAbility,
+	utilitariansPlace: utilitariansAbility,
+	utilitariansToken: (slot) => {
+		if (
+			!isRecord(slot) ||
+			!Object.hasOwn(UTILITARIANS_ABILITIES, slot.landmark)
+		) {
+			return null;
+		}
+		const to = landmarkName(slot.landmark);
+		if (slot.from === 'mat') {
+			return `Put a token from your mat beside the ${to}`;
+		}
+		return Object.hasOwn(UTILITARIANS_ABILITIES, slot.from)
+			? `Move the token from the ${landmarkName(slot.from)} to the ${to}`
+			: null;
+	},
 };
 
 /**

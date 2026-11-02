@@ -10,9 +10,9 @@ import { describeEffects } from './describe.js';
 import { seatName } from './game-names.js';
 
 /**
- * What a spot on a card shows: a player's piece on it, a used Leaders track, Treasure Hunters treasure, or Tinkerers
- * or Spies option, a space or square uncovered, a Merrymakers column whose token has left the start, a Mystics
- * prediction, or a prediction reached.
+ * What a spot on a card shows: a player's piece on it (a Utilitarians token beside a landmark among them), a used
+ * Leaders track, Treasure Hunters treasure, Tinkerers or Spies option, or reserve token, a space or square uncovered, a
+ * Merrymakers column whose token has left the start, a Mystics prediction, or a prediction reached.
  * @typedef {'token' | 'used' | 'exposed' | 'moved' | 'chosen' | 'reached'} SpotMark
  */
 
@@ -28,7 +28,7 @@ import { seatName } from './game-names.js';
 /**
  * The civilizations whose cards draw a seat's live state, in the order built: the first six's decisions are answered on
  * their card (#78); the Treasure Hunters', the Tinkerers' and the Spies' cards only mark the treasures and options
- * used, as those are picked in the panel (#33).
+ * used, and the Utilitarians' the landmarks with a token beside them, as those are picked in the panel (#33).
  */
 export const CARD_CIVS = Object.freeze([
 	'entertainers',
@@ -40,6 +40,7 @@ export const CARD_CIVS = Object.freeze([
 	'treasure-hunters',
 	'tinkerers',
 	'spies',
+	'utilitarians',
 ]);
 
 /** The card each slot purpose is answered on. The Historians' tile to discard stays in the panel. */
@@ -133,6 +134,18 @@ export function civCardMarks(civ, data) {
 			for (const option of data.used) {
 				mark(`option${option}`, 'used');
 			}
+			break;
+		// Each token out sits beside its landmark's box and has left the reserve, emptied from the left.
+		case 'utilitarians':
+			data.active.forEach(
+				(
+					/** @type {string} */ landmark,
+					/** @type {number} */ index
+				) => {
+					mark(landmark, 'token');
+					mark(`token${index}`, 'used');
+				}
+			);
 			break;
 	}
 	return marks;

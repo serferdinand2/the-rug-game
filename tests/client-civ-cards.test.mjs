@@ -24,6 +24,10 @@ import { MYSTICS_PROPHECIES } from '../src/lib/engine/civs/mystics.js';
 import { TINKERERS_OPTIONS } from '../src/lib/engine/civs/tinkerers.js';
 import { SPIES_OPTIONS } from '../src/lib/engine/civs/spies.js';
 import {
+	UTILITARIANS_LANDMARKS,
+	UTILITARIANS_TOKENS,
+} from '../src/lib/engine/civs/utilitarians.js';
+import {
 	SPIES_OPTION_NAMES,
 	TINKERERS_OPTION_NAMES,
 } from '../src/lib/decision-words.js';
@@ -146,6 +150,12 @@ test("the nine other Plans & Ploys civilizations get a card from 03 §1.3's text
 		'Setup, current rules: upgrade a tech card.'
 	);
 	assert.equal(setup('spies', 'original'), '');
+	// R34: the Utilitarians' loss comes at the end of income turn 1, as the Spies' does.
+	assert.equal(
+		setup('utilitarians', 'current'),
+		'Current rules: at the end of your first income turn, lose [any].'
+	);
+	assert.equal(setup('utilitarians', 'original'), '');
 });
 
 test("the Tinkerers' boxes are the spots their used options mark, named as the panel and the log name them (#33)", () => {
@@ -186,6 +196,60 @@ test("the Spies' boxes are the spots their used options mark, named as the panel
 		),
 		[false, false, true, false]
 	);
+});
+
+test("the Utilitarians' boxes are the spots of their landmarks; a token out draws in its box and leaves the reserve (#33)", () => {
+	const effects = sectionOf(civCard('utilitarians'), 'effects').effects;
+	assert.deepEqual(
+		effects.map((/** @type {any} */ e) => e.spot),
+		UTILITARIANS_LANDMARKS
+	);
+	assert.equal(
+		sectionOf(civCard('utilitarians'), 'tokenReserve').props.count,
+		UTILITARIANS_TOKENS
+	);
+	const live = {
+		marks: civCardMarks('utilitarians', {
+			active: ['lighthouse', 'academy'],
+		}),
+		choices: {},
+	};
+	const recipe = civCard('utilitarians', { view: live });
+	const tokens = [false, false, true, false, false, false, false, true];
+	assert.deepEqual(
+		sectionOf(recipe, 'effects').effects.map(
+			(/** @type {any} */ e) => e.token
+		),
+		tokens
+	);
+	assert.equal(sectionOf(recipe, 'tokenReserve').props.used, 2);
+	const body = html(
+		render(CivilizationCard, {
+			props: { id: 'utilitarians', state: 'play', live, seat: 2 },
+		})
+	);
+	// Each box up to its title, which follows its symbol.
+	const boxes = body
+		.split('class="rg-card-effect-box ')
+		.slice(1)
+		.map((box) => box.split('rg-card-effect-box--title')[0]);
+	assert.deepEqual(
+		boxes.map((box) => box.includes('rg-card-effect-box--token')),
+		tokens
+	);
+	// The seat's colour; no box is used.
+	assert.match(
+		body,
+		/token-red\.svg[^>]*rg-card-effect-box--token|rg-card-effect-box--token[^>]*token-red\.svg/
+	);
+	assert.doesNotMatch(body, /rg-card-effect-box--used/);
+	// Without a seat's data no token is out.
+	const empty = html(
+		render(CivilizationCard, {
+			props: { id: 'utilitarians', state: 'play' },
+		})
+	);
+	assert.doesNotMatch(empty, /rg-card-effect-box--token/);
 });
 
 test('an effect box whose spot is marked used draws used: the Tinkerers with option 2 used (#33)', () => {

@@ -25,6 +25,12 @@ import {
 	TINKERERS_STEP_BACK,
 } from '../src/lib/engine/civs/tinkerers.js';
 import { SPIES_OPTIONS } from '../src/lib/engine/civs/spies.js';
+import {
+	LIGHTHOUSE_TRADE,
+	UTILITARIANS_ADVANCE_VP,
+	UTILITARIANS_LANDMARKS,
+	UTILITARIANS_TOKENS,
+} from '../src/lib/engine/civs/utilitarians.js';
 import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 
@@ -285,6 +291,7 @@ test('each current-rules adjustment gives what the engine gives (R34)', () => {
 		'spies',
 		'the-chosen',
 		'traders',
+		'utilitarians',
 	]) {
 		const { setup, firstTurnEnd } = CIVS[id].adjustment ?? {};
 		/** @type {any[]} */
@@ -506,4 +513,62 @@ test('the Spies read as the engine plays them, Espionage and the watched space t
 		],
 		'Spies'
 	);
+});
+
+test('the Utilitarians read as the engine plays them, each listed landmark in the card’s order (03 §1.3, §1.8, R113)', () => {
+	const text = /** @type {string} */ (
+		civAbilityText('utilitarians', 'original')
+	);
+	const names = UTILITARIANS_LANDMARKS.map((id) =>
+		id
+			.split('-')
+			.map((word) => word[0].toUpperCase() + word.slice(1))
+			.join(' ')
+	);
+	assertInOrder(
+		text,
+		'The mat lists',
+		[
+			...names,
+			`${UTILITARIANS_TOKENS} tokens`,
+			'while a token is beside it',
+			`at most ${UTILITARIANS_TOKENS}`,
+			'If you start the game with the Utilitarians',
+			'tier II landmark',
+			'nobody owns',
+			'a token beside it',
+			'later in the game',
+			'no landmark',
+			`up to ${UTILITARIANS_TOKENS} tokens`,
+			'already own',
+			'Whenever you gain a listed landmark',
+			'from your mat',
+			'move one',
+			'Forge:',
+			'top row',
+			'1 resource of your choice',
+			'Inventors',
+			'Barracks:',
+			'whenever you conquer',
+			'red die',
+			'even if you kept',
+			'both dice',
+			'twice',
+			'Lighthouse:',
+			'at the start of each of your advance turns',
+			`${LIGHTHOUSE_TRADE.pay.territory} territory tiles`,
+			'1 resource of your choice',
+			'Apothecary:',
+			'another landmark',
+			'1 resource of your choice',
+			'Rubber Works, Tank Factory, Train Station and Academy:',
+			'tier III or IV',
+			'technology, military, exploration or science',
+			`${UTILITARIANS_ADVANCE_VP} VP`,
+		],
+		'Utilitarians'
+	);
+	assert.deepEqual(currentOnly('utilitarians'), [
+		'Current rules: if you start the game with the Utilitarians, at the end of your first income turn you lose 1 resource of your choice.',
+	]);
 });

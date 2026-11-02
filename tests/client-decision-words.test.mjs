@@ -506,6 +506,119 @@ test("the Spies' option, what it takes from a neighbour and the look at their ha
 	}
 });
 
+test("the Utilitarians' landmark, their tokens and the Lighthouse's trade read as what they do (#33)", () => {
+	/**
+	 * A slot pick of the Utilitarians.
+	 * @param {string} purpose
+	 * @param {any[]} options
+	 * @param {boolean} optional
+	 */
+	const pick = (purpose, options, optional) => ({
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose,
+		optional,
+		options,
+	});
+	/** @param {ReturnType<typeof pick>} decision */
+	const words = (decision) =>
+		decision.options.map((slot) => describeAnswer(decision, { slot }));
+
+	const start = pick(
+		'utilitariansLandmark',
+		['forge', 'barracks', 'lighthouse', 'apothecary'],
+		false
+	);
+	assert.equal(
+		decisionTitle(start),
+		'Choose a tier II landmark for your Utilitarians'
+	);
+	assert.deepEqual(words(start), [
+		'Forge: whenever you upgrade a tech card to your top row, gain 1 resource of your choice',
+		"Barracks: whenever you conquer, also gain the red die's result",
+		'Lighthouse: at the start of each advance turn, you may discard 2 territory tiles to gain 1 resource of your choice',
+		'Apothecary: whenever you gain another landmark, gain 1 resource of your choice',
+	]);
+
+	const place = pick(
+		'utilitariansPlace',
+		['rubber-works', 'tank-factory', 'train-station', 'academy'],
+		true
+	);
+	assert.equal(
+		decisionTitle(place),
+		'Put a Utilitarians token beside a landmark you own?'
+	);
+	assert.deepEqual(words(place), [
+		'Rubber Works: whenever you advance into tier III or IV of Technology, gain 4 VP',
+		'Tank Factory: whenever you advance into tier III or IV of Military, gain 4 VP',
+		'Train Station: whenever you advance into tier III or IV of Exploration, gain 4 VP',
+		'Academy: whenever you advance into tier III or IV of Science, gain 4 VP',
+	]);
+	assert.equal(describeAnswer(place, { slot: null }), 'Decline');
+
+	const fromMat = pick(
+		'utilitariansToken',
+		[{ landmark: 'barracks', from: 'mat' }],
+		true
+	);
+	assert.equal(
+		decisionTitle(fromMat),
+		'Put a Utilitarians token beside the Barracks?'
+	);
+	assert.deepEqual(words(fromMat), [
+		'Put a token from your mat beside the Barracks',
+	]);
+	const move = pick(
+		'utilitariansToken',
+		[
+			{ landmark: 'academy', from: 'forge' },
+			{ landmark: 'academy', from: 'barracks' },
+		],
+		true
+	);
+	assert.equal(
+		decisionTitle(move),
+		'Move a Utilitarians token beside the Academy?'
+	);
+	assert.deepEqual(words(move), [
+		'Move the token from the Forge to the Academy',
+		'Move the token from the Barracks to the Academy',
+	]);
+	// A slot of another shape falls back to a readable sentence.
+	for (const decision of [start, place, fromMat, move]) {
+		assertReadable(
+			describeAnswer(decision, { slot: { odd: true } }),
+			`an odd ${decision.purpose} slot`
+		);
+	}
+
+	const lighthouse = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseTrade',
+		purpose: 'lighthouse',
+		optional: true,
+		offers: [{ pay: { territory: 2 }, gain: [{ gain: { any: 1 } }] }],
+	};
+	assert.equal(
+		decisionTitle(lighthouse),
+		'Use your Lighthouse: discard 2 territory tiles for a resource?'
+	);
+	assert.deepEqual(
+		[{ offer: null }, { offer: 0, pay: { territory: [4, 16] } }].map(
+			(answer) => describeAnswer(lighthouse, answer)
+		),
+		[
+			'No trade',
+			'Discard territory tiles 4 and 16 to gain 1 resource of your choice',
+		]
+	);
+});
+
 test('unknown decisions and answers fall back to a readable sentence', () => {
 	const odd = { id: 1, batch: 1, player: 1, kind: 'chooseSomethingNew' };
 	assertReadable(decisionTitle(odd), 'an unknown title');

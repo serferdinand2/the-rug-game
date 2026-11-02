@@ -480,7 +480,9 @@ export function advanceModel(option, _game) {
 }
 
 /**
- * The offers of a trade, for its first step, or null when it has at most one answer that pays anything.
+ * The offers of a trade, for its first step, or null when it has at most one answer that pays anything. A trade paying
+ * cards or tiles (the Utilitarians' Lighthouse, #33) is null too: its second step picks resources only, so each way to
+ * pay stays an answer of the prompt's own.
  * @param {Decision | null | undefined} decision
  * @param {any} _game
  * @param {number | null} _seat
@@ -497,7 +499,10 @@ export function tradeOffers(decision, _game, _seat) {
 	}
 	/** @type {Record<string, any>[]} */
 	const paying = decision.answers.filter((a) => Number.isInteger(a.offer));
-	if (paying.length <= 1) {
+	const items = decision.offers.some((/** @type {any} */ offer) =>
+		ITEM_KINDS.some((kind) => amount(offer?.pay, kind))
+	);
+	if (paying.length <= 1 || items) {
 		return null;
 	}
 	return decision.offers.map(

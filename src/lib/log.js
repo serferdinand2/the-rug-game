@@ -868,6 +868,11 @@ const WORDS = {
 			? `${hand}: ${joinList(cards.map(tapestryWords))}.`
 			: `${hand}.`;
 	},
+	// The Utilitarians' tokens, which switch on a landmark's ability (#33).
+	utilitariansToken: (e, game, name) =>
+		typeof e.from === 'string'
+			? `${name} moved a Utilitarians token from ${landmarkWords(e.from)} to ${landmarkWords(e.landmark)}.`
+			: `${name} put a Utilitarians token beside ${landmarkWords(e.landmark)}.`,
 	heraldsCopied: (e, game, name) =>
 		`${name} used a Heralds token to copy ${whose(game, e.owner, e.player)} ${tapestryName(e.card)}.`,
 	historiansGave: (e, game, name) =>

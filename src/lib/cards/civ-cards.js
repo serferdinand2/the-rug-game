@@ -25,6 +25,7 @@ import {
 } from '../engine/civs/mystics.js';
 import { CHOSEN_FINAL_VP } from '../engine/civs/the-chosen.js';
 import { TRADERS_TOKENS } from '../engine/civs/traders.js';
+import { UTILITARIANS_TOKENS } from '../engine/civs/utilitarians.js';
 import { ASSETS } from '../art/catalog.js';
 import { artUrl } from '../ui.js';
 import { buildingName, civilizationName, trackName } from '../game-names.js';
@@ -57,8 +58,11 @@ import { buildingName, civilizationName, trackName } from '../game-names.js';
  * @property {string} [label] - The symbol is this word or value
  * @property {12 | 13 | 14 | 15} [symbolText] - Bold size of a word or "+" symbol in px
  * @property {CardPictogram} [pictogram] - The symbol is this pictogram
- * @property {string} [spot] - The spot a live card's marks name for this box, such as a Tinkerers option's 'option2'
+ * @property {string} [spot] - The spot a live card's marks name for this box, such as a Tinkerers option's 'option2' or
+ *   a Utilitarians landmark's 'forge'
  * @property {boolean} [used] - Whether the card's view marks the box's `spot` used; civCard() sets it on a box with a spot
+ * @property {boolean} [token] - Whether the card's view marks a player's token on the box's `spot`, such as a
+ *   Utilitarians token beside its landmark; civCard() sets it on a box with a spot
  * @property {CardText} text - The rules
  */
 
@@ -1522,10 +1526,12 @@ const RECIPES = {
 		],
 		sections: [
 			{
+				// Each box is the spot of its landmark, where civs/utilitarians.js's token out is marked (#33).
 				pattern: 'effects',
 				effects: [
 					{
 						title: 'Forge',
+						spot: 'forge',
 						label: 'Top',
 						symbolText: 12,
 						text: [
@@ -1536,6 +1542,7 @@ const RECIPES = {
 					},
 					{
 						title: 'Barracks',
+						spot: 'barracks',
 						label: 'Red',
 						symbolText: 12,
 						text: [
@@ -1544,6 +1551,7 @@ const RECIPES = {
 					},
 					{
 						title: 'Lighthouse',
+						spot: 'lighthouse',
 						label: 'Tiles',
 						symbolText: 12,
 						text: [
@@ -1554,6 +1562,7 @@ const RECIPES = {
 					},
 					{
 						title: 'Apothecary',
+						spot: 'apothecary',
 						label: 'Gain',
 						symbolText: 12,
 						text: [
@@ -1564,6 +1573,7 @@ const RECIPES = {
 					},
 					{
 						title: 'Rubber Works',
+						spot: 'rubber-works',
 						label: '4 VP',
 						symbolText: 12,
 						text: [
@@ -1572,6 +1582,7 @@ const RECIPES = {
 					},
 					{
 						title: 'Tank Factory',
+						spot: 'tank-factory',
 						label: '4 VP',
 						symbolText: 12,
 						text: [
@@ -1580,6 +1591,7 @@ const RECIPES = {
 					},
 					{
 						title: 'Train Station',
+						spot: 'train-station',
 						label: '4 VP',
 						symbolText: 12,
 						text: [
@@ -1588,6 +1600,7 @@ const RECIPES = {
 					},
 					{
 						title: 'Academy',
+						spot: 'academy',
 						label: '4 VP',
 						symbolText: 12,
 						text: [
@@ -1596,15 +1609,16 @@ const RECIPES = {
 					},
 				],
 			},
-			reserve(context, 2),
+			reserve(context, UTILITARIANS_TOKENS),
 			...clarity(
 				context,
 				[
 					'A token goes beside a landmark you own: at most 2 are on at once, and after gaining a listed landmark you may move one. Setup: choose a tier II landmark from a track and place it, with a token beside it. If gained mid-game, place up to 2 tokens.',
 				],
 				{
+					// R34: the loss comes at the end of income turn 1, as the Spies' does.
 					current: [
-						'Setup, current rules: lose ',
+						'Current rules: at the end of your first income turn, lose ',
 						res('any', true),
 						'.',
 					],
@@ -1688,7 +1702,8 @@ export function civCard(id, { version = 'current', view = null } = {}) {
 					props: { ...section.props, choices: context.choices },
 				};
 			}
-			// An effect box with a spot shows whether the view marks it used (the Tinkerers' options).
+			// An effect box with a spot shows whether the view marks it used (the Tinkerers' options) or a token beside it
+			// (the Utilitarians' landmarks).
 			if (section.pattern === 'effects') {
 				return {
 					...section,
@@ -1698,6 +1713,7 @@ export function civCard(id, { version = 'current', view = null } = {}) {
 							: {
 									...box,
 									used: marked(context, box.spot, 'used'),
+									token: marked(context, box.spot, 'token'),
 								}
 					),
 				};

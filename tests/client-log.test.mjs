@@ -227,6 +227,7 @@ const SAMPLES = {
 	turnChosen: { player: 1, turn: 'income' },
 	turnStarted: { player: 1 },
 	undone: { player: 1, from: 40 },
+	utilitariansToken: { player: 1, landmark: 'academy', from: 'forge' },
 	vpGained: { player: 1, vp: 3, total: 20 },
 	vpPaid: { player: 2, vp: 15, total: 0 },
 };
@@ -701,6 +702,23 @@ test('the important events read as plain sentences', () => {
 		[
 			sample('spiesUsed', { option: 7 }),
 			'Ana put a Spies token on an option.',
+		],
+		// The Utilitarians' tokens, put out from their mat or moved (#33).
+		[
+			sample('utilitariansToken', { from: undefined }),
+			'Ana put a Utilitarians token beside the Academy.',
+		],
+		[
+			sample('utilitariansToken'),
+			'Ana moved a Utilitarians token from the Forge to the Academy.',
+		],
+		[
+			sample('landmarkGained', {
+				player: 1,
+				landmark: 'barracks',
+				civ: 'utilitarians',
+			}),
+			'Ana gained the Barracks.',
 		],
 		[
 			sample('techUpgraded', { card: 'clocks' }),

@@ -1,4 +1,4 @@
-<!-- CardEffectBox: a beige trigger or scoring row: its symbol (a gain, a word or a pictogram), then its title and rules; a used one fades and its title is struck through (#106, #107, #33). -->
+<!-- CardEffectBox: a beige trigger or scoring row: its symbol (a gain, a word or a pictogram), then its title and rules; a used one fades and its title is struck through, and a player's token may mark its symbol (#106, #107, #33). -->
 <script module>
 	/**
 	 * @typedef {Object} CardEffectBoxOwnProps
@@ -12,6 +12,9 @@
 	 *   or an `era` numeral on one (the Heralds)
 	 * @property {boolean} [used=false] - Already used, such as a Tinkerers option: the box fades and its title is struck
 	 *   through, as a used terrain row is (CardTerrainRewards, #33)
+	 * @property {boolean} [token=false] - A player's token is beside it, such as a Utilitarians token switching on a
+	 *   landmark's ability: drawn in the symbol's corner, as a Merrymakers token marks its square (#33)
+	 * @property {import('../../ui.js').Seat} [seat] - Whose token it is, for its colour
 	 * @property {import('svelte').Snippet} [children] - The rules text
 	 */
 	/**
@@ -32,11 +35,17 @@
 	 *   title="Catch up"
 	 *   label="2"
 	 *   used>Advance to the closest opponent ahead of you.</CardEffectBox>
+	 * <CardEffectBox
+	 *   title="Barracks"
+	 *   label="Red"
+	 *   token
+	 *   seat={2}>Whenever you conquer, also gain the red die's result.</CardEffectBox>
 	 */
 </script>
 
 <script>
 	import CardResource from './CardResource.svelte';
+	import PlayerToken from './PlayerToken.svelte';
 	import { artUrl } from '../../ui.js';
 	import { RESOURCE_IDS, TRACK_IDS } from '../../engine/data/ids.js';
 
@@ -48,6 +57,8 @@
 		symbolText,
 		pictogram,
 		used = false,
+		token = false,
+		seat,
 		children,
 		...attr
 	} = $props();
@@ -90,7 +101,11 @@
 			>{:else if pictogram?.kind === 'era'}<span
 				class="rg-card-effect-box--mini-card rg-card-effect-box--era"
 				title={pictogram.title}><b>{pictogram.numeral}</b></span
-			>{/if}
+			>{/if}{#if token}<PlayerToken
+				{seat}
+				color="blue"
+				decorative
+				class="rg-card-effect-box--token" />{/if}
 	</div>
 	<div class="rg-card-effect-box--copy">
 		<b class="rg-card-effect-box--title">{title}</b><span
@@ -111,6 +126,7 @@
 	.rg-card-effect-box--symbol {
 		--card-resource-center: 12px;
 		--card-resource-height: 24px;
+		position: relative;
 		display: grid;
 		place-items: center;
 		width: 64px;
@@ -159,6 +175,14 @@
 	}
 	.rg-card-effect-box--used .rg-card-effect-box--title {
 		text-decoration: line-through;
+	}
+	/* A player's token in the symbol's corner, the size and place of a Merrymakers token on its square (CardRewardColumns). */
+	.rg-card-effect-box--symbol :global(.rg-card-effect-box--token) {
+		position: absolute;
+		right: 3px;
+		top: 3px;
+		width: 21px;
+		height: 21px;
 	}
 	.rg-card-effect-box--body :global(strong) {
 		white-space: nowrap;

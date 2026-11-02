@@ -228,6 +228,47 @@ test('a used CardEffectBox fades and its title is struck through, as a used terr
 	);
 });
 
+test("a CardEffectBox with a token draws the player's token in its symbol's corner, as a Merrymakers token marks its square (#33)", () => {
+	/** @param {Record<string, any>} [props] */
+	const box = (props = {}) =>
+		html(
+			render(CardEffectBox, {
+				props: { title: 'Barracks', label: 'Red', ...props },
+			})
+		);
+	const marked = box({ token: true, seat: 3 });
+	assert.match(
+		marked,
+		/<div class="rg-card-effect-box--symbol[^"]*">Red<img[^>]*class="rg-player-token rg-card-effect-box--token[^"]*"[^>]*>/
+	);
+	assert.match(marked, /token-green\.svg/);
+	// No seat: the reserve's blue, as every card token without one.
+	assert.match(box({ token: true }), /token-blue\.svg/);
+	assert.doesNotMatch(box(), /rg-card-effect-box--token/);
+	assert.doesNotMatch(box({ token: false }), /rg-card-effect-box--token/);
+	/** @param {string} name @param {string} rule */
+	const declarations = (name, rule) =>
+		source(name)
+			.match(
+				new RegExp(
+					`${rule.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\{([^}]*)\\}`
+				)
+			)?.[1]
+			.trim();
+	const corner = declarations(
+		'CardEffectBox',
+		'.rg-card-effect-box--symbol :global(.rg-card-effect-box--token)'
+	);
+	assert.ok(corner);
+	assert.equal(
+		corner,
+		declarations(
+			'CardRewardColumns',
+			'.rg-card-reward-columns--track :global(.rg-card-reward-columns--token)'
+		)
+	);
+});
+
 test('CardEffectList holds the effect boxes, with the space above it as a prop', () => {
 	const body = html(
 		render(CardEffectList, {

@@ -1,4 +1,4 @@
-<!-- Library section: CardEffectBox, a beige trigger or scoring row with its symbol (#106), a used one (#33), and each pictogram the cards draw (#107). -->
+<!-- Library section: CardEffectBox, a beige trigger or scoring row with its symbol (#106), a used one and one with a token (#33), and each pictogram the cards draw (#107). -->
 <script>
 	import CardEffectBox from '../../../lib/components/player/CardEffectBox.svelte';
 	import CardResource from '../../../lib/components/player/CardResource.svelte';
@@ -76,7 +76,7 @@
 <Section
 	name="CardEffectBox"
 	area="player"
-	description="A triggered or scoring effect: a 64 px symbol (a gained resource, a word or a pictogram), then its title in capitals and its rules; a used one fades and its title is struck through, as a used terrain row is. See docs/ui/card-design-rules.md."
+	description="A triggered or scoring effect: a 64 px symbol (a gained resource, a word or a pictogram), then its title in capitals and its rules; a used one fades and its title is struck through, as a used terrain row is; a player's token marks the symbol's corner, as a Merrymakers token marks its square. See docs/ui/card-design-rules.md."
 	><Example
 		label={'title gain="any" symbolText={15}'}
 		width={425}
@@ -108,6 +108,18 @@
 				used
 				>Advance on a track to the space of the closest opponent ahead
 				of you; gain its benefit, not its bonus.</CardEffectBox>
+		</CardFrame></Example
+	><Example
+		label={'title label="Red" symbolText={12} token seat={2}'}
+		width={425}
+		><CardFrame plain>
+			<CardEffectBox
+				title="Barracks"
+				label="Red"
+				symbolText={12}
+				token
+				seat={2}
+				>Whenever you conquer, also gain the red die's result.</CardEffectBox>
 		</CardFrame></Example
 	><Example
 		label={'title label="Top row" symbolText={12}'}

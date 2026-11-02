@@ -10,6 +10,10 @@ import { spaceTilesFor } from '../../src/lib/engine/data/space-tiles.js';
 import { SMALL_MAP_PAIRS } from '../../src/lib/engine/data/capitals.js';
 import { RESOURCE_CAP } from '../../src/lib/engine/effects/gain.js';
 import {
+	UTILITARIANS_LANDMARKS,
+	UTILITARIANS_TOKENS,
+} from '../../src/lib/engine/civs/utilitarians.js';
+import {
 	BUILDING_IDS,
 	RESOURCE_IDS,
 	TRACK_IDS,
@@ -234,6 +238,30 @@ export function checkState(state, previousSeq = 0) {
 				data.tokens + placed,
 				total,
 				`seat ${p.seat} owns ${data.tokens + placed} ${civ} tokens`
+			);
+		}
+		// #33: the Utilitarians' tokens out, each beside a listed landmark the seat owns or is placing (03 §1.3).
+		const active = p.civData.utilitarians?.active;
+		if (active !== undefined) {
+			const owned = [
+				...p.capital.landmarks.map((piece) => piece.landmark),
+				...p.besideMat,
+				...mine.flatMap((o) =>
+					o.piece && 'landmark' in o.piece ? [o.piece.landmark] : []
+				),
+				...placing
+					.filter((op) => op.player === p.seat)
+					.map((op) => op.landmark),
+			];
+			assert.ok(
+				active.length <= UTILITARIANS_TOKENS &&
+					new Set(active).size === active.length &&
+					active.every(
+						(/** @type {string} */ id) =>
+							UTILITARIANS_LANDMARKS.includes(id) &&
+							owned.includes(id)
+					),
+				`seat ${p.seat} has utilitarians tokens beside [${active}]`
 			);
 		}
 		for (const resource of RESOURCE_IDS) {
