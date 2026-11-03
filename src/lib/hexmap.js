@@ -10,6 +10,7 @@ import {
 import { MAPS } from './engine/data/maps.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { terrainsOf, turned } from './engine/terrain.js';
+import { territoryBenefit } from './area/terrain.js';
 import {
 	amountWords,
 	article,
@@ -57,6 +58,7 @@ import {
  * @property {Terrain[]} [slots] - A hex of 12 slots instead of 6 corners, clockwise from the top-left corner: the Islanders' printed centre (#165), painted in 12 sectors
  * @property {boolean} clouds - The territory's picture shows clouds (R77); false while unexplored
  * @property {boolean} volcano - The territory's picture shows a volcano (R77); false while unexplored
+ * @property {number | null} [tile] - The territory tile lying on the hex, 1-48, for its benefit (#170); null while unexplored and on a printed starting hex
  * @property {MapOutpost[]} outposts
  * @property {MapToken[]} tokens
  * @property {string} label - The hex for assistive technology: where it is, its terrains and whose pieces stand on it
@@ -420,6 +422,10 @@ export function mapHexes(view, size = HEX_SIZE) {
 			island,
 			clouds: terrains?.clouds ?? false,
 			volcano: terrains?.volcano ?? false,
+			tile:
+				typeof hex.tile === 'number' && hex.tile <= 48
+					? hex.tile
+					: null,
 			outposts,
 			tokens,
 			label: hexLabel(key, corners, island, outposts, tokens, nameOf, {
@@ -506,12 +512,23 @@ function startingHexes(view) {
  */
 
 /**
+ * The badge of a placed tile's benefit on its hex (#170): the tile, where its centre goes and the scale of the 36 px tile's badge, and the benefit in words for the hover.
+ * @typedef {Object} MapBenefit
+ * @property {number} tile - The territory tile's number, 1-48
+ * @property {number} x
+ * @property {number} y
+ * @property {number} scale
+ * @property {string} words - Such as 'Territory tile 17. Benefit: gain 1 wood.'
+ */
+
+/**
  * One hex as the World Map draws it (#114): the hex, with a previewed tile in it, and everything worked out for it.
  * @typedef {MapHex & {
  *   previewed: boolean,
  *   target: boolean,
  *   score: number | null,
  *   tag: MapTag | null,
+ *   benefit: MapBenefit | null,
  *   selected: boolean,
  *   dimmed: boolean,
  *   veiled: boolean,
@@ -599,6 +616,10 @@ export function mapView(
 			target,
 			score,
 			tag: score === null ? null : scoreTag(hex.center, score, scale),
+			benefit:
+				typeof raw.tile === 'number'
+					? benefitBadge(hex.center, size, raw.tile)
+					: null,
 			selected: isSelected,
 			dimmed: targeting && !target,
 			// The painted map shows its terrain: a veil dims it when a decision lights other hexes.
@@ -612,6 +633,23 @@ export function mapView(
 			pieces: piecesOn(hex, size),
 		};
 	});
+}
+
+/**
+ * Where a placed tile's benefit badge goes: small, at the lower left of the hex, clear of the clouds at its top, the island and the pieces (#170).
+ * @param {Point} center
+ * @param {number} size
+ * @param {number} tile - The territory tile's number, 1-48
+ * @returns {MapBenefit}
+ */
+export function benefitBadge(center, size, tile) {
+	return {
+		tile,
+		x: center[0] - 0.5 * size,
+		y: center[1] + 0.42 * size,
+		scale: (size / 36) * 0.7,
+		words: `Territory tile ${tile}. Benefit: ${territoryBenefit(tile).words}.`,
+	};
 }
 
 /**

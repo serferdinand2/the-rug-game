@@ -55,12 +55,12 @@
 	let dragging = $state(false);
 
 	/**
-	 * A lit plot was chosen for a building, or a plot for the landmark.
+	 * A lit plot was chosen for a building or an Architects cube, or a plot for the landmark.
 	 * @param {ComponentEvent} event
 	 */
 	const plotClickHandler = (event) => {
 		const { row, col } = event.value;
-		if (values.building) {
+		if (values.building || values.cube) {
 			const target = values.targets.find(
 				(plot) => plot.row === row && plot.col === col
 			);

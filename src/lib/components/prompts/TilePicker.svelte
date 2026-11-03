@@ -19,7 +19,8 @@
 	 * @property {number[]} [pickable] - The tiles that can be pressed; the others are drawn plain, not as buttons (#93). All of them by default
 	 * @property {number | number[] | null} [selected=null] - The id of the picked tile, or the ids of several picked at once (#75)
 	 * @property {number[]} [disabled=[]] - Tiles that can't be pressed now, as when enough are picked (#75)
-	 * @property {'small' | 'large'} [size='small'] - small: a 34px tile in an 88×80 frame on the raised fill, for the decision panel; large: the tile at its own 36px in a frame that fits it, resting clear with a faint gold wash on hover, for the Terrain tab beside plain tiles (#93)
+	 * @property {'small' | 'large'} [size='small'] - small: a 34px tile in an 88×80 frame on the raised fill, for the decision panel; large: the tile at 56px (112 px wide) in a frame that fits it, resting clear with a faint gold wash on hover, for the Terrain tab beside plain tiles (#93)
+	 * @property {number} [radius] - The large size's hex radius in pixels, from the tile's centre to a corner; 56 by default, the size the owner chose for the Terrain tab (#169). The small size ignores it
 	 * @property {string} [dataIdPrefix='tile'] - Starts each pressable tile's data-id, `${dataIdPrefix}-${id}`, so two pickers on one screen keep their hooks apart
 	 * @property {Function} [onTilePickerSelect] - Callback fired with `{ tile }` when a tile is pressed
 	 */
@@ -42,6 +43,9 @@
 	import { upToVp } from '../../hexmap.js';
 	import { territoryBenefit } from '../../area/terrain.js';
 
+	/** The large tile's hex radius: 112 px wide, the size the owner chose over the 72 px it had (#169). */
+	const LARGE_RADIUS = 56;
+
 	/** @type {TilePickerProps} */
 	let {
 		tiles,
@@ -49,13 +53,14 @@
 		selected = null,
 		disabled = [],
 		size = 'small',
+		radius = LARGE_RADIUS,
 		dataIdPrefix = 'tile',
 		onTilePickerSelect,
 		...attr
 	} = $props();
 
-	/** The tile's hex radius: the frame's 34px when small, TerritoryTile's own when large. */
-	let tileSize = $derived(size === 'small' ? 34 : undefined);
+	/** The tile's hex radius: the frame's 34px when small, `radius` or TerritoryTile's own when large. */
+	let tileSize = $derived(size === 'small' ? 34 : radius);
 
 	/**
 	 * @param {number} tile

@@ -25,11 +25,12 @@
 	 */
 
 	/**
-	 * A building shown faintly on a plot before it is placed there.
+	 * A building, or an Architects cube, shown faintly on a plot before it is placed there.
 	 * @typedef {Object} CapitalGridPreview
 	 * @property {number} row - 0–8
 	 * @property {number} col - 0–8
-	 * @property {string} building - The income building's id: 'market', 'house', 'farm' or 'armory'
+	 * @property {string} [building] - The income building's id: 'market', 'house', 'farm' or 'armory'
+	 * @property {boolean} [cube=false] - An Architects cube instead of a building (#168)
 	 */
 
 	/**
@@ -505,7 +506,9 @@
 		{#if preview && index === previewed}
 			<img
 				class="rg-capital-grid--building rg-capital-grid--preview"
-				src={artUrl(`building/${preview.building}`)}
+				src={preview.cube
+					? artUrl('piece/architects-cube')
+					: artUrl(`building/${preview.building}`)}
 				alt=""
 				draggable="false" />
 		{/if}
@@ -766,10 +769,12 @@
 		background: var(--exploration);
 	}
 
+	/* The wrapper spans the landmark's whole box, so it lets the pointer through to the plots under its empty cells; the shape's fill and the controls take it back (issue 171). */
 	.rg-capital-grid--piece {
 		position: absolute;
 		z-index: 3;
 		inset: 0;
+		pointer-events: none;
 	}
 
 	.rg-capital-grid--overlay {

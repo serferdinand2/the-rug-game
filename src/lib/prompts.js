@@ -247,7 +247,11 @@ function placeOf(decision, answer, game) {
 	if (typeof answer.hex === 'string') {
 		return 'map';
 	}
-	if (decision.kind === 'choosePlacement' && typeof answer.row === 'number') {
+	if (
+		(decision.kind === 'choosePlacement' ||
+			decision.kind === 'chooseCube') &&
+		typeof answer.row === 'number'
+	) {
 		return 'capital';
 	}
 	// A shelf holds every mat on offer, and the civilizations or cards an answer names.

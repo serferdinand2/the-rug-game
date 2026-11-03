@@ -1290,3 +1290,33 @@ Built on 2026-11-02 on the branch `issue-33-pp-content`, not yet merged. The com
 - **Claude's calls, to revisit:** (1) the countdown applies to every turn a player chooses, advance or income, but not to income turn 1 (nobody chooses it) or the end of setup, which answers the issue's open question; (2) the engine option, rather than an always-on decision, because 97 engine tests assumed the turn passes at once; (3) the turn's own timer keeps running while End turn waits; (4) Enter does not press End turn, only the button, so a stray key can't end a turn; the issue asked for Enter too; (5) the random room test now takes back 75 choices at its default seeds, down from 166, so its floor is 50.
 - **Tests:** test-first: `engine-confirm-end-turn` (4), `rooms-end-turn` (3), `client-footer` (2), the browser test `end-turn`. A bug found on the way: pushed in one batch with the turn choice, End turn was open beside it, so it is pushed apart. The full unit suite and all 60 browser tests pass; `npm run check` is clean.
 - **Not done:** the owner's approval of the footer (the screenshot is `docs/ui/screens/game-end-turn.png`), and a library state, since `TurnBar` itself is unchanged: the new footer is a TurnFooter kind.
+
+### #171 (a landmark's wrapper blocked clicks on empty plots)
+
+- **Asked:** the three or four empty plots beside the Rubber Works could not take a building.
+- **Built:** a browser test reproduced it first: `.rg-capital-grid--piece` spans the landmark's whole box and took the click over the lit plot buttons below. It now has `pointer-events: none`; the shape's fill and the controls opt back in as before. The library's CapitalGrid shows a locked Rubber Works with its empty corner lit.
+- **Tests:** `library.test.mjs` (the corner takes the click); the existing landmark drag, turn, lock and keyboard tests pass.
+
+### #168 (the Architects' cube on the capital)
+
+- **Asked:** the cube's plot was chosen from a list of about 25 text buttons ("Row 1, column 1").
+- **Built:** a new decision kind, `chooseCube` (`decisions/choose-cube.js`), replaces the `chooseSlot` purpose `architectsCube`. Its answers carry `row` and `col`, as a building's place does, so the client lights the open plots on the Capital tab with the instruction "Choose a lit plot in your capital." and Place. `capitalPlacement` gains `cube`, and `CapitalGrid`'s `preview` can show the cube (`piece/architects-cube`). The old titles and answer words are gone from `decision-words.js`. A lone open plot is still taken without asking.
+- **Claude's calls, to revisit:** a new kind rather than the building placement's `choosePlacement`, which is tied to buildings and landmarks; and no new visual, since the lit plots and Place are the approved capital placement.
+- **Tests:** `engine-civs-setup` (the cube's options, answers and wrong plot), `client-prompts`, `client-area-placement`, the kind list in `engine-final-fixes`, and the library example in `library.test.mjs`. The full unit suite passes, including the 200-game simulation.
+- **Not done:** a Playwright test that places a cube in a live game; #31's bots must answer `chooseCube`.
+
+### #169 (the Terrain tab's tiles and count)
+
+- **Asked:** draw the territory tiles larger and show their count on the tab, as the Hand tab does.
+- **Built:** the count: `tabsWithCounts()` in `area/tabs.js` gives the Hand tab and the Terrain tab their number (`Terrain · 3`, `Terrain · 0` when empty), and `PlayerTabs` uses it. The size: the owner asked for a readable size and Claude took radius 56 (112 px wide, up from 72), now the default of `TilePicker`'s large size (`radius` stays a prop; the library section still shows 36, 48, 56 and 64 side by side). The wider label no longer fitted at 1366×768 (#64's test caught it), so below 420 px the tabs' side padding is 2 px (`--space-1`).
+- **Claude's calls, to revisit:** 56 over 48 (four tiles a row) and 64; the 2 px tab padding at laptop widths.
+- **Not done:** the README's Terrain tab screenshot is not retaken yet.
+- **Tests:** `client-area-tabs` (the counts), `tile-picker` (the large size and `radius`); the player-area browser test passes at every desktop size.
+
+### #170 (a placed tile's benefit on the map)
+
+- **Asked:** show a placed tile's benefit on its hex of the World Map.
+- **Built:** `TileBenefit` (`components/player/`), the badge that `TerritoryTile` drew inline, now shared and in the library; `TerritoryTile` uses it unchanged (the #150 test passes with the classes renamed to `rg-tile-benefit--*`). `mapHexes` and `matMapHexes` carry each explored hex's `tile` (1–48; null for a printed starting hex, the Islanders' centre and empty hexes). `mapView` gives each such hex a `benefit` (`benefitBadge()` in `hexmap.js`: tile, position, scale, words), and `WorldMap` draws the badge small at the hex's lower left, with the words as the face's `title` for the styled Tooltip.
+- **Claude's calls, to revisit:** (1) the badge sits at the lower left, 0.7 × the tile's badge, because the top of the hex holds the clouds and the middle holds the island and the pieces; where an outpost stands on the hex it still overlaps the badge; (2) a previewed tile (before the explore) shows no benefit yet.
+- **Not done:** the owner's approval of the look in the library's WorldMap section (the mid-game fixture), and then the README's map screenshot.
+- **Tests:** `client-hexmap` (the tile on the hex, the badge and its words), `client-island-mat`, the browser test in `library.test.mjs`.

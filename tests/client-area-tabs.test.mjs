@@ -1,7 +1,7 @@
 // Which player tab a decision opens (#27 design §5).
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { TABS, tabFor } from '../src/lib/area/tabs.js';
+import { TABS, tabFor, tabsWithCounts } from '../src/lib/area/tabs.js';
 
 test("the tabs are the mockup's seven, in order", () => {
 	assert.deepEqual(
@@ -15,6 +15,7 @@ test('each decision family opens the tab that shows its things', () => {
 	const tab = (kind, answers = [{}]) => tabFor({ kind, answers });
 	assert.equal(tab('choosePlacement', [{ row: 1, col: 2 }]), 'capital');
 	assert.equal(tab('chooseSwap'), 'capital');
+	assert.equal(tab('chooseCube'), 'capital');
 	assert.equal(tab('chooseTapestry'), 'hand');
 	assert.equal(tab('chooseKeep'), 'hand');
 	assert.equal(tab('chooseDiscard'), 'hand');
@@ -37,4 +38,21 @@ test('a placement on the map, a resource choice and no decision open no tab', ()
 	);
 	assert.equal(tabFor({ kind: 'chooseResource', answers: [{}] }), null);
 	assert.equal(tabFor(null), null);
+});
+
+test('the Hand and Terrain tabs show their counts, and no other tab does (#169)', () => {
+	const tabs = tabsWithCounts({ hand: 4, territories: 3 });
+	assert.deepEqual(
+		tabs.map((t) => [t.id, t.count]),
+		[
+			['capital', undefined],
+			['hand', 4],
+			['income', undefined],
+			['eras', undefined],
+			['civ', undefined],
+			['tech', undefined],
+			['terrain', 3],
+		]
+	);
+	assert.equal(tabsWithCounts({ hand: 0, territories: 0 })[6].count, 0);
 });

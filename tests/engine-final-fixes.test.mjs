@@ -412,6 +412,12 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: [1, 2, 3, 4],
 		},
 		chooseSwap: { player: 1, kind: 'chooseSwap', left: 3 },
+		chooseCube: {
+			player: 1,
+			kind: 'chooseCube',
+			options: [0, 40],
+			left: 0,
+		},
 		chooseLandmarkCard: {
 			player: 1,
 			kind: 'chooseLandmarkCard',

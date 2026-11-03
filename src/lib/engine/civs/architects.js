@@ -2,7 +2,6 @@
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
 import { opponents } from '../abilities.js';
-import { askSlot } from '../decisions/choose-slot.js';
 import { askSwap } from '../decisions/choose-swap.js';
 import { cityPlots, uniformGroup } from '../city.js';
 import { groupsOf } from '../../capital.js';
@@ -22,17 +21,25 @@ function askCube(ctx, player, left) {
 	}
 	const seat = playerSeat(ctx.state, player);
 	const plots = cityPlots(seat);
-	askSlot(ctx, player, {
-		options: groupsOf('districts')
-			.filter(
-				(group) => !group.some((p) => seat.capital.cubes.includes(p))
-			)
-			.flat()
-			.filter((p) => plots[p] === 'empty')
-			.sort((a, b) => a - b),
-		purpose: 'architectsCube',
-		then: { kind: 'architectsCube', left: left - 1 },
-	});
+	const options = groupsOf('districts')
+		.filter((group) => !group.some((p) => seat.capital.cubes.includes(p)))
+		.flat()
+		.filter((p) => plots[p] === 'empty')
+		.sort((a, b) => a - b);
+	if (options.length === 0) {
+		return;
+	}
+	// A lone plot is taken without asking, as askSlot does for a required pick.
+	ctx.push([
+		options.length === 1
+			? {
+					player,
+					kind: 'architectsCube',
+					slot: options[0],
+					left: left - 1,
+				}
+			: { player, kind: 'chooseCube', options, left: left - 1 },
+	]);
 }
 
 /**

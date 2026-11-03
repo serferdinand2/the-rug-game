@@ -56,6 +56,8 @@ export const DECISION_KINDS = Object.freeze({
 	chooseRestart: { art: 'track' },
 	chooseTapestry: { shelf: 'tapestry', tab: 'hand', confirm: 'Play card' },
 	choosePlacement: { tab: 'capital', confirm: 'Place', art: 'placement' },
+	// The Architects' cube is placed on a lit plot, as a building is (#168).
+	chooseCube: { tab: 'capital', confirm: 'Place' },
 	chooseExplore: { confirm: 'Explore', art: 'explore' },
 	chooseSpaceTile: { tab: 'terrain', art: 'space-tile' },
 	chooseConquer: { confirm: 'Conquer' },

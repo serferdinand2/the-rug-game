@@ -11,6 +11,7 @@ import {
 	hexCorner,
 	hexPicture,
 	islandParts,
+	benefitBadge,
 	mapHexes,
 	mapView,
 	overlayBox,
@@ -221,6 +222,41 @@ test('mapHexes on a dealt 4-player game gives 61 hexes, 25 explored, and the sta
 			{ seat: seat.seat, toppled: false, piece: null },
 		]);
 		assert.match(hex.label, new RegExp(`${seat.name}: 2 outposts`));
+	}
+});
+
+test("a placed tile's number reaches its hex, and a printed starting hex has none (#170)", () => {
+	const game = dealtView(4);
+	assert.ok(mapHexes(game).every((hex) => hex.tile === null));
+	const open = /** @type {any} */ (
+		mapHexes(game).find((hex) => hex.corners === null)
+	);
+	game.hexes[open.key].tile = 17;
+	game.hexes[open.key].orient = 0;
+	const hex = /** @type {any} */ (
+		mapHexes(game).find((h) => h.key === open.key)
+	);
+	assert.equal(hex.tile, 17);
+	assert.ok(hex.corners);
+});
+
+test("a placed tile's benefit badge sits at the hex's lower left, with its words for the hover (#170)", () => {
+	const game = dealtView(4);
+	const open = /** @type {any} */ (
+		mapHexes(game).find((hex) => hex.corners === null)
+	);
+	game.hexes[open.key].tile = 17;
+	game.hexes[open.key].orient = 0;
+	const hexes = mapView(mapHexes(game), {});
+	const placed = /** @type {any} */ (hexes.find((h) => h.key === open.key));
+	assert.deepEqual(placed.benefit, benefitBadge(placed.center, HEX_SIZE, 17));
+	assert.ok(placed.benefit.x < placed.center[0]);
+	assert.ok(placed.benefit.y > placed.center[1]);
+	assert.match(placed.benefit.words, /^Territory tile 17\. Benefit: .+\.$/);
+	for (const hex of hexes) {
+		if (hex.key !== open.key) {
+			assert.equal(hex.benefit, null, hex.key);
+		}
 	}
 });
 

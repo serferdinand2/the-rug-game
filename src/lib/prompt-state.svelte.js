@@ -425,7 +425,7 @@ export class PromptState {
 	);
 	/** The cards on the shelf above the panel, for a card decision. */
 	shelfCards = $derived(shelfCardsOf(this.prompt, this.decision));
-	/** A building or landmark to place on the capital, from the Capital tab. */
+	/** A building, landmark or Architects cube to place on the capital, from the Capital tab. */
 	placement = $derived(
 		this.prompt &&
 			this.decision &&
@@ -433,7 +433,9 @@ export class PromptState {
 			? {
 					piece: this.decision.landmark
 						? { landmark: this.decision.landmark }
-						: { building: this.decision.building },
+						: this.decision.kind === 'chooseCube'
+							? { cube: true }
+							: { building: this.decision.building },
 					options: this.prompt.options.filter(
 						(o) => o.place === 'capital'
 					),

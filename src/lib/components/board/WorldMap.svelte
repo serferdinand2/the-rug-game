@@ -30,6 +30,7 @@
 </script>
 
 <script>
+	import TileBenefit from '../player/TileBenefit.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 	import { HEX_SIZE, fitBox, mapView } from '../../hexmap.js';
 	import {
@@ -186,12 +187,24 @@
 					preserveAspectRatio="none" />
 			{/if}
 			<!-- The terrain is in the painted map below; the face takes the pointer and the hover. -->
+			<!-- A title attribute, which the styled Tooltip shows; an SVG <title> would show the browser's own. -->
 			<polygon
 				class="rg-world-map--face"
-				points={hex.outline} />
+				points={hex.outline}
+				{...hex.benefit ? { title: hex.benefit.words } : {}} />
 			<polygon
 				class="rg-world-map--edge"
 				points={hex.outline} />
+			<!-- The placed tile's benefit, small at the top of the hex, clear of the island and the pieces (#170). -->
+			{#if hex.benefit}
+				<g
+					class="rg-world-map--benefit"
+					transform="translate({hex.benefit.x} {hex.benefit
+						.y}) scale({hex.benefit.scale})"
+					aria-hidden="true">
+					<TileBenefit tile={hex.benefit.tile} />
+				</g>
+			{/if}
 		{:else}
 			<polygon
 				class="rg-world-map--fog-fill"
@@ -373,6 +386,11 @@
 	}
 
 	/* Faint: the painted map draws its own faint rim between territories (issue 134). */
+	/* The badge leaves the hover to the face under it. */
+	.rg-world-map--benefit {
+		pointer-events: none;
+	}
+
 	.rg-world-map--edge {
 		fill: none;
 		stroke: var(--chrome);

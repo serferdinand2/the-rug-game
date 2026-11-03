@@ -455,6 +455,34 @@ test('placing a landmark asks for it on the capital, with the landmark sentence'
 	}
 });
 
+test('an Architects cube is placed on a lit plot of the capital, not chosen from a list (#168)', () => {
+	const { state, random } = startedGame(2);
+	const player = /** @type {number} */ (state.current);
+	state.pending.length = 0;
+	push(state, state.pending, [
+		{ player, kind: 'chooseCube', options: [0, 40], left: 0 },
+	]);
+	run(state, random);
+	const game = view(state, player);
+	const prompt = promptFor(myDecision(game, player), game, player);
+	assert.ok(prompt);
+	assert.equal(prompt.title, 'Choose a plot for an Architects cube');
+	assert.equal(prompt.layout, 'capital');
+	assert.equal(prompt.confirmLabel, 'Place');
+	assert.equal(prompt.instruction, 'Choose a lit plot in your capital.');
+	assert.deepEqual(
+		prompt.options.map((o) => [o.place, o.plot]),
+		[
+			['capital', { row: 0, col: 0, rotation: null }],
+			['capital', { row: 4, col: 4, rotation: null }],
+		]
+	);
+	assert.deepEqual(
+		prompt.options.map((o) => o.label),
+		['Row 1, column 1', 'Row 5, column 5']
+	);
+});
+
 test('the Nomads place a gained building in their capital or on a lit territory: the capital leads, the map stays lit', () => {
 	const { state: started, random } = startedGame(2);
 	const state = structuredClone(started);

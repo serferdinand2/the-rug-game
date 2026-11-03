@@ -55,7 +55,7 @@
 	import TechTab from './TechTab.svelte';
 	import TerrainTab from './TerrainTab.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
-	import { TABS } from '../../lib/area/tabs.js';
+	import { tabsWithCounts } from '../../lib/area/tabs.js';
 	import { capitalView } from '../../lib/area/capital.js';
 	import { defaultEra, eraSlots, incomeRows } from '../../lib/area/income.js';
 	import { selfSummary } from '../../lib/overview.js';
@@ -154,9 +154,10 @@
 	let era = $derived(selfSummary(game, seat)?.era ?? 1);
 
 	let tabs = $derived(
-		TABS.map((t) =>
-			t.id === 'hand' ? { ...t, count: handCount(player) } : { ...t }
-		)
+		tabsWithCounts({
+			hand: handCount(player),
+			territories: terrain.territories.length,
+		})
 	);
 
 	/**
@@ -323,11 +324,11 @@
 		padding-inline-start: var(--border-thick);
 	}
 
-	/* Under 420px (windows under 1680px wide) the tabs tighten, so all seven still show at 1366×768 (#64); narrower
-	   still, the row scrolls. Tabs' root, reached through its class prop. */
+	/* Under 420px (windows under 1680px wide) the tabs tighten, so all seven still show at 1366×768 (#64), with the
+	   Hand and Terrain counts (issue 169); narrower still, the row scrolls. Tabs' root, reached through its class prop. */
 	@container rg-player-tabs (max-width: 419px) {
 		.rg-player-tabs :global(.rg-player-tabs--tabs) {
-			--rg-tabs-padding: var(--space-2);
+			--rg-tabs-padding: var(--space-1);
 			--rg-tabs-gap: var(--space-1);
 		}
 	}

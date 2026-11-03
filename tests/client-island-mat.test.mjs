@@ -78,6 +78,17 @@ test('the mat is 7 hexes: the printed centre, then each position empty or with i
 	);
 });
 
+test('a tile on the mat carries its number for its benefit, and the printed centre and empty hexes carry none (#170)', () => {
+	const hexes = matMapHexes(
+		game([{ tile: 17, orient: 1 }, ...empty().slice(1)]),
+		1
+	);
+	assert.deepEqual(
+		hexes.map((hex) => hex.tile),
+		[null, 17, null, null, null, null, null]
+	);
+});
+
 test('the small map is laid out as the engine scores the mat: neighbours on the map are neighbours on the mat', () => {
 	const hexes = matMapHexes(game(empty()), 1);
 	const near = (/** @type {string} */ a, /** @type {string} */ b) => {

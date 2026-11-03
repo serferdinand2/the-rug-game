@@ -65,6 +65,7 @@ import { payResource } from './effects/pay.js';
 import { chooseAlchemists } from './decisions/choose-alchemists.js';
 import { chooseProphecy } from './decisions/choose-prophecy.js';
 import { chooseSwap } from './decisions/choose-swap.js';
+import { chooseCube } from './decisions/choose-cube.js';
 import { leadersAdvance } from './civs/leaders.js';
 import { merrymakersMove } from './civs/merrymakers.js';
 import { retreatTo, surrenderDice } from './responses.js';
@@ -155,6 +156,7 @@ Object.assign(DECISIONS, {
 	chooseAlchemists,
 	chooseProphecy,
 	chooseSwap,
+	chooseCube,
 	chooseLandmarkCard,
 });
 

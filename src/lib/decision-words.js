@@ -158,7 +158,6 @@ function plotAt(index) {
 const SLOT_TITLES = {
 	loseResource: () => 'Choose a resource to lose',
 	payResource: () => 'Choose a resource to pay',
-	architectsCube: () => 'Choose a plot for an Architects cube',
 	merrymakers: () => 'Choose a Merrymakers column to move up',
 	entertainers: () => 'Choose a space for the Entertainers token',
 	heralds: () => 'Put a Heralds token on a tapestry card?',
@@ -541,6 +540,7 @@ const TITLES = {
 			? PROPHECIES[d.category][0]
 			: 'Make a prophecy',
 	chooseSwap: () => 'Swap two income buildings in your capital?',
+	chooseCube: () => 'Choose a plot for an Architects cube',
 };
 
 /** Small counts in words, for "the other two". */
@@ -600,7 +600,6 @@ const SLOT_ANSWERS = {
 		RESOURCE_IDS.includes(slot) ? `Lose ${amountWords(slot, 1)}` : null,
 	payResource: (slot) =>
 		RESOURCE_IDS.includes(slot) ? `Pay ${amountWords(slot, 1)}` : null,
-	architectsCube: (slot) => (isCount(slot) ? capitalize(plotAt(slot)) : null),
 	merrymakers: (slot) => (isCount(slot) ? `Column ${slot + 1}` : null),
 	entertainers: (slot) => {
 		const match = typeof slot === 'string' && /^c(\d+)r(\d+)$/.exec(slot);
@@ -1078,6 +1077,10 @@ const ANSWERS = {
 		const [, one, many] = PROPHECIES[d.category];
 		return `${a.value} ${a.value === 1 ? one : many}`;
 	},
+	chooseCube: (a) =>
+		Number.isInteger(a.row) && Number.isInteger(a.col)
+			? capitalize(plotName(a.row, a.col))
+			: null,
 	chooseSwap: (a) => {
 		if (a.a === null) {
 			return 'Stop swapping';

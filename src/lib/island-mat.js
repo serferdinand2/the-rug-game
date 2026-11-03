@@ -63,14 +63,23 @@ export function matMapHexes(game, seat, size = HEX_SIZE) {
 	const found = game?.seats?.find((/** @type {any} */ s) => s.seat === seat);
 	/** @type {({ tile: number, orient: number } | null)[]} */
 	const lying = found?.civData?.islanders?.hexes ?? [];
-	/** @param {string} key @param {Terrain[] | null} corners @param {Terrain[]} island @param {boolean} clouds @param {boolean} volcano @param {string} label */
-	const hex = (key, corners, island, clouds, volcano, label) => ({
+	/** @param {string} key @param {Terrain[] | null} corners @param {Terrain[]} island @param {boolean} clouds @param {boolean} volcano @param {string} label @param {number | null} [tile] */
+	const hex = (
+		key,
+		corners,
+		island,
+		clouds,
+		volcano,
+		label,
+		tile = null
+	) => ({
 		key,
 		center: hexCenter(key, size),
 		corners,
 		island,
 		clouds,
 		volcano,
+		tile,
 		outposts: [],
 		tokens: [],
 		label,
@@ -111,7 +120,8 @@ export function matMapHexes(game, seat, size = HEX_SIZE) {
 				),
 				data.clouds,
 				data.volcano,
-				`Islanders mat hex ${position + 1}: tile ${tile.tile}`
+				`Islanders mat hex ${position + 1}: tile ${tile.tile}`,
+				tile.tile
 			);
 		}),
 	];

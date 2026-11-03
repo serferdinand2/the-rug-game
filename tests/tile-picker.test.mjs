@@ -78,10 +78,14 @@ test('a picker hooks its buttons with its own prefix', () => {
 	assert.match(tags[1], /\sdisabled/);
 });
 
-test('a small picker draws 34px tiles in its frames, a large one the tiles at their own 36px', () => {
+test('a small picker draws 34px tiles in its frames, a large one the tiles at 56px, or at the radius given (#169)', () => {
 	assert.deepEqual(tileSizes(draw({})), ['68', '68', '68']);
 	const large = draw({ size: 'large', pickable: [17] });
-	assert.deepEqual(tileSizes(large), ['72', '72', '72']);
+	assert.deepEqual(tileSizes(large), ['112', '112', '112']);
+	assert.deepEqual(
+		tileSizes(draw({ size: 'large', radius: 36, pickable: [17] })),
+		['72', '72', '72']
+	);
 	assert.match(
 		large,
 		/class="rg-tile-picker\b[^"]*\brg-tile-picker--large\b/

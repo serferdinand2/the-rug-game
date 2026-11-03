@@ -66,19 +66,19 @@ test('territory tiles show their reward icon and matching hover words (#150)', a
 	await expect(coinTile.first()).toHaveAttribute('title', /Benefit:.*coin/i);
 	await expect(coinTile.first().locator('title')).toHaveCount(0);
 	await expect(
-		coinTile.first().locator('.rg-territory-tile--reward-icon')
+		coinTile.first().locator('.rg-tile-benefit--reward-icon')
 	).toHaveAttribute('href', '/art/resource-24/coin.svg');
 	const twoTileReward = page.locator(
 		'#territory-tile .rg-territory-tile[aria-label^="Territory tile 2:"]'
 	);
 	await expect(
-		twoTileReward.locator('.rg-territory-tile--reward-count')
+		twoTileReward.locator('.rg-tile-benefit--reward-count')
 	).toHaveText('×2');
 	const researchTile = page.locator(
 		'#territory-tile .rg-territory-tile[aria-label^="Territory tile 12:"]'
 	);
 	await expect(
-		researchTile.locator('.rg-territory-tile--reward-cross')
+		researchTile.locator('.rg-tile-benefit--reward-cross')
 	).toBeVisible();
 });
 
@@ -87,9 +87,11 @@ test('income mat rewards use shared symbols and retain readable accessible label
 }) => {
 	await page.goto('/components.html#income-mat');
 	const section = page.locator('#income-mat');
-	const barter = section.getByRole('img', {
-		name: /Barter\. Income: Gain 1 coin\. Score: Gain 1 VP for each tech card you have/,
-	}).first();
+	const barter = section
+		.getByRole('img', {
+			name: /Barter\. Income: Gain 1 coin\. Score: Gain 1 VP for each tech card you have/,
+		})
+		.first();
 	await expect(barter).toBeVisible();
 	await expect(barter.getByText('Income:')).toBeVisible();
 	await expect(barter.getByText('Score')).toHaveCount(0);
@@ -567,6 +569,56 @@ test('a landmark over the edge still lines up with the plots (#82)', async ({
 	for (const [edge, offset] of Object.entries(measured)) {
 		expect(Math.abs(offset), edge).toBeLessThan(1);
 	}
+});
+
+test("a placed tile's benefit shows on its hex of the map, with its words on hover (#170)", async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const map = page
+		.locator('#world-map figure')
+		.filter({ hasText: 'mid-game fixture' });
+	const badges = map.locator('.rg-world-map--benefit');
+	await expect(badges).toHaveCount(4);
+	await expect(
+		badges.first().locator('.rg-tile-benefit--reward-icon')
+	).toHaveAttribute('href', /\/art\/.+\.svg$/);
+	// The badge leaves the hover to the hex's face, which carries the words as a title for the styled Tooltip.
+	await expect(badges.first()).toHaveCSS('pointer-events', 'none');
+	await expect(
+		map.locator('.rg-world-map--face[title^="Territory tile"]')
+	).toHaveCount(4);
+});
+
+test('an Architects cube is previewed on its lit plot (#168)', async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const grid = capitalExample(page, 'Architects cube chosen').locator(
+		'.rg-capital-grid'
+	);
+	const plot = grid.locator('[data-plot="40"]');
+	await expect(plot).toHaveAttribute(
+		'aria-label',
+		/Place at row 5, column 5/
+	);
+	await expect(
+		plot.locator(
+			'img.rg-capital-grid--preview[src$="piece/architects-cube.svg"]'
+		)
+	).toBeVisible();
+});
+
+test("a lit plot in a landmark's box but outside its footprint takes the click (#171)", async ({
+	page,
+}) => {
+	await page.goto('/components.html');
+	const example = capitalExample(page, 'its empty corner');
+	const grid = example.locator('.rg-capital-grid');
+	await expect(grid).toBeVisible();
+	// Row 6, column 4 (plot 58) is in the Rubber Works' box, over its empty corner.
+	await grid.locator('[data-plot="58"]').click();
+	await expect(example.locator('figcaption')).toContainText('row: 6, col: 4');
 });
 
 test("an arrow key steps a landmark among the engine's places, over the edge included (#112, R14)", async ({

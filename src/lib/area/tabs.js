@@ -13,6 +13,23 @@ export const TABS = Object.freeze([
 ]);
 
 /**
+ * The tabs with the counts they show after their label: the cards in hand, and the territory tiles in hand (#169).
+ * @param {{ hand: number, territories: number }} counts
+ * @returns {{ id: string, label: string, count?: number }[]}
+ */
+export function tabsWithCounts({ hand, territories }) {
+	return TABS.map((tab) => {
+		if (tab.id === 'hand') {
+			return { ...tab, count: hand };
+		}
+		if (tab.id === 'terrain') {
+			return { ...tab, count: territories };
+		}
+		return { ...tab };
+	});
+}
+
+/**
  * The tab a decision opens by itself, or null when its things are elsewhere (the board, or nowhere in particular).
  * A placement answered only with map hexes (the Nomads) belongs to the map.
  * @param {{ kind: string, answers?: any[], mat?: boolean } | null} decision

@@ -91,6 +91,19 @@
 					? chosen.filter((id) => id !== event.value.tile)
 					: [...chosen, event.value.tile])} />
 	</Example>
+	{#each [36, 48, 56, 64] as radius (radius)}
+		<Example
+			label={`size="large" radius={${radius}}  (sizes compared for the Terrain tab, ${radius === 36 ? 'the size before #169, ' : radius === 56 ? 'chosen, now the default, ' : ''}${radius * 2} px wide, in the player area's 460 px, #169)`}
+			surface="surface"
+			width={460}>
+			<TilePicker
+				size="large"
+				{radius}
+				tiles={tilesOf([2, 9, 18, 33, 40, 12])}
+				pickable={[9, 33]}
+				selected={[9]} />
+		</Example>
+	{/each}
 	<Example
 		label={'size="large" pickable={[]}  (the Terrain tab with nothing on offer: plain tiles)'}
 		surface="surface"

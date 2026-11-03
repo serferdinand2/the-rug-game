@@ -241,6 +241,7 @@ test('capitalPlacement derives building preview and empty landmark state', () =>
 
 	assert.deepEqual(capitalPlacement(capital, null, fresh), {
 		building: null,
+		cube: false,
 		landmark: null,
 		picked: null,
 		targets: [],
@@ -250,6 +251,32 @@ test('capitalPlacement derives building preview and empty landmark state', () =>
 		pieces: [],
 		tray: [],
 	});
+});
+
+test('capitalPlacement lights the plots for an Architects cube and previews it on the picked one (#168)', () => {
+	const capital = { pieces: [] };
+	const fresh = { plots: [], landmarks: [] };
+	const options = [
+		{ index: 0, plot: { row: 0, col: 0, rotation: null } },
+		{ index: 1, plot: { row: 4, col: 4, rotation: null } },
+	];
+	const open = capitalPlacement(
+		capital,
+		{ piece: { cube: true }, options, picked: null },
+		fresh
+	);
+	assert.equal(open.cube, true);
+	assert.deepEqual(open.targets, [
+		{ row: 0, col: 0, index: 0 },
+		{ row: 4, col: 4, index: 1 },
+	]);
+	assert.equal(open.preview, null);
+	const picked = capitalPlacement(
+		capital,
+		{ piece: { cube: true }, options, picked: 1 },
+		fresh
+	);
+	assert.deepEqual(picked.preview, { row: 4, col: 4, cube: true });
 });
 
 test('capitalPlacement derives a landmark, tray, legal positions, and fresh pieces', () => {

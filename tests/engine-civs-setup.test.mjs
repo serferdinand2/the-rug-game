@@ -704,23 +704,27 @@ test('Architects place 1 impassable cube per opponent in different districts onl
 		{ player: 1, kind: 'civAdjust', phase: 'setup' },
 	]);
 	run(state, random);
-	const first = /** @type {any} */ (decisionOf(state, 'chooseSlot'));
+	const first = /** @type {any} */ (decisionOf(state, 'chooseCube'));
+	assert.deepEqual(first.options, empty);
 	assert.deepEqual(
-		[first.purpose, first.optional, first.options],
-		['architectsCube', false, empty]
+		DECISIONS.chooseCube.answers(state, first),
+		empty.map((p) => ({ row: Math.floor(p / 9), col: p % 9 }))
 	);
-	// Plot 40 is in the middle district, 4.
-	let next = answer(state, random, 1, 'chooseSlot', { slot: 40 });
-	const second = /** @type {any} */ (decisionOf(next, 'chooseSlot'));
+	// Plot 40 is row 4, column 4, in the middle district, 4.
+	let next = answer(state, random, 1, 'chooseCube', { row: 4, col: 4 });
+	const second = /** @type {any} */ (decisionOf(next, 'chooseCube'));
 	assert.deepEqual(
 		second.options,
 		empty.filter((p) => !groupsOf('districts')[4].includes(p))
 	);
-	assert.throws(() => answer(next, random, 1, 'chooseSlot', { slot: 41 }), {
-		name: 'PlayerError',
-		message: 'Choose one of the options offered.',
-	});
-	next = answer(next, random, 1, 'chooseSlot', { slot: 0 });
+	assert.throws(
+		() => answer(next, random, 1, 'chooseCube', { row: 4, col: 5 }),
+		{
+			name: 'PlayerError',
+			message: 'Choose one of the plots offered.',
+		}
+	);
+	next = answer(next, random, 1, 'chooseCube', { row: 0, col: 0 });
 	assert.deepEqual(next.seats[0].capital.cubes, [40, 0]);
 	assert.deepEqual(openDecisions(next), []);
 });

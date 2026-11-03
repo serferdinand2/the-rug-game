@@ -94,6 +94,27 @@
 		name: 'Rubber Works',
 		footprint: FOOTPRINTS['rubber-works'],
 	};
+	/** The Rubber Works locked at row 5, column 3 (#171): its box is four plots wide, and its top-left 2×2 is open ground. */
+	const CORNER = capital(1, {
+		[5 * 9 + 5]: 'landmark',
+		[5 * 9 + 6]: 'landmark',
+		[6 * 9 + 5]: 'landmark',
+		[6 * 9 + 6]: 'landmark',
+		[7 * 9 + 3]: 'landmark',
+		[7 * 9 + 4]: 'landmark',
+		[7 * 9 + 5]: 'landmark',
+		[7 * 9 + 6]: 'landmark',
+		[8 * 9 + 3]: 'landmark',
+		[8 * 9 + 4]: 'landmark',
+		[8 * 9 + 5]: 'landmark',
+		[8 * 9 + 6]: 'landmark',
+	});
+	const CORNER_OPEN = [
+		{ row: 5, col: 3 },
+		{ row: 5, col: 4 },
+		{ row: 6, col: 3 },
+		{ row: 6, col: 4 },
+	].filter(({ row, col }) => CORNER[row * 9 + col] === 'empty');
 
 	/** @type {GroupKind[]} */
 	const GROUPS = ['rows', 'columns', 'districts'];
@@ -124,6 +145,8 @@
 	/* The targets examples: where each farm is previewed. */
 	let farm = $state({ row: 4, col: 4 });
 	let forestFarm = $state({ row: 4, col: 4 });
+	/* The corner example: where its farm is previewed, in the Rubber Works' empty corner (#171). */
+	let corner = $state({ row: 5, col: 3 });
 	let toggled = $state(/** @type {GroupKind | null} */ (null));
 	/* The positions example: where its Lighthouse stands. */
 	let edge = $state({ row: 6, col: 5, rotation: 0 });
@@ -418,5 +441,32 @@ The engine's places decide where it goes (#112): the right arrow from row 6, col
 			})}
 			pieces={[{ ...RUBBER_WORKS, row: 5, col: 3, locked: true }]}
 			highlight="rows" />
+	</Example>
+	<Example
+		label={'targets={OPEN} preview={{ row: 4, col: 4, cube: true }}  (an Architects cube chosen on a lit plot, #168)'}
+		width={468}>
+		<CapitalGrid
+			plots={YOURS}
+			targets={OPEN}
+			preview={{ row: 4, col: 4, cube: true }} />
+	</Example>
+	<Example
+		label={`pieces={[Rubber Works, locked]} targets={its empty corner} preview={{ row: ${corner.row}, col: ${corner.col}, building: 'farm' }}  (#171: the plots in the landmark's box but outside its footprint take the click)`}
+		width={468}>
+		<CapitalGrid
+			plots={CORNER}
+			pieces={[{ ...RUBBER_WORKS, row: 5, col: 3, locked: true }]}
+			targets={CORNER_OPEN}
+			preview={{ ...corner, building: 'farm' }}
+			onCapitalGridPlotClick={(/** @type {ComponentEvent} */ event) => {
+				if (
+					CORNER_OPEN.some(
+						({ row, col }) =>
+							row === event.value.row && col === event.value.col
+					)
+				) {
+					corner = { row: event.value.row, col: event.value.col };
+				}
+			}} />
 	</Example>
 </Section>

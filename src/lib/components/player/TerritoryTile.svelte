@@ -31,7 +31,7 @@
 	import { paintTerritory } from '../../art/paint/map.js';
 	import { pictureUrl } from '../../painted-map.js';
 	import { territoryBenefit } from '../../area/terrain.js';
-	import { artUrl } from '../../ui.js';
+	import TileBenefit from './TileBenefit.svelte';
 
 	/** @type {TerritoryTileProps} */
 	let {
@@ -96,36 +96,7 @@
 			preserveAspectRatio="none" />
 	{/if}
 	<g transform="scale({size / 36})">
-		<circle
-			class="rg-territory-tile--reward"
-			cx="0"
-			cy="-1"
-			r="9.5" />
-		<image
-			class="rg-territory-tile--reward-icon"
-			href={artUrl(reward.icon)}
-			x="-6"
-			y="-7"
-			width="12"
-			height="12"
-			preserveAspectRatio="xMidYMid meet" />
-		{#if reward.upgrade}
-			<path
-				class="rg-territory-tile--upgrade"
-				d="M 4 -8 L 8 -8 L 8 -4 M 8 -8 L 3 -3" />
-		{/if}
-		{#if reward.count > 1}
-			<text
-				class="rg-territory-tile--reward-count"
-				x="10"
-				y="8"
-				text-anchor="middle">×{reward.count}</text>
-		{/if}
-		{#if reward.crossed}
-			<path
-				class="rg-territory-tile--reward-cross"
-				d="M -5 -7 L 5 5 M 5 -7 L -5 5" />
-		{/if}
+		<TileBenefit tile={id} />
 	</g>
 	<polygon
 		class="rg-territory-tile--edge"
@@ -152,42 +123,6 @@
 		fill: none;
 		stroke: var(--chrome);
 		stroke-width: 2;
-	}
-
-	.rg-territory-tile--reward {
-		fill: var(--ink);
-		fill-opacity: 0.88;
-		stroke: var(--text);
-		stroke-width: 1;
-	}
-
-	.rg-territory-tile--reward-icon {
-		image-rendering: pixelated;
-	}
-
-	.rg-territory-tile--upgrade {
-		fill: none;
-		stroke: var(--gold);
-		stroke-linecap: square;
-		stroke-linejoin: miter;
-		stroke-width: 1.5;
-	}
-
-	.rg-territory-tile--reward-count {
-		fill: var(--text);
-		font: 700 var(--font-size-3xs) var(--font-body);
-		paint-order: stroke;
-		stroke: var(--ink);
-		stroke-width: 2px;
-		pointer-events: none;
-	}
-
-	.rg-territory-tile--reward-cross {
-		fill: none;
-		stroke: var(--danger);
-		stroke-linecap: square;
-		stroke-width: 2;
-		pointer-events: none;
 	}
 
 	.rg-territory-tile--number {
