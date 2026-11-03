@@ -1,6 +1,11 @@
 // The Islanders' mat on screen (#165): its 7 hexes laid out as a small map the World Map component can draw, and the keys that tie a mat hex of the engine ('mat:1:2') to a hex of that map.
 import { hexNeighbours } from './engine/data/maps.js';
-import { ISLANDERS_CENTRE, MAT_HEXES, matHex } from './engine/island.js';
+import {
+	ISLANDERS_CENTRE,
+	ISLANDERS_CENTRE_SLOTS,
+	MAT_HEXES,
+	matHex,
+} from './engine/island.js';
 import { TERRITORY_TILES } from './engine/data/territory-tiles.js';
 import { turned } from './engine/terrain.js';
 import { HEX_SIZE, hexCenter } from './hexmap.js';
@@ -71,14 +76,18 @@ export function matMapHexes(game, seat, size = HEX_SIZE) {
 		label,
 	});
 	return [
-		hex(
-			CENTRE_KEY,
-			/** @type {Terrain[]} */ ([...ISLANDERS_CENTRE]),
-			[],
-			false,
-			false,
-			'The printed centre of the Islanders mat'
-		),
+		{
+			...hex(
+				CENTRE_KEY,
+				/** @type {Terrain[]} */ ([...ISLANDERS_CENTRE]),
+				[],
+				false,
+				false,
+				'The printed centre of the Islanders mat'
+			),
+			// Painted in its 12 sectors, as it scores: a quarter of the hex for each terrain.
+			slots: /** @type {Terrain[]} */ ([...ISLANDERS_CENTRE_SLOTS]),
+		},
 		...RING.map((key, position) => {
 			const tile = lying[position] ?? null;
 			if (!tile) {

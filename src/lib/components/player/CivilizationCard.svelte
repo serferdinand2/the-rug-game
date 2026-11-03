@@ -12,7 +12,9 @@
 	 *   choices as buttons; the other civilizations ignore it
 	 * @property {import('../../ui.js').Seat} [seat] - The card's player, whose colour its tokens take
 	 * @property {string | null} [selected=null] - The spot the player has picked among `live.choices`, drawn in gold
+	 * @property {{ hexes: import('../../hexmap.js').MapHex[], targets?: string[], scores?: Record<string, number>, selected?: string | null, preview?: import('../../hexmap.js').MapPreview | null } | null} [island=null] - The Islanders' mat, drawn over their portrait (#165): its hexes from `matMapHexes`, and the mat hexes (`mat:<seat>:<n>`) a decision offers, with their scores, the chosen one and the tile previewed
 	 * @property {Function} [onCivilizationCardPick] - Callback fired with the spot id when a spot the decision offers is pressed
+	 * @property {Function} [onCivilizationCardIsland] - Callback fired with { hex } when a mat hex the decision offers is pressed
 	 */
 	/**
 	 * @typedef {CivilizationCardOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} CivilizationCardProps
@@ -44,7 +46,9 @@
 	import CardTechnologyTransfer from './CardTechnologyTransfer.svelte';
 	import CardTerrainRewards from './CardTerrainRewards.svelte';
 	import CardTokenReserve from './CardTokenReserve.svelte';
+	import IslandMat from '../board/IslandMat.svelte';
 	import { playerColor } from '../../ui.js';
+	import { matMapHexes } from '../../island-mat.js';
 	import { CARD_CIVS } from '../../civ-card.js';
 	import { civCard } from '../../cards/civ-cards.js';
 	import { SAMPLE_VIEWS } from '../../cards/reviewed-civilizations.js';
@@ -60,9 +64,29 @@
 		live = null,
 		seat,
 		selected = null,
+		island = null,
 		onCivilizationCardPick,
+		onCivilizationCardIsland,
 		...attr
 	} = $props();
+	/** The Islanders' mat: the seat's, or an empty one on a card shown without a game. */
+	const shownIsland = $derived(
+		island ?? {
+			hexes: matMapHexes(
+				{
+					seats: [
+						{
+							seat: seat ?? 1,
+							civData: {
+								islanders: { hexes: Array(6).fill(null) },
+							},
+						},
+					],
+				},
+				seat ?? 1
+			),
+		}
+	);
 	/** The card civilizations draw live state in play; the illustration is a sample view drawn the same way. */
 	const liveCard = $derived(live !== null && CARD_CIVS.includes(id));
 	const recipe = $derived(
@@ -75,6 +99,22 @@
 					: null,
 		})
 	);
+
+	/**
+	 * A mat hex's pick, reported as the card's own.
+	 * @param {ComponentEvent} event - Its value is { hex }
+	 */
+	const islandSelectHandler = (event) => {
+		if (typeof onCivilizationCardIsland === 'function') {
+			onCivilizationCardIsland(
+				new ComponentEvent(
+					event.value,
+					event.target,
+					event.originalEvent
+				)
+			);
+		}
+	};
 
 	/**
 	 * A pattern's pick, reported as the card's own.
@@ -119,7 +159,20 @@
 		complexity={recipe.complexity}
 		state={liveCard ? 'play' : state}
 		bodyMinHeight={recipe.bodyMinHeight}
-		textLeading={recipe.textLeading}>
+		textLeading={recipe.textLeading}
+		stage={recipe.stage !== undefined}>
+		{#snippet overlay()}
+			{#if recipe.stage === 'island'}
+				<IslandMat
+					hexes={shownIsland.hexes}
+					seat={seat ?? 1}
+					targets={shownIsland.targets}
+					scores={shownIsland.scores}
+					selected={shownIsland.selected}
+					preview={shownIsland.preview}
+					onIslandMatSelect={islandSelectHandler} />
+			{/if}
+		{/snippet}
 		{#snippet effect()}{@render text(recipe.effect)}{/snippet}
 
 		{#each recipe.sections as section, index (index)}

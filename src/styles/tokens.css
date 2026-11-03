@@ -18,6 +18,7 @@
 	--text: #e8ddc4;
 	--muted: #b9af9b;
 	--faint: #737d81; /* inactive tabs, selectors and icons */
+	--over-picture: #e8ddc4; /* lines drawn over a picture, which a card's own palette must not darken: the Islanders' mat (#165) */
 
 	/* ---------- Colour: accents and states ---------- */
 	--gold: #e2b857; /* selection, proper names, civilization names */

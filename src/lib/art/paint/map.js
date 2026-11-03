@@ -6,6 +6,7 @@ import {
 	HEX_H,
 	inHex,
 	wedgeOf,
+	slotOf,
 	islandPartOf,
 	drawCloud,
 	drawVolcano,
@@ -28,6 +29,7 @@ import { paintSea } from './sea.js';
  * @typedef {Object} MapHexArt
  * @property {string} key - Its axial key, such as '2_-1'
  * @property {readonly TerrainId[]} [corners] - The terrain at each corner, clockwise from the top-left
+ * @property {readonly TerrainId[]} [slots] - A hex of 12 slots instead of 6 corners (the Islanders' printed centre): the terrain of each 30° sector, clockwise from the top-left corner; `corners` then only serve the volcano
  * @property {readonly TerrainId[]} [island] - The island's terrains, split as hexmap.js's islandParts splits them
  * @property {boolean} [clouds] - The cloud overlay goes on (R77)
  * @property {boolean} [volcano] - The volcano goes on a mountain corner (R77)
@@ -117,7 +119,12 @@ function terrainMap(hexes) {
 				}
 				const k = (oy + y) * w + ox + x;
 				const part = islandPartOf(x, y, island.length);
-				terrains[k] = part >= 0 ? island[part] : corners[wedgeOf(x, y)];
+				terrains[k] =
+					part >= 0
+						? island[part]
+						: hex.slots
+							? hex.slots[slotOf(x, y)]
+							: corners[wedgeOf(x, y)];
 				hexOf[k] = i;
 			}
 		}

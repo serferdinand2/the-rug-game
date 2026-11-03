@@ -386,6 +386,17 @@ export class PromptState {
 			selected: this.spot,
 		};
 	});
+	/** The Islanders' mat while an explore offers its hexes (#165): what it lights, scores, has chosen and previews. */
+	islandPick = $derived(
+		this.exploring && this.targets.some((hex) => hex.startsWith('mat:'))
+			? {
+					targets: this.targets,
+					scores: this.scores,
+					selected: this.hex,
+					preview: this.preview,
+				}
+			: null
+	);
 	/** The options a spot several answers share, such as the Historians' opponents for one square (#78). */
 	#spotOptions = $derived(
 		(this.prompt?.options ?? []).filter(

@@ -54,6 +54,7 @@ import {
  * @property {Terrain[] | null} corners - The terrain at each of the 6 corners, clockwise from the top-left, already
  *   turned; null while the hex is unexplored
  * @property {Terrain[]} island - The terrains of an island in the middle, empty when there is none
+ * @property {Terrain[]} [slots] - A hex of 12 slots instead of 6 corners, clockwise from the top-left corner: the Islanders' printed centre (#165), painted in 12 sectors
  * @property {boolean} clouds - The territory's picture shows clouds (R77); false while unexplored
  * @property {boolean} volcano - The territory's picture shows a volcano (R77); false while unexplored
  * @property {MapOutpost[]} outposts

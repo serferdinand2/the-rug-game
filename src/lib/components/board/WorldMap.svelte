@@ -10,6 +10,7 @@
 	 * @property {import('../../hexmap.js').MapPreview | null} [preview=null] - A tile to show on a hex before it is explored: drawn like an explored hex, with its clouds or volcano, at 85% opacity with a gold outline
 	 * @property {string[]} [fresh=[]] - Hexes that just changed (#29): a gold outline pulses on each twice, unless the system asks for reduced motion
 	 * @property {{ hex: string, color: string } | null} [lit=null] - A hex another player just explored or conquered, outlined in their colour while their action shows (#153)
+	 * @property {boolean} [overlay=false] - Draws over a picture (#165, the Islanders' mat on their card): the unexplored hexes are only an outline, so the picture shows through, and no hex is dimmed
 	 * @property {string} [label='World map'] - Names the map for assistive technology
 	 * @property {Function} [onWorldMapSelect] - Callback fired with { hex } when the player chooses a target hex
 	 */
@@ -49,6 +50,7 @@
 		preview = null,
 		fresh = [],
 		lit = null,
+		overlay = false,
 		label = 'World map',
 		onWorldMapSelect,
 		...attr
@@ -172,7 +174,8 @@
 	aria-label={label}
 	{viewBox}
 	{...attr}
-	class="rg-world-map {attr.class ? attr.class : ''}">
+	class="rg-world-map {attr.class ? attr.class : ''}"
+	class:rg-world-map--overlay={overlay}>
 	{#snippet tile(/** @type {import('../../hexmap.js').MapViewHex} */ hex)}
 		{#if hex.corners}
 			{#if hex.previewed && previewHref}
@@ -194,7 +197,7 @@
 				class="rg-world-map--fog-fill"
 				points={hex.outline} />
 			<image
-				class="rg-world-map--art"
+				class="rg-world-map--art rg-world-map--unexplored"
 				href={artUrl('hex/unexplored')}
 				{...hex.picture}
 				preserveAspectRatio="none" />
@@ -382,6 +385,28 @@
 		fill: var(--surface);
 		fill-opacity: 0.65;
 		pointer-events: none;
+	}
+
+	/* Over a picture the unexplored hexes are an outline only, and nothing is dimmed or veiled. */
+	.rg-world-map--overlay .rg-world-map--fog-fill,
+	.rg-world-map--overlay .rg-world-map--veil,
+	.rg-world-map--overlay .rg-world-map--unexplored {
+		display: none;
+	}
+
+	.rg-world-map--overlay .rg-world-map--dim {
+		opacity: 1;
+	}
+
+	.rg-world-map--overlay .rg-world-map--fog {
+		stroke: var(--over-picture);
+		stroke-opacity: 0.75;
+	}
+
+	.rg-world-map--overlay .rg-world-map--edge {
+		stroke: var(--over-picture);
+		stroke-opacity: 0.6;
+		stroke-width: 1.5;
 	}
 
 	/* Unexplored hexes are dashed, like fog over the map. */

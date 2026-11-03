@@ -18,6 +18,8 @@
 	 * @property {Function} [onPlayerTabsPlace] - Callback fired with { index, confirm }: index is the option a building or landmark landed on, or null when the landmark went back to the tray; confirm is true when the landmark's own confirm control was pressed
 	 * @property {{ tiles: number[], selected: number | number[] | null, disabled?: number[] } | null} [tilePick=null] - While the viewer explores (#74) or pays tiles (#75): the territory tiles on offer and the one or ones picked, so In hand tiles can be picked here too; `disabled` can't be pressed now
 	 * @property {Function} [onPlayerTabsPick] - Callback fired with { tile } when an offered territory tile is pressed
+	 * @property {{ targets: string[], scores: Record<string, number>, selected: string | null, preview: import('../../lib/hexmap.js').MapPreview | null } | null} [islandPick=null] - While an explore offers the Islanders' mat hexes (#165): the hexes lit, their scores, the one chosen and the tile previewed, drawn on their card
+	 * @property {Function} [onPlayerTabsIsland] - Callback fired with { hex } when a mat hex on the Islanders' card is pressed
 	 * @property {{ civ: string, view: import('../../lib/civ-card.js').CivCardView, selected: string | null } | null} [civPick=null] - While the viewer's own civilization decision is made on its card (#78): the card's spots on offer and the one picked
 	 * @property {Function} [onPlayerTabsSpot] - Callback fired with the spot id when a spot on offer is pressed on the Civ tab's card
 	 */
@@ -62,6 +64,7 @@
 	import { tapestryCardData } from '../../lib/cards/game-cards.js';
 	import { CARD_SIZES } from '../../lib/cards/card-sizes.js';
 	import { CARD_CIVS, civCardView } from '../../lib/civ-card.js';
+	import { hasMat, matMapHexes } from '../../lib/island-mat.js';
 	import InspectBar from '../../lib/components/player/InspectBar.svelte';
 	import {
 		areaWords,
@@ -83,7 +86,9 @@
 		tilePick: tilePickProp = null,
 		onPlayerTabsPick,
 		civPick: civPickProp = null,
+		islandPick: islandPickProp = null,
 		onPlayerTabsSpot,
+		onPlayerTabsIsland,
 		onPlayerTabsBack,
 		...attr
 	} = $props();
@@ -101,6 +106,7 @@
 	let fresh = $derived(own ? freshProp : { plots: [], landmarks: [] });
 	let tilePick = $derived(own ? tilePickProp : null);
 	let civPick = $derived(own ? civPickProp : null);
+	let islandPick = $derived(own ? islandPickProp : null);
 
 	/**
 	 * Reports a spot pressed on the Civ tab's card (#78).
@@ -109,6 +115,16 @@
 	const spotHandler = (event) => {
 		if (own && typeof onPlayerTabsSpot === 'function') {
 			onPlayerTabsSpot(event);
+		}
+	};
+
+	/**
+	 * Reports a mat hex pressed on the Islanders' card (#165).
+	 * @param {ComponentEvent} event - From CivilizationCard: { hex }
+	 */
+	const islandHandler = (event) => {
+		if (own && typeof onPlayerTabsIsland === 'function') {
+			onPlayerTabsIsland(event);
 		}
 	};
 
@@ -258,7 +274,11 @@
 						selected={civPick && civPick.civ === civ
 							? civPick.selected
 							: null}
-						onCivilizationCardPick={spotHandler} />
+						island={civ === 'islanders' && hasMat(game, seat)
+							? { hexes: matMapHexes(game, seat), ...islandPick }
+							: null}
+						onCivilizationCardPick={spotHandler}
+						onCivilizationCardIsland={islandHandler} />
 				</div>
 			{/each}
 			{#if landmarkCard}

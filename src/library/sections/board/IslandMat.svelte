@@ -42,37 +42,55 @@
 	area="board"
 	description="The Islanders' mat (#165): the printed centre hex and the six hexes round it, drawn by the World Map, so the tiles lying there join into one coast with the centre as they join on the board. With targets set the empty hexes to explore are green buttons, scores tags the VP the picked tile earns there, and preview shows that tile before it lies. Answers name the hexes 'mat:<seat>:<position>', as the engine does.">
 	<Example
-		label={'hexes={matMapHexes(view, seat)}  (nothing explored yet)'}
+		label={'hexes={matMapHexes(view, seat)}  (over the card picture; nothing explored yet)'}
 		width={360}>
-		<IslandMat
-			hexes={empty}
-			seat={1} />
+		<div class="stage">
+			<IslandMat
+				hexes={empty}
+				seat={1} />
+		</div>
 	</Example>
 	<Example
 		label={'hexes={matMapHexes(view, seat)}  (three tiles lying: an island, clouds, the volcano)'}
 		width={360}>
-		<IslandMat
-			hexes={laid}
-			seat={1} />
+		<div class="stage">
+			<IslandMat
+				hexes={laid}
+				seat={1} />
+		</div>
 	</Example>
 	<Example
 		label={`targets={['mat:1:2', 'mat:1:3', 'mat:1:5']} selected='${chosen}' scores  (click a green hex)`}
 		width={360}>
-		<IslandMat
-			hexes={laid}
-			seat={1}
-			{targets}
-			{scores}
-			selected={chosen}
-			onIslandMatSelect={(/** @type {any} */ event) =>
-				(chosen = event.value.hex)} />
+		<div class="stage">
+			<IslandMat
+				hexes={laid}
+				seat={1}
+				{targets}
+				{scores}
+				selected={chosen}
+				onIslandMatSelect={(/** @type {any} */ event) =>
+					(chosen = event.value.hex)} />
+		</div>
 	</Example>
 	<Example
 		label={"preview={{ hex: 'mat:1:2', corners, island }}  (tile 3 turned once)"}
 		width={360}>
-		<IslandMat
-			hexes={laid}
-			seat={1}
-			preview={previewing} />
+		<div class="stage">
+			<IslandMat
+				hexes={laid}
+				seat={1}
+				preview={previewing} />
+		</div>
 	</Example>
 </Section>
+
+<style>
+	.stage {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 8 / 5;
+		overflow: hidden;
+		background: url('/art/civ/islanders.svg') center / cover;
+	}
+</style>

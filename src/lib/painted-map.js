@@ -28,6 +28,11 @@ export function mapArt(hexes) {
 					island: /** @type {MapHexArt['island']} */ ([
 						...hex.island,
 					]),
+					...(hex.slots && {
+						slots: /** @type {MapHexArt['slots']} */ ([
+							...hex.slots,
+						]),
+					}),
 					clouds: hex.clouds,
 					volcano: hex.volcano,
 				}

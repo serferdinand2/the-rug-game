@@ -54,8 +54,6 @@
 	import { nextInspected, shownSeat } from '../lib/area/inspect.js';
 	import { achievements, trackBoard } from '../lib/board.js';
 	import { mapHexes } from '../lib/hexmap.js';
-	import { hasMat, matMapHexes } from '../lib/island-mat.js';
-	import IslandMat from '../lib/components/board/IslandMat.svelte';
 	import { PromptState } from '../lib/prompt-state.svelte.js';
 	import { areaSummary, selfSummary } from '../lib/overview.js';
 	import { playerColor } from '../lib/ui.js';
@@ -781,33 +779,17 @@
 						lit={litSpace}
 						onTrackBoardSelect={trackSelectHandler} />
 				{:else}
-					<div class="rg-game--map">
-						<WorldMap
-							hexes={mapHexes(game)}
-							targets={promptState.targets}
-							selected={promptState.hex}
-							scores={promptState.scores}
-							preview={promptState.preview}
-							fresh={moved.hexes}
-							lit={litHex}
-							onWorldMapSelect={(
-								/** @type {ComponentEvent} */ event
-							) => promptState.selectHex(event.value.hex)} />
-						<!-- The Islanders' mat (#165) stands beside the map, where its hexes are chosen like the map's. -->
-						{#if hasMat(game, seat)}
-							<IslandMat
-								class="rg-game--mat"
-								hexes={matMapHexes(game, seat)}
-								{seat}
-								targets={promptState.targets}
-								selected={promptState.hex}
-								scores={promptState.scores}
-								preview={promptState.preview}
-								onIslandMatSelect={(
-									/** @type {ComponentEvent} */ event
-								) => promptState.selectHex(event.value.hex)} />
-						{/if}
-					</div>
+					<WorldMap
+						hexes={mapHexes(game)}
+						targets={promptState.targets}
+						selected={promptState.hex}
+						scores={promptState.scores}
+						preview={promptState.preview}
+						fresh={moved.hexes}
+						lit={litHex}
+						onWorldMapSelect={(
+							/** @type {ComponentEvent} */ event
+						) => promptState.selectHex(event.value.hex)} />
 				{/if}
 			</div>
 			{#if promptState.panel !== 'none'}
@@ -857,6 +839,9 @@
 					onPlayerTabsPick={(/** @type {ComponentEvent} */ event) =>
 						promptState.pickTile(event.value.tile)}
 					civPick={promptState.civPick}
+					islandPick={promptState.islandPick}
+					onPlayerTabsIsland={(/** @type {ComponentEvent} */ event) =>
+						promptState.selectHex(event.value.hex)}
 					onPlayerTabsSpot={(/** @type {ComponentEvent} */ event) =>
 						promptState.selectSpot(event.value)}
 					onPlayerTabsInspect={(
@@ -941,23 +926,6 @@
 
 	/* While a panel is docked at the right, the board leaves the panel's width and inset free, so the map lays itself
 	   out beside the panel, this area's right padding apart, and no hex lies under it (#74). */
-	/* The map takes the width; the Islanders' mat, when there is one, stands in a column of its own beside it. */
-	.rg-game--map {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--space-5);
-		height: 100%;
-	}
-	.rg-game--map > :global(.rg-world-map) {
-		flex: 1;
-		min-width: 0;
-		height: 100%;
-	}
-	.rg-game--map > :global(.rg-game--mat) {
-		flex: none;
-		width: 280px;
-	}
-
 	.rg-game--board-docked {
 		margin-right: calc(
 			var(--docked-panel-width) + var(--docked-panel-inset)

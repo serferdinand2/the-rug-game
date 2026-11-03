@@ -1258,13 +1258,14 @@ Built on 2026-11-02 on the branch `issue-33-pp-content`, not yet merged. The com
 
 - **Built:** the tenth Plans & Ploys civilization, (2026-11-03, on main). Plans & Ploys deals 26 civilizations, and the variant "All civilizations from Plans & Ploys" seats 5 players (R116's limit is gone).
   - **Engine:** `src/lib/engine/island.js` (leaf module) holds the mat: the printed centre (R115), hex ids `mat:<seat>:<0-5>`, matching sides against the centre and the hexes beside it, and the sea-outside test. `civs/islanders.js` holds the civilization: 4 territory tiles at setup; income turns 2–5 offer one explore onto the mat; the final turn scores 4 VP per mat tile with sea on its three outer sides (`islandersScore`); gained mid-game they may be discarded, or kept to place up to 4 tiles for no VP or benefit (`islandersPlace`, R113). The `explore` effect takes `mat` (mat hexes only) and `free` (place only), and any explore offers the empty mat hexes. State is `civData.islanders.hexes`, public.
-  - **Client:** `src/lib/island-mat.js` lays the mat out as a 7-hex small map; `IslandMat` draws it with `WorldMap` beside the map in `Game.svelte`, and its hexes are chosen through the existing explore prompt. Hover text, prompt words and the hex name are added. The card text and portrait existed from #107.
+  - **Client:** `src/lib/island-mat.js` lays the mat out as a 7-hex small map; `IslandMat` draws it with `WorldMap` in its `overlay` mode over the Islanders' card on the Civ tab (a wide stage, `CardFrame`'s `stage`), and its hexes are chosen through the existing explore prompt; a mat-only explore opens the Civ tab. The Islanders' portrait was redrawn as a sunset seascape for the stage (2026-11-03, owner). Hover text, prompt words and the hex name are added. The card text and portrait existed from #107.
   - **Tests:** `tests/engine-islanders.test.mjs`, `tests/client-island-mat.test.mjs`; the invariants count mat tiles as territory tiles; the simulation now plays the variant with 5 players.
 - **Calls to revisit after playing (my calls):**
   - Any explore may land on the mat, not only those on an advance turn.
+  - The printed centre is four equal quarters (owner, 2026-11-03): mountain top-left, grassland top-right, forest bottom-right, desert bottom-left, replacing R115's first 6-corner reading. It is drawn and scored as every territory is, by the terrain along each half of each side; only its left and right corners are split between two quarters. The engine holds it as 12 half-sides (`ISLANDERS_CENTRE_SLOTS`) and the painter paints them (`slots`, `slotOf` in `art/paint/hex.js`); for an ordinary territory `slotOf` paints exactly what `wedgeOf` does.
   - Placing up to 4 tiles mid-game gives no VP, as "no exploration benefits" is read.
   - The final scoring runs in step 1 of income turn 5, after the explore, not at step 3. Nothing between can change the mat.
-  - The mat stands beside the map and shows only on the Map view, not on the Civ tab.
+  - An ordinary explore that may also land on the mat doesn't open the Civ tab by itself; the mat's hexes light there when the player opens it.
   - The Original 2019 printing's income-turn-1 ability of the revised pack is out of scope.
 - **Not done:** a Playwright test of an Islanders explore in a running game, and the README screenshot of the mat from a running game.
 

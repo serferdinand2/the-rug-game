@@ -87,6 +87,7 @@ import { buildingName, civilizationName, trackName } from '../game-names.js';
  * @property {number} complexity - Complexity dots, 1 to 3
  * @property {number} [bodyMinHeight] - Least height of the portrait row in px
  * @property {number} [textLeading] - Line height of the main effect
+ * @property {'island'} [stage] - A wide portrait with the civilization's own mat over it, the effect below (the Islanders, #165)
  * @property {CardText} effect - The main effect beside the portrait
  * @property {CivCardSection[]} sections - The card's parts under the portrait, in order
  */
@@ -1286,6 +1287,7 @@ const RECIPES = {
 	}),
 	islanders: (context) => ({
 		portraitAlt: 'Islanders civilization portrait',
+		stage: 'island',
 		complexity: 1,
 		effect: [
 			'Your mat is an island: explore the 6 hexes around its printed centre, then score its coastline.',

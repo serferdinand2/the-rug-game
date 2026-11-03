@@ -12,6 +12,8 @@
 	 * @property {number} [bodyMinHeight] - Least height of the portrait row in px, so a short effect keeps the reviewed proportions
 	 * @property {number} [textLeading] - Line height of the main effect, when it needs more air than 1.38
 	 * @property {'empty' | 'play'} [state] - Demonstration state
+	 * @property {boolean} [stage=false] - A wide portrait over the whole width, the effect below it, and `overlay` drawn over the picture (#165, the Islanders' mat)
+	 * @property {import('svelte').Snippet} [overlay] - With `stage`: what lies over the portrait
 	 * @property {import('svelte').Snippet} [effect] - Main effect beside the art
 	 * @property {import('svelte').Snippet} [children] - Card layout
 	 */
@@ -48,6 +50,8 @@
 		bodyMinHeight,
 		textLeading,
 		state = 'empty',
+		stage = false,
+		overlay,
 		effect,
 		children,
 		...attr
@@ -70,21 +74,38 @@
 			class="rg-card-frame--band"
 			{title}
 			size="large" />
-		<div
-			class="rg-card-frame--body"
-			style:min-height={bodyMinHeight === undefined
-				? undefined
-				: `${bodyMinHeight}px`}>
-			<img
-				class="rg-card-frame--portrait"
-				src={portrait}
-				alt={portraitAlt} />
-			<div
-				class="rg-card-frame--text"
-				style:line-height={textLeading}>
-				{@render effect?.()}
+		{#if stage}
+			<div class="rg-card-frame--body rg-card-frame--body-stage">
+				<div class="rg-card-frame--stage">
+					<img
+						class="rg-card-frame--stage-picture"
+						src={portrait}
+						alt={portraitAlt} />
+					{@render overlay?.()}
+				</div>
+				<div
+					class="rg-card-frame--text"
+					style:line-height={textLeading}>
+					{@render effect?.()}
+				</div>
 			</div>
-		</div>
+		{:else}
+			<div
+				class="rg-card-frame--body"
+				style:min-height={bodyMinHeight === undefined
+					? undefined
+					: `${bodyMinHeight}px`}>
+				<img
+					class="rg-card-frame--portrait"
+					src={portrait}
+					alt={portraitAlt} />
+				<div
+					class="rg-card-frame--text"
+					style:line-height={textLeading}>
+					{@render effect?.()}
+				</div>
+			</div>
+		{/if}
 		{@render children?.()}
 		<footer class="rg-card-frame--foot">
 			<span class="rg-card-frame--editions"
@@ -112,6 +133,26 @@
 		align-items: start;
 		gap: 12px;
 		padding: 12px;
+	}
+	/* The wide stage: the picture across the card, cropped to a band round its middle, with the overlay on it. */
+	.rg-card-frame--body-stage {
+		grid-template-columns: 1fr;
+	}
+	.rg-card-frame--stage {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 8 / 5;
+		overflow: hidden;
+		box-shadow:
+			0 0 0 1px var(--bronze),
+			0 0 0 3px var(--ink);
+	}
+	.rg-card-frame--stage-picture {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		image-rendering: pixelated;
 	}
 	.rg-card-frame--portrait {
 		width: 160px;

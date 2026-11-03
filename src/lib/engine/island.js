@@ -12,8 +12,24 @@ import { turned } from './terrain.js';
  * @typedef {{ tile: number, orient: number }} MatTile
  */
 
-/** The corners of the mat's printed centre hex, clockwise from the top-left corner (R115, a photo of the printed mat). */
-export const ISLANDERS_CENTRE = Object.freeze(terrainsFrom('M,G,G,F,D,D'));
+/**
+ * The mat's printed centre hex: four equal quarters, mountain top-left, grassland top-right, forest bottom-right and
+ * desert bottom-left (R115, owner, 2026-11-03). Held as the terrain along each half of each side, clockwise from the
+ * top-left corner: two to each side, the half at its start corner then the half at its end corner. An ordinary
+ * territory is the same with each corner's two halves alike; the centre's left and right corners are split between
+ * two quarters.
+ */
+export const ISLANDERS_CENTRE_SLOTS = Object.freeze(
+	terrainsFrom('M,G,G,G,F,F,F,D,D,D,M,M')
+);
+
+/**
+ * The centre's 6 corners, for the picture only: each corner takes the slot at the start of the side it begins. Scoring
+ * reads the slots.
+ */
+export const ISLANDERS_CENTRE = Object.freeze(
+	[0, 1, 2, 3, 4, 5].map((k) => ISLANDERS_CENTRE_SLOTS[2 * k])
+);
 
 /** The hexes round the centre; hex `n` touches the centre, hex `n - 1` and hex `n + 1`. */
 export const MAT_HEXES = 6;
@@ -67,9 +83,9 @@ export function openMatHexes(state, player) {
 }
 
 /**
- * The corners the neighbour of a mat hex shows on each of its sides: the centre on side `position + 3`, the hexes either
- * side of it on sides `position + 2` and `position + 4` (as the board's sides run, see `HEX_SIDES`), null where
- * nothing lies.
+ * The corners the neighbouring mat tiles show on the sides of a mat hex: the hexes either side of it on sides
+ * `position + 2` and `position + 4` (as the board's sides run, see `HEX_SIDES`), null where nothing lies. The centre,
+ * on side `position + 3`, is read from its slots instead.
  * @param {(MatTile | null)[]} mat
  * @param {number} position
  * @returns {(readonly TerrainId[] | null)[]}
@@ -77,7 +93,6 @@ export function openMatHexes(state, player) {
 function neighbourCorners(mat, position) {
 	/** @type {(readonly TerrainId[] | null)[]} */
 	const sides = Array(6).fill(null);
-	sides[(position + 3) % 6] = ISLANDERS_CENTRE;
 	const ring = [
 		[(position + 1) % MAT_HEXES, (position + 2) % 6],
 		[(position + MAT_HEXES - 1) % MAT_HEXES, (position + 4) % 6],
@@ -110,6 +125,14 @@ export function matMatchingSides(state, hex, tile, orient) {
 	const mat = matOf(state, where.player) ?? [];
 	const mine = turned(TERRITORY_TILES[tile - 1].corners, orient);
 	let count = 0;
+	const centreSide = (where.position + 3) % 6;
+	// The centre's side facing this hex: its slot at the side's start corner, then at its end corner. Our corner e faces
+	// the end slot and our corner e + 1 the start slot, as on the board.
+	const start = ISLANDERS_CENTRE_SLOTS[2 * ((centreSide + 3) % 6)];
+	const end = ISLANDERS_CENTRE_SLOTS[2 * ((centreSide + 3) % 6) + 1];
+	if (mine[centreSide] === end || mine[(centreSide + 1) % 6] === start) {
+		count++;
+	}
 	neighbourCorners(mat, where.position).forEach((theirs, e) => {
 		if (!theirs) {
 			return;

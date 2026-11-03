@@ -1,4 +1,4 @@
-<!-- The Islanders' mat: its printed centre hex and the six hexes round it, drawn by the World Map and chosen like the map's hexes (#165). -->
+<!-- The Islanders' mat: its printed centre hex and the six hexes round it, drawn by the World Map over the card's picture and chosen like the map's hexes (#165). -->
 <script module>
 	/**
 	 * Properties of the IslandMat component itself.
@@ -59,9 +59,9 @@
 <div
 	{...attr}
 	class="rg-island-mat {attr.class ? attr.class : ''}">
-	<p class="rg-island-mat--title">Islanders mat</p>
 	<WorldMap
 		class="rg-island-mat--map"
+		overlay
 		{hexes}
 		targets={small.targets}
 		scores={small.scores}
@@ -73,23 +73,11 @@
 
 <style>
 	.rg-island-mat {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-		padding: var(--space-3);
-		background: var(--raised);
-		border: var(--border-thick) solid var(--line);
-		border-radius: var(--radius);
-		box-shadow: var(--shadow-float);
-	}
-	.rg-island-mat--title {
-		margin: 0;
-		font: var(--weight-bold) var(--font-size-xs) / var(--leading-none)
-			var(--font-title);
-		color: var(--muted);
+		position: absolute;
+		inset: 0;
 	}
 	.rg-island-mat :global(.rg-island-mat--map) {
 		width: 100%;
-		height: auto;
+		height: 100%;
 	}
 </style>

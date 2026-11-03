@@ -72,6 +72,17 @@ export function wedgeOf(x, y) {
 }
 
 /**
+ * The slot whose sector holds a pixel, for a hex of 12 slots (the Islanders' printed centre, #165): two to each side,
+ * the first nearer the side's start corner, so each is 30° and a terrain's three make a quarter of the hex.
+ * @param {number} x
+ * @param {number} y
+ * @returns {number} 0–11, clockwise from the top-left corner
+ */
+export function slotOf(x, y) {
+	return Math.floor(turnOf(x, y) * 2) % 12;
+}
+
+/**
  * Tells whether a pixel lies on the island's small hexagon in the middle.
  * @param {number} x
  * @param {number} y

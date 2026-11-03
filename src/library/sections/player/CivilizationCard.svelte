@@ -7,6 +7,45 @@
 	import { REVIEWED_CIVILIZATIONS } from '../../../lib/cards/reviewed-civilizations.js';
 	import { civCardView } from '../../../lib/civ-card.js';
 	import { civilizationName } from '../../../lib/game-names.js';
+	import { matMapHexes } from '../../../lib/island-mat.js';
+	import { turned } from '../../../lib/engine/game.js';
+	import { TERRITORY_TILES } from '../../../lib/engine/data/territory-tiles.js';
+
+	// The Islanders' mat (#165): three tiles lying (an island, clouds, the volcano), then an explore with hexes to choose.
+	const laidMat = matMapHexes(
+		{
+			seats: [
+				{
+					seat: 1,
+					civData: {
+						islanders: {
+							hexes: [
+								{ tile: 17, orient: 0 },
+								{ tile: 30, orient: 2 },
+								null,
+								null,
+								{ tile: 47, orient: 1 },
+								null,
+							],
+						},
+					},
+				},
+			],
+		},
+		1
+	);
+	const previewTile = TERRITORY_TILES[2];
+	const islandChoosing = {
+		hexes: laidMat,
+		targets: ['mat:1:2', 'mat:1:3', 'mat:1:5'],
+		scores: { 'mat:1:2': 2, 'mat:1:3': 0, 'mat:1:5': 1 },
+		selected: 'mat:1:2',
+		preview: {
+			hex: 'mat:1:2',
+			corners: /** @type {any} */ (turned(previewTile.corners, 1)),
+			island: /** @type {any} */ ([...previewTile.island]),
+		},
+	};
 
 	/** @typedef {import('../../../lib/component-event.js').ComponentEvent} ComponentEvent */
 
@@ -218,6 +257,18 @@
 				id={card.id}
 				state="play" /></Example
 		>{/each}<Example
+		label="The Islanders · tiles lying on the mat: an island, clouds, the volcano (island prop: the mat's hexes)"
+		width={425}
+		><CivilizationCard
+			id="islanders"
+			island={{ hexes: laidMat }} /></Example
+	><Example
+		label="The Islanders · an explore choosing (island prop: hexes, targets, scores, selected, preview)"
+		width={425}
+		><CivilizationCard
+			id="islanders"
+			island={islandChoosing} /></Example
+	><Example
 		label="The Infiltrators (Plans &amp; Ploys) · no layout until its expansion: frame, portrait and name only"
 		width={425}
 		><CivilizationCard

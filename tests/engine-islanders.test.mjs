@@ -7,7 +7,7 @@ import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { run, resolveEffects } from '../src/lib/engine/loop.js';
 import { matchingSides } from '../src/lib/engine/map.js';
 import { TERRITORY_TILES } from '../src/lib/engine/data/territory-tiles.js';
-import { ISLANDERS_CENTRE } from '../src/lib/engine/island.js';
+import { ISLANDERS_CENTRE_SLOTS } from '../src/lib/engine/island.js';
 import { startedGame, answer } from './helpers/engine.mjs';
 
 const PP = { expansions: ['pp'] };
@@ -97,15 +97,25 @@ test('the Islanders start with an empty mat and 4 territory tiles, at setup (R11
 
 test('R115: a mat hex scores the sides that match the printed centre and the mat hexes beside it', () => {
 	const { state } = game([]);
-	// Hex 0 faces the centre across side 3, which runs over its corners 3 and 4: the centre's facing corners are 0 and 1.
-	assert.deepEqual(ISLANDERS_CENTRE, [
+	// Three of each terrain, three at a time, clockwise from mountain, grassland starting at the top-right corner:
+	// slot 0 is the top-left corner, slot 1 the top-right.
+	assert.deepEqual(ISLANDERS_CENTRE_SLOTS, [
 		'mountain',
-		'grassland',
-		'grassland',
-		'forest',
-		'desert',
-		'desert',
+		...Array(3).fill('grassland'),
+		...Array(3).fill('forest'),
+		...Array(3).fill('desert'),
+		'mountain',
+		'mountain',
 	]);
+	for (const terrain of ['mountain', 'grassland', 'forest', 'desert']) {
+		assert.equal(
+			ISLANDERS_CENTRE_SLOTS.filter((slot) => slot === terrain).length,
+			3,
+			terrain
+		);
+	}
+	// Hex 0 faces the centre across side 3, whose own slots are the centre's side 0: its start slot (mountain) faces
+	// the tile's corner 4 and its end slot (grassland) the tile's corner 3.
 	for (const tile of TERRITORY_TILES) {
 		for (let orient = 0; orient < 6; orient++) {
 			const corner = (/** @type {number} */ k) =>
@@ -117,6 +127,31 @@ test('R115: a mat hex scores the sides that match the printed centre and the mat
 				expected,
 				`tile ${tile.id} turned ${orient}`
 			);
+		}
+	}
+});
+
+test('every mat hex scores against its own side of the centre: the slots of the side it faces', () => {
+	const { state } = game([]);
+	for (let position = 0; position < 6; position++) {
+		// Hex n faces the centre across its side n + 3, which is the centre's side n.
+		const start = ISLANDERS_CENTRE_SLOTS[2 * position];
+		const end = ISLANDERS_CENTRE_SLOTS[2 * position + 1];
+		for (const tile of TERRITORY_TILES) {
+			for (let orient = 0; orient < 6; orient++) {
+				const corner = (/** @type {number} */ k) =>
+					tile.corners[(((k - orient) % 6) + 6) % 6];
+				const expected =
+					corner((position + 3) % 6) === end ||
+					corner((position + 4) % 6) === start
+						? 1
+						: 0;
+				assert.equal(
+					matchingSides(state, `mat:1:${position}`, tile.id, orient),
+					expected,
+					`hex ${position}, tile ${tile.id} turned ${orient}`
+				);
+			}
 		}
 	}
 });

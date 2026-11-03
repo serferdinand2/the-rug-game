@@ -15,7 +15,7 @@ export const TABS = Object.freeze([
 /**
  * The tab a decision opens by itself, or null when its things are elsewhere (the board, or nowhere in particular).
  * A placement answered only with map hexes (the Nomads) belongs to the map.
- * @param {{ kind: string, answers?: any[] } | null} decision
+ * @param {{ kind: string, answers?: any[], mat?: boolean } | null} decision
  * @returns {string | null}
  */
 export function tabFor(decision) {
@@ -27,6 +27,10 @@ export function tabFor(decision) {
 		(decision.answers ?? []).every((a) => typeof a.hex === 'string')
 	) {
 		return null;
+	}
+	// An explore onto the Islanders' mat is made on their card (#165).
+	if (decision.kind === 'chooseExplore' && decision.mat === true) {
+		return 'civ';
 	}
 	return kindFacts(decision.kind).tab;
 }
