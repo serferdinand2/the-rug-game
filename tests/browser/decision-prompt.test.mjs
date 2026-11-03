@@ -1,4 +1,4 @@
-// Where the decision prompt opens, in Chromium at the 1920×1080 reference (#79): at the centre of the tracks, cards on
+// Where the decision prompt opens, in Chromium at the 1920×1080 reference (#79), and minimizing it (#149): at the centre of the tracks, cards on
 // the shelf and the panel as one stack. Each test plays a two-seat hot-seat table through the API to the moment it needs,
 // then ends and leaves the table.
 import { expect, test } from '@playwright/test';
@@ -244,6 +244,80 @@ test("an options prompt opens at the tracks' centre, no longer at the bottom of 
 		expect(
 			Math.abs(panel.y + panel.height / 2 - (scrim.y + scrim.height / 2))
 		).toBeLessThanOrEqual(2);
+	} finally {
+		await closeTable(request, token);
+	}
+});
+
+test('a prompt minimizes to look at the map, and comes back with its choice to confirm (#149)', async ({
+	page,
+	request,
+}) => {
+	test.setTimeout(300000);
+	const { token, room } = await startTable(request);
+	try {
+		const { seat, op, game } = await playUntil(
+			request,
+			token,
+			room,
+			(open, at, view) => {
+				if (
+					open.kind === 'chooseTurn' ||
+					open.kind === 'chooseAdvance' ||
+					open.kind === 'confirmEndTurn'
+				) {
+					return false;
+				}
+				const prompt = promptFor(open, view, at);
+				return (
+					prompt !== null &&
+					prompt.layout === 'options' &&
+					prompt.options.length > 1 &&
+					!prompt.picks &&
+					!prompt.trade &&
+					!prompt.income
+				);
+			},
+			400
+		);
+		await takeScreen(page, token, seat);
+		const prompt = /** @type {any} */ (promptFor(op, game, seat));
+		const heading = page.getByRole('heading', { name: prompt.title });
+		await expect(heading).toBeVisible();
+		const panel = page.locator('.rg-decision-panel');
+		const option = panel.locator('.rg-decision-option').first();
+		await option.click();
+		await expect(option).toHaveAttribute('aria-pressed', 'true');
+
+		// Minimized: the panel and its scrim go, and the footer keeps the question with Show choice.
+		await panel.getByRole('button', { name: /Minimize/ }).click();
+		await expect(panel).toHaveCount(0);
+		const footer = page.locator('.rg-turn-bar');
+		await expect(footer).toContainText(prompt.title);
+		const show = footer.getByRole('button', { name: /Show choice/ });
+		await expect(show).toBeVisible();
+
+		// The board can be looked at: M shows the map, and the switch goes back to the tracks.
+		await page.keyboard.press('m');
+		await expect(page.locator('.rg-world-map')).toBeVisible();
+		await page.getByRole('button', { name: /Advancement Tracks/ }).click();
+		await expect(page.locator('.rg-world-map')).toHaveCount(0);
+
+		// Show choice brings the panel back with the choice kept; V minimizes and restores it too.
+		await show.click();
+		await expect(heading).toBeVisible();
+		await expect(option).toHaveAttribute('aria-pressed', 'true');
+		await page.keyboard.press('v');
+		await expect(panel).toHaveCount(0);
+		await page.keyboard.press('v');
+		await expect(option).toHaveAttribute('aria-pressed', 'true');
+
+		// The choice is confirmed as if the panel had never gone.
+		await panel.getByRole('button', { name: prompt.confirmLabel }).click();
+		await expect(heading).toHaveCount(0);
+		await expect(
+			footer.getByRole('button', { name: /Show choice/ })
+		).toHaveCount(0);
 	} finally {
 		await closeTable(request, token);
 	}

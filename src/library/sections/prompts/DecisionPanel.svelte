@@ -262,6 +262,26 @@
 		</div>
 	</Example>
 	<Example
+		label={'onDecisionPanelMinimize  (Minimize in the title bar: the game hides the panel and keeps the choice, its question in the footer with Show choice; #149)'}
+		wide
+		width={1100}>
+		<div class="rg-library-decision-stage rg-library-decision-stage--short">
+			<DecisionPanel
+				title="Feudalism: a resource, or VP for your landmarks?"
+				status="Choose one."
+				onDecisionPanelMinimize={() => {}}>
+				<div class="rg-library-decision-options">
+					<DecisionOption
+						label="Gain 1 resource of your choice"
+						art={[{ kind: 'resource', id: 'any', count: 1 }]}
+						pressed />
+					<DecisionOption
+						label="Gain 3 VP for each landmark you own (2 now: 6 VP)" />
+				</div>
+			</DecisionPanel>
+		</div>
+	</Example>
+	<Example
 		label={'tone="income" steps={IncomeSteps}'}
 		wide
 		width={1100}>

@@ -239,12 +239,13 @@ export function firstIncomeNotice(view, seat) {
  * @property {{ turn: number } | null} [income] - The viewer's own income turn, as the prompt has it
  * @property {string | null} [incomeStep] - The income turn's step running now, such as 'Gain income'
  * @property {number | null} [endSeconds] - Whole seconds until the server presses End turn, when it will (#146)
+ * @property {string | null} [minimized] - The minimized decision panel's title, which the footer keeps (#149)
  */
 
 /**
  * The footer to show, with every word in it, as TurnBar takes them (#86).
  * @typedef {Object} FooterView
- * @property {'none' | 'overview' | 'over' | 'incomeAsk' | 'trackAsk' | 'forcedIncome' | 'opening' | 'selected' | 'turn' | 'income' | 'decision' | 'setup' | 'waiting' | 'endTurn'} kind
+ * @property {'none' | 'overview' | 'over' | 'incomeAsk' | 'trackAsk' | 'forcedIncome' | 'opening' | 'selected' | 'turn' | 'income' | 'decision' | 'setup' | 'waiting' | 'endTurn' | 'minimized'} kind
  * @property {import('./components/prompts/TurnBar.svelte').TurnBarTone} [tone]
  * @property {string} [label] - Left out for TurnBar's own 'Your turn'
  * @property {string} [labelColor] - Another player's colour, for their turn
@@ -277,7 +278,7 @@ function openerWords(game, seat) {
 
 /**
  * Which footer the game screen shows, and what it says (#86): the first that applies of the players overview's
- * close bar, game over, the income question, the track question, forced income, an advance turn only an offer at its
+ * close bar, game over, a minimized decision's question (#149), the income question, the track question, forced income, an advance turn only an offer at its
  * start can pay for (#33), a selected space, the turn choice, the viewer's income turn, their other decisions, setup
  * and waiting for another player; or none.
  * @param {any} game - The viewer's game view
@@ -311,6 +312,16 @@ export function footerView(game, seat, inputs) {
 			label: 'Game complete',
 			heading: 'The game is complete.',
 			detail: 'The board as the game ended.',
+		};
+	}
+	// A minimized decision panel leaves its question here, with Show choice to bring it back (#149).
+	if (mine && inputs.minimized) {
+		return {
+			kind: 'minimized',
+			tone: 'neutral',
+			label: 'Your decision',
+			heading: inputs.minimized,
+			detail: 'Minimized while you look at the board.',
 		};
 	}
 	if (choosing && inputs.incomeAsk) {

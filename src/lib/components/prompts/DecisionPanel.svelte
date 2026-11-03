@@ -19,6 +19,7 @@
 	 * @property {import('svelte').Snippet<[number | undefined]>} [shelf] - Cards shown above the panel, as the card choices are; it gets the height it may take, once measured, so its cards can fit it (#57)
 	 * @property {Function} [onDecisionPanelConfirm] - Callback fired when Confirm is pressed
 	 * @property {Function} [onDecisionPanelCancel] - Callback fired when the cancel button is pressed
+	 * @property {Function} [onDecisionPanelMinimize] - Shows Minimize in the title bar, and is fired when it is pressed: the screen hides the panel so the board can be looked at, and keeps what is chosen (#149)
 	 */
 
 	/**
@@ -60,6 +61,7 @@
 		shelf,
 		onDecisionPanelConfirm,
 		onDecisionPanelCancel,
+		onDecisionPanelMinimize,
 		...attr
 	} = $props();
 
@@ -87,6 +89,17 @@
 	const confirmClickHandler = (event) => {
 		if (typeof onDecisionPanelConfirm === 'function') {
 			onDecisionPanelConfirm(
+				new ComponentEvent(null, event.target, event.originalEvent)
+			);
+		}
+	};
+
+	/**
+	 * @param {ComponentEvent} event
+	 */
+	const minimizeClickHandler = (event) => {
+		if (typeof onDecisionPanelMinimize === 'function') {
+			onDecisionPanelMinimize(
 				new ComponentEvent(null, event.target, event.originalEvent)
 			);
 		}
@@ -127,6 +140,17 @@
 			bind:offsetHeight={panelHeight}>
 			<div class="rg-decision-panel--top">
 				<h2 id="{uid}-title">{title}</h2>
+				{#if typeof onDecisionPanelMinimize === 'function'}
+					<Button
+						size="small"
+						title="Minimize to look at the board (V)"
+						onButtonClick={minimizeClickHandler}
+						><span
+							class="rg-decision-panel--minimize"
+							aria-hidden="true"></span
+						>Minimize<kbd class="rg-decision-panel--key">V</kbd
+						></Button>
+				{/if}
 			</div>
 			{#if steps}
 				<div class="rg-decision-panel--steps">{@render steps()}</div>
@@ -236,6 +260,26 @@
 		color: var(--gold);
 		font: var(--weight-bold) var(--font-size-3xl) / var(--leading-tight)
 			var(--font-body);
+	}
+
+	/* Minimize's bar, drawn in the button's text colour (issue 149). */
+	.rg-decision-panel--minimize {
+		display: inline-block;
+		width: 12px;
+		height: 3px;
+		margin-right: var(--space-4);
+		vertical-align: -4px;
+		background: currentColor;
+	}
+
+	/* The key that does the same, beside the word (issue 149). */
+	.rg-decision-panel--key {
+		margin-left: var(--space-4);
+		padding: 0 var(--space-2);
+		border: var(--border) solid currentColor;
+		font: inherit;
+		font-size: var(--font-size-xs);
+		opacity: 0.75;
 	}
 
 	.rg-decision-panel--content {

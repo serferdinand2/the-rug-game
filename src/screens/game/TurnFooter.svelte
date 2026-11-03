@@ -12,6 +12,7 @@
 	 *   its start can pay for, such as the Lighthouse's (#33)
 	 * @property {Function} [onTurnFooterTrack] - Callback fired with a track chosen in the track question
 	 * @property {Function} [onTurnFooterEndTurn] - Callback fired when End turn is pressed (#146)
+	 * @property {Function} [onTurnFooterRestore] - Callback fired when a minimized decision's Show choice is pressed (#149)
 	 * @property {Function} [onTurnFooterCancel] - Callback fired when the income or track question is cancelled
 	 * @property {Function} [onTurnFooterResults] - Callback fired when a finished game's Results is pressed
 	 * @property {Function} [onTurnFooterOverviewClose] - Callback fired when the players overview's close bar is pressed
@@ -49,6 +50,7 @@
 		onTurnFooterOpen,
 		onTurnFooterTrack,
 		onTurnFooterEndTurn,
+		onTurnFooterRestore,
 		onTurnFooterCancel,
 		onTurnFooterResults,
 		onTurnFooterOverviewClose,
@@ -61,6 +63,7 @@
 	let hasActions = $derived(
 		view.kind === 'over' ||
 			view.kind === 'endTurn' ||
+			view.kind === 'minimized' ||
 			view.kind === 'incomeAsk' ||
 			view.kind === 'trackAsk' ||
 			view.kind === 'selected' ||
@@ -98,6 +101,11 @@
 			>End turn{view.endSeconds === null || view.endSeconds === undefined
 				? ''
 				: ` (${view.endSeconds})`}</Button>
+	{:else if view.kind === 'minimized'}
+		<Button
+			mode="confirm"
+			onButtonClick={report(onTurnFooterRestore)}
+			>Show choice<kbd class="rg-turn-footer--key">V</kbd></Button>
 	{:else if view.kind === 'incomeAsk'}
 		<Button
 			disabled={sending}
@@ -180,6 +188,16 @@
 {/if}
 
 <style>
+	/* The key that does the same as a button, beside its word (issue 149). */
+	.rg-turn-footer--key {
+		margin-left: var(--space-4);
+		padding: 0 var(--space-2);
+		border: var(--border) solid currentColor;
+		font: inherit;
+		font-size: var(--font-size-xs);
+		opacity: 0.75;
+	}
+
 	/* What another player did last stays after the heading, with Show again (issue 153). */
 	.rg-turn-footer--just-now {
 		display: inline-flex;

@@ -117,6 +117,16 @@ test('the other keys: Z, L, H, K, Enter, and comma and full stop while exploring
 	assert.equal(hotkeyAction('x', OPEN), null);
 });
 
+test('V minimizes an open prompt and brings a minimized one back, and asks nothing otherwise (#149)', () => {
+	assert.deepEqual(hotkeyAction('v', { ...OPEN, prompting: true }), {
+		type: 'prompt',
+	});
+	assert.deepEqual(hotkeyAction('V', { ...OPEN, prompting: true }), {
+		type: 'prompt',
+	});
+	assert.equal(hotkeyAction('v', OPEN), null);
+});
+
 test('Escape is no hotkey: the screen closes the layer on top instead (#88)', () => {
 	assert.equal(hotkeyAction('Escape', OPEN), null);
 	assert.equal(hotkeyAction('Escape', { ...OPEN, confirming: true }), null);

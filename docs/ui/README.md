@@ -327,6 +327,16 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **Hot-seat:** a player who takes the screen sees what the others did since they last held it.
 - **The footer** keeps "· Just now: Ben took income turn 2." after its heading, with **Show again**, which plays the last run again, on another player's turn and on your own before you choose.
 
+**Built in #149 (2026-11-03): minimizing a decision prompt.** The owner chose to keep the way back in the footer (option 1 of `docs/ui/prompt-and-hand.html`, screenshots in `screens/issues-148-149-158/`). The design is `docs/superpowers/specs/2026-11-03-minimize-prompt-design.md`.
+
+![A decision panel with Minimize and its key V in the title bar](screens/game-prompt-minimize.png)
+
+![The same decision minimized while the World Map is looked at: the footer keeps the question, "Minimized while you look at the board.", and Show choice with V](screens/game-prompt-minimized.png)
+
+- **Minimize** in the panel's title bar, or **V**, hides the panel, its shelf and its scrim. The board is the ordinary board: the Tracks/Map switch and **M** work, and a map decision's lit hexes stay lit.
+- **The footer** keeps the question under "Your decision", with "Minimized while you look at the board." and a gold **Show choice**. Show choice, **V** or **Enter** brings the panel back; Enter never sends a choice the player can't see.
+- What was chosen stays chosen. A new decision opens its panel by itself, and an advance's payment panel can't be minimized, as its Cancel already goes back.
+
 **Built in #77 (2026-10-28): the first turn takes income by itself.** The owner changed the issue's brief: "Just make the first income automatic. make sure player knows what's going on. also make sure player knows when there are no more legal moves except to income." The design is `docs/superpowers/specs/2026-10-28-first-income-turn-design.md`.
 
 ![Era I begins: the notice after income turn 1](screens/game-first-income.png)

@@ -410,3 +410,31 @@ test('End turn shows no seconds when the server gives no deadline, as in hot sea
 	const done = asking(game, player, 'confirmEndTurn');
 	assert.equal(footerView(done, player, QUIET).endSeconds, null);
 });
+
+test('a minimized prompt keeps its question in the footer, with Show choice to bring it back (#149)', () => {
+	const { game, player } = turnChoice();
+	const deciding = asking(game, player, 'chooseOption');
+	const title = 'Feudalism: a resource, or VP for your landmarks?';
+	const footer = footerView(deciding, player, { ...QUIET, minimized: title });
+	assert.deepEqual(footer, {
+		kind: 'minimized',
+		tone: 'neutral',
+		label: 'Your decision',
+		heading: title,
+		detail: 'Minimized while you look at the board.',
+	});
+	// Not minimized, the footer is the decision's as before.
+	assert.equal(
+		footerView(deciding, player, { ...QUIET, minimized: null }).kind,
+		'decision'
+	);
+	const html = render(TurnFooter, { props: { view: footer } }).body.replace(
+		/<!--[\s\S]*?-->/g,
+		''
+	);
+	assert.match(
+		html,
+		/<button[^>]*rg-button--confirm[^>]*>[\s\S]*Show choice[\s\S]*<\/button>/
+	);
+	assert.match(html, /<kbd[^>]*>V<\/kbd>/);
+});

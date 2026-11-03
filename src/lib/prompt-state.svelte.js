@@ -93,6 +93,8 @@ export class PromptState {
 	#payment = $state.raw(nothing());
 	/** A move of the prompt's own is being sent. */
 	#sending = $state(false);
+	/** The decision whose panel is minimized (#149), by its key, so a new decision's panel opens by itself. */
+	#minimizedKey = $state('');
 
 	/** @param {PromptSource} source */
 	constructor(source) {
@@ -538,19 +540,52 @@ export class PromptState {
 		RESOURCE_ORDER.filter((id) => this.resources[id] !== this.#held[id])
 	);
 
+	/** The decision's panel can be minimized to look at the board (#149); an advance's payment has its Cancel instead. */
+	canMinimize = $derived(this.prompt !== null && !this.paying);
+	/** The decision's panel is minimized, its choices kept, its question in the footer (#149). */
+	minimized = $derived(
+		this.canMinimize &&
+			this.#minimizedKey !== '' &&
+			this.#minimizedKey === this.#now.key
+	);
+	/** The board leaves room for a docked panel, unless it is minimized (#149). */
+	boardDocked = $derived(this.docked && !this.minimized);
+
 	/**
-	 * What is open over the board, for the dice tray (#61): a stack with a card shelf, a panel, or nothing.
+	 * What is open over the board, for the dice tray (#61): a stack with a card shelf, a panel, or nothing, as when the
+	 * panel is minimized (#149).
 	 * @type {'none' | 'panel' | 'shelf'}
 	 */
 	panel = $derived(
 		this.paying
 			? 'panel'
-			: !this.prompt
+			: !this.prompt || this.minimized
 				? 'none'
 				: this.cardPick || this.shelfCards.length
 					? 'shelf'
 					: 'panel'
 	);
+
+	/** Minimizes the decision's panel, keeping what is chosen (#149). */
+	minimize() {
+		if (this.canMinimize) {
+			this.#minimizedKey = this.#now.key;
+		}
+	}
+
+	/** Brings the minimized panel back (#149). */
+	restore() {
+		this.#minimizedKey = '';
+	}
+
+	/** Minimizes the panel, or brings it back, as V does (#149). */
+	toggleMinimized() {
+		if (this.minimized) {
+			this.restore();
+		} else {
+			this.minimize();
+		}
+	}
 
 	/**
 	 * An answer chosen in the panel or on the shelf.

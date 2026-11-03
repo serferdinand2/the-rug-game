@@ -376,6 +376,9 @@
 			income: promptState.prompt?.income ?? null,
 			incomeStep: promptState.incomeStep,
 			endSeconds,
+			minimized: promptState.minimized
+				? (promptState.prompt?.title ?? null)
+				: null,
 		})
 	);
 
@@ -643,6 +646,7 @@
 			players: players.length,
 			board,
 			exploring: promptState.canTurn,
+			prompting: promptState.canMinimize,
 		});
 		if (!action) {
 			return;
@@ -677,6 +681,9 @@
 					if (promptState.payIndex !== -1) {
 						advanceHandler(promptState.payIndex);
 					}
+				} else if (promptState.minimized) {
+					// A minimized panel's choice is out of sight: Enter brings it back rather than sending it (#149).
+					promptState.restore();
 				} else if (promptState.prompt) {
 					promptState.confirm();
 				} else if (noticeOpen) {
@@ -709,6 +716,9 @@
 			case 'turn':
 				promptState.turnTile(action.step);
 				break;
+			case 'prompt':
+				promptState.toggleMinimized();
+				break;
 		}
 	}
 </script>
@@ -730,6 +740,7 @@
 		onTurnFooterTrack={(/** @type {ComponentEvent} */ event) =>
 			trackPickHandler(event.value)}
 		onTurnFooterEndTurn={endTurnHandler}
+		onTurnFooterRestore={() => promptState.restore()}
 		onTurnFooterCancel={clearQuestion}
 		onTurnFooterResults={(/** @type {ComponentEvent} */ event) =>
 			onGameResults?.(event)}
@@ -769,7 +780,7 @@
 			</div>
 			<div
 				class="rg-game--board"
-				class:rg-game--board-docked={promptState.docked}>
+				class:rg-game--board-docked={promptState.boardDocked}>
 				{#if board === 'tracks'}
 					<TrackBoard
 						tracks={trackBoard(game)}

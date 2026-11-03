@@ -436,3 +436,80 @@ test('only CardPreview draws a card in full, and no caller builds card data for 
 		/event\.value\.index === null/
 	);
 });
+
+test('a minimized prompt keeps its choice and hides its panel until restored (#149)', () => {
+	const { game, decision } = decisionOf({
+		kind: 'chooseOption',
+		options: [[{ gain: { any: 1 } }], [{ vp: 3 }]],
+	});
+	const prompt = new PromptState(promptSource({ game, decision }));
+	assert.equal(prompt.canMinimize, true);
+	assert.equal(prompt.minimized, false);
+	prompt.choose(1);
+	prompt.minimize();
+	assert.equal(prompt.minimized, true);
+	// Nothing is open over the board, for the screen and the dice tray.
+	assert.equal(prompt.panel, 'none');
+	assert.equal(prompt.picked, 1);
+	prompt.restore();
+	assert.equal(prompt.minimized, false);
+	assert.equal(prompt.panel, 'panel');
+	assert.equal(prompt.picked, 1);
+	prompt.toggleMinimized();
+	assert.equal(prompt.minimized, true);
+	prompt.toggleMinimized();
+	assert.equal(prompt.minimized, false);
+});
+
+test('a new decision opens its panel even while the last one was minimized (#149)', () => {
+	const { game, decision } = exploring();
+	const source = promptSource({ game, decision, board: 'map' });
+	const prompt = new PromptState(source);
+	assert.equal(prompt.boardDocked, true);
+	prompt.selectHex(decision.answers[0].hex);
+	prompt.minimize();
+	// The map no longer leaves room for a docked panel, and its lit hexes stay lit.
+	assert.equal(prompt.boardDocked, false);
+	assert.deepEqual(prompt.targets.length > 0, true);
+	assert.equal(prompt.hex, decision.answers[0].hex);
+	source.decision = { ...decision, id: decision.id + 100 };
+	assert.equal(prompt.minimized, false);
+	assert.equal(prompt.boardDocked, true);
+});
+
+test("an advance's payment can't be minimized: its Cancel goes back to the board (#149)", () => {
+	const { game } = decisionOf({
+		kind: 'chooseResource',
+		count: 1,
+		from: 'any',
+	});
+	const prompt = new PromptState(
+		promptSource({
+			game,
+			held: { coin: 2, food: 1, worker: 0, culture: 0 },
+			advance: {
+				track: 'exploration',
+				from: 0,
+				to: 1,
+				payments: [{ coin: 1 }, { food: 1 }],
+			},
+		})
+	);
+	assert.equal(prompt.paying, true);
+	assert.equal(prompt.canMinimize, false);
+	prompt.minimize();
+	assert.equal(prompt.minimized, false);
+	assert.equal(prompt.panel, 'panel');
+});
+
+test('with no decision open, there is nothing to minimize (#149)', () => {
+	const { game } = decisionOf({
+		kind: 'chooseResource',
+		count: 1,
+		from: 'any',
+	});
+	const prompt = new PromptState(promptSource({ game }));
+	assert.equal(prompt.canMinimize, false);
+	prompt.minimize();
+	assert.equal(prompt.minimized, false);
+});

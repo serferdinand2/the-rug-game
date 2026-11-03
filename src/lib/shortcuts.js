@@ -70,6 +70,10 @@ export const SHORTCUTS = Object.freeze([
 				action: 'Go to the World Map, and back to the tracks.',
 			},
 			{
+				keys: [['V']],
+				action: 'Minimize the question to look at the board, and bring it back.',
+			},
+			{
 				keys: [['1–5']],
 				action: "Show that player's tabs in your player area, as their chip does; the same key or your own goes back.",
 			},

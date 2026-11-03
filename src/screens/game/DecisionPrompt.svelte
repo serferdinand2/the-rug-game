@@ -337,6 +337,9 @@
 		confirmLabel={controls.confirmLabel}
 		confirmDisabled={controls.confirmDisabled}
 		cancelLabel={controls.cancelLabel}
+		onDecisionPanelMinimize={state.canMinimize
+			? () => state.minimize()
+			: undefined}
 		onDecisionPanelConfirm={() => state.confirm()}
 		onDecisionPanelCancel={() => state.cancel()} />
 {/if}

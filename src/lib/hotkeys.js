@@ -15,11 +15,12 @@ import { TRACK_IDS } from './engine/data/ids.js';
  * @property {number} [players] - How many players there are, for 1 to 5
  * @property {'tracks' | 'map'} [board] - The board on show
  * @property {boolean} [exploring] - An explore's tile can be turned
+ * @property {boolean} [prompting] - A decision's panel is open and can be minimized, or is minimized (#149)
  */
 
 /**
  * The action a key asks for.
- * @typedef {{ type: 'income' | 'incomeConfirm' | 'advance' | 'confirm' | 'undo' | 'log' | 'help' | 'keys' }
+ * @typedef {{ type: 'income' | 'incomeConfirm' | 'advance' | 'confirm' | 'undo' | 'log' | 'help' | 'keys' | 'prompt' }
  *   | { type: 'track', track: TrackId }
  *   | { type: 'board', board: 'tracks' | 'map' }
  *   | { type: 'tab', tab: string }
@@ -74,6 +75,7 @@ export function hotkeyAction(key, context) {
 		players = 0,
 		board = 'tracks',
 		exploring = false,
+		prompting = false,
 	} = context;
 	if (key === 'Enter') {
 		return confirming ? { type: 'incomeConfirm' } : { type: 'confirm' };
@@ -114,6 +116,8 @@ export function hotkeyAction(key, context) {
 			return { type: 'board', board: board === 'map' ? 'tracks' : 'map' };
 		case 'l':
 			return { type: 'log' };
+		case 'v':
+			return prompting ? { type: 'prompt' } : null;
 		case 'h':
 			return { type: 'help' };
 		case 'k':
