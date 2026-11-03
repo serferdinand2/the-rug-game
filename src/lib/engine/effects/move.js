@@ -9,10 +9,11 @@ import { advanceBlocked } from '../abilities.js';
  * Landing on the start gains nothing. A blocked track is left out of an advance (design §5); regressing is never blocked.
  * @param {import('../state.js').Context} ctx
  * @param {number} player
- * @param {{ tracks: import('../data/ids.js').TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean, noBonus?: boolean, offTrackVp?: number }} value - `noBenefit`
+ * @param {{ tracks: import('../data/ids.js').TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean, noBonus?: boolean, offTrackVp?: number, shared?: { by: number, card: string } }} value - `noBenefit`
  *   is the X: landmarks are still gained, but no benefit or bonus. `freeBonus` offers the bonus for free instead (Renaissance).
  *   `noBonus` gives the benefit without the bonus (Leaders). `offTrackVp` is the VP an advance gives instead when every
- *   token on every listed track is on space 12 and none of them is blocked (Alchemists)
+ *   token on every listed track is on space 12 and none of them is blocked (Alchemists). `shared` names the card and
+ *   the player whose shared advance this is, for the prompt (#148)
  * @param {'advance' | 'regress'} direction
  */
 function moveOnOneOf(ctx, player, value, direction) {
@@ -72,6 +73,8 @@ function moveOnOneOf(ctx, player, value, direction) {
 			optional,
 			...(freeBonus && { freeBonus: true }),
 			...(noBonus && { noBonus: true }),
+			// A shared advance's card and its player, for the prompt (#148).
+			...(value.shared && { shared: value.shared }),
 		},
 	]);
 }

@@ -39,7 +39,10 @@ const LAND_RESOURCES = Object.freeze({
 });
 
 /** How many more territories Revolution may take after the first (02 §3: 1 to 3 in all). */
-const REVOLUTION_MORE = 2;
+export const REVOLUTION_MORE = 2;
+
+/** How many times Dark Ages advances on its chosen track (02 §3). */
+export const DARK_AGES_ADVANCES = 3;
 
 /**
  * One income building of the player's choice among the types still on the income mat (Diplomacy).
@@ -113,7 +116,9 @@ export function trackLandmark(ctx, player) {
 		gainTrackLandmark(ctx, player, options[0]);
 		return;
 	}
-	ctx.push([{ player, kind: 'chooseLandmark', options }]);
+	ctx.push([
+		{ player, kind: 'chooseLandmark', options, purpose: 'dystopia' },
+	]);
 }
 
 /**
@@ -248,7 +253,7 @@ export function darkAgesOn(ctx, op) {
 						regress: { tracks: [other], noBenefit: true },
 					})
 				),
-				...[1, 2, 3].map(() => ({
+				...Array.from({ length: DARK_AGES_ADVANCES }, () => ({
 					advance: { tracks: [track], noBenefit: true },
 				})),
 			],
@@ -301,6 +306,7 @@ export function socialism(ctx, player) {
 			options,
 			benefit: false,
 			optional: false,
+			purpose: 'socialism',
 		},
 	]);
 }

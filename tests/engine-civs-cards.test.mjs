@@ -285,6 +285,11 @@ test('original Heralds may play any card on Maker of Fire at the end of income t
 		version: 'original',
 	});
 	const pick = decisionOf(r.state, 'chooseTapestry');
+	assert.equal(
+		pick.purpose,
+		'heralds',
+		'the prompt names the Heralds (#148)'
+	);
 	assert.deepEqual(
 		[pick.player, pick.options, pick.era, pick.optional],
 		[2, ['academia', 'trap-1', INCOME_CARD], 1, true]
@@ -869,6 +874,8 @@ test("Inventors may gain the benefit their own token gives an opponent's card, a
 			[1, 'civOffer', [[], [{ gain: { culture: 1 } }]]],
 			version
 		);
+		// The prompt names the civilization and who upgraded (#148).
+		assert.deepEqual([offer.civ, offer.from], ['inventors', 2], version);
 		const copied = answer(circle, random, 1, 'chooseOption', { option: 1 });
 		assert.equal(
 			copied.seats[0].resources.culture,

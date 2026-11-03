@@ -461,7 +461,7 @@
 
 {#snippet trackBoard()}
 	<DecisionPanel
-		title="Choose a track for Dark Ages"
+		title="Dark Ages: choose the track to advance 3 times on"
 		status={track ?? 'Choose one.'}
 		track="exploration"
 		confirmDisabled={track === null}>

@@ -214,6 +214,7 @@ export const ERA_HOOKS = {
 					options: [...cards],
 					era,
 					optional: true,
+					purpose: 'tyranny',
 					afterPlay: [{ vp: 5 }],
 					endsEra: true,
 				},

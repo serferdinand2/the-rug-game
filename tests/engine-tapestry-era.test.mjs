@@ -753,6 +753,11 @@ test('Tyranny may play a card just gained on top of itself for 5 VP, once', () =
 		random
 	);
 	const choosing = open(gained, 'chooseTapestry');
+	assert.equal(
+		choosing.purpose,
+		'tyranny',
+		'the prompt names Tyranny (#148)'
+	);
 	assert.equal(choosing.player, 1);
 	// Only the cards just gained, played on the current era's slot.
 	assert.deepEqual(choosing.options, gaining);

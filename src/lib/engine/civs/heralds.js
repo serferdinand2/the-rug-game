@@ -49,6 +49,7 @@ function offerMakerOfFire(ctx, player, options) {
 			options: [...options],
 			era: 1,
 			optional: true,
+			purpose: 'heralds',
 		},
 	]);
 }

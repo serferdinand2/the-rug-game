@@ -120,7 +120,15 @@ export const traders = {
 			if (player === owner || !token) {
 				return [];
 			}
-			return [{ ...offer(state, owner, [other]), source: { hex } }];
+			return [
+				{
+					...offer(state, owner, [other], 'civOffer', {
+						civ: 'traders',
+						from: player,
+					}),
+					source: { hex },
+				},
+			];
 		},
 	},
 	adjustment: {

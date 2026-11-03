@@ -99,7 +99,10 @@ test("Space Shuttle's bonus pays 3 of the player's 6 tiles, or is declined", () 
 
 test("Guilds' trades: the 15 VP one is out of reach, and a chosen offer goes Back", () => {
 	const prompt = new PromptState(guildsTrade());
-	assert.equal(prompt.prompt?.title, 'Choose a trade');
+	assert.equal(
+		prompt.prompt?.title,
+		'Guilds: pay VP for resources, or resources for VP'
+	);
 	assert.deepEqual(
 		prompt.offering?.map((offer) => offer.enabled),
 		[true, true, false, true, true, true]

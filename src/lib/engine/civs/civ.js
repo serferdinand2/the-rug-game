@@ -34,9 +34,17 @@ import { playerSeat, seatOf } from '../state.js';
  * @param {import('../data/effects.js').Effect[]} effects
  * @param {string} [purpose='civOffer'] - Names the question for the client's words, when "Use your civilization?"
  *   doesn't fit it (the Riverfolk's discard, #33)
+ * @param {Record<string, unknown>} [fields={}] - What else the question names, such as the civilization and the seat
+ *   whose move offers it (#148)
  * @returns {import('../state.js').NewOperation}
  */
-export function offer(state, owner, effects, purpose = 'civOffer') {
+export function offer(
+	state,
+	owner,
+	effects,
+	purpose = 'civOffer',
+	fields = {}
+) {
 	if (seatOf(state, owner).finished) {
 		return {
 			player: owner,
@@ -50,6 +58,7 @@ export function offer(state, owner, effects, purpose = 'civOffer') {
 		kind: 'chooseOption',
 		options: [[], structuredClone(effects)],
 		purpose,
+		...fields,
 	};
 }
 

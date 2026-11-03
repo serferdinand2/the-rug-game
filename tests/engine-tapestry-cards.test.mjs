@@ -282,6 +282,11 @@ test('Dystopia gains and places a track landmark nobody owns, and does nothing w
 	const { state, random } = game();
 	let next = resolveTapestry(state, random, 1, 'dystopia');
 	const choice = /** @type {any} */ (open(next, 'chooseLandmark'));
+	assert.equal(
+		choice.purpose,
+		'dystopia',
+		'the prompt names Dystopia (#148)'
+	);
 	assert.equal(choice.options.length, 12);
 	assert.equal(choice.options[0], 'lighthouse');
 	next = answer(next, random, 1, 'chooseLandmark', { landmark: 'forge' });

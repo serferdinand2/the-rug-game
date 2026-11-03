@@ -109,7 +109,13 @@ export const inventors = {
 				const ops = [];
 				if (inventors === owner || state.version === 'original') {
 					ops.push({
-						...offer(state, owner, techCard(card).square),
+						...offer(
+							state,
+							owner,
+							techCard(card).square,
+							'civOffer',
+							{ civ: 'inventors', from: player }
+						),
 						source,
 					});
 				}
@@ -126,7 +132,15 @@ export const inventors = {
 			if (inventors !== owner) {
 				return [];
 			}
-			return [{ ...offer(state, owner, techCard(card).circle), source }];
+			return [
+				{
+					...offer(state, owner, techCard(card).circle, 'civOffer', {
+						civ: 'inventors',
+						from: player,
+					}),
+					source,
+				},
+			];
 		},
 	},
 };

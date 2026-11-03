@@ -9,6 +9,8 @@ import {
 	UTILITARIANS_ADVANCE_VP,
 	UTILITARIANS_LANDMARKS,
 } from './engine/civs/utilitarians.js';
+import { DARK_AGES_ADVANCES, REVOLUTION_MORE } from './engine/effects/cards.js';
+import { countVp } from './engine/effects/vp.js';
 import { TRACKS, advanceCost } from './engine/data/tracks.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
 import { LANDMARKS } from './engine/data/landmarks.js';
@@ -29,14 +31,7 @@ import {
 	effectsPhrase,
 	paymentVerbs,
 } from './describe.js';
-import {
-	amountWords,
-	capitalize,
-	joinList,
-	signed,
-	titleOf,
-	wordsOf,
-} from './words.js';
+import { amountWords, capitalize, joinList, signed, wordsOf } from './words.js';
 import {
 	buildingName,
 	civilizationName,
@@ -115,6 +110,110 @@ function isTrack(track) {
  */
 function techCardOf(id) {
 	return TECH_CARDS.find((c) => c.id === id);
+}
+
+/**
+ * The tapestry card whose rules opened a decision, from its `source` (#148), or null.
+ * @param {Decision} decision
+ * @returns {string | null}
+ */
+function tapestrySource(decision) {
+	const card = isRecord(decision.source) ? decision.source.tapestry : null;
+	return typeof card === 'string' ? card : null;
+}
+
+/** The choices some tapestry cards offer, after the card's name (#148); any other card's reads "choose one". */
+const TAPESTRY_CHOICES = /** @type {Readonly<Record<string, string>>} */ (
+	Object.freeze({
+		feudalism: 'a resource, or VP for your landmarks?',
+		revolution: 'a resource, or stand your outposts back up?',
+		diplomacy: 'choose an income building to gain',
+		'surprise-party': '10 VP, or an Armory?',
+	})
+);
+
+/** The VP counters an answer can total from the viewer's own view (#148): what their seat shows of itself. */
+const COUNTED = Object.freeze(['landmark', 'techCard']);
+
+/**
+ * What a VP counter answer comes to now, after its words: " (2 now: 6 VP)", or " (none yet: 0 VP)" (#148). Empty for
+ * any other answer, or a table that doesn't show the player's seat, such as another player's.
+ * @param {unknown} option - One of a chooseOption's options
+ * @param {Decision} decision
+ * @param {Table | undefined} table
+ * @returns {string}
+ */
+function vpNow(option, decision, table) {
+	const vp =
+		Array.isArray(option) && option.length === 1 && isRecord(option[0])
+			? option[0].vp
+			: null;
+	const seat = /** @type {Record<string, any> | undefined} */ (
+		table?.seats?.[decision.player - 1]
+	);
+	if (
+		!isRecord(vp) ||
+		!COUNTED.includes(vp.per) ||
+		seat?.kind !== 'player' ||
+		!isRecord(seat.capital) ||
+		!isRecord(table?.hexes)
+	) {
+		return '';
+	}
+	const count = countVp(/** @type {any} */ (table), decision.player, vp.per);
+	const total = count * (isCount(vp.each) ? vp.each : 1);
+	return count === 0 ? ' (none yet: 0 VP)' : ` (${count} now: ${total} VP)`;
+}
+
+/**
+ * A civilization's offer of a gain it may take (#148): the civilization, the move that set it off, and what it gives.
+ * @param {Decision} decision - A chooseOption with the purpose 'civOffer'
+ * @param {Table | undefined} table
+ * @returns {string}
+ */
+function civOfferTitle(decision, table) {
+	if (typeof decision.civ !== 'string') {
+		return 'Use your civilization?';
+	}
+	const civ = civilizationName(decision.civ);
+	const from = isCount(decision.from)
+		? seatName(table, decision.from)
+		: 'An opponent';
+	const source = isRecord(decision.source) ? decision.source : {};
+	if (
+		decision.civ === 'inventors' &&
+		typeof source.tech === 'string' &&
+		(source.icon === 'circle' || source.icon === 'square')
+	) {
+		return `${civ}: ${from} upgraded ${techName(source.tech)}; gain its ${source.icon} benefit?`;
+	}
+	if (decision.civ === 'traders' && typeof source.hex === 'string') {
+		return `${civ}: ${from} conquered ${hexName(source.hex)}; gain the die they didn't keep?`;
+	}
+	if (decision.civ === 'isolationists') {
+		return `${civ}: put a token on the territory you just conquered, and gain a resource?`;
+	}
+	return `Use your ${civ}?`;
+}
+
+/**
+ * A shared advance's question (#148): the card and, for another player, whose it is, then the track.
+ * @param {Decision} decision - A chooseMove with `shared`: { by, card }
+ * @param {Table | undefined} table
+ * @returns {string}
+ */
+function sharedMoveTitle(decision, table) {
+	const { by, card } = decision.shared;
+	const name = tapestryName(card);
+	const whose =
+		by === decision.player ? name : `${seatName(table, by)}'s ${name}`;
+	const [first] = Array.isArray(decision.options) ? decision.options : [];
+	const track =
+		isRecord(first) && isTrack(first.track)
+			? trackName(first.track)
+			: 'its track';
+	const without = decision.benefit === false ? ', without the benefit' : '';
+	return `${whose}: advance on ${track}${without}${decision.optional ? '?' : ''}`;
 }
 
 /**
@@ -366,11 +465,19 @@ const TITLES = {
 			? `Take the bonus: ${effectsPhrase(d.gain, table, true)}?`
 			: 'Take the bonus?',
 	chooseAdvance: () => 'Choose a space to advance to',
-	chooseOrder: () => 'Choose what comes next',
-	chooseOption: (d) => {
+	chooseOrder: (d) => {
+		const card = tapestrySource(d);
+		if (card === 'renaissance') {
+			return 'Renaissance: choose the next track to advance on';
+		}
+		return card
+			? `${tapestryName(card)}: choose what comes next`
+			: 'Choose what comes next';
+	},
+	chooseOption: (d, table) => {
 		switch (d.purpose) {
 			case 'civOffer':
-				return 'Use your civilization?';
+				return civOfferTitle(d, table);
 			case 'riverfolkDiscard':
 				return 'Discard the Riverfolk for another civilization?';
 			case 'militarism':
@@ -389,11 +496,25 @@ const TITLES = {
 				return 'Explore a space tile onto your Aliens mat, or gain a resource';
 			case 'treasureHunters':
 				return 'Keep one of the two black die results';
-			default:
-				return 'Choose one';
+			default: {
+				const card = tapestrySource(d);
+				return card
+					? `${tapestryName(card)}: ${TAPESTRY_CHOICES[card] ?? 'choose one'}`
+					: 'Choose one';
+			}
 		}
 	},
-	chooseMove: (d) => {
+	chooseMove: (d, table) => {
+		if (
+			isRecord(d.shared) &&
+			isCount(d.shared.by) &&
+			typeof d.shared.card === 'string'
+		) {
+			return sharedMoveTitle(d, table);
+		}
+		if (d.purpose === 'socialism') {
+			return 'Socialism: move a token to the closest opponent on its track, without benefit or bonus';
+		}
 		if (
 			d.purpose === 'tinkerers' &&
 			Object.hasOwn(TINKERERS_OPTION_NAMES, d.option)
@@ -413,8 +534,22 @@ const TITLES = {
 	chooseRepeat: () => 'Choose a space to repeat',
 	chooseRestart: () => 'Choose a track to start your token on again',
 	confirmEndTurn: () => 'Nothing left to do this turn',
-	chooseTapestry: (d) =>
-		d.optional ? 'Play a tapestry card?' : 'Choose a tapestry card to play',
+	chooseTapestry: (d) => {
+		if (d.purpose === 'heralds') {
+			return 'Heralds: play a When Played card on top of Maker of Fire?';
+		}
+		if (d.purpose === 'tyranny') {
+			const [after] = Array.isArray(d.afterPlay) ? d.afterPlay : [];
+			const vp =
+				isRecord(after) && isCount(after.vp)
+					? `, for ${after.vp} VP`
+					: '';
+			return `Tyranny: play the card you just gained on top of it${vp}?`;
+		}
+		return d.optional
+			? 'Play a tapestry card?'
+			: 'Choose a tapestry card to play';
+	},
 	choosePlacement: (d) => {
 		if (typeof d.landmark === 'string') {
 			return `Where does the ${landmarkName(d.landmark)} go?`;
@@ -453,7 +588,10 @@ const TITLES = {
 		d.icon === 'square'
 			? 'Choose a tech card in your top row for its square benefit'
 			: 'Choose a tech card in your middle row for its circle benefit',
-	chooseLandmark: () => 'Choose a landmark',
+	chooseLandmark: (d) =>
+		d.purpose === 'dystopia'
+			? 'Dystopia: choose a track landmark nobody has claimed'
+			: 'Choose a landmark',
 	chooseDiscard: (d) => {
 		// The Advisors' discard down to 4 (#33).
 		if (isCount(d.downTo)) {
@@ -478,17 +616,39 @@ const TITLES = {
 				? `Use your Lighthouse: discard ${tiles} for a resource?`
 				: `Use your Lighthouse: discard ${tiles} for a resource to advance with`;
 		}
+		// Olympic Host (#148): the host's card, and the trade it offers.
+		const [offer] = Array.isArray(d.offers) ? d.offers : [];
+		if (isCount(d.host) && isRecord(offer)) {
+			const whose =
+				d.host === d.player
+					? 'Olympic Host'
+					: `${seatName(table, d.host)}'s Olympic Host`;
+			return `${whose}: ${paymentVerbs(offer.pay)} to ${effectsPhrase(offer.gain, table, true)}?`;
+		}
+		if (tapestrySource(d) === 'guilds') {
+			return 'Guilds: pay VP for resources, or resources for VP';
+		}
 		const host = isCount(d.host) ? ` with ${seatName(table, d.host)}` : '';
 		return d.optional ? `Make a trade${host}?` : `Choose a trade${host}`;
 	},
 	chooseTrack: (d) => {
 		switch (d.purpose) {
 			case 'darkAges':
-				return 'Choose a track for Dark Ages';
+				return `Dark Ages: choose the track to advance ${DARK_AGES_ADVANCES} times on`;
 			case 'dictatorship':
-				return 'Choose a track for Dictatorship';
-			case 'sharedAdvance':
-				return 'Choose a track to advance on';
+				return 'Dictatorship: advance on a track, and close it to opponents';
+			case 'sharedAdvance': {
+				const then = isRecord(d.then) ? d.then : {};
+				const who =
+					then.others === 'opponents'
+						? 'every opponent'
+						: 'your neighbours';
+				const words = `a track you and ${who} may advance on`;
+				return isRecord(then.shared) &&
+					typeof then.shared.card === 'string'
+					? `${tapestryName(then.shared.card)}: choose ${words}`
+					: `Choose ${words}`;
+			}
 			case 'statusQuo':
 				return "Which track's bonus for this tier?";
 			default:
@@ -496,7 +656,8 @@ const TITLES = {
 		}
 	},
 	chooseRoll: () => 'Choose one of the two science die results',
-	chooseSpace: () => "Choose an opponent's track space to gain its benefit",
+	chooseSpace: () =>
+		"Trade Economy: choose an opponent's track space to gain its benefit",
 	chooseHex: (d) => {
 		if (d.purpose === 'manifestDestiny') {
 			return 'Gain the benefit of a territory tile you control?';
@@ -510,10 +671,15 @@ const TITLES = {
 		if (d.purpose === 'infiltrators') {
 			return "Share a territory, or put a token on an opponent's capital-city territory?";
 		}
-		const words = ['colonialism', 'revolution'].includes(d.purpose)
-			? `Choose a territory for ${titleOf(d.purpose)}`
-			: 'Choose a territory';
-		return d.optional ? `${words}?` : words;
+		if (d.purpose === 'colonialism') {
+			return 'Colonialism: choose a territory tile you control, for 1 resource per land terrain on it';
+		}
+		if (d.purpose === 'revolution') {
+			return d.optional
+				? 'Revolution: stand up another toppled outpost?'
+				: 'Revolution: choose a territory where your toppled outpost stands back up';
+		}
+		return d.optional ? 'Choose a territory?' : 'Choose a territory';
 	},
 	chooseGift: () => 'Give a territory tile to an opponent for 3 VP?',
 	// The Advisors' gift: instead of a neighbour's draw, or one of their new cards for VP (#33).
@@ -524,7 +690,10 @@ const TITLES = {
 			: `Give ${who} a tapestry card instead of their draw?`;
 	},
 	choosePartner: () => 'Choose your partner for this era',
-	chooseCopy: () => 'Choose a tapestry card to copy',
+	chooseCopy: (d) =>
+		d.espionage
+			? 'Espionage: choose a tapestry card on an income mat to copy'
+			: 'Choose a tapestry card to copy',
 	chooseConversion: (d) =>
 		isCount(d.max)
 			? `Convert up to ${d.max} food into other resources for 2 VP each?`
@@ -796,6 +965,10 @@ const ANSWERS = {
 		if (d.purpose === 'islandersPlace') {
 			return 'Place a tile on the mat';
 		}
+		// Revolution's own rules, in words rather than the card's name (#148).
+		if (isRecord(option?.[0]) && 'revolution' in option[0]) {
+			return `Stand up to ${1 + REVOLUTION_MORE} of your toppled outposts, toppling the opponents' outposts there`;
+		}
 		// The black die's "?" on a territory the Treasure Hunters claimed, not conquered (#33).
 		if (
 			d.purpose === 'treasureHunters' &&
@@ -804,7 +977,10 @@ const ANSWERS = {
 		) {
 			return 'Gain the benefit of the territory tile you claimed';
 		}
-		return capitalize(effectsPhrase(option, table, true));
+		return (
+			capitalize(effectsPhrase(option, table, true)) +
+			vpNow(option, d, table)
+		);
 	},
 	chooseMove: (a, d) => {
 		if (a.track === null) {
@@ -822,6 +998,10 @@ const ANSWERS = {
 		}
 		if (d.direction === 'regress') {
 			return `Go back on ${track} to ${spaceName(a.track, a.from - 1)}`;
+		}
+		// A shared advance's title names the track already (#148).
+		if (isRecord(d.shared)) {
+			return `Advance to ${spaceName(a.track, a.from + 1)}`;
 		}
 		return `Advance on ${track} to ${spaceName(a.track, a.from + 1)}`;
 	},
@@ -989,7 +1169,19 @@ const ANSWERS = {
 		const gain = effectsPhrase(offer.gain, table, true);
 		return capitalize(`${paymentVerbs(a.pay ?? offer.pay)} to ${gain}`);
 	},
-	chooseTrack: (a) => (isTrack(a.track) ? trackName(a.track) : null),
+	chooseTrack: (a, d) => {
+		if (!isTrack(a.track)) {
+			return null;
+		}
+		const track = trackName(a.track);
+		if (d.purpose === 'darkAges') {
+			return `${track}: advance ${DARK_AGES_ADVANCES} times, and go back once on each other track`;
+		}
+		if (d.purpose === 'dictatorship') {
+			return `${track}: no opponent advances on it until your next turn`;
+		}
+		return track;
+	},
 	chooseRoll: (a) => (isTrack(a.track) ? trackName(a.track) : null),
 	chooseSpace: (a, d, table) =>
 		isTrack(a.track) && isCount(a.space)

@@ -316,8 +316,11 @@ const PHRASES = {
 	},
 	advance(value) {
 		let words = `${value?.optional ? 'you may advance' : 'advance'} on ${tracksPhrase(value?.tracks)}`;
+		// A free bonus is taken even without the benefit, so the words don't refuse the bonus first (Renaissance, #148).
 		if (value?.noBenefit) {
-			words += ' without its benefit or bonus';
+			words += value?.freeBonus
+				? ' without its benefit,'
+				: ' without its benefit or bonus';
 		}
 		if (value?.noBonus) {
 			words += ' without its bonus';

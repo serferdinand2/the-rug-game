@@ -327,9 +327,11 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **Hot-seat:** a player who takes the screen sees what the others did since they last held it.
 - **The footer** keeps "· Just now: Ben took income turn 2." after its heading, with **Show again**, which plays the last run again, on another player's turn and on your own before you choose.
 
+**Built in #148 (2026-11-03): tapestry and civilization choices in plain words.** The owner approved the pattern of the mockup's table (`docs/ui/prompt-and-hand.html`): the title names the card or civilization and what is chosen, each answer what it does, and an answer worth VP that depend on the game says what it comes to now ("Gain 3 VP for each landmark you own (2 now: 6 VP)"). A shared advance names the card and, for another player, whose it is ("Ana's Oil Magnate: advance on Exploration, without the benefit?"); a civilization's offer names the civilization and the move that set it off ("Inventors: Bo upgraded Clocks; gain its circle benefit?"). The full list is in `docs/superpowers/specs/2026-11-03-card-choice-words-design.md`; where a prompt comes from is still #60's.
+
 **Built in #149 (2026-11-03): minimizing a decision prompt.** The owner chose to keep the way back in the footer (option 1 of `docs/ui/prompt-and-hand.html`, screenshots in `screens/issues-148-149-158/`). The design is `docs/superpowers/specs/2026-11-03-minimize-prompt-design.md`.
 
-![A decision panel with Minimize and its key V in the title bar](screens/game-prompt-minimize.png)
+![Feudalism's choice, in #148's words, with Minimize and its key V in the title bar](screens/game-prompt-minimize.png)
 
 ![The same decision minimized while the World Map is looked at: the footer keeps the question, "Minimized while you look at the board.", and Show choice with V](screens/game-prompt-minimized.png)
 

@@ -32,14 +32,17 @@ export function others(ctx, player, value, op) {
 
 /**
  * You advance with the benefit, then the others advance on the same track without it (Age of Discovery, Oil Magnate).
- * The track is rolled on the science die, or chosen among the tracks where the player has a token.
+ * The track is rolled on the science die, or chosen among the tracks where the player has a token. Each advance it
+ * asks about names the card and its player, `shared`, so another player's prompt can say whose card moves them (#148).
  * @type {import('../state.js').EffectHandler}
  */
-export function sharedAdvance(ctx, player, value) {
+export function sharedAdvance(ctx, player, value, op) {
+	const card = op.source?.tapestry;
 	const next = {
 		kind: 'sharedAdvanceOn',
 		others: value.others,
 		optional: value.optional ?? false,
+		...(typeof card === 'string' && { shared: { by: player, card } }),
 	};
 	if (value.track === 'roll') {
 		rollScience(ctx, player, next);
@@ -59,6 +62,7 @@ export function sharedAdvance(ctx, player, value) {
 export function sharedAdvanceOn(ctx, op) {
 	const player = /** @type {number} */ (op.player);
 	const { track, optional } = op;
+	const shared = op.shared ? { shared: op.shared } : {};
 	const targets =
 		op.others === 'neighbours'
 			? neighbours(ctx.state, player)
@@ -67,14 +71,21 @@ export function sharedAdvanceOn(ctx, op) {
 		{
 			player,
 			kind: 'effects',
-			effects: [{ advance: { tracks: [track], optional } }],
+			effects: [{ advance: { tracks: [track], optional, ...shared } }],
 			ordered: true,
 		},
 		...targets.map((target) => ({
 			player: target,
 			kind: 'effects',
 			effects: [
-				{ advance: { tracks: [track], noBenefit: true, optional } },
+				{
+					advance: {
+						tracks: [track],
+						noBenefit: true,
+						optional,
+						...shared,
+					},
+				},
 			],
 			ordered: true,
 		})),

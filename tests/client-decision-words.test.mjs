@@ -9,6 +9,7 @@ import { openDecisions } from '../src/lib/engine/stack.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { allOps } from './helpers/views.mjs';
 import { assertReadable } from './helpers/readable.mjs';
+import { startedGame } from './helpers/engine.mjs';
 
 test('payments read as what is paid and discarded', () => {
 	assert.equal(
@@ -729,6 +730,394 @@ test("the Advisors' gift instead of a neighbour's draw, their new cards' gift an
 		'Discard a tapestry card, down to 4 in your hand'
 	);
 	assert.equal(describeAnswer(discard, { card: 'guilds' }), 'Discard Guilds');
+});
+
+test("a tapestry card's choice names the card, what is chosen and what each answer does (#148)", () => {
+	const game = /** @type {any} */ ({
+		seats: [{ name: 'Ana' }, { name: 'Bo' }, { name: 'Cy' }],
+	});
+	const option = (
+		/** @type {string} */ card,
+		/** @type {any[]} */ options
+	) => ({
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseOption',
+		options,
+		source: { tapestry: card, card },
+	});
+	const feudalism = option('feudalism', [
+		[{ gain: { any: 1 } }],
+		[{ vp: { per: 'landmark', each: 3 } }],
+	]);
+	assert.equal(
+		decisionTitle(feudalism, game),
+		'Feudalism: a resource, or VP for your landmarks?'
+	);
+	assert.equal(
+		describeAnswer(feudalism, { option: 0 }, game),
+		'Gain 1 resource of your choice'
+	);
+	// Without the viewer's seat in the table, the answer can't say what the VP come to.
+	assert.equal(
+		describeAnswer(feudalism, { option: 1 }, game),
+		'Gain 3 VP for each landmark you own'
+	);
+	const revolution = option('revolution', [
+		[{ gain: { any: 1 } }],
+		[{ revolution: {} }],
+	]);
+	assert.equal(
+		decisionTitle(revolution, game),
+		'Revolution: a resource, or stand your outposts back up?'
+	);
+	assert.equal(
+		describeAnswer(revolution, { option: 1 }, game),
+		"Stand up to 3 of your toppled outposts, toppling the opponents' outposts there"
+	);
+	const diplomacy = option('diplomacy', [
+		[{ building: 'market' }],
+		[{ building: 'farm' }],
+	]);
+	assert.equal(
+		decisionTitle(diplomacy, game),
+		'Diplomacy: choose an income building to gain'
+	);
+	assert.equal(
+		decisionTitle(
+			option('surprise-party', [[{ vp: 10 }], [{ building: 'armory' }]]),
+			game
+		),
+		'Surprise Party: 10 VP, or an Armory?'
+	);
+	assert.equal(
+		decisionTitle(option('golden-age', [[{ vp: 1 }], [{ vp: 2 }]]), game),
+		'Golden Age: choose one'
+	);
+
+	const track = (
+		/** @type {string} */ purpose,
+		/** @type {any} */ then = {}
+	) => ({
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseTrack',
+		options: ['exploration', 'science'],
+		purpose,
+		then,
+	});
+	assert.equal(
+		decisionTitle(track('darkAges'), game),
+		'Dark Ages: choose the track to advance 3 times on'
+	);
+	assert.equal(
+		describeAnswer(track('darkAges'), { track: 'science' }, game),
+		'Science: advance 3 times, and go back once on each other track'
+	);
+	assert.equal(
+		decisionTitle(track('dictatorship'), game),
+		'Dictatorship: advance on a track, and close it to opponents'
+	);
+	assert.equal(
+		describeAnswer(track('dictatorship'), { track: 'science' }, game),
+		'Science: no opponent advances on it until your next turn'
+	);
+	const oil = track('sharedAdvance', {
+		kind: 'sharedAdvanceOn',
+		others: 'neighbours',
+		shared: { by: 1, card: 'oil-magnate' },
+	});
+	assert.equal(
+		decisionTitle(oil, game),
+		'Oil Magnate: choose a track you and your neighbours may advance on'
+	);
+	assert.equal(describeAnswer(oil, { track: 'science' }, game), 'Science');
+
+	// The advances a shared card asks of each player name the card, and whose it is.
+	const move = (
+		/** @type {number} */ player,
+		/** @type {boolean} */ benefit
+	) => ({
+		id: 3,
+		batch: 1,
+		player,
+		kind: 'chooseMove',
+		direction: 'advance',
+		options: [{ track: 'exploration', from: 0 }],
+		benefit,
+		optional: true,
+		shared: { by: 1, card: 'oil-magnate' },
+	});
+	assert.equal(
+		decisionTitle(move(1, true), game),
+		'Oil Magnate: advance on Exploration?'
+	);
+	assert.equal(
+		decisionTitle(move(2, false), game),
+		"Ana's Oil Magnate: advance on Exploration, without the benefit?"
+	);
+	assert.deepEqual(
+		[{ track: 'exploration', from: 0 }, { track: null }].map((answer) =>
+			describeAnswer(move(2, false), answer, game)
+		),
+		['Advance to Scouting', "Don't move"]
+	);
+	const discovery = {
+		...move(3, false),
+		optional: false,
+		shared: { by: 1, card: 'age-of-discovery' },
+	};
+	assert.equal(
+		decisionTitle(discovery, game),
+		"Ana's Age of Discovery: advance on Exploration, without the benefit"
+	);
+	assert.equal(
+		decisionTitle(
+			{
+				...move(1, false),
+				direction: 'jump',
+				purpose: 'socialism',
+				shared: undefined,
+			},
+			game
+		),
+		'Socialism: move a token to the closest opponent on its track, without benefit or bonus'
+	);
+
+	const order = {
+		id: 4,
+		batch: 1,
+		player: 1,
+		kind: 'chooseOrder',
+		effects: [
+			{
+				advance: {
+					tracks: ['exploration'],
+					noBenefit: true,
+					freeBonus: true,
+				},
+			},
+			{
+				advance: {
+					tracks: ['science'],
+					noBenefit: true,
+					freeBonus: true,
+				},
+			},
+		],
+		source: { tapestry: 'renaissance', card: 'renaissance' },
+	};
+	assert.equal(
+		decisionTitle(order, game),
+		'Renaissance: choose the next track to advance on'
+	);
+	assert.equal(
+		describeAnswer(order, { effect: 0 }, game),
+		'Advance on Exploration without its benefit, and take its bonus for free'
+	);
+
+	assert.equal(
+		decisionTitle(
+			{
+				id: 5,
+				batch: 1,
+				player: 1,
+				kind: 'chooseCopy',
+				espionage: 'espionage',
+			},
+			game
+		),
+		'Espionage: choose a tapestry card on an income mat to copy'
+	);
+	const trade = {
+		id: 6,
+		batch: 1,
+		player: 1,
+		kind: 'chooseTrade',
+		offers: [{ pay: { vp: 5 }, gain: [{ gain: { any: 1 } }] }],
+		optional: false,
+		source: { tapestry: 'guilds', card: 'guilds' },
+	};
+	assert.equal(
+		decisionTitle(trade, game),
+		'Guilds: pay VP for resources, or resources for VP'
+	);
+	const host = {
+		id: 7,
+		batch: 1,
+		player: 2,
+		kind: 'chooseTrade',
+		offers: [{ pay: { worker: 1 }, gain: [{ vp: 10 }] }],
+		optional: true,
+		host: 3,
+	};
+	assert.equal(
+		decisionTitle(host, game),
+		"Cy's Olympic Host: pay 1 worker to gain 10 VP?"
+	);
+	assert.equal(
+		decisionTitle({ ...host, player: 3 }, game),
+		'Olympic Host: pay 1 worker to gain 10 VP?'
+	);
+	const tapestry = {
+		id: 8,
+		batch: 1,
+		player: 1,
+		kind: 'chooseTapestry',
+		options: ['alliance'],
+		optional: true,
+	};
+	assert.equal(
+		decisionTitle({ ...tapestry, era: 1, purpose: 'heralds' }, game),
+		'Heralds: play a When Played card on top of Maker of Fire?'
+	);
+	assert.equal(
+		decisionTitle(
+			{ ...tapestry, era: 2, purpose: 'tyranny', afterPlay: [{ vp: 5 }] },
+			game
+		),
+		'Tyranny: play the card you just gained on top of it, for 5 VP?'
+	);
+	assert.equal(
+		decisionTitle(
+			{
+				id: 9,
+				batch: 1,
+				player: 1,
+				kind: 'chooseLandmark',
+				options: ['forge'],
+				purpose: 'dystopia',
+			},
+			game
+		),
+		'Dystopia: choose a track landmark nobody has claimed'
+	);
+	const hex = {
+		id: 10,
+		batch: 1,
+		player: 1,
+		kind: 'chooseHex',
+		options: ['0_1'],
+		then: {},
+	};
+	assert.equal(
+		decisionTitle(
+			{ ...hex, purpose: 'colonialism', optional: false },
+			game
+		),
+		'Colonialism: choose a territory tile you control, for 1 resource per land terrain on it'
+	);
+	assert.equal(
+		decisionTitle({ ...hex, purpose: 'revolution', optional: false }, game),
+		'Revolution: choose a territory where your toppled outpost stands back up'
+	);
+	assert.equal(
+		decisionTitle({ ...hex, purpose: 'revolution', optional: true }, game),
+		'Revolution: stand up another toppled outpost?'
+	);
+	assert.equal(
+		decisionTitle(
+			{ id: 11, batch: 1, player: 1, kind: 'chooseSpace', options: [] },
+			game
+		),
+		"Trade Economy: choose an opponent's track space to gain its benefit"
+	);
+});
+
+test("Feudalism's VP answer says what it comes to now, from the viewer's own landmarks (#148)", () => {
+	const { state } = startedGame(2);
+	const feudalism = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseOption',
+		options: [
+			[{ gain: { any: 1 } }],
+			[{ vp: { per: 'landmark', each: 3 } }],
+		],
+		source: { tapestry: 'feudalism', card: 'feudalism' },
+	};
+	assert.equal(
+		describeAnswer(feudalism, { option: 1 }, view(state, 1)),
+		'Gain 3 VP for each landmark you own (none yet: 0 VP)'
+	);
+	state.seats[0].besideMat.push('forge', 'barracks');
+	assert.equal(
+		describeAnswer(feudalism, { option: 1 }, view(state, 1)),
+		'Gain 3 VP for each landmark you own (2 now: 6 VP)'
+	);
+});
+
+test('a civilization offer names the civilization, who set it off and what it gives (#148)', () => {
+	const game = /** @type {any} */ ({
+		seats: [{ name: 'Ana' }, { name: 'Bo' }],
+	});
+	const offer = (
+		/** @type {Record<string, any>} */ fields,
+		/** @type {any[]} */ gain
+	) => ({
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseOption',
+		options: [[], gain],
+		purpose: 'civOffer',
+		...fields,
+	});
+	const inventors = offer(
+		{
+			civ: 'inventors',
+			from: 2,
+			source: { tech: 'clocks', icon: 'circle' },
+		},
+		[{ gain: { culture: 1 } }]
+	);
+	assert.equal(
+		decisionTitle(inventors, game),
+		'Inventors: Bo upgraded Clocks; gain its circle benefit?'
+	);
+	assert.deepEqual(
+		[{ option: 0 }, { option: 1 }].map((answer) =>
+			describeAnswer(inventors, answer, game)
+		),
+		['Decline', 'Gain 1 culture']
+	);
+	assert.equal(
+		decisionTitle(
+			{ ...inventors, source: { tech: 'clocks', icon: 'square' } },
+			game
+		),
+		'Inventors: Bo upgraded Clocks; gain its square benefit?'
+	);
+	assert.equal(
+		decisionTitle(
+			offer({ civ: 'traders', from: 2, source: { hex: '1_0' } }, [
+				{ gain: { coin: 1 } },
+			]),
+			game
+		),
+		"Traders: Bo conquered hex 1,0; gain the die they didn't keep?"
+	);
+	assert.equal(
+		decisionTitle(
+			offer({ civ: 'isolationists' }, [
+				{ placeToken: { hex: '1_0', civ: 'isolationists' } },
+				{ gain: { any: 1 } },
+			]),
+			game
+		),
+		'Isolationists: put a token on the territory you just conquered, and gain a resource?'
+	);
+	assert.equal(
+		decisionTitle(offer({ civ: 'mystics' }, [{ vp: 1 }]), game),
+		'Use your Mystics?'
+	);
+	assert.equal(
+		decisionTitle(offer({}, [{ vp: 1 }]), game),
+		'Use your civilization?'
+	);
 });
 
 test('unknown decisions and answers fall back to a readable sentence', () => {

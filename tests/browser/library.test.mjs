@@ -335,7 +335,8 @@ test('the decision panel section shows the four pick prompts the owner approved,
 		'Choose 3 resources',
 		'Advance to Tanks',
 		'Take the bonus: gain 10 VP?',
-		'Choose a trade',
+		// Guilds' trade, named as #148 words it.
+		'Guilds: pay VP for resources, or resources for VP',
 	]) {
 		await expect(section.getByRole('dialog', { name })).toBeVisible();
 	}

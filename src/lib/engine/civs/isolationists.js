@@ -42,10 +42,16 @@ export function isolationistsOffer(state, player, hex) {
 		return [];
 	}
 	return [
-		offer(state, player, [
-			{ placeToken: { hex, civ: 'isolationists' } },
-			{ gain: { any: 1 } },
-		]),
+		offer(
+			state,
+			player,
+			[
+				{ placeToken: { hex, civ: 'isolationists' } },
+				{ gain: { any: 1 } },
+			],
+			'civOffer',
+			{ civ: 'isolationists' }
+		),
 	];
 }
 

@@ -179,18 +179,19 @@ test('Oil Magnate lets the player and each neighbour decline', () => {
 		}
 	);
 	next = answer(next, random, 1, 'chooseTrack', { track: 'technology' });
-	/** @type {[number, boolean, boolean][]} */
+	/** @type {[number, boolean, boolean, any][]} */
 	const asked = [];
 	for (let step = 0; step < 3; step++) {
 		const move = open(next, 'chooseMove');
-		asked.push([move.player, move.benefit, move.optional]);
+		asked.push([move.player, move.benefit, move.optional, move.shared]);
 		next = answer(next, random, move.player, 'chooseMove', { track: null });
 	}
-	// The player, then the right neighbour, then the left one.
+	// The player, then the right neighbour, then the left one; each prompt names the card and whose it is (#148).
+	const shared = { by: 1, card: 'oil-magnate' };
 	assert.deepEqual(asked, [
-		[1, true, true],
-		[3, false, true],
-		[2, false, true],
+		[1, true, true, shared],
+		[3, false, true, shared],
+		[2, false, true, shared],
 	]);
 	assert.deepEqual(moves(next), []);
 	assert.deepEqual(questions(next), []);
@@ -325,8 +326,8 @@ test('Socialism jumps to the nearest opponent ahead or behind, gaining every lan
 	const next = resolveTapestry(state, random, 1, 'socialism');
 	const move = open(next, 'chooseMove');
 	assert.deepEqual(
-		[move.direction, move.benefit, move.optional],
-		['jump', false, false]
+		[move.direction, move.benefit, move.optional, move.purpose],
+		['jump', false, false, 'socialism']
 	);
 	assert.deepEqual(DECISIONS.chooseMove.answers(next, move), [
 		{ track: 'exploration', from: 2, to: 7 },

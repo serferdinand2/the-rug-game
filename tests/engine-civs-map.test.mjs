@@ -268,6 +268,8 @@ test('Traders gain the unkept die when an opponent conquers their territory, VP 
 		[offer.player, offer.purpose, offer.options],
 		[1, 'civOffer', [[], [{ gain: { coin: 1 } }]]]
 	);
+	// The prompt names the civilization and who conquered (#148).
+	assert.deepEqual([offer.civ, offer.from], ['traders', 2]);
 	const taken = answer(red, face(0), 1, 'chooseOption', { option: 1 });
 	assert.equal(taken.seats[0].resources.coin, coin + 1);
 	assert.deepEqual(openDecisions(taken), []);
@@ -397,6 +399,8 @@ test('Isolationists may place a token on an empty territory they conquer for 1 r
 	assert.deepEqual(state.seats[0].civData.isolationists, { tokens: 4 });
 	const rolled = resolveEffects(state, 1, [{ conquer: {} }], face(0));
 	const offer = decisionOf(rolled, 'chooseOption');
+	// The prompt names the civilization (#148).
+	assert.equal(offer.civ, 'isolationists');
 	assert.deepEqual(
 		[offer.player, offer.purpose, offer.options],
 		[
