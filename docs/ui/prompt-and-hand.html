@@ -1,0 +1,233 @@
+<!doctype html>
+<!-- Issues #158, #149 and #148: clickable mockup of the Hand tab's bigger cards, the minimized decision prompt and the
+     clearer prompt wording, over screenshots of the running game restyled to each option; not the playable game. -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>The Rug Game · Hand cards, minimized prompts, prompt words (#158, #149, #148)</title>
+	<link rel="stylesheet" href="../../src/styles/tokens.css">
+	<style>
+		@font-face {
+			font-family: 'Cinzel';
+			src: url('../../static/fonts/cinzel.woff2') format('woff2');
+			font-weight: 400 900;
+			font-display: swap;
+		}
+		@font-face {
+			font-family: 'Atkinson Hyperlegible';
+			src: url('../../static/fonts/atkinson-hyperlegible-regular.woff2') format('woff2');
+			font-weight: 400;
+			font-display: swap;
+		}
+		@font-face {
+			font-family: 'Atkinson Hyperlegible';
+			src: url('../../static/fonts/atkinson-hyperlegible-bold.woff2') format('woff2');
+			font-weight: 700;
+			font-display: swap;
+		}
+
+		* { box-sizing: border-box; }
+		html, body { margin: 0; background: var(--ink); color: var(--text); font-family: var(--font-body); }
+
+		/* The mockup's own controls: which issue, which option, and what the picture shows. */
+		.mk-bar { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding: 10px 18px; background: var(--chrome); border-bottom: var(--border) solid var(--line); }
+		.mk-title { margin: 0; font: var(--weight-bold) var(--font-size-lg) var(--font-title); color: var(--gold); }
+		.mk-group { display: flex; gap: 4px; align-items: center; }
+		.mk-group-label { color: var(--muted); font-size: var(--font-size-xs); font-weight: var(--weight-bold); letter-spacing: var(--letter-spacing-caps); text-transform: uppercase; margin-right: 6px; }
+		.mk-group button { padding: 6px 11px; border: var(--border) solid var(--line); background: var(--control); color: var(--text); font: var(--weight-bold) var(--font-size-sm) var(--font-body); cursor: pointer; }
+		.mk-group button[aria-pressed='true'] { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 22%, var(--control)); color: var(--gold); }
+		.mk-group button:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+		.mk-note { flex-basis: 100%; margin: 0; color: var(--muted); font-size: var(--font-size-sm); line-height: var(--leading-snug); }
+		.mk-note b { color: var(--text); }
+
+		/* The screenshot, scaled to the window's width, with hotspots placed in its own 1920×1080 (or 1366×768) pixels. */
+		.mk-stage { position: relative; width: min(100%, var(--mk-w)); margin: 0 auto; }
+		.mk-stage img { display: block; width: 100%; height: auto; }
+		.mk-hot { position: absolute; border: 2px dashed color-mix(in srgb, var(--gold) 70%, transparent); background: color-mix(in srgb, var(--gold) 10%, transparent); cursor: pointer; padding: 0; }
+		.mk-hot:hover { background: color-mix(in srgb, var(--gold) 24%, transparent); }
+
+		/* #148's words, before and after, under the picture. */
+		.mk-words { max-width: 1400px; margin: 22px auto 60px; padding: 0 18px; }
+		.mk-words h2 { margin: 0 0 6px; font: var(--weight-bold) var(--font-size-xl) var(--font-body); color: var(--gold); }
+		.mk-words p { margin: 0 0 14px; color: var(--muted); }
+		.mk-words table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+		.mk-words th, .mk-words td { padding: 9px 10px; border-bottom: var(--border) solid var(--line-soft); text-align: left; vertical-align: top; line-height: var(--leading-snug); }
+		.mk-words th { color: var(--muted); font-size: var(--font-size-xs); letter-spacing: var(--letter-spacing-caps); text-transform: uppercase; }
+		.mk-words td:first-child { font-family: var(--font-title); color: var(--gold); white-space: nowrap; }
+		.mk-words .mk-now { color: var(--muted); }
+		.mk-words q { quotes: '«' '»'; }
+		[hidden] { display: none !important; }
+	</style>
+</head>
+<body>
+	<div class="mk-bar">
+		<p class="mk-title">Hand cards, minimized prompts, prompt words</p>
+		<div class="mk-group" id="issues">
+			<span class="mk-group-label">Issue</span>
+			<button type="button" data-issue="hand">#158 Hand tab</button>
+			<button type="button" data-issue="min">#149 Minimize</button>
+			<button type="button" data-issue="words">#148 Prompt words</button>
+		</div>
+		<div class="mk-group" id="options"></div>
+		<p class="mk-note" id="note"></p>
+	</div>
+
+	<div class="mk-stage" id="stage">
+		<img id="shot" alt="">
+	</div>
+
+	<section class="mk-words" id="words" hidden>
+		<h2>Proposed words (#148)</h2>
+		<p>Each prompt from a tapestry card or a civilization names the card or civilization, says what is chosen, and each answer says what it does. Where the card says "you and your neighbours", the neighbour's own prompt names whose card it is. Where a prompt comes from many places at once, such as a plain "Choose a resource", the line saying where it comes from stays #60's (Lazar's).</p>
+		<table>
+			<thead><tr><th>From</th><th>Now</th><th>Proposed</th></tr></thead>
+			<tbody>
+				<tr><td>Feudalism</td><td class="mk-now">Choose one · <q>Gain 3 VP for each landmark you own</q></td><td>Feudalism: a resource, or VP for your landmarks? · <q>Gain 3 VP for each landmark you own (2 now: 6 VP)</q></td></tr>
+				<tr><td>Revolution</td><td class="mk-now">Choose one · <q>Resolve Revolution</q></td><td>Revolution: a resource, or stand your outposts back up? · <q>Stand up to 3 of your toppled outposts, toppling the opponents' outposts there</q></td></tr>
+				<tr><td>Diplomacy</td><td class="mk-now">Choose one · <q>Gain a Market</q></td><td>Diplomacy: choose an income building to gain · <q>Gain a Market</q></td></tr>
+				<tr><td>Surprise Party</td><td class="mk-now">Choose one</td><td>Surprise Party: 10 VP, or an Armory?</td></tr>
+				<tr><td>Dark Ages</td><td class="mk-now">Choose a track for Dark Ages · <q>Science</q></td><td>Dark Ages: choose the track to advance 3 times on · <q>Science: advance 3 times, and go back once on each other track</q></td></tr>
+				<tr><td>Dictatorship</td><td class="mk-now">Choose a track for Dictatorship · <q>Science</q></td><td>Dictatorship: advance on a track, and close it to opponents · <q>Science, to Mathematics: no opponent advances on it until your next turn</q></td></tr>
+				<tr><td>Oil Magnate</td><td class="mk-now">Choose a track to advance on</td><td>Oil Magnate: choose a track you and your neighbours may advance on</td></tr>
+				<tr><td>Oil Magnate, a neighbour</td><td class="mk-now">Advance on a track? · <q>Advance on Exploration to Scouting</q></td><td>Mira's Oil Magnate: advance on Exploration, without the benefit? · <q>Advance to Scouting</q></td></tr>
+				<tr><td>Age of Discovery</td><td class="mk-now">Advance on a track?</td><td>Age of Discovery: advance on Military? (an opponent's: Mira's Age of Discovery: advance on Military, without the benefit)</td></tr>
+				<tr><td>Renaissance</td><td class="mk-now">Choose what comes next · <q>Advance on Exploration without its benefit or bonus and take its bonus for free</q></td><td>Renaissance: choose the next track to advance on · <q>Exploration, to Rafts: no benefit, its bonus for free</q></td></tr>
+				<tr><td>Espionage</td><td class="mk-now">Choose a tapestry card to copy</td><td>Espionage: choose an opponent's When Played card to copy</td></tr>
+				<tr><td>Guilds</td><td class="mk-now">Choose a trade</td><td>Guilds: pay VP for resources, or resources for VP</td></tr>
+				<tr><td>Heralds</td><td class="mk-now">Play a tapestry card?</td><td>Heralds: play a When Played card on top of Maker of Fire?</td></tr>
+				<tr><td>Inventors</td><td class="mk-now">Use your civilization? · <q>Gain …</q></td><td>Inventors: Ana upgraded Clocks; gain its circle benefit? · <q>Gain 1 coin</q></td></tr>
+				<tr><td>Isolationists, Traders, Riverfolk</td><td class="mk-now">Use your civilization?</td><td>Each names the civilization and what it gives, as the Inventors' does</td></tr>
+			</tbody>
+		</table>
+	</section>
+
+	<script>
+		// Each issue's options: the picture, its size, its note, and the hotspots that click through it.
+		const ASSETS = 'assets/issues-148-149-158/';
+		const W = { full: 1920, small: 1366 };
+
+		/** @type {Record<string, { label: string, options: Record<string, { label: string, note: string }> }>} */
+		const ISSUES = {
+			hand: {
+				options: {
+					'hand-now': { label: 'Now', note: 'Today: five cards at 0.42 in one fan, 134 px wide. The names are cut off and the effect text is about 5 px.' },
+					'hand-A': { label: 'A · 5 cards', note: '<b>Option A (my pick):</b> two columns at 0.65, 207 px wide, so every card reads in full. Four cards fit at 1920×1080; a fifth scrolls the tab. Hover still opens a card in full.' },
+					'hand3-A': { label: 'A · 3 cards', note: '<b>Option A</b> with three cards: everything shows, nothing scrolls.' },
+					'hand-A-1366': { label: 'A · 1366×768', note: '<b>Option A</b> at 1366×768: the player area is about 225 px wide, so one column at 0.7; the tab scrolls.', small: true },
+					'hand-B': { label: 'B · 5 cards', note: '<b>Option B:</b> rows of three overlapping cards at 0.6. All five names show without scrolling, but each card under another loses the right part of its effect text until hovered.' },
+					'hand3-B': { label: 'B · 3 cards', note: '<b>Option B</b> with three cards: one row; the two covered cards still lose part of their text.' },
+					'hand-B-1366': { label: 'B · 1366×768', note: '<b>Option B</b> at 1366×768: rows of two; the cards reach past the area\'s right edge.', small: true },
+					'hand-now-1366': { label: 'Now · 1366×768', note: 'Today at 1366×768.', small: true },
+				},
+			},
+			min: {
+				options: {
+					footer: { label: 'Restore in the footer', note: '<b>Option 1 (my pick):</b> <b>Minimize</b> (or V) hides the panel and its scrim; the footer keeps the question and a <b>Show choice</b> button. The board and its Tracks/Map switch (or M) work as usual; your selection is kept. Click the dashed spots.' },
+					bar: { label: 'Restore bar on the board', note: '<b>Option 2:</b> the same, but the question and <b>Show choice</b> float in a bar at the bottom of the board, over the military track or the map. Click the dashed spots.' },
+				},
+			},
+			words: {
+				options: {
+					'feud-now': { label: 'Now', note: 'Today Feudalism\'s prompt says only "Choose one".' },
+					'feud-new': { label: 'Proposed', note: 'The title names the card and the choice; an answer whose worth depends on the game says it. The table below lists the other prompts.' },
+				},
+			},
+		};
+
+		/** The minimize states' pictures and hotspots, in screenshot pixels: x, y, width, height, then where they lead. */
+		const MIN_STATES = {
+			open: { shot: 'feud-new', hots: [{ box: [914, 421, 140, 34], to: 'min' }] },
+			footer: { shot: 'feud-min-footer', hots: [{ box: [1737, 1031, 142, 40], to: 'open' }, { box: [253, 70, 72, 44], to: 'map' }] },
+			'footer-map': { shot: 'feud-min-map', hots: [{ box: [1737, 1031, 142, 40], to: 'open' }, { box: [24, 70, 62, 44], to: 'tracks' }] },
+			bar: { shot: 'feud-min-bar', hots: [{ box: [877, 949, 142, 40], to: 'open' }, { box: [253, 70, 72, 44], to: 'map' }] },
+			'bar-map': { shot: 'feud-min-map-bar', hots: [{ box: [877, 949, 142, 40], to: 'open' }, { box: [24, 70, 62, 44], to: 'tracks' }] },
+		};
+
+		const state = { issue: 'hand', hand: 'hand-A', min: 'footer', minState: 'open', words: 'feud-new' };
+		const shot = document.getElementById('shot');
+		const stage = document.getElementById('stage');
+
+		function render() {
+			for (const button of document.querySelectorAll('#issues button')) {
+				button.setAttribute('aria-pressed', String(button.dataset.issue === state.issue));
+			}
+			const issue = ISSUES[state.issue];
+			const chosen = state[state.issue];
+			const options = document.getElementById('options');
+			options.innerHTML = '<span class="mk-group-label">Option</span>';
+			for (const [id, option] of Object.entries(issue.options)) {
+				const button = document.createElement('button');
+				button.type = 'button';
+				button.textContent = option.label;
+				button.setAttribute('aria-pressed', String(id === chosen));
+				button.onclick = () => {
+					state[state.issue] = id;
+					state.minState = 'open';
+					render();
+				};
+				options.append(button);
+			}
+			const option = issue.options[chosen];
+			document.getElementById('note').innerHTML = option.note;
+			document.getElementById('words').hidden = state.issue !== 'words';
+			for (const hot of stage.querySelectorAll('.mk-hot')) {
+				hot.remove();
+			}
+			let name = chosen;
+			let hots = [];
+			if (state.issue === 'min') {
+				const key = state.minState === 'open' ? 'open' : state.minState === 'map' ? `${state.min}-map` : state.min;
+				({ shot: name, hots } = MIN_STATES[key]);
+			}
+			const width = option.small ? W.small : W.full;
+			stage.style.setProperty('--mk-w', `${width}px`);
+			shot.src = `${ASSETS}${name}.png`;
+			shot.alt = option.note.replace(/<[^>]+>/g, '');
+			const height = option.small ? 768 : 1080;
+			for (const { box: [x, y, w, h], to } of hots) {
+				const hot = document.createElement('button');
+				hot.type = 'button';
+				hot.className = 'mk-hot';
+				hot.title = { min: 'Minimize', open: 'Show choice', map: 'World Map', tracks: 'Advancement Tracks' }[to];
+				Object.assign(hot.style, { left: `${(x / width) * 100}%`, top: `${(y / height) * 100}%`, width: `${(w / width) * 100}%`, height: `${(h / height) * 100}%` });
+				hot.onclick = () => go(to);
+				stage.append(hot);
+			}
+		}
+
+		function go(to) {
+			if (to === 'min') {
+				state.minState = 'tracks';
+			} else if (to === 'open') {
+				state.minState = 'open';
+			} else {
+				state.minState = to;
+			}
+			render();
+		}
+
+		for (const button of document.querySelectorAll('#issues button')) {
+			button.onclick = () => {
+				state.issue = button.dataset.issue;
+				render();
+			};
+		}
+
+		// V minimizes and restores, M switches the board while minimized, as the game's keys would.
+		addEventListener('keydown', (event) => {
+			if (state.issue !== 'min' || event.metaKey || event.ctrlKey || event.altKey) {
+				return;
+			}
+			const key = event.key.toLowerCase();
+			if (key === 'v') {
+				go(state.minState === 'open' ? 'min' : 'open');
+			} else if (key === 'm' && state.minState !== 'open') {
+				go(state.minState === 'map' ? 'tracks' : 'map');
+			}
+		});
+
+		render();
+	</script>
+</body>
+</html>
