@@ -1,5 +1,5 @@
 // The player tabs, and which one a decision opens (#27 design §1, §5), from its kind's facts (#129).
-import { kindFacts } from '../decision-kinds.js';
+import { decisionFacts } from '../decision-kinds.js';
 
 /** The tabs of the player area, in the mockup's order. */
 export const TABS = Object.freeze([
@@ -32,7 +32,7 @@ export function tabsWithCounts({ hand, territories }) {
 /**
  * The tab a decision opens by itself, or null when its things are elsewhere (the board, or nowhere in particular).
  * A placement answered only with map hexes (the Nomads) belongs to the map.
- * @param {{ kind: string, answers?: any[], mat?: boolean } | null} decision
+ * @param {{ kind: string, purpose?: string, answers?: any[], mat?: boolean } | null} decision
  * @returns {string | null}
  */
 export function tabFor(decision) {
@@ -45,9 +45,21 @@ export function tabFor(decision) {
 	) {
 		return null;
 	}
+	// The Traders place their token on a lit territory of the map (#172).
+	if (decision.kind === 'chooseSlot' && decision.purpose === 'traders') {
+		return null;
+	}
 	// An explore onto the Islanders' mat is made on their card (#165).
 	if (decision.kind === 'chooseExplore' && decision.mat === true) {
 		return 'civ';
 	}
-	return kindFacts(decision.kind).tab;
+	// The Heralds' hand cards are picked in the hand, not on the Eras tab (#172).
+	if (
+		decision.kind === 'chooseSlot' &&
+		decision.purpose === 'heralds' &&
+		(decision.answers ?? []).every((a) => typeof a.slot !== 'object')
+	) {
+		return 'hand';
+	}
+	return decisionFacts(decision).tab;
 }

@@ -110,3 +110,29 @@ export function kindFacts(kind) {
 		art: facts.art ?? null,
 	};
 }
+
+/**
+ * The card shelf and tab of a slot pick whose options are cards, by purpose (#172): the Inventors' tech cards, the
+ * Heralds' and Spies' tapestry cards and the Spies' tech cards, instead of a list of 20 text buttons.
+ * @type {Readonly<Record<string, { shelf: Shelf, tab: string }>>}
+ */
+const SLOT_SHELVES = Object.freeze({
+	inventors: { shelf: 'tech', tab: 'tech' },
+	spiesTech: { shelf: 'tech', tab: 'tech' },
+	heralds: { shelf: 'tapestry', tab: 'eras' },
+	spiesCard: { shelf: 'tapestry', tab: 'eras' },
+});
+
+/**
+ * Like kindFacts, for a decision: a slot pick of cards takes its purpose's shelf and tab.
+ * @param {any} decision
+ * @returns {KindFacts}
+ */
+export function decisionFacts(decision) {
+	const facts = kindFacts(decision.kind);
+	const slot =
+		decision.kind === 'chooseSlot' && typeof decision.purpose === 'string'
+			? SLOT_SHELVES[decision.purpose]
+			: undefined;
+	return slot ? { ...facts, shelf: slot.shelf, tab: slot.tab } : facts;
+}

@@ -8,7 +8,7 @@ import { decisionTitle, describeAnswer, draftRest } from './decision-words.js';
 import { landmarkGoalPhrase } from './cards/landmark-text.js';
 import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
 import { cardSpot, spotWords } from './civ-card.js';
-import { kindFacts } from './decision-kinds.js';
+import { decisionFacts } from './decision-kinds.js';
 import {
 	landmarkCardData,
 	tapestryCardData,
@@ -233,6 +233,33 @@ function techDeckCount(game) {
 }
 
 /**
+ * The card an answer names: its `card`, or the card of its slot (the Inventors', Heralds' and Spies' picks, #172).
+ * @param {Answer} answer
+ * @returns {any}
+ */
+export function cardOf(answer) {
+	const slot = answer.slot;
+	if (isRecord(slot)) {
+		return slot.card;
+	}
+	return answer.card ?? slot;
+}
+
+/**
+ * The map hex a slot pick answers with: the Traders place their token on a lit territory (#172).
+ * @param {Decision} decision
+ * @param {Answer} answer
+ * @returns {string | null}
+ */
+function hexOfSlot(decision, answer) {
+	return decision.kind === 'chooseSlot' &&
+		decision.purpose === 'traders' &&
+		typeof answer.slot === 'string'
+		? answer.slot
+		: null;
+}
+
+/**
  * Where an answer is chosen: on the civilization card, the map, the capital, the card shelf or the panel.
  * @param {Decision} decision
  * @param {Answer} answer
@@ -244,7 +271,7 @@ function placeOf(decision, answer, game) {
 	if (cardSpot(decision, answer, game) !== null) {
 		return 'card';
 	}
-	if (typeof answer.hex === 'string') {
+	if (typeof answer.hex === 'string' || hexOfSlot(decision, answer)) {
 		return 'map';
 	}
 	if (
@@ -255,36 +282,73 @@ function placeOf(decision, answer, game) {
 		return 'capital';
 	}
 	// A shelf holds every mat on offer, and the civilizations or cards an answer names.
-	const { shelf } = kindFacts(decision.kind);
+	const { shelf } = decisionFacts(decision);
 	if (shelf === 'mat') {
 		return 'shelf';
 	}
 	if (shelf !== null) {
-		const named = shelf === 'civ' ? answer.civ : answer.card;
+		const named = shelf === 'civ' ? answer.civ : cardOf(answer);
 		return typeof named === 'string' ? 'shelf' : 'panel';
 	}
 	return 'panel';
 }
 
 /**
- * A slot pick's art: a track or a resource; nothing for a slot of another shape.
+ * A slot pick's art, by what the slot is: a track or a resource, a card, a tile, a space on a track, a landmark or a
+ * terrain. Nothing for a slot of another shape, such as a seat or an option number (#172).
+ * @param {Decision} decision
  * @param {unknown} slot
  * @returns {Art[]}
  */
-function slotArt(slot) {
+function slotArt(decision, slot) {
+	const { purpose } = decision;
 	if (isTrack(slot)) {
 		return [{ kind: 'track', id: slot }];
 	}
-	if (typeof slot === 'string' && PAID_RESOURCES.includes(slot)) {
-		return [
-			{
-				kind: 'resource',
-				id: /** @type {CostSymbol} */ (slot),
-				count: 1,
-			},
-		];
+	if (typeof slot === 'string') {
+		if (PAID_RESOURCES.includes(slot)) {
+			return [
+				{
+					kind: 'resource',
+					id: /** @type {CostSymbol} */ (slot),
+					count: 1,
+				},
+			];
+		}
+		if (purpose === 'heralds') {
+			return [{ kind: 'tapestry', id: slot }];
+		}
+		if (purpose === 'treasureHunters') {
+			return [{ kind: 'terrain', id: slot }];
+		}
+		return purpose === 'utilitariansPlace' ||
+			purpose === 'utilitariansLandmark'
+			? [{ kind: 'landmark', id: slot }]
+			: [];
 	}
-	return [];
+	if (isCount(slot) && purpose === 'historiansTile') {
+		return [{ kind: 'territory', id: slot, orient: 0 }];
+	}
+	if (!isRecord(slot)) {
+		return [];
+	}
+	if (typeof slot.landmark === 'string') {
+		return [{ kind: 'landmark', id: slot.landmark }];
+	}
+	if (slot.stack === 'territory' && isCount(slot.tile)) {
+		return [{ kind: 'territory', id: slot.tile, orient: 0 }];
+	}
+	if (slot.stack === 'space' && isCount(slot.tile)) {
+		return [{ kind: 'space-tile', id: slot.tile }];
+	}
+	if (typeof slot.card === 'string') {
+		const tech =
+			purpose === 'inventors' ||
+			purpose === 'spiesTech' ||
+			typeof slot.icon === 'string';
+		return [{ kind: tech ? 'tech' : 'tapestry', id: slot.card }];
+	}
+	return isTrack(slot.track) ? [{ kind: 'track', id: slot.track }] : [];
 }
 
 /**
@@ -347,7 +411,7 @@ const ART = Object.freeze({
 		Array.isArray(decision.effects) && Number.isInteger(answer.effect)
 			? effectArt([decision.effects[answer.effect]])
 			: [],
-	slot: (decision, answer) => slotArt(answer.slot),
+	slot: (decision, answer) => slotArt(decision, answer.slot),
 });
 
 /**
@@ -359,15 +423,15 @@ const ART = Object.freeze({
  * @returns {Art[]}
  */
 function artOf(decision, answer, place, game) {
-	const { shelf, art } = kindFacts(decision.kind);
+	const { shelf, art } = decisionFacts(decision);
 	if (place === 'shelf') {
 		if (shelf === 'tapestry') {
-			return [{ kind: 'tapestry', id: answer.card }];
+			return [{ kind: 'tapestry', id: cardOf(answer) }];
 		}
 		if (shelf === 'tech') {
 			return answer.card === 'deck'
 				? [{ kind: 'deck', id: 'tech', count: techDeckCount(game) }]
-				: [{ kind: 'tech', id: answer.card }];
+				: [{ kind: 'tech', id: cardOf(answer) }];
 		}
 		if (shelf === 'civ') {
 			return [{ kind: 'civ', id: answer.civ }];
@@ -402,7 +466,7 @@ function optionOf(decision, answer, index, game) {
 		option.spot = /** @type {string} */ (cardSpot(decision, answer, game));
 	}
 	if (place === 'map') {
-		option.hex = answer.hex;
+		option.hex = answer.hex ?? hexOfSlot(decision, answer);
 	}
 	if (place === 'capital') {
 		option.plot = {
@@ -616,7 +680,7 @@ export function promptFor(decision, game, seat) {
 		instruction: instructionOf(decision, layout, mapHexes.length > 0, game),
 		layout,
 		shelf: options.some((o) => o.place === 'shelf')
-			? kindFacts(decision.kind).shelf
+			? decisionFacts(decision).shelf
 			: null,
 		mapHexes,
 		track: trackOf(decision),
@@ -625,7 +689,7 @@ export function promptFor(decision, game, seat) {
 			seat !== null && decision.player === seat
 				? incomeView(game, seat)
 				: null,
-		confirmLabel: kindFacts(decision.kind).confirm ?? 'Confirm choice',
+		confirmLabel: decisionFacts(decision).confirm ?? 'Confirm choice',
 		options,
 		picks: pickModel(decision, game, seat),
 		trade: tradeOffers(decision, game, seat),
@@ -725,7 +789,7 @@ export function shelfCards(prompt, decision) {
 				label: o.label,
 				face: shelfFace(
 					kind,
-					String(answer.card ?? answer.civ ?? answer.capital),
+					String(cardOf(answer) ?? answer.civ ?? answer.capital),
 					art?.kind === 'deck' ? art.count : 0
 				),
 			};

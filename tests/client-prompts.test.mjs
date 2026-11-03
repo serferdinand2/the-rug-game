@@ -18,6 +18,7 @@ import {
 	panelControls,
 	paymentControls,
 	promptFor,
+	shelfCards,
 } from '../src/lib/prompts.js';
 import {
 	exploreIndex,
@@ -35,6 +36,7 @@ import {
 	toggleItem,
 	togglePick,
 } from '../src/lib/picks.js';
+import { tabFor } from '../src/lib/area/tabs.js';
 import { readyTurn, startedGame, newGame } from './helpers/engine.mjs';
 
 /** The words a label must never show. */
@@ -918,4 +920,122 @@ test("an advance's payment says what is still missing, and Advance waits for a p
 		paymentControls(model, coin, { coin: 2 }, true).confirmDisabled,
 		true
 	);
+});
+
+test("the Traders' token is placed on a lit hex of the map, not picked from a list of hex keys (#172)", () => {
+	const decision = {
+		id: 7,
+		kind: 'chooseSlot',
+		player: 1,
+		purpose: 'traders',
+		optional: true,
+		options: ['0_0', '1_0'],
+		answers: [{ slot: '0_0' }, { slot: '1_0' }, { decline: true }],
+	};
+	const prompt = promptFor(decision, { seats: [], hexes: {} }, 1);
+	assert.ok(prompt);
+	assert.equal(prompt.layout, 'map');
+	assert.deepEqual(prompt.mapHexes, ['0_0', '1_0']);
+	assert.deepEqual(
+		prompt.options.map((o) => [o.place, o.hex]),
+		[
+			['map', '0_0'],
+			['map', '1_0'],
+			['panel', undefined],
+		]
+	);
+	assert.equal(tabFor(decision), null);
+});
+
+test('a slot pick shows the art of what it picks: cards, tiles, landmarks, terrains and tracks (#172)', () => {
+	/** @param {string} purpose @param {any} slot */
+	const art = (purpose, slot) =>
+		promptFor(
+			{
+				id: 1,
+				kind: 'chooseSlot',
+				player: 1,
+				purpose,
+				options: [slot],
+				answers: [{ slot }],
+			},
+			{ seats: [] },
+			1
+		)?.options[0].art;
+	assert.deepEqual(art('heralds', 'academia'), [
+		{ kind: 'tapestry', id: 'academia' },
+	]);
+	assert.deepEqual(art('heralds', { player: 2, card: 'x' }), [
+		{ kind: 'tapestry', id: 'x' },
+	]);
+	assert.deepEqual(art('inventors', { player: 2, card: 'ammonia' }), [
+		{ kind: 'tech', id: 'ammonia' },
+	]);
+	assert.deepEqual(
+		art('spiesTech', { player: 2, card: 'ammonia', icon: 'circle' }),
+		[{ kind: 'tech', id: 'ammonia' }]
+	);
+	assert.deepEqual(
+		art('spiesTile', { player: 2, stack: 'territory', tile: 17 }),
+		[{ kind: 'territory', id: 17, orient: 0 }]
+	);
+	assert.deepEqual(art('spiesTile', { player: 2, stack: 'space', tile: 3 }), [
+		{ kind: 'space-tile', id: 3 },
+	]);
+	assert.deepEqual(
+		art('spiesSpace', { player: 2, track: 'science', space: 4 }),
+		[{ kind: 'track', id: 'science' }]
+	);
+	assert.deepEqual(art('historiansTile', 17), [
+		{ kind: 'territory', id: 17, orient: 0 },
+	]);
+	assert.deepEqual(art('treasureHunters', 'forest'), [
+		{ kind: 'terrain', id: 'forest' },
+	]);
+	assert.deepEqual(art('utilitariansLandmark', 'lighthouse'), [
+		{ kind: 'landmark', id: 'lighthouse' },
+	]);
+	assert.deepEqual(
+		art('utilitariansToken', { landmark: 'lighthouse', from: null }),
+		[{ kind: 'landmark', id: 'lighthouse' }]
+	);
+	assert.deepEqual(art('tinkerersPayBack', { track: 'science', space: 3 }), [
+		{ kind: 'track', id: 'science' },
+	]);
+	assert.deepEqual(art('spiesLook', 2), []);
+});
+
+test("the Inventors', Heralds' and Spies' card picks are made on the card shelf and open their tab (#172)", () => {
+	/** @param {string} purpose @param {any[]} slots */
+	const decisionOf = (purpose, slots) => ({
+		id: 1,
+		kind: 'chooseSlot',
+		player: 1,
+		purpose,
+		optional: true,
+		options: slots,
+		answers: [...slots.map((slot) => ({ slot })), { decline: true }],
+	});
+	const inventors = decisionOf('inventors', [
+		{ player: 2, card: 'ammonia' },
+		{ player: 3, card: 'air-conditioning' },
+	]);
+	const prompt = promptFor(inventors, { seats: [] }, 1);
+	assert.ok(prompt);
+	assert.equal(prompt.layout, 'cards');
+	assert.equal(prompt.shelf, 'tech');
+	assert.deepEqual(
+		prompt.options.map((o) => o.place),
+		['shelf', 'shelf', 'panel']
+	);
+	assert.deepEqual(
+		shelfCards(prompt, inventors).map((c) => c.index),
+		[0, 1]
+	);
+	assert.equal(tabFor(inventors), 'tech');
+	const heralds = decisionOf('heralds', [{ player: 2, card: 'academia' }]);
+	assert.equal(promptFor(heralds, { seats: [] }, 1)?.shelf, 'tapestry');
+	assert.equal(tabFor(heralds), 'eras');
+	const hand = decisionOf('heralds', ['academia']);
+	assert.equal(tabFor(hand), 'hand');
 });
