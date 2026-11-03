@@ -1,4 +1,4 @@
-<!-- Library section: CardShelf, the cards a decision offers, for tapestry cards, tech cards, civilizations, capital mats and landmark cards. -->
+<!-- Library section: CardShelf, the cards a decision offers, for tapestry cards, tech cards, civilizations, capital mats, landmark cards and tiles. -->
 <script>
 	import CardShelf from '../../../lib/components/prompts/CardShelf.svelte';
 	import { shelfFace } from '../../../lib/prompts.js';
@@ -17,6 +17,8 @@
 	let mat = $state(0);
 	/** @type {number | null} */
 	let landmark = $state(0);
+	/** @type {number | null} */
+	let tile = $state(1);
 	/** @type {number[]} */
 	let paid = $state([0, 2]);
 	let inspected = $state('');
@@ -151,6 +153,23 @@
 			selected={landmark}
 			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 				(landmark = event.value)} />
+	</Example>
+	<Example
+		label={`kind="tile"  (the Spies' tile pick, #172: territory and space tiles · selected ${tile})`}
+		surface="ink"
+		wide>
+		<CardShelf
+			kind="tile"
+			cards={cardsOf('tile', [
+				['territory:7', 'Territory tile 7'],
+				['territory:17', 'Territory tile 17'],
+				['space:3', 'Space tile 3'],
+				['space:5', 'Space tile 5'],
+				['territory:30', 'Territory tile 30'],
+			])}
+			selected={tile}
+			onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
+				(tile = event.value)} />
 	</Example>
 	<Example
 		label={`kind="tapestry" selected={[${paid.join(', ')}]}  (paying 2 cards: several chosen)`}

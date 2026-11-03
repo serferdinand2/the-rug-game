@@ -85,9 +85,6 @@
 	let seat = $derived(store.seat);
 	let mine = $derived(myDecision(game, seat));
 	let options = $derived(advanceOptions(game, seat));
-	let available = $derived(
-		options.map((o) => ({ track: o.track, space: o.to }))
-	);
 	let players = $derived(
 		game.seats.filter((/** @type {any} */ s) => s.kind === 'player')
 	);
@@ -273,6 +270,13 @@
 		move: (action) =>
 			store.move(/** @type {{ decision: number }} */ (action)),
 	});
+
+	/** The spaces lit on the tracks: those a decision offers (#172), or the advances the viewer can pay for. */
+	let available = $derived(
+		promptState.isTrack
+			? promptState.trackTargets
+			: options.map((o) => ({ track: o.track, space: o.to }))
+	);
 	/** The summary at the foot of the area: the seat on show's, with your prompt's preview only on your own (#157). */
 	let shownSummary = $derived(
 		areaSummary(game, tabSeat, seat, {
@@ -360,6 +364,8 @@
 		decisionKey;
 		if (promptState.isMap) {
 			board = 'map';
+		} else if (promptState.isTrack) {
+			board = 'tracks';
 		}
 	});
 
@@ -397,6 +403,10 @@
 	 * @param {ComponentEvent} event
 	 */
 	const trackSelectHandler = (event) => {
+		if (promptState.isTrack) {
+			promptState.selectTrackSpace(event.value);
+			return;
+		}
 		selectSpace(event.value);
 	};
 
@@ -786,7 +796,9 @@
 						tracks={trackBoard(game)}
 						{available}
 						previewSeat={trackPreviewSeat(game, seat)}
-						{selected}
+						selected={promptState.isTrack
+							? promptState.trackSelected
+							: selected}
 						lit={litSpace}
 						onTrackBoardSelect={trackSelectHandler} />
 				{:else}

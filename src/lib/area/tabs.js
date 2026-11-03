@@ -45,8 +45,11 @@ export function tabFor(decision) {
 	) {
 		return null;
 	}
-	// The Traders place their token on a lit territory of the map (#172).
-	if (decision.kind === 'chooseSlot' && decision.purpose === 'traders') {
+	// The Traders place their token on a lit territory of the map, the Spies pick a lit space of the tracks (#172).
+	if (
+		decision.kind === 'chooseSlot' &&
+		(decision.purpose === 'traders' || decision.purpose === 'spiesSpace')
+	) {
 		return null;
 	}
 	// An explore onto the Islanders' mat is made on their card (#165).

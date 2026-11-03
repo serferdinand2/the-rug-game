@@ -1,7 +1,8 @@
 // How many options a slot pick can put in the decision panel at its worst, at 5 players (#172).
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { promptFor } from '../src/lib/prompts.js';
+import { promptFor, shelfCards, shelfFace } from '../src/lib/prompts.js';
+import { tabFor } from '../src/lib/area/tabs.js';
 import { TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
 import { TAPESTRY_CARDS } from '../src/lib/engine/data/tapestry-cards.js';
 import { LANDMARKS } from '../src/lib/engine/data/landmarks.js';
@@ -84,7 +85,7 @@ const WORST = {
  * Choices the panel still lists in a long list, waiting for the owner's decision on where they are made (#172).
  * Each must still be over the limit; take a purpose out of this list when its pick moves.
  */
-const PENDING = ['spiesTile', 'spiesSpace'];
+const PENDING = /** @type {string[]} */ ([]);
 
 /**
  * The options a slot pick lists in the panel itself, a decline apart.
@@ -140,4 +141,54 @@ test('every slot pick of the worst cases shows art on its panel options (#172)',
 			}
 		}
 	}
+});
+
+test("the Spies' tiles stand on a tile shelf, territory and space tiles with their art (#172)", () => {
+	const slots = WORST.spiesTile;
+	const decision = {
+		id: 1,
+		kind: 'chooseSlot',
+		player: 1,
+		purpose: 'spiesTile',
+		options: slots,
+		answers: slots.map((slot) => ({ slot })),
+	};
+	const prompt = promptFor(decision, { seats: [] }, 1);
+	assert.equal(prompt?.shelf, 'tile');
+	assert.ok(prompt?.options.every((o) => o.place === 'shelf'));
+	const cards = shelfCards(prompt, decision);
+	assert.equal(cards.length, 18);
+	assert.deepEqual(cards[0].face, { tile: 'territory', id: 1 });
+	assert.deepEqual(shelfFace('tile', 'space:3'), { tile: 'space', id: 3 });
+});
+
+test("the Spies' space pick is made on lit spaces of the tracks, one per distinct space (#172)", () => {
+	const slots = [
+		{ player: 2, track: 'science', space: 4 },
+		{ player: 3, track: 'science', space: 4 },
+		{ player: 2, track: 'military', space: 6 },
+	];
+	const decision = {
+		id: 1,
+		kind: 'chooseSlot',
+		player: 1,
+		purpose: 'spiesSpace',
+		options: slots,
+		answers: slots.map((slot) => ({ slot })),
+	};
+	const prompt = promptFor(decision, { seats: [] }, 1);
+	assert.equal(prompt?.layout, 'track');
+	assert.deepEqual(prompt?.trackSpaces, [
+		{ track: 'science', space: 4 },
+		{ track: 'military', space: 6 },
+	]);
+	assert.deepEqual(
+		prompt?.options.map((o) => [o.place, o.spot]),
+		[
+			['track', 'science:4'],
+			['track', 'science:4'],
+			['track', 'military:6'],
+		]
+	);
+	assert.equal(tabFor(decision), null);
 });

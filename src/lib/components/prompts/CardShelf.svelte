@@ -27,6 +27,7 @@
 
 <script>
 	import CapitalMatFace from '../player/CapitalMatFace.svelte';
+	import TerritoryTile from '../player/TerritoryTile.svelte';
 	import CardFan from '../player/CardFan.svelte';
 	import CivilizationCard from '../player/CivilizationCard.svelte';
 	import LandmarkCard from '../player/LandmarkCard.svelte';
@@ -35,6 +36,9 @@
 	import TechDeckBack from '../player/TechDeckBack.svelte';
 	import TechnologyCard from '../player/TechnologyCard.svelte';
 	import { CARD_SIZES, fitScale } from '../../cards/card-sizes.js';
+	import { tilePreview } from '../../area/explore.js';
+	import { spaceTileArt } from '../../area/terrain.js';
+	import { artUrl } from '../../ui.js';
 	import { ComponentEvent } from '../../component-event.js';
 
 	/**
@@ -43,6 +47,9 @@
 	 * button, so the gold outline fits it.
 	 */
 	const SCALE = { tapestry: 0.7, tech: 0.65 };
+
+	/** The width of a tile on the shelf. */
+	const TILE_SIZE = 96;
 
 	/** How far each fanned tapestry card hides under the one before it. */
 	const FAN_OVERLAP = 72;
@@ -88,6 +95,7 @@
 		civ: 'Civilizations to choose from',
 		mat: 'Capital mats to choose from',
 		landmark: 'Landmark cards to choose from',
+		tile: 'Tiles to choose from',
 	};
 
 	/** Tapestry cards fan out only when there are too many to sit side by side (#28 review). */
@@ -183,6 +191,23 @@
 					aria-hidden="true">
 					<TechDeckBack count={face.count} />
 				</ScaledCard>
+			{:else if 'tile' in face}
+				<!-- A territory or space tile stands alone at 96 px, to be told apart (#172). -->
+				<span class="rg-card-shelf--tile">
+					{#if face.tile === 'territory'}
+						<TerritoryTile
+							id={face.id}
+							{...tilePreview(face.id, 0)}
+							size={TILE_SIZE / 2} />
+					{:else}
+						<img
+							src={artUrl(spaceTileArt(face.id))}
+							width={TILE_SIZE}
+							height={TILE_SIZE}
+							alt=""
+							draggable="false" />
+					{/if}
+				</span>
 			{:else if 'condition' in face}
 				<!-- Landmark cards stand whole, as the #32 mockup draws them. -->
 				<LandmarkCard
@@ -212,6 +237,17 @@
 </div>
 
 <style>
+	.rg-card-shelf--tile {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: var(--space-4);
+	}
+
+	.rg-card-shelf--tile img {
+		image-rendering: pixelated;
+	}
+
 	/* Cards that don't fit scroll sideways rather than spill off both edges out of reach (#28 review). */
 	.rg-card-shelf {
 		isolation: isolate;

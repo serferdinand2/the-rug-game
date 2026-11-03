@@ -187,6 +187,17 @@ export class PromptState {
 
 	/** A choice on the map: the board should show it. */
 	isMap = $derived(this.prompt?.layout === 'map');
+	/** A choice on the tracks (#172): the board should show them. */
+	isTrack = $derived(this.prompt?.layout === 'track');
+	/** The spaces lit on the tracks, and the one chosen. */
+	trackTargets = $derived(this.prompt?.trackSpaces ?? []);
+	trackSelected = $derived.by(() => {
+		const [track, space] = (this.spot ?? '').split(':');
+		const found = this.trackTargets.find(
+			(at) => at.track === track && String(at.space) === space
+		);
+		return this.isTrack && found ? found : null;
+	});
 	/** The hexes lit on the map, whatever leads: a Nomads placement lights hexes beside the capital (#28 review). */
 	targets = $derived(this.prompt?.mapHexes ?? []);
 
@@ -402,7 +413,9 @@ export class PromptState {
 	/** The options a spot several answers share, such as the Historians' opponents for one square (#78). */
 	#spotOptions = $derived(
 		(this.prompt?.options ?? []).filter(
-			(o) => o.place === 'card' && o.spot === this.spot
+			(o) =>
+				(o.place === 'card' || o.place === 'track') &&
+				o.spot === this.spot
 		)
 	);
 
@@ -419,7 +432,7 @@ export class PromptState {
 						(o) =>
 							o.place === 'panel' ||
 							(o.place === 'map' && o.hex === this.hex) ||
-							(o.place === 'card' &&
+							((o.place === 'card' || o.place === 'track') &&
 								this.#spotOptions.length > 1 &&
 								o.spot === this.spot)
 					)
@@ -628,12 +641,23 @@ export class PromptState {
 			return;
 		}
 		const here = (this.prompt?.options ?? []).filter(
-			(o) => o.place === 'card' && o.spot === spot
+			(o) =>
+				(o.place === 'card' || o.place === 'track') && o.spot === spot
 		);
 		if (here.length === 0) {
 			return;
 		}
 		this.#set({ spot, picked: here.length === 1 ? here[0].index : null });
+	}
+
+	/**
+	 * A lit space chosen on the tracks (#172): its answer, or, when several share it, a choice among them in the panel.
+	 * @param {{ track: string, space: number }} space
+	 */
+	selectTrackSpace({ track, space }) {
+		if (this.isTrack) {
+			this.selectSpot(`${track}:${space}`);
+		}
 	}
 
 	/**

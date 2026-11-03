@@ -513,3 +513,29 @@ test('with no decision open, there is nothing to minimize (#149)', () => {
 	prompt.minimize();
 	assert.equal(prompt.minimized, false);
 });
+
+test("the Spies' space is chosen on a lit space of the tracks, and Confirm sends that answer (#172)", async () => {
+	const { decision, game } = cardDecision('spies', {
+		purpose: 'spiesSpace',
+		options: [
+			{ player: 2, track: 'science', space: 4 },
+			{ player: 2, track: 'military', space: 6 },
+		],
+	});
+	const source = promptSource({ game, decision });
+	const prompt = new PromptState(source);
+	assert.equal(prompt.isTrack, true);
+	assert.deepEqual(prompt.trackTargets, [
+		{ track: 'science', space: 4 },
+		{ track: 'military', space: 6 },
+	]);
+	assert.equal(prompt.trackSelected, null);
+	assert.deepEqual(prompt.panelOptions, []);
+	prompt.selectTrackSpace({ track: 'military', space: 6 });
+	assert.deepEqual(prompt.trackSelected, { track: 'military', space: 6 });
+	assert.equal(prompt.picked, 1);
+	await prompt.confirm();
+	assert.deepEqual(source.sent, [
+		{ decision: 99, slot: { player: 2, track: 'military', space: 6 } },
+	]);
+});

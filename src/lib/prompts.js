@@ -43,11 +43,11 @@ import { CAPITAL_MATS } from './engine/data/capitals.js';
  * One answer of the decision, as the prompt offers it.
  * @typedef {Object} PromptOption
  * @property {number} index - The answer's index in decision.answers
- * @property {'panel' | 'shelf' | 'map' | 'capital' | 'card'} place - Where it is chosen: 'card' on the player's civilization card in the Civ tab (#78)
+ * @property {'panel' | 'shelf' | 'map' | 'capital' | 'card' | 'track'} place - Where it is chosen: 'card' on the player's civilization card in the Civ tab (#78), 'track' on a lit space of the tracks (#172)
  * @property {string} label - describeAnswer(decision, answer, game)
  * @property {Art[]} art - Drawn before or above the label; may be empty
  * @property {string} [hex] - For place 'map': the hex it is chosen on
- * @property {string} [spot] - For place 'card': the spot on the card it is chosen on (civ-card.js)
+ * @property {string} [spot] - For place 'card': the spot on the card it is chosen on (civ-card.js); for place 'track': 'track:space', such as 'science:4'
  * @property {{ row: number, col: number, rotation: number | null }} [plot] - For place 'capital'; rotation null for a building
  */
 
@@ -65,9 +65,10 @@ import { CAPITAL_MATS } from './engine/data/capitals.js';
  * @property {string} kind - The decision kind
  * @property {string} title - decisionTitle(decision, game)
  * @property {string} instruction - One sentence on how to answer
- * @property {'options' | 'cards' | 'map' | 'capital' | 'card'} layout - Where the decision is mainly made; the capital leads, then the map, then the civilization card
+ * @property {'options' | 'cards' | 'map' | 'capital' | 'card' | 'track'} layout - Where the decision is mainly made; the capital leads, then the map, then the civilization card
  * @property {import('./decision-kinds.js').Shelf | null} shelf - What the shelf holds, whenever an option is on it
  * @property {string[]} mapHexes - The hexes lit on the map, whenever an option is on it, in answer order
+ * @property {{ track: TrackId, space: number }[]} trackSpaces - The spaces lit on the tracks, whenever an option is on one (#172)
  * @property {TrackId | null} track - The track that tints the panel
  * @property {CostSymbol[] | null} cost - A price shown above the options
  * @property {IncomeView | null} income - Set during the viewer's own income turn
@@ -246,6 +247,25 @@ export function cardOf(answer) {
 }
 
 /**
+ * The id an answer has on a shelf: a card, a civilization, a mat's number, or a tile as 'territory:17' or 'space:3'.
+ * @param {string} shelf
+ * @param {Answer} answer
+ * @returns {string | undefined}
+ */
+function shelfIdOf(shelf, answer) {
+	const slot = answer.slot;
+	if (shelf === 'tile') {
+		return isRecord(slot) && isCount(slot.tile)
+			? `${slot.stack}:${slot.tile}`
+			: undefined;
+	}
+	if (shelf === 'civ') {
+		return answer.civ;
+	}
+	return cardOf(answer);
+}
+
+/**
  * The map hex a slot pick answers with: the Traders place their token on a lit territory (#172).
  * @param {Decision} decision
  * @param {Answer} answer
@@ -256,6 +276,23 @@ function hexOfSlot(decision, answer) {
 		decision.purpose === 'traders' &&
 		typeof answer.slot === 'string'
 		? answer.slot
+		: null;
+}
+
+/**
+ * The track space a slot pick answers with: the Spies take the benefit of a space a neighbour's token is on (#172).
+ * @param {Decision} decision
+ * @param {Answer} answer
+ * @returns {{ track: TrackId, space: number } | null}
+ */
+function trackSpaceOf(decision, answer) {
+	const slot = answer.slot;
+	return decision.kind === 'chooseSlot' &&
+		decision.purpose === 'spiesSpace' &&
+		isRecord(slot) &&
+		isTrack(slot.track) &&
+		isCount(slot.space)
+		? { track: slot.track, space: slot.space }
 		: null;
 }
 
@@ -274,6 +311,9 @@ function placeOf(decision, answer, game) {
 	if (typeof answer.hex === 'string' || hexOfSlot(decision, answer)) {
 		return 'map';
 	}
+	if (trackSpaceOf(decision, answer)) {
+		return 'track';
+	}
 	if (
 		(decision.kind === 'choosePlacement' ||
 			decision.kind === 'chooseCube') &&
@@ -287,7 +327,7 @@ function placeOf(decision, answer, game) {
 		return 'shelf';
 	}
 	if (shelf !== null) {
-		const named = shelf === 'civ' ? answer.civ : cardOf(answer);
+		const named = shelfIdOf(shelf, answer);
 		return typeof named === 'string' ? 'shelf' : 'panel';
 	}
 	return 'panel';
@@ -436,6 +476,12 @@ function artOf(decision, answer, place, game) {
 		if (shelf === 'civ') {
 			return [{ kind: 'civ', id: answer.civ }];
 		}
+		if (shelf === 'tile') {
+			const [stack, id] = String(shelfIdOf(shelf, answer)).split(':');
+			return stack === 'space'
+				? [{ kind: 'space-tile', id: Number(id) }]
+				: [{ kind: 'territory', id: Number(id), orient: 0 }];
+		}
 		return isCount(answer.capital)
 			? [{ kind: 'mat', id: answer.capital }]
 			: [];
@@ -465,6 +511,12 @@ function optionOf(decision, answer, index, game) {
 	if (place === 'card') {
 		option.spot = /** @type {string} */ (cardSpot(decision, answer, game));
 	}
+	if (place === 'track') {
+		const at = /** @type {{ track: TrackId, space: number }} */ (
+			trackSpaceOf(decision, answer)
+		);
+		option.spot = `${at.track}:${at.space}`;
+	}
 	if (place === 'map') {
 		option.hex = answer.hex ?? hexOfSlot(decision, answer);
 	}
@@ -493,6 +545,9 @@ function layoutOf(options) {
 	}
 	if (places.has('map')) {
 		return 'map';
+	}
+	if (places.has('track')) {
+		return 'track';
 	}
 	if (places.has('card')) {
 		return 'card';
@@ -584,6 +639,8 @@ function instructionOf(decision, layout, onMap, game) {
 				: 'Choose a card above, then confirm it here.';
 		case 'card':
 			return 'Choose a lit spot on your civilization card, then confirm it here.';
+		case 'track':
+			return 'Choose a lit space on the tracks, then confirm it here.';
 		default:
 			return 'Choose one.';
 	}
@@ -656,6 +713,24 @@ export function incomeView(game, seat) {
 }
 
 /**
+ * The tracks' spaces the options are chosen on, once each, in answer order.
+ * @param {PromptOption[]} options
+ * @param {Decision} decision
+ * @returns {Prompt['trackSpaces']}
+ */
+function trackSpacesOf(options, decision) {
+	const seen = new Set();
+	return options.flatMap((option) => {
+		const at = trackSpaceOf(decision, decision.answers[option.index]);
+		if (!at || seen.has(option.spot)) {
+			return [];
+		}
+		seen.add(option.spot);
+		return [at];
+	});
+}
+
+/**
  * The prompt for the viewer's open decision: its title, how to answer, the layout and one option per answer.
  * @param {Decision | null | undefined} decision - The viewer's own open decision, with its `answers` (turn.js myDecision)
  * @param {any} game - The game as view() gives it to the viewer
@@ -683,6 +758,7 @@ export function promptFor(decision, game, seat) {
 			? decisionFacts(decision).shelf
 			: null,
 		mapHexes,
+		trackSpaces: trackSpacesOf(options, decision),
 		track: trackOf(decision),
 		cost: costOf(decision),
 		income:
@@ -712,6 +788,7 @@ export function promptFor(decision, game, seat) {
  *   | import('./cards/game-cards.js').TechnologyCardData
  *   | import('./cards/game-cards.js').LandmarkCardData
  *   | { deck: 'tech', count: number }
+ *   | { tile: 'territory' | 'space', id: number }
  *   | string
  *   | MatFace} ShelfFace
  */
@@ -743,6 +820,13 @@ export function shelfFace(kind, id, count = 0) {
 	}
 	if (kind === 'landmark') {
 		return landmarkCardData(id);
+	}
+	if (kind === 'tile') {
+		const [stack, tile] = id.split(':');
+		return {
+			tile: stack === 'space' ? 'space' : 'territory',
+			id: Number(tile),
+		};
 	}
 	const mat =
 		CAPITAL_MATS.find((m) => m.number === Number(id)) ?? CAPITAL_MATS[0];
@@ -789,7 +873,9 @@ export function shelfCards(prompt, decision) {
 				label: o.label,
 				face: shelfFace(
 					kind,
-					String(cardOf(answer) ?? answer.civ ?? answer.capital),
+					String(
+						shelfIdOf(kind, answer) ?? answer.civ ?? answer.capital
+					),
 					art?.kind === 'deck' ? art.count : 0
 				),
 			};
