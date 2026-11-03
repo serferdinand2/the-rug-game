@@ -7,7 +7,7 @@ import { render } from 'svelte/server';
 import CardFan from '../src/lib/components/player/CardFan.svelte';
 import ScaledCard from '../src/lib/components/player/ScaledCard.svelte';
 import CardShelf from '../src/lib/components/prompts/CardShelf.svelte';
-import { CARD_SIZES } from '../src/lib/cards/card-sizes.js';
+import { CARD_SIZES, FAN_ROWS, fanRows } from '../src/lib/cards/card-sizes.js';
 import { shelfFace } from '../src/lib/prompts.js';
 
 /**
@@ -174,6 +174,67 @@ test("the hand's fan is drawn as before: no pressed state, names or disabled car
 	}
 	assert.match(tags[0], /margin-left: 0/);
 	assert.match(tags[1], /margin-left: -70px/);
+});
+
+test("a hand's rows hold as many cards as leave each covered one 120 px, apart when they fit (#158)", () => {
+	const card = 0.6 * CARD_SIZES.tapestry.width;
+	// The Hand tab at 1920×1080: three to a row, 122 px apart.
+	assert.deepEqual(fanRows(436, card, 5, FAN_ROWS), { perRow: 3, step: 122 });
+	// Two cards fit side by side, 14 px apart.
+	assert.deepEqual(fanRows(436, card, 2, FAN_ROWS), { perRow: 2, step: 205 });
+	// 1440×900 and 1536×864: two to a row.
+	assert.deepEqual(fanRows(316, card, 5, FAN_ROWS), { perRow: 2, step: 124 });
+	assert.deepEqual(fanRows(340, card, 5, FAN_ROWS), { perRow: 2, step: 148 });
+	// 1366×768: a covered card would show under 120 px, so one to a row.
+	assert.deepEqual(fanRows(297, card, 5, FAN_ROWS), { perRow: 1, step: 205 });
+	// One card, a width narrower than a card, and a width not yet measured.
+	assert.deepEqual(fanRows(436, card, 1, FAN_ROWS), { perRow: 1, step: 205 });
+	assert.deepEqual(fanRows(150, card, 5, FAN_ROWS), { perRow: 1, step: 205 });
+	assert.deepEqual(fanRows(0, card, 5, FAN_ROWS), { perRow: 1, step: 205 });
+	assert.deepEqual(FAN_ROWS, { minStep: 120, gap: 14 });
+});
+
+test('a wrapped fan lays its cards on a grid of rows, without overlapping margins (#158)', () => {
+	const html = render(CardFan, {
+		props: {
+			items: ['a', 'b', 'c'],
+			card: fanCard,
+			wrap: true,
+			cardWidth: 191,
+		},
+	}).body;
+	assert.deepEqual(classesOf(html, 'rg-card-fan'), [
+		'rg-card-fan',
+		'rg-card-fan--hand',
+		'rg-card-fan--wrap',
+	]);
+	for (const tag of buttons(html)) {
+		assert.doesNotMatch(tag, /margin-left/);
+	}
+	// Unmeasured, one card to a row, a card's width and the gap apart.
+	assert.match(html, /--rg-card-fan-per-row: 1/);
+	assert.match(html, /--rg-card-fan-step: 205px/);
+	const css = source('src/lib/components/player/CardFan.svelte');
+	assert.match(
+		css,
+		/\.rg-card-fan--wrap \{\s*display: grid;\s*grid-template-columns: repeat\(\s*var\(--rg-card-fan-per-row\),\s*var\(--rg-card-fan-step\)\s*\);/
+	);
+});
+
+test("both hands on the Hand tab are wrapped rows at 0.6, the viewer's and another player's backs (#158)", () => {
+	const tabs = source('src/screens/game/PlayerTabs.svelte');
+	assert.match(tabs, /const HAND_SCALE = 0\.6;/);
+	const fans = [...tabs.matchAll(/<CardFan[^>]*>/g)].map(String);
+	assert.equal(fans.length, 2);
+	for (const fan of fans) {
+		assert.match(fan, /\bwrap\b/);
+		assert.match(
+			fan,
+			/cardWidth=\{HAND_SCALE \* CARD_SIZES\.tapestry\.width\}/
+		);
+		assert.doesNotMatch(fan, /overlap/);
+	}
+	assert.equal(tabs.match(/scale=\{HAND_SCALE\}/g)?.length, 2);
 });
 
 test('a fan can have several cards chosen and some disabled, each with its name', () => {

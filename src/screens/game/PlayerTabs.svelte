@@ -93,6 +93,9 @@
 		...attr
 	} = $props();
 
+	/** The Hand tab's cards, big enough to read their text, as the Eras tab's era card is (#158). */
+	const HAND_SCALE = 0.6;
+
 	/** The viewer's seat: `seat` itself unless another is given. */
 	let viewerSeat = $derived(viewer === undefined ? seat : viewer);
 	let own = $derived(viewerSeat === seat);
@@ -210,13 +213,14 @@
 			{#if own && hand.length}
 				<CardFan
 					items={hand}
-					overlap={70}
+					wrap
+					cardWidth={HAND_SCALE * CARD_SIZES.tapestry.width}
 					label="Tapestry cards in hand"
 					onCardFanInspect={(/** @type {ComponentEvent} */ event) =>
 						inspect('tapestry', event.value.item, event)}>
 					{#snippet card(/** @type {string} */ id)}
 						<ScaledCard
-							scale={0.42}
+							scale={HAND_SCALE}
 							{...CARD_SIZES.tapestry}>
 							<TapestryCard data={tapestryCardData(id)} />
 						</ScaledCard>
@@ -230,11 +234,12 @@
 					items={opponentHand}
 					labels={handLabels}
 					interactive={false}
-					overlap={70}
+					wrap
+					cardWidth={HAND_SCALE * CARD_SIZES.tapestry.width}
 					label={words.handHeading}>
 					{#snippet card()}
 						<ScaledCard
-							scale={0.42}
+							scale={HAND_SCALE}
 							{...CARD_SIZES.tapestry}>
 							<TapestryCardBack
 								frame={false}

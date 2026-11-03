@@ -9,6 +9,15 @@
 	import Section from '../../Section.svelte';
 
 	const hand = ['academia', 'age-of-discovery', 'age-of-sail', 'trap'];
+	const long = [
+		'industrialism',
+		'trade-economy',
+		'alliance',
+		'feudalism',
+		'renaissance',
+	];
+	/** The Hand tab's scale (#158). */
+	const scale = 0.6;
 
 	/** @type {string | null} */
 	let inspected = $state(null);
@@ -59,6 +68,46 @@
 				</div>
 			{/snippet}
 		</CardFan>
+	</Example>
+	<Example
+		label="wrap cardWidth={191}  (the Hand tab's rows in its 436 px at 1920×1080, #158; another player's backs use them too)"
+		wide>
+		<div style:width="436px">
+			<CardFan
+				items={long}
+				wrap
+				cardWidth={scale * CARD_SIZES.tapestry.width}
+				label="Tapestry cards in hand"
+				onCardFanInspect={(/** @type {any} */ event) =>
+					(inspected = event.value.item)}>
+				{#snippet card(/** @type {string} */ id)}
+					<ScaledCard
+						{scale}
+						{...CARD_SIZES.tapestry}>
+						<TapestryCard {id} />
+					</ScaledCard>
+				{/snippet}
+			</CardFan>
+		</div>
+	</Example>
+	<Example
+		label="wrap cardWidth={191} at 316 px  (1440×900: two to a row)"
+		wide>
+		<div style:width="316px">
+			<CardFan
+				items={long.slice(0, 3)}
+				wrap
+				cardWidth={scale * CARD_SIZES.tapestry.width}
+				label="Tapestry cards in hand">
+				{#snippet card(/** @type {string} */ id)}
+					<ScaledCard
+						{scale}
+						{...CARD_SIZES.tapestry}>
+						<TapestryCard {id} />
+					</ScaledCard>
+				{/snippet}
+			</CardFan>
+		</div>
 	</Example>
 	<Example
 		label={`look="shelf" selected={[${paid.join(', ')}]} disabled={[${waiting.join(', ')}]} overlap={72}  (several chosen; the rest wait once two are; CardShelf's look)`}

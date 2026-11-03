@@ -1,10 +1,19 @@
-// The player area at desktop and laptop sizes (#64): the tab row, the capital grid and Your overview's counters stay
+// The player area at desktop and laptop sizes (#64): the tab row, the capital grid, the hand's rows (#158) and Your overview's counters stay
 // inside the right quarter of the play screen, and every tab can be selected. The test plays setup through the API,
 // takes the hot-seat screen, then ends and leaves the table.
 import { expect, test } from '@playwright/test';
 import { askedSeats } from '../../src/lib/engine/game.js';
 
 const NAMES = ['Marko', 'Vera'];
+
+/** The viewer's hand, as the screen is given it (#158). */
+const HAND = [
+	'industrialism',
+	'trade-economy',
+	'alliance',
+	'feudalism',
+	'renaissance',
+];
 
 /** Window sizes, widest first; from 1366 up, every tab shows without scrolling the row. */
 const SIZES = [
@@ -107,6 +116,19 @@ test('the player area keeps its tabs, capital and counters inside it at every de
 		const view = await api(request, 'state', undefined, token);
 		const first = askedSeats(view.game)[0];
 
+		// The screen is given a hand of five, which no player holds this early, so the Hand tab lays out rows (#158).
+		await page.route('**/api/state**', async (route) => {
+			const response = await route.fetch();
+			const json = await response.json().catch(() => null);
+			const shown = json?.game?.seats?.[first - 1];
+			if (!shown?.hand) {
+				await route.fulfill({ response });
+				return;
+			}
+			shown.hand = HAND;
+			shown.handCount = HAND.length;
+			await route.fulfill({ response, json });
+		});
 		await page.addInitScript(
 			(saved) => sessionStorage.setItem('rg-token', saved),
 			token
@@ -174,6 +196,32 @@ test('the player area keeps its tabs, capital and counters inside it at every de
 					inside(await tab.boundingBox()),
 					`${await tab.textContent()} at ${size}`
 				).toBe(true);
+			}
+
+			// The hand's cards at 0.6, in rows inside the area: each card a row's next one covers still shows 120 px (#158).
+			await row.getByRole('tab', { name: /^Hand/ }).click();
+			const hand = page
+				.getByRole('group', { name: 'Tapestry cards in hand' })
+				.getByRole('button');
+			await expect(hand).toHaveCount(HAND.length);
+			const boxes = [];
+			for (const card of await hand.all()) {
+				const box = await card.boundingBox();
+				expect(inside(box), `a hand card at ${size}`).toBe(true);
+				expect(
+					Math.abs((box?.width ?? 0) - 0.6 * 319),
+					`a hand card's width at ${size}`
+				).toBeLessThanOrEqual(1);
+				boxes.push(/** @type {{ x: number, y: number }} */ (box));
+			}
+			for (let index = 1; index < boxes.length; index++) {
+				const [before, card] = [boxes[index - 1], boxes[index]];
+				if (Math.abs(card.y - before.y) < 1) {
+					expect(
+						card.x - before.x,
+						`card ${index} shows enough at ${size}`
+					).toBeGreaterThanOrEqual(120);
+				}
 			}
 		}
 

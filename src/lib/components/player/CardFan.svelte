@@ -13,6 +13,8 @@
 	 * @property {'hand' | 'shelf'} [look='hand'] - 'hand': the hovered card rises and the chosen one has the focus outline; 'shelf': as a decision's card shelf, the hovered and chosen cards are outlined in gold, the chosen one glows and lifts, and a disabled one is faded
 	 * @property {boolean} [lift=true] - In the shelf look, whether the chosen card lifts; whole cards such as civilizations stay where they stand, so the outline fits them
 	 * @property {boolean} [interactive=true] - Whether cards are buttons that can be hovered, focused or selected; false draws a presentation-only fan
+	 * @property {boolean} [wrap=false] - Lay the cards in rows across the fan's width, as many to a row as leave each covered card enough to show its name, instead of one row overlapping by `overlap` (#158)
+	 * @property {number} [cardWidth=0] - With `wrap`: one card's drawn width, such as its ScaledCard's
 	 * @property {string} [label='Cards'] - Names the list for assistive technology
 	 * @property {Function} [onCardFanInspect] - Callback fired with { index, item } on hover or focus, and { index: null, item: null } on leave
 	 * @property {Function} [onCardFanSelect] - Callback fired with { index } when a card is clicked or chosen with Enter
@@ -31,6 +33,7 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
+	import { FAN_ROWS, fanRows } from '../../cards/card-sizes.js';
 
 	/** @type {CardFanProps} */
 	let {
@@ -44,11 +47,19 @@
 		look = 'hand',
 		lift = true,
 		interactive = true,
+		wrap = false,
+		cardWidth = 0,
 		label = 'Cards',
 		onCardFanInspect,
 		onCardFanSelect,
 		...attr
 	} = $props();
+
+	/** The fan's width, which a wrapped fan fills with rows. */
+	let width = $state(0);
+	let rows = $derived(
+		wrap ? fanRows(width, cardWidth, items.length, FAN_ROWS) : null
+	);
 
 	/**
 	 * @param {Event} event
@@ -104,6 +115,18 @@
 			? selected.includes(index)
 			: index === selected;
 	}
+
+	/**
+	 * A card's pull under the one before it: none for the first, nor in rows, which space their cards by grid.
+	 * @param {number} index
+	 * @returns {string | undefined}
+	 */
+	function margin(index) {
+		if (rows) {
+			return undefined;
+		}
+		return index === 0 ? '0' : `${-overlap}px`;
+	}
 </script>
 
 <div
@@ -112,14 +135,18 @@
 	{...attr}
 	class="rg-card-fan rg-card-fan--{look} {attr.class ?? ''}"
 	class:rg-card-fan--static={!interactive}
-	class:rg-card-fan--flat={!lift}>
+	class:rg-card-fan--flat={!lift}
+	class:rg-card-fan--wrap={wrap}
+	style:--rg-card-fan-per-row={rows?.perRow}
+	style:--rg-card-fan-step={rows ? `${rows.step}px` : undefined}
+	bind:clientWidth={width}>
 	{#each items as item, index (key ? key(item, index) : index)}
 		{#if interactive}
 			<button
 				type="button"
 				class="rg-card-fan--card"
 				class:rg-card-fan--selected={chosen(index)}
-				style:margin-left={index === 0 ? '0' : `${-overlap}px`}
+				style:margin-left={margin(index)}
 				aria-pressed={selected === null ? undefined : chosen(index)}
 				aria-label={labels?.[index]}
 				disabled={disabled.includes(index)}
@@ -134,7 +161,7 @@
 			<div
 				role="img"
 				class="rg-card-fan--card"
-				style:margin-left={index === 0 ? '0' : `${-overlap}px`}
+				style:margin-left={margin(index)}
 				aria-label={labels?.[index]}>
 				{@render card(item, index)}
 			</div>
@@ -147,6 +174,21 @@
 		display: flex;
 		align-items: flex-start;
 		padding: var(--space-3) 0 var(--space-8);
+	}
+
+	/* Rows across the fan's width (issue 158): each column is a step wide and a card overhangs the next one's start, so it
+	   covers the card before it; the last card of a row fits, as fanRows() keeps it inside the width. */
+	.rg-card-fan--wrap {
+		display: grid;
+		grid-template-columns: repeat(
+			var(--rg-card-fan-per-row),
+			var(--rg-card-fan-step)
+		);
+		row-gap: var(--space-6);
+	}
+
+	.rg-card-fan--wrap .rg-card-fan--card {
+		width: max-content;
 	}
 
 	/* On a shelf the cards stand on one line; the shelf around the fan gives the room. */
