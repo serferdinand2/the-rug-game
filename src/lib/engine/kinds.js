@@ -78,6 +78,7 @@ import { entertainersMove } from './civs/entertainers.js';
 import { alchemistsRoll } from './civs/alchemists.js';
 import { mysticsCheck } from './civs/mystics.js';
 import { riverfolkStart, riverfolkClear } from './civs/riverfolk.js';
+import { islandersPlace, islandersScore } from './civs/islanders.js';
 import { architectsCube } from './civs/architects.js';
 import { tradersToken } from './civs/traders.js';
 import {
@@ -192,6 +193,8 @@ Object.assign(AUTOMATIC, {
 	mysticsCheck,
 	riverfolkStart,
 	riverfolkClear,
+	islandersPlace,
+	islandersScore,
 	architectsCube,
 	tradersToken,
 	treasureHex,

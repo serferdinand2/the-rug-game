@@ -380,6 +380,12 @@ const TITLES = {
 				return 'Choose what exploring gives you';
 			case 'cartography':
 				return 'Conquer the territory you just explored?';
+			case 'islandersDiscard':
+				return 'Discard the Islanders for another civilization?';
+			case 'islandersExplore':
+				return 'Explore a tile onto your Islanders mat?';
+			case 'islandersPlace':
+				return 'Place a tile on your Islanders mat?';
 			case 'aliens':
 				return 'Explore a space tile onto your Aliens mat, or gain a resource';
 			case 'treasureHunters':
@@ -775,9 +781,21 @@ const ANSWERS = {
 				? 'Keep the Riverfolk'
 				: 'Discard them and gain another';
 		}
+		// The Islanders gained mid-game: declining keeps them (#165).
+		if (d.purpose === 'islandersDiscard') {
+			return a.option === 0
+				? 'Keep the Islanders'
+				: 'Discard them and gain another';
+		}
 		const option = d.options[a.option];
 		if (Array.isArray(option) && option.length === 0) {
 			return 'Decline';
+		}
+		if (d.purpose === 'islandersExplore') {
+			return 'Explore a tile onto the mat';
+		}
+		if (d.purpose === 'islandersPlace') {
+			return 'Place a tile on the mat';
 		}
 		// The black die's "?" on a territory the Treasure Hunters claimed, not conquered (#33).
 		if (

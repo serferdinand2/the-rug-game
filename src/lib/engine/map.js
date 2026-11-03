@@ -8,11 +8,12 @@ import {
 } from './control.js';
 import { cornersOf, turned } from './terrain.js';
 import { allies } from './abilities.js';
+import { matMatchingSides, parseMatHex } from './island.js';
 
 /**
  * How many sides of a territory tile placed on a hex match the territories next to it (R5; BGA's
  * getMatchingEdgeCount). A side matches when either of its two corners equals the facing corner of the neighbour.
- * Off-map and unexplored neighbours never match.
+ * Off-map and unexplored neighbours never match. A hex of the Islanders' mat (`mat:1:0`) is scored among the mat's tiles.
  * @param {import('./state.js').State} state
  * @param {string} hex
  * @param {number} tile - 1-48
@@ -20,6 +21,9 @@ import { allies } from './abilities.js';
  * @returns {number}
  */
 export function matchingSides(state, hex, tile, orient) {
+	if (parseMatHex(hex)) {
+		return matMatchingSides(state, hex, tile, orient);
+	}
 	const mine = turned(TERRITORY_TILES[tile - 1].corners, orient);
 	let count = 0;
 	hexNeighbours(hex).forEach((other, e) => {

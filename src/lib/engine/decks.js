@@ -26,8 +26,8 @@ function slugsOf(group, expansion) {
 export const BASE_CIVS = Object.freeze(baseSlugs('civ'));
 
 /**
- * The Plans & Ploys civilizations built so far, in the order built; each civilization's task appends its id (#33). The
- * Islanders are never here: no source shows their mat's printed centre hex (R115).
+ * The Plans & Ploys civilizations, in the order built; each civilization's task appends its id (#33). The Islanders
+ * came last (#165, R115).
  * @type {readonly string[]}
  */
 export const PP_CIVS = Object.freeze([
@@ -40,6 +40,7 @@ export const PP_CIVS = Object.freeze([
 	'utilitarians',
 	'infiltrators',
 	'advisors',
+	'islanders',
 ]);
 
 /**

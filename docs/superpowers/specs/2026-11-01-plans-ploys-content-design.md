@@ -185,7 +185,7 @@ Each civilization's calls, as its task built them: **(my call)** for the builder
   - It seats at most 4 players while the Islanders are left out: 9 civilizations, 2 each (R116). Five players are refused at the start, by a message that names the variant and the limit, until #165. This departs from §9's first reading, which had five players use all ten **(my call; owner check)**.
   - Switching Plans & Ploys off drops the variant, and the lobby offers it only while the expansion is on **(my call)**.
 
-## 8. The Islanders: the gap is closed, the build is still #165's
+## 8. The Islanders: the gap is closed, built in #165
 
 The Islanders' mat prints a central hex, and exploring a hex beside it scores 1 VP per matching side. No research file gave that central hex's six corners, and Board Game Arena implements only the base game, so it had none either. CLAUDE.md: a detail no rule covers becomes an issue, never a guess.
 

@@ -338,8 +338,8 @@ export function createGame({
 		throw new TypeError('createGame needs a random function.');
 	}
 	const count = players.length;
-	// R116: setup deals every player 2 civilizations. Only the variant "All civilizations from Plans & Ploys" can have
-	// too few: its 9 (the Islanders left out, R115) seat at most 4 players, until #165.
+	// R116: setup deals every player 2 civilizations. No table has too few today (the variant "All civilizations from
+	// Plans & Ploys" has 10, enough for 5 players); the check stays for a deck that ever does.
 	const deck = civsFor(expansions, variants).length;
 	if (deck < 2 * count) {
 		const variant = VARIANTS.find((v) => v.id === 'civs-from-pp');

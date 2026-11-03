@@ -117,6 +117,12 @@ export function checkState(state, previousSeq = 0) {
 			...supply.territory,
 			...supply.territoryDiscard,
 			...players.flatMap((p) => p.territoryTiles),
+			// #165: the tiles lying on the Islanders' mats.
+			...players.flatMap((p) =>
+				(p.civData.islanders?.hexes ?? []).flatMap(
+					(/** @type {any} */ lying) => (lying ? [lying.tile] : [])
+				)
+			),
 			// Printed territories (49 and up) are part of the map, not tiles.
 			...Object.values(state.hexes).flatMap((hex) =>
 				hex.tile !== null && TERRITORY_IDS.includes(hex.tile)

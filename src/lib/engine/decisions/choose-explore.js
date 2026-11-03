@@ -1,4 +1,4 @@
-// The decision to pick a territory tile, a hex and a turn to explore; `tile`, when set, is the only tile offered (Coal Baron).
+// The decision to pick a territory tile, a hex and a turn to explore; `tile`, when set, is the only tile offered (Coal Baron). `mat` offers only the Islanders' mat hexes, and `free` only places the tile (R113).
 import { PlayerError } from '../errors.js';
 import { exploreAnswers, exploreTile } from '../effects/explore.js';
 
@@ -10,7 +10,8 @@ export const chooseExplore = {
 			state,
 			/** @type {number} */ (decision.player),
 			decision.anywhere === true,
-			decision.tile
+			decision.tile,
+			decision.mat === true
 		);
 	},
 	check(state, decision, answer) {
@@ -27,10 +28,15 @@ export const chooseExplore = {
 		}
 	},
 	resolve(ctx, decision, answer) {
-		exploreTile(ctx, /** @type {number} */ (decision.player), {
-			tile: answer.tile,
-			hex: answer.hex,
-			orient: answer.orient,
-		});
+		exploreTile(
+			ctx,
+			/** @type {number} */ (decision.player),
+			{
+				tile: answer.tile,
+				hex: answer.hex,
+				orient: answer.orient,
+			},
+			decision.free === true
+		);
 	},
 };

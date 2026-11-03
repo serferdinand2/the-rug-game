@@ -122,6 +122,13 @@ const CIV_TEXTS = Object.freeze({
 		'Whenever an opponent holding one of your tokens gains a landmark, you gain every uncovered square.',
 		'If you gain the Historians later in the game, give all 4 tokens to opponents at once, choosing who gets each one.',
 	]),
+	islanders: civ([
+		'When you start the game with the Islanders, you gain 4 territory tiles into your supply. Gained later, you may discard them and gain another civilization; if you keep them, you gain the 4 tiles and may place up to 4 of your territory tiles on this mat, with no VP and no benefit.',
+		'This mat is an island: a printed centre hex with six empty hexes round it. From the top-left corner, clockwise, the centre shows mountain, grassland, grassland, forest, desert and desert.',
+		'At the start of income turns 2 to 5, you may explore 1 tile onto an empty hex of this mat. It scores 1 VP for each side that matches the centre or a tile beside it, as on the map, and gives you its benefit.',
+		'Any explore you take on an advance turn may also go onto an empty hex of this mat. These hexes can’t be conquered and are not territories you control.',
+		'On your final income turn, gain 4 VP for each tile on this mat whose three outer sides show only sea.',
+	]),
 	infiltrators: civ(
 		[
 			'When you start the game with the Infiltrators, or gain them later, you gain 1 culture.',

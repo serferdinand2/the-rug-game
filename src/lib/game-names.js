@@ -213,6 +213,11 @@ export function seatName(table, seat) {
  * @returns {string}
  */
 export function hexName(key) {
+	// A hex of the Islanders' mat, 'mat:<seat>:<position>' (#165).
+	const mat = typeof key === 'string' && /^mat:\d+:([0-5])$/.exec(key);
+	if (mat) {
+		return `Islanders mat hex ${Number(mat[1]) + 1}`;
+	}
 	const match = typeof key === 'string' && /^(-?\d+)_(-?\d+)$/.exec(key);
 	if (!match) {
 		return 'a territory';

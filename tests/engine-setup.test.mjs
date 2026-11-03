@@ -146,7 +146,7 @@ test('a Plans & Ploys deck holds 63 tapestry cards, its 13 with the base 50, and
 test('a Plans & Ploys deck deals the base 16 and the built Plans & Ploys civilizations; a seeded base game deals as before (#33)', () => {
 	assert.deepEqual(civsFor([]), [...BASE_CIVS]);
 	assert.deepEqual(civsFor(['pp']), [...BASE_CIVS, ...PP_CIVS]);
-	assert.ok(!PP_CIVS.includes('islanders'), 'R115');
+	assert.ok(PP_CIVS.includes('islanders'), 'R115, #165');
 	const { supply } = newGame(3, { expansions: ['pp'] }).state;
 	assert.deepEqual(
 		[
@@ -512,7 +512,7 @@ test("an after-setup step added after 'start' fails loudly instead of never runn
 	);
 });
 
-test('R116: the variant "All civilizations from Plans & Ploys" deals and draws from the Plans & Ploys civilizations only, needs the expansion and seats at most 4 players (#33, #53)', () => {
+test('R116: the variant "All civilizations from Plans & Ploys" deals and draws from the Plans & Ploys civilizations only, needs the expansion and seats all 5 players (#33, #53, #165)', () => {
 	assert.deepEqual(civsFor(['pp'], ['civs-from-pp']), [...PP_CIVS]);
 	assert.deepEqual(civsFor([], ['civs-from-pp']), [...BASE_CIVS]);
 	assert.deepEqual(civsFor(['pp'], ['civ-draft']), civsFor(['pp']));
@@ -525,7 +525,7 @@ test('R116: the variant "All civilizations from Plans & Ploys" deals and draws f
 		/needs Plans & Ploys/
 	);
 	const options = { expansions: ['pp'], variants: ['civs-from-pp'] };
-	for (const count of [1, 2, 3, 4]) {
+	for (const count of [1, 2, 3, 4, 5]) {
 		const { state } = newGame(count, options);
 		const dealt = openDecisions(state).flatMap((d) =>
 			d.kind === 'chooseCiv' ? d.options : []
@@ -536,11 +536,4 @@ test('R116: the variant "All civilizations from Plans & Ploys" deals and draws f
 			[...PP_CIVS].sort()
 		);
 	}
-	// R116: nine civilizations (the Islanders left out, R115) cannot be dealt 2 each to 5 players, so the start is
-	// refused, naming the variant and its limit.
-	assert.throws(() => newGame(5, options), {
-		name: 'PlayerError',
-		message:
-			'The variant "All civilizations from Plans & Ploys" seats at most 4 players: its 9 civilizations deal 2 each.',
-	});
 });

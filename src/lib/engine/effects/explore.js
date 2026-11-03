@@ -5,6 +5,7 @@ import { hasEra, opponents } from '../abilities.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { spaceTile } from '../data/space-tiles.js';
 import { exploreHexes, matchingSides } from '../map.js';
+import { openMatHexes, parseMatHex } from '../island.js';
 import { turned } from '../terrain.js';
 import { gainTiles } from './gain.js';
 import { vp } from './vp.js';
@@ -19,13 +20,18 @@ const SAIL_DRAW = 3;
  * @param {number} player
  * @param {boolean} anywhere
  * @param {number} [only] - The only tile that may be explored (Coal Baron), if the player still holds it
+ * @param {boolean} [matOnly] - Only the hexes of the Islanders' mat (their income turn's explore)
  * @returns {{ tile: number, hex: string, orient: number }[]}
  */
-export function exploreAnswers(state, player, anywhere, only) {
+export function exploreAnswers(state, player, anywhere, only, matOnly) {
 	const tiles = playerSeat(state, player)
 		.territoryTiles.filter((tile) => only === undefined || tile === only)
 		.sort((a, b) => a - b);
-	const hexes = exploreHexes(state, player, anywhere);
+	// The Islanders' empty mat hexes can be explored by any explore (03 §1.3), after the board's in the order of the answers.
+	const hexes = [
+		...(matOnly === true ? [] : exploreHexes(state, player, anywhere)),
+		...openMatHexes(state, player),
+	];
 	const scored = [];
 	for (const tile of tiles) {
 		for (const hex of hexes) {
@@ -45,17 +51,26 @@ export function exploreAnswers(state, player, anywhere, only) {
 /**
  * Explores a tile: it leaves the hand for the hex, scores its matching sides, and its benefit follows. No outpost is placed (01 §7.2).
  * Militarism first offers an outpost on the hex; Exploitation offers the benefit twice instead of the VP (design §8).
+ * On a hex of the Islanders' mat the tile lies on the mat (`civData.islanders.hexes`), and Militarism offers nothing
+ * there, as the mat is not on the map. With `free`, the tile is only placed: no VP, no benefit (R113, the Islanders
+ * gained mid-game).
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {{ tile: number, hex: string, orient: number }} choice
+ * @param {boolean} [free]
  */
-export function exploreTile(ctx, player, { tile, hex, orient }) {
+export function exploreTile(ctx, player, { tile, hex, orient }, free = false) {
 	const { state } = ctx;
 	const seat = playerSeat(state, player);
-	const score = matchingSides(state, hex, tile, orient);
+	const onMat = parseMatHex(hex);
+	const score = free ? 0 : matchingSides(state, hex, tile, orient);
 	seat.territoryTiles.splice(seat.territoryTiles.indexOf(tile), 1);
-	state.hexes[hex].tile = tile;
-	state.hexes[hex].orient = orient;
+	if (onMat) {
+		seat.civData.islanders.hexes[onMat.position] = { tile, orient };
+	} else {
+		state.hexes[hex].tile = tile;
+		state.hexes[hex].orient = orient;
+	}
 	emit(state, {
 		type: 'explored',
 		player,
@@ -63,10 +78,14 @@ export function exploreTile(ctx, player, { tile, hex, orient }) {
 		tile,
 		orient,
 		vp: score,
+		...(free && { free }),
 	});
+	if (free) {
+		return;
+	}
 	/** @type {import('../state.js').NewOperation[]} */
 	const ops = [];
-	if (hasEra(state, player, 'militarism') && seat.outposts > 0) {
+	if (hasEra(state, player, 'militarism') && seat.outposts > 0 && !onMat) {
 		ops.push({
 			player,
 			kind: 'chooseOption',
@@ -100,7 +119,8 @@ export function exploreTile(ctx, player, { tile, hex, orient }) {
 
 /**
  * The explore effect. With nothing to explore it does nothing; with one possible result it explores at once; otherwise its player chooses.
- * `tile` limits it to that tile (Coal Baron). Under Age of Sail it first draws 3 territory tiles, even when no hex can then be
+ * `tile` limits it to that tile (Coal Baron). `mat` limits it to the Islanders' mat hexes, and `free` only places the tile there
+ * (R113). Under Age of Sail it first draws 3 territory tiles, even when no hex can then be
  * explored, and the player may give a tile to an opponent; `sailed` marks the explore that follows (design §8).
  * @type {import('../state.js').EffectHandler}
  */
@@ -128,7 +148,9 @@ export function explore(ctx, player, value, op) {
 	const anywhere = value?.anywhere === true;
 	/** @type {number | undefined} */
 	const tile = value?.tile;
-	const answers = exploreAnswers(state, player, anywhere, tile);
+	const matOnly = value?.mat === true;
+	const free = value?.free === true;
+	const answers = exploreAnswers(state, player, anywhere, tile, matOnly);
 	if (answers.length === 0) {
 		emit(state, { type: 'noExplore', player });
 		return;
@@ -143,7 +165,7 @@ export function explore(ctx, player, value, op) {
 			a.orient
 		).join()}`;
 	if (answers.every((a) => key(a) === key(answers[0]))) {
-		exploreTile(ctx, player, answers[0]);
+		exploreTile(ctx, player, answers[0], free);
 		return;
 	}
 	ctx.push([
@@ -152,6 +174,8 @@ export function explore(ctx, player, value, op) {
 			kind: 'chooseExplore',
 			anywhere,
 			...(tile !== undefined && { tile }),
+			...(matOnly && { mat: true }),
+			...(free && { free: true }),
 		},
 	]);
 }

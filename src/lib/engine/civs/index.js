@@ -9,6 +9,7 @@ import { entertainers } from './entertainers.js';
 import { futurists } from './futurists.js';
 import { heralds } from './heralds.js';
 import { historians } from './historians.js';
+import { islanders } from './islanders.js';
 import { infiltrators } from './infiltrators.js';
 import { inventors } from './inventors.js';
 import { isolationists } from './isolationists.js';
@@ -58,6 +59,7 @@ Object.assign(CIVS, {
 	utilitarians,
 	infiltrators,
 	advisors,
+	islanders,
 });
 
 export { CIVS, findCiv, civsOf } from './registry.js';

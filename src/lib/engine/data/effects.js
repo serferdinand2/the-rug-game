@@ -63,7 +63,7 @@ import { deepFreeze } from './ids.js';
  * - `building`: take the leftmost income building of that type from the income mat and place it in the capital city.
  * - `landmark`: place that landmark (a tech card's square) in the capital city.
  * - `vp`: gain that many VP, or VP per thing counted.
- * - `explore`: explore with a territory tile from the supply; `anywhere` drops the adjacency rule; `tile` allows only that tile; `sailed` marks an explore Age of Sail has already drawn for.
+ * - `explore`: explore with a territory tile from the supply; `anywhere` drops the adjacency rule; `tile` allows only that tile; `sailed` marks an explore Age of Sail has already drawn for; `mat` allows only the Islanders' mat hexes and `free` only places the tile there, with no VP or benefit (R113).
  * - `exploreSpace`: explore a space tile from the supply; `fromGained` limits it to the tiles this benefit just gained (R105); `civ` puts it on that civilization's mat instead of beside the income mat (the Aliens, #33).
  * - `conquer`: conquer; `anywhere` drops adjacency; `bothDice` gives both dice always, or only if an opponent controlled the territory (R17); `only` limits the targets to those hexes (#33).
  * - `research`: roll the science die and you may advance on that track; `noBenefit` is the X.
@@ -99,7 +99,7 @@ import { deepFreeze } from './ids.js';
  *   | { building: BuildingId }
  *   | { landmark: string }
  *   | { vp: number | VpPer }
- *   | { explore: { anywhere?: boolean, tile?: number, sailed?: boolean } }
+ *   | { explore: { anywhere?: boolean, tile?: number, sailed?: boolean, mat?: boolean, free?: boolean } }
  *   | { exploreSpace: { fromGained?: boolean, civ?: string } }
  *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent', only?: string[] } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
