@@ -35,6 +35,8 @@ export const config = {
 	minuteMs: 60_000,
 	declineMinMs: 3_000,
 	declineMaxMs: 10_000,
+	// How long End turn waits before the server presses it for the player (#146).
+	endTurnMs: 6_000,
 };
 
 /** The table API: every table and session in memory. */

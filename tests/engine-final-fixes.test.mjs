@@ -240,6 +240,7 @@ test('every decision kind has the full shape, and its answers pass its own check
 			benefit: true,
 			optional: true,
 		},
+		confirmEndTurn: { player: 1, kind: 'confirmEndTurn' },
 		chooseRepeat: {
 			player: 1,
 			kind: 'chooseRepeat',

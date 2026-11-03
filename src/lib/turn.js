@@ -238,12 +238,13 @@ export function firstIncomeNotice(view, seat) {
  * @property {boolean} [paying] - The selected advance's payment is picked in the panel (#75)
  * @property {{ turn: number } | null} [income] - The viewer's own income turn, as the prompt has it
  * @property {string | null} [incomeStep] - The income turn's step running now, such as 'Gain income'
+ * @property {number | null} [endSeconds] - Whole seconds until the server presses End turn, when it will (#146)
  */
 
 /**
  * The footer to show, with every word in it, as TurnBar takes them (#86).
  * @typedef {Object} FooterView
- * @property {'none' | 'overview' | 'over' | 'incomeAsk' | 'trackAsk' | 'forcedIncome' | 'opening' | 'selected' | 'turn' | 'income' | 'decision' | 'setup' | 'waiting'} kind
+ * @property {'none' | 'overview' | 'over' | 'incomeAsk' | 'trackAsk' | 'forcedIncome' | 'opening' | 'selected' | 'turn' | 'income' | 'decision' | 'setup' | 'waiting' | 'endTurn'} kind
  * @property {import('./components/prompts/TurnBar.svelte').TurnBarTone} [tone]
  * @property {string} [label] - Left out for TurnBar's own 'Your turn'
  * @property {string} [labelColor] - Another player's colour, for their turn
@@ -257,6 +258,7 @@ export function firstIncomeNotice(view, seat) {
  * @property {{ enabled: boolean, title: string | undefined }} [advance] - The selected space's Advance button
  * @property {boolean} [takeIncome] - Forced income's Take income button shows
  * @property {boolean} [openAdvance] - The opening footer's Advance button shows: it answers the turn choice alone (#33)
+ * @property {number | null} [endSeconds] - The End turn footer's countdown, in whole seconds; null with no deadline (#146)
  */
 
 /**
@@ -389,6 +391,15 @@ export function footerView(game, seat, inputs) {
 				? 'The spaces you can pay for are outlined in green.'
 				: undefined,
 			income: income(false),
+		};
+	}
+	if (mine?.kind === 'confirmEndTurn') {
+		return {
+			kind: 'endTurn',
+			tone: 'neutral',
+			heading: 'Nothing left to do this turn.',
+			detail: 'Undo to take a choice back, or end the turn.',
+			endSeconds: inputs.endSeconds ?? null,
 		};
 	}
 	if (mine && inputs.income) {

@@ -387,3 +387,26 @@ test('TurnBar has no income reveal of its own, and TurnFooter passes it an Incom
 	assert.match(footer, /<IncomeReveal\b/);
 	assert.match(footer, /reveal=/);
 });
+
+test('with nothing left to do, the footer offers End turn with the seconds left (#146)', () => {
+	const { game, player } = turnChoice();
+	const done = asking(game, player, 'confirmEndTurn');
+	const footer = footerView(done, player, { ...QUIET, endSeconds: 4 });
+	assert.equal(footer.kind, 'endTurn');
+	assert.equal(footer.heading, 'Nothing left to do this turn.');
+	assert.equal(footer.endSeconds, 4);
+	const html = (() => {
+		const body = render(TurnFooter, {
+			props: { view: footer },
+		}).body.replace(/<!--[\s\S]*?-->/g, '');
+		return body;
+	})();
+	assert.match(html, /End turn \(4\)/);
+	assert.match(html, /rg-button--gold/);
+});
+
+test('End turn shows no seconds when the server gives no deadline, as in hot seat before it ticks', () => {
+	const { game, player } = turnChoice();
+	const done = asking(game, player, 'confirmEndTurn');
+	assert.equal(footerView(done, player, QUIET).endSeconds, null);
+});

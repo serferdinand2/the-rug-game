@@ -87,6 +87,7 @@
  * @property {VersionId} version
  * @property {string[]} expansions
  * @property {string[]} variants - The ids of the optional variants switched on, from VARIANTS (#53)
+ * @property {boolean} confirmEnd - Whether each turn ends with a `confirmEndTurn` its player answers, so undo and the last outcome stay in reach (#146)
  * @property {'small' | 'large'} map
  * @property {'setup' | 'play' | 'over'} phase
  * @property {number} first

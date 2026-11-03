@@ -1,6 +1,7 @@
 // Room rules: a table's seats, host, options and settings, its lobby → playing → finished cycle, readiness, its clocks and its undo history, as pure transitions (#22, #24, #25).
 import {
 	askedSeats,
+	openDecisions,
 	checkOptions,
 	createGame,
 	declineOnly,
@@ -64,6 +65,7 @@ import {
  * @property {number} minuteMs - A minute of the timer
  * @property {number} declineMinMs - The soonest a decline-only response is answered
  * @property {number} declineMaxMs - The latest
+ * @property {number} endTurnMs - How long End turn waits before the server presses it (#146)
  */
 /**
  * One table.
@@ -79,6 +81,7 @@ import {
  * @property {number} deal - Deals so far: 0 before the first, then 1 more at each start (#29)
  * @property {Record<number, Clock>} clocks - By game seat; empty unless a game is running with the timer on
  * @property {Decline[]} declines - Never shown: a screen that saw one would know the defender holds no trap
+ * @property {Decline[]} ends - The open End turn decisions and when the server answers each (#146); `decision` and `player` as in a Decline, public through the view's `endsTurn`
  * @property {Step[]} history - The undo history, newest last; never shown
  * @property {number} touched - When anyone last used the table, in milliseconds; the server keeps it up to date (#23)
  */
@@ -98,6 +101,7 @@ import {
  * @property {number | null} viewing - The seat whose view `game` is; null for the public view
  * @property {import('../src/lib/engine/view.js').View | null} game
  * @property {{ seat: number, ends?: number, left?: number, expired: boolean }[]} clocks - In seat order
+ * @property {{ seat: number, at: number } | null} endsTurn - The seat whose End turn the server presses at `at`, in milliseconds (#146)
  * @property {boolean} canUndo - Whether the seat shown can take back its last choice
  */
 /** @typedef {Partial<RoomOptions> & { mode?: Mode }} RoomChanges */
@@ -316,6 +320,7 @@ export function createRoom(code, person, options, now) {
 		deal: 0,
 		clocks: {},
 		declines: [],
+		ends: [],
 		history: [],
 		touched: now,
 	};
@@ -615,6 +620,7 @@ export function start(room, personId, random) {
 		version,
 		expansions,
 		variants,
+		confirmEnd: true,
 		random,
 	});
 	return withHost({
@@ -736,7 +742,11 @@ function remember(room, before, after, seat, drawn) {
 		!revealed(before, after) &&
 		(after.turn !== before.turn ||
 			askedSeats(after).every((asked) => asked === seat));
-	if (!kept) {
+	// Ending the turn is final: End turn isn't a choice to take back (#146).
+	const ending = openDecisions(before).some(
+		(op) => op.kind === 'confirmEndTurn' && op.player === seat
+	);
+	if (!kept || ending) {
 		return [];
 	}
 	const last = room.history.at(-1);
@@ -816,15 +826,17 @@ export function tick(room, now, timing, random) {
 		running && room.mode !== 'hotseat'
 			? schedule(room, game, now, timing, random)
 			: [];
+	const ends = running ? scheduleEnds(room, game, now, timing) : [];
 	const clocks =
 		running && room.timer > 0 ? runClocks(room, game, now, timing) : {};
 	if (
 		JSON.stringify(clocks) === JSON.stringify(room.clocks) &&
-		JSON.stringify(declines) === JSON.stringify(room.declines)
+		JSON.stringify(declines) === JSON.stringify(room.declines) &&
+		JSON.stringify(ends) === JSON.stringify(room.ends)
 	) {
 		return room;
 	}
-	return { ...room, clocks, declines };
+	return { ...room, clocks, declines, ends };
 }
 
 /**
@@ -890,6 +902,28 @@ function schedule(room, game, now, timing, random) {
 }
 
 /**
+ * The End turn decisions of a running game: each open one keeps its time, and a new one is due `endTurnMs` out, at
+ * every kind of table, hot-seat included (#146).
+ * @param {Room} room
+ * @param {State} game
+ * @param {number} now
+ * @param {Timing} timing
+ * @returns {Decline[]}
+ */
+function scheduleEnds(room, game, now, timing) {
+	return openDecisions(game)
+		.filter((op) => op.kind === 'confirmEndTurn')
+		.map(
+			(op) =>
+				room.ends.find((d) => d.decision === op.id) ?? {
+					decision: op.id,
+					player: /** @type {number} */ (op.player),
+					at: now + timing.endTurnMs,
+				}
+		);
+}
+
+/**
  * Plays what the clocks and declines have made due (#24 design §6, §7), with the default answers.
  * - A due decline is answered with no card, unless its decision is no longer open (the defender answered first).
  * - A running clock that has run out logs `timedOut` once, then its seat is answered with the default answer for as
@@ -915,7 +949,12 @@ export function timeout(room, now, random, limit = AUTO_LIMIT) {
 			return ends !== undefined && ends <= now;
 		})
 		.sort((a, b) => a - b);
-	if (dueDeclines.length === 0 && dueSeats.length === 0) {
+	const dueEnds = room.ends.filter((end) => end.at <= now);
+	if (
+		dueDeclines.length === 0 &&
+		dueSeats.length === 0 &&
+		dueEnds.length === 0
+	) {
 		return room;
 	}
 	let answers = 0;
@@ -944,6 +983,14 @@ export function timeout(room, now, random, limit = AUTO_LIMIT) {
 			});
 		}
 	}
+	for (const end of dueEnds) {
+		const open = openDecisions(game).some(
+			(op) => op.id === end.decision && op.kind === 'confirmEndTurn'
+		);
+		if (open) {
+			game = answer(game, end.player, { decision: end.decision });
+		}
+	}
 	/** @type {Record<number, Clock>} */
 	const clocks = { ...room.clocks };
 	for (const seat of dueSeats) {
@@ -969,10 +1016,12 @@ export function timeout(room, now, random, limit = AUTO_LIMIT) {
 		}
 	}
 	const declines = room.declines.filter((decline) => decline.at > now);
+	const ends = room.ends.filter((end) => end.at > now);
 	return {
 		...room,
 		game,
 		declines,
+		ends,
 		clocks,
 		history: game === room.game ? room.history : [],
 	};
@@ -989,6 +1038,7 @@ export function nextDeadline(room) {
 			clock.ends === undefined ? [] : [clock.ends]
 		),
 		...room.declines.map((decline) => decline.at),
+		...room.ends.map((end) => end.at),
 	];
 	return times.length > 0 ? Math.min(...times) : null;
 }
@@ -1157,6 +1207,10 @@ export function roomView(room, personId, seat) {
 				: { ends: clock.ends }),
 			expired: clock.expired === true,
 		})),
+		// When the server presses End turn for the seat whose turn is waiting on it, if one is (#146).
+		endsTurn: room.ends[0]
+			? { seat: room.ends[0].player, at: room.ends[0].at }
+			: null,
 		// Whether undo() would take a choice back for the seat shown; never in the public view.
 		canUndo:
 			room.undo &&

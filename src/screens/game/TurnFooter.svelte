@@ -11,6 +11,7 @@
 	 * @property {Function} [onTurnFooterOpen] - Callback fired when Advance is pressed on an advance turn only an offer at
 	 *   its start can pay for, such as the Lighthouse's (#33)
 	 * @property {Function} [onTurnFooterTrack] - Callback fired with a track chosen in the track question
+	 * @property {Function} [onTurnFooterEndTurn] - Callback fired when End turn is pressed (#146)
 	 * @property {Function} [onTurnFooterCancel] - Callback fired when the income or track question is cancelled
 	 * @property {Function} [onTurnFooterResults] - Callback fired when a finished game's Results is pressed
 	 * @property {Function} [onTurnFooterOverviewClose] - Callback fired when the players overview's close bar is pressed
@@ -47,6 +48,7 @@
 		onTurnFooterAdvance,
 		onTurnFooterOpen,
 		onTurnFooterTrack,
+		onTurnFooterEndTurn,
 		onTurnFooterCancel,
 		onTurnFooterResults,
 		onTurnFooterOverviewClose,
@@ -58,6 +60,7 @@
 	/** Only these footers have buttons of their own; forced income and an opened advance only while their button shows. */
 	let hasActions = $derived(
 		view.kind === 'over' ||
+			view.kind === 'endTurn' ||
 			view.kind === 'incomeAsk' ||
 			view.kind === 'trackAsk' ||
 			view.kind === 'selected' ||
@@ -87,6 +90,14 @@
 		<Button
 			mode="gold"
 			onButtonClick={report(onTurnFooterResults)}>Results</Button>
+	{:else if view.kind === 'endTurn'}
+		<Button
+			mode="gold"
+			disabled={sending}
+			onButtonClick={report(onTurnFooterEndTurn)}
+			>End turn{view.endSeconds === null || view.endSeconds === undefined
+				? ''
+				: ` (${view.endSeconds})`}</Button>
 	{:else if view.kind === 'incomeAsk'}
 		<Button
 			disabled={sending}

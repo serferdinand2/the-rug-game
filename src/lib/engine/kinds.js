@@ -2,6 +2,7 @@
 import { DECISIONS, AUTOMATIC } from './registry.js';
 import './civs/index.js';
 import { chooseTurn } from './decisions/choose-turn.js';
+import { confirmEndTurn } from './decisions/confirm-end-turn.js';
 import { chooseCapital } from './decisions/choose-capital.js';
 import { chooseCiv } from './decisions/choose-civ.js';
 import { chooseResource } from './decisions/choose-resource.js';
@@ -112,6 +113,7 @@ import {
 
 Object.assign(DECISIONS, {
 	chooseTurn,
+	confirmEndTurn,
 	chooseCapital,
 	chooseCiv,
 	chooseResource,

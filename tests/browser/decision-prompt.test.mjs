@@ -212,10 +212,11 @@ test("an options prompt opens at the tracks' centre, no longer at the bottom of 
 			token,
 			room,
 			(open, at, view) => {
-				// The turn's own choice is the footer's, not a panel's.
+				// The turn's own choice, and End turn, are the footer's, not a panel's.
 				if (
 					open.kind === 'chooseTurn' ||
-					open.kind === 'chooseAdvance'
+					open.kind === 'chooseAdvance' ||
+					open.kind === 'confirmEndTurn'
 				) {
 					return false;
 				}

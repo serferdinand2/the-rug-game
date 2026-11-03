@@ -22,6 +22,8 @@
 
 <script>
 	import { untrack } from 'svelte';
+	import { timeLeft } from '../lib/clock.js';
+	import { clockTime } from '../lib/now.svelte.js';
 	import BoardSwitcher from '../lib/components/board/BoardSwitcher.svelte';
 	import AchievementStrip from '../lib/components/board/AchievementStrip.svelte';
 	import TrackBoard from '../lib/components/board/TrackBoard.svelte';
@@ -200,7 +202,28 @@
 			? mine
 			: null
 	);
-	let promptDecision = $derived(mine && !turnDecision ? mine : null);
+	/** The turn's End turn (#146): the footer's button answers it, so no prompt opens for it. */
+	let endDecision = $derived(mine?.kind === 'confirmEndTurn' ? mine : null);
+	let promptDecision = $derived(
+		mine && !turnDecision && !endDecision ? mine : null
+	);
+	/** Whole seconds until the server presses End turn, counted down by the browser's clock (#146). */
+	let endSeconds = $derived(
+		endDecision && room.endsTurn
+			? Math.ceil(
+					timeLeft(
+						{
+							seat: room.endsTurn.seat,
+							ends: room.endsTurn.at,
+							expired: false,
+						},
+						room.now,
+						store.receivedAt,
+						clockTime.now
+					) / 1000
+				)
+			: null
+	);
 	/** The one-time notice after income turn 1 (#77), and whether this seat closed it, kept per table and seat. */
 	let notice = $derived(firstIncomeNotice(game, seat));
 	let noticeKey = $derived(`rg-first-income:${room.code}:${seat}`);
@@ -352,6 +375,7 @@
 			paying: promptState.paying,
 			income: promptState.prompt?.income ?? null,
 			incomeStep: promptState.incomeStep,
+			endSeconds,
 		})
 	);
 
@@ -415,6 +439,17 @@
 		clearQuestion();
 		sending = true;
 		await store.move({ decision: turnDecision.id, turn: 'income' });
+		selected = null;
+		sending = false;
+	};
+
+	/** Ends the turn now, before the server does (#146). */
+	const endTurnHandler = async () => {
+		if (!endDecision || sending) {
+			return;
+		}
+		sending = true;
+		await store.move({ decision: endDecision.id });
 		selected = null;
 		sending = false;
 	};
@@ -694,6 +729,7 @@
 		onTurnFooterOpen={openAdvanceHandler}
 		onTurnFooterTrack={(/** @type {ComponentEvent} */ event) =>
 			trackPickHandler(event.value)}
+		onTurnFooterEndTurn={endTurnHandler}
 		onTurnFooterCancel={clearQuestion}
 		onTurnFooterResults={(/** @type {ComponentEvent} */ event) =>
 			onGameResults?.(event)}

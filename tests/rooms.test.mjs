@@ -112,6 +112,7 @@ test('the creator hosts seat 1 of an online table with the current rules', () =>
 		deal: 0,
 		clocks: {},
 		declines: [],
+		ends: [],
 		history: [],
 		touched: 5,
 	});
@@ -563,6 +564,7 @@ test('the room view shows seats by number and name, never the people behind them
 		deal: 0,
 		game: null,
 		clocks: [],
+		endsTurn: null,
 		canUndo: false,
 	});
 	const secret = join(
@@ -1231,8 +1233,8 @@ test('random steps never break the room rules', () => {
 			}
 		}
 	}
-	// The default seeds take back 166 choices; fewer than 100 would mean the steps no longer reach undo.
-	assert.ok(undone >= 100, `only ${undone} choices were taken back`);
+	// The default seeds take back 75 choices (End turn, #146, closes the history after each turn); fewer than 50 would mean the steps no longer reach undo.
+	assert.ok(undone >= 50, `only ${undone} choices were taken back`);
 });
 
 test('turning Plans & Ploys off takes its variant with it, and the variant needs the expansion (#33)', () => {

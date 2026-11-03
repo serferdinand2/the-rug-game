@@ -43,6 +43,7 @@ export const ART_SHAPES = Object.freeze([
  */
 export const DECISION_KINDS = Object.freeze({
 	chooseTurn: {},
+	confirmEndTurn: { confirm: 'End turn' },
 	chooseCapital: { shelf: 'mat', confirm: 'Take this capital' },
 	chooseCiv: { shelf: 'civ', confirm: 'Keep civilization' },
 	chooseResource: { art: 'resources' },

@@ -318,6 +318,7 @@ export const SETUP_STEPS = [
  * @param {import('./data/ids.js').VersionId} options.version
  * @param {string[]} [options.expansions] - Codes from EXPANSIONS_BUILT
  * @param {string[]} [options.variants] - Ids from VARIANTS
+ * @param {boolean} [options.confirmEnd] - Whether each turn waits for its player to end it (#146); tables switch it on
  * @param {import('./random.js').Random} options.random
  * @returns {import('./state.js').State}
  * @throws {PlayerError} For a bad player count or name, version, expansion or variant
@@ -328,6 +329,7 @@ export function createGame({
 	version,
 	expansions = [],
 	variants = [],
+	confirmEnd = false,
 	random,
 }) {
 	checkPlayers(players);
@@ -371,6 +373,7 @@ export function createGame({
 		version,
 		expansions: [...expansions],
 		variants: [...variants],
+		confirmEnd,
 		map,
 		phase: 'setup',
 		first: 1,

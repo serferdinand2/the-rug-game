@@ -407,6 +407,7 @@ const TITLES = {
 	},
 	chooseRepeat: () => 'Choose a space to repeat',
 	chooseRestart: () => 'Choose a track to start your token on again',
+	confirmEndTurn: () => 'Nothing left to do this turn',
 	chooseTapestry: (d) =>
 		d.optional ? 'Play a tapestry card?' : 'Choose a tapestry card to play',
 	choosePlacement: (d) => {
@@ -813,6 +814,7 @@ const ANSWERS = {
 			: null,
 	chooseRestart: (a) =>
 		isTrack(a.track) ? `Start again on ${trackName(a.track)}` : null,
+	confirmEndTurn: () => 'End turn',
 	chooseTapestry: (a) => {
 		if (a.card === null) {
 			return "Don't play a card";

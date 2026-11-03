@@ -41,6 +41,7 @@ import { rateLimiter } from '../server/limits.mjs';
  * @property {number} minuteMs - A minute of the turn timer
  * @property {number} declineMinMs - The soonest the server answers a response only the decline answers
  * @property {number} declineMaxMs - The latest
+ * @property {number} endTurnMs - How long End turn waits before the server presses it (#146)
  */
 
 /** The largest request body, in bytes. */
@@ -401,6 +402,7 @@ export function createApi(config, { timeout = Rooms.timeout } = {}) {
 			minuteMs: config.minuteMs,
 			declineMinMs: config.declineMinMs,
 			declineMaxMs: config.declineMaxMs,
+			endTurnMs: config.endTurnMs,
 		};
 	}
 

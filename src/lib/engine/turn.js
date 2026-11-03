@@ -8,7 +8,7 @@ import { seatOf } from './state.js';
 import { landmarkCardOps } from './landmark-cards.js';
 
 /**
- * Starts a seat's turn: its Dictatorship blocks lift (R26), nothing is activated yet (R19), and the turn choice sits above the turn's end.
+ * Starts a seat's turn: its Dictatorship blocks lift (R26), nothing is activated yet (R19), and the turn choice sits above the turn's end, which the player confirms first on a turn they chose (#146).
  * A player's first turn must be income turn 1 (01 §4.1), so it starts at once, with nobody asked (#77).
  * The turn has no kind until it is chosen (`turnKind`, #33).
  * @param {import('./state.js').Context} ctx
@@ -27,15 +27,31 @@ export function startTurn(ctx, player) {
 	if (seat.kind === 'player' && seat.incomeTurns === 0) {
 		state.turnKind = 'income';
 		emit(state, { type: 'turnChosen', player, turn: 'income' });
-		// The income turn goes on top of the turn's end.
+		// The income turn goes on top of the turn's end. Nobody chose it, so it waits for no confirmation (#146).
 		ctx.push([{ player, kind: 'endTurn' }]);
 		startIncomeTurn(ctx, player);
 		return;
 	}
+	// Pushed apart, so the confirmation isn't in the turn choice's batch and opens only once the turn is done (#146).
+	ctx.push(endOf(state, player));
 	ctx.push([
 		{ player, kind: 'chooseTurn', options: turnOptions(state, player) },
-		{ player, kind: 'endTurn' },
 	]);
+}
+
+/**
+ * The operations that close a turn: the player's confirmation first when the table asks for one (#146), then `endTurn`.
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @returns {import('./state.js').NewOperation[]}
+ */
+function endOf(state, player) {
+	return state.confirmEnd
+		? [
+				{ player, kind: 'confirmEndTurn' },
+				{ player, kind: 'endTurn' },
+			]
+		: [{ player, kind: 'endTurn' }];
 }
 
 /**
