@@ -1,4 +1,4 @@
-<!-- One lobby seat, always the same size: an empty slot to open, a closed one, a hot-seat player to name, or a joined player. -->
+<!-- One lobby seat, always the same size: an empty slot to open, a closed one, a hot-seat player to name, or a joined player, who rises into the seat (#175). -->
 <script module>
 	/** @typedef {'empty' | 'closed' | 'add' | 'player'} SeatCardState */
 
@@ -413,5 +413,23 @@
 	.rg-seat-card:hover .rg-seat-card--remove,
 	.rg-seat-card:focus-within .rg-seat-card--remove {
 		opacity: 1;
+	}
+
+	/* A player who takes the seat rises into it (issue 175). */
+	.rg-seat-card--player {
+		animation: rg-seat-card-in var(--duration-slow) var(--ease-out);
+	}
+
+	@keyframes rg-seat-card-in {
+		from {
+			opacity: 0;
+			transform: translateY(10px) scale(0.97);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-seat-card--player {
+			animation: none;
+		}
 	}
 </style>

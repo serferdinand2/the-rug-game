@@ -1,4 +1,4 @@
-<!-- Library section: TurnBar in its neutral, selected, optional and waiting tones with the income reveal passed in (#122), the forced and first income turns (#77), the finished game (#105), and the Ships walk-through from the mockup. -->
+<!-- Library section: TurnBar in its neutral, selected, optional and waiting tones with the income reveal passed in (#122), the forced and first income turns (#77), the finished game (#105), and the Ships walk-through from the mockup, and the turn moving on (#175). -->
 <script>
 	import IncomeReveal from '../../../lib/components/prompts/IncomeReveal.svelte';
 	import TurnBar from '../../../lib/components/prompts/TurnBar.svelte';
@@ -31,6 +31,27 @@
 		step = next;
 		lastEvent = callback;
 	}
+
+	/** The turns the moving example steps through (#175). */
+	const TURNS = /** @type {const} */ ([
+		{
+			tone: 'neutral',
+			label: 'Your turn',
+			heading: 'Choose a space to advance to, or take income.',
+		},
+		{
+			tone: 'selected',
+			label: 'Your turn',
+			heading: 'Advance to Ships',
+		},
+		{
+			tone: 'waiting',
+			label: 'Ben’s turn',
+			heading: 'Ben is choosing a space to advance to.',
+		},
+	]);
+	let turnStep = $state(0);
+	let turnNow = $derived(TURNS[turnStep]);
 </script>
 
 {#snippet open()}
@@ -322,5 +343,22 @@
 				{/snippet}
 			</TurnBar>
 		{/if}
+	</Example>
+	<Example
+		label={`tone="${turnNow.tone}" heading="${turnNow.heading}"  (move the turn on: the words rise in and the actions slide in; #175)`}
+		surface="ink"
+		wide>
+		<TurnBar
+			tone={turnNow.tone}
+			label={turnNow.label}
+			heading={turnNow.heading}>
+			{#snippet actions()}
+				<Button mode="primary">Advance</Button>
+			{/snippet}
+		</TurnBar>
+		<Button
+			size="small"
+			onButtonClick={() => (turnStep = (turnStep + 1) % TURNS.length)}
+			>Move the turn on</Button>
 	</Example>
 </Section>

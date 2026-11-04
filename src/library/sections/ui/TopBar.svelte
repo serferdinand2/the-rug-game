@@ -1,5 +1,6 @@
-<!-- Library section: TopBar as the launch header with a title, the lobby header, the game header with player chips, and without its rule. -->
+<!-- Library section: TopBar as the launch header with a title, the lobby header, the game header with player chips, and without its rule, and the turn coming and going (#175). -->
 <script>
+	import Button from '../../../lib/components/ui/Button.svelte';
 	import IconButton from '../../../lib/components/ui/IconButton.svelte';
 	import PlayerChip from '../../../lib/components/player/PlayerChip.svelte';
 	import Menu from '../../../lib/components/ui/Menu.svelte';
@@ -38,6 +39,9 @@
 			menuToggle?.focus();
 		}
 	};
+
+	/** Whether the turn example is the viewer's turn (#175). */
+	let turnYours = $state(false);
 </script>
 
 {#snippet launchControls()}
@@ -154,5 +158,18 @@
 			center={filledChips}
 			controls={gameControls}
 			divider={false} />
+	</Example>
+	<Example
+		label={`center={player chips} yours={${turnYours}}  (press the button: the green rule sweeps out from the centre and draws back faster; #175)`}
+		surface="chrome"
+		wide>
+		<TopBar
+			center={chips}
+			controls={gameControls}
+			yours={turnYours} />
+		<Button
+			size="small"
+			onButtonClick={() => (turnYours = !turnYours)}
+			>{turnYours ? 'End the turn' : 'Your turn'}</Button>
 	</Example>
 </Section>

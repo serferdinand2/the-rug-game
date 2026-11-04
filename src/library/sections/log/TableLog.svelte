@@ -1,5 +1,6 @@
-<!-- Library section: TableLog with a few turns of a game, the oldest folded, and empty. -->
+<!-- Library section: TableLog with a few turns of a game, the oldest folded, and empty, and lines arriving while it is open (#175). -->
 <script>
+	import Button from '../../../lib/components/ui/Button.svelte';
 	import TableLog from '../../../lib/components/log/TableLog.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
@@ -52,6 +53,9 @@
 			text: 'Cy’s clock ran out; the rest of the turn was played for them.',
 		},
 	];
+
+	/** The arriving example's lines (#175): new ones come in as they are added. */
+	let arriving = $state([...ENTRIES]);
 </script>
 
 <Section
@@ -69,4 +73,30 @@
 			<TableLog entries={[]} />
 		</div>
 	</Example>
+	<Example
+		label={`entries={${arriving.length} lines}  (add a line: it comes in; open the folded turn: its lines unfold one after another; #175)`}
+		width={430}>
+		<div class="rg-library-table-log--frame">
+			<TableLog entries={arriving} />
+		</div>
+		<Button
+			size="small"
+			onButtonClick={() =>
+				(arriving = [
+					...arriving,
+					{
+						seq: (arriving.at(-1)?.seq ?? 0) + 1,
+						player: 3,
+						kind: 'line',
+						text: 'Cy gained 2 coins.',
+					},
+				])}>Add a line</Button>
+	</Example>
 </Section>
+
+<style>
+	.rg-library-table-log--frame {
+		height: 260px;
+		margin-bottom: var(--space-6);
+	}
+</style>

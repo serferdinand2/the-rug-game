@@ -1,5 +1,6 @@
-<!-- Library section: EraSlots, the four era slots with an active era and a face-down card. -->
+<!-- Library section: EraSlots, the four era slots with an active era and a face-down card, and a card played into Era II (#175). -->
 <script>
+	import Button from '../../../lib/components/ui/Button.svelte';
 	import EraSlots from '../../../lib/components/player/EraSlots.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
@@ -22,6 +23,14 @@
 		null
 	);
 	let selected = $state(/** @type {number | null} */ (3));
+
+	/** Whether the playing example has a card in Era II (#175). */
+	let playedII = $state(false);
+	let playing = $derived(
+		playedII
+			? slotsFor([[], ['age-of-discovery'], [], []], 'age-of-discovery')
+			: FRESH
+	);
 </script>
 
 <Section
@@ -44,5 +53,14 @@
 		label={'slots={with a face-down card}'}
 		width={430}>
 		<EraSlots slots={HIDDEN} />
+	</Example>
+	<Example
+		label={`slots={${playedII ? 'Age of Discovery in Era II' : 'fresh'}}  (play a card: it slides into its slot; #175)`}
+		width={430}>
+		<EraSlots slots={playing} />
+		<Button
+			size="small"
+			onButtonClick={() => (playedII = !playedII)}
+			>{playedII ? 'Take it back' : 'Play a card into Era II'}</Button>
 	</Example>
 </Section>

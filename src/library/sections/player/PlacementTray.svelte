@@ -1,5 +1,6 @@
-<!-- Library section: PlacementTray with one or two landmarks, selected, with turn buttons, as a return target, and hidden when empty. -->
+<!-- Library section: PlacementTray with one or two landmarks, selected, with turn buttons, as a return target, and hidden when empty, and pieces placed and gained in turn (#175). -->
 <script>
+	import Button from '../../../lib/components/ui/Button.svelte';
 	import PlacementTray from '../../../lib/components/player/PlacementTray.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
@@ -17,6 +18,18 @@
 	let selectedId = $state('lighthouse');
 	/** The turned example's quarter turns. */
 	let turn = $state(0);
+
+	/** The landmarks of the placing example (#175). */
+	const MOVING = [
+		LIGHTHOUSE,
+		FORGE,
+		{
+			id: 'apothecary',
+			name: 'Apothecary',
+			footprint: FOOTPRINTS.apothecary,
+		},
+	];
+	let waiting = $state([...MOVING]);
 </script>
 
 <Section
@@ -66,4 +79,33 @@
 		width={468}>
 		<PlacementTray />
 	</Example>
+	<Example
+		label={`items={${waiting.length} landmarks}  (place one: the others close up; gain one: it rises in; #175)`}
+		width={468}>
+		<PlacementTray items={waiting} />
+		<span class="rg-library-placement-tray--buttons">
+			<Button
+				size="small"
+				disabled={waiting.length === 0}
+				onButtonClick={() => (waiting = waiting.slice(1))}
+				>Place the first</Button>
+			<Button
+				size="small"
+				disabled={waiting.length === MOVING.length}
+				onButtonClick={() =>
+					(waiting = [
+						...waiting,
+						MOVING.find((item) => !waiting.includes(item)) ??
+							MOVING[0],
+					])}>Gain one</Button>
+		</span>
+	</Example>
 </Section>
+
+<style>
+	.rg-library-placement-tray--buttons {
+		display: flex;
+		gap: var(--space-5);
+		margin-top: var(--space-6);
+	}
+</style>

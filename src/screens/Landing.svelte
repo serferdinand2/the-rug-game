@@ -1,4 +1,4 @@
-<!-- The landing page (#25 design §5), as in docs/ui/launch.html: sign in by name, create or join a table, or pick an open one. -->
+<!-- The landing page (#25 design §5), as in docs/ui/launch.html: sign in by name, create or join a table, or pick an open one; a new open table rises into the list and the others make room (#175). -->
 <script module>
 	/**
 	 * Properties of the Landing screen itself.
@@ -23,6 +23,7 @@
 	import TextInput from '../lib/components/ui/TextInput.svelte';
 	import OpenTableRow from '../lib/components/lobby/OpenTableRow.svelte';
 	import { untrack } from 'svelte';
+	import { glide, rise } from '../lib/transitions.js';
 	import { expansionBadges, validCode } from '../lib/lobby.js';
 	import { versionName } from '../lib/game-names.js';
 
@@ -156,12 +157,18 @@
 			{:else}
 				<div class="rg-landing--tables">
 					{#each store.tables as table (table.code)}
-						<OpenTableRow
-							code={table.code}
-							players={table.seats}
-							rules={versionName(table.version)}
-							expansions={expansionBadges(table.expansions)}
-							onOpenTableRowJoin={openTableJoinHandler} />
+						<!-- Each row in a box of its own, which the list can glide and bring in (#175). -->
+						<div
+							class="rg-landing--table"
+							in:rise={{ y: 8 }}
+							animate:glide>
+							<OpenTableRow
+								code={table.code}
+								players={table.seats}
+								rules={versionName(table.version)}
+								expansions={expansionBadges(table.expansions)}
+								onOpenTableRowJoin={openTableJoinHandler} />
+						</div>
 					{/each}
 				</div>
 			{/if}
@@ -259,6 +266,10 @@
 	.rg-landing--tables {
 		display: grid;
 		gap: var(--space-4);
+	}
+
+	.rg-landing--table {
+		display: grid;
 	}
 
 	.rg-landing--empty {

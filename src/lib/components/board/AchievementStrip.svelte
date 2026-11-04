@@ -1,4 +1,4 @@
-<!-- The three achievements on one line: each with the colour squares of the players who claimed it, in order, and the VP the next claimant gets. -->
+<!-- The three achievements on one line: each with the colour squares of the players who claimed it, in order, and the VP the next claimant gets; a new claim stamps its square in (#175). -->
 <script module>
 	/**
 	 * One achievement in the strip.
@@ -25,6 +25,7 @@
 </script>
 
 <script>
+	import { rise } from '../../transitions.js';
 	import { artUrl, playerColor } from '../../ui.js';
 
 	/** @type {AchievementStripProps} */
@@ -47,7 +48,8 @@
 			{#each achievement.claimed as seat, index (index)}
 				<i
 					class="rg-achievement-strip--claim"
-					style:background={playerColor(seat)}></i>
+					style:background={playerColor(seat)}
+					in:rise={{ y: 0, scale: 2.2, speed: 'slow' }}></i>
 			{/each}
 			<span class="rg-achievement-strip--vp">
 				{#if achievement.vp === null}

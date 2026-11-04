@@ -1,4 +1,4 @@
-<!-- The four era slots of the tapestry strip: Maker of Fire is printed until a card covers it; other slots show their top card, and a card can be chosen to look at. -->
+<!-- The four era slots of the tapestry strip: Maker of Fire is printed until a card covers it; other slots show their top card, and a card can be chosen to look at; a card played into a slot slides in (#175). -->
 <script module>
 	/**
 	 * Properties of the EraSlots component itself.
@@ -19,6 +19,7 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
+	import { rise } from '../../transitions.js';
 	import { CARD_SIZES } from '../../cards/card-sizes.js';
 	import ScaledCard from './ScaledCard.svelte';
 	import TapestryCardBack from './TapestryCardBack.svelte';
@@ -65,7 +66,8 @@
 				data-active={slot.active}
 				aria-pressed={selected === slot.era}
 				disabled={slot.card === null && !slot.faceDown}
-				onclick={(event) => slotClickHandler(event, slot.era)}>
+				onclick={(event) => slotClickHandler(event, slot.era)}
+				in:rise={{ x: -16, y: 0 }}>
 				<b>{slot.heading}</b>
 				{#if slot.faceDown}
 					<ScaledCard
@@ -74,7 +76,9 @@
 						<TapestryCardBack />
 					</ScaledCard>
 				{:else}
-					<span>{slot.text}</span>
+					{#key slot.card}
+						<span in:rise={{ x: -16, y: 0 }}>{slot.text}</span>
+					{/key}
 				{/if}
 			</button>
 		{/if}

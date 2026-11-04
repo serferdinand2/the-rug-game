@@ -1,4 +1,4 @@
-<!-- TableLog: the table's log, oldest first with the newest kept in view; a line between turns, each entry marked with its player's colour, and every turn but the last two folded to its main event (#174). -->
+<!-- TableLog: the table's log, oldest first with the newest kept in view; a line between turns, each entry marked with its player's colour, and every turn but the last two folded to its main event (#174). A line that arrives while the log is open comes in, and an opened turn unfolds its lines one after another (#175). -->
 <script module>
 	/**
 	 * One line of the log.
@@ -26,6 +26,7 @@
 </script>
 
 <script>
+	import { untrack } from 'svelte';
 	import { foldTurns } from '../../log.js';
 	import { playerColor } from '../../ui.js';
 
@@ -36,6 +37,10 @@
 	let opened = $state(/** @type {number[]} */ ([]));
 
 	let turns = $derived(foldTurns(entries));
+	/** The newest line on show when the log opened: the lines after it come in as they arrive (#175). */
+	const seenSeq = untrack(() =>
+		Math.max(0, ...entries.map((entry) => entry.seq))
+	);
 
 	/** @type {HTMLDivElement | undefined} */
 	let list = $state();
@@ -66,10 +71,15 @@
 	};
 </script>
 
-{#snippet line(/** @type {import('../../log.js').LogEntry} */ entry)}
+{#snippet line(
+	/** @type {import('../../log.js').LogEntry} */ entry,
+	/** @type {number} */ index = 0,
+	/** @type {boolean} */ unfolded = false
+)}
 	{#if entry.kind === 'turn'}
 		<li
 			class="rg-table-log--turn"
+			class:rg-table-log--new={entry.seq > seenSeq}
 			style:--rg-table-log-color={entry.player
 				? playerColor(/** @type {any} */ (entry.player))
 				: undefined}>
@@ -78,6 +88,9 @@
 	{:else}
 		<li
 			class="rg-table-log--entry rg-table-log--{entry.kind}"
+			class:rg-table-log--new={entry.seq > seenSeq}
+			class:rg-table-log--unfolded={unfolded}
+			style:--rg-table-log-index={index}
 			style:--rg-table-log-color={entry.player
 				? playerColor(/** @type {any} */ (entry.player))
 				: undefined}>
@@ -122,8 +135,12 @@
 						></button>
 				</li>
 			{:else}
-				{#each turn.lines as entry (entry.seq)}
-					{@render line(entry)}
+				{#each turn.lines as entry, index (entry.seq)}
+					{@render line(
+						entry,
+						index,
+						opened.includes(turn.head?.seq ?? 0)
+					)}
 				{/each}
 			{/if}
 		{:else}
@@ -235,5 +252,31 @@
 	.rg-table-log--empty {
 		color: var(--muted);
 		font-size: var(--font-size-sm);
+	}
+
+	/* A line that arrives comes in from the left; an opened turn's lines unfold one after another, 30 ms apart and
+	   within 240 ms (issue 175). */
+	.rg-table-log--new,
+	.rg-table-log--unfolded {
+		animation: rg-table-log-in var(--duration-medium) var(--ease-out)
+			backwards;
+	}
+
+	.rg-table-log--unfolded {
+		animation-delay: min(calc(var(--rg-table-log-index) * 30ms), 240ms);
+	}
+
+	@keyframes rg-table-log-in {
+		from {
+			opacity: 0;
+			transform: translateX(-10px);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-table-log--new,
+		.rg-table-log--unfolded {
+			animation: none;
+		}
 	}
 </style>

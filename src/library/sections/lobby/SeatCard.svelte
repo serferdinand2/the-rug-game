@@ -1,4 +1,4 @@
-<!-- Library section: SeatCard as a joined player, an empty slot, a closed slot and a seat to name, and a working row of five seats. -->
+<!-- Library section: SeatCard as a joined player, an empty slot, a closed slot and a seat to name, and a working row of five seats, and a player taking a seat (#175). -->
 <script>
 	import SeatCard from '../../../lib/components/lobby/SeatCard.svelte';
 	import CivChooser from '../../../lib/components/lobby/CivChooser.svelte';
@@ -130,6 +130,9 @@
 		const index = CIVILIZATIONS.indexOf(chooserCivilization ?? '');
 		choose(CIVILIZATIONS[(index + 1) % CIVILIZATIONS.length]);
 	}
+
+	/** Whether Ben has taken the seat in the joining example (#175). */
+	let benSeated = $state(false);
 </script>
 
 <Section
@@ -272,6 +275,23 @@
 				onCivChooserPick={pickHandler}
 				onCivChooserRandom={chooseNext} />
 		{/if}
+	</Example>
+	<Example
+		label={`state="${benSeated ? 'player' : 'empty'}" seat={2}  (seat Ben: he rises into the seat; #175)`}
+		surface="chrome"
+		width={SEAT_WIDTH}>
+		{#if benSeated}
+			<SeatCard
+				state="player"
+				seat={2}
+				name="Ben" />
+		{:else}
+			<SeatCard seat={2} />
+		{/if}
+		<Button
+			size="small"
+			onButtonClick={() => (benSeated = !benSeated)}
+			>{benSeated ? 'Empty the seat' : 'Seat Ben'}</Button>
 	</Example>
 </Section>
 

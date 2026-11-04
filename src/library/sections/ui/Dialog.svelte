@@ -1,4 +1,4 @@
-<!-- Library section: Dialog, narrow and wide, modal and over its parent only, with Close or its own actions. -->
+<!-- Library section: Dialog, narrow and wide, modal and over its parent only, with Close or its own actions, and one opened again (#175). -->
 <script>
 	import Button from '../../../lib/components/ui/Button.svelte';
 	import Dialog from '../../../lib/components/ui/Dialog.svelte';
@@ -8,6 +8,9 @@
 	let reported = $state('');
 	let modalOpen = $state(false);
 	let wideOpen = $state(false);
+
+	/** Whether the opening example's dialog is open (#175). */
+	let reopened = $state(true);
 </script>
 
 <Section
@@ -91,5 +94,30 @@
 				</p>
 			</Dialog>
 		{/if}
+	</Example>
+	<Example
+		label={`modal={false} {#if open}  (close it, then open it again: the backdrop fades and the box grows in; #175)`}
+		surface="surface"
+		wide>
+		<Button
+			size="small"
+			disabled={reopened}
+			onButtonClick={() => (reopened = true)}>Open the dialog</Button>
+		<div
+			style:position="relative"
+			style:height="240px">
+			{#if reopened}
+				<Dialog
+					title="Table settings"
+					modal={false}
+					onDialogClose={() => (reopened = false)}>
+					<p
+						style:margin="0"
+						style:color="var(--muted)">
+						The host may change the turn timer here.
+					</p>
+				</Dialog>
+			{/if}
+		</div>
 	</Example>
 </Section>

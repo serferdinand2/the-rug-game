@@ -679,8 +679,27 @@
 		}
 	}
 
+	/* Its building drops onto the plot and settles, squashing a little as it lands (issue 175). */
+	.rg-capital-grid--fresh .rg-capital-grid--building {
+		animation: rg-capital-grid-drop var(--duration-slow) var(--ease-in)
+			backwards;
+		transform-origin: 50% 100%;
+	}
+
+	@keyframes rg-capital-grid-drop {
+		from {
+			opacity: 0;
+			transform: translateY(-70%);
+		}
+		70% {
+			opacity: 1;
+			transform: translateY(0) scale(1.08, 0.9);
+		}
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.rg-capital-grid--fresh {
+		.rg-capital-grid--fresh,
+		.rg-capital-grid--fresh .rg-capital-grid--building {
 			animation: none;
 		}
 	}

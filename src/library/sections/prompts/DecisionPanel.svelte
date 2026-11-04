@@ -1,5 +1,6 @@
-<!-- Library section: DecisionPanel, the decision prompt over the shared area, with its scrim, content and Confirm, at the tracks' centre with any shelf of cards above it (#79), or docked beside the map. -->
+<!-- Library section: DecisionPanel, the decision prompt over the shared area, with its scrim, content and Confirm, at the tracks' centre with any shelf of cards above it (#79), or docked beside the map, and a prompt opened again (#175). -->
 <script>
+	import Button from '../../../lib/components/ui/Button.svelte';
 	import DecisionOption from '../../../lib/components/prompts/DecisionOption.svelte';
 	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
 	import CardShelf from '../../../lib/components/prompts/CardShelf.svelte';
@@ -91,6 +92,8 @@
 
 	/** @type {number | null} */
 	let played = $state(null);
+	/** Counts the openings of the first example, so Open again opens its prompt anew (#175). */
+	let openings = $state(0);
 	/** @type {number | null} */
 	let invented = $state(null);
 	/** @type {number | null} */
@@ -104,10 +107,15 @@
 	area="prompts"
 	description="The decision prompt: a dark scrim over the shared area only, and at the centre of the tracks, not of the screen (owner), the panel with the question, the choices and Confirm; a shelf of cards sits above it, and the two are centred as one stack (#79). The shelf's cards fit the room above the panel (#57). A choice on the map docks the panel at the right instead. The screen examples are the game's screen at 1920×1080, scaled to fit: the board on the left three quarters, the player area on the right.">
 	<Example
-		label={'shelf tone="income" steps  (an income turn\'s tapestry card to play: the cards above the panel, both at the tracks\' centre; press one; #79)'}
+		label={'shelf tone="income" steps  (an income turn\'s tapestry card to play: the cards above the panel, both at the tracks\' centre; press one; #79. Open again: the scrim fades, the panel rises and the shelf deals its cards in; #175)'}
 		wide
 		width={1100}>
-		<Screen board={playBoard} />
+		<Button
+			size="small"
+			onButtonClick={() => (openings += 1)}>Open again</Button>
+		{#key openings}
+			<Screen board={playBoard} />
+		{/key}
 	</Example>
 	<Example
 		label={'shelf  (a tech card to invent: the three face-up cards and the deck, centred on the tracks; press one; #79)'}

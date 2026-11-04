@@ -1,4 +1,4 @@
-<!-- The To be placed tray under the capital: landmarks waiting to be placed, to turn, select, drag onto the grid or move there with the arrow keys. -->
+<!-- The To be placed tray under the capital: landmarks waiting to be placed, to turn, select, drag onto the grid or move there with the arrow keys; the others close up when one is placed, and one added rises in (#175). -->
 <script module>
 	/**
 	 * A landmark waiting to be placed.
@@ -43,6 +43,7 @@
 	import LandmarkPiece from './LandmarkPiece.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 	import { TURN_KEYS } from '../../hotkeys.js';
+	import { glide, rise } from '../../transitions.js';
 	import KeyCap from '../ui/KeyCap.svelte';
 
 	/** @type {PlacementTrayProps} */
@@ -186,7 +187,9 @@
 		<h3 class="rg-placement-tray--heading">To be placed</h3>
 		<ul class="rg-placement-tray--items">
 			{#each items as item (item.id)}
-				<li>
+				<li
+					in:rise={{ y: 10 }}
+					animate:glide>
 					<LandmarkPiece
 						bind:this={drawn[item.id]}
 						id={item.id}

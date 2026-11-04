@@ -1,4 +1,4 @@
-<!-- Library section: CapitalGrid on the real Mountain and Forest mats, with their reliefs, lit target plots with a previewed farm, an Architects' cube and a terraformed plot, completed groups, placed, locked and overhanging landmarks with room kept for them, and the interactive Lighthouse placement. -->
+<!-- Library section: CapitalGrid on the real Mountain and Forest mats, with their reliefs, lit target plots with a previewed farm, an Architects' cube and a terraformed plot, completed groups, placed, locked and overhanging landmarks with room kept for them, and the interactive Lighthouse placement, and houses built one after another (#175). -->
 <script>
 	import CapitalGrid from '../../../lib/components/player/CapitalGrid.svelte';
 	import CompletionCounters from '../../../lib/components/player/CompletionCounters.svelte';
@@ -190,6 +190,25 @@
 		fresh = false;
 		toggled = null;
 	};
+
+	/** The building example's houses, in the order built (#175): the last one just built drops onto its plot. */
+	let houses = $state(/** @type {number[]} */ ([]));
+	const BUILDABLE = openPlots(capital(1, {}));
+	let built = $derived(
+		capital(1, Object.fromEntries(houses.map((plot) => [plot, 'house'])))
+	);
+	let justBuilt = $derived(
+		houses.length
+			? [
+					{
+						row: Math.floor(
+							/** @type {number} */ (houses.at(-1)) / 9
+						),
+						col: /** @type {number} */ (houses.at(-1)) % 9,
+					},
+				]
+			: []
+	);
 </script>
 
 <Section
@@ -468,5 +487,20 @@ The engine's places decide where it goes (#112): the right arrow from row 6, col
 					corner = { row: event.value.row, col: event.value.col };
 				}
 			}} />
+	</Example>
+	<Example
+		label={`plots={mountainMat + ${houses.length} houses} fresh={the last}  (build one: the house drops onto its plot as the plot glows; #175)`}
+		width={468}>
+		<CapitalGrid
+			plots={built}
+			fresh={justBuilt} />
+		<Button
+			size="small"
+			onButtonClick={() => {
+				const next = BUILDABLE.find(
+					(plot) => !houses.includes(plot.row * 9 + plot.col)
+				);
+				houses = next ? [...houses, next.row * 9 + next.col] : [];
+			}}>Build a house</Button>
 	</Example>
 </Section>

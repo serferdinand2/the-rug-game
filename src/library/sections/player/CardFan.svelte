@@ -1,5 +1,6 @@
-<!-- Library examples for CardFan. -->
+<!-- Library examples for CardFan, and a hand that gains and plays cards (#175). -->
 <script>
+	import Button from '../../../lib/components/ui/Button.svelte';
 	import CardFan from '../../../lib/components/player/CardFan.svelte';
 	import ScaledCard from '../../../lib/components/player/ScaledCard.svelte';
 	import TapestryCard from '../../../lib/components/player/TapestryCard.svelte';
@@ -30,6 +31,17 @@
 			? hand.flatMap((_, index) => (paid.includes(index) ? [] : [index]))
 			: []
 	);
+
+	/** The cards the gaining example deals from (#175). */
+	const DECK = [
+		'academia',
+		'age-of-discovery',
+		'age-of-sail',
+		'trap',
+		'industrialism',
+		'trade-economy',
+	];
+	let dealt = $state(['academia', 'age-of-sail', 'trap']);
 </script>
 
 <Section
@@ -152,4 +164,42 @@
 			{/snippet}
 		</CardFan>
 	</Example>
+	<Example
+		label={`items={${dealt.length} cards} key={id}  (gain or play a card: a gained card rises in and the others close up; #175)`}
+		wide>
+		<CardFan
+			items={dealt}
+			key={(/** @type {string} */ id) => id}
+			label="Tapestry cards in hand">
+			{#snippet card(/** @type {string} */ id)}
+				<div style:zoom="0.5">
+					<TapestryCard {id} />
+				</div>
+			{/snippet}
+		</CardFan>
+		<span class="rg-library-card-fan--buttons">
+			<Button
+				size="small"
+				disabled={dealt.length >= DECK.length}
+				onButtonClick={() =>
+					(dealt = [
+						...dealt,
+						DECK.find((id) => !dealt.includes(id)) ?? DECK[0],
+					])}>Gain a card</Button>
+			<Button
+				size="small"
+				disabled={dealt.length === 0}
+				onButtonClick={() =>
+					(dealt = dealt.filter(
+						(_, index) => index !== Math.min(1, dealt.length - 1)
+					))}>Play the second card</Button>
+		</span>
+	</Example>
 </Section>
+
+<style>
+	.rg-library-card-fan--buttons {
+		display: flex;
+		gap: var(--space-5);
+	}
+</style>
