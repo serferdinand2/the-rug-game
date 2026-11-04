@@ -12,6 +12,9 @@
 	 * Properties of the ProgressLanes component itself.
 	 * @typedef {Object} ProgressLanesOwnProps
 	 * @property {ProgressLanesPlayer[]} players - The players at the table, in seat order; absent seats get no token
+	 * @property {import('../../ui.js').Seat | null} [viewerSeat=null] - The player whose progress line appears on hover
+	 * @property {boolean} [hovered=false] - Whether a track space is hovered or keyboard-focused
+	 * @property {number} [progressEnd=0] - The viewer's current progress, as a fraction of track width
 	 * @property {import('../../ui.js').Seat | import('../../ui.js').Seat[] | null} [preview=null] - The seat, or seats, whose faint token shows on their next space
 	 * @property {number} [spaces=12] - Spaces on the track
 	 */
@@ -38,7 +41,15 @@
 	import PlayerToken from '../player/PlayerToken.svelte';
 
 	/** @type {ProgressLanesProps} */
-	let { players, preview = null, spaces = SPACE_COUNT, ...attr } = $props();
+	let {
+		players,
+		viewerSeat = null,
+		hovered = false,
+		progressEnd = 0,
+		preview = null,
+		spaces = SPACE_COUNT,
+		...attr
+	} = $props();
 
 	let previewed = $derived(
 		preview === null || preview === undefined
@@ -48,6 +59,17 @@
 				: [preview]
 	);
 	let tokens = $derived(trackTokens(players, previewed, spaces));
+	let viewerToken = $derived(
+		tokens.find(
+			(token) => token.seat === viewerSeat && !token.ghost
+		) ?? null
+	);
+	let tokenHovered = $state(false);
+	let progressVisible = $derived(
+		viewerSeat !== null &&
+			progressEnd > 0 &&
+			(hovered || tokenHovered)
+	);
 	/** Each seat's position, which its token hops from when it changes (#175). */
 	let positions = $derived(
 		new Map(players.map((player) => [player.seat, player.position]))
@@ -55,6 +77,8 @@
 	let label = $derived(
 		players.map((player) => `${player.name} ${player.position}`).join(', ')
 	);
+	const tokenPointerenterHandler = () => (tokenHovered = true);
+	const tokenPointerleaveHandler = () => (tokenHovered = false);
 </script>
 
 <div
@@ -62,6 +86,16 @@
 	aria-label={label}
 	{...attr}
 	class="rg-progress-lanes {attr.class ? attr.class : ''}">
+	{#if viewerSeat !== null && progressEnd > 0}
+		<i
+			aria-hidden="true"
+			class="rg-progress-lanes--hover-line"
+			class:rg-progress-lanes--hover-line-visible={progressVisible}
+			style:--rg-progress-lanes-end={progressEnd}
+			style:--rg-progress-lanes-slot={viewerToken?.slot ?? 0}
+			style:--rg-progress-lanes-count={viewerToken?.count ?? 1}
+			style:--rg-progress-lanes-color={playerColor(viewerSeat)}></i>
+	{/if}
 	{#each tokens as token (`${token.seat}-${token.ghost}`)}
 		<i
 			class="rg-progress-lanes--marker"
@@ -78,7 +112,9 @@
 			><PlayerToken
 				class="rg-progress-lanes--token"
 				seat={token.seat}
-				decorative /></i>
+				decorative
+				onpointerenter={tokenPointerenterHandler}
+				onpointerleave={tokenPointerleaveHandler} /></i>
 	{/each}
 </div>
 
@@ -108,6 +144,7 @@
 				var(--track-token-gap)
 		);
 		position: absolute;
+		z-index: 1;
 		top: calc(-1 * (var(--track-token) / 2 + 2 * var(--space-1)));
 		left: 0;
 		width: 0;
@@ -119,6 +156,46 @@
 			)
 		);
 		transition: transform var(--duration-slow) var(--ease-out);
+	}
+
+	.rg-progress-lanes--hover-line {
+		--rg-progress-lanes-shift: calc(
+			(
+				var(--rg-progress-lanes-slot) -
+					(var(--rg-progress-lanes-count) - 1) / 2
+			) * var(--track-token-gap)
+		);
+		position: absolute;
+		z-index: 0;
+		top: calc(
+			0px - var(--space-1) - var(--space-1) -
+				var(--track-hover-line) / 2
+		);
+		left: 0;
+		width: max(
+			0px,
+			calc(
+				var(--rg-progress-lanes-end) * 100cqw +
+					var(--rg-progress-lanes-shift)
+			)
+		);
+		height: var(--track-hover-line);
+		background: var(--rg-progress-lanes-color);
+		box-shadow:
+			0 0 8px color-mix(in srgb, var(--rg-track-color, var(--exploration)) 85%, transparent),
+			0 0 16px color-mix(in srgb, var(--rg-track-color, var(--exploration)) 55%, transparent);
+		opacity: 0;
+		pointer-events: none;
+		transform: scaleX(0);
+		transform-origin: left center;
+		transition:
+			transform var(--duration-fast) var(--ease-out),
+			opacity var(--duration-fast) var(--ease);
+	}
+
+	.rg-progress-lanes--hover-line-visible {
+		opacity: 1;
+		transform: scaleX(1);
 	}
 
 	.rg-progress-lanes--from-start {
@@ -157,6 +234,7 @@
 		filter: drop-shadow(
 			0 3px 2px color-mix(in srgb, var(--ink) 75%, transparent)
 		);
+		pointer-events: auto;
 		/* It squashes onto its space from its bottom edge as it lands (issue 175). */
 		transform-origin: 50% 100%;
 	}

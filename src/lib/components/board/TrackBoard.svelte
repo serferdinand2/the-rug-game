@@ -22,7 +22,8 @@
 	 * @typedef {Object} TrackBoardOwnProps
 	 * @property {TrackBoardTrack[]} tracks - The tracks, top to bottom: the base game's four, or five with the arts track; each shares the board's height
 	 * @property {TrackBoardSelection[]} [available=[]] - Spaces the viewer can advance to, outlined in green
-	 * @property {import('../../ui.js').Seat | null} [previewSeat=null] - The player taking the turn at this screen, whose dashed line a hovered or focused next space previews; null previews no line (#81)
+	 * @property {import('../../ui.js').Seat | null} [viewerSeat=null] - The viewer whose progress highlights on track hover
+	 * @property {import('../../ui.js').Seat | null} [previewSeat=null] - The player taking the turn at this screen, whose faint token previews a hovered or focused legal next space; null previews no token (#81)
 	 * @property {TrackBoardSelection | null} [selected=null] - The selected space, outlined in gold; bindable
 	 * @property {{ track: string, space: number, color: string } | null} [lit=null] - A space another player just advanced to, lit in their colour while their action shows (#153)
 	 * @property {Function} [onTrackBoardSelect] - Callback fired with { track, space } when a space is chosen
@@ -50,6 +51,7 @@
 	/** @type {TrackBoardProps} */
 	let {
 		tracks,
+		viewerSeat = null,
 		available = [],
 		previewSeat = null,
 		selected = $bindable(null),
@@ -83,6 +85,7 @@
 	{#each tracks as track (track.id)}
 		<Track
 			{...track}
+			{viewerSeat}
 			available={available
 				.filter((entry) => entry.track === track.id)
 				.map((entry) => entry.space)}

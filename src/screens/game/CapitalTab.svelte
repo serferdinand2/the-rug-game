@@ -1,9 +1,8 @@
-<!-- The Capital tab's placement choices, capital grid, landmark tray and the era card under them. -->
+<!-- The Capital tab's placement choices, capital grid and landmark tray. -->
 <script module>
 	/** @typedef {import('../../lib/area/capital.js').CapitalView} CapitalView */
 	/** @typedef {import('../../lib/area/placement-targets.js').FreshCapital} FreshCapital */
 	/** @typedef {import('../../lib/area/placement-targets.js').PlacementPrompt} PlacementPrompt */
-	/** @typedef {import('../../lib/area/income.js').EraSlotView} EraSlotView */
 
 	/**
 	 * Properties of the CapitalTab screen part itself.
@@ -12,7 +11,6 @@
 	 * @property {string} capitalSoon - The unavailable-capital note
 	 * @property {PlacementPrompt | null} [placement=null] - A building or landmark placement decision
 	 * @property {FreshCapital} [fresh] - The plots and landmarks just built
-	 * @property {EraSlotView | null} [era=null] - The era the player is in, whose card shows under the capital (#174)
 	 * @property {Function} [onCapitalTabPlace] - Callback fired with { index, confirm } when the placement changes
 	 */
 
@@ -39,9 +37,7 @@
 		optionAt,
 		placeNear,
 	} from '../../lib/area/placement-targets.js';
-	import { tapestryCardData } from '../../lib/cards/game-cards.js';
 	import CapitalCity from '../../lib/components/player/CapitalCity.svelte';
-	import EraNote from '../../lib/components/player/EraNote.svelte';
 	import PlacementTray from '../../lib/components/player/PlacementTray.svelte';
 
 	/** @type {CapitalTabProps} */
@@ -50,7 +46,6 @@
 		capitalSoon,
 		placement = null,
 		fresh = { plots: [], landmarks: [] },
-		era = null,
 		onCapitalTabPlace,
 		...attr
 	} = $props();
@@ -65,7 +60,6 @@
 	let trayTurn = $derived(
 		values.landmark ? (turns[values.landmark.id] ?? 0) : 0
 	);
-	let eraCard = $derived(era?.id ? tapestryCardData(era.id) : null);
 	/** A placed landmark is being dragged, so the tray offers itself to take it back. */
 	let dragging = $state(false);
 
@@ -263,14 +257,6 @@
 				Beside the mat: {capital.besideMat.join(', ')}
 			</p>
 		{/if}
-		{#if era}
-			<EraNote
-				class="rg-capital-tab--era"
-				heading={era.heading}
-				name={eraCard?.title ?? era.card}
-				copy={eraCard?.copy ?? null}
-				faceDown={era.faceDown} />
-		{/if}
 	{:else}
 		<p class="rg-player-tabs--note">{capitalSoon}</p>
 	{/if}
@@ -281,8 +267,7 @@
 		display: contents;
 	}
 
-	.rg-capital-tab :global(.rg-player-tabs--tray),
-	.rg-capital-tab :global(.rg-capital-tab--era) {
+	.rg-capital-tab :global(.rg-player-tabs--tray) {
 		margin-top: var(--space-6);
 	}
 </style>

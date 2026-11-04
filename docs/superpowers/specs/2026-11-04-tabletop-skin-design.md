@@ -61,7 +61,7 @@ Each component changes its default look. Logic goes in pure helpers tested under
     - Tokens slide to their new space.
     - Resource counts and the header's VP count up to a new value over 0.5 s, with a green +n that rises and fades, drawn by a new `CountUp` component.
     - A landmark placed in the capital lands: a 0.3 s drop with a shadow that closes.
-12. **This era under the capital.** A new component, `EraNote` (player area), shows the viewer's current era card: its name in Cinzel gold and its text. The Capital tab shows it under the counters, where the tab is empty today. Before an era card is chosen it says so. A helper, `currentEra(slots)`, picks it from the era slots.
+12. **Current era card.** The current tapestry card is already available in the Eras tab, so it is not duplicated in the Capital tab. `EraNote` may remain available as a component-library example, but the live Capital tab contains only the capital, placement tray and any beside-the-mat note.
 13. **The winner on the results.** A new component, `WinnerShowcase` (results area): the winner's civilization portrait in a gold frame, the civilization's name, the winner's name and VP, and their capital as it ended, read-only. A tie shows each tied winner. The results show it under the standings, to everyone.
 14. **Card fans before the game.** A new component, `ArtFan` (ui area), lays three pictures as cards in a fan, tilted −12°, 0° and 12°, with `--shadow-float`. The landing page and the lobby show two fans beside their panels: three civilization portraits on the left, a landmark and two tapestry pictures on the right. The screen picks them at random on each visit from the art catalog, with the store's injected random. On the lobby they sit outside its 1000 px panels.
 
@@ -92,7 +92,7 @@ Each changed component's section shows the new look. The new components each get
 
 1. Tokens stand on the bottom edge of their space, so they cover no symbol or landmark name.
 2. The capital ground's filter values.
-3. This era's card fills the Capital tab's empty space, rather than an income preview.
+3. Superseded by the owner's follow-up on 2026-11-04: keep the current tapestry card in the Eras tab only; do not duplicate it in the Capital tab.
 4. The log keeps the last two turns open and folds the rest.
 5. Keys show on the footer and panel buttons only, not on the player tabs.
 6. The card fans pick new art on each visit.

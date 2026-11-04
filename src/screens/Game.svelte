@@ -820,6 +820,7 @@
 					{#if board === 'tracks'}
 						<TrackBoard
 							tracks={trackBoard(game)}
+							viewerSeat={seat}
 							{available}
 							previewSeat={trackPreviewSeat(game, seat)}
 							selected={promptState.isTrack
