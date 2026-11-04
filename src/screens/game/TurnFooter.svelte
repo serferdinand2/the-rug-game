@@ -38,6 +38,8 @@
 	import IncomeReveal from '../../lib/components/prompts/IncomeReveal.svelte';
 	import OverviewCloseBar from '../../lib/components/prompts/OverviewCloseBar.svelte';
 	import TurnBar from '../../lib/components/prompts/TurnBar.svelte';
+	import KeyCap from '../../lib/components/ui/KeyCap.svelte';
+	import { TRACK_KEYS } from '../../lib/hotkeys.js';
 	import { ComponentEvent } from '../../lib/component-event.js';
 
 	/** @type {TurnFooterProps} */
@@ -100,44 +102,53 @@
 			onButtonClick={report(onTurnFooterEndTurn)}
 			>End turn{view.endSeconds === null || view.endSeconds === undefined
 				? ''
-				: ` (${view.endSeconds})`}</Button>
+				: ` (${view.endSeconds})`}<KeyCap key="Enter" /></Button>
 	{:else if view.kind === 'minimized'}
 		<Button
 			mode="confirm"
 			onButtonClick={report(onTurnFooterRestore)}
-			>Show choice<kbd class="rg-turn-footer--key">V</kbd></Button>
+			>Show choice<KeyCap key="V" /></Button>
 	{:else if view.kind === 'incomeAsk'}
 		<Button
 			disabled={sending}
-			onButtonClick={report(onTurnFooterCancel)}>Cancel</Button>
+			onButtonClick={report(onTurnFooterCancel)}
+			>Cancel<KeyCap key="Esc" /></Button>
 		<Button
 			mode="gold"
 			disabled={sending}
-			onButtonClick={report(onTurnFooterIncome)}>Take income</Button>
+			onButtonClick={report(onTurnFooterIncome)}
+			>Take income<KeyCap key="Enter" /></Button>
 	{:else if view.kind === 'trackAsk'}
 		{#each view.tracks ?? [] as choice (choice.track)}
 			<Button
 				disabled={sending || !choice.enabled}
 				onButtonClick={report(onTurnFooterTrack, choice.track)}
-				>{choice.label}</Button>
+				>{choice.label}<KeyCap
+					key={String(
+						TRACK_KEYS.indexOf(choice.track) + 1
+					)} /></Button>
 		{/each}
-		<Button onButtonClick={report(onTurnFooterCancel)}>Cancel</Button>
+		<Button onButtonClick={report(onTurnFooterCancel)}
+			>Cancel<KeyCap key="Esc" /></Button>
 	{:else if view.kind === 'forcedIncome'}
 		<Button
 			mode="gold"
 			disabled={sending}
-			onButtonClick={report(onTurnFooterIncomeAsk)}>Take income</Button>
+			onButtonClick={report(onTurnFooterIncomeAsk)}
+			>Take income<KeyCap key="I" /></Button>
 	{:else if view.kind === 'opening'}
 		<Button
 			mode="primary"
 			disabled={sending}
-			onButtonClick={report(onTurnFooterOpen)}>Advance</Button>
+			onButtonClick={report(onTurnFooterOpen)}
+			>Advance<KeyCap key="A" /></Button>
 	{:else if view.kind === 'selected'}
 		<Button
 			mode="primary"
 			disabled={!view.advance?.enabled || sending}
 			title={view.advance?.title}
-			onButtonClick={report(onTurnFooterAdvance)}>Advance</Button>
+			onButtonClick={report(onTurnFooterAdvance)}
+			>Advance<KeyCap key="Enter" /></Button>
 	{/if}
 {/snippet}
 
@@ -157,6 +168,7 @@
 			description={view.income.description}
 			label={view.income.label}
 			folded={view.income.folded}
+			shortcut="I"
 			onIncomeRevealClick={report(onTurnFooterIncomeAsk)} />
 	{/if}
 {/snippet}
@@ -188,16 +200,6 @@
 {/if}
 
 <style>
-	/* The key that does the same as a button, beside its word (issue 149). */
-	.rg-turn-footer--key {
-		margin-left: var(--space-4);
-		padding: 0 var(--space-2);
-		border: var(--border) solid currentColor;
-		font: inherit;
-		font-size: var(--font-size-xs);
-		opacity: 0.75;
-	}
-
 	/* What another player did last stays after the heading, with Show again (issue 153). */
 	.rg-turn-footer--just-now {
 		display: inline-flex;

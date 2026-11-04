@@ -34,12 +34,15 @@
 </script>
 
 {#snippet open()}
-	<IncomeReveal {...INCOME} />
+	<IncomeReveal
+		{...INCOME}
+		shortcut="I" />
 {/snippet}
 
 {#snippet folded()}
 	<IncomeReveal
 		{...INCOME}
+		shortcut="I"
 		folded />
 {/snippet}
 
@@ -53,12 +56,14 @@
 {#snippet openWalk()}
 	<IncomeReveal
 		{...INCOME}
+		shortcut="I"
 		onIncomeRevealClick={() => go('neutral', 'onIncomeRevealClick')} />
 {/snippet}
 
 {#snippet foldedWalk()}
 	<IncomeReveal
 		{...INCOME}
+		shortcut="I"
 		folded
 		onIncomeRevealClick={() => go('neutral', 'onIncomeRevealClick')} />
 {/snippet}
@@ -81,7 +86,7 @@
 <Section
 	name="TurnBar"
 	area="prompts"
-	description="The footer gives the turn's context while the decision panel asks the question. Its cost and actions sit at the right. While a space is chosen, the income choice folds behind Your turn and opens on hover or keyboard focus.">
+	description="The footer gives the turn's context while the decision panel asks the question. Every action sits at the right (#174): Take income first, then the cost and the buttons, each with its key. While a space is chosen, Take income shrinks to its button, and its words open on hover or keyboard focus.">
 	<Example
 		label={'tone="neutral" reveal={IncomeReveal}'}
 		surface="ink"
@@ -92,7 +97,7 @@
 			reveal={open} />
 	</Example>
 	<Example
-		label={`tone="selected" properName="Ships" track="exploration" cost={['food', 'any']} reveal={IncomeReveal folded}  (hover or tab to Your turn)`}
+		label={`tone="selected" properName="Ships" track="exploration" cost={['food', 'any']} reveal={IncomeReveal folded}  (hover or tab to Take income)`}
 		surface="ink"
 		wide>
 		<TurnBar

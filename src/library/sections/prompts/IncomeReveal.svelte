@@ -1,4 +1,4 @@
-<!-- Library section: IncomeReveal open, folded behind a stand-in turn label, and disabled (#122). -->
+<!-- Library section: IncomeReveal open with its key, folded to its button, and disabled (#122, #174). -->
 <script>
 	import IncomeReveal from '../../../lib/components/prompts/IncomeReveal.svelte';
 	import Example from '../../Example.svelte';
@@ -16,7 +16,7 @@
 <Section
 	name="IncomeReveal"
 	area="prompts"
-	description="The footer's Take income beside the turn label, with what taking income does. Folded, it closes to nothing and opens while its parent, the turn label's group in TurnBar, is hovered or holds the keyboard focus; disabled, it stays closed and can't be reached.">
+	description="The footer's Take income, first among the actions on its right (#174), with what taking income does. Folded, while a space is chosen, only its button shows, its words as the title, and they open while the reveal is hovered or holds the keyboard focus; disabled, it can't be reached.">
 	<Example
 		label={`description label onIncomeRevealClick  (pressed ${pressed} ${pressed === 1 ? 'time' : 'times'})`}
 		surface="chrome"
@@ -24,20 +24,20 @@
 		<div class="rg-library-income-reveal">
 			<IncomeReveal
 				{...INCOME}
+				shortcut="I"
 				onIncomeRevealClick={() => (pressed += 1)} />
-			<span class="rg-library-income-reveal--label">Your turn</span>
 		</div>
 	</Example>
 	<Example
-		label="folded  (hover or tab to Your turn)"
+		label={'folded shortcut="I"  (hover or tab to it)'}
 		surface="chrome"
 		wide>
 		<div class="rg-library-income-reveal">
 			<IncomeReveal
 				{...INCOME}
+				shortcut="I"
 				folded
 				onIncomeRevealClick={() => (pressed += 1)} />
-			<span class="rg-library-income-reveal--label">Your turn</span>
 		</div>
 	</Example>
 	<Example
@@ -49,23 +49,16 @@
 				{...INCOME}
 				folded
 				disabled />
-			<span class="rg-library-income-reveal--label">Optional action</span>
 		</div>
 	</Example>
 </Section>
 
 <style>
-	/* A stand-in for TurnBar's label group, the reveal's parent. */
+	/* A row as tall as the footer's actions, the reveal at its right. */
 	.rg-library-income-reveal {
 		display: flex;
 		align-items: center;
+		justify-content: flex-end;
 		min-height: 48px;
-	}
-
-	.rg-library-income-reveal--label {
-		color: var(--gold);
-		font: italic var(--weight-title) var(--font-size-xl) /
-			var(--leading-none) var(--font-title);
-		white-space: nowrap;
 	}
 </style>

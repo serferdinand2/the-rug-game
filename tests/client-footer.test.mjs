@@ -248,11 +248,12 @@ test('an advance only the Lighthouse can pay for: the footer offers Advance and 
 	const html = (props) =>
 		render(TurnFooter, { props }).body.replace(/<!--[\s\S]*?-->/g, '');
 	const body = html({ view: footer });
-	assert.match(body, /<button[^>]*>Advance<\/button>/);
-	assert.doesNotMatch(body, /<button[^>]*disabled[^>]*>Advance<\/button>/);
+	// Each footer button shows its key (#174): A asks which track to advance on.
+	assert.match(body, /<button[^>]*>Advance<kbd[^>]*>A<\/kbd><\/button>/);
+	assert.doesNotMatch(body, /<button[^>]*disabled[^>]*>Advance</);
 	assert.doesNotMatch(
 		html({ view: { ...footer, openAdvance: false } }),
-		/>Advance<\/button>/
+		/>Advance</
 	);
 	// A space picked on the tracks can't be advanced to yet, so the footer stays.
 	assert.equal(

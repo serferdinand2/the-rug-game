@@ -8,6 +8,7 @@
 	 * @property {import('svelte').Snippet} [center] - Centre content that replaces the title, such as the player chips; render them straight into it, without a wrapper, so they can shrink to fit
 	 * @property {import('svelte').Snippet} [controls] - The controls at the right, such as the sound and menu buttons
 	 * @property {boolean} [divider=true] - The thin rule along the bottom; false over the player overview
+	 * @property {boolean} [yours=false] - The viewer has a decision to make: a green rule along the bottom (#174)
 	 */
 
 	/**
@@ -32,6 +33,7 @@
 		center,
 		controls,
 		divider = true,
+		yours = false,
 		...attr
 	} = $props();
 </script>
@@ -39,7 +41,8 @@
 <header
 	{...attr}
 	class="rg-top-bar {attr.class ? attr.class : ''}"
-	class:rg-top-bar--divided={divider}>
+	class:rg-top-bar--divided={divider}
+	class:rg-top-bar--yours={yours}>
 	<div class="rg-top-bar--brand">{brand}</div>
 	<div class="rg-top-bar--center">
 		{#if center}
@@ -70,6 +73,12 @@
 
 	.rg-top-bar--divided {
 		border-bottom-color: var(--line);
+	}
+
+	/* The viewer's turn: a green rule along the bottom, over the divider. */
+	.rg-top-bar--yours {
+		box-shadow: inset 0 calc(-1 * var(--track-bar-band)) 0 var(--action);
+		transition: box-shadow var(--duration-medium) var(--ease);
 	}
 
 	.rg-top-bar--brand {

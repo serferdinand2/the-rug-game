@@ -43,6 +43,7 @@
 	import LandmarkPiece from './LandmarkPiece.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 	import { TURN_KEYS } from '../../hotkeys.js';
+	import KeyCap from '../ui/KeyCap.svelte';
 
 	/** @type {PlacementTrayProps} */
 	let {
@@ -207,22 +208,19 @@
 								class="rg-placement-tray--turn-button"
 								aria-label="Turn {item.name} back"
 								title="Turn back"
-								onclick={(event) => turnHandler(event, item.id, -1)}
-								>↺</button>
+								onclick={(event) =>
+									turnHandler(event, item.id, -1)}>↺</button>
 							<button
 								type="button"
 								class="rg-placement-tray--turn-button"
 								aria-label="Turn {item.name}"
 								title="Turn"
-								onclick={(event) => turnHandler(event, item.id, 1)}
-								>↻</button>
+								onclick={(event) =>
+									turnHandler(event, item.id, 1)}>↻</button>
 							<span class="rg-placement-tray--turn-hint"
-								>Turn it here; on the capital, <kbd
-									class="rg-placement-tray--key">{TURN_KEYS.back}</kbd
-								>
-								and
-								<kbd class="rg-placement-tray--key">{TURN_KEYS.forward}</kbd> turn
-								it.</span>
+								>Turn it here; on the capital, <KeyCap
+									key={TURN_KEYS.back} /> and <KeyCap
+									key={TURN_KEYS.forward} /> turn it.</span>
 						</div>
 					{/if}
 				</li>
@@ -301,16 +299,5 @@
 		color: var(--muted);
 		font-size: var(--font-size-sm);
 		line-height: var(--leading-snug);
-	}
-
-	.rg-placement-tray--key {
-		display: inline-grid;
-		place-items: center;
-		min-width: 22px;
-		height: 22px;
-		padding: 0 var(--space-2);
-		border: var(--border) solid currentColor;
-		color: var(--text);
-		font: var(--weight-bold) var(--font-size-xs) var(--font-body);
 	}
 </style>

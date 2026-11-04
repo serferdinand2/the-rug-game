@@ -10,6 +10,7 @@
 	 * @property {boolean} [logOpen=false] - The log and scores are open
 	 * @property {boolean} [logUnread=false] - The log has entries the viewer hasn't seen: a gold dot on its button
 	 * @property {number[]} [bumped=[]] - The seats whose VP just rose, whose chips bump
+	 * @property {boolean} [yours=false] - The viewer has a decision to make: the header's green rule (#174)
 	 * @property {Function} [onGameHeaderChip] - Callback fired with the seat of the chip pressed
 	 * @property {Function} [onGameHeaderLog] - Callback fired when the log button is pressed
 	 * @property {Function} [onGameHeaderMenu] - Callback fired with the chosen menu entry's id, for all but Dark cards, Leave table and the card gallery
@@ -51,6 +52,7 @@
 		logOpen = false,
 		logUnread = false,
 		bumped = [],
+		yours = false,
 		onGameHeaderChip,
 		onGameHeaderLog,
 		onGameHeaderMenu,
@@ -106,6 +108,7 @@
 <PageHeader
 	{...attr}
 	{store}
+	{yours}
 	menu="game"
 	onPageHeaderMenu={menuHandler}>
 	{#snippet center()}

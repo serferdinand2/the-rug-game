@@ -8,6 +8,7 @@
 	 * @property {import('svelte').Snippet} [before] - Controls before sound, such as the turn clock and Undo
 	 * @property {import('../lib/game.svelte.js').GameStore} store - The client's store: its sound and card theme choices, its table and leaving it
 	 * @property {import('../lib/menu.js').MenuScreen} [menu='start'] - The screen whose entries the menu shows (menu.js)
+	 * @property {boolean} [yours=false] - The viewer has a decision to make: TopBar's green rule (#174)
 	 * @property {Function} [onPageHeaderMenu] - Callback fired with the chosen entry's id, for every entry but Dark cards, Leave table and the card gallery
 	 */
 
@@ -36,6 +37,7 @@
 		before,
 		store,
 		menu = 'start',
+		yours = false,
 		onPageHeaderMenu,
 		...attr
 	} = $props();
@@ -112,6 +114,7 @@
 <TopBar
 	{title}
 	{center}
+	{yours}
 	{...attr}
 	class="rg-page-header {attr.class ? attr.class : ''}">
 	{#snippet controls()}

@@ -91,7 +91,10 @@
 	 */
 	.rg-progress-lanes--marker {
 		--rg-progress-lanes-shift: calc(
-			(var(--rg-progress-lanes-slot) - (var(--rg-progress-lanes-count) - 1) / 2) *
+			(
+					var(--rg-progress-lanes-slot) -
+						(var(--rg-progress-lanes-count) - 1) / 2
+				) *
 				var(--track-token-gap)
 		);
 		position: absolute;
@@ -128,6 +131,8 @@
 		width: var(--track-token);
 		height: var(--track-token);
 		border-radius: var(--radius);
-		filter: drop-shadow(0 3px 2px color-mix(in srgb, var(--ink) 75%, transparent));
+		filter: drop-shadow(
+			0 3px 2px color-mix(in srgb, var(--ink) 75%, transparent)
+		);
 	}
 </style>

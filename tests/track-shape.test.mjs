@@ -172,15 +172,31 @@ test('a progress line can be measured on a track of another length', () => {
 	});
 });
 
-test('each player\'s token stands on the middle of the space reached, alone there (#174)', () => {
+test("each player's token stands on the middle of the space reached, alone there (#174)", () => {
 	assert.deepEqual(
 		trackTokens([
 			{ seat: 1, position: 4 },
 			{ seat: 2, position: 2 },
 		]),
 		[
-			{ seat: 1, lane: 0, end: 3.5 / 12, slot: 0, count: 1, start: false, ghost: false },
-			{ seat: 2, lane: 1, end: 1.5 / 12, slot: 0, count: 1, start: false, ghost: false },
+			{
+				seat: 1,
+				lane: 0,
+				end: 3.5 / 12,
+				slot: 0,
+				count: 1,
+				start: false,
+				ghost: false,
+			},
+			{
+				seat: 2,
+				lane: 1,
+				end: 1.5 / 12,
+				slot: 0,
+				count: 1,
+				start: false,
+				ghost: false,
+			},
 		]
 	);
 });
@@ -212,7 +228,13 @@ test('tokens at the start line up inside the first space (#174)', () => {
 		{ seat: 3, position: 1 },
 	]);
 	assert.deepEqual(
-		tokens.map(({ seat, start, slot, count, end }) => [seat, start, slot, count, end]),
+		tokens.map(({ seat, start, slot, count, end }) => [
+			seat,
+			start,
+			slot,
+			count,
+			end,
+		]),
 		[
 			[1, true, 0, 2, 0],
 			[2, true, 1, 2, 0],
@@ -230,7 +252,13 @@ test('a previewed seat gets a faint token on its next space, beside the tokens t
 		[1]
 	);
 	assert.deepEqual(
-		tokens.map(({ seat, ghost, end, slot, count }) => [seat, ghost, end, slot, count]),
+		tokens.map(({ seat, ghost, end, slot, count }) => [
+			seat,
+			ghost,
+			end,
+			slot,
+			count,
+		]),
 		[
 			[1, false, 2.5 / 12, 0, 1],
 			[2, false, 3.5 / 12, 0, 2],

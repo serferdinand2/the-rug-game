@@ -148,12 +148,26 @@ export function progressSpan(position, spaces = SPACE_COUNT) {
 export function trackTokens(players, preview = [], spaces = SPACE_COUNT) {
 	const placed = players.map((player, lane) => {
 		const span = progressSpan(player.position, spaces);
-		return { seat: player.seat, lane, end: span.end, start: player.position <= 0, ghost: false };
+		return {
+			seat: player.seat,
+			lane,
+			end: span.end,
+			start: player.position <= 0,
+			ghost: false,
+		};
 	});
 	const ghosts = players.flatMap((player, lane) => {
 		const next = progressSpan(player.position, spaces).next;
 		return preview.includes(player.seat) && next
-			? [{ seat: player.seat, lane, end: next.end, start: false, ghost: true }]
+			? [
+					{
+						seat: player.seat,
+						lane,
+						end: next.end,
+						start: false,
+						ghost: true,
+					},
+				]
 			: [];
 	});
 	const all = [...placed, ...ghosts];

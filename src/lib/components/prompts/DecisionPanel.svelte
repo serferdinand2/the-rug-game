@@ -42,6 +42,7 @@
 	import { ComponentEvent } from '../../component-event.js';
 	import { trackColor } from '../../ui.js';
 	import Button from '../ui/Button.svelte';
+	import KeyCap from '../ui/KeyCap.svelte';
 
 	/** @type {DecisionPanelProps} */
 	let {
@@ -148,8 +149,7 @@
 						><span
 							class="rg-decision-panel--minimize"
 							aria-hidden="true"></span
-						>Minimize<kbd class="rg-decision-panel--key">V</kbd
-						></Button>
+						>Minimize<KeyCap key="V" /></Button>
 				{/if}
 			</div>
 			{#if steps}
@@ -181,7 +181,8 @@
 					mode="confirm"
 					{tint}
 					disabled={confirmDisabled}
-					onButtonClick={confirmClickHandler}>{confirmLabel}</Button>
+					onButtonClick={confirmClickHandler}
+					>{confirmLabel}<KeyCap key="Enter" /></Button>
 			</div>
 		</div>
 	</div>
@@ -273,14 +274,6 @@
 	}
 
 	/* The key that does the same, beside the word (issue 149). */
-	.rg-decision-panel--key {
-		margin-left: var(--space-4);
-		padding: 0 var(--space-2);
-		border: var(--border) solid currentColor;
-		font: inherit;
-		font-size: var(--font-size-xs);
-		opacity: 0.75;
-	}
 
 	.rg-decision-panel--content {
 		padding: var(--space-9) var(--space-10) var(--space-10);

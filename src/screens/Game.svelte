@@ -65,6 +65,7 @@
 		trackPreviewSeat,
 	} from '../lib/turn.js';
 	import { keptAnswer, sendAdvance } from '../lib/moves.js';
+	import { turnSignal } from '../lib/turn-signal.js';
 
 	/** @typedef {import('../lib/component-event.js').ComponentEvent} ComponentEvent */
 	/** @typedef {import('../lib/ui.js').TrackId} TrackId */
@@ -85,6 +86,11 @@
 	let seat = $derived(store.seat);
 	let mine = $derived(myDecision(game, seat));
 	let options = $derived(advanceOptions(game, seat));
+	// The viewer has a decision to make: the header's green rule and, online, the tab's title and icon (#174).
+	let yours = $derived(Boolean(mine) && game.phase !== 'over');
+	let signal = $derived(
+		turnSignal({ yours, online: room.mode !== 'hotseat' })
+	);
 	let players = $derived(
 		game.seats.filter((/** @type {any} */ s) => s.kind === 'player')
 	);
@@ -149,6 +155,23 @@
 	let movedFrame = 0;
 	/** The batch of fresh events handled last: one that arrived before this screen opened is not played again. */
 	let handled = untrack(() => store.freshCount);
+
+	// The tab's title and icon follow the viewer's turn, and come back when the game screen goes.
+	$effect(() => {
+		document.title = signal.title;
+		const icon = document.querySelector('link[rel="icon"]');
+		icon?.setAttribute('href', signal.icon);
+		return () => {
+			const { title, icon: plain } = turnSignal({
+				yours: false,
+				online: false,
+			});
+			document.title = title;
+			document
+				.querySelector('link[rel="icon"]')
+				?.setAttribute('href', plain);
+		};
+	});
 
 	$effect(() => {
 		const count = store.freshCount;
@@ -777,6 +800,7 @@
 			logOpen={layers.log}
 			{logUnread}
 			bumped={moved.vp}
+			{yours}
 			onGameHeaderChip={chipHandler}
 			onGameHeaderLog={logToggleHandler}
 			onGameHeaderMenu={menuHandler} />

@@ -1,4 +1,4 @@
-<!-- The footer: the current decision or what another player is doing, its cost and actions, and a reveal beside the turn label. -->
+<!-- The footer: the turn label and the current decision or what another player is doing on the left, and every action on the right: the income reveal, the cost and the buttons (#174). -->
 <script module>
 	/** @typedef {'neutral' | 'selected' | 'optional' | 'waiting' | 'income' | 'complete'} TurnBarTone */
 
@@ -18,7 +18,7 @@
 	 * @property {string} [costLabel] - The word before the price; defaults to 'Optional cost' in the optional tone and 'Cost' otherwise
 	 * @property {import('svelte').Snippet<[string | undefined]>} [actions] - The action Buttons, after the cost; it gets the tint for a primary Button, the track's colour in the optional tone and undefined otherwise (#117)
 	 * @property {import('svelte').Snippet} [note] - Drawn after the heading, on its line, such as the footer's "Just now" line with Show again (#153)
-	 * @property {import('svelte').Snippet} [reveal] - Drawn before the turn label, in the group whose hover and focus open it, such as the IncomeReveal (#122)
+	 * @property {import('svelte').Snippet} [reveal] - Drawn first on the right, before the cost and the actions, such as the IncomeReveal (#122, #174)
 	 */
 
 	/**
@@ -70,7 +70,9 @@
 	let waiting = $derived(tone === 'waiting');
 	let showCost = $derived(!waiting && Boolean(cost?.length));
 	let showActions = $derived(
-		!waiting && tone !== 'income' && (showCost || Boolean(actions))
+		!waiting &&
+			tone !== 'income' &&
+			(showCost || Boolean(actions) || Boolean(reveal))
 	);
 </script>
 
@@ -82,9 +84,6 @@
 	style:--rg-turn-bar-label={labelColor}>
 	<div class="rg-turn-bar--copy">
 		<div class="rg-turn-bar--lead">
-			{#if reveal}
-				{@render reveal()}
-			{/if}
 			<span class="rg-turn-bar--label">{label}</span>
 		</div>
 		<div
@@ -110,6 +109,13 @@
 	</div>
 	{#if showActions}
 		<div class="rg-turn-bar--actions">
+			{#if reveal}
+				<div
+					class="rg-turn-bar--reveal"
+					class:rg-turn-bar--reveal-alone={!showCost && !actions}>
+					{@render reveal()}
+				</div>
+			{/if}
 			{#if showCost && cost}
 				<span class="rg-turn-bar--cost">
 					<CostBox
@@ -199,7 +205,7 @@
 
 	.rg-turn-bar--label {
 		color: var(--rg-turn-bar-label, var(--gold));
-		font: italic var(--weight-title) var(--font-size-xl) /
+		font: italic var(--weight-title) var(--font-size-2xl) /
 			var(--leading-none) var(--font-title);
 		white-space: nowrap;
 	}
@@ -281,5 +287,19 @@
 		grid-auto-columns: minmax(126px, auto);
 		grid-auto-flow: column;
 		gap: var(--space-4);
+	}
+
+	/* Take income stands first among the actions, a rule between it and the cost and the buttons that follow. */
+	.rg-turn-bar--reveal {
+		display: flex;
+		align-items: center;
+		min-width: 0;
+		padding-right: var(--space-7);
+		border-right: var(--border) solid var(--line);
+	}
+
+	.rg-turn-bar--reveal-alone {
+		padding-right: 0;
+		border-right: 0;
 	}
 </style>

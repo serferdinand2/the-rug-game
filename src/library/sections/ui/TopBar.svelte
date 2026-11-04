@@ -138,6 +138,15 @@
 			controls={gameControls} />
 	</Example>
 	<Example
+		label={'center={player chips} controls={…} yours  (the viewer has a decision to make)'}
+		surface="chrome"
+		wide>
+		<TopBar
+			center={chips}
+			controls={gameControls}
+			yours />
+	</Example>
+	<Example
 		label={'center={filled player chips} controls={…} divider={false}  (over the player overview)'}
 		surface="chrome"
 		wide>
