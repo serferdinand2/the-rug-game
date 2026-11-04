@@ -3,7 +3,7 @@ import { ASSETS } from './art/catalog.js';
 
 /**
  * One card of a fan: a picture and its name.
- * @typedef {{ name: string, art: string }} FanCard
+ * @typedef {{ name: string, art: string, titleSize: 'large' | 'small' }} FanCard
  */
 
 /**
@@ -19,7 +19,11 @@ function pick(group, count, random) {
 	const cards = [];
 	while (cards.length < count && pool.length > 0) {
 		const [asset] = pool.splice(random(pool.length), 1);
-		cards.push({ name: asset.name, art: asset.id });
+		cards.push({
+			name: asset.name,
+			art: asset.id,
+			titleSize: group === 'civ' ? 'large' : 'small',
+		});
 	}
 	return cards;
 }

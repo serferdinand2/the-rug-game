@@ -16,6 +16,7 @@
 </script>
 
 <script>
+	import CardBand from '../player/CardBand.svelte';
 	import { artUrl } from '../../ui.js';
 
 	/** @type {ArtFanProps} */
@@ -31,7 +32,10 @@
 			class="rg-art-fan--card"
 			class:rg-art-fan--middle={index === 1}
 			style:--rg-art-fan-index={index}>
-			<figcaption class="rg-art-fan--name">{card.name}</figcaption>
+			<CardBand
+				class="rg-art-fan--band"
+				title={card.name}
+				size={card.titleSize} />
 			<img
 				class="rg-art-fan--art"
 				src={artUrl(card.art)}
@@ -44,9 +48,11 @@
 <style>
 	/* Three cards from one point below them, tilted −12°, 0° and 12°, the middle one a little higher. */
 	.rg-art-fan {
+		--rg-art-fan-card-width: 255px;
+		--rg-art-fan-picture-side: 237px;
 		position: relative;
-		width: 300px;
-		height: 300px;
+		width: 350px;
+		height: 320px;
 		pointer-events: none;
 	}
 
@@ -55,14 +61,17 @@
 		--rg-art-fan-shift: calc((var(--rg-art-fan-index) - 1) * 40px);
 		position: absolute;
 		top: 0;
-		left: 62px;
+		left: calc((350px - var(--rg-art-fan-card-width)) / 2);
 		display: grid;
 		gap: var(--space-3);
-		width: 176px;
+		width: var(--rg-art-fan-card-width);
+		max-width: var(--rg-art-fan-card-width);
 		margin: 0;
-		padding: var(--space-4) var(--space-4) var(--space-5);
+		padding: 0 var(--space-4) var(--space-5);
 		border: var(--border) solid var(--card-line-strong);
-		background: var(--card-paper);
+		background: var(--card-paper)
+			url('../../../styles/card-paper-noise.svg') repeat;
+		background-size: 256px 256px;
 		box-shadow: var(--shadow-float);
 		transform: translateX(var(--rg-art-fan-shift))
 			rotate(var(--rg-art-fan-turn));
@@ -73,19 +82,27 @@
 		transform: translateY(-14px);
 	}
 
-	/* The name on a card band, as the game's cards carry theirs. */
-	.rg-art-fan--name {
+	/* The full-height top band uses the shared card title and texture; the image stays inset. */
+	:global(.rg-art-fan--band) {
+		min-height: 49px;
+		margin-inline: calc(-1 * var(--space-4));
+		padding-inline: var(--space-6);
+	}
+
+	:global(.rg-art-fan--band.rg-card-band--large) {
+		padding-block: var(--space-4);
+	}
+
+	:global(.rg-art-fan--band.rg-card-band--large .rg-card-band--title) {
+		font-size: 25.2px;
+	}
+
+	:global(.rg-art-fan--band.rg-card-band--small .rg-card-band--title) {
+		font-size: 18.9px;
+	}
+
+	:global(.rg-art-fan--band .rg-card-band--title) {
 		overflow: hidden;
-		padding: var(--space-2) var(--space-3);
-		background: linear-gradient(
-			90deg,
-			var(--card-band-start),
-			var(--card-band-middle),
-			var(--card-band-end)
-		);
-		color: var(--card-title);
-		font: var(--weight-title) var(--font-size-md) / var(--leading-tight)
-			var(--font-title);
 		white-space: nowrap;
 		text-overflow: ellipsis;
 	}
@@ -93,6 +110,7 @@
 	.rg-art-fan--art {
 		display: block;
 		width: 100%;
+		max-width: var(--rg-art-fan-picture-side);
 		aspect-ratio: 1;
 		border: var(--border-thick) solid var(--card-art-frame);
 		image-rendering: pixelated;

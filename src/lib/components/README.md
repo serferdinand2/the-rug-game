@@ -34,7 +34,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | Component | Purpose |
 |---|---|
 | `Badge` | Expansion tags tinted with their colour, and the YOU, HOST and READY capitals. |
-| `ArtFan` | Three pictures laid as cards in a fan, tilted −12°, 0° and 12° (#174); the landing page and the lobby show two beside their panels, picked by `artFans()`. |
+| `ArtFan` | Three pictures laid as cards in a fan, tilted −12°, 0° and 12° (#174); the landing page and the lobby show two beside their panels, picked by `artFans()`. Each card has a full-width, textured 49 px `CardBand` with the playable family’s title size reduced by 10%: large for civilizations, small for landmarks and tapestries. The inset artwork is capped at 237 px square (1.5× its prior 158 px minimum), in a 255 px frame. |
 | `Button` | Every button: `primary`, `secondary`, `gold`, `confirm` (a decision panel's solid gold Confirm, #65), `success` or `danger`, in three sizes, with a `selected` toggle state; a `tint` from `trackColor` takes a track's colour into `primary` and `confirm`, so no bar restyles it (#117); `aria-disabled` dims it as `disabled` does but keeps it clickable (#97). |
 | `Dialog` | A dialog over a scrim, `narrow` or `wide`: a title, the content and Close or its own `actions`. Escape, Close and the backdrop close it; it takes the focus and gives it back. Modal, it covers the screen and keeps Tab inside; with `modal={false}`, it covers its positioned parent only, as Table settings over the board (#87). |
 | `Divider` | A thin rule, optionally paused by a short italic label such as "or join friends". |

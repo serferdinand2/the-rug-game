@@ -221,6 +221,11 @@
 		width: min(var(--launch-width), 100%);
 	}
 
+	.rg-landing--stack :global(.rg-panel) {
+		position: relative;
+		z-index: 1;
+	}
+
 	/* The card fans lie beside the panels, outside the stack's flow. */
 	.rg-landing--stack :global(.rg-landing--fan) {
 		position: absolute;

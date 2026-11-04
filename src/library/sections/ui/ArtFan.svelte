@@ -14,9 +14,9 @@
 		width={360}>
 		<ArtFan
 			cards={[
-				{ name: 'Alchemists', art: 'civ/alchemists' },
-				{ name: 'Mystics', art: 'civ/mystics' },
-				{ name: 'Traders', art: 'civ/traders' },
+				{ name: 'Alchemists', art: 'civ/alchemists', titleSize: 'large' },
+				{ name: 'Mystics', art: 'civ/mystics', titleSize: 'large' },
+				{ name: 'Traders', art: 'civ/traders', titleSize: 'large' },
 			]} />
 	</Example>
 	<Example
@@ -24,9 +24,9 @@
 		width={360}>
 		<ArtFan
 			cards={[
-				{ name: 'Lighthouse', art: 'landmark/lighthouse' },
-				{ name: 'Renaissance', art: 'tapestry/renaissance' },
-				{ name: 'Alliance', art: 'tapestry/alliance' },
+				{ name: 'Lighthouse', art: 'landmark/lighthouse', titleSize: 'small' },
+				{ name: 'Renaissance', art: 'tapestry/renaissance', titleSize: 'small' },
+				{ name: 'Alliance', art: 'tapestry/alliance', titleSize: 'small' },
 			]} />
 	</Example>
 </Section>

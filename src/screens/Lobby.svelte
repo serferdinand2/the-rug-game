@@ -391,6 +391,11 @@
 		gap: var(--space-5);
 	}
 
+	.rg-lobby--top :global(.rg-panel) {
+		position: relative;
+		z-index: 1;
+	}
+
 	.rg-lobby--top :global(.rg-lobby--mode-panel) {
 		display: flex;
 		align-items: center;
