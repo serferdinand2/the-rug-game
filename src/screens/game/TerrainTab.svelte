@@ -1,4 +1,4 @@
-<!-- The Terrain tab's territory tiles in hand and space tiles. -->
+<!-- The Terrain tab's territory tiles in hand and space tiles; a tile drawn while the tab is open is dealt in with a whoosh (#176). -->
 <script module>
 	/** @typedef {import('../../lib/area/terrain.js').HeldTerritory} HeldTerritory */
 	/** @typedef {import('../../lib/area/terrain.js').SpaceEntry} SpaceEntry */
@@ -41,9 +41,19 @@
 	import { tileWords } from '../../lib/area/explore.js';
 	import { spacePlace } from '../../lib/area/terrain.js';
 	import TilePicker from '../../lib/components/prompts/TilePicker.svelte';
+	import { onMount } from 'svelte';
+	import { dealIn } from '../../lib/transitions.js';
 
 	/** @type {TerrainTabProps} */
 	let { terrain, tilePick = null, onTerrainTabPick, ...attr } = $props();
+
+	/** Whether the tab has shown its first tiles: after it, a space tile drawn is dealt in (#176). */
+	let shown = false;
+	onMount(() => {
+		const frame = requestAnimationFrame(() => (shown = true));
+		return () => cancelAnimationFrame(frame);
+	});
+	const spaceDeal = dealIn({ when: () => shown });
 
 	let territories = $derived(
 		terrain.territories.map((tile) => ({
@@ -84,6 +94,7 @@
 			selected={tilePick?.selected ?? null}
 			disabled={tilePick?.disabled ?? []}
 			dataIdPrefix="terrain-tile"
+			deal="drawn"
 			onTilePickerSelect={tilePickerSelectHandler} />
 	{:else}
 		<p class="rg-player-tabs--note">No territory tiles in hand.</p>
@@ -92,7 +103,9 @@
 	{#if terrain.space.length}
 		<div class="rg-player-tabs--tiles">
 			{#each terrain.space as tile (tile.id)}
-				<figure class="rg-player-tabs--space">
+				<figure
+					class="rg-player-tabs--space"
+					{@attach spaceDeal}>
 					<img
 						src={artUrl(tile.art)}
 						alt="Space tile {tile.id}"

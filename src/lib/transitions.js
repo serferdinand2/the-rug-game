@@ -1,6 +1,7 @@
-// The game's transitions (#175): Svelte transitions and the track token's hop, each timed by the motion tokens and still under reduced motion.
+// The game's transitions (#175): Svelte transitions, the track token's hop and the deal of cards and tiles (#176), each timed by the motion tokens and still under reduced motion.
 import { flip } from 'svelte/animate';
 import { msOf, prefersReducedMotion } from './motion.js';
+import { soundCue } from './sound.js';
 
 /**
  * The page's window, or none in Node: what motion.js reads reduced motion from, and the page's styles.
@@ -262,5 +263,144 @@ export function tokenHop(position, view = pageView()) {
 			marker.style.transitionDuration = '';
 			marker.style.transitionTimingFunction = '';
 		}, plan.totalMs);
+	};
+}
+
+/** The deal's own ease (#176): fast off the deck, settling softly into place. */
+const DEAL_EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
+
+/** How far a card turns as it leaves the deck, in degrees. */
+const DEAL_TURN = -14;
+
+/**
+ * The offset a dealt card flies in from (#176): every card of a row leaves the same deck point, `reach` px left of the
+ * row's start and `drop` px below its top, so a card further along the row travels further.
+ * @param {{ left: number, top: number }} card - The card's box on the page
+ * @param {{ left: number, top: number }} row - Its row's box
+ * @param {{ reach?: number, drop?: number }} [options]
+ * @returns {{ dx: number, dy: number }}
+ */
+export function deckOffset(card, row, { reach = 320, drop = 60 } = {}) {
+	return { dx: row.left - reach - card.left, dy: row.top + drop - card.top };
+}
+
+/**
+ * A dealt card's flight, for the Web Animations API: from the deck, turned and unseen, showing within its first fifth,
+ * to where it rests.
+ * @param {{ dx: number, dy: number }} from
+ * @returns {Keyframe[]}
+ */
+export function dealFrames({ dx, dy }) {
+	return [
+		{
+			transform: `translate(${dx}px, ${dy}px) rotate(${DEAL_TURN}deg)`,
+			opacity: 0,
+		},
+		{ opacity: 1, offset: 0.2 },
+		{ transform: 'none', opacity: 1 },
+	];
+}
+
+/**
+ * When the nth card of a deal leaves the deck (#176): 130 ms apart for the first five, 60 ms apart after them, and
+ * none later than 900 ms, so a long shelf doesn't keep anyone waiting.
+ * @param {number} index - The card's place in the deal, from 0
+ * @returns {number} Milliseconds
+ */
+export function dealDelay(index) {
+	const at = index <= 4 ? index * 130 : 520 + (index - 4) * 60;
+	return Math.min(Math.max(at, 0), 900);
+}
+
+/**
+ * A deal: the cards and tiles that appear within 120 ms of one another, wherever they are, are dealt in turn.
+ * @returns {{ next: (now: number) => number, place: () => number }} next gives a card's delay; place, the last card's place in its deal
+ */
+export function createDealQueue() {
+	let last = -Infinity;
+	let count = 0;
+	return {
+		next(now) {
+			if (now - last > 120) {
+				count = 0;
+			}
+			last = now;
+			const delay = dealDelay(count);
+			count += 1;
+			return delay;
+		},
+		place: () => count - 1,
+	};
+}
+
+/** The page's one deal queue, which every row shares. */
+const DEALS = createDealQueue();
+
+/** Each whoosh's rate in turn, so a deal doesn't sound like one sample repeated. */
+const RATES = [1, 1.07, 0.94, 1.12];
+
+/**
+ * @typedef {Object} DealOptions
+ * @property {MotionView} [view] - The page's window; none in Node
+ * @property {ReturnType<typeof createDealQueue>} [queue] - The deal the card joins; the page's by default
+ * @property {() => number} [now] - The time, performance.now() by default
+ * @property {(cue: 'deal', options: { rate: number }) => void} [sound] - Sounds the whoosh; soundCue by default
+ * @property {() => boolean} [when] - Whether the list now deals what appears: false while it first shows, for a list
+ *   such as the hand that deals only what is drawn later; left out, everything is dealt as it shows, as on a shelf
+ */
+
+/**
+ * Where the card flies from, when, and its whoosh, or null when nothing moves (reduced motion).
+ * @param {any} node
+ * @param {DealOptions} options
+ */
+function dealOf(
+	node,
+	{ view = pageView(), queue = DEALS, now, sound = soundCue }
+) {
+	const duration = motionMs('slow', view);
+	if (duration === 0) {
+		return null;
+	}
+	const delay = queue.next(
+		now ? now() : typeof performance === 'undefined' ? 0 : performance.now()
+	);
+	const rate = RATES[queue.place() % RATES.length];
+	const box = node.getBoundingClientRect();
+	const row = node.parentElement?.getBoundingClientRect?.() ?? box;
+	const timer = setTimeout(() => sound('deal', { rate }), delay);
+	return { duration, delay, from: deckOffset(box, row), timer };
+}
+
+/** The cards already dealt, so a redraw deals none of them again. */
+const dealtCards = new WeakSet();
+
+/**
+ * A Svelte attachment for a card or tile (#176): it is dealt in once, flying from the deck point of its row (its parent)
+ * after the cards before it in the deal, with a whoosh as it leaves. A shelf deals what it shows; a list given `when`,
+ * such as the hand, deals only what is drawn while it is on show. Nothing moves or sounds under reduced motion.
+ * @param {DealOptions} [options]
+ * @returns {(node: any) => void}
+ */
+export function dealIn(options = {}) {
+	return (node) => {
+		if (dealtCards.has(node)) {
+			return;
+		}
+		dealtCards.add(node);
+		if (options.when && !options.when()) {
+			return;
+		}
+		const deal =
+			typeof node.animate === 'function' ? dealOf(node, options) : null;
+		if (!deal) {
+			return;
+		}
+		node.animate(dealFrames(deal.from), {
+			duration: deal.duration,
+			delay: deal.delay,
+			easing: DEAL_EASE,
+			fill: 'backwards',
+		});
 	};
 }

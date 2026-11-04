@@ -1,6 +1,6 @@
-// Sound cues (#29 design §7): the one cue a batch of fresh events earns, and a small Web Audio player for the five CC0 interface sounds Bird Table uses.
+// Sound cues (#29 design §7): the one cue a batch of fresh events earns, a small Web Audio player for the five CC0 interface sounds Bird Table uses, and the shared player a component sounds a cue through (#176).
 
-/** @typedef {'turn' | 'move' | 'place' | 'reward' | 'over' | 'dice'} Cue */
+/** @typedef {'turn' | 'move' | 'place' | 'reward' | 'over' | 'dice' | 'deal'} Cue */
 
 /**
  * The file each cue plays, in static/audio/ as .ogg (Kenney's Interface Sounds 1.0, CC0).
@@ -14,6 +14,9 @@ export const CUES = Object.freeze({
 	over: 'confirmation_004',
 	// A roll (#61): our own clatter, synthesized by tools/audio/dice-roll.mjs in time with Die's tumble.
 	dice: 'dice_roll',
+	// A card or tile dealt in (#176): our own whoosh, synthesized by tools/audio/card-whoosh.mjs. No event earns it; the
+	// card sounds it as it leaves the deck, through soundCue().
+	deal: 'card_whoosh',
 });
 
 /** The events that earn each cue; the first cue in this list that a batch earns plays. */
@@ -99,7 +102,7 @@ export function cueFor(events, seat) {
  * A player for the cues. Audio needs a gesture before it may start, so `unlock` runs on the first click or key;
  * a missing or undecodable file is skipped, and nothing it does ever throws.
  * @param {{ base?: string }} [options] - Where the files are, '/audio/' by default
- * @returns {{ unlock: () => void, play: (cue: Cue) => void }}
+ * @returns {{ unlock: () => void, play: (cue: Cue, options?: { rate?: number }) => void }}
  */
 export function createSoundPlayer({ base = '/audio/' } = {}) {
 	/** @type {AudioContext | null} */
@@ -146,8 +149,11 @@ export function createSoundPlayer({ base = '/audio/' } = {}) {
 		}
 	};
 
-	/** @param {Cue} cue */
-	const play = (cue) => {
+	/**
+	 * @param {Cue} cue
+	 * @param {{ rate?: number }} [options] - The playback rate, so a row of the same cue doesn't sound like one sample
+	 */
+	const play = (cue, { rate = 1 } = {}) => {
 		const buffer = buffers.get(cue);
 		if (!context || !buffer || context.state !== 'running') {
 			return;
@@ -157,6 +163,7 @@ export function createSoundPlayer({ base = '/audio/' } = {}) {
 			const gain = context.createGain();
 			gain.gain.value = 0.25;
 			source.buffer = buffer;
+			source.playbackRate.value = rate;
 			source.connect(gain);
 			gain.connect(context.destination);
 			source.start();
@@ -166,4 +173,29 @@ export function createSoundPlayer({ base = '/audio/' } = {}) {
 	};
 
 	return { unlock, play };
+}
+
+/**
+ * The shared player and whether sound is on, which App hands over (#176); none in Node and the component library.
+ * @type {{ play: (cue: Cue, options?: { rate?: number }) => void, enabled: () => boolean } | null}
+ */
+let shared = null;
+
+/**
+ * Shares the game's player, so a component can sound a cue that no event carries, such as a card dealt (#176).
+ * @param {{ play: (cue: Cue, options?: { rate?: number }) => void, enabled: () => boolean } | null} player - App's player and its sound switch; null to stop
+ */
+export function shareSounds(player) {
+	shared = player;
+}
+
+/**
+ * Sounds a cue through the shared player, while sound is on; otherwise nothing.
+ * @param {Cue} cue
+ * @param {{ rate?: number }} [options]
+ */
+export function soundCue(cue, options) {
+	if (shared?.enabled()) {
+		shared.play(cue, options);
+	}
 }

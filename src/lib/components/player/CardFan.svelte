@@ -1,4 +1,4 @@
-<!-- CardFan: cards laid side by side and overlapping; the hovered or focused one rises to the front without moving the others. A shelf's cards are dealt in one after another, a card gained later rises in, and the others close up when one goes (#175). -->
+<!-- CardFan: cards laid side by side and overlapping; the hovered or focused one rises to the front without moving the others. A shelf's cards are dealt in from a deck one after another with a whoosh, a card drawn later is dealt in the same way (#176), and the others close up when one goes (#175). -->
 <script module>
 	/**
 	 * Properties of the CardFan component itself.
@@ -34,7 +34,8 @@
 <script>
 	import { ComponentEvent } from '../../component-event.js';
 	import { FAN_ROWS, fanRows } from '../../cards/card-sizes.js';
-	import { glide, listKeys, rise } from '../../transitions.js';
+	import { onMount } from 'svelte';
+	import { dealIn, glide, listKeys } from '../../transitions.js';
 
 	/** @type {CardFanProps} */
 	let {
@@ -70,6 +71,16 @@
 							: '·'
 					)
 				)
+	);
+
+	/** Whether the fan has shown its first cards: a shelf deals every card, other fans only those drawn later (#176). */
+	let shown = false;
+	onMount(() => {
+		const frame = requestAnimationFrame(() => (shown = true));
+		return () => cancelAnimationFrame(frame);
+	});
+	let deal = $derived(
+		look === 'shelf' ? dealIn() : dealIn({ when: () => shown })
 	);
 
 	/** The fan's width, which a wrapped fan fills with rows. */
@@ -165,7 +176,6 @@
 				class="rg-card-fan--card"
 				class:rg-card-fan--selected={chosen(index)}
 				style:margin-left={margin(index)}
-				style:--rg-card-fan-index={index}
 				aria-pressed={selected === null ? undefined : chosen(index)}
 				aria-label={labels?.[index]}
 				disabled={disabled.includes(index)}
@@ -174,7 +184,7 @@
 				onfocus={(event) => cardEnterHandler(event, index)}
 				onblur={cardLeaveHandler}
 				onclick={(event) => cardClickHandler(event, index)}
-				in:rise={{ y: 18 }}
+				{@attach deal}
 				animate:glide>
 				{@render card(item, index)}
 			</button>
@@ -185,9 +195,8 @@
 				role="img"
 				class="rg-card-fan--card"
 				style:margin-left={margin(index)}
-				style:--rg-card-fan-index={index}
 				aria-label={labels?.[index]}
-				in:rise={{ y: 18 }}
+				{@attach deal}
 				animate:glide>
 				{@render card(item, index)}
 			</div>
@@ -268,20 +277,9 @@
 		outline-offset: var(--focus-offset);
 	}
 
-	/* A shelf's buttons keep the browser's button text, which whole cards such as civilizations inherit. As the shelf
-	   opens its cards are dealt in, 40 ms apart and all within 240 ms (issue 175). */
+	/* A shelf's buttons keep the browser's button text, which whole cards such as civilizations inherit. */
 	.rg-card-fan--shelf .rg-card-fan--card {
 		box-shadow: var(--shadow-float);
-		animation: rg-card-fan-deal var(--duration-medium) var(--ease-out)
-			backwards;
-		animation-delay: min(calc(var(--rg-card-fan-index, 0) * 40ms), 240ms);
-	}
-
-	@keyframes rg-card-fan-deal {
-		from {
-			opacity: 0;
-			transform: translateY(24px) rotate(-2deg);
-		}
 	}
 
 	.rg-card-fan--shelf .rg-card-fan--card:hover,
@@ -302,11 +300,5 @@
 
 	.rg-card-fan--flat .rg-card-fan--card.rg-card-fan--selected {
 		transform: none;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.rg-card-fan--shelf .rg-card-fan--card {
-			animation: none;
-		}
 	}
 </style>

@@ -33,7 +33,7 @@
 	import Landing from './screens/Landing.svelte';
 	import Lobby from './screens/Lobby.svelte';
 	import Results from './screens/Results.svelte';
-	import { createSoundPlayer, cueFor } from './lib/sound.js';
+	import { createSoundPlayer, cueFor, shareSounds } from './lib/sound.js';
 	import PageHeader from './screens/PageHeader.svelte';
 
 	/** @type {AppProps} */
@@ -169,6 +169,8 @@
 	};
 
 	const sound = createSoundPlayer();
+	// A card or tile dealt in sounds its whoosh through the same player and switch (#176).
+	shareSounds({ play: sound.play, enabled: () => store.sound });
 
 	// The card theme sits on the page, so every card takes it, wherever it is drawn (owner, 2026-11-02).
 	$effect(() => {

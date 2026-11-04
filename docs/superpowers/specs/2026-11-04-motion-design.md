@@ -26,7 +26,7 @@
 | Tracks ⇄ World Map (`Game`) | The board switched to fades in and settles from 98.5% (keyed by the board). | 220 ms |
 | Tabs (`Tabs`, every tab row) | The newly chosen tab's panel slides in 16 px from the side of the tab. | 220 ms |
 | Decision prompt (`DecisionPanel`) | The scrim fades; the panel rises 16 px from 98.5%; docked at the map, it slides in from the right; a new question in a panel that stays refreshes it. Minimizing hides it at once, and Show choice brings it back rising, from the footer's side. | 150 / 220 ms |
-| Shelf (`CardFan` on a shelf) | Its cards are dealt in from below, 40 ms apart, within 240 ms. | 220 ms each |
+| Shelf (`CardFan` on a shelf) | Its cards are dealt in from below, 40 ms apart, within 240 ms. Replaced by #176's deal from a deck with a whoosh. | 220 ms each |
 | Log, overview (`LogPanel`, `PlayersOverview`) | The log slides in from the right edge; the overview fades and its cards rise one after another. | 220 ms |
 | Dialogs (`Dialog`: How to play, Table settings, Help) | The backdrop fades; the box rises and grows from 98%. | 150 / 220 ms |
 | Menu (`Menu`) | Drops from its button; lifts away faster. | 150 / 140 ms |

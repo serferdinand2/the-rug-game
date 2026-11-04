@@ -1,5 +1,6 @@
 // Motion in Chromium (#175), with motion on: a track token hops and comes to rest on its space, a hand's cards come in
-// and close up, a prompt rises with its shelf dealt in, and a menu lifts away; each settles where it rests. Under
+// and close up, a prompt rises with its shelf dealt in from a deck one card after another (#176), and a menu lifts
+// away; each settles where it rests. Under
 // reduced motion nothing moves. The rest of the suite runs with reduced motion (playwright.config.js). The test uses
 // the component library only, so it opens no table.
 import { expect, test } from '@playwright/test';
@@ -12,9 +13,19 @@ test.beforeEach(async ({ page }) => {
 	await page.addInitScript(() => {
 		const started = new Set();
 		Object.defineProperty(window, 'rgMoved', { value: started });
+		// Each Web Animation's first frame and delay, by element, for the deal (#176).
+		const flights = new Map();
+		Object.defineProperty(window, 'rgFlights', { value: flights });
 		const animate = Element.prototype.animate;
 		Element.prototype.animate = function (...args) {
 			started.add(this);
+			const [frames, options] = args;
+			if (Array.isArray(frames) && typeof options === 'object') {
+				flights.set(this, {
+					from: String(frames[0]?.transform ?? ''),
+					delay: options.delay ?? 0,
+				});
+			}
 			return animate.apply(this, args);
 		};
 		for (const type of ['animationstart', 'transitionrun']) {
@@ -136,6 +147,40 @@ test('a prompt opened again rises over its scrim, deals its shelf in and rests a
 	const panel = again.locator('.rg-decision-panel--panel');
 	await expect(panel).toHaveCSS('opacity', '1');
 	expect(await panel.boundingBox()).toEqual(rest);
+});
+
+test('a shelf deals its cards in from a deck at the left, one after another (#176)', async ({
+	page,
+}) => {
+	await page.goto('/components.html#decision-panel');
+	const section = page.locator('#decision-panel');
+	await settled(section.locator('.rg-decision-panel').first());
+	await section.getByRole('button', { name: 'Open again' }).click();
+	const cards = section
+		.locator('.rg-decision-panel')
+		.first()
+		.locator('.rg-card-fan--card');
+	await expect(cards).toHaveCount(3);
+	const flights = () =>
+		cards.evaluateAll((all) =>
+			all.map(
+				(card) =>
+					/** @type {any} */ (window).rgFlights.get(card) ?? null
+			)
+		);
+	await expect.poll(async () => (await flights()).every(Boolean)).toBe(true);
+	const dealt = await flights();
+	expect(dealt.map((flight) => flight.delay)).toEqual([0, 130, 260]);
+	for (const flight of dealt) {
+		// Each leaves the deck turned, from the left of where it rests.
+		expect(flight.from).toMatch(
+			/^translate\(-\d+(\.\d+)?px, -?\d+(\.\d+)?px\) rotate\(-14deg\)$/
+		);
+	}
+	await settled(section.locator('.rg-decision-panel').first());
+	for (const card of await cards.all()) {
+		await expect(card).toHaveCSS('opacity', '1');
+	}
 });
 
 test('a menu lifts away when it closes and drops from its button when it opens (#175)', async ({

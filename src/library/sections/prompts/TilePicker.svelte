@@ -1,6 +1,7 @@
-<!-- Library section: TilePicker, the territory tiles in hand as pressable hexes, with the VP each scores on the chosen hex, and the Terrain tab's large tiles, some on offer. -->
+<!-- Library section: TilePicker, the territory tiles in hand as pressable hexes, with the VP each scores on the chosen hex, and the Terrain tab's large tiles, some on offer; tiles dealt in as the row shows, and one drawn into the Terrain tab (#176). -->
 <script>
 	import TilePicker from '../../../lib/components/prompts/TilePicker.svelte';
+	import Button from '../../../lib/components/ui/Button.svelte';
 	import { tilePreview, tileWords } from '../../../lib/area/explore.js';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
@@ -25,6 +26,11 @@
 	let reported = $state('');
 	/** The Terrain tab while paying 2 tiles: 4 in hand, 3 on offer. @type {number[]} */
 	let paying = $state([9]);
+	/** Counts the deals of the dealing example, so Deal again shows its row anew (#176). */
+	let deals = $state(0);
+	/** The drawing example's tiles in hand (#176): Draw a tile adds the next. */
+	const DECK = [3, 17, 40, 9, 22, 31];
+	let hand = $state([3, 17]);
 </script>
 
 <Section
@@ -130,5 +136,28 @@
 				(paying = paying.includes(event.value.tile)
 					? paying.filter((id) => id !== event.value.tile)
 					: [...paying, event.value.tile])} />
+	</Example>
+	<Example
+		label={'deal="show" tiles={4}  (press Deal again: the tiles are dealt in from a deck at the left one after another, each with a whoosh once a click has let sound start; #176)'}
+		surface="chrome">
+		<Button
+			size="small"
+			onButtonClick={() => (deals += 1)}>Deal again</Button>
+		{#key deals}
+			<TilePicker tiles={tilesOf([3, 17, 40, 9])} />
+		{/key}
+	</Example>
+	<Example
+		label={`size="large" deal="drawn" tiles={${hand.length}}  (the Terrain tab: the tiles it opens with stay still; press Draw a tile: the new one is dealt in; #176)`}
+		surface="surface">
+		<Button
+			size="small"
+			disabled={hand.length >= DECK.length}
+			onButtonClick={() => (hand = DECK.slice(0, hand.length + 1))}
+			>Draw a tile</Button>
+		<TilePicker
+			size="large"
+			deal="drawn"
+			tiles={tilesOf(hand)} />
 	</Example>
 </Section>

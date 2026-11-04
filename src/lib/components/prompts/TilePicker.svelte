@@ -1,4 +1,4 @@
-<!-- TilePicker: the territory tiles in a player's hand as a wrapping row of hexes, those on offer pressable, the picked one gold. -->
+<!-- TilePicker: the territory tiles in a player's hand as a wrapping row of hexes, those on offer pressable, the picked one gold; its tiles are dealt in from a deck with a whoosh, as it shows them or only as they are drawn (#176). -->
 <script module>
 	/**
 	 * One tile on offer.
@@ -22,6 +22,7 @@
 	 * @property {'small' | 'large'} [size='small'] - small: a 34px tile in an 88×80 frame on the raised fill, for the decision panel; large: the tile at 56px (112 px wide) in a frame that fits it, resting clear with a faint gold wash on hover, for the Terrain tab beside plain tiles (#93)
 	 * @property {number} [radius] - The large size's hex radius in pixels, from the tile's centre to a corner; 56 by default, the size the owner chose for the Terrain tab (#169). The small size ignores it
 	 * @property {string} [dataIdPrefix='tile'] - Starts each pressable tile's data-id, `${dataIdPrefix}-${id}`, so two pickers on one screen keep their hooks apart
+	 * @property {'show' | 'drawn'} [deal='show'] - show: every tile is dealt in as the row shows, as in a prompt; drawn: only a tile drawn while the row is on show, as in the Terrain tab (#176)
 	 * @property {Function} [onTilePickerSelect] - Callback fired with `{ tile }` when a tile is pressed
 	 */
 
@@ -42,6 +43,8 @@
 	import { ComponentEvent } from '../../component-event.js';
 	import { upToVp } from '../../hexmap.js';
 	import { territoryBenefit } from '../../area/terrain.js';
+	import { onMount } from 'svelte';
+	import { dealIn } from '../../transitions.js';
 
 	/** The large tile's hex radius: 112 px wide, the size the owner chose over the 72 px it had (#169). */
 	const LARGE_RADIUS = 56;
@@ -55,9 +58,20 @@
 		size = 'small',
 		radius = LARGE_RADIUS,
 		dataIdPrefix = 'tile',
+		deal = 'show',
 		onTilePickerSelect,
 		...attr
 	} = $props();
+
+	/** Whether the row has shown its first tiles, after which a row that deals only drawn tiles deals new ones (#176). */
+	let shown = false;
+	onMount(() => {
+		const frame = requestAnimationFrame(() => (shown = true));
+		return () => cancelAnimationFrame(frame);
+	});
+	let dealt = $derived(
+		deal === 'show' ? dealIn() : dealIn({ when: () => shown })
+	);
 
 	/** The tile's hex radius: the frame's 34px when small, `radius` or TerritoryTile's own when large. */
 	let tileSize = $derived(size === 'small' ? 34 : radius);
@@ -118,7 +132,8 @@
 				aria-label={labelOf(tile)}
 				title={territoryBenefit(tile.id).words}
 				data-id="{dataIdPrefix}-{tile.id}"
-				onclick={(event) => selectHandler(tile.id, event)}>
+				onclick={(event) => selectHandler(tile.id, event)}
+				{@attach dealt}>
 				{#if typeof tile.vp === 'number'}
 					<VpTag
 						value={tile.vp}
@@ -142,7 +157,8 @@
 				island={tile.island}
 				clouds={tile.clouds}
 				volcano={tile.volcano}
-				size={tileSize} />
+				size={tileSize}
+				{@attach dealt} />
 		{/if}
 	{/each}
 </div>

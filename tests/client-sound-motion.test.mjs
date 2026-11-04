@@ -3,7 +3,7 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { CUES, cueFor } from '../src/lib/sound.js';
+import { CUES, cueFor, shareSounds, soundCue } from '../src/lib/sound.js';
 import {
 	countAt,
 	highlights,
@@ -41,7 +41,9 @@ test("another player's turn starting is no cue for you, but at a hot-seat table 
 test('every cue has a sound file', () => {
 	const audio = fileURLToPath(new URL('../static/audio/', import.meta.url));
 	const files = readdirSync(audio);
-	for (const cue of ['turn', 'move', 'place', 'reward', 'over', 'dice']) {
+	for (const cue of /** @type {(keyof typeof CUES)[]} */ (
+		Object.keys(CUES)
+	)) {
 		assert.match(CUES[cue], /^[a-z_0-9]+$/);
 		assert.ok(files.includes(`${CUES[cue]}.ogg`), `${cue} has no file`);
 	}
@@ -201,4 +203,31 @@ test('a count runs from its old value to its new one, easing out, in whole numbe
 	assert.ok(countAt(0, 10, 0.5) > 5);
 	assert.equal(countAt(10, 4, 1), 4);
 	assert.ok(Number.isInteger(countAt(0, 7, 0.37)));
+});
+
+test('a component sounds a cue through the shared player, only while sound is on (#176)', () => {
+	/** @type {any[]} */
+	const heard = [];
+	let on = false;
+	soundCue('deal');
+	shareSounds({
+		play: (cue, how) => heard.push({ cue, ...how }),
+		enabled: () => on,
+	});
+	soundCue('deal', { rate: 1.1 });
+	assert.equal(heard.length, 0, 'silent while sound is off');
+	on = true;
+	soundCue('deal', { rate: 1.1 });
+	assert.deepEqual(heard, [{ cue: 'deal', rate: 1.1 }]);
+	shareSounds(null);
+	soundCue('deal');
+	assert.equal(heard.length, 1);
+	assert.equal(CUES.deal, 'card_whoosh');
+});
+
+test('dealing a card is no event cue: a batch of events never earns it (#176)', () => {
+	assert.notEqual(
+		cueFor([ev('tapestryCardGained'), ev('tileGained')], 1),
+		'deal'
+	);
 });
