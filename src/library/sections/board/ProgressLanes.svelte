@@ -1,4 +1,4 @@
-<!-- Library section: ProgressLanes with four players, with and without the faint preview token, at the start and the end, with five players sharing spaces, and a token hopping to its new space (#175). -->
+<!-- Library section: ProgressLanes with its viewer-only hover line, faint preview token, shared spaces, and token motion (#174, #175). -->
 <script>
 	import ProgressLanes from '../../../lib/components/board/ProgressLanes.svelte';
 	import Button from '../../../lib/components/ui/Button.svelte';
@@ -35,7 +35,7 @@
 <Section
 	name="ProgressLanes"
 	area="board"
-	description="The players' tokens under a track (#174): each player's token stands on the bottom edge of the space it reached, side by side when they share one, and a faint token shows on the next space while it is hovered. When a position changes, the token hops space by space, squashes as it lands and spreads a ring in its colour (#175): 170 ms a hop, the whole run within the focal 600 ms; nothing hops when a track first shows, nor with reduced motion.">
+	description="The players' tokens under a track (#174): each player's token stands on the bottom edge of the space it reached. Hovering a track space or token shows only the viewer's current progress in their colour with a glow in the track colour, underneath every token. A legal next space can still show its faint preview token. When a position changes, the token hops space by space, squashes as it lands and spreads a ring in its colour (#175): 170 ms a hop, the whole run within the focal 600 ms; nothing hops when a track first shows, nor with reduced motion.">
 	<Example
 		label={`players={You ${you}, Ana 2}  (press to advance or go back)`}
 		wide
@@ -72,6 +72,16 @@
 		wide
 		width={1428}>
 		<ProgressLanes {players} />
+	</Example>
+	<Example
+		label={'viewerSeat={1} hovered  (only You’s progress line)'}
+		wide
+		width={1428}>
+		<ProgressLanes
+			{players}
+			viewerSeat={1}
+			hovered
+			progressEnd={3.5 / 12} />
 	</Example>
 	<Example
 		label={'players={…} preview={1}'}

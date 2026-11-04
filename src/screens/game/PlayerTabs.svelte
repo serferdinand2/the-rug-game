@@ -58,7 +58,6 @@
 	import { tabsWithCounts } from '../../lib/area/tabs.js';
 	import { capitalView } from '../../lib/area/capital.js';
 	import {
-		currentEra,
 		defaultEra,
 		eraSlots,
 		incomeRows,
@@ -212,7 +211,6 @@
 				capitalSoon={words.capitalSoon}
 				{placement}
 				{fresh}
-				era={currentEra(eras)}
 				onCapitalTabPlace={own ? onPlayerTabsPlace : undefined} />
 		{:else if tab === 'hand'}
 			<h2 class="rg-player-tabs--title">{words.handHeading}</h2>

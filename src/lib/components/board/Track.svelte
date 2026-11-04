@@ -26,8 +26,9 @@
 	 * @property {TrackSpaceEntry[]} spaces - The twelve spaces, in order
 	 * @property {import('../../ui.js').CostSymbol[][]} tiers - The four tier prices, I–IV, each over three spaces
 	 * @property {TrackPlayer[]} players - The players at the table, one progress lane each
+	 * @property {import('../../ui.js').Seat | null} [viewerSeat=null] - The viewer's seat; hovering the track shows only their progress
 	 * @property {number[]} [available=[]] - Space numbers the viewer can advance to, outlined in green
-	 * @property {import('../../ui.js').Seat | null} [previewSeat=null] - The player taking the turn at this screen, whose dashed line a hovered or focused next space previews; null previews no line (#81)
+	 * @property {import('../../ui.js').Seat | null} [previewSeat=null] - The player taking the turn at this screen, whose faint token previews a hovered or focused legal next space; null previews no token (#81)
 	 * @property {number | null} [selectedSpace=null] - The selected space's number, outlined in gold; bindable
 	 * @property {{ space: number, color: string } | null} [lit=null] - A space another player just advanced to, lit in their colour (#153)
 	 * @property {Function} [onTrackSelect] - Callback fired with { track, space } when a space is chosen
@@ -44,6 +45,7 @@
 	 *   spaces={[{ name: 'Scouting' }, … , { name: 'Warpgates' }]}
 	 *   tiers={[['any'], ['food', 'any'], ['food', 'any', 'any'], ['food', 'food']]}
 	 *   players={[{ seat: 1, name: 'You', position: 4 }]}
+	 *   viewerSeat={1}
 	 *   previewSeat={1}
 	 *   bind:selectedSpace
 	 *   onTrackSelect={(event) => select(event.value)}
@@ -53,7 +55,7 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
-	import { TIER_SPACES, tierOf } from '../../track-shape.js';
+	import { TIER_SPACES, progressSpan, tierOf } from '../../track-shape.js';
 	import { trackColor, artUrl } from '../../ui.js';
 	import ProgressLanes from './ProgressLanes.svelte';
 	import TierPrice from './TierPrice.svelte';
@@ -66,6 +68,7 @@
 		spaces,
 		tiers,
 		players,
+		viewerSeat = null,
 		available = [],
 		previewSeat = null,
 		selectedSpace = $bindable(null),
@@ -80,10 +83,18 @@
 	let focusSpace = $state(null);
 
 	let hoveredSpace = $derived(pointerSpace ?? focusSpace);
+	let viewerProgress = $derived(
+		players.find((player) => player.seat === viewerSeat) ?? null
+	);
+	let viewerProgressEnd = $derived(
+		viewerProgress
+			? progressSpan(viewerProgress.position, spaces.length).end
+			: 0
+	);
 	let hoveredTier = $derived(
 		hoveredSpace === null ? null : tierOf(hoveredSpace)
 	);
-	// Only the player taking the turn sees their dashed line, when the hovered space is their next one (#81).
+	// Only the player taking the turn sees a faint token on their legal next space (#81).
 	let previewLine = $derived(
 		hoveredSpace !== null &&
 			players.some(
@@ -182,6 +193,9 @@
 	<div class="rg-track--lanes">
 		<ProgressLanes
 			{players}
+			{viewerSeat}
+			hovered={hoveredSpace !== null}
+			progressEnd={viewerProgressEnd}
 			preview={previewLine}
 			spaces={spaces.length} />
 	</div>

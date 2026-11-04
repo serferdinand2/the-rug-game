@@ -1,4 +1,4 @@
-<!-- EraNote: the tapestry card of the era a player is in, under their capital (#174): its name in gold and its text. -->
+<!-- EraNote: a compact current-era text note, kept as a component-library example; the live card is in the Eras tab. -->
 <script module>
 	/**
 	 * Properties of the EraNote component itself.

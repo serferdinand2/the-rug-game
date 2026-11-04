@@ -114,7 +114,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Prompt: placing a landmark | Prompt: the income turn |
 |---|---|
-| ![The Forge waiting for placement on the Capital tab (#79, #174): the panel at the tracks' centre with Place and its Enter key, and the To be placed tray with turn buttons and the , and . keys, above this era's card](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold: the card on the shelf above the panel, at the tracks' centre (#79)](docs/ui/screens/game-prompt-income.png) |
+| ![The Forge waiting for placement on the Capital tab (#79, #174): the panel at the tracks' centre with Place and its Enter key, and the To be placed tray with turn buttons and the , and . keys. Historical capture predates the owner's follow-up removing the era card from Capital.](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold: the card on the shelf above the panel, at the tracks' centre (#79)](docs/ui/screens/game-prompt-income.png) |
 
 | Prompt: paying for an advance, one row per resource | Prompt: paying a bonus with the tiles picked |
 |---|---|
