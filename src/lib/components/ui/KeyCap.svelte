@@ -20,7 +20,9 @@
 	let { key, ...attr } = $props();
 </script>
 
+<!-- Hidden from the button's name, which stays its word: the key repeats what How to play's shortcuts list. -->
 <kbd
+	aria-hidden="true"
 	{...attr}
 	class="rg-key-cap {attr.class ? attr.class : ''}">{key}</kbd>
 
