@@ -56,7 +56,7 @@ These components are updated as the art issues deliver their assets. Each will s
 
 | Component | Purpose |
 |---|---|
-| `AchievementStrip` | The three achievements on one line: claimants' colour squares in order and the next VP. |
+| `AchievementStrip` | The three achievements on one line, at the base size in gold-tinted chips (#174): claimants' colour squares in order and the next VP. |
 | `BoardSwitcher` | Advancement Tracks / World Map selector with its icons; the tracks icon has a band for every track it is given (#120). |
 | `ProgressLanes` | One progress line per player under a track, with the dashed preview to the next space; a line grows to its new space (#29). |
 | `TierPrice` | A tier's numeral and price over its three spaces; gold while one of them is hovered. |
@@ -128,7 +128,7 @@ These components are updated as the art issues deliver their assets. Each will s
 
 | Component | Purpose |
 |---|---|
-| `TableLog` | The table's log (#29): oldest first with the newest kept in view, a rule in the player's colour between turns, each entry marked with its player's colour; income turns gold, notices italic. |
+| `TableLog` | The table's log (#29): oldest first with the newest kept in view, a rule in the player's colour between turns, each entry marked with its player's colour; income turns gold, notices italic. Every turn but the last two folds to its main event and "+n more", which opens it (`foldTurns`, #174). |
 | `ScoreBoard` | The scores during play (#29): the players by VP, the viewer marked, each with VP by source and the tiebreak values of the table's rules. |
 
 ## results/

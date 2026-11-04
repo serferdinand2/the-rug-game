@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SILENT, eventText, logEntries } from '../src/lib/log.js';
+import { SILENT, eventText, foldTurns, logEntries } from '../src/lib/log.js';
 import {
 	civilizationName,
 	landmarkName,
@@ -882,4 +882,71 @@ test('with Plans & Ploys a trap only says it was played, as the attacker may sti
 		eventText(sample('responsePlayed'), GAME),
 		"Bo's trap stopped Ana's conquest of hex 1,2."
 	);
+});
+
+/**
+ * A log line for the fold tests.
+ * @param {number} seq
+ * @param {'turn' | 'income' | 'line' | 'notice'} kind
+ * @param {string} text
+ * @returns {import('../src/lib/log.js').LogEntry}
+ */
+const entry = (seq, kind, text) => ({ seq, player: 1, kind, text });
+
+test('the log folds every turn but the last two to its main event (#174)', () => {
+	const entries = [
+		entry(1, 'line', 'A new game began.'),
+		entry(2, 'line', 'Ana was dealt two capitals.'),
+		entry(3, 'turn', "Ana's turn."),
+		entry(4, 'line', 'Ana paid 1 food.'),
+		entry(5, 'line', 'Ana advanced to Rafts on Exploration.'),
+		entry(6, 'line', 'Ana explored hex 1,0.'),
+		entry(7, 'turn', "Bo's turn."),
+		entry(8, 'income', 'Bo began income turn 2.'),
+		entry(9, 'line', 'Bo gained 1 coin.'),
+		entry(10, 'turn', "Ana's turn."),
+		entry(11, 'line', 'Ana advanced to Wagons on Exploration.'),
+	];
+	const groups = foldTurns(entries);
+	assert.deepEqual(
+		groups.map((g) => [
+			g.head?.seq ?? null,
+			g.folded,
+			g.lead?.seq ?? null,
+			g.lines.length,
+		]),
+		[
+			[null, true, 1, 2],
+			[3, true, 5, 3],
+			[7, false, 8, 2],
+			[10, false, 11, 1],
+		]
+	);
+});
+
+test('a turn with one line, or none, stays open: there is nothing to fold (#174)', () => {
+	const entries = [
+		entry(1, 'turn', "Ana's turn."),
+		entry(2, 'line', 'Ana advanced to Rafts on Exploration.'),
+		entry(3, 'turn', "Bo's turn."),
+		entry(4, 'turn', "Ana's turn."),
+		entry(5, 'line', 'Ana gained 1 coin.'),
+		entry(6, 'turn', "Bo's turn."),
+	];
+	assert.deepEqual(
+		foldTurns(entries).map((g) => g.folded),
+		[false, false, false, false]
+	);
+	assert.deepEqual(foldTurns([]), []);
+});
+
+test("a folded turn's main event falls back to its first line (#174)", () => {
+	const entries = [
+		entry(1, 'turn', "Ana's turn."),
+		entry(2, 'line', 'Ana gained 1 coin.'),
+		entry(3, 'line', 'Ana gained 1 food.'),
+		entry(4, 'turn', "Bo's turn."),
+		entry(5, 'turn', "Ana's turn."),
+	];
+	assert.equal(foldTurns(entries)[0].lead?.seq, 2);
 });

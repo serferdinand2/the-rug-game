@@ -999,3 +999,46 @@ export function logEntries(events, game) {
 	}
 	return entries;
 }
+
+/**
+ * One turn of the log, and whether it shows folded to one line (#174).
+ * @typedef {Object} LogTurn
+ * @property {LogEntry | null} head - Its turn divider; null for the lines before the first turn, such as the deal
+ * @property {LogEntry[]} lines - Its lines, oldest first
+ * @property {LogEntry | null} lead - The line a folded turn shows: its main event
+ * @property {boolean} folded - Whether it shows as one line, with "+n more"
+ */
+
+/** The sentences of a turn's main event: an advance, a card played, an explore, a conquest, an invention. */
+const LEAD_WORDS = / (advanced to|played|explored|conquered|invented) /;
+
+/**
+ * The log by turns (#174): every turn but the last `open` folds to its main event, an income turn's start or the first
+ * line that advances, plays a card, explores, conquers or invents, else its first line. A turn of one line or none
+ * stays open, as there is nothing to fold.
+ * @param {readonly LogEntry[]} entries - Oldest first, as logEntries gives them
+ * @param {number} [open=2] - How many of the latest turns stay open
+ * @returns {LogTurn[]}
+ */
+export function foldTurns(entries, open = 2) {
+	/** @type {{ head: LogEntry | null, lines: LogEntry[] }[]} */
+	const turns = [];
+	for (const entry of entries) {
+		if (entry.kind === 'turn') {
+			turns.push({ head: entry, lines: [] });
+		} else if (turns.length === 0) {
+			turns.push({ head: null, lines: [entry] });
+		} else {
+			turns[turns.length - 1].lines.push(entry);
+		}
+	}
+	return turns.map((turn, index) => ({
+		...turn,
+		lead:
+			turn.lines.find((line) => line.kind === 'income') ??
+			turn.lines.find((line) => LEAD_WORDS.test(line.text)) ??
+			turn.lines[0] ??
+			null,
+		folded: index < turns.length - open && turn.lines.length > 1,
+	}));
+}

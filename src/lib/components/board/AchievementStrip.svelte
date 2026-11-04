@@ -56,8 +56,8 @@
 					<img
 						src={artUrl('symbol/victory-points')}
 						alt=""
-						width="16"
-						height="16"
+						width="20"
+						height="20"
 						draggable="false" />{achievement.vp}
 				{/if}
 			</span>
@@ -69,32 +69,34 @@
 	.rg-achievement-strip {
 		display: flex;
 		align-items: center;
-		gap: var(--space-6);
+		gap: var(--space-4);
 		margin: 0;
 		padding: 0;
 		list-style: none;
 		white-space: nowrap;
 	}
 
+	/* Readable at a glance: the base size, in a gold-tinted chip. */
 	.rg-achievement-strip--item {
 		display: flex;
 		align-items: center;
-		gap: var(--space-2);
-		padding: 3px var(--space-3);
-		border: var(--border) solid var(--line);
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-5);
+		border: var(--border) solid
+			color-mix(in srgb, var(--gold) 45%, var(--line));
 		border-radius: var(--radius);
-		background: var(--raised);
-		font: var(--weight-bold) var(--font-size-2xs) / var(--leading-none)
+		background: color-mix(in srgb, var(--gold) 10%, var(--control));
+		font: var(--weight-bold) var(--font-size-base) / var(--leading-none)
 			var(--font-body);
 	}
 
 	.rg-achievement-strip--name {
-		color: var(--muted);
+		color: var(--text);
 	}
 
 	.rg-achievement-strip--claim {
-		width: 10px;
-		height: 10px;
+		width: 12px;
+		height: 12px;
 		border: var(--border) solid var(--ink);
 		border-radius: 2px;
 	}
@@ -107,8 +109,8 @@
 	}
 
 	.rg-achievement-strip--vp img {
-		width: 16px;
-		height: 16px;
+		width: 20px;
+		height: 20px;
 		image-rendering: pixelated;
 	}
 </style>

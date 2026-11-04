@@ -1,4 +1,4 @@
-<!-- Library section: TableLog with a few turns of a game, and empty. -->
+<!-- Library section: TableLog with a few turns of a game, the oldest folded, and empty. -->
 <script>
 	import TableLog from '../../../lib/components/log/TableLog.svelte';
 	import Example from '../../Example.svelte';
@@ -57,8 +57,8 @@
 <Section
 	name="TableLog"
 	area="log"
-	description="The table's log: oldest first, the newest kept in view unless the reader scrolls back. A thin rule in the player's colour marks each turn; each entry starts with its player's colour; income turns are gold and notices (a timeout, an undo, the end) are italic.">
-	<Example label={'entries={a few turns}'}>
+	description="The table's log: oldest first, the newest kept in view unless the reader scrolls back. A thin rule in the player's colour marks each turn; each entry starts with its player's colour; income turns are gold and notices (a timeout, an undo, the end) are italic. Every turn but the last two folds to its main event and “+n more”, which opens it (#174): here Ana's.">
+	<Example label={'entries={a few turns}  (Ana’s turn folded: click it)'}>
 		<div
 			style="width: 420px; height: 320px; display: flex; flex-direction: column">
 			<TableLog entries={ENTRIES} />
