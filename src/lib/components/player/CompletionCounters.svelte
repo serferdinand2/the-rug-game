@@ -132,6 +132,7 @@
 		gap: var(--space-3);
 		margin-block-start: var(--space-3);
 		width: 100%;
+		container-type: inline-size;
 	}
 
 	.rg-completion-counters--counter {
@@ -195,11 +196,17 @@
 		line-height: var(--leading-none);
 	}
 
-	/* Each counter says what it counts. */
+	/* Each counter says what it counts, where there is room; a small capital keeps its marks and the titles. */
 	.rg-completion-counters--name {
 		overflow: hidden;
 		font-size: var(--font-size-sm);
 		white-space: nowrap;
 		text-overflow: ellipsis;
+	}
+
+	@container (max-width: 360px) {
+		.rg-completion-counters--name {
+			display: none;
+		}
 	}
 </style>

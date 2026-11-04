@@ -9,6 +9,7 @@ import {
 } from './game-names.js';
 import { countWords, joinList, ordinal } from './words.js';
 import { expansionBadges } from './lobby.js';
+import { capitalView } from './area/capital.js';
 
 /** @typedef {import('./engine/stack.js').VpSource} VpSource */
 /** @typedef {import('./ui.js').Seat} Seat */
@@ -301,4 +302,37 @@ export function scoreboard(game) {
 		row.tiebreak = tiebreakLine(row.landmark, row.resources);
 		return row;
 	});
+}
+
+/**
+ * A winner as the results show them (#174): their civilization's portrait and their capital as it ended.
+ * @typedef {Object} Winner
+ * @property {Seat} seat
+ * @property {string} name
+ * @property {string} civ - The civilization's name
+ * @property {string | null} civId - Its id, for its portrait; null without one
+ * @property {number} vp
+ * @property {import('./area/capital.js').CapitalView | null} capital
+ */
+
+/**
+ * The finished game's winners, each tied winner too; none before the result.
+ * @param {any} game - The game view
+ * @param {string} code - The table's code, which seeds the capital's terrain
+ * @returns {Winner[]}
+ */
+export function winners(game, code) {
+	return standings(game)
+		.filter((row) => row.winner)
+		.map((row) => {
+			const seat = game.seats[row.seat - 1] ?? {};
+			return {
+				seat: row.seat,
+				name: row.name,
+				civ: row.civ,
+				civId: seat.civs?.[0] ?? null,
+				vp: row.vp,
+				capital: seat.capital ? capitalView(seat, code) : null,
+			};
+		});
 }

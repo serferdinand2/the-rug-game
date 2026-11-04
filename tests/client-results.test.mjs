@@ -14,6 +14,7 @@ import {
 	tableFacts,
 	tieExplanations,
 	vpBreakdown,
+	winners,
 	yourResult,
 } from '../src/lib/results.js';
 
@@ -339,4 +340,43 @@ test("the table's expansions carry their name and their own colour, not gold (#1
 		{ name: 'Plans & Ploys', color: 'var(--plans-ploys)' },
 		{ name: 'Arts & Architecture', color: 'var(--arts-architecture)' },
 	]);
+});
+
+test('the winners show with their civilization and capital, a shared win each of them (#174)', () => {
+	const game = sharedWin();
+	game.seats[0].civs = ['alchemists'];
+	game.seats[1].civs = ['traders', 'mystics'];
+	const shown = winners(game, 'abcd1234');
+	assert.deepEqual(
+		shown.map(({ seat, name, civ, civId, vp }) => ({
+			seat,
+			name,
+			civ,
+			civId,
+			vp,
+		})),
+		[
+			{
+				seat: 1,
+				name: game.seats[0].name,
+				civ: 'Alchemists',
+				civId: 'alchemists',
+				vp: 87,
+			},
+			{
+				seat: 2,
+				name: game.seats[1].name,
+				civ: 'Traders',
+				civId: 'traders',
+				vp: 87,
+			},
+		]
+	);
+	for (const winner of shown) {
+		assert.ok(winner.capital, 'each winner has a capital to show');
+	}
+	assert.deepEqual(
+		winners({ ...game, result: null, events: [] }, 'abcd1234'),
+		[]
+	);
 });

@@ -1,4 +1,4 @@
-<!-- The results screen (#29 design §6), as Lazar's end screen: the final standings with where each player's VP came from, the viewer's result, how each tie was decided, the table's facts, and review, deal again or leave. -->
+<!-- The results screen (#29 design §6), as Lazar's end screen: the final standings with where each player's VP came from, the winner's civilization and capital (#174), the viewer's result, how each tie was decided, the table's facts, and review, deal again or leave. -->
 <script module>
 	/**
 	 * Properties of the Results screen itself.
@@ -22,6 +22,7 @@
 	import Button from '../lib/components/ui/Button.svelte';
 	import StandingRow from '../lib/components/results/StandingRow.svelte';
 	import TieSteps from '../lib/components/results/TieSteps.svelte';
+	import WinnerShowcase from '../lib/components/results/WinnerShowcase.svelte';
 	import PlayLayout from '../lib/components/ui/PlayLayout.svelte';
 	import TurnBar from '../lib/components/prompts/TurnBar.svelte';
 	import PageHeader from './PageHeader.svelte';
@@ -32,6 +33,7 @@
 		standings,
 		tableFacts,
 		tieExplanations,
+		winners,
 		yourResult,
 	} from '../lib/results.js';
 
@@ -44,6 +46,7 @@
 	let game = $derived(room.game);
 	let rows = $derived(standings(game));
 	let ties = $derived(tieExplanations(game));
+	let shownWinners = $derived(winners(game, room.code));
 	/** The viewer's seat online; at a hot-seat table the results belong to everyone, so the winners show instead. */
 	let you = $derived(store.viewer);
 	let result = $derived(yourResult(game, you));
@@ -133,6 +136,9 @@
 				{/each}
 			</div>
 			<p class="rg-results--note">{ruleNote(game)}</p>
+			<WinnerShowcase
+				class="rg-results--winner"
+				winners={shownWinners} />
 		</div>
 	{/snippet}
 
@@ -269,6 +275,10 @@
 	.rg-results--leaderboard {
 		display: grid;
 		gap: var(--space-4);
+	}
+
+	.rg-results--standings :global(.rg-results--winner) {
+		margin-top: var(--space-9);
 	}
 
 	.rg-results--note {
