@@ -12,6 +12,7 @@ import {
 	spotWords,
 } from '../src/lib/civ-card.js';
 import { SAMPLE_CIV_DATA } from '../src/lib/cards/reviewed-civilizations.js';
+import { civCard } from '../src/lib/cards/civ-cards.js';
 import { answer, startedGame } from './helpers/engine.mjs';
 
 /**
@@ -27,7 +28,7 @@ function table(civData) {
 	};
 }
 
-test('the ten civilizations whose cards show live state, six with choices on them', () => {
+test('the fourteen civilizations whose cards show live state, six with choices on them', () => {
 	assert.deepEqual(
 		[...CARD_CIVS],
 		[
@@ -41,6 +42,10 @@ test('the ten civilizations whose cards show live state, six with choices on the
 			'tinkerers',
 			'spies',
 			'utilitarians',
+			'traders',
+			'isolationists',
+			'heralds',
+			'inventors',
 		]
 	);
 });
@@ -344,6 +349,42 @@ test('a spot is worded by what it gives', () => {
 		'Give Bo a token, uncovering the 1 food square'
 	);
 	assert.equal(spotWords(slot('leaders'), { slot: null }, game), null);
+});
+
+test('a token reserve empties one square from the left for each token out: Traders, Isolationists, Heralds, Inventors (#180)', () => {
+	assert.deepEqual(civCardMarks('traders', { tokens: 4 }), {});
+	assert.deepEqual(civCardMarks('traders', { tokens: 3 }), {
+		token0: ['used'],
+	});
+	assert.deepEqual(civCardMarks('isolationists', { tokens: 1 }), {
+		token0: ['used'],
+		token1: ['used'],
+		token2: ['used'],
+	});
+	assert.deepEqual(civCardMarks('heralds', { tokens: 2, cards: [] }), {
+		token0: ['used'],
+		token1: ['used'],
+	});
+	assert.deepEqual(civCardMarks('inventors', { tokens: 0, cards: [] }), {
+		token0: ['used'],
+		token1: ['used'],
+		token2: ['used'],
+		token3: ['used'],
+	});
+});
+
+test("the Traders' card counts the token they placed, from the game's view (#180)", () => {
+	const game = table({ traders: { tokens: 3 } });
+	assert.deepEqual(civCardView(game, 1, 'traders').marks, {
+		token0: ['used'],
+	});
+	const recipe = civCard('traders', {
+		view: civCardView(game, 1, 'traders'),
+	});
+	assert.deepEqual(
+		recipe.sections.find((s) => s.pattern === 'tokenReserve')?.props,
+		{ count: 4, used: 1 }
+	);
 });
 
 test("the library's play state is drawn from sample data, as the reviewed illustration showed it", () => {

@@ -6,6 +6,10 @@ import { MERRYMAKERS_COLUMNS } from './engine/civs/merrymakers.js';
 import { MILITANTS_SPACES } from './engine/civs/militants.js';
 import { HISTORIANS_SQUARES } from './engine/civs/historians.js';
 import { MYSTICS_PROPHECIES } from './engine/civs/mystics.js';
+import { TRADERS_TOKENS } from './engine/civs/traders.js';
+import { ISOLATIONISTS_TOKENS } from './engine/civs/isolationists.js';
+import { HERALDS_TOKENS } from './engine/civs/heralds.js';
+import { INVENTORS_TOKENS } from './engine/civs/inventors.js';
 import { describeEffects } from './describe.js';
 import { seatName } from './game-names.js';
 
@@ -28,7 +32,8 @@ import { seatName } from './game-names.js';
 /**
  * The civilizations whose cards draw a seat's live state, in the order built: the first six's decisions are answered on
  * their card (#78); the Treasure Hunters', the Tinkerers' and the Spies' cards only mark the treasures and options
- * used, and the Utilitarians' the landmarks with a token beside them, as those are picked in the panel (#33).
+ * used, and the Utilitarians' the landmarks with a token beside them, as those are picked in the panel (#33); the
+ * Traders', the Isolationists', the Heralds' and the Inventors' cards empty a reserve square for each token out (#180).
  */
 export const CARD_CIVS = Object.freeze([
 	'entertainers',
@@ -41,7 +46,21 @@ export const CARD_CIVS = Object.freeze([
 	'tinkerers',
 	'spies',
 	'utilitarians',
+	'traders',
+	'isolationists',
+	'heralds',
+	'inventors',
 ]);
+
+/** The token reserves whose civData counts the tokens still on the card (#180), with how many each starts with. */
+const RESERVES = /** @type {Readonly<Record<string, number>>} */ (
+	Object.freeze({
+		traders: TRADERS_TOKENS,
+		isolationists: ISOLATIONISTS_TOKENS,
+		heralds: HERALDS_TOKENS,
+		inventors: INVENTORS_TOKENS,
+	})
+);
 
 /** The card each slot purpose is answered on. The Historians' tile to discard stays in the panel. */
 const CARD_OF_PURPOSE = /** @type {Readonly<Record<string, string>>} */ (
@@ -75,6 +94,12 @@ export function civCardMarks(civ, data) {
 	const mark = (/** @type {string} */ spot, /** @type {SpotMark} */ what) => {
 		(marks[spot] ??= []).push(what);
 	};
+	// Each token out has left the reserve, emptied from the left, as the Utilitarians' below.
+	if (Object.hasOwn(RESERVES, civ)) {
+		for (let i = 0; i < RESERVES[civ] - data.tokens; i++) {
+			mark(`token${i}`, 'used');
+		}
+	}
 	switch (civ) {
 		case 'entertainers':
 			mark(data.at, 'token');

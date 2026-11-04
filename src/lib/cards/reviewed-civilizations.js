@@ -66,6 +66,11 @@ export const SAMPLE_CIV_DATA = Object.freeze({
 	spies: { used: [], watching: [] },
 	// No token out yet; the library's live example shows two out (#33).
 	utilitarians: { active: [] },
+	// Tokens out, as the reviewed illustrations showed them (#180).
+	traders: { tokens: 2 },
+	isolationists: { tokens: 3 },
+	heralds: { tokens: 3, cards: [] },
+	inventors: { tokens: 3, cards: [] },
 });
 
 /**
@@ -103,15 +108,16 @@ export const SAMPLE_VIEWS = Object.freeze({
 	},
 	// Exploration and Science rolled.
 	alchemists: sample(['exploration', 'science'], 'token'),
-	isolationists: sample(['token0'], 'used'),
-	traders: sample(['token0', 'token1'], 'used'),
-	// One token sent, moving a card from an opponent's top row to your bottom row.
+	// One token sent, moving a card from an opponent's top row to your bottom row: the transfer is the illustration's
+	// own, which a live card doesn't draw.
 	inventors: {
-		marks: { token0: ['used'], transfer: ['token'] },
+		marks: {
+			...civCardMarks('inventors', SAMPLE_CIV_DATA.inventors),
+			transfer: ['token'],
+		},
 		choices: {},
 	},
 	futurists: sample([], 'token'),
-	heralds: sample(['token0'], 'used'),
 	nomads: sample([], 'token'),
 	'the-chosen': sample([], 'token'),
 	advisors: sample([], 'token'),

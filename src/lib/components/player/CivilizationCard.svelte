@@ -212,7 +212,9 @@
 					steps={section.props.steps}
 					{...section.props} />
 			{:else if section.pattern === 'tokenReserve'}
-				<CardTokenReserve {...section.props} />
+				<CardTokenReserve
+					{...section.props}
+					{seat} />
 			{:else if section.pattern === 'technologyTransfer'}
 				<CardTechnologyTransfer {...section.props} />
 			{:else if section.pattern === 'effects'}

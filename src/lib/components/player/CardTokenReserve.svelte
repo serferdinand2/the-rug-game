@@ -5,6 +5,7 @@
 	 * @property {number} [count=4] - Number of initial token squares
 	 * @property {number} [used=0] - Tokens already sent away, emptied from the left
 	 * @property {'blue' | 'red' | 'green' | 'yellow' | 'purple'} [color='blue'] - Player colour
+	 * @property {import('../../ui.js').Seat} [seat] - The card's player, whose colour the tokens take; wins over `color` (#180)
 	 */
 	/**
 	 * @typedef {CardTokenReserveOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} CardTokenReserveProps
@@ -14,6 +15,9 @@
 	 *   count={4}
 	 *   used={2}
 	 *   color="red" />
+	 * <CardTokenReserve
+	 *   used={1}
+	 *   seat={3} />
 	 */
 </script>
 
@@ -21,7 +25,7 @@
 	import CardSlot from './CardSlot.svelte';
 	import PlayerToken from './PlayerToken.svelte';
 	/** @type {CardTokenReserveProps} */
-	let { count = 4, used = 0, color = 'blue', ...attr } = $props();
+	let { count = 4, used = 0, color = 'blue', seat, ...attr } = $props();
 </script>
 
 <div
@@ -33,6 +37,7 @@
 			size={62}
 			>{#if i >= used}<PlayerToken
 					{color}
+					{seat}
 					size={26}
 					decorative />{/if}</CardSlot
 		>{/each}

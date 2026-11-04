@@ -185,8 +185,8 @@ export class PromptState {
 		return this.#now.offer;
 	}
 
-	/** A choice on the map: the board should show it. */
-	isMap = $derived(this.prompt?.layout === 'map');
+	/** A choice on the map, even one the capital leads (a Nomads placement): the board should show it (#180). */
+	isMap = $derived((this.prompt?.mapHexes.length ?? 0) > 0);
 	/** A choice on the tracks (#172): the board should show them. */
 	isTrack = $derived(this.prompt?.layout === 'track');
 	/** The spaces lit on the tracks, and the one chosen. */

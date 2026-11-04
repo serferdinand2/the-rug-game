@@ -21,4 +21,12 @@
 				used={2}
 				color="purple" />
 		</CardFrame></Example
+	><Example
+		label={'used={1} seat={2}  (a game seat: its colour, as on the map, #180)'}
+		width={425}
+		><CardFrame plain>
+			<CardTokenReserve
+				used={1}
+				seat={2} />
+		</CardFrame></Example
 	></Section>

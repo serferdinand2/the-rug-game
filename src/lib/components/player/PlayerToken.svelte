@@ -1,5 +1,20 @@
 <!-- PlayerToken: a player's token, by seat or by artwork colour; an extracted owner-reviewed card pattern. -->
 <script module>
+	import { artUrl, PLAYER_ART_COLORS } from '../../ui.js';
+
+	/**
+	 * A seat's token picture, or a named colour's: the one picture of a player token, which a token drawn where an
+	 * <img> can't go, such as on the World Map's SVG, uses too (#180).
+	 * @param {import('../../ui.js').Seat | undefined} seat
+	 * @param {'blue' | 'red' | 'green' | 'yellow' | 'purple'} [color='blue'] - Used where no seat is known
+	 * @returns {string}
+	 */
+	export function playerTokenUrl(seat, color = 'blue') {
+		return artUrl(
+			`piece/token-${seat === undefined ? color : PLAYER_ART_COLORS[seat - 1]}`
+		);
+	}
+
 	/**
 	 * @typedef {Object} PlayerTokenOwnProps
 	 * @property {import('../../ui.js').Seat} [seat] - The player's seat, which sets the colour; wins over `color`
@@ -15,7 +30,6 @@
 </script>
 
 <script>
-	import { artUrl, PLAYER_ART_COLORS } from '../../ui.js';
 	/** @type {PlayerTokenProps} */
 	let {
 		seat,
@@ -34,7 +48,7 @@
 <img
 	{...attr}
 	class="rg-player-token {attr.class ?? ''}"
-	src={artUrl(`piece/token-${art}`)}
+	src={playerTokenUrl(seat, color)}
 	width={size}
 	height={size}
 	alt={decorative ? '' : `${art} player token`}

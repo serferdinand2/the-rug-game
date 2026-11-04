@@ -539,3 +539,58 @@ test("the Spies' space is chosen on a lit space of the tracks, and Confirm sends
 		{ decision: 99, slot: { player: 2, track: 'military', space: 6 } },
 	]);
 });
+
+test('every decision placed on the map opens it: explore, conquer, an outpost, the Nomads and the Traders (#180)', () => {
+	const { game } = exploring();
+	const explore = exploring().decision;
+	/** @type {Record<string, any>} */
+	const decisions = {
+		explore,
+		conquer: {
+			id: 1,
+			kind: 'chooseConquer',
+			player: 1,
+			answers: [{ hex: '1_0' }],
+		},
+		outpost: {
+			id: 2,
+			kind: 'chooseHex',
+			player: 1,
+			options: ['1_0'],
+			answers: [{ hex: '1_0' }],
+		},
+		// The capital leads a Nomads placement, and the map's hexes are lit beside it (#28 review).
+		nomads: {
+			id: 3,
+			kind: 'choosePlacement',
+			player: 1,
+			building: 'house',
+			answers: [{ row: 0, col: 0 }, { hex: '1_0' }],
+		},
+		traders: {
+			id: 4,
+			kind: 'chooseSlot',
+			player: 1,
+			purpose: 'traders',
+			optional: true,
+			options: ['0_0', '1_0'],
+			answers: [{ slot: '0_0' }, { slot: '1_0' }, { slot: null }],
+		},
+	};
+	for (const [name, decision] of Object.entries(decisions)) {
+		const prompt = new PromptState(promptSource({ game, decision }));
+		assert.equal(prompt.isMap, true, name);
+	}
+	const income = new PromptState(
+		promptSource({
+			game,
+			decision: {
+				id: 5,
+				kind: 'chooseResource',
+				player: 1,
+				answers: [{ resource: 'coin' }],
+			},
+		})
+	);
+	assert.equal(income.isMap, false);
+});

@@ -31,6 +31,7 @@
 
 <script>
 	import TileBenefit from '../player/TileBenefit.svelte';
+	import { playerTokenUrl } from '../player/PlayerToken.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 	import { HEX_SIZE, fitBox, mapView } from '../../hexmap.js';
 	import {
@@ -220,12 +221,18 @@
 		{/if}
 		{#each hex.pieces as piece, i (i)}
 			{#if piece.kind === 'token'}
-				<circle
+				<!-- The civilization card's token picture, so a token placed reads as the one that left the card (#180), a
+				     little larger than its spot as the outposts are, to read beside them. -->
+				{@const tokenSize = piece.size * 1.4}
+				<image
 					class="rg-world-map--token"
-					cx={piece.x}
-					cy={piece.y}
-					r={piece.size * 0.42}
-					style:fill={playerColor(piece.seat)} />
+					href={playerTokenUrl(piece.seat)}
+					x={piece.x - tokenSize / 2}
+					y={piece.y - tokenSize / 2}
+					width={tokenSize}
+					height={tokenSize}
+					preserveAspectRatio="none"
+					aria-hidden="true" />
 			{:else}
 				{@const markSize = piece.capital
 					? piece.size
@@ -445,8 +452,7 @@
 	}
 
 	.rg-world-map--token {
-		stroke: var(--ink);
-		stroke-width: 1.2;
+		pointer-events: none;
 	}
 
 	.rg-world-map--mark {
