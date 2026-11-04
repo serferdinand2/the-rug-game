@@ -10,8 +10,9 @@
 
 ## The card's reserve
 
-- `civCardMarks()` marks `token0`, `token1`, … `used` for each token out (`TOKENS - data.tokens`), emptied from the left, for every civilization whose card has a reserve: the Traders, the Isolationists, the Heralds and the Inventors **(my call: the issue names the Traders; the other three had the same bug)**. They join `CARD_CIVS`, so their cards draw the seat's live state.
-- Their library samples move into `SAMPLE_CIV_DATA` (2, 3, 3 and 3 tokens left, as the reviewed illustrations showed). The Inventors' illustration keeps its technology-transfer token, which a live card doesn't draw **(my call)**.
+- `civCardMarks()` marks `token0`, `token1`, … `used` for each token out (`TOKENS - data.tokens`), emptied from the left, for the Traders, the Isolationists and the Heralds **(my call: the issue names the Traders; the other two had the same bug)**. They join `CARD_CIVS`, so their cards draw the seat's live state.
+- Their library samples move into `SAMPLE_CIV_DATA` (2, 3 and 3 tokens left, as the reviewed illustrations showed).
+- **The Inventors' card waits:** its reserve has the same bug, but the library requires a live card's sample to come from its civData alone, and its technology-transfer box shows a card the Inventors took, which their civData can't tell (it needs the seat's tech rows). Their reserve stays full in play until that is decided.
 - `CardTokenReserve` takes a `seat`, and `CivilizationCard` passes its own, so the reserve's tokens are in the seat's colour, as on the map; they were always blue before **(my call)**.
 
 ## The map's tokens

@@ -28,7 +28,7 @@ function table(civData) {
 	};
 }
 
-test('the fourteen civilizations whose cards show live state, six with choices on them', () => {
+test('the thirteen civilizations whose cards show live state, six with choices on them', () => {
 	assert.deepEqual(
 		[...CARD_CIVS],
 		[
@@ -45,7 +45,6 @@ test('the fourteen civilizations whose cards show live state, six with choices o
 			'traders',
 			'isolationists',
 			'heralds',
-			'inventors',
 		]
 	);
 });
@@ -351,7 +350,7 @@ test('a spot is worded by what it gives', () => {
 	assert.equal(spotWords(slot('leaders'), { slot: null }, game), null);
 });
 
-test('a token reserve empties one square from the left for each token out: Traders, Isolationists, Heralds, Inventors (#180)', () => {
+test('a token reserve empties one square from the left for each token out: Traders, Isolationists, Heralds (#180)', () => {
 	assert.deepEqual(civCardMarks('traders', { tokens: 4 }), {});
 	assert.deepEqual(civCardMarks('traders', { tokens: 3 }), {
 		token0: ['used'],
@@ -364,12 +363,6 @@ test('a token reserve empties one square from the left for each token out: Trade
 	assert.deepEqual(civCardMarks('heralds', { tokens: 2, cards: [] }), {
 		token0: ['used'],
 		token1: ['used'],
-	});
-	assert.deepEqual(civCardMarks('inventors', { tokens: 0, cards: [] }), {
-		token0: ['used'],
-		token1: ['used'],
-		token2: ['used'],
-		token3: ['used'],
 	});
 });
 

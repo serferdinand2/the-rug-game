@@ -70,7 +70,6 @@ export const SAMPLE_CIV_DATA = Object.freeze({
 	traders: { tokens: 2 },
 	isolationists: { tokens: 3 },
 	heralds: { tokens: 3, cards: [] },
-	inventors: { tokens: 3, cards: [] },
 });
 
 /**
@@ -108,13 +107,9 @@ export const SAMPLE_VIEWS = Object.freeze({
 	},
 	// Exploration and Science rolled.
 	alchemists: sample(['exploration', 'science'], 'token'),
-	// One token sent, moving a card from an opponent's top row to your bottom row: the transfer is the illustration's
-	// own, which a live card doesn't draw.
+	// One token sent, moving a card from an opponent's top row to your bottom row.
 	inventors: {
-		marks: {
-			...civCardMarks('inventors', SAMPLE_CIV_DATA.inventors),
-			transfer: ['token'],
-		},
+		marks: { token0: ['used'], transfer: ['token'] },
 		choices: {},
 	},
 	futurists: sample([], 'token'),

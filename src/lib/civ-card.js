@@ -9,7 +9,6 @@ import { MYSTICS_PROPHECIES } from './engine/civs/mystics.js';
 import { TRADERS_TOKENS } from './engine/civs/traders.js';
 import { ISOLATIONISTS_TOKENS } from './engine/civs/isolationists.js';
 import { HERALDS_TOKENS } from './engine/civs/heralds.js';
-import { INVENTORS_TOKENS } from './engine/civs/inventors.js';
 import { describeEffects } from './describe.js';
 import { seatName } from './game-names.js';
 
@@ -33,7 +32,8 @@ import { seatName } from './game-names.js';
  * The civilizations whose cards draw a seat's live state, in the order built: the first six's decisions are answered on
  * their card (#78); the Treasure Hunters', the Tinkerers' and the Spies' cards only mark the treasures and options
  * used, and the Utilitarians' the landmarks with a token beside them, as those are picked in the panel (#33); the
- * Traders', the Isolationists', the Heralds' and the Inventors' cards empty a reserve square for each token out (#180).
+ * Traders', the Isolationists' and the Heralds' cards empty a reserve square for each token out (#180). The Inventors'
+ * card waits: its transfer box shows a card they took, which their civData alone can't tell.
  */
 export const CARD_CIVS = Object.freeze([
 	'entertainers',
@@ -49,7 +49,6 @@ export const CARD_CIVS = Object.freeze([
 	'traders',
 	'isolationists',
 	'heralds',
-	'inventors',
 ]);
 
 /** The token reserves whose civData counts the tokens still on the card (#180), with how many each starts with. */
@@ -58,7 +57,6 @@ const RESERVES = /** @type {Readonly<Record<string, number>>} */ (
 		traders: TRADERS_TOKENS,
 		isolationists: ISOLATIONISTS_TOKENS,
 		heralds: HERALDS_TOKENS,
-		inventors: INVENTORS_TOKENS,
 	})
 );
 
