@@ -2,7 +2,12 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
-import { bonusGlyphs, effectGlyphs, spaceGlyphs } from '../src/lib/glyphs.js';
+import {
+	SYMBOL_KEY,
+	bonusGlyphs,
+	effectGlyphs,
+	spaceGlyphs,
+} from '../src/lib/glyphs.js';
 
 const TRACK_IDS = /** @type {const} */ ([
 	'exploration',
@@ -182,4 +187,46 @@ test('the other spaces read as the board prints them', () => {
 	assert.deepEqual(short(bonusGlyphs(TRACKS.technology[11].bonus).pay), [
 		'Tech×3',
 	]);
+});
+
+test('the symbol key explains every word symbol and every kind of glyph the tracks draw (#174)', () => {
+	const keyed = SYMBOL_KEY.flatMap((group) => group.rows).flatMap(
+		(row) => row.glyphs ?? []
+	);
+	const words = new Set(
+		keyed.flatMap((glyph) => (glyph.kind === 'word' ? [glyph.text] : []))
+	);
+	const kinds = new Set(keyed.map((glyph) => glyph.kind));
+	for (const id of TRACK_IDS) {
+		for (const space of TRACKS[id]) {
+			if (!space) {
+				continue;
+			}
+			const drawn = [
+				...spaceGlyphs(space.benefit),
+				...(space.bonus
+					? [
+							...bonusGlyphs(space.bonus).pay,
+							...bonusGlyphs(space.bonus).gain,
+						]
+					: []),
+			];
+			for (const glyph of drawn) {
+				assert.ok(
+					kinds.has(glyph.kind),
+					`${space.name}: ${glyph.kind}`
+				);
+				if (glyph.kind === 'word') {
+					assert.ok(
+						words.has(glyph.text),
+						`${space.name}: ${glyph.text}`
+					);
+				}
+			}
+		}
+	}
+	for (const row of SYMBOL_KEY.flatMap((group) => group.rows)) {
+		assert.ok(row.words.endsWith('.') === false, row.words);
+		assert.ok(row.words.length > 0);
+	}
 });

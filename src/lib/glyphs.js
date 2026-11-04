@@ -326,3 +326,174 @@ export function bonusGlyphs(bonus) {
 		gain: spaceGlyphs(bonus.gain),
 	};
 }
+
+/**
+ * One row of the symbol key (#174): symbols as a track space draws them, or a bonus box, or a landmark's name, and
+ * what they mean.
+ * @typedef {Object} SymbolKeyRow
+ * @property {Glyph[]} [glyphs] - Drawn by SpaceGlyphs
+ * @property {BonusGlyphs} [bonus] - Drawn as a space's bonus box: its price, then what it gives
+ * @property {string} [landmark] - A landmark's name, as the bottom of a space shows it
+ * @property {string} words - What they mean, without a full stop
+ */
+
+/**
+ * The symbol key How to play shows (#174): every symbol the track spaces draw, in three groups. A test checks that it
+ * covers every word symbol and every kind of glyph the four tracks use.
+ * @type {readonly { heading: string, rows: readonly SymbolKeyRow[] }[]}
+ */
+export const SYMBOL_KEY = Object.freeze([
+	{
+		heading: 'What you gain or do',
+		rows: [
+			{ glyphs: [word('Tile')], words: 'Gain a territory tile' },
+			{ glyphs: [word('Space tile')], words: 'Gain a space tile' },
+			{ glyphs: [word('Explore')], words: 'Explore a territory' },
+			{
+				glyphs: [word('Explore anywhere')],
+				words: 'Explore a territory anywhere',
+			},
+			{ glyphs: [word('Explore space')], words: 'Explore a space tile' },
+			{ glyphs: [word('Conquer')], words: 'Conquer a territory' },
+			{
+				glyphs: [word('Conquer anywhere')],
+				words: 'Conquer a territory anywhere',
+			},
+			{
+				glyphs: [word('Both dice')],
+				words: 'Gain the results of both conquer dice',
+			},
+			{
+				glyphs: [word('Both dice vs. opponent')],
+				words: 'Both dice, if an opponent controlled the territory',
+			},
+			{ glyphs: [word('Tapestry')], words: 'Gain a tapestry card' },
+			{
+				glyphs: [word('Play tapestry')],
+				words: 'Play a tapestry card on top of your current one',
+			},
+			{ glyphs: [word('Invent')], words: 'Invent a tech card' },
+			{
+				glyphs: [word('May refresh')],
+				words: 'You may refresh the face-up tech cards first',
+			},
+			{ glyphs: [word('Upgrade')], words: 'Upgrade a tech card' },
+			{
+				glyphs: [word('Circle benefit')],
+				words: 'The circle benefit of a tech card in your middle row',
+			},
+			{
+				glyphs: [word('Square benefit')],
+				words: 'The square benefit of a tech card in your top row',
+			},
+			{
+				glyphs: [word('Science die')],
+				words: 'Roll the science die and advance on the track rolled',
+			},
+			{
+				glyphs: [{ kind: 'track', id: 'exploration' }, word('Advance')],
+				words: 'Advance on the track shown',
+			},
+			{
+				glyphs: [{ kind: 'track', id: 'technology' }, word('Regress')],
+				words: 'Go back 1 space on the track shown and gain its benefit',
+			},
+			{
+				glyphs: [word('Repeat')],
+				words: 'Repeat the benefit of a track space you are on',
+			},
+			{
+				glyphs: [word('Score capital')],
+				words: 'Score your capital city',
+			},
+			{
+				glyphs: [word('Restart')],
+				words: 'Move this token to the start of any track',
+			},
+			{
+				glyphs: [word('Civilization')],
+				words: 'Draw another civilization',
+			},
+			{ glyphs: [{ kind: 'vp', count: 5 }], words: 'Victory points' },
+		],
+	},
+	{
+		heading: 'Buildings and resources',
+		rows: [
+			{
+				glyphs: BUILDINGS.map(
+					(id) =>
+						/** @type {Glyph} */ ({
+							kind: 'building',
+							id,
+							count: 1,
+						})
+				),
+				words: 'An income building for your capital',
+			},
+			{
+				glyphs: RESOURCE_ORDER.map(
+					(id) =>
+						/** @type {Glyph} */ ({
+							kind: 'resource',
+							id,
+							count: 1,
+						})
+				),
+				words: 'A resource: coin, worker, food or culture',
+			},
+			{
+				glyphs: [{ kind: 'resource', id: 'any', count: 1 }],
+				words: 'A resource of your choice',
+			},
+		],
+	},
+	{
+		heading: 'How a space reads',
+		rows: [
+			{
+				glyphs: [
+					{ kind: 'building', id: 'farm', count: 1 },
+					{ kind: 'or' },
+					{ kind: 'building', id: 'house', count: 1 },
+				],
+				words: 'Choose one of them',
+			},
+			{
+				glyphs: [word('Tile'), { kind: 'plus' }, word('Explore')],
+				words: 'Gain both, in that order',
+			},
+			{
+				glyphs: [
+					{ kind: 'vp', count: null },
+					{ kind: 'per' },
+					word('Territory'),
+				],
+				words: '1 VP for each territory you control, or each thing shown',
+			},
+			{
+				glyphs: [
+					{ kind: 'vp', count: null },
+					{ kind: 'per' },
+					word('Tech'),
+				],
+				words: '1 VP for each tech card you have',
+			},
+			{
+				glyphs: [word('Science die', 1, true)],
+				words: 'Without the benefit or bonus of the space it moves you to',
+			},
+			{
+				bonus: {
+					pay: [{ kind: 'resource', id: 'any', count: 1 }],
+					gain: [word('Tapestry')],
+				},
+				words: 'The bonus: you may pay its price to gain what follows',
+			},
+			{
+				landmark: 'Lighthouse',
+				words: 'The landmark the first player into this tier gains',
+			},
+		],
+	},
+]);

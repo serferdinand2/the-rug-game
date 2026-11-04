@@ -3,7 +3,7 @@
 	/**
 	 * Properties of the RulesPanel screen part itself.
 	 * @typedef {Object} RulesPanelOwnProps
-	 * @property {string} [tab] - The tab on show: a section id of RULES_HELP, or 'keys' for the keyboard shortcuts; bindable, the first section by default
+	 * @property {string} [tab] - The tab on show: a section id of RULES_HELP, 'symbols' for the track symbols (#174) or 'keys' for the keyboard shortcuts; bindable, the first section by default
 	 * @property {readonly string[]} [expansions=[]] - The table's expansions, whose sections show too (#32)
 	 * @property {Function} [onRulesPanelClose] - Callback fired when Close, Escape or the backdrop closes the panel
 	 */
@@ -19,6 +19,7 @@
 
 <script>
 	import Dialog from '../../lib/components/ui/Dialog.svelte';
+	import SymbolKey from '../../lib/components/board/SymbolKey.svelte';
 	import Tabs from '../../lib/components/ui/Tabs.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { RULES_HELP, rulesSections } from '../../lib/rules-help.js';
@@ -26,6 +27,8 @@
 
 	/** The keyboard shortcuts' tab, after the rules. */
 	const KEYS = 'keys';
+	/** The track symbols' tab, after Advancing on a track (#174). */
+	const SYMBOLS = 'symbols';
 
 	/** @type {RulesPanelProps} */
 	let {
@@ -37,10 +40,12 @@
 
 	let sections = $derived(rulesSections(expansions));
 	let tabs = $derived([
-		...sections.map((section) => ({
-			id: section.id,
-			label: section.title,
-		})),
+		...sections.flatMap((section) => [
+			{ id: section.id, label: section.title },
+			...(section.id === 'tracks'
+				? [{ id: SYMBOLS, label: 'Symbols' }]
+				: []),
+		]),
 		{ id: KEYS, label: 'Keyboard shortcuts' },
 	]);
 
@@ -73,7 +78,9 @@
 		bind:value={tab}
 		label="How to play"
 		autofocus>
-		{#if section}
+		{#if tab === SYMBOLS}
+			<SymbolKey />
+		{:else if section}
 			{#each section.blocks as block, index (index)}
 				{#if 'list' in block}
 					<ul class="rg-rules-panel--list">
