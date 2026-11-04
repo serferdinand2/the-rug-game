@@ -1,4 +1,4 @@
-<!-- The players' tokens under a track (#174): each on the bottom edge of the space it reached, side by side when they share one, and a faint token on the next space while it is previewed. -->
+<!-- The players' tokens under a track (#174): each on the bottom edge of the space it reached, side by side when they share one, and a faint token on the next space while it is previewed; a token hops to a new space (#175). -->
 <script module>
 	/**
 	 * One player's progress on the track.
@@ -33,6 +33,8 @@
 
 <script>
 	import { SPACE_COUNT, trackTokens } from '../../track-shape.js';
+	import { tokenHop } from '../../transitions.js';
+	import { playerColor } from '../../ui.js';
 	import PlayerToken from '../player/PlayerToken.svelte';
 
 	/** @type {ProgressLanesProps} */
@@ -46,6 +48,10 @@
 				: [preview]
 	);
 	let tokens = $derived(trackTokens(players, previewed, spaces));
+	/** Each seat's position, which its token hops from when it changes (#175). */
+	let positions = $derived(
+		new Map(players.map((player) => [player.seat, player.position]))
+	);
 	let label = $derived(
 		players.map((player) => `${player.name} ${player.position}`).join(', ')
 	);
@@ -65,6 +71,10 @@
 			style:--rg-progress-lanes-end={token.end}
 			style:--rg-progress-lanes-slot={token.slot}
 			style:--rg-progress-lanes-count={token.count}
+			style:--rg-progress-lanes-color={playerColor(token.seat)}
+			{@attach token.ghost
+				? null
+				: tokenHop(positions.get(token.seat) ?? 0)}
 			><PlayerToken
 				class="rg-progress-lanes--token"
 				seat={token.seat}
@@ -123,6 +133,19 @@
 		transition: none;
 	}
 
+	/* The ring a token's landing spreads from its space (issue 175): drawn round the token, unseen until it plays. */
+	.rg-progress-lanes--marker::after {
+		position: absolute;
+		top: 0;
+		left: calc(-1 * var(--track-token) / 2);
+		width: var(--track-token);
+		height: var(--track-token);
+		border: var(--border-thick) solid var(--rg-progress-lanes-color);
+		border-radius: var(--radius);
+		opacity: 0;
+		content: '';
+	}
+
 	/* The approved player token, centred on its marker; PlayerToken draws it pixelated. */
 	.rg-progress-lanes--marker :global(.rg-progress-lanes--token) {
 		position: absolute;
@@ -134,5 +157,7 @@
 		filter: drop-shadow(
 			0 3px 2px color-mix(in srgb, var(--ink) 75%, transparent)
 		);
+		/* It squashes onto its space from its bottom edge as it lands (issue 175). */
+		transform-origin: 50% 100%;
 	}
 </style>

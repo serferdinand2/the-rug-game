@@ -1,6 +1,7 @@
-<!-- Library section: ProgressLanes with four players, with and without the faint preview token, at the start and the end, and with five players sharing spaces. -->
+<!-- Library section: ProgressLanes with four players, with and without the faint preview token, at the start and the end, with five players sharing spaces, and a token hopping to its new space (#175). -->
 <script>
 	import ProgressLanes from '../../../lib/components/board/ProgressLanes.svelte';
+	import Button from '../../../lib/components/ui/Button.svelte';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
 	import { BOARD_TRACKS } from './TrackBoard.svelte';
@@ -22,12 +23,50 @@
 		{ seat: 4, name: 'Vera', position: 9 },
 		{ seat: 5, name: 'Iva', position: 1 },
 	];
+
+	/** The hopping example's players (#175): You advance by the buttons, Ana stays on 2. */
+	let you = $state(1);
+	let hopping = $derived([
+		{ seat: /** @type {const} */ (1), name: 'You', position: you },
+		{ seat: /** @type {const} */ (2), name: 'Ana', position: 2 },
+	]);
 </script>
 
 <Section
 	name="ProgressLanes"
 	area="board"
-	description="The players' tokens under a track (#174): each player's token stands on the bottom edge of the space it reached, side by side when they share one, and a faint token shows on the next space while it is hovered.">
+	description="The players' tokens under a track (#174): each player's token stands on the bottom edge of the space it reached, side by side when they share one, and a faint token shows on the next space while it is hovered. When a position changes, the token hops space by space, squashes as it lands and spreads a ring in its colour (#175): 170 ms a hop, the whole run within the focal 600 ms; nothing hops when a track first shows, nor with reduced motion.">
+	<Example
+		label={`players={You ${you}, Ana 2}  (press to advance or go back)`}
+		wide
+		width={1428}>
+		<div class="rg-library-progress-lanes--hop">
+			<ProgressLanes players={hopping} />
+			<span class="rg-library-progress-lanes--buttons">
+				<Button
+					size="small"
+					disabled={you >= 12}
+					onButtonClick={() => (you = Math.min(12, you + 1))}
+					>Advance 1</Button>
+				<Button
+					size="small"
+					disabled={you >= 12}
+					onButtonClick={() => (you = Math.min(12, you + 3))}
+					>Advance 3</Button>
+				<Button
+					size="small"
+					onButtonClick={() => (you = you >= 12 ? 0 : 12)}
+					>{you >= 12
+						? 'Back to the start'
+						: 'Advance to 12'}</Button>
+				<Button
+					size="small"
+					disabled={you <= 0}
+					onButtonClick={() => (you = Math.max(0, you - 2))}
+					>Back 2</Button>
+			</span>
+		</div>
+	</Example>
 	<Example
 		label={'players={You 4, Ana 2, Marko 5, Vera 1}'}
 		wide
@@ -65,3 +104,17 @@
 		<ProgressLanes players={five} />
 	</Example>
 </Section>
+
+<style>
+	/* Room above the lanes for the hopping token, and the buttons below them. */
+	.rg-library-progress-lanes--hop {
+		display: grid;
+		gap: var(--space-9);
+		padding-top: var(--space-9);
+	}
+
+	.rg-library-progress-lanes--buttons {
+		display: flex;
+		gap: var(--space-5);
+	}
+</style>

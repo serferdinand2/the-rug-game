@@ -207,8 +207,11 @@
 	--duration-fast: 150ms; /* hover and colour changes */
 	--duration-medium: 220ms; /* reveals */
 	--duration-slow: 380ms; /* header chips filling with colour */
+	--duration-exit: 140ms; /* leaving: a menu closing, faster than anything comes in (#175) */
+	--duration-focal: 600ms; /* the one authored moment: a token's hops, the winner's entrance (#175) */
 	--ease: ease;
 	--ease-out: cubic-bezier(0.2, 0.75, 0.25, 1);
+	--ease-in: cubic-bezier(0.5, 0, 0.75, 0); /* leaving, speeding up (#175) */
 
 	/* ---------- Layers ---------- */
 	--layer-bar: 4;
@@ -223,6 +226,8 @@
 		--duration-fast: 0ms;
 		--duration-medium: 0ms;
 		--duration-slow: 0ms;
+		--duration-exit: 0ms;
+		--duration-focal: 0ms;
 	}
 }
 
