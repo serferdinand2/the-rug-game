@@ -1,4 +1,4 @@
-<!-- One choice in a decision prompt: a pressable box with its words and optional symbols, gold while chosen, dimmed while it can't be picked; it pops as it is chosen and presses down under the pointer (#175). -->
+<!-- One choice in a decision prompt: a pressable box with its words and optional symbols, gold while chosen, dimmed while it can't be picked, with the reason under its words when there is one (#181); it pops as it is chosen and presses down under the pointer (#175). -->
 <script module>
 	/**
 	 * Properties of the DecisionOption component itself.
@@ -8,6 +8,7 @@
 	 * @property {import('../../ui.js').CostSymbol[]} [symbols] - Resource symbols drawn before the words, native 24px
 	 * @property {import('./PromptArt.svelte').PromptArtItem[]} [art] - Pictures drawn above the words at 48px
 	 * @property {number | null} [vp=null] - A small gold '+n VP' badge in the corner (VpTag)
+	 * @property {string | null} [reason=null] - Why it can't be picked, such as 'No House left', shown under its words; the option is disabled (R117, #181)
 	 * @property {Function} [onDecisionOptionClick] - Callback fired when the choice is pressed
 	 */
 
@@ -17,6 +18,7 @@
 	 *
 	 * @example
 	 * <DecisionOption label="Pay 1 food and 1 worker" symbols={['food', 'worker']} pressed onDecisionOptionClick={pick} />
+	 * <DecisionOption label="Gain a House" reason="No House left" />
 	 */
 </script>
 
@@ -33,6 +35,7 @@
 		symbols = [],
 		art = [],
 		vp = null,
+		reason = null,
 		onDecisionOptionClick,
 		...attr
 	} = $props();
@@ -57,6 +60,7 @@
 	type="button"
 	aria-pressed={pressed}
 	{...attr}
+	disabled={attr.disabled || reason !== null}
 	class="rg-decision-option {attr.class ? attr.class : ''}"
 	class:rg-decision-option--has-art={art.length > 0}
 	onclick={clickHandler}>
@@ -85,6 +89,9 @@
 		</span>
 	{/if}
 	<span class="rg-decision-option--label">{label}</span>
+	{#if reason !== null}
+		<span class="rg-decision-option--reason">{reason}</span>
+	{/if}
 </button>
 
 <style>
@@ -160,6 +167,14 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--space-4);
+	}
+
+	/* Why it can't be picked: a small line under its words, which a box with art stacks below them, in the body colour
+	   so it still reads through the dimming. */
+	.rg-decision-option--reason {
+		color: var(--text);
+		font-size: var(--font-size-xs);
+		font-weight: var(--weight-bold);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

@@ -529,10 +529,18 @@ const WORDS = {
 	// The capital.
 	buildingGained: (e, game, name) =>
 		`${name} gained ${buildingWords(e.building)}.`,
-	noBuildingLeft: (e, game, name) =>
-		typeof e.building === 'string'
-			? `${name} had no ${buildingName(e.building)} left to gain.`
-			: `${name} had no income building left to gain.`,
+	noBuildingLeft: (e, game, name) => {
+		if (typeof e.building === 'string') {
+			return `${name} had no ${buildingName(e.building)} left to gain.`;
+		}
+		// A choice whose every option was a used-up building (R117).
+		const buildings = Array.isArray(e.buildings)
+			? e.buildings.filter((b) => typeof b === 'string')
+			: [];
+		return buildings.length > 0
+			? `${name} had no ${joinList(buildings.map(buildingName), 'or')} left to gain.`
+			: `${name} had no income building left to gain.`;
+	},
 	buildingPlaced: (e, game, name) =>
 		isCount(e.craftsmen)
 			? `${name} placed ${buildingWords(e.building)} in Craftsmen column ${e.craftsmen + 1}.`

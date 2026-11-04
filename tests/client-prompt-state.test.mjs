@@ -594,3 +594,42 @@ test('every decision placed on the map opens it: explore, conquer, an outpost, t
 	);
 	assert.equal(income.isMap, false);
 });
+
+test('R117: the panel lists a used-up building greyed out in its place, and choosing stays with what is left (#181)', () => {
+	const { state, random } = startedGame(2);
+	Object.assign(state.seats[0].incomeMat.buildings, { farm: 0, armory: 0 });
+	state.pending.length = 0;
+	push(state, state.pending, [
+		{
+			player: 1,
+			kind: 'effects',
+			effects: [
+				{
+					choice: [
+						[{ building: 'farm' }],
+						[{ building: 'house' }],
+						[{ building: 'armory' }],
+					],
+				},
+			],
+		},
+	]);
+	run(state, random);
+	const game = view(state, 1);
+	const decision = myDecision(game, 1);
+	const prompt = new PromptState(promptSource({ game, decision }));
+	assert.deepEqual(
+		prompt.panelOptions.map(({ key, index, reason }) => ({
+			key,
+			index,
+			reason,
+		})),
+		[
+			{ key: 'out0', index: -1, reason: 'No Farm left' },
+			{ key: 'a0', index: 0, reason: null },
+			{ key: 'out2', index: -1, reason: 'No Armory left' },
+		]
+	);
+	// The one option left is still asked: nothing is picked until the player picks it.
+	assert.equal(prompt.picked, null);
+});

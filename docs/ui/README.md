@@ -237,6 +237,10 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 
 ![The component library's territory tiles with centered benefit icons, including quantity, no-benefit and upgrade markers](screens/territory-tile-benefits.png)
 
+**Built in #181 (2026-11-05): an option that can't be picked.** An option that would only gain income buildings none of which is left (R117) stays in its place among the options, dimmed as a trade the player can't pay for, with the reason under its words in the body colour, bold: "No House left". A track bonus for one is offered beside **No bonus**, its **Take the bonus** greyed out the same way. With one option left the player is still asked (owner, 2026-11-04).
+
+![The component library's DecisionOption: Gain a House greyed out with "No House left", and No bonus beside a greyed Take the bonus with "No Farm left"](screens/decision-option-unavailable.png)
+
 **Built in #145 (2026-10-30): another player's tabs in the player area.** The owner ruled: "When I click on the other player in the top nav, no longer open the card view of all players, just show me their view of the right sidenav but hide all cards that are private." It also meets #143's goal, an opponent's eras and territory tiles, whose overview rows it supersedes. The design is `docs/superpowers/specs/2026-10-30-opponent-tabs-design.md`.
 
 ![Vera's turn with Mira's chip pressed: Mira's Tropical capital and public summary in the player area, both bordered in her red, under Viewing Mira's area and Back to your area](screens/game-opponent-tabs.png)

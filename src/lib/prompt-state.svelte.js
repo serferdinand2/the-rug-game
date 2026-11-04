@@ -74,6 +74,47 @@ import { cardCivOf, civCardView } from './civ-card.js';
 /** @returns {Selection} */
 const nothing = () => ({ rows: [], items: [] });
 
+/**
+ * An option the panel lists: a prompt option, keyed, with its VP badge, or one greyed out with its reason (R117).
+ * @typedef {import('./prompts.js').PromptOption & { key: string, vp: number | null, reason: string | null }} PanelOption
+ */
+
+/**
+ * The panel's options with the ones that can't be picked (R117) in their place: each before the first option listed
+ * from its answer on, or last. Index -1 marks them, as no answer picks them.
+ * @param {PanelOption[]} options
+ * @param {import('./prompts.js').UnavailableOption[]} unavailable
+ * @returns {PanelOption[]}
+ */
+function withUnavailable(options, unavailable) {
+	if (unavailable.length === 0) {
+		return options;
+	}
+	/** @param {import('./prompts.js').UnavailableOption} out @returns {PanelOption} */
+	const greyed = (out) => ({
+		index: -1,
+		place: 'panel',
+		key: out.key,
+		label: out.label,
+		art: out.art,
+		vp: null,
+		reason: out.reason,
+	});
+	/** @type {PanelOption[]} */
+	const listed = [];
+	let next = 0;
+	for (const option of options) {
+		while (
+			next < unavailable.length &&
+			unavailable[next].before <= option.index
+		) {
+			listed.push(greyed(unavailable[next++]));
+		}
+		listed.push(option);
+	}
+	return [...listed, ...unavailable.slice(next).map(greyed)];
+}
+
 /** The prompt's selection and what the rest of the screen reads from it. */
 export class PromptState {
 	/** @type {PromptSource} */
@@ -427,16 +468,24 @@ export class PromptState {
 			this.offering ||
 			this.tradeAnswer !== -1
 			? []
-			: this.prompt.options
-					.filter(
-						(o) =>
-							o.place === 'panel' ||
-							(o.place === 'map' && o.hex === this.hex) ||
-							((o.place === 'card' || o.place === 'track') &&
-								this.#spotOptions.length > 1 &&
-								o.spot === this.spot)
-					)
-					.map((o) => ({ ...o, vp: null }))
+			: withUnavailable(
+					this.prompt.options
+						.filter(
+							(o) =>
+								o.place === 'panel' ||
+								(o.place === 'map' && o.hex === this.hex) ||
+								((o.place === 'card' || o.place === 'track') &&
+									this.#spotOptions.length > 1 &&
+									o.spot === this.spot)
+						)
+						.map((o) => ({
+							...o,
+							key: `a${o.index}`,
+							vp: null,
+							reason: null,
+						})),
+					this.prompt.unavailable
+				)
 	);
 	/** The cards on the shelf above the panel, for a card decision. */
 	shelfCards = $derived(shelfCardsOf(this.prompt, this.decision));

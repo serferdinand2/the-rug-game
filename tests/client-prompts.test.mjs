@@ -1039,3 +1039,88 @@ test("the Inventors', Heralds' and Spies' card picks are made on the card shelf 
 	const hand = decisionOf('heralds', ['academia']);
 	assert.equal(tabFor(hand), 'hand');
 });
+
+/**
+ * Seat 1's open decision, as seat 1 sees it, after `ops` run in a started 2-player game where seat 1 holds `left` of
+ * each income building and 3 of each resource.
+ * @param {Record<string, number>} left
+ * @param {Record<string, any>[]} ops
+ */
+function buildingGame(left, ops) {
+	const { state, random } = startedGame(2);
+	Object.assign(state.seats[0].incomeMat.buildings, left);
+	state.seats[0].resources = { coin: 3, worker: 3, food: 3, culture: 3 };
+	state.pending.length = 0;
+	push(
+		state,
+		state.pending,
+		ops.map((op) => ({ player: 1, ...op }))
+	);
+	run(state, random);
+	const game = view(state, 1);
+	return { game, decision: myDecision(game, 1) };
+}
+
+test('R117: an option whose building is used up is greyed out in its place, with the reason (#181)', () => {
+	const { game, decision } = buildingGame({ house: 0 }, [
+		{
+			kind: 'effects',
+			effects: [
+				{ choice: [[{ research: {} }], [{ building: 'house' }]] },
+			],
+		},
+	]);
+	const prompt = promptFor(decision, game, 1);
+	assert.ok(prompt);
+	assert.equal(prompt.options.length, 1);
+	assert.deepEqual(
+		prompt.unavailable.map(({ before, label, reason, art }) => ({
+			before,
+			label,
+			reason,
+			art,
+		})),
+		[
+			{
+				before: 1,
+				label: 'Gain a House',
+				reason: 'No House left',
+				art: [{ kind: 'building', id: 'house' }],
+			},
+		]
+	);
+});
+
+test('R117: a choice with every building left greys nothing out (#181)', () => {
+	const { game, decision } = buildingGame({ house: 2 }, [
+		{
+			kind: 'effects',
+			effects: [
+				{ choice: [[{ research: {} }], [{ building: 'house' }]] },
+			],
+		},
+	]);
+	assert.deepEqual(promptFor(decision, game, 1)?.unavailable, []);
+});
+
+test('R117: a bonus for a building with none left greys out taking it, beside No bonus (#181)', () => {
+	const ships = TRACKS.exploration.findIndex((s) => s.id === 'ships');
+	const { game, decision } = buildingGame({ farm: 0 }, [
+		{ kind: 'bonus', track: 'exploration', space: ships },
+	]);
+	const prompt = promptFor(decision, game, 1);
+	assert.ok(prompt);
+	assert.deepEqual(
+		prompt.options.map((o) => o.label),
+		['No bonus']
+	);
+	assert.equal(prompt.picks, null);
+	assert.deepEqual(
+		prompt.unavailable.map(({ before, label, reason }) => ({
+			before,
+			label,
+			reason,
+		})),
+		[{ before: 1, label: 'Take the bonus', reason: 'No Farm left' }]
+	);
+});

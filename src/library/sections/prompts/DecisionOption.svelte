@@ -1,4 +1,4 @@
-<!-- Library section: DecisionOption, one choice in a decision prompt, plain or with resource symbols, pressed or not. -->
+<!-- Library section: DecisionOption, one choice in a decision prompt, plain or with resource symbols, pressed or not, or greyed out with its reason. -->
 <script>
 	import DecisionOption from '../../../lib/components/prompts/DecisionOption.svelte';
 	import Example from '../../Example.svelte';
@@ -10,7 +10,7 @@
 <Section
 	name="DecisionOption"
 	area="prompts"
-	description="One choice in a decision prompt: its words, optionally led by native 24px resource symbols, with a gold outline while it is the chosen one.">
+	description="One choice in a decision prompt: its words, optionally led by native 24px resource symbols, with a gold outline while it is the chosen one. With a reason, it is dimmed, can't be pressed, and says why under its words, as an option that would gain a building none of which is left (R117, #181).">
 	<Example
 		label={'label="Take 1 coin"'}
 		surface="chrome">
@@ -50,5 +50,24 @@
 				{ kind: 'resource', id: 'worker', count: 1 },
 			]}
 			pressed />
+	</Example>
+	<Example
+		label={`art={[house]} reason="No House left"  (can't be picked, R117)`}
+		surface="chrome">
+		<DecisionOption
+			label="Gain a House"
+			art={[{ kind: 'building', id: 'house' }]}
+			reason="No House left" />
+	</Example>
+	<Example
+		label={`reason="No Farm left"  (a bonus beside No bonus, R117)`}
+		surface="chrome">
+		<div style="display: flex; gap: 8px;">
+			<DecisionOption label="No bonus" />
+			<DecisionOption
+				label="Take the bonus"
+				art={[{ kind: 'building', id: 'farm' }]}
+				reason="No Farm left" />
+		</div>
 	</Example>
 </Section>

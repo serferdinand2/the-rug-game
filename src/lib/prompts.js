@@ -14,9 +14,11 @@ import {
 	tapestryCardData,
 	techCardData,
 } from './cards/game-cards.js';
-import { landmarkName } from './game-names.js';
+import { buildingName, landmarkName } from './game-names.js';
 import { matPlots } from './area/capital.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
+import { buildingsOut } from './engine/effects/building.js';
+import { joinList } from './words.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 /** @typedef {import('./ui.js').CostSymbol} CostSymbol */
@@ -52,6 +54,17 @@ import { CAPITAL_MATS } from './engine/data/capitals.js';
  */
 
 /**
+ * An option the decision offers but can't be picked now (R117): an option, or a bonus, that would only gain income
+ * buildings none of which is left. The panel shows it greyed out, with the reason, in its place among the options.
+ * @typedef {Object} UnavailableOption
+ * @property {string} key - Unique among the decision's options
+ * @property {number} before - The answer it sits before, in answer order; the answers' count puts it last
+ * @property {string} label - The option in words, as an answer would be
+ * @property {Art[]} art
+ * @property {string} reason - Why it can't be picked, such as 'No House left'
+ */
+
+/**
  * The viewer's income turn: its steps and the one running now.
  * @typedef {Object} IncomeView
  * @property {number} turn - 1–5
@@ -74,6 +87,7 @@ import { CAPITAL_MATS } from './engine/data/capitals.js';
  * @property {IncomeView | null} income - Set during the viewer's own income turn
  * @property {string} confirmLabel
  * @property {PromptOption[]} options - One per answer, in answer order
+ * @property {UnavailableOption[]} unavailable - Options shown greyed out among them (R117)
  * @property {import('./picks.js').PickModel | null} picks - Several resources, cards or tiles chosen one by one (#75)
  * @property {ReturnType<typeof tradeOffers>} trade - A trade's offers, its first step (#75)
  */
@@ -731,6 +745,72 @@ function trackSpacesOf(options, decision) {
 }
 
 /**
+ * Why buildings can't be gained: "No House left", or "No Farm or House left".
+ * @param {string[]} buildings
+ * @returns {string}
+ */
+function noneLeft(buildings) {
+	return `No ${joinList(buildings.map(buildingName), 'or')} left`;
+}
+
+/**
+ * The options of a decision that can't be picked now (R117): a choice's options left out of its answers because they
+ * would only gain used-up buildings, and a bonus for one, beside its decline. Read from the view, whose income mats
+ * are public.
+ * @param {Decision} decision
+ * @param {any} game - The game as view() gives it to the viewer
+ * @returns {UnavailableOption[]}
+ */
+function unavailableOf(decision, game) {
+	const player = decision.player;
+	if (!Number.isInteger(player) || !Array.isArray(game?.seats)) {
+		return [];
+	}
+	if (decision.kind === 'chooseOption' && Array.isArray(decision.options)) {
+		/** @type {number[]} */
+		const offered = decision.answers.map(
+			(/** @type {Answer} */ a) => a.option
+		);
+		return decision.options.flatMap(
+			(/** @type {object[]} */ effects, /** @type {number} */ i) => {
+				const out = offered.includes(i)
+					? null
+					: buildingsOut(game, player, effects);
+				if (!out) {
+					return [];
+				}
+				const answer = { option: i };
+				const before = offered.findIndex((o) => o > i);
+				return [
+					{
+						key: `out${i}`,
+						before: before === -1 ? offered.length : before,
+						label: describeAnswer(decision, answer, game),
+						art: artOf(decision, answer, 'panel', game),
+						reason: noneLeft(out),
+					},
+				];
+			}
+		);
+	}
+	if (decision.kind === 'chooseBonus' && Array.isArray(decision.gain)) {
+		const out = buildingsOut(game, player, decision.gain);
+		return out
+			? [
+					{
+						key: 'bonus',
+						before: decision.answers.length,
+						label: 'Take the bonus',
+						art: out.map((id) => ({ kind: 'building', id })),
+						reason: noneLeft(out),
+					},
+				]
+			: [];
+	}
+	return [];
+}
+
+/**
  * The prompt for the viewer's open decision: its title, how to answer, the layout and one option per answer.
  * @param {Decision | null | undefined} decision - The viewer's own open decision, with its `answers` (turn.js myDecision)
  * @param {any} game - The game as view() gives it to the viewer
@@ -767,6 +847,7 @@ export function promptFor(decision, game, seat) {
 				: null,
 		confirmLabel: decisionFacts(decision).confirm ?? 'Confirm choice',
 		options,
+		unavailable: unavailableOf(decision, game),
 		picks: pickModel(decision, game, seat),
 		trade: tradeOffers(decision, game, seat),
 	};

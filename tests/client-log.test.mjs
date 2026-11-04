@@ -950,3 +950,22 @@ test("a folded turn's main event falls back to its first line (#174)", () => {
 	];
 	assert.equal(foldTurns(entries)[0].lead?.seq, 2);
 });
+
+test('a choice with every option a used-up building names them in the log (R117, #181)', () => {
+	assert.equal(
+		eventText(
+			{
+				type: 'noBuildingLeft',
+				player: 1,
+				building: null,
+				buildings: ['farm', 'house', 'armory'],
+			},
+			GAME
+		),
+		'Ana had no Farm, House or Armory left to gain.'
+	);
+	assert.equal(
+		eventText({ type: 'noBuildingLeft', player: 2, building: null }, GAME),
+		'Bo had no income building left to gain.'
+	);
+});

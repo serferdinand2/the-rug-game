@@ -5,6 +5,7 @@ import { canPay, checkPayment, pay, payments } from '../payment.js';
 import { seatOf } from '../state.js';
 import { hasEra } from '../abilities.js';
 import { TRACKS } from '../data/tracks.js';
+import { buildingsOut, noneLeftMessage } from '../effects/building.js';
 
 /**
  * A track space's bonus in this game, which the Tracks view shows too. The neoprene-nanotechnology variant makes
@@ -65,6 +66,17 @@ export function offerBonus(ctx, op) {
 export const chooseBonus = {
 	hidden: [],
 	answers(state, decision) {
+		// A bonus that would only gain a building none of which is left is still offered, its decline the one answer, so
+		// the prompt shows why (R117, owner #181).
+		if (
+			buildingsOut(
+				state,
+				/** @type {number} */ (decision.player),
+				decision.gain
+			)
+		) {
+			return [{ pay: null }];
+		}
 		return [
 			{ pay: null },
 			...payments(
@@ -80,6 +92,14 @@ export const chooseBonus = {
 		}
 		if (answer.pay === undefined) {
 			throw new PlayerError('Pay for the bonus, or decline it.');
+		}
+		const out = buildingsOut(
+			state,
+			/** @type {number} */ (decision.player),
+			decision.gain
+		);
+		if (out) {
+			throw new PlayerError(noneLeftMessage(out));
 		}
 		checkPayment(
 			state,

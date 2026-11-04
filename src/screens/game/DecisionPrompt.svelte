@@ -214,12 +214,15 @@
 	{/if}
 	{#if state.panelOptions.length}
 		<div class="rg-decision-prompt--options">
-			{#each state.panelOptions as option (option.index)}
+			{#each state.panelOptions as option (option.key)}
+				<!-- One that would gain a used-up building is greyed out with its reason, in its place (R117, #181). -->
 				<DecisionOption
 					label={option.label}
 					art={option.art}
 					vp={option.vp}
-					pressed={state.picked === option.index}
+					reason={option.reason}
+					pressed={option.index !== -1 &&
+						state.picked === option.index}
 					onDecisionOptionClick={() => state.choose(option.index)} />
 			{/each}
 		</div>
