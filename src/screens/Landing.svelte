@@ -16,6 +16,7 @@
 </script>
 
 <script>
+	import ArtFan from '../lib/components/ui/ArtFan.svelte';
 	import Button from '../lib/components/ui/Button.svelte';
 	import Divider from '../lib/components/ui/Divider.svelte';
 	import Panel from '../lib/components/ui/Panel.svelte';
@@ -73,6 +74,12 @@
 		<span class="rg-landing--military">Military</span>.
 	</p>
 	<div class="rg-landing--stack">
+		<ArtFan
+			class="rg-landing--fan rg-landing--fan-left"
+			cards={store.fans.left} />
+		<ArtFan
+			class="rg-landing--fan rg-landing--fan-right"
+			cards={store.fans.right} />
 		<Panel
 			padding="large"
 			aria-label="Create or join a table">
@@ -200,9 +207,24 @@
 	}
 
 	.rg-landing--stack {
+		position: relative;
 		display: grid;
 		gap: var(--space-8);
 		width: min(var(--launch-width), 100%);
+	}
+
+	/* The card fans lie beside the panels, outside the stack's flow. */
+	.rg-landing--stack :global(.rg-landing--fan) {
+		position: absolute;
+		top: var(--space-9);
+	}
+
+	.rg-landing--stack :global(.rg-landing--fan-left) {
+		right: calc(100% + 2 * var(--space-10));
+	}
+
+	.rg-landing--stack :global(.rg-landing--fan-right) {
+		left: calc(100% + 2 * var(--space-10));
 	}
 
 	.rg-landing--form,

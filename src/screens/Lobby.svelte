@@ -16,6 +16,7 @@
 </script>
 
 <script>
+	import ArtFan from '../lib/components/ui/ArtFan.svelte';
 	import Button from '../lib/components/ui/Button.svelte';
 	import Panel from '../lib/components/ui/Panel.svelte';
 	import Segmented from '../lib/components/ui/Segmented.svelte';
@@ -140,6 +141,12 @@
 		history.
 	</p>
 	<div class="rg-lobby--stack">
+		<ArtFan
+			class="rg-lobby--fan rg-lobby--fan-left"
+			cards={store.fans.left} />
+		<ArtFan
+			class="rg-lobby--fan rg-lobby--fan-right"
+			cards={store.fans.right} />
 		{#if store.connection}
 			<p
 				class="rg-lobby--connection"
@@ -344,9 +351,30 @@
 	}
 
 	.rg-lobby--stack {
+		position: relative;
 		display: grid;
 		gap: var(--space-5);
 		width: min(var(--lobby-width), 100%);
+	}
+
+	/* The card fans lie outside the lobby's panels, where the screen is wide enough for them. */
+	.rg-lobby--stack :global(.rg-lobby--fan) {
+		position: absolute;
+		top: 90px;
+	}
+
+	.rg-lobby--stack :global(.rg-lobby--fan-left) {
+		right: calc(100% + 2 * var(--space-10));
+	}
+
+	.rg-lobby--stack :global(.rg-lobby--fan-right) {
+		left: calc(100% + 2 * var(--space-10));
+	}
+
+	@media (max-width: 1780px) {
+		.rg-lobby--stack :global(.rg-lobby--fan) {
+			display: none;
+		}
 	}
 
 	.rg-lobby--connection {

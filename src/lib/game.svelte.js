@@ -2,6 +2,7 @@
 import { withSession } from './api.js';
 import { boot } from './boot.js';
 import { darkCardsSaved, saveDarkCards } from './card-theme.js';
+import { artFans } from './art-fans.js';
 import { change } from './changes.js';
 import { validCode } from './lobby.js';
 import { sendMove, viewerSeat } from './moves.js';
@@ -85,6 +86,9 @@ class Store {
 	/** @type {number | null} The last event when a player last took the screen, or when the table opened; a seat new to the screen is handed what came after it */
 	#takenSeq = null;
 
+	/** The card fans, once picked. @type {ReturnType<typeof artFans> | null} */
+	#fans = null;
+
 	/** @param {StoreDeps} deps */
 	constructor({ api, random, prefs, session, copy, wait }) {
 		this.#api = api;
@@ -96,6 +100,12 @@ class Store {
 			wait ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
 		this.sound = prefs.getItem(SOUND) === 'on';
 		this.darkCards = darkCardsSaved(prefs);
+	}
+
+	/** The landing page's and lobby's card fans (#174), picked the first time a screen asks, then kept for the visit. */
+	get fans() {
+		this.#fans ??= artFans(this.#random);
+		return this.#fans;
 	}
 
 	/** The name last signed in with, to fill the name field. */
