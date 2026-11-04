@@ -39,8 +39,11 @@ test("another player's turn starting is no cue for you, but at a hot-seat table 
 });
 
 test('every cue has a sound file', () => {
-	for (const cue of ['turn', 'move', 'place', 'reward', 'over']) {
+	const audio = fileURLToPath(new URL('../static/audio/', import.meta.url));
+	const files = readdirSync(audio);
+	for (const cue of ['turn', 'move', 'place', 'reward', 'over', 'dice']) {
 		assert.match(CUES[cue], /^[a-z_0-9]+$/);
+		assert.ok(files.includes(`${CUES[cue]}.ogg`), `${cue} has no file`);
 	}
 });
 
@@ -107,7 +110,8 @@ test('a roll earns the dice cue, after a reward and before a turn (#61)', () => 
 		cueFor([ev('conquerDiceRolled'), ev('achievementClaimed')], 1),
 		'reward'
 	);
-	assert.equal(CUES.dice, 'drop_001');
+	// A roll sounds like dice clattering on a table, not the drop the pieces make.
+	assert.equal(CUES.dice, 'dice_roll');
 });
 
 test("the turn cue is not played for a seat's own automatic first turn (#77)", () => {
@@ -185,7 +189,7 @@ test('only motion.js asks for reduced motion, and the dice write no timing of th
 		/FADE_MS|TUMBLE_MS = /,
 		'the tray times its fade'
 	);
-	assert.equal(TUMBLE_MS, 1000);
+	assert.equal(TUMBLE_MS, 1600);
 });
 
 test('a count runs from its old value to its new one, easing out, in whole numbers (#174)', () => {

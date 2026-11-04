@@ -4,7 +4,16 @@ import { eventText } from './log.js';
 import { seatName } from './game-names.js';
 
 /** How long the dice tumble, in milliseconds: the tray waits this long before a roll lands, and Die animates for it (#119). */
-export const TUMBLE_MS = 1000;
+export const TUMBLE_MS = 1600;
+
+/** How many other faces a die shows as it tumbles, before its rolled face. */
+const FLIPS = 12;
+
+/** When a tumbling die lands on its rolled face, as a share of the tumble; it rocks on that face after. */
+const LANDS_AT = 0.7;
+
+/** How the flips slow down: above 1, each waits longer than the one before. */
+const SLOWING = 1.6;
 
 /** @typedef {'science' | 'red' | 'black'} DieId */
 
@@ -13,6 +22,13 @@ export const TUMBLE_MS = 1000;
  * @typedef {Object} RolledDie
  * @property {DieId} die
  * @property {number} face
+ */
+
+/**
+ * One face a tumbling die shows, and when.
+ * @typedef {Object} TumbleStep
+ * @property {number} at - Milliseconds into the tumble
+ * @property {number} face - An index into the die's faces
  */
 
 /**
@@ -128,6 +144,67 @@ export function rollsOf(events, game, viewer) {
 			},
 		];
 	});
+}
+
+/**
+ * A die's faces that look different, one index each: the science die's 4 tracks, each conquer die's 5 faces.
+ * @param {DieId} die
+ * @returns {number[]}
+ */
+function distinctFaces(die) {
+	const count = die === 'science' ? SCIENCE_DIE.length : RED_DIE.length;
+	/** @type {string[]} */
+	const seen = [];
+	/** @type {number[]} */
+	const faces = [];
+	for (let face = 0; face < count; face++) {
+		const art = JSON.stringify(faceOf(die, face));
+		if (!seen.includes(art)) {
+			seen.push(art);
+			faces.push(face);
+		}
+	}
+	return faces;
+}
+
+/**
+ * The faces a die shows as it tumbles: other faces, quick at first and slowing, never the same twice in a row, then
+ * the one it rolled. The same die, face and seed always tumble alike; a different seed tumbles otherwise, so two dice
+ * in the tray don't flip in step. It is only for show, so it needs no injected randomness.
+ * @param {DieId} die
+ * @param {number} face - The face it lands on
+ * @param {number} [seed=0]
+ * @returns {TumbleStep[]}
+ */
+export function tumbleOf(die, face, seed = 0) {
+	const faces = distinctFaces(die);
+	const landing = JSON.stringify(faceOf(die, face));
+	let shown = Math.max(
+		0,
+		faces.findIndex(
+			(index) => JSON.stringify(faceOf(die, index)) === landing
+		)
+	);
+	// A small linear congruential generator, seeded by the die, the face and the seed.
+	let state =
+		(Math.imul(seed + 1, 2654435761) ^ Math.imul(face + 1, 40503)) >>> 0;
+	const next = () => {
+		state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+		return state / 2 ** 32;
+	};
+	const landsAt = Math.round(TUMBLE_MS * LANDS_AT);
+	/** @type {TumbleStep[]} */
+	const steps = [{ at: landsAt, face }];
+	for (let flip = FLIPS - 1; flip >= 0; flip--) {
+		shown =
+			(shown + 1 + Math.floor(next() * (faces.length - 1))) %
+			faces.length;
+		steps.unshift({
+			at: Math.round(landsAt * (flip / FLIPS) ** SLOWING),
+			face: faces[shown],
+		});
+	}
+	return steps;
 }
 
 /**

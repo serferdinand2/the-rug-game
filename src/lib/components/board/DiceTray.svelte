@@ -147,6 +147,7 @@
 					die={rolled.die}
 					face={rolled.face}
 					size={88}
+					seed={Number(roll.id) + index}
 					{rolling} />
 			{/each}
 		</div>

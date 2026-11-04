@@ -12,8 +12,8 @@ export const CUES = Object.freeze({
 	place: 'drop_001',
 	reward: 'confirmation_001',
 	over: 'confirmation_004',
-	// A roll (#61) reuses the drop: no outside download for one cue.
-	dice: 'drop_001',
+	// A roll (#61): our own clatter, synthesized by tools/audio/dice-roll.mjs in time with Die's tumble.
+	dice: 'dice_roll',
 });
 
 /** The events that earn each cue; the first cue in this list that a batch earns plays. */

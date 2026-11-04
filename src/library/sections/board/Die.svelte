@@ -12,7 +12,7 @@
 <Section
 	name="Die"
 	area="board"
-	description="One die as the dice tray rolls it (#61): its style C body (a cream d12 for science, a red and a black d6 for conquests) with the rolled face drawn on top: the track's symbol, the VP in words, the resource's icon, or ? for the territory tile's benefit. Rolling, it tumbles; with reduced motion it doesn't.">
+	description="One die as the dice tray rolls it (#61): its style C body (a cream d12 for science, a red and a black d6 for conquests) with the rolled face drawn on top: the track's symbol, the VP in words, the resource's icon, or ? for the territory tile's benefit. Rolling, it tumbles, flipping through its other faces before it lands; with reduced motion it doesn't.">
 	<Example
 		label={'die="science" face={0…3}  (exploration, science, technology, military; each is on 3 of the 12 faces)'}
 		surface="chrome">
@@ -47,7 +47,7 @@
 		</div>
 	</Example>
 	<Example
-		label="rolling  (the tumble, on a loop here)"
+		label="rolling  (the tumble and its flips, on a loop here; seed varies the flips)"
 		surface="chrome">
 		<div class="rg-library-dice">
 			<Die
@@ -57,6 +57,7 @@
 			<Die
 				die="black"
 				face={2}
+				seed={1}
 				rolling />
 		</div>
 	</Example>

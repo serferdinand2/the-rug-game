@@ -6,7 +6,8 @@
 	 * @property {import('../../dice.js').DieId} die - The science die (d12) or the red or black conquer die (d6)
 	 * @property {number} face - The face it lands on: an index into the die's faces (engine/data/dice.js)
 	 * @property {number} [size=72] - Its width and height, in pixels
-	 * @property {boolean} [rolling=false] - It tumbles; with reduced motion it doesn't
+	 * @property {boolean} [rolling=false] - It tumbles, flipping through other faces before it lands on `face`; with reduced motion it doesn't
+	 * @property {number} [seed=0] - Varies the faces it flips through, so two dice in the tray don't tumble alike
 	 */
 
 	/**
@@ -20,13 +21,35 @@
 
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
-	import { TUMBLE_MS, faceOf } from '../../dice.js';
+	import { TUMBLE_MS, faceOf, tumbleOf } from '../../dice.js';
 	import { artUrl } from '../../ui.js';
 
 	/** @type {DieProps} */
-	let { die, face, size = 72, rolling = false, ...attr } = $props();
+	let { die, face, size = 72, rolling = false, seed = 0, ...attr } = $props();
 
-	let shown = $derived(faceOf(die, face));
+	/** @type {number | null} The face it shows mid-tumble; null once it has landed */
+	let tumbling = $state(null);
+
+	// While it rolls, it flips through tumbleOf's faces, again each tumble (the library loops it), landing on `face`.
+	$effect(() => {
+		if (!rolling) {
+			tumbling = null;
+			return;
+		}
+		const steps = tumbleOf(die, face, seed);
+		/** @type {ReturnType<typeof setTimeout>[]} */
+		let timers = [];
+		const tumble = () => {
+			timers = steps.map((step) =>
+				setTimeout(() => (tumbling = step.face), step.at)
+			);
+			timers.push(setTimeout(tumble, TUMBLE_MS));
+		};
+		tumble();
+		return () => timers.forEach(clearTimeout);
+	});
+
+	let shown = $derived(faceOf(die, tumbling ?? face));
 	let resource = $derived(
 		/** @type {import('../../ui.js').CostSymbol} */ (
 			shown.kind === 'resource' ? shown.id : 'coin'
@@ -115,19 +138,43 @@
 	}
 
 	.rg-die--rolling {
-		animation: rg-die-tumble var(--rg-die-tumble)
-			cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+		animation: rg-die-tumble var(--rg-die-tumble) linear infinite;
 	}
 
+	/* Thrown in spinning, it strikes the tray three times, each bounce lower, then rocks still on its rolled face. Each
+	   fall eases in and each rise eases out. */
 	@keyframes rg-die-tumble {
 		0% {
-			transform: translateY(-40%) rotate(-200deg) scale(0.8);
+			transform: translateY(-60%) rotate(-540deg) scale(0.75);
+			animation-timing-function: cubic-bezier(0.5, 0, 1, 1);
 		}
-		55% {
-			transform: translateY(6%) rotate(20deg) scale(1.05);
+		20% {
+			transform: translateY(5%) rotate(-250deg) scale(1.06, 0.94);
+			animation-timing-function: cubic-bezier(0, 0, 0.5, 1);
 		}
-		75% {
-			transform: translateY(-4%) rotate(-6deg);
+		32% {
+			transform: translateY(-24%) rotate(-120deg) scale(0.96);
+			animation-timing-function: cubic-bezier(0.5, 0, 1, 1);
+		}
+		44% {
+			transform: translateY(4%) rotate(-40deg) scale(1.05, 0.95);
+			animation-timing-function: cubic-bezier(0, 0, 0.5, 1);
+		}
+		54% {
+			transform: translateY(-10%) rotate(12deg);
+			animation-timing-function: cubic-bezier(0.5, 0, 1, 1);
+		}
+		64% {
+			transform: translateY(2%) rotate(-8deg) scale(1.02, 0.98);
+			animation-timing-function: ease-out;
+		}
+		76% {
+			transform: translateY(-2%) rotate(4deg);
+			animation-timing-function: ease-in-out;
+		}
+		88% {
+			transform: rotate(-1.5deg);
+			animation-timing-function: ease-out;
 		}
 		100% {
 			transform: none;

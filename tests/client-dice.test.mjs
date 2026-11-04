@@ -6,7 +6,7 @@ import {
 	RED_DIE,
 	SCIENCE_DIE,
 } from '../src/lib/engine/data/dice.js';
-import { faceOf, rollsOf } from '../src/lib/dice.js';
+import { TUMBLE_MS, faceOf, rollsOf, tumbleOf } from '../src/lib/dice.js';
 
 const GAME = {
 	seats: [
@@ -222,5 +222,51 @@ test('every face of every die shows what the dice data says', () => {
 			{ kind: 'tile' },
 			{ kind: 'tile' },
 		]
+	);
+});
+
+test('a tumbling die flips through its other faces, faster first, then lands on its rolled face', () => {
+	for (const [die, faces] of /** @type {const} */ ([
+		['science', SCIENCE_DIE],
+		['red', RED_DIE],
+		['black', BLACK_DIE],
+	])) {
+		faces.forEach((_, face) => {
+			const steps = tumbleOf(die, face);
+			const landing = steps.at(-1);
+			assert.deepEqual(faceOf(die, landing.face), faceOf(die, face));
+			assert.equal(
+				landing.face,
+				face,
+				'it lands on the rolled face itself'
+			);
+			assert.ok(steps.length >= 10, `${die} ${face} shows too few faces`);
+			assert.equal(steps[0].at, 0, 'it shows a face from the start');
+			assert.ok(
+				landing.at < TUMBLE_MS,
+				'it lands before the tumble ends'
+			);
+			for (let i = 1; i < steps.length; i++) {
+				assert.ok(steps[i].face >= 0 && steps[i].face < faces.length);
+				assert.notDeepEqual(
+					faceOf(die, steps[i].face),
+					faceOf(die, steps[i - 1].face),
+					'no face shows twice in a row'
+				);
+				assert.ok(steps[i].at > steps[i - 1].at);
+			}
+			// It slows as it lands: the last flip waits longer than the first.
+			assert.ok(
+				landing.at - steps.at(-2).at > 2 * (steps[1].at - steps[0].at)
+			);
+		});
+	}
+});
+
+test('two dice in the tray tumble through different faces, and the same die the same way each time', () => {
+	assert.deepEqual(tumbleOf('red', 1, 4), tumbleOf('red', 1, 4));
+	assert.notDeepEqual(
+		tumbleOf('red', 1, 4).map((step) => step.face),
+		tumbleOf('red', 1, 5).map((step) => step.face)
 	);
 });
