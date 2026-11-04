@@ -136,8 +136,7 @@ test("Track's fixed rows are tokens, and the board adds them up for its chrome",
 	for (const token of [
 		'--track-heading',
 		'--track-prices',
-		'--progress-lane',
-		'--progress-line',
+		'--track-token',
 	]) {
 		assert.ok(board.includes(`var(${token})`), token);
 	}
@@ -159,7 +158,7 @@ test('track names follow their symbols and precede the divider line', () => {
 	assert.match(style, /\.rg-track--name[\s\S]*?flex:\s*none/);
 });
 
-test('TrackBoard sets the count of tracks, of spaces and of lanes', () => {
+test('TrackBoard sets the count of tracks and of spaces', () => {
 	const style = (tracks) =>
 		render(TrackBoard, { props: { tracks } }).body.match(
 			/class="rg-track-board[^"]*"[^>]*style="([^"]*)"/
@@ -167,7 +166,8 @@ test('TrackBoard sets the count of tracks, of spaces and of lanes', () => {
 	const four = style(TRACK_IDS.map((id) => plainTrack(id)));
 	assert.match(four, /--rg-track-board-count: 4;/);
 	assert.match(four, /--rg-track-board-spaces: 12;/);
-	assert.match(four, /--rg-track-board-lanes: 2;/);
+	// The players' tokens stand on the spaces (#174): the lanes are one row high, however many players there are.
+	assert.doesNotMatch(four, /--rg-track-board-lanes/);
 	const five = style([...TRACK_IDS, FIFTH].map((id) => plainTrack(id)));
 	assert.match(five, /--rg-track-board-count: 5;/);
 });

@@ -13,6 +13,7 @@ import {
 	TIER_SPACES,
 	tierOf,
 	progressSpan,
+	trackTokens,
 } from '../src/lib/track-shape.js';
 import * as tracks from '../src/lib/engine/data/tracks.js';
 
@@ -169,4 +170,77 @@ test('a progress line can be measured on a track of another length', () => {
 		end: 1.5 / 4,
 		next: { start: 1.5 / 4, end: 2.5 / 4 },
 	});
+});
+
+test('each player\'s token stands on the middle of the space reached, alone there (#174)', () => {
+	assert.deepEqual(
+		trackTokens([
+			{ seat: 1, position: 4 },
+			{ seat: 2, position: 2 },
+		]),
+		[
+			{ seat: 1, lane: 0, end: 3.5 / 12, slot: 0, count: 1, start: false, ghost: false },
+			{ seat: 2, lane: 1, end: 1.5 / 12, slot: 0, count: 1, start: false, ghost: false },
+		]
+	);
+});
+
+test('tokens on one space stand side by side, in seat order (#174)', () => {
+	const tokens = trackTokens([
+		{ seat: 1, position: 3 },
+		{ seat: 2, position: 5 },
+		{ seat: 3, position: 3 },
+		{ seat: 4, position: 3 },
+		{ seat: 5, position: 5 },
+	]);
+	assert.deepEqual(
+		tokens.map(({ seat, slot, count }) => [seat, slot, count]),
+		[
+			[1, 0, 3],
+			[2, 0, 2],
+			[3, 1, 3],
+			[4, 2, 3],
+			[5, 1, 2],
+		]
+	);
+});
+
+test('tokens at the start line up inside the first space (#174)', () => {
+	const tokens = trackTokens([
+		{ seat: 1, position: 0 },
+		{ seat: 2, position: 0 },
+		{ seat: 3, position: 1 },
+	]);
+	assert.deepEqual(
+		tokens.map(({ seat, start, slot, count, end }) => [seat, start, slot, count, end]),
+		[
+			[1, true, 0, 2, 0],
+			[2, true, 1, 2, 0],
+			[3, false, 0, 1, 0.5 / 12],
+		]
+	);
+});
+
+test('a previewed seat gets a faint token on its next space, beside the tokens there (#174)', () => {
+	const tokens = trackTokens(
+		[
+			{ seat: 1, position: 3 },
+			{ seat: 2, position: 4 },
+		],
+		[1]
+	);
+	assert.deepEqual(
+		tokens.map(({ seat, ghost, end, slot, count }) => [seat, ghost, end, slot, count]),
+		[
+			[1, false, 2.5 / 12, 0, 1],
+			[2, false, 3.5 / 12, 0, 2],
+			[1, true, 3.5 / 12, 1, 2],
+		]
+	);
+});
+
+test('a player on the last space has no faint token to preview (#174)', () => {
+	const tokens = trackTokens([{ seat: 1, position: 12 }], [1]);
+	assert.equal(tokens.length, 1);
+	assert.equal(tokens[0].ghost, false);
 });

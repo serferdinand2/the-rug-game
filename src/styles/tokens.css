@@ -134,8 +134,9 @@
 	--input-height-small: 30px;
 	--seat-height: 112px; /* lobby seats, filled or empty */
 	--track-tip: 16px; /* the arrow tip of a track space and the inlet of the next one */
-	--progress-line: 3px; /* player progress lines and tier price lines */
-	--progress-lane: 8px; /* distance between two progress lines */
+	--progress-line: 3px; /* tier price lines */
+	--track-token: 28px; /* a player's token on the bottom edge of the track space it reached (#174) */
+	--track-token-gap: 22px; /* between the tokens that share a track space, centre to centre (#174) */
 	--track-heading: 18px; /* a track's row with its symbol, which TrackBoard adds up as chrome */
 	--track-prices: 18px; /* a track's row of tier prices */
 	--track-bar-mix: 18%; /* how much of its track's colour tints a bar about a track: a decision's actions, the optional footer (#117) */

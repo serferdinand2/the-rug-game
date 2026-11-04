@@ -1,4 +1,4 @@
-<!-- Library section: ProgressLanes with four players, with and without the dashed preview, and with fewer and more players. -->
+<!-- Library section: ProgressLanes with four players, with and without the faint preview token, at the start and the end, and with five players sharing spaces. -->
 <script>
 	import ProgressLanes from '../../../lib/components/board/ProgressLanes.svelte';
 	import Example from '../../Example.svelte';
@@ -27,7 +27,7 @@
 <Section
 	name="ProgressLanes"
 	area="board"
-	description="The players' progress under a track: one lane per player, ending in the approved player-color token SVG, with a dashed preview to the next space while it is hovered.">
+	description="The players' tokens under a track (#174): each player's token stands on the bottom edge of the space it reached, side by side when they share one, and a faint token shows on the next space while it is hovered.">
 	<Example
 		label={'players={You 4, Ana 2, Marko 5, Vera 1}'}
 		wide
@@ -51,7 +51,7 @@
 			preview={[1, 2, 3, 4]} />
 	</Example>
 	<Example
-		label={'players={You 0, Ana 12} preview={[1, 2]}  (from the start; nothing after the last space)'}
+		label={'players={You 0, Ana 12} preview={[1, 2]}  (lined up inside the first space; nothing after the last)'}
 		wide
 		width={1428}>
 		<ProgressLanes
@@ -59,7 +59,7 @@
 			preview={[1, 2]} />
 	</Example>
 	<Example
-		label={'players={five players}'}
+		label={'players={five players, two pairs sharing a space}'}
 		wide
 		width={1428}>
 		<ProgressLanes players={five} />

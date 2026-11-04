@@ -40,7 +40,7 @@ function ops(stack) {
 }
 
 /**
- * The lanes whose dashed line is previewed under one track, by lane number from the top.
+ * The lanes whose faint token is previewed under one track, by lane number from the top.
  * @param {import('@playwright/test').Locator} track
  * @returns {Promise<number[]>}
  */
@@ -58,12 +58,12 @@ function previewedLanes(track) {
 		);
 }
 
-test("the library's tracks dash only the previewSeat's line where two players share the next space (#81)", async ({
+test("the library's tracks show only the previewSeat's faint token where two players share the next space (#81, #174)", async ({
 	page,
 }) => {
 	await page.goto('/components.html');
 
-	// Track: You and Ana are both on Navigation; hovering Ships dashes only your line (lane 0).
+	// Track: You and Ana are both on Navigation; hovering Ships shows only your faint token (lane 0).
 	const track = page.locator('#track .rg-track').first();
 	await track.locator('.rg-track-space').nth(4).hover();
 	await expect(track.locator('.rg-progress-lanes--preview')).toHaveCount(1);
@@ -77,14 +77,14 @@ test("the library's tracks dash only the previewSeat's line where two players sh
 	await expect(track.locator('.rg-progress-lanes--preview')).toHaveCount(1);
 	expect(await previewedLanes(track)).toEqual([0]);
 
-	// Without a previewSeat, as on another player's turn, hovering dashes no line.
+	// Without a previewSeat, as on another player's turn, hovering shows no faint token.
 	const military = page.locator('#track .rg-track').nth(1);
 	await military.locator('.rg-track-space').nth(1).hover();
 	await expect(military.locator('.rg-progress-lanes--preview')).toHaveCount(
 		0
 	);
 
-	// TrackBoard: You and Ana are both on Mathematics; hovering Herbalism dashes only your line.
+	// TrackBoard: You and Ana are both on Mathematics; hovering Herbalism shows only your faint token.
 	const science = page
 		.locator('#track-board')
 		.getByRole('group', { name: 'Science' });

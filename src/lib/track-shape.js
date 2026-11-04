@@ -1,4 +1,4 @@
-// Track-space geometry for the interface: the pointed tile silhouette, its selected outline, tiers and progress lines.
+// Track-space geometry for the interface: the pointed tile silhouette, its selected outline, tiers and the players' tokens.
 // Layout only: which spaces a player may enter, and what they cost, come from the rules engine.
 
 /** @typedef {{ x: number, y: number }} Point */
@@ -123,6 +123,46 @@ export function progressSpan(position, spaces = SPACE_COUNT) {
 				? { start: end, end: (reached + 0.5) / spaces }
 				: null,
 	};
+}
+
+/**
+ * One token under a track: a player's, on the space they reached, or the faint one of a previewed seat on its next space.
+ * @typedef {Object} TrackToken
+ * @property {import('./ui.js').Seat} seat
+ * @property {number} lane - The player's place in the list, for a stable key and the preview tests
+ * @property {number} end - The middle of its space, as a fraction of the track's width; 0 at the start
+ * @property {number} slot - Its place among the tokens on the same space, from the left
+ * @property {number} count - How many tokens share the space
+ * @property {boolean} start - Whether it waits at the start, where the tokens line up inside the first space
+ * @property {boolean} ghost - Whether it is a previewed seat's faint token on its next space
+ */
+
+/**
+ * Where each player's token stands (#174): on the middle of the space reached, side by side with the tokens that share
+ * it, in the players' order; a previewed seat's faint token joins the tokens on its next space, after them.
+ * @param {readonly { seat: import('./ui.js').Seat, position: number }[]} players
+ * @param {readonly import('./ui.js').Seat[]} [preview=[]] - The seats whose next space is previewed
+ * @param {number} [spaces=SPACE_COUNT]
+ * @returns {TrackToken[]}
+ */
+export function trackTokens(players, preview = [], spaces = SPACE_COUNT) {
+	const placed = players.map((player, lane) => {
+		const span = progressSpan(player.position, spaces);
+		return { seat: player.seat, lane, end: span.end, start: player.position <= 0, ghost: false };
+	});
+	const ghosts = players.flatMap((player, lane) => {
+		const next = progressSpan(player.position, spaces).next;
+		return preview.includes(player.seat) && next
+			? [{ seat: player.seat, lane, end: next.end, start: false, ghost: true }]
+			: [];
+	});
+	const all = [...placed, ...ghosts];
+	/** @param {{ end: number, start: boolean }} token */
+	const where = (token) => (token.start ? 'start' : String(token.end));
+	return all.map((token) => {
+		const group = all.filter((other) => where(other) === where(token));
+		return { ...token, slot: group.indexOf(token), count: group.length };
+	});
 }
 
 /**

@@ -79,8 +79,7 @@
 	{...attr}
 	class="rg-track-board {attr.class ? attr.class : ''}"
 	style:--rg-track-board-count={Math.max(1, tracks.length)}
-	style:--rg-track-board-spaces={tracks[0]?.spaces.length || SPACE_COUNT}
-	style:--rg-track-board-lanes={Math.max(1, tracks[0]?.players.length ?? 1)}>
+	style:--rg-track-board-spaces={tracks[0]?.spaces.length || SPACE_COUNT}>
 	{#each tracks as track (track.id)}
 		<Track
 			{...track}
@@ -97,12 +96,12 @@
 <style>
 	/* A size container, so a space can take the height the board has to spare (#59): the board's share for one track
 	   less the track's chrome, between 48px and 1.25 times a space's width. The chrome is Track's heading and price
-	   rows, its three row gaps and the lanes' top padding (each --space-1), and the progress lanes' box. */
+	   rows, its three row gaps and the lanes' top padding (each --space-1), and the lanes' box: the lower half of the
+	   players' tokens. */
 	.rg-track-board {
 		--rg-track-board-chrome: calc(
 			var(--track-heading) + var(--track-prices) + 4 * var(--space-1) +
-				(var(--rg-track-board-lanes) - 1) * var(--progress-lane) + 3 *
-				var(--progress-line)
+				var(--track-token) / 2
 		);
 		--rg-track-space-aspect: auto;
 		--rg-track-space-height: clamp(

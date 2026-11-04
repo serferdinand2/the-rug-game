@@ -1,4 +1,4 @@
-<!-- One advancement track: its name, the four tier prices, the twelve spaces and the players' progress lanes. -->
+<!-- One advancement track: its name, the four tier prices, the twelve spaces and the players' tokens on them. -->
 <script module>
 	/**
 	 * One space on the track.
@@ -241,8 +241,11 @@
 		column-gap: 0;
 	}
 
-	/* With the grid gap, this puts the first progress line 5px below the spaces, as in the mockup. */
+	/* With the grid gap, 2 × --space-1 below the spaces; the tokens reach up onto the spaces' bottom edge, so the
+	   lanes stack above the spaces (up to 20 for the selected one). */
 	.rg-track--lanes {
+		position: relative;
+		z-index: 30;
 		padding-top: var(--space-1);
 	}
 </style>
