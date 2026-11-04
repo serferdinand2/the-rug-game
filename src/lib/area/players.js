@@ -7,6 +7,7 @@ import { TERRAINS } from '../ui.js';
 import {
 	capitalScore,
 	controlledTerritories,
+	openDecisions,
 	spacesAdvanced,
 } from '../engine/game.js';
 import { TRACK_IDS } from '../engine/data/ids.js';
@@ -37,8 +38,25 @@ import { TRACK_IDS } from '../engine/data/ids.js';
  * @property {string} civilization - Its name, or 'Setting up' before the player has one
  * @property {number} vp
  * @property {boolean} current - It is this player's turn
+ * @property {boolean} closing - Their turn waits only on End turn (#146), so it is about to pass: the glow dims (#177)
  * @property {string | undefined} ability - The civilization's full ability, for the chip's tooltip
  */
+
+/**
+ * The seat whose turn waits only on its End turn (#146): the current player, when every open decision is their own
+ * End turn. Null otherwise, as while a conquest's defender answers (#24) or anyone else still decides.
+ * @param {any} view - The game as view() gives it to the viewer
+ * @returns {number | null}
+ */
+function closingSeat(view) {
+	const open = openDecisions(view);
+	return open.length > 0 &&
+		open.every(
+			(op) => op.kind === 'confirmEndTurn' && op.player === view.current
+		)
+		? view.current
+		: null;
+}
 
 /**
  * One chip per player seat, in seat order, for the game header (#90).
@@ -46,6 +64,7 @@ import { TRACK_IDS } from '../engine/data/ids.js';
  * @returns {PlayerChipFacts[]}
  */
 export function playerChips(view) {
+	const closing = closingSeat(view);
 	return view.seats
 		.filter((/** @type {any} */ seat) => seat.kind === 'player')
 		.map((/** @type {any} */ seat) => ({
@@ -54,6 +73,7 @@ export function playerChips(view) {
 			civilization: civilizationOf(seat),
 			vp: seat.vp,
 			current: view.current === seat.seat,
+			closing: closing === seat.seat,
 			ability: seat.civs.length
 				? (civAbilityText(seat.civs[0], view.version) ?? undefined)
 				: undefined,

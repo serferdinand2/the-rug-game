@@ -1,4 +1,4 @@
-<!-- A header chip for one player: their colour, name, civilization and VP, and the colour fill while the players overview is open. -->
+<!-- A header chip for one player: their colour, name, civilization and VP, the current player's glow, dimmed while their End turn counts down (#177), and the colour fill while the players overview is open. -->
 <script module>
 	/**
 	 * Properties of the PlayerChip component itself.
@@ -8,6 +8,7 @@
 	 * @property {number} vp - Their victory points
 	 * @property {import('../../ui.js').Seat} seat - Their seat, which sets the colour
 	 * @property {boolean} [current=false] - It is this player's turn: the green glow and an outline in their colour
+	 * @property {boolean} [closing=false] - With `current`: their turn waits only on End turn (#146), so the glow dims and the outline thins until it passes (#177)
 	 * @property {boolean} [filled=false] - The players overview is open: the colour slides across the chip and its text hides, at the same size
 	 * @property {boolean} [bump=false] - Their VP just rose (#29): the score pops once in gold, unless the system asks for reduced motion
 	 * @property {string} [ability] - The civilization's full ability, which hovering the chip shows after its name (#42)
@@ -25,6 +26,7 @@
 	 *   vp={41}
 	 *   seat={2}
 	 *   current
+	 *   closing={endTurnOpen}
 	 *   filled={overviewOpen}
 	 *   onPlayerChipClick={() => (viewing = seat)}
 	 * />
@@ -43,6 +45,7 @@
 		vp,
 		seat,
 		current = false,
+		closing = false,
 		filled = false,
 		bump = false,
 		ability,
@@ -51,7 +54,7 @@
 	} = $props();
 
 	let label = $derived(
-		`${name}, ${civilization}, ${vp} VP${current ? ', current player' : ''}`
+		`${name}, ${civilization}, ${vp} VP${current ? (closing ? ', current player, ending their turn' : ', current player') : ''}`
 	);
 	let tooltip = $derived(ability ? `${label}\n\n${ability}` : label);
 
@@ -77,6 +80,7 @@
 	{...attr}
 	class="rg-player-chip {attr.class ? attr.class : ''}"
 	class:rg-player-chip--current={current}
+	class:rg-player-chip--closing={current && closing}
 	class:rg-player-chip--filled={filled}
 	style:--rg-player-chip-color={playerColor(seat)}
 	onclick={clickHandler}>
@@ -128,6 +132,13 @@
 		outline: var(--border-thick) solid var(--rg-player-chip-color);
 		color: var(--text);
 		box-shadow: var(--glow-current);
+	}
+
+	/* End turn counts down (issue 177): the turn is still theirs, but passing, so the glow dims and the outline thins. */
+	.rg-player-chip--closing,
+	.rg-player-chip--closing:hover {
+		outline-width: var(--border);
+		box-shadow: var(--glow-closing);
 	}
 
 	.rg-player-chip:focus-visible {

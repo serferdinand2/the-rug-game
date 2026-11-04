@@ -1,4 +1,4 @@
-<!-- Library section: PlayerChip for each seat, as the current player, filled while the players overview is open, and with its civilization's ability on hover (#42). -->
+<!-- Library section: PlayerChip for each seat, as the current player, closing while End turn counts down (#177), filled while the players overview is open, and with its civilization's ability on hover (#42). -->
 <script>
 	import PlayerChip from '../../../lib/components/player/PlayerChip.svelte';
 	import Example from '../../Example.svelte';
@@ -19,7 +19,7 @@
 <Section
 	name="PlayerChip"
 	area="player"
-	description="A header chip per player: a square in their colour, their name, civilization and VP. The current player glows green. While the players overview is open, the colour slides across every chip and the text hides, at the same size.">
+	description="A header chip per player: a square in their colour, their name, civilization and VP. The current player glows green; while their End turn counts down (#146), the turn about to pass, the glow dims and the outline thins (closing, #177). While the players overview is open, the colour slides across every chip and the text hides, at the same size.">
 	<Example
 		label={`filled={${open}}  (click any chip)`}
 		surface="chrome"
@@ -45,6 +45,21 @@
 				current={player.seat === 1} />
 		</Example>
 	{/each}
+	<Example
+		label={'seat={1} current  ·  seat={1} current closing  (End turn counting down, #177)'}
+		surface="chrome">
+		<div
+			style:display="flex"
+			style:gap="var(--space-4)">
+			<PlayerChip
+				{...PLAYERS[0]}
+				current />
+			<PlayerChip
+				{...PLAYERS[0]}
+				current
+				closing />
+		</div>
+	</Example>
 	<Example
 		label={"ability={civAbilityText('militants', 'current')}  (hover: the tooltip reads the civilization's full ability; #42)"}
 		surface="chrome">

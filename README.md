@@ -140,6 +140,10 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 |---|
 | ![The footer: Your turn · Nothing left to do this turn. Undo to take a choice back, or end the turn., with a gold End turn (2) counting down and its Enter key on the right](docs/ui/screens/game-end-turn.png) |
 
+While a finished player's End turn counts down, the header keeps the turn on them but dims their chip's glow and thins its outline, as the turn is about to pass; the next player's chip lights once it does (#177).
+
+![The header while Vera's End turn counts down: her chip keeps its outline in her red, thinner, with the green glow dimmed, beside Marko's plain chip](docs/ui/screens/game-end-turn-header.png)
+
 | How to play: the track symbols (#42, #174) | How to play: the keyboard shortcuts (#42, #83) |
 |---|---|
 | ![How to play over the game on its Symbols tab, after Advancing on a track: every symbol the track spaces draw, as the board draws it, beside its meaning, in three groups: what you gain or do, buildings and resources, and how a space reads](docs/ui/screens/game-how-to-play.png) | ![The Keyboard shortcuts tab (#83): Your turn (I, A, 1–4, Enter, Z, Esc), the board and the players (M, 1–5, Tab, L), your player area (Q to U), exploring and placing, and help (H, K), each key drawn as a key](docs/ui/screens/game-keyboard-shortcuts.png) |

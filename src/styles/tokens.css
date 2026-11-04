@@ -187,6 +187,10 @@
 		0 0 0 1px color-mix(in srgb, var(--action) 67%, transparent),
 		0 0 8px color-mix(in srgb, var(--action) 80%, transparent),
 		0 0 17px color-mix(in srgb, var(--action) 47%, transparent);
+	/* The current player's glow while their End turn counts down (#177): the same green, dimmed, as the turn is passing. */
+	--glow-closing:
+		0 0 0 1px color-mix(in srgb, var(--action) 33%, transparent),
+		0 0 6px color-mix(in srgb, var(--action) 30%, transparent);
 	--glow-gold:
 		0 0 5px color-mix(in srgb, var(--gold) 73%, transparent),
 		0 0 12px color-mix(in srgb, var(--gold) 33%, transparent);

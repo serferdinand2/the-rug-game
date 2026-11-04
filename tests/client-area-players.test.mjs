@@ -1,13 +1,19 @@
 // The players overview's cards (#27 design §4): public facts only, the viewer and host marked.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { capitalScore, view } from '../src/lib/engine/game.js';
+import {
+	DECISIONS,
+	capitalScore,
+	openDecisions,
+	play,
+	view,
+} from '../src/lib/engine/game.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { playerCards, playerChips } from '../src/lib/area/players.js';
 import { civilizationName } from '../src/lib/game-names.js';
 import { civAbilityText } from '../src/lib/cards/civ-rules.js';
-import { startedGame } from './helpers/engine.mjs';
+import { answer, readyTurn, startedGame } from './helpers/engine.mjs';
 
 test('one card per player, the viewer and the host marked', () => {
 	const { state } = startedGame(3);
@@ -124,4 +130,50 @@ test('a track AI Singularity took the token off reads 12 on the card (#147, FAQ 
 	const [card] = playerCards(view(state, 2), 2, 1);
 	assert.equal(card.tracks.technology, 12);
 	assert.equal(card.tracks.science, 3);
+});
+
+test("while a finished player's End turn counts down, their chip keeps the turn but is closing; no other chip glows (#177)", () => {
+	// #146's End turn: the turn passes only when it is pressed or its 6 s run out, so state.current stays on the
+	// finished player meanwhile. That wait is what kept the glow on them (#177).
+	const game = readyTurn(2, (_seat, state) => {
+		state.confirmEnd = true;
+	});
+	let state = answer(game.state, game.random, game.player, 'chooseTurn', {
+		turn: 'income',
+	});
+	for (let step = 0; step < 100; step++) {
+		const [open] = openDecisions(state).filter(
+			(op) => op.kind !== 'confirmEndTurn'
+		);
+		if (!open) {
+			break;
+		}
+		const [first] = DECISIONS[open.kind].answers(state, open);
+		state = play(
+			state,
+			open.player,
+			{ decision: open.id, ...first },
+			game.random
+		);
+	}
+	const other = game.player === 1 ? 2 : 1;
+	for (const viewer of [game.player, other]) {
+		const chips = playerChips(view(state, viewer));
+		assert.deepEqual(
+			chips.map((chip) => [chip.seat, chip.current, chip.closing]),
+			[
+				[1, game.player === 1, game.player === 1],
+				[2, game.player === 2, game.player === 2],
+			]
+		);
+	}
+	// Mid-turn, the current player's chip glows in full.
+	const started = playerChips(view(game.state, other));
+	assert.deepEqual(
+		started.map((chip) => [chip.current, chip.closing]),
+		[
+			[game.player === 1, false],
+			[game.player === 2, false],
+		]
+	);
 });

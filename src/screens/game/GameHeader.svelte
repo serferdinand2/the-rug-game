@@ -119,6 +119,7 @@
 				vp={chip.vp}
 				seat={chip.seat}
 				current={chip.current}
+				closing={chip.closing}
 				filled={overviewOpen}
 				bump={bumped.includes(chip.seat)}
 				ability={chip.ability}

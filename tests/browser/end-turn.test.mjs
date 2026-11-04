@@ -129,10 +129,33 @@ test('a finished turn waits on End turn, which passes the turn (#146)', async ({
 		const endTurn = page.getByRole('button', { name: /^End turn \(\d\)$/ });
 		await expect(endTurn).toBeVisible();
 
+		// The header keeps the turn on the finished player, its glow dimmed as the turn is passing (#177).
+		const chip = page.getByRole('button', {
+			name: new RegExp(
+				`^${NAMES[first - 1]}, .*current player, ending their turn$`
+			),
+		});
+		await expect(chip).toHaveClass(/rg-player-chip--closing/);
+		await expect(
+			page.getByRole('button', { name: /current player/ })
+		).toHaveCount(1);
+
 		if (process.env.SHOTS) {
 			await page.locator('.rg-turn-bar').screenshot({
 				path: 'docs/ui/screens/game-end-turn.png',
 			});
+			const box = await chip.boundingBox();
+			if (box) {
+				await page.screenshot({
+					path: 'docs/ui/screens/game-end-turn-header.png',
+					clip: {
+						x: 0,
+						y: 0,
+						width: 1920,
+						height: box.y + box.height + 12,
+					},
+				});
+			}
 		}
 
 		await endTurn.click();
