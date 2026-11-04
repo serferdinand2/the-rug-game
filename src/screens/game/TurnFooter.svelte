@@ -39,7 +39,6 @@
 	import OverviewCloseBar from '../../lib/components/prompts/OverviewCloseBar.svelte';
 	import TurnBar from '../../lib/components/prompts/TurnBar.svelte';
 	import KeyCap from '../../lib/components/ui/KeyCap.svelte';
-	import { TRACK_KEYS } from '../../lib/hotkeys.js';
 	import { ComponentEvent } from '../../lib/component-event.js';
 
 	/** @type {TurnFooterProps} */
@@ -123,10 +122,7 @@
 			<Button
 				disabled={sending || !choice.enabled}
 				onButtonClick={report(onTurnFooterTrack, choice.track)}
-				>{choice.label}<KeyCap
-					key={String(
-						TRACK_KEYS.indexOf(choice.track) + 1
-					)} /></Button>
+				>{choice.label}</Button>
 		{/each}
 		<Button onButtonClick={report(onTurnFooterCancel)}
 			>Cancel<KeyCap key="Esc" /></Button>
