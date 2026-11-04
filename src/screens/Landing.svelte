@@ -171,6 +171,7 @@
 
 <style>
 	.rg-landing {
+		animation: rg-landing-in var(--duration-slow) var(--ease-out);
 		flex: 1;
 		display: flex;
 		flex-direction: column;
@@ -264,5 +265,19 @@
 		margin: 0;
 		color: var(--muted);
 		font-size: var(--font-size-md);
+	}
+
+	/* The screen fades in as it takes over from the last one, its content rising a little (issue 175). */
+	@keyframes rg-landing-in {
+		from {
+			opacity: 0;
+			transform: translateY(6px);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-landing {
+			animation: none;
+		}
 	}
 </style>

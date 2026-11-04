@@ -56,6 +56,9 @@ export function staggerDelay(index, { step = 40, cap = 240 } = {}) {
 	return Math.min(Math.max(index, 0) * step, cap);
 }
 
+/** The --ease-out token, for the Web Animations API, which can't read a custom property. */
+export const EASE_OUT = 'cubic-bezier(0.2, 0.75, 0.25, 1)';
+
 /** An ease-out that slows like the --ease-out token, for Svelte's JavaScript-timed transitions. */
 export const easeOut = (/** @type {number} */ t) => 1 - (1 - t) ** 4;
 
@@ -96,6 +99,32 @@ export function rise(
 		css: (t, u) =>
 			`opacity: ${t}; transform: ${base}translate(${x * u}px, ${y * u}px) scale(${1 - (1 - scale) * u})`,
 	};
+}
+
+/**
+ * Plays an entrance on an element already in place, with the Web Animations API: from an offset, a scale and an
+ * opacity to where it rests. For content that changes inside an element that stays, such as a tab's panel.
+ * @param {any} element - The element, which needs animate()
+ * @param {{ x?: number, y?: number, scale?: number, opacity?: number }} from
+ * @param {{ speed?: keyof typeof DURATIONS, delay?: number, view?: MotionView }} [options]
+ * @returns {Animation | null} The entrance, or null when nothing plays (reduced motion, no API)
+ */
+export function enter(
+	element,
+	{ x = 0, y = 0, scale = 1, opacity = 0 },
+	{ speed = 'medium', delay = 0, view = pageView() } = {}
+) {
+	const duration = motionMs(speed, view);
+	if (duration === 0 || typeof element?.animate !== 'function') {
+		return null;
+	}
+	return element.animate(
+		[
+			{ opacity, transform: `translate(${x}px, ${y}px) scale(${scale})` },
+			{ opacity: 1, transform: 'none' },
+		],
+		{ duration, delay, easing: EASE_OUT }
+	);
 }
 
 /**
@@ -159,25 +188,41 @@ const RING = [
 	{ opacity: 0, transform: 'scale(1.9)' },
 ];
 
-/** Where each track marker's token stood last, so a new position hops from it. */
-const reached = new WeakMap();
+/**
+ * Each track marker's last position, so a new one hops from it, and what its last hop left playing, so a new hop
+ * replaces it while a mere redraw leaves it be.
+ * @type {WeakMap<object, { position: number, playing: { cancel(): void }[], timer?: ReturnType<typeof setTimeout> }>}
+ */
+const markers = new WeakMap();
 
 /**
  * A Svelte attachment for a track marker (#175), the focal moment: when its player's position changes, the token hops
  * space by space as the marker slides, squashes as it lands, and a ring in the player's colour spreads from the
- * space. Nothing hops the first time a marker shows, nor under reduced motion, where the marker moves at once.
+ * space. Nothing hops the first time a marker shows, nor under reduced motion, where the marker moves at once. The
+ * board redraws often (each room update makes the attachment run again), so a run at the same position changes
+ * nothing; only a new position stops the last hop and starts its own.
  * The marker's first child is the token; its ::after draws the ring.
  * @param {number} position - The player's position on the track
  * @param {MotionView} [view] - The page's window; none in Node
- * @returns {(marker: any) => (() => void) | void}
+ * @returns {(marker: any) => void}
  */
 export function tokenHop(position, view = pageView()) {
 	return (marker) => {
-		const from = reached.get(marker);
-		reached.set(marker, position);
-		if (from === undefined || from === position) {
+		const last = markers.get(marker);
+		if (!last) {
+			markers.set(marker, { position, playing: [] });
 			return;
 		}
+		if (last.position === position) {
+			return;
+		}
+		const from = last.position;
+		last.position = position;
+		for (const animation of last.playing) {
+			animation.cancel();
+		}
+		last.playing = [];
+		clearTimeout(last.timer);
 		const plan = hopPlan(from, position, motionMs('focal', view));
 		const token = marker.firstElementChild;
 		if (plan.hops === 0 || typeof token?.animate !== 'function') {
@@ -185,8 +230,7 @@ export function tokenHop(position, view = pageView()) {
 		}
 		marker.style.transitionDuration = `${plan.totalMs}ms`;
 		marker.style.transitionTimingFunction = 'linear';
-		const settle = motionMs('slow', view);
-		const playing = [
+		last.playing = [
 			token.animate(hopFrames(plan.hops, token.offsetHeight * 0.45), {
 				duration: plan.totalMs,
 			}),
@@ -196,22 +240,16 @@ export function tokenHop(position, view = pageView()) {
 				easing: 'ease-out',
 			}),
 			marker.animate(RING, {
-				duration: settle,
+				duration: motionMs('slow', view),
 				delay: plan.totalMs,
 				easing: 'ease-out',
 				pseudoElement: '::after',
 			}),
 		];
 		// Once the slide has started, the marker's own timing comes back, so a later shuffle among tokens is quick.
-		const timer = setTimeout(() => {
+		last.timer = setTimeout(() => {
 			marker.style.transitionDuration = '';
 			marker.style.transitionTimingFunction = '';
 		}, plan.totalMs);
-		return () => {
-			clearTimeout(timer);
-			for (const animation of playing) {
-				animation.cancel();
-			}
-		};
 	};
 }

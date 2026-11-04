@@ -1,4 +1,4 @@
-<!-- The play screen's frame (#105): the header and footer bars, and between them the 3/4 shared area and the 1/4 player area on the pixel texture, as the game and results screens share it. -->
+<!-- The play screen's frame (#105): the header and footer bars, and between them the 3/4 shared area and the 1/4 player area on the pixel texture, as the game and results screens share it; it fades in as it takes the screen (#175). -->
 <script module>
 	/**
 	 * Properties of the PlayLayout component itself.
@@ -72,6 +72,14 @@
 		height: var(--rg-play-layout-height, 100vh);
 		min-height: 0;
 		overflow: hidden;
+		animation: rg-play-layout-in var(--duration-slow) var(--ease-out);
+	}
+
+	/* The screen fades in as it takes over: from the lobby, a pass screen or the results (issue 175). */
+	@keyframes rg-play-layout-in {
+		from {
+			opacity: 0;
+		}
 	}
 
 	/* The overlays are positioned against the middle, between the bars. */
@@ -93,5 +101,11 @@
 		min-height: 0;
 		overflow: hidden;
 		background: var(--texture) var(--surface);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-play-layout {
+			animation: none;
+		}
 	}
 </style>

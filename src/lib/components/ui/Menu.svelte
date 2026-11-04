@@ -1,4 +1,4 @@
-<!-- The header's popover menu: a floating list of actions, links and on/off switches, closed with Escape. -->
+<!-- The header's popover menu: a floating list of actions, links and on/off switches, closed with Escape; it drops from its button and lifts away faster (#175). -->
 <script module>
 	/**
 	 * One menu entry.
@@ -46,6 +46,7 @@
 <script>
 	import { untrack } from 'svelte';
 	import { ComponentEvent } from '../../component-event.js';
+	import { rise } from '../../transitions.js';
 
 	/** @type {MenuProps} */
 	let {
@@ -158,7 +159,9 @@
 		tabindex="-1"
 		{...attr}
 		class="rg-menu {attr.class ? attr.class : ''}"
-		onkeydown={keydownHandler}>
+		onkeydown={keydownHandler}
+		in:rise={{ y: -6, scale: 0.98, speed: 'fast' }}
+		out:rise={{ y: -4, speed: 'exit' }}>
 		{#each items as item, index (item.id)}
 			{#if item.href}
 				<a
@@ -211,6 +214,7 @@
 		border-radius: var(--radius);
 		background: var(--chrome);
 		box-shadow: var(--shadow-float);
+		transform-origin: top right;
 	}
 
 	.rg-menu--item {

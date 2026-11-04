@@ -1,4 +1,4 @@
-<!-- One choice in a decision prompt: a pressable box with its words and optional symbols, gold while chosen, dimmed while it can't be picked. -->
+<!-- One choice in a decision prompt: a pressable box with its words and optional symbols, gold while chosen, dimmed while it can't be picked; it pops as it is chosen and presses down under the pointer (#175). -->
 <script module>
 	/**
 	 * Properties of the DecisionOption component itself.
@@ -102,6 +102,14 @@
 		background: var(--choice-fill);
 		color: var(--text);
 		text-align: left;
+		transition:
+			border-color var(--duration-fast) var(--ease),
+			background var(--duration-fast) var(--ease),
+			transform var(--duration-fast) var(--ease-out);
+	}
+
+	.rg-decision-option:not(:disabled):active {
+		transform: scale(0.98);
 	}
 
 	/* Unpickable now, as a trade the player can't pay for; hover leaves it be, as a disabled tile. */
@@ -120,6 +128,15 @@
 		border-color: var(--gold);
 		background: var(--picked-fill);
 		outline: var(--border-thick) solid var(--gold);
+		animation: rg-decision-option-pick var(--duration-medium)
+			var(--ease-out);
+	}
+
+	/* Chosen, it pops: a quick swell and back (issue 175). */
+	@keyframes rg-decision-option-pick {
+		40% {
+			transform: scale(1.04);
+		}
 	}
 
 	/* Focus on the chosen one: its solid ring hugging the border turns dashed and stands off, so focus reads apart
@@ -143,5 +160,11 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--space-4);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-decision-option[aria-pressed='true'] {
+			animation: none;
+		}
 	}
 </style>

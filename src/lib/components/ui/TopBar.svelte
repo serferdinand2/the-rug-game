@@ -1,4 +1,4 @@
-<!-- The 58px header on every page: the brand at the left, a sentence or player chips in the centre, controls at the right. -->
+<!-- The 58px header on every page: the brand at the left, a sentence or player chips in the centre, controls at the right; on the viewer's turn a green rule sweeps out from its centre (#175). -->
 <script module>
 	/**
 	 * Properties of the TopBar component itself.
@@ -75,10 +75,24 @@
 		border-bottom-color: var(--line);
 	}
 
-	/* The viewer's turn: a green rule along the bottom, over the divider. */
-	.rg-top-bar--yours {
-		box-shadow: inset 0 calc(-1 * var(--track-bar-band)) 0 var(--action);
-		transition: box-shadow var(--duration-medium) var(--ease);
+	/* The viewer's turn: a green rule along the bottom, over the divider. It sweeps out from the centre as the turn
+	   comes, and draws back faster as it goes (issue 175). */
+	.rg-top-bar::after {
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		height: var(--track-bar-band);
+		background: var(--action);
+		content: '';
+		pointer-events: none;
+		transform: scaleX(0);
+		transition: transform var(--duration-exit) var(--ease-in);
+	}
+
+	.rg-top-bar--yours::after {
+		transform: scaleX(1);
+		transition: transform var(--duration-focal) var(--ease-out);
 	}
 
 	.rg-top-bar--brand {

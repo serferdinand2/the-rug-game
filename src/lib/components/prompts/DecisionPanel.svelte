@@ -1,4 +1,4 @@
-<!-- The decision prompt over the shared area: a dark scrim, and at the tracks' centre the panel with its title, content and Confirm, under an optional shelf of cards. -->
+<!-- The decision prompt over the shared area: a dark scrim, and at the tracks' centre the panel with its title, content and Confirm, under an optional shelf of cards; the scrim fades in, the panel rises into place (or slides in from the right, docked) and a new question refreshes it (#175). -->
 <script module>
 	/**
 	 * Properties of the DecisionPanel component itself.
@@ -40,6 +40,7 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
+	import { enter } from '../../transitions.js';
 	import { trackColor } from '../../ui.js';
 	import Button from '../ui/Button.svelte';
 	import KeyCap from '../ui/KeyCap.svelte';
@@ -77,6 +78,20 @@
 	/** The stack's height, the most it may take, and the panel's. */
 	let stackHeight = $state(0);
 	let panelHeight = $state(0);
+	/** @type {HTMLDivElement | undefined} */
+	let panelElement = $state();
+	/** The question on show, so a new one refreshes the panel that stays (#175); not reactive. */
+	let shownTitle = /** @type {string | null} */ (null);
+
+	// A new question in a panel that stays open comes in again, briefly, so the change reads (#175).
+	$effect(() => {
+		const now = title;
+		const before = shownTitle;
+		shownTitle = now;
+		if (panelElement && before !== null && before !== now) {
+			enter(panelElement, { y: 8, opacity: 0.4 }, { speed: 'fast' });
+		}
+	});
 	/** The height the shelf may take above the panel (#57), once both are measured. */
 	let room = $derived(
 		stackHeight > 0
@@ -138,6 +153,7 @@
 			role="dialog"
 			aria-modal="false"
 			aria-labelledby="{uid}-title"
+			bind:this={panelElement}
 			bind:offsetHeight={panelHeight}>
 			<div class="rg-decision-panel--top">
 				<h2 id="{uid}-title">{title}</h2>
@@ -200,6 +216,30 @@
 		justify-content: center;
 		padding: var(--space-9) var(--rg-decision-panel-inline);
 		background: var(--scrim);
+		animation: rg-decision-panel-scrim var(--duration-fast) var(--ease);
+	}
+
+	/* The scrim fades in over the tracks, and the panel rises from a little below into place, so a prompt (or one
+	   brought back from the footer) comes up from where the turn is played (issue 175). */
+	@keyframes rg-decision-panel-scrim {
+		from {
+			background: transparent;
+		}
+	}
+
+	@keyframes rg-decision-panel-rise {
+		from {
+			opacity: 0;
+			transform: translateY(16px) scale(0.985);
+		}
+	}
+
+	/* Docked at the right, for a choice on the map, it slides in from that side (issue 175). */
+	@keyframes rg-decision-panel-dock {
+		from {
+			opacity: 0;
+			transform: translateX(28px);
+		}
 	}
 
 	.rg-decision-panel--narrow .rg-decision-panel--panel {
@@ -241,6 +281,7 @@
 		background: var(--float-surface);
 		color: var(--text);
 		box-shadow: var(--shadow-float);
+		animation: rg-decision-panel-rise var(--duration-medium) var(--ease-out);
 	}
 
 	.rg-decision-panel--top,
@@ -389,6 +430,7 @@
 
 	.rg-decision-panel--docked .rg-decision-panel--panel {
 		pointer-events: auto;
+		animation-name: rg-decision-panel-dock;
 	}
 
 	/* Docked, the content scrolls between the title and the actions, so Confirm stays in sight however many choices
@@ -422,5 +464,12 @@
 	/* Docked, an empty status line would still take a row and its gap above the actions. */
 	.rg-decision-panel--docked .rg-decision-panel--status-empty {
 		display: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-decision-panel,
+		.rg-decision-panel--panel {
+			animation: none;
+		}
 	}
 </style>

@@ -812,33 +812,36 @@
 				<BoardSwitcher bind:value={board} />
 				<AchievementStrip achievements={achievements(game)} />
 			</div>
-			<div
-				class="rg-game--board"
-				class:rg-game--board-docked={promptState.boardDocked}>
-				{#if board === 'tracks'}
-					<TrackBoard
-						tracks={trackBoard(game)}
-						{available}
-						previewSeat={trackPreviewSeat(game, seat)}
-						selected={promptState.isTrack
-							? promptState.trackSelected
-							: selected}
-						lit={litSpace}
-						onTrackBoardSelect={trackSelectHandler} />
-				{:else}
-					<WorldMap
-						hexes={mapHexes(game)}
-						targets={promptState.targets}
-						selected={promptState.hex}
-						scores={promptState.scores}
-						preview={promptState.preview}
-						fresh={moved.hexes}
-						lit={litHex}
-						onWorldMapSelect={(
-							/** @type {ComponentEvent} */ event
-						) => promptState.selectHex(event.value.hex)} />
-				{/if}
-			</div>
+			<!-- Keyed by the board on show, so switching settles the new one in (#175). -->
+			{#key board}
+				<div
+					class="rg-game--board"
+					class:rg-game--board-docked={promptState.boardDocked}>
+					{#if board === 'tracks'}
+						<TrackBoard
+							tracks={trackBoard(game)}
+							{available}
+							previewSeat={trackPreviewSeat(game, seat)}
+							selected={promptState.isTrack
+								? promptState.trackSelected
+								: selected}
+							lit={litSpace}
+							onTrackBoardSelect={trackSelectHandler} />
+					{:else}
+						<WorldMap
+							hexes={mapHexes(game)}
+							targets={promptState.targets}
+							selected={promptState.hex}
+							scores={promptState.scores}
+							preview={promptState.preview}
+							fresh={moved.hexes}
+							lit={litHex}
+							onWorldMapSelect={(
+								/** @type {ComponentEvent} */ event
+							) => promptState.selectHex(event.value.hex)} />
+					{/if}
+				</div>
+			{/key}
 			{#if promptState.panel !== 'none'}
 				<DecisionPrompt
 					state={promptState}
@@ -969,6 +972,15 @@
 	.rg-game--board {
 		flex: 1;
 		min-height: 0;
+		animation: rg-game-board-in var(--duration-medium) var(--ease-out);
+	}
+
+	/* Tracks and the World Map: the board switched to fades in and settles from a little smaller (issue 175). */
+	@keyframes rg-game-board-in {
+		from {
+			opacity: 0;
+			transform: scale(0.985);
+		}
 	}
 
 	/* While a panel is docked at the right, the board leaves the panel's width and inset free, so the map lays itself
@@ -1009,5 +1021,11 @@
 		margin: 0;
 		padding: var(--space-9) 22px;
 		color: var(--muted);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-game--board {
+			animation: none;
+		}
 	}
 </style>

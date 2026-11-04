@@ -1,4 +1,4 @@
-<!-- A short status message in a gold-bordered box that fades in at the bottom of the screen and is read out politely. -->
+<!-- A short status message in a gold-bordered box that rises and fades in at the bottom of the screen and is read out politely (#175). -->
 <script module>
 	/**
 	 * Properties of the Toast component itself.
@@ -63,17 +63,22 @@
 		color: var(--text);
 		opacity: 0;
 		visibility: hidden;
-		/* Hidden only after the fade, so assistive technology never reads a stale message. */
+		transform: translateY(8px);
+		/* Hidden only after the fade, so assistive technology never reads a stale message. It rises as it comes and
+		   sinks as it goes (issue 175). */
 		transition:
 			opacity var(--duration-fast) var(--ease),
+			transform var(--duration-fast) var(--ease-in),
 			visibility 0s linear var(--duration-fast);
 	}
 
 	.rg-toast--visible .rg-toast--box {
 		opacity: 1;
 		visibility: visible;
+		transform: none;
 		transition:
 			opacity var(--duration-fast) var(--ease),
+			transform var(--duration-medium) var(--ease-out),
 			visibility 0s;
 	}
 </style>

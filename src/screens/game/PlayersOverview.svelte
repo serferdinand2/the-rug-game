@@ -1,4 +1,4 @@
-<!-- The players overview (#27 design §4): a card per player in the left 3/4, and on the right the capital, civilization or tech of the row chosen. -->
+<!-- The players overview (#27 design §4): a card per player in the left 3/4, and on the right the capital, civilization or tech of the row chosen; it fades in, its cards rising one after another (#175). -->
 <script module>
 	/**
 	 * Properties of the PlayersOverview screen part itself.
@@ -119,6 +119,42 @@
 		grid-template-columns: var(--play-columns);
 		gap: var(--play-gap);
 		background: var(--ink);
+		animation: rg-players-overview-in var(--duration-fast) var(--ease);
+	}
+
+	/* The overview fades over the board, its cards rising one after another, 40 ms apart (issue 175). */
+	@keyframes rg-players-overview-in {
+		from {
+			opacity: 0;
+		}
+	}
+
+	@keyframes rg-players-overview-card {
+		from {
+			opacity: 0;
+			transform: translateY(12px);
+		}
+	}
+
+	.rg-players-overview--cards > :global(*) {
+		animation: rg-players-overview-card var(--duration-medium)
+			var(--ease-out) backwards;
+	}
+
+	.rg-players-overview--cards > :global(:nth-child(2)) {
+		animation-delay: 40ms;
+	}
+
+	.rg-players-overview--cards > :global(:nth-child(3)) {
+		animation-delay: 80ms;
+	}
+
+	.rg-players-overview--cards > :global(:nth-child(4)) {
+		animation-delay: 120ms;
+	}
+
+	.rg-players-overview--cards > :global(:nth-child(5)) {
+		animation-delay: 160ms;
 	}
 
 	.rg-players-overview--cards {
@@ -157,5 +193,12 @@
 		margin: 0;
 		font: var(--weight-bold) var(--font-size-xl) / var(--leading-tight)
 			var(--font-body);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-players-overview,
+		.rg-players-overview--cards > :global(*) {
+			animation: none;
+		}
 	}
 </style>

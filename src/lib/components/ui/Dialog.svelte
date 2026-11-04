@@ -190,6 +190,21 @@
 		display: grid;
 		place-items: center;
 		background: var(--scrim-strong);
+		animation: rg-dialog-backdrop var(--duration-fast) var(--ease);
+	}
+
+	/* The backdrop fades in, and the box rises and grows a little into place (issue 175). */
+	@keyframes rg-dialog-backdrop {
+		from {
+			background: transparent;
+		}
+	}
+
+	@keyframes rg-dialog-box {
+		from {
+			opacity: 0;
+			transform: translateY(10px) scale(0.98);
+		}
 	}
 
 	/* Over its positioned parent only, so the rest of the screen stays in use. */
@@ -208,6 +223,7 @@
 		border-radius: var(--radius);
 		background: var(--chrome);
 		box-shadow: var(--shadow-float);
+		animation: rg-dialog-box var(--duration-medium) var(--ease-out);
 	}
 
 	/* The box itself takes the focus as it opens, for screen readers to read its title; it draws no ring. */
@@ -242,5 +258,12 @@
 		flex: none;
 		justify-content: flex-end;
 		margin-top: var(--space-9);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-dialog,
+		.rg-dialog--box {
+			animation: none;
+		}
 	}
 </style>

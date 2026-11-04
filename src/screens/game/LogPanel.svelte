@@ -1,4 +1,4 @@
-<!-- The log and scores panel (#29 design §5): over the player area, the table's log or the current scores, chosen by two tabs, closed with its button, or by Escape, which the game screen routes (#88). -->
+<!-- The log and scores panel (#29 design §5): over the player area, the table's log or the current scores, chosen by two tabs, closed with its button, or by Escape, which the game screen routes (#88); it slides in from the right (#175). -->
 <script module>
 	/**
 	 * Properties of the LogPanel screen part itself.
@@ -100,6 +100,15 @@
 		border-left: var(--border) solid var(--line);
 		background: var(--texture) var(--surface);
 		box-shadow: var(--shadow-float);
+		animation: rg-log-panel-in var(--duration-medium) var(--ease-out);
+	}
+
+	/* It slides in from the screen's right edge (issue 175). */
+	@keyframes rg-log-panel-in {
+		from {
+			opacity: 0;
+			transform: translateX(32px);
+		}
 	}
 
 	/* Tabs' row, reached through its class prop. */
@@ -125,5 +134,11 @@
 		padding: var(--space-6) 22px var(--space-8);
 		border-top: var(--border) solid var(--line);
 		overflow-y: auto;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-log-panel {
+			animation: none;
+		}
 	}
 </style>

@@ -371,6 +371,8 @@ test('with a decision panel open, the dice tray rolls clear of it (#61)', async 
 test('the dice tray fades out rather than vanishing (#61)', async ({
 	page,
 }) => {
+	// Motion on, as the suite runs with reduced motion (#175).
+	await page.emulateMedia({ reducedMotion: 'no-preference' });
 	await page.goto('/components.html');
 	await page.getByRole('button', { name: 'Roll the conquer dice' }).click();
 	const tray = page.locator('.rg-dice-tray').first();

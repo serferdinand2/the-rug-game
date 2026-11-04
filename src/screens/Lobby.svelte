@@ -331,6 +331,7 @@
 
 <style>
 	.rg-lobby {
+		animation: rg-lobby-in var(--duration-slow) var(--ease-out);
 		flex: 1;
 		display: flex;
 		flex-direction: column;
@@ -495,5 +496,19 @@
 	.rg-lobby--muted {
 		color: var(--muted);
 		font-size: var(--font-size-sm);
+	}
+
+	/* The screen fades in as it takes over from the last one, its content rising a little (issue 175). */
+	@keyframes rg-lobby-in {
+		from {
+			opacity: 0;
+			transform: translateY(6px);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-lobby {
+			animation: none;
+		}
 	}
 </style>

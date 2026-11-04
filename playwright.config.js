@@ -26,6 +26,9 @@ export default defineConfig({
 	use: {
 		testIdAttribute: 'data-id',
 		baseURL: BASE_URL,
+		// Reduced motion, so a panel or a card is measured where it rests, not partway through coming in (#175);
+		// tests/browser/motion.test.mjs, and any test about a motion, turn it back on with page.emulateMedia().
+		reducedMotion: 'reduce',
 		screenshot: process.env.CI ? 'off' : 'only-on-failure',
 		trace: 'on-first-retry',
 		actionTimeout: process.env.CI ? 15000 : 10000,

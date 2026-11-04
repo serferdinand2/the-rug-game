@@ -1,4 +1,4 @@
-<!-- The footer: the turn label and the current decision or what another player is doing on the left, and every action on the right: the income reveal, the cost and the buttons (#174). -->
+<!-- The footer: the turn label and the current decision or what another player is doing on the left, and every action on the right: the income reveal, the cost and the buttons (#174); new words and actions come in as the turn moves on (#175). -->
 <script module>
 	/** @typedef {'neutral' | 'selected' | 'optional' | 'waiting' | 'income' | 'complete'} TurnBarTone */
 
@@ -45,6 +45,7 @@
 
 <script>
 	import CostBox from './CostBox.svelte';
+	import { enter } from '../../transitions.js';
 	import { trackColor } from '../../ui.js';
 
 	/** @type {TurnBarProps} */
@@ -67,6 +68,28 @@
 	} = $props();
 
 	let trackTint = $derived(track ? trackColor(track) : 'var(--gold)');
+	/** @type {HTMLDivElement | undefined} */
+	let copy = $state();
+	/** @type {HTMLDivElement | undefined} */
+	let actionsElement = $state();
+	/** The words on show, so new ones come in (#175); not reactive. */
+	let shownWords = /** @type {string | null} */ (null);
+
+	// When the turn moves on, the new label and question rise in and the actions slide in from the right (#175).
+	$effect(() => {
+		const words = `${label}|${heading}|${properName ?? ''}`;
+		const before = shownWords;
+		shownWords = words;
+		if (before === null || before === words) {
+			return;
+		}
+		if (copy) {
+			enter(copy, { y: 6 }, { speed: 'fast' });
+		}
+		if (actionsElement) {
+			enter(actionsElement, { x: 10 }, { speed: 'fast' });
+		}
+	});
 	let waiting = $derived(tone === 'waiting');
 	let showCost = $derived(!waiting && Boolean(cost?.length));
 	let showActions = $derived(
@@ -82,7 +105,9 @@
 	style:--rg-turn-bar-track={trackTint}
 	style:--rg-turn-bar-proper={trackTint}
 	style:--rg-turn-bar-label={labelColor}>
-	<div class="rg-turn-bar--copy">
+	<div
+		class="rg-turn-bar--copy"
+		bind:this={copy}>
 		<div class="rg-turn-bar--lead">
 			<span class="rg-turn-bar--label">{label}</span>
 		</div>
@@ -108,7 +133,9 @@
 		</div>
 	</div>
 	{#if showActions}
-		<div class="rg-turn-bar--actions">
+		<div
+			class="rg-turn-bar--actions"
+			bind:this={actionsElement}>
 			{#if reveal}
 				<div
 					class="rg-turn-bar--reveal"

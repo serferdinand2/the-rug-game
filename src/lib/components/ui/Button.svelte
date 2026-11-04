@@ -1,4 +1,4 @@
-<!-- A button in one of the game's six looks: primary, secondary, gold, confirm, success or danger. -->
+<!-- A button in one of the game's six looks: primary, secondary, gold, confirm, success or danger; it presses down under the pointer (#175). -->
 <script module>
 	/** @typedef {'primary' | 'secondary' | 'gold' | 'confirm' | 'success' | 'danger'} ButtonMode */
 
@@ -88,7 +88,13 @@
 			background var(--duration-fast) var(--ease),
 			border-color var(--duration-fast) var(--ease),
 			color var(--duration-fast) var(--ease),
-			box-shadow var(--duration-fast) var(--ease);
+			box-shadow var(--duration-fast) var(--ease),
+			transform var(--duration-fast) var(--ease-out);
+	}
+
+	/* Pressed, it gives a little under the pointer (issue 175). */
+	.rg-button:not(:disabled):active {
+		transform: translateY(1px) scale(0.98);
 	}
 
 	.rg-button--small {

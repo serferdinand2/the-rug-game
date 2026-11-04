@@ -1,4 +1,4 @@
-<!-- A row of tabs and the selected tab's panel, such as the play page's right panel: Capital, Hand · 4, Income, Civilization, Technology, Terrain. -->
+<!-- A row of tabs and the selected tab's panel, such as the play page's right panel: Capital, Hand · 4, Income, Civilization, Technology, Terrain; a newly chosen tab's panel slides in from its side (#175). -->
 <script module>
 	/**
 	 * One tab.
@@ -48,6 +48,7 @@
 
 <script>
 	import { ComponentEvent } from '../../component-event.js';
+	import { enter } from '../../transitions.js';
 
 	/** @type {TabsProps} */
 	let {
@@ -74,6 +75,10 @@
 	let selected = $derived(tabs.find((tab) => tab.id === value));
 	/** Whether the autofocus has been given, so it is given only once. */
 	let focused = false;
+	/** @type {HTMLDivElement | undefined} */
+	let panel = $state();
+	/** The tab whose panel showed last, so a new one slides in from its side (#175); not reactive. */
+	let shownIndex = -1;
 
 	// With nothing selected, the first tab still takes the keyboard focus.
 	let focusIndex = $derived(
@@ -86,6 +91,16 @@
 	// However a tab is chosen, by a click, a key or the parent, it scrolls into view.
 	$effect(() => {
 		reveal(focusIndex);
+	});
+
+	// A newly chosen tab's panel slides in from the side of the tab, a short way (#175); the first one shows at once.
+	$effect(() => {
+		const index = tabs.findIndex((tab) => tab.id === value);
+		const from = shownIndex;
+		shownIndex = index;
+		if (panel && from >= 0 && index >= 0 && from !== index) {
+			enter(panel, { x: index > from ? 16 : -16 });
+		}
 	});
 
 	// An autofocus row gives the selected tab the focus once its button is drawn, so the arrow keys work at once.
@@ -237,6 +252,7 @@
 </div>
 {#if children}
 	<div
+		bind:this={panel}
 		role="tabpanel"
 		tabindex="0"
 		id={selected ? panelId(selected.id) : undefined}

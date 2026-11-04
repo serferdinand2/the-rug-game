@@ -1,4 +1,4 @@
-<!-- CardFan: cards laid side by side and overlapping; the hovered or focused one rises to the front without moving the others. -->
+<!-- CardFan: cards laid side by side and overlapping; the hovered or focused one rises to the front without moving the others. A shelf's cards are dealt in one after another, a card gained later rises in, and the others close up when one goes (#175). -->
 <script module>
 	/**
 	 * Properties of the CardFan component itself.
@@ -34,6 +34,7 @@
 <script>
 	import { ComponentEvent } from '../../component-event.js';
 	import { FAN_ROWS, fanRows } from '../../cards/card-sizes.js';
+	import { glide, rise } from '../../transitions.js';
 
 	/** @type {CardFanProps} */
 	let {
@@ -140,13 +141,15 @@
 	style:--rg-card-fan-per-row={rows?.perRow}
 	style:--rg-card-fan-step={rows ? `${rows.step}px` : undefined}
 	bind:clientWidth={width}>
-	{#each items as item, index (key ? key(item, index) : index)}
-		{#if interactive}
+	<!-- Two lists rather than one with an if inside, so each card is the list's own item, which a glide needs (#175). -->
+	{#if interactive}
+		{#each items as item, index (key ? key(item, index) : index)}
 			<button
 				type="button"
 				class="rg-card-fan--card"
 				class:rg-card-fan--selected={chosen(index)}
 				style:margin-left={margin(index)}
+				style:--rg-card-fan-index={index}
 				aria-pressed={selected === null ? undefined : chosen(index)}
 				aria-label={labels?.[index]}
 				disabled={disabled.includes(index)}
@@ -154,19 +157,26 @@
 				onmouseleave={cardLeaveHandler}
 				onfocus={(event) => cardEnterHandler(event, index)}
 				onblur={cardLeaveHandler}
-				onclick={(event) => cardClickHandler(event, index)}>
+				onclick={(event) => cardClickHandler(event, index)}
+				in:rise={{ y: 18 }}
+				animate:glide>
 				{@render card(item, index)}
 			</button>
-		{:else}
+		{/each}
+	{:else}
+		{#each items as item, index (key ? key(item, index) : index)}
 			<div
 				role="img"
 				class="rg-card-fan--card"
 				style:margin-left={margin(index)}
-				aria-label={labels?.[index]}>
+				style:--rg-card-fan-index={index}
+				aria-label={labels?.[index]}
+				in:rise={{ y: 18 }}
+				animate:glide>
 				{@render card(item, index)}
 			</div>
-		{/if}
-	{/each}
+		{/each}
+	{/if}
 </div>
 
 <style>
@@ -242,9 +252,20 @@
 		outline-offset: var(--focus-offset);
 	}
 
-	/* A shelf's buttons keep the browser's button text, which whole cards such as civilizations inherit. */
+	/* A shelf's buttons keep the browser's button text, which whole cards such as civilizations inherit. As the shelf
+	   opens its cards are dealt in, 40 ms apart and all within 240 ms (issue 175). */
 	.rg-card-fan--shelf .rg-card-fan--card {
 		box-shadow: var(--shadow-float);
+		animation: rg-card-fan-deal var(--duration-medium) var(--ease-out)
+			backwards;
+		animation-delay: min(calc(var(--rg-card-fan-index, 0) * 40ms), 240ms);
+	}
+
+	@keyframes rg-card-fan-deal {
+		from {
+			opacity: 0;
+			transform: translateY(24px) rotate(-2deg);
+		}
 	}
 
 	.rg-card-fan--shelf .rg-card-fan--card:hover,
@@ -265,5 +286,11 @@
 
 	.rg-card-fan--flat .rg-card-fan--card.rg-card-fan--selected {
 		transform: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-card-fan--shelf .rg-card-fan--card {
+			animation: none;
+		}
 	}
 </style>

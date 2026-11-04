@@ -4,7 +4,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
 	DURATIONS,
+	EASE_OUT,
 	HOP_MS,
+	enter,
 	hopFrames,
 	hopPlan,
 	motionMs,
@@ -128,13 +130,18 @@ test('rise keeps what the element already has and ends where it rests', () => {
  * @returns {{ marker: any, played: { on: string, frames: any[], options: any }[] }}
  */
 function markerWithToken() {
-	/** @type {{ on: string, frames: any[], options: any }[]} */
+	/** @type {{ on: string, frames: any[], options: any, cancelled: boolean }[]} */
 	const played = [];
 	/** @param {string} on */
 	const animating =
 		(on) => (/** @type {any[]} */ frames, /** @type {any} */ options) => {
-			played.push({ on, frames, options });
-			return { cancel() {} };
+			const one = { on, frames, options, cancelled: false };
+			played.push(one);
+			return {
+				cancel() {
+					one.cancelled = true;
+				},
+			};
 		};
 	const token = { offsetHeight: 20, animate: animating('token') };
 	const marker = {
@@ -151,7 +158,7 @@ test('a token hops only when its position changes, not when it first shows', () 
 	assert.equal(played.length, 0, 'no hop on the first look');
 	tokenHop(4, view())(marker);
 	assert.equal(played.length, 0, 'no hop for the same space');
-	const stop = tokenHop(7, view())(marker);
+	tokenHop(7, view())(marker);
 	const hops = played.find(
 		(one) => one.on === 'token' && one.frames.length > 2
 	);
@@ -171,7 +178,14 @@ test('a token hops only when its position changes, not when it first shows', () 
 		),
 		'a ring spreads where it lands'
 	);
-	assert.equal(typeof stop, 'function');
+	// The board redraws for other reasons while the token hops: the hop plays on.
+	tokenHop(7, view())(marker);
+	assert.equal(hops.cancelled, false, 'a redraw leaves the hop playing');
+	assert.equal(played.length, 3);
+	// A new position before the hop ends starts a new one in its place.
+	tokenHop(8, view())(marker);
+	assert.equal(hops.cancelled, true, 'a new hop replaces it');
+	assert.equal(played.length, 6);
 });
 
 test('a token moves without a hop under reduced motion', () => {
@@ -180,4 +194,51 @@ test('a token moves without a hop under reduced motion', () => {
 	tokenHop(5, view({ reduce: true }))(marker);
 	assert.equal(played.length, 0);
 	assert.equal(marker.style.transitionDuration, '');
+});
+
+test('the ease-out the Web Animations use is the --ease-out token', () => {
+	const css = readFileSync(
+		new URL('../src/styles/tokens.css', import.meta.url),
+		'utf8'
+	);
+	assert.equal(css.match(/--ease-out:\s*([^;]+);/)?.[1].trim(), EASE_OUT);
+});
+
+test('enter plays an entrance from an offset to where the element rests, unless motion is reduced', () => {
+	/** @type {{ frames: any[], options: any }[]} */
+	const played = [];
+	const element = {
+		animate: (/** @type {any[]} */ frames, /** @type {any} */ options) => {
+			played.push({ frames, options });
+			return { cancel() {} };
+		},
+	};
+	enter(element, { x: 16, opacity: 0 }, { view: view() });
+	assert.deepEqual(played[0].frames, [
+		{ opacity: 0, transform: 'translate(16px, 0px) scale(1)' },
+		{ opacity: 1, transform: 'none' },
+	]);
+	assert.equal(played[0].options.duration, DURATIONS.medium);
+	assert.equal(played[0].options.easing, EASE_OUT);
+	enter(
+		element,
+		{ y: 8, scale: 0.9 },
+		{ speed: 'fast', delay: 40, view: view() }
+	);
+	assert.deepEqual(played[1].frames[0], {
+		opacity: 0,
+		transform: 'translate(0px, 8px) scale(0.9)',
+	});
+	assert.equal(played[1].options.duration, DURATIONS.fast);
+	assert.equal(played[1].options.delay, 40);
+	assert.equal(
+		enter(element, { x: 4 }, { view: view({ reduce: true }) }),
+		null
+	);
+	assert.equal(played.length, 2, 'nothing plays under reduced motion');
+	assert.equal(
+		enter({}, { x: 4 }, { view: view() }),
+		null,
+		'nor without the Web Animations API'
+	);
 });
