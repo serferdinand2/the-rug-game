@@ -1,0 +1,341 @@
+<!doctype html>
+<!-- Issue #174: clickable mockup of the Tabletop skin, over screenshots of the running game restyled by a mock of the
+     skin; not the playable game. Open it directly from disk. -->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>The Rug Game · Tabletop skin (#174)</title>
+	<link rel="stylesheet" href="../../src/styles/tokens.css">
+	<style>
+		@font-face {
+			font-family: 'Cinzel';
+			src: url('../../static/fonts/cinzel.woff2') format('woff2');
+			font-weight: 400 900;
+			font-display: swap;
+		}
+		@font-face {
+			font-family: 'Atkinson Hyperlegible';
+			src: url('../../static/fonts/atkinson-hyperlegible-regular.woff2') format('woff2');
+			font-weight: 400;
+			font-display: swap;
+		}
+		@font-face {
+			font-family: 'Atkinson Hyperlegible';
+			src: url('../../static/fonts/atkinson-hyperlegible-bold.woff2') format('woff2');
+			font-weight: 700;
+			font-display: swap;
+		}
+
+		* { box-sizing: border-box; }
+		html, body { margin: 0; background: var(--ink); color: var(--text); font-family: var(--font-body); }
+		::selection { background: color-mix(in srgb, var(--gold) 40%, transparent); }
+
+		/* The mockup's own controls: which screen, which skin, and what changes. */
+		.mk-bar { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding: 10px 18px; background: var(--chrome); border-bottom: var(--border) solid var(--line); }
+		.mk-title { margin: 0; font: var(--weight-bold) var(--font-size-lg) var(--font-title); color: var(--gold); }
+		.mk-group { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+		.mk-group-label { color: var(--muted); font-size: var(--font-size-xs); font-weight: var(--weight-bold); letter-spacing: var(--letter-spacing-caps); text-transform: uppercase; margin-right: 6px; }
+		.mk-group button { padding: 6px 11px; border: var(--border) solid var(--line); background: var(--control); color: var(--text); font: var(--weight-bold) var(--font-size-sm) var(--font-body); cursor: pointer; }
+		.mk-group button[aria-pressed='true'] { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 22%, var(--control)); color: var(--gold); }
+		.mk-group button:focus-visible, .mk-play:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+		.mk-group kbd { margin-left: 6px; color: var(--muted); font: inherit; font-weight: var(--weight-regular); }
+
+		.mk-stage { position: relative; width: min(100%, 1920px); margin: 0 auto; }
+		.mk-stage img { display: block; width: 100%; height: auto; }
+
+		/* What changes on this screen, under the picture. */
+		.mk-notes { max-width: 1100px; margin: 22px auto 60px; padding: 0 18px; }
+		.mk-notes h2 { margin: 0 0 8px; font: var(--weight-bold) var(--font-size-xl) var(--font-body); color: var(--gold); }
+		.mk-notes p { margin: 0 0 12px; color: var(--muted); line-height: var(--leading-snug); max-width: 75ch; }
+		.mk-notes ul { margin: 0; padding-left: 20px; line-height: var(--leading-normal); }
+		.mk-notes li { margin-bottom: 6px; max-width: 80ch; }
+		.mk-notes b { color: var(--text); }
+
+		/* The motion screen: live examples instead of a picture. */
+		.mk-motion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; max-width: 1400px; margin: 28px auto 0; padding: 0 18px; }
+		.mk-demo { padding: 18px 20px 22px; border: var(--border) solid var(--line); background: url('../../src/styles/pixel-noise.svg') var(--surface); }
+		.mk-demo--wide { grid-column: 1 / -1; }
+		.mk-demo h3 { margin: 0 0 6px; font: var(--weight-bold) var(--font-size-lg) var(--font-body); }
+		.mk-demo p { margin: 0 0 16px; color: var(--muted); font-size: var(--font-size-sm); line-height: var(--leading-snug); }
+		.mk-play { margin-top: 14px; padding: 7px 14px; border: var(--border) solid var(--gold); background: color-mix(in srgb, var(--gold) 20%, var(--control)); color: var(--gold); font: var(--weight-bold) var(--font-size-sm) var(--font-body); cursor: pointer; }
+
+		.mk-track { position: relative; width: 740px; max-width: 100%; height: 172px; }
+		.mk-track img.mk-strip { display: block; width: 740px; height: 152px; }
+		.mk-token { position: absolute; top: 137px; left: 0; width: 28px; height: 28px; image-rendering: pixelated; filter: drop-shadow(0 3px 2px rgb(0 0 0 / 70%)); transform: translateX(395px); transition: transform 380ms cubic-bezier(0.2, 0.75, 0.25, 1); }
+		.mk-token.mk-moved { transform: translateX(511px); }
+
+		.mk-counts { display: flex; gap: 10px; }
+		.mk-count { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; width: 108px; height: 36px; background: var(--control); border: var(--border) solid var(--line-soft); font: var(--weight-bold) var(--font-size-lg) var(--font-body); }
+		.mk-count img { width: 22px; height: 22px; }
+		.mk-float { position: absolute; right: 10px; top: -4px; color: var(--ok); font-weight: var(--weight-bold); opacity: 0; pointer-events: none; }
+		.mk-float.mk-go { animation: mk-float 900ms cubic-bezier(0.2, 0.75, 0.25, 1); }
+		@keyframes mk-float { 0% { opacity: 0; transform: translateY(6px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-22px); } }
+		.mk-chip { display: inline-flex; align-items: center; gap: 12px; height: 36px; padding: 0 14px; background: var(--control); border: var(--border) solid var(--player-1); font-weight: var(--weight-bold); }
+		.mk-chip span { color: var(--gold); font-size: var(--font-size-sm); }
+
+		.mk-plot { position: relative; width: 220px; height: 150px; background: color-mix(in srgb, var(--grassland) 30%, var(--ink)); border: var(--border) solid var(--line); }
+		.mk-plot img { position: absolute; left: 60px; top: 25px; width: 100px; height: 100px; image-rendering: pixelated; }
+		.mk-plot img.mk-land { animation: mk-land 300ms cubic-bezier(0.2, 0.75, 0.25, 1); }
+		@keyframes mk-land { 0% { transform: translateY(-14px) scale(1.12); filter: drop-shadow(0 16px 10px rgb(0 0 0 / 50%)); } 70% { transform: translateY(1px) scale(0.98); } 100% { transform: none; filter: drop-shadow(0 0 0 transparent); } }
+
+		.mk-tabs { display: flex; gap: 2px; align-items: flex-end; height: 44px; padding: 0 10px; background: #dee1e6; border-radius: 8px 8px 0 0; }
+		.mk-tab { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; background: #fff; border-radius: 8px 8px 0 0; color: #202124; font: 13px system-ui, sans-serif; }
+		.mk-tab.mk-other { background: transparent; color: #5f6368; }
+		.mk-tab img { width: 16px; height: 16px; }
+
+		@media (prefers-reduced-motion: reduce) {
+			.mk-token { transition: none; }
+			.mk-float.mk-go, .mk-plot img.mk-land { animation: none; }
+		}
+		[hidden] { display: none !important; }
+	</style>
+</head>
+<body>
+	<div class="mk-bar">
+		<p class="mk-title">Tabletop skin</p>
+		<div class="mk-group" id="screens">
+			<span class="mk-group-label">Screen</span>
+		</div>
+		<div class="mk-group" id="skins">
+			<span class="mk-group-label">Skin</span>
+			<button type="button" data-skin="classic">Classic<kbd>C</kbd></button>
+			<button type="button" data-skin="tabletop">Tabletop<kbd>T</kbd></button>
+		</div>
+	</div>
+
+	<div class="mk-stage" id="stage">
+		<img id="shot" src="screens/issue-174/board-tabletop.png" alt="Your turn on the tracks, Tabletop skin">
+	</div>
+
+	<section class="mk-motion" id="motion" hidden>
+		<div class="mk-demo mk-demo--wide">
+			<h3>A token moves to its new space</h3>
+			<p>It slides along the track in 0.38 s and settles on the bottom edge of the space.</p>
+			<div class="mk-track">
+				<img class="mk-strip" src="screens/issue-174/motion-track.png" alt="">
+				<img class="mk-token" id="token" src="../../static/art/piece/token-blue.svg" alt="">
+			</div>
+			<button type="button" class="mk-play" data-demo="token">Advance</button>
+		</div>
+		<div class="mk-demo">
+			<h3>Resources and VP count up</h3>
+			<p>The number counts to its new value and a green +n rises from it. The header chip does the same for VP.</p>
+			<div class="mk-counts">
+				<div class="mk-count"><img src="../../static/art/resource-24/coin.svg" alt=""><b id="coin">2</b><i class="mk-float" id="coin-float">+2</i></div>
+				<div class="mk-count"><img src="../../static/art/resource-24/worker.svg" alt=""><b>1</b></div>
+				<span class="mk-chip">Ana <span>Architects · <b id="vp">18</b> VP</span></span>
+			</div>
+			<button type="button" class="mk-play" data-demo="count">Gain income</button>
+		</div>
+		<div class="mk-demo">
+			<h3>A placed landmark lands</h3>
+			<p>It drops onto its plots with a shadow that closes as it touches the ground, in 0.3 s.</p>
+			<div class="mk-plot"><img id="land" src="../../static/art/landmark/apothecary.svg" alt=""></div>
+			<button type="button" class="mk-play" data-demo="land">Place</button>
+		</div>
+		<div class="mk-demo">
+			<h3>Your turn, in the browser tab</h3>
+			<p>When it becomes your turn online, the tab's title says so and its icon gets a green dot, so a player in another tab sees it. The turn sound already plays.</p>
+			<div class="mk-tabs">
+				<span class="mk-tab"><img src="../../static/favicon.svg" alt="">● Your turn · The Rug Game</span>
+				<span class="mk-tab mk-other">Inbox</span>
+			</div>
+		</div>
+	</section>
+
+	<section class="mk-notes" id="notes"></section>
+
+	<script>
+		const SHOTS = 'screens/issue-174/';
+		/** Each screen: its two pictures, and what the Tabletop skin changes on it. */
+		const SCREENS = [
+			{
+				id: 'board', label: 'Your turn',
+				title: 'Your turn on the tracks',
+				intro: 'The same mid-game position: Ana, era III, at a three-player table.',
+				changes: [
+					'<b>Tokens on the spaces.</b> Each player\'s token stands on the bottom edge of the space it reached, side by side when several share one. The thin lines under each track go. Hovering a space you can pay for shows a faint token there.',
+					'<b>Achievements</b> are larger, in gold, with each claimant\'s colour when claimed.',
+					'<b>The footer</b> keeps its heading and words on the left and puts every action on the right, each with its key: Take income <i>I</i>, Advance <i>Enter</i>, End turn <i>Enter</i>.',
+					'<b>Your turn</b> draws a green rule under the header, and the footer\'s label is larger.',
+					'<b>The capital ground</b> is calmer, so buildings, landmarks and cubes stand out. The counters say Rows, Columns and Districts.',
+					'<b>This era</b> shows your current tapestry card under the capital, where the tab was empty.',
+				],
+			},
+			{
+				id: 'landmark', label: 'Placing a landmark',
+				title: 'Placing a landmark',
+				intro: 'Ana places the Apothecary during an income turn.',
+				changes: [
+					'<b>Turn buttons</b> sit in the To be placed tray, under the landmark, with the , and . keys shown as keys. The words in the panel stay as they are.',
+					'<b>Place</b> shows its Enter key.',
+					'Tokens, achievements, counters and the calmer ground as on the tracks.',
+				],
+			},
+			{
+				id: 'map', label: 'World Map',
+				title: 'The World Map',
+				intro: 'The map already fills its area\'s height, so the skin leaves the map itself as it is.',
+				changes: [
+					'The header, footer, counters and capital change as on the tracks.',
+				],
+			},
+			{
+				id: 'log', label: 'Log',
+				title: 'The log, one line per old turn',
+				intro: 'Opened with L. The same game.',
+				changes: [
+					'<b>Older turns fold</b> to one line under their heading: the turn\'s main event, such as "Ana advanced to Cavalry on Military", and how many more lines it has. Clicking it opens the turn.',
+					'<b>The last two turns</b> stay open, as today.',
+				],
+			},
+			{
+				id: 'symbols', label: 'Symbols',
+				title: 'How to play: the Symbols tab',
+				intro: 'Opened with H. A new tab after Advancing on a track; the other tabs don\'t change.',
+				changes: [
+					'<b>Every symbol</b> the track spaces use, drawn by the board\'s own component, with its meaning in words.',
+					'<b>How a space reads:</b> or, and, VP for each, the red X, the bonus box and the landmark name.',
+					'In the built game the symbols come from the track spaces themselves, so they always match the board.',
+				],
+			},
+			{
+				id: 'words', label: 'Words on the board',
+				title: 'Words on the board',
+				intro: 'A second switch in the menu, offered only with the Tabletop skin.',
+				changes: [
+					'<b>It draws each space\'s symbols as short words</b>: Tile ×2, Explore, Tapestry, Conquer, Invent, Science die. The picture shows the board as it was before #85, with words; the switch draws the same words in today\'s layout, keeping its resource, building and track art.',
+					'Hovering a space still shows its full words, in either mode.',
+				],
+				tabletop: 'screens/game-tracks.png',
+			},
+			{
+				id: 'menu', label: 'Menu',
+				title: 'The header menu',
+				intro: 'On every screen with a header: the landing page, the lobby, the game and the results.',
+				changes: [
+					'<b>Tabletop skin</b>, a switch under Dark cards. It is remembered in this browser, as Dark cards is, and it changes only your screen.',
+					'<b>Words on the board</b>, a second switch, only while Tabletop is on.',
+				],
+			},
+			{
+				id: 'results', label: 'Results',
+				title: 'The final standings',
+				intro: 'The same game, ended. Ana came second.',
+				changes: [
+					'<b>The winner</b> gets a row under the standings: their civilization\'s portrait in a gold frame, its name, and their capital city as it ended.',
+				],
+			},
+			{
+				id: 'launch', label: 'Landing page',
+				title: 'The landing page',
+				intro: 'The first screen a player sees.',
+				changes: [
+					'<b>Two fans of real cards</b> lie beside the panel: three civilizations on the left, a landmark and two tapestry cards on the right, so the game\'s art shows before the first table. In the built game they are picked at random from all the art on each visit.',
+				],
+			},
+			{
+				id: 'lobby', label: 'Lobby',
+				title: 'The lobby',
+				intro: 'A new table, before anyone joins.',
+				changes: [
+					'<b>The same card fans</b>, outside the lobby\'s wider panels.',
+				],
+			},
+			{
+				id: 'motion', label: 'Motion',
+				title: 'Motion',
+				intro: 'Live examples: press each button. With reduced motion set in the system, nothing moves and the numbers change at once.',
+				changes: [
+					'Tokens slide to their new space, which the lines do today.',
+					'Resource and VP counts count up with a +n that rises and fades.',
+					'A placed landmark lands with a short drop.',
+					'The browser tab says when it is your turn.',
+				],
+			},
+		];
+
+		const state = { screen: 'board', skin: 'tabletop' };
+		const screensEl = document.getElementById('screens');
+		const shot = document.getElementById('shot');
+		const notes = document.getElementById('notes');
+		const stage = document.getElementById('stage');
+		const motion = document.getElementById('motion');
+
+		for (const screen of SCREENS) {
+			const button = document.createElement('button');
+			button.type = 'button';
+			button.dataset.screen = screen.id;
+			button.textContent = screen.label;
+			screensEl.append(button);
+		}
+
+		function render() {
+			const screen = SCREENS.find((s) => s.id === state.screen);
+			for (const b of document.querySelectorAll('[data-screen]')) b.setAttribute('aria-pressed', String(b.dataset.screen === state.screen));
+			for (const b of document.querySelectorAll('[data-skin]')) b.setAttribute('aria-pressed', String(b.dataset.skin === state.skin));
+			const isMotion = screen.id === 'motion';
+			stage.hidden = isMotion;
+			motion.hidden = !isMotion;
+			document.getElementById('skins').hidden = isMotion;
+			if (!isMotion) {
+				const tabletop = screen.tabletop ?? `${SHOTS}${screen.id}-tabletop.png`;
+				const classic = screen.id === 'words' ? `${SHOTS}board-classic.png` : `${SHOTS}${screen.id}-classic.png`;
+				shot.src = state.skin === 'tabletop' ? tabletop : classic;
+				shot.alt = `${screen.title}, ${state.skin === 'tabletop' ? 'Tabletop skin' : 'today\'s look'}`;
+			}
+			const showChanges = isMotion || state.skin === 'tabletop';
+			notes.innerHTML = `<h2>${screen.title}</h2><p>${screen.intro}</p>${showChanges
+				? `<ul>${screen.changes.map((c) => `<li>${c}</li>`).join('')}</ul>`
+				: '<p>Today\'s look, which stays the default. Press <b>Tabletop</b> or T to compare.</p>'}`;
+		}
+
+		screensEl.addEventListener('click', (event) => {
+			const id = event.target.closest('[data-screen]')?.dataset.screen;
+			if (id) { state.screen = id; render(); }
+		});
+		document.getElementById('skins').addEventListener('click', (event) => {
+			const skin = event.target.closest('[data-skin]')?.dataset.skin;
+			if (skin) { state.skin = skin; render(); }
+		});
+		document.addEventListener('keydown', (event) => {
+			if (event.key === 't') { state.skin = 'tabletop'; render(); }
+			if (event.key === 'c') { state.skin = 'classic'; render(); }
+		});
+
+		// The motion examples.
+		const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+		motion.addEventListener('click', (event) => {
+			const demo = event.target.closest('[data-demo]')?.dataset.demo;
+			if (demo === 'token') {
+				const token = document.getElementById('token');
+				token.classList.toggle('mk-moved');
+			}
+			if (demo === 'count') {
+				const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+				const count = (el, from, to) => {
+					if (reduce) { el.textContent = to; return; }
+					const start = performance.now();
+					const step = (now) => {
+						const t = Math.min(1, (now - start) / 500);
+						el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - t, 3)));
+						if (t < 1) requestAnimationFrame(step);
+					};
+					requestAnimationFrame(step);
+				};
+				const coin = document.getElementById('coin');
+				const vp = document.getElementById('vp');
+				const fromCoin = Number(coin.textContent);
+				const fromVp = Number(vp.textContent);
+				count(coin, fromCoin, fromCoin + 2);
+				count(vp, fromVp, fromVp + 5);
+				restart(document.getElementById('coin-float'), 'mk-go');
+			}
+			if (demo === 'land') restart(document.getElementById('land'), 'mk-land');
+		});
+
+		render();
+	</script>
+</body>
+</html>
