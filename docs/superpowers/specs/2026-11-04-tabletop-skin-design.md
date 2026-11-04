@@ -41,7 +41,7 @@ Each component changes its default look. Logic goes in pure helpers tested under
 
 ### Reading the board
 
-1. **Tokens on the spaces.** `ProgressLanes` draws no lines and no dashes. Each player's `PlayerToken` stands on the bottom edge of the space reached, half on the space, 28 px. Tokens on the same space stand side by side, 22 px apart and centred on the space. Tokens at the start (position 0) line up from the left inside the first space instead of hanging off the track. The preview of a hovered, affordable space shows a faint token on that space instead of a dash. The token keeps today's slide (#72). A helper, `tokenOffsets(players)`, returns each seat's offset and is tested for shared spaces, the start and 5 players. The track gives the lanes room so a token never covers the next track's tier line.
+1. **Tokens on the spaces.** `ProgressLanes` draws no lines and no dashes. Each player's `PlayerToken` stands on the bottom edge of the space reached, half on the space, 28 px. Tokens on the same space stand side by side, 22 px apart and centred on the space. Tokens at the start (position 0) line up from the left inside the first space instead of hanging off the track. The preview of a hovered, affordable space shows a faint token on that space instead of a dash. The token keeps today's slide (#72). A helper, `trackTokens(players, preview)`, places each token and is tested for shared spaces, the start, the preview and 5 players. The track gives the lanes room so a token never covers the next track's tier line.
 2. **Calmer capital ground.** `CapitalGrid`'s ground tiles take `filter: saturate(0.7) brightness(0.78) contrast(0.82)` and the relief `saturate(0.7) brightness(0.85)`, from two new tokens. Buildings, landmarks, cubes, outposts, plot highlights and the placement preview are untouched.
 3. **Named counters.** `CompletionCounters` shows Rows, Columns or Districts between each counter's mark and its count.
 4. **Readable achievements.** `AchievementStrip` uses the base font size, a 20 px VP icon, the VP in gold and a gold-tinted chip. A claimed achievement keeps its claimants' colour squares.
@@ -61,7 +61,7 @@ Each component changes its default look. Logic goes in pure helpers tested under
     - Tokens slide to their new space.
     - Resource counts and the header's VP count up to a new value over 0.5 s, with a green +n that rises and fades, drawn by a new `CountUp` component.
     - A landmark placed in the capital lands: a 0.3 s drop with a shadow that closes.
-12. **This era under the capital.** A new component, `EraNote` (player area), shows the viewer's current era card: its name in Cinzel gold and its text. The Capital tab shows it under the counters, where the tab is empty today. Before an era card is chosen it says so. A helper, `currentEraCard(seat)`, reads it from the seat.
+12. **This era under the capital.** A new component, `EraNote` (player area), shows the viewer's current era card: its name in Cinzel gold and its text. The Capital tab shows it under the counters, where the tab is empty today. Before an era card is chosen it says so. A helper, `currentEra(slots)`, picks it from the era slots.
 13. **The winner on the results.** A new component, `WinnerShowcase` (results area): the winner's civilization portrait in a gold frame, the civilization's name, the winner's name and VP, and their capital as it ended, read-only. A tie shows each tied winner. The results show it under the standings, to everyone.
 14. **Card fans before the game.** A new component, `ArtFan` (ui area), lays three pictures as cards in a fan, tilted −12°, 0° and 12°, with `--shadow-float`. The landing page and the lobby show two fans beside their panels: three civilization portraits on the left, a landmark and two tapestry pictures on the right. The screen picks them at random on each visit from the art catalog, with the store's injected random. On the lobby they sit outside its 1000 px panels.
 
@@ -73,7 +73,7 @@ Each component changes its default look. Logic goes in pure helpers tested under
 
 ## Tests
 
-- New cases for `tokenOffsets`, `foldTurns` (`tests/client-log.test.mjs`), `SYMBOL_KEY` (`tests/client-glyphs.test.mjs`), `turnSignal` and `currentEraCard`.
+- New cases for `trackTokens`, `foldTurns` (`tests/client-log.test.mjs`), `SYMBOL_KEY` (`tests/client-glyphs.test.mjs`), `turnSignal`, `currentEra`, `countAt`, `winners` and `artFans`.
 - `tests/library.test.mjs` checks the new components' library sections.
 - Browser tests that read the old lanes, footer or log are updated to the new look.
 - A new browser test, `tests/browser/table-look.test.mjs`: a token stands on a track space, the counters are named, the Symbols tab opens, and Take income sits on the footer's right. It ends and leaves its table.
