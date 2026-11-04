@@ -1,4 +1,4 @@
-<!-- ArtFan: three pictures laid as cards in a fan, as on a table (#174), beside the landing page's and the lobby's panels. -->
+<!-- ArtFan: three pictures laid as cards in a fan, as on a table (#174), beside the landing page's and the lobby's panels; the cards are dealt into the fan one after another as the page opens (#175). -->
 <script module>
 	/**
 	 * Properties of the ArtFan component itself.
@@ -96,5 +96,26 @@
 		aspect-ratio: 1;
 		border: var(--border-thick) solid var(--card-art-frame);
 		image-rendering: pixelated;
+	}
+
+	/* As the page opens the cards are dealt into the fan from below, one after another (issue 175); each ends on its own
+	   turn in the fan. */
+	.rg-art-fan--card {
+		animation: rg-art-fan-deal var(--duration-focal) var(--ease-out)
+			backwards;
+		animation-delay: calc(120ms + var(--rg-art-fan-index) * 90ms);
+	}
+
+	@keyframes rg-art-fan-deal {
+		from {
+			opacity: 0;
+			transform: translateY(40px) rotate(0deg);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-art-fan--card {
+			animation: none;
+		}
 	}
 </style>

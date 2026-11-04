@@ -1,4 +1,4 @@
-<!-- StandingRow: one player's line in the final standings, as Lazar's end screen draws it: place, token, name, civilization and VP, and the name opens where the VP came from. -->
+<!-- StandingRow: one player's line in the final standings, as Lazar's end screen draws it: place, token, name, civilization and VP, and the name opens where the VP came from; the rows rise in by place, and the VP's sources open smoothly (#175). -->
 <script module>
 	/**
 	 * Properties of the StandingRow component itself.
@@ -59,7 +59,8 @@
 	class="rg-standing-row {attr.class ? attr.class : ''}"
 	class:rg-standing-row--winner={row.winner}
 	class:rg-standing-row--you={you}
-	style:--rg-standing-row-color={playerColor(row.seat)}>
+	style:--rg-standing-row-color={playerColor(row.seat)}
+	style:--rg-standing-row-place={row.place}>
 	<div class="rg-standing-row--line">
 		<span class="rg-standing-row--place">{row.place}</span>
 		<div class="rg-standing-row--person">
@@ -213,5 +214,41 @@
 
 	.rg-standing-row--heading strong {
 		color: var(--text);
+	}
+
+	/* The standings rise in by place, 80 ms apart, tied places together, and all within 320 ms (issue 175). */
+	.rg-standing-row {
+		animation: rg-standing-row-in var(--duration-medium) var(--ease-out)
+			backwards;
+		animation-delay: min(
+			calc((var(--rg-standing-row-place, 1) - 1) * 80ms),
+			320ms
+		);
+	}
+
+	/* Opened, where the VP came from comes down into view. */
+	.rg-standing-row--sources:not([hidden]) {
+		animation: rg-standing-row-sources var(--duration-fast) var(--ease-out);
+	}
+
+	@keyframes rg-standing-row-in {
+		from {
+			opacity: 0;
+			transform: translateY(14px);
+		}
+	}
+
+	@keyframes rg-standing-row-sources {
+		from {
+			opacity: 0;
+			transform: translateY(-6px);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-standing-row,
+		.rg-standing-row--sources:not([hidden]) {
+			animation: none;
+		}
 	}
 </style>

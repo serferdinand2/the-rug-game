@@ -1,0 +1,179 @@
+// Motion in Chromium (#175), with motion on: a track token hops and comes to rest on its space, a hand's cards come in
+// and close up, a prompt rises with its shelf dealt in, and a menu lifts away; each settles where it rests. Under
+// reduced motion nothing moves. The rest of the suite runs with reduced motion (playwright.config.js). The test uses
+// the component library only, so it opens no table.
+import { expect, test } from '@playwright/test';
+
+test.use({ reducedMotion: 'no-preference' });
+
+// Every element that starts to move is noted as it starts, so a busy machine that is slow to look can't miss a short
+// motion: Web Animations (the token's hop, Svelte's transitions), CSS animations and CSS transitions.
+test.beforeEach(async ({ page }) => {
+	await page.addInitScript(() => {
+		const started = new Set();
+		Object.defineProperty(window, 'rgMoved', { value: started });
+		const animate = Element.prototype.animate;
+		Element.prototype.animate = function (...args) {
+			started.add(this);
+			return animate.apply(this, args);
+		};
+		for (const type of ['animationstart', 'transitionrun']) {
+			document.addEventListener(
+				type,
+				(event) => started.add(event.target),
+				true
+			);
+		}
+	});
+});
+
+/**
+ * Whether anything in the element has started to move since the page last forgot.
+ * @param {import('@playwright/test').Locator} locator
+ * @returns {Promise<boolean>}
+ */
+const moved = (locator) =>
+	locator.evaluate((element) =>
+		[
+			.../** @type {Set<Node>} */ (/** @type {any} */ (window).rgMoved),
+		].some((one) => element.contains(one))
+	);
+
+/**
+ * Forgets what has moved so far.
+ * @param {import('@playwright/test').Page} page
+ */
+const forget = (page) =>
+	page.evaluate(() => /** @type {any} */ (window).rgMoved.clear());
+
+/**
+ * How many animations run in an element and its children now.
+ * @param {import('@playwright/test').Locator} locator
+ * @returns {Promise<number>}
+ */
+const running = (locator) =>
+	locator.evaluate(
+		(element) => element.getAnimations({ subtree: true }).length
+	);
+
+/**
+ * Waits until nothing in the element moves any more.
+ * @param {import('@playwright/test').Locator} locator
+ */
+async function settled(locator) {
+	await expect.poll(() => running(locator)).toBe(0);
+}
+
+test('a track token hops to its new space and comes to rest on it (#175)', async ({
+	page,
+}) => {
+	await page.goto('/components.html#progress-lanes');
+	const example = page.locator('.rg-library-progress-lanes--hop');
+	const lanes = example.locator('.rg-progress-lanes');
+	await expect(lanes).toHaveAttribute('aria-label', 'You 1, Ana 2');
+	await settled(lanes);
+	await forget(page);
+	await example.getByRole('button', { name: 'Advance 3' }).click();
+	await expect(lanes).toHaveAttribute('aria-label', 'You 4, Ana 2');
+	// The hop, the landing and the ring play on the marker as it slides.
+	await expect
+		.poll(() => moved(lanes.locator('.rg-progress-lanes--token').first()))
+		.toBe(true);
+	await settled(lanes);
+	const token = lanes.locator('.rg-progress-lanes--token').first();
+	await expect(token).toHaveCSS('transform', 'none');
+	await expect(token).toHaveCSS('opacity', '1');
+});
+
+test("a hand's gained card rises in and the others close up when one is played (#175)", async ({
+	page,
+}) => {
+	await page.goto('/components.html#card-fan');
+	const example = page
+		.locator('#card-fan')
+		.locator('div', {
+			has: page.getByRole('button', { name: 'Gain a card' }),
+		})
+		.last();
+	const cards = example.locator('.rg-card-fan--card');
+	await expect(cards).toHaveCount(3);
+	await settled(example);
+	await forget(page);
+	await example.getByRole('button', { name: 'Gain a card' }).click();
+	await expect(cards).toHaveCount(4);
+	await expect.poll(() => moved(cards.last())).toBe(true);
+	await settled(example);
+	await forget(page);
+	await example.getByRole('button', { name: 'Play the second card' }).click();
+	await expect(cards).toHaveCount(3);
+	// The cards after the one played glide into its place.
+	await expect.poll(() => moved(cards.nth(1))).toBe(true);
+	await settled(example);
+	for (const card of await cards.all()) {
+		await expect(card).toHaveCSS('opacity', '1');
+	}
+});
+
+test('a prompt opened again rises over its scrim, deals its shelf in and rests at the tracks’ centre (#175)', async ({
+	page,
+}) => {
+	await page.goto('/components.html#decision-panel');
+	const section = page.locator('#decision-panel');
+	const first = section.locator('.rg-decision-panel').first();
+	await expect(first).toBeVisible();
+	await settled(first);
+	const rest = await first.locator('.rg-decision-panel--panel').boundingBox();
+	await forget(page);
+	await section.getByRole('button', { name: 'Open again' }).click();
+	const again = section.locator('.rg-decision-panel').first();
+	await expect
+		.poll(() => moved(again.locator('.rg-decision-panel--panel')))
+		.toBe(true);
+	await expect
+		.poll(() => moved(again.locator('.rg-card-fan--card').first()))
+		.toBe(true);
+	await settled(again);
+	const panel = again.locator('.rg-decision-panel--panel');
+	await expect(panel).toHaveCSS('opacity', '1');
+	expect(await panel.boundingBox()).toEqual(rest);
+});
+
+test('a menu lifts away when it closes and drops from its button when it opens (#175)', async ({
+	page,
+}) => {
+	await page.goto('/components.html#menu');
+	const section = page.locator('#menu');
+	const toggle = section.getByRole('button', { name: 'Menu' }).first();
+	const menus = section.getByRole('menu');
+	await expect(menus).toHaveCount(3);
+	await toggle.click();
+	await expect(menus).toHaveCount(2);
+	await forget(page);
+	await toggle.click();
+	await expect(menus).toHaveCount(3);
+	await expect.poll(() => moved(menus.first())).toBe(true);
+	await settled(menus.first());
+	await expect(menus.first()).toHaveCSS('opacity', '1');
+});
+
+test('under reduced motion nothing hops, rises or deals (#175)', async ({
+	page,
+}) => {
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await page.goto('/components.html#progress-lanes');
+	const example = page.locator('.rg-library-progress-lanes--hop');
+	const lanes = example.locator('.rg-progress-lanes');
+	await forget(page);
+	await example.getByRole('button', { name: 'Advance 3' }).click();
+	await expect(lanes).toHaveAttribute('aria-label', 'You 4, Ana 2');
+	const section = page.locator('#decision-panel');
+	await section.getByRole('button', { name: 'Open again' }).click();
+	await expect(
+		section.locator('.rg-decision-panel--panel').first()
+	).toBeVisible();
+	await page.waitForTimeout(300);
+	expect(await moved(lanes)).toBe(false);
+	expect(await moved(section.locator('.rg-decision-panel').first())).toBe(
+		false
+	);
+});

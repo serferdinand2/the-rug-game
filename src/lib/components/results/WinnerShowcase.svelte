@@ -1,4 +1,4 @@
-<!-- WinnerShowcase: the winner under the final standings (#174): their civilization's portrait in a gold frame, its name, and their capital as it ended; each winner of a shared win. -->
+<!-- WinnerShowcase: the winner under the final standings (#174): their civilization's portrait in a gold frame, its name, and their capital as it ended; each winner of a shared win. It is the results' entrance: after the standings, the portrait rises into its frame, then the capital (#175). -->
 <script module>
 	/**
 	 * Properties of the WinnerShowcase component itself.
@@ -130,5 +130,43 @@
 		display: grid;
 		width: 260px;
 		--rg-capital-city-title-gap: var(--space-4);
+	}
+
+	/* The results' entrance (issue 175): once the standings are in, the heading fades in, the portrait rises and grows
+	   into its gold frame over the focal time, and the capital follows it. */
+	.rg-winner-showcase--heading {
+		animation: rg-winner-showcase-fade var(--duration-slow) var(--ease-out)
+			300ms backwards;
+	}
+
+	.rg-winner-showcase--civ {
+		animation: rg-winner-showcase-rise var(--duration-focal) var(--ease-out)
+			380ms backwards;
+	}
+
+	.rg-winner-showcase--capital {
+		animation: rg-winner-showcase-rise var(--duration-focal) var(--ease-out)
+			560ms backwards;
+	}
+
+	@keyframes rg-winner-showcase-fade {
+		from {
+			opacity: 0;
+		}
+	}
+
+	@keyframes rg-winner-showcase-rise {
+		from {
+			opacity: 0;
+			transform: translateY(20px) scale(0.96);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-winner-showcase--heading,
+		.rg-winner-showcase--civ,
+		.rg-winner-showcase--capital {
+			animation: none;
+		}
 	}
 </style>
