@@ -11,7 +11,7 @@
 
 ## Rules
 
-- **One helper.** `src/lib/transitions.js` times every JavaScript motion from the motion tokens and stays still under reduced motion: `motionMs` (a token read from the page), `staggerDelay`, `rise` (a Svelte transition), `glide` (Svelte's flip, timed by the tokens), `enter` (a Web Animations entrance on an element that stays), `hopPlan`, `hopFrames` and `tokenHop` (the track token's attachment). `EASE_OUT` mirrors `--ease-out` for the Web Animations API. Only `motion.js` asks for reduced motion (#119).
+- **One helper.** `src/lib/transitions.js` times every JavaScript motion from the motion tokens and stays still under reduced motion: `motionMs` (a token read from the page), `rise` (a Svelte transition), `glide` (Svelte's flip, timed by the tokens), `listKeys` (keys for a list whose items repeat, such as two traps in a hand, so its cards can glide), `enter` (a Web Animations entrance on an element that stays), `hopPlan`, `hopFrames` and `tokenHop` (the track token's attachment). `EASE_OUT` mirrors `--ease-out` for the Web Animations API. Only `motion.js` asks for reduced motion (#119).
 - **Two new tokens:** `--duration-exit` (140 ms, leaving) and `--duration-focal` (600 ms, the authored moments), with `--ease-in` for leaving. Under reduced motion every duration is 0 ms, and each component's own `@media (prefers-reduced-motion: reduce)` turns its keyframes off: **no motion at all**, as docs/conventions.md asks.
 - **Entrances, not exits (my call).** A panel, dialog, prompt or screen that a parent mounts comes in with a CSS animation on mount and goes at once. A Svelte out transition would keep the old element in the page while it leaves, overlapping the next one, and the browser tests would find two of it. Only things that open and close inside their own block leave with motion: the menu (it lifts away in `--duration-exit`) and the toast.
 - **Local transitions where Svelte can tell.** A Svelte `in:` plays only when its own block already existed, so it marks what is *added* (a card gained, a piece in the tray, a claim, a new open table) and never plays on first show. Where an item's markup sits inside an `{#if}`, a class does the work instead (the log's new lines).
@@ -50,7 +50,7 @@ Left out (my call): "VP bars grow from zero" in the plan, because the results dr
 
 ## Testing
 
-- `tests/client-transitions.test.mjs`: the fallback durations match `tokens.css`, a duration is read from the page and is 0 under reduced motion, the stagger's cap, the hop's plan and frames, `rise` keeps the element's own transform, `enter`, `EASE_OUT` matches the token, and the token hops only on a new position (not on first show, nor on a redraw), a new hop replacing the last.
+- `tests/client-transitions.test.mjs`: the fallback durations match `tokens.css`, a duration is read from the page and is 0 under reduced motion, `listKeys`, the hop's plan and frames, `rise` keeps the element's own transform, `enter`, `EASE_OUT` matches the token, and the token hops only on a new position (not on first show, nor on a redraw), a new hop replacing the last.
 - The browser suite runs with reduced motion (`reducedMotion: 'reduce'` in `playwright.config.js`), so panels and cards are measured where they rest; the dice tray's fade test turns motion back on.
 - `tests/browser/motion.test.mjs` runs with motion on, in the component library only (no tables): the token hops and rests, a hand's card rises in and the others close up, a prompt opened again rises with its shelf dealt in and rests where it was, a menu lifts away and drops back, and under reduced motion nothing moves. An init script notes each motion as it starts, so a busy machine can't miss a short one.
 - Each component's library section plays its motion with a button: ProgressLanes, CardFan, PlacementTray, AchievementStrip, EraSlots, TableLog, CapitalGrid, TopBar, TurnBar, SeatCard, Dialog and DecisionPanel; Tabs, Menu, Toast and DecisionOption already could.
@@ -65,3 +65,6 @@ Left out (my call): "VP bars grow from zero" in the plan, because the results dr
 6. The results' entrance takes about 1.2 s before the winner's capital is in.
 7. The header's rule sweeps for 600 ms, the focal time, each time your turn comes.
 8. Hand cards gained rise in, but opening the Hand tab doesn't deal the hand; only a prompt's shelf deals.
+9. A map choice's panel that docks or undocks as the board switches comes in again at its new place, which reads as a move.
+
+The final review's other notes, kept as they are: the staggers live in each component's CSS (the helper's own was unused and is gone); `motionMs` reads the page's tokens each time a motion starts, which is only on a change; the dice tray still reads its fade time itself (#119's code); and an unfolded log turn's lines come in again whenever it is opened, as intended.

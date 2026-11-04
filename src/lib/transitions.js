@@ -46,16 +46,6 @@ export function motionMs(name, view = pageView()) {
 	return value?.trim() ? msOf(value) : DURATIONS[name];
 }
 
-/**
- * The delay of a list's nth item as it comes in one after another, capped so a long list doesn't keep anyone waiting.
- * @param {number} index - The item's place, from 0
- * @param {{ step?: number, cap?: number }} [options] - The step between items and the longest delay, in milliseconds
- * @returns {number}
- */
-export function staggerDelay(index, { step = 40, cap = 240 } = {}) {
-	return Math.min(Math.max(index, 0) * step, cap);
-}
-
 /** The --ease-out token, for the Web Animations API, which can't read a custom property. */
 export const EASE_OUT = 'cubic-bezier(0.2, 0.75, 0.25, 1)';
 
@@ -103,7 +93,8 @@ export function rise(
 
 /**
  * Plays an entrance on an element already in place, with the Web Animations API: from an offset, a scale and an
- * opacity to where it rests. For content that changes inside an element that stays, such as a tab's panel.
+ * opacity to where it rests. For content that changes inside an element that stays, such as a tab's panel. It ends on
+ * no transform, so it suits an element without a transform of its own; rise keeps one.
  * @param {any} element - The element, which needs animate()
  * @param {{ x?: number, y?: number, scale?: number, opacity?: number }} from
  * @param {{ speed?: keyof typeof DURATIONS, delay?: number, view?: MotionView }} [options]
@@ -136,6 +127,24 @@ export function enter(
  */
 export function glide(node, rects) {
 	return flip(node, rects, { duration: motionMs('medium'), easing: easeOut });
+}
+
+/**
+ * One key per item of a list, for a keyed each block whose items may repeat, such as a hand holding two traps: an
+ * item's own text, then a count of its copies before it. A card played from the middle keeps the others' keys, so
+ * they glide into place rather than change faces.
+ * @param {readonly (string | number)[]} items
+ * @returns {string[]}
+ */
+export function listKeys(items) {
+	/** @type {Map<string, number>} */
+	const seen = new Map();
+	return items.map((item) => {
+		const text = String(item);
+		const copies = (seen.get(text) ?? 0) + 1;
+		seen.set(text, copies);
+		return copies === 1 ? text : `${text} ${copies}`;
+	});
 }
 
 /**
@@ -223,6 +232,8 @@ export function tokenHop(position, view = pageView()) {
 		}
 		last.playing = [];
 		clearTimeout(last.timer);
+		marker.style.transitionDuration = '';
+		marker.style.transitionTimingFunction = '';
 		const plan = hopPlan(from, position, motionMs('focal', view));
 		const token = marker.firstElementChild;
 		if (plan.hops === 0 || typeof token?.animate !== 'function') {

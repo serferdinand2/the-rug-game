@@ -9,9 +9,9 @@ import {
 	enter,
 	hopFrames,
 	hopPlan,
+	listKeys,
 	motionMs,
 	rise,
-	staggerDelay,
 	tokenHop,
 } from '../src/lib/transitions.js';
 
@@ -56,12 +56,25 @@ test('a duration is read from the page, and is 0 under reduced motion', () => {
 	assert.equal(motionMs('medium', undefined), DURATIONS.medium);
 });
 
-test('a stagger steps through a list and stops at its cap', () => {
-	assert.equal(staggerDelay(0), 0);
-	assert.equal(staggerDelay(2), 80);
-	assert.equal(staggerDelay(40), 240);
-	assert.equal(staggerDelay(3, { step: 100, cap: 250 }), 250);
-	assert.equal(staggerDelay(-1), 0);
+test('a list of cards gets one key each, a repeated card counting its copies', () => {
+	assert.deepEqual(listKeys(['trap', 'academia', 'trap', 'trap']), [
+		'trap',
+		'academia',
+		'trap 2',
+		'trap 3',
+	]);
+	// A card played from the middle keeps the others' keys, so they glide rather than change faces.
+	assert.deepEqual(listKeys(['trap', 'trap', 'academia']).slice(1), [
+		'trap 2',
+		'academia',
+	]);
+	assert.deepEqual(listKeys(['academia', 'age-of-sail', 'trap']), [
+		'academia',
+		'age-of-sail',
+		'trap',
+	]);
+	assert.deepEqual(listKeys([]), []);
+	assert.deepEqual(listKeys([4, 4]), ['4', '4 2']);
 });
 
 test('a token hops once a space, in no more than the focal time', () => {
@@ -241,4 +254,15 @@ test('enter plays an entrance from an offset to where the element rests, unless 
 		null,
 		'nor without the Web Animations API'
 	);
+});
+
+test("a hop cut short by a move that doesn't hop gives the marker its own timing back", () => {
+	const { marker } = markerWithToken();
+	tokenHop(2, view())(marker);
+	tokenHop(5, view())(marker);
+	assert.equal(marker.style.transitionDuration, `${3 * HOP_MS}ms`);
+	// Reduced motion comes on before the hop's timer gives the timing back.
+	tokenHop(7, view({ reduce: true }))(marker);
+	assert.equal(marker.style.transitionDuration, '');
+	assert.equal(marker.style.transitionTimingFunction, '');
 });

@@ -34,7 +34,7 @@
 <script>
 	import { ComponentEvent } from '../../component-event.js';
 	import { FAN_ROWS, fanRows } from '../../cards/card-sizes.js';
-	import { glide, rise } from '../../transitions.js';
+	import { glide, listKeys, rise } from '../../transitions.js';
 
 	/** @type {CardFanProps} */
 	let {
@@ -55,6 +55,22 @@
 		onCardFanSelect,
 		...attr
 	} = $props();
+
+	/**
+	 * Each card's key: the caller's, or the item itself with a count of its copies (a hand may hold two traps), so a
+	 * played card's neighbours glide into its place rather than change faces (#175).
+	 */
+	let keys = $derived(
+		key
+			? items.map((item, index) => key(item, index))
+			: listKeys(
+					items.map((item) =>
+						typeof item === 'string' || typeof item === 'number'
+							? item
+							: '·'
+					)
+				)
+	);
 
 	/** The fan's width, which a wrapped fan fills with rows. */
 	let width = $state(0);
@@ -143,7 +159,7 @@
 	bind:clientWidth={width}>
 	<!-- Two lists rather than one with an if inside, so each card is the list's own item, which a glide needs (#175). -->
 	{#if interactive}
-		{#each items as item, index (key ? key(item, index) : index)}
+		{#each items as item, index (keys[index])}
 			<button
 				type="button"
 				class="rg-card-fan--card"
@@ -164,7 +180,7 @@
 			</button>
 		{/each}
 	{:else}
-		{#each items as item, index (key ? key(item, index) : index)}
+		{#each items as item, index (keys[index])}
 			<div
 				role="img"
 				class="rg-card-fan--card"
