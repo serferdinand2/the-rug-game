@@ -137,6 +137,24 @@ test("on the viewer's turn the tokens stand on the spaces, the counters are name
 		);
 		await expect(page).toHaveTitle('● Your turn · The Rug Game');
 
+		// With a space chosen, Take income shrinks to its button beside Advance, and the footer keeps its height.
+		await page.locator('.rg-track-space--available').first().click();
+		const footer = page.locator('.rg-turn-bar');
+		const advance = footer.getByRole('button', { name: /^Advance/ });
+		await expect(advance).toBeVisible();
+		const bar = await footer.boundingBox();
+		for (const button of [advance, takeIncome]) {
+			const box = await button.boundingBox();
+			expect(box?.y ?? 0).toBeGreaterThanOrEqual(bar?.y ?? 0);
+			expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(
+				(bar?.y ?? 0) + (bar?.height ?? 0) + 1
+			);
+		}
+		expect((await advance.boundingBox())?.x ?? 0).toBeGreaterThan(
+			(await takeIncome.boundingBox())?.x ?? 0
+		);
+		await page.keyboard.press('Escape');
+
 		// How to play has a Symbols tab, after Advancing on a track.
 		await page.keyboard.press('h');
 		const help = page.getByRole('dialog', { name: 'How to play' });

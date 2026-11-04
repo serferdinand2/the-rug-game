@@ -89,8 +89,10 @@
 	}
 
 	/* While a space is chosen only the button shows; the words open while the reveal is hovered or focused. */
+	/* On one line while folded, so the hidden words don't wrap into a tall column and stretch the footer. */
 	.rg-income-reveal--folded .rg-income-reveal--explanation {
 		max-width: 0;
+		white-space: nowrap;
 		opacity: 0;
 	}
 
@@ -99,6 +101,7 @@
 	.rg-income-reveal--folded:not(.rg-income-reveal--disabled):focus-within
 		.rg-income-reveal--explanation {
 		max-width: 300px;
+		white-space: normal;
 		opacity: 1;
 	}
 </style>
