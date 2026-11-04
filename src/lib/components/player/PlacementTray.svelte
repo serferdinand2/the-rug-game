@@ -1,4 +1,4 @@
-<!-- The To be placed tray under the capital: landmarks waiting to be placed, to select, drag onto the grid or move there with the arrow keys. -->
+<!-- The To be placed tray under the capital: landmarks waiting to be placed, to turn, select, drag onto the grid or move there with the arrow keys. -->
 <script module>
 	/**
 	 * A landmark waiting to be placed.
@@ -19,6 +19,7 @@
 	 * @property {Function} [onPlacementTraySelect] - Callback fired with { id } when an item is pressed, or Enter or Space is pressed on it
 	 * @property {Function} [onPlacementTrayPlace] - Callback fired with { id } when an arrow key is pressed on an item: the keyboard way onto the grid
 	 * @property {Function} [onPlacementTrayReturn] - Callback fired with { id } when a placed piece is dropped on the tray
+	 * @property {Function} [onPlacementTrayTurn] - Callback fired with { id, step } when an item's turn button is pressed, step -1 back or 1 forward; without it, the tray has no turn buttons (#174)
 	 */
 
 	/**
@@ -32,6 +33,7 @@
 	 *   returnTarget={dragging}
 	 *   onPlacementTraySelect={(event) => (selectedId = event.value.id)}
 	 *   onPlacementTrayReturn={(event) => putBack(event.value.id)}
+	 *   onPlacementTrayTurn={(event) => turn(event.value.id, event.value.step)}
 	 * />
 	 */
 </script>
@@ -40,6 +42,7 @@
 	import { tick } from 'svelte';
 	import LandmarkPiece from './LandmarkPiece.svelte';
 	import { ComponentEvent } from '../../component-event.js';
+	import { TURN_KEYS } from '../../hotkeys.js';
 
 	/** @type {PlacementTrayProps} */
 	let {
@@ -49,6 +52,7 @@
 		onPlacementTraySelect,
 		onPlacementTrayPlace,
 		onPlacementTrayReturn,
+		onPlacementTrayTurn,
 		...attr
 	} = $props();
 
@@ -107,6 +111,23 @@
 					{ id: event.value.id },
 					event.target,
 					event.originalEvent
+				)
+			);
+		}
+	};
+
+	/**
+	 * @param {MouseEvent} event
+	 * @param {string} id
+	 * @param {-1 | 1} step
+	 */
+	const turnHandler = (event, id, step) => {
+		if (typeof onPlacementTrayTurn === 'function') {
+			onPlacementTrayTurn(
+				new ComponentEvent(
+					{ id, step },
+					/** @type {HTMLButtonElement} */ (event.currentTarget),
+					event
 				)
 			);
 		}
@@ -179,6 +200,31 @@
 						onLandmarkPieceDragEnd={itemDragEndHandler}
 						onLandmarkPieceSelect={itemSelectHandler}
 						onLandmarkPieceMove={itemMoveHandler} />
+					{#if onPlacementTrayTurn}
+						<div class="rg-placement-tray--turn">
+							<button
+								type="button"
+								class="rg-placement-tray--turn-button"
+								aria-label="Turn {item.name} back"
+								title="Turn back"
+								onclick={(event) => turnHandler(event, item.id, -1)}
+								>↺</button>
+							<button
+								type="button"
+								class="rg-placement-tray--turn-button"
+								aria-label="Turn {item.name}"
+								title="Turn"
+								onclick={(event) => turnHandler(event, item.id, 1)}
+								>↻</button>
+							<span class="rg-placement-tray--turn-hint"
+								>Turn it here; on the capital, <kbd
+									class="rg-placement-tray--key">{TURN_KEYS.back}</kbd
+								>
+								and
+								<kbd class="rg-placement-tray--key">{TURN_KEYS.forward}</kbd> turn
+								it.</span>
+						</div>
+					{/if}
 				</li>
 			{/each}
 		</ul>
@@ -218,5 +264,53 @@
 		margin: 0;
 		padding: 0;
 		list-style: none;
+	}
+
+	.rg-placement-tray--turn {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-3);
+		margin-top: var(--space-4);
+	}
+
+	.rg-placement-tray--turn-button {
+		display: grid;
+		place-items: center;
+		min-width: 44px;
+		height: 38px;
+		border: var(--border) solid var(--line-strong);
+		border-radius: var(--radius);
+		background: var(--control);
+		color: var(--text);
+		font: var(--weight-bold) var(--font-size-2xl) / var(--leading-none)
+			var(--font-body);
+		cursor: pointer;
+		transition:
+			background var(--duration-fast) var(--ease),
+			border-color var(--duration-fast) var(--ease);
+	}
+
+	.rg-placement-tray--turn-button:hover,
+	.rg-placement-tray--turn-button:focus-visible {
+		border-color: var(--gold);
+		background: color-mix(in srgb, var(--gold) 16%, var(--control));
+	}
+
+	.rg-placement-tray--turn-hint {
+		color: var(--muted);
+		font-size: var(--font-size-sm);
+		line-height: var(--leading-snug);
+	}
+
+	.rg-placement-tray--key {
+		display: inline-grid;
+		place-items: center;
+		min-width: 22px;
+		height: 22px;
+		padding: 0 var(--space-2);
+		border: var(--border) solid currentColor;
+		color: var(--text);
+		font: var(--weight-bold) var(--font-size-xs) var(--font-body);
 	}
 </style>

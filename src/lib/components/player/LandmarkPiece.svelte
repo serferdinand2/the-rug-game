@@ -342,6 +342,30 @@
 		filter: drop-shadow(var(--glow-ok-strong));
 	}
 
+	/* A landmark just locked lands: a short drop whose shadow closes as it touches the ground. */
+	.rg-landmark-piece--fresh {
+		animation: rg-landmark-piece-land var(--duration-slow) var(--ease-out);
+	}
+
+	@keyframes rg-landmark-piece-land {
+		0% {
+			transform: translateY(-14px) scale(1.08);
+			filter: drop-shadow(
+				0 16px 10px color-mix(in srgb, var(--ink) 50%, transparent)
+			);
+		}
+
+		70% {
+			transform: translateY(1px) scale(0.99);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rg-landmark-piece--fresh {
+			animation: none;
+		}
+	}
+
 	.rg-landmark-piece--dragging {
 		--rg-landmark-piece-outline: var(--ok);
 		z-index: var(--layer-drag);

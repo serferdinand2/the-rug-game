@@ -57,7 +57,12 @@
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { tabsWithCounts } from '../../lib/area/tabs.js';
 	import { capitalView } from '../../lib/area/capital.js';
-	import { defaultEra, eraSlots, incomeRows } from '../../lib/area/income.js';
+	import {
+		currentEra,
+		defaultEra,
+		eraSlots,
+		incomeRows,
+	} from '../../lib/area/income.js';
 	import { selfSummary } from '../../lib/overview.js';
 	import { terrainView } from '../../lib/area/terrain.js';
 	import { heldLandmarkCard } from '../../lib/area/landmark-card.js';
@@ -207,6 +212,7 @@
 				capitalSoon={words.capitalSoon}
 				{placement}
 				{fresh}
+				era={currentEra(eras)}
 				onCapitalTabPlace={own ? onPlayerTabsPlace : undefined} />
 		{:else if tab === 'hand'}
 			<h2 class="rg-player-tabs--title">{words.handHeading}</h2>

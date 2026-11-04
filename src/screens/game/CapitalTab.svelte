@@ -1,8 +1,9 @@
-<!-- The Capital tab's placement choices, capital grid and landmark tray. -->
+<!-- The Capital tab's placement choices, capital grid, landmark tray and the era card under them. -->
 <script module>
 	/** @typedef {import('../../lib/area/capital.js').CapitalView} CapitalView */
 	/** @typedef {import('../../lib/area/placement-targets.js').FreshCapital} FreshCapital */
 	/** @typedef {import('../../lib/area/placement-targets.js').PlacementPrompt} PlacementPrompt */
+	/** @typedef {import('../../lib/area/income.js').EraSlotView} EraSlotView */
 
 	/**
 	 * Properties of the CapitalTab screen part itself.
@@ -11,6 +12,7 @@
 	 * @property {string} capitalSoon - The unavailable-capital note
 	 * @property {PlacementPrompt | null} [placement=null] - A building or landmark placement decision
 	 * @property {FreshCapital} [fresh] - The plots and landmarks just built
+	 * @property {EraSlotView | null} [era=null] - The era the player is in, whose card shows under the capital (#174)
 	 * @property {Function} [onCapitalTabPlace] - Callback fired with { index, confirm } when the placement changes
 	 */
 
@@ -37,7 +39,9 @@
 		optionAt,
 		placeNear,
 	} from '../../lib/area/placement-targets.js';
+	import { tapestryCardData } from '../../lib/cards/game-cards.js';
 	import CapitalCity from '../../lib/components/player/CapitalCity.svelte';
+	import EraNote from '../../lib/components/player/EraNote.svelte';
 	import PlacementTray from '../../lib/components/player/PlacementTray.svelte';
 
 	/** @type {CapitalTabProps} */
@@ -46,11 +50,22 @@
 		capitalSoon,
 		placement = null,
 		fresh = { plots: [], landmarks: [] },
+		era = null,
 		onCapitalTabPlace,
 		...attr
 	} = $props();
 
+	/** Each tray landmark's quarter turns, set by the tray's turn buttons, which it keeps when placed (#174). */
+	let turns = $state(/** @type {Record<string, number>} */ ({}));
+
 	let values = $derived(capitalPlacement(capital, placement, fresh));
+	let tray = $derived(
+		values.tray.map((item) => ({ ...item, rotation: turns[item.id] ?? 0 }))
+	);
+	let trayTurn = $derived(
+		values.landmark ? (turns[values.landmark.id] ?? 0) : 0
+	);
+	let eraCard = $derived(era?.id ? tapestryCardData(era.id) : null);
 	/** A placed landmark is being dragged, so the tray offers itself to take it back. */
 	let dragging = $state(false);
 
@@ -89,8 +104,16 @@
 			return;
 		}
 		const middle = Math.floor(GRID_SIZE / 2);
-		const at = centredCorner(values.landmark.footprint, 0, middle, middle);
-		land(placeNear(placement?.options ?? [], at.row, at.col, 0), event);
+		const at = centredCorner(
+			values.landmark.footprint,
+			trayTurn,
+			middle,
+			middle
+		);
+		land(
+			placeNear(placement?.options ?? [], at.row, at.col, trayTurn),
+			event
+		);
 	};
 
 	/**
@@ -103,10 +126,19 @@
 				placement?.options ?? [],
 				event.value.row,
 				event.value.col,
-				0
+				trayTurn
 			),
 			event
 		);
+	};
+
+	/**
+	 * A tray landmark's turn button was pressed: it turns a quarter, and lands at that turn when placed.
+	 * @param {ComponentEvent} event - { id, step }
+	 */
+	const trayTurnHandler = (event) => {
+		const { id, step } = event.value;
+		turns = { ...turns, [id]: ((turns[id] ?? 0) + step + 4) % 4 };
 	};
 
 	/**
@@ -218,15 +250,26 @@
 			onCapitalCityDragEnd={() => (dragging = false)} />
 		<PlacementTray
 			class="rg-player-tabs--tray"
-			items={values.tray}
+			items={tray}
 			returnTarget={dragging && values.placed !== null}
 			onPlacementTraySelect={trayChooseHandler}
 			onPlacementTrayPlace={trayChooseHandler}
-			onPlacementTrayReturn={returnHandler} />
+			onPlacementTrayReturn={returnHandler}
+			onPlacementTrayTurn={onCapitalTabPlace
+				? trayTurnHandler
+				: undefined} />
 		{#if capital.besideMat.length}
 			<p class="rg-player-tabs--note">
 				Beside the mat: {capital.besideMat.join(', ')}
 			</p>
+		{/if}
+		{#if era}
+			<EraNote
+				class="rg-capital-tab--era"
+				heading={era.heading}
+				name={eraCard?.title ?? era.card}
+				copy={eraCard?.copy ?? null}
+				faceDown={era.faceDown} />
 		{/if}
 	{:else}
 		<p class="rg-player-tabs--note">{capitalSoon}</p>
@@ -238,7 +281,8 @@
 		display: contents;
 	}
 
-	.rg-capital-tab :global(.rg-player-tabs--tray) {
+	.rg-capital-tab :global(.rg-player-tabs--tray),
+	.rg-capital-tab :global(.rg-capital-tab--era) {
 		margin-top: var(--space-6);
 	}
 </style>

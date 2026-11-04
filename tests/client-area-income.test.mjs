@@ -2,7 +2,12 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { exposedSpaces, view } from '../src/lib/engine/game.js';
-import { defaultEra, eraSlots, incomeRows } from '../src/lib/area/income.js';
+import {
+	currentEra,
+	defaultEra,
+	eraSlots,
+	incomeRows,
+} from '../src/lib/area/income.js';
 import { startedGame } from './helpers/engine.mjs';
 
 /** @param {any} state @returns {any} */
@@ -182,4 +187,18 @@ test('defaultEra chooses the active card, otherwise the latest card, or none', (
 		defaultEra(slots.map((slot) => ({ ...slot, id: null }))),
 		null
 	);
+});
+
+test("the current era is the active card's slot, else the latest with a card (#174)", () => {
+	const { state } = startedGame(2);
+	const seat = /** @type {any} */ (state.seats[0]);
+	assert.equal(currentEra(eraSlots(mine(state)))?.card, 'Maker of Fire');
+	seat.incomeMat.tapestry[1] = ['capitalism'];
+	assert.equal(currentEra(eraSlots(mine(state)))?.card, 'Capitalism');
+	seat.incomeMat.tapestry[2] = ['trap-1'];
+	seat.incomeMat.faceDown = ['trap-1'];
+	const faceDown = currentEra(eraSlots(mine(state)));
+	assert.equal(faceDown?.era, 3);
+	assert.equal(faceDown?.faceDown, true);
+	assert.equal(currentEra([]), null);
 });

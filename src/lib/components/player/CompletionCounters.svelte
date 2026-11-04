@@ -1,4 +1,4 @@
-<!-- The three counters under a capital: completed rows, columns and districts, which show their groups on the grid when hovered or toggled. -->
+<!-- The three counters under a capital: completed rows, columns and districts, each named, which show their groups on the grid when hovered or toggled. -->
 <script module>
 	/** @typedef {import('../../capital.js').GroupKind} GroupKind */
 
@@ -37,11 +37,16 @@
 		...attr
 	} = $props();
 
-	/** @type {readonly { kind: GroupKind, name: string, mark: string }[]} */
+	/** @type {readonly { kind: GroupKind, name: string, mark: string, label: string }[]} */
 	const COUNTERS = [
-		{ kind: 'rows', name: 'rows', mark: 'row' },
-		{ kind: 'columns', name: 'columns', mark: 'column' },
-		{ kind: 'districts', name: 'districts', mark: 'district' },
+		{ kind: 'rows', name: 'rows', mark: 'row', label: 'Rows' },
+		{ kind: 'columns', name: 'columns', mark: 'column', label: 'Columns' },
+		{
+			kind: 'districts',
+			name: 'districts',
+			mark: 'district',
+			label: 'Districts',
+		},
 	];
 
 	/**
@@ -114,6 +119,7 @@
 			<i
 				class="rg-completion-counters--mark rg-completion-counters--{counter.mark}"
 				aria-hidden="true"></i>
+			<span class="rg-completion-counters--name">{counter.label}</span>
 			<b class="rg-completion-counters--count">{counts[counter.kind]}</b>
 		</button>
 	{/each}
@@ -132,7 +138,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: var(--space-4);
+		gap: var(--space-3);
 		min-width: 0;
 		min-height: 42px;
 		padding: var(--space-3) var(--space-4);
@@ -187,5 +193,13 @@
 		font-size: var(--font-size-lg);
 		font-weight: var(--weight-bold);
 		line-height: var(--leading-none);
+	}
+
+	/* Each counter says what it counts. */
+	.rg-completion-counters--name {
+		overflow: hidden;
+		font-size: var(--font-size-sm);
+		white-space: nowrap;
+		text-overflow: ellipsis;
 	}
 </style>

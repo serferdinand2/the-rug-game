@@ -740,12 +740,14 @@
 		opacity: 0.6;
 	}
 
+	/* The ground recedes, so buildings, landmarks and cubes stand out. */
 	.rg-capital-grid--terrain {
 		position: absolute;
 		inset: 0;
 		width: 100%;
 		height: 100%;
 		image-rendering: pixelated;
+		filter: var(--capital-ground);
 	}
 
 	/* A building on a printed impassable plot cleared it: its ground draws over the relief. */
@@ -763,6 +765,7 @@
 		height: calc(100% - 2 * var(--space-3));
 		pointer-events: none;
 		image-rendering: pixelated;
+		filter: var(--capital-relief);
 	}
 
 	.rg-capital-grid--landmark {

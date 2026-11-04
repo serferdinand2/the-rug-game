@@ -1,5 +1,5 @@
-// The track hover preview in Chromium (#81): hovering a space that two players share as their next space dashes only
-// the line of the player taking the turn. The game test opens a two-seat hot-seat game, then closes the table.
+// The track hover preview in Chromium (#81, #174): hovering a space that two players share as their next space shows the
+// faint token of the player taking the turn only. The game test opens a two-seat hot-seat game, then closes the table.
 import { expect, test } from '@playwright/test';
 import { askedSeats } from '../../src/lib/engine/game.js';
 

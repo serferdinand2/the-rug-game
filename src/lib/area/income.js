@@ -116,6 +116,21 @@ export function defaultEra(slots) {
 }
 
 /**
+ * The slot of the era the seat is in (#174): the one `defaultEra` picks, else the latest that shows anything, such as
+ * the printed Maker of Fire; null with no slots.
+ * @param {readonly EraSlotView[]} slots
+ * @returns {EraSlotView | null}
+ */
+export function currentEra(slots) {
+	const era = defaultEra(slots);
+	return (
+		slots.find((slot) => slot.era === era) ??
+		slots.findLast((slot) => slot.card !== null || slot.faceDown) ??
+		null
+	);
+}
+
+/**
  * One era slot's card, before its words.
  * @param {any} seat
  * @param {number} era
