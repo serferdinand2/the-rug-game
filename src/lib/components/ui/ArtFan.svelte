@@ -94,11 +94,11 @@
 	}
 
 	:global(.rg-art-fan--band.rg-card-band--large .rg-card-band--title) {
-		font-size: 25.2px;
+		font-size: calc(var(--font-size-5xl) * var(--font-scale-art-fan-title));
 	}
 
 	:global(.rg-art-fan--band.rg-card-band--small .rg-card-band--title) {
-		font-size: 18.9px;
+		font-size: calc(var(--font-size-card-title-sm) * var(--font-scale-art-fan-title));
 	}
 
 	:global(.rg-art-fan--band .rg-card-band--title) {
