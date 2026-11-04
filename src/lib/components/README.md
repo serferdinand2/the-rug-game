@@ -36,6 +36,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | `Button` | Every button: `primary`, `secondary`, `gold`, `confirm` (a decision panel's solid gold Confirm, #65), `success` or `danger`, in three sizes, with a `selected` toggle state; a `tint` from `trackColor` takes a track's colour into `primary` and `confirm`, so no bar restyles it (#117); `aria-disabled` dims it as `disabled` does but keeps it clickable (#97). |
 | `Dialog` | A dialog over a scrim, `narrow` or `wide`: a title, the content and Close or its own `actions`. Escape, Close and the backdrop close it; it takes the focus and gives it back. Modal, it covers the screen and keeps Tab inside; with `modal={false}`, it covers its positioned parent only, as Table settings over the board (#87). |
 | `Divider` | A thin rule, optionally paused by a short italic label such as "or join friends". |
+| `CountUp` | A number that counts to its new value in half a second, with a green +n that rises and fades when it grows (#174); `still` changes at once. `ResourceChip`'s count and `PlayerChip`'s VP use it. |
 | `KeyCap` | The key that does the same as a button, small and in the button's colour beside its word (#174): the footer's actions, a decision's confirm, Minimize and the landmark tray's turn keys. |
 | `IconButton` | The 36px header controls (sound, history, log, menu, close), with the red mute slash. |
 | `Menu` | The header popover: entries as links, buttons or on/off switches (a switch stays open when chosen), arrow keys and Escape. |

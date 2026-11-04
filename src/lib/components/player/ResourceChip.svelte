@@ -1,4 +1,4 @@
-<!-- One resource and how many of it a player holds, as in the players overview. -->
+<!-- One resource and how many of it a player holds, as in the players overview; a new count counts up to its value (#174). -->
 <script module>
 	/**
 	 * Properties of the ResourceChip component itself.
@@ -20,6 +20,7 @@
 </script>
 
 <script>
+	import CountUp from '../ui/CountUp.svelte';
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
 	import { amountWords } from '../../words.js';
 	import { resourceName } from '../../game-names.js';
@@ -49,7 +50,10 @@
 		symbol={resource}
 		{size}
 		decorative />
-	<b class="rg-resource-chip--count">{count}</b>
+	<b class="rg-resource-chip--count"
+		><CountUp
+			value={count}
+			still={changed} /></b>
 </span>
 
 <style>

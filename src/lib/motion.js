@@ -85,3 +85,18 @@ export function msOf(time) {
 	}
 	return time.trim().endsWith('ms') ? value : value * 1000;
 }
+
+/** How long a count takes to run to its new value (#174). */
+export const COUNT_MS = 500;
+
+/**
+ * Where a count stands part of the way from its old value to its new one (#174): easing out, in whole numbers.
+ * @param {number} from
+ * @param {number} to
+ * @param {number} progress - 0 at the start, 1 at the end; clamped
+ * @returns {number}
+ */
+export function countAt(from, to, progress) {
+	const t = Math.min(1, Math.max(0, progress));
+	return Math.round(from + (to - from) * (1 - (1 - t) ** 3));
+}

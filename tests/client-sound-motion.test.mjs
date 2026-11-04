@@ -4,7 +4,12 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { CUES, cueFor } from '../src/lib/sound.js';
-import { highlights, msOf, prefersReducedMotion } from '../src/lib/motion.js';
+import {
+	countAt,
+	highlights,
+	msOf,
+	prefersReducedMotion,
+} from '../src/lib/motion.js';
 import { TUMBLE_MS } from '../src/lib/dice.js';
 import { DECISIONS, openDecisions, play } from '../src/lib/engine/game.js';
 import { newGame } from './helpers/engine.mjs';
@@ -181,4 +186,15 @@ test('only motion.js asks for reduced motion, and the dice write no timing of th
 		'the tray times its fade'
 	);
 	assert.equal(TUMBLE_MS, 1000);
+});
+
+test('a count runs from its old value to its new one, easing out, in whole numbers (#174)', () => {
+	assert.equal(countAt(2, 6, 0), 2);
+	assert.equal(countAt(2, 6, 1), 6);
+	assert.equal(countAt(2, 6, 2), 6);
+	assert.equal(countAt(2, 6, -1), 2);
+	// Easing out: past halfway at half the time.
+	assert.ok(countAt(0, 10, 0.5) > 5);
+	assert.equal(countAt(10, 4, 1), 4);
+	assert.ok(Number.isInteger(countAt(0, 7, 0.37)));
 });

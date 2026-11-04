@@ -32,6 +32,7 @@
 </script>
 
 <script>
+	import CountUp from '../ui/CountUp.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 	import { playerColor } from '../../ui.js';
 
@@ -89,7 +90,7 @@
 			class="rg-player-chip--score"
 			class:rg-player-chip--bump={bump}
 			><span class="rg-player-chip--separator">·</span>
-			{vp} VP</span
+			<CountUp value={vp} /> VP</span
 		></small>
 </button>
 
