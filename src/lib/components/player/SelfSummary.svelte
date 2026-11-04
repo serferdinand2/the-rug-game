@@ -72,14 +72,17 @@
 	<div
 		class="rg-self-summary--resources"
 		aria-label={inspected ? `${name}'s resources` : 'Your resources'}>
-		{#each RESOURCES as resource (resource.id)}
-			<ResourceChip
-				class="rg-self-summary--resource"
-				resource={resource.id}
-				count={resources[resource.id]}
-				changed={changed.includes(resource.id)}
-				size="medium" />
-		{/each}
+		<!-- Keyed by the shown player: switching to another player's area redraws the counts rather than counting (#174). -->
+		{#key seat}
+			{#each RESOURCES as resource (resource.id)}
+				<ResourceChip
+					class="rg-self-summary--resource"
+					resource={resource.id}
+					count={resources[resource.id]}
+					changed={changed.includes(resource.id)}
+					size="medium" />
+			{/each}
+		{/key}
 	</div>
 </section>
 

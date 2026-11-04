@@ -54,12 +54,14 @@
 	});
 </script>
 
+<!-- The +n is drawn by CSS from data-gain, so the number's text stays the number alone. -->
 <span
 	{...attr}
 	class="rg-count-up {attr.class ? attr.class : ''}"
 	>{shown}{#if gain}{#key gain.key}<i
 				class="rg-count-up--gain"
-				aria-hidden="true">+{gain.amount}</i
+				aria-hidden="true"
+				data-gain="+{gain.amount}"></i
 			>{/key}{/if}</span>
 
 <style>
@@ -70,6 +72,10 @@
 	}
 
 	/* The gain rises from the number and fades. */
+	.rg-count-up--gain::after {
+		content: attr(data-gain);
+	}
+
 	.rg-count-up--gain {
 		position: absolute;
 		bottom: 60%;
