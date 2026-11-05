@@ -112,6 +112,34 @@ export function kindFacts(kind) {
 }
 
 /**
+ * The Confirm button's words while the answer that declines (`card: null`) is picked, by kind (#173), so the button
+ * never says "Give card" for a card the player doesn't give. The Advisors' gift of their new cards has `vp`.
+ * @type {Readonly<Record<string, (decision: any) => string>>}
+ */
+const DECLINE_CONFIRMS = Object.freeze({
+	chooseGive: (decision) =>
+		typeof decision.vp === 'number' ? "Don't give" : 'Let them draw',
+	chooseTapestry: () => "Don't play",
+	chooseUpgrade: () => "Don't upgrade",
+});
+
+/**
+ * The Confirm button's words while this answer is picked, or null when the decision's own words fit it (#173).
+ * @param {any} decision
+ * @param {any} answer
+ * @returns {string | null}
+ */
+export function answerConfirm(decision, answer) {
+	if (
+		answer?.card !== null ||
+		!Object.hasOwn(DECLINE_CONFIRMS, decision.kind)
+	) {
+		return null;
+	}
+	return DECLINE_CONFIRMS[decision.kind](decision);
+}
+
+/**
  * The card shelf and tab of a slot pick whose options are cards, by purpose (#172): the Inventors' tech cards, the
  * Heralds' and Spies' tapestry cards and the Spies' tech cards, instead of a list of 20 text buttons.
  * @type {Readonly<Record<string, { shelf: Shelf, tab: string }>>}

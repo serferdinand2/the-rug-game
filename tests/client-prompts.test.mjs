@@ -768,6 +768,57 @@ test('a prompt with nothing of its own in the panel, such as cards on the shelf,
 	);
 });
 
+test("Confirm reads as the declining answer picked, not as the card it doesn't give, play or upgrade (#173)", () => {
+	const game = /** @type {any} */ ({
+		seats: [{ name: 'Ana' }, { name: 'Bo' }],
+	});
+	/**
+	 * Confirm's words with each answer of the decision picked in turn.
+	 * @param {Record<string, any>} decision
+	 */
+	const confirms = (decision) => {
+		const prompt = /** @type {any} */ (promptFor(decision, game, 1));
+		return prompt.options.map(
+			(/** @type {any} */ option) =>
+				panelControls(prompt, panelChoice({ picked: option.index }))
+					.confirmLabel
+		);
+	};
+	const give = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseGive',
+		to: 2,
+		answers: [{ card: 'academia' }, { card: null }],
+	};
+	assert.deepEqual(confirms(give), ['Give card', 'Let them draw']);
+	// Of the Advisors' new cards, for 5 VP each (the flow that gives one of the cards just drawn).
+	assert.deepEqual(confirms({ ...give, after: [], vp: 5 }), [
+		'Give card',
+		"Don't give",
+	]);
+	assert.deepEqual(
+		confirms({ ...give, kind: 'chooseTapestry', to: undefined }),
+		['Play card', "Don't play"]
+	);
+	assert.deepEqual(
+		confirms({
+			...give,
+			kind: 'chooseUpgrade',
+			to: undefined,
+			answers: [{ card: 'steel' }, { card: null }],
+		}),
+		['Upgrade', "Don't upgrade"]
+	);
+	// Nothing picked yet: the decision's own words.
+	const prompt = /** @type {any} */ (promptFor(give, game, 1));
+	assert.equal(
+		panelControls(prompt, panelChoice()).confirmLabel,
+		'Give card'
+	);
+});
+
 test('a pick of cards says how many to pay, Confirm waits for a match, and Decline declines when it may (#75)', () => {
 	const prompt = panelPrompt();
 	const status = { text: 'Choose 2 more cards.', warn: false };

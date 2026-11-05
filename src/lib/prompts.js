@@ -8,7 +8,7 @@ import { decisionTitle, describeAnswer, draftRest } from './decision-words.js';
 import { landmarkGoalPhrase } from './cards/landmark-text.js';
 import { matchIndex, pickModel, pickStatus, tradeOffers } from './picks.js';
 import { cardSpot, spotWords } from './civ-card.js';
-import { decisionFacts } from './decision-kinds.js';
+import { answerConfirm, decisionFacts } from './decision-kinds.js';
 import {
 	landmarkCardData,
 	tapestryCardData,
@@ -51,6 +51,7 @@ import { joinList } from './words.js';
  * @property {string} [hex] - For place 'map': the hex it is chosen on
  * @property {string} [spot] - For place 'card': the spot on the card it is chosen on (civ-card.js); for place 'track': 'track:space', such as 'science:4'
  * @property {{ row: number, col: number, rotation: number | null }} [plot] - For place 'capital'; rotation null for a building
+ * @property {string} [confirm] - The Confirm button's words while it is picked, instead of the prompt's, such as "Let them draw" (#173)
  */
 
 /**
@@ -522,6 +523,10 @@ function optionOf(decision, answer, index, game) {
 			describeAnswer(decision, answer, game),
 		art: artOf(decision, answer, place, game),
 	};
+	const confirm = answerConfirm(decision, answer);
+	if (confirm !== null) {
+		option.confirm = confirm;
+	}
 	if (place === 'card') {
 		option.spot = /** @type {string} */ (cardSpot(decision, answer, game));
 	}
@@ -1018,7 +1023,9 @@ export function panelControls(prompt, choice) {
 		status = label(picked);
 	}
 	/** @type {string} */
-	let confirmLabel = prompt.confirmLabel;
+	let confirmLabel =
+		(picked !== null ? prompt.options[picked]?.confirm : undefined) ??
+		prompt.confirmLabel;
 	if (pick?.items) {
 		const { count, kind } = pick.items;
 		const noun = kind === 'territory' ? 'tile' : 'card';
