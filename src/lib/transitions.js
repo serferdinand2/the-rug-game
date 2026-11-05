@@ -8,6 +8,8 @@ import { soundCue } from './sound.js';
  * @typedef {NonNullable<Parameters<typeof prefersReducedMotion>[0]> & {
  *   document?: { documentElement: any },
  *   getComputedStyle?: (element: any) => { getPropertyValue: (name: string) => string, transform: string },
+ *   requestAnimationFrame?: (run: () => void) => number,
+ *   cancelAnimationFrame?: (id: number) => void,
  * }} MotionView
  */
 
@@ -199,24 +201,44 @@ const RING = [
 ];
 
 /**
- * Each track marker's last position, so a new one hops from it, and what its last hop left playing, so a new hop
- * replaces it while a mere redraw leaves it be.
- * @type {WeakMap<object, { position: number, playing: { cancel(): void }[], timer?: ReturnType<typeof setTimeout> }>}
+ * Each track marker's last position, so a new one hops from it, what its last hop left playing, so a new hop replaces
+ * it while a mere redraw leaves it be, and what gives the marker its own timing back.
+ * @type {WeakMap<object, { position: number, playing: { cancel(): void }[], release?: () => void }>}
  */
 const markers = new WeakMap();
+
+/**
+ * Runs `run` once the page has painted again: in the second animation frame from now, since the first comes before
+ * the paint. Where nothing paints (Node), it runs at once.
+ * @param {() => void} run
+ * @param {MotionView} [view]
+ * @returns {() => void} Cancels it
+ */
+function afterPaint(run, view) {
+	const frame = view?.requestAnimationFrame;
+	if (typeof frame !== 'function') {
+		run();
+		return () => {};
+	}
+	let id = frame.call(view, () => {
+		id = frame.call(view, run);
+	});
+	return () => view?.cancelAnimationFrame?.(id);
+}
 
 /**
  * A Svelte attachment for a track marker (#175), the focal moment: when its player's position changes, the token hops
  * space by space as the marker slides, squashes as it lands, and a ring in the player's colour spreads from the
  * space. Nothing hops the first time a marker shows, nor under reduced motion, where the marker moves at once. The
  * board redraws often (each room update makes the attachment run again), so a run at the same position changes
- * nothing; only a new position stops the last hop and starts its own.
+ * nothing; only a new position stops the last hop and starts its own. A `still` move (Skip all, #179) stops the hop
+ * and stands the token on its space at once, without sliding.
  * The marker's first child is the token; its ::after draws the ring.
  * @param {number} position - The player's position on the track
- * @param {MotionView} [view] - The page's window; none in Node
+ * @param {{ still?: boolean, view?: MotionView }} [options] - `view` is the page's window; none in Node
  * @returns {(marker: any) => void}
  */
-export function tokenHop(position, view = pageView()) {
+export function tokenHop(position, { still = false, view = pageView() } = {}) {
 	return (marker) => {
 		const last = markers.get(marker);
 		if (!last) {
@@ -232,9 +254,18 @@ export function tokenHop(position, view = pageView()) {
 			animation.cancel();
 		}
 		last.playing = [];
-		clearTimeout(last.timer);
+		last.release?.();
+		last.release = undefined;
 		marker.style.transitionDuration = '';
 		marker.style.transitionTimingFunction = '';
+		if (still) {
+			// The slide's timing comes back once the page has painted the token on its space.
+			marker.style.transitionDuration = '0s';
+			last.release = afterPaint(() => {
+				marker.style.transitionDuration = '';
+			}, view);
+			return;
+		}
 		const plan = hopPlan(from, position, motionMs('focal', view));
 		const token = marker.firstElementChild;
 		if (plan.hops === 0 || typeof token?.animate !== 'function') {
@@ -259,10 +290,11 @@ export function tokenHop(position, view = pageView()) {
 			}),
 		];
 		// Once the slide has started, the marker's own timing comes back, so a later shuffle among tokens is quick.
-		last.timer = setTimeout(() => {
+		const timer = setTimeout(() => {
 			marker.style.transitionDuration = '';
 			marker.style.transitionTimingFunction = '';
 		}, plan.totalMs);
+		last.release = () => clearTimeout(timer);
 	};
 }
 

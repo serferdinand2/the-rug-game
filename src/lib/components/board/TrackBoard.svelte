@@ -7,7 +7,7 @@
 	 * @property {string} name - The track's name, such as 'Exploration'
 	 * @property {import('./Track.svelte').TrackSpaceEntry[]} spaces - The twelve spaces, in order, with their benefits and bonuses
 	 * @property {import('../../ui.js').CostSymbol[][]} tiers - The four tier prices, I–IV
-	 * @property {{ seat: import('../../ui.js').Seat, name: string, position: number }[]} players - The players' positions on this track
+	 * @property {{ seat: import('../../ui.js').Seat, name: string, position: number, still?: boolean }[]} players - The players' positions on this track; `still` moves a token without a hop (#179)
 	 */
 
 	/**

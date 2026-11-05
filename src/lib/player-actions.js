@@ -27,10 +27,10 @@ export const MAX_LINES = 6;
 
 /**
  * What one display shows beside its words, by kind: a tapestry card (null: face down, shown as its back); the track,
- * space and landmark of an advance; a tech card and the rows of an upgrade; the tile of an explore; the hex, its tile
+ * space, the space it left and landmark of an advance; a tech card and the rows of an upgrade; the tile of an explore; the hex, its tile
  * and the dice of a conquer; the number of an income turn.
  * @typedef {{ card: string | null }
- *   | { track: string, space: number, landmark: string | null }
+ *   | { track: string, space: number, from: number, landmark: string | null }
  *   | { card: string, from?: string, to?: string }
  *   | { hex: string, tile: number, orient: number }
  *   | { hex: string, tile: number | null, orient: number, dice: { red: number, black: number } | null, trapped: boolean }
@@ -259,7 +259,13 @@ function pictureOf(kind, event, game) {
 						: event.card,
 			};
 		case 'advance':
-			return { track: event.track, space: event.to, landmark: null };
+			return {
+				track: event.track,
+				space: event.to,
+				// The space it left, where the token waits until this display shows (#179).
+				from: isCount(event.from) ? event.from : 0,
+				landmark: null,
+			};
 		case 'invent':
 			return { card: event.card };
 		case 'upgrade':

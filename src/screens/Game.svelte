@@ -6,7 +6,10 @@
 	 * @property {import('../lib/game.svelte.js').GameStore} store - Its room holds the game on show
 	 * @property {Function} [onGameResults] - Callback fired when Results is chosen, once the game is over (#29)
 	 * @property {'none' | 'panel' | 'shelf'} [panel='none'] - What is open over the board, so the dice tray outside the screen rolls clear of it (#61, #79); bindable
-	 * @property {import('../lib/player-actions.js').PlayerActionItem | null} [action=null] - What another player did, on show outside the screen (#153): its space or hex is lit in their colour
+	 * @property {import('../lib/player-actions.js').PlayerActionItem | null} [action=null] - What another player did, on show outside the screen (#153): its space or hex is lit in their colour, and an advance switches the board to Tracks (#179)
+	 * @property {number} [shown=0] - Counts the displays shown, so an advance shown again switches the board again (#179)
+	 * @property {ReadonlyMap<string, import('../lib/held-tokens.js').TokenHold>} [holds] - Where other players' tokens wait for their advance to show, from heldTokens() (#179)
+	 * @property {boolean} [still=false] - The tokens go to their spaces at once, without a hop (Skip all, #179)
 	 * @property {string} [justNow] - The last thing another player did, for the footer's "Just now" line (#153)
 	 * @property {Function} [onGameShowAgain] - Callback fired when the footer's Show again is pressed
 	 */
@@ -53,6 +56,7 @@
 	import { tabFor } from '../lib/area/tabs.js';
 	import { nextInspected, shownSeat } from '../lib/area/inspect.js';
 	import { achievements, trackBoard } from '../lib/board.js';
+	import { NO_HOLDS, holdTokens } from '../lib/held-tokens.js';
 	import { mapHexes } from '../lib/hexmap.js';
 	import { PromptState } from '../lib/prompt-state.svelte.js';
 	import { areaSummary, selfSummary } from '../lib/overview.js';
@@ -76,6 +80,9 @@
 		onGameResults,
 		panel = $bindable('none'),
 		action = null,
+		shown = 0,
+		holds = NO_HOLDS,
+		still = false,
 		justNow,
 		onGameShowAgain,
 		...attr
@@ -106,6 +113,8 @@
 				}
 			: null
 	);
+	/** The tracks, each player's token where it stands or waits for their advance to show (#179). */
+	let tracks = $derived(holdTokens(trackBoard(game), holds, still));
 	/** The hex another player just explored or conquered, lit on the map when it is on show (#153). */
 	let litHex = $derived(
 		action?.kind === 'explore' || action?.kind === 'conquer'
@@ -379,6 +388,15 @@
 		return () => {
 			panel = 'none';
 		};
+	});
+
+	// Another player's advance shows on the tracks: the board switches to them, before the token moves, and stays there
+	// (owner, 2026-11-05, #179).
+	$effect(() => {
+		shown;
+		if (action?.kind === 'advance') {
+			board = 'tracks';
+		}
 	});
 
 	// A map decision opens the map; the prompt state starts each decision with nothing chosen (#79).
@@ -819,7 +837,7 @@
 					class:rg-game--board-docked={promptState.boardDocked}>
 					{#if board === 'tracks'}
 						<TrackBoard
-							tracks={trackBoard(game)}
+							{tracks}
 							viewerSeat={seat}
 							{available}
 							previewSeat={trackPreviewSeat(game, seat)}

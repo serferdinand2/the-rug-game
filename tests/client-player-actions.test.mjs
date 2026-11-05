@@ -157,6 +157,8 @@ test('an advance names the space and track, and shows the landmark it gained', (
 	assert.deepEqual(item.picture, {
 		track: 'exploration',
 		space: 4,
+		// The space it left, where the token waits until this shows (#179).
+		from: 3,
 		landmark: 'lighthouse',
 	});
 	assert.equal(item.text, 'Lazar advanced to Navigation on Exploration.');

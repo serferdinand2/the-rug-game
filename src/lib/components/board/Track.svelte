@@ -16,6 +16,7 @@
 	 * @property {import('../../ui.js').Seat} seat - The player's seat, which sets the line's colour
 	 * @property {string} name - The player's name
 	 * @property {number} position - Spaces reached, 0 (the start) to 12
+	 * @property {boolean} [still] - The token goes to its space without a hop (Skip all, #179)
 	 */
 
 	/**

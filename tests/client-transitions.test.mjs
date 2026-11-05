@@ -172,11 +172,11 @@ function markerWithToken() {
 
 test('a token hops only when its position changes, not when it first shows', () => {
 	const { marker, played } = markerWithToken();
-	tokenHop(4, view())(marker);
+	tokenHop(4, { view: view() })(marker);
 	assert.equal(played.length, 0, 'no hop on the first look');
-	tokenHop(4, view())(marker);
+	tokenHop(4, { view: view() })(marker);
 	assert.equal(played.length, 0, 'no hop for the same space');
-	tokenHop(7, view())(marker);
+	tokenHop(7, { view: view() })(marker);
 	const hops = played.find(
 		(one) => one.on === 'token' && one.frames.length > 2
 	);
@@ -197,21 +197,57 @@ test('a token hops only when its position changes, not when it first shows', () 
 		'a ring spreads where it lands'
 	);
 	// The board redraws for other reasons while the token hops: the hop plays on.
-	tokenHop(7, view())(marker);
+	tokenHop(7, { view: view() })(marker);
 	assert.equal(hops.cancelled, false, 'a redraw leaves the hop playing');
 	assert.equal(played.length, 3);
 	// A new position before the hop ends starts a new one in its place.
-	tokenHop(8, view())(marker);
+	tokenHop(8, { view: view() })(marker);
 	assert.equal(hops.cancelled, true, 'a new hop replaces it');
 	assert.equal(played.length, 6);
 });
 
 test('a token moves without a hop under reduced motion', () => {
 	const { marker, played } = markerWithToken();
-	tokenHop(1, view({ reduce: true }))(marker);
-	tokenHop(5, view({ reduce: true }))(marker);
+	tokenHop(1, { view: view({ reduce: true }) })(marker);
+	tokenHop(5, { view: view({ reduce: true }) })(marker);
 	assert.equal(played.length, 0);
 	assert.equal(marker.style.transitionDuration, '');
+});
+
+test('a still token stops its hop and stands on its space without sliding, until the page has painted (#179)', () => {
+	const { marker, played } = markerWithToken();
+	/** @type {Function[]} */
+	const frames = [];
+	const page = {
+		...view(),
+		requestAnimationFrame: (/** @type {Function} */ run) =>
+			frames.push(run),
+		cancelAnimationFrame: () => {},
+	};
+	tokenHop(2, { view: page })(marker);
+	tokenHop(5, { view: page })(marker);
+	assert.equal(played.length, 3, 'a hop plays');
+	// Skip all: the token goes to its final space at once.
+	tokenHop(9, { view: page, still: true })(marker);
+	assert.ok(
+		played.every((one) => one.cancelled),
+		'the hop stops'
+	);
+	assert.equal(played.length, 3, 'and no other starts');
+	assert.equal(marker.style.transitionDuration, '0s', 'nor does it slide');
+	frames.shift()?.();
+	assert.equal(
+		marker.style.transitionDuration,
+		'0s',
+		'still in the frame before the paint'
+	);
+	frames.shift()?.();
+	assert.equal(marker.style.transitionDuration, '', 'its timing comes back');
+	assert.equal(marker.style.transitionTimingFunction, '');
+	// The next move hops from the space it stood on.
+	tokenHop(10, { view: page })(marker);
+	assert.equal(played.length, 6);
+	assert.equal(marker.style.transitionDuration, `${HOP_MS}ms`);
 });
 
 test('the ease-out the Web Animations use is the --ease-out token', () => {
@@ -263,11 +299,11 @@ test('enter plays an entrance from an offset to where the element rests, unless 
 
 test("a hop cut short by a move that doesn't hop gives the marker its own timing back", () => {
 	const { marker } = markerWithToken();
-	tokenHop(2, view())(marker);
-	tokenHop(5, view())(marker);
+	tokenHop(2, { view: view() })(marker);
+	tokenHop(5, { view: view() })(marker);
 	assert.equal(marker.style.transitionDuration, `${3 * HOP_MS}ms`);
 	// Reduced motion comes on before the hop's timer gives the timing back.
-	tokenHop(7, view({ reduce: true }))(marker);
+	tokenHop(7, { view: view({ reduce: true }) })(marker);
 	assert.equal(marker.style.transitionDuration, '');
 	assert.equal(marker.style.transitionTimingFunction, '');
 });

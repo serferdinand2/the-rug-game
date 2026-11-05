@@ -1,4 +1,4 @@
-<!-- The app root (#25, #26, #29, #30): one screen at a time, landing, lobby, the game, the hot-seat hand-over or the results, from the client's store; the sound cues, the dice tray (#61) and what other players just did (#153). -->
+<!-- The app root (#25, #26, #29, #30): one screen at a time, landing, lobby, the game, the hot-seat hand-over or the results, from the client's store; the sound cues, the dice tray (#61) and what other players just did (#153), with their tokens held until it shows (#179). -->
 <script module>
 	/**
 	 * Properties for the App component, including any attributes for its root element.
@@ -24,6 +24,9 @@
 		queueNext,
 		queuePosition,
 	} from './lib/player-actions.js';
+	import { NO_HOLDS, heldTokens } from './lib/held-tokens.js';
+	import { prefersReducedMotion } from './lib/motion.js';
+	import { motionMs } from './lib/transitions.js';
 	import { createApi } from './lib/api.js';
 	import { createStore } from './lib/game.svelte.js';
 	import { randomInt, safeStorage } from './lib/storage.js';
@@ -90,9 +93,41 @@
 		onGame && !rolling && gamePanel === 'none' ? queueCurrent(queue) : null
 	);
 	let position = $derived(queuePosition(queue));
+	/** The display, by shownCount, whose advance has moved its token: a token moves once its display is on show (#179). */
+	let moved = $state(-1);
+	/** Skip all puts every token on its final space at once, and Show again on the space it left, without a hop, for one drawing (#179). */
+	let still = $state(false);
+	/** Where other players' tokens wait for their advance to show (#179): nowhere under reduced motion, where every token stands on its final space. */
+	let holds = $derived(
+		prefersReducedMotion(window)
+			? NO_HOLDS
+			: heldTokens(queue, moved === shownCount)
+	);
+
+	// An advance's token hops once its display has come in and the board it shows on has settled (#179 design). A
+	// display that waits behind the dice or a question of the viewer's waits to move its token too.
+	$effect(() => {
+		if (action?.kind !== 'advance') {
+			return;
+		}
+		const display = shownCount;
+		const timer = setTimeout(() => (moved = display), motionMs('medium'));
+		return () => clearTimeout(timer);
+	});
+
+	// Skip all's or Show again's tokens have gone to their spaces: the next move hops again.
+	$effect(() => {
+		if (!still) {
+			return;
+		}
+		const timer = setTimeout(() => (still = false));
+		return () => clearTimeout(timer);
+	});
 
 	// A new deal, or another table, shows its game rather than the review of the last one, and none of its actions.
-	$effect(() => {
+	// This and the queue's effects run before the screen draws, so a token is never drawn on its new space and then
+	// taken back to wait for its display (#179).
+	$effect.pre(() => {
 		dealKey;
 		reviewing = false;
 		queue = EMPTY_QUEUE;
@@ -125,7 +160,7 @@
 	let handedQueued = untrack(() => store.handedCount);
 
 	// Each batch of fresh events once; a roll in it plays first.
-	$effect(() => {
+	$effect.pre(() => {
 		const count = store.freshCount;
 		if (count === freshQueued) {
 			return;
@@ -141,7 +176,7 @@
 	});
 
 	// At a hot-seat table, what the others did since this player last held the screen (#153 design).
-	$effect(() => {
+	$effect.pre(() => {
 		const count = store.handedCount;
 		if (count === handedQueued) {
 			return;
@@ -155,15 +190,19 @@
 	 * @param {import('./lib/component-event.js').ComponentEvent} event
 	 */
 	const actionCloseHandler = (event) => {
+		if (event.value.all) {
+			still = true;
+		}
 		queue = event.value.all ? EMPTY_QUEUE : queueNext(queue);
 		shownCount += 1;
 	};
 
-	/** The footer's Show again plays the last run again. */
+	/** The footer's Show again plays the last run again: its tokens go back to the spaces they left at once, to hop again (#179). */
 	const showAgainHandler = () => {
 		if (lastRun.length === 0) {
 			return;
 		}
+		still = true;
 		queue = queueAdd(EMPTY_QUEUE, lastRun);
 		shownCount += 1;
 	};
@@ -238,6 +277,9 @@
 			{store}
 			bind:panel={gamePanel}
 			{action}
+			shown={shownCount}
+			{holds}
+			{still}
 			justNow={lastRun.at(-1)?.text}
 			onGameShowAgain={showAgainHandler}
 			onGameResults={() => (reviewing = false)} />

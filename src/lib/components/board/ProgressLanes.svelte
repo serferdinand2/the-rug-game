@@ -1,4 +1,4 @@
-<!-- The players' tokens under a track (#174): each on the bottom edge of the space it reached, side by side when they share one, and a faint token on the next space while it is previewed; a token hops to a new space (#175). -->
+<!-- The players' tokens under a track (#174): each on the bottom edge of the space it reached, side by side when they share one, and a faint token on the next space while it is previewed; a token hops to a new space (#175), or goes there still (#179). -->
 <script module>
 	/**
 	 * One player's progress on the track.
@@ -6,6 +6,7 @@
 	 * @property {import('../../ui.js').Seat} seat - The player's seat, which sets the token's colour
 	 * @property {string} name - The player's name, read out in the label
 	 * @property {number} position - Spaces reached, 0 (the start) to 12
+	 * @property {boolean} [still] - The token goes to a new space at once, without a hop or a slide (Skip all, #179)
 	 */
 
 	/**
@@ -60,19 +61,24 @@
 	);
 	let tokens = $derived(trackTokens(players, previewed, spaces));
 	let viewerToken = $derived(
-		tokens.find(
-			(token) => token.seat === viewerSeat && !token.ghost
-		) ?? null
+		tokens.find((token) => token.seat === viewerSeat && !token.ghost) ??
+			null
 	);
 	let tokenHovered = $state(false);
 	let progressVisible = $derived(
-		viewerSeat !== null &&
-			progressEnd > 0 &&
-			(hovered || tokenHovered)
+		viewerSeat !== null && progressEnd > 0 && (hovered || tokenHovered)
 	);
 	/** Each seat's position, which its token hops from when it changes (#175). */
 	let positions = $derived(
 		new Map(players.map((player) => [player.seat, player.position]))
+	);
+	/** The seats whose tokens go to their spaces without a hop (Skip all, #179). */
+	let stills = $derived(
+		new Set(
+			players
+				.filter((player) => player.still)
+				.map((player) => player.seat)
+		)
 	);
 	let label = $derived(
 		players.map((player) => `${player.name} ${player.position}`).join(', ')
@@ -108,7 +114,9 @@
 			style:--rg-progress-lanes-color={playerColor(token.seat)}
 			{@attach token.ghost
 				? null
-				: tokenHop(positions.get(token.seat) ?? 0)}
+				: tokenHop(positions.get(token.seat) ?? 0, {
+						still: stills.has(token.seat),
+					})}
 			><PlayerToken
 				class="rg-progress-lanes--token"
 				seat={token.seat}
@@ -161,15 +169,15 @@
 	.rg-progress-lanes--hover-line {
 		--rg-progress-lanes-shift: calc(
 			(
-				var(--rg-progress-lanes-slot) -
-					(var(--rg-progress-lanes-count) - 1) / 2
-			) * var(--track-token-gap)
+					var(--rg-progress-lanes-slot) -
+						(var(--rg-progress-lanes-count) - 1) / 2
+				) *
+				var(--track-token-gap)
 		);
 		position: absolute;
 		z-index: 0;
 		top: calc(
-			0px - var(--space-1) - var(--space-1) -
-				var(--track-hover-line) / 2
+			0px - var(--space-1) - var(--space-1) - var(--track-hover-line) / 2
 		);
 		left: 0;
 		width: max(
@@ -182,8 +190,18 @@
 		height: var(--track-hover-line);
 		background: var(--rg-progress-lanes-color);
 		box-shadow:
-			0 0 8px color-mix(in srgb, var(--rg-track-color, var(--exploration)) 85%, transparent),
-			0 0 16px color-mix(in srgb, var(--rg-track-color, var(--exploration)) 55%, transparent);
+			0 0 8px
+				color-mix(
+					in srgb,
+					var(--rg-track-color, var(--exploration)) 85%,
+					transparent
+				),
+			0 0 16px
+				color-mix(
+					in srgb,
+					var(--rg-track-color, var(--exploration)) 55%,
+					transparent
+				);
 		opacity: 0;
 		pointer-events: none;
 		transform: scaleX(0);

@@ -1,4 +1,4 @@
-<!-- Library section: ProgressLanes with its viewer-only hover line, faint preview token, shared spaces, and token motion (#174, #175). -->
+<!-- Library section: ProgressLanes with its viewer-only hover line, faint preview token, shared spaces, and token motion (#174, #175), still under Skip all (#179). -->
 <script>
 	import ProgressLanes from '../../../lib/components/board/ProgressLanes.svelte';
 	import Button from '../../../lib/components/ui/Button.svelte';
@@ -26,16 +26,25 @@
 
 	/** The hopping example's players (#175): You advance by the buttons, Ana stays on 2. */
 	let you = $state(1);
+	/** Skip all's move (#179): the token goes to its space without a hop, for one drawing. */
+	let still = $state(false);
 	let hopping = $derived([
-		{ seat: /** @type {const} */ (1), name: 'You', position: you },
-		{ seat: /** @type {const} */ (2), name: 'Ana', position: 2 },
+		{ seat: /** @type {const} */ (1), name: 'You', position: you, still },
+		{ seat: /** @type {const} */ (2), name: 'Ana', position: 2, still },
 	]);
+
+	/** Moves You 3 spaces still, as Skip all puts the tokens on their spaces. */
+	const stillClickHandler = () => {
+		still = true;
+		you = Math.min(12, you + 3);
+		setTimeout(() => (still = false));
+	};
 </script>
 
 <Section
 	name="ProgressLanes"
 	area="board"
-	description="The players' tokens under a track (#174): each player's token stands on the bottom edge of the space it reached. Hovering a track space or token shows only the viewer's current progress in their colour with a glow in the track colour, underneath every token. A legal next space can still show its faint preview token. When a position changes, the token hops space by space, squashes as it lands and spreads a ring in its colour (#175): 170 ms a hop, the whole run within the focal 600 ms; nothing hops when a track first shows, nor with reduced motion.">
+	description="The players' tokens under a track (#174): each player's token stands on the bottom edge of the space it reached. Hovering a track space or token shows only the viewer's current progress in their colour with a glow in the track colour, underneath every token. A legal next space can still show its faint preview token. When a position changes, the token hops space by space, squashes as it lands and spreads a ring in its colour (#175): 170 ms a hop, the whole run within the focal 600 ms; nothing hops when a track first shows, nor with reduced motion. A player marked still goes to a new space at once, without a hop or a slide, as Skip all leaves every token on its final space (#179).">
 	<Example
 		label={`players={You ${you}, Ana 2}  (press to advance or go back)`}
 		wide
@@ -64,6 +73,11 @@
 					disabled={you <= 0}
 					onButtonClick={() => (you = Math.max(0, you - 2))}
 					>Back 2</Button>
+				<Button
+					size="small"
+					disabled={you >= 12}
+					onButtonClick={stillClickHandler}
+					>Skip all: 3 at once</Button>
 			</span>
 		</div>
 	</Example>

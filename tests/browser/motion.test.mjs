@@ -1,4 +1,5 @@
-// Motion in Chromium (#175), with motion on: a track token hops and comes to rest on its space, a hand's cards come in
+// Motion in Chromium (#175), with motion on: a track token hops and comes to rest on its space, or goes there still
+// under Skip all (#179), a hand's cards come in
 // and close up, a prompt rises with its shelf dealt in from a deck one card after another (#176), and a menu lifts
 // away; each settles where it rests. Under
 // reduced motion nothing moves. The rest of the suite runs with reduced motion (playwright.config.js). The test uses
@@ -94,6 +95,29 @@ test('a track token hops to its new space and comes to rest on it (#175)', async
 	const token = lanes.locator('.rg-progress-lanes--token').first();
 	await expect(token).toHaveCSS('transform', 'none');
 	await expect(token).toHaveCSS('opacity', '1');
+});
+
+test('a still token goes to its new space at once, without a hop or a slide, and the next move hops (#179)', async ({
+	page,
+}) => {
+	await page.goto('/components.html#progress-lanes');
+	const example = page.locator('.rg-library-progress-lanes--hop');
+	const lanes = example.locator('.rg-progress-lanes');
+	await expect(lanes).toHaveAttribute('aria-label', 'You 1, Ana 2');
+	await settled(lanes);
+	await forget(page);
+	// Skip all leaves every token on its final space at once.
+	await example.getByRole('button', { name: 'Skip all: 3 at once' }).click();
+	await expect(lanes).toHaveAttribute('aria-label', 'You 4, Ana 2');
+	await page.waitForTimeout(300);
+	expect(await moved(lanes)).toBe(false);
+	await example
+		.getByRole('button', { name: 'Advance 1', exact: true })
+		.click();
+	await expect(lanes).toHaveAttribute('aria-label', 'You 5, Ana 2');
+	await expect
+		.poll(() => moved(lanes.locator('.rg-progress-lanes--token').first()))
+		.toBe(true);
 });
 
 test("a hand's gained card rises in and the others close up when one is played (#175)", async ({
