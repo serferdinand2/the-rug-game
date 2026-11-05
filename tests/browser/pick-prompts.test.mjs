@@ -180,7 +180,6 @@ test('a bonus is paid with the 2 tiles the player picks', async ({
 					.length > 1,
 			2500
 		);
-		const before = game.seats[seat - 1];
 		const tiles = [
 			...new Set(
 				op.answers.flatMap(
@@ -232,6 +231,10 @@ test('a bonus is paid with the 2 tiles the player picks', async ({
 		await expect(pay).toBeEnabled();
 		await pay.click();
 
+		// The two tiles picked are discarded and the bonus is paid. The seat's totals can't tell: a bonus reached in an
+		// income turn (a tapestry card's advance) is followed at once by the rest of that turn, its income gaining VP
+		// and a tile.
+		const since = game.events.at(-1)?.seq ?? 0;
 		await expect
 			.poll(async () => {
 				const state = await api(
@@ -240,10 +243,32 @@ test('a bonus is paid with the 2 tiles the player picks', async ({
 					undefined,
 					token
 				);
-				const after = state.game.seats[seat - 1];
-				return [after.territoryTiles.length, after.vp - before.vp];
+				const fresh = state.game.events.filter(
+					(/** @type {any} */ e) => e.seq > since && e.player === seat
+				);
+				return {
+					discarded: fresh
+						.filter(
+							(/** @type {any} */ e) =>
+								e.type === 'tilesDiscarded'
+						)
+						.flatMap((/** @type {any} */ e) => e.tiles)
+						.sort(
+							(
+								/** @type {number} */ a,
+								/** @type {number} */ b
+							) => a - b
+						),
+					paid: fresh.some(
+						(/** @type {any} */ e) =>
+							e.type === 'bonusPaid' && e.track === op.track
+					),
+				};
 			})
-			.toEqual([before.territoryTiles.length - 2, 5]);
+			.toEqual({
+				discarded: [tiles[0], tiles[1]].sort((a, b) => a - b),
+				paid: true,
+			});
 		expect(errors).toEqual([]);
 	} finally {
 		await closeTable(request, token);
