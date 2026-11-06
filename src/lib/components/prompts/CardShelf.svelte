@@ -57,6 +57,9 @@
 	const CIV_MIN_FIT = 0.75;
 	/** The shelf's padding, top and bottom, which also holds the chosen card's outline. */
 	const CIV_ROOM = 2 * 8;
+	/** A capital mat face's width (CapitalMatFace), and the smallest it shrinks to when its room is given (#36). */
+	const MAT_WIDTH = 392;
+	const MAT_MIN_FIT = 0.4;
 
 	/** @type {CardShelfProps} */
 	let {
@@ -85,6 +88,21 @@
 	let civScale = $derived(
 		kind === 'civ'
 			? fitScale(fitHeight, tallest, { min: CIV_MIN_FIT, room: CIV_ROOM })
+			: 1
+	);
+	/** Each capital mat's own height, unscaled, by answer index: the Archipelago is taller (#36). */
+	/** @type {Record<number, number>} */
+	let matHeights = $state({});
+	let tallestMat = $derived(
+		Math.max(0, ...cards.map((card) => matHeights[card.index] ?? 0))
+	);
+	/** Capital mats at full size when they fit; given less room, as the joint pick's two shelves are, they shrink (#36). */
+	let matScale = $derived(
+		kind === 'mat' && room !== undefined
+			? fitScale(fitHeight, tallestMat, {
+					min: MAT_MIN_FIT,
+					room: CIV_ROOM,
+				})
 			: 1
 	);
 
@@ -178,12 +196,18 @@
 						state="empty" />
 				</ScaledCard>
 			{:else if 'plots' in face}
-				<CapitalMatFace
-					name={face.name}
-					plots={face.plots}
-					biome={face.biome}
-					{terrainSeed}
-					aria-hidden="true" />
+				<ScaledCard
+					scale={matScale}
+					width={MAT_WIDTH}
+					bind:measuredHeight={matHeights[offer.index]}
+					aria-hidden="true">
+					<CapitalMatFace
+						name={face.name}
+						plots={face.plots}
+						biome={face.biome}
+						shape={face.shape}
+						{terrainSeed} />
+				</ScaledCard>
 			{:else if 'deck' in face}
 				<ScaledCard
 					scale={SCALE.tech}

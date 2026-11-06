@@ -14,7 +14,7 @@ No official Stonemaier artwork, logos or rulebook text are used.
 
 ## Current interface
 
-A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82). The art isn't duplicated (owner, 2026-10-29): a base mat's only picture is its relief, which the component library shows on its ground, and only the 12 expansion mats keep a full example SVG, until #132 and #133 draw their reliefs.
+A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82). The art isn't duplicated (owner, 2026-10-29): every mat's only picture is its relief, which the component library shows on its ground, with a features picture (cacti, lily pads, beaches, cloud rims, reeds) where the mat prints one. The game draws the six Arts & Architecture mats from #36 on.
 
 The owner-reviewed icons and small pieces from **#5** are available as SVGs in `static/art/`, with matching drawing sources and stable catalog ids. [The release notes](docs/art/issue-5.md) list the approved set and explain the text rendering or later artwork for dice faces, terrain hex markers and game symbols. [The complete review mockup](docs/art/archive/2026-10-23-issue-5/README.md), including its linked capital terrain page, is archived as a frozen reference.
 
@@ -83,6 +83,10 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 | Plans & Ploys: the Infiltrators' third token gains a civilization (#33) | Plans & Ploys: the Advisors' gift on a neighbour's turn (#33) |
 |---|---|
 | ![Mira's income turn 4: her third Infiltrators token on Ana's capital territory gains her a civilization, so she draws 3: Treasure Hunters, Recyclers and Riverfolk stand on the shelf above the panel "Keep one of the civilizations you drew" and Keep civilization](docs/ui/screens/game-pp-infiltrators-civ.png) | ![On Vera's advance turn, as she would draw a tapestry card, Ana holds the Advisors: her four cards stand on the shelf above the panel "Give Vera a tapestry card instead of their draw?", with Let Vera draw and Give card](docs/ui/screens/game-pp-advisors-gift.png) |
+
+| Arts & Architecture: a mat and a civilization kept together (#36) | Arts & Architecture: an advanced mat in the Capital tab (#36) |
+|---|---|
+| ![Mira's setup at an Arts & Architecture table: her Wetland and Desert mats and the advanced Mesa stand on one shelf, the Mesa outlined in gold, over a second shelf with the Historians and Leaders cards, the Historians outlined; the panel "Choose your capital city and civilization" reads "Mesa with the Historians" beside Keep these](docs/ui/screens/game-aa-joint-pick.png) | ![Teodor's first turn: the Capital tab shows Capital City · Canyon, the canyon's relief winding down the middle and its six cacti on their plots](docs/ui/screens/game-aa-capital.png) |
 
 | Dark cards: the switch in the menu (#167) |
 |---|

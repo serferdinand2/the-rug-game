@@ -281,8 +281,8 @@
 	{/if}
 {/snippet}
 
-<!-- With Arts & Architecture, a mat and a civilization kept together: the mats' shelf over the civilizations', each
-     sharing the room, with the pairs R120 forbids greyed out (owner, #36). -->
+<!-- With Arts & Architecture, a mat and a civilization kept together: the mats' shelf over the civilizations', the mats
+     taking 40% of the room and the taller civilization cards 60%, with the pairs R120 forbids greyed out (owner, #36). -->
 {#snippet jointShelf(/** @type {number | undefined} */ room)}
 	{#if state.joint}
 		<div class="rg-decision-prompt--joint">
@@ -293,7 +293,7 @@
 				selected={state.jointMat}
 				disabled={state.jointBlocked.mats}
 				terrainSeed={seed}
-				room={room === undefined ? undefined : room / 2}
+				room={room === undefined ? undefined : room * 0.4}
 				onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 					state.pickJointMat(event.value)} />
 			<CardShelf
@@ -302,7 +302,7 @@
 				cards={state.joint.civs}
 				selected={state.jointCiv}
 				disabled={state.jointBlocked.civs}
-				room={room === undefined ? undefined : room / 2}
+				room={room === undefined ? undefined : room * 0.6}
 				onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
 					state.pickJointCiv(event.value)} />
 		</div>
