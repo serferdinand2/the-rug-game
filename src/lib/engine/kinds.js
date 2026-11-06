@@ -6,6 +6,10 @@ import { confirmEndTurn } from './decisions/confirm-end-turn.js';
 import { chooseCapital } from './decisions/choose-capital.js';
 import { chooseCiv } from './decisions/choose-civ.js';
 import { chooseMatAndCiv } from './decisions/choose-mat-and-civ.js';
+import {
+	chooseCloudMove,
+	chooseCloudPlot,
+} from './decisions/choose-cloud-move.js';
 import { chooseResource } from './decisions/choose-resource.js';
 import { chooseBonus, offerBonus } from './decisions/choose-bonus.js';
 import { chooseAdvance } from './decisions/choose-advance.js';
@@ -159,6 +163,8 @@ Object.assign(DECISIONS, {
 	chooseProphecy,
 	chooseSwap,
 	chooseCube,
+	chooseCloudMove,
+	chooseCloudPlot,
 	chooseLandmarkCard,
 });
 

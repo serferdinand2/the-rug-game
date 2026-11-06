@@ -60,6 +60,9 @@ export const DECISION_KINDS = Object.freeze({
 	choosePlacement: { tab: 'capital', confirm: 'Place', art: 'placement' },
 	// The Architects' cube is placed on a lit plot, as a building is (#168).
 	chooseCube: { tab: 'capital', confirm: 'Place' },
+	// Cloud City's moves (#36): a building, then where it goes, on the capital.
+	chooseCloudMove: { tab: 'capital' },
+	chooseCloudPlot: { tab: 'capital', confirm: 'Move here' },
 	chooseExplore: { confirm: 'Explore', art: 'explore' },
 	chooseSpaceTile: { tab: 'terrain', art: 'space-tile' },
 	chooseConquer: { confirm: 'Conquer' },

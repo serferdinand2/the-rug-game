@@ -8,6 +8,7 @@ import { endFirstIncomeTurn } from './civ-turns.js';
 import { INCOME_MAT, TAPESTRY_SLOTS } from './data/income-mat.js';
 import { BUILDING_IDS } from './data/ids.js';
 import { cityPlots, seatMat } from './city.js';
+import { askCloudMove } from './decisions/choose-cloud-move.js';
 
 /** @typedef {import('./data/ids.js').BuildingId} BuildingId */
 
@@ -175,6 +176,7 @@ export function playFaceDown(ctx, op) {
  */
 export const INCOME_STEPS = [
 	'eraEnd',
+	'cloudMoves',
 	'lilyPads',
 	'civAbilities',
 	'tapestry',
@@ -192,6 +194,21 @@ export const INCOME_STEP_KINDS = {
 		turns: [2, 3, 4, 5],
 		run(ctx, player) {
 			endEra(ctx, player);
+		},
+	},
+	// Cloud City: at the start of income turns 2–5, up to 2 income buildings move between clouds (R121). With #35's
+	// masterpieces it becomes one more item in their order, which the player picks (#36 design §5).
+	cloudMoves: {
+		turns: [2, 3, 4, 5],
+		run(ctx, player) {
+			const seat = playerSeat(ctx.state, player);
+			const moves =
+				seat.capital.mat === null
+					? undefined
+					: seatMat(seat).cloudMoves;
+			if (moves) {
+				askCloudMove(ctx, player, moves);
+			}
 		},
 	},
 	// The Swamp: at the start of the final income turn, 2 VP lost for each lily pad still showing (R52). With #35's

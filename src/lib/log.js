@@ -570,6 +570,9 @@ const WORDS = {
 		`${name} placed ${landmarkWords(e.landmark)} in their capital.`,
 	placedBesideMat: (e, game, name) =>
 		`${name} put ${pieceWords(e)} beside their capital mat.`,
+	// Cloud City's move (R121, #36).
+	buildingMoved: (e, game, name) =>
+		`${name} moved ${pieceWords({ building: e.building })} to another cloud of their capital.`,
 	piecePlacedOnMap: (e, game, name) =>
 		`${name} placed ${pieceWords(e.piece)} on ${hexName(e.hex)}.`,
 	districtsCompleted(e, game, name) {

@@ -424,6 +424,13 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: [0, 40],
 			left: 0,
 		},
+		chooseCloudMove: { player: 1, kind: 'chooseCloudMove', left: 2 },
+		chooseCloudPlot: {
+			player: 1,
+			kind: 'chooseCloudPlot',
+			from: { row: 0, col: 0 },
+			left: 2,
+		},
 		chooseLandmarkCard: {
 			player: 1,
 			kind: 'chooseLandmarkCard',

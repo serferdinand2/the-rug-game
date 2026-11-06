@@ -22,7 +22,9 @@ import {
 import { placePiece } from '../src/lib/engine/placing.js';
 import { contextFor, run } from '../src/lib/engine/loop.js';
 import { openDecisions, push } from '../src/lib/engine/stack.js';
-import '../src/lib/engine/kinds.js';
+import { DECISIONS } from '../src/lib/engine/kinds.js';
+import { play } from '../src/lib/engine/play.js';
+import { PlayerError } from '../src/lib/engine/errors.js';
 import { INCOME_STEPS, INCOME_STEP_KINDS } from '../src/lib/engine/income.js';
 import { startedGame } from './helpers/engine.mjs';
 import * as archipelagoArt from '../tools/art/parts/capital-biomes/archipelago.js';
@@ -490,6 +492,153 @@ test('a mat without lily pads loses nothing on income turn 5', () => {
 	incomeSteps(game, 5, ['lilyPads']);
 	assert.equal(game.seat.vp, before);
 	assert.ok(!game.state.events.some((e) => e.type === 'lilyPadsCounted'));
+});
+
+/**
+ * Seat 1's open decision of a kind, if any.
+ * @param {ReturnType<typeof onMat>} game
+ * @param {string} kind
+ */
+function asked({ state }, kind) {
+	return openDecisions(state).find((d) => d.player === 1 && d.kind === kind);
+}
+
+/**
+ * Answers seat 1's open decision of a kind, then runs on.
+ * @param {ReturnType<typeof onMat>} game
+ * @param {string} kind
+ * @param {Record<string, unknown>} answer
+ */
+function answerAsked(game, kind, answer) {
+	const decision = asked(game, kind);
+	assert.ok(decision, `${kind} is asked`);
+	game.state = play(
+		game.state,
+		1,
+		{ decision: decision.id, ...answer },
+		game.random
+	);
+	game.seat = game.state.seats[0];
+}
+
+test('R121: Cloud City may move up to 2 income buildings, one at a time, at the start of income turns 2–5', () => {
+	const at = INCOME_STEPS.indexOf('cloudMoves');
+	assert.ok(at > INCOME_STEPS.indexOf('eraEnd'));
+	assert.ok(at < INCOME_STEPS.indexOf('lilyPads'));
+	assert.deepEqual(INCOME_STEP_KINDS.cloudMoves.turns, [2, 3, 4, 5]);
+	const game = onMat(10);
+	farms(game.seat, [[0, 0]]);
+	incomeSteps(game, 2, ['cloudMoves']);
+	const first = asked(game, 'chooseCloudMove');
+	assert.equal(first?.left, 2);
+	const answers = DECISIONS.chooseCloudMove.answers(game.state, first);
+	assert.deepEqual(answers, [{ stop: true }, { row: 0, col: 0 }]);
+	answerAsked(game, 'chooseCloudMove', { row: 0, col: 0 });
+	// Not within cloud 1, which holds rows 0–1, columns 0–2: the destination is in another cloud.
+	const where = DECISIONS.chooseCloudPlot.answers(
+		game.state,
+		asked(game, 'chooseCloudPlot')
+	);
+	assert.ok(!where.some((a) => a.row === 0 && a.col === 1));
+	assert.ok(where.some((a) => a.row === 0 && a.col === 3));
+	answerAsked(game, 'chooseCloudPlot', { row: 0, col: 3 });
+	assert.deepEqual(game.seat.capital.buildings, [
+		{ building: 'farm', row: 0, col: 3 },
+	]);
+	assert.equal(asked(game, 'chooseCloudMove')?.left, 1);
+	answerAsked(game, 'chooseCloudMove', { row: 0, col: 3 });
+	answerAsked(game, 'chooseCloudPlot', { row: 0, col: 0 });
+	assert.equal(asked(game, 'chooseCloudMove'), undefined);
+	assert.deepEqual(
+		game.state.events
+			.filter((e) => e.type === 'buildingMoved')
+			.map(({ building, from, to }) => ({ building, from, to })),
+		[
+			{
+				building: 'farm',
+				from: { row: 0, col: 0 },
+				to: { row: 0, col: 3 },
+			},
+			{
+				building: 'farm',
+				from: { row: 0, col: 3 },
+				to: { row: 0, col: 0 },
+			},
+		]
+	);
+});
+
+test('Cloud City: stopping ends the moves', () => {
+	const game = onMat(10);
+	farms(game.seat, [[0, 0]]);
+	incomeSteps(game, 3, ['cloudMoves']);
+	answerAsked(game, 'chooseCloudMove', { stop: true });
+	assert.equal(asked(game, 'chooseCloudMove'), undefined);
+	assert.deepEqual(game.seat.capital.buildings, [
+		{ building: 'farm', row: 0, col: 0 },
+	]);
+});
+
+test('Cloud City: a building may only leave a cloud that is not complete', () => {
+	const game = onMat(10);
+	// Cloud 3's six open plots, and a farm in cloud 1.
+	farms(game.seat, [
+		[0, 7],
+		[0, 8],
+		[1, 6],
+		[1, 7],
+		[2, 6],
+		[2, 7],
+		[0, 0],
+	]);
+	incomeSteps(game, 2, ['cloudMoves']);
+	assert.deepEqual(
+		DECISIONS.chooseCloudMove.answers(
+			game.state,
+			asked(game, 'chooseCloudMove')
+		),
+		[{ stop: true }, { row: 0, col: 0 }]
+	);
+	assert.throws(
+		() => answerAsked(game, 'chooseCloudMove', { row: 0, col: 7 }),
+		PlayerError
+	);
+});
+
+test('Cloud City: a move that fills a cloud pays its resource, and places nothing', () => {
+	const game = onMat(10);
+	// Cloud 4 (district 3) is rows 2–4, columns 2–4, all open: fill all but (4, 4).
+	farms(game.seat, [
+		[2, 2],
+		[2, 3],
+		[2, 4],
+		[3, 2],
+		[3, 3],
+		[3, 4],
+		[4, 2],
+		[4, 3],
+		[0, 0],
+	]);
+	incomeSteps(game, 2, ['cloudMoves']);
+	answerAsked(game, 'chooseCloudMove', { row: 0, col: 0 });
+	answerAsked(game, 'chooseCloudPlot', { row: 4, col: 4 });
+	assert.deepEqual(
+		game.state.events.find((e) => e.type === 'districtsCompleted')
+			?.districts,
+		[3]
+	);
+	assert.ok(asked(game, 'chooseResource'), 'the reward: any 1 resource');
+	assert.ok(!game.state.events.some((e) => e.type === 'buildingPlaced'));
+});
+
+test('no move is asked when nothing can move, or on another mat', () => {
+	const empty = onMat(10);
+	incomeSteps(empty, 2, ['cloudMoves']);
+	assert.equal(asked(empty, 'chooseCloudMove'), undefined);
+	const basic = onMat(1);
+	farms(basic.seat, [[0, 0]]);
+	incomeSteps(basic, 2, ['cloudMoves']);
+	assert.equal(asked(basic, 'chooseCloudMove'), undefined);
 });
 
 test('advancedMatsFor deals the A&A mats only with A&A', () => {

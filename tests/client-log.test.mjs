@@ -157,6 +157,12 @@ const SAMPLES = {
 	partnerChosen: { player: 2, opponent: 1, track: 'science' },
 	piecePlacedOnMap: { player: 1, hex: '1_2', piece: { building: 'farm' } },
 	placedBesideMat: { player: 1, landmark: 'lighthouse' },
+	buildingMoved: {
+		player: 1,
+		building: 'farm',
+		from: { row: 0, col: 0 },
+		to: { row: 0, col: 3 },
+	},
 	playerFinished: { player: 1 },
 	prophecyMade: { player: 2, category: 'techCards', value: 1 },
 	prophecyReached: { player: 1, category: 'territories' },

@@ -100,29 +100,7 @@ export function placePiece(ctx, player, piece, automatic) {
 			automatic,
 		});
 	}
-	const districts = completeDistricts(cityPlots(seat), shape).filter(
-		(d) => !before.includes(d)
-	);
-	/** @type {import('./state.js').NewOperation[]} */
-	const ops = [];
-	if (districts.length > 0) {
-		emit(ctx.state, {
-			type: 'districtsCompleted',
-			player,
-			districts: [...districts],
-		});
-		ops.push(
-			{
-				player,
-				kind: 'effects',
-				effects: [{ gain: { any: districts.length } }],
-			},
-			...triggered(ctx.state, 'districtsCompleted', {
-				player,
-				districts,
-			})
-		);
-	}
+	const ops = payDistricts(ctx, player, before);
 	const impassable = impassableCovered(seat, piece);
 	ops.push(
 		...triggered(
@@ -135,6 +113,39 @@ export function placePiece(ctx, player, piece, automatic) {
 		...triggered(ctx.state, 'countsChanged', { player })
 	);
 	ctx.push(ops);
+}
+
+/**
+ * The reward for the districts a change to the capital just completed: 1 resource of the player's choice for each,
+ * then the `districtsCompleted` triggers. Filling a district's last plot pays, however it is filled (01 §6.1): by a
+ * placed piece, or by a building Cloud City moves (#36 design §3.5).
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {readonly number[]} before - The districts complete before the change
+ * @returns {import('./state.js').NewOperation[]} To push, in order
+ */
+export function payDistricts(ctx, player, before) {
+	const seat = playerSeat(ctx.state, player);
+	const districts = completeDistricts(
+		cityPlots(seat),
+		seatShape(seat)
+	).filter((d) => !before.includes(d));
+	if (districts.length === 0) {
+		return [];
+	}
+	emit(ctx.state, {
+		type: 'districtsCompleted',
+		player,
+		districts: [...districts],
+	});
+	return [
+		{
+			player,
+			kind: 'effects',
+			effects: [{ gain: { any: districts.length } }],
+		},
+		...triggered(ctx.state, 'districtsCompleted', { player, districts }),
+	];
 }
 
 /**

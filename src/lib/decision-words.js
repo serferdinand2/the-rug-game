@@ -711,6 +711,8 @@ const TITLES = {
 			: 'Make a prophecy',
 	chooseSwap: () => 'Swap two income buildings in your capital?',
 	chooseCube: () => 'Choose a plot for an Architects cube',
+	chooseCloudMove: () => 'Move an income building to another cloud?',
+	chooseCloudPlot: () => 'Where does the building go?',
 };
 
 /** Small counts in words, for "the other two". */
@@ -1279,6 +1281,18 @@ const ANSWERS = {
 		return `${a.value} ${a.value === 1 ? one : many}`;
 	},
 	chooseCube: (a) =>
+		Number.isInteger(a.row) && Number.isInteger(a.col)
+			? capitalize(plotName(a.row, a.col))
+			: null,
+	chooseCloudMove: (a) => {
+		if (a.stop === true) {
+			return "Don't move";
+		}
+		return Number.isInteger(a.row) && Number.isInteger(a.col)
+			? `Move the building at ${plotName(a.row, a.col)}`
+			: null;
+	},
+	chooseCloudPlot: (a) =>
 		Number.isInteger(a.row) && Number.isInteger(a.col)
 			? capitalize(plotName(a.row, a.col))
 			: null,
