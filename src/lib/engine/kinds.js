@@ -13,7 +13,12 @@ import { chooseOption } from './decisions/choose-option.js';
 import { chooseMove } from './decisions/choose-move.js';
 import { chooseRepeat } from './decisions/choose-repeat.js';
 import { chooseRestart } from './decisions/choose-restart.js';
-import { rollResearch, researchRolled } from './effects/research.js';
+import {
+	rollResearch,
+	researchRolled,
+	scienceRoll,
+} from './effects/research.js';
+import { chooseScienceDie } from './decisions/choose-science-die.js';
 import { endTurn } from './turn.js';
 import { runIncomeSteps, playFaceDown } from './income.js';
 import { chooseTapestry } from './decisions/choose-tapestry.js';
@@ -144,6 +149,7 @@ Object.assign(DECISIONS, {
 	chooseTrade,
 	chooseTrack,
 	chooseRoll,
+	chooseScienceDie,
 	chooseSpace,
 	chooseHex,
 	chooseGift,
@@ -167,6 +173,7 @@ Object.assign(AUTOMATIC, {
 	endTurn,
 	research: rollResearch,
 	researchRolled,
+	scienceRoll,
 	incomeSteps: runIncomeSteps,
 	faceDownTapestry: playFaceDown,
 	tapestryAbility,

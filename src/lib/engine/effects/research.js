@@ -3,7 +3,8 @@ import { emit } from '../events.js';
 import { seatOf } from '../state.js';
 import { movableFroms } from '../movement.js';
 import { advanceBlocked, hasEra } from '../abilities.js';
-import { SCIENCE_DIE } from '../data/dice.js';
+import { scienceFaces } from '../data/dice.js';
+import { withDie } from '../science-die.js';
 
 /**
  * Starts research: each roll is its own operation, so the next roll waits for the player's answer to this one.
@@ -22,17 +23,36 @@ export function research(ctx, player, value) {
 }
 
 /**
- * Rolls the science die for a player (R6), then pushes `next` with the rolled `track`. With Empiricism the die
- * rolls twice; when the faces differ, the player chooses one of them (design §8).
+ * Rolls the science die for a player (R6), then pushes `next` with the rolled `track`: the game's die, or the one
+ * the player picks first with the variant "Roll either science die" (#35).
  * @param {import('../state.js').Context} ctx
  * @param {number} player
  * @param {{ kind: string } & Record<string, any>} next - The operation the rolled track goes on to, such as `researchRolled`, without its player
  */
 export function rollScience(ctx, player, next) {
+	ctx.push(withDie(ctx.state, player, { kind: 'scienceRoll', next }));
+}
+
+/**
+ * One science-die roll with its `scienceDie`. With Empiricism the die rolls twice; when the faces differ, the player
+ * chooses one of them (design §8). A d20 roll's event names its die; a d12's, as before the arts track, doesn't.
+ * @type {import('../state.js').AutomaticKind}
+ */
+export function scienceRoll(ctx, op) {
 	const { state } = ctx;
+	const player = /** @type {number} */ (op.player);
+	/** @type {import('../science-die.js').ScienceDie} */
+	const die = op.scienceDie;
+	const next = op.next;
+	const faces = scienceFaces(die);
 	const roll = () => {
-		const track = SCIENCE_DIE[ctx.random(SCIENCE_DIE.length)];
-		emit(state, { type: 'scienceDieRolled', player, track });
+		const track = faces[ctx.random(faces.length)];
+		emit(state, {
+			type: 'scienceDieRolled',
+			player,
+			track,
+			...(die === 'd20' && { scienceDie: die }),
+		});
 		return track;
 	};
 	const track = roll();

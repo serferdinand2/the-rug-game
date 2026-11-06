@@ -656,6 +656,7 @@ const TITLES = {
 		}
 	},
 	chooseRoll: () => 'Choose one of the two science die results',
+	chooseScienceDie: () => 'Choose the science die to roll',
 	chooseSpace: () =>
 		"Trade Economy: choose an opponent's track space to gain its benefit",
 	chooseHex: (d) => {
@@ -1183,6 +1184,8 @@ const ANSWERS = {
 		return track;
 	},
 	chooseRoll: (a) => (isTrack(a.track) ? trackName(a.track) : null),
+	chooseScienceDie: (a) =>
+		a.die === 'd20' ? 'The d20' : a.die === 'd12' ? 'The d12' : null,
 	chooseSpace: (a, d, table) =>
 		isTrack(a.track) && isCount(a.space)
 			? `${spaceName(a.track, a.space)} (${seatName(table, a.player)})`

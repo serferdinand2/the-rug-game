@@ -17,7 +17,13 @@ import {
 	landmarksFor,
 } from '../src/lib/engine/data/landmarks.js';
 import { FOOTPRINTS } from '../src/lib/art/footprints.js';
-import { openDecisions } from '../src/lib/engine/stack.js';
+import { openDecisions, push } from '../src/lib/engine/stack.js';
+import { resolveEffects, run } from '../src/lib/engine/loop.js';
+import {
+	SCIENCE_D20,
+	SCIENCE_DIE,
+	scienceFaces,
+} from '../src/lib/engine/data/dice.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { advances } from '../src/lib/engine/decisions/choose-advance.js';
@@ -430,4 +436,218 @@ test('arts 11 Infinite Spectrum Photography: as Flash Mob', () => {
 		[...new Set(move.options.map((/** @type {any} */ o) => o.track))],
 		BOARD
 	);
+});
+
+/**
+ * The events of one type since a sequence number, without their numbers.
+ * @param {any} state
+ * @param {string} type
+ * @param {number} [since]
+ */
+function eventsOf(state, type, since = 0) {
+	return state.events
+		.filter((/** @type {any} */ e) => e.type === type && e.seq > since)
+		.map(({ seq: _seq, ...event }) => event);
+}
+
+/**
+ * A random that returns the given numbers in turn, and throws when they run out.
+ * @param {...number} values
+ */
+function rolls(...values) {
+	return (/** @type {number} */ n) => {
+		const value = values.shift();
+		if (value === undefined || value >= n) {
+			throw new Error(`No roll left for random(${n}).`);
+		}
+		return value;
+	};
+}
+
+test('the d20 has 4 faces for each of the five tracks', () => {
+	assert.equal(SCIENCE_D20.length, 20);
+	for (const track of [...TRACK_IDS, 'arts']) {
+		assert.equal(
+			SCIENCE_D20.filter((face) => face === track).length,
+			4,
+			track
+		);
+	}
+	assert.equal(scienceFaces('d12'), SCIENCE_DIE);
+	assert.equal(scienceFaces('d20'), SCIENCE_D20);
+});
+
+test('with the arts track every research roll uses the d20', () => {
+	const ready = readyTurn(2, () => {}, AA);
+	const since = ready.state.seq;
+	const next = resolveEffects(
+		ready.state,
+		ready.player,
+		[{ research: {} }],
+		rolls(4)
+	);
+	assert.deepEqual(eventsOf(next, 'scienceDieRolled', since), [
+		{
+			type: 'scienceDieRolled',
+			player: ready.player,
+			track: 'arts',
+			scienceDie: 'd20',
+		},
+	]);
+	const move = openDecisions(next).find((d) => d.kind === 'chooseMove');
+	assert.deepEqual(move?.options, [{ track: 'arts', from: 0 }]);
+
+	const base = readyTurn(2);
+	const rolled = resolveEffects(
+		base.state,
+		base.player,
+		[{ research: {} }],
+		rolls(4)
+	);
+	assert.deepEqual(eventsOf(rolled, 'scienceDieRolled', base.state.seq), [
+		{ type: 'scienceDieRolled', player: base.player, track: 'exploration' },
+	]);
+});
+
+test('a d20 roll on the arts track with the token on 12 gives nothing, as on any finished track', () => {
+	const ready = readyTurn(
+		2,
+		(seat) => {
+			seat.tracks.arts = [12];
+		},
+		AA
+	);
+	const next = resolveEffects(
+		ready.state,
+		ready.player,
+		[{ research: {} }],
+		rolls(4)
+	);
+	assert.deepEqual(
+		openDecisions(next).map((d) => d.kind),
+		['chooseTurn']
+	);
+});
+
+test('with either science die, the roller chooses the die before each roll', () => {
+	const options = { expansions: ['aa'], variants: ['either-science-die'] };
+	const ready = readyTurn(2, () => {}, options);
+	const asked = resolveEffects(
+		ready.state,
+		ready.player,
+		[{ research: {} }],
+		rolls()
+	);
+	const [decision] = openDecisions(asked);
+	assert.equal(decision.kind, 'chooseScienceDie');
+	assert.deepEqual(decision.options, ['d20', 'd12']);
+	assert.deepEqual(DECISIONS.chooseScienceDie.answers(asked, decision), [
+		{ die: 'd20' },
+		{ die: 'd12' },
+	]);
+	assert.throws(
+		() =>
+			answer(asked, rolls(), ready.player, 'chooseScienceDie', {
+				die: 'd6',
+			}),
+		{ name: 'PlayerError', message: 'Choose the d12 or the d20.' }
+	);
+	const d12 = answer(asked, rolls(4), ready.player, 'chooseScienceDie', {
+		die: 'd12',
+	});
+	assert.deepEqual(eventsOf(d12, 'scienceDieRolled', asked.seq), [
+		{
+			type: 'scienceDieRolled',
+			player: ready.player,
+			track: 'exploration',
+		},
+	]);
+});
+
+test('Empiricism rolls the chosen die twice', () => {
+	const options = { expansions: ['aa'], variants: ['either-science-die'] };
+	const ready = readyTurn(
+		2,
+		(seat) => {
+			seat.era = { card: 'empiricism', ability: 'empiricism' };
+		},
+		options
+	);
+	const asked = resolveEffects(
+		ready.state,
+		ready.player,
+		[{ research: {} }],
+		rolls()
+	);
+	const rolled = answer(
+		asked,
+		rolls(4, 0),
+		ready.player,
+		'chooseScienceDie',
+		{
+			die: 'd20',
+		}
+	);
+	assert.deepEqual(
+		eventsOf(rolled, 'scienceDieRolled', asked.seq).map((e) => [
+			e.track,
+			e.scienceDie,
+		]),
+		[
+			['arts', 'd20'],
+			['exploration', 'd20'],
+		]
+	);
+	const choice = openDecisions(rolled).find((d) => d.kind === 'chooseRoll');
+	assert.deepEqual(choice?.options, ['arts', 'exploration']);
+});
+
+test("Alchemists: an arts roll marks nothing and doesn't bust (03 §2.2)", () => {
+	const { state, player } = readyTurn(
+		2,
+		(seat) => {
+			seat.civData.alchemists = { marked: ['science'] };
+		},
+		AA
+	);
+	const next = structuredClone(state);
+	const since = next.seq;
+	push(next, next.pending, [{ player, kind: 'alchemistsRoll' }]);
+	run(next, rolls(4));
+	assert.deepEqual(next.seats[player - 1].civData.alchemists.marked, [
+		'science',
+	]);
+	assert.deepEqual(eventsOf(next, 'alchemistsRolled', since), [
+		{
+			type: 'alchemistsRolled',
+			player,
+			track: 'arts',
+			marked: ['science'],
+		},
+	]);
+	assert.deepEqual(eventsOf(next, 'alchemistsBust', since), []);
+	const [decision] = openDecisions(next);
+	assert.equal(decision.kind, 'chooseAlchemists');
+	assert.deepEqual(decision.marked, ['science']);
+});
+
+test('Treasure Hunters roll the d20 for a science treasure with the arts track', () => {
+	const { state, player } = readyTurn(2, () => {}, AA);
+	const next = structuredClone(state);
+	const since = next.seq;
+	push(next, next.pending, [
+		{ player, kind: 'treasureRoll', hex: '0_0', die: 'science' },
+	]);
+	run(next, rolls(4, 0));
+	assert.deepEqual(eventsOf(next, 'treasureRolled', since), [
+		{
+			type: 'treasureRolled',
+			player,
+			die: 'science',
+			faces: [4, 0],
+			scienceDie: 'd20',
+		},
+	]);
+	const choice = openDecisions(next).find((d) => d.kind === 'chooseRoll');
+	assert.deepEqual(choice?.options, ['arts', 'exploration']);
 });

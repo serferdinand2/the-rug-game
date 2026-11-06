@@ -651,6 +651,15 @@ test('the important events read as plain sentences', () => {
 			sample('treasureRolled', { die: 'science', faces: [0, 3] }),
 			"Ana's Treasure Hunters rolled the science die twice: Exploration and Military.",
 		],
+		// With the arts track the science die is the d20 (#35).
+		[
+			sample('treasureRolled', {
+				die: 'science',
+				faces: [4, 0],
+				scienceDie: 'd20',
+			}),
+			"Ana's Treasure Hunters rolled the science die twice: Arts and Exploration.",
+		],
 		[
 			sample('treasureRolled', { die: 'conquer', faces: [1, 2] }),
 			"Ana's Treasure Hunters rolled the conquer dice: red 5 VP, black 1 food.",

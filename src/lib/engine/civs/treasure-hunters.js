@@ -7,7 +7,8 @@ import { terrainsOf } from '../terrain.js';
 import { askHex } from '../decisions/choose-hex.js';
 import { askSlot } from '../decisions/choose-slot.js';
 import { MAPS, hexNeighbours } from '../data/maps.js';
-import { BLACK_DIE, RED_DIE, SCIENCE_DIE } from '../data/dice.js';
+import { BLACK_DIE, RED_DIE, SCIENCE_DIE, scienceFaces } from '../data/dice.js';
+import { defaultDie, withDie } from '../science-die.js';
 import { deepFreeze } from '../data/ids.js';
 import { placeToken } from './civ.js';
 
@@ -140,7 +141,13 @@ export function treasureClaim(ctx, op) {
 			kind: 'effects',
 			effects: [{ gain: structuredClone(treasure.gain) }],
 		},
-		{ player, kind: 'treasureRoll', hex, die: treasure.die },
+		...(treasure.die === 'science'
+			? withDie(state, player, {
+					kind: 'treasureRoll',
+					hex,
+					die: treasure.die,
+				})
+			: [{ player, kind: 'treasureRoll', hex, die: treasure.die }]),
 		...triggered(state, 'countsChanged', { player }),
 	]);
 }
@@ -184,12 +191,24 @@ export function treasureRoll(ctx, op) {
 		]);
 		return;
 	}
-	const { length } = ROLLED_TWICE[die];
-	const faces = [ctx.random(length), ctx.random(length)];
-	emit(state, { type: 'treasureRolled', player, die, faces });
+	// The science treasure rolls the game's science die, the d20 with the arts track (#35); its event then names it.
+	const scienceDie =
+		die === 'science' ? (op.scienceDie ?? defaultDie(state)) : null;
+	const rolled =
+		die === 'science'
+			? scienceFaces(scienceDie ?? 'd12')
+			: ROLLED_TWICE[die];
+	const faces = [ctx.random(rolled.length), ctx.random(rolled.length)];
+	emit(state, {
+		type: 'treasureRolled',
+		player,
+		die,
+		faces,
+		...(scienceDie === 'd20' && { scienceDie }),
+	});
 	if (die === 'science') {
 		// The research procedure: the player may advance on the track chosen, with its benefit and bonus (01 §3.3).
-		const [first, second] = faces.map((face) => SCIENCE_DIE[face]);
+		const [first, second] = faces.map((face) => rolled[face]);
 		const then = {
 			kind: 'researchRolled',
 			noBenefit: false,

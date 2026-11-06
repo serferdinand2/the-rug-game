@@ -78,6 +78,8 @@ export const DECISION_KINDS = Object.freeze({
 	chooseTrade: { art: 'payment' },
 	chooseTrack: { art: 'track' },
 	chooseRoll: { art: 'track' },
+	// The variant "Roll either science die": the d20 or the d12, before a roll (#35).
+	chooseScienceDie: {},
 	chooseSpace: { art: 'track' },
 	chooseHex: {},
 	chooseGift: { tab: 'terrain', art: 'gift' },

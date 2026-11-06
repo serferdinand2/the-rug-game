@@ -1,7 +1,8 @@
 // The Alchemists (02 §1.2): push-your-luck rolls of the science die, then an advance on each marked track.
 import { playerSeat } from '../state.js';
 import { emit } from '../events.js';
-import { SCIENCE_DIE } from '../data/dice.js';
+import { scienceFaces } from '../data/dice.js';
+import { defaultDie, withDie } from '../science-die.js';
 
 /**
  * The Alchemists' own state.
@@ -42,15 +43,40 @@ export function stopAlchemists(ctx, player, marked) {
 }
 
 /**
+ * The operations for one of the Alchemists' rolls, with the game's science die or the one the player picks (#35).
+ * @param {import('../state.js').State} state
+ * @param {number} player
+ * @returns {import('../state.js').NewOperation[]}
+ */
+export function alchemistsRollOps(state, player) {
+	return withDie(state, player, { kind: 'alchemistsRoll' });
+}
+
+/**
  * Rolls the science die and marks the track, then asks whether to roll again. A track already marked is a bust: the
  * marks clear and the player gains 1 resource of their choice. Empiricism doesn't apply (design §7, BGA).
+ * R118: the mat has boxes for the four board tracks only, so a d20's arts face marks nothing and never busts; the
+ * player may roll again or stop (03 §2.2).
  * @type {import('../state.js').AutomaticKind}
  */
 export function alchemistsRoll(ctx, op) {
 	const player = /** @type {number} */ (op.player);
 	/** @type {AlchemistsData} */
 	const data = playerSeat(ctx.state, player).civData.alchemists;
-	const track = SCIENCE_DIE[ctx.random(SCIENCE_DIE.length)];
+	const faces = scienceFaces(op.scienceDie ?? defaultDie(ctx.state));
+	const track = faces[ctx.random(faces.length)];
+	if (track === 'arts') {
+		emit(ctx.state, {
+			type: 'alchemistsRolled',
+			player,
+			track,
+			marked: [...data.marked],
+		});
+		ctx.push([
+			{ player, kind: 'chooseAlchemists', marked: [...data.marked] },
+		]);
+		return;
+	}
 	if (data.marked.includes(track)) {
 		data.marked = [];
 		emit(ctx.state, { type: 'alchemistsBust', player, track });
@@ -80,7 +106,7 @@ export const alchemists = {
 		});
 	},
 	income(ctx, player) {
-		ctx.push([{ player, kind: 'alchemistsRoll' }]);
+		ctx.push(alchemistsRollOps(ctx.state, player));
 	},
 	adjustment: {
 		setup(ctx, player) {

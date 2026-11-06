@@ -1,6 +1,11 @@
 // Words for the engine's events, for the table log (#29 design §5): one plain sentence for each event worth reading.
 import { CAPITAL_MATS } from './engine/data/capitals.js';
-import { BLACK_DIE, RED_DIE, SCIENCE_DIE } from './engine/data/dice.js';
+import {
+	BLACK_DIE,
+	RED_DIE,
+	SCIENCE_DIE,
+	SCIENCE_D20,
+} from './engine/data/dice.js';
 import { VERSIONS } from './engine/game.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
 import { describeCost } from './describe.js';
@@ -868,8 +873,12 @@ const WORDS = {
 				return `${who} the black conquer die twice: ${faceWords(on(BLACK_DIE, first))} and ${faceWords(on(BLACK_DIE, second))}.`;
 			case 'red':
 				return `${who} the red conquer die twice: ${faceWords(on(RED_DIE, first))} and ${faceWords(on(RED_DIE, second))}.`;
-			case 'science':
-				return `${who} the science die twice: ${trackName(on(SCIENCE_DIE, first))} and ${trackName(on(SCIENCE_DIE, second))}.`;
+			case 'science': {
+				// The d20 with the arts track (#35); its faces aren't the d12's.
+				const faces =
+					e.scienceDie === 'd20' ? SCIENCE_D20 : SCIENCE_DIE;
+				return `${who} the science die twice: ${trackName(on(faces, first))} and ${trackName(on(faces, second))}.`;
+			}
 			case 'conquer':
 				return `${who} the conquer dice: red ${faceWords(on(RED_DIE, first))}, black ${faceWords(on(BLACK_DIE, second))}.`;
 			default:

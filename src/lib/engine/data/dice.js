@@ -1,4 +1,4 @@
-// The 3 dice: the science die (d12) and the red and black conquer dice (d6), face by face (R6–R8; 01 §1.1).
+// The dice: the science dice (the base d12 and A&A's d20) and the red and black conquer dice (d6), face by face (R6–R8; 01 §1.1; 03 §2.1).
 import { deepFreeze } from './ids.js';
 
 /** @typedef {import('./ids.js').TrackId} TrackId */
@@ -24,6 +24,32 @@ export const SCIENCE_DIE = deepFreeze(
 		'military',
 	])
 );
+
+/**
+ * Arts & Architecture's science die, rolled whenever the arts track is in play: 20 faces, the four board tracks and
+ * the arts track on 4 each (03 §2.1).
+ * @type {readonly TrackId[]}
+ */
+export const SCIENCE_D20 = deepFreeze(
+	/** @type {TrackId[]} */ (
+		Array.from({ length: 4 }, () => [
+			'exploration',
+			'science',
+			'technology',
+			'military',
+			'arts',
+		]).flat()
+	)
+);
+
+/**
+ * A science die's faces.
+ * @param {'d12' | 'd20'} die
+ * @returns {readonly TrackId[]}
+ */
+export function scienceFaces(die) {
+	return die === 'd20' ? SCIENCE_D20 : SCIENCE_DIE;
+}
 
 /**
  * R7: the red conquer die's 6 faces. "1 VP per territory you control" is on 2 of them.
