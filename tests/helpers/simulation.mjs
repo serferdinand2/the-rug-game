@@ -43,11 +43,11 @@ const NAMES = ['Ana', 'Bo', 'Cy', 'Dee', 'Eli'];
 export function gameOf(index) {
 	const players = 1 + (index % 5);
 	const expansions = Math.floor(index / 40) % 2 === 1 ? ['pp'] : [];
-	// "All civilizations from Plans & Ploys" needs the expansion.
+	// A variant that needs an expansion joins only with it ("All civilizations from Plans & Ploys", #35's two).
 	const variants =
 		Math.floor(index / 20) % 2 === 1
 			? VARIANTS.filter(
-					(v) => v.id !== 'civs-from-pp' || expansions.length > 0
+					(v) => !v.expansion || expansions.includes(v.expansion)
 				).map((v) => v.id)
 			: [];
 	return {

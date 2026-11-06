@@ -176,8 +176,13 @@ test('the 200 games cover every player count, version and policy 10 times, 5 of 
 		const { seed, players, version, policy, variants, expansions } =
 			gameOf(index);
 		assert.equal(seed, index + 1);
+		// Every variant whose expansion the game has, or none (#35's two need Arts & Architecture).
 		assert.ok(
-			variants.length === 0 || variants.length >= VARIANTS.length - 1
+			variants.length === 0 ||
+				variants.length ===
+					VARIANTS.filter(
+						(v) => !v.expansion || expansions.includes(v.expansion)
+					).length
 		);
 		assert.ok(expansions.length === 0 || expansions[0] === 'pp');
 		const key = `${players} ${version} ${policy} ${variants.length > 0}`;

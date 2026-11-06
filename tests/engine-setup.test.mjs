@@ -370,9 +370,9 @@ test('createGame refuses a bad player count, an unknown version and an expansion
 	assert.throws(() => createGame({ ...base, version: '2024' }), {
 		name: 'PlayerError',
 	});
-	assert.throws(() => createGame({ ...base, expansions: ['aa'] }), {
+	assert.throws(() => createGame({ ...base, expansions: ['ff'] }), {
 		name: 'PlayerError',
-		message: /Arts & Architecture isn't available yet/,
+		message: /Fantasies & Futures isn't available yet/,
 	});
 	assert.throws(() => createGame({ ...base, expansions: ['xx'] }), {
 		name: 'PlayerError',
@@ -389,7 +389,7 @@ test('checkOptions accepts both versions with no expansions or variants', () => 
 	assert.ok(Object.isFrozen(VARIANTS));
 });
 
-test('the six variants can be switched on, each with a name: the five the owner chose and civilizations from Plans & Ploys (#53, #33)', () => {
+test('the eight variants can be switched on, each with a name: the five the owner chose, civilizations from Plans & Ploys and the two of the arts track (#53, #33, #35)', () => {
 	assert.deepEqual(
 		VARIANTS.map((v) => v.id),
 		[
@@ -399,6 +399,8 @@ test('the six variants can be switched on, each with a name: the five the owner 
 			'no-radio-battery',
 			'closest-island',
 			'civs-from-pp',
+			'no-arts-track',
+			'either-science-die',
 		]
 	);
 	for (const variant of VARIANTS) {
@@ -406,12 +408,15 @@ test('the six variants can be switched on, each with a name: the five the owner 
 		assert.equal(typeof variant.name, 'string');
 		assert.ok(variant.name.length > 0);
 	}
+	// Either science die needs the arts track, so it can't join "Play without the arts track" (#35).
 	for (const version of ['original', 'current']) {
-		checkOptions({
-			version,
-			expansions: ['pp'],
-			variants: VARIANTS.map((v) => v.id),
-		});
+		for (const left of ['no-arts-track', 'either-science-die']) {
+			checkOptions({
+				version,
+				expansions: ['pp', 'aa'],
+				variants: VARIANTS.map((v) => v.id).filter((id) => id !== left),
+			});
+		}
 	}
 });
 
@@ -420,8 +425,8 @@ test('checkOptions refuses what createGame refuses, variants included (#22, #53)
 		[{ version: '2024' }, /Unknown rules version: 2024/],
 		[{ version: 'current', expansions: 'pp' }, /expansions must be a list/],
 		[
-			{ version: 'current', expansions: ['aa'] },
-			/Arts & Architecture isn't available yet/,
+			{ version: 'current', expansions: ['ff'] },
+			/Fantasies & Futures isn't available yet/,
 		],
 		[{ version: 'current', expansions: ['xx'] }, /Unknown expansion: xx/],
 		[{ version: 'current', variants: 'draft' }, /variants must be a list/],
@@ -450,8 +455,8 @@ test('a game keeps its variants, and says so when it is created (#53)', () => {
 	assert.deepEqual(state.events[0].variants, []);
 });
 
-test('an expansion is refused until its setup is built: Plans & Ploys is (owner, #32), and the versions are public', () => {
-	assert.deepEqual(EXPANSIONS_BUILT, ['pp']);
+test('an expansion is refused until its setup is built: Plans & Ploys (owner, #32) and Arts & Architecture (owner, #35) are, and the versions are public', () => {
+	assert.deepEqual(EXPANSIONS_BUILT, ['pp', 'aa']);
 	assert.ok(Object.isFrozen(EXPANSIONS_BUILT));
 	assert.deepEqual(
 		VERSIONS.map((v) => v.id),

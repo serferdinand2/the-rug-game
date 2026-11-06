@@ -44,6 +44,8 @@ const VARIANT_NAMES = /** @type {Readonly<Record<string, string>>} */ ({
 	'no-radio-battery': 'No Radio or Battery',
 	'closest-island': 'Closest island',
 	'civs-from-pp': 'Plans & Ploys civilizations',
+	'no-arts-track': 'No arts track',
+	'either-science-die': 'Either science die',
 });
 
 const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];

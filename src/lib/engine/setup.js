@@ -14,14 +14,22 @@ import { landmarkCardsFor } from './data/landmark-cards.js';
 import { ACHIEVEMENTS } from './data/achievements.js';
 import { TERRITORY_TILES } from './data/territory-tiles.js';
 import { spaceTilesFor } from './data/space-tiles.js';
-import { VERSIONS, TRACK_IDS, RESOURCE_IDS, BUILDING_IDS } from './data/ids.js';
+import {
+	VERSIONS,
+	TRACK_IDS,
+	ARTS_TRACK,
+	RESOURCE_IDS,
+	BUILDING_IDS,
+} from './data/ids.js';
+import { artsTrackOn } from './data/tracks.js';
 
 /**
  * The expansions whose setup is built, so a table may choose them. Each expansion issue adds its code (#32, #35, #39).
  * Plans & Ploys is offered from #32 on, with its civilizations and cards to follow in #33 (owner, 2026-10-31).
+ * Arts & Architecture is offered from #35 on, its mats and cards to follow in #36 and #37, as for #32 (#35 design §3.1).
  * @type {readonly string[]}
  */
-export const EXPANSIONS_BUILT = Object.freeze(['pp']);
+export const EXPANSIONS_BUILT = Object.freeze(['pp', 'aa']);
 
 /**
  * One official optional variant a table may switch on (03 FF.2.6, 01 §2.2).
@@ -56,6 +64,18 @@ export const VARIANTS = Object.freeze(
 			id: 'civs-from-pp',
 			name: 'All civilizations from Plans & Ploys',
 			expansion: 'pp',
+		},
+		// The arts track is optional (03 §2): with A&A on it is in play unless this variant leaves it out (owner, #35).
+		{
+			id: 'no-arts-track',
+			name: 'Play without the arts track',
+			expansion: 'aa',
+		},
+		// Handed on from #53; it also needs the arts track, which checkOptions() checks.
+		{
+			id: 'either-science-die',
+			name: 'Roll either science die (d12 or d20)',
+			expansion: 'aa',
 		},
 	].map((variant) => Object.freeze(variant))
 );
@@ -124,15 +144,25 @@ export function checkOptions({ version, expansions = [], variants = [] }) {
 			);
 		}
 	}
+	if (
+		variants.includes('either-science-die') &&
+		variants.includes('no-arts-track')
+	) {
+		const variant = VARIANTS.find((v) => v.id === 'either-science-die');
+		throw new PlayerError(
+			`The variant "${variant?.name}" needs the arts track.`
+		);
+	}
 }
 
 /**
- * A seat at the start: empty, with its tokens on every track start (01 §2.2).
+ * A seat at the start: empty, with its tokens on every track start (01 §2.2), the arts track's too when it is in play.
  * @param {number} seat
  * @param {string} name
+ * @param {readonly string[]} tracks - The tracks in play
  * @returns {import('./state.js').PlayerSeat}
  */
-function newSeat(seat, name) {
+function newSeat(seat, name, tracks) {
 	return {
 		seat,
 		kind: 'player',
@@ -140,7 +170,7 @@ function newSeat(seat, name) {
 		vp: 0,
 		vpSources: {},
 		tracks: /** @type {any} */ (
-			Object.fromEntries(TRACK_IDS.map((id) => [id, [0]]))
+			Object.fromEntries(tracks.map((id) => [id, [0]]))
 		),
 		restartedTracks: [],
 		outposts: 8,
@@ -337,6 +367,13 @@ export function createGame({
 	if (typeof random !== 'function') {
 		throw new TypeError('createGame needs a random function.');
 	}
+	const arts = artsTrackOn(expansions, variants);
+	// R59: the Automa has no decision cards for the arts track, so no solo game uses it.
+	if (players.length === 1 && arts) {
+		throw new PlayerError(
+			'The arts track needs 2 or more players: there is no Automa with it (R59).'
+		);
+	}
 	const count = players.length;
 	// R116: setup deals every player 2 civilizations. No table has too few today (the variant "All civilizations from
 	// Plans & Ploys" has 10, enough for 5 players); the check stays for a deck that ever does.
@@ -366,7 +403,8 @@ export function createGame({
 		})
 	);
 	const tech = shuffle(techDeck(variants), random);
-	const seats = players.map((p, i) => newSeat(i + 1, p.name));
+	const tracks = arts ? [...TRACK_IDS, ARTS_TRACK] : TRACK_IDS;
+	const seats = players.map((p, i) => newSeat(i + 1, p.name, tracks));
 
 	/** @type {import('./state.js').State} */
 	const state = {

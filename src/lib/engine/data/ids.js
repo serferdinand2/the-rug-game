@@ -3,6 +3,7 @@
 
 /** @typedef {'original' | 'current'} VersionId */
 /** @typedef {'exploration' | 'science' | 'technology' | 'military'} TrackId */
+/** The four tracks of the main board, which printed effects such as Leaders' name (R118). @typedef {'exploration' | 'science' | 'technology' | 'military'} BoardTrackId */
 /** @typedef {'coin' | 'worker' | 'food' | 'culture'} ResourceId */
 /** @typedef {'market' | 'house' | 'farm' | 'armory'} BuildingId */
 /** @typedef {'sea' | 'desert' | 'forest' | 'grassland' | 'mountain'} TerrainId */
@@ -58,13 +59,16 @@ export const VERSIONS = deepFreeze([
 	},
 ]);
 
-/** The four tracks, in board order. @type {readonly TrackId[]} */
+/** The four tracks of the main board, in board order. @type {readonly BoardTrackId[]} */
 export const TRACK_IDS = deepFreeze([
 	'exploration',
 	'science',
 	'technology',
 	'military',
 ]);
+
+/** Arts & Architecture's fifth advancement track, beside the board (03 §2.1). */
+export const ARTS_TRACK = 'arts';
 
 /** The four resources (01 §1.2). @type {readonly ResourceId[]} */
 export const RESOURCE_IDS = deepFreeze(['coin', 'worker', 'food', 'culture']);

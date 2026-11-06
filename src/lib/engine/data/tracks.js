@@ -60,6 +60,17 @@ export const TIER_COSTS = deepFreeze({
 	4: { track: 2 },
 });
 
+/**
+ * Whether a game's options put the arts track in play: Arts & Architecture is on and the variant "Play without the
+ * arts track" is not (#35 design §2). Everything about the arts track reads this, never the expansion list.
+ * @param {readonly string[]} expansions
+ * @param {readonly string[]} variants
+ * @returns {boolean}
+ */
+export function artsTrackOn(expansions, variants) {
+	return expansions.includes('aa') && !variants.includes('no-arts-track');
+}
+
 /** The spaces under one tier price (01 §3.1). */
 export const TIER_SPACES = 3;
 
