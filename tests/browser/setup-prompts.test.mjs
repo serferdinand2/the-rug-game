@@ -3,6 +3,7 @@
 // (#59). The test plays a two-seat hot-seat table through setup with the mouse, then closes the table.
 import { expect, test } from '@playwright/test';
 import { TRACKS } from '../../src/lib/engine/data/tracks.js';
+import { TRACK_IDS } from '../../src/lib/engine/data/ids.js';
 
 test.use({ viewport: { width: 1920, height: 1080 } });
 
@@ -102,7 +103,8 @@ test('the tracks show every benefit, and setup shows capital mats as grids and c
 			'aria-label',
 			'Tier I costs 1 resource of your choice'
 		);
-		const bonuses = Object.values(TRACKS)
+		// The board's four tracks: a base table has no arts track (#35).
+		const bonuses = TRACK_IDS.map((id) => TRACKS[id])
 			.flatMap((track) => track.slice(1))
 			.filter((space) => space.bonus).length;
 		// Exploration draws its seven bonuses in ExplorationFace's bonus row (#85), the other tracks in the space's own.

@@ -37,7 +37,7 @@ A table with Arts & Architecture on plays the fifth advancement track, the arts 
 
 ### 3.2 The fifth track in the engine (part 1)
 
-- `TRACK_IDS` stays the four tracks of the main board, which many printed effects name. A new `ARTS_TRACK = 'arts'` and `tracksOf(state)` give the tracks in play: the four, then `'arts'` when it is in play. A wider JSDoc type, `AdvancementTrackId`, is `TrackId | 'arts'`; code that may meet the arts track takes it, and the rest keeps `TrackId` (my call: fewer type changes than widening `TrackId`).
+- `TRACK_IDS` stays the four tracks of the main board, which many printed effects name. A new `ARTS_TRACK = 'arts'` and `tracksOf(state)` give the tracks in play: the four, then `'arts'` when it is in play. `TrackId` widens to the five tracks and a new `BoardTrackId` names the four, which `TRACK_IDS`, `TRACK_RESOURCE` and `TRACK_BUILDING` use (my call, changed while planning part 1: the type check is strict, so a wider `TrackId` needs fewer changes than a separate wider type).
 - Setup puts each seat's token on the arts track's start: `seat.tracks.arts = [0]`. A seat without the arts track has no `arts` key.
 - `TRACKS.arts` holds the 12 spaces in the same `TrackSpace` shape (§3.4), so the landmark race, the benefit and bonus, R19's once-per-turn rule, "complete any track" on space 12 and the `advanced` triggers all work unchanged.
 - The advance turn offers the arts track (`advances()` reads `tracksOf`).

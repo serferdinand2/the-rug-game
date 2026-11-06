@@ -349,6 +349,20 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: ['science', 'military'],
 			then: { kind: 'researchRolled', noBenefit: false, offTrackVp: 0 },
 		},
+		// The variant "Roll either science die" (#35).
+		chooseScienceDie: {
+			player: 1,
+			kind: 'chooseScienceDie',
+			options: ['d20', 'd12'],
+			then: {
+				kind: 'scienceRoll',
+				next: {
+					kind: 'researchRolled',
+					noBenefit: false,
+					offTrackVp: 0,
+				},
+			},
+		},
 		chooseSpace: {
 			player: 1,
 			kind: 'chooseSpace',
