@@ -281,6 +281,34 @@
 	{/if}
 {/snippet}
 
+<!-- With Arts & Architecture, a mat and a civilization kept together: the mats' shelf over the civilizations', each
+     sharing the room, with the pairs R120 forbids greyed out (owner, #36). -->
+{#snippet jointShelf(/** @type {number | undefined} */ room)}
+	{#if state.joint}
+		<div class="rg-decision-prompt--joint">
+			<CardShelf
+				kind="mat"
+				label="Capital mats to choose from"
+				cards={state.joint.mats}
+				selected={state.jointMat}
+				disabled={state.jointBlocked.mats}
+				terrainSeed={seed}
+				room={room === undefined ? undefined : room / 2}
+				onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
+					state.pickJointMat(event.value)} />
+			<CardShelf
+				kind="civ"
+				label="Civilizations to choose from"
+				cards={state.joint.civs}
+				selected={state.jointCiv}
+				disabled={state.jointBlocked.civs}
+				room={room === undefined ? undefined : room / 2}
+				onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
+					state.pickJointCiv(event.value)} />
+		</div>
+	{/if}
+{/snippet}
+
 <!-- A landmark card's landmark to place: the card above the panel, outlined as the one met (#32 mockup). -->
 {#snippet placingShelf()}
 	{#if placing}
@@ -327,13 +355,15 @@
 		track={prompt.track}
 		tone={prompt.income ? 'income' : 'default'}
 		steps={prompt.income ? incomeSteps : undefined}
-		shelf={cardPick
-			? pickShelf
-			: state.shelfCards.length
-				? cardShelf
-				: placing
-					? placingShelf
-					: undefined}
+		shelf={state.joint
+			? jointShelf
+			: cardPick
+				? pickShelf
+				: state.shelfCards.length
+					? cardShelf
+					: placing
+						? placingShelf
+						: undefined}
 		status={controls.status}
 		statusWarn={controls.warn}
 		children={controls.content ? promptContent : undefined}
@@ -349,6 +379,13 @@
 {/if}
 
 <style>
+	/* The joint pick's two shelves, one over the other (#36). */
+	.rg-decision-prompt--joint {
+		display: grid;
+		gap: var(--space-4);
+		justify-items: center;
+	}
+
 	.rg-decision-prompt--placing {
 		margin: var(--space-8) 0 var(--space-4);
 		outline: 3px solid var(--gold);

@@ -7,6 +7,9 @@ import {
 	promptFor,
 	shelfCards as shelfCardsOf,
 	shelfFace,
+	jointPick,
+	jointAnswer,
+	jointBlocked as jointBlockedOf,
 } from './prompts.js';
 import {
 	advanceModel,
@@ -63,6 +66,8 @@ import { cardCivOf, civCardView } from './civ-card.js';
  * @property {number} orient - The explore's turn on the hex, 0–5 (#74)
  * @property {Selection} selection - A pick's choices so far (#75)
  * @property {number | null} offer - A trade's chosen offer, its second step (#75)
+ * @property {number | null} jointMat - The joint pick's mat, by number (#36)
+ * @property {number | null} jointCiv - The joint pick's civilization, by its place among the two dealt (#36)
  */
 
 /**
@@ -129,6 +134,8 @@ export class PromptState {
 		orient: 0,
 		selection: nothing(),
 		offer: null,
+		jointMat: null,
+		jointCiv: null,
 	});
 	/** @type {Selection} The advance's payment picked so far (#75) */
 	#payment = $state.raw(nothing());
@@ -194,6 +201,8 @@ export class PromptState {
 			orient: 0,
 			selection: nothing(),
 			offer: null,
+			jointMat: null,
+			jointCiv: null,
 		};
 	});
 
@@ -204,6 +213,55 @@ export class PromptState {
 
 	get picked() {
 		return this.#now.picked;
+	}
+
+	/** The joint pick's mat so far, by number (#36). */
+	get jointMat() {
+		return this.#now.jointMat;
+	}
+
+	/** The joint pick's civilization so far, by its place among the two dealt (#36). */
+	get jointCiv() {
+		return this.#now.jointCiv;
+	}
+
+	/** The joint pick's two shelves, the mats over the civilizations, or null for any other decision (#36). */
+	joint = $derived(jointPick(this.decision));
+
+	/** The joint pick's cards greyed out by what is picked (R120). */
+	jointBlocked = $derived(
+		this.joint && this.decision
+			? jointBlockedOf(this.decision, {
+					mat: this.#now.jointMat,
+					civ: this.#now.jointCiv,
+				})
+			: { mats: [], civs: [] }
+	);
+
+	/**
+	 * The joint pick's mat pressed: the answer it makes with the civilization picked, if any.
+	 * @param {number} mat - Its number
+	 */
+	pickJointMat(mat) {
+		if (!this.sending && this.decision) {
+			this.#set({
+				jointMat: mat,
+				picked: jointAnswer(this.decision, mat, this.#now.jointCiv),
+			});
+		}
+	}
+
+	/**
+	 * The joint pick's civilization pressed: the answer it makes with the mat picked, if any.
+	 * @param {number} civ - Its place among the two dealt
+	 */
+	pickJointCiv(civ) {
+		if (!this.sending && this.decision) {
+			this.#set({
+				jointCiv: civ,
+				picked: jointAnswer(this.decision, this.#now.jointMat, civ),
+			});
+		}
 	}
 
 	get hex() {

@@ -97,12 +97,12 @@
 		if (!values.landmark) {
 			return;
 		}
-		const middle = Math.floor(GRID_SIZE / 2);
+		// The middle plot of the mat, whatever its shape (#36).
 		const at = centredCorner(
 			values.landmark.footprint,
 			trayTurn,
-			middle,
-			middle
+			Math.floor((capital?.shape.rows ?? GRID_SIZE) / 2),
+			Math.floor((capital?.shape.cols ?? GRID_SIZE) / 2)
 		);
 		land(
 			placeNear(placement?.options ?? [], at.row, at.col, trayTurn),

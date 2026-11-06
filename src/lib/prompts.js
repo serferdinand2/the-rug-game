@@ -14,9 +14,13 @@ import {
 	tapestryCardData,
 	techCardData,
 } from './cards/game-cards.js';
-import { buildingName, landmarkName } from './game-names.js';
+import { buildingName, civilizationName, landmarkName } from './game-names.js';
 import { matPlots } from './area/capital.js';
-import { CAPITAL_MATS } from './engine/data/capitals.js';
+import {
+	ADVANCED_MATS,
+	CAPITAL_MATS,
+	matShape,
+} from './engine/data/capitals.js';
 import { buildingsOut } from './engine/effects/building.js';
 import { joinList } from './words.js';
 
@@ -861,10 +865,11 @@ export function promptFor(decision, game, seat) {
 /**
  * A capital mat on offer, as CapitalMatFace draws it (#118).
  * @typedef {Object} MatFace
- * @property {number} mat - The mat's number, 1–6
+ * @property {number} mat - The mat's number, 1–12
  * @property {string} name - Its name, such as 'Mountain'
- * @property {import('./capital.js').PlotKind[]} plots - Its 81 plots before anything is built
+ * @property {import('./capital.js').PlotKind[]} plots - Its plots before anything is built
  * @property {import('./ui.js').CapitalBiome} biome - Its terrain, which is its id
+ * @property {import('./capital.js').Shape} shape - Its rows, columns and districts (#36)
  */
 
 /**
@@ -915,12 +920,94 @@ export function shelfFace(kind, id, count = 0) {
 		};
 	}
 	const mat =
-		CAPITAL_MATS.find((m) => m.number === Number(id)) ?? CAPITAL_MATS[0];
+		[...CAPITAL_MATS, ...ADVANCED_MATS].find(
+			(m) => m.number === Number(id)
+		) ?? CAPITAL_MATS[0];
 	return {
 		mat: mat.number,
 		name: mat.name,
 		plots: matPlots(mat.number),
 		biome: /** @type {import('./ui.js').CapitalBiome} */ (mat.id),
+		shape: matShape(mat),
+	};
+}
+
+/**
+ * The joint pick's two shelves with Arts & Architecture (owner, #36): the mats dealt, each card's index its number,
+ * then the two civilizations, each card's index its place among them. Null for any other decision.
+ * @param {Decision | null | undefined} decision
+ * @returns {{ mats: ShelfCard[], civs: ShelfCard[] } | null}
+ */
+export function jointPick(decision) {
+	if (decision?.kind !== 'chooseMatAndCiv') {
+		return null;
+	}
+	return {
+		mats: decision.mats.map((/** @type {number} */ n) => {
+			const face = /** @type {MatFace} */ (shelfFace('mat', String(n)));
+			return { index: n, label: face.name, face };
+		}),
+		civs: decision.civs.map(
+			(/** @type {string} */ civ, /** @type {number} */ i) => ({
+				index: i,
+				label: civilizationName(civ),
+				face: civ,
+			})
+		),
+	};
+}
+
+/**
+ * The answer a joint pick's mat and civilization name together, or null until both are picked or when the engine
+ * offers no such pair (R120).
+ * @param {Decision} decision
+ * @param {number | null} mat - The mat's number
+ * @param {number | null} civ - The civilization's place among the two dealt
+ * @returns {number | null}
+ */
+export function jointAnswer(decision, mat, civ) {
+	if (mat === null || civ === null) {
+		return null;
+	}
+	const index = decision.answers.findIndex(
+		(/** @type {Answer} */ a) =>
+			a.capital === mat && a.civ === decision.civs[civ]
+	);
+	return index === -1 ? null : index;
+}
+
+/**
+ * The cards a joint pick greys out: the civilizations no answer pairs with the mat picked, and the mats no answer pairs
+ * with the civilization picked, as R120 forbids the Riverfolk with Cloud City under the current rules.
+ * @param {Decision} decision
+ * @param {{ mat: number | null, civ: number | null }} picked
+ * @returns {{ mats: number[], civs: number[] }}
+ */
+export function jointBlocked(decision, { mat, civ }) {
+	/** @param {number} m @param {number} c */
+	const offered = (m, c) =>
+		decision.answers.some(
+			(/** @type {Answer} */ a) =>
+				a.capital === m && a.civ === decision.civs[c]
+		);
+	return {
+		mats:
+			civ === null
+				? []
+				: decision.mats.filter(
+						(/** @type {number} */ m) => !offered(m, civ)
+					),
+		civs:
+			mat === null
+				? []
+				: decision.civs
+						.map(
+							(
+								/** @type {string} */ _,
+								/** @type {number} */ c
+							) => c
+						)
+						.filter((/** @type {number} */ c) => !offered(mat, c)),
 	};
 }
 
@@ -946,7 +1033,8 @@ export function placingCard(decision) {
  */
 export function shelfCards(prompt, decision) {
 	const kind = prompt?.shelf;
-	if (!prompt || !kind || !decision) {
+	// The joint pick draws two shelves of its own (jointPick), not a card per answer (#36).
+	if (!prompt || !kind || !decision || decision.kind === 'chooseMatAndCiv') {
 		return [];
 	}
 	return prompt.options

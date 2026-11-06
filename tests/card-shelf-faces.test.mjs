@@ -7,7 +7,7 @@ import { openDecisions, play, view } from '../src/lib/engine/game.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { push } from '../src/lib/engine/stack.js';
 import { run } from '../src/lib/engine/loop.js';
-import { CAPITAL_MATS } from '../src/lib/engine/data/capitals.js';
+import { CAPITAL_MATS, matShape } from '../src/lib/engine/data/capitals.js';
 import { promptFor, shelfCards, shelfFace } from '../src/lib/prompts.js';
 import { fitScale } from '../src/lib/cards/card-sizes.js';
 import { tapestryCardData, techCardData } from '../src/lib/cards/game-cards.js';
@@ -51,6 +51,7 @@ test('shelfFace resolves each kind once: card data, the deck, a civilization id 
 		name: mat.name,
 		plots: matPlots(mat.number),
 		biome: mat.id,
+		shape: matShape(mat),
 	});
 	assert.equal(
 		/** @type {any} */ (shelfFace('mat', 'none')).mat,

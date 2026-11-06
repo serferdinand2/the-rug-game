@@ -19,7 +19,12 @@ import {
 	paymentControls,
 	promptFor,
 	shelfCards,
+	shelfFace,
+	jointPick,
+	jointAnswer,
+	jointBlocked,
 } from '../src/lib/prompts.js';
+import { view as viewOf } from '../src/lib/engine/view.js';
 import {
 	exploreIndex,
 	exploreTiles,
@@ -1174,4 +1179,96 @@ test('R117: a bonus for a building with none left greys out taking it, beside No
 		})),
 		[{ before: 1, label: 'Take the bonus', reason: 'No Farm left' }]
 	);
+});
+
+/**
+ * Seat 1's joint pick in a new A&A game, as its view gives it, with the mats and civilizations dealt set (#36).
+ * @param {{ version?: 'original' | 'current', mats?: number[], civs?: string[] }} [deal]
+ */
+function jointDecision(deal = {}) {
+	const { state } = newGame(2, {
+		expansions: ['aa'],
+		version: deal.version ?? 'current',
+	});
+	const seen = /** @type {any} */ (myDecision(viewOf(state, 1), 1));
+	const decision = { ...seen, mats: deal.mats ?? seen.mats };
+	decision.civs = deal.civs ?? seen.civs;
+	decision.answers = decision.mats.flatMap((/** @type {number} */ capital) =>
+		decision.civs
+			.filter(
+				(/** @type {string} */ civ) =>
+					deal.version === 'original' ||
+					!(capital === 10 && civ === 'riverfolk')
+			)
+			.map((/** @type {string} */ civ) => ({ capital, civ }))
+	);
+	return decision;
+}
+
+test('the joint pick shows its mats and its two civilizations on two shelves, and its answers no cards of their own (#36)', () => {
+	const decision = jointDecision({ mats: [1, 6, 7] });
+	const joint = jointPick(decision);
+	assert.ok(joint);
+	assert.deepEqual(
+		joint.mats.map((c) => [c.index, c.label]),
+		[
+			[1, 'Mountain'],
+			[6, 'Forest'],
+			[7, 'Archipelago'],
+		]
+	);
+	assert.deepEqual(
+		joint.civs.map((c) => c.index),
+		[0, 1]
+	);
+	assert.equal(joint.civs[0].face, decision.civs[0]);
+	const prompt = promptFor(decision, null, 1);
+	assert.deepEqual(shelfCards(prompt, decision), []);
+	assert.equal(prompt?.confirmLabel, 'Keep these');
+	assert.equal(jointPick(null), null);
+});
+
+test('a mat and a civilization picked name one answer, and nothing until both are (#36)', () => {
+	const decision = jointDecision({ mats: [2, 4, 9] });
+	assert.equal(jointAnswer(decision, null, 0), null);
+	assert.equal(jointAnswer(decision, 9, null), null);
+	const index = /** @type {number} */ (jointAnswer(decision, 9, 1));
+	assert.deepEqual(decision.answers[index], {
+		capital: 9,
+		civ: decision.civs[1],
+	});
+});
+
+test('R120: under the current rules, Cloud City and the Riverfolk grey each other out on the joint shelves', () => {
+	const decision = jointDecision({
+		mats: [1, 6, 10],
+		civs: ['riverfolk', 'leaders'],
+	});
+	assert.deepEqual(jointBlocked(decision, { mat: 10, civ: null }), {
+		mats: [],
+		civs: [0],
+	});
+	assert.deepEqual(jointBlocked(decision, { mat: null, civ: 0 }), {
+		mats: [10],
+		civs: [],
+	});
+	assert.equal(jointAnswer(decision, 10, 0), null);
+	const original = jointDecision({
+		version: 'original',
+		mats: [1, 6, 10],
+		civs: ['riverfolk', 'leaders'],
+	});
+	assert.deepEqual(jointBlocked(original, { mat: 10, civ: 0 }), {
+		mats: [],
+		civs: [],
+	});
+});
+
+test('an advanced mat on the shelf has its own shape (#36)', () => {
+	const face = /** @type {any} */ (shelfFace('mat', '7'));
+	assert.equal(face.name, 'Archipelago');
+	assert.equal(face.biome, 'archipelago');
+	assert.equal(face.plots.length, 99);
+	assert.equal(face.shape.rows, 11);
+	assert.equal(/** @type {any} */ (shelfFace('mat', '1')).shape.rows, 9);
 });
