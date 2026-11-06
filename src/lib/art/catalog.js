@@ -144,6 +144,7 @@ const COSMETIC_ISSUE = 51;
  */
 export const EXPANSION_ISSUES = Object.freeze({
 	'capital-relief': Object.freeze({ aa: 132, ff: 133 }),
+	'capital-feature': Object.freeze({ ff: 133 }),
 });
 
 /** @typedef {[slug: string, name: string][]} Entries */
@@ -806,7 +807,7 @@ const LISTS = {
 				/** @type {[string, string]} */ ([slug, `${name} relief`])
 		),
 	},
-	// What a mat prints on its buildable plots, drawn between its ground and its relief (#132).
+	// What a mat prints on its buildable plots, drawn between its ground and its relief (#132, #133).
 	'capital-feature': {
 		aa: [
 			['archipelago', 'Archipelago features'],
@@ -814,6 +815,7 @@ const LISTS = {
 			['cloud-city', 'Cloud City features'],
 			['swamp', 'Swamp features'],
 		],
+		ff: [['quagmire', 'Quagmire features']],
 	},
 	'inspiration-tile': {
 		aa: [

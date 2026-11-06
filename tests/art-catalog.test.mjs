@@ -34,7 +34,7 @@ const EXPECTED_COUNTS = {
 	'capital-mat': { ff: 6 }, // a base or Arts & Architecture mat's only picture is its relief (owner, 2026-10-29; #132)
 	'capital-terrain': { base: 48, aa: 72, ff: 84 }, // the base and Arts & Architecture biomes' impassable plots are their reliefs (#82, #132); Cloud City's ground comes in four tints
 	'capital-relief': { base: 6, aa: 6, ff: 6 },
-	'capital-feature': { aa: 4 }, // the cacti, lily ponds, beaches and cloud rims (#132)
+	'capital-feature': { aa: 4, ff: 1 }, // the cacti, lily ponds, beaches and cloud rims (#132), the Quagmire's reeds (#133)
 	'inspiration-tile': { aa: 4 },
 };
 
@@ -109,11 +109,11 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 285 icons and 94 boards', () => {
+test('there are 294 illustrations, 285 icons and 95 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
 	assert.equal(count('icon'), 285);
-	assert.equal(count('board'), 94);
+	assert.equal(count('board'), 95);
 });
 
 test('the slug rules turn awkward names into the agreed slugs', () => {
@@ -204,9 +204,14 @@ test('the expansion reliefs belong to #132 and #133, the base reliefs to #82', (
 	}
 	assert.deepEqual(EXPANSION_ISSUES, {
 		'capital-relief': { aa: 132, ff: 133 },
+		'capital-feature': { ff: 133 },
 	});
 	for (const asset of ASSETS.filter((a) => a.group === 'capital-feature')) {
-		assert.equal(asset.issue, 132, asset.id);
+		assert.equal(
+			asset.issue,
+			asset.expansion === 'ff' ? 133 : 132,
+			asset.id
+		);
 	}
 });
 

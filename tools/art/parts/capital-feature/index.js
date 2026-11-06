@@ -1,10 +1,11 @@
-// What a mat prints on its buildable plots, as one transparent picture per mat that the game lays between the ground and the relief (#132).
+// What a mat prints on its buildable plots, as one transparent picture per mat that the game lays between the ground and the relief (#132, #133).
 import { createCanvas } from '../../painter.js';
 import { reliefSize } from '../../../../src/lib/art/relief.js';
 import { paintArchipelagoFeatures } from './archipelago.js';
 import { paintCanyonFeatures } from './canyon.js';
 import { paintCloudCityFeatures } from './cloud-city.js';
 import { paintSwampFeatures } from './swamp.js';
+import { paintQuagmireFeatures } from './quagmire.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 /** @typedef {import('../capital-relief/index.js').MatData} MatData */
@@ -23,13 +24,14 @@ export const FEATURE_PAINTERS = Object.freeze({
 	canyon: paintCanyonFeatures,
 	'cloud-city': paintCloudCityFeatures,
 	swamp: paintSwampFeatures,
+	quagmire: paintQuagmireFeatures,
 });
 
 /**
  * Draws a mat's printed features: transparent everywhere but its feature plots.
  * @param {readonly string[]} layout - The mat's printed layout
  * @param {string} biome - Such as 'canyon'
- * @param {MatData} [mat] - The mat's volcanoes or clouds
+ * @param {MatData} [mat] - The mat's volcanoes, clouds or reeds
  * @returns {Canvas} The picture, `reliefSize` of the layout
  * @throws {Error} When the mat prints no features.
  */

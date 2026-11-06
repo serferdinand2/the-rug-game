@@ -24,13 +24,15 @@ export const RELIEF_BIOMES = Object.freeze([
 
 /**
  * The mats that print features on their buildable plots, each drawn as a picture of its own between the ground
- * and the relief (#132): the Archipelago's beaches, the Canyon's cacti, Cloud City's rims and the Swamp's lily pads.
+ * and the relief: the Archipelago's beaches, the Canyon's cacti, Cloud City's rims and the Swamp's lily pads (#132),
+ * and the Quagmire's reeds (#133).
  */
 export const FEATURE_BIOMES = Object.freeze([
 	'archipelago',
 	'canyon',
 	'cloud-city',
 	'swamp',
+	'quagmire',
 ]);
 
 /** A plot's side in pixels. */

@@ -38,7 +38,7 @@ import {
 	CLOUD_TINTS,
 	CLOUD_TINT_NAMES,
 } from '../capital-biomes/cloud-city.js';
-import { WISPS } from '../capital-biomes/quagmire.js';
+import { REEDS, WISPS } from '../capital-biomes/quagmire.js';
 import { DISTRICTS, UNICORNS } from '../capital-biomes/savanna.js';
 import { LAYOUT as VEIL_LAYOUT, isCharmed } from '../capital-biomes/veil.js';
 
@@ -47,7 +47,7 @@ import { LAYOUT as VEIL_LAYOUT, isCharmed } from '../capital-biomes/veil.js';
 
 /**
  * What a mat prints beyond its plots, which some reliefs and their grounds draw (#132, #133): the Archipelago's
- * volcano plots, the Quagmire's wisps and the Savanna's herds as [row, column]; Cloud City's clouds (one digit per
+ * volcano plots, the Quagmire's wisps and reed plots and the Savanna's herds as [row, column]; Cloud City's clouds (one digit per
  * plot, row by row) with each cloud's tint index; the Veil's sides ('1' a charmed plot) and the Savanna's districts
  * ('.' a plot outside them), one string per row.
  * @typedef {Object} MatData
@@ -55,6 +55,7 @@ import { LAYOUT as VEIL_LAYOUT, isCharmed } from '../capital-biomes/veil.js';
  * @property {readonly string[]} [clouds]
  * @property {readonly number[]} [tints]
  * @property {readonly (readonly [number, number])[]} [wisps]
+ * @property {readonly (readonly [number, number])[]} [reeds]
  * @property {readonly (readonly [number, number])[]} [herds]
  * @property {readonly string[]} [sides]
  * @property {readonly string[]} [districts]
@@ -140,7 +141,7 @@ export function matData(slug) {
 		return { clouds: CLOUDS, tints: CLOUD_TINTS };
 	}
 	if (slug === 'quagmire') {
-		return { wisps: WISPS };
+		return { wisps: WISPS, reeds: REEDS };
 	}
 	if (slug === 'savanna') {
 		return { herds: UNICORNS, districts: DISTRICTS };
@@ -165,12 +166,17 @@ const LONE = /** @type {readonly (readonly [number, number])[]} */ (
 
 /**
  * The printed data each specimen sheet is drawn with: a volcano on the Archipelago's lone plot, Cloud City's real
- * clouds, a wisp and a herd on the Quagmire's and the Savanna's lone plot, and the veil down the column 4|5 line,
+ * clouds, a wisp and a herd on the Quagmire's and the Savanna's lone plot with reeds above and below the wisp, and the veil down the column 4|5 line,
  * so it crosses the side pair (#133).
  * @type {Readonly<Record<string, MatData>>}
  */
 export const SPECIMEN_DATA = Object.freeze({
-	quagmire: Object.freeze({ wisps: LONE }),
+	quagmire: Object.freeze({
+		wisps: LONE,
+		reeds: /** @type {readonly (readonly [number, number])[]} */ (
+			Object.freeze([Object.freeze([0, 1]), Object.freeze([2, 1])])
+		),
+	}),
 	savanna: Object.freeze({ herds: LONE }),
 	veil: Object.freeze({ sides: Object.freeze(Array(9).fill('000001111')) }),
 	archipelago: Object.freeze({

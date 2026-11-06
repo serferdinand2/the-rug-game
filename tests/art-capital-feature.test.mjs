@@ -1,4 +1,4 @@
-// Tests for each Arts & Architecture mat's features picture (#132): its cacti, lily ponds, beaches and cloud rims, on its buildable plots.
+// Tests for each mat's features picture: the Arts & Architecture mats' cacti, lily ponds, beaches and cloud rims (#132), and the Quagmire's reeds (#133), on their buildable plots.
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { PALETTE } from '../tools/art/palette.js';
@@ -42,10 +42,10 @@ function* painted(canvas) {
 	}
 }
 
-test('the features pictures are the four mats that print features', () => {
+test('the features pictures are the five mats that print features on their buildable plots', () => {
 	assert.deepEqual(
 		[...FEATURE_BIOMES],
-		['archipelago', 'canyon', 'cloud-city', 'swamp']
+		['archipelago', 'canyon', 'cloud-city', 'swamp', 'quagmire']
 	);
 	assert.deepEqual(Object.keys(FEATURE_PAINTERS), [...FEATURE_BIOMES]);
 	assert.ok(Object.isFrozen(FEATURE_PAINTERS));
@@ -117,6 +117,33 @@ function onlyOnMarkedPlots(biome, mark, least) {
 
 test('canyon: a saguaro stands on each C plot and nowhere else', () => {
 	onlyOnMarkedPlots('canyon', 'C', 40);
+});
+
+test('quagmire: a reed bed stands on each open plot beside a wisp and nowhere else (#133)', () => {
+	const layout = /** @type {readonly string[]} */ (matLayout('quagmire'));
+	const reeds = /** @type {readonly (readonly [number, number])[]} */ (
+		matData('quagmire').reeds
+	);
+	assert.equal(reeds.length, 7);
+	const canvas = /** @type {ReturnType<typeof drawFeatures>} */ (
+		pictures.get('quagmire')
+	);
+	/** @type {Map<string, number>} */
+	const counts = new Map();
+	for (const p of painted(canvas)) {
+		assert.ok(p, 'nothing in a gap');
+		assert.ok(
+			reeds.some(([r, c]) => r === p.r && c === p.c),
+			`pixel ${p.x},${p.y} on plot ${p.r},${p.c}`
+		);
+		assert.ok(!isImpassable(layout, p.r, p.c));
+		counts.set(`${p.r},${p.c}`, (counts.get(`${p.r},${p.c}`) ?? 0) + 1);
+	}
+	for (const [r, c] of reeds) {
+		assert.ok((counts.get(`${r},${c}`) ?? 0) >= 40, `plot ${r},${c}`);
+	}
+	const colours = new Set(canvas.p);
+	assert.ok(colours.has(PALETTE.quagCattail), 'cattail heads');
 });
 
 test('swamp: a lily pond lies on each L plot and nowhere else', () => {
