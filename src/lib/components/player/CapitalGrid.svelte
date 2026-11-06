@@ -41,8 +41,9 @@
 	/**
 	 * Properties of the CapitalGrid component itself.
 	 * @typedef {Object} CapitalGridOwnProps
-	 * @property {PlotKind[]} plots - All 81 plots, row by row
-	 * @property {import('../../ui.js').CapitalBiome} [biome='mountain'] - The mat's terrain: its ground tiles, and its relief over the printed impassable plots where the biome has one (#82)
+	 * @property {PlotKind[]} plots - Every plot, row by row: 81 on a basic mat
+	 * @property {import('../../capital.js').Shape} [shape] - The mat's rows, columns and districts, the basic 9 × 9 by default: the Archipelago is 11 rows, and its islands and Cloud City's clouds are districts of their own shape (#36)
+	 * @property {import('../../ui.js').CapitalBiome} [biome='mountain'] - The mat's terrain: its ground tiles, its features picture where it prints one (#132), and its relief over the printed impassable plots where the biome has one (#82)
 	 * @property {number} [terrainSeed=0] - Visual seed supplied by the game's setup; 0 is the library fixture
 	 * @property {CapitalGridPiece[]} [pieces=[]] - Landmarks on the grid, drawn over the plots they cover; a locked one may hang over the edge, and only its plots on the grid count
 	 * @property {CapitalGridPosition[] | null} [positions=null] - The engine's legal top-left corners and turns for the unlocked pieces: they move, turn, snap and light the drop outline only among these, over the edge included (R14). Null keeps the grid's own in-grid fit check, for the library
@@ -93,11 +94,17 @@
 	import LandmarkPiece from './LandmarkPiece.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 	import { artUrl } from '../../ui.js';
-	import { plotTerrain, reliefUrl } from '../../capital-terrain.js';
-	import { BUILDING_IDS } from '../../engine/data/ids.js';
 	import {
-		GRID_SIZE,
+		featureUrl,
+		plotTerrain,
+		reliefUrl,
+	} from '../../capital-terrain.js';
+	import { BUILDING_IDS } from '../../engine/data/ids.js';
+	import { PITCH, reliefSize } from '../../art/relief.js';
+	import {
+		BASIC_SHAPE,
 		completedGroups,
+		districtEdges,
 		groupBounds,
 		plotIndex,
 		plotPosition,
@@ -122,6 +129,7 @@
 	/** @type {CapitalGridProps} */
 	let {
 		plots,
+		shape = BASIC_SHAPE,
 		biome = 'mountain',
 		terrainSeed = 0,
 		pieces = [],
@@ -132,7 +140,7 @@
 		targets = [],
 		preview = null,
 		fresh = [],
-		label = `Capital city, ${GRID_SIZE} by ${GRID_SIZE} plots`,
+		label = `Capital city, ${shape.rows} by ${shape.cols} plots`,
 		onCapitalGridPlotClick,
 		onCapitalGridDrop,
 		onCapitalGridMove,
@@ -164,41 +172,63 @@
 	let locked = $derived(
 		withPieces(
 			plots,
-			pieces.filter((piece) => piece.locked)
+			pieces.filter((piece) => piece.locked),
+			shape
 		)
 	);
 	/** How many plots the pieces hang over each edge, at most, when room is kept for them. */
 	let reach = $derived(overhangReach(pieces));
-	/** A ninth of the space the grid sits in for each plot of overhang. */
+	/** A column's share of the space the grid sits in for each plot of overhang: plots are square, and margins follow the width. */
 	let margin = $derived(
 		room
 			? [reach.top, reach.right, reach.bottom, reach.left]
-					.map((plots) => `calc(${plots} * 100% / ${GRID_SIZE})`)
+					.map((plots) => `calc(${plots} * 100% / ${shape.cols})`)
 					.join(' ')
 			: undefined
 	);
 	let width = $derived(
 		room
-			? `calc(100% - ${reach.left + reach.right} * 100% / ${GRID_SIZE})`
+			? `calc(100% - ${reach.left + reach.right} * 100% / ${shape.cols})`
 			: undefined
 	);
+	/** The relief's size in pixels, which the plots and gaps line up with (#82, #36). */
+	let pixels = $derived(reliefSize(shape.rows, shape.cols));
+	/** The nine 3×3 districts keep their CSS lines; a mat of another shape draws its district sides (#36). */
+	let squared = $derived(
+		shape.rows === BASIC_SHAPE.rows &&
+			shape.cols === BASIC_SHAPE.cols &&
+			JSON.stringify(shape.districts) ===
+				JSON.stringify(BASIC_SHAPE.districts)
+	);
+	let edges = $derived(squared ? [] : districtEdges(shape));
+	/** A completed group as one rectangle, or plot by plot when it isn't one, as an island or a cloud may not be. */
 	let overlays = $derived(
 		highlight
-			? completedGroups(locked, highlight).map((group) =>
-					groupBounds(group)
-				)
+			? completedGroups(locked, highlight, shape).flatMap((group) => {
+					const bounds = groupBounds(group, shape);
+					return bounds.rows * bounds.cols === group.length
+						? [bounds]
+						: group.map((index) => ({
+								...plotPosition(index, shape),
+								rows: 1,
+								cols: 1,
+							}));
+				})
 			: []
 	);
 	let targeted = $derived(
-		new Set(targets.map((target) => plotIndex(target.row, target.col)))
+		new Set(
+			targets.map((target) => plotIndex(target.row, target.col, shape))
+		)
 	);
 	let previewed = $derived(
-		preview ? plotIndex(preview.row, preview.col) : null
+		preview ? plotIndex(preview.row, preview.col, shape) : null
 	);
 	let freshPlots = $derived(
-		new Set(fresh.map((plot) => plotIndex(plot.row, plot.col)))
+		new Set(fresh.map((plot) => plotIndex(plot.row, plot.col, shape)))
 	);
 	let terrain = $derived(plotTerrain(plots, biome, terrainSeed));
+	let feature = $derived(featureUrl(biome));
 	let relief = $derived(reliefUrl(biome));
 
 	$effect(() => {
@@ -239,7 +269,7 @@
 		}
 		onCapitalGridPlotClick(
 			new ComponentEvent(
-				plotPosition(Number(plot.dataset.plot)),
+				plotPosition(Number(plot.dataset.plot), shape),
 				plot,
 				event
 			)
@@ -266,7 +296,7 @@
 							position.row === row &&
 							position.col === col
 					)
-				: fitsAt(plots, pieces, piece, row, col);
+				: fitsAt(plots, pieces, piece, row, col, shape);
 		}
 	};
 
@@ -310,7 +340,7 @@
 			? null
 			: positions
 				? snapAmong(positions, piece.rotation ?? 0, row, col)
-				: snapPiece(plots, pieces, piece, row, col);
+				: snapPiece(plots, pieces, piece, row, col, shape);
 		if (
 			position &&
 			(position.row !== piece.row || position.col !== piece.col) &&
@@ -370,7 +400,7 @@
 		const { row, col } = event.value;
 		const position = positions
 			? stepAmong(positions, piece, row, col)
-			: stepPiece(plots, pieces, piece, row, col);
+			: stepPiece(plots, pieces, piece, row, col, shape);
 		if (position && typeof onCapitalGridMove === 'function') {
 			onCapitalGridMove(
 				new ComponentEvent(
@@ -389,7 +419,7 @@
 	const pieceRotateHandler = (event, piece) => {
 		const turned = positions
 			? turnAmong(positions, piece)
-			: rotatePiece(plots, pieces, piece);
+			: rotatePiece(plots, pieces, piece, shape);
 		if (turned && typeof onCapitalGridRotate === 'function') {
 			onCapitalGridRotate(
 				new ComponentEvent(
@@ -439,7 +469,7 @@
 	 * @returns {string}
 	 */
 	function targetLabel(index) {
-		const { row, col } = plotPosition(index);
+		const { row, col } = plotPosition(index, shape);
 		return `Place at row ${row + 1}, column ${col + 1}`;
 	}
 
@@ -451,7 +481,7 @@
 	 */
 	function topLeft(event, from) {
 		const first = element?.querySelector('[data-plot="0"]');
-		const next = element?.querySelector(`[data-plot="${GRID_SIZE + 1}"]`);
+		const next = element?.querySelector(`[data-plot="${shape.cols + 1}"]`);
 		if (!first || !next) {
 			return { row: 0, col: 0 };
 		}
@@ -477,7 +507,11 @@
 	class:rg-capital-grid--awaiting={awaitingPlacement}
 	class:rg-capital-grid--drag-target={dragTarget}
 	class:rg-capital-grid--legal-drop={legalDrop}
-	style:--rg-capital-grid-size={GRID_SIZE}
+	class:rg-capital-grid--shaped={!squared}
+	style:--rg-capital-grid-rows={shape.rows}
+	style:--rg-capital-grid-cols={shape.cols}
+	style:--rg-capital-grid-w={pixels.w}
+	style:--rg-capital-grid-h={pixels.h}
 	style:margin
 	style:width
 	onclick={clickHandler}
@@ -517,6 +551,15 @@
 				draggable="false" />
 		{/if}
 	{/snippet}
+	<!-- What the mat prints on its buildable plots (cacti, lily pads, beaches, cloud rims), between the ground and the relief (#132, #36). -->
+	{#if feature}
+		<img
+			class="rg-capital-grid--feature"
+			src={feature}
+			alt=""
+			aria-hidden="true"
+			draggable="false" />
+	{/if}
 	<!-- The mat's impassable plots as one picture over the ground; the plots after it draw their buildings above it. -->
 	{#if relief}
 		<img
@@ -547,8 +590,37 @@
 			</i>
 		{/if}
 	{/each}
+	<!-- The sides between districts of a mat whose districts aren't the nine squares: Cloud City's clouds (#36). -->
+	{#if edges.length > 0}
+		<svg
+			class="rg-capital-grid--districts"
+			viewBox="0 0 {pixels.w} {pixels.h}"
+			preserveAspectRatio="none"
+			aria-hidden="true">
+			{#each edges as edge (`${edge.row}-${edge.col}-${edge.side}`)}
+				{#if edge.side === 'right'}
+					<line
+						x1={edge.col * PITCH + PITCH - 0.5}
+						x2={edge.col * PITCH + PITCH - 0.5}
+						y1={edge.row * PITCH}
+						y2={edge.row * PITCH + PITCH} />
+				{:else}
+					<line
+						x1={edge.col * PITCH}
+						x2={edge.col * PITCH + PITCH}
+						y1={edge.row * PITCH + PITCH - 0.5}
+						y2={edge.row * PITCH + PITCH - 0.5} />
+				{/if}
+			{/each}
+		</svg>
+	{/if}
 	{#each pieces as piece (piece.id)}
-		{@const area = pieceArea(pieceShape(piece), piece.row, piece.col)}
+		{@const area = pieceArea(
+			pieceShape(piece),
+			piece.row,
+			piece.col,
+			shape
+		)}
 		<!-- A piece over the edge (R106) sits on its plots on the grid and reaches past them. -->
 		<div
 			class="rg-capital-grid--piece"
@@ -584,7 +656,7 @@
 					pieceReturnHandler(event, piece)} />
 		</div>
 	{/each}
-	{#each overlays as bounds (`${bounds.row}-${bounds.col}`)}
+	{#each overlays as bounds (`${bounds.row}-${bounds.col}-${bounds.rows}-${bounds.cols}`)}
 		<i
 			class="rg-capital-grid--overlay"
 			aria-hidden="true"
@@ -599,15 +671,17 @@
 		isolation: isolate;
 		display: grid;
 		grid-template-columns: repeat(
-			var(--rg-capital-grid-size),
+			var(--rg-capital-grid-cols),
 			minmax(0, 1fr)
 		);
-		grid-template-rows: repeat(var(--rg-capital-grid-size), minmax(0, 1fr));
-		/* The relief is 296 pixels across: nine plots of 32 and eight gaps of 1. A gap of 1/296 lines the plots up with it (#82). */
-		gap: calc(100% / 296);
+		grid-template-rows: repeat(var(--rg-capital-grid-rows), minmax(0, 1fr));
+		/* The relief is 296 pixels across a basic mat: nine plots of 32 and eight gaps of 1. A gap of one relief pixel lines
+		   the plots up with it (#82), across and down, on a mat of any shape (#36). */
+		column-gap: calc(100% / var(--rg-capital-grid-w));
+		row-gap: calc(100% / var(--rg-capital-grid-h));
 		width: 100%;
 		min-width: 0;
-		aspect-ratio: 1;
+		aspect-ratio: var(--rg-capital-grid-w) / var(--rg-capital-grid-h);
 		padding: var(--space-3);
 		/* Nothing is clipped: a landmark may hang over the edge (R106). */
 		overflow: visible;
@@ -650,6 +724,30 @@
 				)
 				0 66.666% / 100% 1px no-repeat;
 		pointer-events: none;
+	}
+
+	/* A mat whose districts aren't the nine squares draws its own district sides instead (#36). */
+	.rg-capital-grid--shaped::before {
+		content: none;
+	}
+
+	.rg-capital-grid--districts {
+		position: absolute;
+		z-index: 2;
+		top: var(--space-3);
+		left: var(--space-3);
+		width: calc(100% - 2 * var(--space-3));
+		height: calc(100% - 2 * var(--space-3));
+		overflow: visible;
+		pointer-events: none;
+		stroke: var(--bronze);
+		stroke-width: 1px;
+		stroke-dasharray: 5 4;
+		vector-effect: non-scaling-stroke;
+	}
+
+	.rg-capital-grid--districts line {
+		vector-effect: non-scaling-stroke;
 	}
 
 	.rg-capital-grid--awaiting,
@@ -778,7 +876,9 @@
 		z-index: 1;
 	}
 
-	/* Exactly the content box, which the plots span, so its 296 pixels meet theirs. */
+	/* Exactly the content box, which the plots span, so its pixels meet theirs. The features lie under the relief, over
+	   the ground, and a building on a feature's plot clears it as it clears an impassable one (#36). */
+	.rg-capital-grid--feature,
 	.rg-capital-grid--relief {
 		position: absolute;
 		z-index: 1;

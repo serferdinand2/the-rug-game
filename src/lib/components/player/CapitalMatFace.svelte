@@ -1,11 +1,12 @@
-<!-- CapitalMatFace: a capital mat on offer, its name on a card band over its 9×9 grid of plots (#56, #118). -->
+<!-- CapitalMatFace: a capital mat on offer, its name on a card band over its grid of plots (#56, #118), 9×9 or an advanced mat's own shape (#36). -->
 <script module>
 	/**
 	 * Properties of the CapitalMatFace component itself.
 	 * @typedef {Object} CapitalMatFaceOwnProps
 	 * @property {string} name - The mat's name, such as 'Mountain'
-	 * @property {import('../../capital.js').PlotKind[]} plots - Its 81 plots before anything is built, from matPlots()
+	 * @property {import('../../capital.js').PlotKind[]} plots - Its plots before anything is built, from matPlots()
 	 * @property {import('../../ui.js').CapitalBiome} biome - Its terrain, which is its id
+	 * @property {import('../../capital.js').Shape} [shape] - Its rows, columns and districts; the basic 9 × 9 by default (#36)
 	 * @property {number} [terrainSeed=0] - The table's terrain seed, so the mat looks as it will in the Capital tab
 	 */
 
@@ -20,9 +21,17 @@
 
 <script>
 	import CapitalGrid from './CapitalGrid.svelte';
+	import { BASIC_SHAPE } from '../../capital.js';
 
 	/** @type {CapitalMatFaceProps} */
-	let { name, plots, biome, terrainSeed = 0, ...attr } = $props();
+	let {
+		name,
+		plots,
+		biome,
+		shape = BASIC_SHAPE,
+		terrainSeed = 0,
+		...attr
+	} = $props();
 </script>
 
 <!-- A span, so the face can sit in a button. -->
@@ -32,9 +41,10 @@
 	<b class="rg-capital-mat-face--name">{name}</b>
 	<CapitalGrid
 		{plots}
+		{shape}
 		{biome}
 		{terrainSeed}
-		label="{name} capital, 9 by 9 plots" />
+		label="{name} capital, {shape.rows} by {shape.cols} plots" />
 </span>
 
 <style>

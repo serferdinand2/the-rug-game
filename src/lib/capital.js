@@ -182,6 +182,40 @@ export function completedGroups(plots, kind, shape = BASIC_SHAPE) {
 }
 
 /**
+ * Every side between two plots of different districts, as the grid draws the district lines: a plot's right side or
+ * bottom side. A plot in no district, such as the Archipelago's water, draws no line, as the relief shows its coast
+ * (#36).
+ * @param {Shape} shape
+ * @returns {{ row: number, col: number, side: 'right' | 'bottom' }[]}
+ */
+export function districtEdges(shape) {
+	/** @type {number[]} */
+	const district = Array(shape.rows * shape.cols).fill(-1);
+	shape.districts.forEach((group, d) => {
+		for (const index of group) {
+			district[index] = d;
+		}
+	});
+	/** @type {{ row: number, col: number, side: 'right' | 'bottom' }[]} */
+	const edges = [];
+	/** Whether two plots both lie in districts, and in different ones. */
+	const split = (/** @type {number} */ a, /** @type {number} */ b) =>
+		district[a] !== -1 && district[b] !== -1 && district[a] !== district[b];
+	for (let row = 0; row < shape.rows; row++) {
+		for (let col = 0; col < shape.cols; col++) {
+			const here = plotIndex(row, col, shape);
+			if (col + 1 < shape.cols && split(here, here + 1)) {
+				edges.push({ row, col, side: 'right' });
+			}
+			if (row + 1 < shape.rows && split(here, here + shape.cols)) {
+				edges.push({ row, col, side: 'bottom' });
+			}
+		}
+	}
+	return edges;
+}
+
+/**
  * The rectangle a group covers, in plots.
  * @param {readonly number[]} group
  * @param {Shape} [shape]
