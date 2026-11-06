@@ -18,7 +18,16 @@ import {
 } from '../src/lib/engine/data/landmarks.js';
 import { FOOTPRINTS } from '../src/lib/art/footprints.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
-import { newGame, readyTurn, resolveTapestry } from './helpers/engine.mjs';
+import { DECISIONS } from '../src/lib/engine/kinds.js';
+import { play } from '../src/lib/engine/play.js';
+import { advances } from '../src/lib/engine/decisions/choose-advance.js';
+import {
+	answer,
+	newGame,
+	placeAll,
+	readyTurn,
+	resolveTapestry,
+} from './helpers/engine.mjs';
 import { checkState } from './helpers/invariants.mjs';
 
 const AA = { expansions: ['aa'] };
@@ -263,4 +272,162 @@ test('Dystopia may take an arts-track landmark (03 §2.2)', () => {
 	const [decision] = openDecisions(next);
 	assert.equal(decision.kind, 'chooseLandmark');
 	assert.deepEqual([...decision.options].sort(), [...ARTS_LANDMARKS].sort());
+});
+
+/**
+ * Advances the current player of a 2-player A&A game onto an arts space from the space before it, holding 2 of each
+ * resource, paying the first way the engine offers; `fill` changes their seat (and the state) first.
+ * @param {number} space
+ * @param {(seat: any, state: any) => void} [fill]
+ */
+function ontoArts(space, fill = () => {}) {
+	const ready = readyTurn(
+		2,
+		(seat, state) => {
+			seat.tracks.arts = [space - 1];
+			seat.resources = { coin: 2, worker: 2, food: 2, culture: 2 };
+			fill(seat, state);
+		},
+		AA
+	);
+	const { random, player } = ready;
+	const chosen = answer(ready.state, random, player, 'chooseTurn', {
+		turn: 'advance',
+	});
+	const [decision] = openDecisions(chosen);
+	const move = DECISIONS.chooseAdvance
+		.answers(chosen, decision)
+		.find((a) => a.track === 'arts' && a.from === space - 1);
+	assert.ok(move, `an advance onto arts ${space}`);
+	const state = play(
+		chosen,
+		player,
+		{ decision: decision.id, ...move },
+		random
+	);
+	return { state, random, player, seat: state.seats[player - 1] };
+}
+
+/** @param {{ state: any }} result */
+const kinds = ({ state }) => openDecisions(state).map((d) => d.kind);
+
+/**
+ * Answers the open decision of a kind for the player who advanced.
+ * @param {any} r - Changed: its state becomes the new one
+ * @param {string} kind
+ * @param {Record<string, any>} reply
+ */
+function reply(r, kind, reply) {
+	r.state = answer(r.state, r.random, r.player, kind, reply);
+	r.seat = r.state.seats[r.player - 1];
+	return r;
+}
+
+/** @param {any} r - Changed: every open placement is answered */
+function place(r) {
+	r.state = placeAll(r.state, r.random);
+	r.seat = r.state.seats[r.player - 1];
+	return r;
+}
+
+test('the advance turn offers the arts track at its tier price', () => {
+	const { state, player } = readyTurn(
+		2,
+		(seat) => {
+			seat.tracks.arts = [3];
+			seat.resources = { coin: 1, worker: 1, food: 0, culture: 0 };
+		},
+		AA
+	);
+	assert.deepEqual(
+		advances(state, player).filter((a) => a.track === 'arts'),
+		[{ track: 'arts', from: 3, cost: { different: 2 } }]
+	);
+	const poor = readyTurn(
+		2,
+		(seat) => {
+			seat.tracks.arts = [3];
+			seat.resources = { coin: 2, worker: 0, food: 0, culture: 0 };
+		},
+		AA
+	);
+	assert.ok(
+		!advances(poor.state, poor.player).some((a) => a.track === 'arts')
+	);
+});
+
+test('a game without the arts track never offers it', () => {
+	const { state, player } = readyTurn(2, (seat) => {
+		seat.resources = { coin: 2, worker: 2, food: 2, culture: 2 };
+	});
+	assert.ok(advances(state, player).length > 0);
+	assert.ok(!advances(state, player).some((a) => a.track === 'arts'));
+});
+
+test('arts 1 Cave Paintings: a tapestry card', () => {
+	const r = ontoArts(1);
+	assert.deepEqual(r.seat.tracks.arts, [1]);
+	assert.equal(r.seat.hand.length, 1);
+	checkState(r.state);
+});
+
+test('arts 2 Flutes: 5 VP; the bonus pays 1 any for an income building of your choice', () => {
+	const r = ontoArts(2);
+	assert.equal(r.seat.vp, 5);
+	reply(r, 'chooseBonus', { pay: { coin: 1 } });
+	assert.deepEqual(kinds(r), ['chooseOption']);
+	reply(r, 'chooseOption', { option: 0 });
+	assert.equal(r.seat.incomeMat.buildings.market, 4);
+});
+
+test('the first player into arts tier II takes the Clock Tower before the benefit, then Epic Poetry scores', () => {
+	const r = ontoArts(4, (seat, state) => {
+		seat.territoryTiles = state.supply.territory.splice(0, 2);
+		seat.tech.bottom = state.supply.tech.deck.splice(0, 1);
+	});
+	const landmarks = openDecisions(r.state)
+		.filter((d) => d.kind === 'choosePlacement' && d.landmark)
+		.map((d) => d.landmark);
+	assert.deepEqual(landmarks, ['clock-tower']);
+	assert.ok(!r.state.landmarks.includes('clock-tower'));
+	assert.equal(r.seat.vp, 0, 'the benefit waits for the landmark');
+	place(r);
+	assert.equal(r.seat.vp, 3, '2 territory tiles and 1 tech card');
+	checkState(r.state);
+});
+
+test('arts 9 Flash Mob: advance on one of the four board tracks, never the arts track (R118)', () => {
+	const r = ontoArts(9);
+	const [move] = openDecisions(r.state).filter(
+		(d) => d.kind === 'chooseMove'
+	);
+	assert.deepEqual(
+		[...new Set(move.options.map((/** @type {any} */ o) => o.track))],
+		BOARD
+	);
+});
+
+test('arts 10 Holocenter: the Holocenter, an income building, then 1 VP per income building (R71)', () => {
+	const r = ontoArts(10, (seat) => {
+		seat.incomeMat.buildings.house = 3;
+	});
+	const landmarks = openDecisions(r.state)
+		.filter((d) => d.kind === 'choosePlacement' && d.landmark)
+		.map((d) => d.landmark);
+	assert.deepEqual(landmarks, ['holocenter']);
+	place(r);
+	reply(r, 'chooseOption', { option: 0 });
+	place(r);
+	assert.equal(r.seat.vp, 3, '2 houses and the market just gained');
+});
+
+test('arts 11 Infinite Spectrum Photography: as Flash Mob', () => {
+	const r = ontoArts(11);
+	const [move] = openDecisions(r.state).filter(
+		(d) => d.kind === 'chooseMove'
+	);
+	assert.deepEqual(
+		[...new Set(move.options.map((/** @type {any} */ o) => o.track))],
+		BOARD
+	);
 });

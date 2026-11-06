@@ -5,30 +5,30 @@ import { canPay, checkPayment, pay, payments } from '../payment.js';
 import { moveToken, movableFroms, LAST_SPACE } from '../movement.js';
 import { advanceBlocked } from '../abilities.js';
 import { advanceCost } from '../data/tracks.js';
-import { TRACK_IDS } from '../data/ids.js';
+import { tracksOf } from '../tracks-in-play.js';
 
 /** @typedef {import('../data/ids.js').TrackId} TrackId */
 
 /**
- * Every advance a player could pay for now: each track they aren't blocked on (design §5), each token that isn't
- * at the end, and its tier's price.
+ * Every advance a player could pay for now: each track in play they aren't blocked on (design §5), the arts track
+ * included (#35), each token that isn't at the end, and its tier's price.
  * @param {import('../state.js').State} state
  * @param {number} player
  * @returns {{ track: TrackId, from: number, cost: import('../data/effects.js').Cost }[]}
  */
 export function advances(state, player) {
 	const seat = playerSeat(state, player);
-	return TRACK_IDS.filter(
-		(track) => !advanceBlocked(state, player, track)
-	).flatMap((track) =>
-		movableFroms(seat, track, 'advance')
-			.map((from) => ({
-				track,
-				from,
-				cost: advanceCost(track, from + 1),
-			}))
-			.filter(({ cost }) => canPay(state, player, cost))
-	);
+	return tracksOf(state)
+		.filter((track) => !advanceBlocked(state, player, track))
+		.flatMap((track) =>
+			movableFroms(seat, track, 'advance')
+				.map((from) => ({
+					track,
+					from,
+					cost: advanceCost(track, from + 1),
+				}))
+				.filter(({ cost }) => canPay(state, player, cost))
+		);
 }
 
 /**
@@ -41,7 +41,7 @@ export function advances(state, player) {
  */
 function chosenToken(state, player, answer) {
 	const track = answer.track;
-	if (!TRACK_IDS.includes(track)) {
+	if (!tracksOf(state).includes(track)) {
 		throw new PlayerError('Choose a track to advance on.');
 	}
 	const tokens = playerSeat(state, player).tracks[
