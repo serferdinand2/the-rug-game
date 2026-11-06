@@ -28,7 +28,7 @@ export const LAYOUT = [
  * Each field line's plots in order along the line, ringed or impassable (the impassable ones count as filled).
  * @type {Readonly<Record<string, readonly (readonly [number, number])[]>>}
  */
-const LINES = {
+export const LINES = {
 	A: [
 		[0, 1],
 		[1, 2],
@@ -750,7 +750,7 @@ function blit(mat, tile, ox, oy) {
  * @param {number} gapStart - Pixels to leave clear at the start
  * @param {number} gapEnd - Pixels to leave clear at the end
  */
-function dashed(mat, x0, y0, x1, y1, gapStart, gapEnd) {
+export function dashed(mat, x0, y0, x1, y1, gapStart, gapEnd) {
 	const length = Math.hypot(x1 - x0, y1 - y0);
 	for (let t = gapStart; t < length - gapEnd; t += 1) {
 		if (Math.floor(t / 4) % 2 === 0) {
@@ -763,7 +763,7 @@ function dashed(mat, x0, y0, x1, y1, gapStart, gapEnd) {
 }
 
 /** A teal ring that marks a ringed plot. @param {Canvas} mat @param {number} cx @param {number} cy */
-function ring(mat, cx, cy) {
+export function ring(mat, cx, cy) {
 	for (let y = -9; y <= 9; y++) {
 		for (let x = -9; x <= 9; x++) {
 			const d = Math.hypot(x + 0.5, y + 0.5);

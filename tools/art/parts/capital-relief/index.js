@@ -22,6 +22,12 @@ import { paintSwamp } from './swamp.js';
 import { paintMesa } from './mesa.js';
 import { paintArchipelago } from './archipelago.js';
 import { paintCloudCity } from './cloud-city.js';
+import { paintQuagmire } from './quagmire.js';
+import { paintCityInABottle } from './city-in-a-bottle.js';
+import { paintVeil } from './veil.js';
+import { paintSavanna } from './savanna.js';
+import { paintPolar } from './polar.js';
+import { paintNetherworld } from './netherworld.js';
 import { CAPITAL_GRIDS } from '../capital-terrain.js';
 import { drawFeatures } from '../capital-feature/index.js';
 import { FEATURE_BIOMES } from '../../../../src/lib/art/relief.js';
@@ -82,6 +88,12 @@ export const RELIEF_PAINTERS = Object.freeze({
 	mesa: paintMesa,
 	archipelago: paintArchipelago,
 	'cloud-city': paintCloudCity,
+	quagmire: paintQuagmire,
+	'city-in-a-bottle': paintCityInABottle,
+	veil: paintVeil,
+	savanna: paintSavanna,
+	polar: paintPolar,
+	netherworld: paintNetherworld,
 });
 
 /**

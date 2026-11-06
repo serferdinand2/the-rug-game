@@ -1,11 +1,5 @@
 // Capital terrain for the Quagmire advanced mat (#6): murky bog ground, reeds, black pools and will-o'-the-wisps.
-import {
-	createCanvas,
-	rect,
-	set,
-	line,
-	seededRandom,
-} from '../../painter.js';
+import { createCanvas, rect, set, line, seededRandom } from '../../painter.js';
 import { PALETTE as P } from '../../palette.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
@@ -243,7 +237,7 @@ function pad(c, x, y, flower = false) {
  * @param {boolean} head
  * @param {number} lean
  */
-function reed(c, x, y, h, head, lean) {
+export function reed(c, x, y, h, head, lean) {
 	for (let i = 0; i < h; i++) {
 		set(
 			c,
@@ -374,7 +368,7 @@ function openFeature(c, v, r) {
  * @param {number} cx
  * @param {number} cy
  */
-function wisp(c, cx, cy) {
+export function wisp(c, cx, cy) {
 	const glow = P.quagWispGlow;
 	const halo = P.quagWispHalo;
 	for (let y = -8; y <= 8; y++) {

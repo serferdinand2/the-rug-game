@@ -510,7 +510,7 @@ function obstacle(c, v, r) {
  * Draws a unicorn herd's unicorn over a plot: cream, with a gold horn and an arcane mane.
  * @param {Canvas} c
  */
-function unicorn(c) {
+export function unicorn(c) {
 	ellipse(c, 16, 26, 11, 3, K.goldShade);
 	for (const x of [10, 12, 20, 22]) {
 		rect(c, x, 20, 2, 6, C.cream);

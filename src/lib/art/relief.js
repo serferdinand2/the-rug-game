@@ -1,6 +1,6 @@
 // The geometry shared by the joined relief of a capital mat's impassable plots and its callers.
 
-/** The mats that have relief art: the six base mats (#82), then the Arts & Architecture mats (#132). */
+/** The mats that have relief art: the six base mats (#82), the Arts & Architecture mats (#132), then the Fantasies & Futures mats (#133). */
 export const RELIEF_BIOMES = Object.freeze([
 	'mountain',
 	'forest',
@@ -14,6 +14,12 @@ export const RELIEF_BIOMES = Object.freeze([
 	'mesa',
 	'archipelago',
 	'cloud-city',
+	'quagmire',
+	'city-in-a-bottle',
+	'veil',
+	'savanna',
+	'polar',
+	'netherworld',
 ]);
 
 /**

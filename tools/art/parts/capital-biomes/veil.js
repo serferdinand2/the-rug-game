@@ -158,7 +158,7 @@ function ground(c, r, charmed) {
  * @param {Colour} core
  * @param {Colour} glow
  */
-function sparkle(c, x, y, core, glow) {
+export function sparkle(c, x, y, core, glow) {
 	set(c, x, y, core);
 	set(c, x - 1, y, glow);
 	set(c, x + 1, y, glow);
@@ -573,7 +573,7 @@ function drawVeil(mat) {
  * @param {number} cx
  * @param {number} cy
  */
-function drawIcon(mat, kind, cx, cy) {
+export function drawIcon(mat, kind, cx, cy) {
 	ellipse(mat, cx, cy, 10, 10, C.ink);
 	ellipse(mat, cx, cy, 9, 9, C.floorShade);
 	if (kind === 'tech') {

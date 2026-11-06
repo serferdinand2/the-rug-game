@@ -788,6 +788,32 @@ const CORNER_PIECES = {
 		'dayWaveDeep',
 		'foam',
 	],
+	// The Fantasies & Futures mats (#133), each without its floor's colours.
+	quagmire: [
+		'quagMossLight',
+		'quagReed',
+		'swampReed',
+		'quagReedShade',
+		'quagCattail',
+	],
+	'city-in-a-bottle': [
+		'bottleRockLight',
+		'bottleRock',
+		'bottleRockShade',
+		'bottleOutline',
+	],
+	veil: [
+		'stoneLight',
+		'stone',
+		'stoneMid',
+		'stoneShade',
+		'arcaneLight',
+		'arcane',
+		'ink',
+	],
+	savanna: ['creamLight', 'stoneLight', 'stone', 'stoneMid', 'stoneShade'],
+	polar: ['iceLight', 'ice', 'iceShade', 'iceDeep', 'ink'],
+	netherworld: ['hellRockLight', 'hellRock', 'ink'],
 	'cloud-city': [
 		'white',
 		'creamLight',
@@ -801,6 +827,207 @@ const CORNER_PIECES = {
 		'pine',
 	],
 };
+
+/**
+ * The colours a relief paints at full opacity, on its own mat or on the specimen.
+ * @param {string} biome
+ * @param {'mat' | 'specimen'} which
+ * @returns {Set<string | null>}
+ */
+function opaqueColours(biome, which) {
+	const { canvas } = relief(biome, which);
+	return new Set(canvas.p.filter((_, i) => opaque(canvas, i)));
+}
+
+test("the Quagmire is scummed bog water with cattails, not the Swamp's dead trees (#133)", () => {
+	const colours = opaqueColours('quagmire', 'mat');
+	for (const name of ['quagWater', 'quagSlime', 'quagCattail', 'quagPeat']) {
+		assert.ok(colours.has(PALETTE[name]), name);
+	}
+	for (const name of ['creamShade', 'plasterShade', 'swampWaterDeep']) {
+		assert.ok(!colours.has(PALETTE[name]), name);
+	}
+});
+
+test("a wisp floats over each of the Quagmire's wisp plots, and over no other plot (#133)", () => {
+	for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+		const { fp, canvas } = relief('quagmire', which);
+		const wisps = dataOf('quagmire', which).wisps ?? [];
+		const layout = layoutOf('quagmire', which);
+		for (let r = 0; r < layout.length; r++) {
+			for (let c = 0; c < layout[0].length; c++) {
+				let glow = 0;
+				for (let y = 0; y < 32; y++) {
+					for (let x = 0; x < 32; x++) {
+						const i = (r * 33 + y) * fp.w + c * 33 + x;
+						if (
+							opaque(canvas, i) &&
+							(canvas.p[i] === PALETTE.quagWispHalo ||
+								canvas.p[i] === PALETTE.ghostLight)
+						) {
+							glow++;
+						}
+					}
+				}
+				const wisp = wisps.some(([wr, wc]) => wr === r && wc === c);
+				assert.equal(
+					glow > 20,
+					wisp,
+					`${which} plot ${r},${c}: ${glow}`
+				);
+			}
+		}
+	}
+});
+
+test("City in a Bottle's reefs are seabed rock, coral and sea glass (#133)", () => {
+	for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+		const colours = opaqueColours('city-in-a-bottle', which);
+		for (const name of [
+			'bottleRock',
+			'bottleCoral',
+			'bottleCoralLight',
+			'bottleGlass',
+		]) {
+			assert.ok(colours.has(PALETTE[name]), `${which}: ${name}`);
+		}
+	}
+	assert.deepEqual(
+		[
+			relief('city-in-a-bottle', 'mat').fp.w,
+			relief('city-in-a-bottle', 'mat').fp.h,
+		],
+		[197, 197]
+	);
+});
+
+test("the Veil's worldly side is boulders and bramble, its charmed side crystals and toadstools, and neither crosses the veil (#133)", () => {
+	const WORLDLY_ONLY = [
+		'stoneLight',
+		'stone',
+		'stoneMid',
+		'pineLight',
+		'brickRed',
+	];
+	const CHARMED_ONLY = ['arcaneLight', 'arcane', 'ghostLight'];
+	for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+		const { fp, canvas } = relief('veil', which);
+		const sides = /** @type {readonly string[]} */ (
+			dataOf('veil', which).sides
+		);
+		/** @type {Record<string, Set<string | null>>} */
+		const seen = { 0: new Set(), 1: new Set() };
+		for (let i = 0; i < canvas.p.length; i++) {
+			if (opaque(canvas, i)) {
+				const side =
+					sides[Math.floor(((i / fp.w) | 0) / 33)][
+						Math.floor((i % fp.w) / 33)
+					];
+				seen[side].add(canvas.p[i]);
+			}
+		}
+		for (const name of CHARMED_ONLY) {
+			assert.ok(
+				!seen[0].has(PALETTE[name]),
+				`${which}: ${name} on the worldly side`
+			);
+			assert.ok(
+				seen[1].has(PALETTE[name]),
+				`${which}: ${name} on the charmed side`
+			);
+		}
+		for (const name of WORLDLY_ONLY) {
+			assert.ok(
+				!seen[1].has(PALETTE[name]),
+				`${which}: ${name} on the charmed side`
+			);
+		}
+		assert.ok(
+			seen[0].has(PALETTE.stoneLight),
+			`${which}: worldly boulders`
+		);
+	}
+});
+
+test("no rock or tree stands on a Savanna herd's plot, which is a clearing of dry grass (#133)", () => {
+	const ROCK_AND_TREE = [
+		'creamLight',
+		'stoneLight',
+		'stone',
+		'stoneMid',
+		'pine',
+		'pineLight',
+	].map((name) => PALETTE[name]);
+	for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+		const { fp, canvas } = relief('savanna', which);
+		const herds = dataOf('savanna', which).herds ?? [];
+		assert.ok(herds.length > 0);
+		for (const [r, c] of herds) {
+			let grass = 0;
+			for (let y = 0; y < 32; y++) {
+				for (let x = 0; x < 32; x++) {
+					const i = (r * 33 + y) * fp.w + c * 33 + x;
+					assert.ok(
+						!ROCK_AND_TREE.includes(canvas.p[i]),
+						`${which} herd ${r},${c}: ${x},${y}`
+					);
+					grass += canvas.p[i] === PALETTE.savannaDryBlade ? 1 : 0;
+				}
+			}
+			assert.ok(grass > 20, `${which} herd ${r},${c}: ${grass} blades`);
+		}
+	}
+	const colours = opaqueColours('savanna', 'mat');
+	assert.ok(colours.has(PALETTE.stoneLight), 'granite');
+	assert.ok(colours.has(PALETTE.pine), 'acacias');
+});
+
+test("Polar is the Mountain's ridges in ice: the same shape, with no grey rock left (#133)", () => {
+	for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+		const polar = relief('polar', which).canvas;
+		const mountain = paint(layoutOf('polar', which), 'mountain').canvas;
+		assert.deepEqual(
+			polar.p.map((c) => c !== null),
+			mountain.p.map((c) => c !== null),
+			which
+		);
+		assert.deepEqual(polar.alpha, mountain.alpha, which);
+		const colours = opaqueColours('polar', which);
+		for (const name of [
+			'stoneLight',
+			'stone',
+			'stoneMid',
+			'stoneShade',
+			'roofShade',
+			'alpineMeadow',
+		]) {
+			assert.ok(!colours.has(PALETTE[name]), `${which}: ${name}`);
+		}
+		for (const name of ['white', 'iceLight', 'ice', 'iceShade']) {
+			assert.ok(colours.has(PALETTE[name]), `${which}: ${name}`);
+		}
+	}
+});
+
+test('the Netherworld is basalt crags round glowing lava, away from the edge of each group (#133)', () => {
+	for (const which of /** @type {const} */ (['mat', 'specimen'])) {
+		const { fp, canvas } = relief('netherworld', which);
+		const depth = distanceInside(fp.mask, fp.w, fp.h);
+		let lava = 0;
+		for (let i = 0; i < canvas.p.length; i++) {
+			if (canvas.p[i] === PALETTE.lava || canvas.p[i] === PALETTE.amber) {
+				lava++;
+			}
+			// Only the pool paints amber; a shadow may turn a glowing stone to lava anywhere.
+			if (canvas.p[i] === PALETTE.amber) {
+				assert.ok(depth[i] > 4, `${which}: lava at the edge, ${i}`);
+			}
+		}
+		assert.ok(lava > 50, `${which}: ${lava} lava pixels`);
+		const colours = opaqueColours('netherworld', which);
+		assert.ok(colours.has(PALETTE.hellRockLight), `${which}: lit basalt`);
+	}
+});
 
 /**
  * How many opaque pixels of the given colours each corner join shows outside the floor's footprint, within 12 px
@@ -1153,7 +1380,13 @@ function inSideGap(layout, x, y) {
 for (const biome of RELIEF_BIOMES) {
 	test(`${biome}: a preview runs its ground across a group's gaps where the relief leaves them bare`, () => {
 		const { canvas } = relief(biome, 'specimen');
-		const preview = drawReliefPreview(SPECIMEN_LAYOUT, biome);
+		// The same printed data as the relief, which the Veil's and the Savanna's draw from (#133).
+		const preview = drawReliefPreview(
+			SPECIMEN_LAYOUT,
+			biome,
+			0,
+			dataOf(biome, 'specimen')
+		);
 		let bare = 0;
 		for (let y = 0; y < preview.h; y++) {
 			for (let x = 0; x < preview.w; x++) {

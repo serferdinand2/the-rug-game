@@ -112,11 +112,15 @@ test("a capital relief is shown as its preview on the mat's ground, 296×296 (#8
 	assert.deepEqual({ w: picture.w, h: picture.h }, { w: 296, h: 296 });
 });
 
-test('RELIEF_SPECIMENS has one specimen per relief biome, named for its mat (#132)', async () => {
+test('RELIEF_SPECIMENS has one specimen per relief biome, named for its mat (#132, #133)', async () => {
 	const { RELIEF_BIOMES } = await import('../src/lib/art/relief.js');
 	const labels = art.RELIEF_SPECIMENS.map((specimen) => specimen.label);
-	assert.equal(labels.length, 12);
-	assert.equal(RELIEF_BIOMES.length, 12);
+	assert.equal(labels.length, 18);
+	assert.equal(RELIEF_BIOMES.length, 18);
+	assert.ok(
+		labels.some((label) => label.startsWith('City in a Bottle:')),
+		labels.join(' | ')
+	);
 	assert.ok(
 		labels.some((label) => label.startsWith('Cloud City:')),
 		labels.join(' | ')

@@ -665,7 +665,7 @@ function blit(mat, tile, ox, oy) {
 }
 
 /** One imp, about 12×15 pixels, standing on a plot. @param {Canvas} mat @param {number} cx @param {number} cy */
-function drawImp(mat, cx, cy) {
+export function drawImp(mat, cx, cy) {
 	const x = cx - 6;
 	const y = cy - 8;
 	// Tail and shadow.
@@ -698,7 +698,7 @@ function drawImp(mat, cx, cy) {
 }
 
 /** The city-centre marker: a gold ring around a small tower. @param {Canvas} mat @param {number} cx @param {number} cy */
-function drawCentre(mat, cx, cy) {
+export function drawCentre(mat, cx, cy) {
 	for (let y = -12; y <= 12; y++) {
 		for (let x = -12; x <= 12; x++) {
 			const d = Math.hypot(x + 0.5, y + 0.5);
