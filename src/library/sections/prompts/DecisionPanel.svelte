@@ -1,4 +1,4 @@
-<!-- Library section: DecisionPanel, the decision prompt over the shared area, with its scrim, content and Confirm, at the tracks' centre with any shelf of cards above it (#79), or docked beside the map, and a prompt opened again (#175). -->
+<!-- Library section: DecisionPanel, the decision prompt over the shared area, with its scrim, content and Confirm, at the tracks' centre with any shelf of cards above it (#79), or docked beside the map, with no scrim for a choice on the tracks (#172), and a prompt opened again (#175). -->
 <script>
 	import Button from '../../../lib/components/ui/Button.svelte';
 	import DecisionOption from '../../../lib/components/prompts/DecisionOption.svelte';
@@ -332,6 +332,17 @@
 						pressed />
 				</div>
 			</DecisionPanel>
+		</div>
+	</Example>
+	<Example
+		label={'clickThrough  (a choice on the tracks, #172: no scrim, the panel stays at their centre, and the lit spaces around it take the click)'}
+		wide
+		width={1100}>
+		<div class="rg-library-decision-stage">
+			<DecisionPanel
+				title="Choose a neighbour's track space"
+				status="Ana's Herbalism on Science: gain a House"
+				clickThrough />
 		</div>
 	</Example>
 	<Example

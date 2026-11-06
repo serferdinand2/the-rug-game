@@ -1,4 +1,4 @@
-<!-- The decision prompt over the shared area: a dark scrim, and at the tracks' centre the panel with its title, content and Confirm, under an optional shelf of cards; the scrim fades in, the panel rises into place (or slides in from the right, docked) and a new question refreshes it (#175). -->
+<!-- The decision prompt over the shared area: a dark scrim (none for a choice on the tracks, #172), and at the tracks' centre the panel with its title, content and Confirm, under an optional shelf of cards; the scrim fades in, the panel rises into place (or slides in from the right, docked) and a new question refreshes it (#175). -->
 <script module>
 	/**
 	 * Properties of the DecisionPanel component itself.
@@ -11,6 +11,7 @@
 	 * @property {import('../../ui.js').TrackId | null} [track=null] - The track that tints the bottom bar and border, as the mockup's --track
 	 * @property {'default' | 'income'} [tone='default'] - income: the title, border and step strip in gold, for the viewer's income turn
 	 * @property {boolean} [docked=false] - The board under it stays clickable: no scrim, and a narrow panel docked at the right instead of at the tracks' centre, for a choice on the map; its content scrolls, so the title and Confirm stay in sight. It is --docked-panel-width wide and --docked-panel-inset in from the right, for the board beside it to keep free
+	 * @property {boolean} [clickThrough=false] - The board around it stays clickable at the tracks' centre: no scrim, and only the panel and its shelf take the pointer, for a choice on the tracks (#172, owner)
 	 * @property {boolean} [narrow=false] - The panel is --narrow-panel-width wide, as a pick of several resources, cards or tiles is (#75); otherwise as wide as its content, 480 to 900 px
 	 * @property {import('svelte').Snippet} [steps] - The income steps, between the title and the content
 	 * @property {string} [cancelLabel] - Shows a cancel button with this text, such as 'Cancel'; left out, there is none
@@ -54,6 +55,7 @@
 		track = null,
 		tone = 'default',
 		docked = false,
+		clickThrough = false,
 		narrow = false,
 		statusWarn = false,
 		steps,
@@ -137,6 +139,7 @@
 	{...attr}
 	class="rg-decision-panel {attr.class ? attr.class : ''}"
 	class:rg-decision-panel--docked={docked}
+	class:rg-decision-panel--click-through={clickThrough}
 	class:rg-decision-panel--narrow={narrow}
 	style:--rg-decision-panel-track={tint}
 	style:--rg-decision-panel-gap="{SHELF_GAP}px">
@@ -410,6 +413,18 @@
 	.rg-decision-panel--income .rg-decision-panel--bottom {
 		background: var(--surface);
 		box-shadow: none;
+	}
+
+	/* A choice on the tracks leaves the board around the panel clickable, the panel staying at their centre (issue 172,
+	   owner): no scrim, and only the panel and its shelf take the pointer, so a lit space beside them takes the click. */
+	.rg-decision-panel--click-through {
+		background: transparent;
+		pointer-events: none;
+	}
+
+	.rg-decision-panel--click-through .rg-decision-panel--shelf,
+	.rg-decision-panel--click-through .rg-decision-panel--panel {
+		pointer-events: auto;
 	}
 
 	/* A choice on the map leaves the board clickable: no scrim, only the panel takes the pointer, docked at the

@@ -137,6 +137,7 @@ Rulings the owner made along the way. Each issue's design document records its o
 
 - Don't duplicate the art (owner, 2026-10-29): a base mat's only picture is its relief, and only the expansion mats keep a full example SVG (`capital-mat/<biome>`), until #132 and #133 draw their reliefs.
 - A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82).
+- A choice made on lit spaces of the tracks keeps its panel at the tracks' centre with no scrim, and the board around it takes the click; it doesn't dock as a map choice does (owner, 2026-11-06, #172).
 - **Decided 2026-10-29:**
   - Refactors go in the milestone M13 · Refactor, not M12, each with one area label: `Words and names`, `Cards`, `Track board`, `Players and scoring`, `Capital and map`, `Game screen` or `Lobby`. M12 keeps the cosmetic work. The owner asked for M13's Words and names issues before M6, starting with #123 (owner).
   - Solo play and the expansions wait for the refactors they build on, as GitHub blocked-by links (owner):

@@ -230,6 +230,11 @@ export class PromptState {
 	isMap = $derived((this.prompt?.mapHexes.length ?? 0) > 0);
 	/** A choice on the tracks (#172): the board should show them. */
 	isTrack = $derived(this.prompt?.layout === 'track');
+	/**
+	 * The board around the panel takes the click (#172): a choice on the tracks keeps the panel at their centre with no
+	 * scrim, so the lit spaces around it can be clicked (owner, 2026-11-06), rather than docking as a map choice does.
+	 */
+	clickThrough = $derived(this.isTrack);
 	/** The spaces lit on the tracks, and the one chosen. */
 	trackTargets = $derived(this.prompt?.trackSpaces ?? []);
 	trackSelected = $derived.by(() => {

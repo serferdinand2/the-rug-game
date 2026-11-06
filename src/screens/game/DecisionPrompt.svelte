@@ -321,6 +321,7 @@
 	<DecisionPanel
 		{...attr}
 		docked={state.docked}
+		clickThrough={state.clickThrough}
 		{narrow}
 		title={prompt.title}
 		track={prompt.track}

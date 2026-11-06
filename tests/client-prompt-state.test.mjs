@@ -502,6 +502,17 @@ test("an advance's payment can't be minimized: its Cancel goes back to the board
 	assert.equal(prompt.panel, 'panel');
 });
 
+test('a choice not made on the tracks keeps its scrim over the board (#172)', () => {
+	const { game, decision } = decisionOf({
+		kind: 'chooseResource',
+		count: 1,
+		from: 'any',
+	});
+	const prompt = new PromptState(promptSource({ game, decision }));
+	assert.equal(prompt.isTrack, false);
+	assert.equal(prompt.clickThrough, false);
+});
+
 test('with no decision open, there is nothing to minimize (#149)', () => {
 	const { game } = decisionOf({
 		kind: 'chooseResource',
@@ -525,6 +536,10 @@ test("the Spies' space is chosen on a lit space of the tracks, and Confirm sends
 	const source = promptSource({ game, decision });
 	const prompt = new PromptState(source);
 	assert.equal(prompt.isTrack, true);
+	// The owner's call (2026-11-06): the panel stays at the tracks' centre with no scrim, and the lit spaces around
+	// it take the click; it doesn't dock as a choice on the map does.
+	assert.equal(prompt.clickThrough, true);
+	assert.equal(prompt.docked, false);
 	assert.deepEqual(prompt.trackTargets, [
 		{ track: 'science', space: 4 },
 		{ track: 'military', space: 6 },
