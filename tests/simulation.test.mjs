@@ -41,7 +41,7 @@ function setting(name, fallback) {
 function nameOf(index) {
 	const { seed, players, version, policy, variants, expansions } =
 		gameOf(index);
-	return `game ${seed}: ${players} players, ${version}, ${policy} play, ${variants.length > 0 ? 'all' : 'no'} variants${expansions.length > 0 ? ', Plans & Ploys' : ''}`;
+	return `game ${seed}: ${players} players, ${version}, ${policy} play, ${variants.length > 0 ? 'all' : 'no'} variants${expansions.includes('pp') ? ', Plans & Ploys' : ''}${expansions.includes('aa') ? ', Arts & Architecture' : ''}`;
 }
 
 /**

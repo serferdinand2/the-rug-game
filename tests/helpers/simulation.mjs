@@ -17,7 +17,7 @@ import { allOps, checkViews, setupFacts } from './views.mjs';
  * @property {'original' | 'current'} version
  * @property {'random' | 'busy'} policy - `busy` takes an offered advance turn 85% of the time
  * @property {string[]} variants - Every variant, or none (#53)
- * @property {string[]} expansions - Plans & Ploys, or none (#32)
+ * @property {string[]} expansions - Plans & Ploys (#32), Arts & Architecture (#36), both or none
  */
 /** @typedef {(state: State, before: State | null, facts: SetupFacts) => void} Check - `before` is null right after createGame() */
 
@@ -37,17 +37,22 @@ const NAMES = ['Ana', 'Bo', 'Cy', 'Dee', 'Eli'];
  * version, so each of the 20 combinations gets 10 of the 200 games. Every other 20 games play with every variant on,
  * so each combination gets 5 games with them and 5 without (#53). Every other 40 games play with Plans & Ploys, so 2
  * of each combination's 5 do (#32). The Plans & Ploys civilizations variant joins them only with the expansion (#33).
+ * Every other 80 games play with Arts & Architecture's advanced mats (#36): games 80–119 alone, 120–159 with Plans &
+ * Ploys too.
  * @param {number} index - From 0
  * @returns {Game}
  */
 export function gameOf(index) {
 	const players = 1 + (index % 5);
-	const expansions = Math.floor(index / 40) % 2 === 1 ? ['pp'] : [];
+	const expansions = [
+		...(Math.floor(index / 40) % 2 === 1 ? ['pp'] : []),
+		...(Math.floor(index / 80) % 2 === 1 ? ['aa'] : []),
+	];
 	// "All civilizations from Plans & Ploys" needs the expansion.
 	const variants =
 		Math.floor(index / 20) % 2 === 1
 			? VARIANTS.filter(
-					(v) => v.id !== 'civs-from-pp' || expansions.length > 0
+					(v) => v.id !== 'civs-from-pp' || expansions.includes('pp')
 				).map((v) => v.id)
 			: [];
 	return {
@@ -154,7 +159,8 @@ export function simulate(index, { check = checkAll } = {}) {
 		throw new Error(
 			`seed ${game.seed}, ${game.players} players, ${game.version}, ${game.policy} play, ` +
 				`${game.variants.length > 0 ? 'all' : 'no'} variants, ` +
-				`${game.expansions.length > 0 ? 'Plans & Ploys, ' : ''}` +
+				`${game.expansions.includes('pp') ? 'Plans & Ploys, ' : ''}` +
+				`${game.expansions.includes('aa') ? 'Arts & Architecture, ' : ''}` +
 				`action ${actions} (${kind}): ${failure.message}\n` +
 				`Replay: SIM_SEED=${game.seed} npx vitest run tests/simulation.test.mjs`,
 			{ cause: failure }
