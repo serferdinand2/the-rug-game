@@ -433,6 +433,23 @@ test('every event of random games reads well in every seat’s view, and a secre
 	}
 });
 
+test('an Arts & Architecture deal names the advanced mat beside the basic ones (#36)', () => {
+	assert.equal(
+		eventText(
+			{ type: 'capitalDealt', player: 1, options: [2, 4], advanced: 10 },
+			GAME
+		),
+		'Ana was dealt the Wetland and Desert capitals, and the advanced Cloud City, to choose from.'
+	);
+	assert.equal(
+		eventText(
+			{ type: 'capitalDealt', player: 2, options: [5], advanced: 7 },
+			GAME
+		),
+		'Bo was dealt the Grassland capital, and the advanced Archipelago, to choose from.'
+	);
+});
+
 test('a secret is named for its owner and kept from everyone else', () => {
 	const drawn = sample('cardsDrawn');
 	assert.equal(eventText(drawn, GAME), 'Ana drew Militarism.');

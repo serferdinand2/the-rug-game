@@ -1,5 +1,5 @@
 // Words for the engine's events, for the table log (#29 design §5): one plain sentence for each event worth reading.
-import { CAPITAL_MATS } from './engine/data/capitals.js';
+import { ADVANCED_MATS, CAPITAL_MATS } from './engine/data/capitals.js';
 import { BLACK_DIE, RED_DIE, SCIENCE_DIE } from './engine/data/dice.js';
 import { VERSIONS } from './engine/game.js';
 import { RESOURCE_CAP } from './engine/effects/gain.js';
@@ -154,7 +154,10 @@ function civWords(id) {
  * @returns {string | null}
  */
 function capitalName(number) {
-	return CAPITAL_MATS.find((m) => m.number === number)?.name ?? null;
+	return (
+		[...CAPITAL_MATS, ...ADVANCED_MATS].find((m) => m.number === number)
+			?.name ?? null
+	);
 }
 
 /**
@@ -356,7 +359,11 @@ const WORDS = {
 				return `${name} was dealt capital mats to choose from.`;
 			}
 			const noun = mats.length === 1 ? 'capital' : 'capitals';
-			return `${name} was dealt the ${joinList(mats)} ${noun} to choose from.`;
+			// With Arts & Architecture, the advanced mat dealt beside them (#36).
+			const advanced = capitalName(e.advanced);
+			return advanced
+				? `${name} was dealt the ${joinList(mats)} ${noun}, and the advanced ${advanced}, to choose from.`
+				: `${name} was dealt the ${joinList(mats)} ${noun} to choose from.`;
 		}
 		const mat = capitalName(e.capital);
 		return mat

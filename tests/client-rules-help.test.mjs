@@ -226,7 +226,10 @@ test("Plans & Ploys has its own section, shown only with the expansion, with the
 	assert.equal(pp.expansion, 'pp');
 	assert.ok(
 		RULES_HELP.every(
-			(s) => s.expansion === undefined || s.expansion === 'pp'
+			(s) =>
+				s.expansion === undefined ||
+				s.expansion === 'pp' ||
+				s.expansion === 'aa'
 		)
 	);
 	assert.deepEqual(
@@ -249,6 +252,27 @@ test("Plans & Ploys has its own section, shown only with the expansion, with the
 		text,
 		/Plans & Ploys' civilizations show their full text when you point at a player's chip\./
 	);
+});
+
+test("Arts & Architecture's advanced mats have their own section, shown only with the expansion, each mat's rule in it (#36)", async () => {
+	const { rulesSections } = await import('../src/lib/rules-help.js');
+	assert.equal(section('advanced-mats').expansion, 'aa');
+	assert.ok(!rulesSections([]).some((s) => s.id === 'advanced-mats'));
+	assert.ok(rulesSections(['aa']).some((s) => s.id === 'advanced-mats'));
+	const text = lines('advanced-mats').join(' ');
+	for (const name of [
+		'Archipelago',
+		'Canyon',
+		'Cavern',
+		'Cloud City',
+		'Mesa',
+		'Swamp',
+	]) {
+		assert.match(text, new RegExp(`${name}:`), name);
+	}
+	assert.match(text, /together with one of your two civilizations/);
+	assert.match(text, /2 VP for each lily pad still showing/);
+	assert.match(text, /Riverfolk/);
 });
 
 test("Plans & Ploys' response cards have their own section, shown only with the expansion, with the counter to a trap (#33)", async () => {

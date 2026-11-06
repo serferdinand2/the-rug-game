@@ -226,6 +226,27 @@ export const RULES_HELP = deepFreeze([
 			},
 		],
 	},
+	// #36; 03 §2 "Advanced capital city mats", R49–R52, R120–R123.
+	{
+		id: 'advanced-mats',
+		title: 'Advanced capital mats',
+		expansion: 'aa',
+		blocks: [
+			{
+				text: 'With Arts & Architecture, you are also dealt an advanced capital mat, face up, and keep one mat together with one of your two civilizations. You start where your basic mat says.',
+			},
+			{
+				list: [
+					'Archipelago: 11 rows; each island is a district, and the water between them is impassable.',
+					'Canyon: a cactus becomes impassable once all 8 plots around it are filled, landmarks included.',
+					'Cavern: build in a lower district only once the one above is complete. A complete row scores 2 VP in the top six rows, 3 VP in the bottom three; columns score nothing.',
+					'Cloud City: each cloud is a district. At the start of income turns 2 to 5, you may move up to 2 income buildings out of clouds that are not complete. Under the current rules, not with the Riverfolk.',
+					'Mesa: landmarks must lie wholly inside your city.',
+					'Swamp: lily pads count as filled and may be built on. At the start of your final income turn, lose 2 VP for each lily pad still showing.',
+				],
+			},
+		],
+	},
 	// #33; 03 §1.2, §1.4, R45. The other new cards' rules are on the cards themselves.
 	{
 		id: 'response-cards',
