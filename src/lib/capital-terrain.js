@@ -45,6 +45,37 @@ export function featureUrl(biome) {
 const EMPTY_KINDS = new Set(['empty', 'lily', 'blocked']);
 
 /**
+ * Whether a Canyon cactus is surrounded: all 8 plots around it filled, so it is impassable on its own (R122). A cactus
+ * blocked but not surrounded holds an Architects cube.
+ * @param {readonly import('./capital.js').PlotKind[]} plots
+ * @param {number} rows
+ * @param {number} cols
+ * @param {number} index
+ * @returns {boolean}
+ */
+function surrounded(plots, rows, cols, index) {
+	const row = Math.floor(index / cols);
+	const col = index % cols;
+	for (let dy = -1; dy <= 1; dy++) {
+		for (let dx = -1; dx <= 1; dx++) {
+			const r = row + dy;
+			const c = col + dx;
+			if (
+				(dy !== 0 || dx !== 0) &&
+				r >= 0 &&
+				r < rows &&
+				c >= 0 &&
+				c < cols &&
+				plots[r * cols + c] === 'empty'
+			) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+/**
  * What every plot of a capital shows.
  * @param {import('./capital.js').PlotKind[]} plots - All plots, row by row
  * @param {string} biome
@@ -55,6 +86,8 @@ export function plotTerrain(plots, biome, seed) {
 	const mat = [...CAPITAL_MATS, ...ADVANCED_MATS].find((m) => m.id === biome);
 	const grid = mat ? mat.grid.join('') : null;
 	const districts = mat?.districts?.join('') ?? null;
+	const rows = mat?.grid.length ?? 0;
+	const cols = mat?.grid[0].length ?? 0;
 	const hasRelief = reliefUrl(biome) !== null;
 	return plots.map((kind, i) => {
 		const symbol = grid?.[i];
@@ -76,8 +109,13 @@ export function plotTerrain(plots, biome, seed) {
 			cleared:
 				(printed && !blocked && hasRelief) ||
 				((symbol === 'L' || symbol === 'C') && covered),
-			// A surrounded Canyon cactus is blocked but no cube (R122).
-			cube: blocked && (grid ? symbol === '0' : !printed),
+			// A surrounded Canyon cactus is blocked but no cube (R122); one blocked before it is surrounded holds a cube.
+			cube:
+				blocked &&
+				(grid
+					? symbol === '0' ||
+						(symbol === 'C' && !surrounded(plots, rows, cols, i))
+					: !printed),
 		};
 	});
 }

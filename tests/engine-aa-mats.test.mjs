@@ -354,6 +354,36 @@ test('R122: on the Canyon, a cactus is an open plot until all 8 neighbours are f
 	assert.ok(seatImpassable(seat).includes(10));
 });
 
+test('R122: a landmark that covers a cactus while surrounding it covered an open plot, not an impassable one', () => {
+	const { state, random, seat } = onMat(8);
+	// The cactus at (1, 7), plot 16: five of its neighbours hold farms, and the Lighthouse at (1, 7) covers it and
+	// the other three. The cactus was a regular plot when it was covered (03 §2 Canyon).
+	farms(seat, [
+		[0, 6],
+		[0, 7],
+		[0, 8],
+		[1, 6],
+		[2, 6],
+	]);
+	seat.civs = ['riverfolk'];
+	seat.civData.riverfolk = { cleared: [] };
+	assert.ok(!seatImpassable(seat).includes(16));
+	const ctx = contextFor(state, random, state.pending);
+	placePiece(
+		ctx,
+		1,
+		{ landmark: 'lighthouse', row: 1, col: 7, rotation: 0 },
+		false
+	);
+	// Once covered and surrounded it counts as impassable, but covering it cleared nothing for the Riverfolk: the
+	// district reward waits as the only operation, with no riverfolkClear behind it.
+	assert.ok(seatImpassable(seat).includes(16));
+	assert.deepEqual(
+		state.pending.map((op) => op.kind),
+		['effects']
+	);
+});
+
 test('R52: on the Swamp, lily pads count as filled and may be built on', () => {
 	const { state, random, seat } = onMat(12);
 	// Plot 2 is the lily pad at row 0, column 2, in district 0.

@@ -40,14 +40,16 @@ export function buildsOverImpassable(state, player) {
 }
 
 /**
- * How many impassable plots a piece covers, the mat's and the Architects' cubes: none unless buildsOverImpassable.
+ * How many impassable plots a piece covers, the mat's, the Architects' cubes and the Canyon's surrounded cacti: none
+ * unless buildsOverImpassable. Counted against the plots impassable before the piece landed: a cactus the piece
+ * itself surrounds while covering it was a regular plot when covered (03 §2 Canyon; R122).
  * @param {import('./state.js').PlayerSeat} seat
  * @param {import('./city.js').PlacedBuilding | import('./city.js').PlacedLandmark} piece
+ * @param {readonly number[]} impassable - seatImpassable() before the piece was placed
  * @returns {number}
  */
-function impassableCovered(seat, piece) {
+function impassableCovered(seat, piece, impassable) {
 	const shape = seatShape(seat);
-	const impassable = seatImpassable(seat);
 	const cells = 'building' in piece ? [piece] : landmarkCells(piece);
 	return cells.filter(
 		({ row, col }) =>
@@ -69,6 +71,7 @@ export function placePiece(ctx, player, piece, automatic) {
 	const seat = playerSeat(ctx.state, player);
 	const shape = seatShape(seat);
 	const before = completeDistricts(cityPlots(seat), shape);
+	const impassableBefore = seatImpassable(seat);
 	if ('building' in piece) {
 		seat.capital.buildings.push({
 			building: piece.building,
@@ -101,7 +104,7 @@ export function placePiece(ctx, player, piece, automatic) {
 		});
 	}
 	const ops = payDistricts(ctx, player, before);
-	const impassable = impassableCovered(seat, piece);
+	const impassable = impassableCovered(seat, piece, impassableBefore);
 	ops.push(
 		...triggered(
 			ctx.state,

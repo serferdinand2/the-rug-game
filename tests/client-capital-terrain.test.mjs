@@ -76,10 +76,15 @@ test('an A&A mat draws its own open ground on every plot (#36)', () => {
 	}
 });
 
-test('a surrounded Canyon cactus is no cube, and a building hides a lily pad or a cactus (#36)', () => {
+test('a surrounded Canyon cactus is no cube, an unsurrounded blocked one is a cube, and a building hides a lily pad or a cactus (#36)', () => {
 	const canyon = matPlots(8);
-	// Plot 10 is the cactus at (1, 1).
+	// Plot 10 is the cactus at (1, 1). Blocked with an empty neighbour, it can only hold an Architects cube.
 	canyon[10] = 'blocked';
+	assert.equal(plotTerrain(canyon, 'canyon', 3)[10].cube, true);
+	// With all 8 neighbours filled it is surrounded: impassable on its own, so no cube is drawn.
+	for (const index of [0, 1, 2, 9, 11, 18, 19, 20]) {
+		canyon[index] = 'farm';
+	}
 	assert.equal(plotTerrain(canyon, 'canyon', 3)[10].cube, false);
 	canyon[10] = 'farm';
 	assert.equal(plotTerrain(canyon, 'canyon', 3)[10].cleared, true);
