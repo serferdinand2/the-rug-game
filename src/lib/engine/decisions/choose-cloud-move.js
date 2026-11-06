@@ -121,11 +121,20 @@ export const chooseCloudMove = {
 		if (answer.stop === true) {
 			return;
 		}
+		// The building is named, so the Capital tab can preview it where it may go (#36).
+		const seat = playerSeat(
+			ctx.state,
+			/** @type {number} */ (decision.player)
+		);
+		const moving = seat.capital.buildings.find(
+			(b) => b.row === answer.row && b.col === answer.col
+		);
 		ctx.push([
 			{
 				player: decision.player,
 				kind: 'chooseCloudPlot',
 				from: { row: answer.row, col: answer.col },
+				building: moving?.building,
 				left: decision.left,
 			},
 		]);

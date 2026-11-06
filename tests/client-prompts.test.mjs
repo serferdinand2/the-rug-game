@@ -1264,6 +1264,39 @@ test('R120: under the current rules, Cloud City and the Riverfolk grey each othe
 	});
 });
 
+test("Cloud City's moves are chosen on the capital, and Don't move in the panel (#36)", () => {
+	const move = /** @type {any} */ ({
+		id: 9,
+		player: 1,
+		kind: 'chooseCloudMove',
+		left: 2,
+		answers: [{ stop: true }, { row: 0, col: 0 }],
+	});
+	const prompt = promptFor(move, null, 1);
+	assert.deepEqual(
+		prompt?.options.map((o) => [o.place, o.label]),
+		[
+			['panel', "Don't move"],
+			['capital', 'Move the building at row 1, column 1'],
+		]
+	);
+	assert.deepEqual(prompt?.options[1].plot, {
+		row: 0,
+		col: 0,
+		rotation: null,
+	});
+	const to = /** @type {any} */ ({
+		id: 10,
+		player: 1,
+		kind: 'chooseCloudPlot',
+		from: { row: 0, col: 0 },
+		building: 'farm',
+		left: 2,
+		answers: [{ row: 4, col: 4 }],
+	});
+	assert.equal(promptFor(to, null, 1)?.options[0].place, 'capital');
+});
+
 test('an advanced mat on the shelf has its own shape (#36)', () => {
 	const face = /** @type {any} */ (shelfFace('mat', '7'));
 	assert.equal(face.name, 'Archipelago');

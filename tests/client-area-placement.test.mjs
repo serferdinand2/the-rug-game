@@ -213,6 +213,36 @@ test('landingIndex centres a clicked plot and keeps a placed landmark turned', (
 	);
 });
 
+test("Cloud City's move lights the buildings that may move and previews nothing; where it goes previews the building (#36)", () => {
+	const capital = { pieces: [] };
+	const fresh = { plots: [], landmarks: [] };
+	const move = capitalPlacement(
+		capital,
+		{
+			piece: { move: true },
+			options: [at(1, 0, 0, null), at(2, 0, 3, null)],
+			picked: 1,
+		},
+		fresh
+	);
+	assert.equal(move.move, true);
+	assert.deepEqual(move.targets, [
+		{ row: 0, col: 0, index: 1 },
+		{ row: 0, col: 3, index: 2 },
+	]);
+	assert.equal(move.preview, null);
+	const to = capitalPlacement(
+		capital,
+		{
+			piece: { building: 'farm' },
+			options: [at(0, 4, 4, null)],
+			picked: 0,
+		},
+		fresh
+	);
+	assert.deepEqual(to.preview, { row: 4, col: 4, building: 'farm' });
+});
+
 test('capitalPlacement derives building preview and empty landmark state', () => {
 	const capital = { pieces: [] };
 	const fresh = { plots: [], landmarks: [] };
@@ -242,6 +272,7 @@ test('capitalPlacement derives building preview and empty landmark state', () =>
 	assert.deepEqual(capitalPlacement(capital, null, fresh), {
 		building: null,
 		cube: false,
+		move: false,
 		landmark: null,
 		picked: null,
 		targets: [],

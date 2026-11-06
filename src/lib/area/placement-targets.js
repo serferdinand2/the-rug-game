@@ -15,7 +15,7 @@ import { landmarkName } from '../game-names.js';
 /**
  * A building or landmark placement decision from the game view.
  * @typedef {Object} PlacementPrompt
- * @property {{ building?: string, landmark?: string, cube?: boolean }} piece - What is placed: a building, a landmark or an Architects cube
+ * @property {{ building?: string, landmark?: string, cube?: boolean, move?: boolean }} piece - What is placed: a building, a landmark or an Architects cube; or `move`, Cloud City's building to move (#36)
  * @property {PlacementOption[]} options
  * @property {number | null} picked
  */
@@ -32,6 +32,7 @@ import { landmarkName } from '../game-names.js';
  * @typedef {Object} CapitalPlacementView
  * @property {string | null} building
  * @property {boolean} cube - An Architects cube is being placed (#168)
+ * @property {boolean} move - Cloud City's building to move is being chosen (#36)
  * @property {PlaceablePiece | null} landmark
  * @property {OptionPlot | null} picked
  * @property {{ row: number, col: number, index: number }[]} targets
@@ -121,8 +122,12 @@ export function capitalPlacement(capital, placement, fresh) {
 			(option) => option.plot && option.index === placement?.picked
 		)?.plot ?? null;
 	const cube = placement?.piece.cube === true;
+	// Cloud City's building to move: its plots light, and nothing is previewed (#36).
+	const move = placement?.piece.move === true;
 	const targets =
-		(building || cube) && placement ? plotTargets(placement.options) : [];
+		(building || cube || move) && placement
+			? plotTargets(placement.options)
+			: [];
 	const positions =
 		landmark && placement ? landmarkPositions(placement.options) : null;
 	const preview =
@@ -151,6 +156,7 @@ export function capitalPlacement(capital, placement, fresh) {
 	return {
 		building,
 		cube,
+		move,
 		landmark,
 		picked,
 		targets,

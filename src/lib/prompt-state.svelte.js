@@ -552,7 +552,8 @@ export class PromptState {
 	);
 	/** The cards on the shelf above the panel, for a card decision. */
 	shelfCards = $derived(shelfCardsOf(this.prompt, this.decision));
-	/** A building, landmark or Architects cube to place on the capital, from the Capital tab. */
+	/** A building, landmark or Architects cube to place on the capital, from the Capital tab; or Cloud City's building to
+	 * move, then the building moved, previewed where it may go (#36). */
 	placement = $derived(
 		this.prompt &&
 			this.decision &&
@@ -562,7 +563,9 @@ export class PromptState {
 						? { landmark: this.decision.landmark }
 						: this.decision.kind === 'chooseCube'
 							? { cube: true }
-							: { building: this.decision.building },
+							: this.decision.kind === 'chooseCloudMove'
+								? { move: true }
+								: { building: this.decision.building },
 					options: this.prompt.options.filter(
 						(o) => o.place === 'capital'
 					),

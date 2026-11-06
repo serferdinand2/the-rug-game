@@ -534,6 +534,8 @@ test('R121: Cloud City may move up to 2 income buildings, one at a time, at the 
 	const answers = DECISIONS.chooseCloudMove.answers(game.state, first);
 	assert.deepEqual(answers, [{ stop: true }, { row: 0, col: 0 }]);
 	answerAsked(game, 'chooseCloudMove', { row: 0, col: 0 });
+	// The destination's decision names the building, so the Capital tab can preview it.
+	assert.equal(asked(game, 'chooseCloudPlot')?.building, 'farm');
 	// Not within cloud 1, which holds rows 0–1, columns 0–2: the destination is in another cloud.
 	const where = DECISIONS.chooseCloudPlot.answers(
 		game.state,

@@ -333,9 +333,12 @@ function placeOf(decision, answer, game) {
 	if (trackSpaceOf(decision, answer)) {
 		return 'track';
 	}
+	// A gained piece's plot, an Architects cube's, and Cloud City's moves: the building, then where it goes (#36).
 	if (
 		(decision.kind === 'choosePlacement' ||
-			decision.kind === 'chooseCube') &&
+			decision.kind === 'chooseCube' ||
+			decision.kind === 'chooseCloudMove' ||
+			decision.kind === 'chooseCloudPlot') &&
 		typeof answer.row === 'number'
 	) {
 		return 'capital';
