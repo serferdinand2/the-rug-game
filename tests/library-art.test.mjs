@@ -195,10 +195,6 @@ test('every picture has a placeholder its size before it is drawn, as npm run ar
 		w: 32,
 		h: 32,
 	});
-	assert.deepEqual(art.pictureSize('capital-mat/archipelago'), {
-		w: 288,
-		h: 352,
-	});
 	// An advanced mat's relief, still to be drawn, will be its mat's size, as npm run art requires.
 	assert.deepEqual(art.pictureSize('capital-relief/mesa'), {
 		w: 296,

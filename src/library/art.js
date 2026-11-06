@@ -23,7 +23,6 @@ import {
 	drawingCanvas,
 	gallerySections,
 } from '../../tools/art/gallery.js';
-import { BIOMES } from '../../tools/art/parts/capital-biomes/index.js';
 import { SPACE, SPACES } from '../../tools/art/parts/inspiration-tile.js';
 import {
 	SPECIMEN_DATA,
@@ -47,9 +46,6 @@ export function artDescription(section) {
 	}
 	if (section.id === 'terrain') {
 		return 'Five owner-reviewed terrain hex markers at native 24×24. These are card/map terrain symbols, separate from the capital biome tile solutions.';
-	}
-	if (section.id === 'capital-mat') {
-		return 'The Fantasies & Futures mats as example compositions only: each lays its buildable and impassable tiles on its printed layout, with what only the mat draws, until #133 draws its relief. A base or Arts & Architecture mat has no example here: its relief preview under Capital relief is that picture (#132). The game composes each mat from its tiles.';
 	}
 	if (section.id === 'capital-relief') {
 		return `${section.total} reliefs, ${section.drawn} drawn. Each mat's impassable plots are one relief, drawn from its printed layout over the mat's per-plot ground. Each preview shows the relief on that ground, and the specimens show every kind of join. The owner approves each batch here. Source issue #${section.issues.join(', #')}.`;
@@ -227,8 +223,8 @@ function boardSize(side) {
 
 /**
  * An asset's picture size before it is drawn: a landmark is its footprint at 32 pixels per plot, a
- * capital terrain tile one plot, a relief 32-pixel plots with 1-pixel gaps on its mat's layout, an
- * advanced mat 32-pixel plots on its layout, a map board its hexes, a hex overlay its own size, a territory
+ * capital terrain tile one plot, a relief, a features picture and an overlay 32-pixel plots with 1-pixel gaps on
+ * its mat's layout, a map board its hexes, a hex overlay its own size, a territory
  * picture a 64×56 hex, an inspiration tile its six spaces, an outpost 128×128 and any other piece or
  * icon its native size, and any other illustration 64×64. Its placeholder takes that room, so nothing
  * on the page moves when it is drawn; tests/library-art.test.mjs checks each against npm run art.
@@ -254,16 +250,8 @@ export function pictureSize(id) {
 		const layout = matLayout(slug);
 		return layout ? reliefSize(layout.length, layout[0].length) : null;
 	}
-	if (group === 'capital-relief' || group === 'capital-mat') {
-		const advanced = Object.hasOwn(BIOMES, slug)
-			? BIOMES[slug].LAYOUT
-			: undefined;
-		// An advanced mat lays its plots edge to edge; a relief leaves a 1-pixel gap between them.
-		if (group === 'capital-mat') {
-			return advanced
-				? { w: advanced[0].length * PLOT, h: advanced.length * PLOT }
-				: null;
-		}
+	if (group === 'capital-relief') {
+		// A relief leaves a 1-pixel gap between its 32-pixel plots.
 		const layout = matLayout(slug);
 		return layout ? reliefSize(layout.length, layout[0].length) : null;
 	}

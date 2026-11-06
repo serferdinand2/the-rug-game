@@ -1,7 +1,7 @@
-// Netherworld 32×32 capital plot, buildable variant 1.
-import { drawBiomeTile } from '../../parts/capital-biomes/netherworld.js';
+// Reviewed 32×32 Netherworld capital plot, buildable variant 1: natural ground, its scorched rock (#133).
+import { drawTile } from '../../parts/capital-terrain.js';
 
 /** Draws this fixed plot variant. @returns {import('../../painter.js').Canvas} */
 export function draw() {
-	return drawBiomeTile(false, 0);
+	return drawTile('netherworld', 0);
 }

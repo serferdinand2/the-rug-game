@@ -1,7 +1,7 @@
-// Reviewed 32×32 City in a Bottle capital plot, open variant 3.
-import { drawBiomeTile } from '../../parts/capital-biomes/city-in-a-bottle.js';
+// Reviewed 32×32 City in a Bottle capital plot, buildable variant 3: natural ground, its seabed sand (#133).
+import { drawTile } from '../../parts/capital-terrain.js';
 
 /** Draws this fixed plot variant. @returns {import('../../painter.js').Canvas} */
 export function draw() {
-	return drawBiomeTile(false, 2);
+	return drawTile('city-in-a-bottle', 2);
 }

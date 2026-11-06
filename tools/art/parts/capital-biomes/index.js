@@ -1,5 +1,5 @@
-// The advanced capital biomes (#6): each module holds its printed layout and features; the Fantasies & Futures ones
-// still draw their 32×32 plots and example mats, while the Arts & Architecture mats have reliefs (#132).
+// The advanced capital biomes (#6): each module holds its printed layout, data and features, and the sprites of what
+// it prints; every advanced mat has a relief (#132, #133).
 import * as archipelago from './archipelago.js';
 import * as canyon from './canyon.js';
 import * as cavern from './cavern.js';
@@ -17,12 +17,12 @@ import * as netherworld from './netherworld.js';
  * A tile variant that carries printed meaning, so it may not be picked at random.
  * @typedef {Object} BiomeSpecialVariants
  * @property {boolean} blocked - Whether these are impassable variants (otherwise open ones)
- * @property {readonly number[]} variants - 0-based variant indexes, as `drawBiomeTile` takes them
+ * @property {readonly number[]} variants - 0-based variant indexes
  * @property {string} meaning - What they mean and where they belong
  */
 
 /**
- * A feature only the example mat draws, not a plot's tile.
+ * A printed feature that a picture of its own draws, not a plot's tile.
  * @typedef {Object} BiomeMatFeature
  * @property {string} name - What it is
  * @property {string} where - Where it sits and what it is drawn from
@@ -33,17 +33,14 @@ import * as netherworld from './netherworld.js';
  * @typedef {Object} BiomeFeatures
  * @property {{ open: readonly number[], blocked: readonly number[] }} pools - The ordinary variants, safe to pick at random on any plot
  * @property {readonly BiomeSpecialVariants[]} special - The variants that carry printed meaning
- * @property {readonly BiomeMatFeature[]} matOnly - What only the example mat draws
+ * @property {readonly BiomeMatFeature[]} matOnly - Each printed feature and the picture that draws it
  */
 
 /**
  * One advanced biome's drawing module.
  * @typedef {Object} BiomeModule
  * @property {readonly string[]} LAYOUT - The printed layout, one string per row: '.' open, 'X' impassable
- * @property {(blocked: boolean, variant: number) => import('../../painter.js').Canvas} [drawBiomeTile] - One 32×32 plot;
- *   only the Fantasies & Futures biomes keep their own tiles, until #133 draws their reliefs
- * @property {() => import('../../painter.js').Canvas} [drawBiomeMat] - The example mat, likewise
- * @property {BiomeFeatures} FEATURES - Which variants are ordinary, which are special, and what only the mat draws
+ * @property {BiomeFeatures} FEATURES - Which variants are ordinary, which are special, and which picture draws each printed feature
  */
 
 /**

@@ -1,7 +1,7 @@
-// Reviewed 32×32 Quagmire capital plot, open variant 8.
-import { drawBiomeTile } from '../../parts/capital-biomes/quagmire.js';
+// Reviewed 32×32 Quagmire capital plot, buildable variant 8: natural ground, its bog (#133).
+import { drawTile } from '../../parts/capital-terrain.js';
 
 /** Draws this fixed plot variant. @returns {import('../../painter.js').Canvas} */
 export function draw() {
-	return drawBiomeTile(false, 7);
+	return drawTile('quagmire', 7);
 }

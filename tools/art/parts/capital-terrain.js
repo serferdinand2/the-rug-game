@@ -1,17 +1,20 @@
-// The base and Arts & Architecture mats' terrain: each biome's 32px buildable plots; base layouts from
-// research/01-base-core-rules.md §6.2. The impassable plots have no tiles of their own: each mat's relief draws
-// them (#82, #132, tools/art/parts/capital-relief/).
+// Every capital mat's terrain: each biome's 32px buildable plots; base layouts from research/01-base-core-rules.md
+// §6.2. The impassable plots have no tiles of their own: each mat's relief draws them (#82, #132, #133,
+// tools/art/parts/capital-relief/).
 import { createCanvas } from '../painter.js';
 import { CAPITAL_MATS } from '../../../src/lib/engine/data/capitals.js';
 import { drawNaturalGround } from '../../../src/lib/art/paint/relief/ground.js';
 /** @typedef {'mountain' | 'wetland' | 'tropical' | 'desert' | 'grassland' | 'forest'} Biome */
 /**
- * A natural ground a buildable tile is drawn in: a base biome's, an Arts & Architecture biome's, or one of
- * Cloud City's four tints (#132).
- * @typedef {Biome | 'archipelago' | 'canyon' | 'cavern' | 'mesa' | 'swamp' | 'cloud-city-white' | 'cloud-city-grey' | 'cloud-city-tan' | 'cloud-city-cream'} Ground
+ * A natural ground a buildable tile is drawn in: a base biome's, an Arts & Architecture biome's or one of Cloud
+ * City's four tints (#132), or a Fantasies & Futures biome's, the Veil's per side and the Savanna's in and out of its
+ * districts (#133).
+ * @typedef {Biome | 'archipelago' | 'canyon' | 'cavern' | 'mesa' | 'swamp' | 'cloud-city-white' | 'cloud-city-grey'
+ *   | 'cloud-city-tan' | 'cloud-city-cream' | 'quagmire' | 'city-in-a-bottle' | 'veil-worldly' | 'veil-charmed'
+ *   | 'savanna-grey' | 'savanna-district' | 'polar' | 'netherworld'} Ground
  */
 
-/** The Arts & Architecture grounds (#132), Cloud City's one per cloud tint. */
+/** The expansion mats' grounds: Arts & Architecture's, Cloud City's one per cloud tint (#132), and Fantasies & Futures' (#133). */
 const ADVANCED_GROUNDS = Object.freeze([
 	'archipelago',
 	'canyon',
@@ -22,6 +25,14 @@ const ADVANCED_GROUNDS = Object.freeze([
 	'cloud-city-grey',
 	'cloud-city-tan',
 	'cloud-city-cream',
+	'quagmire',
+	'city-in-a-bottle',
+	'veil-worldly',
+	'veil-charmed',
+	'savanna-grey',
+	'savanna-district',
+	'polar',
+	'netherworld',
 ]);
 /** @typedef {import('../painter.js').Canvas} Canvas */
 
@@ -38,7 +49,7 @@ export const CAPITAL_GRIDS =
 	);
 
 /**
- * Throws unless a ground is a base mat's or an Arts & Architecture mat's.
+ * Throws unless a ground is a base or an expansion mat's.
  * @param {string} biome
  * @throws {Error} When no such mat has that ground.
  */
@@ -56,7 +67,7 @@ function checkBiome(biome) {
  * @param {Ground} biome
  * @param {number} variant - 0 to 7; any other number wraps round
  * @returns {Canvas} A 32×32 plot, the same in every build
- * @throws {Error} When no base or Arts & Architecture mat has that ground.
+ * @throws {Error} When no mat has that ground.
  */
 export function drawTile(biome, variant) {
 	checkBiome(biome);

@@ -1,4 +1,4 @@
-// The base capital terrain: each biome's 8 buildable 32px plots of natural ground and its relief (#82).
+// The capital terrain: each biome's 8 buildable 32px plots of natural ground, a set per ground where it has several, and its relief (#82, #132, #133).
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { createCanvas } from '../tools/art/painter.js';
@@ -75,19 +75,36 @@ test('a base mat has no example picture: its relief preview in the library is th
 	);
 });
 
-/** The Arts & Architecture biomes (#132), and their ground tiles' names, Cloud City's by tint. */
+/** The expansion biomes (#132, #133), and their ground tiles' names: Cloud City's by tint, the Veil's by side, the Savanna's in and out of its districts. */
 const AA = ['archipelago', 'canyon', 'cavern', 'cloud-city', 'mesa', 'swamp'];
+const FF = [
+	'quagmire',
+	'city-in-a-bottle',
+	'veil',
+	'savanna',
+	'polar',
+	'netherworld',
+];
 const TINTS = ['white', 'grey', 'tan', 'cream'];
+/** @type {Record<string, string[]>} */
+const SPLIT = {
+	'cloud-city': TINTS,
+	veil: ['worldly', 'charmed'],
+	savanna: ['grey', 'district'],
+};
 
-test('every Arts & Architecture biome has a relief, so none keeps impassable tiles or an example of its own', async () => {
+test('every expansion biome has a relief, so none keeps impassable tiles or an example of its own (#132, #133)', async () => {
 	const ids = await listDrawingIds();
 	const two = (/** @type {number} */ n) => String(n).padStart(2, '0');
-	for (const biome of AA) {
+	assert.ok(
+		!ids.some((id) => id.startsWith('capital-mat/')),
+		'no example mats'
+	);
+	for (const biome of [...AA, ...FF]) {
 		assert.ok(RELIEF_BIOMES.includes(biome), biome);
-		const grounds =
-			biome === 'cloud-city'
-				? TINTS.map((t) => `${biome}-${t}`)
-				: [biome];
+		const grounds = SPLIT[biome]
+			? SPLIT[biome].map((g) => `${biome}-${g}`)
+			: [biome];
 		assert.deepEqual(
 			ids
 				.filter((id) => id.startsWith(`capital-terrain/${biome}-`))
@@ -103,13 +120,32 @@ test('every Arts & Architecture biome has a relief, so none keeps impassable til
 			biome
 		);
 		assert.ok(
-			!ids.includes(`capital-mat/${biome}`),
-			`capital-mat/${biome}`
-		);
-		assert.ok(
 			!ASSETS.some((asset) => asset.id === `capital-mat/${biome}`),
 			biome
 		);
+	}
+});
+
+test("the Fantasies & Futures mats' buildable plots are their natural ground, the Veil's and the Savanna's two each (#133)", () => {
+	for (const ground of [
+		'quagmire',
+		'city-in-a-bottle',
+		'veil-worldly',
+		'veil-charmed',
+		'savanna-grey',
+		'savanna-district',
+		'polar',
+		'netherworld',
+	]) {
+		const seen = new Set();
+		for (let variant = 0; variant < OPEN_VARIANTS; variant++) {
+			const tile = drawTile(/** @type {any} */ (ground), variant);
+			const natural = createCanvas(32, 32);
+			drawNaturalGround(natural, { biome: ground, variant });
+			assert.deepEqual(tile, natural, `${ground} ${variant}`);
+			seen.add(tile.p.join());
+		}
+		assert.equal(seen.size, OPEN_VARIANTS, ground);
 	}
 });
 

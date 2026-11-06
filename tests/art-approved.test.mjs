@@ -7,23 +7,17 @@ import { createHash } from 'node:crypto';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import { listDrawingIds, renderAsset } from '../tools/art/build.mjs';
 
-test('the 6 Fantasies & Futures capital mats and the two map boards are explicitly marked as example compositions', () => {
+test('the two map boards are explicitly marked as example compositions', () => {
 	assert.deepEqual(
 		ASSETS.filter((asset) => asset.example)
 			.map((asset) => asset.id)
 			.sort(),
-		[
-			...ASSETS.filter((asset) => asset.group === 'capital-mat').map(
-				(asset) => asset.id
-			),
-			'board/map-large',
-			'board/map-small',
-		].sort()
+		['board/map-large', 'board/map-small']
 	);
-	// The Arts & Architecture examples retired with their reliefs (#132).
+	// Every capital mat's example retired with its relief (#82, #132, #133).
 	assert.equal(
-		ASSETS.filter((asset) => asset.group === 'capital-mat').length,
-		6
+		ASSETS.filter((asset) => asset.id.startsWith('capital-mat/')).length,
+		0
 	);
 });
 
@@ -33,14 +27,14 @@ test('SVG round trips retain different alpha values for the same color', () => {
 	assert.equal(toSvg(fromSvg(svg)), svg);
 });
 
-test('all 232 released SVGs match the reviewed artwork and have stable catalog ids', async () => {
+test('all 308 released SVGs match the reviewed artwork and have stable catalog ids', async () => {
 	const manifest = JSON.parse(
 		await readFile(
 			new URL('../docs/art/approved-assets.json', import.meta.url),
 			'utf8'
 		)
 	);
-	assert.equal(manifest.length, 232);
+	assert.equal(manifest.length, 308);
 	for (const { id, width, height, sha256 } of manifest) {
 		assert.ok(
 			ASSETS.some((asset) => asset.id === id),

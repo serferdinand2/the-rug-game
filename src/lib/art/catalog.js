@@ -93,7 +93,6 @@ export const GROUPS = Object.freeze(
 			kind: 'board',
 			issue: 6,
 		},
-		{ id: 'capital-mat', label: 'Capital mats', kind: 'board', issue: 6 },
 		{
 			id: 'capital-terrain',
 			label: 'Capital terrain tiles',
@@ -168,52 +167,28 @@ function numbered(count, label) {
 	]);
 }
 
-/**
- * A Fantasies & Futures biome's 14 terrain tiles: 8 buildable and 6 impassable variants (#6), until #133 draws their
- * reliefs. The base and Arts & Architecture biomes keep only their buildable tiles, as each mat's relief draws its
- * impassable plots (#82, #132).
- * @param {string} slug - Such as 'polar'
- * @param {string} name - Such as 'Polar'
- * @returns {Entries}
- */
-function biomeTiles(slug, name) {
-	const two = (/** @type {number} */ n) => String(n).padStart(2, '0');
-	return [
-		...Array.from(
-			{ length: 8 },
-			(_, i) =>
-				/** @type {[string, string]} */ ([
-					`${slug}-open-${two(i + 1)}`,
-					`${name} buildable ${i + 1}`,
-				])
-		),
-		...Array.from(
-			{ length: 6 },
-			(_, i) =>
-				/** @type {[string, string]} */ ([
-					`${slug}-blocked-${two(i + 1)}`,
-					`${name} impassable ${i + 1}`,
-				])
-		),
-	];
-}
+/** The expansion mats whose plots have more than one natural ground: Cloud City's four cloud tints (#132), the Veil's two sides and the Savanna's two grounds (#133). */
+const SPLIT_GROUNDS = Object.freeze({
+	'cloud-city': Object.freeze(['white', 'grey', 'tan', 'cream']),
+	veil: Object.freeze(['worldly', 'charmed']),
+	savanna: Object.freeze(['grey', 'district']),
+});
 
 /**
- * An Arts & Architecture biome's 8 buildable tiles of natural ground (#132); Cloud City's 8 in each of its four
- * cloud tints. Their impassable plots are each mat's relief.
+ * An expansion biome's 8 buildable tiles of natural ground (#132, #133), 8 for each of its grounds where it has
+ * several. Their impassable plots are each mat's relief.
  * @param {string} slug - Such as 'cloud-city'
  * @param {string} name - Such as 'Cloud City'
  * @returns {Entries}
  */
 function groundTiles(slug, name) {
 	const two = (/** @type {number} */ n) => String(n).padStart(2, '0');
-	const grounds =
-		slug === 'cloud-city'
-			? ['white', 'grey', 'tan', 'cream'].map((tint) => [
-					`${slug}-${tint}`,
-					`${name} ${tint}`,
-				])
-			: [[slug, name]];
+	const split = /** @type {Readonly<Record<string, readonly string[]>>} */ (
+		SPLIT_GROUNDS
+	)[slug];
+	const grounds = split
+		? split.map((ground) => [`${slug}-${ground}`, `${name} ${ground}`])
+		: [[slug, name]];
 	return grounds.flatMap(([ground, label]) =>
 		Array.from(
 			{ length: 8 },
@@ -250,7 +225,7 @@ const ADVANCED_MATS = {
 };
 
 /** Compositions shown as examples only: the game assembles its own from the tiles (#5, #6). */
-const EXAMPLES = ['capital-mat', 'board/map-small', 'board/map-large'];
+const EXAMPLES = ['board/map-small', 'board/map-large'];
 
 /** @type {Partial<Record<ExpansionCode, Entries>>} */
 const LANDMARKS = {
@@ -734,12 +709,7 @@ const LISTS = {
 	},
 	// Numbered as in 01 Appendix B (R4).
 	'territory-tile': { base: numbered(48, 'Territory tile') },
-	// The Fantasies & Futures mats only, until #133: a base or Arts & Architecture mat's one picture is its relief
-	// preview, so it has no example (owner, 2026-10-29; #132).
-	'capital-mat': {
-		ff: ADVANCED_MATS.ff,
-	},
-	// The base and Arts & Architecture biomes' buildable ground; their impassable plots are each mat's relief (#82, #132).
+	// Every biome's buildable ground; their impassable plots are each mat's relief (#82, #132, #133).
 	'capital-terrain': {
 		base: [
 			['mountain-open-01', 'Mountain buildable 1'],
@@ -792,7 +762,7 @@ const LISTS = {
 			['forest-open-08', 'Forest buildable 8'],
 		],
 		aa: ADVANCED_MATS.aa.flatMap(([slug, name]) => groundTiles(slug, name)),
-		ff: ADVANCED_MATS.ff.flatMap(([slug, name]) => biomeTiles(slug, name)),
+		ff: ADVANCED_MATS.ff.flatMap(([slug, name]) => groundTiles(slug, name)),
 	},
 	// One relief per mat: its impassable plots drawn as one picture (#82; the expansion mats' in #132 and #133).
 	'capital-relief': {

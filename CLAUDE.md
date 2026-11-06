@@ -135,7 +135,7 @@ The design document has the details. In short:
 
 Rulings the owner made along the way. Each issue's design document records its own; these apply across issues.
 
-- Don't duplicate the art (owner, 2026-10-29): a base mat's only picture is its relief, and only the expansion mats keep a full example SVG (`capital-mat/<biome>`), until #132 and #133 draw their reliefs.
+- Don't duplicate the art (owner, 2026-10-29): a mat's only picture is its relief; no mat keeps an example SVG since #132 and #133 drew the expansion reliefs.
 - A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82).
 - A choice made on lit spaces of the tracks keeps its panel at the tracks' centre with no scrim, and the board around it takes the click; it doesn't dock as a map choice does (owner, 2026-11-06, #172).
 - **Decided 2026-10-29:**

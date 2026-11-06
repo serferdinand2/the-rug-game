@@ -7,16 +7,6 @@ import { RELIEF_BIOMES } from '../src/lib/art/relief.js';
 const OPEN_COUNT = 8;
 const BLOCKED_TILES = 6;
 
-/** The Fantasies & Futures mats keep their impassable tiles until the owner approves their reliefs (#133). */
-const AWAITING_APPROVAL = [
-	'quagmire',
-	'city-in-a-bottle',
-	'veil',
-	'savanna',
-	'polar',
-	'netherworld',
-];
-
 /**
  * @param {readonly number[]} variants
  * @param {number} count
@@ -36,11 +26,8 @@ function assertIndexes(variants, count, what) {
 for (const [name, biome] of Object.entries(BIOMES)) {
 	test(`${name} lists valid FEATURES`, () => {
 		const { FEATURES } = biome;
-		// A biome with a relief keeps no impassable tiles of its own (#132), once the owner approves the relief (#133).
-		const BLOCKED_COUNT =
-			RELIEF_BIOMES.includes(name) && !AWAITING_APPROVAL.includes(name)
-				? 0
-				: BLOCKED_TILES;
+		// A biome with a relief keeps no impassable tiles of its own (#132, #133).
+		const BLOCKED_COUNT = RELIEF_BIOMES.includes(name) ? 0 : BLOCKED_TILES;
 		assert.ok(FEATURES, 'has FEATURES');
 		assert.ok(Object.isFrozen(FEATURES), 'frozen');
 		assert.ok(Object.isFrozen(FEATURES.pools));

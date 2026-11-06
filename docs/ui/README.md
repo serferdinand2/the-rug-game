@@ -407,7 +407,7 @@ The arrangement and selection styling are the reference. Labels such as Archipel
 - **No red X** and no flat `--chrome` background on impassable plots (owner, 2026-10-28): the art shows which plots they are.
 - **Changes in play.** A building on an impassable plot (Terraforming) clears the relief on that plot. An Architects' cube is a small piece, `piece/architects-cube`, on its plot's ground.
 - **The grid's gap** is 1/296 of its width, so the plots line up with the relief's pixels.
-- The expansion mats keep their impassable tiles until #132 and #133 draw their reliefs.
+- The expansion mats have reliefs too (#132, #133); the game shows them once their mats are playable (#36, #40).
 
 ### Three horizontal bands
 

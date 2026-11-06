@@ -14,7 +14,7 @@ The script is not run by the build or the tests. The build reuses its ideas and 
 
 The owner's rules from #82 hold **(owner, #82)**: 2.5D, seen from the front and above; a lone plot is one mass, and plots that touch by a side or a corner are one bigger mass; the mass grows out of the ground, with no hard outline at its foot, and small hills on its sides are welcome; a corner-only join may reach into the two buildable plots' corners, as long as it looks natural; no stamped icons or symbols.
 
-What the owner said about the sketches **(owner, 2026-11-06)**: "Polar B is better. Everything else looks okay." That approves the six looks below, with Polar's option B, and the way each printed feature is kept (§3).
+What the owner said about the sketches **(owner, 2026-11-06)**: "Polar B is better. Everything else looks okay." That approves the six looks below, with Polar's option B, and the way each printed feature is kept (§3). Shown the built six in the library the same day, the owner said: "Go ahead and push to main and close the issues", which is the approval of §4 and the release.
 
 ## 2. The six looks
 

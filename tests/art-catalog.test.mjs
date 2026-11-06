@@ -31,8 +31,7 @@ const EXPECTED_COUNTS = {
 	board: { base: 5, ff: 1 },
 	hex: { base: 8 },
 	'territory-tile': { base: 48 },
-	'capital-mat': { ff: 6 }, // a base or Arts & Architecture mat's only picture is its relief (owner, 2026-10-29; #132)
-	'capital-terrain': { base: 48, aa: 72, ff: 84 }, // the base and Arts & Architecture biomes' impassable plots are their reliefs (#82, #132); Cloud City's ground comes in four tints
+	'capital-terrain': { base: 48, aa: 72, ff: 64 }, // every mat's impassable plots are its relief (#82, #132, #133); Cloud City's ground comes in four tints, the Veil's and the Savanna's in two
 	'capital-relief': { base: 6, aa: 6, ff: 6 },
 	'capital-feature': { aa: 4, ff: 1 }, // the cacti, lily ponds, beaches and cloud rims (#132), the Quagmire's reeds (#133)
 	'capital-overlay': { ff: 5 }, // what the Fantasies & Futures mats print over their relief (#133)
@@ -46,7 +45,6 @@ const SLUGGED_GROUPS = [
 	'landmark',
 	'landmark-card',
 	'masterpiece',
-	'capital-mat',
 	'inspiration-tile',
 ];
 
@@ -110,11 +108,11 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 285 icons and 100 boards', () => {
+test('there are 294 illustrations, 265 icons and 94 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
-	assert.equal(count('icon'), 285);
-	assert.equal(count('board'), 100);
+	assert.equal(count('icon'), 265);
+	assert.equal(count('board'), 94);
 });
 
 test('the slug rules turn awkward names into the agreed slugs', () => {
@@ -164,7 +162,12 @@ test('spot checks match the agreed spellings', () => {
 		['die/black-tile-benefit', 'Black die: tile benefit (?)', 'base', 5],
 		['resource-24/any', 'Any resource · 24 px', 'base', 5],
 		['territory-tile/48', 'Territory tile 48', 'base', 6],
-		['capital-mat/city-in-a-bottle', 'City in a Bottle', 'ff', 6],
+		[
+			'capital-terrain/veil-charmed-open-01',
+			'Veil charmed buildable 1',
+			'ff',
+			6,
+		],
 		['space-tile/technology-5-vp', 'Technology 5 VP', 'pp', 11],
 		['board/income-overlay', 'Income-mat overlay [5]', 'ff', 51],
 		['board/map-large', 'Large map (4–5 players)', 'base', 6],

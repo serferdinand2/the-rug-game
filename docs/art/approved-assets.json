@@ -1390,5 +1390,461 @@
     "width": 32,
     "height": 32,
     "sha256": "054acd1878df0b63ef84fa78fd6c164542540695e55a3f5cc36eb1f39baef8b7"
+  },
+  {
+    "id": "capital-terrain/quagmire-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "ab19fdffac2f95abfc69e4ee9c98c041fe033de2aa2b45c88d020790836bcd9c"
+  },
+  {
+    "id": "capital-terrain/quagmire-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "989820bff5261b2780ab3f51d1b3d602927470c562b90f501bf3a4336123379a"
+  },
+  {
+    "id": "capital-terrain/quagmire-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "9403dc6e787e8c6e9e2842b1629f8fc80df8599f50e3c2aac4e4c2c37498f9a1"
+  },
+  {
+    "id": "capital-terrain/quagmire-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "fc12bf4dc3baae948d8ced7f8ca6984a67dc58b81ef9cf80b9858da4d8e053ac"
+  },
+  {
+    "id": "capital-terrain/quagmire-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "99c3522302d5b699b5728d37b3ae4b8ac1f73b3af47c0d107366ef3c0d082b39"
+  },
+  {
+    "id": "capital-terrain/quagmire-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "dafd62e52086747db14b2a506dd0c4e4e591e831a4bfcccf194f44a4fc0fdcd6"
+  },
+  {
+    "id": "capital-terrain/quagmire-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "9f3a37a354eed949b8af3c7c42b48ffd7645f88d76e83877001dc6b1d5ef6a21"
+  },
+  {
+    "id": "capital-terrain/quagmire-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "a35f2c13eb9edbc4ddb48b6dd0b9183ef60f72d17b2ca4494cd40bced74b7fdd"
+  },
+  {
+    "id": "capital-terrain/city-in-a-bottle-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "f943427de243624b08bd44eb958ba500ebfb5736b61f022a4728a1d1fc700e16"
+  },
+  {
+    "id": "capital-terrain/city-in-a-bottle-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "68aa9833dd46470b397c864b486a1e3d2faa84393a9a9d660aa13076eb31c716"
+  },
+  {
+    "id": "capital-terrain/city-in-a-bottle-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "473072b168094adcc7bf314307323f6fb1baa3f305d7541d9d4a14563a73f5a1"
+  },
+  {
+    "id": "capital-terrain/city-in-a-bottle-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "98f2549ceba9fe5f5f779385eccc1791253c73f9536b7e59055c13a18bda0b85"
+  },
+  {
+    "id": "capital-terrain/city-in-a-bottle-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "e8ba8969b0931861d31e7209e104cbc688d1d54b8ad42de8211a6406c8cc882e"
+  },
+  {
+    "id": "capital-terrain/city-in-a-bottle-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "885a3a483417f62cdfd344f5bf3bec3f0d8e4556e3a1e97d4053106ae26e6f2a"
+  },
+  {
+    "id": "capital-terrain/city-in-a-bottle-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "8cc4c3e8f81244836cf21c8ef0de5ac7f2764b34b564c1f23d376de42a1a32f9"
+  },
+  {
+    "id": "capital-terrain/city-in-a-bottle-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "d99ad729fe0855fa00a6ebd0525840f1204c559e1299cd330a944acf6c2d84b3"
+  },
+  {
+    "id": "capital-terrain/veil-worldly-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "a52ab303af25fada4ab1df2b357455b13c5d3c77baf1277a860987edda9281a8"
+  },
+  {
+    "id": "capital-terrain/veil-worldly-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "69da01d9ad078455910cfda25ab88e3a3976e7a1aeb8ee33dea67ee1ab7b3e9c"
+  },
+  {
+    "id": "capital-terrain/veil-worldly-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "1beb9037eb85db19549c68f05378a0ed1edf2f93612571d936979e1c436e21a9"
+  },
+  {
+    "id": "capital-terrain/veil-worldly-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "dc18d89ef6cd928e003de6a30174787650f017ca11f658645e7559dffada3cc7"
+  },
+  {
+    "id": "capital-terrain/veil-worldly-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "e426a2876d0f162c2e7ac4ba95fcbd0f6b8244c54e8b1a64657afbc8717f9d9c"
+  },
+  {
+    "id": "capital-terrain/veil-worldly-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "41685e440c73d5631ece2e82af7626089c7d52702cfa321632e7b103cec74ab6"
+  },
+  {
+    "id": "capital-terrain/veil-worldly-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "a4a44369ae646e69ee8be995ad5248e2ef878275e218ac403779f6092243a447"
+  },
+  {
+    "id": "capital-terrain/veil-worldly-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "c40237994d8c984411372bdf9f8a4ea4a7c04ff970017eba148cf8fefa5cd951"
+  },
+  {
+    "id": "capital-terrain/veil-charmed-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "2c5db3910ce543b0c7bc2d0a4aee112329b4ecc44613380ec6c2f8d8a308d96d"
+  },
+  {
+    "id": "capital-terrain/veil-charmed-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "b3fb19f757f7a94bab521faed25372d5abf55f6d826e95c260877dcf796353fe"
+  },
+  {
+    "id": "capital-terrain/veil-charmed-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "73b7051f7a3d32b4734d0c76bf65fda1916847c2f8d27543375fcc3a02ad4c83"
+  },
+  {
+    "id": "capital-terrain/veil-charmed-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "7f855882a5e9c07ba998ece995eceb6462e8208c0d0f967f2b25a64808958a79"
+  },
+  {
+    "id": "capital-terrain/veil-charmed-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "11fd705b607da3e1a9823f11faf6f9ded07ac5bb732f79d6a29d96c3089adb01"
+  },
+  {
+    "id": "capital-terrain/veil-charmed-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "f856ef4afe9ce734df463366885ba0cd0f3126741247e0f65f0ed34dc97677b9"
+  },
+  {
+    "id": "capital-terrain/veil-charmed-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "d597bb3aa8fc2541c0cc00ac18ac865e260639f9a4c0b8babdd87a5bae6763ff"
+  },
+  {
+    "id": "capital-terrain/veil-charmed-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "3926b57f2438713206e95f3bac79a028ac2a8ca21d8ce3f1abe67a8ea84e5d6d"
+  },
+  {
+    "id": "capital-terrain/savanna-grey-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "fd2901edc856526e5060eede9004f56c41af0441242be97a70fe6ff5e46a163a"
+  },
+  {
+    "id": "capital-terrain/savanna-grey-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "c3ed5ee79404d78bb2976f7b19b7ad00e8d96da1d4584656ec33a3b0e450c36c"
+  },
+  {
+    "id": "capital-terrain/savanna-grey-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "42ffc53b9db7ceabf2205136e0efb45a01f3efaf3e6fad24464fb4c3b3de1a4e"
+  },
+  {
+    "id": "capital-terrain/savanna-grey-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "0f6529245958f665ec92adc150ddd5255df00a3ae4ad0ef9c81d3d9f824f816d"
+  },
+  {
+    "id": "capital-terrain/savanna-grey-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "0ce15b1714cc16ea7c17666e27a19d8d9d10c0f27c462cca843addf238fc9ab9"
+  },
+  {
+    "id": "capital-terrain/savanna-grey-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "2f659a7b9fa700e198d4ebe696e8a9c18f9e4b2e5ab9d7553ebca848a3601f21"
+  },
+  {
+    "id": "capital-terrain/savanna-grey-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "a1b308192e69f9d40694a151fa04a6bbd1284bf820d39941547062fc9befcaf6"
+  },
+  {
+    "id": "capital-terrain/savanna-grey-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "5755ae16a0e5208b273511350e5e05130b6f40611bc352edc645bc4b0009420c"
+  },
+  {
+    "id": "capital-terrain/savanna-district-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "74765aa334e5d04127afffc498c88fde2a77e9a2ac4e3c272004d207f9b7d670"
+  },
+  {
+    "id": "capital-terrain/savanna-district-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "1faef7577ae1b492661af5bf8ae9a07d8404677d11321609347881ab30f2d12b"
+  },
+  {
+    "id": "capital-terrain/savanna-district-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "235b9e72e591547ea0c5e234548b19759fceee20db6480c6f5bb6110ab92c199"
+  },
+  {
+    "id": "capital-terrain/savanna-district-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "99fff1a22eed74bba735b371cb9f0a2e7cee1cfe061a730a1cca47727a6a90d3"
+  },
+  {
+    "id": "capital-terrain/savanna-district-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "e0e002536b78cf943009aec423e9f4ad11b97c626be1dd77cbcee37abc28d0ef"
+  },
+  {
+    "id": "capital-terrain/savanna-district-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "60646cc0e912a5c26feeb7998e94559dedfe131a19f5fe8712be9ee03b27b74b"
+  },
+  {
+    "id": "capital-terrain/savanna-district-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "63229902a647e7475aefa77be7df07bd7ff09967c1b184aa37aab7e54c7c4bb3"
+  },
+  {
+    "id": "capital-terrain/savanna-district-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "3c0de0c2a9ba5739585edc67b0934f4b9f2b22fad4cc3d6dfd18c07142753f2c"
+  },
+  {
+    "id": "capital-terrain/polar-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "fdb42886255aedaa8decb9b6bd1123ef3ffc0300062cf3d049cac491175a0f7a"
+  },
+  {
+    "id": "capital-terrain/polar-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "33504af7c5e3c6da641157f38b5f73b93b6ef47abf1a5dc4a632679c2a682677"
+  },
+  {
+    "id": "capital-terrain/polar-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "329bde4d3a2514765a570fe64860fa3fc3717be112d0c3d60f96a45ee2ee340b"
+  },
+  {
+    "id": "capital-terrain/polar-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "7a5a0e08eb522ce449c450de6e17d137783e9784caf6f510d7fe64fef1419c01"
+  },
+  {
+    "id": "capital-terrain/polar-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "9a71702cae4c8e2dd05d699bfcc62df94f8142b8ff892ccefacd2c3fd38bba1b"
+  },
+  {
+    "id": "capital-terrain/polar-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "2dfb1e2776826a84ea4cad29a2d2b55e55b3c9a4ba16e9e87a5e9b6e46ccc48c"
+  },
+  {
+    "id": "capital-terrain/polar-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "e9dc76aced4a5d5a35564dba719ae4d0647ab2009545168823b3e3fef7641987"
+  },
+  {
+    "id": "capital-terrain/polar-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "59b8e1ed468d2e12ada3851bc744150a383e62f5b1cd3cdae8ab283d48e2206d"
+  },
+  {
+    "id": "capital-terrain/netherworld-open-01",
+    "width": 32,
+    "height": 32,
+    "sha256": "e583b434f66088bbc4400460e2d1afcdb891ecb2ee69e7b312da7c416fce5b36"
+  },
+  {
+    "id": "capital-terrain/netherworld-open-02",
+    "width": 32,
+    "height": 32,
+    "sha256": "297ef2115f20942313bb9e41b1da7e7ec18631d4fbc45921b81a43583ccc83e5"
+  },
+  {
+    "id": "capital-terrain/netherworld-open-03",
+    "width": 32,
+    "height": 32,
+    "sha256": "fbafa6e4b9fc8b58874a9c94396f64fd7fdfdc0ec8794d739ffaefafb6db4b04"
+  },
+  {
+    "id": "capital-terrain/netherworld-open-04",
+    "width": 32,
+    "height": 32,
+    "sha256": "ccc78068c198ecc30331ce5cf4677234bd14763509c6cddc22b2c037c159cc82"
+  },
+  {
+    "id": "capital-terrain/netherworld-open-05",
+    "width": 32,
+    "height": 32,
+    "sha256": "b27f16283f92a06fd418a6f93eee531bb73b577454422bc27dbcdac2d2be540f"
+  },
+  {
+    "id": "capital-terrain/netherworld-open-06",
+    "width": 32,
+    "height": 32,
+    "sha256": "10645fe9c026f74b35034105730eb1d7781e7cf5c47ed645db45f07b51b9683e"
+  },
+  {
+    "id": "capital-terrain/netherworld-open-07",
+    "width": 32,
+    "height": 32,
+    "sha256": "6ba0adbc7861e2aeaaca00e0de1ad226dc2e7cf90dd327000a8cadfcbfc51500"
+  },
+  {
+    "id": "capital-terrain/netherworld-open-08",
+    "width": 32,
+    "height": 32,
+    "sha256": "20e5b486818f88b1ab7ecd39e8392219a76257fe0f3ffb99b2aaf4fb1e66f4d3"
+  },
+  {
+    "id": "capital-relief/quagmire",
+    "width": 296,
+    "height": 296,
+    "sha256": "6ffae78f4f1ff395a668d43b928e0e8d7e3d926b6d6b6f8b42eb18a9f089686c"
+  },
+  {
+    "id": "capital-relief/city-in-a-bottle",
+    "width": 197,
+    "height": 197,
+    "sha256": "67a45448ddf4d6ad71c2b70976c98ec3fc218c34cb28624e7262d06cc1cd86a1"
+  },
+  {
+    "id": "capital-relief/veil",
+    "width": 296,
+    "height": 296,
+    "sha256": "da34f95f021fe0a950a2176fbef0d44aeac5e6baa6b2d53880a112cd6c03e28c"
+  },
+  {
+    "id": "capital-relief/savanna",
+    "width": 296,
+    "height": 296,
+    "sha256": "0a672f2ef93923a8509ae6a0f9954771852983214a235078dee4bc5fea6d6e5a"
+  },
+  {
+    "id": "capital-relief/polar",
+    "width": 296,
+    "height": 296,
+    "sha256": "89a2fb3e232940644f0ce33bb48c3ed918fbd2216c4fc4e9ea52fa1e6c722313"
+  },
+  {
+    "id": "capital-relief/netherworld",
+    "width": 296,
+    "height": 296,
+    "sha256": "0d8780c7925f858e434d66c4b019008a5e5bc58d6d0c4ed2f6b00ad9583a3f75"
+  },
+  {
+    "id": "capital-feature/quagmire",
+    "width": 296,
+    "height": 296,
+    "sha256": "80439fcbe32ddb5b4c501707b6e4c68d845a8b23ed0e295b67064c6de8d6c46b"
+  },
+  {
+    "id": "capital-overlay/city-in-a-bottle",
+    "width": 197,
+    "height": 197,
+    "sha256": "6e82a8cf6e25e482985b0e91eb17acc4796db5d62356181c93c3ae3a0d63d831"
+  },
+  {
+    "id": "capital-overlay/veil",
+    "width": 296,
+    "height": 296,
+    "sha256": "9ce2487b6dd20e9e1a004edb0451a0c5b78ba41a7a35fa04c528098cfaa48977"
+  },
+  {
+    "id": "capital-overlay/savanna",
+    "width": 296,
+    "height": 296,
+    "sha256": "596fae4e0d063866b4f29c7dbafa8ad9c521177950f1ca8eb76c7e8ae76e2d07"
+  },
+  {
+    "id": "capital-overlay/polar",
+    "width": 296,
+    "height": 296,
+    "sha256": "4f9b9ed46e64e5d03fb9c9da54d1b7fa6e03e0bea9e5decd0e9c983e2d5806f5"
+  },
+  {
+    "id": "capital-overlay/netherworld",
+    "width": 296,
+    "height": 296,
+    "sha256": "48dd30cad7ed09f64782d0693f0548ac448784fd0ff838879e135f499ce8cae6"
   }
 ]
