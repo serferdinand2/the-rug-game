@@ -1,21 +1,36 @@
-// The 6 basic capital city mats: their impassable plots, names and starting territories (R1; 01 §2.2–2.3, §6.2).
-import { GRID_SIZE, plotIndex } from '../../capital.js';
+// The capital city mats: the 6 basic mats with their starting territories (R1; 01 §2.2–2.3, §6.2), and the 6
+// Arts & Architecture advanced mats with their own districts and rules (R49–R52; 03 §2 "Advanced capital city mats", #36).
 import { deepFreeze } from './ids.js';
 
 /**
- * A basic capital city mat.
+ * A capital city mat, basic or advanced.
  * @typedef {Object} CapitalMat
- * @property {number} number - 1–6, as printed; it sets the starting territory
+ * @property {number} number - As printed: 1–6 basic, 7–12 Arts & Architecture (R49)
  * @property {string} id - The catalog slug, such as 'mountain'
  * @property {string} name
- * @property {readonly string[]} grid - 9 rows, top first, as in 01 §6.2: '1' is impassable, '0' is open
- * @property {{ large: string, small: string }} start - The starting territory's hex on each map
+ * @property {readonly string[]} grid - The rows, top first, as in 01 §6.2 and 03 §2: '1' is impassable, '0' is open, 'C'
+ * a cactus and 'L' a lily pad (both open plots)
+ * @property {'aa'} [expansion] - The expansion of an advanced mat
+ * @property {readonly string[]} [districts] - One character per plot, row by row: the district it belongs to, or '.' for
+ * none (the Archipelago's water). Districts are ordered by their characters. Without it, the nine 3×3 squares.
+ * @property {readonly number[]} [rowValues] - VP for each complete row, top first; 1 each without it (R51)
+ * @property {number} [columnValue] - VP for each complete column; 1 without it (R51)
+ * @property {boolean} [landmarksInside] - Landmarks may not hang off the edge (the Mesa)
+ * @property {boolean} [gated] - A district's plots open once the district above is complete (the Cavern)
+ * @property {number} [cloudMoves] - Income buildings that may move between districts at the start of income turns 2–5
+ * (Cloud City)
+ * @property {number} [lilyPenalty] - VP lost per lily pad still showing at the start of income turn 5 (the Swamp, R52)
+ */
+
+/**
+ * A basic mat, which also sets where its player starts.
+ * @typedef {CapitalMat & { start: { large: string, small: string } }} BasicMat
  */
 
 /**
  * The 6 basic mats, in number order. Every mat has 22 impassable plots and 59 buildable ones.
  * Impassable plots can't be built on but count as filled for districts, rows and columns (01 §6.1).
- * @type {readonly CapitalMat[]}
+ * @type {readonly BasicMat[]}
  */
 export const CAPITAL_MATS = deepFreeze([
 	{
@@ -134,19 +149,220 @@ export const SMALL_MAP_PAIRS = deepFreeze([
 ]);
 
 /**
- * The impassable plots of a mat, as plot indices in the capital grid's row-by-row order.
+ * The 6 Arts & Architecture advanced mats, in number order (03 §2; R49). Each player draws one beside their basic mat(s)
+ * and keeps one mat (03 §2.2). The layouts are #132's art layouts too, which a test keeps equal.
+ * @type {readonly CapitalMat[]}
+ */
+export const ADVANCED_MATS = deepFreeze([
+	{
+		number: 7,
+		id: 'archipelago',
+		name: 'Archipelago',
+		expansion: 'aa',
+		// 41 water plots and 3 volcanoes, at (4,3), (5,3) and (9,2) on islands E and H.
+		grid: [
+			'001001100',
+			'001000110',
+			'001000010',
+			'111110111',
+			'010111110',
+			'010100100',
+			'010000100',
+			'011100111',
+			'110111100',
+			'011001000',
+			'001001000',
+		],
+		// The 9 islands are the districts; water belongs to none (R123).
+		districts: [
+			'AA.BB..CC',
+			'AA.BBB..C',
+			'AA.BBBB.C',
+			'.....B...',
+			'D.EE....F',
+			'D.EEEE.FF',
+			'D.EEEE.FF',
+			'D...EE...',
+			'..H....II',
+			'G.HHH.III',
+			'GG.HH.III',
+		],
+	},
+	{
+		number: 8,
+		id: 'canyon',
+		name: 'Canyon',
+		expansion: 'aa',
+		grid: [
+			'001100000',
+			'0C11100C0',
+			'000011000',
+			'000011000',
+			'0C00011C0',
+			'000001000',
+			'000011000',
+			'0C01110C0',
+			'001100000',
+		],
+	},
+	{
+		number: 9,
+		id: 'cavern',
+		name: 'Cavern',
+		expansion: 'aa',
+		grid: [
+			'110001110',
+			'000100100',
+			'000100100',
+			'000100000',
+			'001100000',
+			'001110000',
+			'000000000',
+			'000010000',
+			'000111100',
+		],
+		rowValues: [2, 2, 2, 2, 2, 2, 3, 3, 3],
+		columnValue: 0,
+		gated: true,
+	},
+	{
+		number: 10,
+		id: 'cloud-city',
+		name: 'Cloud City',
+		expansion: 'aa',
+		grid: [
+			'000000100',
+			'000000001',
+			'010000001',
+			'110000011',
+			'000000000',
+			'000001100',
+			'111000011',
+			'100010010',
+			'100111000',
+		],
+		// The 9 clouds are the districts, whatever their colour (03 §2 Cloud City).
+		districts: [
+			'111222233',
+			'111222333',
+			'114442335',
+			'664445555',
+			'664445555',
+			'666667788',
+			'666977788',
+			'999977788',
+			'999997888',
+		],
+		cloudMoves: 2,
+	},
+	{
+		number: 11,
+		id: 'mesa',
+		name: 'Mesa',
+		expansion: 'aa',
+		grid: [
+			'011111111',
+			'000000011',
+			'000000001',
+			'000000000',
+			'000000000',
+			'000000000',
+			'000000000',
+			'111000000',
+			'111111110',
+		],
+		landmarksInside: true,
+	},
+	{
+		number: 12,
+		id: 'swamp',
+		name: 'Swamp',
+		expansion: 'aa',
+		grid: [
+			'11L000000',
+			'1000L1100',
+			'00000001L',
+			'001000011',
+			'000110000',
+			'000110000',
+			'0L111L000',
+			'0000010L0',
+			'000001000',
+		],
+		lilyPenalty: 2,
+	},
+]);
+
+/**
+ * Any mat by its printed number, basic or advanced.
+ * @param {number} number
+ * @returns {CapitalMat}
+ */
+export function capitalMat(number) {
+	const mat = [...CAPITAL_MATS, ...ADVANCED_MATS].find(
+		(m) => m.number === number
+	);
+	if (!mat) {
+		throw new Error(`There is no capital mat ${number}.`);
+	}
+	return mat;
+}
+
+/**
+ * The advanced mats a table deals from: Arts & Architecture's with it on, none without.
+ * @param {readonly string[]} expansions
+ * @returns {number[]}
+ */
+export function advancedMatsFor(expansions) {
+	return ADVANCED_MATS.filter(
+		(m) => m.expansion !== undefined && expansions.includes(m.expansion)
+	).map((m) => m.number);
+}
+
+/**
+ * A mat's shape: its rows, its columns and its districts as plot indices (row × columns + column), in order.
+ * @param {CapitalMat} mat
+ * @returns {import('../../capital.js').Shape}
+ */
+export function matShape(mat) {
+	const rows = mat.grid.length;
+	const cols = mat.grid[0].length;
+	const map = mat.districts;
+	if (!map) {
+		return {
+			rows,
+			cols,
+			districts: [...Array(9).keys()].map((d) => {
+				const top = Math.floor(d / 3) * 3;
+				const left = (d % 3) * 3;
+				return [...Array(9).keys()].map(
+					(n) => (top + Math.floor(n / 3)) * cols + left + (n % 3)
+				);
+			}),
+		};
+	}
+	const ids = [...new Set(map.join('').replaceAll('.', ''))].sort();
+	return {
+		rows,
+		cols,
+		districts: ids.map((id) =>
+			map.flatMap((line, row) =>
+				[...line].flatMap((ch, col) =>
+					ch === id ? [row * cols + col] : []
+				)
+			)
+		),
+	};
+}
+
+/**
+ * The impassable plots of a mat, as plot indices in its row-by-row order.
  * @param {CapitalMat} mat
  * @returns {number[]} Ascending plot indices.
  */
 export function impassablePlots(mat) {
-	/** @type {number[]} */
-	const plots = [];
-	for (let row = 0; row < GRID_SIZE; row++) {
-		for (let col = 0; col < GRID_SIZE; col++) {
-			if (mat.grid[row][col] === '1') {
-				plots.push(plotIndex(row, col));
-			}
-		}
-	}
-	return plots;
+	const cols = mat.grid[0].length;
+	return mat.grid.flatMap((line, row) =>
+		[...line].flatMap((ch, col) => (ch === '1' ? [row * cols + col] : []))
+	);
 }

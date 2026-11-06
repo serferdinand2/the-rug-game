@@ -5,6 +5,11 @@
 /** @typedef {'rows' | 'columns' | 'districts'} GroupKind */
 /** @typedef {{ row: number, col: number }} Position */
 /** @typedef {{ row: number, col: number, rows: number, cols: number }} Bounds */
+/**
+ * A capital's shape: its rows and columns, and its districts as plot indices (row × cols + col). The basic mats are
+ * 9 × 9 in nine 3×3 districts; an advanced mat may be taller or have districts of its own shape (#36).
+ * @typedef {{ rows: number, cols: number, districts: readonly (readonly number[])[] }} Shape
+ */
 
 /** A capital is GRID_SIZE × GRID_SIZE plots, in 3 × 3 districts. */
 export const GRID_SIZE = 9;
