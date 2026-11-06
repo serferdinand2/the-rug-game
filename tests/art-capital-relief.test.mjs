@@ -216,7 +216,9 @@ test("matData gives the Quagmire's wisps, the Savanna's herds and districts, and
 	assert.equal(sides?.length, 9);
 	assert.equal(sides?.[0], '000000111');
 	assert.equal(sides?.[8], '000111111');
-	assert.deepEqual(matData('polar'), {});
+	assert.deepEqual(matData('netherworld'), {});
+	assert.equal(Object.keys(matData('polar').lines ?? {}).length, 6);
+	assert.equal(matData('veil').pockets?.length, 3);
 	// The specimen: a wisp and a herd on its lone plot, and the veil down its column 4|5 line, across its side pair.
 	assert.deepEqual(SPECIMEN_DATA.quagmire.wisps, [[1, 1]]);
 	assert.deepEqual(SPECIMEN_DATA.savanna.herds, [[1, 1]]);

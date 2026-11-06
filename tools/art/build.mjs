@@ -82,9 +82,12 @@ function checkCapitalRelief(id, canvas) {
 	}
 	const { w, h } = reliefSize(layout.length, layout[0].length);
 	if (canvas.w !== w || canvas.h !== h) {
-		const what = id.startsWith('capital-feature/')
-			? 'a capital feature picture'
-			: 'a capital relief';
+		let what = 'a capital relief';
+		if (id.startsWith('capital-feature/')) {
+			what = 'a capital feature picture';
+		} else if (id.startsWith('capital-overlay/')) {
+			what = 'a capital overlay';
+		}
 		throw new Error(
 			`${id}: ${what} must be ${w}×${h}, not ${canvas.w}×${canvas.h}`
 		);
@@ -203,7 +206,8 @@ export async function buildArt({
 			checkLandmarkPicture(id, canvas);
 		} else if (
 			asset?.group === 'capital-relief' ||
-			asset?.group === 'capital-feature'
+			asset?.group === 'capital-feature' ||
+			asset?.group === 'capital-overlay'
 		) {
 			checkCapitalRelief(id, canvas);
 		} else if (asset?.kind === 'illustration' && wrongSize) {

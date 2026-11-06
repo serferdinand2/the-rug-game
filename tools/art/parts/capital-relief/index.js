@@ -30,7 +30,11 @@ import { paintPolar } from './polar.js';
 import { paintNetherworld } from './netherworld.js';
 import { CAPITAL_GRIDS } from '../capital-terrain.js';
 import { drawFeatures } from '../capital-feature/index.js';
-import { FEATURE_BIOMES } from '../../../../src/lib/art/relief.js';
+import {
+	FEATURE_BIOMES,
+	OVERLAY_BIOMES,
+} from '../../../../src/lib/art/relief.js';
+import { drawOverlay } from '../capital-overlay/index.js';
 import { BIOMES } from '../capital-biomes/index.js';
 import { VOLCANOES } from '../capital-biomes/archipelago.js';
 import {
@@ -41,6 +45,7 @@ import {
 import { REEDS, WISPS } from '../capital-biomes/quagmire.js';
 import { DISTRICTS, UNICORNS } from '../capital-biomes/savanna.js';
 import { LAYOUT as VEIL_LAYOUT, isCharmed } from '../capital-biomes/veil.js';
+import { LINES } from '../capital-biomes/polar.js';
 
 /** @typedef {import('../../painter.js').Canvas} Canvas */
 /** @typedef {import('../../../../src/lib/art/paint/relief/footprint.js').Footprint} Footprint */
@@ -49,7 +54,8 @@ import { LAYOUT as VEIL_LAYOUT, isCharmed } from '../capital-biomes/veil.js';
  * What a mat prints beyond its plots, which some reliefs and their grounds draw (#132, #133): the Archipelago's
  * volcano plots, the Quagmire's wisps and reed plots and the Savanna's herds as [row, column]; Cloud City's clouds (one digit per
  * plot, row by row) with each cloud's tint index; the Veil's sides ('1' a charmed plot) and the Savanna's districts
- * ('.' a plot outside them), one string per row.
+ * ('.' a plot outside them), one string per row; Polar's field lines, each its plots in order; the Veil's pocket
+ * icons, each at its middle in relief pixels.
  * @typedef {Object} MatData
  * @property {readonly (readonly [number, number])[]} [volcanoes]
  * @property {readonly string[]} [clouds]
@@ -59,6 +65,8 @@ import { LAYOUT as VEIL_LAYOUT, isCharmed } from '../capital-biomes/veil.js';
  * @property {readonly (readonly [number, number])[]} [herds]
  * @property {readonly string[]} [sides]
  * @property {readonly string[]} [districts]
+ * @property {Readonly<Record<string, readonly (readonly [number, number])[]>>} [lines]
+ * @property {readonly { kind: 'tech' | 'die' | 'building', x: number, y: number }[]} [pockets]
  */
 
 /**
@@ -147,10 +155,24 @@ export function matData(slug) {
 		return { herds: UNICORNS, districts: DISTRICTS };
 	}
 	if (slug === 'veil') {
-		return { sides: VEIL_SIDES };
+		return { sides: VEIL_SIDES, pockets: VEIL_POCKETS };
+	}
+	if (slug === 'polar') {
+		return { lines: LINES };
 	}
 	return {};
 }
+
+/**
+ * The Veil's pocket icons as the mat prints them: a tech card on row 1, column 8; a science die on the edge between
+ * rows 4 and 5 at column 8; an income building on row 8, column 5.
+ * @type {readonly { kind: 'tech' | 'die' | 'building', x: number, y: number }[]}
+ */
+const VEIL_POCKETS = Object.freeze([
+	Object.freeze({ kind: 'tech', x: 8 * PITCH + 16, y: 1 * PITCH + 16 }),
+	Object.freeze({ kind: 'die', x: 8 * PITCH + 16, y: 5 * PITCH - 1 }),
+	Object.freeze({ kind: 'building', x: 5 * PITCH + 16, y: 8 * PITCH + 16 }),
+]);
 
 /** The Veil's sides, one string per row: '1' a plot on the charmed side. */
 const VEIL_SIDES = Object.freeze(
@@ -235,7 +257,7 @@ export function drawRelief(layout, biome, mat = {}) {
 /**
  * Draws a layout's relief on its ground, as the game shows it: natural ground on every plot, ink in the
  * gaps between plots except inside a group, where the ground runs on, then the mat's printed features
- * where it has any (#132), and the relief over it all.
+ * where it has any (#132), the relief over them, and over it all what the mat prints over its relief (#133).
  * @param {readonly string[]} layout - One string per row: '1' or 'X' impassable
  * @param {string} biome - Such as 'mountain'
  * @param {number} [seed=0] - Picks each plot's ground variant
@@ -293,5 +315,8 @@ export function drawReliefPreview(layout, biome, seed = 0, mat = {}) {
 		overlay(canvas, drawFeatures(layout, biome, mat));
 	}
 	overlay(canvas, relief);
+	if (OVERLAY_BIOMES.includes(biome)) {
+		overlay(canvas, drawOverlay(layout, biome, mat));
+	}
 	return canvas;
 }

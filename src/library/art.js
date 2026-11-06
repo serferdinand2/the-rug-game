@@ -249,8 +249,8 @@ export function pictureSize(id) {
 	if (group === 'capital-terrain') {
 		return { w: PLOT, h: PLOT };
 	}
-	if (group === 'capital-feature') {
-		// A mat's features picture is its relief's size (#132).
+	if (group === 'capital-feature' || group === 'capital-overlay') {
+		// A mat's features picture and its overlay are its relief's size (#132, #133).
 		const layout = matLayout(slug);
 		return layout ? reliefSize(layout.length, layout[0].length) : null;
 	}

@@ -113,6 +113,12 @@ export const GROUPS = Object.freeze(
 			issue: 132,
 		},
 		{
+			id: 'capital-overlay',
+			label: 'Capital overlays',
+			kind: 'board',
+			issue: 133,
+		},
+		{
 			id: 'inspiration-tile',
 			label: 'Inspiration tiles',
 			kind: 'board',
@@ -816,6 +822,16 @@ const LISTS = {
 			['swamp', 'Swamp features'],
 		],
 		ff: [['quagmire', 'Quagmire features']],
+	},
+	// What a mat prints over its relief, drawn over it (#133).
+	'capital-overlay': {
+		ff: [
+			['city-in-a-bottle', 'City in a Bottle glass'],
+			['veil', 'Veil line and pockets'],
+			['savanna', 'Savanna herds and districts'],
+			['polar', 'Polar field lines'],
+			['netherworld', 'Netherworld imps and centre'],
+		],
 	},
 	'inspiration-tile': {
 		aa: [

@@ -35,6 +35,19 @@ export const FEATURE_BIOMES = Object.freeze([
 	'quagmire',
 ]);
 
+/**
+ * The mats that print over their relief, each drawn as a picture of its own laid over it (#133): the bottle's
+ * glass, the veil and its pocket icons, the Savanna's herds and district borders, Polar's rings and field lines,
+ * and the Netherworld's imps and city centre.
+ */
+export const OVERLAY_BIOMES = Object.freeze([
+	'city-in-a-bottle',
+	'veil',
+	'savanna',
+	'polar',
+	'netherworld',
+]);
+
 /** A plot's side in pixels. */
 export const PLOT = 32;
 /** The gap between two plots in pixels. */
