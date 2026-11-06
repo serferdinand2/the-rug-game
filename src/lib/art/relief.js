@@ -36,6 +36,22 @@ export const FEATURE_BIOMES = Object.freeze([
 ]);
 
 /**
+ * Each Cloud City cloud's tint, by its digit in the mat's district map (1–9; 0 is unused): 0 white, 1 grey, 2 tan,
+ * 3 cream (research table; cloud 1 grey, 2 tan, 3 cream, 4 white, 5 grey, 6 cream, 7 tan, 8 white, 9 white). A plot's
+ * natural ground follows its cloud's tint (#132, #36).
+ * @type {readonly number[]}
+ */
+export const CLOUD_TINTS = Object.freeze([0, 1, 2, 3, 0, 1, 3, 2, 0, 0]);
+
+/** The names of the four cloud tints, by tint index (#132). */
+export const CLOUD_TINT_NAMES = Object.freeze([
+	'white',
+	'grey',
+	'tan',
+	'cream',
+]);
+
+/**
  * The mats that print over their relief, each drawn as a picture of its own laid over it (#133): the bottle's
  * glass, the veil and its pocket icons, the Savanna's herds and district borders, Polar's rings and field lines,
  * and the Netherworld's imps and city centre.

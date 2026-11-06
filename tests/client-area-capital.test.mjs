@@ -128,7 +128,26 @@ test('a mat on offer has its own plots: the impassable ones blocked, the rest em
 		);
 		assert.equal(plots.filter((p) => p === 'blocked').length, 22);
 	}
-	assert.throws(() => matPlots(7), RangeError);
+	assert.throws(() => matPlots(13), RangeError);
+});
+
+test('an advanced mat has its own shape, biome and plots (#36)', () => {
+	const { state } = startedGame(2);
+	const seat = structuredClone(view(state, 1).seats[0]);
+	seat.capital.mat = 7;
+	const capital = capitalView(seat, 'ABCD');
+	assert.ok(capital);
+	assert.equal(capital.name, 'Archipelago');
+	assert.equal(capital.biome, 'archipelago');
+	assert.equal(capital.plots.length, 99);
+	assert.deepEqual([capital.shape.rows, capital.shape.cols], [11, 9]);
+	assert.equal(capital.shape.districts.length, 9);
+	seat.capital.mat = 10;
+	assert.equal(capitalView(seat, 'ABCD')?.biome, 'cloud-city');
+	const swamp = matPlots(12);
+	assert.equal(swamp.filter((k) => k === 'lily').length, 6);
+	assert.equal(swamp.filter((k) => k === 'blocked').length, 18);
+	assert.equal(matPlots(7).length, 99);
 });
 
 test('the mats on offer use the seed the capital will have once chosen (#56)', () => {

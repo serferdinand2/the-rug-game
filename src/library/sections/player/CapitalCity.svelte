@@ -6,6 +6,7 @@
 	import { FOOTPRINTS } from '../../../lib/art/footprints.js';
 	import { matPlots } from '../../../lib/area/capital.js';
 	import { completionCounts } from '../../../lib/placement.js';
+	import { BASIC_SHAPE } from '../../../lib/capital.js';
 
 	/** @typedef {import('../../../lib/area/capital.js').CapitalView} CapitalView */
 	/** @typedef {import('../../../lib/capital.js').PlotKind} PlotKind */
@@ -37,6 +38,7 @@
 		mat: 1,
 		name: 'Mountain',
 		biome: 'mountain',
+		shape: BASIC_SHAPE,
 		terrainSeed: 0,
 		plots: ANA,
 		pieces: [LIGHTHOUSE],

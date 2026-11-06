@@ -1,6 +1,10 @@
 // The Capital tab (#27 design §2.1): a seat's capital as CapitalGrid draws it, from the game view.
 import { cityPlots, completeLines, completeDistricts } from '../engine/game.js';
-import { CAPITAL_MATS } from '../engine/data/capitals.js';
+import {
+	ADVANCED_MATS,
+	CAPITAL_MATS,
+	matShape,
+} from '../engine/data/capitals.js';
 import { FOOTPRINTS } from '../art/footprints.js';
 import { BUILDING_IDS } from '../engine/data/ids.js';
 import { buildingName, landmarkName } from '../game-names.js';
@@ -8,15 +12,25 @@ import { buildingName, landmarkName } from '../game-names.js';
 /**
  * What the Capital tab draws.
  * @typedef {Object} CapitalView
- * @property {number} mat - The mat's number, 1–6
+ * @property {number} mat - The mat's number, 1–12
  * @property {string} name - The mat's name, such as 'Mountain', for the heading
- * @property {import('../ui.js').CapitalBiome} biome - The terrain the grid is drawn on
+ * @property {import('../ui.js').CapitalBiome} biome - The terrain the grid is drawn on, which is the mat's id
+ * @property {import('../capital.js').Shape} shape - The mat's rows, columns and districts (#36)
  * @property {number} terrainSeed - From the table code, so every viewer sees the same tiles
- * @property {import('../capital.js').PlotKind[]} plots - All 81 plots, row by row, as the engine sees them
+ * @property {import('../capital.js').PlotKind[]} plots - Every plot, row by row, as the engine sees them
  * @property {import('../components/player/CapitalGrid.svelte').CapitalGridPiece[]} pieces - The landmarks, locked; one may hang over the edge (R106)
  * @property {{ rows: number, columns: number, districts: number }} counts - The complete rows, columns and districts
  * @property {string[]} besideMat - The names of the buildings and landmarks that didn't fit, in order
  */
+
+/**
+ * Any mat by its number, basic or advanced, or undefined.
+ * @param {unknown} number
+ * @returns {import('../engine/data/capitals.js').CapitalMat | undefined}
+ */
+function matOf(number) {
+	return [...CAPITAL_MATS, ...ADVANCED_MATS].find((m) => m.number === number);
+}
 
 /**
  * A seat's capital, or null before a mat is dealt.
@@ -25,18 +39,18 @@ import { buildingName, landmarkName } from '../game-names.js';
  * @returns {CapitalView | null}
  */
 export function capitalView(seat, code) {
-	const mat = CAPITAL_MATS.find((m) => m.number === seat.capital.mat);
+	const mat = matOf(seat.capital.mat);
 	if (!mat) {
 		return null;
 	}
+	const shape = matShape(mat);
 	const plots = cityPlots(seat);
-	const lines = completeLines(plots);
+	const lines = completeLines(plots, shape);
 	return {
 		mat: mat.number,
 		name: mat.name,
-		biome: /** @type {import('../ui.js').CapitalBiome} */ (
-			mat.name.toLowerCase()
-		),
+		biome: /** @type {import('../ui.js').CapitalBiome} */ (mat.id),
+		shape,
 		terrainSeed: terrainSeed(code),
 		plots,
 		pieces: seat.capital.landmarks.map(
@@ -55,7 +69,7 @@ export function capitalView(seat, code) {
 		counts: {
 			rows: lines.rows,
 			columns: lines.columns,
-			districts: completeDistricts(plots).length,
+			districts: completeDistricts(plots, shape).length,
 		},
 		besideMat: seat.besideMat.map((/** @type {string} */ id) =>
 			/** @type {readonly string[]} */ (BUILDING_IDS).includes(id)
@@ -66,20 +80,23 @@ export function capitalView(seat, code) {
 }
 
 /**
- * The plots of a mat on offer, before anything is built: its impassable plots blocked, the rest empty (#56).
- * @param {number} number - The mat's number, 1–6
- * @returns {import('../capital.js').PlotKind[]} All 81 plots, row by row
+ * The plots of a mat on offer, before anything is built: its impassable plots blocked, a Swamp's lily pads 'lily'
+ * (R52), the rest empty (#56, #36).
+ * @param {number} number - The mat's number, 1–12
+ * @returns {import('../capital.js').PlotKind[]} Every plot, row by row
  * @throws {RangeError} For a number with no mat
  */
 export function matPlots(number) {
-	const mat = CAPITAL_MATS.find((m) => m.number === number);
+	const mat = matOf(number);
 	if (!mat) {
 		throw new RangeError(`There is no capital mat ${number}.`);
 	}
 	return mat.grid
 		.join('')
 		.split('')
-		.map((plot) => (plot === '1' ? 'blocked' : 'empty'));
+		.map((plot) =>
+			plot === '1' ? 'blocked' : plot === 'L' ? 'lily' : 'empty'
+		);
 }
 
 /**
