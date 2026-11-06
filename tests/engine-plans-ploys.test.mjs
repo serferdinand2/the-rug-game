@@ -154,7 +154,7 @@ test('a table may switch on Plans & Ploys, but not an expansion not built yet', 
 		checkOptions({ version: 'current', expansions: ['pp'] })
 	);
 	assert.throws(
-		() => checkOptions({ version: 'current', expansions: ['aa'] }),
+		() => checkOptions({ version: 'current', expansions: ['ff'] }),
 		/isn't available yet/
 	);
 });

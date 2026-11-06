@@ -136,8 +136,8 @@ test("a table's mode and options are checked when it is created", () => {
 	refuses(make({ mode: 'dungeon' }), 'Unknown table mode: dungeon.');
 	refuses(make({ version: '2024' }), 'Unknown rules version: 2024.');
 	refuses(
-		make({ expansions: ['aa'] }),
-		"Arts & Architecture isn't available yet."
+		make({ expansions: ['ff'] }),
+		"Fantasies & Futures isn't available yet."
 	);
 	refuses(make({ variants: ['draft'] }), 'Unknown variant: draft.');
 	refuses(make({ level: 3 }), 'Only a solo table has an Automa level.');
@@ -616,8 +616,8 @@ test('the table choices are what a new table may pick today', () => {
 			{ id: 'original', name: 'Original 2019 printing' },
 			{ id: 'current', name: 'Current official rules' },
 		],
-		// Plans & Ploys from #32 on (owner, 2026-10-31).
-		expansions: ['pp'],
+		// Plans & Ploys from #32 on (owner, 2026-10-31), Arts & Architecture from #36 on.
+		expansions: ['pp', 'aa'],
 		variants: VARIANTS.map(({ id, name, expansion }) =>
 			expansion ? { id, name, expansion } : { id, name }
 		),

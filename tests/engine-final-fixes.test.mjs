@@ -212,6 +212,12 @@ test('every decision kind has the full shape, and its answers pass its own check
 			kind: 'chooseCiv',
 			options: ['mystics', 'architects'],
 		},
+		chooseMatAndCiv: {
+			player: 1,
+			kind: 'chooseMatAndCiv',
+			mats: [1, 6, 10],
+			civs: ['mystics', 'architects'],
+		},
 		chooseResource: {
 			player: 1,
 			kind: 'chooseResource',

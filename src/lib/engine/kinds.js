@@ -5,6 +5,7 @@ import { chooseTurn } from './decisions/choose-turn.js';
 import { confirmEndTurn } from './decisions/confirm-end-turn.js';
 import { chooseCapital } from './decisions/choose-capital.js';
 import { chooseCiv } from './decisions/choose-civ.js';
+import { chooseMatAndCiv } from './decisions/choose-mat-and-civ.js';
 import { chooseResource } from './decisions/choose-resource.js';
 import { chooseBonus, offerBonus } from './decisions/choose-bonus.js';
 import { chooseAdvance } from './decisions/choose-advance.js';
@@ -118,6 +119,7 @@ Object.assign(DECISIONS, {
 	confirmEndTurn,
 	chooseCapital,
 	chooseCiv,
+	chooseMatAndCiv,
 	chooseResource,
 	chooseBonus,
 	chooseAdvance,

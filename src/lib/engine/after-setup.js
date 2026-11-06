@@ -27,7 +27,8 @@ export function afterSetupSteps(expansions) {
 
 /** @type {Record<string, (ctx: import('./state.js').Context) => void>} */
 export const AFTER_SETUP_STEPS = {
-	// Every pick becomes public at once; a small-map player's unchosen mat joins the supply now.
+	// Every pick becomes public at once; a player's unchosen mats join the supply now: a small-map player's other mat
+	// of the pair, or with Arts & Architecture every mat dealt but not kept, on either map (#36).
 	reveal({ state }) {
 		const picks = [];
 		for (const seat of state.seats) {
@@ -35,11 +36,12 @@ export const AFTER_SETUP_STEPS = {
 				continue;
 			}
 			const player = playerSeat(state, seat.seat);
-			const { capital, civ } = player.picks;
-			if (state.map === 'small' && capital !== undefined) {
-				const pair = SMALL_MAP_PAIRS.find((p) => p.includes(capital));
+			const { capital, civ, dealt } = player.picks;
+			if (capital !== undefined) {
+				const others =
+					dealt ?? SMALL_MAP_PAIRS.find((p) => p.includes(capital));
 				player.capital.mat = capital;
-				for (const mat of pair ?? []) {
+				for (const mat of others ?? []) {
 					if (mat !== capital) {
 						state.supply.capitals.push(mat);
 					}

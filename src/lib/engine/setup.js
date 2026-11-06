@@ -8,7 +8,11 @@ import { afterSetupSteps } from './after-setup.js';
 import { civsFor, tapestryFor, techDeck } from './decks.js';
 import { EXPANSIONS } from '../art/catalog.js';
 import { MAPS } from './data/maps.js';
-import { CAPITAL_MATS, SMALL_MAP_PAIRS } from './data/capitals.js';
+import {
+	CAPITAL_MATS,
+	SMALL_MAP_PAIRS,
+	advancedMatsFor,
+} from './data/capitals.js';
 import { landmarksFor } from './data/landmarks.js';
 import { landmarkCardsFor } from './data/landmark-cards.js';
 import { ACHIEVEMENTS } from './data/achievements.js';
@@ -19,9 +23,10 @@ import { VERSIONS, TRACK_IDS, RESOURCE_IDS, BUILDING_IDS } from './data/ids.js';
 /**
  * The expansions whose setup is built, so a table may choose them. Each expansion issue adds its code (#32, #35, #39).
  * Plans & Ploys is offered from #32 on, with its civilizations and cards to follow in #33 (owner, 2026-10-31).
+ * Arts & Architecture from #36 on, its advanced mats first; #35 adds the arts track to the same switch.
  * @type {readonly string[]}
  */
-export const EXPANSIONS_BUILT = Object.freeze(['pp']);
+export const EXPANSIONS_BUILT = Object.freeze(['pp', 'aa']);
 
 /**
  * One official optional variant a table may switch on (03 FF.2.6, 01 §2.2).
@@ -180,6 +185,8 @@ function newSeat(seat, name) {
  * @property {import('./random.js').Random} random
  * @property {import('./state.js').NewLane[]} lanes - One per seat: the decisions that seat opens with
  * @property {{ player: number, hex: string }[]} starts - Where each seat's two outposts begin
+ * @property {(number[] | null)[]} mats - With Arts & Architecture, each seat's mats to keep one of: its basic mat(s),
+ * then its advanced mat (#36); null without
  */
 
 /**
@@ -214,42 +221,73 @@ function startOnIslands({ state, seats, random, starts }) {
 }
 
 /**
- * Capital mats, and where each player's two outposts start.
+ * Capital mats, and where each player's two outposts start. With Arts & Architecture, each player also draws an
+ * advanced mat, face up, and keeps one mat with their civilization (03 §2.2, player step A): dealCivs asks for both.
+ * The advanced mats are shuffled after the basic ones, and only then, so a base game draws as it always did.
  * @param {SetupContext} setup
  */
-function dealCapitals({ state, seats, random, lanes, starts }) {
+function dealCapitals({ state, seats, random, lanes, starts, mats }) {
 	const count = seats.length;
+	const deck = advancedMatsFor(state.expansions);
 	if (state.map === 'large') {
-		const mats = shuffle([1, 2, 3, 4, 5, 6], random);
+		const basic = shuffle([1, 2, 3, 4, 5, 6], random);
+		const advanced = deck.length > 0 ? shuffle(deck, random) : [];
 		seats.forEach((s, i) => {
-			s.capital.mat = mats[i];
 			starts.push({
 				player: s.seat,
-				hex: CAPITAL_MATS[mats[i] - 1].start.large,
+				hex: CAPITAL_MATS[basic[i] - 1].start.large,
 			});
+			if (advanced.length > 0) {
+				mats[i] = [basic[i], advanced[i]];
+				emit(state, {
+					type: 'capitalDealt',
+					player: s.seat,
+					options: [basic[i]],
+					advanced: advanced[i],
+				});
+				return;
+			}
+			s.capital.mat = basic[i];
 			emit(state, {
 				type: 'capitalDealt',
 				player: s.seat,
-				capital: mats[i],
+				capital: basic[i],
 			});
 		});
-		state.supply.capitals = mats.slice(count);
+		state.supply.capitals = [
+			...basic.slice(count),
+			...advanced.slice(count),
+		];
 	} else {
 		const pairs = shuffle(SMALL_MAP_PAIRS, random);
+		const advanced = deck.length > 0 ? shuffle(deck, random) : [];
 		seats.forEach((s, i) => {
 			const options = [...pairs[i]];
+			// R40: a solo player always starts on 2/4, whichever pair they are dealt.
+			const hex =
+				count === 1 ? '0_2' : CAPITAL_MATS[options[0] - 1].start.small;
+			starts.push({ player: s.seat, hex });
+			if (advanced.length > 0) {
+				mats[i] = [...options, advanced[i]];
+				emit(state, {
+					type: 'capitalDealt',
+					player: s.seat,
+					options,
+					advanced: advanced[i],
+				});
+				return;
+			}
 			lanes[i].ops.push({
 				player: s.seat,
 				kind: 'chooseCapital',
 				options,
 			});
-			// R40: a solo player always starts on 2/4, whichever pair they are dealt.
-			const hex =
-				count === 1 ? '0_2' : CAPITAL_MATS[options[0] - 1].start.small;
-			starts.push({ player: s.seat, hex });
 			emit(state, { type: 'capitalDealt', player: s.seat, options });
 		});
-		state.supply.capitals = pairs.slice(count).flat();
+		state.supply.capitals = [
+			...pairs.slice(count).flat(),
+			...advanced.slice(count),
+		];
 	}
 }
 
@@ -272,14 +310,25 @@ function placeOutposts({ state, seats, starts }) {
 }
 
 /**
- * Civilizations: 2 each, kept with a decision.
+ * Civilizations: 2 each, kept with a decision; with Arts & Architecture, one decision keeps a mat and a civilization
+ * together (owner, #36).
  * @param {SetupContext} setup
  */
-function dealCivs({ state, seats, random, lanes }) {
+function dealCivs({ state, seats, random, lanes, mats }) {
 	const civs = shuffle(civsFor(state.expansions, state.variants), random);
 	seats.forEach((s, i) => {
 		const options = civs.slice(2 * i, 2 * i + 2);
-		lanes[i].ops.push({ player: s.seat, kind: 'chooseCiv', options });
+		const dealt = mats[i];
+		lanes[i].ops.push(
+			dealt
+				? {
+						player: s.seat,
+						kind: 'chooseMatAndCiv',
+						mats: dealt,
+						civs: options,
+					}
+				: { player: s.seat, kind: 'chooseCiv', options }
+		);
 		emit(state, {
 			type: 'civsDealt',
 			player: s.seat,
@@ -440,6 +489,7 @@ export function createGame({
 		random,
 		lanes: seats.map((s) => ({ player: s.seat, ops: [] })),
 		starts: [],
+		mats: seats.map(() => null),
 	};
 	for (const step of SETUP_STEPS) {
 		step(setup);

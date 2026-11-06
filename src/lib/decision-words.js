@@ -20,7 +20,7 @@ import {
 	SPACE_TILES,
 } from './engine/data/space-tiles.js';
 import { spaceTileWords } from './area/terrain.js';
-import { CAPITAL_MATS } from './engine/data/capitals.js';
+import { ADVANCED_MATS, CAPITAL_MATS } from './engine/data/capitals.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
 import { RESOURCE_IDS, TRACK_IDS } from './engine/data/ids.js';
 import { GRID_SIZE } from './capital.js';
@@ -456,6 +456,7 @@ const TITLES = {
 		d.midGame
 			? 'Keep one of the civilizations you drew'
 			: 'Choose your civilization',
+	chooseMatAndCiv: () => 'Choose your capital city and civilization',
 	chooseResource: (d) =>
 		isCount(d.count) && d.count > 1
 			? `Choose ${d.count} resources`
@@ -906,6 +907,14 @@ const ANSWERS = {
 	},
 	chooseCiv: (a) =>
 		typeof a.civ === 'string' ? civilizationName(a.civ) : null,
+	chooseMatAndCiv: (a) => {
+		const mat = [...CAPITAL_MATS, ...ADVANCED_MATS].find(
+			(m) => m.number === a.capital
+		);
+		return mat && typeof a.civ === 'string'
+			? `${mat.name} with the ${civilizationName(a.civ)}`
+			: null;
+	},
 	chooseCivAbility: (a) =>
 		typeof a.civ === 'string' ? civilizationName(a.civ) : null,
 	chooseResource: (a) => {
