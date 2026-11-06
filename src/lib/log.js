@@ -581,6 +581,15 @@ const WORDS = {
 			? `${name} completed a district in their capital.`
 			: `${name} completed ${n} districts in their capital.`;
 	},
+	// The Swamp's final-income penalty (R52, #36).
+	lilyPadsCounted(e, game, name) {
+		if (!isCount(e.pads) || !isCount(e.vp)) {
+			return null;
+		}
+		return e.pads === 0
+			? `${name}'s Swamp shows no lily pads, so they lose nothing.`
+			: `${name} lost ${e.vp} VP for ${countWords(e.pads, 'lily pad', 'lily pads')} still showing in their Swamp.`;
+	},
 	districtsCleared(e, game, name) {
 		const n = Array.isArray(e.districts) ? e.districts.length : 0;
 		if (n === 0) {

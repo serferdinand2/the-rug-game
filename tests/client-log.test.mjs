@@ -80,6 +80,7 @@ const SAMPLES = {
 	deckShuffled: { deck: 'civs', count: 15 },
 	districtsCleared: { player: 1, districts: [8] },
 	districtsCompleted: { player: 1, districts: [5, 6] },
+	lilyPadsCounted: { player: 1, pads: 4, vp: 8 },
 	entertainersMoved: { player: 2, space: 'c1r2' },
 	eraEnded: { player: 1, card: 'militarism', ability: 'militarism' },
 	eraStarted: { player: 1, card: 'espionage', ability: 'monarchy' },

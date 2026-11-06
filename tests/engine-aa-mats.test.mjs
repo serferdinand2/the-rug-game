@@ -23,6 +23,7 @@ import { placePiece } from '../src/lib/engine/placing.js';
 import { contextFor, run } from '../src/lib/engine/loop.js';
 import { openDecisions, push } from '../src/lib/engine/stack.js';
 import '../src/lib/engine/kinds.js';
+import { INCOME_STEPS, INCOME_STEP_KINDS } from '../src/lib/engine/income.js';
 import { startedGame } from './helpers/engine.mjs';
 import * as archipelagoArt from '../tools/art/parts/capital-biomes/archipelago.js';
 import * as canyonArt from '../tools/art/parts/capital-biomes/canyon.js';
@@ -445,6 +446,50 @@ test("Swamp's lily pads count toward complete lines", () => {
 		openInRow(seat, 0).filter(([, col]) => col !== 2)
 	);
 	assert.equal(capitalScore(seat).rows, 1);
+});
+
+/**
+ * Runs some of seat 1's income steps for an income turn until the next decision.
+ * @param {ReturnType<typeof onMat>} game
+ * @param {number} turn
+ * @param {string[]} steps
+ */
+function incomeSteps({ state, random }, turn, steps) {
+	push(state, state.pending, [
+		{ player: 1, kind: 'incomeSteps', turn, steps, origin: 'income' },
+	]);
+	run(state, random);
+}
+
+test('R52: the Swamp loses 2 VP per lily pad still showing at the start of income turn 5', () => {
+	const at = INCOME_STEPS.indexOf('lilyPads');
+	assert.ok(at > INCOME_STEPS.indexOf('eraEnd'));
+	assert.ok(at < INCOME_STEPS.indexOf('civAbilities'));
+	assert.deepEqual(INCOME_STEP_KINDS.lilyPads.turns, [5]);
+	const game = onMat(12);
+	// Two of the six pads are covered.
+	farms(game.seat, [
+		[0, 2],
+		[1, 4],
+	]);
+	const before = game.seat.vp;
+	incomeSteps(game, 5, ['lilyPads']);
+	assert.equal(game.seat.vp, before - 8);
+	assert.deepEqual(
+		game.state.events
+			.filter((e) => e.type === 'lilyPadsCounted')
+			.map(({ player, pads }) => ({ player, pads })),
+		[{ player: 1, pads: 4 }]
+	);
+	assert.equal(game.seat.vpSources.capital, -8);
+});
+
+test('a mat without lily pads loses nothing on income turn 5', () => {
+	const game = onMat(1);
+	const before = game.seat.vp;
+	incomeSteps(game, 5, ['lilyPads']);
+	assert.equal(game.seat.vp, before);
+	assert.ok(!game.state.events.some((e) => e.type === 'lilyPadsCounted'));
 });
 
 test('advancedMatsFor deals the A&A mats only with A&A', () => {

@@ -7,6 +7,7 @@ import { endEra, playTapestry } from './tapestry.js';
 import { endFirstIncomeTurn } from './civ-turns.js';
 import { INCOME_MAT, TAPESTRY_SLOTS } from './data/income-mat.js';
 import { BUILDING_IDS } from './data/ids.js';
+import { cityPlots, seatMat } from './city.js';
 
 /** @typedef {import('./data/ids.js').BuildingId} BuildingId */
 
@@ -174,6 +175,7 @@ export function playFaceDown(ctx, op) {
  */
 export const INCOME_STEPS = [
 	'eraEnd',
+	'lilyPads',
 	'civAbilities',
 	'tapestry',
 	'upgrade',
@@ -190,6 +192,40 @@ export const INCOME_STEP_KINDS = {
 		turns: [2, 3, 4, 5],
 		run(ctx, player) {
 			endEra(ctx, player);
+		},
+	},
+	// The Swamp: at the start of the final income turn, 2 VP lost for each lily pad still showing (R52). With #35's
+	// masterpieces it comes after them, as the FAQ allows either and after is never worse (#36 design §3.4).
+	lilyPads: {
+		turns: [5],
+		run(ctx, player) {
+			const seat = playerSeat(ctx.state, player);
+			const penalty =
+				seat.capital.mat === null
+					? undefined
+					: seatMat(seat).lilyPenalty;
+			if (!penalty) {
+				return;
+			}
+			const pads = cityPlots(seat).filter(
+				(kind) => kind === 'lily'
+			).length;
+			emit(ctx.state, {
+				type: 'lilyPadsCounted',
+				player,
+				pads,
+				vp: penalty * pads,
+			});
+			if (pads > 0) {
+				ctx.push([
+					{
+						player,
+						kind: 'effects',
+						effects: [{ vp: -penalty * pads }],
+						origin: 'capital',
+					},
+				]);
+			}
 		},
 	},
 	// Step 1: the civilization abilities (civ-turns.js).
