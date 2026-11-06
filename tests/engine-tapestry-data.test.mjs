@@ -84,13 +84,12 @@ test('the card data is frozen', () => {
 	assert.ok(Object.isFrozen(tapestryCard('guilds').played[0]));
 });
 
-test('Renaissance has 4 unordered advances', () => {
+test('Renaissance advances once on each track in play, unordered (R118: the arts track too)', () => {
 	const card = tapestryCard('renaissance');
 	assert.equal(card.ordered, false);
-	assert.equal(card.played.length, 4);
-	assert.deepEqual(card.played[0], {
-		advance: { tracks: ['exploration'], noBenefit: true, freeBonus: true },
-	});
+	assert.deepEqual(card.played, [
+		{ advanceEach: { noBenefit: true, freeBonus: true } },
+	]);
 	assert.equal(TAPESTRY_CARDS.filter((c) => !c.ordered).length, 1);
 });
 

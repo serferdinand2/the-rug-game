@@ -15,7 +15,8 @@ import {
 import { askTrack } from '../decisions/choose-track.js';
 import { askHex } from '../decisions/choose-hex.js';
 import { takeOutpost } from '../outposts.js';
-import { BUILDING_IDS, TRACK_IDS } from '../data/ids.js';
+import { BUILDING_IDS } from '../data/ids.js';
+import { artsInPlay, tracksOf } from '../tracks-in-play.js';
 import { ALL_LANDMARKS } from '../data/landmarks.js';
 import { MAPS } from '../data/maps.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
@@ -160,7 +161,7 @@ export function pleaForAid(ctx, player) {
 	const n =
 		rivals.length === 0
 			? 0
-			: TRACK_IDS.filter((track) =>
+			: tracksOf(state).filter((track) =>
 					rivals.every((seat) =>
 						seat.restartedTracks.includes(track)
 							? spacesAdvanced(me, track) < LAST_SPACE
@@ -220,45 +221,75 @@ function canAdvance(state, player, track) {
 
 /**
  * Dark Ages: the player chooses the track to advance on, among those where they could advance,
- * or else among those where they have a token. One is taken without asking.
+ * or else among those where they have a token. One is taken without asking. The arts track is one of them (R118).
  * @type {import('../state.js').EffectHandler}
  */
 export function darkAges(ctx, player) {
 	const { state } = ctx;
 	const seat = seatOf(state, player);
-	const advanceable = TRACK_IDS.filter((track) =>
+	const advanceable = tracksOf(state).filter((track) =>
 		canAdvance(state, player, track)
 	);
 	const options =
 		advanceable.length > 0
 			? advanceable
-			: TRACK_IDS.filter((track) => seat.tracks[track].length > 0);
+			: tracksOf(state).filter((track) => seat.tracks[track].length > 0);
 	askTrack(ctx, player, options, 'darkAges', { kind: 'darkAgesOn' });
 }
 
 /**
  * Dark Ages on its chosen track: regress once without benefit on each other track, where possible,
  * then advance 3 times without benefit on the chosen one, gaining landmarks (the F&F FAQ order).
+ * With the arts track (03 §2.2) only 3 tracks regress: the player first chooses which of the other 4 keeps its
+ * place, asked even when fewer can regress (#35 design §3.6).
  * @type {import('../state.js').AutomaticKind}
  */
 export function darkAgesOn(ctx, op) {
 	/** @type {TrackId} */
 	const track = op.track;
+	if (artsInPlay(ctx.state) && op.keep === undefined) {
+		const others = tracksOf(ctx.state).filter((other) => other !== track);
+		ctx.push([
+			{
+				player: op.player,
+				kind: 'chooseTrack',
+				options: others,
+				purpose: 'darkAgesKeep',
+				then: { kind: 'darkAgesKept', advance: track },
+			},
+		]);
+		return;
+	}
 	ctx.push([
 		{
 			player: op.player,
 			kind: 'effects',
 			effects: [
-				...TRACK_IDS.filter((other) => other !== track).map(
-					(other) => ({
+				...tracksOf(ctx.state)
+					.filter((other) => other !== track && other !== op.keep)
+					.map((other) => ({
 						regress: { tracks: [other], noBenefit: true },
-					})
-				),
+					})),
 				...Array.from({ length: DARK_AGES_ADVANCES }, () => ({
 					advance: { tracks: [track], noBenefit: true },
 				})),
 			],
 			ordered: true,
+		},
+	]);
+}
+
+/**
+ * Dark Ages after the player chose the track that keeps its place (`track`): on to the advance track (`advance`).
+ * @type {import('../state.js').AutomaticKind}
+ */
+export function darkAgesKept(ctx, op) {
+	ctx.push([
+		{
+			player: op.player,
+			kind: 'darkAgesOn',
+			track: op.advance,
+			keep: op.track,
 		},
 	]);
 }
@@ -277,7 +308,7 @@ export function socialism(ctx, player) {
 	);
 	/** @type {{ track: TrackId, from: number, to: number }[]} */
 	const options = [];
-	for (const track of TRACK_IDS) {
+	for (const track of tracksOf(state)) {
 		const theirs = rivals.flatMap((rival) => rival.tracks[track]);
 		const froms = [...new Set(seat.tracks[track])].sort((a, b) => a - b);
 		for (const from of froms) {
@@ -317,7 +348,7 @@ export function socialism(ctx, player) {
  * @type {import('../state.js').EffectHandler}
  */
 export function dictatorship(ctx, player) {
-	const options = TRACK_IDS.filter((track) =>
+	const options = tracksOf(ctx.state).filter((track) =>
 		canAdvance(ctx.state, player, track)
 	);
 	if (options.length === 0) {
@@ -360,7 +391,7 @@ export function tradeEconomy(ctx, player) {
 	const options = [];
 	for (const owner of opponents(state, player)) {
 		const { tracks } = seatOf(state, owner);
-		for (const track of TRACK_IDS) {
+		for (const track of tracksOf(state)) {
 			const spaces = [...new Set(tracks[track])].sort((a, b) => a - b);
 			for (const space of spaces) {
 				if (space > 0 && !isActivated(state, player, track, space)) {

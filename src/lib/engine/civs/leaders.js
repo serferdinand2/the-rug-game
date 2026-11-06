@@ -45,6 +45,7 @@ export const leaders = {
 		/** @type {LeadersData} */
 		const data = seat.civData.leaders;
 		askSlot(ctx, player, {
+			// R118: the mat prints a square for each of the four board tracks, so never the arts track.
 			options: TRACK_IDS.filter(
 				(track) =>
 					!data.used.includes(track) &&

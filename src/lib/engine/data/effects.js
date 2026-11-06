@@ -88,6 +88,7 @@ import { deepFreeze } from './ids.js';
  * - `others`: each listed player runs `effects` as their own operation, neighbours or everyone.
  * - `trade`: pay one offer's cost for its gain; `host` is the seat hosting it (Olympic Host), `purpose` what offers it (the Utilitarians' 'lighthouse') and `then` an operation following a trade made.
  * - `discardTapestry`: discard any number of hand cards for `vpEach` VP each.
+ * - `advanceEach`: advance once on each track in play, in any order (Renaissance; R118 adds the arts track).
  * - `anyBuilding`: gain one income building of your choice.
  * - `trackLandmark`: gain and place any track landmark nobody owns.
  * - `landmarkRank`: compare landmarks owned with every opponent and run `fewest`, `most` or `otherwise`.
@@ -109,6 +110,7 @@ import { deepFreeze } from './ids.js';
  *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent', only?: string[] } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
  *   | { advance: { tracks: TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean, noBonus?: boolean, offTrackVp?: number } }
+ *   | { advanceEach: { noBenefit?: boolean, freeBonus?: boolean } }
  *   | { regress: { tracks: TrackId[], noBenefit?: boolean } }
  *   | { repeat: { oncePerTurn?: boolean } }
  *   | { invent: { count?: number, refresh?: boolean, faceUpOnly?: boolean, deckOnly?: boolean, thenUpgrade?: boolean } }
@@ -177,6 +179,7 @@ export const EFFECT_KINDS = deepFreeze([
 	'conquer',
 	'research',
 	'advance',
+	'advanceEach',
 	'regress',
 	'repeat',
 	'invent',

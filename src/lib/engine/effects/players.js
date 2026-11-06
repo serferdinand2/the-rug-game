@@ -7,7 +7,8 @@ import { chooseTrade } from '../decisions/choose-trade.js';
 import { askTrack } from '../decisions/choose-track.js';
 import { playerSeat, seatOf } from '../state.js';
 import { rollScience } from './research.js';
-import { BUILDING_IDS, TRACK_IDS } from '../data/ids.js';
+import { BUILDING_IDS } from '../data/ids.js';
+import { tracksOf } from '../tracks-in-play.js';
 
 /**
  * Pushes one `effects` operation per target, so a finished player is skipped by `runEffects`.
@@ -49,7 +50,9 @@ export function sharedAdvance(ctx, player, value, op) {
 		return;
 	}
 	const seat = seatOf(ctx.state, player);
-	const options = TRACK_IDS.filter((track) => seat.tracks[track].length > 0);
+	const options = tracksOf(ctx.state).filter(
+		(track) => seat.tracks[track].length > 0
+	);
 	askTrack(ctx, player, options, 'sharedAdvance', next);
 }
 

@@ -5,7 +5,8 @@ import { advanceBlocked, opponents } from '../abilities.js';
 import { askSlot } from '../decisions/choose-slot.js';
 import { LAST_SPACE, moveToken } from '../movement.js';
 import { TRACKS, advanceCost } from '../data/tracks.js';
-import { TRACK_IDS } from '../data/ids.js';
+import { RESOURCE_IDS } from '../data/ids.js';
+import { tracksOf } from '../tracks-in-play.js';
 
 /** @typedef {import('../data/ids.js').TrackId} TrackId */
 
@@ -107,7 +108,8 @@ function targets(state, player, option) {
 		seatOf(state, other)
 	);
 	const forward = option === 2 || option === 4;
-	return TRACK_IDS.flatMap((track) => {
+	// R118: "any track", the arts track's too.
+	return tracksOf(state).flatMap((track) => {
 		if (forward && advanceBlocked(state, player, track)) {
 			return [];
 		}
@@ -172,6 +174,31 @@ export function tinkerersOption(ctx, op) {
 }
 
 /**
+ * A price as the gain that pays it back (option 1): the resources it names. The arts track's "2 different" and "2 of
+ * one type" become a choice of the pairs that fit, as printed (#35 design §3.3).
+ * @param {import('../data/effects.js').Cost} cost
+ * @returns {import('../data/effects.js').Effect}
+ */
+export function priceAsGain(cost) {
+	if (cost.different) {
+		const ids = RESOURCE_IDS;
+		/** @type {import('../data/effects.js').Effect[][]} */
+		const pairs = [];
+		for (let i = 0; i < ids.length; i++) {
+			for (let j = i + 1; j < ids.length; j++) {
+				pairs.push([{ gain: { [ids[i]]: 1, [ids[j]]: 1 } }]);
+			}
+		}
+		return { choice: pairs };
+	}
+	if (cost.same) {
+		const same = cost.same;
+		return { choice: RESOURCE_IDS.map((id) => [{ gain: { [id]: same } }]) };
+	}
+	return { gain: /** @type {import('../data/effects.js').Gain} */ (cost) };
+}
+
+/**
  * Pay back on the token picked (`slot`, `{ track, space }`): the resources advancing into its space cost, the
  * resources of the player's choice chosen as any gain's.
  * @type {import('../state.js').AutomaticKind}
@@ -183,13 +210,7 @@ export function tinkerersPayBack(ctx, op) {
 		{
 			player: op.player,
 			kind: 'effects',
-			effects: [
-				{
-					gain: /** @type {import('../data/effects.js').Gain} */ (
-						advanceCost(track, space)
-					),
-				},
-			],
+			effects: [priceAsGain(advanceCost(track, space))],
 		},
 	]);
 }

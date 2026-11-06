@@ -4,7 +4,7 @@ import { playerSeat } from '../state.js';
 import { eraOf, opponents } from '../abilities.js';
 import { currentEra, playTapestry, visibleCards } from '../tapestry.js';
 import { tapestryCard } from '../data/tapestry-cards.js';
-import { TRACK_IDS } from '../data/ids.js';
+import { tracksOf } from '../tracks-in-play.js';
 
 /** @typedef {import('../data/ids.js').TrackId} TrackId */
 /** @typedef {{ player: number, track?: TrackId }} Partner - The opponent, and for Marriage of State the track */
@@ -46,10 +46,12 @@ export function eraPartner(ctx, player, value) {
 	/** @type {Partner[]} */
 	const options = opponents(state, player).flatMap((opponent) =>
 		value?.track === true
-			? TRACK_IDS.filter((track) => !named.has(track)).map((track) => ({
-					player: opponent,
-					track,
-				}))
+			? tracksOf(state)
+					.filter((track) => !named.has(track))
+					.map((track) => ({
+						player: opponent,
+						track,
+					}))
 			: [{ player: opponent }]
 	);
 	if (options.length === 1) {

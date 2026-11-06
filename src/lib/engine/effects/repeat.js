@@ -2,7 +2,7 @@
 import { emit } from '../events.js';
 import { seatOf } from '../state.js';
 import { activationOps, isActivated } from '../movement.js';
-import { TRACK_IDS } from '../data/ids.js';
+import { tracksOf } from '../tracks-in-play.js';
 
 /**
  * The spaces a player could repeat: each space 1–12 holding one of their tokens, unless they activated it this turn.
@@ -13,7 +13,8 @@ import { TRACK_IDS } from '../data/ids.js';
  */
 export function repeatable(state, player) {
 	const seat = seatOf(state, player);
-	return TRACK_IDS.flatMap((track) =>
+	// R118: "any advancement track", the arts track's too.
+	return tracksOf(state).flatMap((track) =>
 		[...new Set(seat.tracks[track])]
 			.sort((a, b) => a - b)
 			.filter(

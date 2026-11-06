@@ -11,7 +11,7 @@ import { tapestryCard } from '../data/tapestry-cards.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { spaceTile } from '../data/space-tiles.js';
 import { techCard } from '../data/tech-cards.js';
-import { TRACK_IDS } from '../data/ids.js';
+import { tracksOf } from '../tracks-in-play.js';
 
 /** @typedef {import('../data/ids.js').TrackId} TrackId */
 
@@ -137,7 +137,8 @@ function targetsFrom(state, player, option, from) {
 		];
 	}
 	if (option === 3) {
-		return TRACK_IDS.flatMap((track) =>
+		// R118: "any advancement track", the arts track's too.
+		return tracksOf(state).flatMap((track) =>
 			[...new Set(seat.tracks[track])]
 				.sort((a, b) => a - b)
 				.filter(

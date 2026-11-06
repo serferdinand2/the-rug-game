@@ -1,5 +1,5 @@
 // The 43 base tapestry cards, the trap played as a card, and Plans & Ploys' cards (#33): timing and what happens when played (02 §3, 03 §1.4).
-import { deepFreeze, TRACK_IDS } from './ids.js';
+import { deepFreeze } from './ids.js';
 
 /** @typedef {import('./effects.js').Effect} Effect */
 
@@ -173,11 +173,10 @@ export const TAPESTRY_CARDS = deepFreeze([
 	era('pillage-and-plunder'),
 	era('pirate-rule'),
 	when('plea-for-aid', [{ pleaForAid: {} }]),
+	// R118: "each track", the arts track's too when it is in play, in any order.
 	when(
 		'renaissance',
-		TRACK_IDS.map((track) => ({
-			advance: { tracks: [track], noBenefit: true, freeBonus: true },
-		})),
+		[{ advanceEach: { noBenefit: true, freeBonus: true } }],
 		false
 	),
 	era('revisionism'),

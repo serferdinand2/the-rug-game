@@ -18,7 +18,11 @@ import {
 } from '../src/lib/engine/data/landmarks.js';
 import { FOOTPRINTS } from '../src/lib/art/footprints.js';
 import { openDecisions, push } from '../src/lib/engine/stack.js';
-import { resolveEffects, run } from '../src/lib/engine/loop.js';
+import { contextFor, resolveEffects, run } from '../src/lib/engine/loop.js';
+import { repeatable } from '../src/lib/engine/effects/repeat.js';
+import { predict } from '../src/lib/engine/civs/mystics.js';
+import { leaders } from '../src/lib/engine/civs/leaders.js';
+import { futurists } from '../src/lib/engine/civs/futurists.js';
 import {
 	SCIENCE_D20,
 	SCIENCE_DIE,
@@ -650,4 +654,306 @@ test('Treasure Hunters roll the d20 for a science treasure with the arts track',
 	]);
 	const choice = openDecisions(next).find((d) => d.kind === 'chooseRoll');
 	assert.deepEqual(choice?.options, ['arts', 'exploration']);
+});
+
+/**
+ * A 2-player A&A game whose current player starts a turn, every token of both seats on 0 unless `fill` moves it.
+ * @param {(seat: any, state: any, other: any) => void} [fill] - Gets the current seat, the state and the other seat
+ */
+function artsTurn(fill = () => {}) {
+	return readyTurn(
+		2,
+		(seat, state) => {
+			const other = state.seats.find(
+				(/** @type {any} */ s) => s !== seat
+			);
+			for (const s of [seat, other]) {
+				s.tracks = {
+					...Object.fromEntries(tracksOf(state).map((t) => [t, [0]])),
+				};
+			}
+			fill(seat, state, other);
+		},
+		AA
+	);
+}
+
+/**
+ * Runs one operation on a copy of the state.
+ * @param {any} state
+ * @param {Record<string, any>} op
+ * @param {import('../src/lib/engine/random.js').Random} random
+ */
+function runOp(state, op, random) {
+	const next = structuredClone(state);
+	push(next, next.pending, [op]);
+	run(next, random);
+	return next;
+}
+
+/** @param {any} state @param {string} kind */
+const decisionOf = (state, kind) =>
+	openDecisions(state).find((d) => d.kind === kind);
+
+test('R118: Renaissance advances once on each of the five tracks', () => {
+	const { state, random, player } = artsTurn();
+	const next = resolveTapestry(state, random, player, 'renaissance');
+	const order = decisionOf(next, 'chooseOrder');
+	assert.equal(order.effects.length, 5);
+	assert.deepEqual(order.effects.at(-1), {
+		advance: { tracks: ['arts'], noBenefit: true, freeBonus: true },
+	});
+	const base = readyTurn(2);
+	const four = resolveTapestry(
+		base.state,
+		base.random,
+		base.player,
+		'renaissance'
+	);
+	assert.equal(decisionOf(four, 'chooseOrder').effects.length, 4);
+});
+
+test('R118: Plea for Aid counts the arts track', () => {
+	const { state, random, player } = artsTurn((_seat, _state, other) => {
+		other.tracks.arts = [1];
+	});
+	const vp = state.seats[player - 1].vp;
+	const next = resolveTapestry(state, random, player, 'plea-for-aid');
+	assert.equal(next.seats[player - 1].vp - vp, 2);
+});
+
+test('R118: Boast of Superiority counts the arts track', () => {
+	const { state, random, player } = artsTurn((seat, _state, other) => {
+		for (const track of BOARD) {
+			other.tracks[track] = [1];
+		}
+		seat.tracks.arts = [1];
+	});
+	const vp = state.seats[player - 1].vp;
+	const next = resolveTapestry(state, random, player, 'boast-of-superiority');
+	assert.equal(next.seats[player - 1].vp - vp, 4);
+});
+
+test('R118: Dictatorship, Socialism and Trade Economy reach the arts track', () => {
+	const { state, random, player } = artsTurn((seat, _state, other) => {
+		seat.resources = { coin: 2, worker: 2, food: 2, culture: 2 };
+		other.tracks.arts = [2];
+	});
+	const dictated = resolveTapestry(state, random, player, 'dictatorship');
+	assert.ok(decisionOf(dictated, 'chooseTrack').options.includes('arts'));
+	// The arts track is the only one with an opponent token elsewhere, so the jump is made without asking.
+	const social = resolveTapestry(state, random, player, 'socialism');
+	assert.deepEqual(social.seats[player - 1].tracks.arts, [2]);
+	const traded = resolveTapestry(state, random, player, 'trade-economy');
+	assert.deepEqual(
+		traded.events
+			.filter(
+				(/** @type {any} */ e) =>
+					e.type === 'spaceActivated' && e.seq > state.seq
+			)
+			.map((/** @type {any} */ e) => [e.track, e.space]),
+		[['arts', 2]]
+	);
+});
+
+test('R118: Marriage of State may name the arts track', () => {
+	const { state, random, player } = artsTurn();
+	const next = resolveTapestry(state, random, player, 'marriage-of-state');
+	assert.ok(
+		decisionOf(next, 'choosePartner').options.some(
+			(/** @type {any} */ o) => o.track === 'arts'
+		)
+	);
+});
+
+test('R118: Oil Magnate may share an advance on the arts track', () => {
+	const { state, random, player } = artsTurn();
+	const next = resolveTapestry(state, random, player, 'oil-magnate');
+	assert.deepEqual(decisionOf(next, 'chooseTrack').options, [
+		...BOARD,
+		'arts',
+	]);
+});
+
+test('R118: AI Singularity may start its new token on the arts track', () => {
+	const { state, random, player } = artsTurn((seat) => {
+		seat.tracks.technology = [12];
+	});
+	const next = runOp(
+		state,
+		{
+			player,
+			kind: 'effects',
+			effects: [{ restartToken: {} }],
+			source: { track: 'technology', space: 12 },
+		},
+		random
+	);
+	assert.deepEqual(decisionOf(next, 'chooseRestart').options, [
+		...BOARD,
+		'arts',
+	]);
+});
+
+test('R118: Academic Research may repeat the arts space', () => {
+	const { state, player } = artsTurn((seat) => {
+		seat.tracks.arts = [2];
+	});
+	assert.deepEqual(repeatable(state, player), [{ track: 'arts', space: 2 }]);
+});
+
+test('R118: Status Quo takes an arts bonus', () => {
+	const { state, random, player } = artsTurn((seat) => {
+		seat.tracks.arts = [2];
+	});
+	const next = resolveTapestry(state, random, player, 'status-quo');
+	assert.deepEqual(eventsOf(next, 'freeBonus', state.seq), [
+		{ type: 'freeBonus', player, track: 'arts', space: 2 },
+	]);
+});
+
+test("R118: Spies' option 3 takes a neighbour's arts space", () => {
+	const { state, random, player } = artsTurn((seat, _state, other) => {
+		seat.civData.spies = { used: [], watching: [] };
+		other.tracks.arts = [1];
+	});
+	const next = runOp(state, { player, kind: 'spiesOption', slot: 3 }, random);
+	assert.ok(
+		next.activated.some(
+			(/** @type {any} */ a) =>
+				a.player === player && a.track === 'arts' && a.space === 1
+		)
+	);
+});
+
+test('R118: the Tinkerers reach the arts track, and option 1 pays back its price as printed', () => {
+	const different = artsTurn((seat) => {
+		seat.civData.tinkerers = { used: [] };
+		seat.tracks.arts = [5];
+	});
+	const paid = runOp(
+		different.state,
+		{ player: different.player, kind: 'tinkerersOption', slot: 1 },
+		different.random
+	);
+	assert.deepEqual(decisionOf(paid, 'chooseOption').options, [
+		[{ gain: { coin: 1, worker: 1 } }],
+		[{ gain: { coin: 1, food: 1 } }],
+		[{ gain: { coin: 1, culture: 1 } }],
+		[{ gain: { worker: 1, food: 1 } }],
+		[{ gain: { worker: 1, culture: 1 } }],
+		[{ gain: { food: 1, culture: 1 } }],
+	]);
+	const same = artsTurn((seat) => {
+		seat.civData.tinkerers = { used: [] };
+		seat.tracks.arts = [10];
+	});
+	const paidSame = runOp(
+		same.state,
+		{ player: same.player, kind: 'tinkerersOption', slot: 1 },
+		same.random
+	);
+	assert.deepEqual(decisionOf(paidSame, 'chooseOption').options, [
+		[{ gain: { coin: 2 } }],
+		[{ gain: { worker: 2 } }],
+		[{ gain: { food: 2 } }],
+		[{ gain: { culture: 2 } }],
+	]);
+	const ahead = artsTurn((seat, _state, other) => {
+		seat.civData.tinkerers = { used: [] };
+		other.tracks.arts = [2];
+	});
+	const matched = runOp(
+		ahead.state,
+		{ player: ahead.player, kind: 'tinkerersOption', slot: 2 },
+		ahead.random
+	);
+	assert.deepEqual(matched.seats[ahead.player - 1].tracks.arts, [2]);
+});
+
+test('R118: the Mystics count a completed arts track', () => {
+	const { state, random, player } = artsTurn((seat) => {
+		seat.tracks.arts = [12];
+		seat.civData.mystics = {
+			predictions: { techCards: 9, districts: 9, territories: 9 },
+			reached: [],
+		};
+	});
+	const next = structuredClone(state);
+	const since = next.seq;
+	predict(contextFor(next, random, next.pending), player, 'tracks', 1);
+	run(next, random);
+	assert.deepEqual(
+		eventsOf(next, 'prophecyReached', since).map((e) => e.category),
+		['tracks']
+	);
+});
+
+test('R118: Dark Ages with five tracks: the player chooses the track to advance and the one left alone', () => {
+	const { state, random, player } = artsTurn((seat) => {
+		seat.tracks.exploration = [2];
+		seat.tracks.science = [2];
+		seat.tracks.technology = [2];
+		seat.tracks.arts = [2];
+	});
+	let next = resolveTapestry(state, random, player, 'dark-ages');
+	next = answer(next, random, player, 'chooseTrack', { track: 'military' });
+	const keep = decisionOf(next, 'chooseTrack');
+	assert.equal(keep.purpose, 'darkAgesKeep');
+	assert.deepEqual(keep.options, [
+		'exploration',
+		'science',
+		'technology',
+		'arts',
+	]);
+	next = answer(next, random, player, 'chooseTrack', { track: 'arts' });
+	next = placeAll(next, random);
+	const tracks = next.seats[player - 1].tracks;
+	assert.deepEqual(
+		[
+			tracks.exploration,
+			tracks.science,
+			tracks.technology,
+			tracks.military,
+			tracks.arts,
+		],
+		[[1], [1], [1], [3], [2]]
+	);
+});
+
+test('R118: Dark Ages lets a player choose the kept track even when only one track can regress', () => {
+	const { state, random, player } = artsTurn((seat) => {
+		seat.tracks.science = [3];
+	});
+	let next = resolveTapestry(state, random, player, 'dark-ages');
+	next = answer(next, random, player, 'chooseTrack', {
+		track: 'exploration',
+	});
+	const keep = decisionOf(next, 'chooseTrack');
+	assert.equal(keep.purpose, 'darkAgesKeep');
+	assert.deepEqual(keep.options, [
+		'science',
+		'technology',
+		'military',
+		'arts',
+	]);
+});
+
+test('R118: Leaders and Futurists keep the four board tracks', () => {
+	const { state, random, player } = artsTurn((seat) => {
+		seat.civData.leaders = { used: [] };
+	});
+	const led = structuredClone(state);
+	leaders.income?.(contextFor(led, random, led.pending), player);
+	run(led, random);
+	assert.deepEqual(decisionOf(led, 'chooseSlot').options, BOARD);
+	const ahead = structuredClone(state);
+	futurists.setup?.(contextFor(ahead, random, ahead.pending), player, true);
+	run(ahead, random);
+	const tracks = ahead.seats[player - 1].tracks;
+	assert.deepEqual(
+		BOARD.map((t) => tracks[t]),
+		[[4], [4], [4], [4]]
+	);
+	assert.deepEqual(tracks.arts, [0]);
 });

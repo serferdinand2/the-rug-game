@@ -4,7 +4,8 @@ import { playerSeat, seatOf } from '../state.js';
 import { sourceOrigin } from '../stack.js';
 import { controlledTerritories } from '../control.js';
 import { spacesAdvanced } from '../movement.js';
-import { BUILDING_IDS, TRACK_IDS } from '../data/ids.js';
+import { BUILDING_IDS } from '../data/ids.js';
+import { tracksOf } from '../tracks-in-play.js';
 import { ALL_LANDMARKS } from '../data/landmarks.js';
 import { MAPS } from '../data/maps.js';
 
@@ -55,7 +56,8 @@ export function countVp(state, player, per, track) {
 	}
 	if (per === 'trackLead') {
 		const me = seatOf(state, player);
-		return TRACK_IDS.filter((id) =>
+		// R118: the arts track counts too.
+		return tracksOf(state).filter((id) =>
 			state.seats.every(
 				(other) => spacesAdvanced(other, id) <= spacesAdvanced(me, id)
 			)

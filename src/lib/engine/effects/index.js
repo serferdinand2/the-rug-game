@@ -7,7 +7,7 @@ import { pay } from './pay.js';
 import { building } from './building.js';
 import { choice } from './choice.js';
 import { research } from './research.js';
-import { advance, regress } from './move.js';
+import { advance, advanceEach, regress } from './move.js';
 import { repeat } from './repeat.js';
 import { restartToken } from './restart-token.js';
 import { scoreCapital } from './score-capital.js';
@@ -63,6 +63,7 @@ export const EFFECTS = {
 	choice,
 	research,
 	advance,
+	advanceEach,
 	regress,
 	repeat,
 	restartToken,

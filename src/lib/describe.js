@@ -457,6 +457,16 @@ const PHRASES = {
 	anyBuilding() {
 		return 'gain an income building of your choice';
 	},
+	advanceEach(value) {
+		let words = 'advance once on each track, in any order';
+		if (value?.noBenefit) {
+			words += ', without their benefits';
+		}
+		if (value?.freeBonus) {
+			words += ', taking each bonus for free';
+		}
+		return words;
+	},
 	create() {
 		return 'gain a masterpiece';
 	},

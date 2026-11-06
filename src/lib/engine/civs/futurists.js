@@ -13,6 +13,7 @@ export const futurists = {
 	// jumps (my call), stopping at space 12: a jump gains no landmark, benefit or bonus (#20 design §7).
 	setup(ctx, player) {
 		const seat = playerSeat(ctx.state, player);
+		// R118: "each of the 4 tracks" (02 §1.2), so never the arts track.
 		for (const track of TRACK_IDS) {
 			const tokens = seat.tracks[track];
 			if (tokens.length === 0) {

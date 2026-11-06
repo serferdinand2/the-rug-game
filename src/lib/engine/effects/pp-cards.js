@@ -7,7 +7,7 @@ import { spacesAdvanced } from '../movement.js';
 import { askHex } from '../decisions/choose-hex.js';
 import { hexNeighbours } from '../data/maps.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
-import { TRACK_IDS } from '../data/ids.js';
+import { tracksOf } from '../tracks-in-play.js';
 import { TRACKS, tierOf } from '../data/tracks.js';
 import { gainTiles } from './gain.js';
 
@@ -151,7 +151,8 @@ export function statusQuo(ctx, player) {
 	/** @type {import('../state.js').NewOperation[]} */
 	const ops = [];
 	for (const tier of TIERS) {
-		const tracks = TRACK_IDS.filter((track) => {
+		// R118: "advancement-track tokens", the arts track's too.
+		const tracks = tracksOf(ctx.state).filter((track) => {
 			const space = spacesAdvanced(seat, track);
 			return (
 				space > 0 &&

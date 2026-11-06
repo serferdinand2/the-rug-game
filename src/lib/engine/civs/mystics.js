@@ -4,7 +4,7 @@ import { playerSeat, seatOf } from '../state.js';
 import { cityPlots, completeDistricts } from '../city.js';
 import { countVp } from '../effects/vp.js';
 import { LAST_SPACE, spacesAdvanced } from '../movement.js';
-import { TRACK_IDS } from '../data/ids.js';
+import { tracksOf } from '../tracks-in-play.js';
 import { discardCiv } from './civ.js';
 
 /** @typedef {'techCards' | 'districts' | 'territories' | 'tracks'} ProphecyCategory */
@@ -46,7 +46,8 @@ function prophecyCounts(state, player) {
 		techCards: countVp(state, player, 'techCard'),
 		districts: completeDistricts(cityPlots(seat)).length,
 		territories: countVp(state, player, 'territory'),
-		tracks: TRACK_IDS.filter(
+		// R118: a completed arts track counts too.
+		tracks: tracksOf(state).filter(
 			(track) => spacesAdvanced(seat, track) === LAST_SPACE
 		).length,
 	};

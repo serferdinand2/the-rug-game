@@ -635,6 +635,9 @@ const TITLES = {
 		switch (d.purpose) {
 			case 'darkAges':
 				return `Dark Ages: choose the track to advance ${DARK_AGES_ADVANCES} times on`;
+			// With the arts track only 3 of the other 4 tracks go back (03 §2.2, #35).
+			case 'darkAgesKeep':
+				return 'Dark Ages: choose the track that keeps its place';
 			case 'dictatorship':
 				return 'Dictatorship: advance on a track, and close it to opponents';
 			case 'sharedAdvance': {
@@ -1177,6 +1180,9 @@ const ANSWERS = {
 		const track = trackName(a.track);
 		if (d.purpose === 'darkAges') {
 			return `${track}: advance ${DARK_AGES_ADVANCES} times, and go back once on each other track`;
+		}
+		if (d.purpose === 'darkAgesKeep') {
+			return `${track}: keeps its place`;
 		}
 		if (d.purpose === 'dictatorship') {
 			return `${track}: no opponent advances on it until your next turn`;

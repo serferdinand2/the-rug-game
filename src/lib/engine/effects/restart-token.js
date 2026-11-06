@@ -1,6 +1,6 @@
 // The restartToken effect: AI Singularity takes the token off its space and starts a token on any track (01 §3.4).
 import { seatOf } from '../state.js';
-import { TRACK_IDS } from '../data/ids.js';
+import { tracksOf } from '../tracks-in-play.js';
 
 /**
  * Asks which track gets the new token. The token on the source space must still be there.
@@ -20,7 +20,8 @@ export function restartToken(ctx, player, value, op) {
 		{
 			player,
 			kind: 'chooseRestart',
-			options: [...TRACK_IDS],
+			// R118: "the start space of any track", the arts track's too.
+			options: tracksOf(ctx.state),
 			source,
 		},
 	]);

@@ -2,6 +2,7 @@
 import { seatOf } from '../state.js';
 import { LAST_SPACE, movableFroms, moveToken } from '../movement.js';
 import { advanceBlocked } from '../abilities.js';
+import { tracksOf } from '../tracks-in-play.js';
 
 /**
  * Moves one of a player's tokens one space on one of `value.tracks`. Mandatory unless `optional`: a single possible
@@ -110,4 +111,24 @@ export function advance(ctx, player, value) {
  */
 export function regress(ctx, player, value) {
 	moveOnOneOf(ctx, player, value, 'regress');
+}
+
+/**
+ * Advance once on each track in play, the arts track's too (Renaissance, R118), in the order the player chooses; each
+ * advance takes `value`'s `noBenefit` and `freeBonus`. The operation keeps the card it came from, for the prompt.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function advanceEach(ctx, player, value, op) {
+	ctx.push([
+		{
+			player,
+			kind: 'effects',
+			effects: tracksOf(ctx.state).map((track) => ({
+				advance: { tracks: [track], ...value },
+			})),
+			ordered: false,
+			...(op?.source && { source: op.source }),
+			...(op?.origin && { origin: op.origin }),
+		},
+	]);
 }

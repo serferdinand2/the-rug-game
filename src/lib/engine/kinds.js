@@ -52,7 +52,13 @@ import { chooseConversion } from './decisions/choose-conversion.js';
 import { chooseCivAbility } from './decisions/choose-civ-ability.js';
 import { chooseSlot } from './decisions/choose-slot.js';
 import { olympicHostEnd, sharedAdvanceOn } from './effects/players.js';
-import { darkAgesOn, dictate, colonize, revolt } from './effects/cards.js';
+import {
+	darkAgesOn,
+	darkAgesKept,
+	dictate,
+	colonize,
+	revolt,
+} from './effects/cards.js';
 import { upgradeTech } from './effects/tech.js';
 import { copyBenefit } from './eras.js';
 import { conquerDice } from './effects/conquer.js';
@@ -184,6 +190,7 @@ Object.assign(AUTOMATIC, {
 	olympicHostEnd,
 	sharedAdvanceOn,
 	darkAgesOn,
+	darkAgesKept,
 	dictate,
 	colonize,
 	revolt,
