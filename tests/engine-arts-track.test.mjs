@@ -11,10 +11,18 @@ import { artsInPlay, tracksOf } from '../src/lib/engine/tracks-in-play.js';
 import { TRACK_IDS } from '../src/lib/engine/data/ids.js';
 import { TRACKS, advanceCost } from '../src/lib/engine/data/tracks.js';
 import { countVp } from '../src/lib/engine/effects/vp.js';
-import { newGame } from './helpers/engine.mjs';
+import {
+	EXPANSION_LANDMARKS,
+	LANDMARKS,
+	landmarksFor,
+} from '../src/lib/engine/data/landmarks.js';
+import { FOOTPRINTS } from '../src/lib/art/footprints.js';
+import { openDecisions } from '../src/lib/engine/stack.js';
+import { newGame, readyTurn, resolveTapestry } from './helpers/engine.mjs';
 import { checkState } from './helpers/invariants.mjs';
 
 const AA = { expansions: ['aa'] };
+const ARTS_LANDMARKS = ['clock-tower', 'opera-house', 'holocenter'];
 
 test('Arts & Architecture is built, and its two variants need it', () => {
 	assert.deepEqual(EXPANSIONS_BUILT, ['pp', 'aa']);
@@ -196,4 +204,63 @@ test('Holocenter counts every income building off the mat (R71)', () => {
 		armory: 5,
 	};
 	assert.equal(countVp(state, 1, 'incomeBuilding'), 3);
+});
+
+test('the arts track adds its 3 landmarks, with the shared footprints, only when it is in play (03 §2.10)', () => {
+	assert.deepEqual(
+		EXPANSION_LANDMARKS.filter((l) => l.expansion === 'aa').map((l) => [
+			l.id,
+			l.source,
+			l.arts,
+		]),
+		[
+			['clock-tower', { track: 'arts', tier: 2, space: 4 }, true],
+			['opera-house', { track: 'arts', tier: 3, space: 7 }, true],
+			['holocenter', { track: 'arts', tier: 4, space: 10 }, true],
+		]
+	);
+	for (const id of ARTS_LANDMARKS) {
+		const landmark = EXPANSION_LANDMARKS.find((l) => l.id === id);
+		assert.equal(landmark?.footprint, FOOTPRINTS[id], id);
+	}
+	assert.equal(landmarksFor(['aa']).length, 21);
+	assert.equal(landmarksFor(['aa'], ['no-arts-track']).length, 18);
+	assert.equal(landmarksFor(['pp', 'aa']).length, 28);
+});
+
+test('the arts landmarks are in the supply only with the arts track', () => {
+	const on = newGame(2, AA).state;
+	for (const id of ARTS_LANDMARKS) {
+		assert.ok(on.landmarks.includes(id), id);
+	}
+	checkState(on);
+	for (const options of [
+		{},
+		{ expansions: ['aa'], variants: ['no-arts-track'] },
+	]) {
+		const off = newGame(2, options).state;
+		for (const id of ARTS_LANDMARKS) {
+			assert.ok(!off.landmarks.includes(id), id);
+		}
+		checkState(off);
+	}
+});
+
+test('Dystopia may take an arts-track landmark (03 §2.2)', () => {
+	const boardTrack = LANDMARKS.filter((l) => 'track' in l.source).map(
+		(l) => l.id
+	);
+	const { state, random, player } = readyTurn(
+		2,
+		(_seat, state) => {
+			state.landmarks = state.landmarks.filter(
+				(id) => !boardTrack.includes(id)
+			);
+		},
+		AA
+	);
+	const next = resolveTapestry(state, random, player, 'dystopia');
+	const [decision] = openDecisions(next);
+	assert.equal(decision.kind, 'chooseLandmark');
+	assert.deepEqual([...decision.options].sort(), [...ARTS_LANDMARKS].sort());
 });

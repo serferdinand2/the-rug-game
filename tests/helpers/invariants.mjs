@@ -4,6 +4,7 @@ import { DECISIONS } from '../../src/lib/engine/kinds.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
 import { civsFor, tapestryFor, techDeck } from '../../src/lib/engine/decks.js';
 import { landmarksFor } from '../../src/lib/engine/data/landmarks.js';
+import { tracksOf } from '../../src/lib/engine/tracks-in-play.js';
 import { landmarkCardsFor } from '../../src/lib/engine/data/landmark-cards.js';
 import { TERRITORY_TILES } from '../../src/lib/engine/data/territory-tiles.js';
 import { spaceTilesFor } from '../../src/lib/engine/data/space-tiles.js';
@@ -13,11 +14,7 @@ import {
 	UTILITARIANS_LANDMARKS,
 	UTILITARIANS_TOKENS,
 } from '../../src/lib/engine/civs/utilitarians.js';
-import {
-	BUILDING_IDS,
-	RESOURCE_IDS,
-	TRACK_IDS,
-} from '../../src/lib/engine/data/ids.js';
+import { BUILDING_IDS, RESOURCE_IDS } from '../../src/lib/engine/data/ids.js';
 import { allOps } from './views.mjs';
 
 /** @typedef {import('../../src/lib/engine/state.js').State} State */
@@ -210,7 +207,7 @@ export function checkState(state, previousSeq = 0) {
 				op.landmark !== undefined ? [op.landmark] : []
 			),
 		],
-		landmarksFor(state.expansions).map((l) => l.id)
+		landmarksFor(state.expansions, state.variants).map((l) => l.id)
 	);
 
 	// #33: only the Infiltrators share a territory, which then holds the upright outposts of two seats or more; nothing
@@ -325,7 +322,13 @@ export function checkState(state, previousSeq = 0) {
 			p.vp,
 			`seat ${p.seat}'s VP sources add up to ${credited}, not ${p.vp}`
 		);
-		for (const track of TRACK_IDS) {
+		// The tracks in play, the arts track's too, and no other (#35).
+		assert.deepEqual(
+			Object.keys(p.tracks),
+			tracksOf(state),
+			`seat ${p.seat}'s tracks`
+		);
+		for (const track of tracksOf(state)) {
 			for (const space of p.tracks[track]) {
 				assert.ok(
 					Number.isInteger(space) && space >= 0 && space <= 12,

@@ -451,7 +451,7 @@ export function createGame({
 			capitals: [],
 		},
 		hexes,
-		landmarks: landmarksFor(expansions).map((l) => l.id),
+		landmarks: landmarksFor(expansions, variants).map((l) => l.id),
 		achievements: Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, []])),
 		activated: [],
 		usedThisTurn: [],

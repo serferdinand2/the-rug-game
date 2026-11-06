@@ -106,7 +106,11 @@ test('Plans & Ploys has 5 landmark cards, each naming its own landmark and goal 
 
 test("Plans & Ploys adds 7 landmarks with the shared footprints: the 5 cards', the Monolith and the Stadium (#33)", () => {
 	assert.deepEqual(
-		EXPANSION_LANDMARKS.map((l) => [l.id, l.source, l.expansion]),
+		EXPANSION_LANDMARKS.filter((l) => l.expansion === 'pp').map((l) => [
+			l.id,
+			l.source,
+			l.expansion,
+		]),
 		[
 			['game-store', { card: 'game-store' }, 'pp'],
 			['tv-station', { card: 'tv-station' }, 'pp'],

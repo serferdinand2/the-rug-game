@@ -2,6 +2,7 @@
 // Footprints come from src/lib/art/footprints.js, the one copy the art, the interface and the engine share.
 import { FOOTPRINTS } from '../../art/footprints.js';
 import { deepFreeze } from './ids.js';
+import { artsTrackOn } from './tracks.js';
 
 /** @typedef {import('./ids.js').TrackId} TrackId */
 
@@ -20,6 +21,7 @@ import { deepFreeze } from './ids.js';
  * @property {readonly string[]} footprint - Rows top first, X for a covered plot; any of the 4 rotations, never a mirror (R15)
  * @property {LandmarkSource} source
  * @property {string} [expansion] - Its expansion's code; left out for the base game's
+ * @property {boolean} [arts] - An arts-track landmark, in a game only with the arts track in play (#35)
  */
 
 /**
@@ -100,12 +102,12 @@ export const LANDMARKS = deepFreeze([
 ]);
 
 /**
- * The expansions' landmarks: Plans & Ploys' 5 landmark-card landmarks and the Monolith (03 §1.6, #32), and the Stadium
- * that Entertain the Masses gains (#33).
+ * The expansions' landmarks: Plans & Ploys' 5 landmark-card landmarks and the Monolith (03 §1.6, #32), the Stadium
+ * that Entertain the Masses gains (#33), and the arts track's 3 (03 §2.3, #35).
  * @type {readonly Landmark[]}
  */
-export const EXPANSION_LANDMARKS = deepFreeze(
-	[
+export const EXPANSION_LANDMARKS = deepFreeze([
+	...[
 		landmark('game-store', 'Game Store', { card: 'game-store' }),
 		landmark('tv-station', 'TV Station', { card: 'tv-station' }),
 		landmark('digital-studio', 'Digital Studio', {
@@ -115,8 +117,25 @@ export const EXPANSION_LANDMARKS = deepFreeze(
 		landmark('urban-farm', 'Urban Farm', { card: 'urban-farm' }),
 		landmark('monolith', 'Monolith', { spaceTile: 19 }),
 		landmark('stadium', 'Stadium', { tapestry: 'entertain-the-masses' }),
-	].map((l) => ({ ...l, expansion: 'pp' }))
-);
+	].map((l) => ({ ...l, expansion: 'pp' })),
+	...[
+		landmark('clock-tower', 'Clock Tower', {
+			track: 'arts',
+			tier: 2,
+			space: 4,
+		}),
+		landmark('opera-house', 'Opera House', {
+			track: 'arts',
+			tier: 3,
+			space: 7,
+		}),
+		landmark('holocenter', 'Holocenter', {
+			track: 'arts',
+			tier: 4,
+			space: 10,
+		}),
+	].map((l) => ({ ...l, expansion: 'aa', arts: true })),
+]);
 
 /**
  * Every landmark the engine knows, base first.
@@ -128,13 +147,16 @@ export const ALL_LANDMARKS = Object.freeze([
 ]);
 
 /**
- * The landmarks of a game: the base game's, then its expansions'.
+ * The landmarks of a game: the base game's, then its expansions', the arts track's only with the arts track in play.
  * @param {readonly string[]} expansions
+ * @param {readonly string[]} [variants]
  * @returns {Landmark[]}
  */
-export function landmarksFor(expansions) {
+export function landmarksFor(expansions, variants = []) {
 	return ALL_LANDMARKS.filter(
-		(l) => l.expansion === undefined || expansions.includes(l.expansion)
+		(l) =>
+			(l.expansion === undefined || expansions.includes(l.expansion)) &&
+			(!l.arts || artsTrackOn(expansions, variants))
 	);
 }
 

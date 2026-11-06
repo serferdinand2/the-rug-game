@@ -16,7 +16,7 @@ import { askTrack } from '../decisions/choose-track.js';
 import { askHex } from '../decisions/choose-hex.js';
 import { takeOutpost } from '../outposts.js';
 import { BUILDING_IDS, TRACK_IDS } from '../data/ids.js';
-import { LANDMARKS } from '../data/landmarks.js';
+import { ALL_LANDMARKS } from '../data/landmarks.js';
 import { MAPS } from '../data/maps.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { TRACKS } from '../data/tracks.js';
@@ -91,12 +91,13 @@ export function gainTrackLandmark(ctx, player, landmark) {
 }
 
 /**
- * The track landmarks nobody owns, in `LANDMARKS` order.
+ * The track landmarks nobody owns, in `ALL_LANDMARKS` order: the board's, then the arts track's (03 §2.2: Dystopia may
+ * take them).
  * @param {import('../state.js').State} state
  * @returns {string[]}
  */
 export function freeTrackLandmarks(state) {
-	return LANDMARKS.filter(
+	return ALL_LANDMARKS.filter(
 		(landmark) =>
 			'track' in landmark.source && state.landmarks.includes(landmark.id)
 	).map((landmark) => landmark.id);
