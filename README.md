@@ -240,7 +240,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 The research in [docs/research/](docs/research/) left 92 details unconfirmed, marked **[UNVERIFIED]**, plus a list of open questions. Each one has a decision here, so the engine never guesses. These decisions settle [#2](https://github.com/serferdinand2/the-rug-game/issues/2).
 
-- **Rule ids** (R1–R117) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
+- **Rule ids** (R1–R119) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
 - **Versions.** A table plays either the **Original 2019 printing** or the **Current official rules**. A rule applies to both unless it names one.
 - **Sources** are trusted in this order:
   1. the Fantasies & Futures integrated rulebook;
@@ -412,7 +412,7 @@ How the ranking was built:
 </details>
 
 <details>
-<summary><b>Arts & Architecture</b> (18 rules)</summary>
+<summary><b>Arts & Architecture</b> (20 rules)</summary>
 
 | Rule | Question | Decision | Basis | Check |
 |---|---|---|---|---|
@@ -434,6 +434,8 @@ How the ranking was built:
 | R64 | Villa: goal text? | At the end of your turn, if your capital city has at least 3 different types of income buildings, gain this landmark. | 03 FF.8.1 / §2.10 (the two readings agree) | |
 | R65 | Model the mirrored first-print A&A landmark cards? | No. Both versions use the corrected footprints, which match the miniatures. | 03 FF.6b 3.2, 03 OQ FFc6 | |
 | R66 | Twin Impact: what is the clockwise order of the tracks? | Clockwise from the top of the board: Military, Science, Exploration, Technology, on both sides. Twin Impact is offered. R59 keeps the arts track out of Automa and Shadow Empire games, so where the arts track sits never matters. | 03 §2.11. Read from BGA's board images (both sides); BGA itself doesn't implement Twin Impact. | BGA |
+| R118 | With the arts track in play, does an effect that says "any track" or "each track" include it? | Yes. The arts track is an advancement track like the other four, so every effect that says any track, each track, a track or advancement track includes it: the advance turn, every science-die roll (the d20), Dark Ages, Renaissance, Plea for Aid, Boast of Superiority, Dictatorship, Socialism, Trade Economy, Marriage of State, the shared advances that choose a track, AI Singularity's new token, Academic Research and Lithium-Ion Battery, Status Quo, Spies' option 3, the Tinkerers, the Mystics' completed tracks, "complete any track" and Dystopia. Effects whose printed icons or text name the four tracks keep them: Leaders, Futurists, Alchemists, Entertainers, the base spaces that name their tracks, Flash Mob and Infinite Spectrum Photography. | 03 §2.1 ("a 5th advancement track"), §2.2 (Dark Ages, Leaders, Entertainers, Alchemists, Dystopia); 01 §3 Academic Research; 02 §1.2 Futurists. Owner, 2026-11-06 ([#35](https://github.com/serferdinand2/the-rug-game/issues/35)). | |
+| R119 | What happens when the masterpiece deck runs out? | Shuffle the discarded masterpieces into a new deck, as the tapestry deck does (01 §9.1). With no discards either, fewer cards lie face up and the deck's top card can't be chosen. | No source covers it. Owner, 2026-11-06 ([#35](https://github.com/serferdinand2/the-rug-game/issues/35)). | |
 
 </details>
 
