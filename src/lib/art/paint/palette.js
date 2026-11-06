@@ -254,6 +254,9 @@ const COLOURS = {
 	quagWaterLight: '#2a544c',
 	quagSlime: '#5f8c3a',
 	quagWeed: '#8fc04b',
+	// A will-o'-the-wisp's glow and halo over the bog's deep water (#133).
+	quagWispGlow: '#375c53',
+	quagWispHalo: '#57897a',
 
 	// Savanna capital terrain (#6): grey dust between districts and golden grass
 	savannaDust: '#a79e88',

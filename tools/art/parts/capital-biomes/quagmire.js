@@ -4,7 +4,6 @@ import {
 	rect,
 	set,
 	line,
-	mix,
 	seededRandom,
 } from '../../painter.js';
 import { PALETTE as P } from '../../palette.js';
@@ -376,8 +375,8 @@ function openFeature(c, v, r) {
  * @param {number} cy
  */
 function wisp(c, cx, cy) {
-	const glow = mix(K.waterDeep, P.ghost, 0.28);
-	const halo = mix(K.waterDeep, P.ghost, 0.5);
+	const glow = P.quagWispGlow;
+	const halo = P.quagWispHalo;
 	for (let y = -8; y <= 8; y++) {
 		for (let x = -8; x <= 8; x++) {
 			const d = Math.hypot(x, y * 1.1);

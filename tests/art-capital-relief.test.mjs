@@ -200,6 +200,29 @@ test('matData gives the volcanoes and the clouds, and nothing for other mats', (
 	assert.deepEqual(SPECIMEN_DATA['cloud-city'], matData('cloud-city'));
 });
 
+test("matData gives the Quagmire's wisps, the Savanna's herds and districts, and the Veil's sides (#133)", () => {
+	assert.deepEqual(matData('quagmire').wisps, [
+		[0, 6],
+		[3, 4],
+		[7, 2],
+		[7, 7],
+	]);
+	const savanna = matData('savanna');
+	assert.equal(savanna.herds?.length, 6);
+	assert.deepEqual(savanna.herds?.[0], [0, 7]);
+	assert.equal(savanna.districts?.[4], '33444555.');
+	// The veil runs down the column 5|6 line for rows 0-5, then down the column 2|3 line.
+	const sides = matData('veil').sides;
+	assert.equal(sides?.length, 9);
+	assert.equal(sides?.[0], '000000111');
+	assert.equal(sides?.[8], '000111111');
+	assert.deepEqual(matData('polar'), {});
+	// The specimen: a wisp and a herd on its lone plot, and the veil down its column 4|5 line, across its side pair.
+	assert.deepEqual(SPECIMEN_DATA.quagmire.wisps, [[1, 1]]);
+	assert.deepEqual(SPECIMEN_DATA.savanna.herds, [[1, 1]]);
+	assert.deepEqual(SPECIMEN_DATA.veil.sides, Array(9).fill('000001111'));
+});
+
 test('a flat peak has a wider summit', () => {
 	const width = (/** @type {number[]} */ [, a, b]) => b - a + 1;
 	const spec = { bx: 50, by: 60, hw: 10, ph: 12 };
@@ -230,17 +253,24 @@ function plot(biome, variant) {
 	return canvas;
 }
 
-/** Every natural ground: one per relief biome, the five other Arts & Architecture biomes, and Cloud City's four tints (#132). */
+/** The relief biomes with more than one natural ground: Cloud City's per cloud tint (#132), the Veil's per side and the Savanna's in and out of its districts (#133). */
+const SPLIT_GROUNDS = ['cloud-city', 'veil', 'savanna'];
+
+/** Every natural ground: one per relief biome, the five other Arts & Architecture biomes, the Fantasies & Futures ones, and the split grounds below (#132, #133). */
 const GROUND_KEYS = [
-	// Cloud City's ground is one per cloud tint, below.
-	...RELIEF_BIOMES.filter((biome) => biome !== 'cloud-city'),
-	...['archipelago', 'canyon', 'cavern', 'mesa', 'swamp'].filter(
-		(biome) => !RELIEF_BIOMES.includes(biome)
-	),
+	...new Set([
+		...RELIEF_BIOMES.filter((biome) => !SPLIT_GROUNDS.includes(biome)),
+		...['archipelago', 'canyon', 'cavern', 'mesa', 'swamp'],
+		...['quagmire', 'city-in-a-bottle', 'polar', 'netherworld'],
+	]),
 	'cloud-city-white',
 	'cloud-city-grey',
 	'cloud-city-tan',
 	'cloud-city-cream',
+	'veil-worldly',
+	'veil-charmed',
+	'savanna-grey',
+	'savanna-district',
 ];
 
 for (const biome of GROUND_KEYS) {
@@ -276,6 +306,19 @@ test("groundKey picks a Cloud City plot's ground by its cloud's tint", () => {
 	assert.equal(groundKey('cloud-city', 0, 7, mat), 'cloud-city-cream');
 	assert.equal(groundKey('cloud-city', 2, 2, mat), 'cloud-city-white');
 	assert.equal(groundKey('canyon', 0, 0, {}), 'canyon');
+});
+
+test("groundKey picks the Veil's side and whether a Savanna plot is in a district (#133)", () => {
+	const veil = matData('veil');
+	assert.equal(groundKey('veil', 0, 5, veil), 'veil-worldly');
+	assert.equal(groundKey('veil', 0, 6, veil), 'veil-charmed');
+	assert.equal(groundKey('veil', 8, 3, veil), 'veil-charmed');
+	assert.equal(groundKey('veil', 0, 0, {}), 'veil-worldly');
+	const savanna = matData('savanna');
+	assert.equal(groundKey('savanna', 0, 0, savanna), 'savanna-grey');
+	assert.equal(groundKey('savanna', 0, 3, savanna), 'savanna-district');
+	assert.equal(groundKey('savanna', 0, 0, {}), 'savanna-district');
+	assert.equal(groundKey('polar', 0, 0, {}), 'polar');
 });
 
 test("the Canyon's earth is paler than the Mesa's soil", () => {

@@ -293,6 +293,118 @@ function scatterTerrace(wisp, tuft) {
 	};
 }
 
+/** Moss, puddles and sedge on the Quagmire's bog (#133). @type {Scatter} */
+function scatterBog(put, px, py, roll, rand) {
+	if (roll < 0.3) {
+		put(px, py, C.quagMoss);
+		put(px + 1, py, C.quagMossLight);
+	} else if (roll < 0.45) {
+		const n = 3 + Math.floor(rand() * 3);
+		for (let i = 0; i < n; i++) {
+			put(px + i, py, i === 1 ? C.quagPuddleLight : C.quagPuddle);
+		}
+	} else if (roll < 0.65) {
+		put(px, py, C.quagReedShade);
+		put(px - 1, py - 1, C.quagReed);
+		put(px + 1, py - 1, C.quagReedShade);
+	}
+}
+
+/** Pebbles, sea glass and ripples on the bottle's seabed sand (#133). @type {Scatter} */
+function scatterSeabed(put, px, py, roll) {
+	if (roll < 0.3) {
+		put(px, py, C.bottlePebbleLight);
+		put(px + 1, py, C.bottlePebble);
+	} else if (roll < 0.45) {
+		put(px, py, C.bottleGlassLight);
+		put(px + 1, py + 1, C.bottleGlass);
+	} else if (roll < 0.6) {
+		for (let i = 0; i < 4; i++) {
+			put(px + i, py, C.bottleSandShade);
+		}
+	}
+}
+
+/** Daisies, buttercups and tufts on the Veil's worldly meadow (#133). @type {Scatter} */
+function scatterWorldly(put, px, py, roll) {
+	if (roll < 0.25) {
+		put(px, py, C.creamLight);
+		put(px, py + 1, C.veilMeadowShade);
+	} else if (roll < 0.4) {
+		put(px, py, C.amber);
+	} else if (roll < 0.7) {
+		put(px, py, C.veilMeadowShade);
+		put(px - 1, py - 1, C.veilMeadowLight);
+		put(px + 1, py - 1, C.veilMeadowShade);
+	}
+}
+
+/** Motes of light and violet moss on the Veil's charmed side (#133). @type {Scatter} */
+function scatterCharmed(put, px, py, roll) {
+	if (roll < 0.3) {
+		put(px, py, C.ghostLight);
+	} else if (roll < 0.5) {
+		put(px, py, C.arcaneLight);
+		put(px + 1, py, C.arcane);
+	} else if (roll < 0.7) {
+		put(px, py, C.veilNightLight);
+		put(px - 1, py - 1, C.arcaneShade);
+	}
+}
+
+/** Pebbles and dry blades on the Savanna's grey ground (#133). @type {Scatter} */
+function scatterDust(put, px, py, roll) {
+	if (roll < 0.35) {
+		put(px, py, C.stoneLight);
+		put(px + 1, py, C.stoneShade);
+	} else if (roll < 0.6) {
+		put(px, py, C.savannaDryBlade);
+		put(px + 1, py - 1, C.savannaDustShade);
+	}
+}
+
+/** Dry grass and the odd stone in a Savanna district (#133). @type {Scatter} */
+function scatterDistrict(put, px, py, roll) {
+	if (roll < 0.55) {
+		put(px, py, C.savannaDryBlade);
+		put(px - 1, py - 1, C.savannaGoldLight);
+		put(px + 1, py - 1, C.savannaDryBlade);
+	} else if (roll < 0.7) {
+		put(px, py, C.stoneLight);
+	}
+}
+
+/** Cracks in the ice and the odd stone in Polar snow (#133). @type {Scatter} */
+function scatterSnow(put, px, py, roll, rand) {
+	if (roll < 0.35) {
+		const n = 3 + Math.floor(rand() * 4);
+		for (let i = 0; i < n; i++) {
+			put(px + i, py + (i > 1 ? 1 : 0), C.iceMid);
+		}
+	} else if (roll < 0.5) {
+		put(px, py, C.stoneLight);
+		put(px + 1, py, C.stoneShade);
+	} else if (roll < 0.7) {
+		put(px, py, C.iceLight);
+	}
+}
+
+/** Glowing cracks, bone and cinders on the Netherworld's scorched rock (#133). @type {Scatter} */
+function scatterScorched(put, px, py, roll, rand) {
+	if (roll < 0.3) {
+		const n = 3 + Math.floor(rand() * 4);
+		for (let i = 0; i < n; i++) {
+			put(px + i, py + (i % 3 === 2 ? 1 : 0), i === 1 ? C.lava : C.ember);
+		}
+	} else if (roll < 0.45) {
+		put(px, py, C.creamShade);
+		put(px + 1, py, C.cream);
+	} else if (roll < 0.65) {
+		put(px, py, C.hellRockDeep);
+		put(px + 1, py, C.hellRockShade);
+	}
+}
+
 /**
  * Each biome's natural ground: its seed, its three tones and the small things lying on it.
  * @type {Record<string, { seed: number, base: string, light: string, dark: string, scatter: Scatter }>}
@@ -409,6 +521,63 @@ const GROUNDS = {
 		light: C.terraceTanLight,
 		dark: C.terraceCreamDark,
 		scatter: scatterTerrace(C.creamLight, C.terraceCreamDark),
+	},
+	// The Fantasies & Futures mats (#133): the Veil's two sides and the Savanna's two grounds each have their own.
+	quagmire: {
+		seed: 8101,
+		base: C.quagMud,
+		light: C.quagMudLight,
+		dark: C.quagMudShade,
+		scatter: scatterBog,
+	},
+	'city-in-a-bottle': {
+		seed: 8202,
+		base: C.bottleSand,
+		light: C.bottleSandLight,
+		dark: C.bottleSandShade,
+		scatter: scatterSeabed,
+	},
+	'veil-worldly': {
+		seed: 8303,
+		base: C.veilMeadow,
+		light: C.veilMeadowLight,
+		dark: C.veilMeadowShade,
+		scatter: scatterWorldly,
+	},
+	'veil-charmed': {
+		seed: 8404,
+		base: C.veilNight,
+		light: C.veilNightLight,
+		dark: C.veilNightShade,
+		scatter: scatterCharmed,
+	},
+	'savanna-grey': {
+		seed: 8505,
+		base: C.savannaDust,
+		light: C.savannaDustLight,
+		dark: C.savannaDustShade,
+		scatter: scatterDust,
+	},
+	'savanna-district': {
+		seed: 8606,
+		base: C.savannaGold,
+		light: C.savannaGoldLight,
+		dark: C.savannaGoldShade,
+		scatter: scatterDistrict,
+	},
+	polar: {
+		seed: 8707,
+		base: C.snow,
+		light: C.white,
+		dark: C.snowShade,
+		scatter: scatterSnow,
+	},
+	netherworld: {
+		seed: 8808,
+		base: C.hellRock,
+		light: C.hellRockLight,
+		dark: C.hellRockShade,
+		scatter: scatterScorched,
 	},
 };
 
