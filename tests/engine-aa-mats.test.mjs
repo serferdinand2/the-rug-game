@@ -8,6 +8,14 @@ import {
 	impassablePlots,
 	matShape,
 } from '../src/lib/engine/data/capitals.js';
+import {
+	buildingProblem,
+	cityPlots,
+	landmarkProblem,
+	landmarkSpots,
+	seatShape,
+} from '../src/lib/engine/city.js';
+import { startedGame } from './helpers/engine.mjs';
 import * as archipelagoArt from '../tools/art/parts/capital-biomes/archipelago.js';
 import * as canyonArt from '../tools/art/parts/capital-biomes/canyon.js';
 import * as cavernArt from '../tools/art/parts/capital-biomes/cavern.js';
@@ -152,6 +160,32 @@ test("the engine's layouts agree with #132's art", () => {
 	for (const [r, c] of archipelagoArt.VOLCANOES) {
 		assert.equal(capitalMat(7).grid[r][c], '1');
 	}
+});
+
+test('an Archipelago capital has 99 plots and its islands as districts', () => {
+	const seat = structuredClone(startedGame(2).state.seats[0]);
+	seat.capital.mat = 7;
+	const plots = cityPlots(seat);
+	assert.equal(plots.length, 99);
+	assert.equal(plots.filter((k) => k === 'blocked').length, 44);
+	assert.equal(seatShape(seat).rows, 11);
+	assert.equal(seatShape(seat).districts.length, 9);
+	assert.equal(buildingProblem(seat, { row: 10, col: 0 }), null);
+	const spots = landmarkSpots(seat, 'lighthouse');
+	// Fully on the grid on the bottom row, and hanging off the bottom edge (R106).
+	assert.ok(spots.some((s) => s.row === 9 && s.col === 3));
+	assert.ok(spots.some((s) => s.row === 10 && s.col === 3));
+	assert.ok(spots.every((s) => s.row <= 10));
+	// Nothing lands on water: every spot covers open plots only.
+	assert.equal(
+		landmarkProblem(seat, {
+			landmark: 'lighthouse',
+			row: 3,
+			col: 0,
+			rotation: 0,
+		}),
+		"That plot isn't open."
+	);
 });
 
 test('advancedMatsFor deals the A&A mats only with A&A', () => {

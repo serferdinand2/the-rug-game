@@ -183,7 +183,11 @@
 			: undefined
 	);
 	let overlays = $derived(
-		highlight ? completedGroups(locked, highlight).map(groupBounds) : []
+		highlight
+			? completedGroups(locked, highlight).map((group) =>
+					groupBounds(group)
+				)
+			: []
 	);
 	let targeted = $derived(
 		new Set(targets.map((target) => plotIndex(target.row, target.col)))

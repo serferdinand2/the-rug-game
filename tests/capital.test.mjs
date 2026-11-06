@@ -139,3 +139,31 @@ test('a plot index gives back its row and column', () => {
 		assert.equal(plotIndex(row, col), index);
 	}
 });
+
+test('the geometry takes a shape: 11 rows of 9, and districts of their own (#36)', () => {
+	/** @type {import('../src/lib/capital.js').Shape} */
+	const shape = { rows: 11, cols: 9, districts: [[0, 1], [9]] };
+	assert.equal(plotIndex(10, 8, shape), 98);
+	assert.deepEqual(plotPosition(98, shape), { row: 10, col: 8 });
+	assert.equal(groupsOf('rows', shape).length, 11);
+	assert.ok(groupsOf('rows', shape).every((row) => row.length === 9));
+	assert.equal(groupsOf('columns', shape).length, 9);
+	assert.deepEqual(
+		groupsOf('columns', shape)[0],
+		[0, 9, 18, 27, 36, 45, 54, 63, 72, 81, 90]
+	);
+	assert.deepEqual(groupsOf('districts', shape), [[0, 1], [9]]);
+	const plots = Array(99).fill('empty');
+	assert.ok(fits(plots, ['XX', 'XX'], 9, 7, shape));
+	assert.ok(!fits(plots, ['XX', 'XX'], 10, 7, shape));
+	assert.deepEqual(footprintCells(['X', 'X'], 10, 0, shape), [90]);
+	assert.deepEqual(groupBounds([90, 98], shape), {
+		row: 10,
+		col: 0,
+		rows: 1,
+		cols: 9,
+	});
+	// Without a shape, the basic 9 × 9.
+	assert.equal(groupsOf('districts').length, 9);
+	assert.equal(plotIndex(8, 8), 80);
+});

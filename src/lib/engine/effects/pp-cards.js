@@ -2,7 +2,12 @@
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
 import { controlledTerritories } from '../control.js';
-import { cityPlots, completeDistricts, completeLines } from '../city.js';
+import {
+	cityPlots,
+	completeDistricts,
+	completeLines,
+	seatShape,
+} from '../city.js';
 import { spacesAdvanced } from '../movement.js';
 import { askHex } from '../decisions/choose-hex.js';
 import { hexNeighbours } from '../data/maps.js';
@@ -209,8 +214,9 @@ export function worldsFair(ctx, player) {
 		return;
 	}
 	const plots = cityPlots(seat);
-	const { rows, columns } = completeLines(plots);
-	const districts = completeDistricts(plots).length;
+	const shape = seatShape(seat);
+	const { rows, columns } = completeLines(plots, shape);
+	const districts = completeDistricts(plots, shape).length;
 	ctx.push([
 		{
 			player,

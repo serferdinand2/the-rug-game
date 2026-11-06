@@ -9,12 +9,13 @@ import {
 	landmarkCells,
 	landmarkSpots,
 	onGrid,
+	seatImpassable,
+	seatShape,
 } from './city.js';
 import { itemCount } from './control.js';
 import { CRAFTSMEN_COLUMNS, craftsmenColumns } from './civs/craftsmen.js';
 import { nomadsHexes } from './civs/nomads.js';
 import { plotIndex } from '../capital.js';
-import { CAPITAL_MATS, impassablePlots } from './data/capitals.js';
 
 /** @typedef {{ building: import('./data/ids.js').BuildingId } | { landmark: string }} Piece */
 
@@ -45,12 +46,13 @@ export function buildsOverImpassable(state, player) {
  * @returns {number}
  */
 function impassableCovered(seat, piece) {
-	const mat = CAPITAL_MATS[/** @type {number} */ (seat.capital.mat) - 1];
-	const impassable = [...impassablePlots(mat), ...seat.capital.cubes];
+	const shape = seatShape(seat);
+	const impassable = seatImpassable(seat);
 	const cells = 'building' in piece ? [piece] : landmarkCells(piece);
 	return cells.filter(
 		({ row, col }) =>
-			onGrid(row, col) && impassable.includes(plotIndex(row, col))
+			onGrid(row, col, shape) &&
+			impassable.includes(plotIndex(row, col, shape))
 	).length;
 }
 
@@ -65,7 +67,8 @@ function impassableCovered(seat, piece) {
  */
 export function placePiece(ctx, player, piece, automatic) {
 	const seat = playerSeat(ctx.state, player);
-	const before = completeDistricts(cityPlots(seat));
+	const shape = seatShape(seat);
+	const before = completeDistricts(cityPlots(seat), shape);
 	if ('building' in piece) {
 		seat.capital.buildings.push({
 			building: piece.building,
@@ -97,7 +100,7 @@ export function placePiece(ctx, player, piece, automatic) {
 			automatic,
 		});
 	}
-	const districts = completeDistricts(cityPlots(seat)).filter(
+	const districts = completeDistricts(cityPlots(seat), shape).filter(
 		(d) => !before.includes(d)
 	);
 	/** @type {import('./state.js').NewOperation[]} */

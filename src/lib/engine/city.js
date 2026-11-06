@@ -1,23 +1,58 @@
 // The capital city: what each plot shows, where a building or landmark may go, and which districts and lines are complete (R13-R15).
-import { GRID_SIZE, plotIndex, rotateFootprint, groupsOf } from '../capital.js';
+// Each seat's mat sets its shape: its rows, columns and districts (#36).
+import { plotIndex, rotateFootprint, groupsOf } from '../capital.js';
 import { FOOTPRINTS } from '../art/footprints.js';
-import { CAPITAL_MATS, impassablePlots } from './data/capitals.js';
+import { capitalMat, impassablePlots, matShape } from './data/capitals.js';
 
 /** @typedef {import('../capital.js').PlotKind} PlotKind */
+/** @typedef {import('../capital.js').Shape} Shape */
 /** @typedef {import('./state.js').PlayerSeat} PlayerSeat */
 /** @typedef {import('./data/ids.js').BuildingId} BuildingId */
+/** @typedef {import('./data/capitals.js').CapitalMat} CapitalMat */
 /** @typedef {{ building: BuildingId, row: number, col: number }} PlacedBuilding */
 /** @typedef {{ landmark: string, row: number, col: number, rotation: number }} PlacedLandmark */
 /** @typedef {{ row: number, col: number }} Cell - May be off the grid. */
 
 /**
+ * A seat's capital mat.
+ * @param {PlayerSeat} seat
+ * @returns {CapitalMat}
+ */
+export function seatMat(seat) {
+	const number = seat.capital.mat;
+	if (number === null) {
+		throw new Error('This seat has no capital mat yet.');
+	}
+	return capitalMat(number);
+}
+
+/**
+ * A seat's capital shape: its mat's rows, columns and districts.
+ * @param {PlayerSeat} seat
+ * @returns {Shape}
+ */
+export function seatShape(seat) {
+	return matShape(seatMat(seat));
+}
+
+/**
+ * The impassable plots of a seat's capital, shown or covered: the mat's and the Architects' cubes.
+ * @param {PlayerSeat} seat
+ * @returns {number[]}
+ */
+export function seatImpassable(seat) {
+	return [...impassablePlots(seatMat(seat)), ...seat.capital.cubes];
+}
+
+/**
  * Whether a plot is on the capital grid; a landmark may hang over its edge (R106).
  * @param {number} row
  * @param {number} col
+ * @param {Shape} shape
  * @returns {boolean}
  */
-export function onGrid(row, col) {
-	return row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE;
+export function onGrid(row, col, shape) {
+	return row >= 0 && row < shape.rows && col >= 0 && col < shape.cols;
 }
 
 /**
@@ -35,31 +70,25 @@ export function landmarkCells(piece) {
 }
 
 /**
- * What each of the 81 plots shows, row by row: blocked, a building, a landmark or empty. The Architects' cubes are
+ * What each plot shows, row by row: blocked, a building, a landmark or empty. The Architects' cubes are
  * impassable plots like the mat's, so Terraforming and the Riverfolk may build over them (#20 design §5).
  * @param {PlayerSeat} seat
  * @returns {PlotKind[]}
  */
 export function cityPlots(seat) {
-	const number = seat.capital.mat;
-	if (number === null) {
-		throw new Error('This seat has no capital mat yet.');
-	}
+	const shape = seatShape(seat);
 	/** @type {PlotKind[]} */
-	const plots = Array(GRID_SIZE * GRID_SIZE).fill('empty');
-	for (const index of [
-		...impassablePlots(CAPITAL_MATS[number - 1]),
-		...seat.capital.cubes,
-	]) {
+	const plots = Array(shape.rows * shape.cols).fill('empty');
+	for (const index of seatImpassable(seat)) {
 		plots[index] = 'blocked';
 	}
 	for (const b of seat.capital.buildings) {
-		plots[plotIndex(b.row, b.col)] = b.building;
+		plots[plotIndex(b.row, b.col, shape)] = b.building;
 	}
 	for (const piece of seat.capital.landmarks) {
 		for (const { row, col } of landmarkCells(piece)) {
-			if (onGrid(row, col)) {
-				plots[plotIndex(row, col)] = 'landmark';
+			if (onGrid(row, col, shape)) {
+				plots[plotIndex(row, col, shape)] = 'landmark';
 			}
 		}
 	}
@@ -84,10 +113,14 @@ function coverable(kind, overImpassable) {
  * @returns {string | null} A PlayerError sentence.
  */
 export function buildingProblem(seat, { row, col }, overImpassable = false) {
-	if (!onGrid(row, col)) {
+	const shape = seatShape(seat);
+	if (!onGrid(row, col, shape)) {
 		return 'A building must go on a plot of your city.';
 	}
-	return coverable(cityPlots(seat)[plotIndex(row, col)], overImpassable)
+	return coverable(
+		cityPlots(seat)[plotIndex(row, col, shape)],
+		overImpassable
+	)
 		? null
 		: "That plot isn't open.";
 }
@@ -100,15 +133,20 @@ export function buildingProblem(seat, { row, col }, overImpassable = false) {
  * @returns {string | null} A PlayerError sentence.
  */
 export function landmarkProblem(seat, piece, overImpassable = false) {
+	const shape = seatShape(seat);
 	const cells = landmarkCells(piece);
-	const inside = cells.filter((c) => onGrid(c.row, c.col));
+	const inside = cells.filter((c) => onGrid(c.row, c.col, shape));
 	if (inside.length === 0) {
 		return 'A landmark must cover at least one plot of your city.';
 	}
 	const plots = cityPlots(seat);
 	if (
 		inside.some(
-			(c) => !coverable(plots[plotIndex(c.row, c.col)], overImpassable)
+			(c) =>
+				!coverable(
+					plots[plotIndex(c.row, c.col, shape)],
+					overImpassable
+				)
 		)
 	) {
 		return "That plot isn't open.";
@@ -132,9 +170,10 @@ export function landmarkProblem(seat, piece, overImpassable = false) {
  * @returns {Cell[]}
  */
 export function buildingSpots(seat, overImpassable = false) {
+	const { cols } = seatShape(seat);
 	return cityPlots(seat).flatMap((kind, index) =>
 		coverable(kind, overImpassable)
-			? [{ row: Math.floor(index / GRID_SIZE), col: index % GRID_SIZE }]
+			? [{ row: Math.floor(index / cols), col: index % cols }]
 			: []
 	);
 }
@@ -147,12 +186,13 @@ export function buildingSpots(seat, overImpassable = false) {
  * @returns {{ row: number, col: number, rotation: number }[]}
  */
 export function landmarkSpots(seat, landmark, overImpassable = false) {
+	const shape = seatShape(seat);
 	/** @type {{ row: number, col: number, rotation: number, inside: boolean }[]} */
 	const found = [];
 	for (let rotation = 0; rotation < 4; rotation++) {
 		const rows = rotateFootprint(FOOTPRINTS[landmark], rotation);
-		for (let row = 1 - rows.length; row < GRID_SIZE; row++) {
-			for (let col = 1 - rows[0].length; col < GRID_SIZE; col++) {
+		for (let row = 1 - rows.length; row < shape.rows; row++) {
+			for (let col = 1 - rows[0].length; col < shape.cols; col++) {
 				const piece = { landmark, row, col, rotation };
 				if (landmarkProblem(seat, piece, overImpassable) === null) {
 					found.push({
@@ -160,7 +200,7 @@ export function landmarkSpots(seat, landmark, overImpassable = false) {
 						col,
 						rotation,
 						inside: landmarkCells(piece).every((c) =>
-							onGrid(c.row, c.col)
+							onGrid(c.row, c.col, shape)
 						),
 					});
 				}
@@ -173,12 +213,13 @@ export function landmarkSpots(seat, landmark, overImpassable = false) {
 }
 
 /**
- * The districts (0-8, reading order) with no empty plot; impassable plots count as filled.
+ * The districts (in the shape's order) with no empty plot; impassable plots count as filled.
  * @param {readonly PlotKind[]} plots
+ * @param {Shape} [shape] - The basic mats' without it
  * @returns {number[]}
  */
-export function completeDistricts(plots) {
-	return groupsOf('districts').flatMap((group, i) =>
+export function completeDistricts(plots, shape) {
+	return groupsOf('districts', shape).flatMap((group, i) =>
 		group.every((index) => plots[index] !== 'empty') ? [i] : []
 	);
 }
@@ -186,12 +227,14 @@ export function completeDistricts(plots) {
 /**
  * How many rows and columns have no empty plot.
  * @param {readonly PlotKind[]} plots
+ * @param {Shape} [shape] - The basic mats' without it
  * @returns {{ rows: number, columns: number }}
  */
-export function completeLines(plots) {
+export function completeLines(plots, shape) {
 	const full = (/** @type {'rows' | 'columns'} */ kind) =>
-		groupsOf(kind).filter((g) => g.every((i) => plots[i] !== 'empty'))
-			.length;
+		groupsOf(kind, shape).filter((g) =>
+			g.every((i) => plots[i] !== 'empty')
+		).length;
 	return { rows: full('rows'), columns: full('columns') };
 }
 
@@ -203,9 +246,10 @@ export function completeLines(plots) {
  * @returns {boolean}
  */
 export function uniformGroup(seat, group) {
+	const shape = seatShape(seat);
 	const types = new Set(
 		seat.capital.buildings
-			.filter((b) => group.includes(plotIndex(b.row, b.col)))
+			.filter((b) => group.includes(plotIndex(b.row, b.col, shape)))
 			.map((b) => b.building)
 	);
 	return types.size === 1;
@@ -217,8 +261,9 @@ export function uniformGroup(seat, group) {
  * @returns {number}
  */
 export function uniformLines(seat) {
+	const shape = seatShape(seat);
 	const plots = cityPlots(seat);
-	return [...groupsOf('rows'), ...groupsOf('columns')].filter(
+	return [...groupsOf('rows', shape), ...groupsOf('columns', shape)].filter(
 		(group) =>
 			group.every((i) => plots[i] !== 'empty') &&
 			uniformGroup(seat, group)
@@ -236,7 +281,7 @@ export function capitalScore(seat) {
 	if (seat.capital.mat === null) {
 		return { rows: 0, columns: 0, uniform: 0, vp: 0 };
 	}
-	const { rows, columns } = completeLines(cityPlots(seat));
+	const { rows, columns } = completeLines(cityPlots(seat), seatShape(seat));
 	const uniform = seat.civs.includes('architects') ? uniformLines(seat) : 0;
 	return { rows, columns, uniform, vp: rows + columns + uniform };
 }

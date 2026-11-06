@@ -1,9 +1,7 @@
 // The Riverfolk (03 §1.3): VP for the districts with impassable plots, buildings over them, a resource for each district they clear, and a VP loss for each one still showing on income turn 5.
 import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
-import { cityPlots } from '../city.js';
-import { groupsOf } from '../../capital.js';
-import { CAPITAL_MATS, impassablePlots } from '../data/capitals.js';
+import { cityPlots, seatImpassable, seatShape } from '../city.js';
 import { offer } from './civ.js';
 
 /**
@@ -20,24 +18,15 @@ export const RIVERFOLK_DISTRICT_VP = 4;
 const DISTRICT_PLOTS = 2;
 
 /**
- * The impassable plots of a seat's capital, shown or covered: the mat's and the Architects' cubes.
- * @param {import('../state.js').PlayerSeat} seat
- * @returns {number[]}
- */
-function impassableOf(seat) {
-	const mat = CAPITAL_MATS[/** @type {number} */ (seat.capital.mat) - 1];
-	return [...impassablePlots(mat), ...seat.capital.cubes];
-}
-
-/**
- * The districts with impassable plots none of which still shows, in reading order.
+ * The districts with impassable plots none of which still shows, in reading order. Water outside every district, as
+ * on the Archipelago, is in none (R123).
  * @param {import('../state.js').PlayerSeat} seat
  * @returns {number[]}
  */
 function clearDistricts(seat) {
-	const impassable = impassableOf(seat);
+	const impassable = seatImpassable(seat);
 	const plots = cityPlots(seat);
-	return groupsOf('districts').flatMap((group, district) =>
+	return seatShape(seat).districts.flatMap((group, district) =>
 		group.some((p) => impassable.includes(p)) &&
 		group.every((p) => plots[p] !== 'blocked')
 			? [district]
@@ -57,7 +46,7 @@ function start(ctx, player) {
 		cleared: clearDistricts(seat),
 	});
 	const plots = cityPlots(seat);
-	const districts = groupsOf('districts').filter(
+	const districts = seatShape(seat).districts.filter(
 		(group) =>
 			group.filter((p) => plots[p] === 'blocked').length >= DISTRICT_PLOTS
 	).length;

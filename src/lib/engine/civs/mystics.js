@@ -1,7 +1,7 @@
 // The Mystics (02 §1.2): four predictions at setup, 1 resource the first time a count reaches its prediction, and 10 VP for each exact one on income turn 5.
 import { emit } from '../events.js';
 import { playerSeat, seatOf } from '../state.js';
-import { cityPlots, completeDistricts } from '../city.js';
+import { cityPlots, completeDistricts, seatShape } from '../city.js';
 import { countVp } from '../effects/vp.js';
 import { LAST_SPACE, spacesAdvanced } from '../movement.js';
 import { TRACK_IDS } from '../data/ids.js';
@@ -44,7 +44,7 @@ function prophecyCounts(state, player) {
 	const seat = playerSeat(state, player);
 	return {
 		techCards: countVp(state, player, 'techCard'),
-		districts: completeDistricts(cityPlots(seat)).length,
+		districts: completeDistricts(cityPlots(seat), seatShape(seat)).length,
 		territories: countVp(state, player, 'territory'),
 		tracks: TRACK_IDS.filter(
 			(track) => spacesAdvanced(seat, track) === LAST_SPACE

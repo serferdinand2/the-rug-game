@@ -1,27 +1,36 @@
 // The decision of which open plot an Architects cube goes on: answered with a plot's row and column, as a building's place is, and sent on as an architectsCube (02 §1.2).
 import { PlayerError } from '../errors.js';
-import { GRID_SIZE, plotIndex } from '../../capital.js';
+import { playerSeat } from '../state.js';
+import { seatShape } from '../city.js';
+import { plotIndex, plotPosition } from '../../capital.js';
 
 /**
- * A plot index as the row and column an answer names.
- * @param {number} plot
- * @returns {{ row: number, col: number }}
+ * The shape of the capital a cube decision is about (#36: a mat may be taller than 9 rows).
+ * @param {import('../state.js').State} state
+ * @param {import('../state.js').Operation} decision
+ * @returns {import('../../capital.js').Shape}
  */
-function placeOf(plot) {
-	return { row: Math.floor(plot / GRID_SIZE), col: plot % GRID_SIZE };
+function shapeOf(state, decision) {
+	return seatShape(
+		playerSeat(state, /** @type {number} */ (decision.player))
+	);
 }
 
 /** @type {import('../state.js').DecisionKind} */
 export const chooseCube = {
 	hidden: [],
 	answers(state, decision) {
-		return decision.options.map(placeOf);
+		const shape = shapeOf(state, decision);
+		return decision.options.map((/** @type {number} */ plot) =>
+			plotPosition(plot, shape)
+		);
 	},
 	check(state, decision, answer) {
+		const shape = shapeOf(state, decision);
 		const offered = decision.options.some(
 			(/** @type {number} */ plot) =>
-				answer.row === placeOf(plot).row &&
-				answer.col === placeOf(plot).col
+				answer.row === plotPosition(plot, shape).row &&
+				answer.col === plotPosition(plot, shape).col
 		);
 		if (!offered) {
 			throw new PlayerError('Choose one of the plots offered.');
@@ -33,7 +42,11 @@ export const chooseCube = {
 			{
 				player: decision.player,
 				kind: 'architectsCube',
-				slot: plotIndex(answer.row, answer.col),
+				slot: plotIndex(
+					answer.row,
+					answer.col,
+					shapeOf(ctx.state, decision)
+				),
 				left: decision.left,
 			},
 		]);
