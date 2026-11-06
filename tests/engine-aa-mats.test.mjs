@@ -10,11 +10,18 @@ import {
 } from '../src/lib/engine/data/capitals.js';
 import {
 	buildingProblem,
+	buildingSpots,
 	cityPlots,
+	completeDistricts,
 	landmarkProblem,
 	landmarkSpots,
+	seatImpassable,
 	seatShape,
 } from '../src/lib/engine/city.js';
+import { placePiece } from '../src/lib/engine/placing.js';
+import { contextFor, run } from '../src/lib/engine/loop.js';
+import { openDecisions, push } from '../src/lib/engine/stack.js';
+import '../src/lib/engine/kinds.js';
 import { startedGame } from './helpers/engine.mjs';
 import * as archipelagoArt from '../tools/art/parts/capital-biomes/archipelago.js';
 import * as canyonArt from '../tools/art/parts/capital-biomes/canyon.js';
@@ -186,6 +193,191 @@ test('an Archipelago capital has 99 plots and its islands as districts', () => {
 		}),
 		"That plot isn't open."
 	);
+});
+
+/**
+ * A started 2-player game with nothing pending, seat 1 on the given mat.
+ * @param {number} mat
+ */
+function onMat(mat) {
+	const { state: started, random } = startedGame(2);
+	const state = structuredClone(started);
+	state.pending.length = 0;
+	state.seats[0].capital.mat = mat;
+	return { state, random, seat: state.seats[0] };
+}
+
+/**
+ * Puts farms on plots of a seat's capital directly.
+ * @param {import('../src/lib/engine/state.js').PlayerSeat} seat
+ * @param {number[][]} cells - [row, column] pairs
+ */
+function farms(seat, cells) {
+	for (const [row, col] of cells) {
+		seat.capital.buildings.push({ building: 'farm', row, col });
+	}
+}
+
+/**
+ * The plots offered for the first Architects cube on seat 1's capital.
+ * @param {ReturnType<typeof onMat>} game
+ * @returns {number[]}
+ */
+function cubeOptions({ state, random, seat }) {
+	seat.civs = ['architects'];
+	push(state, state.pending, [
+		{ player: 1, kind: 'civAdjust', phase: 'setup' },
+	]);
+	run(state, random);
+	const decision = openDecisions(state).find((d) => d.kind === 'chooseCube');
+	return decision?.options ?? [];
+}
+
+test('Mesa: a landmark may not hang off the edge', () => {
+	const { seat } = onMat(11);
+	const spots = landmarkSpots(seat, 'lighthouse');
+	assert.ok(spots.length > 0);
+	assert.ok(spots.every((s) => s.row >= 0 && s.row + 2 <= 9));
+	assert.ok(spots.every((s) => s.col >= 0 && s.col + 2 <= 9));
+	assert.equal(
+		landmarkProblem(seat, {
+			landmark: 'lighthouse',
+			row: 3,
+			col: 8,
+			rotation: 0,
+		}),
+		'On the Mesa, a landmark must lie wholly inside your city.'
+	);
+});
+
+test('Archipelago: no piece on water, and landmarks may hang off the outer edge (R14, R106)', () => {
+	const { seat } = onMat(7);
+	assert.equal(
+		buildingProblem(seat, { row: 3, col: 0 }),
+		"That plot isn't open."
+	);
+	assert.ok(
+		landmarkSpots(seat, 'lighthouse').some(
+			(s) => s.row === 0 && s.col === -1
+		)
+	);
+});
+
+test('R123: on the Archipelago, the Riverfolk and Terraforming may build on water and volcanoes, which complete no island', () => {
+	const { state, random, seat } = onMat(7);
+	assert.equal(buildingProblem(seat, { row: 3, col: 0 }, true), null);
+	assert.equal(buildingProblem(seat, { row: 4, col: 3 }, true), null);
+	const ctx = contextFor(state, random, state.pending);
+	placePiece(ctx, 1, { building: 'farm', row: 3, col: 0 }, false);
+	assert.equal(
+		state.events.filter((e) => e.type === 'districtsCompleted').length,
+		0
+	);
+});
+
+test('Cavern: a building below an incomplete district is refused', () => {
+	const { seat } = onMat(9);
+	const gate =
+		'In the Cavern, build in a district only once the district above it is complete.';
+	assert.equal(buildingProblem(seat, { row: 3, col: 0 }), gate);
+	// The top row of districts is always open.
+	assert.equal(buildingProblem(seat, { row: 0, col: 2 }), null);
+	assert.ok(
+		buildingSpots(seat).every((c) => c.row < 3 || c.col > 2 || c.row > 5)
+	);
+	farms(seat, [
+		[0, 2],
+		[1, 0],
+		[1, 1],
+		[1, 2],
+		[2, 0],
+		[2, 1],
+		[2, 2],
+	]);
+	assert.equal(buildingProblem(seat, { row: 3, col: 0 }), null);
+	// District 6 waits for district 3.
+	assert.equal(buildingProblem(seat, { row: 6, col: 0 }), gate);
+});
+
+test('Cavern: a landmark may complete the district above and reach into the one below', () => {
+	const { seat } = onMat(9);
+	farms(seat, [
+		[0, 2],
+		[1, 0],
+		[1, 1],
+		[1, 2],
+		[2, 2],
+	]);
+	const piece = { landmark: 'lighthouse', row: 2, col: 0, rotation: 0 };
+	assert.equal(landmarkProblem(seat, piece), null);
+	seat.capital.buildings = seat.capital.buildings.filter((b) => b.row !== 1);
+	assert.equal(
+		landmarkProblem(seat, piece),
+		'In the Cavern, build in a district only once the district above it is complete.'
+	);
+});
+
+test("Cavern: the Architects' cubes ignore the gates", () => {
+	// Plot 27 is row 3, column 0, in district 3, below district 0, which is incomplete.
+	assert.ok(cubeOptions(onMat(9)).includes(27));
+});
+
+test('R122: on the Canyon, a cactus is an open plot until all 8 neighbours are filled, landmarks included', () => {
+	const { state, random, seat } = onMat(8);
+	farms(seat, [
+		[0, 0],
+		[0, 1],
+		[1, 0],
+		[2, 0],
+		[2, 1],
+	]);
+	assert.equal(cityPlots(seat)[10], 'empty');
+	assert.equal(buildingProblem(seat, { row: 1, col: 1 }), null);
+	// A landmark's corner fills the last neighbour, (2, 2), diagonally below the cactus at (1, 1).
+	const ctx = contextFor(state, random, state.pending);
+	placePiece(
+		ctx,
+		1,
+		{ landmark: 'lighthouse', row: 2, col: 2, rotation: 0 },
+		false
+	);
+	assert.equal(cityPlots(seat)[10], 'blocked');
+	assert.deepEqual(
+		state.events.find((e) => e.type === 'districtsCompleted')?.districts,
+		[0]
+	);
+	// The Riverfolk count it as impassable (03 §2.12).
+	assert.ok(seatImpassable(seat).includes(10));
+});
+
+test('R52: on the Swamp, lily pads count as filled and may be built on', () => {
+	const { state, random, seat } = onMat(12);
+	// Plot 2 is the lily pad at row 0, column 2, in district 0.
+	assert.equal(cityPlots(seat)[2], 'lily');
+	assert.ok(buildingSpots(seat).some((c) => c.row === 0 && c.col === 2));
+	farms(seat, [
+		[1, 1],
+		[1, 2],
+		[2, 0],
+		[2, 1],
+		[2, 2],
+	]);
+	assert.ok(completeDistricts(cityPlots(seat), seatShape(seat)).includes(0));
+	const ctx = contextFor(state, random, state.pending);
+	placePiece(ctx, 1, { building: 'farm', row: 0, col: 2 }, false);
+	assert.equal(cityPlots(seat)[2], 'farm');
+	assert.equal(
+		state.events.filter((e) => e.type === 'districtsCompleted').length,
+		0
+	);
+});
+
+test("Swamp: no Architects' cube goes on a lily pad", () => {
+	const options = cubeOptions(onMat(12));
+	assert.ok(options.length > 0);
+	for (const pad of [2, 13, 26, 55, 59, 70]) {
+		assert.ok(!options.includes(pad), `pad ${pad}`);
+	}
 });
 
 test('advancedMatsFor deals the A&A mats only with A&A', () => {

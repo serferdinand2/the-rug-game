@@ -1,6 +1,11 @@
 // The capital city: what each plot shows, where a building or landmark may go, and which districts and lines are complete (R13-R15).
 // Each seat's mat sets its shape: its rows, columns and districts (#36).
-import { plotIndex, rotateFootprint, groupsOf } from '../capital.js';
+import {
+	plotIndex,
+	plotPosition,
+	rotateFootprint,
+	groupsOf,
+} from '../capital.js';
 import { FOOTPRINTS } from '../art/footprints.js';
 import { capitalMat, impassablePlots, matShape } from './data/capitals.js';
 
@@ -36,12 +41,76 @@ export function seatShape(seat) {
 }
 
 /**
- * The impassable plots of a seat's capital, shown or covered: the mat's and the Architects' cubes.
+ * What each plot shows before the mat's printed features are read: the impassable plots, the cubes and the pieces.
+ * @param {PlayerSeat} seat
+ * @param {Shape} shape
+ * @returns {PlotKind[]}
+ */
+function piecePlots(seat, shape) {
+	/** @type {PlotKind[]} */
+	const plots = Array(shape.rows * shape.cols).fill('empty');
+	for (const index of [
+		...impassablePlots(seatMat(seat)),
+		...seat.capital.cubes,
+	]) {
+		plots[index] = 'blocked';
+	}
+	for (const b of seat.capital.buildings) {
+		plots[plotIndex(b.row, b.col, shape)] = b.building;
+	}
+	for (const piece of seat.capital.landmarks) {
+		for (const { row, col } of landmarkCells(piece)) {
+			if (onGrid(row, col, shape)) {
+				plots[plotIndex(row, col, shape)] = 'landmark';
+			}
+		}
+	}
+	return plots;
+}
+
+/**
+ * The Canyon's cacti whose 8 neighbours are all filled, by buildings, landmarks, impassable plots or cubes: each counts
+ * as filled and becomes impassable (03 §2 Canyon; R122). A cactus is never on the edge, so all 8 are on the grid.
+ * @param {CapitalMat} mat
+ * @param {Shape} shape
+ * @param {readonly PlotKind[]} plots - From piecePlots
+ * @returns {number[]}
+ */
+function surroundedCacti(mat, shape, plots) {
+	return mat.grid.flatMap((line, row) =>
+		[...line].flatMap((symbol, col) => {
+			if (symbol !== 'C') {
+				return [];
+			}
+			for (let dy = -1; dy <= 1; dy++) {
+				for (let dx = -1; dx <= 1; dx++) {
+					if (
+						(dy !== 0 || dx !== 0) &&
+						plots[plotIndex(row + dy, col + dx, shape)] === 'empty'
+					) {
+						return [];
+					}
+				}
+			}
+			return [plotIndex(row, col, shape)];
+		})
+	);
+}
+
+/**
+ * The impassable plots of a seat's capital, shown or covered: the mat's, the Architects' cubes and the Canyon's
+ * surrounded cacti (03 §2.12: the Riverfolk count those too).
  * @param {PlayerSeat} seat
  * @returns {number[]}
  */
 export function seatImpassable(seat) {
-	return [...impassablePlots(seatMat(seat)), ...seat.capital.cubes];
+	const mat = seatMat(seat);
+	const shape = matShape(mat);
+	return [
+		...impassablePlots(mat),
+		...seat.capital.cubes,
+		...surroundedCacti(mat, shape, piecePlots(seat, shape)),
+	];
 }
 
 /**
@@ -70,39 +139,75 @@ export function landmarkCells(piece) {
 }
 
 /**
- * What each plot shows, row by row: blocked, a building, a landmark or empty. The Architects' cubes are
- * impassable plots like the mat's, so Terraforming and the Riverfolk may build over them (#20 design §5).
+ * What each plot shows, row by row: blocked, a building, a landmark, a lily pad or empty. The Architects' cubes are
+ * impassable plots like the mat's, so Terraforming and the Riverfolk may build over them (#20 design §5). A Swamp
+ * lily pad still showing is 'lily' (R52), and a surrounded Canyon cactus 'blocked' (R122).
  * @param {PlayerSeat} seat
  * @returns {PlotKind[]}
  */
 export function cityPlots(seat) {
-	const shape = seatShape(seat);
-	/** @type {PlotKind[]} */
-	const plots = Array(shape.rows * shape.cols).fill('empty');
-	for (const index of seatImpassable(seat)) {
-		plots[index] = 'blocked';
-	}
-	for (const b of seat.capital.buildings) {
-		plots[plotIndex(b.row, b.col, shape)] = b.building;
-	}
-	for (const piece of seat.capital.landmarks) {
-		for (const { row, col } of landmarkCells(piece)) {
-			if (onGrid(row, col, shape)) {
-				plots[plotIndex(row, col, shape)] = 'landmark';
-			}
+	const mat = seatMat(seat);
+	const shape = matShape(mat);
+	const plots = piecePlots(seat, shape);
+	for (const index of surroundedCacti(mat, shape, plots)) {
+		if (plots[index] === 'empty') {
+			plots[index] = 'blocked';
 		}
 	}
+	mat.grid.forEach((line, row) =>
+		[...line].forEach((symbol, col) => {
+			const index = plotIndex(row, col, shape);
+			if (symbol === 'L' && plots[index] === 'empty') {
+				plots[index] = 'lily';
+			}
+		})
+	);
 	return plots;
 }
 
 /**
- * Whether a piece may cover a plot: an empty one, or an impassable one when the player builds over them.
+ * Whether a piece may cover a plot: an empty one or a lily pad, or an impassable one when the player builds over them.
  * @param {PlotKind} kind
  * @param {boolean} overImpassable
  * @returns {boolean}
  */
 function coverable(kind, overImpassable) {
-	return kind === 'empty' || (overImpassable && kind === 'blocked');
+	return (
+		kind === 'empty' ||
+		kind === 'lily' ||
+		(overImpassable && kind === 'blocked')
+	);
+}
+
+/** The Cavern's rule, as a PlayerError sentence. */
+const CAVERN_GATE =
+	'In the Cavern, build in a district only once the district above it is complete.';
+
+/**
+ * Whether the Cavern lets a piece cover these plots: each in the second or third row of districts needs the district
+ * directly above complete once the piece is placed, so a landmark may complete the district above and reach into the
+ * one below (03 §2 Cavern, BGG-2793639, BGG-3040953). Other mats have no gate.
+ * @param {CapitalMat} mat
+ * @param {Shape} shape
+ * @param {readonly PlotKind[]} plots
+ * @param {readonly number[]} covered - The plots the piece covers on the grid
+ * @returns {boolean}
+ */
+function gateOpen(mat, shape, plots, covered) {
+	if (!mat.gated) {
+		return true;
+	}
+	const after = [...plots];
+	for (const index of covered) {
+		after[index] = 'landmark';
+	}
+	return covered.every((index) => {
+		const district = shape.districts.findIndex((d) => d.includes(index));
+		return (
+			district < 3 ||
+			shape.districts[district - 3].every((p) => after[p] !== 'empty')
+		);
+	});
 }
 
 /**
@@ -113,16 +218,17 @@ function coverable(kind, overImpassable) {
  * @returns {string | null} A PlayerError sentence.
  */
 export function buildingProblem(seat, { row, col }, overImpassable = false) {
-	const shape = seatShape(seat);
+	const mat = seatMat(seat);
+	const shape = matShape(mat);
 	if (!onGrid(row, col, shape)) {
 		return 'A building must go on a plot of your city.';
 	}
-	return coverable(
-		cityPlots(seat)[plotIndex(row, col, shape)],
-		overImpassable
-	)
-		? null
-		: "That plot isn't open.";
+	const plots = cityPlots(seat);
+	const index = plotIndex(row, col, shape);
+	if (!coverable(plots[index], overImpassable)) {
+		return "That plot isn't open.";
+	}
+	return gateOpen(mat, shape, plots, [index]) ? null : CAVERN_GATE;
 }
 
 /**
@@ -133,11 +239,15 @@ export function buildingProblem(seat, { row, col }, overImpassable = false) {
  * @returns {string | null} A PlayerError sentence.
  */
 export function landmarkProblem(seat, piece, overImpassable = false) {
-	const shape = seatShape(seat);
+	const mat = seatMat(seat);
+	const shape = matShape(mat);
 	const cells = landmarkCells(piece);
 	const inside = cells.filter((c) => onGrid(c.row, c.col, shape));
 	if (inside.length === 0) {
 		return 'A landmark must cover at least one plot of your city.';
+	}
+	if (mat.landmarksInside && inside.length < cells.length) {
+		return 'On the Mesa, a landmark must lie wholly inside your city.';
 	}
 	const plots = cityPlots(seat);
 	if (
@@ -160,20 +270,23 @@ export function landmarkProblem(seat, piece, overImpassable = false) {
 	if (cells.some((c) => taken.has(`${c.row},${c.col}`))) {
 		return 'Another landmark is already there.';
 	}
-	return null;
+	const covered = inside.map((c) => plotIndex(c.row, c.col, shape));
+	return gateOpen(mat, shape, plots, covered) ? null : CAVERN_GATE;
 }
 
 /**
- * The open plots, in reading order.
+ * The plots a building may go on now, in reading order.
  * @param {PlayerSeat} seat
  * @param {boolean} [overImpassable] - The impassable plots are open too (placing.js's buildsOverImpassable)
  * @returns {Cell[]}
  */
 export function buildingSpots(seat, overImpassable = false) {
-	const { cols } = seatShape(seat);
-	return cityPlots(seat).flatMap((kind, index) =>
-		coverable(kind, overImpassable)
-			? [{ row: Math.floor(index / cols), col: index % cols }]
+	const mat = seatMat(seat);
+	const shape = matShape(mat);
+	const plots = cityPlots(seat);
+	return plots.flatMap((kind, index) =>
+		coverable(kind, overImpassable) && gateOpen(mat, shape, plots, [index])
+			? [plotPosition(index, shape)]
 			: []
 	);
 }
