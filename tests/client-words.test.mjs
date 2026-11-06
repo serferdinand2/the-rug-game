@@ -82,6 +82,8 @@ test('amounts are listed resources first, then VP, then tiles and cards', () => 
 		'worker',
 		'culture',
 		'any',
+		'different',
+		'same',
 		'vp',
 		'territory',
 		'space',

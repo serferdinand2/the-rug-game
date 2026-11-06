@@ -16,6 +16,8 @@ const NOUNS = /** @type {Readonly<Record<string, [string, string]>>} */ ({
 	worker: ['worker', 'workers'],
 	culture: ['culture', 'culture'],
 	any: ['resource of your choice', 'resources of your choice'],
+	different: ['different resource', 'different resources'],
+	same: ['resource of one type', 'resources of the same type'],
 	vp: ['VP', 'VP'],
 	territory: ['territory tile', 'territory tiles'],
 	space: ['space tile', 'space tiles'],

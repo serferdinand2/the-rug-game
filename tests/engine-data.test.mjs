@@ -282,8 +282,8 @@ test('R1, R5: both versions share the base board data, and only the current tieb
 
 // Tracks
 
-test('each track has a start and 12 spaces, 48 spaces in all', () => {
-	assert.deepEqual(Object.keys(TRACKS), TRACK_IDS);
+test('each track has a start and 12 spaces: 48 on the board, 60 with the arts track (#35)', () => {
+	assert.deepEqual(Object.keys(TRACKS), [...TRACK_IDS, 'arts']);
 	let spaces = 0;
 	for (const track of TRACK_IDS) {
 		assert.equal(TRACKS[track].length, 13, track);
@@ -301,6 +301,8 @@ test('each track has a start and 12 spaces, 48 spaces in all', () => {
 		spaces += TRACKS[track].length - 1;
 	}
 	assert.equal(spaces, 48);
+	assert.equal(TRACKS.arts.length, 13);
+	assert.deepEqual(TRACKS.arts[0], TRACKS.exploration[0]);
 });
 
 test('a space is found by its number and tiered in threes', () => {

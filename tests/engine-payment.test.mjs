@@ -203,3 +203,47 @@ test('checkPayment refuses VP the player lacks', () => {
 	);
 	assert.throws(() => checkPayment(state, 1, { vp: 5 }, { vp: 3 }));
 });
+
+test('2 different resources are paid with two kinds, one each (#35, the arts track tier II)', () => {
+	const { state } = holding((seat) => {
+		seat.resources = { coin: 2, worker: 1, food: 0, culture: 0 };
+	});
+	assert.deepEqual(payments(state, 1, { different: 2 }), [
+		{ coin: 1, worker: 1 },
+	]);
+	checkPayment(state, 1, { different: 2 }, { coin: 1, worker: 1 });
+	assert.throws(() => checkPayment(state, 1, { different: 2 }, { coin: 2 }), {
+		name: 'PlayerError',
+		message: 'Pay 2 different resources.',
+	});
+});
+
+test('2 of one type are paid from a single resource (#35, the arts track tier IV)', () => {
+	const { state } = holding((seat) => {
+		seat.resources = { coin: 2, worker: 1, food: 2, culture: 0 };
+	});
+	assert.deepEqual(payments(state, 1, { same: 2 }), [
+		{ coin: 2 },
+		{ food: 2 },
+	]);
+	checkPayment(state, 1, { same: 2 }, { food: 2 });
+	assert.throws(
+		() => checkPayment(state, 1, { same: 2 }, { coin: 1, worker: 1 }),
+		{ name: 'PlayerError', message: 'Pay 2 resources of the same type.' }
+	);
+});
+
+test('too little variety pays neither different nor same', () => {
+	const coins = holding((seat) => {
+		seat.resources = { coin: 3, worker: 0, food: 0, culture: 0 };
+	}).state;
+	assert.equal(canPay(coins, 1, { different: 2 }), false);
+	assert.deepEqual(payments(coins, 1, { different: 2 }), []);
+	assert.equal(canPay(coins, 1, { same: 2 }), true);
+	const spread = holding((seat) => {
+		seat.resources = { coin: 1, worker: 1, food: 1, culture: 1 };
+	}).state;
+	assert.equal(canPay(spread, 1, { same: 2 }), false);
+	assert.deepEqual(payments(spread, 1, { same: 2 }), []);
+	assert.equal(canPay(spread, 1, { different: 2 }), true);
+});

@@ -6,14 +6,16 @@ import LandmarkHoverDetail from '../src/lib/components/board/LandmarkHoverDetail
 import TrackSpace from '../src/lib/components/board/TrackSpace.svelte';
 import { LANDMARKS } from '../src/lib/engine/data/landmarks.js';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
+import { TRACK_IDS } from '../src/lib/engine/data/ids.js';
 import { trackBoard } from '../src/lib/board.js';
 
 const boardLandmarks = LANDMARKS.filter((item) => 'track' in item.source);
 
 test('the board advertises exactly its twelve earned landmark ids to the shared tooltip', () => {
 	const rendered = [];
-	for (const [trackId, track] of Object.entries(TRACKS)) {
-		for (const [index, space] of track.entries()) {
+	// The main board's four tracks; the arts track's row and its landmarks come with #35 part 4.
+	for (const trackId of TRACK_IDS) {
+		for (const [index, space] of TRACKS[trackId].entries()) {
 			if (!space.landmark) continue;
 			const html = render(TrackSpace, {
 				props: {

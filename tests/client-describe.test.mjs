@@ -140,7 +140,10 @@ test('a trade hosted by another seat names its host from the state', () => {
 });
 
 test('every benefit and bonus of every track space describes to a sentence', () => {
-	for (const track of TRACK_IDS) {
+	// The arts track's too (#35).
+	for (const track of /** @type {(keyof typeof TRACKS)[]} */ (
+		Object.keys(TRACKS)
+	)) {
 		for (const space of TRACKS[track].slice(1)) {
 			const what = `${track} ${space.space} (${space.name})`;
 			assertReadable(

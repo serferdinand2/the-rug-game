@@ -13,7 +13,7 @@
 	 * @property {string} civilization - Their civilization, such as 'Militants'
 	 * @property {number} era - Their current era, 1–5, shown as a Roman numeral
 	 * @property {Record<import('../../ui.js').ResourceId, number>} resources - How many of each resource they hold
-	 * @property {Record<import('../../ui.js').TrackId, number>} tracks - The space they have reached on each track, 0–12
+	 * @property {Record<import('../../engine/data/ids.js').BoardTrackId, number> & { arts?: number }} tracks - The space they have reached on each track, 0–12; the arts track's only when it is in play
 	 * @property {number} handSize - How many cards they hold; only the count is public
 	 * @property {number} capitalPoints - Points their capital city has scored
 	 * @property {number} tech - How many tech cards they have

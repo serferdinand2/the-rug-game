@@ -69,6 +69,24 @@ function combinations(items, size) {
 }
 
 /**
+ * The variety a cost asks of its resources, the arts track's prices (03 §2.2): so many different ones, so many of one
+ * type, or none. These are never mixed with other resource parts, which would make them ambiguous.
+ * @param {Cost} cost
+ * @returns {{ different: number, same: number }}
+ */
+function variety(cost) {
+	const different = cost.different ?? 0;
+	const same = cost.same ?? 0;
+	if (
+		(different || same) &&
+		((different && same) || cost.any || RESOURCE_IDS.some((id) => cost[id]))
+	) {
+		throw new Error('A cost of different or same resources has no other.');
+	}
+	return { different, same };
+}
+
+/**
  * Every way to pay the resource part of a cost from what a seat holds.
  * @param {PlayerSeat} seat
  * @param {Cost} cost
@@ -82,6 +100,18 @@ function resourcePayments(seat, cost) {
 		if (left[id] < 0) {
 			return [];
 		}
+	}
+	const { different, same } = variety(cost);
+	if (different) {
+		return combinations(
+			RESOURCE_IDS.filter((id) => left[id] >= 1),
+			different
+		).map((ids) => Object.fromEntries(ids.map((id) => [id, 1])));
+	}
+	if (same) {
+		return RESOURCE_IDS.filter((id) => left[id] >= same).map((id) => ({
+			[id]: same,
+		}));
 	}
 	/** @type {Record<string, number>[]} */
 	const extras = [];
@@ -158,6 +188,7 @@ export function canPay(state, player, cost) {
 	if (seat.vp < (cost.vp ?? 0)) {
 		return false;
 	}
+	const { different, same } = variety(cost);
 	let spare = 0;
 	for (const id of RESOURCE_IDS) {
 		const after = seat.resources[id] - (cost[id] ?? 0);
@@ -167,6 +198,13 @@ export function canPay(state, player, cost) {
 		spare += after;
 	}
 	if (spare < (cost.any ?? 0)) {
+		return false;
+	}
+	const counts = RESOURCE_IDS.map((id) => seat.resources[id]);
+	if (different && counts.filter((n) => n >= 1).length < different) {
+		return false;
+	}
+	if (same && !counts.some((n) => n >= same)) {
 		return false;
 	}
 	return DISCARDS.every(
@@ -221,12 +259,22 @@ export function checkPayment(state, player, cost, payment) {
 		}
 		total += amount;
 	}
-	let owed = cost.any ?? 0;
+	const { different, same } = variety(cost);
+	let owed = (cost.any ?? 0) + different + same;
 	for (const id of RESOURCE_IDS) {
 		owed += cost[id] ?? 0;
 	}
 	if (total !== owed) {
 		throw exactly;
+	}
+	const paid = RESOURCE_IDS.map(
+		(id) => /** @type {number} */ (record[id] ?? 0)
+	).filter((amount) => amount > 0);
+	if (different && (paid.length !== different || paid.some((n) => n !== 1))) {
+		throw new PlayerError(`Pay ${different} different resources.`);
+	}
+	if (same && paid.length !== 1) {
+		throw new PlayerError(`Pay ${same} resources of the same type.`);
 	}
 	for (const kind of DISCARDS) {
 		const count = cost[kind] ?? 0;

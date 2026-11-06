@@ -18,7 +18,5 @@ export function artsInPlay(state) {
  * @returns {import('./data/ids.js').TrackId[]}
  */
 export function tracksOf(state) {
-	return /** @type {import('./data/ids.js').TrackId[]} */ (
-		artsInPlay(state) ? [...TRACK_IDS, ARTS_TRACK] : [...TRACK_IDS]
-	);
+	return artsInPlay(state) ? [...TRACK_IDS, ARTS_TRACK] : [...TRACK_IDS];
 }

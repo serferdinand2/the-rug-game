@@ -43,6 +43,13 @@ import {
 	statusQuo,
 	worldsFair,
 } from './pp-cards.js';
+import {
+	create,
+	inspire,
+	broadcast,
+	refreshMasterpieces,
+	streamingImplants,
+} from './arts.js';
 import { gainCiv } from '../civ-turns.js';
 import { discardCiv, placeToken } from '../civs/civ.js';
 
@@ -97,6 +104,11 @@ export const EFFECTS = {
 	manifestDestiny,
 	statusQuo,
 	worldsFair,
+	create,
+	inspire,
+	broadcast,
+	refreshMasterpieces,
+	streamingImplants,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

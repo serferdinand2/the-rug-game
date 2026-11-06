@@ -167,6 +167,8 @@ function counted(per, track) {
 				: 'track space you have advanced';
 		case 'trackLead':
 			return 'track where nobody is ahead of you';
+		case 'incomeBuilding':
+			return 'income building you own';
 		case 'landmark':
 			return 'landmark you own';
 		case 'opponent':
@@ -454,6 +456,22 @@ const PHRASES = {
 	},
 	anyBuilding() {
 		return 'gain an income building of your choice';
+	},
+	create() {
+		return 'gain a masterpiece';
+	},
+	inspire() {
+		return 'place an inspiration tile';
+	},
+	broadcast() {
+		return 'gain the benefit of one of your masterpieces';
+	},
+	refreshMasterpieces(value) {
+		const words = 'refresh the face-up masterpieces';
+		return value?.optional ? `you may ${words}` : words;
+	},
+	streamingImplants() {
+		return "gain the benefits of up to 3 different masterpieces, yours or your neighbours'";
 	},
 	trackLandmark() {
 		return 'gain a track landmark nobody owns';

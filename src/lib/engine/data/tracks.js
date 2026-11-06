@@ -1,7 +1,8 @@
-// The four advancement tracks: every space's benefit, bonus and landmark, the tier costs and each track's resource (01 §1.2, §3).
+// The advancement tracks, the four of the board and the arts track: every space's benefit, bonus and landmark, the tier costs and each board track's resource (01 §1.2, §3; 03 §2.3).
 import { deepFreeze } from './ids.js';
 
 /** @typedef {import('./ids.js').TrackId} TrackId */
+/** @typedef {import('./ids.js').BoardTrackId} BoardTrackId */
 /** @typedef {import('./ids.js').ResourceId} ResourceId */
 /** @typedef {import('./ids.js').BuildingId} BuildingId */
 /** @typedef {import('./effects.js').Effect} Effect */
@@ -36,7 +37,7 @@ import { deepFreeze } from './ids.js';
  * @property {string} [landmark]
  */
 
-/** Each track's resource, used in its tier costs (01 §1.2). @type {Readonly<Record<TrackId, ResourceId>>} */
+/** Each board track's resource, used in its tier costs (01 §1.2); the arts track has none. @type {Readonly<Record<BoardTrackId, ResourceId>>} */
 export const TRACK_RESOURCE = deepFreeze({
 	exploration: 'food',
 	science: 'worker',
@@ -44,7 +45,7 @@ export const TRACK_RESOURCE = deepFreeze({
 	military: 'culture',
 });
 
-/** The income building that matches each track (01 §1.2). @type {Readonly<Record<TrackId, BuildingId>>} */
+/** The income building that matches each board track (01 §1.2); the arts track has none. @type {Readonly<Record<BoardTrackId, BuildingId>>} */
 export const TRACK_BUILDING = deepFreeze({
 	exploration: 'farm',
 	science: 'house',
@@ -70,6 +71,17 @@ export const TIER_COSTS = deepFreeze({
 export function artsTrackOn(expansions, variants) {
 	return expansions.includes('aa') && !variants.includes('no-arts-track');
 }
+
+/**
+ * The arts track's own tier prices (03 §2.2): any 1, 2 different, any 3, then 2 of the same type.
+ * @type {Readonly<Record<1 | 2 | 3 | 4, Cost>>}
+ */
+export const ARTS_TIER_COSTS = deepFreeze({
+	1: { any: 1 },
+	2: { different: 2 },
+	3: { any: 3 },
+	4: { same: 2 },
+});
 
 /** The spaces under one tier price (01 §3.1). */
 export const TIER_SPACES = 3;
@@ -129,6 +141,14 @@ function track(spaces) {
 	];
 }
 
+// R118: Flash Mob and Infinite Spectrum Photography print the four board tracks, so the arts track isn't one of them.
+const BOARD_TRACKS = /** @type {TrackId[]} */ ([
+	'exploration',
+	'science',
+	'technology',
+	'military',
+]);
+
 const ALL_BUT_SCIENCE = /** @type {TrackId[]} */ ([
 	'exploration',
 	'technology',
@@ -137,7 +157,8 @@ const ALL_BUT_SCIENCE = /** @type {TrackId[]} */ ([
 
 /**
  * Every track space, by track and space number: `TRACKS.exploration[4]` is Navigation.
- * Names and benefits come from the F&F Track Reference, checked against the board (01 §3.2–3.5).
+ * Names and benefits come from the F&F Track Reference, checked against the board (01 §3.2–3.5); the arts track's
+ * from the A&A reference guide (03 §2.3). Its spaces that need masterpieces or inspiration tiles come in #35 part 2.
  * @type {Readonly<Record<TrackId, readonly TrackSpace[]>>}
  */
 export const TRACKS = deepFreeze({
@@ -342,15 +363,57 @@ export const TRACKS = deepFreeze({
 		// The extra civilization goes to the left of the current civ mat.
 		space('Mechs', [{ conquer: { bothDice: 'always' } }, { gainCiv: {} }]),
 	]),
+	arts: track([
+		space('Cave Paintings', [{ gain: { tapestry: 1 } }]),
+		space('Flutes', [{ vp: 5 }], { bonus: payAny([{ anyBuilding: {} }]) }),
+		space('Dance', [{ create: {} }]),
+		space(
+			'Epic Poetry',
+			[{ vp: { per: 'territoryTile' } }, { vp: { per: 'techCard' } }],
+			{ landmark: 'clock-tower' }
+		),
+		space('Symphony', [{ inspire: {} }], {
+			bonus: payAny([{ create: {} }]),
+		}),
+		space('Carved Marble Sculpture', [
+			{ choice: [[{ broadcast: {} }], [{ anyBuilding: {} }]] },
+		]),
+		// The refresh and the create may come in either order (Mike Young, 03 §2.3).
+		space(
+			'Rock Opera',
+			[{ refreshMasterpieces: { optional: true } }, { create: {} }],
+			{ landmark: 'opera-house' }
+		),
+		space('CGI Animation', [{ inspire: {} }], {
+			bonus: payAny([{ anyBuilding: {} }]),
+		}),
+		space('Flash Mob', [{ advance: { tracks: BOARD_TRACKS } }]),
+		// R71: "per income building" counts every building off the income mat.
+		space(
+			'Virtual Reality Holocenter',
+			[{ anyBuilding: {} }, { vp: { per: 'incomeBuilding' } }],
+			{ ordered: true, landmark: 'holocenter' }
+		),
+		space(
+			'Infinite Spectrum Photography',
+			[{ advance: { tracks: BOARD_TRACKS } }],
+			{ bonus: payAny([{ create: {} }]) }
+		),
+		space('Streaming Implants', [{ streamingImplants: {} }]),
+	]),
 });
 
 /**
- * Returns the cost of advancing into a track space: the price of its tier, in the track's resource.
+ * Returns the cost of advancing into a track space: the price of its tier, in the track's resource, or the arts
+ * track's own price (03 §2.2).
  * @param {TrackId} track - The track being advanced on.
  * @param {number} space - The space being entered, 1–12.
  * @returns {Cost} The resources to pay.
  */
 export function advanceCost(track, space) {
+	if (track === 'arts') {
+		return { ...ARTS_TIER_COSTS[tierOf(space)] };
+	}
 	const { track: own = 0, any = 0 } = TIER_COSTS[tierOf(space)];
 	/** @type {Cost} */
 	const cost = {};

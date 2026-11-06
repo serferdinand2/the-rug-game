@@ -2,7 +2,7 @@
 // The strings match src/lib/ui.js and src/lib/art/catalog.js, so the interface and the art look things up by the same id.
 
 /** @typedef {'original' | 'current'} VersionId */
-/** @typedef {'exploration' | 'science' | 'technology' | 'military'} TrackId */
+/** An advancement track: the four of the main board, and Arts & Architecture's arts track (#35). @typedef {'exploration' | 'science' | 'technology' | 'military' | 'arts'} TrackId */
 /** The four tracks of the main board, which printed effects such as Leaders' name (R118). @typedef {'exploration' | 'science' | 'technology' | 'military'} BoardTrackId */
 /** @typedef {'coin' | 'worker' | 'food' | 'culture'} ResourceId */
 /** @typedef {'market' | 'house' | 'farm' | 'armory'} BuildingId */

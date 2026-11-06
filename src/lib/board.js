@@ -59,6 +59,11 @@ export function spaceWords(view, track, space) {
  * @returns {CostSymbol[]}
  */
 export function tierSymbols(track, tier) {
+	// The arts track's prices ("2 different", "2 of one type") get their own symbols with its row on the board, in
+	// #35 part 4; the board doesn't draw the arts track before then.
+	if (track === 'arts') {
+		return [];
+	}
 	const { track: own = 0, any = 0 } = TIER_COSTS[tier];
 	return [
 		...Array(own).fill(TRACK_RESOURCE[track]),

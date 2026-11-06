@@ -82,6 +82,13 @@ export function countVp(state, player, per, track) {
 			seat.hand.length
 		);
 	}
+	if (per === 'incomeBuilding') {
+		// R71, every type (the Holocenter, #35).
+		return BUILDING_IDS.reduce(
+			(sum, id) => sum + BUILDINGS_PER_ROW - seat.incomeMat.buildings[id],
+			0
+		);
+	}
 	if (BUILDING_IDS.includes(per)) {
 		// R71: every building that has left the income mat counts, placed or not.
 		return BUILDINGS_PER_ROW - seat.incomeMat.buildings[per];

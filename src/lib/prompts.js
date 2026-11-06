@@ -133,12 +133,14 @@ function isCount(value) {
 }
 
 /**
- * Whether a value is a track id.
+ * Whether a value is one of the board's four track ids, whose resource a tier price names (the arts track has none).
  * @param {unknown} value
- * @returns {value is TrackId}
+ * @returns {value is import('./engine/data/ids.js').BoardTrackId}
  */
 function isTrack(value) {
-	return TRACK_IDS.includes(/** @type {TrackId} */ (value));
+	return TRACK_IDS.includes(
+		/** @type {import('./engine/data/ids.js').BoardTrackId} */ (value)
+	);
 }
 
 /**

@@ -27,6 +27,8 @@ import { deepFreeze } from './ids.js';
  * @property {number} [food]
  * @property {number} [culture]
  * @property {number} [any] - Resources of the player's choice
+ * @property {number} [different] - Resources of the player's choice, each of a different type; never with other resources (the arts track, #35)
+ * @property {number} [same] - Resources of the player's choice, all of one type; never with other resources (the arts track, #35)
  * @property {number} [territory] - Territory tiles discarded from the supply
  * @property {number} [tapestry] - Tapestry cards discarded from the hand
  * @property {number} [tech] - Tech cards discarded
@@ -43,8 +45,9 @@ import { deepFreeze } from './ids.js';
  * - `trackLead`: tracks where no other seat is further ahead than you, ties included;
  * - `landmark`: landmarks you own, in the capital, beside the mat or on the map (R71);
  * - `opponent`: the other seats;
- * - an income building: the buildings of that type you own, beside the mat too (01 §6.1).
- * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId} VpCounter
+ * - an income building: the buildings of that type you own, beside the mat too (01 §6.1);
+ * - `incomeBuilding`: every income building you own, of every type (R71; the Holocenter, #35).
+ * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId | 'incomeBuilding'} VpCounter
  */
 
 /**
@@ -93,6 +96,8 @@ import { deepFreeze } from './ids.js';
  * - `discardCiv`: discard a civilization you hold, face up (the Riverfolk gained mid-game, #33).
  * - `darkAges`, `socialism`, `dictatorship`, `revolution`, `colonialism`, `pleaForAid`, `technocracy`, `tradeEconomy`, `coalBaron`, `olympicHost`: the rules of the card of that name.
  * - `astronomy`, `cartography`, `manifestDestiny`, `statusQuo`, `worldsFair`: the rules of the Plans & Ploys card of that name (#33).
+ * - `create`, `inspire`, `broadcast`, `refreshMasterpieces`, `streamingImplants`: Arts & Architecture's masterpieces and
+ *   inspiration tiles (03 §2.2–2.8), built in #35 part 2.
  * @typedef {{ gain: Gain }
  *   | { lose: { culture?: number, any?: number } }
  *   | { pay: { any: number } }
@@ -141,7 +146,12 @@ import { deepFreeze } from './ids.js';
  *   | { cartography: {} }
  *   | { manifestDestiny: {} }
  *   | { statusQuo: {} }
- *   | { worldsFair: {} }} Effect
+ *   | { worldsFair: {} }
+ *   | { create: {} }
+ *   | { inspire: {} }
+ *   | { broadcast: {} }
+ *   | { refreshMasterpieces: { optional?: boolean } }
+ *   | { streamingImplants: {} }} Effect
  */
 
 /**
@@ -205,6 +215,11 @@ export const EFFECT_KINDS = deepFreeze([
 	'manifestDestiny',
 	'statusQuo',
 	'worldsFair',
+	'create',
+	'inspire',
+	'broadcast',
+	'refreshMasterpieces',
+	'streamingImplants',
 ]);
 
 /**
@@ -224,4 +239,5 @@ export const VP_COUNTERS = deepFreeze([
 	'house',
 	'farm',
 	'armory',
+	'incomeBuilding',
 ]);
