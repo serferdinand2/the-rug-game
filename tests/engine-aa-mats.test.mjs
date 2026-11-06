@@ -11,6 +11,7 @@ import {
 import {
 	buildingProblem,
 	buildingSpots,
+	capitalScore,
 	cityPlots,
 	completeDistricts,
 	landmarkProblem,
@@ -378,6 +379,72 @@ test("Swamp: no Architects' cube goes on a lily pad", () => {
 	for (const pad of [2, 13, 26, 55, 59, 70]) {
 		assert.ok(!options.includes(pad), `pad ${pad}`);
 	}
+});
+
+/**
+ * Every open plot of a row of the seat's mat, as [row, column] pairs.
+ * @param {import('../src/lib/engine/state.js').PlayerSeat} seat
+ * @param {number} row
+ * @returns {number[][]}
+ */
+function openInRow(seat, row) {
+	const line = capitalMat(/** @type {number} */ (seat.capital.mat)).grid[row];
+	return [...line].flatMap((ch, col) => (ch === '1' ? [] : [[row, col]]));
+}
+
+test('R50: the Archipelago scores its 11 rows and 9 columns', () => {
+	const { seat } = onMat(7);
+	for (let row = 0; row < 11; row++) {
+		farms(seat, openInRow(seat, row));
+	}
+	assert.deepEqual(capitalScore(seat), {
+		rows: 11,
+		columns: 9,
+		uniform: 0,
+		vp: 20,
+	});
+});
+
+test('R51: the Cavern scores 2 for rows 1–6, 3 for rows 7–9 and nothing for columns', () => {
+	const { seat } = onMat(9);
+	farms(seat, [...openInRow(seat, 0), ...openInRow(seat, 8)]);
+	farms(seat, [
+		[1, 4],
+		[2, 4],
+		[3, 4],
+		[4, 4],
+		[6, 4],
+	]);
+	assert.deepEqual(capitalScore(seat), {
+		rows: 2,
+		columns: 1,
+		uniform: 0,
+		vp: 5,
+	});
+});
+
+test("the Architects' bonus does nothing on the Cavern", () => {
+	const { seat } = onMat(9);
+	seat.civs = ['architects'];
+	for (const [row, col] of openInRow(seat, 6)) {
+		seat.capital.buildings.push({ building: 'market', row, col });
+	}
+	assert.deepEqual(capitalScore(seat), {
+		rows: 1,
+		columns: 0,
+		uniform: 0,
+		vp: 3,
+	});
+});
+
+test("Swamp's lily pads count toward complete lines", () => {
+	const { seat } = onMat(12);
+	// Row 0 is '11L000000': a lily pad at column 2 stays showing.
+	farms(
+		seat,
+		openInRow(seat, 0).filter(([, col]) => col !== 2)
+	);
+	assert.equal(capitalScore(seat).rows, 1);
 });
 
 test('advancedMatsFor deals the A&A mats only with A&A', () => {

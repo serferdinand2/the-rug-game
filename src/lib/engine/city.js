@@ -386,7 +386,8 @@ export function uniformLines(seat) {
 /**
  * What the capital scores now (01 §6.1; R71): 1 VP for each complete row and column and, for the Architects, 1 more
  * for each of those lines that holds income buildings of one type only (02 §1.2). A seat with no capital mat yet
- * scores nothing.
+ * scores nothing. The Cavern scores its own row values and nothing for columns (R51); there the Architects' bonus does
+ * nothing, as no line is worth 1 (03 §2 Cavern).
  * @param {PlayerSeat} seat
  * @returns {{ rows: number, columns: number, uniform: number, vp: number }}
  */
@@ -394,7 +395,21 @@ export function capitalScore(seat) {
 	if (seat.capital.mat === null) {
 		return { rows: 0, columns: 0, uniform: 0, vp: 0 };
 	}
-	const { rows, columns } = completeLines(cityPlots(seat), seatShape(seat));
-	const uniform = seat.civs.includes('architects') ? uniformLines(seat) : 0;
-	return { rows, columns, uniform, vp: rows + columns + uniform };
+	const mat = seatMat(seat);
+	const shape = matShape(mat);
+	const plots = cityPlots(seat);
+	const full = groupsOf('rows', shape).map((g) =>
+		g.every((i) => plots[i] !== 'empty')
+	);
+	const { rows, columns } = completeLines(plots, shape);
+	const uniform =
+		seat.civs.includes('architects') && !mat.rowValues
+			? uniformLines(seat)
+			: 0;
+	const rowVp = full.reduce(
+		(sum, done, row) => sum + (done ? (mat.rowValues?.[row] ?? 1) : 0),
+		0
+	);
+	const vp = rowVp + columns * (mat.columnValue ?? 1) + uniform;
+	return { rows, columns, uniform, vp };
 }
