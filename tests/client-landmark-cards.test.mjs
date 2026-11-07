@@ -11,7 +11,10 @@ import { decisionTitle, describeAnswer } from '../src/lib/decision-words.js';
 import { kindFacts } from '../src/lib/decision-kinds.js';
 import { placingCard, promptFor, shelfFace } from '../src/lib/prompts.js';
 import { eventText } from '../src/lib/log.js';
-import { LANDMARK_CARDS } from '../src/lib/engine/data/landmark-cards.js';
+import {
+	LANDMARK_CARDS,
+	landmarkCardsFor,
+} from '../src/lib/engine/data/landmark-cards.js';
 import { FOOTPRINTS } from '../src/lib/art/footprints.js';
 
 const TABLE = { seats: [{ name: 'Ana' }, { name: 'Bo' }, { name: 'Cy' }] };
@@ -27,7 +30,7 @@ const seatWith = (/** @type {string} */ card, gained = false) => ({
 
 test('each Plans & Ploys landmark card finishes the card\'s line "Gain this landmark when you …"', () => {
 	assert.deepEqual(
-		LANDMARK_CARDS.map((card) => landmarkCondition(card.id)),
+		landmarkCardsFor(['pp']).map((card) => landmarkCondition(card.id)),
 		[
 			'have at least 1 tech card in your top row.',
 			'have at least 3 income buildings of the same type in your capital city.',
