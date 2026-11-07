@@ -10,6 +10,7 @@ import {
 	refillDisplay,
 	refreshDisplay,
 	upgradable,
+	lockTech,
 } from '../tech.js';
 import { techCard } from '../data/tech-cards.js';
 
@@ -223,6 +224,7 @@ export function upgradeCard(ctx, player, card, inventors) {
 
 /**
  * The upgrade effect (§7): mandatory with one card is automatic, with none says so; optional always asks while a card can be upgraded.
+ * With `lock` (Ceramics) the card upgraded may not be upgraded again this turn.
  * The Recyclers may recycle a top-row card instead (03 §1.3), so they are asked whenever they have one. The recycle is
  * a "may": with nothing else to upgrade, they may decline it (my call).
  * @type {import('../state.js').EffectHandler}
@@ -237,8 +239,13 @@ export function upgrade(ctx, player, value) {
 		}
 		return;
 	}
+	// Ceramics: the card upgraded is locked at once, before its benefit runs (#35).
+	const lock = value?.lock === true;
 	if (cards.length === 1 && recycled.length === 0 && !optional) {
 		upgradeCard(ctx, player, cards[0]);
+		if (lock) {
+			lockTech(ctx.state, player, cards[0]);
+		}
 		return;
 	}
 	ctx.push([
@@ -246,6 +253,7 @@ export function upgrade(ctx, player, value) {
 			player,
 			kind: 'chooseUpgrade',
 			optional: optional || cards.length === 0,
+			...(lock && { lock }),
 		},
 	]);
 }

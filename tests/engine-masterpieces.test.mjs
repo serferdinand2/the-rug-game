@@ -15,6 +15,13 @@ import { allOps } from './helpers/views.mjs';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { spacesAdvanced } from '../src/lib/engine/movement.js';
 import { neighbours } from '../src/lib/engine/state.js';
+import { contextFor, resolveEffects, run } from '../src/lib/engine/loop.js';
+import { upgradable } from '../src/lib/engine/tech.js';
+import { inventors } from '../src/lib/engine/civs/inventors.js';
+import { startTurn } from '../src/lib/engine/turn.js';
+import { hexNeighbours } from '../src/lib/engine/data/maps.js';
+import { conquerTargets } from '../src/lib/engine/map.js';
+import { itemCount } from '../src/lib/engine/control.js';
 import { countVp } from '../src/lib/engine/effects/vp.js';
 import { capitalScore } from '../src/lib/engine/city.js';
 import { checkState } from './helpers/invariants.mjs';
@@ -619,4 +626,349 @@ test('Streaming Implants is the last arts space: it completes a track', () => {
 		!openDecisions(r.state).some((d) => d.kind === 'chooseMasterpiece'),
 		'nothing to choose from'
 	);
+});
+
+// The 20 masterpieces, each fired through Broadcast from a seat that holds only it.
+
+/**
+ * Fires one masterpiece for the current player of an A&A game, through Broadcast, after `fill` stages their seat.
+ * @param {string} card
+ * @param {(seat: any, state: any) => void} [fill]
+ * @param {string[]} [also] - Other masterpieces the seat holds, after `card`
+ * @returns {import('./helpers/arts.mjs').Run}
+ */
+function fireCard(card, fill = () => {}, also = []) {
+	const ready = readyTurn(
+		2,
+		(seat, state) => {
+			hold(state, seat, [card, ...also]);
+			fill(seat, state);
+		},
+		AA
+	);
+	const state = resolveEffects(
+		ready.state,
+		ready.player,
+		[{ broadcast: {} }],
+		ready.random
+	);
+	return {
+		state,
+		random: ready.random,
+		player: ready.player,
+		seat: state.seats[ready.player - 1],
+	};
+}
+
+/**
+ * Answers the open chooseResource with that one resource.
+ * @param {import('./helpers/arts.mjs').Run} r
+ * @param {string} id
+ */
+function takeResource(r, id) {
+	return reply(r, 'chooseResource', { resources: { [id]: 1 } });
+}
+
+/**
+ * The open decision kinds, the turn choice underneath left out.
+ * @param {import('./helpers/arts.mjs').Run} r
+ * @returns {string[]}
+ */
+const asked = (r) =>
+	openDecisions(r.state)
+		.map((d) => d.kind)
+		.filter((kind) => kind !== 'chooseTurn');
+
+test('Animation: 1 VP per tech card, then any 1 resource', () => {
+	const r = fireCard('animation', (seat, state) => {
+		seat.tech.bottom = state.supply.tech.deck.splice(0, 2);
+		seat.tech.top = state.supply.tech.deck.splice(0, 1);
+	});
+	assert.equal(r.seat.vp, 3);
+	takeResource(r, 'food');
+	assert.equal(r.seat.resources.food, 1);
+	assert.deepEqual(asked(r), []);
+	checkState(r.state);
+});
+
+test('Art Deco: turned face down, then an income building of your choice and any 1 resource', () => {
+	const r = fireCard('art-deco');
+	assert.deepEqual(r.seat.masterpieces, [{ card: 'art-deco', used: true }]);
+	reply(r, 'chooseOption', { option: 1 });
+	place(r);
+	assert.equal(r.seat.incomeMat.buildings.house, 4);
+	takeResource(r, 'coin');
+	assert.equal(r.seat.resources.coin, 1);
+	checkState(r.state);
+});
+
+/**
+ * Stages row 0 and column 0 of capital mat 5 complete, as the capital-scoring test does.
+ * @param {any} seat
+ */
+function oneRowOneColumn(seat) {
+	seat.capital.mat = 5;
+	for (let col = 0; col <= 6; col++) {
+		seat.capital.buildings.push({ building: 'house', row: 0, col });
+	}
+	for (const row of [3, 4, 6, 7, 8]) {
+		seat.capital.buildings.push({ building: 'house', row, col: 0 });
+	}
+	seat.capital.landmarks.push({
+		landmark: 'lighthouse',
+		row: -1,
+		col: 7,
+		rotation: 0,
+	});
+}
+
+test('Ballet and Modern Dance: 1 VP per complete row or column, which is not scoring the capital', () => {
+	for (const card of ['ballet', 'modern-dance']) {
+		const r = fireCard(card, (seat) => oneRowOneColumn(seat));
+		assert.equal(r.seat.vp, 1, card);
+		assert.ok(
+			!r.state.events.some(
+				(/** @type {any} */ e) => e.type === 'capitalScored'
+			),
+			card
+		);
+		takeResource(r, 'worker');
+		assert.equal(r.seat.resources.worker, 1);
+	}
+});
+
+test('Baroque: 1 VP per armory and per farm, then food or culture', () => {
+	const r = fireCard('baroque', (seat) => {
+		seat.incomeMat.buildings.armory = 3;
+		seat.incomeMat.buildings.farm = 4;
+	});
+	assert.equal(r.seat.vp, 3);
+	reply(r, 'chooseOption', { option: 1 });
+	assert.equal(r.seat.resources.culture, 1);
+	assert.equal(r.seat.resources.food, 0);
+});
+
+test('Calligraphy: a territory tile and any 1 resource', () => {
+	const r = fireCard('calligraphy');
+	const tiles = r.seat.territoryTiles.length;
+	takeResource(r, 'culture');
+	assert.equal(r.seat.territoryTiles.length, tiles);
+	assert.equal(tiles, 1);
+	assert.equal(r.seat.resources.culture, 1);
+	checkState(r.state);
+});
+
+test("Ceramics: upgrades a tech card, which can't be upgraded again this turn", () => {
+	const r = fireCard('ceramics', (seat, state) => {
+		seat.tech.bottom = state.supply.tech.deck.splice(0, 1);
+		// Golden Age lets a middle-row card go up without its prerequisite, so only the lock can stop it.
+		seat.era = { card: null, ability: 'golden-age' };
+	});
+	const [card] = r.seat.tech.middle;
+	assert.ok(card, 'the only card moved up');
+	assert.deepEqual(r.state.lockedTech, [{ player: r.player, card }]);
+	assert.ok(!upgradable(r.state, r.player).includes(card));
+	// Not by the income turn's upgrade either: with the only card locked, it asks nothing.
+	const after = resolveEffects(
+		r.state,
+		r.player,
+		[{ upgrade: { optional: true } }],
+		r.random
+	);
+	assert.ok(
+		!openDecisions(after).some((d) => d.kind === 'chooseUpgrade'),
+		'the locked card is not offered'
+	);
+	// Nor by the Inventors.
+	const inventing = structuredClone(r.state);
+	const seat = /** @type {any} */ (inventing.seats[r.player - 1]);
+	seat.civs = ['inventors'];
+	seat.civData.inventors = { tokens: 4, cards: [] };
+	inventing.supply.civs.splice(inventing.supply.civs.indexOf('inventors'), 1);
+	inventors.income(
+		contextFor(inventing, r.random, inventing.pending),
+		r.player
+	);
+	run(inventing, r.random);
+	const slot = openDecisions(inventing).find((d) => d.kind === 'chooseSlot');
+	assert.ok(
+		!(slot?.options ?? []).some(
+			(/** @type {any} */ o) => o.player === r.player && o.card === card
+		)
+	);
+	// The next turn lifts the lock.
+	const next = structuredClone(r.state);
+	startTurn(contextFor(next, r.random, next.pending), r.player);
+	assert.deepEqual(next.lockedTech, []);
+});
+
+test('Costuming: pay any 1 resource to advance on the arts track with its benefit, or decline', () => {
+	const r = fireCard('costuming', (seat) => {
+		seat.resources.coin = 1;
+	});
+	const hand = r.seat.hand.length;
+	reply(r, 'chooseTrade', { offer: 0, pay: { coin: 1 } });
+	assert.deepEqual(r.seat.tracks.arts, [1]);
+	assert.equal(
+		r.seat.hand.length,
+		hand + 1,
+		'Cave Paintings: a tapestry card'
+	);
+	assert.equal(r.seat.resources.coin, 0);
+	const no = fireCard('costuming', (seat) => {
+		seat.resources.coin = 1;
+	});
+	reply(no, 'chooseTrade', { offer: null });
+	assert.deepEqual(no.seat.tracks.arts, [0]);
+	assert.equal(no.seat.resources.coin, 1);
+});
+
+test('Fresco: 1 VP per territory you control and a culture', () => {
+	const r = fireCard('fresco');
+	assert.equal(r.seat.vp, countVp(r.state, r.player, 'territory'));
+	assert.ok(r.seat.vp > 0);
+	assert.equal(r.seat.resources.culture, 1);
+});
+
+test('Graffiti: 1 VP per market and per house, then a worker or a coin', () => {
+	const r = fireCard('graffiti', (seat) => {
+		seat.incomeMat.buildings.market = 4;
+		seat.incomeMat.buildings.house = 2;
+	});
+	assert.equal(r.seat.vp, 4);
+	reply(r, 'chooseOption', { option: 0 });
+	assert.equal(r.seat.resources.worker, 1);
+});
+
+test('Haute Cuisine: 1 VP per tapestry card in hand and on the mat, covered ones too, then any 1 resource', () => {
+	const r = fireCard('haute-cuisine', (seat, state) => {
+		seat.hand = state.supply.tapestry.deck.splice(0, 2);
+		seat.incomeMat.tapestry[1] = state.supply.tapestry.deck.splice(0, 2);
+	});
+	assert.equal(r.seat.vp, 4);
+	takeResource(r, 'coin');
+});
+
+test('Krav Maga, Mapmaking, Motion Picture, Stained Glass and Theater: 1 VP per space advanced on their track', () => {
+	/** @type {[string, string][]} */
+	const cards = [
+		['krav-maga', 'military'],
+		['mapmaking', 'exploration'],
+		['motion-picture', 'science'],
+		['stained-glass', 'technology'],
+		['theater', 'arts'],
+	];
+	for (const [card, track] of cards) {
+		const r = fireCard(card, (seat) => {
+			seat.tracks[track] = [5];
+		});
+		assert.equal(r.seat.vp, 5, card);
+	}
+	// A completed track counts as 12 (BGG-2858761).
+	const done = fireCard('stained-glass', (seat) => {
+		seat.tracks.technology = [12];
+	});
+	assert.equal(done.seat.vp, 12);
+});
+
+test('Mime: pay any 1 resource to repeat a track space you are on, then it is used; declining keeps it', () => {
+	const r = fireCard('mime', (seat) => {
+		seat.tracks.arts = [2];
+		seat.resources.food = 1;
+	});
+	reply(r, 'chooseTrade', { offer: 0, pay: { food: 1 } });
+	assert.equal(r.seat.vp, 5, 'Flutes');
+	assert.deepEqual(r.seat.masterpieces, [{ card: 'mime', used: true }]);
+	const no = fireCard('mime', (seat) => {
+		seat.tracks.arts = [2];
+		seat.resources.food = 1;
+	});
+	reply(no, 'chooseTrade', { offer: null });
+	assert.deepEqual(no.seat.masterpieces, [{ card: 'mime', used: false }]);
+	assert.equal(no.seat.vp, 0);
+});
+
+test('Mime is turned face down before its benefit, so a broadcast inside it never offers it again', () => {
+	const r = fireCard(
+		'mime',
+		(seat) => {
+			// Carved Marble Sculpture: broadcast, or a building.
+			seat.tracks.arts = [6];
+			seat.tracks.military = [3];
+			seat.resources.food = 1;
+		},
+		['krav-maga']
+	);
+	reply(r, 'chooseMasterpiece', { seat: r.player, card: 'mime' });
+	reply(r, 'chooseTrade', { offer: 0, pay: { food: 1 } });
+	// Tokens on two tracks: the repeat asks which space.
+	reply(r, 'chooseRepeat', { track: 'arts', space: 6 });
+	const seq = r.state.seq;
+	reply(r, 'chooseOption', { option: 0 });
+	// Only Krav Maga is left to broadcast, so it fires without asking.
+	assert.deepEqual(fired(r.state, seq), [`${r.player}:krav-maga`]);
+	assert.equal(r.seat.vp, 3);
+	checkState(r.state);
+});
+
+test('Painting and Tapestry: 4 VP or a tapestry card, and any 1 resource', () => {
+	const paint = fireCard('painting');
+	assert.equal(paint.seat.vp, 4);
+	takeResource(paint, 'food');
+	const tapestry = fireCard('tapestry');
+	const hand = tapestry.seat.hand.length;
+	takeResource(tapestry, 'food');
+	assert.equal(hand, 1);
+	assert.equal(tapestry.seat.resources.food, 1);
+});
+
+test('R53 Topiary: conquer an adjacent territory with nothing on it, rolling both dice', () => {
+	/** @type {string[]} */
+	let empty = [];
+	/** @type {string} */
+	let guarded = '';
+	const r = fireCard('topiary', (seat, state) => {
+		const home = /** @type {string} */ (seat.start);
+		const around = hexNeighbours(home).filter(
+			(hex) =>
+				hex in state.hexes && state.hexes[hex].outposts.length === 0
+		);
+		// Two unexplored neighbours become territories: one empty, one with the opponent's outpost.
+		const [open, held] = around.filter(
+			(hex) => state.hexes[hex].tile === null
+		);
+		for (const hex of [open, held]) {
+			state.hexes[hex].tile = state.supply.territory.shift();
+		}
+		const opponent = state.seats.find((/** @type {any} */ s) => s !== seat);
+		state.hexes[held].outposts.push({
+			seat: opponent.seat,
+			toppled: false,
+		});
+		opponent.outposts -= 1;
+		guarded = held;
+		empty = conquerTargets(state, seat.seat, false).filter(
+			(hex) => itemCount(state, hex) === 0
+		);
+		assert.ok(empty.includes(open));
+	});
+	const seq = r.state.seq;
+	const conquer = openDecisions(r.state).find(
+		(d) => d.kind === 'chooseConquer'
+	);
+	const targets = conquer
+		? DECISIONS.chooseConquer.answers(r.state, conquer).map((a) => a.hex)
+		: [];
+	if (conquer) {
+		assert.deepEqual(targets, empty);
+		reply(r, 'chooseConquer', { hex: empty[0] });
+	} else {
+		assert.equal(empty.length, 1);
+	}
+	assert.ok(!targets.includes(guarded));
+	const rolled = r.state.events.filter(
+		(/** @type {any} */ e) => e.type === 'conquerDiceRolled' && e.seq > seq
+	);
+	assert.equal(rolled.length, 1);
+	assert.ok(rolled[0].red !== undefined && rolled[0].black !== undefined);
 });

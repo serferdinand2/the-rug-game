@@ -135,7 +135,29 @@ export function upgradable(state, player) {
 				hasEra(state, player, 'golden-age') ||
 				meetsRequirement(state, player, techCard(id))
 		),
-	];
+	].filter((id) => !isLocked(state, player, id));
+}
+
+/**
+ * Whether Ceramics upgraded a player's card this turn, so it may not be upgraded again: not by the income turn's
+ * upgrade, nor by a civilization (#35, RB-AA p3).
+ * @param {import('./state.js').State} state
+ * @param {number} player - The card's owner
+ * @param {string} card
+ * @returns {boolean}
+ */
+export function isLocked(state, player, card) {
+	return state.lockedTech.some((l) => l.player === player && l.card === card);
+}
+
+/**
+ * Locks a card Ceramics just upgraded until a turn starts.
+ * @param {import('./state.js').State} state
+ * @param {number} player - The card's owner
+ * @param {string} card
+ */
+export function lockTech(state, player, card) {
+	state.lockedTech.push({ player, card });
 }
 
 /**

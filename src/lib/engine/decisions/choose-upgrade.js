@@ -1,6 +1,6 @@
 // The decision to pick a tech card to upgrade, or to decline an optional upgrade; the Recyclers may recycle a top-row card instead.
 import { PlayerError } from '../errors.js';
-import { recyclable, upgradable } from '../tech.js';
+import { lockTech, recyclable, upgradable } from '../tech.js';
 import { upgradeCard } from '../effects/tech.js';
 import { recycleCard } from '../civs/recyclers.js';
 
@@ -39,5 +39,9 @@ export const chooseUpgrade = {
 			return;
 		}
 		upgradeCard(ctx, player, answer.card);
+		// Ceramics (#35): locked at once, before the card's benefit runs.
+		if (decision.lock) {
+			lockTech(ctx.state, player, answer.card);
+		}
 	},
 };

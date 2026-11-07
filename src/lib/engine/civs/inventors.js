@@ -6,6 +6,7 @@ import { askSlot } from '../decisions/choose-slot.js';
 import { upgradeCard } from '../effects/tech.js';
 import { techCard } from '../data/tech-cards.js';
 import { offer } from './civ.js';
+import { isLocked } from '../tech.js';
 
 /**
  * The Inventors' own state.
@@ -81,10 +82,10 @@ export const inventors = {
 				.filter((s) => s.kind === 'player')
 				.flatMap(({ seat }) => {
 					const { bottom, middle } = playerSeat(state, seat).tech;
-					return [...bottom, ...middle].map((card) => ({
-						player: seat,
-						card,
-					}));
+					// Not a card Ceramics upgraded this turn (#35).
+					return [...bottom, ...middle]
+						.filter((card) => !isLocked(state, seat, card))
+						.map((card) => ({ player: seat, card }));
 				}),
 			optional: true,
 			purpose: 'inventors',

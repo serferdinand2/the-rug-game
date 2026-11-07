@@ -7,6 +7,7 @@ import { claimAchievement, checkToppleTwo } from '../achievements.js';
 import { hasEra, triggered } from '../abilities.js';
 import { MAPS } from '../data/maps.js';
 import { conquerTargets, loneOpponent } from '../map.js';
+import { itemCount } from '../control.js';
 import { takeOutpost } from '../outposts.js';
 import { isolationistsOffer } from '../civs/isolationists.js';
 import { diceOp } from '../responses.js';
@@ -98,7 +99,16 @@ export function conquer(ctx, player, value) {
 	const anywhere = value?.anywhere === true;
 	const bothDice = value?.bothDice;
 	/** @type {string[] | undefined} */
-	const only = value?.only;
+	let only = value?.only;
+	// Topiary (R53): only a territory with no outpost or other item on it.
+	if (value?.empty === true) {
+		const listed = only;
+		only = MAPS[ctx.state.map].hexes.filter(
+			(hex) =>
+				itemCount(ctx.state, hex) === 0 &&
+				(listed === undefined || listed.includes(hex))
+		);
+	}
 	const targets =
 		playerSeat(ctx.state, player).outposts > 0
 			? conquerTargets(ctx.state, player, anywhere, only)

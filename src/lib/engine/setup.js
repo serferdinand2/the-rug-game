@@ -474,6 +474,7 @@ export function createGame({
 		achievements: Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, []])),
 		activated: [],
 		usedThisTurn: [],
+		lockedTech: [],
 		blocks: [],
 		result: null,
 		pending: [],
