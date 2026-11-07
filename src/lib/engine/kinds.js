@@ -19,6 +19,8 @@ import {
 	scienceRoll,
 } from './effects/research.js';
 import { chooseScienceDie } from './decisions/choose-science-die.js';
+import { chooseCreate } from './decisions/choose-create.js';
+import { chooseRefresh } from './decisions/choose-refresh.js';
 import { endTurn } from './turn.js';
 import { runIncomeSteps, playFaceDown } from './income.js';
 import { chooseTapestry } from './decisions/choose-tapestry.js';
@@ -156,6 +158,8 @@ Object.assign(DECISIONS, {
 	chooseTrack,
 	chooseRoll,
 	chooseScienceDie,
+	chooseCreate,
+	chooseRefresh,
 	chooseSpace,
 	chooseHex,
 	chooseGift,

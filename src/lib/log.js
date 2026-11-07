@@ -20,6 +20,7 @@ import {
 	civilizationName,
 	hexName,
 	landmarkName,
+	masterpieceName,
 	seatName,
 	spaceName,
 	tapestryCardOf,
@@ -77,6 +78,7 @@ export const SILENT = new Set([
 	// Deck reshuffles.
 	'deckShuffled',
 	'techDeckShuffled',
+	'masterpieceDeckShuffled',
 	// The end of setup; the first turn's divider follows.
 	'setupDone',
 	// The move or income turn that follows says which turn was chosen.
@@ -821,6 +823,20 @@ const WORDS = {
 			: 'The face-up tech cards were cleared.';
 	},
 	noInvent: (e, game, name) => `${name} had no tech card to invent.`,
+	// A&A's masterpieces (#35): a card from the deck is face up once held, so its name is public.
+	masterpieceCreated(e, game, name) {
+		const card = masterpieceName(e.card);
+		return e.from === 'deck'
+			? `${name} created ${card} from the deck.`
+			: `${name} created ${card}.`;
+	},
+	masterpiecesRefreshed(e, game, name) {
+		const cards = strings(e.faceUp).map(masterpieceName);
+		return cards.length > 0
+			? `${name} refreshed the masterpieces: ${joinList(cards)} turned up.`
+			: `${name} cleared the face-up masterpieces.`;
+	},
+	noMasterpiece: (e, game, name) => `${name} had no masterpiece to create.`,
 	noUpgrade: (e, game, name) => `${name} had no tech card to upgrade.`,
 	// Assembly Line, Electronics and Nanotechnology (#144): the card's benefit follows as its own lines.
 	techBenefitUsed(e, game, name) {

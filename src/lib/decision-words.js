@@ -37,6 +37,7 @@ import {
 	civilizationName,
 	hexName,
 	landmarkName,
+	masterpieceName,
 	seatName,
 	spaceName,
 	tapestryName,
@@ -660,6 +661,8 @@ const TITLES = {
 	},
 	chooseRoll: () => 'Choose one of the two science die results',
 	chooseScienceDie: () => 'Choose the science die to roll',
+	chooseCreate: () => 'Create a masterpiece',
+	chooseRefresh: () => 'Refresh the face-up masterpieces?',
 	chooseSpace: () =>
 		"Trade Economy: choose an opponent's track space to gain its benefit",
 	chooseHex: (d) => {
@@ -1192,6 +1195,18 @@ const ANSWERS = {
 	chooseRoll: (a) => (isTrack(a.track) ? trackName(a.track) : null),
 	chooseScienceDie: (a) =>
 		a.die === 'd20' ? 'The d20' : a.die === 'd12' ? 'The d12' : null,
+	chooseCreate: (a) => {
+		if (a.card === 'deck') {
+			return "The deck's top card";
+		}
+		return typeof a.card === 'string' ? masterpieceName(a.card) : null;
+	},
+	chooseRefresh: (a) => {
+		if (typeof a.refresh !== 'boolean') {
+			return null;
+		}
+		return a.refresh ? 'Refresh them' : 'Keep them';
+	},
 	chooseSpace: (a, d, table) =>
 		isTrack(a.track) && isCount(a.space)
 			? `${spaceName(a.track, a.space)} (${seatName(table, a.player)})`

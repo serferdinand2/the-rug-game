@@ -80,6 +80,9 @@ export const DECISION_KINDS = Object.freeze({
 	chooseRoll: { art: 'track' },
 	// The variant "Roll either science die": the d20 or the d12, before a roll (#35).
 	chooseScienceDie: {},
+	// A&A's masterpieces (#35 part 2); their cards on a shelf come with part 4's mockups.
+	chooseCreate: {},
+	chooseRefresh: {},
 	chooseSpace: { art: 'track' },
 	chooseHex: {},
 	chooseGift: { tab: 'terrain', art: 'gift' },

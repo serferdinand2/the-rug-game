@@ -2,6 +2,7 @@
 import { TRACKS } from './engine/data/tracks.js';
 import { tapestryCard } from './engine/data/tapestry-cards.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
+import { MASTERPIECES } from './engine/data/masterpieces.js';
 import { ACHIEVEMENTS } from './engine/data/achievements.js';
 import { ASSETS, EXPANSIONS } from './art/catalog.js';
 import { capitalize, nounOf, signed, titleOf } from './words.js';
@@ -172,6 +173,18 @@ export function techName(id) {
 		return 'a tech card';
 	}
 	return TECH_CARDS.find((card) => card.id === id)?.name ?? titleOf(id);
+}
+
+/**
+ * A masterpiece's name, such as "Art Deco" (#35).
+ * @param {unknown} id
+ * @returns {string}
+ */
+export function masterpieceName(id) {
+	if (typeof id !== 'string') {
+		return 'a masterpiece';
+	}
+	return MASTERPIECES.find((card) => card.id === id)?.name ?? titleOf(id);
 }
 
 /**

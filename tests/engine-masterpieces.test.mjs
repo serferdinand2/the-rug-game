@@ -14,7 +14,7 @@ import { newGame, startedGame } from './helpers/engine.mjs';
 import { countVp } from '../src/lib/engine/effects/vp.js';
 import { capitalScore } from '../src/lib/engine/city.js';
 import { checkState } from './helpers/invariants.mjs';
-import { AA } from './helpers/arts.mjs';
+import { AA, ontoArts, place, reply } from './helpers/arts.mjs';
 
 /** The masterpiece ids, as the art catalog lists them. */
 const ART_IDS = ASSETS.filter((a) => a.group === 'masterpiece').map((a) =>
@@ -165,4 +165,167 @@ test("Ballet's and Modern Dance's counters count the capital's complete rows and
 	assert.equal(columns, 1);
 	assert.equal(countVp(state, 1, 'capitalRow'), rows);
 	assert.equal(countVp(state, 1, 'capitalColumn'), columns);
+});
+
+/**
+ * The open decision of a kind, which must be there.
+ * @param {any} state
+ * @param {string} kind
+ * @returns {any}
+ */
+function openOf(state, kind) {
+	const found = openDecisions(state).find((d) => d.kind === kind);
+	assert.ok(
+		found,
+		`no open ${kind}: ${openDecisions(state).map((d) => d.kind)}`
+	);
+	return found;
+}
+
+test('Dance creates a face-up masterpiece and the row refills from the deck', () => {
+	const r = ontoArts(3);
+	const pile = r.state.supply.masterpieces;
+	const [, second] = pile.faceUp;
+	const top = pile.deck[0];
+	const create = openOf(r.state, 'chooseCreate');
+	assert.deepEqual(create.options, [...pile.faceUp, 'deck']);
+	reply(r, 'chooseCreate', { card: second });
+	assert.deepEqual(r.seat.masterpieces, [{ card: second, used: false }]);
+	const after = r.state.supply.masterpieces;
+	assert.equal(after.faceUp.length, 3);
+	assert.ok(after.faceUp.includes(top), 'the deck’s old top card turned up');
+	assert.ok(!after.faceUp.includes(second));
+	assert.equal(after.deck.length, 16);
+	checkState(r.state);
+});
+
+test("create may take the deck's top card, leaving the face-up row as it was", () => {
+	const r = ontoArts(3);
+	const { faceUp, deck } = r.state.supply.masterpieces;
+	const row = [...faceUp];
+	const top = deck[0];
+	reply(r, 'chooseCreate', { card: 'deck' });
+	assert.deepEqual(r.seat.masterpieces, [{ card: top, used: false }]);
+	assert.deepEqual(r.state.supply.masterpieces.faceUp, row);
+	assert.equal(r.state.supply.masterpieces.deck.length, 16);
+});
+
+test('a masterpiece that is not offered is refused', () => {
+	const r = ontoArts(3);
+	const create = openOf(r.state, 'chooseCreate');
+	const absent = MASTERPIECES.map((m) => m.id).find(
+		(id) => !create.options.includes(id)
+	);
+	assert.throws(
+		() => reply(r, 'chooseCreate', { card: absent }),
+		/Choose a face-up masterpiece or the deck/
+	);
+});
+
+test('R119: an empty masterpiece deck reshuffles its discards', () => {
+	const r = ontoArts(3, (seat, state) => {
+		const pile = state.supply.masterpieces;
+		pile.discard = pile.deck.splice(0);
+	});
+	const seq = r.state.seq;
+	reply(r, 'chooseCreate', { card: 'deck' });
+	const shuffled = r.state.events.filter(
+		(/** @type {any} */ e) =>
+			e.type === 'masterpieceDeckShuffled' && e.seq > seq
+	);
+	assert.deepEqual(
+		shuffled.map((/** @type {any} */ e) => e.count),
+		[17]
+	);
+	const pile = r.state.supply.masterpieces;
+	assert.deepEqual(pile.discard, []);
+	assert.equal(pile.deck.length, 16);
+	assert.equal(r.seat.masterpieces.length, 1);
+	checkState(r.state);
+});
+
+test('R119: with no deck and no discards, only the face-up cards can be created', () => {
+	const r = ontoArts(3, (seat, state) => {
+		const pile = state.supply.masterpieces;
+		// The other 18 are held by the opponent, so all 20 are still in one place.
+		const opponent = state.seats.find((/** @type {any} */ s) => s !== seat);
+		opponent.masterpieces = [...pile.deck, pile.faceUp[2]].map((card) => ({
+			card,
+			used: false,
+		}));
+		pile.deck = [];
+		pile.faceUp = pile.faceUp.slice(0, 2);
+	});
+	const two = [...r.state.supply.masterpieces.faceUp];
+	assert.deepEqual(openOf(r.state, 'chooseCreate').options, two);
+	reply(r, 'chooseCreate', { card: two[0] });
+	assert.deepEqual(r.state.supply.masterpieces.faceUp, [two[1]]);
+	checkState(r.state);
+});
+
+test("Infinite Spectrum Photography's bonus pays any 1 resource to create", () => {
+	// Every board track complete, so its advance moves nothing and the bonus comes at once.
+	const r = ontoArts(11, (seat) => {
+		for (const track of [
+			'exploration',
+			'science',
+			'technology',
+			'military',
+		]) {
+			seat.tracks[track] = [12];
+		}
+	});
+	// The tier's price took 2 of one resource; the bonus is paid with a food, of which 2 are left.
+	assert.equal(r.seat.resources.food, 2);
+	reply(r, 'chooseBonus', { pay: { food: 1 } });
+	assert.equal(r.seat.resources.food, 1);
+	const top = r.state.supply.masterpieces.deck[0];
+	reply(r, 'chooseCreate', { card: 'deck' });
+	assert.deepEqual(r.seat.masterpieces, [{ card: top, used: false }]);
+});
+
+/**
+ * Lands on Rock Opera, places the Opera House and returns at the choice of the order of its two parts.
+ * @returns {import('./helpers/arts.mjs').Run}
+ */
+function rockOpera() {
+	const r = place(ontoArts(7));
+	openOf(r.state, 'chooseOrder');
+	return r;
+}
+
+test('Rock Opera may refresh the face-up masterpieces first, then create', () => {
+	const r = rockOpera();
+	const old = [...r.state.supply.masterpieces.faceUp];
+	const next = r.state.supply.masterpieces.deck.slice(0, 3);
+	reply(r, 'chooseOrder', { effect: 0 });
+	reply(r, 'chooseRefresh', { refresh: true });
+	const pile = r.state.supply.masterpieces;
+	assert.deepEqual(pile.faceUp, next);
+	assert.deepEqual(pile.discard, old);
+	assert.deepEqual(openOf(r.state, 'chooseCreate').options, [
+		...next,
+		'deck',
+	]);
+	checkState(r.state);
+});
+
+test('Rock Opera may create first, then refresh or keep the row', () => {
+	const r = rockOpera();
+	const old = [...r.state.supply.masterpieces.faceUp];
+	reply(r, 'chooseOrder', { effect: 1 });
+	reply(r, 'chooseCreate', { card: old[0] });
+	assert.deepEqual(r.seat.masterpieces, [{ card: old[0], used: false }]);
+	const row = [...r.state.supply.masterpieces.faceUp];
+	reply(r, 'chooseRefresh', { refresh: false });
+	assert.deepEqual(r.state.supply.masterpieces.faceUp, row);
+	assert.deepEqual(r.state.supply.masterpieces.discard, []);
+	checkState(r.state);
+});
+
+test('undo is refused after a create, which turns up the deck’s top card', () => {
+	const r = ontoArts(3);
+	const before = r.state;
+	reply(r, 'chooseCreate', { card: r.state.supply.masterpieces.faceUp[0] });
+	assert.equal(revealed(before, r.state), true);
 });
