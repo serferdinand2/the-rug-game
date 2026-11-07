@@ -16,6 +16,7 @@ import {
 	landmarkCardsFor,
 } from '../src/lib/engine/data/landmark-cards.js';
 import { FOOTPRINTS } from '../src/lib/art/footprints.js';
+import { hexNeighbours } from '../src/lib/engine/data/maps.js';
 
 const TABLE = { seats: [{ name: 'Ana' }, { name: 'Bo' }, { name: 'Cy' }] };
 
@@ -26,6 +27,9 @@ const seatWith = (/** @type {string} */ card, gained = false) => ({
 	tech: { bottom: [], middle: [], top: [] },
 	capital: { mat: 1, buildings: [], landmarks: [], cubes: [] },
 	territoryTiles: [],
+	tracks: { exploration: [0], science: [0], technology: [0], military: [0] },
+	restartedTracks: [],
+	start: /** @type {string | null} */ (null),
 });
 
 test('each Plans & Ploys landmark card finishes the card\'s line "Gain this landmark when you …"', () => {
@@ -278,5 +282,116 @@ test('the log tells the draft and the goal, never another player the cards offer
 			TABLE
 		),
 		"Ana met the TV Station card's goal: at least 3 income buildings of one type in the capital."
+	);
+});
+
+// A&A's landmark cards (#35 part 3)
+
+test('each A&A landmark card finishes the card\'s line "Gain this landmark when you …"', () => {
+	assert.deepEqual(
+		landmarkCardsFor(['aa']).map((card) => landmarkCondition(card.id)),
+		[
+			'have at least 3 different types of income buildings in your capital city.',
+			'have invented at least 3 tech cards.',
+			'have moved this turn into at least 1 tier that no longer had its landmark.',
+			'have reached tier II or higher on at least 2 advancement tracks.',
+			'control at least 3 territories adjacent to your starting territory.',
+		]
+	);
+});
+
+test("the Civ tab's goal line counts each A&A goal", () => {
+	const game = { hexes: {}, takenTiers: [] };
+	const villa = seatWith('villa');
+	villa.capital.buildings = /** @type {any} */ ([
+		{ building: 'farm', row: 8, col: 0 },
+		{ building: 'farm', row: 8, col: 1 },
+		{ building: 'house', row: 8, col: 2 },
+	]);
+	assert.equal(
+		heldLandmarkCard(villa, true, game)?.line,
+		'Not met yet: 2 of 3 types of income building in the capital'
+	);
+	const perch = seatWith('birdwatching-perch');
+	perch.tech.bottom = /** @type {any} */ (['clocks']);
+	assert.equal(
+		heldLandmarkCard(perch, true, game)?.line,
+		'Not met yet: 1 of 3 tech cards invented'
+	);
+	const windmill = seatWith('windmill');
+	windmill.tracks.science = [5];
+	assert.equal(
+		heldLandmarkCard(windmill, true, game)?.line,
+		'Not met yet: 1 of 2 tracks at tier II or higher'
+	);
+	const bridge = { ...seatWith('bridge'), start: '0_0' };
+	const [next] = hexNeighbours('0_0');
+	const held = { outposts: [{ seat: 1, toppled: false }], tokens: [] };
+	assert.equal(
+		heldLandmarkCard(bridge, true, {
+			...game,
+			hexes: { '0_0': held, [next]: held },
+		})?.line,
+		'Not met yet: 1 of 3 territories controlled next to the starting territory'
+	);
+	const castle = seatWith('castle');
+	assert.equal(
+		heldLandmarkCard(castle, true, game)?.line,
+		'Not met yet: 0 of 1 tier entered this turn after its landmark was taken'
+	);
+	assert.equal(
+		heldLandmarkCard(castle, true, {
+			...game,
+			takenTiers: [{ player: 1, track: 'science', tier: 2 }],
+		})?.state,
+		'met'
+	);
+});
+
+test('the draft says the last card goes back under the deck when there is one card more than drafters', () => {
+	const four = {
+		id: 5,
+		player: 1,
+		kind: 'chooseLandmarkCard',
+		options: ['skyscraper', 'tv-station', 'urban-farm', 'villa'],
+		drafters: [2, 3],
+		answers: [
+			{ card: 'skyscraper' },
+			{ card: 'tv-station' },
+			{ card: 'urban-farm' },
+			{ card: 'villa' },
+		],
+	};
+	assert.equal(
+		describeAnswer(four, { card: 'tv-station' }, TABLE),
+		'Keep TV Station: Bo and Cy keep two of the other three'
+	);
+	assert.equal(
+		promptFor(four, TABLE, 1)?.instruction,
+		'Choose the card to keep, then confirm it here. Bo and Cy keep one each of the other three, and the last goes back under the landmark deck.'
+	);
+	const three = {
+		...four,
+		options: ['skyscraper', 'tv-station', 'villa'],
+		drafters: [2],
+		answers: four.answers.slice(0, 3),
+	};
+	assert.equal(
+		describeAnswer(three, { card: 'tv-station' }, TABLE),
+		'Keep TV Station: Bo keeps one of the other two'
+	);
+	assert.equal(
+		promptFor(three, TABLE, 1)?.instruction,
+		'Choose the card to keep, then confirm it here. Bo keeps one of the other two, and the last goes back under the landmark deck.'
+	);
+});
+
+test("the log names an A&A card's goal when it is met", () => {
+	assert.equal(
+		eventText(
+			{ type: 'landmarkCardGoalMet', player: 1, card: 'windmill' },
+			TABLE
+		),
+		"Ana met the Windmill card's goal: at least 2 tracks at tier II or higher."
 	);
 });

@@ -57,11 +57,7 @@
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { tabsWithCounts } from '../../lib/area/tabs.js';
 	import { capitalView } from '../../lib/area/capital.js';
-	import {
-		defaultEra,
-		eraSlots,
-		incomeRows,
-	} from '../../lib/area/income.js';
+	import { defaultEra, eraSlots, incomeRows } from '../../lib/area/income.js';
 	import { selfSummary } from '../../lib/overview.js';
 	import { terrainView } from '../../lib/area/terrain.js';
 	import { heldLandmarkCard } from '../../lib/area/landmark-card.js';
@@ -145,8 +141,8 @@
 	);
 	let capital = $derived(capitalView(player, code));
 	let income = $derived(incomeRows(player));
-	/** The Plans & Ploys landmark card, under the civilizations on the Civ tab (#32, option A). */
-	let landmarkCard = $derived(heldLandmarkCard(player, own));
+	/** The landmark card, under the civilizations on the Civ tab (#32, option A); A&A's goals read the game (#35). */
+	let landmarkCard = $derived(heldLandmarkCard(player, own, game));
 	let eras = $derived(eraSlots(player));
 	/** @type {number | null} */
 	let eraShown = $state(null);

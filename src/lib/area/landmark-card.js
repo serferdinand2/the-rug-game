@@ -14,12 +14,13 @@ import { landmarkName } from '../game-names.js';
  */
 
 /**
- * The landmark card a seat holds, with its goal line; null for a seat without one, as at a table without Plans & Ploys.
- * @param {any} seat - A seat of the game view: its landmark card, tech, capital and territory tiles are public
+ * The landmark card a seat holds, with its goal line; null for a seat without one, as at a table without landmark cards.
+ * @param {any} seat - A seat of the game view: its landmark card, tech, capital, territory tiles and tracks are public
  * @param {boolean} own - The seat is the viewer's, so the line speaks to them
+ * @param {any} [game] - The game view, which the Bridge's and the Castle's goals read (#35)
  * @returns {HeldLandmarkCard | null}
  */
-export function heldLandmarkCard(seat, own) {
+export function heldLandmarkCard(seat, own, game) {
 	const held = seat?.landmarkCard;
 	if (!held || typeof held.card !== 'string') {
 		return null;
@@ -33,7 +34,7 @@ export function heldLandmarkCard(seat, own) {
 			line: `Gained: the ${name} is ${own ? 'yours' : 'theirs'}`,
 		};
 	}
-	const { have, need, met } = landmarkGoal(seat, held.card);
+	const { have, need, met } = landmarkGoal(seat, held.card, game);
 	if (met) {
 		return {
 			data,

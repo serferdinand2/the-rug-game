@@ -731,11 +731,12 @@ const TITLES = {
 };
 
 /** Small counts in words, for "the other two". */
-const FEW = Object.freeze(['no', 'one', 'two', 'three', 'four']);
+const FEW = Object.freeze(['no', 'one', 'two', 'three', 'four', 'five']);
 
 /**
  * Who keeps the landmark cards a drafter passes on (#32): as a clause, "Ana and Cy keep the other two", or as the
- * prompt's sentence, "Ana keeps one of the other two, and Cy the last."
+ * prompt's sentence, "Ana keeps one of the other two, and Cy the last." With both expansions' cards there is one card
+ * more than drafters, and the last goes back under the deck (#35): "Ana and Cy keep two of the other three".
  * @param {Decision} decision - A chooseLandmarkCard decision, with its `options` and `drafters`
  * @param {Table | undefined} table
  * @param {boolean} sentence
@@ -752,6 +753,15 @@ export function draftRest(decision, table, sentence) {
 	const end = sentence ? '.' : '';
 	if (names.length === 0) {
 		return `${sentence ? 'The' : 'the'} other goes back under the landmark deck${end}`;
+	}
+	if (left > names.length) {
+		const others = `the other ${FEW[left] ?? left}`;
+		if (sentence) {
+			const each = names.length === 1 ? 'keeps one' : 'keep one each';
+			return `${joinList(names)} ${each} of ${others}, and the last goes back under the landmark deck.`;
+		}
+		const verb = names.length === 1 ? 'keeps' : 'keep';
+		return `${joinList(names)} ${verb} ${FEW[names.length] ?? names.length} of ${others}`;
 	}
 	if (names.length === 1) {
 		return `${names[0]} gets the other${end}`;

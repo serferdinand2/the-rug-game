@@ -11,7 +11,7 @@
 	 * @typedef {HeldLandmarkCardOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} HeldLandmarkCardProps
 	 *
 	 * @example
-	 * <HeldLandmarkCard held={heldLandmarkCard(seat, true)} />
+	 * <HeldLandmarkCard held={heldLandmarkCard(seat, true, game)} />
 	 */
 </script>
 

@@ -1,12 +1,12 @@
-// The landmark cards' goals in words (#32): the card's own line, and the shorter phrase the goal line and log use.
+// The landmark cards' goals in words (#32, #35): the card's own line, and the shorter phrase the goal line and log use.
 import { landmarkCard } from '../engine/data/landmark-cards.js';
 
 /** @typedef {import('../engine/data/landmark-cards.js').GoalKind} GoalKind */
 
 /**
  * What each goal counts, for one thing and for several, as the card says it ("in your capital city") and as a line
- * about any player says it ("in the capital").
- * @type {Readonly<Record<GoalKind, { card: [string, string], short: [string, string] }>>}
+ * about any player says it ("in the capital"), and the card's verb before "at least", "have" when left out.
+ * @type {Readonly<Record<GoalKind, { verb?: string, card: [string, string], short: [string, string] }>>}
  */
 const NOUNS = Object.freeze({
 	topTech: {
@@ -47,6 +47,49 @@ const NOUNS = Object.freeze({
 			'territory tiles in the supply',
 		],
 	},
+	// A&A's (03 §2.10; R64 for the Villa).
+	buildingTypes: {
+		card: [
+			'type of income building in your capital city',
+			'different types of income buildings in your capital city',
+		],
+		short: [
+			'type of income building in the capital',
+			'types of income building in the capital',
+		],
+	},
+	inventedTech: {
+		verb: 'have invented',
+		card: ['tech card', 'tech cards'],
+		short: ['tech card invented', 'tech cards invented'],
+	},
+	takenTier: {
+		verb: 'have moved this turn into',
+		card: [
+			'tier that no longer had its landmark',
+			'tiers that no longer had their landmarks',
+		],
+		short: [
+			'tier entered this turn after its landmark was taken',
+			'tiers entered this turn after their landmarks were taken',
+		],
+	},
+	tierTwoTracks: {
+		verb: 'have reached tier II or higher on',
+		card: ['advancement track', 'advancement tracks'],
+		short: ['track at tier II or higher', 'tracks at tier II or higher'],
+	},
+	startNeighbours: {
+		verb: 'control',
+		card: [
+			'territory adjacent to your starting territory',
+			'territories adjacent to your starting territory',
+		],
+		short: [
+			'territory controlled next to the starting territory',
+			'territories controlled next to the starting territory',
+		],
+	},
 });
 
 /**
@@ -68,7 +111,8 @@ export function goalNoun(kind, count, form = 'short') {
  */
 export function landmarkCondition(id) {
 	const { kind, need } = landmarkCard(id).goal;
-	return `have at least ${need} ${goalNoun(kind, need, 'card')}.`;
+	const verb = NOUNS[kind].verb ?? 'have';
+	return `${verb} at least ${need} ${goalNoun(kind, need, 'card')}.`;
 }
 
 /**
