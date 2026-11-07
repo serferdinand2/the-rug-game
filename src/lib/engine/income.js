@@ -5,7 +5,7 @@ import { hasEra } from './abilities.js';
 import { takeTapestryCard } from './effects/gain.js';
 import { endEra, playTapestry } from './tapestry.js';
 import { endFirstIncomeTurn } from './civ-turns.js';
-import { INCOME_MAT, TAPESTRY_SLOTS } from './data/income-mat.js';
+import { INCOME_MAT, INSPIRED_MAT, TAPESTRY_SLOTS } from './data/income-mat.js';
 import { BUILDING_IDS } from './data/ids.js';
 import { artsInPlay } from './tracks-in-play.js';
 
@@ -21,13 +21,15 @@ import { artsInPlay } from './tracks-in-play.js';
 const ROW_SPACES = 6;
 
 /**
- * The spaces of a row that no building covers: space 1 always, and one more for each building taken.
+ * The spaces of a row that no building covers: space 1 always, and one more for each building taken. A row with the
+ * player's inspiration tile shows its improved spaces (#35).
  * @param {import('./state.js').PlayerSeat} seat
  * @param {BuildingId} row
  * @returns {readonly import('./data/income-mat.js').IncomeSpace[]}
  */
 export function exposedSpaces(seat, row) {
-	return INCOME_MAT[row].slice(0, ROW_SPACES - seat.incomeMat.buildings[row]);
+	const mat = seat.inspired?.includes(row) ? INSPIRED_MAT : INCOME_MAT;
+	return mat[row].slice(0, ROW_SPACES - seat.incomeMat.buildings[row]);
 }
 
 /**

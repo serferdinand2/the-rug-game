@@ -22,6 +22,7 @@ import { chooseScienceDie } from './decisions/choose-science-die.js';
 import { chooseCreate } from './decisions/choose-create.js';
 import { chooseRefresh } from './decisions/choose-refresh.js';
 import { chooseMasterpiece } from './decisions/choose-masterpiece.js';
+import { chooseInspire } from './decisions/choose-inspire.js';
 import { nextMasterpiece } from './masterpieces.js';
 import { endTurn } from './turn.js';
 import { runIncomeSteps, playFaceDown } from './income.js';
@@ -163,6 +164,7 @@ Object.assign(DECISIONS, {
 	chooseCreate,
 	chooseRefresh,
 	chooseMasterpiece,
+	chooseInspire,
 	chooseSpace,
 	chooseHex,
 	chooseGift,

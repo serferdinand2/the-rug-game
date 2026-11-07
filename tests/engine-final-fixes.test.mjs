@@ -438,6 +438,11 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: ['painting', 'deck'],
 		},
 		chooseRefresh: { player: 1, kind: 'chooseRefresh' },
+		chooseInspire: {
+			player: 1,
+			kind: 'chooseInspire',
+			options: ['market', 'farm'],
+		},
 		chooseMasterpiece: {
 			player: 1,
 			kind: 'chooseMasterpiece',

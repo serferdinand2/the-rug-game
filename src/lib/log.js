@@ -12,7 +12,7 @@ import { describeCost } from './describe.js';
 import { PROPHECIES, TINKERERS_OPTION_NAMES } from './decision-words.js';
 import { landmarkGoalPhrase } from './cards/landmark-text.js';
 import { LANDMARK_CARDS } from './engine/data/landmark-cards.js';
-import { article, capitalize, countWords, joinList } from './words.js';
+import { article, capitalize, countWords, joinList, wordsOf } from './words.js';
 import {
 	achievementName,
 	buildingName,
@@ -847,6 +847,12 @@ const WORDS = {
 	masterpieceFlipped: (e, game, name) =>
 		`${name} turned ${masterpieceName(e.card)} face down: it is used.`,
 	noBroadcast: (e, game, name) => `${name} had no masterpiece to broadcast.`,
+	inspired: (e, game, name) =>
+		typeof e.row === 'string'
+			? `${name} placed an inspiration tile on the ${wordsOf(e.row)} row.`
+			: `${name} placed an inspiration tile.`,
+	noInspire: (e, game, name) =>
+		`${name} had no inspiration tile left to place.`,
 	noUpgrade: (e, game, name) => `${name} had no tech card to upgrade.`,
 	// Assembly Line, Electronics and Nanotechnology (#144): the card's benefit follows as its own lines.
 	techBenefitUsed(e, game, name) {

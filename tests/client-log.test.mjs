@@ -151,6 +151,8 @@ const SAMPLES = {
 	masterpieceFired: { player: 1, card: 'fresco', owner: 2 },
 	masterpieceFlipped: { player: 1, card: 'mime' },
 	noBroadcast: { player: 1 },
+	inspired: { player: 1, row: 'armory' },
+	noInspire: { player: 1 },
 	noLandmarkLeft: { player: 2, landmark: 'library' },
 	noMove: { player: 2 },
 	noOutpost: { player: 1 },

@@ -672,6 +672,8 @@ const TITLES = {
 		}
 		return 'Choose the masterpiece that fires next';
 	},
+	chooseInspire: () =>
+		'Inspire: choose an income row for an inspiration tile',
 	chooseSpace: () =>
 		"Trade Economy: choose an opponent's track space to gain its benefit",
 	chooseHex: (d) => {
@@ -1216,6 +1218,8 @@ const ANSWERS = {
 		}
 		return a.refresh ? 'Refresh them' : 'Keep them';
 	},
+	chooseInspire: (a) =>
+		typeof a.row === 'string' ? `The ${wordsOf(a.row)} row` : null,
 	// Another seat's card names its owner (Streaming Implants).
 	chooseMasterpiece: (a, d, table) => {
 		if (a.card === null) {

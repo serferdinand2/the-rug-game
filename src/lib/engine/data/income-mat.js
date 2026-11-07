@@ -1,4 +1,4 @@
-// The income mat: its 4 building rows of 6 spaces, with their income and VP icons, and the 4 tapestry slots (01 §4.2, §5).
+// The income mat: its 4 building rows of 6 spaces, with their income and VP icons, the rows an inspiration tile improves (#35), and the 4 tapestry slots (01 §4.2, §5).
 import { deepFreeze } from './ids.js';
 
 /** @typedef {import('./ids.js').BuildingId} BuildingId */
@@ -15,6 +15,7 @@ import { deepFreeze } from './ids.js';
  * @property {Effect[]} income - Gained in step 4 of income turns 1–4
  * @property {Effect[]} score - Scored in step 3 of income turns 2–5
  * @property {boolean} prerequisite - A landmark tech card's prerequisite names this space (R18)
+ * @property {true} [inspired] - Improved by an inspiration tile (only in INSPIRED_MAT, #35)
  */
 
 /**
@@ -97,6 +98,53 @@ export const INCOME_MAT = deepFreeze({
 			[{ vp: { per: 'territory' } }],
 		],
 		['Virtual Reality', [], [{ vp: 10 }]],
+	]),
+});
+
+/**
+ * A row with its inspiration tile: spaces 2, 4 and 6 improved, the rest as printed. Names, ids and prerequisites stay,
+ * so R18 reads the same spaces (03 §2.8).
+ * @param {BuildingId} row
+ * @param {[income: Effect[], score: Effect[]][]} improved - Spaces 2, 4 and 6
+ * @returns {IncomeSpace[]}
+ */
+function inspiredRow(row, improved) {
+	return INCOME_MAT[row].map((space, index) => {
+		const at = [1, 3, 5].indexOf(index);
+		if (at < 0) {
+			return structuredClone(space);
+		}
+		const [income, score] = improved[at];
+		return { ...structuredClone(space), income, score, inspired: true };
+	});
+}
+
+/**
+ * The four rows as an inspiration tile improves them (03 §2.8): the VP score in step 3, the resources come in step 4,
+ * as on the printed mat.
+ * @type {Readonly<Record<BuildingId, readonly IncomeSpace[]>>}
+ */
+export const INSPIRED_MAT = deepFreeze({
+	market: inspiredRow('market', [
+		[[{ gain: { coin: 1 } }], [{ vp: 2 }]],
+		[[{ gain: { coin: 1 } }], [{ vp: { per: 'territory' } }]],
+		[[], [{ vp: 15 }]],
+	]),
+	// R54: Telephone's laurel counts territory tiles in your supply, as Epic Poetry's does.
+	house: inspiredRow('house', [
+		[[{ gain: { worker: 1 } }], [{ vp: 2 }]],
+		[[{ gain: { worker: 1 } }], [{ vp: { per: 'territoryTile' } }]],
+		[[], [{ vp: 15 }]],
+	]),
+	farm: inspiredRow('farm', [
+		[[{ gain: { food: 1 } }], [{ vp: 2 }]],
+		[[{ gain: { food: 1 } }], [{ vp: { per: 'techCard' } }]],
+		[[], [{ vp: 15 }]],
+	]),
+	armory: inspiredRow('armory', [
+		[[{ gain: { culture: 1 } }], [{ vp: 2 }]],
+		[[{ gain: { culture: 1 } }], [{ vp: { per: 'house' } }]],
+		[[], [{ vp: 15 }]],
 	]),
 });
 

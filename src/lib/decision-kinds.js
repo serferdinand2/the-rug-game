@@ -84,6 +84,7 @@ export const DECISION_KINDS = Object.freeze({
 	chooseCreate: {},
 	chooseRefresh: {},
 	chooseMasterpiece: {},
+	chooseInspire: {},
 	chooseSpace: { art: 'track' },
 	chooseHex: {},
 	chooseGift: { tab: 'terrain', art: 'gift' },
