@@ -11,11 +11,11 @@ import { TRACKS } from './data/tracks.js';
 export const LAST_SPACE = 12;
 
 /** The first space of tiers II, III and IV, where the landmarks sit (01 §3.1). */
-const TIER_FIRST_SPACES = [4, 7, 10];
+export const TIER_FIRST_SPACES = Object.freeze([4, 7, 10]);
 
 /**
  * Spaces a seat has advanced on a track: its most advanced token, or 12 when AI Singularity took the token off (FAQ #9).
- * @param {import('./state.js').Seat} seat
+ * @param {Pick<import('./state.js').Seat, 'tracks' | 'restartedTracks'>} seat - A seat of the state or of a view
  * @param {TrackId} track
  * @returns {number}
  */
@@ -181,6 +181,17 @@ function arrivalOps(
 		}
 		if (!state.landmarks.includes(landmark)) {
 			claimedPassed += 1;
+			// The Castle's goal: a tier entered on the player's own turn whose landmark was taken (#35). It counts the
+			// moves that would gain the landmark were it there (R9), so never a jump or a step back.
+			if (state.phase === 'play' && player === state.current) {
+				state.takenTiers.push({
+					player,
+					track,
+					tier: /** @type {2 | 3 | 4} */ (
+						TIER_FIRST_SPACES.indexOf(first) + 2
+					),
+				});
+			}
 			continue;
 		}
 		state.landmarks.splice(state.landmarks.indexOf(landmark), 1);

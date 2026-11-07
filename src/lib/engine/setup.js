@@ -477,6 +477,7 @@ export function createGame({
 		activated: [],
 		usedThisTurn: [],
 		lockedTech: [],
+		takenTiers: [],
 		blocks: [],
 		result: null,
 		pending: [],

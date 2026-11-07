@@ -106,6 +106,7 @@
  * @property {{ player: number, track: TrackId, space: number }[]} activated - Track spaces activated this turn, cleared when a turn starts (R19)
  * @property {{ player: number, card: string }[]} usedThisTurn - Tech cards whose once-per-turn benefit was used this turn, cleared when a turn starts (FAQ #6)
  * @property {{ player: number, card: string }[]} lockedTech - Tech cards Ceramics upgraded this turn, which may not be upgraded again until a turn starts (#35, RB-AA p3)
+ * @property {{ player: number, track: TrackId, tier: 2 | 3 | 4 }[]} takenTiers - Tiers the player whose turn it is moved into this turn whose landmark was already taken, for the Castle's goal; cleared when a turn starts (#35, 03 §2.10)
  * @property {{ player: number, track: TrackId }[]} blocks - Dictatorship blocks: the player's opponents may not advance on the track until turn order next reaches or skips the player (R26)
  * @property {import('./ranking.js').Result | null} result - The final ranking, once the game is over
  * @property {(Operation | Group)[]} pending - Index 0 is the top

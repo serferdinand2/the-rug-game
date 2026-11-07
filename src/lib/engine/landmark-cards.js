@@ -3,31 +3,92 @@ import { emit } from './events.js';
 import { isPlayerSeat, playerSeat } from './state.js';
 import { triggered } from './abilities.js';
 import { cityPlots, completeDistricts, completeLines } from './city.js';
+import { controlledTerritories } from './control.js';
+import { spacesAdvanced, TIER_FIRST_SPACES } from './movement.js';
+import { hexNeighbours } from './data/maps.js';
 import { landmarkCard, landmarkCardsFor } from './data/landmark-cards.js';
 
 /** @typedef {import('./state.js').PlayerSeat} PlayerSeat */
+/** @typedef {import('./data/landmark-cards.js').GoalKind} GoalKind */
+
+/**
+ * What a goal reads of a seat, of the state or of a view.
+ * @typedef {Pick<PlayerSeat, 'seat' | 'tech' | 'capital' | 'territoryTiles' | 'tracks' | 'restartedTracks' | 'start'>} GoalSeat
+ */
+
+/**
+ * What a goal reads of the game beyond the seat: the map's control for the Bridge, the turn's moves for the Castle.
+ * @typedef {Pick<import('./state.js').State, 'hexes' | 'takenTiers'>} GoalGame
+ */
 
 /**
  * How far a seat is towards a landmark card's goal. "In your capital city" is what stands on the mat's grid (R13).
- * @param {Pick<PlayerSeat, 'tech' | 'capital' | 'territoryTiles'>} seat - A seat of the state or of a view
+ * @param {GoalSeat} seat - A seat of the state or of a view
  * @param {string} card - The landmark card's id
+ * @param {GoalGame} [game] - The state or a view; the Bridge's and the Castle's goals need it
  * @returns {{ have: number, need: number, met: boolean }}
+ * @throws {Error} Without the game for a goal that reads it (a bug)
  */
-export function landmarkGoal(seat, card) {
+export function landmarkGoal(seat, card, game) {
 	const { kind, need } = landmarkCard(card).goal;
-	const have = goalCount(seat, kind);
+	const have = goalCount(seat, kind, game);
 	return { have, need, met: have >= need };
 }
 
 /**
- * What a goal counts for a seat.
- * @param {Pick<PlayerSeat, 'tech' | 'capital' | 'territoryTiles'>} seat
- * @param {import('./data/landmark-cards.js').GoalKind} kind
+ * The game, for a goal that reads it.
+ * @param {GoalGame | undefined} game
+ * @param {GoalKind} kind
+ * @returns {GoalGame}
+ */
+function needGame(game, kind) {
+	if (!game) {
+		throw new Error(`The ${kind} goal needs the game.`);
+	}
+	return game;
+}
+
+/**
+ * What a goal counts for a seat. "Invented" is every tech card the seat holds, in any row; "advancement tracks" are
+ * every track in play, the arts track too (R118); "your starting territory" is where the seat's two outposts started.
+ * @param {GoalSeat} seat
+ * @param {GoalKind} kind
+ * @param {GoalGame} [game]
  * @returns {number}
  */
-function goalCount(seat, kind) {
+function goalCount(seat, kind, game) {
 	if (kind === 'topTech') {
 		return seat.tech.top.length;
+	}
+	if (kind === 'inventedTech') {
+		const { bottom, middle, top } = seat.tech;
+		return bottom.length + middle.length + top.length;
+	}
+	if (kind === 'buildingTypes') {
+		return new Set(seat.capital.buildings.map((b) => b.building)).size;
+	}
+	if (kind === 'tierTwoTracks') {
+		const tracks = /** @type {import('./data/ids.js').TrackId[]} */ (
+			Object.keys(seat.tracks)
+		);
+		return tracks.filter(
+			(track) => spacesAdvanced(seat, track) >= TIER_FIRST_SPACES[0]
+		).length;
+	}
+	if (kind === 'takenTier') {
+		return needGame(game, kind).takenTiers.filter(
+			(entry) => entry.player === seat.seat
+		).length;
+	}
+	if (kind === 'startNeighbours') {
+		const known = needGame(game, kind);
+		if (seat.start === null) {
+			return 0;
+		}
+		const controlled = controlledTerritories(known, seat.seat);
+		return hexNeighbours(seat.start).filter((key) =>
+			controlled.includes(key)
+		).length;
 	}
 	if (kind === 'territoryTiles') {
 		return seat.territoryTiles.length;
@@ -142,7 +203,7 @@ export function landmarkCardOps(state, player) {
 	}
 	const seat = playerSeat(state, player);
 	const held = seat.landmarkCard;
-	if (!held || held.gained || !landmarkGoal(seat, held.card).met) {
+	if (!held || held.gained || !landmarkGoal(seat, held.card, state).met) {
 		return [];
 	}
 	held.gained = true;

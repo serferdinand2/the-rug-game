@@ -31,7 +31,7 @@ function sharesControl(hex, player) {
  * The hexes a player controls: each has at least one upright outpost, and every upright outpost on it is theirs, or
  * it is shared and one of them is theirs (the Infiltrators); or none, and their Treasure Hunters token (R114). #17
  * reuses this for conquering and the red die.
- * @param {import('./state.js').State} state
+ * @param {Pick<import('./state.js').State, 'hexes'>} state - The state or a view
  * @param {number} player
  * @returns {string[]} Hex keys
  */

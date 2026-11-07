@@ -8,7 +8,7 @@ import { seatOf } from './state.js';
 import { landmarkCardOps } from './landmark-cards.js';
 
 /**
- * Starts a seat's turn: its Dictatorship blocks lift (R26), nothing is activated yet (R19) nor locked by Ceramics (#35), and the turn choice sits above the turn's end, which the player confirms first on a turn they chose (#146).
+ * Starts a seat's turn: its Dictatorship blocks lift (R26), nothing is activated yet (R19) nor locked by Ceramics, no tier entered for the Castle (#35), and the turn choice sits above the turn's end, which the player confirms first on a turn they chose (#146).
  * A player's first turn must be income turn 1 (01 §4.1), so it starts at once, with nobody asked (#77).
  * The turn has no kind until it is chosen (`turnKind`, #33).
  * @param {import('./state.js').Context} ctx
@@ -23,6 +23,7 @@ export function startTurn(ctx, player) {
 	state.activated.length = 0;
 	state.usedThisTurn.length = 0;
 	state.lockedTech.length = 0;
+	state.takenTiers.length = 0;
 	emit(state, { type: 'turnStarted', player });
 	const seat = seatOf(state, player);
 	if (seat.kind === 'player' && seat.incomeTurns === 0) {

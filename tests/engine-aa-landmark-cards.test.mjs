@@ -6,14 +6,23 @@ import { seededRandom } from '../src/lib/engine/random.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
-import { landmarkCardDeal } from '../src/lib/engine/landmark-cards.js';
+import {
+	landmarkCardDeal,
+	landmarkGoal,
+} from '../src/lib/engine/landmark-cards.js';
+import { contextFor, resolveEffects, run } from '../src/lib/engine/loop.js';
+import { moveToken } from '../src/lib/engine/movement.js';
+import { controlledTerritories } from '../src/lib/engine/control.js';
+import { hexNeighbours } from '../src/lib/engine/data/maps.js';
+import { TRACKS } from '../src/lib/engine/data/tracks.js';
 import { landmarkCardsFor } from '../src/lib/engine/data/landmark-cards.js';
 import {
 	EXPANSION_LANDMARKS,
 	landmarksFor,
 } from '../src/lib/engine/data/landmarks.js';
 import { FOOTPRINTS } from '../src/lib/art/footprints.js';
-import { newGame } from './helpers/engine.mjs';
+import { newGame, readyTurn, startedGame } from './helpers/engine.mjs';
+import { AA } from './helpers/arts.mjs';
 import { checkState } from './helpers/invariants.mjs';
 
 /** A&A's landmark cards, in the order of 03 §2.10. */
@@ -195,4 +204,344 @@ test('a P&P game deals as before, with the same random draws', () => {
 		'the-nail',
 		'time-travel',
 	]);
+});
+
+// The goals
+
+/** @param {any} state @param {number} player */
+const seatOf = (state, player) => state.seats[player - 1];
+
+/**
+ * Gives a seat a landmark card, swapping it with the card the seat drafted wherever it lies, so every card stays in
+ * exactly one place for the invariants.
+ * @param {any} state
+ * @param {any} seat
+ * @param {string} card
+ */
+function holding(state, seat, card) {
+	const old = seat.landmarkCard?.card;
+	if (old !== undefined && old !== card) {
+		const deck = state.supply.landmarkCards;
+		const other = state.seats.find(
+			(/** @type {any} */ s) =>
+				s !== seat && s.landmarkCard?.card === card
+		);
+		if (other) {
+			other.landmarkCard = { ...other.landmarkCard, card: old };
+		} else if (deck.includes(card)) {
+			deck[deck.indexOf(card)] = old;
+		}
+	}
+	seat.landmarkCard = { card, gained: false };
+}
+
+/**
+ * Takes a track tier's landmark out of the supply, beside another seat's mat, as if that seat had gained it.
+ * @param {any} state
+ * @param {import('../src/lib/engine/data/ids.js').TrackId} track
+ * @param {2 | 3 | 4} tier
+ * @param {any} by - The seat that has it
+ */
+function taken(state, track, tier, by) {
+	const landmark = TRACKS[track][[4, 7, 10][tier - 2]].landmark;
+	state.landmarks.splice(state.landmarks.indexOf(landmark), 1);
+	by.besideMat.push(landmark);
+}
+
+/**
+ * Answers open decisions with their first answer while `player`'s turn lasts, taking an income turn, then returns
+ * the state.
+ * @param {any} state
+ * @param {any} random
+ * @param {number} player
+ */
+function finishTurn(state, random, player) {
+	for (let step = 0; step < 300; step++) {
+		if (state.current !== player || state.phase !== 'play') {
+			return state;
+		}
+		const [open] = openDecisions(state);
+		if (!open) {
+			return state;
+		}
+		const answer =
+			open.kind === 'chooseTurn'
+				? { turn: 'income' }
+				: DECISIONS[open.kind].answers(state, open)[0];
+		state = play(
+			state,
+			open.player,
+			{ decision: open.id, ...answer },
+			random
+		);
+	}
+	throw new Error('The turn never ended.');
+}
+
+test('Villa counts the types of income building in the capital, not beside the mat (R64)', () => {
+	const { state } = startedGame(2, AA);
+	const seat = seatOf(state, 1);
+	seat.capital.buildings.push(
+		{ building: 'farm', row: 8, col: 0 },
+		{ building: 'farm', row: 8, col: 1 },
+		{ building: 'house', row: 8, col: 2 }
+	);
+	seat.besideMat.push('armory');
+	assert.deepEqual(landmarkGoal(seat, 'villa', state), {
+		have: 2,
+		need: 3,
+		met: false,
+	});
+	seat.capital.buildings.push({ building: 'market', row: 7, col: 0 });
+	assert.deepEqual(landmarkGoal(seat, 'villa', state), {
+		have: 3,
+		need: 3,
+		met: true,
+	});
+});
+
+test('Birdwatching Perch counts the tech cards held in every row', () => {
+	const { state } = startedGame(2, AA);
+	const seat = seatOf(state, 1);
+	seat.tech = { bottom: ['clocks'], middle: ['bakery'], top: [] };
+	assert.deepEqual(landmarkGoal(seat, 'birdwatching-perch', state), {
+		have: 2,
+		need: 3,
+		met: false,
+	});
+	seat.tech.top.push('radio');
+	assert.deepEqual(landmarkGoal(seat, 'birdwatching-perch', state), {
+		have: 3,
+		need: 3,
+		met: true,
+	});
+});
+
+test('Windmill counts the tracks at tier II or higher, the arts track included (R118)', () => {
+	const { state } = startedGame(2, AA);
+	const seat = seatOf(state, 1);
+	for (const track of Object.keys(seat.tracks)) {
+		seat.tracks[track] = [3];
+	}
+	assert.equal(landmarkGoal(seat, 'windmill', state).have, 0);
+	seat.tracks.arts = [4];
+	assert.deepEqual(landmarkGoal(seat, 'windmill', state), {
+		have: 1,
+		need: 2,
+		met: false,
+	});
+	seat.tracks.exploration = [4];
+	assert.equal(landmarkGoal(seat, 'windmill', state).met, true);
+	// A track AI Singularity restarted still counts as 12 spaces (FAQ #9).
+	seat.tracks.exploration = [0];
+	seat.restartedTracks = ['exploration'];
+	assert.equal(landmarkGoal(seat, 'windmill', state).have, 2);
+});
+
+test('Windmill without the arts track counts the 4 tracks', () => {
+	const { state } = startedGame(2, {
+		expansions: ['aa'],
+		variants: ['no-arts-track'],
+	});
+	const seat = seatOf(state, 1);
+	assert.deepEqual(Object.keys(seat.tracks).length, 4);
+	seat.tracks.science = [10];
+	seat.tracks.military = [7];
+	assert.equal(landmarkGoal(seat, 'windmill', state).have, 2);
+});
+
+test('Bridge counts the territories controlled next to the starting territory', () => {
+	const { state } = startedGame(2, AA);
+	const seat = seatOf(state, 1);
+	const around = hexNeighbours(seat.start).filter(
+		(key) => key in state.hexes
+	);
+	assert.ok(around.length >= 3, 'the start has 3 neighbours on the map');
+	const outpost = (/** @type {string} */ key, /** @type {number} */ by) =>
+		state.hexes[key].outposts.push({ seat: by, toppled: false });
+	// The starting territory itself is controlled, but isn't next to itself.
+	assert.ok(controlledTerritories(state, 1).includes(seat.start));
+	assert.equal(landmarkGoal(seat, 'bridge', state).have, 0);
+	outpost(around[0], 1);
+	outpost(around[1], 1);
+	assert.deepEqual(landmarkGoal(seat, 'bridge', state), {
+		have: 2,
+		need: 3,
+		met: false,
+	});
+	// An opponent's territory there doesn't count, nor one both stand on.
+	outpost(around[2], 2);
+	assert.equal(landmarkGoal(seat, 'bridge', state).have, 2);
+	outpost(around[2], 1);
+	assert.equal(landmarkGoal(seat, 'bridge', state).have, 2);
+	state.hexes[around[2]].outposts = [{ seat: 1, toppled: false }];
+	assert.deepEqual(landmarkGoal(seat, 'bridge', state), {
+		have: 3,
+		need: 3,
+		met: true,
+	});
+	assert.equal(
+		landmarkGoal({ ...seat, start: null }, 'bridge', state).have,
+		0
+	);
+	assert.throws(() => landmarkGoal(seat, 'bridge'), /needs the game/);
+	assert.throws(() => landmarkGoal(seat, 'castle'), /needs the game/);
+});
+
+test('Castle: advancing on your turn into a tier whose landmark is taken records it', () => {
+	const {
+		state: ready,
+		random,
+		player,
+	} = readyTurn(
+		2,
+		(seat, state) => {
+			seat.tracks.exploration = [3];
+			taken(
+				state,
+				'exploration',
+				2,
+				state.seats.find((/** @type {any} */ s) => s !== seat)
+			);
+		},
+		AA
+	);
+	assert.deepEqual(ready.takenTiers, []);
+	const state = resolveEffects(
+		ready,
+		player,
+		[{ advance: { tracks: ['exploration'] } }],
+		random
+	);
+	assert.deepEqual(state.takenTiers, [
+		{ player, track: 'exploration', tier: 2 },
+	]);
+	assert.deepEqual(landmarkGoal(seatOf(state, player), 'castle', state), {
+		have: 1,
+		need: 1,
+		met: true,
+	});
+});
+
+/**
+ * A ready A&A turn whose player stands on exploration `from`, with the landmarks of `tiers` taken by the other seat,
+ * whose token stands on exploration 3.
+ * @param {number} from
+ * @param {(2 | 3 | 4)[]} tiers
+ */
+function castleTurn(from, tiers) {
+	const ready = readyTurn(
+		2,
+		(seat, state) => {
+			const other = state.seats.find(
+				(/** @type {any} */ s) => s !== seat
+			);
+			seat.tracks.exploration = [from];
+			other.tracks.exploration = [3];
+			for (const tier of tiers) {
+				taken(state, 'exploration', tier, other);
+			}
+		},
+		AA
+	);
+	return { ...ready, other: ready.player === 1 ? 2 : 1 };
+}
+
+/**
+ * Moves a token on exploration and runs what follows, then gives the Castle's record.
+ * @param {ReturnType<typeof castleTurn>} turn
+ * @param {number} mover
+ * @param {{ from: number, to: number, jump?: boolean }} move
+ */
+function recorded({ state: ready, random }, mover, { from, to, jump }) {
+	const state = structuredClone(ready);
+	moveToken(contextFor(state, random, state.pending), mover, {
+		track: 'exploration',
+		from,
+		to,
+		benefit: false,
+		jump,
+	});
+	run(state, random);
+	return state.takenTiers;
+}
+
+test('Castle: a move that passes two taken tiers records both (R9)', () => {
+	const turn = castleTurn(3, [2, 3]);
+	assert.deepEqual(recorded(turn, turn.player, { from: 3, to: 7 }), [
+		{ player: turn.player, track: 'exploration', tier: 2 },
+		{ player: turn.player, track: 'exploration', tier: 3 },
+	]);
+});
+
+test("Castle: a tier whose landmark is there, a regress, a jump, or another player's move records nothing", () => {
+	const open = castleTurn(3, []);
+	assert.deepEqual(recorded(open, open.player, { from: 3, to: 4 }), []);
+	const back = castleTurn(7, [2]);
+	assert.deepEqual(recorded(back, back.player, { from: 7, to: 6 }), []);
+	const jump = castleTurn(3, [2]);
+	assert.deepEqual(
+		recorded(jump, jump.player, { from: 3, to: 7, jump: true }),
+		[]
+	);
+	const theirs = castleTurn(3, [2]);
+	assert.deepEqual(recorded(theirs, theirs.other, { from: 3, to: 4 }), []);
+});
+
+test("the Castle's landmark is gained at the end of the turn its goal is met, and the record clears with the next turn", () => {
+	const turn = castleTurn(3, [2]);
+	holding(turn.state, seatOf(turn.state, turn.player), 'castle');
+	const moved = resolveEffects(
+		turn.state,
+		turn.player,
+		[{ advance: { tracks: ['exploration'] } }],
+		turn.random
+	);
+	const state = finishTurn(moved, turn.random, turn.player);
+	const seat = seatOf(state, turn.player);
+	assert.equal(seat.landmarkCard.gained, true);
+	assert.ok(
+		seat.capital.landmarks.some(
+			(/** @type {any} */ l) => l.landmark === 'castle'
+		) || seat.besideMat.includes('castle'),
+		'the Castle is placed'
+	);
+	assert.equal(state.current, turn.other);
+	assert.deepEqual(state.takenTiers, []);
+	checkState(state);
+});
+
+test('Birdwatching Perch and Bridge are gained at the end of the turn too', () => {
+	const perch = readyTurn(
+		2,
+		(seat, state) => {
+			holding(state, seat, 'birdwatching-perch');
+			seat.tech.bottom.push(...state.supply.tech.deck.splice(0, 3));
+		},
+		AA
+	);
+	const after = finishTurn(perch.state, perch.random, perch.player);
+	assert.equal(seatOf(after, perch.player).landmarkCard.gained, true);
+	checkState(after);
+
+	const bridge = readyTurn(
+		2,
+		(seat, state) => {
+			holding(state, seat, 'bridge');
+			const around = hexNeighbours(seat.start).filter(
+				(key) => key in state.hexes
+			);
+			for (const key of around.slice(0, 3)) {
+				state.hexes[key].outposts.push({
+					seat: seat.seat,
+					toppled: false,
+				});
+				seat.outposts -= 1;
+			}
+		},
+		AA
+	);
+	const done = finishTurn(bridge.state, bridge.random, bridge.player);
+	assert.equal(seatOf(done, bridge.player).landmarkCard.gained, true);
+	checkState(done);
 });
