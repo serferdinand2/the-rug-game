@@ -2,7 +2,12 @@
 import { test } from 'vitest';
 import { availableParallelism } from 'node:os';
 import { Worker } from 'node:worker_threads';
-import { GAMES, gameOf, simulate } from './helpers/simulation.mjs';
+import {
+	EXPANSION_NAMES,
+	GAMES,
+	gameOf,
+	simulate,
+} from './helpers/simulation.mjs';
 
 /** @typedef {import('./helpers/simulation-worker.mjs').GameResult} GameResult */
 /** @typedef {import('./helpers/simulation-worker.mjs').GameStarted} GameStarted */
@@ -41,7 +46,7 @@ function setting(name, fallback) {
 function nameOf(index) {
 	const { seed, players, version, policy, variants, expansions } =
 		gameOf(index);
-	return `game ${seed}: ${players} players, ${version}, ${policy} play, ${variants.length > 0 ? 'all' : 'no'} variants${expansions.length > 0 ? ', Plans & Ploys' : ''}`;
+	return `game ${seed}: ${players} players, ${version}, ${policy} play, ${variants.length > 0 ? 'all' : 'no'} variants${expansions.map((code) => `, ${EXPANSION_NAMES[code]}`).join('')}`;
 }
 
 /**

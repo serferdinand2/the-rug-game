@@ -141,6 +141,11 @@ From 03 §2.2, §2.7 (the 20 cards) and §2.12.
   - Costuming: pay any 1 resource to advance on the arts track with benefit (may pay its bonus);
   - Mime: pay any 1 resource to gain the benefit of your current position on any track (may pay its bonus), using the repeat effect;
   - Topiary: conquer an adjacent territory with no outposts or other items, with both dice and responses as usual (R53).
+- **Calls made while building part 2 (my calls, 2026-11-07):**
+  - A masterpiece's VP counts toward the VP source of what fired it: the income turn, or the track space for Broadcast and Streaming Implants.
+  - A single-use card turns face down before its benefit, so the benefit can't fire it again. Mime turns only when paid; declining keeps it.
+  - The income step comes after the last era's THIS ERA ability ends, and before the civilizations, on income turns 2–5.
+  - The discards and every player's masterpieces are public; only the deck's order is hidden.
 
 ### 3.8 Inspiration tiles (part 2)
 

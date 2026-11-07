@@ -167,32 +167,60 @@ test("the state checks count the Traders' and Isolationists' tokens", () => {
 	}
 });
 
-test('the 200 games cover every player count, version and policy 10 times, 5 of them with every variant, 2 of those 5 with Plans & Ploys', () => {
+test('the 200 games cover every player count, version and policy 10 times, 5 of them with every variant, 2 of those 5 with Plans & Ploys and 2 with Arts & Architecture', () => {
 	/** @type {Map<string, number>} */
 	const combos = new Map();
 	/** @type {Map<string, number>} */
 	const withPp = new Map();
+	/** @type {Map<string, number>} */
+	const withAa = new Map();
+	/** @type {Map<string, number>} */
+	const artsOff = new Map();
 	for (let index = 0; index < GAMES; index++) {
 		const { seed, players, version, policy, variants, expansions } =
 			gameOf(index);
 		assert.equal(seed, index + 1);
-		// Every variant whose expansion the game has, or none (#35's two need Arts & Architecture).
+		const pp = expansions.includes('pp');
+		const aa = expansions.includes('aa');
+		assert.deepEqual(expansions, [
+			...(pp ? ['pp'] : []),
+			...(aa ? ['aa'] : []),
+		]);
+		// R59: no Arts & Architecture alone.
+		assert.ok(!aa || players > 1, `game ${seed}`);
+		// Every variant whose expansion the game has, or none. With Arts & Architecture one of its two is left out,
+		// since they can't go together (#35): the arts track off without Plans & Ploys, on with it.
+		const all = VARIANTS.filter(
+			(v) => !v.expansion || expansions.includes(v.expansion)
+		)
+			.map((v) => v.id)
+			.filter(
+				(id) =>
+					!aa || id !== (pp ? 'no-arts-track' : 'either-science-die')
+			);
 		assert.ok(
-			variants.length === 0 ||
-				variants.length ===
-					VARIANTS.filter(
-						(v) => !v.expansion || expansions.includes(v.expansion)
-					).length
+			variants.length === 0 || variants.join() === all.join(),
+			`game ${seed}: ${variants}`
 		);
-		assert.ok(expansions.length === 0 || expansions[0] === 'pp');
 		const key = `${players} ${version} ${policy} ${variants.length > 0}`;
 		combos.set(key, (combos.get(key) ?? 0) + 1);
-		withPp.set(key, (withPp.get(key) ?? 0) + expansions.length);
+		withPp.set(key, (withPp.get(key) ?? 0) + (pp ? 1 : 0));
+		withAa.set(key, (withAa.get(key) ?? 0) + (aa ? 1 : 0));
+		if (aa && variants.includes('no-arts-track')) {
+			artsOff.set(key, (artsOff.get(key) ?? 0) + 1);
+		}
 	}
 	assert.equal(GAMES, 200);
 	assert.equal(combos.size, 5 * 2 * 2 * 2);
 	assert.ok([...combos.values()].every((n) => n === 5));
 	assert.ok([...withPp.values()].every((n) => n === 2));
+	for (const [key, n] of withAa) {
+		const solo = key.startsWith('1 ');
+		assert.equal(n, solo ? 0 : 2, key);
+		// One of each with-variants pair plays without the arts track.
+		const off = key.endsWith('true') && !solo ? 1 : 0;
+		assert.equal(artsOff.get(key) ?? 0, off, key);
+	}
 });
 
 test('a simulated game ends with every player finished and ranked', () => {

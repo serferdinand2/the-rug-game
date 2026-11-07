@@ -17,7 +17,7 @@ import { allOps, checkViews, setupFacts } from './views.mjs';
  * @property {'original' | 'current'} version
  * @property {'random' | 'busy'} policy - `busy` takes an offered advance turn 85% of the time
  * @property {string[]} variants - Every variant, or none (#53)
- * @property {string[]} expansions - Plans & Ploys, or none (#32)
+ * @property {string[]} expansions - Plans & Ploys (#32), Arts & Architecture (#35), both or none
  */
 /** @typedef {(state: State, before: State | null, facts: SetupFacts) => void} Check - `before` is null right after createGame() */
 
@@ -32,22 +32,37 @@ const ADVANCE_PERCENT = 85;
 
 const NAMES = ['Ana', 'Bo', 'Cy', 'Dee', 'Eli'];
 
+/** The expansions as a failing game's message names them. */
+export const EXPANSION_NAMES = Object.freeze(
+	/** @type {Record<string, string>} */ ({
+		pp: 'Plans & Ploys',
+		aa: 'Arts & Architecture',
+	})
+);
+
 /**
  * Game `index`'s seed, players, version, policy and variants: every 10 games in a row share a policy, every 5 a
  * version, so each of the 20 combinations gets 10 of the 200 games. Every other 20 games play with every variant on,
  * so each combination gets 5 games with them and 5 without (#53). Every other 40 games play with Plans & Ploys, so 2
- * of each combination's 5 do (#32). The Plans & Ploys civilizations variant joins them only with the expansion (#33).
+ * of each combination's 5 do (#32). Games 80–159 with 2 or more players play with Arts & Architecture (R59), so each
+ * combination's 5 play: none, Plans & Ploys, Arts & Architecture, both, none (#35). A variant joins only with its
+ * expansion; with Arts & Architecture, "Play without the arts track" goes with it alone and "Roll either science die"
+ * with both, since the two can't go together.
  * @param {number} index - From 0
  * @returns {Game}
  */
 export function gameOf(index) {
 	const players = 1 + (index % 5);
-	const expansions = Math.floor(index / 40) % 2 === 1 ? ['pp'] : [];
-	// A variant that needs an expansion joins only with it ("All civilizations from Plans & Ploys", #35's two).
+	const pp = Math.floor(index / 40) % 2 === 1;
+	const aa = Math.floor(index / 80) % 2 === 1 && players > 1;
+	const expansions = [...(pp ? ['pp'] : []), ...(aa ? ['aa'] : [])];
+	const left = aa ? (pp ? 'no-arts-track' : 'either-science-die') : null;
 	const variants =
 		Math.floor(index / 20) % 2 === 1
 			? VARIANTS.filter(
-					(v) => !v.expansion || expansions.includes(v.expansion)
+					(v) =>
+						(!v.expansion || expansions.includes(v.expansion)) &&
+						v.id !== left
 				).map((v) => v.id)
 			: [];
 	return {
@@ -154,7 +169,9 @@ export function simulate(index, { check = checkAll } = {}) {
 		throw new Error(
 			`seed ${game.seed}, ${game.players} players, ${game.version}, ${game.policy} play, ` +
 				`${game.variants.length > 0 ? 'all' : 'no'} variants, ` +
-				`${game.expansions.length > 0 ? 'Plans & Ploys, ' : ''}` +
+				game.expansions
+					.map((code) => `${EXPANSION_NAMES[code]}, `)
+					.join('') +
 				`action ${actions} (${kind}): ${failure.message}\n` +
 				`Replay: SIM_SEED=${game.seed} npx vitest run tests/simulation.test.mjs`,
 			{ cause: failure }
