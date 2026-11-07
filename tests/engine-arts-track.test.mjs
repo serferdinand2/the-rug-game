@@ -39,8 +39,8 @@ import {
 	resolveTapestry,
 } from './helpers/engine.mjs';
 import { checkState } from './helpers/invariants.mjs';
+import { AA, kinds, ontoArts, place, reply } from './helpers/arts.mjs';
 
-const AA = { expansions: ['aa'] };
 const ARTS_LANDMARKS = ['clock-tower', 'opera-house', 'holocenter'];
 
 test('Arts & Architecture is built, and its two variants need it', () => {
@@ -283,62 +283,6 @@ test('Dystopia may take an arts-track landmark (03 §2.2)', () => {
 	assert.equal(decision.kind, 'chooseLandmark');
 	assert.deepEqual([...decision.options].sort(), [...ARTS_LANDMARKS].sort());
 });
-
-/**
- * Advances the current player of a 2-player A&A game onto an arts space from the space before it, holding 2 of each
- * resource, paying the first way the engine offers; `fill` changes their seat (and the state) first.
- * @param {number} space
- * @param {(seat: any, state: any) => void} [fill]
- */
-function ontoArts(space, fill = () => {}) {
-	const ready = readyTurn(
-		2,
-		(seat, state) => {
-			seat.tracks.arts = [space - 1];
-			seat.resources = { coin: 2, worker: 2, food: 2, culture: 2 };
-			fill(seat, state);
-		},
-		AA
-	);
-	const { random, player } = ready;
-	const chosen = answer(ready.state, random, player, 'chooseTurn', {
-		turn: 'advance',
-	});
-	const [decision] = openDecisions(chosen);
-	const move = DECISIONS.chooseAdvance
-		.answers(chosen, decision)
-		.find((a) => a.track === 'arts' && a.from === space - 1);
-	assert.ok(move, `an advance onto arts ${space}`);
-	const state = play(
-		chosen,
-		player,
-		{ decision: decision.id, ...move },
-		random
-	);
-	return { state, random, player, seat: state.seats[player - 1] };
-}
-
-/** @param {{ state: any }} result */
-const kinds = ({ state }) => openDecisions(state).map((d) => d.kind);
-
-/**
- * Answers the open decision of a kind for the player who advanced.
- * @param {any} r - Changed: its state becomes the new one
- * @param {string} kind
- * @param {Record<string, any>} reply
- */
-function reply(r, kind, reply) {
-	r.state = answer(r.state, r.random, r.player, kind, reply);
-	r.seat = r.state.seats[r.player - 1];
-	return r;
-}
-
-/** @param {any} r - Changed: every open placement is answered */
-function place(r) {
-	r.state = placeAll(r.state, r.random);
-	r.seat = r.state.seats[r.player - 1];
-	return r;
-}
 
 test('the advance turn offers the arts track at its tier price', () => {
 	const { state, player } = readyTurn(

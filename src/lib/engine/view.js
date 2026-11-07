@@ -18,6 +18,8 @@ export const HIDDEN_DECKS = [
 	['space'],
 	['civs'],
 	['landmarkCards'],
+	// Only with the arts track (#35); a game without it has no masterpiece supply.
+	['masterpieces', 'deck'],
 ];
 
 /**
@@ -33,7 +35,7 @@ export const SHARED_SECRETS = Object.freeze({ tapestryGiven: 'to' });
  * decisions lose their kind's hidden fields and events lose `secret` unless they belong to the viewer, or the viewer
  * shares it (SHARED_SECRETS); the viewer's own open decisions carry `answers`.
  * @typedef {Omit<import('./state.js').State, 'supply' | 'seats' | 'pending'> & {
- *   supply: Omit<import('./state.js').Supply, 'tech' | 'tapestry' | 'territory' | 'space' | 'civs'> & { tech: { deck: number, faceUp: string[], discard: string[] }, tapestry: { deck: number, discard: string[] }, territory: number, space: number, civs: number },
+ *   supply: Omit<import('./state.js').Supply, 'tech' | 'tapestry' | 'territory' | 'space' | 'civs' | 'masterpieces'> & { tech: { deck: number, faceUp: string[], discard: string[] }, tapestry: { deck: number, discard: string[] }, territory: number, space: number, civs: number, masterpieces?: { deck: number, faceUp: string[], discard: string[] } },
  *   seats: ViewSeat[],
  *   pending: (ViewOperation | ViewGroup)[]
  * }} View
@@ -61,7 +63,10 @@ export function view(state, seat) {
 		const last = path[path.length - 1];
 		const holder = path
 			.slice(0, -1)
-			.reduce((o, key) => o[key], copy.supply);
+			.reduce((o, key) => o?.[key], copy.supply);
+		if (holder?.[last] === undefined) {
+			continue;
+		}
 		holder[last] = holder[last].length;
 	}
 

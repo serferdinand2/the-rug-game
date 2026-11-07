@@ -296,6 +296,10 @@ export function checkViews(
 		}
 		assert.equal(typeof v.supply.tech.deck, 'number');
 		assert.equal(typeof v.supply.tapestry.deck, 'number');
+		// #35: masterpiece ids are common words (such as `tapestry`), so only the deck's count is checked.
+		if (state.supply.masterpieces) {
+			assert.equal(typeof v.supply.masterpieces.deck, 'number');
+		}
 		for (const op of allOps(v)) {
 			if (!owns(op.player, viewer)) {
 				assert.ok(!('answers' in op), 'answers shown to a stranger');

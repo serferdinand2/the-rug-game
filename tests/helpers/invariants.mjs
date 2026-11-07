@@ -4,7 +4,8 @@ import { DECISIONS } from '../../src/lib/engine/kinds.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
 import { civsFor, tapestryFor, techDeck } from '../../src/lib/engine/decks.js';
 import { landmarksFor } from '../../src/lib/engine/data/landmarks.js';
-import { tracksOf } from '../../src/lib/engine/tracks-in-play.js';
+import { artsInPlay, tracksOf } from '../../src/lib/engine/tracks-in-play.js';
+import { MASTERPIECES } from '../../src/lib/engine/data/masterpieces.js';
 import { landmarkCardsFor } from '../../src/lib/engine/data/landmark-cards.js';
 import { TERRITORY_TILES } from '../../src/lib/engine/data/territory-tiles.js';
 import { spaceTilesFor } from '../../src/lib/engine/data/space-tiles.js';
@@ -145,6 +146,58 @@ export function checkState(state, previousSeq = 0) {
 		],
 		spaceTilesFor(state.expansions).map((t) => t.id)
 	);
+	// #35: with the arts track, each masterpiece is in the deck, face up, discarded or held, and each player's
+	// inspiration tiles lie on different rows; without it there are neither.
+	if (artsInPlay(state)) {
+		const pile = /** @type {NonNullable<typeof supply.masterpieces>} */ (
+			supply.masterpieces
+		);
+		exactlyOnce(
+			'masterpieces',
+			[
+				...pile.deck,
+				...pile.faceUp,
+				...pile.discard,
+				...players.flatMap((p) =>
+					(p.masterpieces ?? []).map((held) => held.card)
+				),
+			],
+			MASTERPIECES.map((m) => m.id)
+		);
+		assert.ok(pile.faceUp.length <= 3, 'more than 3 masterpieces face up');
+		assert.ok(
+			pile.faceUp.length === 3 ||
+				pile.deck.length + pile.discard.length === 0,
+			'fewer than 3 masterpieces face up with more to draw (R119)'
+		);
+		for (const p of players) {
+			const rows = p.inspired ?? [];
+			assert.ok(
+				Array.isArray(p.masterpieces) && Array.isArray(p.inspired),
+				`seat ${p.seat} has no masterpieces or inspiration tiles`
+			);
+			assert.equal(
+				new Set(rows).size,
+				rows.length,
+				`seat ${p.seat} inspired a row twice`
+			);
+			assert.ok(
+				rows.every((row) => BUILDING_IDS.includes(row)),
+				`seat ${p.seat} inspired [${rows}]`
+			);
+		}
+	} else {
+		assert.ok(
+			!('masterpieces' in supply),
+			'masterpieces without the arts track'
+		);
+		for (const p of players) {
+			assert.ok(
+				!('masterpieces' in p) && !('inspired' in p),
+				`seat ${p.seat} has masterpieces or tiles without the arts track`
+			);
+		}
+	}
 	// #32: each landmark card is in the deck, offered in the draft, or kept by one player.
 	exactlyOnce(
 		'landmark cards',

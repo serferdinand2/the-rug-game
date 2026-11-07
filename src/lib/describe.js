@@ -169,6 +169,10 @@ function counted(per, track) {
 			return 'track where nobody is ahead of you';
 		case 'incomeBuilding':
 			return 'income building you own';
+		case 'capitalRow':
+			return 'complete row in your capital city';
+		case 'capitalColumn':
+			return 'complete column in your capital city';
 		case 'landmark':
 			return 'landmark you own';
 		case 'opponent':
@@ -286,9 +290,11 @@ const PHRASES = {
 			: 'explore a space tile';
 	},
 	conquer(value) {
-		const base = value?.anywhere
-			? 'conquer a territory anywhere'
+		// Topiary: an adjacent territory with nothing on it (R53).
+		const what = value?.empty
+			? 'conquer an empty territory'
 			: 'conquer a territory';
+		const base = value?.anywhere ? `${what} anywhere` : what;
 		if (value?.bothDice === 'always') {
 			return `${base} with both dice`;
 		}
@@ -363,8 +369,11 @@ const PHRASES = {
 		}
 		return words;
 	},
-	upgrade() {
-		return 'upgrade a tech card';
+	upgrade(value) {
+		// Ceramics: that card can't be upgraded again this turn (#35).
+		return value?.lock
+			? "upgrade a tech card, which can't be upgraded again this turn"
+			: 'upgrade a tech card';
 	},
 	techBenefit(value) {
 		return value?.icon === 'square'
@@ -482,6 +491,9 @@ const PHRASES = {
 	},
 	streamingImplants() {
 		return "gain the benefits of up to 3 different masterpieces, yours or your neighbours'";
+	},
+	flipMasterpiece() {
+		return 'turn this masterpiece face down';
 	},
 	trackLandmark() {
 		return 'gain a track landmark nobody owns';

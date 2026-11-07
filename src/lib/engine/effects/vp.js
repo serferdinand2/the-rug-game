@@ -8,6 +8,7 @@ import { BUILDING_IDS } from '../data/ids.js';
 import { tracksOf } from '../tracks-in-play.js';
 import { ALL_LANDMARKS } from '../data/landmarks.js';
 import { MAPS } from '../data/maps.js';
+import { capitalScore } from '../city.js';
 
 /** How many income buildings of each type a player starts with on the income mat. */
 const BUILDINGS_PER_ROW = 5;
@@ -90,6 +91,11 @@ export function countVp(state, player, per, track) {
 			(sum, id) => sum + BUILDINGS_PER_ROW - seat.incomeMat.buildings[id],
 			0
 		);
+	}
+	if (per === 'capitalRow' || per === 'capitalColumn') {
+		// Ballet and Modern Dance: not scoring the capital, so no capital-scoring trigger fires (03 §2.12).
+		const { rows, columns } = capitalScore(seat);
+		return per === 'capitalRow' ? rows : columns;
 	}
 	if (BUILDING_IDS.includes(per)) {
 		// R71: every building that has left the income mat counts, placed or not.

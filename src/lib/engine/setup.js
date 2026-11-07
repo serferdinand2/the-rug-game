@@ -22,6 +22,7 @@ import {
 	BUILDING_IDS,
 } from './data/ids.js';
 import { artsTrackOn } from './data/tracks.js';
+import { MASTERPIECES } from './data/masterpieces.js';
 
 /**
  * The expansions whose setup is built, so a table may choose them. Each expansion issue adds its code (#32, #35, #39).
@@ -163,6 +164,8 @@ export function checkOptions({ version, expansions = [], variants = [] }) {
  * @returns {import('./state.js').PlayerSeat}
  */
 function newSeat(seat, name, tracks) {
+	// The arts track brings each player's masterpieces and inspiration tiles (#35).
+	const arts = tracks.includes(ARTS_TRACK);
 	return {
 		seat,
 		kind: 'player',
@@ -199,7 +202,21 @@ function newSeat(seat, name, tracks) {
 		picks: {},
 		landmarkCard: null,
 		start: null,
+		...(arts && { masterpieces: [], inspired: [] }),
 	};
+}
+
+/**
+ * The masterpiece supply: the 20 cards shuffled, 3 of them face up (03 §2.2, setup step 2).
+ * @param {import('./random.js').Random} random
+ * @returns {{ deck: string[], faceUp: string[], discard: string[] }}
+ */
+function masterpieceSupply(random) {
+	const deck = shuffle(
+		MASTERPIECES.map((m) => m.id),
+		random
+	);
+	return { deck: deck.slice(3), faceUp: deck.slice(0, 3), discard: [] };
 }
 
 /**
@@ -449,6 +466,8 @@ export function createGame({
 			civs: [],
 			civDiscard: [],
 			capitals: [],
+			// Last, and only with the arts track, so a game without it draws as it always did (#35).
+			...(arts && { masterpieces: masterpieceSupply(random) }),
 		},
 		hexes,
 		landmarks: landmarksFor(expansions, variants).map((l) => l.id),

@@ -61,6 +61,8 @@
  * @property {{ capital?: number, civ?: string }} picks - Setup picks until the reveal
  * @property {{ card: string, gained: boolean } | null} landmarkCard - The landmark card drafted at setup, face up, and whether its landmark is gained (#32)
  * @property {string | null} start - The hex its two outposts started on, its capital-city territory; null until setup places them (#33)
+ * @property {{ card: string, used: boolean }[]} [masterpieces] - With the arts track only: the masterpieces held, in the order gained, public; `used` for a single-use card turned face down (#35)
+ * @property {BuildingId[]} [inspired] - With the arts track only: the income rows that hold the player's inspiration tile, in the order placed (#35)
  */
 /** @typedef {Seat & PlayerFields} PlayerSeat */
 /**
@@ -75,6 +77,7 @@
  * @property {string[]} civDiscard - Civilizations discarded mid-game (Mystics), face up; the newest last
  * @property {number[]} capitals - Mats nobody holds, face up
  * @property {string[]} landmarkCards - The face-down landmark deck: the cards nobody drafted (#32)
+ * @property {{ deck: string[], faceUp: string[], discard: string[] }} [masterpieces] - With the arts track only: the face-down deck, the 3 face up and the discards, face up (#35)
  */
 /** @typedef {{ id: number, batch: number, player: number | null, kind: string } & Record<string, any>} Operation - `origin`, when set, is where its VP counts (#29) */
 /** @typedef {{ player: number | null, kind: string } & Record<string, any>} NewOperation */

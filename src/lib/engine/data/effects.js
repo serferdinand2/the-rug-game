@@ -46,8 +46,10 @@ import { deepFreeze } from './ids.js';
  * - `landmark`: landmarks you own, in the capital, beside the mat or on the map (R71);
  * - `opponent`: the other seats;
  * - an income building: the buildings of that type you own, beside the mat too (01 §6.1);
- * - `incomeBuilding`: every income building you own, of every type (R71; the Holocenter, #35).
- * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId | 'incomeBuilding'} VpCounter
+ * - `incomeBuilding`: every income building you own, of every type (R71; the Holocenter, #35);
+ * - `capitalRow`, `capitalColumn`: the complete rows or columns of your capital city, which is not scoring it (Ballet,
+ *   Modern Dance, 03 §2.12).
+ * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId | 'incomeBuilding' | 'capitalRow' | 'capitalColumn'} VpCounter
  */
 
 /**
@@ -68,13 +70,13 @@ import { deepFreeze } from './ids.js';
  * - `vp`: gain that many VP, or VP per thing counted.
  * - `explore`: explore with a territory tile from the supply; `anywhere` drops the adjacency rule; `tile` allows only that tile; `sailed` marks an explore Age of Sail has already drawn for; `mat` allows only the Islanders' mat hexes and `free` only places the tile there, with no VP or benefit (R113).
  * - `exploreSpace`: explore a space tile from the supply; `fromGained` limits it to the tiles this benefit just gained (R105); `civ` puts it on that civilization's mat instead of beside the income mat (the Aliens, #33).
- * - `conquer`: conquer; `anywhere` drops adjacency; `bothDice` gives both dice always, or only if an opponent controlled the territory (R17); `only` limits the targets to those hexes (#33).
+ * - `conquer`: conquer; `anywhere` drops adjacency; `bothDice` gives both dice always, or only if an opponent controlled the territory (R17); `only` limits the targets to those hexes (#33); `empty` to territories with no item (Topiary, R53).
  * - `research`: roll the science die and you may advance on that track; `noBenefit` is the X.
  * - `advance`: advance 1 space on one of the listed tracks, with its benefit and optional bonus; `noBenefit` is the X; `optional` lets the player decline; `freeBonus` lets them take the bonus of the space reached without paying; `noBonus` gives the benefit without the bonus; `offTrackVp` gives that many VP instead when every token on the listed tracks is on space 12.
  * - `regress`: go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus; `noBenefit` is the X.
  * - `repeat`: gain the benefit of your current space on any track, and you may pay its bonus; `oncePerTurn` limits it to once a turn (FAQ #6).
  * - `invent`: gain tech cards one at a time; `refresh` lets you first replace the 3 face-up cards; `faceUpOnly` and `deckOnly` limit where the card comes from, which is otherwise also the tech discard pile for the Recyclers; `thenUpgrade` upgrades a card after.
- * - `upgrade`: upgrade 1 tech card; `optional` lets you decline (an income turn's, the Recyclers' own). The Recyclers may recycle a top-row card instead.
+ * - `upgrade`: upgrade 1 tech card; `optional` lets you decline (an income turn's, the Recyclers' own); `lock` keeps that card from being upgraded again this turn (Ceramics, #35). The Recyclers may recycle a top-row card instead.
  * - `techBenefit`: gain the circle benefit of a card in your middle row, or the square benefit of one in your top row, without moving it.
  * - `tapestryOnTop`: play a tapestry card from your hand on top of your current tapestry.
  * - `scoreCapital`: score the capital city, 1 VP per complete row and column on a basic mat.
@@ -98,7 +100,7 @@ import { deepFreeze } from './ids.js';
  * - `darkAges`, `socialism`, `dictatorship`, `revolution`, `colonialism`, `pleaForAid`, `technocracy`, `tradeEconomy`, `coalBaron`, `olympicHost`: the rules of the card of that name.
  * - `astronomy`, `cartography`, `manifestDestiny`, `statusQuo`, `worldsFair`: the rules of the Plans & Ploys card of that name (#33).
  * - `create`, `inspire`, `broadcast`, `refreshMasterpieces`, `streamingImplants`: Arts & Architecture's masterpieces and
- *   inspiration tiles (03 §2.2–2.8), built in #35 part 2.
+ *   inspiration tiles (03 §2.2–2.8); `flipMasterpiece` turns the masterpiece firing face down (a single-use card's).
  * @typedef {{ gain: Gain }
  *   | { lose: { culture?: number, any?: number } }
  *   | { pay: { any: number } }
@@ -107,14 +109,14 @@ import { deepFreeze } from './ids.js';
  *   | { vp: number | VpPer }
  *   | { explore: { anywhere?: boolean, tile?: number, sailed?: boolean, mat?: boolean, free?: boolean } }
  *   | { exploreSpace: { fromGained?: boolean, civ?: string } }
- *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent', only?: string[] } }
+ *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent', only?: string[], empty?: boolean } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
  *   | { advance: { tracks: TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean, noBonus?: boolean, offTrackVp?: number } }
  *   | { advanceEach: { noBenefit?: boolean, freeBonus?: boolean } }
  *   | { regress: { tracks: TrackId[], noBenefit?: boolean } }
  *   | { repeat: { oncePerTurn?: boolean } }
  *   | { invent: { count?: number, refresh?: boolean, faceUpOnly?: boolean, deckOnly?: boolean, thenUpgrade?: boolean } }
- *   | { upgrade: { optional?: boolean } }
+ *   | { upgrade: { optional?: boolean, lock?: boolean } }
  *   | { techBenefit: { icon: 'circle' | 'square' } }
  *   | { tapestryOnTop: {} }
  *   | { scoreCapital: {} }
@@ -153,7 +155,8 @@ import { deepFreeze } from './ids.js';
  *   | { inspire: {} }
  *   | { broadcast: {} }
  *   | { refreshMasterpieces: { optional?: boolean } }
- *   | { streamingImplants: {} }} Effect
+ *   | { streamingImplants: {} }
+ *   | { flipMasterpiece: {} }} Effect
  */
 
 /**
@@ -223,6 +226,7 @@ export const EFFECT_KINDS = deepFreeze([
 	'broadcast',
 	'refreshMasterpieces',
 	'streamingImplants',
+	'flipMasterpiece',
 ]);
 
 /**
@@ -243,4 +247,6 @@ export const VP_COUNTERS = deepFreeze([
 	'farm',
 	'armory',
 	'incomeBuilding',
+	'capitalRow',
+	'capitalColumn',
 ]);

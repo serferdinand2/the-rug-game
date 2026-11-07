@@ -76,7 +76,9 @@ export function revealed(before, after) {
 	const at = (
 		/** @type {State} */ state,
 		/** @type {readonly string[]} */ path
-	) => path.reduce((o, key) => o[key], /** @type {any} */ (state.supply));
+	) =>
+		// A deck the game doesn't have (the masterpieces without the arts track, #35) reads as undefined.
+		path.reduce((o, key) => o?.[key], /** @type {any} */ (state.supply));
 	if (HIDDEN_DECKS.some((path) => !same(at(before, path), at(after, path)))) {
 		return true;
 	}
