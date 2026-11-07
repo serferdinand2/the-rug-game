@@ -1,10 +1,13 @@
-// Plans & Ploys' 5 landmark cards: each one's landmark and the goal that gains it at the end of a turn (03 §1.2, §1.6).
+// The landmark cards of Plans & Ploys and Arts & Architecture: each one's landmark and the goal that gains it at the end of
+// a turn (03 §1.2, §1.6, §2.10).
 import { deepFreeze } from './ids.js';
 
 /**
- * What a landmark card's goal counts: tech cards in the top row, income buildings of the type most built in the
- * capital, complete districts, complete rows and columns, or territory tiles in the supply.
- * @typedef {'topTech' | 'sameBuildings' | 'districts' | 'lines' | 'territoryTiles'} GoalKind
+ * What a landmark card's goal counts. Plans & Ploys': tech cards in the top row, income buildings of the type most built
+ * in the capital, complete districts, complete rows and columns, or territory tiles in the supply. A&A's: the types of
+ * income building in the capital, the tech cards invented, the tiers entered this turn whose landmark was taken, the
+ * tracks at tier II or higher, or the territories controlled next to the starting territory.
+ * @typedef {'topTech' | 'sameBuildings' | 'districts' | 'lines' | 'territoryTiles' | 'buildingTypes' | 'inventedTech' | 'takenTier' | 'tierTwoTracks' | 'startNeighbours'} GoalKind
  */
 
 /**
@@ -17,21 +20,27 @@ import { deepFreeze } from './ids.js';
  */
 
 /**
- * Plans & Ploys' landmark cards, in the catalog's order.
+ * Plans & Ploys' landmark cards, then A&A's, each in the catalog's order.
  * @type {readonly LandmarkCard[]}
  */
 export const LANDMARK_CARDS = deepFreeze(
-	/** @type {[string, import('./landmark-cards.js').GoalKind, number][]} */ ([
-		['game-store', 'topTech', 1],
-		['tv-station', 'sameBuildings', 3],
-		['digital-studio', 'districts', 2],
-		['skyscraper', 'lines', 1],
-		['urban-farm', 'territoryTiles', 6],
-	]).map(([id, kind, need]) => ({
+	/** @type {[string, GoalKind, number, string][]} */ ([
+		['game-store', 'topTech', 1, 'pp'],
+		['tv-station', 'sameBuildings', 3, 'pp'],
+		['digital-studio', 'districts', 2, 'pp'],
+		['skyscraper', 'lines', 1, 'pp'],
+		['urban-farm', 'territoryTiles', 6, 'pp'],
+		// R64: Villa's 3 different types.
+		['villa', 'buildingTypes', 3, 'aa'],
+		['birdwatching-perch', 'inventedTech', 3, 'aa'],
+		['castle', 'takenTier', 1, 'aa'],
+		['windmill', 'tierTwoTracks', 2, 'aa'],
+		['bridge', 'startNeighbours', 3, 'aa'],
+	]).map(([id, kind, need, expansion]) => ({
 		id,
 		landmark: id,
 		goal: { kind, need },
-		expansion: 'pp',
+		expansion,
 	}))
 );
 

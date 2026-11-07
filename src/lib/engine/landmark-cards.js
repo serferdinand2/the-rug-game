@@ -3,7 +3,7 @@ import { emit } from './events.js';
 import { isPlayerSeat, playerSeat } from './state.js';
 import { triggered } from './abilities.js';
 import { cityPlots, completeDistricts, completeLines } from './city.js';
-import { landmarkCard } from './data/landmark-cards.js';
+import { landmarkCard, landmarkCardsFor } from './data/landmark-cards.js';
 
 /** @typedef {import('./state.js').PlayerSeat} PlayerSeat */
 
@@ -52,8 +52,24 @@ function goalCount(seat, kind) {
 }
 
 /**
- * The after-setup step: the player going last draws one landmark card per player (2 when alone) and keeps one; the
- * rest pass counter-clockwise, each player before them in turn order keeping one, the first player last (03 §1.2).
+ * How many landmark cards the draft deals: 2 alone, otherwise one per player, and one more when the game's cards come
+ * from both Plans & Ploys and A&A, so the last drafter chooses from 2 (03 §1.2, §7).
+ * @param {readonly string[]} expansions
+ * @param {number} players
+ * @returns {number}
+ */
+export function landmarkCardDeal(expansions, players) {
+	if (players === 1) {
+		return 2;
+	}
+	const from = new Set(landmarkCardsFor(expansions).map((c) => c.expansion));
+	return players + (from.size > 1 ? 1 : 0);
+}
+
+/**
+ * The after-setup step: the player going last draws the deal (landmarkCardDeal) and keeps one; the rest pass
+ * counter-clockwise, each player before them in turn order keeping one, the first player last, and any card left goes
+ * under the deck (03 §1.2).
  * @param {import('./state.js').Context} ctx
  */
 export function draftLandmarkCards(ctx) {
@@ -65,7 +81,10 @@ export function draftLandmarkCards(ctx) {
 		(_, i) => players[(at - 1 - i + 2 * count) % count].seat
 	);
 	// Alone, the other card's landmark goes to the Automa's box once #31 builds it; until then, under the deck.
-	const cards = state.supply.landmarkCards.splice(0, count === 1 ? 2 : count);
+	const cards = state.supply.landmarkCards.splice(
+		0,
+		landmarkCardDeal(state.expansions, count)
+	);
 	emit(state, {
 		type: 'landmarkCardsDrawn',
 		player: drafters[0],

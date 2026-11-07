@@ -227,7 +227,7 @@ test('Holocenter counts every income building off the mat (R71)', () => {
 
 test('the arts track adds its 3 landmarks, with the shared footprints, only when it is in play (03 §2.10)', () => {
 	assert.deepEqual(
-		EXPANSION_LANDMARKS.filter((l) => l.expansion === 'aa').map((l) => [
+		EXPANSION_LANDMARKS.filter((l) => l.arts).map((l) => [
 			l.id,
 			l.source,
 			l.arts,
@@ -242,9 +242,10 @@ test('the arts track adds its 3 landmarks, with the shared footprints, only when
 		const landmark = EXPANSION_LANDMARKS.find((l) => l.id === id);
 		assert.equal(landmark?.footprint, FOOTPRINTS[id], id);
 	}
-	assert.equal(landmarksFor(['aa']).length, 21);
-	assert.equal(landmarksFor(['aa'], ['no-arts-track']).length, 18);
-	assert.equal(landmarksFor(['pp', 'aa']).length, 28);
+	// With A&A's 5 landmark cards' landmarks too (#35 part 3), which stay without the arts track.
+	assert.equal(landmarksFor(['aa']).length, 26);
+	assert.equal(landmarksFor(['aa'], ['no-arts-track']).length, 23);
+	assert.equal(landmarksFor(['pp', 'aa']).length, 33);
 });
 
 test('the arts landmarks are in the supply only with the arts track', () => {
@@ -370,6 +371,17 @@ test('arts 10 Holocenter: the Holocenter, an income building, then 1 VP per inco
 		.map((d) => d.landmark);
 	assert.deepEqual(landmarks, ['holocenter']);
 	place(r);
+	// The Holocenter's first plot depends on the seeded capital; a district it completes asks for its resource first.
+	const district = openDecisions(r.state).find(
+		(d) => d.kind === 'chooseResource'
+	);
+	if (district) {
+		reply(
+			r,
+			'chooseResource',
+			DECISIONS.chooseResource.answers(r.state, district)[0]
+		);
+	}
 	reply(r, 'chooseOption', { option: 0 });
 	place(r);
 	assert.equal(r.seat.vp, 3, '2 houses and the market just gained');

@@ -217,7 +217,7 @@ test("the achievements' VP boxes are the engine's on both map sides (#42)", () =
 });
 
 test("Plans & Ploys has its own section, shown only with the expansion, with the engine's goals and VP (#32)", async () => {
-	const { LANDMARK_CARDS } =
+	const { landmarkCardsFor } =
 		await import('../src/lib/engine/data/landmark-cards.js');
 	const { EXPANSION_SPACE_TILES } =
 		await import('../src/lib/engine/data/space-tiles.js');
@@ -235,7 +235,7 @@ test("Plans & Ploys has its own section, shown only with the expansion, with the
 	);
 	assert.ok(rulesSections(['pp']).some((s) => s.id === 'plans-ploys'));
 	const text = lines('plans-ploys').join(' ');
-	for (const card of LANDMARK_CARDS) {
+	for (const card of landmarkCardsFor(['pp'])) {
 		assert.match(text, new RegExp(`at least ${card.goal.need} `));
 	}
 	const vp = new Set(

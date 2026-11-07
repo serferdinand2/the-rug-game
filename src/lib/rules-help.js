@@ -1,6 +1,6 @@
 // How to play's rules for the base game (#42) and its expansions (#32): the sections the rules panel shows, in our own words, one tab each.
 import { deepFreeze } from './engine/data/ids.js';
-import { LANDMARK_CARDS } from './engine/data/landmark-cards.js';
+import { landmarkCardsFor } from './engine/data/landmark-cards.js';
 import { landmarkGoalPhrase } from './cards/landmark-text.js';
 import { landmarkName } from './game-names.js';
 
@@ -211,7 +211,7 @@ export const RULES_HELP = deepFreeze([
 				text: "At the end of each of your turns, your final income turn included, if your card's goal is met you must gain its landmark and place it in your capital city.",
 			},
 			{
-				list: LANDMARK_CARDS.map(
+				list: landmarkCardsFor(['pp']).map(
 					(card) =>
 						`${landmarkName(card.landmark)}: ${landmarkGoalPhrase(card.id)}.`
 				),

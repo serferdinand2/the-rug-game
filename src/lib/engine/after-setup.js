@@ -6,6 +6,7 @@ import { SMALL_MAP_PAIRS } from './data/capitals.js';
 import { startTurn } from './turn.js';
 import { setupCivs } from './civ-turns.js';
 import { draftLandmarkCards } from './landmark-cards.js';
+import { landmarkCardsFor } from './data/landmark-cards.js';
 
 /**
  * The after-setup steps in order. Later issues insert theirs before 'start', which begins play:
@@ -14,12 +15,13 @@ import { draftLandmarkCards } from './landmark-cards.js';
 export const AFTER_SETUP = ['reveal', 'civDeck', 'civSetup', 'start'];
 
 /**
- * A game's after-setup steps: with Plans & Ploys, the landmark-card draft comes just before 'start' (#32; 03 §1.2).
+ * A game's after-setup steps: with landmark cards, Plans & Ploys' or A&A's, the draft comes just before 'start' (#32,
+ * #35; 03 §1.2).
  * @param {readonly string[]} expansions
  * @returns {string[]}
  */
 export function afterSetupSteps(expansions) {
-	if (!expansions.includes('pp')) {
+	if (landmarkCardsFor(expansions).length === 0) {
 		return [...AFTER_SETUP];
 	}
 	return [...AFTER_SETUP.slice(0, -1), 'landmarkCards', 'start'];

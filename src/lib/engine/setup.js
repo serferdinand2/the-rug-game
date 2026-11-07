@@ -456,13 +456,15 @@ export function createGame({
 				random
 			),
 			spaceDiscard: [],
-			// Shuffled only with an expansion that has landmark cards, so a base game draws as it always did (#32).
-			landmarkCards: expansions.includes('pp')
-				? shuffle(
-						landmarkCardsFor(expansions).map((c) => c.id),
-						random
-					)
-				: [],
+			// Shuffled only with an expansion that has landmark cards, P&P's or A&A's, so a base game draws as it always
+			// did (#32, #35).
+			landmarkCards:
+				landmarkCardsFor(expansions).length > 0
+					? shuffle(
+							landmarkCardsFor(expansions).map((c) => c.id),
+							random
+						)
+					: [],
 			civs: [],
 			civDiscard: [],
 			capitals: [],

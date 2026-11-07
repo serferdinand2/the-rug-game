@@ -11,7 +11,10 @@ import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { play } from '../src/lib/engine/play.js';
 import { cityPlots } from '../src/lib/engine/city.js';
 import { landmarkGoal } from '../src/lib/engine/landmark-cards.js';
-import { LANDMARK_CARDS } from '../src/lib/engine/data/landmark-cards.js';
+import {
+	LANDMARK_CARDS,
+	landmarkCardsFor,
+} from '../src/lib/engine/data/landmark-cards.js';
 import {
 	EXPANSION_LANDMARKS,
 	LANDMARKS,
@@ -87,7 +90,11 @@ function completeRow(seat, row) {
 
 test('Plans & Ploys has 5 landmark cards, each naming its own landmark and goal (03 §1.6)', () => {
 	assert.deepEqual(
-		LANDMARK_CARDS.map((card) => [card.id, card.landmark, card.goal]),
+		landmarkCardsFor(['pp']).map((card) => [
+			card.id,
+			card.landmark,
+			card.goal,
+		]),
 		[
 			['game-store', 'game-store', { kind: 'topTech', need: 1 }],
 			['tv-station', 'tv-station', { kind: 'sameBuildings', need: 3 }],
@@ -100,7 +107,9 @@ test('Plans & Ploys has 5 landmark cards, each naming its own landmark and goal 
 			['urban-farm', 'urban-farm', { kind: 'territoryTiles', need: 6 }],
 		]
 	);
-	assert.ok(LANDMARK_CARDS.every((card) => card.expansion === 'pp'));
+	assert.ok(
+		landmarkCardsFor(['pp']).every((card) => card.expansion === 'pp')
+	);
 	assert.ok(Object.isFrozen(LANDMARK_CARDS[0].goal));
 });
 

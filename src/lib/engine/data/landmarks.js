@@ -103,7 +103,8 @@ export const LANDMARKS = deepFreeze([
 
 /**
  * The expansions' landmarks: Plans & Ploys' 5 landmark-card landmarks and the Monolith (03 §1.6, #32), the Stadium
- * that Entertain the Masses gains (#33), and the arts track's 3 (03 §2.3, #35).
+ * that Entertain the Masses gains (#33), A&A's 5 landmark-card landmarks, which stay without the arts track, and the
+ * arts track's 3 (03 §2.3, §2.10, #35).
  * @type {readonly Landmark[]}
  */
 export const EXPANSION_LANDMARKS = deepFreeze([
@@ -118,6 +119,15 @@ export const EXPANSION_LANDMARKS = deepFreeze([
 		landmark('monolith', 'Monolith', { spaceTile: 19 }),
 		landmark('stadium', 'Stadium', { tapestry: 'entertain-the-masses' }),
 	].map((l) => ({ ...l, expansion: 'pp' })),
+	...[
+		landmark('villa', 'Villa', { card: 'villa' }),
+		landmark('birdwatching-perch', 'Birdwatching Perch', {
+			card: 'birdwatching-perch',
+		}),
+		landmark('castle', 'Castle', { card: 'castle' }),
+		landmark('windmill', 'Windmill', { card: 'windmill' }),
+		landmark('bridge', 'Bridge', { card: 'bridge' }),
+	].map((l) => ({ ...l, expansion: 'aa' })),
 	...[
 		landmark('clock-tower', 'Clock Tower', {
 			track: 'arts',
