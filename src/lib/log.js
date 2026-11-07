@@ -837,6 +837,16 @@ const WORDS = {
 			: `${name} cleared the face-up masterpieces.`;
 	},
 	noMasterpiece: (e, game, name) => `${name} had no masterpiece to create.`,
+	// Its benefit follows as its own lines; another seat's card names its owner (Streaming Implants).
+	masterpieceFired(e, game, name) {
+		const card = masterpieceName(e.card);
+		return isCount(e.owner) && e.owner !== e.player
+			? `${name} gained the benefit of ${seatName(game, e.owner)}’s ${card}.`
+			: `${name} gained the benefit of ${card}.`;
+	},
+	masterpieceFlipped: (e, game, name) =>
+		`${name} turned ${masterpieceName(e.card)} face down: it is used.`,
+	noBroadcast: (e, game, name) => `${name} had no masterpiece to broadcast.`,
 	noUpgrade: (e, game, name) => `${name} had no tech card to upgrade.`,
 	// Assembly Line, Electronics and Nanotechnology (#144): the card's benefit follows as its own lines.
 	techBenefitUsed(e, game, name) {

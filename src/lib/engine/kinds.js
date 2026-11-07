@@ -21,6 +21,8 @@ import {
 import { chooseScienceDie } from './decisions/choose-science-die.js';
 import { chooseCreate } from './decisions/choose-create.js';
 import { chooseRefresh } from './decisions/choose-refresh.js';
+import { chooseMasterpiece } from './decisions/choose-masterpiece.js';
+import { nextMasterpiece } from './masterpieces.js';
 import { endTurn } from './turn.js';
 import { runIncomeSteps, playFaceDown } from './income.js';
 import { chooseTapestry } from './decisions/choose-tapestry.js';
@@ -160,6 +162,7 @@ Object.assign(DECISIONS, {
 	chooseScienceDie,
 	chooseCreate,
 	chooseRefresh,
+	chooseMasterpiece,
 	chooseSpace,
 	chooseHex,
 	chooseGift,
@@ -195,6 +198,7 @@ Object.assign(AUTOMATIC, {
 	sharedAdvanceOn,
 	darkAgesOn,
 	darkAgesKept,
+	askMasterpiece: nextMasterpiece,
 	dictate,
 	colonize,
 	revolt,

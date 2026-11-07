@@ -83,6 +83,7 @@ export const DECISION_KINDS = Object.freeze({
 	// A&A's masterpieces (#35 part 2); their cards on a shelf come with part 4's mockups.
 	chooseCreate: {},
 	chooseRefresh: {},
+	chooseMasterpiece: {},
 	chooseSpace: { art: 'track' },
 	chooseHex: {},
 	chooseGift: { tab: 'terrain', art: 'gift' },

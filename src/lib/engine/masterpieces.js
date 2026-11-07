@@ -1,7 +1,8 @@
 // The masterpiece supply (#35, 03 §2.7): drawing with R119's reshuffle, the face-up row, refreshing it, and creating.
 import { emit } from './events.js';
 import { shuffle } from './random.js';
-import { playerSeat } from './state.js';
+import { isPlayerSeat, neighbours, playerSeat } from './state.js';
+import { masterpiece } from './data/masterpieces.js';
 
 /** How many masterpieces lie face up (03 §2.2, setup step 2). */
 export const FACE_UP = 3;
@@ -134,4 +135,137 @@ export function takeMasterpiece(ctx, player, card) {
 		from: card === 'deck' ? 'deck' : 'faceUp',
 	});
 	refillMasterpieces(ctx);
+}
+
+/**
+ * Why a masterpiece fires: at the start of an income turn (each held card once, in the player's order), through
+ * Broadcast (one of yours) or through Streaming Implants (up to 3, yours or your neighbours').
+ * @typedef {'income' | 'broadcast' | 'implants'} FirePurpose
+ */
+
+/**
+ * A masterpiece a player may fire: whose it is and which card.
+ * @typedef {{ seat: number, card: string }} FireOption
+ */
+
+/**
+ * The unused masterpieces a seat holds, in the order gained; none for a bot.
+ * @param {import('./state.js').State} state
+ * @param {number} seat
+ * @returns {string[]}
+ */
+function unused(state, seat) {
+	if (!isPlayerSeat(state, seat)) {
+		return [];
+	}
+	return (playerSeat(state, seat).masterpieces ?? [])
+		.filter((held) => !held.used)
+		.map((held) => held.card);
+}
+
+/**
+ * The masterpieces a player may fire now, leaving out those already `chosen`: their own unused ones and, for
+ * Streaming Implants, each neighbour's unused ones that aren't single-use (03 §2.3, §2.12).
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @param {FirePurpose} purpose
+ * @param {readonly string[]} [chosen]
+ * @returns {FireOption[]}
+ */
+export function masterpieceOptions(state, player, purpose, chosen = []) {
+	const own = unused(state, player).map((card) => ({ seat: player, card }));
+	const theirs =
+		purpose === 'implants'
+			? neighbours(state, player).flatMap((seat) =>
+					unused(state, seat)
+						.filter((card) => !masterpiece(card).singleUse)
+						.map((card) => ({ seat, card }))
+				)
+			: [];
+	return [...own, ...theirs].filter((o) => !chosen.includes(o.card));
+}
+
+/**
+ * Asks for the next masterpiece to fire, or fires it. With none, nothing happens (Broadcast says so). For the income
+ * turn and Broadcast a single one fires without asking; Streaming Implants always asks, since it may stop, and stops
+ * after 3 (`left`).
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {FirePurpose} purpose
+ * @param {string[]} chosen - Fired already by this income step or these Streaming Implants
+ * @param {number} [left] - Streaming Implants' masterpieces still to choose
+ */
+export function askMasterpiece(ctx, player, purpose, chosen, left) {
+	if (left === 0) {
+		return;
+	}
+	const options = masterpieceOptions(ctx.state, player, purpose, chosen);
+	if (options.length === 0) {
+		if (purpose === 'broadcast') {
+			emit(ctx.state, { type: 'noBroadcast', player });
+		}
+		return;
+	}
+	if (purpose !== 'implants' && options.length === 1) {
+		fireChosen(ctx, { player, purpose, chosen, left }, options[0]);
+		return;
+	}
+	ctx.push([
+		{
+			player,
+			kind: 'chooseMasterpiece',
+			purpose,
+			options,
+			chosen,
+			...(left !== undefined && { left }),
+		},
+	]);
+}
+
+/**
+ * Fires the masterpiece chosen, then, for the income turn and Streaming Implants, asks for the next one once its
+ * benefit is done: so a masterpiece gained meanwhile fires in the same income step (03 §2.2).
+ * @param {import('./state.js').Context} ctx
+ * @param {{ player: number | null, purpose: FirePurpose, chosen?: string[], left?: number }} asked - The ask or decision
+ * @param {FireOption} option
+ */
+export function fireChosen(ctx, asked, { seat, card }) {
+	const player = /** @type {number} */ (asked.player);
+	const { purpose, left } = asked;
+	const chosen = [...(asked.chosen ?? []), card];
+	emit(ctx.state, { type: 'masterpieceFired', player, card, owner: seat });
+	ctx.push([
+		{
+			player,
+			kind: 'effects',
+			effects: structuredClone(masterpiece(card).effects),
+			ordered: true,
+			source: { masterpiece: card },
+		},
+		...(purpose === 'broadcast'
+			? []
+			: [
+					{
+						player,
+						kind: 'askMasterpiece',
+						purpose,
+						chosen,
+						...(left !== undefined && { left: left - 1 }),
+					},
+				]),
+	]);
+}
+
+/**
+ * The automatic operation that asks for the next masterpiece to fire (askMasterpiece).
+ * @type {import('./state.js').AutomaticKind}
+ */
+export function nextMasterpiece(ctx, op) {
+	askMasterpiece(
+		ctx,
+		/** @type {number} */ (op.player),
+		op.purpose,
+		op.chosen ?? [],
+		op.left
+	);
 }

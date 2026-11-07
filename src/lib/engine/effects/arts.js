@@ -1,6 +1,8 @@
 // Arts & Architecture's masterpieces and inspiration tiles (03 §2.2–2.8): the effects the arts track's spaces name.
 import { emit } from '../events.js';
+import { playerSeat } from '../state.js';
 import {
+	askMasterpiece,
 	canRefresh,
 	createOptions,
 	refreshFaceUp,
@@ -39,8 +41,13 @@ export function create(ctx, player) {
 /** Inspire: place an inspiration tile on its income row (03 §2.8). */
 export const inspire = partTwo('inspire');
 
-/** Broadcast: gain the benefit of one of your masterpieces (03 §2.7). */
-export const broadcast = partTwo('broadcast');
+/**
+ * Broadcast: gain the benefit of one of your unused masterpieces (03 §2.7).
+ * @type {import('../state.js').EffectHandler}
+ */
+export function broadcast(ctx, player) {
+	askMasterpiece(ctx, player, 'broadcast', []);
+}
 
 /**
  * Refresh the face-up masterpieces: discard them and turn 3 new ones up. Rock Opera's is `optional`, so it asks; with
@@ -58,5 +65,27 @@ export function refreshMasterpieces(ctx, player, value) {
 	refreshFaceUp(ctx, player);
 }
 
-/** Streaming Implants: up to 3 different masterpieces, yours or your neighbours' (03 §2.3). */
-export const streamingImplants = partTwo('streamingImplants');
+/**
+ * Streaming Implants: the benefits of up to 3 different masterpieces, chosen one at a time from yours and your
+ * neighbours'; never a used one, nor another player's single-use one (03 §2.3, §2.12).
+ * @type {import('../state.js').EffectHandler}
+ */
+export function streamingImplants(ctx, player) {
+	askMasterpiece(ctx, player, 'implants', [], 3);
+}
+
+/**
+ * Turns the masterpiece firing face down: a single-use card's (Art Deco, Mime), which fires no more.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function flipMasterpiece(ctx, player, value, op) {
+	const card = op.source?.masterpiece;
+	const held = (playerSeat(ctx.state, player).masterpieces ?? []).find(
+		(m) => m.card === card && !m.used
+	);
+	if (!held) {
+		throw new Error(`Seat ${player} holds no unused masterpiece ${card}.`);
+	}
+	held.used = true;
+	emit(ctx.state, { type: 'masterpieceFlipped', player, card });
+}

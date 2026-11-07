@@ -49,6 +49,7 @@ import {
 	broadcast,
 	refreshMasterpieces,
 	streamingImplants,
+	flipMasterpiece,
 } from './arts.js';
 import { gainCiv } from '../civ-turns.js';
 import { discardCiv, placeToken } from '../civs/civ.js';
@@ -110,6 +111,7 @@ export const EFFECTS = {
 	broadcast,
 	refreshMasterpieces,
 	streamingImplants,
+	flipMasterpiece,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

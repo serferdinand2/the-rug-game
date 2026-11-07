@@ -663,6 +663,15 @@ const TITLES = {
 	chooseScienceDie: () => 'Choose the science die to roll',
 	chooseCreate: () => 'Create a masterpiece',
 	chooseRefresh: () => 'Refresh the face-up masterpieces?',
+	chooseMasterpiece: (d) => {
+		if (d.purpose === 'broadcast') {
+			return 'Broadcast: choose one of your masterpieces';
+		}
+		if (d.purpose === 'implants') {
+			return 'Streaming Implants: choose a masterpiece, yours or a neighbour’s';
+		}
+		return 'Choose the masterpiece that fires next';
+	},
 	chooseSpace: () =>
 		"Trade Economy: choose an opponent's track space to gain its benefit",
 	chooseHex: (d) => {
@@ -1206,6 +1215,19 @@ const ANSWERS = {
 			return null;
 		}
 		return a.refresh ? 'Refresh them' : 'Keep them';
+	},
+	// Another seat's card names its owner (Streaming Implants).
+	chooseMasterpiece: (a, d, table) => {
+		if (a.card === null) {
+			return 'Stop';
+		}
+		if (typeof a.card !== 'string') {
+			return null;
+		}
+		const card = masterpieceName(a.card);
+		return isCount(a.seat) && a.seat !== d.player
+			? `${card} (${seatName(table, a.seat)})`
+			: card;
 	},
 	chooseSpace: (a, d, table) =>
 		isTrack(a.track) && isCount(a.space)

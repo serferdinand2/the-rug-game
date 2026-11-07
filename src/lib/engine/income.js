@@ -7,12 +7,14 @@ import { endEra, playTapestry } from './tapestry.js';
 import { endFirstIncomeTurn } from './civ-turns.js';
 import { INCOME_MAT, TAPESTRY_SLOTS } from './data/income-mat.js';
 import { BUILDING_IDS } from './data/ids.js';
+import { artsInPlay } from './tracks-in-play.js';
 
 /** @typedef {import('./data/ids.js').BuildingId} BuildingId */
 
 /**
- * One income step: the income turns it applies to, and what it does.
- * @typedef {{ turns: number[], run: (ctx: import('./state.js').Context, player: number, turn: number) => void }} IncomeStep
+ * One income step: the income turns it applies to, whether a game has it (`when`, all games without one), and what it
+ * does.
+ * @typedef {{ turns: number[], when?: (state: import('./state.js').State) => boolean, run: (ctx: import('./state.js').Context, player: number, turn: number) => void }} IncomeStep
  */
 
 /** The spaces of a building row, so a row with `left` buildings shows spaces 1 to 6 − `left` (01 §5). */
@@ -174,6 +176,7 @@ export function playFaceDown(ctx, op) {
  */
 export const INCOME_STEPS = [
 	'eraEnd',
+	'masterpieces',
 	'civAbilities',
 	'tapestry',
 	'upgrade',
@@ -190,6 +193,22 @@ export const INCOME_STEP_KINDS = {
 		turns: [2, 3, 4, 5],
 		run(ctx, player) {
 			endEra(ctx, player);
+		},
+	},
+	// Step 1, first: every masterpiece held fires, in the player's order, before the civilizations; one gained meanwhile
+	// fires too (03 §2.2, "step 0"). Nobody holds one at income turn 1. Only with the arts track (#35).
+	masterpieces: {
+		turns: [2, 3, 4, 5],
+		when: artsInPlay,
+		run(ctx, player) {
+			ctx.push([
+				{
+					player,
+					kind: 'askMasterpiece',
+					purpose: 'income',
+					chosen: [],
+				},
+			]);
 		},
 	},
 	// Step 1: the civilization abilities (civ-turns.js).
@@ -258,9 +277,10 @@ export function startIncomeTurn(ctx, player) {
 	seat.incomeTurns += 1;
 	const turn = seat.incomeTurns;
 	emit(ctx.state, { type: 'incomeTurnStarted', player, turn });
-	const steps = INCOME_STEPS.filter((id) =>
-		INCOME_STEP_KINDS[id].turns.includes(turn)
-	);
+	const steps = INCOME_STEPS.filter((id) => {
+		const kind = INCOME_STEP_KINDS[id];
+		return kind.turns.includes(turn) && (kind.when?.(ctx.state) ?? true);
+	});
 	// Whatever an income turn scores counts as the income turn's, unless it names its own source (#29).
 	ctx.push([{ player, kind: 'incomeSteps', turn, steps, origin: 'income' }]);
 }

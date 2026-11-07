@@ -10,7 +10,11 @@ import { ASSETS } from '../src/lib/art/catalog.js';
 import { view } from '../src/lib/engine/view.js';
 import { revealed } from '../src/lib/engine/table.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
-import { newGame, startedGame } from './helpers/engine.mjs';
+import { answer, newGame, readyTurn, startedGame } from './helpers/engine.mjs';
+import { allOps } from './helpers/views.mjs';
+import { DECISIONS } from '../src/lib/engine/kinds.js';
+import { spacesAdvanced } from '../src/lib/engine/movement.js';
+import { neighbours } from '../src/lib/engine/state.js';
 import { countVp } from '../src/lib/engine/effects/vp.js';
 import { capitalScore } from '../src/lib/engine/city.js';
 import { checkState } from './helpers/invariants.mjs';
@@ -328,4 +332,291 @@ test('undo is refused after a create, which turns up the deck’s top card', () 
 	const before = r.state;
 	reply(r, 'chooseCreate', { card: r.state.supply.masterpieces.faceUp[0] });
 	assert.equal(revealed(before, r.state), true);
+});
+
+/**
+ * Hands masterpieces to a seat from the supply's deck, so every card stays in one place.
+ * @param {any} state
+ * @param {any} seat
+ * @param {string[]} cards
+ * @param {string[]} [used] - Those of `cards` already turned face down
+ */
+function hold(state, seat, cards, used = []) {
+	const pile = state.supply.masterpieces;
+	for (const card of cards) {
+		for (const list of [pile.deck, pile.faceUp, pile.discard]) {
+			if (list.includes(card)) {
+				list.splice(list.indexOf(card), 1);
+			}
+		}
+		seat.masterpieces.push({ card, used: used.includes(card) });
+	}
+	// Keep 3 face up, as the supply always does.
+	while (pile.faceUp.length < 3) {
+		pile.faceUp.push(pile.deck.shift());
+	}
+}
+
+/**
+ * The current player of an A&A game starts an income turn (their second), after `fill` changes their seat.
+ * @param {(seat: any, state: any) => void} fill
+ * @param {number} [count]
+ * @returns {import('./helpers/arts.mjs').Run}
+ */
+function incomeTurn(fill, count = 2) {
+	const ready = readyTurn(count, fill, AA);
+	const state = answer(
+		ready.state,
+		ready.random,
+		ready.player,
+		'chooseTurn',
+		{
+			turn: 'income',
+		}
+	);
+	return {
+		state,
+		random: ready.random,
+		player: ready.player,
+		seat: state.seats[ready.player - 1],
+	};
+}
+
+/**
+ * The masterpieces that fired since a sequence number, as `owner:card`.
+ * @param {any} state
+ * @param {number} since
+ * @returns {string[]}
+ */
+function fired(state, since) {
+	return state.events
+		.filter(
+			(/** @type {any} */ e) =>
+				e.type === 'masterpieceFired' && e.seq > since
+		)
+		.map((/** @type {any} */ e) => `${e.owner}:${e.card}`);
+}
+
+test("a base game's income turn has no masterpiece step", () => {
+	const ready = readyTurn(2);
+	const state = answer(
+		ready.state,
+		ready.random,
+		ready.player,
+		'chooseTurn',
+		{
+			turn: 'income',
+		}
+	);
+	const started = state.events.findLast(
+		(/** @type {any} */ e) => e.type === 'incomeTurnStarted'
+	);
+	assert.equal(started.turn, 2);
+	assert.ok(
+		!state.events.some(
+			(/** @type {any} */ e) => e.type === 'masterpieceFired'
+		)
+	);
+	// The steps after the first still wait, in the order they always had.
+	const waiting = allOps(state).find(
+		(/** @type {any} */ op) => op.kind === 'incomeSteps'
+	);
+	assert.ok(waiting);
+	assert.ok(!waiting.steps.includes('masterpieces'));
+});
+
+test('at the start of an income turn every masterpiece fires, in the order the player chooses', () => {
+	const r = incomeTurn((seat, state) => {
+		hold(state, seat, ['fresco', 'krav-maga']);
+		seat.tracks.military = [3];
+	});
+	const seq = r.state.seq;
+	const ask = openOf(r.state, 'chooseMasterpiece');
+	assert.equal(ask.purpose, 'income');
+	assert.deepEqual(DECISIONS.chooseMasterpiece.answers(r.state, ask), [
+		{ seat: r.player, card: 'fresco' },
+		{ seat: r.player, card: 'krav-maga' },
+	]);
+	const vp = r.seat.vp;
+	const territories = countVp(r.state, r.player, 'territory');
+	reply(r, 'chooseMasterpiece', { seat: r.player, card: 'krav-maga' });
+	// Krav Maga, then Fresco without asking: nothing else is left to order.
+	assert.deepEqual(fired(r.state, seq), [
+		`${r.player}:krav-maga`,
+		`${r.player}:fresco`,
+	]);
+	assert.equal(r.seat.vp, vp + 3 + territories);
+	assert.equal(r.seat.resources.culture, 1);
+	assert.ok(
+		!openDecisions(r.state).some((d) => d.kind === 'chooseMasterpiece')
+	);
+	checkState(r.state);
+});
+
+test('a masterpiece gained during the income step fires in the same step', () => {
+	const r = incomeTurn((seat, state) => {
+		hold(state, seat, ['costuming']);
+		seat.tracks.arts = [2];
+		seat.tracks.military = [3];
+		seat.resources.coin = 1;
+		// Krav Maga lies face up, for Dance to create.
+		const pile = state.supply.masterpieces;
+		pile.deck.push(pile.faceUp.shift());
+		pile.deck.splice(pile.deck.indexOf('krav-maga'), 1);
+		pile.faceUp.unshift('krav-maga');
+	});
+	const seq = r.state.seq;
+	reply(r, 'chooseTrade', { offer: 0, pay: { coin: 1 } });
+	assert.deepEqual(r.seat.tracks.arts, [3]);
+	reply(r, 'chooseCreate', { card: 'krav-maga' });
+	assert.deepEqual(fired(r.state, seq - 1).slice(-1), [
+		`${r.player}:krav-maga`,
+	]);
+	assert.equal(r.seat.vp, 3);
+	checkState(r.state);
+});
+
+test('a used masterpiece fires no more', () => {
+	const r = incomeTurn((seat, state) => {
+		hold(state, seat, ['art-deco', 'krav-maga'], ['art-deco']);
+		seat.tracks.military = [2];
+	});
+	assert.equal(r.seat.vp, 2);
+	assert.ok(
+		!openDecisions(r.state).some((d) => d.kind === 'chooseMasterpiece')
+	);
+	assert.deepEqual(
+		r.seat.masterpieces.map((/** @type {any} */ m) => m.used),
+		[true, false]
+	);
+});
+
+test('Carved Marble Sculpture broadcasts one of your masterpieces, or gains a building', () => {
+	// One masterpiece: it fires at once.
+	const one = ontoArts(6, (seat, state) => {
+		hold(state, seat, ['krav-maga']);
+		seat.tracks.military = [4];
+	});
+	reply(one, 'chooseOption', { option: 0 });
+	assert.equal(one.seat.vp, 4);
+	// Two: the player chooses, and only that one fires.
+	const two = ontoArts(6, (seat, state) => {
+		hold(state, seat, ['krav-maga', 'mapmaking']);
+		seat.tracks.military = [4];
+		seat.tracks.exploration = [2];
+	});
+	reply(two, 'chooseOption', { option: 0 });
+	const ask = openOf(two.state, 'chooseMasterpiece');
+	assert.equal(ask.purpose, 'broadcast');
+	reply(two, 'chooseMasterpiece', { seat: two.player, card: 'mapmaking' });
+	assert.equal(two.seat.vp, 2);
+	assert.ok(
+		!openDecisions(two.state).some((d) => d.kind === 'chooseMasterpiece')
+	);
+	// None: broadcasting does nothing.
+	const none = ontoArts(6);
+	const seq = none.state.seq;
+	reply(none, 'chooseOption', { option: 0 });
+	assert.ok(
+		none.state.events.some(
+			(/** @type {any} */ e) => e.type === 'noBroadcast' && e.seq > seq
+		)
+	);
+	checkState(none.state);
+});
+
+test("Streaming Implants: up to 3 different masterpieces, yours and your neighbours'", () => {
+	/** @type {number[]} */
+	let others = [];
+	const r = ontoArts(
+		12,
+		(seat, state) => {
+			// The neighbours in the engine's order: the seat before, then the seat after.
+			others = neighbours(state, seat.seat);
+			const [a, b] = others.map((n) => state.seats[n - 1]);
+			hold(state, seat, ['krav-maga']);
+			hold(state, a, ['fresco', 'mime']);
+			hold(state, b, ['art-deco', 'mapmaking'], ['art-deco']);
+			seat.tracks.military = [3];
+			seat.tracks.exploration = [2];
+		},
+		3
+	);
+	const [a, b] = others;
+	const ask = openOf(r.state, 'chooseMasterpiece');
+	assert.equal(ask.purpose, 'implants');
+	// Never another player's single-use card, nor a used one.
+	assert.deepEqual(DECISIONS.chooseMasterpiece.answers(r.state, ask), [
+		{ card: null },
+		{ seat: r.player, card: 'krav-maga' },
+		{ seat: a, card: 'fresco' },
+		{ seat: b, card: 'mapmaking' },
+	]);
+	const vp = r.seat.vp;
+	const territories = countVp(r.state, r.player, 'territory');
+	const theirs = [a, b].map((n) => r.state.seats[n - 1].vp);
+	reply(r, 'chooseMasterpiece', { seat: a, card: 'fresco' });
+	const next = openOf(r.state, 'chooseMasterpiece');
+	assert.ok(
+		!DECISIONS.chooseMasterpiece
+			.answers(r.state, next)
+			.some((answer) => answer.card === 'fresco'),
+		'a masterpiece is chosen once'
+	);
+	reply(r, 'chooseMasterpiece', { seat: r.player, card: 'krav-maga' });
+	reply(r, 'chooseMasterpiece', { seat: b, card: 'mapmaking' });
+	assert.ok(
+		!openDecisions(r.state).some((d) => d.kind === 'chooseMasterpiece'),
+		'3 at most'
+	);
+	assert.equal(r.seat.vp, vp + territories + 3 + 2);
+	assert.deepEqual(
+		[a, b].map((n) => r.state.seats[n - 1].vp),
+		theirs
+	);
+	checkState(r.state);
+});
+
+test('Streaming Implants may stop after one', () => {
+	const r = ontoArts(12, (seat, state) => {
+		hold(state, seat, ['krav-maga', 'mapmaking']);
+		seat.tracks.military = [3];
+	});
+	// Space 12 already scored the complete-track achievement.
+	const vp = r.seat.vp;
+	reply(r, 'chooseMasterpiece', { seat: r.player, card: 'krav-maga' });
+	reply(r, 'chooseMasterpiece', { card: null });
+	assert.ok(
+		!openDecisions(r.state).some((d) => d.kind === 'chooseMasterpiece')
+	);
+	assert.equal(r.seat.vp, vp + 3);
+});
+
+test("Streaming Implants with 2 players offers the opponent's cards once", () => {
+	const r = ontoArts(12, (seat, state) => {
+		const other = state.seats.find((/** @type {any} */ s) => s !== seat);
+		hold(state, other, ['fresco', 'theater']);
+	});
+	const other = r.player === 1 ? 2 : 1;
+	assert.deepEqual(
+		DECISIONS.chooseMasterpiece.answers(
+			r.state,
+			openOf(r.state, 'chooseMasterpiece')
+		),
+		[
+			{ card: null },
+			{ seat: other, card: 'fresco' },
+			{ seat: other, card: 'theater' },
+		]
+	);
+});
+
+test('Streaming Implants is the last arts space: it completes a track', () => {
+	const r = ontoArts(12);
+	assert.equal(spacesAdvanced(r.seat, 'arts'), 12);
+	assert.ok(r.state.achievements['complete-track'].includes(r.player));
+	assert.ok(
+		!openDecisions(r.state).some((d) => d.kind === 'chooseMasterpiece'),
+		'nothing to choose from'
+	);
 });
