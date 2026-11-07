@@ -183,6 +183,11 @@ Handed on from #32 (its design §7, and the comment on #35):
 - Each goal goes in `landmarkGoal`, read by the engine's check and the Civ tab's goal line, and its words in `src/lib/cards/landmark-text.js`.
 - **The Castle** needs the turn's moves: the engine records, during a player's own turn, each tier they moved into whose landmark was already gone (an Automa moving you doesn't count, 03 §2.10). "Advancement tracks" in the Windmill include the arts track (R118). "Invented" counts the tech cards the player holds, in any row (my call: a discarded card is no longer theirs).
 - Castle has 12 plots (R63); both versions use the corrected footprints (R65).
+- **Calls made while building part 3 (my calls, 2026-11-07):**
+  - The Castle's "moved into a tier" is R9's: a forward move that reaches or passes the tier's first space, so neither a jump nor a step back. It counts a tier whose landmark anyone took, the player included, and only moves on the player's own turn (`state.takenTiers`).
+  - The Bridge's "control" is `controlledTerritories`', and the starting territory is the seat's `start`; it doesn't count itself.
+  - `landmarkGoal` takes the game as a third argument, for the Bridge and the Castle; the Civ tab passes its view.
+  - How to play's P&P section keeps its draft sentence; the players + 1 deal goes in part 4's A&A section.
 
 ### 3.10 Cards that mention the arts track
 
