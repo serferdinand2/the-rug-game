@@ -230,3 +230,14 @@ test('the symbol key explains every word symbol and every kind of glyph the trac
 		assert.ok(row.words.length > 0);
 	}
 });
+
+test("an effect's track list keeps the arts track (#183)", () => {
+	assert.deepEqual(
+		short(effectGlyphs({ advance: { tracks: ['arts', 'science'] } })),
+		['Advance', 'track:arts', 'track:science']
+	);
+	assert.deepEqual(short(effectGlyphs({ regress: { tracks: ['arts'] } })), [
+		'Regress',
+		'track:arts',
+	]);
+});

@@ -314,6 +314,11 @@ test("Arts & Architecture's arts track has its own section, shown only with the 
 	assert.match(text, /turn face down once used/);
 	assert.match(text, /spaces 2, 4 and 6/);
 	assert.match(text, /d20/);
+	// #183: true with the variant Roll either science die too, where the roller chooses the die before each roll.
+	assert.match(
+		text,
+		/With the variant Roll either science die \(d12 or d20\), you choose the die before each roll/
+	);
 });
 
 test("Arts & Architecture's landmark cards have their own section, with the engine's goals and the larger deal (#35)", async () => {

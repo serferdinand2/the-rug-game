@@ -287,13 +287,13 @@ export const RULES_HELP = deepFreeze([
 		expansion: 'aa',
 		blocks: [
 			{
-				text: 'With Arts & Architecture a fifth track, the arts track, joins the board, unless the table plays without the arts track. An effect for any track or each track includes it; one that names the other four does not.',
+				text: 'With Arts & Architecture a fifth track, the arts track, joins the board, unless the table plays without the arts track. An effect for any or each track includes it; one naming the other four does not.',
 			},
 			{
 				text: 'Its tiers cost 1 resource of your choice, then 2 different resources, then 3 of your choice, then 2 of the same type. Its landmarks are the Clock Tower, the Opera House and the Holocenter.',
 			},
 			{
-				text: "Create: take one of the 3 face-up masterpieces on the arts track's line, or the deck's top card unseen. Your masterpieces show on your Civ tab, for everyone to see.",
+				text: "Create: take one of the 3 face-up masterpieces on the arts track's line, or the deck's top card unseen. Everyone sees your masterpieces on your Civ tab.",
 			},
 			{
 				text: "At the start of income turns 2 to 5, every masterpiece you hold fires, in the order you choose. Broadcast fires one of yours; Streaming Implants up to 3, yours or your neighbours'. Art Deco and Mime turn face down once used.",
@@ -302,7 +302,7 @@ export const RULES_HELP = deepFreeze([
 				text: 'Inspire: place one of your 4 inspiration tiles on an income row. It improves the spaces 2, 4 and 6 of that row, framed in gold on your Income tab.',
 			},
 			{
-				text: 'Every science die roll uses the d20, whose faces include the arts track.',
+				text: 'Science rolls use the d20, whose faces include the arts track. With the variant Roll either science die (d12 or d20), you choose the die before each roll.',
 			},
 		],
 	},

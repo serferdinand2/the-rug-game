@@ -1015,3 +1015,10 @@ test('a choice with every option a used-up building names them in the log (R117,
 		'Bo had no income building left to gain.'
 	);
 });
+
+test("the log names an income row as inspire's answer and the Income tab do (#183)", () => {
+	assert.equal(
+		eventText({ type: 'inspired', player: 1, row: 'market' }, GAME),
+		'Ana placed an inspiration tile on the Markets row.'
+	);
+});
