@@ -50,8 +50,9 @@
 	import Badge from '../ui/Badge.svelte';
 	import ResourceChip from './ResourceChip.svelte';
 	import { ComponentEvent } from '../../component-event.js';
-	import { RESOURCES, TRACKS, playerColor, trackColor } from '../../ui.js';
-	import { roman } from '../../game-names.js';
+	import { RESOURCES, playerColor, trackColor } from '../../ui.js';
+	import { roman, trackName } from '../../game-names.js';
+	import { ARTS_TRACK, TRACK_IDS } from '../../engine/data/ids.js';
 
 	/** @type {PlayerCardProps} */
 	let {
@@ -73,6 +74,16 @@
 		onPlayerCardSelect,
 		...attr
 	} = $props();
+
+	/** The tracks given, in board order: the four, then the arts track when it is in play (#35). */
+	let shownTracks = $derived(
+		/** @type {import('../../ui.js').TrackId[]} */ ([
+			...TRACK_IDS,
+			ARTS_TRACK,
+		])
+			.filter((id) => Object.hasOwn(tracks, id))
+			.map((id) => ({ id, name: trackName(id) }))
+	);
 
 	/** @type {HTMLButtonElement | undefined} */
 	let civilizationButton = $state();
@@ -155,7 +166,7 @@
 	<section
 		class="rg-player-card--section rg-player-card--tracks"
 		aria-label="Tracks">
-		{#each TRACKS as track (track.id)}
+		{#each shownTracks as track (track.id)}
 			<span
 				class="rg-player-card--track"
 				style:--rg-player-card-track={trackColor(track.id)}>

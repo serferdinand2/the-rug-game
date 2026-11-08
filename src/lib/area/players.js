@@ -10,7 +10,7 @@ import {
 	openDecisions,
 	spacesAdvanced,
 } from '../engine/game.js';
-import { TRACK_IDS } from '../engine/data/ids.js';
+import { boardTracks } from '../board.js';
 
 /**
  * The props of one PlayerCard.
@@ -105,9 +105,10 @@ export function playerCards(view, viewer, host) {
 				civilization: civilizationOf(seat),
 				era: summary.era,
 				resources: { ...seat.resources },
+				// The tracks in play: the arts track's too, after the four (#35).
 				tracks: /** @type {Record<import('../ui.js').TrackId, number>} */ (
 					Object.fromEntries(
-						TRACK_IDS.map((track) => [
+						boardTracks(view).map((track) => [
 							track,
 							spacesAdvanced(seat, track),
 						])

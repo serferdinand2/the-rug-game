@@ -10,6 +10,8 @@ import {
 } from '../src/lib/engine/game.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { render } from 'svelte/server';
+import PlayerCard from '../src/lib/components/player/PlayerCard.svelte';
 import { playerCards, playerChips } from '../src/lib/area/players.js';
 import { civilizationName } from '../src/lib/game-names.js';
 import { civAbilityText } from '../src/lib/cards/civ-rules.js';
@@ -176,4 +178,51 @@ test("while a finished player's End turn counts down, their chip keeps the turn 
 			[game.player === 2, false],
 		]
 	);
+});
+
+test('with the arts track a card has a fifth track, Arts, after the four; without it, only the four (#35 review)', () => {
+	const { state } = startedGame(2, { expansions: ['aa'] });
+	/** @type {any} */ (state.seats[0]).tracks.arts = [3];
+	const [card] = playerCards(view(state, 2), 2, 1);
+	assert.deepEqual(Object.keys(card.tracks), [
+		'exploration',
+		'science',
+		'technology',
+		'military',
+		'arts',
+	]);
+	assert.equal(card.tracks.arts, 3);
+	const [base] = playerCards(view(startedGame(2).state, 2), 2, 1);
+	assert.deepEqual(Object.keys(base.tracks), [
+		'exploration',
+		'science',
+		'technology',
+		'military',
+	]);
+});
+
+test('PlayerCard draws a row for each track it is given: five with the arts track, four without (#35 review)', () => {
+	const props = {
+		seat: /** @type {1} */ (1),
+		name: 'Mira',
+		vp: 0,
+		civilization: 'Setting up',
+		era: 1,
+		resources: { coin: 0, worker: 0, food: 0, culture: 0 },
+		handSize: 0,
+		capitalPoints: 0,
+		tech: 0,
+		terrain: [],
+	};
+	const four = { exploration: 1, science: 2, technology: 0, military: 4 };
+	const rows = (/** @type {string} */ html) =>
+		html.match(/class="rg-player-card--track-name[^"]*">([^<]*)</g) ?? [];
+	const base = render(PlayerCard, { props: { ...props, tracks: four } });
+	assert.equal(rows(base.body).length, 4);
+	const arts = render(PlayerCard, {
+		props: { ...props, tracks: { ...four, arts: 7 } },
+	});
+	assert.equal(rows(arts.body).length, 5);
+	assert.match(arts.body, /Arts<\/span>/);
+	assert.match(arts.body, /--rg-player-card-track: var\(--arts\)/);
 });

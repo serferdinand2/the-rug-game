@@ -1,4 +1,4 @@
-<!-- Library section: PlayerCard for the four overview players, with selectable civilization, capital and tech rows, and its autofocus. -->
+<!-- Library section: PlayerCard for the four overview players, with selectable civilization, capital and tech rows, the arts track's fifth row, and its autofocus. -->
 <script>
 	import Button from '../../../lib/components/ui/Button.svelte';
 	import PlayerCard from '../../../lib/components/player/PlayerCard.svelte';
@@ -125,6 +125,14 @@
 		surface="chrome"
 		width={300}>
 		<PlayerCard {...PLAYERS[2]} />
+	</Example>
+	<Example
+		label={'tracks={{ …, arts: 5 }}  (with the arts track: a fifth row, #35)'}
+		surface="chrome"
+		width={300}>
+		<PlayerCard
+			{...PLAYERS[0]}
+			tracks={{ ...PLAYERS[0].tracks, arts: 5 }} />
 	</Example>
 	<Example
 		label={'autofocus  (press Draw: the civilization row takes the focus, as the overview opens)'}

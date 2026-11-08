@@ -1550,5 +1550,9 @@ Built on 2026-11-02 on the branch `issue-33-pp-content`, not yet merged. The com
   4. Streaming Implants' Stop is an option in the panel, which Confirm then names, as declining a card is elsewhere.
   5. The Holocenter's counter reads the word Building after the VP; the arts effects stay words until symbols are drawn for them.
   6. The masterpiece card back is drawn at 80 × 65 pixels, a quarter of the card's size, with no lettering; the deck's count is the interface's.
-- **Waiting for the owner:** the d20 body and the masterpiece card back in the Art area; the branch's merge.
+- **Final review (2026-11-08, asked by the owner):** one review of all of #35, by Claude in the main session with no agents. Fixed: the players overview showed each player's four board tracks and never the arts track; `playerCards()` now gives the tracks in play and `PlayerCard` draws a row for each, Arts fifth in its violet, with an A&A example in the library (tests in `client-area-players`). Left as they are, minor:
+  1. How to play says every science roll uses the d20, which isn't so with the variant "Roll either science die".
+  2. The log names "the market row" where inspire's answer says "The Markets row".
+  3. `trackGlyphs()` in `glyphs.js` drops the arts track from an effect's track list; nothing drawn as symbols lists it today (Costuming's card reads as words).
+- **Waiting for the owner:** the d20 body and the masterpiece card back in the Art area; the overview's fifth row; the branch's merge.
 
