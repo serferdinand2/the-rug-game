@@ -27,6 +27,83 @@ import {
 } from './data/ids.js';
 import { artsTrackOn } from './data/tracks.js';
 import { MASTERPIECES } from './data/masterpieces.js';
+import { createBotSeat } from './state.js';
+import { AUTOMA_CIVS } from './data/automa-civs.js';
+import { AUTOMA_LEVELS } from './data/automa-levels.js';
+import { SCIENCE_DIE } from './data/dice.js';
+
+/** @typedef {{ kind: 'player', name: string } | { kind: 'automa', name: string, level?: number } | { kind: 'shadow', name: string }} Participant */
+/** @typedef {import('./state.js').BotSeat & { level?: number, civilization?: string, favouriteTrack: import('./data/ids.js').BoardTrackId, favouriteMarker?: 'outpost' | 'track-token', playerTokens?: number }} SetupBotSeat */
+
+/** Solo supply exclusions, including the optional starred removals, as listed in 02 §9.2. */
+const SOLO_TAPESTRY_REMOVALS = new Set([
+	'age-of-sail',
+	'alliance',
+	'coal-baron',
+	'dictatorship',
+	'diplomacy',
+	'espionage',
+	'marriage-of-state',
+	'oil-magnate',
+	'olympic-host',
+	'steam-tycoon',
+	'trade-economy',
+	'trap-6',
+	'trap-7',
+]);
+const SOLO_CIV_REMOVALS = new Set([
+	'futurists',
+	'heralds',
+	'inventors',
+	'traders',
+]);
+
+/**
+ * Validates ordered human/bot declarations without assigning people to bot seats.
+ * @param {unknown} participants
+ * @returns {Participant[]}
+ * @throws {PlayerError} For unsupported types, levels or official compositions
+ */
+export function checkParticipants(participants) {
+	checkPlayers(participants);
+	const seats = /** @type {Participant[]} */ (participants);
+	for (const seat of seats) {
+		if (!['player', 'automa', 'shadow'].includes(seat.kind)) {
+			throw new PlayerError(`Unknown participant kind: ${seat.kind}.`);
+		}
+		const level = /** @type {{ level?: unknown }} */ (seat).level;
+		if (seat.kind === 'automa') {
+			if (
+				!AUTOMA_LEVELS.some(
+					(entry) => entry.level === (level === undefined ? 2 : level)
+				)
+			) {
+				throw new PlayerError('Choose an Automa level from 1 to 6.');
+			}
+		} else if (level !== undefined) {
+			throw new PlayerError('Only an Automa seat has a level.');
+		}
+	}
+	const humans = seats.filter((s) => s.kind === 'player').length;
+	const automas = seats.filter((s) => s.kind === 'automa').length;
+	const shadows = seats.filter((s) => s.kind === 'shadow').length;
+	if (automas > 1 || shadows > 1) {
+		throw new PlayerError(
+			'Each official bot type may occupy only one seat.'
+		);
+	}
+	if (automas || shadows) {
+		if (!(
+			(humans === 1 && automas === 1 && shadows === 1) ||
+			(humans === 2 && automas === 0 && shadows === 1)
+		)) {
+			throw new PlayerError(
+				'Use one human with Automa and Shadow Empire, or two humans with Shadow Empire.'
+			);
+		}
+	}
+	return seats;
+}
 
 /**
  * The expansions whose setup is built, so a table may choose them. Each expansion issue adds its code (#32, #35, #39).
@@ -106,10 +183,15 @@ function checkPlayers(players) {
 
 /**
  * Checks a game's options, as a table does whenever its host changes them, throwing PlayerError for the first problem.
- * @param {{ version: unknown, expansions?: unknown, variants?: unknown }} options
+ * @param {{ version: unknown, expansions?: unknown, variants?: unknown, participants?: unknown }} options
  * @throws {PlayerError} For an unknown version, an unknown or unbuilt expansion, or an unknown or repeated variant
  */
-export function checkOptions({ version, expansions = [], variants = [] }) {
+export function checkOptions({
+	version,
+	expansions = [],
+	variants = [],
+	participants,
+}) {
 	if (!VERSIONS.some((v) => v.id === version)) {
 		throw new PlayerError(`Unknown rules version: ${version}.`);
 	}
@@ -158,6 +240,21 @@ export function checkOptions({ version, expansions = [], variants = [] }) {
 		throw new PlayerError(
 			`The variant "${variant?.name}" needs the arts track.`
 		);
+	}
+	if (participants !== undefined) {
+		const seats = checkParticipants(participants);
+		if (seats.some((s) => s.kind !== 'player')) {
+			if (artsTrackOn(expansions, variants)) {
+				throw new PlayerError(
+					'The official base bots cannot use the arts track (R59).'
+				);
+			}
+			if (expansions.length > 0) {
+				throw new PlayerError(
+					'Automa and Shadow Empire currently support only the base game.'
+				);
+			}
+		}
 	}
 }
 
@@ -228,7 +325,7 @@ function masterpieceSupply(random) {
  * What every setup step works on.
  * @typedef {Object} SetupContext
  * @property {import('./state.js').State} state - Being built; the steps change it
- * @property {import('./state.js').PlayerSeat[]} seats - The same objects as `state.seats`
+ * @property {import('./state.js').PlayerSeat[]} seats - The human objects from `state.seats`, in their original order
  * @property {import('./random.js').Random} random
  * @property {import('./state.js').NewLane[]} lanes - One per seat: the decisions that seat opens with
  * @property {{ player: number, hex: string }[]} starts - Where each seat's two outposts begin
@@ -362,7 +459,13 @@ function placeOutposts({ state, seats, starts }) {
  * @param {SetupContext} setup
  */
 function dealCivs({ state, seats, random, lanes, mats }) {
-	const civs = shuffle(civsFor(state.expansions, state.variants), random);
+	const solo = state.seats.some((s) => s.kind === 'automa');
+	const civs = shuffle(
+		civsFor(state.expansions, state.variants).filter(
+			(id) => !solo || !SOLO_CIV_REMOVALS.has(id)
+		),
+		random
+	);
 	seats.forEach((s, i) => {
 		const options = civs.slice(2 * i, 2 * i + 2);
 		const dealt = mats[i];
@@ -389,9 +492,76 @@ function dealCivs({ state, seats, random, lanes, mats }) {
  * The first player, at random.
  * @param {SetupContext} setup
  */
-function chooseFirstPlayer({ state, seats, random }) {
-	state.first = random(seats.length) + 1;
+function chooseFirstPlayer({ state, random }) {
+	// The solo bots act as a pair, never as two first-player candidates (02 §9.2).
+	const order = state.seats.some((s) => s.kind === 'automa')
+		? state.seats.filter((s) => s.kind !== 'shadow')
+		: state.seats;
+	state.first = order[random(order.length)].seat;
 	emit(state, { type: 'firstPlayerChosen', player: state.first });
+}
+
+/**
+ * The bots' physical setup. Runtime deck construction and income procedures follow in their own module.
+ * @param {import('./state.js').State} state
+ * @param {Participant[]} participants
+ * @param {import('./random.js').Random} random
+ */
+function setupBots(state, participants, random) {
+	/** @type {import('./data/ids.js').BoardTrackId | undefined} */
+	let automaFavourite;
+	for (const raw of state.seats.filter((s) => s.kind === 'automa')) {
+		const seat = /** @type {SetupBotSeat} */ (raw);
+		const declaration =
+			/** @type {Extract<Participant, {kind: 'automa'}>} */ (
+				participants[seat.seat - 1]
+			);
+		seat.level = declaration.level ?? 2;
+		const rolledTrack =
+			state.version === 'original'
+				? SCIENCE_DIE[random(SCIENCE_DIE.length)]
+				: null;
+		const civ =
+			state.version === 'original'
+				? AUTOMA_CIVS.find((c) => c.favouriteTrack === rolledTrack)
+				: AUTOMA_CIVS[random(AUTOMA_CIVS.length)];
+		if (!civ) {
+			throw new Error(
+				'The science die must identify a base Automa civilization.'
+			);
+		}
+		seat.civilization = civ.id;
+		seat.favouriteTrack = civ.favouriteTrack;
+		automaFavourite = civ.favouriteTrack;
+		seat.favouriteMarker =
+			state.version === 'original' ? 'outpost' : 'track-token';
+		if (seat.favouriteMarker === 'outpost') {
+			seat.outposts -= 1;
+		} else {
+			seat.tracks[civ.favouriteTrack].push(0);
+		}
+		seat.outposts -= 2;
+		state.hexes['2_0'].outposts.push(
+			{ seat: seat.seat, toppled: false },
+			{ seat: seat.seat, toppled: false }
+		);
+		emit(state, {
+			type: 'outpostsPlaced',
+			player: seat.seat,
+			hex: '2_0',
+			count: 2,
+		});
+	}
+	for (const raw of state.seats.filter((s) => s.kind === 'shadow')) {
+		const seat = /** @type {SetupBotSeat} */ (raw);
+		let favourite;
+		do {
+			favourite = SCIENCE_DIE[random(SCIENCE_DIE.length)];
+		} while (favourite === automaFavourite);
+		seat.favouriteTrack =
+			/** @type {import('./data/ids.js').BoardTrackId} */ (favourite);
+		seat.playerTokens = 5;
+	}
 }
 
 /**
@@ -410,7 +580,8 @@ export const SETUP_STEPS = [
 /**
  * Starts a new base game for 1 to 5 players. The first decisions are every player's setup picks, open at once.
  * @param {Object} options
- * @param {{ name: string }[]} options.players - In seat order, which is clockwise and turn order
+ * @param {{ name: string }[]} [options.players] - Legacy human-only seat declarations
+ * @param {Participant[]} [options.participants] - Ordered human and official typed bot seats
  * @param {import('./data/ids.js').VersionId} options.version
  * @param {string[]} [options.expansions] - Codes from EXPANSIONS_BUILT
  * @param {string[]} [options.variants] - Ids from VARIANTS
@@ -422,29 +593,42 @@ export const SETUP_STEPS = [
  */
 export function createGame({
 	players,
+	participants,
 	version,
 	expansions = [],
 	variants = [],
 	confirmEnd = false,
 	random,
 }) {
-	checkPlayers(players);
-	checkOptions({ version, expansions, variants });
+	if (players !== undefined && participants !== undefined) {
+		throw new PlayerError(
+			'Declare either players or participants, not both.'
+		);
+	}
+	if (participants === undefined) {
+		checkPlayers(players);
+		participants = /** @type {{name: string}[]} */ (players).map(
+			({ name }) => ({ kind: 'player', name })
+		);
+	}
+	checkOptions({ version, expansions, variants, participants });
 	if (typeof random !== 'function') {
 		throw new TypeError('createGame needs a random function.');
 	}
 	const arts = artsTrackOn(expansions, variants);
 	// R59: the Automa has no decision cards for the arts track, so no solo game uses it.
-	if (players.length === 1 && arts) {
+	const humans = participants.filter((p) => p.kind === 'player');
+	const solo = participants.some((p) => p.kind === 'automa');
+	if (humans.length === 1 && arts) {
 		throw new PlayerError(
 			'The arts track needs 2 or more players: there is no Automa with it (R59).'
 		);
 	}
-	const count = players.length;
+	const count = participants.length;
 	// R116: setup deals every player 2 civilizations. No table has too few today (the variant "All civilizations from
 	// Plans & Ploys" has 10, enough for 5 players); the check stays for a deck that ever does.
 	const deck = civsFor(expansions, variants).length;
-	if (deck < 2 * count) {
+	if (deck < 2 * humans.length) {
 		const variant = VARIANTS.find((v) => v.id === 'civs-from-pp');
 		throw new PlayerError(
 			`The variant "${variant?.name}" seats at most ${Math.floor(deck / 2)} players: its ${deck} civilizations deal 2 each.`
@@ -470,7 +654,11 @@ export function createGame({
 	);
 	const tech = shuffle(techDeck(variants), random);
 	const tracks = arts ? [...TRACK_IDS, ARTS_TRACK] : TRACK_IDS;
-	const seats = players.map((p, i) => newSeat(i + 1, p.name, tracks));
+	const seats = participants.map((p, i) =>
+		p.kind === 'player'
+			? newSeat(i + 1, p.name, tracks)
+			: createBotSeat(i + 1, p.kind, p.name, tracks, 10)
+	);
 
 	/** @type {import('./state.js').State} */
 	const state = {
@@ -492,7 +680,12 @@ export function createGame({
 				discard: [],
 			},
 			tapestry: {
-				deck: shuffle(tapestryFor(expansions), random),
+				deck: shuffle(
+					tapestryFor(expansions).filter(
+						(id) => !solo || !SOLO_TAPESTRY_REMOVALS.has(id)
+					),
+					random
+				),
 				discard: [],
 			},
 			territory: shuffle(
@@ -546,12 +739,17 @@ export function createGame({
 	/** @type {SetupContext} */
 	const setup = {
 		state,
-		seats,
+		seats: /** @type {import('./state.js').PlayerSeat[]} */ (
+			seats.filter((s) => s.kind === 'player')
+		),
 		random,
-		lanes: seats.map((s) => ({ player: s.seat, ops: [] })),
+		lanes: seats
+			.filter((s) => s.kind === 'player')
+			.map((s) => ({ player: s.seat, ops: [] })),
 		starts: [],
-		mats: seats.map(() => null),
+		mats: humans.map(() => null),
 	};
+	setupBots(state, participants, random);
 	for (const step of SETUP_STEPS) {
 		step(setup);
 	}

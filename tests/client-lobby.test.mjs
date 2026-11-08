@@ -18,7 +18,48 @@ import {
 	toggleVariant,
 	validCode,
 	variantRows,
+	botChoices,
+	botLevelChoices,
+	botSeatSelection,
 } from '../src/lib/lobby.js';
+
+test('lobby bot selections distinguish official types and keep level on Automa only', () => {
+	assert.deepEqual(
+		botChoices().map((choice) => [choice.value, choice.label]),
+		[
+			['automa', 'Automa'],
+			['shadow', 'Shadow Empire'],
+		]
+	);
+	assert.deepEqual(
+		botLevelChoices().map((choice) => choice.value),
+		['1', '2', '3', '4', '5', '6']
+	);
+	assert.deepEqual(botSeatSelection(2, 'automa', 4), {
+		seat: 2,
+		kind: 'automa',
+		level: 4,
+	});
+	assert.deepEqual(botSeatSelection(3, 'shadow'), {
+		seat: 3,
+		kind: 'shadow',
+	});
+	assert.throws(() => botSeatSelection(2, 'automa', 0), /level/i);
+	assert.throws(() => botSeatSelection(2, 'robot'), /bot/i);
+});
+
+test('bots neither show human readiness nor prevent switching human sharing mode', () => {
+	const room = view({
+		seats: [
+			{ name: 'Ana', ready: true },
+			{ name: 'Automa', kind: 'automa', ready: false },
+			{ name: 'Shadow Empire', kind: 'shadow', ready: false },
+		],
+	});
+	assert.equal(canChangeMode(room), true);
+	assert.equal(seatSlots(room, 5)[1].ready, undefined);
+	assert.deepEqual(seatBadges(seatSlots(room, 5)[1]), []);
+});
 import { VARIANTS } from '../src/lib/engine/game.js';
 
 /**

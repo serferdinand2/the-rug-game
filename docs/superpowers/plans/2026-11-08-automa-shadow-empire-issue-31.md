@@ -35,10 +35,10 @@
 ## File Map
 
 - `src/lib/engine/state.js`: bot seat shape, seat lookup helpers and shared neighbour logic.
-- `src/lib/engine/setup.js`, `src/lib/engine/table.js`, `src/lib/engine/view.js`: human/bot seat declarations, lobby bot type, table construction, turn order and public/private views.
+- `src/lib/engine/setup.js`, `src/lib/engine/table.js`, `src/lib/engine/view.js`, `api/rooms.mjs`: human/bot seat declarations, lobby bot type, table construction, turn order and public/private views.
 - New focused data modules `src/lib/engine/data/automa-cards.js`, `automa-levels.js`, and `automa-civs.js`: the source-backed base card set, level schedules and four base Automa civilization definitions. Turn procedures live in `src/lib/engine/automa.js` and `shadow-empire.js` in Task 4.
 - `src/lib/engine/registry.js`, `src/lib/engine/stack.js`, `src/lib/engine/turn.js`, `src/lib/engine/after-setup.js`, and shared map/track/effect modules: automatic bot operations integrated with normal turns and rules.
-- `src/lib/rooms.mjs` and the existing room/clock modules: admission, start, turn progression and human decision clocks.
+- `api/rooms.mjs` and existing room/clock modules: bot seat admission, game start, turn progression and human decision clocks.
 - `src/lib/player-actions.js`, `src/lib/event-feed.js`, and `src/lib/components/board/PlayerAction.svelte`: bot action data and green report surface with generated decision cards.
 - `src/lib/lobby.js`, `src/lib/components/lobby/PlaySettings.svelte`, `SeatCard.svelte`, `src/lib/area/players.js`, `src/lib/game-names.js`, `src/lib/turn.js`, and decision-word/kind modules: human/bot seat selection, lobby bot type/level selection, bot seat names/chips, footer and prompt text.
 - New focused tests in `tests/engine-automa.test.mjs`, `tests/engine-shadow-empire.test.mjs`, `tests/rooms-automa.test.mjs`, and updates to `tests/client-player-actions.test.mjs`, `tests/client-lobby.test.mjs`, plus existing simulation helpers.
@@ -73,14 +73,15 @@
 ## Task 3: Add human/bot seat setup and lobby bot choices
 
 **Files:**
-- Modify: `src/lib/engine/setup.js`, `src/lib/engine/table.js`, `src/lib/engine/after-setup.js`, `src/lib/lobby.js`
-- Test: `tests/engine-automa.test.mjs`, `tests/client-lobby.test.mjs`
+- Modify: `src/lib/engine/setup.js`, `src/lib/engine/table.js`, `src/lib/engine/after-setup.js`, `src/lib/lobby.js`, `api/rooms.mjs`
+- Test: `tests/engine-automa.test.mjs`, `tests/rooms-automa.test.mjs`, `tests/client-lobby.test.mjs`
 
-**Interfaces:** Keep the existing `checkOptions()` and `createGame()` entry points. Extend their options using validated, serializable mode/level values and construct bot seats through the typed-seat helpers from Task 1.
+**Interfaces:** Keep existing `checkOptions()` and `createGame()` entry points for current callers. Extend game setup with an ordered participant list so each seat is either a human or a typed bot (`automa` or `shadow`), with a level on Automa seats. Room lobby state must retain that seat choice without treating a bot as a connected person; the existing online/local setting remains about how humans share the table, not a solo-mode toggle. Permit the official compositions: one human with both Automa and Shadow Empire; or two humans with optional Shadow Empire.
 
-- [ ] Add tests for seat declarations as human/bot, lobby selection of Automa or Shadow Empire, one-human + Automa starting territories, and official Shadow Empire player-count restrictions.
-- [ ] Add rejection tests for expansion combinations, invalid difficulty, solo Arts track per R59, invalid player count/mode combinations, and unsupported bot variants.
-- [ ] Implement validated seat kinds, bot type and Automa level in engine/lobby configuration; ensure the ordinary multiplayer setup remains unchanged. Defer visible controls and bot seat chips until Task 8, after mockup approval.
+- [ ] Add tests for seat declarations as human/bot, lobby selection of Automa or Shadow Empire and Automa level, one-human + Automa + Shadow Empire starting territories, version-specific favourite markers/outpost supply, and the two-human optional Shadow Empire composition.
+- [ ] Add solo setup tests for the small 3-player map, the human 2/4 and Automa 3/5 starts, and the §9.2 removed tapestry/civilization supply.
+- [ ] Add rejection tests for expansion combinations, invalid difficulty, Arts track per R59, invalid seat compositions, duplicate/unsupported bot types and bot turn choices.
+- [ ] Implement validated ordered game participants and room bot-seat state; keep human session/ready behavior separate from bot seats. Defer visible seat controls and bot chips until Task 8, after mockup approval.
 - [ ] Commit setup integration.
 
 ## Task 4: Run automatic bot turns through shared rules
@@ -94,6 +95,7 @@
 - [ ] Add tests for each bot income step, track advance and listed benefits; assert bot-only benefits do not create human resources/buildings/cards.
 - [ ] Add map tests for explore/conquer targets, distance/tie-breaks, fixed solo starts, territory control, outpost placement/toppling and legal landmark pickup.
 - [ ] Add Shadow Empire tests for its official action selection, reversed tie-break direction, 12-card deck, landmark-only gains and track-completion achievements.
+- [ ] Add initial-turn tests: the solo bot pair takes the first shared income turn after/before the human by seat order; a two-human Shadow Empire takes its normal seat turn.
 - [ ] Add tests for neighbour-dependent player effects when a bot is the nearest/first neighbour: first-neighbour income bonus, tech prerequisites, Oil Magnate/Coal Baron/Steam Tycoon, opponent-based tapestry VP and effects, The Chosen/Historians/Traders/Architects, and `placeLandmark` behavior.
 - [ ] Add tests proving player conquer never asks a bot defender for a response; test Automa face-down trap handling, automatic bot income turn 1 and bot turns stopping after income turn 5.
 - [ ] Implement automatic turns as operation sequences that settle to completion before a human response is requested.
@@ -116,7 +118,7 @@
 ## Task 6: Make rooms, clocks and public views handle bots
 
 **Files:**
-- Modify: `src/lib/rooms.mjs`, relevant room turn/clock modules, `src/lib/engine/view.js`
+- Modify: `api/rooms.mjs`, relevant room turn/clock modules, `src/lib/engine/view.js`
 - Test: `tests/rooms-automa.test.mjs`, existing `tests/rooms*.test.mjs`, `tests/client-api.test.mjs`
 
 **Interfaces:** Preserve existing room play and timeout contracts. Bot actions are public events. Clocks accrue only to humans who must answer a decision; autonomous bot turns do not consume a human decision timer.

@@ -76,6 +76,11 @@ export const AFTER_SETUP_STEPS = {
 		const { state } = ctx;
 		state.phase = 'play';
 		emit(state, { type: 'setupDone' });
+		// Automatic bot turn scheduling is installed by the bot runtime. Never open a player's turn choice for a bot.
+		if (state.seats[state.first - 1].kind !== 'player') {
+			state.current = state.first;
+			return;
+		}
 		startTurn(ctx, state.first);
 	},
 };

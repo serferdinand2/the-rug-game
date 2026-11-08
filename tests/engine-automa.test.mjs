@@ -12,6 +12,213 @@ import {
 } from '../src/lib/engine/state.js';
 import { view } from '../src/lib/engine/view.js';
 import { newGame } from './helpers/engine.mjs';
+import { checkOptions, createGame } from '../src/lib/engine/setup.js';
+import { askedSeats, defaultAction } from '../src/lib/engine/table.js';
+import { seededRandom } from '../src/lib/engine/random.js';
+import { play } from '../src/lib/engine/play.js';
+
+const SOLO = [
+	{ kind: 'player', name: 'Ana' },
+	{ kind: 'automa', name: 'Automa', level: 2 },
+	{ kind: 'shadow', name: 'Shadow Empire' },
+];
+
+function soloSetup(version = 'current', participants = SOLO) {
+	return createGame({ participants, version, random: seededRandom(31) });
+}
+
+for (const version of ['original', 'current']) {
+	test(`${version} solo setup gives only the human setup choices and uses the printed fixed starts`, () => {
+		const state = soloSetup(version);
+		assert.equal(state.map, 'small');
+		assert.deepEqual(
+			state.seats.map((s) => s.kind),
+			['player', 'automa', 'shadow']
+		);
+		assert.deepEqual(askedSeats(state), [1]);
+		assert.equal(state.seats[0].start, '0_2');
+		assert.deepEqual(
+			state.hexes['0_2'].outposts.map((o) => o.seat),
+			[1, 1]
+		);
+		assert.deepEqual(
+			state.hexes['2_0'].outposts.map((o) => o.seat),
+			[2, 2]
+		);
+		assert.equal(
+			Object.values(state.hexes)
+				.flatMap((h) => h.outposts)
+				.filter((o) => o.seat === 3).length,
+			0
+		);
+		const automa = state.seats[1];
+		assert.equal(automa.level, 2);
+		assert.ok(
+			['explorers', 'conquerors', 'scientists', 'engineers'].includes(
+				automa.civilization
+			)
+		);
+		assert.notEqual(automa.favouriteTrack, state.seats[2].favouriteTrack);
+		assert.equal(
+			automa.favouriteMarker,
+			version === 'original' ? 'outpost' : 'track-token'
+		);
+		assert.equal(automa.outposts, version === 'original' ? 7 : 8);
+		assert.equal(
+			automa.tracks[automa.favouriteTrack].length,
+			version === 'original' ? 1 : 2
+		);
+		assert.equal(state.seats[2].outposts, 10);
+		assert.equal(state.seats[2].playerTokens, 5);
+	});
+}
+
+test('solo removes every §9.2 tapestry/civilization and exactly two traps before dealing', () => {
+	const state = soloSetup();
+	const cards = state.supply.tapestry.deck;
+	for (const id of [
+		'age-of-sail',
+		'alliance',
+		'coal-baron',
+		'dictatorship',
+		'diplomacy',
+		'espionage',
+		'marriage-of-state',
+		'oil-magnate',
+		'olympic-host',
+		'steam-tycoon',
+		'trade-economy',
+	]) {
+		assert.equal(cards.includes(id), false, id);
+	}
+	assert.equal(cards.filter((id) => id.startsWith('trap-')).length, 5);
+	const dealt = state.events
+		.filter((e) => e.type === 'civsDealt')
+		.flatMap((e) => e.secret.civs);
+	for (const id of ['futurists', 'heralds', 'inventors', 'traders']) {
+		assert.equal([...state.supply.civs, ...dealt].includes(id), false, id);
+	}
+});
+
+test('ordered participants preserve seat numbers and two humans may add Shadow Empire', () => {
+	const state = soloSetup('current', [
+		SOLO[2],
+		SOLO[0],
+		{ kind: 'player', name: 'Bo' },
+	]);
+	assert.deepEqual(
+		state.seats.map((s) => [s.seat, s.kind]),
+		[
+			[1, 'shadow'],
+			[2, 'player'],
+			[3, 'player'],
+		]
+	);
+	assert.deepEqual(askedSeats(state), [2, 3]);
+	assert.equal(state.supply.tapestry.deck.length, 50);
+	assert.equal(state.seats[0].outposts, 10);
+	assert.equal(
+		Object.values(state.hexes)
+			.flatMap((h) => h.outposts)
+			.filter((o) => o.seat === 1).length,
+		0
+	);
+});
+
+test('participant validation rejects unofficial compositions, bot kinds and levels', () => {
+	for (const participants of [
+		[],
+		[SOLO[0], SOLO[1]],
+		[SOLO[0], SOLO[2]],
+		[SOLO[1], SOLO[2]],
+		[...SOLO, SOLO[2]],
+		[SOLO[0], { kind: 'robot', name: 'Robot' }],
+		[SOLO[0], SOLO[1], { kind: 'player', name: 'Bo' }],
+	]) {
+		assert.throws(() => soloSetup('current', participants));
+	}
+	for (const level of [0, 7, 1.5, '2', null]) {
+		assert.throws(
+			() =>
+				soloSetup('current', [SOLO[0], { ...SOLO[1], level }, SOLO[2]]),
+			/level/i
+		);
+	}
+	for (const level of [1, 2, 3, 4, 5, 6]) {
+		assert.equal(
+			soloSetup('current', [SOLO[0], { ...SOLO[1], level }, SOLO[2]])
+				.seats[1].level,
+			level
+		);
+	}
+});
+
+test('bot options reject expansion combinations and arts under R59', () => {
+	for (const expansions of [['pp'], ['aa'], ['pp', 'aa']]) {
+		assert.throws(
+			() =>
+				checkOptions({
+					version: 'current',
+					expansions,
+					participants: SOLO,
+				}),
+			/base|arts|R59/i
+		);
+	}
+	assert.throws(
+		() =>
+			soloSetup('current', [
+				SOLO[0],
+				{ ...SOLO[2], level: 2 },
+				{ kind: 'player', name: 'Bo' },
+			]),
+		/level/i
+	);
+	assert.throws(
+		() =>
+			createGame({
+				players: [{ name: 'Ana' }],
+				participants: SOLO,
+				version: 'current',
+				random: seededRandom(1),
+			}),
+		/players|participants/i
+	);
+});
+
+test('table defaults never answer a human turn choice on behalf of a bot', () => {
+	const state = soloSetup();
+	state.pending = [
+		{
+			player: 2,
+			kind: 'chooseTurn',
+			id: 999,
+			batch: 999,
+			options: ['income'],
+		},
+	];
+	assert.deepEqual(askedSeats(state), []);
+	assert.equal(defaultAction(state, 2), null);
+	assert.throws(
+		() =>
+			play(state, 2, { decision: 999, turn: 'income' }, seededRandom(1)),
+		/player/i
+	);
+});
+
+test('the solo pair contributes one first-player candidate and never elects Shadow Empire', () => {
+	const seen = new Set();
+	for (let seed = 1; seed <= 24; seed += 1) {
+		const state = createGame({
+			participants: SOLO,
+			version: 'current',
+			random: seededRandom(seed),
+		});
+		assert.ok([1, 2].includes(state.first));
+		seen.add(state.first);
+	}
+	assert.deepEqual([...seen].sort(), [1, 2]);
+});
 
 const TRACKS = ['exploration', 'science', 'technology', 'military'];
 const PLAYER_FIELDS = [
