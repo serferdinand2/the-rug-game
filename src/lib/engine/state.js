@@ -65,7 +65,12 @@
  * @property {{ card: string, used: boolean }[]} [masterpieces] - With the arts track only: the masterpieces held, in the order gained, public; `used` for a single-use card turned face down (#35)
  * @property {BuildingId[]} [inspired] - With the arts track only: the income rows that hold the player's inspiration tile, in the order placed (#35)
  */
-/** @typedef {Seat & PlayerFields} PlayerSeat */
+/** @typedef {Seat & PlayerFields & { kind: 'player' }} PlayerSeat */
+/**
+ * A bot's common state. Its rule-specific fields belong to its own bot module,
+ * never to PlayerFields: neither bot has a player's hand, mat or resources.
+ * @typedef {Seat & { kind: 'automa' | 'shadow' }} BotSeat
+ */
 /**
  * @typedef {Object} Supply
  * @property {{ deck: string[], faceUp: string[], discard: string[] }} tech
@@ -179,8 +184,63 @@ export function playerSeat(state, seat) {
 }
 
 /**
+ * Creates only a bot's shared pieces; setup adds its rule-specific state.
+ * @param {number} seat - 1 to n
+ * @param {'automa' | 'shadow'} kind
+ * @param {string} name
+ * @param {readonly string[]} tracks - The tracks in play
+ * @param {number} outposts - Validated supply chosen by setup; map placement is separate
+ * @returns {BotSeat}
+ */
+export function createBotSeat(seat, kind, name, tracks, outposts) {
+	return {
+		seat,
+		kind,
+		name,
+		vp: 0,
+		vpSources: {},
+		tracks: /** @type {Record<TrackId, number[]>} */ (
+			Object.fromEntries(tracks.map((id) => [id, [0]]))
+		),
+		restartedTracks: [],
+		outposts,
+		incomeTurns: 0,
+		finished: false,
+	};
+}
+
+/**
+ * Whether `seat` names an Automa or Shadow Empire seat of the game.
+ * @param {State} state
+ * @param {unknown} seat
+ * @returns {boolean}
+ */
+export function isBotSeat(state, seat) {
+	if (typeof seat !== 'number' || !Number.isInteger(seat)) {
+		return false;
+	}
+	const found = state.seats.find((s) => s.seat === seat);
+	return !!found && (found.kind === 'automa' || found.kind === 'shadow');
+}
+
+/**
+ * Finds an Automa or Shadow Empire seat without treating it as a player.
+ * @param {State} state
+ * @param {number} seat - 1 to n
+ * @returns {BotSeat}
+ * @throws {Error} For an unknown seat or one that is not a bot
+ */
+export function botSeat(state, seat) {
+	const found = seatOf(state, seat);
+	if (found.kind !== 'automa' && found.kind !== 'shadow') {
+		throw new Error(`Seat ${seat} is not a bot.`);
+	}
+	return /** @type {BotSeat} */ (found);
+}
+
+/**
  * A seat's neighbours: the seats directly before and after it in seat order, each once (01 §4.2).
- * In a 2-player game the one opponent is both; alone, a seat has none until #31 adds the bots.
+ * Bots count as neighbours too. With two seats the one opponent is both; alone, a seat has none.
  * It lives here, with the other seat lookups, so the gain effect can find the Advisors without importing income.js (#33).
  * @param {State} state
  * @param {number} player
