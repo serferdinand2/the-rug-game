@@ -10,7 +10,9 @@
 	 *   | { kind: 'civ', id: string }
 	 *   | { kind: 'tapestry', id: string }
 	 *   | { kind: 'tech', id: string }
-	 *   | { kind: 'deck', id: 'tech', count: number }
+	 *   | { kind: 'deck', id: 'tech' | 'masterpiece', count: number }
+	 *   | { kind: 'masterpiece', id: string }
+	 *   | { kind: 'die-body', id: 'science' | 'science-d20' }
 	 *   | { kind: 'space-tile', id: number }
 	 *   | { kind: 'territory', id: number, orient: number }
 	 *   | { kind: 'mat', id: number }
@@ -60,7 +62,11 @@
 			case 'civ':
 			case 'tapestry':
 			case 'tech':
+			case 'masterpiece':
 				return artUrl(`${item.kind}/${item.id}`);
+			// A science die's body: the d12, or A&A's d20 (#35).
+			case 'die-body':
+				return artUrl(`die/${item.id}-body`);
 			case 'space-tile':
 				return artUrl(spaceTileArt(item.id));
 			case 'mat':

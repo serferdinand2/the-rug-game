@@ -445,6 +445,16 @@ export class PromptState {
 			selected: this.spot,
 		};
 	});
+	/** The income row an inspire has picked (#35), whose improved spaces the Income tab's mat previews. */
+	inspirePreview = $derived.by(() => {
+		if (this.decision?.kind !== 'chooseInspire' || this.picked === null) {
+			return null;
+		}
+		const row = this.decision.answers[this.picked]?.row;
+		return typeof row === 'string'
+			? /** @type {import('./engine/data/ids.js').BuildingId} */ (row)
+			: null;
+	});
 	/** The Islanders' mat while an explore offers its hexes (#165): what it lights, scores, has chosen and previews. */
 	islandPick = $derived(
 		this.exploring && this.targets.some((hex) => hex.startsWith('mat:'))
@@ -493,7 +503,7 @@ export class PromptState {
 				)
 	);
 	/** The cards on the shelf above the panel, for a card decision. */
-	shelfCards = $derived(shelfCardsOf(this.prompt, this.decision));
+	shelfCards = $derived(shelfCardsOf(this.prompt, this.decision, this.#game));
 	/** A building, landmark or Architects cube to place on the capital, from the Capital tab. */
 	placement = $derived(
 		this.prompt &&

@@ -931,6 +931,7 @@
 					onPlayerTabsPick={(/** @type {ComponentEvent} */ event) =>
 						promptState.pickTile(event.value.tile)}
 					civPick={promptState.civPick}
+					inspirePreview={promptState.inspirePreview}
 					islandPick={promptState.islandPick}
 					onPlayerTabsIsland={(/** @type {ComponentEvent} */ event) =>
 						promptState.selectHex(event.value.hex)}

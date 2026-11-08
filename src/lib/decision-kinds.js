@@ -1,14 +1,15 @@
 // Each decision kind's client facts (#129): the card shelf its answers are on, the tab it opens, its Confirm words and the art beside its answers.
 // A new engine kind adds its entry here, and its title and answer words in decision-words.js.
 
-/** @typedef {'tapestry' | 'tech' | 'civ' | 'mat' | 'landmark' | 'tile'} Shelf - The card shelf a decision's answers are on */
+/** @typedef {'tapestry' | 'tech' | 'civ' | 'mat' | 'landmark' | 'tile' | 'masterpiece'} Shelf - The card shelf a decision's answers are on */
 
 /**
  * The shapes of the art beside an answer, which prompts.js draws: a track, resources, a payment, a die face, a
  * landmark, a space tile, a gifted or an explored territory tile, a civilization, a building or landmark being placed,
- * an option's or an ordered effect's art, or a slot's track or resource.
+ * an option's or an ordered effect's art, a slot's track or resource, an income row's building (#35) or a science
+ * die's body (#35).
  * @typedef {'track' | 'resources' | 'payment' | 'die' | 'landmark' | 'space-tile' | 'gift' | 'explore' | 'civ'
- *   | 'placement' | 'option' | 'order' | 'slot'} ArtShape
+ *   | 'placement' | 'option' | 'order' | 'slot' | 'row' | 'science-die'} ArtShape
  */
 
 /**
@@ -35,6 +36,8 @@ export const ART_SHAPES = Object.freeze([
 	'option',
 	'order',
 	'slot',
+	'row',
+	'science-die',
 ]);
 
 /**
@@ -79,12 +82,13 @@ export const DECISION_KINDS = Object.freeze({
 	chooseTrack: { art: 'track' },
 	chooseRoll: { art: 'track' },
 	// The variant "Roll either science die": the d20 or the d12, before a roll (#35).
-	chooseScienceDie: {},
-	// A&A's masterpieces (#35 part 2); their cards on a shelf come with part 4's mockups.
-	chooseCreate: {},
+	chooseScienceDie: { confirm: 'Roll', art: 'science-die' },
+	// A&A's masterpieces (#35): the face-up cards and the deck, or the cards to fire, on the shelf (approved mockup).
+	chooseCreate: { shelf: 'masterpiece', confirm: 'Take card' },
 	chooseRefresh: {},
-	chooseMasterpiece: {},
-	chooseInspire: {},
+	chooseMasterpiece: { shelf: 'masterpiece', confirm: 'Fire' },
+	// The rows in the panel; the Income tab shows the mat they improve.
+	chooseInspire: { tab: 'income', confirm: 'Place tile', art: 'row' },
 	chooseSpace: { art: 'track' },
 	chooseHex: {},
 	chooseGift: { tab: 'terrain', art: 'gift' },
@@ -128,6 +132,8 @@ const DECLINE_CONFIRMS = Object.freeze({
 		typeof decision.vp === 'number' ? "Don't give" : 'Let them draw',
 	chooseTapestry: () => "Don't play",
 	chooseUpgrade: () => "Don't upgrade",
+	// Streaming Implants' "up to 3" (#35).
+	chooseMasterpiece: () => 'Stop',
 });
 
 /**

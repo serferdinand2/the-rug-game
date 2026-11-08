@@ -14,7 +14,9 @@ import {
 	tapestryCardData,
 	techCardData,
 } from './cards/game-cards.js';
-import { buildingName, landmarkName } from './game-names.js';
+import { buildingName, landmarkName, seatName } from './game-names.js';
+import { masterpieceCardData } from './cards/masterpiece-text.js';
+import { boardTracks } from './board.js';
 import { matPlots } from './area/capital.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { buildingsOut } from './engine/effects/building.js';
@@ -34,7 +36,9 @@ import { joinList } from './words.js';
  *   | { kind: 'civ', id: string }
  *   | { kind: 'tapestry', id: string }
  *   | { kind: 'tech', id: string }
- *   | { kind: 'deck', id: 'tech', count: number }
+ *   | { kind: 'deck', id: 'tech' | 'masterpiece', count: number }
+ *   | { kind: 'masterpiece', id: string }
+ *   | { kind: 'die-body', id: 'science' | 'science-d20' }
  *   | { kind: 'space-tile', id: number }
  *   | { kind: 'territory', id: number, orient: number }
  *   | { kind: 'mat', id: number }
@@ -98,6 +102,8 @@ import { joinList } from './words.js';
 
 /** The steps the income strip shows, in the mockup's words; the engine's other steps run unseen. */
 const STEP_LABELS = /** @type {Readonly<Record<string, string>>} */ ({
+	// A&A's masterpieces fire first, with the arts track only (#35).
+	masterpieces: 'Masterpieces',
 	civAbilities: 'Ability',
 	tapestry: 'Tapestry',
 	upgrade: 'Upgrade',
@@ -256,6 +262,16 @@ function techDeckCount(game) {
 	if (Array.isArray(deck)) {
 		return deck.length;
 	}
+	return typeof deck === 'number' ? deck : 0;
+}
+
+/**
+ * The masterpiece deck's count in the view, for its back on the shelf (#35).
+ * @param {any} game
+ * @returns {number}
+ */
+function masterpieceDeckCount(game) {
+	const deck = game?.supply?.masterpieces?.deck;
 	return typeof deck === 'number' ? deck : 0;
 }
 
@@ -478,6 +494,20 @@ const ART = Object.freeze({
 			? effectArt([decision.effects[answer.effect]])
 			: [],
 	slot: (decision, answer) => slotArt(decision, answer.slot),
+	// An income row's building, for inspire (#35).
+	row: (decision, answer) =>
+		BUILDING_IDS.includes(answer.row)
+			? [{ kind: 'building', id: answer.row }]
+			: [],
+	// A science die's body, for the variant "Roll either science die" (#35).
+	'science-die': (decision, answer) => {
+		if (answer.die === 'd20') {
+			return [{ kind: 'die-body', id: 'science-d20' }];
+		}
+		return answer.die === 'd12'
+			? [{ kind: 'die-body', id: 'science' }]
+			: [];
+	},
 });
 
 /**
@@ -501,6 +531,17 @@ function artOf(decision, answer, place, game) {
 		}
 		if (shelf === 'civ') {
 			return [{ kind: 'civ', id: answer.civ }];
+		}
+		if (shelf === 'masterpiece') {
+			return answer.card === 'deck'
+				? [
+						{
+							kind: 'deck',
+							id: 'masterpiece',
+							count: masterpieceDeckCount(game),
+						},
+					]
+				: [{ kind: 'masterpiece', id: cardOf(answer) }];
 		}
 		if (shelf === 'tile') {
 			const [stack, id] = String(shelfIdOf(shelf, answer)).split(':');
@@ -714,10 +755,12 @@ export function incomeView(game, seat) {
 		return null;
 	}
 	const turn = /** @type {number} */ (started.turn);
+	const arts = boardTracks(game).includes(ARTS_TRACK);
 	const shown = INCOME_STEPS.filter(
 		(id) =>
 			INCOME_STEP_KINDS[id].turns.includes(turn) &&
-			Object.hasOwn(STEP_LABELS, id)
+			Object.hasOwn(STEP_LABELS, id) &&
+			(id !== 'masterpieces' || arts)
 	);
 	const waiting = allOps(
 		Array.isArray(game.pending) ? game.pending : []
@@ -879,12 +922,18 @@ export function promptFor(decision, game, seat) {
  */
 
 /**
- * What a shelf card shows, resolved once (#118): a tapestry, tech or landmark card's data (#32), the top of the tech
- * deck, a civilization's id or a capital mat.
+ * A masterpiece on the shelf (#35): its card, and for a neighbour's card under Streaming Implants, its owner.
+ * @typedef {import('./cards/masterpiece-text.js').MasterpieceCardData & { masterpiece: string, owner?: { seat: number, name: string } }} MasterpieceFace
+ */
+
+/**
+ * What a shelf card shows, resolved once (#118): a tapestry, tech, landmark (#32) or masterpiece (#35) card's data, the
+ * top of the tech or masterpiece deck, a civilization's id or a capital mat.
  * @typedef {import('./cards/game-cards.js').TapestryCardData
  *   | import('./cards/game-cards.js').TechnologyCardData
  *   | import('./cards/game-cards.js').LandmarkCardData
- *   | { deck: 'tech', count: number }
+ *   | MasterpieceFace
+ *   | { deck: 'tech' | 'masterpiece', count: number }
  *   | { tile: 'territory' | 'space', id: number }
  *   | string
  *   | MatFace} ShelfFace
@@ -901,11 +950,22 @@ export function promptFor(decision, game, seat) {
 /**
  * A shelf card's face, from the id an answer names (#118).
  * @param {import('./decision-kinds.js').Shelf} kind - What the shelf holds
- * @param {string} id - A tapestry, tech or landmark card id, 'deck', a civilization id or a mat's number
- * @param {number} [count=0] - For the tech deck: the cards left
+ * @param {string} id - A tapestry, tech, landmark or masterpiece card id, 'deck', a civilization id or a mat's number
+ * @param {number} [count=0] - For the tech or masterpiece deck: the cards left
+ * @param {{ seat: number, name: string }} [owner] - For another player's masterpiece: whose it is (#35)
  * @returns {ShelfFace}
  */
-export function shelfFace(kind, id, count = 0) {
+export function shelfFace(kind, id, count = 0, owner) {
+	if (kind === 'masterpiece') {
+		if (id === 'deck') {
+			return { deck: 'masterpiece', count };
+		}
+		return {
+			masterpiece: id,
+			...masterpieceCardData(id),
+			...(owner && { owner }),
+		};
+	}
 	if (kind === 'tapestry') {
 		return tapestryCardData(id);
 	}
@@ -949,13 +1009,32 @@ export function placingCard(decision) {
 }
 
 /**
+ * The owner of a masterpiece offered to fire, when it isn't the player's own: Streaming Implants' neighbours (#35).
+ * @param {Decision} decision
+ * @param {Answer} answer
+ * @param {any} game - The view, to name the seat
+ * @returns {{ seat: number, name: string } | undefined}
+ */
+function ownerOf(decision, answer, game) {
+	if (
+		decision.kind !== 'chooseMasterpiece' ||
+		!isCount(answer.seat) ||
+		answer.seat === decision.player
+	) {
+		return undefined;
+	}
+	return { seat: answer.seat, name: seatName(game, answer.seat) };
+}
+
+/**
  * The cards on a decision's shelf, each with its face, in answer order (#118). The full view of a hovered card
  * reuses the face.
  * @param {Prompt | null} prompt
  * @param {Decision | null} decision
+ * @param {any} [game] - The view, to name the owner of another player's masterpiece (#35)
  * @returns {ShelfCard[]}
  */
-export function shelfCards(prompt, decision) {
+export function shelfCards(prompt, decision, game) {
 	const kind = prompt?.shelf;
 	if (!prompt || !kind || !decision) {
 		return [];
@@ -973,7 +1052,8 @@ export function shelfCards(prompt, decision) {
 					String(
 						shelfIdOf(kind, answer) ?? answer.civ ?? answer.capital
 					),
-					art?.kind === 'deck' ? art.count : 0
+					art?.kind === 'deck' ? art.count : 0,
+					ownerOf(decision, answer, game)
 				),
 			};
 		});

@@ -31,6 +31,8 @@
 	import CardFan from '../player/CardFan.svelte';
 	import CivilizationCard from '../player/CivilizationCard.svelte';
 	import LandmarkCard from '../player/LandmarkCard.svelte';
+	import MasterpieceBack from '../player/MasterpieceBack.svelte';
+	import MasterpieceCard from '../player/MasterpieceCard.svelte';
 	import ScaledCard from '../player/ScaledCard.svelte';
 	import TapestryCard from '../player/TapestryCard.svelte';
 	import TechDeckBack from '../player/TechDeckBack.svelte';
@@ -38,7 +40,7 @@
 	import { CARD_SIZES, fitScale } from '../../cards/card-sizes.js';
 	import { tilePreview } from '../../area/explore.js';
 	import { spaceTileArt } from '../../area/terrain.js';
-	import { artUrl } from '../../ui.js';
+	import { artUrl, playerColor } from '../../ui.js';
 	import { ComponentEvent } from '../../component-event.js';
 
 	/**
@@ -48,6 +50,8 @@
 	 */
 	const SCALE = { tapestry: 0.7, tech: 0.65 };
 
+	/** Masterpieces stand whole, as landmark cards do; more than four, such as Streaming Implants' (#35), are smaller. */
+	const MASTERPIECE_SCALE = 0.72;
 	/** The width of a tile on the shelf. */
 	const TILE_SIZE = 96;
 
@@ -96,10 +100,14 @@
 		mat: 'Capital mats to choose from',
 		landmark: 'Landmark cards to choose from',
 		tile: 'Tiles to choose from',
+		masterpiece: 'Masterpieces to choose from',
 	};
 
 	/** Tapestry cards fan out only when there are too many to sit side by side (#28 review). */
 	let fanned = $derived(kind === 'tapestry' && cards.length > 4);
+	let masterpieceScale = $derived(
+		kind === 'masterpiece' && cards.length > 4 ? MASTERPIECE_SCALE : 1
+	);
 
 	/** The fan counts its cards by position; the shelf's props and events use the answers' indexes. */
 	let chosen = $derived(
@@ -184,6 +192,32 @@
 					biome={face.biome}
 					{terrainSeed}
 					aria-hidden="true" />
+			{:else if 'masterpiece' in face}
+				<!-- A masterpiece, and for Streaming Implants a neighbour's marked with their name (approved mockup, #35). -->
+				<span
+					class="rg-card-shelf--masterpiece"
+					style:zoom={masterpieceScale}>
+					<MasterpieceCard
+						title={face.title}
+						artwork={face.artwork}
+						aria-hidden="true">
+						{#snippet effects()}<p>{face.text}</p>{/snippet}
+					</MasterpieceCard>
+					{#if face.owner}
+						<b
+							class="rg-card-shelf--owner"
+							style:--rg-card-shelf-owner={playerColor(
+								/** @type {import('../../ui.js').Seat} */ (
+									face.owner.seat
+								)
+							)}>{face.owner.name}'s</b>
+					{/if}
+				</span>
+			{:else if 'deck' in face && face.deck === 'masterpiece'}
+				<MasterpieceBack
+					style="zoom: {masterpieceScale}"
+					count={face.count}
+					aria-hidden="true" />
 			{:else if 'deck' in face}
 				<ScaledCard
 					scale={SCALE.tech}
@@ -246,6 +280,23 @@
 
 	.rg-card-shelf--tile img {
 		image-rendering: pixelated;
+	}
+
+	.rg-card-shelf--masterpiece {
+		position: relative;
+		display: block;
+	}
+
+	/* Another player's masterpiece, under Streaming Implants: their name in their colour on the card's corner. */
+	.rg-card-shelf--owner {
+		position: absolute;
+		top: -22px;
+		left: 0;
+		padding: var(--space-1) var(--space-4);
+		background: var(--rg-card-shelf-owner);
+		color: var(--ink);
+		font: var(--weight-bold) var(--font-size-xs) / var(--leading-snug)
+			var(--font-body);
 	}
 
 	/* Cards that don't fit scroll sideways rather than spill off both edges out of reach (#28 review). */

@@ -31,7 +31,14 @@ import {
 	effectsPhrase,
 	paymentVerbs,
 } from './describe.js';
-import { amountWords, capitalize, joinList, signed, wordsOf } from './words.js';
+import {
+	amountWords,
+	capitalize,
+	joinList,
+	pluralOf,
+	signed,
+	wordsOf,
+} from './words.js';
 import {
 	buildingName,
 	civilizationName,
@@ -665,14 +672,16 @@ const TITLES = {
 	chooseScienceDie: () => 'Choose the science die to roll',
 	chooseCreate: () => 'Create a masterpiece',
 	chooseRefresh: () => 'Refresh the face-up masterpieces?',
+	// The approved mockup's words (#35 part 4); Streaming Implants counts its 3 from `left`.
 	chooseMasterpiece: (d) => {
 		if (d.purpose === 'broadcast') {
-			return 'Broadcast: choose one of your masterpieces';
+			return 'Broadcast: choose a masterpiece to fire';
 		}
 		if (d.purpose === 'implants') {
-			return 'Streaming Implants: choose a masterpiece, yours or a neighbour’s';
+			const left = isCount(d.left) ? d.left : 3;
+			return `Streaming Implants: choose a masterpiece to fire (${4 - left} of 3)`;
 		}
-		return 'Choose the masterpiece that fires next';
+		return 'Your masterpieces fire: choose the next';
 	},
 	chooseInspire: () =>
 		'Inspire: choose an income row for an inspiration tile',
@@ -1231,7 +1240,9 @@ const ANSWERS = {
 		return a.refresh ? 'Refresh them' : 'Keep them';
 	},
 	chooseInspire: (a) =>
-		typeof a.row === 'string' ? `The ${wordsOf(a.row)} row` : null,
+		typeof a.row === 'string'
+			? `The ${pluralOf(buildingName(a.row))} row`
+			: null,
 	// Another seat's card names its owner (Streaming Implants).
 	chooseMasterpiece: (a, d, table) => {
 		if (a.card === null) {
