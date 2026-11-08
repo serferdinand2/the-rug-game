@@ -1,6 +1,6 @@
 // The symbols a track space shows for its benefit and bonus (#59): resources, buildings and tracks as their approved
 // art, and the game symbols that have no art yet (tiles, cards, explore, conquer, VP) as short words, as #5 decided.
-import { BUILDING_IDS, TRACK_IDS } from './engine/data/ids.js';
+import { ARTS_TRACK, BUILDING_IDS, TRACK_IDS } from './engine/data/ids.js';
 import { RESOURCE_ORDER } from './ui.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
@@ -53,6 +53,8 @@ const COUNTERS = /** @type {Readonly<Record<string, string>>} */ ({
 	trackLead: 'Track lead',
 	landmark: 'Landmark',
 	opponent: 'Opponent',
+	// The Holocenter's count (R71, #35).
+	incomeBuilding: 'Building',
 });
 
 /**
@@ -137,7 +139,10 @@ function counterGlyphs(value) {
 	let counted;
 	if (BUILDINGS.includes(value.per)) {
 		counted = { kind: 'building', id: value.per, count: 1 };
-	} else if (value.per === 'trackSpace' && TRACK_IDS.includes(value.track)) {
+	} else if (
+		value.per === 'trackSpace' &&
+		(TRACK_IDS.includes(value.track) || value.track === ARTS_TRACK)
+	) {
 		counted = { kind: 'track', id: value.track };
 	} else {
 		counted = word(COUNTERS[value.per] ?? 'Thing');
@@ -262,6 +267,17 @@ export function effectGlyphs(effect) {
 			return [word('Restart')];
 		case 'anyBuilding':
 			return [word('Any building')];
+		// A&A's arts effects (#35), as words until they have symbols, as the approved mockup shows them.
+		case 'create':
+			return [word('Create')];
+		case 'inspire':
+			return [word('Inspire')];
+		case 'broadcast':
+			return [word('Broadcast')];
+		case 'refreshMasterpieces':
+			return [word(v.optional ? 'May refresh' : 'Refresh')];
+		case 'streamingImplants':
+			return [word('Fire 3')];
 		case 'choice':
 			return (Array.isArray(value) ? value : []).flatMap(
 				(option, index) => [

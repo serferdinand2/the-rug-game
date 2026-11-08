@@ -1,5 +1,5 @@
 // The game's hotkeys (#83): which action a key asks for on the game screen, given what the screen can do now.
-import { TRACK_IDS } from './engine/data/ids.js';
+import { ARTS_TRACK, TRACK_IDS } from './engine/data/ids.js';
 
 /** @typedef {import('./ui.js').TrackId} TrackId */
 
@@ -40,8 +40,10 @@ import { TRACK_IDS } from './engine/data/ids.js';
  * @property {boolean} onControl - It was pressed on a control rather than the page, where Enter presses that control
  */
 
-/** The engine's tracks in board order, which the track question numbers from 1; the arts track (#35) will be 5. */
-export const TRACK_KEYS = TRACK_IDS;
+/** The tracks in board order, which the track question numbers from 1: the arts track is 5 (#35). */
+export const TRACK_KEYS = Object.freeze(
+	/** @type {TrackId[]} */ ([...TRACK_IDS, ARTS_TRACK])
+);
 
 /** The player tabs in order, on the keyboard's top row (owner); shortcuts.js lists them from here. */
 export const TAB_KEYS = Object.freeze({

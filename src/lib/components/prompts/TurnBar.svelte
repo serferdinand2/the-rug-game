@@ -14,7 +14,7 @@
 	 * @property {string} [headingEnd] - Text after the proper name and icon, such as '?'
 	 * @property {string} [detail] - One line under the heading: the benefit or the instruction
 	 * @property {import('../../ui.js').TrackId} [track] - The chosen space's track: colours the proper name, the cost and the optional tint
-	 * @property {import('../../ui.js').CostSymbol[] | null} [cost=null] - The price shown before the actions
+	 * @property {import('../../ui.js').PriceSymbol[] | null} [cost=null] - The price shown before the actions
 	 * @property {string} [costLabel] - The word before the price; defaults to 'Optional cost' in the optional tone and 'Cost' otherwise
 	 * @property {import('svelte').Snippet<[string | undefined]>} [actions] - The action Buttons, after the cost; it gets the tint for a primary Button, the track's colour in the optional tone and undefined otherwise (#117)
 	 * @property {import('svelte').Snippet} [note] - Drawn after the heading, on its line, such as the footer's "Just now" line with Show again (#153)

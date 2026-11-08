@@ -1,4 +1,4 @@
-<!-- Library section: TrackBoard with a dealt game's four tracks (trackBoard(view), #131) and the mockup's players, at its real width and height, and with a stand-in fifth track (#120). -->
+<!-- Library section: TrackBoard with a dealt game's four tracks (trackBoard(view), #131) and the mockup's players, at its real width and height, and with Arts & Architecture's fifth, the arts track (#120, #35). -->
 <script module>
 	import { trackBoard } from '../../../lib/board.js';
 	import { boardView } from '../../models.js';
@@ -25,18 +25,29 @@
 	);
 
 	/**
-	 * The four tracks and a stand-in fifth, as Arts & Architecture will have (#120): a copy of Science under the arts
-	 * track's id, only to show that five fit. #35 brings the arts track's own spaces and colour.
+	 * The same game with Arts & Architecture: the arts track fifth, its players on spaces 5, 2 and 8, and its three
+	 * landmarks still on the board (#35).
 	 * @type {typeof BOARD_TRACKS}
 	 */
-	const FIVE_TRACKS = [
-		...BOARD_TRACKS,
-		{
-			...BOARD_TRACKS[1],
-			id: /** @type {TrackId} */ ('arts'),
-			name: 'Arts (stand-in)',
-		},
-	];
+	const FIVE_TRACKS = (() => {
+		const view = boardView();
+		return trackBoard({
+			...view,
+			expansions: ['aa'],
+			landmarks: [
+				...view.landmarks,
+				'clock-tower',
+				'opera-house',
+				'holocenter',
+			],
+			seats: view.seats.map(
+				(/** @type {any} */ seat, /** @type {number} */ index) => ({
+					...seat,
+					tracks: { ...seat.tracks, arts: [[5, 2, 8][index] ?? 0] },
+				})
+			),
+		});
+	})();
 </script>
 
 <script>
@@ -69,11 +80,10 @@
 		</div>
 	</Example>
 	<Example
-		label={'tracks={the four tracks and a stand-in fifth}  (five tracks share the same height at 1920×1080, #120)'}
+		label={"tracks={trackBoard(view) of an Arts & Architecture game}  (five tracks share the same height at 1920×1080, #120; the arts track's ≠ and = prices, #35)"}
 		wide
 		width={1428}>
-		<!-- The stand-in borrows Arts & Architecture's colour until #35 gives the arts track its own. -->
-		<div style="height: 892px; --arts: var(--arts-architecture)">
+		<div style="height: 892px">
 			<TrackBoard tracks={FIVE_TRACKS} />
 		</div>
 	</Example>

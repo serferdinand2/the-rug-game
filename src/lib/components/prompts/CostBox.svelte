@@ -3,7 +3,7 @@
 	/**
 	 * Properties of the CostBox component itself.
 	 * @typedef {Object} CostBoxOwnProps
-	 * @property {import('../../ui.js').CostSymbol[]} symbols - The price, one symbol per resource, such as ['food', 'any']
+	 * @property {import('../../ui.js').PriceSymbol[]} symbols - The price, one symbol per resource, such as ['food', 'any'], then the arts track's ≠ or = mark (#35)
 	 * @property {import('../../ui.js').TrackId} [track] - The chosen space's track: the resource squares and the border take its colour; without it the border is bronze and each square keeps its resource's colour
 	 * @property {string} [label='Cost'] - The word before the symbols, such as 'Optional cost'; it also starts the aria-label
 	 */
@@ -21,7 +21,7 @@
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
 	import { priceWords } from '../../describe.js';
-	import { trackColor } from '../../ui.js';
+	import { isPriceMark, priceMarkSign, trackColor } from '../../ui.js';
 
 	/** @type {CostBoxProps} */
 	let { symbols, track, label = 'Cost', ...attr } = $props();
@@ -37,13 +37,17 @@
 	style:--rg-cost-box-color={track ? trackColor(track) : 'var(--bronze)'}>
 	<span class="rg-cost-box--label">{label}</span>
 	{#each symbols as symbol, index (index)}
-		{#if index > 0}
-			<span class="rg-cost-box--plus">+</span>
+		{#if isPriceMark(symbol)}
+			<b class="rg-cost-box--mark">{priceMarkSign(symbol)}</b>
+		{:else}
+			{#if index > 0}
+				<span class="rg-cost-box--plus">+</span>
+			{/if}
+			<ResourceIcon
+				{symbol}
+				size="medium"
+				decorative />
 		{/if}
-		<ResourceIcon
-			{symbol}
-			size="medium"
-			decorative />
 	{/each}
 </span>
 
@@ -71,6 +75,12 @@
 		line-height: var(--leading-none);
 		letter-spacing: var(--letter-spacing-caps);
 		text-transform: uppercase;
+	}
+
+	/* The arts track's ≠ or = after its icons (#35). */
+	.rg-cost-box--mark {
+		font-size: var(--font-size-xl);
+		line-height: var(--leading-none);
 	}
 
 	.rg-cost-box--plus {

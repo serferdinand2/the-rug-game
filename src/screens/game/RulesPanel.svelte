@@ -5,6 +5,7 @@
 	 * @typedef {Object} RulesPanelOwnProps
 	 * @property {string} [tab] - The tab on show: a section id of RULES_HELP, 'symbols' for the track symbols (#174) or 'keys' for the keyboard shortcuts; bindable, the first section by default
 	 * @property {readonly string[]} [expansions=[]] - The table's expansions, whose sections show too (#32)
+	 * @property {readonly import('../../lib/ui.js').TrackId[]} [tracks] - The tracks in play, whose keys the shortcuts list: the four by default, five with the arts track (#35)
 	 * @property {Function} [onRulesPanelClose] - Callback fired when Close, Escape or the backdrop closes the panel
 	 */
 
@@ -23,7 +24,8 @@
 	import Tabs from '../../lib/components/ui/Tabs.svelte';
 	import { ComponentEvent } from '../../lib/component-event.js';
 	import { RULES_HELP, rulesSections } from '../../lib/rules-help.js';
-	import { SHORTCUTS } from '../../lib/shortcuts.js';
+	import { shortcutGroups } from '../../lib/shortcuts.js';
+	import { TRACK_IDS } from '../../lib/engine/data/ids.js';
 
 	/** The keyboard shortcuts' tab, after the rules. */
 	const KEYS = 'keys';
@@ -34,11 +36,13 @@
 	let {
 		tab = $bindable(RULES_HELP[0]?.id ?? KEYS),
 		expansions = [],
+		tracks = TRACK_IDS,
 		onRulesPanelClose,
 		...attr
 	} = $props();
 
 	let sections = $derived(rulesSections(expansions));
+	let shortcuts = $derived(shortcutGroups(tracks));
 	let tabs = $derived([
 		...sections.flatMap((section) => [
 			{ id: section.id, label: section.title },
@@ -93,7 +97,7 @@
 				{/if}
 			{/each}
 		{:else}
-			{#each SHORTCUTS as group (group.title)}
+			{#each shortcuts as group (group.title)}
 				<h3 class="rg-rules-panel--group">{group.title}</h3>
 				<dl class="rg-rules-panel--keys">
 					{#each group.shortcuts as shortcut (shortcut.action)}

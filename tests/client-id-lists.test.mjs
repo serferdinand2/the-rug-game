@@ -4,7 +4,11 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { view } from '../src/lib/engine/game.js';
-import { RESOURCE_IDS, TRACK_IDS } from '../src/lib/engine/data/ids.js';
+import {
+	ARTS_TRACK,
+	RESOURCE_IDS,
+	TRACK_IDS,
+} from '../src/lib/engine/data/ids.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import { RESOURCE_ORDER, RESOURCES, TRACKS } from '../src/lib/ui.js';
 import { TRACK_KEYS } from '../src/lib/hotkeys.js';
@@ -20,12 +24,12 @@ const tokens = readFileSync(
 	'utf8'
 );
 
-test("the client's tracks and track keys are the engine's, in board order", () => {
+test("the client's tracks and track keys are the engine's, in board order, the arts track's key fifth (#35)", () => {
 	assert.deepEqual(
 		TRACKS.map((track) => track.id),
 		[...TRACK_IDS]
 	);
-	assert.deepEqual([...TRACK_KEYS], [...TRACK_IDS]);
+	assert.deepEqual([...TRACK_KEYS], [...TRACK_IDS, ARTS_TRACK]);
 });
 
 test("the screens list the engine's resources, food before workers", () => {

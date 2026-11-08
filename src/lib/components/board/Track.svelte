@@ -25,7 +25,7 @@
 	 * @property {import('../../ui.js').TrackId} id - The track, which sets the colours
 	 * @property {string} name - The track's name, such as 'Exploration'
 	 * @property {TrackSpaceEntry[]} spaces - The twelve spaces, in order
-	 * @property {import('../../ui.js').CostSymbol[][]} tiers - The four tier prices, I–IV, each over three spaces
+	 * @property {import('../../ui.js').PriceSymbol[][]} tiers - The four tier prices, I–IV, each over three spaces
 	 * @property {TrackPlayer[]} players - The players at the table, one progress lane each
 	 * @property {import('../../ui.js').Seat | null} [viewerSeat=null] - The viewer's seat; hovering the track shows only their progress
 	 * @property {number[]} [available=[]] - Space numbers the viewer can advance to, outlined in green

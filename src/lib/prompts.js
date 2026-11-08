@@ -2,7 +2,7 @@
 import { INCOME_STEPS, INCOME_STEP_KINDS } from './engine/game.js';
 import { TRACK_RESOURCE } from './engine/data/tracks.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
-import { BUILDING_IDS, TRACK_IDS } from './engine/data/ids.js';
+import { ARTS_TRACK, BUILDING_IDS, TRACK_IDS } from './engine/data/ids.js';
 import { RESOURCE_ORDER } from './ui.js';
 import { decisionTitle, describeAnswer, draftRest } from './decision-words.js';
 import { landmarkGoalPhrase } from './cards/landmark-text.js';
@@ -137,10 +137,19 @@ function isCount(value) {
  * @param {unknown} value
  * @returns {value is import('./engine/data/ids.js').BoardTrackId}
  */
-function isTrack(value) {
+function isBoardTrack(value) {
 	return TRACK_IDS.includes(
 		/** @type {import('./engine/data/ids.js').BoardTrackId} */ (value)
 	);
+}
+
+/**
+ * Whether a value is a track id: one of the four, or the arts track (#35), whose symbol an answer shows.
+ * @param {unknown} value
+ * @returns {value is TrackId}
+ */
+function isTrack(value) {
+	return isBoardTrack(value) || value === ARTS_TRACK;
 }
 
 /**
@@ -612,7 +621,7 @@ function costOf(decision) {
 		let symbol;
 		if (SYMBOL_ORDER.includes(/** @type {CostSymbol} */ (key))) {
 			symbol = /** @type {CostSymbol} */ (key);
-		} else if (key === 'track' && isTrack(decision.track)) {
+		} else if (key === 'track' && isBoardTrack(decision.track)) {
 			symbol = /** @type {CostSymbol} */ (TRACK_RESOURCE[decision.track]);
 		}
 		if (symbol && isCount(n)) {

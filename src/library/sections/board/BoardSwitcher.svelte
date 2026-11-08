@@ -1,11 +1,11 @@
-<!-- Library section: BoardSwitcher with each board chosen, and with a band for a stand-in fifth track (#120). -->
+<!-- Library section: BoardSwitcher with each board chosen, and with a band for the arts track, fifth (#120, #35). -->
 <script>
 	import BoardSwitcher from '../../../lib/components/board/BoardSwitcher.svelte';
 	import { TRACKS } from '../../../lib/ui.js';
 	import Example from '../../Example.svelte';
 	import Section from '../../Section.svelte';
 
-	/** The four tracks and a stand-in fifth under the arts track's id, until #35 adds it. */
+	/** The four tracks and Arts & Architecture's arts track (#35). */
 	const FIVE_TRACKS = [
 		...TRACKS.map((track) => track.id),
 		/** @type {import('../../../lib/ui.js').TrackId} */ ('arts'),
@@ -30,12 +30,9 @@
 		<BoardSwitcher bind:value={mapFirst} />
 	</Example>
 	<Example
-		label={`value="${fiveTracks}" tracks={the four tracks and a stand-in fifth}`}>
-		<!-- The stand-in borrows Arts & Architecture's colour until #35 gives the arts track its own. -->
-		<div style="--arts: var(--arts-architecture)">
-			<BoardSwitcher
-				bind:value={fiveTracks}
-				tracks={FIVE_TRACKS} />
-		</div>
+		label={`value="${fiveTracks}" tracks={the four tracks and the arts track}`}>
+		<BoardSwitcher
+			bind:value={fiveTracks}
+			tracks={FIVE_TRACKS} />
 	</Example>
 </Section>

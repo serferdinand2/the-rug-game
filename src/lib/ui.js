@@ -5,6 +5,7 @@ import { TRACK_IDS } from './engine/data/ids.js';
 /** @typedef {import('./engine/data/ids.js').TrackId} TrackId */
 /** @typedef {import('./engine/data/ids.js').ResourceId} ResourceId */
 /** @typedef {ResourceId | 'any'} CostSymbol - A price symbol: one resource, or one resource of any type */
+/** @typedef {CostSymbol | 'different' | 'same'} PriceSymbol - A tier price's symbol: a CostSymbol, or the arts track's mark after its icons, the resources all different or all one type (#35) */
 /** @typedef {'sea' | 'desert' | 'forest' | 'grassland' | 'mountain' | 'unexplored'} Terrain */
 /** @typedef {1 | 2 | 3 | 4 | 5} Seat - A table seat, which sets the player's colour */
 /** @typedef {'mountain' | 'wetland' | 'tropical' | 'desert' | 'grassland' | 'forest'} CapitalBiome */
@@ -43,6 +44,27 @@ export const TERRAINS = Object.freeze([
 
 /** The five seats of a table. @type {readonly Seat[]} */
 export const SEATS = Object.freeze([1, 2, 3, 4, 5]);
+
+/** The arts track's price marks (owner, #35 part 4): its resources all different, or all one type. */
+const PRICE_MARKS = Object.freeze({ different: '≠', same: '=' });
+
+/**
+ * Whether a price symbol is one of the arts track's marks, drawn as a sign after the icons it qualifies.
+ * @param {PriceSymbol} symbol
+ * @returns {symbol is 'different' | 'same'}
+ */
+export function isPriceMark(symbol) {
+	return symbol === 'different' || symbol === 'same';
+}
+
+/**
+ * The sign of an arts track price mark: ≠ for "different", = for "same".
+ * @param {'different' | 'same'} mark
+ * @returns {string}
+ */
+export function priceMarkSign(mark) {
+	return PRICE_MARKS[mark];
+}
 
 /**
  * The colour of a track.

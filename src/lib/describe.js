@@ -1,5 +1,5 @@
 // Words for the engine's effects, costs, bonuses and payments (#26 design §8): the short English the play screen shows.
-import { TRACK_IDS } from './engine/data/ids.js';
+import { ARTS_TRACK, TRACK_IDS } from './engine/data/ids.js';
 import {
 	AMOUNT_ORDER,
 	amountWords,
@@ -71,11 +71,19 @@ function isCount(value) {
 
 /**
  * A price in words, its symbols counted in the order they first appear: "1 food and 1 resource of your choice",
- * "2 coins", and "nothing" for an empty price.
- * @param {readonly import('./ui.js').CostSymbol[]} symbols - One symbol per resource paid
+ * "2 coins", and "nothing" for an empty price. The arts track's marks qualify its resources of your choice (#35): "2
+ * different resources", "2 resources of the same type".
+ * @param {readonly import('./ui.js').PriceSymbol[]} symbols - One symbol per resource paid, then any mark
  * @returns {string}
  */
 export function priceWords(symbols) {
+	const any = symbols.filter((symbol) => symbol === 'any').length;
+	if (symbols.includes('different')) {
+		return `${any} different resources`;
+	}
+	if (symbols.includes('same')) {
+		return `${any} resources of the same type`;
+	}
 	/** @type {Map<string, number>} */
 	const counts = new Map();
 	for (const symbol of symbols) {
@@ -107,12 +115,14 @@ export function amounts(counts, only = () => true) {
 }
 
 /**
- * Whether a value is one of the four track ids.
+ * Whether a value is a track id: one of the four, or the arts track (#35).
  * @param {unknown} track
  * @returns {track is import('./engine/data/ids.js').TrackId}
  */
 function isTrack(track) {
-	return TRACK_IDS.includes(/** @type {any} */ (track));
+	return (
+		TRACK_IDS.includes(/** @type {any} */ (track)) || track === ARTS_TRACK
+	);
 }
 
 /**

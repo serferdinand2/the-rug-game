@@ -2,7 +2,7 @@
 // for, from the engine run on their own view, the words for income turns (#77), and the footer that shows (#86).
 import { DECISIONS, askedSeats, openDecisions } from './engine/game.js';
 import { TRACKS, tierOf } from './engine/data/tracks.js';
-import { spaceWords, tierSymbols } from './board.js';
+import { boardTracks, spaceWords, tierSymbols } from './board.js';
 import { describeCost } from './describe.js';
 import { roman, seatName, spaceName, trackName } from './game-names.js';
 import { TRACK_KEYS } from './hotkeys.js';
@@ -253,7 +253,7 @@ export function firstIncomeNotice(view, seat) {
  * @property {string} [properName] - The selected space's name
  * @property {TrackId} [track] - The selected space's track
  * @property {string} [detail]
- * @property {import('./ui.js').CostSymbol[] | null} [cost] - The selected space's tier price
+ * @property {import('./ui.js').PriceSymbol[] | null} [cost] - The selected space's tier price
  * @property {{ description: string, label: string, folded: boolean } | null} [income] - The income reveal beside the turn label, as IncomeReveal takes it (#122)
  * @property {{ track: TrackId, label: string, enabled: boolean }[]} [tracks] - The track question's choices, by key
  * @property {{ enabled: boolean, title: string | undefined }} [advance] - The selected space's Advance button
@@ -339,7 +339,10 @@ export function footerView(game, seat, inputs) {
 			tone: 'neutral',
 			heading: 'Advance on which track?',
 			detail: 'Press its number, or Esc to go back.',
-			tracks: TRACK_KEYS.map((track, at) => ({
+			// The keys' tracks the table plays: the arts track's 5 only with it (#35).
+			tracks: TRACK_KEYS.filter((track) =>
+				boardTracks(game).includes(track)
+			).map((track, at) => ({
 				track,
 				label: `${at + 1} · ${trackName(track)}`,
 				enabled: open.has(track),

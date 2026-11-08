@@ -32,6 +32,16 @@
 	--science: #579274;
 	--technology: #b57a3b;
 	--military: #a94f4f;
+	--arts: #7b5aa6; /* Arts & Architecture's arts track: violet, as its brush symbol (owner, #35 part 4) */
+
+	/* ---------- Colour: Arts & Architecture's pieces (#35 part 4) ---------- */
+	--masterpiece-back: #5f3a9e; /* a masterpiece face down: the deck's back, a used card */
+	--masterpiece-back-deep: #3a2463; /* the far end of the back's gradient */
+	--masterpiece-used: #4b3a5e; /* a used single-use masterpiece's chip */
+	--masterpiece-used-text: #d9cbe8;
+	--masterpiece-used-note: #b9a7cf; /* its "used" */
+	--inspiration-tile: #4b2f7c; /* an inspiration tile not yet placed */
+	--inspiration-tile-text: #f3e6c4;
 
 	/* ---------- Colour: players, by seat; kept apart from the track colours, and from each other for colour-blind players ---------- */
 	--player-1: #4ea1d3;

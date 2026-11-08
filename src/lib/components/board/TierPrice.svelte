@@ -4,7 +4,7 @@
 	 * Properties of the TierPrice component itself.
 	 * @typedef {Object} TierPriceOwnProps
 	 * @property {number} era - The tier, 1–4, shown as I–IV
-	 * @property {import('../../ui.js').CostSymbol[]} symbols - The price: one symbol per resource paid, in order
+	 * @property {import('../../ui.js').PriceSymbol[]} symbols - The price: one symbol per resource paid, in order, then the arts track's ≠ or = mark (#35)
 	 * @property {import('../../ui.js').TrackId} track - The track, which colours the numeral and the resource squares
 	 * @property {boolean} [highlighted=false] - Gold rules and text while one of the tier's spaces is hovered or focused
 	 */
@@ -26,7 +26,7 @@
 <script>
 	import ResourceIcon from '../ui/ResourceIcon.svelte';
 	import { priceWords } from '../../describe.js';
-	import { trackColor } from '../../ui.js';
+	import { isPriceMark, priceMarkSign, trackColor } from '../../ui.js';
 	import { roman } from '../../game-names.js';
 
 	/** @type {TierPriceProps} */
@@ -46,9 +46,13 @@
 	<b class="rg-tier-price--era">{numeral}</b>
 	<i class="rg-tier-price--separator">·</i>
 	{#each symbols as symbol, index (index)}
-		<ResourceIcon
-			{symbol}
-			decorative />
+		{#if isPriceMark(symbol)}
+			<b class="rg-tier-price--mark">{priceMarkSign(symbol)}</b>
+		{:else}
+			<ResourceIcon
+				{symbol}
+				decorative />
+		{/if}
 	{/each}
 </div>
 
@@ -97,5 +101,12 @@
 
 	.rg-tier-price--separator {
 		font-style: normal;
+	}
+
+	/* The arts track's ≠ or = after its two any-resource icons (owner, #35 part 4). */
+	.rg-tier-price--mark {
+		color: var(--text);
+		font: var(--weight-bold) var(--font-size-xl) / var(--leading-none)
+			var(--font-body);
 	}
 </style>

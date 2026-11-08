@@ -104,6 +104,11 @@
 			(track === 'military' && name === 'Drone Assassins')
 	);
 	let dense = $derived(track === 'technology' && [5, 6, 8].includes(space));
+	// The arts track's Flash Mob and Infinite Spectrum Photography (#35): four track symbols, two by two, so the bonus
+	// band below Infinite Spectrum Photography leaves them room.
+	let fourTracks = $derived(
+		benefit.filter((glyph) => glyph.kind === 'track').length === 4
+	);
 	let displayedBenefit = $derived(
 		benefit.flatMap((glyph, index) =>
 			plusBefore(glyph, index) ? [PLUS, glyph] : [glyph]
@@ -244,6 +249,7 @@
 	class:rg-track-space--exploration={track === 'exploration'}
 	class:rg-track-space--military={track === 'military'}
 	class:rg-track-space--dense={dense}
+	class:rg-track-space--four-tracks={fourTracks}
 	class:rg-track-space--track-progress={hasTrackProgress}
 	class:rg-track-space--drone-assassins={track === 'military' &&
 		name === 'Drone Assassins'}
@@ -684,6 +690,33 @@
 		align-items: center;
 		align-content: safe center;
 		gap: 2px;
+	}
+	/* Flash Mob and Infinite Spectrum Photography (#35): the advance's arrow, then their four tracks two by two. */
+	.rg-track-space.rg-track-space--four-tracks .rg-track-space--benefit {
+		display: grid;
+		grid-template-columns: repeat(3, auto);
+		justify-content: center;
+		align-content: center;
+		align-items: center;
+		gap: 2px 4px;
+	}
+	.rg-track-space--four-tracks :global(.rg-space-glyphs--direction) {
+		grid-row: span 2;
+	}
+	/* Above a bonus band, under a two-line name, they make one row of smaller tracks. */
+	.rg-track-space.rg-track-space--four-tracks.rg-track-space--has-bonus
+		.rg-track-space--benefit {
+		grid-template-columns: repeat(5, auto);
+		gap: 0 3px;
+	}
+	.rg-track-space--four-tracks.rg-track-space--has-bonus
+		:global(.rg-space-glyphs--direction) {
+		grid-row: auto;
+	}
+	.rg-track-space--four-tracks.rg-track-space--has-bonus
+		:global(.rg-space-glyphs--track) {
+		width: 18px;
+		height: 18px;
 	}
 	/* Mechs: Conquer over Both dice, then + and the civilization card. */
 	.rg-track-space--mechs .rg-track-space--benefit {

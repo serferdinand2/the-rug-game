@@ -55,7 +55,7 @@
 	import CardPreview from '../lib/components/player/CardPreview.svelte';
 	import { tabFor } from '../lib/area/tabs.js';
 	import { nextInspected, shownSeat } from '../lib/area/inspect.js';
-	import { achievements, trackBoard } from '../lib/board.js';
+	import { achievements, boardTracks, trackBoard } from '../lib/board.js';
 	import { NO_HOLDS, holdTokens } from '../lib/held-tokens.js';
 	import { mapHexes } from '../lib/hexmap.js';
 	import { PromptState } from '../lib/prompt-state.svelte.js';
@@ -827,7 +827,9 @@
 	{#snippet shared()}
 		<div class="rg-game--shared">
 			<div class="rg-game--head">
-				<BoardSwitcher bind:value={board} />
+				<BoardSwitcher
+					bind:value={board}
+					tracks={boardTracks(game)} />
 				<AchievementStrip achievements={achievements(game)} />
 			</div>
 			<!-- Keyed by the board on show, so switching settles the new one in (#175). -->
@@ -957,6 +959,7 @@
 			<RulesPanel
 				bind:tab={rulesTab}
 				expansions={game.expansions ?? []}
+				tracks={boardTracks(game)}
 				onRulesPanelClose={() =>
 					(layers = closeLayer(layers, 'rules'))} />
 		{/if}

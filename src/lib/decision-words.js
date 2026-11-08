@@ -22,7 +22,7 @@ import {
 import { spaceTileWords } from './area/terrain.js';
 import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
-import { RESOURCE_IDS, TRACK_IDS } from './engine/data/ids.js';
+import { ARTS_TRACK, RESOURCE_IDS, TRACK_IDS } from './engine/data/ids.js';
 import { GRID_SIZE } from './capital.js';
 import {
 	amounts,
@@ -101,7 +101,9 @@ function isCount(value) {
  * @returns {track is import('./engine/data/ids.js').TrackId}
  */
 function isTrack(track) {
-	return TRACK_IDS.includes(/** @type {any} */ (track));
+	return (
+		TRACK_IDS.includes(/** @type {any} */ (track)) || track === ARTS_TRACK
+	);
 }
 
 /**

@@ -12,15 +12,20 @@
 	import { achievements, spaceWords, trackBoard } from '../lib/board.js';
 	import { bonusGlyphs, spaceGlyphs } from '../lib/glyphs.js';
 	import { describeEffects } from '../lib/describe.js';
-	import { masterpieceName } from '../lib/game-names.js';
+	import { buildingName, masterpieceName } from '../lib/game-names.js';
 	import { landmarkCardData } from '../lib/cards/game-cards.js';
 	import { bonusOf } from '../lib/engine/game.js';
 	import { TRACKS } from '../lib/engine/data/tracks.js';
 	import { landmarksFor } from '../lib/engine/data/landmarks.js';
 	import { masterpiece } from '../lib/engine/data/masterpieces.js';
 	import { INCOME_MAT, INSPIRED_MAT } from '../lib/engine/data/income-mat.js';
-	import { BUILDING_IDS } from '../lib/engine/data/ids.js';
-	import { artUrl } from '../lib/ui.js';
+	import {
+		ARTS_TRACK,
+		BUILDING_IDS,
+		TRACK_IDS,
+	} from '../lib/engine/data/ids.js';
+	import { artUrl, playerColor } from '../lib/ui.js';
+	import { pluralOf } from '../lib/words.js';
 
 	/** @typedef {import('../lib/glyphs.js').Glyph} Glyph */
 	/** @typedef {import('../lib/engine/data/ids.js').BuildingId} BuildingId */
@@ -158,20 +163,26 @@
 		})),
 	};
 
-	const TRACK_LIST = [...trackBoard(/** @type {any} */ (VIEW)), ARTS];
+	// The board's four rows, then the mockup's own arts row (the build draws it from trackBoard since).
+	const TRACK_LIST = [
+		...trackBoard(/** @type {any} */ (VIEW)).filter(
+			(track) => track.id !== ARTS_TRACK
+		),
+		ARTS,
+	];
 	const BANDS = /** @type {import('../lib/ui.js').TrackId[]} */ ([
-		'exploration',
-		'science',
-		'technology',
-		'military',
-		'arts',
+		...TRACK_IDS,
+		ARTS_TRACK,
 	]);
 	const ACHIEVEMENTS = achievements(/** @type {any} */ (VIEW));
 
-	/** The two colours offered for the arts track. */
+	/** The two colours offered for the arts track: the token's violet (chosen), or a plum, overriding it. */
 	const COLOURS = {
-		a: { label: 'A · Violet, as its symbol', value: '#7b5aa6' },
-		b: { label: 'B · Plum, apart from player 5', value: '#9a4d7c' },
+		a: { label: 'A · Violet, as its symbol', value: null },
+		b: {
+			label: 'B · Plum, apart from player 5',
+			value: 'color-mix(in srgb, var(--card-expansion), var(--military))',
+		},
 	};
 
 	// The masterpieces on show: the face-up row, the deck, and what Ana holds.
@@ -235,7 +246,7 @@
 			const exposed = 6 - left[building];
 			return {
 				building,
-				name: ROW_NAMES[building],
+				name: rowName(building),
 				left: left[building],
 				spaces: mat[building].map((space, index) => {
 					const covered = index >= exposed;
@@ -266,14 +277,9 @@
 
 	const LEFT = { market: 3, house: 5, farm: 5, armory: 5 };
 
-	/** The rows' names, as the income mat heads them. */
-	/** @type {Record<BuildingId, string>} */
-	const ROW_NAMES = {
-		market: 'Markets',
-		house: 'Houses',
-		farm: 'Farms',
-		armory: 'Armories',
-	};
+	/** A row's name, as the income mat heads it: "Markets". */
+	const rowName = (/** @type {BuildingId} */ building) =>
+		pluralOf(buildingName(building));
 
 	/** The options of each control, and the rows without a tile yet. */
 	const AB = /** @type {('a' | 'b')[]} */ (['a', 'b']);
@@ -678,7 +684,7 @@
 									<img
 										src={artUrl(`building/${building}`)}
 										alt="" />
-									{ROW_NAMES[building]}
+									{rowName(building)}
 								</button>
 							{/each}
 						</div>
@@ -834,8 +840,11 @@
 									{#if option.seat !== 1}
 										<span
 											class="mk-owner"
-											style:--owner="var(--player-{option.seat})"
-											>{option.owner}'s</span>
+											style:--owner={playerColor(
+												/** @type {import('../lib/ui.js').Seat} */ (
+													option.seat
+												)
+											)}>{option.owner}'s</span>
 									{/if}
 									{@render card(option.card)}
 								</button>
@@ -882,7 +891,7 @@
 				<DecisionPanel
 					title="Inspire: choose an income row for an inspiration tile"
 					status={inspiring
-						? `Inspire the ${ROW_NAMES[inspiring]} row.`
+						? `Inspire the ${rowName(inspiring)} row.`
 						: 'Choose a row; Markets already has its tile.'}
 					confirmLabel="Place tile"
 					confirmDisabled={inspiring === null}
@@ -890,7 +899,7 @@
 					<div class="mk-options">
 						{#each SPARE as building (building)}
 							<DecisionOption
-								label="The {ROW_NAMES[building]} row"
+								label="The {rowName(building)} row"
 								art={[{ kind: 'building', id: building }]}
 								pressed={inspiring === building}
 								onDecisionOptionClick={() =>
@@ -1015,9 +1024,9 @@
 <style>
 	.mk-page {
 		display: grid;
-		gap: var(--space-12);
+		gap: var(--space-11);
 		width: 1920px;
-		padding: var(--space-10) 0 var(--space-16);
+		padding: var(--space-10) 0 var(--space-11);
 	}
 
 	.mk-page > *:not(.mk-step),
@@ -1199,9 +1208,9 @@
 		align-items: center;
 		gap: var(--space-3);
 		padding: var(--space-1) var(--space-4) var(--space-1) var(--space-1);
-		border: var(--border) solid #94764c;
-		background: #e8d6ad;
-		color: #3c3021;
+		border: var(--border) solid var(--card-line);
+		background: var(--card-raised);
+		color: var(--card-text);
 		font: var(--weight-bold) var(--font-size-xs) / 1 var(--font-body);
 		cursor: default;
 	}
@@ -1227,8 +1236,8 @@
 
 	.mk-chip--used {
 		border-color: var(--line-strong);
-		background: #4b3a5e;
-		color: #d9cbe8;
+		background: var(--masterpiece-used);
+		color: var(--masterpiece-used-text);
 	}
 
 	.mk-chip--down {
@@ -1236,7 +1245,7 @@
 		place-items: center;
 		width: 32px;
 		height: 32px;
-		background: #5f3a9e;
+		background: var(--masterpiece-back);
 	}
 
 	.mk-chip--down img {
@@ -1245,7 +1254,7 @@
 	}
 
 	.mk-chip--name em {
-		color: #b9a7cf;
+		color: var(--masterpiece-used-note);
 		font-style: normal;
 		font-weight: var(--weight-regular);
 	}
@@ -1321,8 +1330,8 @@
 		gap: var(--space-3);
 		padding: var(--space-1) var(--space-4) var(--space-1) var(--space-2);
 		border: 2px solid var(--gold);
-		background: #4b2f7c;
-		color: #f3e6c4;
+		background: var(--inspiration-tile);
+		color: var(--inspiration-tile-text);
 		font: var(--weight-bold) var(--font-size-xs) / 1 var(--font-body);
 		cursor: default;
 	}
@@ -1407,10 +1416,14 @@
 		width: 200px;
 		height: 100%;
 		min-height: 200px;
-		border: 2px solid #735934;
-		background: linear-gradient(160deg, #5f3a9e, #3a2463);
-		box-shadow: inset 0 0 0 4px #e2b857;
-		color: #e2b857;
+		border: 2px solid var(--card-line-strong);
+		background: linear-gradient(
+			160deg,
+			var(--masterpiece-back),
+			var(--masterpiece-back-deep)
+		);
+		box-shadow: inset 0 0 0 4px var(--card-title);
+		color: var(--card-title);
 		font: var(--weight-bold) var(--font-size-lg) / 1 var(--font-title);
 	}
 
@@ -1425,7 +1438,7 @@
 		bottom: var(--space-4);
 		left: 50%;
 		transform: translateX(-50%);
-		color: #e8ddc4;
+		color: var(--card-raised);
 		font-size: var(--font-size-xs);
 	}
 
@@ -1496,9 +1509,9 @@
 		justify-items: center;
 		gap: var(--space-6);
 		margin: 0;
-		padding: var(--space-10) var(--space-16);
+		padding: var(--space-10) var(--space-11);
 		border: var(--border) solid var(--line-soft);
-		background: rgb(23 26 29 / 92%);
+		background: color-mix(in srgb, var(--chrome) 92%, transparent);
 		box-shadow: var(--shadow-float);
 		color: var(--text);
 		font-size: var(--font-size-lg);
