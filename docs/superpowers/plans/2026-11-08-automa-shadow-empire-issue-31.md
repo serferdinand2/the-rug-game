@@ -36,7 +36,7 @@
 
 - `src/lib/engine/state.js`: bot seat shape, seat lookup helpers and shared neighbour logic.
 - `src/lib/engine/setup.js`, `src/lib/engine/table.js`, `src/lib/engine/view.js`: human/bot seat declarations, lobby bot type, table construction, turn order and public/private views.
-- New focused Automa modules under `src/lib/engine/` and card data under `src/lib/engine/data/`: decision/progress decks, level schedules and deterministic bot procedures.
+- New focused data modules `src/lib/engine/data/automa-cards.js`, `automa-levels.js`, and `automa-civs.js`: the source-backed base card set, level schedules and four base Automa civilization definitions. Turn procedures live in `src/lib/engine/automa.js` and `shadow-empire.js` in Task 4.
 - `src/lib/engine/registry.js`, `src/lib/engine/stack.js`, `src/lib/engine/turn.js`, `src/lib/engine/after-setup.js`, and shared map/track/effect modules: automatic bot operations integrated with normal turns and rules.
 - `src/lib/rooms.mjs` and the existing room/clock modules: admission, start, turn progression and human decision clocks.
 - `src/lib/player-actions.js`, `src/lib/event-feed.js`, and `src/lib/components/board/PlayerAction.svelte`: bot action data and green report surface with generated decision cards.
@@ -59,16 +59,16 @@
 ## Task 2: Implement base Automa and Shadow Empire data
 
 **Files:**
-- Create: `src/lib/engine/automa.js`, `src/lib/engine/shadow-empire.js`, and focused data modules under `src/lib/engine/data/`
-- Modify: `src/lib/engine/registry.js`, `src/lib/engine/kinds.js`
-- Test: `tests/engine-automa.test.mjs`, `tests/engine-shadow-empire.test.mjs`
+- Create: `src/lib/engine/data/automa-cards.js`, `automa-levels.js`, `automa-civs.js`
+- Test: `tests/engine-automa-cards.test.mjs`, `tests/engine-automa-levels.test.mjs`, `tests/engine-shadow-empire.test.mjs`
 
-**Interfaces:** Export data constructors and automatic operation handlers through the existing registry. Each bot decision operation must carry its exact card data and use `Context.random`; emitted events must identify the actor and source decision pair.
+**Interfaces:** Export frozen data constants `AUTOMA_CARDS`, `SHADOW_EMPIRE_CARDS`, `AUTOMA_LEVELS`, and `AUTOMA_CIVS`. `SHADOW_EMPIRE_CARDS` is a frozen subset of the canonical `AUTOMA_CARDS` records with IDs 1–12; turn handlers and registry integration are Task 4.
 
-- [ ] Add tests for base decision/progress decks, all six difficulty schedules, four base Automa civs, 12-card Shadow Empire deck, shuffle/discard/reshuffle, and deterministic draws with a fixed random source.
-- [ ] Add tests for each official decision-card field: both track indicators, tie-break order, hex pattern, income symbol and topple symbol.
-- [ ] Implement immutable source data and serializable draw/discard state; ensure the selected pair is the single source for action execution and later display.
-- [ ] Commit deck and decision data with deterministic engine coverage.
+- [ ] Add `engine-automa-cards` tests for all 22 IDs and each card's exact Automa/Shadow Empire track indicator, tie-break sequence, hex pattern ID, income icon and topple flag from research §9.4.
+- [ ] Add `engine-automa-levels` tests for all six level names, income rows, IT1 extras, progress-card additions and score multipliers from research §9.7.
+- [ ] Add tests for all four base Automa civs and their favourite track and income ability; verify Shadow Empire's card pool is exactly the 12 matching base card records.
+- [ ] Implement immutable, source-backed data only. Do not add draws, reshuffles, turn handlers or state mutation in these data modules.
+- [ ] Commit the card, level and civilization data with its data tests.
 
 ## Task 3: Add human/bot seat setup and lobby bot choices
 
