@@ -1,10 +1,11 @@
-<!-- The income mat: four building rows of six spaces; exposed rewards use the track glyphs (#151). -->
+<!-- The income mat: four building rows of six spaces; exposed rewards use the track glyphs (#151); an inspiration tile's improved spaces are framed in gold (#35). -->
 <script module>
 	/**
 	 * Properties of the IncomeMat component itself.
 	 * @typedef {Object} IncomeMatOwnProps
 	 * @property {import('../../area/income.js').IncomeRowView[]} rows - The four building rows
 	 * @property {number} era - 1 to 4, shown as I–IV in the heading
+	 * @property {import('../../engine/data/ids.js').BuildingId | null} [preview=null] - A row the viewer may inspire (#35): its spaces 2, 4 and 6 framed with a dashed gold line before the tile is placed
 	 */
 
 	/**
@@ -13,6 +14,7 @@
 	 *
 	 * @example
 	 * <IncomeMat rows={incomeRows(seat)} era={2} />
+	 * <IncomeMat rows={incomeRows(seat)} era={2} preview="farm" />
 	 */
 </script>
 
@@ -22,7 +24,10 @@
 	import SpaceGlyphs from '../board/SpaceGlyphs.svelte';
 
 	/** @type {IncomeMatProps} */
-	let { rows, era, ...attr } = $props();
+	let { rows, era, preview = null, ...attr } = $props();
+
+	/** The improved spaces of an inspiration tile, 2, 4 and 6, by index. */
+	const IMPROVED = [1, 3, 5];
 </script>
 
 <section
@@ -44,7 +49,7 @@
 					<span>{row.left} left</span>
 				</div>
 				<ul class="rg-income-mat--spaces">
-					{#each row.spaces as space (space.name)}
+					{#each row.spaces as space, index (space.name)}
 						<li
 							class="rg-income-mat--space {space.covered
 								? 'rg-income-mat--space-covered'
@@ -55,7 +60,8 @@
 							<div class="rg-income-mat--tile-content">
 								<b
 									class="rg-income-mat--name"
-					class:rg-income-mat--name-symbology={space.name === 'Symbology'}
+									class:rg-income-mat--name-symbology={space.name ===
+										'Symbology'}
 									class:rg-income-mat--name-fit={[
 										'Preservation',
 										'Fertilization',
@@ -94,6 +100,13 @@
 										width="32"
 										height="32" />
 								</span>
+							{/if}
+							{#if space.improved || (preview === row.building && IMPROVED.includes(index))}
+								<!-- The inspiration tile's gold frame and +, dashed while only previewed (approved mockup, #35). -->
+								<i
+									class="rg-income-mat--improved"
+									class:rg-income-mat--improved-preview={!space.improved}
+									aria-hidden="true"><b>+</b></i>
 							{/if}
 						</li>
 					{/each}
@@ -191,6 +204,28 @@
 			color-mix(in srgb, var(--rg-income-mat-hover) 68%, transparent);
 	}
 
+	/* An inspiration tile's improved space: a gold frame with its + over the space and any building on it (#35). */
+	.rg-income-mat--improved {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		border: 3px solid var(--gold);
+		pointer-events: none;
+	}
+
+	.rg-income-mat--improved-preview {
+		border-style: dashed;
+	}
+
+	.rg-income-mat--improved b {
+		position: absolute;
+		top: 1px;
+		right: 4px;
+		color: var(--gold);
+		font: var(--weight-bold) var(--font-size-lg) / var(--leading-none)
+			var(--font-body);
+	}
+
 	.rg-income-mat--tile-content {
 		position: relative;
 		z-index: 0;
@@ -234,8 +269,7 @@
 		padding: 2px;
 		background: var(--control);
 		border: 2px solid var(--gold);
-		box-shadow: inset 0 1px 2px
-			var(--scrim-strong);
+		box-shadow: inset 0 1px 2px var(--scrim-strong);
 	}
 
 	.rg-income-mat--reward-push {
@@ -300,9 +334,7 @@
 	.rg-income-mat--space-covered:is(:hover, :focus-visible)
 		.rg-income-mat--cover {
 		transform: translateX(-100%);
-		filter: drop-shadow(
-			-5px 0 4px var(--scrim)
-		);
+		filter: drop-shadow(-5px 0 4px var(--scrim));
 	}
 
 	.rg-income-mat--space-covered:is(:hover, :focus-visible) {
@@ -354,4 +386,3 @@
 		}
 	}
 </style>
-

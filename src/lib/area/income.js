@@ -1,7 +1,7 @@
 // The player area's income mat and era slots (#27 design §2.3-2.4), from a seat in the game view.
 import { describeEffects } from '../describe.js';
 import { exposedSpaces } from '../engine/game.js';
-import { INCOME_MAT } from '../engine/data/income-mat.js';
+import { INCOME_MAT, INSPIRED_MAT } from '../engine/data/income-mat.js';
 import { BUILDING_IDS } from '../engine/data/ids.js';
 import { buildingName, roman, tapestryName } from '../game-names.js';
 import { article, pluralOf } from '../words.js';
@@ -18,6 +18,7 @@ import { spaceGlyphs } from '../glyphs.js';
  * @property {import('../glyphs.js').Glyph[]} scoreGlyphs - Scoring effects as shared symbols
  * @property {boolean} covered - A building still sits on it
  * @property {string} label - The space in words: "Barter. Income: Gain 1 coin", or "Barter, covered by a market"
+ * @property {boolean} improved - An inspiration tile improves it: spaces 2, 4 and 6 of an inspired row (#35)
  */
 
 /**
@@ -27,6 +28,7 @@ import { spaceGlyphs } from '../glyphs.js';
  * @property {string} name - The row's buildings, as its heading names them: "Markets"
  * @property {number} left - Buildings still on the row, 0 to 5
  * @property {IncomeSpaceView[]} spaces - Six, left to right
+ * @property {boolean} inspired - The seat's inspiration tile is on this row (#35)
  */
 
 /**
@@ -42,7 +44,8 @@ import { spaceGlyphs } from '../glyphs.js';
  */
 
 /**
- * The seat's four income rows. A space is covered unless the engine counts it exposed (#128).
+ * The seat's four income rows. A space is covered unless the engine counts it exposed (#128). A row with the seat's
+ * inspiration tile reads its improved spaces (#35, 03 §2.8).
  * @param {any} seat - A seat of the game view
  * @returns {IncomeRowView[]}
  */
@@ -50,11 +53,16 @@ export function incomeRows(seat) {
 	return BUILDING_IDS.map((building) => {
 		const left = seat.incomeMat.buildings[building];
 		const exposed = exposedSpaces(seat, building).length;
+		const inspired =
+			Array.isArray(seat.inspired) && seat.inspired.includes(building);
+		/** @type {readonly import('../engine/data/income-mat.js').IncomeSpace[]} */
+		const mat = inspired ? INSPIRED_MAT[building] : INCOME_MAT[building];
 		return {
 			building,
 			name: pluralOf(buildingName(building)),
 			left,
-			spaces: INCOME_MAT[building].map((space, index) => {
+			inspired,
+			spaces: mat.map((space, index) => {
 				const incomeGlyphs = spaceGlyphs(space.income);
 				const scoreGlyphs = spaceGlyphs(space.score);
 				const reward = /** @type {[string, readonly Effect[]][]} */ ([
@@ -74,6 +82,7 @@ export function incomeRows(seat) {
 					incomeGlyphs,
 					scoreGlyphs,
 					covered,
+					improved: space.inspired === true,
 					label: covered
 						? `${space.name}, covered by ${article(building)} ${building}`
 						: `${space.name}. ${reward}`,

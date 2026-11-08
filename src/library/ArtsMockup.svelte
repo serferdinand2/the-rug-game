@@ -18,7 +18,7 @@
 	import { TRACKS } from '../lib/engine/data/tracks.js';
 	import { landmarksFor } from '../lib/engine/data/landmarks.js';
 	import { masterpiece } from '../lib/engine/data/masterpieces.js';
-	import { INCOME_MAT, INSPIRED_MAT } from '../lib/engine/data/income-mat.js';
+	import { incomeRows } from '../lib/area/income.js';
 	import {
 		ARTS_TRACK,
 		BUILDING_IDS,
@@ -235,44 +235,13 @@
 	let die = $state(null);
 
 	/**
-	 * The seat's income rows, with `inspired` rows reading the improved spaces, as incomeRows() would.
+	 * The seat's income rows, with `inspired` rows reading the improved spaces (the build's incomeRows since).
 	 * @param {Record<BuildingId, number>} left - Buildings left on each row
 	 * @param {BuildingId[]} inspired
 	 * @returns {import('../lib/area/income.js').IncomeRowView[]}
 	 */
 	function rowsFor(left, inspired) {
-		return BUILDING_IDS.map((building) => {
-			const mat = inspired.includes(building) ? INSPIRED_MAT : INCOME_MAT;
-			const exposed = 6 - left[building];
-			return {
-				building,
-				name: rowName(building),
-				left: left[building],
-				spaces: mat[building].map((space, index) => {
-					const covered = index >= exposed;
-					const reward = [
-						space.income.length
-							? `Income: ${describeEffects(space.income)}`
-							: '',
-						space.score.length
-							? `Score: ${describeEffects(space.score)}`
-							: '',
-					]
-						.filter(Boolean)
-						.join('. ');
-					return {
-						name: space.name,
-						reward,
-						incomeGlyphs: spaceGlyphs(space.income),
-						scoreGlyphs: spaceGlyphs(space.score),
-						covered,
-						label: covered
-							? `${space.name}, covered`
-							: `${space.name}. ${reward}`,
-					};
-				}),
-			};
-		});
+		return incomeRows({ incomeMat: { buildings: left }, inspired });
 	}
 
 	const LEFT = { market: 3, house: 5, farm: 5, armory: 5 };

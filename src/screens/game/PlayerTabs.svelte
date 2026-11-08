@@ -22,6 +22,7 @@
 	 * @property {Function} [onPlayerTabsIsland] - Callback fired with { hex } when a mat hex on the Islanders' card is pressed
 	 * @property {{ civ: string, view: import('../../lib/civ-card.js').CivCardView, selected: string | null } | null} [civPick=null] - While the viewer's own civilization decision is made on its card (#78): the card's spots on offer and the one picked
 	 * @property {Function} [onPlayerTabsSpot] - Callback fired with the spot id when a spot on offer is pressed on the Civ tab's card
+	 * @property {import('../../lib/engine/data/ids.js').BuildingId | null} [inspirePreview=null] - While the viewer's own inspire is open (#35): the row picked, its improved spaces framed with a dashed line on the Income tab
 	 */
 
 	/**
@@ -47,6 +48,8 @@
 	import CivilizationCard from '../../lib/components/player/CivilizationCard.svelte';
 	import HeldLandmarkCard from '../../lib/components/player/HeldLandmarkCard.svelte';
 	import IncomeMat from '../../lib/components/player/IncomeMat.svelte';
+	import InspirationTiles from '../../lib/components/player/InspirationTiles.svelte';
+	import MasterpieceChip from '../../lib/components/player/MasterpieceChip.svelte';
 	import ScaledCard from '../../lib/components/player/ScaledCard.svelte';
 	import TapestryCard from '../../lib/components/player/TapestryCard.svelte';
 	import TapestryCardBack from '../../lib/components/player/TapestryCardBack.svelte';
@@ -61,6 +64,10 @@
 	import { selfSummary } from '../../lib/overview.js';
 	import { terrainView } from '../../lib/area/terrain.js';
 	import { heldLandmarkCard } from '../../lib/area/landmark-card.js';
+	import {
+		heldMasterpieces,
+		spareTiles,
+	} from '../../lib/area/masterpieces.js';
 	import { tapestryCardData } from '../../lib/cards/game-cards.js';
 	import { CARD_SIZES } from '../../lib/cards/card-sizes.js';
 	import { CARD_CIVS, civCardView } from '../../lib/civ-card.js';
@@ -88,6 +95,7 @@
 		civPick: civPickProp = null,
 		islandPick: islandPickProp = null,
 		onPlayerTabsSpot,
+		inspirePreview: inspirePreviewProp = null,
 		onPlayerTabsIsland,
 		onPlayerTabsBack,
 		...attr
@@ -109,6 +117,7 @@
 	let fresh = $derived(own ? freshProp : { plots: [], landmarks: [] });
 	let tilePick = $derived(own ? tilePickProp : null);
 	let civPick = $derived(own ? civPickProp : null);
+	let inspirePreview = $derived(own ? inspirePreviewProp : null);
 	let islandPick = $derived(own ? islandPickProp : null);
 
 	/**
@@ -143,6 +152,10 @@
 	let income = $derived(incomeRows(player));
 	/** The landmark card, under the civilizations on the Civ tab (#32, option A); A&A's goals read the game (#35). */
 	let landmarkCard = $derived(heldLandmarkCard(player, own, game));
+	/** A&A's masterpieces, public, on the Civ tab (owner, #35 part 4); the tiles still to place, on the Income tab. */
+	let masterpieces = $derived(heldMasterpieces(player));
+	let tiles = $derived(spareTiles(player));
+	let arts = $derived(Array.isArray(player.masterpieces));
 	let eras = $derived(eraSlots(player));
 	/** @type {number | null} */
 	let eraShown = $state(null);
@@ -165,7 +178,7 @@
 
 	/**
 	 * Tells the shared area which card to show in full, by its kind and id for CardPreview (#96), or none.
-	 * @param {'tech' | 'tapestry'} kind
+	 * @param {'tech' | 'tapestry' | 'masterpiece'} kind
 	 * @param {string | null} id
 	 * @param {ComponentEvent} event - The fan's or the tech rows' event
 	 */
@@ -255,7 +268,13 @@
 		{:else if tab === 'income'}
 			<IncomeMat
 				rows={income}
-				{era} />
+				{era}
+				preview={inspirePreview} />
+			{#if tiles.length > 0}
+				<InspirationTiles
+					class="rg-player-tabs--extra"
+					{tiles} />
+			{/if}
 		{:else if tab === 'eras'}
 			<ErasTab
 				title={words.eras}
@@ -291,6 +310,34 @@
 				<HeldLandmarkCard
 					class="rg-player-tabs--landmark"
 					held={landmarkCard} />
+			{/if}
+			{#if arts}
+				<!-- A&A's masterpieces, public, under the landmark card (owner, #35 part 4). -->
+				<section class="rg-player-tabs--extra">
+					<h3 class="rg-player-tabs--extra-title">
+						Masterpieces <em
+							>fire at the start of income turns 2–5</em>
+					</h3>
+					{#if masterpieces.length > 0}
+						<div class="rg-player-tabs--masterpieces">
+							{#each masterpieces as held, index (index)}
+								<MasterpieceChip
+									id={held.card}
+									used={held.used}
+									onMasterpieceChipInspect={(
+										/** @type {ComponentEvent} */ event
+									) =>
+										inspect(
+											'masterpiece',
+											event.value,
+											event
+										)} />
+							{/each}
+						</div>
+					{:else}
+						<p class="rg-player-tabs--note">None yet.</p>
+					{/if}
+				</section>
 			{/if}
 		{:else if tab === 'tech'}
 			<TechTab
@@ -362,6 +409,32 @@
 		position: relative;
 		flex: none;
 		width: fit-content;
+	}
+
+	/* A&A's masterpieces and inspiration tiles, under the landmark card and the income mat (#35). */
+	.rg-player-tabs :global(.rg-player-tabs--extra) {
+		display: grid;
+		gap: var(--space-4);
+		margin-top: var(--space-10);
+	}
+
+	.rg-player-tabs--extra-title {
+		margin: 0;
+		color: var(--text);
+		font: var(--weight-bold) var(--font-size-md) / var(--leading-tight)
+			var(--font-body);
+	}
+
+	.rg-player-tabs--extra-title em {
+		color: var(--muted);
+		font-style: normal;
+		font-weight: var(--weight-regular);
+	}
+
+	.rg-player-tabs--masterpieces {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-3);
 	}
 
 	/* The landmark card stands apart from the civilization cards above it (#32). */
