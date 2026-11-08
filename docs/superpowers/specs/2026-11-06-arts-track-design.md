@@ -22,6 +22,13 @@ A table with Arts & Architecture on plays the fifth advancement track, the arts 
 - **R119: when the masterpiece deck runs out**, the discarded masterpieces are shuffled into a new deck, as the tapestry deck is (01 §9.1) (2026-11-06). With no discards either, fewer cards lie face up and the deck's top card can't be chosen.
 - **The arts track's switch** (2026-11-06): with A&A on, the arts track is on, and a new variant, "Play without the arts track", switches it off, as "Leave out Radio and Lithium-Ion Battery" does for its cards.
 - **The calls marked (my call) below** were shown to the owner with the design and accepted (2026-11-06).
+- **Part 4's look** (2026-11-08), chosen on the clickable mockup `docs/ui/arts-architecture.html` ("A, A, A", then "B · Civ tab"):
+  - the arts track's colour is **violet** `#7b5aa6`, as its brush symbol;
+  - tiers II and IV show their price as two any-resource icons with a **≠** or **=** mark after them;
+  - the 3 face-up masterpieces and the deck sit **on the arts track's own line**, beside its name;
+  - a player's masterpieces show **on the Civ tab, under the landmark card**.
+
+  The rest of the mockup was approved as drawn: an inspired row's spaces 2, 4 and 6 in a gold frame with "+", the shelves for create and firing, inspire in the panel, the d20 and the die choice. The d20 body and the masterpiece card back still go through the Art area's sign-off.
 
 ## 3. The rules built
 
@@ -195,7 +202,7 @@ With the arts track off, a tapestry card, tech card or civilization that mention
 
 ## 4. The client (part 4)
 
-Built only after the owner approves clickable mockups with screenshots. What needs a look:
+The mockup is `docs/ui/arts-architecture.html`, with screenshots in `docs/ui/screens/issue-35/`; the owner's choices are in §2. What it covers:
 
 - **The Tracks board** with the arts track as a fifth row (#120 laid the board out for any number of tracks; at 1920×1080 a space is about 95px tall with five tracks and four players). The arts track's colour token, `--arts`, and its tier prices: "2 different" and "2 of the same" need their own symbols.
 - **The masterpiece row:** the 3 face-up cards and the deck, near the arts track.
