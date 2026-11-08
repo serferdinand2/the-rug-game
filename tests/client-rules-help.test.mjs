@@ -226,7 +226,10 @@ test("Plans & Ploys has its own section, shown only with the expansion, with the
 	assert.equal(pp.expansion, 'pp');
 	assert.ok(
 		RULES_HELP.every(
-			(s) => s.expansion === undefined || s.expansion === 'pp'
+			(s) =>
+				s.expansion === undefined ||
+				s.expansion === 'pp' ||
+				s.expansion === 'aa'
 		)
 	);
 	assert.deepEqual(
@@ -272,4 +275,41 @@ test("Plans & Ploys' response cards have their own section, shown only with the 
 	assert.match(text, /1 worker/);
 	assert.match(text, /random tapestry card/);
 	assert.match(text, /Pillage and Plunder/);
+});
+
+test("Arts & Architecture's arts track has its own section, shown only with the expansion, with the engine's prices (#35)", async () => {
+	const { rulesSections } = await import('../src/lib/rules-help.js');
+	const arts = section('arts-track');
+	assert.equal(arts.expansion, 'aa');
+	assert.ok(rulesSections(['aa']).some((s) => s.id === 'arts-track'));
+	assert.ok(!rulesSections(['pp']).some((s) => s.id === 'arts-track'));
+	const text = lines('arts-track').join(' ');
+	assert.match(text, /without the arts track/);
+	assert.match(
+		text,
+		/1 resource of your choice, then 2 different resources, then 3 of your choice, then 2 of the same type/
+	);
+	assert.match(text, /start of income turns 2 to 5/);
+	assert.match(text, /turn face down once used/);
+	assert.match(text, /spaces 2, 4 and 6/);
+	assert.match(text, /d20/);
+});
+
+test("Arts & Architecture's landmark cards have their own section, with the engine's goals and the larger deal (#35)", async () => {
+	const { landmarkCardsFor } =
+		await import('../src/lib/engine/data/landmark-cards.js');
+	const { landmarkGoalPhrase } =
+		await import('../src/lib/cards/landmark-text.js');
+	const { landmarkName } = await import('../src/lib/game-names.js');
+	assert.equal(section('aa-landmark-cards').expansion, 'aa');
+	const text = lines('aa-landmark-cards').join(' ');
+	for (const card of landmarkCardsFor(['aa'])) {
+		assert.ok(
+			text.includes(
+				`${landmarkName(card.landmark)}: ${landmarkGoalPhrase(card.id)}.`
+			),
+			card.id
+		);
+	}
+	assert.match(text, /one card more than there are players/);
 });

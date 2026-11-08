@@ -259,6 +259,55 @@ export const RULES_HELP = deepFreeze([
 			},
 		],
 	},
+	// #35; 03 §2.1–2.3, §2.7–2.8, R118, R119.
+	{
+		id: 'arts-track',
+		title: 'The arts track',
+		expansion: 'aa',
+		blocks: [
+			{
+				text: 'With Arts & Architecture a fifth track, the arts track, joins the board, unless the table plays without the arts track. An effect for any track or each track includes it; one that names the other four does not.',
+			},
+			{
+				text: 'Its tiers cost 1 resource of your choice, then 2 different resources, then 3 of your choice, then 2 of the same type. Its landmarks are the Clock Tower, the Opera House and the Holocenter.',
+			},
+			{
+				text: "Create: take one of the 3 face-up masterpieces on the arts track's line, or the deck's top card unseen. Your masterpieces show on your Civ tab, for everyone to see.",
+			},
+			{
+				text: "At the start of income turns 2 to 5, every masterpiece you hold fires, in the order you choose. Broadcast fires one of yours; Streaming Implants up to 3, yours or your neighbours'. Art Deco and Mime turn face down once used.",
+			},
+			{
+				text: 'Inspire: place one of your 4 inspiration tiles on an income row. It improves the spaces 2, 4 and 6 of that row, framed in gold on your Income tab.',
+			},
+			{
+				text: 'Every science die roll uses the d20, whose faces include the arts track.',
+			},
+		],
+	},
+	// #35 part 3; 03 §2.10, §7.
+	{
+		id: 'aa-landmark-cards',
+		title: 'A&A landmark cards',
+		expansion: 'aa',
+		blocks: [
+			{
+				text: 'With Arts & Architecture each player has a landmark card, as with Plans & Ploys, whether or not the table plays the arts track.',
+			},
+			{
+				text: 'As setup ends, the player going last draws one landmark card per player and keeps one; the rest pass back through turn order. With Plans & Ploys too, the deck holds both sets and one card more than there are players is drawn, so the last card goes back under the deck. Alone, you draw 2 and keep 1.',
+			},
+			{
+				text: "At the end of each of your turns, if your card's goal is met you must gain its landmark and place it in your capital city.",
+			},
+			{
+				list: landmarkCardsFor(['aa']).map(
+					(card) =>
+						`${landmarkName(card.landmark)}: ${landmarkGoalPhrase(card.id)}.`
+				),
+			},
+		],
+	},
 ]);
 
 /**
