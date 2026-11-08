@@ -63,14 +63,18 @@ export function alchemistsRoll(ctx, op) {
 	const player = /** @type {number} */ (op.player);
 	/** @type {AlchemistsData} */
 	const data = playerSeat(ctx.state, player).civData.alchemists;
-	const faces = scienceFaces(op.scienceDie ?? defaultDie(ctx.state));
+	const die = op.scienceDie ?? defaultDie(ctx.state);
+	const faces = scienceFaces(die);
 	const track = faces[ctx.random(faces.length)];
+	// The events name the d20, as scienceDieRolled does, so the dice tray rolls it (#35).
+	const d20 = die === 'd20' ? { scienceDie: die } : {};
 	if (track === 'arts') {
 		emit(ctx.state, {
 			type: 'alchemistsRolled',
 			player,
 			track,
 			marked: [...data.marked],
+			...d20,
 		});
 		ctx.push([
 			{ player, kind: 'chooseAlchemists', marked: [...data.marked] },
@@ -79,7 +83,7 @@ export function alchemistsRoll(ctx, op) {
 	}
 	if (data.marked.includes(track)) {
 		data.marked = [];
-		emit(ctx.state, { type: 'alchemistsBust', player, track });
+		emit(ctx.state, { type: 'alchemistsBust', player, track, ...d20 });
 		ctx.push([
 			{ player, kind: 'effects', effects: [{ gain: { any: 1 } }] },
 		]);
@@ -91,6 +95,7 @@ export function alchemistsRoll(ctx, op) {
 		player,
 		track,
 		marked: [...data.marked],
+		...d20,
 	});
 	ctx.push([{ player, kind: 'chooseAlchemists', marked: [...data.marked] }]);
 }

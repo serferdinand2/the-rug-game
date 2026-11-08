@@ -23,11 +23,11 @@ const EXPECTED_COUNTS = {
 	'resource-48': { base: 5 },
 	building: { base: 4 },
 	piece: { base: 24 },
-	die: { base: 17, aa: 1 }, // 14 faces (#5) and the 3 die bodies the tray rolls (#61)
+	die: { base: 17, aa: 2 }, // 14 faces (#5) and the 3 die bodies the tray rolls (#61); A&A's arts face and d20 body (#35)
 	terrain: { base: 5 },
 	track: { base: 4, aa: 1 },
 	symbol: { base: 13 },
-	'card-back': { base: 2 },
+	'card-back': { base: 2, aa: 1 }, // the masterpiece deck's back (#35)
 	board: { base: 5, ff: 1 },
 	hex: { base: 8 },
 	'territory-tile': { base: 48 },
@@ -108,10 +108,10 @@ test('each group has the agreed count per expansion', () => {
 	}
 });
 
-test('there are 294 illustrations, 265 icons and 94 boards', () => {
+test('there are 294 illustrations, 267 icons and 94 boards', () => {
 	const count = (kind) => ASSETS.filter((a) => a.kind === kind).length;
 	assert.equal(count('illustration'), 294);
-	assert.equal(count('icon'), 265);
+	assert.equal(count('icon'), 267);
 	assert.equal(count('board'), 94);
 });
 

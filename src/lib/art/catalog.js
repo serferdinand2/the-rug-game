@@ -642,7 +642,11 @@ const LISTS = {
 			['red-body', 'Red die'],
 			['black-body', 'Black die'],
 		],
-		aa: [['science-arts', 'Science die: arts']],
+		aa: [
+			['science-arts', 'Science die: arts'],
+			// A&A's science die, rolled with the arts track (#35).
+			['science-d20-body', 'Science die (d20)'],
+		],
 	},
 	terrain: {
 		base: [
@@ -684,6 +688,8 @@ const LISTS = {
 			['tapestry', 'Tapestry card back'],
 			['tech', 'Tech card back'],
 		],
+		// The masterpiece deck's back (#35).
+		aa: [['masterpiece', 'Masterpiece card back']],
 	},
 	board: {
 		base: [

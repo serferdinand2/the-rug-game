@@ -162,7 +162,12 @@ test('the five colored pieces change only the neutral interior channel', async (
 
 test('dice faces remain placeholders, while approved track symbols and tray bodies have drawings (#85)', async () => {
 	const ids = await listDrawingIds();
-	const bodies = ['die/science-body', 'die/red-body', 'die/black-body'];
+	const bodies = [
+		'die/science-body',
+		'die/science-d20-body',
+		'die/red-body',
+		'die/black-body',
+	];
 	assert.ok(!ids.some((id) => id.startsWith('die/') && !bodies.includes(id)));
 	assert.ok(ids.includes('symbol/territory-tile'));
 	for (const body of bodies) {

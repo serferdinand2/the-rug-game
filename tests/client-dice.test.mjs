@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
 	BLACK_DIE,
 	RED_DIE,
+	SCIENCE_D20,
 	SCIENCE_DIE,
 } from '../src/lib/engine/data/dice.js';
 import { TUMBLE_MS, faceOf, rollsOf, tumbleOf } from '../src/lib/dice.js';
@@ -269,4 +270,69 @@ test('two dice in the tray tumble through different faces, and the same die the 
 		tumbleOf('red', 1, 4).map((step) => step.face),
 		tumbleOf('red', 1, 5).map((step) => step.face)
 	);
+});
+
+test("A&A's d20 rolls as its own die, landing on any of its five tracks, the arts track too (#35)", () => {
+	const [roll] = rollsOf(
+		[
+			{
+				seq: 9,
+				type: 'scienceDieRolled',
+				player: 1,
+				track: 'arts',
+				scienceDie: 'd20',
+			},
+		],
+		GAME,
+		2
+	);
+	assert.equal(roll.dice.length, 1);
+	assert.equal(roll.dice[0].die, 'science-d20');
+	assert.deepEqual(faceOf('science-d20', roll.dice[0].face), {
+		kind: 'track',
+		id: 'arts',
+	});
+	assert.equal(SCIENCE_D20[roll.dice[0].face], 'arts');
+});
+
+test("the Alchemists' d20 rolls and a science treasure's are the d20 too, and a d12 roll stays the d12", () => {
+	const rolls = rollsOf(
+		[
+			{
+				seq: 1,
+				type: 'alchemistsRolled',
+				player: 1,
+				track: 'arts',
+				marked: [],
+				scienceDie: 'd20',
+			},
+			{
+				seq: 2,
+				type: 'treasureRolled',
+				player: 1,
+				die: 'science',
+				faces: [4, 9],
+				scienceDie: 'd20',
+			},
+			{ seq: 3, type: 'scienceDieRolled', player: 1, track: 'science' },
+		],
+		GAME,
+		2
+	);
+	assert.deepEqual(
+		rolls.map((roll) => roll.dice.map((die) => die.die)),
+		[['science-d20'], ['science-d20', 'science-d20'], ['science']]
+	);
+	assert.deepEqual(rolls[1].dice[1], { die: 'science-d20', face: 9 });
+});
+
+test('the d20 tumbles among its five faces, the arts track among them', () => {
+	const shown = new Set(
+		tumbleOf('science-d20', SCIENCE_D20.indexOf('arts')).map(
+			(step) => SCIENCE_D20[step.face]
+		)
+	);
+	assert.ok(shown.has('arts'));
+	assert.ok([...shown].every((track) => SCIENCE_D20.includes(track)));
+	assert.ok(shown.size > 1);
 });

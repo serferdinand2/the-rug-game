@@ -577,12 +577,14 @@ test("Alchemists: an arts roll marks nothing and doesn't bust (03 §2.2)", () =>
 	assert.deepEqual(next.seats[player - 1].civData.alchemists.marked, [
 		'science',
 	]);
+	// The event names the d20, so the dice tray rolls it (#35 part 4).
 	assert.deepEqual(eventsOf(next, 'alchemistsRolled', since), [
 		{
 			type: 'alchemistsRolled',
 			player,
 			track: 'arts',
 			marked: ['science'],
+			scienceDie: 'd20',
 		},
 	]);
 	assert.deepEqual(eventsOf(next, 'alchemistsBust', since), []);

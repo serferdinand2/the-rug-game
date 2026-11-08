@@ -1,5 +1,10 @@
 // The dice tray's rolls (#61 design §4): which fresh events roll which dice, the faces they land on, and the words for them.
-import { BLACK_DIE, RED_DIE, SCIENCE_DIE } from './engine/data/dice.js';
+import {
+	BLACK_DIE,
+	RED_DIE,
+	SCIENCE_D20,
+	SCIENCE_DIE,
+} from './engine/data/dice.js';
 import { eventText } from './log.js';
 import { seatName } from './game-names.js';
 
@@ -15,7 +20,7 @@ const LANDS_AT = 0.7;
 /** How the flips slow down: above 1, each waits longer than the one before. */
 const SLOWING = 1.6;
 
-/** @typedef {'science' | 'red' | 'black'} DieId */
+/** @typedef {'science' | 'science-d20' | 'red' | 'black'} DieId - The science die (d12), A&A's d20 (#35), or a conquer die */
 
 /**
  * One die of a roll, and the face it lands on: an index into its face list.
@@ -74,12 +79,23 @@ function isRecord(value) {
 }
 
 /**
- * The science die's face for a track: the first of its three.
+ * The science die an event rolled: the d12, or A&A's d20 when the event names it (#35).
+ * @param {Record<string, any>} event
+ * @returns {'science' | 'science-d20'}
+ */
+function scienceDieOf(event) {
+	return event.scienceDie === 'd20' ? 'science-d20' : 'science';
+}
+
+/**
+ * A science die's face for a track: the first of its faces for that track.
+ * @param {'science' | 'science-d20'} die
  * @param {unknown} track
  * @returns {number}
  */
-function scienceFace(track) {
-	return Math.max(0, SCIENCE_DIE.indexOf(/** @type {any} */ (track)));
+function scienceFace(die, track) {
+	const faces = die === 'science-d20' ? SCIENCE_D20 : SCIENCE_DIE;
+	return Math.max(0, faces.indexOf(/** @type {any} */ (track)));
 }
 
 /**
@@ -91,8 +107,10 @@ function diceOf(event) {
 	switch (event.type) {
 		case 'scienceDieRolled':
 		case 'alchemistsRolled':
-		case 'alchemistsBust':
-			return [{ die: 'science', face: scienceFace(event.track) }];
+		case 'alchemistsBust': {
+			const die = scienceDieOf(event);
+			return [{ die, face: scienceFace(die, event.track) }];
+		}
 		case 'conquerDiceRolled':
 		case 'surrenderRolled':
 			return [
@@ -105,7 +123,7 @@ function diceOf(event) {
 				? TREASURE_DICE[event.die]
 				: [];
 			return dice.map((die, i) => ({
-				die,
+				die: die === 'science' ? scienceDieOf(event) : die,
 				face: Number(faces[i]) || 0,
 			}));
 		}
@@ -146,13 +164,22 @@ export function rollsOf(events, game, viewer) {
 	});
 }
 
+/** How many faces each die has. */
+const FACE_COUNTS = Object.freeze({
+	science: SCIENCE_DIE.length,
+	'science-d20': SCIENCE_D20.length,
+	red: RED_DIE.length,
+	black: BLACK_DIE.length,
+});
+
 /**
- * A die's faces that look different, one index each: the science die's 4 tracks, each conquer die's 5 faces.
+ * A die's faces that look different, one index each: the science die's 4 tracks, the d20's 5, each conquer die's 5
+ * faces.
  * @param {DieId} die
  * @returns {number[]}
  */
 function distinctFaces(die) {
-	const count = die === 'science' ? SCIENCE_DIE.length : RED_DIE.length;
+	const count = FACE_COUNTS[die];
 	/** @type {string[]} */
 	const seen = [];
 	/** @type {number[]} */
@@ -216,6 +243,9 @@ export function tumbleOf(die, face, seed = 0) {
 export function faceOf(die, face) {
 	if (die === 'science') {
 		return { kind: 'track', id: SCIENCE_DIE[face] };
+	}
+	if (die === 'science-d20') {
+		return { kind: 'track', id: SCIENCE_D20[face] };
 	}
 	if (die === 'red') {
 		const vp = /** @type {any} */ (RED_DIE[face])?.vp;

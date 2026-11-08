@@ -1,4 +1,4 @@
-// Die bodies for the dice tray (#61): a d6 face as a bevelled rounded square, and a d12 seen face-on.
+// Die bodies for the dice tray (#61): a d6 face as a bevelled rounded square, a d12 seen face-on, and A&A's d20 (#35).
 import { createCanvas, outline, set } from '../painter.js';
 import { PALETTE } from '../palette.js';
 
@@ -115,6 +115,77 @@ export function d12(tones) {
 			const y = Math.floor(fy + ((ry - fy) * s) / steps);
 			set(canvas, x, y, tones.shade);
 		}
+	});
+	outline(canvas, PALETTE.ink);
+	return canvas;
+}
+
+/**
+ * Draws a ridge between two points, its ends left to the faces they join.
+ * @param {Canvas} canvas
+ * @param {[number, number]} from
+ * @param {[number, number]} to
+ * @param {Colour} colour
+ */
+function ridge(canvas, [x0, y0], [x1, y1], colour) {
+	const steps = 14;
+	for (let s = 1; s < steps; s++) {
+		set(
+			canvas,
+			Math.floor(x0 + ((x1 - x0) * s) / steps),
+			Math.floor(y0 + ((y1 - y0) * s) / steps),
+			colour
+		);
+	}
+}
+
+/**
+ * A d20 seen face-on (#35, the mockup's draft): a triangle face, point up, inside the hexagon of its silhouette, lit
+ * on the upper left and shaded on the lower right. Each corner of the face runs to the hexagon's corner beyond it, and
+ * the hexagon's other three corners to their two nearest face corners; outlined in ink.
+ * @param {DieTones & { face: Colour }} tones
+ * @returns {Canvas}
+ */
+export function d20(tones) {
+	const canvas = createCanvas(SIZE, SIZE);
+	const cx = 16;
+	const cy = 16.5;
+	const hexagon = polygon(6, 14.5, cx, cy);
+	const face = polygon(3, 9, cx, cy + 1);
+	for (let y = 0; y < SIZE; y++) {
+		for (let x = 0; x < SIZE; x++) {
+			const px = x + 0.5;
+			const py = y + 0.5;
+			if (within(px, py, face)) {
+				set(canvas, x, y, tones.face);
+			} else if (within(px, py, hexagon)) {
+				const lit = px - cx + (py - cy) < 0;
+				set(canvas, x, y, lit ? tones.light : tones.body);
+			}
+		}
+	}
+	face.forEach((corner, k) => {
+		ridge(
+			canvas,
+			/** @type {[number, number]} */ (corner),
+			/** @type {[number, number]} */ (hexagon[k * 2]),
+			tones.shade
+		);
+	});
+	[1, 3, 5].forEach((corner, k) => {
+		const from = /** @type {[number, number]} */ (hexagon[corner]);
+		ridge(
+			canvas,
+			from,
+			/** @type {[number, number]} */ (face[k]),
+			tones.shade
+		);
+		ridge(
+			canvas,
+			from,
+			/** @type {[number, number]} */ (face[(k + 1) % 3]),
+			tones.shade
+		);
 	});
 	outline(canvas, PALETTE.ink);
 	return canvas;
