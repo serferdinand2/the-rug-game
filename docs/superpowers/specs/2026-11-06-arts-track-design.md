@@ -214,6 +214,14 @@ The mockup is `docs/ui/arts-architecture.html`, with screenshots in `docs/ui/scr
 - **The log and the card reference** for everything above, in our own words.
 - `BoardSwitcher` takes the table's tracks, as #120 prepared.
 - The README's "Current interface", `docs/ui/screens/` and `docs/ui/README.md` change with it.
+- **Calls made while building part 4 (my calls, 2026-11-08):**
+  - The inspiration tiles still to place stay on the Income tab under the mat; option B moved only the masterpieces to the Civ tab.
+  - Inspire previews the row picked in the panel on the Income tab's mat, with a dashed gold frame.
+  - More than four masterpieces on the shelf, as Streaming Implants may offer, are drawn at 0.72, as the mockup did.
+  - Streaming Implants' Stop is an option in the panel, which Confirm then names, as declining a card is elsewhere.
+  - The Holocenter's counter reads the word Building after the VP; the arts effects stay words until symbols are drawn for them.
+  - Flash Mob's and Infinite Spectrum Photography's four tracks lay out two by two beside the advance's arrow, in one row of smaller tracks over a bonus band.
+  - The masterpiece card back is drawn at a quarter of the card's 319 × 259 px, with no lettering (owner, 2026-10-22); the deck's count is the interface's. It and the d20 body wait for the owner's sign-off in the Art area.
 
 ## 5. Tests
 
