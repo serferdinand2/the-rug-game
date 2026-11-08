@@ -30,6 +30,7 @@
 	import BoardSwitcher from '../lib/components/board/BoardSwitcher.svelte';
 	import AchievementStrip from '../lib/components/board/AchievementStrip.svelte';
 	import TrackBoard from '../lib/components/board/TrackBoard.svelte';
+	import MasterpieceRow from '../lib/components/board/MasterpieceRow.svelte';
 	import WorldMap from '../lib/components/board/WorldMap.svelte';
 	import SelfSummary from '../lib/components/player/SelfSummary.svelte';
 	import PlayLayout from '../lib/components/ui/PlayLayout.svelte';
@@ -56,6 +57,7 @@
 	import { tabFor } from '../lib/area/tabs.js';
 	import { nextInspected, shownSeat } from '../lib/area/inspect.js';
 	import { achievements, boardTracks, trackBoard } from '../lib/board.js';
+	import { masterpieceRow } from '../lib/area/masterpieces.js';
 	import { NO_HOLDS, holdTokens } from '../lib/held-tokens.js';
 	import { mapHexes } from '../lib/hexmap.js';
 	import { PromptState } from '../lib/prompt-state.svelte.js';
@@ -115,6 +117,8 @@
 	);
 	/** The tracks, each player's token where it stands or waits for their advance to show (#179). */
 	let tracks = $derived(holdTokens(trackBoard(game), holds, still));
+	/** The face-up masterpieces and the deck, on the arts track's line; null without the arts track (#35). */
+	let masterpieces = $derived(masterpieceRow(game));
 	/** The hex another player just explored or conquered, lit on the map when it is on show (#153). */
 	let litHex = $derived(
 		action?.kind === 'explore' || action?.kind === 'conquer'
@@ -847,7 +851,24 @@
 								? promptState.trackSelected
 								: selected}
 							lit={litSpace}
-							onTrackBoardSelect={trackSelectHandler} />
+							onTrackBoardSelect={trackSelectHandler}>
+							{#snippet heading(/** @type {string} */ track)}
+								{#if track === 'arts' && masterpieces}
+									<MasterpieceRow
+										faceUp={masterpieces.faceUp}
+										deck={masterpieces.deck}
+										onMasterpieceRowInspect={(
+											/** @type {ComponentEvent} */ event
+										) =>
+											(inspected = event.value
+												? {
+														kind: 'masterpiece',
+														id: event.value,
+													}
+												: null)} />
+								{/if}
+							{/snippet}
+						</TrackBoard>
 					{:else}
 						<WorldMap
 							hexes={mapHexes(game)}

@@ -33,6 +33,7 @@
 	 * @property {number | null} [selectedSpace=null] - The selected space's number, outlined in gold; bindable
 	 * @property {{ space: number, color: string } | null} [lit=null] - A space another player just advanced to, lit in their colour (#153)
 	 * @property {Function} [onTrackSelect] - Callback fired with { track, space } when a space is chosen
+	 * @property {import('svelte').Snippet} [heading] - Drawn on the track's line after its name: the arts track's masterpiece row (#35)
 	 */
 
 	/**
@@ -75,6 +76,7 @@
 		selectedSpace = $bindable(null),
 		lit = null,
 		onTrackSelect,
+		heading,
 		...attr
 	} = $props();
 
@@ -166,6 +168,7 @@
 			height="24"
 			alt="" />
 		<h2 class="rg-track--name">{name}</h2>
+		{@render heading?.()}
 	</div>
 	<div class="rg-track--costs">
 		{#each tiers as symbols, index (index)}

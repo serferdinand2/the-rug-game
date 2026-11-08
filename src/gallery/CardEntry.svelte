@@ -18,6 +18,8 @@
 	} from '../lib/engine/data/space-tiles.js';
 	import { LANDMARK_CARDS } from '../lib/engine/data/landmark-cards.js';
 	import { landmarkCondition } from '../lib/cards/landmark-text.js';
+	import { masterpieceText } from '../lib/cards/masterpiece-text.js';
+	import { MASTERPIECES } from '../lib/engine/data/masterpieces.js';
 	import { spaceTileWords } from '../lib/area/terrain.js';
 	import { capitalize } from '../lib/words.js';
 	import { techCardData, tapestryCardData } from '../lib/cards/game-cards.js';
@@ -32,6 +34,7 @@
 	const edition = $derived(expansionName(asset.expansion));
 	const techIds = new Set(TECH_CARDS.map((card) => card.id));
 	const tapestryIds = new Set(TAPESTRY_CARDS.map((card) => card.id));
+	const masterpieceIds = new Set(MASTERPIECES.map((card) => card.id));
 	const spaceTile = $derived(
 		asset.group === 'space-tile'
 			? [...SPACE_TILES, ...EXPANSION_SPACE_TILES].find(
@@ -85,9 +88,11 @@
 			title={asset.name}
 			artwork={art}
 			artworkAlt={`${asset.name} artwork`}>
-			{#snippet effects()}<p class="rg-gallery-entry__pending">
-					Rules text pending
-				</p>{/snippet}
+			{#snippet effects()}{#if masterpieceIds.has(slug)}<p>
+						{masterpieceText(slug)}
+					</p>{:else}<p class="rg-gallery-entry__pending">
+						Rules text pending
+					</p>{/if}{/snippet}
 		</MasterpieceCard>
 	{:else if asset.group === 'landmark-card'}
 		<LandmarkCard

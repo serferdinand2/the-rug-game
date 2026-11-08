@@ -27,6 +27,7 @@
 	 * @property {TrackBoardSelection | null} [selected=null] - The selected space, outlined in gold; bindable
 	 * @property {{ track: string, space: number, color: string } | null} [lit=null] - A space another player just advanced to, lit in their colour while their action shows (#153)
 	 * @property {Function} [onTrackBoardSelect] - Callback fired with { track, space } when a space is chosen
+	 * @property {import('svelte').Snippet<[import('../../ui.js').TrackId]>} [heading] - Drawn on a track's line after its name, given the track: the arts track's masterpiece row (#35)
 	 */
 
 	/**
@@ -57,6 +58,7 @@
 		selected = $bindable(null),
 		lit = null,
 		onTrackBoardSelect,
+		heading: trackHeading,
 		...attr
 	} = $props();
 
@@ -92,7 +94,11 @@
 			{previewSeat}
 			selectedSpace={selected?.track === track.id ? selected.space : null}
 			lit={lit?.track === track.id ? lit : null}
-			onTrackSelect={trackSelectHandler} />
+			onTrackSelect={trackSelectHandler}>
+			{#snippet heading()}
+				{@render trackHeading?.(track.id)}
+			{/snippet}
+		</Track>
 	{/each}
 </div>
 

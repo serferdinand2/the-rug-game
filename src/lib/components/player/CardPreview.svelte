@@ -1,9 +1,9 @@
-<!-- CardPreview: a tech or tapestry card shown in full over the shared area, from its kind and id (#96). -->
+<!-- CardPreview: a tech, tapestry or masterpiece card shown in full over the shared area, from its kind and id (#96, #35). -->
 <script module>
 	/**
 	 * Properties of the CardPreview component itself.
 	 * @typedef {Object} CardPreviewOwnProps
-	 * @property {'tech' | 'tapestry'} kind - Which kind of card
+	 * @property {'tech' | 'tapestry' | 'masterpiece'} kind - Which kind of card
 	 * @property {string} [id] - The card's id, drawn from the engine's data
 	 * @property {any} [data] - The card's face instead, when the caller already holds it, as a decision's shelf does (#118)
 	 * @property {boolean} [side=false] - Beside a card shelf, at the left and without a scrim, so the shelf stays in sight
@@ -22,8 +22,10 @@
 </script>
 
 <script>
+	import MasterpieceCard from './MasterpieceCard.svelte';
 	import TapestryCard from './TapestryCard.svelte';
 	import TechnologyCard from './TechnologyCard.svelte';
+	import { masterpieceCardData } from '../../cards/masterpiece-text.js';
 
 	/** @type {CardPreviewProps} */
 	let { kind, id, data, side = false, ...attr } = $props();
@@ -38,6 +40,13 @@
 		<TechnologyCard
 			{id}
 			{data} />
+	{:else if kind === 'masterpiece'}
+		{@const card = data ?? masterpieceCardData(id ?? '')}
+		<MasterpieceCard
+			title={card.title}
+			artwork={card.artwork}>
+			{#snippet effects()}<p>{card.text}</p>{/snippet}
+		</MasterpieceCard>
 	{:else}
 		<TapestryCard
 			{id}
