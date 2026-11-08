@@ -212,6 +212,12 @@ test('every decision kind has the full shape, and its answers pass its own check
 			kind: 'chooseCiv',
 			options: ['mystics', 'architects'],
 		},
+		chooseMatAndCiv: {
+			player: 1,
+			kind: 'chooseMatAndCiv',
+			mats: [1, 6, 10],
+			civs: ['mystics', 'architects'],
+		},
 		chooseResource: {
 			player: 1,
 			kind: 'chooseResource',
@@ -450,6 +456,13 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: [{ seat: 2, card: 'fresco' }],
 			chosen: [],
 			left: 3,
+		},
+		chooseCloudMove: { player: 1, kind: 'chooseCloudMove', left: 2 },
+		chooseCloudPlot: {
+			player: 1,
+			kind: 'chooseCloudPlot',
+			from: { row: 0, col: 0 },
+			left: 2,
 		},
 		chooseLandmarkCard: {
 			player: 1,

@@ -9,12 +9,13 @@ import {
 	landmarkCells,
 	landmarkSpots,
 	onGrid,
+	seatImpassable,
+	seatShape,
 } from './city.js';
 import { itemCount } from './control.js';
 import { CRAFTSMEN_COLUMNS, craftsmenColumns } from './civs/craftsmen.js';
 import { nomadsHexes } from './civs/nomads.js';
 import { plotIndex } from '../capital.js';
-import { CAPITAL_MATS, impassablePlots } from './data/capitals.js';
 
 /** @typedef {{ building: import('./data/ids.js').BuildingId } | { landmark: string }} Piece */
 
@@ -39,18 +40,21 @@ export function buildsOverImpassable(state, player) {
 }
 
 /**
- * How many impassable plots a piece covers, the mat's and the Architects' cubes: none unless buildsOverImpassable.
+ * How many impassable plots a piece covers, the mat's, the Architects' cubes and the Canyon's surrounded cacti: none
+ * unless buildsOverImpassable. Counted against the plots impassable before the piece landed: a cactus the piece
+ * itself surrounds while covering it was a regular plot when covered (03 §2 Canyon; R122).
  * @param {import('./state.js').PlayerSeat} seat
  * @param {import('./city.js').PlacedBuilding | import('./city.js').PlacedLandmark} piece
+ * @param {readonly number[]} impassable - seatImpassable() before the piece was placed
  * @returns {number}
  */
-function impassableCovered(seat, piece) {
-	const mat = CAPITAL_MATS[/** @type {number} */ (seat.capital.mat) - 1];
-	const impassable = [...impassablePlots(mat), ...seat.capital.cubes];
+function impassableCovered(seat, piece, impassable) {
+	const shape = seatShape(seat);
 	const cells = 'building' in piece ? [piece] : landmarkCells(piece);
 	return cells.filter(
 		({ row, col }) =>
-			onGrid(row, col) && impassable.includes(plotIndex(row, col))
+			onGrid(row, col, shape) &&
+			impassable.includes(plotIndex(row, col, shape))
 	).length;
 }
 
@@ -65,7 +69,9 @@ function impassableCovered(seat, piece) {
  */
 export function placePiece(ctx, player, piece, automatic) {
 	const seat = playerSeat(ctx.state, player);
-	const before = completeDistricts(cityPlots(seat));
+	const shape = seatShape(seat);
+	const before = completeDistricts(cityPlots(seat), shape);
+	const impassableBefore = seatImpassable(seat);
 	if ('building' in piece) {
 		seat.capital.buildings.push({
 			building: piece.building,
@@ -97,30 +103,8 @@ export function placePiece(ctx, player, piece, automatic) {
 			automatic,
 		});
 	}
-	const districts = completeDistricts(cityPlots(seat)).filter(
-		(d) => !before.includes(d)
-	);
-	/** @type {import('./state.js').NewOperation[]} */
-	const ops = [];
-	if (districts.length > 0) {
-		emit(ctx.state, {
-			type: 'districtsCompleted',
-			player,
-			districts: [...districts],
-		});
-		ops.push(
-			{
-				player,
-				kind: 'effects',
-				effects: [{ gain: { any: districts.length } }],
-			},
-			...triggered(ctx.state, 'districtsCompleted', {
-				player,
-				districts,
-			})
-		);
-	}
-	const impassable = impassableCovered(seat, piece);
+	const ops = payDistricts(ctx, player, before);
+	const impassable = impassableCovered(seat, piece, impassableBefore);
 	ops.push(
 		...triggered(
 			ctx.state,
@@ -132,6 +116,39 @@ export function placePiece(ctx, player, piece, automatic) {
 		...triggered(ctx.state, 'countsChanged', { player })
 	);
 	ctx.push(ops);
+}
+
+/**
+ * The reward for the districts a change to the capital just completed: 1 resource of the player's choice for each,
+ * then the `districtsCompleted` triggers. Filling a district's last plot pays, however it is filled (01 §6.1): by a
+ * placed piece, or by a building Cloud City moves (#36 design §3.5).
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {readonly number[]} before - The districts complete before the change
+ * @returns {import('./state.js').NewOperation[]} To push, in order
+ */
+export function payDistricts(ctx, player, before) {
+	const seat = playerSeat(ctx.state, player);
+	const districts = completeDistricts(
+		cityPlots(seat),
+		seatShape(seat)
+	).filter((d) => !before.includes(d));
+	if (districts.length === 0) {
+		return [];
+	}
+	emit(ctx.state, {
+		type: 'districtsCompleted',
+		player,
+		districts: [...districts],
+	});
+	return [
+		{
+			player,
+			kind: 'effects',
+			effects: [{ gain: { any: districts.length } }],
+		},
+		...triggered(ctx.state, 'districtsCompleted', { player, districts }),
+	];
 }
 
 /**

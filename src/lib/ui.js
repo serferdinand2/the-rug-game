@@ -8,7 +8,11 @@ import { TRACK_IDS } from './engine/data/ids.js';
 /** @typedef {CostSymbol | 'different' | 'same'} PriceSymbol - A tier price's symbol: a CostSymbol, or the arts track's mark after its icons, the resources all different or all one type (#35) */
 /** @typedef {'sea' | 'desert' | 'forest' | 'grassland' | 'mountain' | 'unexplored'} Terrain */
 /** @typedef {1 | 2 | 3 | 4 | 5} Seat - A table seat, which sets the player's colour */
-/** @typedef {'mountain' | 'wetland' | 'tropical' | 'desert' | 'grassland' | 'forest'} CapitalBiome */
+/**
+ * A capital mat's terrain, which is its id: the six basic mats, then Arts & Architecture's six (#36).
+ * @typedef {'mountain' | 'wetland' | 'tropical' | 'desert' | 'grassland' | 'forest' | 'archipelago' | 'canyon'
+ *   | 'cavern' | 'cloud-city' | 'mesa' | 'swamp'} CapitalBiome
+ */
 
 /** The engine's tracks, in board order, named by game-names.js. @type {readonly { id: TrackId, name: string }[]} */
 export const TRACKS = Object.freeze(
@@ -167,7 +171,7 @@ export function playerPieceUrl(piece, seat) {
 /**
  * A repeatable terrain variant for one plot in a game's capital composition.
  * The screen supplies the setup seed and plot mask; this does not change the rules layout.
- * @param {CapitalBiome} biome
+ * @param {string} biome - A CapitalBiome, or a split ground of one, such as 'cloud-city-grey' (#36)
  * @param {boolean} blocked - An impassable plot's own tile: only a mat without a relief has them, since each base
  *   mat's relief draws its impassable plots (#82)
  * @param {number} index - Row-major plot index

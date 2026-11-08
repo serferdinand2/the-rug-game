@@ -73,6 +73,42 @@ test('a piece over the edge fills only its plots on the grid (R106)', () => {
 	);
 });
 
+test('on an 11-row grid, a piece reaches row 10 and hangs off the bottom from there (#36)', () => {
+	/** @type {import('../src/lib/capital.js').Shape} */
+	const tall = { rows: 11, cols: 9, districts: [] };
+	assert.deepEqual(pieceArea(['XX', 'XX'], 10, 3, tall), {
+		row: 10,
+		col: 3,
+		rows: 1,
+		cols: 2,
+		top: 0,
+		right: 0,
+		bottom: 1,
+		left: 0,
+	});
+	const plots = /** @type {import('../src/lib/capital.js').PlotKind[]} */ (
+		Array(99).fill('empty')
+	);
+	const filled = withPieces(plots, [{ ...lighthouse, row: 9, col: 0 }], tall);
+	assert.deepEqual(
+		filled.flatMap((kind, index) => (kind === 'landmark' ? [index] : [])),
+		[81, 82, 90, 91]
+	);
+	assert.equal(completionCounts(plots, [], tall).rows, 0);
+	assert.deepEqual(
+		stepPiece(plots, [], { ...lighthouse, row: 8 }, 1, 0, tall),
+		{
+			row: 9,
+			col: 0,
+		}
+	);
+	assert.equal(fitsAt(plots, [], lighthouse, 9, 7, tall), true);
+	assert.deepEqual(snapPiece(plots, [], lighthouse, 20, 0, tall), {
+		row: 9,
+		col: 0,
+	});
+});
+
 test("a piece's area is its shape's rectangle on the grid, with how far it hangs over each edge", () => {
 	assert.deepEqual(pieceArea(['XX', 'XX'], 3, 4), {
 		row: 3,

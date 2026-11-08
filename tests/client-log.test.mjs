@@ -80,6 +80,7 @@ const SAMPLES = {
 	deckShuffled: { deck: 'civs', count: 15 },
 	districtsCleared: { player: 1, districts: [8] },
 	districtsCompleted: { player: 1, districts: [5, 6] },
+	lilyPadsCounted: { player: 1, pads: 4, vp: 8 },
 	entertainersMoved: { player: 2, space: 'c1r2' },
 	eraEnded: { player: 1, card: 'militarism', ability: 'militarism' },
 	eraStarted: { player: 1, card: 'espionage', ability: 'monarchy' },
@@ -169,6 +170,12 @@ const SAMPLES = {
 	partnerChosen: { player: 2, opponent: 1, track: 'science' },
 	piecePlacedOnMap: { player: 1, hex: '1_2', piece: { building: 'farm' } },
 	placedBesideMat: { player: 1, landmark: 'lighthouse' },
+	buildingMoved: {
+		player: 1,
+		building: 'farm',
+		from: { row: 0, col: 0 },
+		to: { row: 0, col: 3 },
+	},
 	playerFinished: { player: 1 },
 	prophecyMade: { player: 2, category: 'techCards', value: 1 },
 	prophecyReached: { player: 1, category: 'territories' },
@@ -437,6 +444,23 @@ test('every event of random games reads well in every seat’s view, and a secre
 	]) {
 		assert.ok(worded.has(type), `${type} never read in the games`);
 	}
+});
+
+test('an Arts & Architecture deal names the advanced mat beside the basic ones (#36)', () => {
+	assert.equal(
+		eventText(
+			{ type: 'capitalDealt', player: 1, options: [2, 4], advanced: 10 },
+			GAME
+		),
+		'Ana was dealt the Wetland and Desert capitals, and the advanced Cloud City, to choose from.'
+	);
+	assert.equal(
+		eventText(
+			{ type: 'capitalDealt', player: 2, options: [5], advanced: 7 },
+			GAME
+		),
+		'Bo was dealt the Grassland capital, and the advanced Archipelago, to choose from.'
+	);
 });
 
 test('a secret is named for its owner and kept from everyone else', () => {

@@ -1,5 +1,5 @@
 // Words for the engine's events, for the table log (#29 design §5): one plain sentence for each event worth reading.
-import { CAPITAL_MATS } from './engine/data/capitals.js';
+import { ADVANCED_MATS, CAPITAL_MATS } from './engine/data/capitals.js';
 import {
 	BLACK_DIE,
 	RED_DIE,
@@ -161,7 +161,10 @@ function civWords(id) {
  * @returns {string | null}
  */
 function capitalName(number) {
-	return CAPITAL_MATS.find((m) => m.number === number)?.name ?? null;
+	return (
+		[...CAPITAL_MATS, ...ADVANCED_MATS].find((m) => m.number === number)
+			?.name ?? null
+	);
 }
 
 /**
@@ -363,7 +366,11 @@ const WORDS = {
 				return `${name} was dealt capital mats to choose from.`;
 			}
 			const noun = mats.length === 1 ? 'capital' : 'capitals';
-			return `${name} was dealt the ${joinList(mats)} ${noun} to choose from.`;
+			// With Arts & Architecture, the advanced mat dealt beside them (#36).
+			const advanced = capitalName(e.advanced);
+			return advanced
+				? `${name} was dealt the ${joinList(mats)} ${noun}, and the advanced ${advanced}, to choose from.`
+				: `${name} was dealt the ${joinList(mats)} ${noun} to choose from.`;
 		}
 		const mat = capitalName(e.capital);
 		return mat
@@ -577,6 +584,9 @@ const WORDS = {
 		`${name} placed ${landmarkWords(e.landmark)} in their capital.`,
 	placedBesideMat: (e, game, name) =>
 		`${name} put ${pieceWords(e)} beside their capital mat.`,
+	// Cloud City's move (R121, #36).
+	buildingMoved: (e, game, name) =>
+		`${name} moved ${pieceWords({ building: e.building })} to another cloud of their capital.`,
 	piecePlacedOnMap: (e, game, name) =>
 		`${name} placed ${pieceWords(e.piece)} on ${hexName(e.hex)}.`,
 	districtsCompleted(e, game, name) {
@@ -587,6 +597,15 @@ const WORDS = {
 		return n === 1
 			? `${name} completed a district in their capital.`
 			: `${name} completed ${n} districts in their capital.`;
+	},
+	// The Swamp's final-income penalty (R52, #36).
+	lilyPadsCounted(e, game, name) {
+		if (!isCount(e.pads) || !isCount(e.vp)) {
+			return null;
+		}
+		return e.pads === 0
+			? `${name}'s Swamp shows no lily pads, so they lose nothing.`
+			: `${name} lost ${e.vp} VP for ${countWords(e.pads, 'lily pad', 'lily pads')} still showing in their Swamp.`;
 	},
 	districtsCleared(e, game, name) {
 		const n = Array.isArray(e.districts) ? e.districts.length : 0;

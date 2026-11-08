@@ -616,7 +616,7 @@ test('the table choices are what a new table may pick today', () => {
 			{ id: 'original', name: 'Original 2019 printing' },
 			{ id: 'current', name: 'Current official rules' },
 		],
-		// Plans & Ploys from #32 on (owner, 2026-10-31), Arts & Architecture from #35 on (owner, 2026-11-06).
+		// Plans & Ploys from #32 on (owner, 2026-10-31), Arts & Architecture from #35 and #36 on (owner, 2026-11-06).
 		expansions: ['pp', 'aa'],
 		variants: VARIANTS.map(({ id, name, expansion }) =>
 			expansion ? { id, name, expansion } : { id, name }

@@ -225,6 +225,20 @@ test('mapHexes on a dealt 4-player game gives 61 hexes, 25 explored, and the sta
 	}
 });
 
+test('mapHexes keeps a start on an advanced mat once the setup events have scrolled out of the log (#36)', () => {
+	const game = dealtView(2);
+	// An Arts & Architecture player who kept the Archipelago (R49: no start of its own), with the setup events gone.
+	const seat = /** @type {any} */ (game.seats[0]);
+	seat.capital.mat = 7;
+	game.events = game.events.filter((e) => e.type !== 'outpostsPlaced');
+	const hexes = mapHexes(game);
+	const hex = /** @type {any} */ (hexes.find((h) => h.key === seat.start));
+	assert.deepEqual(hex.outposts, [
+		{ seat: 1, toppled: false, piece: null, capital: true },
+		{ seat: 1, toppled: false, piece: null },
+	]);
+});
+
 test("a placed tile's number reaches its hex, and a printed starting hex has none (#170)", () => {
 	const game = dealtView(4);
 	assert.ok(mapHexes(game).every((hex) => hex.tile === null));

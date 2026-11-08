@@ -64,12 +64,13 @@
 	let dragging = $state(false);
 
 	/**
-	 * A lit plot was chosen for a building or an Architects cube, or a plot for the landmark.
+	 * A lit plot was chosen for a building or an Architects cube, Cloud City's building to move (#36), or a plot for the
+	 * landmark.
 	 * @param {ComponentEvent} event
 	 */
 	const plotClickHandler = (event) => {
 		const { row, col } = event.value;
-		if (values.building || values.cube) {
+		if (values.building || values.cube || values.move) {
 			const target = values.targets.find(
 				(plot) => plot.row === row && plot.col === col
 			);
@@ -97,12 +98,12 @@
 		if (!values.landmark) {
 			return;
 		}
-		const middle = Math.floor(GRID_SIZE / 2);
+		// The middle plot of the mat, whatever its shape (#36).
 		const at = centredCorner(
 			values.landmark.footprint,
 			trayTurn,
-			middle,
-			middle
+			Math.floor((capital?.shape.rows ?? GRID_SIZE) / 2),
+			Math.floor((capital?.shape.cols ?? GRID_SIZE) / 2)
 		);
 		land(
 			placeNear(placement?.options ?? [], at.row, at.col, trayTurn),

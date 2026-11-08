@@ -246,3 +246,36 @@ test('a picked masterpiece fires with Fire, and the deck with Take card', () => 
 	assert.equal(controls.confirmLabel, 'Take card');
 	assert.equal(controls.confirmDisabled, false);
 });
+
+test("R121: Cloud City's moves sit in the panel beside the masterpieces on the shelf, and Confirm says Move buildings (#36 joined)", () => {
+	const decision = {
+		...IMPLANTS,
+		purpose: 'income',
+		cloud: 2,
+		options: [{ seat: 1, card: 'krav-maga' }],
+		answers: [{ seat: 1, card: 'krav-maga' }, { cloudMove: true }],
+	};
+	const prompt = promptFor(decision, TABLE, 1);
+	assert.deepEqual(
+		prompt.options.map((option) => [option.place, option.label]),
+		[
+			['shelf', 'Krav Maga'],
+			['panel', 'Cloud City: move up to 2 income buildings'],
+		]
+	);
+	assert.equal(
+		answerConfirm(decision, { cloudMove: true }),
+		'Move buildings'
+	);
+	assert.equal(answerConfirm(decision, { seat: 1, card: 'krav-maga' }), null);
+	const controls = panelControls(
+		prompt,
+		/** @type {any} */ ({
+			pick: null,
+			picked: 1,
+			tradeAnswer: -1,
+			sending: false,
+		})
+	);
+	assert.equal(controls.confirmLabel, 'Move buildings');
+});

@@ -3,6 +3,7 @@ import { emit } from '../events.js';
 import { PlayerError } from '../errors.js';
 import { playerSeat } from '../state.js';
 import { plotIndex } from '../../capital.js';
+import { seatShape } from '../city.js';
 
 /** @typedef {import('../state.js').PlayerSeat} PlayerSeat */
 
@@ -13,7 +14,10 @@ import { plotIndex } from '../../capital.js';
  * @returns {import('../city.js').PlacedBuilding | undefined}
  */
 function buildingAt(seat, plot) {
-	return seat.capital.buildings.find((b) => plotIndex(b.row, b.col) === plot);
+	const shape = seatShape(seat);
+	return seat.capital.buildings.find(
+		(b) => plotIndex(b.row, b.col, shape) === plot
+	);
 }
 
 /**
@@ -22,8 +26,12 @@ function buildingAt(seat, plot) {
  * @returns {{ a: number, b: number }[]}
  */
 function swaps(seat) {
+	const shape = seatShape(seat);
 	const placed = seat.capital.buildings
-		.map((b) => ({ plot: plotIndex(b.row, b.col), building: b.building }))
+		.map((b) => ({
+			plot: plotIndex(b.row, b.col, shape),
+			building: b.building,
+		}))
 		.sort((x, y) => x.plot - y.plot);
 	return placed.flatMap((x, i) =>
 		placed

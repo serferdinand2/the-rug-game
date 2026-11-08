@@ -58,7 +58,8 @@
  * @property {string[]} civs - The civilization chosen at setup first, then those gained later (#20 design §5)
  * @property {Record<string, any>} civData - Each civilization's own state, by civilization id; public, like everything on a civilization mat
  * @property {Era | null} era - The active THIS ERA ability, if any
- * @property {{ capital?: number, civ?: string }} picks - Setup picks until the reveal
+ * @property {{ capital?: number, civ?: string, dealt?: number[] }} picks - Setup picks until the reveal; `dealt` is every
+ * mat a joint pick was dealt (#36), so the reveal returns the others to the supply
  * @property {{ card: string, gained: boolean } | null} landmarkCard - The landmark card drafted at setup, face up, and whether its landmark is gained (#32)
  * @property {string | null} start - The hex its two outposts started on, its capital-city territory; null until setup places them (#33)
  * @property {{ card: string, used: boolean }[]} [masterpieces] - With the arts track only: the masterpieces held, in the order gained, public; `used` for a single-use card turned face down (#35)

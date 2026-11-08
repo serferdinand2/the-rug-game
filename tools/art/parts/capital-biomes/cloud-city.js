@@ -34,19 +34,11 @@ export const CLOUDS = [
 	'999997888',
 ];
 
-/**
- * Each cloud's tint: 0 white, 1 grey, 2 tan, 3 cream (research table; cloud 1 grey, 2 tan, 3 cream, 4 white, 5 grey, 6 cream, 7 tan, 8 white, 9 white).
- * @type {readonly number[]}
- */
-export const CLOUD_TINTS = [0, 1, 2, 3, 0, 1, 3, 2, 0, 0];
-
-/** The names of the four cloud tints, by tint index (#132). */
-export const CLOUD_TINT_NAMES = Object.freeze([
-	'white',
-	'grey',
-	'tan',
-	'cream',
-]);
+// Each cloud's tint and the tints' names live with the relief geometry, so the game picks the same ground (#36).
+export {
+	CLOUD_TINTS,
+	CLOUD_TINT_NAMES,
+} from '../../../../src/lib/art/relief.js';
 
 /**
  * What #36 composes this mat in the game from (#6, #132). `pools.open` holds the buildable ground variants, safe on any

@@ -8,6 +8,8 @@ import { endFirstIncomeTurn } from './civ-turns.js';
 import { INCOME_MAT, INSPIRED_MAT, TAPESTRY_SLOTS } from './data/income-mat.js';
 import { BUILDING_IDS } from './data/ids.js';
 import { artsInPlay } from './tracks-in-play.js';
+import { cityPlots, seatMat } from './city.js';
+import { askCloudMove } from './decisions/choose-cloud-move.js';
 
 /** @typedef {import('./data/ids.js').BuildingId} BuildingId */
 
@@ -16,6 +18,15 @@ import { artsInPlay } from './tracks-in-play.js';
  * does.
  * @typedef {{ turns: number[], when?: (state: import('./state.js').State) => boolean, run: (ctx: import('./state.js').Context, player: number, turn: number) => void }} IncomeStep
  */
+
+/**
+ * How many income buildings a seat's mat lets it move at the start of an income turn: Cloud City's 2 (R121), else 0.
+ * @param {import('./state.js').PlayerSeat} seat
+ * @returns {number}
+ */
+function cloudMovesOf(seat) {
+	return seat.capital.mat === null ? 0 : (seatMat(seat).cloudMoves ?? 0);
+}
 
 /** The spaces of a building row, so a row with `left` buildings shows spaces 1 to 6 − `left` (01 §5). */
 const ROW_SPACES = 6;
@@ -178,7 +189,9 @@ export function playFaceDown(ctx, op) {
  */
 export const INCOME_STEPS = [
 	'eraEnd',
+	'cloudMoves',
 	'masterpieces',
+	'lilyPads',
 	'civAbilities',
 	'tapestry',
 	'upgrade',
@@ -199,18 +212,67 @@ export const INCOME_STEP_KINDS = {
 	},
 	// Step 1, first: every masterpiece held fires, in the player's order, before the civilizations; one gained meanwhile
 	// fires too (03 §2.2, "step 0"). Nobody holds one at income turn 1. Only with the arts track (#35).
+	// Cloud City's moves are one more item in their order (R121, #36 design §5).
 	masterpieces: {
 		turns: [2, 3, 4, 5],
 		when: artsInPlay,
 		run(ctx, player) {
+			const cloud = cloudMovesOf(playerSeat(ctx.state, player));
 			ctx.push([
 				{
 					player,
 					kind: 'askMasterpiece',
 					purpose: 'income',
 					chosen: [],
+					...(cloud && { cloud }),
 				},
 			]);
+		},
+	},
+	// Cloud City: at the start of income turns 2–5, up to 2 income buildings move between clouds (R121). With the arts
+	// track the masterpieces' step asks for them instead, as one more item in the masterpieces' order (#36 design §5).
+	cloudMoves: {
+		turns: [2, 3, 4, 5],
+		when: (state) => !artsInPlay(state),
+		run(ctx, player) {
+			const moves = cloudMovesOf(playerSeat(ctx.state, player));
+			if (moves) {
+				askCloudMove(ctx, player, moves);
+			}
+		},
+	},
+	// The Swamp: at the start of the final income turn, 2 VP lost for each lily pad still showing (R52). With #35's
+	// masterpieces it comes after them, as the FAQ allows either and after is never worse (#36 design §3.4).
+	lilyPads: {
+		turns: [5],
+		run(ctx, player) {
+			const seat = playerSeat(ctx.state, player);
+			const penalty =
+				seat.capital.mat === null
+					? undefined
+					: seatMat(seat).lilyPenalty;
+			if (!penalty) {
+				return;
+			}
+			const pads = cityPlots(seat).filter(
+				(kind) => kind === 'lily'
+			).length;
+			emit(ctx.state, {
+				type: 'lilyPadsCounted',
+				player,
+				pads,
+				vp: penalty * pads,
+			});
+			if (pads > 0) {
+				ctx.push([
+					{
+						player,
+						kind: 'effects',
+						effects: [{ vp: -penalty * pads }],
+						origin: 'capital',
+					},
+				]);
+			}
 		},
 	},
 	// Step 1: the civilization abilities (civ-turns.js).

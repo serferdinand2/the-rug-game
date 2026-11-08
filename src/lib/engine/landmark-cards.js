@@ -2,7 +2,12 @@
 import { emit } from './events.js';
 import { isPlayerSeat, playerSeat } from './state.js';
 import { triggered } from './abilities.js';
-import { cityPlots, completeDistricts, completeLines } from './city.js';
+import {
+	cityPlots,
+	completeDistricts,
+	completeLines,
+	seatShape,
+} from './city.js';
 import { controlledTerritories } from './control.js';
 import { spacesAdvanced, TIER_FIRST_SPACES } from './movement.js';
 import { hexNeighbours } from './data/maps.js';
@@ -105,10 +110,11 @@ function goalCount(seat, kind, game) {
 		return 0;
 	}
 	const plots = cityPlots(/** @type {PlayerSeat} */ (seat));
+	const shape = seatShape(/** @type {PlayerSeat} */ (seat));
 	if (kind === 'districts') {
-		return completeDistricts(plots).length;
+		return completeDistricts(plots, shape).length;
 	}
-	const { rows, columns } = completeLines(plots);
+	const { rows, columns } = completeLines(plots, shape);
 	return rows + columns;
 }
 

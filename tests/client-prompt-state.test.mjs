@@ -648,3 +648,41 @@ test('R117: the panel lists a used-up building greyed out in its place, and choo
 	// The one option left is still asked: nothing is picked until the player picks it.
 	assert.equal(prompt.picked, null);
 });
+
+test('the joint pick picks a mat and a civilization on their shelves, and greys out what R120 forbids (#36)', () => {
+	const { state } = newGame(2, { expansions: ['aa'] });
+	const game = view(state, 1);
+	const seen = /** @type {any} */ (myDecision(game, 1));
+	const decision = {
+		...seen,
+		mats: [1, 6, 10],
+		civs: ['riverfolk', 'leaders'],
+		answers: [
+			{ capital: 1, civ: 'riverfolk' },
+			{ capital: 1, civ: 'leaders' },
+			{ capital: 6, civ: 'riverfolk' },
+			{ capital: 6, civ: 'leaders' },
+			{ capital: 10, civ: 'leaders' },
+		],
+	};
+	const prompt = new PromptState(promptSource({ game, decision }));
+	assert.deepEqual(
+		prompt.joint?.mats.map((c) => c.index),
+		[1, 6, 10]
+	);
+	assert.equal(prompt.picked, null);
+	prompt.pickJointMat(10);
+	assert.equal(prompt.jointMat, 10);
+	assert.equal(prompt.picked, null);
+	assert.deepEqual(prompt.jointBlocked, { mats: [], civs: [0] });
+	prompt.pickJointCiv(1);
+	assert.equal(prompt.picked, 4);
+	assert.equal(prompt.controls?.confirmLabel, 'Keep these');
+	// Another mat keeps the civilization and picks the pair it makes.
+	prompt.pickJointMat(6);
+	assert.equal(prompt.picked, 3);
+	prompt.pickJointCiv(0);
+	assert.equal(prompt.picked, 2);
+	assert.deepEqual(prompt.jointBlocked, { mats: [10], civs: [] });
+	assert.deepEqual(prompt.shelfCards, []);
+});

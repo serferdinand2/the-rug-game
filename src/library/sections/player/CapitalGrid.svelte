@@ -1,4 +1,4 @@
-<!-- Library section: CapitalGrid on the real Mountain and Forest mats, with their reliefs, lit target plots with a previewed farm, an Architects' cube and a terraformed plot, completed groups, placed, locked and overhanging landmarks with room kept for them, and the interactive Lighthouse placement, and houses built one after another (#175). -->
+<!-- Library section: CapitalGrid on the real Mountain and Forest mats, with their reliefs, lit target plots with a previewed farm, an Architects' cube and a terraformed plot, completed groups, placed, locked and overhanging landmarks with room kept for them, and the interactive Lighthouse placement, houses built one after another (#175), and four Arts & Architecture mats: the Archipelago's 11 rows, Cloud City's clouds, the Swamp's lily pads and the Canyon's cacti (#36). -->
 <script>
 	import CapitalGrid from '../../../lib/components/player/CapitalGrid.svelte';
 	import CompletionCounters from '../../../lib/components/player/CompletionCounters.svelte';
@@ -9,6 +9,7 @@
 	import { FOOTPRINTS } from '../../../lib/art/footprints.js';
 	import { matPlots } from '../../../lib/area/capital.js';
 	import { completionCounts, snapPiece } from '../../../lib/placement.js';
+	import { capitalMat, matShape } from '../../../lib/engine/data/capitals.js';
 
 	/** @typedef {import('../../../lib/capital.js').PlotKind} PlotKind */
 	/** @typedef {import('../../../lib/capital.js').GroupKind} GroupKind */
@@ -22,6 +23,39 @@
 	 */
 	const capital = (mat, buildings) =>
 		matPlots(mat).map((kind, index) => buildings[index] ?? kind);
+
+	/** The Archipelago with island A (its top-left six plots) built up, so its district lights (#36). */
+	const ARCHIPELAGO = capital(7, {
+		0: 'farm',
+		1: 'house',
+		9: 'market',
+		10: 'farm',
+		18: 'armory',
+		19: 'house',
+	});
+	/** Cloud City with cloud 3 (top right) built up, so its district lights, and two houses elsewhere (#36). */
+	const CLOUD_CITY = capital(10, {
+		7: 'farm',
+		8: 'market',
+		15: 'house',
+		16: 'house',
+		24: 'armory',
+		25: 'farm',
+		40: 'house',
+		57: 'house',
+	});
+	/** The Swamp with a market on the lily pad at row 2, column 5 (#36). */
+	const SWAMP = capital(12, { 13: 'market' });
+	/** The Canyon with the cactus at (1, 1) surrounded, so it shows as impassable (#36). */
+	const CANYON = capital(8, {
+		0: 'farm',
+		1: 'house',
+		9: 'market',
+		10: 'blocked',
+		18: 'farm',
+		19: 'armory',
+		20: 'house',
+	});
 
 	/**
 	 * Every open plot of a capital, as a gained building's targets.
@@ -502,5 +536,48 @@ The engine's places decide where it goes (#112): the right arrow from row 6, col
 				);
 				houses = next ? [...houses, next.row * 9 + next.col] : [];
 			}}>Build a house</Button>
+	</Example>
+	<Example
+		label={'shape={archipelago} biome="archipelago"  (11 rows; its islands are districts; a landmark hangs off the bottom; #36)'}
+		width={468}>
+		<CapitalGrid
+			plots={ARCHIPELAGO}
+			shape={matShape(capitalMat(7))}
+			biome="archipelago"
+			room
+			pieces={[
+				{
+					id: 'forge',
+					name: 'Forge',
+					footprint: FOOTPRINTS.forge,
+					row: 10,
+					col: 3,
+					locked: true,
+				},
+			]}
+			highlight="districts" />
+	</Example>
+	<Example
+		label={'shape={cloudCity} biome="cloud-city"  (each cloud a district, drawn along its sides; a complete cloud lit; #36)'}
+		width={468}>
+		<CapitalGrid
+			plots={CLOUD_CITY}
+			shape={matShape(capitalMat(10))}
+			biome="cloud-city"
+			highlight="districts" />
+	</Example>
+	<Example
+		label="biome=&quot;swamp&quot;  (lily pads, one under a market; #36)"
+		width={468}>
+		<CapitalGrid
+			plots={SWAMP}
+			biome="swamp" />
+	</Example>
+	<Example
+		label="biome=&quot;canyon&quot;  (cacti, one surrounded and impassable; #36)"
+		width={468}>
+		<CapitalGrid
+			plots={CANYON}
+			biome="canyon" />
 	</Example>
 </Section>

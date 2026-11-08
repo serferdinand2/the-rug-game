@@ -49,6 +49,8 @@ export const DECISION_KINDS = Object.freeze({
 	confirmEndTurn: { confirm: 'End turn' },
 	chooseCapital: { shelf: 'mat', confirm: 'Take this capital' },
 	chooseCiv: { shelf: 'civ', confirm: 'Keep civilization' },
+	// Two shelves, the mats over the civilizations, drawn from jointPick rather than a card per answer (#36).
+	chooseMatAndCiv: { shelf: 'mat', confirm: 'Keep these' },
 	chooseResource: { art: 'resources' },
 	chooseBonus: { art: 'payment' },
 	chooseAdvance: {},
@@ -61,6 +63,9 @@ export const DECISION_KINDS = Object.freeze({
 	choosePlacement: { tab: 'capital', confirm: 'Place', art: 'placement' },
 	// The Architects' cube is placed on a lit plot, as a building is (#168).
 	chooseCube: { tab: 'capital', confirm: 'Place' },
+	// Cloud City's moves (#36): a building, then where it goes, on the capital.
+	chooseCloudMove: { tab: 'capital' },
+	chooseCloudPlot: { tab: 'capital', confirm: 'Move here' },
 	chooseExplore: { confirm: 'Explore', art: 'explore' },
 	chooseSpaceTile: { tab: 'terrain', art: 'space-tile' },
 	chooseConquer: { confirm: 'Conquer' },
@@ -137,12 +142,16 @@ const DECLINE_CONFIRMS = Object.freeze({
 });
 
 /**
- * The Confirm button's words while this answer is picked, or null when the decision's own words fit it (#173).
+ * The Confirm button's words while this answer is picked, or null when the decision's own words fit it (#173). Cloud
+ * City's moves among the masterpieces aren't fired (R121).
  * @param {any} decision
  * @param {any} answer
  * @returns {string | null}
  */
 export function answerConfirm(decision, answer) {
+	if (decision.kind === 'chooseMasterpiece' && answer?.cloudMove === true) {
+		return 'Move buildings';
+	}
 	if (
 		answer?.card !== null ||
 		!Object.hasOwn(DECLINE_CONFIRMS, decision.kind)

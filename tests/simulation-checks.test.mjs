@@ -186,23 +186,33 @@ test('the 200 games cover every player count, version and policy 10 times, 5 of 
 			...(pp ? ['pp'] : []),
 			...(aa ? ['aa'] : []),
 		]);
-		// R59: no Arts & Architecture alone.
-		assert.ok(!aa || players > 1, `game ${seed}`);
-		// Every variant whose expansion the game has, or none. With Arts & Architecture one of its two is left out,
-		// since they can't go together (#35): the arts track off without Plans & Ploys, on with it.
+		// R59: alone, Arts & Architecture plays without the arts track, with its advanced mats (#36).
+		const soloAa = aa && players === 1;
+		assert.ok(
+			!soloAa || variants.includes('no-arts-track'),
+			`game ${seed}`
+		);
+		// Every variant whose expansion the game has, or none but a solo A&A game's. With Arts & Architecture one of its
+		// two is left out, since they can't go together (#35): the arts track off without Plans & Ploys or alone, on
+		// with Plans & Ploys.
 		const all = VARIANTS.filter(
 			(v) => !v.expansion || expansions.includes(v.expansion)
 		)
 			.map((v) => v.id)
 			.filter(
 				(id) =>
-					!aa || id !== (pp ? 'no-arts-track' : 'either-science-die')
+					!aa ||
+					id !==
+						(pp && !soloAa ? 'no-arts-track' : 'either-science-die')
 			);
+		const on = variants.length > (soloAa ? 1 : 0);
 		assert.ok(
-			variants.length === 0 || variants.join() === all.join(),
+			on
+				? variants.join() === all.join()
+				: variants.join() === (soloAa ? 'no-arts-track' : ''),
 			`game ${seed}: ${variants}`
 		);
-		const key = `${players} ${version} ${policy} ${variants.length > 0}`;
+		const key = `${players} ${version} ${policy} ${on}`;
 		combos.set(key, (combos.get(key) ?? 0) + 1);
 		withPp.set(key, (withPp.get(key) ?? 0) + (pp ? 1 : 0));
 		withAa.set(key, (withAa.get(key) ?? 0) + (aa ? 1 : 0));
@@ -215,10 +225,10 @@ test('the 200 games cover every player count, version and policy 10 times, 5 of 
 	assert.ok([...combos.values()].every((n) => n === 5));
 	assert.ok([...withPp.values()].every((n) => n === 2));
 	for (const [key, n] of withAa) {
+		assert.equal(n, 2, key);
+		// Alone, both play without the arts track; otherwise one of each with-variants pair does.
 		const solo = key.startsWith('1 ');
-		assert.equal(n, solo ? 0 : 2, key);
-		// One of each with-variants pair plays without the arts track.
-		const off = key.endsWith('true') && !solo ? 1 : 0;
+		const off = solo ? 2 : key.endsWith('true') ? 1 : 0;
 		assert.equal(artsOff.get(key) ?? 0, off, key);
 	}
 });

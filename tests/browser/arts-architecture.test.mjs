@@ -1,6 +1,7 @@
 // Arts & Architecture at a hot-seat table (#35 part 4): the arts track on the board with its masterpiece row and a card
-// shown in full, then a masterpiece created from the shelf and shown on the Civ tab. The test plays through the API
-// between the looks, then ends and leaves the table.
+// shown in full, then a masterpiece created from the shelf and shown on the Civ tab; and the lobby's switch with its two
+// variants, then the table it starts (#35 and #36 joined). The tests play through the API between the looks, then end
+// and leave their tables.
 import { expect, test } from '@playwright/test';
 import { askedSeats } from '../../src/lib/engine/game.js';
 
@@ -188,6 +189,84 @@ test('an Arts & Architecture table shows the arts track with its masterpieces, a
 		await expect(
 			page.locator('.rg-player-tabs--masterpieces .rg-masterpiece-chip')
 		).toContainText([name]);
+	} finally {
+		const latest = await api(request, 'state', undefined, token);
+		if (latest.phase === 'playing') {
+			await api(request, 'end', { version: latest.version }, token);
+		}
+		await api(request, 'leave', {}, token);
+	}
+});
+
+test('the lobby offers Arts & Architecture with its two variants, and a table started there deals the advanced mats and plays the arts track (#35, #36)', async ({
+	page,
+	request,
+}) => {
+	test.setTimeout(120_000);
+	const { token } = await api(request, 'login', { name: NAMES[0] });
+	let room = await api(
+		request,
+		'create',
+		{ options: { mode: 'hotseat' } },
+		token
+	);
+	room = await api(
+		request,
+		'add-seat',
+		{ version: room.version, name: NAMES[1] },
+		token
+	);
+
+	try {
+		await page.setViewportSize({ width: 1920, height: 1080 });
+		await page.addInitScript(
+			(saved) => sessionStorage.setItem('rg-token', saved),
+			token
+		);
+		await page.goto('/');
+		const settings = page.getByRole('region', { name: 'Table settings' });
+		await expect(settings).toBeVisible();
+		const expansions = settings.getByRole('group', { name: 'Expansions' });
+		const aa = expansions.getByRole('button', {
+			name: 'Arts & Architecture',
+		});
+		await expect(aa).toHaveAttribute('aria-pressed', 'false');
+		// Its two variants show only once it is on.
+		const without = settings.getByRole('group', {
+			name: 'Play without the arts track',
+		});
+		await expect(without).toHaveCount(0);
+		await aa.click();
+		await expect(aa).toHaveAttribute('aria-pressed', 'true');
+		await expect
+			.poll(
+				async () =>
+					(await api(request, 'state', undefined, token)).options
+						.expansions
+			)
+			.toEqual(['aa']);
+		await expect(without).toBeVisible();
+		await expect(
+			settings.getByRole('group', {
+				name: 'Roll either science die (d12 or d20)',
+			})
+		).toBeVisible();
+
+		await page.getByRole('button', { name: 'Start game' }).click();
+		await page.getByRole('button', { name: `I'm ${NAMES[0]}` }).click();
+		// The joint pick of a mat and a civilization (#36), over a board with the arts track fifth (#35).
+		await expect(
+			page.getByRole('heading', {
+				name: 'Choose your capital city and civilization',
+			})
+		).toBeVisible();
+		await expect(page.locator('.rg-track')).toHaveCount(5);
+		await expect(
+			page.getByRole('heading', { name: 'Arts', exact: true })
+		).toBeVisible();
+		await expect(
+			page.locator('.rg-masterpiece-row .rg-masterpiece-chip')
+		).toHaveCount(3);
 	} finally {
 		const latest = await api(request, 'state', undefined, token);
 		if (latest.phase === 'playing') {

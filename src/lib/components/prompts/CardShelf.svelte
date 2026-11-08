@@ -12,6 +12,7 @@
 	 * @property {number[]} [disabled=[]] - Indexes of cards that can't be pressed now, as when enough are chosen (#75)
 	 * @property {number} [terrainSeed=0] - For capital mats: the table's terrain seed, so a mat looks as it will in the Capital tab (#56)
 	 * @property {number} [room] - The height the shelf may take, from the decision panel (#79): civilization cards fit it. Left out, the shelf's own height
+	 * @property {number} [minScale] - The smallest civilization cards or capital mats shrink to, to fit that height: 0.75 for civilization cards and 0.4 for mats when left out. The joint pick gives its civilization cards less, so a tall one never reaches up behind the mats (#36)
 	 * @property {Function} [onCardShelfSelect] - Callback fired when a card is pressed; its value is the card's index
 	 * @property {Function} [onCardShelfInspect] - Callback fired when a card is hovered or focused, and with null when that ends; its value is the card's index
 	 */
@@ -61,6 +62,9 @@
 	const CIV_MIN_FIT = 0.75;
 	/** The shelf's padding, top and bottom, which also holds the chosen card's outline. */
 	const CIV_ROOM = 2 * 8;
+	/** A capital mat face's width (CapitalMatFace), and the smallest it shrinks to when its room is given (#36). */
+	const MAT_WIDTH = 392;
+	const MAT_MIN_FIT = 0.4;
 
 	/** @type {CardShelfProps} */
 	let {
@@ -70,6 +74,7 @@
 		disabled = [],
 		terrainSeed = 0,
 		room,
+		minScale,
 		label,
 		onCardShelfSelect,
 		onCardShelfInspect,
@@ -88,7 +93,25 @@
 	/** Civilization cards at full size when they fit that height; otherwise the row shrinks just enough. */
 	let civScale = $derived(
 		kind === 'civ'
-			? fitScale(fitHeight, tallest, { min: CIV_MIN_FIT, room: CIV_ROOM })
+			? fitScale(fitHeight, tallest, {
+					min: minScale ?? CIV_MIN_FIT,
+					room: CIV_ROOM,
+				})
+			: 1
+	);
+	/** Each capital mat's own height, unscaled, by answer index: the Archipelago is taller (#36). */
+	/** @type {Record<number, number>} */
+	let matHeights = $state({});
+	let tallestMat = $derived(
+		Math.max(0, ...cards.map((card) => matHeights[card.index] ?? 0))
+	);
+	/** Capital mats at full size when they fit; given less room, as the joint pick's two shelves are, they shrink (#36). */
+	let matScale = $derived(
+		kind === 'mat' && room !== undefined
+			? fitScale(fitHeight, tallestMat, {
+					min: minScale ?? MAT_MIN_FIT,
+					room: CIV_ROOM,
+				})
 			: 1
 	);
 
@@ -186,12 +209,18 @@
 						state="empty" />
 				</ScaledCard>
 			{:else if 'plots' in face}
-				<CapitalMatFace
-					name={face.name}
-					plots={face.plots}
-					biome={face.biome}
-					{terrainSeed}
-					aria-hidden="true" />
+				<ScaledCard
+					scale={matScale}
+					width={MAT_WIDTH}
+					bind:measuredHeight={matHeights[offer.index]}
+					aria-hidden="true">
+					<CapitalMatFace
+						name={face.name}
+						plots={face.plots}
+						biome={face.biome}
+						shape={face.shape}
+						{terrainSeed} />
+				</ScaledCard>
 			{:else if 'masterpiece' in face}
 				<!-- A masterpiece, and for Streaming Implants a neighbour's marked with their name (approved mockup, #35). -->
 				<span

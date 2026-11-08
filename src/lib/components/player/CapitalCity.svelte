@@ -228,6 +228,7 @@
 	</h2>
 	<CapitalGrid
 		plots={capital.plots}
+		shape={capital.shape}
 		biome={capital.biome}
 		terrainSeed={capital.terrainSeed}
 		pieces={pieces ?? capital.pieces}

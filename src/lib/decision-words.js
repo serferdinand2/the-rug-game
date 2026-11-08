@@ -20,7 +20,7 @@ import {
 	SPACE_TILES,
 } from './engine/data/space-tiles.js';
 import { spaceTileWords } from './area/terrain.js';
-import { CAPITAL_MATS } from './engine/data/capitals.js';
+import { ADVANCED_MATS, CAPITAL_MATS } from './engine/data/capitals.js';
 import { RED_DIE, BLACK_DIE } from './engine/data/dice.js';
 import { ARTS_TRACK, RESOURCE_IDS, TRACK_IDS } from './engine/data/ids.js';
 import { GRID_SIZE } from './capital.js';
@@ -466,6 +466,7 @@ const TITLES = {
 		d.midGame
 			? 'Keep one of the civilizations you drew'
 			: 'Choose your civilization',
+	chooseMatAndCiv: () => 'Choose your capital city and civilization',
 	chooseResource: (d) =>
 		isCount(d.count) && d.count > 1
 			? `Choose ${d.count} resources`
@@ -739,6 +740,8 @@ const TITLES = {
 			: 'Make a prophecy',
 	chooseSwap: () => 'Swap two income buildings in your capital?',
 	chooseCube: () => 'Choose a plot for an Architects cube',
+	chooseCloudMove: () => 'Move an income building to another cloud?',
+	chooseCloudPlot: () => 'Where does the building go?',
 };
 
 /** Small counts in words, for "the other two". */
@@ -945,6 +948,14 @@ const ANSWERS = {
 	},
 	chooseCiv: (a) =>
 		typeof a.civ === 'string' ? civilizationName(a.civ) : null,
+	chooseMatAndCiv: (a) => {
+		const mat = [...CAPITAL_MATS, ...ADVANCED_MATS].find(
+			(m) => m.number === a.capital
+		);
+		return mat && typeof a.civ === 'string'
+			? `${mat.name} with the ${civilizationName(a.civ)}`
+			: null;
+	},
 	chooseCivAbility: (a) =>
 		typeof a.civ === 'string' ? civilizationName(a.civ) : null,
 	chooseResource: (a) => {
@@ -1248,6 +1259,11 @@ const ANSWERS = {
 		if (a.card === null) {
 			return 'Stop';
 		}
+		// Cloud City's moves, one more item in the masterpieces' order (R121).
+		if (a.cloudMove === true) {
+			const n = isCount(d.cloud) ? d.cloud : 2;
+			return `Cloud City: move up to ${n} income building${n === 1 ? '' : 's'}`;
+		}
 		if (typeof a.card !== 'string') {
 			return null;
 		}
@@ -1343,6 +1359,18 @@ const ANSWERS = {
 		return `${a.value} ${a.value === 1 ? one : many}`;
 	},
 	chooseCube: (a) =>
+		Number.isInteger(a.row) && Number.isInteger(a.col)
+			? capitalize(plotName(a.row, a.col))
+			: null,
+	chooseCloudMove: (a) => {
+		if (a.stop === true) {
+			return "Don't move";
+		}
+		return Number.isInteger(a.row) && Number.isInteger(a.col)
+			? `Move the building at ${plotName(a.row, a.col)}`
+			: null;
+	},
+	chooseCloudPlot: (a) =>
 		Number.isInteger(a.row) && Number.isInteger(a.col)
 			? capitalize(plotName(a.row, a.col))
 			: null,

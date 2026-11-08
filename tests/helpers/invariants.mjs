@@ -9,7 +9,10 @@ import { MASTERPIECES } from '../../src/lib/engine/data/masterpieces.js';
 import { landmarkCardsFor } from '../../src/lib/engine/data/landmark-cards.js';
 import { TERRITORY_TILES } from '../../src/lib/engine/data/territory-tiles.js';
 import { spaceTilesFor } from '../../src/lib/engine/data/space-tiles.js';
-import { SMALL_MAP_PAIRS } from '../../src/lib/engine/data/capitals.js';
+import {
+	SMALL_MAP_PAIRS,
+	advancedMatsFor,
+} from '../../src/lib/engine/data/capitals.js';
 import { RESOURCE_CAP } from '../../src/lib/engine/effects/gain.js';
 import {
 	UTILITARIANS_LANDMARKS,
@@ -220,6 +223,7 @@ export function checkState(state, previousSeq = 0) {
 				...(p.picks.civ !== undefined ? [p.picks.civ] : []),
 			]),
 			...opsOf('chooseCiv').flatMap((op) => op.options),
+			...opsOf('chooseMatAndCiv').flatMap((op) => op.civs),
 		],
 		civsFor(state.expansions, state.variants)
 	);
@@ -231,17 +235,23 @@ export function checkState(state, previousSeq = 0) {
 				if (p.capital.mat !== null) {
 					return [p.capital.mat];
 				}
-				// Until the reveal, a kept small-map mat holds its pair: the other one joins the supply then.
+				// Until the reveal, a kept mat holds every mat dealt with it (#36), or its small-map pair: the others
+				// join the supply then.
 				const kept = p.picks.capital;
-				return kept === undefined
-					? []
-					: (SMALL_MAP_PAIRS.find((pair) => pair.includes(kept)) ?? [
-							kept,
-						]);
+				if (kept === undefined) {
+					return [];
+				}
+				return (
+					p.picks.dealt ??
+					SMALL_MAP_PAIRS.find((pair) => pair.includes(kept)) ?? [
+						kept,
+					]
+				);
 			}),
 			...opsOf('chooseCapital').flatMap((op) => op.options),
+			...opsOf('chooseMatAndCiv').flatMap((op) => op.mats),
 		],
-		MATS
+		[...MATS, ...advancedMatsFor(state.expansions)]
 	);
 	exactlyOnce(
 		'landmarks',

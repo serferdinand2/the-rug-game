@@ -455,7 +455,7 @@ test('a game keeps its variants, and says so when it is created (#53)', () => {
 	assert.deepEqual(state.events[0].variants, []);
 });
 
-test('an expansion is refused until its setup is built: Plans & Ploys (owner, #32) and Arts & Architecture (owner, #35) are, and the versions are public', () => {
+test('an expansion is refused until its setup is built: Plans & Ploys (owner, #32) and Arts & Architecture (owner, #35, #36) are, and the versions are public', () => {
 	assert.deepEqual(EXPANSIONS_BUILT, ['pp', 'aa']);
 	assert.ok(Object.isFrozen(EXPANSIONS_BUILT));
 	assert.deepEqual(

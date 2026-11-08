@@ -17,7 +17,7 @@ import { allOps, checkViews, setupFacts } from './views.mjs';
  * @property {'original' | 'current'} version
  * @property {'random' | 'busy'} policy - `busy` takes an offered advance turn 85% of the time
  * @property {string[]} variants - Every variant, or none (#53)
- * @property {string[]} expansions - Plans & Ploys (#32), Arts & Architecture (#35), both or none
+ * @property {string[]} expansions - Plans & Ploys (#32), Arts & Architecture (#35, #36), both or none
  */
 /** @typedef {(state: State, before: State | null, facts: SetupFacts) => void} Check - `before` is null right after createGame() */
 
@@ -44,20 +44,26 @@ export const EXPANSION_NAMES = Object.freeze(
  * Game `index`'s seed, players, version, policy and variants: every 10 games in a row share a policy, every 5 a
  * version, so each of the 20 combinations gets 10 of the 200 games. Every other 20 games play with every variant on,
  * so each combination gets 5 games with them and 5 without (#53). Every other 40 games play with Plans & Ploys, so 2
- * of each combination's 5 do (#32). Games 80–159 with 2 or more players play with Arts & Architecture (R59), so each
- * combination's 5 play: none, Plans & Ploys, Arts & Architecture, both, none (#35). A variant joins only with its
- * expansion; with Arts & Architecture, "Play without the arts track" goes with it alone and "Roll either science die"
- * with both, since the two can't go together.
+ * of each combination's 5 do (#32). Games 80–159 play with Arts & Architecture, so each combination's 5 play: none,
+ * Plans & Ploys, Arts & Architecture, both, none (#35, #36). A variant joins only with its expansion; with Arts &
+ * Architecture, "Play without the arts track" goes with it alone and "Roll either science die" with both, since the two
+ * can't go together. Alone, Arts & Architecture always plays without the arts track (R59), with its advanced mats (#36).
  * @param {number} index - From 0
  * @returns {Game}
  */
 export function gameOf(index) {
 	const players = 1 + (index % 5);
 	const pp = Math.floor(index / 40) % 2 === 1;
-	const aa = Math.floor(index / 80) % 2 === 1 && players > 1;
+	const aa = Math.floor(index / 80) % 2 === 1;
 	const expansions = [...(pp ? ['pp'] : []), ...(aa ? ['aa'] : [])];
-	const left = aa ? (pp ? 'no-arts-track' : 'either-science-die') : null;
-	const variants =
+	// R59: no arts track alone, so a solo game with A&A plays without it, and so never with either science die.
+	const solo = players === 1;
+	const left = aa
+		? pp && !solo
+			? 'no-arts-track'
+			: 'either-science-die'
+		: null;
+	const chosen =
 		Math.floor(index / 20) % 2 === 1
 			? VARIANTS.filter(
 					(v) =>
@@ -65,6 +71,10 @@ export function gameOf(index) {
 						v.id !== left
 				).map((v) => v.id)
 			: [];
+	const variants =
+		aa && solo && !chosen.includes('no-arts-track')
+			? [...chosen, 'no-arts-track']
+			: chosen;
 	return {
 		seed: index + 1,
 		players,

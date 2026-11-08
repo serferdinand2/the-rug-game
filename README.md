@@ -14,7 +14,7 @@ No official Stonemaier artwork, logos or rulebook text are used.
 
 ## Current interface
 
-A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82). The art isn't duplicated (owner, 2026-10-29): a base mat's only picture is its relief, which the component library shows on its ground, and only the 12 expansion mats keep a full example SVG, until #132 and #133 draw their reliefs.
+A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82). The art isn't duplicated (owner, 2026-10-29): every mat's only picture is its relief, which the component library shows on its ground, with a features picture (cacti, lily pads, beaches, cloud rims, reeds) where the mat prints one. The game draws the six Arts & Architecture mats from #36 on.
 
 The owner-reviewed icons and small pieces from **#5** are available as SVGs in `static/art/`, with matching drawing sources and stable catalog ids. [The release notes](docs/art/issue-5.md) list the approved set and explain the text rendering or later artwork for dice faces, terrain hex markers and game symbols. [The complete review mockup](docs/art/archive/2026-10-23-issue-5/README.md), including its linked capital terrain page, is archived as a frozen reference.
 
@@ -46,7 +46,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Landing page | Lobby |
 |---|---|
-| ![The landing page: the panels between two fans of the game's art, three civilizations on the left and a landmark with two tapestry cards on the right, picked at random on each visit (#174)](docs/ui/screens/launch.png) | ![A new online lobby: Ana hosting alone, the table code and its settings, between the same two fans of art (#174)](docs/ui/screens/lobby.png) |
+| ![The landing page: the panels between two fans of the game's art, three civilizations on the left and a landmark with two tapestry cards on the right, picked at random on each visit (#174)](docs/ui/screens/launch.png) | ![A new online lobby: Ana hosting alone, the table code and its settings with Arts & Architecture switched on beside Plans & Ploys and its two variants, No arts track and Either science die, listed, between the same two fans of art (#174, #35, #36)](docs/ui/screens/lobby.png) |
 
 | Play: the tracks on your turn | Play: the World Map |
 |---|---|
@@ -91,6 +91,10 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 | Plans & Ploys: the Infiltrators' third token gains a civilization (#33) | Plans & Ploys: the Advisors' gift on a neighbour's turn (#33) |
 |---|---|
 | ![Mira's income turn 4: her third Infiltrators token on Ana's capital territory gains her a civilization, so she draws 3: Treasure Hunters, Recyclers and Riverfolk stand on the shelf above the panel "Keep one of the civilizations you drew" and Keep civilization](docs/ui/screens/game-pp-infiltrators-civ.png) | ![On Vera's advance turn, as she would draw a tapestry card, Ana holds the Advisors: her four cards stand on the shelf above the panel "Give Vera a tapestry card instead of their draw?", with Let Vera draw and Give card](docs/ui/screens/game-pp-advisors-gift.png) |
+
+| Arts & Architecture: a mat and a civilization kept together (#36) | Arts & Architecture: an advanced mat in the Capital tab (#36) |
+|---|---|
+| ![Mira's setup at an Arts & Architecture table, the arts track fifth on the board behind: her Tropical and Grassland mats and the advanced Mesa stand on one shelf, the Mesa outlined in gold, over a second shelf with the Isolationists and Craftsmen cards, the Isolationists outlined and shrunk to fit under the mats; the panel "Choose your capital city and civilization" reads "Mesa with the Isolationists" beside Keep these](docs/ui/screens/game-aa-joint-pick.png) | ![Mira's first turn: the Capital tab shows Capital City · Mesa, its cliffs along the top and bottom edges, beside the board with the arts track and its masterpiece row](docs/ui/screens/game-aa-capital.png) |
 
 | Dark cards: the switch in the menu (#167) |
 |---|
@@ -248,7 +252,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 The research in [docs/research/](docs/research/) left 92 details unconfirmed, marked **[UNVERIFIED]**, plus a list of open questions. Each one has a decision here, so the engine never guesses. These decisions settle [#2](https://github.com/serferdinand2/the-rug-game/issues/2).
 
-- **Rule ids** (R1–R119) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
+- **Rule ids** (R1–R123) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
 - **Versions.** A table plays either the **Original 2019 printing** or the **Current official rules**. A rule applies to both unless it names one.
 - **Sources** are trusted in this order:
   1. the Fantasies & Futures integrated rulebook;
@@ -420,7 +424,7 @@ How the ranking was built:
 </details>
 
 <details>
-<summary><b>Arts & Architecture</b> (20 rules)</summary>
+<summary><b>Arts & Architecture</b> (24 rules)</summary>
 
 | Rule | Question | Decision | Basis | Check |
 |---|---|---|---|---|
@@ -444,6 +448,10 @@ How the ranking was built:
 | R66 | Twin Impact: what is the clockwise order of the tracks? | Clockwise from the top of the board: Military, Science, Exploration, Technology, on both sides. Twin Impact is offered. R59 keeps the arts track out of Automa and Shadow Empire games, so where the arts track sits never matters. | 03 §2.11. Read from BGA's board images (both sides); BGA itself doesn't implement Twin Impact. | BGA |
 | R118 | With the arts track in play, does an effect that says "any track" or "each track" include it? | Yes. The arts track is an advancement track like the other four, so every effect that says any track, each track, a track or advancement track includes it: the advance turn, every science-die roll (the d20), Dark Ages, Renaissance, Plea for Aid, Boast of Superiority, Dictatorship, Socialism, Trade Economy, Marriage of State, the shared advances that choose a track, AI Singularity's new token, Academic Research and Lithium-Ion Battery, Status Quo, Spies' option 3, the Tinkerers, the Mystics' completed tracks, "complete any track" and Dystopia. Effects whose printed icons or text name the four tracks keep them: Leaders, Futurists, Alchemists, Entertainers, the base spaces that name their tracks, Flash Mob and Infinite Spectrum Photography. | 03 §2.1 ("a 5th advancement track"), §2.2 (Dark Ages, Leaders, Entertainers, Alchemists, Dystopia); 01 §3 Academic Research; 02 §1.2 Futurists. Owner, 2026-11-06 ([#35](https://github.com/serferdinand2/the-rug-game/issues/35)). | |
 | R119 | What happens when the masterpiece deck runs out? | Shuffle the discarded masterpieces into a new deck, as the tapestry deck does (01 §9.1). With no discards either, fewer cards lie face up and the deck's top card can't be chosen. | No source covers it. Owner, 2026-11-06 ([#35](https://github.com/serferdinand2/the-rug-game/issues/35)). | |
+| R120 | May the Riverfolk be kept with Cloud City? | The table's version decides. Current rules: no, as the F&F adjustments and the revised Riverfolk say. Original 2019 rules: yes, as A&A's team allowed. Only setup's joint pick is limited. | 03 §2.2 player step A, §2 Cloud City, §2.12 (BGG-2820810; RB-FF p32). Owner, 2026-11-06 ([#36](https://github.com/serferdinand2/the-rug-game/issues/36)). | |
+| R121 | When does Cloud City's move happen, with masterpieces also firing at the start of an income turn? | The player picks: the move is one more item in the order they choose for their masterpieces, so it may come before or after any of them. Without masterpieces, it comes first in the income turn. | No source covers it; the FAQ lets Swamp's penalty go before or after the masterpieces (03 §2.12). Owner, 2026-11-06 ([#36](https://github.com/serferdinand2/the-rug-game/issues/36)). | |
+| R122 | Canyon: do landmarks count as buildings for surrounding a cactus? | Yes. Income buildings, landmarks, impassable plots and the Architects' cubes all fill a cactus's 8 neighbours. | 03 §2 Canyon (Joe Aubrey, BGG-2784012: all 8 neighbours). Owner, 2026-11-06 ([#36](https://github.com/serferdinand2/the-rug-game/issues/36)). | |
+| R123 | Archipelago: may the Riverfolk and Terraforming build on the water and the volcanoes? | Yes, like any impassable plot. Water belongs to no island, so filling a water plot completes no district. | 03 §2 Archipelago (water and volcanoes are impassable plots). Owner, 2026-11-06 ([#36](https://github.com/serferdinand2/the-rug-game/issues/36)). | |
 
 </details>
 

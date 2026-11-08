@@ -8,7 +8,6 @@ import {
 	volcanoCorner,
 } from './art/hex-overlays.js';
 import { MAPS } from './engine/data/maps.js';
-import { CAPITAL_MATS } from './engine/data/capitals.js';
 import { terrainsOf, turned } from './engine/terrain.js';
 import { territoryBenefit } from './area/terrain.js';
 import {
@@ -438,7 +437,7 @@ export function mapHexes(view, size = HEX_SIZE) {
 
 /**
  * The first territory where each player placed their two starting outposts. The setup event also covers the
- * closest-island variant; the capital mat is a fallback for long event histories.
+ * closest-island variant; the seat's recorded start is the fallback for long event histories.
  * @param {import('./engine/view.js').View} view
  * @returns {Map<number, string>}
  */
@@ -456,16 +455,14 @@ function startingHexes(view) {
 			starts.set(event.player, event.hex);
 		}
 	}
+	// The seat records its start hex (#33), whatever mat it kept: an advanced mat has no start of its own (R49, #36).
 	for (const seat of view.seats) {
 		if (
 			seat.kind === 'player' &&
-			seat.capital?.mat &&
+			typeof seat.start === 'string' &&
 			!starts.has(seat.seat)
 		) {
-			starts.set(
-				seat.seat,
-				CAPITAL_MATS[seat.capital.mat - 1].start[view.map]
-			);
+			starts.set(seat.seat, seat.start);
 		}
 	}
 	return starts;

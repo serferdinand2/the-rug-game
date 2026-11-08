@@ -6,6 +6,7 @@
 	import { FOOTPRINTS } from '../../../lib/art/footprints.js';
 	import { matPlots } from '../../../lib/area/capital.js';
 	import { completionCounts } from '../../../lib/placement.js';
+	import { BASIC_SHAPE } from '../../../lib/capital.js';
 
 	/** @typedef {import('../../../lib/capital.js').PlotKind} PlotKind */
 	/** @typedef {import('../../../lib/results.js').Winner} Winner */
@@ -43,6 +44,7 @@
 			mat: 4,
 			name: 'Desert',
 			biome: 'desert',
+			shape: BASIC_SHAPE,
 			terrainSeed: 3,
 			plots: BEN,
 			pieces: [LIGHTHOUSE],
@@ -62,6 +64,7 @@
 			mat: 1,
 			name: 'Mountain',
 			biome: 'mountain',
+			shape: BASIC_SHAPE,
 			terrainSeed: 1,
 			plots: ANA,
 			pieces: [],

@@ -12,7 +12,10 @@ import {
 	groupsOf,
 	completedGroups,
 	groupBounds,
+	districtEdges,
+	BASIC_SHAPE,
 } from '../src/lib/capital.js';
+import { capitalMat, matShape } from '../src/lib/engine/data/capitals.js';
 
 /** An empty capital with the given plots set. */
 function capital(/** @type {Record<number, string>} */ set = {}) {
@@ -138,4 +141,52 @@ test('a plot index gives back its row and column', () => {
 		const { row, col } = plotPosition(index);
 		assert.equal(plotIndex(row, col), index);
 	}
+});
+
+test('the geometry takes a shape: 11 rows of 9, and districts of their own (#36)', () => {
+	/** @type {import('../src/lib/capital.js').Shape} */
+	const shape = { rows: 11, cols: 9, districts: [[0, 1], [9]] };
+	assert.equal(plotIndex(10, 8, shape), 98);
+	assert.deepEqual(plotPosition(98, shape), { row: 10, col: 8 });
+	assert.equal(groupsOf('rows', shape).length, 11);
+	assert.ok(groupsOf('rows', shape).every((row) => row.length === 9));
+	assert.equal(groupsOf('columns', shape).length, 9);
+	assert.deepEqual(
+		groupsOf('columns', shape)[0],
+		[0, 9, 18, 27, 36, 45, 54, 63, 72, 81, 90]
+	);
+	assert.deepEqual(groupsOf('districts', shape), [[0, 1], [9]]);
+	const plots = Array(99).fill('empty');
+	assert.ok(fits(plots, ['XX', 'XX'], 9, 7, shape));
+	assert.ok(!fits(plots, ['XX', 'XX'], 10, 7, shape));
+	assert.deepEqual(footprintCells(['X', 'X'], 10, 0, shape), [90]);
+	assert.deepEqual(groupBounds([90, 98], shape), {
+		row: 10,
+		col: 0,
+		rows: 1,
+		cols: 9,
+	});
+	// Without a shape, the basic 9 × 9.
+	assert.equal(groupsOf('districts').length, 9);
+	assert.equal(plotIndex(8, 8), 80);
+});
+
+test('districtEdges finds the sides between two districts: the clouds of Cloud City, none on the water (#36)', () => {
+	const clouds = matShape(capitalMat(10));
+	const edges = districtEdges(clouds);
+	const has = (
+		/** @type {number} */ row,
+		/** @type {number} */ col,
+		/** @type {string} */ side
+	) => edges.some((e) => e.row === row && e.col === col && e.side === side);
+	// Cloud 1 holds (0,0)–(0,2); cloud 2 starts at (0,3).
+	assert.ok(has(0, 2, 'right'));
+	assert.ok(!has(0, 0, 'right'));
+	// (1,0) is cloud 1 and (2,0) cloud 1; (2,1) cloud 1 and (3,1) cloud 6.
+	assert.ok(!has(1, 0, 'bottom'));
+	assert.ok(has(2, 1, 'bottom'));
+	// The Archipelago's islands touch only water or each other's corners: no side between two districts.
+	assert.deepEqual(districtEdges(matShape(capitalMat(7))), []);
+	// The basic mats' lines: 2 vertical and 2 horizontal, 9 plots each.
+	assert.equal(districtEdges(BASIC_SHAPE).length, 36);
 });

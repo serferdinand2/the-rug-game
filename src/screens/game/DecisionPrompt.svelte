@@ -40,6 +40,13 @@
 	import { terrainSeed } from '../../lib/area/capital.js';
 	import { placingCard } from '../../lib/prompts.js';
 
+	/** The smallest the joint pick's civilization cards shrink to, so the tallest fits the room the mats leave (#36). */
+	const JOINT_CIV_MIN = 0.2;
+	/** The smallest the joint pick's mats shrink to, so even the Archipelago's 11 rows keep to their 40% (#36). */
+	const JOINT_MAT_MIN = 0.25;
+	/** The gap between the joint pick's two shelves: `--space-4`. */
+	const JOINT_GAP = 8;
+
 	/** @type {DecisionPromptProps} */
 	let {
 		state,
@@ -281,6 +288,43 @@
 	{/if}
 {/snippet}
 
+<!-- With Arts & Architecture, a mat and a civilization kept together: the mats' shelf over the civilizations', the mats
+     taking 40% of the room and the taller civilization cards what the mats leave, with the pairs R120 forbids greyed
+     out (owner, #36). The civilization cards shrink as far as that needs, down to 0.2, so none reaches behind the mats. -->
+{#snippet jointShelf(/** @type {number | undefined} */ room)}
+	{#if state.joint}
+		<div class="rg-decision-prompt--joint">
+			<div
+				class="rg-decision-prompt--joint-mats"
+				bind:clientHeight={state.jointMatsHeight}>
+				<CardShelf
+					kind="mat"
+					label="Capital mats to choose from"
+					cards={state.joint.mats}
+					selected={state.jointMat}
+					disabled={state.jointBlocked.mats}
+					terrainSeed={seed}
+					room={room === undefined ? undefined : room * 0.4}
+					minScale={JOINT_MAT_MIN}
+					onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
+						state.pickJointMat(event.value)} />
+			</div>
+			<CardShelf
+				kind="civ"
+				label="Civilizations to choose from"
+				cards={state.joint.civs}
+				selected={state.jointCiv}
+				disabled={state.jointBlocked.civs}
+				room={room === undefined || state.jointMatsHeight === 0
+					? undefined
+					: Math.max(0, room - state.jointMatsHeight - JOINT_GAP)}
+				minScale={JOINT_CIV_MIN}
+				onCardShelfSelect={(/** @type {ComponentEvent} */ event) =>
+					state.pickJointCiv(event.value)} />
+		</div>
+	{/if}
+{/snippet}
+
 <!-- A landmark card's landmark to place: the card above the panel, outlined as the one met (#32 mockup). -->
 {#snippet placingShelf()}
 	{#if placing}
@@ -327,13 +371,15 @@
 		track={prompt.track}
 		tone={prompt.income ? 'income' : 'default'}
 		steps={prompt.income ? incomeSteps : undefined}
-		shelf={cardPick
-			? pickShelf
-			: state.shelfCards.length
-				? cardShelf
-				: placing
-					? placingShelf
-					: undefined}
+		shelf={state.joint
+			? jointShelf
+			: cardPick
+				? pickShelf
+				: state.shelfCards.length
+					? cardShelf
+					: placing
+						? placingShelf
+						: undefined}
 		status={controls.status}
 		statusWarn={controls.warn}
 		children={controls.content ? promptContent : undefined}
@@ -349,6 +395,21 @@
 {/if}
 
 <style>
+	/* The joint pick's two shelves, one over the other (#36). */
+	.rg-decision-prompt--joint {
+		display: grid;
+		gap: var(--space-4);
+		justify-items: center;
+	}
+
+	/* The mats' shelf, measured so the civilization cards take only the room it leaves (#36). */
+	.rg-decision-prompt--joint-mats {
+		display: flex;
+		justify-content: center;
+		max-width: 100%;
+		min-width: 0;
+	}
+
 	.rg-decision-prompt--placing {
 		margin: var(--space-8) 0 var(--space-4);
 		outline: 3px solid var(--gold);

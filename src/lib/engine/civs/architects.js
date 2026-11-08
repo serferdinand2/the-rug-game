@@ -3,8 +3,7 @@ import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
 import { opponents } from '../abilities.js';
 import { askSwap } from '../decisions/choose-swap.js';
-import { cityPlots, uniformGroup } from '../city.js';
-import { groupsOf } from '../../capital.js';
+import { cityPlots, seatShape, uniformGroup } from '../city.js';
 
 /** How many swaps the Architects gained mid-game may make. */
 export const ARCHITECTS_SWAPS = 3;
@@ -21,8 +20,10 @@ function askCube(ctx, player, left) {
 	}
 	const seat = playerSeat(ctx.state, player);
 	const plots = cityPlots(seat);
-	const options = groupsOf('districts')
-		.filter((group) => !group.some((p) => seat.capital.cubes.includes(p)))
+	const options = seatShape(seat)
+		.districts.filter(
+			(group) => !group.some((p) => seat.capital.cubes.includes(p))
+		)
 		.flat()
 		.filter((p) => plots[p] === 'empty')
 		.sort((a, b) => a - b);
@@ -70,7 +71,7 @@ export const architects = {
 			}
 			const seat = playerSeat(state, owner);
 			const uniform = districts.filter((/** @type {number} */ d) =>
-				uniformGroup(seat, groupsOf('districts')[d])
+				uniformGroup(seat, seatShape(seat).districts[d])
 			).length;
 			return uniform > 0
 				? [

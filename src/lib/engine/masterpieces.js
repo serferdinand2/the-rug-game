@@ -3,6 +3,10 @@ import { emit } from './events.js';
 import { shuffle } from './random.js';
 import { isPlayerSeat, neighbours, playerSeat } from './state.js';
 import { masterpiece } from './data/masterpieces.js';
+import {
+	askCloudMove,
+	canMoveInClouds,
+} from './decisions/choose-cloud-move.js';
 
 /** How many masterpieces lie face up (03 §2.2, setup step 2). */
 export const FACE_UP = 3;
@@ -188,25 +192,34 @@ export function masterpieceOptions(state, player, purpose, chosen = []) {
 /**
  * Asks for the next masterpiece to fire, or fires it. With none, nothing happens (Broadcast says so). For the income
  * turn and Broadcast a single one fires without asking; Streaming Implants always asks, since it may stop, and stops
- * after 3 (`left`).
+ * after 3 (`left`). On an income turn Cloud City's moves (`cloud`) are one more item while a building can move: asked
+ * with the masterpieces, or made at once when no masterpiece is left (R121).
  * @param {import('./state.js').Context} ctx
  * @param {number} player
  * @param {FirePurpose} purpose
  * @param {string[]} chosen - Fired already by this income step or these Streaming Implants
  * @param {number} [left] - Streaming Implants' masterpieces still to choose
+ * @param {number} [cloud] - Cloud City's moves still to make this income turn, before or after any masterpiece
  */
-export function askMasterpiece(ctx, player, purpose, chosen, left) {
+export function askMasterpiece(ctx, player, purpose, chosen, left, cloud) {
 	if (left === 0) {
 		return;
 	}
 	const options = masterpieceOptions(ctx.state, player, purpose, chosen);
+	const moves =
+		purpose === 'income' && cloud && canMoveInClouds(ctx.state, player)
+			? cloud
+			: 0;
 	if (options.length === 0) {
+		if (moves) {
+			askCloudMove(ctx, player, moves);
+		}
 		if (purpose === 'broadcast') {
 			emit(ctx.state, { type: 'noBroadcast', player });
 		}
 		return;
 	}
-	if (purpose !== 'implants' && options.length === 1) {
+	if (purpose !== 'implants' && options.length === 1 && !moves) {
 		fireChosen(ctx, { player, purpose, chosen, left }, options[0]);
 		return;
 	}
@@ -218,20 +231,41 @@ export function askMasterpiece(ctx, player, purpose, chosen, left) {
 			options,
 			chosen,
 			...(left !== undefined && { left }),
+			...(moves && { cloud: moves }),
 		},
 	]);
+}
+
+/**
+ * Makes Cloud City's moves now, the item the player put next in the masterpieces' order, then asks for the next
+ * masterpiece (R121).
+ * @param {import('./state.js').Context} ctx
+ * @param {{ player: number | null, purpose: FirePurpose, chosen?: string[], cloud?: number }} asked - The decision
+ */
+export function moveInClouds(ctx, asked) {
+	const player = /** @type {number} */ (asked.player);
+	ctx.push([
+		{
+			player,
+			kind: 'askMasterpiece',
+			purpose: asked.purpose,
+			chosen: asked.chosen ?? [],
+		},
+	]);
+	// Pushed above the next question, so the moves come first.
+	askCloudMove(ctx, player, asked.cloud ?? 0);
 }
 
 /**
  * Fires the masterpiece chosen, then, for the income turn and Streaming Implants, asks for the next one once its
  * benefit is done: so a masterpiece gained meanwhile fires in the same income step (03 §2.2).
  * @param {import('./state.js').Context} ctx
- * @param {{ player: number | null, purpose: FirePurpose, chosen?: string[], left?: number }} asked - The ask or decision
+ * @param {{ player: number | null, purpose: FirePurpose, chosen?: string[], left?: number, cloud?: number }} asked - The ask or decision, with Cloud City's moves still to make (R121)
  * @param {FireOption} option
  */
 export function fireChosen(ctx, asked, { seat, card }) {
 	const player = /** @type {number} */ (asked.player);
-	const { purpose, left } = asked;
+	const { purpose, left, cloud } = asked;
 	const chosen = [...(asked.chosen ?? []), card];
 	emit(ctx.state, { type: 'masterpieceFired', player, card, owner: seat });
 	ctx.push([
@@ -251,6 +285,7 @@ export function fireChosen(ctx, asked, { seat, card }) {
 						purpose,
 						chosen,
 						...(left !== undefined && { left: left - 1 }),
+						...(cloud && { cloud }),
 					},
 				]),
 	]);
@@ -266,6 +301,7 @@ export function nextMasterpiece(ctx, op) {
 		/** @type {number} */ (op.player),
 		op.purpose,
 		op.chosen ?? [],
-		op.left
+		op.left,
+		op.cloud
 	);
 }

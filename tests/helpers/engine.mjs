@@ -67,19 +67,24 @@ const INERT_CIVS = [
  * @param {string[]} wanted - In seat order
  */
 function dealCivs(state, wanted) {
-	const picks = openDecisions(state).filter((d) => d.kind === 'chooseCiv');
+	// With Arts & Architecture, the civilizations are a joint pick's `civs` (#36).
+	const civsOf = (/** @type {Record<string, any>} */ d) =>
+		d.kind === 'chooseMatAndCiv' ? d.civs : d.options;
+	const picks = openDecisions(state).filter(
+		(d) => d.kind === 'chooseCiv' || d.kind === 'chooseMatAndCiv'
+	);
 	for (const pick of picks) {
 		const civ = wanted[/** @type {number} */ (pick.player) - 1];
 		const holder = [
-			pick.options,
+			civsOf(pick),
 			state.supply.civs,
-			...picks.map((p) => p.options),
+			...picks.map(civsOf),
 		].find((list) => list.includes(civ));
 		if (!holder) {
 			throw new Error(`${civ} isn't a civilization of this game.`);
 		}
-		holder[holder.indexOf(civ)] = pick.options[0];
-		pick.options[0] = civ;
+		holder[holder.indexOf(civ)] = civsOf(pick)[0];
+		civsOf(pick)[0] = civ;
 	}
 }
 

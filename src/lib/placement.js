@@ -2,7 +2,7 @@
 // The rules engine decides whether a placement is legal: in a game the grid steps and snaps among its positions (#112),
 // and the in-grid fit check here is only the component library's fallback.
 import {
-	GRID_SIZE,
+	BASIC_SHAPE,
 	rotateFootprint,
 	footprintCells,
 	fits,
@@ -12,6 +12,7 @@ import {
 
 /** @typedef {import('./capital.js').PlotKind} PlotKind */
 /** @typedef {import('./capital.js').Position} Position */
+/** @typedef {import('./capital.js').Shape} Shape - The grid's shape, the basic 9 × 9 when left out (#36) */
 
 /**
  * A landmark on the capital grid, placed or locked.
@@ -44,17 +45,19 @@ export function pieceShape(piece) {
 
 /**
  * The plots with every given piece's plots filled as landmarks.
- * @param {readonly PlotKind[]} plots - All 81 plots, row by row
+ * @param {readonly PlotKind[]} plots - Every plot, row by row
  * @param {readonly PlacedPiece[]} pieces
+ * @param {Shape} [grid]
  * @returns {PlotKind[]} A new list; the plots given are left as they are.
  */
-export function withPieces(plots, pieces) {
+export function withPieces(plots, pieces, grid = BASIC_SHAPE) {
 	const filled = [...plots];
 	for (const piece of pieces) {
 		for (const index of footprintCells(
 			pieceShape(piece),
 			piece.row,
-			piece.col
+			piece.col,
+			grid
 		)) {
 			filled[index] = 'landmark';
 		}
@@ -66,17 +69,19 @@ export function withPieces(plots, pieces) {
  * How many rows, columns and districts are complete. A placed piece counts only once it is locked.
  * @param {readonly PlotKind[]} plots
  * @param {readonly PlacedPiece[]} pieces
+ * @param {Shape} [grid]
  * @returns {{ rows: number, columns: number, districts: number }}
  */
-export function completionCounts(plots, pieces) {
+export function completionCounts(plots, pieces, grid = BASIC_SHAPE) {
 	const filled = withPieces(
 		plots,
-		pieces.filter((piece) => piece.locked)
+		pieces.filter((piece) => piece.locked),
+		grid
 	);
 	return {
-		rows: completedGroups(filled, 'rows').length,
-		columns: completedGroups(filled, 'columns').length,
-		districts: completedGroups(filled, 'districts').length,
+		rows: completedGroups(filled, 'rows', grid).length,
+		columns: completedGroups(filled, 'columns', grid).length,
+		districts: completedGroups(filled, 'districts', grid).length,
 	};
 }
 
@@ -85,12 +90,14 @@ export function completionCounts(plots, pieces) {
  * @param {readonly PlotKind[]} plots
  * @param {readonly PlacedPiece[]} pieces
  * @param {string} id - The piece that is moving
+ * @param {Shape} grid
  * @returns {PlotKind[]}
  */
-function othersFilled(plots, pieces, id) {
+function othersFilled(plots, pieces, id, grid) {
 	return withPieces(
 		plots,
-		pieces.filter((other) => other.id !== id)
+		pieces.filter((other) => other.id !== id),
+		grid
 	);
 }
 
@@ -102,14 +109,16 @@ function othersFilled(plots, pieces, id) {
  * @param {Pick<PlacedPiece, 'id' | 'footprint' | 'rotation'>} piece
  * @param {number} row
  * @param {number} col
+ * @param {Shape} [grid]
  * @returns {boolean}
  */
-export function fitsAt(plots, pieces, piece, row, col) {
+export function fitsAt(plots, pieces, piece, row, col, grid = BASIC_SHAPE) {
 	return fits(
-		othersFilled(plots, pieces, piece.id),
+		othersFilled(plots, pieces, piece.id, grid),
 		pieceShape(piece),
 		row,
-		col
+		col,
+		grid
 	);
 }
 
@@ -120,14 +129,16 @@ export function fitsAt(plots, pieces, piece, row, col) {
  * @param {Pick<PlacedPiece, 'id' | 'footprint' | 'rotation'>} piece
  * @param {number} row
  * @param {number} col
+ * @param {Shape} [grid]
  * @returns {Position | null} Null when it fits nowhere.
  */
-export function snapPiece(plots, pieces, piece, row, col) {
+export function snapPiece(plots, pieces, piece, row, col, grid = BASIC_SHAPE) {
 	return nearestFit(
-		othersFilled(plots, pieces, piece.id),
+		othersFilled(plots, pieces, piece.id, grid),
 		pieceShape(piece),
 		row,
-		col
+		col,
+		grid
 	);
 }
 
@@ -138,23 +149,31 @@ export function snapPiece(plots, pieces, piece, row, col) {
  * @param {PlacedPiece} piece
  * @param {number} dRow - -1, 0 or 1
  * @param {number} dCol - -1, 0 or 1
+ * @param {Shape} [grid]
  * @returns {Position | null} Null when there is nowhere further to go.
  */
-export function stepPiece(plots, pieces, piece, dRow, dCol) {
-	const filled = othersFilled(plots, pieces, piece.id);
+export function stepPiece(
+	plots,
+	pieces,
+	piece,
+	dRow,
+	dCol,
+	grid = BASIC_SHAPE
+) {
+	const filled = othersFilled(plots, pieces, piece.id, grid);
 	const shape = pieceShape(piece);
-	for (let step = 1; step < GRID_SIZE; step++) {
+	for (let step = 1; step < Math.max(grid.rows, grid.cols); step++) {
 		const row = piece.row + dRow * step;
 		const col = piece.col + dCol * step;
 		if (
 			row < 0 ||
 			col < 0 ||
-			row + shape.length > GRID_SIZE ||
-			col + shape[0].length > GRID_SIZE
+			row + shape.length > grid.rows ||
+			col + shape[0].length > grid.cols
 		) {
 			return null;
 		}
-		if (fits(filled, shape, row, col)) {
+		if (fits(filled, shape, row, col, grid)) {
 			return { row, col };
 		}
 	}
@@ -166,16 +185,18 @@ export function stepPiece(plots, pieces, piece, dRow, dCol) {
  * @param {readonly PlotKind[]} plots
  * @param {readonly PlacedPiece[]} pieces
  * @param {PlacedPiece} piece
+ * @param {Shape} [grid]
  * @returns {{ rotation: number, row: number, col: number } | null} Null when the turned shape fits nowhere.
  */
-export function rotatePiece(plots, pieces, piece) {
+export function rotatePiece(plots, pieces, piece, grid = BASIC_SHAPE) {
 	const rotation = ((piece.rotation ?? 0) + 1) % 4;
 	const position = snapPiece(
 		plots,
 		pieces,
 		{ ...piece, rotation },
 		piece.row,
-		piece.col
+		piece.col,
+		grid
 	);
 	return position && { rotation, ...position };
 }
@@ -303,17 +324,18 @@ export function plotFromPointer(pointer, first, next) {
  * @param {readonly string[]} shape - The turned footprint
  * @param {number} row - The top row of the shape; negative when it hangs over the top
  * @param {number} col - The left column of the shape; negative when it hangs over the left
+ * @param {Shape} [grid]
  * @returns {{ row: number, col: number, rows: number, cols: number, top: number, right: number, bottom: number, left: number }}
  */
-export function pieceArea(shape, row, col) {
-	/** @param {number} start @param {number} length */
-	const clip = (start, length) => {
-		const from = Math.min(GRID_SIZE - 1, Math.max(0, start));
-		const to = Math.max(from + 1, Math.min(GRID_SIZE, start + length));
+export function pieceArea(shape, row, col, grid = BASIC_SHAPE) {
+	/** @param {number} start @param {number} length @param {number} size */
+	const clip = (start, length, size) => {
+		const from = Math.min(size - 1, Math.max(0, start));
+		const to = Math.max(from + 1, Math.min(size, start + length));
 		return { from, span: to - from, before: from - start };
 	};
-	const down = clip(row, shape.length);
-	const across = clip(col, shape[0].length);
+	const down = clip(row, shape.length, grid.rows);
+	const across = clip(col, shape[0].length, grid.cols);
 	return {
 		row: down.from,
 		col: across.from,
