@@ -213,6 +213,7 @@ const SAMPLES = {
 	plagueDrawn: { player: 1, civ: 'the-chosen' },
 	relentlessToken: { player: 1, tokens: 2 },
 	renegadesMoved: { player: 1, at: 2 },
+	itemCollected: { player: 1, item: 'tech' },
 	landmarkStored: { player: 1, landmark: 'forge' },
 	landmarkUnstored: { player: 1, landmark: 'forge' },
 	gamblersRevealed: { player: 1, cards: ['feudalism', 'academia'] },
@@ -1203,5 +1204,16 @@ test("the Urban Planners' kept landmarks (#37)", () => {
 			GAME
 		),
 		'Ana took the Forge off their Urban Planners mat to place it.'
+	);
+});
+
+test("the Collectors' items (#37)", () => {
+	assert.equal(
+		eventText({ type: 'itemCollected', player: 1, item: 'tech' }, GAME),
+		'Ana put a tech card on their Collectors mat.'
+	);
+	assert.equal(
+		eventText({ type: 'itemCollected', player: 1, item: 'house' }, GAME),
+		'Ana put a House on their Collectors mat.'
 	);
 });

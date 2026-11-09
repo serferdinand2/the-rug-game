@@ -555,6 +555,9 @@ const TITLES = {
 				return civOfferTitle(d, table);
 			case 'riverfolkDiscard':
 				return 'Discard the Riverfolk for another civilization?';
+			// The Collectors' outpost, asked before the conquer's target (R129, #37).
+			case 'collectorsOutpost':
+				return 'Conquer, or put an outpost on your Collectors mat instead?';
 			// The Urban Planners with no landmark card left (#37).
 			case 'plannersSwap':
 				return 'No landmark card is left: discard the Urban Planners for another civilization?';
@@ -649,6 +652,9 @@ const TITLES = {
 		isTrack(d.track) && isCount(d.space)
 			? `${spaceName(d.track, d.space)}'s benefit, or your Renegades' next space instead?`
 			: "The benefit, or your Renegades' next space instead?",
+	// The Collectors (#37).
+	chooseCollect: () =>
+		'Put it on your Collectors mat, for 1 resource of your choice?',
 	// A&A's Spymaster (#37, R127): asked of every neighbour holding a card.
 	chooseSpymaster: (d, table) =>
 		isCount(d.mover) && isTrack(d.track)
@@ -905,6 +911,7 @@ const SLOT_ANSWERS = {
 	gamblers: (slot) => (typeof slot === 'string' ? tapestryName(slot) : null),
 	plannersPlace: (slot) =>
 		typeof slot === 'string' ? `The ${landmarkName(slot)}` : null,
+
 	gamblersKeep: (slot) =>
 		typeof slot === 'string' ? tapestryName(slot) : null,
 	nationalParks: (slot) =>
@@ -1115,6 +1122,11 @@ const ANSWERS = {
 		) {
 			return null;
 		}
+		if (d.purpose === 'collectorsOutpost') {
+			return a.option === 0
+				? 'Conquer'
+				: 'Put an outpost on your Collectors mat';
+		}
 		if (d.purpose === 'plannersSwap') {
 			return a.option === 0
 				? 'Keep the Urban Planners'
@@ -1214,6 +1226,9 @@ const ANSWERS = {
 		if (typeof a.card === 'string') {
 			return placeOnCardWords(a, d);
 		}
+		if (a.collectors === true) {
+			return 'On your Collectors mat, for 1 resource of your choice';
+		}
 		if (a.planners === true) {
 			return 'On your Urban Planners mat, to place later';
 		}
@@ -1267,6 +1282,18 @@ const ANSWERS = {
 		const face = isCount(d[a.die]) ? faces[d[a.die]] : undefined;
 		const die = a.die === 'red' ? 'Red die' : 'Black die';
 		return face ? `${die}: ${effectPhrase(face, table)}` : die;
+	},
+	chooseCollect: (a, d) => {
+		if (a.slot === null) {
+			return "Don't";
+		}
+		if (d.type === 'territory') {
+			return isCount(a.slot) ? `Territory tile ${a.slot}` : null;
+		}
+		if (d.type === 'tech') {
+			return typeof a.slot === 'string' ? techName(a.slot) : null;
+		}
+		return typeof a.slot === 'string' ? tapestryName(a.slot) : null;
 	},
 	chooseRenegades: (a, d) => {
 		if (a.renegades === true) {

@@ -37,6 +37,9 @@ export function landmarksOwned(state, player) {
 		...onMap,
 		...Object.values(seat.techLandmarks ?? {}),
 		...(seat.civData['urban-planners']?.stored ?? []),
+		...(seat.civData.collectors?.items.landmark !== undefined
+			? [seat.civData.collectors.items.landmark]
+			: []),
 		...Object.values(seat.onCards ?? {}).flatMap((pieces) =>
 			pieces.flatMap((piece) =>
 				'landmark' in piece ? [piece.landmark] : []
@@ -79,18 +82,27 @@ export function countVp(state, player, per, track) {
 	if (per === 'landmark') {
 		return landmarksOwned(state, player).length;
 	}
+	// The Collectors' items still count as theirs (#37).
+	const items = seat.civData.collectors?.items ?? {};
 	if (per === 'territoryTile') {
-		return seat.territoryTiles.length;
+		return (
+			seat.territoryTiles.length + (items.territory !== undefined ? 1 : 0)
+		);
 	}
 	if (per === 'techCard') {
 		const { bottom, middle, top } = seat.tech;
-		return bottom.length + middle.length + top.length;
+		return (
+			bottom.length +
+			middle.length +
+			top.length +
+			(items.tech !== undefined ? 1 : 0)
+		);
 	}
 	if (per === 'tapestryCard') {
 		// Covered cards count too (01 §3.5, Anti-Aircraft Defense).
 		return seat.incomeMat.tapestry.reduce(
 			(sum, slot) => sum + slot.length,
-			seat.hand.length
+			seat.hand.length + (items.tapestry !== undefined ? 1 : 0)
 		);
 	}
 	if (per === 'incomeBuilding') {

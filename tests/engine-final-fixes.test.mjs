@@ -432,6 +432,13 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: [1, 2, 3, 4],
 		},
 		chooseSwap: { player: 1, kind: 'chooseSwap', left: 3 },
+		// The Collectors (#37): seat 1's hand card, its own secret.
+		chooseCollect: {
+			player: 1,
+			kind: 'chooseCollect',
+			type: 'tapestry',
+			options: ['age-of-sail'],
+		},
 		// The Renegades (#37): Scouting's benefit, or their next space.
 		chooseRenegades: {
 			player: 1,

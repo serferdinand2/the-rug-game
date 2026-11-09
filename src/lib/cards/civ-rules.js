@@ -72,6 +72,19 @@ const CIV_TEXTS = Object.freeze({
 		'At the end of each of your income turns and advance turns on which you gained an income building or a landmark, put a token on this mat.',
 		'At the end of each advance turn on which you gained neither, take every token off and gain by their number: 1 token, 1 VP; 2, 3 VP and 1 tapestry card; 3, 6 VP and a tapestry card or 1 resource of your choice; 4, 10 VP and one of those or explore a territory; 5 or more, 15 VP and one of those or invent a tech card.',
 	]),
+	collectors: civ(
+		[
+			'During an advance turn, when you gain one of these, you may put it on its space of this mat if the space is empty, and gain 1 resource of your choice. One item per turn.',
+			'The items: an outpost, only from a conquer, instead of conquering and without rolling; a House; a landmark; a tapestry card; a territory tile; a tech card.',
+			'Items here count for scoring but can’t be used. Cards and tiles lie face down; you may look at them.',
+			'At the end of the game, gain 1, 3, 6, 10, 15 or 21 VP for 1 to 6 items.',
+		],
+		{
+			current: [
+				'Current rules: if you start the game with the Collectors, gain 1 resource of your choice.',
+			],
+		}
+	),
 	gamblers: civ([
 		'If you start the game with the Gamblers: at the end of your first income turn, reveal 3 tapestry cards. Play a When Played one on Maker of Fire and gain its effect, and discard the others; with none, keep 1 in your hand and discard the others.',
 		'At the start of income turns 2 to 4, do the same on that era’s slot, then play your tapestry card for the era on top of it.',

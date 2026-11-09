@@ -75,6 +75,11 @@ export const SAMPLE_CIV_DATA = Object.freeze({
 	traders: { tokens: 2 },
 	isolationists: { tokens: 3 },
 	heralds: { tokens: 3, cards: [] },
+	// The outpost, the house and the tech card collected, as the reviewed illustration showed them (#37).
+	collectors: {
+		items: { outpost: true, house: true, tech: 'eyeglasses' },
+		turn: null,
+	},
 });
 
 /**
@@ -102,8 +107,6 @@ export const SAMPLE_VIEWS = Object.freeze({
 			{ marks: civCardMarks(civ, data), choices: {} },
 		])
 	),
-	// The outpost, the house and the tech card collected.
-	collectors: sample(['outpost', 'house', 'tech'], 'token'),
 	architects: sample([], 'token'),
 	// A house on column A's bottom space and a farm above it.
 	craftsmen: {

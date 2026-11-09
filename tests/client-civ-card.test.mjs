@@ -28,7 +28,7 @@ function table(civData) {
 	};
 }
 
-test('the thirteen civilizations whose cards show live state, six with choices on them', () => {
+test('the fourteen civilizations whose cards show live state, six with choices on them', () => {
 	assert.deepEqual(
 		[...CARD_CIVS],
 		[
@@ -45,8 +45,20 @@ test('the thirteen civilizations whose cards show live state, six with choices o
 			'traders',
 			'isolationists',
 			'heralds',
+			'collectors',
 		]
 	);
+});
+
+test("the Collectors' card marks each item on their mat (#37)", () => {
+	assert.deepEqual(
+		civCardMarks('collectors', {
+			items: { outpost: true, tech: 'paper' },
+			turn: 3,
+		}),
+		{ outpost: ['token'], tech: ['token'] }
+	);
+	assert.deepEqual(civCardMarks('collectors', { items: {}, turn: null }), {});
 });
 
 test("the Entertainers' token sits on its space, or on the start", () => {

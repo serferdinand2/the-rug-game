@@ -101,6 +101,7 @@ import { deepFreeze } from './ids.js';
  * - `astronomy`, `cartography`, `manifestDestiny`, `statusQuo`, `worldsFair`: the rules of the Plans & Ploys card of that name (#33).
  * - `create`, `inspire`, `broadcast`, `refreshMasterpieces`, `streamingImplants`: Arts & Architecture's masterpieces and
  *   inspiration tiles (03 §2.2–2.8); `flipMasterpiece` turns the masterpiece firing face down (a single-use card's).
+ * - `collectOutpost`: put an outpost from the supply on the Collectors' mat, instead of conquering (R129, #37).
  * - `politicalPosturing`, `spymaster`, `ageOfEnlightenment`, `silkRoad`, `infrastructureUpgrade`, `plague`, `granges`: the rules of the Arts & Architecture card of that name (#37).
  * @typedef {{ gain: Gain }
  *   | { lose: { culture?: number, any?: number } }
@@ -110,7 +111,7 @@ import { deepFreeze } from './ids.js';
  *   | { vp: number | VpPer }
  *   | { explore: { anywhere?: boolean, tile?: number, sailed?: boolean, mat?: boolean, free?: boolean, migration?: boolean } }
  *   | { exploreSpace: { fromGained?: boolean, civ?: string } }
- *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent', only?: string[], empty?: boolean } }
+ *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent', only?: string[], empty?: boolean, collectorsAsked?: boolean } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
  *   | { advance: { tracks: TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean, noBonus?: boolean, offTrackVp?: number } }
  *   | { advanceEach: { noBenefit?: boolean, freeBonus?: boolean } }
@@ -164,7 +165,8 @@ import { deepFreeze } from './ids.js';
  *   | { silkRoad: {} }
  *   | { infrastructureUpgrade: {} }
  *   | { plague: {} }
- *   | { granges: {} }} Effect
+ *   | { granges: {} }
+ *   | { collectOutpost: {} }} Effect
  */
 
 /**
@@ -242,6 +244,7 @@ export const EFFECT_KINDS = deepFreeze([
 	'infrastructureUpgrade',
 	'plague',
 	'granges',
+	'collectOutpost',
 ]);
 
 /**

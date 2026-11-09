@@ -13,6 +13,7 @@ import {
 } from '../placing.js';
 import { placeInPark, placeOnCard } from '../card-pieces.js';
 import { storeLandmark } from '../civs/urban-planners.js';
+import { collect } from '../civs/collectors.js';
 
 /** The answer keys of the places other than a capital plot. */
 const OTHER_PLACES = /** @type {const} */ ([
@@ -22,6 +23,7 @@ const OTHER_PLACES = /** @type {const} */ ([
 	'tech',
 	'card',
 	'planners',
+	'collectors',
 ]);
 
 /**
@@ -147,6 +149,15 @@ export const choosePlacement = {
 		}
 		if (key === 'tech') {
 			placeOnTech(ctx, player, decision.landmark, answer.tech);
+			return;
+		}
+		if (key === 'collectors') {
+			collect(
+				ctx,
+				player,
+				decision.landmark !== undefined ? 'landmark' : 'house',
+				decision.landmark ?? true
+			);
 			return;
 		}
 		if (key === 'planners') {

@@ -616,6 +616,17 @@ const WORDS = {
 			? `${name} revealed ${joinList(cards)} for the Gamblers.`
 			: null;
 	},
+	itemCollected(e, game, name) {
+		const what = {
+			outpost: 'an outpost',
+			house: 'a House',
+			landmark: 'a landmark',
+			tapestry: 'a tapestry card',
+			territory: 'a territory tile',
+			tech: 'a tech card',
+		}[/** @type {string} */ (e.item)];
+		return what ? `${name} put ${what} on their Collectors mat.` : null;
+	},
 	landmarkStored: (e, game, name) =>
 		`${name} kept ${landmarkWords(e.landmark)} on their Urban Planners mat.`,
 	landmarkUnstored: (e, game, name) =>

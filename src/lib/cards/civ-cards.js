@@ -343,7 +343,7 @@ function reserve(context, count) {
  */
 const RECIPES = {
 	collectors: (context) => {
-		// Arts & Architecture has no engine module yet; its numbers are the reviewed card's.
+		// The reviewed card's numbers, which civs/collectors.js plays (#37).
 		const items = [
 			{
 				spot: 'outpost',

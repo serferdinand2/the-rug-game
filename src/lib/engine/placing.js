@@ -20,6 +20,7 @@ import { upgradeCard } from './effects/tech.js';
 import { techCard } from './data/tech-cards.js';
 import { cardPlaces } from './card-pieces.js';
 import { plannersStore, storeLandmark } from './civs/urban-planners.js';
+import { collectorsMay } from './civs/collectors.js';
 import { plotIndex } from '../capital.js';
 
 /** @typedef {{ building: import('./data/ids.js').BuildingId } | { landmark: string }} Piece */
@@ -28,7 +29,7 @@ import { plotIndex } from '../capital.js';
  * Where a gained piece may go: a capital plot (with a turn for a landmark), a Craftsmen column, a Nomads hex, an A&A
  * landmark tech card (#37), or beside the mat when the capital has no room but another place does (#20 design §9).
  * A&A's tapestry cards add plot squares, Space Race and Trade Routes (`card`) and National Parks' territories (`parks`).
- * @typedef {{ row: number, col: number, rotation?: number } | { craftsmen: number } | { hex: string } | { tech: string } | { card: string, row?: number, col?: number, rotation?: number } | { hex: string, parks: true } | { planners: true } | { besideMat: true }} Placement
+ * @typedef {{ row: number, col: number, rotation?: number } | { craftsmen: number } | { hex: string } | { tech: string } | { card: string, row?: number, col?: number, rotation?: number } | { hex: string, parks: true } | { planners: true } | { collectors: true } | { besideMat: true }} Placement
  */
 
 /**
@@ -314,6 +315,13 @@ function otherPlaces(state, player, piece) {
 			? techPlaces(state, player).map((tech) => ({ tech }))
 			: []),
 		...cardPlaces(state, player, piece),
+		// A&A's Collectors take a house or a landmark on their mat (#37).
+		...(('landmark' in piece && collectorsMay(state, player, 'landmark')) ||
+		('building' in piece &&
+			piece.building === 'house' &&
+			collectorsMay(state, player, 'house'))
+			? [{ collectors: /** @type {const} */ (true) }]
+			: []),
 		// A&A's Urban Planners keep a landmark on their mat (#37).
 		...('landmark' in piece && plannersStore(state, player)
 			? [{ planners: /** @type {const} */ (true) }]

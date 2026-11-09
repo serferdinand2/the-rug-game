@@ -252,7 +252,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 The research in [docs/research/](docs/research/) left 92 details unconfirmed, marked **[UNVERIFIED]**, plus a list of open questions. Each one has a decision here, so the engine never guesses. These decisions settle [#2](https://github.com/serferdinand2/the-rug-game/issues/2).
 
-- **Rule ids** (R1–R128) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
+- **Rule ids** (R1–R130) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
 - **Versions.** A table plays either the **Original 2019 printing** or the **Current official rules**. A rule applies to both unless it names one.
 - **Sources** are trusted in this order:
   1. the Fantasies & Futures integrated rulebook;
@@ -457,6 +457,8 @@ How the ranking was built:
 | R126 | May a landmark go on a landmark tech card in the top row? | No. Only one in the bottom or middle row, which the landmark upgrades at once; a top-row card can't be upgraded, so the landmark would do nothing there. | 03 §2 A&A tech cards (the card text: "to immediately upgrade"). Claude's call, 2026-11-08 ([#37](https://github.com/serferdinand2/the-rug-game/issues/37)). | |
 | R127 | Who is asked about Spymaster when a player completes a track? | Each of that player's neighbours who holds any tapestry card, so nobody learns who holds Spymaster; one who can't play it is declined after the random wait, as a defender without a trap is (#17, #24). R108 applies: in the current version a finished player isn't asked. | 03 §2.5 Spymaster; the conquest ruling of #17 (owner, 2026-10-24). Claude's call, 2026-11-08 ([#37](https://github.com/serferdinand2/the-rug-game/issues/37)). | |
 | R128 | Silk Road from the start of the arts track: where does it go? | To tier I's first space (space 1), as for any other token's next tier: its benefit, as space 1 has no landmark. From tier IV it does nothing. | 03 §2.5 Silk Road ("the first space of the next tier"). Claude's call, 2026-11-08 ([#37](https://github.com/serferdinand2/the-rug-game/issues/37)). | |
+| R129 | When do the Collectors choose to take an outpost from a conquer? | As the conquer starts, before choosing its territory: either the outpost goes on their mat, with no conquest and no dice, or they conquer as usual. | 03 §2.4 Collectors ("the outpost choice is made at the start of resolving the conquer benefit"). Claude's call, 2026-11-08 ([#37](https://github.com/serferdinand2/the-rug-game/issues/37)). | |
+| R130 | When may the Urban Planners place the landmarks kept on their mat? | At the start of each turn of theirs, before choosing it, and before they end a turn: any number, free, each in the capital city only. | 03 §2.4 Urban Planners ("any time during your turns, does not use your turn"), read as the two moments the game can ask. Claude's call, 2026-11-08 ([#37](https://github.com/serferdinand2/the-rug-game/issues/37)). | |
 
 </details>
 

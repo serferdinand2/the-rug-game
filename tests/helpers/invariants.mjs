@@ -95,6 +95,10 @@ export function checkState(state, previousSeq = 0) {
 				...p.tech.bottom,
 				...p.tech.middle,
 				...p.tech.top,
+				// #37: on the Collectors' mat.
+				...(p.civData.collectors?.items.tech !== undefined
+					? [p.civData.collectors.items.tech]
+					: []),
 			]),
 			// #33: the Recyclers' drawn cards wait in their keep question.
 			...opsOf('chooseKeepTech').flatMap((op) => op.options),
@@ -119,6 +123,10 @@ export function checkState(state, previousSeq = 0) {
 			...players.flatMap((p) => [
 				...p.hand,
 				...p.incomeMat.tapestry.flat(),
+				// #37: on the Collectors' mat.
+				...(p.civData.collectors?.items.tapestry !== undefined
+					? [p.civData.collectors.items.tapestry]
+					: []),
 			]),
 			// #37: the Gamblers' revealed cards, while they choose.
 			...opsOf('chooseSlot')
@@ -136,7 +144,13 @@ export function checkState(state, previousSeq = 0) {
 		[
 			...supply.territory,
 			...supply.territoryDiscard,
-			...players.flatMap((p) => p.territoryTiles),
+			...players.flatMap((p) => [
+				...p.territoryTiles,
+				// #37: on the Collectors' mat.
+				...(p.civData.collectors?.items.territory !== undefined
+					? [p.civData.collectors.items.territory]
+					: []),
+			]),
 			// #165: the tiles lying on the Islanders' mats.
 			...players.flatMap((p) =>
 				(p.civData.islanders?.hexes ?? []).flatMap(
@@ -307,6 +321,10 @@ export function checkState(state, previousSeq = 0) {
 				),
 				// #37: kept on the Urban Planners' mat.
 				...(p.civData['urban-planners']?.stored ?? []),
+				// #37: on the Collectors' mat.
+				...(p.civData.collectors?.items.landmark !== undefined
+					? [p.civData.collectors.items.landmark]
+					: []),
 			]),
 			...pieces.flatMap((piece) =>
 				'landmark' in piece ? [piece.landmark] : []
@@ -353,6 +371,10 @@ export function checkState(state, previousSeq = 0) {
 						'building' in o.piece &&
 						o.piece.building === building
 				).length +
+				// #37: the Collectors' house.
+				(building === 'house' && p.civData.collectors?.items.house
+					? 1
+					: 0) +
 				// #37: on A&A's tapestry cards.
 				Object.values(p.onCards ?? {})
 					.flat()
@@ -369,7 +391,11 @@ export function checkState(state, previousSeq = 0) {
 				`seat ${p.seat} owns ${count} ${building} buildings`
 			);
 		}
-		const own = p.outposts + mine.filter((o) => !o.piece).length;
+		const own =
+			p.outposts +
+			mine.filter((o) => !o.piece).length +
+			// #37: the Collectors' outpost.
+			(p.civData.collectors?.items.outpost ? 1 : 0);
 		assert.equal(own, OUTPOSTS, `seat ${p.seat} owns ${own} outposts`);
 		for (const [civ, total] of Object.entries(CIV_TOKENS)) {
 			const data = p.civData[civ];

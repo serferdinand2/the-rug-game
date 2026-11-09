@@ -22,6 +22,7 @@ import { recyclers } from './recyclers.js';
 import { relentless } from './relentless.js';
 import { gamblers } from './gamblers.js';
 import { urbanPlanners } from './urban-planners.js';
+import { collectors } from './collectors.js';
 import { renegades } from './renegades.js';
 import { riverfolk } from './riverfolk.js';
 import { spies } from './spies.js';
@@ -69,6 +70,7 @@ Object.assign(CIVS, {
 	renegades,
 	gamblers,
 	'urban-planners': urbanPlanners,
+	collectors,
 });
 
 export { CIVS, findCiv, civsOf } from './registry.js';

@@ -64,6 +64,7 @@ import {
 	spymaster,
 } from './aa-cards.js';
 import { infrastructureUpgrade } from '../landmark-cards.js';
+import { collectOutpost } from '../civs/collectors.js';
 import { gainCiv, plague } from '../civ-turns.js';
 import { discardCiv, placeToken } from '../civs/civ.js';
 
@@ -132,6 +133,7 @@ export const EFFECTS = {
 	infrastructureUpgrade,
 	plague,
 	granges,
+	collectOutpost,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

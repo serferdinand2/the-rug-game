@@ -49,6 +49,15 @@ export function gainTiles(ctx, player, stack, count) {
 		...tiles
 	);
 	emit(ctx.state, { type: 'tilesGained', player, stack, tiles });
+	// What answers gaining tiles (the Collectors, #37); nothing in other games.
+	const answers = triggered(ctx.state, 'tilesGained', {
+		player,
+		stack,
+		tiles,
+	});
+	if (answers.length > 0) {
+		ctx.push(answers);
+	}
 	return tiles;
 }
 

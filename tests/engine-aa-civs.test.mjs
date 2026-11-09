@@ -11,7 +11,9 @@ import { contextFor, resolveEffects, run } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { endTurn, startTurn } from '../src/lib/engine/turn.js';
-import { landmarksOwned } from '../src/lib/engine/effects/vp.js';
+import { countVp, landmarksOwned } from '../src/lib/engine/effects/vp.js';
+import { view } from '../src/lib/engine/view.js';
+import { allOps } from './helpers/views.mjs';
 import { plannersGroup } from '../src/lib/engine/civs/urban-planners.js';
 import { checkState } from './helpers/invariants.mjs';
 import { emit } from '../src/lib/engine/events.js';
@@ -460,4 +462,215 @@ test("the Urban Planners' setup in the current version: 1 resource of your choic
 	};
 	assert.equal(gained(3, 'current'), 1);
 	assert.equal(gained(4, 'current'), 2);
+});
+
+// The Collectors
+
+/**
+ * Seat 1 holds the Collectors, on its own advance turn, after `fill`.
+ * @param {(state: any) => void} [fill]
+ * @param {Record<string, any>} [options]
+ */
+function collecting(fill = () => {}, options = {}) {
+	return holding(
+		'collectors',
+		(s) => {
+			s.current = 1;
+			s.turnKind = 'advance';
+			s.turn = 7;
+			fill(s);
+		},
+		options
+	);
+}
+
+/** The total of a seat's resources. @param {any} seat */
+const resources = (seat) =>
+	Object.values(seat.resources).reduce(
+		(/** @type {number} */ a, /** @type {number} */ b) => a + b,
+		0
+	);
+
+test('the Collectors: a house gained on an advance turn may go on their mat, for 1 resource of their choice; one item a turn (03 §2.4)', () => {
+	let { state, random } = collecting();
+	assert.deepEqual(state.seats[0].civData.collectors, {
+		items: {},
+		turn: null,
+	});
+	const gained = resolveEffects(state, 1, [{ building: 'house' }], random);
+	const [decision] = openDecisions(gained);
+	assert.ok(
+		DECISIONS.choosePlacement
+			.answers(gained, decision)
+			.some((a) => a.collectors === true)
+	);
+	const before = resources(gained.seats[0]);
+	state = answerDefaults(
+		answer(gained, random, 1, 'choosePlacement', { collectors: true }),
+		random
+	);
+	assert.deepEqual(state.seats[0].civData.collectors, {
+		items: { house: true },
+		turn: 7,
+	});
+	assert.equal(resources(state.seats[0]), before + 1);
+	// One item this turn: a landmark gained now isn't offered.
+	const landmark = resolveEffects(state, 1, [{ landmark: 'forge' }], random);
+	const [place] = openDecisions(landmark);
+	assert.ok(
+		!DECISIONS.choosePlacement
+			.answers(landmark, place)
+			.some((a) => a.collectors === true)
+	);
+});
+
+test('the Collectors: nothing on an income turn, nor a type the mat already holds', () => {
+	const income = collecting((s) => {
+		s.turnKind = 'income';
+	});
+	const a = resolveEffects(
+		income.state,
+		1,
+		[{ building: 'house' }],
+		income.random
+	);
+	assert.ok(
+		!openDecisions(a).some((d) =>
+			DECISIONS[d.kind].answers(a, d).some((x) => x.collectors === true)
+		)
+	);
+	const held = collecting((s) => {
+		s.seats[0].civData.collectors.items.house = true;
+	});
+	const b = resolveEffects(
+		held.state,
+		1,
+		[{ building: 'house' }],
+		held.random
+	);
+	assert.ok(
+		!openDecisions(b).some((d) =>
+			DECISIONS[d.kind].answers(b, d).some((x) => x.collectors === true)
+		)
+	);
+});
+
+test('the Collectors: a tapestry card, a territory tile or a tech card just gained may go on the mat', () => {
+	const { state, random } = collecting();
+	const drew = resolveEffects(state, 1, [{ gain: { tapestry: 2 } }], random);
+	const [offer] = openDecisions(drew);
+	assert.equal(offer.kind, 'chooseCollect');
+	assert.equal(offer.type, 'tapestry');
+	assert.deepEqual(DECISIONS.chooseCollect.answers(drew, offer)[0], {
+		slot: null,
+	});
+	// The cards drawn are the player's secret: the others' view leaves them out.
+	const seen = allOps(view(drew, 2)).find((op) => op.id === offer.id);
+	assert.equal(seen?.kind, 'chooseCollect');
+	assert.equal(seen?.options, undefined);
+	const [card] = offer.options;
+	const taken = answer(drew, random, 1, 'chooseCollect', { slot: card });
+	assert.equal(taken.seats[0].civData.collectors.items.tapestry, card);
+	assert.ok(!taken.seats[0].hand.includes(card));
+	// It still counts as theirs for scoring.
+	assert.equal(
+		countVp(taken, 1, 'tapestryCard'),
+		taken.seats[0].hand.length + 1
+	);
+	const tiles = collecting();
+	const gotTile = resolveEffects(
+		tiles.state,
+		1,
+		[{ gain: { territory: 1 } }],
+		tiles.random
+	);
+	const [tileOffer] = openDecisions(gotTile);
+	assert.equal(tileOffer.type, 'territory');
+	const [tile] = tileOffer.options;
+	const kept = answer(gotTile, tiles.random, 1, 'chooseCollect', {
+		slot: tile,
+	});
+	assert.equal(kept.seats[0].civData.collectors.items.territory, tile);
+	assert.deepEqual(kept.seats[0].territoryTiles, []);
+	assert.equal(countVp(kept, 1, 'territoryTile'), 1);
+});
+
+test('R129: the Collectors choose the outpost before the conquer target, instead of conquering, with no dice', () => {
+	const { state, random } = collecting();
+	const outposts = state.seats[0].outposts;
+	const asked = resolveEffects(state, 1, [{ conquer: {} }], random);
+	const [decision] = openDecisions(asked);
+	assert.equal(decision.kind, 'chooseOption');
+	assert.equal(decision.purpose, 'collectorsOutpost');
+	const before = resources(asked.seats[0]);
+	const collected = answerDefaults(
+		answer(asked, random, 1, 'chooseOption', { option: 1 }),
+		random
+	);
+	assert.equal(collected.seats[0].outposts, outposts - 1);
+	assert.equal(collected.seats[0].civData.collectors.items.outpost, true);
+	assert.equal(resources(collected.seats[0]), before + 1);
+	assert.ok(!collected.events.some((e) => e.type === 'conquerDiceRolled'));
+});
+
+test("the Collectors' VP at the end of the final income turn: 1, 3, 6, 10, 15 or 21 for 1 to 6 items", () => {
+	for (const [items, vp] of [
+		[{ house: true }, 1],
+		[{ house: true, outpost: true, landmark: 'forge' }, 6],
+		[
+			{
+				house: true,
+				outpost: true,
+				landmark: 'forge',
+				tapestry: 'academia',
+				territory: 3,
+				tech: 'paper',
+			},
+			21,
+		],
+	]) {
+		const { state, random } = collecting((s) => {
+			s.seats[0].civData.collectors.items = items;
+			s.seats[0].incomeTurns = 5;
+			s.seats[0].finished = true;
+		});
+		const before = state.seats[0].vp;
+		endOf(state, random, 'income');
+		assert.equal(state.seats[0].vp, before + vp);
+	}
+});
+
+test("the Collectors' cards and tile lie face down: the other players see only that the mat holds one", () => {
+	const { state } = collecting((s) => {
+		s.seats[0].civData.collectors.items = {
+			tapestry: 'academia',
+			territory: 3,
+			tech: 'paper',
+			house: true,
+		};
+	});
+	assert.deepEqual(view(state, 2).seats[0].civData.collectors.items, {
+		tapestry: true,
+		territory: true,
+		tech: true,
+		house: true,
+	});
+	assert.deepEqual(
+		view(state, 1).seats[0].civData.collectors.items,
+		state.seats[0].civData.collectors.items
+	);
+});
+
+test('the Collectors: a tech card just invented may go on the mat, and still counts as theirs', () => {
+	const { state, random } = collecting();
+	const card = state.supply.tech.faceUp[0];
+	const invented = resolveEffects(state, 1, [{ invent: {} }], random);
+	const chosen = answer(invented, random, 1, 'chooseInvent', { card });
+	const [offer] = openDecisions(chosen);
+	assert.equal(offer.kind, 'chooseCollect');
+	assert.deepEqual(offer.options, [card]);
+	const taken = answer(chosen, random, 1, 'chooseCollect', { slot: card });
+	assert.equal(taken.seats[0].civData.collectors.items.tech, card);
+	assert.ok(!taken.seats[0].tech.bottom.includes(card));
+	assert.equal(countVp(taken, 1, 'techCard'), 1);
 });

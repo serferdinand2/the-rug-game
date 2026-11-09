@@ -54,6 +54,7 @@ export const AA_CIVS = Object.freeze([
 	'renegades',
 	'gamblers',
 	'urban-planners',
+	'collectors',
 ]);
 
 /**

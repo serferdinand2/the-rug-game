@@ -500,6 +500,10 @@ const PHRASES = {
 	anyBuilding() {
 		return 'gain an income building of your choice';
 	},
+	// The Collectors' outpost (R129, #37).
+	collectOutpost() {
+		return 'put an outpost on your Collectors mat';
+	},
 	// Spymaster played as a tapestry card (#37).
 	spymaster() {
 		return 'draw 1 tapestry card; you may play it on top of this card at once';

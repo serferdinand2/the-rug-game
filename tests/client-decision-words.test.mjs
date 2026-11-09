@@ -1550,3 +1550,55 @@ test("the Urban Planners' choices read as their card (#37)", () => {
 		'Discard them and gain another'
 	);
 });
+
+test("the Collectors' choices read as their mat (#37, R129)", () => {
+	const house = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'choosePlacement',
+		building: 'house',
+	};
+	assert.equal(
+		describeAnswer(house, { collectors: true }),
+		'On your Collectors mat, for 1 resource of your choice'
+	);
+	const card = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseCollect',
+		type: 'tapestry',
+		options: ['academia'],
+	};
+	assert.equal(
+		decisionTitle(card),
+		'Put it on your Collectors mat, for 1 resource of your choice?'
+	);
+	assert.equal(describeAnswer(card, { slot: 'academia' }), 'Academia');
+	assert.equal(describeAnswer(card, { slot: null }), "Don't");
+	const tile = { ...card, type: 'territory', options: [7] };
+	assert.equal(describeAnswer(tile, { slot: 7 }), 'Territory tile 7');
+	const tech = { ...card, type: 'tech', options: ['paper'] };
+	assert.equal(describeAnswer(tech, { slot: 'paper' }), 'Paper');
+	const outpost = {
+		id: 3,
+		batch: 1,
+		player: 1,
+		kind: 'chooseOption',
+		purpose: 'collectorsOutpost',
+		options: [
+			[{ conquer: { collectorsAsked: true } }],
+			[{ collectOutpost: {} }],
+		],
+	};
+	assert.equal(
+		decisionTitle(outpost),
+		'Conquer, or put an outpost on your Collectors mat instead?'
+	);
+	assert.equal(describeAnswer(outpost, { option: 0 }), 'Conquer');
+	assert.equal(
+		describeAnswer(outpost, { option: 1 }),
+		'Put an outpost on your Collectors mat'
+	);
+});

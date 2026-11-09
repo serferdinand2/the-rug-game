@@ -32,7 +32,8 @@ import { seatName } from './game-names.js';
  * The civilizations whose cards draw a seat's live state, in the order built: the first six's decisions are answered on
  * their card (#78); the Treasure Hunters', the Tinkerers' and the Spies' cards only mark the treasures and options
  * used, and the Utilitarians' the landmarks with a token beside them, as those are picked in the panel (#33); the
- * Traders', the Isolationists' and the Heralds' cards empty a reserve square for each token out (#180). The Inventors'
+ * Traders', the Isolationists' and the Heralds' cards empty a reserve square for each token out (#180); the
+ * Collectors' marks each item collected (#37). The Inventors'
  * card waits: its transfer box shows a card they took, which their civData alone can't tell.
  */
 export const CARD_CIVS = Object.freeze([
@@ -49,6 +50,8 @@ export const CARD_CIVS = Object.freeze([
 	'traders',
 	'isolationists',
 	'heralds',
+	// A&A (#37): each item collected marks its space.
+	'collectors',
 ]);
 
 /** The token reserves whose civData counts the tokens still on the card (#180), with how many each starts with. */
@@ -99,6 +102,11 @@ export function civCardMarks(civ, data) {
 		}
 	}
 	switch (civ) {
+		case 'collectors':
+			for (const type of Object.keys(data.items)) {
+				mark(type, 'token');
+			}
+			break;
 		case 'entertainers':
 			mark(data.at, 'token');
 			break;
