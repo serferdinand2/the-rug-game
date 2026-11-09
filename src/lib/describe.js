@@ -380,6 +380,12 @@ const PHRASES = {
 		return words;
 	},
 	upgrade(value) {
+		// Duct Tape, as printed (#37).
+		if (value?.ignorePrerequisite) {
+			return value.count === 2
+				? 'upgrade 1 tech card twice or 2 tech cards once each, ignoring prerequisites'
+				: 'upgrade a tech card, ignoring its prerequisite';
+		}
 		// Ceramics: that card can't be upgraded again this turn (#35).
 		return value?.lock
 			? "upgrade a tech card, which can't be upgraded again this turn"

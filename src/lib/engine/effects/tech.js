@@ -224,13 +224,17 @@ export function upgradeCard(ctx, player, card, inventors) {
 
 /**
  * The upgrade effect (§7): mandatory with one card is automatic, with none says so; optional always asks while a card can be upgraded.
- * With `lock` (Ceramics) the card upgraded may not be upgraded again this turn.
+ * With `lock` (Ceramics) the card upgraded may not be upgraded again this turn; with `ignorePrerequisite` (Duct Tape)
+ * a middle-row card needs nothing to go to the top row; `count` upgrades one after another, each with what it
+ * triggers, so one card may go up twice.
  * The Recyclers may recycle a top-row card instead (03 §1.3), so they are asked whenever they have one. The recycle is
  * a "may": with nothing else to upgrade, they may decline it (my call).
  * @type {import('../state.js').EffectHandler}
  */
 export function upgrade(ctx, player, value) {
-	const cards = upgradable(ctx.state, player);
+	// Duct Tape's upgrades ignore every prerequisite (03 §2).
+	const ignorePrerequisite = value?.ignorePrerequisite === true;
+	const cards = upgradable(ctx.state, player, ignorePrerequisite);
 	const recycled = recyclable(ctx.state, player);
 	const optional = value?.optional === true;
 	if (cards.length + recycled.length === 0) {
@@ -238,6 +242,17 @@ export function upgrade(ctx, player, value) {
 			emit(ctx.state, { type: 'noUpgrade', player });
 		}
 		return;
+	}
+	// The next upgrade waits under this one and all it triggers, so it may take the same card again (Duct Tape).
+	const count = Number.isInteger(value?.count) ? value.count : 1;
+	if (count > 1) {
+		ctx.push([
+			{
+				player,
+				kind: 'effects',
+				effects: [{ upgrade: { ...value, count: count - 1 } }],
+			},
+		]);
 	}
 	// Ceramics: the card upgraded is locked at once, before its benefit runs (#35).
 	const lock = value?.lock === true;
@@ -254,6 +269,7 @@ export function upgrade(ctx, player, value) {
 			kind: 'chooseUpgrade',
 			optional: optional || cards.length === 0,
 			...(lock && { lock }),
+			...(ignorePrerequisite && { ignorePrerequisite }),
 		},
 	]);
 }

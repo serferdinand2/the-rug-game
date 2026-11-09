@@ -65,13 +65,19 @@ test('every tech card builds its face from the engine data', () => {
 			existsSync(`${ART}tech/${data.art}.svg`),
 			`${card.id} has no art at tech/${data.art}.svg`
 		);
-		if (data.innovation === undefined) {
-			assert.ok(TRACK_IDS.includes(/** @type {any} */ (data.track)));
+		if ('track' in card.requires) {
+			assert.ok(
+				[...TRACK_IDS, 'arts'].includes(/** @type {any} */ (data.track))
+			);
 			assert.ok([2, 3, 4].includes(/** @type {number} */ (data.level)));
-		} else {
+			assert.equal(data.innovation, undefined);
+		} else if ('innovation' in card.requires) {
 			assertText(data.innovation, `${card.id}'s innovation`);
 			assert.equal(data.track, undefined);
 			assert.equal(data.level, undefined);
+		} else {
+			// A&A's landmark on the card, or no prerequisite (#37): no track or innovation to show.
+			assert.ok(!('track' in data) && !('innovation' in data), card.id);
 		}
 	}
 });

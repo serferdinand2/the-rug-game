@@ -252,7 +252,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 The research in [docs/research/](docs/research/) left 92 details unconfirmed, marked **[UNVERIFIED]**, plus a list of open questions. Each one has a decision here, so the engine never guesses. These decisions settle [#2](https://github.com/serferdinand2/the-rug-game/issues/2).
 
-- **Rule ids** (R1–R123) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
+- **Rule ids** (R1–R126) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
 - **Versions.** A table plays either the **Original 2019 printing** or the **Current official rules**. A rule applies to both unless it names one.
 - **Sources** are trusted in this order:
   1. the Fantasies & Futures integrated rulebook;
@@ -452,6 +452,9 @@ How the ranking was built:
 | R121 | When does Cloud City's move happen, with masterpieces also firing at the start of an income turn? | The player picks: the move is one more item in the order they choose for their masterpieces, so it may come before or after any of them. Without masterpieces, it comes first in the income turn. | No source covers it; the FAQ lets Swamp's penalty go before or after the masterpieces (03 §2.12). Owner, 2026-11-06 ([#36](https://github.com/serferdinand2/the-rug-game/issues/36)). | |
 | R122 | Canyon: do landmarks count as buildings for surrounding a cactus? | Yes. Income buildings, landmarks, impassable plots and the Architects' cubes all fill a cactus's 8 neighbours. | 03 §2 Canyon (Joe Aubrey, BGG-2784012: all 8 neighbours). Owner, 2026-11-06 ([#36](https://github.com/serferdinand2/the-rug-game/issues/36)). | |
 | R123 | Archipelago: may the Riverfolk and Terraforming build on the water and the volcanoes? | Yes, like any impassable plot. Water belongs to no island, so filling a water plot completes no district. | 03 §2 Archipelago (water and volcanoes are impassable plots). Owner, 2026-11-06 ([#36](https://github.com/serferdinand2/the-rug-game/issues/36)). | |
+| R124 | Without the arts track, what happens to A&A's cards that name it? | They leave the decks: Artistic Inspiration, Found Art, Government Grants, Granges, Silk Road and S.T.E.A.M. from the tapestry deck, and Microphone, Oil Paint, Opera and Public Art from the tech deck. It plays as discarding and redrawing them, without showing a card that is thrown away. | 03 §2 (the modularity note: discard and redraw). Claude's call, 2026-11-08 ([#37](https://github.com/serferdinand2/the-rug-game/issues/37)). | |
+| R125 | Oil Paint's prerequisite: you, or you or a neighbour? | The table's version decides. Current rules: you or a neighbour in arts tier II, as the FAQ's erratum and F&F's replacement card say. Original 2019 rules: you alone, as the first printing shows no neighbours icon. | 03 §2 A&A tech cards, FF.5 (Stonemaier A&A FAQ; RB-FF p24; BGG 3086136). Claude's call, 2026-11-08 ([#37](https://github.com/serferdinand2/the-rug-game/issues/37)). | |
+| R126 | May a landmark go on a landmark tech card in the top row? | No. Only one in the bottom or middle row, which the landmark upgrades at once; a top-row card can't be upgraded, so the landmark would do nothing there. | 03 §2 A&A tech cards (the card text: "to immediately upgrade"). Claude's call, 2026-11-08 ([#37](https://github.com/serferdinand2/the-rug-game/issues/37)). | |
 
 </details>
 

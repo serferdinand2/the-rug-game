@@ -325,3 +325,14 @@ test('describe.js holds the effect, cost, bonus and payment words, and what the 
 		'priceWords',
 	]);
 });
+
+test("Duct Tape's square reads as printed: 1 card twice or 2 cards once each, ignoring prerequisites (#37)", () => {
+	assert.equal(
+		describeEffects([{ upgrade: { ignorePrerequisite: true, count: 2 } }]),
+		'Upgrade 1 tech card twice or 2 tech cards once each, ignoring prerequisites'
+	);
+	assert.equal(
+		describeEffects([{ upgrade: { ignorePrerequisite: true } }]),
+		'Upgrade a tech card, ignoring its prerequisite'
+	);
+});

@@ -166,9 +166,10 @@ export function checkOptions({ version, expansions = [], variants = [] }) {
  * @param {number} seat
  * @param {string} name
  * @param {readonly string[]} tracks - The tracks in play
+ * @param {boolean} aa - Whether Arts & Architecture is on: its landmark tech cards hold a landmark each (#37)
  * @returns {import('./state.js').PlayerSeat}
  */
-function newSeat(seat, name, tracks) {
+function newSeat(seat, name, tracks, aa) {
 	// The arts track brings each player's masterpieces and inspiration tiles (#35).
 	const arts = tracks.includes(ARTS_TRACK);
 	return {
@@ -208,6 +209,7 @@ function newSeat(seat, name, tracks) {
 		landmarkCard: null,
 		start: null,
 		...(arts && { masterpieces: [], inspired: [] }),
+		...(aa && { techLandmarks: {} }),
 	};
 }
 
@@ -468,9 +470,11 @@ export function createGame({
 			];
 		})
 	);
-	const tech = shuffle(techDeck(variants), random);
+	const tech = shuffle(techDeck(expansions, variants), random);
 	const tracks = arts ? [...TRACK_IDS, ARTS_TRACK] : TRACK_IDS;
-	const seats = players.map((p, i) => newSeat(i + 1, p.name, tracks));
+	const seats = players.map((p, i) =>
+		newSeat(i + 1, p.name, tracks, expansions.includes('aa'))
+	);
 
 	/** @type {import('./state.js').State} */
 	const state = {
@@ -519,6 +523,8 @@ export function createGame({
 			capitals: [],
 			// Last, and only with the arts track, so a game without it draws as it always did (#35).
 			...(arts && { masterpieces: masterpieceSupply(random) }),
+			// A&A's landmark tech cards' landmarks, discarded with their card (#37).
+			...(expansions.includes('aa') && { landmarkDiscard: [] }),
 		},
 		hexes,
 		landmarks: landmarksFor(expansions, variants).map((l) => l.id),

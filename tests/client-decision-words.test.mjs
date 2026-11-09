@@ -77,6 +77,11 @@ test('places in the capital and on the map read as rows, columns and hexes', () 
 		'Row 1, column 1'
 	);
 	assert.equal(decisionTitle(landmark), 'Where does the Lighthouse go?');
+	// A&A's landmark tech card, which the landmark upgrades at once (#37).
+	assert.equal(
+		describeAnswer(landmark, { tech: 'astrolabe' }),
+		'On Astrolabe, upgrading it'
+	);
 	const farm = { ...landmark, landmark: undefined, building: 'farm' };
 	delete farm.landmark;
 	assert.equal(describeAnswer(farm, { row: 8, col: 8 }), 'Row 9, column 9');

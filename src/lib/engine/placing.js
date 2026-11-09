@@ -15,14 +15,17 @@ import {
 import { itemCount } from './control.js';
 import { CRAFTSMEN_COLUMNS, craftsmenColumns } from './civs/craftsmen.js';
 import { nomadsHexes } from './civs/nomads.js';
+import { holdsLandmark, isLocked } from './tech.js';
+import { upgradeCard } from './effects/tech.js';
+import { techCard } from './data/tech-cards.js';
 import { plotIndex } from '../capital.js';
 
 /** @typedef {{ building: import('./data/ids.js').BuildingId } | { landmark: string }} Piece */
 
 /**
- * Where a gained piece may go: a capital plot (with a turn for a landmark), a Craftsmen column, a Nomads hex, or
- * beside the mat when the capital has no room but another place does (#20 design §9).
- * @typedef {{ row: number, col: number, rotation?: number } | { craftsmen: number } | { hex: string } | { besideMat: true }} Placement
+ * Where a gained piece may go: a capital plot (with a turn for a landmark), a Craftsmen column, a Nomads hex, an A&A
+ * landmark tech card (#37), or beside the mat when the capital has no room but another place does (#20 design §9).
+ * @typedef {{ row: number, col: number, rotation?: number } | { craftsmen: number } | { hex: string } | { tech: string } | { besideMat: true }} Placement
  */
 
 /**
@@ -250,8 +253,47 @@ export function placeOnMap(ctx, player, piece, hex) {
 }
 
 /**
+ * Puts a gained landmark on one of the player's A&A landmark tech cards, which upgrades it at once; the upgrade and
+ * all it triggers resolve before whatever gave the landmark goes on (03 §2). The landmark stays there for the game. It
+ * is owned, but not in the capital, so it fires no `piecePlaced` and breaks no tie (R13).
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {string} landmark
+ * @param {string} card - One of techPlaces()
+ */
+export function placeOnTech(ctx, player, landmark, card) {
+	const held = /** @type {Record<string, string>} */ (
+		playerSeat(ctx.state, player).techLandmarks
+	);
+	held[card] = landmark;
+	emit(ctx.state, { type: 'landmarkPlacedOnTech', player, landmark, card });
+	upgradeCard(ctx, player, card);
+}
+
+/**
+ * The A&A landmark tech cards a gained landmark may go on: the player's bottom- and middle-row cards whose
+ * prerequisite is a landmark on the card, holding none (03 §2). Not a top-row card, which a landmark can't upgrade
+ * (R126), nor one Ceramics locked this turn (#35).
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @returns {string[]}
+ */
+function techPlaces(state, player) {
+	const { tech, techLandmarks } = playerSeat(state, player);
+	if (!techLandmarks) {
+		return [];
+	}
+	return [...tech.bottom, ...tech.middle].filter(
+		(card) =>
+			'landmark' in techCard(card).requires &&
+			!holdsLandmark(state, player, card) &&
+			!isLocked(state, player, card)
+	);
+}
+
+/**
  * The places a piece may go other than the capital: the Craftsmen's columns with room (income buildings only),
- * then the Nomads' hexes.
+ * then the Nomads' hexes, then the landmark tech cards (landmarks only, #37).
  * @param {import('./state.js').State} state
  * @param {number} player
  * @param {Piece} piece
@@ -265,6 +307,9 @@ function otherPlaces(state, player, piece) {
 				}))
 			: []),
 		...nomadsHexes(state, player).map((hex) => ({ hex })),
+		...('landmark' in piece
+			? techPlaces(state, player).map((tech) => ({ tech }))
+			: []),
 	];
 }
 

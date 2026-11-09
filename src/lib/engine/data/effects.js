@@ -76,7 +76,7 @@ import { deepFreeze } from './ids.js';
  * - `regress`: go back 1 space on one of the listed tracks, then gain that space's benefit and optional bonus; `noBenefit` is the X.
  * - `repeat`: gain the benefit of your current space on any track, and you may pay its bonus; `oncePerTurn` limits it to once a turn (FAQ #6).
  * - `invent`: gain tech cards one at a time; `refresh` lets you first replace the 3 face-up cards; `faceUpOnly` and `deckOnly` limit where the card comes from, which is otherwise also the tech discard pile for the Recyclers; `thenUpgrade` upgrades a card after.
- * - `upgrade`: upgrade 1 tech card; `optional` lets you decline (an income turn's, the Recyclers' own); `lock` keeps that card from being upgraded again this turn (Ceramics, #35). The Recyclers may recycle a top-row card instead.
+ * - `upgrade`: upgrade 1 tech card; `optional` lets you decline (an income turn's, the Recyclers' own); `lock` keeps that card from being upgraded again this turn (Ceramics, #35); `ignorePrerequisite` lets a middle-row card go up with its prerequisite unmet and `count` upgrades that many times, one after another (Duct Tape, #37). The Recyclers may recycle a top-row card instead.
  * - `techBenefit`: gain the circle benefit of a card in your middle row, or the square benefit of one in your top row, without moving it.
  * - `tapestryOnTop`: play a tapestry card from your hand on top of your current tapestry.
  * - `scoreCapital`: score the capital city, 1 VP per complete row and column on a basic mat.
@@ -116,7 +116,7 @@ import { deepFreeze } from './ids.js';
  *   | { regress: { tracks: TrackId[], noBenefit?: boolean } }
  *   | { repeat: { oncePerTurn?: boolean } }
  *   | { invent: { count?: number, refresh?: boolean, faceUpOnly?: boolean, deckOnly?: boolean, thenUpgrade?: boolean } }
- *   | { upgrade: { optional?: boolean, lock?: boolean } }
+ *   | { upgrade: { optional?: boolean, lock?: boolean, ignorePrerequisite?: boolean, count?: number } }
  *   | { techBenefit: { icon: 'circle' | 'square' } }
  *   | { tapestryOnTop: {} }
  *   | { scoreCapital: {} }

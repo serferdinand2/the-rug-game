@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { DECISIONS } from '../../src/lib/engine/kinds.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
 import { civsFor, tapestryFor, techDeck } from '../../src/lib/engine/decks.js';
+import { techCard } from '../../src/lib/engine/data/tech-cards.js';
 import { landmarksFor } from '../../src/lib/engine/data/landmarks.js';
 import { artsInPlay, tracksOf } from '../../src/lib/engine/tracks-in-play.js';
 import { MASTERPIECES } from '../../src/lib/engine/data/masterpieces.js';
@@ -98,8 +99,18 @@ export function checkState(state, previousSeq = 0) {
 			// #33: the Recyclers' drawn cards wait in their keep question.
 			...opsOf('chooseKeepTech').flatMap((op) => op.options),
 		],
-		techDeck(state.variants)
+		techDeck(state.expansions, state.variants)
 	);
+	// #37: a landmark sits only on its holder's A&A landmark tech card (03 §2).
+	for (const p of players) {
+		const rows = [...p.tech.bottom, ...p.tech.middle, ...p.tech.top];
+		for (const card of Object.keys(p.techLandmarks ?? {})) {
+			assert.ok(
+				rows.includes(card) && 'landmark' in techCard(card).requires,
+				`seat ${p.seat}'s landmark on ${card}`
+			);
+		}
+	}
 	exactlyOnce(
 		'tapestry cards',
 		[
@@ -257,11 +268,15 @@ export function checkState(state, previousSeq = 0) {
 		'landmarks',
 		[
 			...state.landmarks,
+			// #37: discarded with their tech card, out of the game.
+			...(supply.landmarkDiscard ?? []),
 			...players.flatMap((p) => [
 				...p.capital.landmarks.map((piece) => piece.landmark),
 				...p.besideMat.filter(
 					(id) => !BUILDING_IDS.includes(/** @type {any} */ (id))
 				),
+				// #37: on A&A's landmark tech cards, each holding one, in a row of its owner's.
+				...Object.values(p.techLandmarks ?? {}),
 			]),
 			...pieces.flatMap((piece) =>
 				'landmark' in piece ? [piece.landmark] : []

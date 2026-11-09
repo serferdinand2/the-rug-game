@@ -15,7 +15,7 @@ const BUILDINGS_PER_ROW = 5;
 
 /**
  * The landmarks a player owns: those in the capital, then those beside the mat, then those on the map as Nomads
- * pieces, toppled or not, in map order (R71).
+ * pieces, toppled or not, in map order (R71), then those on A&A's landmark tech cards (03 §2, #37).
  * @param {import('../state.js').State} state
  * @param {number} player
  * @returns {string[]}
@@ -34,6 +34,7 @@ export function landmarksOwned(state, player) {
 		...seat.capital.landmarks.map((piece) => piece.landmark),
 		...seat.besideMat.filter((id) => ids.has(id)),
 		...onMap,
+		...Object.values(seat.techLandmarks ?? {}),
 	];
 }
 

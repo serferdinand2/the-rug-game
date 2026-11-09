@@ -81,7 +81,7 @@ function innovationSpace(id) {
 
 /**
  * A tech card's face: its art, its circle and square benefits in words, and its top-row prerequisite, a track tier
- * or an income-mat innovation (R18).
+ * or an income-mat innovation (R18), when it has one of those.
  * @param {string} id - A tech card id, such as 'clocks'
  * @returns {TechnologyCardData}
  */
@@ -97,14 +97,16 @@ export function techCardData(id) {
 	if (card.landmark) {
 		data.landmark = card.landmark;
 	}
-	if ('innovation' in card.requires) {
-		const space = innovationSpace(card.requires.innovation);
+	const need = card.requires;
+	if ('innovation' in need) {
+		const space = innovationSpace(need.innovation);
 		data.innovation = space.name;
 		data.innovationRow = space.row;
-	} else {
-		data.track = card.requires.track;
-		data.level = card.requires.tier;
+	} else if ('track' in need) {
+		data.track = need.track;
+		data.level = need.tier;
 	}
+	// A&A's landmark on the card and Suburbs' none show nothing yet; #37 part 4 draws them.
 	return data;
 }
 

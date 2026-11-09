@@ -367,5 +367,25 @@ export function pay(ctx, player, payment) {
 			deck: 'tech',
 			cards: tech,
 		});
+		discardTechLandmarks(state, player, tech);
+	}
+}
+
+/**
+ * Discards the landmarks the discarded tech cards held, out of the game (A&A's landmark tech cards, 03 §2).
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @param {readonly string[]} cards
+ */
+function discardTechLandmarks(state, player, cards) {
+	const held = playerSeat(state, player).techLandmarks;
+	for (const card of cards) {
+		const landmark = held?.[card];
+		if (held === undefined || landmark === undefined) {
+			continue;
+		}
+		delete held[card];
+		(state.supply.landmarkDiscard ??= []).push(landmark);
+		emit(state, { type: 'landmarkDiscarded', player, landmark, card });
 	}
 }

@@ -3,7 +3,10 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { run, contextFor } from '../src/lib/engine/loop.js';
 import { upgradeCard } from '../src/lib/engine/effects/tech.js';
-import { TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
+import { TECH_CARDS as ALL_TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
+
+/** The base 33; A&A's are tests/engine-aa-tech.test.mjs's (#37). */
+const TECH_CARDS = ALL_TECH_CARDS.filter((card) => card.expansion === 'base');
 import { startedGame, answerDefaults } from './helpers/engine.mjs';
 
 for (const card of TECH_CARDS) {

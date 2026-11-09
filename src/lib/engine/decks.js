@@ -1,5 +1,6 @@
 // The card lists, read from the asset catalog: civilizations, tech cards and tapestry cards, with the expansions' (#33).
 import { ASSETS } from '../art/catalog.js';
+import { artsTrackOn } from './data/tracks.js';
 
 /**
  * The slugs of a group's base-game assets.
@@ -60,18 +61,35 @@ export function civsFor(expansions, variants = []) {
 /** The 33 base tech cards. @type {readonly string[]} */
 export const BASE_TECH = Object.freeze(baseSlugs('tech'));
 
+/** Arts & Architecture's 11 tech cards, in catalog order (#37). @type {readonly string[]} */
+export const AA_TECH = Object.freeze(slugsOf('tech', 'aa'));
+
 /** The tech cards the no-radio-battery variant leaves out (03 FF.2.6, 02 §4). */
 const LEFT_OUT_TECH = ['radio', 'lithium-ion-battery'];
 
+/** A&A's tech cards that name the arts track, left out without it (R124). */
+const ARTS_TECH = ['microphone', 'oil-paint', 'opera', 'public-art'];
+
 /**
- * The tech cards a game with these variants plays with, in BASE_TECH order (#53 design §4.4).
+ * The tech cards a game with these expansions and variants plays with: BASE_TECH, then A&A's (#37), in that order
+ * (#53 design §4.4). Without the arts track, A&A's cards that name it are left out (R124).
+ * @param {readonly string[]} expansions
  * @param {readonly string[]} variants
  * @returns {string[]}
  */
-export function techDeck(variants) {
-	return variants.includes('no-radio-battery')
-		? BASE_TECH.filter((card) => !LEFT_OUT_TECH.includes(card))
-		: [...BASE_TECH];
+export function techDeck(expansions, variants) {
+	const aa = expansions.includes('aa')
+		? AA_TECH.filter(
+				(card) =>
+					artsTrackOn(expansions, variants) ||
+					!ARTS_TECH.includes(card)
+			)
+		: [];
+	return [...BASE_TECH, ...aa].filter(
+		(card) =>
+			!variants.includes('no-radio-battery') ||
+			!LEFT_OUT_TECH.includes(card)
+	);
 }
 
 /** The 50 base tapestry cards: the 43 different cards, then 7 traps (`trap-1` to `trap-7`). @type {readonly string[]} */

@@ -596,6 +596,11 @@ const WORDS = {
 		`${name} moved ${pieceWords({ building: e.building })} to another cloud of their capital.`,
 	piecePlacedOnMap: (e, game, name) =>
 		`${name} placed ${pieceWords(e.piece)} on ${hexName(e.hex)}.`,
+	// A&A's landmark tech cards (#37): the upgrade that follows has its own line.
+	landmarkPlacedOnTech: (e, game, name) =>
+		`${name} placed ${landmarkWords(e.landmark)} on ${techName(e.card)}.`,
+	landmarkDiscarded: (e, game, name) =>
+		`${name} discarded ${landmarkWords(e.landmark)} with ${techName(e.card)}.`,
 	districtsCompleted(e, game, name) {
 		const n = Array.isArray(e.districts) ? e.districts.length : 0;
 		if (n === 0) {

@@ -7,12 +7,18 @@ import {
 	placeBesideMat,
 	placeInColumn,
 	placeOnMap,
+	placeOnTech,
 	placePiece,
 	placements,
 } from '../placing.js';
 
 /** The answer keys of the places other than a capital plot. */
-const OTHER_PLACES = /** @type {const} */ (['besideMat', 'craftsmen', 'hex']);
+const OTHER_PLACES = /** @type {const} */ ([
+	'besideMat',
+	'craftsmen',
+	'hex',
+	'tech',
+]);
 
 /**
  * The piece a placement decision is for.
@@ -112,6 +118,10 @@ export const choosePlacement = {
 		}
 		if (key === 'hex') {
 			placeOnMap(ctx, player, pieceOf(decision), answer.hex);
+			return;
+		}
+		if (key === 'tech') {
+			placeOnTech(ctx, player, decision.landmark, answer.tech);
 			return;
 		}
 		if (decision.landmark !== undefined) {

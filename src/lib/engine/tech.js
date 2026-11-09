@@ -71,12 +71,11 @@ const TIER_SPACES = { 2: 4, 3: 7, 4: 10 };
  * Whether one seat currently has what a card asks for: a track tier or an uncovered innovation (R18).
  * @param {import('./state.js').State} state
  * @param {number} who
- * @param {import('./data/tech-cards.js').TechCard} card
+ * @param {{ track: import('./data/ids.js').TrackId, tier: 2 | 3 | 4 } | { innovation: string }} need
  * @returns {boolean}
  */
-function seatMeets(state, who, card) {
+function seatMeets(state, who, need) {
 	const seat = seatOf(state, who);
-	const need = card.requires;
 	if ('track' in need) {
 		return spacesAdvanced(seat, need.track) >= TIER_SPACES[need.tier];
 	}
@@ -91,16 +90,39 @@ function seatMeets(state, who, card) {
 }
 
 /**
- * Whether a card's top-row prerequisite is met by the player or either neighbour (R18).
+ * Whether a card's top-row prerequisite is met: by the player or either neighbour (R18), by the player alone where the
+ * original version prints no neighbours icon (Oil Paint, R125); a landmark on the card itself (03 §2), or nothing.
  * @param {import('./state.js').State} state
  * @param {number} player
  * @param {import('./data/tech-cards.js').TechCard} card
  * @returns {boolean}
  */
 export function meetsRequirement(state, player, card) {
-	return [player, ...neighbours(state, player)].some((who) =>
-		seatMeets(state, who, card)
+	const need = card.requires;
+	if ('none' in need) {
+		return true;
+	}
+	if ('landmark' in need) {
+		return holdsLandmark(state, player, card.id);
+	}
+	const alone =
+		'selfInOriginal' in need &&
+		need.selfInOriginal === true &&
+		state.version === 'original';
+	return [player, ...(alone ? [] : neighbours(state, player))].some((who) =>
+		seatMeets(state, who, need)
 	);
+}
+
+/**
+ * Whether one of a player's tech cards holds a landmark (A&A's landmark cards, 03 §2).
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @param {string} card
+ * @returns {boolean}
+ */
+export function holdsLandmark(state, player, card) {
+	return playerSeat(state, player).techLandmarks?.[card] !== undefined;
 }
 
 /**
@@ -121,9 +143,10 @@ function inventorsMarks(state) {
  * The cards a player may upgrade: the bottom row, then the middle-row cards whose prerequisite is met or waived, each in row order.
  * @param {import('./state.js').State} state
  * @param {number} player
+ * @param {boolean} [ignorePrerequisite] - Every middle-row card counts, as Duct Tape's upgrades (03 §2)
  * @returns {string[]}
  */
-export function upgradable(state, player) {
+export function upgradable(state, player, ignorePrerequisite = false) {
 	const { bottom, middle } = playerSeat(state, player).tech;
 	const marked = inventorsMarks(state);
 	return [
@@ -131,6 +154,7 @@ export function upgradable(state, player) {
 		// Golden Age ignores prerequisites, and an Inventors token waives its card's.
 		...middle.filter(
 			(id) =>
+				ignorePrerequisite ||
 				marked.includes(id) ||
 				hasEra(state, player, 'golden-age') ||
 				meetsRequirement(state, player, techCard(id))

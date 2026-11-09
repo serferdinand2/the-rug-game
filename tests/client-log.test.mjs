@@ -204,6 +204,12 @@ const SAMPLES = {
 			{ seat: 2, capital: 1, civ: 'the-chosen' },
 		],
 	},
+	landmarkDiscarded: { player: 1, landmark: 'villa', card: 'calculus' },
+	landmarkPlacedOnTech: {
+		player: 1,
+		landmark: 'barracks',
+		card: 'astrolabe',
+	},
 	spaceActivated: { player: 1, track: 'exploration', space: 1 },
 	spaceExplored: { player: 1, tile: 7 },
 	spiesUsed: {
@@ -1020,5 +1026,32 @@ test("the log names an income row as inspire's answer and the Income tab do (#18
 	assert.equal(
 		eventText({ type: 'inspired', player: 1, row: 'market' }, GAME),
 		'Ana placed an inspiration tile on the Markets row.'
+	);
+});
+
+test('a landmark placed on an A&A tech card, and one discarded with its card (#37)', () => {
+	assert.equal(
+		eventText(
+			{
+				type: 'landmarkPlacedOnTech',
+				player: 1,
+				landmark: 'barracks',
+				card: 'astrolabe',
+			},
+			GAME
+		),
+		'Ana placed the Barracks on Astrolabe.'
+	);
+	assert.equal(
+		eventText(
+			{
+				type: 'landmarkDiscarded',
+				player: 1,
+				landmark: 'villa',
+				card: 'calculus',
+			},
+			GAME
+		),
+		'Ana discarded the Villa with Calculus.'
 	);
 });

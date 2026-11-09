@@ -1078,6 +1078,11 @@ const ANSWERS = {
 		if (typeof a.hex === 'string') {
 			return capitalize(hexName(a.hex));
 		}
+		// A&A's landmark tech card, which the landmark upgrades at once (#37).
+		const card = techCardOf(a.tech);
+		if (card) {
+			return `On ${card.name}, upgrading it`;
+		}
 		if (!Number.isInteger(a.row) || !Number.isInteger(a.col)) {
 			return null;
 		}
