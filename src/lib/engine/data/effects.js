@@ -107,6 +107,7 @@ import { deepFreeze } from './ids.js';
  * - `reserve`: an item onto the income mat's overlay; `useReserved`: one item's use on income turn 5; `useAllReserved`:
  *   every item, in the player's order (R132); `discardSpace`: a space tile from the supply to the discards (03 FF.2.2, #39).
  * - `exploreSpace` with `tile` explores that tile from the player's supply only (#39).
+ * - `ecstaticVisions`: the rules of the F&F card of that name (#39).
  * - `politicalPosturing`, `spymaster`, `ageOfEnlightenment`, `silkRoad`, `infrastructureUpgrade`, `plague`, `granges`: the rules of the Arts & Architecture card of that name (#37).
  * @typedef {{ gain: Gain }
  *   | { lose: { culture?: number, any?: number } }
@@ -177,7 +178,8 @@ import { deepFreeze } from './ids.js';
  *   | { reserve: { building?: BuildingId, tech?: true, space?: number, masterpiece?: number, territory?: number, outposts?: number, token?: true } }
  *   | { useReserved: { id: number } & Record<string, any> }
  *   | { useAllReserved: {} }
- *   | { discardSpace: { tile: number } }} Effect
+ *   | { discardSpace: { tile: number } }
+ *   | { ecstaticVisions: {} }} Effect
  */
 
 /**
@@ -256,6 +258,14 @@ export const EFFECT_KINDS = deepFreeze([
 	'plague',
 	'granges',
 	'collectOutpost',
+	// F&F (#39).
+	'charm',
+	'ability',
+	'reserve',
+	'useReserved',
+	'useAllReserved',
+	'discardSpace',
+	'ecstaticVisions',
 ]);
 
 /**
@@ -278,4 +288,6 @@ export const VP_COUNTERS = deepFreeze([
 	'incomeBuilding',
 	'capitalRow',
 	'capitalColumn',
+	// F&F: the income buildings still on the income mat (Ghost Towns, #39).
+	'buildingLeft',
 ]);

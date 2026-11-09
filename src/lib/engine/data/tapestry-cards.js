@@ -355,14 +355,75 @@ export const TAPESTRY_CARDS = deepFreeze([
 	),
 	aa(era('steam'), { name: 'S.T.E.A.M.' }),
 	aa(era('trade-routes')),
-	// Fantasies & Futures' cards that reserve an item (#39 design §8), in catalog order.
-	ff(when('ghost-towns', []), {
-		left: [ADVANCE_ANY_X],
-		right: [ADVANCE_ANY_X],
+	// Fantasies & Futures' cards that reserve an item on the overlay (#39 design §8), in catalog order. An arts-track
+	// option is offered only with the arts track (R80, R118).
+	ff(when('ecstatic-visions', [{ ecstaticVisions: {} }]), {
+		left: [
+			{
+				choice: [
+					[{ gain: { territory: 1, tapestry: 1 } }],
+					[{ advance: { tracks: ['arts'], noBenefit: true } }],
+				],
+			},
+		],
 	}),
-	ff(when('microbial-magic', []), {
+	ff(when('generation-ships', [{ reserve: { space: 3 } }]), {
+		right: [
+			{
+				choice: [
+					[{ vp: { per: 'territoryTile' } }],
+					[{ regress: { tracks: ['arts'], noBenefit: true } }],
+				],
+			},
+		],
+	}),
+	ff(
+		when('ghost-towns', [{ reserve: { token: true } }]),
+		{ left: [ADVANCE_ANY_X], right: [ADVANCE_ANY_X] },
+		{ fifth: [{ vp: { per: 'buildingLeft', each: 3 } }] }
+	),
+	ff(
+		when('great-library-of-potions', [{ reserve: { building: 'market' } }]),
+		{
+			left: [{ gain: { coin: 1 } }, { vp: 5 }],
+			right: [{ invent: {} }],
+		}
+	),
+	ff(when('lost-artifacts', [{ reserve: { tech: true } }]), {
+		right: [{ advance: { tracks: ['technology'], noBenefit: true } }],
+	}),
+	ff(when('microbial-magic', [{ reserve: { building: 'farm' } }]), {
 		left: [{ gain: { food: 1 } }, { vp: 5 }],
 		right: [{ vp: { per: 'territoryTile' } }],
+	}),
+	ff(when('phantasmal-paladins', [{ reserve: { building: 'armory' } }]), {
+		left: [{ gain: { culture: 1 } }, { vp: 5 }],
+		right: [{ vp: { per: 'territory' } }],
+	}),
+	ff(when('quest-culture', [{ reserve: { territory: 3 } }]), {
+		right: [{ choice: [[{ gain: { territory: 1 } }], [{ explore: {} }]] }],
+	}),
+	ff(when('secret-societies', [{ reserve: { building: 'house' } }]), {
+		left: [
+			{
+				choice: [
+					[{ gain: { tapestry: 2 } }],
+					[{ advance: { tracks: ['arts'], noBenefit: true } }],
+				],
+			},
+		],
+		right: [{ gain: { worker: 1 } }, { vp: 5 }],
+	}),
+	ff(
+		when('suspended-animation', [{ reserve: { token: true } }]),
+		{
+			left: [{ gain: { tapestry: 1 } }],
+			right: [{ gain: { tapestry: 1 } }],
+		},
+		{ fifth: [{ advance: { tracks: ANY_TRACK, freeBonus: true } }] }
+	),
+	ff(when('zombie-army', [{ reserve: { outposts: 3 } }]), {
+		left: [{ building: 'armory' }],
 	}),
 ]);
 

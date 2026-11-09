@@ -70,6 +70,7 @@ import { discardCiv, placeToken } from '../civs/civ.js';
 import { ability, charm, charmOnlyGains } from '../charms.js';
 import {
 	discardSpace,
+	ecstaticVisions,
 	reserve,
 	useAllReserved,
 	useReserved,
@@ -147,6 +148,7 @@ export const EFFECTS = {
 	useReserved,
 	useAllReserved,
 	discardSpace,
+	ecstaticVisions,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

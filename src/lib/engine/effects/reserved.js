@@ -380,3 +380,25 @@ export function discardSpace(ctx, player, value) {
 		tiles: [value.tile],
 	});
 }
+
+/**
+ * Ecstatic Visions: reserve 1 of 3 masterpieces or 1 of 3 space tiles, the player's choice; without the arts track,
+ * space tiles only (03 FF.4.3 #9).
+ * @type {import('../state.js').EffectHandler}
+ */
+export function ecstaticVisions(ctx, player, value, op) {
+	/** @type {object[]} */
+	const effects = artsInPlay(ctx.state)
+		? [
+				{
+					choice: [
+						[{ reserve: { masterpiece: 3 } }],
+						[{ reserve: { space: 3 } }],
+					],
+				},
+			]
+		: [{ reserve: { space: 3 } }];
+	ctx.push([
+		{ player, kind: 'effects', effects, ordered: true, source: op.source },
+	]);
+}
