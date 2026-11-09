@@ -92,6 +92,22 @@
 		<TechnologyCard data={techCardData('sewage-plumbing')} />
 	</Example>
 	<Example
+		label="data=techCardData('levitation') · F&F: charm-or-5 prerequisite, single use (#39, awaiting review)"
+		width={425}>
+		<TechnologyCard data={techCardData('levitation')} />
+	</Example>
+	<Example
+		label="data=techCardData('pyrokinesis') · F&F, repeatable (#39, awaiting review)"
+		width={425}>
+		<TechnologyCard data={techCardData('pyrokinesis')} />
+	</Example>
+	<Example
+		label="data=techCardData('mind-control', {'{'} flipped: true {'}'}) · F&F, its single use spent (#39, awaiting review)"
+		width={425}>
+		<TechnologyCard
+			data={techCardData('mind-control', { flipped: true })} />
+	</Example>
+	<Example
 		label={`data=techCardData('clocks')  (data-cards="dark" on the page: the menu's Dark cards)`}
 		width={425}>
 		<div data-cards="dark">

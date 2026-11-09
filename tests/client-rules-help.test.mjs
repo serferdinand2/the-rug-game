@@ -229,7 +229,8 @@ test("Plans & Ploys has its own section, shown only with the expansion, with the
 			(s) =>
 				s.expansion === undefined ||
 				s.expansion === 'pp' ||
-				s.expansion === 'aa'
+				s.expansion === 'aa' ||
+				s.expansion === 'ff'
 		)
 	);
 	assert.deepEqual(
@@ -362,4 +363,23 @@ test("Arts & Architecture's cards have their own section: the cards that hold pi
 	// R127.
 	assert.match(text, /reaches the end of a track/);
 	assert.match(text, /whenever they hold a tapestry card/);
+});
+
+test('Fantasies & Futures has its own section: charms, the overlay and single-use tech cards (#39)', async () => {
+	const { rulesSections } = await import('../src/lib/rules-help.js');
+	const ff = section('ff-rules');
+	assert.equal(ff.expansion, 'ff');
+	assert.ok(rulesSections(['ff']).some((s) => s.id === 'ff-rules'));
+	assert.ok(!rulesSections(['aa']).some((s) => s.id === 'ff-rules'));
+	const text = lines('ff-rules').join(' ');
+	assert.match(text, /left charm/);
+	assert.match(text, /right charm/);
+	// R131.
+	assert.match(text, /face down has no charms/);
+	assert.match(text, /overlay/);
+	// R132.
+	assert.match(text, /in the order you choose/);
+	assert.match(text, /single use/);
+	// R134.
+	assert.match(text, /nobody gains its benefits again/);
 });

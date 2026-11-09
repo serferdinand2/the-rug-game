@@ -1,4 +1,4 @@
-<!-- Library section: EraSlots, the four era slots with an active era and a face-down card, and a card played into Era II (#175). -->
+<!-- Library section: EraSlots, the four era slots with an active era and a face-down card, a card played into Era II (#175), and F&F's overlay (#39). -->
 <script>
 	import Button from '../../../lib/components/ui/Button.svelte';
 	import EraSlots from '../../../lib/components/player/EraSlots.svelte';
@@ -22,6 +22,32 @@
 		[[], ['age-of-discovery'], ['capitalism'], [null]],
 		null
 	);
+	// F&F's overlay (#39, awaiting review): a fifth slot listing what waits for income turn 5.
+	const OVERLAY = eraSlots({
+		incomeMat: {
+			tapestry: [[], ['microbial-magic'], ['quest-culture'], []],
+		},
+		era: null,
+		reserved: [
+			{
+				id: 1,
+				card: 'microbial-magic',
+				ability: 'microbial-magic',
+				building: 'farm',
+			},
+			{
+				id: 2,
+				card: 'quest-culture',
+				ability: 'quest-culture',
+				territory: [4, 5, 6],
+			},
+		],
+	});
+	const EMPTY_OVERLAY = eraSlots({
+		incomeMat: { tapestry: [[], [], [], []] },
+		era: null,
+		reserved: [],
+	});
 	let selected = $state(/** @type {number | null} */ (3));
 
 	/** Whether the playing example has a card in Era II (#175). */
@@ -53,6 +79,16 @@
 		label={'slots={with a face-down card}'}
 		width={430}>
 		<EraSlots slots={HIDDEN} />
+	</Example>
+	<Example
+		label={"slots={with F&F's overlay}  (a Farm and 3 territory tiles reserved; #39, awaiting review)"}
+		width={430}>
+		<EraSlots slots={OVERLAY} />
+	</Example>
+	<Example
+		label={"slots={with F&F's overlay, empty}  (#39, awaiting review)"}
+		width={430}>
+		<EraSlots slots={EMPTY_OVERLAY} />
 	</Example>
 	<Example
 		label={`slots={${playedII ? 'Age of Discovery in Era II' : 'fresh'}}  (play a card: it slides into its slot; #175)`}

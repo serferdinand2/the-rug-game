@@ -9,7 +9,8 @@ import {
 	roman,
 	tapestryName,
 } from '../game-names.js';
-import { article, pluralOf } from '../words.js';
+import { article, capitalize, joinList, pluralOf } from '../words.js';
+import { reservedWords } from '../reserved-words.js';
 import { spaceGlyphs } from '../glyphs.js';
 
 /** @typedef {import('../engine/data/effects.js').Effect} Effect */
@@ -47,6 +48,7 @@ import { spaceGlyphs } from '../glyphs.js';
  * @property {string} heading - "Era II", or "Era II · Active" for the active slot
  * @property {string} text - The card's name, "Face-down card" or "Not yet chosen"
  * @property {string[]} pieces - What the top card holds, such as "a Farm" or "the Forge" (A&A's cards, #37)
+ * @property {string[]} [overlay] - F&F's fifth slot only: the items reserved on the income mat's overlay, in words (#39)
  */
 
 /**
@@ -101,11 +103,11 @@ export function incomeRows(seat) {
 /**
  * The seat's four era slots.
  * @param {any} seat - A seat of the game view
- * @returns {EraSlotView[]}
+ * @returns {EraSlotView[]} Four slots, and with F&F a fifth for the income mat's overlay (#39)
  */
 export function eraSlots(seat) {
 	const active = seat.era?.card ?? null;
-	return [1, 2, 3, 4].map((era) => {
+	const slots = [1, 2, 3, 4].map((era) => {
 		const slot = eraSlot(seat, era, active);
 		/** @type {any[]} */
 		const held = (slot.id && seat.onCards?.[slot.id]) || [];
@@ -122,6 +124,28 @@ export function eraSlots(seat) {
 				(slot.faceDown ? 'Face-down card' : 'Not yet chosen'),
 		};
 	});
+	if (!Array.isArray(seat.reserved)) {
+		return slots;
+	}
+	// F&F's overlay (#39), awaiting review: what waits there for income turn 5.
+	const overlay = seat.reserved.map(reservedWords);
+	return [
+		...slots,
+		{
+			era: 5,
+			card: null,
+			faceDown: false,
+			active: false,
+			id: null,
+			pieces: [],
+			overlay,
+			heading: 'Income turn 5',
+			text:
+				overlay.length > 0
+					? capitalize(joinList(overlay))
+					: 'Nothing reserved',
+		},
+	];
 }
 
 /**

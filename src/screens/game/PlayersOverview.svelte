@@ -105,6 +105,8 @@
 			</h2>
 			<TechRows
 				tech={openSeat.tech}
+				held={openSeat.techLandmarks}
+				flipped={openSeat.flippedTech}
 				layout="wrap" />
 		{/if}
 	</aside>

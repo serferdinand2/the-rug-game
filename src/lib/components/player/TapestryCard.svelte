@@ -59,7 +59,26 @@
 			{card.copy}{#if card.note}<span class="rg-tapestry-layout--note"
 					>{card.note}</span
 				>{/if}
+			<!-- F&F's charms (#39), awaiting review: each side in words, under a teal tag on that edge. -->
+			{#if card.charms?.left}<span
+					class="rg-tapestry-layout--charm rg-tapestry-layout--charm-left"
+					><b>Left charm</b> {card.charms.left}</span
+				>{/if}
+			{#if card.charms?.right}<span
+					class="rg-tapestry-layout--charm rg-tapestry-layout--charm-right"
+					><b>Right charm</b> {card.charms.right}</span
+				>{/if}
 		</p>
+		{#if card.charms?.left}
+			<span
+				class="rg-tapestry-layout--charm-tag rg-tapestry-layout--charm-tag-left"
+				aria-hidden="true"></span>
+		{/if}
+		{#if card.charms?.right}
+			<span
+				class="rg-tapestry-layout--charm-tag rg-tapestry-layout--charm-tag-right"
+				aria-hidden="true"></span>
+		{/if}
 		<footer class="rg-tapestry-layout--footer">
 			<CardEdition code={card.edition ?? 'base'} />
 		</footer>

@@ -26,6 +26,7 @@ import { artUrl } from '../ui.js';
  * @property {'landmark' | 'none' | 'charmOrFive'} [prerequisite] - A&A's: a landmark on the card itself, or none at all
  *   (#37); F&F's: a charmed tapestry card ever played, or income turn 5 (#39)
  * @property {boolean} [singleUse] - F&F's single-use cards: the square may be gained once, then the card flips (#39)
+ * @property {boolean} [flipped] - In a game, a single-use card whose square was gained: flipped for good (#39)
  * @property {string} [held] - In a game, the landmark this landmark tech card holds (#37)
  */
 
@@ -93,10 +94,11 @@ function innovationSpace(id) {
  * A tech card's face: its art, its circle and square benefits in words, and its top-row prerequisite, a track tier
  * or an income-mat innovation (R18), when it has one of those.
  * @param {string} id - A tech card id, such as 'clocks'
- * @param {{ held?: string }} [game] - In a game: the landmark the card holds (A&A, #37)
+ * @param {{ held?: string, flipped?: boolean }} [game] - In a game: the landmark the card holds (A&A, #37), and whether
+ *   its single use is spent (F&F, #39)
  * @returns {TechnologyCardData}
  */
-export function techCardData(id, { held } = {}) {
+export function techCardData(id, { held, flipped } = {}) {
 	const card = techCard(id);
 	/** @type {TechnologyCardData} */
 	const data = {
@@ -130,6 +132,9 @@ export function techCardData(id, { held } = {}) {
 	}
 	if (held !== undefined) {
 		data.held = held;
+	}
+	if (flipped) {
+		data.flipped = true;
 	}
 	return data;
 }

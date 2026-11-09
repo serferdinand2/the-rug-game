@@ -3,7 +3,7 @@
 	/**
 	 * Properties of the EraSlots component itself.
 	 * @typedef {Object} EraSlotsOwnProps
-	 * @property {import('../../area/income.js').EraSlotView[]} slots - The four era slots
+	 * @property {import('../../area/income.js').EraSlotView[]} slots - The four era slots, and with F&F the overlay's (#39)
 	 * @property {number | null} [selected=null] - The era whose card is on show; bindable
 	 * @property {Function} [onEraSlotsSelect] - Callback fired with the chosen era (a ComponentEvent) when a slot with a card is chosen
 	 */
@@ -53,7 +53,13 @@
 	{...attr}
 	class="rg-era-slots {attr.class ? attr.class : ''}">
 	{#each slots as slot (slot.era)}
-		{#if slot.era === 1 && slot.card === 'Maker of Fire'}
+		{#if slot.overlay}
+			<!-- F&F's overlay (#39), awaiting review: what waits for income turn 5. -->
+			<div class="rg-era-slots--slot rg-era-slots--overlay">
+				<b>{slot.heading}</b>
+				<span>{slot.text}</span>
+			</div>
+		{:else if slot.era === 1 && slot.card === 'Maker of Fire'}
 			<div class="rg-era-slots--slot rg-era-slots--printed">
 				<b>{slot.heading}</b>
 				<span>{slot.text}</span>
@@ -141,6 +147,16 @@
 
 	.rg-era-slots--printed {
 		cursor: default;
+	}
+
+	.rg-era-slots--overlay {
+		border-style: dashed;
+		border-color: var(--fantasies-futures);
+		cursor: default;
+	}
+
+	.rg-era-slots--overlay span {
+		color: var(--text);
 	}
 
 	.rg-era-slots--printed span {

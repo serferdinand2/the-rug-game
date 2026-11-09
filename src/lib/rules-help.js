@@ -349,6 +349,26 @@ export const RULES_HELP = deepFreeze([
 			},
 		],
 	},
+	// #39; 03 FF.2, R67, R68, R131–R134.
+	{
+		id: 'ff-rules',
+		title: 'Fantasies & Futures',
+		expansion: 'ff',
+		blocks: [
+			{
+				text: "Charms are the teal tags on Fantasies & Futures' tapestry cards. You gain a card's left charm when you play it to the right of another card; Maker of Fire is no card. Its right charm comes the first time a card goes into the slot to its right, even if it was covered since. Charms are mandatory where possible and never copied. A card played face down has no charms.",
+			},
+			{
+				text: "A card's charms and its ability resolve in the order you choose; you are asked only when it can matter.",
+			},
+			{
+				text: "Some cards reserve an item on your income mat's overlay, the Income turn 5 row of your Eras tab: your next building of a type, whose income space shows at once, or a card, tile, outpost or reminder. On income turn 5 you use them all, in the order you choose. One reserved later is used at once.",
+			},
+			{
+				text: 'Its 12 tech cards reach the top row only once you have played a charmed card face up, or from income turn 5 on. Most are single use: the square flips the card, which still counts, but nobody gains its benefits again.',
+			},
+		],
+	},
 ]);
 
 /**

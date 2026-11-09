@@ -19,6 +19,7 @@
 	box-sizing: border-box;
 }
 .rg-tech-layout {
+	position: relative;
 	width: 425px;
 	min-height: 298px;
 	padding: 0 10px;
@@ -186,6 +187,7 @@
 	padding: 0 12px;
 }
 .rg-tapestry-layout {
+	position: relative;
 	width: 319px;
 	min-height: 560px;
 	padding: 0 12px;
@@ -250,6 +252,45 @@
 	font-size: 15px;
 	line-height: 1.42;
 }
+/* F&F's charms (#39), awaiting review: a line per side under the copy, and a teal tag on that edge of the card. */
+.rg-tapestry-layout--charm {
+	display: block;
+	margin-top: 10px;
+	padding: 6px 8px;
+	border-left: 4px solid var(--card-fantasies-futures);
+	background: color-mix(
+		in srgb,
+		var(--card-fantasies-futures) 12%,
+		transparent
+	);
+	font-size: 13px;
+	line-height: 1.35;
+}
+.rg-tapestry-layout--charm-right {
+	border-left: 0;
+	border-right: 4px solid var(--card-fantasies-futures);
+}
+.rg-tapestry-layout--charm b {
+	display: block;
+	color: var(--card-fantasies-futures);
+	font-size: 11px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.rg-tapestry-layout--charm-tag {
+	position: absolute;
+	top: 96px;
+	width: 10px;
+	height: 44px;
+	background: var(--card-fantasies-futures);
+	box-shadow: 0 0 0 1px var(--card-line-strong);
+}
+.rg-tapestry-layout--charm-tag-left {
+	left: -6px;
+}
+.rg-tapestry-layout--charm-tag-right {
+	right: -6px;
+}
 .rg-tapestry-layout--note {
 	display: block;
 	margin-top: 14px;
@@ -278,4 +319,28 @@
 	transform: scale(var(--card-scale));
 	transform-origin: top left;
 	pointer-events: none;
+}
+
+/* F&F's flipped single-use tech card (#39), awaiting review: dimmed, with a mark across its art. */
+.rg-tech-layout--flipped > :not(.rg-tech-layout--flipped-mark) {
+	opacity: 0.45;
+	filter: grayscale(0.7);
+}
+.rg-tech-layout--flipped-mark {
+	position: absolute;
+	z-index: 1;
+	top: 112px;
+	left: 50%;
+	transform: translateX(-50%) rotate(-6deg);
+	padding: 6px 14px;
+	border: 2px solid var(--card-fantasies-futures);
+	background: var(--card-raised);
+	color: var(--card-fantasies-futures);
+	font:
+		700 16px/1 'Atkinson Hyperlegible',
+		Atkinson,
+		sans-serif;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	white-space: nowrap;
 }

@@ -46,7 +46,7 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 
 | Landing page | Lobby |
 |---|---|
-| ![The landing page: the panels between two fans of the game's art, three civilizations on the left and a landmark with two tapestry cards on the right, picked at random on each visit (#174)](docs/ui/screens/launch.png) | ![A new online lobby: Ana hosting alone, the table code and its settings with Arts & Architecture switched on beside Plans & Ploys and its two variants, No arts track and Either science die, listed, between the same two fans of art (#174, #35, #36)](docs/ui/screens/lobby.png) |
+| ![The landing page: the panels between two fans of the game's art, three civilizations on the left and a landmark with two tapestry cards on the right, picked at random on each visit (#174)](docs/ui/screens/launch.png) | ![A new online lobby: Ana hosting alone, the table code and its settings with Arts & Architecture and Fantasies & Futures switched on beside Plans & Ploys, A&A's two variants, No arts track and Either science die, listed, between the same two fans of art (#174, #35, #36, #39)](docs/ui/screens/lobby.png) |
 
 | Play: the tracks on your turn | Play: the World Map |
 |---|---|

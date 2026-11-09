@@ -222,3 +222,33 @@ test("an era slot names the pieces its top card holds, A&A's Commercial Center a
 	assert.deepEqual(first.pieces, ['a Farm', 'the Forge']);
 	assert.deepEqual(second.pieces, []);
 });
+
+test("with F&F a fifth slot shows the income mat's overlay and what is reserved on it (#39)", () => {
+	const { state } = startedGame(2, { expansions: ['ff'] });
+	const seat = /** @type {any} */ (state.seats[0]);
+	let slots = eraSlots(mine(state));
+	assert.equal(slots.length, 5);
+	assert.equal(slots[4].era, 5);
+	assert.deepEqual(slots[4].overlay, []);
+	assert.equal(slots[4].heading, 'Income turn 5');
+	assert.equal(slots[4].text, 'Nothing reserved');
+	seat.reserved = [
+		{
+			id: 1,
+			card: 'microbial-magic',
+			ability: 'microbial-magic',
+			building: 'farm',
+		},
+		{
+			id: 2,
+			card: 'quest-culture',
+			ability: 'quest-culture',
+			territory: [4, 5, 6],
+		},
+	];
+	slots = eraSlots(mine(state));
+	assert.deepEqual(slots[4].overlay, ['a Farm', '3 territory tiles']);
+	assert.equal(slots[4].text, 'A Farm and 3 territory tiles');
+	// No overlay without F&F.
+	assert.equal(eraSlots(mine(startedGame(2).state)).length, 4);
+});

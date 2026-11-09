@@ -35,7 +35,13 @@
 	class="rg-technology-card {attr.class ?? ''}">
 	<div
 		class="rg-tech-layout"
+		class:rg-tech-layout--flipped={card.flipped}
 		aria-label="{card.title} technology card">
+		{#if card.flipped}
+			<!-- F&F's flipped single-use card (#39), awaiting review: its face dimmed, so it still reads. -->
+			<span class="rg-tech-layout--flipped-mark"
+				>Flipped · single use spent</span>
+		{/if}
 		<CardBand
 			class="rg-tech-layout--band"
 			title={card.title}
@@ -54,7 +60,11 @@
 						class="rg-tech-layout--shape rg-tech-layout--shape-square"
 						aria-label="Square benefit"></span>
 					<div>
-						<small>Square · top row</small>
+						<!-- F&F's single-use square (#39), awaiting review. -->
+						<small
+							>Square · top row{card.singleUse
+								? ' · single use'
+								: ''}</small>
 						<p>{card.square}</p>
 					</div>
 				</div>
@@ -108,9 +118,7 @@
 				><i
 					class="rg-tech-layout--shape rg-tech-layout--shape-square"
 					aria-hidden="true"></i
-				><b>Top row</b>{#if card.singleUse}<b
-						class="rg-tech-layout--single-use">· single use</b
-					>{/if}</span>
+				><b>Top row</b></span>
 		</div>
 		<footer class="rg-tech-layout--footer">
 			<CardEdition code={card.edition ?? 'base'} />

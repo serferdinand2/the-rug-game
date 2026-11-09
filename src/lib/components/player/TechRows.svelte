@@ -5,6 +5,7 @@
 	 * @typedef {Object} TechRowsOwnProps
 	 * @property {{ top: string[], middle: string[], bottom: string[] }} tech - The seat's tech card ids by row
 	 * @property {Record<string, string>} [held] - The landmark each of A&A's landmark tech cards holds, by card (#37)
+	 * @property {string[]} [flipped] - F&F's single-use cards whose use is spent (#39)
 	 * @property {'fan' | 'wrap'} [layout='fan'] - 'fan': each row a CardFan of cards at 0.42 under its shape, and a box saying it is empty; 'wrap': each row's cards at 0.4, wrapping, under a plain heading
 	 * @property {Function} [onTechRowsInspect] - Callback fired with a card's id when it is hovered or focused in the fan, and with null on leave
 	 */
@@ -33,7 +34,14 @@
 	import { CARD_SIZES } from '../../cards/card-sizes.js';
 
 	/** @type {TechRowsProps} */
-	let { tech, held, layout = 'fan', onTechRowsInspect, ...attr } = $props();
+	let {
+		tech,
+		held,
+		flipped = [],
+		layout = 'fan',
+		onTechRowsInspect,
+		...attr
+	} = $props();
 
 	/**
 	 * Reports the card hovered or focused in a row's fan, by its id, or null on leave.
@@ -79,6 +87,7 @@
 								<TechnologyCard
 									data={techCardData(id, {
 										held: held?.[id],
+										flipped: flipped.includes(id),
 									})} />
 							</ScaledCard>
 						{/snippet}
@@ -94,7 +103,10 @@
 							scale={0.4}
 							{...CARD_SIZES.tech}>
 							<TechnologyCard
-								data={techCardData(id, { held: held?.[id] })} />
+								data={techCardData(id, {
+									held: held?.[id],
+									flipped: flipped.includes(id),
+								})} />
 						</ScaledCard>
 					{:else}
 						<p class="rg-tech-rows--empty">No cards</p>

@@ -344,6 +344,7 @@
 				title={words.tech}
 				tech={player.tech}
 				held={player.techLandmarks}
+				flipped={player.flippedTech}
 				deck={game.supply.tech.deck}
 				faceUp={game.supply.tech.faceUp}
 				onTechTabInspect={(/** @type {ComponentEvent} */ event) =>
