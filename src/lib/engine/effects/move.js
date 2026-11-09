@@ -23,7 +23,10 @@ function moveOnOneOf(ctx, player, value, direction) {
 	const optional = value.optional ?? false;
 	const freeBonus = value.freeBonus ?? false;
 	const noBonus = value.noBonus ?? false;
+	// R118: a list may name the arts track; a game without it skips it (#39).
+	const inPlay = tracksOf(ctx.state);
 	const options = value.tracks
+		.filter((track) => inPlay.includes(track))
 		.filter(
 			(track) =>
 				direction === 'regress' ||

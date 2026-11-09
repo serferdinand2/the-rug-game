@@ -67,6 +67,8 @@
  * @property {Record<string, string>} [techLandmarks] - With A&A only: the landmark each landmark tech card holds, by card (03 §2, #37)
  * @property {{ card: string, gained: boolean }[]} [extraLandmarkCards] - With A&A only: the landmark cards kept besides the drafted one (Infrastructure Upgrade, #37)
  * @property {Record<string, import('./card-pieces.js').CardPiece[]>} [onCards] - With A&A only: the pieces on each tapestry card of theirs that holds some, by the card on the mat (#37)
+ * @property {boolean} [playedCharmed] - With F&F only: whether a charmed tapestry card ever went face up onto their mat, for the charm-or-5 tech prerequisite (R68, #39)
+ * @property {string[]} [flippedTech] - With F&F only: their single-use tech cards whose square was gained, flipped for good (03 FF.2.3, #39)
  */
 /** @typedef {Seat & PlayerFields} PlayerSeat */
 /**

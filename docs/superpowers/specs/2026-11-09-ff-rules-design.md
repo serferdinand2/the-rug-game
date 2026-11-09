@@ -34,8 +34,8 @@ The mechanisms are tested with the real cards that carry them, not with stand-in
 **The expansion switch (my call):** `EXPANSIONS_BUILT` gains `'ff'` in part 1, so the lobby offers F&F once #39 lands, dealing the content built so far, as Plans & Ploys was offered from #32 (owner, 2026-10-31) and A&A from #35 and #36.
 
 Three parts, each landing on the branch `issue-39-ff-rules` with every test green and the game playable:
-1. **Charms and the tech cards** (§5, §7, §9): the switch, charms, the prerequisite, single use, the 12 tech cards, and §3's tests.
-2. **Reservations** (§6, §8): the overlay, the income-turn-5 step and the 11 cards; the simulation plays F&F.
+1. **The tech cards** (§7, §9): the switch, the prerequisite, single use, the 12 tech cards, and §3's tests.
+2. **Charms and reservations** (§5, §6, §8): charms, the overlay, the income-turn-5 step and the 11 cards that carry both; the simulation plays F&F. Charms moved here from part 1 while planning it, since the only charmed cards #39 adds are these 11, so charms are tested with them.
 3. **The screen** (§10): card faces, the overlay on the Eras tab, prompts, log lines, How to play, the library, the lobby, screenshots, the README and status.
 
 Each engine part carries its own log lines and decision words, so a new choice never shows as raw data. Part 3 adds the pictures.
