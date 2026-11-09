@@ -61,7 +61,11 @@ import { choosePartner } from './decisions/choose-partner.js';
 import { chooseConversion } from './decisions/choose-conversion.js';
 import { chooseCivAbility } from './decisions/choose-civ-ability.js';
 import { chooseSlot } from './decisions/choose-slot.js';
-import { olympicHostEnd, sharedAdvanceOn } from './effects/players.js';
+import {
+	grangesEnd,
+	olympicHostEnd,
+	sharedAdvanceOn,
+} from './effects/players.js';
 import {
 	darkAgesOn,
 	darkAgesKept,
@@ -88,6 +92,7 @@ import { chooseAlchemists } from './decisions/choose-alchemists.js';
 import { chooseProphecy } from './decisions/choose-prophecy.js';
 import { chooseSwap } from './decisions/choose-swap.js';
 import { chooseCube } from './decisions/choose-cube.js';
+import { chooseSpymaster } from './decisions/choose-spymaster.js';
 import { leadersAdvance } from './civs/leaders.js';
 import { merrymakersMove } from './civs/merrymakers.js';
 import { retreatTo, surrenderDice } from './responses.js';
@@ -195,6 +200,7 @@ Object.assign(DECISIONS, {
 	chooseCloudMove,
 	chooseCloudPlot,
 	chooseLandmarkCard,
+	chooseSpymaster,
 });
 
 Object.assign(AUTOMATIC, {
@@ -213,6 +219,7 @@ Object.assign(AUTOMATIC, {
 	conquerDice,
 	upgradeTech,
 	olympicHostEnd,
+	grangesEnd,
 	sharedAdvanceOn,
 	darkAgesOn,
 	darkAgesKept,

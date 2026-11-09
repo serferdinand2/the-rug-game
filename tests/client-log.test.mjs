@@ -211,6 +211,8 @@ const SAMPLES = {
 		card: 'astrolabe',
 	},
 	plagueDrawn: { player: 1, civ: 'the-chosen' },
+	spymasterPlayed: { player: 2, mover: 1, track: 'science' },
+	spymasterDeclined: { player: 2 },
 	piecePlacedOnCard: {
 		player: 1,
 		card: 'commercial-center',
@@ -1128,5 +1130,19 @@ test("pieces on A&A's tapestry cards, and National Parks' die (#37)", () => {
 			parks: true,
 		}),
 		'Ana placed a Farm on hex 0,3 with National Parks.'
+	);
+});
+
+test('a Spymaster played reads in the log; a decline says nothing (R127)', () => {
+	assert.equal(
+		eventText(
+			{ type: 'spymasterPlayed', player: 2, mover: 1, track: 'arts' },
+			GAME
+		),
+		'Bo played Spymaster: they advance on Arts at the end of the turn.'
+	);
+	assert.equal(
+		eventText({ type: 'spymasterDeclined', player: 2 }, GAME),
+		null
 	);
 });

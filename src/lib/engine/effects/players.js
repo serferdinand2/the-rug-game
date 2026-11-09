@@ -160,6 +160,61 @@ export function olympicHost(ctx, player, value, op) {
 }
 
 /**
+ * Granges (A&A, #37; 03 §2.5): the player, then each opponent clockwise, may pay 1 food for 1 farm; then, if an
+ * opponent paid, the player gains the benefit of their arts-track space, without its bonus. One without food is
+ * skipped.
+ * @type {import('../state.js').EffectHandler}
+ */
+export function granges(ctx, player, value, op) {
+	const offer = { pay: { food: 1 }, gain: [{ building: 'farm' }] };
+	ctx.push([
+		...[player, ...opponents(ctx.state, player)].map((target) => ({
+			player: target,
+			kind: 'effects',
+			effects: [
+				{
+					trade: {
+						offers: [structuredClone(offer)],
+						optional: true,
+						host: player,
+						purpose: 'granges',
+					},
+				},
+			],
+			ordered: true,
+			source: op.source,
+		})),
+		{ player, kind: 'grangesEnd', since: ctx.state.seq },
+	]);
+}
+
+/**
+ * Granges' reward: if an opponent paid, the benefit of the player's arts-track space without its bonus (my call: it
+ * always gains, as no arts-track benefit costs anything).
+ * @type {import('../state.js').AutomaticKind}
+ */
+export function grangesEnd(ctx, op) {
+	const player = /** @type {number} */ (op.player);
+	const paid = ctx.state.events.some(
+		(event) =>
+			event.type === 'tradeMade' &&
+			event.seq > op.since &&
+			event.host === player &&
+			event.player !== player
+	);
+	if (paid) {
+		ctx.push([
+			{
+				player,
+				kind: 'effects',
+				effects: [{ repeat: { track: 'arts', noBonus: true } }],
+				source: op.source,
+			},
+		]);
+	}
+}
+
+/**
  * Olympic Host's reward: a building if an opponent paid, and a coin if none did or no building type is left.
  * @type {import('../state.js').AutomaticKind}
  */

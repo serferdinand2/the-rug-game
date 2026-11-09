@@ -91,6 +91,8 @@ export const SILENT = new Set([
 	'setupDone',
 	// The move or income turn that follows says which turn was chosen.
 	'turnChosen',
+	// Every neighbour holding a card is asked about Spymaster (R127): a decline is no news.
+	'spymasterDeclined',
 ]);
 
 /**
@@ -741,6 +743,10 @@ const WORDS = {
 			? `${name}'s trap stopped ${attacker}'s conquest of ${where}.`
 			: `${name} played ${card} against ${attacker}'s conquest of ${where}.`;
 	},
+	spymasterPlayed: (e, game, name) =>
+		typeof e.track === 'string'
+			? `${name} played Spymaster: they advance on ${trackName(e.track)} at the end of the turn.`
+			: `${name} played Spymaster.`,
 	responseDeclined: (e, game, name) =>
 		`${name} did not respond to the conquest of ${hexName(e.hex)}.`,
 	// Plans & Ploys' response cards (#33). The stolen card stays the thief's secret.

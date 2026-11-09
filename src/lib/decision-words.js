@@ -632,6 +632,11 @@ const TITLES = {
 			: 'Choose a space tile to explore',
 	chooseConquer: () => 'Choose a territory to conquer',
 	chooseDie: () => 'Choose a die to keep',
+	// A&A's Spymaster (#37, R127): asked of every neighbour holding a card.
+	chooseSpymaster: (d, table) =>
+		isCount(d.mover) && isTrack(d.track)
+			? `${seatName(table, d.mover)} reached the end of ${trackName(d.track)}. Play Spymaster?`
+			: 'Play Spymaster?',
 	chooseResponse: (d, table) =>
 		isCount(d.attacker)
 			? `Respond to the conquest by ${seatName(table, d.attacker)}?`
@@ -693,10 +698,12 @@ const TITLES = {
 		// Olympic Host (#148): the host's card, and the trade it offers.
 		const [offer] = Array.isArray(d.offers) ? d.offers : [];
 		if (isCount(d.host) && isRecord(offer)) {
+			// Granges asks the same way (#37).
+			const card = d.purpose === 'granges' ? 'Granges' : 'Olympic Host';
 			const whose =
 				d.host === d.player
-					? 'Olympic Host'
-					: `${seatName(table, d.host)}'s Olympic Host`;
+					? card
+					: `${seatName(table, d.host)}'s ${card}`;
 			return `${whose}: ${paymentVerbs(offer.pay)} to ${effectsPhrase(offer.gain, table, true)}?`;
 		}
 		if (tapestrySource(d) === 'guilds') {
@@ -1228,6 +1235,12 @@ const ANSWERS = {
 		const face = isCount(d[a.die]) ? faces[d[a.die]] : undefined;
 		const die = a.die === 'red' ? 'Red die' : 'Black die';
 		return face ? `${die}: ${effectPhrase(face, table)}` : die;
+	},
+	chooseSpymaster: (a) => {
+		if (a.card === null) {
+			return "Don't play a card";
+		}
+		return a.card === 'spymaster' ? 'Play Spymaster' : null;
 	},
 	chooseResponse: (a) => {
 		if (a.card === null) {

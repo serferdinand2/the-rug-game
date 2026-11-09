@@ -13,8 +13,10 @@ import { deepFreeze } from './ids.js';
  * @property {Effect[]} played - What runs when the card's ability resolves; a THIS ERA card's setup choice, if any
  * @property {boolean} ordered - Whether the effects run in the order listed (Renaissance is the only false)
  * @property {'base' | 'pp' | 'aa'} expansion - Where it comes from
- * @property {'conquest' | 'trap'} [response] - A response card: 'conquest' a defender discards against a conquest (the
- *   trap, Retreat, Surprise Party, Surrender); 'trap' an attacker discards against a Trap (Double Cross, Stolen Plans)
+ * @property {false} [solo] - Left out of solo games (Granges, 03 §2.11; #31 reads it)
+ * @property {'conquest' | 'trap' | 'track'} [response] - A response card: 'conquest' a defender discards against a
+ *   conquest (the trap, Retreat, Surprise Party, Surrender); 'trap' an attacker discards against a Trap (Double Cross,
+ *   Stolen Plans); 'track' a neighbour discards when a player completes a track (Spymaster, R127)
  */
 
 /** Words a name keeps in lower case. */
@@ -90,7 +92,7 @@ const pp = (card, extra = {}) => ({ ...card, ...extra, expansion: 'pp' });
 /**
  * An Arts & Architecture card (#37; 03 §2.5), with its name when the slug doesn't give it.
  * @param {TapestryCard} card
- * @param {{ name?: string }} [extra]
+ * @param {{ name?: string, solo?: false, response?: 'track' }} [extra]
  * @returns {TapestryCard}
  */
 const aa = (card, extra = {}) => ({ ...card, ...extra, expansion: 'aa' });
@@ -259,6 +261,7 @@ export const TAPESTRY_CARDS = deepFreeze([
 	aa(continuous('commercial-center')),
 	aa(era('artistic-inspiration')),
 	aa(era('found-art')),
+	aa(when('granges', [{ granges: {} }]), { solo: false }),
 	aa(
 		when('information-age', [
 			{ invent: {} },
@@ -299,7 +302,9 @@ export const TAPESTRY_CARDS = deepFreeze([
 	aa(when('political-posturing', [{ politicalPosturing: {} }])),
 	aa(when('silk-road', [{ silkRoad: {} }])),
 	aa(era('space-race')),
-	aa(when('spymaster', [{ vp: 5 }, { spymaster: {} }])),
+	aa(when('spymaster', [{ vp: 5 }, { spymaster: {} }]), {
+		response: 'track',
+	}),
 	aa(continuous('star-chamber')),
 	// Mandatory where possible; the arts track is in play whenever this card is (R124).
 	aa(

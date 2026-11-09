@@ -3,6 +3,7 @@ import { emit } from './events.js';
 import { seatOf } from './state.js';
 import { triggered } from './abilities.js';
 import { claimAchievement } from './achievements.js';
+import { spymasterQuestions } from './spymaster.js';
 import { TRACKS } from './data/tracks.js';
 
 /** @typedef {import('./data/ids.js').TrackId} TrackId */
@@ -166,7 +167,11 @@ export function moveToken(
 				noBonus,
 			});
 	if (to === LAST_SPACE) {
-		ops.push(...triggered(state, 'countsChanged', { player }));
+		ops.push(
+			...triggered(state, 'countsChanged', { player }),
+			// A&A's Spymaster, after the move's own benefit (R127).
+			...spymasterQuestions(state, player, track)
+		);
 	}
 	ctx.push(ops);
 }

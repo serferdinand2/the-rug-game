@@ -101,7 +101,7 @@ import { deepFreeze } from './ids.js';
  * - `astronomy`, `cartography`, `manifestDestiny`, `statusQuo`, `worldsFair`: the rules of the Plans & Ploys card of that name (#33).
  * - `create`, `inspire`, `broadcast`, `refreshMasterpieces`, `streamingImplants`: Arts & Architecture's masterpieces and
  *   inspiration tiles (03 §2.2–2.8); `flipMasterpiece` turns the masterpiece firing face down (a single-use card's).
- * - `politicalPosturing`, `spymaster`, `ageOfEnlightenment`, `silkRoad`, `infrastructureUpgrade`, `plague`: the rules of the Arts & Architecture card of that name (#37).
+ * - `politicalPosturing`, `spymaster`, `ageOfEnlightenment`, `silkRoad`, `infrastructureUpgrade`, `plague`, `granges`: the rules of the Arts & Architecture card of that name (#37).
  * @typedef {{ gain: Gain }
  *   | { lose: { culture?: number, any?: number } }
  *   | { pay: { any: number } }
@@ -163,7 +163,8 @@ import { deepFreeze } from './ids.js';
  *   | { ageOfEnlightenment: {} }
  *   | { silkRoad: {} }
  *   | { infrastructureUpgrade: {} }
- *   | { plague: {} }} Effect
+ *   | { plague: {} }
+ *   | { granges: {} }} Effect
  */
 
 /**
@@ -240,6 +241,7 @@ export const EFFECT_KINDS = deepFreeze([
 	'silkRoad',
 	'infrastructureUpgrade',
 	'plague',
+	'granges',
 ]);
 
 /**

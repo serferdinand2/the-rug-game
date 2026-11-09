@@ -50,11 +50,11 @@ const CARD_RULES = [
 	'statusQuo',
 	'worldsFair',
 	'politicalPosturing',
-	'spymaster',
 	'ageOfEnlightenment',
 	'silkRoad',
 	'infrastructureUpgrade',
 	'plague',
+	'granges',
 ];
 
 /**
@@ -499,6 +499,10 @@ const PHRASES = {
 	},
 	anyBuilding() {
 		return 'gain an income building of your choice';
+	},
+	// Spymaster played as a tapestry card (#37).
+	spymaster() {
+		return 'draw 1 tapestry card; you may play it on top of this card at once';
 	},
 	advanceEach(value) {
 		let words = 'advance once on each track, in any order';

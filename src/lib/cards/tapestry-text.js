@@ -111,6 +111,8 @@ const TAPESTRY_RULES = Object.freeze({
 		'Whenever you advance on Arts, gain 3 VP. Whenever you roll the science die, you may use Arts instead of the result',
 	'government-grants':
 		'Advance on Arts and gain its benefit; you may take its bonus for free. Then go back 1 space on another track and gain that benefit, without its bonus',
+	granges:
+		'Starting with you, each player may pay 1 food to gain a Farm. If at least 1 opponent pays, gain the benefit of your space on Arts, without its bonus',
 	'infrastructure-upgrade':
 		'Look through the landmark deck and keep 1 card, as you keep your drafted one; when you meet its goal, gain its landmark. If none is left, gain 10 VP',
 	migration:
@@ -123,7 +125,7 @@ const TAPESTRY_RULES = Object.freeze({
 	'political-posturing':
 		"Choose an achievement you haven't earned. Put your token on its highest open space and gain those VP",
 	spymaster:
-		'Gain 5 VP. Then draw 1 tapestry card; you may play it on top of this card at once',
+		'When a neighbour reaches the end of a track, discard this card. At the end of their turn, advance on that track and gain its benefit; you may pay its bonus',
 	'commercial-center':
 		'You may place income buildings and landmarks on this card instead of your capital city. For each square you cover, gain its benefit or 3 VP',
 	'found-art':

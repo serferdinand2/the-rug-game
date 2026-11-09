@@ -14,6 +14,8 @@ import { play } from '../src/lib/engine/play.js';
 import { landmarkCardOps } from '../src/lib/engine/landmark-cards.js';
 import { controlledTerritories } from '../src/lib/engine/control.js';
 import { hexNeighbours } from '../src/lib/engine/data/maps.js';
+import { declineOnly } from '../src/lib/engine/table.js';
+import { spymasterAdvances } from '../src/lib/engine/spymaster.js';
 import {
 	answer,
 	answerDefaults,
@@ -627,3 +629,181 @@ for (const card of TAPESTRY_CARDS.filter((c) => c.expansion === 'aa')) {
 		);
 	});
 }
+
+// Granges
+
+test("Granges: each player in turn may pay 1 food for 1 farm; if an opponent does, the arts space's benefit without its bonus (03 §2.5)", () => {
+	let { state, random } = aaGame((s) => {
+		const [me, two, three] = s.seats;
+		me.resources = { coin: 0, worker: 0, food: 1, culture: 0 };
+		two.resources = { coin: 0, worker: 0, food: 1, culture: 0 };
+		three.resources = { coin: 0, worker: 0, food: 0, culture: 0 };
+		me.tracks.arts = [1];
+	});
+	assert.equal(tapestryCard('granges').solo, false);
+	const hand = state.seats[0].hand.length;
+	state = resolveTapestry(state, random, 1, 'granges');
+	// Seat 1 first, then seat 2; seat 3 has no food and isn't asked.
+	const take = (/** @type {number} */ player) => {
+		const [decision] = openDecisions(state);
+		assert.equal(decision.kind, 'chooseTrade');
+		assert.equal(decision.player, player);
+		assert.equal(decision.purpose, 'granges');
+		state = play(
+			state,
+			player,
+			{ decision: decision.id, offer: 0, pay: { food: 1 } },
+			random
+		);
+		// Places the farm, and stops at the next player's trade.
+		for (
+			let [open] = openDecisions(state);
+			open && open.kind !== 'chooseTrade';
+			[open] = openDecisions(state)
+		) {
+			const first = DECISIONS[open.kind].answers(state, open)[0];
+			state = play(
+				state,
+				open.player,
+				{ decision: open.id, ...first },
+				random
+			);
+		}
+	};
+	take(1);
+	take(2);
+	const farms = (/** @type {number} */ seat) =>
+		state.seats[seat - 1].incomeMat.buildings.farm;
+	assert.equal(farms(1), 4);
+	assert.equal(farms(2), 4);
+	// Cave Paintings: 1 tapestry card.
+	assert.equal(state.seats[0].hand.length, hand + 1);
+});
+
+test('Granges: nobody else pays, so no arts benefit', () => {
+	let { state, random } = aaGame((s) => {
+		for (const seat of s.seats) {
+			seat.resources = { coin: 0, worker: 0, food: 0, culture: 0 };
+		}
+		s.seats[0].resources.food = 1;
+		s.seats[0].tracks.arts = [1];
+	});
+	const hand = state.seats[0].hand.length;
+	state = resolveTapestry(state, random, 1, 'granges');
+	const [decision] = openDecisions(state);
+	state = answerDefaults(
+		play(
+			state,
+			1,
+			{ decision: decision.id, offer: 0, pay: { food: 1 } },
+			random
+		),
+		random
+	);
+	assert.equal(state.seats[0].hand.length, hand);
+});
+
+// Spymaster's response
+
+test("R127: a player's neighbours holding any tapestry card are asked about Spymaster when they complete a track; it advances them at the turn's end", () => {
+	let { state, random } = aaGame((s) => {
+		const [me, two, three] = s.seats;
+		me.tracks.science = [11];
+		s.supply.tapestry.deck = s.supply.tapestry.deck.filter(
+			(/** @type {string} */ id) => id !== 'spymaster'
+		);
+		two.hand = ['spymaster'];
+		three.hand = [s.supply.tapestry.deck.shift()];
+		two.tracks.science = [3];
+		s.landmarks = s.landmarks.filter(
+			(/** @type {string} */ id) => id !== 'apothecary'
+		);
+	});
+	state.current = 1;
+	state = resolveEffects(
+		state,
+		1,
+		[{ advance: { tracks: ['science'], noBenefit: true } }],
+		random
+	);
+	const asked = openDecisions(state).filter(
+		(d) => d.kind === 'chooseSpymaster'
+	);
+	assert.deepEqual(
+		asked.map((d) => [d.player, d.mover, d.track]),
+		[
+			[2, 1, 'science'],
+			[3, 1, 'science'],
+		].slice(0, asked.length)
+	);
+	const first = asked[0];
+	assert.deepEqual(DECISIONS.chooseSpymaster.answers(state, first), [
+		{ card: null },
+		{ card: 'spymaster' },
+	]);
+	state = answer(state, random, 2, 'chooseSpymaster', { card: 'spymaster' });
+	assert.ok(state.supply.tapestry.discard.includes('spymaster'));
+	assert.deepEqual(state.seats[1].hand, []);
+	// Seat 3 holds another card: only its decline is legal, which the server answers after a random wait (#24).
+	const [three] = openDecisions(state).filter(
+		(d) => d.kind === 'chooseSpymaster'
+	);
+	assert.equal(three.player, 3);
+	assert.deepEqual(DECISIONS.chooseSpymaster.answers(state, three), [
+		{ card: null },
+	]);
+	assert.deepEqual(declineOnly(state), [{ decision: three.id, player: 3 }]);
+	state = answer(state, random, 3, 'chooseSpymaster', { card: null });
+	// At the end of the turn, seat 2 advances on Science with its benefit.
+	const ends = spymasterAdvances(state);
+	assert.deepEqual(
+		ends.map((op) => [op.player, op.effects]),
+		[[2, [{ advance: { tracks: ['science'] } }]]]
+	);
+	assert.deepEqual(spymasterAdvances(state), []);
+});
+
+test('R127: without A&A nobody is asked; R108: a finished neighbour is asked only in the original version', () => {
+	const ask = (
+		/** @type {Record<string, any>} */ options,
+		/** @type {boolean} */ finished
+	) => {
+		const { state: started, random } = startedGame(2, options);
+		started.pending.length = 0;
+		started.seats[0].tracks.science = [11];
+		started.seats[1].hand = [started.supply.tapestry.deck.shift()];
+		started.seats[1].finished = finished;
+		started.landmarks = started.landmarks.filter(
+			(/** @type {string} */ id) => id !== 'apothecary'
+		);
+		const moved = resolveEffects(
+			started,
+			1,
+			[{ advance: { tracks: ['science'], noBenefit: true } }],
+			random
+		);
+		return openDecisions(moved).some((d) => d.kind === 'chooseSpymaster');
+	};
+	assert.equal(ask({}, false), false);
+	assert.equal(ask(AA, false), true);
+	assert.equal(ask(AA, true), false);
+	assert.equal(ask({ ...AA, version: 'original' }, true), true);
+});
+
+test("R124: A&A's 20 tapestry cards are all in its deck, 14 without the arts track", () => {
+	const aa = slugsOf('tapestry', 'aa');
+	assert.equal(aa.length, 20);
+	assert.deepEqual(tapestryFor(['aa'], []).slice(BASE_TAPESTRY.length), aa);
+	assert.deepEqual(
+		tapestryFor(['aa'], ['no-arts-track']).slice(BASE_TAPESTRY.length),
+		aa.filter((id) => !ARTS_CARDS.includes(id))
+	);
+	assert.equal(
+		tapestryFor(['aa'], ['no-arts-track']).length - BASE_TAPESTRY.length,
+		14
+	);
+	assert.equal(
+		TAPESTRY_CARDS.filter((card) => card.expansion === 'aa').length,
+		20
+	);
+});

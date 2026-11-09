@@ -1413,3 +1413,21 @@ test("places on A&A's tapestry cards and National Parks' die read as such (#37)"
 	assert.equal(decisionTitle(die), 'National Parks: roll which conquer die?');
 	assert.equal(describeAnswer(die, { slot: 'black' }), 'The black die');
 });
+
+test("Spymaster's question names who completed which track (R127)", () => {
+	const game = { seats: [{ name: 'Ana' }, { name: 'Bo' }] };
+	const spy = {
+		id: 1,
+		batch: 1,
+		player: 2,
+		kind: 'chooseSpymaster',
+		mover: 1,
+		track: 'military',
+	};
+	assert.equal(
+		decisionTitle(spy, game),
+		'Ana reached the end of Military. Play Spymaster?'
+	);
+	assert.equal(describeAnswer(spy, { card: null }), "Don't play a card");
+	assert.equal(describeAnswer(spy, { card: 'spymaster' }), 'Play Spymaster');
+});

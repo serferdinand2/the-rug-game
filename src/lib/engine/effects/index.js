@@ -20,7 +20,13 @@ import {
 	discardTapestry,
 	copyTapestry,
 } from './tapestry.js';
-import { others, sharedAdvance, trade, olympicHost } from './players.js';
+import {
+	others,
+	sharedAdvance,
+	trade,
+	olympicHost,
+	granges,
+} from './players.js';
 import {
 	anyBuilding,
 	trackLandmark,
@@ -125,6 +131,7 @@ export const EFFECTS = {
 	silkRoad,
 	infrastructureUpgrade,
 	plague,
+	granges,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

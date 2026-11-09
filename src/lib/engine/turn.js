@@ -6,6 +6,7 @@ import { liftBlocks } from './abilities.js';
 import { startIncomeTurn } from './income.js';
 import { seatOf } from './state.js';
 import { landmarkCardOps } from './landmark-cards.js';
+import { spymasterAdvances } from './spymaster.js';
 
 /**
  * Starts a seat's turn: its Dictatorship blocks lift (R26), nothing is activated yet (R19) nor locked by Ceramics, no tier entered for the Castle (#35), and the turn choice sits above the turn's end, which the player confirms first on a turn they chose (#146).
@@ -59,13 +60,20 @@ function endOf(state, player) {
 /**
  * Ends a turn once everything it started is done: the next seat in seat order that hasn't finished takes its turn,
  * and when every seat has finished, the game ends. A finished seat's Dictatorship blocks lift as it is skipped (R26).
- * First, a player whose landmark card's goal is met gains its landmark, and the turn ends after it is placed (#32, R111).
+ * First, a player whose landmark card's goal is met gains its landmark, and the turn ends after it is placed (#32, R111);
+ * then each played Spymaster's advance (A&A, R127).
  * @type {import('./state.js').AutomaticKind}
  */
 export function endTurn(ctx, op) {
 	const gain = landmarkCardOps(ctx.state, /** @type {number} */ (op.player));
 	if (gain.length > 0) {
 		ctx.push([...gain, { player: op.player, kind: 'endTurn' }]);
+		return;
+	}
+	// A&A's Spymaster: the advance comes at the end of the turn its track was completed in (R127).
+	const spied = spymasterAdvances(ctx.state);
+	if (spied.length > 0) {
+		ctx.push([...spied, { player: op.player, kind: 'endTurn' }]);
 		return;
 	}
 	const { seats } = ctx.state;

@@ -432,6 +432,13 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: [1, 2, 3, 4],
 		},
 		chooseSwap: { player: 1, kind: 'chooseSwap', left: 3 },
+		// A&A's Spymaster (#37, R127): seat 2 holds a card, so it is asked.
+		chooseSpymaster: {
+			player: 2,
+			kind: 'chooseSpymaster',
+			mover: 1,
+			track: 'science',
+		},
 		chooseCube: {
 			player: 1,
 			kind: 'chooseCube',

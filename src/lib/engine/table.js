@@ -40,7 +40,13 @@ export function defaultAction(state, seat) {
 }
 
 /** The questions asked whenever the seat holds any card, so asking reveals nothing (#17), and the server declines for them when no card can answer: responses to a conquest, counters to a trap and the Advisors' gifts (#33). */
-const DECLINABLE = ['chooseResponse', 'chooseCounter', 'chooseGive'];
+const DECLINABLE = [
+	'chooseResponse',
+	'chooseCounter',
+	'chooseGive',
+	// A&A's Spymaster (R127).
+	'chooseSpymaster',
+];
 
 /**
  * The open responses to a conquest, counters to a trap and Advisors' gifts (#33), whose only legal answer is to
