@@ -17,7 +17,8 @@ import { allOps, checkViews, setupFacts } from './views.mjs';
  * @property {'original' | 'current'} version
  * @property {'random' | 'busy'} policy - `busy` takes an offered advance turn 85% of the time
  * @property {string[]} variants - Every variant, or none (#53)
- * @property {string[]} expansions - Plans & Ploys (#32), Arts & Architecture (#35, #36), both or none
+ * @property {string[]} expansions - Plans & Ploys (#32), Arts & Architecture (#35, #36) and Fantasies & Futures
+ *   (#39), in any mix
  */
 /** @typedef {(state: State, before: State | null, facts: SetupFacts) => void} Check - `before` is null right after createGame() */
 
@@ -37,6 +38,7 @@ export const EXPANSION_NAMES = Object.freeze(
 	/** @type {Record<string, string>} */ ({
 		pp: 'Plans & Ploys',
 		aa: 'Arts & Architecture',
+		ff: 'Fantasies & Futures',
 	})
 );
 
@@ -48,6 +50,7 @@ export const EXPANSION_NAMES = Object.freeze(
  * Plans & Ploys, Arts & Architecture, both, none (#35, #36). A variant joins only with its expansion; with Arts &
  * Architecture, "Play without the arts track" goes with it alone and "Roll either science die" with both, since the two
  * can't go together. Alone, Arts & Architecture always plays without the arts track (R59), with its advanced mats (#36).
+ * Every fourth game also plays with Fantasies & Futures (#39), so it meets every other mix and every player count.
  * @param {number} index - From 0
  * @returns {Game}
  */
@@ -55,7 +58,12 @@ export function gameOf(index) {
 	const players = 1 + (index % 5);
 	const pp = Math.floor(index / 40) % 2 === 1;
 	const aa = Math.floor(index / 80) % 2 === 1;
-	const expansions = [...(pp ? ['pp'] : []), ...(aa ? ['aa'] : [])];
+	const ff = index % 4 === 3;
+	const expansions = [
+		...(pp ? ['pp'] : []),
+		...(aa ? ['aa'] : []),
+		...(ff ? ['ff'] : []),
+	];
 	// R59: no arts track alone, so a solo game with A&A plays without it, and so never with either science die.
 	const solo = players === 1;
 	const left = aa

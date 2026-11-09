@@ -250,6 +250,7 @@ const SAMPLES = {
 		count: 3,
 		secret: { cards: ['bakery', 'barn', 'compass'] },
 	},
+	techFlipped: { player: 1, card: 'mind-control' },
 	techRecycled: { player: 1, card: 'com-tower' },
 	techDisplayRefreshed: {
 		discarded: ['irrigation', 'telescope', 'compass'],
@@ -1215,5 +1216,15 @@ test("the Collectors' items (#37)", () => {
 	assert.equal(
 		eventText({ type: 'itemCollected', player: 1, item: 'house' }, GAME),
 		'Ana put a House on their Collectors mat.'
+	);
+});
+
+test("a single-use tech card's flip is worded (#39)", () => {
+	assert.equal(
+		eventText(
+			{ type: 'techFlipped', player: 1, card: 'mind-control' },
+			GAME
+		),
+		`${GAME.seats[0].name} flipped Mind Control: its single use is spent.`
 	);
 });

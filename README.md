@@ -252,7 +252,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 The research in [docs/research/](docs/research/) left 92 details unconfirmed, marked **[UNVERIFIED]**, plus a list of open questions. Each one has a decision here, so the engine never guesses. These decisions settle [#2](https://github.com/serferdinand2/the-rug-game/issues/2).
 
-- **Rule ids** (R1–R130) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
+- **Rule ids** (R1–R134) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
 - **Versions.** A table plays either the **Original 2019 printing** or the **Current official rules**. A rule applies to both unless it names one.
 - **Sources** are trusted in this order:
   1. the Fantasies & Futures integrated rulebook;
@@ -463,7 +463,7 @@ How the ranking was built:
 </details>
 
 <details>
-<summary><b>Fantasies & Futures</b> (34 rules)</summary>
+<summary><b>Fantasies & Futures</b> (38 rules)</summary>
 
 | Rule | Question | Decision | Basis | Check |
 |---|---|---|---|---|
@@ -501,6 +501,10 @@ How the ranking was built:
 | R98 | Genies in solo? | Removed, along with Illuminati and Weefolk. | 03 FF.7 4.4, 03 OQ FFr1 (Automa rulebook r6, MMP, F&F FAQ) | |
 | R99 | Celestials with City in a Bottle? | 0 VP. No landmark is in the city, so none are gained or lost. | 03 FF.6 2.1, 03 OQ FFr7 (Mike Young) | |
 | R100 | Which F&F printing is the text of record? | Rulebook r10-1 and Automa rulebook r6. | 03 FF.8.2, 03 OQ FFr8 | |
+| R131 | Does a tapestry card played face down have charms? | No. It gains no left charm, its right charm never triggers, and it doesn't count as a charmed card played for the tech prerequisite (R68 covers face-up cards). Nobody sees its charms, and counting it would tell the table what a hidden card is. | 03 FF.2.1, FF.2.3; no source covers a face-down card. Claude's call, 2026-11-09 ([#39](https://github.com/serferdinand2/the-rug-game/issues/39)). | |
+| R132 | In what order are the reserved items used on income turn 5? | The player chooses, one at a time; each is mandatory where possible. | 03 FF.2.2 gives no order. Claude's call, 2026-11-09 ([#39](https://github.com/serferdinand2/the-rug-game/issues/39)). | |
+| R133 | Ecstatic Visions: what does gaining the reserved masterpiece's benefits do on income turn 5? | The masterpiece joins the player's masterpieces and fires once at once, as one gained during the masterpiece step does. | 03 FF.4.3 #9. Claude's call, 2026-11-09 ([#39](https://github.com/serferdinand2/the-rug-game/issues/39)). | |
+| R134 | Who may gain a flipped single-use tech card's benefits? | Nobody, its owner included: no effect gains its circle or square again (the Spies, Information Age, the Recyclers' recycle, the Inventors' square). No opponent sends a player's single-use card to the top row, so the Inventors may not mark one in an opponent's middle row. A flipped card the Inventors take stays flipped and never upgrades; one paid away is a fresh card again. | 03 FF.2.3 (p11: others may not upgrade or use them; the card: "gain the square benefit once"), the Inventors FAQ (p29). Claude's call, 2026-11-09 ([#39](https://github.com/serferdinand2/the-rug-game/issues/39)). | |
 
 </details>
 

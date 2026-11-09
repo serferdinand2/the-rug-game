@@ -167,7 +167,7 @@ test("the state checks count the Traders' and Isolationists' tokens", () => {
 	}
 });
 
-test('the 200 games cover every player count, version and policy 10 times, 5 of them with every variant, 2 of those 5 with Plans & Ploys and 2 with Arts & Architecture', () => {
+test('the 200 games cover every player count, version and policy 10 times, 5 of them with every variant, 2 of those 5 with Plans & Ploys and 2 with Arts & Architecture, and every fourth game with Fantasies & Futures', () => {
 	/** @type {Map<string, number>} */
 	const combos = new Map();
 	/** @type {Map<string, number>} */
@@ -176,15 +176,24 @@ test('the 200 games cover every player count, version and policy 10 times, 5 of 
 	const withAa = new Map();
 	/** @type {Map<string, number>} */
 	const artsOff = new Map();
+	/** @type {Set<string>} */
+	const ffMixes = new Set();
 	for (let index = 0; index < GAMES; index++) {
 		const { seed, players, version, policy, variants, expansions } =
 			gameOf(index);
 		assert.equal(seed, index + 1);
 		const pp = expansions.includes('pp');
 		const aa = expansions.includes('aa');
+		// #39: every fourth game, so it meets every player count and every other mix.
+		const ff = expansions.includes('ff');
+		assert.equal(ff, index % 4 === 3, `game ${seed}`);
+		if (ff) {
+			ffMixes.add(`${players} ${pp} ${aa}`);
+		}
 		assert.deepEqual(expansions, [
 			...(pp ? ['pp'] : []),
 			...(aa ? ['aa'] : []),
+			...(ff ? ['ff'] : []),
 		]);
 		// R59: alone, Arts & Architecture plays without the arts track, with its advanced mats (#36).
 		const soloAa = aa && players === 1;
@@ -221,6 +230,7 @@ test('the 200 games cover every player count, version and policy 10 times, 5 of 
 		}
 	}
 	assert.equal(GAMES, 200);
+	assert.equal(ffMixes.size, 5 * 2 * 2);
 	assert.equal(combos.size, 5 * 2 * 2 * 2);
 	assert.ok([...combos.values()].every((n) => n === 5));
 	assert.ok([...withPp.values()].every((n) => n === 2));

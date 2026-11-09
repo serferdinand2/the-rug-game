@@ -907,6 +907,8 @@ const WORDS = {
 			? `${name} drew a tech card.`
 			: `${name} drew ${e.count} tech cards to keep one.`;
 	},
+	techFlipped: (e, game, name) =>
+		`${name} flipped ${techName(e.card)}: its single use is spent.`,
 	techRecycled: (e, game, name) =>
 		`${name} recycled ${techName(e.card)} back to the bottom row.`,
 	techUpgraded(e, game, name) {

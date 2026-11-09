@@ -162,13 +162,14 @@ test('Plans & Ploys adds space tiles 16 to 19: three ongoing +5 VP tiles and the
 
 // The expansion switch and setup
 
-test('a table may switch on Plans & Ploys, but not an expansion not built yet', () => {
+test('a table may switch on Plans & Ploys, but not an unknown expansion', () => {
 	assert.doesNotThrow(() =>
 		checkOptions({ version: 'current', expansions: ['pp'] })
 	);
+	// Every expansion is built since #39, so only an unknown code is refused.
 	assert.throws(
-		() => checkOptions({ version: 'current', expansions: ['ff'] }),
-		/isn't available yet/
+		() => checkOptions({ version: 'current', expansions: ['xx'] }),
+		/Unknown expansion/
 	);
 });
 

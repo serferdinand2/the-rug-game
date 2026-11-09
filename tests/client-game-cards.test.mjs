@@ -300,3 +300,13 @@ test("A&A's tech cards show their edition and their new prerequisites (#37)", ()
 	// In a game, a landmark tech card names the landmark it holds.
 	assert.equal(techCardData('astrolabe', { held: 'forge' }).held, 'forge');
 });
+
+test("an F&F tech card's face names its charm-or-5 prerequisite and its single use (#39)", () => {
+	const levitation = techCardData('levitation');
+	assert.equal(levitation.prerequisite, 'charmOrFive');
+	assert.equal(levitation.singleUse, true);
+	assert.equal(levitation.edition, 'ff');
+	const pyrokinesis = techCardData('pyrokinesis');
+	assert.equal(pyrokinesis.prerequisite, 'charmOrFive');
+	assert.equal(pyrokinesis.singleUse, undefined);
+});
