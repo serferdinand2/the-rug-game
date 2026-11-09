@@ -252,10 +252,11 @@ function goalMet(state, player, held) {
 
 /**
  * Infrastructure Upgrade: the player chooses a card of the face-down landmark deck and keeps it as a drafted one; with
- * none left, 10 VP (03 §2.5). The deck's cards stay the player's to see.
+ * none left, 10 VP (03 §2.5). The deck's cards stay the player's to see. The Urban Planners' extra card asks the same
+ * (`purpose`, #37), never with an empty deck.
  * @type {import('./state.js').EffectHandler}
  */
-export function infrastructureUpgrade(ctx, player) {
+export function infrastructureUpgrade(ctx, player, value) {
 	const deck = ctx.state.supply.landmarkCards;
 	if (deck.length === 0) {
 		ctx.push([{ player, kind: 'effects', effects: [{ vp: 10 }] }]);
@@ -271,7 +272,7 @@ export function infrastructureUpgrade(ctx, player) {
 			kind: 'chooseLandmarkCard',
 			options: [...deck],
 			drafters: [],
-			purpose: 'infrastructureUpgrade',
+			purpose: value?.purpose ?? 'infrastructureUpgrade',
 		},
 	]);
 }

@@ -616,6 +616,10 @@ const WORDS = {
 			? `${name} revealed ${joinList(cards)} for the Gamblers.`
 			: null;
 	},
+	landmarkStored: (e, game, name) =>
+		`${name} kept ${landmarkWords(e.landmark)} on their Urban Planners mat.`,
+	landmarkUnstored: (e, game, name) =>
+		`${name} took ${landmarkWords(e.landmark)} off their Urban Planners mat to place it.`,
 	// Plague (#37).
 	plagueDrawn: (e, game, name) =>
 		typeof e.civ === 'string'

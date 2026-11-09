@@ -213,6 +213,8 @@ const SAMPLES = {
 	plagueDrawn: { player: 1, civ: 'the-chosen' },
 	relentlessToken: { player: 1, tokens: 2 },
 	renegadesMoved: { player: 1, at: 2 },
+	landmarkStored: { player: 1, landmark: 'forge' },
+	landmarkUnstored: { player: 1, landmark: 'forge' },
 	gamblersRevealed: { player: 1, cards: ['feudalism', 'academia'] },
 	relentlessCashed: { player: 1, tokens: 3 },
 	spymasterPlayed: { player: 2, mover: 1, track: 'science' },
@@ -1184,5 +1186,22 @@ test("the Gamblers' reveal (#37)", () => {
 			GAME
 		),
 		'Ana revealed Feudalism and Academia for the Gamblers.'
+	);
+});
+
+test("the Urban Planners' kept landmarks (#37)", () => {
+	assert.equal(
+		eventText(
+			{ type: 'landmarkStored', player: 1, landmark: 'forge' },
+			GAME
+		),
+		'Ana kept the Forge on their Urban Planners mat.'
+	);
+	assert.equal(
+		eventText(
+			{ type: 'landmarkUnstored', player: 1, landmark: 'forge' },
+			GAME
+		),
+		'Ana took the Forge off their Urban Planners mat to place it.'
 	);
 });

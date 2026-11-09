@@ -1427,6 +1427,49 @@ const RECIPES = {
 			]),
 		],
 	}),
+	'urban-planners': (context) => ({
+		portraitAlt: 'Urban Planners civilization portrait',
+		complexity: 3,
+		effect: [
+			'Hold your landmarks back and build them into one great block of the city.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Setup',
+						label: '+1 card',
+						symbolText: 12,
+						text: [
+							'Choose one more landmark card from the landmark deck.',
+						],
+					},
+					{
+						title: 'Gaining a landmark',
+						label: 'Keep',
+						symbolText: 12,
+						text: [
+							'You may keep it on this mat, and place it in your capital at the start of a turn or before you end one.',
+						],
+					},
+					{
+						title: 'Final income turn',
+						label: 'n² VP',
+						symbolText: 12,
+						text: [
+							'Your largest group of landmarks touching side by side: 1, 4, 9, 16, 25, 36, 49 VP.',
+						],
+					},
+				],
+			},
+			...clarity(context, [], {
+				current: [
+					'Setup, current rules: 1 resource of your choice, 2 with 4 or 5 players.',
+				],
+			}),
+		],
+	}),
 	renegades: (context) => ({
 		portraitAlt: 'Renegades civilization portrait',
 		complexity: 3,

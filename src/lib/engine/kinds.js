@@ -29,7 +29,7 @@ import { chooseRefresh } from './decisions/choose-refresh.js';
 import { chooseMasterpiece } from './decisions/choose-masterpiece.js';
 import { chooseInspire } from './decisions/choose-inspire.js';
 import { nextMasterpiece } from './masterpieces.js';
-import { endTurn } from './turn.js';
+import { askTurn, endTurn } from './turn.js';
 import { runIncomeSteps, playFaceDown } from './income.js';
 import { chooseTapestry } from './decisions/choose-tapestry.js';
 import { tapestryAbility } from './tapestry.js';
@@ -100,6 +100,7 @@ import { retreatTo, surrenderDice } from './responses.js';
 import { parksRoll } from './card-pieces.js';
 import { relentlessEnd } from './civs/relentless.js';
 import { gamblersKeep, gamblersPlay } from './civs/gamblers.js';
+import { plannersOffer, plannersPlaced } from './civs/urban-planners.js';
 import {
 	enlightenmentMoves,
 	enlightenmentRolled,
@@ -212,6 +213,7 @@ Object.assign(AUTOMATIC, {
 	setupSteps: runSetupSteps,
 	bonus: offerBonus,
 	endTurn,
+	askTurn,
 	research: rollResearch,
 	researchRolled,
 	scienceRoll,
@@ -284,6 +286,8 @@ Object.assign(AUTOMATIC, {
 	relentlessEnd,
 	gamblersPlay,
 	gamblersKeep,
+	plannersOffer,
+	plannersPlaced,
 	cartographyCheck,
 	manifestDestinyBenefit,
 	territoryBenefit,

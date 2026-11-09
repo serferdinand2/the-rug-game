@@ -227,7 +227,11 @@ export function checkState(state, previousSeq = 0) {
 			...supply.landmarkCards,
 			// Infrastructure Upgrade's offer is the deck itself, still there (#37).
 			...opsOf('chooseLandmarkCard')
-				.filter((op) => op.purpose !== 'infrastructureUpgrade')
+				.filter(
+					(op) =>
+						op.purpose !== 'infrastructureUpgrade' &&
+						op.purpose !== 'urbanPlanners'
+				)
 				.flatMap((op) => op.options),
 			...players.flatMap((p) => [
 				...(p.landmarkCard ? [p.landmarkCard.card] : []),
@@ -301,6 +305,8 @@ export function checkState(state, previousSeq = 0) {
 						'landmark' in piece ? [piece.landmark] : []
 					)
 				),
+				// #37: kept on the Urban Planners' mat.
+				...(p.civData['urban-planners']?.stored ?? []),
 			]),
 			...pieces.flatMap((piece) =>
 				'landmark' in piece ? [piece.landmark] : []

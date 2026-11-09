@@ -37,9 +37,42 @@ export function startTurn(ctx, player) {
 	}
 	// Pushed apart, so the confirmation isn't in the turn choice's batch and opens only once the turn is done (#146).
 	ctx.push(endOf(state, player));
+	// A&A's Urban Planners may first place the landmarks they kept (R130); the turn choice then sees the result.
+	if (storedLandmarks(state, player)) {
+		ctx.push([
+			{ player, kind: 'plannersOffer' },
+			{ player, kind: 'askTurn' },
+		]);
+		return;
+	}
+	askTurn(ctx, { id: 0, batch: 0, player, kind: 'askTurn' });
+}
+
+/**
+ * Asks the player which turn to take, from what they can do now.
+ * @type {import('./state.js').AutomaticKind}
+ */
+export function askTurn(ctx, op) {
+	const player = /** @type {number} */ (op.player);
 	ctx.push([
-		{ player, kind: 'chooseTurn', options: turnOptions(state, player) },
+		{ player, kind: 'chooseTurn', options: turnOptions(ctx.state, player) },
 	]);
+}
+
+/**
+ * Whether a player holds landmarks on the Urban Planners' mat (#37).
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @returns {boolean}
+ */
+function storedLandmarks(state, player) {
+	const seat = seatOf(state, player);
+	return (
+		seat.kind === 'player' &&
+		/** @type {import('./state.js').PlayerSeat} */ (seat).civData[
+			'urban-planners'
+		]?.stored.length > 0
+	);
 }
 
 /**

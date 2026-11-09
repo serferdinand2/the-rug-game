@@ -22,7 +22,10 @@ export const chooseLandmarkCard = {
 	},
 	resolve(ctx, decision, answer) {
 		// Infrastructure Upgrade takes it from the deck; the others stay there (#37).
-		if (decision.purpose === 'infrastructureUpgrade') {
+		if (
+			decision.purpose === 'infrastructureUpgrade' ||
+			decision.purpose === 'urbanPlanners'
+		) {
 			takeLandmarkCard(
 				ctx,
 				/** @type {number} */ (decision.player),

@@ -6,6 +6,7 @@ import { SMALL_MAP_PAIRS } from './data/capitals.js';
 import { startTurn } from './turn.js';
 import { setupCivs } from './civ-turns.js';
 import { draftLandmarkCards } from './landmark-cards.js';
+import { plannersCards } from './civs/urban-planners.js';
 import { landmarkCardsFor } from './data/landmark-cards.js';
 
 /**
@@ -24,7 +25,13 @@ export function afterSetupSteps(expansions) {
 	if (landmarkCardsFor(expansions).length === 0) {
 		return [...AFTER_SETUP];
 	}
-	return [...AFTER_SETUP.slice(0, -1), 'landmarkCards', 'start'];
+	// A&A's Urban Planners pick one more card once the draft is done (#37).
+	return [
+		...AFTER_SETUP.slice(0, -1),
+		'landmarkCards',
+		...(expansions.includes('aa') ? ['plannersCards'] : []),
+		'start',
+	];
 }
 
 /** @type {Record<string, (ctx: import('./state.js').Context) => void>} */
@@ -72,6 +79,7 @@ export const AFTER_SETUP_STEPS = {
 	// Each player's civilizations set up at the same time, after the reveal (#20 design §5).
 	civSetup: setupCivs,
 	landmarkCards: draftLandmarkCards,
+	plannersCards,
 	start(ctx) {
 		const { state } = ctx;
 		state.phase = 'play';

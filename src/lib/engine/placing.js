@@ -19,6 +19,7 @@ import { holdsLandmark, isLocked } from './tech.js';
 import { upgradeCard } from './effects/tech.js';
 import { techCard } from './data/tech-cards.js';
 import { cardPlaces } from './card-pieces.js';
+import { plannersStore, storeLandmark } from './civs/urban-planners.js';
 import { plotIndex } from '../capital.js';
 
 /** @typedef {{ building: import('./data/ids.js').BuildingId } | { landmark: string }} Piece */
@@ -27,7 +28,7 @@ import { plotIndex } from '../capital.js';
  * Where a gained piece may go: a capital plot (with a turn for a landmark), a Craftsmen column, a Nomads hex, an A&A
  * landmark tech card (#37), or beside the mat when the capital has no room but another place does (#20 design §9).
  * A&A's tapestry cards add plot squares, Space Race and Trade Routes (`card`) and National Parks' territories (`parks`).
- * @typedef {{ row: number, col: number, rotation?: number } | { craftsmen: number } | { hex: string } | { tech: string } | { card: string, row?: number, col?: number, rotation?: number } | { hex: string, parks: true } | { besideMat: true }} Placement
+ * @typedef {{ row: number, col: number, rotation?: number } | { craftsmen: number } | { hex: string } | { tech: string } | { card: string, row?: number, col?: number, rotation?: number } | { hex: string, parks: true } | { planners: true } | { besideMat: true }} Placement
  */
 
 /**
@@ -313,18 +314,24 @@ function otherPlaces(state, player, piece) {
 			? techPlaces(state, player).map((tech) => ({ tech }))
 			: []),
 		...cardPlaces(state, player, piece),
+		// A&A's Urban Planners keep a landmark on their mat (#37).
+		...('landmark' in piece && plannersStore(state, player)
+			? [{ planners: /** @type {const} */ (true) }]
+			: []),
 	];
 }
 
 /**
  * Every place a gained piece may go, the answers to `choosePlacement`: the capital plots, then the other places.
- * With no capital plot but another place, beside the mat comes first (#20 design §9).
+ * With no capital plot but another place, beside the mat comes first (#20 design §9). `capitalOnly` offers only the
+ * capital (a landmark the Urban Planners kept, #37).
  * @param {import('./state.js').State} state
  * @param {number} player
  * @param {Piece} piece
+ * @param {boolean} [capitalOnly]
  * @returns {Placement[]}
  */
-export function placements(state, player, piece) {
+export function placements(state, player, piece, capitalOnly = false) {
 	const seat = playerSeat(state, player);
 	const overImpassable = buildsOverImpassable(state, player);
 	/** @type {Placement[]} */
@@ -332,7 +339,7 @@ export function placements(state, player, piece) {
 		'landmark' in piece
 			? landmarkSpots(seat, piece.landmark, overImpassable)
 			: buildingSpots(seat, overImpassable);
-	const others = otherPlaces(state, player, piece);
+	const others = capitalOnly ? [] : otherPlaces(state, player, piece);
 	return capital.length === 0 && others.length > 0
 		? [{ besideMat: true }, ...others]
 		: [...capital, ...others];
@@ -383,7 +390,10 @@ export function placeLandmark(ctx, op) {
 				.join(';')
 		)
 	);
-	const others = otherPlaces(ctx.state, player, { landmark });
+	const capitalOnly = op.capitalOnly === true;
+	const others = capitalOnly
+		? []
+		: otherPlaces(ctx.state, player, { landmark });
 	if (spots.length === 0 && others.length === 0) {
 		placeBesideMat(ctx, player, { landmark });
 	} else if (places.size === 1 && others.length === 0) {
@@ -396,6 +406,7 @@ export function placeLandmark(ctx, op) {
 				kind: 'choosePlacement',
 				landmark,
 				...(op.source ? { source: op.source } : {}),
+				...(capitalOnly && { capitalOnly: true }),
 			},
 		]);
 	}

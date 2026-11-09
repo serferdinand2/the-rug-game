@@ -77,6 +77,18 @@ const CIV_TEXTS = Object.freeze({
 		'At the start of income turns 2 to 4, do the same on that era’s slot, then play your tapestry card for the era on top of it.',
 		'A card that can’t be fully resolved resolves as far as it can.',
 	]),
+	'urban-planners': civ(
+		[
+			'Once the landmark cards are chosen at the start, or when you gain the Urban Planners, choose one more card from the landmark deck. If none is left, you may discard the Urban Planners and gain another civilization.',
+			'Whenever you gain a landmark, you may put it on this mat instead of placing it. At the start of a turn of yours, or before you end it, you may place any of them in your capital city, free.',
+			'At the end of your final income turn, gain VP for your largest group of landmarks touching side by side in your capital city: 1, 4, 9, 16, 25, 36 or 49 VP for 1 to 7 landmarks.',
+		],
+		{
+			current: [
+				'Current rules: if you start the game with the Urban Planners, gain 1 resource of your choice, or 2 with 4 or 5 players.',
+			],
+		}
+	),
 	renegades: civ([
 		'You start with a token on the start of this mat’s track, which has one space for each tier.',
 		'When you advance on a track and would gain its benefit, you may give up the benefit and the bonus to move your token 1 space here instead, if the tier you advance into or within is the tier of that space. You still gain landmarks.',

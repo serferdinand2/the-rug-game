@@ -311,6 +311,9 @@ const SLOT_TITLES = {
 	// Political Posturing (#37).
 	politicalPosturing: () => 'Choose an achievement to earn',
 	nationalParks: () => 'National Parks: roll which conquer die?',
+	// The Urban Planners (#37, R130).
+	plannersPlace: () =>
+		'Urban Planners: place a landmark from your mat in your capital?',
 	// The Gamblers (#37).
 	gamblers: (d) =>
 		isCount(d.then?.era)
@@ -552,6 +555,9 @@ const TITLES = {
 				return civOfferTitle(d, table);
 			case 'riverfolkDiscard':
 				return 'Discard the Riverfolk for another civilization?';
+			// The Urban Planners with no landmark card left (#37).
+			case 'plannersSwap':
+				return 'No landmark card is left: discard the Urban Planners for another civilization?';
 			case 'militarism':
 				return 'Place an outpost on the territory you explored?';
 			case 'exploitation':
@@ -689,7 +695,9 @@ const TITLES = {
 	chooseLandmarkCard: (d) =>
 		d.purpose === 'infrastructureUpgrade'
 			? 'Infrastructure Upgrade: keep a landmark card'
-			: 'Keep a landmark card',
+			: d.purpose === 'urbanPlanners'
+				? 'Urban Planners: keep one more landmark card'
+				: 'Keep a landmark card',
 	chooseTrade: (d, table) => {
 		// Moon Landing (#37): the trade, or the invent if it isn't made.
 		if (d.purpose === 'moonLanding') {
@@ -895,6 +903,8 @@ const SLOT_ANSWERS = {
 	politicalPosturing: (slot) =>
 		ACHIEVEMENTS.find((a) => a.id === slot)?.name ?? null,
 	gamblers: (slot) => (typeof slot === 'string' ? tapestryName(slot) : null),
+	plannersPlace: (slot) =>
+		typeof slot === 'string' ? `The ${landmarkName(slot)}` : null,
 	gamblersKeep: (slot) =>
 		typeof slot === 'string' ? tapestryName(slot) : null,
 	nationalParks: (slot) =>
@@ -1105,6 +1115,11 @@ const ANSWERS = {
 		) {
 			return null;
 		}
+		if (d.purpose === 'plannersSwap') {
+			return a.option === 0
+				? 'Keep the Urban Planners'
+				: 'Discard them and gain another';
+		}
 		// The Riverfolk gained mid-game: declining keeps them (#33).
 		if (d.purpose === 'riverfolkDiscard') {
 			return a.option === 0
@@ -1198,6 +1213,9 @@ const ANSWERS = {
 		// A&A's tapestry cards (#37): a plot's square, or the squares a landmark covers; Space Race, Trade Routes.
 		if (typeof a.card === 'string') {
 			return placeOnCardWords(a, d);
+		}
+		if (a.planners === true) {
+			return 'On your Urban Planners mat, to place later';
 		}
 		if (typeof a.hex === 'string' && a.parks === true) {
 			return `${capitalize(hexName(a.hex))}, with National Parks`;

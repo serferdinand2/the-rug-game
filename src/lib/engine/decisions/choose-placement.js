@@ -12,6 +12,7 @@ import {
 	placements,
 } from '../placing.js';
 import { placeInPark, placeOnCard } from '../card-pieces.js';
+import { storeLandmark } from '../civs/urban-planners.js';
 
 /** The answer keys of the places other than a capital plot. */
 const OTHER_PLACES = /** @type {const} */ ([
@@ -20,6 +21,7 @@ const OTHER_PLACES = /** @type {const} */ ([
 	'hex',
 	'tech',
 	'card',
+	'planners',
 ]);
 
 /**
@@ -67,7 +69,8 @@ export const choosePlacement = {
 		return placements(
 			state,
 			/** @type {number} */ (decision.player),
-			pieceOf(decision)
+			pieceOf(decision),
+			decision.capitalOnly === true
 		);
 	},
 	check(state, decision, answer) {
@@ -77,7 +80,8 @@ export const choosePlacement = {
 			const offered = placements(
 				state,
 				/** @type {number} */ (decision.player),
-				pieceOf(decision)
+				pieceOf(decision),
+				decision.capitalOnly === true
 			).some((place) => samePlace(place, answer));
 			if (!offered) {
 				throw new PlayerError("You can't place it there.");
@@ -143,6 +147,10 @@ export const choosePlacement = {
 		}
 		if (key === 'tech') {
 			placeOnTech(ctx, player, decision.landmark, answer.tech);
+			return;
+		}
+		if (key === 'planners') {
+			storeLandmark(ctx, player, decision.landmark);
 			return;
 		}
 		if (key === 'card') {

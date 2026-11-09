@@ -10,7 +10,10 @@ import {
 import { contextFor, resolveEffects, run } from '../src/lib/engine/loop.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
-import { endTurn } from '../src/lib/engine/turn.js';
+import { endTurn, startTurn } from '../src/lib/engine/turn.js';
+import { landmarksOwned } from '../src/lib/engine/effects/vp.js';
+import { plannersGroup } from '../src/lib/engine/civs/urban-planners.js';
+import { checkState } from './helpers/invariants.mjs';
 import { emit } from '../src/lib/engine/events.js';
 import { gamblers } from '../src/lib/engine/civs/gamblers.js';
 import { heralds } from '../src/lib/engine/civs/heralds.js';
@@ -343,4 +346,118 @@ test("R35: the Heralds' current-rules draw also stops at a CONTINUOUS card, whic
 	const [offer] = openDecisions(state);
 	assert.equal(offer.kind, 'chooseTapestry');
 	assert.deepEqual(offer.options, ['commercial-center']);
+});
+
+// The Urban Planners
+
+test('the Urban Planners: after the landmark draft, one more card from the landmark deck (03 §2.4)', () => {
+	const { state } = startedGame(3, {
+		...AA,
+		civs: ['urban-planners', 'leaders', 'nomads'],
+	});
+	const seat = state.seats[0];
+	assert.equal(seat.extraLandmarkCards.length, 1);
+	assert.notEqual(seat.landmarkCard, null);
+	assert.ok(
+		!state.supply.landmarkCards.includes(seat.extraLandmarkCards[0].card)
+	);
+	checkState(state);
+});
+
+test('the Urban Planners: a gained landmark may wait on their mat, and is placed later at the start of a turn (R130)', () => {
+	let { state, random } = holding('urban-planners');
+	const gained = resolveEffects(state, 1, [{ landmark: 'forge' }], random);
+	const [decision] = openDecisions(gained);
+	assert.equal(decision.kind, 'choosePlacement');
+	assert.ok(
+		DECISIONS.choosePlacement
+			.answers(gained, decision)
+			.some((a) => a.planners === true)
+	);
+	state = answer(gained, random, 1, 'choosePlacement', { planners: true });
+	assert.deepEqual(state.seats[0].civData['urban-planners'].stored, [
+		'forge',
+	]);
+	assert.ok(landmarksOwned(state, 1).includes('forge'));
+	// The next turn of theirs starts with the offer to place it.
+	state.pending.length = 0;
+	startTurn(contextFor(state, random, state.pending), 1);
+	run(state, random);
+	const [offer] = openDecisions(state);
+	assert.equal(offer.kind, 'chooseSlot');
+	assert.equal(offer.purpose, 'plannersPlace');
+	assert.deepEqual(offer.options, ['forge']);
+	state = answer(state, random, 1, 'chooseSlot', { slot: 'forge' });
+	const [place] = openDecisions(state);
+	assert.equal(place.kind, 'choosePlacement');
+	assert.ok(
+		DECISIONS.choosePlacement
+			.answers(state, place)
+			.every((a) => Number.isInteger(a.row)),
+		'only the capital'
+	);
+	state = answer(
+		state,
+		random,
+		1,
+		'choosePlacement',
+		DECISIONS.choosePlacement.answers(state, place)[0]
+	);
+	assert.deepEqual(state.seats[0].civData['urban-planners'].stored, []);
+	assert.ok(
+		state.seats[0].capital.landmarks.some(
+			(/** @type {any} */ l) => l.landmark === 'forge'
+		)
+	);
+});
+
+test("the Urban Planners' VP at the end of the final income turn: the largest group of connected landmarks, squared", () => {
+	const { state, random } = holding('urban-planners', (s) => {
+		const seat = s.seats[0];
+		// Three 2-by-2 landmarks: two side by side, one apart.
+		seat.capital.landmarks = [
+			{ landmark: 'forge', row: 0, col: 0, rotation: 0 },
+			{ landmark: 'barracks', row: 0, col: 2, rotation: 0 },
+			{ landmark: 'lighthouse', row: 5, col: 5, rotation: 0 },
+		];
+		s.landmarks = s.landmarks.filter(
+			(/** @type {string} */ id) =>
+				!['forge', 'barracks', 'lighthouse'].includes(id)
+		);
+		seat.incomeTurns = 5;
+		seat.finished = true;
+	});
+	assert.equal(plannersGroup(state.seats[0]), 2);
+	const vp = state.seats[0].vp;
+	endOf(state, random, 'income');
+	assert.equal(state.seats[0].vp, vp + 4);
+});
+
+test("the Urban Planners' setup in the current version: 1 resource of your choice with 1-3 players, 2 with 4-5", () => {
+	const total = (/** @type {any} */ seat) =>
+		Object.values(seat.resources).reduce(
+			(/** @type {number} */ a, /** @type {number} */ b) => a + b,
+			0
+		);
+	const gained = (
+		/** @type {number} */ count,
+		/** @type {any} */ version
+	) => {
+		const civs = [
+			'urban-planners',
+			'leaders',
+			'nomads',
+			'historians',
+			'craftsmen',
+		].slice(0, count);
+		const plain = startedGame(count, {
+			...AA,
+			version: 'original',
+			civs,
+		}).state;
+		const game = startedGame(count, { ...AA, version, civs }).state;
+		return total(game.seats[0]) - total(plain.seats[0]);
+	};
+	assert.equal(gained(3, 'current'), 1);
+	assert.equal(gained(4, 'current'), 2);
 });

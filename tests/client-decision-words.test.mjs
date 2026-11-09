@@ -1486,3 +1486,67 @@ test("the Gamblers' picks name the cards revealed (#37)", () => {
 	);
 	assert.equal(describeAnswer(keep, { slot: 'academia' }), 'Academia');
 });
+
+test("the Urban Planners' choices read as their card (#37)", () => {
+	const landmark = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'choosePlacement',
+		landmark: 'forge',
+	};
+	assert.equal(
+		describeAnswer(landmark, { planners: true }),
+		'On your Urban Planners mat, to place later'
+	);
+	const place = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'plannersPlace',
+		options: ['forge'],
+		optional: true,
+	};
+	assert.equal(
+		decisionTitle(place),
+		'Urban Planners: place a landmark from your mat in your capital?'
+	);
+	assert.equal(describeAnswer(place, { slot: 'forge' }), 'The Forge');
+	const card = {
+		id: 3,
+		batch: 1,
+		player: 1,
+		kind: 'chooseLandmarkCard',
+		purpose: 'urbanPlanners',
+		options: ['villa', 'castle'],
+		drafters: [],
+	};
+	assert.equal(
+		decisionTitle(card),
+		'Urban Planners: keep one more landmark card'
+	);
+	const swap = {
+		id: 4,
+		batch: 1,
+		player: 1,
+		kind: 'chooseOption',
+		purpose: 'plannersSwap',
+		options: [
+			[],
+			[{ discardCiv: { civ: 'urban-planners' } }, { gainCiv: {} }],
+		],
+	};
+	assert.equal(
+		decisionTitle(swap),
+		'No landmark card is left: discard the Urban Planners for another civilization?'
+	);
+	assert.equal(
+		describeAnswer(swap, { option: 0 }),
+		'Keep the Urban Planners'
+	);
+	assert.equal(
+		describeAnswer(swap, { option: 1 }),
+		'Discard them and gain another'
+	);
+});

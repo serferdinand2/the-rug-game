@@ -15,8 +15,8 @@ const BUILDINGS_PER_ROW = 5;
 
 /**
  * The landmarks a player owns: those in the capital, then those beside the mat, then those on the map as Nomads
- * pieces, toppled or not, in map order (R71), then those on A&A's landmark tech cards (03 §2, #37), then those on
- * A&A's tapestry cards (#37).
+ * pieces, toppled or not, in map order (R71), then those on A&A's landmark tech cards (03 §2, #37), then those the
+ * Urban Planners keep on their mat, then those on A&A's tapestry cards (#37).
  * @param {import('../state.js').State} state
  * @param {number} player
  * @returns {string[]}
@@ -36,6 +36,7 @@ export function landmarksOwned(state, player) {
 		...seat.besideMat.filter((id) => ids.has(id)),
 		...onMap,
 		...Object.values(seat.techLandmarks ?? {}),
+		...(seat.civData['urban-planners']?.stored ?? []),
 		...Object.values(seat.onCards ?? {}).flatMap((pieces) =>
 			pieces.flatMap((piece) =>
 				'landmark' in piece ? [piece.landmark] : []

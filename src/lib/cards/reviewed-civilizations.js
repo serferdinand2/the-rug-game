@@ -42,6 +42,7 @@ export const REVIEWED_CIVILIZATIONS = Object.freeze([
 	{ id: 'relentless', edition: 'awaiting review' },
 	{ id: 'renegades', edition: 'awaiting review' },
 	{ id: 'gamblers', edition: 'awaiting review' },
+	{ id: 'urban-planners', edition: 'awaiting review' },
 ]);
 
 /**
@@ -129,4 +130,5 @@ export const SAMPLE_VIEWS = Object.freeze({
 	relentless: sample([], 'token'),
 	renegades: sample([], 'token'),
 	gamblers: sample([], 'token'),
+	'urban-planners': sample([], 'token'),
 });
