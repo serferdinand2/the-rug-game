@@ -152,7 +152,7 @@ test("a Plans & Ploys tapestry card's face names its edition; a base card's leav
 	assert.equal(tapestryCardData('trap-2').edition, undefined);
 });
 
-test('a tapestry card shows its timing as This Era or When Played', () => {
+test('a tapestry card shows its timing as This Era, When Played or Continuous', () => {
 	assert.equal(tapestryCardData('academia').timing, 'This Era');
 	assert.equal(
 		tapestryCardData('academia').copy,
@@ -169,7 +169,12 @@ test('a tapestry card shows its timing as This Era or When Played', () => {
 			assert.equal(trap, undefined);
 			assert.equal(
 				timing,
-				card.timing === 'era' ? 'This Era' : 'When Played'
+				{
+					era: 'This Era',
+					played: 'When Played',
+					// A&A's (#37).
+					continuous: 'Continuous',
+				}[card.timing]
 			);
 		}
 	}

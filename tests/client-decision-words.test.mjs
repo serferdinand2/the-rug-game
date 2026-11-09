@@ -1370,3 +1370,46 @@ test("Silk Road's and Plague's choices, and Infrastructure Upgrade's card (#37)"
 		'Infrastructure Upgrade: keep a landmark card'
 	);
 });
+
+test("places on A&A's tapestry cards and National Parks' die read as such (#37)", () => {
+	const farm = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'choosePlacement',
+		building: 'farm',
+	};
+	assert.equal(
+		describeAnswer(farm, { card: 'commercial-center', row: 0, col: 1 }),
+		'On Commercial Center, row 1, column 2'
+	);
+	assert.equal(
+		describeAnswer(farm, { hex: '0_3', parks: true }),
+		'Hex 0,3, with National Parks'
+	);
+	const landmark = { ...farm, landmark: 'barracks' };
+	delete landmark.building;
+	assert.equal(
+		describeAnswer(landmark, { card: 'space-race' }),
+		'On Space Race'
+	);
+	assert.equal(
+		describeAnswer(landmark, {
+			card: 'monuments',
+			row: -1,
+			col: 1,
+			rotation: 1,
+		}),
+		'On Monuments, covering row 1 column 3'
+	);
+	const die = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'nationalParks',
+		options: ['black', 'red'],
+	};
+	assert.equal(decisionTitle(die), 'National Parks: roll which conquer die?');
+	assert.equal(describeAnswer(die, { slot: 'black' }), 'The black die');
+});

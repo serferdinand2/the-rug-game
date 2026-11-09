@@ -11,6 +11,7 @@ import {
 	placePiece,
 	placements,
 } from '../placing.js';
+import { placeInPark, placeOnCard } from '../card-pieces.js';
 
 /** The answer keys of the places other than a capital plot. */
 const OTHER_PLACES = /** @type {const} */ ([
@@ -18,6 +19,7 @@ const OTHER_PLACES = /** @type {const} */ ([
 	'craftsmen',
 	'hex',
 	'tech',
+	'card',
 ]);
 
 /**
@@ -40,6 +42,24 @@ function otherPlace(answer) {
 	return OTHER_PLACES.find((key) => answer[key] !== undefined);
 }
 
+/**
+ * Whether an answer names exactly a place on offer: the same keys, each the same.
+ * @param {object} place
+ * @param {Record<string, any>} answer
+ * @returns {boolean}
+ */
+function samePlace(place, answer) {
+	const keys = Object.keys(place);
+	return (
+		keys.length === Object.keys(answer).length &&
+		keys.every(
+			(key) =>
+				/** @type {Record<string, unknown>} */ (place)[key] ===
+				answer[key]
+		)
+	);
+}
+
 /** @type {import('../state.js').DecisionKind} */
 export const choosePlacement = {
 	hidden: [],
@@ -53,16 +73,12 @@ export const choosePlacement = {
 	check(state, decision, answer) {
 		const key = otherPlace(answer);
 		if (key !== undefined) {
+			// The whole place must match: a card's square and turn, a park's flag (#37).
 			const offered = placements(
 				state,
 				/** @type {number} */ (decision.player),
 				pieceOf(decision)
-			).some(
-				(place) =>
-					key in place &&
-					/** @type {Record<string, unknown>} */ (place)[key] ===
-						answer[key]
-			);
+			).some((place) => samePlace(place, answer));
 			if (!offered) {
 				throw new PlayerError("You can't place it there.");
 			}
@@ -117,11 +133,25 @@ export const choosePlacement = {
 			return;
 		}
 		if (key === 'hex') {
+			// National Parks' territory, or the Nomads' (#37).
+			if (answer.parks === true) {
+				placeInPark(ctx, player, pieceOf(decision), answer.hex);
+				return;
+			}
 			placeOnMap(ctx, player, pieceOf(decision), answer.hex);
 			return;
 		}
 		if (key === 'tech') {
 			placeOnTech(ctx, player, decision.landmark, answer.tech);
+			return;
+		}
+		if (key === 'card') {
+			placeOnCard(
+				ctx,
+				player,
+				pieceOf(decision),
+				/** @type {any} */ (answer)
+			);
 			return;
 		}
 		if (decision.landmark !== undefined) {

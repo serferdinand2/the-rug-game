@@ -366,12 +366,14 @@ function placeOf(decision, answer, game) {
 		return 'track';
 	}
 	// A gained piece's plot, an Architects cube's, and Cloud City's moves: the building, then where it goes (#36).
+	// A square on an A&A tapestry card isn't the capital's (#37): the panel lists it until part 4 draws the card.
 	if (
 		(decision.kind === 'choosePlacement' ||
 			decision.kind === 'chooseCube' ||
 			decision.kind === 'chooseCloudMove' ||
 			decision.kind === 'chooseCloudPlot') &&
-		typeof answer.row === 'number'
+		typeof answer.row === 'number' &&
+		typeof answer.card !== 'string'
 	) {
 		return 'capital';
 	}

@@ -104,7 +104,12 @@ export function discardTapestry(ctx, player, value) {
  */
 export function copyTapestry(ctx, player, value, op) {
 	const options = visibleCards(ctx.state)
-		.filter(({ card }) => card !== 'espionage')
+		// A CONTINUOUS card is never copied (A&A, #37).
+		.filter(
+			({ card }) =>
+				card !== 'espionage' &&
+				tapestryCard(card).timing !== 'continuous'
+		)
 		.map(({ player: owner, card }) => ({ player: owner, card }));
 	/** @type {string | null} */
 	const espionage = op.source.card;

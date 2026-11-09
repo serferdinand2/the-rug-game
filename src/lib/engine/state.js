@@ -66,6 +66,7 @@
  * @property {BuildingId[]} [inspired] - With the arts track only: the income rows that hold the player's inspiration tile, in the order placed (#35)
  * @property {Record<string, string>} [techLandmarks] - With A&A only: the landmark each landmark tech card holds, by card (03 §2, #37)
  * @property {{ card: string, gained: boolean }[]} [extraLandmarkCards] - With A&A only: the landmark cards kept besides the drafted one (Infrastructure Upgrade, #37)
+ * @property {Record<string, import('./card-pieces.js').CardPiece[]>} [onCards] - With A&A only: the pieces on each tapestry card of theirs that holds some, by the card on the mat (#37)
  */
 /** @typedef {Seat & PlayerFields} PlayerSeat */
 /**

@@ -14,6 +14,9 @@ import { countVp } from './engine/effects/vp.js';
 import { TRACKS, advanceCost } from './engine/data/tracks.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
 import { ACHIEVEMENTS } from './engine/data/achievements.js';
+import { PLOT_CARDS } from './engine/data/tapestry-cards.js';
+import { plotSquares } from './engine/card-pieces.js';
+import { landmarkCells } from './engine/city.js';
 import { LANDMARKS } from './engine/data/landmarks.js';
 import { TERRITORY_TILES } from './engine/data/territory-tiles.js';
 import {
@@ -262,6 +265,36 @@ function plotAt(index) {
 }
 
 /**
+ * A place on an A&A tapestry card in words (#37): "On Commercial Center, row 1, column 2" for a building, "On
+ * Monuments, covering row 1 column 3" for a landmark, "On Space Race".
+ * @param {Answer} a
+ * @param {Decision} d
+ * @returns {string | null}
+ */
+function placeOnCardWords(a, d) {
+	const name = tapestryName(a.card);
+	if (!Number.isInteger(a.row) || !Number.isInteger(a.col)) {
+		return `On ${name}`;
+	}
+	if (typeof d.landmark !== 'string' || !(a.card in PLOT_CARDS)) {
+		return `On ${name}, row ${a.row + 1}, column ${a.col + 1}`;
+	}
+	const squares = new Set(
+		plotSquares(a.card).map((cell) => `${cell.row},${cell.col}`)
+	);
+	const covered = landmarkCells({
+		landmark: d.landmark,
+		row: a.row,
+		col: a.col,
+		rotation: a.rotation ?? 0,
+	})
+		.filter((cell) => squares.has(`${cell.row},${cell.col}`))
+		.sort((x, y) => x.row - y.row || x.col - y.col)
+		.map((cell) => `row ${cell.row + 1} column ${cell.col + 1}`);
+	return `On ${name}, covering ${joinList(covered)}`;
+}
+
+/**
  * A civilization's name with its article: "the Historians", "The Chosen" (#37).
  * @param {string} name
  * @returns {string}
@@ -277,6 +310,7 @@ function withThe(name) {
 const SLOT_TITLES = {
 	// Political Posturing (#37).
 	politicalPosturing: () => 'Choose an achievement to earn',
+	nationalParks: () => 'National Parks: roll which conquer die?',
 	silkRoad: () => "Silk Road: gain the space's benefit or its landmark?",
 	plague: (d) =>
 		typeof d.then?.civ === 'string'
@@ -842,6 +876,12 @@ export function decisionTitle(decision, table) {
 const SLOT_ANSWERS = {
 	politicalPosturing: (slot) =>
 		ACHIEVEMENTS.find((a) => a.id === slot)?.name ?? null,
+	nationalParks: (slot) =>
+		slot === 'black'
+			? 'The black die'
+			: slot === 'red'
+				? 'The red die'
+				: null,
 	enlightenment: (slot) =>
 		slot === 1 ? 'Once' : slot === 2 ? 'Twice' : null,
 	plague: (slot, d) => {
@@ -1119,20 +1159,27 @@ const ANSWERS = {
 		}
 		return typeof a.card === 'string' ? tapestryName(a.card) : null;
 	},
-	choosePlacement: (a) => {
+	choosePlacement: (a, d) => {
 		if (a.besideMat === true) {
 			return 'Beside your capital mat';
 		}
 		if (isCount(a.craftsmen)) {
 			return `Craftsmen column ${a.craftsmen + 1}`;
 		}
-		if (typeof a.hex === 'string') {
+		if (typeof a.hex === 'string' && a.parks !== true) {
 			return capitalize(hexName(a.hex));
 		}
 		// A&A's landmark tech card, which the landmark upgrades at once (#37).
 		const card = techCardOf(a.tech);
 		if (card) {
 			return `On ${card.name}, upgrading it`;
+		}
+		// A&A's tapestry cards (#37): a plot's square, or the squares a landmark covers; Space Race, Trade Routes.
+		if (typeof a.card === 'string') {
+			return placeOnCardWords(a, d);
+		}
+		if (typeof a.hex === 'string' && a.parks === true) {
+			return `${capitalize(hexName(a.hex))}, with National Parks`;
 		}
 		if (!Number.isInteger(a.row) || !Number.isInteger(a.col)) {
 			return null;

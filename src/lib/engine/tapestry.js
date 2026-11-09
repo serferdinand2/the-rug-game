@@ -5,7 +5,7 @@ import { tapestryCard } from './data/tapestry-cards.js';
 
 /**
  * Puts a card on top of one of a player's era slots. Covering the card of the active THIS ERA ability ends it,
- * since only the top card of a slot is active (01 §9.2). A card face up then has its ability; face down it has none.
+ * since only the top card of a slot is active (01 §9.2), and a covered card's pieces leave it (A&A, #37). A card face up then has its ability; face down it has none.
  * The caller takes the card from wherever it was (the hand, or the deck for a face-down card).
  * @param {import('./state.js').Context} ctx
  * @param {number} player
@@ -30,6 +30,9 @@ export function playTapestry(ctx, player, card, era, faceDown = false) {
 	});
 	if (covered !== undefined && seat.era?.card === covered) {
 		endEra(ctx, player);
+	}
+	if (covered !== undefined) {
+		coverCard(ctx, player, covered);
 	}
 	if (!faceDown) {
 		ctx.push([{ player, kind: 'tapestryAbility', card, era }]);
@@ -134,4 +137,25 @@ export function tapestryAbility(ctx, op) {
 			},
 		]);
 	}
+}
+
+/**
+ * A card covered by another tapestry card works no more, and what it held goes beside the capital mat, where it
+ * still counts (FAQ #21, R71; my call, #37).
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {string} card
+ */
+export function coverCard(ctx, player, card) {
+	const seat = playerSeat(ctx.state, player);
+	const held = seat.onCards?.[card];
+	if (!seat.onCards || !held) {
+		return;
+	}
+	delete seat.onCards[card];
+	const pieces = held.map((piece) =>
+		'building' in piece ? piece.building : piece.landmark
+	);
+	seat.besideMat.push(...pieces);
+	emit(ctx.state, { type: 'cardPiecesMoved', player, card, pieces });
 }

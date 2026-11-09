@@ -115,15 +115,27 @@ const TAPESTRY_RULES = Object.freeze({
 		'Look through the landmark deck and keep 1 card, as you keep your drafted one; when you meet its goal, gain its landmark. If none is left, gain 10 VP',
 	migration:
 		'Explore a territory next to no territory anyone controls, yours included, with a tile from your supply. Then place 2 of your outposts there; this is not a conquer',
+	monuments:
+		'You may place income buildings and landmarks on this card instead of your capital city; a landmark may hang off it. When every square is covered, gain 8 VP or 1 culture, 1 coin, 1 food and 1 worker',
+	'national-parks':
+		'Instead of placing an income building or landmark in your capital city, you may place it on a territory you control that holds only your 1 outpost. Then roll the black or the red conquer die and gain its result',
 	plague: 'Draw a random civilization. Either it replaces one of yours and you gain 1 resource of your choice, or discard it and gain 10 VP. You keep what the replaced one gave you',
 	'political-posturing':
 		"Choose an achievement you haven't earned. Put your token on its highest open space and gain those VP",
 	spymaster:
 		'Gain 5 VP. Then draw 1 tapestry card; you may play it on top of this card at once',
+	'commercial-center':
+		'You may place income buildings and landmarks on this card instead of your capital city. For each square you cover, gain its benefit or 3 VP',
 	'found-art':
 		'When you pay to advance on Arts, you may discard 2 territory tiles instead of paying one of its resources',
 	'silk-road':
 		"Advance straight to the first space of Arts' next tier. Gain its benefit, and you may pay its bonus, or its landmark if it is still there",
+	'space-race':
+		'When you gain a landmark, if this card holds none, you may place it here. Then gain 1 space tile and explore a space tile',
+	'star-chamber':
+		'You may place income buildings and landmarks on this card instead of your capital city; a landmark may hang off it. When every square is covered, advance on any track with its benefit; you may take its bonus for free',
+	'trade-routes':
+		'When you gain a landmark, you may place it on this card. Then conquer, gaining the results of both conquer dice, and gain 5 VP for each landmark on this card',
 	steam: 'Whenever you advance into a new tier on Science or Arts, gain 1 worker',
 });
 

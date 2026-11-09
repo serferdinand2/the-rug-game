@@ -91,6 +91,7 @@ import { chooseCube } from './decisions/choose-cube.js';
 import { leadersAdvance } from './civs/leaders.js';
 import { merrymakersMove } from './civs/merrymakers.js';
 import { retreatTo, surrenderDice } from './responses.js';
+import { parksRoll } from './card-pieces.js';
 import {
 	enlightenmentMoves,
 	enlightenmentRolled,
@@ -268,6 +269,7 @@ Object.assign(AUTOMATIC, {
 	enlightenmentMoves,
 	silkRoadGain,
 	plagueChoice,
+	parksRoll,
 	cartographyCheck,
 	manifestDestinyBenefit,
 	territoryBenefit,

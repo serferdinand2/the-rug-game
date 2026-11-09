@@ -12,6 +12,7 @@ import { describeCost } from './describe.js';
 import { PROPHECIES, TINKERERS_OPTION_NAMES } from './decision-words.js';
 import { landmarkGoalPhrase } from './cards/landmark-text.js';
 import { LANDMARK_CARDS } from './engine/data/landmark-cards.js';
+import { BUILDING_IDS } from './engine/data/ids.js';
 import {
 	article,
 	capitalize,
@@ -600,7 +601,26 @@ const WORDS = {
 			? `${name} drew ${civWords(e.civ)} with Plague.`
 			: null,
 	piecePlacedOnMap: (e, game, name) =>
-		`${name} placed ${pieceWords(e.piece)} on ${hexName(e.hex)}.`,
+		e.parks === true
+			? `${name} placed ${pieceWords(e.piece)} on ${hexName(e.hex)} with National Parks.`
+			: `${name} placed ${pieceWords(e.piece)} on ${hexName(e.hex)}.`,
+	// A&A's tapestry cards that hold pieces (#37).
+	piecePlacedOnCard: (e, game, name) =>
+		`${name} placed ${pieceWords(e)} on ${tapestryName(e.card)}.`,
+	parksDieRolled: (e, game, name) =>
+		e.die === 'red' || e.die === 'black'
+			? `${name} rolled the ${e.die} conquer die for National Parks.`
+			: null,
+	cardPiecesMoved(e, game, name) {
+		const pieces = strings(e.pieces).map((id) =>
+			BUILDING_IDS.includes(/** @type {any} */ (id))
+				? `its ${buildingName(id)}`
+				: landmarkWords(id)
+		);
+		return pieces.length > 0
+			? `${capitalize(tapestryName(e.card))} was covered: ${name} put ${joinList(pieces)} beside their capital mat.`
+			: null;
+	},
 	// A&A's landmark tech cards (#37): the upgrade that follows has its own line.
 	landmarkPlacedOnTech: (e, game, name) =>
 		`${name} placed ${landmarkWords(e.landmark)} on ${techName(e.card)}.`,

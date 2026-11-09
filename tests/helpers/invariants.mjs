@@ -287,6 +287,12 @@ export function checkState(state, previousSeq = 0) {
 				),
 				// #37: on A&A's landmark tech cards, each holding one, in a row of its owner's.
 				...Object.values(p.techLandmarks ?? {}),
+				// #37: on A&A's tapestry cards.
+				...Object.values(p.onCards ?? {}).flatMap((pieces) =>
+					pieces.flatMap((piece) =>
+						'landmark' in piece ? [piece.landmark] : []
+					)
+				),
 			]),
 			...pieces.flatMap((piece) =>
 				'landmark' in piece ? [piece.landmark] : []
@@ -333,6 +339,13 @@ export function checkState(state, previousSeq = 0) {
 						'building' in o.piece &&
 						o.piece.building === building
 				).length +
+				// #37: on A&A's tapestry cards.
+				Object.values(p.onCards ?? {})
+					.flat()
+					.filter(
+						(piece) =>
+							'building' in piece && piece.building === building
+					).length +
 				placing.filter(
 					(op) => op.player === p.seat && op.building === building
 				).length;

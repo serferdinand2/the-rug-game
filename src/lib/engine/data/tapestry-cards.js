@@ -66,6 +66,20 @@ const when = (id, played, ordered = true) => ({
 });
 
 /**
+ * A CONTINUOUS card (A&A, #37): it works while it tops its slot, and nothing runs when it is played.
+ * @param {string} id
+ * @returns {TapestryCard}
+ */
+const continuous = (id) => ({
+	id,
+	name: nameOf(id),
+	timing: 'continuous',
+	played: [],
+	ordered: true,
+	expansion: 'base',
+});
+
+/**
  * A Plans & Ploys card (#33; 03 §1.4), with its name when the slug doesn't give it.
  * @param {TapestryCard} card
  * @param {{ name?: string, response?: 'conquest' | 'trap' }} [extra]
@@ -242,6 +256,7 @@ export const TAPESTRY_CARDS = deepFreeze([
 	}),
 	// Arts & Architecture (#37; 03 §2.5).
 	aa(when('age-of-enlightenment', [{ ageOfEnlightenment: {} }])),
+	aa(continuous('commercial-center')),
 	aa(era('artistic-inspiration')),
 	aa(era('found-art')),
 	aa(
@@ -258,6 +273,7 @@ export const TAPESTRY_CARDS = deepFreeze([
 	aa(when('infrastructure-upgrade', [{ infrastructureUpgrade: {} }])),
 	// Explored with a tile from the supply, VP and benefit as any explore (03 §2.5).
 	aa(when('migration', [{ explore: { migration: true } }])),
+	aa(continuous('monuments')),
 	aa(
 		when('moon-landing', [
 			{
@@ -278,10 +294,13 @@ export const TAPESTRY_CARDS = deepFreeze([
 			},
 		])
 	),
+	aa(era('national-parks')),
 	aa(when('plague', [{ plague: {} }])),
 	aa(when('political-posturing', [{ politicalPosturing: {} }])),
 	aa(when('silk-road', [{ silkRoad: {} }])),
+	aa(era('space-race')),
 	aa(when('spymaster', [{ vp: 5 }, { spymaster: {} }])),
+	aa(continuous('star-chamber')),
 	// Mandatory where possible; the arts track is in play whenever this card is (R124).
 	aa(
 		when('government-grants', [
@@ -300,7 +319,28 @@ export const TAPESTRY_CARDS = deepFreeze([
 		])
 	),
 	aa(era('steam'), { name: 'S.T.E.A.M.' }),
+	aa(era('trade-routes')),
 ]);
+
+/**
+ * A&A's building-plot cards (#37; 03 §2.5): their squares row by row ('X' a square), and Commercial Center's printed
+ * benefit on each square in reading order: 1 coin, 1 tapestry card, invent, a science-die roll without benefit (my
+ * call: the research lists them in this order, the card's layout isn't in it).
+ * @type {Readonly<Record<string, { grid: readonly string[], squares?: readonly Effect[][] }>>}
+ */
+export const PLOT_CARDS = deepFreeze({
+	'commercial-center': {
+		grid: ['XX', 'XX'],
+		squares: [
+			[{ gain: { coin: 1 } }],
+			[{ gain: { tapestry: 1 } }],
+			[{ invent: {} }],
+			[{ research: { noBenefit: true } }],
+		],
+	},
+	monuments: { grid: ['..X', '.XX', 'XXX'] },
+	'star-chamber': { grid: ['.X.', 'XXX', '.X.'] },
+});
 
 /**
  * A tapestry card by id; each of the 7 trap copies is the trap.

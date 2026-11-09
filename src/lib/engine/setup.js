@@ -209,7 +209,7 @@ function newSeat(seat, name, tracks, aa) {
 		landmarkCard: null,
 		start: null,
 		...(arts && { masterpieces: [], inspired: [] }),
-		...(aa && { techLandmarks: {}, extraLandmarkCards: [] }),
+		...(aa && { techLandmarks: {}, extraLandmarkCards: [], onCards: {} }),
 	};
 }
 

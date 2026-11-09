@@ -211,6 +211,19 @@ const SAMPLES = {
 		card: 'astrolabe',
 	},
 	plagueDrawn: { player: 1, civ: 'the-chosen' },
+	piecePlacedOnCard: {
+		player: 1,
+		card: 'commercial-center',
+		building: 'farm',
+		row: 0,
+		col: 1,
+	},
+	parksDieRolled: { player: 1, die: 'red', face: 2 },
+	cardPiecesMoved: {
+		player: 1,
+		card: 'commercial-center',
+		pieces: ['farm', 'barracks'],
+	},
 	spaceActivated: { player: 1, track: 'exploration', space: 1 },
 	spaceExplored: { player: 1, tile: 7 },
 	spiesUsed: {
@@ -1068,5 +1081,52 @@ test("Plague's draw and Migration's outposts (#37)", () => {
 			GAME
 		),
 		'Ana placed an outpost on hex 0,3 with Migration.'
+	);
+});
+
+test("pieces on A&A's tapestry cards, and National Parks' die (#37)", () => {
+	const text = (/** @type {Record<string, any>} */ e) => eventText(e, GAME);
+	assert.equal(
+		text({
+			type: 'piecePlacedOnCard',
+			player: 1,
+			card: 'commercial-center',
+			building: 'farm',
+			row: 0,
+			col: 1,
+		}),
+		'Ana placed a Farm on Commercial Center.'
+	);
+	assert.equal(
+		text({
+			type: 'piecePlacedOnCard',
+			player: 1,
+			card: 'space-race',
+			landmark: 'barracks',
+		}),
+		'Ana placed the Barracks on Space Race.'
+	);
+	assert.equal(
+		text({ type: 'parksDieRolled', player: 1, die: 'red', face: 2 }),
+		'Ana rolled the red conquer die for National Parks.'
+	);
+	assert.equal(
+		text({
+			type: 'cardPiecesMoved',
+			player: 1,
+			card: 'commercial-center',
+			pieces: ['farm', 'barracks'],
+		}),
+		'Commercial Center was covered: Ana put its Farm and the Barracks beside their capital mat.'
+	);
+	assert.equal(
+		text({
+			type: 'piecePlacedOnMap',
+			player: 1,
+			hex: '0_3',
+			piece: { building: 'farm' },
+			parks: true,
+		}),
+		'Ana placed a Farm on hex 0,3 with National Parks.'
 	);
 });

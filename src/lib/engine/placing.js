@@ -18,6 +18,7 @@ import { nomadsHexes } from './civs/nomads.js';
 import { holdsLandmark, isLocked } from './tech.js';
 import { upgradeCard } from './effects/tech.js';
 import { techCard } from './data/tech-cards.js';
+import { cardPlaces } from './card-pieces.js';
 import { plotIndex } from '../capital.js';
 
 /** @typedef {{ building: import('./data/ids.js').BuildingId } | { landmark: string }} Piece */
@@ -25,7 +26,8 @@ import { plotIndex } from '../capital.js';
 /**
  * Where a gained piece may go: a capital plot (with a turn for a landmark), a Craftsmen column, a Nomads hex, an A&A
  * landmark tech card (#37), or beside the mat when the capital has no room but another place does (#20 design §9).
- * @typedef {{ row: number, col: number, rotation?: number } | { craftsmen: number } | { hex: string } | { tech: string } | { besideMat: true }} Placement
+ * A&A's tapestry cards add plot squares, Space Race and Trade Routes (`card`) and National Parks' territories (`parks`).
+ * @typedef {{ row: number, col: number, rotation?: number } | { craftsmen: number } | { hex: string } | { tech: string } | { card: string, row?: number, col?: number, rotation?: number } | { hex: string, parks: true } | { besideMat: true }} Placement
  */
 
 /**
@@ -293,7 +295,7 @@ function techPlaces(state, player) {
 
 /**
  * The places a piece may go other than the capital: the Craftsmen's columns with room (income buildings only),
- * then the Nomads' hexes, then the landmark tech cards (landmarks only, #37).
+ * then the Nomads' hexes, then the landmark tech cards (landmarks only, #37), then A&A's tapestry cards' (#37).
  * @param {import('./state.js').State} state
  * @param {number} player
  * @param {Piece} piece
@@ -310,6 +312,7 @@ function otherPlaces(state, player, piece) {
 		...('landmark' in piece
 			? techPlaces(state, player).map((tech) => ({ tech }))
 			: []),
+		...cardPlaces(state, player, piece),
 	];
 }
 
