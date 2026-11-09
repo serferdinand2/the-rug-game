@@ -23,6 +23,8 @@ import { artUrl } from '../ui.js';
  * @property {string} [innovation] - Or the income-mat innovation it needs, by its printed name (R18)
  * @property {'market' | 'house' | 'farm' | 'armory'} [innovationRow] - Its income row, for the matching accent color
  * @property {string} [edition] - Its edition's code, such as 'aa'; the base game when not given
+ * @property {'landmark' | 'none'} [prerequisite] - A&A's: a landmark on the card itself, or none at all (#37)
+ * @property {string} [held] - In a game, the landmark this landmark tech card holds (#37)
  */
 
 /**
@@ -88,9 +90,10 @@ function innovationSpace(id) {
  * A tech card's face: its art, its circle and square benefits in words, and its top-row prerequisite, a track tier
  * or an income-mat innovation (R18), when it has one of those.
  * @param {string} id - A tech card id, such as 'clocks'
+ * @param {{ held?: string }} [game] - In a game: the landmark the card holds (A&A, #37)
  * @returns {TechnologyCardData}
  */
-export function techCardData(id) {
+export function techCardData(id, { held } = {}) {
 	const card = techCard(id);
 	/** @type {TechnologyCardData} */
 	const data = {
@@ -110,8 +113,16 @@ export function techCardData(id) {
 	} else if ('track' in need) {
 		data.track = need.track;
 		data.level = need.tier;
+	} else {
+		data.prerequisite = 'landmark' in need ? 'landmark' : 'none';
 	}
-	// A&A's landmark on the card and Suburbs' none show nothing yet; #37 part 4 draws them.
+	// An expansion's card names its edition, for the chip at its foot (#37).
+	if (card.expansion !== 'base') {
+		data.edition = card.expansion;
+	}
+	if (held !== undefined) {
+		data.held = held;
+	}
 	return data;
 }
 

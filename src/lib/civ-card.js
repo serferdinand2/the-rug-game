@@ -50,8 +50,12 @@ export const CARD_CIVS = Object.freeze([
 	'traders',
 	'isolationists',
 	'heralds',
-	// A&A (#37): each item collected marks its space.
+	// A&A (#37): each item collected marks its space; the Relentless' tokens, the Renegades' space and the Urban
+	// Planners' kept landmarks show too.
 	'collectors',
+	'relentless',
+	'renegades',
+	'urban-planners',
 ]);
 
 /** The token reserves whose civData counts the tokens still on the card (#180), with how many each starts with. */
@@ -105,6 +109,21 @@ export function civCardMarks(civ, data) {
 		case 'collectors':
 			for (const type of Object.keys(data.items)) {
 				mark(type, 'token');
+			}
+			break;
+		case 'relentless':
+			for (let i = 0; i < data.tokens; i++) {
+				mark('tokens', 'token');
+			}
+			break;
+		case 'renegades':
+			if (data.at > 0) {
+				mark(`tier${data.at}`, 'token');
+			}
+			break;
+		case 'urban-planners':
+			for (const landmark of data.stored) {
+				mark(`stored-${landmark}`, 'token');
 			}
 			break;
 		case 'entertainers':

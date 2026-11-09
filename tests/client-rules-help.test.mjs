@@ -339,3 +339,24 @@ test("Arts & Architecture's landmark cards have their own section, with the engi
 	}
 	assert.match(text, /one card more than there are players/);
 });
+
+test("Arts & Architecture's cards have their own section: the cards that hold pieces, the landmark tech cards and Spymaster (#37)", async () => {
+	const { rulesSections } = await import('../src/lib/rules-help.js');
+	const cards = section('aa-cards');
+	assert.equal(cards.expansion, 'aa');
+	assert.ok(rulesSections(['aa']).some((s) => s.id === 'aa-cards'));
+	assert.ok(!rulesSections(['pp']).some((s) => s.id === 'aa-cards'));
+	const text = lines('aa-cards').join(' ');
+	// R124.
+	assert.match(text, /20 tapestry cards and 11 tech cards/);
+	assert.match(text, /Without the arts track, the ones that name it stay out of the decks/);
+	assert.match(text, /Commercial Center, Monuments and Star Chamber/);
+	assert.match(text, /never copied/);
+	assert.match(text, /beside your capital mat/);
+	// R126.
+	assert.match(text, /bottom or middle row/);
+	assert.match(text, /upgrades it at once/);
+	// R127.
+	assert.match(text, /reaches the end of a track/);
+	assert.match(text, /whenever they hold a tapestry card/);
+});

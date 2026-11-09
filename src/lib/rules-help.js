@@ -306,6 +306,26 @@ export const RULES_HELP = deepFreeze([
 			},
 		],
 	},
+	// #37; 03 §2.5, the A&A tech cards, R124, R126, R127.
+	{
+		id: 'aa-cards',
+		title: 'A&A cards',
+		expansion: 'aa',
+		blocks: [
+			{
+				text: 'Arts & Architecture adds 20 tapestry cards and 11 tech cards; their rules are on the cards. Without the arts track, the ones that name it stay out of the decks.',
+			},
+			{
+				text: 'Commercial Center, Monuments and Star Chamber are Continuous: they work while they top their era slot, and are never copied. Instead of your capital city, you may place income buildings and landmarks on them; a landmark may hang off the card. Pieces there are yours but not part of your capital. If another card covers one, its pieces go beside your capital mat.',
+			},
+			{
+				text: 'A landmark tech card in your bottom or middle row may hold a landmark you gain: placing it there upgrades it at once, before what gave you the landmark goes on. Duct Tape ignores even that prerequisite.',
+			},
+			{
+				text: "Spymaster: when a player reaches the end of a track, their neighbours are asked whenever they hold a tapestry card, so nobody learns who holds it. A&A's civilizations show their full text when you point at a player's chip.",
+			},
+		],
+	},
 	// #35 part 3; 03 §2.10, §7.
 	{
 		id: 'aa-landmark-cards',

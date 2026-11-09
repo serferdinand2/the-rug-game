@@ -202,3 +202,23 @@ test("the current era is the active card's slot, else the latest with a card (#1
 	assert.equal(faceDown?.faceDown, true);
 	assert.equal(currentEra([]), null);
 });
+
+test("an era slot names the pieces its top card holds, A&A's Commercial Center and the like (#37)", () => {
+	const seat = {
+		era: null,
+		incomeTurns: 2,
+		incomeMat: {
+			tapestry: [['commercial-center'], [], [], []],
+			faceDown: [],
+		},
+		onCards: {
+			'commercial-center': [
+				{ building: 'farm', row: 0, col: 0 },
+				{ landmark: 'forge', row: 0, col: 1, rotation: 0 },
+			],
+		},
+	};
+	const [first, second] = eraSlots(seat);
+	assert.deepEqual(first.pieces, ['a Farm', 'the Forge']);
+	assert.deepEqual(second.pieces, []);
+});

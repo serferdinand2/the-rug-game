@@ -1,4 +1,4 @@
-<!-- Library examples for the TechnologyCard frame, each drawn from the engine's data (#108). -->
+<!-- Library examples for the TechnologyCard frame, each drawn from the engine's data (#108), A&A's new prerequisites first (#37). -->
 <script>
 	import TechnologyCard from '../../../lib/components/player/TechnologyCard.svelte';
 	import { techCardData } from '../../../lib/cards/game-cards.js';
@@ -10,6 +10,27 @@
 	name="TechnologyCard"
 	area="player"
 	description="425 px horizontal technology cards with square and circle benefits, full artwork and prerequisites, each a real card from the engine's data. All six landmark-granting innovation cards are included so their square-benefit landmark hover details can be checked here.">
+	<!-- #37: Arts & Architecture's new prerequisites, awaiting review. -->
+	<Example
+		label="data=techCardData('astrolabe') · A&A, a landmark on this card · awaiting review"
+		width={425}>
+		<TechnologyCard data={techCardData('astrolabe')} />
+	</Example>
+	<Example
+		label="data=techCardData('astrolabe', {'{'} held: 'forge' {'}'}) · holding the Forge in a game · awaiting review"
+		width={425}>
+		<TechnologyCard data={techCardData('astrolabe', { held: 'forge' })} />
+	</Example>
+	<Example
+		label="data=techCardData('suburbs') · A&A, no prerequisite · awaiting review"
+		width={425}>
+		<TechnologyCard data={techCardData('suburbs')} />
+	</Example>
+	<Example
+		label="data=techCardData('opera') · A&A, Arts 2"
+		width={425}>
+		<TechnologyCard data={techCardData('opera')} />
+	</Example>
 	<Example
 		label="data=techCardData('clocks') · Technology 2"
 		width={425}>

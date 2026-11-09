@@ -20,7 +20,7 @@
 	import CardBand from './CardBand.svelte';
 	import CardEdition from './CardEdition.svelte';
 	import { techCardData } from '../../cards/game-cards.js';
-	import { trackName } from '../../game-names.js';
+	import { landmarkName, trackName } from '../../game-names.js';
 	import { artUrl } from '../../ui.js';
 	import '../../../styles/card-layouts.css';
 
@@ -84,6 +84,14 @@
 					<b class="rg-tech-layout--innovation-name"
 						>{card.innovation}</b>
 					<b>uncovered</b>
+				{:else if card.prerequisite === 'landmark' && card.held}
+					<img
+						src={artUrl(`landmark/${card.held}`)}
+						alt="" /><b>Holds the {landmarkName(card.held)}</b>
+				{:else if card.prerequisite === 'landmark'}
+					<b>A landmark on this card</b>
+				{:else if card.prerequisite === 'none'}
+					<b>No prerequisite</b>
 				{:else if card.track}
 					<img
 						src={artUrl(`track/${card.track}`)}

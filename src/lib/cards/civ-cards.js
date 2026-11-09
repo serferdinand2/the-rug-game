@@ -28,7 +28,13 @@ import { TRADERS_TOKENS } from '../engine/civs/traders.js';
 import { UTILITARIANS_TOKENS } from '../engine/civs/utilitarians.js';
 import { ASSETS } from '../art/catalog.js';
 import { artUrl } from '../ui.js';
-import { buildingName, civilizationName, trackName } from '../game-names.js';
+import {
+	buildingName,
+	civilizationName,
+	landmarkName,
+	trackName,
+} from '../game-names.js';
+import { joinList } from '../words.js';
 
 /** @typedef {import('../ui.js').CostSymbol} CostSymbol */
 /** @typedef {import('../engine/data/ids.js').VersionId} VersionId */
@@ -313,6 +319,28 @@ function clarity(context, text, setup = {}, space = {}) {
 	return text.length === 0 && line === null
 		? []
 		: [{ pattern: 'clarity', ...space, text, setup: line }];
+}
+
+/**
+ * The Relentless' token box label: how many tokens lie on the mat in a game (#37).
+ * @param {CivCardContext} context
+ * @returns {string}
+ */
+function tokensLabel(context) {
+	const count = context.marks.tokens?.length ?? 0;
+	return count === 0 ? 'Token' : `${count} here`;
+}
+
+/**
+ * The Urban Planners' kept landmarks in a game, as a line of their box (#37).
+ * @param {CivCardContext} context
+ * @returns {string[]}
+ */
+function storedLine(context) {
+	const kept = Object.keys(context.marks)
+		.filter((spot) => spot.startsWith('stored-'))
+		.map((spot) => `the ${landmarkName(spot.slice('stored-'.length))}`);
+	return kept.length > 0 ? [` On this mat now: ${joinList(kept)}.`] : [];
 }
 
 /**
@@ -1375,7 +1403,8 @@ const RECIPES = {
 				effects: [
 					{
 						title: 'End of a turn with a building',
-						label: 'Token',
+						label: tokensLabel(context),
+						spot: 'tokens',
 						symbolText: 12,
 						text: [
 							'At the end of each income or advance turn on which you gained an income building or a landmark, put a token here.',
@@ -1451,6 +1480,7 @@ const RECIPES = {
 						symbolText: 12,
 						text: [
 							'You may keep it on this mat, and place it in your capital at the start of a turn or before you end one.',
+							...storedLine(context),
 						],
 					},
 					{
@@ -1483,6 +1513,7 @@ const RECIPES = {
 					{
 						title: 'Tier I',
 						label: 'I',
+						spot: 'tier1',
 						symbolText: 12,
 						text: [
 							'1 tapestry card and an income building of your choice.',
@@ -1491,6 +1522,7 @@ const RECIPES = {
 					{
 						title: 'Tier II',
 						label: 'II',
+						spot: 'tier2',
 						symbolText: 12,
 						text: [
 							'Roll the science die and advance with the benefit, then invent a tech card.',
@@ -1499,12 +1531,14 @@ const RECIPES = {
 					{
 						title: 'Tier III',
 						label: 'III',
+						spot: 'tier3',
 						symbolText: 12,
 						text: ['Explore, conquer, then upgrade a tech card.'],
 					},
 					{
 						title: 'Tier IV',
 						label: '20 VP',
+						spot: 'tier4',
 						symbolText: 12,
 						text: [
 							'20 VP; reaching it completes a track for the achievement.',

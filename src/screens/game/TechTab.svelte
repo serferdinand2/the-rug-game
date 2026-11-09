@@ -5,6 +5,7 @@
 	 * @typedef {Object} TechTabOwnProps
 	 * @property {string} title - The translated heading
 	 * @property {any} tech - The player's technology rows
+	 * @property {Record<string, string>} [held] - The landmark each of A&A's landmark tech cards holds (#37)
 	 * @property {number} deck - The number of cards still in the deck
 	 * @property {string[]} faceUp - The cards in the display
 	 * @property {Function} [onTechTabInspect] - Callback fired with the inspected card id, or null on leave
@@ -29,7 +30,8 @@
 	import TechRows from '../../lib/components/player/TechRows.svelte';
 
 	/** @type {TechTabProps} */
-	let { title, tech, deck, faceUp, onTechTabInspect, ...attr } = $props();
+	let { title, tech, held, deck, faceUp, onTechTabInspect, ...attr } =
+		$props();
 
 	/**
 	 * @param {ComponentEvent} event
@@ -65,6 +67,7 @@
 	<h2 class="rg-player-tabs--title">{title}</h2>
 	<TechRows
 		{tech}
+		{held}
 		onTechRowsInspect={rowsInspectHandler} />
 	<section class="rg-player-tabs--row">
 		<h3 class="rg-player-tabs--row-title">

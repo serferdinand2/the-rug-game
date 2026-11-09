@@ -3,7 +3,12 @@ import { describeEffects } from '../describe.js';
 import { exposedSpaces } from '../engine/game.js';
 import { INCOME_MAT, INSPIRED_MAT } from '../engine/data/income-mat.js';
 import { BUILDING_IDS } from '../engine/data/ids.js';
-import { buildingName, roman, tapestryName } from '../game-names.js';
+import {
+	buildingName,
+	landmarkName,
+	roman,
+	tapestryName,
+} from '../game-names.js';
 import { article, pluralOf } from '../words.js';
 import { spaceGlyphs } from '../glyphs.js';
 
@@ -41,6 +46,7 @@ import { spaceGlyphs } from '../glyphs.js';
  * @property {string | null} id - The top card's id, null for Maker of Fire, an empty slot or a face-down card
  * @property {string} heading - "Era II", or "Era II · Active" for the active slot
  * @property {string} text - The card's name, "Face-down card" or "Not yet chosen"
+ * @property {string[]} pieces - What the top card holds, such as "a Farm" or "the Forge" (A&A's cards, #37)
  */
 
 /**
@@ -101,8 +107,15 @@ export function eraSlots(seat) {
 	const active = seat.era?.card ?? null;
 	return [1, 2, 3, 4].map((era) => {
 		const slot = eraSlot(seat, era, active);
+		/** @type {any[]} */
+		const held = (slot.id && seat.onCards?.[slot.id]) || [];
 		return {
 			...slot,
+			pieces: held.map((piece) =>
+				'building' in piece
+					? `${article(buildingName(piece.building))} ${buildingName(piece.building)}`
+					: `the ${landmarkName(piece.landmark)}`
+			),
 			heading: `Era ${roman(era)}${slot.active ? ' · Active' : ''}`,
 			text:
 				slot.card ??
@@ -144,7 +157,7 @@ export function currentEra(slots) {
  * @param {any} seat
  * @param {number} era
  * @param {string | null} active - The card the seat's THIS ERA ability rests on
- * @returns {Omit<EraSlotView, 'heading' | 'text'>}
+ * @returns {Omit<EraSlotView, 'heading' | 'text' | 'pieces'>}
  */
 function eraSlot(seat, era, active) {
 	const stack = seat.incomeMat.tapestry[era - 1] ?? [];

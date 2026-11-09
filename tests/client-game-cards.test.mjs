@@ -287,3 +287,16 @@ test('the card faces the audit checked say exactly what the engine does', () => 
 	// Radio draws from the civilization deck (02 §4 #22).
 	assert.match(tech('radio').square, /draw another civilization/i);
 });
+
+test("A&A's tech cards show their edition and their new prerequisites (#37)", () => {
+	const astrolabe = techCardData('astrolabe');
+	assert.equal(astrolabe.edition, 'aa');
+	assert.equal(astrolabe.prerequisite, 'landmark');
+	assert.equal(techCardData('suburbs').prerequisite, 'none');
+	assert.equal(techCardData('oil-paint').track, 'arts');
+	assert.equal(techCardData('oil-paint').level, 2);
+	assert.equal(techCardData('clocks').prerequisite, undefined);
+	assert.equal(techCardData('clocks').edition, undefined);
+	// In a game, a landmark tech card names the landmark it holds.
+	assert.equal(techCardData('astrolabe', { held: 'forge' }).held, 'forge');
+});

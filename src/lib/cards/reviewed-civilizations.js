@@ -75,6 +75,10 @@ export const SAMPLE_CIV_DATA = Object.freeze({
 	traders: { tokens: 2 },
 	isolationists: { tokens: 3 },
 	heralds: { tokens: 3, cards: [] },
+	// #37: 2 tokens on the mat, the token on space II, the Forge kept.
+	relentless: { tokens: 2 },
+	renegades: { at: 2 },
+	'urban-planners': { stored: ['forge'] },
 	// The outpost, the house and the tech card collected, as the reviewed illustration showed them (#37).
 	collectors: {
 		items: { outpost: true, house: true, tech: 'eyeglasses' },
@@ -129,9 +133,5 @@ export const SAMPLE_VIEWS = Object.freeze({
 	islanders: sample([], 'token'),
 	recyclers: sample([], 'token'),
 	riverfolk: sample([], 'token'),
-	// #37: no token yet; part 4 shows the count on the card.
-	relentless: sample([], 'token'),
-	renegades: sample([], 'token'),
 	gamblers: sample([], 'token'),
-	'urban-planners': sample([], 'token'),
 });
