@@ -349,7 +349,10 @@ test("Arts & Architecture's cards have their own section: the cards that hold pi
 	const text = lines('aa-cards').join(' ');
 	// R124.
 	assert.match(text, /20 tapestry cards and 11 tech cards/);
-	assert.match(text, /Without the arts track, the ones that name it stay out of the decks/);
+	assert.match(
+		text,
+		/Without the arts track, the ones that name it stay out of the decks/
+	);
 	assert.match(text, /Commercial Center, Monuments and Star Chamber/);
 	assert.match(text, /never copied/);
 	assert.match(text, /beside your capital mat/);
