@@ -132,8 +132,8 @@ const ARTS_TAPESTRY = [
 
 /**
  * The tapestry cards a game with these expansions plays with: the base 50, then Plans & Ploys' 13 (R43 and R44 leave
- * out the other two; the catalog lists only these), then A&A's built ones (#37), each in catalog order (#33). Without
- * the arts track, A&A's cards with the arts icon are left out (R124).
+ * out the other two; the catalog lists only these), then A&A's built ones (#37), then F&F's built ones (#39), each in
+ * catalog order (#33). Without the arts track, A&A's cards with the arts icon are left out (R124).
  * @param {readonly string[]} expansions
  * @param {readonly string[]} [variants]
  * @returns {string[]}
@@ -148,6 +148,12 @@ export function tapestryFor(expansions, variants = []) {
 					(id) =>
 						TAPESTRY_CARDS.some((card) => card.id === id) &&
 						(arts || !ARTS_TAPESTRY.includes(id))
+				)
+			: []),
+		// F&F's cards as each is built (#39, #40); none leaves without the arts track (R81, #39 design §8).
+		...(expansions.includes('ff')
+			? slugsOf('tapestry', 'ff').filter((id) =>
+					TAPESTRY_CARDS.some((card) => card.id === id)
 				)
 			: []),
 	];

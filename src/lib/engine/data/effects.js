@@ -102,6 +102,8 @@ import { deepFreeze } from './ids.js';
  * - `create`, `inspire`, `broadcast`, `refreshMasterpieces`, `streamingImplants`: Arts & Architecture's masterpieces and
  *   inspiration tiles (03 §2.2–2.8); `flipMasterpiece` turns the masterpiece firing face down (a single-use card's).
  * - `collectOutpost`: put an outpost from the supply on the Collectors' mat, instead of conquering (R129, #37).
+ * - `charm`: one F&F card's left or right charm bonus; `ability`: a placed card's own ability, which may come before or
+ *   after its charms (03 FF.2.1, #39).
  * - `politicalPosturing`, `spymaster`, `ageOfEnlightenment`, `silkRoad`, `infrastructureUpgrade`, `plague`, `granges`: the rules of the Arts & Architecture card of that name (#37).
  * @typedef {{ gain: Gain }
  *   | { lose: { culture?: number, any?: number } }
@@ -166,7 +168,9 @@ import { deepFreeze } from './ids.js';
  *   | { infrastructureUpgrade: {} }
  *   | { plague: {} }
  *   | { granges: {} }
- *   | { collectOutpost: {} }} Effect
+ *   | { collectOutpost: {} }
+ *   | { charm: { card: string, side: 'left' | 'right' } }
+ *   | { ability: { card: string, era: number } }} Effect
  */
 
 /**

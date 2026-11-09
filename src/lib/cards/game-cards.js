@@ -39,6 +39,7 @@ import { artUrl } from '../ui.js';
  * @property {string} [note] - The trap's note: what it gains played as a tapestry card (R22)
  * @property {boolean} [trap] - It is the trap, which has its own red band
  * @property {string} [edition] - Its edition's code, such as 'pp'; the base game when not given
+ * @property {{ left?: string, right?: string }} [charms] - F&F's charm bonuses in words (#39)
  */
 
 /**
@@ -159,6 +160,16 @@ export function tapestryCardData(id) {
 	// An expansion's card names its edition, for the chip at its foot (#33).
 	if (card.expansion !== 'base') {
 		data.edition = card.expansion;
+	}
+	// F&F's charms, each side in words (#39).
+	if (card.charms) {
+		data.charms = {};
+		for (const side of /** @type {const} */ (['left', 'right'])) {
+			const effects = card.charms[side];
+			if (effects) {
+				data.charms[side] = sentence(describeEffects(effects));
+			}
+		}
 	}
 	return data;
 }

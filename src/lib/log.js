@@ -907,6 +907,8 @@ const WORDS = {
 			? `${name} drew a tech card.`
 			: `${name} drew ${e.count} tech cards to keep one.`;
 	},
+	charmGained: (e, game, name) =>
+		`${name} gained ${tapestryName(e.card)}'s ${e.side === 'right' ? 'right' : 'left'} charm.`,
 	techFlipped: (e, game, name) =>
 		`${name} flipped ${techName(e.card)}: its single use is spent.`,
 	techRecycled: (e, game, name) =>

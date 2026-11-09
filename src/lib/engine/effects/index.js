@@ -67,6 +67,7 @@ import { infrastructureUpgrade } from '../landmark-cards.js';
 import { collectOutpost } from '../civs/collectors.js';
 import { gainCiv, plague } from '../civ-turns.js';
 import { discardCiv, placeToken } from '../civs/civ.js';
+import { ability, charm, charmOnlyGains } from '../charms.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
@@ -134,6 +135,8 @@ export const EFFECTS = {
 	plague,
 	granges,
 	collectOutpost,
+	charm,
+	ability,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */
@@ -148,12 +151,16 @@ function kindOf(effect) {
 }
 
 /**
- * A plain gain: resources, tiles, cards or a fixed number of VP. It only adds and reads nothing,
- * so running it before a benefit's other parts never costs the player anything.
+ * A plain gain: resources, tiles, cards or a fixed number of VP, or an F&F charm of only those. It only adds and reads
+ * nothing, so running it before a benefit's other parts never costs the player anything.
  * @param {AnyEffect} effect
  * @returns {boolean}
  */
 function isGain(effect) {
+	// A charm that only gains is a gain too (#39).
+	if ('charm' in effect) {
+		return charmOnlyGains(effect.charm, isGain);
+	}
 	return 'gain' in effect || typeof effect.vp === 'number';
 }
 

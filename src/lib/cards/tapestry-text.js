@@ -138,6 +138,29 @@ const TAPESTRY_RULES = Object.freeze({
 		'You may place income buildings and landmarks on this card instead of your capital city; a landmark may hang off it. When every square is covered, advance on any track with its benefit; you may take its bonus for free',
 	'trade-routes':
 		'When you gain a landmark, you may place it on this card. Then conquer, gaining the results of both conquer dice, and gain 5 VP for each landmark on this card',
+	// Fantasies & Futures' cards that reserve an item on the income mat's overlay (#39; 03 FF.4.3).
+	'ecstatic-visions':
+		"Draw 3 masterpieces (with the Arts track) or 3 space tiles. Place 1 on your income mat's overlay and shuffle the others back. On income turn 5, gain that masterpiece's benefits or explore that space tile",
+	'generation-ships':
+		"Draw 3 space tiles. Place 1 on your income mat's overlay and shuffle the others back. On income turn 5, explore it, or with the Arts track discard it to gain an inspiration tile",
+	'ghost-towns':
+		"Place a reminder on your income mat's overlay. On income turn 5, gain 3 VP for each income building still on your income mat",
+	'great-library-of-potions':
+		"Place your next Market on your income mat's overlay; it counts when scoring Markets. On income turn 5, place it in your capital city",
+	'lost-artifacts':
+		"Place a face-up tech card or the deck's top card on your income mat's overlay; it doesn't score until invented. On income turn 5, invent it and upgrade it twice, ignoring prerequisites",
+	'microbial-magic':
+		"Place your next Farm on your income mat's overlay; it counts when scoring Farms. On income turn 5, place it in your capital city",
+	'phantasmal-paladins':
+		"Place your next Armory on your income mat's overlay; it counts when scoring Armories. On income turn 5, place it in your capital city",
+	'quest-culture':
+		"Place 3 territory tiles from the supply on your income mat's overlay; they count when scoring territory tiles. On income turn 5, explore anywhere with them",
+	'secret-societies':
+		"Place your next House on your income mat's overlay; it counts when scoring Houses. On income turn 5, place it in your capital city",
+	'suspended-animation':
+		"Place a reminder on your income mat's overlay. On income turn 5, advance on any track and gain its benefit; you may take its bonus for free",
+	'zombie-army':
+		"Take up to 3 of your outposts from territories that hold that outpost and nothing else, and place them on your income mat's overlay. On income turn 5, conquer with each of them",
 	steam: 'Whenever you advance into a new tier on Science or Arts, gain 1 worker',
 });
 

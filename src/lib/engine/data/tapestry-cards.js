@@ -1,4 +1,4 @@
-// The 43 base tapestry cards, the trap played as a card, Plans & Ploys' cards (#33) and Arts & Architecture's (#37): timing and what happens when played (02 §3, 03 §1.4, §2.5).
+// The 43 base tapestry cards, the trap played as a card, Plans & Ploys' cards (#33), Arts & Architecture's (#37) and Fantasies & Futures' (#39): timing, what happens when played, and F&F's charms (02 §3, 03 §1.4, §2.5, FF.4).
 import { deepFreeze } from './ids.js';
 
 /** @typedef {import('./effects.js').Effect} Effect */
@@ -12,7 +12,11 @@ import { deepFreeze } from './ids.js';
  *   CONTINUOUS, active while the card tops its slot (#37)
  * @property {Effect[]} played - What runs when the card's ability resolves; a THIS ERA card's setup choice, if any
  * @property {boolean} ordered - Whether the effects run in the order listed (Renaissance is the only false)
- * @property {'base' | 'pp' | 'aa'} expansion - Where it comes from
+ * @property {'base' | 'pp' | 'aa' | 'ff'} expansion - Where it comes from
+ * @property {{ left?: Effect[], right?: Effect[] }} [charms] - F&F's charm bonuses (03 FF.2.1): the left one is gained
+ *   when the card is played to the right of another card, the right one the first time a card is placed to its right
+ * @property {Effect[]} [fifth] - What a card's reserved reminder token does on income turn 5 (Ghost Towns, Suspended
+ *   Animation; 03 FF.2.2)
  * @property {false} [solo] - Left out of solo games (Granges, 03 §2.11; #31 reads it)
  * @property {'conquest' | 'trap' | 'track'} [response] - A response card: 'conquest' a defender discards against a
  *   conquest (the trap, Retreat, Surprise Party, Surrender); 'trap' an attacker discards against a Trap (Double Cross,
@@ -96,6 +100,32 @@ const pp = (card, extra = {}) => ({ ...card, ...extra, expansion: 'pp' });
  * @returns {TapestryCard}
  */
 const aa = (card, extra = {}) => ({ ...card, ...extra, expansion: 'aa' });
+
+/**
+ * A Fantasies & Futures card (#39; 03 FF.4), with its charms and, for a reminder token, what it does on income turn 5.
+ * @param {TapestryCard} card
+ * @param {{ left?: Effect[], right?: Effect[] }} charms
+ * @param {{ fifth?: Effect[] }} [extra]
+ * @returns {TapestryCard}
+ */
+const ff = (card, charms, extra = {}) => ({
+	...card,
+	...extra,
+	charms,
+	expansion: 'ff',
+});
+
+/** Every track a game may play, the arts track last: an "any track" effect lists them all, and a game without the arts track skips it (R118). */
+const ANY_TRACK = /** @type {import('./ids.js').TrackId[]} */ ([
+	'exploration',
+	'science',
+	'technology',
+	'military',
+	'arts',
+]);
+
+/** Advance on any track without benefit or bonus (03 FF.2.4's arrow with an X). */
+const ADVANCE_ANY_X = { advance: { tracks: ANY_TRACK, noBenefit: true } };
 
 /**
  * A trade offer of VP for resources of the player's choice.
@@ -325,6 +355,15 @@ export const TAPESTRY_CARDS = deepFreeze([
 	),
 	aa(era('steam'), { name: 'S.T.E.A.M.' }),
 	aa(era('trade-routes')),
+	// Fantasies & Futures' cards that reserve an item (#39 design §8), in catalog order.
+	ff(when('ghost-towns', []), {
+		left: [ADVANCE_ANY_X],
+		right: [ADVANCE_ANY_X],
+	}),
+	ff(when('microbial-magic', []), {
+		left: [{ gain: { food: 1 } }, { vp: 5 }],
+		right: [{ vp: { per: 'territoryTile' } }],
+	}),
 ]);
 
 /**

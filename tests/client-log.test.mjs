@@ -251,6 +251,7 @@ const SAMPLES = {
 		secret: { cards: ['bakery', 'barn', 'compass'] },
 	},
 	techFlipped: { player: 1, card: 'mind-control' },
+	charmGained: { player: 1, card: 'microbial-magic', side: 'left' },
 	techRecycled: { player: 1, card: 'com-tower' },
 	techDisplayRefreshed: {
 		discarded: ['irrigation', 'telescope', 'compass'],
@@ -1226,5 +1227,20 @@ test("a single-use tech card's flip is worded (#39)", () => {
 			GAME
 		),
 		`${GAME.seats[0].name} flipped Mind Control: its single use is spent.`
+	);
+});
+
+test('a charm gained is worded (#39)', () => {
+	assert.equal(
+		eventText(
+			{
+				type: 'charmGained',
+				player: 1,
+				card: 'microbial-magic',
+				side: 'right',
+			},
+			GAME
+		),
+		`${GAME.seats[0].name} gained Microbial Magic's right charm.`
 	);
 });

@@ -168,8 +168,8 @@ export function checkOptions({ version, expansions = [], variants = [] }) {
  * @param {string} name
  * @param {readonly string[]} tracks - The tracks in play
  * @param {boolean} aa - Whether Arts & Architecture is on: its landmark tech cards hold a landmark each (#37)
- * @param {boolean} ff - Whether Fantasies & Futures is on: whether a charmed card was ever played, and the single-use
- *   tech cards flipped (#39)
+ * @param {boolean} ff - Whether Fantasies & Futures is on: whether a charmed card was ever played, the cards whose
+ *   right charm triggered, and the single-use tech cards flipped (#39)
  * @returns {import('./state.js').PlayerSeat}
  */
 function newSeat(seat, name, tracks, aa, ff) {
@@ -213,7 +213,11 @@ function newSeat(seat, name, tracks, aa, ff) {
 		start: null,
 		...(arts && { masterpieces: [], inspired: [] }),
 		...(aa && { techLandmarks: {}, extraLandmarkCards: [], onCards: {} }),
-		...(ff && { playedCharmed: false, flippedTech: [] }),
+		...(ff && {
+			playedCharmed: false,
+			charmsUsed: [],
+			flippedTech: [],
+		}),
 	};
 }
 
