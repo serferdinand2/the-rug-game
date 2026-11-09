@@ -275,3 +275,49 @@ test('each item kind is used on income turn 5: tech invented and upgraded twice,
 	const rows = seatOf(tech, player).tech;
 	assert.equal(rows.top.length, 1, 'the reserved card went up twice');
 });
+
+test('Zombie Army on or after income turn 5 takes every outpost before any conquers, so none is lifted twice (review fix)', () => {
+	const { state, random, player } = game((seat, s) => {
+		seat.incomeTurns = 5;
+		const keys = Object.keys(s.hexes).filter((k) => !k.startsWith('mat:'));
+		for (const key of keys) {
+			s.hexes[key].outposts = [];
+			s.hexes[key].tokens = [];
+		}
+		const [a, b] = keys.filter((k) => s.hexes[k].tile !== null);
+		s.hexes[a].outposts = [{ seat: seat.seat, toppled: false }];
+		s.hexes[b].outposts = [{ seat: seat.seat, toppled: false }];
+		for (const other of s.seats) {
+			const placed = Object.values(s.hexes)
+				.flatMap((/** @type {any} */ hex) => hex.outposts)
+				.filter(
+					(/** @type {any} */ o) => o.seat === other.seat && !o.piece
+				);
+			other.outposts = 10 - placed.length;
+		}
+		s.zombie = { a, b };
+	});
+	const { a, b } = /** @type {any} */ (state).zombie;
+	delete (/** @type {any} */ (state).zombie);
+	let next = runAs(state, random, player, [{ reserve: { outposts: 3 } }]);
+	next = answer(next, random, player, 'chooseHex', { hex: a });
+	// The second take is asked before any conquer.
+	const [open] = openDecisions(next);
+	assert.equal(open.kind, 'chooseHex');
+	next = answer(next, random, player, 'chooseHex', { hex: b });
+	const done = settle(next, random);
+	const conquers = done.events.filter(
+		(e) => e.type === 'conquered' && e.player === player
+	).length;
+	assert.ok(conquers <= 2, `${conquers} conquers from 2 outposts`);
+	checkState(done);
+});
+
+test('R71: a reserved building is never "in your capital city" (the Holocenter), though it counts for its type (review fix)', () => {
+	const { state, random, player } = game();
+	const next = runAs(state, random, player, [
+		{ reserve: { building: 'farm' } },
+	]);
+	assert.equal(countVp(next, player, 'farm'), 1);
+	assert.equal(countVp(next, player, 'incomeBuilding'), 0);
+});

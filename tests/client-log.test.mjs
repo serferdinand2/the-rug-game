@@ -1298,3 +1298,22 @@ test('items reserved and used on the overlay are worded (#39)', () => {
 		`${name} reserved 3 territory tiles on their income mat's overlay.`
 	);
 });
+
+test('a reserved Armory reads "an Armory" (review fix)', () => {
+	assert.equal(
+		eventText(
+			{
+				type: 'itemReserved',
+				player: 1,
+				item: {
+					id: 4,
+					card: 'phantasmal-paladins',
+					ability: 'phantasmal-paladins',
+					building: 'armory',
+				},
+			},
+			GAME
+		),
+		`${GAME.seats[0].name} reserved an Armory on their income mat's overlay.`
+	);
+});

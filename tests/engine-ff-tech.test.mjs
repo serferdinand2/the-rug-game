@@ -367,3 +367,13 @@ test('a flipped card paid away is no longer flipped', () => {
 		[]
 	);
 });
+
+test('R134: the Inventors may not mark a flipped card they took (review fix)', () => {
+	const { state, player } = holding({}, (seat) => {
+		seat.tech.bottom = ['mind-control'];
+		seat.flippedTech = ['mind-control'];
+	});
+	assert.ok(
+		!inventorsOptions(state, player).some((o) => o.card === 'mind-control')
+	);
+});

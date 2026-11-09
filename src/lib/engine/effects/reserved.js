@@ -232,6 +232,8 @@ export function zombieTake(ctx, op) {
 	const from = { card: op.card, ability: op.ability };
 	ctx.state.hexes[op.hex].outposts = [];
 	emit(ctx.state, { type: 'outpostLifted', player, hex: op.hex });
+	// First, so on or after income turn 5 every take comes before any conquer and no outpost is lifted twice.
+	addReserved(ctx, player, from, { outpost: true });
 	if (op.left > 1) {
 		ctx.push([
 			{
@@ -242,7 +244,6 @@ export function zombieTake(ctx, op) {
 			},
 		]);
 	}
-	addReserved(ctx, player, from, { outpost: true });
 }
 
 /**

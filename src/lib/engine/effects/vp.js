@@ -114,10 +114,16 @@ export function countVp(state, player, per, track) {
 		);
 	}
 	if (per === 'incomeBuilding') {
-		// R71, every type (the Holocenter, #35).
-		return BUILDING_IDS.reduce(
-			(sum, id) => sum + BUILDINGS_PER_ROW - seat.incomeMat.buildings[id],
-			0
+		// R71, every type (the Holocenter, #35); a building reserved on F&F's overlay is never in the capital (#39).
+		const reserved = (seat.reserved ?? []).filter(
+			(item) => 'building' in item
+		).length;
+		return (
+			BUILDING_IDS.reduce(
+				(sum, id) =>
+					sum + BUILDINGS_PER_ROW - seat.incomeMat.buildings[id],
+				0
+			) - reserved
 		);
 	}
 	if (per === 'buildingLeft') {

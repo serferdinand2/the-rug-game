@@ -6,7 +6,7 @@ import { askSlot } from '../decisions/choose-slot.js';
 import { upgradeCard } from '../effects/tech.js';
 import { techCard } from '../data/tech-cards.js';
 import { offer } from './civ.js';
-import { isLocked } from '../tech.js';
+import { isFlipped, isLocked } from '../tech.js';
 
 /**
  * The Inventors' own state.
@@ -76,14 +76,18 @@ export function inventorsOptions(state, player) {
 		.filter((s) => s.kind === 'player')
 		.flatMap(({ seat }) => {
 			const { bottom, middle } = playerSeat(state, seat).tech;
-			return [
-				...bottom,
-				...middle.filter(
-					(card) => seat === player || !techCard(card).singleUse
-				),
-			]
-				.filter((card) => !isLocked(state, seat, card))
-				.map((card) => ({ player: seat, card }));
+			return (
+				[
+					...bottom,
+					...middle.filter(
+						(card) => seat === player || !techCard(card).singleUse
+					),
+				]
+					.filter((card) => !isLocked(state, seat, card))
+					// R134: nor a flipped card, which never upgrades again.
+					.filter((card) => !isFlipped(state, seat, card))
+					.map((card) => ({ player: seat, card }))
+			);
 		});
 }
 

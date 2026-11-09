@@ -1,9 +1,9 @@
 // What an item on F&F's income-mat overlay is, in words (#39): for the log, the prompts and the Eras tab.
 import { buildingName, masterpieceName, techName } from './game-names.js';
-import { countWords } from './words.js';
+import { article, countWords } from './words.js';
 
 /**
- * An item reserved on the overlay, in words: "a Farm", "Microscope", "space tile 4", "3 territory tiles", "an outpost"
+ * An item reserved on the overlay, in words: "a Farm", "an Armory", "Microscope", "space tile 4", "3 territory tiles", "an outpost"
  * or "a reminder".
  * @param {Record<string, any> | null | undefined} item - A ReservedItem from the view
  * @returns {string}
@@ -13,7 +13,8 @@ export function reservedWords(item) {
 		return 'an item';
 	}
 	if (typeof item.building === 'string') {
-		return `a ${buildingName(item.building)}`;
+		const name = buildingName(item.building);
+		return `${article(name)} ${name}`;
 	}
 	if (typeof item.tech === 'string') {
 		return techName(item.tech);
