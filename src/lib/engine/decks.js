@@ -49,7 +49,7 @@ export const PP_CIVS = Object.freeze([
  * Arts & Architecture's civilizations, in the order built; each civilization's step appends its id (#37).
  * @type {readonly string[]}
  */
-export const AA_CIVS = Object.freeze(['relentless', 'renegades']);
+export const AA_CIVS = Object.freeze(['relentless', 'renegades', 'gamblers']);
 
 /**
  * The civilizations a game with these expansions deals from: the base 16, then Plans & Ploys' built ones (#33), then

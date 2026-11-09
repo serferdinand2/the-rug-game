@@ -1394,6 +1394,39 @@ const RECIPES = {
 			...clarity(context, []),
 		],
 	}),
+	gamblers: (context) => ({
+		portraitAlt: 'Gamblers civilization portrait',
+		complexity: 1,
+		effect: [
+			'Turn up 3 tapestry cards each era and play the When Played one for free.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'End of income turn 1',
+						label: 'Reveal 3',
+						symbolText: 12,
+						text: [
+							'Reveal 3 tapestry cards and play a When Played one on Maker of Fire; discard the rest. With none, keep 1.',
+						],
+					},
+					{
+						title: 'Income turns 2–4',
+						label: 'Reveal 3',
+						symbolText: 12,
+						text: [
+							'Before your era’s card, do the same on that era’s slot; your card then covers it.',
+						],
+					},
+				],
+			},
+			...clarity(context, [
+				'Only if you start the game with the Gamblers.',
+			]),
+		],
+	}),
 	renegades: (context) => ({
 		portraitAlt: 'Renegades civilization portrait',
 		complexity: 3,

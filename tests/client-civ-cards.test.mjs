@@ -315,9 +315,10 @@ test('an effect box without a spot never draws used: the base cards render as be
 });
 
 test('a civilization without a reviewed layout gets its frame, portrait and name only', () => {
-	const recipe = civCard('gamblers');
-	assert.equal(recipe.title, 'Gamblers');
-	assert.deepEqual(recipe.editions, ['aa']);
+	// An F&F civilization: A&A's all have their cards since #37.
+	const recipe = civCard('artificers');
+	assert.equal(recipe.title, 'Artificers');
+	assert.deepEqual(recipe.editions, ['ff']);
 	assert.equal(recipe.portraitAlt, '');
 	assert.deepEqual(recipe.sections, []);
 	assert.equal(words(recipe.effect), 'The full card is on its way.');

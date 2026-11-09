@@ -56,7 +56,7 @@ function offerMakerOfFire(ctx, player, options) {
 
 /**
  * R35's draw, which replaces the original Maker of Fire play: tapestry cards are drawn until a WHEN PLAYED one (a trap
- * counts, R22). Every card drawn is revealed: the others are discarded, and the card found goes to the hand, with the
+ * counts, R22) or a CONTINUOUS one (A&A, #37). Every card drawn is revealed: the others are discarded, and the card found goes to the hand, with the
  * `tapestryGained` triggers a drawn card has. It alone may then go on Maker of Fire, unless it is Renaissance.
  * @param {import('../state.js').Context} ctx
  * @param {number} player
@@ -66,7 +66,12 @@ function drawForMakerOfFire(ctx, player) {
 	/** @type {string[]} */
 	const revealed = [];
 	let found = takeTapestryCard(ctx);
-	while (found !== undefined && tapestryCard(found).timing !== 'played') {
+	// R35: a WHEN PLAYED or CONTINUOUS card (A&A's, #37).
+	while (
+		found !== undefined &&
+		tapestryCard(found).timing !== 'played' &&
+		tapestryCard(found).timing !== 'continuous'
+	) {
 		revealed.push(found);
 		found = takeTapestryCard(ctx);
 	}

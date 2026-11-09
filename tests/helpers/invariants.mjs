@@ -120,6 +120,14 @@ export function checkState(state, previousSeq = 0) {
 				...p.hand,
 				...p.incomeMat.tapestry.flat(),
 			]),
+			// #37: the Gamblers' revealed cards, while they choose.
+			...opsOf('chooseSlot')
+				.filter(
+					(op) =>
+						op.purpose === 'gamblers' ||
+						op.purpose === 'gamblersKeep'
+				)
+				.flatMap((op) => op.then.cards),
 		],
 		tapestryFor(state.expansions, state.variants)
 	);

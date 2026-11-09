@@ -311,6 +311,12 @@ const SLOT_TITLES = {
 	// Political Posturing (#37).
 	politicalPosturing: () => 'Choose an achievement to earn',
 	nationalParks: () => 'National Parks: roll which conquer die?',
+	// The Gamblers (#37).
+	gamblers: (d) =>
+		isCount(d.then?.era)
+			? `Gamblers: play a revealed card on your era ${d.then.era} slot`
+			: 'Gamblers: play a revealed card',
+	gamblersKeep: () => 'Gamblers: no When Played card, so keep 1 in your hand',
 	silkRoad: () => "Silk Road: gain the space's benefit or its landmark?",
 	plague: (d) =>
 		typeof d.then?.civ === 'string'
@@ -888,6 +894,9 @@ export function decisionTitle(decision, table) {
 const SLOT_ANSWERS = {
 	politicalPosturing: (slot) =>
 		ACHIEVEMENTS.find((a) => a.id === slot)?.name ?? null,
+	gamblers: (slot) => (typeof slot === 'string' ? tapestryName(slot) : null),
+	gamblersKeep: (slot) =>
+		typeof slot === 'string' ? tapestryName(slot) : null,
 	nationalParks: (slot) =>
 		slot === 'black'
 			? 'The black die'

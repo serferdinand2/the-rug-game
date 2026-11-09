@@ -99,6 +99,7 @@ import { merrymakersMove } from './civs/merrymakers.js';
 import { retreatTo, surrenderDice } from './responses.js';
 import { parksRoll } from './card-pieces.js';
 import { relentlessEnd } from './civs/relentless.js';
+import { gamblersKeep, gamblersPlay } from './civs/gamblers.js';
 import {
 	enlightenmentMoves,
 	enlightenmentRolled,
@@ -281,6 +282,8 @@ Object.assign(AUTOMATIC, {
 	plagueChoice,
 	parksRoll,
 	relentlessEnd,
+	gamblersPlay,
+	gamblersKeep,
 	cartographyCheck,
 	manifestDestinyBenefit,
 	territoryBenefit,

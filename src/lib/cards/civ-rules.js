@@ -72,6 +72,11 @@ const CIV_TEXTS = Object.freeze({
 		'At the end of each of your income turns and advance turns on which you gained an income building or a landmark, put a token on this mat.',
 		'At the end of each advance turn on which you gained neither, take every token off and gain by their number: 1 token, 1 VP; 2, 3 VP and 1 tapestry card; 3, 6 VP and a tapestry card or 1 resource of your choice; 4, 10 VP and one of those or explore a territory; 5 or more, 15 VP and one of those or invent a tech card.',
 	]),
+	gamblers: civ([
+		'If you start the game with the Gamblers: at the end of your first income turn, reveal 3 tapestry cards. Play a When Played one on Maker of Fire and gain its effect, and discard the others; with none, keep 1 in your hand and discard the others.',
+		'At the start of income turns 2 to 4, do the same on that era’s slot, then play your tapestry card for the era on top of it.',
+		'A card that can’t be fully resolved resolves as far as it can.',
+	]),
 	renegades: civ([
 		'You start with a token on the start of this mat’s track, which has one space for each tier.',
 		'When you advance on a track and would gain its benefit, you may give up the benefit and the bonus to move your token 1 space here instead, if the tier you advance into or within is the tier of that space. You still gain landmarks.',

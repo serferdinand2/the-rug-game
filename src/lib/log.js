@@ -610,6 +610,12 @@ const WORDS = {
 		isCount(e.at) && e.at >= 1 && e.at <= 4
 			? `${name} moved their Renegades token to space ${['I', 'II', 'III', 'IV'][e.at - 1]}.`
 			: null,
+	gamblersRevealed(e, game, name) {
+		const cards = strings(e.cards).map(tapestryWords);
+		return cards.length > 0
+			? `${name} revealed ${joinList(cards)} for the Gamblers.`
+			: null;
+	},
 	// Plague (#37).
 	plagueDrawn: (e, game, name) =>
 		typeof e.civ === 'string'

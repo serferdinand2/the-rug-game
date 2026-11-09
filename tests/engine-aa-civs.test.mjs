@@ -12,6 +12,8 @@ import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { endTurn } from '../src/lib/engine/turn.js';
 import { emit } from '../src/lib/engine/events.js';
+import { gamblers } from '../src/lib/engine/civs/gamblers.js';
+import { heralds } from '../src/lib/engine/civs/heralds.js';
 import { answer, answerDefaults, startedGame } from './helpers/engine.mjs';
 import { AA } from './helpers/arts.mjs';
 
@@ -244,4 +246,101 @@ test("the Renegades' last space: 20 VP, and their track's end counts for complet
 	assert.deepEqual(done.achievements['complete-track'], [1]);
 	// 20 VP and the achievement's first box (10 VP on the small map).
 	assert.equal(done.seats[0].vp, vp + 20 + 10);
+});
+
+// The Gamblers
+
+/**
+ * Seat 1 holds the Gamblers from the start, and the tapestry deck's top 3 cards are `top`.
+ * @param {string[]} top
+ */
+function gambling(top) {
+	return holding('gamblers', (s) => {
+		s.supply.tapestry.deck = [
+			...top,
+			...s.supply.tapestry.deck.filter(
+				(/** @type {string} */ id) => !top.includes(id)
+			),
+		];
+		for (const seat of s.seats) {
+			seat.hand = seat.hand.filter(
+				(/** @type {string} */ id) => !top.includes(id)
+			);
+		}
+	});
+}
+
+/**
+ * Runs a Gamblers ability for seat 1.
+ * @param {any} state
+ * @param {any} random
+ * @param {(ctx: any) => void} ability
+ */
+function runAbility(state, random, ability) {
+	ability(contextFor(state, random, state.pending));
+	run(state, random);
+	return state;
+}
+
+test('the Gamblers: at the end of income turn 1, 3 cards revealed and the WHEN PLAYED one played on Maker of Fire (03 §2.4)', () => {
+	const { state, random } = gambling(['dark-ages', 'academia', 'militarism']);
+	assert.deepEqual(state.seats[0].civData.gamblers, { started: true });
+	runAbility(state, random, (ctx) => gamblers.firstTurnEnd?.(ctx, 1));
+	assert.deepEqual(state.seats[0].incomeMat.tapestry[0], ['dark-ages']);
+	assert.ok(state.supply.tapestry.discard.includes('academia'));
+	assert.ok(state.supply.tapestry.discard.includes('militarism'));
+	assert.deepEqual(
+		state.events
+			.filter((e) => e.type === 'gamblersRevealed')
+			.map((e) => e.cards),
+		[['dark-ages', 'academia', 'militarism']]
+	);
+});
+
+test("the Gamblers: with 2 WHEN PLAYED cards they choose; at income turn 2's start, on the era's slot", () => {
+	const { state, random } = gambling(['feudalism', 'guilds', 'academia']);
+	runAbility(state, random, (ctx) => gamblers.income?.(ctx, 1, 2));
+	const [decision] = openDecisions(state);
+	assert.equal(decision.kind, 'chooseSlot');
+	assert.equal(decision.purpose, 'gamblers');
+	assert.deepEqual(decision.options, ['feudalism', 'guilds']);
+	const played = answer(state, random, 1, 'chooseSlot', { slot: 'guilds' });
+	assert.deepEqual(played.seats[0].incomeMat.tapestry[1], ['guilds']);
+	assert.ok(played.supply.tapestry.discard.includes('feudalism'));
+});
+
+test('the Gamblers: with no WHEN PLAYED card they keep 1 in hand; gained later, they do nothing', () => {
+	const { state, random } = gambling(['academia', 'militarism', 'monarchy']);
+	const hand = state.seats[0].hand.length;
+	runAbility(state, random, (ctx) => gamblers.firstTurnEnd?.(ctx, 1));
+	const [decision] = openDecisions(state);
+	assert.equal(decision.purpose, 'gamblersKeep');
+	const kept = answer(state, random, 1, 'chooseSlot', { slot: 'monarchy' });
+	assert.equal(kept.seats[0].hand.length, hand + 1);
+	assert.ok(kept.seats[0].hand.includes('monarchy'));
+	assert.deepEqual(kept.seats[0].incomeMat.tapestry[0], []);
+	const late = gambling(['dark-ages', 'academia', 'militarism']);
+	late.state.seats[0].civData.gamblers.started = false;
+	runAbility(late.state, late.random, (ctx) => gamblers.income?.(ctx, 1, 3));
+	assert.deepEqual(late.state.seats[0].incomeMat.tapestry[2], []);
+});
+
+test("R35: the Heralds' current-rules draw also stops at a CONTINUOUS card, which may go on Maker of Fire (#37)", () => {
+	const { state, random } = holding('heralds', (s) => {
+		const top = ['academia', 'commercial-center', 'dark-ages'];
+		s.supply.tapestry.deck = [
+			...top,
+			...s.supply.tapestry.deck.filter(
+				(/** @type {string} */ id) => !top.includes(id)
+			),
+		];
+	});
+	runAbility(state, random, (ctx) =>
+		heralds.adjustment?.firstTurnEnd?.(ctx, 1)
+	);
+	assert.ok(state.seats[0].hand.includes('commercial-center'));
+	assert.ok(state.supply.tapestry.discard.includes('academia'));
+	const [offer] = openDecisions(state);
+	assert.equal(offer.kind, 'chooseTapestry');
+	assert.deepEqual(offer.options, ['commercial-center']);
 });

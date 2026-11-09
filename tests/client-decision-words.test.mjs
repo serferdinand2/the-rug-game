@@ -1455,3 +1455,34 @@ test("the Renegades' question names the space and their next space (#37)", () =>
 		'The Renegades space'
 	);
 });
+
+test("the Gamblers' picks name the cards revealed (#37)", () => {
+	const play = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'gamblers',
+		options: ['feudalism', 'guilds'],
+		then: {
+			kind: 'gamblersPlay',
+			era: 2,
+			cards: ['feudalism', 'guilds', 'academia'],
+		},
+	};
+	assert.equal(
+		decisionTitle(play),
+		'Gamblers: play a revealed card on your era 2 slot'
+	);
+	assert.equal(describeAnswer(play, { slot: 'guilds' }), 'Guilds');
+	const keep = {
+		...play,
+		purpose: 'gamblersKeep',
+		then: { kind: 'gamblersKeep', cards: ['academia'] },
+	};
+	assert.equal(
+		decisionTitle(keep),
+		'Gamblers: no When Played card, so keep 1 in your hand'
+	);
+	assert.equal(describeAnswer(keep, { slot: 'academia' }), 'Academia');
+});
