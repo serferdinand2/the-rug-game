@@ -67,6 +67,11 @@ const CIV_TEXTS = Object.freeze({
 			],
 		}
 	),
+	// Arts & Architecture (#37; 03 §2.4).
+	relentless: civ([
+		'At the end of each of your income turns and advance turns on which you gained an income building or a landmark, put a token on this mat.',
+		'At the end of each advance turn on which you gained neither, take every token off and gain by their number: 1 token, 1 VP; 2, 3 VP and 1 tapestry card; 3, 6 VP and a tapestry card or 1 resource of your choice; 4, 10 VP and one of those or explore a territory; 5 or more, 15 VP and one of those or invent a tech card.',
+	]),
 	craftsmen: civ([
 		'Whenever you gain an income building, you may put it on this mat instead of in your capital city, on the lowest open space of any column. You gain that space’s benefit at once.',
 		'First column, bottom to top: 1 worker, 1 territory tile, 5 VP.',

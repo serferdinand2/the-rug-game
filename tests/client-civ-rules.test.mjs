@@ -41,7 +41,7 @@ import {
 	ADVISORS_GIFT_VP,
 	ADVISORS_HAND,
 } from '../src/lib/engine/civs/advisors.js';
-import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
+import { AA_CIVS, BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 
 /** @typedef {import('../src/lib/engine/data/effects.js').Effect} Effect */
@@ -147,7 +147,10 @@ function currentOnly(id) {
 }
 
 test('every civilization the engine knows has its ability in words, in both versions', () => {
-	assert.equal(Object.keys(CIVS).length, BASE_CIVS.length + PP_CIVS.length);
+	assert.equal(
+		Object.keys(CIVS).length,
+		BASE_CIVS.length + PP_CIVS.length + AA_CIVS.length
+	);
 	for (const id of Object.keys(CIVS)) {
 		for (const version of VERSION_IDS) {
 			const paragraphs = civRules(id, version);
@@ -211,7 +214,9 @@ test('an expansion civilization not built yet, or an unknown one, has no text', 
 	assert.ok(expansion.includes('collectors'));
 	assert.ok(PP_CIVS.every((id) => expansion.includes(id)));
 	for (const id of [
-		...expansion.filter((id) => !PP_CIVS.includes(id)),
+		...expansion.filter(
+			(id) => !PP_CIVS.includes(id) && !AA_CIVS.includes(id)
+		),
 		'unknown',
 		'',
 		'constructor',

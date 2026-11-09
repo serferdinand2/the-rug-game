@@ -7,7 +7,7 @@ import { seededRandom } from '../src/lib/engine/random.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { CIVS } from '../src/lib/engine/civs/index.js';
-import { BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
+import { AA_CIVS, BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
 import { TRACK_IDS } from '../src/lib/engine/data/ids.js';
 import { ASSETS } from '../src/lib/art/catalog.js';
 import { startedGame } from './helpers/engine.mjs';
@@ -143,10 +143,11 @@ function abilityTurns(log, player, civ) {
  */
 const nameOf = (id) => ASSETS.find((a) => a.id === `civ/${id}`)?.name;
 
-/** The base civilizations, then Plans & Ploys' built ones (#33), each group with the expansions it needs. */
+/** The base civilizations, then Plans & Ploys' built ones (#33), then A&A's (#37), each group with the expansions it needs. */
 const GROUPS = [
 	{ ids: BASE_CIVS, expansions: /** @type {string[]} */ ([]) },
 	{ ids: PP_CIVS, expansions: ['pp'] },
+	{ ids: AA_CIVS, expansions: ['aa'] },
 ];
 
 for (const version of VERSIONS) {

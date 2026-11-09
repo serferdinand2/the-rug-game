@@ -46,8 +46,14 @@ export const PP_CIVS = Object.freeze([
 ]);
 
 /**
- * The civilizations a game with these expansions deals from: the base 16, then Plans & Ploys' built ones (#33). With
- * the variant "All civilizations from Plans & Ploys" the deck is the Plans & Ploys ones only.
+ * Arts & Architecture's civilizations, in the order built; each civilization's step appends its id (#37).
+ * @type {readonly string[]}
+ */
+export const AA_CIVS = Object.freeze(['relentless']);
+
+/**
+ * The civilizations a game with these expansions deals from: the base 16, then Plans & Ploys' built ones (#33), then
+ * A&A's (#37). With the variant "All civilizations from Plans & Ploys" the deck is the Plans & Ploys ones only.
  * @param {readonly string[]} expansions
  * @param {readonly string[]} [variants] - The table's variants
  * @returns {string[]}
@@ -56,7 +62,11 @@ export function civsFor(expansions, variants = []) {
 	if (expansions.includes('pp') && variants.includes('civs-from-pp')) {
 		return [...PP_CIVS];
 	}
-	return [...BASE_CIVS, ...(expansions.includes('pp') ? PP_CIVS : [])];
+	return [
+		...BASE_CIVS,
+		...(expansions.includes('pp') ? PP_CIVS : []),
+		...(expansions.includes('aa') ? AA_CIVS : []),
+	];
 }
 
 /** The 33 base tech cards. @type {readonly string[]} */

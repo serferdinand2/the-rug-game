@@ -2,7 +2,7 @@
 import { emit } from './events.js';
 import { turnOptions } from './decisions/choose-turn.js';
 import { rankPlayers } from './ranking.js';
-import { liftBlocks } from './abilities.js';
+import { liftBlocks, triggered } from './abilities.js';
 import { startIncomeTurn } from './income.js';
 import { seatOf } from './state.js';
 import { landmarkCardOps } from './landmark-cards.js';
@@ -61,20 +61,36 @@ function endOf(state, player) {
  * Ends a turn once everything it started is done: the next seat in seat order that hasn't finished takes its turn,
  * and when every seat has finished, the game ends. A finished seat's Dictatorship blocks lift as it is skipped (R26).
  * First, a player whose landmark card's goal is met gains its landmark, and the turn ends after it is placed (#32, R111);
- * then each played Spymaster's advance (A&A, R127).
+ * then each played Spymaster's advance (A&A, R127); then, once, what answers the turn's end (`turnEnding`, #37).
  * @type {import('./state.js').AutomaticKind}
  */
 export function endTurn(ctx, op) {
+	// Pushed again after what comes first, keeping whether the turn-end triggers already ran.
+	const again = {
+		player: op.player,
+		kind: 'endTurn',
+		...(op.ended === true && { ended: true }),
+	};
 	const gain = landmarkCardOps(ctx.state, /** @type {number} */ (op.player));
 	if (gain.length > 0) {
-		ctx.push([...gain, { player: op.player, kind: 'endTurn' }]);
+		ctx.push([...gain, again]);
 		return;
 	}
 	// A&A's Spymaster: the advance comes at the end of the turn its track was completed in (R127).
 	const spied = spymasterAdvances(ctx.state);
 	if (spied.length > 0) {
-		ctx.push([...spied, { player: op.player, kind: 'endTurn' }]);
+		ctx.push([...spied, again]);
 		return;
+	}
+	// What answers a turn's end (the Relentless, #37), once a turn.
+	if (op.ended !== true) {
+		const ending = triggered(ctx.state, 'turnEnding', {
+			player: /** @type {number} */ (op.player),
+		});
+		if (ending.length > 0) {
+			ctx.push([...ending, { ...again, ended: true }]);
+			return;
+		}
 	}
 	const { seats } = ctx.state;
 	const at = seats.findIndex((s) => s.seat === op.player);

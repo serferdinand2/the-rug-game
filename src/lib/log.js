@@ -597,6 +597,15 @@ const WORDS = {
 	// Cloud City's move (R121, #36).
 	buildingMoved: (e, game, name) =>
 		`${name} moved ${pieceWords({ building: e.building })} to another cloud of their capital.`,
+	// The Relentless (#37).
+	relentlessToken: (e, game, name) =>
+		isCount(e.tokens)
+			? `${name} put a token on their Relentless mat: ${e.tokens} there.`
+			: null,
+	relentlessCashed: (e, game, name) =>
+		isCount(e.tokens)
+			? `${name} took ${e.tokens === 1 ? '1 token' : `${e.tokens} tokens`} off their Relentless mat.`
+			: null,
 	// Plague (#37).
 	plagueDrawn: (e, game, name) =>
 		typeof e.civ === 'string'

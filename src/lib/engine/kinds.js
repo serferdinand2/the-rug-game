@@ -97,6 +97,7 @@ import { leadersAdvance } from './civs/leaders.js';
 import { merrymakersMove } from './civs/merrymakers.js';
 import { retreatTo, surrenderDice } from './responses.js';
 import { parksRoll } from './card-pieces.js';
+import { relentlessEnd } from './civs/relentless.js';
 import {
 	enlightenmentMoves,
 	enlightenmentRolled,
@@ -277,6 +278,7 @@ Object.assign(AUTOMATIC, {
 	silkRoadGain,
 	plagueChoice,
 	parksRoll,
+	relentlessEnd,
 	cartographyCheck,
 	manifestDestinyBenefit,
 	territoryBenefit,

@@ -38,6 +38,8 @@ export const REVIEWED_CIVILIZATIONS = Object.freeze([
 	{ id: 'spies', edition: 'awaiting review' },
 	{ id: 'tinkerers', edition: 'awaiting review' },
 	{ id: 'utilitarians', edition: 'awaiting review' },
+	// #37: Arts & Architecture's other four, from 03 §2.4's text; not yet reviewed by the owner.
+	{ id: 'relentless', edition: 'awaiting review' },
 ]);
 
 /**
@@ -121,4 +123,6 @@ export const SAMPLE_VIEWS = Object.freeze({
 	islanders: sample([], 'token'),
 	recyclers: sample([], 'token'),
 	riverfolk: sample([], 'token'),
+	// #37: no token yet; part 4 shows the count on the card.
+	relentless: sample([], 'token'),
 });

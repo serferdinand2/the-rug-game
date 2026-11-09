@@ -246,7 +246,20 @@ test("Duct Tape's two upgrades may take 2 cards once each", () => {
 	next = answerDefaults(next, random);
 	assert.ok(next.seats[0].tech.top.includes('calculus'));
 	assert.ok(next.seats[0].tech.middle.includes('suburbs'));
-	assert.equal(next.seats[0].tracks.science.at(-1), 1);
+	// Calculus' square: Science from the start to space 1, whatever its own roll does next.
+	assert.deepEqual(
+		next.events.find(
+			(e) => e.type === 'tokenMoved' && e.track === 'science'
+		),
+		{
+			...next.events.find(
+				(e) => e.type === 'tokenMoved' && e.track === 'science'
+			),
+			player: 1,
+			from: 0,
+			to: 1,
+		}
+	);
 });
 
 // A landmark on a tech card

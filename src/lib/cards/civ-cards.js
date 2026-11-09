@@ -1362,6 +1362,38 @@ const RECIPES = {
 			),
 		],
 	}),
+	// Arts & Architecture (#37; 03 §2.4), awaiting review.
+	relentless: (context) => ({
+		portraitAlt: 'Relentless civilization portrait',
+		complexity: 3,
+		effect: [
+			'Gain a building or landmark turn after turn, then cash the run in on an advance turn without one.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'End of a turn with a building',
+						label: 'Token',
+						symbolText: 12,
+						text: [
+							'At the end of each income or advance turn on which you gained an income building or a landmark, put a token here.',
+						],
+					},
+					{
+						title: 'End of an advance turn without',
+						label: 'Cash in',
+						symbolText: 12,
+						text: [
+							'Take every token off: 1 → 1 VP; 2 → 3 VP and a tapestry card; 3 → 6 VP and a tapestry card or a resource; 4 → 10 VP and one of those or an explore; 5+ → 15 VP and one of those or an invent.',
+						],
+					},
+				],
+			},
+			...clarity(context, []),
+		],
+	}),
 	riverfolk: (context) => ({
 		portraitAlt: 'Riverfolk civilization portrait',
 		complexity: 2,

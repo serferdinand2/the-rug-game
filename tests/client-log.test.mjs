@@ -211,6 +211,8 @@ const SAMPLES = {
 		card: 'astrolabe',
 	},
 	plagueDrawn: { player: 1, civ: 'the-chosen' },
+	relentlessToken: { player: 1, tokens: 2 },
+	relentlessCashed: { player: 1, tokens: 3 },
 	spymasterPlayed: { player: 2, mover: 1, track: 'science' },
 	spymasterDeclined: { player: 2 },
 	piecePlacedOnCard: {
@@ -1144,5 +1146,20 @@ test('a Spymaster played reads in the log; a decline says nothing (R127)', () =>
 	assert.equal(
 		eventText({ type: 'spymasterDeclined', player: 2 }, GAME),
 		null
+	);
+});
+
+test("the Relentless' tokens (#37)", () => {
+	assert.equal(
+		eventText({ type: 'relentlessToken', player: 1, tokens: 2 }, GAME),
+		'Ana put a token on their Relentless mat: 2 there.'
+	);
+	assert.equal(
+		eventText({ type: 'relentlessToken', player: 1, tokens: 1 }, GAME),
+		'Ana put a token on their Relentless mat: 1 there.'
+	);
+	assert.equal(
+		eventText({ type: 'relentlessCashed', player: 1, tokens: 3 }, GAME),
+		'Ana took 3 tokens off their Relentless mat.'
 	);
 });

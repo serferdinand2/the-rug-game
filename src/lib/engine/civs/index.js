@@ -1,4 +1,4 @@
-// The civilization registry: every civilization built, base and Plans & Ploys (#33), by id, and the ones a player holds (design §4).
+// The civilization registry: every civilization built, base, Plans & Ploys (#33) and Arts & Architecture (#37), by id, and the ones a player holds (design §4).
 import { CIVS } from './registry.js';
 import { advisors } from './advisors.js';
 import { alchemists } from './alchemists.js';
@@ -19,6 +19,7 @@ import { militants } from './militants.js';
 import { mystics } from './mystics.js';
 import { nomads } from './nomads.js';
 import { recyclers } from './recyclers.js';
+import { relentless } from './relentless.js';
 import { riverfolk } from './riverfolk.js';
 import { spies } from './spies.js';
 import { theChosen } from './the-chosen.js';
@@ -60,6 +61,8 @@ Object.assign(CIVS, {
 	infiltrators,
 	advisors,
 	islanders,
+	// Arts & Architecture's (#37; decks.js's AA_CIVS).
+	relentless,
 });
 
 export { CIVS, findCiv, civsOf } from './registry.js';
