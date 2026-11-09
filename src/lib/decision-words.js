@@ -808,8 +808,17 @@ const TITLES = {
 				? 'Revolution: stand up another toppled outpost?'
 				: 'Revolution: choose a territory where your toppled outpost stands back up';
 		}
+		if (d.purpose === 'zombieArmy') {
+			return "Zombie Army: take an outpost onto your income mat's overlay?";
+		}
 		return d.optional ? 'Choose a territory?' : 'Choose a territory';
 	},
+	// F&F's reservations (#39).
+	chooseReserve: (d) =>
+		d.stack === 'masterpieces'
+			? "Reserve a masterpiece on your income mat's overlay"
+			: "Reserve a space tile on your income mat's overlay",
+	chooseReserveTech: () => "Reserve a tech card on your income mat's overlay",
 	chooseGift: () => 'Give a territory tile to an opponent for 3 VP?',
 	// The Advisors' gift: instead of a neighbour's draw, or one of their new cards for VP (#33).
 	chooseGive: (d, table) => {
@@ -1258,6 +1267,20 @@ const ANSWERS = {
 			return null;
 		}
 		return `Space tile ${a.tile}: ${spaceTileWords(a.tile, table)}`;
+	},
+	chooseReserve: (a, d, table) => {
+		if (d.stack === 'masterpieces') {
+			return typeof a.item === 'string' ? masterpieceName(a.item) : null;
+		}
+		return isCount(a.item)
+			? `Space tile ${a.item}: ${spaceTileWords(a.item, table)}`
+			: null;
+	},
+	chooseReserveTech: (a) => {
+		if (a.card === 'deck') {
+			return "The deck's top card";
+		}
+		return typeof a.card === 'string' ? techName(a.card) : null;
 	},
 	chooseConquer: (a, d, table) => {
 		if (typeof a.hex !== 'string') {

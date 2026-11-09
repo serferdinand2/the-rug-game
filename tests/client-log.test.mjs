@@ -252,6 +252,26 @@ const SAMPLES = {
 	},
 	techFlipped: { player: 1, card: 'mind-control' },
 	charmGained: { player: 1, card: 'microbial-magic', side: 'left' },
+	itemReserved: {
+		player: 1,
+		item: {
+			id: 9,
+			card: 'microbial-magic',
+			ability: 'microbial-magic',
+			building: 'farm',
+		},
+	},
+	reservedUsed: {
+		player: 1,
+		item: {
+			id: 9,
+			card: 'microbial-magic',
+			ability: 'microbial-magic',
+			building: 'farm',
+		},
+	},
+	outpostLifted: { player: 1, hex: '-2_-1' },
+	noReserve: { player: 1 },
 	techRecycled: { player: 1, card: 'com-tower' },
 	techDisplayRefreshed: {
 		discarded: ['irrigation', 'telescope', 'compass'],
@@ -1242,5 +1262,39 @@ test('a charm gained is worded (#39)', () => {
 			GAME
 		),
 		`${GAME.seats[0].name} gained Microbial Magic's right charm.`
+	);
+});
+
+test('items reserved and used on the overlay are worded (#39)', () => {
+	const name = GAME.seats[0].name;
+	const farm = {
+		id: 9,
+		card: 'microbial-magic',
+		ability: 'microbial-magic',
+		building: 'farm',
+	};
+	assert.equal(
+		eventText({ type: 'itemReserved', player: 1, item: farm }, GAME),
+		`${name} reserved a Farm on their income mat's overlay.`
+	);
+	assert.equal(
+		eventText({ type: 'reservedUsed', player: 1, item: farm }, GAME),
+		`${name} used their reserved Farm.`
+	);
+	assert.equal(
+		eventText(
+			{
+				type: 'itemReserved',
+				player: 1,
+				item: {
+					id: 3,
+					card: 'quest-culture',
+					ability: 'quest-culture',
+					territory: [4, 5, 6],
+				},
+			},
+			GAME
+		),
+		`${name} reserved 3 territory tiles on their income mat's overlay.`
 	);
 });

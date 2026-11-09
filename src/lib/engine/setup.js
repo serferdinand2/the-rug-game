@@ -216,6 +216,7 @@ function newSeat(seat, name, tracks, aa, ff) {
 		...(ff && {
 			playedCharmed: false,
 			charmsUsed: [],
+			reserved: [],
 			flippedTech: [],
 		}),
 	};

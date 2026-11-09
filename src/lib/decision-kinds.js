@@ -101,6 +101,9 @@ export const DECISION_KINDS = Object.freeze({
 	chooseInspire: { tab: 'income', confirm: 'Place tile', art: 'row' },
 	chooseSpace: { art: 'track' },
 	chooseHex: {},
+	// F&F's reservations (#39): a space tile or a masterpiece kept of those drawn, or a tech card for Lost Artifacts.
+	chooseReserve: { art: 'space-tile', confirm: 'Reserve' },
+	chooseReserveTech: { shelf: 'tech', confirm: 'Reserve' },
 	chooseGift: { tab: 'terrain', art: 'gift' },
 	// The Advisors' gift from their hand (#33), often asked on another player's turn, as a response is.
 	chooseGive: { shelf: 'tapestry', confirm: 'Give card' },

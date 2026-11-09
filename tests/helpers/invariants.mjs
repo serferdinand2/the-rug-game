@@ -95,6 +95,10 @@ export function checkState(state, previousSeq = 0) {
 				...p.tech.bottom,
 				...p.tech.middle,
 				...p.tech.top,
+				// #39: reserved on the overlay.
+				...(p.reserved ?? []).flatMap((/** @type {any} */ i) =>
+					i.tech !== undefined ? [i.tech] : []
+				),
 				// #37: on the Collectors' mat.
 				...(p.civData.collectors?.items.tech !== undefined
 					? [p.civData.collectors.items.tech]
@@ -159,6 +163,10 @@ export function checkState(state, previousSeq = 0) {
 			...supply.territoryDiscard,
 			...players.flatMap((p) => [
 				...p.territoryTiles,
+				// #39: reserved on the overlay.
+				...(p.reserved ?? []).flatMap(
+					(/** @type {any} */ i) => i.territory ?? []
+				),
 				// #37: on the Collectors' mat.
 				...(p.civData.collectors?.items.territory !== undefined
 					? [p.civData.collectors.items.territory]
@@ -184,9 +192,17 @@ export function checkState(state, previousSeq = 0) {
 		[
 			...supply.space,
 			...supply.spaceDiscard,
+			// #39: drawn for a reserve, waiting for their player's pick.
+			...opsOf('chooseReserve')
+				.filter((op) => op.stack === 'space')
+				.flatMap((op) => op.options),
 			...players.flatMap((p) => [
 				...p.spaceTiles,
 				...p.exploredSpace,
+				// #39: reserved on the overlay.
+				...(p.reserved ?? []).flatMap((/** @type {any} */ i) =>
+					i.space !== undefined ? [i.space] : []
+				),
 				// #33: the tile on the Aliens' mat.
 				...(typeof p.civData.aliens?.tile === 'number'
 					? [p.civData.aliens.tile]
@@ -210,6 +226,15 @@ export function checkState(state, previousSeq = 0) {
 				...players.flatMap((p) =>
 					(p.masterpieces ?? []).map((held) => held.card)
 				),
+				// #39: reserved on the overlay, or drawn for a reserve.
+				...players.flatMap((p) =>
+					(p.reserved ?? []).flatMap((/** @type {any} */ i) =>
+						i.masterpiece !== undefined ? [i.masterpiece] : []
+					)
+				),
+				...opsOf('chooseReserve')
+					.filter((op) => op.stack === 'masterpieces')
+					.flatMap((op) => op.options),
 			],
 			MASTERPIECES.map((m) => m.id)
 		);
@@ -388,6 +413,10 @@ export function checkState(state, previousSeq = 0) {
 				(building === 'house' && p.civData.collectors?.items.house
 					? 1
 					: 0) +
+				// #39: reserved on the overlay.
+				(p.reserved ?? []).filter(
+					(/** @type {any} */ i) => i.building === building
+				).length +
 				// #37: on A&A's tapestry cards.
 				Object.values(p.onCards ?? {})
 					.flat()
@@ -408,7 +437,10 @@ export function checkState(state, previousSeq = 0) {
 			p.outposts +
 			mine.filter((o) => !o.piece).length +
 			// #37: the Collectors' outpost.
-			(p.civData.collectors?.items.outpost ? 1 : 0);
+			(p.civData.collectors?.items.outpost ? 1 : 0) +
+			// #39: Zombie Army's, reserved on the overlay.
+			(p.reserved ?? []).filter((/** @type {any} */ i) => i.outpost)
+				.length;
 		assert.equal(own, OUTPOSTS, `seat ${p.seat} owns ${own} outposts`);
 		for (const [civ, total] of Object.entries(CIV_TOKENS)) {
 			const data = p.civData[civ];

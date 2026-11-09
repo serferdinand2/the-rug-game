@@ -68,6 +68,12 @@ import { collectOutpost } from '../civs/collectors.js';
 import { gainCiv, plague } from '../civ-turns.js';
 import { discardCiv, placeToken } from '../civs/civ.js';
 import { ability, charm, charmOnlyGains } from '../charms.js';
+import {
+	discardSpace,
+	reserve,
+	useAllReserved,
+	useReserved,
+} from './reserved.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
@@ -137,6 +143,10 @@ export const EFFECTS = {
 	collectOutpost,
 	charm,
 	ability,
+	reserve,
+	useReserved,
+	useAllReserved,
+	discardSpace,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

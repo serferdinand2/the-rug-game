@@ -49,7 +49,7 @@ import { deepFreeze } from './ids.js';
  * - `incomeBuilding`: every income building you own, of every type (R71; the Holocenter, #35);
  * - `capitalRow`, `capitalColumn`: the complete rows or columns of your capital city, which is not scoring it (Ballet,
  *   Modern Dance, 03 §2.12).
- * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId | 'incomeBuilding' | 'capitalRow' | 'capitalColumn'} VpCounter
+ * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId | 'incomeBuilding' | 'capitalRow' | 'capitalColumn' | 'buildingLeft'} VpCounter
  */
 
 /**
@@ -104,6 +104,9 @@ import { deepFreeze } from './ids.js';
  * - `collectOutpost`: put an outpost from the supply on the Collectors' mat, instead of conquering (R129, #37).
  * - `charm`: one F&F card's left or right charm bonus; `ability`: a placed card's own ability, which may come before or
  *   after its charms (03 FF.2.1, #39).
+ * - `reserve`: an item onto the income mat's overlay; `useReserved`: one item's use on income turn 5; `useAllReserved`:
+ *   every item, in the player's order (R132); `discardSpace`: a space tile from the supply to the discards (03 FF.2.2, #39).
+ * - `exploreSpace` with `tile` explores that tile from the player's supply only (#39).
  * - `politicalPosturing`, `spymaster`, `ageOfEnlightenment`, `silkRoad`, `infrastructureUpgrade`, `plague`, `granges`: the rules of the Arts & Architecture card of that name (#37).
  * @typedef {{ gain: Gain }
  *   | { lose: { culture?: number, any?: number } }
@@ -112,7 +115,7 @@ import { deepFreeze } from './ids.js';
  *   | { landmark: string }
  *   | { vp: number | VpPer }
  *   | { explore: { anywhere?: boolean, tile?: number, sailed?: boolean, mat?: boolean, free?: boolean, migration?: boolean } }
- *   | { exploreSpace: { fromGained?: boolean, civ?: string } }
+ *   | { exploreSpace: { fromGained?: boolean, civ?: string, tile?: number } }
  *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent', only?: string[], empty?: boolean, collectorsAsked?: boolean } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
  *   | { advance: { tracks: TrackId[], noBenefit?: boolean, optional?: boolean, freeBonus?: boolean, noBonus?: boolean, offTrackVp?: number } }
@@ -170,7 +173,11 @@ import { deepFreeze } from './ids.js';
  *   | { granges: {} }
  *   | { collectOutpost: {} }
  *   | { charm: { card: string, side: 'left' | 'right' } }
- *   | { ability: { card: string, era: number } }} Effect
+ *   | { ability: { card: string, era: number } }
+ *   | { reserve: { building?: BuildingId, tech?: true, space?: number, masterpiece?: number, territory?: number, outposts?: number, token?: true } }
+ *   | { useReserved: { id: number } & Record<string, any> }
+ *   | { useAllReserved: {} }
+ *   | { discardSpace: { tile: number } }} Effect
  */
 
 /**

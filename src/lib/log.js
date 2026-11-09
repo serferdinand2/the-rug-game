@@ -39,6 +39,8 @@ import {
 	versionName,
 } from './game-names.js';
 
+import { reservedWords } from './reserved-words.js';
+
 /** @typedef {import('./describe.js').Table} Game - The game as view() gives it: the seats' names */
 /** @typedef {{ type?: unknown, seq?: unknown, player?: unknown, secret?: unknown } & Record<string, any>} LogEvent */
 
@@ -907,6 +909,13 @@ const WORDS = {
 			? `${name} drew a tech card.`
 			: `${name} drew ${e.count} tech cards to keep one.`;
 	},
+	itemReserved: (e, game, name) =>
+		`${name} reserved ${reservedWords(e.item)} on their income mat's overlay.`,
+	reservedUsed: (e, game, name) =>
+		`${name} used their reserved ${reservedWords(e.item).replace(/^an? /, '')}.`,
+	outpostLifted: (e, game, name) =>
+		`${name} took their outpost off ${hexName(e.hex)}.`,
+	noReserve: (e, game, name) => `${name} had nothing to reserve.`,
 	charmGained: (e, game, name) =>
 		`${name} gained ${tapestryName(e.card)}'s ${e.side === 'right' ? 'right' : 'left'} charm.`,
 	techFlipped: (e, game, name) =>

@@ -439,6 +439,22 @@ test('every decision kind has the full shape, and its answers pass its own check
 			type: 'tapestry',
 			options: ['age-of-sail'],
 		},
+		// F&F's reservations (#39).
+		chooseReserve: {
+			player: 1,
+			kind: 'chooseReserve',
+			stack: 'space',
+			options: [1, 2, 3],
+			card: 'generation-ships',
+			ability: 'generation-ships',
+		},
+		chooseReserveTech: {
+			player: 1,
+			kind: 'chooseReserveTech',
+			options: ['irrigation', 'deck'],
+			card: 'lost-artifacts',
+			ability: 'lost-artifacts',
+		},
 		// The Renegades (#37): Scouting's benefit, or their next space.
 		chooseRenegades: {
 			player: 1,

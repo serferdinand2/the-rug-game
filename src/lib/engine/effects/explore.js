@@ -328,16 +328,21 @@ export function exploreSpaceTile(ctx, player, tile, civ) {
 
 /**
  * The exploreSpace effect. With no tile to explore it does nothing; with one it explores at once; otherwise its player
- * chooses. `civ` explores onto that civilization's mat.
+ * chooses. `civ` explores onto that civilization's mat; `tile` explores only that tile of the supply (#39).
  * @type {import('../state.js').EffectHandler}
  */
 export function exploreSpace(ctx, player, value, op) {
-	const options = spaceTileOptions(
-		ctx.state,
-		player,
-		/** @type {any} */ (op.source),
-		value?.fromGained === true
-	);
+	/** @type {number | undefined} */
+	const tile = value?.tile;
+	const options =
+		tile !== undefined
+			? playerSeat(ctx.state, player).spaceTiles.filter((t) => t === tile)
+			: spaceTileOptions(
+					ctx.state,
+					player,
+					/** @type {any} */ (op.source),
+					value?.fromGained === true
+				);
 	/** @type {string | undefined} */
 	const civ = value?.civ;
 	if (options.length === 0) {

@@ -85,8 +85,16 @@ export function countVp(state, player, per, track) {
 	// The Collectors' items still count as theirs (#37).
 	const items = seat.civData.collectors?.items ?? {};
 	if (per === 'territoryTile') {
+		// F&F: tiles reserved on the overlay count too (Quest Culture, #39).
+		const reserved = (seat.reserved ?? []).reduce(
+			(sum, item) =>
+				sum + ('territory' in item ? item.territory.length : 0),
+			0
+		);
 		return (
-			seat.territoryTiles.length + (items.territory !== undefined ? 1 : 0)
+			seat.territoryTiles.length +
+			(items.territory !== undefined ? 1 : 0) +
+			reserved
 		);
 	}
 	if (per === 'techCard') {
@@ -109,6 +117,13 @@ export function countVp(state, player, per, track) {
 		// R71, every type (the Holocenter, #35).
 		return BUILDING_IDS.reduce(
 			(sum, id) => sum + BUILDINGS_PER_ROW - seat.incomeMat.buildings[id],
+			0
+		);
+	}
+	if (per === 'buildingLeft') {
+		// The income buildings still on the income mat (Ghost Towns, #39).
+		return BUILDING_IDS.reduce(
+			(sum, id) => sum + seat.incomeMat.buildings[id],
 			0
 		);
 	}
