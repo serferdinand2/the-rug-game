@@ -1394,6 +1394,53 @@ const RECIPES = {
 			...clarity(context, []),
 		],
 	}),
+	renegades: (context) => ({
+		portraitAlt: 'Renegades civilization portrait',
+		complexity: 3,
+		effect: [
+			'Give up a track’s benefit to climb your own track, one tier at a time.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Tier I',
+						label: 'I',
+						symbolText: 12,
+						text: [
+							'1 tapestry card and an income building of your choice.',
+						],
+					},
+					{
+						title: 'Tier II',
+						label: 'II',
+						symbolText: 12,
+						text: [
+							'Roll the science die and advance with the benefit, then invent a tech card.',
+						],
+					},
+					{
+						title: 'Tier III',
+						label: 'III',
+						symbolText: 12,
+						text: ['Explore, conquer, then upgrade a tech card.'],
+					},
+					{
+						title: 'Tier IV',
+						label: '20 VP',
+						symbolText: 12,
+						text: [
+							'20 VP; reaching it completes a track for the achievement.',
+						],
+					},
+				],
+			},
+			...clarity(context, [
+				'When you advance into or within the tier of your next space and would gain the benefit, you may move your token there instead, giving up the benefit and bonus. You still gain landmarks.',
+			]),
+		],
+	}),
 	riverfolk: (context) => ({
 		portraitAlt: 'Riverfolk civilization portrait',
 		complexity: 2,

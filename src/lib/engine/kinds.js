@@ -93,6 +93,7 @@ import { chooseProphecy } from './decisions/choose-prophecy.js';
 import { chooseSwap } from './decisions/choose-swap.js';
 import { chooseCube } from './decisions/choose-cube.js';
 import { chooseSpymaster } from './decisions/choose-spymaster.js';
+import { chooseRenegades } from './decisions/choose-renegades.js';
 import { leadersAdvance } from './civs/leaders.js';
 import { merrymakersMove } from './civs/merrymakers.js';
 import { retreatTo, surrenderDice } from './responses.js';
@@ -202,6 +203,7 @@ Object.assign(DECISIONS, {
 	chooseCloudPlot,
 	chooseLandmarkCard,
 	chooseSpymaster,
+	chooseRenegades,
 });
 
 Object.assign(AUTOMATIC, {

@@ -1431,3 +1431,27 @@ test("Spymaster's question names who completed which track (R127)", () => {
 	assert.equal(describeAnswer(spy, { card: null }), "Don't play a card");
 	assert.equal(describeAnswer(spy, { card: 'spymaster' }), 'Play Spymaster');
 });
+
+test("the Renegades' question names the space and their next space (#37)", () => {
+	const renegades = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseRenegades',
+		track: 'exploration',
+		space: 1,
+		bonus: true,
+	};
+	assert.equal(
+		decisionTitle(renegades),
+		"Scouting's benefit, or your Renegades' next space instead?"
+	);
+	assert.equal(
+		describeAnswer(renegades, { renegades: false }),
+		"Scouting's benefit"
+	);
+	assert.equal(
+		describeAnswer(renegades, { renegades: true }),
+		'The Renegades space'
+	);
+});

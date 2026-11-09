@@ -73,6 +73,8 @@ export const DECISION_KINDS = Object.freeze({
 	chooseResponse: { shelf: 'tapestry' },
 	// A&A's Spymaster (#37).
 	chooseSpymaster: { shelf: 'tapestry' },
+	// The Renegades (#37).
+	chooseRenegades: {},
 	chooseCounter: { shelf: 'tapestry' },
 	chooseInvent: { shelf: 'tech', tab: 'tech', confirm: 'Invent' },
 	chooseUpgrade: { shelf: 'tech', tab: 'tech', confirm: 'Upgrade' },

@@ -632,6 +632,11 @@ const TITLES = {
 			: 'Choose a space tile to explore',
 	chooseConquer: () => 'Choose a territory to conquer',
 	chooseDie: () => 'Choose a die to keep',
+	// The Renegades (#37): the space reached, or their own next space.
+	chooseRenegades: (d) =>
+		isTrack(d.track) && isCount(d.space)
+			? `${spaceName(d.track, d.space)}'s benefit, or your Renegades' next space instead?`
+			: "The benefit, or your Renegades' next space instead?",
 	// A&A's Spymaster (#37, R127): asked of every neighbour holding a card.
 	chooseSpymaster: (d, table) =>
 		isCount(d.mover) && isTrack(d.track)
@@ -1235,6 +1240,17 @@ const ANSWERS = {
 		const face = isCount(d[a.die]) ? faces[d[a.die]] : undefined;
 		const die = a.die === 'red' ? 'Red die' : 'Black die';
 		return face ? `${die}: ${effectPhrase(face, table)}` : die;
+	},
+	chooseRenegades: (a, d) => {
+		if (a.renegades === true) {
+			return 'The Renegades space';
+		}
+		if (a.renegades !== false) {
+			return null;
+		}
+		return isTrack(d.track) && isCount(d.space)
+			? `${spaceName(d.track, d.space)}'s benefit`
+			: 'The benefit';
 	},
 	chooseSpymaster: (a) => {
 		if (a.card === null) {

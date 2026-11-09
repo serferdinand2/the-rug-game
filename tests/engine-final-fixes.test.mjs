@@ -432,6 +432,14 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: [1, 2, 3, 4],
 		},
 		chooseSwap: { player: 1, kind: 'chooseSwap', left: 3 },
+		// The Renegades (#37): Scouting's benefit, or their next space.
+		chooseRenegades: {
+			player: 1,
+			kind: 'chooseRenegades',
+			track: 'exploration',
+			space: 1,
+			bonus: true,
+		},
 		// A&A's Spymaster (#37, R127): seat 2 holds a card, so it is asked.
 		chooseSpymaster: {
 			player: 2,

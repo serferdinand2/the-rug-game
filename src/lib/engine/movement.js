@@ -4,6 +4,7 @@ import { seatOf } from './state.js';
 import { triggered } from './abilities.js';
 import { claimAchievement } from './achievements.js';
 import { spymasterQuestions } from './spymaster.js';
+import { renegadesMayTake } from './civs/renegades.js';
 import { TRACKS } from './data/tracks.js';
 
 /** @typedef {import('./data/ids.js').TrackId} TrackId */
@@ -236,7 +237,22 @@ function arrivalOps(
 			})
 		);
 	}
-	if (benefit) {
+	if (
+		benefit &&
+		to > from &&
+		!isActivated(state, player, track, to) &&
+		renegadesMayTake(state, player, track, to)
+	) {
+		// A&A's Renegades may take their next space instead of this one's benefit and bonus (#37).
+		ops.push({
+			player,
+			kind: 'chooseRenegades',
+			track,
+			space: to,
+			bonus: !noBonus,
+			free: freeBonus,
+		});
+	} else if (benefit) {
 		ops.push(...activationOps(ctx, player, track, to, !noBonus, freeBonus));
 	} else {
 		ops.push(...freeBonusOps(state, player, track, to, freeBonus));

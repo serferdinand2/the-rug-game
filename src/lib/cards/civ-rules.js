@@ -72,6 +72,12 @@ const CIV_TEXTS = Object.freeze({
 		'At the end of each of your income turns and advance turns on which you gained an income building or a landmark, put a token on this mat.',
 		'At the end of each advance turn on which you gained neither, take every token off and gain by their number: 1 token, 1 VP; 2, 3 VP and 1 tapestry card; 3, 6 VP and a tapestry card or 1 resource of your choice; 4, 10 VP and one of those or explore a territory; 5 or more, 15 VP and one of those or invent a tech card.',
 	]),
+	renegades: civ([
+		'You start with a token on the start of this mat’s track, which has one space for each tier.',
+		'When you advance on a track and would gain its benefit, you may give up the benefit and the bonus to move your token 1 space here instead, if the tier you advance into or within is the tier of that space. You still gain landmarks.',
+		'Tier I: 1 tapestry card and an income building of your choice. Tier II: roll the science die and advance with the benefit, then invent a tech card. Tier III: explore, conquer, then upgrade a tech card. Tier IV: 20 VP.',
+		'This track is no advancement track for any other effect, but reaching its end counts as completing a track for the achievement.',
+	]),
 	craftsmen: civ([
 		'Whenever you gain an income building, you may put it on this mat instead of in your capital city, on the lowest open space of any column. You gain that space’s benefit at once.',
 		'First column, bottom to top: 1 worker, 1 territory tile, 5 VP.',

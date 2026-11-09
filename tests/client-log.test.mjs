@@ -212,6 +212,7 @@ const SAMPLES = {
 	},
 	plagueDrawn: { player: 1, civ: 'the-chosen' },
 	relentlessToken: { player: 1, tokens: 2 },
+	renegadesMoved: { player: 1, at: 2 },
 	relentlessCashed: { player: 1, tokens: 3 },
 	spymasterPlayed: { player: 2, mover: 1, track: 'science' },
 	spymasterDeclined: { player: 2 },
@@ -1161,5 +1162,12 @@ test("the Relentless' tokens (#37)", () => {
 	assert.equal(
 		eventText({ type: 'relentlessCashed', player: 1, tokens: 3 }, GAME),
 		'Ana took 3 tokens off their Relentless mat.'
+	);
+});
+
+test("the Renegades' token (#37)", () => {
+	assert.equal(
+		eventText({ type: 'renegadesMoved', player: 1, at: 2 }, GAME),
+		'Ana moved their Renegades token to space II.'
 	);
 });

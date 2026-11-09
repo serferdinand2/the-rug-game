@@ -7,11 +7,12 @@ import {
 	PP_CIVS,
 	civsFor,
 } from '../src/lib/engine/decks.js';
-import { contextFor, run } from '../src/lib/engine/loop.js';
+import { contextFor, resolveEffects, run } from '../src/lib/engine/loop.js';
+import { DECISIONS } from '../src/lib/engine/kinds.js';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { endTurn } from '../src/lib/engine/turn.js';
 import { emit } from '../src/lib/engine/events.js';
-import { answer, startedGame } from './helpers/engine.mjs';
+import { answer, answerDefaults, startedGame } from './helpers/engine.mjs';
 import { AA } from './helpers/arts.mjs';
 
 /**
@@ -136,4 +137,111 @@ test("the Relentless' chart: 1, 3, 6, 10 and 15 VP, with a choice of extras from
 		const next = answer(state, random, 1, 'chooseOption', { option: 0 });
 		assert.equal(next.seats[0].civData.relentless.tokens, 0);
 	}
+});
+
+// The Renegades
+
+test('the Renegades: an advance into a tier that matches their next space may take it instead of the benefit and bonus (03 §2.4)', () => {
+	const { state, random } = holding('renegades', (s) => {
+		s.seats[0].territoryTiles = [];
+	});
+	assert.deepEqual(state.seats[0].civData.renegades, { at: 0 });
+	const moved = resolveEffects(
+		state,
+		1,
+		[{ advance: { tracks: ['exploration'] } }],
+		random
+	);
+	const [decision] = openDecisions(moved);
+	assert.equal(decision.kind, 'chooseRenegades');
+	assert.deepEqual(DECISIONS.chooseRenegades.answers(moved, decision), [
+		{ renegades: false },
+		{ renegades: true },
+	]);
+	// Space I: a tapestry card and an income building of your choice, instead of Scouting's 2 territory tiles.
+	const hand = moved.seats[0].hand.length;
+	const taken = answerDefaults(
+		answer(moved, random, 1, 'chooseRenegades', { renegades: true }),
+		random
+	);
+	assert.deepEqual(taken.seats[0].civData.renegades, { at: 1 });
+	assert.equal(taken.seats[0].hand.length, hand + 1);
+	assert.deepEqual(taken.seats[0].territoryTiles, []);
+	assert.ok(
+		!taken.events.some(
+			(/** @type {any} */ e) =>
+				e.type === 'spaceActivated' && e.track === 'exploration'
+		)
+	);
+	const kept = answer(moved, random, 1, 'chooseRenegades', {
+		renegades: false,
+	});
+	assert.equal(kept.seats[0].territoryTiles.length, 2);
+	assert.deepEqual(kept.seats[0].civData.renegades, { at: 0 });
+});
+
+test("the Renegades: no offer when the tiers don't match, without a benefit, or going back", () => {
+	const offered = (
+		/** @type {Record<string, any>} */ effect,
+		/** @type {(s: any) => void} */ fill
+	) => {
+		const { state, random } = holding('renegades', fill);
+		const moved = resolveEffects(state, 1, [effect], random);
+		return openDecisions(moved).some((d) => d.kind === 'chooseRenegades');
+	};
+	const at =
+		(/** @type {number} */ space, /** @type {number} */ renegades) =>
+		(/** @type {any} */ s) => {
+			s.seats[0].tracks.technology = [space];
+			s.seats[0].civData.renegades.at = renegades;
+			// Taken already, so no placement asks first.
+			s.landmarks = [];
+		};
+	// Into tier II (space 4) while the next Renegades space is I.
+	assert.equal(
+		offered({ advance: { tracks: ['technology'] } }, at(3, 0)),
+		false
+	);
+	assert.equal(
+		offered({ advance: { tracks: ['technology'] } }, at(3, 1)),
+		true
+	);
+	// Within tier II.
+	assert.equal(
+		offered({ advance: { tracks: ['technology'] } }, at(4, 1)),
+		true
+	);
+	assert.equal(
+		offered(
+			{ advance: { tracks: ['technology'], noBenefit: true } },
+			at(3, 1)
+		),
+		false
+	);
+	assert.equal(
+		offered({ regress: { tracks: ['technology'] } }, at(5, 1)),
+		false
+	);
+});
+
+test("the Renegades' last space: 20 VP, and their track's end counts for completing a track", () => {
+	const { state, random } = holding('renegades', (s) => {
+		s.seats[0].tracks.military = [9];
+		s.seats[0].civData.renegades.at = 3;
+		s.landmarks = [];
+	});
+	const vp = state.seats[0].vp;
+	const moved = resolveEffects(
+		state,
+		1,
+		[{ advance: { tracks: ['military'] } }],
+		random
+	);
+	const done = answer(moved, random, 1, 'chooseRenegades', {
+		renegades: true,
+	});
+	assert.deepEqual(done.seats[0].civData.renegades, { at: 4 });
+	assert.deepEqual(done.achievements['complete-track'], [1]);
+	// 20 VP and the achievement's first box (10 VP on the small map).
+	assert.equal(done.seats[0].vp, vp + 20 + 10);
 });

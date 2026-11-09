@@ -606,6 +606,10 @@ const WORDS = {
 		isCount(e.tokens)
 			? `${name} took ${e.tokens === 1 ? '1 token' : `${e.tokens} tokens`} off their Relentless mat.`
 			: null,
+	renegadesMoved: (e, game, name) =>
+		isCount(e.at) && e.at >= 1 && e.at <= 4
+			? `${name} moved their Renegades token to space ${['I', 'II', 'III', 'IV'][e.at - 1]}.`
+			: null,
 	// Plague (#37).
 	plagueDrawn: (e, game, name) =>
 		typeof e.civ === 'string'

@@ -20,6 +20,7 @@ import { mystics } from './mystics.js';
 import { nomads } from './nomads.js';
 import { recyclers } from './recyclers.js';
 import { relentless } from './relentless.js';
+import { renegades } from './renegades.js';
 import { riverfolk } from './riverfolk.js';
 import { spies } from './spies.js';
 import { theChosen } from './the-chosen.js';
@@ -63,6 +64,7 @@ Object.assign(CIVS, {
 	islanders,
 	// Arts & Architecture's (#37; decks.js's AA_CIVS).
 	relentless,
+	renegades,
 });
 
 export { CIVS, findCiv, civsOf } from './registry.js';
