@@ -393,6 +393,13 @@ export function checkState(state, previousSeq = 0) {
 				...mine.flatMap((o) =>
 					o.piece && 'landmark' in o.piece ? [o.piece.landmark] : []
 				),
+				// #37: on A&A's tech and tapestry cards, owned as well.
+				...Object.values(p.techLandmarks ?? {}),
+				...Object.values(p.onCards ?? {}).flatMap((pieces) =>
+					pieces.flatMap((piece) =>
+						'landmark' in piece ? [piece.landmark] : []
+					)
+				),
 				...placing
 					.filter((op) => op.player === p.seat)
 					.map((op) => op.landmark),
