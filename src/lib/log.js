@@ -594,6 +594,11 @@ const WORDS = {
 	// Cloud City's move (R121, #36).
 	buildingMoved: (e, game, name) =>
 		`${name} moved ${pieceWords({ building: e.building })} to another cloud of their capital.`,
+	// Plague (#37).
+	plagueDrawn: (e, game, name) =>
+		typeof e.civ === 'string'
+			? `${name} drew ${civWords(e.civ)} with Plague.`
+			: null,
 	piecePlacedOnMap: (e, game, name) =>
 		`${name} placed ${pieceWords(e.piece)} on ${hexName(e.hex)}.`,
 	// A&A's landmark tech cards (#37): the upgrade that follows has its own line.
@@ -686,6 +691,10 @@ const WORDS = {
 			? `${name} gained the benefit of territory tile ${e.tile} on ${hexName(e.hex)}.`
 			: `${name} gained no tile benefit: ${hexName(e.hex)} is a printed territory.`,
 	outpostPlaced(e, game, name) {
+		// Migration's (#37).
+		if (typeof e.card === 'string') {
+			return `${name} placed an outpost on ${hexName(e.hex)} with ${tapestryName(e.card)}.`;
+		}
 		if (e.militarism === true) {
 			return `${name} placed an outpost on ${hexName(e.hex)} with Militarism.`;
 		}

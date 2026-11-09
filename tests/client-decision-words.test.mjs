@@ -1250,3 +1250,123 @@ test('over 20 random games, every open decision and answer describes to a senten
 	}
 	assert.ok(kinds.size >= 15, `only ${kinds.size} decision kinds opened`);
 });
+
+test("Artistic Inspiration's roll offers the arts track beside the result (#37)", () => {
+	const roll = { id: 1, batch: 1, player: 1, kind: 'chooseRoll' };
+	assert.equal(
+		decisionTitle({ ...roll, options: ['science', 'arts'] }),
+		'Choose the science die result or Arts'
+	);
+	assert.equal(
+		decisionTitle({ ...roll, options: ['science', 'military'] }),
+		'Choose one of the two science die results'
+	);
+	assert.equal(describeAnswer(roll, { track: 'arts' }), 'Arts');
+});
+
+test("Political Posturing's achievement and Moon Landing's trade read as their cards (#37)", () => {
+	const slot = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'politicalPosturing',
+		options: ['complete-track', 'topple-two'],
+	};
+	assert.equal(decisionTitle(slot), 'Choose an achievement to earn');
+	assert.equal(
+		describeAnswer(slot, { slot: 'topple-two' }),
+		'Topple two opponent outposts'
+	);
+	const trade = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseTrade',
+		purpose: 'moonLanding',
+		optional: true,
+		offers: [
+			{
+				pay: { territory: 2, tech: 1 },
+				gain: [{ gain: { space: 1 } }, { exploreSpace: {} }],
+			},
+		],
+		otherwise: [{ invent: {} }],
+	};
+	assert.equal(
+		decisionTitle(trade),
+		'Moon Landing: discard 2 territory tiles and 1 tech card for a space tile?'
+	);
+	assert.equal(
+		describeAnswer(trade, { offer: null }),
+		'No, invent a tech card'
+	);
+});
+
+test("Age of Enlightenment's once or twice (#37)", () => {
+	const slot = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'enlightenment',
+		options: [1, 2],
+		then: { kind: 'enlightenmentMoves', track: 'science' },
+	};
+	assert.equal(
+		decisionTitle(slot),
+		'Age of Enlightenment: advance on Science once or twice?'
+	);
+	assert.equal(describeAnswer(slot, { slot: 1 }), 'Once');
+	assert.equal(describeAnswer(slot, { slot: 2 }), 'Twice');
+});
+
+test("Silk Road's and Plague's choices, and Infrastructure Upgrade's card (#37)", () => {
+	const silk = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'silkRoad',
+		options: ['benefit', 'landmark'],
+	};
+	assert.equal(
+		decisionTitle(silk),
+		"Silk Road: gain the space's benefit or its landmark?"
+	);
+	assert.equal(describeAnswer(silk, { slot: 'landmark' }), 'Its landmark');
+	const plague = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'plague',
+		options: ['historians', 'discard'],
+		then: { kind: 'plagueChoice', civ: 'the-chosen' },
+	};
+	assert.equal(
+		decisionTitle(plague),
+		'Plague: replace a civilization with The Chosen, or discard it for 10 VP?'
+	);
+	assert.equal(
+		describeAnswer(plague, { slot: 'historians' }),
+		'Replace the Historians'
+	);
+	assert.equal(
+		describeAnswer(plague, { slot: 'discard' }),
+		'Discard it for 10 VP'
+	);
+	const upgrade = {
+		id: 3,
+		batch: 1,
+		player: 1,
+		kind: 'chooseLandmarkCard',
+		purpose: 'infrastructureUpgrade',
+		options: ['castle', 'villa'],
+		drafters: [],
+	};
+	assert.equal(
+		decisionTitle(upgrade),
+		'Infrastructure Upgrade: keep a landmark card'
+	);
+});

@@ -210,6 +210,7 @@ const SAMPLES = {
 		landmark: 'barracks',
 		card: 'astrolabe',
 	},
+	plagueDrawn: { player: 1, civ: 'the-chosen' },
 	spaceActivated: { player: 1, track: 'exploration', space: 1 },
 	spaceExplored: { player: 1, tile: 7 },
 	spiesUsed: {
@@ -1053,5 +1054,19 @@ test('a landmark placed on an A&A tech card, and one discarded with its card (#3
 			GAME
 		),
 		'Ana discarded the Villa with Calculus.'
+	);
+});
+
+test("Plague's draw and Migration's outposts (#37)", () => {
+	assert.equal(
+		eventText({ type: 'plagueDrawn', player: 1, civ: 'the-chosen' }, GAME),
+		'Ana drew The Chosen with Plague.'
+	);
+	assert.equal(
+		eventText(
+			{ type: 'outpostPlaced', player: 1, hex: '0_3', card: 'migration' },
+			GAME
+		),
+		'Ana placed an outpost on hex 0,3 with Migration.'
 	);
 });

@@ -1,6 +1,7 @@
 // The card lists, read from the asset catalog: civilizations, tech cards and tapestry cards, with the expansions' (#33).
 import { ASSETS } from '../art/catalog.js';
 import { artsTrackOn } from './data/tracks.js';
+import { TAPESTRY_CARDS } from './data/tapestry-cards.js';
 
 /**
  * The slugs of a group's base-game assets.
@@ -17,7 +18,7 @@ function baseSlugs(group) {
  * @param {string} expansion
  * @returns {string[]}
  */
-function slugsOf(group, expansion) {
+export function slugsOf(group, expansion) {
 	return ASSETS.filter(
 		(asset) => asset.group === group && asset.expansion === expansion
 	).map((asset) => asset.id.slice(group.length + 1));
@@ -98,15 +99,35 @@ export const BASE_TAPESTRY = Object.freeze([
 	...Array.from({ length: 7 }, (_, i) => `trap-${i + 1}`),
 ]);
 
+/** A&A's tapestry cards with the arts icon, left out without the arts track (R124). */
+const ARTS_TAPESTRY = [
+	'artistic-inspiration',
+	'found-art',
+	'government-grants',
+	'granges',
+	'silk-road',
+	'steam',
+];
+
 /**
  * The tapestry cards a game with these expansions plays with: the base 50, then Plans & Ploys' 13 (R43 and R44 leave
- * out the other two; the catalog lists only these), in catalog order (#33).
+ * out the other two; the catalog lists only these), then A&A's built ones (#37), each in catalog order (#33). Without
+ * the arts track, A&A's cards with the arts icon are left out (R124).
  * @param {readonly string[]} expansions
+ * @param {readonly string[]} [variants]
  * @returns {string[]}
  */
-export function tapestryFor(expansions) {
+export function tapestryFor(expansions, variants = []) {
+	const arts = artsTrackOn(expansions, variants);
 	return [
 		...BASE_TAPESTRY,
 		...(expansions.includes('pp') ? slugsOf('tapestry', 'pp') : []),
+		...(expansions.includes('aa')
+			? slugsOf('tapestry', 'aa').filter(
+					(id) =>
+						TAPESTRY_CARDS.some((card) => card.id === id) &&
+						(arts || !ARTS_TAPESTRY.includes(id))
+				)
+			: []),
 	];
 }

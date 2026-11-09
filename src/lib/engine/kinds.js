@@ -80,6 +80,7 @@ import {
 	civSetup,
 	civAdjust,
 	civFirstTurnEnd,
+	plagueChoice,
 } from './civ-turns.js';
 import { loseResource } from './effects/lose.js';
 import { payResource } from './effects/pay.js';
@@ -90,6 +91,12 @@ import { chooseCube } from './decisions/choose-cube.js';
 import { leadersAdvance } from './civs/leaders.js';
 import { merrymakersMove } from './civs/merrymakers.js';
 import { retreatTo, surrenderDice } from './responses.js';
+import {
+	enlightenmentMoves,
+	enlightenmentRolled,
+	politicalPostured,
+	silkRoadGain,
+} from './effects/aa-cards.js';
 import {
 	cartographyCheck,
 	manifestDestinyBenefit,
@@ -256,6 +263,11 @@ Object.assign(AUTOMATIC, {
 	historiansDiscard,
 	inventorsToken,
 	inventorsTake,
+	politicalPostured,
+	enlightenmentRolled,
+	enlightenmentMoves,
+	silkRoadGain,
+	plagueChoice,
 	cartographyCheck,
 	manifestDestinyBenefit,
 	territoryBenefit,

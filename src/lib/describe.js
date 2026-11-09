@@ -49,6 +49,12 @@ const CARD_RULES = [
 	'manifestDestiny',
 	'statusQuo',
 	'worldsFair',
+	'politicalPosturing',
+	'spymaster',
+	'ageOfEnlightenment',
+	'silkRoad',
+	'infrastructureUpgrade',
+	'plague',
 ];
 
 /**
@@ -285,6 +291,10 @@ const PHRASES = {
 		return `gain ${each} VP for each ${counted(value.per, value.track)}`;
 	},
 	explore(value) {
+		// Migration (#37).
+		if (value?.migration) {
+			return 'explore a territory next to no controlled territory, then place 2 outposts there';
+		}
 		const where = value?.anywhere ? ' anywhere' : '';
 		if (isCount(value?.tile)) {
 			return `explore${where} with territory tile ${value.tile}`;
@@ -392,6 +402,10 @@ const PHRASES = {
 			: 'upgrade a tech card';
 	},
 	techBenefit(value) {
+		// Information Age: any card, whatever its row (#37).
+		if (value?.anyRow) {
+			return `gain the ${value.icon === 'square' ? 'square' : 'circle'} benefit of any of your tech cards`;
+		}
 		return value?.icon === 'square'
 			? 'gain the square benefit of a tech card in your top row'
 			: 'gain the circle benefit of a tech card in your middle row';
@@ -472,6 +486,10 @@ const PHRASES = {
 				? `${paymentVerbs(offer.pay)} to ${effectsPhrase(offer.gain, table, true)}`
 				: 'an offer'
 		);
+		// One offer with something else if it isn't made reads as the card does (Moon Landing, #37).
+		if (Array.isArray(value.otherwise) && offers.length === 1) {
+			return `you may ${offers[0]}; if you don't, ${effectsPhrase(value.otherwise, table, true)}`;
+		}
 		const words = `make one trade${host}: ${joinList(offers, 'or')}`;
 		return value.optional ? `you may ${words}` : words;
 	},

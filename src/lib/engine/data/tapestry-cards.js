@@ -1,4 +1,4 @@
-// The 43 base tapestry cards, the trap played as a card, and Plans & Ploys' cards (#33): timing and what happens when played (02 §3, 03 §1.4).
+// The 43 base tapestry cards, the trap played as a card, Plans & Ploys' cards (#33) and Arts & Architecture's (#37): timing and what happens when played (02 §3, 03 §1.4, §2.5).
 import { deepFreeze } from './ids.js';
 
 /** @typedef {import('./effects.js').Effect} Effect */
@@ -8,10 +8,11 @@ import { deepFreeze } from './ids.js';
  * @typedef {Object} TapestryCard
  * @property {string} id - The slug the asset catalog uses, such as 'meritocracy'; the trap's is 'trap'
  * @property {string} name
- * @property {'played' | 'era'} timing - 'played' is WHEN PLAYED; 'era' is THIS ERA
+ * @property {'played' | 'era' | 'continuous'} timing - 'played' is WHEN PLAYED; 'era' is THIS ERA; 'continuous' is A&A's
+ *   CONTINUOUS, active while the card tops its slot (#37)
  * @property {Effect[]} played - What runs when the card's ability resolves; a THIS ERA card's setup choice, if any
  * @property {boolean} ordered - Whether the effects run in the order listed (Renaissance is the only false)
- * @property {'base' | 'pp'} expansion - Where it comes from
+ * @property {'base' | 'pp' | 'aa'} expansion - Where it comes from
  * @property {'conquest' | 'trap'} [response] - A response card: 'conquest' a defender discards against a conquest (the
  *   trap, Retreat, Surprise Party, Surrender); 'trap' an attacker discards against a Trap (Double Cross, Stolen Plans)
  */
@@ -73,6 +74,14 @@ const when = (id, played, ordered = true) => ({
 const pp = (card, extra = {}) => ({ ...card, ...extra, expansion: 'pp' });
 
 /**
+ * An Arts & Architecture card (#37; 03 §2.5), with its name when the slug doesn't give it.
+ * @param {TapestryCard} card
+ * @param {{ name?: string }} [extra]
+ * @returns {TapestryCard}
+ */
+const aa = (card, extra = {}) => ({ ...card, ...extra, expansion: 'aa' });
+
+/**
  * A trade offer of VP for resources of the player's choice.
  * @param {number} vp
  * @param {number} resources
@@ -93,7 +102,8 @@ const buyVp = (resources, vp) => ({
 });
 
 /**
- * The 43 base cards in BASE_TAPESTRY order (alphabetical), then the trap, then Plans & Ploys' cards (#33).
+ * The 43 base cards in BASE_TAPESTRY order (alphabetical), then the trap, then Plans & Ploys' cards (#33), then
+ * Arts & Architecture's (#37), each in catalog order.
  * @type {readonly TapestryCard[]}
  */
 export const TAPESTRY_CARDS = deepFreeze([
@@ -230,6 +240,66 @@ export const TAPESTRY_CARDS = deepFreeze([
 	pp(when('worlds-fair', [{ gain: { culture: 1 } }, { worldsFair: {} }]), {
 		name: "World's Fair",
 	}),
+	// Arts & Architecture (#37; 03 §2.5).
+	aa(when('age-of-enlightenment', [{ ageOfEnlightenment: {} }])),
+	aa(era('artistic-inspiration')),
+	aa(era('found-art')),
+	aa(
+		when('information-age', [
+			{ invent: {} },
+			{
+				choice: [
+					[{ upgrade: {} }],
+					[{ techBenefit: { icon: 'circle', anyRow: true } }],
+				],
+			},
+		])
+	),
+	aa(when('infrastructure-upgrade', [{ infrastructureUpgrade: {} }])),
+	// Explored with a tile from the supply, VP and benefit as any explore (03 §2.5).
+	aa(when('migration', [{ explore: { migration: true } }])),
+	aa(
+		when('moon-landing', [
+			{
+				trade: {
+					offers: [
+						{
+							pay: { territory: 2, tech: 1 },
+							gain: [
+								{ gain: { space: 1 } },
+								{ exploreSpace: {} },
+							],
+						},
+					],
+					optional: true,
+					purpose: 'moonLanding',
+					otherwise: [{ invent: {} }],
+				},
+			},
+		])
+	),
+	aa(when('plague', [{ plague: {} }])),
+	aa(when('political-posturing', [{ politicalPosturing: {} }])),
+	aa(when('silk-road', [{ silkRoad: {} }])),
+	aa(when('spymaster', [{ vp: 5 }, { spymaster: {} }])),
+	// Mandatory where possible; the arts track is in play whenever this card is (R124).
+	aa(
+		when('government-grants', [
+			{ advance: { tracks: ['arts'], freeBonus: true } },
+			{
+				regress: {
+					tracks: [
+						'exploration',
+						'science',
+						'technology',
+						'military',
+					],
+					noBonus: true,
+				},
+			},
+		])
+	),
+	aa(era('steam'), { name: 'S.T.E.A.M.' }),
 ]);
 
 /**

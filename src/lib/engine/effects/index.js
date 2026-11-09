@@ -51,7 +51,14 @@ import {
 	streamingImplants,
 	flipMasterpiece,
 } from './arts.js';
-import { gainCiv } from '../civ-turns.js';
+import {
+	ageOfEnlightenment,
+	politicalPosturing,
+	silkRoad,
+	spymaster,
+} from './aa-cards.js';
+import { infrastructureUpgrade } from '../landmark-cards.js';
+import { gainCiv, plague } from '../civ-turns.js';
 import { discardCiv, placeToken } from '../civs/civ.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
@@ -112,6 +119,12 @@ export const EFFECTS = {
 	refreshMasterpieces,
 	streamingImplants,
 	flipMasterpiece,
+	politicalPosturing,
+	spymaster,
+	ageOfEnlightenment,
+	silkRoad,
+	infrastructureUpgrade,
+	plague,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

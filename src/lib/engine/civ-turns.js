@@ -4,6 +4,7 @@ import { shuffle } from './random.js';
 import { playerSeat } from './state.js';
 import { civsOf, findCiv } from './civs/registry.js';
 import { INFILTRATORS_DRAW } from './civs/infiltrators.js';
+import { discardCiv } from './civs/civ.js';
 
 /**
  * The after-setup step: a group with one lane per player, so they decide at the same time. Each lane runs the setup of
@@ -158,7 +159,7 @@ export function civIncome(ctx, op) {
  * @param {import('./state.js').Context} ctx
  * @returns {string | undefined} Undefined when nothing is left to draw
  */
-function drawCiv(ctx) {
+export function drawCiv(ctx) {
 	const { state } = ctx;
 	const { supply } = state;
 	if (supply.civs.length === 0 && supply.civDiscard.length > 1) {
@@ -234,4 +235,47 @@ export function gainDrawnCiv(ctx, player, civ) {
 	playerSeat(ctx.state, player).civs.push(civ);
 	emit(ctx.state, { type: 'civGained', player, civ });
 	ctx.push([{ player, kind: 'civSetup', civ, midGame: true, origin: 'civ' }]);
+}
+
+/**
+ * Plague: draw a random civilization; the player either has it replace one of theirs and gains any 1 resource (R61),
+ * or discards it for 10 VP (03 §2.5). The replaced one goes to the discards, keeping what it gave; the new one joins
+ * as one gained mid-game (R113), last in line. With nothing to draw, nothing happens.
+ * @type {import('./state.js').EffectHandler}
+ */
+export function plague(ctx, player) {
+	const civ = drawCiv(ctx);
+	if (civ === undefined) {
+		emit(ctx.state, { type: 'noCivLeft', player });
+		return;
+	}
+	emit(ctx.state, { type: 'plagueDrawn', player, civ });
+	ctx.push([
+		{
+			player,
+			kind: 'chooseSlot',
+			options: [...playerSeat(ctx.state, player).civs, 'discard'],
+			optional: false,
+			purpose: 'plague',
+			then: { kind: 'plagueChoice', civ },
+		},
+	]);
+}
+
+/**
+ * What Plague's player chose: the civilization to replace, or 'discard'.
+ * @type {import('./state.js').AutomaticKind}
+ */
+export function plagueChoice(ctx, op) {
+	const player = /** @type {number} */ (op.player);
+	const civ = /** @type {string} */ (op.civ);
+	if (op.slot === 'discard') {
+		ctx.state.supply.civDiscard.push(civ);
+		emit(ctx.state, { type: 'civDiscarded', player, civ });
+		ctx.push([{ player, kind: 'effects', effects: [{ vp: 10 }] }]);
+		return;
+	}
+	discardCiv(ctx, player, { civ: op.slot });
+	ctx.push([{ player, kind: 'effects', effects: [{ gain: { any: 1 } }] }]);
+	gainDrawnCiv(ctx, player, civ);
 }

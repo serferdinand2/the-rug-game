@@ -72,7 +72,8 @@ function busyGame(card) {
 	return { state, random };
 }
 
-for (const card of TAPESTRY_CARDS) {
+// A&A's cards need the arts track: tests/engine-aa-tapestry.test.mjs runs them (#37).
+for (const card of TAPESTRY_CARDS.filter((c) => c.expansion !== 'aa')) {
 	test(`every base tapestry card's ability runs to the end: ${card.name}`, () => {
 		// The trap is played as one of its 7 copies (R22).
 		const id = card.id === 'trap' ? 'trap-2' : card.id;

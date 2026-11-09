@@ -197,9 +197,10 @@ export function keepLandmarkCard(ctx, player, card, auto) {
 }
 
 /**
- * At the end of a player's turn, the final income turn's too (R111): if their landmark card's goal is met and its
- * landmark not yet gained, they must gain it and place it. Gives the operations that do so, or none.
- * @param {import('./state.js').State} state - Changed: the card is marked gained, its landmark leaves the supply
+ * At the end of a player's turn, the final income turn's too (R111): for each landmark card they hold whose goal is
+ * met and whose landmark is not yet gained, they must gain it and place it: the drafted one, then those Infrastructure
+ * Upgrade kept (#37). Gives the operations that do so, or none.
+ * @param {import('./state.js').State} state - Changed: each card met is marked gained, its landmark leaves the supply
  * @param {number} player
  * @returns {import('./state.js').NewOperation[]}
  */
@@ -208,10 +209,22 @@ export function landmarkCardOps(state, player) {
 		return [];
 	}
 	const seat = playerSeat(state, player);
-	const held = seat.landmarkCard;
-	if (!held || held.gained || !landmarkGoal(seat, held.card, state).met) {
-		return [];
-	}
+	return [seat.landmarkCard, ...(seat.extraLandmarkCards ?? [])].flatMap(
+		(held) =>
+			held && !held.gained && landmarkGoal(seat, held.card, state).met
+				? goalMet(state, player, held)
+				: []
+	);
+}
+
+/**
+ * A landmark card's goal is met: the card is marked gained, and its landmark is gained and placed if nobody has it.
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @param {{ card: string, gained: boolean }} held
+ * @returns {import('./state.js').NewOperation[]}
+ */
+function goalMet(state, player, held) {
 	held.gained = true;
 	const { landmark } = landmarkCard(held.card);
 	emit(state, { type: 'landmarkCardGoalMet', player, card: held.card });
@@ -235,4 +248,44 @@ export function landmarkCardOps(state, player) {
 			fromTrack: false,
 		}),
 	];
+}
+
+/**
+ * Infrastructure Upgrade: the player chooses a card of the face-down landmark deck and keeps it as a drafted one; with
+ * none left, 10 VP (03 §2.5). The deck's cards stay the player's to see.
+ * @type {import('./state.js').EffectHandler}
+ */
+export function infrastructureUpgrade(ctx, player) {
+	const deck = ctx.state.supply.landmarkCards;
+	if (deck.length === 0) {
+		ctx.push([{ player, kind: 'effects', effects: [{ vp: 10 }] }]);
+		return;
+	}
+	if (deck.length === 1) {
+		takeLandmarkCard(ctx, player, deck[0]);
+		return;
+	}
+	ctx.push([
+		{
+			player,
+			kind: 'chooseLandmarkCard',
+			options: [...deck],
+			drafters: [],
+			purpose: 'infrastructureUpgrade',
+		},
+	]);
+}
+
+/**
+ * Takes a card out of the landmark deck and keeps it beside the drafted one (Infrastructure Upgrade, #37).
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {string} card
+ */
+export function takeLandmarkCard(ctx, player, card) {
+	const deck = ctx.state.supply.landmarkCards;
+	deck.splice(deck.indexOf(card), 1);
+	const seat = playerSeat(ctx.state, player);
+	(seat.extraLandmarkCards ??= []).push({ card, gained: false });
+	emit(ctx.state, { type: 'landmarkCardKept', player, card, auto: false });
 }

@@ -209,7 +209,7 @@ function newSeat(seat, name, tracks, aa) {
 		landmarkCard: null,
 		start: null,
 		...(arts && { masterpieces: [], inspired: [] }),
-		...(aa && { techLandmarks: {} }),
+		...(aa && { techLandmarks: {}, extraLandmarkCards: [] }),
 	};
 }
 
@@ -496,7 +496,7 @@ export function createGame({
 				discard: [],
 			},
 			tapestry: {
-				deck: shuffle(tapestryFor(expansions), random),
+				deck: shuffle(tapestryFor(expansions, variants), random),
 				discard: [],
 			},
 			territory: shuffle(

@@ -13,6 +13,7 @@ import { DARK_AGES_ADVANCES, REVOLUTION_MORE } from './engine/effects/cards.js';
 import { countVp } from './engine/effects/vp.js';
 import { TRACKS, advanceCost } from './engine/data/tracks.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
+import { ACHIEVEMENTS } from './engine/data/achievements.js';
 import { LANDMARKS } from './engine/data/landmarks.js';
 import { TERRITORY_TILES } from './engine/data/territory-tiles.js';
 import {
@@ -261,10 +262,30 @@ function plotAt(index) {
 }
 
 /**
+ * A civilization's name with its article: "the Historians", "The Chosen" (#37).
+ * @param {string} name
+ * @returns {string}
+ */
+function withThe(name) {
+	return /^(the|a|an) /i.test(name) ? name : `the ${name}`;
+}
+
+/**
  * A title from a decision's options for a slot pick, keyed by its `purpose`.
  * @type {Record<string, (decision: Decision, table: Table | undefined) => string>}
  */
 const SLOT_TITLES = {
+	// Political Posturing (#37).
+	politicalPosturing: () => 'Choose an achievement to earn',
+	silkRoad: () => "Silk Road: gain the space's benefit or its landmark?",
+	plague: (d) =>
+		typeof d.then?.civ === 'string'
+			? `Plague: replace a civilization with ${withThe(civilizationName(d.then.civ))}, or discard it for 10 VP?`
+			: 'Plague: replace a civilization, or discard the new one for 10 VP?',
+	enlightenment: (d) =>
+		isTrack(d.then?.track)
+			? `Age of Enlightenment: advance on ${trackName(d.then.track)} once or twice?`
+			: 'Age of Enlightenment: advance once or twice?',
 	loseResource: () => 'Choose a resource to lose',
 	payResource: () => 'Choose a resource to pay',
 	merrymakers: () => 'Choose a Merrymakers column to move up',
@@ -614,8 +635,16 @@ const TITLES = {
 	},
 	chooseKeep: () => 'Choose a tapestry card to keep',
 	chooseKeepTech: () => 'Choose a tech card to keep',
-	chooseLandmarkCard: () => 'Keep a landmark card',
+	// Infrastructure Upgrade takes one from the landmark deck (#37).
+	chooseLandmarkCard: (d) =>
+		d.purpose === 'infrastructureUpgrade'
+			? 'Infrastructure Upgrade: keep a landmark card'
+			: 'Keep a landmark card',
 	chooseTrade: (d, table) => {
+		// Moon Landing (#37): the trade, or the invent if it isn't made.
+		if (d.purpose === 'moonLanding') {
+			return 'Moon Landing: discard 2 territory tiles and 1 tech card for a space tile?';
+		}
 		// The Utilitarians' Lighthouse (#33).
 		// Mandatory when only its resource pays for the turn's advance.
 		if (d.purpose === 'lighthouse') {
@@ -669,7 +698,11 @@ const TITLES = {
 				return 'Choose a track';
 		}
 	},
-	chooseRoll: () => 'Choose one of the two science die results',
+	// Empiricism's two faces, or the face and Arts with Artistic Inspiration (#37).
+	chooseRoll: (d) =>
+		Array.isArray(d.options) && d.options.includes('arts')
+			? 'Choose the science die result or Arts'
+			: 'Choose one of the two science die results',
 	chooseScienceDie: () => 'Choose the science die to roll',
 	chooseCreate: () => 'Create a masterpiece',
 	chooseRefresh: () => 'Refresh the face-up masterpieces?',
@@ -807,6 +840,24 @@ export function decisionTitle(decision, table) {
  * @type {Record<string, (slot: any, decision: Decision, table: Table | undefined) => string | null>}
  */
 const SLOT_ANSWERS = {
+	politicalPosturing: (slot) =>
+		ACHIEVEMENTS.find((a) => a.id === slot)?.name ?? null,
+	enlightenment: (slot) =>
+		slot === 1 ? 'Once' : slot === 2 ? 'Twice' : null,
+	plague: (slot, d) => {
+		if (slot === 'discard') {
+			return 'Discard it for 10 VP';
+		}
+		return typeof slot === 'string'
+			? `Replace ${withThe(civilizationName(slot))}`
+			: null;
+	},
+	silkRoad: (slot) =>
+		slot === 'benefit'
+			? 'Its benefit'
+			: slot === 'landmark'
+				? 'Its landmark'
+				: null,
 	loseResource: (slot) =>
 		RESOURCE_IDS.includes(slot) ? `Lose ${amountWords(slot, 1)}` : null,
 	payResource: (slot) =>
@@ -1212,7 +1263,9 @@ const ANSWERS = {
 			: null,
 	chooseTrade: (a, d, table) => {
 		if (a.offer === null) {
-			return 'No trade';
+			return Array.isArray(d.otherwise)
+				? capitalize(`no, ${effectsPhrase(d.otherwise, table, true)}`)
+				: 'No trade';
 		}
 		const offer =
 			Array.isArray(d.offers) && isCount(a.offer)

@@ -104,6 +104,27 @@ const TAPESTRY_RULES = Object.freeze({
 		'When you gain a tapestry card, you may play it on top of this card at once. The first and only time you do, gain 5 VP',
 	'wartime-economy':
 		'Every bonus that costs resources of your choice is free',
+	// Arts & Architecture's cards (#37; 03 §2.5).
+	'age-of-enlightenment':
+		'Roll the science die. Advance once or twice on that track without benefits, then gain the benefit of the space you reached, without its bonus',
+	'artistic-inspiration':
+		'Whenever you advance on Arts, gain 3 VP. Whenever you roll the science die, you may use Arts instead of the result',
+	'government-grants':
+		'Advance on Arts and gain its benefit; you may take its bonus for free. Then go back 1 space on another track and gain that benefit, without its bonus',
+	'infrastructure-upgrade':
+		'Look through the landmark deck and keep 1 card, as you keep your drafted one; when you meet its goal, gain its landmark. If none is left, gain 10 VP',
+	migration:
+		'Explore a territory next to no territory anyone controls, yours included, with a tile from your supply. Then place 2 of your outposts there; this is not a conquer',
+	plague: 'Draw a random civilization. Either it replaces one of yours and you gain 1 resource of your choice, or discard it and gain 10 VP. You keep what the replaced one gave you',
+	'political-posturing':
+		"Choose an achievement you haven't earned. Put your token on its highest open space and gain those VP",
+	spymaster:
+		'Gain 5 VP. Then draw 1 tapestry card; you may play it on top of this card at once',
+	'found-art':
+		'When you pay to advance on Arts, you may discard 2 territory tiles instead of paying one of its resources',
+	'silk-road':
+		"Advance straight to the first space of Arts' next tier. Gain its benefit, and you may pay its bonus, or its landmark if it is still there",
+	steam: 'Whenever you advance into a new tier on Science or Arts, gain 1 worker',
 });
 
 /**

@@ -275,14 +275,19 @@ export function upgrade(ctx, player, value) {
 }
 
 /**
- * The cards a tech benefit may use: the middle row for the circle, the top row for the square.
+ * The cards a tech benefit may use: the middle row for the circle, the top row for the square; with `anyRow`, every
+ * card the player holds, in row order (Information Age, #37).
  * @param {import('../state.js').State} state
  * @param {number} player
  * @param {'circle' | 'square'} icon
+ * @param {boolean} [anyRow]
  * @returns {string[]}
  */
-export function techBenefitOptions(state, player, icon) {
+export function techBenefitOptions(state, player, icon, anyRow = false) {
 	const rows = playerSeat(state, player).tech;
+	if (anyRow) {
+		return [...rows.bottom, ...rows.middle, ...rows.top];
+	}
 	return [...(icon === 'circle' ? rows.middle : rows.top)];
 }
 
@@ -314,7 +319,12 @@ export function useTechBenefit(ctx, player, card, icon) {
  */
 export function techBenefit(ctx, player, value) {
 	const { icon } = value;
-	const options = techBenefitOptions(ctx.state, player, icon);
+	const options = techBenefitOptions(
+		ctx.state,
+		player,
+		icon,
+		value.anyRow === true
+	);
 	if (options.length === 0) {
 		emit(ctx.state, { type: 'noTechBenefit', player });
 		return;

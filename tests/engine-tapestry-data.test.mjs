@@ -17,12 +17,14 @@ test('the 43 base tapestry cards are in catalog order, then the trap', () => {
 		BASE_CARDS.map((card) => card.id),
 		[...BASE_TAPESTRY.filter((id) => !id.startsWith('trap-')), 'trap']
 	);
-	// Plans & Ploys' cards come after them (#33).
-	assert.ok(
-		TAPESTRY_CARDS.slice(BASE_CARDS.length).every(
-			(card) => card.expansion === 'pp'
-		)
+	// Plans & Ploys' cards come after them (#33), then A&A's (#37).
+	const after = TAPESTRY_CARDS.slice(BASE_CARDS.length).map(
+		(card) => card.expansion
 	);
+	assert.deepEqual(after, [
+		...after.filter((e) => e === 'pp'),
+		...after.filter((e) => e === 'aa'),
+	]);
 });
 
 test('tapestryCard maps every trap copy to the trap (R22)', () => {

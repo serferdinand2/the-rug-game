@@ -121,6 +121,25 @@ export const ERA_HOOKS = {
 			return tiers > 0 ? [vp(owner, 4 * tiers)] : [];
 		},
 	},
+	// A&A (#37): science-die rolls may take the arts track instead (effects/research.js).
+	'artistic-inspiration': {
+		advanced: (_state, owner, { player, track }) =>
+			player === owner && track === 'arts' ? [vp(owner, 3)] : [],
+	},
+	// A&A (#37): each new tier entered on science or the arts track, R9's reading as Theocracy's.
+	steam: {
+		advanced(_state, owner, { player, track, from, to }) {
+			if (player !== owner || (track !== 'science' && track !== 'arts')) {
+				return [];
+			}
+			const tiers = [1, 4, 7, 10].filter(
+				(s) => s > from && s <= to
+			).length;
+			return tiers > 0
+				? [effects(owner, [{ gain: { worker: tiers } }])]
+				: [];
+		},
+	},
 	revisionism: {
 		landmarkGained: (_state, owner, { player, fromTrack }) =>
 			player === owner && fromTrack

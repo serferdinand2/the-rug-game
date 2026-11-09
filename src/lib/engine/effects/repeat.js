@@ -9,12 +9,14 @@ import { tracksOf } from '../tracks-in-play.js';
  * So Academic Research can't repeat itself, and nothing repeats AI Singularity once its token has left (R19, FAQ #6, #9).
  * @param {import('../state.js').State} state
  * @param {number} player
+ * @param {import('../data/ids.js').TrackId} [only] - One track's spaces only (Age of Enlightenment, Granges; #37)
  * @returns {{ track: import('../data/ids.js').TrackId, space: number }[]}
  */
-export function repeatable(state, player) {
+export function repeatable(state, player, only) {
 	const seat = seatOf(state, player);
 	// R118: "any advancement track", the arts track's too.
-	return tracksOf(state).flatMap((track) =>
+	const tracks = only === undefined ? tracksOf(state) : [only];
+	return tracks.flatMap((track) =>
 		[...new Set(seat.tracks[track])]
 			.sort((a, b) => a - b)
 			.filter(
@@ -26,7 +28,8 @@ export function repeatable(state, player) {
 }
 
 /**
- * Repeats one space. With `oncePerTurn` (Lithium-Ion Battery, FAQ #6) a card's repeat works once a turn. Mandatory: a single possible space is repeated without asking, and with none nothing happens.
+ * Repeats one space. With `oncePerTurn` (Lithium-Ion Battery, FAQ #6) a card's repeat works once a turn; `track`
+ * limits it to that track's spaces and `noBonus` leaves out the bonus (#37). Mandatory: a single possible space is repeated without asking, and with none nothing happens.
  * @type {import('../state.js').EffectHandler}
  */
 export function repeat(ctx, player, value, op) {
@@ -44,14 +47,23 @@ export function repeat(ctx, player, value, op) {
 		}
 		usedThisTurn.push({ player, card });
 	}
-	const options = repeatable(ctx.state, player);
+	const options = repeatable(ctx.state, player, value?.track);
+	// Age of Enlightenment and Granges give the benefit without the bonus (#37).
+	const bonus = value?.noBonus !== true;
 	if (options.length === 0) {
 		return;
 	}
 	if (options.length === 1) {
 		const [{ track, space }] = options;
-		ctx.push(activationOps(ctx, player, track, space));
+		ctx.push(activationOps(ctx, player, track, space, bonus));
 		return;
 	}
-	ctx.push([{ player, kind: 'chooseRepeat', options }]);
+	ctx.push([
+		{
+			player,
+			kind: 'chooseRepeat',
+			options,
+			...(!bonus && { noBonus: true }),
+		},
+	]);
 }

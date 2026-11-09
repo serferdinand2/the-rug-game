@@ -3,7 +3,7 @@ import { opponents } from '../abilities.js';
 import { neighbours } from '../income.js';
 import { canPay } from '../payment.js';
 import { emit } from '../events.js';
-import { chooseTrade } from '../decisions/choose-trade.js';
+import { chooseTrade, pushOtherwise } from '../decisions/choose-trade.js';
 import { askTrack } from '../decisions/choose-track.js';
 import { playerSeat, seatOf } from '../state.js';
 import { rollScience } from './research.js';
@@ -108,6 +108,7 @@ export function trade(ctx, player, value, op) {
 	);
 	if (!affordable) {
 		emit(ctx.state, { type: 'noTrade', player });
+		pushOtherwise(ctx, player, value.otherwise, op.source);
 		return;
 	}
 	const decision = /** @type {any} */ ({
@@ -118,6 +119,9 @@ export function trade(ctx, player, value, op) {
 		...(value.host !== undefined && { host: value.host }),
 		...(value.purpose !== undefined && { purpose: value.purpose }),
 		...(value.then !== undefined && { then: structuredClone(value.then) }),
+		...(value.otherwise !== undefined && {
+			otherwise: structuredClone(value.otherwise),
+		}),
 		source: op.source,
 	});
 	// A mandatory trade with one way to pay is made without asking.

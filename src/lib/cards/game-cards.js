@@ -49,7 +49,12 @@ import { artUrl } from '../ui.js';
  */
 
 /** The timing labels of card-design-rules.md, by the engine's timing. */
-const TIMINGS = Object.freeze({ played: 'When Played', era: 'This Era' });
+const TIMINGS = Object.freeze({
+	played: 'When Played',
+	era: 'This Era',
+	// A&A's (#37).
+	continuous: 'Continuous',
+});
 
 /** The trap's timing label. */
 const TRAP_TIMING = 'Trap · Response';

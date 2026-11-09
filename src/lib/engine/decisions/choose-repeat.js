@@ -24,6 +24,14 @@ export const chooseRepeat = {
 	},
 	resolve(ctx, decision, answer) {
 		const player = /** @type {number} */ (decision.player);
-		ctx.push(activationOps(ctx, player, answer.track, answer.space));
+		ctx.push(
+			activationOps(
+				ctx,
+				player,
+				answer.track,
+				answer.space,
+				decision.noBonus !== true
+			)
+		);
 	},
 };

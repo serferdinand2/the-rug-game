@@ -1,4 +1,4 @@
-// The decision of which of two science die results to use (Empiricism); the answer goes on to `then`.
+// The decision of which science die result to use: Empiricism's two, or the arts track with Artistic Inspiration (#37); the answer goes on to `then`.
 import { PlayerError } from '../errors.js';
 
 /** @type {import('../state.js').DecisionKind} */
@@ -13,7 +13,11 @@ export const chooseRoll = {
 	},
 	check(state, decision, answer) {
 		if (!decision.options.includes(answer.track)) {
-			throw new PlayerError('Choose one of the two results.');
+			throw new PlayerError(
+				decision.options.length === 2
+					? 'Choose one of the two results.'
+					: 'Choose one of the results.'
+			);
 		}
 	},
 	resolve(ctx, decision, answer) {

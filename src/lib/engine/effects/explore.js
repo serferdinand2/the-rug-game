@@ -5,6 +5,8 @@ import { hasEra, opponents } from '../abilities.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { spaceTile } from '../data/space-tiles.js';
 import { exploreHexes, matchingSides } from '../map.js';
+import { controlledTerritories } from '../control.js';
+import { hexNeighbours } from '../data/maps.js';
 import { openMatHexes, parseMatHex } from '../island.js';
 import { turned } from '../terrain.js';
 import { gainTiles } from './gain.js';
@@ -21,17 +23,29 @@ const SAIL_DRAW = 3;
  * @param {boolean} anywhere
  * @param {number} [only] - The only tile that may be explored (Coal Baron), if the player still holds it
  * @param {boolean} [matOnly] - Only the hexes of the Islanders' mat (their income turn's explore)
+ * @param {boolean} [isolated] - Only map hexes next to no territory anyone controls (Migration, #37)
  * @returns {{ tile: number, hex: string, orient: number }[]}
  */
-export function exploreAnswers(state, player, anywhere, only, matOnly) {
+export function exploreAnswers(
+	state,
+	player,
+	anywhere,
+	only,
+	matOnly,
+	isolated = false
+) {
 	const tiles = playerSeat(state, player)
 		.territoryTiles.filter((tile) => only === undefined || tile === only)
 		.sort((a, b) => a - b);
 	// The Islanders' empty mat hexes can be explored by any explore (03 §1.3), after the board's in the order of the answers.
-	const hexes = [
-		...(matOnly === true ? [] : exploreHexes(state, player, anywhere)),
-		...openMatHexes(state, player),
-	];
+	const hexes = isolated
+		? isolatedHexes(state, player)
+		: [
+				...(matOnly === true
+					? []
+					: exploreHexes(state, player, anywhere)),
+				...openMatHexes(state, player),
+			];
 	const scored = [];
 	for (const tile of tiles) {
 		for (const hex of hexes) {
@@ -46,6 +60,21 @@ export function exploreAnswers(state, player, anywhere, only, matOnly) {
 	// Array.prototype.sort is stable, so ties keep the order above.
 	scored.sort((a, b) => b.score - a.score);
 	return scored.map((s) => s.answer);
+}
+
+/**
+ * The unexplored map hexes next to no territory any player controls, theirs included (Migration, 03 §2.12).
+ * @param {import('../state.js').State} state
+ * @param {number} player
+ * @returns {string[]}
+ */
+function isolatedHexes(state, player) {
+	const controlled = new Set(
+		state.seats.flatMap((seat) => controlledTerritories(state, seat.seat))
+	);
+	return exploreHexes(state, player, true).filter(
+		(hex) => !hexNeighbours(hex).some((next) => controlled.has(next))
+	);
 }
 
 /**
@@ -120,7 +149,7 @@ export function exploreTile(ctx, player, { tile, hex, orient }, free = false) {
 /**
  * The explore effect. With nothing to explore it does nothing; with one possible result it explores at once; otherwise its player chooses.
  * `tile` limits it to that tile (Coal Baron). `mat` limits it to the Islanders' mat hexes, and `free` only places the tile there
- * (R113). Under Age of Sail it first draws 3 territory tiles, even when no hex can then be
+ * (R113). `migration` limits it to hexes next to no controlled territory, then places 2 outposts there (#37). Under Age of Sail it first draws 3 territory tiles, even when no hex can then be
  * explored, and the player may give a tile to an opponent; `sailed` marks the explore that follows (design §8).
  * @type {import('../state.js').EffectHandler}
  */
@@ -150,7 +179,15 @@ export function explore(ctx, player, value, op) {
 	const tile = value?.tile;
 	const matOnly = value?.mat === true;
 	const free = value?.free === true;
-	const answers = exploreAnswers(state, player, anywhere, tile, matOnly);
+	const migration = value?.migration === true;
+	const answers = exploreAnswers(
+		state,
+		player,
+		anywhere,
+		tile,
+		matOnly,
+		migration
+	);
 	if (answers.length === 0) {
 		emit(state, { type: 'noExplore', player });
 		return;
@@ -166,6 +203,9 @@ export function explore(ctx, player, value, op) {
 		).join()}`;
 	if (answers.every((a) => key(a) === key(answers[0]))) {
 		exploreTile(ctx, player, answers[0], free);
+		if (migration) {
+			migrate(ctx, player, answers[0].hex);
+		}
 		return;
 	}
 	ctx.push([
@@ -176,6 +216,25 @@ export function explore(ctx, player, value, op) {
 			...(tile !== undefined && { tile }),
 			...(matOnly && { mat: true }),
 			...(free && { free: true }),
+			...(migration && { migration: true }),
+		},
+	]);
+}
+
+/**
+ * Migration's 2 outposts on the hex it just explored, after the tile's VP and benefit; no conquest (03 §2.5).
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {string} hex
+ */
+export function migrate(ctx, player, hex) {
+	const outpost = { placeOutpost: { hex, card: 'migration' } };
+	// Pushed after the tile's benefit, so it runs first: the outposts land at once, then the benefit.
+	ctx.push([
+		{
+			player,
+			kind: 'effects',
+			effects: [structuredClone(outpost), structuredClone(outpost)],
 		},
 	]);
 }

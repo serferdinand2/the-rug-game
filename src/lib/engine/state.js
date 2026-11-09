@@ -65,6 +65,7 @@
  * @property {{ card: string, used: boolean }[]} [masterpieces] - With the arts track only: the masterpieces held, in the order gained, public; `used` for a single-use card turned face down (#35)
  * @property {BuildingId[]} [inspired] - With the arts track only: the income rows that hold the player's inspiration tile, in the order placed (#35)
  * @property {Record<string, string>} [techLandmarks] - With A&A only: the landmark each landmark tech card holds, by card (03 §2, #37)
+ * @property {{ card: string, gained: boolean }[]} [extraLandmarkCards] - With A&A only: the landmark cards kept besides the drafted one (Infrastructure Upgrade, #37)
  */
 /** @typedef {Seat & PlayerFields} PlayerSeat */
 /**

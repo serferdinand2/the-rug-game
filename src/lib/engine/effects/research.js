@@ -5,6 +5,7 @@ import { movableFroms } from '../movement.js';
 import { advanceBlocked, hasEra } from '../abilities.js';
 import { scienceFaces } from '../data/dice.js';
 import { withDie } from '../science-die.js';
+import { ARTS_TRACK } from '../data/ids.js';
 
 /**
  * Starts research: each roll is its own operation, so the next roll waits for the player's answer to this one.
@@ -35,7 +36,7 @@ export function rollScience(ctx, player, next) {
 
 /**
  * One science-die roll with its `scienceDie`. With Empiricism the die rolls twice; when the faces differ, the player
- * chooses one of them (design §8). A d20 roll's event names its die; a d12's, as before the arts track, doesn't.
+ * chooses one of them (design §8). With Artistic Inspiration the arts track is one more choice (#37). A d20 roll's event names its die; a d12's, as before the arts track, doesn't.
  * @type {import('../state.js').AutomaticKind}
  */
 export function scienceRoll(ctx, op) {
@@ -55,22 +56,25 @@ export function scienceRoll(ctx, op) {
 		});
 		return track;
 	};
-	const track = roll();
+	const options = [roll()];
 	if (hasEra(state, player, 'empiricism')) {
 		const other = roll();
-		if (other !== track) {
-			ctx.push([
-				{
-					player,
-					kind: 'chooseRoll',
-					options: [track, other],
-					then: next,
-				},
-			]);
-			return;
+		if (other !== options[0]) {
+			options.push(other);
 		}
 	}
-	ctx.push([{ ...next, player, track }]);
+	// Artistic Inspiration: any roll may take the arts track instead, with or without benefit (#37, 03 §2.5).
+	if (
+		hasEra(state, player, 'artistic-inspiration') &&
+		!options.includes(ARTS_TRACK)
+	) {
+		options.push(ARTS_TRACK);
+	}
+	if (options.length > 1) {
+		ctx.push([{ player, kind: 'chooseRoll', options, then: next }]);
+		return;
+	}
+	ctx.push([{ ...next, player, track: options[0] }]);
 }
 
 /**

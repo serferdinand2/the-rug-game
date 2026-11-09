@@ -121,7 +121,7 @@ export function checkState(state, previousSeq = 0) {
 				...p.incomeMat.tapestry.flat(),
 			]),
 		],
-		tapestryFor(state.expansions)
+		tapestryFor(state.expansions, state.variants)
 	);
 	exactlyOnce(
 		'territory tiles',
@@ -217,10 +217,15 @@ export function checkState(state, previousSeq = 0) {
 		'landmark cards',
 		[
 			...supply.landmarkCards,
-			...opsOf('chooseLandmarkCard').flatMap((op) => op.options),
-			...players.flatMap((p) =>
-				p.landmarkCard ? [p.landmarkCard.card] : []
-			),
+			// Infrastructure Upgrade's offer is the deck itself, still there (#37).
+			...opsOf('chooseLandmarkCard')
+				.filter((op) => op.purpose !== 'infrastructureUpgrade')
+				.flatMap((op) => op.options),
+			...players.flatMap((p) => [
+				...(p.landmarkCard ? [p.landmarkCard.card] : []),
+				// #37: Infrastructure Upgrade's.
+				...(p.extraLandmarkCards ?? []).map((held) => held.card),
+			]),
 		],
 		landmarkCardsFor(state.expansions).map((c) => c.id)
 	);
@@ -235,6 +240,11 @@ export function checkState(state, previousSeq = 0) {
 			]),
 			...opsOf('chooseCiv').flatMap((op) => op.options),
 			...opsOf('chooseMatAndCiv').flatMap((op) => op.civs),
+			// #37: Plague's drawn civilization, while its player decides.
+			...opsOf('chooseSlot')
+				.filter((op) => op.purpose === 'plague')
+				.map((op) => op.then.civ),
+			...opsOf('plagueChoice').map((op) => op.civ),
 		],
 		civsFor(state.expansions, state.variants)
 	);
