@@ -23,7 +23,9 @@ import { artUrl } from '../ui.js';
  * @property {string} [innovation] - Or the income-mat innovation it needs, by its printed name (R18)
  * @property {'market' | 'house' | 'farm' | 'armory'} [innovationRow] - Its income row, for the matching accent color
  * @property {string} [edition] - Its edition's code, such as 'aa'; the base game when not given
- * @property {'landmark' | 'none'} [prerequisite] - A&A's: a landmark on the card itself, or none at all (#37)
+ * @property {'landmark' | 'none' | 'charmOrFive'} [prerequisite] - A&A's: a landmark on the card itself, or none at all
+ *   (#37); F&F's: a charmed tapestry card ever played, or income turn 5 (#39)
+ * @property {boolean} [singleUse] - F&F's single-use cards: the square may be gained once, then the card flips (#39)
  * @property {string} [held] - In a game, the landmark this landmark tech card holds (#37)
  */
 
@@ -113,8 +115,13 @@ export function techCardData(id, { held } = {}) {
 	} else if ('track' in need) {
 		data.track = need.track;
 		data.level = need.tier;
+	} else if ('charmOrFive' in need) {
+		data.prerequisite = 'charmOrFive';
 	} else {
 		data.prerequisite = 'landmark' in need ? 'landmark' : 'none';
+	}
+	if (card.singleUse) {
+		data.singleUse = true;
 	}
 	// An expansion's card names its edition, for the chip at its foot (#37).
 	if (card.expansion !== 'base') {

@@ -121,8 +121,11 @@ const CARDS = {
 };
 
 test('the 11 cards are data: circle, square and prerequisite as 03 §2 prints them', () => {
+	// F&F's follow (#39).
 	assert.deepEqual(
-		TECH_CARDS.map((card) => card.id),
+		TECH_CARDS.filter((card) => card.expansion !== 'ff').map(
+			(card) => card.id
+		),
 		[...BASE_TECH, ...AA_TECH]
 	);
 	assert.deepEqual(Object.keys(CARDS), [...AA_TECH]);

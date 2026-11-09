@@ -91,7 +91,8 @@ function seatMeets(state, who, need) {
 
 /**
  * Whether a card's top-row prerequisite is met: by the player or either neighbour (R18), by the player alone where the
- * original version prints no neighbours icon (Oil Paint, R125); a landmark on the card itself (03 §2), or nothing.
+ * original version prints no neighbours icon (Oil Paint, R125); a landmark on the card itself (03 §2), or nothing. F&F's
+ * is the player's alone: a charmed tapestry card ever played, or income turn 5 or later (03 FF.2.3, R68).
  * @param {import('./state.js').State} state
  * @param {number} player
  * @param {import('./data/tech-cards.js').TechCard} card
@@ -104,6 +105,10 @@ export function meetsRequirement(state, player, card) {
 	}
 	if ('landmark' in need) {
 		return holdsLandmark(state, player, card.id);
+	}
+	if ('charmOrFive' in need) {
+		const seat = playerSeat(state, player);
+		return seat.playedCharmed === true || seat.incomeTurns >= 5;
 	}
 	const alone =
 		'selfInOriginal' in need &&

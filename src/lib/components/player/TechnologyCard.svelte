@@ -92,6 +92,9 @@
 					<b>A landmark on this card</b>
 				{:else if card.prerequisite === 'none'}
 					<b>No prerequisite</b>
+				{:else if card.prerequisite === 'charmOrFive'}
+					<!-- F&F's prerequisite (#39), awaiting review. -->
+					<b>A charmed card played, or income turn 5</b>
 				{:else if card.track}
 					<img
 						src={artUrl(`track/${card.track}`)}
@@ -105,7 +108,9 @@
 				><i
 					class="rg-tech-layout--shape rg-tech-layout--shape-square"
 					aria-hidden="true"></i
-				><b>Top row</b></span>
+				><b>Top row</b>{#if card.singleUse}<b
+						class="rg-tech-layout--single-use">· single use</b
+					>{/if}</span>
 		</div>
 		<footer class="rg-tech-layout--footer">
 			<CardEdition code={card.edition ?? 'base'} />

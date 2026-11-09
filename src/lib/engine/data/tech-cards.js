@@ -1,4 +1,4 @@
-// The tech cards: the base 33 (02 §4, R18) and Arts & Architecture's 11 (03 §2, #37), with their circle and square benefits and their top-row prerequisite.
+// The tech cards: the base 33 (02 §4, R18), Arts & Architecture's 11 (03 §2, #37) and Fantasies & Futures' 12 (03 FF.5, #39), with their circle and square benefits and their top-row prerequisite.
 import { deepFreeze } from './ids.js';
 
 /** @typedef {import('./ids.js').TrackId} TrackId */
@@ -7,8 +7,10 @@ import { deepFreeze } from './ids.js';
 /**
  * What a card needs before it goes to the top row: you or a neighbour is in or beyond a track tier, or has uncovered
  * an income-mat innovation (R18); `selfInOriginal` asks it of you alone in the original version (Oil Paint, R125). A&A
- * adds a landmark on the card itself (`landmark`, 03 §2) and no prerequisite at all (`none`, Suburbs).
- * @typedef {{ track: TrackId, tier: 2 | 3 | 4, selfInOriginal?: true } | { innovation: string } | { landmark: true } | { none: true }} TechRequirement
+ * adds a landmark on the card itself (`landmark`, 03 §2) and no prerequisite at all (`none`, Suburbs). F&F's cards ask
+ * that the player ever played a charmed tapestry card or is on or after income turn 5, neighbours ignored
+ * (`charmOrFive`, 03 FF.2.3).
+ * @typedef {{ track: TrackId, tier: 2 | 3 | 4, selfInOriginal?: true } | { innovation: string } | { landmark: true } | { none: true } | { charmOrFive: true }} TechRequirement
  */
 
 /**
@@ -20,7 +22,8 @@ import { deepFreeze } from './ids.js';
  * @property {Effect[]} square - Gained when the card moves from the middle row to the top row
  * @property {TechRequirement} requires - The top-row prerequisite
  * @property {string} [landmark] - The landmark the square places, on the landmark cards
- * @property {'base' | 'aa'} expansion - Where the card comes from (#37)
+ * @property {true} [singleUse] - The square may be gained once, then the card is flipped (F&F, 03 FF.2.3)
+ * @property {'base' | 'aa' | 'ff'} expansion - Where the card comes from (#37, #39)
  */
 
 /** @param {TrackId} track @param {2 | 3 | 4} tier @returns {TechRequirement} */
@@ -358,8 +361,96 @@ const AA_CARDS = [
 	},
 ];
 
+/** F&F's prerequisite, on all 12 of its cards (03 FF.5). @type {TechRequirement} */
+const CHARM_OR_FIVE = { charmOrFive: true };
+
 /**
- * Every card: the base 33 in BASE_TECH order, then A&A's 11 in AA_TECH order.
+ * An F&F card that advances on one of two tracks: without benefit for the circle; with it, the bonus payable, for the
+ * square, and then the card flips (03 FF.5).
+ * @param {string} id @param {string} name @param {TrackId[]} tracks
+ * @returns {Omit<TechCard, 'expansion'>}
+ */
+const twoTracks = (id, name, tracks) => ({
+	id,
+	name,
+	circle: [{ advance: { tracks, noBenefit: true } }],
+	square: [{ advance: { tracks } }],
+	requires: CHARM_OR_FIVE,
+	singleUse: true,
+});
+
+/**
+ * Fantasies & Futures' 12 cards in FF_TECH order (catalog order), as 03 FF.5's table (#39 design §9).
+ * @type {Omit<TechCard, 'expansion'>[]}
+ */
+const FF_CARDS = [
+	{
+		id: 'golem-minions',
+		name: 'Golem Minions',
+		// R71: every landmark the player owns, wherever it is.
+		circle: [{ vp: { per: 'landmark' } }],
+		square: [...advanceX('military'), ...perSpace('military')],
+		requires: CHARM_OR_FIVE,
+	},
+	{
+		id: 'levitation',
+		name: 'Levitation',
+		circle: [{ choice: [[{ explore: {} }], [{ gain: { space: 1 } }]] }],
+		square: [{ exploreSpace: {} }],
+		requires: CHARM_OR_FIVE,
+		singleUse: true,
+	},
+	twoTracks('mind-control', 'Mind Control', ['science', 'military']),
+	// Without the arts track only technology is offered (R118).
+	twoTracks('object-cloning', 'Object Cloning', ['arts', 'technology']),
+	twoTracks('perfect-memory', 'Perfect Memory', ['science', 'arts']),
+	{
+		id: 'pyrokinesis',
+		name: 'Pyrokinesis',
+		circle: [{ building: 'armory' }],
+		square: [{ vp: { per: 'territory' } }, { vp: { per: 'armory' } }],
+		requires: CHARM_OR_FIVE,
+	},
+	{
+		id: 'remote-viewing',
+		name: 'Remote Viewing',
+		circle: [{ gain: { territory: 1 } }, { explore: { anywhere: true } }],
+		square: [{ research: {} }],
+		requires: CHARM_OR_FIVE,
+		singleUse: true,
+	},
+	twoTracks('superhuman-strength', 'Superhuman Strength', [
+		'exploration',
+		'military',
+	]),
+	{
+		id: 'super-speed',
+		name: 'Super Speed',
+		circle: [{ vp: { per: 'territoryTile' } }],
+		square: [{ explore: {} }, { explore: {} }],
+		requires: CHARM_OR_FIVE,
+	},
+	twoTracks('teleportation', 'Teleportation', ['exploration', 'technology']),
+	{
+		id: 'transmogrification',
+		name: 'Transmogrification',
+		circle: [{ invent: {} }],
+		square: [{ anyBuilding: {} }],
+		requires: CHARM_OR_FIVE,
+	},
+	{
+		id: 'weather-control',
+		name: 'Weather Control',
+		circle: [{ explore: {} }],
+		// Lithium-Ion Battery's icon; the card prints no once a turn, and is single use anyway (03 FF.5).
+		square: [{ repeat: {} }],
+		requires: CHARM_OR_FIVE,
+		singleUse: true,
+	},
+];
+
+/**
+ * Every card: the base 33 in BASE_TECH order, then A&A's 11 in AA_TECH order, then F&F's 12 in FF_TECH order.
  * @type {readonly TechCard[]}
  */
 export const TECH_CARDS = deepFreeze([
@@ -370,6 +461,10 @@ export const TECH_CARDS = deepFreeze([
 	...AA_CARDS.map((card) => ({
 		...card,
 		expansion: /** @type {const} */ ('aa'),
+	})),
+	...FF_CARDS.map((card) => ({
+		...card,
+		expansion: /** @type {const} */ ('ff'),
 	})),
 ]);
 

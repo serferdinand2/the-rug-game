@@ -81,6 +81,9 @@ export const BASE_TECH = Object.freeze(baseSlugs('tech'));
 /** Arts & Architecture's 11 tech cards, in catalog order (#37). @type {readonly string[]} */
 export const AA_TECH = Object.freeze(slugsOf('tech', 'aa'));
 
+/** Fantasies & Futures' 12 tech cards, in catalog order (#39). @type {readonly string[]} */
+export const FF_TECH = Object.freeze(slugsOf('tech', 'ff'));
+
 /** The tech cards the no-radio-battery variant leaves out (03 FF.2.6, 02 §4). */
 const LEFT_OUT_TECH = ['radio', 'lithium-ion-battery'];
 
@@ -88,8 +91,9 @@ const LEFT_OUT_TECH = ['radio', 'lithium-ion-battery'];
 const ARTS_TECH = ['microphone', 'oil-paint', 'opera', 'public-art'];
 
 /**
- * The tech cards a game with these expansions and variants plays with: BASE_TECH, then A&A's (#37), in that order
- * (#53 design §4.4). Without the arts track, A&A's cards that name it are left out (R124).
+ * The tech cards a game with these expansions and variants plays with: BASE_TECH, then A&A's (#37), then F&F's (#39),
+ * in that order (#53 design §4.4). Without the arts track, A&A's cards that name it are left out (R124); F&F's stay,
+ * offering only their other track (#39 design §9).
  * @param {readonly string[]} expansions
  * @param {readonly string[]} variants
  * @returns {string[]}
@@ -102,7 +106,8 @@ export function techDeck(expansions, variants) {
 					!ARTS_TECH.includes(card)
 			)
 		: [];
-	return [...BASE_TECH, ...aa].filter(
+	const ff = expansions.includes('ff') ? FF_TECH : [];
+	return [...BASE_TECH, ...aa, ...ff].filter(
 		(card) =>
 			!variants.includes('no-radio-battery') ||
 			!LEFT_OUT_TECH.includes(card)
