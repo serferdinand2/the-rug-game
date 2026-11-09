@@ -120,6 +120,18 @@ export function meetsRequirement(state, player, card) {
 }
 
 /**
+ * Whether one of a player's single-use tech cards is flipped: its square was gained, so nothing gains its benefits
+ * again and it is never upgraded (03 FF.2.3, R134). Always false without F&F.
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @param {string} card
+ * @returns {boolean}
+ */
+export function isFlipped(state, player, card) {
+	return playerSeat(state, player).flippedTech?.includes(card) ?? false;
+}
+
+/**
  * Whether one of a player's tech cards holds a landmark (A&A's landmark cards, 03 §2).
  * @param {import('./state.js').State} state
  * @param {number} player
@@ -154,17 +166,22 @@ function inventorsMarks(state) {
 export function upgradable(state, player, ignorePrerequisite = false) {
 	const { bottom, middle } = playerSeat(state, player).tech;
 	const marked = inventorsMarks(state);
-	return [
-		...bottom,
-		// Golden Age ignores prerequisites, and an Inventors token waives its card's.
-		...middle.filter(
-			(id) =>
-				ignorePrerequisite ||
-				marked.includes(id) ||
-				hasEra(state, player, 'golden-age') ||
-				meetsRequirement(state, player, techCard(id))
-		),
-	].filter((id) => !isLocked(state, player, id));
+	return (
+		[
+			...bottom,
+			// Golden Age ignores prerequisites, and an Inventors token waives its card's.
+			...middle.filter(
+				(id) =>
+					ignorePrerequisite ||
+					marked.includes(id) ||
+					hasEra(state, player, 'golden-age') ||
+					meetsRequirement(state, player, techCard(id))
+			),
+		]
+			.filter((id) => !isLocked(state, player, id))
+			// A flipped card the Inventors took is never upgraded again (03 FF.2.3).
+			.filter((id) => !isFlipped(state, player, id))
+	);
 }
 
 /**
@@ -206,13 +223,17 @@ export function recycles(state, player) {
 }
 
 /**
- * The top-row cards a player's own upgrade may send back to the bottom row instead, in row order: the Recyclers' only.
+ * The top-row cards a player's own upgrade may send back to the bottom row instead, in row order: the Recyclers' only,
+ * never a flipped one (R134).
  * @param {import('./state.js').State} state
  * @param {number} player
  * @returns {string[]}
  */
 export function recyclable(state, player) {
+	// R134: not a flipped card, whose square would come again.
 	return recycles(state, player)
-		? [...playerSeat(state, player).tech.top]
+		? playerSeat(state, player).tech.top.filter(
+				(card) => !isFlipped(state, player, card)
+			)
 		: [];
 }

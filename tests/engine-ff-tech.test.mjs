@@ -8,8 +8,17 @@ import {
 	techDeck,
 } from '../src/lib/engine/decks.js';
 import { TECH_CARDS, techCard } from '../src/lib/engine/data/tech-cards.js';
-import { upgradable } from '../src/lib/engine/tech.js';
-import { resolveEffects } from '../src/lib/engine/loop.js';
+import { recyclable, upgradable } from '../src/lib/engine/tech.js';
+import { contextFor, resolveEffects } from '../src/lib/engine/loop.js';
+import { techBenefitOptions } from '../src/lib/engine/effects/tech.js';
+import { countVp } from '../src/lib/engine/effects/vp.js';
+import { neighbours } from '../src/lib/engine/state.js';
+import { pay } from '../src/lib/engine/payment.js';
+import { spiesTargets } from '../src/lib/engine/civs/spies.js';
+import {
+	inventorsOptions,
+	inventorsTake,
+} from '../src/lib/engine/civs/inventors.js';
 import { newGame, readyTurn } from './helpers/engine.mjs';
 import { openDecisions } from '../src/lib/engine/stack.js';
 import { DECISIONS } from '../src/lib/engine/kinds.js';
@@ -208,4 +217,153 @@ test('every F&F card resolves both of its upgrades, with or without the arts tra
 			checkState(next);
 		}
 	}
+});
+
+// Single use (03 FF.2.3, R134)
+
+test('a single-use card flips when its square is gained, and still counts as a tech card', () => {
+	const { state, random, player } = holding(
+		{ middle: ['mind-control'] },
+		(seat) => {
+			seat.playedCharmed = true;
+		}
+	);
+	const next = settle(
+		resolveEffects(state, player, [{ upgrade: {} }], random),
+		random
+	);
+	const seat = /** @type {any} */ (next.seats[player - 1]);
+	assert.deepEqual(seat.tech.top, ['mind-control']);
+	assert.deepEqual(seat.flippedTech, ['mind-control']);
+	assert.ok(
+		next.events.some(
+			(e) =>
+				e.type === 'techFlipped' &&
+				e.player === player &&
+				e.card === 'mind-control'
+		)
+	);
+	assert.equal(countVp(next, player, 'techCard'), 1);
+	checkState(next);
+});
+
+test('a repeatable F&F card never flips', () => {
+	const { state, random, player } = holding(
+		{ middle: ['pyrokinesis'] },
+		(seat) => {
+			seat.playedCharmed = true;
+		}
+	);
+	const next = settle(
+		resolveEffects(state, player, [{ upgrade: {} }], random),
+		random
+	);
+	assert.deepEqual(
+		/** @type {any} */ (next.seats[player - 1]).flippedTech,
+		[]
+	);
+});
+
+test('R134: a flipped card offers no benefit again, to its owner or to the Spies', () => {
+	const { state, player } = holding(
+		{ top: ['mind-control', 'pyrokinesis'] },
+		(seat) => {
+			seat.flippedTech = ['mind-control'];
+		}
+	);
+	assert.deepEqual(techBenefitOptions(state, player, 'square'), [
+		'pyrokinesis',
+	]);
+	assert.deepEqual(techBenefitOptions(state, player, 'square', true), [
+		'pyrokinesis',
+	]);
+	const spy = neighbours(state, player)[0];
+	assert.deepEqual(
+		spiesTargets(state, spy, 4, player).map((t) => t.card),
+		['pyrokinesis']
+	);
+});
+
+test('R134: the Recyclers may not recycle a flipped card', () => {
+	const { state, player } = holding(
+		{ top: ['mind-control', 'pyrokinesis'] },
+		(seat) => {
+			seat.flippedTech = ['mind-control'];
+			seat.civs = ['recyclers'];
+		}
+	);
+	assert.deepEqual(recyclable(state, player), ['pyrokinesis']);
+});
+
+test("an opponent may not send a player's single-use card to the top row; its bottom-row copy may still be marked", () => {
+	const { state, player } = holding({
+		bottom: ['teleportation'],
+		middle: ['mind-control'],
+	});
+	const inventors = neighbours(state, player)[0];
+	const marked = inventorsOptions(state, inventors).filter(
+		(o) => o.player === player
+	);
+	assert.deepEqual(
+		marked.map((o) => o.card),
+		['teleportation']
+	);
+	// Their own single-use card, they may.
+	/** @type {any} */ (state.seats[inventors - 1]).tech.middle = [
+		'levitation',
+	];
+	state.supply.tech.deck = state.supply.tech.deck.filter(
+		(c) => c !== 'levitation'
+	);
+	assert.ok(
+		inventorsOptions(state, inventors).some(
+			(o) => o.player === inventors && o.card === 'levitation'
+		)
+	);
+});
+
+test('a flipped card the Inventors take stays flipped and never upgrades again', () => {
+	const { state, random, player } = holding(
+		{ top: ['mind-control'] },
+		(seat) => {
+			seat.flippedTech = ['mind-control'];
+		}
+	);
+	const inventors = neighbours(state, player)[0];
+	const next = structuredClone(state);
+	const ctx = contextFor(next, random, next.pending);
+	inventorsTake(
+		ctx,
+		/** @type {any} */ ({
+			player: inventors,
+			from: player,
+			card: 'mind-control',
+		})
+	);
+	const thief = /** @type {any} */ (next.seats[inventors - 1]);
+	assert.deepEqual(thief.tech.bottom, ['mind-control']);
+	assert.deepEqual(thief.flippedTech, ['mind-control']);
+	assert.deepEqual(
+		/** @type {any} */ (next.seats[player - 1]).flippedTech,
+		[]
+	);
+	assert.deepEqual(upgradable(next, inventors, true), []);
+});
+
+test('a flipped card paid away is no longer flipped', () => {
+	const { state, random, player } = holding(
+		{ top: ['mind-control'] },
+		(seat) => {
+			seat.flippedTech = ['mind-control'];
+		}
+	);
+	const next = structuredClone(state);
+	pay(contextFor(next, random, next.pending), player, {
+		tech: ['mind-control'],
+	});
+	assert.ok(next.supply.tech.discard.includes('mind-control'));
+	assert.deepEqual(
+		/** @type {any} */ (next.seats[player - 1]).flippedTech,
+		[]
+	);
 });

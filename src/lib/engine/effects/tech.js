@@ -11,6 +11,7 @@ import {
 	refreshDisplay,
 	upgradable,
 	lockTech,
+	isFlipped,
 } from '../tech.js';
 import { techCard } from '../data/tech-cards.js';
 
@@ -203,6 +204,9 @@ export function upgradeCard(ctx, player, card, inventors) {
 	rows[to].push(card);
 	emit(ctx.state, { type: 'techUpgraded', player, card, from, to });
 	const icon = from === 'bottom' ? 'circle' : 'square';
+	if (icon === 'square' && techCard(card).singleUse) {
+		flipTech(ctx, player, card);
+	}
 	// The `passive` mark is deliberately not carried: a card's benefit is never passive civilization VP, and a finished player gains nothing else (01 §4.3).
 	ctx.push([
 		{
@@ -220,6 +224,20 @@ export function upgradeCard(ctx, player, card, inventors) {
 		}),
 		...triggered(ctx.state, 'countsChanged', { player }),
 	]);
+}
+
+/**
+ * Flips a single-use card whose square is being gained: it stays in the top row and counts as a tech card, but nothing
+ * gains its benefits again (03 FF.2.3, R134).
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player - The card's owner
+ * @param {string} card
+ */
+function flipTech(ctx, player, card) {
+	const seat = playerSeat(ctx.state, player);
+	seat.flippedTech ??= [];
+	seat.flippedTech.push(card);
+	emit(ctx.state, { type: 'techFlipped', player, card });
 }
 
 /**
@@ -276,7 +294,7 @@ export function upgrade(ctx, player, value) {
 
 /**
  * The cards a tech benefit may use: the middle row for the circle, the top row for the square; with `anyRow`, every
- * card the player holds, in row order (Information Age, #37).
+ * card the player holds, in row order (Information Age, #37). A flipped card is never one (R134).
  * @param {import('../state.js').State} state
  * @param {number} player
  * @param {'circle' | 'square'} icon
@@ -285,10 +303,11 @@ export function upgrade(ctx, player, value) {
  */
 export function techBenefitOptions(state, player, icon, anyRow = false) {
 	const rows = playerSeat(state, player).tech;
-	if (anyRow) {
-		return [...rows.bottom, ...rows.middle, ...rows.top];
-	}
-	return [...(icon === 'circle' ? rows.middle : rows.top)];
+	const cards = anyRow
+		? [...rows.bottom, ...rows.middle, ...rows.top]
+		: [...(icon === 'circle' ? rows.middle : rows.top)];
+	// R134: a flipped card's benefits are never gained again.
+	return cards.filter((card) => !isFlipped(state, player, card));
 }
 
 /**

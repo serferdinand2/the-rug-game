@@ -114,6 +114,19 @@ export function checkState(state, previousSeq = 0) {
 				`seat ${p.seat}'s landmark on ${card}`
 			);
 		}
+		// #39: a flipped card is one of the seat's own single-use cards, once.
+		const flipped = p.flippedTech ?? [];
+		assert.equal(
+			new Set(flipped).size,
+			flipped.length,
+			'a card flipped twice'
+		);
+		for (const card of flipped) {
+			assert.ok(
+				rows.includes(card) && techCard(card).singleUse === true,
+				`seat ${p.seat}'s flipped ${card}`
+			);
+		}
 	}
 	exactlyOnce(
 		'tapestry cards',

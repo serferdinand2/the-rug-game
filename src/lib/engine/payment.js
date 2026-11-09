@@ -360,6 +360,12 @@ export function pay(ctx, player, payment) {
 				(card) => !tech.includes(card)
 			);
 		}
+		// A flipped card discarded is a fresh card again for whoever draws it (03 FF.2.3).
+		if (seat.flippedTech) {
+			seat.flippedTech = seat.flippedTech.filter(
+				(card) => !tech.includes(card)
+			);
+		}
 		state.supply.tech.discard.push(...tech);
 		emit(state, {
 			type: 'cardsDiscarded',
