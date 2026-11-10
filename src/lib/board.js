@@ -132,7 +132,9 @@ export function trackBoard(view) {
 			}),
 			tiers: TIERS.map((tier) => tierSymbols(track, tier)),
 			players: view.seats
-				.filter((seat) => seat.kind === 'player')
+				.filter((seat) =>
+					['player', 'automa', 'shadow'].includes(seat.kind)
+				)
 				.map((seat) => ({
 					seat: /** @type {Seat} */ (seat.seat),
 					name: seat.name,

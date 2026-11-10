@@ -168,14 +168,20 @@ export function phase(room) {
 }
 
 /**
- * The seat numbers a person plays: online their own, at a hot-seat table every seat.
+ * The human seat numbers a person plays: online their own, at a hot-seat table the humans sharing that screen.
+ * Either the room or the dealt game's bot identity excludes a seat, even if stale room data attached a session to it.
  * @param {Room} room
  * @param {string} personId
  * @returns {number[]}
  */
 export function seatsOf(room, personId) {
 	return room.seats.flatMap((seat, i) =>
-		seat.player !== null && seat.player === personId ? [i + 1] : []
+		seat.player !== null &&
+		seat.player === personId &&
+		!['automa', 'shadow'].includes(seat.kind ?? 'player') &&
+		!['automa', 'shadow'].includes(room.game?.seats?.[i]?.kind ?? 'player')
+			? [i + 1]
+			: []
 	);
 }
 
