@@ -9,7 +9,11 @@
 	 * @property {import('../../engine/data/ids.js').BoardTrackId} [favouriteTrack='exploration']
 	 * @property {import('svelte').Snippet} [children] - The description of the actual action.
 	 */
-	/** @typedef {BotActionReportOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} BotActionReportProps */
+	/**
+	 * @typedef {BotActionReportOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} BotActionReportProps
+	 * @example
+	 * <BotActionReport name="Egypt" seat={2} cards={pair}>Egypt advances on Exploration.</BotActionReport>
+	 */
 </script>
 
 <script>
@@ -101,6 +105,6 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--space-6);
-		align-items: stretch;
+		align-items: flex-start;
 	}
 </style>

@@ -1,9 +1,14 @@
 <!-- Six official Automa levels, selected as squares filled from left to right. -->
 <script module>
-	/** @typedef {Object} AutomaLevelProps
+	/** @typedef {Object} AutomaLevelOwnProps
 	 * @property {number} [value=2]
 	 * @property {boolean} [disabled=false]
 	 * @property {(event: import('../../component-event.js').ComponentEvent) => void} [onAutomaLevelChange]
+	 */
+
+	/** @typedef {AutomaLevelOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} AutomaLevelProps
+	 * @example
+	 * <AutomaLevel value={2} />
 	 */
 </script>
 
@@ -11,10 +16,17 @@
 	import { AUTOMA_LEVELS } from '../../engine/data/automa-levels.js';
 	import { ComponentEvent } from '../../component-event.js';
 	/** @type {AutomaLevelProps} */
-	let { value = 2, disabled = false, onAutomaLevelChange } = $props();
+	let {
+		value = 2,
+		disabled = false,
+		onAutomaLevelChange,
+		...attr
+	} = $props();
 </script>
 
-<div class="rg-automa-level">
+<div
+	{...attr}
+	class="rg-automa-level {attr.class ?? ''}">
 	<div class="rg-automa-level--label">
 		<span>Automa level</span><strong>{value}</strong>
 	</div>
@@ -30,14 +42,17 @@
 				aria-pressed={value === level.level}
 				title={level.name}
 				class:rg-automa-level--filled={level.level <= value}
-				onclick={(event) =>
-					onAutomaLevelChange?.(
-						new ComponentEvent(
-							level.level,
-							event.currentTarget,
-							event
-						)
-					)}>{level.level}</button>
+				onclick={(event) => {
+					if (typeof onAutomaLevelChange === 'function') {
+						onAutomaLevelChange(
+							new ComponentEvent(
+								level.level,
+								event.currentTarget,
+								event
+							)
+						);
+					}
+				}}>{level.level}</button>
 		{/each}
 	</div>
 	<span class="rg-automa-level--name"

@@ -15,7 +15,10 @@ import { HIDDEN_DECKS } from './view.js';
 export function askedSeats(state) {
 	const seats = new Set(
 		openDecisions(state).flatMap((op) =>
-			op.player === null || state.seats[op.player - 1]?.kind !== 'player'
+			op.player === null ||
+			['automa', 'shadow'].includes(
+				state.seats?.[op.player - 1]?.kind ?? 'player'
+			)
 				? []
 				: [op.player]
 		)

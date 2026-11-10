@@ -50,6 +50,9 @@
 	import { tilePreview } from '../../area/explore.js';
 	import { landmarkName, spaceName, trackName } from '../../game-names.js';
 	import { artUrl, trackColor } from '../../ui.js';
+	import { TRACK_IDS } from '../../engine/data/ids.js';
+	const trackNames = [...TRACK_IDS, 'arts'].map(trackName);
+	const trackWordPattern = new RegExp(`\\b(${trackNames.join('|')})\\b`, 'g');
 
 	/** @type {PlayerActionProps} */
 	let {
@@ -241,7 +244,13 @@
 				title={paused ? 'Held while the pointer is here' : undefined}
 				><i></i></span>
 			{#if item.lines.length}<ul class="rg-player-action--lines">
-					{#each item.lines as line, at (at)}<li>{line}</li>{/each}
+					{#each item.lines as line, at (at)}<li>
+							{#each line.split(trackWordPattern) as part, index (index)}<span
+									class:rg-player-action--track-name={trackNames.includes(
+										part
+									)}>{part}</span
+								>{/each}
+						</li>{/each}
 				</ul>{/if}
 			{#if item.more > 0}<p class="rg-player-action--note">
 					And {item.more} more in the log.
@@ -499,6 +508,9 @@
 
 	.rg-player-action--name {
 		color: var(--gold);
+		font-family: var(--font-title);
+	}
+	.rg-player-action--track-name {
 		font-family: var(--font-title);
 	}
 

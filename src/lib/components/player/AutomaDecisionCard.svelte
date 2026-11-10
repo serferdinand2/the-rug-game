@@ -8,12 +8,17 @@
 	 * @property {'full' | 'track' | 'hex'} [role='full'] - Full deck face or the half read in a report.
 	 * @property {import('../../engine/data/ids.js').BoardTrackId} [favouriteTrack='exploration'] - The actor's current favourite, marked by a star in its row.
 	 */
-	/** @typedef {AutomaDecisionCardOwnProps & Omit<import('svelte/elements').HTMLAttributes<HTMLElement>, 'id' | 'role' | 'title'>} AutomaDecisionCardProps */
+	/**
+	 * @typedef {AutomaDecisionCardOwnProps & Omit<import('svelte/elements').HTMLAttributes<HTMLElement>, 'id' | 'role' | 'title'>} AutomaDecisionCardProps
+	 * @example
+	 * <AutomaDecisionCard id={4} role="track" favouriteTrack="science" />
+	 */
 </script>
 
 <script>
 	import CardFrame from './CardFrame.svelte';
 	import CardBand from './CardBand.svelte';
+	import AutomaHexPattern from './AutomaHexPattern.svelte';
 	import { AUTOMA_CARDS } from '../../engine/data/automa-cards.js';
 	import { artUrl } from '../../ui.js';
 	import { trackName } from '../../game-names.js';
@@ -74,17 +79,7 @@
 			</div>
 		{/if}
 		{#if role !== 'track'}
-			<div class="rg-automa-decision-card--metric">
-				<span>Hex pattern</span><span
-					class="rg-automa-decision-card--value"
-					><svg
-						class="rg-automa-decision-card--hex"
-						viewBox="0 0 32 32"
-						aria-label="Territory hex"
-						><polygon
-							points="8,3 24,3 31,16 24,29 8,29 1,16" /></svg
-					><strong>{face.hexPattern}</strong></span>
-			</div>
+			<AutomaHexPattern pattern={face.hexPattern} />
 			<div class="rg-automa-decision-card--metric">
 				<span>Topple</span><span class="rg-automa-decision-card--value"
 					>{#if face.topple}<img
@@ -129,8 +124,12 @@
 <style>
 	:global(.rg-card-frame.rg-automa-decision-card) {
 		--card-band-start: var(--science);
-		--card-band-middle: color-mix(in srgb, var(--science) 43%, transparent);
-		--card-band-end: transparent;
+		--card-band-middle: color-mix(
+			in srgb,
+			var(--science) 70%,
+			var(--surface)
+		);
+		--card-band-end: color-mix(in srgb, var(--science) 35%, var(--surface));
 		width: 290px;
 		display: flex;
 		flex-direction: column;
@@ -161,16 +160,10 @@
 		gap: var(--space-2);
 	}
 	.rg-automa-decision-card--value img,
-	.rg-automa-decision-card--track img,
-	.rg-automa-decision-card--hex {
+	.rg-automa-decision-card--track img {
 		width: 30px;
 		height: 30px;
 		object-fit: contain;
-	}
-	.rg-automa-decision-card--hex {
-		fill: none;
-		stroke: var(--exploration);
-		stroke-width: 2;
 	}
 	.rg-automa-decision-card--tracks {
 		margin: 0;
@@ -180,6 +173,7 @@
 		gap: var(--space-2);
 	}
 	.rg-automa-decision-card--track {
+		font-family: var(--font-title);
 		display: grid;
 		grid-template-columns: 30px 14px 1fr;
 		align-items: center;
@@ -188,8 +182,7 @@
 		font-weight: var(--weight-bold);
 	}
 	.rg-automa-decision-card--star {
-		color: var(--card-title);
-		text-shadow: 0 1px 0 var(--card-title-shadow);
+		color: var(--card-path);
 	}
 	.rg-automa-decision-card--footer {
 		display: flex;
@@ -198,7 +191,7 @@
 		padding: var(--space-2) var(--space-4);
 		border-top: 1px solid var(--card-line);
 		background: var(--science);
-		color: var(--text-on-dark, #f0e5cf);
+		color: var(--text);
 		font-size: var(--font-size-xs);
 	}
 	.rg-automa-decision-card--deck {

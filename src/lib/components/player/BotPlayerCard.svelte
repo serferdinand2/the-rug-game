@@ -1,12 +1,17 @@
 <!-- Only a bot's public facts: no fabricated human resources, capital or income mat. -->
 <script module>
-	/** @typedef {import('../../area/players.js').BotPlayerCardFacts} BotPlayerCardFacts */
+	/** @typedef {import('../../area/players.js').BotPlayerCardFacts} BotPlayerCardOwnProps */
+	/**
+	 * @typedef {BotPlayerCardOwnProps & import('svelte/elements').HTMLAttributes<HTMLElement>} BotPlayerCardProps
+	 * @example
+	 * <BotPlayerCard {...facts} />
+	 */
 </script>
 
 <script>
 	import { artUrl, playerColor } from '../../ui.js';
 	import { trackName } from '../../game-names.js';
-	/** @type {BotPlayerCardFacts} */
+	/** @type {BotPlayerCardProps} */
 	let {
 		seat,
 		name,
@@ -19,11 +24,13 @@
 		incomeTurns,
 		favouriteTrack,
 		finished,
+		...attr
 	} = $props();
 </script>
 
 <article
-	class="rg-bot-player-card"
+	{...attr}
+	class="rg-bot-player-card {attr.class ?? ''}"
 	style:--rg-bot-player-colour={playerColor(seat)}
 	aria-label={`${name} Automa public overview`}>
 	<header class="rg-bot-player-card--header">

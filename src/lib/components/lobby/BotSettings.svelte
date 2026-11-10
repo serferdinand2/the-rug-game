@@ -1,11 +1,16 @@
 <!-- The host's bot settings beneath its fixed-height player seat. -->
 <script module>
-	/** @typedef {Object} BotSettingsProps
+	/** @typedef {Object} BotSettingsOwnProps
 	 * @property {'automa' | 'shadow'} kind
 	 * @property {number} [level=2]
 	 * @property {('automa' | 'shadow')[]} [unavailable=[]]
 	 * @property {(event: import('../../component-event.js').ComponentEvent) => void} [onBotSettingsChange]
 	 * @property {(event: import('../../component-event.js').ComponentEvent) => void} [onBotSettingsRemove]
+	 */
+
+	/** @typedef {BotSettingsOwnProps & import('svelte/elements').HTMLAttributes<HTMLDivElement>} BotSettingsProps
+	 * @example
+	 * <BotSettings kind="automa" level={2} />
 	 */
 </script>
 
@@ -20,10 +25,13 @@
 		unavailable = [],
 		onBotSettingsChange,
 		onBotSettingsRemove,
+		...attr
 	} = $props();
 </script>
 
-<div class="rg-bot-settings">
+<div
+	{...attr}
+	class="rg-bot-settings {attr.class ?? ''}">
 	<span class="rg-bot-settings--label">Bot type</span>
 	<div
 		class="rg-bot-settings--types"
@@ -37,36 +45,54 @@
 				disabled={unavailable.includes(
 					/** @type {'automa' | 'shadow'} */ (option.kind)
 				)}
-				onclick={(event) =>
-					onBotSettingsChange?.(
-						new ComponentEvent(
-							{
-								kind: option.kind,
-								...(option.kind === 'automa' && { level }),
-							},
-							event.currentTarget,
-							event
-						)
-					)}>{option.label}</button>
+				onclick={(event) => {
+					if (typeof onBotSettingsChange === 'function') {
+						onBotSettingsChange(
+							new ComponentEvent(
+								{
+									kind: option.kind,
+									...(option.kind === 'automa' && { level }),
+								},
+								event.currentTarget,
+								event
+							)
+						);
+					}
+				}}>{option.label}</button>
 		{/each}
 	</div>
 	{#if kind === 'automa'}
 		<AutomaLevel
 			value={level}
-			onAutomaLevelChange={(event) =>
-				onBotSettingsChange?.(
-					new ComponentEvent(
-						{ kind, level: event.value },
-						event.target,
-						event.originalEvent
-					)
-				)} />
+			onAutomaLevelChange={(event) => {
+				if (typeof onBotSettingsChange === 'function') {
+					onBotSettingsChange(
+						new ComponentEvent(
+							{ kind, level: event.value },
+							event.target,
+							event.originalEvent
+						)
+					);
+				}
+			}} />
 	{/if}
 	<Button
 		mode="danger"
 		size="small"
 		block
-		onButtonClick={onBotSettingsRemove}>Remove bot</Button>
+		onButtonClick={(
+			/** @type {import('../../component-event.js').ComponentEvent} */ event
+		) => {
+			if (typeof onBotSettingsRemove === 'function') {
+				onBotSettingsRemove(
+					new ComponentEvent(
+						undefined,
+						event.target,
+						event.originalEvent
+					)
+				);
+			}
+		}}>Remove bot</Button>
 </div>
 
 <style>

@@ -197,14 +197,17 @@
 					size="small"
 					onButtonClick={(
 						/** @type {import('../../component-event.js').ComponentEvent} */ event
-					) =>
-						onSeatCardAddBot?.(
-							new ComponentEvent(
-								{ seat },
-								event.target,
-								event.originalEvent
-							)
-						)}>Add bot</Button>
+					) => {
+						if (typeof onSeatCardAddBot === 'function') {
+							onSeatCardAddBot(
+								new ComponentEvent(
+									{ seat },
+									event.target,
+									event.originalEvent
+								)
+							);
+						}
+					}}>Add bot</Button>
 			{/if}
 		</div>
 	{:else if kind === 'add'}

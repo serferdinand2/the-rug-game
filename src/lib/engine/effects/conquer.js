@@ -61,7 +61,7 @@ export function conquerHex(ctx, player, hex, bothDice) {
 			/** @type {import('../state.js').BotSeat & {trapCards: string[]}} */ (
 				seatOf(state, opponent)
 			);
-		while (defender.trapCards.length > 0) {
+		while ((defender.trapCards?.length ?? 0) > 0) {
 			const [card] = defender.trapCards.splice(
 				ctx.random(defender.trapCards.length),
 				1

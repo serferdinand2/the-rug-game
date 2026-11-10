@@ -71,6 +71,8 @@ const NOTICES = ['timedOut', 'undone', 'gameEnded', 'playerFinished'];
 
 /** Every event type the log deliberately leaves out: bookkeeping a reader learns nothing from. */
 export const SILENT = new Set([
+	// Its visible income action already explains the bot's internal chart steps.
+	'botIncomeStep',
 	// A space's benefit follows it as its own lines.
 	'spaceActivated',
 	// Lithium-Ion Battery's second use this turn: nothing happens.
@@ -324,6 +326,16 @@ function prophecyNouns(category) {
 
 /** @type {Record<string, Words>} */
 const WORDS = {
+	botDecisionCards: (e, game, name) =>
+		`${name} revealed decision cards ${e.pair?.trackCard} and ${e.pair?.tiebreakerCard}.`,
+	botTapestryGained: (e, game, name) =>
+		`${name} gained a face-down tapestry card.`,
+	botFavouriteChanged: (e, game, name) =>
+		`${name} now favours ${trackName(e.track)}.`,
+	botTrapDiscarded: (e, game, name) =>
+		`${name} discarded ${tapestryName(e.card)} while defending.`,
+	automaCivilizationChosen: (e, game, name) =>
+		`${name} added the ${e.civilization} Automa civilization.`,
 	// Setup.
 	gameCreated(e, game) {
 		const names = Array.isArray(e.seats)

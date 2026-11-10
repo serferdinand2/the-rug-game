@@ -79,7 +79,8 @@ test('more than one human-owned map item blocks the path, but one is allowed (R4
 	setTokens(state, '-2_-2', 1);
 	assert.equal(automaDistance(state, 2, 1, '-3_-3', '0_0'), 4);
 	setTokens(state, '-2_-2', 1, 3);
-	assert.equal(automaDistance(state, 2, 1, '-3_-3', '0_0'), 3);
+	// The human outpost plus human token still block it; adding a Shadow token cannot unblock them.
+	assert.equal(automaDistance(state, 2, 1, '-3_-3', '0_0'), 4);
 });
 
 test('unreachable or off-map destinations have infinite distance', () => {

@@ -747,10 +747,55 @@
 			color-mix(in srgb, var(--gold) 55%, transparent);
 	}
 
+	.rg-automa-hex-pattern.svelte-1npd85q {
+		display: block;
+		width: 100%;
+		max-width: 290px;
+		overflow: visible;
+	}
+	.rg-automa-hex-pattern--hex.svelte-1npd85q {
+		fill: var(--card-control);
+		stroke: var(--card-line);
+		stroke-width: var(--border);
+	}
+	.rg-automa-hex-pattern--start.svelte-1npd85q {
+		fill: color-mix(in srgb, var(--card-title) 40%, var(--card-control));
+	}
+	.rg-automa-hex-pattern--row.svelte-1npd85q,
+	.rg-automa-hex-pattern--next.svelte-1npd85q {
+		fill: none;
+		stroke: var(--card-slot-border);
+		stroke-width: var(--border-thick);
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.rg-automa-hex-pattern--first.svelte-1npd85q {
+		stroke: var(--card-text);
+	}
+	.rg-automa-hex-pattern--first-fill.svelte-1npd85q {
+		fill: var(--card-text);
+	}
+	.rg-automa-hex-pattern--next-fill.svelte-1npd85q {
+		fill: var(--card-slot-border);
+	}
+	.rg-automa-hex-pattern.svelte-1npd85q text:where(.svelte-1npd85q) {
+		font: var(--weight-bold) var(--font-size-xs) var(--font-body);
+		text-anchor: middle;
+		dominant-baseline: central;
+		fill: var(--card-text);
+		stroke: var(--card-paper);
+		stroke-width: var(--border-thick);
+		paint-order: stroke;
+	}
+
 	.rg-card-frame.rg-automa-decision-card {
 		--card-band-start: var(--science);
-		--card-band-middle: color-mix(in srgb, var(--science) 43%, transparent);
-		--card-band-end: transparent;
+		--card-band-middle: color-mix(
+			in srgb,
+			var(--science) 70%,
+			var(--surface)
+		);
+		--card-band-end: color-mix(in srgb, var(--science) 35%, var(--surface));
 		width: 290px;
 		display: flex;
 		flex-direction: column;
@@ -781,16 +826,10 @@
 		gap: var(--space-2);
 	}
 	.rg-automa-decision-card--value.svelte-nbv7pj img:where(.svelte-nbv7pj),
-	.rg-automa-decision-card--track.svelte-nbv7pj img:where(.svelte-nbv7pj),
-	.rg-automa-decision-card--hex.svelte-nbv7pj {
+	.rg-automa-decision-card--track.svelte-nbv7pj img:where(.svelte-nbv7pj) {
 		width: 30px;
 		height: 30px;
 		object-fit: contain;
-	}
-	.rg-automa-decision-card--hex.svelte-nbv7pj {
-		fill: none;
-		stroke: var(--exploration);
-		stroke-width: 2;
 	}
 	.rg-automa-decision-card--tracks.svelte-nbv7pj {
 		margin: 0;
@@ -800,6 +839,7 @@
 		gap: var(--space-2);
 	}
 	.rg-automa-decision-card--track.svelte-nbv7pj {
+		font-family: var(--font-title);
 		display: grid;
 		grid-template-columns: 30px 14px 1fr;
 		align-items: center;
@@ -808,8 +848,7 @@
 		font-weight: var(--weight-bold);
 	}
 	.rg-automa-decision-card--star.svelte-nbv7pj {
-		color: var(--card-title);
-		text-shadow: 0 1px 0 var(--card-title-shadow);
+		color: var(--card-path);
 	}
 	.rg-automa-decision-card--footer.svelte-nbv7pj {
 		display: flex;
@@ -818,7 +857,7 @@
 		padding: var(--space-2) var(--space-4);
 		border-top: 1px solid var(--card-line);
 		background: var(--science);
-		color: var(--text-on-dark, #f0e5cf);
+		color: var(--text);
 		font-size: var(--font-size-xs);
 	}
 	.rg-automa-decision-card--deck.svelte-nbv7pj {
@@ -871,9 +910,13 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--space-6);
-		align-items: stretch;
+		align-items: flex-start;
 	}
 
+	.track-name.svelte-134kovj {
+		font-family: var(--font-title);
+		color: var(--exploration);
+	}
 	.review.svelte-134kovj {
 		max-width: 1600px;
 		margin: auto;
@@ -4804,6 +4847,52 @@ createHTML: (html) => {
 		};
 	}
 	/**
+	* @param {string} content
+	* @param {number} flags
+	* @param {'svg' | 'math'} ns
+	* @returns {() => Node | Node[]}
+	*/
+	/*#__NO_SIDE_EFFECTS__*/
+	function from_namespace(content, flags, ns = "svg") {
+		/**
+		* Whether or not the first item is a text/element node. If not, we need to
+		* create an additional comment node to act as `effect.nodes.start`
+		*/
+		var has_start = !content.startsWith("<!>");
+		var is_fragment = (flags & 1) !== 0;
+		var wrapped = `<${ns}>${has_start ? content : "<!>" + content}</${ns}>`;
+		/** @type {Element | DocumentFragment} */
+		var node;
+		return () => {
+			if (hydrating) {
+				assign_nodes(hydrate_node, null);
+				return hydrate_node;
+			}
+			if (!node) {
+				var root = /* @__PURE__ */ get_first_child(create_fragment_from_html(wrapped));
+				if (is_fragment) {
+					node = document.createDocumentFragment();
+					while (/* @__PURE__ */ get_first_child(root)) node.appendChild(/* @__PURE__ */ get_first_child(root));
+				} else node = /* @__PURE__ */ get_first_child(root);
+			}
+			var clone = node.cloneNode(true);
+			if (is_fragment) {
+				var start = /* @__PURE__ */ get_first_child(clone);
+				var end = clone.lastChild;
+				assign_nodes(start, end);
+			} else assign_nodes(clone, clone);
+			return clone;
+		};
+	}
+	/**
+	* @param {string} content
+	* @param {number} flags
+	*/
+	/*#__NO_SIDE_EFFECTS__*/
+	function from_svg(content, flags) {
+		return /* @__PURE__ */ from_namespace(content, flags, "svg");
+	}
+	/**
 	* Don't mark this as side-effect-free, hydration needs to walk all nodes
 	* @param {any} value
 	*/
@@ -6943,7 +7032,7 @@ createHTML: (html) => {
 	if (typeof window !== "undefined") ((window.__svelte ??= {}).v ??= /* @__PURE__ */ new Set()).add("5");
 	//#endregion
 	//#region src/lib/components/ui/Badge.svelte
-	var rest_excludes$8 = /* @__PURE__ */ new Set([
+	var rest_excludes$11 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -6951,12 +7040,12 @@ createHTML: (html) => {
 		"variant",
 		"color"
 	]);
-	var root$11 = /* @__PURE__ */ from_html(`<span> </span>`);
+	var root$12 = /* @__PURE__ */ from_html(`<span> </span>`);
 	function Badge($$anchor, $$props) {
 		push($$props, true);
 		/** @type {BadgeProps} */
-		let variant = prop($$props, "variant", 3, "tag"), color = prop($$props, "color", 3, "var(--gold)"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$8);
-		var span = root$11();
+		let variant = prop($$props, "variant", 3, "tag"), color = prop($$props, "color", 3, "var(--gold)"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$11);
+		var span = root$12();
 		attribute_effect(span, () => ({
 			...attr,
 			class: `rg-badge rg-badge--${variant() ?? ""} ${($$props.class ? $$props.class : "") ?? ""}`,
@@ -6988,7 +7077,7 @@ createHTML: (html) => {
 	};
 	//#endregion
 	//#region src/lib/components/ui/Button.svelte
-	var rest_excludes$7 = /* @__PURE__ */ new Set([
+	var rest_excludes$10 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -7000,11 +7089,11 @@ createHTML: (html) => {
 		"children",
 		"onButtonClick"
 	]);
-	var root$10 = /* @__PURE__ */ from_html(`<button><!></button>`);
+	var root$11 = /* @__PURE__ */ from_html(`<button><!></button>`);
 	function Button($$anchor, $$props) {
 		push($$props, true);
 		/** @type {ButtonProps} */
-		let mode = prop($$props, "mode", 3, "secondary"), size = prop($$props, "size", 3, "medium"), block = prop($$props, "block", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$7);
+		let mode = prop($$props, "mode", 3, "secondary"), size = prop($$props, "size", 3, "medium"), block = prop($$props, "block", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$10);
 		/**
 		* @param {MouseEvent} event
 		*/
@@ -7014,7 +7103,7 @@ createHTML: (html) => {
 				$$props.onButtonClick(new ComponentEvent(void 0, target, event));
 			}
 		};
-		var button = root$10();
+		var button = root$11();
 		attribute_effect(button, ($0) => ({
 			type: "button",
 			"aria-pressed": $$props.selected,
@@ -7035,7 +7124,7 @@ createHTML: (html) => {
 	}
 	//#endregion
 	//#region src/lib/components/ui/TextInput.svelte
-	var rest_excludes$6 = /* @__PURE__ */ new Set([
+	var rest_excludes$9 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -7055,13 +7144,13 @@ createHTML: (html) => {
 		"onTextInputChange",
 		"onTextInputFocus"
 	]);
-	var root$9 = /* @__PURE__ */ from_html(`<label class="rg-text-input--label svelte-nubu4k"> </label>`);
-	var root_1$7 = /* @__PURE__ */ from_html(`<p class="rg-text-input--hint svelte-nubu4k"> </p>`);
-	var root_2$3 = /* @__PURE__ */ from_html(`<div><!> <input class="rg-text-input--field svelte-nubu4k" type="text"/> <!> <p class="rg-text-input--error svelte-nubu4k" aria-live="polite"> </p></div>`);
+	var root$10 = /* @__PURE__ */ from_html(`<label class="rg-text-input--label svelte-nubu4k"> </label>`);
+	var root_1$8 = /* @__PURE__ */ from_html(`<p class="rg-text-input--hint svelte-nubu4k"> </p>`);
+	var root_2$5 = /* @__PURE__ */ from_html(`<div><!> <input class="rg-text-input--field svelte-nubu4k" type="text"/> <!> <p class="rg-text-input--error svelte-nubu4k" aria-live="polite"> </p></div>`);
 	function TextInput($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let hideLabel = prop($$props, "hideLabel", 3, false), value = prop($$props, "value", 15, ""), readonly = prop($$props, "readonly", 3, false), size = prop($$props, "size", 3, "medium"), block = prop($$props, "block", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$6);
+		let hideLabel = prop($$props, "hideLabel", 3, false), value = prop($$props, "value", 15, ""), readonly = prop($$props, "readonly", 3, false), size = prop($$props, "size", 3, "medium"), block = prop($$props, "block", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$9);
 		let describedBy = /* @__PURE__ */ user_derived(() => [$$props.hint ? `${uid}-hint` : "", $$props.error ? `${uid}-error` : ""].filter(Boolean).join(" ") || void 0);
 		/**
 		* @param {Event} event
@@ -7089,7 +7178,7 @@ createHTML: (html) => {
 				$$props.onTextInputFocus(new ComponentEvent(target.value, target, event));
 			}
 		};
-		var div = root_2$3();
+		var div = root_2$5();
 		attribute_effect(div, () => ({
 			...attr,
 			class: `rg-text-input rg-text-input--${size() ?? ""} ${($$props.class ? $$props.class : "") ?? ""}`,
@@ -7097,7 +7186,7 @@ createHTML: (html) => {
 		}), void 0, void 0, void 0, "svelte-nubu4k");
 		var node = child(div);
 		var consequent = ($$anchor) => {
-			var label_1 = root$9();
+			var label_1 = root$10();
 			var text = only_child(label_1, true);
 			template_effect(() => {
 				set_attribute(label_1, "for", `${uid}-input`);
@@ -7112,7 +7201,7 @@ createHTML: (html) => {
 		remove_input_defaults(input);
 		var node_1 = sibling(input, 2);
 		var consequent_1 = ($$anchor) => {
-			var p = root_1$7();
+			var p = root_1$8();
 			var text_1 = only_child(p, true);
 			template_effect(() => {
 				set_attribute(p, "id", `${uid}-hint`);
@@ -7220,13 +7309,26 @@ createHTML: (html) => {
 		"grassland",
 		"mountain"
 	]);
-	Object.freeze({
+	/** @type {Readonly<Record<string, TerrainId>>} */
+	var TERRAIN_LETTERS = Object.freeze({
 		S: "sea",
 		D: "desert",
 		F: "forest",
 		G: "grassland",
 		M: "mountain"
 	});
+	/**
+	* Reads terrains written with the research's letters (01 Appendix A and B): S, D, F, G and M.
+	* @param {string} letters - Comma-separated, such as 'S,M,M,D,D,S'
+	* @returns {TerrainId[]}
+	*/
+	function terrainsFrom(letters) {
+		return letters.split(",").map((letter) => {
+			const terrain = TERRAIN_LETTERS[letter.trim()];
+			if (!terrain) throw new RangeError(`unknown terrain letter ${letter}`);
+			return terrain;
+		});
+	}
 	deepFreeze({
 		exploration: "food",
 		science: "worker",
@@ -7544,7 +7646,11 @@ createHTML: (html) => {
 		pay: { any: resources },
 		gain: [{ vp }]
 	});
-	deepFreeze([
+	/**
+	* The 43 base cards in BASE_TAPESTRY order (alphabetical), then the trap, then Plans & Ploys' cards (#33).
+	* @type {readonly TapestryCard[]}
+	*/
+	var TAPESTRY_CARDS = deepFreeze([
 		era("academia"),
 		when("age-of-discovery", [{ sharedAdvance: {
 			track: "roll",
@@ -7645,6 +7751,17 @@ createHTML: (html) => {
 		pp(when("surrender", [{ vp: 7 }, { gain: { any: 1 } }]), { response: "conquest" }),
 		pp(when("worlds-fair", [{ gain: { culture: 1 } }, { worldsFair: {} }]), { name: "World's Fair" })
 	]);
+	/**
+	* A tapestry card by id; each of the 7 trap copies is the trap.
+	* @param {string} id
+	* @returns {TapestryCard}
+	*/
+	function tapestryCard(id) {
+		const wanted = /^trap-[1-7]$/.test(id) ? "trap" : id;
+		const card = TAPESTRY_CARDS.find((c) => c.id === wanted);
+		if (!card) throw new Error(`no tapestry card ${id}`);
+		return card;
+	}
 	//#endregion
 	//#region src/lib/engine/data/tech-cards.js
 	/** @typedef {import('./ids.js').TrackId} TrackId */
@@ -7693,7 +7810,11 @@ createHTML: (html) => {
 		requires: innovation(need),
 		landmark: id
 	});
-	deepFreeze([
+	/**
+	* The 33 cards in BASE_TECH order (alphabetical).
+	* @type {readonly TechCard[]}
+	*/
+	var TECH_CARDS = deepFreeze([
 		{
 			id: "air-conditioning",
 			name: "Air Conditioning",
@@ -8851,7 +8972,11 @@ createHTML: (html) => {
 			["armories", "Armories"]
 		] }
 	};
-	Object.freeze(GROUPS.flatMap((group) => EXPANSIONS.flatMap(({ code }) => (LISTS[group.id][code] ?? []).map(([slug, name]) => Object.freeze({
+	/**
+	* Every asset, in group order, then expansion order, then the design's order.
+	* @type {readonly Asset[]}
+	*/
+	var ASSETS = Object.freeze(GROUPS.flatMap((group) => EXPANSIONS.flatMap(({ code }) => (LISTS[group.id][code] ?? []).map(([slug, name]) => Object.freeze({
 		id: `${group.id}/${slug}`,
 		name,
 		kind: group.kind,
@@ -8862,6 +8987,8 @@ createHTML: (html) => {
 	})))));
 	//#endregion
 	//#region src/lib/words.js
+	/** The minus sign numbers show, as in "hex 2,−1". */
+	var MINUS = "−";
 	/** Words a title keeps in lower case, unless they come first. */
 	var SMALL_WORDS = [
 		"of",
@@ -8891,7 +9018,8 @@ createHTML: (html) => {
 		tapestry: ["tapestry card", "tapestry cards"],
 		tech: ["tech card", "tech cards"]
 	};
-	Object.freeze(Object.keys(NOUNS));
+	/** The counted things, in the order amounts are listed. */
+	var AMOUNT_ORDER = Object.freeze(Object.keys(NOUNS));
 	/**
 	* A text with its first letter in upper case.
 	* @param {string} text
@@ -8899,6 +9027,32 @@ createHTML: (html) => {
 	*/
 	function capitalize(text) {
 		return text.charAt(0).toUpperCase() + text.slice(1);
+	}
+	/**
+	* A list in words: "a", "a and b", "a, b and c".
+	* @param {readonly string[]} items
+	* @param {string} [word] - The last joining word, 'and' or 'or'
+	* @returns {string}
+	*/
+	function joinList(items, word = "and") {
+		if (items.length <= 1) return items[0] ?? "";
+		return `${items.slice(0, -1).join(", ")} ${word} ${items[items.length - 1]}`;
+	}
+	/**
+	* "a" or "an", for the name that follows.
+	* @param {string} name
+	* @returns {string}
+	*/
+	function article(name) {
+		return /^[aeiou]/i.test(name) ? "an" : "a";
+	}
+	/**
+	* A whole number as shown, with a real minus sign.
+	* @param {number} n
+	* @returns {string}
+	*/
+	function signed(n) {
+		return n < 0 ? `${MINUS}${-n}` : String(n);
 	}
 	/**
 	* An id in words: 'the-chosen' or 'theChosen' to 'the chosen'.
@@ -8926,6 +9080,23 @@ createHTML: (html) => {
 		const [one, many] = NOUNS[id] ?? [wordsOf(id), wordsOf(id)];
 		return n === 1 ? one : many;
 	}
+	/**
+	* An amount of one counted thing, with its plural: "1 coin", "2 coins", "2 food", "2 resources of your choice".
+	* @param {string} id - A counted thing (a resource, 'any', 'vp', a tile or card kind), or any other id
+	* @param {number} n
+	* @returns {string}
+	*/
+	function amountWords(id, n) {
+		return `${n} ${nounOf(id, n)}`;
+	}
+	/**
+	* A name's plural: "Markets", "Armories" after a consonant and y, "Days" after a vowel and y.
+	* @param {string} word
+	* @returns {string}
+	*/
+	function pluralOf(word) {
+		return /[^aeiou]y$/i.test(word) ? `${word.slice(0, -1)}ies` : `${word}s`;
+	}
 	//#endregion
 	//#region src/lib/game-names.js
 	/** @typedef {{ seats?: readonly { name?: string }[], expansions?: readonly string[] }} Table - A state or a view: the seats' names, and the expansions on (#33) */
@@ -8941,6 +9112,22 @@ createHTML: (html) => {
 		worker: "Worker",
 		culture: "Culture"
 	};
+	/**
+	* Whether a value is a whole number of things.
+	* @param {unknown} value
+	* @returns {value is number}
+	*/
+	function isCount$1(value) {
+		return Number.isInteger(value) && value >= 0;
+	}
+	/**
+	* A catalog asset's name by its id.
+	* @param {string} id - Such as 'landmark/tv-station'
+	* @returns {string | undefined}
+	*/
+	function assetName(id) {
+		return ASSETS.find((asset) => asset.id === id)?.name;
+	}
 	/**
 	* A track's name, such as "Exploration".
 	* @param {unknown} track
@@ -8959,6 +9146,87 @@ createHTML: (html) => {
 	function resourceName(id) {
 		if (id === "any") return capitalize(nounOf("any", 1));
 		return RESOURCE_NAMES[id] ?? id;
+	}
+	/**
+	* An income building's name, such as "Farm".
+	* @param {unknown} building
+	* @returns {string}
+	*/
+	function buildingName(building) {
+		return typeof building === "string" ? titleOf(building) : "Building";
+	}
+	/**
+	* A landmark's name, such as "Train Station" or "TV Station", from the art catalog, which names every landmark of
+	* the game and its expansions.
+	* @param {unknown} id
+	* @returns {string}
+	*/
+	function landmarkName(id) {
+		if (typeof id !== "string") return "Landmark";
+		return assetName(`landmark/${id}`) ?? titleOf(id);
+	}
+	/**
+	* A tapestry card by id, through the engine's lookup, so each of the 7 trap copies is the trap; null for an id no
+	* card has.
+	* @param {unknown} id
+	* @returns {import('./engine/data/tapestry-cards.js').TapestryCard | null}
+	*/
+	function tapestryCardOf(id) {
+		if (typeof id !== "string") return null;
+		try {
+			return tapestryCard(id);
+		} catch {
+			return null;
+		}
+	}
+	/**
+	* A tapestry card's name, such as "Age of Sail"; the 7 trap copies are each "Trap".
+	* @param {unknown} id
+	* @returns {string}
+	*/
+	function tapestryName(id) {
+		if (typeof id !== "string") return "a face-down card";
+		return tapestryCardOf(id)?.name ?? titleOf(id);
+	}
+	/**
+	* A tech card's name, such as "Light Bulb".
+	* @param {unknown} id
+	* @returns {string}
+	*/
+	function techName(id) {
+		if (typeof id !== "string") return "a tech card";
+		return TECH_CARDS.find((card) => card.id === id)?.name ?? titleOf(id);
+	}
+	/**
+	* A civilization's name, such as "The Chosen".
+	* @param {unknown} id
+	* @returns {string}
+	*/
+	function civilizationName(id) {
+		if (typeof id !== "string") return "a civilization";
+		return assetName(`civ/${id}`) ?? titleOf(id);
+	}
+	/**
+	* A seat's player's name, from a state or view: "Player 2" for a seat without a name, and "a player" for no seat.
+	* @param {Table | null | undefined} table
+	* @param {unknown} seat
+	* @returns {string}
+	*/
+	function seatName(table, seat) {
+		if (!isCount$1(seat) || seat === 0) return "a player";
+		return table?.seats?.[seat - 1]?.name ?? `Player ${seat}`;
+	}
+	/**
+	* A map hex: "hex 2,−1", from its key '2_-1'; capitalize it to start a sentence.
+	* @param {unknown} key
+	* @returns {string}
+	*/
+	function hexName(key) {
+		const mat = typeof key === "string" && /^mat:\d+:([0-5])$/.exec(key);
+		if (mat) return `Islanders mat hex ${Number(mat[1]) + 1}`;
+		const match = typeof key === "string" && /^(-?\d+)_(-?\d+)$/.exec(key);
+		if (!match) return "a territory";
+		return `hex ${signed(Number(match[1]))},${signed(Number(match[2]))}`;
 	}
 	/**
 	* An expansion's name, as the art catalog names it: "Plans & Ploys", and "Base game" for 'base'. A code no edition
@@ -9721,7 +9989,7 @@ createHTML: (html) => {
 	//#endregion
 	//#region src/lib/components/lobby/SeatCard.svelte
 	var remove = ($$anchor, removeLabel = noop, tooltip = noop, handler = noop) => {
-		var button_1 = root$8();
+		var button_1 = root$9();
 		template_effect(() => {
 			set_attribute(button_1, "aria-label", removeLabel());
 			set_attribute(button_1, "title", tooltip());
@@ -9731,7 +9999,7 @@ createHTML: (html) => {
 		});
 		append($$anchor, button_1);
 	};
-	var rest_excludes$5 = /* @__PURE__ */ new Set([
+	var rest_excludes$8 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -9754,11 +10022,11 @@ createHTML: (html) => {
 		"onSeatCardRemove",
 		"onSeatCardChooseCivilization"
 	]);
-	var root$8 = /* @__PURE__ */ from_html(`<button type="button" class="rg-seat-card--remove svelte-1u4plw6">×</button>`);
-	var root_1$6 = /* @__PURE__ */ from_html(`<div><button type="button" class="rg-seat-card--choice svelte-1u4plw6"><span class="rg-seat-card--plus svelte-1u4plw6" aria-hidden="true">+</span> <span>Open seat</span></button> <!></div>`);
-	var root_2$2 = /* @__PURE__ */ from_html(`<form class="rg-seat-card--frame svelte-1u4plw6"><!> <!></form> <!>`, 1);
-	var root_3$2 = /* @__PURE__ */ from_html(`<span class="rg-seat-card--dot svelte-1u4plw6" aria-hidden="true">·</span>`);
-	var root_4$2 = /* @__PURE__ */ from_html(`<!> <!>`, 1);
+	var root$9 = /* @__PURE__ */ from_html(`<button type="button" class="rg-seat-card--remove svelte-1u4plw6">×</button>`);
+	var root_1$7 = /* @__PURE__ */ from_html(`<div><button type="button" class="rg-seat-card--choice svelte-1u4plw6"><span class="rg-seat-card--plus svelte-1u4plw6" aria-hidden="true">+</span> <span>Open seat</span></button> <!></div>`);
+	var root_2$4 = /* @__PURE__ */ from_html(`<form class="rg-seat-card--frame svelte-1u4plw6"><!> <!></form> <!>`, 1);
+	var root_3$3 = /* @__PURE__ */ from_html(`<span class="rg-seat-card--dot svelte-1u4plw6" aria-hidden="true">·</span>`);
+	var root_4$3 = /* @__PURE__ */ from_html(`<!> <!>`, 1);
 	var root_5$1 = /* @__PURE__ */ from_html(`<div class="rg-seat-card--badges svelte-1u4plw6"></div>`);
 	var root_6$1 = /* @__PURE__ */ from_html(`<span class="rg-seat-card--player-square svelte-1u4plw6" aria-hidden="true"></span>`);
 	var root_7$1 = /* @__PURE__ */ from_html(`<span class="rg-seat-card--bot-label svelte-1u4plw6">(Automa)</span>`);
@@ -9769,7 +10037,7 @@ createHTML: (html) => {
 	function SeatCard($$anchor, $$props) {
 		push($$props, true);
 		/** @type {SeatCardProps} */
-		let kind = prop($$props, "state", 3, "empty"), name = prop($$props, "name", 15, ""), civilization = prop($$props, "civilization", 3, null), showCivilization = prop($$props, "showCivilization", 3, true), canChooseCivilization = prop($$props, "canChooseCivilization", 3, false), you = prop($$props, "you", 3, false), host = prop($$props, "host", 3, false), removable = prop($$props, "removable", 3, false), botKind = prop($$props, "botKind", 3, null), canAddBot = prop($$props, "canAddBot", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$5);
+		let kind = prop($$props, "state", 3, "empty"), name = prop($$props, "name", 15, ""), civilization = prop($$props, "civilization", 3, null), showCivilization = prop($$props, "showCivilization", 3, true), canChooseCivilization = prop($$props, "canChooseCivilization", 3, false), you = prop($$props, "you", 3, false), host = prop($$props, "host", 3, false), removable = prop($$props, "removable", 3, false), botKind = prop($$props, "botKind", 3, null), canAddBot = prop($$props, "canAddBot", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$8);
 		let badges = /* @__PURE__ */ user_derived(() => seatBadges({
 			you: you(),
 			host: host(),
@@ -9838,7 +10106,7 @@ createHTML: (html) => {
 		var node = child(div);
 		var consequent = ($$anchor) => {};
 		var consequent_2 = ($$anchor) => {
-			var div_1 = root_1$6();
+			var div_1 = root_1$7();
 			let classes;
 			var button_2 = child(div_1);
 			var node_1 = sibling(button_2, 2);
@@ -9846,7 +10114,9 @@ createHTML: (html) => {
 				Button($$anchor, {
 					mode: "primary",
 					size: "small",
-					onButtonClick: (event) => $$props.onSeatCardAddBot?.(new ComponentEvent({ seat: $$props.seat }, event.target, event.originalEvent)),
+					onButtonClick: (event) => {
+						if (typeof $$props.onSeatCardAddBot === "function") $$props.onSeatCardAddBot(new ComponentEvent({ seat: $$props.seat }, event.target, event.originalEvent));
+					},
 					children: ($$anchor, $$slotProps) => {
 						next();
 						append($$anchor, text("Add bot"));
@@ -9863,7 +10133,7 @@ createHTML: (html) => {
 			append($$anchor, div_1);
 		};
 		var consequent_3 = ($$anchor) => {
-			var fragment_1 = root_2$2();
+			var fragment_1 = root_2$4();
 			var form = first_child(fragment_1);
 			var node_2 = child(form);
 			TextInput(node_2, {
@@ -9906,10 +10176,10 @@ createHTML: (html) => {
 			var consequent_5 = ($$anchor) => {
 				var div_2 = root_5$1();
 				each(div_2, 23, () => get(badges), (badge) => badge.label, ($$anchor, badge, index) => {
-					var fragment_3 = root_4$2();
+					var fragment_3 = root_4$3();
 					var node_6 = first_child(fragment_3);
 					var consequent_4 = ($$anchor) => {
-						append($$anchor, root_3$2());
+						append($$anchor, root_3$3());
 					};
 					if_block(node_6, ($$render) => {
 						if (get(index) > 0) $$render(consequent_4);
@@ -10000,19 +10270,31 @@ createHTML: (html) => {
 	delegate(["click"]);
 	//#endregion
 	//#region src/lib/components/lobby/AutomaLevel.svelte
-	var root$7 = /* @__PURE__ */ from_html(`<button type="button"> </button>`);
-	var root_1$5 = /* @__PURE__ */ from_html(`<div class="rg-automa-level svelte-1clzif6"><div class="rg-automa-level--label svelte-1clzif6"><span>Automa level</span><strong class="svelte-1clzif6"> </strong></div> <div class="rg-automa-level--squares svelte-1clzif6" role="group" aria-label="Automa level"></div> <span class="rg-automa-level--name svelte-1clzif6"> </span></div>`);
+	var rest_excludes$7 = /* @__PURE__ */ new Set([
+		"$$slots",
+		"$$events",
+		"$$legacy",
+		"value",
+		"disabled",
+		"onAutomaLevelChange"
+	]);
+	var root$8 = /* @__PURE__ */ from_html(`<button type="button"> </button>`);
+	var root_1$6 = /* @__PURE__ */ from_html(`<div><div class="rg-automa-level--label svelte-1clzif6"><span>Automa level</span><strong class="svelte-1clzif6"> </strong></div> <div class="rg-automa-level--squares svelte-1clzif6" role="group" aria-label="Automa level"></div> <span class="rg-automa-level--name svelte-1clzif6"> </span></div>`);
 	function AutomaLevel($$anchor, $$props) {
 		push($$props, true);
 		/** @type {AutomaLevelProps} */
-		let value = prop($$props, "value", 3, 2), disabled = prop($$props, "disabled", 3, false);
-		var div = root_1$5();
+		let value = prop($$props, "value", 3, 2), disabled = prop($$props, "disabled", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$7);
+		var div = root_1$6();
+		attribute_effect(div, () => ({
+			...attr,
+			class: `rg-automa-level ${$$props.class ?? "" ?? ""}`
+		}), void 0, void 0, void 0, "svelte-1clzif6");
 		var div_1 = child(div);
 		var text = only_child(sibling(child(div_1)), true);
 		reset(div_1);
 		var div_2 = sibling(div_1, 2);
 		each(div_2, 21, () => AUTOMA_LEVELS, (level) => level.level, ($$anchor, level) => {
-			var button = root$7();
+			var button = root$8();
 			let classes;
 			var text_1 = only_child(button, true);
 			template_effect(() => {
@@ -10023,7 +10305,9 @@ createHTML: (html) => {
 				classes = set_class(button, 1, "svelte-1clzif6", null, classes, { "rg-automa-level--filled": get(level).level <= value() });
 				set_text(text_1, get(level).level);
 			});
-			delegated("click", button, (event) => $$props.onAutomaLevelChange?.(new ComponentEvent(get(level).level, event.currentTarget, event)));
+			delegated("click", button, (event) => {
+				if (typeof $$props.onAutomaLevelChange === "function") $$props.onAutomaLevelChange(new ComponentEvent(get(level).level, event.currentTarget, event));
+			});
 			append($$anchor, button);
 		});
 		reset(div_2);
@@ -10039,13 +10323,27 @@ createHTML: (html) => {
 	delegate(["click"]);
 	//#endregion
 	//#region src/lib/components/lobby/BotSettings.svelte
-	var root$6 = /* @__PURE__ */ from_html(`<button type="button"> </button>`);
-	var root_1$4 = /* @__PURE__ */ from_html(`<div class="rg-bot-settings svelte-1dniw4j"><span class="rg-bot-settings--label svelte-1dniw4j">Bot type</span> <div class="rg-bot-settings--types svelte-1dniw4j" role="group" aria-label="Bot type"></div> <!> <!></div>`);
+	var rest_excludes$6 = /* @__PURE__ */ new Set([
+		"$$slots",
+		"$$events",
+		"$$legacy",
+		"kind",
+		"level",
+		"unavailable",
+		"onBotSettingsChange",
+		"onBotSettingsRemove"
+	]);
+	var root$7 = /* @__PURE__ */ from_html(`<button type="button"> </button>`);
+	var root_1$5 = /* @__PURE__ */ from_html(`<div><span class="rg-bot-settings--label svelte-1dniw4j">Bot type</span> <div class="rg-bot-settings--types svelte-1dniw4j" role="group" aria-label="Bot type"></div> <!> <!></div>`);
 	function BotSettings($$anchor, $$props) {
 		push($$props, true);
 		/** @type {BotSettingsProps} */
-		let level = prop($$props, "level", 3, 2), unavailable = prop($$props, "unavailable", 19, () => []);
-		var div = root_1$4();
+		let level = prop($$props, "level", 3, 2), unavailable = prop($$props, "unavailable", 19, () => []), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$6);
+		var div = root_1$5();
+		attribute_effect(div, () => ({
+			...attr,
+			class: `rg-bot-settings ${$$props.class ?? "" ?? ""}`
+		}), void 0, void 0, void 0, "svelte-1dniw4j");
 		var div_1 = sibling(child(div), 2);
 		each(div_1, 20, () => [{
 			kind: "automa",
@@ -10054,7 +10352,7 @@ createHTML: (html) => {
 			kind: "shadow",
 			label: "Shadow Empire"
 		}], (option) => option.kind, ($$anchor, option) => {
-			var button = root$6();
+			var button = root$7();
 			let classes;
 			var text = only_child(button, true);
 			template_effect(($0) => {
@@ -10063,10 +10361,12 @@ createHTML: (html) => {
 				classes = set_class(button, 1, "svelte-1dniw4j", null, classes, { "rg-bot-settings--shadow": option.kind === "shadow" });
 				set_text(text, option.label);
 			}, [() => unavailable().includes(option.kind)]);
-			delegated("click", button, (event) => $$props.onBotSettingsChange?.(new ComponentEvent({
-				kind: option.kind,
-				...option.kind === "automa" && { level: level() }
-			}, event.currentTarget, event)));
+			delegated("click", button, (event) => {
+				if (typeof $$props.onBotSettingsChange === "function") $$props.onBotSettingsChange(new ComponentEvent({
+					kind: option.kind,
+					...option.kind === "automa" && { level: level() }
+				}, event.currentTarget, event));
+			});
 			append($$anchor, button);
 		});
 		reset(div_1);
@@ -10076,10 +10376,12 @@ createHTML: (html) => {
 				get value() {
 					return level();
 				},
-				onAutomaLevelChange: (event) => $$props.onBotSettingsChange?.(new ComponentEvent({
-					kind: $$props.kind,
-					level: event.value
-				}, event.target, event.originalEvent))
+				onAutomaLevelChange: (event) => {
+					if (typeof $$props.onBotSettingsChange === "function") $$props.onBotSettingsChange(new ComponentEvent({
+						kind: $$props.kind,
+						level: event.value
+					}, event.target, event.originalEvent));
+				}
 			});
 		};
 		if_block(node, ($$render) => {
@@ -10089,8 +10391,8 @@ createHTML: (html) => {
 			mode: "danger",
 			size: "small",
 			block: true,
-			get onButtonClick() {
-				return $$props.onBotSettingsRemove;
+			onButtonClick: (event) => {
+				if (typeof $$props.onBotSettingsRemove === "function") $$props.onBotSettingsRemove(new ComponentEvent(void 0, event.target, event.originalEvent));
 			},
 			children: ($$anchor, $$slotProps) => {
 				next();
@@ -10105,7 +10407,7 @@ createHTML: (html) => {
 	delegate(["click"]);
 	//#endregion
 	//#region src/lib/components/player/CardBand.svelte
-	var rest_excludes$4 = /* @__PURE__ */ new Set([
+	var rest_excludes$5 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -10113,12 +10415,12 @@ createHTML: (html) => {
 		"size",
 		"trap"
 	]);
-	var root$5 = /* @__PURE__ */ from_html(`<header><h3 class="rg-card-band--title svelte-16e02wv"> </h3></header>`);
+	var root$6 = /* @__PURE__ */ from_html(`<header><h3 class="rg-card-band--title svelte-16e02wv"> </h3></header>`);
 	function CardBand($$anchor, $$props) {
 		push($$props, true);
 		/** @type {CardBandProps} */
-		let size = prop($$props, "size", 3, "medium"), trap = prop($$props, "trap", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$4);
-		var header = root$5();
+		let size = prop($$props, "size", 3, "medium"), trap = prop($$props, "trap", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$5);
+		var header = root$6();
 		attribute_effect(header, () => ({
 			...attr,
 			class: `rg-card-band rg-card-band--${size() ?? ""} ${$$props.class ?? "" ?? ""}`,
@@ -10132,18 +10434,18 @@ createHTML: (html) => {
 	}
 	//#endregion
 	//#region src/lib/components/player/CardEdition.svelte
-	var rest_excludes$3 = /* @__PURE__ */ new Set([
+	var rest_excludes$4 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
 		"code"
 	]);
-	var root$4 = /* @__PURE__ */ from_html(`<span> </span>`);
+	var root$5 = /* @__PURE__ */ from_html(`<span> </span>`);
 	function CardEdition($$anchor, $$props) {
 		push($$props, true);
 		/** @type {CardEditionProps} */
-		let code = prop($$props, "code", 3, "base"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$3);
-		var span = root$4();
+		let code = prop($$props, "code", 3, "base"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$4);
+		var span = root$5();
 		attribute_effect(span, ($0) => ({
 			...attr,
 			class: `rg-card-edition ${$$props.class ?? "" ?? ""}`,
@@ -10157,7 +10459,7 @@ createHTML: (html) => {
 	}
 	//#endregion
 	//#region src/lib/components/player/CardFrame.svelte
-	var rest_excludes$2 = /* @__PURE__ */ new Set([
+	var rest_excludes$3 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -10175,19 +10477,19 @@ createHTML: (html) => {
 		"effect",
 		"children"
 	]);
-	var root$3 = /* @__PURE__ */ from_html(`<article><!></article>`);
-	var root_1$3 = /* @__PURE__ */ from_html(`<div class="rg-card-frame--body rg-card-frame--body-stage svelte-t23jar"><div class="rg-card-frame--stage svelte-t23jar"><img class="rg-card-frame--stage-picture svelte-t23jar"/> <!></div> <div class="rg-card-frame--text svelte-t23jar"><!></div></div>`);
-	var root_2$1 = /* @__PURE__ */ from_html(`<div class="rg-card-frame--body svelte-t23jar"><img class="rg-card-frame--portrait svelte-t23jar"/> <div class="rg-card-frame--text svelte-t23jar"><!></div></div>`);
-	var root_3$1 = /* @__PURE__ */ from_html(`<i></i>`);
-	var root_4$1 = /* @__PURE__ */ from_html(`<article><!> <!> <!> <footer class="rg-card-frame--foot svelte-t23jar"><span class="rg-card-frame--editions svelte-t23jar"></span><span class="rg-card-frame--complexity svelte-t23jar"></span></footer></article>`);
+	var root$4 = /* @__PURE__ */ from_html(`<article><!></article>`);
+	var root_1$4 = /* @__PURE__ */ from_html(`<div class="rg-card-frame--body rg-card-frame--body-stage svelte-t23jar"><div class="rg-card-frame--stage svelte-t23jar"><img class="rg-card-frame--stage-picture svelte-t23jar"/> <!></div> <div class="rg-card-frame--text svelte-t23jar"><!></div></div>`);
+	var root_2$3 = /* @__PURE__ */ from_html(`<div class="rg-card-frame--body svelte-t23jar"><img class="rg-card-frame--portrait svelte-t23jar"/> <div class="rg-card-frame--text svelte-t23jar"><!></div></div>`);
+	var root_3$2 = /* @__PURE__ */ from_html(`<i></i>`);
+	var root_4$2 = /* @__PURE__ */ from_html(`<article><!> <!> <!> <footer class="rg-card-frame--foot svelte-t23jar"><span class="rg-card-frame--editions svelte-t23jar"></span><span class="rg-card-frame--complexity svelte-t23jar"></span></footer></article>`);
 	function CardFrame($$anchor, $$props) {
 		push($$props, true);
 		/** @type {CardFrameProps} */
-		let title = prop($$props, "title", 3, ""), portrait = prop($$props, "portrait", 3, ""), portraitAlt = prop($$props, "portraitAlt", 3, ""), editions = prop($$props, "editions", 19, () => ["base"]), complexity = prop($$props, "complexity", 3, 1), plain = prop($$props, "plain", 3, false), state = prop($$props, "state", 3, "empty"), stage = prop($$props, "stage", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$2);
+		let title = prop($$props, "title", 3, ""), portrait = prop($$props, "portrait", 3, ""), portraitAlt = prop($$props, "portraitAlt", 3, ""), editions = prop($$props, "editions", 19, () => ["base"]), complexity = prop($$props, "complexity", 3, 1), plain = prop($$props, "plain", 3, false), state = prop($$props, "state", 3, "empty"), stage = prop($$props, "stage", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$3);
 		var fragment = comment();
 		var node = first_child(fragment);
 		var consequent = ($$anchor) => {
-			var article = root$3();
+			var article = root$4();
 			attribute_effect(article, () => ({
 				...attr,
 				class: `rg-card-frame rg-card-frame--plain ${$$props.class ?? "" ?? ""}`
@@ -10197,7 +10499,7 @@ createHTML: (html) => {
 			append($$anchor, article);
 		};
 		var alternate_1 = ($$anchor) => {
-			var article_1 = root_4$1();
+			var article_1 = root_4$2();
 			attribute_effect(article_1, () => ({
 				...attr,
 				class: `rg-card-frame ${$$props.class ?? "" ?? ""}`,
@@ -10214,7 +10516,7 @@ createHTML: (html) => {
 			});
 			var node_3 = sibling(node_2, 2);
 			var consequent_1 = ($$anchor) => {
-				var div = root_1$3();
+				var div = root_1$4();
 				var div_1 = child(div);
 				var img = child(div_1);
 				snippet(sibling(img, 2), () => $$props.overlay ?? noop);
@@ -10232,7 +10534,7 @@ createHTML: (html) => {
 				append($$anchor, div);
 			};
 			var alternate = ($$anchor) => {
-				var div_3 = root_2$1();
+				var div_3 = root_2$3();
 				let styles_1;
 				var img_1 = child(div_3);
 				var div_4 = sibling(img_1, 2);
@@ -10268,7 +10570,7 @@ createHTML: (html) => {
 				2,
 				3
 			], index, ($$anchor, level) => {
-				var i = root_3$1();
+				var i = root_3$2();
 				let classes;
 				template_effect(() => classes = set_class(i, 1, "rg-card-frame--dot svelte-t23jar", null, classes, { "rg-card-frame--off": level > complexity() }));
 				append($$anchor, i);
@@ -10284,6 +10586,1458 @@ createHTML: (html) => {
 			else $$render(alternate_1, -1);
 		});
 		append($$anchor, fragment);
+		pop();
+	}
+	//#endregion
+	//#region src/lib/engine/data/maps.js
+	/** @typedef {import('./ids.js').TerrainId} TerrainId */
+	/**
+	* The terrains of a territory: its 6 corners, and an island in its middle.
+	* @typedef {Object} Terrains
+	* @property {readonly TerrainId[]} corners - The 6 corner terrains, clockwise from the top-left corner, before turning
+	* @property {readonly TerrainId[]} island - The terrains of an island in the middle, empty when there is none
+	* @property {boolean} [clouds] - Its picture shows clouds (R77); every territory tile and printed territory has it
+	* @property {boolean} [volcano] - Its picture shows a volcano (R77); every territory tile and printed territory has it
+	*/
+	/**
+	* A territory printed on the board.
+	* @typedef {Object} PrintedTerritory
+	* @property {number} tile - The BGA tile id, 49–77; the same id has the same terrains on both maps
+	* @property {number} orient - How far it is turned clockwise, in 60° steps
+	* @property {readonly TerrainId[]} corners - As in Terrains
+	* @property {readonly TerrainId[]} island - As in Terrains
+	* @property {boolean} clouds - Its picture shows clouds, which Cloud Colonies scores (R77)
+	* @property {boolean} volcano - Its picture shows a volcano, whose smoke is not a cloud (R77)
+	*/
+	/**
+	* One side of the map board.
+	* @typedef {Object} MapSide
+	* @property {'large' | 'small'} id
+	* @property {string} name
+	* @property {readonly number[]} players - The player counts that use this side
+	* @property {readonly string[]} hexes - Every hex on this side
+	* @property {Readonly<Record<string, PrintedTerritory>>} printed - The printed territories, by hex; every other hex starts unexplored
+	* @property {string} middle - The middle island's hex
+	*/
+	/**
+	* The terrains of the printed territories, by BGA tile id (01 Appendix A, checked against BGA's material.inc.php).
+	* The middle island, 49, is sea at every corner with land of all four terrains in its middle.
+	* @type {Readonly<Record<number, Terrains>>}
+	*/
+	var PRINTED_TILES = deepFreeze(Object.fromEntries(
+		/** @type {[number, string, string?][]} */
+		[
+			[
+				49,
+				"S,S,S,S,S,S",
+				"D,F,G,M"
+			],
+			[50, "S,S,S,S,F,S"],
+			[51, "F,S,S,S,F,F"],
+			[52, "M,F,F,F,S,M"],
+			[53, "S,D,M,M,S,S"],
+			[54, "M,M,G,G,M,S"],
+			[55, "G,G,S,S,S,G"],
+			[56, "S,G,S,S,S,S"],
+			[57, "S,S,M,F,F,S"],
+			[58, "G,D,D,S,S,S"],
+			[59, "S,S,S,G,G,D"],
+			[60, "S,D,G,F,D,D"],
+			[61, "M,F,F,M,S,M"],
+			[62, "S,M,M,D,S,S"],
+			[63, "D,G,G,D,S,D"],
+			[64, "S,S,S,S,D,S"],
+			[65, "D,S,S,S,D,D"],
+			[66, "G,D,D,D,S,G"],
+			[67, "S,M,G,G,S,S"],
+			[68, "F,S,S,S,G,G"],
+			[69, "S,F,S,S,S,D"],
+			[70, "M,G,G,S,M,M"],
+			[71, "F,F,D,D,S,D"],
+			[72, "S,M,S,S,S,S"],
+			[73, "S,M,M,M,S,S"],
+			[74, "F,S,S,S,G,F"],
+			[75, "M,G,G,S,M,M"],
+			[76, "S,S,M,F,F,S"],
+			[77, "S,S,S,G,S,S"]
+		].map(([tile, corners, island]) => [tile, {
+			corners: terrainsFrom(corners),
+			island: island ? terrainsFrom(island) : []
+		}])
+	));
+	/**
+	* The printed territories of one side, with their terrains filled in from the tile id. Clouds and the volcano belong
+	* to the hex's picture, not the tile id: a cloud across a hex line counts only where most of it lies (R77).
+	* @param {Record<string, [tile: number, orient: number]>} hexes
+	* @param {{ clouds: string[], volcano?: string }} pictures - The hexes whose pictures show clouds, and the volcano's
+	* @returns {Record<string, PrintedTerritory>}
+	*/
+	function printed(hexes, { clouds, volcano }) {
+		return Object.fromEntries(Object.entries(hexes).map(([key, [tile, orient]]) => [key, {
+			tile,
+			orient,
+			...PRINTED_TILES[tile],
+			clouds: clouds.includes(key),
+			volcano: key === volcano
+		}]));
+	}
+	/**
+	* Every hex of a hexagonal board, column by column.
+	* @param {number} radius
+	* @param {string[]} [missing] - Hexes the board leaves out
+	* @returns {string[]}
+	*/
+	function hexagon(radius, missing = []) {
+		/** @type {string[]} */
+		const hexes = [];
+		for (let a = -radius; a <= radius; a++) for (let b = -radius; b <= radius; b++) {
+			const key = `${a}_${b}`;
+			if (Math.abs(a - b) <= radius && !missing.includes(key)) hexes.push(key);
+		}
+		return hexes;
+	}
+	/**
+	* Both sides of the board. The orientations are BGA's: on the small map only `0_3` is turned.
+	* @type {Readonly<{ large: MapSide, small: MapSide }>}
+	*/
+	var MAPS = deepFreeze({
+		large: {
+			id: "large",
+			name: "Large map",
+			players: [4, 5],
+			hexes: hexagon(4),
+			printed: printed({
+				"0_0": [49, 0],
+				"-1_-4": [50, 0],
+				"0_-3": [51, 0],
+				"1_-3": [61, 0],
+				"0_-2": [62, 0],
+				"3_-1": [63, 0],
+				"3_0": [55, 5],
+				"2_0": [57, 5],
+				"4_1": [56, 5],
+				"2_2": [64, 0],
+				"3_3": [65, 0],
+				"4_3": [66, 0],
+				"3_4": [67, 0],
+				"0_2": [68, 0],
+				"0_3": [76, 5],
+				"1_4": [69, 0],
+				"-1_3": [70, 0],
+				"-4_-1": [77, 0],
+				"-3_0": [59, 4],
+				"-2_0": [58, 4],
+				"-3_1": [71, 0],
+				"-2_-2": [72, 0],
+				"-3_-3": [73, 0],
+				"-4_-3": [75, 0],
+				"-3_-4": [74, 0]
+			}, {
+				clouds: [
+					"0_0",
+					"-1_-4",
+					"0_-3",
+					"2_0",
+					"4_1",
+					"3_3",
+					"3_4",
+					"0_3",
+					"1_4",
+					"-4_-1",
+					"-3_0",
+					"-3_1",
+					"-2_-2"
+				],
+				volcano: "-1_3"
+			}),
+			middle: "0_0"
+		},
+		small: {
+			id: "small",
+			name: "Small map",
+			players: [
+				1,
+				2,
+				3
+			],
+			hexes: hexagon(3, [
+				"0_-3",
+				"-3_0",
+				"3_3"
+			]),
+			printed: printed({
+				"0_0": [49, 0],
+				"-3_-3": [50, 0],
+				"-2_-2": [51, 0],
+				"-1_-2": [52, 0],
+				"-2_-1": [53, 0],
+				"1_-1": [54, 0],
+				"2_0": [55, 0],
+				"3_0": [56, 0],
+				"2_1": [76, 0],
+				"-1_1": [58, 0],
+				"0_2": [59, 0],
+				"1_2": [60, 0],
+				"0_3": [77, 2]
+			}, { clouds: [
+				"0_0",
+				"-3_-3",
+				"-2_-2",
+				"3_0",
+				"2_1",
+				"0_2",
+				"0_3"
+			] }),
+			middle: "0_0"
+		}
+	});
+	deepFreeze([
+		[-1, -1],
+		[-1, 0],
+		[0, 1],
+		[1, 1],
+		[1, 0],
+		[0, -1]
+	]);
+	//#endregion
+	//#region src/lib/engine/automa-map.js
+	/**
+	* The companion app's hex order, produced from its row/column projection of
+	* axial board coordinates. Its ID 16 is the middle island.
+	* @type {readonly string[]}
+	*/
+	var APP_HEXES = Object.freeze([...MAPS.small.hexes].sort((left, right) => {
+		const [leftA, leftB] = left.split("_").map(Number);
+		const [rightA, rightB] = right.split("_").map(Number);
+		const leftRow = leftA + leftB + 7;
+		const rightRow = rightA + rightB + 7;
+		const leftColumn = -leftA + leftB + 4;
+		const rightColumn = -rightA + rightB + 4;
+		return leftRow - rightRow || leftColumn - rightColumn;
+	}));
+	/** @type {readonly (readonly number[])[]} */
+	var HEX_PATTERNS = Object.freeze([
+		[
+			0,
+			2,
+			5,
+			1,
+			4,
+			7,
+			10,
+			14,
+			3,
+			6,
+			9,
+			13,
+			17,
+			21,
+			8,
+			12,
+			16,
+			20,
+			24,
+			28,
+			11,
+			15,
+			19,
+			23,
+			27,
+			31,
+			18,
+			22,
+			26,
+			30,
+			33,
+			25,
+			29,
+			32
+		],
+		[
+			5,
+			2,
+			0,
+			14,
+			10,
+			7,
+			4,
+			1,
+			21,
+			17,
+			13,
+			9,
+			6,
+			3,
+			28,
+			24,
+			20,
+			16,
+			12,
+			8,
+			31,
+			27,
+			23,
+			19,
+			15,
+			11,
+			33,
+			30,
+			26,
+			22,
+			18,
+			32,
+			29,
+			25
+		],
+		[
+			14,
+			21,
+			28,
+			5,
+			10,
+			17,
+			24,
+			31,
+			2,
+			7,
+			13,
+			20,
+			27,
+			33,
+			0,
+			4,
+			9,
+			16,
+			23,
+			30,
+			1,
+			6,
+			12,
+			19,
+			26,
+			32,
+			3,
+			8,
+			15,
+			22,
+			29,
+			11,
+			18,
+			25
+		],
+		[
+			28,
+			21,
+			14,
+			31,
+			24,
+			17,
+			10,
+			5,
+			33,
+			27,
+			20,
+			13,
+			7,
+			2,
+			30,
+			23,
+			16,
+			9,
+			4,
+			0,
+			32,
+			26,
+			19,
+			12,
+			6,
+			1,
+			29,
+			22,
+			15,
+			8,
+			3,
+			25,
+			18,
+			11
+		],
+		[
+			28,
+			31,
+			33,
+			21,
+			24,
+			27,
+			30,
+			32,
+			14,
+			17,
+			20,
+			23,
+			26,
+			29,
+			10,
+			13,
+			16,
+			19,
+			22,
+			25,
+			5,
+			7,
+			9,
+			12,
+			15,
+			18,
+			2,
+			4,
+			6,
+			8,
+			11,
+			0,
+			1,
+			3
+		],
+		[
+			33,
+			31,
+			28,
+			32,
+			30,
+			27,
+			24,
+			21,
+			29,
+			26,
+			23,
+			20,
+			17,
+			14,
+			25,
+			22,
+			19,
+			16,
+			13,
+			10,
+			18,
+			15,
+			12,
+			9,
+			7,
+			5,
+			11,
+			8,
+			6,
+			4,
+			2,
+			3,
+			1,
+			0
+		],
+		[
+			32,
+			29,
+			25,
+			33,
+			30,
+			26,
+			22,
+			18,
+			31,
+			27,
+			23,
+			19,
+			15,
+			11,
+			28,
+			24,
+			20,
+			16,
+			12,
+			8,
+			21,
+			17,
+			13,
+			9,
+			6,
+			3,
+			14,
+			10,
+			7,
+			4,
+			1,
+			5,
+			2,
+			0
+		],
+		[
+			25,
+			29,
+			32,
+			18,
+			22,
+			26,
+			30,
+			33,
+			11,
+			15,
+			19,
+			23,
+			27,
+			31,
+			8,
+			12,
+			16,
+			20,
+			24,
+			28,
+			3,
+			6,
+			9,
+			13,
+			17,
+			21,
+			1,
+			4,
+			7,
+			10,
+			14,
+			0,
+			2,
+			5
+		],
+		[
+			25,
+			18,
+			11,
+			29,
+			22,
+			15,
+			8,
+			3,
+			32,
+			26,
+			19,
+			12,
+			6,
+			1,
+			30,
+			23,
+			16,
+			9,
+			4,
+			0,
+			33,
+			27,
+			20,
+			13,
+			7,
+			2,
+			31,
+			24,
+			17,
+			10,
+			5,
+			28,
+			21,
+			14
+		],
+		[
+			11,
+			18,
+			25,
+			3,
+			8,
+			15,
+			22,
+			29,
+			1,
+			6,
+			12,
+			19,
+			26,
+			32,
+			0,
+			4,
+			9,
+			16,
+			23,
+			30,
+			2,
+			7,
+			13,
+			20,
+			27,
+			33,
+			5,
+			10,
+			17,
+			24,
+			31,
+			14,
+			21,
+			28
+		]
+	].map((pattern) => Object.freeze(pattern)));
+	/**
+	* Small-map hexes in the companion app's card tie-break order (02 §7.3, §9.8).
+	* @param {number} pattern - The card's 1-based hex-pattern id
+	* @returns {string[]}
+	* @throws {RangeError} When the pattern id is not 1–10
+	*/
+	function hexesByPattern(pattern) {
+		if (!Number.isInteger(pattern) || pattern < 1 || pattern > HEX_PATTERNS.length) throw new RangeError(`Unknown Automa hex pattern ${pattern}.`);
+		return HEX_PATTERNS[pattern - 1].map((ordinal) => APP_HEXES[ordinal]);
+	}
+	Object.freeze([64, 56]);
+	Object.freeze([22, 12]);
+	Object.freeze([21, 2]);
+	Object.freeze(
+		/** @type {[number, number][]} */
+		[
+			[15, 3],
+			[32, 3],
+			[41, 19],
+			[32, 34],
+			[15, 34],
+			[6, 19]
+		].map((spot) => Object.freeze(spot))
+	);
+	//#endregion
+	//#region src/lib/engine/data/territory-tiles.js
+	/** @typedef {import('./ids.js').TerrainId} TerrainId */
+	/** @typedef {import('./effects.js').Effect} Effect */
+	/**
+	* A territory tile. A tile written "isl X" in the research is sea at every corner with an island of X in its middle.
+	* @typedef {Object} TerritoryTile
+	* @property {number} id - 1–48, the catalog's tile number
+	* @property {readonly TerrainId[]} corners - The 6 corner terrains, clockwise from the top-left corner, before turning
+	* @property {readonly TerrainId[]} island - The terrain of an island in the middle, empty when there is none
+	* @property {readonly Effect[]} benefit - Gained when the tile is explored, and through the black die's "?" (R8)
+	* @property {boolean} clouds - Its picture shows clouds, which Cloud Colonies scores (R77)
+	* @property {boolean} volcano - Its picture shows a volcano, whose smoke is not a cloud (R77)
+	*/
+	/** The tiles whose pictures show clouds (R77, read from BGA's tile images). */
+	var CLOUDS = [
+		1,
+		7,
+		8,
+		9,
+		10,
+		13,
+		15,
+		16,
+		18,
+		19,
+		21,
+		22,
+		24,
+		25,
+		27,
+		30,
+		33,
+		35,
+		36,
+		39,
+		40,
+		42,
+		43,
+		44,
+		45,
+		48
+	];
+	/** The tile whose picture shows a volcano (R77). */
+	var VOLCANO = 47;
+	/** @type {Record<string, Effect[]>} */
+	var BENEFITS = {
+		coin: [{ gain: { coin: 1 } }],
+		worker: [{ gain: { worker: 1 } }],
+		food: [{ gain: { food: 1 } }],
+		culture: [{ gain: { culture: 1 } }],
+		tapestry: [{ gain: { tapestry: 1 } }],
+		invent: [{ invent: {} }],
+		research: [{ research: { noBenefit: true } }],
+		"2 tiles": [{ gain: { territory: 2 } }],
+		farm: [{ building: "farm" }],
+		house: [{ building: "house" }],
+		market: [{ building: "market" }],
+		armory: [{ building: "armory" }],
+		upgrade: [{ upgrade: {} }]
+	};
+	/**
+	* A tile from the research's row: its corners in letters, or 'isl X', and its benefit's name.
+	* @param {number} id
+	* @param {string} terrains - Such as 'S,M,M,D,D,S', or 'isl D'
+	* @param {string} benefit - A key of BENEFITS
+	* @returns {TerritoryTile}
+	*/
+	function tile(id, terrains, benefit) {
+		const island = terrains.startsWith("isl ");
+		if (!BENEFITS[benefit]) throw new RangeError(`unknown territory tile benefit ${benefit}`);
+		return {
+			id,
+			corners: terrainsFrom(island ? "S,S,S,S,S,S" : terrains),
+			island: island ? terrainsFrom(terrains.slice(4)) : [],
+			benefit: BENEFITS[benefit],
+			clouds: CLOUDS.includes(id),
+			volcano: id === VOLCANO
+		};
+	}
+	deepFreeze([
+		tile(1, "S,D,S,S,S,S", "coin"),
+		tile(2, "S,M,M,D,D,S", "2 tiles"),
+		tile(3, "S,M,D,D,S,S", "food"),
+		tile(4, "S,M,D,S,S,S", "culture"),
+		tile(5, "isl D", "food"),
+		tile(6, "S,D,S,S,S,S", "worker"),
+		tile(7, "isl D", "coin"),
+		tile(8, "S,M,M,M,D,D", "farm"),
+		tile(9, "S,M,M,D,D,S", "tapestry"),
+		tile(10, "S,M,D,D,S,S", "culture"),
+		tile(11, "S,M,D,S,S,S", "worker"),
+		tile(12, "S,M,M,M,D,D", "research"),
+		tile(13, "S,F,S,S,S,S", "coin"),
+		tile(14, "S,G,F,S,S,S", "culture"),
+		tile(15, "S,F,S,S,S,S", "worker"),
+		tile(16, "isl F", "coin"),
+		tile(17, "isl F", "food"),
+		tile(18, "S,G,G,G,F,F", "market"),
+		tile(19, "S,G,G,F,F,S", "tapestry"),
+		tile(20, "S,G,G,F,S,S", "culture"),
+		tile(21, "S,G,F,S,S,S", "worker"),
+		tile(22, "S,G,G,G,F,F", "upgrade"),
+		tile(23, "S,G,G,F,F,S", "invent"),
+		tile(24, "S,G,G,F,S,S", "food"),
+		tile(25, "S,D,D,D,G,G", "house"),
+		tile(26, "isl G", "food"),
+		tile(27, "S,G,S,S,S,S", "worker"),
+		tile(28, "isl G", "coin"),
+		tile(29, "S,D,D,G,G,S", "tapestry"),
+		tile(30, "S,D,D,G,S,S", "culture"),
+		tile(31, "S,D,G,S,S,S", "worker"),
+		tile(32, "S,D,D,D,G,G", "invent"),
+		tile(33, "S,D,D,G,G,S", "armory"),
+		tile(34, "S,D,D,G,S,S", "food"),
+		tile(35, "S,D,G,S,S,S", "culture"),
+		tile(36, "S,G,S,S,S,S", "coin"),
+		tile(37, "S,M,S,S,S,S", "coin"),
+		tile(38, "S,F,M,S,S,S", "culture"),
+		tile(39, "S,M,S,S,S,S", "worker"),
+		tile(40, "isl M", "coin"),
+		tile(41, "isl M", "food"),
+		tile(42, "S,F,F,F,M,M", "invent"),
+		tile(43, "S,F,F,M,M,S", "tapestry"),
+		tile(44, "S,F,F,M,S,S", "culture"),
+		tile(45, "S,F,M,S,S,S", "worker"),
+		tile(46, "S,F,F,F,M,M", "research"),
+		tile(47, "S,F,F,M,M,S", "2 tiles"),
+		tile(48, "S,F,F,M,S,S", "food")
+	]);
+	//#endregion
+	//#region src/lib/engine/data/space-tiles.js
+	/** @typedef {import('./effects.js').Effect} Effect */
+	/**
+	* A space tile. It never touches the map, so nothing aligns; exploring it gives its benefit.
+	* @typedef {Object} SpaceTile
+	* @property {number} id - 1–15, the catalog's tile number
+	* @property {readonly Effect[]} benefit
+	* @property {boolean} ordered - The parts are taken in the order listed, because the tile says "then"
+	* @property {string} [expansion] - Its expansion's code; left out for the base game's
+	* @property {string} [art] - Its catalog slug, when not its number
+	* @property {{ track: import('./ids.js').TrackId, vp: number }} [ongoing] - Once explored: whenever its player advances on `track`, they gain `vp` (#32)
+	*/
+	var ORDERED = /* @__PURE__ */ new Set([11]);
+	/**
+	* The 15 tiles in id order. The advances gain the space's benefit and may pay its bonus.
+	* @type {readonly SpaceTile[]}
+	*/
+	var SPACE_TILES = deepFreeze(
+		/** @type {Effect[][]} */
+		[
+			[{ advance: { tracks: ["science"] } }, { vp: {
+				per: "trackSpace",
+				track: "science"
+			} }],
+			[{ building: "armory" }, { vp: { per: "armory" } }],
+			[{ building: "house" }, { vp: { per: "house" } }],
+			[
+				{ gain: { tapestry: 1 } },
+				{ tapestryOnTop: {} },
+				{ vp: { per: "tapestryCard" } }
+			],
+			[{ gain: {
+				coin: 1,
+				worker: 1
+			} }, { vp: 8 }],
+			[{ research: {} }, { vp: 6 }],
+			[{ gain: {
+				food: 1,
+				culture: 1
+			} }, { vp: 8 }],
+			[{ gain: { culture: 1 } }, { scoreCapital: {} }],
+			[{ advance: { tracks: ["technology"] } }, { vp: {
+				per: "trackSpace",
+				track: "technology"
+			} }],
+			[
+				{ invent: {} },
+				{ upgrade: {} },
+				{ vp: { per: "techCard" } }
+			],
+			[{ conquer: {} }, { vp: { per: "territory" } }],
+			[{ advance: { tracks: ["military"] } }, { vp: {
+				per: "trackSpace",
+				track: "military"
+			} }],
+			[{ vp: 13 }],
+			[{ building: "farm" }, { vp: { per: "farm" } }],
+			[{ building: "market" }, { vp: { per: "market" } }]
+		].map((benefit, index) => ({
+			id: index + 1,
+			benefit,
+			ordered: ORDERED.has(index + 1)
+		}))
+	);
+	/**
+	* Plans & Ploys' 4 space tiles, numbered on from the base game's in the catalog's order: three that gain 5 VP whenever
+	* their player advances on a track, and the Monolith (03 §1.5, #32).
+	* @type {readonly SpaceTile[]}
+	*/
+	var EXPANSION_SPACE_TILES = deepFreeze([...[
+		"technology",
+		"science",
+		"military"
+	].map((track, index) => ({
+		id: 16 + index,
+		benefit: [],
+		ordered: false,
+		expansion: "pp",
+		art: `${track}-5-vp`,
+		ongoing: {
+			track,
+			vp: 5
+		}
+	})), {
+		id: 19,
+		benefit: [{ landmark: "monolith" }],
+		ordered: false,
+		expansion: "pp",
+		art: "monolith"
+	}]);
+	new Map([...SPACE_TILES, ...EXPANSION_SPACE_TILES].map((tile) => [tile.id, tile]));
+	//#endregion
+	//#region src/lib/describe.js
+	/** @typedef {Record<string, any>} Effect - One engine effect, `{ kind: value }`, of any shape */
+	/** @typedef {Record<string, any>} Decision - An open decision as a view shows it */
+	/** @typedef {Record<string, any>} Answer - One of a decision's answers */
+	/** @typedef {import('./game-names.js').Table & { hexes?: Record<string, any> }} Table - A state or a view: the seats' names, and the map */
+	/** What an effect reads when its kind is not one this module knows. */
+	var ANY_EFFECT = "take this effect";
+	/** What a cost discards rather than pays. */
+	var DISCARDS = [
+		"territory",
+		"space",
+		"tapestry",
+		"tech"
+	];
+	/** The tapestry cards whose rules are their own effect kind. */
+	var CARD_RULES = [
+		"darkAges",
+		"socialism",
+		"dictatorship",
+		"revolution",
+		"colonialism",
+		"pleaForAid",
+		"technocracy",
+		"tradeEconomy",
+		"coalBaron",
+		"olympicHost",
+		"astronomy",
+		"cartography",
+		"manifestDestiny",
+		"statusQuo",
+		"worldsFair"
+	];
+	/**
+	* Whether a value is a plain object.
+	* @param {unknown} value
+	* @returns {value is Record<string, any>}
+	*/
+	function isRecord(value) {
+		return typeof value === "object" && value !== null && !Array.isArray(value);
+	}
+	/**
+	* Whether a value is a whole number of things.
+	* @param {unknown} value
+	* @returns {value is number}
+	*/
+	function isCount(value) {
+		return Number.isInteger(value) && value >= 0;
+	}
+	/**
+	* The amounts of a cost or gain, in AMOUNT_ORDER, then any other keys; zero, missing and odd values are left out.
+	* @param {Record<string, unknown>} counts
+	* @param {(key: string) => boolean} [only] - Which keys to take
+	* @returns {string[]}
+	*/
+	function amounts(counts, only = () => true) {
+		return [...AMOUNT_ORDER.filter((key) => key in counts), ...Object.keys(counts).filter((key) => !AMOUNT_ORDER.includes(key))].filter((key) => only(key)).flatMap((key) => {
+			const n = counts[key];
+			return isCount(n) && n > 0 ? [amountWords(key, n)] : [];
+		});
+	}
+	/**
+	* Whether a value is a track id: one of the four, or the arts track (#35).
+	* @param {unknown} track
+	* @returns {track is import('./engine/data/ids.js').TrackId}
+	*/
+	function isTrack(track) {
+		return TRACK_IDS.includes(track) || track === "arts";
+	}
+	/**
+	* Several tracks as a choice: "Science", "Technology or Military", "any track".
+	* @param {unknown} tracks
+	* @returns {string}
+	*/
+	function tracksPhrase(tracks) {
+		if (!Array.isArray(tracks) || tracks.length === 0) return "a track";
+		if (TRACK_IDS.every((track) => tracks.includes(track))) return "any track";
+		return joinList(tracks.map(trackName), "or");
+	}
+	/**
+	* What a VP counter counts, after "for each".
+	* @param {unknown} per
+	* @param {unknown} track - For 'trackSpace'
+	* @returns {string}
+	*/
+	function counted(per, track) {
+		switch (per) {
+			case "territory": return "territory you control";
+			case "territoryTile": return "territory tile in your supply";
+			case "techCard": return "tech card you have";
+			case "tapestryCard": return "tapestry card in your hand or on your income mat";
+			case "trackSpace": return isTrack(track) ? `space you have advanced on ${trackName(track)}` : "track space you have advanced";
+			case "trackLead": return "track where nobody is ahead of you";
+			case "incomeBuilding": return "income building you own";
+			case "capitalRow": return "complete row in your capital city";
+			case "capitalColumn": return "complete column in your capital city";
+			case "landmark": return "landmark you own";
+			case "opponent": return "opponent";
+			case "market":
+			case "house":
+			case "farm":
+			case "armory": return `${buildingName(per)} you own`;
+			default: return typeof per === "string" ? `${wordsOf(per)} you have` : "one";
+		}
+	}
+	/**
+	* A cost or a payment as what the player does: "pay 1 coin", "discard 2 territory tiles", "pay nothing". A payment
+	* names the tiles and cards it discards: "discard territory tile 17", "discard Democracy".
+	* @param {unknown} payment
+	* @returns {string}
+	*/
+	function paymentVerbs(payment) {
+		if (!isRecord(payment)) return "pay the cost";
+		const paid = amounts(payment, (key) => !DISCARDS.includes(key));
+		/** @type {string[]} */
+		const discarded = [];
+		for (const key of DISCARDS) {
+			const given = payment[key];
+			if (isCount(given) && given > 0) discarded.push(amountWords(key, given));
+			else if (Array.isArray(given) && given.length > 0) {
+				if (key === "territory" || key === "space") {
+					const ids = given.map((id) => isCount(id) ? String(id) : "?");
+					discarded.push(`${nounOf(key, given.length)} ${joinList(ids)}`);
+				} else discarded.push(...given.map(key === "tech" ? techName : tapestryName));
+			}
+		}
+		const parts = [...paid.length > 0 ? [`pay ${joinList(paid)}`] : [], ...discarded.length > 0 ? [`discard ${joinList(discarded)}`] : []];
+		return parts.length > 0 ? parts.join(" and ") : "pay nothing";
+	}
+	/**
+	* The words of one effect kind, from its value; null for a value of a shape it doesn't know.
+	* @typedef {(value: any, table: Table | undefined) => string | null} Phrase
+	*/
+	/** @type {Record<string, Phrase>} */
+	var PHRASES = {
+		gain(value) {
+			if (!isRecord(value)) return null;
+			const { keep, ...rest } = value;
+			if (isCount(keep) && isCount(rest.tapestry) && rest.tapestry > keep) {
+				const { tapestry, ...others } = rest;
+				const draw = `draw ${amountWords("tapestry", tapestry)} and keep ${keep}`;
+				const items = amounts(others);
+				return items.length > 0 ? `gain ${joinList(items)} and ${draw}` : draw;
+			}
+			const items = amounts(rest);
+			return items.length > 0 ? `gain ${joinList(items)}` : "gain nothing";
+		},
+		lose(value) {
+			if (!isRecord(value)) return null;
+			const items = amounts(value);
+			return items.length > 0 ? `lose ${joinList(items)}` : "lose nothing";
+		},
+		pay(value) {
+			return isRecord(value) ? paymentVerbs(value) : null;
+		},
+		building(value) {
+			const name = buildingName(value);
+			return typeof value === "string" ? `gain ${article(name)} ${name}` : "gain an income building";
+		},
+		landmark(value) {
+			return `gain the ${landmarkName(value)} landmark`;
+		},
+		vp(value) {
+			if (isCount(value)) return `gain ${value} VP`;
+			if (!isRecord(value)) return null;
+			return `gain ${isCount(value.each) ? value.each : 1} VP for each ${counted(value.per, value.track)}`;
+		},
+		explore(value) {
+			const where = value?.anywhere ? " anywhere" : "";
+			if (isCount(value?.tile)) return `explore${where} with territory tile ${value.tile}`;
+			return `explore a territory${where}`;
+		},
+		exploreSpace(value) {
+			if (typeof value?.civ === "string") return `explore a space tile onto your ${civilizationName(value.civ)} mat`;
+			return value?.fromGained ? "explore one of the space tiles just gained" : "explore a space tile";
+		},
+		conquer(value) {
+			const what = value?.empty ? "conquer an empty territory" : "conquer a territory";
+			const base = value?.anywhere ? `${what} anywhere` : what;
+			if (value?.bothDice === "always") return `${base} with both dice`;
+			if (value?.bothDice === "ifOpponent") return `${base} with both dice if an opponent controlled it`;
+			return base;
+		},
+		research(value) {
+			const rolls = isCount(value?.rolls) && value.rolls > 1 ? value.rolls : 1;
+			let words = rolls > 1 ? `roll the science die ${rolls} times to advance on each track rolled` : "roll the science die to advance on the track rolled";
+			if (value?.noBenefit) words += rolls > 1 ? " without the benefits or bonuses" : " without its benefit or bonus";
+			if (isCount(value?.offTrackVp)) words += ` (${value.offTrackVp} VP instead for a track you have completed)`;
+			return words;
+		},
+		advance(value) {
+			let words = `${value?.optional ? "you may advance" : "advance"} on ${tracksPhrase(value?.tracks)}`;
+			if (value?.noBenefit) words += value?.freeBonus ? " without its benefit," : " without its benefit or bonus";
+			if (value?.noBonus) words += " without its bonus";
+			if (value?.freeBonus) words += " and take its bonus for free";
+			if (isCount(value?.offTrackVp)) words += `, or gain ${value.offTrackVp} VP if you are at the end`;
+			return words;
+		},
+		regress(value) {
+			const words = `go back 1 space on ${tracksPhrase(value?.tracks)}`;
+			return value?.noBenefit ? `${words} without its benefit or bonus` : `${words} and gain its benefit`;
+		},
+		repeat(value) {
+			const words = "repeat the benefit of a track space you are on, and you may pay its bonus";
+			return value?.oncePerTurn ? `once a turn, ${words}` : words;
+		},
+		invent(value) {
+			const n = isCount(value?.count) && value.count > 0 ? value.count : 1;
+			const kind = `${value?.faceUpOnly ? "face-up " : ""}${n === 1 ? "tech card" : "tech cards"}`;
+			let words = `invent ${n === 1 ? "a" : n} ${kind}`;
+			if (value?.deckOnly) words += " from the deck";
+			if (value?.refresh) words += ", after refreshing the face-up cards if you like";
+			if (value?.thenUpgrade) words += n === 1 ? ", then upgrade it" : ", then upgrade them";
+			return words;
+		},
+		upgrade(value) {
+			return value?.lock ? "upgrade a tech card, which can't be upgraded again this turn" : "upgrade a tech card";
+		},
+		techBenefit(value) {
+			return value?.icon === "square" ? "gain the square benefit of a tech card in your top row" : "gain the circle benefit of a tech card in your middle row";
+		},
+		tapestryOnTop() {
+			return "play a tapestry card on top of your current one";
+		},
+		scoreCapital() {
+			return "score your capital city";
+		},
+		tileBenefit() {
+			return "gain the benefit of the territory tile you conquered";
+		},
+		gainCiv() {
+			return "draw another civilization from the deck";
+		},
+		restartToken() {
+			return "move this token to the start of any track";
+		},
+		choice(value, table) {
+			if (!Array.isArray(value) || value.length === 0) return null;
+			const gains = value.map(gainsOfAll);
+			if (!gains.includes(null)) return `gain ${joinList(gains.map((g) => joinList(gainNouns(g))), "or")}`;
+			return `choose one: ${joinList(value.map((option) => Array.isArray(option) && option.length === 0 ? "nothing" : effectsPhrase(option, table, true)), "or")}`;
+		},
+		eraPartner(value) {
+			return value?.track ? "choose an opponent and a track for this era" : "choose an opponent for this era";
+		},
+		copyTapestry() {
+			return "copy the ability of a visible tapestry card";
+		},
+		sharedAdvance(value) {
+			const words = `${value?.track === "roll" ? "roll the science die to advance on the track rolled" : "advance on a track of your choice"}, then ${value?.others === "neighbours" ? "your neighbours" : "your opponents"} advance there without its benefit or bonus`;
+			return value?.optional ? `${words}; anyone may decline` : words;
+		},
+		others(value, table) {
+			if (!isRecord(value)) return null;
+			return `${value.who === "neighbours" ? "each of your neighbours" : "each player, you first"}: ${effectsPhrase(value.effects, table, true)}`;
+		},
+		trade(value, table) {
+			if (!isRecord(value) || !Array.isArray(value.offers)) return null;
+			const words = `make one trade${isCount(value.host) ? ` with ${seatName(table, value.host)}` : ""}: ${joinList(value.offers.map((offer) => isRecord(offer) ? `${paymentVerbs(offer.pay)} to ${effectsPhrase(offer.gain, table, true)}` : "an offer"), "or")}`;
+			return value.optional ? `you may ${words}` : words;
+		},
+		discardTapestry(value) {
+			return `discard any tapestry cards from your hand for ${isCount(value?.vpEach) ? value.vpEach : 1} VP each`;
+		},
+		anyBuilding() {
+			return "gain an income building of your choice";
+		},
+		advanceEach(value) {
+			let words = "advance once on each track, in any order";
+			if (value?.noBenefit) words += ", without their benefits";
+			if (value?.freeBonus) words += ", taking each bonus for free";
+			return words;
+		},
+		create() {
+			return "gain a masterpiece";
+		},
+		inspire() {
+			return "place an inspiration tile";
+		},
+		broadcast() {
+			return "gain the benefit of one of your masterpieces";
+		},
+		refreshMasterpieces(value) {
+			const words = "refresh the face-up masterpieces";
+			return value?.optional ? `you may ${words}` : words;
+		},
+		streamingImplants() {
+			return "gain the benefits of up to 3 different masterpieces, yours or your neighbours'";
+		},
+		flipMasterpiece() {
+			return "turn this masterpiece face down";
+		},
+		trackLandmark() {
+			return "gain a track landmark nobody owns";
+		},
+		landmarkRank(value, table) {
+			if (!isRecord(value)) return null;
+			return `if you have the fewest landmarks, ${effectsPhrase(value.fewest, table, true)}; if the most, ${effectsPhrase(value.most, table, true)}; otherwise, ties included, ${effectsPhrase(value.otherwise, table, true)}`;
+		},
+		placeOutpost(value) {
+			return `place an outpost on ${hexName(value?.hex)}`;
+		},
+		placeToken(value) {
+			const civ = civilizationName(value?.civ);
+			return `place ${article(civ)} ${civ} token on ${hexName(value?.hex)}`;
+		},
+		discardCiv(value) {
+			if (typeof value?.civ !== "string") return "discard a civilization";
+			const civ = civilizationName(value.civ);
+			return /^the /i.test(civ) ? `discard ${civ}` : `discard the ${civ}`;
+		},
+		...Object.fromEntries(CARD_RULES.map((kind) => [kind, (() => `resolve ${tapestryName(wordsOf(kind).replace(/ /g, "-"))}`)]))
+	};
+	/**
+	* One effect's words, in lower case unless a name comes first.
+	* @param {unknown} effect
+	* @param {Table | undefined} table
+	* @returns {string}
+	*/
+	function effectPhrase(effect, table) {
+		if (!isRecord(effect)) return ANY_EFFECT;
+		const [kind] = Object.keys(effect);
+		return (Object.hasOwn(PHRASES, kind) ? PHRASES[kind] : void 0)?.(effect[kind], table) ?? ANY_EFFECT;
+	}
+	/**
+	* What plain gains add up to: amounts by NOUNS key, and income buildings and landmarks by name.
+	* @typedef {Object} Gains
+	* @property {Record<string, number>} counts
+	* @property {string[]} buildings
+	* @property {string[]} landmarks
+	*/
+	/**
+	* The things an effect gains, when it only gains things a list can name: resources, tiles, cards, a number of VP,
+	* an income building or a landmark. Null for any other effect.
+	* @param {unknown} effect
+	* @returns {Gains | null}
+	*/
+	function gainsOf(effect) {
+		if (!isRecord(effect) || Object.keys(effect).length !== 1) return null;
+		const [[kind, value]] = Object.entries(effect);
+		/** @type {Gains} */
+		const gains = {
+			counts: {},
+			buildings: [],
+			landmarks: []
+		};
+		if (kind === "gain" && isRecord(value) && !("keep" in value)) {
+			for (const [key, n] of Object.entries(value)) if (isCount(n) && n > 0) gains.counts[key] = n;
+			return Object.keys(gains.counts).length > 0 ? gains : null;
+		}
+		if (kind === "vp" && isCount(value) && value > 0) {
+			gains.counts.vp = value;
+			return gains;
+		}
+		if (kind === "building" && typeof value === "string") {
+			gains.buildings.push(buildingName(value));
+			return gains;
+		}
+		if (kind === "landmark" && typeof value === "string") {
+			gains.landmarks.push(landmarkName(value));
+			return gains;
+		}
+		return null;
+	}
+	/**
+	* Adds one effect's gains to the gains so far.
+	* @param {Gains} into - Changed in place
+	* @param {Gains} gains
+	*/
+	function addGains(into, gains) {
+		for (const [key, n] of Object.entries(gains.counts)) into.counts[key] = (into.counts[key] ?? 0) + n;
+		into.buildings.push(...gains.buildings);
+		into.landmarks.push(...gains.landmarks);
+	}
+	/**
+	* What a list of effects gains, when every one of them is a plain gain; null otherwise.
+	* @param {unknown} effects
+	* @returns {Gains | null}
+	*/
+	function gainsOfAll(effects) {
+		if (!Array.isArray(effects) || effects.length === 0) return null;
+		/** @type {Gains} */
+		const sum = {
+			counts: {},
+			buildings: [],
+			landmarks: []
+		};
+		for (const effect of effects) {
+			const gains = gainsOf(effect);
+			if (!gains) return null;
+			addGains(sum, gains);
+		}
+		return sum;
+	}
+	/**
+	* Gains as a list of nouns: "1 coin", "8 VP", "a Farm", "2 Armories", "the Bakery landmark".
+	* @param {Gains} gains
+	* @returns {string[]}
+	*/
+	function gainNouns(gains) {
+		const buildings = [...new Set(gains.buildings)].map((name) => {
+			const n = gains.buildings.filter((b) => b === name).length;
+			if (n === 1) return `${article(name)} ${name}`;
+			return `${n} ${pluralOf(name)}`;
+		});
+		return [
+			...amounts(gains.counts),
+			...buildings,
+			...gains.landmarks.map((name) => `the ${name} landmark`)
+		];
+	}
+	/**
+	* A list of effects in words, joined with "and", or with "then" when they run in order. Plain gains side by side
+	* read as one ("gain 1 coin, 1 worker and 8 VP"), and the same effect twice in a row reads "twice".
+	* @param {unknown} effects
+	* @param {Table | undefined} table
+	* @param {boolean} ordered
+	* @returns {string}
+	*/
+	function effectsPhrase(effects, table, ordered) {
+		if (!Array.isArray(effects)) return ANY_EFFECT;
+		if (effects.length === 0) return "nothing";
+		/** @type {(string | Gains)[]} */
+		const parts = [];
+		for (const effect of effects) {
+			const gains = gainsOf(effect);
+			const last = parts[parts.length - 1];
+			if (gains && last !== void 0 && typeof last !== "string") addGains(last, gains);
+			else parts.push(gains ?? effectPhrase(effect, table));
+		}
+		/** @type {{ words: string, times: number }[]} */
+		const phrases = [];
+		for (const part of parts) {
+			const words = typeof part === "string" ? part : `gain ${joinList(gainNouns(part))}`;
+			const last = phrases[phrases.length - 1];
+			if (last?.words === words) last.times += 1;
+			else phrases.push({
+				words,
+				times: 1
+			});
+		}
+		const said = phrases.map(({ words, times }) => {
+			if (times === 1) return words;
+			return times === 2 ? `${words} twice` : `${words} ${times} times`;
+		});
+		return ordered ? said.join(", then ") : joinList(said);
+	}
+	//#endregion
+	//#region src/lib/hexmap.js
+	var HALF_ROOT_3 = Math.sqrt(3) / 2;
+	/** Each corner's offset from the centre for a hex of size 1: top-left first, then clockwise (y points down). */
+	var CORNERS = [
+		[-.5, -HALF_ROOT_3],
+		[.5, -HALF_ROOT_3],
+		[1, 0],
+		[.5, HALF_ROOT_3],
+		[-.5, HALF_ROOT_3],
+		[-1, 0]
+	];
+	/**
+	* The centre of hex `a_b`: x = 1.5·s·(b − a), y = (√3/2)·s·(a + b). Start 1 is then at the top and the others
+	* clockwise, as on the printed board, and side e of every hex faces its neighbour at HEX_SIDES[e].
+	* @param {string} key - An axial key, such as '2_-1'
+	* @param {number} size - The distance from a hex's centre to its corners
+	* @returns {Point}
+	*/
+	function hexCenter(key, size) {
+		const [a, b] = key.split("_").map(Number);
+		return [1.5 * size * (b - a), HALF_ROOT_3 * size * (a + b)];
+	}
+	/**
+	* A corner of a flat-topped hex: 0 is the top-left vertex, then clockwise. Side e runs from corner e to corner e + 1.
+	* @param {Point} center
+	* @param {number} k - 0 to 5; other whole numbers wrap round
+	* @param {number} size
+	* @returns {Point}
+	*/
+	function hexCorner(center, k, size) {
+		const [dx, dy] = CORNERS[(k % 6 + 6) % 6];
+		return [center[0] + dx * size, center[1] + dy * size];
+	}
+	//#endregion
+	//#region src/lib/components/player/AutomaHexPattern.svelte
+	var rest_excludes$2 = /* @__PURE__ */ new Set([
+		"$$slots",
+		"$$events",
+		"$$legacy",
+		"pattern",
+		"showOrder"
+	]);
+	var root$3 = /* @__PURE__ */ from_svg(`<polygon><title> </title></polygon>`);
+	var root_1$3 = /* @__PURE__ */ from_svg(`<polyline class="rg-automa-hex-pattern--next svelte-1npd85q"></polyline>`);
+	var root_2$2 = /* @__PURE__ */ from_svg(`<polyline></polyline>`);
+	var root_3$1 = /* @__PURE__ */ from_svg(`<text class="svelte-1npd85q"> </text>`);
+	var root_4$1 = /* @__PURE__ */ from_svg(`<svg><title> </title><defs><marker markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 6 3 L 0 6 Z" class="rg-automa-hex-pattern--first-fill svelte-1npd85q"></path></marker><marker markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 6 3 L 0 6 Z" class="rg-automa-hex-pattern--next-fill svelte-1npd85q"></path></marker></defs><!><!><!><!></svg>`);
+	function AutomaHexPattern($$anchor, $$props) {
+		const markerId = props_id();
+		push($$props, true);
+		let showOrder = prop($$props, "showOrder", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$2);
+		const radius = 15;
+		const hexes = /* @__PURE__ */ user_derived(() => hexesByPattern($$props.pattern).map((key, index) => ({
+			key,
+			order: index + 1,
+			center: hexCenter(key, radius),
+			polygon: Array.from({ length: 6 }, (_, corner) => hexCorner(hexCenter(key, radius), corner, 14).join(",")).join(" ")
+		})));
+		const direction = /* @__PURE__ */ user_derived(() => {
+			const [first, second] = get(hexes);
+			const dx = second.center[0] - first.center[0];
+			const dy = second.center[1] - first.center[1];
+			const length = Math.hypot(dx, dy);
+			return [dx / length, dy / length];
+		});
+		const rows = /* @__PURE__ */ user_derived(() => {
+			/** @type {{ key: string, points: number[][] }[]} */
+			const groups = [];
+			for (const hex of get(hexes)) {
+				const key = String(Math.round((hex.center[0] * get(direction)[1] - hex.center[1] * get(direction)[0]) * 1e4) / 1e4);
+				if (groups.at(-1)?.key !== key) groups.push({
+					key,
+					points: []
+				});
+				groups[groups.length - 1].points.push(hex.center);
+			}
+			return groups;
+		});
+		const viewBox = /* @__PURE__ */ user_derived(() => {
+			const xs = get(hexes).map((hex) => hex.center[0]);
+			const ys = get(hexes).map((hex) => hex.center[1]);
+			const left = Math.min(...xs) - 30;
+			const top = Math.min(...ys) - 30;
+			return `${left} ${top} ${Math.max(...xs) - left + 30} ${Math.max(...ys) - top + 30}`;
+		});
+		/** @param {number[][]} points @returns {string} */
+		function arrowPoints(points) {
+			const first = points[0];
+			const last = points[points.length - 1];
+			return `${first[0] - get(direction)[0] * radius * .65},${first[1] - get(direction)[1] * radius * .65} ${last[0] + get(direction)[0] * radius * .65},${last[1] + get(direction)[1] * radius * .65}`;
+		}
+		var svg = root_4$1();
+		attribute_effect(svg, () => ({
+			...attr,
+			class: `rg-automa-hex-pattern ${$$props.class ?? "" ?? ""}`,
+			viewBox: get(viewBox),
+			role: "img",
+			"aria-label": `Hex tiebreaker: pattern ${$$props.pattern}, starting at ${get(hexes)[0].key}; black arrow first, grey arrows next`
+		}), void 0, void 0, void 0, "svelte-1npd85q");
+		var title = child(svg);
+		var text = only_child(title);
+		var defs = sibling(title);
+		var marker = child(defs);
+		var marker_1 = sibling(marker);
+		reset(defs);
+		var node = sibling(defs);
+		each(node, 17, () => get(hexes), (hex) => hex.key, ($$anchor, hex) => {
+			var polygon = root$3();
+			let classes;
+			var text_1 = only_child(child(polygon));
+			reset(polygon);
+			template_effect(() => {
+				set_attribute(polygon, "points", get(hex).polygon);
+				classes = set_class(polygon, 0, "rg-automa-hex-pattern--hex svelte-1npd85q", null, classes, { "rg-automa-hex-pattern--start": get(hex).order === 1 });
+				set_text(text_1, `Priority ${get(hex).order ?? ""}: ${get(hex).key ?? ""}`);
+			});
+			append($$anchor, polygon);
+		});
+		var node_1 = sibling(node);
+		var consequent = ($$anchor) => {
+			var polyline = root_1$3();
+			template_effect(($0) => {
+				set_attribute(polyline, "points", $0);
+				set_attribute(polyline, "marker-end", `url(#${markerId}-next)`);
+			}, [() => get(rows).map((row) => row.points[0].join(",")).join(" ")]);
+			append($$anchor, polyline);
+		};
+		if_block(node_1, ($$render) => {
+			if (get(rows).length > 1) $$render(consequent);
+		});
+		var node_2 = sibling(node_1);
+		each(node_2, 19, () => get(rows), (row) => row.key, ($$anchor, row, index) => {
+			var polyline_1 = root_2$2();
+			let classes_1;
+			template_effect(($0) => {
+				classes_1 = set_class(polyline_1, 0, "rg-automa-hex-pattern--row svelte-1npd85q", null, classes_1, { "rg-automa-hex-pattern--first": get(index) === 0 });
+				set_attribute(polyline_1, "points", $0);
+				set_attribute(polyline_1, "marker-end", `url(#${markerId}-${get(index) === 0 ? "first" : "next"})`);
+			}, [() => arrowPoints(get(row).points)]);
+			append($$anchor, polyline_1);
+		});
+		var node_3 = sibling(node_2);
+		var consequent_1 = ($$anchor) => {
+			var fragment = comment();
+			each(first_child(fragment), 17, () => get(hexes), (hex) => hex.key, ($$anchor, hex) => {
+				var text_2 = root_3$1();
+				var text_3 = only_child(text_2, true);
+				template_effect(() => {
+					set_attribute(text_2, "x", get(hex).center[0]);
+					set_attribute(text_2, "y", get(hex).center[1]);
+					set_text(text_3, get(hex).order);
+				});
+				append($$anchor, text_2);
+			});
+			append($$anchor, fragment);
+		};
+		if_block(node_3, ($$render) => {
+			if (showOrder()) $$render(consequent_1);
+		});
+		reset(svg);
+		template_effect(() => {
+			set_text(text, `Full small-map hex selection order, pattern ${$$props.pattern ?? ""}`);
+			set_attribute(marker, "id", `${markerId}-first`);
+			set_attribute(marker_1, "id", `${markerId}-next`);
+		});
+		append($$anchor, svg);
 		pop();
 	}
 	//#endregion
@@ -10674,10 +12428,10 @@ createHTML: (html) => {
 	]);
 	var root$2 = /* @__PURE__ */ from_html(`<img alt="Income" class="svelte-nbv7pj"/><strong>+</strong>`, 1);
 	var root_1$2 = /* @__PURE__ */ from_html(`<span aria-label="No income icon">—</span>`);
-	var root_2 = /* @__PURE__ */ from_html(`<div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Automa track</span><strong> </strong></div> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Shadow Empire track</span><strong> </strong></div> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Income</span><span class="rg-automa-decision-card--value svelte-nbv7pj"><!></span></div>`, 1);
+	var root_2$1 = /* @__PURE__ */ from_html(`<div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Automa track</span><strong> </strong></div> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Shadow Empire track</span><strong> </strong></div> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Income</span><span class="rg-automa-decision-card--value svelte-nbv7pj"><!></span></div>`, 1);
 	var root_3 = /* @__PURE__ */ from_html(`<img alt="Topple outpost" class="svelte-nbv7pj"/>`);
 	var root_4 = /* @__PURE__ */ from_html(`<span aria-label="No topple icon">—</span>`);
-	var root_5 = /* @__PURE__ */ from_html(`<div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Hex pattern</span><span class="rg-automa-decision-card--value svelte-nbv7pj"><svg class="rg-automa-decision-card--hex svelte-nbv7pj" viewBox="0 0 32 32" aria-label="Territory hex"><polygon points="8,3 24,3 31,16 24,29 8,29 1,16"></polygon></svg><strong> </strong></span></div> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Topple</span><span class="rg-automa-decision-card--value svelte-nbv7pj"><!></span></div>`, 1);
+	var root_5 = /* @__PURE__ */ from_html(`<!> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Topple</span><span class="rg-automa-decision-card--value svelte-nbv7pj"><!></span></div>`, 1);
 	var root_6 = /* @__PURE__ */ from_html(`<li class="rg-automa-decision-card--track svelte-nbv7pj"><img alt="" class="svelte-nbv7pj"/><span class="rg-automa-decision-card--star svelte-nbv7pj"> </span><span> </span></li>`);
 	var root_7 = /* @__PURE__ */ from_html(`<!> <div class="rg-automa-decision-card--body svelte-nbv7pj"><!> <!> <ol class="rg-automa-decision-card--tracks svelte-nbv7pj" aria-label="Track tie-break order"></ol></div> <footer class="rg-automa-decision-card--footer svelte-nbv7pj"><span></span> </footer>`, 1);
 	function AutomaDecisionCard($$anchor, $$props) {
@@ -10710,7 +12464,7 @@ createHTML: (html) => {
 					var div = sibling(node, 2);
 					var node_1 = child(div);
 					var consequent_1 = ($$anchor) => {
-						var fragment_2 = root_2();
+						var fragment_2 = root_2$1();
 						var div_1 = first_child(fragment_2);
 						var text = only_child(sibling(child(div_1)), true);
 						reset(div_1);
@@ -10748,14 +12502,13 @@ createHTML: (html) => {
 					var node_3 = sibling(node_1, 2);
 					var consequent_3 = ($$anchor) => {
 						var fragment_4 = root_5();
-						var div_4 = first_child(fragment_4);
+						var node_4 = first_child(fragment_4);
+						AutomaHexPattern(node_4, { get pattern() {
+							return get(face).hexPattern;
+						} });
+						var div_4 = sibling(node_4, 2);
 						var span_2 = sibling(child(div_4));
-						var text_2 = only_child(sibling(child(span_2)), true);
-						reset(span_2);
-						reset(div_4);
-						var div_5 = sibling(div_4, 2);
-						var span_3 = sibling(child(div_5));
-						var node_4 = child(span_3);
+						var node_5 = child(span_2);
 						var consequent_2 = ($$anchor) => {
 							var img_1 = root_3();
 							template_effect(($0) => set_attribute(img_1, "src", $0), [() => artUrl("piece/outpost-toppled")]);
@@ -10764,13 +12517,12 @@ createHTML: (html) => {
 						var alternate_1 = ($$anchor) => {
 							append($$anchor, root_4());
 						};
-						if_block(node_4, ($$render) => {
+						if_block(node_5, ($$render) => {
 							if (get(face).topple) $$render(consequent_2);
 							else $$render(alternate_1, -1);
 						});
-						reset(span_3);
-						reset(div_5);
-						template_effect(() => set_text(text_2, get(face).hexPattern));
+						reset(span_2);
+						reset(div_4);
 						append($$anchor, fragment_4);
 					};
 					if_block(node_3, ($$render) => {
@@ -10781,30 +12533,30 @@ createHTML: (html) => {
 						var li = root_6();
 						let styles;
 						var img_2 = child(li);
-						var span_5 = sibling(img_2);
-						var text_3 = only_child(span_5, true);
-						var text_4 = only_child(sibling(span_5), true);
+						var span_4 = sibling(img_2);
+						var text_2 = only_child(span_4, true);
+						var text_3 = only_child(sibling(span_4), true);
 						reset(li);
 						template_effect(($0, $1) => {
 							styles = set_style(li, "", styles, { "--rg-automa-track-colour": `var(--${track})` });
 							set_attribute(img_2, "src", $0);
-							set_attribute(span_5, "aria-label", track === favouriteTrack() ? "Favourite" : void 0);
-							set_text(text_3, track === favouriteTrack() ? "★" : "");
-							set_text(text_4, $1);
+							set_attribute(span_4, "aria-label", track === favouriteTrack() ? "Favourite" : void 0);
+							set_text(text_2, track === favouriteTrack() ? "★" : "");
+							set_text(text_3, $1);
 						}, [() => artUrl(`track/${track}`), () => trackName(track)]);
 						append($$anchor, li);
 					});
 					reset(ol);
 					reset(div);
 					var footer = sibling(div, 2);
-					var span_7 = child(footer);
+					var span_6 = child(footer);
 					let classes;
-					var text_5 = sibling(span_7);
+					var text_4 = sibling(span_6);
 					reset(footer);
 					template_effect(() => {
-						classes = set_class(span_7, 1, "rg-automa-decision-card--deck svelte-nbv7pj", null, classes, { "rg-automa-decision-card--deck-circle": get(face).deck === "decision" });
-						set_attribute(span_7, "aria-label", get(face).deck === "decision" ? "Decision deck" : "Progress deck");
-						set_text(text_5, ` Automa #${get(face).id ?? ""}`);
+						classes = set_class(span_6, 1, "rg-automa-decision-card--deck svelte-nbv7pj", null, classes, { "rg-automa-decision-card--deck-circle": get(face).deck === "decision" });
+						set_attribute(span_6, "aria-label", get(face).deck === "decision" ? "Decision deck" : "Progress deck");
+						set_text(text_4, ` Automa #${get(face).id ?? ""}`);
 					});
 					append($$anchor, fragment_1);
 				},
@@ -10911,7 +12663,8 @@ createHTML: (html) => {
 	//#endregion
 	//#region docs/ui/automa-review/App.svelte
 	var root = /* @__PURE__ */ from_html(`<div class="seat-wrap svelte-134kovj"><!> <!></div>`);
-	var root_1 = /* @__PURE__ */ from_html(`<main class="review svelte-134kovj"><header class="svelte-134kovj"><h1 class="svelte-134kovj">Automa lobby</h1> <div class="role svelte-134kovj"><button class="svelte-134kovj">Host</button><button class="svelte-134kovj">Guest</button></div></header> <section class="lobby svelte-134kovj" aria-label="Lobby preview"><h2 class="svelte-134kovj">Players</h2> <div class="seats svelte-134kovj"></div> <footer class="svelte-134kovj"><span> </span><button class="svelte-134kovj">Start game</button></footer></section> <!> <section class="deck svelte-134kovj"><h2 class="svelte-134kovj">All 22 decision cards</h2> <p>Generated from the canonical card data through the same
+	var root_1 = /* @__PURE__ */ from_html(`Egypt advances on <span class="track-name svelte-134kovj">Exploration</span>.`, 1);
+	var root_2 = /* @__PURE__ */ from_html(`<main class="review svelte-134kovj"><header class="svelte-134kovj"><h1 class="svelte-134kovj">Automa lobby</h1> <div class="role svelte-134kovj"><button class="svelte-134kovj">Host</button><button class="svelte-134kovj">Guest</button></div></header> <section class="lobby svelte-134kovj" aria-label="Lobby preview"><h2 class="svelte-134kovj">Players</h2> <div class="seats svelte-134kovj"></div> <footer class="svelte-134kovj"><span> </span><button class="svelte-134kovj">Start game</button></footer></section> <!> <section class="deck svelte-134kovj"><h2 class="svelte-134kovj">All 22 decision cards</h2> <p>Generated from the canonical card data through the same
 			decision-card component.</p> <div class="card-grid svelte-134kovj"></div></section></main>`);
 	function App($$anchor, $$props) {
 		push($$props, true);
@@ -10943,7 +12696,7 @@ createHTML: (html) => {
 				level: 2
 			};
 		}
-		var main = root_1();
+		var main = root_2();
 		var header = child(main);
 		var div = sibling(child(header), 2);
 		var button = child(div);
@@ -11042,7 +12795,7 @@ createHTML: (html) => {
 		reset(div_1);
 		var footer = sibling(div_1, 2);
 		var span = child(footer);
-		var text$1 = only_child(span, true);
+		var text = only_child(span, true);
 		var button_2 = sibling(span);
 		reset(footer);
 		reset(section);
@@ -11058,7 +12811,9 @@ createHTML: (html) => {
 				},
 				children: ($$anchor, $$slotProps) => {
 					next();
-					append($$anchor, text("Egypt advances on Exploration."));
+					var fragment_1 = root_1();
+					next(2);
+					append($$anchor, fragment_1);
 				},
 				$$slots: { default: true }
 			});
@@ -11076,7 +12831,7 @@ createHTML: (html) => {
 		template_effect(() => {
 			set_attribute(button, "aria-pressed", get(host));
 			set_attribute(button_1, "aria-pressed", !get(host));
-			set_text(text$1, get(status));
+			set_text(text, get(status));
 		});
 		delegated("click", button, () => set(host, true));
 		delegated("click", button_1, () => set(host, false));

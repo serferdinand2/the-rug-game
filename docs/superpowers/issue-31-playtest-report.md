@@ -4,14 +4,15 @@ Work branch: `codex/issue-31-automa-shadow-empire`. Main is unchanged.
 
 ## Reviewed UI decisions
 
-- Decision cards use the existing CardFrame and CardBand: gold Cinzel title, green left-to-right gradient fading into the shared pixel-noise paper, and a solid green numbered footer.
-- The canonical 22-card deck generates the gallery. Each full card includes both track indicators, its income/topple flags, its hex-pattern reference, its circle/square deck marker and four track rows. The favourite resolves to a star before its track.
+- Decision cards use the existing CardFrame and CardBand: gold Cinzel title, a left-to-right green-to-darker-green gradient over the shared pixel-noise paper, and a solid green numbered footer. Track names use Cinzel; the favourite star is brown. Track names in bot report descriptions use Cinzel too.
+- The canonical 22-card deck generates the gallery. Each full card includes both track indicators, its income/topple flags, its full 34-hex scan diagram, its circle/square deck marker and four track rows. The favourite resolves to a star before its track. AutomaHexPattern uses the same canonical ordering and shared map geometry as the engine, with the primary scan arrow, subsequent rows and starting hex.
 - Bot reports use the revealed pair recorded in public events, not hidden current deck state. Events snapshot the favourite so replaying an old report does not change its star.
 - Lobby seat height remains the existing 112px token. Only the host can add/configure/remove bots; the settings component appears beneath the selected seat.
 - Six official levels come from the canonical difficulty data. Level 2, Automa the Average, is the default. The control is six clickable squares filled from the left.
 - Bot type is selected with two buttons. Shadow Empire is dark green. Remove bot uses the existing danger treatment.
 - Historical names are Egypt, Mesopotamia, Indus Valley, Shang and Sumer; the bot marker uses its seat colour and `(Automa)` uses Cinzel.
 - The player removal × is vertically aligned with the Host/Ready badge row.
+- Browser measurement confirmed identical vertical centres for the removal button and badge row.
 - Header chips include bots. Clicking a bot opens the overview rather than a nonexistent human capital/hand. Bot overview cards show only actual public bot facts.
 
 ## Verification performed
@@ -44,6 +45,6 @@ The local unit suite was not run, following the owner's instruction to use hoste
 
 ## Remaining review limits
 
-- R39 still calls for owner comparison of the ten map arrow patterns against all 22 physical decision cards. The gallery currently shows the canonical pattern number, not a reconstructed diagram of its arrows.
+- R39 still calls for owner comparison of the ten map arrow patterns against all 22 physical decision cards. The gallery now renders the full diagram, and the component-library example can expose priority labels for that review.
 - Original-version parity, rare human civilization interactions and long randomized runs require hosted regression results and further gameplay; completion of four scripted games does not establish all combinations.
 - No expansion bot support is introduced. The owner confirmed the two official base configurations rather than a two-human-plus-Automa house rule.
