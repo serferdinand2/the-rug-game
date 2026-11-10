@@ -2,6 +2,8 @@
 
 A browser version of Stonemaier Games' **Tapestry** with every official expansion: Plans & Ploys, Arts & Architecture, and Fantasies & Futures. You can play it online with a table code, hot-seat on one screen, or solo against the official Automa and Shadow Empire. The table's creator picks the version and expansions. Version means the original 2019 printing or the current official rules.
 
+**Base-game bot tables (#31):** the host adds bots to available lobby seats and configures each below its player tile. Solo uses one human, Automa and Shadow Empire; two humans may add Shadow Empire. Automa has six official levels, selected with six filled squares (default: level 2). Bot action reports have green textured backgrounds and show their revealed decision cards. Expansion bot rules remain separate work. The [component lobby and full 22-card preview](docs/ui/automa-lobby-review-v3.html) and [playthrough report](docs/superpowers/issue-31-playtest-report.md) document this feature branch.
+
 It is built like the author's other table games, [Fablewood Rummy](https://github.com/lazar-milin/fablewood-rummy) and [Bird Table](https://github.com/lazar-milin/birdcard-ripoff):
 - a plain Node.js server with no runtime packages;
 - a shared rules engine;
