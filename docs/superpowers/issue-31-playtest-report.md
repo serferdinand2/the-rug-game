@@ -48,3 +48,7 @@ The local unit suite was not run, following the owner's instruction to use hoste
 - R39 still calls for owner comparison of the ten map arrow patterns against all 22 physical decision cards. The gallery now renders the full diagram, and the component-library example can expose priority labels for that review.
 - Original-version parity, rare human civilization interactions and long randomized runs require hosted regression results and further gameplay; completion of four scripted games does not establish all combinations.
 - No expansion bot support is introduced. The owner confirmed the two official base configurations rather than a two-human-plus-Automa house rule.
+
+## Main integration review (2026-11-10)
+
+Merged origin/main at 7dd4ff13 into the feature branch. Resolved setup, turn, VP and status-log conflicts by preserving both main's A&A/F&F additions and base-only bot behavior. Independent engine and component reviews found no blocking findings. The production build and component/type checks passed (zero errors/warnings). PR #185 is open; its hosted regression runs are pending, so this is not yet a merged-main claim.
