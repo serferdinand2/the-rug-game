@@ -8,5 +8,5 @@ const chunks=(Array.isArray(output)?output:[output]).flatMap(o=>o.output);
 let css=chunks.filter(o=>o.type==='asset'&&o.fileName.endsWith('.css')).map(o=>o.source).join('\n').replaceAll('/fonts/','../../static/fonts/');
 let js=chunks.filter(o=>o.type==='chunk').map(o=>o.code).join('\n').replaceAll('/art/','../../static/art/');
 const html='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Automa component lobby and decision deck</title><style>'+css+'</style></head><body><div id="app"></div><script>'+js.replaceAll('</script','<\\/script')+'</script></body></html>';
-for(const name of ['automa-lobby-review-v3.html','automa-lobby-review-v2.html','automa-shadow-empire-review.html'])await writeFile(root+'docs/ui/'+name,html);
+for(const name of ['automa-lobby-review-v4.html','automa-lobby-review-v3.html','automa-lobby-review-v2.html','automa-shadow-empire-review.html'])await writeFile(root+'docs/ui/'+name,html);
 console.log('Generated component preview and refreshed existing preview files.');

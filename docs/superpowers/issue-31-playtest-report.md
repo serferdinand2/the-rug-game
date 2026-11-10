@@ -5,13 +5,13 @@ Work branch: `codex/issue-31-automa-shadow-empire`. Main is unchanged.
 ## Reviewed UI decisions
 
 - Decision cards use the existing CardFrame and CardBand: gold Cinzel title, a left-to-right green-to-darker-green gradient over the shared pixel-noise paper, and a solid green numbered footer. Track names use Cinzel; the favourite star is brown. Track names in bot report descriptions use Cinzel too.
-- The canonical 22-card deck generates the gallery. Full faces are titled “Track / Income · Hex / Topple”; action-report halves use the corresponding shorter titles. Each includes its canonical fields and four track rows. The favourite resolves to a star before its track. Named hex-pattern rows reveal the full 34-hex diagram only in the shared grey tooltip on hover or keyboard focus. AutomaHexPattern uses the same canonical ordering and shared map geometry as the engine, with the primary scan arrow, subsequent rows and starting hex. Descriptive pattern names label origin and sweep direction; they are interface labels rather than invented official card titles.
+- The canonical 22-card deck generates the gallery. All 22 cards have distinct interface titles, such as Final Push, Scientific Legacy and Engineering Marvels. Track / Income and Hex / Topple are smaller section labels, not card titles. Each includes its canonical fields and four track rows. The favourite resolves to a star before its track. Named hex-pattern rows reveal the full 34-hex diagram only in the shared grey tooltip on hover or keyboard focus. AutomaHexPattern uses the same canonical ordering and shared map geometry as the engine, with the primary scan arrow, subsequent rows and starting hex. Descriptive card and pattern names are interface labels rather than claims about official printed names.
 - Bot reports use the revealed pair recorded in public events, not hidden current deck state. Events snapshot the favourite so replaying an old report does not change its star.
 - Lobby seat height remains the existing 112px token. Only the host can add/configure/remove bots; the settings component appears beneath the selected seat.
 - Six official levels come from the canonical difficulty data. Level 2, Automa the Average, is the default. The control is six clickable squares filled from the left.
 - Bot type is selected with two buttons. Shadow Empire is dark green. Remove bot uses the existing danger treatment.
-- Historical names are Egypt, Mesopotamia, Indus Valley, Shang and Sumer; the bot marker uses its seat colour and `(Automa)` uses Cinzel.
-- The player removal × is vertically aligned with the Host/Ready badge row.
+- Historical names are randomly selected from unused names in the Egypt, Mesopotamia, Indus Valley, Shang and Sumer pool. Bot tiles have no extra coloured square; `(Automa)` or `(Shadow Empire)` appears on its own Cinzel line below the name. Action reports retain their seat-coloured marker.
+- The player removal × and the You/Host/Ready badges belong to the same top-row container, with the × at the right.
 - Browser measurement confirmed identical vertical centres for the removal button and badge row.
 - Header chips include bots. Clicking a bot opens the overview rather than a nonexistent human capital/hand. Bot overview cards show only actual public bot facts.
 

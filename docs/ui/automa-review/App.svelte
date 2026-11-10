@@ -16,6 +16,8 @@
 		null,
 	]);
 	let status = $state('Add a bot to an available player seat.');
+	let reportBot = $derived(seats.find((entry) => entry && entry.kind !== 'player'));
+	let reportSeat = $derived(seats.findIndex((entry) => entry && entry.kind !== 'player') + 1 || 2);
 	function declarations() {
 		return seats.filter(Boolean).map((s) => ({
 			name: s.name,
@@ -135,10 +137,10 @@
 	</section>
 	<BotActionReport
 		class="review-report"
-		name="Egypt"
-		seat={2}
+		name={reportBot?.name ?? 'Automa'}
+		seat={reportSeat}
 		cards={[AUTOMA_CARDS[3], AUTOMA_CARDS[2]]}
-		>Egypt advances on <span class="track-name">Exploration</span
+		>{reportBot?.name ?? 'Automa'} advances on <span class="track-name">Exploration</span
 		>.</BotActionReport>
 	<section class="deck">
 		<h2>All 22 decision cards</h2>

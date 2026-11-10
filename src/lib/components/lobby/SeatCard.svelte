@@ -236,6 +236,7 @@
 			cancelClickHandler
 		)}
 	{:else}
+		<div class="rg-seat-card--header">
 		{#if badges.length}
 			<div class="rg-seat-card--badges">
 				{#each badges as badge, index (badge.label)}
@@ -251,13 +252,12 @@
 				{/each}
 			</div>
 		{/if}
-		<span class="rg-seat-card--name"
-			>{#if botKind}<span
-					class="rg-seat-card--player-square"
-					aria-hidden="true"></span
-				>{/if}{name}{#if botKind}
-				<span class="rg-seat-card--bot-label">(Automa)</span
-				>{/if}</span>
+		{#if removable}
+			{@render remove(`Remove ${name}`, 'Remove the player', removeClickHandler)}
+		{/if}
+		</div>
+		<span class="rg-seat-card--name">{name}</span>
+		{#if botKind}<span class="rg-seat-card--bot-label">({botKind === 'shadow' ? 'Shadow Empire' : 'Automa'})</span>{/if}
 		{#if !showCivilization}
 			<!-- Civilizations are dealt once the game starts. -->
 		{:else if canChooseCivilization}
@@ -275,13 +275,6 @@
 				class="rg-seat-card--civ"
 				class:rg-seat-card--unchosen={!civilization}
 				>{civilization ?? 'Not yet chosen'}</span>
-		{/if}
-		{#if removable}
-			{@render remove(
-				`Remove ${name}`,
-				'Remove the player',
-				removeClickHandler
-			)}
 		{/if}
 	{/if}
 </div>
@@ -351,16 +344,9 @@
 		gap: var(--space-2);
 	}
 	.rg-seat-card--bot-label {
-		margin-inline-start: var(--space-2);
 		font-family: var(--font-title);
+		font-size: var(--font-size-sm);
 		font-weight: var(--weight-title);
-	}
-	.rg-seat-card--player-square {
-		display: inline-block;
-		width: var(--space-4);
-		height: var(--space-4);
-		margin-right: var(--space-2);
-		background: var(--rg-seat-card-color);
 	}
 
 	.rg-seat-card--choice:hover {
@@ -392,10 +378,17 @@
 			var(--glow-gold);
 	}
 
-	.rg-seat-card--badges {
+	.rg-seat-card--header {
 		position: absolute;
 		top: var(--space-3);
 		left: var(--space-4);
+		right: 0;
+		height: var(--font-size-3xs);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.rg-seat-card--badges {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
@@ -477,10 +470,11 @@
 		transition: opacity var(--duration-fast) var(--ease);
 	}
 
-	/* Centre the remove control on the same horizontal line as the seat badges. */
-	.rg-seat-card--player .rg-seat-card--remove {
-		top: var(--space-3);
-		transform: translateY(calc((var(--font-size-3xs) - 22px) / 2));
+	/* The badges and remove button share one top row; add-seat cancellation stays absolute. */
+	.rg-seat-card--header .rg-seat-card--remove {
+		position: static;
+		flex: none;
+		margin-left: auto;
 	}
 
 	.rg-seat-card:hover .rg-seat-card--remove,

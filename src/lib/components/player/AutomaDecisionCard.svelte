@@ -19,6 +19,7 @@
 	import CardFrame from './CardFrame.svelte';
 	import CardBand from './CardBand.svelte';
 	import { automaPatternName } from '../../automa-patterns.js';
+	import { automaCardTitle } from '../../automa-card-titles.js';
 	import { AUTOMA_CARDS } from '../../engine/data/automa-cards.js';
 	import { artUrl } from '../../ui.js';
 	import { trackName } from '../../game-names.js';
@@ -42,13 +43,7 @@
 			)
 		),
 	]);
-	const title = $derived(
-		role === 'full'
-			? 'Track / Income · Hex / Topple'
-			: role === 'track'
-				? 'Track / Income'
-				: 'Hex / Topple'
-	);
+	const title = $derived(automaCardTitle(face.id));
 </script>
 
 <CardFrame
@@ -61,6 +56,7 @@
 		size="small"
 		class="rg-automa-decision-card--band" />
 	<div class="rg-automa-decision-card--body">
+		<div class="rg-automa-decision-card--section">{role === 'full' ? 'Track / Income · Hex / Topple' : role === 'track' ? 'Track / Income' : 'Hex / Topple'}</div>
 		{#if role !== 'hex'}
 			<div class="rg-automa-decision-card--metric">
 				<span>Automa track</span><strong>{face.automaTrack}</strong>
@@ -151,6 +147,10 @@
 		display: grid;
 		gap: var(--space-3);
 		font-size: var(--font-size-sm);
+	}
+	.rg-automa-decision-card--section {
+		font-size: var(--font-size-2xs);
+		color: var(--card-muted);
 	}
 	.rg-automa-decision-card--metric {
 		display: flex;
