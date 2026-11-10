@@ -18,7 +18,7 @@
 <script>
 	import CardFrame from './CardFrame.svelte';
 	import CardBand from './CardBand.svelte';
-	import AutomaHexPattern from './AutomaHexPattern.svelte';
+	import { automaPatternName } from '../../automa-patterns.js';
 	import { AUTOMA_CARDS } from '../../engine/data/automa-cards.js';
 	import { artUrl } from '../../ui.js';
 	import { trackName } from '../../game-names.js';
@@ -44,7 +44,7 @@
 	]);
 	const title = $derived(
 		role === 'full'
-			? 'Decision'
+			? 'Track / Income · Hex / Topple'
 			: role === 'track'
 				? 'Track / Income'
 				: 'Hex / Topple'
@@ -79,7 +79,14 @@
 			</div>
 		{/if}
 		{#if role !== 'track'}
-			<AutomaHexPattern pattern={face.hexPattern} />
+			<button
+				type="button"
+				class="rg-automa-decision-card--metric rg-automa-decision-card--pattern"
+				data-automa-pattern={face.hexPattern}
+				title={`Hex pattern: ${automaPatternName(face.hexPattern)}`}>
+				<span>Hex pattern</span><strong
+					>{automaPatternName(face.hexPattern)}</strong>
+			</button>
 			<div class="rg-automa-decision-card--metric">
 				<span>Topple</span><span class="rg-automa-decision-card--value"
 					>{#if face.topple}<img
@@ -153,6 +160,20 @@
 		min-height: 34px;
 		border-bottom: 1px solid var(--card-line-soft);
 		padding-bottom: var(--space-2);
+	}
+	.rg-automa-decision-card--pattern {
+		width: 100%;
+		padding: 0 0 var(--space-2);
+		border: 0;
+		border-bottom: var(--border) solid var(--card-line-soft);
+		background: transparent;
+		color: inherit;
+		font: inherit;
+		text-align: left;
+		cursor: help;
+	}
+	.rg-automa-decision-card--pattern strong {
+		text-align: right;
 	}
 	.rg-automa-decision-card--value {
 		display: inline-flex;

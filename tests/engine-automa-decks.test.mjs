@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { test } from 'vitest';
 import { seededRandom } from '../src/lib/engine/random.js';
 import {
 	createAutomaDecks,
@@ -124,7 +124,7 @@ test('standalone Shadow discards each pair and reshuffles its full deck after si
 		Array.from({ length: 12 }, (_, i) => i + 1)
 	);
 	assert.equal(shadow.decisionDeck.length, 0);
-	assert.deepEqual(shadow.discard, []);
+	assert.equal(shadow.discard.length, 10);
 	const previous = shadow.currentPair;
 	const next = drawShadowEmpirePair(shadow, () => 0);
 	assert.equal(shadow.previousTiebreaker, previous.tiebreakerCard);

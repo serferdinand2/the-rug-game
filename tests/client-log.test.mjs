@@ -29,6 +29,7 @@ const GAME = { seats: [{ name: 'Ana' }, { name: 'Bo' }] };
  * @type {Record<string, Record<string, any>>}
  */
 const SAMPLES = {
+	incomeTurnEnded: {player: 2, turn: 2},
 	techRefreshed: {player: 2},
 	botDecisionCards: {
 		player: 2,

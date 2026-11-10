@@ -331,6 +331,7 @@ const WORDS = {
 			? `${name} revealed decision cards ${e.pair.trackCard} and ${e.pair.tiebreakerCard}.`
 			: `${name} revealed Automa decision cards.`,
 	techRefreshed: (e, game, name) => `${name} refreshed the technology display.`,
+	incomeTurnEnded: (e, game, name) => isCount(e.turn) && e.turn > 0 ? `${name} ended income turn ${e.turn}.` : `${name} ended an income turn.`,
 	botTapestryGained: (e, game, name) =>
 		`${name} gained a face-down tapestry card.`,
 	botFavouriteChanged: (e, game, name) =>

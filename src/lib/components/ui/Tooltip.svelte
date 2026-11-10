@@ -26,6 +26,7 @@
 	import { clockTime } from '../../now.svelte.js';
 	import { placeTooltip, tooltipText } from '../../tooltip.js';
 	import LandmarkHoverDetail from '../board/LandmarkHoverDetail.svelte';
+	import AutomaHexPattern from '../player/AutomaHexPattern.svelte';
 
 	/** @type {TooltipProps} */
 	let {
@@ -46,6 +47,7 @@
 	/** The followed title, trimmed. */
 	let followed = $state('');
 	let followedLandmark = $state('');
+	let followedPattern = $state(0);
 	let open = $state(false);
 	let place = $state(
 		/** @type {import('../../tooltip.js').TooltipPlace | null} */ (null)
@@ -199,6 +201,8 @@
 			return;
 		}
 		followedLandmark = target.getAttribute('data-landmark') ?? '';
+		followedPattern =
+			Number(target.getAttribute('data-automa-pattern')) || 0;
 		const title = target.getAttribute('title');
 		// The empty title is the hold itself.
 		if (title === '') {
@@ -243,12 +247,14 @@
 		target = found;
 		via = how;
 		followedLandmark = found.getAttribute('data-landmark') ?? '';
+		followedPattern =
+			Number(found.getAttribute('data-automa-pattern')) || 0;
 		found.setAttribute(HELD, title);
 		found.setAttribute('title', '');
 		followed = tooltipText(title);
 		observer?.observe(found, {
 			attributes: true,
-			attributeFilter: ['title', 'data-landmark'],
+			attributeFilter: ['title', 'data-landmark', 'data-automa-pattern'],
 		});
 		timer = setTimeout(show, warm ? 0 : delay);
 	}
@@ -275,6 +281,7 @@
 		open = false;
 		place = null;
 		followedLandmark = '';
+		followedPattern = 0;
 	}
 
 	/** Opens the tooltip unseen, measures it, then places it by its element and fades it in. */
@@ -306,6 +313,9 @@
 			? attr.class
 			: ''}"
 		class:rg-tooltip--placed={placement === 'inline' || Boolean(place)}
+		class:rg-tooltip--pattern={placement === 'fixed' &&
+			followedPattern >= 1 &&
+			followedPattern <= 10}
 		style:left={place ? `${place.left}px` : undefined}
 		style:top={place ? `${place.top}px` : undefined}>
 		<span
@@ -314,6 +324,9 @@
 		<span class="rg-tooltip--text">{content}</span>
 		{#if placement === 'fixed' && followedLandmark}
 			<LandmarkHoverDetail id={followedLandmark} />
+		{/if}
+		{#if placement === 'fixed' && followedPattern >= 1 && followedPattern <= 10}
+			<AutomaHexPattern pattern={followedPattern} />
 		{/if}
 	</div>
 {/if}
@@ -340,6 +353,9 @@
 		left: 0;
 		opacity: 0;
 		transition: opacity var(--duration-fast) var(--ease);
+	}
+	.rg-tooltip--pattern {
+		width: 320px;
 	}
 
 	.rg-tooltip--inline {

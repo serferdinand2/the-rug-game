@@ -747,47 +747,6 @@
 			color-mix(in srgb, var(--gold) 55%, transparent);
 	}
 
-	.rg-automa-hex-pattern.svelte-1npd85q {
-		display: block;
-		width: 100%;
-		max-width: 290px;
-		overflow: visible;
-	}
-	.rg-automa-hex-pattern--hex.svelte-1npd85q {
-		fill: var(--card-control);
-		stroke: var(--card-line);
-		stroke-width: var(--border);
-	}
-	.rg-automa-hex-pattern--start.svelte-1npd85q {
-		fill: color-mix(in srgb, var(--card-title) 40%, var(--card-control));
-	}
-	.rg-automa-hex-pattern--row.svelte-1npd85q,
-	.rg-automa-hex-pattern--next.svelte-1npd85q {
-		fill: none;
-		stroke: var(--card-slot-border);
-		stroke-width: var(--border-thick);
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-	.rg-automa-hex-pattern--first.svelte-1npd85q {
-		stroke: var(--card-text);
-	}
-	.rg-automa-hex-pattern--first-fill.svelte-1npd85q {
-		fill: var(--card-text);
-	}
-	.rg-automa-hex-pattern--next-fill.svelte-1npd85q {
-		fill: var(--card-slot-border);
-	}
-	.rg-automa-hex-pattern.svelte-1npd85q text:where(.svelte-1npd85q) {
-		font: var(--weight-bold) var(--font-size-xs) var(--font-body);
-		text-anchor: middle;
-		dominant-baseline: central;
-		fill: var(--card-text);
-		stroke: var(--card-paper);
-		stroke-width: var(--border-thick);
-		paint-order: stroke;
-	}
-
 	.rg-card-frame.rg-automa-decision-card {
 		--card-band-start: var(--science);
 		--card-band-middle: color-mix(
@@ -819,6 +778,20 @@
 		min-height: 34px;
 		border-bottom: 1px solid var(--card-line-soft);
 		padding-bottom: var(--space-2);
+	}
+	.rg-automa-decision-card--pattern.svelte-nbv7pj {
+		width: 100%;
+		padding: 0 0 var(--space-2);
+		border: 0;
+		border-bottom: var(--border) solid var(--card-line-soft);
+		background: transparent;
+		color: inherit;
+		font: inherit;
+		text-align: left;
+		cursor: help;
+	}
+	.rg-automa-decision-card--pattern.svelte-nbv7pj strong:where(.svelte-nbv7pj) {
+		text-align: right;
 	}
 	.rg-automa-decision-card--value.svelte-nbv7pj {
 		display: inline-flex;
@@ -911,6 +884,248 @@
 		flex-wrap: wrap;
 		gap: var(--space-6);
 		align-items: flex-start;
+	}
+
+	.rg-landmark-shape.svelte-8hbnh {
+		display: block;
+		flex: none;
+		width: 100%;
+		height: 100%;
+		overflow: visible;
+		pointer-events: none;
+	}
+
+	/* The fill takes the pointer, so a piece on the capital can be grabbed by its plots only. */
+	.rg-landmark-shape--fill.svelte-8hbnh {
+		fill: var(
+			--rg-landmark-shape-tint,
+			color-mix(
+				in srgb,
+				var(--rg-landmark-shape-color) 25%,
+				var(--raised)
+			)
+		);
+		pointer-events: auto;
+	}
+
+	.rg-landmark-shape--picture.svelte-8hbnh {
+		image-rendering: pixelated;
+		pointer-events: none;
+	}
+
+	/* Twice the border, clipped to the plots, leaves the border inside the shape. */
+	.rg-landmark-shape--outline.svelte-8hbnh {
+		fill: none;
+		stroke: var(--rg-landmark-shape-color);
+		stroke-width: calc(var(--border-thick) * 2);
+		stroke-linecap: square;
+		pointer-events: none;
+		transition: stroke var(--duration-fast) var(--ease);
+	}
+/* The approved 319 px landmark card frame, with a four-plot-wide footprint beside its art. */
+.rg-landmark-card {
+	box-sizing: border-box;
+	width: 319px;
+	display: flex;
+	flex-direction: column;
+	color: var(--card-text);
+	background: var(--card-paper) url("data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='256'%20height='256'%20viewBox='0%200%20256%20256'%20shape-rendering='crispEdges'%3e%3c!--%20Parchment%20version%20of%20the%20interface%20pixel%20texture%20for%20the%20Collectors%20card%20colour%20proof.%20--%3e%3cpath%20fill='%23000000'%20fill-opacity='0.016'%20d='M40%2016h8v8h-8zM0%2024h8v8h-8zM72%2064h8v8h-8zM152%2064h8v8h-8zM192%2064h8v8h-8zM64%2072h8v8h-8zM240%2072h8v8h-8zM16%2088h8v8h-8zM176%2088h8v8h-8zM72%20104h8v8h-8zM120%20104h8v8h-8zM0%20128h8v8h-8zM8%20136h8v8h-8zM160%20152h8v8h-8zM104%20160h8v8h-8zM160%20168h8v8h-8zM144%20176h8v8h-8zM192%20176h8v8h-8zM0%20184h8v8h-8zM216%20184h8v8h-8zM40%20192h8v8h-8zM96%20208h8v8h-8zM176%20232h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.018'%20d='M0%200h8v8h-8zM88%200h8v8h-8zM144%200h8v8h-8zM104%208h8v8h-8zM248%208h8v8h-8zM24%2016h8v8h-8zM120%2024h8v8h-8zM32%2032h8v8h-8zM96%2040h8v8h-8zM152%2040h8v8h-8zM24%2056h8v8h-8zM192%2072h8v8h-8zM216%2088h8v8h-8zM192%20104h8v8h-8zM136%20128h8v8h-8zM176%20128h8v8h-8zM200%20144h8v8h-8zM112%20160h8v8h-8zM248%20160h8v8h-8zM168%20192h8v8h-8zM136%20216h8v8h-8zM248%20224h8v8h-8zM48%20240h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.020'%20d='M0%2032h8v8h-8zM144%2048h8v8h-8zM32%2072h8v8h-8zM64%2088h8v8h-8zM120%2096h8v8h-8zM152%2096h8v8h-8zM192%2096h8v8h-8zM56%20104h8v8h-8zM128%20136h8v8h-8zM168%20144h8v8h-8zM40%20168h8v8h-8zM56%20176h8v8h-8zM8%20216h8v8h-8zM16%20232h8v8h-8zM136%20232h8v8h-8zM184%20240h8v8h-8zM80%20248h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.022'%20d='M232%2016h8v8h-8zM248%2024h8v8h-8zM8%2056h8v8h-8zM56%2056h8v8h-8zM40%2064h8v8h-8zM128%2072h8v8h-8zM152%2072h8v8h-8zM16%2080h8v8h-8zM48%2080h8v8h-8zM176%2080h8v8h-8zM88%2088h8v8h-8zM160%2096h8v8h-8zM168%2096h8v8h-8zM224%2096h8v8h-8zM248%2096h8v8h-8zM200%20104h8v8h-8zM232%20104h8v8h-8zM48%20112h8v8h-8zM160%20120h8v8h-8zM208%20120h8v8h-8zM232%20120h8v8h-8zM248%20128h8v8h-8zM240%20144h8v8h-8zM48%20160h8v8h-8zM72%20160h8v8h-8zM80%20160h8v8h-8zM216%20160h8v8h-8zM16%20184h8v8h-8zM144%20200h8v8h-8zM168%20200h8v8h-8zM8%20224h8v8h-8zM144%20232h8v8h-8zM168%20240h8v8h-8zM144%20248h8v8h-8zM176%20248h8v8h-8zM184%20248h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.024'%20d='M192%208h8v8h-8zM176%2016h8v8h-8zM184%2016h8v8h-8zM168%2032h8v8h-8zM40%2040h8v8h-8zM96%2048h8v8h-8zM80%2056h8v8h-8zM80%2072h8v8h-8zM0%2080h8v8h-8zM56%20120h8v8h-8zM144%20120h8v8h-8zM144%20128h8v8h-8zM112%20136h8v8h-8zM88%20144h8v8h-8zM56%20152h8v8h-8zM40%20176h8v8h-8zM176%20192h8v8h-8zM0%20200h8v8h-8zM224%20208h8v8h-8zM136%20224h8v8h-8zM200%20224h8v8h-8zM64%20232h8v8h-8zM104%20232h8v8h-8zM160%20232h8v8h-8zM200%20240h8v8h-8zM32%20248h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.026'%20d='M40%208h8v8h-8zM232%2024h8v8h-8zM200%2032h8v8h-8zM168%2040h8v8h-8zM136%2064h8v8h-8zM144%2064h8v8h-8zM96%2080h8v8h-8zM200%2088h8v8h-8zM24%2096h8v8h-8zM136%20104h8v8h-8zM0%20112h8v8h-8zM240%20136h8v8h-8zM176%20144h8v8h-8zM64%20160h8v8h-8zM136%20184h8v8h-8zM144%20184h8v8h-8zM96%20200h8v8h-8zM56%20208h8v8h-8zM104%20208h8v8h-8zM112%20208h8v8h-8zM208%20208h8v8h-8zM80%20216h8v8h-8zM120%20216h8v8h-8zM144%20240h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.028'%20d='M24%208h8v8h-8zM168%208h8v8h-8zM64%2024h8v8h-8zM136%2024h8v8h-8zM40%2048h8v8h-8zM176%2048h8v8h-8zM200%2056h8v8h-8zM208%2072h8v8h-8zM168%2080h8v8h-8zM40%2096h8v8h-8zM48%2096h8v8h-8zM32%20104h8v8h-8zM24%20144h8v8h-8zM40%20144h8v8h-8zM216%20168h8v8h-8zM176%20176h8v8h-8zM200%20176h8v8h-8zM48%20184h8v8h-8zM192%20184h8v8h-8zM32%20192h8v8h-8zM120%20208h8v8h-8zM216%20208h8v8h-8zM168%20216h8v8h-8zM200%20216h8v8h-8zM152%20232h8v8h-8zM16%20240h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.030'%20d='M96%200h8v8h-8zM8%208h8v8h-8zM80%2040h8v8h-8zM112%2040h8v8h-8zM80%2048h8v8h-8zM48%2064h8v8h-8zM80%2064h8v8h-8zM96%20104h8v8h-8zM8%20120h8v8h-8zM96%20128h8v8h-8zM200%20128h8v8h-8zM144%20160h8v8h-8zM160%20160h8v8h-8zM136%20192h8v8h-8zM160%20200h8v8h-8zM88%20240h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.032'%20d='M56%200h8v8h-8zM184%208h8v8h-8zM136%2016h8v8h-8zM208%2024h8v8h-8zM80%2032h8v8h-8zM0%2040h8v8h-8zM224%2040h8v8h-8zM232%2040h8v8h-8zM136%2096h8v8h-8zM216%2096h8v8h-8zM112%20128h8v8h-8zM120%20128h8v8h-8zM104%20136h8v8h-8zM88%20152h8v8h-8zM120%20160h8v8h-8zM24%20168h8v8h-8zM88%20184h8v8h-8zM240%20184h8v8h-8zM56%20192h8v8h-8zM216%20192h8v8h-8zM224%20192h8v8h-8zM232%20208h8v8h-8zM160%20216h8v8h-8zM48%20232h8v8h-8zM104%20240h8v8h-8zM136%20248h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.034'%20d='M144%208h8v8h-8zM232%208h8v8h-8zM48%2024h8v8h-8zM24%2040h8v8h-8zM56%2040h8v8h-8zM192%2040h8v8h-8zM216%2040h8v8h-8zM64%2056h8v8h-8zM248%2056h8v8h-8zM88%2080h8v8h-8zM104%2080h8v8h-8zM152%2088h8v8h-8zM216%20112h8v8h-8zM232%20128h8v8h-8zM184%20144h8v8h-8zM168%20160h8v8h-8zM224%20168h8v8h-8zM64%20184h8v8h-8zM240%20192h8v8h-8zM248%20200h8v8h-8zM112%20240h8v8h-8zM40%20248h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.036'%20d='M72%2032h8v8h-8zM144%2032h8v8h-8zM64%2040h8v8h-8zM72%2040h8v8h-8zM160%2048h8v8h-8zM224%2056h8v8h-8zM8%2072h8v8h-8zM184%2072h8v8h-8zM112%2088h8v8h-8zM104%2096h8v8h-8zM64%20104h8v8h-8zM88%20104h8v8h-8zM32%20112h8v8h-8zM96%20120h8v8h-8zM120%20120h8v8h-8zM104%20128h8v8h-8zM96%20136h8v8h-8zM48%20152h8v8h-8zM184%20168h8v8h-8zM200%20168h8v8h-8zM232%20168h8v8h-8zM104%20184h8v8h-8zM208%20184h8v8h-8zM64%20224h8v8h-8zM248%20232h8v8h-8zM160%20248h8v8h-8zM232%20248h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.038'%20d='M72%208h8v8h-8zM136%208h8v8h-8zM0%2016h8v8h-8zM168%2016h8v8h-8zM48%2032h8v8h-8zM16%2040h8v8h-8zM192%2048h8v8h-8zM128%2056h8v8h-8zM80%2088h8v8h-8zM96%2088h8v8h-8zM104%2088h8v8h-8zM64%20112h8v8h-8zM224%20128h8v8h-8zM160%20136h8v8h-8zM56%20160h8v8h-8zM128%20160h8v8h-8zM16%20168h8v8h-8zM248%20168h8v8h-8zM48%20176h8v8h-8zM96%20184h8v8h-8zM152%20184h8v8h-8zM232%20192h8v8h-8zM200%20200h8v8h-8zM24%20208h8v8h-8zM88%20216h8v8h-8zM224%20216h8v8h-8zM152%20224h8v8h-8zM8%20240h8v8h-8zM136%20240h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.040'%20d='M240%200h8v8h-8zM192%2016h8v8h-8zM160%2040h8v8h-8zM72%2048h8v8h-8zM200%2064h8v8h-8zM72%2072h8v8h-8zM144%2080h8v8h-8zM56%2088h8v8h-8zM136%2088h8v8h-8zM144%20104h8v8h-8zM48%20120h8v8h-8zM160%20144h8v8h-8zM16%20160h8v8h-8zM96%20168h8v8h-8zM152%20192h8v8h-8zM88%20200h8v8h-8zM168%20208h8v8h-8zM8%20232h8v8h-8zM56%20248h8v8h-8zM72%20248h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.042'%20d='M224%200h8v8h-8zM120%2016h8v8h-8zM184%2024h8v8h-8zM200%2024h8v8h-8zM248%2032h8v8h-8zM136%2040h8v8h-8zM184%2040h8v8h-8zM208%2040h8v8h-8zM232%2056h8v8h-8zM104%2064h8v8h-8zM240%2064h8v8h-8zM248%2064h8v8h-8zM120%2080h8v8h-8zM72%20112h8v8h-8zM8%20128h8v8h-8zM128%20144h8v8h-8zM184%20160h8v8h-8zM240%20160h8v8h-8zM8%20176h8v8h-8zM72%20184h8v8h-8zM80%20200h8v8h-8zM32%20224h8v8h-8zM168%20224h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.044'%20d='M112%2016h8v8h-8zM248%2016h8v8h-8zM8%2024h8v8h-8zM32%2024h8v8h-8zM112%2032h8v8h-8zM184%2032h8v8h-8zM104%2048h8v8h-8zM16%2056h8v8h-8zM0%2064h8v8h-8zM184%2064h8v8h-8zM96%2072h8v8h-8zM200%2072h8v8h-8zM64%2080h8v8h-8zM152%2080h8v8h-8zM184%2080h8v8h-8zM56%2096h8v8h-8zM208%20104h8v8h-8zM232%20112h8v8h-8zM240%20112h8v8h-8zM136%20120h8v8h-8zM184%20120h8v8h-8zM32%20128h8v8h-8zM144%20136h8v8h-8zM200%20136h8v8h-8zM64%20144h8v8h-8zM176%20152h8v8h-8zM192%20168h8v8h-8zM8%20208h8v8h-8zM144%20216h8v8h-8zM152%20216h8v8h-8zM56%20240h8v8h-8zM24%20248h8v8h-8z'/%3e%3cpath%20fill='%23000000'%20fill-opacity='0.046'%20d='M16%20152h8v8h-8zM128%20232h8v8h-8zM160%20240h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.016'%20d='M208%200h8v8h-8zM56%208h8v8h-8zM80%208h8v8h-8zM96%2016h8v8h-8zM192%2024h8v8h-8zM120%2064h8v8h-8zM240%2080h8v8h-8zM32%2096h8v8h-8zM128%2096h8v8h-8zM160%20104h8v8h-8zM112%20112h8v8h-8zM184%20112h8v8h-8zM128%20120h8v8h-8zM80%20136h8v8h-8zM88%20136h8v8h-8zM152%20136h8v8h-8zM248%20152h8v8h-8zM144%20192h8v8h-8zM144%20208h8v8h-8zM160%20208h8v8h-8zM192%20208h8v8h-8zM216%20248h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.018'%20d='M112%200h8v8h-8zM136%200h8v8h-8zM216%2016h8v8h-8zM80%2024h8v8h-8zM208%2032h8v8h-8zM24%2048h8v8h-8zM88%2056h8v8h-8zM16%2064h8v8h-8zM176%2064h8v8h-8zM112%2072h8v8h-8zM56%20112h8v8h-8zM112%20120h8v8h-8zM200%20120h8v8h-8zM56%20128h8v8h-8zM128%20128h8v8h-8zM208%20128h8v8h-8zM0%20152h8v8h-8zM64%20152h8v8h-8zM232%20184h8v8h-8zM8%20192h8v8h-8zM128%20192h8v8h-8zM88%20208h8v8h-8zM32%20240h8v8h-8zM112%20248h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.020'%20d='M192%200h8v8h-8zM16%208h8v8h-8zM120%208h8v8h-8zM104%2032h8v8h-8zM64%2048h8v8h-8zM240%2048h8v8h-8zM184%2056h8v8h-8zM40%2072h8v8h-8zM88%2096h8v8h-8zM136%20112h8v8h-8zM168%20112h8v8h-8zM0%20120h8v8h-8zM40%20120h8v8h-8zM40%20128h8v8h-8zM136%20136h8v8h-8zM136%20144h8v8h-8zM8%20160h8v8h-8zM24%20160h8v8h-8zM168%20176h8v8h-8zM16%20200h8v8h-8zM240%20216h8v8h-8zM16%20224h8v8h-8zM216%20224h8v8h-8zM88%20232h8v8h-8zM120%20232h8v8h-8zM64%20248h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.022'%20d='M88%208h8v8h-8zM104%2024h8v8h-8zM224%2024h8v8h-8zM176%2056h8v8h-8zM56%2072h8v8h-8zM8%2080h8v8h-8zM72%2080h8v8h-8zM0%2096h8v8h-8zM112%20104h8v8h-8zM128%20112h8v8h-8zM192%20136h8v8h-8zM72%20144h8v8h-8zM184%20152h8v8h-8zM136%20160h8v8h-8zM232%20176h8v8h-8zM112%20184h8v8h-8zM184%20192h8v8h-8zM72%20200h8v8h-8zM64%20216h8v8h-8zM232%20240h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.024'%20d='M80%2016h8v8h-8zM208%2016h8v8h-8zM112%2024h8v8h-8zM152%2032h8v8h-8zM8%2048h8v8h-8zM104%2056h8v8h-8zM232%2064h8v8h-8zM216%2080h8v8h-8zM0%2088h8v8h-8zM128%2088h8v8h-8zM152%20104h8v8h-8zM176%20104h8v8h-8zM248%20104h8v8h-8zM152%20112h8v8h-8zM16%20120h8v8h-8zM192%20120h8v8h-8zM192%20144h8v8h-8zM120%20176h8v8h-8zM80%20184h8v8h-8zM120%20192h8v8h-8zM128%20200h8v8h-8zM56%20216h8v8h-8zM152%20248h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.026'%20d='M16%200h8v8h-8zM152%200h8v8h-8zM200%208h8v8h-8zM240%2016h8v8h-8zM24%2024h8v8h-8zM160%2024h8v8h-8zM224%2032h8v8h-8zM88%2048h8v8h-8zM72%2056h8v8h-8zM160%2064h8v8h-8zM104%2072h8v8h-8zM120%2072h8v8h-8zM232%2096h8v8h-8zM24%20104h8v8h-8zM216%20136h8v8h-8zM208%20144h8v8h-8zM192%20200h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.028'%20d='M32%208h8v8h-8zM32%2016h8v8h-8zM56%2016h8v8h-8zM152%2016h8v8h-8zM40%2024h8v8h-8zM56%2024h8v8h-8zM168%2056h8v8h-8zM216%2056h8v8h-8zM8%2088h8v8h-8zM224%2088h8v8h-8zM72%2096h8v8h-8zM24%20120h8v8h-8zM64%20128h8v8h-8zM88%20128h8v8h-8zM24%20136h8v8h-8zM32%20144h8v8h-8zM112%20152h8v8h-8zM208%20160h8v8h-8zM56%20168h8v8h-8zM64%20168h8v8h-8zM112%20176h8v8h-8zM56%20200h8v8h-8zM24%20232h8v8h-8zM32%20232h8v8h-8zM112%20232h8v8h-8zM64%20240h8v8h-8zM96%20240h8v8h-8zM128%20240h8v8h-8zM104%20248h8v8h-8zM240%20248h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.030'%20d='M64%2016h8v8h-8zM24%2032h8v8h-8zM56%2032h8v8h-8zM0%2048h8v8h-8zM32%2048h8v8h-8zM56%2048h8v8h-8zM8%2064h8v8h-8zM32%2080h8v8h-8zM104%20104h8v8h-8zM224%20120h8v8h-8zM48%20128h8v8h-8zM16%20144h8v8h-8zM48%20144h8v8h-8zM104%20152h8v8h-8zM152%20152h8v8h-8zM168%20152h8v8h-8zM152%20160h8v8h-8zM32%20168h8v8h-8zM104%20168h8v8h-8zM96%20176h8v8h-8zM120%20184h8v8h-8zM96%20192h8v8h-8zM240%20200h8v8h-8zM80%20208h8v8h-8zM80%20224h8v8h-8zM240%20224h8v8h-8zM232%20232h8v8h-8zM192%20248h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.032'%20d='M160%208h8v8h-8zM16%2024h8v8h-8zM168%2024h8v8h-8zM120%2048h8v8h-8zM128%2048h8v8h-8zM152%2048h8v8h-8zM208%2048h8v8h-8zM216%2048h8v8h-8zM32%2064h8v8h-8zM56%2064h8v8h-8zM24%2072h8v8h-8zM96%2096h8v8h-8zM104%20112h8v8h-8zM248%20112h8v8h-8zM240%20120h8v8h-8zM48%20136h8v8h-8zM232%20136h8v8h-8zM88%20160h8v8h-8zM168%20168h8v8h-8zM152%20176h8v8h-8zM8%20184h8v8h-8zM24%20184h8v8h-8zM160%20184h8v8h-8zM24%20192h8v8h-8zM176%20208h8v8h-8zM24%20224h8v8h-8zM56%20224h8v8h-8zM144%20224h8v8h-8zM192%20224h8v8h-8zM80%20232h8v8h-8zM192%20232h8v8h-8zM248%20248h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.034'%20d='M72%200h8v8h-8zM128%200h8v8h-8zM96%208h8v8h-8zM112%208h8v8h-8zM216%2024h8v8h-8zM88%2032h8v8h-8zM200%2040h8v8h-8zM240%2040h8v8h-8zM184%2048h8v8h-8zM56%2080h8v8h-8zM184%2088h8v8h-8zM112%2096h8v8h-8zM96%20112h8v8h-8zM80%20120h8v8h-8zM72%20152h8v8h-8zM192%20152h8v8h-8zM184%20176h8v8h-8zM208%20176h8v8h-8zM32%20200h8v8h-8zM120%20200h8v8h-8zM24%20216h8v8h-8zM32%20216h8v8h-8zM224%20224h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.036'%20d='M152%208h8v8h-8zM128%2024h8v8h-8zM168%2048h8v8h-8zM40%2056h8v8h-8zM216%2064h8v8h-8zM216%2072h8v8h-8zM224%2072h8v8h-8zM232%2072h8v8h-8zM24%2080h8v8h-8zM64%2096h8v8h-8zM248%20120h8v8h-8zM208%20136h8v8h-8zM8%20152h8v8h-8zM216%20152h8v8h-8zM40%20160h8v8h-8zM192%20160h8v8h-8zM176%20184h8v8h-8zM176%20200h8v8h-8zM48%20224h8v8h-8zM208%20232h8v8h-8zM24%20240h8v8h-8zM224%20240h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.038'%20d='M24%200h8v8h-8zM176%208h8v8h-8zM216%208h8v8h-8zM224%208h8v8h-8zM208%2056h8v8h-8zM16%2072h8v8h-8zM248%2072h8v8h-8zM232%2080h8v8h-8zM40%20104h8v8h-8zM80%20104h8v8h-8zM160%20112h8v8h-8zM192%20112h8v8h-8zM192%20128h8v8h-8zM56%20144h8v8h-8zM216%20144h8v8h-8zM232%20144h8v8h-8zM248%20144h8v8h-8zM80%20152h8v8h-8zM184%20184h8v8h-8zM8%20200h8v8h-8zM224%20200h8v8h-8zM240%20208h8v8h-8zM176%20216h8v8h-8zM56%20232h8v8h-8zM96%20232h8v8h-8zM184%20232h8v8h-8zM240%20232h8v8h-8zM176%20240h8v8h-8zM8%20248h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.040'%20d='M48%208h8v8h-8zM16%2016h8v8h-8zM160%2016h8v8h-8zM200%2016h8v8h-8zM96%2032h8v8h-8zM240%2032h8v8h-8zM88%2040h8v8h-8zM176%2040h8v8h-8zM48%2048h8v8h-8zM32%2056h8v8h-8zM88%2072h8v8h-8zM160%2072h8v8h-8zM72%2088h8v8h-8zM248%2088h8v8h-8zM144%2096h8v8h-8zM128%20104h8v8h-8zM208%20112h8v8h-8zM184%20128h8v8h-8zM0%20136h8v8h-8zM176%20136h8v8h-8zM224%20136h8v8h-8zM32%20152h8v8h-8zM120%20152h8v8h-8zM240%20152h8v8h-8zM32%20160h8v8h-8zM48%20168h8v8h-8zM128%20184h8v8h-8zM104%20192h8v8h-8zM200%20208h8v8h-8zM208%20240h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.042'%20d='M32%200h8v8h-8zM80%200h8v8h-8zM168%200h8v8h-8zM128%208h8v8h-8zM128%2032h8v8h-8zM48%2040h8v8h-8zM112%2064h8v8h-8zM40%2088h8v8h-8zM240%20104h8v8h-8zM120%20112h8v8h-8zM32%20120h8v8h-8zM72%20128h8v8h-8zM16%20176h8v8h-8zM72%20176h8v8h-8zM136%20176h8v8h-8zM160%20176h8v8h-8zM240%20176h8v8h-8zM248%20192h8v8h-8zM48%20200h8v8h-8zM0%20208h8v8h-8zM0%20216h8v8h-8zM40%20216h8v8h-8zM88%20224h8v8h-8zM160%20224h8v8h-8zM208%20248h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.044'%20d='M48%2016h8v8h-8zM224%2016h8v8h-8zM176%2032h8v8h-8zM232%2048h8v8h-8zM136%2056h8v8h-8zM24%2088h8v8h-8zM176%2096h8v8h-8zM240%2096h8v8h-8zM8%20112h8v8h-8zM64%20120h8v8h-8zM160%20128h8v8h-8zM72%20136h8v8h-8zM184%20136h8v8h-8zM136%20152h8v8h-8zM0%20160h8v8h-8zM96%20160h8v8h-8zM176%20160h8v8h-8zM136%20168h8v8h-8zM40%20184h8v8h-8zM200%20184h8v8h-8zM24%20200h8v8h-8zM32%20208h8v8h-8zM208%20224h8v8h-8z'/%3e%3cpath%20fill='%23ffffff'%20fill-opacity='0.046'%20d='M216%200h8v8h-8zM216%20128h8v8h-8zM216%20216h8v8h-8zM0%20224h8v8h-8zM40%20240h8v8h-8z'/%3e%3c/svg%3e") repeat;
+	border: 2px solid var(--card-line-strong);
+	box-shadow:
+		0 10px 26px var(--card-shadow-strong),
+		inset 0 0 0 1px var(--card-raised);
+	font: 400 15px/1.42 var(--font-body);
+}
+.rg-landmark-card * {
+	box-sizing: border-box;
+}
+/* CardBand draws the band itself (issue 109); the frame sets its height. */
+.rg-landmark-card--band {
+	min-height: 49px;
+	padding: 7px 12px;
+}
+.rg-landmark-card--visual {
+	display: grid;
+	grid-template-columns: 184px minmax(0, 1fr);
+	align-items: center;
+	gap: 12px;
+	margin: 12px;
+	min-height: 184px;
+}
+.rg-landmark-card--visual img {
+	width: 184px;
+	height: 184px;
+	display: block;
+	object-fit: contain;
+	image-rendering: pixelated;
+	box-shadow:
+		0 0 0 1px var(--card-line),
+		0 0 0 3px var(--card-art-frame);
+}
+/* The footprint is a LandmarkShape without its picture: 20 px plots, 2 px apart, each with a 2 px border. */
+.rg-landmark-card--footprint {
+	display: grid;
+	justify-content: center;
+}
+.rg-landmark-card--condition {
+	margin: 0 12px 6px;
+	padding: 11px 8px;
+	background: var(--card-raised);
+	border: 1px solid var(--card-line-soft);
+}
+.rg-landmark-card--condition small {
+	display: block;
+	margin-bottom: 7px;
+	color: var(--card-muted);
+	white-space: nowrap;
+	font: 700 10px/1.1 var(--font-body);
+}
+.rg-landmark-card--condition p {
+	margin: 0;
+	font: 400 15px/1.42 var(--font-body);
+}
+.rg-landmark-card--footer {
+	min-height: 38px;
+	display: flex;
+	align-items: center;
+	padding: 7px 12px;
+	border-top: 1px solid var(--card-line);
+}
+
+	.rg-landmark-hover-detail.svelte-150i15g {
+		display: grid;
+		grid-template-columns: 44px minmax(0, 1fr) auto;
+		align-items: center;
+		gap: var(--space-4);
+		margin-top: var(--space-3);
+		padding-top: var(--space-3);
+		border-top: var(--border) solid var(--line);
+	}
+
+	.rg-landmark-hover-detail--art.svelte-150i15g {
+		flex: none;
+		width: 44px;
+		height: 44px;
+		object-fit: contain;
+		image-rendering: pixelated;
+	}
+
+	.rg-landmark-hover-detail--name.svelte-150i15g {
+		min-width: 0;
+		color: var(--gold);
+		font: var(--weight-title) var(--font-size-sm) / var(--leading-tight)
+			var(--font-title);
+		text-align: center;
+	}
+
+	.rg-landmark-hover-detail--footprint.svelte-150i15g {
+		flex: none;
+	}
+
+	.rg-automa-hex-pattern.svelte-1npd85q {
+		display: block;
+		width: 100%;
+		max-width: 290px;
+		overflow: visible;
+	}
+	.rg-automa-hex-pattern--hex.svelte-1npd85q {
+		fill: var(--card-control);
+		stroke: var(--card-line);
+		stroke-width: var(--border);
+	}
+	.rg-automa-hex-pattern--start.svelte-1npd85q {
+		fill: color-mix(in srgb, var(--card-title) 40%, var(--card-control));
+	}
+	.rg-automa-hex-pattern--row.svelte-1npd85q,
+	.rg-automa-hex-pattern--next.svelte-1npd85q {
+		fill: none;
+		stroke: var(--card-slot-border);
+		stroke-width: var(--border-thick);
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.rg-automa-hex-pattern--first.svelte-1npd85q {
+		stroke: var(--card-text);
+	}
+	.rg-automa-hex-pattern--first-fill.svelte-1npd85q {
+		fill: var(--card-text);
+	}
+	.rg-automa-hex-pattern--next-fill.svelte-1npd85q {
+		fill: var(--card-slot-border);
+	}
+	.rg-automa-hex-pattern.svelte-1npd85q text:where(.svelte-1npd85q) {
+		font: var(--weight-bold) var(--font-size-xs) var(--font-body);
+		text-anchor: middle;
+		dominant-baseline: central;
+		fill: var(--card-text);
+		stroke: var(--card-paper);
+		stroke-width: var(--border-thick);
+		paint-order: stroke;
+	}
+
+	.rg-tooltip.svelte-bgl7um {
+		width: max-content;
+		max-width: min(360px, calc(100vw - var(--space-8)));
+		padding: var(--space-4) var(--space-6);
+		border: var(--border) solid var(--line);
+		border-radius: var(--radius);
+		background: var(--chrome);
+		box-shadow: var(--shadow-float);
+		color: var(--text);
+		font: var(--font-size-base) / var(--leading-normal) var(--font-body);
+		text-align: left;
+		pointer-events: none;
+	}
+
+	.rg-tooltip--fixed.svelte-bgl7um {
+		position: fixed;
+		z-index: var(--layer-tooltip);
+		top: 0;
+		left: 0;
+		opacity: 0;
+		transition: opacity var(--duration-fast) var(--ease);
+	}
+	.rg-tooltip--pattern.svelte-bgl7um {
+		width: 320px;
+	}
+
+	.rg-tooltip--inline.svelte-bgl7um {
+		position: relative;
+		display: inline-block;
+	}
+
+	.rg-tooltip--placed.svelte-bgl7um {
+		opacity: 1;
+	}
+
+	/* A square turned on its corner, filled like the box so it covers the box's border where they meet, with only
+	   its two outer sides drawn. */
+	.rg-tooltip--arrow.svelte-bgl7um {
+		position: absolute;
+		left: 50%;
+		width: 10px;
+		height: 10px;
+		border: var(--border) solid var(--line);
+		background: var(--chrome);
+		transform: translateX(-50%) rotate(45deg);
+	}
+
+	.rg-tooltip--top.svelte-bgl7um .rg-tooltip--arrow:where(.svelte-bgl7um) {
+		bottom: -6px;
+		border-top: 0;
+		border-left: 0;
+	}
+
+	.rg-tooltip--bottom.svelte-bgl7um .rg-tooltip--arrow:where(.svelte-bgl7um) {
+		top: -6px;
+		border-right: 0;
+		border-bottom: 0;
+	}
+
+	.rg-tooltip--text.svelte-bgl7um {
+		position: relative;
+		white-space: pre-line;
+		overflow-wrap: break-word;
 	}
 
 	.track-name.svelte-134kovj {
@@ -2096,6 +2311,12 @@ a {
 		}
 		micro_tasks.push(fn);
 	}
+	/**
+	* Synchronously run any queued tasks.
+	*/
+	function flush_tasks() {
+		while (micro_tasks.length > 0) run_micro_tasks();
+	}
 	//#endregion
 	//#region ../../../../../Documents/Codex/2026-10-20/pu/the-rug-game/node_modules/svelte/src/internal/client/reactivity/status.js
 	/** @import { Derived, Signal } from '#client' */
@@ -3081,6 +3302,34 @@ a {
 			this.linked = false;
 		}
 	};
+	/**
+	* Synchronously flush any pending updates.
+	* Returns void if no callback is provided, otherwise returns the result of calling the callback.
+	* @template [T=void]
+	* @param {(() => T) | undefined} [fn]
+	* @returns {T}
+	*/
+	function flushSync(fn) {
+		var was_flushing_sync = is_flushing_sync;
+		var prev_previous_batch = previous_batch;
+		previous_batch = null;
+		is_flushing_sync = true;
+		try {
+			var result;
+			if (fn) {
+				flushSync();
+				result = fn();
+			}
+			while (true) {
+				flush_tasks();
+				if (current_batch === null) return result;
+				current_batch.flush();
+			}
+		} finally {
+			is_flushing_sync = was_flushing_sync;
+			previous_batch = prev_previous_batch;
+		}
+	}
 	function infinite_loop_guard() {
 		try {
 			effect_update_depth_exceeded();
@@ -4401,6 +4650,18 @@ a {
 		} finally {
 			active_effect = previous_effect;
 		}
+	}
+	/**
+	* Returns a promise that resolves once any pending state changes have been applied.
+	* @returns {Promise<void>}
+	*/
+	async function tick() {
+		if (async_mode_flag) return new Promise((f) => {
+			requestAnimationFrame(() => f());
+			setTimeout(() => f());
+		});
+		await Promise.resolve();
+		flushSync();
 	}
 	/**
 	* @template V
@@ -7032,7 +7293,7 @@ createHTML: (html) => {
 	if (typeof window !== "undefined") ((window.__svelte ??= {}).v ??= /* @__PURE__ */ new Set()).add("5");
 	//#endregion
 	//#region src/lib/components/ui/Badge.svelte
-	var rest_excludes$11 = /* @__PURE__ */ new Set([
+	var rest_excludes$14 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -7040,12 +7301,12 @@ createHTML: (html) => {
 		"variant",
 		"color"
 	]);
-	var root$12 = /* @__PURE__ */ from_html(`<span> </span>`);
+	var root$15 = /* @__PURE__ */ from_html(`<span> </span>`);
 	function Badge($$anchor, $$props) {
 		push($$props, true);
 		/** @type {BadgeProps} */
-		let variant = prop($$props, "variant", 3, "tag"), color = prop($$props, "color", 3, "var(--gold)"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$11);
-		var span = root$12();
+		let variant = prop($$props, "variant", 3, "tag"), color = prop($$props, "color", 3, "var(--gold)"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$14);
+		var span = root$15();
 		attribute_effect(span, () => ({
 			...attr,
 			class: `rg-badge rg-badge--${variant() ?? ""} ${($$props.class ? $$props.class : "") ?? ""}`,
@@ -7077,7 +7338,7 @@ createHTML: (html) => {
 	};
 	//#endregion
 	//#region src/lib/components/ui/Button.svelte
-	var rest_excludes$10 = /* @__PURE__ */ new Set([
+	var rest_excludes$13 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -7089,11 +7350,11 @@ createHTML: (html) => {
 		"children",
 		"onButtonClick"
 	]);
-	var root$11 = /* @__PURE__ */ from_html(`<button><!></button>`);
+	var root$14 = /* @__PURE__ */ from_html(`<button><!></button>`);
 	function Button($$anchor, $$props) {
 		push($$props, true);
 		/** @type {ButtonProps} */
-		let mode = prop($$props, "mode", 3, "secondary"), size = prop($$props, "size", 3, "medium"), block = prop($$props, "block", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$10);
+		let mode = prop($$props, "mode", 3, "secondary"), size = prop($$props, "size", 3, "medium"), block = prop($$props, "block", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$13);
 		/**
 		* @param {MouseEvent} event
 		*/
@@ -7103,7 +7364,7 @@ createHTML: (html) => {
 				$$props.onButtonClick(new ComponentEvent(void 0, target, event));
 			}
 		};
-		var button = root$11();
+		var button = root$14();
 		attribute_effect(button, ($0) => ({
 			type: "button",
 			"aria-pressed": $$props.selected,
@@ -7124,7 +7385,7 @@ createHTML: (html) => {
 	}
 	//#endregion
 	//#region src/lib/components/ui/TextInput.svelte
-	var rest_excludes$9 = /* @__PURE__ */ new Set([
+	var rest_excludes$12 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -7144,13 +7405,13 @@ createHTML: (html) => {
 		"onTextInputChange",
 		"onTextInputFocus"
 	]);
-	var root$10 = /* @__PURE__ */ from_html(`<label class="rg-text-input--label svelte-nubu4k"> </label>`);
-	var root_1$8 = /* @__PURE__ */ from_html(`<p class="rg-text-input--hint svelte-nubu4k"> </p>`);
+	var root$13 = /* @__PURE__ */ from_html(`<label class="rg-text-input--label svelte-nubu4k"> </label>`);
+	var root_1$9 = /* @__PURE__ */ from_html(`<p class="rg-text-input--hint svelte-nubu4k"> </p>`);
 	var root_2$5 = /* @__PURE__ */ from_html(`<div><!> <input class="rg-text-input--field svelte-nubu4k" type="text"/> <!> <p class="rg-text-input--error svelte-nubu4k" aria-live="polite"> </p></div>`);
 	function TextInput($$anchor, $$props) {
 		const uid = props_id();
 		push($$props, true);
-		let hideLabel = prop($$props, "hideLabel", 3, false), value = prop($$props, "value", 15, ""), readonly = prop($$props, "readonly", 3, false), size = prop($$props, "size", 3, "medium"), block = prop($$props, "block", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$9);
+		let hideLabel = prop($$props, "hideLabel", 3, false), value = prop($$props, "value", 15, ""), readonly = prop($$props, "readonly", 3, false), size = prop($$props, "size", 3, "medium"), block = prop($$props, "block", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$12);
 		let describedBy = /* @__PURE__ */ user_derived(() => [$$props.hint ? `${uid}-hint` : "", $$props.error ? `${uid}-error` : ""].filter(Boolean).join(" ") || void 0);
 		/**
 		* @param {Event} event
@@ -7186,7 +7447,7 @@ createHTML: (html) => {
 		}), void 0, void 0, void 0, "svelte-nubu4k");
 		var node = child(div);
 		var consequent = ($$anchor) => {
-			var label_1 = root$10();
+			var label_1 = root$13();
 			var text = only_child(label_1, true);
 			template_effect(() => {
 				set_attribute(label_1, "for", `${uid}-input`);
@@ -7201,7 +7462,7 @@ createHTML: (html) => {
 		remove_input_defaults(input);
 		var node_1 = sibling(input, 2);
 		var consequent_1 = ($$anchor) => {
-			var p = root_1$8();
+			var p = root_1$9();
 			var text_1 = only_child(p, true);
 			template_effect(() => {
 				set_attribute(p, "id", `${uid}-hint`);
@@ -9989,7 +10250,7 @@ createHTML: (html) => {
 	//#endregion
 	//#region src/lib/components/lobby/SeatCard.svelte
 	var remove = ($$anchor, removeLabel = noop, tooltip = noop, handler = noop) => {
-		var button_1 = root$9();
+		var button_1 = root$12();
 		template_effect(() => {
 			set_attribute(button_1, "aria-label", removeLabel());
 			set_attribute(button_1, "title", tooltip());
@@ -9999,7 +10260,7 @@ createHTML: (html) => {
 		});
 		append($$anchor, button_1);
 	};
-	var rest_excludes$8 = /* @__PURE__ */ new Set([
+	var rest_excludes$11 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -10022,8 +10283,8 @@ createHTML: (html) => {
 		"onSeatCardRemove",
 		"onSeatCardChooseCivilization"
 	]);
-	var root$9 = /* @__PURE__ */ from_html(`<button type="button" class="rg-seat-card--remove svelte-1u4plw6">×</button>`);
-	var root_1$7 = /* @__PURE__ */ from_html(`<div><button type="button" class="rg-seat-card--choice svelte-1u4plw6"><span class="rg-seat-card--plus svelte-1u4plw6" aria-hidden="true">+</span> <span>Open seat</span></button> <!></div>`);
+	var root$12 = /* @__PURE__ */ from_html(`<button type="button" class="rg-seat-card--remove svelte-1u4plw6">×</button>`);
+	var root_1$8 = /* @__PURE__ */ from_html(`<div><button type="button" class="rg-seat-card--choice svelte-1u4plw6"><span class="rg-seat-card--plus svelte-1u4plw6" aria-hidden="true">+</span> <span>Open seat</span></button> <!></div>`);
 	var root_2$4 = /* @__PURE__ */ from_html(`<form class="rg-seat-card--frame svelte-1u4plw6"><!> <!></form> <!>`, 1);
 	var root_3$3 = /* @__PURE__ */ from_html(`<span class="rg-seat-card--dot svelte-1u4plw6" aria-hidden="true">·</span>`);
 	var root_4$3 = /* @__PURE__ */ from_html(`<!> <!>`, 1);
@@ -10037,7 +10298,7 @@ createHTML: (html) => {
 	function SeatCard($$anchor, $$props) {
 		push($$props, true);
 		/** @type {SeatCardProps} */
-		let kind = prop($$props, "state", 3, "empty"), name = prop($$props, "name", 15, ""), civilization = prop($$props, "civilization", 3, null), showCivilization = prop($$props, "showCivilization", 3, true), canChooseCivilization = prop($$props, "canChooseCivilization", 3, false), you = prop($$props, "you", 3, false), host = prop($$props, "host", 3, false), removable = prop($$props, "removable", 3, false), botKind = prop($$props, "botKind", 3, null), canAddBot = prop($$props, "canAddBot", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$8);
+		let kind = prop($$props, "state", 3, "empty"), name = prop($$props, "name", 15, ""), civilization = prop($$props, "civilization", 3, null), showCivilization = prop($$props, "showCivilization", 3, true), canChooseCivilization = prop($$props, "canChooseCivilization", 3, false), you = prop($$props, "you", 3, false), host = prop($$props, "host", 3, false), removable = prop($$props, "removable", 3, false), botKind = prop($$props, "botKind", 3, null), canAddBot = prop($$props, "canAddBot", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$11);
 		let badges = /* @__PURE__ */ user_derived(() => seatBadges({
 			you: you(),
 			host: host(),
@@ -10106,7 +10367,7 @@ createHTML: (html) => {
 		var node = child(div);
 		var consequent = ($$anchor) => {};
 		var consequent_2 = ($$anchor) => {
-			var div_1 = root_1$7();
+			var div_1 = root_1$8();
 			let classes;
 			var button_2 = child(div_1);
 			var node_1 = sibling(button_2, 2);
@@ -10270,7 +10531,7 @@ createHTML: (html) => {
 	delegate(["click"]);
 	//#endregion
 	//#region src/lib/components/lobby/AutomaLevel.svelte
-	var rest_excludes$7 = /* @__PURE__ */ new Set([
+	var rest_excludes$10 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -10278,13 +10539,13 @@ createHTML: (html) => {
 		"disabled",
 		"onAutomaLevelChange"
 	]);
-	var root$8 = /* @__PURE__ */ from_html(`<button type="button"> </button>`);
-	var root_1$6 = /* @__PURE__ */ from_html(`<div><div class="rg-automa-level--label svelte-1clzif6"><span>Automa level</span><strong class="svelte-1clzif6"> </strong></div> <div class="rg-automa-level--squares svelte-1clzif6" role="group" aria-label="Automa level"></div> <span class="rg-automa-level--name svelte-1clzif6"> </span></div>`);
+	var root$11 = /* @__PURE__ */ from_html(`<button type="button"> </button>`);
+	var root_1$7 = /* @__PURE__ */ from_html(`<div><div class="rg-automa-level--label svelte-1clzif6"><span>Automa level</span><strong class="svelte-1clzif6"> </strong></div> <div class="rg-automa-level--squares svelte-1clzif6" role="group" aria-label="Automa level"></div> <span class="rg-automa-level--name svelte-1clzif6"> </span></div>`);
 	function AutomaLevel($$anchor, $$props) {
 		push($$props, true);
 		/** @type {AutomaLevelProps} */
-		let value = prop($$props, "value", 3, 2), disabled = prop($$props, "disabled", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$7);
-		var div = root_1$6();
+		let value = prop($$props, "value", 3, 2), disabled = prop($$props, "disabled", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$10);
+		var div = root_1$7();
 		attribute_effect(div, () => ({
 			...attr,
 			class: `rg-automa-level ${$$props.class ?? "" ?? ""}`
@@ -10294,7 +10555,7 @@ createHTML: (html) => {
 		reset(div_1);
 		var div_2 = sibling(div_1, 2);
 		each(div_2, 21, () => AUTOMA_LEVELS, (level) => level.level, ($$anchor, level) => {
-			var button = root$8();
+			var button = root$11();
 			let classes;
 			var text_1 = only_child(button, true);
 			template_effect(() => {
@@ -10323,7 +10584,7 @@ createHTML: (html) => {
 	delegate(["click"]);
 	//#endregion
 	//#region src/lib/components/lobby/BotSettings.svelte
-	var rest_excludes$6 = /* @__PURE__ */ new Set([
+	var rest_excludes$9 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -10333,13 +10594,13 @@ createHTML: (html) => {
 		"onBotSettingsChange",
 		"onBotSettingsRemove"
 	]);
-	var root$7 = /* @__PURE__ */ from_html(`<button type="button"> </button>`);
-	var root_1$5 = /* @__PURE__ */ from_html(`<div><span class="rg-bot-settings--label svelte-1dniw4j">Bot type</span> <div class="rg-bot-settings--types svelte-1dniw4j" role="group" aria-label="Bot type"></div> <!> <!></div>`);
+	var root$10 = /* @__PURE__ */ from_html(`<button type="button"> </button>`);
+	var root_1$6 = /* @__PURE__ */ from_html(`<div><span class="rg-bot-settings--label svelte-1dniw4j">Bot type</span> <div class="rg-bot-settings--types svelte-1dniw4j" role="group" aria-label="Bot type"></div> <!> <!></div>`);
 	function BotSettings($$anchor, $$props) {
 		push($$props, true);
 		/** @type {BotSettingsProps} */
-		let level = prop($$props, "level", 3, 2), unavailable = prop($$props, "unavailable", 19, () => []), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$6);
-		var div = root_1$5();
+		let level = prop($$props, "level", 3, 2), unavailable = prop($$props, "unavailable", 19, () => []), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$9);
+		var div = root_1$6();
 		attribute_effect(div, () => ({
 			...attr,
 			class: `rg-bot-settings ${$$props.class ?? "" ?? ""}`
@@ -10352,7 +10613,7 @@ createHTML: (html) => {
 			kind: "shadow",
 			label: "Shadow Empire"
 		}], (option) => option.kind, ($$anchor, option) => {
-			var button = root$7();
+			var button = root$10();
 			let classes;
 			var text = only_child(button, true);
 			template_effect(($0) => {
@@ -10407,7 +10668,7 @@ createHTML: (html) => {
 	delegate(["click"]);
 	//#endregion
 	//#region src/lib/components/player/CardBand.svelte
-	var rest_excludes$5 = /* @__PURE__ */ new Set([
+	var rest_excludes$8 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -10415,12 +10676,12 @@ createHTML: (html) => {
 		"size",
 		"trap"
 	]);
-	var root$6 = /* @__PURE__ */ from_html(`<header><h3 class="rg-card-band--title svelte-16e02wv"> </h3></header>`);
+	var root$9 = /* @__PURE__ */ from_html(`<header><h3 class="rg-card-band--title svelte-16e02wv"> </h3></header>`);
 	function CardBand($$anchor, $$props) {
 		push($$props, true);
 		/** @type {CardBandProps} */
-		let size = prop($$props, "size", 3, "medium"), trap = prop($$props, "trap", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$5);
-		var header = root$6();
+		let size = prop($$props, "size", 3, "medium"), trap = prop($$props, "trap", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$8);
+		var header = root$9();
 		attribute_effect(header, () => ({
 			...attr,
 			class: `rg-card-band rg-card-band--${size() ?? ""} ${$$props.class ?? "" ?? ""}`,
@@ -10434,18 +10695,18 @@ createHTML: (html) => {
 	}
 	//#endregion
 	//#region src/lib/components/player/CardEdition.svelte
-	var rest_excludes$4 = /* @__PURE__ */ new Set([
+	var rest_excludes$7 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
 		"code"
 	]);
-	var root$5 = /* @__PURE__ */ from_html(`<span> </span>`);
+	var root$8 = /* @__PURE__ */ from_html(`<span> </span>`);
 	function CardEdition($$anchor, $$props) {
 		push($$props, true);
 		/** @type {CardEditionProps} */
-		let code = prop($$props, "code", 3, "base"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$4);
-		var span = root$5();
+		let code = prop($$props, "code", 3, "base"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$7);
+		var span = root$8();
 		attribute_effect(span, ($0) => ({
 			...attr,
 			class: `rg-card-edition ${$$props.class ?? "" ?? ""}`,
@@ -10459,7 +10720,7 @@ createHTML: (html) => {
 	}
 	//#endregion
 	//#region src/lib/components/player/CardFrame.svelte
-	var rest_excludes$3 = /* @__PURE__ */ new Set([
+	var rest_excludes$6 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
@@ -10477,19 +10738,19 @@ createHTML: (html) => {
 		"effect",
 		"children"
 	]);
-	var root$4 = /* @__PURE__ */ from_html(`<article><!></article>`);
-	var root_1$4 = /* @__PURE__ */ from_html(`<div class="rg-card-frame--body rg-card-frame--body-stage svelte-t23jar"><div class="rg-card-frame--stage svelte-t23jar"><img class="rg-card-frame--stage-picture svelte-t23jar"/> <!></div> <div class="rg-card-frame--text svelte-t23jar"><!></div></div>`);
+	var root$7 = /* @__PURE__ */ from_html(`<article><!></article>`);
+	var root_1$5 = /* @__PURE__ */ from_html(`<div class="rg-card-frame--body rg-card-frame--body-stage svelte-t23jar"><div class="rg-card-frame--stage svelte-t23jar"><img class="rg-card-frame--stage-picture svelte-t23jar"/> <!></div> <div class="rg-card-frame--text svelte-t23jar"><!></div></div>`);
 	var root_2$3 = /* @__PURE__ */ from_html(`<div class="rg-card-frame--body svelte-t23jar"><img class="rg-card-frame--portrait svelte-t23jar"/> <div class="rg-card-frame--text svelte-t23jar"><!></div></div>`);
 	var root_3$2 = /* @__PURE__ */ from_html(`<i></i>`);
 	var root_4$2 = /* @__PURE__ */ from_html(`<article><!> <!> <!> <footer class="rg-card-frame--foot svelte-t23jar"><span class="rg-card-frame--editions svelte-t23jar"></span><span class="rg-card-frame--complexity svelte-t23jar"></span></footer></article>`);
 	function CardFrame($$anchor, $$props) {
 		push($$props, true);
 		/** @type {CardFrameProps} */
-		let title = prop($$props, "title", 3, ""), portrait = prop($$props, "portrait", 3, ""), portraitAlt = prop($$props, "portraitAlt", 3, ""), editions = prop($$props, "editions", 19, () => ["base"]), complexity = prop($$props, "complexity", 3, 1), plain = prop($$props, "plain", 3, false), state = prop($$props, "state", 3, "empty"), stage = prop($$props, "stage", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$3);
+		let title = prop($$props, "title", 3, ""), portrait = prop($$props, "portrait", 3, ""), portraitAlt = prop($$props, "portraitAlt", 3, ""), editions = prop($$props, "editions", 19, () => ["base"]), complexity = prop($$props, "complexity", 3, 1), plain = prop($$props, "plain", 3, false), state = prop($$props, "state", 3, "empty"), stage = prop($$props, "stage", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$6);
 		var fragment = comment();
 		var node = first_child(fragment);
 		var consequent = ($$anchor) => {
-			var article = root$4();
+			var article = root$7();
 			attribute_effect(article, () => ({
 				...attr,
 				class: `rg-card-frame rg-card-frame--plain ${$$props.class ?? "" ?? ""}`
@@ -10516,7 +10777,7 @@ createHTML: (html) => {
 			});
 			var node_3 = sibling(node_2, 2);
 			var consequent_1 = ($$anchor) => {
-				var div = root_1$4();
+				var div = root_1$5();
 				var div_1 = child(div);
 				var img = child(div_1);
 				snippet(sibling(img, 2), () => $$props.overlay ?? noop);
@@ -10584,6 +10845,1215 @@ createHTML: (html) => {
 		if_block(node, ($$render) => {
 			if (plain()) $$render(consequent);
 			else $$render(alternate_1, -1);
+		});
+		append($$anchor, fragment);
+		pop();
+	}
+	//#endregion
+	//#region src/lib/automa-patterns.js
+	var AUTOMA_PATTERN_NAMES = Object.freeze([
+		"North–southeast",
+		"Northeast–northwest",
+		"East–south",
+		"Southeast–north",
+		"Southeast–southwest",
+		"South–northeast",
+		"South–northwest",
+		"Southwest–southeast",
+		"Southwest–north",
+		"West–south"
+	]);
+	/** @param {number} pattern */
+	var automaPatternName = (pattern) => AUTOMA_PATTERN_NAMES[pattern - 1] ?? "Hex selection";
+	//#endregion
+	//#region src/lib/engine/data/automa-cards.js
+	/** @typedef {import('./ids.js').BoardTrackId} BoardTrackId */
+	/** ALL excludes finished tracks; LMK seeks the nearest unclaimed landmark or track end; END seeks the nearest track end (02 §9.4). @typedef {'ALL' | 'LMK' | 'END'} AutomaTrackIndicator */
+	/** The heart means the acting bot's favourite, not a fixed track. @typedef {BoardTrackId | 'favourite'} AutomaTrackTiebreaker */
+	/**
+	* A base card's printed data. The left card supplies track indicators and income;
+	* the right supplies track/hex tiebreakers and topple. Automa reads the stored
+	* top-to-bottom tiebreakers forwards; Shadow Empire reads them backwards (02 §9.4).
+	* @typedef {Object} AutomaCard
+	* @property {number} id - Printed ID, 1–22
+	* @property {'decision' | 'progress'} deck - Circle IDs 1–7; rectangle IDs 8–22
+	* @property {AutomaTrackIndicator} automaTrack
+	* @property {AutomaTrackIndicator} shadowEmpireTrack
+	* @property {readonly AutomaTrackTiebreaker[]} trackTiebreakers
+	* @property {number} hexPattern - Pattern ID 1–10, resolved separately (R39)
+	* @property {boolean} income
+	* @property {boolean} topple
+	*/
+	/** @type {readonly AutomaCard[]} */
+	var AUTOMA_CARDS = deepFreeze([
+		{
+			id: 1,
+			deck: "decision",
+			automaTrack: "END",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"favourite",
+				"military",
+				"exploration",
+				"technology",
+				"science"
+			],
+			hexPattern: 1,
+			income: true,
+			topple: true
+		},
+		{
+			id: 2,
+			deck: "decision",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "LMK",
+			trackTiebreakers: [
+				"military",
+				"exploration",
+				"favourite",
+				"science",
+				"technology"
+			],
+			hexPattern: 2,
+			income: true,
+			topple: false
+		},
+		{
+			id: 3,
+			deck: "decision",
+			automaTrack: "LMK",
+			shadowEmpireTrack: "END",
+			trackTiebreakers: [
+				"science",
+				"technology",
+				"military",
+				"exploration",
+				"favourite"
+			],
+			hexPattern: 1,
+			income: false,
+			topple: true
+		},
+		{
+			id: 4,
+			deck: "decision",
+			automaTrack: "LMK",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"technology",
+				"science",
+				"favourite",
+				"military",
+				"exploration"
+			],
+			hexPattern: 3,
+			income: true,
+			topple: false
+		},
+		{
+			id: 5,
+			deck: "decision",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "LMK",
+			trackTiebreakers: [
+				"exploration",
+				"military",
+				"technology",
+				"science",
+				"favourite"
+			],
+			hexPattern: 10,
+			income: false,
+			topple: false
+		},
+		{
+			id: 6,
+			deck: "decision",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"military",
+				"science",
+				"favourite",
+				"technology",
+				"exploration"
+			],
+			hexPattern: 1,
+			income: false,
+			topple: true
+		},
+		{
+			id: 7,
+			deck: "decision",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"favourite",
+				"technology",
+				"exploration",
+				"military",
+				"science"
+			],
+			hexPattern: 5,
+			income: false,
+			topple: false
+		},
+		{
+			id: 8,
+			deck: "progress",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"exploration",
+				"military",
+				"technology",
+				"favourite",
+				"science"
+			],
+			hexPattern: 6,
+			income: true,
+			topple: false
+		},
+		{
+			id: 9,
+			deck: "progress",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"technology",
+				"science",
+				"favourite",
+				"exploration",
+				"military"
+			],
+			hexPattern: 4,
+			income: true,
+			topple: true
+		},
+		{
+			id: 10,
+			deck: "progress",
+			automaTrack: "LMK",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"military",
+				"exploration",
+				"technology",
+				"science",
+				"favourite"
+			],
+			hexPattern: 9,
+			income: false,
+			topple: true
+		},
+		{
+			id: 11,
+			deck: "progress",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "LMK",
+			trackTiebreakers: [
+				"favourite",
+				"exploration",
+				"military",
+				"science",
+				"technology"
+			],
+			hexPattern: 7,
+			income: false,
+			topple: false
+		},
+		{
+			id: 12,
+			deck: "progress",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"science",
+				"technology",
+				"favourite",
+				"military",
+				"exploration"
+			],
+			hexPattern: 8,
+			income: true,
+			topple: true
+		},
+		{
+			id: 13,
+			deck: "progress",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "LMK",
+			trackTiebreakers: [
+				"science",
+				"technology",
+				"military",
+				"favourite",
+				"exploration"
+			],
+			hexPattern: 6,
+			income: false,
+			topple: false
+		},
+		{
+			id: 14,
+			deck: "progress",
+			automaTrack: "LMK",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"exploration",
+				"favourite",
+				"science",
+				"military",
+				"technology"
+			],
+			hexPattern: 4,
+			income: true,
+			topple: true
+		},
+		{
+			id: 15,
+			deck: "progress",
+			automaTrack: "LMK",
+			shadowEmpireTrack: "LMK",
+			trackTiebreakers: [
+				"favourite",
+				"military",
+				"technology",
+				"exploration",
+				"science"
+			],
+			hexPattern: 9,
+			income: false,
+			topple: true
+		},
+		{
+			id: 16,
+			deck: "progress",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "LMK",
+			trackTiebreakers: [
+				"technology",
+				"exploration",
+				"favourite",
+				"science",
+				"military"
+			],
+			hexPattern: 7,
+			income: true,
+			topple: false
+		},
+		{
+			id: 17,
+			deck: "progress",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"exploration",
+				"favourite",
+				"technology",
+				"military",
+				"science"
+			],
+			hexPattern: 5,
+			income: true,
+			topple: false
+		},
+		{
+			id: 18,
+			deck: "progress",
+			automaTrack: "LMK",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"favourite",
+				"exploration",
+				"military",
+				"science",
+				"technology"
+			],
+			hexPattern: 1,
+			income: false,
+			topple: false
+		},
+		{
+			id: 19,
+			deck: "progress",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"military",
+				"technology",
+				"science",
+				"exploration",
+				"favourite"
+			],
+			hexPattern: 2,
+			income: true,
+			topple: true
+		},
+		{
+			id: 20,
+			deck: "progress",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"technology",
+				"exploration",
+				"science",
+				"military",
+				"favourite"
+			],
+			hexPattern: 1,
+			income: false,
+			topple: false
+		},
+		{
+			id: 21,
+			deck: "progress",
+			automaTrack: "ALL",
+			shadowEmpireTrack: "END",
+			trackTiebreakers: [
+				"exploration",
+				"technology",
+				"favourite",
+				"science",
+				"military"
+			],
+			hexPattern: 3,
+			income: true,
+			topple: true
+		},
+		{
+			id: 22,
+			deck: "progress",
+			automaTrack: "END",
+			shadowEmpireTrack: "ALL",
+			trackTiebreakers: [
+				"military",
+				"exploration",
+				"technology",
+				"favourite",
+				"science"
+			],
+			hexPattern: 1,
+			income: false,
+			topple: true
+		}
+	]);
+	deepFreeze(AUTOMA_CARDS.filter((card) => card.id <= 12));
+	//#endregion
+	//#region src/lib/components/player/AutomaDecisionCard.svelte
+	var rest_excludes$5 = /* @__PURE__ */ new Set([
+		"$$slots",
+		"$$events",
+		"$$legacy",
+		"card",
+		"id",
+		"role",
+		"favouriteTrack"
+	]);
+	var root$6 = /* @__PURE__ */ from_html(`<img alt="Income" class="svelte-nbv7pj"/><strong>+</strong>`, 1);
+	var root_1$4 = /* @__PURE__ */ from_html(`<span aria-label="No income icon">—</span>`);
+	var root_2$2 = /* @__PURE__ */ from_html(`<div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Automa track</span><strong> </strong></div> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Shadow Empire track</span><strong> </strong></div> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Income</span><span class="rg-automa-decision-card--value svelte-nbv7pj"><!></span></div>`, 1);
+	var root_3$1 = /* @__PURE__ */ from_html(`<img alt="Topple outpost" class="svelte-nbv7pj"/>`);
+	var root_4$1 = /* @__PURE__ */ from_html(`<span aria-label="No topple icon">—</span>`);
+	var root_5 = /* @__PURE__ */ from_html(`<button type="button" class="rg-automa-decision-card--metric rg-automa-decision-card--pattern svelte-nbv7pj"><span>Hex pattern</span><strong class="svelte-nbv7pj"> </strong></button> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Topple</span><span class="rg-automa-decision-card--value svelte-nbv7pj"><!></span></div>`, 1);
+	var root_6 = /* @__PURE__ */ from_html(`<li class="rg-automa-decision-card--track svelte-nbv7pj"><img alt="" class="svelte-nbv7pj"/><span class="rg-automa-decision-card--star svelte-nbv7pj"> </span><span> </span></li>`);
+	var root_7 = /* @__PURE__ */ from_html(`<!> <div class="rg-automa-decision-card--body svelte-nbv7pj"><!> <!> <ol class="rg-automa-decision-card--tracks svelte-nbv7pj" aria-label="Track tie-break order"></ol></div> <footer class="rg-automa-decision-card--footer svelte-nbv7pj"><span></span> </footer>`, 1);
+	function AutomaDecisionCard($$anchor, $$props) {
+		push($$props, true);
+		/** @type {AutomaDecisionCardProps} */
+		let id = prop($$props, "id", 3, 1), role = prop($$props, "role", 3, "full"), favouriteTrack = prop($$props, "favouriteTrack", 3, "exploration"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$5);
+		const face = /* @__PURE__ */ user_derived(() => $$props.card ?? AUTOMA_CARDS.find((item) => item.id === id()) ?? AUTOMA_CARDS[0]);
+		const tracks = /* @__PURE__ */ user_derived(() => [...new Set(get(face).trackTiebreakers.map((track) => track === "favourite" ? favouriteTrack() : track))]);
+		const title = /* @__PURE__ */ user_derived(() => role() === "full" ? "Track / Income · Hex / Topple" : role() === "track" ? "Track / Income" : "Hex / Topple");
+		{
+			let $0 = /* @__PURE__ */ user_derived(() => $$props.class ?? "");
+			let $1 = /* @__PURE__ */ user_derived(() => `Automa decision card ${get(face).id}`);
+			CardFrame($$anchor, spread_props({ plain: true }, () => attr, {
+				get class() {
+					return `rg-automa-decision-card ${get($0) ?? ""}`;
+				},
+				get "aria-label"() {
+					return get($1);
+				},
+				children: ($$anchor, $$slotProps) => {
+					var fragment_1 = root_7();
+					var node = first_child(fragment_1);
+					CardBand(node, {
+						get title() {
+							return get(title);
+						},
+						size: "small",
+						class: "rg-automa-decision-card--band"
+					});
+					var div = sibling(node, 2);
+					var node_1 = child(div);
+					var consequent_1 = ($$anchor) => {
+						var fragment_2 = root_2$2();
+						var div_1 = first_child(fragment_2);
+						var text = only_child(sibling(child(div_1)), true);
+						reset(div_1);
+						var div_2 = sibling(div_1, 2);
+						var text_1 = only_child(sibling(child(div_2)), true);
+						reset(div_2);
+						var div_3 = sibling(div_2, 2);
+						var span = sibling(child(div_3));
+						var node_2 = child(span);
+						var consequent = ($$anchor) => {
+							var fragment_3 = root$6();
+							var img = first_child(fragment_3);
+							next();
+							template_effect(($0) => set_attribute(img, "src", $0), [() => artUrl("building/house")]);
+							append($$anchor, fragment_3);
+						};
+						var alternate = ($$anchor) => {
+							append($$anchor, root_1$4());
+						};
+						if_block(node_2, ($$render) => {
+							if (get(face).income) $$render(consequent);
+							else $$render(alternate, -1);
+						});
+						reset(span);
+						reset(div_3);
+						template_effect(() => {
+							set_text(text, get(face).automaTrack);
+							set_text(text_1, get(face).shadowEmpireTrack);
+						});
+						append($$anchor, fragment_2);
+					};
+					if_block(node_1, ($$render) => {
+						if (role() !== "hex") $$render(consequent_1);
+					});
+					var node_3 = sibling(node_1, 2);
+					var consequent_3 = ($$anchor) => {
+						var fragment_4 = root_5();
+						var button = first_child(fragment_4);
+						var text_2 = only_child(sibling(child(button)), true);
+						reset(button);
+						var div_4 = sibling(button, 2);
+						var span_2 = sibling(child(div_4));
+						var node_4 = child(span_2);
+						var consequent_2 = ($$anchor) => {
+							var img_1 = root_3$1();
+							template_effect(($0) => set_attribute(img_1, "src", $0), [() => artUrl("piece/outpost-toppled")]);
+							append($$anchor, img_1);
+						};
+						var alternate_1 = ($$anchor) => {
+							append($$anchor, root_4$1());
+						};
+						if_block(node_4, ($$render) => {
+							if (get(face).topple) $$render(consequent_2);
+							else $$render(alternate_1, -1);
+						});
+						reset(span_2);
+						reset(div_4);
+						template_effect(($0, $1) => {
+							set_attribute(button, "data-automa-pattern", get(face).hexPattern);
+							set_attribute(button, "title", $0);
+							set_text(text_2, $1);
+						}, [() => `Hex pattern: ${automaPatternName(get(face).hexPattern)}`, () => automaPatternName(get(face).hexPattern)]);
+						append($$anchor, fragment_4);
+					};
+					if_block(node_3, ($$render) => {
+						if (role() !== "track") $$render(consequent_3);
+					});
+					var ol = sibling(node_3, 2);
+					each(ol, 20, () => get(tracks), (track) => track, ($$anchor, track) => {
+						var li = root_6();
+						let styles;
+						var img_2 = child(li);
+						var span_4 = sibling(img_2);
+						var text_3 = only_child(span_4, true);
+						var text_4 = only_child(sibling(span_4), true);
+						reset(li);
+						template_effect(($0, $1) => {
+							styles = set_style(li, "", styles, { "--rg-automa-track-colour": `var(--${track})` });
+							set_attribute(img_2, "src", $0);
+							set_attribute(span_4, "aria-label", track === favouriteTrack() ? "Favourite" : void 0);
+							set_text(text_3, track === favouriteTrack() ? "★" : "");
+							set_text(text_4, $1);
+						}, [() => artUrl(`track/${track}`), () => trackName(track)]);
+						append($$anchor, li);
+					});
+					reset(ol);
+					reset(div);
+					var footer = sibling(div, 2);
+					var span_6 = child(footer);
+					let classes;
+					var text_5 = sibling(span_6);
+					reset(footer);
+					template_effect(() => {
+						classes = set_class(span_6, 1, "rg-automa-decision-card--deck svelte-nbv7pj", null, classes, { "rg-automa-decision-card--deck-circle": get(face).deck === "decision" });
+						set_attribute(span_6, "aria-label", get(face).deck === "decision" ? "Decision deck" : "Progress deck");
+						set_text(text_5, ` Automa #${get(face).id ?? ""}`);
+					});
+					append($$anchor, fragment_1);
+				},
+				$$slots: { default: true }
+			}));
+		}
+		pop();
+	}
+	//#endregion
+	//#region src/lib/components/board/BotActionReport.svelte
+	var rest_excludes$4 = /* @__PURE__ */ new Set([
+		"$$slots",
+		"$$events",
+		"$$legacy",
+		"name",
+		"seat",
+		"cards",
+		"favouriteTrack",
+		"children"
+	]);
+	var root$5 = /* @__PURE__ */ from_html(`<div class="rg-bot-action-report--cards svelte-4qd516"></div>`);
+	var root_1$3 = /* @__PURE__ */ from_html(`<section><header class="rg-bot-action-report--header svelte-4qd516"><strong class="svelte-4qd516"><span class="rg-bot-action-report--player svelte-4qd516" aria-hidden="true"></span> <span class="rg-bot-action-report--kind svelte-4qd516">(Automa)</span></strong> <span class="rg-bot-action-report--label svelte-4qd516">Action report</span></header> <div class="rg-bot-action-report--body svelte-4qd516"><div class="rg-bot-action-report--description svelte-4qd516"><!></div> <!></div></section>`);
+	function BotActionReport($$anchor, $$props) {
+		push($$props, true);
+		/** @type {BotActionReportProps} */
+		let cards = prop($$props, "cards", 19, () => []), favouriteTrack = prop($$props, "favouriteTrack", 3, "exploration"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$4);
+		var section = root_1$3();
+		attribute_effect(section, ($0) => ({
+			...attr,
+			class: `rg-bot-action-report ${$$props.class ?? "" ?? ""}`,
+			"aria-label": `${$$props.name} Automa action`,
+			[STYLE]: { "--rg-bot-actor-colour": $0 }
+		}), [() => playerColor($$props.seat)], void 0, void 0, "svelte-4qd516");
+		var header = child(section);
+		var strong = child(header);
+		var text = sibling(child(strong));
+		next();
+		reset(strong);
+		next(2);
+		reset(header);
+		var div = sibling(header, 2);
+		var div_1 = child(div);
+		snippet(child(div_1), () => $$props.children ?? noop);
+		reset(div_1);
+		var node_1 = sibling(div_1, 2);
+		var consequent = ($$anchor) => {
+			var div_2 = root$5();
+			each(div_2, 23, cards, (card, index) => `${card.id}-${index}`, ($$anchor, card, index) => {
+				{
+					let $0 = /* @__PURE__ */ user_derived(() => get(index) === 0 ? "track" : "hex");
+					AutomaDecisionCard($$anchor, {
+						get card() {
+							return get(card);
+						},
+						get role() {
+							return get($0);
+						},
+						get favouriteTrack() {
+							return favouriteTrack();
+						}
+					});
+				}
+			});
+			reset(div_2);
+			append($$anchor, div_2);
+		};
+		if_block(node_1, ($$render) => {
+			if (cards().length) $$render(consequent);
+		});
+		reset(div);
+		reset(section);
+		template_effect(() => set_text(text, `${$$props.name ?? ""} `));
+		append($$anchor, section);
+		pop();
+	}
+	//#endregion
+	//#region src/lib/lobby-bots.js
+	/** Historical names assigned to official bot seats, independent of their difficulty. */
+	var BOT_NAMES = Object.freeze([
+		"Egypt",
+		"Mesopotamia",
+		"Indus Valley",
+		"Shang",
+		"Sumer"
+	]);
+	/**
+	* The kind available for the next bot seat; an official type is added at most once.
+	* @param {BotLobbySeat[]} seats
+	* @returns {'automa' | 'shadow' | null}
+	*/
+	function nextBotKind(seats) {
+		const humans = seats.filter((seat) => !seat.kind).length;
+		if (humans === 1 && !seats.some((seat) => seat.kind === "automa")) return "automa";
+		return humans <= 2 && !seats.some((seat) => seat.kind === "shadow") ? "shadow" : null;
+	}
+	/**
+	* The first unused historical name for an added bot.
+	* @param {BotLobbySeat[]} seats
+	* @returns {string}
+	*/
+	function nextBotName(seats) {
+		return BOT_NAMES.find((name) => !seats.some((seat) => seat.name === name)) ?? BOT_NAMES[0];
+	}
+	//#endregion
+	//#region src/lib/now.svelte.js
+	var TICK_MS = 250;
+	var subscribe = createSubscriber((update) => {
+		const timer = setInterval(update, TICK_MS);
+		return () => clearInterval(timer);
+	});
+	/**
+	* The browser's time, for counting a clock down. Read in an effect or the markup, `now` changes four times a
+	* second; the timer stops once nothing reads it.
+	*/
+	var clockTime = { get now() {
+		subscribe();
+		return Date.now();
+	} };
+	/** The closest the arrow comes to the tooltip's corners. */
+	var ARROW_INSET = 12;
+	/**
+	* A box in window pixels, as getBoundingClientRect gives it.
+	* @typedef {Object} TooltipBox
+	* @property {number} left
+	* @property {number} top
+	* @property {number} width
+	* @property {number} height
+	*/
+	/**
+	* Where a tooltip goes.
+	* @typedef {Object} TooltipPlace
+	* @property {number} left - Its left edge, in window pixels
+	* @property {number} top - Its top edge, in window pixels
+	* @property {'top' | 'bottom'} side - The side of the target it sits on
+	* @property {number} arrow - The arrow's centre, in pixels from the tooltip's left edge
+	*/
+	/**
+	* The place for a tooltip of a given size over a target.
+	* @param {TooltipBox} target - The hovered or focused element
+	* @param {{ width: number, height: number }} tip - The tooltip's measured size
+	* @param {{ width: number, height: number }} viewport - The window's size
+	* @returns {TooltipPlace}
+	*/
+	function placeTooltip(target, tip, viewport) {
+		const above = target.top - 10 - tip.height;
+		const below = target.top + target.height + 10;
+		const fitsAbove = above >= 8;
+		const fitsBelow = below + tip.height <= viewport.height - 8;
+		/** @type {'top' | 'bottom'} */
+		let side = "top";
+		if (!fitsAbove) side = fitsBelow || viewport.height - target.top - target.height > target.top ? "bottom" : "top";
+		const centre = target.left + target.width / 2;
+		const left = clamp(centre - tip.width / 2, 8, viewport.width - 8 - tip.width);
+		const top = clamp(side === "top" ? above : below, 8, viewport.height - 8 - tip.height);
+		const arrow = clamp(centre - left, ARROW_INSET, tip.width - ARROW_INSET);
+		return {
+			left,
+			top,
+			side,
+			arrow
+		};
+	}
+	/**
+	* The text a title shows in the tooltip: trimmed, its line breaks kept, and empty for a blank title.
+	* @param {string | null | undefined} title
+	* @returns {string}
+	*/
+	function tooltipText(title) {
+		return (title ?? "").trim();
+	}
+	/**
+	* A value kept between a low and a high bound; the low bound wins when they cross, so a tooltip wider than the window
+	* starts at its left margin.
+	* @param {number} value
+	* @param {number} low
+	* @param {number} high
+	* @returns {number}
+	*/
+	function clamp(value, low, high) {
+		return Math.max(low, Math.min(value, high));
+	}
+	//#endregion
+	//#region src/lib../../static/art/footprints.js
+	/**
+	* Each landmark's footprint, keyed by its catalog slug: rows top first, as printed,
+	* with `X` for an occupied plot and `.` for an empty one. Any of the four rotations
+	* may be placed, but never a mirror image (R15).
+	* Sources: 02 §5 (base), 03 §1.6 (Plans & Ploys), 03 §2.10 (Arts & Architecture),
+	* with R63 (Castle, 12 plots) and R65 (the corrected Villa, Birdwatching Perch and Castle).
+	* @type {Readonly<Record<string, readonly string[]>>}
+	*/
+	var FOOTPRINTS = Object.freeze(Object.fromEntries(Object.entries({
+		lighthouse: ["XX", "XX"],
+		"train-station": [
+			"XXX",
+			"XXX",
+			"XXX"
+		],
+		"launch-pad": ["XXX", "XXX"],
+		apothecary: ["XX", "XX"],
+		academy: ["XXXX", "XXXX"],
+		laboratory: ["XXX", "XXX"],
+		forge: ["XX", "XX"],
+		"rubber-works": [
+			"..XX",
+			"..XX",
+			"XXXX",
+			"XXXX"
+		],
+		"tech-hub": ["XXX", "XXX"],
+		barracks: ["XX", "XX"],
+		"tank-factory": [
+			"XXX",
+			"XXX",
+			"XXX"
+		],
+		"fusion-reactor": [
+			".XX",
+			"XXX",
+			"XXX"
+		],
+		bakery: ["XX", "XX"],
+		barn: [
+			"XXX",
+			"XXX",
+			"XXX"
+		],
+		"com-tower": ["XXX", "XXX"],
+		library: ["XXXX", "XXXX"],
+		"stock-market": ["XX", "XX"],
+		treasury: ["XX", "XX"],
+		"digital-studio": ["XXX", "XXX"],
+		"game-store": ["XXX", "XXX"],
+		skyscraper: [
+			"XXX",
+			"XXX",
+			"XXX"
+		],
+		"tv-station": [
+			".XX",
+			"XXX",
+			"XXX"
+		],
+		"urban-farm": [
+			".XX",
+			"XXX",
+			"XXX"
+		],
+		stadium: ["XXXX", "XXXX"],
+		monolith: ["XX", "XX"],
+		villa: [
+			"X..",
+			"XXX",
+			"XXX"
+		],
+		"birdwatching-perch": [".XXX", "XXX."],
+		castle: [
+			".XXX",
+			"XXXX",
+			".XXX",
+			".XX."
+		],
+		windmill: ["XXXX", ".XX."],
+		bridge: [
+			".XX.",
+			"XXXX",
+			".XX."
+		],
+		"clock-tower": ["XX", "XX"],
+		"opera-house": [
+			"XX",
+			"XX",
+			".X"
+		],
+		holocenter: [
+			"XXX",
+			"XXX",
+			"XXX",
+			".X."
+		]
+	}).map(([slug, rows]) => [slug, Object.freeze(rows)])));
+	//#endregion
+	//#region src/lib/engine/data/landmarks.js
+	/** @typedef {import('./ids.js').TrackId} TrackId */
+	/**
+	* Where a landmark comes from: the first player into a track's tier II, III or IV, upgrading the tech card of the same
+	* name to the top row, the goal of the landmark card of the same name, exploring a space tile (#32), or playing a
+	* tapestry card (#33).
+	* @typedef {{ track: TrackId, tier: 2 | 3 | 4, space: 4 | 7 | 10 } | { tech: string } | { card: string } | { spaceTile: number } | { tapestry: string }} LandmarkSource
+	*/
+	/**
+	* A landmark. There is exactly one of each.
+	* @typedef {Object} Landmark
+	* @property {string} id - The catalog slug, such as 'lighthouse'
+	* @property {string} name
+	* @property {readonly string[]} footprint - Rows top first, X for a covered plot; any of the 4 rotations, never a mirror (R15)
+	* @property {LandmarkSource} source
+	* @property {string} [expansion] - Its expansion's code; left out for the base game's
+	* @property {boolean} [arts] - An arts-track landmark, in a game only with the arts track in play (#35)
+	*/
+	/**
+	* A landmark with its shared footprint.
+	* @param {string} id
+	* @param {string} name
+	* @param {LandmarkSource} source
+	* @returns {Landmark}
+	*/
+	function landmark(id, name, source) {
+		const footprint = FOOTPRINTS[id];
+		if (!footprint) throw new RangeError(`landmark ${id} has no footprint`);
+		return {
+			id,
+			name,
+			footprint,
+			source
+		};
+	}
+	/**
+	* The 18 base landmarks: the 12 track landmarks in track order, then the 6 tech-card landmarks.
+	* @type {readonly Landmark[]}
+	*/
+	var LANDMARKS = deepFreeze([
+		landmark("lighthouse", "Lighthouse", {
+			track: "exploration",
+			tier: 2,
+			space: 4
+		}),
+		landmark("train-station", "Train Station", {
+			track: "exploration",
+			tier: 3,
+			space: 7
+		}),
+		landmark("launch-pad", "Launch Pad", {
+			track: "exploration",
+			tier: 4,
+			space: 10
+		}),
+		landmark("apothecary", "Apothecary", {
+			track: "science",
+			tier: 2,
+			space: 4
+		}),
+		landmark("academy", "Academy", {
+			track: "science",
+			tier: 3,
+			space: 7
+		}),
+		landmark("laboratory", "Laboratory", {
+			track: "science",
+			tier: 4,
+			space: 10
+		}),
+		landmark("forge", "Forge", {
+			track: "technology",
+			tier: 2,
+			space: 4
+		}),
+		landmark("rubber-works", "Rubber Works", {
+			track: "technology",
+			tier: 3,
+			space: 7
+		}),
+		landmark("tech-hub", "Tech Hub", {
+			track: "technology",
+			tier: 4,
+			space: 10
+		}),
+		landmark("barracks", "Barracks", {
+			track: "military",
+			tier: 2,
+			space: 4
+		}),
+		landmark("tank-factory", "Tank Factory", {
+			track: "military",
+			tier: 3,
+			space: 7
+		}),
+		landmark("fusion-reactor", "Fusion Reactor", {
+			track: "military",
+			tier: 4,
+			space: 10
+		}),
+		landmark("bakery", "Bakery", { tech: "bakery" }),
+		landmark("barn", "Barn", { tech: "barn" }),
+		landmark("com-tower", "Com Tower", { tech: "com-tower" }),
+		landmark("library", "Library", { tech: "library" }),
+		landmark("stock-market", "Stock Market", { tech: "stock-market" }),
+		landmark("treasury", "Treasury", { tech: "treasury" })
+	]);
+	/**
+	* The expansions' landmarks: Plans & Ploys' 5 landmark-card landmarks and the Monolith (03 §1.6, #32), the Stadium
+	* that Entertain the Masses gains (#33), A&A's 5 landmark-card landmarks, which stay without the arts track, and the
+	* arts track's 3 (03 §2.3, §2.10, #35).
+	* @type {readonly Landmark[]}
+	*/
+	var EXPANSION_LANDMARKS = deepFreeze([
+		...[
+			landmark("game-store", "Game Store", { card: "game-store" }),
+			landmark("tv-station", "TV Station", { card: "tv-station" }),
+			landmark("digital-studio", "Digital Studio", { card: "digital-studio" }),
+			landmark("skyscraper", "Skyscraper", { card: "skyscraper" }),
+			landmark("urban-farm", "Urban Farm", { card: "urban-farm" }),
+			landmark("monolith", "Monolith", { spaceTile: 19 }),
+			landmark("stadium", "Stadium", { tapestry: "entertain-the-masses" })
+		].map((l) => ({
+			...l,
+			expansion: "pp"
+		})),
+		...[
+			landmark("villa", "Villa", { card: "villa" }),
+			landmark("birdwatching-perch", "Birdwatching Perch", { card: "birdwatching-perch" }),
+			landmark("castle", "Castle", { card: "castle" }),
+			landmark("windmill", "Windmill", { card: "windmill" }),
+			landmark("bridge", "Bridge", { card: "bridge" })
+		].map((l) => ({
+			...l,
+			expansion: "aa"
+		})),
+		...[
+			landmark("clock-tower", "Clock Tower", {
+				track: "arts",
+				tier: 2,
+				space: 4
+			}),
+			landmark("opera-house", "Opera House", {
+				track: "arts",
+				tier: 3,
+				space: 7
+			}),
+			landmark("holocenter", "Holocenter", {
+				track: "arts",
+				tier: 4,
+				space: 10
+			})
+		].map((l) => ({
+			...l,
+			expansion: "aa",
+			arts: true
+		}))
+	]);
+	Object.freeze([...LANDMARKS, ...EXPANSION_LANDMARKS]);
+	deepFreeze([
+		"fusion-reactor",
+		"skyscraper",
+		"holocenter",
+		"launch-pad",
+		"laboratory",
+		"tech-hub",
+		"lighthouse",
+		"forge",
+		"train-station",
+		"academy",
+		"rubber-works",
+		"tank-factory",
+		"apothecary",
+		"barracks",
+		"castle",
+		"barn",
+		"bridge",
+		"library",
+		"stadium",
+		"digital-studio",
+		"tv-station",
+		"urban-farm",
+		"villa",
+		"birdwatching-perch",
+		"com-tower",
+		"game-store",
+		"windmill",
+		"opera-house",
+		"bakery",
+		"clock-tower",
+		"monolith",
+		"stock-market",
+		"treasury"
+	]);
+	var DISTRICT_SIZE = 3;
+	Object.freeze({
+		rows: 9,
+		cols: 9,
+		districts: Object.freeze([...Array(9).keys()].map((district) => {
+			const top = Math.floor(district / DISTRICT_SIZE) * DISTRICT_SIZE;
+			const left = district % DISTRICT_SIZE * DISTRICT_SIZE;
+			return Object.freeze([...Array(9).keys()].map((n) => (top + Math.floor(n / DISTRICT_SIZE)) * 9 + left + n % DISTRICT_SIZE));
+		}))
+	});
+	/**
+	* Turns a footprint clockwise. Footprints are rows, top first, with X for a covered plot and . for an empty one.
+	* @param {readonly string[]} rows
+	* @param {number} turns - Quarter turns; negative turns go anticlockwise.
+	* @returns {string[]}
+	*/
+	function rotateFootprint(rows, turns) {
+		let grid = rows.map((row) => [...row]);
+		for (let turn = 0; turn < (turns % 4 + 4) % 4; turn++) grid = grid[0].map((_, col) => grid.map((row) => row[col]).reverse());
+		return grid.map((row) => row.join(""));
+	}
+	//#endregion
+	//#region src/lib/placement.js
+	/**
+	* The covered plots of a shape as an SVG path, one unit square per plot.
+	* @param {readonly string[]} shape - Rows, top first, with X for a covered plot
+	* @param {number} [gap=0] - Space between neighbouring plots, in plots, as on a card's footprint (#110)
+	* @returns {string}
+	*/
+	function fillPath(shape, gap = 0) {
+		/** @param {number} index */
+		const at = (index) => Math.round(index * (1 + gap) * 1e4) / 1e4;
+		return shape.flatMap((line, row) => [...line].map((cell, col) => cell === "X" ? `M${at(col)} ${at(row)}h1v1h-1z` : "")).join("");
+	}
+	/**
+	* How a landmark's picture, drawn for its footprint as printed, is turned to fill the turned shape: about the shape's centre, in plots (#110).
+	* @param {readonly string[]} footprint - The footprint as printed
+	* @param {number} [rotation=0] - Quarter turns clockwise
+	* @returns {string} An SVG transform
+	*/
+	function pictureTransform(footprint, rotation = 0) {
+		const turns = (rotation % 4 + 4) % 4;
+		const rows = turns % 2 ? footprint[0].length : footprint.length;
+		return `translate(${(turns % 2 ? footprint.length : footprint[0].length) / 2} ${rows / 2}) rotate(${turns * 90}) translate(${-footprint[0].length / 2} ${-footprint.length / 2})`;
+	}
+	/**
+	* The border of a shape as an SVG path: one unit segment for each plot edge that has no covered plot beyond it.
+	* @param {readonly string[]} shape
+	* @returns {string}
+	*/
+	function outlinePath(shape) {
+		/** @param {number} row @param {number} col */
+		const covered = (row, col) => shape[row]?.[col] === "X";
+		return shape.flatMap((line, row) => [...line].flatMap((cell, col) => {
+			if (cell !== "X") return [];
+			return [
+				covered(row - 1, col) ? "" : `M${col} ${row}h1`,
+				covered(row + 1, col) ? "" : `M${col} ${row + 1}h1`,
+				covered(row, col - 1) ? "" : `M${col} ${row}v1`,
+				covered(row, col + 1) ? "" : `M${col + 1} ${row}v1`
+			];
+		})).join("");
+	}
+	//#endregion
+	//#region src/lib/components/player/LandmarkShape.svelte
+	var rest_excludes$3 = /* @__PURE__ */ new Set([
+		"$$slots",
+		"$$events",
+		"$$legacy",
+		"id",
+		"footprint",
+		"rotation",
+		"plotSize",
+		"gap",
+		"picture",
+		"plots",
+		"color",
+		"tint",
+		"element"
+	]);
+	var root$4 = /* @__PURE__ */ from_svg(`<image class="rg-landmark-shape--picture svelte-8hbnh" preserveAspectRatio="none"></image>`);
+	var root_1$2 = /* @__PURE__ */ from_svg(`<svg><defs><clipPath><path></path></clipPath></defs><path class="rg-landmark-shape--fill svelte-8hbnh"></path><!><path class="rg-landmark-shape--outline svelte-8hbnh" vector-effect="non-scaling-stroke"></path></svg>`);
+	function LandmarkShape($$anchor, $$props) {
+		const uid = props_id();
+		push($$props, true);
+		let rotation = prop($$props, "rotation", 3, 0), gap = prop($$props, "gap", 3, 0), picture = prop($$props, "picture", 3, true), plots = prop($$props, "plots", 3, false), color = prop($$props, "color", 3, "var(--gold)"), element = prop($$props, "element", 15), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$3);
+		let shape = /* @__PURE__ */ user_derived(() => rotateFootprint($$props.footprint, rotation()));
+		let rows = /* @__PURE__ */ user_derived(() => get(shape).length);
+		let cols = /* @__PURE__ */ user_derived(() => get(shape)[0].length);
+		let spacing = /* @__PURE__ */ user_derived(() => $$props.plotSize ? gap() / $$props.plotSize : 0);
+		let fill = /* @__PURE__ */ user_derived(() => fillPath(get(shape), get(spacing)));
+		let outline = /* @__PURE__ */ user_derived(() => plots() ? get(fill) : outlinePath(get(shape)));
+		var svg = root_1$2();
+		attribute_effect(svg, () => ({
+			"aria-hidden": "true",
+			...attr,
+			class: `rg-landmark-shape ${($$props.class ? $$props.class : "") ?? ""}`,
+			viewBox: `0 0 ${get(cols) + (get(cols) - 1) * get(spacing)} ${get(rows) + (get(rows) - 1) * get(spacing)}`,
+			preserveAspectRatio: "none",
+			[STYLE]: {
+				width: $$props.plotSize ? `${get(cols) * $$props.plotSize + (get(cols) - 1) * gap()}px` : void 0,
+				height: $$props.plotSize ? `${get(rows) * $$props.plotSize + (get(rows) - 1) * gap()}px` : void 0,
+				"--rg-landmark-shape-color": color(),
+				"--rg-landmark-shape-tint": $$props.tint
+			}
+		}), void 0, void 0, void 0, "svelte-8hbnh");
+		var defs = child(svg);
+		var clipPath = child(defs);
+		var path = only_child(clipPath);
+		reset(defs);
+		var path_1 = sibling(defs);
+		var node = sibling(path_1);
+		var consequent = ($$anchor) => {
+			var image = root$4();
+			template_effect(($0, $1) => {
+				set_attribute(image, "href", $0);
+				set_attribute(image, "width", $$props.footprint[0].length);
+				set_attribute(image, "height", $$props.footprint.length);
+				set_attribute(image, "transform", $1);
+			}, [() => artUrl(`landmark/${$$props.id}`), () => pictureTransform($$props.footprint, rotation())]);
+			append($$anchor, image);
+		};
+		if_block(node, ($$render) => {
+			if (picture() && $$props.id) $$render(consequent);
+		});
+		var path_2 = sibling(node);
+		reset(svg);
+		bind_this(svg, ($$value) => element($$value), () => element());
+		template_effect(() => {
+			set_attribute(clipPath, "id", `${uid}-clip`);
+			set_attribute(path, "d", get(fill));
+			set_attribute(path_1, "d", get(fill));
+			set_attribute(path_2, "d", get(outline));
+			set_attribute(path_2, "clip-path", `url(#${uid}-clip)`);
+		});
+		append($$anchor, svg);
+		pop();
+	}
+	//#endregion
+	//#region src/lib/components/board/LandmarkHoverDetail.svelte
+	var rest_excludes$2 = /* @__PURE__ */ new Set([
+		"$$slots",
+		"$$events",
+		"$$legacy",
+		"id"
+	]);
+	var root$3 = /* @__PURE__ */ from_html(`<div><img class="rg-landmark-hover-detail--art svelte-150i15g" alt="" aria-hidden="true" draggable="false"/> <span class="rg-landmark-hover-detail--name svelte-150i15g"> </span> <div class="rg-landmark-card--footprint rg-landmark-hover-detail--footprint svelte-150i15g"><!></div></div>`);
+	function LandmarkHoverDetail($$anchor, $$props) {
+		push($$props, true);
+		/** @type {LandmarkHoverDetailProps} */
+		let attr = /* @__PURE__ */ rest_props($$props, rest_excludes$2);
+		const landmark = /* @__PURE__ */ user_derived(() => LANDMARKS.find((item) => item.id === $$props.id));
+		var fragment = comment();
+		var node = first_child(fragment);
+		var consequent = ($$anchor) => {
+			var div = root$3();
+			attribute_effect(div, () => ({
+				...attr,
+				class: `rg-landmark-hover-detail ${$$props.class ?? "" ?? ""}`,
+				"data-landmark-detail": get(landmark).id
+			}), void 0, void 0, void 0, "svelte-150i15g");
+			var img = child(div);
+			var span = sibling(img, 2);
+			var text = only_child(span, true);
+			var div_1 = sibling(span, 2);
+			LandmarkShape(child(div_1), {
+				get footprint() {
+					return get(landmark).footprint;
+				},
+				plotSize: 10,
+				gap: 2,
+				picture: false,
+				plots: true,
+				color: "var(--card-line-strong)",
+				tint: "var(--card-score-line)"
+			});
+			reset(div_1);
+			reset(div);
+			template_effect(($0, $1, $2) => {
+				set_attribute(img, "src", $0);
+				set_text(text, get(landmark).name);
+				set_attribute(div_1, "aria-label", $1);
+				set_attribute(div_1, "data-footprint", $2);
+			}, [
+				() => artUrl(`landmark/${get(landmark).id}`),
+				() => `Capital footprint: ${get(landmark).footprint.join(" / ")}`,
+				() => get(landmark).footprint.join("/")
+			]);
+			append($$anchor, div);
+		};
+		if_block(node, ($$render) => {
+			if (get(landmark)) $$render(consequent);
 		});
 		append($$anchor, fragment);
 		pop();
@@ -11907,22 +13377,22 @@ createHTML: (html) => {
 	}
 	//#endregion
 	//#region src/lib/components/player/AutomaHexPattern.svelte
-	var rest_excludes$2 = /* @__PURE__ */ new Set([
+	var rest_excludes$1 = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
 		"pattern",
 		"showOrder"
 	]);
-	var root$3 = /* @__PURE__ */ from_svg(`<polygon><title> </title></polygon>`);
-	var root_1$3 = /* @__PURE__ */ from_svg(`<polyline class="rg-automa-hex-pattern--next svelte-1npd85q"></polyline>`);
-	var root_2$2 = /* @__PURE__ */ from_svg(`<polyline></polyline>`);
-	var root_3$1 = /* @__PURE__ */ from_svg(`<text class="svelte-1npd85q"> </text>`);
-	var root_4$1 = /* @__PURE__ */ from_svg(`<svg><title> </title><defs><marker markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 6 3 L 0 6 Z" class="rg-automa-hex-pattern--first-fill svelte-1npd85q"></path></marker><marker markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 6 3 L 0 6 Z" class="rg-automa-hex-pattern--next-fill svelte-1npd85q"></path></marker></defs><!><!><!><!></svg>`);
+	var root$2 = /* @__PURE__ */ from_svg(`<polygon><title> </title></polygon>`);
+	var root_1$1 = /* @__PURE__ */ from_svg(`<polyline class="rg-automa-hex-pattern--next svelte-1npd85q"></polyline>`);
+	var root_2$1 = /* @__PURE__ */ from_svg(`<polyline></polyline>`);
+	var root_3 = /* @__PURE__ */ from_svg(`<text class="svelte-1npd85q"> </text>`);
+	var root_4 = /* @__PURE__ */ from_svg(`<svg><title> </title><defs><marker markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 6 3 L 0 6 Z" class="rg-automa-hex-pattern--first-fill svelte-1npd85q"></path></marker><marker markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 6 3 L 0 6 Z" class="rg-automa-hex-pattern--next-fill svelte-1npd85q"></path></marker></defs><!><!><!><!></svg>`);
 	function AutomaHexPattern($$anchor, $$props) {
 		const markerId = props_id();
 		push($$props, true);
-		let showOrder = prop($$props, "showOrder", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$2);
+		let showOrder = prop($$props, "showOrder", 3, false), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$1);
 		const radius = 15;
 		const hexes = /* @__PURE__ */ user_derived(() => hexesByPattern($$props.pattern).map((key, index) => ({
 			key,
@@ -11963,7 +13433,7 @@ createHTML: (html) => {
 			const last = points[points.length - 1];
 			return `${first[0] - get(direction)[0] * radius * .65},${first[1] - get(direction)[1] * radius * .65} ${last[0] + get(direction)[0] * radius * .65},${last[1] + get(direction)[1] * radius * .65}`;
 		}
-		var svg = root_4$1();
+		var svg = root_4();
 		attribute_effect(svg, () => ({
 			...attr,
 			class: `rg-automa-hex-pattern ${$$props.class ?? "" ?? ""}`,
@@ -11979,7 +13449,7 @@ createHTML: (html) => {
 		reset(defs);
 		var node = sibling(defs);
 		each(node, 17, () => get(hexes), (hex) => hex.key, ($$anchor, hex) => {
-			var polygon = root$3();
+			var polygon = root$2();
 			let classes;
 			var text_1 = only_child(child(polygon));
 			reset(polygon);
@@ -11992,7 +13462,7 @@ createHTML: (html) => {
 		});
 		var node_1 = sibling(node);
 		var consequent = ($$anchor) => {
-			var polyline = root_1$3();
+			var polyline = root_1$1();
 			template_effect(($0) => {
 				set_attribute(polyline, "points", $0);
 				set_attribute(polyline, "marker-end", `url(#${markerId}-next)`);
@@ -12004,7 +13474,7 @@ createHTML: (html) => {
 		});
 		var node_2 = sibling(node_1);
 		each(node_2, 19, () => get(rows), (row) => row.key, ($$anchor, row, index) => {
-			var polyline_1 = root_2$2();
+			var polyline_1 = root_2$1();
 			let classes_1;
 			template_effect(($0) => {
 				classes_1 = set_class(polyline_1, 0, "rg-automa-hex-pattern--row svelte-1npd85q", null, classes_1, { "rg-automa-hex-pattern--first": get(index) === 0 });
@@ -12017,7 +13487,7 @@ createHTML: (html) => {
 		var consequent_1 = ($$anchor) => {
 			var fragment = comment();
 			each(first_child(fragment), 17, () => get(hexes), (hex) => hex.key, ($$anchor, hex) => {
-				var text_2 = root_3$1();
+				var text_2 = root_3();
 				var text_3 = only_child(text_2, true);
 				template_effect(() => {
 					set_attribute(text_2, "x", get(hex).center[0]);
@@ -12041,631 +13511,273 @@ createHTML: (html) => {
 		pop();
 	}
 	//#endregion
-	//#region src/lib/engine/data/automa-cards.js
-	/** @typedef {import('./ids.js').BoardTrackId} BoardTrackId */
-	/** ALL excludes finished tracks; LMK seeks the nearest unclaimed landmark or track end; END seeks the nearest track end (02 §9.4). @typedef {'ALL' | 'LMK' | 'END'} AutomaTrackIndicator */
-	/** The heart means the acting bot's favourite, not a fixed track. @typedef {BoardTrackId | 'favourite'} AutomaTrackTiebreaker */
-	/**
-	* A base card's printed data. The left card supplies track indicators and income;
-	* the right supplies track/hex tiebreakers and topple. Automa reads the stored
-	* top-to-bottom tiebreakers forwards; Shadow Empire reads them backwards (02 §9.4).
-	* @typedef {Object} AutomaCard
-	* @property {number} id - Printed ID, 1–22
-	* @property {'decision' | 'progress'} deck - Circle IDs 1–7; rectangle IDs 8–22
-	* @property {AutomaTrackIndicator} automaTrack
-	* @property {AutomaTrackIndicator} shadowEmpireTrack
-	* @property {readonly AutomaTrackTiebreaker[]} trackTiebreakers
-	* @property {number} hexPattern - Pattern ID 1–10, resolved separately (R39)
-	* @property {boolean} income
-	* @property {boolean} topple
-	*/
-	/** @type {readonly AutomaCard[]} */
-	var AUTOMA_CARDS = deepFreeze([
-		{
-			id: 1,
-			deck: "decision",
-			automaTrack: "END",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"favourite",
-				"military",
-				"exploration",
-				"technology",
-				"science"
-			],
-			hexPattern: 1,
-			income: true,
-			topple: true
-		},
-		{
-			id: 2,
-			deck: "decision",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "LMK",
-			trackTiebreakers: [
-				"military",
-				"exploration",
-				"favourite",
-				"science",
-				"technology"
-			],
-			hexPattern: 2,
-			income: true,
-			topple: false
-		},
-		{
-			id: 3,
-			deck: "decision",
-			automaTrack: "LMK",
-			shadowEmpireTrack: "END",
-			trackTiebreakers: [
-				"science",
-				"technology",
-				"military",
-				"exploration",
-				"favourite"
-			],
-			hexPattern: 1,
-			income: false,
-			topple: true
-		},
-		{
-			id: 4,
-			deck: "decision",
-			automaTrack: "LMK",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"technology",
-				"science",
-				"favourite",
-				"military",
-				"exploration"
-			],
-			hexPattern: 3,
-			income: true,
-			topple: false
-		},
-		{
-			id: 5,
-			deck: "decision",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "LMK",
-			trackTiebreakers: [
-				"exploration",
-				"military",
-				"technology",
-				"science",
-				"favourite"
-			],
-			hexPattern: 10,
-			income: false,
-			topple: false
-		},
-		{
-			id: 6,
-			deck: "decision",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"military",
-				"science",
-				"favourite",
-				"technology",
-				"exploration"
-			],
-			hexPattern: 1,
-			income: false,
-			topple: true
-		},
-		{
-			id: 7,
-			deck: "decision",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"favourite",
-				"technology",
-				"exploration",
-				"military",
-				"science"
-			],
-			hexPattern: 5,
-			income: false,
-			topple: false
-		},
-		{
-			id: 8,
-			deck: "progress",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"exploration",
-				"military",
-				"technology",
-				"favourite",
-				"science"
-			],
-			hexPattern: 6,
-			income: true,
-			topple: false
-		},
-		{
-			id: 9,
-			deck: "progress",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"technology",
-				"science",
-				"favourite",
-				"exploration",
-				"military"
-			],
-			hexPattern: 4,
-			income: true,
-			topple: true
-		},
-		{
-			id: 10,
-			deck: "progress",
-			automaTrack: "LMK",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"military",
-				"exploration",
-				"technology",
-				"science",
-				"favourite"
-			],
-			hexPattern: 9,
-			income: false,
-			topple: true
-		},
-		{
-			id: 11,
-			deck: "progress",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "LMK",
-			trackTiebreakers: [
-				"favourite",
-				"exploration",
-				"military",
-				"science",
-				"technology"
-			],
-			hexPattern: 7,
-			income: false,
-			topple: false
-		},
-		{
-			id: 12,
-			deck: "progress",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"science",
-				"technology",
-				"favourite",
-				"military",
-				"exploration"
-			],
-			hexPattern: 8,
-			income: true,
-			topple: true
-		},
-		{
-			id: 13,
-			deck: "progress",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "LMK",
-			trackTiebreakers: [
-				"science",
-				"technology",
-				"military",
-				"favourite",
-				"exploration"
-			],
-			hexPattern: 6,
-			income: false,
-			topple: false
-		},
-		{
-			id: 14,
-			deck: "progress",
-			automaTrack: "LMK",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"exploration",
-				"favourite",
-				"science",
-				"military",
-				"technology"
-			],
-			hexPattern: 4,
-			income: true,
-			topple: true
-		},
-		{
-			id: 15,
-			deck: "progress",
-			automaTrack: "LMK",
-			shadowEmpireTrack: "LMK",
-			trackTiebreakers: [
-				"favourite",
-				"military",
-				"technology",
-				"exploration",
-				"science"
-			],
-			hexPattern: 9,
-			income: false,
-			topple: true
-		},
-		{
-			id: 16,
-			deck: "progress",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "LMK",
-			trackTiebreakers: [
-				"technology",
-				"exploration",
-				"favourite",
-				"science",
-				"military"
-			],
-			hexPattern: 7,
-			income: true,
-			topple: false
-		},
-		{
-			id: 17,
-			deck: "progress",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"exploration",
-				"favourite",
-				"technology",
-				"military",
-				"science"
-			],
-			hexPattern: 5,
-			income: true,
-			topple: false
-		},
-		{
-			id: 18,
-			deck: "progress",
-			automaTrack: "LMK",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"favourite",
-				"exploration",
-				"military",
-				"science",
-				"technology"
-			],
-			hexPattern: 1,
-			income: false,
-			topple: false
-		},
-		{
-			id: 19,
-			deck: "progress",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"military",
-				"technology",
-				"science",
-				"exploration",
-				"favourite"
-			],
-			hexPattern: 2,
-			income: true,
-			topple: true
-		},
-		{
-			id: 20,
-			deck: "progress",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"technology",
-				"exploration",
-				"science",
-				"military",
-				"favourite"
-			],
-			hexPattern: 1,
-			income: false,
-			topple: false
-		},
-		{
-			id: 21,
-			deck: "progress",
-			automaTrack: "ALL",
-			shadowEmpireTrack: "END",
-			trackTiebreakers: [
-				"exploration",
-				"technology",
-				"favourite",
-				"science",
-				"military"
-			],
-			hexPattern: 3,
-			income: true,
-			topple: true
-		},
-		{
-			id: 22,
-			deck: "progress",
-			automaTrack: "END",
-			shadowEmpireTrack: "ALL",
-			trackTiebreakers: [
-				"military",
-				"exploration",
-				"technology",
-				"favourite",
-				"science"
-			],
-			hexPattern: 1,
-			income: false,
-			topple: true
-		}
-	]);
-	deepFreeze(AUTOMA_CARDS.filter((card) => card.id <= 12));
-	//#endregion
-	//#region src/lib/components/player/AutomaDecisionCard.svelte
-	var rest_excludes$1 = /* @__PURE__ */ new Set([
-		"$$slots",
-		"$$events",
-		"$$legacy",
-		"card",
-		"id",
-		"role",
-		"favouriteTrack"
-	]);
-	var root$2 = /* @__PURE__ */ from_html(`<img alt="Income" class="svelte-nbv7pj"/><strong>+</strong>`, 1);
-	var root_1$2 = /* @__PURE__ */ from_html(`<span aria-label="No income icon">—</span>`);
-	var root_2$1 = /* @__PURE__ */ from_html(`<div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Automa track</span><strong> </strong></div> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Shadow Empire track</span><strong> </strong></div> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Income</span><span class="rg-automa-decision-card--value svelte-nbv7pj"><!></span></div>`, 1);
-	var root_3 = /* @__PURE__ */ from_html(`<img alt="Topple outpost" class="svelte-nbv7pj"/>`);
-	var root_4 = /* @__PURE__ */ from_html(`<span aria-label="No topple icon">—</span>`);
-	var root_5 = /* @__PURE__ */ from_html(`<!> <div class="rg-automa-decision-card--metric svelte-nbv7pj"><span>Topple</span><span class="rg-automa-decision-card--value svelte-nbv7pj"><!></span></div>`, 1);
-	var root_6 = /* @__PURE__ */ from_html(`<li class="rg-automa-decision-card--track svelte-nbv7pj"><img alt="" class="svelte-nbv7pj"/><span class="rg-automa-decision-card--star svelte-nbv7pj"> </span><span> </span></li>`);
-	var root_7 = /* @__PURE__ */ from_html(`<!> <div class="rg-automa-decision-card--body svelte-nbv7pj"><!> <!> <ol class="rg-automa-decision-card--tracks svelte-nbv7pj" aria-label="Track tie-break order"></ol></div> <footer class="rg-automa-decision-card--footer svelte-nbv7pj"><span></span> </footer>`, 1);
-	function AutomaDecisionCard($$anchor, $$props) {
-		push($$props, true);
-		/** @type {AutomaDecisionCardProps} */
-		let id = prop($$props, "id", 3, 1), role = prop($$props, "role", 3, "full"), favouriteTrack = prop($$props, "favouriteTrack", 3, "exploration"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes$1);
-		const face = /* @__PURE__ */ user_derived(() => $$props.card ?? AUTOMA_CARDS.find((item) => item.id === id()) ?? AUTOMA_CARDS[0]);
-		const tracks = /* @__PURE__ */ user_derived(() => [...new Set(get(face).trackTiebreakers.map((track) => track === "favourite" ? favouriteTrack() : track))]);
-		const title = /* @__PURE__ */ user_derived(() => role() === "full" ? "Decision" : role() === "track" ? "Track / Income" : "Hex / Topple");
-		{
-			let $0 = /* @__PURE__ */ user_derived(() => $$props.class ?? "");
-			let $1 = /* @__PURE__ */ user_derived(() => `Automa decision card ${get(face).id}`);
-			CardFrame($$anchor, spread_props({ plain: true }, () => attr, {
-				get class() {
-					return `rg-automa-decision-card ${get($0) ?? ""}`;
-				},
-				get "aria-label"() {
-					return get($1);
-				},
-				children: ($$anchor, $$slotProps) => {
-					var fragment_1 = root_7();
-					var node = first_child(fragment_1);
-					CardBand(node, {
-						get title() {
-							return get(title);
-						},
-						size: "small",
-						class: "rg-automa-decision-card--band"
-					});
-					var div = sibling(node, 2);
-					var node_1 = child(div);
-					var consequent_1 = ($$anchor) => {
-						var fragment_2 = root_2$1();
-						var div_1 = first_child(fragment_2);
-						var text = only_child(sibling(child(div_1)), true);
-						reset(div_1);
-						var div_2 = sibling(div_1, 2);
-						var text_1 = only_child(sibling(child(div_2)), true);
-						reset(div_2);
-						var div_3 = sibling(div_2, 2);
-						var span = sibling(child(div_3));
-						var node_2 = child(span);
-						var consequent = ($$anchor) => {
-							var fragment_3 = root$2();
-							var img = first_child(fragment_3);
-							next();
-							template_effect(($0) => set_attribute(img, "src", $0), [() => artUrl("building/house")]);
-							append($$anchor, fragment_3);
-						};
-						var alternate = ($$anchor) => {
-							append($$anchor, root_1$2());
-						};
-						if_block(node_2, ($$render) => {
-							if (get(face).income) $$render(consequent);
-							else $$render(alternate, -1);
-						});
-						reset(span);
-						reset(div_3);
-						template_effect(() => {
-							set_text(text, get(face).automaTrack);
-							set_text(text_1, get(face).shadowEmpireTrack);
-						});
-						append($$anchor, fragment_2);
-					};
-					if_block(node_1, ($$render) => {
-						if (role() !== "hex") $$render(consequent_1);
-					});
-					var node_3 = sibling(node_1, 2);
-					var consequent_3 = ($$anchor) => {
-						var fragment_4 = root_5();
-						var node_4 = first_child(fragment_4);
-						AutomaHexPattern(node_4, { get pattern() {
-							return get(face).hexPattern;
-						} });
-						var div_4 = sibling(node_4, 2);
-						var span_2 = sibling(child(div_4));
-						var node_5 = child(span_2);
-						var consequent_2 = ($$anchor) => {
-							var img_1 = root_3();
-							template_effect(($0) => set_attribute(img_1, "src", $0), [() => artUrl("piece/outpost-toppled")]);
-							append($$anchor, img_1);
-						};
-						var alternate_1 = ($$anchor) => {
-							append($$anchor, root_4());
-						};
-						if_block(node_5, ($$render) => {
-							if (get(face).topple) $$render(consequent_2);
-							else $$render(alternate_1, -1);
-						});
-						reset(span_2);
-						reset(div_4);
-						append($$anchor, fragment_4);
-					};
-					if_block(node_3, ($$render) => {
-						if (role() !== "track") $$render(consequent_3);
-					});
-					var ol = sibling(node_3, 2);
-					each(ol, 20, () => get(tracks), (track) => track, ($$anchor, track) => {
-						var li = root_6();
-						let styles;
-						var img_2 = child(li);
-						var span_4 = sibling(img_2);
-						var text_2 = only_child(span_4, true);
-						var text_3 = only_child(sibling(span_4), true);
-						reset(li);
-						template_effect(($0, $1) => {
-							styles = set_style(li, "", styles, { "--rg-automa-track-colour": `var(--${track})` });
-							set_attribute(img_2, "src", $0);
-							set_attribute(span_4, "aria-label", track === favouriteTrack() ? "Favourite" : void 0);
-							set_text(text_2, track === favouriteTrack() ? "★" : "");
-							set_text(text_3, $1);
-						}, [() => artUrl(`track/${track}`), () => trackName(track)]);
-						append($$anchor, li);
-					});
-					reset(ol);
-					reset(div);
-					var footer = sibling(div, 2);
-					var span_6 = child(footer);
-					let classes;
-					var text_4 = sibling(span_6);
-					reset(footer);
-					template_effect(() => {
-						classes = set_class(span_6, 1, "rg-automa-decision-card--deck svelte-nbv7pj", null, classes, { "rg-automa-decision-card--deck-circle": get(face).deck === "decision" });
-						set_attribute(span_6, "aria-label", get(face).deck === "decision" ? "Decision deck" : "Progress deck");
-						set_text(text_4, ` Automa #${get(face).id ?? ""}`);
-					});
-					append($$anchor, fragment_1);
-				},
-				$$slots: { default: true }
-			}));
-		}
-		pop();
-	}
-	//#endregion
-	//#region src/lib/components/board/BotActionReport.svelte
+	//#region src/lib/components/ui/Tooltip.svelte
 	var rest_excludes = /* @__PURE__ */ new Set([
 		"$$slots",
 		"$$events",
 		"$$legacy",
-		"name",
-		"seat",
-		"cards",
-		"favouriteTrack",
-		"children"
+		"placement",
+		"text",
+		"side",
+		"delay"
 	]);
-	var root$1 = /* @__PURE__ */ from_html(`<div class="rg-bot-action-report--cards svelte-4qd516"></div>`);
-	var root_1$1 = /* @__PURE__ */ from_html(`<section><header class="rg-bot-action-report--header svelte-4qd516"><strong class="svelte-4qd516"><span class="rg-bot-action-report--player svelte-4qd516" aria-hidden="true"></span> <span class="rg-bot-action-report--kind svelte-4qd516">(Automa)</span></strong> <span class="rg-bot-action-report--label svelte-4qd516">Action report</span></header> <div class="rg-bot-action-report--body svelte-4qd516"><div class="rg-bot-action-report--description svelte-4qd516"><!></div> <!></div></section>`);
-	function BotActionReport($$anchor, $$props) {
+	var root$1 = /* @__PURE__ */ from_html(`<div><span class="rg-tooltip--arrow svelte-bgl7um"></span> <span class="rg-tooltip--text svelte-bgl7um"> </span> <!> <!></div>`);
+	function Tooltip($$anchor, $$props) {
 		push($$props, true);
-		/** @type {BotActionReportProps} */
-		let cards = prop($$props, "cards", 19, () => []), favouriteTrack = prop($$props, "favouriteTrack", 3, "exploration"), attr = /* @__PURE__ */ rest_props($$props, rest_excludes);
-		var section = root_1$1();
-		attribute_effect(section, ($0) => ({
-			...attr,
-			class: `rg-bot-action-report ${$$props.class ?? "" ?? ""}`,
-			"aria-label": `${$$props.name} Automa action`,
-			[STYLE]: { "--rg-bot-actor-colour": $0 }
-		}), [() => playerColor($$props.seat)], void 0, void 0, "svelte-4qd516");
-		var header = child(section);
-		var strong = child(header);
-		var text = sibling(child(strong));
-		next();
-		reset(strong);
-		next(2);
-		reset(header);
-		var div = sibling(header, 2);
-		var div_1 = child(div);
-		snippet(child(div_1), () => $$props.children ?? noop);
-		reset(div_1);
-		var node_1 = sibling(div_1, 2);
-		var consequent = ($$anchor) => {
-			var div_2 = root$1();
-			each(div_2, 23, cards, (card, index) => `${card.id}-${index}`, ($$anchor, card, index) => {
-				{
-					let $0 = /* @__PURE__ */ user_derived(() => get(index) === 0 ? "track" : "hex");
-					AutomaDecisionCard($$anchor, {
-						get card() {
-							return get(card);
-						},
-						get role() {
-							return get($0);
-						},
-						get favouriteTrack() {
-							return favouriteTrack();
-						}
-					});
-				}
+		/** @type {TooltipProps} */
+		let placement = prop($$props, "placement", 3, "fixed"), text = prop($$props, "text", 3, ""), side = prop($$props, "side", 3, "top"), delay = prop($$props, "delay", 3, 250), attr = /* @__PURE__ */ rest_props($$props, rest_excludes);
+		/** Where a title waits while its tooltip shows. The element keeps an empty title meanwhile, which hides the browser's own tooltip. */
+		const HELD = "data-rg-title";
+		/** How long after one tooltip closes the next one shows without the wait, so a row of spaces reads as the pointer runs along it. */
+		const WARM_MS = 300;
+		/** @type {HTMLDivElement | undefined} */
+		let element = /* @__PURE__ */ state(void 0);
+		/** The followed title, trimmed. */
+		let followed = /* @__PURE__ */ state("");
+		let followedLandmark = /* @__PURE__ */ state("");
+		let followedPattern = /* @__PURE__ */ state(0);
+		let open = /* @__PURE__ */ state(false);
+		let place = /* @__PURE__ */ state(null);
+		/**
+		* The element whose title shows, or is about to.
+		* @type {Element | null}
+		*/
+		let target = null;
+		/**
+		* How the target was reached: a focused one closes on blur, a hovered one when the pointer leaves.
+		* @type {'pointer' | 'focus'}
+		*/
+		let via = "pointer";
+		/**
+		* The element a press or a key closed the tooltip of; it shows again only once the pointer has left it.
+		* @type {Element | null}
+		*/
+		let dismissed = null;
+		let warmUntil = 0;
+		/** @type {ReturnType<typeof setTimeout> | undefined} */
+		let timer;
+		/** @type {MutationObserver | undefined} */
+		let observer;
+		let content = /* @__PURE__ */ user_derived(() => placement() === "inline" ? text() : get(followed));
+		let shownSide = /* @__PURE__ */ user_derived(() => placement() === "inline" ? side() : get(place)?.side ?? "top");
+		user_effect(() => {
+			if (get(open)) {
+				clockTime.now;
+				if (!target?.isConnected) release();
+			}
+		});
+		user_effect(() => {
+			if (placement() !== "fixed") return;
+			observer = new MutationObserver(titleChangeHandler);
+			/** @type {[string, EventListener][]} */
+			const listeners = [
+				["pointerover", pointeroverHandler],
+				["pointerout", pointeroutHandler],
+				["pointerdown", pointerdownHandler],
+				["focusin", focusinHandler],
+				["focusout", focusoutHandler],
+				["keydown", keydownHandler],
+				["scroll", scrollHandler]
+			];
+			for (const [type, listener] of listeners) window.addEventListener(type, listener, true);
+			window.addEventListener("blur", release);
+			window.addEventListener("resize", release);
+			return () => {
+				release();
+				observer?.disconnect();
+				for (const [type, listener] of listeners) window.removeEventListener(type, listener, true);
+				window.removeEventListener("blur", release);
+				window.removeEventListener("resize", release);
+			};
+		});
+		/** @param {PointerEvent} event */
+		const pointeroverHandler = (event) => {
+			if (event.pointerType === "touch") return;
+			const found = titled(event.target);
+			if (found !== dismissed) dismissed = null;
+			if (found && found === target) {
+				via = "pointer";
+				return;
+			}
+			if (!found || found === dismissed) {
+				release();
+				return;
+			}
+			follow(found, "pointer");
+		};
+		/** @param {PointerEvent} event */
+		const pointeroutHandler = (event) => {
+			if (!event.relatedTarget) release();
+		};
+		/** @param {Event} event */
+		const pointerdownHandler = (event) => {
+			dismissed = titled(event.target);
+			release();
+		};
+		/** @param {Event} event */
+		const focusinHandler = (event) => {
+			const focused = event.target;
+			if (!(focused instanceof Element) || !focused.matches(":focus-visible")) return;
+			const found = titled(focused);
+			if (found && found !== target) follow(found, "focus");
+		};
+		const focusoutHandler = () => {
+			if (via === "focus") release();
+		};
+		const keydownHandler = () => {
+			if (target) {
+				dismissed = target;
+				release();
+			}
+		};
+		/** @param {Event} event */
+		const scrollHandler = (event) => {
+			const scrolled = event.target;
+			if (target && (scrolled === document || scrolled instanceof Node && scrolled.contains(target))) release();
+		};
+		const titleChangeHandler = () => {
+			if (!target) return;
+			set(followedLandmark, target.getAttribute("data-landmark") ?? "", true);
+			set(followedPattern, Number(target.getAttribute("data-automa-pattern")) || 0, true);
+			const title = target.getAttribute("title");
+			if (title === "") return;
+			if (title === null) {
+				target.removeAttribute(HELD);
+				set(followed, "");
+				set(followedLandmark, "");
+				return;
+			}
+			target.setAttribute(HELD, title);
+			target.setAttribute("title", "");
+			set(followed, tooltipText(title), true);
+			if (get(open)) show();
+		};
+		/**
+		* The element whose title a pointer or focus shows: the nearest with a title, as the browser picks it.
+		* @param {EventTarget | null} node
+		* @returns {Element | null}
+		*/
+		function titled(node) {
+			return node instanceof Element ? node.closest("[title]") : null;
+		}
+		/**
+		* Holds an element's title and shows it after the wait.
+		* @param {Element} found
+		* @param {'pointer' | 'focus'} how
+		*/
+		function follow(found, how) {
+			const warm = get(open) || performance.now() < warmUntil;
+			release();
+			const title = found.getAttribute("title") ?? "";
+			if (!tooltipText(title)) return;
+			target = found;
+			via = how;
+			set(followedLandmark, found.getAttribute("data-landmark") ?? "", true);
+			set(followedPattern, Number(found.getAttribute("data-automa-pattern")) || 0, true);
+			found.setAttribute(HELD, title);
+			found.setAttribute("title", "");
+			set(followed, tooltipText(title), true);
+			observer?.observe(found, {
+				attributes: true,
+				attributeFilter: [
+					"title",
+					"data-landmark",
+					"data-automa-pattern"
+				]
 			});
-			reset(div_2);
-			append($$anchor, div_2);
+			timer = setTimeout(show, warm ? 0 : delay());
+		}
+		/** Gives the followed element its title back and closes the tooltip. */
+		function release() {
+			clearTimeout(timer);
+			if (get(open)) warmUntil = performance.now() + WARM_MS;
+			if (target) {
+				if (observer?.takeRecords().length) titleChangeHandler();
+				observer?.disconnect();
+				const held = target.getAttribute(HELD);
+				if (held !== null) {
+					target.setAttribute("title", held);
+					target.removeAttribute(HELD);
+				}
+				target = null;
+			}
+			set(open, false);
+			set(place, null);
+			set(followedLandmark, "");
+			set(followedPattern, 0);
+		}
+		/** Opens the tooltip unseen, measures it, then places it by its element and fades it in. */
+		async function show() {
+			const shown = target;
+			if (!shown?.isConnected || !get(followed)) return;
+			set(open, true);
+			await tick();
+			if (target !== shown || !get(element)) return;
+			const page = document.documentElement;
+			set(place, placeTooltip(shown.getBoundingClientRect(), get(element).getBoundingClientRect(), {
+				width: page.clientWidth,
+				height: page.clientHeight
+			}), true);
+		}
+		var fragment = comment();
+		var node_1 = first_child(fragment);
+		var consequent_2 = ($$anchor) => {
+			var div = root$1();
+			attribute_effect(div, ($0) => ({
+				role: "tooltip",
+				...attr,
+				class: `rg-tooltip rg-tooltip--${placement() ?? ""} rg-tooltip--${get(shownSide) ?? ""} ${($$props.class ? $$props.class : "") ?? ""}`,
+				[CLASS]: {
+					"rg-tooltip--placed": $0,
+					"rg-tooltip--pattern": placement() === "fixed" && get(followedPattern) >= 1 && get(followedPattern) <= 10
+				},
+				[STYLE]: {
+					left: get(place) ? `${get(place).left}px` : void 0,
+					top: get(place) ? `${get(place).top}px` : void 0
+				}
+			}), [() => placement() === "inline" || Boolean(get(place))], void 0, void 0, "svelte-bgl7um");
+			var span = child(div);
+			let styles;
+			var span_1 = sibling(span, 2);
+			var text_1 = only_child(span_1, true);
+			var node_2 = sibling(span_1, 2);
+			var consequent = ($$anchor) => {
+				LandmarkHoverDetail($$anchor, { get id() {
+					return get(followedLandmark);
+				} });
+			};
+			if_block(node_2, ($$render) => {
+				if (placement() === "fixed" && get(followedLandmark)) $$render(consequent);
+			});
+			var node_3 = sibling(node_2, 2);
+			var consequent_1 = ($$anchor) => {
+				AutomaHexPattern($$anchor, { get pattern() {
+					return get(followedPattern);
+				} });
+			};
+			if_block(node_3, ($$render) => {
+				if (placement() === "fixed" && get(followedPattern) >= 1 && get(followedPattern) <= 10) $$render(consequent_1);
+			});
+			reset(div);
+			bind_this(div, ($$value) => set(element, $$value), () => get(element));
+			template_effect(() => {
+				styles = set_style(span, "", styles, { left: get(place) ? `${get(place).arrow}px` : void 0 });
+				set_text(text_1, get(content));
+			});
+			append($$anchor, div);
 		};
 		if_block(node_1, ($$render) => {
-			if (cards().length) $$render(consequent);
+			if (placement() === "inline" || get(open) && get(content)) $$render(consequent_2);
 		});
-		reset(div);
-		reset(section);
-		template_effect(() => set_text(text, `${$$props.name ?? ""} `));
-		append($$anchor, section);
+		append($$anchor, fragment);
 		pop();
-	}
-	//#endregion
-	//#region src/lib/lobby-bots.js
-	/** Historical names assigned to official bot seats, independent of their difficulty. */
-	var BOT_NAMES = Object.freeze([
-		"Egypt",
-		"Mesopotamia",
-		"Indus Valley",
-		"Shang",
-		"Sumer"
-	]);
-	/**
-	* The kind available for the next bot seat; an official type is added at most once.
-	* @param {BotLobbySeat[]} seats
-	* @returns {'automa' | 'shadow' | null}
-	*/
-	function nextBotKind(seats) {
-		const humans = seats.filter((seat) => !seat.kind).length;
-		if (humans === 1 && !seats.some((seat) => seat.kind === "automa")) return "automa";
-		return humans <= 2 && !seats.some((seat) => seat.kind === "shadow") ? "shadow" : null;
-	}
-	/**
-	* The first unused historical name for an added bot.
-	* @param {BotLobbySeat[]} seats
-	* @returns {string}
-	*/
-	function nextBotName(seats) {
-		return BOT_NAMES.find((name) => !seats.some((seat) => seat.name === name)) ?? BOT_NAMES[0];
 	}
 	//#endregion
 	//#region docs/ui/automa-review/App.svelte
 	var root = /* @__PURE__ */ from_html(`<div class="seat-wrap svelte-134kovj"><!> <!></div>`);
 	var root_1 = /* @__PURE__ */ from_html(`Egypt advances on <span class="track-name svelte-134kovj">Exploration</span>.`, 1);
-	var root_2 = /* @__PURE__ */ from_html(`<main class="review svelte-134kovj"><header class="svelte-134kovj"><h1 class="svelte-134kovj">Automa lobby</h1> <div class="role svelte-134kovj"><button class="svelte-134kovj">Host</button><button class="svelte-134kovj">Guest</button></div></header> <section class="lobby svelte-134kovj" aria-label="Lobby preview"><h2 class="svelte-134kovj">Players</h2> <div class="seats svelte-134kovj"></div> <footer class="svelte-134kovj"><span> </span><button class="svelte-134kovj">Start game</button></footer></section> <!> <section class="deck svelte-134kovj"><h2 class="svelte-134kovj">All 22 decision cards</h2> <p>Generated from the canonical card data through the same
-			decision-card component.</p> <div class="card-grid svelte-134kovj"></div></section></main>`);
+	var root_2 = /* @__PURE__ */ from_html(`<!> <main class="review svelte-134kovj"><header class="svelte-134kovj"><h1 class="svelte-134kovj">Automa lobby</h1> <div class="role svelte-134kovj"><button class="svelte-134kovj">Host</button><button class="svelte-134kovj">Guest</button></div></header> <section class="lobby svelte-134kovj" aria-label="Lobby preview"><h2 class="svelte-134kovj">Players</h2> <div class="seats svelte-134kovj"></div> <footer class="svelte-134kovj"><span> </span><button class="svelte-134kovj">Start game</button></footer></section> <!> <section class="deck svelte-134kovj"><h2 class="svelte-134kovj">All 22 decision cards</h2> <p>Generated from the canonical card data through the same
+			decision-card component.</p> <div class="card-grid svelte-134kovj"></div></section></main>`, 1);
 	function App($$anchor, $$props) {
 		push($$props, true);
 		let host = /* @__PURE__ */ state(true);
@@ -12696,7 +13808,10 @@ createHTML: (html) => {
 				level: 2
 			};
 		}
-		var main = root_2();
+		var fragment = root_2();
+		var node = first_child(fragment);
+		Tooltip(node, {});
+		var main = sibling(node, 2);
 		var header = child(main);
 		var div = sibling(child(header), 2);
 		var button = child(div);
@@ -12707,7 +13822,7 @@ createHTML: (html) => {
 		var div_1 = sibling(child(section), 2);
 		each(div_1, 21, () => seats, index, ($$anchor, seat, index) => {
 			var div_2 = root();
-			var node = child(div_2);
+			var node_1 = child(div_2);
 			{
 				let $0 = /* @__PURE__ */ user_derived(() => get(seat) ? "player" : get(adding) === index ? "add" : get(host) && index === seats.findIndex((s) => !s) ? "empty" : "closed");
 				let $1 = /* @__PURE__ */ user_derived(() => get(seat)?.name ?? "");
@@ -12715,7 +13830,7 @@ createHTML: (html) => {
 				let $3 = /* @__PURE__ */ user_derived(() => get(seat) && get(seat).kind !== "player" ? get(seat).kind : null);
 				let $4 = /* @__PURE__ */ user_derived(() => get(host) && !!nextBotKind(declarations()) && !get(seat) && index === seats.findIndex((s) => !s));
 				let $5 = /* @__PURE__ */ user_derived(() => get(host) && !!get(seat) && index > 0 && get(seat).kind === "player");
-				SeatCard(node, {
+				SeatCard(node_1, {
 					seat: index + 1,
 					get state() {
 						return get($0);
@@ -12761,7 +13876,7 @@ createHTML: (html) => {
 					onSeatCardAddBot: () => addBot(index)
 				});
 			}
-			var node_1 = sibling(node, 2);
+			var node_2 = sibling(node_1, 2);
 			var consequent = ($$anchor) => {
 				{
 					let $0 = /* @__PURE__ */ user_derived(() => seats.filter((s, i) => s && i !== index && s.kind !== "player").map((s) => s.kind));
@@ -12786,7 +13901,7 @@ createHTML: (html) => {
 					});
 				}
 			};
-			if_block(node_1, ($$render) => {
+			if_block(node_2, ($$render) => {
 				if (get(host) && get(seat) && get(seat).kind !== "player") $$render(consequent);
 			});
 			reset(div_2);
@@ -12799,10 +13914,10 @@ createHTML: (html) => {
 		var button_2 = sibling(span);
 		reset(footer);
 		reset(section);
-		var node_2 = sibling(section, 2);
+		var node_3 = sibling(section, 2);
 		{
 			let $0 = /* @__PURE__ */ user_derived(() => [AUTOMA_CARDS[3], AUTOMA_CARDS[2]]);
-			BotActionReport(node_2, {
+			BotActionReport(node_3, {
 				class: "review-report",
 				name: "Egypt",
 				seat: 2,
@@ -12811,14 +13926,14 @@ createHTML: (html) => {
 				},
 				children: ($$anchor, $$slotProps) => {
 					next();
-					var fragment_1 = root_1();
+					var fragment_2 = root_1();
 					next(2);
-					append($$anchor, fragment_1);
+					append($$anchor, fragment_2);
 				},
 				$$slots: { default: true }
 			});
 		}
-		var section_1 = sibling(node_2, 2);
+		var section_1 = sibling(node_3, 2);
 		var div_3 = sibling(child(section_1), 4);
 		each(div_3, 21, () => AUTOMA_CARDS, (card) => card.id, ($$anchor, card) => {
 			AutomaDecisionCard($$anchor, { get card() {
@@ -12836,7 +13951,7 @@ createHTML: (html) => {
 		delegated("click", button, () => set(host, true));
 		delegated("click", button_1, () => set(host, false));
 		delegated("click", button_2, () => set(status, seats.some((s) => s?.kind === "automa") && seats.some((s) => s?.kind === "shadow") ? "Solo table ready." : "Add Automa and Shadow Empire for a solo table.", true));
-		append($$anchor, main);
+		append($$anchor, fragment);
 		pop();
 	}
 	delegate(["click"]);

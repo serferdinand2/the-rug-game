@@ -56,6 +56,9 @@
 				title={ABILITY}>Ana</Button>
 		</div>
 	</Example>
+	<Example label="Named Automa pattern: hover or keyboard focus" surface="surface">
+		<Button mode="secondary" title="Hex pattern: North–southeast" data-automa-pattern="1">North–southeast</Button>
+	</Example>
 </Section>
 
 <style>

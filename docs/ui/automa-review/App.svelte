@@ -5,6 +5,7 @@
 	import AutomaDecisionCard from '../../../src/lib/components/player/AutomaDecisionCard.svelte';
 	import { AUTOMA_CARDS } from '../../../src/lib/engine/data/automa-cards.js';
 	import { nextBotKind, nextBotName } from '../../../src/lib/lobby-bots.js';
+	import Tooltip from '../../../src/lib/components/ui/Tooltip.svelte';
 	let host = $state(true);
 	let adding = $state(null);
 	let seats = $state([
@@ -16,12 +17,10 @@
 	]);
 	let status = $state('Add a bot to an available player seat.');
 	function declarations() {
-		return seats
-			.filter(Boolean)
-			.map((s) => ({
-				name: s.name,
-				...(s.kind !== 'player' ? { kind: s.kind } : {}),
-			}));
+		return seats.filter(Boolean).map((s) => ({
+			name: s.name,
+			...(s.kind !== 'player' ? { kind: s.kind } : {}),
+		}));
 	}
 	function addBot(index) {
 		const used = declarations();
@@ -33,6 +32,7 @@
 	}
 </script>
 
+<Tooltip />
 <main class="review">
 	<header>
 		<h1>Automa lobby</h1>
