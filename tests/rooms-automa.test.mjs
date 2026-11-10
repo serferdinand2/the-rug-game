@@ -2,6 +2,7 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
+	addSeat,
 	configure,
 	createRoom,
 	end,
@@ -29,6 +30,97 @@ const bots = [
 ];
 const lobby = () =>
 	configure(createRoom('1234abcd', host, {}, 0), host.id, { bots });
+
+for (const mode of ['online', 'hotseat']) {
+	test(`${mode}: a stale session attached to either bot never authorizes viewing or playing it`, () => {
+		const dealt = start(
+			configure(lobby(), host.id, { mode }),
+			host.id,
+			seededRandom(31)
+		);
+		for (const seat of [2, 3]) {
+			const stale = structuredClone(dealt);
+			stale.seats[seat - 1].player = host.id;
+			assert.deepEqual(seatsOf(stale, host.id), [1]);
+			assert.deepEqual(roomView(stale, host.id).you, [1]);
+			assert.throws(() => roomView(stale, host.id, seat), /yours/);
+			assert.throws(
+				() =>
+					play(
+						stale,
+						host.id,
+						seat,
+						{ decision: 1, turn: 'income' },
+						seededRandom(1)
+					),
+				/yours/
+			);
+		}
+	});
+
+	test(`${mode}: the dealt bot identity remains authoritative when the room loses its kind`, () => {
+		const dealt = start(
+			configure(lobby(), host.id, { mode }),
+			host.id,
+			seededRandom(31)
+		);
+		for (const seat of [2, 3]) {
+			const stale = structuredClone(dealt);
+			stale.seats[seat - 1].player = host.id;
+			delete stale.seats[seat - 1].kind;
+			assert.deepEqual(seatsOf(stale, host.id), [1]);
+			assert.deepEqual(roomView(stale, host.id).you, [1]);
+			assert.throws(() => roomView(stale, host.id, seat), /yours/);
+			assert.throws(
+				() =>
+					play(
+						stale,
+						host.id,
+						seat,
+						{ decision: 1, turn: 'income' },
+						seededRandom(1)
+					),
+				/yours/
+			);
+		}
+	});
+
+	test(`${mode}: a room bot cannot be controlled even if the dealt identity disagrees`, () => {
+		const stale = start(
+			configure(lobby(), host.id, { mode }),
+			host.id,
+			seededRandom(31)
+		);
+		stale.seats[1].player = host.id;
+		stale.game.seats[1].kind = 'player';
+		assert.deepEqual(seatsOf(stale, host.id), [1]);
+		assert.throws(() => roomView(stale, host.id, 2), /yours/);
+		assert.throws(
+			() =>
+				play(
+					stale,
+					host.id,
+					2,
+					{ decision: 1, turn: 'income' },
+					seededRandom(1)
+				),
+			/yours/
+		);
+	});
+}
+
+test('hot-seat ownership still includes every human sharing the screen, including lightweight game fixtures', () => {
+	let room = createRoom('1234abcd', host, { mode: 'hotseat' }, 0);
+	room = addSeat(room, host.id, 'Bo');
+	room = configure(room, host.id, { bots: [{ seat: 3, kind: 'shadow' }] });
+	room = start(room, host.id, seededRandom(31));
+	assert.deepEqual(seatsOf(room, host.id), [1, 2]);
+	assert.deepEqual(roomView(room, host.id, 2).you, [1, 2]);
+	delete room.game.seats[0].kind;
+	delete room.game.seats[1].kind;
+	assert.deepEqual(seatsOf(room, host.id), [1, 2]);
+	assert.deepEqual(seatsOf({ ...room, game: null }, host.id), [1, 2]);
+});
 
 test('lobby bot controls round-trip names, levels and removal through the real room configuration', () => {
 	let room = createRoom('1234abcd', host, {}, 0);

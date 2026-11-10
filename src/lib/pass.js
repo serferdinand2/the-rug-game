@@ -34,6 +34,12 @@ export function handOver(room, shown, passing) {
 	if (room.mode !== 'hotseat' || !room.game) {
 		return { shown: null, passing: null, fetch: undefined };
 	}
+	// A cached handover cannot grant control of a bot or a seat this screen no longer owns.
+	const playable = (/** @type {number} */ seat) =>
+		room.you.includes(seat) &&
+		!['automa', 'shadow'].includes(room.game.seats?.[seat - 1]?.kind);
+	if (passing !== null && !playable(passing)) passing = null;
+	if (shown !== null && !playable(shown)) shown = null;
 	/** The public view while the pass screen names `player` (or, with null, at the game's end). */
 	const publicView = (/** @type {number | null} */ player) => ({
 		shown: null,
