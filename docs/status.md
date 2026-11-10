@@ -18,7 +18,7 @@ On 2026-10-31, landmark-granting technology cards gained the same shared gray to
   - #80's scan filed #84 and #86–#131, ranked in its summary comment.
   - M13's Words and names issues come first (owner, 2026-10-29), then solo play (M6) and the expansions (M7–M9) by milestone. Each of #31–#37, #40, #41 and #49 is also blocked by the refactors it builds on (owner, 2026-10-29; see CLAUDE.md's rulings); see [Working on issues](../CLAUDE.md#working-on-issues) for the order and the blockers.
 - **Done:**
-  - Base Automa and Shadow Empire (#31 implementation, Lazar with Codex, 2026-11-10): merged through PR #185 after green hosted checks. Both official base-game setups, bot settings, reusable decision cards and reports are implemented. R39 physical-card pattern comparison remains an owner review; expansion bots remain in #34, #38 and #41.
+  - Base Automa and Shadow Empire (#31 implementation, Lazar with Codex, 2026-11-10): merged through PR #185 after green hosted checks. Both official base-game setups, bot settings, reusable decision cards and reports are implemented. Lazar checked the physical-card patterns and closed #31 on 2026-11-10; expansion bots remain in #34, #38 and #41.
   - Rules research (`docs/research/`).
   - The approved design document.
   - The phase-one desktop UI/UX manifest and interactive launch, lobby, play and player-overview mockups (`docs/ui/README.md`, 2026-10-21).
@@ -1677,7 +1677,7 @@ Built on 2026-11-02 on the branch `issue-33-pp-content`, not yet merged. The com
 
 ## #31 — Base Automa and Shadow Empire (2026-11-10)
 
-Merged to main through PR #185 at 9565b682 on 2026-11-10, after both push and pull-request CI passed. Issue #31 remains open for its explicit owner review limits. The lobby uses reusable SeatCard, BotSettings and six-square AutomaLevel components. All 22 canonical cards use AutomaDecisionCard, and public bot reports use BotActionReport. Automatic base-game turns, income, map actions, traps, landmark boxes, ranking and hidden-pile views are wired. Four seeded playthroughs reached game end, including both official configurations and levels 1/6; live browser lobby-to-setup and static/build checks passed. Hosted CI is the regression authority. See [the playthrough and remaining review report](superpowers/issue-31-playtest-report.md).
+Merged to main through PR #185 at 9565b682 on 2026-11-10, after both push and pull-request CI passed. Lazar confirmed the physical decision-card patterns were checked and requested closure on 2026-11-10; #31 is closed as completed. The lobby uses reusable SeatCard, BotSettings and six-square AutomaLevel components. All 22 canonical cards use AutomaDecisionCard, and public bot reports use BotActionReport. Automatic base-game turns, income, map actions, traps, landmark boxes, ranking and hidden-pile views are wired. Four seeded playthroughs reached game end, including both official configurations and levels 1/6; live browser lobby-to-setup and static/build checks passed. Hosted CI is the regression authority. See [the playthrough and remaining review report](superpowers/issue-31-playtest-report.md).
 
 Main integration review (2026-11-10): preserved A&A/F&F setup, scoring and turn-end additions while keeping bots base-game-only. Independent engine and shared-component reviews found no blocking findings. Production build and component/type checks passed with zero errors/warnings. Latest UI uses distinct card titles, named hover-only patterns, random historical bot names, separate bot-type labels and the right-edge removal control in the badge row.
 

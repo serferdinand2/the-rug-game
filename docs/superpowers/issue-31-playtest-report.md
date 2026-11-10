@@ -45,7 +45,7 @@ The local unit suite was not run, following the owner's instruction to use hoste
 
 ## Remaining review limits
 
-- R39 still calls for owner comparison of the ten map arrow patterns against all 22 physical decision cards. The gallery now renders the full diagram, and the component-library example can expose priority labels for that review.
+- R39 physical-pattern review completed: Lazar confirmed he checked the cards and requested closure of #31 on 2026-11-10.
 - Original-version parity, rare human civilization interactions and long randomized runs require hosted regression results and further gameplay; completion of four scripted games does not establish all combinations.
 - No expansion bot support is introduced. The owner confirmed the two official base configurations rather than a two-human-plus-Automa house rule.
 
