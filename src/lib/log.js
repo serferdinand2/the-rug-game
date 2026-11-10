@@ -12,7 +12,15 @@ import { describeCost } from './describe.js';
 import { PROPHECIES, TINKERERS_OPTION_NAMES } from './decision-words.js';
 import { landmarkGoalPhrase } from './cards/landmark-text.js';
 import { LANDMARK_CARDS } from './engine/data/landmark-cards.js';
-import { article, capitalize, countWords, joinList, wordsOf } from './words.js';
+import { BUILDING_IDS } from './engine/data/ids.js';
+import {
+	article,
+	capitalize,
+	countWords,
+	joinList,
+	pluralOf,
+	wordsOf,
+} from './words.js';
 import {
 	achievementName,
 	buildingName,
@@ -30,6 +38,8 @@ import {
 	variantName,
 	versionName,
 } from './game-names.js';
+
+import { reservedWords } from './reserved-words.js';
 
 /** @typedef {import('./describe.js').Table} Game - The game as view() gives it: the seats' names */
 /** @typedef {{ type?: unknown, seq?: unknown, player?: unknown, secret?: unknown } & Record<string, any>} LogEvent */
@@ -85,6 +95,8 @@ export const SILENT = new Set([
 	'setupDone',
 	// The move or income turn that follows says which turn was chosen.
 	'turnChosen',
+	// Every neighbour holding a card is asked about Spymaster (R127): a decline is no news.
+	'spymasterDeclined',
 ]);
 
 /**
@@ -606,8 +618,71 @@ const WORDS = {
 	// Cloud City's move (R121, #36).
 	buildingMoved: (e, game, name) =>
 		`${name} moved ${pieceWords({ building: e.building })} to another cloud of their capital.`,
+	// The Relentless (#37).
+	relentlessToken: (e, game, name) =>
+		isCount(e.tokens)
+			? `${name} put a token on their Relentless mat: ${e.tokens} there.`
+			: null,
+	relentlessCashed: (e, game, name) =>
+		isCount(e.tokens)
+			? `${name} took ${e.tokens === 1 ? '1 token' : `${e.tokens} tokens`} off their Relentless mat.`
+			: null,
+	renegadesMoved: (e, game, name) =>
+		isCount(e.at) && e.at >= 1 && e.at <= 4
+			? `${name} moved their Renegades token to space ${['I', 'II', 'III', 'IV'][e.at - 1]}.`
+			: null,
+	gamblersRevealed(e, game, name) {
+		const cards = strings(e.cards).map(tapestryWords);
+		return cards.length > 0
+			? `${name} revealed ${joinList(cards)} for the Gamblers.`
+			: null;
+	},
+	itemCollected(e, game, name) {
+		const what = {
+			outpost: 'an outpost',
+			house: 'a House',
+			landmark: 'a landmark',
+			tapestry: 'a tapestry card',
+			territory: 'a territory tile',
+			tech: 'a tech card',
+		}[/** @type {string} */ (e.item)];
+		return what ? `${name} put ${what} on their Collectors mat.` : null;
+	},
+	landmarkStored: (e, game, name) =>
+		`${name} kept ${landmarkWords(e.landmark)} on their Urban Planners mat.`,
+	landmarkUnstored: (e, game, name) =>
+		`${name} took ${landmarkWords(e.landmark)} off their Urban Planners mat to place it.`,
+	// Plague (#37).
+	plagueDrawn: (e, game, name) =>
+		typeof e.civ === 'string'
+			? `${name} drew ${civWords(e.civ)} with Plague.`
+			: null,
 	piecePlacedOnMap: (e, game, name) =>
-		`${name} placed ${pieceWords(e.piece)} on ${hexName(e.hex)}.`,
+		e.parks === true
+			? `${name} placed ${pieceWords(e.piece)} on ${hexName(e.hex)} with National Parks.`
+			: `${name} placed ${pieceWords(e.piece)} on ${hexName(e.hex)}.`,
+	// A&A's tapestry cards that hold pieces (#37).
+	piecePlacedOnCard: (e, game, name) =>
+		`${name} placed ${pieceWords(e)} on ${tapestryName(e.card)}.`,
+	parksDieRolled: (e, game, name) =>
+		e.die === 'red' || e.die === 'black'
+			? `${name} rolled the ${e.die} conquer die for National Parks.`
+			: null,
+	cardPiecesMoved(e, game, name) {
+		const pieces = strings(e.pieces).map((id) =>
+			BUILDING_IDS.includes(/** @type {any} */ (id))
+				? `its ${buildingName(id)}`
+				: landmarkWords(id)
+		);
+		return pieces.length > 0
+			? `${capitalize(tapestryName(e.card))} was covered: ${name} put ${joinList(pieces)} beside their capital mat.`
+			: null;
+	},
+	// A&A's landmark tech cards (#37): the upgrade that follows has its own line.
+	landmarkPlacedOnTech: (e, game, name) =>
+		`${name} placed ${landmarkWords(e.landmark)} on ${techName(e.card)}.`,
+	landmarkDiscarded: (e, game, name) =>
+		`${name} discarded ${landmarkWords(e.landmark)} with ${techName(e.card)}.`,
 	districtsCompleted(e, game, name) {
 		const n = Array.isArray(e.districts) ? e.districts.length : 0;
 		if (n === 0) {
@@ -693,6 +768,10 @@ const WORDS = {
 			? `${name} gained the benefit of territory tile ${e.tile} on ${hexName(e.hex)}.`
 			: `${name} gained no tile benefit: ${hexName(e.hex)} is a printed territory.`,
 	outpostPlaced(e, game, name) {
+		// Migration's (#37).
+		if (typeof e.card === 'string') {
+			return `${name} placed an outpost on ${hexName(e.hex)} with ${tapestryName(e.card)}.`;
+		}
 		if (e.militarism === true) {
 			return `${name} placed an outpost on ${hexName(e.hex)} with Militarism.`;
 		}
@@ -719,6 +798,10 @@ const WORDS = {
 			? `${name}'s trap stopped ${attacker}'s conquest of ${where}.`
 			: `${name} played ${card} against ${attacker}'s conquest of ${where}.`;
 	},
+	spymasterPlayed: (e, game, name) =>
+		typeof e.track === 'string'
+			? `${name} played Spymaster: they advance on ${trackName(e.track)} at the end of the turn.`
+			: `${name} played Spymaster.`,
 	responseDeclined: (e, game, name) =>
 		`${name} did not respond to the conquest of ${hexName(e.hex)}.`,
 	// Plans & Ploys' response cards (#33). The stolen card stays the thief's secret.
@@ -845,6 +928,17 @@ const WORDS = {
 			? `${name} drew a tech card.`
 			: `${name} drew ${e.count} tech cards to keep one.`;
 	},
+	itemReserved: (e, game, name) =>
+		`${name} reserved ${reservedWords(e.item)} on their income mat's overlay.`,
+	reservedUsed: (e, game, name) =>
+		`${name} used their reserved ${reservedWords(e.item).replace(/^an? /, '')}.`,
+	outpostLifted: (e, game, name) =>
+		`${name} took their outpost off ${hexName(e.hex)}.`,
+	noReserve: (e, game, name) => `${name} had nothing to reserve.`,
+	charmGained: (e, game, name) =>
+		`${name} gained ${tapestryName(e.card)}'s ${e.side === 'right' ? 'right' : 'left'} charm.`,
+	techFlipped: (e, game, name) =>
+		`${name} flipped ${techName(e.card)}: its single use is spent.`,
 	techRecycled: (e, game, name) =>
 		`${name} recycled ${techName(e.card)} back to the bottom row.`,
 	techUpgraded(e, game, name) {
@@ -887,7 +981,7 @@ const WORDS = {
 	noBroadcast: (e, game, name) => `${name} had no masterpiece to broadcast.`,
 	inspired: (e, game, name) =>
 		typeof e.row === 'string'
-			? `${name} placed an inspiration tile on the ${wordsOf(e.row)} row.`
+			? `${name} placed an inspiration tile on the ${pluralOf(buildingName(e.row))} row.`
 			: `${name} placed an inspiration tile.`,
 	noInspire: (e, game, name) =>
 		`${name} had no inspiration tile left to place.`,

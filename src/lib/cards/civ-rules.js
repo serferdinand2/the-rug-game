@@ -67,6 +67,47 @@ const CIV_TEXTS = Object.freeze({
 			],
 		}
 	),
+	// Arts & Architecture (#37; 03 §2.4).
+	relentless: civ([
+		'At the end of each of your income turns and advance turns on which you gained an income building or a landmark, put a token on this mat.',
+		'At the end of each advance turn on which you gained neither, take every token off and gain by their number: 1 token, 1 VP; 2, 3 VP and 1 tapestry card; 3, 6 VP and a tapestry card or 1 resource of your choice; 4, 10 VP and one of those or explore a territory; 5 or more, 15 VP and one of those or invent a tech card.',
+	]),
+	collectors: civ(
+		[
+			'During an advance turn, when you gain one of these, you may put it on its space of this mat if the space is empty, and gain 1 resource of your choice. One item per turn.',
+			'The items: an outpost, only from a conquer, instead of conquering and without rolling; a House; a landmark; a tapestry card; a territory tile; a tech card.',
+			'Items here count for scoring but can’t be used. Cards and tiles lie face down; you may look at them.',
+			'At the end of the game, gain 1, 3, 6, 10, 15 or 21 VP for 1 to 6 items.',
+		],
+		{
+			current: [
+				'Current rules: if you start the game with the Collectors, gain 1 resource of your choice.',
+			],
+		}
+	),
+	gamblers: civ([
+		'If you start the game with the Gamblers: at the end of your first income turn, reveal 3 tapestry cards. Play a When Played one on Maker of Fire and gain its effect, and discard the others; with none, keep 1 in your hand and discard the others.',
+		'At the start of income turns 2 to 4, do the same on that era’s slot, then play your tapestry card for the era on top of it.',
+		'A card that can’t be fully resolved resolves as far as it can.',
+	]),
+	'urban-planners': civ(
+		[
+			'Once the landmark cards are chosen at the start, or when you gain the Urban Planners, choose one more card from the landmark deck. If none is left, you may discard the Urban Planners and gain another civilization.',
+			'Whenever you gain a landmark, you may put it on this mat instead of placing it. At the start of a turn of yours, or before you end it, you may place any of them in your capital city, free.',
+			'At the end of your final income turn, gain VP for your largest group of landmarks touching side by side in your capital city: 1, 4, 9, 16, 25, 36 or 49 VP for 1 to 7 landmarks.',
+		],
+		{
+			current: [
+				'Current rules: if you start the game with the Urban Planners, gain 1 resource of your choice, or 2 with 4 or 5 players.',
+			],
+		}
+	),
+	renegades: civ([
+		'You start with a token on the start of this mat’s track, which has one space for each tier.',
+		'When you advance on a track and would gain its benefit, you may give up the benefit and the bonus to move your token 1 space here instead, if the tier you advance into or within is the tier of that space. You still gain landmarks.',
+		'Tier I: 1 tapestry card and an income building of your choice. Tier II: roll the science die and advance with the benefit, then invent a tech card. Tier III: explore, conquer, then upgrade a tech card. Tier IV: 20 VP.',
+		'This track is no advancement track for any other effect, but reaching its end counts as completing a track for the achievement.',
+	]),
 	craftsmen: civ([
 		'Whenever you gain an income building, you may put it on this mat instead of in your capital city, on the lowest open space of any column. You gain that space’s benefit at once.',
 		'First column, bottom to top: 1 worker, 1 territory tile, 5 VP.',

@@ -95,7 +95,7 @@ function word(text, count = 1, cross = false) {
  */
 function trackGlyphs(tracks) {
 	return (Array.isArray(tracks) ? tracks : [])
-		.filter((id) => TRACK_IDS.includes(id))
+		.filter((id) => TRACK_IDS.includes(id) || id === ARTS_TRACK)
 		.map((id) => ({ kind: 'track', id }));
 }
 

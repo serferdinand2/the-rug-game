@@ -221,6 +221,35 @@ const SAMPLES = {
 			{ seat: 2, capital: 1, civ: 'the-chosen' },
 		],
 	},
+	landmarkDiscarded: { player: 1, landmark: 'villa', card: 'calculus' },
+	landmarkPlacedOnTech: {
+		player: 1,
+		landmark: 'barracks',
+		card: 'astrolabe',
+	},
+	plagueDrawn: { player: 1, civ: 'the-chosen' },
+	relentlessToken: { player: 1, tokens: 2 },
+	renegadesMoved: { player: 1, at: 2 },
+	itemCollected: { player: 1, item: 'tech' },
+	landmarkStored: { player: 1, landmark: 'forge' },
+	landmarkUnstored: { player: 1, landmark: 'forge' },
+	gamblersRevealed: { player: 1, cards: ['feudalism', 'academia'] },
+	relentlessCashed: { player: 1, tokens: 3 },
+	spymasterPlayed: { player: 2, mover: 1, track: 'science' },
+	spymasterDeclined: { player: 2 },
+	piecePlacedOnCard: {
+		player: 1,
+		card: 'commercial-center',
+		building: 'farm',
+		row: 0,
+		col: 1,
+	},
+	parksDieRolled: { player: 1, die: 'red', face: 2 },
+	cardPiecesMoved: {
+		player: 1,
+		card: 'commercial-center',
+		pieces: ['farm', 'barracks'],
+	},
 	spaceActivated: { player: 1, track: 'exploration', space: 1 },
 	spaceExplored: { player: 1, tile: 7 },
 	spiesUsed: {
@@ -238,6 +267,28 @@ const SAMPLES = {
 		count: 3,
 		secret: { cards: ['bakery', 'barn', 'compass'] },
 	},
+	techFlipped: { player: 1, card: 'mind-control' },
+	charmGained: { player: 1, card: 'microbial-magic', side: 'left' },
+	itemReserved: {
+		player: 1,
+		item: {
+			id: 9,
+			card: 'microbial-magic',
+			ability: 'microbial-magic',
+			building: 'farm',
+		},
+	},
+	reservedUsed: {
+		player: 1,
+		item: {
+			id: 9,
+			card: 'microbial-magic',
+			ability: 'microbial-magic',
+			building: 'farm',
+		},
+	},
+	outpostLifted: { player: 1, hex: '-2_-1' },
+	noReserve: { player: 1 },
 	techRecycled: { player: 1, card: 'com-tower' },
 	techDisplayRefreshed: {
 		discarded: ['irrigation', 'telescope', 'compass'],
@@ -1030,5 +1081,256 @@ test('a choice with every option a used-up building names them in the log (R117,
 	assert.equal(
 		eventText({ type: 'noBuildingLeft', player: 2, building: null }, GAME),
 		'Bo had no income building left to gain.'
+	);
+});
+
+test("the log names an income row as inspire's answer and the Income tab do (#183)", () => {
+	assert.equal(
+		eventText({ type: 'inspired', player: 1, row: 'market' }, GAME),
+		'Ana placed an inspiration tile on the Markets row.'
+	);
+});
+
+test('a landmark placed on an A&A tech card, and one discarded with its card (#37)', () => {
+	assert.equal(
+		eventText(
+			{
+				type: 'landmarkPlacedOnTech',
+				player: 1,
+				landmark: 'barracks',
+				card: 'astrolabe',
+			},
+			GAME
+		),
+		'Ana placed the Barracks on Astrolabe.'
+	);
+	assert.equal(
+		eventText(
+			{
+				type: 'landmarkDiscarded',
+				player: 1,
+				landmark: 'villa',
+				card: 'calculus',
+			},
+			GAME
+		),
+		'Ana discarded the Villa with Calculus.'
+	);
+});
+
+test("Plague's draw and Migration's outposts (#37)", () => {
+	assert.equal(
+		eventText({ type: 'plagueDrawn', player: 1, civ: 'the-chosen' }, GAME),
+		'Ana drew The Chosen with Plague.'
+	);
+	assert.equal(
+		eventText(
+			{ type: 'outpostPlaced', player: 1, hex: '0_3', card: 'migration' },
+			GAME
+		),
+		'Ana placed an outpost on hex 0,3 with Migration.'
+	);
+});
+
+test("pieces on A&A's tapestry cards, and National Parks' die (#37)", () => {
+	const text = (/** @type {Record<string, any>} */ e) => eventText(e, GAME);
+	assert.equal(
+		text({
+			type: 'piecePlacedOnCard',
+			player: 1,
+			card: 'commercial-center',
+			building: 'farm',
+			row: 0,
+			col: 1,
+		}),
+		'Ana placed a Farm on Commercial Center.'
+	);
+	assert.equal(
+		text({
+			type: 'piecePlacedOnCard',
+			player: 1,
+			card: 'space-race',
+			landmark: 'barracks',
+		}),
+		'Ana placed the Barracks on Space Race.'
+	);
+	assert.equal(
+		text({ type: 'parksDieRolled', player: 1, die: 'red', face: 2 }),
+		'Ana rolled the red conquer die for National Parks.'
+	);
+	assert.equal(
+		text({
+			type: 'cardPiecesMoved',
+			player: 1,
+			card: 'commercial-center',
+			pieces: ['farm', 'barracks'],
+		}),
+		'Commercial Center was covered: Ana put its Farm and the Barracks beside their capital mat.'
+	);
+	assert.equal(
+		text({
+			type: 'piecePlacedOnMap',
+			player: 1,
+			hex: '0_3',
+			piece: { building: 'farm' },
+			parks: true,
+		}),
+		'Ana placed a Farm on hex 0,3 with National Parks.'
+	);
+});
+
+test('a Spymaster played reads in the log; a decline says nothing (R127)', () => {
+	assert.equal(
+		eventText(
+			{ type: 'spymasterPlayed', player: 2, mover: 1, track: 'arts' },
+			GAME
+		),
+		'Bo played Spymaster: they advance on Arts at the end of the turn.'
+	);
+	assert.equal(
+		eventText({ type: 'spymasterDeclined', player: 2 }, GAME),
+		null
+	);
+});
+
+test("the Relentless' tokens (#37)", () => {
+	assert.equal(
+		eventText({ type: 'relentlessToken', player: 1, tokens: 2 }, GAME),
+		'Ana put a token on their Relentless mat: 2 there.'
+	);
+	assert.equal(
+		eventText({ type: 'relentlessToken', player: 1, tokens: 1 }, GAME),
+		'Ana put a token on their Relentless mat: 1 there.'
+	);
+	assert.equal(
+		eventText({ type: 'relentlessCashed', player: 1, tokens: 3 }, GAME),
+		'Ana took 3 tokens off their Relentless mat.'
+	);
+});
+
+test("the Renegades' token (#37)", () => {
+	assert.equal(
+		eventText({ type: 'renegadesMoved', player: 1, at: 2 }, GAME),
+		'Ana moved their Renegades token to space II.'
+	);
+});
+
+test("the Gamblers' reveal (#37)", () => {
+	assert.equal(
+		eventText(
+			{
+				type: 'gamblersRevealed',
+				player: 1,
+				cards: ['feudalism', 'academia'],
+			},
+			GAME
+		),
+		'Ana revealed Feudalism and Academia for the Gamblers.'
+	);
+});
+
+test("the Urban Planners' kept landmarks (#37)", () => {
+	assert.equal(
+		eventText(
+			{ type: 'landmarkStored', player: 1, landmark: 'forge' },
+			GAME
+		),
+		'Ana kept the Forge on their Urban Planners mat.'
+	);
+	assert.equal(
+		eventText(
+			{ type: 'landmarkUnstored', player: 1, landmark: 'forge' },
+			GAME
+		),
+		'Ana took the Forge off their Urban Planners mat to place it.'
+	);
+});
+
+test("the Collectors' items (#37)", () => {
+	assert.equal(
+		eventText({ type: 'itemCollected', player: 1, item: 'tech' }, GAME),
+		'Ana put a tech card on their Collectors mat.'
+	);
+	assert.equal(
+		eventText({ type: 'itemCollected', player: 1, item: 'house' }, GAME),
+		'Ana put a House on their Collectors mat.'
+	);
+});
+
+test("a single-use tech card's flip is worded (#39)", () => {
+	assert.equal(
+		eventText(
+			{ type: 'techFlipped', player: 1, card: 'mind-control' },
+			GAME
+		),
+		`${GAME.seats[0].name} flipped Mind Control: its single use is spent.`
+	);
+});
+
+test('a charm gained is worded (#39)', () => {
+	assert.equal(
+		eventText(
+			{
+				type: 'charmGained',
+				player: 1,
+				card: 'microbial-magic',
+				side: 'right',
+			},
+			GAME
+		),
+		`${GAME.seats[0].name} gained Microbial Magic's right charm.`
+	);
+});
+
+test('items reserved and used on the overlay are worded (#39)', () => {
+	const name = GAME.seats[0].name;
+	const farm = {
+		id: 9,
+		card: 'microbial-magic',
+		ability: 'microbial-magic',
+		building: 'farm',
+	};
+	assert.equal(
+		eventText({ type: 'itemReserved', player: 1, item: farm }, GAME),
+		`${name} reserved a Farm on their income mat's overlay.`
+	);
+	assert.equal(
+		eventText({ type: 'reservedUsed', player: 1, item: farm }, GAME),
+		`${name} used their reserved Farm.`
+	);
+	assert.equal(
+		eventText(
+			{
+				type: 'itemReserved',
+				player: 1,
+				item: {
+					id: 3,
+					card: 'quest-culture',
+					ability: 'quest-culture',
+					territory: [4, 5, 6],
+				},
+			},
+			GAME
+		),
+		`${name} reserved 3 territory tiles on their income mat's overlay.`
+	);
+});
+
+test('a reserved Armory reads "an Armory" (review fix)', () => {
+	assert.equal(
+		eventText(
+			{
+				type: 'itemReserved',
+				player: 1,
+				item: {
+					id: 4,
+					card: 'phantasmal-paladins',
+					ability: 'phantasmal-paladins',
+					building: 'armory',
+				},
+			},
+			GAME
+		),
+		`${GAME.seats[0].name} reserved an Armory on their income mat's overlay.`
 	);
 });

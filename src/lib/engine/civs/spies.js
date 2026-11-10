@@ -12,6 +12,7 @@ import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { spaceTile } from '../data/space-tiles.js';
 import { techCard } from '../data/tech-cards.js';
 import { tracksOf } from '../tracks-in-play.js';
+import { isFlipped } from '../tech.js';
 
 /** @typedef {import('../data/ids.js').TrackId} TrackId */
 
@@ -102,7 +103,7 @@ function givesNoLandmark(state, card) {
  * @param {number} from - The neighbour
  * @returns {Target[]}
  */
-function targetsFrom(state, player, option, from) {
+export function spiesTargets(state, player, option, from) {
 	const seat = playerSeat(state, from);
 	if (option === 1) {
 		return visibleCards(state)
@@ -155,7 +156,12 @@ function targetsFrom(state, player, option, from) {
 			icon: /** @type {const} */ ('circle'),
 		})),
 		...seat.tech.top
-			.filter((card) => techCard(card).landmark === undefined)
+			// R134: nor a flipped card.
+			.filter(
+				(card) =>
+					techCard(card).landmark === undefined &&
+					!isFlipped(state, from, card)
+			)
 			.map((card) => ({
 				player: from,
 				card,
@@ -175,7 +181,7 @@ function targets(state, player, option) {
 	const near = neighbours(state, player);
 	return state.seats
 		.filter((seat) => seat.kind === 'player' && near.includes(seat.seat))
-		.flatMap(({ seat }) => targetsFrom(state, player, option, seat));
+		.flatMap(({ seat }) => spiesTargets(state, player, option, seat));
 }
 
 /**

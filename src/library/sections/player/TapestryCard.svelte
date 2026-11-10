@@ -36,6 +36,23 @@
 		<TapestryCard data={tapestryCardData('trap-1')} />
 	</Example>
 	<Example
+		label="data=tapestryCardData('microbial-magic') · F&F, both charms (#39, awaiting review)"
+		width={319}>
+		<TapestryCard data={tapestryCardData('microbial-magic')} />
+	</Example>
+	<Example
+		label="data=tapestryCardData('zombie-army') · F&F, a left charm only (#39, awaiting review)"
+		width={319}>
+		<TapestryCard data={tapestryCardData('zombie-army')} />
+	</Example>
+	<Example
+		label={`data=tapestryCardData('secret-societies')  (data-cards="dark"; #39, awaiting review)`}
+		width={319}>
+		<div data-cards="dark">
+			<TapestryCard data={tapestryCardData('secret-societies')} />
+		</div>
+	</Example>
+	<Example
 		label={`data=tapestryCardData('academia')  (data-cards="dark" on the page: the menu's Dark cards)`}
 		width={319}>
 		<div data-cards="dark">

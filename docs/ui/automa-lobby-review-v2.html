@@ -1670,6 +1670,7 @@ a {
 	box-sizing: border-box;
 }
 .rg-tech-layout {
+	position: relative;
 	width: 425px;
 	min-height: 298px;
 	padding: 0 10px;
@@ -1837,6 +1838,7 @@ a {
 	padding: 0 12px;
 }
 .rg-tapestry-layout {
+	position: relative;
 	width: 319px;
 	min-height: 560px;
 	padding: 0 12px;
@@ -1901,6 +1903,45 @@ a {
 	font-size: 15px;
 	line-height: 1.42;
 }
+/* F&F's charms (#39), awaiting review: a line per side under the copy, and a teal tag on that edge of the card. */
+.rg-tapestry-layout--charm {
+	display: block;
+	margin-top: 10px;
+	padding: 6px 8px;
+	border-left: 4px solid var(--card-fantasies-futures);
+	background: color-mix(
+		in srgb,
+		var(--card-fantasies-futures) 12%,
+		transparent
+	);
+	font-size: 13px;
+	line-height: 1.35;
+}
+.rg-tapestry-layout--charm-right {
+	border-left: 0;
+	border-right: 4px solid var(--card-fantasies-futures);
+}
+.rg-tapestry-layout--charm b {
+	display: block;
+	color: var(--card-fantasies-futures);
+	font-size: 11px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.rg-tapestry-layout--charm-tag {
+	position: absolute;
+	top: 96px;
+	width: 10px;
+	height: 44px;
+	background: var(--card-fantasies-futures);
+	box-shadow: 0 0 0 1px var(--card-line-strong);
+}
+.rg-tapestry-layout--charm-tag-left {
+	left: -6px;
+}
+.rg-tapestry-layout--charm-tag-right {
+	right: -6px;
+}
 .rg-tapestry-layout--note {
 	display: block;
 	margin-top: 14px;
@@ -1929,6 +1970,30 @@ a {
 	transform: scale(var(--card-scale));
 	transform-origin: top left;
 	pointer-events: none;
+}
+
+/* F&F's flipped single-use tech card (#39), awaiting review: dimmed, with a mark across its art. */
+.rg-tech-layout--flipped > :not(.rg-tech-layout--flipped-mark) {
+	opacity: 0.45;
+	filter: grayscale(0.7);
+}
+.rg-tech-layout--flipped-mark {
+	position: absolute;
+	z-index: 1;
+	top: 112px;
+	left: 50%;
+	transform: translateX(-50%) rotate(-6deg);
+	padding: 6px 14px;
+	border: 2px solid var(--card-fantasies-futures);
+	background: var(--card-raised);
+	color: var(--card-fantasies-futures);
+	font:
+		700 16px/1 'Atkinson Hyperlegible',
+		Atkinson,
+		sans-serif;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	white-space: nowrap;
 }
 /*$vite$:1*/</style></head><body><div id="app"></div><script>(function() {
 	//#region ../../../../../Documents/Codex/2026-10-20/pu/the-rug-game/node_modules/svelte/src/internal/shared/utils.js
@@ -7833,12 +7898,19 @@ createHTML: (html) => {
 	* @typedef {Object} TapestryCard
 	* @property {string} id - The slug the asset catalog uses, such as 'meritocracy'; the trap's is 'trap'
 	* @property {string} name
-	* @property {'played' | 'era'} timing - 'played' is WHEN PLAYED; 'era' is THIS ERA
+	* @property {'played' | 'era' | 'continuous'} timing - 'played' is WHEN PLAYED; 'era' is THIS ERA; 'continuous' is A&A's
+	*   CONTINUOUS, active while the card tops its slot (#37)
 	* @property {Effect[]} played - What runs when the card's ability resolves; a THIS ERA card's setup choice, if any
 	* @property {boolean} ordered - Whether the effects run in the order listed (Renaissance is the only false)
-	* @property {'base' | 'pp'} expansion - Where it comes from
-	* @property {'conquest' | 'trap'} [response] - A response card: 'conquest' a defender discards against a conquest (the
-	*   trap, Retreat, Surprise Party, Surrender); 'trap' an attacker discards against a Trap (Double Cross, Stolen Plans)
+	* @property {'base' | 'pp' | 'aa' | 'ff'} expansion - Where it comes from
+	* @property {{ left?: Effect[], right?: Effect[] }} [charms] - F&F's charm bonuses (03 FF.2.1): the left one is gained
+	*   when the card is played to the right of another card, the right one the first time a card is placed to its right
+	* @property {Effect[]} [fifth] - What a card's reserved reminder token does on income turn 5 (Ghost Towns, Suspended
+	*   Animation; 03 FF.2.2)
+	* @property {false} [solo] - Left out of solo games (Granges, 03 §2.11; #31 reads it)
+	* @property {'conquest' | 'trap' | 'track'} [response] - A response card: 'conquest' a defender discards against a
+	*   conquest (the trap, Retreat, Surprise Party, Surrender); 'trap' an attacker discards against a Trap (Double Cross,
+	*   Stolen Plans); 'track' a neighbour discards when a player completes a track (Spymaster, R127)
 	*/
 	/** Words a name keeps in lower case. */
 	var SMALL = [
@@ -7884,6 +7956,19 @@ createHTML: (html) => {
 		expansion: "base"
 	});
 	/**
+	* A CONTINUOUS card (A&A, #37): it works while it tops its slot, and nothing runs when it is played.
+	* @param {string} id
+	* @returns {TapestryCard}
+	*/
+	var continuous = (id) => ({
+		id,
+		name: nameOf(id),
+		timing: "continuous",
+		played: [],
+		ordered: true,
+		expansion: "base"
+	});
+	/**
 	* A Plans & Ploys card (#33; 03 §1.4), with its name when the slug doesn't give it.
 	* @param {TapestryCard} card
 	* @param {{ name?: string, response?: 'conquest' | 'trap' }} [extra]
@@ -7894,6 +7979,43 @@ createHTML: (html) => {
 		...extra,
 		expansion: "pp"
 	});
+	/**
+	* An Arts & Architecture card (#37; 03 §2.5), with its name when the slug doesn't give it.
+	* @param {TapestryCard} card
+	* @param {{ name?: string, solo?: false, response?: 'track' }} [extra]
+	* @returns {TapestryCard}
+	*/
+	var aa = (card, extra = {}) => ({
+		...card,
+		...extra,
+		expansion: "aa"
+	});
+	/**
+	* A Fantasies & Futures card (#39; 03 FF.4), with its charms and, for a reminder token, what it does on income turn 5.
+	* @param {TapestryCard} card
+	* @param {{ left?: Effect[], right?: Effect[] }} charms
+	* @param {{ fifth?: Effect[] }} [extra]
+	* @returns {TapestryCard}
+	*/
+	var ff = (card, charms, extra = {}) => ({
+		...card,
+		...extra,
+		charms,
+		expansion: "ff"
+	});
+	/** Every track a game may play, the arts track last: an "any track" effect lists them all, and a game without the arts track skips it (R118). */
+	var ANY_TRACK = [
+		"exploration",
+		"science",
+		"technology",
+		"military",
+		"arts"
+	];
+	/** Advance on any track without benefit or bonus (03 FF.2.4's arrow with an X). */
+	var ADVANCE_ANY_X = { advance: {
+		tracks: ANY_TRACK,
+		noBenefit: true
+	} };
 	/**
 	* A trade offer of VP for resources of the player's choice.
 	* @param {number} vp
@@ -7913,7 +8035,8 @@ createHTML: (html) => {
 		gain: [{ vp }]
 	});
 	/**
-	* The 43 base cards in BASE_TAPESTRY order (alphabetical), then the trap, then Plans & Ploys' cards (#33).
+	* The 43 base cards in BASE_TAPESTRY order (alphabetical), then the trap, then Plans & Ploys' cards (#33), then
+	* Arts & Architecture's (#37), each in catalog order.
 	* @type {readonly TapestryCard[]}
 	*/
 	var TAPESTRY_CARDS = deepFreeze([
@@ -8015,8 +8138,124 @@ createHTML: (html) => {
 		pp(when("stolen-plans", [{ vp: 8 }, { invent: {} }]), { response: "trap" }),
 		pp(when("surprise-party", [{ choice: [[{ vp: 10 }], [{ building: "armory" }]] }]), { response: "conquest" }),
 		pp(when("surrender", [{ vp: 7 }, { gain: { any: 1 } }]), { response: "conquest" }),
-		pp(when("worlds-fair", [{ gain: { culture: 1 } }, { worldsFair: {} }]), { name: "World's Fair" })
+		pp(when("worlds-fair", [{ gain: { culture: 1 } }, { worldsFair: {} }]), { name: "World's Fair" }),
+		aa(when("age-of-enlightenment", [{ ageOfEnlightenment: {} }])),
+		aa(continuous("commercial-center")),
+		aa(era("artistic-inspiration")),
+		aa(era("found-art")),
+		aa(when("granges", [{ granges: {} }]), { solo: false }),
+		aa(when("information-age", [{ invent: {} }, { choice: [[{ upgrade: {} }], [{ techBenefit: {
+			icon: "circle",
+			anyRow: true
+		} }]] }])),
+		aa(when("infrastructure-upgrade", [{ infrastructureUpgrade: {} }])),
+		aa(when("migration", [{ explore: { migration: true } }])),
+		aa(continuous("monuments")),
+		aa(when("moon-landing", [{ trade: {
+			offers: [{
+				pay: {
+					territory: 2,
+					tech: 1
+				},
+				gain: [{ gain: { space: 1 } }, { exploreSpace: {} }]
+			}],
+			optional: true,
+			purpose: "moonLanding",
+			otherwise: [{ invent: {} }]
+		} }])),
+		aa(era("national-parks")),
+		aa(when("plague", [{ plague: {} }])),
+		aa(when("political-posturing", [{ politicalPosturing: {} }])),
+		aa(when("silk-road", [{ silkRoad: {} }])),
+		aa(era("space-race")),
+		aa(when("spymaster", [{ vp: 5 }, { spymaster: {} }]), { response: "track" }),
+		aa(continuous("star-chamber")),
+		aa(when("government-grants", [{ advance: {
+			tracks: ["arts"],
+			freeBonus: true
+		} }, { regress: {
+			tracks: [
+				"exploration",
+				"science",
+				"technology",
+				"military"
+			],
+			noBonus: true
+		} }])),
+		aa(era("steam"), { name: "S.T.E.A.M." }),
+		aa(era("trade-routes")),
+		ff(when("ecstatic-visions", [{ ecstaticVisions: {} }]), { left: [{ choice: [[{ gain: {
+			territory: 1,
+			tapestry: 1
+		} }], [{ advance: {
+			tracks: ["arts"],
+			noBenefit: true
+		} }]] }] }),
+		ff(when("generation-ships", [{ reserve: { space: 3 } }]), { right: [{ choice: [[{ vp: { per: "territoryTile" } }], [{ regress: {
+			tracks: ["arts"],
+			noBenefit: true
+		} }]] }] }),
+		ff(when("ghost-towns", [{ reserve: { token: true } }]), {
+			left: [ADVANCE_ANY_X],
+			right: [ADVANCE_ANY_X]
+		}, { fifth: [{ vp: {
+			per: "buildingLeft",
+			each: 3
+		} }] }),
+		ff(when("great-library-of-potions", [{ reserve: { building: "market" } }]), {
+			left: [{ gain: { coin: 1 } }, { vp: 5 }],
+			right: [{ invent: {} }]
+		}),
+		ff(when("lost-artifacts", [{ reserve: { tech: true } }]), { right: [{ advance: {
+			tracks: ["technology"],
+			noBenefit: true
+		} }] }),
+		ff(when("microbial-magic", [{ reserve: { building: "farm" } }]), {
+			left: [{ gain: { food: 1 } }, { vp: 5 }],
+			right: [{ vp: { per: "territoryTile" } }]
+		}),
+		ff(when("phantasmal-paladins", [{ reserve: { building: "armory" } }]), {
+			left: [{ gain: { culture: 1 } }, { vp: 5 }],
+			right: [{ vp: { per: "territory" } }]
+		}),
+		ff(when("quest-culture", [{ reserve: { territory: 3 } }]), { right: [{ choice: [[{ gain: { territory: 1 } }], [{ explore: {} }]] }] }),
+		ff(when("secret-societies", [{ reserve: { building: "house" } }]), {
+			left: [{ choice: [[{ gain: { tapestry: 2 } }], [{ advance: {
+				tracks: ["arts"],
+				noBenefit: true
+			} }]] }],
+			right: [{ gain: { worker: 1 } }, { vp: 5 }]
+		}),
+		ff(when("suspended-animation", [{ reserve: { token: true } }]), {
+			left: [{ gain: { tapestry: 1 } }],
+			right: [{ gain: { tapestry: 1 } }]
+		}, { fifth: [{ advance: {
+			tracks: ANY_TRACK,
+			freeBonus: true
+		} }] }),
+		ff(when("zombie-army", [{ reserve: { outposts: 3 } }]), { left: [{ building: "armory" }] })
 	]);
+	deepFreeze({
+		"commercial-center": {
+			grid: ["XX", "XX"],
+			squares: [
+				[{ gain: { coin: 1 } }],
+				[{ gain: { tapestry: 1 } }],
+				[{ invent: {} }],
+				[{ research: { noBenefit: true } }]
+			]
+		},
+		monuments: { grid: [
+			"..X",
+			".XX",
+			"XXX"
+		] },
+		"star-chamber": { grid: [
+			".X.",
+			"XXX",
+			".X."
+		] }
+	});
 	/**
 	* A tapestry card by id; each of the 7 trap copies is the trap.
 	* @param {string} id
@@ -8033,8 +8272,12 @@ createHTML: (html) => {
 	/** @typedef {import('./ids.js').TrackId} TrackId */
 	/** @typedef {import('./effects.js').Effect} Effect */
 	/**
-	* What a card needs before it goes to the top row: you or a neighbour is in or beyond a track tier, or has uncovered an income-mat innovation (R18).
-	* @typedef {{ track: TrackId, tier: 2 | 3 | 4 } | { innovation: string }} TechRequirement
+	* What a card needs before it goes to the top row: you or a neighbour is in or beyond a track tier, or has uncovered
+	* an income-mat innovation (R18); `selfInOriginal` asks it of you alone in the original version (Oil Paint, R125). A&A
+	* adds a landmark on the card itself (`landmark`, 03 §2) and no prerequisite at all (`none`, Suburbs). F&F's cards ask
+	* that the player ever played a charmed tapestry card or is on or after income turn 5, neighbours ignored
+	* (`charmOrFive`, 03 FF.2.3).
+	* @typedef {{ track: TrackId, tier: 2 | 3 | 4, selfInOriginal?: true } | { innovation: string } | { landmark: true } | { none: true } | { charmOrFive: true }} TechRequirement
 	*/
 	/**
 	* A tech card.
@@ -8045,6 +8288,8 @@ createHTML: (html) => {
 	* @property {Effect[]} square - Gained when the card moves from the middle row to the top row
 	* @property {TechRequirement} requires - The top-row prerequisite
 	* @property {string} [landmark] - The landmark the square places, on the landmark cards
+	* @property {true} [singleUse] - The square may be gained once, then the card is flipped (F&F, 03 FF.2.3)
+	* @property {'base' | 'aa' | 'ff'} expansion - Where the card comes from (#37, #39)
 	*/
 	/** @param {TrackId} track @param {2 | 3 | 4} tier @returns {TechRequirement} */
 	var tier = (track, tier) => ({
@@ -8066,7 +8311,7 @@ createHTML: (html) => {
 	/**
 	* A landmark card: circle of 3 to 5 VP, and the square places its landmark.
 	* @param {string} id @param {string} name @param {number} vp @param {string} need
-	* @returns {TechCard}
+	* @returns {Omit<TechCard, 'expansion'>}
 	*/
 	var landmarkCard = (id, name, vp, need) => ({
 		id,
@@ -8077,10 +8322,10 @@ createHTML: (html) => {
 		landmark: id
 	});
 	/**
-	* The 33 cards in BASE_TECH order (alphabetical).
-	* @type {readonly TechCard[]}
+	* The 33 base cards in BASE_TECH order (alphabetical).
+	* @type {Omit<TechCard, 'expansion'>[]}
 	*/
-	var TECH_CARDS = deepFreeze([
+	var BASE_CARDS = [
 		{
 			id: "air-conditioning",
 			name: "Air Conditioning",
@@ -8286,6 +8531,200 @@ createHTML: (html) => {
 			square: perSpace$1("exploration"),
 			requires: tier("exploration", 2)
 		}
+	];
+	/** Advance on a track, with its benefit, and the bonus may be paid: A&A's landmark cards' squares. @param {TrackId} track @returns {Effect[]} */
+	var advanceOn = (track) => [{ advance: { tracks: [track] } }];
+	/** A&A's landmark prerequisite: a landmark on this card (03 §2). @type {TechRequirement} */
+	var LANDMARK_ON_CARD = { landmark: true };
+	/**
+	* Arts & Architecture's 11 cards in AA_TECH order (03 §2's A&A tech table, #37 design §5).
+	* @type {Omit<TechCard, 'expansion'>[]}
+	*/
+	var AA_CARDS = [
+		{
+			id: "astrolabe",
+			name: "Astrolabe",
+			circle: [{ gain: { food: 1 } }],
+			square: advanceOn("exploration"),
+			requires: LANDMARK_ON_CARD
+		},
+		{
+			id: "automation",
+			name: "Automation",
+			circle: [{ gain: { coin: 1 } }],
+			square: advanceOn("technology"),
+			requires: LANDMARK_ON_CARD
+		},
+		{
+			id: "calculus",
+			name: "Calculus",
+			circle: [{ gain: { worker: 1 } }],
+			square: advanceOn("science"),
+			requires: LANDMARK_ON_CARD
+		},
+		{
+			id: "duct-tape",
+			name: "Duct Tape",
+			circle: [{ gain: { culture: 1 } }],
+			square: [{ upgrade: {
+				ignorePrerequisite: true,
+				count: 2
+			} }],
+			requires: tier("science", 3)
+		},
+		{
+			id: "jet-fuel",
+			name: "Jet Fuel",
+			circle: [{ gain: { space: 1 } }],
+			square: [{ exploreSpace: {} }],
+			requires: tier("science", 3)
+		},
+		{
+			id: "microphone",
+			name: "Microphone",
+			circle: [{ gain: { any: 1 } }],
+			square: advanceOn("arts"),
+			requires: LANDMARK_ON_CARD
+		},
+		{
+			id: "oil-paint",
+			name: "Oil Paint",
+			circle: [{ gain: { any: 1 } }],
+			square: [{ create: {} }],
+			requires: {
+				track: "arts",
+				tier: 2,
+				selfInOriginal: true
+			}
+		},
+		{
+			id: "opera",
+			name: "Opera",
+			circle: advanceX("arts"),
+			square: perSpace$1("arts"),
+			requires: tier("arts", 2)
+		},
+		{
+			id: "public-art",
+			name: "Public Art",
+			circle: [{ gain: { tapestry: 1 } }],
+			square: [{ inspire: {} }],
+			requires: tier("arts", 3)
+		},
+		{
+			id: "suburbs",
+			name: "Suburbs",
+			circle: [{ vp: 4 }],
+			square: [{ anyBuilding: {} }],
+			requires: { none: true }
+		},
+		{
+			id: "war-college",
+			name: "War College",
+			circle: [{ gain: { culture: 1 } }],
+			square: advanceOn("military"),
+			requires: LANDMARK_ON_CARD
+		}
+	];
+	/** F&F's prerequisite, on all 12 of its cards (03 FF.5). @type {TechRequirement} */
+	var CHARM_OR_FIVE = { charmOrFive: true };
+	/**
+	* An F&F card that advances on one of two tracks: without benefit for the circle; with it, the bonus payable, for the
+	* square, and then the card flips (03 FF.5).
+	* @param {string} id @param {string} name @param {TrackId[]} tracks
+	* @returns {Omit<TechCard, 'expansion'>}
+	*/
+	var twoTracks = (id, name, tracks) => ({
+		id,
+		name,
+		circle: [{ advance: {
+			tracks,
+			noBenefit: true
+		} }],
+		square: [{ advance: { tracks } }],
+		requires: CHARM_OR_FIVE,
+		singleUse: true
+	});
+	/**
+	* Fantasies & Futures' 12 cards in FF_TECH order (catalog order), as 03 FF.5's table (#39 design §9).
+	* @type {Omit<TechCard, 'expansion'>[]}
+	*/
+	var FF_CARDS = [
+		{
+			id: "golem-minions",
+			name: "Golem Minions",
+			circle: [{ vp: { per: "landmark" } }],
+			square: [...advanceX("military"), ...perSpace$1("military")],
+			requires: CHARM_OR_FIVE
+		},
+		{
+			id: "levitation",
+			name: "Levitation",
+			circle: [{ choice: [[{ explore: {} }], [{ gain: { space: 1 } }]] }],
+			square: [{ exploreSpace: {} }],
+			requires: CHARM_OR_FIVE,
+			singleUse: true
+		},
+		twoTracks("mind-control", "Mind Control", ["science", "military"]),
+		twoTracks("object-cloning", "Object Cloning", ["arts", "technology"]),
+		twoTracks("perfect-memory", "Perfect Memory", ["science", "arts"]),
+		{
+			id: "pyrokinesis",
+			name: "Pyrokinesis",
+			circle: [{ building: "armory" }],
+			square: [{ vp: { per: "territory" } }, { vp: { per: "armory" } }],
+			requires: CHARM_OR_FIVE
+		},
+		{
+			id: "remote-viewing",
+			name: "Remote Viewing",
+			circle: [{ gain: { territory: 1 } }, { explore: { anywhere: true } }],
+			square: [{ research: {} }],
+			requires: CHARM_OR_FIVE,
+			singleUse: true
+		},
+		twoTracks("superhuman-strength", "Superhuman Strength", ["exploration", "military"]),
+		{
+			id: "super-speed",
+			name: "Super Speed",
+			circle: [{ vp: { per: "territoryTile" } }],
+			square: [{ explore: {} }, { explore: {} }],
+			requires: CHARM_OR_FIVE
+		},
+		twoTracks("teleportation", "Teleportation", ["exploration", "technology"]),
+		{
+			id: "transmogrification",
+			name: "Transmogrification",
+			circle: [{ invent: {} }],
+			square: [{ anyBuilding: {} }],
+			requires: CHARM_OR_FIVE
+		},
+		{
+			id: "weather-control",
+			name: "Weather Control",
+			circle: [{ explore: {} }],
+			square: [{ repeat: {} }],
+			requires: CHARM_OR_FIVE,
+			singleUse: true
+		}
+	];
+	/**
+	* Every card: the base 33 in BASE_TECH order, then A&A's 11 in AA_TECH order, then F&F's 12 in FF_TECH order.
+	* @type {readonly TechCard[]}
+	*/
+	var TECH_CARDS = deepFreeze([
+		...BASE_CARDS.map((card) => ({
+			...card,
+			expansion: "base"
+		})),
+		...AA_CARDS.map((card) => ({
+			...card,
+			expansion: "aa"
+		})),
+		...FF_CARDS.map((card) => ({
+			...card,
+			expansion: "ff"
+		}))
 	]);
 	//#endregion
 	//#region src/lib/engine/data/masterpieces.js
@@ -8328,7 +8767,12 @@ createHTML: (html) => {
 			track
 		} };
 	}
-	deepFreeze([
+	/**
+	* The 20 masterpieces, in the reference page's order (RB-FF p27). A single-use card turns face down before its benefit,
+	* so its own benefit can't fire it again (my call, #35 part 2); Mime turns only once paid.
+	* @type {readonly MasterpieceCard[]}
+	*/
+	var MASTERPIECES = deepFreeze([
 		card("animation", "Animation", [{ vp: { per: "techCard" } }, ANY]),
 		card("art-deco", "Art Deco", [
 			{ flipMasterpiece: {} },
@@ -9363,6 +9807,16 @@ createHTML: (html) => {
 	function pluralOf(word) {
 		return /[^aeiou]y$/i.test(word) ? `${word.slice(0, -1)}ies` : `${word}s`;
 	}
+	/**
+	* A count of any noun: "1 outpost", "2 toppled outposts", "0 territories".
+	* @param {number} n
+	* @param {string} one
+	* @param {string} [many] - The plural, when it is not `one` with an s
+	* @returns {string}
+	*/
+	function countWords(n, one, many = `${one}s`) {
+		return `${n} ${n === 1 ? one : many}`;
+	}
 	//#endregion
 	//#region src/lib/game-names.js
 	/** @typedef {{ seats?: readonly { name?: string }[], expansions?: readonly string[] }} Table - A state or a view: the seats' names, and the expansions on (#33) */
@@ -9462,6 +9916,15 @@ createHTML: (html) => {
 	function techName(id) {
 		if (typeof id !== "string") return "a tech card";
 		return TECH_CARDS.find((card) => card.id === id)?.name ?? titleOf(id);
+	}
+	/**
+	* A masterpiece's name, such as "Art Deco" (#35).
+	* @param {unknown} id
+	* @returns {string}
+	*/
+	function masterpieceName(id) {
+		if (typeof id !== "string") return "a masterpiece";
+		return MASTERPIECES.find((card) => card.id === id)?.name ?? titleOf(id);
 	}
 	/**
 	* A civilization's name, such as "The Chosen".
@@ -12930,6 +13393,27 @@ createHTML: (html) => {
 	}]);
 	new Map([...SPACE_TILES, ...EXPANSION_SPACE_TILES].map((tile) => [tile.id, tile]));
 	//#endregion
+	//#region src/lib/reserved-words.js
+	/**
+	* An item reserved on the overlay, in words: "a Farm", "an Armory", "Microscope", "space tile 4", "3 territory tiles", "an outpost"
+	* or "a reminder".
+	* @param {Record<string, any> | null | undefined} item - A ReservedItem from the view
+	* @returns {string}
+	*/
+	function reservedWords(item) {
+		if (!item || typeof item !== "object") return "an item";
+		if (typeof item.building === "string") {
+			const name = buildingName(item.building);
+			return `${article(name)} ${name}`;
+		}
+		if (typeof item.tech === "string") return techName(item.tech);
+		if (typeof item.space === "number") return `space tile ${item.space}`;
+		if (typeof item.masterpiece === "string") return masterpieceName(item.masterpiece);
+		if (Array.isArray(item.territory)) return countWords(item.territory.length, "territory tile", "territory tiles");
+		if (item.outpost) return "an outpost";
+		return "a reminder";
+	}
+	//#endregion
 	//#region src/lib/describe.js
 	/** @typedef {Record<string, any>} Effect - One engine effect, `{ kind: value }`, of any shape */
 	/** @typedef {Record<string, any>} Decision - An open decision as a view shows it */
@@ -12960,7 +13444,14 @@ createHTML: (html) => {
 		"cartography",
 		"manifestDestiny",
 		"statusQuo",
-		"worldsFair"
+		"worldsFair",
+		"politicalPosturing",
+		"ageOfEnlightenment",
+		"silkRoad",
+		"infrastructureUpgrade",
+		"plague",
+		"granges",
+		"ecstaticVisions"
 	];
 	/**
 	* Whether a value is a plain object.
@@ -13023,6 +13514,7 @@ createHTML: (html) => {
 			case "trackSpace": return isTrack(track) ? `space you have advanced on ${trackName(track)}` : "track space you have advanced";
 			case "trackLead": return "track where nobody is ahead of you";
 			case "incomeBuilding": return "income building you own";
+			case "buildingLeft": return "income building still on your income mat";
 			case "capitalRow": return "complete row in your capital city";
 			case "capitalColumn": return "complete column in your capital city";
 			case "landmark": return "landmark you own";
@@ -13097,11 +13589,13 @@ createHTML: (html) => {
 			return `gain ${isCount(value.each) ? value.each : 1} VP for each ${counted(value.per, value.track)}`;
 		},
 		explore(value) {
+			if (value?.migration) return "explore a territory next to no controlled territory, then place 2 outposts there";
 			const where = value?.anywhere ? " anywhere" : "";
 			if (isCount(value?.tile)) return `explore${where} with territory tile ${value.tile}`;
 			return `explore a territory${where}`;
 		},
 		exploreSpace(value) {
+			if (isCount(value?.tile)) return `explore space tile ${value.tile}`;
 			if (typeof value?.civ === "string") return `explore a space tile onto your ${civilizationName(value.civ)} mat`;
 			return value?.fromGained ? "explore one of the space tiles just gained" : "explore a space tile";
 		},
@@ -13145,9 +13639,11 @@ createHTML: (html) => {
 			return words;
 		},
 		upgrade(value) {
+			if (value?.ignorePrerequisite) return value.count === 2 ? "upgrade 1 tech card twice or 2 tech cards once each, ignoring prerequisites" : "upgrade a tech card, ignoring its prerequisite";
 			return value?.lock ? "upgrade a tech card, which can't be upgraded again this turn" : "upgrade a tech card";
 		},
 		techBenefit(value) {
+			if (value?.anyRow) return `gain the ${value.icon === "square" ? "square" : "circle"} benefit of any of your tech cards`;
 			return value?.icon === "square" ? "gain the square benefit of a tech card in your top row" : "gain the circle benefit of a tech card in your middle row";
 		},
 		tapestryOnTop() {
@@ -13187,7 +13683,10 @@ createHTML: (html) => {
 		},
 		trade(value, table) {
 			if (!isRecord(value) || !Array.isArray(value.offers)) return null;
-			const words = `make one trade${isCount(value.host) ? ` with ${seatName(table, value.host)}` : ""}: ${joinList(value.offers.map((offer) => isRecord(offer) ? `${paymentVerbs(offer.pay)} to ${effectsPhrase(offer.gain, table, true)}` : "an offer"), "or")}`;
+			const host = isCount(value.host) ? ` with ${seatName(table, value.host)}` : "";
+			const offers = value.offers.map((offer) => isRecord(offer) ? `${paymentVerbs(offer.pay)} to ${effectsPhrase(offer.gain, table, true)}` : "an offer");
+			if (Array.isArray(value.otherwise) && offers.length === 1) return `you may ${offers[0]}; if you don't, ${effectsPhrase(value.otherwise, table, true)}`;
+			const words = `make one trade${host}: ${joinList(offers, "or")}`;
 			return value.optional ? `you may ${words}` : words;
 		},
 		discardTapestry(value) {
@@ -13195,6 +13694,41 @@ createHTML: (html) => {
 		},
 		anyBuilding() {
 			return "gain an income building of your choice";
+		},
+		collectOutpost() {
+			return "put an outpost on your Collectors mat";
+		},
+		charm(value) {
+			const card = tapestryCardOf(value?.card);
+			const side = value?.side === "right" ? "right" : "left";
+			const effects = card?.charms?.[side];
+			const name = card ? tapestryName(card.id) : "a card";
+			return Array.isArray(effects) ? `${name}'s ${side} charm: ${effectsPhrase(effects, void 0, true)}` : `${name}'s ${side} charm`;
+		},
+		ability(value) {
+			const card = tapestryCardOf(value?.card);
+			return card ? `${tapestryName(card.id)}'s ability` : "the card's ability";
+		},
+		reserve(value) {
+			if (typeof value?.building === "string") return `reserve your next ${buildingName(value.building)} on your income mat's overlay`;
+			if (value?.tech) return "reserve a face-up tech card or the deck's top card on your income mat's overlay";
+			if (isCount(value?.space)) return `draw ${value.space} space tiles and reserve 1 on your income mat's overlay`;
+			if (isCount(value?.masterpiece)) return `draw ${value.masterpiece} masterpieces and reserve 1 on your income mat's overlay`;
+			if (isCount(value?.territory)) return `reserve ${value.territory} territory tiles from the supply on your income mat's overlay`;
+			if (isCount(value?.outposts)) return `reserve up to ${value.outposts} of your outposts on your income mat's overlay`;
+			return "reserve a reminder on your income mat's overlay";
+		},
+		useReserved(value) {
+			return `use your reserved ${reservedWords(value).replace(/^an? /, "")}`;
+		},
+		useAllReserved() {
+			return "use every item reserved on your income mat's overlay";
+		},
+		discardSpace(value) {
+			return isCount(value?.tile) ? `discard space tile ${value.tile}` : "discard a space tile";
+		},
+		spymaster() {
+			return "draw 1 tapestry card; you may play it on top of this card at once";
 		},
 		advanceEach(value) {
 			let words = "advance once on each track, in any order";

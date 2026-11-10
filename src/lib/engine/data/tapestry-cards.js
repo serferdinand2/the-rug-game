@@ -1,4 +1,4 @@
-// The 43 base tapestry cards, the trap played as a card, and Plans & Ploys' cards (#33): timing and what happens when played (02 §3, 03 §1.4).
+// The 43 base tapestry cards, the trap played as a card, Plans & Ploys' cards (#33), Arts & Architecture's (#37) and Fantasies & Futures' (#39): timing, what happens when played, and F&F's charms (02 §3, 03 §1.4, §2.5, FF.4).
 import { deepFreeze } from './ids.js';
 
 /** @typedef {import('./effects.js').Effect} Effect */
@@ -8,12 +8,19 @@ import { deepFreeze } from './ids.js';
  * @typedef {Object} TapestryCard
  * @property {string} id - The slug the asset catalog uses, such as 'meritocracy'; the trap's is 'trap'
  * @property {string} name
- * @property {'played' | 'era'} timing - 'played' is WHEN PLAYED; 'era' is THIS ERA
+ * @property {'played' | 'era' | 'continuous'} timing - 'played' is WHEN PLAYED; 'era' is THIS ERA; 'continuous' is A&A's
+ *   CONTINUOUS, active while the card tops its slot (#37)
  * @property {Effect[]} played - What runs when the card's ability resolves; a THIS ERA card's setup choice, if any
  * @property {boolean} ordered - Whether the effects run in the order listed (Renaissance is the only false)
- * @property {'base' | 'pp'} expansion - Where it comes from
- * @property {'conquest' | 'trap'} [response] - A response card: 'conquest' a defender discards against a conquest (the
- *   trap, Retreat, Surprise Party, Surrender); 'trap' an attacker discards against a Trap (Double Cross, Stolen Plans)
+ * @property {'base' | 'pp' | 'aa' | 'ff'} expansion - Where it comes from
+ * @property {{ left?: Effect[], right?: Effect[] }} [charms] - F&F's charm bonuses (03 FF.2.1): the left one is gained
+ *   when the card is played to the right of another card, the right one the first time a card is placed to its right
+ * @property {Effect[]} [fifth] - What a card's reserved reminder token does on income turn 5 (Ghost Towns, Suspended
+ *   Animation; 03 FF.2.2)
+ * @property {false} [solo] - Left out of solo games (Granges, 03 §2.11; #31 reads it)
+ * @property {'conquest' | 'trap' | 'track'} [response] - A response card: 'conquest' a defender discards against a
+ *   conquest (the trap, Retreat, Surprise Party, Surrender); 'trap' an attacker discards against a Trap (Double Cross,
+ *   Stolen Plans); 'track' a neighbour discards when a player completes a track (Spymaster, R127)
  */
 
 /** Words a name keeps in lower case. */
@@ -65,12 +72,60 @@ const when = (id, played, ordered = true) => ({
 });
 
 /**
+ * A CONTINUOUS card (A&A, #37): it works while it tops its slot, and nothing runs when it is played.
+ * @param {string} id
+ * @returns {TapestryCard}
+ */
+const continuous = (id) => ({
+	id,
+	name: nameOf(id),
+	timing: 'continuous',
+	played: [],
+	ordered: true,
+	expansion: 'base',
+});
+
+/**
  * A Plans & Ploys card (#33; 03 §1.4), with its name when the slug doesn't give it.
  * @param {TapestryCard} card
  * @param {{ name?: string, response?: 'conquest' | 'trap' }} [extra]
  * @returns {TapestryCard}
  */
 const pp = (card, extra = {}) => ({ ...card, ...extra, expansion: 'pp' });
+
+/**
+ * An Arts & Architecture card (#37; 03 §2.5), with its name when the slug doesn't give it.
+ * @param {TapestryCard} card
+ * @param {{ name?: string, solo?: false, response?: 'track' }} [extra]
+ * @returns {TapestryCard}
+ */
+const aa = (card, extra = {}) => ({ ...card, ...extra, expansion: 'aa' });
+
+/**
+ * A Fantasies & Futures card (#39; 03 FF.4), with its charms and, for a reminder token, what it does on income turn 5.
+ * @param {TapestryCard} card
+ * @param {{ left?: Effect[], right?: Effect[] }} charms
+ * @param {{ fifth?: Effect[] }} [extra]
+ * @returns {TapestryCard}
+ */
+const ff = (card, charms, extra = {}) => ({
+	...card,
+	...extra,
+	charms,
+	expansion: 'ff',
+});
+
+/** Every track a game may play, the arts track last: an "any track" effect lists them all, and a game without the arts track skips it (R118). */
+const ANY_TRACK = /** @type {import('./ids.js').TrackId[]} */ ([
+	'exploration',
+	'science',
+	'technology',
+	'military',
+	'arts',
+]);
+
+/** Advance on any track without benefit or bonus (03 FF.2.4's arrow with an X). */
+const ADVANCE_ANY_X = { advance: { tracks: ANY_TRACK, noBenefit: true } };
 
 /**
  * A trade offer of VP for resources of the player's choice.
@@ -93,7 +148,8 @@ const buyVp = (resources, vp) => ({
 });
 
 /**
- * The 43 base cards in BASE_TAPESTRY order (alphabetical), then the trap, then Plans & Ploys' cards (#33).
+ * The 43 base cards in BASE_TAPESTRY order (alphabetical), then the trap, then Plans & Ploys' cards (#33), then
+ * Arts & Architecture's (#37), each in catalog order.
  * @type {readonly TapestryCard[]}
  */
 export const TAPESTRY_CARDS = deepFreeze([
@@ -230,7 +286,166 @@ export const TAPESTRY_CARDS = deepFreeze([
 	pp(when('worlds-fair', [{ gain: { culture: 1 } }, { worldsFair: {} }]), {
 		name: "World's Fair",
 	}),
+	// Arts & Architecture (#37; 03 §2.5).
+	aa(when('age-of-enlightenment', [{ ageOfEnlightenment: {} }])),
+	aa(continuous('commercial-center')),
+	aa(era('artistic-inspiration')),
+	aa(era('found-art')),
+	aa(when('granges', [{ granges: {} }]), { solo: false }),
+	aa(
+		when('information-age', [
+			{ invent: {} },
+			{
+				choice: [
+					[{ upgrade: {} }],
+					[{ techBenefit: { icon: 'circle', anyRow: true } }],
+				],
+			},
+		])
+	),
+	aa(when('infrastructure-upgrade', [{ infrastructureUpgrade: {} }])),
+	// Explored with a tile from the supply, VP and benefit as any explore (03 §2.5).
+	aa(when('migration', [{ explore: { migration: true } }])),
+	aa(continuous('monuments')),
+	aa(
+		when('moon-landing', [
+			{
+				trade: {
+					offers: [
+						{
+							pay: { territory: 2, tech: 1 },
+							gain: [
+								{ gain: { space: 1 } },
+								{ exploreSpace: {} },
+							],
+						},
+					],
+					optional: true,
+					purpose: 'moonLanding',
+					otherwise: [{ invent: {} }],
+				},
+			},
+		])
+	),
+	aa(era('national-parks')),
+	aa(when('plague', [{ plague: {} }])),
+	aa(when('political-posturing', [{ politicalPosturing: {} }])),
+	aa(when('silk-road', [{ silkRoad: {} }])),
+	aa(era('space-race')),
+	aa(when('spymaster', [{ vp: 5 }, { spymaster: {} }]), {
+		response: 'track',
+	}),
+	aa(continuous('star-chamber')),
+	// Mandatory where possible; the arts track is in play whenever this card is (R124).
+	aa(
+		when('government-grants', [
+			{ advance: { tracks: ['arts'], freeBonus: true } },
+			{
+				regress: {
+					tracks: [
+						'exploration',
+						'science',
+						'technology',
+						'military',
+					],
+					noBonus: true,
+				},
+			},
+		])
+	),
+	aa(era('steam'), { name: 'S.T.E.A.M.' }),
+	aa(era('trade-routes')),
+	// Fantasies & Futures' cards that reserve an item on the overlay (#39 design §8), in catalog order. An arts-track
+	// option is offered only with the arts track (R80, R118).
+	ff(when('ecstatic-visions', [{ ecstaticVisions: {} }]), {
+		left: [
+			{
+				choice: [
+					[{ gain: { territory: 1, tapestry: 1 } }],
+					[{ advance: { tracks: ['arts'], noBenefit: true } }],
+				],
+			},
+		],
+	}),
+	ff(when('generation-ships', [{ reserve: { space: 3 } }]), {
+		right: [
+			{
+				choice: [
+					[{ vp: { per: 'territoryTile' } }],
+					[{ regress: { tracks: ['arts'], noBenefit: true } }],
+				],
+			},
+		],
+	}),
+	ff(
+		when('ghost-towns', [{ reserve: { token: true } }]),
+		{ left: [ADVANCE_ANY_X], right: [ADVANCE_ANY_X] },
+		{ fifth: [{ vp: { per: 'buildingLeft', each: 3 } }] }
+	),
+	ff(
+		when('great-library-of-potions', [{ reserve: { building: 'market' } }]),
+		{
+			left: [{ gain: { coin: 1 } }, { vp: 5 }],
+			right: [{ invent: {} }],
+		}
+	),
+	ff(when('lost-artifacts', [{ reserve: { tech: true } }]), {
+		right: [{ advance: { tracks: ['technology'], noBenefit: true } }],
+	}),
+	ff(when('microbial-magic', [{ reserve: { building: 'farm' } }]), {
+		left: [{ gain: { food: 1 } }, { vp: 5 }],
+		right: [{ vp: { per: 'territoryTile' } }],
+	}),
+	ff(when('phantasmal-paladins', [{ reserve: { building: 'armory' } }]), {
+		left: [{ gain: { culture: 1 } }, { vp: 5 }],
+		right: [{ vp: { per: 'territory' } }],
+	}),
+	ff(when('quest-culture', [{ reserve: { territory: 3 } }]), {
+		right: [{ choice: [[{ gain: { territory: 1 } }], [{ explore: {} }]] }],
+	}),
+	ff(when('secret-societies', [{ reserve: { building: 'house' } }]), {
+		left: [
+			{
+				choice: [
+					[{ gain: { tapestry: 2 } }],
+					[{ advance: { tracks: ['arts'], noBenefit: true } }],
+				],
+			},
+		],
+		right: [{ gain: { worker: 1 } }, { vp: 5 }],
+	}),
+	ff(
+		when('suspended-animation', [{ reserve: { token: true } }]),
+		{
+			left: [{ gain: { tapestry: 1 } }],
+			right: [{ gain: { tapestry: 1 } }],
+		},
+		{ fifth: [{ advance: { tracks: ANY_TRACK, freeBonus: true } }] }
+	),
+	ff(when('zombie-army', [{ reserve: { outposts: 3 } }]), {
+		left: [{ building: 'armory' }],
+	}),
 ]);
+
+/**
+ * A&A's building-plot cards (#37; 03 §2.5): their squares row by row ('X' a square), and Commercial Center's printed
+ * benefit on each square in reading order: 1 coin, 1 tapestry card, invent, a science-die roll without benefit (my
+ * call: the research lists them in this order, the card's layout isn't in it).
+ * @type {Readonly<Record<string, { grid: readonly string[], squares?: readonly Effect[][] }>>}
+ */
+export const PLOT_CARDS = deepFreeze({
+	'commercial-center': {
+		grid: ['XX', 'XX'],
+		squares: [
+			[{ gain: { coin: 1 } }],
+			[{ gain: { tapestry: 1 } }],
+			[{ invent: {} }],
+			[{ research: { noBenefit: true } }],
+		],
+	},
+	monuments: { grid: ['..X', '.XX', 'XXX'] },
+	'star-chamber': { grid: ['.X.', 'XXX', '.X.'] },
+});
 
 /**
  * A tapestry card by id; each of the 7 trap copies is the trap.

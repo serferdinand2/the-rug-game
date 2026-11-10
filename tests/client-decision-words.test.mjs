@@ -77,6 +77,11 @@ test('places in the capital and on the map read as rows, columns and hexes', () 
 		'Row 1, column 1'
 	);
 	assert.equal(decisionTitle(landmark), 'Where does the Lighthouse go?');
+	// A&A's landmark tech card, which the landmark upgrades at once (#37).
+	assert.equal(
+		describeAnswer(landmark, { tech: 'astrolabe' }),
+		'On Astrolabe, upgrading it'
+	);
 	const farm = { ...landmark, landmark: undefined, building: 'farm' };
 	delete farm.landmark;
 	assert.equal(describeAnswer(farm, { row: 8, col: 8 }), 'Row 9, column 9');
@@ -1244,4 +1249,356 @@ test('over 20 random games, every open decision and answer describes to a senten
 		assert.equal(state.phase, 'over', `game ${seed} ended`);
 	}
 	assert.ok(kinds.size >= 15, `only ${kinds.size} decision kinds opened`);
+});
+
+test("Artistic Inspiration's roll offers the arts track beside the result (#37)", () => {
+	const roll = { id: 1, batch: 1, player: 1, kind: 'chooseRoll' };
+	assert.equal(
+		decisionTitle({ ...roll, options: ['science', 'arts'] }),
+		'Choose the science die result or Arts'
+	);
+	assert.equal(
+		decisionTitle({ ...roll, options: ['science', 'military'] }),
+		'Choose one of the two science die results'
+	);
+	assert.equal(describeAnswer(roll, { track: 'arts' }), 'Arts');
+});
+
+test("Political Posturing's achievement and Moon Landing's trade read as their cards (#37)", () => {
+	const slot = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'politicalPosturing',
+		options: ['complete-track', 'topple-two'],
+	};
+	assert.equal(decisionTitle(slot), 'Choose an achievement to earn');
+	assert.equal(
+		describeAnswer(slot, { slot: 'topple-two' }),
+		'Topple two opponent outposts'
+	);
+	const trade = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseTrade',
+		purpose: 'moonLanding',
+		optional: true,
+		offers: [
+			{
+				pay: { territory: 2, tech: 1 },
+				gain: [{ gain: { space: 1 } }, { exploreSpace: {} }],
+			},
+		],
+		otherwise: [{ invent: {} }],
+	};
+	assert.equal(
+		decisionTitle(trade),
+		'Moon Landing: discard 2 territory tiles and 1 tech card for a space tile?'
+	);
+	assert.equal(
+		describeAnswer(trade, { offer: null }),
+		'No, invent a tech card'
+	);
+});
+
+test("Age of Enlightenment's once or twice (#37)", () => {
+	const slot = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'enlightenment',
+		options: [1, 2],
+		then: { kind: 'enlightenmentMoves', track: 'science' },
+	};
+	assert.equal(
+		decisionTitle(slot),
+		'Age of Enlightenment: advance on Science once or twice?'
+	);
+	assert.equal(describeAnswer(slot, { slot: 1 }), 'Once');
+	assert.equal(describeAnswer(slot, { slot: 2 }), 'Twice');
+});
+
+test("Silk Road's and Plague's choices, and Infrastructure Upgrade's card (#37)", () => {
+	const silk = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'silkRoad',
+		options: ['benefit', 'landmark'],
+	};
+	assert.equal(
+		decisionTitle(silk),
+		"Silk Road: gain the space's benefit or its landmark?"
+	);
+	assert.equal(describeAnswer(silk, { slot: 'landmark' }), 'Its landmark');
+	const plague = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'plague',
+		options: ['historians', 'discard'],
+		then: { kind: 'plagueChoice', civ: 'the-chosen' },
+	};
+	assert.equal(
+		decisionTitle(plague),
+		'Plague: replace a civilization with The Chosen, or discard it for 10 VP?'
+	);
+	assert.equal(
+		describeAnswer(plague, { slot: 'historians' }),
+		'Replace the Historians'
+	);
+	assert.equal(
+		describeAnswer(plague, { slot: 'discard' }),
+		'Discard it for 10 VP'
+	);
+	const upgrade = {
+		id: 3,
+		batch: 1,
+		player: 1,
+		kind: 'chooseLandmarkCard',
+		purpose: 'infrastructureUpgrade',
+		options: ['castle', 'villa'],
+		drafters: [],
+	};
+	assert.equal(
+		decisionTitle(upgrade),
+		'Infrastructure Upgrade: keep a landmark card'
+	);
+});
+
+test("places on A&A's tapestry cards and National Parks' die read as such (#37)", () => {
+	const farm = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'choosePlacement',
+		building: 'farm',
+	};
+	assert.equal(
+		describeAnswer(farm, { card: 'commercial-center', row: 0, col: 1 }),
+		'On Commercial Center, row 1, column 2'
+	);
+	assert.equal(
+		describeAnswer(farm, { hex: '0_3', parks: true }),
+		'Hex 0,3, with National Parks'
+	);
+	const landmark = { ...farm, landmark: 'barracks' };
+	delete landmark.building;
+	assert.equal(
+		describeAnswer(landmark, { card: 'space-race' }),
+		'On Space Race'
+	);
+	assert.equal(
+		describeAnswer(landmark, {
+			card: 'monuments',
+			row: -1,
+			col: 1,
+			rotation: 1,
+		}),
+		'On Monuments, covering row 1 column 3'
+	);
+	const die = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'nationalParks',
+		options: ['black', 'red'],
+	};
+	assert.equal(decisionTitle(die), 'National Parks: roll which conquer die?');
+	assert.equal(describeAnswer(die, { slot: 'black' }), 'The black die');
+});
+
+test("Spymaster's question names who completed which track (R127)", () => {
+	const game = { seats: [{ name: 'Ana' }, { name: 'Bo' }] };
+	const spy = {
+		id: 1,
+		batch: 1,
+		player: 2,
+		kind: 'chooseSpymaster',
+		mover: 1,
+		track: 'military',
+	};
+	assert.equal(
+		decisionTitle(spy, game),
+		'Ana reached the end of Military. Play Spymaster?'
+	);
+	assert.equal(describeAnswer(spy, { card: null }), "Don't play a card");
+	assert.equal(describeAnswer(spy, { card: 'spymaster' }), 'Play Spymaster');
+});
+
+test("the Renegades' question names the space and their next space (#37)", () => {
+	const renegades = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseRenegades',
+		track: 'exploration',
+		space: 1,
+		bonus: true,
+	};
+	assert.equal(
+		decisionTitle(renegades),
+		"Scouting's benefit, or your Renegades' next space instead?"
+	);
+	assert.equal(
+		describeAnswer(renegades, { renegades: false }),
+		"Scouting's benefit"
+	);
+	assert.equal(
+		describeAnswer(renegades, { renegades: true }),
+		'The Renegades space'
+	);
+});
+
+test("the Gamblers' picks name the cards revealed (#37)", () => {
+	const play = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'gamblers',
+		options: ['feudalism', 'guilds'],
+		then: {
+			kind: 'gamblersPlay',
+			era: 2,
+			cards: ['feudalism', 'guilds', 'academia'],
+		},
+	};
+	assert.equal(
+		decisionTitle(play),
+		'Gamblers: play a revealed card on your era 2 slot'
+	);
+	assert.equal(describeAnswer(play, { slot: 'guilds' }), 'Guilds');
+	const keep = {
+		...play,
+		purpose: 'gamblersKeep',
+		then: { kind: 'gamblersKeep', cards: ['academia'] },
+	};
+	assert.equal(
+		decisionTitle(keep),
+		'Gamblers: no When Played card, so keep 1 in your hand'
+	);
+	assert.equal(describeAnswer(keep, { slot: 'academia' }), 'Academia');
+});
+
+test("the Urban Planners' choices read as their card (#37)", () => {
+	const landmark = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'choosePlacement',
+		landmark: 'forge',
+	};
+	assert.equal(
+		describeAnswer(landmark, { planners: true }),
+		'On your Urban Planners mat, to place later'
+	);
+	const place = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSlot',
+		purpose: 'plannersPlace',
+		options: ['forge'],
+		optional: true,
+	};
+	assert.equal(
+		decisionTitle(place),
+		'Urban Planners: place a landmark from your mat in your capital?'
+	);
+	assert.equal(describeAnswer(place, { slot: 'forge' }), 'The Forge');
+	const card = {
+		id: 3,
+		batch: 1,
+		player: 1,
+		kind: 'chooseLandmarkCard',
+		purpose: 'urbanPlanners',
+		options: ['villa', 'castle'],
+		drafters: [],
+	};
+	assert.equal(
+		decisionTitle(card),
+		'Urban Planners: keep one more landmark card'
+	);
+	const swap = {
+		id: 4,
+		batch: 1,
+		player: 1,
+		kind: 'chooseOption',
+		purpose: 'plannersSwap',
+		options: [
+			[],
+			[{ discardCiv: { civ: 'urban-planners' } }, { gainCiv: {} }],
+		],
+	};
+	assert.equal(
+		decisionTitle(swap),
+		'No landmark card is left: discard the Urban Planners for another civilization?'
+	);
+	assert.equal(
+		describeAnswer(swap, { option: 0 }),
+		'Keep the Urban Planners'
+	);
+	assert.equal(
+		describeAnswer(swap, { option: 1 }),
+		'Discard them and gain another'
+	);
+});
+
+test("the Collectors' choices read as their mat (#37, R129)", () => {
+	const house = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'choosePlacement',
+		building: 'house',
+	};
+	assert.equal(
+		describeAnswer(house, { collectors: true }),
+		'On your Collectors mat, for 1 resource of your choice'
+	);
+	const card = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseCollect',
+		type: 'tapestry',
+		options: ['academia'],
+	};
+	assert.equal(
+		decisionTitle(card),
+		'Put it on your Collectors mat, for 1 resource of your choice?'
+	);
+	assert.equal(describeAnswer(card, { slot: 'academia' }), 'Academia');
+	assert.equal(describeAnswer(card, { slot: null }), "Don't");
+	const tile = { ...card, type: 'territory', options: [7] };
+	assert.equal(describeAnswer(tile, { slot: 7 }), 'Territory tile 7');
+	const tech = { ...card, type: 'tech', options: ['paper'] };
+	assert.equal(describeAnswer(tech, { slot: 'paper' }), 'Paper');
+	const outpost = {
+		id: 3,
+		batch: 1,
+		player: 1,
+		kind: 'chooseOption',
+		purpose: 'collectorsOutpost',
+		options: [
+			[{ conquer: { collectorsAsked: true } }],
+			[{ collectOutpost: {} }],
+		],
+	};
+	assert.equal(
+		decisionTitle(outpost),
+		'Conquer, or put an outpost on your Collectors mat instead?'
+	);
+	assert.equal(describeAnswer(outpost, { option: 0 }), 'Conquer');
+	assert.equal(
+		describeAnswer(outpost, { option: 1 }),
+		'Put an outpost on your Collectors mat'
+	);
 });

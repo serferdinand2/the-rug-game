@@ -25,4 +25,5 @@ export const AUTOMA_CARD_TITLES = Object.freeze([
 ]);
 
 /** @param {number} id */
-export const automaCardTitle = (id) => AUTOMA_CARD_TITLES[id - 1] ?? `Automa ${id}`;
+export const automaCardTitle = (id) =>
+	AUTOMA_CARD_TITLES[id - 1] ?? `Automa ${id}`;

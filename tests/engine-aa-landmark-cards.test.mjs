@@ -142,7 +142,14 @@ for (const [count, variants] of [
 		);
 		const { state, offers } = draftAll(drafting.state, drafting.random);
 		assert.equal(offers[0].options, count);
-		assert.equal(state.supply.landmarkCards.length, 5 - Number(count));
+		// The Urban Planners take one more card from what is left (#37).
+		const planners = state.seats.filter((/** @type {any} */ s) =>
+			s.civs.includes('urban-planners')
+		).length;
+		assert.equal(
+			state.supply.landmarkCards.length,
+			Math.max(0, 5 - Number(count) - planners)
+		);
 		const kept = state.seats.map(
 			(/** @type {any} */ s) => s.landmarkCard.card
 		);

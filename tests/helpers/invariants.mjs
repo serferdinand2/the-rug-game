@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { DECISIONS } from '../../src/lib/engine/kinds.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
 import { civsFor, tapestryFor, techDeck } from '../../src/lib/engine/decks.js';
+import { techCard } from '../../src/lib/engine/data/tech-cards.js';
 import { landmarksFor } from '../../src/lib/engine/data/landmarks.js';
 import { artsInPlay, tracksOf } from '../../src/lib/engine/tracks-in-play.js';
 import { MASTERPIECES } from '../../src/lib/engine/data/masterpieces.js';
@@ -94,12 +95,43 @@ export function checkState(state, previousSeq = 0) {
 				...p.tech.bottom,
 				...p.tech.middle,
 				...p.tech.top,
+				// #39: reserved on the overlay.
+				...(p.reserved ?? []).flatMap((/** @type {any} */ i) =>
+					i.tech !== undefined ? [i.tech] : []
+				),
+				// #37: on the Collectors' mat.
+				...(p.civData.collectors?.items.tech !== undefined
+					? [p.civData.collectors.items.tech]
+					: []),
 			]),
 			// #33: the Recyclers' drawn cards wait in their keep question.
 			...opsOf('chooseKeepTech').flatMap((op) => op.options),
 		],
-		techDeck(state.variants)
+		techDeck(state.expansions, state.variants)
 	);
+	// #37: a landmark sits only on its holder's A&A landmark tech card (03 §2).
+	for (const p of players) {
+		const rows = [...p.tech.bottom, ...p.tech.middle, ...p.tech.top];
+		for (const card of Object.keys(p.techLandmarks ?? {})) {
+			assert.ok(
+				rows.includes(card) && 'landmark' in techCard(card).requires,
+				`seat ${p.seat}'s landmark on ${card}`
+			);
+		}
+		// #39: a flipped card is one of the seat's own single-use cards, once.
+		const flipped = p.flippedTech ?? [];
+		assert.equal(
+			new Set(flipped).size,
+			flipped.length,
+			'a card flipped twice'
+		);
+		for (const card of flipped) {
+			assert.ok(
+				rows.includes(card) && techCard(card).singleUse === true,
+				`seat ${p.seat}'s flipped ${card}`
+			);
+		}
+	}
 	exactlyOnce(
 		'tapestry cards',
 		[
@@ -108,16 +140,38 @@ export function checkState(state, previousSeq = 0) {
 			...players.flatMap((p) => [
 				...p.hand,
 				...p.incomeMat.tapestry.flat(),
+				// #37: on the Collectors' mat.
+				...(p.civData.collectors?.items.tapestry !== undefined
+					? [p.civData.collectors.items.tapestry]
+					: []),
 			]),
+			// #37: the Gamblers' revealed cards, while they choose.
+			...opsOf('chooseSlot')
+				.filter(
+					(op) =>
+						op.purpose === 'gamblers' ||
+						op.purpose === 'gamblersKeep'
+				)
+				.flatMap((op) => op.then.cards),
 		],
-		tapestryFor(state.expansions)
+		tapestryFor(state.expansions, state.variants)
 	);
 	exactlyOnce(
 		'territory tiles',
 		[
 			...supply.territory,
 			...supply.territoryDiscard,
-			...players.flatMap((p) => p.territoryTiles),
+			...players.flatMap((p) => [
+				...p.territoryTiles,
+				// #39: reserved on the overlay.
+				...(p.reserved ?? []).flatMap(
+					(/** @type {any} */ i) => i.territory ?? []
+				),
+				// #37: on the Collectors' mat.
+				...(p.civData.collectors?.items.territory !== undefined
+					? [p.civData.collectors.items.territory]
+					: []),
+			]),
 			// #165: the tiles lying on the Islanders' mats.
 			...players.flatMap((p) =>
 				(p.civData.islanders?.hexes ?? []).flatMap(
@@ -138,9 +192,17 @@ export function checkState(state, previousSeq = 0) {
 		[
 			...supply.space,
 			...supply.spaceDiscard,
+			// #39: drawn for a reserve, waiting for their player's pick.
+			...opsOf('chooseReserve')
+				.filter((op) => op.stack === 'space')
+				.flatMap((op) => op.options),
 			...players.flatMap((p) => [
 				...p.spaceTiles,
 				...p.exploredSpace,
+				// #39: reserved on the overlay.
+				...(p.reserved ?? []).flatMap((/** @type {any} */ i) =>
+					i.space !== undefined ? [i.space] : []
+				),
 				// #33: the tile on the Aliens' mat.
 				...(typeof p.civData.aliens?.tile === 'number'
 					? [p.civData.aliens.tile]
@@ -164,6 +226,15 @@ export function checkState(state, previousSeq = 0) {
 				...players.flatMap((p) =>
 					(p.masterpieces ?? []).map((held) => held.card)
 				),
+				// #39: reserved on the overlay, or drawn for a reserve.
+				...players.flatMap((p) =>
+					(p.reserved ?? []).flatMap((/** @type {any} */ i) =>
+						i.masterpiece !== undefined ? [i.masterpiece] : []
+					)
+				),
+				...opsOf('chooseReserve')
+					.filter((op) => op.stack === 'masterpieces')
+					.flatMap((op) => op.options),
 			],
 			MASTERPIECES.map((m) => m.id)
 		);
@@ -206,10 +277,19 @@ export function checkState(state, previousSeq = 0) {
 		'landmark cards',
 		[
 			...supply.landmarkCards,
-			...opsOf('chooseLandmarkCard').flatMap((op) => op.options),
-			...players.flatMap((p) =>
-				p.landmarkCard ? [p.landmarkCard.card] : []
-			),
+			// Infrastructure Upgrade's offer is the deck itself, still there (#37).
+			...opsOf('chooseLandmarkCard')
+				.filter(
+					(op) =>
+						op.purpose !== 'infrastructureUpgrade' &&
+						op.purpose !== 'urbanPlanners'
+				)
+				.flatMap((op) => op.options),
+			...players.flatMap((p) => [
+				...(p.landmarkCard ? [p.landmarkCard.card] : []),
+				// #37: Infrastructure Upgrade's.
+				...(p.extraLandmarkCards ?? []).map((held) => held.card),
+			]),
 		],
 		landmarkCardsFor(state.expansions).map((c) => c.id)
 	);
@@ -224,6 +304,11 @@ export function checkState(state, previousSeq = 0) {
 			]),
 			...opsOf('chooseCiv').flatMap((op) => op.options),
 			...opsOf('chooseMatAndCiv').flatMap((op) => op.civs),
+			// #37: Plague's drawn civilization, while its player decides.
+			...opsOf('chooseSlot')
+				.filter((op) => op.purpose === 'plague')
+				.map((op) => op.then.civ),
+			...opsOf('plagueChoice').map((op) => op.civ),
 		],
 		civsFor(state.expansions, state.variants)
 	);
@@ -257,11 +342,27 @@ export function checkState(state, previousSeq = 0) {
 		'landmarks',
 		[
 			...state.landmarks,
+			// #37: discarded with their tech card, out of the game.
+			...(supply.landmarkDiscard ?? []),
 			...players.flatMap((p) => [
 				...p.capital.landmarks.map((piece) => piece.landmark),
 				...p.besideMat.filter(
 					(id) => !BUILDING_IDS.includes(/** @type {any} */ (id))
 				),
+				// #37: on A&A's landmark tech cards, each holding one, in a row of its owner's.
+				...Object.values(p.techLandmarks ?? {}),
+				// #37: on A&A's tapestry cards.
+				...Object.values(p.onCards ?? {}).flatMap((pieces) =>
+					pieces.flatMap((piece) =>
+						'landmark' in piece ? [piece.landmark] : []
+					)
+				),
+				// #37: kept on the Urban Planners' mat.
+				...(p.civData['urban-planners']?.stored ?? []),
+				// #37: on the Collectors' mat.
+				...(p.civData.collectors?.items.landmark !== undefined
+					? [p.civData.collectors.items.landmark]
+					: []),
 			]),
 			...pieces.flatMap((piece) =>
 				'landmark' in piece ? [piece.landmark] : []
@@ -308,6 +409,21 @@ export function checkState(state, previousSeq = 0) {
 						'building' in o.piece &&
 						o.piece.building === building
 				).length +
+				// #37: the Collectors' house.
+				(building === 'house' && p.civData.collectors?.items.house
+					? 1
+					: 0) +
+				// #39: reserved on the overlay.
+				(p.reserved ?? []).filter(
+					(/** @type {any} */ i) => i.building === building
+				).length +
+				// #37: on A&A's tapestry cards.
+				Object.values(p.onCards ?? {})
+					.flat()
+					.filter(
+						(piece) =>
+							'building' in piece && piece.building === building
+					).length +
 				placing.filter(
 					(op) => op.player === p.seat && op.building === building
 				).length;
@@ -317,7 +433,14 @@ export function checkState(state, previousSeq = 0) {
 				`seat ${p.seat} owns ${count} ${building} buildings`
 			);
 		}
-		const own = p.outposts + mine.filter((o) => !o.piece).length;
+		const own =
+			p.outposts +
+			mine.filter((o) => !o.piece).length +
+			// #37: the Collectors' outpost.
+			(p.civData.collectors?.items.outpost ? 1 : 0) +
+			// #39: Zombie Army's, reserved on the overlay.
+			(p.reserved ?? []).filter((/** @type {any} */ i) => i.outpost)
+				.length;
 		assert.equal(own, OUTPOSTS, `seat ${p.seat} owns ${own} outposts`);
 		for (const [civ, total] of Object.entries(CIV_TOKENS)) {
 			const data = p.civData[civ];
@@ -354,6 +477,13 @@ export function checkState(state, previousSeq = 0) {
 				...p.besideMat,
 				...mine.flatMap((o) =>
 					o.piece && 'landmark' in o.piece ? [o.piece.landmark] : []
+				),
+				// #37: on A&A's tech and tapestry cards, owned as well.
+				...Object.values(p.techLandmarks ?? {}),
+				...Object.values(p.onCards ?? {}).flatMap((pieces) =>
+					pieces.flatMap((piece) =>
+						'landmark' in piece ? [piece.landmark] : []
+					)
 				),
 				...placing
 					.filter((op) => op.player === p.seat)

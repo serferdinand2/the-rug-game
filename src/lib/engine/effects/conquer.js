@@ -3,6 +3,7 @@ import { emit } from '../events.js';
 import { playerSeat, isPlayerSeat, seatOf } from '../state.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { RED_DIE, BLACK_DIE } from '../data/dice.js';
+import { collectorsMay } from '../civs/collectors.js';
 import { claimAchievement, checkToppleTwo } from '../achievements.js';
 import { hasEra, triggered } from '../abilities.js';
 import { MAPS } from '../data/maps.js';
@@ -141,6 +142,25 @@ function asksResponse(state, defender) {
  * @type {import('../state.js').EffectHandler}
  */
 export function conquer(ctx, player, value) {
+	// R129: the Collectors choose the outpost before the target, instead of conquering (#37).
+	if (
+		value?.collectorsAsked !== true &&
+		collectorsMay(ctx.state, player, 'outpost') &&
+		playerSeat(ctx.state, player).outposts > 0
+	) {
+		ctx.push([
+			{
+				player,
+				kind: 'chooseOption',
+				options: [
+					[{ conquer: { ...value, collectorsAsked: true } }],
+					[{ collectOutpost: {} }],
+				],
+				purpose: 'collectorsOutpost',
+			},
+		]);
+		return;
+	}
 	const anywhere = value?.anywhere === true;
 	const bothDice = value?.bothDice;
 	/** @type {string[] | undefined} */

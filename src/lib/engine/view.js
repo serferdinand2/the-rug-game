@@ -98,6 +98,13 @@ export function view(state, seat) {
 		if (entry.seat !== viewer) {
 			delete entry.hand;
 			delete entry.picks;
+			// The Collectors' cards and tile lie face down: the others see only that one is there (#37).
+			const items = entry.civData?.collectors?.items;
+			for (const type of ['tapestry', 'territory', 'tech']) {
+				if (items?.[type] !== undefined) {
+					items[type] = true;
+				}
+			}
 		}
 	}
 

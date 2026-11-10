@@ -28,7 +28,7 @@ function table(civData) {
 	};
 }
 
-test('the thirteen civilizations whose cards show live state, six with choices on them', () => {
+test('the seventeen civilizations whose cards show live state, six with choices on them', () => {
 	assert.deepEqual(
 		[...CARD_CIVS],
 		[
@@ -45,8 +45,51 @@ test('the thirteen civilizations whose cards show live state, six with choices o
 			'traders',
 			'isolationists',
 			'heralds',
+			'collectors',
+			'relentless',
+			'renegades',
+			'urban-planners',
 		]
 	);
+});
+
+test("the Relentless' tokens, the Renegades' space and the Urban Planners' kept landmarks show on their cards (#37)", () => {
+	assert.deepEqual(civCardMarks('relentless', { tokens: 2 }), {
+		tokens: ['token', 'token'],
+	});
+	assert.deepEqual(civCardMarks('renegades', { at: 0 }), {});
+	assert.deepEqual(civCardMarks('renegades', { at: 2 }), {
+		tier2: ['token'],
+	});
+	assert.deepEqual(
+		civCardMarks('urban-planners', { stored: ['forge', 'villa'] }),
+		{ 'stored-forge': ['token'], 'stored-villa': ['token'] }
+	);
+	const relentless = civCard('relentless', {
+		view: { marks: civCardMarks('relentless', { tokens: 3 }), choices: {} },
+	});
+	assert.equal(relentless.sections[0].effects[0].label, '3 here');
+	const planners = civCard('urban-planners', {
+		view: {
+			marks: civCardMarks('urban-planners', { stored: ['forge'] }),
+			choices: {},
+		},
+	});
+	assert.match(
+		planners.sections[0].effects[1].text.join(' '),
+		/On this mat now: the Forge\./
+	);
+});
+
+test("the Collectors' card marks each item on their mat (#37)", () => {
+	assert.deepEqual(
+		civCardMarks('collectors', {
+			items: { outpost: true, tech: 'paper' },
+			turn: 3,
+		}),
+		{ outpost: ['token'], tech: ['token'] }
+	);
+	assert.deepEqual(civCardMarks('collectors', { items: {}, turn: null }), {});
 });
 
 test("the Entertainers' token sits on its space, or on the start", () => {

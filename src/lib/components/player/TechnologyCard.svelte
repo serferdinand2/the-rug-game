@@ -20,7 +20,7 @@
 	import CardBand from './CardBand.svelte';
 	import CardEdition from './CardEdition.svelte';
 	import { techCardData } from '../../cards/game-cards.js';
-	import { trackName } from '../../game-names.js';
+	import { landmarkName, trackName } from '../../game-names.js';
 	import { artUrl } from '../../ui.js';
 	import '../../../styles/card-layouts.css';
 
@@ -35,7 +35,13 @@
 	class="rg-technology-card {attr.class ?? ''}">
 	<div
 		class="rg-tech-layout"
+		class:rg-tech-layout--flipped={card.flipped}
 		aria-label="{card.title} technology card">
+		{#if card.flipped}
+			<!-- F&F's flipped single-use card (#39), awaiting review: its face dimmed, so it still reads. -->
+			<span class="rg-tech-layout--flipped-mark"
+				>Flipped · single use spent</span>
+		{/if}
 		<CardBand
 			class="rg-tech-layout--band"
 			title={card.title}
@@ -54,7 +60,11 @@
 						class="rg-tech-layout--shape rg-tech-layout--shape-square"
 						aria-label="Square benefit"></span>
 					<div>
-						<small>Square · top row</small>
+						<!-- F&F's single-use square (#39), awaiting review. -->
+						<small
+							>Square · top row{card.singleUse
+								? ' · single use'
+								: ''}</small>
 						<p>{card.square}</p>
 					</div>
 				</div>
@@ -84,6 +94,17 @@
 					<b class="rg-tech-layout--innovation-name"
 						>{card.innovation}</b>
 					<b>uncovered</b>
+				{:else if card.prerequisite === 'landmark' && card.held}
+					<img
+						src={artUrl(`landmark/${card.held}`)}
+						alt="" /><b>Holds the {landmarkName(card.held)}</b>
+				{:else if card.prerequisite === 'landmark'}
+					<b>A landmark on this card</b>
+				{:else if card.prerequisite === 'none'}
+					<b>No prerequisite</b>
+				{:else if card.prerequisite === 'charmOrFive'}
+					<!-- F&F's prerequisite (#39), awaiting review. -->
+					<b>A charmed card played, or income turn 5</b>
 				{:else if card.track}
 					<img
 						src={artUrl(`track/${card.track}`)}

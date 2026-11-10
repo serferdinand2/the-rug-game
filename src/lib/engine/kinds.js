@@ -41,7 +41,7 @@ import { chooseRefresh } from './decisions/choose-refresh.js';
 import { chooseMasterpiece } from './decisions/choose-masterpiece.js';
 import { chooseInspire } from './decisions/choose-inspire.js';
 import { nextMasterpiece } from './masterpieces.js';
-import { endTurn } from './turn.js';
+import { askTurn, endTurn } from './turn.js';
 import { runIncomeSteps, playFaceDown } from './income.js';
 import { chooseTapestry } from './decisions/choose-tapestry.js';
 import { tapestryAbility } from './tapestry.js';
@@ -73,7 +73,11 @@ import { choosePartner } from './decisions/choose-partner.js';
 import { chooseConversion } from './decisions/choose-conversion.js';
 import { chooseCivAbility } from './decisions/choose-civ-ability.js';
 import { chooseSlot } from './decisions/choose-slot.js';
-import { olympicHostEnd, sharedAdvanceOn } from './effects/players.js';
+import {
+	grangesEnd,
+	olympicHostEnd,
+	sharedAdvanceOn,
+} from './effects/players.js';
 import {
 	darkAgesOn,
 	darkAgesKept,
@@ -92,6 +96,7 @@ import {
 	civSetup,
 	civAdjust,
 	civFirstTurnEnd,
+	plagueChoice,
 } from './civ-turns.js';
 import { loseResource } from './effects/lose.js';
 import { payResource } from './effects/pay.js';
@@ -99,9 +104,27 @@ import { chooseAlchemists } from './decisions/choose-alchemists.js';
 import { chooseProphecy } from './decisions/choose-prophecy.js';
 import { chooseSwap } from './decisions/choose-swap.js';
 import { chooseCube } from './decisions/choose-cube.js';
+import { chooseSpymaster } from './decisions/choose-spymaster.js';
+import { chooseRenegades } from './decisions/choose-renegades.js';
+import { chooseCollect } from './decisions/choose-collect.js';
+import {
+	chooseReserve,
+	chooseReserveTech,
+} from './decisions/choose-reserve.js';
+import { upgradeReserved, zombieTake } from './effects/reserved.js';
 import { leadersAdvance } from './civs/leaders.js';
 import { merrymakersMove } from './civs/merrymakers.js';
 import { retreatTo, surrenderDice } from './responses.js';
+import { parksRoll } from './card-pieces.js';
+import { relentlessEnd } from './civs/relentless.js';
+import { gamblersKeep, gamblersPlay } from './civs/gamblers.js';
+import { plannersOffer, plannersPlaced } from './civs/urban-planners.js';
+import {
+	enlightenmentMoves,
+	enlightenmentRolled,
+	politicalPostured,
+	silkRoadGain,
+} from './effects/aa-cards.js';
 import {
 	cartographyCheck,
 	manifestDestinyBenefit,
@@ -199,6 +222,11 @@ Object.assign(DECISIONS, {
 	chooseCloudMove,
 	chooseCloudPlot,
 	chooseLandmarkCard,
+	chooseSpymaster,
+	chooseRenegades,
+	chooseCollect,
+	chooseReserve,
+	chooseReserveTech,
 });
 
 Object.assign(AUTOMATIC, {
@@ -215,6 +243,7 @@ Object.assign(AUTOMATIC, {
 	setupSteps: runSetupSteps,
 	bonus: offerBonus,
 	endTurn,
+	askTurn,
 	research: rollResearch,
 	researchRolled,
 	scienceRoll,
@@ -226,6 +255,7 @@ Object.assign(AUTOMATIC, {
 	conquerDice,
 	upgradeTech,
 	olympicHostEnd,
+	grangesEnd,
 	sharedAdvanceOn,
 	darkAgesOn,
 	darkAgesKept,
@@ -277,12 +307,25 @@ Object.assign(AUTOMATIC, {
 	historiansDiscard,
 	inventorsToken,
 	inventorsTake,
+	politicalPostured,
+	enlightenmentRolled,
+	enlightenmentMoves,
+	silkRoadGain,
+	plagueChoice,
+	parksRoll,
+	relentlessEnd,
+	gamblersPlay,
+	gamblersKeep,
+	plannersOffer,
+	plannersPlaced,
 	cartographyCheck,
 	manifestDestinyBenefit,
 	territoryBenefit,
 	statusQuoBonus,
 	retreatTo,
 	surrenderDice,
+	zombieTake,
+	upgradeReserved,
 });
 
 export { DECISIONS, AUTOMATIC };

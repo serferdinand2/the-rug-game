@@ -7,12 +7,24 @@ import {
 	placeBesideMat,
 	placeInColumn,
 	placeOnMap,
+	placeOnTech,
 	placePiece,
 	placements,
 } from '../placing.js';
+import { placeInPark, placeOnCard } from '../card-pieces.js';
+import { storeLandmark } from '../civs/urban-planners.js';
+import { collect } from '../civs/collectors.js';
 
 /** The answer keys of the places other than a capital plot. */
-const OTHER_PLACES = /** @type {const} */ (['besideMat', 'craftsmen', 'hex']);
+const OTHER_PLACES = /** @type {const} */ ([
+	'besideMat',
+	'craftsmen',
+	'hex',
+	'tech',
+	'card',
+	'planners',
+	'collectors',
+]);
 
 /**
  * The piece a placement decision is for.
@@ -34,6 +46,24 @@ function otherPlace(answer) {
 	return OTHER_PLACES.find((key) => answer[key] !== undefined);
 }
 
+/**
+ * Whether an answer names exactly a place on offer: the same keys, each the same.
+ * @param {object} place
+ * @param {Record<string, any>} answer
+ * @returns {boolean}
+ */
+function samePlace(place, answer) {
+	const keys = Object.keys(place);
+	return (
+		keys.length === Object.keys(answer).length &&
+		keys.every(
+			(key) =>
+				/** @type {Record<string, unknown>} */ (place)[key] ===
+				answer[key]
+		)
+	);
+}
+
 /** @type {import('../state.js').DecisionKind} */
 export const choosePlacement = {
 	hidden: [],
@@ -41,22 +71,20 @@ export const choosePlacement = {
 		return placements(
 			state,
 			/** @type {number} */ (decision.player),
-			pieceOf(decision)
+			pieceOf(decision),
+			decision.capitalOnly === true
 		);
 	},
 	check(state, decision, answer) {
 		const key = otherPlace(answer);
 		if (key !== undefined) {
+			// The whole place must match: a card's square and turn, a park's flag (#37).
 			const offered = placements(
 				state,
 				/** @type {number} */ (decision.player),
-				pieceOf(decision)
-			).some(
-				(place) =>
-					key in place &&
-					/** @type {Record<string, unknown>} */ (place)[key] ===
-						answer[key]
-			);
+				pieceOf(decision),
+				decision.capitalOnly === true
+			).some((place) => samePlace(place, answer));
 			if (!offered) {
 				throw new PlayerError("You can't place it there.");
 			}
@@ -111,7 +139,38 @@ export const choosePlacement = {
 			return;
 		}
 		if (key === 'hex') {
+			// National Parks' territory, or the Nomads' (#37).
+			if (answer.parks === true) {
+				placeInPark(ctx, player, pieceOf(decision), answer.hex);
+				return;
+			}
 			placeOnMap(ctx, player, pieceOf(decision), answer.hex);
+			return;
+		}
+		if (key === 'tech') {
+			placeOnTech(ctx, player, decision.landmark, answer.tech);
+			return;
+		}
+		if (key === 'collectors') {
+			collect(
+				ctx,
+				player,
+				decision.landmark !== undefined ? 'landmark' : 'house',
+				decision.landmark ?? true
+			);
+			return;
+		}
+		if (key === 'planners') {
+			storeLandmark(ctx, player, decision.landmark);
+			return;
+		}
+		if (key === 'card') {
+			placeOnCard(
+				ctx,
+				player,
+				pieceOf(decision),
+				/** @type {any} */ (answer)
+			);
 			return;
 		}
 		if (decision.landmark !== undefined) {

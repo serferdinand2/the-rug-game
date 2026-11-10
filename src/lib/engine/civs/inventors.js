@@ -6,7 +6,7 @@ import { askSlot } from '../decisions/choose-slot.js';
 import { upgradeCard } from '../effects/tech.js';
 import { techCard } from '../data/tech-cards.js';
 import { offer } from './civ.js';
-import { isLocked } from '../tech.js';
+import { isFlipped, isLocked } from '../tech.js';
 
 /**
  * The Inventors' own state.
@@ -45,7 +45,15 @@ export function inventorsTake(ctx, op) {
 		return;
 	}
 	top.splice(top.indexOf(op.card), 1);
-	playerSeat(state, player).tech.bottom.push(op.card);
+	const taker = playerSeat(state, player);
+	taker.tech.bottom.push(op.card);
+	// A flipped card stays flipped: it is never upgraded again (03 FF.2.3, Inventors FAQ p29).
+	const giver = playerSeat(state, op.from);
+	if (giver.flippedTech?.includes(op.card)) {
+		giver.flippedTech = giver.flippedTech.filter((c) => c !== op.card);
+		taker.flippedTech ??= [];
+		taker.flippedTech.push(op.card);
+	}
 	emit(state, {
 		type: 'inventorsTook',
 		player,
@@ -53,6 +61,34 @@ export function inventorsTake(ctx, op) {
 		card: op.card,
 	});
 	ctx.push(triggered(state, 'countsChanged', { player }));
+}
+
+/**
+ * The cards the Inventors may mark: any in a bottom or middle row, theirs or an opponent's, except one Ceramics
+ * upgraded this turn (#35) and an opponent's single-use card in the middle row, which the token would send to the
+ * top row (03 FF.2.3: others may never upgrade a player's single-use card to the top row).
+ * @param {import('../state.js').State} state
+ * @param {number} player - The Inventors
+ * @returns {{ player: number, card: string }[]}
+ */
+export function inventorsOptions(state, player) {
+	return state.seats
+		.filter((s) => s.kind === 'player')
+		.flatMap(({ seat }) => {
+			const { bottom, middle } = playerSeat(state, seat).tech;
+			return (
+				[
+					...bottom,
+					...middle.filter(
+						(card) => seat === player || !techCard(card).singleUse
+					),
+				]
+					.filter((card) => !isLocked(state, seat, card))
+					// R134: nor a flipped card, which never upgrades again.
+					.filter((card) => !isFlipped(state, seat, card))
+					.map((card) => ({ player: seat, card }))
+			);
+		});
 }
 
 /** The tokens the Inventors start with, for the engine and the card (#107). */
@@ -78,15 +114,7 @@ export const inventors = {
 			return;
 		}
 		askSlot(ctx, player, {
-			options: state.seats
-				.filter((s) => s.kind === 'player')
-				.flatMap(({ seat }) => {
-					const { bottom, middle } = playerSeat(state, seat).tech;
-					// Not a card Ceramics upgraded this turn (#35).
-					return [...bottom, ...middle]
-						.filter((card) => !isLocked(state, seat, card))
-						.map((card) => ({ player: seat, card }));
-				}),
+			options: inventorsOptions(state, player),
 			optional: true,
 			purpose: 'inventors',
 			then: { kind: 'inventorsToken' },
@@ -108,7 +136,11 @@ export const inventors = {
 			if (icon === 'square') {
 				/** @type {import('../state.js').NewOperation[]} */
 				const ops = [];
-				if (inventors === owner || state.version === 'original') {
+				// R134: a single-use card's square is gained once, by its owner.
+				if (
+					(inventors === owner || state.version === 'original') &&
+					!techCard(card).singleUse
+				) {
 					ops.push({
 						...offer(
 							state,

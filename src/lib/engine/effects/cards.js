@@ -580,7 +580,10 @@ export function placeOutpost(ctx, player, value) {
 		type: 'outpostPlaced',
 		player,
 		hex: value.hex,
-		militarism: true,
+		// Migration names its card (#37); otherwise it is Militarism's.
+		...(typeof value.card === 'string'
+			? { card: value.card }
+			: { militarism: true }),
 	});
 	ctx.push(triggered(state, 'countsChanged', { player }));
 }

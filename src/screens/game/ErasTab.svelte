@@ -21,6 +21,7 @@
 
 <script>
 	import { defaultEra } from '../../lib/area/income.js';
+	import { joinList } from '../../lib/words.js';
 	import { CARD_SIZES } from '../../lib/cards/card-sizes.js';
 	import { tapestryCardData } from '../../lib/cards/game-cards.js';
 	import EraSlots from '../../lib/components/player/EraSlots.svelte';
@@ -48,6 +49,11 @@
 				{...CARD_SIZES.tapestry}>
 				<TapestryCard data={tapestryCardData(selectedSlot.id)} />
 			</ScaledCard>
+			{#if selectedSlot.pieces.length}
+				<p class="rg-eras-tab--pieces">
+					On this card: {joinList(selectedSlot.pieces)}.
+				</p>
+			{/if}
 		</div>
 	{:else if selectedSlot?.faceDown}
 		<div class="rg-player-tabs--era-card">
@@ -70,5 +76,12 @@
 
 	.rg-player-tabs--era-card {
 		margin-bottom: var(--space-8);
+	}
+
+	/* A&A's cards that hold pieces (#37), awaiting review. */
+	.rg-eras-tab--pieces {
+		margin: var(--space-2) 0 0;
+		color: var(--muted);
+		font-size: var(--font-size-sm);
 	}
 </style>

@@ -2,10 +2,12 @@
 import { emit } from './events.js';
 import { playerSeat } from './state.js';
 import { tapestryCard } from './data/tapestry-cards.js';
+import { placementEffects } from './charms.js';
 
 /**
  * Puts a card on top of one of a player's era slots. Covering the card of the active THIS ERA ability ends it,
- * since only the top card of a slot is active (01 §9.2). A card face up then has its ability; face down it has none.
+ * since only the top card of a slot is active (01 §9.2), and a covered card's pieces leave it (A&A, #37). A card face up then has its ability; face down it has none.
+ * With F&F, the charms the placement triggers come with the ability, in the order the player chooses (#39).
  * The caller takes the card from wherever it was (the hand, or the deck for a face-down card).
  * @param {import('./state.js').Context} ctx
  * @param {number} player
@@ -31,8 +33,23 @@ export function playTapestry(ctx, player, card, era, faceDown = false) {
 	if (covered !== undefined && seat.era?.card === covered) {
 		endEra(ctx, player);
 	}
-	if (!faceDown) {
+	if (covered !== undefined) {
+		coverCard(ctx, player, covered);
+	}
+	// F&F's charms and the card's ability, in the order the player chooses (03 FF.2.1, #39); without them, the ability.
+	const effects = placementEffects(ctx.state, player, card, era, faceDown);
+	if (effects.length === 1 && 'ability' in effects[0]) {
 		ctx.push([{ player, kind: 'tapestryAbility', card, era }]);
+	} else if (effects.length > 0) {
+		ctx.push([
+			{
+				player,
+				kind: 'effects',
+				effects,
+				ordered: false,
+				source: { tapestry: card, card },
+			},
+		]);
 	}
 }
 
@@ -134,4 +151,25 @@ export function tapestryAbility(ctx, op) {
 			},
 		]);
 	}
+}
+
+/**
+ * A card covered by another tapestry card works no more, and what it held goes beside the capital mat, where it
+ * still counts (FAQ #21, R71; my call, #37).
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {string} card
+ */
+export function coverCard(ctx, player, card) {
+	const seat = playerSeat(ctx.state, player);
+	const held = seat.onCards?.[card];
+	if (!seat.onCards || !held) {
+		return;
+	}
+	delete seat.onCards[card];
+	const pieces = held.map((piece) =>
+		'building' in piece ? piece.building : piece.landmark
+	);
+	seat.besideMat.push(...pieces);
+	emit(ctx.state, { type: 'cardPiecesMoved', player, card, pieces });
 }

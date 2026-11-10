@@ -370,10 +370,6 @@ test('createGame refuses a bad player count, an unknown version and an expansion
 	assert.throws(() => createGame({ ...base, version: '2024' }), {
 		name: 'PlayerError',
 	});
-	assert.throws(() => createGame({ ...base, expansions: ['ff'] }), {
-		name: 'PlayerError',
-		message: /Fantasies & Futures isn't available yet/,
-	});
 	assert.throws(() => createGame({ ...base, expansions: ['xx'] }), {
 		name: 'PlayerError',
 		message: /Unknown expansion/,
@@ -424,10 +420,6 @@ test('checkOptions refuses what createGame refuses, variants included (#22, #53)
 	const refusals = /** @type {[Record<string, unknown>, RegExp][]} */ ([
 		[{ version: '2024' }, /Unknown rules version: 2024/],
 		[{ version: 'current', expansions: 'pp' }, /expansions must be a list/],
-		[
-			{ version: 'current', expansions: ['ff'] },
-			/Fantasies & Futures isn't available yet/,
-		],
 		[{ version: 'current', expansions: ['xx'] }, /Unknown expansion: xx/],
 		[{ version: 'current', variants: 'draft' }, /variants must be a list/],
 		[{ version: 'current', variants: ['draft'] }, /Unknown variant: draft/],
@@ -455,8 +447,8 @@ test('a game keeps its variants, and says so when it is created (#53)', () => {
 	assert.deepEqual(state.events[0].variants, []);
 });
 
-test('an expansion is refused until its setup is built: Plans & Ploys (owner, #32) and Arts & Architecture (owner, #35, #36) are, and the versions are public', () => {
-	assert.deepEqual(EXPANSIONS_BUILT, ['pp', 'aa']);
+test('an expansion is refused until its setup is built: Plans & Ploys (owner, #32), Arts & Architecture (owner, #35, #36) and Fantasies & Futures (#39) are, and the versions are public', () => {
+	assert.deepEqual(EXPANSIONS_BUILT, ['pp', 'aa', 'ff']);
 	assert.ok(Object.isFrozen(EXPANSIONS_BUILT));
 	assert.deepEqual(
 		VERSIONS.map((v) => v.id),

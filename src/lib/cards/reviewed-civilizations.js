@@ -38,6 +38,11 @@ export const REVIEWED_CIVILIZATIONS = Object.freeze([
 	{ id: 'spies', edition: 'awaiting review' },
 	{ id: 'tinkerers', edition: 'awaiting review' },
 	{ id: 'utilitarians', edition: 'awaiting review' },
+	// #37: Arts & Architecture's other four, from 03 §2.4's text; not yet reviewed by the owner.
+	{ id: 'relentless', edition: 'awaiting review' },
+	{ id: 'renegades', edition: 'awaiting review' },
+	{ id: 'gamblers', edition: 'awaiting review' },
+	{ id: 'urban-planners', edition: 'awaiting review' },
 ]);
 
 /**
@@ -70,6 +75,15 @@ export const SAMPLE_CIV_DATA = Object.freeze({
 	traders: { tokens: 2 },
 	isolationists: { tokens: 3 },
 	heralds: { tokens: 3, cards: [] },
+	// #37: 2 tokens on the mat, the token on space II, the Forge kept.
+	relentless: { tokens: 2 },
+	renegades: { at: 2 },
+	'urban-planners': { stored: ['forge'] },
+	// The outpost, the house and the tech card collected, as the reviewed illustration showed them (#37).
+	collectors: {
+		items: { outpost: true, house: true, tech: 'eyeglasses' },
+		turn: null,
+	},
 });
 
 /**
@@ -97,8 +111,6 @@ export const SAMPLE_VIEWS = Object.freeze({
 			{ marks: civCardMarks(civ, data), choices: {} },
 		])
 	),
-	// The outpost, the house and the tech card collected.
-	collectors: sample(['outpost', 'house', 'tech'], 'token'),
 	architects: sample([], 'token'),
 	// A house on column A's bottom space and a farm above it.
 	craftsmen: {
@@ -121,4 +133,5 @@ export const SAMPLE_VIEWS = Object.freeze({
 	islanders: sample([], 'token'),
 	recyclers: sample([], 'token'),
 	riverfolk: sample([], 'token'),
+	gamblers: sample([], 'token'),
 });

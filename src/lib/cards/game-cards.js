@@ -23,6 +23,11 @@ import { artUrl } from '../ui.js';
  * @property {string} [innovation] - Or the income-mat innovation it needs, by its printed name (R18)
  * @property {'market' | 'house' | 'farm' | 'armory'} [innovationRow] - Its income row, for the matching accent color
  * @property {string} [edition] - Its edition's code, such as 'aa'; the base game when not given
+ * @property {'landmark' | 'none' | 'charmOrFive'} [prerequisite] - A&A's: a landmark on the card itself, or none at all
+ *   (#37); F&F's: a charmed tapestry card ever played, or income turn 5 (#39)
+ * @property {boolean} [singleUse] - F&F's single-use cards: the square may be gained once, then the card flips (#39)
+ * @property {boolean} [flipped] - In a game, a single-use card whose square was gained: flipped for good (#39)
+ * @property {string} [held] - In a game, the landmark this landmark tech card holds (#37)
  */
 
 /**
@@ -35,6 +40,7 @@ import { artUrl } from '../ui.js';
  * @property {string} [note] - The trap's note: what it gains played as a tapestry card (R22)
  * @property {boolean} [trap] - It is the trap, which has its own red band
  * @property {string} [edition] - Its edition's code, such as 'pp'; the base game when not given
+ * @property {{ left?: string, right?: string }} [charms] - F&F's charm bonuses in words (#39)
  */
 
 /**
@@ -49,7 +55,12 @@ import { artUrl } from '../ui.js';
  */
 
 /** The timing labels of card-design-rules.md, by the engine's timing. */
-const TIMINGS = Object.freeze({ played: 'When Played', era: 'This Era' });
+const TIMINGS = Object.freeze({
+	played: 'When Played',
+	era: 'This Era',
+	// A&A's (#37).
+	continuous: 'Continuous',
+});
 
 /** The trap's timing label. */
 const TRAP_TIMING = 'Trap · Response';
@@ -81,11 +92,13 @@ function innovationSpace(id) {
 
 /**
  * A tech card's face: its art, its circle and square benefits in words, and its top-row prerequisite, a track tier
- * or an income-mat innovation (R18).
+ * or an income-mat innovation (R18), when it has one of those.
  * @param {string} id - A tech card id, such as 'clocks'
+ * @param {{ held?: string, flipped?: boolean }} [game] - In a game: the landmark the card holds (A&A, #37), and whether
+ *   its single use is spent (F&F, #39)
  * @returns {TechnologyCardData}
  */
-export function techCardData(id) {
+export function techCardData(id, { held, flipped } = {}) {
 	const card = techCard(id);
 	/** @type {TechnologyCardData} */
 	const data = {
@@ -97,13 +110,31 @@ export function techCardData(id) {
 	if (card.landmark) {
 		data.landmark = card.landmark;
 	}
-	if ('innovation' in card.requires) {
-		const space = innovationSpace(card.requires.innovation);
+	const need = card.requires;
+	if ('innovation' in need) {
+		const space = innovationSpace(need.innovation);
 		data.innovation = space.name;
 		data.innovationRow = space.row;
+	} else if ('track' in need) {
+		data.track = need.track;
+		data.level = need.tier;
+	} else if ('charmOrFive' in need) {
+		data.prerequisite = 'charmOrFive';
 	} else {
-		data.track = card.requires.track;
-		data.level = card.requires.tier;
+		data.prerequisite = 'landmark' in need ? 'landmark' : 'none';
+	}
+	if (card.singleUse) {
+		data.singleUse = true;
+	}
+	// An expansion's card names its edition, for the chip at its foot (#37).
+	if (card.expansion !== 'base') {
+		data.edition = card.expansion;
+	}
+	if (held !== undefined) {
+		data.held = held;
+	}
+	if (flipped) {
+		data.flipped = true;
 	}
 	return data;
 }
@@ -134,6 +165,16 @@ export function tapestryCardData(id) {
 	// An expansion's card names its edition, for the chip at its foot (#33).
 	if (card.expansion !== 'base') {
 		data.edition = card.expansion;
+	}
+	// F&F's charms, each side in words (#39).
+	if (card.charms) {
+		data.charms = {};
+		for (const side of /** @type {const} */ (['left', 'right'])) {
+			const effects = card.charms[side];
+			if (effects) {
+				data.charms[side] = sentence(describeEffects(effects));
+			}
+		}
 	}
 	return data;
 }

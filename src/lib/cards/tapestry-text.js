@@ -104,6 +104,64 @@ const TAPESTRY_RULES = Object.freeze({
 		'When you gain a tapestry card, you may play it on top of this card at once. The first and only time you do, gain 5 VP',
 	'wartime-economy':
 		'Every bonus that costs resources of your choice is free',
+	// Arts & Architecture's cards (#37; 03 §2.5).
+	'age-of-enlightenment':
+		'Roll the science die. Advance once or twice on that track without benefits, then gain the benefit of the space you reached, without its bonus',
+	'artistic-inspiration':
+		'Whenever you advance on Arts, gain 3 VP. Whenever you roll the science die, you may use Arts instead of the result',
+	'government-grants':
+		'Advance on Arts and gain its benefit; you may take its bonus for free. Then go back 1 space on another track and gain that benefit, without its bonus',
+	granges:
+		'Starting with you, each player may pay 1 food to gain a Farm. If at least 1 opponent pays, gain the benefit of your space on Arts, without its bonus',
+	'infrastructure-upgrade':
+		'Look through the landmark deck and keep 1 card, as you keep your drafted one; when you meet its goal, gain its landmark. If none is left, gain 10 VP',
+	migration:
+		'Explore a territory next to no territory anyone controls, yours included, with a tile from your supply. Then place 2 of your outposts there; this is not a conquer',
+	monuments:
+		'You may place income buildings and landmarks on this card instead of your capital city; a landmark may hang off it. When every square is covered, gain 8 VP or 1 culture, 1 coin, 1 food and 1 worker',
+	'national-parks':
+		'Instead of placing an income building or landmark in your capital city, you may place it on a territory you control that holds only your 1 outpost. Then roll the black or the red conquer die and gain its result',
+	plague: 'Draw a random civilization. Either it replaces one of yours and you gain 1 resource of your choice, or discard it and gain 10 VP. You keep what the replaced one gave you',
+	'political-posturing':
+		"Choose an achievement you haven't earned. Put your token on its highest open space and gain those VP",
+	spymaster:
+		'When a neighbour reaches the end of a track, discard this card. At the end of their turn, advance on that track and gain its benefit; you may pay its bonus',
+	'commercial-center':
+		'You may place income buildings and landmarks on this card instead of your capital city. For each square you cover, gain its benefit or 3 VP',
+	'found-art':
+		'When you pay to advance on Arts, you may discard 2 territory tiles instead of paying one of its resources',
+	'silk-road':
+		"Advance straight to the first space of Arts' next tier. Gain its benefit, and you may pay its bonus, or its landmark if it is still there",
+	'space-race':
+		'When you gain a landmark, if this card holds none, you may place it here. Then gain 1 space tile and explore a space tile',
+	'star-chamber':
+		'You may place income buildings and landmarks on this card instead of your capital city; a landmark may hang off it. When every square is covered, advance on any track with its benefit; you may take its bonus for free',
+	'trade-routes':
+		'When you gain a landmark, you may place it on this card. Then conquer, gaining the results of both conquer dice, and gain 5 VP for each landmark on this card',
+	// Fantasies & Futures' cards that reserve an item on the income mat's overlay (#39; 03 FF.4.3).
+	'ecstatic-visions':
+		"Draw 3 masterpieces (with the Arts track) or 3 space tiles. Place 1 on your income mat's overlay and shuffle the others back. On income turn 5, gain that masterpiece's benefits or explore that space tile",
+	'generation-ships':
+		"Draw 3 space tiles. Place 1 on your income mat's overlay and shuffle the others back. On income turn 5, explore it, or with the Arts track discard it to gain an inspiration tile",
+	'ghost-towns':
+		"Place a reminder on your income mat's overlay. On income turn 5, gain 3 VP for each income building still on your income mat",
+	'great-library-of-potions':
+		"Place your next Market on your income mat's overlay; it counts when scoring Markets. On income turn 5, place it in your capital city",
+	'lost-artifacts':
+		"Place a face-up tech card or the deck's top card on your income mat's overlay; it doesn't score until invented. On income turn 5, invent it and upgrade it twice, ignoring prerequisites",
+	'microbial-magic':
+		"Place your next Farm on your income mat's overlay; it counts when scoring Farms. On income turn 5, place it in your capital city",
+	'phantasmal-paladins':
+		"Place your next Armory on your income mat's overlay; it counts when scoring Armories. On income turn 5, place it in your capital city",
+	'quest-culture':
+		"Place 3 territory tiles from the supply on your income mat's overlay; they count when scoring territory tiles. On income turn 5, explore anywhere with them",
+	'secret-societies':
+		"Place your next House on your income mat's overlay; it counts when scoring Houses. On income turn 5, place it in your capital city",
+	'suspended-animation':
+		"Place a reminder on your income mat's overlay. On income turn 5, advance on any track and gain its benefit; you may take its bonus for free",
+	'zombie-army':
+		"Take up to 3 of your outposts from territories that hold that outpost and nothing else, and place them on your income mat's overlay. On income turn 5, conquer with each of them",
+	steam: 'Whenever you advance into a new tier on Science or Arts, gain 1 worker',
 });
 
 /**

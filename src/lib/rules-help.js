@@ -287,13 +287,13 @@ export const RULES_HELP = deepFreeze([
 		expansion: 'aa',
 		blocks: [
 			{
-				text: 'With Arts & Architecture a fifth track, the arts track, joins the board, unless the table plays without the arts track. An effect for any track or each track includes it; one that names the other four does not.',
+				text: 'With Arts & Architecture a fifth track, the arts track, joins the board, unless the table plays without the arts track. An effect for any or each track includes it; one naming the other four does not.',
 			},
 			{
 				text: 'Its tiers cost 1 resource of your choice, then 2 different resources, then 3 of your choice, then 2 of the same type. Its landmarks are the Clock Tower, the Opera House and the Holocenter.',
 			},
 			{
-				text: "Create: take one of the 3 face-up masterpieces on the arts track's line, or the deck's top card unseen. Your masterpieces show on your Civ tab, for everyone to see.",
+				text: "Create: take one of the 3 face-up masterpieces on the arts track's line, or the deck's top card unseen. Everyone sees your masterpieces on your Civ tab.",
 			},
 			{
 				text: "At the start of income turns 2 to 5, every masterpiece you hold fires, in the order you choose. Broadcast fires one of yours; Streaming Implants up to 3, yours or your neighbours'. Art Deco and Mime turn face down once used.",
@@ -302,7 +302,27 @@ export const RULES_HELP = deepFreeze([
 				text: 'Inspire: place one of your 4 inspiration tiles on an income row. It improves the spaces 2, 4 and 6 of that row, framed in gold on your Income tab.',
 			},
 			{
-				text: 'Every science die roll uses the d20, whose faces include the arts track.',
+				text: 'Science rolls use the d20, whose faces include the arts track. With the variant Roll either science die (d12 or d20), you choose the die before each roll.',
+			},
+		],
+	},
+	// #37; 03 §2.5, the A&A tech cards, R124, R126, R127.
+	{
+		id: 'aa-cards',
+		title: 'A&A cards',
+		expansion: 'aa',
+		blocks: [
+			{
+				text: 'Arts & Architecture adds 20 tapestry cards and 11 tech cards; their rules are on the cards. Without the arts track, the ones that name it stay out of the decks.',
+			},
+			{
+				text: 'Commercial Center, Monuments and Star Chamber are Continuous: they work while they top their era slot, and are never copied. Instead of your capital city, you may place income buildings and landmarks on them; a landmark may hang off the card. Pieces there are yours but not part of your capital. If another card covers one, its pieces go beside your capital mat.',
+			},
+			{
+				text: 'A landmark tech card in your bottom or middle row may hold a landmark you gain: placing it there upgrades it at once, before what gave you the landmark goes on. Duct Tape ignores even that prerequisite.',
+			},
+			{
+				text: "Spymaster: when a player reaches the end of a track, their neighbours are asked whenever they hold a tapestry card, so nobody learns who holds it. A&A's civilizations show their full text when you point at a player's chip.",
 			},
 		],
 	},
@@ -326,6 +346,26 @@ export const RULES_HELP = deepFreeze([
 					(card) =>
 						`${landmarkName(card.landmark)}: ${landmarkGoalPhrase(card.id)}.`
 				),
+			},
+		],
+	},
+	// #39; 03 FF.2, R67, R68, R131–R134.
+	{
+		id: 'ff-rules',
+		title: 'Fantasies & Futures',
+		expansion: 'ff',
+		blocks: [
+			{
+				text: "Charms are the teal tags on Fantasies & Futures' tapestry cards. You gain a card's left charm when you play it to the right of another card; Maker of Fire is no card. Its right charm comes the first time a card goes into the slot to its right, even if it was covered since. Charms are mandatory where possible and never copied. A card played face down has no charms.",
+			},
+			{
+				text: "A card's charms and its ability resolve in the order you choose; you are asked only when it can matter.",
+			},
+			{
+				text: "Some cards reserve an item on your income mat's overlay, the Income turn 5 row of your Eras tab: your next building of a type, whose income space shows at once, or a card, tile, outpost or reminder. On income turn 5 you use them all, in the order you choose. One reserved later is used at once.",
+			},
+			{
+				text: 'Its 12 tech cards reach the top row only once you have played a charmed card face up, or from income turn 5 on. Most are single use: the square flips the card, which still counts, but nobody gains its benefits again.',
 			},
 		],
 	},

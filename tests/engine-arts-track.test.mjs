@@ -44,7 +44,7 @@ import { AA, kinds, ontoArts, place, reply } from './helpers/arts.mjs';
 const ARTS_LANDMARKS = ['clock-tower', 'opera-house', 'holocenter'];
 
 test('Arts & Architecture is built, and its two variants need it', () => {
-	assert.deepEqual(EXPANSIONS_BUILT, ['pp', 'aa']);
+	assert.ok(EXPANSIONS_BUILT.includes('aa'));
 	assert.doesNotThrow(() =>
 		checkOptions({
 			version: 'current',

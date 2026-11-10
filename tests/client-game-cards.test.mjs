@@ -65,13 +65,19 @@ test('every tech card builds its face from the engine data', () => {
 			existsSync(`${ART}tech/${data.art}.svg`),
 			`${card.id} has no art at tech/${data.art}.svg`
 		);
-		if (data.innovation === undefined) {
-			assert.ok(TRACK_IDS.includes(/** @type {any} */ (data.track)));
+		if ('track' in card.requires) {
+			assert.ok(
+				[...TRACK_IDS, 'arts'].includes(/** @type {any} */ (data.track))
+			);
 			assert.ok([2, 3, 4].includes(/** @type {number} */ (data.level)));
-		} else {
+			assert.equal(data.innovation, undefined);
+		} else if ('innovation' in card.requires) {
 			assertText(data.innovation, `${card.id}'s innovation`);
 			assert.equal(data.track, undefined);
 			assert.equal(data.level, undefined);
+		} else {
+			// A&A's landmark on the card, or no prerequisite (#37): no track or innovation to show.
+			assert.ok(!('track' in data) && !('innovation' in data), card.id);
 		}
 	}
 });
@@ -146,7 +152,7 @@ test("a Plans & Ploys tapestry card's face names its edition; a base card's leav
 	assert.equal(tapestryCardData('trap-2').edition, undefined);
 });
 
-test('a tapestry card shows its timing as This Era or When Played', () => {
+test('a tapestry card shows its timing as This Era, When Played or Continuous', () => {
 	assert.equal(tapestryCardData('academia').timing, 'This Era');
 	assert.equal(
 		tapestryCardData('academia').copy,
@@ -163,7 +169,12 @@ test('a tapestry card shows its timing as This Era or When Played', () => {
 			assert.equal(trap, undefined);
 			assert.equal(
 				timing,
-				card.timing === 'era' ? 'This Era' : 'When Played'
+				{
+					era: 'This Era',
+					played: 'When Played',
+					// A&A's (#37).
+					continuous: 'Continuous',
+				}[card.timing]
 			);
 		}
 	}
@@ -275,4 +286,27 @@ test('the card faces the audit checked say exactly what the engine does', () => 
 	assert.match(tech('lithium-ion-battery').square, /once a turn/i);
 	// Radio draws from the civilization deck (02 §4 #22).
 	assert.match(tech('radio').square, /draw another civilization/i);
+});
+
+test("A&A's tech cards show their edition and their new prerequisites (#37)", () => {
+	const astrolabe = techCardData('astrolabe');
+	assert.equal(astrolabe.edition, 'aa');
+	assert.equal(astrolabe.prerequisite, 'landmark');
+	assert.equal(techCardData('suburbs').prerequisite, 'none');
+	assert.equal(techCardData('oil-paint').track, 'arts');
+	assert.equal(techCardData('oil-paint').level, 2);
+	assert.equal(techCardData('clocks').prerequisite, undefined);
+	assert.equal(techCardData('clocks').edition, undefined);
+	// In a game, a landmark tech card names the landmark it holds.
+	assert.equal(techCardData('astrolabe', { held: 'forge' }).held, 'forge');
+});
+
+test("an F&F tech card's face names its charm-or-5 prerequisite and its single use (#39)", () => {
+	const levitation = techCardData('levitation');
+	assert.equal(levitation.prerequisite, 'charmOrFive');
+	assert.equal(levitation.singleUse, true);
+	assert.equal(levitation.edition, 'ff');
+	const pyrokinesis = techCardData('pyrokinesis');
+	assert.equal(pyrokinesis.prerequisite, 'charmOrFive');
+	assert.equal(pyrokinesis.singleUse, undefined);
 });

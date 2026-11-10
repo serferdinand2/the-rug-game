@@ -325,3 +325,48 @@ test('describe.js holds the effect, cost, bonus and payment words, and what the 
 		'priceWords',
 	]);
 });
+
+test("Duct Tape's square reads as printed: 1 card twice or 2 cards once each, ignoring prerequisites (#37)", () => {
+	assert.equal(
+		describeEffects([{ upgrade: { ignorePrerequisite: true, count: 2 } }]),
+		'Upgrade 1 tech card twice or 2 tech cards once each, ignoring prerequisites'
+	);
+	assert.equal(
+		describeEffects([{ upgrade: { ignorePrerequisite: true } }]),
+		'Upgrade a tech card, ignoring its prerequisite'
+	);
+});
+
+test("Information Age's any card and Moon Landing's invent if no trade read in full (#37)", () => {
+	assert.equal(
+		describeEffects([{ techBenefit: { icon: 'circle', anyRow: true } }]),
+		'Gain the circle benefit of any of your tech cards'
+	);
+	assert.equal(
+		describeEffects([
+			{
+				trade: {
+					offers: [
+						{
+							pay: { territory: 2, tech: 1 },
+							gain: [
+								{ gain: { space: 1 } },
+								{ exploreSpace: {} },
+							],
+						},
+					],
+					optional: true,
+					otherwise: [{ invent: {} }],
+				},
+			},
+		]),
+		"You may discard 2 territory tiles and 1 tech card to gain 1 space tile, then explore a space tile; if you don't, invent a tech card"
+	);
+});
+
+test("Migration's explore reads as its card (#37)", () => {
+	assert.equal(
+		describeEffects([{ explore: { migration: true } }]),
+		'Explore a territory next to no controlled territory, then place 2 outposts there'
+	);
+});

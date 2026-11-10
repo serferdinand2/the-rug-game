@@ -110,10 +110,11 @@ export function checkParticipants(participants) {
  * The expansions whose setup is built, so a table may choose them. Each expansion issue adds its code (#32, #35, #39).
  * Plans & Ploys is offered from #32 on, with its civilizations and cards to follow in #33 (owner, 2026-10-31).
  * Arts & Architecture is offered from #35 and #36 on, with the arts track and the advanced mats; its civilizations and
- * cards follow in #37, as for #32.
+ * cards follow in #37, as for #32. Fantasies & Futures is offered from #39 on, with its tech cards and the cards that
+ * reserve an item; the rest follows in #40 (#39 design §4).
  * @type {readonly string[]}
  */
-export const EXPANSIONS_BUILT = Object.freeze(['pp', 'aa']);
+export const EXPANSIONS_BUILT = Object.freeze(['pp', 'aa', 'ff']);
 
 /**
  * One official optional variant a table may switch on (03 FF.2.6, 01 §2.2).
@@ -264,9 +265,12 @@ export function checkOptions({
  * @param {number} seat
  * @param {string} name
  * @param {readonly string[]} tracks - The tracks in play
+ * @param {boolean} aa - Whether Arts & Architecture is on: its landmark tech cards hold a landmark each (#37)
+ * @param {boolean} ff - Whether Fantasies & Futures is on: whether a charmed card was ever played, the cards whose
+ *   right charm triggered, and the single-use tech cards flipped (#39)
  * @returns {import('./state.js').PlayerSeat}
  */
-function newSeat(seat, name, tracks) {
+function newSeat(seat, name, tracks, aa, ff) {
 	// The arts track brings each player's masterpieces and inspiration tiles (#35).
 	const arts = tracks.includes(ARTS_TRACK);
 	return {
@@ -306,6 +310,13 @@ function newSeat(seat, name, tracks) {
 		landmarkCard: null,
 		start: null,
 		...(arts && { masterpieces: [], inspired: [] }),
+		...(aa && { techLandmarks: {}, extraLandmarkCards: [], onCards: {} }),
+		...(ff && {
+			playedCharmed: false,
+			charmsUsed: [],
+			reserved: [],
+			flippedTech: [],
+		}),
 	};
 }
 
@@ -669,11 +680,17 @@ export function createGame({
 			];
 		})
 	);
-	const tech = shuffle(techDeck(variants), random);
+	const tech = shuffle(techDeck(expansions, variants), random);
 	const tracks = arts ? [...TRACK_IDS, ARTS_TRACK] : TRACK_IDS;
 	const seats = participants.map((p, i) =>
 		p.kind === 'player'
-			? newSeat(i + 1, p.name, tracks)
+			? newSeat(
+					i + 1,
+					p.name,
+					tracks,
+					expansions.includes('aa'),
+					expansions.includes('ff')
+				)
 			: createBotSeat(i + 1, p.kind, p.name, tracks, 10)
 	);
 
@@ -698,7 +715,7 @@ export function createGame({
 			},
 			tapestry: {
 				deck: shuffle(
-					tapestryFor(expansions).filter(
+					tapestryFor(expansions, variants).filter(
 						(id) => !solo || !SOLO_TAPESTRY_REMOVALS.has(id)
 					),
 					random
@@ -729,6 +746,8 @@ export function createGame({
 			capitals: [],
 			// Last, and only with the arts track, so a game without it draws as it always did (#35).
 			...(arts && { masterpieces: masterpieceSupply(random) }),
+			// A&A's landmark tech cards' landmarks, discarded with their card (#37).
+			...(expansions.includes('aa') && { landmarkDiscard: [] }),
 		},
 		hexes,
 		landmarks: landmarksFor(expansions, variants).map((l) => l.id),

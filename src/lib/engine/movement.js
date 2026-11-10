@@ -3,6 +3,8 @@ import { emit } from './events.js';
 import { seatOf } from './state.js';
 import { triggered } from './abilities.js';
 import { claimAchievement } from './achievements.js';
+import { spymasterQuestions } from './spymaster.js';
+import { renegadesMayTake } from './civs/renegades.js';
 import { TRACKS } from './data/tracks.js';
 
 /** @typedef {import('./data/ids.js').TrackId} TrackId */
@@ -84,9 +86,17 @@ export function benefitOps(state, player, track, space) {
  * @param {TrackId} track
  * @param {number} space
  * @param {boolean} [bonus] - False leaves out the bonus (Leaders)
+ * @param {boolean} [free] - The bonus is offered for free (Government Grants, #37)
  * @returns {import('./state.js').NewOperation[]}
  */
-export function activationOps(ctx, player, track, space, bonus = true) {
+export function activationOps(
+	ctx,
+	player,
+	track,
+	space,
+	bonus = true,
+	free = false
+) {
 	const { state } = ctx;
 	if (space === 0 || isActivated(state, player, track, space)) {
 		return [];
@@ -95,7 +105,13 @@ export function activationOps(ctx, player, track, space, bonus = true) {
 	emit(state, { type: 'spaceActivated', player, track, space });
 	const ops = benefitOps(state, player, track, space);
 	if (bonus && TRACKS[track][space].bonus) {
-		ops.push({ player, kind: 'bonus', track, space });
+		ops.push({
+			player,
+			kind: 'bonus',
+			track,
+			space,
+			...(free && { free }),
+		});
 	}
 	return ops;
 }
@@ -106,7 +122,8 @@ export function activationOps(ctx, player, track, space, bonus = true) {
  * moving back gains none. Without `benefit` (the X), the landmarks are still gained.
  * Each landmark's triggers follow its placement, and a forward move's triggers come before the benefit (design §6).
  * With `freeBonus` and no benefit (Renaissance), the bonus of the space reached is offered for free, unless the
- * player already activated that space this turn; offering it activates the space (R19). With `noBonus` (Leaders),
+ * player already activated that space this turn; offering it activates the space (R19). With `freeBonus` and the
+ * benefit (Government Grants, #37), the benefit comes and the bonus is offered for free. With `noBonus` (Leaders),
  * the benefit comes without the bonus.
  * A `jump` (Futurists) gains no landmark (R9's exception), no benefit and no bonus, and fires no `advanced` trigger (#20 design §7);
  * with `freeBonus` (the Tinkerers' jump ahead) it still offers the bonus of the space reached for free.
@@ -151,7 +168,11 @@ export function moveToken(
 				noBonus,
 			});
 	if (to === LAST_SPACE) {
-		ops.push(...triggered(state, 'countsChanged', { player }));
+		ops.push(
+			...triggered(state, 'countsChanged', { player }),
+			// A&A's Spymaster, after the move's own benefit (R127).
+			...spymasterQuestions(state, player, track)
+		);
 	}
 	ctx.push(ops);
 }
@@ -216,8 +237,23 @@ function arrivalOps(
 			})
 		);
 	}
-	if (benefit) {
-		ops.push(...activationOps(ctx, player, track, to, !noBonus));
+	if (
+		benefit &&
+		to > from &&
+		!isActivated(state, player, track, to) &&
+		renegadesMayTake(state, player, track, to)
+	) {
+		// A&A's Renegades may take their next space instead of this one's benefit and bonus (#37).
+		ops.push({
+			player,
+			kind: 'chooseRenegades',
+			track,
+			space: to,
+			bonus: !noBonus,
+			free: freeBonus,
+		});
+	} else if (benefit) {
+		ops.push(...activationOps(ctx, player, track, to, !noBonus, freeBonus));
 	} else {
 		ops.push(...freeBonusOps(state, player, track, to, freeBonus));
 	}

@@ -138,6 +138,7 @@ Rulings the owner made along the way. Each issue's design document records its o
 - Don't duplicate the art (owner, 2026-10-29): a mat's only picture is its relief; no mat keeps an example SVG since #132 and #133 drew the expansion reliefs.
 - A game's capital is composed from its mat's printed layout: the buildable ground from reusable tiles picked by the table's seed, and the impassable plots from one relief picture per mat, drawn once by the art toolkit (owner, 2026-10-28, #82).
 - A choice made on lit spaces of the tracks keeps its panel at the tracks' centre with no scrim, and the board around it takes the click; it doesn't dock as a map choice does (owner, 2026-11-06, #172).
+- The Automa issues (#31, #34, #38, #41) are Lazar's; an issue blocked only by them starts without waiting (owner, 2026-11-09, #39).
 - **Decided 2026-10-29:**
   - Refactors go in the milestone M13 · Refactor, not M12, each with one area label: `Words and names`, `Cards`, `Track board`, `Players and scoring`, `Capital and map`, `Game screen` or `Lobby`. M12 keeps the cosmetic work. The owner asked for M13's Words and names issues before M6, starting with #123 (owner).
   - Solo play and the expansions wait for the refactors they build on, as GitHub blocked-by links (owner):
@@ -213,7 +214,7 @@ How to read the research:
   3. the base rulebook;
   4. the printed art;
   5. the Board Game Arena implementation.
-- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R123**.
+- The 92 items marked **[UNVERIFIED]**, and every open question, are decided in the README's **Rules conventions** as stable rule ids **R1–R134**.
   - Follow those decisions, not the research's working assumptions.
   - Cite the id in code comments and test names, for example `// R16`.
   - Content listed there as "left out" is never invented.

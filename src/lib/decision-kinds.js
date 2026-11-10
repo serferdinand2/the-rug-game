@@ -72,6 +72,11 @@ export const DECISION_KINDS = Object.freeze({
 	chooseConquer: { confirm: 'Conquer' },
 	chooseDie: { art: 'die' },
 	chooseResponse: { shelf: 'tapestry' },
+	// A&A's Spymaster (#37).
+	chooseSpymaster: { shelf: 'tapestry' },
+	// The Renegades (#37).
+	chooseRenegades: {},
+	chooseCollect: {},
 	chooseCounter: { shelf: 'tapestry' },
 	chooseInvent: { shelf: 'tech', tab: 'tech', confirm: 'Invent' },
 	chooseUpgrade: { shelf: 'tech', tab: 'tech', confirm: 'Upgrade' },
@@ -97,6 +102,9 @@ export const DECISION_KINDS = Object.freeze({
 	chooseInspire: { tab: 'income', confirm: 'Place tile', art: 'row' },
 	chooseSpace: { art: 'track' },
 	chooseHex: {},
+	// F&F's reservations (#39): a space tile or a masterpiece kept of those drawn, or a tech card for Lost Artifacts.
+	chooseReserve: { art: 'space-tile', confirm: 'Reserve' },
+	chooseReserveTech: { shelf: 'tech', confirm: 'Reserve' },
 	chooseGift: { tab: 'terrain', art: 'gift' },
 	// The Advisors' gift from their hand (#33), often asked on another player's turn, as a response is.
 	chooseGive: { shelf: 'tapestry', confirm: 'Give card' },

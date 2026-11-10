@@ -432,6 +432,44 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: [1, 2, 3, 4],
 		},
 		chooseSwap: { player: 1, kind: 'chooseSwap', left: 3 },
+		// The Collectors (#37): seat 1's hand card, its own secret.
+		chooseCollect: {
+			player: 1,
+			kind: 'chooseCollect',
+			type: 'tapestry',
+			options: ['age-of-sail'],
+		},
+		// F&F's reservations (#39).
+		chooseReserve: {
+			player: 1,
+			kind: 'chooseReserve',
+			stack: 'space',
+			options: [1, 2, 3],
+			card: 'generation-ships',
+			ability: 'generation-ships',
+		},
+		chooseReserveTech: {
+			player: 1,
+			kind: 'chooseReserveTech',
+			options: ['irrigation', 'deck'],
+			card: 'lost-artifacts',
+			ability: 'lost-artifacts',
+		},
+		// The Renegades (#37): Scouting's benefit, or their next space.
+		chooseRenegades: {
+			player: 1,
+			kind: 'chooseRenegades',
+			track: 'exploration',
+			space: 1,
+			bonus: true,
+		},
+		// A&A's Spymaster (#37, R127): seat 2 holds a card, so it is asked.
+		chooseSpymaster: {
+			player: 2,
+			kind: 'chooseSpymaster',
+			mover: 1,
+			track: 'science',
+		},
 		chooseCube: {
 			player: 1,
 			kind: 'chooseCube',

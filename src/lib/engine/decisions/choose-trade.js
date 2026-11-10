@@ -35,6 +35,7 @@ export const chooseTrade = {
 	resolve(ctx, decision, answer) {
 		const player = /** @type {number} */ (decision.player);
 		if (answer.offer === null) {
+			pushOtherwise(ctx, player, decision.otherwise, decision.source);
 			return;
 		}
 		const offer = decision.offers[answer.offer];
@@ -60,3 +61,24 @@ export const chooseTrade = {
 		]);
 	},
 };
+
+/**
+ * What a trade not made gives instead, if anything (Moon Landing's invent, #37).
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {import('../data/effects.js').Effect[] | undefined} otherwise
+ * @param {unknown} source
+ */
+export function pushOtherwise(ctx, player, otherwise, source) {
+	if (otherwise === undefined) {
+		return;
+	}
+	ctx.push([
+		{
+			player,
+			kind: 'effects',
+			effects: structuredClone(otherwise),
+			...(source !== undefined && { source }),
+		},
+	]);
+}

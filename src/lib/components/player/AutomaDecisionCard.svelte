@@ -56,7 +56,13 @@
 		size="small"
 		class="rg-automa-decision-card--band" />
 	<div class="rg-automa-decision-card--body">
-		<div class="rg-automa-decision-card--section">{role === 'full' ? 'Track / Income · Hex / Topple' : role === 'track' ? 'Track / Income' : 'Hex / Topple'}</div>
+		<div class="rg-automa-decision-card--section">
+			{role === 'full'
+				? 'Track / Income · Hex / Topple'
+				: role === 'track'
+					? 'Track / Income'
+					: 'Hex / Topple'}
+		</div>
 		{#if role !== 'hex'}
 			<div class="rg-automa-decision-card--metric">
 				<span>Automa track</span><strong>{face.automaTrack}</strong>

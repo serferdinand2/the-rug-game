@@ -328,9 +328,9 @@ test('neoprene-nanotechnology: the bonus of Nanotechnology costs 2 tech cards in
 });
 
 test('no-radio-battery: Radio and Lithium-Ion Battery are left out of the tech deck', () => {
-	assert.deepEqual(techDeck([]), [...BASE_TECH]);
+	assert.deepEqual(techDeck([], []), [...BASE_TECH]);
 	assert.deepEqual(
-		techDeck(['no-radio-battery']),
+		techDeck([], ['no-radio-battery']),
 		BASE_TECH.filter(
 			(card) => card !== 'radio' && card !== 'lithium-ion-battery'
 		)

@@ -11,7 +11,11 @@ export const chooseUpgrade = {
 	// upgrade never asks. `only` names the one card an upgrade may move (upgradeTech: the card just invented).
 	answers(state, decision) {
 		const player = /** @type {number} */ (decision.player);
-		const cards = upgradable(state, player).filter(
+		const cards = upgradable(
+			state,
+			player,
+			decision.ignorePrerequisite === true
+		).filter(
 			(card) =>
 				typeof decision.only !== 'string' || card === decision.only
 		);

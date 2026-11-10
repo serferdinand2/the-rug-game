@@ -4,7 +4,10 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import '../src/lib/engine/game.js';
-import { TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
+import { TECH_CARDS as ALL_TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
+
+/** The base 33; A&A's are tests/engine-aa-tech.test.mjs's (#37). */
+const TECH_CARDS = ALL_TECH_CARDS.filter((card) => card.expansion === 'base');
 
 /** The research's tech-card rows: number, name, kind, circle, square, prerequisite. */
 const ROWS = readFileSync(

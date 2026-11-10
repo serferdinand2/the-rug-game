@@ -3,15 +3,42 @@ import { PlayerError } from '../errors.js';
 import { playerSeat } from '../state.js';
 import { canPay, checkPayment, pay, payments } from '../payment.js';
 import { moveToken, movableFroms, LAST_SPACE } from '../movement.js';
-import { advanceBlocked } from '../abilities.js';
+import { advanceBlocked, hasEra } from '../abilities.js';
 import { advanceCost } from '../data/tracks.js';
 import { tracksOf } from '../tracks-in-play.js';
+import { ARTS_TRACK, RESOURCE_IDS } from '../data/ids.js';
 
 /** @typedef {import('../data/ids.js').TrackId} TrackId */
 
 /**
+ * The prices a player may pay to advance onto a space: its tier's, and with Found Art on the arts track the same
+ * with 2 territory tiles standing in for one of its resources, once (#37, 03 §2.5).
+ * @param {import('../state.js').State} state
+ * @param {number} player
+ * @param {TrackId} track
+ * @param {number} space
+ * @returns {import('../data/effects.js').Cost[]}
+ */
+export function advanceCosts(state, player, track, space) {
+	const cost = advanceCost(track, space);
+	if (track !== ARTS_TRACK || !hasEra(state, player, 'found-art')) {
+		return [cost];
+	}
+	const resources =
+		(cost.any ?? 0) +
+		(cost.different ?? 0) +
+		(cost.same ?? 0) +
+		RESOURCE_IDS.reduce((sum, id) => sum + (cost[id] ?? 0), 0);
+	// One resource fewer is still "different" or "of one type", so what is left is of the player's choice.
+	return [
+		cost,
+		{ ...(resources > 1 && { any: resources - 1 }), territory: 2 },
+	];
+}
+
+/**
  * Every advance a player could pay for now: each track in play they aren't blocked on (design §5), the arts track
- * included (#35), each token that isn't at the end, and its tier's price.
+ * included (#35), each token that isn't at the end, and each price they can pay for it.
  * @param {import('../state.js').State} state
  * @param {number} player
  * @returns {{ track: TrackId, from: number, cost: import('../data/effects.js').Cost }[]}
@@ -21,13 +48,11 @@ export function advances(state, player) {
 	return tracksOf(state)
 		.filter((track) => !advanceBlocked(state, player, track))
 		.flatMap((track) =>
-			movableFroms(seat, track, 'advance')
-				.map((from) => ({
-					track,
-					from,
-					cost: advanceCost(track, from + 1),
-				}))
-				.filter(({ cost }) => canPay(state, player, cost))
+			movableFroms(seat, track, 'advance').flatMap((from) =>
+				advanceCosts(state, player, track, from + 1)
+					.filter((cost) => canPay(state, player, cost))
+					.map((cost) => ({ track, from, cost }))
+			)
 		);
 }
 
@@ -84,7 +109,18 @@ export const chooseAdvance = {
 		if (advanceBlocked(state, player, track)) {
 			throw new PlayerError("You can't advance on that track now.");
 		}
-		checkPayment(state, player, advanceCost(track, from + 1), answer.pay);
+		// Any price on offer will do; the first one's message when none does.
+		const costs = advanceCosts(state, player, track, from + 1);
+		const errors = [];
+		for (const cost of costs) {
+			try {
+				checkPayment(state, player, cost, answer.pay);
+				return;
+			} catch (error) {
+				errors.push(error);
+			}
+		}
+		throw errors[0];
 	},
 	resolve(ctx, decision, answer) {
 		const player = /** @type {number} */ (decision.player);

@@ -194,6 +194,7 @@ export const INCOME_STEPS = [
 	'lilyPads',
 	'civAbilities',
 	'tapestry',
+	'reserved',
 	'upgrade',
 	'score',
 	'income',
@@ -286,6 +287,22 @@ export const INCOME_STEP_KINDS = {
 	tapestry: {
 		turns: [2, 3, 4],
 		run: tapestryStep,
+	},
+	// F&F: on income turn 5, where the tapestry step would be, every item on the overlay, in the player's order (03
+	// FF.2.2, R132, #39).
+	reserved: {
+		turns: [5],
+		when: (state) => state.expansions.includes('ff'),
+		run(ctx, player) {
+			ctx.push([
+				{
+					player,
+					kind: 'effects',
+					effects: [{ useAllReserved: {} }],
+					ordered: true,
+				},
+			]);
+		},
 	},
 	// Step 3: an optional upgrade (#18), then the exposed VP icons.
 	upgrade: {

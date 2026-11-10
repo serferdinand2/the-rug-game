@@ -21,7 +21,13 @@ import {
 	discardTapestry,
 	copyTapestry,
 } from './tapestry.js';
-import { others, sharedAdvance, trade, olympicHost } from './players.js';
+import {
+	others,
+	sharedAdvance,
+	trade,
+	olympicHost,
+	granges,
+} from './players.js';
 import {
 	anyBuilding,
 	trackLandmark,
@@ -52,8 +58,24 @@ import {
 	streamingImplants,
 	flipMasterpiece,
 } from './arts.js';
-import { gainCiv } from '../civ-turns.js';
+import {
+	ageOfEnlightenment,
+	politicalPosturing,
+	silkRoad,
+	spymaster,
+} from './aa-cards.js';
+import { infrastructureUpgrade } from '../landmark-cards.js';
+import { collectOutpost } from '../civs/collectors.js';
+import { gainCiv, plague } from '../civ-turns.js';
 import { discardCiv, placeToken } from '../civs/civ.js';
+import { ability, charm, charmOnlyGains } from '../charms.js';
+import {
+	discardSpace,
+	ecstaticVisions,
+	reserve,
+	useAllReserved,
+	useReserved,
+} from './reserved.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
@@ -113,6 +135,21 @@ export const EFFECTS = {
 	refreshMasterpieces,
 	streamingImplants,
 	flipMasterpiece,
+	politicalPosturing,
+	spymaster,
+	ageOfEnlightenment,
+	silkRoad,
+	infrastructureUpgrade,
+	plague,
+	granges,
+	collectOutpost,
+	charm,
+	ability,
+	reserve,
+	useReserved,
+	useAllReserved,
+	discardSpace,
+	ecstaticVisions,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */
@@ -127,12 +164,16 @@ function kindOf(effect) {
 }
 
 /**
- * A plain gain: resources, tiles, cards or a fixed number of VP. It only adds and reads nothing,
- * so running it before a benefit's other parts never costs the player anything.
+ * A plain gain: resources, tiles, cards or a fixed number of VP, or an F&F charm of only those. It only adds and reads
+ * nothing, so running it before a benefit's other parts never costs the player anything.
  * @param {AnyEffect} effect
  * @returns {boolean}
  */
 function isGain(effect) {
+	// A charm that only gains is a gain too (#39).
+	if ('charm' in effect) {
+		return charmOnlyGains(effect.charm, isGain);
+	}
 	return 'gain' in effect || typeof effect.vp === 'number';
 }
 

@@ -15,14 +15,21 @@ import {
 import { itemCount } from './control.js';
 import { CRAFTSMEN_COLUMNS, craftsmenColumns } from './civs/craftsmen.js';
 import { nomadsHexes } from './civs/nomads.js';
+import { holdsLandmark, isLocked } from './tech.js';
+import { upgradeCard } from './effects/tech.js';
+import { techCard } from './data/tech-cards.js';
+import { cardPlaces } from './card-pieces.js';
+import { plannersStore, storeLandmark } from './civs/urban-planners.js';
+import { collectorsMay } from './civs/collectors.js';
 import { plotIndex } from '../capital.js';
 
 /** @typedef {{ building: import('./data/ids.js').BuildingId } | { landmark: string }} Piece */
 
 /**
- * Where a gained piece may go: a capital plot (with a turn for a landmark), a Craftsmen column, a Nomads hex, or
- * beside the mat when the capital has no room but another place does (#20 design §9).
- * @typedef {{ row: number, col: number, rotation?: number } | { craftsmen: number } | { hex: string } | { besideMat: true }} Placement
+ * Where a gained piece may go: a capital plot (with a turn for a landmark), a Craftsmen column, a Nomads hex, an A&A
+ * landmark tech card (#37), or beside the mat when the capital has no room but another place does (#20 design §9).
+ * A&A's tapestry cards add plot squares, Space Race and Trade Routes (`card`) and National Parks' territories (`parks`).
+ * @typedef {{ row: number, col: number, rotation?: number } | { craftsmen: number } | { hex: string } | { tech: string } | { card: string, row?: number, col?: number, rotation?: number } | { hex: string, parks: true } | { planners: true } | { collectors: true } | { besideMat: true }} Placement
  */
 
 /**
@@ -250,8 +257,47 @@ export function placeOnMap(ctx, player, piece, hex) {
 }
 
 /**
+ * Puts a gained landmark on one of the player's A&A landmark tech cards, which upgrades it at once; the upgrade and
+ * all it triggers resolve before whatever gave the landmark goes on (03 §2). The landmark stays there for the game. It
+ * is owned, but not in the capital, so it fires no `piecePlaced` and breaks no tie (R13).
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {string} landmark
+ * @param {string} card - One of techPlaces()
+ */
+export function placeOnTech(ctx, player, landmark, card) {
+	const held = /** @type {Record<string, string>} */ (
+		playerSeat(ctx.state, player).techLandmarks
+	);
+	held[card] = landmark;
+	emit(ctx.state, { type: 'landmarkPlacedOnTech', player, landmark, card });
+	upgradeCard(ctx, player, card);
+}
+
+/**
+ * The A&A landmark tech cards a gained landmark may go on: the player's bottom- and middle-row cards whose
+ * prerequisite is a landmark on the card, holding none (03 §2). Not a top-row card, which a landmark can't upgrade
+ * (R126), nor one Ceramics locked this turn (#35).
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @returns {string[]}
+ */
+function techPlaces(state, player) {
+	const { tech, techLandmarks } = playerSeat(state, player);
+	if (!techLandmarks) {
+		return [];
+	}
+	return [...tech.bottom, ...tech.middle].filter(
+		(card) =>
+			'landmark' in techCard(card).requires &&
+			!holdsLandmark(state, player, card) &&
+			!isLocked(state, player, card)
+	);
+}
+
+/**
  * The places a piece may go other than the capital: the Craftsmen's columns with room (income buildings only),
- * then the Nomads' hexes.
+ * then the Nomads' hexes, then the landmark tech cards (landmarks only, #37), then A&A's tapestry cards' (#37).
  * @param {import('./state.js').State} state
  * @param {number} player
  * @param {Piece} piece
@@ -265,18 +311,35 @@ function otherPlaces(state, player, piece) {
 				}))
 			: []),
 		...nomadsHexes(state, player).map((hex) => ({ hex })),
+		...('landmark' in piece
+			? techPlaces(state, player).map((tech) => ({ tech }))
+			: []),
+		...cardPlaces(state, player, piece),
+		// A&A's Collectors take a house or a landmark on their mat (#37).
+		...(('landmark' in piece && collectorsMay(state, player, 'landmark')) ||
+		('building' in piece &&
+			piece.building === 'house' &&
+			collectorsMay(state, player, 'house'))
+			? [{ collectors: /** @type {const} */ (true) }]
+			: []),
+		// A&A's Urban Planners keep a landmark on their mat (#37).
+		...('landmark' in piece && plannersStore(state, player)
+			? [{ planners: /** @type {const} */ (true) }]
+			: []),
 	];
 }
 
 /**
  * Every place a gained piece may go, the answers to `choosePlacement`: the capital plots, then the other places.
- * With no capital plot but another place, beside the mat comes first (#20 design §9).
+ * With no capital plot but another place, beside the mat comes first (#20 design §9). `capitalOnly` offers only the
+ * capital (a landmark the Urban Planners kept, #37).
  * @param {import('./state.js').State} state
  * @param {number} player
  * @param {Piece} piece
+ * @param {boolean} [capitalOnly]
  * @returns {Placement[]}
  */
-export function placements(state, player, piece) {
+export function placements(state, player, piece, capitalOnly = false) {
 	const seat = playerSeat(state, player);
 	const overImpassable = buildsOverImpassable(state, player);
 	/** @type {Placement[]} */
@@ -284,7 +347,7 @@ export function placements(state, player, piece) {
 		'landmark' in piece
 			? landmarkSpots(seat, piece.landmark, overImpassable)
 			: buildingSpots(seat, overImpassable);
-	const others = otherPlaces(state, player, piece);
+	const others = capitalOnly ? [] : otherPlaces(state, player, piece);
 	return capital.length === 0 && others.length > 0
 		? [{ besideMat: true }, ...others]
 		: [...capital, ...others];
@@ -355,7 +418,10 @@ export function placeLandmark(ctx, op) {
 				.join(';')
 		)
 	);
-	const others = otherPlaces(ctx.state, player, { landmark });
+	const capitalOnly = op.capitalOnly === true;
+	const others = capitalOnly
+		? []
+		: otherPlaces(ctx.state, player, { landmark });
 	if (spots.length === 0 && others.length === 0) {
 		placeBesideMat(ctx, player, { landmark });
 	} else if (places.size === 1 && others.length === 0) {
@@ -368,6 +434,7 @@ export function placeLandmark(ctx, op) {
 				kind: 'choosePlacement',
 				landmark,
 				...(op.source ? { source: op.source } : {}),
+				...(capitalOnly && { capitalOnly: true }),
 			},
 		]);
 	}

@@ -17,9 +17,11 @@ import {
 	landmarkName,
 	seatName,
 	tapestryName,
+	tapestryCardOf,
 	techName,
 	trackName,
 } from './game-names.js';
+import { reservedWords } from './reserved-words.js';
 
 /** @typedef {Record<string, any>} Effect - One engine effect, `{ kind: value }`, of any shape */
 /** @typedef {Record<string, any>} Decision - An open decision as a view shows it */
@@ -49,6 +51,13 @@ const CARD_RULES = [
 	'manifestDestiny',
 	'statusQuo',
 	'worldsFair',
+	'politicalPosturing',
+	'ageOfEnlightenment',
+	'silkRoad',
+	'infrastructureUpgrade',
+	'plague',
+	'granges',
+	'ecstaticVisions',
 ];
 
 /**
@@ -179,6 +188,8 @@ function counted(per, track) {
 			return 'track where nobody is ahead of you';
 		case 'incomeBuilding':
 			return 'income building you own';
+		case 'buildingLeft':
+			return 'income building still on your income mat';
 		case 'capitalRow':
 			return 'complete row in your capital city';
 		case 'capitalColumn':
@@ -285,6 +296,10 @@ const PHRASES = {
 		return `gain ${each} VP for each ${counted(value.per, value.track)}`;
 	},
 	explore(value) {
+		// Migration (#37).
+		if (value?.migration) {
+			return 'explore a territory next to no controlled territory, then place 2 outposts there';
+		}
 		const where = value?.anywhere ? ' anywhere' : '';
 		if (isCount(value?.tile)) {
 			return `explore${where} with territory tile ${value.tile}`;
@@ -292,6 +307,9 @@ const PHRASES = {
 		return `explore a territory${where}`;
 	},
 	exploreSpace(value) {
+		if (isCount(value?.tile)) {
+			return `explore space tile ${value.tile}`;
+		}
 		if (typeof value?.civ === 'string') {
 			return `explore a space tile onto your ${civilizationName(value.civ)} mat`;
 		}
@@ -380,12 +398,22 @@ const PHRASES = {
 		return words;
 	},
 	upgrade(value) {
+		// Duct Tape, as printed (#37).
+		if (value?.ignorePrerequisite) {
+			return value.count === 2
+				? 'upgrade 1 tech card twice or 2 tech cards once each, ignoring prerequisites'
+				: 'upgrade a tech card, ignoring its prerequisite';
+		}
 		// Ceramics: that card can't be upgraded again this turn (#35).
 		return value?.lock
 			? "upgrade a tech card, which can't be upgraded again this turn"
 			: 'upgrade a tech card';
 	},
 	techBenefit(value) {
+		// Information Age: any card, whatever its row (#37).
+		if (value?.anyRow) {
+			return `gain the ${value.icon === 'square' ? 'square' : 'circle'} benefit of any of your tech cards`;
+		}
 		return value?.icon === 'square'
 			? 'gain the square benefit of a tech card in your top row'
 			: 'gain the circle benefit of a tech card in your middle row';
@@ -466,6 +494,10 @@ const PHRASES = {
 				? `${paymentVerbs(offer.pay)} to ${effectsPhrase(offer.gain, table, true)}`
 				: 'an offer'
 		);
+		// One offer with something else if it isn't made reads as the card does (Moon Landing, #37).
+		if (Array.isArray(value.otherwise) && offers.length === 1) {
+			return `you may ${offers[0]}; if you don't, ${effectsPhrase(value.otherwise, table, true)}`;
+		}
 		const words = `make one trade${host}: ${joinList(offers, 'or')}`;
 		return value.optional ? `you may ${words}` : words;
 	},
@@ -475,6 +507,63 @@ const PHRASES = {
 	},
 	anyBuilding() {
 		return 'gain an income building of your choice';
+	},
+	// The Collectors' outpost (R129, #37).
+	collectOutpost() {
+		return 'put an outpost on your Collectors mat';
+	},
+	// F&F's charms and the ability they come with (#39).
+	charm(value) {
+		const card = tapestryCardOf(value?.card);
+		const side = value?.side === 'right' ? 'right' : 'left';
+		const effects = card?.charms?.[side];
+		const name = card ? tapestryName(card.id) : 'a card';
+		return Array.isArray(effects)
+			? `${name}'s ${side} charm: ${effectsPhrase(effects, undefined, true)}`
+			: `${name}'s ${side} charm`;
+	},
+	ability(value) {
+		const card = tapestryCardOf(value?.card);
+		return card
+			? `${tapestryName(card.id)}'s ability`
+			: "the card's ability";
+	},
+	// F&F's income-mat overlay (#39).
+	reserve(value) {
+		if (typeof value?.building === 'string') {
+			return `reserve your next ${buildingName(value.building)} on your income mat's overlay`;
+		}
+		if (value?.tech) {
+			return "reserve a face-up tech card or the deck's top card on your income mat's overlay";
+		}
+		if (isCount(value?.space)) {
+			return `draw ${value.space} space tiles and reserve 1 on your income mat's overlay`;
+		}
+		if (isCount(value?.masterpiece)) {
+			return `draw ${value.masterpiece} masterpieces and reserve 1 on your income mat's overlay`;
+		}
+		if (isCount(value?.territory)) {
+			return `reserve ${value.territory} territory tiles from the supply on your income mat's overlay`;
+		}
+		if (isCount(value?.outposts)) {
+			return `reserve up to ${value.outposts} of your outposts on your income mat's overlay`;
+		}
+		return "reserve a reminder on your income mat's overlay";
+	},
+	useReserved(value) {
+		return `use your reserved ${reservedWords(value).replace(/^an? /, '')}`;
+	},
+	useAllReserved() {
+		return "use every item reserved on your income mat's overlay";
+	},
+	discardSpace(value) {
+		return isCount(value?.tile)
+			? `discard space tile ${value.tile}`
+			: 'discard a space tile';
+	},
+	// Spymaster played as a tapestry card (#37).
+	spymaster() {
+		return 'draw 1 tapestry card; you may play it on top of this card at once';
 	},
 	advanceEach(value) {
 		let words = 'advance once on each track, in any order';

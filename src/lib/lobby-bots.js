@@ -48,13 +48,20 @@ export function nextBotKind(seats) {
 /**
  * A random unused historical name for an added bot.
  * @param {BotLobbySeat[]} seats
-	* @param {() => number} [random=Math.random] - Interface randomness; engine decisions use their own injected source.
+ * @param {() => number} [random=Math.random] - Interface randomness; engine decisions use their own injected source.
  * @returns {string}
  */
 export function nextBotName(seats, random = Math.random) {
-	const unused = BOT_NAMES.filter((name) => !seats.some((seat) => seat.name === name));
+	const unused = BOT_NAMES.filter(
+		(name) => !seats.some((seat) => seat.name === name)
+	);
 	const choices = unused.length ? unused : BOT_NAMES;
-	return choices[Math.min(choices.length - 1, Math.max(0, Math.floor(random() * choices.length)))];
+	return choices[
+		Math.min(
+			choices.length - 1,
+			Math.max(0, Math.floor(random() * choices.length))
+		)
+	];
 }
 
 /**

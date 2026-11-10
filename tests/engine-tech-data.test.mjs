@@ -5,7 +5,13 @@ import { BASE_TECH } from '../src/lib/engine/decks.js';
 import { EFFECT_KINDS } from '../src/lib/engine/data/effects.js';
 import { INCOME_MAT } from '../src/lib/engine/data/income-mat.js';
 import { TRACK_IDS } from '../src/lib/engine/data/ids.js';
-import { TECH_CARDS, techCard } from '../src/lib/engine/data/tech-cards.js';
+import {
+	TECH_CARDS as ALL_TECH_CARDS,
+	techCard,
+} from '../src/lib/engine/data/tech-cards.js';
+
+/** The base 33; A&A's are tests/engine-aa-tech.test.mjs's (#37). */
+const TECH_CARDS = ALL_TECH_CARDS.filter((card) => card.expansion === 'base');
 
 test('the 33 base tech cards are in BASE_TECH order', () => {
 	assert.equal(TECH_CARDS.length, 33);
@@ -147,7 +153,7 @@ test('the cards match 02 §4', () => {
 });
 
 test('the data is frozen', () => {
-	assert.ok(Object.isFrozen(TECH_CARDS));
+	assert.ok(Object.isFrozen(ALL_TECH_CARDS));
 	assert.ok(Object.isFrozen(TECH_CARDS[0]));
 	assert.ok(Object.isFrozen(techCard('the-nail').square[0]));
 	assert.ok(Object.isFrozen(techCard('irrigation').requires));

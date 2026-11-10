@@ -466,11 +466,18 @@ test('a masterpiece gained during the income step fires in the same step', () =>
 		seat.tracks.arts = [2];
 		seat.tracks.military = [3];
 		seat.resources.coin = 1;
-		// Krav Maga lies face up, for Dance to create.
+		// Krav Maga lies face up first, for Dance to create, wherever the shuffle put it.
 		const pile = state.supply.masterpieces;
-		pile.deck.push(pile.faceUp.shift());
-		pile.deck.splice(pile.deck.indexOf('krav-maga'), 1);
+		pile.deck = pile.deck.filter(
+			(/** @type {string} */ c) => c !== 'krav-maga'
+		);
+		pile.faceUp = pile.faceUp.filter(
+			(/** @type {string} */ c) => c !== 'krav-maga'
+		);
 		pile.faceUp.unshift('krav-maga');
+		while (pile.faceUp.length > 3) {
+			pile.deck.push(pile.faceUp.pop());
+		}
 	});
 	const seq = r.state.seq;
 	reply(r, 'chooseTrade', { offer: 0, pay: { coin: 1 } });

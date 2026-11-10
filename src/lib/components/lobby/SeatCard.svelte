@@ -237,27 +237,33 @@
 		)}
 	{:else}
 		<div class="rg-seat-card--header">
-		{#if badges.length}
-			<div class="rg-seat-card--badges">
-				{#each badges as badge, index (badge.label)}
-					{#if index > 0}
-						<span
-							class="rg-seat-card--dot"
-							aria-hidden="true">·</span>
-					{/if}
-					<Badge
-						label={badge.label}
-						variant="caps"
-						color={badge.color} />
-				{/each}
-			</div>
-		{/if}
-		{#if removable}
-			{@render remove(`Remove ${name}`, 'Remove the player', removeClickHandler)}
-		{/if}
+			{#if badges.length}
+				<div class="rg-seat-card--badges">
+					{#each badges as badge, index (badge.label)}
+						{#if index > 0}
+							<span
+								class="rg-seat-card--dot"
+								aria-hidden="true">·</span>
+						{/if}
+						<Badge
+							label={badge.label}
+							variant="caps"
+							color={badge.color} />
+					{/each}
+				</div>
+			{/if}
+			{#if removable}
+				{@render remove(
+					`Remove ${name}`,
+					'Remove the player',
+					removeClickHandler
+				)}
+			{/if}
 		</div>
 		<span class="rg-seat-card--name">{name}</span>
-		{#if botKind}<span class="rg-seat-card--bot-label">({botKind === 'shadow' ? 'Shadow Empire' : 'Automa'})</span>{/if}
+		{#if botKind}<span class="rg-seat-card--bot-label"
+				>({botKind === 'shadow' ? 'Shadow Empire' : 'Automa'})</span
+			>{/if}
 		{#if !showCivilization}
 			<!-- Civilizations are dealt once the game starts. -->
 		{:else if canChooseCivilization}

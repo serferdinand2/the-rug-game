@@ -28,7 +28,13 @@ import { TRADERS_TOKENS } from '../engine/civs/traders.js';
 import { UTILITARIANS_TOKENS } from '../engine/civs/utilitarians.js';
 import { ASSETS } from '../art/catalog.js';
 import { artUrl } from '../ui.js';
-import { buildingName, civilizationName, trackName } from '../game-names.js';
+import {
+	buildingName,
+	civilizationName,
+	landmarkName,
+	trackName,
+} from '../game-names.js';
+import { joinList } from '../words.js';
 
 /** @typedef {import('../ui.js').CostSymbol} CostSymbol */
 /** @typedef {import('../engine/data/ids.js').VersionId} VersionId */
@@ -316,6 +322,28 @@ function clarity(context, text, setup = {}, space = {}) {
 }
 
 /**
+ * The Relentless' token box label: how many tokens lie on the mat in a game (#37).
+ * @param {CivCardContext} context
+ * @returns {string}
+ */
+function tokensLabel(context) {
+	const count = context.marks.tokens?.length ?? 0;
+	return count === 0 ? 'Token' : `${count} here`;
+}
+
+/**
+ * The Urban Planners' kept landmarks in a game, as a line of their box (#37).
+ * @param {CivCardContext} context
+ * @returns {string[]}
+ */
+function storedLine(context) {
+	const kept = Object.keys(context.marks)
+		.filter((spot) => spot.startsWith('stored-'))
+		.map((spot) => `the ${landmarkName(spot.slice('stored-'.length))}`);
+	return kept.length > 0 ? [` On this mat now: ${joinList(kept)}.`] : [];
+}
+
+/**
  * Whether a spot shows a mark.
  * @param {CivCardContext} context
  * @param {string} spot
@@ -343,7 +371,7 @@ function reserve(context, count) {
  */
 const RECIPES = {
 	collectors: (context) => {
-		// Arts & Architecture has no engine module yet; its numbers are the reviewed card's.
+		// The reviewed card's numbers, which civs/collectors.js plays (#37).
 		const items = [
 			{
 				spot: 'outpost',
@@ -1360,6 +1388,167 @@ const RECIPES = {
 				],
 				{ current: ['Setup, current rules: upgrade a tech card.'] }
 			),
+		],
+	}),
+	// Arts & Architecture (#37; 03 §2.4), awaiting review.
+	relentless: (context) => ({
+		portraitAlt: 'Relentless civilization portrait',
+		complexity: 3,
+		effect: [
+			'Gain a building or landmark turn after turn, then cash the run in on an advance turn without one.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'End of a turn with a building',
+						label: tokensLabel(context),
+						spot: 'tokens',
+						symbolText: 12,
+						text: [
+							'At the end of each income or advance turn on which you gained an income building or a landmark, put a token here.',
+						],
+					},
+					{
+						title: 'End of an advance turn without',
+						label: 'Cash in',
+						symbolText: 12,
+						text: [
+							'Take every token off: 1 → 1 VP; 2 → 3 VP and a tapestry card; 3 → 6 VP and a tapestry card or a resource; 4 → 10 VP and one of those or an explore; 5+ → 15 VP and one of those or an invent.',
+						],
+					},
+				],
+			},
+			...clarity(context, []),
+		],
+	}),
+	gamblers: (context) => ({
+		portraitAlt: 'Gamblers civilization portrait',
+		complexity: 1,
+		effect: [
+			'Turn up 3 tapestry cards each era and play the When Played one for free.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'End of income turn 1',
+						label: 'Reveal 3',
+						symbolText: 12,
+						text: [
+							'Reveal 3 tapestry cards and play a When Played one on Maker of Fire; discard the rest. With none, keep 1.',
+						],
+					},
+					{
+						title: 'Income turns 2–4',
+						label: 'Reveal 3',
+						symbolText: 12,
+						text: [
+							'Before your era’s card, do the same on that era’s slot; your card then covers it.',
+						],
+					},
+				],
+			},
+			...clarity(context, [
+				'Only if you start the game with the Gamblers.',
+			]),
+		],
+	}),
+	'urban-planners': (context) => ({
+		portraitAlt: 'Urban Planners civilization portrait',
+		complexity: 3,
+		effect: [
+			'Hold your landmarks back and build them into one great block of the city.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Setup',
+						label: '+1 card',
+						symbolText: 12,
+						text: [
+							'Choose one more landmark card from the landmark deck.',
+						],
+					},
+					{
+						title: 'Gaining a landmark',
+						label: 'Keep',
+						symbolText: 12,
+						text: [
+							'You may keep it on this mat, and place it in your capital at the start of a turn or before you end one.',
+							...storedLine(context),
+						],
+					},
+					{
+						title: 'Final income turn',
+						label: 'n² VP',
+						symbolText: 12,
+						text: [
+							'Your largest group of landmarks touching side by side: 1, 4, 9, 16, 25, 36, 49 VP.',
+						],
+					},
+				],
+			},
+			...clarity(context, [], {
+				current: [
+					'Setup, current rules: 1 resource of your choice, 2 with 4 or 5 players.',
+				],
+			}),
+		],
+	}),
+	renegades: (context) => ({
+		portraitAlt: 'Renegades civilization portrait',
+		complexity: 3,
+		effect: [
+			'Give up a track’s benefit to climb your own track, one tier at a time.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Tier I',
+						label: 'I',
+						spot: 'tier1',
+						symbolText: 12,
+						text: [
+							'1 tapestry card and an income building of your choice.',
+						],
+					},
+					{
+						title: 'Tier II',
+						label: 'II',
+						spot: 'tier2',
+						symbolText: 12,
+						text: [
+							'Roll the science die and advance with the benefit, then invent a tech card.',
+						],
+					},
+					{
+						title: 'Tier III',
+						label: 'III',
+						spot: 'tier3',
+						symbolText: 12,
+						text: ['Explore, conquer, then upgrade a tech card.'],
+					},
+					{
+						title: 'Tier IV',
+						label: '20 VP',
+						spot: 'tier4',
+						symbolText: 12,
+						text: [
+							'20 VP; reaching it completes a track for the achievement.',
+						],
+					},
+				],
+			},
+			...clarity(context, [
+				'When you advance into or within the tier of your next space and would gain the benefit, you may move your token there instead, giving up the benefit and bonus. You still gain landmarks.',
+			]),
 		],
 	}),
 	riverfolk: (context) => ({

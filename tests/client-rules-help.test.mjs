@@ -229,7 +229,8 @@ test("Plans & Ploys has its own section, shown only with the expansion, with the
 			(s) =>
 				s.expansion === undefined ||
 				s.expansion === 'pp' ||
-				s.expansion === 'aa'
+				s.expansion === 'aa' ||
+				s.expansion === 'ff'
 		)
 	);
 	assert.deepEqual(
@@ -314,6 +315,11 @@ test("Arts & Architecture's arts track has its own section, shown only with the 
 	assert.match(text, /turn face down once used/);
 	assert.match(text, /spaces 2, 4 and 6/);
 	assert.match(text, /d20/);
+	// #183: true with the variant Roll either science die too, where the roller chooses the die before each roll.
+	assert.match(
+		text,
+		/With the variant Roll either science die \(d12 or d20\), you choose the die before each roll/
+	);
 });
 
 test("Arts & Architecture's landmark cards have their own section, with the engine's goals and the larger deal (#35)", async () => {
@@ -333,4 +339,47 @@ test("Arts & Architecture's landmark cards have their own section, with the engi
 		);
 	}
 	assert.match(text, /one card more than there are players/);
+});
+
+test("Arts & Architecture's cards have their own section: the cards that hold pieces, the landmark tech cards and Spymaster (#37)", async () => {
+	const { rulesSections } = await import('../src/lib/rules-help.js');
+	const cards = section('aa-cards');
+	assert.equal(cards.expansion, 'aa');
+	assert.ok(rulesSections(['aa']).some((s) => s.id === 'aa-cards'));
+	assert.ok(!rulesSections(['pp']).some((s) => s.id === 'aa-cards'));
+	const text = lines('aa-cards').join(' ');
+	// R124.
+	assert.match(text, /20 tapestry cards and 11 tech cards/);
+	assert.match(
+		text,
+		/Without the arts track, the ones that name it stay out of the decks/
+	);
+	assert.match(text, /Commercial Center, Monuments and Star Chamber/);
+	assert.match(text, /never copied/);
+	assert.match(text, /beside your capital mat/);
+	// R126.
+	assert.match(text, /bottom or middle row/);
+	assert.match(text, /upgrades it at once/);
+	// R127.
+	assert.match(text, /reaches the end of a track/);
+	assert.match(text, /whenever they hold a tapestry card/);
+});
+
+test('Fantasies & Futures has its own section: charms, the overlay and single-use tech cards (#39)', async () => {
+	const { rulesSections } = await import('../src/lib/rules-help.js');
+	const ff = section('ff-rules');
+	assert.equal(ff.expansion, 'ff');
+	assert.ok(rulesSections(['ff']).some((s) => s.id === 'ff-rules'));
+	assert.ok(!rulesSections(['aa']).some((s) => s.id === 'ff-rules'));
+	const text = lines('ff-rules').join(' ');
+	assert.match(text, /left charm/);
+	assert.match(text, /right charm/);
+	// R131.
+	assert.match(text, /face down has no charms/);
+	assert.match(text, /overlay/);
+	// R132.
+	assert.match(text, /in the order you choose/);
+	assert.match(text, /single use/);
+	// R134.
+	assert.match(text, /nobody gains its benefits again/);
 });

@@ -15,7 +15,8 @@ const BUILDINGS_PER_ROW = 5;
 
 /**
  * The landmarks a player owns: those in the capital, then those beside the mat, then those on the map as Nomads
- * pieces, toppled or not, in map order (R71).
+ * pieces, toppled or not, in map order (R71), then those on A&A's landmark tech cards (03 §2, #37), then those the
+ * Urban Planners keep on their mat, then those on A&A's tapestry cards (#37).
  * A bot instead owns the contents of its landmark box, including solo Shadow's acquisitions stored by Automa.
  * @param {import('../state.js').State} state
  * @param {number} player
@@ -38,6 +39,16 @@ export function landmarksOwned(state, player) {
 		...seat.capital.landmarks.map((piece) => piece.landmark),
 		...seat.besideMat.filter((id) => ids.has(id)),
 		...onMap,
+		...Object.values(seat.techLandmarks ?? {}),
+		...(seat.civData['urban-planners']?.stored ?? []),
+		...(seat.civData.collectors?.items.landmark !== undefined
+			? [seat.civData.collectors.items.landmark]
+			: []),
+		...Object.values(seat.onCards ?? {}).flatMap((pieces) =>
+			pieces.flatMap((piece) =>
+				'landmark' in piece ? [piece.landmark] : []
+			)
+		),
 	];
 }
 
@@ -75,24 +86,54 @@ export function countVp(state, player, per, track) {
 		return landmarksOwned(state, player).length;
 	}
 	const seat = playerSeat(state, player);
+	// The Collectors' items still count as theirs (#37).
+	const items = seat.civData.collectors?.items ?? {};
 	if (per === 'territoryTile') {
-		return seat.territoryTiles.length;
+		// F&F: tiles reserved on the overlay count too (Quest Culture, #39).
+		const reserved = (seat.reserved ?? []).reduce(
+			(sum, item) =>
+				sum + ('territory' in item ? item.territory.length : 0),
+			0
+		);
+		return (
+			seat.territoryTiles.length +
+			(items.territory !== undefined ? 1 : 0) +
+			reserved
+		);
 	}
 	if (per === 'techCard') {
 		const { bottom, middle, top } = seat.tech;
-		return bottom.length + middle.length + top.length;
+		return (
+			bottom.length +
+			middle.length +
+			top.length +
+			(items.tech !== undefined ? 1 : 0)
+		);
 	}
 	if (per === 'tapestryCard') {
 		// Covered cards count too (01 §3.5, Anti-Aircraft Defense).
 		return seat.incomeMat.tapestry.reduce(
 			(sum, slot) => sum + slot.length,
-			seat.hand.length
+			seat.hand.length + (items.tapestry !== undefined ? 1 : 0)
 		);
 	}
 	if (per === 'incomeBuilding') {
-		// R71, every type (the Holocenter, #35).
+		// R71, every type (the Holocenter, #35); a building reserved on F&F's overlay is never in the capital (#39).
+		const reserved = (seat.reserved ?? []).filter(
+			(item) => 'building' in item
+		).length;
+		return (
+			BUILDING_IDS.reduce(
+				(sum, id) =>
+					sum + BUILDINGS_PER_ROW - seat.incomeMat.buildings[id],
+				0
+			) - reserved
+		);
+	}
+	if (per === 'buildingLeft') {
+		// The income buildings still on the income mat (Ghost Towns, #39).
 		return BUILDING_IDS.reduce(
-			(sum, id) => sum + BUILDINGS_PER_ROW - seat.incomeMat.buildings[id],
+			(sum, id) => sum + seat.incomeMat.buildings[id],
 			0
 		);
 	}

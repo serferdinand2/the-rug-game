@@ -14,6 +14,10 @@ import { DARK_AGES_ADVANCES, REVOLUTION_MORE } from './engine/effects/cards.js';
 import { countVp } from './engine/effects/vp.js';
 import { TRACKS, advanceCost } from './engine/data/tracks.js';
 import { TECH_CARDS } from './engine/data/tech-cards.js';
+import { ACHIEVEMENTS } from './engine/data/achievements.js';
+import { PLOT_CARDS } from './engine/data/tapestry-cards.js';
+import { plotSquares } from './engine/card-pieces.js';
+import { landmarkCells } from './engine/city.js';
 import { LANDMARKS } from './engine/data/landmarks.js';
 import { TERRITORY_TILES } from './engine/data/territory-tiles.js';
 import {
@@ -262,10 +266,70 @@ function plotAt(index) {
 }
 
 /**
+ * A place on an A&A tapestry card in words (#37): "On Commercial Center, row 1, column 2" for a building, "On
+ * Monuments, covering row 1 column 3" for a landmark, "On Space Race".
+ * @param {Answer} a
+ * @param {Decision} d
+ * @returns {string | null}
+ */
+function placeOnCardWords(a, d) {
+	const name = tapestryName(a.card);
+	if (!Number.isInteger(a.row) || !Number.isInteger(a.col)) {
+		return `On ${name}`;
+	}
+	if (typeof d.landmark !== 'string' || !(a.card in PLOT_CARDS)) {
+		return `On ${name}, row ${a.row + 1}, column ${a.col + 1}`;
+	}
+	const squares = new Set(
+		plotSquares(a.card).map((cell) => `${cell.row},${cell.col}`)
+	);
+	const covered = landmarkCells({
+		landmark: d.landmark,
+		row: a.row,
+		col: a.col,
+		rotation: a.rotation ?? 0,
+	})
+		.filter((cell) => squares.has(`${cell.row},${cell.col}`))
+		.sort((x, y) => x.row - y.row || x.col - y.col)
+		.map((cell) => `row ${cell.row + 1} column ${cell.col + 1}`);
+	return `On ${name}, covering ${joinList(covered)}`;
+}
+
+/**
+ * A civilization's name with its article: "the Historians", "The Chosen" (#37).
+ * @param {string} name
+ * @returns {string}
+ */
+function withThe(name) {
+	return /^(the|a|an) /i.test(name) ? name : `the ${name}`;
+}
+
+/**
  * A title from a decision's options for a slot pick, keyed by its `purpose`.
  * @type {Record<string, (decision: Decision, table: Table | undefined) => string>}
  */
 const SLOT_TITLES = {
+	// Political Posturing (#37).
+	politicalPosturing: () => 'Choose an achievement to earn',
+	nationalParks: () => 'National Parks: roll which conquer die?',
+	// The Urban Planners (#37, R130).
+	plannersPlace: () =>
+		'Urban Planners: place a landmark from your mat in your capital?',
+	// The Gamblers (#37).
+	gamblers: (d) =>
+		isCount(d.then?.era)
+			? `Gamblers: play a revealed card on your era ${d.then.era} slot`
+			: 'Gamblers: play a revealed card',
+	gamblersKeep: () => 'Gamblers: no When Played card, so keep 1 in your hand',
+	silkRoad: () => "Silk Road: gain the space's benefit or its landmark?",
+	plague: (d) =>
+		typeof d.then?.civ === 'string'
+			? `Plague: replace a civilization with ${withThe(civilizationName(d.then.civ))}, or discard it for 10 VP?`
+			: 'Plague: replace a civilization, or discard the new one for 10 VP?',
+	enlightenment: (d) =>
+		isTrack(d.then?.track)
+			? `Age of Enlightenment: advance on ${trackName(d.then.track)} once or twice?`
+			: 'Age of Enlightenment: advance once or twice?',
 	loseResource: () => 'Choose a resource to lose',
 	payResource: () => 'Choose a resource to pay',
 	merrymakers: () => 'Choose a Merrymakers column to move up',
@@ -493,6 +557,12 @@ const TITLES = {
 				return civOfferTitle(d, table);
 			case 'riverfolkDiscard':
 				return 'Discard the Riverfolk for another civilization?';
+			// The Collectors' outpost, asked before the conquer's target (R129, #37).
+			case 'collectorsOutpost':
+				return 'Conquer, or put an outpost on your Collectors mat instead?';
+			// The Urban Planners with no landmark card left (#37).
+			case 'plannersSwap':
+				return 'No landmark card is left: discard the Urban Planners for another civilization?';
 			case 'militarism':
 				return 'Place an outpost on the territory you explored?';
 			case 'exploitation':
@@ -579,6 +649,19 @@ const TITLES = {
 			: 'Choose a space tile to explore',
 	chooseConquer: () => 'Choose a territory to conquer',
 	chooseDie: () => 'Choose a die to keep',
+	// The Renegades (#37): the space reached, or their own next space.
+	chooseRenegades: (d) =>
+		isTrack(d.track) && isCount(d.space)
+			? `${spaceName(d.track, d.space)}'s benefit, or your Renegades' next space instead?`
+			: "The benefit, or your Renegades' next space instead?",
+	// The Collectors (#37).
+	chooseCollect: () =>
+		'Put it on your Collectors mat, for 1 resource of your choice?',
+	// A&A's Spymaster (#37, R127): asked of every neighbour holding a card.
+	chooseSpymaster: (d, table) =>
+		isCount(d.mover) && isTrack(d.track)
+			? `${seatName(table, d.mover)} reached the end of ${trackName(d.track)}. Play Spymaster?`
+			: 'Play Spymaster?',
 	chooseResponse: (d, table) =>
 		isCount(d.attacker)
 			? `Respond to the conquest by ${seatName(table, d.attacker)}?`
@@ -616,8 +699,18 @@ const TITLES = {
 	},
 	chooseKeep: () => 'Choose a tapestry card to keep',
 	chooseKeepTech: () => 'Choose a tech card to keep',
-	chooseLandmarkCard: () => 'Keep a landmark card',
+	// Infrastructure Upgrade takes one from the landmark deck (#37).
+	chooseLandmarkCard: (d) =>
+		d.purpose === 'infrastructureUpgrade'
+			? 'Infrastructure Upgrade: keep a landmark card'
+			: d.purpose === 'urbanPlanners'
+				? 'Urban Planners: keep one more landmark card'
+				: 'Keep a landmark card',
 	chooseTrade: (d, table) => {
+		// Moon Landing (#37): the trade, or the invent if it isn't made.
+		if (d.purpose === 'moonLanding') {
+			return 'Moon Landing: discard 2 territory tiles and 1 tech card for a space tile?';
+		}
 		// The Utilitarians' Lighthouse (#33).
 		// Mandatory when only its resource pays for the turn's advance.
 		if (d.purpose === 'lighthouse') {
@@ -632,10 +725,12 @@ const TITLES = {
 		// Olympic Host (#148): the host's card, and the trade it offers.
 		const [offer] = Array.isArray(d.offers) ? d.offers : [];
 		if (isCount(d.host) && isRecord(offer)) {
+			// Granges asks the same way (#37).
+			const card = d.purpose === 'granges' ? 'Granges' : 'Olympic Host';
 			const whose =
 				d.host === d.player
-					? 'Olympic Host'
-					: `${seatName(table, d.host)}'s Olympic Host`;
+					? card
+					: `${seatName(table, d.host)}'s ${card}`;
 			return `${whose}: ${paymentVerbs(offer.pay)} to ${effectsPhrase(offer.gain, table, true)}?`;
 		}
 		if (tapestrySource(d) === 'guilds') {
@@ -671,7 +766,11 @@ const TITLES = {
 				return 'Choose a track';
 		}
 	},
-	chooseRoll: () => 'Choose one of the two science die results',
+	// Empiricism's two faces, or the face and Arts with Artistic Inspiration (#37).
+	chooseRoll: (d) =>
+		Array.isArray(d.options) && d.options.includes('arts')
+			? 'Choose the science die result or Arts'
+			: 'Choose one of the two science die results',
 	chooseScienceDie: () => 'Choose the science die to roll',
 	chooseCreate: () => 'Create a masterpiece',
 	chooseRefresh: () => 'Refresh the face-up masterpieces?',
@@ -711,8 +810,17 @@ const TITLES = {
 				? 'Revolution: stand up another toppled outpost?'
 				: 'Revolution: choose a territory where your toppled outpost stands back up';
 		}
+		if (d.purpose === 'zombieArmy') {
+			return "Zombie Army: take an outpost onto your income mat's overlay?";
+		}
 		return d.optional ? 'Choose a territory?' : 'Choose a territory';
 	},
+	// F&F's reservations (#39).
+	chooseReserve: (d) =>
+		d.stack === 'masterpieces'
+			? "Reserve a masterpiece on your income mat's overlay"
+			: "Reserve a space tile on your income mat's overlay",
+	chooseReserveTech: () => "Reserve a tech card on your income mat's overlay",
 	chooseGift: () => 'Give a territory tile to an opponent for 3 VP?',
 	// The Advisors' gift: instead of a neighbour's draw, or one of their new cards for VP (#33).
 	chooseGive: (d, table) => {
@@ -809,6 +917,36 @@ export function decisionTitle(decision, table) {
  * @type {Record<string, (slot: any, decision: Decision, table: Table | undefined) => string | null>}
  */
 const SLOT_ANSWERS = {
+	politicalPosturing: (slot) =>
+		ACHIEVEMENTS.find((a) => a.id === slot)?.name ?? null,
+	gamblers: (slot) => (typeof slot === 'string' ? tapestryName(slot) : null),
+	plannersPlace: (slot) =>
+		typeof slot === 'string' ? `The ${landmarkName(slot)}` : null,
+
+	gamblersKeep: (slot) =>
+		typeof slot === 'string' ? tapestryName(slot) : null,
+	nationalParks: (slot) =>
+		slot === 'black'
+			? 'The black die'
+			: slot === 'red'
+				? 'The red die'
+				: null,
+	enlightenment: (slot) =>
+		slot === 1 ? 'Once' : slot === 2 ? 'Twice' : null,
+	plague: (slot, d) => {
+		if (slot === 'discard') {
+			return 'Discard it for 10 VP';
+		}
+		return typeof slot === 'string'
+			? `Replace ${withThe(civilizationName(slot))}`
+			: null;
+	},
+	silkRoad: (slot) =>
+		slot === 'benefit'
+			? 'Its benefit'
+			: slot === 'landmark'
+				? 'Its landmark'
+				: null,
 	loseResource: (slot) =>
 		RESOURCE_IDS.includes(slot) ? `Lose ${amountWords(slot, 1)}` : null,
 	payResource: (slot) =>
@@ -998,6 +1136,16 @@ const ANSWERS = {
 		) {
 			return null;
 		}
+		if (d.purpose === 'collectorsOutpost') {
+			return a.option === 0
+				? 'Conquer'
+				: 'Put an outpost on your Collectors mat';
+		}
+		if (d.purpose === 'plannersSwap') {
+			return a.option === 0
+				? 'Keep the Urban Planners'
+				: 'Discard them and gain another';
+		}
 		// The Riverfolk gained mid-game: declining keeps them (#33).
 		if (d.purpose === 'riverfolkDiscard') {
 			return a.option === 0
@@ -1073,15 +1221,33 @@ const ANSWERS = {
 		}
 		return typeof a.card === 'string' ? tapestryName(a.card) : null;
 	},
-	choosePlacement: (a) => {
+	choosePlacement: (a, d) => {
 		if (a.besideMat === true) {
 			return 'Beside your capital mat';
 		}
 		if (isCount(a.craftsmen)) {
 			return `Craftsmen column ${a.craftsmen + 1}`;
 		}
-		if (typeof a.hex === 'string') {
+		if (typeof a.hex === 'string' && a.parks !== true) {
 			return capitalize(hexName(a.hex));
+		}
+		// A&A's landmark tech card, which the landmark upgrades at once (#37).
+		const card = techCardOf(a.tech);
+		if (card) {
+			return `On ${card.name}, upgrading it`;
+		}
+		// A&A's tapestry cards (#37): a plot's square, or the squares a landmark covers; Space Race, Trade Routes.
+		if (typeof a.card === 'string') {
+			return placeOnCardWords(a, d);
+		}
+		if (a.collectors === true) {
+			return 'On your Collectors mat, for 1 resource of your choice';
+		}
+		if (a.planners === true) {
+			return 'On your Urban Planners mat, to place later';
+		}
+		if (typeof a.hex === 'string' && a.parks === true) {
+			return `${capitalize(hexName(a.hex))}, with National Parks`;
 		}
 		if (!Number.isInteger(a.row) || !Number.isInteger(a.col)) {
 			return null;
@@ -1107,6 +1273,20 @@ const ANSWERS = {
 		}
 		return `Space tile ${a.tile}: ${spaceTileWords(a.tile, table)}`;
 	},
+	chooseReserve: (a, d, table) => {
+		if (d.stack === 'masterpieces') {
+			return typeof a.item === 'string' ? masterpieceName(a.item) : null;
+		}
+		return isCount(a.item)
+			? `Space tile ${a.item}: ${spaceTileWords(a.item, table)}`
+			: null;
+	},
+	chooseReserveTech: (a) => {
+		if (a.card === 'deck') {
+			return "The deck's top card";
+		}
+		return typeof a.card === 'string' ? techName(a.card) : null;
+	},
 	chooseConquer: (a, d, table) => {
 		if (typeof a.hex !== 'string') {
 			return null;
@@ -1130,6 +1310,35 @@ const ANSWERS = {
 		const face = isCount(d[a.die]) ? faces[d[a.die]] : undefined;
 		const die = a.die === 'red' ? 'Red die' : 'Black die';
 		return face ? `${die}: ${effectPhrase(face, table)}` : die;
+	},
+	chooseCollect: (a, d) => {
+		if (a.slot === null) {
+			return "Don't";
+		}
+		if (d.type === 'territory') {
+			return isCount(a.slot) ? `Territory tile ${a.slot}` : null;
+		}
+		if (d.type === 'tech') {
+			return typeof a.slot === 'string' ? techName(a.slot) : null;
+		}
+		return typeof a.slot === 'string' ? tapestryName(a.slot) : null;
+	},
+	chooseRenegades: (a, d) => {
+		if (a.renegades === true) {
+			return 'The Renegades space';
+		}
+		if (a.renegades !== false) {
+			return null;
+		}
+		return isTrack(d.track) && isCount(d.space)
+			? `${spaceName(d.track, d.space)}'s benefit`
+			: 'The benefit';
+	},
+	chooseSpymaster: (a) => {
+		if (a.card === null) {
+			return "Don't play a card";
+		}
+		return a.card === 'spymaster' ? 'Play Spymaster' : null;
 	},
 	chooseResponse: (a) => {
 		if (a.card === null) {
@@ -1212,7 +1421,9 @@ const ANSWERS = {
 			: null,
 	chooseTrade: (a, d, table) => {
 		if (a.offer === null) {
-			return 'No trade';
+			return Array.isArray(d.otherwise)
+				? capitalize(`no, ${effectsPhrase(d.otherwise, table, true)}`)
+				: 'No trade';
 		}
 		const offer =
 			Array.isArray(d.offers) && isCount(a.offer)

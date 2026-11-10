@@ -64,6 +64,13 @@
  * @property {string | null} start - The hex its two outposts started on, its capital-city territory; null until setup places them (#33)
  * @property {{ card: string, used: boolean }[]} [masterpieces] - With the arts track only: the masterpieces held, in the order gained, public; `used` for a single-use card turned face down (#35)
  * @property {BuildingId[]} [inspired] - With the arts track only: the income rows that hold the player's inspiration tile, in the order placed (#35)
+ * @property {Record<string, string>} [techLandmarks] - With A&A only: the landmark each landmark tech card holds, by card (03 §2, #37)
+ * @property {{ card: string, gained: boolean }[]} [extraLandmarkCards] - With A&A only: the landmark cards kept besides the drafted one (Infrastructure Upgrade, #37)
+ * @property {Record<string, import('./card-pieces.js').CardPiece[]>} [onCards] - With A&A only: the pieces on each tapestry card of theirs that holds some, by the card on the mat (#37)
+ * @property {boolean} [playedCharmed] - With F&F only: whether a charmed tapestry card ever went face up onto their mat, for the charm-or-5 tech prerequisite (R68, #39)
+ * @property {string[]} [charmsUsed] - With F&F only: the cards on their mat whose right charm has triggered, each once (R67, #39)
+ * @property {import('./effects/reserved.js').ReservedItem[]} [reserved] - With F&F only: the items on their income mat's overlay, in the order placed (03 FF.2.2, #39)
+ * @property {string[]} [flippedTech] - With F&F only: their single-use tech cards whose square was gained, flipped for good (03 FF.2.3, #39)
  */
 /** @typedef {Seat & PlayerFields & { kind: 'player' }} PlayerSeat */
 /**
@@ -85,6 +92,7 @@
  * @property {number[]} capitals - Mats nobody holds, face up
  * @property {string[]} landmarkCards - The face-down landmark deck: the cards nobody drafted (#32)
  * @property {{ deck: string[], faceUp: string[], discard: string[] }} [masterpieces] - With the arts track only: the face-down deck, the 3 face up and the discards, face up (#35)
+ * @property {string[]} [landmarkDiscard] - With A&A only: the landmarks discarded with their tech card, out of the game (03 §2, #37)
  */
 /** @typedef {{ id: number, batch: number, player: number | null, kind: string } & Record<string, any>} Operation - `origin`, when set, is where its VP counts (#29) */
 /** @typedef {{ player: number | null, kind: string } & Record<string, any>} NewOperation */
@@ -115,6 +123,7 @@
  * @property {{ player: number, card: string }[]} lockedTech - Tech cards Ceramics upgraded this turn, which may not be upgraded again until a turn starts (#35, RB-AA p3)
  * @property {{ player: number, track: TrackId, tier: 2 | 3 | 4 }[]} takenTiers - Tiers the player whose turn it is moved into this turn whose landmark was already taken, for the Castle's goal; cleared when a turn starts (#35, 03 §2.10)
  * @property {{ player: number, track: TrackId }[]} blocks - Dictatorship blocks: the player's opponents may not advance on the track until turn order next reaches or skips the player (R26)
+ * @property {{ player: number, track: TrackId }[]} [spymasters] - Played Spymasters whose advance comes at the end of the turn (A&A, R127); set once one is played
  * @property {import('./ranking.js').Result | null} result - The final ranking, once the game is over
  * @property {(Operation | Group)[]} pending - Index 0 is the top
  * @property {number} nextId

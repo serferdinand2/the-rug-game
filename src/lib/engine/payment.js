@@ -360,6 +360,12 @@ export function pay(ctx, player, payment) {
 				(card) => !tech.includes(card)
 			);
 		}
+		// A flipped card discarded is a fresh card again for whoever draws it (03 FF.2.3).
+		if (seat.flippedTech) {
+			seat.flippedTech = seat.flippedTech.filter(
+				(card) => !tech.includes(card)
+			);
+		}
 		state.supply.tech.discard.push(...tech);
 		emit(state, {
 			type: 'cardsDiscarded',
@@ -367,5 +373,25 @@ export function pay(ctx, player, payment) {
 			deck: 'tech',
 			cards: tech,
 		});
+		discardTechLandmarks(state, player, tech);
+	}
+}
+
+/**
+ * Discards the landmarks the discarded tech cards held, out of the game (A&A's landmark tech cards, 03 §2).
+ * @param {import('./state.js').State} state
+ * @param {number} player
+ * @param {readonly string[]} cards
+ */
+function discardTechLandmarks(state, player, cards) {
+	const held = playerSeat(state, player).techLandmarks;
+	for (const card of cards) {
+		const landmark = held?.[card];
+		if (held === undefined || landmark === undefined) {
+			continue;
+		}
+		delete held[card];
+		(state.supply.landmarkDiscard ??= []).push(landmark);
+		emit(state, { type: 'landmarkDiscarded', player, landmark, card });
 	}
 }

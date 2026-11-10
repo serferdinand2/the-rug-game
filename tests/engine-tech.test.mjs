@@ -8,7 +8,7 @@ import { play } from '../src/lib/engine/play.js';
 import { upgradable } from '../src/lib/engine/tech.js';
 import { inventCard, upgradeCard } from '../src/lib/engine/effects/tech.js';
 import { pay } from '../src/lib/engine/payment.js';
-import { TECH_CARDS } from '../src/lib/engine/data/tech-cards.js';
+import { BASE_TECH } from '../src/lib/engine/decks.js';
 import { startTurn } from '../src/lib/engine/turn.js';
 import { startedGame, readyTurn, answer, placeAll } from './helpers/engine.mjs';
 
@@ -258,7 +258,7 @@ test('every tech card stays accounted for', () => {
 					: []
 			),
 		];
-		assert.deepEqual([...all].sort(), TECH_CARDS.map((c) => c.id).sort());
+		assert.deepEqual([...all].sort(), [...BASE_TECH].sort());
 		assert.equal(new Set(faceUp).size, faceUp.length);
 	};
 	check(state);
