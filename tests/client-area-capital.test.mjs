@@ -128,7 +128,11 @@ test('a mat on offer has its own plots: the impassable ones blocked, the rest em
 		);
 		assert.equal(plots.filter((p) => p === 'blocked').length, 22);
 	}
-	assert.throws(() => matPlots(13), RangeError);
+	// F&F's unicorns and wisps are impassable plots too (#40); the mats run to 18.
+	const savanna = matPlots(16);
+	assert.equal(savanna[7], 'blocked');
+	assert.equal(savanna.filter((p) => p === 'blocked').length, 22);
+	assert.throws(() => matPlots(19), RangeError);
 });
 
 test('an advanced mat has its own shape, biome and plots (#36)', () => {
@@ -154,4 +158,29 @@ test('the mats on offer use the seed the capital will have once chosen (#56)', (
 	const { state } = startedGame(2);
 	const seat = view(state, 1).seats[0];
 	assert.equal(capitalView(seat, 'ABCD')?.terrainSeed, terrainSeed('ABCD'));
+});
+
+test("a player's token on a capital (Dream Monitors, the Weefolk) is drawn on its plot in its seat's colour (#40)", async () => {
+	const { render } = await import('svelte/server');
+	const { default: CapitalGrid } =
+		await import('../src/lib/components/player/CapitalGrid.svelte');
+	const { state } = startedGame(2);
+	const next = structuredClone(state);
+	next.seats[0].capital.tokens = [{ row: 2, col: 3, seat: 2 }];
+	const capital = capitalView(view(next, 1).seats[0], 'ABCD');
+	assert.ok(capital);
+	assert.deepEqual(capital.tokens, [{ row: 2, col: 3, seat: 2 }]);
+	assert.equal(capital.plots[2 * 9 + 3], 'token');
+	const body = render(CapitalGrid, {
+		props: {
+			plots: capital.plots,
+			biome: capital.biome,
+			tokens: capital.tokens,
+		},
+	}).body;
+	assert.match(body, /\/art\/piece\/token-red\.svg/);
+	assert.equal(
+		capitalView(view(state, 1).seats[0], 'ABCD')?.tokens?.length,
+		0
+	);
 });

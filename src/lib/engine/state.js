@@ -47,8 +47,9 @@
  * Only on kind 'player'.
  * @typedef {Object} PlayerFields
  * @property {Record<ResourceId, number>} resources
- * @property {{ buildings: Record<BuildingId, number>, tapestry: string[][], faceDown: string[] }} incomeMat - Buildings left in each row; 4 era slots, each a stack; the ids of face-down cards, which view() hides
- * @property {{ mat: number | null, buildings: import('./city.js').PlacedBuilding[], landmarks: import('./city.js').PlacedLandmark[], cubes: number[] }} capital - `landmarks`: those covering at least 1 grid plot (R13); `cubes`: the plots the Architects' cubes make impassable (#20 design §5)
+ * @property {{ buildings: Record<BuildingId, number>, tapestry: string[][], faceDown: string[], slid?: Partial<Record<BuildingId, number>>, flush?: Partial<Record<BuildingId, boolean>> }} incomeMat - Buildings left in each row; 4 era slots, each a stack; the ids of face-down cards, which view() hides; the
+ *   Artificers' rows whose leftmost building slid left, by how far, and their row slid flush left (F&F, #40)
+ * @property {{ mat: number | null, buildings: import('./city.js').PlacedBuilding[], landmarks: import('./city.js').PlacedLandmark[], cubes: number[], tokens?: { row: number, col: number, seat: number }[] }} capital - `landmarks`: those covering at least 1 grid plot (R13); `cubes`: the plots the Architects' cubes make impassable (#20 design §5)
  * @property {string[]} besideMat - Landmark and income building ids that didn't fit, in order
  * @property {string[]} hand
  * @property {{ bottom: string[], middle: string[], top: string[] }} tech
@@ -58,6 +59,7 @@
  * @property {string[]} civs - The civilization chosen at setup first, then those gained later (#20 design §5)
  * @property {Record<string, any>} civData - Each civilization's own state, by civilization id; public, like everything on a civilization mat
  * @property {Era | null} era - The active THIS ERA ability, if any
+ * @property {boolean} [playingOn] - F&F: the Elder Ones or the Merfolk, playing on after income turn 5 until they can't (#40)
  * @property {{ capital?: number, civ?: string, dealt?: number[] }} picks - Setup picks until the reveal; `dealt` is every
  * mat a joint pick was dealt (#36), so the reveal returns the others to the supply
  * @property {{ card: string, gained: boolean } | null} landmarkCard - The landmark card drafted at setup, face up, and whether its landmark is gained (#32)
@@ -111,7 +113,8 @@
  * @property {number} first
  * @property {number | null} current
  * @property {number} turn - Turns started so far: 0 during setup, 1 for the first turn
- * @property {'advance' | 'income' | null} turnKind - The kind of turn the current player chose, null until they choose
+ * @property {'advance' | 'income' | 'merfolk' | null} turnKind - The kind of turn the current player chose, null until they choose; 'merfolk' is
+ *   the Merfolk's turn after income turn 5 (#40)
  *   and outside play; income turn 1 is an income turn without a choice (#33: the Advisors give only on advance turns)
  * @property {(Seat | PlayerSeat)[]} seats - Index = seat - 1
  * @property {Supply} supply
@@ -123,6 +126,8 @@
  * @property {{ player: number, card: string }[]} lockedTech - Tech cards Ceramics upgraded this turn, which may not be upgraded again until a turn starts (#35, RB-AA p3)
  * @property {{ player: number, track: TrackId, tier: 2 | 3 | 4 }[]} takenTiers - Tiers the player whose turn it is moved into this turn whose landmark was already taken, for the Castle's goal; cleared when a turn starts (#35, 03 §2.10)
  * @property {{ player: number, track: TrackId }[]} blocks - Dictatorship blocks: the player's opponents may not advance on the track until turn order next reaches or skips the player (R26)
+ * @property {{ player: number, guess?: TrackId, hit?: TrackId }[]} [omens] - Good Omens' guesses this turn, and the first
+ *   right one, rewarded at the turn's end (F&F, #40)
  * @property {{ player: number, track: TrackId }[]} [spymasters] - Played Spymasters whose advance comes at the end of the turn (A&A, R127); set once one is played
  * @property {import('./ranking.js').Result | null} result - The final ranking, once the game is over
  * @property {(Operation | Group)[]} pending - Index 0 is the top

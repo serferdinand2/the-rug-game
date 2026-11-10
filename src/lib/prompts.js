@@ -371,7 +371,9 @@ function placeOf(decision, answer, game) {
 		(decision.kind === 'choosePlacement' ||
 			decision.kind === 'chooseCube' ||
 			decision.kind === 'chooseCloudMove' ||
-			decision.kind === 'chooseCloudPlot') &&
+			decision.kind === 'chooseCloudPlot' ||
+			// Dream Monitors' and the Weefolk's token (#40).
+			decision.kind === 'choosePlot') &&
 		typeof answer.row === 'number' &&
 		typeof answer.card !== 'string'
 	) {
@@ -470,6 +472,38 @@ const ART = Object.freeze({
 			: [],
 	'space-tile': (decision, answer) =>
 		isCount(answer.tile) ? [{ kind: 'space-tile', id: answer.tile }] : [],
+	// F&F's Psionics (#40): what was drawn, by its stack.
+	sample: (decision, answer) => {
+		if (decision.stack === 'tech' && typeof answer.item === 'string') {
+			return [{ kind: 'tech', id: answer.item }];
+		}
+		if (
+			decision.stack === 'masterpieces' &&
+			typeof answer.item === 'string'
+		) {
+			return [{ kind: 'masterpiece', id: answer.item }];
+		}
+		if (!isCount(answer.item)) {
+			return [];
+		}
+		return decision.stack === 'space'
+			? [{ kind: 'space-tile', id: answer.item }]
+			: [{ kind: 'territory', id: answer.item, orient: 0 }];
+	},
+	// The results of the rolls kept, black first as they are gained (#40).
+	rolls: (decision, answer) =>
+		effectArt([
+			// Faces count from 0.
+			...(Number.isInteger(answer.black)
+				? [BLACK_DIE[answer.black]]
+				: []),
+			...(Number.isInteger(answer.red) ? [RED_DIE[answer.red]] : []),
+		]),
+	// The card a Merfolk turn plays or discards (#40).
+	merfolk: (decision, answer) => {
+		const card = answer.play ?? answer.discard;
+		return typeof card === 'string' ? [{ kind: 'tapestry', id: card }] : [];
+	},
 	gift: (decision, answer) =>
 		isCount(answer.tile)
 			? [{ kind: 'territory', id: answer.tile, orient: 0 }]

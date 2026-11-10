@@ -70,12 +70,31 @@ import { gainCiv, plague } from '../civ-turns.js';
 import { discardCiv, placeToken } from '../civs/civ.js';
 import { ability, charm, charmOnlyGains } from '../charms.js';
 import {
+	dreamMonitors,
+	highCouncil,
+	soothsaying,
+	superpowerRegulators,
+} from './ff-looks.js';
+import {
+	alienDisclosure,
+	chimera,
+	citadelOfPower,
+	dejaVu,
+	doppelgangers,
+	seerSight,
+	muses,
+	technomancy,
+	temporalNomadism,
+	uploadedConsciousness,
+} from './ff-cards.js';
+import {
 	discardSpace,
 	ecstaticVisions,
 	reserve,
 	useAllReserved,
 	useReserved,
 } from './reserved.js';
+import { elderDiscard } from '../civs/elder-ones.js';
 
 /** @type {Record<string, import('../state.js').EffectHandler>} */
 export const EFFECTS = {
@@ -150,6 +169,21 @@ export const EFFECTS = {
 	useAllReserved,
 	discardSpace,
 	ecstaticVisions,
+	alienDisclosure,
+	chimera,
+	citadelOfPower,
+	dejaVu,
+	doppelgangers,
+	seerSight,
+	dreamMonitors,
+	highCouncil,
+	soothsaying,
+	superpowerRegulators,
+	muses,
+	technomancy,
+	temporalNomadism,
+	uploadedConsciousness,
+	elderDiscard,
 };
 
 /** @typedef {Record<string, any>} AnyEffect */

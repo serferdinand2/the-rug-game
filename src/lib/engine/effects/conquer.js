@@ -1,4 +1,6 @@
 // The conquer effect, the conquer dice and the black die's "?": take a territory, then roll for its reward (R8, R16, R17, R107).
+import { illuminatiTake } from '../civs/illuminati.js';
+import { psionic } from '../civs/psionics.js';
 import { emit } from '../events.js';
 import { playerSeat, isPlayerSeat, seatOf } from '../state.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
@@ -12,6 +14,7 @@ import { itemCount } from '../control.js';
 import { takeOutpost } from '../outposts.js';
 import { isolationistsOffer } from '../civs/isolationists.js';
 import { diceOp } from '../responses.js';
+import { mayRespond } from '../civs/elder-ones.js';
 
 /**
  * Conquers a hex: an outpost goes on it, and an opponent's lone outpost or Nomads piece topples; a lone Treasure Hunters
@@ -132,7 +135,9 @@ function asksResponse(state, defender) {
 	}
 	const seat = playerSeat(state, defender);
 	return (
-		seat.hand.length > 0 && (!seat.finished || state.version === 'original')
+		seat.hand.length > 0 &&
+		(!seat.finished || state.version === 'original') &&
+		mayRespond(seat)
 	);
 }
 
@@ -229,15 +234,61 @@ export function conquerDice(ctx, op) {
 	for (const seat of [player, ...others]) {
 		checkToppleTwo(ctx, seat);
 	}
-	// Pushed below the dice and Pirate Rule, which are the conquest's own reward.
-	const counts = triggered(ctx.state, 'countsChanged', { player });
 	// Automa never receives conquest dice benefits. A human defender's trap still resolves before this operation.
 	if (!isPlayerSeat(ctx.state, player)) {
-		ctx.push(counts);
+		ctx.push(triggered(ctx.state, 'countsChanged', { player }));
 		return;
 	}
 	const red = ctx.random(6);
 	const black = ctx.random(6);
+	// The Illuminati: an opponent's first roll of their dice pays them first (#40, DQ 13).
+	const paid = illuminatiTake(ctx, player, { red, black, hex });
+	// The Psionics roll each die once more and keep one value of each (03 FF.3, R74; #40).
+	if (psionic(ctx.state, player)) {
+		const reds = [red, ctx.random(6)];
+		const blacks = [black, ctx.random(6)];
+		emit(ctx.state, {
+			type: 'conquerDiceRolledTwice',
+			player,
+			reds,
+			blacks,
+		});
+		ctx.push([
+			{
+				player,
+				kind: 'chooseRolls',
+				reds,
+				blacks,
+				conquest: { hex, both: op.both, surrender: op.surrender },
+			},
+		]);
+		// Pushed last, so the Illuminati are paid before the dice are used (DQ 13, R149).
+		ctx.push(paid);
+		return;
+	}
+	afterConquerRoll(
+		ctx,
+		{ player, hex, both: op.both, surrender: op.surrender },
+		red,
+		black
+	);
+	if (paid.length > 0) {
+		ctx.push(paid);
+	}
+}
+
+/**
+ * What follows a conquest's roll: the dice's rewards, what answers them, Pirate Rule and the counts' triggers.
+ * @param {import('../state.js').Context} ctx
+ * @param {{ player: number | null, hex: string, both?: boolean, surrender?: number }} op
+ * @param {number} red
+ * @param {number} black
+ */
+export function afterConquerRoll(ctx, op, red, black) {
+	const player = /** @type {number} */ (op.player);
+	const hex = op.hex;
+	// Pushed below the dice and Pirate Rule, which are the conquest's own reward.
+	const counts = triggered(ctx.state, 'countsChanged', { player });
 	emit(ctx.state, { type: 'conquerDiceRolled', player, red, black });
 	// What answers the dice (the Utilitarians' Barracks, #33) comes after the conquest's own die or dice. Nothing in a
 	// base game answers it.

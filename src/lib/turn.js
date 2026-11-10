@@ -245,7 +245,8 @@ export function firstIncomeNotice(view, seat) {
 /**
  * The footer to show, with every word in it, as TurnBar takes them (#86).
  * @typedef {Object} FooterView
- * @property {'none' | 'overview' | 'over' | 'incomeAsk' | 'trackAsk' | 'forcedIncome' | 'opening' | 'selected' | 'turn' | 'income' | 'decision' | 'setup' | 'waiting' | 'endTurn' | 'minimized'} kind
+ * @property {'none' | 'overview' | 'over' | 'incomeAsk' | 'trackAsk' | 'forcedIncome' | 'opening' | 'selected' | 'turn' | 'playOn' | 'income' | 'decision' | 'setup' | 'waiting' | 'endTurn' | 'minimized'} kind
+ *   `playOn`: the Elder Ones' or the Merfolk's turn after income turn 5, with no income (#40)
  * @property {import('./components/prompts/TurnBar.svelte').TurnBarTone} [tone]
  * @property {string} [label] - Left out for TurnBar's own 'Your turn'
  * @property {string} [labelColor] - Another player's colour, for their turn
@@ -259,6 +260,7 @@ export function firstIncomeNotice(view, seat) {
  * @property {{ enabled: boolean, title: string | undefined }} [advance] - The selected space's Advance button
  * @property {boolean} [takeIncome] - Forced income's Take income button shows
  * @property {boolean} [openAdvance] - The opening footer's Advance button shows: it answers the turn choice alone (#33)
+ * @property {boolean} [merfolk] - The play-on footer's Merfolk turn button shows (#40)
  * @property {number | null} [endSeconds] - The End turn footer's countdown, in whole seconds; null with no deadline (#146)
  */
 
@@ -274,6 +276,32 @@ function openerWords(game, seat) {
 	return data?.utilitarians?.active?.includes('lighthouse')
 		? 'Lighthouse'
 		: 'civilization';
+}
+
+/**
+ * The footer of a seat playing on after income turn 5, with no income to offer (#40): the Elder Ones' advance, the
+ * Merfolk's turn, or both.
+ * @param {string[]} offered - The turn choice's options
+ * @param {boolean} advance - Some advance can be paid for
+ * @param {boolean} noticeOpen - A notice covers the screen, so no button shows
+ * @returns {FooterView}
+ */
+function playOnFooter(offered, advance, noticeOpen) {
+	const merfolk = offered.includes('merfolk');
+	return {
+		kind: 'playOn',
+		tone: 'neutral',
+		heading:
+			advance && merfolk
+				? 'Choose a space to advance to, or take a Merfolk turn.'
+				: advance
+					? 'Choose a space to advance to.'
+					: 'Take a Merfolk turn.',
+		detail: merfolk
+			? 'A Merfolk turn discards cards for 5 VP each, or plays a When Played card on your era-4 stack.'
+			: 'You play on after your last income turn while you can advance.',
+		merfolk: merfolk && !noticeOpen,
+	};
 }
 
 /**
@@ -294,12 +322,14 @@ export function footerView(game, seat, inputs) {
 			? mine
 			: null;
 	const choosing = turn?.kind === 'chooseTurn';
-	const incomeDescription = choosing
+	// The Elder Ones and the Merfolk play on after income turn 5 with no income turn to offer (#40).
+	const offersIncome = choosing && turn.options.includes('income');
+	const incomeDescription = offersIncome
 		? incomeWords(game.seats[turn.player - 1].incomeTurns + 1)
 		: '';
 	/** @param {boolean} folded - Folded behind the turn label while a space is selected (#122) */
 	const income = (folded) =>
-		choosing && !inputs.noticeOpen
+		offersIncome && !inputs.noticeOpen
 			? { description: incomeDescription, label: 'Take income', folded }
 			: null;
 	if (inputs.overviewOpen) {
@@ -365,11 +395,17 @@ export function footerView(game, seat, inputs) {
 		return {
 			kind: 'opening',
 			tone: 'neutral',
-			heading: `Advance by first using your ${opener}, or take income.`,
+			heading: offersIncome
+				? `Advance by first using your ${opener}, or take income.`
+				: `Advance by first using your ${opener}.`,
 			detail: `No advance is affordable yet: the ${opener}’s resource will pay for one.`,
 			income: income(false),
 			openAdvance: !inputs.noticeOpen,
 		};
+	}
+	// A seat that can only take a Merfolk turn keeps its button whatever space is clicked (#40).
+	if (choosing && !offersIncome && !turn.options.includes('advance')) {
+		return playOnFooter(turn.options, false, Boolean(inputs.noticeOpen));
 	}
 	if (turn && selected) {
 		const reachable = options.some(
@@ -393,6 +429,13 @@ export function footerView(game, seat, inputs) {
 						: undefined,
 			},
 		};
+	}
+	if (choosing && !offersIncome) {
+		return playOnFooter(
+			turn.options,
+			options.length > 0,
+			Boolean(inputs.noticeOpen)
+		);
 	}
 	if (turn) {
 		return {

@@ -4,7 +4,7 @@ import { buildingsOut } from './building.js';
 import { tracksOf } from '../tracks-in-play.js';
 
 /**
- * Whether every effect of an option advances or regresses only on tracks not in play.
+ * Whether every effect of an option advances or regresses only on tracks not in play, or scores VP per space of one.
  * @param {object[]} effects
  * @param {string[]} inPlay
  * @returns {boolean}
@@ -16,6 +16,11 @@ function offTracks(effects, inPlay) {
 			const move =
 				/** @type {any} */ (effect).advance ??
 				/** @type {any} */ (effect).regress;
+			// VP per space of a track out of play scores nothing either (Muses' charm, #40).
+			const vp = /** @type {any} */ (effect).vp;
+			if (vp?.per === 'trackSpace' && typeof vp.track === 'string') {
+				return !inPlay.includes(vp.track);
+			}
 			return (
 				move !== undefined &&
 				Array.isArray(move.tracks) &&

@@ -928,6 +928,125 @@ const WORDS = {
 			? `${name} drew a tech card.`
 			: `${name} drew ${e.count} tech cards to keep one.`;
 	},
+	techRevealed: (e, game, name) => {
+		const count = isCount(e.count)
+			? countWords(e.count, 'tech card', 'tech cards')
+			: 'tech cards';
+		return typeof e.found === 'string'
+			? `${name} revealed ${count} and found ${techName(e.found)}.`
+			: `${name} revealed ${count} but found no landmark card.`;
+	},
+	benefitRepeated: (e, game, name) =>
+		`${name} gained the benefit of ${spaceName(e.track, e.space)} again.`,
+	noRegress: (e, game, name) => `${name} had no track to go back on.`,
+	illuminatiPaid: (e, game, name) =>
+		`${name}'s Illuminati profit from ${seatName(game, e.roller)}'s roll.`,
+	illuminatiScored: (e, game, name) =>
+		typeof e.vp === 'number'
+			? `${name}'s Illuminati score ${e.vp} VP for the dice on their mat.`
+			: `${name}'s Illuminati score the dice on their mat.`,
+	weefolkScored: (e, game, name) =>
+		typeof e.vp === 'number'
+			? `${name}'s Weefolk score ${e.vp} VP in their hosts' cities.`
+			: `${name}'s Weefolk score in their hosts' cities.`,
+	genieTokenDrawn: (e, game, name) =>
+		`${name}'s Genies drew ${seatName(game, e.opponent)}'s token.`,
+	wishGranted: (e, game, name) => `${name}'s Genies granted a wish.`,
+	celestialsLanded: (e, game, name) =>
+		`${name}'s floating capital rests on ${hexName(e.hex)}.`,
+	celestialsMoved: (e, game, name) =>
+		`${name}'s floating capital drifted to ${hexName(e.hex)}.`,
+	celestialsScored: (e, game, name) =>
+		typeof e.vp === 'number'
+			? `${name}'s Celestials score ${e.vp} VP for their landmarks.`
+			: `${name}'s Celestials score their landmarks.`,
+	faefolkMoved: (e, game, name) =>
+		isCount(e.spot)
+			? `${name}'s Faefolk token moved ${isCount(e.by) ? `${e.by} spots ` : ''}to spot ${e.spot}.`
+			: `${name}'s Faefolk token moved.`,
+	buildingSetAside: (e, game, name) =>
+		`${name} set ${typeof e.building === 'string' ? `a ${buildingName(e.building)}` : 'a building'} aside.`,
+	buildingSlid: (e, game, name) =>
+		`${name} slid ${typeof e.building === 'string' ? `their leftmost ${buildingName(e.building)}` : 'a building'} 1 space left.`,
+	rowFlushed: (e, game, name) =>
+		`${name} slid ${typeof e.building === 'string' ? `their ${pluralOf(buildingName(e.building))}` : 'a track'} flush left.`,
+	artificersScored: (e, game, name) =>
+		`${name} scored their income buildings with the Artificers.`,
+	// The Elder Ones and the Merfolk (#40).
+	playingOn: (e, game, name) =>
+		`${name} plays on after their last income turn.`,
+	cardSubmerged: (e, game, name) =>
+		`${name}'s Merfolk submerged a tapestry card.`,
+	merfolkSurfaced: (e, game, name) =>
+		isCount(e.count)
+			? `${name}'s Merfolk brought ${e.count === 1 ? '1 card' : `${e.count} cards`} back to their hand.`
+			: `${name}'s Merfolk brought their cards back to their hand.`,
+	merfolkPlayed: (e, game, name) =>
+		`${name}'s Merfolk played ${tapestryName(e.card)} on era 4.`,
+	conquerDiceRolledTwice: (e, game, name) => {
+		// National Parks rolls one die (#40).
+		if (!Array.isArray(e.blacks)) {
+			return `${name} rolled the red conquer die twice.`;
+		}
+		return Array.isArray(e.reds)
+			? `${name} rolled each conquer die twice.`
+			: `${name} rolled the black conquer die twice.`;
+	},
+	tileFlipped: (e, game, name) =>
+		`${name} flipped ${isCount(e.tile) ? `space tile ${e.tile}` : 'a space tile'}: ${e.up ? 'face up' : 'face down'}.`,
+	werefolkDiscarded: (e, game, name) =>
+		`${name} discarded ${isCount(e.tile) ? `space tile ${e.tile}` : 'a space tile'} from their Werefolk mat.`,
+	charmResponse: (e, game, name) =>
+		`${name} discarded ${tapestryName(e.card)}: ${seatName(game, e.attacker)}'s outpost topples.`,
+	councilRevealed: (e, game, name) =>
+		`${name} revealed ${tapestryName(e.card)} to the High Council.`,
+	charmsRevealed: (e, game, name) => {
+		const cards = strings(e.cards).map(tapestryName);
+		return cards.length > 0
+			? `${name}'s opponents revealed ${joinList(cards)}.`
+			: `${name}'s opponents had no card with a charm.`;
+	},
+	cardGiven: (e, game, name) =>
+		`${name} gave ${tapestryName(e.card)} to ${seatName(game, e.to)}.`,
+	capitalTokenPlaced: (e, game, name) =>
+		e.owner === e.player
+			? `${name} put a token in their capital city.`
+			: `${name} put a token in ${seatName(game, e.owner)}'s capital city.`,
+	noPlot: (e, game, name) => `${name} had no open plot for a token.`,
+	omenGuessed: (e, game, name) =>
+		`${name} guessed ${trackName(e.track)} for Good Omens.`,
+	omenCome: (e, game, name) =>
+		`${name}'s Good Omens came true: ${trackName(e.track)}.`,
+	noDoppelganger: (e, game, name) =>
+		`${name} found no opponent's token to stand beside.`,
+	tokenCopied: (e, game, name) =>
+		`${name} put a second token on ${spaceName(e.track, e.space)}.`,
+	tapestryRevealed: (e, game, name) => {
+		const cards = strings(e.cards).map(tapestryName);
+		if (cards.length === 0) {
+			return `${name} revealed no tapestry card.`;
+		}
+		// Soothsaying names the ones it discarded; the charmed ones go to opponents (#40).
+		if (Array.isArray(e.discarded)) {
+			const discarded = strings(e.discarded).map(tapestryName);
+			return discarded.length > 0
+				? `${name} revealed ${joinList(cards)}, and discarded ${joinList(discarded)}.`
+				: `${name} revealed ${joinList(cards)}.`;
+		}
+		return `${name} revealed ${joinList(cards)} and discarded them.`;
+	},
+	savannaIncome: (e, game, name) =>
+		isCount(e.districts)
+			? `${name}'s Savanna pays ${countWords(e.districts, 'resource', 'resources')} for its filled districts.`
+			: `${name}'s Savanna pays resources for its filled districts.`,
+	reedsScored: (e, game, name) => {
+		if (typeof e.vp !== 'number') {
+			return `${name}'s Quagmire scores its landmarks on and off the reeds.`;
+		}
+		return e.vp === 0
+			? `${name}'s Quagmire scores nothing for its landmarks.`
+			: `${name}'s Quagmire scores ${e.vp} VP for its landmarks on and off the reeds.`;
+	},
 	itemReserved: (e, game, name) =>
 		`${name} reserved ${reservedWords(e.item)} on their income mat's overlay.`,
 	reservedUsed: (e, game, name) =>

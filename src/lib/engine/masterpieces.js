@@ -7,6 +7,7 @@ import {
 	askCloudMove,
 	canMoveInClouds,
 } from './decisions/choose-cloud-move.js';
+import { psionic, sampleCard } from './civs/psionics.js';
 
 /** How many masterpieces lie face up (03 §2.2, setup step 2). */
 export const FACE_UP = 3;
@@ -114,14 +115,31 @@ export function createOptions(state) {
  * @param {import('./state.js').Context} ctx
  * @param {number} player
  * @param {string} card - A face-up card's id, or `'deck'`
+ * @param {string} [kept] - The deck's card the Psionics kept of the 2 they drew (R74)
  * @throws {Error} For a card that isn't face up, or an empty deck (createOptions offers neither)
  */
-export function takeMasterpiece(ctx, player, card) {
+export function takeMasterpiece(ctx, player, card, kept) {
 	const supply = pile(ctx.state);
-	/** @type {string | null} */
+	/** @type {string | null | undefined} */
 	let taken = card;
 	if (card === 'deck') {
-		taken = drawMasterpiece(ctx);
+		if (kept !== undefined) {
+			taken = kept;
+		} else if (psionic(ctx.state, player)) {
+			// The Psionics draw 2 and keep 1 (R74).
+			taken = sampleCard(
+				ctx,
+				player,
+				'masterpieces',
+				() => drawMasterpiece(ctx),
+				{ create: true }
+			);
+			if (taken === undefined) {
+				return;
+			}
+		} else {
+			taken = drawMasterpiece(ctx);
+		}
 	} else if (supply.faceUp.includes(card)) {
 		supply.faceUp.splice(supply.faceUp.indexOf(card), 1);
 	} else {

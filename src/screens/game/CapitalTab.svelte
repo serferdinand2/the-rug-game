@@ -70,7 +70,12 @@
 	 */
 	const plotClickHandler = (event) => {
 		const { row, col } = event.value;
-		if (values.building || values.cube || values.move) {
+		if (
+			values.building ||
+			values.cube ||
+			values.move ||
+			values.token !== null
+		) {
 			const target = values.targets.find(
 				(plot) => plot.row === row && plot.col === col
 			);

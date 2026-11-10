@@ -1,4 +1,5 @@
 // Civilizations in play: their setup and adjustments, step 1 of income turns, the end of income turn 1, and gaining one (design §5, §6).
+import { psionic } from './civs/psionics.js';
 import { emit } from './events.js';
 import { shuffle } from './random.js';
 import { playerSeat } from './state.js';
@@ -183,10 +184,12 @@ export function drawCiv(ctx) {
  * @returns {number}
  */
 function civDraw(state, player) {
+	// The Psionics draw one more and keep one (03 FF.3; #53's handoff, #40).
+	const extra = psionic(state, player) ? 1 : 0;
 	if (playerSeat(state, player).civs.includes('infiltrators')) {
-		return INFILTRATORS_DRAW;
+		return INFILTRATORS_DRAW + extra;
 	}
-	return state.variants.includes('civ-draft') ? 2 : 1;
+	return (state.variants.includes('civ-draft') ? 2 : 1) + extra;
 }
 
 /**

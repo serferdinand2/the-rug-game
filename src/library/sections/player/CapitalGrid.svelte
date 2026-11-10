@@ -1,4 +1,4 @@
-<!-- Library section: CapitalGrid on the real Mountain and Forest mats, with their reliefs, lit target plots with a previewed farm, an Architects' cube and a terraformed plot, completed groups, placed, locked and overhanging landmarks with room kept for them, and the interactive Lighthouse placement, houses built one after another (#175), and four Arts & Architecture mats: the Archipelago's 11 rows, Cloud City's clouds, the Swamp's lily pads and the Canyon's cacti (#36). -->
+<!-- Library section: CapitalGrid on the real Mountain and Forest mats, with their reliefs, lit target plots with a previewed farm, an Architects' cube and a terraformed plot, completed groups, placed, locked and overhanging landmarks with room kept for them, and the interactive Lighthouse placement, houses built one after another (#175), and four Arts & Architecture mats: the Archipelago's 11 rows, Cloud City's clouds, the Swamp's lily pads and the Canyon's cacti (#36), and Fantasies & Futures' six (#40). -->
 <script>
 	import CapitalGrid from '../../../lib/components/player/CapitalGrid.svelte';
 	import CompletionCounters from '../../../lib/components/player/CompletionCounters.svelte';
@@ -115,6 +115,15 @@
 	/** The Forest mat with a farm on plot 26 (row 2, column 8), beside the corner join at row 2, column 7. */
 	const FOREST = capital(6, { 26: 'farm' });
 	const FOREST_MAT = matPlots(6);
+	/** F&F's mats by number and biome (#40). @type {[number, import('../../../lib/ui.js').CapitalBiome][]} */
+	const FF_MATS = [
+		[13, 'quagmire'],
+		[14, 'city-in-a-bottle'],
+		[15, 'veil'],
+		[16, 'savanna'],
+		[17, 'polar'],
+		[18, 'netherworld'],
+	];
 	const FOREST_OPEN = openPlots(FOREST_MAT);
 
 	const LIGHTHOUSE = {
@@ -579,5 +588,24 @@ The engine's places decide where it goes (#112): the right arrow from row 6, col
 		<CapitalGrid
 			plots={CANYON}
 			biome="canyon" />
+	</Example>
+	<!-- F&F's six mats (#40, awaiting review): ground, Quagmire's features, relief and overlay, as #133 approved them. -->
+	{#each FF_MATS as [number, biome] (biome)}
+		<Example
+			label={`shape={matShape(capitalMat(${number}))} biome="${biome}"  (#40, awaiting review)`}
+			width={468}>
+			<CapitalGrid
+				plots={matPlots(number)}
+				shape={matShape(capitalMat(number))}
+				{biome}
+				highlight="districts" />
+		</Example>
+	{/each}
+	<Example
+		label={'plots={…, token at row 4, column 4} tokens={[{ row: 4, col: 4, seat: 2 }]}  (a Dream Monitors or Weefolk token, #40, awaiting review)'}
+		width={468}>
+		<CapitalGrid
+			plots={capital(1, { 40: 'token', 39: 'house', 49: 'farm' })}
+			tokens={[{ row: 4, col: 4, seat: 2 }]} />
 	</Example>
 </Section>

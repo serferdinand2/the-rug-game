@@ -105,7 +105,7 @@ const aa = (card, extra = {}) => ({ ...card, ...extra, expansion: 'aa' });
  * A Fantasies & Futures card (#39; 03 FF.4), with its charms and, for a reminder token, what it does on income turn 5.
  * @param {TapestryCard} card
  * @param {{ left?: Effect[], right?: Effect[] }} charms
- * @param {{ fifth?: Effect[] }} [extra]
+ * @param {{ fifth?: Effect[], name?: string, response?: 'conquest' }} [extra]
  * @returns {TapestryCard}
  */
 const ff = (card, charms, extra = {}) => ({
@@ -425,6 +425,152 @@ export const TAPESTRY_CARDS = deepFreeze([
 	ff(when('zombie-army', [{ reserve: { outposts: 3 } }]), {
 		left: [{ building: 'armory' }],
 	}),
+	// Fantasies & Futures' other cards (#40 design §5), batch (a): the plain WHEN PLAYED cards.
+	ff(when('alien-disclosure', [{ alienDisclosure: {} }]), {
+		left: [{ invent: { refresh: true } }],
+	}),
+	ff(
+		when('chimera-citizen-rights', [{ chimera: {} }]),
+		{ right: [{ gain: { tapestry: 1 } }] },
+		{ name: 'Chimera-Citizen Rights' }
+	),
+	ff(when('citadel-of-power', [{ citadelOfPower: {} }]), {
+		right: [{ vp: { per: 'landmark' } }],
+	}),
+	ff(
+		when('deja-vu', [{ dejaVu: {} }]),
+		{ right: [{ research: { noBenefit: true } }] },
+		{ name: 'Déjà Vu' }
+	),
+	ff(
+		when('haunted-houses', [
+			{
+				trade: {
+					offers: [
+						{
+							pay: { tapestry: 7 },
+							gain: [{ gainCiv: {} }, { vp: 7 }],
+						},
+					],
+					optional: true,
+					otherwise: [
+						{ gain: { tapestry: 1 } },
+						{ building: 'house' },
+					],
+				},
+			},
+		]),
+		{ right: [{ vp: 2 }] }
+	),
+	ff(when('hive-mind', [{ vp: { per: 'marketRow', each: 2 } }]), {
+		left: [{ building: 'market' }],
+	}),
+	ff(when('muses', [{ muses: {} }]), {
+		left: [
+			{
+				choice: [
+					[{ vp: { per: 'trackSpace', track: 'arts' } }],
+					[{ vp: 5 }],
+				],
+			},
+		],
+	}),
+	ff(when('technomancy', [{ technomancy: {} }]), {
+		right: [{ vp: { per: 'techCard' } }],
+	}),
+	ff(when('temporal-nomadism', [{ temporalNomadism: {} }]), {
+		right: [{ gain: { any: 1 } }],
+	}),
+	ff(
+		when('uploaded-consciousness', [
+			{ uploadedConsciousness: { left: 3 } },
+		]),
+		{
+			right: [{ vp: { per: 'techCard' } }],
+		}
+	),
+	ff(
+		when('wizards-guild', [{ vp: { per: 'charm', each: 3 } }]),
+		{
+			left: [
+				{
+					choice: [
+						[{ gain: { worker: 1 } }],
+						[{ gain: { food: 1 } }],
+					],
+				},
+			],
+			right: [
+				{
+					choice: [
+						[{ gain: { culture: 1 } }],
+						[{ gain: { coin: 1 } }],
+					],
+				},
+			],
+		},
+		{ name: "Wizards' Guild" }
+	),
+	// Batch (b): THIS ERA, CONTINUOUS and the cards that look at decks and hands (#40 design §5).
+	ff(era('astral-expeditions'), { left: [{ gain: { any: 1 } }] }),
+	ff(era('interdimensional-trade'), { right: [{ building: 'market' }] }),
+	ff(era('living-cities'), { left: [{ building: 'farm' }] }),
+	ff(when('doppelgangers', [{ doppelgangers: {} }]), {
+		right: [{ gain: { worker: 1 } }],
+	}),
+	ff(when('seer-sight', [{ seerSight: {} }]), {
+		right: [{ invent: { refresh: true } }, { gain: { any: 1 } }],
+	}),
+	ff(continuous('good-omens'), { left: [{ research: {} }] }),
+	ff(when('dream-monitors', [{ dreamMonitors: {} }]), {
+		right: [{ vp: { per: 'territory' } }],
+	}),
+	ff(when('high-council', [{ highCouncil: {} }]), {
+		left: [{ vp: { per: 'tapestryCard' } }],
+		right: [{ vp: { per: 'territory' } }],
+	}),
+	ff(when('soothsaying', [{ soothsaying: {} }]), {
+		right: [{ gain: { any: 1 } }],
+	}),
+	ff(when('superpower-regulators', [{ superpowerRegulators: {} }]), {
+		left: [{ advance: { tracks: ['science'], noBenefit: true } }],
+	}),
+	// Batch (c): the response cards (03 FF.4.2): discarded against a conquest they topple the attacker and give one of
+	// their two charms; played as a tapestry they do their text, and their charms trigger (R75).
+	ff(
+		when('ghost-ship', [{ vp: 7 }]),
+		{ left: [{ gain: { territory: 2 } }], right: [{ explore: {} }] },
+		{ response: 'conquest' }
+	),
+	ff(
+		when('gremlins', [{ vp: 7 }]),
+		{
+			left: [{ invent: {} }],
+			right: [{ vp: { per: 'trackSpace', track: 'technology' } }],
+		},
+		{ response: 'conquest' }
+	),
+	ff(
+		when('the-kraken', [{ vp: 7 }]),
+		{
+			left: [{ gain: { culture: 1 } }],
+			right: [{ vp: { per: 'territory' } }],
+		},
+		{ response: 'conquest', name: 'The Kraken' }
+	),
+	ff(
+		when('league-of-the-charmed', [{ gain: { culture: 1 } }, { vp: 2 }]),
+		{ left: [{ explore: {} }], right: [{ vp: { per: 'armory' } }] },
+		{ response: 'conquest', name: 'League of the Charmed' }
+	),
+	ff(
+		era('robotic-decoys'),
+		{
+			left: [{ advance: { tracks: ['science'], noBenefit: true } }],
+			right: [{ vp: { per: 'trackSpace', track: 'science' } }],
+		},
+		{ response: 'conquest' }
+	),
 ]);
 
 /**

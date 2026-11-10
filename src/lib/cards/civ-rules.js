@@ -72,6 +72,58 @@ const CIV_TEXTS = Object.freeze({
 		'At the end of each of your income turns and advance turns on which you gained an income building or a landmark, put a token on this mat.',
 		'At the end of each advance turn on which you gained neither, take every token off and gain by their number: 1 token, 1 VP; 2, 3 VP and 1 tapestry card; 3, 6 VP and a tapestry card or 1 resource of your choice; 4, 10 VP and one of those or explore a territory; 5 or more, 15 VP and one of those or invent a tech card.',
 	]),
+	// Fantasies & Futures (#40; 03 FF.3). None has an adjustment (R34).
+	werefolk: civ([
+		'At the start of income turns 2–5, discard the space tile on this mat, if any. Gain a random space tile and flip it like a coin.',
+		'Face up: you may go back 1 space on a track, without its benefit or bonus. If you do, explore the tile onto this mat and gain its benefit; it is discarded at your next income turn. If you don’t, gain 4 VP.',
+		'Face down: advance on a track, gain its benefit, and take its bonus for free.',
+		'A tile you don’t explore stays in your supply.',
+	]),
+	psionics: civ([
+		'Whenever you gain something random from a deck or a stack (a tapestry card, a territory tile, a space tile, a civilization), draw one more and keep one; whenever you roll a die, roll it once more and choose. This adds to other extra draws and rolls.',
+		'At the start of income turn 2 gain 1 territory tile; 3, 1 tapestry card; 4, invent a tech card; 5, roll the science die and advance with its benefit, paying its bonus if you like.',
+	]),
+	artificers: civ([
+		'At the start of income turns 2–4, choose an income track. Set its leftmost building aside, out of play and not in your capital city; or, if a space to its left is empty, slide that building 1 space left. Either way the space it leaves shows.',
+		'Buildings set aside count when scoring their type.',
+		'At the start of income turn 5, gain 1 VP per income building you have taken off your income mat, or slide every building of one track as far left as it goes.',
+	]),
+	faefolk: civ([
+		'Place a player token on the top spot of the ellipse on this mat, when you start with the Faefolk or gain them.',
+		'At the start of income turns 2–5, you may gain 1 tapestry card. Then count your tapestry cards in sight: those in your hand and the top card of each era slot. Move the token that many spots clockwise and gain that spot; on income turn 5, gain it twice.',
+		'The spots, clockwise from the top: 1 VP per tapestry card; 1 tapestry card, 1 territory tile, invent, and 1 VP per income building; 1 food and 1 VP per territory tile; 1 coin and 1 VP per tech card; 1 culture and 1 VP per territory you control; 1 worker and 1 VP per landmark; 1 space tile and explore a space tile.',
+	]),
+	celestials: civ([
+		'Your floating capital: instead of 2 outposts on your starting territory, place 1 outpost and 1 player token. If you gain the Celestials later, replace one outpost on your starting territory with the token; you may instead discard them to draw another civilization.',
+		'At the start of income turns 2–4, you may move the token to an adjacent explored territory, even one with 2 outposts, and gain the results of both conquer dice. This is no conquest: the token never gives control, but it fills the territory as an item.',
+		'At the start of income turn 5, lose 2 VP for each landmark hanging off your capital city, and gain 5 VP for each landmark that doesn’t.',
+	]),
+	genies: civ([
+		'Take 1 player token from each opponent, when you start with the Genies or gain them.',
+		'At the start of income turns 2–4, draw one of those tokens at random; then put it back. That opponent chooses a circled benefit and scores it; you score the same circle and gain one of the 2 squares beside it, in either order. An opponent who has finished gains nothing, and you choose for them.',
+		'At the start of income turn 5, gain 2 different circled benefits of your choice.',
+		'The circles: 1 VP per landmark, per territory tile in your supply, per territory you control, per tech card. The squares between them: roll the science die and advance without benefit; invent; 1 culture; explore.',
+	]),
+	weefolk: civ([
+		'At the start of income turns 2–5, and when you gain the Weefolk, give one of your player tokens to an opponent (an active one, if there is one). They place it on an open plot of their capital city; in a full city it replaces an income building, which is set aside. It fills its plot for their districts, rows and columns, but it is no building.',
+		'At the start of income turns 2–4, you may pay 1 territory tile to gain an income building of your choice.',
+		'At the start of income turn 5, after placing that turn’s token, gain 1 VP for each income building and each landmark in the row and in the column of each of your tokens in an opponent’s city.',
+	]),
+	illuminati: civ([
+		'When you start with the Illuminati or gain them, draw 3 tapestry cards and keep 1; put the 2 conquer dice and the science die on this mat.',
+		'When an opponent rolls a die from this mat, it stays off until your next income turn, and that first roll pays you before they use it: the conquer dice give you their results, the science die lets you advance on the rolled track without benefit. Your own rolls pay nothing.',
+		'At the start of income turns 2–5, gain 6 VP for each die still on this mat, then put all three back.',
+	]),
+	'elder-ones': civ([
+		'At the start of income turns 2–4, gain 1 resource of your choice or 2 tapestry cards.',
+		'At the start of income turn 5, discard up to 6 tapestry cards from your hand and gain 2 resources of your choice for each.',
+		'After income turn 5 you play on, taking an advance turn each time your turn comes, in turn order, until you can’t advance; then your game ends. No more income turns, and no trap or other response cards. Your era-4 card stays in effect until a card covers it, and each landmark you gain scores 10 VP.',
+	]),
+	merfolk: civ([
+		'At the start of income turns 2–4, gain 1 tapestry card, then put all but 2 of the cards in your hand under this mat. Only you may look at them; they can’t be played, spent or scored until they return.',
+		'At the start of income turn 5, gain 1 tapestry card and return every card under this mat to your hand. At the end of income turn 5, keep up to 5 cards and discard the rest.',
+		'After income turn 5 you play on with your cards alone. Each turn, discard at least one card for 5 VP each, or play a When Played card (a trap included) onto your era-4 stack: gain its left charm, and use a reserved item at once. Your era-4 card stays in effect until a card covers it. You may still play response cards, and your game ends when you have no card left.',
+	]),
 	collectors: civ(
 		[
 			'During an advance turn, when you gain one of these, you may put it on its space of this mat if the space is empty, and gain 1 resource of your choice. One item per turn.',

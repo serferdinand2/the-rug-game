@@ -60,7 +60,8 @@ import { spaceGlyphs } from '../glyphs.js';
 export function incomeRows(seat) {
 	return BUILDING_IDS.map((building) => {
 		const left = seat.incomeMat.buildings[building];
-		const exposed = exposedSpaces(seat, building).length;
+		// The spaces showing, by identity: the Artificers may slide a building and leave a gap (#40).
+		const exposed = new Set(exposedSpaces(seat, building));
 		const inspired =
 			Array.isArray(seat.inspired) && seat.inspired.includes(building);
 		/** @type {readonly import('../engine/data/income-mat.js').IncomeSpace[]} */
@@ -70,7 +71,7 @@ export function incomeRows(seat) {
 			name: pluralOf(buildingName(building)),
 			left,
 			inspired,
-			spaces: mat.map((space, index) => {
+			spaces: mat.map((space) => {
 				const incomeGlyphs = spaceGlyphs(space.income);
 				const scoreGlyphs = spaceGlyphs(space.score);
 				const reward = /** @type {[string, readonly Effect[]][]} */ ([
@@ -83,7 +84,7 @@ export function incomeRows(seat) {
 							`${label}: ${describeEffects(effects)}`
 					)
 					.join('. ');
-				const covered = index >= exposed;
+				const covered = !exposed.has(space);
 				return {
 					name: space.name,
 					reward,

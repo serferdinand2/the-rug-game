@@ -1,5 +1,6 @@
 // Spymaster's response (A&A, #37; 03 §2.5, R127): who is asked when a player completes a track, and the advance a played Spymaster gives at the end of the turn.
 import { isPlayerSeat, neighbours, playerSeat } from './state.js';
+import { mayRespond } from './civs/elder-ones.js';
 
 /**
  * The questions a player's completing a track asks: each neighbour of theirs who holds any tapestry card, so nobody
@@ -30,7 +31,8 @@ export function spymasterQuestions(state, mover, track) {
 				const { hand, finished } = playerSeat(state, seat);
 				return (
 					hand.length > 0 &&
-					(!finished || state.version === 'original')
+					(!finished || state.version === 'original') &&
+					mayRespond(playerSeat(state, seat))
 				);
 			})
 			.map((seat) => ({

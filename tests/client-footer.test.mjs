@@ -439,3 +439,87 @@ test('a minimized prompt keeps its question in the footer, with Show choice to b
 	);
 	assert.match(html, /<kbd[^>]*>V<\/kbd>/);
 });
+
+test('a seat playing on after income turn 5 is offered no income: the Elder Ones advance, the Merfolk take a Merfolk turn (#40)', () => {
+	const { game, player, options } = turnChoice();
+	/** @param {string[]} offered */
+	const playingOn = (offered) => ({
+		...game,
+		seats: game.seats.map((/** @type {any} */ s) =>
+			s.seat === player ? { ...s, incomeTurns: 5, playingOn: true } : s
+		),
+		pending: game.pending.map((/** @type {any} */ op) =>
+			op.kind === 'chooseTurn' ? { ...op, options: offered } : op
+		),
+	});
+	const elder = footerView(playingOn(['advance']), player, {
+		...QUIET,
+		options,
+	});
+	assert.equal(elder.kind, 'playOn');
+	assert.equal(elder.income, undefined);
+	assert.equal(elder.heading, 'Choose a space to advance to.');
+	assert.equal(elder.merfolk, false);
+	const merfolk = footerView(playingOn(['merfolk']), player, {
+		...QUIET,
+		options: [],
+	});
+	assert.equal(merfolk.kind, 'playOn');
+	assert.equal(merfolk.heading, 'Take a Merfolk turn.');
+	assert.equal(merfolk.merfolk, true);
+	const both = footerView(playingOn(['advance', 'merfolk']), player, {
+		...QUIET,
+		options,
+	});
+	assert.equal(
+		both.heading,
+		'Choose a space to advance to, or take a Merfolk turn.'
+	);
+	assert.equal(
+		footerView(playingOn(['merfolk']), player, {
+			...QUIET,
+			noticeOpen: true,
+		}).merfolk,
+		false,
+		'not under the notice'
+	);
+	const selected = footerView(playingOn(['advance']), player, {
+		...QUIET,
+		options,
+		selected: { track: options[0].track, space: options[0].to },
+	});
+	assert.equal(selected.kind, 'selected');
+	assert.equal(selected.income, null);
+	const body = render(TurnFooter, {
+		props: { view: merfolk, onTurnFooterMerfolk: () => {} },
+	}).body;
+	assert.match(body, /Merfolk turn/);
+	assert.doesNotMatch(body, /Take income/);
+});
+
+test('a Merfolk-only seat keeps its Merfolk turn when a space is clicked; an Elder Ones opening never says income (#40, final review)', () => {
+	const { game, player, options } = turnChoice();
+	/** @param {string[]} offered */
+	const playingOn = (offered) => ({
+		...game,
+		seats: game.seats.map((/** @type {any} */ s) =>
+			s.seat === player ? { ...s, incomeTurns: 5, playingOn: true } : s
+		),
+		pending: game.pending.map((/** @type {any} */ op) =>
+			op.kind === 'chooseTurn' ? { ...op, options: offered } : op
+		),
+	});
+	const merfolk = footerView(playingOn(['merfolk']), player, {
+		...QUIET,
+		options: [],
+		selected: { track: 'science', space: 1 },
+	});
+	assert.equal(merfolk.kind, 'playOn');
+	assert.equal(merfolk.merfolk, true);
+	const opening = footerView(playingOn(['advance']), player, {
+		...QUIET,
+		options: [],
+	});
+	assert.equal(opening.kind, 'opening');
+	assert.doesNotMatch(opening.heading ?? '', /income/);
+});

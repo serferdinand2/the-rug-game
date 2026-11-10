@@ -2,6 +2,14 @@
 import { describeEffects, effectsPhrase } from '../describe.js';
 import { tapestryCardOf } from '../game-names.js';
 
+/** The notes of response cards whose tapestry side is no plain effect list: Robotic Decoys is THIS ERA (#40). */
+const RESPONSE_NOTES = /** @type {Readonly<Record<string, string>>} */ (
+	Object.freeze({
+		'robotic-decoys':
+			'Played as a tapestry card, This Era: after you or a neighbour advances on Science, you may pay 1 coin to gain 1 worker and 5 VP',
+	})
+);
+
 /** What a card the client doesn't know reads, as describe.js words an effect it doesn't know. */
 const ANY_ABILITY = 'Take this effect';
 
@@ -159,6 +167,52 @@ const TAPESTRY_RULES = Object.freeze({
 		"Place your next House on your income mat's overlay; it counts when scoring Houses. On income turn 5, place it in your capital city",
 	'suspended-animation':
 		"Place a reminder on your income mat's overlay. On income turn 5, advance on any track and gain its benefit; you may take its bonus for free",
+	// Fantasies & Futures' other cards whose rules are their own effect kind (#40; 03 FF.4.3).
+	'alien-disclosure':
+		'Gain 1 space tile. You may spend 5 VP to explore it now; otherwise keep it in your supply',
+	'chimera-citizen-rights':
+		'Roll the science die, without advancing. Military or Exploration: explore and gain 1 culture. Science or Technology: upgrade 1 tech card. Arts: gain 1 inspiration tile',
+	'citadel-of-power':
+		'Reveal tech cards from the deck until one grants a landmark. Gain that landmark, discard that card and shuffle the others back',
+	'deja-vu':
+		'Gain 7 VP, or the benefit, not the bonus, of a tier II space you have reached or passed',
+	muses: 'Gain 7 VP, or choose a track where you are ahead of every opponent. Exploration: 1 territory tile and a Farm. Military: 1 culture and 1 VP per territory you control. Arts: 1 masterpiece. Science: roll the science die and advance with its benefit. Technology: refresh the face-up tech cards, then invent 2',
+	technomancy:
+		'Gain the circle benefits of 2 of the 3 face-up tech cards; they stay face up',
+	'temporal-nomadism':
+		'Go back to a space of your choice on a track you have not completed, and gain its benefit, not its bonus',
+	'uploaded-consciousness':
+		'Discard up to 3 territory tiles from your supply. For each, gain 1 tapestry card and 1 resource of your choice',
+	'astral-expeditions':
+		'When you pay for a bonus, you may gain 1 space tile, or explore a space tile from your supply, instead of the bonus',
+	'interdimensional-trade':
+		'When you gain a tapestry card, you may discard a tapestry card from your hand. If you do, invent 1 tech card and gain 2 VP',
+	'living-cities': 'When you gain a landmark, gain 1 VP per Farm you own',
+	doppelgangers:
+		"Place one of your player tokens on a track, on a space where an opponent's token is. It gives no benefit, and later advances like any of your tokens",
+	'seer-sight':
+		'Reveal 1 tapestry card from the deck per completed district in your capital city. Gain 3 VP for each This Era card revealed, then discard them',
+	'good-omens':
+		'Before you roll the science die, guess what you will roll. At the end of a turn in which a guess was right, gain 1 VP per space you have advanced on Arts, and the benefit of the guessed track’s 4th space',
+	'dream-monitors':
+		'Place one of your player tokens on an open plot of your capital city, as you would an income building. If a House is beside it, diagonally included, gain 2 resources of your choice',
+	'high-council':
+		'Starting with you, each player may reveal a trap or other response card to gain 1 resource of their choice. If an opponent does, gain 10 VP; if none does, gain an income building of your choice',
+	soothsaying:
+		'Reveal 5 tapestry cards from the deck. For each with a charm, gain 1 resource of your choice and 2 VP, then give it to an opponent. Discard the others',
+	'superpower-regulators':
+		'Your opponents reveal the cards with charms in their hands. Gain both charms of up to 2 of them, or 9 VP; they keep their cards',
+	// F&F's response cards (#40; 03 FF.4.2).
+	'ghost-ship':
+		"When an opponent conquers one of your territories, discard this card instead of a trap. Topple their outpost, keep control, and gain one of this card's two charms",
+	gremlins:
+		"When an opponent conquers one of your territories, discard this card instead of a trap. Topple their outpost, keep control, and gain one of this card's two charms",
+	'the-kraken':
+		"When an opponent conquers one of your territories, discard this card instead of a trap. Topple their outpost, keep control, and gain one of this card's two charms",
+	'league-of-the-charmed':
+		"When an opponent conquers one of your territories, discard this card instead of a trap. Topple their outpost, keep control, and gain one of this card's two charms",
+	'robotic-decoys':
+		"When an opponent conquers one of your territories, discard this card instead of a trap. Topple their outpost, keep control, and gain one of this card's two charms",
 	'zombie-army':
 		"Take up to 3 of your outposts from territories that hold that outpost and nothing else, and place them on your income mat's overlay. On income turn 5, conquer with each of them",
 	steam: 'Whenever you advance into a new tier on Science or Arts, gain 1 worker',
@@ -178,7 +232,9 @@ export function describeTapestryCard(id) {
 	if (card.response !== undefined) {
 		return {
 			ability: TAPESTRY_RULES[card.id],
-			note: `Played as a tapestry card on an income turn: ${effectsPhrase(card.played, undefined, card.ordered)}`,
+			note: Object.hasOwn(RESPONSE_NOTES, card.id)
+				? RESPONSE_NOTES[card.id]
+				: `Played as a tapestry card on an income turn: ${effectsPhrase(card.played, undefined, card.ordered)}`,
 		};
 	}
 	if (Object.hasOwn(TAPESTRY_RULES, card.id)) {

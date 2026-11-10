@@ -273,6 +273,7 @@ test('capitalPlacement derives building preview and empty landmark state', () =>
 		building: null,
 		cube: false,
 		move: false,
+		token: null,
 		landmark: null,
 		picked: null,
 		targets: [],
@@ -363,4 +364,56 @@ test('capitalPlacement derives a landmark, tray, legal positions, and fresh piec
 	assert.deepEqual(inTray.tray, [
 		{ ...placingPiece('lighthouse'), rotation: 0 },
 	]);
+});
+
+test("capitalPlacement lights the plots for a player's token and previews it in its seat's colour (Dream Monitors, the Weefolk, #40)", async () => {
+	const capital = { pieces: [] };
+	const fresh = { plots: [], landmarks: [] };
+	const options = [
+		{ index: 0, plot: { row: 0, col: 0, rotation: null } },
+		{ index: 1, plot: { row: 4, col: 4, rotation: null } },
+	];
+	const open = capitalPlacement(
+		capital,
+		{ piece: { token: 2 }, options, picked: null },
+		fresh
+	);
+	assert.equal(open.token, 2);
+	assert.deepEqual(open.targets, [
+		{ row: 0, col: 0, index: 0 },
+		{ row: 4, col: 4, index: 1 },
+	]);
+	const picked = capitalPlacement(
+		capital,
+		{ piece: { token: 2 }, options, picked: 1 },
+		fresh
+	);
+	assert.deepEqual(picked.preview, { row: 4, col: 4, token: 2 });
+	const { render } = await import('svelte/server');
+	const { default: CapitalGrid } =
+		await import('../src/lib/components/player/CapitalGrid.svelte');
+	const body = render(CapitalGrid, {
+		props: {
+			plots: Array(81).fill('empty'),
+			preview: picked.preview,
+		},
+	}).body;
+	assert.match(body, /\/art\/piece\/token-red\.svg/);
+	// The plot choice is made on the capital, as a building's is.
+	const { promptFor } = await import('../src/lib/prompts.js');
+	const prompt = promptFor(
+		{
+			id: 1,
+			batch: 1,
+			player: 1,
+			kind: 'choosePlot',
+			purpose: 'weefolk',
+			token: 2,
+			options: [{ row: 4, col: 4 }],
+			answers: [{ row: 4, col: 4 }],
+		},
+		{ seats: [], pending: [] },
+		1
+	);
+	assert.equal(prompt?.options[0].place, 'capital');
 });

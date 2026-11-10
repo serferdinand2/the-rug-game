@@ -14,7 +14,7 @@ import { hexNeighbours } from '../data/maps.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { tracksOf } from '../tracks-in-play.js';
 import { TRACKS, tierOf } from '../data/tracks.js';
-import { gainTiles } from './gain.js';
+import { drawTileFor } from './tile-uses.js';
 
 /** Cartography's conquest needs at least this many VP from the exploration's matching sides (03 §1.4). */
 const CARTOGRAPHY_VP = 3;
@@ -27,7 +27,17 @@ const TIERS = [1, 2, 3, 4];
  * @type {import('../state.js').EffectHandler}
  */
 export function astronomy(ctx, player, value, op) {
-	const [tile] = gainTiles(ctx, player, 'territory', 1);
+	drawTileFor(ctx, player, 'territory', 'astronomy', op.source);
+}
+
+/**
+ * Astronomy with its tile drawn, or none left: the space tiles come either way.
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {number | undefined} tile
+ * @param {any} source
+ */
+export function astronomyWith(ctx, player, tile, source) {
 	ctx.push([
 		{
 			player,
@@ -37,7 +47,7 @@ export function astronomy(ctx, player, value, op) {
 				{ gain: { space: 2 } },
 			],
 			ordered: true,
-			source: op.source,
+			source,
 		},
 	]);
 }
@@ -47,7 +57,17 @@ export function astronomy(ctx, player, value, op) {
  * @type {import('../state.js').EffectHandler}
  */
 export function cartography(ctx, player, value, op) {
-	const [tile] = gainTiles(ctx, player, 'territory', 1);
+	drawTileFor(ctx, player, 'territory', 'cartography', op.source);
+}
+
+/**
+ * Cartography with its tile drawn; none left, nothing.
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {number | undefined} tile
+ * @param {any} source
+ */
+export function cartographyWith(ctx, player, tile, source) {
 	if (tile === undefined) {
 		return;
 	}
@@ -56,9 +76,9 @@ export function cartography(ctx, player, value, op) {
 			player,
 			kind: 'effects',
 			effects: [{ explore: { tile } }],
-			source: op.source,
+			source,
 		},
-		{ player, kind: 'cartographyCheck', tile, source: op.source },
+		{ player, kind: 'cartographyCheck', tile, source },
 	]);
 }
 

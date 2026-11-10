@@ -11,6 +11,7 @@ import { BLACK_DIE, RED_DIE, SCIENCE_DIE, scienceFaces } from '../data/dice.js';
 import { defaultDie, withDie } from '../science-die.js';
 import { deepFreeze } from '../data/ids.js';
 import { placeToken } from './civ.js';
+import { illuminatiTake } from './illuminati.js';
 
 /** @typedef {import('../data/ids.js').TerrainId} TerrainId */
 
@@ -177,6 +178,7 @@ export function treasureRoll(ctx, op) {
 			die,
 			faces: [red, black],
 		});
+		const paid = illuminatiTake(ctx, player, { red, black, hex: op.hex });
 		ctx.push([
 			{
 				player,
@@ -189,6 +191,8 @@ export function treasureRoll(ctx, op) {
 				...on,
 			},
 		]);
+		// The Illuminati: an opponent's first roll of their dice pays them first (#40, DQ 13); pushed last, run first.
+		ctx.push(paid);
 		return;
 	}
 	// The science treasure rolls the game's science die, the d20 with the arts track (#35); its event then names it.
@@ -206,59 +210,77 @@ export function treasureRoll(ctx, op) {
 		faces,
 		...(scienceDie === 'd20' && { scienceDie }),
 	});
+	// The Illuminati: the first of the two rolls pays them first (#40, DQ 13, R149); pushed last, run first.
+	const paid = illuminatiTake(
+		ctx,
+		player,
+		die === 'science'
+			? { science: /** @type {any} */ (rolled[faces[0]]) }
+			: die === 'red'
+				? { red: faces[0] }
+				: { black: faces[0], hex: op.hex }
+	);
+	ctx.push([
+		twiceOp(
+			player,
+			die,
+			faces.map((face) => rolled[face]),
+			on
+		),
+	]);
+	ctx.push(paid);
+}
+
+/**
+ * What a treasure die rolled twice gives: the science die a choice of track to research, the red die both results,
+ * the black die one of its two (both, when alike).
+ * @param {number} player
+ * @param {TreasureDie} die
+ * @param {any[]} results - The two faces' results
+ * @param {{ source: { hex: string }, origin: 'civ' }} on
+ * @returns {import('../state.js').NewOperation}
+ */
+function twiceOp(player, die, [first, second], on) {
 	if (die === 'science') {
 		// The research procedure: the player may advance on the track chosen, with its benefit and bonus (01 §3.3).
-		const [first, second] = faces.map((face) => rolled[face]);
 		const then = {
 			kind: 'researchRolled',
 			noBenefit: false,
 			offTrackVp: 0,
 		};
-		ctx.push([
-			first === second
-				? { ...then, player, track: first }
-				: {
-						player,
-						kind: 'chooseRoll',
-						options: [first, second],
-						then,
-					},
-		]);
-		return;
+		return first === second
+			? { ...then, player, track: first }
+			: {
+					player,
+					kind: 'chooseRoll',
+					options: [first, second],
+					then,
+				};
 	}
 	if (die === 'red') {
-		ctx.push([
-			{
-				player,
-				kind: 'effects',
-				effects: faces.map((face) => structuredClone(RED_DIE[face])),
-				ordered: true,
-				...on,
-			},
-		]);
-		return;
-	}
-	const [first, second] = faces.map((face) => BLACK_DIE[face]);
-	if (JSON.stringify(first) === JSON.stringify(second)) {
-		ctx.push([
-			{
-				player,
-				kind: 'effects',
-				effects: [structuredClone(first)],
-				...on,
-			},
-		]);
-		return;
-	}
-	ctx.push([
-		{
+		return {
 			player,
-			kind: 'chooseOption',
-			options: [[structuredClone(first)], [structuredClone(second)]],
-			purpose: 'treasureHunters',
+			kind: 'effects',
+			effects: [structuredClone(first), structuredClone(second)],
+			ordered: true,
 			...on,
-		},
-	]);
+		};
+	}
+	if (JSON.stringify(first) === JSON.stringify(second)) {
+		return {
+			player,
+			kind: 'effects',
+			effects: [structuredClone(first)],
+			...on,
+		};
+	}
+	return {
+		player,
+		kind: 'chooseOption',
+		options: [[structuredClone(first)], [structuredClone(second)]],
+		purpose: 'treasureHunters',
+		...on,
+	};
 }
 
 /** @type {import('./civ.js').Civ} */

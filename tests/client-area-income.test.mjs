@@ -252,3 +252,16 @@ test("with F&F a fifth slot shows the income mat's overlay and what is reserved 
 	// No overlay without F&F.
 	assert.equal(eraSlots(mine(startedGame(2).state)).length, 4);
 });
+
+test("the Artificers' slid building leaves a gap: the space it left shows, the one it moved onto is covered (#40)", () => {
+	const { state } = startedGame(2, { expansions: ['ff'] });
+	const seat = /** @type {any} */ (state.seats[0]);
+	seat.incomeMat.slid = { farm: 1 };
+	const farms = incomeRows(mine(state)).find(
+		(row) => row.building === 'farm'
+	);
+	assert.deepEqual(
+		farms?.spaces.map((space) => space.covered),
+		[true, false, true, true, true, true]
+	);
+});

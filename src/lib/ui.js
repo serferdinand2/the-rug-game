@@ -9,9 +9,11 @@ import { TRACK_IDS } from './engine/data/ids.js';
 /** @typedef {'sea' | 'desert' | 'forest' | 'grassland' | 'mountain' | 'unexplored'} Terrain */
 /** @typedef {1 | 2 | 3 | 4 | 5} Seat - A table seat, which sets the player's colour */
 /**
- * A capital mat's terrain, which is its id: the six basic mats, then Arts & Architecture's six (#36).
+ * A capital mat's terrain, which is its id: the six basic mats, then Arts & Architecture's six (#36), then Fantasies &
+ * Futures' six (#40).
  * @typedef {'mountain' | 'wetland' | 'tropical' | 'desert' | 'grassland' | 'forest' | 'archipelago' | 'canyon'
- *   | 'cavern' | 'cloud-city' | 'mesa' | 'swamp'} CapitalBiome
+ *   | 'cavern' | 'cloud-city' | 'mesa' | 'swamp' | 'quagmire' | 'city-in-a-bottle' | 'veil' | 'savanna' | 'polar'
+ *   | 'netherworld'} CapitalBiome
  */
 
 /** The engine's tracks, in board order, named by game-names.js. @type {readonly { id: TrackId, name: string }[]} */

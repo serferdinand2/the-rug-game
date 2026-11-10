@@ -22,8 +22,9 @@ import { MAPS } from '../data/maps.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { TRACKS } from '../data/tracks.js';
 import { building } from './building.js';
-import { gainResources, gainTiles } from './gain.js';
+import { gainResources } from './gain.js';
 import { landmarksOwned } from './vp.js';
+import { drawTileFor } from './tile-uses.js';
 
 /** @typedef {import('../data/ids.js').TrackId} TrackId */
 /** @typedef {import('../data/ids.js').ResourceId} ResourceId */
@@ -439,7 +440,17 @@ export function tradeSpace(ctx, player, { player: owner, track, space }) {
  * @type {import('../state.js').EffectHandler}
  */
 export function coalBaron(ctx, player, value, op) {
-	const [tile] = gainTiles(ctx, player, 'territory', 1);
+	drawTileFor(ctx, player, 'territory', 'coalBaron', op.source);
+}
+
+/**
+ * Coal Baron with its tile drawn, or none left.
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {number | undefined} tile
+ * @param {any} source
+ */
+export function coalBaronWith(ctx, player, tile, source) {
 	ctx.push([
 		{
 			player,
@@ -454,7 +465,7 @@ export function coalBaron(ctx, player, value, op) {
 				},
 			],
 			ordered: true,
-			source: op.source,
+			source,
 		},
 	]);
 }

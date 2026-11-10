@@ -1602,3 +1602,36 @@ test("the Collectors' choices read as their mat (#37, R129)", () => {
 		'Put an outpost on your Collectors mat'
 	);
 });
+
+test("the Psionics' pick names the tech card, the masterpiece or the one die it keeps (#40, R74)", () => {
+	const tech = {
+		id: 1,
+		batch: 1,
+		player: 1,
+		kind: 'chooseSample',
+		stack: 'tech',
+		options: ['irrigation', 'glassblowing'],
+	};
+	assert.equal(decisionTitle(tech), 'Psionics: keep which tech card?');
+	assert.equal(describeAnswer(tech, { item: 'irrigation' }), 'Irrigation');
+	const masterpiece = { ...tech, stack: 'masterpieces' };
+	assert.equal(
+		decisionTitle(masterpiece),
+		'Psionics: keep which masterpiece?'
+	);
+	const parks = {
+		id: 2,
+		batch: 1,
+		player: 1,
+		kind: 'chooseRolls',
+		reds: [0, 3],
+		hex: '-2_-1',
+	};
+	assert.equal(
+		decisionTitle(parks),
+		'Psionics: keep which roll of the red die?'
+	);
+	assert.equal(describeAnswer(parks, { red: 3 }), 'Red 4');
+	const both = { ...parks, blacks: [1, 2] };
+	assert.equal(describeAnswer(both, { red: 0, black: 2 }), 'Red 1, black 3');
+});

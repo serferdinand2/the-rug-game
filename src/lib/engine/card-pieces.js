@@ -9,6 +9,8 @@ import { tracksOf } from './tracks-in-play.js';
 import { PLOT_CARDS } from './data/tapestry-cards.js';
 import { BLACK_DIE, RED_DIE } from './data/dice.js';
 import { MAPS } from './data/maps.js';
+import { illuminatiTake } from './civs/illuminati.js';
+import { rolledOp } from './responses.js';
 
 /** @typedef {import('./placing.js').Piece} Piece */
 /** @typedef {{ card: string, row: number, col: number, rotation?: number }} PlotPlace */
@@ -362,8 +364,10 @@ export function parksRoll(ctx, op) {
 	const die = op.slot === 'red' ? 'red' : 'black';
 	const face = ctx.random(6);
 	emit(ctx.state, { type: 'parksDieRolled', player, die, face });
+	// The Illuminati: an opponent's first roll of their die pays them first (#40, DQ 13).
+	const paid = illuminatiTake(ctx, player, { [die]: face, hex: op.hex });
 	ctx.push([
-		{
+		rolledOp(ctx, player, { [die]: face }, op.hex) ?? {
 			player,
 			kind: 'effects',
 			effects: [
@@ -372,4 +376,5 @@ export function parksRoll(ctx, op) {
 			source: { hex: op.hex },
 		},
 	]);
+	ctx.push(paid);
 }

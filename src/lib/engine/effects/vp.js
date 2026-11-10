@@ -4,6 +4,7 @@ import { botSeat, playerSeat, seatOf } from '../state.js';
 import { sourceOrigin } from '../stack.js';
 import { controlledTerritories } from '../control.js';
 import { spacesAdvanced } from '../movement.js';
+import { tapestryCard } from '../data/tapestry-cards.js';
 import { BUILDING_IDS } from '../data/ids.js';
 import { tracksOf } from '../tracks-in-play.js';
 import { ALL_LANDMARKS } from '../data/landmarks.js';
@@ -129,6 +130,26 @@ export function countVp(state, player, per, track) {
 				0
 			) - reserved
 		);
+	}
+	if (per === 'marketRow') {
+		// Hive Mind: each capital row, filled or not, with at least 1 market (03 FF.4.3 #18, #40).
+		return new Set(
+			seat.capital.buildings
+				.filter((b) => b.building === 'market')
+				.map((b) => b.row)
+		).size;
+	}
+	if (per === 'charm') {
+		// Wizards' Guild: each charm tag on the face-up top card of an era slot, its own included (03 FF.2.1, #40).
+		const { tapestry, faceDown } = seat.incomeMat;
+		return tapestry.reduce((sum, slot) => {
+			const top = slot.at(-1);
+			if (top === undefined || faceDown.includes(top)) {
+				return sum;
+			}
+			const charms = tapestryCard(top).charms ?? {};
+			return sum + (charms.left ? 1 : 0) + (charms.right ? 1 : 0);
+		}, 0);
 	}
 	if (per === 'buildingLeft') {
 		// The income buildings still on the income mat (Ghost Towns, #39).

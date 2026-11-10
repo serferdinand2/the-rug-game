@@ -228,6 +228,25 @@
 			now: { active: ['lighthouse', 'academy'] },
 			nowLabel: "{ active: ['lighthouse', 'academy'] }",
 		},
+		// F&F (#40, awaiting review): the Faefolk on spot 5, the Illuminati's dice all taken, 2 Merfolk cards submerged.
+		{
+			civ: 'faefolk',
+			seat: /** @type {const} */ (4),
+			now: { spot: 5 },
+			nowLabel: '{ spot: 5 }',
+		},
+		{
+			civ: 'illuminati',
+			seat: /** @type {const} */ (2),
+			now: { onMat: [] },
+			nowLabel: '{ onMat: [] }',
+		},
+		{
+			civ: 'merfolk',
+			seat: /** @type {const} */ (3),
+			now: { submerged: 2 },
+			nowLabel: '{ submerged: 2 }',
+		},
 	];
 
 	/** Cards shown again in the dark palette: a collection with a score ladder, and legal paths (owner, 2026-11-02). */

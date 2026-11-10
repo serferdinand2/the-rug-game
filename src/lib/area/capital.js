@@ -3,6 +3,7 @@ import { cityPlots, completeLines, completeDistricts } from '../engine/game.js';
 import {
 	ADVANCED_MATS,
 	CAPITAL_MATS,
+	IMPASSABLE,
 	matShape,
 } from '../engine/data/capitals.js';
 import { FOOTPRINTS } from '../art/footprints.js';
@@ -21,6 +22,8 @@ import { buildingName, landmarkName } from '../game-names.js';
  * @property {import('../components/player/CapitalGrid.svelte').CapitalGridPiece[]} pieces - The landmarks, locked; one may hang over the edge (R106)
  * @property {{ rows: number, columns: number, districts: number }} counts - The complete rows, columns and districts
  * @property {string[]} besideMat - The names of the buildings and landmarks that didn't fit, in order
+ * @property {import('../components/player/CapitalGrid.svelte').CapitalGridToken[]} [tokens] - Players' tokens on plots:
+ *   Dream Monitors' and the Weefolk's (F&F, #40)
  */
 
 /**
@@ -71,6 +74,13 @@ export function capitalView(seat, code) {
 			columns: lines.columns,
 			districts: completeDistricts(plots, shape).length,
 		},
+		tokens: (seat.capital.tokens ?? []).map(
+			(/** @type {{ row: number, col: number, seat: number }} */ t) => ({
+				row: t.row,
+				col: t.col,
+				seat: /** @type {import('../ui.js').Seat} */ (t.seat),
+			})
+		),
 		besideMat: seat.besideMat.map((/** @type {string} */ id) =>
 			/** @type {readonly string[]} */ (BUILDING_IDS).includes(id)
 				? buildingName(id)
@@ -95,7 +105,12 @@ export function matPlots(number) {
 		.join('')
 		.split('')
 		.map((plot) =>
-			plot === '1' ? 'blocked' : plot === 'L' ? 'lily' : 'empty'
+			// F&F's unicorns and wisps are impassable too (#40).
+			IMPASSABLE.includes(plot)
+				? 'blocked'
+				: plot === 'L'
+					? 'lily'
+					: 'empty'
 		);
 }
 

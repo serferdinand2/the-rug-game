@@ -98,6 +98,11 @@ export function view(state, seat) {
 		if (entry.seat !== viewer) {
 			delete entry.hand;
 			delete entry.picks;
+			// The Merfolk's submerged cards: the others see only how many (#40).
+			const merfolk = entry.civData?.merfolk;
+			if (merfolk) {
+				merfolk.submerged = merfolk.submerged.length;
+			}
 			// The Collectors' cards and tile lie face down: the others see only that one is there (#37).
 			const items = entry.civData?.collectors?.items;
 			for (const type of ['tapestry', 'territory', 'tech']) {

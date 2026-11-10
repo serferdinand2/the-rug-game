@@ -457,7 +457,12 @@
 
 	/** Asks "Take an income turn?" in the footer first: income is never taken on one press (#83, owner). */
 	const incomeAskHandler = () => {
-		if (!turnDecision || turnDecision.kind !== 'chooseTurn' || sending) {
+		if (
+			!turnDecision ||
+			turnDecision.kind !== 'chooseTurn' ||
+			!turnDecision.options.includes('income') ||
+			sending
+		) {
 			return;
 		}
 		layers = openLayer(layers, 'income');
@@ -497,6 +502,18 @@
 		clearQuestion();
 		sending = true;
 		await store.move({ decision: turnDecision.id, turn: 'income' });
+		selected = null;
+		sending = false;
+	};
+
+	/** Takes a Merfolk turn after income turn 5 (#40): its card or discard comes as its own prompt. */
+	const merfolkHandler = async () => {
+		if (!turnDecision || turnDecision.kind !== 'chooseTurn' || sending) {
+			return;
+		}
+		clearQuestion();
+		sending = true;
+		await store.move({ decision: turnDecision.id, turn: 'merfolk' });
 		selected = null;
 		sending = false;
 	};
@@ -695,7 +712,10 @@
 		}
 		const action = hotkeyAction(event.key, {
 			canIncome:
-				turnDecision?.kind === 'chooseTurn' && !noticeOpen && !sending,
+				turnDecision?.kind === 'chooseTurn' &&
+				turnDecision.options.includes('income') &&
+				!noticeOpen &&
+				!sending,
 			canAdvance:
 				Boolean(turnDecision) &&
 				askTracks.length > 0 &&
@@ -808,6 +828,7 @@
 		onTurnFooterIncome={incomeHandler}
 		onTurnFooterAdvance={() => advanceHandler()}
 		onTurnFooterOpen={openAdvanceHandler}
+		onTurnFooterMerfolk={merfolkHandler}
 		onTurnFooterTrack={(/** @type {ComponentEvent} */ event) =>
 			trackPickHandler(event.value)}
 		onTurnFooterEndTurn={endTurnHandler}

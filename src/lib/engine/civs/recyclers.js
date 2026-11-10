@@ -3,6 +3,7 @@ import { emit } from '../events.js';
 import { playerSeat } from '../state.js';
 import { triggered } from '../abilities.js';
 import { drawTech } from '../tech.js';
+import { psionic } from './psionics.js';
 
 /** The tech cards the Recyclers draw when they come in, of which they keep 1. */
 export const RECYCLERS_DRAW = 3;
@@ -75,7 +76,9 @@ export const recyclers = {
 	setup(ctx, player) {
 		/** @type {string[]} */
 		const cards = [];
-		while (cards.length < RECYCLERS_DRAW) {
+		// The Psionics draw one more (R74).
+		const count = RECYCLERS_DRAW + (psionic(ctx.state, player) ? 1 : 0);
+		while (cards.length < count) {
 			const card = drawTech(ctx);
 			if (card === null) {
 				break;

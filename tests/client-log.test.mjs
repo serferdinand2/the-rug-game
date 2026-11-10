@@ -288,6 +288,42 @@ const SAMPLES = {
 		},
 	},
 	outpostLifted: { player: 1, hex: '-2_-1' },
+	savannaIncome: { player: 1, districts: 2 },
+	techRevealed: { player: 1, count: 3, found: 'bakery' },
+	benefitRepeated: { player: 1, track: 'exploration', space: 4 },
+	noRegress: { player: 1 },
+	noDoppelganger: { player: 1 },
+	councilRevealed: { player: 1, card: 'trap-1' },
+	charmResponse: { player: 2, attacker: 1, hex: '-2_-1', card: 'the-kraken' },
+	tileFlipped: { player: 1, tile: 4, up: true },
+	conquerDiceRolledTwice: { player: 1, reds: [0, 3], blacks: [1, 5] },
+	buildingSetAside: { player: 1, building: 'farm' },
+	faefolkMoved: { player: 1, spot: 3, by: 2 },
+	celestialsLanded: { player: 1, hex: '-2_-1' },
+	genieTokenDrawn: { player: 1, opponent: 2 },
+	weefolkScored: { player: 1, vp: 4 },
+	illuminatiPaid: { player: 1, roller: 2, dice: ['science'] },
+	illuminatiScored: { player: 1, vp: 12 },
+	wishGranted: { player: 1, circle: 'techCard', wisher: 2 },
+	celestialsMoved: { player: 1, hex: '-2_-1', red: 2, black: 4 },
+	celestialsScored: { player: 1, vp: 3 },
+	buildingSlid: { player: 1, building: 'farm' },
+	rowFlushed: { player: 1, building: 'farm' },
+	artificersScored: { player: 1 },
+	playingOn: { player: 1 },
+	cardSubmerged: { player: 1 },
+	merfolkSurfaced: { player: 1, count: 3 },
+	merfolkPlayed: { player: 1, card: 'dark-ages' },
+	werefolkDiscarded: { player: 1, tile: 4 },
+	charmsRevealed: { player: 1, cards: ['microbial-magic'] },
+	cardGiven: { player: 1, to: 2, card: 'ghost-towns' },
+	capitalTokenPlaced: { player: 1, owner: 1, row: 2, col: 3 },
+	noPlot: { player: 1 },
+	omenGuessed: { player: 1, track: 'science' },
+	omenCome: { player: 1, track: 'science' },
+	tokenCopied: { player: 1, track: 'science', space: 6 },
+	tapestryRevealed: { player: 1, cards: ['academia', 'dark-ages'] },
+	reedsScored: { player: 1, vp: -2 },
 	noReserve: { player: 1 },
 	techRecycled: { player: 1, card: 'com-tower' },
 	techDisplayRefreshed: {
@@ -1332,5 +1368,44 @@ test('a reserved Armory reads "an Armory" (review fix)', () => {
 			GAME
 		),
 		`${GAME.seats[0].name} reserved an Armory on their income mat's overlay.`
+	);
+});
+
+test("the Savanna's income and the Quagmire's reeds are worded (#40)", () => {
+	const name = GAME.seats[0].name;
+	assert.equal(
+		eventText({ type: 'savannaIncome', player: 1, districts: 2 }, GAME),
+		`${name}'s Savanna pays 2 resources for its filled districts.`
+	);
+	assert.equal(
+		eventText({ type: 'reedsScored', player: 1, vp: -2 }, GAME),
+		`${name}'s Quagmire scores -2 VP for its landmarks on and off the reeds.`
+	);
+});
+
+test("Soothsaying's reveal names only the cards it discarded; the charmed ones go to opponents (#40)", () => {
+	assert.equal(
+		eventText(
+			{
+				type: 'tapestryRevealed',
+				player: 1,
+				cards: ['academia', 'dark-ages'],
+				discarded: ['dark-ages'],
+			},
+			GAME
+		),
+		'Ana revealed Academia and Dark Ages, and discarded Dark Ages.'
+	);
+	assert.equal(
+		eventText(
+			{
+				type: 'tapestryRevealed',
+				player: 1,
+				cards: ['academia'],
+				discarded: [],
+			},
+			GAME
+		),
+		'Ana revealed Academia.'
 	);
 });

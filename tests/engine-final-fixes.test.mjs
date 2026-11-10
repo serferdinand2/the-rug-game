@@ -433,6 +433,72 @@ test('every decision kind has the full shape, and its answers pass its own check
 		},
 		chooseSwap: { player: 1, kind: 'chooseSwap', left: 3 },
 		// The Collectors (#37): seat 1's hand card, its own secret.
+		// F&F's looking cards (#40).
+		chooseCouncil: {
+			player: 2,
+			kind: 'chooseCouncil',
+			owner: 1,
+			then: {
+				player: 1,
+				kind: 'councilAsk',
+				owner: 1,
+				order: [],
+				revealed: 0,
+			},
+		},
+		chooseRegulated: {
+			player: 1,
+			kind: 'chooseRegulated',
+			options: ['microbial-magic'],
+			picked: 0,
+		},
+		chooseRecipient: {
+			player: 1,
+			kind: 'chooseRecipient',
+			card: 'ghost-towns',
+			options: [2],
+		},
+		choosePlot: {
+			player: 1,
+			kind: 'choosePlot',
+			purpose: 'dreamMonitors',
+			options: [{ row: 0, col: 0 }],
+		},
+		chooseGuess: { player: 1, kind: 'chooseGuess' },
+		chooseHost: { player: 1, kind: 'chooseHost', options: [2] },
+		choosePutAway: {
+			player: 1,
+			kind: 'choosePutAway',
+			keep: 0,
+			purpose: 'submerge',
+		},
+		chooseMerfolkTurn: { player: 1, kind: 'chooseMerfolkTurn' },
+		chooseWish: {
+			player: 2,
+			kind: 'chooseWish',
+			genie: 1,
+			wisher: 2,
+			options: ['landmark', 'techCard'],
+		},
+		chooseArtifice: {
+			player: 1,
+			kind: 'chooseArtifice',
+			turn: 2,
+			options: [{ act: 'aside', row: 'farm' }],
+		},
+		chooseSample: {
+			player: 1,
+			kind: 'chooseSample',
+			stack: 'territory',
+			options: [3, 9],
+		},
+		chooseRolls: {
+			player: 1,
+			kind: 'chooseRolls',
+			reds: [0, 2],
+			blacks: [1, 4],
+			conquest: { hex: '-2_-1' },
+		},
 		chooseCollect: {
 			player: 1,
 			kind: 'chooseCollect',
@@ -447,6 +513,13 @@ test('every decision kind has the full shape, and its answers pass its own check
 			options: [1, 2, 3],
 			card: 'generation-ships',
 			ability: 'generation-ships',
+		},
+		chooseTrackSpace: {
+			player: 1,
+			kind: 'chooseTrackSpace',
+			purpose: 'dejaVu',
+			options: [{ track: 'exploration', space: 4 }],
+			vp: 7,
 		},
 		chooseReserveTech: {
 			player: 1,

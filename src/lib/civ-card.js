@@ -56,6 +56,15 @@ export const CARD_CIVS = Object.freeze([
 	'relentless',
 	'renegades',
 	'urban-planners',
+	// F&F (#40): the Werefolk's tile, the Artificers' buildings set aside, the Faefolk's spot, the Celestials' token, the
+	// Genies' tokens, the Illuminati's dice and the Merfolk's submerged cards. The Weefolk's tokens show on the cities.
+	'werefolk',
+	'artificers',
+	'faefolk',
+	'celestials',
+	'genies',
+	'illuminati',
+	'merfolk',
 ]);
 
 /** The token reserves whose civData counts the tokens still on the card (#180), with how many each starts with. */
@@ -185,6 +194,47 @@ export function civCardMarks(civ, data) {
 				mark(`option${option}`, 'used');
 			}
 			break;
+		// F&F (#40): a token on the box, and what the label names.
+		case 'werefolk':
+			if (data.tile !== null) {
+				mark('tile', 'token');
+				mark(`tile:${data.tile}`, 'token');
+			}
+			break;
+		case 'artificers':
+			for (const _ of data.aside) {
+				mark('aside', 'token');
+			}
+			break;
+		case 'faefolk':
+			mark('token', 'token');
+			mark(`spot:${data.spot}`, 'token');
+			break;
+		case 'celestials':
+			if (data.hex) {
+				mark('float', 'token');
+			}
+			break;
+		case 'genies':
+			for (const _ of data.tokens) {
+				mark('tokens', 'token');
+			}
+			break;
+		case 'illuminati':
+			for (const _ of data.onMat) {
+				mark('dice', 'token');
+			}
+			break;
+		// The others see a count of the cards; their player sees the cards.
+		case 'merfolk': {
+			const count = Array.isArray(data.submerged)
+				? data.submerged.length
+				: data.submerged;
+			for (let i = 0; i < count; i++) {
+				mark('submerged', 'token');
+			}
+			break;
+		}
 		// Each token out sits beside its landmark's box and has left the reserve, emptied from the left.
 		case 'utilitarians':
 			data.active.forEach(

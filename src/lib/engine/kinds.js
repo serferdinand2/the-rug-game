@@ -112,6 +112,30 @@ import {
 	chooseReserveTech,
 } from './decisions/choose-reserve.js';
 import { upgradeReserved, zombieTake } from './effects/reserved.js';
+import { chooseTrackSpace } from './decisions/choose-track-space.js';
+import {
+	chooseCouncil,
+	chooseGuess,
+	choosePlot,
+	chooseRecipient,
+	chooseRegulated,
+	chooseHost,
+} from './decisions/choose-ff.js';
+import { councilAsk } from './effects/ff-looks.js';
+import { werefolkLanded } from './civs/werefolk.js';
+import { chooseSample } from './decisions/choose-sample.js';
+import { chooseRolls } from './decisions/choose-rolls.js';
+import { chooseArtifice } from './decisions/choose-artifice.js';
+import { chooseWish } from './decisions/choose-wish.js';
+import { faefolkMove } from './civs/faefolk.js';
+import { celestialsFloat, celestialsMove } from './civs/celestials.js';
+import { weefolkGive, weefolkScore } from './civs/weefolk.js';
+import { merfolkSubmerge, merfolkSurface } from './civs/merfolk.js';
+import {
+	chooseMerfolkTurn,
+	choosePutAway,
+} from './decisions/choose-merfolk.js';
+import { chimeraRolled } from './effects/ff-cards.js';
 import { leadersAdvance } from './civs/leaders.js';
 import { merrymakersMove } from './civs/merrymakers.js';
 import { retreatTo, surrenderDice } from './responses.js';
@@ -227,6 +251,19 @@ Object.assign(DECISIONS, {
 	chooseCollect,
 	chooseReserve,
 	chooseReserveTech,
+	chooseTrackSpace,
+	chooseCouncil,
+	chooseGuess,
+	choosePlot,
+	chooseRecipient,
+	chooseRegulated,
+	chooseSample,
+	chooseRolls,
+	chooseArtifice,
+	chooseWish,
+	chooseHost,
+	choosePutAway,
+	chooseMerfolkTurn,
 });
 
 Object.assign(AUTOMATIC, {
@@ -326,6 +363,16 @@ Object.assign(AUTOMATIC, {
 	surrenderDice,
 	zombieTake,
 	upgradeReserved,
+	chimeraRolled,
+	councilAsk,
+	werefolkLanded,
+	faefolkMove,
+	celestialsFloat,
+	celestialsMove,
+	weefolkGive,
+	weefolkScore,
+	merfolkSubmerge,
+	merfolkSurface,
 });
 
 export { DECISIONS, AUTOMATIC };

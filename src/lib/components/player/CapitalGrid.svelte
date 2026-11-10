@@ -1,4 +1,4 @@
-<!-- A 9×9 capital: ground tiles under the mat's relief, building and cube SVGs, placement controls, lit target plots and completed-group overlays. -->
+<!-- A 9×9 capital: ground tiles under the mat's relief, building, cube and player-token SVGs, placement controls, lit target plots and completed-group overlays. -->
 <script module>
 	/** @typedef {import('../../capital.js').PlotKind} PlotKind */
 	/** @typedef {import('../../capital.js').GroupKind} GroupKind */
@@ -25,12 +25,21 @@
 	 */
 
 	/**
-	 * A building, or an Architects cube, shown faintly on a plot before it is placed there.
+	 * A building, an Architects cube or a player's token, shown faintly on a plot before it is placed there.
 	 * @typedef {Object} CapitalGridPreview
 	 * @property {number} row - 0–8
 	 * @property {number} col - 0–8
 	 * @property {string} [building] - The income building's id: 'market', 'house', 'farm' or 'armory'
 	 * @property {boolean} [cube=false] - An Architects cube instead of a building (#168)
+	 * @property {import('../../ui.js').Seat} [token] - A player's token instead, in that seat's colour (F&F, #40)
+	 */
+
+	/**
+	 * A player's token filling a plot: Dream Monitors' own, or a Weefolk token an opponent gave (F&F, #40).
+	 * @typedef {Object} CapitalGridToken
+	 * @property {number} row - 0–8
+	 * @property {number} col - 0–8
+	 * @property {import('../../ui.js').Seat} seat - Whose token, for its colour
 	 */
 
 	/**
@@ -52,6 +61,7 @@
 	 * @property {boolean} [room=false] - Keep room around the grid for the pieces that hang over its edges (R106), so nothing next to it is covered
 	 * @property {CapitalGridTarget[]} [targets=[]] - Plots a decision can choose: each gets a green outline and becomes a button that fires onCapitalGridPlotClick
 	 * @property {CapitalGridPreview | null} [preview=null] - The chosen building, drawn faintly on its plot until it is placed
+	 * @property {CapitalGridToken[]} [tokens=[]] - Players' tokens on plots, each in its seat's colour (F&F, #40)
 	 * @property {CapitalGridTarget[]} [fresh=[]] - Plots just built on (#29): each glows green once, unless the system asks for reduced motion
 	 * @property {string} [label] - Names the grid for assistive technology; 'Capital city, 9 by 9 plots' by default
 	 * @property {Function} [onCapitalGridPlotClick] - Callback fired with { row, col } when a plot is clicked, for click-to-place from the tray
@@ -94,8 +104,10 @@
 	import LandmarkPiece from './LandmarkPiece.svelte';
 	import { ComponentEvent } from '../../component-event.js';
 	import { artUrl } from '../../ui.js';
+	import PlayerToken from './PlayerToken.svelte';
 	import {
 		featureUrl,
+		overlayUrl,
 		plotTerrain,
 		reliefUrl,
 	} from '../../capital-terrain.js';
@@ -139,6 +151,7 @@
 		room = false,
 		targets = [],
 		preview = null,
+		tokens = [],
 		fresh = [],
 		label = `Capital city, ${shape.rows} by ${shape.cols} plots`,
 		onCapitalGridPlotClick,
@@ -224,12 +237,23 @@
 	let previewed = $derived(
 		preview ? plotIndex(preview.row, preview.col, shape) : null
 	);
+	/** Each token's seat by its plot. */
+	let tokenSeats = $derived(
+		new Map(
+			tokens.map((token) => [
+				plotIndex(token.row, token.col, shape),
+				token.seat,
+			])
+		)
+	);
 	let freshPlots = $derived(
 		new Set(fresh.map((plot) => plotIndex(plot.row, plot.col, shape)))
 	);
 	let terrain = $derived(plotTerrain(plots, biome, terrainSeed));
 	let feature = $derived(featureUrl(biome));
 	let relief = $derived(reliefUrl(biome));
+	// What F&F's mats print over their relief: the bottle's glass, the veil, the herds, the rings and the imps (#133, #40).
+	let overlay = $derived(overlayUrl(biome));
 
 	$effect(() => {
 		const ids = pieces.map((piece) => piece.id);
@@ -534,6 +558,12 @@
 				alt=""
 				draggable="false" />
 		{/if}
+		{#if kind === 'token' && tokenSeats.has(index)}
+			<span class="rg-capital-grid--building rg-capital-grid--token"
+				><PlayerToken
+					seat={tokenSeats.get(index)}
+					decorative /></span>
+		{/if}
 		{#if terrain[index].cube}
 			<img
 				class="rg-capital-grid--building"
@@ -541,7 +571,13 @@
 				alt=""
 				draggable="false" />
 		{/if}
-		{#if preview && index === previewed}
+		{#if preview && index === previewed && preview.token}
+			<span
+				class="rg-capital-grid--building rg-capital-grid--preview rg-capital-grid--token"
+				><PlayerToken
+					seat={preview.token}
+					decorative /></span>
+		{:else if preview && index === previewed}
 			<img
 				class="rg-capital-grid--building rg-capital-grid--preview"
 				src={preview.cube
@@ -565,6 +601,14 @@
 		<img
 			class="rg-capital-grid--relief"
 			src={relief}
+			alt=""
+			aria-hidden="true"
+			draggable="false" />
+	{/if}
+	{#if overlay}
+		<img
+			class="rg-capital-grid--relief rg-capital-grid--overlay"
+			src={overlay}
 			alt=""
 			aria-hidden="true"
 			draggable="false" />
@@ -851,6 +895,13 @@
 		height: 100%;
 		object-fit: contain;
 		image-rendering: pixelated;
+	}
+
+	/* A player's token fills its plot as a building does (F&F, #40). */
+	.rg-capital-grid--token :global(.rg-player-token) {
+		display: block;
+		width: 100%;
+		height: 100%;
 	}
 
 	/* The chosen building, faint until it is placed. */

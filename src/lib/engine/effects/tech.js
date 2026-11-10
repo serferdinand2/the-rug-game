@@ -14,6 +14,7 @@ import {
 	isFlipped,
 } from '../tech.js';
 import { techCard } from '../data/tech-cards.js';
+import { psionic, sampleCard } from '../civs/psionics.js';
 
 /** @typedef {{ card?: string, from?: 'discard', refresh?: true }} InventAnswer */
 
@@ -86,8 +87,9 @@ function askInvent(ctx, player, left, refresh, options) {
  * @param {InventAnswer} answer
  * @param {number} left - Cards still to invent, this one included
  * @param {Record<string, any>} [options] - The invent effect's other options, which carry over to each of its cards
+ * @param {string} [kept] - The deck's card the Psionics kept of the 2 they drew (R74)
  */
-export function inventCard(ctx, player, answer, left, options = {}) {
+export function inventCard(ctx, player, answer, left, options = {}, kept) {
 	const tech = ctx.state.supply.tech;
 	if (answer.refresh) {
 		refreshDisplay(ctx);
@@ -113,7 +115,19 @@ export function inventCard(ctx, player, answer, left, options = {}) {
 		}
 		card = tech.discard.splice(at, 1)[0];
 	} else if (answer.card === 'deck') {
-		card = drawTech(ctx);
+		if (kept !== undefined) {
+			card = kept;
+		} else if (psionic(ctx.state, player)) {
+			// The Psionics draw 2 and keep 1 (R74); the invent goes on once they pick.
+			card = sampleCard(ctx, player, 'tech', () => drawTech(ctx), {
+				invent: { left, options },
+			});
+			if (card === undefined) {
+				return;
+			}
+		} else {
+			card = drawTech(ctx);
+		}
 	} else {
 		slot = tech.faceUp.indexOf(answer.card ?? '');
 		if (slot === -1) {

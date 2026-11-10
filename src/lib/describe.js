@@ -58,6 +58,19 @@ const CARD_RULES = [
 	'plague',
 	'granges',
 	'ecstaticVisions',
+	'alienDisclosure',
+	'citadelOfPower',
+	'dejaVu',
+	'muses',
+	'technomancy',
+	'temporalNomadism',
+	'uploadedConsciousness',
+	'doppelgangers',
+	'seerSight',
+	'dreamMonitors',
+	'highCouncil',
+	'soothsaying',
+	'superpowerRegulators',
 ];
 
 /**
@@ -190,6 +203,10 @@ function counted(per, track) {
 			return 'income building you own';
 		case 'buildingLeft':
 			return 'income building still on your income mat';
+		case 'marketRow':
+			return 'row of your capital city holding a Market';
+		case 'charm':
+			return 'charm showing on your income mat';
 		case 'capitalRow':
 			return 'complete row in your capital city';
 		case 'capitalColumn':
@@ -552,6 +569,15 @@ const PHRASES = {
 	},
 	useReserved(value) {
 		return `use your reserved ${reservedWords(value).replace(/^an? /, '')}`;
+	},
+	chimera() {
+		return 'resolve Chimera-Citizen Rights';
+	},
+	// The Elder Ones' income turn 5 (#40).
+	elderDiscard(value) {
+		return isCount(value?.left)
+			? `you may discard up to ${value.left} tapestry cards, one at a time, for 2 resources of your choice each`
+			: 'you may discard tapestry cards, one at a time, for 2 resources of your choice each';
 	},
 	useAllReserved() {
 		return "use every item reserved on your income mat's overlay";

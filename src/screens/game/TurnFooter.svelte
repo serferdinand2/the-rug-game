@@ -10,6 +10,8 @@
 	 * @property {Function} [onTurnFooterAdvance] - Callback fired when the selected space's Advance is pressed
 	 * @property {Function} [onTurnFooterOpen] - Callback fired when Advance is pressed on an advance turn only an offer at
 	 *   its start can pay for, such as the Lighthouse's (#33)
+	 * @property {Function} [onTurnFooterMerfolk] - Callback fired when the Merfolk's Merfolk turn is pressed, after income
+	 *   turn 5 (#40)
 	 * @property {Function} [onTurnFooterTrack] - Callback fired with a track chosen in the track question
 	 * @property {Function} [onTurnFooterEndTurn] - Callback fired when End turn is pressed (#146)
 	 * @property {Function} [onTurnFooterRestore] - Callback fired when a minimized decision's Show choice is pressed (#149)
@@ -49,6 +51,7 @@
 		onTurnFooterIncome,
 		onTurnFooterAdvance,
 		onTurnFooterOpen,
+		onTurnFooterMerfolk,
 		onTurnFooterTrack,
 		onTurnFooterEndTurn,
 		onTurnFooterRestore,
@@ -69,7 +72,8 @@
 			view.kind === 'trackAsk' ||
 			view.kind === 'selected' ||
 			(view.kind === 'forcedIncome' && Boolean(view.takeIncome)) ||
-			(view.kind === 'opening' && Boolean(view.openAdvance))
+			(view.kind === 'opening' && Boolean(view.openAdvance)) ||
+			(view.kind === 'playOn' && Boolean(view.merfolk))
 	);
 
 	/**
@@ -138,6 +142,11 @@
 			disabled={sending}
 			onButtonClick={report(onTurnFooterOpen)}
 			>Advance<KeyCap key="A" /></Button>
+	{:else if view.kind === 'playOn'}
+		<Button
+			mode="gold"
+			disabled={sending}
+			onButtonClick={report(onTurnFooterMerfolk)}>Merfolk turn</Button>
 	{:else if view.kind === 'selected'}
 		<Button
 			mode="primary"

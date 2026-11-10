@@ -1305,3 +1305,57 @@ test('an advanced mat on the shelf has its own shape (#36)', () => {
 	assert.equal(face.shape.rows, 11);
 	assert.equal(/** @type {any} */ (shelfFace('mat', '1')).shape.rows, 9);
 });
+
+test("the Psionics' pick draws what was drawn, by its stack; one die's rolls show their results; a Merfolk turn shows each card (#40)", () => {
+	/**
+	 * The options' art for one decision pushed for the current player.
+	 * @param {object} op
+	 * @param {(seat: any, state: any) => void} [fill]
+	 */
+	const arts = (op, fill = () => {}) => {
+		const { state } = startedGame(2);
+		const player = /** @type {number} */ (state.current);
+		fill(state.seats[player - 1], state);
+		state.pending.length = 0;
+		push(state, state.pending, [{ player, ...op }]);
+		const game = view(state, player);
+		const prompt = promptFor(myDecision(game, player), game, player);
+		return prompt?.options.map((o) => [o.place, o.art]);
+	};
+	assert.deepEqual(
+		arts({ kind: 'chooseSample', stack: 'space', options: [3, 9] }),
+		[
+			['panel', [{ kind: 'space-tile', id: 3 }]],
+			['panel', [{ kind: 'space-tile', id: 9 }]],
+		]
+	);
+	assert.deepEqual(
+		arts({ kind: 'chooseSample', stack: 'territory', options: [12] })?.[0],
+		['panel', [{ kind: 'territory', id: 12, orient: 0 }]]
+	);
+	assert.deepEqual(
+		arts({
+			kind: 'chooseSample',
+			stack: 'tech',
+			options: ['irrigation'],
+			then: { invent: { left: 1, options: {} } },
+		})?.[0],
+		['panel', [{ kind: 'tech', id: 'irrigation' }]]
+	);
+	assert.deepEqual(
+		arts({
+			kind: 'chooseRolls',
+			reds: [0],
+			hex: '-2_-1',
+		})?.[0]?.[1].length,
+		1,
+		'the red result kept'
+	);
+	const merfolk = arts({ kind: 'chooseMerfolkTurn' }, (seat) => {
+		seat.hand = ['trap-1'];
+	});
+	assert.deepEqual(merfolk, [
+		['panel', [{ kind: 'tapestry', id: 'trap-1' }]],
+		['panel', [{ kind: 'tapestry', id: 'trap-1' }]],
+	]);
+});

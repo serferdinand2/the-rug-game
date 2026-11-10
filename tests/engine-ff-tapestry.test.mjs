@@ -116,10 +116,15 @@ const CARDS = {
 };
 
 test("F&F's 11 reserving cards follow the others in the deck, in catalog order", () => {
-	assert.deepEqual(tapestryFor(['ff']), [...BASE_TAPESTRY, ...RESERVING]);
+	const reserving = (/** @type {string[]} */ deck) =>
+		deck.filter((id) => RESERVING.includes(id));
+	assert.deepEqual(reserving(tapestryFor(['ff'])), RESERVING);
+	assert.deepEqual(tapestryFor(['ff']).slice(0, BASE_TAPESTRY.length), [
+		...BASE_TAPESTRY,
+	]);
 	// None leaves without the arts track (#39 design §8).
 	assert.deepEqual(
-		tapestryFor(['aa', 'ff'], ['no-arts-track']).slice(-11),
+		reserving(tapestryFor(['aa', 'ff'], ['no-arts-track'])),
 		RESERVING
 	);
 });

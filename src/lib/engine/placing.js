@@ -10,6 +10,7 @@ import {
 	landmarkSpots,
 	onGrid,
 	seatImpassable,
+	seatMat,
 	seatShape,
 } from './city.js';
 import { itemCount } from './control.js';
@@ -149,13 +150,42 @@ export function payDistricts(ctx, player, before) {
 		districts: [...districts],
 	});
 	return [
-		{
-			player,
-			kind: 'effects',
-			effects: [{ gain: { any: districts.length } }],
-		},
+		...districtRewardOps(seat, player, districts),
 		...triggered(ctx.state, 'districtsCompleted', { player, districts }),
 	];
+}
+
+/**
+ * What completing districts gives: 1 resource of your choice each, or the mat's own rewards (F&F's mats, #40): the
+ * Netherworld's 2 for an imp, Polar's lines and the Veil's pockets as printed, and nothing on the Savanna, whose
+ * districts pay in the income instead.
+ * @param {import('./state.js').PlayerSeat} seat
+ * @param {number} player
+ * @param {readonly number[]} districts
+ * @returns {import('./state.js').NewOperation[]}
+ */
+function districtRewardOps(seat, player, districts) {
+	const mat = seatMat(seat);
+	if (mat.districtIncome) {
+		return [];
+	}
+	if (!mat.districtReward && !mat.districtRewards) {
+		return [
+			{
+				player,
+				kind: 'effects',
+				effects: [{ gain: { any: districts.length } }],
+			},
+		];
+	}
+	const ids = seatShape(seat).ids ?? [];
+	const effects = districts.flatMap((d) =>
+		structuredClone(
+			mat.districtRewards?.[ids[d]] ??
+				mat.districtReward ?? [{ gain: { any: 1 } }]
+		)
+	);
+	return [{ player, kind: 'effects', effects, ordered: true }];
 }
 
 /**
@@ -181,6 +211,19 @@ export function placeBesideMat(ctx, player, piece) {
 			player,
 			landmark: piece.landmark,
 		});
+		// City in a Bottle: a landmark set aside gains 6 VP (FF.6 2.1, #40).
+		const vp =
+			seat.capital.mat === null ? undefined : seatMat(seat).asideVp;
+		if (vp) {
+			ctx.push([
+				{
+					player,
+					kind: 'effects',
+					effects: [{ vp }],
+					origin: 'capital',
+				},
+			]);
+		}
 	}
 }
 

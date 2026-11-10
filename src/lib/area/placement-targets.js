@@ -15,7 +15,7 @@ import { landmarkName } from '../game-names.js';
 /**
  * A building or landmark placement decision from the game view.
  * @typedef {Object} PlacementPrompt
- * @property {{ building?: string, landmark?: string, cube?: boolean, move?: boolean }} piece - What is placed: a building, a landmark or an Architects cube; or `move`, Cloud City's building to move (#36)
+ * @property {{ building?: string, landmark?: string, cube?: boolean, move?: boolean, token?: number }} piece - What is placed: a building, a landmark or an Architects cube; or `move`, Cloud City's building to move (#36); or `token`, the seat whose token fills the plot (Dream Monitors, the Weefolk, #40)
  * @property {PlacementOption[]} options
  * @property {number | null} picked
  */
@@ -33,6 +33,7 @@ import { landmarkName } from '../game-names.js';
  * @property {string | null} building
  * @property {boolean} cube - An Architects cube is being placed (#168)
  * @property {boolean} move - Cloud City's building to move is being chosen (#36)
+ * @property {import('../ui.js').Seat | null} token - Whose player token is being placed (F&F, #40)
  * @property {PlaceablePiece | null} landmark
  * @property {OptionPlot | null} picked
  * @property {{ row: number, col: number, index: number }[]} targets
@@ -124,8 +125,11 @@ export function capitalPlacement(capital, placement, fresh) {
 	const cube = placement?.piece.cube === true;
 	// Cloud City's building to move: its plots light, and nothing is previewed (#36).
 	const move = placement?.piece.move === true;
+	const token = /** @type {import('../ui.js').Seat | null} */ (
+		placement?.piece.token ?? null
+	);
 	const targets =
-		(building || cube || move) && placement
+		(building || cube || move || token !== null) && placement
 			? plotTargets(placement.options)
 			: [];
 	const positions =
@@ -135,7 +139,9 @@ export function capitalPlacement(capital, placement, fresh) {
 			? { row: picked.row, col: picked.col, building }
 			: cube && picked
 				? { row: picked.row, col: picked.col, cube }
-				: null;
+				: token !== null && picked
+					? { row: picked.row, col: picked.col, token }
+					: null;
 	const placed =
 		landmark && picked && picked.rotation !== null
 			? {
@@ -157,6 +163,7 @@ export function capitalPlacement(capital, placement, fresh) {
 		building,
 		cube,
 		move,
+		token,
 		landmark,
 		picked,
 		targets,

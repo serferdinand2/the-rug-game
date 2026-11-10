@@ -3,6 +3,7 @@ import { playerSeat } from '../state.js';
 import { emit } from '../events.js';
 import { scienceFaces } from '../data/dice.js';
 import { defaultDie, withDie } from '../science-die.js';
+import { illuminatiTake } from './illuminati.js';
 
 /**
  * The Alchemists' own state.
@@ -68,6 +69,9 @@ export function alchemistsRoll(ctx, op) {
 	const track = faces[ctx.random(faces.length)];
 	// The events name the d20, as scienceDieRolled does, so the dice tray rolls it (#35).
 	const d20 = die === 'd20' ? { scienceDie: die } : {};
+	// The Illuminati: an opponent's first roll of their science die pays them first (F&F, DQ 13, R149), so each branch
+	// pushes it last.
+	const paid = illuminatiTake(ctx, player, { science: track });
 	if (track === 'arts') {
 		emit(ctx.state, {
 			type: 'alchemistsRolled',
@@ -79,6 +83,7 @@ export function alchemistsRoll(ctx, op) {
 		ctx.push([
 			{ player, kind: 'chooseAlchemists', marked: [...data.marked] },
 		]);
+		ctx.push(paid);
 		return;
 	}
 	if (data.marked.includes(track)) {
@@ -87,6 +92,7 @@ export function alchemistsRoll(ctx, op) {
 		ctx.push([
 			{ player, kind: 'effects', effects: [{ gain: { any: 1 } }] },
 		]);
+		ctx.push(paid);
 		return;
 	}
 	data.marked.push(track);
@@ -98,6 +104,7 @@ export function alchemistsRoll(ctx, op) {
 		...d20,
 	});
 	ctx.push([{ player, kind: 'chooseAlchemists', marked: [...data.marked] }]);
+	ctx.push(paid);
 }
 
 /** @type {import('./civ.js').Civ} */

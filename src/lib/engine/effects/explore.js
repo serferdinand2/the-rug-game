@@ -9,7 +9,8 @@ import { controlledTerritories } from '../control.js';
 import { hexNeighbours } from '../data/maps.js';
 import { openMatHexes, parseMatHex } from '../island.js';
 import { turned } from '../terrain.js';
-import { gainTiles } from './gain.js';
+import { gainTiles, sampleTiles } from './gain.js';
+import { psionic } from '../civs/psionics.js';
 import { vp } from './vp.js';
 
 /** How many territory tiles Age of Sail draws before each explore (02 §3). */
@@ -150,13 +151,29 @@ export function exploreTile(ctx, player, { tile, hex, orient }, free = false) {
  * The explore effect. With nothing to explore it does nothing; with one possible result it explores at once; otherwise its player chooses.
  * `tile` limits it to that tile (Coal Baron). `mat` limits it to the Islanders' mat hexes, and `free` only places the tile there
  * (R113). `migration` limits it to hexes next to no controlled territory, then places 2 outposts there (#37). Under Age of Sail it first draws 3 territory tiles, even when no hex can then be
- * explored, and the player may give a tile to an opponent; `sailed` marks the explore that follows (design §8).
+ * explored, and the player may give a tile to an opponent; `sailed` marks the explore that follows (design §8), and `'drawn'`
+ * the one after the Psionics' picks of those tiles (R74).
  * @type {import('../state.js').EffectHandler}
  */
 export function explore(ctx, player, value, op) {
 	const { state } = ctx;
 	if (hasEra(state, player, 'age-of-sail') && value?.sailed !== true) {
-		gainTiles(ctx, player, 'territory', SAIL_DRAW);
+		// The Psionics draw 2 and keep 1, three times (FAQ p29–30, R74); the explore waits for their picks.
+		if (value?.sailed !== 'drawn' && psionic(state, player)) {
+			ctx.push([
+				{
+					player,
+					kind: 'effects',
+					effects: [{ explore: { ...value, sailed: 'drawn' } }],
+					source: op.source,
+				},
+			]);
+			sampleTiles(ctx, player, 'territory', SAIL_DRAW);
+			return;
+		}
+		if (value?.sailed !== 'drawn') {
+			gainTiles(ctx, player, 'territory', SAIL_DRAW);
+		}
 		if (
 			playerSeat(state, player).territoryTiles.length > 0 &&
 			opponents(state, player).length > 0

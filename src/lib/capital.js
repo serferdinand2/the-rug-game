@@ -1,14 +1,15 @@
 // Capital-grid geometry for the interface: plot indices, footprint rotation, legal positions and completed groups.
 // The rules engine decides what may be built; this only answers where a shape fits and what the grid shows.
 
-/** @typedef {'empty' | 'lily' | 'blocked' | 'market' | 'house' | 'farm' | 'armory' | 'landmark'} PlotKind - 'lily' is a Swamp lily pad still showing: filled for districts and lines, open to build on (#36) */
+/** @typedef {'empty' | 'lily' | 'blocked' | 'market' | 'house' | 'farm' | 'armory' | 'landmark' | 'token'} PlotKind - 'lily' is a Swamp lily pad still showing: filled for districts and lines, open to build on (#36); 'token' a player token filling the plot (F&F, #40) */
 /** @typedef {'rows' | 'columns' | 'districts'} GroupKind */
 /** @typedef {{ row: number, col: number }} Position */
 /** @typedef {{ row: number, col: number, rows: number, cols: number }} Bounds */
 /**
  * A capital's shape: its rows and columns, and its districts as plot indices (row × cols + col). The basic mats are
  * 9 × 9 in nine 3×3 districts; an advanced mat may be taller or have districts of its own shape (#36).
- * @typedef {{ rows: number, cols: number, districts: readonly (readonly number[])[] }} Shape
+ * @typedef {{ rows: number, cols: number, districts: readonly (readonly number[])[], ids?: readonly string[], paths?: { imps: readonly number[], centre: number } }} Shape
+ *   `ids`: each district's character in its mat's map, when it has one; `paths`: the Netherworld's imps and centre (#40)
  */
 
 /** A basic capital is GRID_SIZE × GRID_SIZE plots, in 3 × 3 districts. */

@@ -522,10 +522,21 @@ function infiltratorsWords(hex, table) {
  * @type {Record<string, (decision: Decision, table: Table | undefined) => string>}
  */
 const TITLES = {
-	chooseTurn: (d) =>
-		Array.isArray(d.options) && !d.options.includes('advance')
-			? 'Take an income turn'
-			: 'Take income or advance',
+	chooseTurn: (d) => {
+		const options = Array.isArray(d.options) ? d.options : [];
+		// The Elder Ones and the Merfolk after income turn 5 (#40).
+		if (options.includes('merfolk')) {
+			return options.includes('advance')
+				? 'Take a Merfolk turn or advance'
+				: 'Take a Merfolk turn';
+		}
+		if (!options.includes('income')) {
+			return 'Take an advance turn';
+		}
+		return options.includes('advance')
+			? 'Take income or advance'
+			: 'Take an income turn';
+	},
 	chooseCapital: () => 'Choose your capital city',
 	chooseAutomaCivilization: () => 'Choose the Automa’s second civilization',
 	chooseCiv: (d) =>
@@ -655,6 +666,54 @@ const TITLES = {
 			? `${spaceName(d.track, d.space)}'s benefit, or your Renegades' next space instead?`
 			: "The benefit, or your Renegades' next space instead?",
 	// The Collectors (#37).
+	chooseCouncil: () =>
+		'High Council: reveal a response card for 1 resource of your choice?',
+	chooseRegulated: (d) =>
+		d.picked === 0
+			? "Superpower Regulators: a card's charms, or 9 VP?"
+			: 'Superpower Regulators: the charms of another card?',
+	chooseRecipient: (d) =>
+		typeof d.card === 'string'
+			? `Soothsaying: which opponent takes ${tapestryName(d.card)}?`
+			: 'Soothsaying: which opponent takes the card?',
+	choosePlot: (d, table) =>
+		d.purpose === 'weefolk'
+			? `Where does ${isCount(d.token) ? seatName(table, d.token) : 'the Weefolk'}'s Weefolk token go in your capital city?`
+			: 'Dream Monitors: where does your token go in your capital city?',
+	chooseHost: () => 'Weefolk: which opponent takes your token?',
+	choosePutAway: (d) =>
+		d.purpose === 'submerge'
+			? `Merfolk: submerge a card, down to ${isCount(d.keep) ? d.keep : 2} in your hand`
+			: `Merfolk: discard a card, down to ${isCount(d.keep) ? d.keep : 5} in your hand`,
+	chooseMerfolkTurn: () =>
+		'Merfolk: play a When Played card, or discard for 5 VP each?',
+	chooseGuess: () => 'Good Omens: what will the science die show?',
+	chooseSample: (d) => {
+		/** @type {Record<string, string>} */
+		const words = {
+			space: 'space tile',
+			tech: 'tech card',
+			masterpieces: 'masterpiece',
+		};
+		return `Psionics: keep which ${words[d.stack] ?? 'territory tile'}?`;
+	},
+	chooseRolls: (d) => {
+		// National Parks rolls one die (#40).
+		if (!Array.isArray(d.blacks)) {
+			return 'Psionics: keep which roll of the red die?';
+		}
+		return Array.isArray(d.reds)
+			? 'Psionics: keep which roll of each conquer die?'
+			: 'Psionics: keep which roll of the black die?';
+	},
+	chooseWish: (d, table) =>
+		d.left !== undefined
+			? 'Genies: which wish do you grant yourself?'
+			: `${isCount(d.genie) ? seatName(table, d.genie) : 'The Genies'}' wish: which do you score?`,
+	chooseArtifice: (d) =>
+		d.turn === 5
+			? 'Artificers: VP for your buildings, or a track flush left?'
+			: 'Artificers: set a building aside, or slide it left?',
 	chooseCollect: () =>
 		'Put it on your Collectors mat, for 1 resource of your choice?',
 	// A&A's Spymaster (#37, R127): asked of every neighbour holding a card.
@@ -810,6 +869,9 @@ const TITLES = {
 				? 'Revolution: stand up another toppled outpost?'
 				: 'Revolution: choose a territory where your toppled outpost stands back up';
 		}
+		if (d.purpose === 'celestials') {
+			return 'Celestials: drift your floating capital to a territory next door?';
+		}
 		if (d.purpose === 'zombieArmy') {
 			return "Zombie Army: take an outpost onto your income mat's overlay?";
 		}
@@ -821,6 +883,12 @@ const TITLES = {
 			? "Reserve a masterpiece on your income mat's overlay"
 			: "Reserve a space tile on your income mat's overlay",
 	chooseReserveTech: () => "Reserve a tech card on your income mat's overlay",
+	chooseTrackSpace: (d) =>
+		d.purpose === 'doppelgangers'
+			? "Doppelgangers: put a token on which opponent's space?"
+			: d.purpose === 'temporalNomadism'
+				? 'Temporal Nomadism: go back to which space?'
+				: "Déjà Vu: 7 VP, or a tier II space's benefit again?",
 	chooseGift: () => 'Give a territory tile to an opponent for 3 VP?',
 	// The Advisors' gift: instead of a neighbour's draw, or one of their new cards for VP (#33).
 	chooseGive: (d, table) => {
@@ -1078,6 +1146,9 @@ const ANSWERS = {
 		if (a.turn === 'income') {
 			return 'Take income';
 		}
+		if (a.turn === 'merfolk') {
+			return 'Merfolk turn';
+		}
 		return a.turn === 'advance' ? 'Advance' : null;
 	},
 	chooseCapital: (a) => {
@@ -1281,6 +1352,14 @@ const ANSWERS = {
 			? `Space tile ${a.item}: ${spaceTileWords(a.item, table)}`
 			: null;
 	},
+	chooseTrackSpace: (a, d) => {
+		if (a.vp === true) {
+			return `${isCount(d.vp) ? d.vp : 7} VP`;
+		}
+		return isTrack(a.track) && isCount(a.space)
+			? capitalize(spaceName(a.track, a.space))
+			: null;
+	},
 	chooseReserveTech: (a) => {
 		if (a.card === 'deck') {
 			return "The deck's top card";
@@ -1310,6 +1389,100 @@ const ANSWERS = {
 		const face = isCount(d[a.die]) ? faces[d[a.die]] : undefined;
 		const die = a.die === 'red' ? 'Red die' : 'Black die';
 		return face ? `${die}: ${effectPhrase(face, table)}` : die;
+	},
+	chooseCouncil: (a) => {
+		if (a.card === null) {
+			return 'Decline';
+		}
+		return typeof a.card === 'string'
+			? `Reveal ${tapestryName(a.card)}`
+			: null;
+	},
+	chooseRegulated: (a) => {
+		if (a.vp === true) {
+			return '9 VP';
+		}
+		if (a.done === true) {
+			return 'No more';
+		}
+		return typeof a.card === 'string'
+			? `${capitalize(tapestryName(a.card))}'s charms`
+			: null;
+	},
+	chooseRecipient: (a, d, table) => {
+		if (a.to === null) {
+			return 'Discard it';
+		}
+		return isCount(a.to) ? seatName(table, a.to) : null;
+	},
+	chooseHost: (a, d, table) => (isCount(a.to) ? seatName(table, a.to) : null),
+	choosePutAway: (a, d) => {
+		if (typeof a.card !== 'string') {
+			return null;
+		}
+		return d.purpose === 'submerge'
+			? `Submerge ${tapestryName(a.card)}`
+			: `Discard ${tapestryName(a.card)}`;
+	},
+	chooseMerfolkTurn: (a) => {
+		if (typeof a.play === 'string') {
+			return `Play ${tapestryName(a.play)} on era 4`;
+		}
+		return typeof a.discard === 'string'
+			? `Discard ${tapestryName(a.discard)} for 5 VP`
+			: null;
+	},
+	choosePlot: (a) =>
+		isCount(a.row) && isCount(a.col)
+			? `Row ${a.row + 1}, column ${a.col + 1}`
+			: null,
+	chooseGuess: (a) => (isTrack(a.track) ? trackName(a.track) : null),
+	chooseSample: (a, d, table) => {
+		if (typeof a.item === 'string') {
+			if (d.stack === 'tech') {
+				return techName(a.item);
+			}
+			return d.stack === 'masterpieces' ? masterpieceName(a.item) : null;
+		}
+		if (!isCount(a.item)) {
+			return null;
+		}
+		return d.stack === 'space'
+			? `Space tile ${a.item}: ${spaceTileWords(a.item, table)}`
+			: `Territory tile ${a.item}`;
+	},
+	chooseWish: (a) => {
+		/** @type {Record<string, string>} */
+		const words = {
+			landmark: '1 VP per landmark',
+			territoryTile: '1 VP per territory tile in your supply',
+			territory: '1 VP per territory you control',
+			techCard: '1 VP per tech card',
+		};
+		return typeof a.circle === 'string' ? (words[a.circle] ?? null) : null;
+	},
+	chooseArtifice: (a) => {
+		if (a.act === 'score') {
+			return '1 VP per income building off your mat';
+		}
+		if (typeof a.row !== 'string') {
+			return null;
+		}
+		const row = pluralOf(buildingName(a.row));
+		if (a.act === 'aside') {
+			return `Set your leftmost ${buildingName(a.row)} aside`;
+		}
+		if (a.act === 'slide') {
+			return `Slide your leftmost ${buildingName(a.row)} 1 space left`;
+		}
+		return a.act === 'flush' ? `Slide your ${row} flush left` : null;
+	},
+	chooseRolls: (a) => {
+		const words = [
+			...(isCount(a.red) ? [`Red ${a.red + 1}`] : []),
+			...(isCount(a.black) ? [`black ${a.black + 1}`] : []),
+		].join(', ');
+		return words ? words.charAt(0).toUpperCase() + words.slice(1) : null;
 	},
 	chooseCollect: (a, d) => {
 		if (a.slot === null) {

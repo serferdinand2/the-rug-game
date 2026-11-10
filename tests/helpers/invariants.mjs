@@ -77,7 +77,7 @@ export function checkState(state, previousSeq = 0) {
 
 	// #33: the kind of the turn being taken, once chosen; there is none outside play, nor without a current player.
 	assert.ok(
-		[null, 'advance', 'income'].includes(state.turnKind),
+		[null, 'advance', 'income', 'merfolk'].includes(state.turnKind),
 		`turn kind ${state.turnKind}`
 	);
 	if (state.turnKind !== null) {
@@ -106,6 +106,10 @@ export function checkState(state, previousSeq = 0) {
 			]),
 			// #33: the Recyclers' drawn cards wait in their keep question.
 			...opsOf('chooseKeepTech').flatMap((op) => op.options),
+			// #40: the Psionics' 2 drawn wait in their pick.
+			...opsOf('chooseSample')
+				.filter((op) => op.stack === 'tech')
+				.flatMap((op) => op.options),
 		],
 		techDeck(state.expansions, state.variants)
 	);
@@ -144,6 +148,8 @@ export function checkState(state, previousSeq = 0) {
 				...(p.civData.collectors?.items.tapestry !== undefined
 					? [p.civData.collectors.items.tapestry]
 					: []),
+				// #40: the Merfolk's submerged cards.
+				...(p.civData.merfolk?.submerged ?? []),
 			]),
 			// #37: the Gamblers' revealed cards, while they choose.
 			...opsOf('chooseSlot')
@@ -153,6 +159,8 @@ export function checkState(state, previousSeq = 0) {
 						op.purpose === 'gamblersKeep'
 				)
 				.flatMap((op) => op.then.cards),
+			// #40: a card Soothsaying revealed, waiting for its player to name who takes it.
+			...opsOf('chooseRecipient').map((op) => op.card),
 		],
 		tapestryFor(state.expansions, state.variants)
 	);
@@ -178,6 +186,10 @@ export function checkState(state, previousSeq = 0) {
 					(/** @type {any} */ lying) => (lying ? [lying.tile] : [])
 				)
 			),
+			// #40: drawn for the Psionics, waiting for their pick.
+			...opsOf('chooseSample')
+				.filter((op) => op.stack === 'territory')
+				.flatMap((op) => op.options),
 			// Printed territories (49 and up) are part of the map, not tiles.
 			...Object.values(state.hexes).flatMap((hex) =>
 				hex.tile !== null && TERRITORY_IDS.includes(hex.tile)
@@ -196,6 +208,10 @@ export function checkState(state, previousSeq = 0) {
 			...opsOf('chooseReserve')
 				.filter((op) => op.stack === 'space')
 				.flatMap((op) => op.options),
+			// #40: drawn for the Psionics, waiting for their pick.
+			...opsOf('chooseSample')
+				.filter((op) => op.stack === 'space')
+				.flatMap((op) => op.options),
 			...players.flatMap((p) => [
 				...p.spaceTiles,
 				...p.exploredSpace,
@@ -206,6 +222,10 @@ export function checkState(state, previousSeq = 0) {
 				// #33: the tile on the Aliens' mat.
 				...(typeof p.civData.aliens?.tile === 'number'
 					? [p.civData.aliens.tile]
+					: []),
+				// #40: the tile on the Werefolk's mat.
+				...(typeof p.civData.werefolk?.tile === 'number'
+					? [p.civData.werefolk.tile]
 					: []),
 			]),
 		],
@@ -233,6 +253,10 @@ export function checkState(state, previousSeq = 0) {
 					)
 				),
 				...opsOf('chooseReserve')
+					.filter((op) => op.stack === 'masterpieces')
+					.flatMap((op) => op.options),
+				// #40: the Psionics' 2 drawn wait in their pick.
+				...opsOf('chooseSample')
 					.filter((op) => op.stack === 'masterpieces')
 					.flatMap((op) => op.options),
 			],
@@ -413,6 +437,10 @@ export function checkState(state, previousSeq = 0) {
 				(building === 'house' && p.civData.collectors?.items.house
 					? 1
 					: 0) +
+				// #40: the Artificers' buildings set aside.
+				(p.civData.artificers?.aside ?? []).filter(
+					(/** @type {string} */ id) => id === building
+				).length +
 				// #39: reserved on the overlay.
 				(p.reserved ?? []).filter(
 					(/** @type {any} */ i) => i.building === building

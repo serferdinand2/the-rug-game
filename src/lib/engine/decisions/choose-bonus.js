@@ -58,8 +58,29 @@ export function offerBonus(ctx, op) {
 			space: op.space,
 			cost: structuredClone(cost),
 			gain: structuredClone(bonus.gain),
+			// Astral Expeditions (F&F, #40): the bonus paid may give a space tile, or explore one, instead (R76).
+			...(hasEra(ctx.state, player, 'astral-expeditions') && {
+				astral: true,
+			}),
 		},
 	]);
+}
+
+/**
+ * What Astral Expeditions lets a bonus paid give instead: a space tile, or exploring one from the supply when the player
+ * holds one (R76); nothing without it.
+ * @param {import('../state.js').State} state
+ * @param {import('../state.js').Operation} decision
+ * @returns {('gain' | 'explore')[]}
+ */
+function astralInstead(state, decision) {
+	if (!decision.astral) {
+		return [];
+	}
+	const seat = /** @type {any} */ (
+		seatOf(state, /** @type {number} */ (decision.player))
+	);
+	return seat.spaceTiles?.length > 0 ? ['gain', 'explore'] : ['gain'];
 }
 
 /** @type {import('../state.js').DecisionKind} */
@@ -77,13 +98,18 @@ export const chooseBonus = {
 		) {
 			return [{ pay: null }];
 		}
+		const paid = payments(
+			state,
+			/** @type {number} */ (decision.player),
+			decision.cost
+		);
+		const instead = astralInstead(state, decision);
 		return [
 			{ pay: null },
-			...payments(
-				state,
-				/** @type {number} */ (decision.player),
-				decision.cost
-			).map((payment) => ({ pay: payment })),
+			...paid.flatMap((payment) => [
+				{ pay: payment },
+				...instead.map((what) => ({ pay: payment, instead: what })),
+			]),
 		];
 	},
 	check(state, decision, answer) {
@@ -92,6 +118,14 @@ export const chooseBonus = {
 		}
 		if (answer.pay === undefined) {
 			throw new PlayerError('Pay for the bonus, or decline it.');
+		}
+		if (
+			answer.instead !== undefined &&
+			!astralInstead(state, decision).includes(answer.instead)
+		) {
+			throw new PlayerError(
+				'Take the bonus, or what Astral Expeditions offers instead.'
+			);
 		}
 		const out = buildingsOut(
 			state,
@@ -119,12 +153,18 @@ export const chooseBonus = {
 			player,
 			track: decision.track,
 			space: decision.space,
+			...(answer.instead && { instead: answer.instead }),
 		});
 		ctx.push([
 			{
 				player,
 				kind: 'effects',
-				effects: decision.gain,
+				effects:
+					answer.instead === 'gain'
+						? [{ gain: { space: 1 } }]
+						: answer.instead === 'explore'
+							? [{ exploreSpace: {} }]
+							: decision.gain,
 				ordered: true,
 				source: { track: decision.track, space: decision.space },
 			},

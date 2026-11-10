@@ -4,12 +4,15 @@ import { neighbours, playerSeat, seatOf } from './state.js';
 import { hasEra } from './abilities.js';
 import { takeTapestryCard } from './effects/gain.js';
 import { endEra, playTapestry } from './tapestry.js';
+import { playsOn } from './civs/elder-ones.js';
+import { askPutAway } from './civs/merfolk.js';
 import { endFirstIncomeTurn } from './civ-turns.js';
 import { INCOME_MAT, INSPIRED_MAT, TAPESTRY_SLOTS } from './data/income-mat.js';
 import { BUILDING_IDS } from './data/ids.js';
 import { artsInPlay } from './tracks-in-play.js';
 import { cityPlots, seatMat } from './city.js';
 import { askCloudMove } from './decisions/choose-cloud-move.js';
+import { reedsVp, savannaIncome } from './ff-mats.js';
 
 /** @typedef {import('./data/ids.js').BuildingId} BuildingId */
 
@@ -40,7 +43,20 @@ const ROW_SPACES = 6;
  */
 export function exposedSpaces(seat, row) {
 	const mat = seat.inspired?.includes(row) ? INSPIRED_MAT : INCOME_MAT;
-	return mat[row].slice(0, ROW_SPACES - seat.incomeMat.buildings[row]);
+	const left = seat.incomeMat.buildings[row];
+	// The Artificers (F&F, #40): a row slid flush left covers its first spaces; a slid leftmost building covers the
+	// space it moved onto and shows the one it left. The rest stay together at the row's right end.
+	if (left > 0 && seat.incomeMat.flush?.[row]) {
+		return mat[row].slice(left);
+	}
+	const slid = seat.incomeMat.slid?.[row] ?? 0;
+	if (left > 0 && slid > 0) {
+		const lead = ROW_SPACES - left - slid;
+		return mat[row].filter(
+			(_, i) => i !== lead && i < ROW_SPACES - left + 1
+		);
+	}
+	return mat[row].slice(0, ROW_SPACES - left);
 }
 
 /**
@@ -117,6 +133,17 @@ function incomeStep(ctx, player, turn) {
 			kind: 'effects',
 			effects: [{ vp: 2 * coins }],
 			origin: 'tapestry',
+		});
+	}
+	// The Savanna: 1 resource of your choice per filled district, on income turns 2–4 (FF.6 2.5, #40).
+	const savanna = turn >= 2 ? savannaIncome(playerSeat(state, player)) : 0;
+	if (savanna > 0) {
+		emit(state, { type: 'savannaIncome', player, districts: savanna });
+		ops.push({
+			player,
+			kind: 'effects',
+			effects: [{ gain: { any: savanna } }],
+			origin: 'capital',
 		});
 	}
 	const food = icons('food');
@@ -199,6 +226,7 @@ export const INCOME_STEPS = [
 	'score',
 	'income',
 	'civFirstTurnEnd',
+	'reeds',
 	'finish',
 ];
 
@@ -207,7 +235,11 @@ export const INCOME_STEP_KINDS = {
 	// Before step 1: the THIS ERA ability of the last era ends (01 §9.2).
 	eraEnd: {
 		turns: [2, 3, 4, 5],
-		run(ctx, player) {
+		run(ctx, player, turn) {
+			// The Elder Ones' and the Merfolk's era-4 card stays in effect through income turn 5 and after (DQ 7, #40).
+			if (turn === 5 && playsOn(playerSeat(ctx.state, player))) {
+				return;
+			}
 			endEra(ctx, player);
 		},
 	},
@@ -336,13 +368,49 @@ export const INCOME_STEP_KINDS = {
 		turns: [1],
 		run: endFirstIncomeTurn,
 	},
+	// The Quagmire: at the end of income turn 5, −5 VP per landmark on reeds and +3 per other landmark of the city
+	// (FF.6 2.4, R88, R89, #40).
+	reeds: {
+		turns: [5],
+		// Only with F&F, so a game without it schedules nothing more (final review).
+		when: (state) => state.expansions.includes('ff'),
+		run(ctx, player) {
+			const seat = playerSeat(ctx.state, player);
+			if (seat.capital.mat === null || !seatMat(seat).reeds) {
+				return;
+			}
+			const vp = reedsVp(seat);
+			emit(ctx.state, { type: 'reedsScored', player, vp });
+			if (vp !== 0) {
+				ctx.push([
+					{
+						player,
+						kind: 'effects',
+						effects: [{ vp }],
+						origin: 'capital',
+					},
+				]);
+			}
+		},
+	},
 	// After income turn 5 the player takes no more turns (01 §4.3). A THIS ERA ability played during it ends here,
 	// so it never outlives its player.
+	// R150: the Elder Ones and the Merfolk play on instead, their era-4 card still in effect (03 FF.3, DQ 7); the Merfolk first
+	// keep up to 5 cards (#40).
 	finish: {
 		turns: [5],
 		run(ctx, player) {
+			const seat = playerSeat(ctx.state, player);
+			if (playsOn(seat)) {
+				seat.playingOn = true;
+				emit(ctx.state, { type: 'playingOn', player });
+				if (seat.civs.includes('merfolk')) {
+					askPutAway(ctx, player, 5, 'discard');
+				}
+				return;
+			}
 			endEra(ctx, player);
-			playerSeat(ctx.state, player).finished = true;
+			seat.finished = true;
 			emit(ctx.state, { type: 'playerFinished', player });
 		},
 	},

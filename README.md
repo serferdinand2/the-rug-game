@@ -98,6 +98,10 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 |---|---|
 | ![Mira's setup at an Arts & Architecture table, the arts track fifth on the board behind: her Tropical and Grassland mats and the advanced Mesa stand on one shelf, the Mesa outlined in gold, over a second shelf with the Isolationists and Craftsmen cards, the Isolationists outlined and shrunk to fit under the mats; the panel "Choose your capital city and civilization" reads "Mesa with the Isolationists" beside Keep these](docs/ui/screens/game-aa-joint-pick.png) | ![Mira's first turn: the Capital tab shows Capital City · Mesa, its cliffs along the top and bottom edges, beside the board with the arts track and its masterpiece row](docs/ui/screens/game-aa-capital.png) |
 
+| Fantasies & Futures: an advanced mat in the Capital tab (#40, awaiting review) | Fantasies & Futures: a civilization's card as it stands (#40, awaiting review) |
+|---|---|
+| ![Ben's first turn at a Fantasies & Futures table: the Capital tab shows his advanced Veil, its worldly side's green meadow on the left and the charmed side's violet woods on the right behind the checked veil line, the mushrooms and boulders of its impassable plots, and the pocket icons for invent, research and an income building](docs/ui/screens/game-ff-capital.png) | ![Ana's first turn at a Fantasies & Futures table: the Civ tab shows her Celestials card, her blue token on its Drift box since her floating capital rests on her starting territory, beside its Setup and Income turn 5 boxes](docs/ui/screens/game-ff-civ.png) |
+
 | Dark cards: the switch in the menu (#167) |
 |---|
 | ![The play screen with the header menu open and its Dark cards switch on in gold: Bo's Historians card on the Civ tab is drawn dark, walnut paper with cream text, a near-black band under the gold title, a gold label, dark squares and a dark effect box, while the board and the panels keep their own colours](docs/ui/screens/game-dark-cards.png) |
@@ -254,7 +258,7 @@ The full plan is in [the design document](docs/superpowers/specs/2026-10-20-the-
 
 The research in [docs/research/](docs/research/) left 92 details unconfirmed, marked **[UNVERIFIED]**, plus a list of open questions. Each one has a decision here, so the engine never guesses. These decisions settle [#2](https://github.com/serferdinand2/the-rug-game/issues/2).
 
-- **Rule ids** (R1–R134) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
+- **Rule ids** (R1–R150) are stable. Cite them in code comments and test names, for example `// R16: only explored hexes can be conquered`.
 - **Versions.** A table plays either the **Original 2019 printing** or the **Current official rules**. A rule applies to both unless it names one.
 - **Sources** are trusted in this order:
   1. the Fantasies & Futures integrated rulebook;
@@ -465,7 +469,7 @@ How the ranking was built:
 </details>
 
 <details>
-<summary><b>Fantasies & Futures</b> (38 rules)</summary>
+<summary><b>Fantasies & Futures</b> (54 rules)</summary>
 
 | Rule | Question | Decision | Basis | Check |
 |---|---|---|---|---|
@@ -507,6 +511,22 @@ How the ranking was built:
 | R132 | In what order are the reserved items used on income turn 5? | The player chooses, one at a time; each is mandatory where possible. | 03 FF.2.2 gives no order. Claude's call, 2026-11-09 ([#39](https://github.com/serferdinand2/the-rug-game/issues/39)). | |
 | R133 | Ecstatic Visions: what does gaining the reserved masterpiece's benefits do on income turn 5? | The masterpiece joins the player's masterpieces and fires once at once, as one gained during the masterpiece step does. | 03 FF.4.3 #9. Claude's call, 2026-11-09 ([#39](https://github.com/serferdinand2/the-rug-game/issues/39)). | |
 | R134 | Who may gain a flipped single-use tech card's benefits? | Nobody, its owner included: no effect gains its circle or square again (the Spies, Information Age, the Recyclers' recycle, the Inventors' square). No opponent sends a player's single-use card to the top row, so the Inventors may not mark one in an opponent's middle row. A flipped card the Inventors take stays flipped and never upgrades; one paid away is a fresh card again. | 03 FF.2.3 (p11: others may not upgrade or use them; the card: "gain the square benefit once"), the Inventors FAQ (p29). Claude's call, 2026-11-09 ([#39](https://github.com/serferdinand2/the-rug-game/issues/39)). | |
+| R135 | Citadel of Power: what does the log say about the tech cards revealed? | Only how many were revealed and the landmark card found; the others go back into the deck, shuffled, unnamed. | 03 FF.4.3 #4 has every card seen; naming them would tell the table the deck. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R136 | Which token reads a track for Déjà Vu, Temporal Nomadism and Muses when a player has two (Doppelgangers)? | The player's most advanced token on it. | 03 FF.4.3 #6, #7, #25, #35. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R137 | Doppelgangers: what is the token copied onto an opponent's space? | A second token of the player's on that track, placed without benefit or bonus; later it advances like any of their tokens. | 03 FF.4.3 #7. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R138 | Good Omens: when is the guess made, and when is it right? | Before each science-die roll of its player while the card works; it is right when any face rolled shows the guessed track. The first right guess of a turn is rewarded once, at the turn's end. | 03 FF.4.3 #13; Mike Young. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R139 | Soothsaying: who receives each charmed card revealed? | An opponent of the player's choice, card by card; with no opponent, the card is discarded. | 03 FF.4.3 #31. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R140 | High Council: who is asked to reveal a response card? | Every player holding any tapestry card, in turn order from its player, so nobody learns who holds a response card; the server declines for a player without one, as for #17's responses. | 03 FF.4.3 #17; the owner's ruling that a defender is asked whenever they hold any card (#17). Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R141 | Can Double Cross or Stolen Plans counter an F&F response card? | No: they answer a trap only. | 03 FF.4.3 (the 5 response cards), 03 §1.4. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R142 | The Werefolk's flip: is it a die roll? | No, a coin flip with the game's random: the Psionics don't flip twice, and the Illuminati gain nothing. | 03 FF.3 Werefolk. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R143 | The Psionics: what happens to what they don't keep? | A tapestry card is discarded (Mike Young: "discard one"); a tile, tech card or masterpiece is shuffled back into its stack. Only draws from a deck or supply are sampled (DQ 19). | 03 FF.3 Psionics; BGG 3032237. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R144 | The Artificers' income turn 5: which income buildings score 1 VP? | Every income building off the mat, set-aside ones included (R71); a reserved one isn't built yet and doesn't count. | 03 FF.3 Artificers, R71. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R145 | The Faefolk: which tapestry cards are in sight? | The cards in hand and the top card of each era slot, a face-down one included (R73). | 03 FF.3 Faefolk, R73. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R146 | The Celestials' token: which outpost does it replace? | Their own outpost on the starting territory, else the first one standing there. | 03 FF.3 Celestials (DQ 6 lets the player choose). Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R147 | The Genies: what does a finished opponent drawn gain? | Nothing; the Genies choose the circle for them and still score it and its square. | 03 FF.3 Genies, DQ 11; BGA. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R148 | The Weefolk: whom may they give a token, and what may it replace? | An active opponent while one is left, a finished one otherwise (DQ 23); in a full city it replaces an income building, set aside beside the mat. | 03 FF.3 Weefolk, DQ 22, DQ 23. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R149 | The Illuminati: which roll pays them, and what does a finished Illuminati gain? | An opponent's first roll of each die on their mat: of a die rolled twice (the Psionics, the Treasure Hunters), the first roll. A finished Illuminati gains only the VP (DQ 14). | 03 FF.3 Illuminati, DQ 13, DQ 14 (Mike Young's reading). Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
+| R150 | The Elder Ones and the Merfolk after income turn 5: when does their game end, and what stays in effect? | A seat playing on is not finished: it gains as usual and takes its turns in turn order; when its turn comes and it has none to take (no advance to pay for, no card left), it finishes, and the game ends once every seat has. The era-4 card stays in effect until a card covers it or the seat finishes, for the Merfolk too. The Merfolk keep 5 cards at income turn 5's end, putting away one at a time; a discard turn is one card for 5 VP, then more at 5 VP each. | 03 FF.3, DQ 7 (the Merfolk: BGA's reading), DQ 8, DQ 16. Claude's call, 2026-11-10 ([#40](https://github.com/serferdinand2/the-rug-game/issues/40)). | |
 
 </details>
 

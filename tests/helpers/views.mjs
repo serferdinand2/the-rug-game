@@ -42,6 +42,21 @@ export function setupFacts(state) {
 const REVEALS = {
 	// R35: the Heralds' draw reveals every card, and the card found goes to the hand (#20 design §6).
 	cardsRevealed: ['cards', 'found'],
+	// F&F (#40): High Council's response card shown, Superpower Regulators' charmed cards shown, Soothsaying's five
+	// revealed, and each charmed one given to an opponent.
+	councilRevealed: ['card'],
+	charmsRevealed: ['cards'],
+	tapestryRevealed: ['cards'],
+	cardGiven: ['card'],
+};
+
+/**
+ * The questions whose field shows cards the rules revealed when they were asked, by kind: they stay shown while the
+ * question is open, though the cards are back in their holders' hands (Superpower Regulators, #40).
+ * @type {Record<string, string>}
+ */
+const REVEALED_OPS = {
+	chooseRegulated: 'options',
 };
 
 /**
@@ -161,6 +176,20 @@ export function checkViews(
 				if (typeof id === 'string') {
 					announced.add(id);
 				}
+			}
+		}
+	}
+	// The open questions whose field holds cards the rules revealed when they were asked (REVEALED_OPS).
+	// Pending anywhere on the stack: one may wait under another question before it is asked.
+	for (const op of [
+		...allOps(state),
+		...(before ? allOps(before) : []),
+	]) {
+		const field = REVEALED_OPS[op.kind];
+		for (const id of field ? [op[field]].flat() : []) {
+			if (typeof id === 'string') {
+				announced.add(id);
+				known.add(id);
 			}
 		}
 	}

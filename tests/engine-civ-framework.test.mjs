@@ -9,7 +9,12 @@ import { AFTER_SETUP } from '../src/lib/engine/after-setup.js';
 import { INCOME_STEPS, INCOME_STEP_KINDS } from '../src/lib/engine/income.js';
 import { CIVS, civsOf, offer } from '../src/lib/engine/civs/index.js';
 import { askSlot } from '../src/lib/engine/decisions/choose-slot.js';
-import { AA_CIVS, BASE_CIVS, PP_CIVS } from '../src/lib/engine/decks.js';
+import {
+	AA_CIVS,
+	FF_CIVS,
+	BASE_CIVS,
+	PP_CIVS,
+} from '../src/lib/engine/decks.js';
 import { newGame, startedGame, readyTurn, answer } from './helpers/engine.mjs';
 
 /** The civilizations startedGame() deals by default, in seat order. */
@@ -543,9 +548,11 @@ test('the original version applies no adjustment (R34)', (t) => {
 });
 
 test('civFirstTurnEnd runs at the end of income turn 1', (t) => {
-	assert.deepEqual(INCOME_STEPS.slice(-3), [
+	// The Quagmire's reeds come between them and the finish (#40).
+	assert.deepEqual(INCOME_STEPS.slice(-4), [
 		'income',
 		'civFirstTurnEnd',
+		'reeds',
 		'finish',
 	]);
 	assert.deepEqual(INCOME_STEP_KINDS.civFirstTurnEnd.turns, [1]);
@@ -744,7 +751,7 @@ test('a new seat holds no civilization data, and the civilization discards start
 	assert.deepEqual(civsOf(state, 9), []);
 	assert.deepEqual(
 		Object.keys(CIVS).sort(),
-		[...BASE_CIVS, ...PP_CIVS, ...AA_CIVS].sort()
+		[...BASE_CIVS, ...PP_CIVS, ...AA_CIVS, ...FF_CIVS].sort()
 	);
 	for (const [id, civ] of Object.entries(CIVS)) {
 		assert.equal(civ.id, id);

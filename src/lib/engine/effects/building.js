@@ -71,6 +71,10 @@ export function building(ctx, player, value) {
 		return;
 	}
 	seat.incomeMat.buildings[id] -= 1;
+	// The Artificers' slide moved the building just taken (#40).
+	if (seat.incomeMat.slid) {
+		delete seat.incomeMat.slid[id];
+	}
 	emit(ctx.state, { type: 'buildingGained', player, building: id });
 	ctx.push([
 		{ player, kind: 'placeBuilding', building: id },

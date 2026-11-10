@@ -11,6 +11,7 @@ import { exploreSpaceTile } from './explore.js';
 import { upgradeCard } from './tech.js';
 import { tapestryCard } from '../data/tapestry-cards.js';
 import { MAPS } from '../data/maps.js';
+import { psionic, sampleCard } from '../civs/psionics.js';
 
 /** @typedef {import('../data/ids.js').BuildingId} BuildingId */
 /**
@@ -93,6 +94,10 @@ export function reserve(ctx, player, value, op) {
 			return;
 		}
 		seat.incomeMat.buildings[id] -= 1;
+		// The Artificers' slide moved the building just taken (#40).
+		if (seat.incomeMat.slid) {
+			delete seat.incomeMat.slid[id];
+		}
 		addReserved(ctx, player, from, { building: id });
 		return;
 	}
@@ -112,7 +117,10 @@ export function reserve(ctx, player, value, op) {
 	}
 	if (value.space !== undefined || value.masterpiece !== undefined) {
 		const stack = value.space !== undefined ? 'space' : 'masterpieces';
-		const count = value.space ?? value.masterpiece;
+		// The Psionics draw one more (R74; draw 3 keep 1 becomes draw 4 keep 1, DQ 18).
+		const count =
+			(value.space ?? value.masterpiece) +
+			(psionic(state, player) ? 1 : 0);
 		/** @type {(number | string)[]} */
 		const drawn = [];
 		while (drawn.length < count) {
@@ -169,13 +177,26 @@ export function reserve(ctx, player, value, op) {
  * @param {number} player
  * @param {{ card: string | null, ability: string }} from
  * @param {string} choice - A face-up card's id, or `'deck'`
+ * @param {string} [kept] - The deck's card the Psionics kept of the 2 they drew (R74)
  */
-export function reserveTech(ctx, player, from, choice) {
+export function reserveTech(ctx, player, from, choice, kept) {
 	const tech = ctx.state.supply.tech;
-	/** @type {string | null} */
+	/** @type {string | null | undefined} */
 	let card = null;
 	if (choice === 'deck') {
-		card = drawTech(ctx);
+		if (kept !== undefined) {
+			card = kept;
+		} else if (psionic(ctx.state, player)) {
+			// The Psionics draw 2 and keep 1 (R74).
+			card = sampleCard(ctx, player, 'tech', () => drawTech(ctx), {
+				reserve: from,
+			});
+			if (card === undefined) {
+				return;
+			}
+		} else {
+			card = drawTech(ctx);
+		}
 	} else {
 		const slot = tech.faceUp.indexOf(choice);
 		if (slot !== -1) {

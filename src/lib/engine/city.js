@@ -8,6 +8,7 @@ import {
 } from '../capital.js';
 import { FOOTPRINTS } from '../art/footprints.js';
 import { capitalMat, impassablePlots, matShape } from './data/capitals.js';
+import { BUILDING_IDS } from './data/ids.js';
 
 /** @typedef {import('../capital.js').PlotKind} PlotKind */
 /** @typedef {import('../capital.js').Shape} Shape */
@@ -64,6 +65,10 @@ function piecePlots(seat, shape) {
 				plots[plotIndex(row, col, shape)] = 'landmark';
 			}
 		}
+	}
+	// F&F's player tokens fill their plots, but are neither buildings nor landmarks (R78, #40).
+	for (const { row, col } of seat.capital.tokens ?? []) {
+		plots[plotIndex(row, col, shape)] = 'token';
 	}
 	return plots;
 }
@@ -243,6 +248,10 @@ export function landmarkProblem(seat, piece, overImpassable = false) {
 	const shape = matShape(mat);
 	const cells = landmarkCells(piece);
 	const inside = cells.filter((c) => onGrid(c.row, c.col, shape));
+	// City in a Bottle: no landmark goes in the city; it may be set aside instead (FF.6 2.1, #40).
+	if (mat.noLandmarks) {
+		return `No landmark may go in your ${mat.name}.`;
+	}
 	if (inside.length === 0) {
 		return 'A landmark must cover at least one plot of your city.';
 	}
@@ -326,12 +335,53 @@ export function landmarkSpots(seat, landmark, overImpassable = false) {
 }
 
 /**
- * The districts (in the shape's order) with no empty plot; impassable plots count as filled.
+ * The Netherworld's imps (in order) whose plot and the centre's are covered and joined by an orthogonal chain of
+ * plots holding income buildings or landmarks; impassable plots and overhangs never link (FF.6 2.2, R87, #40).
+ * @param {readonly PlotKind[]} plots
+ * @param {Shape} shape
+ * @param {{ imps: readonly number[], centre: number }} paths
+ * @returns {number[]}
+ */
+function joinedImps(plots, shape, paths) {
+	const link = (/** @type {number} */ i) =>
+		plots[i] === 'landmark' ||
+		/** @type {readonly string[]} */ (BUILDING_IDS).includes(plots[i]);
+	if (!link(paths.centre)) {
+		return [];
+	}
+	const reached = new Set([paths.centre]);
+	const queue = [paths.centre];
+	while (queue.length > 0) {
+		const at = /** @type {number} */ (queue.shift());
+		const row = Math.floor(at / shape.cols);
+		const col = at % shape.cols;
+		for (const [r, c] of [
+			[row - 1, col],
+			[row + 1, col],
+			[row, col - 1],
+			[row, col + 1],
+		]) {
+			const next = r * shape.cols + c;
+			if (onGrid(r, c, shape) && !reached.has(next) && link(next)) {
+				reached.add(next);
+				queue.push(next);
+			}
+		}
+	}
+	return paths.imps.flatMap((imp, i) => (reached.has(imp) ? [i] : []));
+}
+
+/**
+ * The districts (in the shape's order) with no empty plot; impassable plots count as filled. The Netherworld's are its
+ * imps, each complete once joined to the centre (#40).
  * @param {readonly PlotKind[]} plots
  * @param {Shape} [shape] - The basic mats' without it
  * @returns {number[]}
  */
 export function completeDistricts(plots, shape) {
+	if (shape?.paths) {
+		return joinedImps(plots, shape, shape.paths);
+	}
 	return groupsOf('districts', shape).flatMap((group, i) =>
 		group.every((index) => plots[index] !== 'empty') ? [i] : []
 	);

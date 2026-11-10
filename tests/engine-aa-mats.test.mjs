@@ -56,9 +56,12 @@ function printed(mat, symbol) {
 	);
 }
 
+/** A&A's six advanced mats; F&F's follow them (#40). */
+const AA_MATS = ADVANCED_MATS.filter((m) => m.expansion === 'aa');
+
 test('the six A&A mats are numbered 7–12 (R49)', () => {
 	assert.deepEqual(
-		ADVANCED_MATS.map((m) => [m.number, m.id, m.name, m.expansion]),
+		AA_MATS.map((m) => [m.number, m.id, m.name, m.expansion]),
 		[
 			[7, 'archipelago', 'Archipelago', 'aa'],
 			[8, 'canyon', 'Canyon', 'aa'],
@@ -71,13 +74,14 @@ test('the six A&A mats are numbered 7–12 (R49)', () => {
 	for (let n = 1; n <= 12; n++) {
 		assert.equal(capitalMat(n).number, n);
 	}
-	assert.throws(() => capitalMat(13), /no capital mat 13/i);
+	// F&F's are 13–18 (#40).
+	assert.throws(() => capitalMat(19), /no capital mat 19/i);
 	assert.ok(Object.isFrozen(ADVANCED_MATS[0].grid));
 });
 
 test("each mat's plots match 03 §2", () => {
 	const impassable = Object.fromEntries(
-		ADVANCED_MATS.map((m) => [m.id, impassablePlots(m).length])
+		AA_MATS.map((m) => [m.id, impassablePlots(m).length])
 	);
 	assert.deepEqual(impassable, {
 		archipelago: 44,
@@ -106,7 +110,7 @@ test("each mat's plots match 03 §2", () => {
 		[6, 5],
 		[7, 7],
 	]);
-	for (const mat of ADVANCED_MATS.filter((m) => m.number !== 7)) {
+	for (const mat of AA_MATS.filter((m) => m.number !== 7)) {
 		assert.equal(mat.grid.length, 9, mat.id);
 		assert.ok(
 			mat.grid.every((line) => /^[01CL]{9}$/.test(line)),
@@ -142,7 +146,7 @@ test("R51: Cavern's rows score 2 and 3, its columns 0", () => {
 	assert.deepEqual(cavern.rowValues, [2, 2, 2, 2, 2, 2, 3, 3, 3]);
 	assert.equal(cavern.columnValue, 0);
 	assert.equal(cavern.gated, true);
-	for (const mat of ADVANCED_MATS.filter((m) => m.number !== 9)) {
+	for (const mat of AA_MATS.filter((m) => m.number !== 9)) {
 		assert.equal(mat.rowValues, undefined, mat.id);
 		assert.equal(mat.columnValue, undefined, mat.id);
 	}
@@ -152,7 +156,7 @@ test("R51: Cavern's rows score 2 and 3, its columns 0", () => {
 });
 
 test("the engine's layouts agree with #132's art", () => {
-	for (const mat of ADVANCED_MATS) {
+	for (const mat of AA_MATS) {
 		const art = ART[/** @type {keyof typeof ART} */ (mat.id)];
 		assert.deepEqual(
 			mat.grid.map((line) => line.replace(/1/g, 'X').replace(/0/g, '.')),

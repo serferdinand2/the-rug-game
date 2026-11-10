@@ -230,6 +230,7 @@
 		plots={capital.plots}
 		shape={capital.shape}
 		biome={capital.biome}
+		tokens={capital.tokens ?? []}
 		terrainSeed={capital.terrainSeed}
 		pieces={pieces ?? capital.pieces}
 		{positions}

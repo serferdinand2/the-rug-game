@@ -1,6 +1,6 @@
 // The THIS ERA cards' triggers: what a card's ability does when something happens to a player (design §6).
 import { emit } from './events.js';
-import { playerSeat } from './state.js';
+import { playerSeat, neighbours } from './state.js';
 import { currentEra } from './tapestry.js';
 import { techCard } from './data/tech-cards.js';
 import { TRACKS } from './data/tracks.js';
@@ -217,6 +217,58 @@ export const ERA_HOOKS = {
 	terraforming: {
 		piecePlaced: (_state, owner, { player, impassable }) =>
 			owner === player && impassable > 0 ? [vp(owner, 5)] : [],
+	},
+	// Robotic Decoys played as a tapestry (F&F, #40): after you or a neighbour advances on Science, you may pay 1 coin
+	// for 1 worker and 5 VP.
+	'robotic-decoys': {
+		advanced: (state, owner, { player, track }) =>
+			track === 'science' &&
+			(player === owner || neighbours(state, owner).includes(player))
+				? [
+						effects(owner, [
+							{
+								trade: {
+									offers: [
+										{
+											pay: { coin: 1 },
+											gain: [
+												{ gain: { worker: 1 } },
+												{ vp: 5 },
+											],
+										},
+									],
+									optional: true,
+								},
+							},
+						]),
+					]
+				: [],
+	},
+	// Living Cities (F&F, #40): a landmark gained scores 1 VP per farm.
+	'living-cities': {
+		landmarkGained: (_state, owner, { player }) =>
+			owner === player ? [effects(owner, [{ vp: { per: 'farm' } }])] : [],
+	},
+	// Interdimensional Trade (F&F, #40): a tapestry card gained may be traded for any card discarded, an invent and 2 VP.
+	'interdimensional-trade': {
+		tapestryGained: (_state, owner, { player }) =>
+			owner === player
+				? [
+						effects(owner, [
+							{
+								trade: {
+									offers: [
+										{
+											pay: { tapestry: 1 },
+											gain: [{ invent: {} }, { vp: 2 }],
+										},
+									],
+									optional: true,
+								},
+							},
+						]),
+					]
+				: [],
 	},
 	tyranny: {
 		// Playing a card covers Tyranny, which ends it; a copy with no card behind it (the Heralds on Espionage) ends

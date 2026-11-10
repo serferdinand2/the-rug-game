@@ -55,14 +55,19 @@ export const chooseTurn = {
 	check(state, decision, answer) {
 		if (
 			answer.turn === 'advance' &&
-			!decision.options.includes('advance')
+			!decision.options.includes('advance') &&
+			!decision.options.includes('merfolk')
 		) {
 			throw new PlayerError(
 				"You can't pay for any advance, so take an income turn."
 			);
 		}
 		if (!decision.options.includes(answer.turn)) {
-			throw new PlayerError('Choose an income turn or an advance turn.');
+			throw new PlayerError(
+				decision.options.includes('merfolk')
+					? 'Choose a Merfolk turn or an advance turn.'
+					: 'Choose an income turn or an advance turn.'
+			);
 		}
 	},
 	resolve(ctx, decision, answer) {
@@ -73,6 +78,11 @@ export const chooseTurn = {
 		emit(state, { type: 'turnChosen', player, turn: answer.turn });
 		if (answer.turn === 'income') {
 			startIncomeTurn(ctx, player);
+			return;
+		}
+		// The Merfolk after income turn 5: a card played or discarded (03 FF.3, #40).
+		if (answer.turn === 'merfolk') {
+			ctx.push([{ player, kind: 'chooseMerfolkTurn' }]);
 			return;
 		}
 		// What an advance turn offers comes before its advance, told whether some advance is affordable, and after the

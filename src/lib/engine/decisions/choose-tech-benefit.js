@@ -20,6 +20,21 @@ export const chooseTechBenefit = {
 		}
 	},
 	resolve(ctx, decision, answer) {
+		// Technomancy picks 2 (#40): the next pick comes after this card's benefit, from the cards left.
+		if (decision.count > 1) {
+			const options = decision.options.filter(
+				(/** @type {string} */ card) => card !== answer.card
+			);
+			ctx.push([
+				{
+					player: decision.player,
+					kind: 'chooseTechBenefit',
+					icon: decision.icon,
+					options,
+					count: decision.count - 1,
+				},
+			]);
+		}
 		useTechBenefit(
 			ctx,
 			/** @type {number} */ (decision.player),

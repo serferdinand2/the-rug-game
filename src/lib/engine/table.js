@@ -54,6 +54,8 @@ const DECLINABLE = [
 	'chooseGive',
 	// A&A's Spymaster (R127).
 	'chooseSpymaster',
+	// F&F's High Council: asked whenever the seat holds any card (#40).
+	'chooseCouncil',
 ];
 
 /**
@@ -125,7 +127,9 @@ export function revealed(before, after) {
 		if (
 			!same(was.hand, is.hand) ||
 			!same(was.picks, is.picks) ||
-			!same(was.incomeMat.faceDown, is.incomeMat.faceDown)
+			!same(was.incomeMat.faceDown, is.incomeMat.faceDown) ||
+			// The Merfolk's submerged cards, which only their player sees (#40).
+			!same(was.civData.merfolk?.submerged, is.civData.merfolk?.submerged)
 		) {
 			return true;
 		}

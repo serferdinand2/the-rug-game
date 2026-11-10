@@ -2,6 +2,7 @@
 import { emit } from '../events.js';
 import { shuffle } from '../random.js';
 import { neighbours, playerSeat } from '../state.js';
+import { psionic } from '../civs/psionics.js';
 import { triggered } from '../abilities.js';
 import { RESOURCE_IDS } from '../data/ids.js';
 
@@ -171,11 +172,17 @@ export function gain(ctx, player, value) {
 	if (Object.keys(named).length > 0) {
 		gainResources(ctx, player, named);
 	}
-	if (value.territory) {
-		gainTiles(ctx, player, 'territory', value.territory);
-	}
-	if (value.space) {
-		gainTiles(ctx, player, 'space', value.space);
+	// The Psionics draw 2 tiles for each and keep 1, the other shuffled back (03 FF.3, R74; #40).
+	const sampled = psionic(ctx.state, player);
+	for (const stack of /** @type {const} */ (['territory', 'space'])) {
+		if (!value[stack]) {
+			continue;
+		}
+		if (sampled) {
+			sampleTiles(ctx, player, stack, value[stack]);
+		} else {
+			gainTiles(ctx, player, stack, value[stack]);
+		}
 	}
 	/** @type {import('../state.js').NewOperation[]} */
 	const ops = [];
@@ -188,6 +195,31 @@ export function gain(ctx, player, value) {
 		advisorsBeside(ctx.state, player) !== null
 	) {
 		ops.push({ player, kind: 'advisorsDraw', count: value.tapestry });
+	} else if (value.tapestry && psionic(ctx.state, player)) {
+		// The Psionics: each card drawn 2 to keep 1, the other discarded (R143); a draft's draw takes one more (R74, #53's handoff; #40).
+		if (value.keep !== undefined) {
+			const cards = drawTapestry(ctx, player, value.tapestry + 1);
+			if (cards.length > value.keep) {
+				ops.push({
+					player,
+					kind: 'chooseKeep',
+					options: cards,
+					keep: value.keep,
+				});
+			}
+		} else {
+			for (let i = 0; i < value.tapestry; i++) {
+				const cards = drawTapestry(ctx, player, 2);
+				if (cards.length > 1) {
+					ops.push({
+						player,
+						kind: 'chooseKeep',
+						options: cards,
+						keep: 1,
+					});
+				}
+			}
+		}
 	} else if (value.tapestry) {
 		const cards = drawTapestry(ctx, player, value.tapestry);
 		if (value.keep !== undefined && cards.length > value.keep) {
@@ -210,6 +242,32 @@ export function gain(ctx, player, value) {
 			count: value.any,
 			from: 'any',
 		});
+	}
+	ctx.push(ops);
+}
+
+/**
+ * The Psionics' tiles: for each, 2 drawn from the stack to keep 1, the other shuffled back (03 FF.3, R74; #40). With
+ * one left it is taken; with none, nothing.
+ * @param {import('../state.js').Context} ctx
+ * @param {number} player
+ * @param {'territory' | 'space'} stack
+ * @param {number} count
+ */
+export function sampleTiles(ctx, player, stack, count) {
+	/** @type {import('../state.js').NewOperation[]} */
+	const ops = [];
+	for (let i = 0; i < count; i++) {
+		const drawn = ctx.state.supply[stack].splice(0, 2);
+		if (drawn.length === 0) {
+			break;
+		}
+		if (drawn.length === 1) {
+			ctx.state.supply[stack].unshift(...drawn);
+			gainTiles(ctx, player, stack, 1);
+			continue;
+		}
+		ops.push({ player, kind: 'chooseSample', stack, options: drawn });
 	}
 	ctx.push(ops);
 }

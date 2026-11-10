@@ -9,7 +9,9 @@
  * an option's or an ordered effect's art, a slot's track or resource, an income row's building (#35) or a science
  * die's body (#35).
  * @typedef {'track' | 'resources' | 'payment' | 'die' | 'landmark' | 'space-tile' | 'gift' | 'explore' | 'civ'
- *   | 'placement' | 'option' | 'order' | 'slot' | 'row' | 'science-die'} ArtShape
+ *   | 'placement' | 'option' | 'order' | 'slot' | 'row' | 'science-die' | 'sample' | 'rolls' | 'merfolk'} ArtShape
+ *   F&F (#40): `sample` what the Psionics drew, by its stack; `rolls` the dice results they keep; `merfolk` the card a
+ *   Merfolk turn plays or discards
  */
 
 /**
@@ -38,6 +40,9 @@ export const ART_SHAPES = Object.freeze([
 	'slot',
 	'row',
 	'science-die',
+	'sample',
+	'rolls',
+	'merfolk',
 ]);
 
 /**
@@ -105,6 +110,26 @@ export const DECISION_KINDS = Object.freeze({
 	// F&F's reservations (#39): a space tile or a masterpiece kept of those drawn, or a tech card for Lost Artifacts.
 	chooseReserve: { art: 'space-tile', confirm: 'Reserve' },
 	chooseReserveTech: { shelf: 'tech', confirm: 'Reserve' },
+	// Déjà Vu's and Temporal Nomadism's track spaces (#40).
+	chooseTrackSpace: { art: 'track' },
+	// High Council's reveal and Superpower Regulators' picks, among cards (#40).
+	chooseCouncil: { shelf: 'tapestry', tab: 'hand' },
+	chooseRegulated: { shelf: 'tapestry' },
+	// Soothsaying's recipient, Dream Monitors' plot and Good Omens' guess (#40).
+	chooseRecipient: {},
+	choosePlot: { tab: 'capital' },
+	chooseGuess: { art: 'track' },
+	// The Psionics' extra tile and dice (#40).
+	chooseSample: { tab: 'terrain', art: 'sample', confirm: 'Keep' },
+	chooseRolls: { art: 'rolls', confirm: 'Keep' },
+	// The Artificers' income turns (#40): the Income tab shows the mat.
+	chooseArtifice: { tab: 'income' },
+	// The Genies' wish (#40).
+	chooseWish: {},
+	chooseHost: {},
+	// The Merfolk (#40): a card under the mat or onto the discards, and their turn after income turn 5.
+	choosePutAway: { shelf: 'tapestry', tab: 'hand' },
+	chooseMerfolkTurn: { tab: 'hand', art: 'merfolk' },
 	chooseGift: { tab: 'terrain', art: 'gift' },
 	// The Advisors' gift from their hand (#33), often asked on another player's turn, as a response is.
 	chooseGive: { shelf: 'tapestry', confirm: 'Give card' },
@@ -194,5 +219,15 @@ export function decisionFacts(decision) {
 		decision.kind === 'chooseSlot' && typeof decision.purpose === 'string'
 			? SLOT_SHELVES[decision.purpose]
 			: undefined;
-	return slot ? { ...facts, shelf: slot.shelf, tab: slot.tab } : facts;
+	if (slot) {
+		return { ...facts, shelf: slot.shelf, tab: slot.tab };
+	}
+	// The Psionics' tech card opens the Tech tab, their masterpiece none (#40).
+	if (decision.kind === 'chooseSample' && decision.stack === 'tech') {
+		return { ...facts, tab: 'tech' };
+	}
+	if (decision.kind === 'chooseSample' && decision.stack === 'masterpieces') {
+		return { ...facts, tab: null };
+	}
+	return facts;
 }

@@ -5,12 +5,13 @@ import { deepFreeze } from './ids.js';
 /**
  * A capital city mat, basic or advanced.
  * @typedef {Object} CapitalMat
- * @property {number} number - As printed: 1–6 basic, 7–12 Arts & Architecture (R49)
+ * @property {number} number - As printed: 1–6 basic, 7–12 Arts & Architecture (R49), 13–18 Fantasies & Futures (FF.6 2.0)
  * @property {string} id - The catalog slug, such as 'mountain'
  * @property {string} name
  * @property {readonly string[]} grid - The rows, top first, as in 01 §6.2 and 03 §2: '1' is impassable, '0' is open, 'C'
- * a cactus and 'L' a lily pad (both open plots)
- * @property {'aa'} [expansion] - The expansion of an advanced mat
+ * a cactus and 'L' a lily pad (both open plots); F&F's 'U' unicorn and 'W' wisp (impassable), 'R' reed, 'I' imp and 'M'
+ * the Netherworld's centre (open)
+ * @property {'aa' | 'ff'} [expansion] - The expansion of an advanced mat
  * @property {readonly string[]} [districts] - One character per plot, row by row: the district it belongs to, or '.' for
  * none (the Archipelago's water). Districts are ordered by their characters. Without it, the nine 3×3 squares.
  * @property {readonly number[]} [rowValues] - VP for each complete row, top first; 1 each without it (R51)
@@ -20,6 +21,16 @@ import { deepFreeze } from './ids.js';
  * @property {number} [cloudMoves] - Income buildings that may move between districts at the start of income turns 2–5
  * (Cloud City)
  * @property {number} [lilyPenalty] - VP lost per lily pad still showing at the start of income turn 5 (the Swamp, R52)
+ * @property {import('./effects.js').Effect[]} [districtReward] - What completing any of its districts gives, when not 1
+ *   resource of your choice (the Netherworld's 2, #40)
+ * @property {{ [district: string]: import('./effects.js').Effect[] | undefined }} [districtRewards] - What completing a district gives, by
+ *   its character in `districts` (Polar's lines, the Veil's pockets; #40)
+ * @property {true} [districtIncome] - Its districts give nothing when completed, but 1 resource each in the income of
+ *   turns 2–4 (the Savanna, #40)
+ * @property {true} [noLandmarks] - No landmark may go in this city (City in a Bottle, #40)
+ * @property {number} [asideVp] - VP for each landmark set aside beside the mat (City in a Bottle's 6, #40)
+ * @property {{ on: number, off: number }} [reeds] - VP at the end of income turn 5 for each landmark of the city on its
+ *   reeds ('R') and off them (the Quagmire's −5 and +3, R88, R89; #40)
  */
 
 /**
@@ -291,6 +302,171 @@ export const ADVANCED_MATS = deepFreeze([
 		],
 		lilyPenalty: 2,
 	},
+	// Fantasies & Futures' six (03 FF.6, #40), numbered as their headers print them. Grids: '1' impassable, 'U' a unicorn
+	// and 'W' a will-o'-the-wisp (both impassable, FF.6 2.0), 'R' a reed, 'I' an imp and 'M' the Netherworld's centre (all
+	// open plots).
+	{
+		number: 13,
+		id: 'quagmire',
+		name: 'Quagmire',
+		expansion: 'ff',
+		reeds: { on: -5, off: 3 },
+		grid: [
+			'000001WR0',
+			'000001R00',
+			'000010000',
+			'0001WR000',
+			'0001R0000',
+			'000100000',
+			'0011000R1',
+			'0RW100RW1',
+			'011110111',
+		],
+	},
+	{
+		number: 14,
+		id: 'city-in-a-bottle',
+		name: 'City in a Bottle',
+		expansion: 'ff',
+		noLandmarks: true,
+		asideVp: 6,
+		grid: ['011001', '010101', '000110', '011010', '110001', '001110'],
+		// Six districts, each 3 rows tall and 2 columns wide (FF.6 2.1).
+		districts: ['112233', '112233', '112233', '445566', '445566', '445566'],
+	},
+	{
+		number: 15,
+		id: 'veil',
+		name: 'Veil',
+		expansion: 'ff',
+		grid: [
+			'000000110',
+			'000001000',
+			'000000100',
+			'000000111',
+			'000001000',
+			'000011000',
+			'000111000',
+			'001100101',
+			'111000011',
+		],
+		// The worldly side's five 3×3 districts a–e, and the charmed side's pockets T, R and B (FF.6 2.6, R90).
+		districts: [
+			'aaabbb..T',
+			'aaabbbTTT',
+			'aaabbb.TT',
+			'cccddd...',
+			'cccdddRRR',
+			'cccdddRRR',
+			'eee...RRR',
+			'eee.BB.R.',
+			'eeeBBBB..',
+		],
+		// R90: T invents, R researches with benefit and a payable bonus, B gains any income building.
+		districtRewards: {
+			T: [{ invent: {} }],
+			R: [{ research: {} }],
+			B: [{ anyBuilding: {} }],
+		},
+	},
+	{
+		number: 16,
+		id: 'savanna',
+		name: 'Savanna',
+		expansion: 'ff',
+		grid: [
+			'0000111U1',
+			'0001U0000',
+			'000000000',
+			'000100000',
+			'U11U00110',
+			'110001U00',
+			'000001100',
+			'000000000',
+			'1U0000000',
+		],
+		// Each district the 3×3 around a unicorn, clipped at the edge; the grey plots belong to none (FF.6 2.5).
+		districts: [
+			'...111222',
+			'...111222',
+			'...111...',
+			'33444....',
+			'33444555.',
+			'33444555.',
+			'.....555.',
+			'666......',
+			'666......',
+		],
+		districtIncome: true,
+	},
+	{
+		number: 17,
+		id: 'polar',
+		name: 'Polar',
+		expansion: 'ff',
+		grid: [
+			'000100100',
+			'000011000',
+			'000100111',
+			'000100001',
+			'001011110',
+			'110011000',
+			'000001000',
+			'000010000',
+			'000100000',
+		],
+		// The six field lines A–F, each its ringed plots and the impassable plots on it (FF.6 2.3).
+		districts: [
+			'.A..B.C..',
+			'..A.B..CC',
+			'D..A.B...',
+			'.D..A.BBB',
+			'..D..A...',
+			'E..DD.AAA',
+			'.EEE.D...',
+			'F...E.DD.',
+			'.F...E..D',
+		],
+		// R91: lines A–F pay 2, 2, 1, 2, 1 and 1 resources.
+		districtRewards: {
+			A: [{ gain: { any: 2 } }],
+			B: [{ gain: { any: 2 } }],
+			C: [{ gain: { any: 1 } }],
+			D: [{ gain: { any: 2 } }],
+			E: [{ gain: { any: 1 } }],
+			F: [{ gain: { any: 1 } }],
+		},
+	},
+	{
+		number: 18,
+		id: 'netherworld',
+		name: 'Netherworld',
+		expansion: 'ff',
+		grid: [
+			'100011000',
+			'1I00100I0',
+			'101110000',
+			'100000111',
+			'1000M0000',
+			'011000000',
+			'000011100',
+			'0I01100I0',
+			'000100000',
+		],
+		districtReward: [{ gain: { any: 2 } }],
+		// No square districts: each imp's district is its path to the centre (FF.6 2.2, R87).
+		districts: [
+			'.........',
+			'.........',
+			'.........',
+			'.........',
+			'.........',
+			'.........',
+			'.........',
+			'.........',
+			'.........',
+		],
+	},
 ]);
 
 /**
@@ -309,7 +485,7 @@ export function capitalMat(number) {
 }
 
 /**
- * The advanced mats a table deals from: Arts & Architecture's with it on, none without.
+ * The advanced mats a table deals from: Arts & Architecture's and Fantasies & Futures' with each on, none without.
  * @param {readonly string[]} expansions
  * @returns {number[]}
  */
@@ -342,9 +518,19 @@ export function matShape(mat) {
 		};
 	}
 	const ids = [...new Set(map.join('').replaceAll('.', ''))].sort();
+	// The Netherworld's imps: each one's district is complete once a path joins it to the centre (FF.6 2.2, #40).
+	const at = (/** @type {string} */ symbol) =>
+		mat.grid.flatMap((line, row) =>
+			[...line].flatMap((ch, col) =>
+				ch === symbol ? [row * cols + col] : []
+			)
+		);
+	const imps = at('I');
 	return {
 		rows,
 		cols,
+		ids,
+		...(imps.length > 0 && { paths: { imps, centre: at('M')[0] } }),
 		districts: ids.map((id) =>
 			map.flatMap((line, row) =>
 				[...line].flatMap((ch, col) =>
@@ -355,6 +541,9 @@ export function matShape(mat) {
 	};
 }
 
+/** The grid symbols of impassable plots: a dot, and F&F's unicorns and will-o'-the-wisps (FF.6 2.0, #40). */
+export const IMPASSABLE = Object.freeze(['1', 'U', 'W']);
+
 /**
  * The impassable plots of a mat, as plot indices in its row-by-row order.
  * @param {CapitalMat} mat
@@ -363,6 +552,8 @@ export function matShape(mat) {
 export function impassablePlots(mat) {
 	const cols = mat.grid[0].length;
 	return mat.grid.flatMap((line, row) =>
-		[...line].flatMap((ch, col) => (ch === '1' ? [row * cols + col] : []))
+		[...line].flatMap((ch, col) =>
+			IMPASSABLE.includes(ch) ? [row * cols + col] : []
+		)
 	);
 }

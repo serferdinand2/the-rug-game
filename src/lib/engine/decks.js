@@ -58,6 +58,23 @@ export const AA_CIVS = Object.freeze([
 ]);
 
 /**
+ * Fantasies & Futures' civilizations, in the order built; each civilization's step appends its id (#40).
+ * @type {readonly string[]}
+ */
+export const FF_CIVS = Object.freeze([
+	'werefolk',
+	'psionics',
+	'artificers',
+	'faefolk',
+	'celestials',
+	'genies',
+	'weefolk',
+	'illuminati',
+	'elder-ones',
+	'merfolk',
+]);
+
+/**
  * The civilizations a game with these expansions deals from: the base 16, then Plans & Ploys' built ones (#33), then
  * A&A's (#37). With the variant "All civilizations from Plans & Ploys" the deck is the Plans & Ploys ones only.
  * @param {readonly string[]} expansions
@@ -72,6 +89,7 @@ export function civsFor(expansions, variants = []) {
 		...BASE_CIVS,
 		...(expansions.includes('pp') ? PP_CIVS : []),
 		...(expansions.includes('aa') ? AA_CIVS : []),
+		...(expansions.includes('ff') ? FF_CIVS : []),
 	];
 }
 

@@ -49,7 +49,7 @@ import { deepFreeze } from './ids.js';
  * - `incomeBuilding`: every income building you own, of every type (R71; the Holocenter, #35);
  * - `capitalRow`, `capitalColumn`: the complete rows or columns of your capital city, which is not scoring it (Ballet,
  *   Modern Dance, 03 §2.12).
- * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId | 'incomeBuilding' | 'capitalRow' | 'capitalColumn' | 'buildingLeft'} VpCounter
+ * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId | 'incomeBuilding' | 'capitalRow' | 'capitalColumn' | 'buildingLeft' | 'marketRow' | 'charm'} VpCounter
  */
 
 /**
@@ -108,6 +108,10 @@ import { deepFreeze } from './ids.js';
  *   every item, in the player's order (R132); `discardSpace`: a space tile from the supply to the discards (03 FF.2.2, #39).
  * - `exploreSpace` with `tile` explores that tile from the player's supply only (#39).
  * - `ecstaticVisions`: the rules of the F&F card of that name (#39).
+ * - `alienDisclosure`, `chimera`, `citadelOfPower`, `dejaVu`, `muses`, `technomancy`, `temporalNomadism`,
+ *   `uploadedConsciousness`, `doppelgangers`, `seerSight`, `dreamMonitors`, `highCouncil`, `soothsaying`,
+ *   `superpowerRegulators`: the rules of the F&F card of that name (#40).
+ * - `elderDiscard`: the Elder Ones' income turn 5, a card discarded for 2 resources, `left` more times (#40).
  * - `politicalPosturing`, `spymaster`, `ageOfEnlightenment`, `silkRoad`, `infrastructureUpgrade`, `plague`, `granges`: the rules of the Arts & Architecture card of that name (#37).
  * @typedef {{ gain: Gain }
  *   | { lose: { culture?: number, any?: number } }
@@ -115,7 +119,7 @@ import { deepFreeze } from './ids.js';
  *   | { building: BuildingId }
  *   | { landmark: string }
  *   | { vp: number | VpPer }
- *   | { explore: { anywhere?: boolean, tile?: number, sailed?: boolean, mat?: boolean, free?: boolean, migration?: boolean } }
+ *   | { explore: { anywhere?: boolean, tile?: number, sailed?: boolean | 'drawn', mat?: boolean, free?: boolean, migration?: boolean } }
  *   | { exploreSpace: { fromGained?: boolean, civ?: string, tile?: number } }
  *   | { conquer: { anywhere?: boolean, bothDice?: 'always' | 'ifOpponent', only?: string[], empty?: boolean, collectorsAsked?: boolean } }
  *   | { research: { noBenefit?: boolean, rolls?: number, offTrackVp?: number } }
@@ -179,7 +183,22 @@ import { deepFreeze } from './ids.js';
  *   | { useReserved: { id: number } & Record<string, any> }
  *   | { useAllReserved: {} }
  *   | { discardSpace: { tile: number } }
- *   | { ecstaticVisions: {} }} Effect
+ *   | { ecstaticVisions: {} }
+ *   | { alienDisclosure: {} }
+ *   | { chimera: {} }
+ *   | { citadelOfPower: {} }
+ *   | { dejaVu: {} }
+ *   | { muses: {} }
+ *   | { technomancy: {} }
+ *   | { temporalNomadism: {} }
+ *   | { uploadedConsciousness: { left?: number } }
+ *   | { doppelgangers: {} }
+ *   | { seerSight: {} }
+ *   | { dreamMonitors: {} }
+ *   | { highCouncil: {} }
+ *   | { soothsaying: {} }
+ *   | { superpowerRegulators: {} }
+ *   | { elderDiscard: { left?: number } }} Effect
  */
 
 /**
@@ -266,6 +285,21 @@ export const EFFECT_KINDS = deepFreeze([
 	'useAllReserved',
 	'discardSpace',
 	'ecstaticVisions',
+	'alienDisclosure',
+	'chimera',
+	'citadelOfPower',
+	'dejaVu',
+	'muses',
+	'technomancy',
+	'temporalNomadism',
+	'uploadedConsciousness',
+	'doppelgangers',
+	'seerSight',
+	'dreamMonitors',
+	'highCouncil',
+	'soothsaying',
+	'superpowerRegulators',
+	'elderDiscard',
 ]);
 
 /**
@@ -290,4 +324,7 @@ export const VP_COUNTERS = deepFreeze([
 	'capitalColumn',
 	// F&F: the income buildings still on the income mat (Ghost Towns, #39).
 	'buildingLeft',
+	// F&F: capital rows holding a market (Hive Mind), charm tags on the mat's top cards (Wizards' Guild, #40).
+	'marketRow',
+	'charm',
 ]);

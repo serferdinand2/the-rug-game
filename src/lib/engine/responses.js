@@ -8,6 +8,9 @@ import { askHex } from './decisions/choose-hex.js';
 import { hexNeighbours } from './data/maps.js';
 import { BLACK_DIE, RED_DIE } from './data/dice.js';
 import { tapestryCard } from './data/tapestry-cards.js';
+import { mayRespond } from './civs/elder-ones.js';
+import { illuminatiTake } from './civs/illuminati.js';
+import { psionic } from './civs/psionics.js';
 
 /** What Surprise Party gains (03 §1.4). */
 const SURPRISE_PARTY_VP = 15;
@@ -143,7 +146,8 @@ export function playResponse(ctx, { defender, attacker, hex, card, both }) {
 		// The attacker may counter before the trap acts, and is asked whenever they hold any card (#17's privacy).
 		if (
 			isPlayerSeat(state, attacker) &&
-			playerSeat(state, attacker).hand.length > 0
+			playerSeat(state, attacker).hand.length > 0 &&
+			mayRespond(playerSeat(state, attacker))
 		) {
 			ctx.push([
 				{
@@ -158,6 +162,35 @@ export function playResponse(ctx, { defender, attacker, hex, card, both }) {
 			return;
 		}
 		springTrap(ctx, defender, attacker, hex, both);
+		return;
+	}
+	// F&F's response cards: topple the attacker, and the defender gains one of the card's two charms (03 FF.4.2, #40).
+	const charms = tapestryCard(card).charms;
+	if (charms) {
+		turnTables(state, defender, attacker, hex);
+		emit(state, {
+			type: 'charmResponse',
+			player: defender,
+			attacker,
+			hex,
+			card: id,
+		});
+		ctx.push([
+			{
+				player: defender,
+				kind: 'effects',
+				effects: [
+					{
+						choice: /** @type {const} */ (['left', 'right'])
+							.filter((side) => charms[side])
+							.map((side) => [{ charm: { card: id, side } }]),
+					},
+				],
+				source: { tapestry: id },
+			},
+			...triggered(state, 'countsChanged', { player: defender }),
+			diceOp(attacker, hex, both),
+		]);
 		return;
 	}
 	turnTables(state, defender, attacker, hex);
@@ -199,7 +232,7 @@ export function springTrap(ctx, defender, attacker, hex, both) {
 }
 
 /**
- * The cards in an attacker's hand that counter a trap: Double Cross and Stolen Plans, in hand order.
+ * The cards in an attacker's hand that counter a trap: Double Cross and Stolen Plans, in hand order; never an F&F response card (R141).
  * @param {import('./state.js').State} state
  * @param {number} attacker
  * @returns {string[]}
@@ -293,8 +326,10 @@ export function surrenderDice(ctx, op) {
 	const red = ctx.random(6);
 	const black = ctx.random(6);
 	emit(ctx.state, { type: 'surrenderRolled', player, red, black });
+	// The Illuminati: an opponent's first roll of their dice pays them first (#40, DQ 13).
+	const paid = illuminatiTake(ctx, player, { red, black, hex: op.hex });
 	ctx.push([
-		{
+		rolledOp(ctx, player, { red, black }, op.hex) ?? {
 			player,
 			kind: 'effects',
 			effects: [
@@ -305,4 +340,37 @@ export function surrenderDice(ctx, op) {
 			source: { hex: op.hex },
 		},
 	]);
+	ctx.push(paid);
+}
+
+/**
+ * The Psionics roll each conquer die once more and keep one value of each (03 FF.3, R74; #40): the question, with the
+ * first roll given; null for anyone else.
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ * @param {{ red?: number, black?: number }} first
+ * @param {string} hex - Whose tile benefit the black die's "?" is
+ * @returns {import('./state.js').NewOperation | null}
+ */
+export function rolledOp(ctx, player, first, hex) {
+	if (!psionic(ctx.state, player)) {
+		return null;
+	}
+	const reds =
+		first.red === undefined ? undefined : [first.red, ctx.random(6)];
+	const blacks =
+		first.black === undefined ? undefined : [first.black, ctx.random(6)];
+	emit(ctx.state, {
+		type: 'conquerDiceRolledTwice',
+		player,
+		...(reds && { reds }),
+		...(blacks && { blacks }),
+	});
+	return {
+		player,
+		kind: 'chooseRolls',
+		...(reds && { reds }),
+		...(blacks && { blacks }),
+		hex,
+	};
 }

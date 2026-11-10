@@ -4,9 +4,14 @@ import {
 	CLOUD_TINTS,
 	CLOUD_TINT_NAMES,
 	FEATURE_BIOMES,
+	OVERLAY_BIOMES,
 	RELIEF_BIOMES,
 } from './art/relief.js';
-import { ADVANCED_MATS, CAPITAL_MATS } from './engine/data/capitals.js';
+import {
+	ADVANCED_MATS,
+	CAPITAL_MATS,
+	IMPASSABLE,
+} from './engine/data/capitals.js';
 
 /**
  * @typedef {object} PlotTerrain
@@ -39,6 +44,46 @@ export function featureUrl(biome) {
 	return FEATURE_BIOMES.includes(biome)
 		? artUrl(`capital-feature/${biome}`)
 		: null;
+}
+
+/**
+ * The overlay picture of a biome, if it has one: what the mat prints over its relief, drawn over it (#133, #40).
+ * @param {string} biome
+ * @returns {string | null}
+ * @example overlayUrl('polar') // '/art/capital-overlay/polar.svg'
+ */
+export function overlayUrl(biome) {
+	return OVERLAY_BIOMES.includes(biome)
+		? artUrl(`capital-overlay/${biome}`)
+		: null;
+}
+
+/** The grid symbols of open plots an Architects' cube may sit on: plain, and F&F's reeds, imps and centre (#40). */
+const OPEN = new Set(['0', 'R', 'I', 'M']);
+
+/**
+ * The ground a plot of a split-ground mat shows: the Veil's by its side of the veil, the Savanna's grey or district
+ * ground, Cloud City's by its cloud's tint (#36, #40); the biome's own otherwise. Matches the art's `groundKey`.
+ * @param {string} biome
+ * @param {string | null} districts - The mat's district map, joined
+ * @param {number} cols
+ * @param {number} i
+ * @returns {string}
+ */
+function groundOf(biome, districts, cols, i) {
+	const row = Math.floor(i / cols);
+	const col = i % cols;
+	if (biome === 'veil') {
+		const charmed = row <= 5 ? col >= 6 : col >= 3;
+		return charmed ? 'veil-charmed' : 'veil-worldly';
+	}
+	if (biome === 'savanna' && districts) {
+		return districts[i] === '.' ? 'savanna-grey' : 'savanna-district';
+	}
+	if (biome === 'cloud-city' && districts) {
+		return `cloud-city-${CLOUD_TINT_NAMES[CLOUD_TINTS[Number(districts[i])]]}`;
+	}
+	return biome;
 }
 
 /** The plot kinds a piece leaves: a building or a landmark. */
@@ -90,15 +135,12 @@ export function plotTerrain(plots, biome, seed) {
 	const cols = mat?.grid[0].length ?? 0;
 	const hasRelief = reliefUrl(biome) !== null;
 	return plots.map((kind, i) => {
-		const symbol = grid?.[i];
-		const printed = grid ? symbol === '1' : kind === 'blocked';
+		const symbol = grid?.[i] ?? '';
+		// F&F's unicorns and wisps are printed impassable plots too (#40).
+		const printed = grid ? IMPASSABLE.includes(symbol) : kind === 'blocked';
 		const blocked = kind === 'blocked';
 		const covered = !EMPTY_KINDS.has(kind);
-		// Cloud City's ground follows each plot's cloud tint (#132).
-		const ground =
-			biome === 'cloud-city' && districts
-				? `cloud-city-${CLOUD_TINT_NAMES[CLOUD_TINTS[Number(districts[i])]]}`
-				: biome;
+		const ground = groundOf(biome, districts, cols, i);
 		return {
 			ground: capitalTileUrl(
 				ground,
@@ -113,7 +155,7 @@ export function plotTerrain(plots, biome, seed) {
 			cube:
 				blocked &&
 				(grid
-					? symbol === '0' ||
+					? OPEN.has(symbol) ||
 						(symbol === 'C' && !surrounded(plots, rows, cols, i))
 					: !printed),
 		};

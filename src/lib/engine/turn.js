@@ -7,7 +7,10 @@ import { startIncomeTurn } from './income.js';
 import { seatOf } from './state.js';
 import { landmarkCardOps } from './landmark-cards.js';
 import { startBotTurn, sharedShadow } from './automa.js';
+import { omenRewards } from './effects/ff-looks.js';
 import { spymasterAdvances } from './spymaster.js';
+import { playOnOptions } from './civs/elder-ones.js';
+import { endEra } from './tapestry.js';
 
 /**
  * Starts a seat's turn: its Dictatorship blocks lift (R26), nothing is activated yet (R19) nor locked by Ceramics, no tier entered for the Castle (#35), and the turn choice sits above the turn's end, which the player confirms first on a turn they chose (#146).
@@ -42,6 +45,17 @@ export function startTurn(ctx, player) {
 	}
 	// Pushed apart, so the confirmation isn't in the turn choice's batch and opens only once the turn is done (#146).
 	ctx.push(endOf(state, player));
+	// The Elder Ones and the Merfolk after income turn 5: only their own turns (03 FF.3); endTurn skips a seat with none.
+	if (playingOn(seat)) {
+		ctx.push([
+			{
+				player,
+				kind: 'chooseTurn',
+				options: playOnOptions(state, player),
+			},
+		]);
+		return;
+	}
 	// A&A's Urban Planners may first place the landmarks they kept (R130); the turn choice then sees the result.
 	if (storedLandmarks(state, player)) {
 		ctx.push([
@@ -120,6 +134,12 @@ export function endTurn(ctx, op) {
 		ctx.push([...spied, again]);
 		return;
 	}
+	// F&F's Good Omens: a right guess this turn is rewarded at its end (#40).
+	const omens = omenRewards(ctx.state);
+	if (omens.length > 0) {
+		ctx.push([...omens, again]);
+		return;
+	}
 	// What answers a turn's end (the Relentless, #37), once a turn.
 	if (op.ended !== true) {
 		const ending = triggered(ctx.state, 'turnEnding', {
@@ -142,6 +162,9 @@ export function endTurn(ctx, op) {
 	const at = seats.findIndex((s) => s.seat === op.player);
 	for (let step = 1; step <= seats.length; step++) {
 		const next = seats[(at + step) % seats.length];
+		if (playingOn(next) && !next.finished) {
+			stopPlayingOn(ctx, next.seat);
+		}
 		if (!next.finished && !sharedShadow(ctx.state, next.seat)) {
 			startTurn(ctx, next.seat);
 			return;
@@ -149,6 +172,34 @@ export function endTurn(ctx, op) {
 		liftBlocks(ctx, next.seat);
 	}
 	endGame(ctx);
+}
+
+/**
+ * Whether a seat is a player playing on after income turn 5 (the Elder Ones, the Merfolk, #40).
+ * @param {import('./state.js').Seat | import('./state.js').PlayerSeat} seat
+ * @returns {boolean}
+ */
+function playingOn(seat) {
+	return (
+		seat.kind === 'player' &&
+		/** @type {import('./state.js').PlayerSeat} */ (seat).playingOn === true
+	);
+}
+
+/**
+ * A seat playing on after income turn 5 with no turn left to take finishes, and its era-4 card's ability ends with it
+ * (03 FF.3, DQ 8: not by choice; R150).
+ * @param {import('./state.js').Context} ctx
+ * @param {number} player
+ */
+function stopPlayingOn(ctx, player) {
+	if (playOnOptions(ctx.state, player).length > 0) {
+		return;
+	}
+	endEra(ctx, player);
+	const seat = seatOf(ctx.state, player);
+	seat.finished = true;
+	emit(ctx.state, { type: 'playerFinished', player });
 }
 
 /**

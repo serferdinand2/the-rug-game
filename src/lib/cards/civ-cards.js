@@ -332,6 +332,34 @@ function tokensLabel(context) {
 }
 
 /**
+ * A box's label from how many tokens its spot holds (F&F, #40): `none` with none.
+ * @param {CivCardContext} context
+ * @param {string} spot
+ * @param {string} none
+ * @param {(count: number) => string} some
+ * @returns {string}
+ */
+function countLabel(context, spot, none, some) {
+	const count = context.marks[spot]?.length ?? 0;
+	return count === 0 ? none : some(count);
+}
+
+/**
+ * A box's label from the value its marks name, such as the Faefolk's 'spot:3' (F&F, #40): `none` with none.
+ * @param {CivCardContext} context
+ * @param {string} key
+ * @param {string} none
+ * @param {(value: string) => string} some
+ * @returns {string}
+ */
+function valueLabel(context, key, none, some) {
+	const named = Object.keys(context.marks).find((spot) =>
+		spot.startsWith(`${key}:`)
+	);
+	return named === undefined ? none : some(named.slice(key.length + 1));
+}
+
+/**
  * The Urban Planners' kept landmarks in a game, as a line of their box (#37).
  * @param {CivCardContext} context
  * @returns {string[]}
@@ -1421,6 +1449,384 @@ const RECIPES = {
 				],
 			},
 			...clarity(context, []),
+		],
+	}),
+	werefolk: (context) => ({
+		portraitAlt: 'Werefolk civilization portrait',
+		complexity: 2,
+		effect: [
+			'Flip a space tile each era: go back and explore it, or leap ahead for free.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Income turns 2–5',
+						label: valueLabel(
+							context,
+							'tile',
+							'Flip a tile',
+							(n) => `Space tile ${n} here`
+						),
+						spot: 'tile',
+						symbolText: 12,
+						text: [
+							'Discard this mat’s tile. Gain a space tile and flip it.',
+						],
+					},
+					{
+						title: 'Face up',
+						label: 'Go back',
+						symbolText: 12,
+						text: [
+							'You may go back 1 space without benefit, then explore the tile onto this mat; otherwise 4 VP.',
+						],
+					},
+					{
+						title: 'Face down',
+						label: 'Advance',
+						symbolText: 12,
+						text: [
+							'Advance on a track with its benefit; the bonus is free.',
+						],
+					},
+				],
+			},
+			...clarity(context, [
+				'A tile you don’t explore stays in your supply.',
+			]),
+		],
+	}),
+	psionics: (context) => ({
+		portraitAlt: 'Psionics civilization portrait',
+		complexity: 2,
+		effect: [
+			'Draw one more of everything random, and keep the one you like.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Always',
+						label: '+1, keep 1',
+						symbolText: 12,
+						text: [
+							'Draw one more card, tile or civilization, or roll once more, and keep one.',
+						],
+					},
+					{
+						title: 'Income turns 2–5',
+						label: 'By turn',
+						symbolText: 12,
+						text: [
+							'2: a territory tile. 3: a tapestry card. 4: invent. 5: roll the science die and advance.',
+						],
+					},
+				],
+			},
+			...clarity(context, []),
+		],
+	}),
+	artificers: (context) => ({
+		portraitAlt: 'Artificers civilization portrait',
+		complexity: 2,
+		effect: ['Pull the income of later eras into the present.'],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Income turns 2–4',
+						label: countLabel(
+							context,
+							'aside',
+							'Aside or slide',
+							(n) => `${n} set aside`
+						),
+						spot: 'aside',
+						symbolText: 12,
+						text: [
+							'Set a track’s leftmost building aside, or slide it 1 space left.',
+						],
+					},
+					{
+						title: 'Income turn 5',
+						label: 'Score or slide',
+						symbolText: 12,
+						text: [
+							'1 VP per income building off your mat, or slide a track flush left.',
+						],
+					},
+				],
+			},
+			...clarity(context, ['Buildings set aside count for their type.']),
+		],
+	}),
+	faefolk: (context) => ({
+		portraitAlt: 'Faefolk civilization portrait',
+		complexity: 3,
+		effect: [
+			'Flicker round the ellipse by the cards in sight, and gain where you land.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Income turns 2–5',
+						label: valueLabel(
+							context,
+							'spot',
+							'Move and gain',
+							(n) => `On spot ${n}`
+						),
+						spot: 'token',
+						symbolText: 12,
+						text: [
+							'You may gain a tapestry card; move clockwise by your hand and top cards; gain the spot (twice on income turn 5).',
+						],
+					},
+				],
+			},
+			...clarity(context, []),
+		],
+	}),
+	celestials: (context) => ({
+		portraitAlt: 'Celestials civilization portrait',
+		complexity: 2,
+		effect: [
+			'Drift your floating capital over the map, rolling both dice wherever it lands.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Setup',
+						label: 'Float',
+						symbolText: 12,
+						text: [
+							'1 outpost and your token on your starting territory.',
+						],
+					},
+					{
+						title: 'Income turns 2–4',
+						label: 'Drift',
+						spot: 'float',
+						symbolText: 12,
+						text: [
+							'You may move the token next door and gain both conquer dice.',
+						],
+					},
+					{
+						title: 'Income turn 5',
+						label: '−2 / +5',
+						symbolText: 12,
+						text: [
+							'−2 VP per landmark hanging off your city, +5 per landmark inside.',
+						],
+					},
+				],
+			},
+			...clarity(context, ['The token never gives control.']),
+		],
+	}),
+	genies: (context) => ({
+		portraitAlt: 'Genies civilization portrait',
+		complexity: 1,
+		effect: [
+			'Grant an opponent a wish each era, and take the same for yourself, and a little more.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Income turns 2–4',
+						label: countLabel(context, 'tokens', 'A wish', (n) =>
+							n === 1 ? '1 token' : `${n} tokens`
+						),
+						spot: 'tokens',
+						symbolText: 12,
+						text: [
+							'A random opponent picks a circle; you both score it, and you gain a square beside it.',
+						],
+					},
+					{
+						title: 'Income turn 5',
+						label: '2 wishes',
+						symbolText: 12,
+						text: ['Gain 2 different circles.'],
+					},
+				],
+			},
+			...clarity(context, ['Removed in solo games.']),
+		],
+	}),
+	weefolk: (context) => ({
+		portraitAlt: 'Weefolk civilization portrait',
+		complexity: 2,
+		effect: [
+			'Slip your tokens into opponents’ cities, and score the streets around them.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Income turns 2–5',
+						label: 'A token',
+						symbolText: 12,
+						text: [
+							'Give an opponent a token for an open plot of their city.',
+						],
+					},
+					{
+						title: 'Income turns 2–4',
+						label: 'Tile → building',
+						symbolText: 12,
+						text: [
+							'You may pay 1 territory tile for an income building.',
+						],
+					},
+					{
+						title: 'Income turn 5',
+						label: 'Score',
+						symbolText: 12,
+						text: [
+							'1 VP per building or landmark in each token’s row and column.',
+						],
+					},
+				],
+			},
+			...clarity(context, ['Removed in solo games.']),
+		],
+	}),
+	illuminati: (context) => ({
+		portraitAlt: 'Illuminati civilization portrait',
+		complexity: 2,
+		effect: [
+			'Keep the dice: profit when others roll them, or score them if nobody does.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'An opponent rolls',
+						label: 'You gain',
+						symbolText: 12,
+						text: [
+							'The die leaves your mat; its first roll pays you first.',
+						],
+					},
+					{
+						title: 'Income turns 2–5',
+						label: countLabel(
+							context,
+							'dice',
+							'No die here',
+							(n) => (n === 1 ? '1 die here' : `${n} dice here`)
+						),
+						spot: 'dice',
+						symbolText: 12,
+						text: [
+							'6 VP per die still here, then all three come back.',
+						],
+					},
+				],
+			},
+			...clarity(context, ['Removed in solo games.']),
+		],
+	}),
+	'elder-ones': (context) => ({
+		portraitAlt: 'Elder Ones civilization portrait',
+		complexity: 3,
+		effect: [
+			'Outlive the others: keep advancing after your last income turn.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Income turns 2–4',
+						label: '1 or 2',
+						symbolText: 12,
+						text: [
+							'Gain 1 resource of your choice or 2 tapestry cards.',
+						],
+					},
+					{
+						title: 'Income turn 5',
+						label: 'Cards → 2',
+						symbolText: 12,
+						text: [
+							'Discard up to 6 tapestry cards for 2 resources each.',
+						],
+					},
+					{
+						title: 'After income turn 5',
+						label: 'Play on',
+						symbolText: 12,
+						text: [
+							'Advance turns while you can; 10 VP per landmark gained.',
+						],
+					},
+				],
+			},
+			...clarity(context, [
+				'Your era-4 card stays in effect; no response cards.',
+			]),
+		],
+	}),
+	merfolk: (context) => ({
+		portraitAlt: 'Merfolk civilization portrait',
+		complexity: 3,
+		effect: [
+			'Hide cards under the waves, then bring them all back to play on after your last income turn.',
+		],
+		sections: [
+			{
+				pattern: 'effects',
+				effects: [
+					{
+						title: 'Income turns 2–4',
+						label: countLabel(
+							context,
+							'submerged',
+							'Submerge',
+							(n) => `${n} submerged`
+						),
+						spot: 'submerged',
+						symbolText: 12,
+						text: [
+							'Gain 1 tapestry card, then put all but 2 under this mat.',
+						],
+					},
+					{
+						title: 'Income turn 5',
+						label: 'Surface',
+						symbolText: 12,
+						text: [
+							'Gain 1 card and take every card back; at its end keep 5.',
+						],
+					},
+					{
+						title: 'After income turn 5',
+						label: '5 VP or play',
+						symbolText: 12,
+						text: [
+							'Each turn discard cards for 5 VP each, or play a When Played card on era 4.',
+						],
+					},
+				],
+			},
+			...clarity(context, [
+				'Your game ends with no card left; you may respond.',
+			]),
 		],
 	}),
 	gamblers: (context) => ({

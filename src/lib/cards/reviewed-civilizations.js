@@ -43,6 +43,17 @@ export const REVIEWED_CIVILIZATIONS = Object.freeze([
 	{ id: 'renegades', edition: 'awaiting review' },
 	{ id: 'gamblers', edition: 'awaiting review' },
 	{ id: 'urban-planners', edition: 'awaiting review' },
+	// #40: Fantasies & Futures', from 03 FF.3's text; not yet reviewed by the owner.
+	{ id: 'werefolk', edition: 'awaiting review' },
+	{ id: 'psionics', edition: 'awaiting review' },
+	{ id: 'artificers', edition: 'awaiting review' },
+	{ id: 'faefolk', edition: 'awaiting review' },
+	{ id: 'celestials', edition: 'awaiting review' },
+	{ id: 'genies', edition: 'awaiting review' },
+	{ id: 'weefolk', edition: 'awaiting review' },
+	{ id: 'illuminati', edition: 'awaiting review' },
+	{ id: 'elder-ones', edition: 'awaiting review' },
+	{ id: 'merfolk', edition: 'awaiting review' },
 ]);
 
 /**
@@ -84,6 +95,15 @@ export const SAMPLE_CIV_DATA = Object.freeze({
 		items: { outpost: true, house: true, tech: 'eyeglasses' },
 		turn: null,
 	},
+	// #40: a game under way, awaiting review: a space tile on the Werefolk's mat, a building set aside, the Faefolk on
+	// spot 3, the Celestials afloat, 2 Genies tokens, 2 dice left to the Illuminati, 3 cards submerged.
+	werefolk: { tile: 7 },
+	artificers: { aside: ['farm'] },
+	faefolk: { spot: 3 },
+	celestials: { hex: '-2_-1' },
+	genies: { tokens: [2, 3] },
+	illuminati: { onMat: ['red', 'science'] },
+	merfolk: { submerged: 3 },
 });
 
 /**
@@ -134,4 +154,8 @@ export const SAMPLE_VIEWS = Object.freeze({
 	recyclers: sample([], 'token'),
 	riverfolk: sample([], 'token'),
 	gamblers: sample([], 'token'),
+	// #40: F&F's without a piece on their card.
+	psionics: sample([], 'token'),
+	weefolk: sample([], 'token'),
+	'elder-ones': sample([], 'token'),
 });

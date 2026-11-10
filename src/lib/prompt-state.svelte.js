@@ -577,9 +577,16 @@ export class PromptState {
 						? { landmark: this.decision.landmark }
 						: this.decision.kind === 'chooseCube'
 							? { cube: true }
-							: this.decision.kind === 'chooseCloudMove'
-								? { move: true }
-								: { building: this.decision.building },
+							: this.decision.kind === 'choosePlot'
+								? // Dream Monitors' own token, or the Weefolk's (#40).
+									{
+										token:
+											this.decision.token ??
+											this.decision.player,
+									}
+								: this.decision.kind === 'chooseCloudMove'
+									? { move: true }
+									: { building: this.decision.building },
 					options: this.prompt.options.filter(
 						(o) => o.place === 'capital'
 					),

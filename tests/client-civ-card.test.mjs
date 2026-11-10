@@ -28,7 +28,7 @@ function table(civData) {
 	};
 }
 
-test('the seventeen civilizations whose cards show live state, six with choices on them', () => {
+test('the twenty-four civilizations whose cards show live state, six with choices on them', () => {
 	assert.deepEqual(
 		[...CARD_CIVS],
 		[
@@ -49,8 +49,59 @@ test('the seventeen civilizations whose cards show live state, six with choices 
 			'relentless',
 			'renegades',
 			'urban-planners',
+			'werefolk',
+			'artificers',
+			'faefolk',
+			'celestials',
+			'genies',
+			'illuminati',
+			'merfolk',
 		]
 	);
+});
+
+test("F&F's cards show their pieces: the Faefolk's spot, the Werefolk's tile, the dice, tokens and cards they hold (#40)", () => {
+	/**
+	 * The label of a card's box for a civData, and whether it shows the seat's token.
+	 * @param {string} civ
+	 * @param {any} data
+	 * @param {number} [box]
+	 */
+	const box = (civ, data, box = 0) => {
+		const effect = civCard(civ, {
+			view: { marks: civCardMarks(civ, data), choices: {} },
+		}).sections[0].effects[box];
+		return [effect.label, effect.token === true];
+	};
+	assert.deepEqual(box('faefolk', { spot: 3 }), ['On spot 3', true]);
+	assert.deepEqual(box('werefolk', { tile: null }), ['Flip a tile', false]);
+	assert.deepEqual(box('werefolk', { tile: 7 }), ['Space tile 7 here', true]);
+	assert.deepEqual(box('artificers', { aside: [] }), [
+		'Aside or slide',
+		false,
+	]);
+	assert.deepEqual(box('artificers', { aside: ['farm', 'market'] }), [
+		'2 set aside',
+		true,
+	]);
+	assert.deepEqual(box('celestials', { hex: null }, 1), ['Drift', false]);
+	assert.deepEqual(box('celestials', { hex: '-2_-1' }, 1), ['Drift', true]);
+	assert.deepEqual(box('genies', { tokens: [2, 3] }), ['2 tokens', true]);
+	assert.deepEqual(box('illuminati', { onMat: ['red'] }, 1), [
+		'1 die here',
+		true,
+	]);
+	assert.deepEqual(box('illuminati', { onMat: [] }, 1), [
+		'No die here',
+		false,
+	]);
+	// The others see how many cards are submerged; their player sees which.
+	assert.deepEqual(box('merfolk', { submerged: 3 }), ['3 submerged', true]);
+	assert.deepEqual(box('merfolk', { submerged: ['academia'] }), [
+		'1 submerged',
+		true,
+	]);
+	assert.deepEqual(box('merfolk', { submerged: [] }), ['Submerge', false]);
 });
 
 test("the Relentless' tokens, the Renegades' space and the Urban Planners' kept landmarks show on their cards (#37)", () => {

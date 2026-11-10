@@ -247,6 +247,27 @@ export const RULES_HELP = deepFreeze([
 			},
 		],
 	},
+	// #40; 03 FF.6, R87–R91.
+	{
+		id: 'ff-mats',
+		title: 'F&F capital mats',
+		expansion: 'ff',
+		blocks: [
+			{
+				text: "With Fantasies & Futures, its six advanced mats join the advanced draw. Unicorns and will-o'-the-wisps are impassable plots.",
+			},
+			{
+				list: [
+					'City in a Bottle: 6 by 6, six districts of 3 by 2. No landmark may go in it: set one aside for 6 VP.',
+					'Netherworld: an imp pays 2 resources once it and the city centre are covered and joined by income buildings or landmarks, side by side.',
+					'Polar: each field line is a district; its lines pay 2, 2, 1, 2, 1 and 1 resources.',
+					'Quagmire: after your income turn 5, lose 5 VP for each landmark on reeds, and gain 3 VP for each other landmark in your city.',
+					'Savanna: districts pay nothing when filled, but 1 resource each in the income of turns 2 to 4.',
+					'Veil: five districts pay 1 resource; the pockets invent, roll the science die, or give an income building.',
+				],
+			},
+		],
+	},
 	// #33; 03 §1.2, §1.4, R45. The other new cards' rules are on the cards themselves.
 	{
 		id: 'response-cards',
@@ -366,6 +387,29 @@ export const RULES_HELP = deepFreeze([
 			},
 			{
 				text: 'Its 12 tech cards reach the top row only once you have played a charmed card face up, or from income turn 5 on. Most are single use: the square flips the card, which still counts, but nobody gains its benefits again.',
+			},
+		],
+	},
+	// #40; 03 FF.3, FF.4, R74, R75, R78, DQ 7, 8, 16, 17.
+	{
+		id: 'ff-civs',
+		title: 'F&F cards and civilizations',
+		expansion: 'ff',
+		blocks: [
+			{
+				text: 'Ghost Ship, Gremlins, The Kraken, League of the Charmed and Robotic Decoys are response cards: discard one when an opponent conquers your territory to topple their outpost, and gain one of its two charms.',
+			},
+			{
+				text: "Dream Monitors and the Weefolk put a player's token on a plot of a capital city. It fills the plot for districts, rows and columns, but it is no building.",
+			},
+			{
+				text: 'The Psionics draw one more of every random draw from a deck or supply, and roll every die once more, keeping one.',
+			},
+			{
+				text: 'The Elder Ones and the Merfolk play on after income turn 5: the Elder Ones with advance turns while they can pay for one, the Merfolk discarding cards for 5 VP each or playing a When Played card on their era-4 stack. The game ends once every player is done.',
+			},
+			{
+				text: "F&F's civilizations show their full text when you point at a player's chip.",
 			},
 		],
 	},

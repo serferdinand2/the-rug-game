@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import {
 	featureUrl,
+	overlayUrl,
 	plotTerrain,
 	reliefUrl,
 } from '../src/lib/capital-terrain.js';
@@ -32,9 +33,8 @@ test("an Architects' cube is a cube on open ground", () => {
 });
 
 test('a Fantasies & Futures mat shows its ground under its relief on every plot, as every mat does (#133)', () => {
-	const plots = matPlots(1).map((_, i) =>
-		i % 7 === 3 ? 'blocked' : 'empty'
-	);
+	// Polar's own plots, now that the engine has its mat (#40).
+	const plots = matPlots(17);
 	const printed = plotTerrain(plots, 'polar', 7);
 	for (const [i, kind] of plots.entries()) {
 		assert.match(printed[i].ground, /polar-open-0[1-8]\.svg$/);
@@ -101,4 +101,28 @@ test('featureUrl names the features picture of the mats that have one (#132)', (
 	assert.equal(featureUrl('swamp'), '/art/capital-feature/swamp.svg');
 	assert.equal(featureUrl('cavern'), null);
 	assert.equal(featureUrl('mountain'), null);
+});
+
+test("F&F's mats: the Veil's ground by its side, the Savanna's by its districts, unicorns and wisps under the relief, and an overlay picture (#40)", () => {
+	const veil = plotTerrain(matPlots(15), 'veil', 3);
+	// (0,0) is worldly, (1,7) charmed; (6,3) is impassable on the charmed side, under the relief.
+	assert.match(veil[0].ground, /veil-worldly-open-0[1-8]\.svg$/);
+	assert.match(veil[1 * 9 + 7].ground, /veil-charmed-open-0[1-8]\.svg$/);
+	const savanna = plotTerrain(matPlots(16), 'savanna', 3);
+	// (0,0) is grey, (1,5) in district 1; the unicorn at (0,7) is printed, so a building there clears it.
+	assert.match(savanna[0].ground, /savanna-grey-open-0[1-8]\.svg$/);
+	assert.match(
+		savanna[1 * 9 + 5].ground,
+		/savanna-district-open-0[1-8]\.svg$/
+	);
+	const built = matPlots(16);
+	built[7] = 'farm';
+	assert.equal(plotTerrain(built, 'savanna', 3)[7].cleared, true);
+	// A cube on a Quagmire reed plot is a cube, not a printed plot.
+	const reeds = matPlots(13);
+	reeds[7] = 'blocked';
+	assert.equal(plotTerrain(reeds, 'quagmire', 3)[7].cube, true);
+	assert.equal(overlayUrl('polar'), '/art/capital-overlay/polar.svg');
+	assert.equal(overlayUrl('quagmire'), null);
+	assert.equal(featureUrl('quagmire'), '/art/capital-feature/quagmire.svg');
 });

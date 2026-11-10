@@ -31,6 +31,16 @@ import { tinkerers } from './tinkerers.js';
 import { traders } from './traders.js';
 import { treasureHunters } from './treasure-hunters.js';
 import { utilitarians } from './utilitarians.js';
+import { werefolk } from './werefolk.js';
+import { psionics } from './psionics.js';
+import { artificers } from './artificers.js';
+import { faefolk } from './faefolk.js';
+import { celestials } from './celestials.js';
+import { genies } from './genies.js';
+import { weefolk } from './weefolk.js';
+import { illuminati } from './illuminati.js';
+import { elderOnes } from './elder-ones.js';
+import { merfolk } from './merfolk.js';
 
 /** @typedef {import('./civ.js').Civ} Civ */
 
@@ -71,6 +81,17 @@ Object.assign(CIVS, {
 	gamblers,
 	'urban-planners': urbanPlanners,
 	collectors,
+	// Fantasies & Futures' (#40), in the order built.
+	werefolk,
+	psionics,
+	artificers,
+	faefolk,
+	celestials,
+	genies,
+	weefolk,
+	illuminati,
+	'elder-ones': elderOnes,
+	merfolk,
 });
 
 export { CIVS, findCiv, civsOf } from './registry.js';

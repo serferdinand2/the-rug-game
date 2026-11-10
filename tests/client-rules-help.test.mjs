@@ -383,3 +383,47 @@ test('Fantasies & Futures has its own section: charms, the overlay and single-us
 	// R134.
 	assert.match(text, /nobody gains its benefits again/);
 });
+
+test("Fantasies & Futures' mats have their own section: each mat's rule (#40)", async () => {
+	const { rulesSections } = await import('../src/lib/rules-help.js');
+	assert.equal(section('ff-mats').expansion, 'ff');
+	assert.ok(rulesSections(['ff']).some((s) => s.id === 'ff-mats'));
+	const text = lines('ff-mats').join(' ');
+	for (const name of [
+		'City in a Bottle',
+		'Netherworld',
+		'Polar',
+		'Quagmire',
+		'Savanna',
+		'Veil',
+	]) {
+		assert.match(text, new RegExp(name));
+	}
+	assert.match(text, /6 VP/);
+	assert.match(text, /lose 5 VP/);
+});
+
+test("Fantasies & Futures' cards and civilizations have their own section: the response cards, the Psionics and playing on (#40)", async () => {
+	const { rulesSections } = await import('../src/lib/rules-help.js');
+	assert.equal(section('ff-civs').expansion, 'ff');
+	assert.ok(rulesSections(['ff']).some((s) => s.id === 'ff-civs'));
+	assert.ok(!rulesSections(['aa']).some((s) => s.id === 'ff-civs'));
+	const text = lines('ff-civs').join(' ');
+	for (const name of [
+		'Ghost Ship',
+		'Gremlins',
+		'The Kraken',
+		'League of the Charmed',
+		'Robotic Decoys',
+		'Psionics',
+		'Elder Ones',
+		'Merfolk',
+	]) {
+		assert.match(text, new RegExp(name));
+	}
+	// R74; DQ 7, 8, 16.
+	assert.match(text, /draw one more/);
+	assert.match(text, /5 VP each/);
+	assert.match(text, /every player is done/);
+	assert.match(text, /token/);
+});

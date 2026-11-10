@@ -6,6 +6,9 @@ import { advanceBlocked, hasEra } from '../abilities.js';
 import { scienceFaces } from '../data/dice.js';
 import { withDie } from '../science-die.js';
 import { ARTS_TRACK } from '../data/ids.js';
+import { checkGuess, omensWork } from './ff-looks.js';
+import { psionic } from '../civs/psionics.js';
+import { illuminatiTake } from '../civs/illuminati.js';
 
 /**
  * Starts research: each roll is its own operation, so the next roll waits for the player's answer to this one.
@@ -31,7 +34,14 @@ export function research(ctx, player, value) {
  * @param {{ kind: string } & Record<string, any>} next - The operation the rolled track goes on to, such as `researchRolled`, without its player
  */
 export function rollScience(ctx, player, next) {
-	ctx.push(withDie(ctx.state, player, { kind: 'scienceRoll', next }));
+	// Good Omens (F&F, #40): its player guesses a face before each roll.
+	const guess = omensWork(ctx.state, player)
+		? [{ player, kind: 'chooseGuess' }]
+		: [];
+	ctx.push([
+		...guess,
+		...withDie(ctx.state, player, { kind: 'scienceRoll', next }),
+	]);
 }
 
 /**
@@ -57,8 +67,19 @@ export function scienceRoll(ctx, op) {
 		return track;
 	};
 	const options = [roll()];
+	/** The faces rolled, which a Good Omens guess is checked against (R138). */
+	const rolled = [options[0]];
+	// The Illuminati: an opponent's first roll of their science die pays them first (#40, DQ 13).
+	const paid = illuminatiTake(ctx, player, { science: options[0] });
+	// The Psionics roll once more and choose, on top of Empiricism (03 FF.3, R74; #40).
+	if (psionic(state, player)) {
+		const again = roll();
+		rolled.push(again);
+		options.push(again);
+	}
 	if (hasEra(state, player, 'empiricism')) {
 		const other = roll();
+		rolled.push(other);
 		if (other !== options[0]) {
 			options.push(other);
 		}
@@ -70,11 +91,15 @@ export function scienceRoll(ctx, op) {
 	) {
 		options.push(ARTS_TRACK);
 	}
-	if (options.length > 1) {
-		ctx.push([{ player, kind: 'chooseRoll', options, then: next }]);
-		return;
-	}
-	ctx.push([{ ...next, player, track: options[0] }]);
+	// Good Omens (F&F, #40): a guess right if a face rolled shows it, not the arts track offered (R138).
+	checkGuess(state, player, rolled);
+	ctx.push([
+		options.length > 1
+			? { player, kind: 'chooseRoll', options, then: next }
+			: { ...next, player, track: options[0] },
+	]);
+	// Pushed last, so the Illuminati are paid before the roll is used (DQ 13, R149).
+	ctx.push(paid);
 }
 
 /**
