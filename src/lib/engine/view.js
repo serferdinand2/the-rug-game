@@ -5,7 +5,7 @@ import { isPlayerSeat } from './state.js';
 
 /** @typedef {import('./state.js').Operation & { answers?: import('./state.js').Answer[] }} ViewOperation - A decision may lack its hidden fields */
 /** @typedef {{ id: number, batch: number, player: null, kind: 'group', lanes: { player: number, stack: ViewOperation[] }[] }} ViewGroup */
-/** @typedef {import('./state.js').Seat & Partial<Omit<import('./state.js').PlayerFields, 'hand' | 'picks'>> & { handCount?: number, hand?: string[], picks?: import('./state.js').PlayerFields['picks'] }} ViewSeat - `handCount` on every player seat; `hand` and `picks` only on the viewer's own */
+/** @typedef {import('./state.js').Seat & Partial<Omit<import('./state.js').PlayerFields, 'hand' | 'picks'>> & { handCount?: number, hand?: string[], picks?: import('./state.js').PlayerFields['picks'] }} ViewSeat - Player seats carry `handCount`; only their owner sees `hand` and `picks`. Bot seats carry their public state without player fields. */
 /**
  * The supply decks view() turns into counts, as paths inside `state.supply`.
  * revealed() (table.js) compares exactly these, so a new hidden deck is added here and nowhere else.
@@ -72,6 +72,19 @@ export function view(state, seat) {
 
 	for (const entry of copy.seats) {
 		if (entry.kind !== 'player') {
+			// Face-up pairs and discards are public; unseen deck order and tapestry identities never are.
+			for (const field of [
+				'decisionDeck',
+				'progressDeck',
+				'trapCards',
+				'multiplierCards',
+			]) {
+				if (Array.isArray(entry[field])) {
+					entry[`${field}Count`] = entry[field].length;
+					delete entry[field];
+				}
+			}
+			delete entry.incomePair;
 			continue;
 		}
 		// A face-down tapestry card is hidden from everyone, its owner included (01 §4.2).

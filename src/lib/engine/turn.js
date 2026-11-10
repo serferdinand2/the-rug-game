@@ -6,6 +6,7 @@ import { liftBlocks, triggered } from './abilities.js';
 import { startIncomeTurn } from './income.js';
 import { seatOf } from './state.js';
 import { landmarkCardOps } from './landmark-cards.js';
+import { startBotTurn, sharedShadow } from './automa.js';
 import { spymasterAdvances } from './spymaster.js';
 
 /**
@@ -27,6 +28,10 @@ export function startTurn(ctx, player) {
 	state.takenTiers.length = 0;
 	emit(state, { type: 'turnStarted', player });
 	const seat = seatOf(state, player);
+	if (seat.kind !== 'player') {
+		startBotTurn(ctx, player);
+		return;
+	}
 	if (seat.kind === 'player' && seat.incomeTurns === 0) {
 		state.turnKind = 'income';
 		emit(state, { type: 'turnChosen', player, turn: 'income' });
@@ -126,10 +131,18 @@ export function endTurn(ctx, op) {
 		}
 	}
 	const { seats } = ctx.state;
+	// Standalone Shadow has no income turns and stops with the last human. Solo Shadow shares Automa's turn.
+	if (
+		!seats.some((s) => s.kind === 'automa') &&
+		seats.filter((s) => s.kind === 'player').every((s) => s.finished)
+	) {
+		for (const seat of seats.filter((s) => s.kind === 'shadow'))
+			seat.finished = true;
+	}
 	const at = seats.findIndex((s) => s.seat === op.player);
 	for (let step = 1; step <= seats.length; step++) {
 		const next = seats[(at + step) % seats.length];
-		if (!next.finished) {
+		if (!next.finished && !sharedShadow(ctx.state, next.seat)) {
 			startTurn(ctx, next.seat);
 			return;
 		}

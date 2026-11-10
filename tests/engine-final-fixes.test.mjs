@@ -509,6 +509,11 @@ test('every decision kind has the full shape, and its answers pass its own check
 			drafters: [2],
 		},
 	};
+	fixtures.chooseAutomaCivilization = {
+		player: 1,
+		kind: 'chooseAutomaCivilization',
+		bot: 2,
+	};
 	assert.deepEqual(
 		Object.keys(fixtures).sort(),
 		Object.keys(DECISIONS).sort()

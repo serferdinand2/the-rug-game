@@ -23,6 +23,7 @@
 	import CapitalCity from '../../lib/components/player/CapitalCity.svelte';
 	import CivilizationCard from '../../lib/components/player/CivilizationCard.svelte';
 	import PlayerCard from '../../lib/components/player/PlayerCard.svelte';
+	import BotPlayerCard from '../../lib/components/player/BotPlayerCard.svelte';
 	import TechRows from '../../lib/components/player/TechRows.svelte';
 	import { capitalView } from '../../lib/area/capital.js';
 	import { playerCards } from '../../lib/area/players.js';
@@ -47,7 +48,9 @@
 	});
 	let openSeat = $derived(open ? game.seats[open.seat - 1] : null);
 	let capital = $derived(
-		open?.row === 'capital' && openSeat ? capitalView(openSeat, code) : null
+		open?.row === 'capital' && openSeat?.kind === 'player'
+			? capitalView(openSeat, code)
+			: null
 	);
 </script>
 
@@ -56,17 +59,23 @@
 	class="rg-players-overview {attr.class ? attr.class : ''}">
 	<div class="rg-players-overview--cards">
 		{#each cards as card, index (card.seat)}
-			<!-- Opening the overview takes the focus to its first card (#27 review). -->
-			<PlayerCard
-				{...card}
-				autofocus={index === 0}
-				selected={open?.seat === card.seat ? open.row : null}
-				onPlayerCardSelect={(/** @type {ComponentEvent} */ event) => {
-					open =
-						open?.seat === card.seat && open.row === event.value
-							? null
-							: { seat: card.seat, row: event.value };
-				}} />
+			{#if card.botKind}
+				<BotPlayerCard {...card} />
+			{:else}
+				<!-- Opening the overview takes the focus to its first card (#27 review). -->
+				<PlayerCard
+					{...card}
+					autofocus={index === 0}
+					selected={open?.seat === card.seat ? open.row : null}
+					onPlayerCardSelect={(
+						/** @type {ComponentEvent} */ event
+					) => {
+						open =
+							open?.seat === card.seat && open.row === event.value
+								? null
+								: { seat: card.seat, row: event.value };
+					}} />
+			{/if}
 		{/each}
 	</div>
 	<aside
@@ -74,6 +83,10 @@
 		aria-label="Overview detail">
 		{#if !open || !openSeat}
 			<p class="rg-players-overview--waiting">Waiting for overview</p>
+		{:else if openSeat.kind !== 'player'}
+			<p class="rg-players-overview--waiting">
+				This bot's public facts are shown in its overview card.
+			</p>
 		{:else if open.row === 'capital'}
 			{#if capital}
 				<!-- Another seat's capital starts with nothing lit, as a new choice of row does. -->

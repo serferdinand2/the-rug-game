@@ -1,6 +1,6 @@
 // The conquer effect, the conquer dice and the black die's "?": take a territory, then roll for its reward (R8, R16, R17, R107).
 import { emit } from '../events.js';
-import { playerSeat, isPlayerSeat } from '../state.js';
+import { playerSeat, isPlayerSeat, seatOf } from '../state.js';
 import { TERRITORY_TILES } from '../data/territory-tiles.js';
 import { RED_DIE, BLACK_DIE } from '../data/dice.js';
 import { collectorsMay } from '../civs/collectors.js';
@@ -51,6 +51,51 @@ export function conquerHex(ctx, player, hex, bothDice) {
 			hex,
 			by: player,
 		});
+	}
+	// Solo Automa's face-down tapestry pool is an automatic defence, never a bot-owned decision.
+	if (
+		opponent !== null &&
+		seatOf(state, opponent).kind === 'automa' &&
+		!plunder
+	) {
+		const defender =
+			/** @type {import('../state.js').BotSeat & {trapCards: string[]}} */ (
+				seatOf(state, opponent)
+			);
+		while ((defender.trapCards?.length ?? 0) > 0) {
+			const [card] = defender.trapCards.splice(
+				ctx.random(defender.trapCards.length),
+				1
+			);
+			state.supply.tapestry.discard.push(card);
+			emit(state, {
+				type: 'botTrapDiscarded',
+				player: opponent,
+				card,
+				hex,
+			});
+			if (card === 'trap' || card.startsWith('trap-')) {
+				for (const outpost of state.hexes[hex].outposts) {
+					if (outpost.seat === opponent) {
+						outpost.toppled = false;
+						delete outpost.toppledBy;
+					}
+					if (outpost.seat === player) {
+						outpost.toppled = true;
+						outpost.toppledBy = opponent;
+					}
+				}
+				emit(state, {
+					type: 'automaTrapSprung',
+					player: opponent,
+					attacker: player,
+					hex,
+				});
+				break;
+			}
+		}
+		ctx.push([diceOp(player, hex, both)]);
+		return;
 	}
 	if (
 		opponent !== null &&
@@ -186,6 +231,11 @@ export function conquerDice(ctx, op) {
 	}
 	// Pushed below the dice and Pirate Rule, which are the conquest's own reward.
 	const counts = triggered(ctx.state, 'countsChanged', { player });
+	// Automa never receives conquest dice benefits. A human defender's trap still resolves before this operation.
+	if (!isPlayerSeat(ctx.state, player)) {
+		ctx.push(counts);
+		return;
+	}
 	const red = ctx.random(6);
 	const black = ctx.random(6);
 	emit(ctx.state, { type: 'conquerDiceRolled', player, red, black });

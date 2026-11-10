@@ -11,6 +11,7 @@ import {
 	spacesAdvanced,
 } from '../engine/game.js';
 import { boardTracks } from '../board.js';
+import { AUTOMA_CIVS } from '../engine/data/automa-civs.js';
 
 /**
  * The props of one PlayerCard.
@@ -28,7 +29,10 @@ import { boardTracks } from '../board.js';
  * @property {number} capitalPoints - What the capital scores: its complete rows and columns, and the Architects' uniform lines again
  * @property {number} tech
  * @property {string[]} terrain - The land terrains of the territories they control, each once, in the interface's order
+ * @property {never} [botKind]
  */
+
+/** @typedef {{ seat: import('../ui.js').Seat, name: string, vp: number, botKind: 'automa' | 'shadow', civilization: string, tracks: Record<string, number>, landmarks: number, territories: number, incomeTurns: number, favouriteTrack: string, finished: boolean }} BotPlayerCardFacts */
 
 /**
  * The props of one PlayerChip in the game header (#90).
@@ -40,6 +44,7 @@ import { boardTracks } from '../board.js';
  * @property {boolean} current - It is this player's turn
  * @property {boolean} closing - Their turn waits only on End turn (#146), so it is about to pass: the glow dims (#177)
  * @property {string | undefined} ability - The civilization's full ability, for the chip's tooltip
+ * @property {'automa' | 'shadow'} [botKind] - Bot label without assuming player-only civilization state.
  */
 
 /**
@@ -66,18 +71,34 @@ function closingSeat(view) {
 export function playerChips(view) {
 	const closing = closingSeat(view);
 	return view.seats
-		.filter((/** @type {any} */ seat) => seat.kind === 'player')
+		.filter((/** @type {any} */ seat) =>
+			['player', 'automa', 'shadow'].includes(seat.kind)
+		)
 		.map((/** @type {any} */ seat) => ({
 			seat: seat.seat,
 			name: seat.name,
-			civilization: civilizationOf(seat),
+			civilization:
+				seat.kind === 'player'
+					? civilizationOf(seat)
+					: botCivilization(seat),
 			vp: seat.vp,
 			current: view.current === seat.seat,
 			closing: closing === seat.seat,
-			ability: seat.civs.length
-				? (civAbilityText(seat.civs[0], view.version) ?? undefined)
-				: undefined,
+			ability:
+				seat.kind === 'player' && seat.civs.length
+					? (civAbilityText(seat.civs[0], view.version) ?? undefined)
+					: undefined,
+			...(seat.kind !== 'player' ? { botKind: seat.kind } : {}),
 		}));
+}
+
+/** @param {any} seat @returns {string} */
+function botCivilization(seat) {
+	if (seat.kind === 'shadow') return 'Shadow Empire';
+	return (
+		AUTOMA_CIVS.find((civ) => civ.id === seat.civilization)?.name ??
+		'Automa'
+	);
 }
 
 /**
@@ -85,13 +106,35 @@ export function playerChips(view) {
  * @param {any} view - The game as view() gives it to the viewer
  * @param {number | null} viewer - The viewer's seat
  * @param {number | null} host - The host's seat
- * @returns {PlayerCardFacts[]}
+ * @returns {(PlayerCardFacts | BotPlayerCardFacts)[]}
  */
 export function playerCards(view, viewer, host) {
 	const hexes = new Map(mapHexes(view).map((hex) => [hex.key, hex]));
 	return view.seats
-		.filter((/** @type {any} */ seat) => seat.kind === 'player')
+		.filter((/** @type {any} */ seat) =>
+			['player', 'automa', 'shadow'].includes(seat.kind)
+		)
 		.map((/** @type {any} */ seat) => {
+			if (seat.kind !== 'player') {
+				return {
+					seat: seat.seat,
+					name: seat.name,
+					vp: seat.vp,
+					botKind: seat.kind,
+					civilization: botCivilization(seat),
+					tracks: Object.fromEntries(
+						boardTracks(view).map((track) => [
+							track,
+							spacesAdvanced(seat, track),
+						])
+					),
+					landmarks: seat.landmarks?.length ?? 0,
+					territories: controlledTerritories(view, seat.seat).length,
+					incomeTurns: seat.incomeTurns,
+					favouriteTrack: seat.favouriteTrack,
+					finished: seat.finished,
+				};
+			}
 			const summary =
 				/** @type {import('../overview.js').SelfSummary} */ (
 					selfSummary(view, seat.seat)

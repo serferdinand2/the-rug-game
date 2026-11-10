@@ -34,6 +34,7 @@
 <script>
 	import { untrack } from 'svelte';
 	import Die from './Die.svelte';
+	import BotActionReport from './BotActionReport.svelte';
 	import TapestryCard from '../player/TapestryCard.svelte';
 	import TapestryCardBack from '../player/TapestryCardBack.svelte';
 	import TechnologyCard from '../player/TechnologyCard.svelte';
@@ -49,6 +50,9 @@
 	import { tilePreview } from '../../area/explore.js';
 	import { landmarkName, spaceName, trackName } from '../../game-names.js';
 	import { artUrl, trackColor } from '../../ui.js';
+	import { TRACK_IDS } from '../../engine/data/ids.js';
+	const trackNames = [...TRACK_IDS, 'arts'].map(trackName);
+	const trackWordPattern = new RegExp(`\\b(${trackNames.join('|')})\\b`, 'g');
 
 	/** @type {PlayerActionProps} */
 	let {
@@ -180,6 +184,7 @@
 	bind:this={root}
 	class="rg-player-action {attr.class ? attr.class : ''}"
 	class:rg-player-action--income={item.kind === 'income'}
+	class:rg-player-action--bot={!!item.bot}
 	class:rg-player-action--paused={paused}
 	style:--rg-player-action-who={item.color}
 	style:--rg-player-action-hold="{duration}ms"
@@ -189,9 +194,11 @@
 	onpointerenter={pointerEnterHandler}
 	onpointerleave={pointerLeaveHandler}>
 	<div class="rg-player-action--band">
-		<span class="rg-player-action--turn">{item.name}'s turn</span>
-		{#if item.context}
-			<span class="rg-player-action--context">· {item.context}</span>
+		{#if !item.bot}<span class="rg-player-action--turn"
+				>{item.name}'s turn</span>
+			{#if item.context}
+				<span class="rg-player-action--context">· {item.context}</span>
+			{/if}
 		{/if}
 		<span class="rg-player-action--controls">
 			{#if count > 1}
@@ -219,109 +226,164 @@
 				onclick={closeButtonClickHandler}>Close ✕</button>
 		</span>
 	</div>
-	<div class="rg-player-action--body">
-		{#if item.kind === 'tapestry'}
-			<div class="rg-player-action--picture">
-				{#if picture.card}
-					<TapestryCard id={picture.card} />
-				{:else}
-					<TapestryCardBack class="rg-player-action--back" />
-				{/if}
-			</div>
-		{:else if item.kind === 'advance'}
-			<div class="rg-player-action--picture">
-				<span
-					class="rg-player-action--tag"
-					style:--rg-player-action-track={trackColor(picture.track)}>
-					<img
-						src={artUrl(`track/${picture.track}`)}
-						alt="" />
-					<b>{spaceName(picture.track, picture.space)}</b>
-					<span>· space {picture.space}</span>
-				</span>
-				{#if picture.landmark}
-					<span class="rg-player-action--landmark">
-						<img
-							src={artUrl(`landmark/${picture.landmark}`)}
-							alt="" />
-					</span>
-					<span class="rg-player-action--caption"
-						>{landmarkName(picture.landmark)}</span>
-				{:else}
-					<span class="rg-player-action--caption"
-						>{trackName(picture.track)}</span>
-				{/if}
-			</div>
-		{:else if item.kind === 'invent' || item.kind === 'upgrade'}
-			<div class="rg-player-action--picture">
-				<TechnologyCard id={picture.card} />
-				{#if item.kind === 'upgrade' && picture.to}
-					<span class="rg-player-action--caption"
-						>{rowName(picture.from)} → {rowName(picture.to)}</span>
-				{/if}
-			</div>
-		{:else if item.kind === 'explore'}
-			<div class="rg-player-action--picture">
-				<TerritoryTile
-					id={picture.tile}
-					{...tilePreview(picture.tile, picture.orient)}
-					size={96} />
-			</div>
-		{:else if item.kind === 'conquer' && (picture.tile !== null || picture.dice)}
-			<div class="rg-player-action--picture">
-				{#if picture.tile !== null}
-					<TerritoryTile
-						id={picture.tile}
-						{...tilePreview(picture.tile, picture.orient)}
-						size={80} />
-				{/if}
-				{#if picture.dice}
-					<span class="rg-player-action--dice">
-						<Die
-							die="red"
-							face={picture.dice.red}
-							size={64} />
-						<Die
-							die="black"
-							face={picture.dice.black}
-							size={64} />
-					</span>
-				{/if}
-			</div>
-		{/if}
-		<div class="rg-player-action--words">
+	{#if item.bot}
+		<BotActionReport
+			name={item.name}
+			seat={item.player}
+			cards={item.bot.cards}
+			favouriteTrack={item.bot.favouriteTrack}>
 			<p class="rg-player-action--headline">
-				{#each item.headline as part, at (at)}
-					<span
+				{#each item.headline as part, at (at)}<span
 						class:rg-player-action--who={part.role === 'who'}
 						class:rg-player-action--name={part.role === 'name'}
-						>{part.text}</span>
-				{/each}
+						>{part.text}</span
+					>{/each}
 			</p>
 			<span
 				class="rg-player-action--timer"
 				title={paused ? 'Held while the pointer is here' : undefined}
 				><i></i></span>
-			{#if item.lines.length > 0}
-				<ul class="rg-player-action--lines">
-					{#each item.lines as line, at (at)}
-						<li>{line}</li>
-					{/each}
-				</ul>
-			{/if}
-			{#if item.more > 0}
-				<p class="rg-player-action--note">
+			{#if item.lines.length}<ul class="rg-player-action--lines">
+					{#each item.lines as line, at (at)}<li>
+							{#each line.split(trackWordPattern) as part, index (index)}<span
+									class:rg-player-action--track-name={trackNames.includes(
+										part
+									)}>{part}</span
+								>{/each}
+						</li>{/each}
+				</ul>{/if}
+			{#if item.more > 0}<p class="rg-player-action--note">
 					And {item.more} more in the log.
-				</p>
-			{/if}
+				</p>{/if}
 			<p class="rg-player-action--hint">
 				Hover to hold · click, Close or Esc to close
 			</p>
+		</BotActionReport>
+	{:else}
+		<div class="rg-player-action--body">
+			{#if item.kind === 'tapestry'}
+				<div class="rg-player-action--picture">
+					{#if picture.card}
+						<TapestryCard id={picture.card} />
+					{:else}
+						<TapestryCardBack class="rg-player-action--back" />
+					{/if}
+				</div>
+			{:else if item.kind === 'advance'}
+				<div class="rg-player-action--picture">
+					<span
+						class="rg-player-action--tag"
+						style:--rg-player-action-track={trackColor(
+							picture.track
+						)}>
+						<img
+							src={artUrl(`track/${picture.track}`)}
+							alt="" />
+						<b>{spaceName(picture.track, picture.space)}</b>
+						<span>· space {picture.space}</span>
+					</span>
+					{#if picture.landmark}
+						<span class="rg-player-action--landmark">
+							<img
+								src={artUrl(`landmark/${picture.landmark}`)}
+								alt="" />
+						</span>
+						<span class="rg-player-action--caption"
+							>{landmarkName(picture.landmark)}</span>
+					{:else}
+						<span class="rg-player-action--caption"
+							>{trackName(picture.track)}</span>
+					{/if}
+				</div>
+			{:else if item.kind === 'invent' || item.kind === 'upgrade'}
+				<div class="rg-player-action--picture">
+					<TechnologyCard id={picture.card} />
+					{#if item.kind === 'upgrade' && picture.to}
+						<span class="rg-player-action--caption"
+							>{rowName(picture.from)} → {rowName(
+								picture.to
+							)}</span>
+					{/if}
+				</div>
+			{:else if item.kind === 'explore'}
+				<div class="rg-player-action--picture">
+					<TerritoryTile
+						id={picture.tile}
+						{...tilePreview(picture.tile, picture.orient)}
+						size={96} />
+				</div>
+			{:else if item.kind === 'conquer' && (picture.tile !== null || picture.dice)}
+				<div class="rg-player-action--picture">
+					{#if picture.tile !== null}
+						<TerritoryTile
+							id={picture.tile}
+							{...tilePreview(picture.tile, picture.orient)}
+							size={80} />
+					{/if}
+					{#if picture.dice}
+						<span class="rg-player-action--dice">
+							<Die
+								die="red"
+								face={picture.dice.red}
+								size={64} />
+							<Die
+								die="black"
+								face={picture.dice.black}
+								size={64} />
+						</span>
+					{/if}
+				</div>
+			{/if}
+			<div class="rg-player-action--words">
+				<p class="rg-player-action--headline">
+					{#each item.headline as part, at (at)}
+						<span
+							class:rg-player-action--who={part.role === 'who'}
+							class:rg-player-action--name={part.role === 'name'}
+							>{part.text}</span>
+					{/each}
+				</p>
+				<span
+					class="rg-player-action--timer"
+					title={paused
+						? 'Held while the pointer is here'
+						: undefined}><i></i></span>
+				{#if item.lines.length > 0}
+					<ul class="rg-player-action--lines">
+						{#each item.lines as line, at (at)}
+							<li>{line}</li>
+						{/each}
+					</ul>
+				{/if}
+				{#if item.more > 0}
+					<p class="rg-player-action--note">
+						And {item.more} more in the log.
+					</p>
+				{/if}
+				<p class="rg-player-action--hint">
+					Hover to hold · click, Close or Esc to close
+				</p>
+			</div>
 		</div>
-	</div>
+	{/if}
 </div>
 
 <style>
+	.rg-player-action.rg-player-action--bot {
+		border-color: var(--science);
+		background: var(--texture)
+			color-mix(in srgb, var(--science) 18%, var(--surface));
+		max-height: calc(100vh - 2 * var(--space-10));
+		overflow: auto;
+	}
+	.rg-player-action.rg-player-action--bot .rg-player-action--band {
+		background: color-mix(in srgb, var(--science) 18%, var(--surface));
+		border-top-color: var(--science);
+	}
+	.rg-player-action--bot :global(.rg-bot-action-report) {
+		border: 0;
+	}
+
 	.rg-player-action {
 		position: fixed;
 		z-index: var(--layer-tray);
@@ -446,6 +508,9 @@
 
 	.rg-player-action--name {
 		color: var(--gold);
+		font-family: var(--font-title);
+	}
+	.rg-player-action--track-name {
 		font-family: var(--font-title);
 	}
 

@@ -15,6 +15,9 @@
 	 * @property {boolean} [host=false] - The player hosts the table; shows HOST
 	 * @property {boolean} [ready] - Readiness, shown after the badges as READY or NOT READY; left out, nothing is shown
 	 * @property {boolean} [removable=false] - The viewer may remove this player: a × at the top right, shown on hover or focus
+	 * @property {'automa' | 'shadow' | null} [botKind=null] - Official bot seat, with its name followed by (Automa)
+	 * @property {boolean} [canAddBot=false] - The host can add a bot to this empty seat
+	 * @property {Function} [onSeatCardAddBot] - Callback fired with { seat }
 	 * @property {Function} [onSeatCardOpen] - Callback fired when an empty seat is opened
 	 * @property {Function} [onSeatCardCancel] - Callback fired when the × closes an add seat, back to empty
 	 * @property {Function} [onSeatCardAdd] - Callback fired with { seat, name } when Add is pressed or Enter typed in the add state
@@ -61,6 +64,9 @@
 		host = false,
 		ready,
 		removable = false,
+		botKind = null,
+		canAddBot = false,
+		onSeatCardAddBot,
 		onSeatCardOpen,
 		onSeatCardCancel,
 		onSeatCardAdd,
@@ -173,15 +179,37 @@
 	{#if kind === 'closed'}
 		<!-- Nothing to choose: only the slot's surface. -->
 	{:else if kind === 'empty'}
-		<button
-			type="button"
-			class="rg-seat-card--choice"
-			onclick={openClickHandler}>
-			<span
-				class="rg-seat-card--plus"
-				aria-hidden="true">+</span>
-			<span>Open seat</span>
-		</button>
+		<div
+			class="rg-seat-card--empty-actions"
+			class:rg-seat-card--with-bot={canAddBot}>
+			<button
+				type="button"
+				class="rg-seat-card--choice"
+				onclick={openClickHandler}>
+				<span
+					class="rg-seat-card--plus"
+					aria-hidden="true">+</span>
+				<span>Open seat</span>
+			</button>
+			{#if canAddBot}
+				<Button
+					mode="primary"
+					size="small"
+					onButtonClick={(
+						/** @type {import('../../component-event.js').ComponentEvent} */ event
+					) => {
+						if (typeof onSeatCardAddBot === 'function') {
+							onSeatCardAddBot(
+								new ComponentEvent(
+									{ seat },
+									event.target,
+									event.originalEvent
+								)
+							);
+						}
+					}}>Add bot</Button>
+			{/if}
+		</div>
 	{:else if kind === 'add'}
 		<form
 			bind:this={addForm}
@@ -208,22 +236,34 @@
 			cancelClickHandler
 		)}
 	{:else}
-		{#if badges.length}
-			<div class="rg-seat-card--badges">
-				{#each badges as badge, index (badge.label)}
-					{#if index > 0}
-						<span
-							class="rg-seat-card--dot"
-							aria-hidden="true">·</span>
-					{/if}
-					<Badge
-						label={badge.label}
-						variant="caps"
-						color={badge.color} />
-				{/each}
-			</div>
-		{/if}
+		<div class="rg-seat-card--header">
+			{#if badges.length}
+				<div class="rg-seat-card--badges">
+					{#each badges as badge, index (badge.label)}
+						{#if index > 0}
+							<span
+								class="rg-seat-card--dot"
+								aria-hidden="true">·</span>
+						{/if}
+						<Badge
+							label={badge.label}
+							variant="caps"
+							color={badge.color} />
+					{/each}
+				</div>
+			{/if}
+			{#if removable}
+				{@render remove(
+					`Remove ${name}`,
+					'Remove the player',
+					removeClickHandler
+				)}
+			{/if}
+		</div>
 		<span class="rg-seat-card--name">{name}</span>
+		{#if botKind}<span class="rg-seat-card--bot-label"
+				>({botKind === 'shadow' ? 'Shadow Empire' : 'Automa'})</span
+			>{/if}
 		{#if !showCivilization}
 			<!-- Civilizations are dealt once the game starts. -->
 		{:else if canChooseCivilization}
@@ -241,13 +281,6 @@
 				class="rg-seat-card--civ"
 				class:rg-seat-card--unchosen={!civilization}
 				>{civilization ?? 'Not yet chosen'}</span>
-		{/if}
-		{#if removable}
-			{@render remove(
-				`Remove ${name}`,
-				'Remove the player',
-				removeClickHandler
-			)}
 		{/if}
 	{/if}
 </div>
@@ -296,6 +329,32 @@
 			color var(--duration-fast) var(--ease);
 	}
 
+	.rg-seat-card--empty-actions {
+		display: contents;
+	}
+
+	.rg-seat-card--empty-actions.rg-seat-card--with-bot {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-2);
+		width: 100%;
+		height: 100%;
+		background: var(--surface);
+		padding: var(--space-2);
+	}
+	.rg-seat-card--with-bot .rg-seat-card--choice {
+		flex: 1;
+		padding: 0;
+		gap: var(--space-2);
+	}
+	.rg-seat-card--bot-label {
+		font-family: var(--font-title);
+		font-size: var(--font-size-sm);
+		font-weight: var(--weight-title);
+	}
+
 	.rg-seat-card--choice:hover {
 		background: color-mix(in srgb, var(--gold) 5%, var(--surface));
 		color: var(--gold);
@@ -325,10 +384,17 @@
 			var(--glow-gold);
 	}
 
-	.rg-seat-card--badges {
+	.rg-seat-card--header {
 		position: absolute;
 		top: var(--space-3);
 		left: var(--space-4);
+		right: 0;
+		height: var(--font-size-3xs);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.rg-seat-card--badges {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
@@ -408,6 +474,13 @@
 		line-height: var(--leading-none);
 		opacity: 0;
 		transition: opacity var(--duration-fast) var(--ease);
+	}
+
+	/* The badges and remove button share one top row; add-seat cancellation stays absolute. */
+	.rg-seat-card--header .rg-seat-card--remove {
+		position: static;
+		flex: none;
+		margin-left: auto;
 	}
 
 	.rg-seat-card:hover .rg-seat-card--remove,

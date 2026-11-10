@@ -8,6 +8,7 @@ import { setupCivs } from './civ-turns.js';
 import { draftLandmarkCards } from './landmark-cards.js';
 import { plannersCards } from './civs/urban-planners.js';
 import { landmarkCardsFor } from './data/landmark-cards.js';
+import { askAutomaSetup } from './automa.js';
 
 /**
  * The after-setup steps in order. Later issues insert theirs before 'start', which begins play:
@@ -19,15 +20,19 @@ export const AFTER_SETUP = ['reveal', 'civDeck', 'civSetup', 'start'];
  * A game's after-setup steps: with landmark cards, Plans & Ploys' or A&A's, the draft comes just before 'start' (#32,
  * #35; 03 §1.2).
  * @param {readonly string[]} expansions
+ * @param {boolean} [automa=false] - Solo setup includes the level-6 extra-civilization choice.
  * @returns {string[]}
  */
-export function afterSetupSteps(expansions) {
+export function afterSetupSteps(expansions, automa = false) {
+	const steps = automa
+		? [...AFTER_SETUP.slice(0, -1), 'automaSetup', 'start']
+		: AFTER_SETUP;
 	if (landmarkCardsFor(expansions).length === 0) {
-		return [...AFTER_SETUP];
+		return [...steps];
 	}
 	// A&A's Urban Planners pick one more card once the draft is done (#37).
 	return [
-		...AFTER_SETUP.slice(0, -1),
+		...steps.slice(0, -1),
 		'landmarkCards',
 		...(expansions.includes('aa') ? ['plannersCards'] : []),
 		'start',
@@ -36,6 +41,7 @@ export function afterSetupSteps(expansions) {
 
 /** @type {Record<string, (ctx: import('./state.js').Context) => void>} */
 export const AFTER_SETUP_STEPS = {
+	automaSetup: askAutomaSetup,
 	// Every pick becomes public at once; a player's unchosen mats join the supply now: a small-map player's other mat
 	// of the pair, or with Arts & Architecture every mat dealt but not kept, on either map (#36).
 	reveal({ state }) {

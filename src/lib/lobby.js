@@ -1,6 +1,61 @@
 // What the lobby screen shows and allows (#25 design §6): the seat slots, who may change what, and the choices' lists and labels.
 import { expansionName, variantName, versionName } from './game-names.js';
 import { expansionColor } from './ui.js';
+import { PlayerError } from './engine/errors.js';
+import { AUTOMA_LEVELS } from './engine/data/automa-levels.js';
+
+/**
+ * Official bot identities for a selected bot seat; human sharing stays Online or Local.
+ * @returns {Choice[]}
+ */
+export function botChoices() {
+	return [
+		{ value: 'automa', label: 'Automa', color: 'var(--exploration)' },
+		{
+			value: 'shadow',
+			label: 'Shadow Empire',
+			color: 'var(--exploration)',
+		},
+	];
+}
+
+/** @returns {Choice[]} The six base Automa difficulty choices. */
+export function botLevelChoices() {
+	return AUTOMA_LEVELS.map(({ level, name }) => ({
+		value: String(level),
+		label: `${level}: ${name}`,
+		color: 'var(--exploration)',
+	}));
+}
+
+/**
+ * A validated lobby selection for configure({ bots }). It does not render new controls.
+ * @param {number} seat
+ * @param {string} kind
+ * @param {number} [level]
+ * @returns {{ seat: number, kind: 'automa' | 'shadow', level?: number }}
+ */
+export function botSeatSelection(seat, kind, level) {
+	if (!Number.isInteger(seat) || seat < 1 || seat > 5) {
+		throw new PlayerError('Choose a seat from 1 to 5.');
+	}
+	if (kind !== 'automa' && kind !== 'shadow') {
+		throw new PlayerError(
+			'Choose Automa or Shadow Empire for the bot seat.'
+		);
+	}
+	if (kind === 'shadow') {
+		if (level !== undefined) {
+			throw new PlayerError('Only an Automa seat has a level.');
+		}
+		return { seat, kind };
+	}
+	const difficulty = level === undefined ? 2 : level;
+	if (!AUTOMA_LEVELS.some((entry) => entry.level === difficulty)) {
+		throw new PlayerError('Choose an Automa level from 1 to 6.');
+	}
+	return { seat, kind, level: difficulty };
+}
 
 /**
  * One of the lobby's five places, as a SeatCard shows it.
@@ -69,16 +124,21 @@ export function isHost(room) {
 /**
  * Whether the viewer may switch between Online and Local mode: the host, before any deal, while alone at the table
  * (#22's rule).
- * @param {{ host: number, you: number[], seats: unknown[], game: unknown }} room - A room view
+ * @param {{ host: number, you: number[], seats: { kind?: string }[], game: unknown }} room - A room view
  * @returns {boolean}
  */
 export function canChangeMode(room) {
-	return isHost(room) && room.game === null && room.seats.length === 1;
+	return (
+		isHost(room) &&
+		room.game === null &&
+		room.seats.filter((seat) => !seat.kind || seat.kind === 'player')
+			.length === 1
+	);
 }
 
 /**
  * Why the viewer can't switch between Online and Local mode, or null when they can.
- * @param {{ host: number, you: number[], seats: unknown[], game: unknown }} room - A room view
+ * @param {{ host: number, you: number[], seats: { kind?: string }[], game: unknown }} room - A room view
  * @returns {string | null}
  */
 export function modeLock(room) {
@@ -102,7 +162,7 @@ export function settingsLock(room) {
 /**
  * The lobby's places, filled seats first, always `maxSeats` of them. An empty one is closed to a viewer who can't
  * open it: online anyone shares the code, but at a hot-seat table only the host adds a player.
- * @param {{ mode: string, host: number, you: number[], game: unknown, seats: { name: string, ready: boolean }[] }} room
+ * @param {{ mode: string, host: number, you: number[], game: unknown, seats: { name: string, ready: boolean, kind?: string }[] }} room
  *   A room view
  * @param {number} maxSeats
  * @returns {Slot[]}
@@ -130,7 +190,7 @@ export function seatSlots(room, maxSeats) {
 			name: filled.name,
 			you: online && room.you.includes(seat),
 			host: seat === room.host,
-			ready: online ? filled.ready : undefined,
+			ready: online && !filled.kind ? filled.ready : undefined,
 			// The server keeps the host's own online seat and the table's last player.
 			removable:
 				hosting &&

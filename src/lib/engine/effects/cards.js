@@ -130,9 +130,13 @@ export function trackLandmark(ctx, player) {
  */
 export function landmarkRank(ctx, player, value) {
 	const mine = landmarksOwned(ctx.state, player).length;
-	const theirs = opponents(ctx.state, player).map(
-		(other) => landmarksOwned(ctx.state, other).length
-	);
+	const solo = ctx.state.seats.some((seat) => seat.kind === 'automa');
+	// Solo Shadow's landmarks already belong to Automa's aggregate box; standalone Shadow remains an opponent (02 §9.5).
+	const theirs = ctx.state.seats
+		.filter(
+			(seat) => seat.seat !== player && !(solo && seat.kind === 'shadow')
+		)
+		.map((seat) => landmarksOwned(ctx.state, seat.seat).length);
 	let list = value.otherwise;
 	if (theirs.length > 0 && theirs.every((count) => mine < count)) {
 		list = value.fewest;

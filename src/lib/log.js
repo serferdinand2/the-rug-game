@@ -81,6 +81,8 @@ const NOTICES = ['timedOut', 'undone', 'gameEnded', 'playerFinished'];
 
 /** Every event type the log deliberately leaves out: bookkeeping a reader learns nothing from. */
 export const SILENT = new Set([
+	// Its visible income action already explains the bot's internal chart steps.
+	'botIncomeStep',
 	// A space's benefit follows it as its own lines.
 	'spaceActivated',
 	// Lithium-Ion Battery's second use this turn: nothing happens.
@@ -336,6 +338,23 @@ function prophecyNouns(category) {
 
 /** @type {Record<string, Words>} */
 const WORDS = {
+	automaTrapSprung: (e, game, name) => `${name} sprang a trap against ${seatName(game, e.attacker)} on ${hexName(e.hex)}.`,
+	botDecisionCards: (e, game, name) =>
+		isCount(e.pair?.trackCard) && isCount(e.pair?.tiebreakerCard)
+			? `${name} revealed decision cards ${e.pair.trackCard} and ${e.pair.tiebreakerCard}.`
+			: `${name} revealed Automa decision cards.`,
+	techRefreshed: (e, game, name) => `${name} refreshed the technology display.`,
+	incomeTurnEnded: (e, game, name) => isCount(e.turn) && e.turn > 0 ? `${name} ended income turn ${e.turn}.` : `${name} ended an income turn.`,
+	botTapestryGained: (e, game, name) =>
+		`${name} gained a face-down tapestry card.`,
+	botFavouriteChanged: (e, game, name) =>
+		`${name} now favours ${trackName(e.track)}.`,
+	botTrapDiscarded: (e, game, name) =>
+		`${name} discarded ${tapestryName(e.card)} while defending.`,
+	automaCivilizationChosen: (e, game, name) =>
+		typeof e.civilization === 'string'
+			? `${name} added the ${e.civilization} Automa civilization.`
+			: `${name} chose an Automa civilization.`,
 	// Setup.
 	gameCreated(e, game) {
 		const names = Array.isArray(e.seats)

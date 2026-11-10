@@ -123,6 +123,7 @@
 				filled={overviewOpen}
 				bump={bumped.includes(chip.seat)}
 				ability={chip.ability}
+				botKind={chip.botKind}
 				onPlayerChipClick={chipClick(chip.seat)} />
 		{/each}
 	{/snippet}

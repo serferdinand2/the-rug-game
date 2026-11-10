@@ -29,6 +29,23 @@ const GAME = { seats: [{ name: 'Ana' }, { name: 'Bo' }] };
  * @type {Record<string, Record<string, any>>}
  */
 const SAMPLES = {
+	automaTrapSprung: {player: 2, attacker: 1, hex: '0_0'},
+	incomeTurnEnded: {player: 2, turn: 2},
+	techRefreshed: {player: 2},
+	botDecisionCards: {
+		player: 2,
+		pair: { trackCard: 4, tiebreakerCard: 3 },
+		bot: 'automa',
+	},
+	botTapestryGained: { player: 2, count: 1, destination: 'trapCards' },
+	botFavouriteChanged: { player: 2, track: 'science' },
+	botTrapDiscarded: { player: 2, card: 'trap-1', hex: '0_0' },
+	botIncomeStep: { player: 2, step: 'score' },
+	automaCivilizationChosen: {
+		player: 2,
+		civilization: 'scientists',
+		second: true,
+	},
 	achievementClaimed: { player: 1, achievement: 'middle-island', vp: 10 },
 	alchemistsBust: { player: 1 },
 	alchemistsRolled: {

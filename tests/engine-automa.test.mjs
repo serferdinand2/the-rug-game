@@ -1,0 +1,408 @@
+// Tests for Automa and Shadow Empire seat boundaries and public views (#31).
+import { test } from 'vitest';
+import assert from 'node:assert/strict';
+import {
+	botSeat,
+	createBotSeat,
+	isBotSeat,
+	isPlayerSeat,
+	neighbours,
+	playerSeat,
+	seatOf,
+} from '../src/lib/engine/state.js';
+import { view } from '../src/lib/engine/view.js';
+import { newGame } from './helpers/engine.mjs';
+import { checkOptions, createGame } from '../src/lib/engine/setup.js';
+import { askedSeats, defaultAction } from '../src/lib/engine/table.js';
+import { seededRandom } from '../src/lib/engine/random.js';
+import { play } from '../src/lib/engine/play.js';
+
+const SOLO = [
+	{ kind: 'player', name: 'Ana' },
+	{ kind: 'automa', name: 'Automa', level: 2 },
+	{ kind: 'shadow', name: 'Shadow Empire' },
+];
+
+function soloSetup(version = 'current', participants = SOLO) {
+	return createGame({ participants, version, random: seededRandom(31) });
+}
+
+for (const version of ['original', 'current']) {
+	test(`${version} solo setup gives only the human setup choices and uses the printed fixed starts`, () => {
+		const state = soloSetup(version);
+		assert.equal(state.map, 'small');
+		assert.deepEqual(
+			state.seats.map((s) => s.kind),
+			['player', 'automa', 'shadow']
+		);
+		assert.deepEqual(askedSeats(state), [1]);
+		assert.equal(state.seats[0].start, '0_2');
+		assert.deepEqual(
+			state.hexes['0_2'].outposts.map((o) => o.seat),
+			[1, 1]
+		);
+		assert.deepEqual(
+			state.hexes['2_0'].outposts.map((o) => o.seat),
+			[2, 2]
+		);
+		assert.equal(
+			Object.values(state.hexes)
+				.flatMap((h) => h.outposts)
+				.filter((o) => o.seat === 3).length,
+			0
+		);
+		const automa = state.seats[1];
+		assert.equal(automa.level, 2);
+		assert.ok(
+			['explorers', 'conquerors', 'scientists', 'engineers'].includes(
+				automa.civilization
+			)
+		);
+		assert.notEqual(automa.favouriteTrack, state.seats[2].favouriteTrack);
+		assert.equal(
+			automa.favouriteMarker,
+			version === 'original' ? 'outpost' : 'track-token'
+		);
+		assert.equal(automa.outposts, version === 'original' ? 7 : 8);
+		assert.equal(
+			automa.tracks[automa.favouriteTrack].length,
+			version === 'original' ? 1 : 2
+		);
+		assert.equal(state.seats[2].outposts, 10);
+		assert.equal(state.seats[2].playerTokens, 5);
+	});
+}
+
+test('solo removes every §9.2 tapestry/civilization and exactly two traps before dealing', () => {
+	const state = soloSetup();
+	const cards = state.supply.tapestry.deck;
+	for (const id of [
+		'age-of-sail',
+		'alliance',
+		'coal-baron',
+		'dictatorship',
+		'diplomacy',
+		'espionage',
+		'marriage-of-state',
+		'oil-magnate',
+		'olympic-host',
+		'steam-tycoon',
+		'trade-economy',
+	]) {
+		assert.equal(cards.includes(id), false, id);
+	}
+	assert.equal(cards.filter((id) => id.startsWith('trap-')).length, 5);
+	const dealt = state.events
+		.filter((e) => e.type === 'civsDealt')
+		.flatMap((e) => e.secret.civs);
+	for (const id of ['futurists', 'heralds', 'inventors', 'traders']) {
+		assert.equal([...state.supply.civs, ...dealt].includes(id), false, id);
+	}
+});
+
+test('ordered participants preserve seat numbers and two humans may add Shadow Empire', () => {
+	const state = soloSetup('current', [
+		SOLO[2],
+		SOLO[0],
+		{ kind: 'player', name: 'Bo' },
+	]);
+	assert.deepEqual(
+		state.seats.map((s) => [s.seat, s.kind]),
+		[
+			[1, 'shadow'],
+			[2, 'player'],
+			[3, 'player'],
+		]
+	);
+	assert.deepEqual(askedSeats(state), [2, 3]);
+	assert.equal(state.supply.tapestry.deck.length, 50);
+	assert.equal(state.seats[0].outposts, 10);
+	assert.equal(
+		Object.values(state.hexes)
+			.flatMap((h) => h.outposts)
+			.filter((o) => o.seat === 1).length,
+		0
+	);
+});
+
+test('participant validation rejects unofficial compositions, bot kinds and levels', () => {
+	for (const participants of [
+		[],
+		[SOLO[0], SOLO[1]],
+		[SOLO[0], SOLO[2]],
+		[SOLO[1], SOLO[2]],
+		[...SOLO, SOLO[2]],
+		[SOLO[0], { kind: 'robot', name: 'Robot' }],
+		[SOLO[0], SOLO[1], { kind: 'player', name: 'Bo' }],
+	]) {
+		assert.throws(() => soloSetup('current', participants));
+	}
+	for (const level of [0, 7, 1.5, '2', null]) {
+		assert.throws(
+			() =>
+				soloSetup('current', [SOLO[0], { ...SOLO[1], level }, SOLO[2]]),
+			/level/i
+		);
+	}
+	for (const level of [1, 2, 3, 4, 5, 6]) {
+		assert.equal(
+			soloSetup('current', [SOLO[0], { ...SOLO[1], level }, SOLO[2]])
+				.seats[1].level,
+			level
+		);
+	}
+});
+
+test('bot options reject expansion combinations and arts under R59', () => {
+	for (const expansions of [['pp'], ['aa'], ['pp', 'aa']]) {
+		assert.throws(
+			() =>
+				checkOptions({
+					version: 'current',
+					expansions,
+					participants: SOLO,
+				}),
+			/base|arts|R59/i
+		);
+	}
+	assert.throws(
+		() =>
+			soloSetup('current', [
+				SOLO[0],
+				{ ...SOLO[2], level: 2 },
+				{ kind: 'player', name: 'Bo' },
+			]),
+		/level/i
+	);
+	assert.throws(
+		() =>
+			createGame({
+				players: [{ name: 'Ana' }],
+				participants: SOLO,
+				version: 'current',
+				random: seededRandom(1),
+			}),
+		/players|participants/i
+	);
+});
+
+test('table defaults never answer a human turn choice on behalf of a bot', () => {
+	const state = soloSetup();
+	state.pending = [
+		{
+			player: 2,
+			kind: 'chooseTurn',
+			id: 999,
+			batch: 999,
+			options: ['income'],
+		},
+	];
+	assert.deepEqual(askedSeats(state), []);
+	assert.equal(defaultAction(state, 2), null);
+	assert.throws(
+		() =>
+			play(state, 2, { decision: 999, turn: 'income' }, seededRandom(1)),
+		/player/i
+	);
+});
+
+test('the solo pair contributes one first-player candidate and never elects Shadow Empire', () => {
+	const seen = new Set();
+	for (let seed = 1; seed <= 24; seed += 1) {
+		const state = createGame({
+			participants: SOLO,
+			version: 'current',
+			random: seededRandom(seed),
+		});
+		assert.ok([1, 2].includes(state.first));
+		seen.add(state.first);
+	}
+	assert.deepEqual([...seen].sort(), [1, 2]);
+});
+
+const TRACKS = ['exploration', 'science', 'technology', 'military'];
+const PLAYER_FIELDS = [
+	'resources',
+	'incomeMat',
+	'capital',
+	'besideMat',
+	'hand',
+	'tech',
+	'territoryTiles',
+	'spaceTiles',
+	'exploredSpace',
+	'civs',
+	'civData',
+	'era',
+	'picks',
+	'landmarkCard',
+	'start',
+	'masterpieces',
+	'inspired',
+];
+
+for (const kind of ['automa', 'shadow']) {
+	test(`${kind} seats start with shared pieces and no player-only holdings`, () => {
+		const bot = createBotSeat(2, kind, 'Bot', TRACKS, 10);
+		assert.equal(bot.kind, kind);
+		assert.equal(bot.seat, 2);
+		assert.equal(bot.name, 'Bot');
+		assert.equal(bot.vp, 0);
+		assert.deepEqual(bot.vpSources, {});
+		assert.deepEqual(bot.tracks, {
+			exploration: [0],
+			science: [0],
+			technology: [0],
+			military: [0],
+		});
+		assert.equal(bot.outposts, 10);
+		assert.equal(bot.incomeTurns, 0);
+		assert.equal(bot.finished, false);
+		assert.deepEqual(bot.restartedTracks, []);
+		for (const field of PLAYER_FIELDS) {
+			assert.equal(Object.hasOwn(bot, field), false, field);
+		}
+		assert.deepEqual(JSON.parse(JSON.stringify(bot)), bot);
+	});
+
+	test(`${kind} seats can be found as bots but never as players`, () => {
+		const { state } = newGame(1);
+		const bot = createBotSeat(2, kind, 'Bot', TRACKS, 10);
+		state.seats.push(bot);
+		assert.equal(seatOf(state, 2), bot);
+		assert.equal(botSeat(state, 2), bot);
+		assert.equal(isBotSeat(state, 2), true);
+		assert.equal(isPlayerSeat(state, 2), false);
+		assert.throws(() => playerSeat(state, 2), /not a player/);
+		assert.equal(isBotSeat(state, 1), false);
+		assert.throws(() => botSeat(state, 1), /not a bot/);
+		for (const invalid of [null, undefined, '2', 0, -1, 1.5, NaN, 3]) {
+			assert.equal(isBotSeat(state, invalid), false);
+		}
+		assert.throws(() => botSeat(state, 3), /There is no seat/);
+	});
+
+	test(`${kind} is a neighbour in a two-seat game and appears only once`, () => {
+		const { state } = newGame(1);
+		state.seats.push(createBotSeat(2, kind, 'Bot', TRACKS, 10));
+		assert.deepEqual(neighbours(state, 1), [2]);
+		assert.deepEqual(neighbours(state, 2), [1]);
+	});
+
+	test(`${kind} state is public while bot viewers cannot see human secrets`, () => {
+		const { state } = newGame(1);
+		const human = playerSeat(state, 1);
+		human.hand = ['trap'];
+		human.picks = { capital: 3, civ: 'leaders' };
+		const bot = createBotSeat(2, kind, 'Bot', TRACKS, 10);
+		bot.tracks.science = [3];
+		bot.incomeTurns = 2;
+		state.seats.push(bot);
+		// Even an event addressed to a bot cannot grant that seat private access.
+		state.events.push({
+			seq: ++state.seq,
+			type: 'privateFixture',
+			player: 2,
+			secret: { cards: ['hidden-bot-fixture'] },
+		});
+		state.events.push({
+			seq: ++state.seq,
+			type: 'privateFixture',
+			player: 1,
+			secret: { cards: ['trap'] },
+		});
+		const before = structuredClone(state);
+		const publicView = view(state, null);
+		assert.deepEqual(view(state, 2), publicView);
+		assert.deepEqual(publicView.seats[1], bot);
+		assert.deepEqual(view(state, 1).seats[1], bot);
+		assert.equal(publicView.seats[0].handCount, 1);
+		assert.equal(Object.hasOwn(publicView.seats[0], 'hand'), false);
+		assert.equal(Object.hasOwn(publicView.seats[0], 'picks'), false);
+		assert.ok(
+			publicView.events.every((event) => !Object.hasOwn(event, 'secret'))
+		);
+		for (const op of publicView.pending.flatMap((entry) =>
+			entry.kind === 'group'
+				? entry.lanes.flatMap((lane) => lane.stack)
+				: [entry]
+		)) {
+			assert.equal(Object.hasOwn(op, 'answers'), false);
+		}
+		assert.deepEqual(view(state, 1).seats[0].hand, ['trap']);
+		assert.deepEqual(view(state, 1).events.at(-1).secret, {
+			cards: ['trap'],
+		});
+		assert.deepEqual(state, before);
+	});
+
+	test(`${kind} viewers cannot see a bot-owned decision's hidden options or answers`, () => {
+		const { state } = newGame(1);
+		state.seats.push(createBotSeat(2, kind, 'Bot', TRACKS, 10));
+		// chooseCiv is a real registered decision with hidden options. A bot must
+		// never receive it in play, but an addressed decision must stay private.
+		state.pending = [
+			{
+				id: state.nextId++,
+				batch: 1,
+				kind: 'chooseCiv',
+				player: 2,
+				options: ['leaders', 'inventors'],
+			},
+			{
+				id: state.nextId++,
+				batch: 1,
+				kind: 'chooseCiv',
+				player: 1,
+				options: ['historians', 'craftsmen'],
+			},
+		];
+		const before = structuredClone(state);
+		const botView = view(state, 2);
+		assert.deepEqual(botView, view(state, null));
+		for (const decision of botView.pending) {
+			assert.equal(Object.hasOwn(decision, 'options'), false);
+			assert.equal(Object.hasOwn(decision, 'answers'), false);
+		}
+		const humanView = view(state, 1);
+		assert.equal(Object.hasOwn(humanView.pending[0], 'options'), false);
+		assert.equal(Object.hasOwn(humanView.pending[0], 'answers'), false);
+		assert.deepEqual(humanView.pending[1].options, [
+			'historians',
+			'craftsmen',
+		]);
+		assert.deepEqual(humanView.pending[1].answers, [
+			{ civ: 'historians' },
+			{ civ: 'craftsmen' },
+		]);
+		assert.deepEqual(state, before);
+	});
+}
+
+test('bot construction preserves the validated outpost supply chosen by setup', () => {
+	for (const kind of ['automa', 'shadow']) {
+		for (const outposts of [0, 6, 10]) {
+			const bot = createBotSeat(2, kind, 'Bot', TRACKS, outposts);
+			assert.equal(bot.outposts, outposts);
+		}
+	}
+});
+
+test('neighbour order includes a Shadow Empire between two human players', () => {
+	const { state } = newGame(2);
+	state.seats.push(createBotSeat(3, 'shadow', 'Shadow Empire', TRACKS, 10));
+	assert.deepEqual(neighbours(state, 1), [3, 2]);
+	assert.deepEqual(neighbours(state, 2), [1, 3]);
+	assert.deepEqual(neighbours(state, 3), [2, 1]);
+});
+
+test('separate bot seats never share mutable track tokens or score records', () => {
+	const first = createBotSeat(2, 'automa', 'Automa', TRACKS, 10);
+	const second = createBotSeat(3, 'shadow', 'Shadow Empire', TRACKS, 10);
+	first.tracks.science[0] = 4;
+	first.vpSources.tracks = 3;
+	first.restartedTracks.push('military');
+	assert.deepEqual(second.tracks.science, [0]);
+	assert.deepEqual(second.vpSources, {});
+	assert.deepEqual(second.restartedTracks, []);
+});

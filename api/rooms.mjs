@@ -31,8 +31,10 @@ import {
 /**
  * A place in the game. Seat `i` of a room is seat `i + 1` of its game.
  * @typedef {Object} RoomSeat
- * @property {string} player - The id of the person who plays it; at a hot-seat table, the host for every seat
+ * @property {string | null} player - A human session id; null for official bots
  * @property {string} name
+ * @property {'automa' | 'shadow'} [kind] - Absent on legacy human room seats
+ * @property {number} [level] - Automa only, from 1 to 6
  * @property {true} [away] - The person left a game in progress, or a finished one
  * @property {true} [ready] - The person said they are ready, in an online lobby (#25); it decides nothing
  */
@@ -96,7 +98,7 @@ import {
  * @property {boolean} undo
  * @property {'lobby' | 'playing' | 'finished'} phase
  * @property {number} host - The seat number of the host's first seat
- * @property {{ seat: number, name: string, away: boolean, ready: boolean }[]} seats
+ * @property {{ seat: number, name: string, away: boolean, ready: boolean, kind?: 'automa' | 'shadow', level?: number }[]} seats
  * @property {number[]} you - The seats this person plays
  * @property {number | null} viewing - The seat whose view `game` is; null for the public view
  * @property {import('../src/lib/engine/view.js').View | null} game
@@ -104,7 +106,7 @@ import {
  * @property {{ seat: number, at: number } | null} endsTurn - The seat whose End turn the server presses at `at`, in milliseconds (#146)
  * @property {boolean} canUndo - Whether the seat shown can take back its last choice
  */
-/** @typedef {Partial<RoomOptions> & { mode?: Mode }} RoomChanges */
+/** @typedef {Partial<RoomOptions> & { mode?: Mode, bots?: unknown }} RoomChanges */
 
 /** Most seats at a table (01 §1). */
 export const MAX_SEATS = 5;
@@ -173,7 +175,7 @@ export function phase(room) {
  */
 export function seatsOf(room, personId) {
 	return room.seats.flatMap((seat, i) =>
-		seat.player === personId ? [i + 1] : []
+		seat.player !== null && seat.player === personId ? [i + 1] : []
 	);
 }
 
@@ -203,10 +205,84 @@ function withHost(room) {
 		return room;
 	}
 	const next =
-		room.seats.find((s) => !s.away) ??
+		room.seats.find((s) => s.player !== null && !s.away) ??
 		room.seats.find((s) => s.player === room.host) ??
 		room.seats[0];
-	return next.player === room.host ? room : { ...room, host: next.player };
+	return next.player === room.host
+		? room
+		: { ...room, host: /** @type {string} */ (next.player) };
+}
+
+/**
+ * Replaces the lobby's bot declarations, preserving human identities and their order.
+ * A partial, not-yet-startable composition is allowed while the host fills seats.
+ * @param {Room} room
+ * @param {unknown} selections
+ * @returns {RoomSeat[]}
+ */
+function replaceBots(room, selections) {
+	if (!Array.isArray(selections)) {
+		throw new PlayerError('The bot seats must be a list.');
+	}
+	const humans = room.seats.filter((seat) => !seat.kind);
+	const total = humans.length + selections.length;
+	if (total > MAX_SEATS) {
+		throw new PlayerError('This table is full.');
+	}
+	/** @type {Map<number, RoomSeat>} */
+	const bots = new Map();
+	const kinds = new Set();
+	for (const raw of selections) {
+		if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+			throw new PlayerError('Choose a bot seat.');
+		}
+		const { seat, kind, level, name } = raw;
+		if (
+			!Number.isInteger(seat) ||
+			seat < 1 ||
+			seat > total ||
+			bots.has(seat)
+		) {
+			throw new PlayerError(
+				'Choose distinct, consecutive occupied seat positions.'
+			);
+		}
+		if (room.seats[seat - 1] && !room.seats[seat - 1].kind) {
+			throw new PlayerError(
+				'Remove a human seat before putting a bot there.'
+			);
+		}
+		if (!['automa', 'shadow'].includes(kind) || kinds.has(kind)) {
+			throw new PlayerError(
+				'Choose each official bot type at most once.'
+			);
+		}
+		kinds.add(kind);
+		if (
+			kind === 'automa' &&
+			!LEVELS.includes(level === undefined ? DEFAULT_LEVEL : level)
+		) {
+			throw new PlayerError('Choose an Automa level from 1 to 6.');
+		}
+		if (kind === 'shadow' && level !== undefined) {
+			throw new PlayerError('Only an Automa seat has a level.');
+		}
+		bots.set(seat, {
+			player: null,
+			kind,
+			name: cleanName(
+				name ?? (kind === 'automa' ? 'Automa' : 'Shadow Empire')
+			),
+			...(kind === 'automa' && {
+				level: level === undefined ? DEFAULT_LEVEL : level,
+			}),
+		});
+	}
+	let human = 0;
+	return Array.from(
+		{ length: total },
+		(_, i) => bots.get(i + 1) ?? humans[human++]
+	);
 }
 
 /**
@@ -343,11 +419,25 @@ export function configure(room, personId, changes) {
 		throw new PlayerError('The game has already started.');
 	}
 	const { mode, options } = settle(room.mode, room.options, changes);
+	const selections = changes?.bots;
+	// A retained finished game still uses its dealt seat numbers for ownership and private views.
+	if (selections !== undefined && room.game) {
+		throw new PlayerError(
+			'Start a new table to change bot seats after a game has been dealt.'
+		);
+	}
+	const seats =
+		selections === undefined ? room.seats : replaceBots(room, selections);
+	if (seats.some((seat) => seat.kind) && options.expansions.length > 0) {
+		throw new PlayerError(
+			'Automa and Shadow Empire currently support only the base game (no arts track, R59).'
+		);
+	}
 	if (mode !== room.mode) {
 		if (room.game) {
 			throw new PlayerError('Start a new table to change the mode.');
 		}
-		if (room.seats.length > 1) {
+		if (room.seats.filter((seat) => !seat.kind).length > 1) {
 			throw new PlayerError(
 				room.mode === 'hotseat'
 					? 'Remove the other players before the mode changes.'
@@ -357,11 +447,12 @@ export function configure(room, personId, changes) {
 	}
 	if (
 		mode === room.mode &&
-		JSON.stringify(options) === JSON.stringify(room.options)
+		JSON.stringify(options) === JSON.stringify(room.options) &&
+		JSON.stringify(seats) === JSON.stringify(room.seats)
 	) {
 		return room;
 	}
-	return unready({ ...room, mode, options });
+	return unready({ ...room, mode, options, seats });
 }
 
 /**
@@ -557,7 +648,10 @@ export function removeSeat(room, personId, seat) {
 		return room;
 	}
 	if (room.mode === 'hotseat') {
-		if (presentSeats(room).length === 1) {
+		if (
+			!target.kind &&
+			presentSeats(room).filter((s) => !s.kind).length === 1
+		) {
 			throw new PlayerError('A table needs at least one player.');
 		}
 	} else if (target.player === room.host) {
@@ -582,8 +676,8 @@ export function leave(room, personId) {
 	const now = phase(room);
 	const next = vacate(room, (s) => s.player === personId);
 	const closes =
-		(now === 'lobby' && next.seats.length === 0) ||
-		(now === 'finished' && presentSeats(next).length === 0);
+		(now === 'lobby' && next.seats.every((s) => s.kind)) ||
+		(now === 'finished' && presentSeats(next).every((s) => s.kind));
 	return {
 		room: closes ? null : next === room ? room : withHost(next),
 		saved: now === 'playing',
@@ -606,17 +700,24 @@ export function start(room, personId, random) {
 	if (phase(room) === 'playing') {
 		throw new PlayerError('The game is already running.');
 	}
-	// Tapestry seats one human alone only against the Automa, which is #31.
-	const seats = presentSeats(room).map(({ player, name }) => ({
-		player,
-		name,
-	}));
-	if (seats.length < 2) {
+	const seats = presentSeats(room).map(
+		({ away: _away, ready: _ready, ...seat }) => seat
+	);
+	const bots = seats.some((seat) => seat.kind);
+	if (!bots && seats.length < 2) {
 		throw new PlayerError('A game needs at least 2 players.');
 	}
 	const { version, expansions, variants } = room.options;
 	const game = createGame({
-		players: seats.map(({ name }) => ({ name })),
+		...(bots
+			? {
+					participants: seats.map(({ name, kind, level }) =>
+						kind === 'automa'
+							? { kind, name, level }
+							: { kind: kind ?? 'player', name }
+					),
+				}
+			: { players: seats.map(({ name }) => ({ name })) }),
 		version,
 		expansions,
 		variants,
@@ -654,14 +755,16 @@ export function end(room, personId) {
 	if (!isPresent(room, personId)) {
 		throw new PlayerError('Come back to the table first.');
 	}
-	if (presentSeats(room).some((s) => s.player !== personId)) {
+	if (presentSeats(room).some((s) => !s.kind && s.player !== personId)) {
 		throw new PlayerError(
 			'The game can end only once the other players have left.'
 		);
 	}
 	return {
 		...room,
-		seats: presentSeats(room).map(({ player, name }) => ({ player, name })),
+		seats: presentSeats(room).map(
+			({ away: _away, ready: _ready, ...seat }) => seat
+		),
 		game: null,
 		clocks: {},
 		declines: [],
@@ -1194,6 +1297,8 @@ export function roomView(room, personId, seat) {
 			name: s.name,
 			away: s.away === true,
 			ready: s.ready === true,
+			...(s.kind && { kind: s.kind }),
+			...(s.kind === 'automa' && { level: s.level }),
 		})),
 		you,
 		viewing,
@@ -1222,7 +1327,7 @@ export function roomView(room, personId, seat) {
 
 /**
  * What a new table may choose today, for the new-table screen (#25), so it never offers what the engine refuses.
- * Solo joins the modes with the Automa (#31).
+ * Online/Local describe human sharing; the lobby chooses official bot types and the Automa seat's level (#31).
  * @returns {{ modes: Mode[], versions: { id: string, name: string }[], expansions: string[], variants: { id: string, name: string, expansion?: string }[], levels: number[], maxSeats: number, timers: number[] }}
  */
 export function tableChoices() {

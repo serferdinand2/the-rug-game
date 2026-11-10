@@ -15,7 +15,12 @@ import { HIDDEN_DECKS } from './view.js';
 export function askedSeats(state) {
 	const seats = new Set(
 		openDecisions(state).flatMap((op) =>
-			op.player === null ? [] : [op.player]
+			op.player === null ||
+			['automa', 'shadow'].includes(
+				state.seats?.[op.player - 1]?.kind ?? 'player'
+			)
+				? []
+				: [op.player]
 		)
 	);
 	return [...seats].sort((a, b) => a - b);
@@ -28,6 +33,9 @@ export function askedSeats(state) {
  * @returns {({ decision: number } & Answer) | null} Null when the seat has nothing open
  */
 export function defaultAction(state, seat) {
+	if (state.seats[seat - 1]?.kind !== 'player') {
+		return null;
+	}
 	const decision = openDecisions(state).find((op) => op.player === seat);
 	if (!decision) {
 		return null;
@@ -57,6 +65,12 @@ const DECLINABLE = [
 export function declineOnly(state) {
 	return openDecisions(state)
 		.filter((op) => {
+			if (
+				op.player === null ||
+				state.seats[op.player - 1]?.kind !== 'player'
+			) {
+				return false;
+			}
 			if (!DECLINABLE.includes(op.kind)) {
 				return false;
 			}
@@ -90,6 +104,20 @@ export function revealed(before, after) {
 	}
 	for (const seat of before.seats) {
 		if (seat.kind !== 'player') {
+			const was = /** @type {Record<string, any>} */ (seat);
+			const now = /** @type {Record<string, any>} */ (
+				after.seats[seat.seat - 1]
+			);
+			if (
+				[
+					'decisionDeck',
+					'progressDeck',
+					'trapCards',
+					'multiplierCards',
+				].some((field) => !same(was[field], now[field]))
+			) {
+				return true;
+			}
 			continue;
 		}
 		const was = /** @type {any} */ (seat);

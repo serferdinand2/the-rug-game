@@ -22,6 +22,14 @@
 	import Segmented from '../lib/components/ui/Segmented.svelte';
 	import PlaySettings from '../lib/components/lobby/PlaySettings.svelte';
 	import SeatCard from '../lib/components/lobby/SeatCard.svelte';
+	import BotSettings from '../lib/components/lobby/BotSettings.svelte';
+	import {
+		botSelections,
+		otherBotKinds,
+		withoutBot,
+		nextBotKind,
+		nextBotName,
+	} from '../lib/lobby-bots.js';
 	import SettingRow from '../lib/components/lobby/SettingRow.svelte';
 	import TableCode from '../lib/components/lobby/TableCode.svelte';
 	import {
@@ -45,6 +53,7 @@
 	let room = $derived(store.room);
 	let config = $derived(store.config);
 	let online = $derived(room.mode === 'online');
+	let availableBot = $derived(nextBotKind(room.seats));
 	let hosting = $derived(isHost(room));
 	let slots = $derived(seatSlots(room, config?.maxSeats ?? 5));
 	let you = $derived(room.seats[room.you[0] - 1]);
@@ -130,6 +139,45 @@
 	 */
 	const seatRemoveHandler = (event) => {
 		store.removeSeat(event.value.seat);
+	};
+
+	/** @param {ComponentEvent} event */
+	const botAddHandler = (event) => {
+		store.configure((table) => {
+			const kind = nextBotKind(table.seats);
+			if (!kind) {
+				return {};
+			}
+			return {
+				bots: [
+					...botSelections(table.seats),
+					{
+						seat: table.seats.length + 1,
+						kind,
+						name: nextBotName(table.seats),
+						...(kind === 'automa' && { level: 2 }),
+					},
+				],
+			};
+		});
+	};
+
+	/** @param {number} seat @param {ComponentEvent} event */
+	const botChangeHandler = (seat, event) => {
+		store.configure((table) => ({
+			bots: botSelections(table.seats).map((bot) =>
+				bot.seat === seat
+					? { seat, name: bot.name, ...event.value }
+					: bot
+			),
+		}));
+	};
+
+	/** @param {number} seat */
+	const botRemoveHandler = (seat) => {
+		store.configure((table) => ({
+			bots: withoutBot(table.seats, seat),
+		}));
 	};
 </script>
 
@@ -234,30 +282,53 @@
 			{/snippet}
 			<div class="rg-lobby--seats">
 				{#each slots as slot (slot.seat)}
-					{#if slot.state === 'player'}
-						<SeatCard
-							state="player"
-							seat={slot.seat}
-							name={slot.name}
-							you={slot.you}
-							host={slot.host}
-							ready={slot.ready}
-							removable={slot.removable}
-							showCivilization={false}
-							onSeatCardRemove={seatRemoveHandler} />
-					{:else if addingSeat === slot.seat}
-						<SeatCard
-							state="add"
-							seat={slot.seat}
-							bind:name={newName}
-							onSeatCardAdd={seatAddHandler}
-							onSeatCardCancel={() => (addingSeat = null)} />
-					{:else}
-						<SeatCard
-							state={slot.state}
-							seat={slot.seat}
-							onSeatCardOpen={seatOpenHandler} />
-					{/if}
+					<div class="rg-lobby--seat">
+						{#if slot.state === 'player'}
+							<SeatCard
+								state="player"
+								seat={slot.seat}
+								name={slot.name}
+								botKind={room.seats[slot.seat - 1]?.kind ??
+									null}
+								you={slot.you}
+								host={slot.host}
+								ready={slot.ready}
+								removable={slot.removable &&
+									!room.seats[slot.seat - 1]?.kind}
+								showCivilization={false}
+								onSeatCardRemove={seatRemoveHandler} />
+							{#if hosting && room.game === null && room.seats[slot.seat - 1]?.kind}
+								<BotSettings
+									kind={room.seats[slot.seat - 1].kind}
+									level={room.seats[slot.seat - 1].level ?? 2}
+									unavailable={otherBotKinds(
+										room.seats,
+										slot.seat
+									)}
+									onBotSettingsChange={(event) =>
+										botChangeHandler(slot.seat, event)}
+									onBotSettingsRemove={() =>
+										botRemoveHandler(slot.seat)} />
+							{/if}
+						{:else if addingSeat === slot.seat}
+							<SeatCard
+								state="add"
+								seat={slot.seat}
+								bind:name={newName}
+								onSeatCardAdd={seatAddHandler}
+								onSeatCardCancel={() => (addingSeat = null)} />
+						{:else}
+							<SeatCard
+								state={slot.state}
+								seat={slot.seat}
+								onSeatCardOpen={seatOpenHandler}
+								canAddBot={hosting &&
+									room.game === null &&
+									availableBot !== null &&
+									slot.seat === room.seats.length + 1}
+								onSeatCardAddBot={botAddHandler} />
+						{/if}
+					</div>
 				{/each}
 			</div>
 		</Panel>
@@ -481,8 +552,12 @@
 	.rg-lobby--seats {
 		display: grid;
 		grid-template-columns: repeat(5, minmax(0, 1fr));
-		grid-auto-rows: var(--seat-height);
+		align-items: start;
 		gap: var(--space-4);
+	}
+
+	.rg-lobby--seat {
+		min-width: 0;
 	}
 
 	.rg-lobby--settings {
