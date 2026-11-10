@@ -327,7 +327,10 @@ function prophecyNouns(category) {
 /** @type {Record<string, Words>} */
 const WORDS = {
 	botDecisionCards: (e, game, name) =>
-		`${name} revealed decision cards ${e.pair?.trackCard} and ${e.pair?.tiebreakerCard}.`,
+		isCount(e.pair?.trackCard) && isCount(e.pair?.tiebreakerCard)
+			? `${name} revealed decision cards ${e.pair.trackCard} and ${e.pair.tiebreakerCard}.`
+			: `${name} revealed Automa decision cards.`,
+	techRefreshed: (e, game, name) => `${name} refreshed the technology display.`,
 	botTapestryGained: (e, game, name) =>
 		`${name} gained a face-down tapestry card.`,
 	botFavouriteChanged: (e, game, name) =>
@@ -335,7 +338,9 @@ const WORDS = {
 	botTrapDiscarded: (e, game, name) =>
 		`${name} discarded ${tapestryName(e.card)} while defending.`,
 	automaCivilizationChosen: (e, game, name) =>
-		`${name} added the ${e.civilization} Automa civilization.`,
+		typeof e.civilization === 'string'
+			? `${name} added the ${e.civilization} Automa civilization.`
+			: `${name} chose an Automa civilization.`,
 	// Setup.
 	gameCreated(e, game) {
 		const names = Array.isArray(e.seats)
