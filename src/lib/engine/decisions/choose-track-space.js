@@ -21,8 +21,12 @@ export const chooseTrackSpace = {
 			.answers(state, decision)
 			.some((a) =>
 				a.vp
-					? answer.vp === true
-					: a.track === answer.track && a.space === answer.space
+					? answer.vp === true &&
+						answer.track === undefined &&
+						answer.space === undefined
+					: answer.vp === undefined &&
+						a.track === answer.track &&
+						a.space === answer.space
 			);
 		if (!offered) {
 			throw new PlayerError('Choose one of the track spaces offered.');

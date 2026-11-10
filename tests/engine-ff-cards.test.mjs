@@ -849,3 +849,51 @@ test('Robotic Decoys: after you or a neighbour advances on Science, you may pay 
 		gain: [{ gain: { worker: 1 } }, { vp: 5 }],
 	});
 });
+
+test('an answer with a field no offered answer has is refused: no 9 VP on top of a card for Superpower Regulators, no 7 VP for a track space (security review)', () => {
+	const { state } = readyTurn(2, () => {}, { expansions: ['ff'] });
+	const second = {
+		id: 99,
+		batch: 99,
+		player: 1,
+		kind: 'chooseRegulated',
+		options: ['microbial-magic', 'ghost-towns'],
+		picked: 1,
+	};
+	assert.throws(
+		() =>
+			DECISIONS.chooseRegulated.check(state, second, {
+				card: 'microbial-magic',
+				vp: true,
+			}),
+		{ name: 'PlayerError' }
+	);
+	assert.doesNotThrow(() =>
+		DECISIONS.chooseRegulated.check(state, second, {
+			card: 'microbial-magic',
+		})
+	);
+	const nomadism = {
+		id: 98,
+		batch: 98,
+		player: 1,
+		kind: 'chooseTrackSpace',
+		purpose: 'temporalNomadism',
+		options: [{ track: 'science', space: 1 }],
+	};
+	assert.throws(
+		() =>
+			DECISIONS.chooseTrackSpace.check(state, nomadism, {
+				track: 'science',
+				space: 1,
+				vp: true,
+			}),
+		{ name: 'PlayerError' }
+	);
+	assert.doesNotThrow(() =>
+		DECISIONS.chooseTrackSpace.check(state, nomadism, {
+			track: 'science',
+			space: 1,
+		})
+	);
+});

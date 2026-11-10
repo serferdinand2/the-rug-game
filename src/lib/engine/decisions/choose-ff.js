@@ -22,9 +22,14 @@ import { askPlot } from '../civs/weefolk.js';
  * @param {string} message
  */
 function offered(kind, state, decision, answer, message) {
+	// Exactly an offered answer: an extra field, such as `vp: true` beside a card, would steer resolve (security review).
 	const ok = kind
 		.answers(state, decision)
-		.some((a) => Object.keys(a).every((key) => a[key] === answer[key]));
+		.some(
+			(a) =>
+				Object.keys(answer).length === Object.keys(a).length &&
+				Object.keys(a).every((key) => a[key] === answer[key])
+		);
 	if (!ok) {
 		throw new PlayerError(message);
 	}
