@@ -7,7 +7,7 @@ import {
 	drawAutomaPair,
 	drawShadowEmpirePair,
 } from '../src/lib/engine/automa-decks.js';
-import { createGame } from '../src/lib/engine/setup.js';
+import { createGame } from '../src/lib/engine/game.js';
 
 test('Automa starts with cards 1–7 and one random progress card in its decision deck', () => {
 	const decks = createAutomaDecks(seededRandom(31));

@@ -326,6 +326,7 @@ function prophecyNouns(category) {
 
 /** @type {Record<string, Words>} */
 const WORDS = {
+	automaTrapSprung: (e, game, name) => `${name} sprang a trap against ${seatName(game, e.attacker)} on ${hexName(e.hex)}.`,
 	botDecisionCards: (e, game, name) =>
 		isCount(e.pair?.trackCard) && isCount(e.pair?.tiebreakerCard)
 			? `${name} revealed decision cards ${e.pair.trackCard} and ${e.pair.tiebreakerCard}.`

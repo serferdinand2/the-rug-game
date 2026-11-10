@@ -644,11 +644,12 @@ export function botMap(ctx, op) {
 		state.hexes[hex].tile = tile;
 		state.hexes[hex].orient = orient;
 		emit(state, {
-			type: 'territoryExplored',
+			type: 'explored',
 			player: bot.seat,
 			hex,
 			tile,
 			orient,
+			vp: 0,
 		});
 	}
 	if (op.action === 'conquer') {
