@@ -1,6 +1,6 @@
 # Issue 31: component integration and playthrough report
 
-Work branch: `codex/issue-31-automa-shadow-empire`. Main is unchanged.
+Work branch: `codex/issue-31-automa-shadow-empire`. Merged through PR #185 into main at 9565b682 on 2026-11-10.
 
 ## Reviewed UI decisions
 
@@ -51,4 +51,4 @@ The local unit suite was not run, following the owner's instruction to use hoste
 
 ## Main integration review (2026-11-10)
 
-Merged origin/main at 7dd4ff13 into the feature branch. Resolved setup, turn, VP and status-log conflicts by preserving both main's A&A/F&F additions and base-only bot behavior. Independent engine and component reviews found no blocking findings. The production build and component/type checks passed (zero errors/warnings). PR #185 is open; its hosted regression runs are pending, so this is not yet a merged-main claim.
+Merged origin/main at 7dd4ff13 into the feature branch. Resolved setup, turn, VP and status-log conflicts by preserving both main's A&A/F&F additions and base-only bot behavior. Independent engine and component reviews found no blocking findings. The production build and component/type checks passed (zero errors/warnings). PR #185 merged after both hosted runs passed: 225 unit files / 3,398 tests and 82 browser tests. The conquest-dice browser check passed on retry.
