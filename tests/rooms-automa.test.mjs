@@ -41,7 +41,7 @@ test('lobby bot controls round-trip names, levels and removal through the real r
 				{
 					seat: shown.seats.length + 1,
 					kind,
-					name: nextBotName(shown.seats),
+					name: nextBotName(shown.seats, () => 0),
 					...(kind === 'automa' && { level: 2 }),
 				},
 			],
@@ -76,6 +76,21 @@ test('lobby bot controls round-trip names, levels and removal through the real r
 				bots: [{ seat: 4, kind: 'automa', level: 2 }],
 			}),
 		/consecutive/i
+	);
+});
+
+test('bot names sample unused historical names instead of a fixed sequence', () => {
+	assert.equal(
+		nextBotName([], () => 0),
+		'Egypt'
+	);
+	assert.equal(
+		nextBotName([], () => 0.99),
+		'Sumer'
+	);
+	assert.equal(
+		nextBotName([{ name: 'Sumer' }], () => 0.99),
+		'Shang'
 	);
 });
 
