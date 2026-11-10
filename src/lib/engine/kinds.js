@@ -1,5 +1,17 @@
 // Fills the registry of decision kinds and automatic operation kinds (registry.js holds it, #166); import this module, or game.js, so they are registered.
 import { DECISIONS, AUTOMATIC } from './registry.js';
+import {
+	botSelectAdvance,
+	botAdvance,
+	botBenefit,
+	botResearch,
+	botMap,
+	botIncomeStep,
+	botCivilizationIncome,
+	botCivilizationAbility,
+	botIncomeDone,
+	chooseAutomaCivilization,
+} from './automa.js';
 import './civs/index.js';
 import { chooseTurn } from './decisions/choose-turn.js';
 import { confirmEndTurn } from './decisions/confirm-end-turn.js';
@@ -190,6 +202,15 @@ Object.assign(DECISIONS, {
 });
 
 Object.assign(AUTOMATIC, {
+	botSelectAdvance,
+	botAdvance,
+	botBenefit,
+	botResearch,
+	botMap,
+	botIncomeStep,
+	botCivilizationIncome,
+	botCivilizationAbility,
+	botIncomeDone,
 	effects: runEffects,
 	setupSteps: runSetupSteps,
 	bonus: offerBonus,
@@ -265,3 +286,4 @@ Object.assign(AUTOMATIC, {
 });
 
 export { DECISIONS, AUTOMATIC };
+DECISIONS.chooseAutomaCivilization = chooseAutomaCivilization;

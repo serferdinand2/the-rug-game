@@ -95,6 +95,20 @@ export function revealed(before, after) {
 	}
 	for (const seat of before.seats) {
 		if (seat.kind !== 'player') {
+			const was = /** @type {Record<string, any>} */ (seat);
+			const now = /** @type {Record<string, any>} */ (
+				after.seats[seat.seat - 1]
+			);
+			if (
+				[
+					'decisionDeck',
+					'progressDeck',
+					'trapCards',
+					'multiplierCards',
+				].some((field) => !same(was[field], now[field]))
+			) {
+				return true;
+			}
 			continue;
 		}
 		const was = /** @type {any} */ (seat);

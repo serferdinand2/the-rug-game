@@ -12,6 +12,7 @@ import {
 } from './game-names.js';
 import { playerColor } from './ui.js';
 import { countWords } from './words.js';
+import { AUTOMA_CARDS } from './engine/data/automa-cards.js';
 
 /** The most lines under one headline; the rest are counted, and stay in the log. */
 export const MAX_LINES = 6;
@@ -51,6 +52,7 @@ export const MAX_LINES = 6;
  * @property {string[]} lines - What followed, in the log's words
  * @property {number} more - Lines left out after MAX_LINES
  * @property {any} picture - The PlayerActionPicture for its kind
+ * @property {{ kind: 'automa' | 'shadow', cards: readonly import('./engine/data/automa-cards.js').AutomaCard[], favouriteTrack: import('./engine/data/ids.js').BoardTrackId }} [bot] - Public bot report metadata; absent on human actions.
  */
 
 /**
@@ -298,6 +300,7 @@ function pictureOf(kind, event, game) {
 function itemOf(kind, event, game, income) {
 	const player = Number(event.player);
 	const name = seatName(game, player);
+	const actor = game?.seats?.[player - 1];
 	const civs = game?.seats?.[player - 1]?.civs;
 	const context = [
 		...(Array.isArray(civs) && civs.length > 0
@@ -321,7 +324,32 @@ function itemOf(kind, event, game, income) {
 		lines: [],
 		more: 0,
 		picture: pictureOf(kind, event, game),
+		...(actor?.kind === 'automa' || actor?.kind === 'shadow'
+			? {
+					bot: {
+						kind: actor.kind,
+						cards: [],
+						favouriteTrack: actor.favouriteTrack ?? 'exploration',
+					},
+				}
+			: {}),
 	};
+}
+
+/**
+ * Only canonical records named by the public event can become report cards.
+ * @param {Record<string, any> | null} event
+ * @returns {import('./engine/data/automa-cards.js').AutomaCard[]}
+ */
+function decisionCards(event) {
+	if (!event || !isRecord(event.pair)) return [];
+	const ids = [event.pair.trackCard, event.pair.tiebreakerCard];
+	const cards = ids.map((id) => AUTOMA_CARDS.find((card) => card.id === id));
+	return cards.every(Boolean)
+		? /** @type {import('./engine/data/automa-cards.js').AutomaCard[]} */ (
+				cards
+			)
+		: [];
 }
 
 /**
@@ -379,6 +407,32 @@ export function actionsOf(events, game, viewer, history = []) {
 	/** The display taking lines, or null; `skip` drops the lines of an action that shows nothing, such as the viewer's own. */
 	/** @type {{ item: PlayerActionItem | null, skip: boolean }} */
 	let current = { item: null, skip: false };
+	/** Most recent revealed pair in this turn, including a reveal before this batch. @type {Record<string, any> | null} */
+	let botPair = null;
+	const first = list[0]?.seq;
+	for (let i = history.length - 1; i >= 0; i--) {
+		const previous = history[i];
+		if (!isRecord(previous) || !(previous.seq < first)) continue;
+		if (previous.type === 'turnStarted') break;
+		if (previous.type === 'botDecisionCards') {
+			botPair = previous;
+			break;
+		}
+	}
+	/** @param {PlayerActionItem} item */
+	const withBotPair = (item) => {
+		if (
+			item.bot &&
+			botPair &&
+			(botPair.player === item.player ||
+				(botPair.bot === 'automa' && item.bot.kind === 'shadow'))
+		) {
+			item.bot.cards = decisionCards(botPair);
+			item.bot.favouriteTrack =
+				botPair.favourites?.[item.player] ?? item.bot.favouriteTrack;
+		}
+		return item;
+	};
 	/** @type {{ player: number, turn: number, item: PlayerActionItem | null, event: Record<string, any> } | null} */
 	let income = null;
 	const before = list.length > 0 ? incomeBefore(history, list[0].seq) : null;
@@ -403,7 +457,9 @@ export function actionsOf(events, game, viewer, history = []) {
 			return null;
 		}
 		if (!income.item) {
-			income.item = itemOf('income', income.event, game, income.turn);
+			income.item = withBotPair(
+				itemOf('income', income.event, game, income.turn)
+			);
 			// A turn summed up over several batches has one summary per batch, each with an id of its own.
 			income.item.id = `${income.event.seq}-income`;
 		}
@@ -412,7 +468,12 @@ export function actionsOf(events, game, viewer, history = []) {
 
 	list.forEach((event, index) => {
 		const player = Number(event.player);
+		if (event.type === 'botDecisionCards') {
+			botPair = event;
+			return;
+		}
 		if (event.type === 'turnStarted') {
+			botPair = null;
 			current = { item: null, skip: false };
 			closeIncome();
 			return;
@@ -465,7 +526,7 @@ export function actionsOf(events, game, viewer, history = []) {
 		} else if (kind !== null) {
 			// A tapestry card shows even in income turn 1, as on the Heralds' Maker of Fire.
 			if (shows(player)) {
-				const item = itemOf(kind, event, game, turn);
+				const item = withBotPair(itemOf(kind, event, game, turn));
 				out.push(item);
 				current = { item, skip: false };
 				return;

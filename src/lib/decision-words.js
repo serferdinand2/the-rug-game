@@ -1,6 +1,7 @@
 // The decisions' titles and answers in words (#26 design §8, #126): what the decision panel asks, and each answer it offers.
 // game.js first: it loads the civilization modules in an order free of their import cycle.
 import './engine/game.js';
+import { AUTOMA_CIVS } from './engine/data/automa-civs.js';
 import { RECYCLERS_VP } from './engine/civs/recyclers.js';
 import { TREASURES } from './engine/civs/treasure-hunters.js';
 import { TINKERERS_STEP_BACK } from './engine/civs/tinkerers.js';
@@ -462,6 +463,7 @@ const TITLES = {
 			? 'Take an income turn'
 			: 'Take income or advance',
 	chooseCapital: () => 'Choose your capital city',
+	chooseAutomaCivilization: () => 'Choose the Automa’s second civilization',
 	chooseCiv: (d) =>
 		d.midGame
 			? 'Keep one of the civilizations you drew'
@@ -946,6 +948,9 @@ const ANSWERS = {
 			: undefined;
 		return mat ? `${mat.name} capital (mat ${mat.number})` : null;
 	},
+	chooseAutomaCivilization: (a) =>
+		AUTOMA_CIVS.find((c) => c.id === a.civilization)?.name ??
+		a.civilization,
 	chooseCiv: (a) =>
 		typeof a.civ === 'string' ? civilizationName(a.civ) : null,
 	chooseMatAndCiv: (a) => {

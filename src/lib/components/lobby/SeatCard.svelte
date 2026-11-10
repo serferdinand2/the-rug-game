@@ -15,6 +15,9 @@
 	 * @property {boolean} [host=false] - The player hosts the table; shows HOST
 	 * @property {boolean} [ready] - Readiness, shown after the badges as READY or NOT READY; left out, nothing is shown
 	 * @property {boolean} [removable=false] - The viewer may remove this player: a × at the top right, shown on hover or focus
+	 * @property {'automa' | 'shadow' | null} [botKind=null] - Official bot seat, with its name followed by (Automa)
+	 * @property {boolean} [canAddBot=false] - The host can add a bot to this empty seat
+	 * @property {Function} [onSeatCardAddBot] - Callback fired with { seat }
 	 * @property {Function} [onSeatCardOpen] - Callback fired when an empty seat is opened
 	 * @property {Function} [onSeatCardCancel] - Callback fired when the × closes an add seat, back to empty
 	 * @property {Function} [onSeatCardAdd] - Callback fired with { seat, name } when Add is pressed or Enter typed in the add state
@@ -61,6 +64,9 @@
 		host = false,
 		ready,
 		removable = false,
+		botKind = null,
+		canAddBot = false,
+		onSeatCardAddBot,
 		onSeatCardOpen,
 		onSeatCardCancel,
 		onSeatCardAdd,
@@ -173,15 +179,34 @@
 	{#if kind === 'closed'}
 		<!-- Nothing to choose: only the slot's surface. -->
 	{:else if kind === 'empty'}
-		<button
-			type="button"
-			class="rg-seat-card--choice"
-			onclick={openClickHandler}>
-			<span
-				class="rg-seat-card--plus"
-				aria-hidden="true">+</span>
-			<span>Open seat</span>
-		</button>
+		<div
+			class="rg-seat-card--empty-actions"
+			class:rg-seat-card--with-bot={canAddBot}>
+			<button
+				type="button"
+				class="rg-seat-card--choice"
+				onclick={openClickHandler}>
+				<span
+					class="rg-seat-card--plus"
+					aria-hidden="true">+</span>
+				<span>Open seat</span>
+			</button>
+			{#if canAddBot}
+				<Button
+					mode="primary"
+					size="small"
+					onButtonClick={(
+						/** @type {import('../../component-event.js').ComponentEvent} */ event
+					) =>
+						onSeatCardAddBot?.(
+							new ComponentEvent(
+								{ seat },
+								event.target,
+								event.originalEvent
+							)
+						)}>Add bot</Button>
+			{/if}
+		</div>
 	{:else if kind === 'add'}
 		<form
 			bind:this={addForm}
@@ -223,7 +248,13 @@
 				{/each}
 			</div>
 		{/if}
-		<span class="rg-seat-card--name">{name}</span>
+		<span class="rg-seat-card--name"
+			>{#if botKind}<span
+					class="rg-seat-card--player-square"
+					aria-hidden="true"></span
+				>{/if}{name}{#if botKind}
+				<span class="rg-seat-card--bot-label">(Automa)</span
+				>{/if}</span>
 		{#if !showCivilization}
 			<!-- Civilizations are dealt once the game starts. -->
 		{:else if canChooseCivilization}
@@ -294,6 +325,39 @@
 		transition:
 			background var(--duration-fast) var(--ease),
 			color var(--duration-fast) var(--ease);
+	}
+
+	.rg-seat-card--empty-actions {
+		display: contents;
+	}
+
+	.rg-seat-card--empty-actions.rg-seat-card--with-bot {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-2);
+		width: 100%;
+		height: 100%;
+		background: var(--surface);
+		padding: var(--space-2);
+	}
+	.rg-seat-card--with-bot .rg-seat-card--choice {
+		flex: 1;
+		padding: 0;
+		gap: var(--space-2);
+	}
+	.rg-seat-card--bot-label {
+		margin-inline-start: var(--space-2);
+		font-family: var(--font-title);
+		font-weight: var(--weight-title);
+	}
+	.rg-seat-card--player-square {
+		display: inline-block;
+		width: var(--space-4);
+		height: var(--space-4);
+		margin-right: var(--space-2);
+		background: var(--rg-seat-card-color);
 	}
 
 	.rg-seat-card--choice:hover {
@@ -408,6 +472,12 @@
 		line-height: var(--leading-none);
 		opacity: 0;
 		transition: opacity var(--duration-fast) var(--ease);
+	}
+
+	/* Centre the remove control on the same horizontal line as the seat badges. */
+	.rg-seat-card--player .rg-seat-card--remove {
+		top: var(--space-3);
+		transform: translateY(calc((var(--font-size-3xs) - 22px) / 2));
 	}
 
 	.rg-seat-card:hover .rg-seat-card--remove,

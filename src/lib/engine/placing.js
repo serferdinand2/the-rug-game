@@ -1,6 +1,6 @@
 // Placing a gained building or landmark: in the capital city, paying a reward for each district it completes (R13, FAQ #1), or in a place a civilization offers (#20 design §9).
 import { emit } from './events.js';
-import { playerSeat } from './state.js';
+import { botSeat, playerSeat, seatOf } from './state.js';
 import { hasEra, triggered } from './abilities.js';
 import {
 	buildingSpots,
@@ -316,11 +316,31 @@ export function placeBuilding(ctx, op) {
  * The automatic operation for a gained landmark: it goes in the only place it fits when there is no other place,
  * beside the mat when there is no place at all, or waits for its player to choose a spot and a turn (R13-R15).
  * Spots that cover the same plots count as one place, so a square landmark turned four ways is still one.
+ * A bot stores it in its landmark box automatically; solo Shadow uses Automa's box (02 §9.5).
  * @type {import('./state.js').AutomaticKind}
  */
 export function placeLandmark(ctx, op) {
 	const player = /** @type {number} */ (op.player);
 	const landmark = /** @type {string} */ (op.landmark);
+	const actor = seatOf(ctx.state, player);
+	if (actor.kind !== 'player') {
+		// Solo Shadow gains remain its own for Historians, but the physical landmark belongs to Automa (02 §9.5).
+		const owner =
+			actor.kind === 'shadow'
+				? (ctx.state.seats.find((seat) => seat.kind === 'automa') ??
+					actor)
+				: actor;
+		botSeat(ctx.state, owner.seat).landmarks.push(landmark);
+		emit(ctx.state, {
+			type: 'landmarkPlaced',
+			player,
+			owner: owner.seat,
+			landmark,
+			box: true,
+			automatic: true,
+		});
+		return;
+	}
 	const seat = playerSeat(ctx.state, player);
 	const spots = landmarkSpots(
 		seat,

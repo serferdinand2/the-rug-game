@@ -15,6 +15,12 @@ import {
 	start,
 } from '../api/rooms.mjs';
 import { seededRandom } from '../src/lib/engine/random.js';
+import {
+	botSelections,
+	nextBotKind,
+	nextBotName,
+	withoutBot,
+} from '../src/lib/lobby-bots.js';
 
 const host = { id: 'ana', name: 'Ana' };
 const bots = [
@@ -23,6 +29,55 @@ const bots = [
 ];
 const lobby = () =>
 	configure(createRoom('1234abcd', host, {}, 0), host.id, { bots });
+
+test('lobby bot controls round-trip names, levels and removal through the real room configuration', () => {
+	let room = createRoom('1234abcd', host, {}, 0);
+	for (let i = 0; i < 2; i++) {
+		const shown = roomView(room, host.id);
+		const kind = nextBotKind(shown.seats);
+		room = configure(room, host.id, {
+			bots: [
+				...botSelections(shown.seats),
+				{
+					seat: shown.seats.length + 1,
+					kind,
+					name: nextBotName(shown.seats),
+					...(kind === 'automa' && { level: 2 }),
+				},
+			],
+		});
+	}
+	assert.deepEqual(
+		roomView(room, host.id).seats.map((seat) => seat.name),
+		['Ana', 'Egypt', 'Mesopotamia']
+	);
+	const selections = botSelections(roomView(room, host.id).seats);
+	selections[0].level = 6;
+	room = configure(room, host.id, { bots: selections });
+	assert.equal(roomView(room, host.id).seats[1].level, 6);
+	room = configure(room, host.id, {
+		bots: withoutBot(roomView(room, host.id).seats, 2),
+	});
+	const remaining = roomView(room, host.id);
+	assert.deepEqual(
+		remaining.seats.map((seat) => [seat.seat, seat.name, seat.kind]),
+		[
+			[1, 'Ana', undefined],
+			[2, 'Mesopotamia', 'shadow'],
+		]
+	);
+	assert.deepEqual(remaining.you, [1]);
+	assert.deepEqual(botSelections(remaining.seats), [
+		{ seat: 2, name: 'Mesopotamia', kind: 'shadow' },
+	]);
+	assert.throws(
+		() =>
+			configure(room, host.id, {
+				bots: [{ seat: 4, kind: 'automa', level: 2 }],
+			}),
+		/consecutive/i
+	);
+});
 
 test('the host selects typed bot seats and changes the Automa level without a new table mode', () => {
 	let room = lobby();

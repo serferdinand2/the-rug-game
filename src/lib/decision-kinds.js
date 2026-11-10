@@ -49,6 +49,7 @@ export const DECISION_KINDS = Object.freeze({
 	confirmEndTurn: { confirm: 'End turn' },
 	chooseCapital: { shelf: 'mat', confirm: 'Take this capital' },
 	chooseCiv: { shelf: 'civ', confirm: 'Keep civilization' },
+	chooseAutomaCivilization: { confirm: 'Choose Automa civilization' },
 	// Two shelves, the mats over the civilizations, drawn from jointPick rather than a card per answer (#36).
 	chooseMatAndCiv: { shelf: 'mat', confirm: 'Keep these' },
 	chooseResource: { art: 'resources' },

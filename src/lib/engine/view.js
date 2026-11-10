@@ -72,7 +72,19 @@ export function view(state, seat) {
 
 	for (const entry of copy.seats) {
 		if (entry.kind !== 'player') {
-			// Bots have no player holdings to redact, and never own a private viewer.
+			// Face-up pairs and discards are public; unseen deck order and tapestry identities never are.
+			for (const field of [
+				'decisionDeck',
+				'progressDeck',
+				'trapCards',
+				'multiplierCards',
+			]) {
+				if (Array.isArray(entry[field])) {
+					entry[`${field}Count`] = entry[field].length;
+					delete entry[field];
+				}
+			}
+			delete entry.incomePair;
 			continue;
 		}
 		// A face-down tapestry card is hidden from everyone, its owner included (01 §4.2).

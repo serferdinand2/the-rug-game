@@ -597,6 +597,13 @@
 	 * @param {ComponentEvent} event - From GameHeader: the chip's seat
 	 */
 	const chipHandler = (event) => {
+		if (
+			game.seats[event.value - 1]?.kind !==
+			'player'
+		) {
+			layers = openLayer(layers, 'overview', { player: event.value });
+			return;
+		}
 		viewing = nextInspected(viewing, event.value, seat);
 	};
 
@@ -757,6 +764,15 @@
 				tab = action.tab;
 				break;
 			case 'player':
+				if (
+					game.seats[action.seat - 1]
+						?.kind !== 'player'
+				) {
+					layers = openLayer(layers, 'overview', {
+						player: action.seat,
+					});
+					break;
+				}
 				// As the chip: that player's tabs, and the same key or your own goes back (#145).
 				viewing = nextInspected(viewing, action.seat, seat);
 				break;

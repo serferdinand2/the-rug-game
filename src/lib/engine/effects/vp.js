@@ -1,6 +1,6 @@
 // The vp effect: victory points gained now, either a number or so many per thing counted.
 import { emit } from '../events.js';
-import { playerSeat, seatOf } from '../state.js';
+import { botSeat, playerSeat, seatOf } from '../state.js';
 import { sourceOrigin } from '../stack.js';
 import { controlledTerritories } from '../control.js';
 import { spacesAdvanced } from '../movement.js';
@@ -16,11 +16,15 @@ const BUILDINGS_PER_ROW = 5;
 /**
  * The landmarks a player owns: those in the capital, then those beside the mat, then those on the map as Nomads
  * pieces, toppled or not, in map order (R71).
+ * A bot instead owns the contents of its landmark box, including solo Shadow's acquisitions stored by Automa.
  * @param {import('../state.js').State} state
  * @param {number} player
  * @returns {string[]}
  */
 export function landmarksOwned(state, player) {
+	if (seatOf(state, player).kind !== 'player') {
+		return [...botSeat(state, player).landmarks];
+	}
 	const seat = playerSeat(state, player);
 	const ids = new Set(ALL_LANDMARKS.map((landmark) => landmark.id));
 	const onMap = MAPS[state.map].hexes.flatMap((hex) =>
@@ -67,10 +71,10 @@ export function countVp(state, player, per, track) {
 	if (per === 'opponent') {
 		return state.seats.length - 1;
 	}
-	const seat = playerSeat(state, player);
 	if (per === 'landmark') {
 		return landmarksOwned(state, player).length;
 	}
+	const seat = playerSeat(state, player);
 	if (per === 'territoryTile') {
 		return seat.territoryTiles.length;
 	}

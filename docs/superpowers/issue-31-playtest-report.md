@@ -1,0 +1,49 @@
+# Issue 31: component integration and playthrough report
+
+Work branch: `codex/issue-31-automa-shadow-empire`. Main is unchanged.
+
+## Reviewed UI decisions
+
+- Decision cards use the existing CardFrame and CardBand: gold Cinzel title, green left-to-right gradient fading into the shared pixel-noise paper, and a solid green numbered footer.
+- The canonical 22-card deck generates the gallery. Each full card includes both track indicators, its income/topple flags, its hex-pattern reference, its circle/square deck marker and four track rows. The favourite resolves to a star before its track.
+- Bot reports use the revealed pair recorded in public events, not hidden current deck state. Events snapshot the favourite so replaying an old report does not change its star.
+- Lobby seat height remains the existing 112px token. Only the host can add/configure/remove bots; the settings component appears beneath the selected seat.
+- Six official levels come from the canonical difficulty data. Level 2, Automa the Average, is the default. The control is six clickable squares filled from the left.
+- Bot type is selected with two buttons. Shadow Empire is dark green. Remove bot uses the existing danger treatment.
+- Historical names are Egypt, Mesopotamia, Indus Valley, Shang and Sumer; the bot marker uses its seat colour and `(Automa)` uses Cinzel.
+- The player removal × is vertically aligned with the Host/Ready badge row.
+- Header chips include bots. Clicking a bot opens the overview rather than a nonexistent human capital/hand. Bot overview cards show only actual public bot facts.
+
+## Verification performed
+
+Seeded engine playthroughs used seed 3109 and current base rules, selecting legal human answers and normally preferring an advance when available. These are scripted games, not human browser sessions or a statistical balance study.
+
+| Setup | Result | Human answers | Final VP |
+|---|---|---:|---|
+| One human, level-2 Automa, Shadow Empire | Finished | 87 | Human 59; Automa 179 |
+| Two humans, Shadow Empire | Finished | 145 | Humans 77 and 58; Shadow 0 |
+| One human, level-1 Automa, Shadow Empire | Finished | 89 | Human 68; Automa 213 |
+| One human, level-6 Automa, Shadow Empire | Finished | 79 | Human 38; Automa 386 |
+
+No game stopped on a bot-owned human decision. Human and Automa participants completed five income turns; standalone Shadow uses no income turns. Shadow is excluded from winning placings.
+
+The local browser rendering check generated 24 card instances (22 full deck cards and two report cards), six level squares and five 112px seats without browser script errors. The final static component/type check passed with zero errors and zero warnings, including the report/overview integration.
+
+The local unit suite was not run, following the owner's instruction to use hosted CI for it.
+
+## Bugs found and corrected
+
+1. The earlier handwritten mockup had invalid JavaScript quotation marks and nonfunctional controls. The preview now compiles the production Svelte components into a standalone file.
+2. Bot turns entered the human choose-turn path. Automatic bot operations now run through the shared operation stack.
+3. A neighbouring technology effect attempted to invent into Shadow Empire's nonexistent human tech mat. Bot recipients now use their official effect rules: Shadow gains no benefits; Automa refreshes rather than holding technology cards.
+4. Mixed bot effects could refresh/draw before a previously queued movement. Effects now resolve sequentially through stack continuations.
+5. Bot hidden decks and face-down tapestry identities could leave the server in views. They now become counts; private income selection state is removed.
+6. Bot draws were absent from undo's reveal detection. Drawing or changing a hidden bot pile now prevents undo across that reveal.
+7. Automa's landmark box did not participate in normal landmark tiebreaks. It now counts; Shadow cannot win.
+8. A historical report could show the current favourite instead of the favourite used for that action. Public pair events now snapshot the favourite tracks.
+
+## Remaining review limits
+
+- R39 still calls for owner comparison of the ten map arrow patterns against all 22 physical decision cards. The gallery currently shows the canonical pattern number, not a reconstructed diagram of its arrows.
+- Original-version parity, rare human civilization interactions and long randomized runs require hosted regression results and further gameplay; completion of four scripted games does not establish all combinations.
+- No expansion bot support is introduced. The owner confirmed the two official base configurations rather than a two-human-plus-Automa house rule.

@@ -12,6 +12,7 @@
 	 * @property {boolean} [filled=false] - The players overview is open: the colour slides across the chip and its text hides, at the same size
 	 * @property {boolean} [bump=false] - Their VP just rose (#29): the score pops once in gold, unless the system asks for reduced motion
 	 * @property {string} [ability] - The civilization's full ability, which hovering the chip shows after its name (#42)
+	 * @property {'automa' | 'shadow'} [botKind] - A bot's public seat, labelled without player-only fields.
 	 * @property {Function} [onPlayerChipClick] - Callback fired when the chip is pressed, to show that player's tabs in the player area (#145)
 	 */
 
@@ -49,6 +50,7 @@
 		filled = false,
 		bump = false,
 		ability,
+		botKind,
 		onPlayerChipClick,
 		...attr
 	} = $props();
@@ -87,7 +89,9 @@
 	<i
 		class="rg-player-chip--color"
 		aria-hidden="true"></i>
-	<b class="rg-player-chip--name">{name}</b>
+	<b class="rg-player-chip--name"
+		>{name}{#if botKind}
+			<span class="rg-player-chip--bot">(Automa)</span>{/if}</b>
 	<small class="rg-player-chip--civilization"
 		><span class="rg-player-chip--civilization-name">{civilization}</span>
 		<span
@@ -99,6 +103,9 @@
 </button>
 
 <style>
+	.rg-player-chip--bot {
+		font-family: var(--font-title);
+	}
 	/* 210px wide, shrinking with its neighbours when the header is narrower than five full chips. */
 	.rg-player-chip {
 		position: relative;

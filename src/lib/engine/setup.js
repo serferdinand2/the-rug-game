@@ -31,6 +31,7 @@ import { createBotSeat } from './state.js';
 import { AUTOMA_CIVS } from './data/automa-civs.js';
 import { AUTOMA_LEVELS } from './data/automa-levels.js';
 import { SCIENCE_DIE } from './data/dice.js';
+import { createAutomaDecks, createShadowEmpireDeck } from './automa-decks.js';
 
 /** @typedef {{ kind: 'player', name: string } | { kind: 'automa', name: string, level?: number } | { kind: 'shadow', name: string }} Participant */
 /** @typedef {import('./state.js').BotSeat & { level?: number, civilization?: string, favouriteTrack: import('./data/ids.js').BoardTrackId, favouriteMarker?: 'outpost' | 'track-token', playerTokens?: number }} SetupBotSeat */
@@ -565,6 +566,22 @@ function setupBots(state, participants, random) {
 }
 
 /**
+ * Initializes the card state for the solo Automa pair or standalone Shadow Empire.
+ * @param {import('./state.js').State} state
+ * @param {import('./random.js').Random} random
+ */
+function setupBotDecks(state, random) {
+	const automa = state.seats.find((seat) => seat.kind === 'automa');
+	if (automa) {
+		Object.assign(automa, createAutomaDecks(random));
+	}
+	const shadow = state.seats.find((seat) => seat.kind === 'shadow');
+	if (shadow && !automa) {
+		Object.assign(shadow, createShadowEmpireDeck(random));
+	}
+}
+
+/**
  * The setup steps, in order; expansion issues add their own here.
  * The decks are shuffled before the steps run, so the order of `random` calls is part of the contract.
  * @type {((setup: SetupContext) => void)[]}
@@ -750,6 +767,7 @@ export function createGame({
 		mats: humans.map(() => null),
 	};
 	setupBots(state, participants, random);
+	setupBotDecks(state, random);
 	for (const step of SETUP_STEPS) {
 		step(setup);
 	}
@@ -758,7 +776,7 @@ export function createGame({
 		{
 			player: null,
 			kind: 'setupSteps',
-			steps: afterSetupSteps(expansions),
+			steps: afterSetupSteps(expansions, solo),
 		},
 	]);
 	pushGroup(state, setup.lanes);

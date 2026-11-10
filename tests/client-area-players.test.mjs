@@ -226,3 +226,41 @@ test('PlayerCard draws a row for each track it is given: five with the arts trac
 	assert.match(arts.body, /Arts<\/span>/);
 	assert.match(arts.body, /--rg-player-card-track: var\(--arts\)/);
 });
+
+test('bot chips and overview cards expose bot facts without human mats or resource fields', () => {
+	const { state } = startedGame(3);
+	for (const [index, kind] of [
+		[1, 'automa'],
+		[2, 'shadow'],
+	]) {
+		const old = state.seats[index];
+		state.seats[index] = {
+			seat: old.seat,
+			name: index === 1 ? 'Egypt' : 'Mesopotamia',
+			kind,
+			vp: index === 1 ? 17 : 0,
+			vpSources: {},
+			tracks: old.tracks,
+			restartedTracks: [],
+			outposts: 8,
+			incomeTurns: 2,
+			finished: false,
+			landmarks: [],
+			civilization: 'scientists',
+			favouriteTrack: 'science',
+		};
+	}
+	const chips = playerChips(state);
+	assert.equal(chips.length, 3);
+	assert.equal(chips[1].botKind, 'automa');
+	assert.equal(chips[1].civilization, 'Scientists');
+	assert.equal(chips[2].civilization, 'Shadow Empire');
+	const cards = playerCards(state, 1, 1);
+	assert.equal(cards.length, 3);
+	for (const card of cards.slice(1)) {
+		assert.ok(card.botKind);
+		for (const field of ['resources', 'capitalPoints', 'handSize', 'tech'])
+			assert.equal(Object.hasOwn(card, field), false);
+		assert.equal(card.tracks.science, 0);
+	}
+});

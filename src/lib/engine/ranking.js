@@ -27,7 +27,9 @@ import { HEIGHT_RANKING } from './data/landmarks.js';
 export function landmarksInCity(seat) {
 	return 'capital' in seat
 		? seat.capital.landmarks.map((p) => p.landmark)
-		: [];
+		: 'landmarks' in seat
+			? /** @type {string[]} */ (seat.landmarks)
+			: [];
 }
 
 /**
@@ -147,7 +149,10 @@ export function rankPlayers(state) {
 
 	/** @type {Placing[]} */
 	const ranking = [];
-	for (const group of groupBy(state.seats, (seat) => seat.vp)) {
+	for (const group of groupBy(
+		state.seats.filter((seat) => seat.kind !== 'shadow'),
+		(seat) => seat.vp
+	)) {
 		/** @type {AnySeat[][]} */
 		let places = [group];
 		if (group.length > 1) {

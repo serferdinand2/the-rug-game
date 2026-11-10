@@ -1,5 +1,6 @@
 // The effect handlers by kind, and the automatic operation that runs a list of effects.
 import { seatOf } from '../state.js';
+import { botEffects } from './bot.js';
 import { vp } from './vp.js';
 import { gain } from './gain.js';
 import { lose } from './lose.js';
@@ -208,6 +209,10 @@ export function runEffects(ctx, op) {
 	}
 	if (op.player === null) {
 		throw new Error('Effects need a player to run for.');
+	}
+	if (seatOf(ctx.state, op.player).kind !== 'player') {
+		botEffects(ctx, op);
+		return;
 	}
 	// A finished player gains nothing but the VP of passive civilization operations (01 §4.3, #20 design §4).
 	const finished = seatOf(ctx.state, op.player).finished;
