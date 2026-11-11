@@ -1,4 +1,4 @@
-<!-- The Eras tab's tapestry slots and the selected era card. -->
+<!-- The Eras tab's tapestry slots and the selected era card, with what an A&A card holds drawn beside it (#184). -->
 <script module>
 	/** @typedef {import('../../lib/area/income.js').EraSlotView} EraSlotView */
 
@@ -21,10 +21,15 @@
 
 <script>
 	import { defaultEra } from '../../lib/area/income.js';
-	import { joinList } from '../../lib/words.js';
+	import {
+		heldPlotCard,
+		placingPiece,
+	} from '../../lib/area/placement-targets.js';
 	import { CARD_SIZES } from '../../lib/cards/card-sizes.js';
 	import { tapestryCardData } from '../../lib/cards/game-cards.js';
 	import EraSlots from '../../lib/components/player/EraSlots.svelte';
+	import LandmarkShape from '../../lib/components/player/LandmarkShape.svelte';
+	import PlotCardGrid from '../../lib/components/player/PlotCardGrid.svelte';
 	import ScaledCard from '../../lib/components/player/ScaledCard.svelte';
 	import TapestryCard from '../../lib/components/player/TapestryCard.svelte';
 	import TapestryCardBack from '../../lib/components/player/TapestryCardBack.svelte';
@@ -35,6 +40,19 @@
 	let shownEra = $derived(selected ?? defaultEra(slots));
 	let selectedSlot = $derived(
 		slots.find((slot) => slot.era === shownEra) ?? null
+	);
+	/** A plot card's squares with its pieces, or the landmarks Space Race or Trade Routes hold (#184). */
+	let plot = $derived(
+		selectedSlot?.id
+			? heldPlotCard(selectedSlot.id, selectedSlot.held)
+			: null
+	);
+	let landmarks = $derived(
+		plot
+			? []
+			: (selectedSlot?.held ?? []).flatMap((piece) =>
+					'landmark' in piece ? [placingPiece(piece.landmark)] : []
+				)
 	);
 </script>
 
@@ -49,10 +67,19 @@
 				{...CARD_SIZES.tapestry}>
 				<TapestryCard data={tapestryCardData(selectedSlot.id)} />
 			</ScaledCard>
-			{#if selectedSlot.pieces.length}
-				<p class="rg-eras-tab--pieces">
-					On this card: {joinList(selectedSlot.pieces)}.
-				</p>
+			{#if plot}
+				<PlotCardGrid
+					card={plot}
+					plotSize={30} />
+			{:else if landmarks.length}
+				<div class="rg-eras-tab--landmarks">
+					{#each landmarks as landmark, index (index)}
+						<LandmarkShape
+							id={landmark.id}
+							footprint={landmark.footprint}
+							plotSize={20} />
+					{/each}
+				</div>
 			{/if}
 		</div>
 	{:else if selectedSlot?.faceDown}
@@ -74,14 +101,16 @@
 		display: contents;
 	}
 
+	/* The card, and beside it what an A&A card holds (issue 184). */
 	.rg-player-tabs--era-card {
+		display: flex;
+		align-items: center;
+		gap: var(--space-6);
 		margin-bottom: var(--space-8);
 	}
 
-	/* A&A's cards that hold pieces (#37), awaiting review. */
-	.rg-eras-tab--pieces {
-		margin: var(--space-2) 0 0;
-		color: var(--muted);
-		font-size: var(--font-size-sm);
+	.rg-eras-tab--landmarks {
+		display: grid;
+		gap: var(--space-4);
 	}
 </style>

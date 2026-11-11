@@ -221,6 +221,9 @@ test("an era slot names the pieces its top card holds, A&A's Commercial Center a
 	const [first, second] = eraSlots(seat);
 	assert.deepEqual(first.pieces, ['a Farm', 'the Forge']);
 	assert.deepEqual(second.pieces, []);
+	// The Eras tab draws them where they stand (#184).
+	assert.deepEqual(first.held, seat.onCards['commercial-center']);
+	assert.deepEqual(second.held, []);
 });
 
 test("with F&F a fifth slot shows the income mat's overlay and what is reserved on it (#39)", () => {

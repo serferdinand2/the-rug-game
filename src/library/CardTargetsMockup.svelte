@@ -264,6 +264,7 @@
 			heading: 'Era I',
 			text: 'Maker of Fire',
 			pieces: [],
+			held: [],
 		},
 		{
 			era: 2,
@@ -274,6 +275,7 @@
 			heading: 'Era II',
 			text: 'Commercial Center',
 			pieces: ['a House'],
+			held: [],
 		},
 		{
 			era: 3,
@@ -284,6 +286,7 @@
 			heading: 'Era III · Active',
 			text: 'Monuments',
 			pieces: ['a Market', 'an Armory', 'the Forge'],
+			held: [],
 		},
 		{
 			era: 4,
@@ -294,6 +297,7 @@
 			heading: 'Era IV',
 			text: 'Not yet chosen',
 			pieces: [],
+			held: [],
 		},
 	];
 	let era = $state(/** @type {number | null} */ (3));

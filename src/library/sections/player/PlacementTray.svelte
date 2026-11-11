@@ -54,6 +54,16 @@
 		<PlacementTray items={[LIGHTHOUSE]} />
 	</Example>
 	<Example
+		label={"items={[Forge]} with children: A&A's cards that may take it, in the same box (#184)"}
+		width={468}>
+		<PlacementTray items={[FORGE]}>
+			<p style="margin: 0; color: var(--muted);">
+				Or on a card: the Capital tab draws Monuments' lit squares and
+				Astrolabe here.
+			</p>
+		</PlacementTray>
+	</Example>
+	<Example
 		label={`items={[Forge, rotation ${turn}]} onPlacementTrayTurn  (press the turn buttons)`}
 		width={468}>
 		<PlacementTray

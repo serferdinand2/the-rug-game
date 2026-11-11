@@ -38,6 +38,9 @@ import { myDecision } from './turn.js';
 import { RESOURCE_ORDER } from './ui.js';
 import { cardCivOf, civCardView } from './civ-card.js';
 
+/** The places chosen in the Capital tab: its plots, and A&A's cards and mats under it (#184). */
+const CAPITAL_TAB_PLACES = ['capital', 'plot', 'held'];
+
 /** @typedef {import('./picks.js').Selection} Selection */
 /** @typedef {import('./picks.js').ResourceId} ResourceId */
 /** @typedef {Record<ResourceId, number>} Counts */
@@ -567,11 +570,14 @@ export class PromptState {
 	/** The cards on the shelf above the panel, for a card decision. */
 	shelfCards = $derived(shelfCardsOf(this.prompt, this.decision, this.#game));
 	/** A building, landmark or Architects cube to place on the capital, from the Capital tab; or Cloud City's building to
-	 * move, then the building moved, previewed where it may go (#36). */
+	 * move, then the building moved, previewed where it may go (#36). A&A's cards that may take the piece light under the
+	 * capital, with the pieces already on them (#184). */
 	placement = $derived(
 		this.prompt &&
 			this.decision &&
-			this.prompt.options.some((o) => o.place === 'capital')
+			this.prompt.options.some((o) =>
+				CAPITAL_TAB_PLACES.includes(o.place)
+			)
 			? {
 					piece: this.decision.landmark
 						? { landmark: this.decision.landmark }
@@ -587,10 +593,13 @@ export class PromptState {
 								: this.decision.kind === 'chooseCloudMove'
 									? { move: true }
 									: { building: this.decision.building },
-					options: this.prompt.options.filter(
-						(o) => o.place === 'capital'
+					options: this.prompt.options.filter((o) =>
+						CAPITAL_TAB_PLACES.includes(o.place)
 					),
 					picked: this.picked,
+					onCards:
+						this.#game?.seats?.[this.decision.player - 1]
+							?.onCards ?? {},
 				}
 			: null
 	);
