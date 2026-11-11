@@ -14,6 +14,7 @@ import { answer, conquestGame, readyTurn } from './helpers/engine.mjs';
 import { push } from '../src/lib/engine/stack.js';
 import { play } from '../src/lib/engine/play.js';
 import { checkState } from './helpers/invariants.mjs';
+import { MAPS } from '../src/lib/engine/data/maps.js';
 
 const ARTS_X = { advance: { tracks: ['arts'], noBenefit: true } };
 
@@ -896,4 +897,63 @@ test('an answer with a field no offered answer has is refused: no 9 VP on top of
 			space: 1,
 		})
 	);
+});
+
+test('Cloud Colonies is data: WHEN PLAYED, 3 VP per controlled territory with clouds; left charm 1 territory tile and explore (#49)', () => {
+	const card = tapestryCard('cloud-colonies');
+	assert.equal(card.timing, 'played');
+	assert.equal(card.expansion, 'ff');
+	assert.deepEqual(card.played, [{ vp: { per: 'cloudTerritory', each: 3 } }]);
+	assert.deepEqual(card.charms, {
+		left: [{ gain: { territory: 1 } }, { explore: {} }],
+	});
+	assert.ok(tapestryFor(['ff']).includes('cloud-colonies'));
+	assert.ok(!tapestryFor(['pp', 'aa']).includes('cloud-colonies'));
+});
+
+test("Cloud Colonies scores the issue's example: tiles 7 and 13 and the printed 0_-3 and 0_0 show clouds, 12 VP (R77, #49)", () => {
+	const { state, random, player } = readyTurn(4, () => {}, {
+		expansions: ['ff'],
+	});
+	assert.equal(state.map, 'large');
+	for (const hex of Object.values(state.hexes)) {
+		hex.outposts = [];
+		hex.tokens = [];
+	}
+	const { hexes, printed } = MAPS.large;
+	const open = hexes.filter((key) => !(key in printed));
+	const opponent = player === 1 ? 2 : 1;
+	/** @type {(key: string, seat: number) => void} */
+	const outpost = (key, seat) => {
+		state.hexes[key].outposts = [{ seat, toppled: false }];
+	};
+	// Territory tiles 7 and 13 show clouds; tile 2 doesn't.
+	[7, 13, 2].forEach((tile, i) => {
+		state.hexes[open[i]].tile = tile;
+		outpost(open[i], player);
+	});
+	outpost('0_-3', player);
+	outpost('0_0', player);
+	// A printed territory without clouds, and an opponent's with clouds, don't count.
+	const clear = Object.keys(printed).find((key) => !printed[key].clouds);
+	assert.ok(clear);
+	outpost(clear, player);
+	outpost('2_0', opponent);
+	assert.ok(printed['2_0'].clouds);
+	assert.equal(countVp(state, player, 'territory'), 6);
+	assert.equal(countVp(state, player, 'cloudTerritory'), 4);
+	const before = state.seats[player - 1].vp;
+	const after = resolveEffects(
+		state,
+		player,
+		tapestryCard('cloud-colonies').played,
+		random
+	);
+	assert.equal(after.seats[player - 1].vp - before, 12);
+});
+
+test('Cloud Colonies plays to the end, with and without the arts track (#49)', () => {
+	for (const expansions of [['ff'], ['aa', 'ff']]) {
+		checkState(played('cloud-colonies', expansions).state);
+	}
 });

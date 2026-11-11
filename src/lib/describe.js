@@ -187,6 +187,8 @@ function counted(per, track) {
 	switch (per) {
 		case 'territory':
 			return 'territory you control';
+		case 'cloudTerritory':
+			return 'territory you control whose picture shows clouds';
 		case 'territoryTile':
 			return 'territory tile in your supply';
 		case 'techCard':
