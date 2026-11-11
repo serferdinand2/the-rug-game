@@ -4,6 +4,15 @@ The only record of the project's progress (owner, 2026-10-28): what is done and 
 
 Updated 2026-11-10. The issues are listed in the order they were finished.
 
+## Handoff for the next agent (2026-11-10)
+
+The remaining work is narrowed to two final issues on this branch: #49 (Cloud Colonies scoring) and #184 (A&A placement prompt behaviour on card-square targets).
+
+- **#49 Cloud Colonies**: the data already says the affected territories and printed map hexes are cloud-marked (`clouds: true`, with the known exclusions and edge cases recorded in the rules and README); the remaining task is to wire the card's score effect into the generic VP counting path and verify the cloud-based territory count.
+- **#184 A&A placement prompt**: the prompt system already knows the placement types and the A&A square logic; the remaining fix is in the prompt classification layer so a placement on an A&A card square is treated as a valid `card` placement instead of falling through to the panel or capital path.
+- **Likely file targets:** `src/lib/engine/data/tapestry-cards.js`, `src/lib/engine/effects/vp.js`, `src/lib/engine/data/territory-tiles.js`, `src/lib/engine/data/maps.js`, and `src/lib/prompts.js` (with the placement helpers in `src/lib/engine/card-pieces.js` and `src/lib/engine/decisions/choose-placement.js` if the validation path needs a second check).
+- **Validation:** keep this scoped to those issue boundaries; prefer the focused engine and prompt/browser checks covering Cloud Colonies and A&A placement rather than broad suite runs.
+
 On 2026-10-31, landmark-granting technology cards gained the same shared gray tooltip detail used by track landmarks when their square benefit is hovered. This completes the tech-card hover detail portion of #63; the issue remains open for its other display locations.
 
 ## Summary
