@@ -96,7 +96,10 @@
 				)?.expansion;
 				return !requiredExpansion || event.value.includes(requiredExpansion);
 			});
-			const hasBot = table.seats.some((/** @type {{kind:string}} */ seat) => seat.kind !== 'player');
+			const hasBot = table.seats.some(
+				(/** @type {{kind:string}} */ seat) =>
+					seat.kind === 'automa' || seat.kind === 'shadow'
+			);
 			if (
 				hasBot &&
 				event.value.includes('aa') &&
