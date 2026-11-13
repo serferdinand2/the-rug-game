@@ -335,8 +335,8 @@ export function variantRows(config, room) {
 		id,
 		label: variantName(id, name),
 		name:
-			id === 'no-arts-track' && hasBot
-				? 'The arts track is unavailable with Automa or Shadow Empire until #186 is resolved.'
+			id === 'no-arts-track'
+				? 'Play without the arts track'
 				: name,
 		value: room.options.variants.includes(id) ? 'yes' : 'no',
 		...(id === 'no-arts-track' &&
