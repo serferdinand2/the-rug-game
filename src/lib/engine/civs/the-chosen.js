@@ -28,7 +28,9 @@ export const theChosen = {
 			{
 				vp: {
 					per: 'trackLead',
-					each: opponents(state, player).length,
+					each: state.variants.includes('twin-impact')
+						? 3
+						: opponents(state, player).length,
 				},
 			},
 		];

@@ -12,6 +12,7 @@ import { controlledTerritories } from './control.js';
 import { spacesAdvanced, TIER_FIRST_SPACES } from './movement.js';
 import { hexNeighbours } from './data/maps.js';
 import { landmarkCard, landmarkCardsFor } from './data/landmark-cards.js';
+import { artsTrackOn } from './data/tracks.js';
 
 /** @typedef {import('./state.js').PlayerSeat} PlayerSeat */
 /** @typedef {import('./data/landmark-cards.js').GoalKind} GoalKind */
@@ -143,15 +144,43 @@ export function draftLandmarkCards(ctx) {
 	const { state } = ctx;
 	const players = state.seats.filter((s) => s.kind === 'player');
 	const count = players.length;
-	const at = players.findIndex((s) => s.seat === state.first);
-	const drafters = players.map(
-		(_, i) => players[(at - 1 - i + 2 * count) % count].seat
-	);
-	// Alone, the other card's landmark goes to the Automa's box once #31 builds it; until then, under the deck.
+	const start = state.seats.findIndex((seat) => seat.seat === state.first);
+	const turnOrder = [
+		...state.seats.slice(start),
+		...state.seats.slice(0, start),
+	];
+	const drafters = turnOrder
+		.filter((seat) => seat.kind === 'player')
+		.reverse()
+		.map((seat) => seat.seat);
+	// In solo the unchosen card's landmark belongs to the Automa, not the player.
 	const cards = state.supply.landmarkCards.splice(
 		0,
 		landmarkCardDeal(state.expansions, count)
 	);
+	// The A&A solo setup gives the Automa two extra landmark cards at
+	// difficulty 3 or 4, only when the arts track is in play.
+	const automa = state.seats.find((seat) => seat.kind === 'automa');
+	const bot = /** @type {any} */ (automa);
+	if (
+		automa &&
+		[3, 4].includes(bot.level) &&
+		artsTrackOn(state.expansions, state.variants)
+	) {
+		for (const card of state.supply.landmarkCards.splice(0, 2)) {
+			const landmark = landmarkCard(card).landmark;
+			const at = state.landmarks.indexOf(landmark);
+			if (at < 0) continue;
+			state.landmarks.splice(at, 1);
+			bot.landmarks.push(landmark);
+			emit(state, {
+				type: 'landmarkGained',
+				player: automa.seat,
+				landmark,
+				card,
+			});
+		}
+	}
 	emit(state, {
 		type: 'landmarkCardsDrawn',
 		player: drafters[0],
@@ -171,6 +200,25 @@ export function draftLandmarkCards(ctx) {
 export function offerLandmarkCards(ctx, cards, drafters) {
 	const [player, ...rest] = drafters;
 	if (player === undefined || cards.length === 0) {
+		const automa = ctx.state.seats.find((seat) => seat.kind === 'automa');
+		if (automa && cards.length > 0) {
+			for (const card of cards) {
+				const landmark = landmarkCard(card).landmark;
+				const at = ctx.state.landmarks.indexOf(landmark);
+				if (at === -1) continue;
+				ctx.state.landmarks.splice(at, 1);
+				/** @type {import('./state.js').BotSeat} */ (
+					automa
+				).landmarks.push(landmark);
+				emit(ctx.state, {
+					type: 'landmarkGained',
+					player: automa.seat,
+					landmark,
+					card,
+				});
+			}
+			return;
+		}
 		ctx.state.supply.landmarkCards.push(...cards);
 		return;
 	}

@@ -20,6 +20,7 @@ export const chooseInvent = {
 				(a) =>
 					a.card === answer.card &&
 					a.from === answer.from &&
+					a.owner === answer.owner &&
 					a.refresh === answer.refresh
 			);
 		if (!found) {
@@ -30,7 +31,12 @@ export const chooseInvent = {
 		inventCard(
 			ctx,
 			/** @type {number} */ (decision.player),
-			{ card: answer.card, from: answer.from, refresh: answer.refresh },
+			{
+				card: answer.card,
+				from: answer.from,
+				owner: answer.owner,
+				refresh: answer.refresh,
+			},
 			/** @type {number} */ (decision.left),
 			decision.invent ?? {}
 		);

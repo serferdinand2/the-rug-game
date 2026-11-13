@@ -48,7 +48,7 @@
 		timeLeft,
 	} from '../../action-timer.js';
 	import { tilePreview } from '../../area/explore.js';
-	import { landmarkName, spaceName, trackName } from '../../game-names.js';
+	import { landmarkName, trackName } from '../../game-names.js';
 	import { artUrl, trackColor } from '../../ui.js';
 	import { TRACK_IDS } from '../../engine/data/ids.js';
 	const trackNames = [...TRACK_IDS, 'arts'].map(trackName);
@@ -184,6 +184,10 @@
 	bind:this={root}
 	class="rg-player-action {attr.class ? attr.class : ''}"
 	class:rg-player-action--income={item.kind === 'income'}
+	class:rg-player-action--advance={item.kind === 'advance' && !item.bot}
+	style:--rg-player-action-track={item.kind === 'advance'
+		? trackColor(picture.track)
+		: undefined}
 	class:rg-player-action--bot={!!item.bot}
 	class:rg-player-action--paused={paused}
 	style:--rg-player-action-who={item.color}
@@ -279,8 +283,9 @@
 						<img
 							src={artUrl(`track/${picture.track}`)}
 							alt="" />
-						<b>{spaceName(picture.track, picture.space)}</b>
-						<span>· space {picture.space}</span>
+						<b>{trackName(picture.track)}</b>
+						<span class="rg-player-action--track-number"
+							>{picture.space}</span>
 					</span>
 					{#if picture.landmark}
 						<span class="rg-player-action--landmark">
@@ -398,6 +403,21 @@
 		transform: translate(-50%, -50%);
 		cursor: pointer;
 		animation: rg-player-action-in var(--duration-medium) var(--ease-out);
+	}
+
+	.rg-player-action--advance {
+		border-color: var(--rg-player-action-track);
+	}
+	.rg-player-action--advance .rg-player-action--band {
+		background: color-mix(
+			in srgb,
+			var(--rg-player-action-track) 25%,
+			var(--surface)
+		);
+	}
+	.rg-player-action--track-number {
+		color: var(--gold);
+		font-weight: bold;
 	}
 
 	.rg-player-action--income .rg-player-action--band {

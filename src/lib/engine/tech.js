@@ -7,6 +7,7 @@ import { spacesAdvanced } from './movement.js';
 import { hasEra } from './abilities.js';
 import { techCard } from './data/tech-cards.js';
 import { BUILDING_IDS } from './data/ids.js';
+import { timeTravelersBlocksTech } from './automa-time-travelers.js';
 
 /**
  * Takes the top tech card. An empty deck is first rebuilt by shuffling the discards (FAQ #24).
@@ -15,12 +16,42 @@ import { BUILDING_IDS } from './data/ids.js';
  */
 export function drawTech(ctx) {
 	const tech = ctx.state.supply.tech;
-	if (tech.deck.length === 0 && tech.discard.length > 0) {
-		tech.deck = shuffle(tech.discard, ctx.random);
-		tech.discard = [];
-		emit(ctx.state, { type: 'techDeckShuffled', count: tech.deck.length });
+	/** @type {string[]} */
+	const rejected = [];
+	let shuffled = false;
+	while (true) {
+		if (tech.deck.length === 0 && tech.discard.length > 0 && !shuffled) {
+			tech.deck = shuffle(tech.discard, ctx.random);
+			tech.discard = [];
+			shuffled = true;
+			emit(ctx.state, {
+				type: 'techDeckShuffled',
+				count: tech.deck.length,
+			});
+		}
+		const card = tech.deck.shift();
+		if (card === undefined || !timeTravelersBlocksTech(ctx.state, card)) {
+			tech.discard.push(...rejected);
+			if (rejected.length)
+				emit(ctx.state, {
+					type: 'cardsDiscarded',
+					player: ctx.state.seats.find(
+						(seat) =>
+							seat.kind === 'automa' &&
+							/** @type {any} */ (
+								/** @type {any} */ (seat).civilization ===
+									'time-travelers' ||
+									/** @type {any} */ (seat)
+										.secondCivilization === 'time-travelers'
+							)
+					)?.seat,
+					deck: 'tech',
+					cards: rejected,
+				});
+			return card ?? null;
+		}
+		rejected.push(card);
 	}
-	return tech.deck.shift() ?? null;
 }
 
 /**
@@ -30,7 +61,9 @@ export function drawTech(ctx) {
  */
 export function canDraw(state) {
 	const { deck, discard } = state.supply.tech;
-	return deck.length + discard.length > 0;
+	return [...deck, ...discard].some(
+		(card) => !timeTravelersBlocksTech(state, card)
+	);
 }
 
 /**

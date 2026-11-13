@@ -1,3 +1,4 @@
+import { decisionSource } from './decision-source.js';
 // The prompt model (#28 design §2): what the decision panel draws for the viewer's open decision, its words, art and places.
 import { INCOME_STEPS, INCOME_STEP_KINDS } from './engine/game.js';
 import { TRACK_RESOURCE } from './engine/data/tracks.js';
@@ -90,6 +91,7 @@ import { joinList } from './words.js';
  * What the decision panel draws for one open decision.
  * @typedef {Object} Prompt
  * @property {string} kind - The decision kind
+ * @property {any} source - Public decision cause when known
  * @property {string} title - decisionTitle(decision, game)
  * @property {string} instruction - One sentence on how to answer
  * @property {'options' | 'cards' | 'map' | 'capital' | 'card' | 'track'} layout - Where the decision is mainly made; the capital leads, then the map, then the civilization card
@@ -939,6 +941,7 @@ export function promptFor(decision, game, seat) {
 	return {
 		kind: decision.kind,
 		title: decisionTitle(decision, game),
+		source: decisionSource(decision.cause ?? decision.source, game, seat),
 		instruction: instructionOf(decision, layout, mapHexes.length > 0, game),
 		layout,
 		shelf: options.some((o) => o.place === 'shelf')

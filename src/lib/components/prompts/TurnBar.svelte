@@ -9,6 +9,7 @@
 	 * @property {string} [label='Your turn'] - The turn label, such as 'Optional action' or 'Ana’s turn'
 	 * @property {string} [labelColor] - The label's colour as a token reference, such as 'var(--player-2)' for another player's turn; defaults to gold
 	 * @property {string} heading - The decision, such as 'Advance to'
+	 * @property {any} [source] - The public cause of an open decision
 	 * @property {string} [properName] - A game thing's name after the heading, in Cinzel and the track's colour, such as 'Ships'
 	 * @property {import('svelte').Snippet} [properIcon] - A small inline icon after the proper name, such as the farm; an SVG that fills its 17px box and draws with currentColor
 	 * @property {string} [headingEnd] - Text after the proper name and icon, such as '?'
@@ -45,6 +46,7 @@
 
 <script>
 	import CostBox from './CostBox.svelte';
+	import DecisionSource from './DecisionSource.svelte';
 	import { enter } from '../../transitions.js';
 	import { trackColor } from '../../ui.js';
 
@@ -54,6 +56,7 @@
 		label = 'Your turn',
 		labelColor,
 		heading,
+		source,
 		properName,
 		properIcon,
 		headingEnd,
@@ -116,7 +119,7 @@
 			aria-live="polite">
 			<div class="rg-turn-bar--line">
 				<h3 class="rg-turn-bar--heading">
-					{heading}
+					{#if source}<DecisionSource {source} />{:else}{heading}{/if}
 					{#if properName}<span class="rg-turn-bar--proper"
 							>{properName}</span
 						>{/if}{#if properIcon}<span class="rg-turn-bar--icon"

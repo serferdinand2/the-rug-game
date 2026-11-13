@@ -3,7 +3,7 @@ import { PlayerError } from './errors.js';
 import { emit } from './events.js';
 import { shuffle } from './random.js';
 import { push, pushGroup } from './stack.js';
-import { run } from './loop.js';
+import { contextFor, run } from './loop.js';
 import { afterSetupSteps } from './after-setup.js';
 import { civsFor, tapestryFor, techDeck } from './decks.js';
 import { EXPANSIONS } from '../art/catalog.js';
@@ -29,9 +29,12 @@ import { artsTrackOn } from './data/tracks.js';
 import { MASTERPIECES } from './data/masterpieces.js';
 import { createBotSeat } from './state.js';
 import { AUTOMA_CIVS } from './data/automa-civs.js';
+import { automaCivilizationsFor } from './data/automa-expansion-civs.js';
 import { AUTOMA_LEVELS } from './data/automa-levels.js';
-import { SCIENCE_DIE } from './data/dice.js';
+import { SCIENCE_DIE, scienceFaces } from './data/dice.js';
+import { defaultDie } from './science-die.js';
 import { createAutomaDecks, createShadowEmpireDeck } from './automa-decks.js';
+import { setupCharmers } from './automa-expansion-ff.js';
 
 /** @typedef {{ kind: 'player', name: string } | { kind: 'automa', name: string, level?: number } | { kind: 'shadow', name: string }} Participant */
 /** @typedef {import('./state.js').BotSeat & { level?: number, civilization?: string, favouriteTrack: import('./data/ids.js').BoardTrackId, favouriteMarker?: 'outpost' | 'track-token', playerTokens?: number }} SetupBotSeat */
@@ -57,6 +60,17 @@ const SOLO_CIV_REMOVALS = new Set([
 	'heralds',
 	'inventors',
 	'traders',
+	'advisors',
+	'spies',
+	'genies',
+	'illuminati',
+	'weefolk',
+]);
+const SOLO_FF_TAPESTRY_REMOVALS = new Set([
+	'high-council',
+	'robotic-decoys',
+	'soothsaying',
+	'superpower-regulators',
 ]);
 
 /**
@@ -153,7 +167,12 @@ export const VARIANTS = Object.freeze(
 		// The arts track is optional (03 §2): with A&A on it is in play unless this variant leaves it out (owner, #35).
 		{
 			id: 'no-arts-track',
-			name: 'Play without the arts track',
+			name: 'Leave out the arts track (needed for Automa until #186)',
+			expansion: 'aa',
+		},
+		{
+			id: 'twin-impact',
+			name: "Shadow Empire's Twin Impact",
 			expansion: 'aa',
 		},
 		// Handed on from #53; it also needs the arts track, which checkOptions() checks.
@@ -243,17 +262,43 @@ export function checkOptions({
 			`The variant "${variant?.name}" needs the arts track.`
 		);
 	}
+	if (
+		variants.includes('twin-impact') &&
+		participants !== undefined &&
+		!checkParticipants(participants).some((seat) => seat.kind === 'shadow')
+	) {
+		throw new PlayerError(
+			'Twin Impact requires a Shadow Empire seat.'
+		);
+	}
+	if (variants.includes('twin-impact') && artsTrackOn(expansions, variants)) {
+		throw new PlayerError(
+			'Twin Impact with the arts track is unavailable until the A&A Automa research is complete (#186). Choose the no-arts-track variant.'
+		);
+	}
 	if (participants !== undefined) {
 		const seats = checkParticipants(participants);
 		if (seats.some((s) => s.kind !== 'player')) {
 			if (artsTrackOn(expansions, variants)) {
 				throw new PlayerError(
-					'The official base bots cannot use the arts track (R59).'
+					'Automa and Shadow Empire cannot use the arts track until the A&A Automa research is complete (#186). Choose the no-arts-track variant.'
 				);
 			}
-			if (expansions.length > 0) {
+			if (expansions.some((expansion) => !['pp', 'aa', 'ff'].includes(expansion))) {
 				throw new PlayerError(
-					'Automa and Shadow Empire currently support only the base game.'
+					'Automa and Shadow Empire currently support the base game, Plans & Ploys, Arts & Architecture without its arts track, and Fantasies & Futures.'
+				);
+			}
+			if (
+				expansions.includes('aa') &&
+				seats.some(
+					(seat) =>
+						seat.kind === 'automa' &&
+						(seat.level ?? 2) === 4
+				)
+			) {
+				throw new PlayerError(
+					'Automa level 4 is unavailable with Arts & Architecture because its income card has not been verified (R57). Choose another level.'
 				);
 			}
 		}
@@ -530,27 +575,37 @@ function setupBots(state, participants, random) {
 			);
 		seat.level = declaration.level ?? 2;
 		const rolledTrack =
-			state.version === 'original'
+			state.version === 'original' && state.expansions.length === 0
 				? SCIENCE_DIE[random(SCIENCE_DIE.length)]
 				: null;
+		const faces = scienceFaces(defaultDie(state));
+		const civs = automaCivilizationsFor(state.expansions, state.variants);
 		const civ =
-			state.version === 'original'
+			state.version === 'original' && state.expansions.length === 0
 				? AUTOMA_CIVS.find((c) => c.favouriteTrack === rolledTrack)
-				: AUTOMA_CIVS[random(AUTOMA_CIVS.length)];
+				: civs[random(civs.length)];
 		if (!civ) {
 			throw new Error(
 				'The science die must identify a base Automa civilization.'
 			);
 		}
 		seat.civilization = civ.id;
-		seat.favouriteTrack = civ.favouriteTrack;
-		automaFavourite = civ.favouriteTrack;
+		/** @type {import('./data/ids.js').BoardTrackId} */
+		const favourite = /** @type {import('./data/ids.js').BoardTrackId} */ (
+			civ.favouriteTrack === 'die'
+				? faces[random(faces.length)]
+				: civ.favouriteTrack
+		);
+		seat.favouriteTrack = favourite;
+		automaFavourite = favourite;
 		seat.favouriteMarker =
-			state.version === 'original' ? 'outpost' : 'track-token';
+			state.version === 'original' && state.expansions.length === 0
+				? 'outpost'
+				: 'track-token';
 		if (seat.favouriteMarker === 'outpost') {
 			seat.outposts -= 1;
 		} else {
-			seat.tracks[civ.favouriteTrack].push(0);
+			seat.tracks[favourite].push(0);
 		}
 		seat.outposts -= 2;
 		state.hexes['2_0'].outposts.push(
@@ -566,9 +621,29 @@ function setupBots(state, participants, random) {
 	}
 	for (const raw of state.seats.filter((s) => s.kind === 'shadow')) {
 		const seat = /** @type {SetupBotSeat} */ (raw);
+		if (state.variants.includes('twin-impact')) {
+			seat.twinTracks = Object.fromEntries(
+				Object.keys(seat.tracks).map((track) => [track, [0]])
+			);
+		}
+		if (
+			state.seats.some(
+				(s) =>
+					s.kind === 'automa' &&
+					/** @type {SetupBotSeat} */ (s).civilization === 'erratics'
+			)
+		) {
+			for (const track of Object.keys(seat.tracks))
+				seat.tracks[
+					/** @type {import('./data/ids.js').BoardTrackId} */ (track)
+				] = [];
+			seat.playerTokens = 5;
+			continue;
+		}
 		let favourite;
+		const faces = scienceFaces(defaultDie(state));
 		do {
-			favourite = SCIENCE_DIE[random(SCIENCE_DIE.length)];
+			favourite = faces[random(faces.length)];
 		} while (favourite === automaFavourite);
 		seat.favouriteTrack =
 			/** @type {import('./data/ids.js').BoardTrackId} */ (favourite);
@@ -716,7 +791,19 @@ export function createGame({
 			tapestry: {
 				deck: shuffle(
 					tapestryFor(expansions, variants).filter(
-						(id) => !solo || !SOLO_TAPESTRY_REMOVALS.has(id)
+						(id) =>
+							!solo ||
+							((!SOLO_TAPESTRY_REMOVALS.has(id) ||
+								(expansions.length > 0 &&
+									(id === 'trap-6' || id === 'trap-7'))) &&
+								!(
+									expansions.includes('aa') &&
+									id === 'granges'
+								) &&
+								!(
+									expansions.includes('ff') &&
+									SOLO_FF_TAPESTRY_REMOVALS.has(id)
+								))
 					),
 					random
 				),
@@ -787,6 +874,13 @@ export function createGame({
 	};
 	setupBots(state, participants, random);
 	setupBotDecks(state, random);
+	const automa = state.seats.find((seat) => seat.kind === 'automa');
+	if (
+		automa &&
+		/** @type {SetupBotSeat} */ (automa).civilization === 'charmers'
+	) {
+		setupCharmers(contextFor(state, random, state.pending), automa);
+	}
 	for (const step of SETUP_STEPS) {
 		step(setup);
 	}

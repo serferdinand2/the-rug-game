@@ -163,7 +163,14 @@
 		wide>
 		<TurnBar
 			label="Your decision"
-			heading="Your turn · Advance to Navigation" />
+			heading="Your turn · Advance to Navigation"
+			source={{
+				kind: 'track',
+				track: 'exploration',
+				trackName: 'Exploration',
+				name: 'Navigation',
+				space: 4,
+			}} />
 	</Example>
 	<Example
 		label={'heading="You can\'t pay for any advance…"  (income is the only move: a gold Take income where Advance sits, no reveal; #77)'}

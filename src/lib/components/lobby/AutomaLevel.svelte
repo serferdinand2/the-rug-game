@@ -3,6 +3,8 @@
 	/** @typedef {Object} AutomaLevelOwnProps
 	 * @property {number} [value=2]
 	 * @property {boolean} [disabled=false]
+	 * @property {readonly number[]} [unavailableLevels=[]]
+	 * @property {string} [unavailableLevelReason]
 	 * @property {(event: import('../../component-event.js').ComponentEvent) => void} [onAutomaLevelChange]
 	 */
 
@@ -19,6 +21,8 @@
 	let {
 		value = 2,
 		disabled = false,
+		unavailableLevels = [],
+		unavailableLevelReason,
 		onAutomaLevelChange,
 		...attr
 	} = $props();
@@ -37,10 +41,14 @@
 		{#each AUTOMA_LEVELS as level (level.level)}
 			<button
 				type="button"
-				{disabled}
-				aria-label={level.name}
+				disabled={disabled || unavailableLevels.includes(level.level)}
+				aria-label={unavailableLevels.includes(level.level)
+					? `${level.name} unavailable`
+					: level.name}
 				aria-pressed={value === level.level}
-				title={level.name}
+				title={unavailableLevels.includes(level.level)
+					? unavailableLevelReason ?? 'This level is unavailable for this expansion.'
+					: level.name}
 				class:rg-automa-level--filled={level.level <= value}
 				onclick={(event) => {
 					if (typeof onAutomaLevelChange === 'function') {
@@ -55,6 +63,11 @@
 				}}>{level.level}</button>
 		{/each}
 	</div>
+	{#if unavailableLevels.includes(value)}
+		<span class="rg-automa-level--unavailable" role="alert"
+			>{unavailableLevelReason ?? 'This level is unavailable for this expansion.'} Choose another level before starting.</span
+		>
+	{/if}
 	<span class="rg-automa-level--name"
 		>{AUTOMA_LEVELS.find((level) => level.level === value)?.name}</span>
 </div>
@@ -94,6 +107,14 @@
 	.rg-automa-level--squares button[aria-pressed='true'] {
 		outline: var(--border) solid var(--gold);
 		outline-offset: 1px;
+	}
+	.rg-automa-level--squares button:disabled {
+		opacity: var(--opacity-disabled, 0.5);
+		cursor: not-allowed;
+	}
+	.rg-automa-level--unavailable {
+		color: var(--warning, var(--gold));
+		font-size: var(--font-size-2xs);
 	}
 	.rg-automa-level--name {
 		color: var(--muted);

@@ -3,6 +3,7 @@
 	/**
 	 * Properties of the DecisionPanel component itself.
 	 * @typedef {Object} DecisionPanelOwnProps
+	 * @property {any} [source] - Public cause of the decision
 	 * @property {string} title - The question, such as 'Choose a resource'
 	 * @property {string} [status=''] - A line beside the actions: what is chosen, or what is missing; empty, a docked panel leaves it out
 	 * @property {boolean} [statusWarn=false] - The status line is a warning, such as resources lost to the cap (#75)
@@ -18,6 +19,7 @@
 	 * @property {import('svelte').Snippet} [children] - The content: the instruction and the choices; left out, the panel has no content area and its status line carries the instruction, leaving more room for a shelf
 	 * @property {import('svelte').Snippet} [pinned] - Kept in sight between the content and the actions while a docked panel's content scrolls, such as what is chosen
 	 * @property {import('svelte').Snippet<[number | undefined]>} [shelf] - Cards shown above the panel, as the card choices are; it gets the height it may take, once measured, so its cards can fit it (#57)
+	 * @property {Function} [onDecisionPanelSourceInspect] - Reports a public source card for its preview while hovered or focused
 	 * @property {Function} [onDecisionPanelConfirm] - Callback fired when Confirm is pressed
 	 * @property {Function} [onDecisionPanelCancel] - Callback fired when the cancel button is pressed
 	 * @property {Function} [onDecisionPanelMinimize] - Shows Minimize in the title bar, and is fired when it is pressed: the screen hides the panel so the board can be looked at, and keeps what is chosen (#149)
@@ -43,12 +45,14 @@
 	import { ComponentEvent } from '../../component-event.js';
 	import { enter } from '../../transitions.js';
 	import { trackColor } from '../../ui.js';
+	import DecisionSource from './DecisionSource.svelte';
 	import Button from '../ui/Button.svelte';
 	import KeyCap from '../ui/KeyCap.svelte';
 
 	/** @type {DecisionPanelProps} */
 	let {
 		title,
+		source,
 		status = '',
 		confirmLabel = 'Confirm choice',
 		confirmDisabled = false,
@@ -63,6 +67,7 @@
 		children,
 		pinned,
 		shelf,
+		onDecisionPanelSourceInspect,
 		onDecisionPanelConfirm,
 		onDecisionPanelCancel,
 		onDecisionPanelMinimize,
@@ -71,7 +76,6 @@
 
 	const uid = $props.id();
 
-	/** The track's colour, which tints the bottom bar, the border and Confirm. */
 	let tint = $derived(track ? trackColor(track) : undefined);
 
 	/** The gap between the shelf and the panel. */
@@ -171,6 +175,13 @@
 						>Minimize<KeyCap key="V" /></Button>
 				{/if}
 			</div>
+			{#if source}
+				<p class="rg-decision-panel--source">
+					<DecisionSource
+						{source}
+						onDecisionSourceInspect={onDecisionPanelSourceInspect} />
+				</p>
+			{/if}
 			{#if steps}
 				<div class="rg-decision-panel--steps">{@render steps()}</div>
 			{/if}
@@ -208,6 +219,11 @@
 </div>
 
 <style>
+	.rg-decision-panel--source {
+		margin: var(--space-2) var(--space-5);
+		color: var(--muted);
+		font-size: var(--font-size-sm);
+	}
 	/* Every prompt opens at the centre of the tracks, not of the screen (owner, #79): the scrim covers the shared area,
 	   and the shelf and the panel stand in one column in the middle of it. */
 	.rg-decision-panel {

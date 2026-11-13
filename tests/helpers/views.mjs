@@ -5,6 +5,7 @@ import { SHARED_SECRETS } from '../../src/lib/engine/view.js';
 import { DECISIONS } from '../../src/lib/engine/kinds.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
 import { neighbours } from '../../src/lib/engine/income.js';
+import { decisionSource } from '../../src/lib/decision-source.js';
 
 /** @typedef {import('../../src/lib/engine/state.js').State} State */
 /** @typedef {import('../../src/lib/engine/state.js').PlayerSeat} PlayerSeat */
@@ -181,10 +182,7 @@ export function checkViews(
 	}
 	// The open questions whose field holds cards the rules revealed when they were asked (REVEALED_OPS).
 	// Pending anywhere on the stack: one may wait under another question before it is asked.
-	for (const op of [
-		...allOps(state),
-		...(before ? allOps(before) : []),
-	]) {
+	for (const op of [...allOps(state), ...(before ? allOps(before) : [])]) {
 		const field = REVEALED_OPS[op.kind];
 		for (const id of field ? [op[field]].flat() : []) {
 			if (typeof id === 'string') {
@@ -332,6 +330,10 @@ export function checkViews(
 		for (const op of allOps(v)) {
 			if (!owns(op.player, viewer)) {
 				assert.ok(!('answers' in op), 'answers shown to a stranger');
+				assert.ok(
+					!('cause' in op),
+					'decision cause shown to a stranger'
+				);
 				for (const field of DECISIONS[op.kind]?.hidden ?? []) {
 					assert.ok(!(field in op), `${field} shown to a stranger`);
 				}
@@ -350,5 +352,39 @@ export function checkViews(
 				assert.ok(!('secret' in event), 'secret shown to a stranger');
 			}
 		}
+	}
+}
+
+/**
+ * Checks that each open, non-turn decision gives its owner a public, displayable explanation.
+ * @param {State} state
+ * @param {ViewOf} [viewOf]
+ */
+export function checkDecisionSources(state, viewOf = view) {
+	const exempt = new Set(['chooseTurn', 'chooseAdvance']);
+	if (state.phase === 'setup') return;
+	for (const decision of openDecisions(state)) {
+		const player = decision.player;
+		if (!Number.isInteger(player)) continue;
+		if (state.seats.find((seat) => seat.seat === player)?.kind !== 'player')
+			continue;
+		if (
+			exempt.has(decision.kind) ||
+			(decision.kind === 'chooseCiv' && !decision.midGame)
+		)
+			continue;
+		const ownView = viewOf(state, player);
+		const visibleDecision = allOps(ownView).find(
+			(op) => op.id === decision.id
+		);
+		assert.ok(
+			visibleDecision,
+			`seat ${player}'s open ${decision.kind} is missing from its view`
+		);
+		assert.ok(
+			visibleDecision.cause &&
+				decisionSource(visibleDecision.cause, ownView, player),
+			`seat ${player}'s open ${decision.kind} has no public source: ${JSON.stringify({ rawCause: decision.cause, rawSource: decision.source, cause: visibleDecision.cause, source: visibleDecision.source })}`
+		);
 	}
 }

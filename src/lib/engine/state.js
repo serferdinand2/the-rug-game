@@ -79,7 +79,7 @@
  * A bot's common state. Its rule-specific fields belong to its own bot module,
  * never to PlayerFields: neither bot has a player's hand, mat or resources.
  * `landmarks` is its physical box; solo Shadow acquisitions are stored in Automa's box instead (02 §9.5).
- * @typedef {Seat & { kind: 'automa' | 'shadow', landmarks: string[] }} BotSeat
+ * @typedef {Seat & { kind: 'automa' | 'shadow', landmarks: string[], twinTracks?: Record<TrackId, number[]> }} BotSeat
  */
 /**
  * @typedef {Object} Supply

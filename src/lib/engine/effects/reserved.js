@@ -1,5 +1,6 @@
 // Fantasies & Futures' income-mat overlay (03 FF.2.2, #39): the items cards reserve there, and their use on income turn 5.
 import { emit } from '../events.js';
+import { drawAvailableTiles } from '../automa-time-travelers.js';
 import { playerSeat } from '../state.js';
 import { shuffle } from '../random.js';
 import { triggered } from '../abilities.js';
@@ -126,7 +127,7 @@ export function reserve(ctx, player, value, op) {
 		while (drawn.length < count) {
 			const next =
 				stack === 'space'
-					? state.supply.space.shift()
+					? drawAvailableTiles(state, 'space', 1)[0]
 					: (drawMasterpiece(ctx) ?? undefined);
 			if (next === undefined) {
 				break;

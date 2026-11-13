@@ -60,6 +60,7 @@ These components are updated as the art issues deliver their assets. Each will s
 | Component | Purpose |
 |---|---|
 | `AchievementStrip` | The three achievements on one line, at the base size in gold-tinted chips (#174): claimants' colour squares in order and the next VP. |
+| `ArtsSymbol` | The shared arts-track symbols: the masterpiece back for create, a gold lightbulb for inspire, a gold outlined house for an income building, and gold broadcast waves. `SpaceGlyphs` sizes them with the other track symbols. |
 | `BoardSwitcher` | Advancement Tracks / World Map selector with its icons; the tracks icon has a band for every track it is given (#120). |
 | `MasterpieceRow` | The 3 face-up masterpieces as tiny `MasterpieceChip`s and the deck's `Deck · N`, on the arts track's line beside its name (owner, #35 part 4); pointing at a card reports it for `CardPreview`. `TrackBoard`'s `heading` snippet draws it. |
 | `ProgressLanes` | Player tokens on their reached spaces; hovering a track space or any token shows only the viewer's own thick, player-coloured progress line with a track-coloured glow. Tokens stay above the line (#174 follow-up). A token hops to a new space (#175); a player marked `still` goes there at once, without a hop or a slide (Skip all, #179). |

@@ -1,9 +1,9 @@
 // The 22 base Automa decision cards and the shared 12-card Shadow Empire pool (02 §9.1, §9.4; R59).
 import { deepFreeze } from './ids.js';
 
-/** @typedef {import('./ids.js').BoardTrackId} BoardTrackId */
+/** @typedef {import('./ids.js').TrackId} TrackId */
 /** ALL excludes finished tracks; LMK seeks the nearest unclaimed landmark or track end; END seeks the nearest track end (02 §9.4). @typedef {'ALL' | 'LMK' | 'END'} AutomaTrackIndicator */
-/** The heart means the acting bot's favourite, not a fixed track. @typedef {BoardTrackId | 'favourite'} AutomaTrackTiebreaker */
+/** The heart means the acting bot's favourite, not a fixed track. @typedef {TrackId | 'favourite'} AutomaTrackTiebreaker */
 
 /**
  * A base card's printed data. The left card supplies track indicators and income;

@@ -175,6 +175,7 @@ function districtRewardOps(seat, player, districts) {
 				player,
 				kind: 'effects',
 				effects: [{ gain: { any: districts.length } }],
+				cause: { capital: 'district' },
 			},
 		];
 	}
@@ -185,7 +186,15 @@ function districtRewardOps(seat, player, districts) {
 				mat.districtReward ?? [{ gain: { any: 1 } }]
 		)
 	);
-	return [{ player, kind: 'effects', effects, ordered: true }];
+	return [
+		{
+			player,
+			kind: 'effects',
+			effects,
+			ordered: true,
+			cause: { capital: 'district' },
+		},
+	];
 }
 
 /**

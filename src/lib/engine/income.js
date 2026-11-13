@@ -143,6 +143,9 @@ function incomeStep(ctx, player, turn) {
 			player,
 			kind: 'effects',
 			effects: [{ gain: { any: savanna } }],
+			cause: {
+				incomeReason: 'From completed districts on your Savanna mat',
+			},
 			origin: 'capital',
 		});
 	}
@@ -151,6 +154,7 @@ function incomeStep(ctx, player, turn) {
 		ops.push({
 			player,
 			kind: 'chooseConversion',
+			cause: { tapestry: 'mercantilism', player },
 			max: food,
 			origin: 'tapestry',
 		});
@@ -180,6 +184,10 @@ function tapestryStep(ctx, player, turn) {
 			player,
 			kind: 'effects',
 			effects: [{ gain: structuredClone(bonus) }],
+			cause: {
+				incomeReason:
+					'From being first among your neighbours to reach this income turn',
+			},
 			ordered: true,
 		});
 	}
@@ -443,6 +451,8 @@ export function runIncomeSteps(ctx, op) {
 	if (!step) {
 		return;
 	}
+	// Decisions caused by the income mat should say which step opened them.
+	op.cause = { incomeTurn: op.turn, step };
 	if (rest.length) {
 		const { id: _id, batch: _batch, ...kept } = op;
 		ctx.push([{ ...kept, steps: rest }]);

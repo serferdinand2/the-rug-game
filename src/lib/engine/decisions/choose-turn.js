@@ -82,7 +82,13 @@ export const chooseTurn = {
 		}
 		// The Merfolk after income turn 5: a card played or discarded (03 FF.3, #40).
 		if (answer.turn === 'merfolk') {
-			ctx.push([{ player, kind: 'chooseMerfolkTurn' }]);
+			ctx.push([
+				{
+					player,
+					kind: 'chooseMerfolkTurn',
+					cause: { civ: 'merfolk', part: 'ability', player },
+				},
+			]);
 			return;
 		}
 		// What an advance turn offers comes before its advance, told whether some advance is affordable, and after the

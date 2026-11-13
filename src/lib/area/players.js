@@ -11,7 +11,7 @@ import {
 	spacesAdvanced,
 } from '../engine/game.js';
 import { boardTracks } from '../board.js';
-import { AUTOMA_CIVS } from '../engine/data/automa-civs.js';
+import { automaCivilizationsFor } from '../engine/data/automa-expansion-civs.js';
 
 /**
  * The props of one PlayerCard.
@@ -32,7 +32,7 @@ import { AUTOMA_CIVS } from '../engine/data/automa-civs.js';
  * @property {never} [botKind]
  */
 
-/** @typedef {{ seat: import('../ui.js').Seat, name: string, vp: number, botKind: 'automa' | 'shadow', civilization: string, tracks: Record<string, number>, landmarks: number, territories: number, incomeTurns: number, favouriteTrack: string, finished: boolean }} BotPlayerCardFacts */
+/** @typedef {{ seat: import('../ui.js').Seat, name: string, vp: number, botKind: 'automa' | 'shadow', civilization: string, tracks: Record<string, number>, landmarks: number, territories: number, incomeTurns: number, favouriteTrack: string, finished: boolean, huckstersPool?: Record<string, (string|number)[]>, faceUpCharms?: string[], trendyTrack?: string }} BotPlayerCardFacts */
 
 /**
  * The props of one PlayerChip in the game header (#90).
@@ -96,8 +96,9 @@ export function playerChips(view) {
 function botCivilization(seat) {
 	if (seat.kind === 'shadow') return 'Shadow Empire';
 	return (
-		AUTOMA_CIVS.find((civ) => civ.id === seat.civilization)?.name ??
-		'Automa'
+		automaCivilizationsFor(['pp', 'aa', 'ff']).find(
+			(civ) => civ.id === seat.civilization
+		)?.name ?? 'Automa'
 	);
 }
 
@@ -123,15 +124,20 @@ export function playerCards(view, viewer, host) {
 					botKind: seat.kind,
 					civilization: botCivilization(seat),
 					tracks: Object.fromEntries(
-						boardTracks(view).map((track) => [
-							track,
-							spacesAdvanced(seat, track),
-						])
+						boardTracks(view)
+							.filter((track) => seat.tracks[track]?.length > 0)
+							.map((track) => [
+								track,
+								spacesAdvanced(seat, track),
+							])
 					),
 					landmarks: seat.landmarks?.length ?? 0,
 					territories: controlledTerritories(view, seat.seat).length,
 					incomeTurns: seat.incomeTurns,
 					favouriteTrack: seat.favouriteTrack,
+					huckstersPool: seat.huckstersPool,
+					faceUpCharms: seat.faceUpCharms,
+					trendyTrack: seat.trendyTrack,
 					finished: seat.finished,
 				};
 			}

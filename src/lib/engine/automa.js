@@ -2,7 +2,27 @@
 import { AUTOMA_CARDS } from './data/automa-cards.js';
 import { AUTOMA_LEVELS } from './data/automa-levels.js';
 import { AUTOMA_CIVS } from './data/automa-civs.js';
-import { SCIENCE_DIE } from './data/dice.js';
+import { automaCivilizationsFor } from './data/automa-expansion-civs.js';
+import {
+	equalizersIncome,
+	setupHucksters,
+	addHuckstersIncomeItem,
+	huckstersScoreCount,
+} from './automa-expansion-pp.js';
+import { askInfluencersTrendy } from './automa-expansion-aa.js';
+import {
+	gainCharmerIncome,
+	resolveTimeTravelersIncome,
+	hasFfAutomaCivilization,
+	ffDecisionPairAdvances,
+	erraticsAdvance,
+	timeTravelersLandmarks,
+	setupCharmers,
+} from './automa-expansion-ff.js';
+import { TRACKS } from './data/tracks.js';
+import { scienceFaces } from './data/dice.js';
+import { defaultDie } from './science-die.js';
+import { refreshFaceUp } from './masterpieces.js';
 import { MAPS, hexNeighbours } from './data/maps.js';
 import { drawAutomaPair, drawShadowEmpirePair } from './automa-decks.js';
 import { selectBotTrack } from './automa-selection.js';
@@ -22,7 +42,7 @@ import { vp } from './effects/vp.js';
 import { PlayerError } from './errors.js';
 
 /** Runtime fields stay separate from human-only state.
- * @typedef {import('./state.js').BotSeat & {decisionDeck: number[], currentPair: import('./automa-decks.js').DecisionPair | null, favouriteTrack: import('./data/ids.js').BoardTrackId} & Record<string, any>} RuntimeBot
+ * @typedef {import('./state.js').BotSeat & {decisionDeck: number[], currentPair: import('./automa-decks.js').DecisionPair | null, favouriteTrack: import('./data/ids.js').TrackId} & Record<string, any>} RuntimeBot
  */
 /** @param {import('./state.js').State} state @param {number} player @returns {RuntimeBot} */
 const botOf = (state, player) =>
@@ -113,9 +133,13 @@ function favouriteSnapshot(state) {
 
 /** @param {import('./state.js').State} state @param {RuntimeBot} bot @param {import('./automa-decks.js').DecisionPair} pair @returns {import('./state.js').NewOperation[]} */
 function pairOps(state, bot, pair) {
-	return [bot, ...state.seats.filter((s) => s.kind === 'shadow')].map(
-		(s) => ({ player: s.seat, kind: 'botSelectAdvance', pair })
-	);
+	return [
+		bot,
+		...state.seats.filter(
+			(s) =>
+				s.kind === 'shadow' && !hasFfAutomaCivilization(bot, 'erratics')
+		),
+	].map((s) => ({ player: s.seat, kind: 'botSelectAdvance', pair }));
 }
 
 /** @type {import('./state.js').AutomaticKind} */
@@ -130,15 +154,22 @@ export function botSelectAdvance(ctx, op) {
 		bot.kind
 	);
 	if (track)
-		ctx.push([
-			{
-				player: bot.seat,
-				kind: 'botAdvance',
-				track,
-				benefit: true,
-				pair: op.pair,
-			},
-		]);
+		ctx.push(
+			Array.from(
+				{
+					length:
+						bot.kind === 'automa' ? ffDecisionPairAdvances(bot) : 1,
+				},
+				() => ({
+					player: bot.seat,
+					kind: 'botAdvance',
+					track,
+					benefit: true,
+					pair: op.pair,
+					pairAdvance: op.id,
+				})
+			)
+		);
 }
 
 /** @type {import('./state.js').AutomaticKind} */
@@ -146,20 +177,125 @@ export function botAdvance(ctx, op) {
 	const player = Number(op.player),
 		bot = botOf(ctx.state, player);
 	const from = spacesAdvanced(bot, op.track);
+	if (op.pairAdvance && bot.cancelledPairAdvance === op.pairAdvance) return;
 	const to = Math.max(0, Math.min(12, from + (op.regress ? -1 : 1)));
 	if (from === to) return;
+	if (op.pairAdvance && hasFfAutomaCivilization(bot, 'erratics')) {
+		const human = ctx.state.seats.find((seat) => seat.kind === 'player');
+		if (human && erraticsAdvance(bot, human, op.track).skip) {
+			vp(ctx, player, 3, /** @type {any} */ ({ origin: 'civ' }));
+			return;
+		}
+	}
+	const landmark =
+		TRACKS[/** @type {import('./data/ids.js').TrackId} */ (op.track)]?.[to]
+			?.landmark;
+	const returns =
+		bot.kind === 'automa' &&
+		!op.regress &&
+		hasFfAutomaCivilization(bot, 'time-travelers') &&
+		landmark &&
+		ctx.state.landmarks.includes(landmark);
 	// The shared movement path awards landmarks, achievements and human observer triggers, but never a human bonus.
-	if (op.benefit && !op.regress && bot.kind === 'automa')
+	if ((op.benefit && !op.regress && bot.kind === 'automa') || returns)
 		ctx.push([
-			{
-				player,
-				kind: 'botBenefit',
-				track: op.track,
-				space: to,
-				pair: op.pair,
-			},
+			...(op.benefit && !op.regress && bot.kind === 'automa'
+				? [
+						{
+							player,
+							kind: 'botBenefit',
+							track: op.track,
+							space: to,
+							pair: op.pair,
+						},
+					]
+				: []),
+			...(returns
+				? [
+						{
+							player,
+							kind: 'botTimeTravelReturn',
+							track: op.track,
+							pairAdvance: op.pairAdvance,
+						},
+					]
+				: []),
 		]);
 	moveToken(ctx, player, { track: op.track, from, to, benefit: false });
+	if (bot.kind === 'shadow' && !op.regress) {
+		advanceTwinImpact(ctx, bot, op.track);
+	}
+	// The extra token marks the favourite and travels with the Automa token.
+	if (
+		bot.kind === 'automa' &&
+		bot.favouriteMarker === 'track-token' &&
+		bot.favouriteTrack === op.track
+	) {
+		const markers =
+			bot.tracks[
+				/** @type {import('./data/ids.js').TrackId} */ (op.track)
+			];
+		const marker = markers.indexOf(from);
+		if (marker !== -1) markers[marker] = to;
+	}
+}
+
+/** Twin Impact advances one space on the next clockwise track whenever Shadow advances. It takes landmarks for the
+ * Automa box, but earns no track benefits or achievements and does not fire civilization triggers (A&A Automa rules).
+ * @param {import('./state.js').Context} ctx
+ * @param {RuntimeBot} shadow
+ * @param {import('./data/ids.js').TrackId} shadowTrack
+ */
+function advanceTwinImpact(ctx, shadow, shadowTrack) {
+	const twinTracks = /** @type {any} */ (shadow).twinTracks;
+	if (!twinTracks) return;
+	// R66's verified clockwise order; #186 blocks the arts-track position.
+	const clockwise = ['military', 'science', 'exploration', 'technology'];
+	const nextTrack = clockwise[(clockwise.indexOf(shadowTrack) + 1) % clockwise.length];
+	const tokens = twinTracks[nextTrack];
+	if (!tokens?.length) return;
+	const from = Math.max(...tokens);
+	if (from >= 12) return;
+	const to = from + 1;
+	tokens[tokens.indexOf(from)] = to;
+	emit(ctx.state, {
+		type: 'twinImpactMoved',
+		player: shadow.seat,
+		track: nextTrack,
+		from,
+		to,
+	});
+	const landmark = TRACKS[nextTrack]?.[to]?.landmark;
+	if (!landmark || !ctx.state.landmarks.includes(landmark)) return;
+	ctx.state.landmarks.splice(ctx.state.landmarks.indexOf(landmark), 1);
+	const owner = ctx.state.seats.find((seat) => seat.kind === 'automa') ?? shadow;
+	owner.landmarks.push(landmark);
+	emit(ctx.state, {
+		type: 'landmarkGained',
+		player: shadow.seat,
+		owner: owner.seat,
+		landmark,
+		track: nextTrack,
+		twinImpact: true,
+	});
+}
+
+/** @type {import('./state.js').AutomaticKind} */
+export function botTimeTravelReturn(ctx, op) {
+	const bot = botOf(ctx.state, Number(op.player));
+	const from = spacesAdvanced(bot, op.track);
+	if (op.pairAdvance) bot.cancelledPairAdvance = op.pairAdvance;
+	const tokens =
+		bot.tracks[/** @type {import('./data/ids.js').TrackId} */ (op.track)];
+	for (let i = 0; i < tokens.length; i++)
+		if (tokens[i] === from) tokens[i] = 0;
+	emit(ctx.state, {
+		type: 'tokenMoved',
+		player: bot.seat,
+		track: op.track,
+		from,
+		to: 0,
+	});
 }
 
 /** @type {import('./state.js').AutomaticKind} */
@@ -186,6 +322,16 @@ export function botBenefit(ctx, op) {
 		if ([1, 3, 5, 6, 7, 8, 12].includes(space))
 			push('botMap', { action: 'conquer', anywhere: space === 8 });
 	}
+	if (track === 'arts') {
+		if (space === 1)
+			gainTapestry(ctx, botOf(ctx.state, player), 'trapCards');
+		if (space === 7) refreshFaceUp(ctx, player);
+		if ([9, 11].includes(space))
+			push('botResearch', {
+				tracks: ['military', 'technology', 'exploration', 'science'],
+				benefit: true,
+			});
+	}
 	if (track === 'science') {
 		if ([2, 4].includes(space))
 			gainTapestry(ctx, botOf(ctx.state, player), 'trapCards');
@@ -206,16 +352,17 @@ export function botBenefit(ctx, op) {
 
 /** @type {import('./state.js').AutomaticKind} */
 export function botResearch(ctx, op) {
-	const valid = op.tracks ?? [
-		'military',
-		'technology',
-		'exploration',
-		'science',
-	];
+	const faces = scienceFaces(defaultDie(ctx.state));
+	const valid = op.tracks ?? [...new Set(faces)];
 	let track;
 	do {
-		track = SCIENCE_DIE[ctx.random(SCIENCE_DIE.length)];
-		emit(ctx.state, { type: 'scienceDieRolled', player: op.player, track });
+		track = faces[ctx.random(faces.length)];
+		emit(ctx.state, {
+			type: 'scienceDieRolled',
+			player: op.player,
+			track,
+			...(faces.length === 20 ? { scienceDie: 'd20' } : {}),
+		});
 	} while (!valid.includes(track));
 	ctx.push(
 		Array.from({ length: op.steps ?? 1 }, () => ({
@@ -281,14 +428,29 @@ function beginIncome(ctx, bot) {
 		bot.incomePair = { trackCard: id, tiebreakerCard: id };
 		bot.progressDeck = shuffle(bot.progressDeck, ctx.random);
 	} else bot.incomePair = bot.currentPair;
+	// The verified A&A level-3 chart matches base level 4; levels 1 and 2
+	// add two progress cards on income turns 3 and 4.
+	const aa = ctx.state.expansions.includes('aa');
+	const chart =
+		aa && level.level === 3
+			? (AUTOMA_LEVELS.find((entry) => entry.level === 4) ?? level)
+			: level;
 	/** @type {import('./state.js').NewOperation[]} */
-	const ops = level.incomeRows
+	const ops = chart.incomeRows
 		.filter((row) => row.turns.includes(bot.incomeTurns))
 		.map((row) => ({
 			player: bot.seat,
 			kind: 'botIncomeStep',
 			step: row.kind,
-			cards: row.cardsByTurn?.[bot.incomeTurns],
+			cards:
+				row.cardsByTurn?.[bot.incomeTurns] === undefined
+					? undefined
+					: row.cardsByTurn[bot.incomeTurns] +
+						(aa &&
+						level.level <= 2 &&
+						[3, 4].includes(bot.incomeTurns)
+							? 2
+							: 0),
 		}));
 	if (bot.incomeTurns === 1)
 		for (const extra of level.firstIncomeExtras) {
@@ -333,9 +495,9 @@ function changeFavourite(state, bot, card) {
 	if (!next) return;
 	if (bot.favouriteMarker === 'track-token') {
 		const markers = bot.tracks[old];
-		const at = markers.indexOf(0);
+		const at = markers.indexOf(current);
 		if (at !== -1 && markers.length > 1) markers.splice(at, 1);
-		bot.tracks[next].push(0);
+		bot.tracks[next].push(spacesAdvanced(bot, next));
 	}
 	bot.favouriteTrack = next;
 	emit(state, { type: 'botFavouriteChanged', player: bot.seat, track: next });
@@ -349,7 +511,12 @@ export function botIncomeStep(ctx, op) {
 	switch (op.step) {
 		case 'changeFavourite':
 			for (const seat of ctx.state.seats.filter(
-				(s) => s.kind !== 'player'
+				(s) =>
+					s.kind !== 'player' &&
+					!(
+						s.kind === 'shadow' &&
+						hasFfAutomaCivilization(bot, 'erratics')
+					)
 			))
 				changeFavourite(
 					ctx.state,
@@ -378,13 +545,19 @@ export function botIncomeStep(ctx, op) {
 				m = level.scoreMultipliers;
 			const score =
 				(bot.landmarks.length +
+					([bot.civilization, bot.secondCivilization].includes(
+						'hucksters'
+					)
+						? huckstersScoreCount(ctx.state, bot.seat)
+						: 0) +
 					controlledTerritories(ctx.state, bot.seat).length) *
 					m.landmarksAndTerritories[col] +
 				(spacesAdvanced(bot, 'military') +
 					spacesAdvanced(bot, 'science')) *
 					m.militaryAndScience[col] +
 				(spacesAdvanced(bot, 'technology') +
-					spacesAdvanced(bot, 'exploration')) *
+					spacesAdvanced(bot, 'exploration') +
+					(bot.tracks.arts ? spacesAdvanced(bot, 'arts') : 0)) *
 					m.technologyAndExploration[col];
 			vp(ctx, bot.seat, score, /** @type {any} */ ({ origin: 'income' }));
 			break;
@@ -424,6 +597,31 @@ export function botIncomeStep(ctx, op) {
 /** @type {import('./state.js').AutomaticKind} */
 export function botCivilizationIncome(ctx, op) {
 	const bot = botOf(ctx.state, Number(op.player));
+	if (bot.incomeTurns >= 2 && op.civilization === 'equalizers') {
+		equalizersIncome(ctx, bot.seat);
+		return;
+	}
+	if (bot.incomeTurns >= 2 && op.civilization === 'hucksters') {
+		addHuckstersIncomeItem(ctx, bot.seat);
+		return;
+	}
+	if (bot.incomeTurns >= 2 && op.civilization === 'muses') {
+		ctx.push([{ player: bot.seat, kind: 'botMusesIncome' }]);
+		return;
+	}
+	if (bot.incomeTurns >= 2 && op.civilization === 'influencers') {
+		ctx.push([{ player: bot.seat, kind: 'botInfluencersIncome' }]);
+		return;
+	}
+	if (bot.incomeTurns >= 2 && op.civilization === 'charmers') {
+		gainCharmerIncome(ctx, bot);
+		return;
+	}
+	if (bot.incomeTurns >= 2 && op.civilization === 'time-travelers') {
+		const human = ctx.state.seats.find((seat) => seat.kind === 'player');
+		if (human) resolveTimeTravelersIncome(ctx, human.seat);
+		return;
+	}
 	const civ = AUTOMA_CIVS.find((c) => c.id === op.civilization);
 	if (!civ) return;
 	ctx.push(
@@ -520,9 +718,9 @@ export function botCivilizationAbility(ctx, op) {
 export const chooseAutomaCivilization = {
 	hidden: [],
 	answers(state, op) {
-		return AUTOMA_CIVS.filter(
-			(c) => c.id !== botOf(state, op.bot).civilization
-		).map((c) => ({ civilization: c.id }));
+		return automaCivilizationsFor(state.expansions, state.variants)
+			.filter((c) => c.id !== botOf(state, op.bot).civilization)
+			.map((c) => ({ civilization: c.id }));
 	},
 	check(state, op, answer) {
 		if (
@@ -534,6 +732,36 @@ export const chooseAutomaCivilization = {
 	},
 	resolve(ctx, op, answer) {
 		botOf(ctx.state, op.bot).secondCivilization = answer.civilization;
+		if (answer.civilization === 'hucksters') setupHucksters(ctx, op.bot);
+		if (answer.civilization === 'influencers')
+			askInfluencersTrendy(ctx, op.bot, true);
+		if (answer.civilization === 'charmers')
+			setupCharmers(ctx, botOf(ctx.state, op.bot));
+		if (answer.civilization === 'erratics') {
+			const shadow = ctx.state.seats.find(
+				(seat) => seat.kind === 'shadow'
+			);
+			if (shadow)
+				for (const track of Object.keys(shadow.tracks))
+					shadow.tracks[
+						/** @type {import('./data/ids.js').TrackId} */ (track)
+					] = [];
+		}
+		if (answer.civilization === 'time-travelers') {
+			const options = timeTravelersLandmarks(
+				ctx.state.landmarks,
+				ctx.state.expansions
+			);
+			if (options.length)
+				ctx.push([
+					{
+						player: Number(op.player),
+						kind: 'chooseLandmark',
+						options,
+						purpose: 'timeTravelers',
+					},
+				]);
+		}
 		emit(ctx.state, {
 			type: 'automaCivilizationChosen',
 			player: op.bot,
@@ -549,6 +777,24 @@ export function askAutomaSetup(ctx) {
 		ctx.state.seats.find((s) => s.kind === 'automa')
 	);
 	const human = ctx.state.seats.find((s) => s.kind === 'player');
+	if (bot?.civilization === 'hucksters') setupHucksters(ctx, bot.seat);
+	if (bot?.civilization === 'influencers')
+		askInfluencersTrendy(ctx, bot.seat, true);
+	if (bot?.civilization === 'time-travelers' && human) {
+		const options = timeTravelersLandmarks(
+			ctx.state.landmarks,
+			ctx.state.expansions
+		);
+		if (options.length)
+			ctx.push([
+				{
+					player: human.seat,
+					kind: 'chooseLandmark',
+					options,
+					purpose: 'timeTravelers',
+				},
+			]);
+	}
 	if (bot && bot.level === 6 && !bot.secondCivilization && human)
 		ctx.push([
 			{

@@ -1,0 +1,87 @@
+[
+  {
+    "title": "Track space",
+    "text": "From Wagons, Exploration 3",
+    "path": "docs/ui/decision-source-examples/track-space.png"
+  },
+  {
+    "title": "Track bonus",
+    "text": "From the bonus of Ships, Exploration 5",
+    "path": "docs/ui/decision-source-examples/track-bonus.png"
+  },
+  {
+    "title": "Civilization adjustment",
+    "text": "From Merrymakers’ adjustment",
+    "path": "docs/ui/decision-source-examples/civilization-adjustment.png"
+  },
+  {
+    "title": "Civilization ability",
+    "text": "From Vera's Leaders’ ability",
+    "path": "docs/ui/decision-source-examples/civilization-ability.png"
+  },
+  {
+    "title": "Technology card",
+    "text": "From Bakery technology · square benefit",
+    "path": "docs/ui/decision-source-examples/technology-card.png"
+  },
+  {
+    "title": "Tapestry card",
+    "text": "From Vera's Monarchy tapestry card",
+    "path": "docs/ui/decision-source-examples/tapestry-card.png"
+  },
+  {
+    "title": "Masterpiece",
+    "text": "From Painting masterpiece",
+    "path": "docs/ui/decision-source-examples/masterpiece.png"
+  },
+  {
+    "title": "Landmark card",
+    "text": "From Urban Farm landmark card",
+    "path": "docs/ui/decision-source-examples/landmark-card.png"
+  },
+  {
+    "title": "Territory tile",
+    "text": "From territory tile 17 (hex 0,1)",
+    "path": "docs/ui/decision-source-examples/territory-tile.png"
+  },
+  {
+    "title": "Space tile",
+    "text": "From space tile 3",
+    "path": "docs/ui/decision-source-examples/space-tile.png"
+  },
+  {
+    "title": "Completed district",
+    "text": "From completing a district in your capital",
+    "path": "docs/ui/decision-source-examples/completed-district.png"
+  },
+  {
+    "title": "Completed row",
+    "text": "From completing a row in your capital",
+    "path": "docs/ui/decision-source-examples/completed-row.png"
+  },
+  {
+    "title": "Completed column",
+    "text": "From completing a column in your capital",
+    "path": "docs/ui/decision-source-examples/completed-column.png"
+  },
+  {
+    "title": "Conquest",
+    "text": "From Vera's conquest of hex 0,1",
+    "path": "docs/ui/decision-source-examples/conquest.png"
+  },
+  {
+    "title": "Trap",
+    "text": "From a trap during conquest",
+    "path": "docs/ui/decision-source-examples/trap.png"
+  },
+  {
+    "title": "Achievement",
+    "text": "From an achievement",
+    "path": "docs/ui/decision-source-examples/achievement.png"
+  },
+  {
+    "title": "Income explanation, when needed",
+    "text": "From your civilization ability during income",
+    "path": "docs/ui/decision-source-examples/income-explanation-when-needed.png"
+  }
+]

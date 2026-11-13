@@ -1,7 +1,7 @@
 // The decisions' titles and answers in words (#26 design §8, #126): what the decision panel asks, and each answer it offers.
 // game.js first: it loads the civilization modules in an order free of their import cycle.
 import './engine/game.js';
-import { AUTOMA_CIVS } from './engine/data/automa-civs.js';
+import { automaCivilizationsFor } from './engine/data/automa-expansion-civs.js';
 import { RECYCLERS_VP } from './engine/civs/recyclers.js';
 import { TREASURES } from './engine/civs/treasure-hunters.js';
 import { TINKERERS_STEP_BACK } from './engine/civs/tinkerers.js';
@@ -539,6 +539,10 @@ const TITLES = {
 	},
 	chooseCapital: () => 'Choose your capital city',
 	chooseAutomaCivilization: () => 'Choose the Automa’s second civilization',
+	chooseCharmerExchange: () => 'Charmers: swap the tapestry you just gained?',
+	chooseHuckstersTapestry: () => 'Hucksters: choose a tapestry',
+	chooseHuckstersTile: (d) =>
+		`Hucksters: choose a ${d.stack === 'space' ? 'space' : 'territory'} tile`,
 	chooseCiv: (d) =>
 		d.midGame
 			? 'Keep one of the civilizations you drew'
@@ -744,9 +748,11 @@ const TITLES = {
 			? 'Choose a tech card in your top row for its square benefit'
 			: 'Choose a tech card in your middle row for its circle benefit',
 	chooseLandmark: (d) =>
-		d.purpose === 'dystopia'
-			? 'Dystopia: choose a track landmark nobody has claimed'
-			: 'Choose a landmark',
+		d.purpose === 'timeTravelers'
+			? 'Time Travelers: choose a landmark for your capital'
+			: d.purpose === 'dystopia'
+				? 'Dystopia: choose a track landmark nobody has claimed'
+				: 'Choose a landmark',
 	chooseDiscard: (d) => {
 		// The Advisors' discard down to 4 (#33).
 		if (isCount(d.downTo)) {
@@ -800,6 +806,8 @@ const TITLES = {
 	},
 	chooseTrack: (d) => {
 		switch (d.purpose) {
+			case 'influencersTrendy':
+				return 'Influencers: choose the Trendy track';
 			case 'darkAges':
 				return `Dark Ages: choose the track to advance ${DARK_AGES_ADVANCES} times on`;
 			// With the arts track only 3 of the other 4 tracks go back (03 §2.2, #35).
@@ -1158,8 +1166,9 @@ const ANSWERS = {
 		return mat ? `${mat.name} capital (mat ${mat.number})` : null;
 	},
 	chooseAutomaCivilization: (a) =>
-		AUTOMA_CIVS.find((c) => c.id === a.civilization)?.name ??
-		a.civilization,
+		automaCivilizationsFor(['pp', 'aa', 'ff']).find(
+			(c) => c.id === a.civilization
+		)?.name ?? a.civilization,
 	chooseCiv: (a) =>
 		typeof a.civ === 'string' ? civilizationName(a.civ) : null,
 	chooseMatAndCiv: (a) => {
@@ -1513,6 +1522,12 @@ const ANSWERS = {
 		}
 		return a.card === 'spymaster' ? 'Play Spymaster' : null;
 	},
+	chooseCharmerExchange: (a) =>
+		a.card === null
+			? 'Keep the tapestry'
+			: typeof a.card === 'string'
+				? `Take ${tapestryName(a.card)}`
+				: null,
 	chooseResponse: (a) => {
 		if (a.card === null) {
 			return "Don't respond";
@@ -1540,6 +1555,8 @@ const ANSWERS = {
 			return null;
 		}
 		// The Recyclers' discard pile (#33).
+		if (a.from === 'hucksters')
+			return `${techName(a.card)}, from the Hucksters pool`;
 		return a.from === 'discard'
 			? `${techName(a.card)}, from the discard pile`
 			: techName(a.card);
@@ -1592,6 +1609,18 @@ const ANSWERS = {
 		typeof a.card === 'string'
 			? `Keep ${landmarkName(a.card)}: ${draftRest(d, table, false)}`
 			: null,
+	chooseHuckstersTapestry: (a) =>
+		a.card === null
+			? 'Draw from the tapestry deck'
+			: typeof a.card === 'string'
+				? `Take ${tapestryName(a.card)} from the Hucksters pool`
+				: null,
+	chooseHuckstersTile: (a, d) =>
+		a.pile === 'supply'
+			? `Draw from the ${d.stack} stack`
+			: typeof a.item === 'number'
+				? `${d.stack === 'space' ? 'Space' : 'Territory'} tile ${a.item} from the Hucksters pool`
+				: null,
 	chooseTrade: (a, d, table) => {
 		if (a.offer === null) {
 			return Array.isArray(d.otherwise)

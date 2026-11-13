@@ -15,8 +15,10 @@ import {
 } from '../tech.js';
 import { techCard } from '../data/tech-cards.js';
 import { psionic, sampleCard } from '../civs/psionics.js';
+import { huckstersOffers, takeHuckstersOffer } from '../automa-expansion-pp.js';
+import { timeTravelersBlocksTech } from '../automa-time-travelers.js';
 
-/** @typedef {{ card?: string, from?: 'discard', refresh?: true }} InventAnswer */
+/** @typedef {{ card?: string, from?: 'discard' | 'hucksters', owner?: number, refresh?: true }} InventAnswer */
 
 /**
  * What a player may answer when inventing: each face-up card, the top of the deck, for the Recyclers each card of the
@@ -31,6 +33,15 @@ export function inventAnswers(state, decision) {
 	const { faceUpOnly = false, deckOnly = false } = decision.invent ?? {};
 	/** @type {InventAnswer[]} */
 	const answers = deckOnly ? [] : faceUp.map((card) => ({ card }));
+	if (typeof decision.player === 'number') {
+		answers.push(
+			...huckstersOffers(state, decision.player, 'tech').map((offer) => ({
+				card: /** @type {string} */ (offer.item),
+				from: /** @type {const} */ ('hucksters'),
+				owner: offer.player,
+			}))
+		);
+	}
 	if (faceUpOnly) {
 		return answers;
 	}
@@ -39,10 +50,12 @@ export function inventAnswers(state, decision) {
 	}
 	if (!deckOnly && recycles(state, decision.player)) {
 		answers.push(
-			...discard.map((card) => ({
-				card,
-				from: /** @type {const} */ ('discard'),
-			}))
+			...discard
+				.filter((card) => !timeTravelersBlocksTech(state, card))
+				.map((card) => ({
+					card,
+					from: /** @type {const} */ ('discard'),
+				}))
 		);
 	}
 	// A refresh with nothing to draw only deals the same cards back.
@@ -97,16 +110,35 @@ export function inventCard(ctx, player, answer, left, options = {}, kept) {
 		return;
 	}
 	const from =
-		answer.from === 'discard'
-			? 'discard'
-			: answer.card === 'deck'
-				? 'deck'
-				: 'display';
+		answer.from === 'hucksters'
+			? 'hucksters'
+			: answer.from === 'discard'
+				? 'discard'
+				: answer.card === 'deck'
+					? 'deck'
+					: 'display';
 	/** @type {number} */
 	let slot = -1;
 	/** @type {string | null | undefined} */
 	let card;
-	if (from === 'discard') {
+	if (from === 'hucksters') {
+		if (
+			typeof answer.owner !== 'number' ||
+			typeof answer.card !== 'string' ||
+			!takeHuckstersOffer(
+				ctx.state,
+				player,
+				answer.owner,
+				'tech',
+				answer.card
+			)
+		) {
+			throw new Error(
+				'inventCard found that card is not available in the Hucksters pool.'
+			);
+		}
+		card = answer.card;
+	} else if (from === 'discard') {
 		const at = tech.discard.indexOf(answer.card ?? '');
 		if (at === -1) {
 			throw new Error(

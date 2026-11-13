@@ -191,6 +191,7 @@
 			label={view.label}
 			labelColor={view.labelColor}
 			heading={view.heading ?? ''}
+			source={view.source}
 			properName={view.properName}
 			track={view.track}
 			detail={view.detail}

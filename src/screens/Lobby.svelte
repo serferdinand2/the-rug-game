@@ -89,7 +89,23 @@
 	 * @param {ComponentEvent} event
 	 */
 	const expansionsChangeHandler = (event) => {
-		store.configure({ expansions: event.value });
+		store.configure((table) => {
+			const variants = table.options.variants.filter((id) => {
+				const requiredExpansion = config?.variants?.find(
+					(variant) => variant.id === id
+				)?.expansion;
+				return !requiredExpansion || event.value.includes(requiredExpansion);
+			});
+			const hasBot = table.seats.some((seat) => seat.kind !== 'player');
+			if (
+				hasBot &&
+				event.value.includes('aa') &&
+				!variants.includes('no-arts-track')
+			) {
+				variants.push('no-arts-track');
+			}
+			return { expansions: event.value, variants };
+		});
 	};
 
 	/**
@@ -106,9 +122,23 @@
 	const variantChangeHandler = (id, event) => {
 		const on = event.value === 'yes';
 		// Built from the table the server has, so two quick choices both count.
-		store.configure((/** @type {any} */ table) => ({
-			variants: toggleVariant(table.options.variants, id, on),
-		}));
+		store.configure((/** @type {any} */ table) => {
+			if (
+				id === 'no-arts-track' &&
+				!on &&
+				table.seats.some(
+					(seat) => seat.kind === 'automa' || seat.kind === 'shadow'
+				)
+			) {
+				return {};
+			}
+			return {
+				variants: toggleVariant(table.options.variants, id, on).filter(
+					(variant) =>
+						!(id === 'no-arts-track' && !on && variant === 'twin-impact')
+				),
+			};
+		});
 	};
 
 	/**
@@ -158,26 +188,51 @@
 						...(kind === 'automa' && { level: 2 }),
 					},
 				],
+				...(table.options.expansions.includes('aa') && {
+					variants: table.options.variants.includes('no-arts-track')
+						? table.options.variants
+						: [...table.options.variants, 'no-arts-track'],
+				}),
 			};
 		});
 	};
 
 	/** @param {number} seat @param {ComponentEvent} event */
 	const botChangeHandler = (seat, event) => {
-		store.configure((table) => ({
-			bots: botSelections(table.seats).map((bot) =>
+		store.configure((table) => {
+			const bots = botSelections(table.seats).map((bot) =>
 				bot.seat === seat
 					? { seat, name: bot.name, ...event.value }
 					: bot
-			),
-		}));
+			);
+			const variants = table.options.variants.filter(
+				(variant) =>
+					variant !== 'twin-impact' ||
+					bots.some((bot) => bot.kind === 'shadow')
+			);
+			return {
+				bots,
+				...(table.options.expansions.includes('aa') && {
+					variants: variants.includes('no-arts-track')
+						? variants
+						: [...variants, 'no-arts-track'],
+				}),
+				...(!table.options.expansions.includes('aa') && { variants }),
+			};
+		});
 	};
 
 	/** @param {number} seat */
 	const botRemoveHandler = (seat) => {
-		store.configure((table) => ({
-			bots: withoutBot(table.seats, seat),
-		}));
+		store.configure((table) => {
+			const bots = withoutBot(table.seats, seat);
+			const variants = table.options.variants.filter(
+				(variant) =>
+					variant !== 'twin-impact' ||
+					bots.some((bot) => bot.kind === 'shadow')
+			);
+			return { bots, variants };
+		});
 	};
 </script>
 
@@ -301,6 +356,10 @@
 								<BotSettings
 									kind={room.seats[slot.seat - 1].kind}
 									level={room.seats[slot.seat - 1].level ?? 2}
+									unavailableLevels={
+										room.options.expansions.includes('aa') ? [4] : []
+									}
+									unavailableLevelReason="Arts & Architecture's level 4 income card is unverified (R57); see research issue #186."
 									unavailable={otherBotKinds(
 										room.seats,
 										slot.seat
@@ -377,13 +436,13 @@
 						{#each variants as variant, index (variant.id)}
 							<SettingRow
 								label={variant.label}
-								title={variant.name}
+								title={variant.reason ?? variant.name}
 								divided={index < variants.length - 1}>
 								<Segmented
 									label={variant.name}
 									options={[...YES_NO_CHOICES]}
 									value={variant.value}
-									disabled={!hosting}
+									disabled={!hosting || variant.disabled}
 									onSegmentedChange={(
 										/** @type {ComponentEvent} */ event
 									) =>

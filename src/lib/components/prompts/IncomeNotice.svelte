@@ -72,6 +72,7 @@
 				<span class="rg-income-notice--chips">
 					{#each chips as id (id)}
 						<ResourceChip
+							class="rg-income-notice--resource"
 							resource={id}
 							count={resources[id]} />
 					{/each}
@@ -118,6 +119,10 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--space-4);
+	}
+
+	.rg-income-notice--chips :global(.rg-income-notice--resource) {
+		background: transparent;
 	}
 
 	.rg-income-notice--words {

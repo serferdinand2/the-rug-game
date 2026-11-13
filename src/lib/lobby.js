@@ -84,6 +84,8 @@ export function botSeatSelection(seat, kind, level) {
  * @property {string} label - The row's short title
  * @property {string} name - The full name: the row's tooltip and its choices' group name
  * @property {'yes' | 'no'} value - Whether the table plays it, as YES_NO_CHOICES names it
+ * @property {boolean} [disabled] - Whether this supported choice is locked by another selected table option
+ * @property {string} [reason] - Why a supported choice is locked
  */
 
 /** The settings row's order, the current rules first as in the mockup, and each version's colour. */
@@ -310,19 +312,39 @@ export function expansionChoices(codes) {
  * The variants' rows, in the server's order, each with whether the table plays it.
  * A variant that needs an expansion shows only while the table has it switched on.
  * @param {{ variants?: readonly { id: string, name: string, expansion?: string }[] } | null | undefined} config - The server's config
- * @param {{ options: { variants: readonly string[], expansions?: readonly string[] } }} room - A room view
+ * @param {{ options: { variants: readonly string[], expansions?: readonly string[] }, seats?: { kind?: string }[] }} room - A room view
  * @returns {VariantRow[]}
  */
 export function variantRows(config, room) {
-	const shown = (config?.variants ?? []).filter(
-		({ expansion }) =>
-			!expansion || (room.options.expansions ?? []).includes(expansion)
+	const hasBot = (room.seats ?? []).some(
+		(seat) => seat.kind === 'automa' || seat.kind === 'shadow'
 	);
+	const shown = (config?.variants ?? []).filter(({ id, expansion }) => {
+		if (expansion && !(room.options.expansions ?? []).includes(expansion)) {
+			return false;
+		}
+		if (id === 'twin-impact') {
+			return (
+				room.options.variants.includes('no-arts-track') &&
+				(room.seats ?? []).some((seat) => seat.kind === 'shadow')
+			);
+		}
+		return true;
+	});
 	return shown.map(({ id, name }) => ({
 		id,
 		label: variantName(id, name),
-		name,
+		name:
+			id === 'no-arts-track' && hasBot
+				? 'The arts track is unavailable with Automa or Shadow Empire until #186 is resolved.'
+				: name,
 		value: room.options.variants.includes(id) ? 'yes' : 'no',
+		...(id === 'no-arts-track' &&
+			hasBot &&
+			room.options.variants.includes(id) && {
+				disabled: true,
+				reason: 'Required while a bot plays Arts & Architecture; arts-track bot rules are blocked by #186.',
+			}),
 	}));
 }
 

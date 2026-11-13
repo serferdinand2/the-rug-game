@@ -317,6 +317,28 @@ test('any other decision of the viewer says whose turn it is part of', () => {
 	assert.equal(footer.heading, decisionTurnHeading(deciding, player));
 });
 
+test('a decision footer identifies its actual cause without repeating the question', () => {
+	const { game, player } = turnChoice();
+	const deciding = asking(game, player, 'chooseResource');
+	deciding.pending[0].cause = { track: 'exploration', space: 4, bonus: true };
+	const footer = footerView(deciding, player, QUIET);
+	assert.equal(footer.source.name, 'Navigation');
+	assert.equal(footer.source.trackName, 'Exploration');
+	assert.equal(footer.source.space, 4);
+	assert.equal(footer.source.bonus, true);
+	assert.equal(footer.detail, undefined);
+	const html = render(TurnFooter, { props: { view: footer } }).body;
+	assert.match(html, /Navigation/);
+	assert.match(html, /Exploration/);
+	assert.doesNotMatch(html, /Answer in the panel above/);
+	const minimized = footerView(deciding, player, {
+		...QUIET,
+		minimized: 'Choose a resource',
+	});
+	assert.equal(minimized.heading, 'Choose a resource');
+	assert.equal(minimized.source, undefined);
+});
+
 test('in setup, with nothing to choose, the viewer waits for the others', () => {
 	const { game, player } = turnChoice();
 	const other = player === 1 ? 2 : 1;
