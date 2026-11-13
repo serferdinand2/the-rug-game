@@ -202,6 +202,7 @@
 		</div>
 	</Example>
 	<Example
+		class="rg-library-decision-panel-shelf"
 		label={'shelf tone="income" steps  (an income turn\'s tapestry card to play: the cards above the panel, both at the tracks\' centre; press one; #79. Open again: the scrim fades, the panel rises and the shelf deals its cards in; #175)'}
 		wide
 		width={1100}>

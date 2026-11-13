@@ -154,13 +154,14 @@ test('a prompt opened again rises over its scrim, deals its shelf in and rests a
 }) => {
 	await page.goto('/components.html#decision-panel');
 	const section = page.locator('#decision-panel');
-	const first = section.locator('.rg-decision-panel').first();
+	const example = section.locator('.rg-library-decision-panel-shelf');
+	const first = example.locator('.rg-decision-panel').first();
 	await expect(first).toBeVisible();
 	await settled(first);
 	const rest = await first.locator('.rg-decision-panel--panel').boundingBox();
 	await forget(page);
-	await section.getByRole('button', { name: 'Open again' }).click();
-	const again = section.locator('.rg-decision-panel').first();
+	await example.getByRole('button', { name: 'Open again' }).click();
+	const again = example.locator('.rg-decision-panel').first();
 	await expect
 		.poll(() => moved(again.locator('.rg-decision-panel--panel')))
 		.toBe(true);
@@ -178,9 +179,10 @@ test('a shelf deals its cards in from a deck at the left, one after another (#17
 }) => {
 	await page.goto('/components.html#decision-panel');
 	const section = page.locator('#decision-panel');
-	await settled(section.locator('.rg-decision-panel').first());
-	await section.getByRole('button', { name: 'Open again' }).click();
-	const cards = section
+	const example = section.locator('.rg-library-decision-panel-shelf');
+	await settled(example.locator('.rg-decision-panel').first());
+	await example.getByRole('button', { name: 'Open again' }).click();
+	const cards = example
 		.locator('.rg-decision-panel')
 		.first()
 		.locator('.rg-card-fan--card');
@@ -201,7 +203,7 @@ test('a shelf deals its cards in from a deck at the left, one after another (#17
 			/^translate\(-\d+(\.\d+)?px, -?\d+(\.\d+)?px\) rotate\(-14deg\)$/
 		);
 	}
-	await settled(section.locator('.rg-decision-panel').first());
+	await settled(example.locator('.rg-decision-panel').first());
 	for (const card of await cards.all()) {
 		await expect(card).toHaveCSS('opacity', '1');
 	}
@@ -236,13 +238,14 @@ test('under reduced motion nothing hops, rises or deals (#175)', async ({
 	await example.getByRole('button', { name: 'Advance 3' }).click();
 	await expect(lanes).toHaveAttribute('aria-label', 'You 4, Ana 2');
 	const section = page.locator('#decision-panel');
-	await section.getByRole('button', { name: 'Open again' }).click();
+	const shelfExample = section.locator('.rg-library-decision-panel-shelf');
+	await shelfExample.getByRole('button', { name: 'Open again' }).click();
 	await expect(
-		section.locator('.rg-decision-panel--panel').first()
+		shelfExample.locator('.rg-decision-panel--panel').first()
 	).toBeVisible();
 	await page.waitForTimeout(300);
 	expect(await moved(lanes)).toBe(false);
-	expect(await moved(section.locator('.rg-decision-panel').first())).toBe(
+	expect(await moved(shelfExample.locator('.rg-decision-panel').first())).toBe(
 		false
 	);
 });
