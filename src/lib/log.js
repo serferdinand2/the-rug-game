@@ -347,6 +347,10 @@ const WORDS = {
 	incomeTurnEnded: (e, game, name) => isCount(e.turn) && e.turn > 0 ? `${name} ended income turn ${e.turn}.` : `${name} ended an income turn.`,
 	botTapestryGained: (e, game, name) =>
 		`${name} gained a face-down tapestry card.`,
+	automaCharmsRevealed: (e, game, name) =>
+		Array.isArray(e.cards) && isCount(e.total)
+			? `${name} revealed ${countWords(e.cards.length, 'face-up charm', 'face-up charms')}; ${e.total} are showing.`
+			: `${name} revealed face-up charms.`,
 	botFavouriteChanged: (e, game, name) =>
 		`${name} now favours ${trackName(e.track)}.`,
 	botTrendyChanged: (e, game, name) =>

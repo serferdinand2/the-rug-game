@@ -37,6 +37,7 @@ const SAMPLES = {
 		pair: { trackCard: 4, tiebreakerCard: 3 },
 		bot: 'automa',
 	},
+	automaCharmsRevealed: { player: 2, cards: ['monarchy'], total: 1 },
 	botTapestryGained: { player: 2, count: 1, destination: 'trapCards' },
 	botFavouriteChanged: { player: 2, track: 'science' },
 	botTrendyChanged: { player: 2, track: 'science' },

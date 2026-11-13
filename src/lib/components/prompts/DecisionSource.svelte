@@ -1,9 +1,20 @@
 <!-- A decision's public cause, shared by the prompt and the turn footer. -->
+<script module>
+	/**
+	 * @typedef {Object} DecisionSourceOwnProps
+	 * @property {any} source - Public, display-ready cause of the decision
+	 * @property {Function} [onDecisionSourceInspect] - Reports a public source card while hovered or focused
+	 */
+	/** @typedef {DecisionSourceOwnProps & import('svelte/elements').HTMLAttributes<HTMLSpanElement>} DecisionSourceProps
+	 * @example <DecisionSource source={{ kind: 'plain', text: 'From a card effect' }} />
+	 */
+</script>
+
 <script>
 	import { ComponentEvent } from '../../component-event.js';
 	import { artUrl, trackColor } from '../../ui.js';
-	/** @type {{ source: any, onDecisionSourceInspect?: Function }} */
-	let { source, onDecisionSourceInspect } = $props();
+	/** @type {DecisionSourceProps} */
+	let { source, onDecisionSourceInspect, ...attr } = $props();
 	/** @param {Event} event @param {boolean} show */
 	function inspect(event, show) {
 		if (typeof onDecisionSourceInspect === 'function')
@@ -18,7 +29,8 @@
 </script>
 
 <span
-	class="rg-decision-source"
+	{...attr}
+	class="rg-decision-source {attr.class ? attr.class : ''}"
 	style:--rg-decision-source-track={source.kind === 'track'
 		? trackColor(source.track)
 		: undefined}>

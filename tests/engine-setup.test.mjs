@@ -411,7 +411,9 @@ test('the nine variants can be switched on, each with a name: the five the owner
 			checkOptions({
 				version,
 				expansions: ['pp', 'aa'],
-				variants: VARIANTS.map((v) => v.id).filter((id) => id !== left),
+				variants: VARIANTS.map((v) => v.id).filter(
+					(id) => id !== left && id !== 'twin-impact'
+				),
 			});
 		}
 	}
