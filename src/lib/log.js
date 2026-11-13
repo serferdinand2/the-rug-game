@@ -351,6 +351,12 @@ const WORDS = {
 		Array.isArray(e.cards) && isCount(e.total)
 			? `${name} revealed ${countWords(e.cards.length, 'face-up charm', 'face-up charms')}; ${e.total} are showing.`
 			: `${name} revealed face-up charms.`,
+	automaTechReplaced: (e, game, name) =>
+		typeof e.discarded === 'string' && typeof e.replacement === 'string'
+			? `${name} replaced ${techName(e.discarded)} with ${techName(e.replacement)}.`
+			: typeof e.discarded === 'string'
+				? `${name} discarded ${techName(e.discarded)}; no replacement was available.`
+				: `${name} replaced a technology card.`,
 	botFavouriteChanged: (e, game, name) =>
 		`${name} now favours ${trackName(e.track)}.`,
 	botTrendyChanged: (e, game, name) =>

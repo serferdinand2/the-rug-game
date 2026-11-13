@@ -38,6 +38,12 @@ const SAMPLES = {
 		bot: 'automa',
 	},
 	automaCharmsRevealed: { player: 2, cards: ['monarchy'], total: 1 },
+	automaTechReplaced: {
+		player: 2,
+		discarded: 'calculator',
+		replacement: 'thermometer',
+		row: 'middle',
+	},
 	botTapestryGained: { player: 2, count: 1, destination: 'trapCards' },
 	botFavouriteChanged: { player: 2, track: 'science' },
 	botTrendyChanged: { player: 2, track: 'science' },
