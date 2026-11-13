@@ -250,6 +250,7 @@ function advanceTwinImpact(ctx, shadow, shadowTrack) {
 	const twinTracks = /** @type {any} */ (shadow).twinTracks;
 	if (!twinTracks) return;
 	// R66's verified clockwise order; #186 blocks the arts-track position.
+	/** @type {import('./data/ids.js').BoardTrackId[]} */
 	const clockwise = ['military', 'science', 'exploration', 'technology'];
 	const nextTrack = clockwise[(clockwise.indexOf(shadowTrack) + 1) % clockwise.length];
 	const tokens = twinTracks[nextTrack];
@@ -268,7 +269,9 @@ function advanceTwinImpact(ctx, shadow, shadowTrack) {
 	const landmark = TRACKS[nextTrack]?.[to]?.landmark;
 	if (!landmark || !ctx.state.landmarks.includes(landmark)) return;
 	ctx.state.landmarks.splice(ctx.state.landmarks.indexOf(landmark), 1);
-	const owner = ctx.state.seats.find((seat) => seat.kind === 'automa') ?? shadow;
+	const owner = /** @type {RuntimeBot} */ (
+		ctx.state.seats.find((seat) => seat.kind === 'automa') ?? shadow
+	);
 	owner.landmarks.push(landmark);
 	emit(ctx.state, {
 		type: 'landmarkGained',

@@ -622,8 +622,10 @@ function setupBots(state, participants, random) {
 	for (const raw of state.seats.filter((s) => s.kind === 'shadow')) {
 		const seat = /** @type {SetupBotSeat} */ (raw);
 		if (state.variants.includes('twin-impact')) {
-			seat.twinTracks = Object.fromEntries(
-				Object.keys(seat.tracks).map((track) => [track, [0]])
+			seat.twinTracks = /** @type {SetupBotSeat['twinTracks']} */ (
+				Object.fromEntries(
+					Object.keys(seat.tracks).map((track) => [track, [0]])
+				)
 			);
 		}
 		if (

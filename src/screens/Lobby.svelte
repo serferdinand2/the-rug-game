@@ -89,14 +89,14 @@
 	 * @param {ComponentEvent} event
 	 */
 	const expansionsChangeHandler = (event) => {
-		store.configure((table) => {
-			const variants = table.options.variants.filter((id) => {
+		store.configure((/** @type {any} */ table) => {
+			const variants = table.options.variants.filter((/** @type {string} */ id) => {
 				const requiredExpansion = config?.variants?.find(
-					(variant) => variant.id === id
+					(/** @type {{id:string, expansion:string}} */ variant) => variant.id === id
 				)?.expansion;
 				return !requiredExpansion || event.value.includes(requiredExpansion);
 			});
-			const hasBot = table.seats.some((seat) => seat.kind !== 'player');
+			const hasBot = table.seats.some((/** @type {{kind:string}} */ seat) => seat.kind !== 'player');
 			if (
 				hasBot &&
 				event.value.includes('aa') &&
@@ -127,7 +127,7 @@
 				id === 'no-arts-track' &&
 				!on &&
 				table.seats.some(
-					(seat) => seat.kind === 'automa' || seat.kind === 'shadow'
+					(/** @type {{kind:string}} */ seat) => seat.kind === 'automa' || seat.kind === 'shadow'
 				)
 			) {
 				return {};
@@ -206,7 +206,7 @@
 					: bot
 			);
 			const variants = table.options.variants.filter(
-				(variant) =>
+				(/** @type {string} */ variant) =>
 					variant !== 'twin-impact' ||
 					bots.some((bot) => bot.kind === 'shadow')
 			);
@@ -227,7 +227,7 @@
 		store.configure((table) => {
 			const bots = withoutBot(table.seats, seat);
 			const variants = table.options.variants.filter(
-				(variant) =>
+				(/** @type {string} */ variant) =>
 					variant !== 'twin-impact' ||
 					bots.some((bot) => bot.kind === 'shadow')
 			);

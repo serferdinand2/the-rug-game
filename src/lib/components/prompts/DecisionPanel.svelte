@@ -137,6 +137,15 @@
 			);
 		}
 	};
+
+	/** @param {ComponentEvent} event */
+	const sourceInspectHandler = (event) => {
+		if (typeof onDecisionPanelSourceInspect === 'function') {
+			onDecisionPanelSourceInspect(
+				new ComponentEvent(event.value, event.target, event.originalEvent)
+			);
+		}
+	};
 </script>
 
 <div
@@ -179,7 +188,7 @@
 				<p class="rg-decision-panel--source">
 					<DecisionSource
 						{source}
-						onDecisionSourceInspect={onDecisionPanelSourceInspect} />
+						onDecisionSourceInspect={sourceInspectHandler} />
 				</p>
 			{/if}
 			{#if steps}

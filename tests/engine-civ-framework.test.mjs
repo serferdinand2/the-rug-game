@@ -353,12 +353,14 @@ test("a civilization's hook operations are passive, and a finished player keeps 
 	state.seats[0].era = { card: null, ability: 'academia' };
 	assert.deepEqual(triggered(state, 'invented', { player: 1, card: 'x' }), [
 		{
+			cause: { card: 'academia', player: 1, tapestry: 'academia' },
 			player: 1,
 			kind: 'effects',
 			effects: [{ vp: 3 }],
 			origin: 'tapestry',
 		},
 		{
+			cause: { civ: 'test', part: 'ability', player: 2 },
 			player: 2,
 			kind: 'chooseOption',
 			options: [[], benefit],
@@ -386,6 +388,7 @@ test("a civilization's hook operations are passive, and a finished player keeps 
 	state.seats[1].finished = true;
 	assert.deepEqual(triggered(state, 'invented', { player: 1, card: 'x' }), [
 		{
+			cause: { civ: 'test', part: 'ability', player: 2 },
 			player: 2,
 			kind: 'effects',
 			effects: benefit,

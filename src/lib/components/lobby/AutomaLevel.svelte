@@ -113,7 +113,7 @@
 		cursor: not-allowed;
 	}
 	.rg-automa-level--unavailable {
-		color: var(--warning, var(--gold));
+		color: var(--gold);
 		font-size: var(--font-size-2xs);
 	}
 	.rg-automa-level--name {

@@ -39,6 +39,7 @@ const SAMPLES = {
 	},
 	botTapestryGained: { player: 2, count: 1, destination: 'trapCards' },
 	botFavouriteChanged: { player: 2, track: 'science' },
+	botTrendyChanged: { player: 2, track: 'science' },
 	botTrapDiscarded: { player: 2, card: 'trap-1', hex: '0_0' },
 	botIncomeStep: { player: 2, step: 'score' },
 	automaCivilizationChosen: {

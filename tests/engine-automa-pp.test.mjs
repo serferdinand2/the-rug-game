@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { createGame } from '../src/lib/engine/setup.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { contextFor } from '../src/lib/engine/loop.js';
+import '../src/lib/engine/kinds.js';
 import {
 	equalizerTracks,
 	equalizerTrack,

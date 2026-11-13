@@ -234,10 +234,10 @@ function boardSize(side) {
 export function pictureSize(id) {
 	const [group, slug] = id.split('/');
 	if (group === 'card-back') {
-		// The masterpiece back is drawn at a quarter of its card's 319 × 259 (#35).
+		// The masterpiece back uses the same full-size card footprint as the other card backs (#35).
 		const sizes = {
 			tapestry: { w: 319, h: 560 },
-			masterpiece: { w: 80, h: 65 },
+			masterpiece: { w: 425, h: 298 },
 		};
 		return (
 			sizes[/** @type {keyof typeof sizes} */ (slug)] ?? {

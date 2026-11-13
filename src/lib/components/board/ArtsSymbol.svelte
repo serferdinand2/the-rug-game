@@ -1,17 +1,20 @@
 <!-- Arts-track benefits as reusable symbols. -->
 <script module>
 	/**
-	 * @typedef {Object} ArtsSymbolProps
+	 * @typedef {Object} ArtsSymbolOwnProps
 	 * @property {'create' | 'inspire' | 'building' | 'broadcast'} kind
 	 * @property {number} [size=24] - Display size in CSS pixels
 	 * @property {boolean} [decorative=false] - Another label names the symbol
+	 */
+	/** @typedef {ArtsSymbolOwnProps & import('svelte/elements').HTMLAttributes<HTMLSpanElement>} ArtsSymbolProps
+	 * @example <ArtsSymbol kind="create" size={36} />
 	 */
 </script>
 
 <script>
 	import { artUrl } from '../../ui.js';
 	/** @type {ArtsSymbolProps} */
-	let { kind, size, decorative = false } = $props();
+	let { kind, size, decorative = false, ...attr } = $props();
 	const labels = {
 		create: 'Create a masterpiece',
 		inspire: 'Inspire an income row',
@@ -21,7 +24,8 @@
 </script>
 
 <span
-	class="rg-arts-symbol"
+	{...attr}
+	class="rg-arts-symbol {attr.class ? attr.class : ''}"
 	role="img"
 	aria-label={decorative ? undefined : labels[kind]}
 	aria-hidden={decorative ? 'true' : undefined}

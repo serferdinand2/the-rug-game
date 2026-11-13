@@ -349,6 +349,8 @@ const WORDS = {
 		`${name} gained a face-down tapestry card.`,
 	botFavouriteChanged: (e, game, name) =>
 		`${name} now favours ${trackName(e.track)}.`,
+	botTrendyChanged: (e, game, name) =>
+		`${name} marks ${trackName(e.track)} as its trendy track.`,
 	botTrapDiscarded: (e, game, name) =>
 		`${name} discarded ${tapestryName(e.card)} while defending.`,
 	automaCivilizationChosen: (e, game, name) =>

@@ -385,7 +385,7 @@ test('checkOptions accepts both versions with no expansions or variants', () => 
 	assert.ok(Object.isFrozen(VARIANTS));
 });
 
-test('the eight variants can be switched on, each with a name: the five the owner chose, civilizations from Plans & Ploys and the two of the arts track (#53, #33, #35)', () => {
+test('the nine variants can be switched on, each with a name: the five the owner chose, civilizations from Plans & Ploys, Twin Impact, and the two of the arts track (#53, #33, #35, #186)', () => {
 	assert.deepEqual(
 		VARIANTS.map((v) => v.id),
 		[
@@ -396,6 +396,7 @@ test('the eight variants can be switched on, each with a name: the five the owne
 			'closest-island',
 			'civs-from-pp',
 			'no-arts-track',
+			'twin-impact',
 			'either-science-die',
 		]
 	);
