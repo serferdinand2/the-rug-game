@@ -59,12 +59,14 @@ import { joinList } from './words.js';
  * One answer of the decision, as the prompt offers it.
  * @typedef {Object} PromptOption
  * @property {number} index - The answer's index in decision.answers
- * @property {'panel' | 'shelf' | 'map' | 'capital' | 'card' | 'track'} place - Where it is chosen: 'card' on the player's civilization card in the Civ tab (#78), 'track' on a lit space of the tracks (#172)
+ * @property {'panel' | 'shelf' | 'map' | 'capital' | 'card' | 'track' | 'plot' | 'held'} place - Where it is chosen: 'card' on the player's civilization card in the Civ tab (#78), 'track' on a lit space of the tracks (#172); 'plot' on a square of an A&A plot card and 'held' on a card or mat that holds the piece, both under the capital in the Capital tab (#184)
  * @property {string} label - describeAnswer(decision, answer, game)
  * @property {Art[]} art - Drawn before or above the label; may be empty
  * @property {string} [hex] - For place 'map': the hex it is chosen on
  * @property {string} [spot] - For place 'card': the spot on the card it is chosen on (civ-card.js); for place 'track': 'track:space', such as 'science:4'
  * @property {{ row: number, col: number, rotation: number | null }} [plot] - For place 'capital'; rotation null for a building
+ * @property {{ card: string, row: number, col: number, rotation: number | null }} [square] - For place 'plot': the plot card, and the square or the landmark's top left (off the card where it hangs) and turn; rotation null for a building (#184)
+ * @property {{ kind: 'tapestry' | 'tech' | 'civ', id: string }} [holder] - For place 'held': Space Race or Trade Routes, a landmark tech card, or the Urban Planners' or Collectors' mat (#184)
  * @property {string} [confirm] - The Confirm button's words while it is picked, instead of the prompt's, such as "Let them draw" (#173)
  */
 
@@ -350,6 +352,45 @@ function trackSpaceOf(decision, answer) {
 }
 
 /**
+ * A placement answer on an A&A card or mat (#37, #184): a plot card's square or landmark place, or what holds the piece
+ * whole (Space Race or Trade Routes, a landmark tech card, the Urban Planners' or Collectors' mat). Null otherwise.
+ * @param {Decision} decision
+ * @param {Answer} answer
+ * @returns {'plot' | 'held' | null}
+ */
+function holdingPlace(decision, answer) {
+	if (decision.kind !== 'choosePlacement') {
+		return null;
+	}
+	if (typeof answer.card === 'string') {
+		return typeof answer.row === 'number' ? 'plot' : 'held';
+	}
+	return typeof answer.tech === 'string' ||
+		answer.planners === true ||
+		answer.collectors === true
+		? 'held'
+		: null;
+}
+
+/**
+ * What holds a 'held' answer's piece.
+ * @param {Answer} answer
+ * @returns {{ kind: 'tapestry' | 'tech' | 'civ', id: string }}
+ */
+function holderOf(answer) {
+	if (typeof answer.tech === 'string') {
+		return { kind: 'tech', id: answer.tech };
+	}
+	if (typeof answer.card === 'string') {
+		return { kind: 'tapestry', id: answer.card };
+	}
+	return {
+		kind: 'civ',
+		id: answer.planners === true ? 'urban-planners' : 'collectors',
+	};
+}
+
+/**
  * Where an answer is chosen: on the civilization card, the map, the capital, the card shelf or the panel.
  * @param {Decision} decision
  * @param {Answer} answer
@@ -367,8 +408,12 @@ function placeOf(decision, answer, game) {
 	if (trackSpaceOf(decision, answer)) {
 		return 'track';
 	}
+	// A&A's cards and mats that hold a gained piece light under the capital (#184).
+	const holding = holdingPlace(decision, answer);
+	if (holding !== null) {
+		return holding;
+	}
 	// A gained piece's plot, an Architects cube's, and Cloud City's moves: the building, then where it goes (#36).
-	// A square on an A&A tapestry card isn't the capital's (#37): the panel lists it until part 4 draws the card.
 	if (
 		(decision.kind === 'choosePlacement' ||
 			decision.kind === 'chooseCube' ||
@@ -650,6 +695,19 @@ function optionOf(decision, answer, index, game) {
 				: null,
 		};
 	}
+	if (place === 'plot') {
+		option.square = {
+			card: answer.card,
+			row: answer.row,
+			col: answer.col,
+			rotation: Number.isInteger(answer.rotation)
+				? answer.rotation
+				: null,
+		};
+	}
+	if (place === 'held') {
+		option.holder = holderOf(answer);
+	}
 	return option;
 }
 
@@ -661,7 +719,8 @@ function optionOf(decision, answer, index, game) {
  */
 function layoutOf(options) {
 	const places = new Set(options.map((o) => o.place));
-	if (places.has('capital')) {
+	// A&A's cards and mats light under the capital, in the Capital tab (#184).
+	if (places.has('capital') || places.has('plot') || places.has('held')) {
 		return 'capital';
 	}
 	if (places.has('map')) {
@@ -734,26 +793,41 @@ function costOf(decision) {
  * @param {Prompt['layout']} layout
  * @param {boolean} onMap - Some options are on the map too
  * @param {any} game - The view, to name the seats
+ * @param {PromptOption[]} [options] - The options, whose A&A cards light under the capital (#184)
  * @returns {string}
  */
-function instructionOf(decision, layout, onMap, game) {
+function instructionOf(decision, layout, onMap, game, options = []) {
 	switch (layout) {
 		case 'map':
 			return 'Choose a lit territory on the map.';
-		case 'capital':
+		case 'capital': {
+			const squares = options.some((o) => o.place === 'plot');
+			const held = options.some((o) => o.place === 'held');
+			// The places besides the capital: the map's territories, and A&A's cards under the capital (#184).
+			const elsewhere = [
+				...(onMap ? ['a lit territory on the map'] : []),
+				...(squares || held
+					? [
+							`a lit ${squares && held ? 'square or card' : squares ? 'square' : 'card'} under it`,
+						]
+					: []),
+			];
 			if (typeof decision.landmark === 'string') {
 				const card = decision.source?.landmarkCard;
 				const why =
 					typeof card === 'string'
 						? `Your ${landmarkName(card)} card's goal is met: ${landmarkGoalPhrase(card)}. `
 						: '';
-				return onMap
-					? `${why}Place the landmark in your capital (drag it, turn it with the . and , keys, then confirm), or choose a lit territory on the map.`
+				return elsewhere.length > 0
+					? `${why}Place the landmark in your capital (drag it, turn it with the . and , keys, then confirm), or choose ${elsewhere.join(', or ')}.`
 					: `${why}Place the landmark in your capital: drag it, turn it with the . and , keys, then confirm.`;
 			}
-			return onMap
-				? 'Choose a lit plot in your capital, or a lit territory on the map.'
-				: 'Choose a lit plot in your capital.';
+			return (
+				['Choose a lit plot in your capital', ...elsewhere].join(
+					', or '
+				) + '.'
+			);
+		}
 		case 'cards':
 			return decision.kind === 'chooseLandmarkCard'
 				? `Choose the card to keep, then confirm it here. ${draftRest(decision, game, true)}`
@@ -942,7 +1016,13 @@ export function promptFor(decision, game, seat) {
 		kind: decision.kind,
 		title: decisionTitle(decision, game),
 		source: decisionSource(decision.cause ?? decision.source, game, seat),
-		instruction: instructionOf(decision, layout, mapHexes.length > 0, game),
+		instruction: instructionOf(
+			decision,
+			layout,
+			mapHexes.length > 0,
+			game,
+			options
+		),
 		layout,
 		shelf: options.some((o) => o.place === 'shelf')
 			? decisionFacts(decision).shelf

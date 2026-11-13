@@ -48,6 +48,7 @@ import { spaceGlyphs } from '../glyphs.js';
  * @property {string} heading - "Era II", or "Era II · Active" for the active slot
  * @property {string} text - The card's name, "Face-down card" or "Not yet chosen"
  * @property {string[]} pieces - What the top card holds, such as "a Farm" or "the Forge" (A&A's cards, #37)
+ * @property {any[]} held - The same pieces as the engine places them, which the Eras tab draws on the card (#184)
  * @property {string[]} [overlay] - F&F's fifth slot only: the items reserved on the income mat's overlay, in words (#39)
  */
 
@@ -114,6 +115,7 @@ export function eraSlots(seat) {
 		const held = (slot.id && seat.onCards?.[slot.id]) || [];
 		return {
 			...slot,
+			held,
 			pieces: held.map((piece) =>
 				'building' in piece
 					? `${article(buildingName(piece.building))} ${buildingName(piece.building)}`
@@ -139,6 +141,7 @@ export function eraSlots(seat) {
 			active: false,
 			id: null,
 			pieces: [],
+			held: [],
 			overlay,
 			heading: 'Income turn 5',
 			text:
@@ -182,7 +185,7 @@ export function currentEra(slots) {
  * @param {any} seat
  * @param {number} era
  * @param {string | null} active - The card the seat's THIS ERA ability rests on
- * @returns {Omit<EraSlotView, 'heading' | 'text' | 'pieces'>}
+ * @returns {Omit<EraSlotView, 'heading' | 'text' | 'pieces' | 'held'>}
  */
 function eraSlot(seat, era, active) {
 	const stack = seat.incomeMat.tapestry[era - 1] ?? [];

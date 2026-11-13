@@ -38,6 +38,7 @@ import { deepFreeze } from './ids.js';
 /**
  * What a `vp: { per }` effect counts:
  * - `territory`: territories you control on the map;
+ * - `cloudTerritory`: territories you control whose picture shows clouds (R77; Cloud Colonies, #49);
  * - `territoryTile`: territory tiles in your supply;
  * - `techCard`: your tech cards, in every row;
  * - `tapestryCard`: tapestry cards in your hand and on your income mat, covered ones included;
@@ -49,7 +50,7 @@ import { deepFreeze } from './ids.js';
  * - `incomeBuilding`: every income building you own, of every type (R71; the Holocenter, #35);
  * - `capitalRow`, `capitalColumn`: the complete rows or columns of your capital city, which is not scoring it (Ballet,
  *   Modern Dance, 03 §2.12).
- * @typedef {'territory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId | 'incomeBuilding' | 'capitalRow' | 'capitalColumn' | 'buildingLeft' | 'marketRow' | 'charm'} VpCounter
+ * @typedef {'territory' | 'cloudTerritory' | 'territoryTile' | 'techCard' | 'tapestryCard' | 'trackSpace' | 'trackLead' | 'landmark' | 'opponent' | BuildingId | 'incomeBuilding' | 'capitalRow' | 'capitalColumn' | 'buildingLeft' | 'marketRow' | 'charm'} VpCounter
  */
 
 /**
@@ -327,4 +328,6 @@ export const VP_COUNTERS = deepFreeze([
 	// F&F: capital rows holding a market (Hive Mind), charm tags on the mat's top cards (Wizards' Guild, #40).
 	'marketRow',
 	'charm',
+	// F&F: controlled territories whose picture shows clouds (Cloud Colonies, R77, #49).
+	'cloudTerritory',
 ]);

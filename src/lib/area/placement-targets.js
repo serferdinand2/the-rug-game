@@ -1,8 +1,15 @@
-// Placing on the capital (#28): a building's lit plots, and the legal places a landmark snaps to, from the prompt's options.
-// The engine's answers are the only legal places; the grid's own fit check never decides one.
+// Placing on the capital (#28): a building's lit plots, and the legal places a landmark snaps to, from the prompt's options;
+// and A&A's cards under the capital that may hold the piece (#184). The engine's answers are the only legal places; the
+// grid's own fit check never decides one.
 import { FOOTPRINTS } from '../art/footprints.js';
 import { rotateFootprint } from '../capital.js';
-import { landmarkName } from '../game-names.js';
+import {
+	civilizationName,
+	landmarkName,
+	tapestryName,
+	techName,
+} from '../game-names.js';
+import { PLOT_CARDS } from '../engine/data/tapestry-cards.js';
 
 /**
  * A placeable landmark as the Capital tab draws it.
@@ -18,6 +25,7 @@ import { landmarkName } from '../game-names.js';
  * @property {{ building?: string, landmark?: string, cube?: boolean, move?: boolean, token?: number }} piece - What is placed: a building, a landmark or an Architects cube; or `move`, Cloud City's building to move (#36); or `token`, the seat whose token fills the plot (Dream Monitors, the Weefolk, #40)
  * @property {PlacementOption[]} options
  * @property {number | null} picked
+ * @property {Record<string, readonly any[]>} [onCards] - The pieces already on the player's A&A cards, by card (#37, #184)
  */
 
 /**
@@ -57,7 +65,59 @@ import { landmarkName } from '../game-names.js';
  * @typedef {Object} PlacementOption
  * @property {number} index - The answer's index in the decision's answers
  * @property {OptionPlot} [plot] - Set for an option on the capital
+ * @property {OptionPlot & { card: string }} [square] - Set for an option on a plot card's square (#184)
+ * @property {{ kind: 'tapestry' | 'tech' | 'civ', id: string }} [holder] - Set for an option on a card or mat that holds the piece whole (#184)
+ * @property {string} [label] - The option in words
  */
+
+/**
+ * A plot card's square under the capital (#184).
+ * @typedef {Object} PlotSquare
+ * @property {number} row
+ * @property {number} col
+ * @property {string | null} printed - The art id of the benefit printed on it (Commercial Center), such as 'resource-24/coin'
+ * @property {string | null} building - The income building on it
+ * @property {number | null} index - An option that lights it: a building's place there, or a landmark's first place covering it
+ * @property {boolean} chosen - The picked place is on it
+ */
+
+/**
+ * A landmark drawn on a plot card: its top left may lie off the card, where it hangs.
+ * @typedef {PlaceablePiece & { row: number, col: number, rotation: number }} CardLandmark
+ */
+
+/**
+ * A plot card the piece may go on, as the Capital tab draws it (#184).
+ * @typedef {Object} PlotCardTarget
+ * @property {string} card - Its id, such as 'monuments'
+ * @property {string} name
+ * @property {readonly string[]} grid - Its squares, row by row, X for a square
+ * @property {PlotSquare[]} squares - In reading order
+ * @property {CardLandmark[]} landmarks - The landmarks already on it
+ * @property {{ row: number, col: number, building: string } | null} preview - The building picked on one of its squares, drawn faintly
+ * @property {CardLandmark | null} placed - The landmark picked onto it
+ * @property {{ top: number, right: number, bottom: number, left: number }} room - Plots kept round the card for what may hang
+ *   off it: its landmarks, and every place offered to the landmark being placed, so the card stays put as it moves
+ */
+
+/**
+ * A card or mat that may hold the piece whole, as the Capital tab draws it (#184).
+ * @typedef {Object} HolderTarget
+ * @property {'tapestry' | 'tech' | 'civ'} kind
+ * @property {string} id - The card's id, or the civilization's
+ * @property {string} name
+ * @property {string} label - The option in words
+ * @property {number} index - Its option
+ * @property {boolean} picked
+ */
+
+/** The art each benefit printed on a Commercial Center square shows, by its effect's kind (#37's order). */
+const PRINTED_ART = /** @type {Readonly<Record<string, string>>} */ ({
+	coin: 'resource-24/coin',
+	tapestry: 'symbol/tapestry-card',
+	invent: 'symbol/invent',
+	research: 'symbol/science-die',
+});
 
 /**
  * The landmark being placed, as the tray and the capital draw it.
@@ -113,11 +173,21 @@ export function landingIndex(options, landmark, at, placed) {
  */
 export function capitalPlacement(capital, placement, fresh) {
 	const building = placement?.piece.building ?? null;
+	// A&A's cards may take the landmark too (#184).
 	const landmark =
 		placement?.piece.landmark &&
-		placement.options.some((option) => option.plot)
+		placement.options.some(
+			(option) => option.plot || option.square || option.holder
+		)
 			? placingPiece(placement.piece.landmark)
 			: null;
+	const onCard = Boolean(
+		placement?.options.find(
+			(option) =>
+				option.index === placement?.picked &&
+				(option.square || option.holder)
+		)
+	);
 	const picked =
 		placement?.options.find(
 			(option) => option.plot && option.index === placement?.picked
@@ -158,7 +228,8 @@ export function capitalPlacement(capital, placement, fresh) {
 	).map((piece) =>
 		fresh.landmarks.includes(piece.id) ? { ...piece, fresh: true } : piece
 	);
-	const tray = landmark && !placed ? [{ ...landmark, rotation: 0 }] : [];
+	const tray =
+		landmark && !placed && !onCard ? [{ ...landmark, rotation: 0 }] : [];
 	return {
 		building,
 		cube,
@@ -290,4 +361,257 @@ function nearest(options, row, col) {
 		}
 	}
 	return best;
+}
+
+/**
+ * The cells a footprint covers at a top left and turn.
+ * @param {readonly string[]} footprint
+ * @param {number} row
+ * @param {number} col
+ * @param {number} rotation
+ * @returns {{ row: number, col: number }[]}
+ */
+function cellsAt(footprint, row, col, rotation) {
+	return rotateFootprint(footprint, rotation).flatMap((line, r) =>
+		[...line].flatMap((mark, c) =>
+			mark === 'X' ? [{ row: row + r, col: col + c }] : []
+		)
+	);
+}
+
+/**
+ * Whether a landmark's place on a plot card covers a square.
+ * @param {OptionPlot} place
+ * @param {readonly string[]} footprint
+ * @param {{ row: number, col: number }} square
+ */
+function coversSquare(place, footprint, square) {
+	return cellsAt(footprint, place.row, place.col, place.rotation ?? 0).some(
+		(cell) => cell.row === square.row && cell.col === square.col
+	);
+}
+
+/**
+ * A plot card as drawn under the capital or on the Eras tab: its squares with the pieces on them, the ones its options
+ * light, the picked place, and the room kept round it for what may hang off.
+ * @param {string} card
+ * @param {readonly any[]} held - The pieces on it (the engine's CardPiece)
+ * @param {{ options: readonly PlacementOption[], landmark: PlaceablePiece | null, building: string | null, pick: OptionPlot | null }} placing
+ * @returns {PlotCardTarget}
+ */
+function plotCard(card, held, { options, landmark, building, pick }) {
+	const { grid, squares: printed = [] } = PLOT_CARDS[card];
+	const placed =
+		landmark && pick
+			? {
+					...landmark,
+					row: pick.row,
+					col: pick.col,
+					rotation: pick.rotation ?? 0,
+				}
+			: null;
+	const landmarks = held.flatMap((p) =>
+		'landmark' in p && 'row' in p
+			? [
+					{
+						...placingPiece(p.landmark),
+						row: p.row,
+						col: p.col,
+						rotation: p.rotation ?? 0,
+					},
+				]
+			: []
+	);
+	/** @type {PlotSquare[]} */
+	const squares = grid
+		.flatMap((line, row) =>
+			[...line].flatMap((mark, col) =>
+				mark === 'X' ? [{ row, col }] : []
+			)
+		)
+		.map((square, at) => {
+			const benefit = printed[at]?.[0];
+			const kind = benefit
+				? 'gain' in benefit
+					? Object.keys(benefit.gain)[0]
+					: Object.keys(benefit)[0]
+				: null;
+			const option = options.find((o) =>
+				landmark
+					? o.square &&
+						coversSquare(o.square, landmark.footprint, square)
+					: o.square?.row === square.row &&
+						o.square?.col === square.col
+			);
+			return {
+				...square,
+				printed: kind ? (PRINTED_ART[kind] ?? null) : null,
+				building:
+					held.find(
+						(p) =>
+							'building' in p &&
+							p.row === square.row &&
+							p.col === square.col
+					)?.building ?? null,
+				index: option?.index ?? null,
+				chosen: placed
+					? coversSquare(placed, placed.footprint, square)
+					: pick?.row === square.row && pick?.col === square.col,
+			};
+		});
+	// Every cell a landmark here covers, or any offered place would, decides the room kept round the card.
+	const cells = [
+		...landmarks.flatMap((l) =>
+			cellsAt(l.footprint, l.row, l.col, l.rotation)
+		),
+		...(landmark
+			? options.flatMap((o) =>
+					o.square
+						? cellsAt(
+								landmark.footprint,
+								o.square.row,
+								o.square.col,
+								o.square.rotation ?? 0
+							)
+						: []
+				)
+			: []),
+	];
+	const rows = grid.length;
+	const cols = grid[0].length;
+	return {
+		card,
+		name: tapestryName(card),
+		grid,
+		squares,
+		landmarks,
+		preview:
+			building && pick
+				? { row: pick.row, col: pick.col, building }
+				: null,
+		placed,
+		room: {
+			top: Math.max(0, ...cells.map((c) => -c.row)),
+			right: Math.max(0, ...cells.map((c) => c.col - (cols - 1))),
+			bottom: Math.max(0, ...cells.map((c) => c.row - (rows - 1))),
+			left: Math.max(0, ...cells.map((c) => -c.col)),
+		},
+	};
+}
+
+/**
+ * The top card of an era slot as the Eras tab draws it, when it is a plot card: what it holds, nothing lit (#184).
+ * @param {string} card - A tapestry card id
+ * @param {readonly any[]} held - The pieces on it (the engine's CardPiece)
+ * @returns {PlotCardTarget | null} Null for a card without squares
+ */
+export function heldPlotCard(card, held) {
+	if (!Object.hasOwn(PLOT_CARDS, card)) {
+		return null;
+	}
+	return plotCard(card, held, {
+		options: [],
+		landmark: null,
+		building: null,
+		pick: null,
+	});
+}
+
+/**
+ * The A&A cards under the capital a piece may go on (#184): each plot card with its squares, its pieces and the lit
+ * ones, the picked place drawn on it; then each card or mat that holds the piece whole.
+ * @param {PlacementPrompt | null} placement
+ * @returns {{ plots: PlotCardTarget[], holders: HolderTarget[] }}
+ */
+export function cardTargets(placement) {
+	if (!placement) {
+		return { plots: [], holders: [] };
+	}
+	const { piece, options, picked } = placement;
+	const onCards = placement.onCards ?? {};
+	const landmark = piece.landmark ? placingPiece(piece.landmark) : null;
+	const chosen = options.find((option) => option.index === picked) ?? null;
+	const squareOptions = options.filter((option) => option.square);
+	const cards = [
+		...new Set(
+			squareOptions.map(
+				(option) => /** @type {{ card: string }} */ (option.square).card
+			)
+		),
+	];
+	const plots = cards.map((card) => {
+		const pick = chosen?.square?.card === card ? chosen.square : null;
+		return plotCard(card, onCards[card] ?? [], {
+			options: squareOptions.filter(
+				(option) => option.square?.card === card
+			),
+			landmark,
+			building: piece.building ?? null,
+			pick,
+		});
+	});
+	const holders = options.flatMap((option) => {
+		if (!option.holder) {
+			return [];
+		}
+		const { kind, id } = option.holder;
+		return [
+			{
+				kind,
+				id,
+				name:
+					kind === 'tech'
+						? techName(id)
+						: kind === 'civ'
+							? civilizationName(id)
+							: tapestryName(id),
+				label: option.label ?? '',
+				index: option.index,
+				picked: option.index === picked,
+			},
+		];
+	});
+	return { plots, holders };
+}
+
+/**
+ * Where a click on a plot card's square puts the landmark (#184): the offered place covering that square, at the tray's
+ * turn when one is, nearest to where the landmark is on that card; the lower index on a tie. Null when none covers it.
+ * @param {readonly PlacementOption[]} options
+ * @param {string} card
+ * @param {{ row: number, col: number }} square
+ * @param {number} rotation - The tray's turn
+ * @param {{ row: number, col: number } | null} current - The landmark's top left on that card, if it is there
+ * @param {string} landmark - Its id
+ * @returns {number | null}
+ */
+export function plotLanding(
+	options,
+	card,
+	square,
+	rotation,
+	current,
+	landmark
+) {
+	const footprint = FOOTPRINTS[landmark];
+	const covering = options.filter(
+		(option) =>
+			option.square?.card === card &&
+			coversSquare(option.square, footprint, square)
+	);
+	const turned = covering.filter(
+		(option) => option.square?.rotation === rotation
+	);
+	const pool = turned.length > 0 ? turned : covering;
+	const from = current ?? square;
+	/** @param {PlacementOption} option */
+	const distance = (option) => {
+		const at = /** @type {OptionPlot} */ (option.square);
+		return Math.abs(at.row - from.row) + Math.abs(at.col - from.col);
+	};
+	return (
+		[...pool].sort(
+			(a, b) => distance(a) - distance(b) || a.index - b.index
+		)[0]?.index ?? null
+	);
 }

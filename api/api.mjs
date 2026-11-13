@@ -3,6 +3,7 @@ import { randomBytes, randomInt } from 'node:crypto';
 import { PlayerError } from '../src/lib/engine/game.js';
 import * as Rooms from './rooms.mjs';
 import { rateLimiter } from '../server/limits.mjs';
+import { withScenario } from './scenarios.mjs';
 
 /** @typedef {import('./rooms.mjs').Room & { version: number }} StoredRoom - A room as the server keeps it, with its version */
 /**
@@ -42,6 +43,7 @@ import { rateLimiter } from '../server/limits.mjs';
  * @property {number} declineMinMs - The soonest the server answers a response only the decline answers
  * @property {number} declineMaxMs - The latest
  * @property {number} endTurnMs - How long End turn waits before the server presses it (#146)
+ * @property {boolean} [scenarios] - The start request may name a browser test's game scenario (#184)
  */
 
 /** The largest request body, in bytes. */
@@ -831,9 +833,21 @@ export function createApi(config, { timeout = Rooms.timeout } = {}) {
 				return viewFor(stored, session);
 			}
 			case 'start':
-				return change(session, body, now, (room) =>
-					Rooms.start(room, session.id, random)
-				);
+				return change(session, body, now, (room) => {
+					const started = Rooms.start(room, session.id, random);
+					// A browser test's named scenario, only with scenarios on (#184).
+					return body.scenario === undefined
+						? started
+						: {
+								...started,
+								game: withScenario(
+									config,
+									body.scenario,
+									/** @type {any} */ (started.game),
+									random
+								),
+							};
+				});
 			case 'end':
 				return change(session, body, now, (room) =>
 					Rooms.end(room, session.id)

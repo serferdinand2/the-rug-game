@@ -70,3 +70,10 @@ test('a Plans & Ploys response card reads as its response, and its note says wha
 	);
 	assert.match(describeTapestryCard('retreat').ability, /1 worker/);
 });
+
+test("Cloud Colonies' face reads as its card: 3 VP per territory you control whose picture shows clouds (#49)", () => {
+	assert.equal(
+		describeTapestryCard('cloud-colonies').ability,
+		'Gain 3 VP for each territory you control whose picture shows clouds'
+	);
+});

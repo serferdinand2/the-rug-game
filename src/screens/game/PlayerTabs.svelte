@@ -220,7 +220,13 @@
 				capitalSoon={words.capitalSoon}
 				{placement}
 				{fresh}
-				onCapitalTabPlace={own ? onPlayerTabsPlace : undefined} />
+				onCapitalTabPlace={own ? onPlayerTabsPlace : undefined}
+				onCapitalTabInspect={(/** @type {ComponentEvent} */ event) =>
+					inspect(
+						event.value?.kind,
+						event.value?.id ?? null,
+						event
+					)} />
 		{:else if tab === 'hand'}
 			<h2 class="rg-player-tabs--title">{words.handHeading}</h2>
 			{#if own && hand.length}

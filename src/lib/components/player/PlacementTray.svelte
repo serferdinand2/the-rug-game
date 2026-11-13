@@ -20,6 +20,7 @@
 	 * @property {Function} [onPlacementTrayPlace] - Callback fired with { id } when an arrow key is pressed on an item: the keyboard way onto the grid
 	 * @property {Function} [onPlacementTrayReturn] - Callback fired with { id } when a placed piece is dropped on the tray
 	 * @property {Function} [onPlacementTrayTurn] - Callback fired with { id, step } when an item's turn button is pressed, step -1 back or 1 forward; without it, the tray has no turn buttons (#174)
+	 * @property {import('svelte').Snippet} [children] - More places for the items, drawn in the tray's box under them: A&A's cards that may take the landmark (#184)
 	 */
 
 	/**
@@ -55,6 +56,7 @@
 		onPlacementTrayPlace,
 		onPlacementTrayReturn,
 		onPlacementTrayTurn,
+		children,
 		...attr
 	} = $props();
 
@@ -229,6 +231,9 @@
 				</li>
 			{/each}
 		</ul>
+		{#if children}
+			<div class="rg-placement-tray--more">{@render children()}</div>
+		{/if}
 	</section>
 {/if}
 
@@ -256,6 +261,13 @@
 		color: var(--muted);
 		font: var(--weight-bold) var(--font-size-sm) / var(--leading-none)
 			var(--font-body);
+	}
+
+	/* More places under the items, in the same box (issue 184). */
+	.rg-placement-tray--more {
+		margin-top: var(--space-3);
+		padding-top: var(--space-3);
+		border-top: var(--border) solid var(--line-soft);
 	}
 
 	.rg-placement-tray--items {

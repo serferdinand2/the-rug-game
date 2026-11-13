@@ -437,6 +437,10 @@ export const TAPESTRY_CARDS = deepFreeze([
 	ff(when('citadel-of-power', [{ citadelOfPower: {} }]), {
 		right: [{ vp: { per: 'landmark' } }],
 	}),
+	// The 38th, once the territories with clouds were listed (R77, #49).
+	ff(when('cloud-colonies', [{ vp: { per: 'cloudTerritory', each: 3 } }]), {
+		left: [{ gain: { territory: 1 } }, { explore: {} }],
+	}),
 	ff(
 		when('deja-vu', [{ dejaVu: {} }]),
 		{ right: [{ research: { noBenefit: true } }] },

@@ -3,6 +3,7 @@ import { emit } from '../events.js';
 import { botSeat, playerSeat, seatOf } from '../state.js';
 import { sourceOrigin } from '../stack.js';
 import { controlledTerritories } from '../control.js';
+import { terrainsOf } from '../terrain.js';
 import { spacesAdvanced } from '../movement.js';
 import { tapestryCard } from '../data/tapestry-cards.js';
 import { BUILDING_IDS } from '../data/ids.js';
@@ -64,6 +65,12 @@ export function landmarksOwned(state, player) {
 export function countVp(state, player, per, track) {
 	if (per === 'territory') {
 		return controlledTerritories(state, player).length;
+	}
+	if (per === 'cloudTerritory') {
+		// Cloud Colonies: a territory tile's or a printed hex's own picture decides (R77, #49).
+		return controlledTerritories(state, player).filter(
+			(hex) => terrainsOf(state, hex)?.clouds === true
+		).length;
 	}
 	if (per === 'trackSpace') {
 		if (!track) {

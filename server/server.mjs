@@ -37,6 +37,8 @@ export const config = {
 	declineMaxMs: 10_000,
 	// How long End turn waits before the server presses it for the player (#146).
 	endTurnMs: 6_000,
+	// The browser tests' named game scenarios (#184): off unless the environment turns them on, as Playwright does.
+	scenarios: process.env.TEST_SCENARIOS === 'true',
 };
 
 /** The table API: every table and session in memory. */
