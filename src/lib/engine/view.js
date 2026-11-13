@@ -78,6 +78,7 @@ export function view(state, seat) {
 				'progressDeck',
 				'trapCards',
 				'multiplierCards',
+				'charmDeck',
 			]) {
 				if (Array.isArray(entry[field])) {
 					entry[`${field}Count`] = entry[field].length;
@@ -113,8 +114,69 @@ export function view(state, seat) {
 		}
 	}
 
+	// Causes are only for the answering player. Never expose a hidden card through a propagated cause.
+	const visibleCauses = JSON.stringify({
+		seats: copy.seats,
+		tech: copy.supply.tech.faceUp,
+		masterpieces: copy.supply.masterpieces?.faceUp,
+	});
 	/** @param {Record<string, any>} op */
 	const clean = (op) => {
+		if (op.cause) {
+			if (!owns(op.player)) delete op.cause;
+			else {
+				const allowed = [
+					'track',
+					'space',
+					'bonus',
+					'player',
+					'civ',
+					'part',
+					'icon',
+					'capital',
+					'hex',
+					'tile',
+					'conquest',
+					'spaceTile',
+					'trap',
+					'achievement',
+					'incomeReason',
+					'incomeTurn',
+					'step',
+					'tech',
+					'tapestry',
+					'card',
+					'masterpiece',
+					'landmarkCard',
+				];
+				const cause = Object.fromEntries(
+					Object.entries(op.cause).filter(([key]) =>
+						allowed.includes(key)
+					)
+				);
+				if (
+					typeof cause.civ === 'string' &&
+					!visibleCauses.includes(JSON.stringify(cause.civ))
+				)
+					delete cause.civ;
+				for (const key of [
+					'tech',
+					'tapestry',
+					'card',
+					'masterpiece',
+					'landmarkCard',
+				]) {
+					if (
+						typeof cause[key] === 'string' &&
+						!visibleCauses.includes(JSON.stringify(cause[key]))
+					) {
+						delete cause[key];
+						cause.hiddenCard = true;
+					}
+				}
+				op.cause = cause;
+			}
+		}
 		if (!Object.hasOwn(DECISIONS, op.kind)) {
 			return;
 		}

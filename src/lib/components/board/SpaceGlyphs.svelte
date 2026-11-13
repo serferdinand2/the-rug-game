@@ -22,6 +22,7 @@
 <script>
 	import { artUrl } from '../../ui.js';
 	import CardSymbol from '../ui/CardSymbol.svelte';
+	import ArtsSymbol from './ArtsSymbol.svelte';
 
 	/** @type {SpaceGlyphsProps} */
 	let { glyphs, variant = 'benefit', ...attr } = $props();
@@ -46,6 +47,14 @@
 
 	/** The words whose picture repeats once per count instead of showing ×N. */
 	const REPEATED = ['Tile', 'Space tile', 'Invent'];
+	/** @type {Record<string, 'create' | 'inspire' | 'building' | 'broadcast'>} */
+	const ARTS_SYMBOLS = {
+		Create: 'create',
+		Inspire: 'inspire',
+		'Any building': 'building',
+		Building: 'building',
+		Broadcast: 'broadcast',
+	};
 
 	/** The words drawn as a card symbol, by its kind. */
 	const CARD_KINDS =
@@ -153,6 +162,17 @@
 				<span
 					class="rg-space-glyphs--refresh"
 					aria-label="May refresh">↔</span>
+			{:else if ARTS_SYMBOLS[glyph.text]}
+				<span
+					class="rg-space-glyphs--symbol-group"
+					class:rg-space-glyphs--crossed={glyph.cross}>
+					<ArtsSymbol
+						kind={ARTS_SYMBOLS[glyph.text]}
+						decorative />
+					{#if glyph.count > 1}<b class="rg-space-glyphs--count"
+							>×{glyph.count}</b
+						>{/if}
+				</span>
 			{:else if WORD_ICONS[glyph.text]}
 				<span
 					class="rg-space-glyphs--symbol-group"
@@ -222,6 +242,9 @@
 	.rg-space-glyphs--bonus .rg-space-glyphs--word,
 	.rg-space-glyphs--bonus .rg-space-glyphs--joint {
 		color: var(--gold);
+	}
+	.rg-space-glyphs--bonus {
+		--rg-arts-symbol-size: 18px;
 	}
 	.rg-space-glyphs--bonus .rg-space-glyphs--word,
 	.rg-space-glyphs--bonus .rg-space-glyphs--vp {
@@ -496,6 +519,12 @@
 	}
 
 	@container (min-width: 125px) and (min-height: 135px) {
+		.rg-space-glyphs {
+			--rg-arts-symbol-size: 27px;
+		}
+		.rg-space-glyphs--bonus {
+			--rg-arts-symbol-size: 19px;
+		}
 		.rg-space-glyphs--resource img,
 		.rg-space-glyphs--building img,
 		.rg-space-glyphs--track,
@@ -512,6 +541,12 @@
 	}
 
 	@container (min-width: 145px) and (min-height: 160px) {
+		.rg-space-glyphs {
+			--rg-arts-symbol-size: 29px;
+		}
+		.rg-space-glyphs--bonus {
+			--rg-arts-symbol-size: 20px;
+		}
 		.rg-space-glyphs--resource img,
 		.rg-space-glyphs--building img,
 		.rg-space-glyphs--track,

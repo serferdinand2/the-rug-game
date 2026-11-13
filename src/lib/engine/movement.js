@@ -218,7 +218,12 @@ function arrivalOps(
 		state.landmarks.splice(state.landmarks.indexOf(landmark), 1);
 		emit(state, { type: 'landmarkGained', player, landmark, track });
 		ops.push(
-			{ player, kind: 'placeLandmark', landmark },
+			{
+				player,
+				kind: 'placeLandmark',
+				landmark,
+				source: { track, space: first },
+			},
 			...triggered(state, 'landmarkGained', {
 				player,
 				landmark,
@@ -249,6 +254,7 @@ function arrivalOps(
 			kind: 'chooseRenegades',
 			track,
 			space: to,
+			cause: { track, space: to },
 			bonus: !noBonus,
 			free: freeBonus,
 		});

@@ -46,6 +46,7 @@ const VARIANT_NAMES = /** @type {Readonly<Record<string, string>>} */ ({
 	'closest-island': 'Closest island',
 	'civs-from-pp': 'Plans & Ploys civilizations',
 	'no-arts-track': 'No arts track',
+	'twin-impact': 'Twin Impact',
 	'either-science-die': 'Either science die',
 });
 

@@ -146,6 +146,20 @@ The colours, texture, type, spacing, shadows and motion of these designs are in 
 |---|---|
 | ![The Forge waiting for placement on the Capital tab (#79, #174): the panel at the tracks' centre with Place and its Enter key, and the To be placed tray with turn buttons and the , and . keys. Historical capture predates the owner's follow-up removing the era card from Capital.](docs/ui/screens/game-prompt-capital.png) | ![The income turn's tapestry step in gold: the card on the shelf above the panel, at the tracks' centre (#79)](docs/ui/screens/game-prompt-income.png) |
 
+The captures above predate the decision-footer update. The current component examples show the decision's source, or the income step, without repeating the open question (#71):
+
+| Decision footer | Income footer |
+|---|---|
+| ![Decision footer: Your decision, From Navigation, Exploration 4](docs/ui/screens/turn-footer-decision.png) | ![Income footer: Income turn 2, Tapestry](docs/ui/screens/turn-footer-income.png) |
+
+Decision prompts also identify the effect that opened them (#60). The component gallery contains examples for every source; these screenshots show a card source with art and a capital source without art:
+
+| Decision from a card | Decision from a capital district |
+|---|---|
+| ![Decision prompt naming the Bakery technology card and its square benefit](docs/ui/decision-source-examples/technology-card.png) | ![Decision prompt naming the completed district in the capital](docs/ui/decision-source-examples/completed-district.png) |
+
+See the [full decision-source example gallery](docs/ui/decision-source-examples/index.html) for track spaces, civilizations, cards, map tiles, capital completions, traps, achievements, and income steps.
+
 | Prompt: paying for an advance, one row per resource | Prompt: paying a bonus with the tiles picked |
 |---|---|
 | ![Advance to Wagons: the panel at the tracks' centre with one row of the four resources and Pick a resource beside Cancel and Advance with its Enter key; the footer below has Take income, the cost and Advance on its right](docs/ui/screens/game-prompt-advance.png) | ![A bonus paid in tiles: the panel at the tracks' centre with the territory tiles three to a row, one chosen, 1 of 2 chosen, and Decline beside Pay 2 tiles](docs/ui/screens/game-prompt-tiles.png) |

@@ -16,6 +16,7 @@ import { checkOptions, createGame } from '../src/lib/engine/setup.js';
 import { askedSeats, defaultAction } from '../src/lib/engine/table.js';
 import { seededRandom } from '../src/lib/engine/random.js';
 import { play } from '../src/lib/engine/play.js';
+import '../src/lib/engine/kinds.js';
 
 const SOLO = [
 	{ kind: 'player', name: 'Ana' },
@@ -153,18 +154,37 @@ test('participant validation rejects unofficial compositions, bot kinds and leve
 	}
 });
 
-test('bot options reject expansion combinations and arts under R59', () => {
+test('bot options support P&P and A&A without its arts track, under R59', () => {
 	for (const expansions of [['pp'], ['aa'], ['pp', 'aa']]) {
-		assert.throws(
-			() =>
-				checkOptions({
-					version: 'current',
-					expansions,
-					participants: SOLO,
-				}),
-			/base|arts|R59/i
+		const variants = expansions.includes('aa') ? ['no-arts-track'] : [];
+		assert.doesNotThrow(() =>
+			checkOptions({
+				version: 'current',
+				expansions,
+				variants,
+				participants: SOLO,
+			})
 		);
 	}
+	assert.throws(
+		() =>
+			checkOptions({
+				version: 'current',
+				expansions: ['aa'],
+				participants: SOLO,
+			}),
+		/arts|R59/i
+	);
+	assert.throws(
+		() =>
+			checkOptions({
+				version: 'current',
+				expansions: ['aa'],
+				variants: ['no-arts-track'],
+				participants: [SOLO[0], { ...SOLO[1], level: 4 }, SOLO[2]],
+			}),
+		/level/i
+	);
 	assert.throws(
 		() =>
 			soloSetup('current', [

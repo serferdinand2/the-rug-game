@@ -6,6 +6,7 @@ import { tracksOf } from './engine/tracks-in-play.js';
 import { describeBonus, describeEffects } from './describe.js';
 import { achievementName, landmarkName, trackName } from './game-names.js';
 import { bonusGlyphs, spaceGlyphs } from './glyphs.js';
+import { SEATS } from './ui.js';
 
 /** @typedef {import('./components/board/TrackBoard.svelte').TrackBoardTrack} TrackBoardTrack */
 /** @typedef {import('./ui.js').Seat} Seat */
@@ -15,7 +16,7 @@ import { bonusGlyphs, spaceGlyphs } from './glyphs.js';
 /**
  * The parts of a game view the board reads.
  * @typedef {Object} BoardView
- * @property {{ seat: number, kind: string, name: string, tracks: Record<string, number[]> }[]} seats
+ * @property {{ seat: number, kind: string, name: string, tracks: Record<string, number[]>, twinTracks?: Record<string, number[]> }[]} seats
  * @property {string[]} landmarks - The unowned landmark ids
  * @property {Record<string, number[]>} achievements - The seats that claimed each achievement, in order
  * @property {'small' | 'large'} map
@@ -108,7 +109,29 @@ const TIERS = /** @type {(1 | 2 | 3 | 4)[]} */ (
  */
 export function trackBoard(view) {
 	const unowned = new Set(view.landmarks);
+	const twinImpact = view.variants?.includes('twin-impact') ?? false;
+	const twinSeat = SEATS.find(
+		(seat) => !view.seats.some((entry) => entry.seat === seat)
+	);
 	return boardTracks(view).map((track) => {
+		const players = view.seats
+			.filter((seat) =>
+				['player', 'automa', 'shadow'].includes(seat.kind)
+			)
+			.map((seat) => ({
+				seat: /** @type {Seat} */ (seat.seat),
+				name: seat.name,
+				position: spacesAdvanced(/** @type {any} */ (seat), track),
+			}));
+		const shadow = view.seats.find((seat) => seat.kind === 'shadow');
+		if (twinImpact && twinSeat && shadow?.twinTracks?.[track]?.length) {
+			players.push({
+				seat: /** @type {Seat} */ (twinSeat),
+				name: 'Twin Impact',
+				// The extra set uses a spare token colour so it remains visually distinct from Shadow Empire.
+				position: Math.max(...shadow.twinTracks[track]),
+			});
+		}
 		return {
 			id: track,
 			name: trackName(track),
@@ -131,14 +154,7 @@ export function trackBoard(view) {
 				return entry;
 			}),
 			tiers: TIERS.map((tier) => tierSymbols(track, tier)),
-			players: view.seats
-				.filter((seat) => seat.kind === 'player')
-				.map((seat) => ({
-					seat: /** @type {Seat} */ (seat.seat),
-					name: seat.name,
-					// The most advanced token, or 12 on a track AI Singularity took it off (#147, FAQ #9, R109).
-					position: spacesAdvanced(/** @type {any} */ (seat), track),
-				})),
+			players,
 		};
 	});
 }

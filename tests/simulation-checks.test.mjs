@@ -208,6 +208,7 @@ test('the 200 games cover every player count, version and policy 10 times, 5 of 
 			(v) => !v.expansion || expansions.includes(v.expansion)
 		)
 			.map((v) => v.id)
+			.filter((id) => id !== 'twin-impact')
 			.filter(
 				(id) =>
 					!aa ||

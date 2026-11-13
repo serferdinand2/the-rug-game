@@ -267,7 +267,7 @@ export function effectGlyphs(effect) {
 			return [word('Restart')];
 		case 'anyBuilding':
 			return [word('Any building')];
-		// A&A's arts effects (#35), as words until they have symbols, as the approved mockup shows them.
+		// A&A's arts effects are drawn by the shared ArtsSymbol component.
 		case 'create':
 			return [word('Create')];
 		case 'inspire':
@@ -389,6 +389,14 @@ export const SYMBOL_KEY = Object.freeze([
 				words: 'Play a tapestry card on top of your current one',
 			},
 			{ glyphs: [word('Invent')], words: 'Invent a tech card' },
+			{ glyphs: [word('Create')], words: 'Create a masterpiece' },
+			{ glyphs: [word('Inspire')], words: 'Inspire an income row' },
+			{ glyphs: [word('Broadcast')], words: 'Broadcast a masterpiece' },
+			{
+				glyphs: [word('Any building')],
+				words: 'Gain an income building of your choice',
+			},
+			{ glyphs: [word('Building')], words: 'An income building' },
 			{
 				glyphs: [word('May refresh')],
 				words: 'You may refresh the face-up tech cards first',

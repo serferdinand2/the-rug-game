@@ -1,6 +1,63 @@
 <!-- Library section: DecisionPanel, the decision prompt over the shared area, with its scrim, content and Confirm, at the tracks' centre with any shelf of cards above it (#79), or docked beside the map, with no scrim for a choice on the tracks (#172), and a prompt opened again (#175). -->
 <script>
 	import Button from '../../../lib/components/ui/Button.svelte';
+	import { decisionSource } from '../../../lib/decision-source.js';
+	const sourceGame = {
+		seats: [
+			{
+				name: 'You',
+				civs: ['merrymakers'],
+				cards: ['bakery', 'academia', 'painting', 'urban-farm'],
+			},
+			{ name: 'Vera', civs: ['leaders'], cards: ['monarchy'] },
+		],
+		supply: { tech: { faceUp: ['bakery'] } },
+	};
+	const sourceExamples = [
+		{ label: 'Track space', source: { track: 'exploration', space: 3 } },
+		{
+			label: 'Track bonus',
+			source: { track: 'exploration', space: 5, bonus: true },
+		},
+		{
+			label: 'Civilization adjustment',
+			source: { civ: 'merrymakers', part: 'adjustment', player: 1 },
+		},
+		{
+			label: 'Civilization ability',
+			source: { civ: 'leaders', part: 'ability', player: 2 },
+		},
+		{
+			label: 'Technology card',
+			source: { tech: 'bakery', icon: 'square', player: 1 },
+		},
+		{ label: 'Tapestry card', source: { tapestry: 'monarchy', player: 2 } },
+		{
+			label: 'Masterpiece',
+			source: { masterpiece: 'painting', player: 1 },
+		},
+		{
+			label: 'Landmark card',
+			source: { landmarkCard: 'urban-farm', player: 1 },
+		},
+		{ label: 'Territory tile', source: { hex: '0_1', tile: 17 } },
+		{ label: 'Space tile', source: { spaceTile: 3 } },
+		{ label: 'Completed district', source: { capital: 'district' } },
+		{ label: 'Completed row', source: { capital: 'row' } },
+		{ label: 'Completed column', source: { capital: 'column' } },
+		{
+			label: 'Conquest',
+			source: { hex: '0_1', conquest: true, player: 2 },
+		},
+		{ label: 'Trap', source: { trap: true } },
+		{ label: 'Achievement', source: { achievement: 'complete-track' } },
+		{
+			label: 'Income explanation, when needed',
+			source: {
+				incomeReason: 'From your civilization ability during income',
+			},
+		},
+	];
 	import DecisionOption from '../../../lib/components/prompts/DecisionOption.svelte';
 	import DecisionPanel from '../../../lib/components/prompts/DecisionPanel.svelte';
 	import CardShelf from '../../../lib/components/prompts/CardShelf.svelte';
@@ -106,7 +163,46 @@
 	name="DecisionPanel"
 	area="prompts"
 	description="The decision prompt: a dark scrim over the shared area only, and at the centre of the tracks, not of the screen (owner), the panel with the question, the choices and Confirm; a shelf of cards sits above it, and the two are centred as one stack (#79). The shelf's cards fit the room above the panel (#57). A choice on the map docks the panel at the right instead. The screen examples are the game's screen at 1920×1080, scaled to fit: the board on the left three quarters, the player area on the right.">
+	{#each sourceExamples as example (example.label)}
+		<Example
+			label={example.label + ' — source indicator'}
+			wide
+			width={1100}>
+			<div
+				class="rg-library-decision-stage rg-library-decision-stage--short"
+				data-source-example={example.label}>
+				<DecisionPanel
+					title="Choose a benefit"
+					source={decisionSource(example.source, sourceGame, 1)}
+					confirmDisabled={true}>
+					<p>Choose the benefit to receive.</p>
+				</DecisionPanel>
+			</div>
+		</Example>
+	{/each}
 	<Example
+		label="Decision source example — track space"
+		wide
+		width={1100}>
+		<div
+			class="rg-library-decision-stage rg-library-decision-stage--contained">
+			<DecisionPanel
+				title="Choose a benefit"
+				source={{
+					kind: 'track',
+					track: 'exploration',
+					space: 3,
+					name: 'Wagons',
+					trackName: 'Exploration',
+				}}
+				track="exploration"
+				confirmDisabled={true}>
+				<p>Explore a territory or gain a Farm.</p>
+			</DecisionPanel>
+		</div>
+	</Example>
+	<Example
+		class="rg-library-decision-panel-shelf"
 		label={'shelf tone="income" steps  (an income turn\'s tapestry card to play: the cards above the panel, both at the tracks\' centre; press one; #79. Open again: the scrim fades, the panel rises and the shelf deals its cards in; #175)'}
 		wide
 		width={1100}>

@@ -1,5 +1,9 @@
 # Where the work stands
 
+**#71, local work (2026-11-11):** The decision footer uses the same public source display as the prompt instead of repeating its question. Income footers keep their step, while minimized choices retain the question and restore button. The TurnBar gallery shows the decision state for the owner's review; this work has not been merged or closed.
+
+**#34, #38 and #41, local work (updated 2026-11-13):** #34 is closed for the two verified Plans & Ploys Automa civilizations, Equalizers and Hucksters; R46–R47 still exclude Iconoclasts and Trailblazers because their favourite-track icons are unknown. Their scripted full-game tests pass in `tests/engine-automa-pp-playthrough.test.mjs`. #38 is closed for verified Arts & Architecture bot play without the arts track: Influencers, Hucksters when Plans & Ploys is on, A&A income adjustments for levels 1–3 and Twin Impact. Level 4 stays unavailable under R57. #41 now supports the three Fantasies & Futures Automa civilizations; 12 scripted full games cover F&F alone and with each other expansion combination. These changes are local and not pushed. Bot games with the arts track remain blocked by research issue [#186](https://github.com/serferdinand2/the-rug-game/issues/186); do not guess those rules. The arts-track symbol component shows the owner's requested create, inspire, income-building and broadcast symbols.
+
 The only record of the project's progress (owner, 2026-10-28): what is done and what comes next, then issue by issue what each issue built, the calls to revisit after playing, and what it handed on to later issues. CLAUDE.md links here and holds no progress of its own. Claude and Codex both update this file whenever an issue lands or a milestone moves: the summary below and the issue's entry (see CLAUDE.md and AGENTS.md).
 
 Updated 2026-11-11. The issues are listed in the order they were finished.
@@ -1752,6 +1756,10 @@ Final verification: all 3,398 unit tests passed across 225 files; all 82 browser
   - A Merfolk-only seat lost its Merfolk turn button when a space was clicked, and an Elder Ones opening said "or take income".
 - **Set aside by the reviewer:** whether an undo after High Council's or Superpower Regulators' reveal should be refused (`revealed()` ignores their events, which have no secret); an Artificers row taken from while playing on (no income turn follows, so no effect).
 
+### #31 follow-up — bot seat authorization and track visibility (2026-11-10)
+
+The owner reported controllable bots in local mode and missing online track tokens. The board adapter had filtered out bot kinds; it now passes every human, Automa and Shadow track token to the existing track components. Room authorization now excludes bots according to either room or engine identity, even if stale room data attaches a human session; cached local handovers discard bot targets. New regression cases cover public/own track views, both table modes and mismatched identities. A fresh live local browser smoke showed all 12 track tokens, no script errors and rejection of bot private-view requests. The exact reported normal-flow control failure did not reproduce in complete local games, so these authorization guards are defensive hardening rather than a claimed reproduction. Repeated live additions sampled varied historical names; existing table names are retained. Build and type/component checks passed; regression suites are left to hosted CI. Work is on codex/automa-seats-and-track-tokens, not yet main.
+
 ### #49 (Cloud Colonies)
 
 - **Built (2026-11-11)** on `issue-49-cloud-colonies`, merged into main and closed the same day (owner), test-first, without a question round: the issue settled everything ([plan](superpowers/plans/2026-11-11-cloud-colonies.md)). Fantasies & Futures now deals all 38 of its tapestry cards (R69).
@@ -1771,4 +1779,3 @@ Final verification: all 3,398 unit tests passed across 225 files; all 82 browser
 - **Calls (my calls, design §3):** the civilizations' mats show among the cards in the Capital tab, not as a lit spot on the card in the Civ tab as the mockup drew, so every place stays in one tab; inside the tray the cards drop their Or on a card title and use 20 px squares, so the column fits.
 - **Tests:** `client-card-targets` (10), `api-scenarios` (3), the era slot's pieces in `client-area-income`, and the browser test `aa-card-places` (a Farm on Monuments, then the Forge on Astrolabe, then the Eras tab). The unit suite passes (3521 tests) and `npm run check` is clean. The browser tests that touch these screens were run on their own (see the commit); a full parallel run timed out on a heavily loaded machine, so CI runs the rest.
 - **README:** four screenshots from the running game (`docs/ui/screens/game-aa-card-*.png`, `game-aa-eras-pieces.png`) and a note in `docs/ui/README.md`.
-

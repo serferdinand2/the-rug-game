@@ -49,6 +49,7 @@ export function defaultAction(state, seat) {
 
 /** The questions asked whenever the seat holds any card, so asking reveals nothing (#17), and the server declines for them when no card can answer: responses to a conquest, counters to a trap and the Advisors' gifts (#33). */
 const DECLINABLE = [
+	'chooseCharmerExchange',
 	'chooseResponse',
 	'chooseCounter',
 	'chooseGive',
@@ -116,6 +117,7 @@ export function revealed(before, after) {
 					'progressDeck',
 					'trapCards',
 					'multiplierCards',
+					'charmDeck',
 				].some((field) => !same(was[field], now[field]))
 			) {
 				return true;

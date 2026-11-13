@@ -57,6 +57,14 @@
 	];
 
 	/** @type {Glyph[]} */
+	const ARTS = [
+		{ kind: 'word', text: 'Create', count: 1 },
+		{ kind: 'word', text: 'Inspire', count: 1 },
+		{ kind: 'word', text: 'Any building', count: 1 },
+		{ kind: 'word', text: 'Broadcast', count: 1 },
+	];
+
+	/** @type {Glyph[]} */
 	const SCORING = [
 		{ kind: 'vp', count: 5 },
 		{ kind: 'or' },
@@ -98,6 +106,17 @@
 		label={'glyphs={[the arrows, Upgrade, the benefit shapes, Score capital, Restart, Repeat, May refresh]}'}>
 		<div style={ROW}>
 			<SpaceGlyphs glyphs={SHAPES} />
+		</div>
+	</Example>
+	<Example
+		label={'Arts: create a masterpiece, inspire, any income building, broadcast'}>
+		<div style={ROW}><SpaceGlyphs glyphs={ARTS} /></div>
+	</Example>
+	<Example label={'Arts bonus symbols'}>
+		<div style={ROW}>
+			<SpaceGlyphs
+				glyphs={ARTS}
+				variant="bonus" />
 		</div>
 	</Example>
 	<Example

@@ -201,6 +201,23 @@ test('every decision kind has the full shape, and its answers pass its own check
 	// A card in the bottom row, so chooseUpgrade has something to offer.
 	state.seats[0].tech.bottom = ['irrigation'];
 	const fixtures = {
+		chooseCharmerExchange: {
+			player: 1,
+			kind: 'chooseCharmerExchange',
+			bot: 2,
+			gained: 'trap-1',
+		},
+		chooseHuckstersTapestry: {
+			player: 1,
+			kind: 'chooseHuckstersTapestry',
+			count: 1,
+		},
+		chooseHuckstersTile: {
+			player: 1,
+			kind: 'chooseHuckstersTile',
+			stack: 'territory',
+			steps: [{ stack: 'territory', count: 1 }],
+		},
 		chooseTurn: {
 			player: 1,
 			kind: 'chooseTurn',

@@ -167,6 +167,11 @@ export const chooseBonus = {
 							: decision.gain,
 				ordered: true,
 				source: { track: decision.track, space: decision.space },
+				cause: {
+					track: decision.track,
+					space: decision.space,
+					bonus: true,
+				},
 			},
 		]);
 	},

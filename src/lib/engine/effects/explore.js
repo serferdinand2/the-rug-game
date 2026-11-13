@@ -134,6 +134,7 @@ export function exploreTile(ctx, player, { tile, hex, orient }, free = false) {
 			],
 			purpose: 'exploitation',
 			source: { hex },
+			cause: { hex, tile },
 		});
 	} else {
 		vp(ctx, player, score, /** @type {any} */ ({ source: { hex } }));
@@ -142,6 +143,7 @@ export function exploreTile(ctx, player, { tile, hex, orient }, free = false) {
 			kind: 'effects',
 			effects: benefit(),
 			source: { hex },
+			cause: { hex, tile },
 		});
 	}
 	ctx.push(ops);

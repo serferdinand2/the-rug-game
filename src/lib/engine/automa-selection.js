@@ -1,10 +1,10 @@
 // Pure base-bot track selection: unfinished tracks, nearest targets and opposite card tiebreak orders (02 §9.4).
-import { TRACK_IDS } from './data/ids.js';
+import { tracksOf } from './tracks-in-play.js';
 import { TRACKS } from './data/tracks.js';
 import { LAST_SPACE, spacesAdvanced } from './movement.js';
 import { seatOf } from './state.js';
 
-/** @typedef {import('./data/ids.js').BoardTrackId} BoardTrackId */
+/** @typedef {import('./data/ids.js').TrackId} TrackId */
 /** @typedef {import('./data/automa-cards.js').AutomaTrackIndicator} AutomaTrackIndicator */
 
 /**
@@ -12,16 +12,15 @@ import { seatOf } from './state.js';
  * every unfinished track; END minimizes distance to its end; LMK minimizes
  * distance to an unclaimed landmark or the end, whichever is nearer.
  * An unclaimed landmark at the token's current space has distance zero; only
- * landmarks behind it are excluded. Arts and additional blocking policies are
- * outside these base-card indicators (R59).
+ * landmarks behind it are excluded. The optional arts track participates when in play.
  * @param {import('./state.js').State} state
  * @param {number} seat - The bot's seat number, not an array index
  * @param {AutomaTrackIndicator} indicator
- * @returns {BoardTrackId[]} Empty when every track is complete
+ * @returns {TrackId[]} Empty when every track is complete
  */
 export function validBotTracks(state, seat, indicator) {
 	const bot = seatOf(state, seat);
-	const tracks = TRACK_IDS.filter(
+	const tracks = tracksOf(state).filter(
 		(track) => spacesAdvanced(bot, track) < LAST_SPACE
 	);
 	if (indicator === 'ALL' || tracks.length === 0) {
@@ -58,12 +57,12 @@ export function validBotTracks(state, seat, indicator) {
  * @param {AutomaTrackIndicator} indicator - From the track card
  * @param {Pick<import('./data/automa-cards.js').AutomaCard, 'trackTiebreakers'>} card - The tiebreaker card
  * @param {'automa' | 'shadow'} kind - Which direction reads the printed list
- * @returns {BoardTrackId | null} Null when no unfinished track is available
+ * @returns {TrackId | null} Null when no unfinished track is available
  */
 export function selectBotTrack(state, seat, indicator, card, kind) {
 	const valid = validBotTracks(state, seat, indicator);
 	const bot =
-		/** @type {import('./state.js').BotSeat & {favouriteTrack: BoardTrackId}} */ (
+		/** @type {import('./state.js').BotSeat & {favouriteTrack: TrackId}} */ (
 			seatOf(state, seat)
 		);
 	const tiebreakers =

@@ -30,6 +30,7 @@ export function diceOp(attacker, hex, both, surrender) {
 	return {
 		player: attacker,
 		kind: 'conquerDice',
+		cause: { hex, player: attacker, conquest: true },
 		hex,
 		both,
 		...(surrender !== undefined && { surrender }),
@@ -153,6 +154,7 @@ export function playResponse(ctx, { defender, attacker, hex, card, both }) {
 				{
 					player: attacker,
 					kind: 'chooseCounter',
+					cause: { trap: true, hex, player: defender },
 					defender,
 					hex,
 					trap: card,

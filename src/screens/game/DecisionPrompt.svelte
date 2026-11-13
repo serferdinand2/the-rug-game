@@ -368,6 +368,9 @@
 		clickThrough={state.clickThrough}
 		{narrow}
 		title={prompt.title}
+		source={prompt.source}
+		onDecisionPanelSourceInspect={(/** @type {ComponentEvent} */ event) =>
+			inspect(event.value, event)}
 		track={prompt.track}
 		tone={prompt.income ? 'income' : 'default'}
 		steps={prompt.income ? incomeSteps : undefined}

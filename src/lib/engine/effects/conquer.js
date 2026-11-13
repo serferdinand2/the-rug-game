@@ -13,7 +13,12 @@ import { conquerTargets, loneOpponent } from '../map.js';
 import { itemCount } from '../control.js';
 import { takeOutpost } from '../outposts.js';
 import { isolationistsOffer } from '../civs/isolationists.js';
-import { diceOp } from '../responses.js';
+import { diceOp, retreatHexes } from '../responses.js';
+import { AUTOMA_CARDS } from '../data/automa-cards.js';
+import { hexesByPattern } from '../automa-map.js';
+import { spacesAdvanced } from '../movement.js';
+import { shuffle } from '../random.js';
+import { vp } from './vp.js';
 import { mayRespond } from '../civs/elder-ones.js';
 
 /**
@@ -56,15 +61,12 @@ export function conquerHex(ctx, player, hex, bothDice) {
 		});
 	}
 	// Solo Automa's face-down tapestry pool is an automatic defence, never a bot-owned decision.
-	if (
-		opponent !== null &&
-		seatOf(state, opponent).kind === 'automa' &&
-		!plunder
-	) {
+	if (opponent !== null && seatOf(state, opponent).kind === 'automa') {
 		const defender =
 			/** @type {import('../state.js').BotSeat & {trapCards: string[]}} */ (
 				seatOf(state, opponent)
 			);
+		let changedControl = false;
 		while ((defender.trapCards?.length ?? 0) > 0) {
 			const [card] = defender.trapCards.splice(
 				ctx.random(defender.trapCards.length),
@@ -77,27 +79,109 @@ export function conquerHex(ctx, player, hex, bothDice) {
 				card,
 				hex,
 			});
-			if (card === 'trap' || card.startsWith('trap-')) {
+			if (card === 'retreat' && state.expansions.includes('pp')) {
+				const destinations = retreatHexes(state, opponent, hex);
+				if (destinations.length) {
+					const bot = /** @type {any} */ (defender);
+					let id = bot.currentPair?.tiebreakerCard;
+					if (!id && bot.progressDeck.length) {
+						id = bot.progressDeck.shift();
+						bot.progressDeck = shuffle(
+							[...bot.progressDeck, id],
+							ctx.random
+						);
+					}
+					const pattern = AUTOMA_CARDS.find(
+						(entry) => entry.id === id
+					)?.hexPattern;
+					const to = (pattern ? hexesByPattern(pattern) : []).find(
+						(candidate) => destinations.includes(candidate)
+					);
+					if (to) {
+						const outposts = state.hexes[hex].outposts;
+						const at = outposts.findIndex(
+							(piece) => piece.seat === opponent && piece.toppled
+						);
+						if (at >= 0) {
+							outposts.splice(at, 1);
+							state.hexes[to].outposts.push({
+								seat: opponent,
+								toppled: false,
+							});
+							emit(state, {
+								type: 'retreated',
+								player: opponent,
+								hex,
+								to,
+							});
+							changedControl = true;
+							break;
+						}
+					}
+				}
+			}
+			const surprise =
+				card === 'surprise-party' &&
+				state.expansions.includes('pp') &&
+				spacesAdvanced(defender, 'military') >
+					spacesAdvanced(seatOf(state, player), 'military');
+			const ffTrap =
+				state.expansions.includes('ff') &&
+				[
+					'ghost-ship',
+					'gremlins',
+					'the-kraken',
+					'league-of-the-charmed',
+				].includes(card);
+			if (
+				(!plunder &&
+					(card === 'trap' || card.startsWith('trap-') || ffTrap)) ||
+				surprise
+			) {
 				for (const outpost of state.hexes[hex].outposts) {
 					if (outpost.seat === opponent) {
 						outpost.toppled = false;
 						delete outpost.toppledBy;
+						emit(state, {
+							type: 'outpostRaised',
+							player: opponent,
+							hex,
+						});
 					}
 					if (outpost.seat === player) {
 						outpost.toppled = true;
 						outpost.toppledBy = opponent;
+						emit(state, {
+							type: 'outpostToppled',
+							player,
+							hex,
+							by: opponent,
+						});
 					}
 				}
+				changedControl = true;
 				emit(state, {
-					type: 'automaTrapSprung',
+					type: surprise ? 'surprisePartyThrown' : 'automaTrapSprung',
 					player: opponent,
 					attacker: player,
 					hex,
 				});
+				if (surprise)
+					vp(
+						ctx,
+						opponent,
+						15,
+						/** @type {any} */ ({ origin: 'tapestry' })
+					);
 				break;
 			}
 		}
-		ctx.push([diceOp(player, hex, both)]);
+		ctx.push([
+			...(changedControl
+				? triggered(state, 'countsChanged', { player: opponent })
+				: []),
+			diceOp(player, hex, both),
+		]);
 		return;
 	}
 	if (
@@ -111,6 +195,7 @@ export function conquerHex(ctx, player, hex, bothDice) {
 			{
 				player: opponent,
 				kind: 'chooseResponse',
+				cause: { hex, player, conquest: true },
 				attacker: player,
 				hex,
 				both,
@@ -327,6 +412,7 @@ export function afterConquerRoll(ctx, op, red, black) {
 				],
 				ordered: true,
 				source: { hex },
+				cause: { hex, player, conquest: true },
 			},
 			...rolled,
 			...pirate,
@@ -361,6 +447,7 @@ export function tileBenefit(ctx, player, value, op) {
 				kind: 'effects',
 				effects: structuredClone(TERRITORY_TILES[tile - 1].benefit),
 				source: { hex },
+				cause: { hex, tile },
 			},
 		]);
 	}

@@ -4,6 +4,7 @@ import { isPlayerSeat, playerSeat, seatOf } from './state.js';
 import { ERA_HOOKS } from './eras.js';
 import { civsOf } from './civs/registry.js';
 import { EXPANSION_SPACE_TILES } from './data/space-tiles.js';
+import { charmerExchangeOps } from './decisions/choose-charmer-exchange.js';
 
 /** @typedef {import('./data/ids.js').TrackId} TrackId */
 
@@ -109,17 +110,32 @@ const SPACE_TILE_HOOKS = new Map(
  * finished player still gets their VP (01 §4.3, #20 design §4).
  * @param {import('./state.js').State} state
  * @param {number} seat
- * @returns {{ hooks: Record<string, import('./eras.js').Hook>, passive: boolean }[]}
+ * @returns {{ hooks: Record<string, import('./eras.js').Hook>, passive: boolean, cause: Record<string, any> }[]}
  */
 function activeHooks(state, seat) {
 	const ability = eraAbility(state, seat);
+	/** @type {{ hooks: Record<string, import('./eras.js').Hook>, passive: boolean, cause: Record<string, any> }[]} */
 	const active =
 		ability !== null && Object.hasOwn(ERA_HOOKS, ability)
-			? [{ hooks: ERA_HOOKS[ability], passive: false }]
+			? [
+					{
+						hooks: ERA_HOOKS[ability],
+						passive: false,
+						cause: {
+							tapestry: ability,
+							card: playerSeat(state, seat).era?.card ?? ability,
+							player: seat,
+						},
+					},
+				]
 			: [];
 	for (const civ of civsOf(state, seat)) {
 		if (civ.hooks) {
-			active.push({ hooks: civ.hooks, passive: true });
+			active.push({
+				hooks: civ.hooks,
+				passive: true,
+				cause: { civ: civ.id, part: 'ability', player: seat },
+			});
 		}
 	}
 	if (isPlayerSeat(state, seat)) {
@@ -137,7 +153,11 @@ function activeHooks(state, seat) {
 		for (const tile of [...exploredSpace, ...tiles]) {
 			const hooks = SPACE_TILE_HOOKS.get(tile);
 			if (hooks) {
-				active.push({ hooks, passive: true });
+				active.push({
+					hooks,
+					passive: true,
+					cause: { spaceTile: tile, player: seat },
+				});
 			}
 		}
 	}
@@ -153,19 +173,32 @@ function activeHooks(state, seat) {
  * @returns {import('./state.js').NewOperation[]}
  */
 export function triggered(state, hook, payload) {
-	return playersFrom(state, payload.player).flatMap((owner) =>
-		activeHooks(state, owner).flatMap(({ hooks, passive }) => {
-			if (!Object.hasOwn(hooks, hook)) {
-				return [];
-			}
-			// A civilization's VP counts as the civilization's, a THIS ERA ability's as the tapestry's (#29).
-			const ops = hooks[hook](state, owner, payload).map((op) => ({
-				...op,
-				origin: op.origin ?? (passive ? 'civ' : 'tapestry'),
-			}));
-			return passive ? ops.map((op) => ({ ...op, passive: true })) : ops;
-		})
-	);
+	const exchange =
+		hook === 'tapestryGained' &&
+		!payload.skipCharmerExchange &&
+		Array.isArray(payload.cards) &&
+		isPlayerSeat(state, payload.player)
+			? charmerExchangeOps(state, payload.player, payload.cards)
+			: [];
+	return [
+		...exchange,
+		...playersFrom(state, payload.player).flatMap((owner) =>
+			activeHooks(state, owner).flatMap(({ hooks, passive, cause }) => {
+				if (!Object.hasOwn(hooks, hook)) {
+					return [];
+				}
+				// A civilization's VP counts as the civilization's, a THIS ERA ability's as the tapestry's (#29).
+				const ops = hooks[hook](state, owner, payload).map((op) => ({
+					...op,
+					origin: op.origin ?? (passive ? 'civ' : 'tapestry'),
+					cause: op.cause ?? op.source ?? cause,
+				}));
+				return passive
+					? ops.map((op) => ({ ...op, passive: true }))
+					: ops;
+			})
+		),
+	];
 }
 
 /**

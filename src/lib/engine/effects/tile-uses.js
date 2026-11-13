@@ -1,6 +1,8 @@
 // The tiles a card or civilization draws to use at once (Coal Baron, Astronomy, Cartography, Alien Disclosure, the
 // Werefolk): drawn here, so the Psionics draw 2 and keep 1 first (F&F, #40; R74).
 import { gainTiles } from './gain.js';
+import { drawAvailableTiles } from '../automa-time-travelers.js';
+import { huckstersOffers } from '../automa-expansion-pp.js';
 import { psionic } from '../civs/psionics.js';
 import { coalBaronWith } from './cards.js';
 import { astronomyWith, cartographyWith } from './pp-cards.js';
@@ -17,10 +19,30 @@ import { werefolkFlip } from '../civs/werefolk.js';
  * @param {'territory' | 'space'} stack
  * @param {TileUse} use
  * @param {any} [source] - The effect's source, which the use's own effects keep
+ * @param {boolean} [skipHucksters] - The player already chose the supply stack
  */
-export function drawTileFor(ctx, player, stack, use, source) {
+export function drawTileFor(
+	ctx,
+	player,
+	stack,
+	use,
+	source,
+	skipHucksters = false
+) {
+	if (!skipHucksters && huckstersOffers(ctx.state, player, stack).length) {
+		ctx.push([
+			{
+				player,
+				kind: 'chooseHuckstersTile',
+				steps: [{ stack, count: 1 }],
+				stack,
+				then: { use, source },
+			},
+		]);
+		return;
+	}
 	if (psionic(ctx.state, player)) {
-		const drawn = ctx.state.supply[stack].splice(0, 2);
+		const drawn = drawAvailableTiles(ctx.state, stack, 2);
 		if (drawn.length === 2) {
 			ctx.push([
 				{

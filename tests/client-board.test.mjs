@@ -8,6 +8,8 @@ import {
 	view,
 } from '../src/lib/engine/game.js';
 import { answer, newGame, readyTurn } from './helpers/engine.mjs';
+import { createGame } from '../src/lib/engine/game.js';
+import { seededRandom } from '../src/lib/engine/random.js';
 import { TRACKS } from '../src/lib/engine/data/tracks.js';
 import {
 	trackBoard,
@@ -200,4 +202,37 @@ test("tierSymbols is each tier's price, as the board shows it (#86)", () => {
 	}
 	assert.deepEqual(tierSymbols('science', 1), ['any']);
 	assert.deepEqual(tierSymbols('science', 4), ['worker', 'worker']);
+});
+
+test('trackBoard shows both bot tokens in their public track positions', () => {
+	const state = createGame({
+		version: 'current',
+		participants: [
+			{ kind: 'player', name: 'Ana' },
+			{ kind: 'automa', name: 'Sumer' },
+			{ kind: 'shadow', name: 'Shang' },
+		],
+		random: seededRandom(31),
+	});
+	state.seats[1].tracks.technology = [4];
+	state.seats[2].tracks.science = [2];
+	for (const viewer of [null, 1]) {
+		const tracks = trackBoard(view(state, viewer));
+		assert.deepEqual(
+			tracks[0].players.map((p) => p.seat),
+			[1, 2, 3]
+		);
+		assert.equal(
+			tracks
+				.find((t) => t.id === 'technology')
+				.players.find((p) => p.seat === 2).position,
+			4
+		);
+		assert.equal(
+			tracks
+				.find((t) => t.id === 'science')
+				.players.find((p) => p.seat === 3).position,
+			2
+		);
+	}
 });

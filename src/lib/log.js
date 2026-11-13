@@ -79,6 +79,16 @@ const VP_FROM = /** @type {Readonly<Record<string, string>>} */ ({
 /** The event kinds that are table notices rather than plain lines. */
 const NOTICES = ['timedOut', 'undone', 'gameEnded', 'playerFinished'];
 
+/** @param {unknown} kind */
+const huckstersItemName = (kind) =>
+	/** @type {Record<string, string>} */ ({
+		tech: 'technology card',
+		masterpiece: 'masterpiece',
+		tapestry: 'tapestry card',
+		space: 'space tile',
+		territory: 'territory tile',
+	})[String(kind)] ?? 'item';
+
 /** Every event type the log deliberately leaves out: bookkeeping a reader learns nothing from. */
 export const SILENT = new Set([
 	// Its visible income action already explains the bot's internal chart steps.
@@ -347,8 +357,36 @@ const WORDS = {
 	incomeTurnEnded: (e, game, name) => isCount(e.turn) && e.turn > 0 ? `${name} ended income turn ${e.turn}.` : `${name} ended an income turn.`,
 	botTapestryGained: (e, game, name) =>
 		`${name} gained a face-down tapestry card.`,
+	automaCharmsRevealed: (e, game, name) =>
+		Array.isArray(e.cards) && isCount(e.total)
+			? `${name} revealed ${countWords(e.cards.length, 'face-up charm', 'face-up charms')}; ${e.total} are showing.`
+			: `${name} revealed face-up charms.`,
+	automaTechReplaced: (e, game, name) =>
+		typeof e.discarded === 'string' && typeof e.replacement === 'string'
+			? `${name} replaced ${techName(e.discarded)} with ${techName(e.replacement)}.`
+			: typeof e.discarded === 'string'
+				? `${name} discarded ${techName(e.discarded)}; no replacement was available.`
+				: `${name} replaced a technology card.`,
+	huckstersPoolAdded: (e, game, name) => {
+		const item = huckstersItemName(e.kind);
+		return `${name} added a face-up ${item} to the Hucksters pool.`;
+	},
+	huckstersPoolTaken: (e, game, name) => {
+		const item = huckstersItemName(e.kind);
+		return `${name} took a face-up ${item} from ${seatName(game, e.owner)}'s Hucksters pool.`;
+	},
+	automaCharmTaken: (e, game, name) =>
+		typeof e.card === 'string'
+			? `${name} exchanged a tapestry card for ${tapestryName(e.card)} from ${seatName(game, e.bot)}'s Charmers.`
+			: `${name} took a tapestry card from ${seatName(game, e.bot)}'s Charmers.`,
+	twinImpactMoved: (e, game, name) =>
+		isCount(e.to) && typeof e.track === 'string'
+			? `${name}'s Twin Impact marker advanced to ${spaceName(e.track, e.to)} on ${trackName(e.track)}.`
+			: `${name}'s Twin Impact marker advanced.`,
 	botFavouriteChanged: (e, game, name) =>
 		`${name} now favours ${trackName(e.track)}.`,
+	botTrendyChanged: (e, game, name) =>
+		`${name} marks ${trackName(e.track)} as its trendy track.`,
 	botTrapDiscarded: (e, game, name) =>
 		`${name} discarded ${tapestryName(e.card)} while defending.`,
 	automaCivilizationChosen: (e, game, name) =>

@@ -8,6 +8,7 @@ import { roman, seatName, spaceName, trackName } from './game-names.js';
 import { TRACK_KEYS } from './hotkeys.js';
 import { incomeView } from './prompts.js';
 import { playerColor } from './ui.js';
+import { decisionSource } from './decision-source.js';
 
 /** @typedef {import('./engine/data/ids.js').TrackId} TrackId */
 
@@ -110,6 +111,21 @@ export function decisionTurnHeading(view, seat) {
 	}
 	const prefix =
 		current === seat ? 'Your turn' : `${seatName(view, current)}’s turn`;
+	const source = Array.isArray(view.pending)
+		? myDecision(view, seat)?.cause
+		: undefined;
+	if (source) {
+		if (
+			typeof source.track === 'string' &&
+			Number.isInteger(source.space) &&
+			TRACKS[/** @type {TrackId} */ (source.track)]?.[source.space]
+		) {
+			return `${prefix} · Advance to ${spaceName(source.track, source.space)}`;
+		}
+		// A card, civilization, conquest, etc. can interrupt an advance. Do not
+		// imply the last track space caused it; the panel names its actual source.
+		return `${prefix} is in progress`;
+	}
 	const events = Array.isArray(view.events) ? view.events : [];
 	const started = events.findLast(
 		(/** @type {any} */ event) => event.type === 'turnStarted'
@@ -251,6 +267,7 @@ export function firstIncomeNotice(view, seat) {
  * @property {string} [label] - Left out for TurnBar's own 'Your turn'
  * @property {string} [labelColor] - Another player's colour, for their turn
  * @property {string} [heading]
+ * @property {any} [source] - The public cause of an open decision
  * @property {string} [properName] - The selected space's name
  * @property {TrackId} [track] - The selected space's track
  * @property {string} [detail]
@@ -473,11 +490,13 @@ export function footerView(game, seat, inputs) {
 		};
 	}
 	if (mine) {
+		const source = decisionSource(mine.cause ?? mine.source, game, seat);
 		return {
 			kind: 'decision',
 			tone: 'neutral',
 			label: 'Your decision',
 			heading: decisionTurnHeading(game, seat),
+			...(source && { source }),
 		};
 	}
 	if (game.phase === 'setup') {

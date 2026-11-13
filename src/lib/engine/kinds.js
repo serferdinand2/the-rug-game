@@ -1,8 +1,26 @@
 // Fills the registry of decision kinds and automatic operation kinds (registry.js holds it, #166); import this module, or game.js, so they are registered.
 import { DECISIONS, AUTOMATIC } from './registry.js';
+import { chooseCharmerExchange } from './decisions/choose-charmer-exchange.js';
+import {
+	chooseHuckstersTapestry,
+	huckstersTapestryContinue,
+} from './decisions/choose-hucksters-tapestry.js';
+import {
+	chooseHuckstersTile,
+	huckstersTileGain,
+} from './decisions/choose-hucksters-tile.js';
+import {
+	botMusesIncome,
+	botMusesScore,
+	botInfluencersSetTrendy,
+	botInfluencersIncome,
+	botInfluencersConditional,
+	botInfluencersChoose,
+} from './automa-expansion-aa.js';
 import {
 	botSelectAdvance,
 	botAdvance,
+	botTimeTravelReturn,
 	botBenefit,
 	botResearch,
 	botMap,
@@ -267,8 +285,17 @@ Object.assign(DECISIONS, {
 });
 
 Object.assign(AUTOMATIC, {
+	botMusesIncome,
+	botMusesScore,
+	huckstersTapestryContinue,
+	huckstersTileGain,
+	botInfluencersSetTrendy,
+	botInfluencersIncome,
+	botInfluencersConditional,
+	botInfluencersChoose,
 	botSelectAdvance,
 	botAdvance,
+	botTimeTravelReturn,
 	botBenefit,
 	botResearch,
 	botMap,
@@ -377,3 +404,6 @@ Object.assign(AUTOMATIC, {
 
 export { DECISIONS, AUTOMATIC };
 DECISIONS.chooseAutomaCivilization = chooseAutomaCivilization;
+DECISIONS.chooseCharmerExchange = chooseCharmerExchange;
+DECISIONS.chooseHuckstersTapestry = chooseHuckstersTapestry;
+DECISIONS.chooseHuckstersTile = chooseHuckstersTile;

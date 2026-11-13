@@ -3,6 +3,8 @@
 	/** @typedef {Object} BotSettingsOwnProps
 	 * @property {'automa' | 'shadow'} kind
 	 * @property {number} [level=2]
+	 * @property {readonly number[]} [unavailableLevels=[]]
+	 * @property {string} [unavailableLevelReason]
 	 * @property {('automa' | 'shadow')[]} [unavailable=[]]
 	 * @property {(event: import('../../component-event.js').ComponentEvent) => void} [onBotSettingsChange]
 	 * @property {(event: import('../../component-event.js').ComponentEvent) => void} [onBotSettingsRemove]
@@ -22,6 +24,8 @@
 	let {
 		kind,
 		level = 2,
+		unavailableLevels = [],
+		unavailableLevelReason,
 		unavailable = [],
 		onBotSettingsChange,
 		onBotSettingsRemove,
@@ -64,6 +68,8 @@
 	{#if kind === 'automa'}
 		<AutomaLevel
 			value={level}
+			{unavailableLevels}
+			{unavailableLevelReason}
 			onAutomaLevelChange={(event) => {
 				if (typeof onBotSettingsChange === 'function') {
 					onBotSettingsChange(

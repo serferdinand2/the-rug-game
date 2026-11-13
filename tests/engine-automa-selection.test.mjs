@@ -22,7 +22,7 @@ function fixture(progress = [0, 0, 0, 0], landmarks = []) {
 	bot.tracks.technology = [progress[2]];
 	bot.tracks.military = [progress[3]];
 	bot.favouriteTrack = 'technology';
-	return { seats: [bot], landmarks: [...landmarks] };
+	return { seats: [bot], landmarks: [...landmarks], expansions: [], variants: [] };
 }
 
 test('ALL offers every unfinished board track in board order', () => {

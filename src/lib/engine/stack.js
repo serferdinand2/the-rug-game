@@ -76,9 +76,49 @@ export function push(state, stack, ops, from = null) {
 	const batch = state.nextId;
 	const made = ops.map((op) => {
 		const origin = originFor(op, from);
+		// Carry a separate explanation without changing the operation's rules source.
+		const civId =
+			from?.civ ??
+			(from?.kind === 'civAdjust' && from.player
+				? /** @type {any} */ (state.seats[from.player - 1])?.civs?.[0]
+				: undefined);
+		const civCause =
+			civId &&
+			['civSetup', 'civAdjust', 'civIncome', 'civFirstTurnEnd'].includes(
+				from?.kind ?? ''
+			)
+				? {
+						civ: civId,
+						player: from?.player,
+						part:
+							from?.kind === 'civAdjust'
+								? 'adjustment'
+								: from?.kind === 'civSetup'
+									? 'setup'
+									: 'ability',
+					}
+				: undefined;
+		const bonusCause =
+			op.kind === 'bonus' && op.track && Number.isInteger(op.space)
+				? { track: op.track, space: op.space, bonus: true }
+				: undefined;
+		// Many handlers copy the rules source unchanged. Keep the more specific
+		// explanation (for example, a track bonus) across those steps.
+		const copiedSource =
+			from?.cause &&
+			op.source &&
+			JSON.stringify(op.source) === JSON.stringify(from.source);
+		const cause =
+			op.cause ??
+			(copiedSource ? from?.cause : op.source) ??
+			bonusCause ??
+			civCause ??
+			from?.cause ??
+			from?.source;
 		return {
 			...op,
 			...(origin !== null && { origin }),
+			...(cause && { cause: structuredClone(cause) }),
 			id: state.nextId++,
 			batch,
 		};

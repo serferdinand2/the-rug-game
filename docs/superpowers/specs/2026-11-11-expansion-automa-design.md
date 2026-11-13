@@ -1,0 +1,5 @@
+# Expansion Automa (#34, #38, #41)
+
+Extend the existing official Automa and Shadow Empire implementation to the supported expansion combinations. The lobby keeps the existing bot-seat controls and the existing decision-card and action-report components. Civilization effects follow the researched official rules and the project's settled rulings. On 2026-11-11 Lazar requested research to support the arts track, superseding R59's permanent exclusion as a goal; keep it disabled until the missing replacement-card data is verified. The civilizations excluded by R46, R47 and R55 stay excluded unless those decisions change. Select eligible civilizations only from enabled expansions and roll a favourite when the civilization specifies a die.
+
+Expansion decks, setup, human choices, shared Shadow Empire turns, income, scoring and hidden information must continue to use the rules engine and existing game components. An expansion must not become selectable for bots until its complete required procedures are implemented. Keep this work on the local branch.

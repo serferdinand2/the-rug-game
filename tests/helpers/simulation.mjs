@@ -4,7 +4,12 @@ import { createGame, play, VARIANTS, view } from '../../src/lib/engine/game.js';
 import { openDecisions } from '../../src/lib/engine/stack.js';
 import { seededRandom } from '../../src/lib/engine/random.js';
 import { checkState } from './invariants.mjs';
-import { allOps, checkViews, setupFacts } from './views.mjs';
+import {
+	allOps,
+	checkDecisionSources,
+	checkViews,
+	setupFacts,
+} from './views.mjs';
 
 /** @typedef {import('../../src/lib/engine/state.js').State} State */
 /** @typedef {import('../../src/lib/engine/state.js').Answer} Answer */
@@ -51,6 +56,7 @@ export const EXPANSION_NAMES = Object.freeze(
  * Architecture, "Play without the arts track" goes with it alone and "Roll either science die" with both, since the two
  * can't go together. Alone, Arts & Architecture always plays without the arts track (R59), with its advanced mats (#36).
  * Every fourth game also plays with Fantasies & Futures (#39), so it meets every other mix and every player count.
+ * Twin Impact is excluded: these simulations have human-only seats, while that variant requires Shadow.
  * @param {number} index - From 0
  * @returns {Game}
  */
@@ -76,7 +82,9 @@ export function gameOf(index) {
 			? VARIANTS.filter(
 					(v) =>
 						(!v.expansion || expansions.includes(v.expansion)) &&
-						v.id !== left
+						v.id !== left &&
+						// These simulated seats are all human; Twin Impact requires Shadow.
+						v.id !== 'twin-impact'
 				).map((v) => v.id)
 			: [];
 	const variants =
@@ -100,6 +108,7 @@ export function gameOf(index) {
 function checkAll(state, before, facts) {
 	checkState(state, before?.seq ?? 0);
 	checkViews(state, facts, { before });
+	checkDecisionSources(state);
 }
 
 /**

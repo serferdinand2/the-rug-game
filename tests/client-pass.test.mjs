@@ -426,3 +426,16 @@ test('a player taking the screen is handed the events since they last held it, w
 	assert.deepEqual(handedEvents(events, 5), []);
 	assert.deepEqual(handedEvents(/** @type {any} */ (null), 0), []);
 });
+
+test('a stale bot handover is discarded and control stays with the human', () => {
+	const game = gameAsking([1]);
+	game.seats = [{ kind: 'player' }, { kind: 'automa' }, { kind: 'shadow' }];
+	assert.deepEqual(
+		handOver({ mode: 'hotseat', you: [1], viewing: null, game }, null, 2),
+		{ shown: null, passing: 1, fetch: undefined }
+	);
+	assert.deepEqual(
+		handOver({ mode: 'hotseat', you: [1], viewing: 1, game }, 1, 3),
+		{ shown: 1, passing: null, fetch: undefined }
+	);
+});

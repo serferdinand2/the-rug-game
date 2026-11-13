@@ -5,9 +5,36 @@ import { neighbours, playerSeat } from '../state.js';
 import { psionic } from '../civs/psionics.js';
 import { triggered } from '../abilities.js';
 import { RESOURCE_IDS } from '../data/ids.js';
+import { huckstersOffers } from '../automa-expansion-pp.js';
+import { huckstersTapestryOffer } from '../decisions/choose-hucksters-tapestry.js';
+import { timeTravelersBlocksSpaceTile } from '../automa-time-travelers.js';
 
 /** Most of one resource a player may hold (01 §1.2). */
 export const RESOURCE_CAP = 8;
+
+/** Draws up to count eligible tiles, discarding a Time Travelers-blocked Monolith and continuing to draw. */
+/** @param {import('../state.js').Context} ctx @param {number} player @param {'territory' | 'space'} stack @param {number} count @returns {number[]} */
+export function drawEligibleTiles(ctx, player, stack, count) {
+	/** @type {number[]} */
+	const drawn = [];
+	while (drawn.length < count && ctx.state.supply[stack].length) {
+		const tile = /** @type {number} */ (ctx.state.supply[stack].shift());
+		if (
+			stack === 'space' &&
+			timeTravelersBlocksSpaceTile(ctx.state, tile)
+		) {
+			ctx.state.supply.spaceDiscard.push(tile);
+			emit(ctx.state, {
+				type: 'tilesDiscarded',
+				player,
+				stack,
+				tiles: [tile],
+				reason: 'time-travelers',
+			});
+		} else drawn.push(tile);
+	}
+	return drawn;
+}
 
 /**
  * Adds resources to a player, each up to the cap; the rest is lost.
@@ -45,7 +72,7 @@ export function gainResources(ctx, player, resources) {
  */
 export function gainTiles(ctx, player, stack, count) {
 	const seat = playerSeat(ctx.state, player);
-	const tiles = ctx.state.supply[stack].splice(0, count);
+	const tiles = drawEligibleTiles(ctx, player, stack, count);
 	seat[stack === 'territory' ? 'territoryTiles' : 'spaceTiles'].push(
 		...tiles
 	);
@@ -172,6 +199,31 @@ export function gain(ctx, player, value) {
 	if (Object.keys(named).length > 0) {
 		gainResources(ctx, player, named);
 	}
+	// When a Hucksters tile is on offer, ask before drawing, one tile at a
+	// time. Defer subsequent gains until those choices and their triggers end.
+	const steps =
+		/** @type {{stack: 'territory' | 'space', count: number}[]} */ ([]);
+	for (const stack of /** @type {const} */ (['territory', 'space'])) {
+		if (value[stack]) steps.push({ stack, count: value[stack] });
+	}
+	if (
+		steps.some(
+			({ stack }) => huckstersOffers(ctx.state, player, stack).length
+		)
+	) {
+		/** @type {Record<string, any>} */
+		const rest = {};
+		for (const key of ['tapestry', 'keep', 'any']) {
+			if (value[key] !== undefined) rest[key] = value[key];
+		}
+		ctx.push([
+			{ player, kind: 'huckstersTileGain', steps },
+			...(Object.keys(rest).length
+				? [{ player, kind: 'effects', effects: [{ gain: rest }] }]
+				: []),
+		]);
+		return;
+	}
 	// The Psionics draw 2 tiles for each and keep 1, the other shuffled back (03 FF.3, R74; #40).
 	const sampled = psionic(ctx.state, player);
 	for (const stack of /** @type {const} */ (['territory', 'space'])) {
@@ -195,6 +247,20 @@ export function gain(ctx, player, value) {
 		advisorsBeside(ctx.state, player) !== null
 	) {
 		ops.push({ player, kind: 'advisorsDraw', count: value.tapestry });
+	} else if (
+		value.tapestry &&
+		huckstersTapestryOffer(ctx.state, player, value.tapestry, value.keep)
+	) {
+		ops.push(
+			/** @type {import('../state.js').NewOperation} */ (
+				huckstersTapestryOffer(
+					ctx.state,
+					player,
+					value.tapestry,
+					value.keep
+				)
+			)
+		);
 	} else if (value.tapestry && psionic(ctx.state, player)) {
 		// The Psionics: each card drawn 2 to keep 1, the other discarded (R143); a draft's draw takes one more (R74, #53's handoff; #40).
 		if (value.keep !== undefined) {
@@ -258,7 +324,7 @@ export function sampleTiles(ctx, player, stack, count) {
 	/** @type {import('../state.js').NewOperation[]} */
 	const ops = [];
 	for (let i = 0; i < count; i++) {
-		const drawn = ctx.state.supply[stack].splice(0, 2);
+		const drawn = drawEligibleTiles(ctx, player, stack, 2);
 		if (drawn.length === 0) {
 			break;
 		}

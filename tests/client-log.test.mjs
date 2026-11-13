@@ -37,8 +37,30 @@ const SAMPLES = {
 		pair: { trackCard: 4, tiebreakerCard: 3 },
 		bot: 'automa',
 	},
+	automaCharmsRevealed: { player: 2, cards: ['monarchy'], total: 1 },
+	automaTechReplaced: {
+		player: 2,
+		discarded: 'calculator',
+		replacement: 'thermometer',
+		row: 'middle',
+	},
+	huckstersPoolAdded: { player: 2, kind: 'tapestry', item: 'monarchy' },
+	huckstersPoolTaken: {
+		player: 1,
+		owner: 2,
+		kind: 'tapestry',
+		item: 'monarchy',
+	},
+	automaCharmTaken: { player: 1, bot: 2, card: 'monarchy' },
+	twinImpactMoved: {
+		player: 3,
+		track: 'science',
+		from: 2,
+		to: 3,
+	},
 	botTapestryGained: { player: 2, count: 1, destination: 'trapCards' },
 	botFavouriteChanged: { player: 2, track: 'science' },
+	botTrendyChanged: { player: 2, track: 'science' },
 	botTrapDiscarded: { player: 2, card: 'trap-1', hex: '0_0' },
 	botIncomeStep: { player: 2, step: 'score' },
 	automaCivilizationChosen: {
@@ -373,6 +395,8 @@ function engineEventTypes() {
 		for (const [, type] of source.matchAll(/type: '([a-zA-Z]+)'/g)) {
 			types.add(type);
 		}
+		// conquest.js emits this branch of its conditional event name when an Automa trap succeeds.
+		if (source.includes("'automaTrapSprung'")) types.add('automaTrapSprung');
 	}
 	return types;
 }
