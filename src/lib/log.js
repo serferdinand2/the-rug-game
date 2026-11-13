@@ -79,6 +79,16 @@ const VP_FROM = /** @type {Readonly<Record<string, string>>} */ ({
 /** The event kinds that are table notices rather than plain lines. */
 const NOTICES = ['timedOut', 'undone', 'gameEnded', 'playerFinished'];
 
+/** @param {unknown} kind */
+const huckstersItemName = (kind) =>
+	/** @type {Record<string, string>} */ ({
+		tech: 'technology card',
+		masterpiece: 'masterpiece',
+		tapestry: 'tapestry card',
+		space: 'space tile',
+		territory: 'territory tile',
+	})[String(kind)] ?? 'item';
+
 /** Every event type the log deliberately leaves out: bookkeeping a reader learns nothing from. */
 export const SILENT = new Set([
 	// Its visible income action already explains the bot's internal chart steps.
@@ -358,25 +368,11 @@ const WORDS = {
 				? `${name} discarded ${techName(e.discarded)}; no replacement was available.`
 				: `${name} replaced a technology card.`,
 	huckstersPoolAdded: (e, game, name) => {
-		const item =
-			e.kind === 'tech'
-				? 'technology card'
-				: e.kind === 'masterpiece'
-					? 'masterpiece'
-					: e.kind === 'tapestry'
-						? 'tapestry card'
-						: `${String(e.kind ?? 'game')} tile`;
+		const item = huckstersItemName(e.kind);
 		return `${name} added a face-up ${item} to the Hucksters pool.`;
 	},
 	huckstersPoolTaken: (e, game, name) => {
-		const item =
-			e.kind === 'tech'
-				? 'technology card'
-				: e.kind === 'masterpiece'
-					? 'masterpiece'
-					: e.kind === 'tapestry'
-						? 'tapestry card'
-						: `${String(e.kind ?? 'game')} tile`;
+		const item = huckstersItemName(e.kind);
 		return `${name} took a face-up ${item} from ${seatName(game, e.owner)}'s Hucksters pool.`;
 	},
 	automaCharmTaken: (e, game, name) =>

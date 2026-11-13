@@ -395,6 +395,8 @@ function engineEventTypes() {
 		for (const [, type] of source.matchAll(/type: '([a-zA-Z]+)'/g)) {
 			types.add(type);
 		}
+		// conquest.js emits this branch of its conditional event name when an Automa trap succeeds.
+		if (source.includes("'automaTrapSprung'")) types.add('automaTrapSprung');
 	}
 	return types;
 }
