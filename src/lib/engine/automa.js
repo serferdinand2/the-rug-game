@@ -252,7 +252,11 @@ function advanceTwinImpact(ctx, shadow, shadowTrack) {
 	// R66's verified clockwise order; #186 blocks the arts-track position.
 	/** @type {import('./data/ids.js').BoardTrackId[]} */
 	const clockwise = ['military', 'science', 'exploration', 'technology'];
-	const nextTrack = clockwise[(clockwise.indexOf(shadowTrack) + 1) % clockwise.length];
+	const nextTrack = clockwise[
+		(clockwise.indexOf(/** @type {import('./data/ids.js').BoardTrackId} */ (shadowTrack)) +
+			1) %
+			clockwise.length
+	];
 	const tokens = twinTracks[nextTrack];
 	if (!tokens?.length) return;
 	const from = Math.max(...tokens);
