@@ -357,6 +357,36 @@ const WORDS = {
 			: typeof e.discarded === 'string'
 				? `${name} discarded ${techName(e.discarded)}; no replacement was available.`
 				: `${name} replaced a technology card.`,
+	huckstersPoolAdded: (e, game, name) => {
+		const item =
+			e.kind === 'tech'
+				? 'technology card'
+				: e.kind === 'masterpiece'
+					? 'masterpiece'
+					: e.kind === 'tapestry'
+						? 'tapestry card'
+						: `${String(e.kind ?? 'game')} tile`;
+		return `${name} added a face-up ${item} to the Hucksters pool.`;
+	},
+	huckstersPoolTaken: (e, game, name) => {
+		const item =
+			e.kind === 'tech'
+				? 'technology card'
+				: e.kind === 'masterpiece'
+					? 'masterpiece'
+					: e.kind === 'tapestry'
+						? 'tapestry card'
+						: `${String(e.kind ?? 'game')} tile`;
+		return `${name} took a face-up ${item} from ${seatName(game, e.owner)}'s Hucksters pool.`;
+	},
+	automaCharmTaken: (e, game, name) =>
+		typeof e.card === 'string'
+			? `${name} exchanged a tapestry card for ${tapestryName(e.card)} from ${seatName(game, e.bot)}'s Charmers.`
+			: `${name} took a tapestry card from ${seatName(game, e.bot)}'s Charmers.`,
+	twinImpactMoved: (e, game, name) =>
+		isCount(e.to) && typeof e.track === 'string'
+			? `${name}'s Twin Impact marker advanced to ${spaceName(e.track, e.to)} on ${trackName(e.track)}.`
+			: `${name}'s Twin Impact marker advanced.`,
 	botFavouriteChanged: (e, game, name) =>
 		`${name} now favours ${trackName(e.track)}.`,
 	botTrendyChanged: (e, game, name) =>
