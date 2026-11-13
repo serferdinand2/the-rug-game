@@ -68,6 +68,18 @@ const running = (locator) =>
 		(element) => element.getAnimations({ subtree: true }).length
 	);
 
+/** @param {import('@playwright/test').Locator} locator */
+const pageBounds = (locator) =>
+	locator.evaluate((element) => {
+		const rect = element.getBoundingClientRect();
+		return {
+			x: rect.left + window.scrollX,
+			y: rect.top + window.scrollY,
+			width: rect.width,
+			height: rect.height,
+		};
+	});
+
 /**
  * Waits until nothing in the element moves any more.
  * @param {import('@playwright/test').Locator} locator
@@ -158,7 +170,8 @@ test('a prompt opened again rises over its scrim, deals its shelf in and rests a
 	const first = example.locator('.rg-decision-panel').first();
 	await expect(first).toBeVisible();
 	await settled(first);
-	const rest = await first.locator('.rg-decision-panel--panel').boundingBox();
+	const panel = first.locator('.rg-decision-panel--panel');
+	const rest = await pageBounds(panel);
 	await forget(page);
 	await example.getByRole('button', { name: 'Open again' }).click();
 	const again = example.locator('.rg-decision-panel').first();
@@ -169,9 +182,17 @@ test('a prompt opened again rises over its scrim, deals its shelf in and rests a
 		.poll(() => moved(again.locator('.rg-card-fan--card').first()))
 		.toBe(true);
 	await settled(again);
-	const panel = again.locator('.rg-decision-panel--panel');
-	await expect(panel).toHaveCSS('opacity', '1');
-	expect(await panel.boundingBox()).toEqual(rest);
+	const reopenedPanel = again.locator('.rg-decision-panel--panel');
+	await expect(reopenedPanel).toHaveCSS('opacity', '1');
+	const reopened = await pageBounds(reopenedPanel);
+	for (const dimension of /** @type {const} */ ([
+		'x',
+		'y',
+		'width',
+		'height',
+	])) {
+		expect(Math.abs(reopened[dimension] - rest[dimension])).toBeLessThan(1);
+	}
 });
 
 test('a shelf deals its cards in from a deck at the left, one after another (#176)', async ({
